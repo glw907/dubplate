@@ -1,9 +1,9 @@
 # Charlie Phillips (Charlie Phillips Heritage Archive)
 
-Status: blocked. The contact route failed verification: `charliephillipsarchive.com` has no MX
-record (checked again 2026-09-25 at the plan fold), so mail to the archive address may bounce.
-The fallback route is Nicky Akehurst (below), who represents him for talks. Geoff decides whether
-to send through her. Nothing has been sent.
+Status: drafted (via Nicky Akehurst). Geoff ruled on 2026-09-25 to send through Nicky Akehurst,
+because `charliephillipsarchive.com` has no MX record and mail to the archive address may bounce.
+The letter opens with a cover line asking her to pass it on or say who handles his image rights.
+Geoff sends from his own account; nothing has been sent.
 
 Checked again at the plan fold, 2026-09-25: `dig MX charliephillipsarchive.com` returns nothing.
 The four V&A pages return 200.
@@ -27,6 +27,10 @@ The four V&A pages return 200.
 - Current terms: the copyrights page says none of the site's content "may be downloaded,
   copied, reproduced, transmitted, stored, sold or distributed without the prior written consent
   of the copyright holder."
+- Subject of his work: "Notting Hill's West Indian community across the 1960s–80s", from the
+  research (`../photographer-outreach.md`, line 79, citing the V&A Portobello Road record and his
+  Wikipedia article). The letter's "Notting Hill's West Indian community in the 1960s and 70s"
+  rests on this line.
 - Wikipedia gives his birth date as 22 November 1944 and lists no death date
   (<https://en.wikipedia.org/wiki/Charlie_Phillips_(photographer)>, raw fetched 2026-09-25).
 
@@ -43,27 +47,35 @@ The V&A holding a print does not settle who holds copyright; the letter asks Phi
 | Portobello Road | 1974 | <https://collections.vam.ac.uk/item/O1225393/> |
 
 ## Letter
-**Subject:** Four of your Notting Hill photographs for a small open-source music server
+**Subject:** A note for Charlie Phillips: four Notting Hill photographs for a small open-source music server
+Dear Nicky,
+
+Your site says you represent Charlie Phillips for talks. His archive's email may not accept
+mail, so could you pass this note to him, or tell me who handles his image rights? Thank you.
 
 Dear Mr Phillips,
 
 My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
-one well-organized library. It's open source, released under the MIT license. The sign-in page
-shows a photograph from a music scene, and a credits page lists every photo. Each one is always
-credited to the person who took it.
+one well-organized library. It will be released as open source under the MIT license. Its
+sign-in page will show a photograph from a music scene, credited to the person who took it, and
+a credits page will list every photo.
 
 Your photographs of Notting Hill's West Indian community in the 1960s and 70s show a London I
-want the people using dubplate to see. I'd love to include four of them: Notting Hill Couple
-(1967), Cue Club Regulars (1966), Notting Hill Carnival (1968), and Portobello Road (1974).
+want dubplate's users to see. I'd love to include four:
+
+- Notting Hill Couple (1967)
+- Cue Club Regulars (1966)
+- Notting Hill Carnival (1968)
+- Portobello Road (1974)
 
 Would you consider releasing those four under CC BY 4.0? CC BY lets anyone reuse and adapt a
 photo, commercially too, as long as they credit you. If you agree, a line on the archive's site
 naming the photos and the license would let anyone check it. I'd need files at least 1200 pixels
 on the long side.
 
-If that isn't something you'd want, would you allow them in an optional photo pack instead? The
-pack is planned but has no date yet. It would be a separate download that people who run
-dubplate could choose to add, on terms you set.
+If not, would you allow them in an optional photo pack instead? The pack is planned but has no
+date yet. It would be a separate download, under a narrower permission such as use only with
+dubplate.
 
 Thank you for the archive, and for the years of work behind it.
 

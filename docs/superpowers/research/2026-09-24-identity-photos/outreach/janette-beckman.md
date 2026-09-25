@@ -34,18 +34,21 @@ larger files.
 
 ## Letter
 **Subject:** Five of your photographs for a small open-source music server
-
 Hi Janette,
 
 My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
-one well-organized library. It's open source, released under the MIT license. The sign-in page
-shows a photograph from a music scene, and a credits page lists every photo. Each one is always
-credited to the person who took it.
+one well-organized library. It will be released as open source under the MIT license. Its
+sign-in page will show a photograph from a music scene, credited to the person who took it, and
+a credits page will list every photo.
 
-Early hip-hop is the scene I've found hardest to show, and your New York photographs from those
-years are the ones I'd most like to use. I'm hoping for five: Afrika Bambaataa in the Bronx in
-1983, Grandmixer DST in 1982, and Run DMC and their posse in Hollis in 1984, along with 2 Tone
-Ska Fans from 1980 and the Ladbroke Grove sound system from 1981.
+Early hip-hop is the scene I've found hardest to show, and your hip-hop photographs are the ones
+I'd most like to use. I'm hoping for five:
+
+- Afrika Bambaataa in the Bronx, 1983
+- Grandmixer DST, 1982
+- Run DMC and their posse in Hollis, 1984
+- 2 Tone Ska Fans, 1980
+- The Ladbroke Grove sound system, 1981
 
 Would you consider releasing those five under CC BY 4.0? CC BY lets anyone reuse and adapt a
 photo, commercially too, as long as they credit you. If you agree, a line on your site naming
@@ -53,7 +56,7 @@ the photos and the license would let anyone check it.
 
 I know you license your pictures, so I understand if that's too much. If it is, would you allow
 them in an optional photo pack instead? The pack is planned but has no date yet. It would be a
-separate download that people who run dubplate could choose to add, on terms you set.
+separate download, under a narrower permission such as use only with dubplate.
 
 Thank you for the work either way.
 

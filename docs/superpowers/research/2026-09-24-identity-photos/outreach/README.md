@@ -10,7 +10,7 @@ whose contact route fails verification is `blocked`, with the reason.
 | [Beth Lesser](beth-lesser.md) | Email on her archive site, `bethlesser.com` | drafted |
 | [British Culture Archive, The People's Archive](british-culture-archive.md) | `contact@britishculturearchive.co.uk` (contact and licensing pages) | drafted |
 | [DC Punk Archive, DC Public Library](dc-punk-archive.md) | `Peoples.Archive@dc.gov` (DC Punk Archive page) | drafted |
-| [Charlie Phillips](charlie-phillips.md) | `info@charliephillipsarchive.com`; fallback Nicky Akehurst, `na@nickyakehurst.com` | blocked: the archive domain has no MX record, so the route failed verification; Geoff decides on the fallback |
+| [Charlie Phillips](charlie-phillips.md) | Nicky Akehurst, `na@nickyakehurst.com`, with a cover line asking her to pass it on (the archive's `info@charliephillipsarchive.com` has no MX record) | drafted (via Nicky Akehurst) |
 | [Janette Beckman](janette-beckman.md) | Email on her contact page, `janettebeckman.com` | drafted |
 
 A grant that arrives only by email is recorded under `grants/` in this directory, per the

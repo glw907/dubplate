@@ -40,26 +40,27 @@ the rest.
 
 ## Letter
 **Subject:** Photographs from the DC Punk Archive for a small open-source music server
-
 Hello,
 
 My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
-one well-organized library. It's open source, released under the MIT license. The sign-in page
-shows a photograph from a music scene, and a credits page lists every photo.
+one well-organized library. It will be released as open source under the MIT license. Its
+sign-in page will show a photograph from a music scene, credited to the person who took it, and
+a credits page will list every photo.
 
-I'd love for DC punk to be part of it. I'm thinking of the scene photographs in the Punk 202
-collection and in the Mike Ross collection from 1982 to 1987. I haven't picked single images
-yet, because I can't tell from Dig DC who holds the rights to each one.
+I'd love DC punk to be part of it. I'm thinking of scene photographs in the Punk 202 collection
+and the Mike Ross collection (1982 to 1987). I haven't picked single images yet, because Dig DC
+lists their copyright as undetermined.
 
-Are there photographs in those collections that the library holds the copyright to? If so, would
-you consider releasing a few of them under CC BY 4.0? CC BY lets anyone reuse and adapt a photo,
-commercially too, as long as they credit it. The rights field on Dig DC would let anyone check
-it. For photographs whose rights sit with the photographer, could you tell me who to ask, or
-pass my note along?
+Your permissions page says materials the library owns the copyright to can be used, credited
+"Courtesy DC Public Library, The People's Archive from" the collection name. Does the library
+own the copyright to any of those photographs? If so, would you consider releasing a few under
+CC BY 4.0? CC BY lets anyone reuse and adapt a photo, commercially too, as long as they keep
+that credit. The rights field on Dig DC could then name the license for anyone to check. For the
+rest, could you tell me who to ask, or pass my note along?
 
-If an open license isn't possible, would the library allow a few in an optional photo pack? The
-pack is planned but has no date yet. It would be a separate download that people who run
-dubplate could choose to add, on terms you set.
+If not, would the library allow a few in an optional photo pack? The pack is planned but has no
+date yet. It would be a separate download, under a narrower permission such as use only with
+dubplate.
 
 Thank you for building an archive that keeps the scene's own record.
 

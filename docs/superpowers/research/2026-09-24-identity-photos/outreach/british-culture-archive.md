@@ -42,28 +42,33 @@ Resolution of the originals is unknown; the letter asks for files at 1200 pixels
 
 ## Letter
 **Subject:** Five People's Archive photographs for a small open-source music server
-
 Hello,
 
 My name is Geoff. I'm building dubplate, a free music server that lets a group of friends share
-one well-organized library. It's open source, released under the MIT license. The sign-in page
-shows a photograph from a music scene, and a credits page lists every photo.
+one well-organized library. It will be released as open source under the MIT license. Its
+sign-in page will show a photograph from a music scene, credited to the person who took it, and
+a credits page will list every photo.
 
-The Mods, Skins & Mod Revival selection from The People's Archive shows those scenes as the
-people inside them saw them. I'd love to include five: Tulse Hill, London, 1979 (Lee Dema); Two
-Tone arrives in Dudley, 1980 (Tom); Pimlico, London, 1963 (Colin Staplehurst); Original Mods on
-Box Hill, Surrey, 1962 (Jack Oxford); and Skinheads in St Leonards-on-Sea, 1980 (Russell
-Macnay). Each credit would name the contributor and The People's Archive.
+Your Mods, Skins & Mod Revival selection shows those scenes from the inside. I'd love to include
+five:
 
-Would you and the contributors consider releasing these five under CC BY 4.0? CC BY lets anyone
-reuse and adapt a photo, commercially too, as long as they credit it. If you agree, a line on
-the archive's page naming the photos and license would let anyone check it. I'd need files at
-least 1200 pixels on the long side.
+- Tulse Hill, London, 1979 (Lee Dema)
+- Two Tone arrives in Dudley, 1980 (Tom)
+- Pimlico, London, 1963 (Colin Staplehurst)
+- Original Mods on Box Hill, Surrey, 1962 (Jack Oxford)
+- Skinheads in St Leonards-on-Sea, 1980 (Russell Macnay)
 
-If that isn't possible, would you allow them in an optional photo pack instead? The pack is
-planned but has no date yet. It would be a separate download that people who run dubplate could
-choose to add, on terms you set.
+Credits would follow your captions, as in "Photo © Lee Dema/The People's Archive®".
 
-Thank you for gathering these pictures and keeping the names of the people who took them.
+I know the archive licenses its images, so this is a big ask. Would you and the contributors
+consider releasing these five under CC BY 4.0? CC BY lets anyone reuse and adapt a photo,
+commercially too, as long as they keep that credit. If you agree, a line on the archive's page
+naming the photos and license would let anyone check it. I'd need files at least 1200 pixels on
+the long side.
+
+If not, would you allow them in an optional photo pack? The pack is planned but has no date yet.
+It would be a separate download, under a narrower permission such as use only with dubplate.
+
+Thank you for gathering these pictures and crediting the people who shared them.
 
 Geoff
