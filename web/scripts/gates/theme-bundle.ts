@@ -171,7 +171,7 @@ const DUBPLATE_THEME_COMPOUND = /\[data-theme=(?:"dubplate-[\w-]+"|dubplate-[\w-
 /** DaisyUI's stock `light`/`dark` theme compound, quoted or not. */
 const STOCK_DATA_THEME = /\[data-theme=(?:"(?:light|dark)"|light|dark)\]/;
 /** DaisyUI's `theme-controller` checkbox machinery for its own stock `light`/`dark` themes. */
-const STOCK_THEME_CONTROLLER = /input\.theme-controller\[value=(?:"?light"?)\]|\[value=(?:"?dark"?)\]/;
+const STOCK_THEME_CONTROLLER = /input\.theme-controller\[value="?(?:light|dark)"?\]/;
 
 /**
  * True for a bare `:root` and/or `html` selector part: the shape a
@@ -208,20 +208,28 @@ function isConfinedPart(part: string): boolean {
  * Fails a rule that sets a theme-stampable name unless every
  * comma-separated part of its selector either confines it to a real
  * theme (`isConfinedPart`) or is a bare `:root`/`html` riding alongside
- * at least one confined or `:host` part (Tailwind's preflight shape).
- * A rule whose every part is bare `:root`/`html` and nothing else (no
- * `:host`, no confined part) is the classic global-override hazard and
- * always fails, regardless of `@layer`. A rule that does carry a
- * confining part but sits outside `@layer base` also fails: it competes
- * with our own `@layer base` theme rules by source order instead of by
- * a settled layer order.
+ * at least one confined part (Tailwind's preflight shape). A rule whose
+ * every part is bare `:root`/`html` and nothing else (no confined part
+ * at all) is the classic global-override hazard and always fails,
+ * regardless of `@layer`. A rule that does carry a confining part but
+ * sits outside `@layer base` also fails, whatever that confining part
+ * is (`:host`, `:where(:root)`, a stock `[data-theme=light|dark]`, or
+ * `theme-controller`): it competes with our own `@layer base` theme
+ * rules by source order instead of by a settled layer order. The one
+ * exception is Tailwind's own `:root,:host` preflight reset, which
+ * lands in `@layer theme` (ahead of `@layer base` in Tailwind's own
+ * layer order, so it can never win the cascade over a stamped theme
+ * regardless of source order).
  */
-function checkNameConfinement(nodes: Node[], insideLayerBase: boolean, violations: string[]): void {
+function checkNameConfinement(nodes: Node[], layerName: string | undefined, violations: string[]): void {
   for (const node of nodes) {
     if (node.kind === 'rule') {
       const names = node.declarations.map((d) => d.name).filter((n) => THEME_TOKEN_NAMES.has(n));
       if (names.length === 0) continue;
       const parts = splitSelectorList(node.selector);
+      const isTailwindPreflightReset =
+        layerName === 'theme' && parts.length === 2 && parts.includes(':root') && parts.includes(':host');
+      if (isTailwindPreflightReset) continue;
       const confinedParts = parts.filter((p) => isConfinedPart(p));
       const looseParts = parts.filter((p) => !isConfinedPart(p) && !isBareRootPart(p));
       if (confinedParts.length === 0 && parts.every((p) => isBareRootPart(p))) {
@@ -232,12 +240,12 @@ function checkNameConfinement(nodes: Node[], insideLayerBase: boolean, violation
         violations.push(
           `theme-bundle: rule "${node.selector}" sets ${names.join(', ')} through unconfined selector part(s) ${looseParts.join(', ')}`
         );
-      } else if (confinedParts.some((p) => DUBPLATE_THEME_COMPOUND.test(p)) && !insideLayerBase) {
+      } else if (layerName !== 'base') {
         violations.push(`theme-bundle: rule "${node.selector}" sets ${names.join(', ')} outside @layer base`);
       }
     } else if (node.kind === 'at-rule') {
-      const nextInside = insideLayerBase || (node.name === '@layer' && node.prelude === 'base');
-      checkNameConfinement(node.children, nextInside, violations);
+      const nextLayer = node.name === '@layer' ? node.prelude.trim() : layerName;
+      checkNameConfinement(node.children, nextLayer, violations);
     }
   }
 }
@@ -330,7 +338,7 @@ export function run(): string[] {
     violations.push('theme-bundle: the bundle carries a :root:not([data-theme]) guard');
   }
 
-  checkNameConfinement(scanNodes(bundleText, 0, bundleText.length), false, violations);
+  checkNameConfinement(scanNodes(bundleText, 0, bundleText.length), undefined, violations);
 
   const srcFiles = walk(SRC_ROOT);
   for (const rel of srcFiles) {
