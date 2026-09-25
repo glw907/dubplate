@@ -32,7 +32,7 @@ import {
   STRUCTURAL_NAMES,
   SYSTEM_NAME
 } from './g2.ts';
-import { fail, walk } from './lib.ts';
+import { fail, isMainModule, walk } from './lib.ts';
 
 const BUILD_ROOT = 'build';
 const ASSETS_DIR = 'build/_app/immutable/assets';
@@ -163,6 +163,52 @@ function checkStampedValues(
   }
 }
 
+/** Every theme-stampable name G2 and G9 already track, the inventory a rogue rule could set. */
+const THEME_TOKEN_NAMES = new Set<string>([...STRUCTURAL_NAMES, ...PALETTE_NAMES, ...INK_NAMES]);
+/** A `[data-theme=dubplate-*]` compound, quoted or not: the only selector shape a theme-token rule may confine itself to. */
+const DUBPLATE_THEME_COMPOUND = /\[data-theme=(?:"dubplate-[\w-]+"|dubplate-[\w-]+)\]/;
+
+/**
+ * True for a selector list holding nothing but a bare `:root` and/or
+ * `html`: the shape a hand-authored global override takes (the review's
+ * own probe, `:root{--color-primary:#0000ff}`). `:host` and any
+ * pseudo-class (`:has(...)`, `:where(...)`) are excluded on purpose:
+ * Tailwind's own `:root,:host{--font-sans:...}` reset and DaisyUI's own
+ * `:root:has(input.theme-controller...)` stock-theme machinery both use
+ * this shape legitimately and are not the hazard this check targets.
+ */
+function isBareRootSelector(selector: string): boolean {
+  const parts = selector.split(',').map((p) => p.trim());
+  return parts.length > 0 && parts.every((p) => p === ':root' || p === 'html');
+}
+
+/**
+ * Fails a bare `:root`/`html` rule that sets a theme-stampable name (it
+ * wins the cascade over every stamped theme silently), and fails a rule
+ * that carries a `[data-theme=dubplate-*]` compound but sits outside
+ * `@layer base`.
+ */
+function checkNameConfinement(nodes: Node[], insideLayerBase: boolean, violations: string[]): void {
+  for (const node of nodes) {
+    if (node.kind === 'rule') {
+      const names = node.declarations.map((d) => d.name).filter((n) => THEME_TOKEN_NAMES.has(n));
+      if (names.length === 0) continue;
+      if (isBareRootSelector(node.selector)) {
+        violations.push(
+          `theme-bundle: rule "${node.selector}" sets ${names.join(', ')} with no [data-theme=dubplate-*] compound at all`
+        );
+      } else if (DUBPLATE_THEME_COMPOUND.test(node.selector) && !insideLayerBase) {
+        violations.push(
+          `theme-bundle: rule "${node.selector}" sets ${names.join(', ')} outside @layer base`
+        );
+      }
+    } else if (node.kind === 'at-rule') {
+      const nextInside = insideLayerBase || (node.name === '@layer' && node.prelude === 'base');
+      checkNameConfinement(node.children, nextInside, violations);
+    }
+  }
+}
+
 export function run(): string[] {
   const violations: string[] = [];
 
@@ -183,11 +229,12 @@ export function run(): string[] {
     const effective = effectiveValues(rules, composed, 'none');
     const matchRef = reference.match.get(composed) ?? new Map();
     const paletteRef = reference.palette.get(composed) ?? new Map();
-    const combinedRef = new Map([...matchRef, ...paletteRef]);
+    const inkRef = reference.inks.get(composed) ?? new Map();
+    const combinedRef = new Map([...matchRef, ...paletteRef, ...inkRef]);
     checkStampedValues(
       effective,
       combinedRef,
-      [...STRUCTURAL_NAMES, ...paletteNamesExceptScheme],
+      [...STRUCTURAL_NAMES, ...paletteNamesExceptScheme, ...INK_NAMES],
       composed,
       violations
     );
@@ -250,13 +297,20 @@ export function run(): string[] {
     violations.push('theme-bundle: the bundle carries a :root:not([data-theme]) guard');
   }
 
+  checkNameConfinement(scanNodes(bundleText, 0, bundleText.length), false, violations);
+
   const srcFiles = walk(SRC_ROOT);
   for (const rel of srcFiles) {
-    if (!/\.(svelte|ts|js|html)$/.test(rel)) continue;
+    if (!/\.(svelte|ts|js|html|css)$/.test(rel)) continue;
     const contents = readFileSync(join(SRC_ROOT, rel), 'utf8');
     contents.split('\n').forEach((line, i) => {
       if (/\bdark:/.test(line)) {
         violations.push(`theme-bundle: ${rel}:${i + 1}: a stray dark: utility styles by the device, not the stamp`);
+      }
+      if (/\btheme-controller\b/.test(line)) {
+        violations.push(
+          `theme-bundle: ${rel}:${i + 1}: a theme-controller reference bypasses the stamp DL R4.6 bans`
+        );
       }
     });
   }
@@ -272,6 +326,6 @@ function main(): void {
   process.stdout.write('theme-bundle: passed, every stampable value is effective and at parity.\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }

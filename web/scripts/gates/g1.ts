@@ -5,14 +5,19 @@
  */
 import { readFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
-import { fail, walk } from './lib.ts';
+import { fail, isMainModule, walk } from './lib.ts';
 
 const SRC_ROOT = 'src';
 const EXEMPT_PREFIX = `lib${sep}themes${sep}`;
-const SCANNED_EXTENSIONS = ['.svelte', '.ts', '.js', '.css', '.html'];
+const SCANNED_EXTENSIONS = ['.svelte', '.ts', '.js', '.css', '.html', '.svg'];
 
 const COLOR_FUNCTIONS = /\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|hwb|color)\(/;
 const HEX_LITERAL = /#[0-9a-fA-F]{3,8}\b/;
+/** A Svelte `style:<prop>=` directive, the attribute-shaped sibling of a CSS `prop: value;` declaration. */
+const STYLE_DIRECTIVE =
+  /\bstyle:(color|background(-color)?|border(-[a-z]+)?-color|fill|stroke|outline-color|box-shadow|text-decoration-color|caret-color|accent-color)\s*=\s*["']([^"']*)["']/gi;
+/** SVG's own color-bearing presentation attributes, never routed through G1's CSS-declaration scan. */
+const SVG_COLOR_ATTR = /\b(fill|stroke|stop-color)\s*=\s*["']([^"']*)["']/gi;
 
 const TAILWIND_COLOR_PREFIXES = [
   'bg',
@@ -78,7 +83,7 @@ function scanLine(path: string, lineNo: number, line: string, violations: Violat
   if (COLOR_FUNCTIONS.test(line)) {
     violations.push({ path, line: lineNo, pattern: 'color function' });
   }
-  if (HEX_LITERAL.test(line) && /(class|style)\s*=|:\s*#/.test(line)) {
+  if (HEX_LITERAL.test(line)) {
     violations.push({ path, line: lineNo, pattern: 'hex literal' });
   }
   if (TAILWIND_UTILITY.test(line)) {
@@ -94,6 +99,41 @@ function scanLine(path: string, lineNo: number, line: string, violations: Violat
       }
     }
   }
+  STYLE_DIRECTIVE.lastIndex = 0;
+  while ((m = STYLE_DIRECTIVE.exec(line))) {
+    const value = m[m.length - 1].toLowerCase();
+    for (const word of value.split(/[^a-z]+/)) {
+      if (CSS_NAMED_COLORS.has(word)) {
+        violations.push({ path, line: lineNo, pattern: `named color "${word}" in a style: directive` });
+      }
+    }
+  }
+  SVG_COLOR_ATTR.lastIndex = 0;
+  while ((m = SVG_COLOR_ATTR.exec(line))) {
+    const attr = m[1];
+    const value = m[2].trim().toLowerCase();
+    if (value === '' || value === 'none' || value === 'currentcolor' || /^(var|url)\(/.test(value)) continue;
+    violations.push({ path, line: lineNo, pattern: `SVG ${attr} attribute "${value}"` });
+  }
+}
+
+/**
+ * `/* *\/`, `<!-- -->`, and `//` (`.ts`/`.js` only, since `//` is not a
+ * comment marker in CSS, Svelte markup, or HTML) blanked to spaces so a
+ * hex literal or a named color inside a comment never counts as a
+ * violation, while every line number and column stays put for the
+ * caller's line-based scan.
+ */
+export function stripComments(path: string, contents: string): string {
+  const blank = (match: string) => match.replace(/[^\n]/g, ' ');
+  let out = contents.replace(/\/\*[\s\S]*?\*\//g, blank).replace(/<!--[\s\S]*?-->/g, blank);
+  if (path.endsWith('.ts') || path.endsWith('.js')) {
+    out = out
+      .split('\n')
+      .map((line) => line.replace(/\/\/.*/, blank))
+      .join('\n');
+  }
+  return out;
 }
 
 export function run(root: string): Violation[] {
@@ -101,7 +141,7 @@ export function run(root: string): Violation[] {
   for (const rel of walk(root)) {
     if (rel.startsWith(EXEMPT_PREFIX)) continue;
     if (!SCANNED_EXTENSIONS.some((ext) => rel.endsWith(ext))) continue;
-    const contents = readFileSync(join(root, rel), 'utf8');
+    const contents = stripComments(rel, readFileSync(join(root, rel), 'utf8'));
     contents.split('\n').forEach((line, i) => scanLine(rel, i + 1, line, violations));
   }
   return violations;
@@ -120,6 +160,6 @@ function main() {
   process.stdout.write(`g1: passed, read ${files.length} file(s), no hardcoded color found.\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }

@@ -7,17 +7,18 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fail, walk } from './lib.ts';
+import { fail, isMainModule, walk } from './lib.ts';
 
 const SRC_ROOT = 'src';
 const BUILD_ROOT = 'build';
-const SCANNED_EXTENSIONS = ['.svelte', '.css', '.html', '.js'];
+const SCANNED_EXTENSIONS = ['.svelte', '.css', '.html', '.js', '.ts'];
 
 // A scheme or a protocol-relative `//` sitting inside a `url()`,
-// `@import`, or `<link href>` directive, never a bare scheme anywhere
-// in a file (a comment or a string elsewhere is not a directive).
+// `@import`, a `<link href>` directive, an `src`/`srcset`/`poster`/`data`
+// attribute, or an `import()`/`fetch()` call, never a bare scheme
+// anywhere in a file (a comment or a string elsewhere is not a load).
 const EXTERNAL_ORIGIN =
-  /(url\(\s*['"]?|@import\s+['"]?|<link\b[^>]*\bhref\s*=\s*['"])(https?:)?\/\//gi;
+  /(url\(\s*['"]?|@import\s+['"]?|<link\b[^>]*\bhref\s*=\s*['"]|\b(?:src|srcset|poster|data)\s*=\s*['"]|\b(?:import|fetch)\(\s*['"])(https?:)?\/\//gi;
 
 export interface Violation {
   path: string;
@@ -68,6 +69,6 @@ function main() {
   process.stdout.write('g3: passed, no external origin found.\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }

@@ -16,16 +16,15 @@
  *   `--color-base-100`, at 4.5:1. No ink admits a marker.
  */
 import { readFileSync } from 'node:fs';
-import { fail } from './lib.ts';
+import { fail, isMainModule } from './lib.ts';
 import {
   COMPOSED_NAMES,
   type DeclNode,
   declMap,
   type ExceptionMarker,
+  layerBaseChildren,
   pluginBlocksNamed,
-  scanNodes,
   selectorHasDataTheme,
-  type AtRuleNode,
   type RuleNode
 } from './g2.ts';
 
@@ -134,14 +133,26 @@ function resolveAgainstPalette(value: string, palette: Map<string, string>): str
   return palette.get(name) ?? null;
 }
 
+/** The 3:1 tier a marker's reason may cite (WCAG 1.4.11 non-text contrast), one decimal below `FLOOR`. */
+const CITED_TIER = 3.0;
+const CITES_THREE_TO_ONE = /\b3(?:\.0+)?:1\b/;
+/** The largest gap between a marker's recorded ratio and the measured one still counted as the same number, absorbing `toFixed(2)` rounding. */
+const RATIO_TOLERANCE = 0.005;
+
 function checkFloor(
   where: string,
   variable: string,
   text: string,
   base: string,
-  marker: ExceptionMarker | null,
+  rawMarker: ExceptionMarker | null,
+  allowMarker: boolean,
   violations: string[]
 ): void {
+  let marker = rawMarker;
+  if (marker && !allowMarker) {
+    violations.push(`g9: ${where}: ${variable} carries an exception marker on a pairing that admits none`);
+    marker = null;
+  }
   const textLum = relativeLuminance(text);
   const baseLum = relativeLuminance(base);
   if (textLum === null) {
@@ -158,6 +169,17 @@ function checkFloor(
   if (marker) {
     if (marker.variable !== variable) {
       violations.push(`g9: ${where}: the marker above ${variable} names ${marker.variable} instead`);
+    }
+    const recorded = Number(marker.ratio);
+    if (Math.abs(recorded - ratio) >= RATIO_TOLERANCE) {
+      violations.push(
+        `g9: ${where}: ${variable}'s marker records ${formatRatio(recorded)}, measured ${formatRatio(ratio)}`
+      );
+    }
+    if (CITES_THREE_TO_ONE.test(marker.reason) && ratio < CITED_TIER) {
+      violations.push(
+        `g9: ${where}: ${variable}'s reason cites the 3:1 tier but measures ${formatRatio(ratio)}, below it`
+      );
     }
     if (passes) {
       violations.push(
@@ -180,10 +202,7 @@ function readPaletteBlock(file: string, composed: string): DeclNode[] | null {
 
 function readInkRules(): RuleNode[] {
   const text = readFileSync(`${THEMES_DIR}/inks.css`, 'utf8');
-  const layer = scanNodes(text, 0, text.length).find(
-    (n) => n.kind === 'at-rule' && n.name === '@layer' && n.prelude === 'base'
-  ) as AtRuleNode | undefined;
-  return (layer?.children ?? []).filter((n): n is RuleNode => n.kind === 'rule');
+  return layerBaseChildren(text).filter((n): n is RuleNode => n.kind === 'rule');
 }
 
 const PALETTE_FILES: Record<string, string> = {
@@ -211,17 +230,39 @@ export function run(): string[] {
     for (const [contentName, fillName] of CONTENT_PAIRS) {
       const contentDecl = declarations.find((d) => d.name === contentName);
       const fillValue = palette.get(fillName);
-      if (!contentDecl || fillValue === undefined) continue;
-      checkFloor(composed, contentName, contentDecl.value, fillValue, contentDecl.marker, violations);
+      if (!contentDecl) {
+        violations.push(`g9: ${composed}: ${contentName} is missing, contrast cannot be measured`);
+        continue;
+      }
+      if (fillValue === undefined) {
+        violations.push(`g9: ${composed}: ${fillName} is missing, ${contentName}'s contrast cannot be measured`);
+        continue;
+      }
+      // -content pairs are always text: never a place for a contrast-exception marker.
+      checkFloor(composed, contentName, contentDecl.value, fillValue, contentDecl.marker, false, violations);
     }
     const baseContentDecl = declarations.find((d) => d.name === '--color-base-content');
-    if (baseContentDecl) {
-      checkFloor(composed, '--color-base-content', baseContentDecl.value, base100, baseContentDecl.marker, violations);
+    if (!baseContentDecl) {
+      violations.push(`g9: ${composed}: --color-base-content is missing, contrast cannot be measured`);
+    } else {
+      // base-content is always text too: same restriction as the -content pairs above.
+      checkFloor(
+        composed,
+        '--color-base-content',
+        baseContentDecl.value,
+        base100,
+        baseContentDecl.marker,
+        false,
+        violations
+      );
     }
     for (const name of DIRECT_TEXT_COLORS) {
       const decl = declarations.find((d) => d.name === name);
-      if (!decl) continue;
-      checkFloor(composed, name, decl.value, base100, decl.marker, violations);
+      if (!decl) {
+        violations.push(`g9: ${composed}: ${name} is missing, contrast cannot be measured`);
+        continue;
+      }
+      checkFloor(composed, name, decl.value, base100, decl.marker, true, violations);
     }
 
     const inkRule = inkRules.find((r) => selectorHasDataTheme(r.selector, composed));
@@ -239,7 +280,7 @@ export function run(): string[] {
         violations.push(`g9: ${composed}: ${ink.name}'s value "${ink.value}" does not resolve against this theme's own --color-* set`);
         continue;
       }
-      checkFloor(composed, ink.name, resolved, base100, null, violations);
+      checkFloor(composed, ink.name, resolved, base100, null, false, violations);
     }
   }
 
@@ -254,6 +295,6 @@ function main(): void {
   process.stdout.write('g9: passed, every pairing clears its floor or carries a live exception.\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }

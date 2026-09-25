@@ -24,7 +24,7 @@
  * declaration it sits above.
  */
 import { readFileSync } from 'node:fs';
-import { fail } from './lib.ts';
+import { fail, isMainModule } from './lib.ts';
 
 const THEMES_DIR = 'src/lib/themes';
 
@@ -401,6 +401,22 @@ export function pluginBlocksNamed(text: string): Map<string, PluginNode> {
   return byName;
 }
 
+/**
+ * Every child across every top-level `@layer base` block in `text`, not
+ * just the first. A file split across two `@layer base { ... }`
+ * statements is valid CSS (the layer's contents concatenate), so reading
+ * only the first block silently drops whatever a later one declares.
+ */
+export function layerBaseChildren(text: string): Node[] {
+  const out: Node[] = [];
+  for (const node of scanNodes(text, 0, text.length)) {
+    if (node.kind === 'at-rule' && node.name === '@layer' && node.prelude === 'base') {
+      out.push(...node.children);
+    }
+  }
+  return out;
+}
+
 function checkCompleteness(
   where: string,
   declared: string[],
@@ -540,10 +556,7 @@ export function run(): string[] {
 
   // ---- inks.css: one ink block per composed theme, inside `@layer base`.
   const inkDecls = new Map<string, DeclNode[]>();
-  const inkLayer = scanNodes(files.inks, 0, files.inks.length).find(
-    (n) => n.kind === 'at-rule' && n.name === '@layer' && n.prelude === 'base'
-  ) as AtRuleNode | undefined;
-  const inkRules = (inkLayer?.children ?? []).filter((n): n is RuleNode => n.kind === 'rule');
+  const inkRules = layerBaseChildren(files.inks).filter((n): n is RuleNode => n.kind === 'rule');
   for (const composed of COMPOSED_NAMES) {
     const rule = inkRules.find((r) => selectorHasDataTheme(r.selector, composed));
     if (!rule) {
@@ -557,10 +570,7 @@ export function run(): string[] {
   }
 
   // ---- system.css: the unconditional branch and the dark-media branch.
-  const sysLayer = scanNodes(files.system, 0, files.system.length).find(
-    (n) => n.kind === 'at-rule' && n.name === '@layer' && n.prelude === 'base'
-  ) as AtRuleNode | undefined;
-  const sysChildren = sysLayer?.children ?? [];
+  const sysChildren = layerBaseChildren(files.system);
   const sysRules = sysChildren.filter((n): n is RuleNode => n.kind === 'rule');
   const sysMedia = sysChildren.filter((n): n is AtRuleNode => n.kind === 'at-rule' && n.name === '@media');
 
@@ -642,6 +652,6 @@ function main(): void {
   process.stdout.write('g2: passed, the theme data files are complete and at parity.\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }

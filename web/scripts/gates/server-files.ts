@@ -5,9 +5,10 @@
  * nowhere. An absent or empty `src` fails rather than passing on an
  * empty iteration.
  */
-import { readFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
-import { fail, walk } from './lib.ts';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { basename, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { fail, isMainModule, walk } from './lib.ts';
 
 const SRC_ROOT = 'src';
 
@@ -30,7 +31,38 @@ export function declaresActionsExport(path: string, contents: string): boolean {
   return /export\s+(const|let)\s+actions\b/.test(contents);
 }
 
-export function run(root: string): { readCount: number; violations: string[] } {
+/** `kit.files.hooks.server` read from `svelte.config.js`, or SvelteKit's own default `src/hooks.server`. */
+export async function hooksServerEntryBase(configPath = resolve('svelte.config.js')): Promise<string> {
+  const config = (
+    (await import(pathToFileURL(configPath).href)) as {
+      default?: { kit?: { files?: { hooks?: { server?: string } } } };
+    }
+  ).default;
+  return config?.kit?.files?.hooks?.server ?? 'src/hooks.server';
+}
+
+/**
+ * Whether SvelteKit would resolve `entryBase` to a real module: `<entryBase>.js`/`.ts`, or
+ * `<entryBase>/index.js`/`.ts` when `entryBase` names a directory. Mirrors `@sveltejs/kit`'s own
+ * `resolve_entry` (`kit/src/utils/filesystem.js`), which the plain basename scan above cannot
+ * see: a `src/hooks.server/index.ts` directory, or a `kit.files.hooks.server` entry under a
+ * custom name, carries no `hooks.server.(ts|js)` basename at all.
+ */
+export function resolveHooksServerFile(entryBase: string): string | null {
+  for (const ext of ['js', 'ts']) {
+    const candidate = `${entryBase}.${ext}`;
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+  }
+  if (existsSync(entryBase) && statSync(entryBase).isDirectory()) {
+    for (const ext of ['js', 'ts']) {
+      const candidate = join(entryBase, `index.${ext}`);
+      if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+    }
+  }
+  return null;
+}
+
+export async function run(root: string): Promise<{ readCount: number; violations: string[] }> {
   const files = walk(root);
   const violations: string[] = [];
   for (const rel of files) {
@@ -43,11 +75,16 @@ export function run(root: string): { readCount: number; violations: string[] } {
       violations.push(`${rel}: exports \`actions\`, and form actions are forbidden`);
     }
   }
+  const entryBase = await hooksServerEntryBase();
+  const resolved = resolveHooksServerFile(entryBase);
+  if (resolved) {
+    violations.push(`${resolved}: forbidden server-only file (kit.files.hooks.server entry)`);
+  }
   return { readCount: files.length, violations };
 }
 
-function main() {
-  const { readCount, violations } = run(SRC_ROOT);
+async function main() {
+  const { readCount, violations } = await run(SRC_ROOT);
   if (readCount === 0) {
     fail(`server-files: ${SRC_ROOT} is absent or empty; an empty iteration is not a pass.`);
   }
@@ -57,6 +94,6 @@ function main() {
   process.stdout.write(`server-files: passed, read ${readCount} file(s) under ${SRC_ROOT}.\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }

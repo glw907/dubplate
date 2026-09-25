@@ -10,7 +10,7 @@
  * comparison so it never has to guess why `node_modules` is missing.
  */
 import { readFileSync } from 'node:fs';
-import { fail } from './lib.ts';
+import { fail, isMainModule } from './lib.ts';
 
 interface LockPackage {
   version?: string;
@@ -71,6 +71,6 @@ function main() {
   process.stdout.write('install-state: package-lock.json matches node_modules/.package-lock.json.\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main();
 }
