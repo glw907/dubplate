@@ -2467,6 +2467,42 @@ plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
 > itself carries no path, and config load now refuses one on
 > `DUBPLATE_PUBLIC_URL`.
 
+> Erratum, 2026-09-25 (pass 5c-ii close): **the 5c-ii row splits again,
+> into 5c-ii and 5c-iii.** The erratum above described 5c-ii as
+> carrying "the pages, the theme, the embed path, and the gate's
+> `web/` leg rejoin" under its own plan's ceiling.
+> `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`'s
+> Ruling 1 splits that scope again at the served-header task's
+> boundary: 5c-ii carries the Go-side and delivery work (the admin
+> gate, the roster API, the `web/` tree's birth and gate leg, the
+> theme as data, the embed path, the branding and operator
+> stylesheets, the served header set) and closed under a 9.4M ceiling
+> at about 9.2M in subagent tokens (this pass's own HISTORY entry has
+> the figure). 5c-iii carries the fonts, the three pages with their
+> string deck, the rendered gates, and the render-and-read, under its
+> own plan's ceiling. 5c's three-pass total reservation moves from
+> about 18M (5c-i's Ruling 6) to about 22M; rung 5's own reservation
+> moves from about 37M to about 41M.
+
+> Erratum, 2026-09-25 (pass 5c-ii close): **the theme match value is
+> refused by serve's own resolution, not by `internal/config`.**
+> `internal/config`'s threshold registry has no validation hook
+> (R-5c17 keeps that package untouched across 5c-i and 5c-ii), so the
+> check that a rejected `DUBPLATE_THEME_MATCH` or
+> `DUBPLATE_THEME_PALETTE` value fails, naming the accepted set, lives
+> in `cmd/dubplate-server/web.go`'s serve-startup resolution
+> (R-5cii12). `doctor` prints the configured value without judging it;
+> that gap is carried to 5d.
+
+> Erratum, 2026-09-25 (pass 5c-ii close): **"Every served response
+> carries `X-Content-Type-Options: nosniff` and `Referrer-Policy:
+> no-referrer` beside the CSP" reads as two clauses, not one.** Every
+> served response (a 404, a JSON answer, an asset, a stylesheet)
+> carries the first two headers. Only a served document carries the
+> CSP, because only a document runs script, and the gate's 404 must
+> equal the terminator's answer exactly, which carries no CSP
+> (R-5cii20).
+
 ---
 
 ## The pass split

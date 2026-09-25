@@ -325,6 +325,18 @@ to it. `.btn-sm` computes from a smaller multiple and still needs its
 own `min-h-11` at each call site. Source: `_salvage/web/src/app.css:58-63`
 (U13 F5.3 and F5.9).
 
+> Erratum, 2026-09-25 (pass 5c-ii close): **the estate's composed
+> identities are `dubplate-label` and `dubplate-label-night`, not
+> `dubplate-gruvbox`.** Geoff's visual identity ruling
+> (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`)
+> replaced the `gruvbox` palette with `label` (light) and
+> `label-night` (dark) before Task 4 of pass 5c-ii dispatched. Every
+> place this document names `dubplate-gruvbox` or `palette gruvbox`
+> as the estate's configuration (section 3's "the estate config is
+> `match dubplate, palette gruvbox`", and R3.6's "The estate's is
+> `dubplate-gruvbox`") reads as the two composed identities above; the
+> config keys and their grammar are unchanged.
+
 ## 4. The three tiers
 
 The build spec ships three tiers over the build: per-user theme choice

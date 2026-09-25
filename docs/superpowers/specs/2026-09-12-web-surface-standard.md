@@ -600,6 +600,21 @@ guard would be dead code, and at (0,2,0) it would outrank the branding
 stylesheet at any link order. A system-following pick is a third value
 the Go layer resolves and stamps. Src: DL R4.1, R4.2, R4.5, R4.6.
 
+> Erratum, 2026-09-25 (pass 5c-ii close): **the system-following pick
+> is stamped by the Go layer and then resolved by a media block, not
+> resolved by the Go layer alone.** The Go layer stamps the single
+> value `dubplate-system`; a CSS block under `@media
+> (prefers-color-scheme: dark)`, keyed to that stamped value at
+> `(0,1,0)` inside `@layer base`, resolves it to `label` or
+> `label-night` variables in the browser. W5.9's two reasons against a
+> media block (dead code, since DL R4.5 stamps every document; and a
+> specificity that would outrank the branding stylesheet at any link
+> order) do not apply to a block keyed to a stamped value rather than
+> an unconditional `:root:not([data-theme])` guard: it is not dead
+> code, because `dubplate-system` is a real stamped value, not the
+> guard's "no attribute at all" case, and at `(0,1,0)` it does not
+> outrank branding at any link order.
+
 **W5.10 (the theme pick never flashes, and no inline script ships).** `R`
 web-auth-security-reviewer, plus `G` a served-document assertion that no
 `<script>` is present beyond SvelteKit's own generated set. DL G6 does
@@ -634,6 +649,14 @@ control. A cross-fade is scoped to the click that flips the theme and to
 the chrome surfaces alone, never to first paint, a media change, or an
 image. Rung 5 builds no picker and authors one composed theme, so this
 clause lands at rung 7. Src: DL R4.2, R4.5; R5:1329-1332.
+
+> Erratum, 2026-09-25 (pass 5c-ii close): **the cookie reader and the
+> toggle split across two passes.** W5.10 as ratified describes the
+> theme cookie mechanism as one piece of rung 7's work. Pass 5c-ii's
+> R-5cii22 lands the Go-side cookie reader and the theme stamp
+> resolution now (`cmd/dubplate-server/web.go`, Task 5); the toggle
+> that writes the cookie (the DaisyUI `swap`, the accessible name
+> "Dark theme") lands in 5c-iii.
 
 **W5.11 (a literal fallback under every token-derived color).** A
 declaration reading a token the theme might not define carries a literal
@@ -1764,6 +1787,12 @@ DL's G1 through G10.
 > `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`'s "Errata
 > the close applies" section.
 
+> Erratum, 2026-09-25 (pass 5c-ii close): **the second split.** 5c-ii
+> itself split into 5c-ii and 5c-iii at the served-header task's
+> boundary (rung 5 spec's matching erratum). "5c-ii's ceiling is its
+> own plan's" now names two plans, not one: 5c-ii closed under 9.4M,
+> and 5c-iii carries its own re-derived ceiling.
+
 **No new artifact moves into 5c.** The grammar-token module and its
 inventory (W2.1 through W2.8), W2.7's measured ink split, W5.10's theme
 pick, W7.6's live-region helper, the styleguide (W11.3), the dev fixture
@@ -1865,3 +1894,4 @@ asserted here.
 | DL R4.3 and `internal/config` | A DaisyUI major renaming the palette set breaks the Go branding renderer, the key registry, and stored adopter values; a migration obligation is owed | W13.9 |
 | R5's threat model, entry points | W11.8's dev fixture adds a Go-side bypass behind a build tag; the entry-point list takes the amendment at rung 7 | W11.8 |
 | The build spec's ladder entry for rung 14 | Rung 14 lands the admin API and no page; W7.13 binds 2.0's web admin surface | W7.13 |
+| W1.3's vocabulary illustrations ("Nothing cut yet", "Pressed and filed") | Geoff's visual identity ruling 4 withdraws them: the identity lives in the visuals and the photographs, and copy carries no record-shop puns | W1.3 |
