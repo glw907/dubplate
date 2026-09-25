@@ -90,9 +90,53 @@ func TestLoad_ContractTable(t *testing.T) {
 		},
 		{
 			name:       "reserved key early",
-			environ:    append(baseEnviron(), "DUBPLATE_R2_BUCKET=x"),
+			environ:    append(baseEnviron(), "DUBPLATE_UPLOADS_DIR=x"),
 			wantErr:    true,
-			errContain: []string{"backup targets", "rung 6"},
+			errContain: []string{"intake", "rung 7"},
+		},
+		{
+			// Spec criterion 19: each of the six retired backup names
+			// fails the load with its message verbatim, one row per name.
+			name:    "superseded, r2 account id",
+			environ: append(baseEnviron(), "DUBPLATE_R2_ACCOUNT_ID=x"),
+			wantErr: true,
+			errContain: []string{"DUBPLATE_R2_ACCOUNT_ID: superseded by DUBPLATE_BACKUP_REMOTE; " +
+				"configure the remote in rclone's RCLONE_CONFIG_<NAME>_* environment form"},
+		},
+		{
+			name:    "superseded, r2 bucket",
+			environ: append(baseEnviron(), "DUBPLATE_R2_BUCKET=x"),
+			wantErr: true,
+			errContain: []string{"DUBPLATE_R2_BUCKET: superseded by DUBPLATE_BACKUP_REMOTE; " +
+				"configure the remote in rclone's RCLONE_CONFIG_<NAME>_* environment form"},
+		},
+		{
+			name:    "superseded, r2 remote",
+			environ: append(baseEnviron(), "DUBPLATE_R2_REMOTE=x"),
+			wantErr: true,
+			errContain: []string{"DUBPLATE_R2_REMOTE: superseded by DUBPLATE_BACKUP_REMOTE; " +
+				"configure the remote in rclone's RCLONE_CONFIG_<NAME>_* environment form"},
+		},
+		{
+			name:    "superseded, r2 access key id",
+			environ: append(baseEnviron(), "DUBPLATE_R2_ACCESS_KEY_ID=x"),
+			wantErr: true,
+			errContain: []string{"DUBPLATE_R2_ACCESS_KEY_ID: superseded by DUBPLATE_BACKUP_REMOTE; " +
+				"configure the remote in rclone's RCLONE_CONFIG_<NAME>_* environment form"},
+		},
+		{
+			name:    "superseded, r2 secret access key",
+			environ: append(baseEnviron(), "DUBPLATE_R2_SECRET_ACCESS_KEY=x"),
+			wantErr: true,
+			errContain: []string{"DUBPLATE_R2_SECRET_ACCESS_KEY: superseded by DUBPLATE_BACKUP_REMOTE; " +
+				"configure the remote in rclone's RCLONE_CONFIG_<NAME>_* environment form"},
+		},
+		{
+			name:    "superseded, backup staging",
+			environ: append(baseEnviron(), "DUBPLATE_BACKUP_STAGING=x"),
+			wantErr: true,
+			errContain: []string{"DUBPLATE_BACKUP_STAGING: superseded: backup staging now lives " +
+				"in the store leaf under DUBPLATE_STATE_DIR"},
 		},
 		{
 			name:       "superseded rename, library",

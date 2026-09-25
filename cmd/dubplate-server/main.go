@@ -21,6 +21,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -49,11 +50,37 @@ var version = "dev"
 var matcherCommit = "dev"
 
 func main() {
-	if err := executeWithSignalContext(newRootCmd()); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	os.Exit(run(newRootCmd()))
 }
+
+// run executes cmd under the signal-derived context and returns the
+// process's exit status. A nil error is 0; an error wrapping an
+// *exitCodeErr exits with the code it names (Ruling 3); every other
+// error prints and exits 1. It is split out of main so a test can
+// assert the status without calling os.Exit itself.
+func run(cmd *cobra.Command) int {
+	err := executeWithSignalContext(cmd)
+	if err == nil {
+		return 0
+	}
+	fmt.Fprintln(os.Stderr, err)
+	if ece, ok := errors.AsType[*exitCodeErr](err); ok {
+		return ece.code
+	}
+	return 1
+}
+
+// An exitCodeErr wraps an error with the process exit status Ruling 3
+// assigns its outcome: a verb whose failure is not a plain refusal
+// (backup's unavailable, conflict, and canceled outcomes) names its
+// own status here rather than run matching on error text.
+type exitCodeErr struct {
+	code int
+	err  error
+}
+
+func (e *exitCodeErr) Error() string { return e.err.Error() }
+func (e *exitCodeErr) Unwrap() error { return e.err }
 
 // executeWithSignalContext runs cmd under a context canceled by SIGINT
 // or SIGTERM. It is what makes the serve verb's graceful drain reachable
@@ -86,6 +113,7 @@ func newProductionRegistry() *config.Registry {
 	registerAuthConfig(reg)
 	registerStoreConfig(reg)
 	registerWebConfig(reg)
+	registerBackupConfig(reg)
 	return reg
 }
 
@@ -112,6 +140,7 @@ func newRootCmd() *cobra.Command {
 		newShadowCmd(os.Environ(), reg, matcherCommit, os.Stdout, os.Stderr),
 		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 	)
 	return cmd
 }

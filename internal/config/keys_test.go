@@ -54,6 +54,10 @@ func TestOwnedWall_ReturnsCopy(t *testing.T) {
 // classification as "identity source" is proved against the production
 // registry instead, in cmd/dubplate-server/templatekeys_test.go's
 // TestClassifyKey_SMTPHostMovedToIdentitySource.
+//
+// DUBPLATE_R2_BUCKET no longer has a found row here either: rung 6
+// retired the "backup targets" reserved class it belonged to, and the
+// name now classifies as superseded instead (TestSupersessionOf).
 func TestReservedClassOf(t *testing.T) {
 	tests := []struct {
 		input     string
@@ -61,7 +65,7 @@ func TestReservedClassOf(t *testing.T) {
 		wantRung  int
 		wantFound bool
 	}{
-		{input: "DUBPLATE_R2_BUCKET", wantClass: "backup targets", wantRung: 6, wantFound: true},
+		{input: "DUBPLATE_R2_BUCKET", wantFound: false},
 		{input: "DUBPLATE_NAVIDROME_URL", wantClass: "streamer", wantRung: 12, wantFound: true},
 		{input: "DUBPLATE_UPLOADS_DIR", wantClass: "intake", wantRung: 7, wantFound: true},
 		{input: "DUBPLATE_PING_IMPORT_URL", wantClass: "monitoring", wantRung: 9, wantFound: true},
@@ -109,6 +113,12 @@ func TestSupersessionOf(t *testing.T) {
 		{input: "DUBPLATE_SERVE_SITE_NAME", wantFound: true},
 		{input: "DUBPLATE_BEETS_DB", wantFound: true},
 		{input: "DUBPLATE_TUNNEL_TOKEN", wantFound: true},
+		{input: "DUBPLATE_R2_ACCOUNT_ID", wantFound: true},
+		{input: "DUBPLATE_R2_BUCKET", wantFound: true},
+		{input: "DUBPLATE_R2_REMOTE", wantFound: true},
+		{input: "DUBPLATE_R2_ACCESS_KEY_ID", wantFound: true},
+		{input: "DUBPLATE_R2_SECRET_ACCESS_KEY", wantFound: true},
+		{input: "DUBPLATE_BACKUP_STAGING", wantFound: true},
 		{input: "DUBPLATE_LIBRARY_ROOT", wantFound: false},
 	}
 

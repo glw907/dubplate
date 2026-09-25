@@ -58,18 +58,6 @@ type ReservedClass struct {
 // unknown.
 var reservedClasses = []ReservedClass{
 	{
-		Name: "backup targets",
-		Rung: 6,
-		Keys: []string{
-			"DUBPLATE_R2_ACCOUNT_ID",
-			"DUBPLATE_R2_BUCKET",
-			"DUBPLATE_R2_REMOTE",
-			"DUBPLATE_R2_ACCESS_KEY_ID",
-			"DUBPLATE_R2_SECRET_ACCESS_KEY",
-			"DUBPLATE_BACKUP_STAGING",
-		},
-	},
-	{
 		Name: "intake",
 		Rung: 7,
 		Keys: []string{
@@ -158,6 +146,18 @@ var supersededKeys = map[string]string{
 		"through its HTTP API only, never its database file",
 	"DUBPLATE_TUNNEL_TOKEN": "retired: compose.yaml's cloudflared service reads " +
 		"this directly, dubplate-server never does",
+	"DUBPLATE_R2_ACCOUNT_ID": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
+		"in rclone's RCLONE_CONFIG_<NAME>_* environment form",
+	"DUBPLATE_R2_BUCKET": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
+		"in rclone's RCLONE_CONFIG_<NAME>_* environment form",
+	"DUBPLATE_R2_REMOTE": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
+		"in rclone's RCLONE_CONFIG_<NAME>_* environment form",
+	"DUBPLATE_R2_ACCESS_KEY_ID": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
+		"in rclone's RCLONE_CONFIG_<NAME>_* environment form",
+	"DUBPLATE_R2_SECRET_ACCESS_KEY": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
+		"in rclone's RCLONE_CONFIG_<NAME>_* environment form",
+	"DUBPLATE_BACKUP_STAGING": "superseded: backup staging now lives in the store leaf " +
+		"under DUBPLATE_STATE_DIR",
 }
 
 // supersessionOf reports the disposition message reg carries for a
