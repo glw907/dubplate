@@ -24,7 +24,7 @@
  */
 import { chromium } from 'playwright';
 import type { Browser, BrowserContext, Page } from 'playwright';
-import { decodePNG, pixelHex } from './png.ts';
+import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
 
 const INSTALL_HINT = 'npx --prefix web playwright install chromium';
 
@@ -933,6 +933,366 @@ async function noFaviconProbeRow(endpoints: Endpoints): Promise<void> {
   });
 }
 
+/**
+ * Task 5's closed fixture control set (VI's component layer and
+ * printed surface): a primary, secondary, warning, and neutral button,
+ * a ghost button, a default button, an input, a card, an alert, and a
+ * badge, each with the bundle's own DaisyUI classes. The IDs are
+ * literal strings so Tailwind's content scan of this file emits the
+ * classes' CSS into the built bundle the same way `cspCleanRows`'
+ * injected checkbox already does.
+ */
+const FIXTURE = {
+  btnDefault: 'rendered-fx-btn-default',
+  btnPrimary: 'rendered-fx-btn-primary',
+  btnSecondary: 'rendered-fx-btn-secondary',
+  btnWarning: 'rendered-fx-btn-warning',
+  btnNeutral: 'rendered-fx-btn-neutral',
+  btnGhost: 'rendered-fx-btn-ghost',
+  input: 'rendered-fx-input',
+  card: 'rendered-fx-card',
+  alert: 'rendered-fx-alert',
+  badge: 'rendered-fx-badge'
+} as const;
+
+/** Every tabbable member of the closed set: the card, alert, and badge take no focus. */
+const FOCUSABLE_FIXTURE_IDS = [
+  FIXTURE.btnDefault,
+  FIXTURE.btnPrimary,
+  FIXTURE.btnSecondary,
+  FIXTURE.btnWarning,
+  FIXTURE.btnNeutral,
+  FIXTURE.btnGhost,
+  FIXTURE.input
+];
+
+/**
+ * Appends the closed set to the booted page's `main`, under a wrapper
+ * with room above it so a focus ring's outer edge never samples
+ * outside the viewport. Nothing here ships; the elements exist only
+ * for this run.
+ */
+async function injectFixtureControls(page: Page): Promise<void> {
+  await page.evaluate((ids: typeof FIXTURE) => {
+    const main = document.querySelector('main');
+    if (main === null) throw new Error('no <main> to inject the fixture set into');
+    const wrap = document.createElement('div');
+    wrap.style.marginTop = '40px';
+    wrap.style.display = 'flex';
+    wrap.style.flexDirection = 'column';
+    wrap.style.gap = '24px';
+    const button = (id: string, extra: string) => {
+      const el = document.createElement('button');
+      el.id = id;
+      el.className = `btn ${extra}`.trim();
+      el.textContent = id;
+      wrap.append(el);
+    };
+    button(ids.btnDefault, '');
+    button(ids.btnPrimary, 'btn-primary');
+    button(ids.btnSecondary, 'btn-secondary');
+    button(ids.btnWarning, 'btn-warning');
+    button(ids.btnNeutral, 'btn-neutral');
+    button(ids.btnGhost, 'btn-ghost');
+    const input = document.createElement('input');
+    input.id = ids.input;
+    input.type = 'text';
+    input.className = 'input';
+    wrap.append(input);
+    const card = document.createElement('div');
+    card.id = ids.card;
+    card.className = 'card';
+    card.innerHTML = '<div class="card-body">fixture card</div>';
+    wrap.append(card);
+    const alert = document.createElement('div');
+    alert.id = ids.alert;
+    alert.className = 'alert';
+    alert.textContent = 'fixture alert';
+    wrap.append(alert);
+    const badge = document.createElement('span');
+    badge.id = ids.badge;
+    badge.className = 'badge badge-warning';
+    badge.textContent = 'fixture';
+    wrap.append(badge);
+    main.append(wrap);
+  }, FIXTURE);
+}
+
+/** Opens the login page under `cookie`'s stamp and injects the closed set. */
+async function openThemedFixture(
+  browser: Browser,
+  endpoints: Endpoints,
+  cookie: 'label' | 'label-night'
+): Promise<{ context: BrowserContext; visit: Visit }> {
+  const host = new URL(endpoints.base).hostname;
+  const context = await browser.newContext();
+  await context.addCookies([{ name: THEME_COOKIE, value: cookie, domain: host, path: '/', secure: true }]);
+  const visit = await openBooted(context, endpoints.base, PAGES[0]);
+  await injectFixtureControls(visit.page);
+  return { context, visit };
+}
+
+/** `--ink-primary`'s two theme values (VI's ink table). */
+const INK_PRIMARY = { label: '#9d2f26', 'label-night': '#ec7b6a' } as const;
+
+/** `--color-base-100`, the plain page background surrounding the fixture set. */
+const BASE_100 = { label: '#f4ead3', 'label-night': '#1c1916' } as const;
+
+/** sRGB relative luminance (WCAG 2.2), from 0-255 channel bytes. */
+function srgbToLinear(channel: number): number {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance([r, g, b]: RGBA): number {
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+/** WCAG 2.2 contrast ratio between two painted colors. */
+function contrastRatio(a: RGBA, b: RGBA): number {
+  const [lighter, darker] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/** Paints a resolved CSS color string on a 1px canvas and reads the bytes back (W12.5). */
+async function paintedColor(page: Page, cssColor: string): Promise<RGBA> {
+  return page.evaluate((color): RGBA => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
+    if (ctx === null) throw new Error('the canvas has no 2d context');
+    ctx.fillStyle = 'transparent';
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1, { colorSpace: 'srgb' }).data;
+    return [r, g, b, a];
+  }, cssColor);
+}
+
+/**
+ * An element's computed `box-shadow` leads with its color token
+ * (Chromium's own serialization order), composited over `backgroundHex`
+ * on a canvas the same way the browser composites the shadow over the
+ * page. `null` when the element casts no shadow.
+ */
+async function paintedShadow(page: Page, elementId: string, backgroundHex: string): Promise<RGBA | null> {
+  return page.evaluate(
+    ({ id, bg }): RGBA | null => {
+      const el = document.getElementById(id);
+      if (el === null) throw new Error(`no element #${id}`);
+      const boxShadow = getComputedStyle(el).boxShadow;
+      const colorToken = /^\S+\([^)]*\)/.exec(boxShadow);
+      if (colorToken === null) return null;
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
+      if (ctx === null) throw new Error('the canvas has no 2d context');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, 1, 1);
+      ctx.fillStyle = colorToken[0];
+      ctx.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1, { colorSpace: 'srgb' }).data;
+      return [r, g, b, a];
+    },
+    { id: elementId, bg: backgroundHex }
+  );
+}
+
+async function computedProperty(page: Page, elementId: string, property: string): Promise<string> {
+  return page.evaluate(
+    ({ id, prop }) => {
+      const el = document.getElementById(id);
+      if (el === null) throw new Error(`no element #${id}`);
+      return getComputedStyle(el).getPropertyValue(prop);
+    },
+    { id: elementId, prop: property }
+  );
+}
+
+/**
+ * `component/focus/<theme>`: every tabbable member of the closed set,
+ * under each theme (Ruling 4's icon-only exception does not apply,
+ * since the set carries no icon-only control). Each control's ring is
+ * read back at `--ink-primary`, and the pixel just inside the ring
+ * (the offset gap) and the one just outside it each clear 3:1 against
+ * the ring, both sampled above the control's top edge, where the
+ * printed surface casts no shadow (the shadow's own offset is
+ * bottom-right only).
+ */
+async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const theme of ['label', 'label-night'] as const) {
+    const id = `component/focus/${theme}`;
+    const { context, visit } = await openThemedFixture(browser, endpoints, theme);
+    try {
+      const count = await visit.page.evaluate(
+        (ids: string[]) => ids.filter((i) => document.getElementById(i) !== null).length,
+        FOCUSABLE_FIXTURE_IDS
+      );
+      const fixture = count === FOCUSABLE_FIXTURE_IDS.length;
+      if (!fixture) {
+        report({ id, fixture, property: false, detail: `${count} of ${FOCUSABLE_FIXTURE_IDS.length} fixture controls present` });
+        continue;
+      }
+      const want = hexRGBA(INK_PRIMARY[theme]);
+      const problems: string[] = [];
+      for (const controlId of FOCUSABLE_FIXTURE_IDS) {
+        await visit.page.locator(`#${controlId}`).focus();
+        const [style, width, offset, colorRaw, rect] = await Promise.all([
+          computedProperty(visit.page, controlId, 'outline-style'),
+          computedProperty(visit.page, controlId, 'outline-width'),
+          computedProperty(visit.page, controlId, 'outline-offset'),
+          computedProperty(visit.page, controlId, 'outline-color'),
+          visit.page.evaluate((elId) => {
+            const r = document.getElementById(elId)?.getBoundingClientRect();
+            if (!r) throw new Error(`no element #${elId}`);
+            return { x: r.x, y: r.y, width: r.width };
+          }, controlId)
+        ]);
+        const ring = await paintedColor(visit.page, colorRaw);
+        if (style !== 'solid' || width !== '2px' || offset !== '2px' || !sameRGBA(ring, want)) {
+          problems.push(`${controlId}: outline ${style} ${width} ${colorRaw} offset ${offset} (want solid 2px ${INK_PRIMARY[theme]} offset 2px)`);
+          continue;
+        }
+        const x = Math.round(rect.x + rect.width / 2);
+        const clipY = Math.round(rect.y - 8);
+        const shot = await visit.page.screenshot({ clip: { x: x - 2, y: clipY, width: 4, height: 8 } });
+        const image = decodePNG(shot);
+        // Relative to clipY: the outline band spans offset 2px to
+        // offset+width 4px above the control's top edge, so row 7 (one
+        // pixel below the band) sits inside the offset gap and row 3
+        // (one pixel above the band) sits outside the ring.
+        const inside = pixelRGBA(image, 2, 7);
+        const outside = pixelRGBA(image, 2, 3);
+        const insideC = contrastRatio(inside, ring);
+        const outsideC = contrastRatio(outside, ring);
+        if (insideC < 3 || outsideC < 3) {
+          problems.push(`${controlId}: ring contrast inside ${insideC.toFixed(2)}:1, outside ${outsideC.toFixed(2)}:1 (want 3:1 or better)`);
+        }
+      }
+      report({
+        id,
+        fixture,
+        property: problems.length === 0,
+        detail: problems.length === 0 ? `${FOCUSABLE_FIXTURE_IDS.length} controls, every ring clean` : problems.join('; ')
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `component/pressed` and `component/reduced-motion`: a pressed
+ * button's box moves 2px down and right into its shadow (no motion
+ * preference), and does not move under `prefers-reduced-motion:
+ * reduce`.
+ */
+async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const reduce of [false, true]) {
+    const id = reduce ? 'component/reduced-motion' : 'component/pressed';
+    const context = await browser.newContext(reduce ? { reducedMotion: 'reduce' } : {});
+    try {
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      await injectFixtureControls(visit.page);
+      const locator = visit.page.locator(`#${FIXTURE.btnDefault}`);
+      const before = await locator.evaluate((el) => getComputedStyle(el).transform);
+      const box = await locator.boundingBox();
+      if (box === null) {
+        report({ id, fixture: false, property: false, detail: 'the default button has no box' });
+        continue;
+      }
+      await visit.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await visit.page.mouse.down();
+      // DaisyUI's `.btn` transitions `transform` over 0.2s; a read
+      // immediately after the press lands mid-transition, so this
+      // waits out the transition before reading the settled value.
+      await visit.page.waitForTimeout(300);
+      const during = await locator.evaluate((el) => getComputedStyle(el).transform);
+      await visit.page.mouse.up();
+      const fixture = before === 'none';
+      const moved = during === 'matrix(1, 0, 0, 1, 2, 2)';
+      report({
+        id,
+        fixture,
+        property: reduce ? !moved : moved,
+        detail: `unpressed transform ${before}; pressed transform ${during} (reducedMotion ${reduce})`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `component/surface/*` (VI's printed surface, `lib/themes/surface.css`):
+ * the button and card/alert shadows at their documented strengths, the
+ * dark keylines, a control's border, and the ghost button's absent
+ * border and shadow. Every expectation is a literal computed from the
+ * surface tokens' own committed values by a probe on 2026-09-25
+ * (Chromium 153 through playwright@1.63.0), never read from the page.
+ */
+const SURFACE_EXPECTED = {
+  buttonShadow: { label: '#7f796b', 'label-night': '#090807' },
+  cardShadow: { label: '#948c7e', 'label-night': '#0b0a08' },
+  keylineBase: { label: '#1f1b16', 'label-night': '#706a5f' },
+  keylineFill: { label: '#1f1b16', 'label-night': '#000000' }
+} as const;
+
+async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const theme of ['label', 'label-night'] as const) {
+    const { context, visit } = await openThemedFixture(browser, endpoints, theme);
+    try {
+      const bg = BASE_100[theme];
+      const buttonShadow = await paintedShadow(visit.page, FIXTURE.btnDefault, bg);
+      const cardShadow = await paintedShadow(visit.page, FIXTURE.card, bg);
+      report({
+        id: `component/surface/button-shadow/${theme}`,
+        fixture: buttonShadow !== null,
+        property: buttonShadow !== null && sameRGBA(buttonShadow, hexRGBA(SURFACE_EXPECTED.buttonShadow[theme])),
+        detail: `painted [${buttonShadow?.join(',')}] (want ${SURFACE_EXPECTED.buttonShadow[theme]})`
+      });
+      report({
+        id: `component/surface/card-shadow/${theme}`,
+        fixture: cardShadow !== null,
+        property: cardShadow !== null && sameRGBA(cardShadow, hexRGBA(SURFACE_EXPECTED.cardShadow[theme])),
+        detail: `painted [${cardShadow?.join(',')}] (want ${SURFACE_EXPECTED.cardShadow[theme]})`
+      });
+
+      const defaultBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.btnDefault, 'border-color'));
+      const cardBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.card, 'border-color'));
+      const primaryBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.btnPrimary, 'border-color'));
+      const alertBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.alert, 'border-color'));
+      const wantBase = hexRGBA(SURFACE_EXPECTED.keylineBase[theme]);
+      const wantFill = hexRGBA(SURFACE_EXPECTED.keylineFill[theme]);
+      report({
+        id: `component/surface/keyline-base/${theme}`,
+        fixture: true,
+        property: sameRGBA(defaultBorder, wantBase) && sameRGBA(cardBorder, wantBase),
+        detail: `default button border [${defaultBorder.join(',')}], card border [${cardBorder.join(',')}] (want ${SURFACE_EXPECTED.keylineBase[theme]})`
+      });
+      report({
+        id: `component/surface/keyline-fill/${theme}`,
+        fixture: true,
+        property: sameRGBA(primaryBorder, wantFill) && sameRGBA(alertBorder, wantFill),
+        detail: `primary button border [${primaryBorder.join(',')}], alert border [${alertBorder.join(',')}] (want ${SURFACE_EXPECTED.keylineFill[theme]})`
+      });
+
+      const ghostShadow = await computedProperty(visit.page, FIXTURE.btnGhost, 'box-shadow');
+      const ghostBorderStyle = await computedProperty(visit.page, FIXTURE.btnGhost, 'border-style');
+      report({
+        id: `component/surface/ghost/${theme}`,
+        fixture: true,
+        property: ghostShadow === 'none' && ghostBorderStyle === 'none',
+        detail: `box-shadow ${ghostShadow}, border-style ${ghostBorderStyle} (want none, none)`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const endpoints: Endpoints = {
     base: requiredEnv('DUBPLATE_RENDERED_BASE_URL'),
@@ -953,6 +1313,9 @@ async function main(): Promise<void> {
     await iconRows(browser, endpoints);
     await clientNavigationRow(browser, endpoints);
     await noFaviconProbeRow(endpoints);
+    await focusRows(browser, endpoints);
+    await pressedRows(browser, endpoints);
+    await surfaceRows(browser, endpoints);
     refuseUnclean();
   } finally {
     await browser.close();

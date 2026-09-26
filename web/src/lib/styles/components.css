@@ -1,0 +1,193 @@
+/*
+ * dubplate's component layer (visual identity spec: "Component layer",
+ * "Depth and surface", "Refinement"). Every rule keeps DaisyUI's own
+ * markup and classes; nothing here adds a class DaisyUI does not
+ * already define, and every color reaches this file through a token
+ * declared in `lib/themes/` (G1 exempts that path alone).
+ *
+ * CSS Cascade 5 section 6.4.3: "Within each layer, nested layers are
+ * sorted in appearance order, and style rules without further nesting
+ * are similarly added to an implicit sub-layer after the explicitly
+ * nested layers." For normal declarations, "the declaration whose
+ * cascade layer is last wins." DaisyUI's own components live nested
+ * inside `@layer utilities { @layer daisyui.l1.l2.l3 { ... } }`
+ * (`daisyui/components/button.css`), so a declaration placed directly
+ * in `@layer utilities` here, with no further nesting, sorts after
+ * that sublayer and outranks it without leaving the layer. A rule
+ * placed in `@layer components` instead would lose, since `components`
+ * precedes `utilities` in the build's own layer order. Staying inside
+ * `utilities` keeps an operator's tier 3 CSS file, which DL R4.4 gives
+ * the last word and which ships unlayered, still winning over every
+ * rule below.
+ */
+
+/*
+ * The ink utilities (W2.7): the only way markup reaches a status text
+ * color. Tailwind's `@utility` registers each as its own utility,
+ * outside the layer block below.
+ */
+@utility text-ink-primary {
+  color: var(--ink-primary);
+}
+
+@utility text-ink-accent {
+  color: var(--ink-accent);
+}
+
+@utility text-ink-info {
+  color: var(--ink-info);
+}
+
+@utility text-ink-error {
+  color: var(--ink-error);
+}
+
+@utility text-ink-warning {
+  color: var(--ink-warning);
+}
+
+@layer utilities {
+  /*
+   * The one focus rule: every focusable element's `:focus-visible`
+   * ring is a 2px `--ink-primary` outline at a 2px offset, overriding
+   * DaisyUI's per-button `--btn-color` outline and the input's
+   * `--input-color` outline. The skip target suppresses its own ring
+   * alone (W3.6): a `main` element takes focus only when a skip link
+   * targets it, and the link itself still shows the ring.
+   */
+  :focus-visible {
+    outline: 2px solid var(--ink-primary);
+    outline-offset: 2px;
+  }
+
+  main:focus-visible {
+    outline: none;
+  }
+
+  /*
+   * The printed surface: every raised element takes a hard-edged
+   * offset shadow with no blur, in the surface tokens' shadow color at
+   * a per-element strength (`lib/themes/surface.css`). A pressed
+   * button translates into its shadow instead of drawing a shorter
+   * one, so nothing here writes a second, smaller shadow rule for the
+   * pressed state.
+   */
+  .btn {
+    box-shadow: 2px 2px 0 0
+      color-mix(in oklab, var(--shadow-color) var(--shadow-strength-button), transparent);
+    border-color: var(--keyline-base);
+  }
+
+  .btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  .card,
+  .alert,
+  .list {
+    box-shadow: 3px 3px 0 0
+      color-mix(in oklab, var(--shadow-color) var(--shadow-strength-card), transparent);
+    border-width: var(--border);
+    border-style: solid;
+    border-color: var(--keyline-base);
+  }
+
+  /*
+   * Color-filled objects (a primary, secondary, accent, neutral,
+   * info, success, warning, or error button, and every alert) take
+   * the fill keyline; base-surface objects (the default button,
+   * cards, lists) take the base keyline. On `label` the two tokens
+   * are the same value; on `label-night` they diverge (VI's dark
+   * keylines row).
+   */
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent,
+  .btn-neutral,
+  .btn-info,
+  .btn-success,
+  .btn-warning,
+  .btn-error,
+  .alert {
+    border-color: var(--keyline-fill);
+  }
+
+  /* Ghost buttons carry no border or shadow. */
+  .btn-ghost {
+    border-style: none;
+    box-shadow: none;
+  }
+
+  /* Inputs add a faint inset shadow over the control border. */
+  .input,
+  .select,
+  .textarea {
+    border-color: var(--keyline-base);
+    box-shadow: inset 0 1px 2px color-mix(in oklab, var(--keyline-base) 20%, transparent);
+  }
+
+  /*
+   * Badges are squared outlines: a transparent fill, IBM Plex Mono,
+   * uppercase, letter-spaced, with the status color carried by
+   * DaisyUI's own `--badge-color` (unchanged). Warning badges on
+   * `label` read `--ink-warning` instead of the raw warning fill,
+   * since the fill measures under 4.5:1 as text (W2.7).
+   */
+  .badge {
+    --badge-bg: transparent;
+    border-radius: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .badge-warning {
+    --badge-color: var(--ink-warning);
+  }
+
+  /*
+   * Refinement: display type, body copy, the page-title label rule,
+   * selection, link hover, and motion. The mono sizes and trackings
+   * beyond the badge's own (catalog line, tracklist, film edge) and
+   * the tab, list-row, and figure cursor rules wait for rung 7, whose
+   * pages render those surfaces (Ruling 5).
+   */
+  .display {
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  p,
+  .alert {
+    text-wrap: pretty;
+  }
+
+  .page-title {
+    border-top: 3px solid var(--color-base-content);
+    padding-top: 4px;
+  }
+
+  .page-title::after {
+    content: '';
+    display: block;
+    margin-top: 4px;
+    border-top: 1px solid var(--color-base-content);
+  }
+
+  ::selection {
+    background-color: var(--selection-ground);
+    color: var(--color-base-content);
+  }
+
+  a:hover {
+    text-decoration-line: underline;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn:active {
+      transform: none;
+    }
+  }
+}

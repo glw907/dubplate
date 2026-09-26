@@ -98,6 +98,20 @@ var renderedManifest = []renderedRow{
 	{id: "head/icon/login-link"},
 	{id: "head/icon/client-navigation"},
 	{id: "head/no-favicon-ico"},
+	{id: "component/focus/label"},
+	{id: "component/focus/label-night"},
+	{id: "component/pressed"},
+	{id: "component/reduced-motion"},
+	{id: "component/surface/button-shadow/label"},
+	{id: "component/surface/button-shadow/label-night"},
+	{id: "component/surface/card-shadow/label"},
+	{id: "component/surface/card-shadow/label-night"},
+	{id: "component/surface/keyline-base/label"},
+	{id: "component/surface/keyline-base/label-night"},
+	{id: "component/surface/keyline-fill/label"},
+	{id: "component/surface/keyline-fill/label-night"},
+	{id: "component/surface/ghost/label"},
+	{id: "component/surface/ghost/label-night"},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two

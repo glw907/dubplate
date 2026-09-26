@@ -94,12 +94,17 @@ function predictor(filter: number, left: number, up: number, upLeft: number): nu
   }
 }
 
-/** The pixel at (`x`, `y`) as lowercase `#rrggbb`; alpha is dropped. */
-export function pixelHex(image: Image, x: number, y: number): string {
+/** The pixel at (`x`, `y`) as red, green, blue, alpha; alpha is 255 for a channel-3 image. */
+export function pixelRGBA(image: Image, x: number, y: number): [number, number, number, number] {
   if (x < 0 || y < 0 || x >= image.width || y >= image.height) {
     throw new Error(`png: (${x}, ${y}) is outside a ${image.width}x${image.height} image`);
   }
   const at = (y * image.width + x) * image.channels;
-  const rgb = image.pixels.subarray(at, at + 3);
-  return `#${[...rgb].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
+  return [image.pixels[at], image.pixels[at + 1], image.pixels[at + 2], image.channels === 4 ? image.pixels[at + 3] : 255];
+}
+
+/** The pixel at (`x`, `y`) as lowercase `#rrggbb`; alpha is dropped. */
+export function pixelHex(image: Image, x: number, y: number): string {
+  const [r, g, b] = pixelRGBA(image, x, y);
+  return `#${[r, g, b].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
 }

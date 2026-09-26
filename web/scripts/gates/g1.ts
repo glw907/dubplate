@@ -13,6 +13,16 @@ const SCANNED_EXTENSIONS = ['.svelte', '.ts', '.js', '.css', '.html', '.svg'];
 
 const COLOR_FUNCTIONS = /\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|hwb|color)\(/;
 const HEX_LITERAL = /#[0-9a-fA-F]{3,8}\b/;
+/**
+ * DaisyUI's own status text utilities (W2.7: "a fill is not an ink").
+ * `text-primary`, `-secondary`, `-accent`, `-neutral`, `-info`,
+ * `-success`, `-warning`, and `-error` reach a raw fill, never the
+ * measured on-surface ink; markup reaches a status color only through
+ * `text-ink-primary`, `-accent`, `-info`, `-error`, or `-warning`
+ * (`lib/styles/components.css`). The negative lookahead refuses the
+ * bare utility while admitting its `text-ink-*` sibling.
+ */
+const STATUS_TEXT_UTILITY = /\btext-(?!ink-)(primary|secondary|accent|neutral|info|success|warning|error)\b/;
 /** A Svelte `style:<prop>=` directive, the attribute-shaped sibling of a CSS `prop: value;` declaration. */
 const STYLE_DIRECTIVE =
   /\bstyle:(color|background(-color)?|border(-[a-z]+)?-color|fill|stroke|outline-color|box-shadow|text-decoration-color|caret-color|accent-color)\s*=\s*["']([^"']*)["']/gi;
@@ -88,6 +98,10 @@ function scanLine(path: string, lineNo: number, line: string, violations: Violat
   }
   if (TAILWIND_UTILITY.test(line)) {
     violations.push({ path, line: lineNo, pattern: 'Tailwind color utility' });
+  }
+  const statusMatch = STATUS_TEXT_UTILITY.exec(line);
+  if (statusMatch !== null) {
+    violations.push({ path, line: lineNo, pattern: `DaisyUI status text utility "text-${statusMatch[1]}"` });
   }
   let m: RegExpExecArray | null;
   COLOR_BEARING_PROPERTY.lastIndex = 0;

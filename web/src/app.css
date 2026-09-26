@@ -23,3 +23,9 @@
 @import './lib/themes/inks.css';
 @import './lib/themes/surface.css';
 @import './lib/themes/system.css';
+
+/*
+ * The component layer: after every theme file, since its rules read
+ * the surface tokens and inks those declare.
+ */
+@import './lib/styles/components.css';
