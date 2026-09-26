@@ -1225,6 +1225,11 @@ async function paintedColor(page: Page, cssColor: string): Promise<RGBA> {
   }, cssColor);
 }
 
+/** The painted color `elementId`'s computed `property` resolves to on `page`. */
+async function paintedProperty(page: Page, elementId: string, property: string): Promise<RGBA> {
+  return paintedColor(page, await computedProperty(page, elementId, property));
+}
+
 async function computedProperty(page: Page, elementId: string, property: string): Promise<string> {
   return page.evaluate(
     ({ id, prop }) => {
@@ -1685,8 +1690,7 @@ async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void
       await shadowRow(visit.page, 'card', theme, FIXTURE.card, 3, SURFACE_EXPECTED.cardShadow[theme]);
       await shadowRow(visit.page, 'alert', theme, FIXTURE.alert, 3, SURFACE_EXPECTED.cardShadow[theme]);
 
-      const border = async (elementId: string) =>
-        paintedColor(visit.page, await computedProperty(visit.page, elementId, 'border-top-color'));
+      const border = (elementId: string) => paintedProperty(visit.page, elementId, 'border-top-color');
       const defaultBorder = await border(FIXTURE.btnDefault);
       const cardBorder = await border(FIXTURE.card);
       const primaryBorder = await border(FIXTURE.btnPrimary);
@@ -1806,8 +1810,8 @@ async function badgeRows(browser: Browser, endpoints: Endpoints): Promise<void> 
           problems.push(`${badge.id} is absent`);
           continue;
         }
-        const text = await paintedColor(visit.page, await computedProperty(visit.page, badge.id, 'color'));
-        const edge = await paintedColor(visit.page, await computedProperty(visit.page, badge.id, 'border-top-color'));
+        const text = await paintedProperty(visit.page, badge.id, 'color');
+        const edge = await paintedProperty(visit.page, badge.id, 'border-top-color');
         // 2px of border, then 3px into the 10px padding, clear of every glyph.
         const ground = await paintedPixelAt(visit.page, Math.round(rect.left) + 5, Math.round(rect.top + rect.height / 2));
         const wantHex = statusInk(state.palette, badge.status);
@@ -1861,15 +1865,14 @@ async function inputStateRows(browser: Browser, endpoints: Endpoints): Promise<v
         continue;
       }
       const want = STATE_COLORS[state.palette];
-      const border = async (elementId: string) =>
-        paintedColor(visit.page, await computedProperty(visit.page, elementId, 'border-top-color'));
+      const border = (elementId: string) => paintedProperty(visit.page, elementId, 'border-top-color');
       const checks = [
         { what: `${FIXTURE.inputError} border`, got: await border(FIXTURE.inputError), want: want.error },
         { what: `${FIXTURE.inputSuccess} border`, got: await border(FIXTURE.inputSuccess), want: want.success },
         { what: `${FIXTURE.validator} border`, got: await border(FIXTURE.validator), want: want.error },
         {
           what: `${FIXTURE.validatorHint} text`,
-          got: await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.validatorHint, 'color')),
+          got: await paintedProperty(visit.page, FIXTURE.validatorHint, 'color'),
           want: want.inkError
         }
       ];
@@ -1903,8 +1906,7 @@ async function linkRows(browser: Browser, endpoints: Endpoints): Promise<void> {
       }
       const ground = hexRGBA(BASE_100[state.palette]);
       const problems: string[] = [];
-      const color = async (elementId: string) =>
-        paintedColor(visit.page, await computedProperty(visit.page, elementId, 'color'));
+      const color = (elementId: string) => paintedProperty(visit.page, elementId, 'color');
 
       const proseDecoration = await computedProperty(visit.page, FIXTURE.proseLink, 'text-decoration-line');
       if (proseDecoration !== 'underline') problems.push(`${FIXTURE.proseLink} text-decoration-line ${proseDecoration} at rest (want underline)`);
