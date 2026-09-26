@@ -2893,8 +2893,10 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
     visit.page.off('response', onResponse);
 
     const membersPath = new URL('members', endpoints.base).pathname;
+    const rosterPath = new URL('roster', endpoints.base).pathname;
     const records = (await requestLog(endpoints.requestLog)).slice(from);
     const documentRequested = records.some((r) => r.method === 'GET' && r.path === membersPath);
+    const rosterGETs = records.filter((r) => r.method === 'GET' && r.path === rosterPath).length;
     const adminAddressLeaked = (await visit.page.getByText(ADMIN_ADDRESS).count()) > 0;
     const formCount = await visit.page.locator('form').count();
     const rosterListCount = await visit.page.locator('#roster-list').count();
@@ -2904,11 +2906,12 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
       fixture: arrived,
       property:
         rosterStatus === 404 &&
+        rosterGETs === 1 &&
         !documentRequested &&
         !adminAddressLeaked &&
         formCount === 0 &&
         rosterListCount === 0,
-      detail: `roster GET status ${rosterStatus}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}`
+      detail: `roster GET status ${rosterStatus}; roster GETs logged ${rosterGETs}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}`
     });
   } finally {
     await context.close();
