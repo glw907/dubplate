@@ -29,14 +29,16 @@ Revision 2.5 lands errata from three sources. Each item names its source, and th
    and "Digital audio players".
 3. Slice 6 gains the credential cap, the admin credential list, and a one-step admin revoke. Slice 5 gains the
    served-volume meter, the admin notice by email, and the volume view (P conflict 3; rulings 4 and 5). "Identity and
-   app passwords", "Served volume", and the ladder.
+   app passwords", "Served volume", "Web surface", and the ladder.
 4. A new forward hook puts the credential and the bytes on every serve event (P conflict 4). Hook 20.
 5. Hook 17 and "Added by" follow the principles spec's channel table, and the source answer joins as hook 21 (P
    conflict 5). "Group features" and the hook list.
-6. `getAlbum` and `getAlbumInfo2` fill `musicBrainzId`, and `notes` carries the source line (P conflict 6).
+6. `getAlbum` and `getAlbumInfo2` fill `musicBrainzId`, and `notes` carries the source line (P conflict 6). "API
+   surface" and "Group features".
 7. While Navidrome is the escape hatch, a `doctor` row reads its effective sharing value (P row A13). "Cutover and
    operations".
-8. The XSD validates only a legacy XML form or a derived schema; the choice is open (S finding 1). "Evidence".
+8. XML is validated either in a legacy form against the official XSD or against a derived XSD; the choice is open (S
+   finding 1). "Evidence".
 9. The OpenSubsonic `transcoding` extension against the profile order is open (S finding 2). "Streaming and
    transcoding".
 10. A Range request on a filling transcode is open: a declared divergence or a redesign (S finding 4). "Streaming and
@@ -46,8 +48,12 @@ Revision 2.5 lands errata from three sources. Each item names its source, and th
 13. The prefix lookup is required for queries shorter than three characters (S finding 9). "Search".
 14. The word "collection" may clash with OpenSubsonic PR #237 (S finding 8). "Open items".
 15. Stale prior-art pins are corrected (S finding 7). "Evidence" and "Prior art".
-16. The OpenSubsonic protocol layer is built as a separable package tree with no dubplate imports, and publishes as its
-    own module after 0.8 (G). "The protocol layer is a separable module".
+16. The OpenSubsonic protocol layer is built as a separable package tree with no dubplate imports, ships hand-written
+    wire types validated by the pinned Apache-2.0 OpenAPI file, and publishes as its own module after 0.8 (G). "The
+    protocol layer is a separable module".
+17. `dubplate import navidrome` preflights the member cap and writes nothing past it (P row A1). "Hosting and setup".
+
+S finding 3 confirms the identity reasoning in "Identity: app passwords minted from the roster account"; no change.
 
 Items that need a design decision the sources don't make are marked "open, owed to the study rung" where they sit, and
 are gathered under "Open items".
@@ -152,7 +158,7 @@ and the roster, so it can do both.
 
 1. Report a problem. A member flags an admitted track or album from the listening side, and the report joins the
    decision queue beside intake items.
-2. Added by and album notes. Each admitted album records the member who uploaded it, and that member may write a short
+2. Added by and album notes. Each admitted album records the member who added it, and that member may write a short
    note on why.
 3. Collaborative playlists. A playlist's owner names members who may edit it.
 4. Smart playlists. A rule-based playlist evaluated at read time. Navidrome ships these as `.nsp` files, so a switcher
@@ -187,10 +193,12 @@ system that is not live), replacing rung 12 with the built-in streamer (loses th
 
 Evidence runs in three tiers. The contract tier validates every JSON response against the OpenSubsonic OpenAPI schema,
 as Ampache's `tests/Module/Api/SubsonicSpecConformanceTest.php` already does in CI; a response can match an oracle and
-still violate the schema, and only this tier catches that. The survey proved the JSON half in pure Go: the bundled
-OpenAPI file, pinned by checksum, loads in `getkin/kin-openapi` and rejects a malformed `getAlbum` response.
+still violate the schema, and only this tier catches that. The prior-art survey proved the JSON half in pure Go: the
+bundled OpenAPI file loads in `getkin/kin-openapi` and rejects a malformed `getAlbum` response. The harness pins that
+bundled build by checksum, as Ampache does.
 
-Revision 2.5 (S finding 1): the XML half can't hold as first written. The OpenAPI file covers JSON only, and the
+Revision 2.5 (S finding 1): revision 2 also validated every response against the official Subsonic 1.16.1 XSD, and
+that can't hold. The OpenAPI file covers JSON only, and the
 official Subsonic 1.16.1 XSD rejects the `openSubsonic`, `type`, and `serverVersion` attributes that every
 `subsonic-response` carries (see "API surface"). The harness validates XML one of two ways: a legacy form that omits
 the OpenSubsonic attributes, validated against the official XSD, or every response against a derived XSD that admits
@@ -221,11 +229,14 @@ Navidrome's architecture (license risk and the scanner model).
 ### The protocol layer is a separable module
 
 Revision 2.5 (Geoff, 2026-09-25, ROADMAP `give-back`). The OpenSubsonic protocol layer fills a gap in the Go ecosystem.
-The prior-art survey found no conformance suite anywhere and no maintained, permissively licensed Go Subsonic client. So
-the layer is authored to ship as its own permissively licensed module. It holds the wire types, a request-parsing
-handler over a backend interface, a client, and a conformance checker. The harness rung's client and contract-tier
-validator are that client and that checker. dubplate's streamer is one implementation of the backend interface, and
-the catalog projection, the roster, the meter, and every other dubplate concern sit behind it.
+The prior-art survey found no conformance suite anywhere and no maintained, permissively licensed Go Subsonic client.
+The layer is therefore authored to ship as its own permissively licensed module. It holds the wire types, a
+request-parsing handler over a backend interface, a client, and a conformance checker. The harness rung's client and
+contract-tier validator are that client and that checker. This revision makes the harness rung's client the module's
+client, and its contract-tier validator the module's conformance checker; the checker then carries `getkin/kin-openapi`
+as a module dependency, where the survey adopted it for tests only, and the harness rung's plan weighs that.
+dubplate's streamer is one implementation of the backend interface, and the catalog projection, the roster, the
+meter, and every other dubplate concern sit behind it.
 
 - **Built under `internal/` now.** The layer lives in its own package tree under `internal/` for the whole of 0.8, so
   no outside caller depends on it before a release proves it.
@@ -237,11 +248,15 @@ the catalog projection, the roster, the meter, and every other dubplate concern 
   documentation, or an observation recorded by the harness, never GPL source. The study rung's record is the
   citation source, and "License" below still governs.
 
-Two questions stay open, owed to the study rung. The first is whether the wire types are generated from the OpenAPI
-file or written by hand. ROADMAP says generated. The survey found `oapi-codegen` output usable in the harness and unfit
-as production wire types, since it has pointer fields, no `xml` tags, and a `json.RawMessage` union per response. The
-second is the module's license. It must be permissive, and the choice between MIT and Apache-2.0 turns on whether
-generated types carry the OpenAPI file's NOTICE obligation.
+Whether the wire types are generated from the OpenAPI file or written by hand is no longer open. Conductor reading
+(2026-09-25, reversible), recorded in ROADMAP's give-back entry: the wire types are hand-written, and the pinned
+Apache-2.0 OpenAPI file validates conformance in the harness. The evidence: the survey tried `oapi-codegen` v2, usable
+in the harness but unfit as production types since it has pointer fields, no `xml` tags, and a `json.RawMessage` union
+per response, and tried `ogen`, which failed on the full spec; this spec's prior-art table already hand-rolls the XML
+and JSON dual encoding.
+
+The second is the module's license. ROADMAP requires a permissive one. Whether it is MIT or Apache-2.0, and what
+notice it carries from the Apache-2.0 OpenAPI file it validates against, is open.
 
 ### Local mirroring: one writer per collection
 
@@ -312,11 +327,13 @@ the same lookup rule. Artist images are on the 2.1 list.
 The search endpoint answers from an FTS5 index the projector maintains beside the entity tables, using the trigram
 tokenizer over accent-folded text. Folding reuses the matcher's unidecode table through the folded sort key stored on
 the catalog row. Ranking runs a prefix pass as a separate indexed lookup unioned ahead of the FTS5 rank, then the
-matched artist's own albums. Revision 2.5 (S finding 9): the prefix lookup is required, not an optimization. A trigram
-`MATCH` needs at least three characters, and the survey's two-character query returned no rows on `modernc.org/sqlite`
-v1.59.0, so a query shorter than three characters is answered by the prefix lookup alone. Results carry the same ids as browsing. `search3` accepts an empty query and returns
+matched artist's own albums. Results carry the same ids as browsing. `search3` accepts an empty query and returns
 everything, which offline sync depends on, and paging survives a whole-library result. An edit-distance rerank is held
 for 2.1 if trigram recall proves thin, on `matcher.StringDist` so the system folds text one way.
+
+Revision 2.5 (S finding 9): the prefix lookup is required for queries shorter than three characters. A trigram
+`MATCH` needs at least three characters, and the survey's two-character query returned no rows on `modernc.org/sqlite`
+v1.59.0, so a query shorter than three characters is answered by the prefix lookup alone.
 
 ### Streaming and transcoding
 
@@ -326,7 +343,8 @@ state. The transcode path runs when the request names a format or bitrate cap or
 resolve in order from the request, the device, and the estate default.
 
 Revision 2.5 (S finding 2): OpenSubsonic added a `transcoding` extension in December 2025 (`getTranscodeDecision` and
-`getTranscodeStream`). Navidrome implemented it on 2026-03-09, and Feishin and Symfonium call it. Under it the client
+`getTranscodeStream`). Navidrome implemented it on 2026-03-09, and Feishin calls it. A third-party issue report says
+Symfonium does too; the survey didn't verify that. Under it the client
 posts a capability document (`ClientInfo`), and the profile order above has no place for one. Whether 0.8 answers the
 extension, and if it does, how a posted capability document interacts with the device profile, is open, owed to the
 study rung. The answer is recorded in the launch extension subset.
@@ -345,14 +363,17 @@ two is open, owed to the study rung, measured against what the client roster pla
 
 On a cache miss, ffmpeg starts under the request's context with a per-track timeout, and its output streams into the
 cache entry while readers attach, so a second listener shares the encode. A Range request on a filling entry is served
-from that entry once the requested offset is written. Revision 2.5 (S finding 4): this sentence diverges from the
-oracle and can't rest on the standard library. Navidrome uses `http.ServeContent` only for a complete entry, answers a
-filling one with `Accept-Ranges: none`, and sends an estimated `Content-Length` only when the client passes
-`estimateContentLength=true`. `http.ServeContent` can't serve a filling entry, because it "uses a seek to the end of
-the content to determine its size", and a range answer on a filling entry needs a `Content-Range` with an unknown
-total. Whether the streaming slice keeps this behavior as a declared divergence class, or matches the oracle and lets
-seeking during a transcode rest on `timeOffset` (the `transcodeOffset` extension), is open, owed to the study rung. The
-fill-while-read primitive is the streaming slice's choice: `djherbis/stream` v1.5.1 (MIT, 2026-08-29), adopted or
+from that entry once the requested offset is written.
+
+Revision 2.5 (S finding 4): this sentence diverges from the oracle and can't rest on the standard library. Navidrome
+uses `http.ServeContent` only for a complete entry, answers a filling one with `Accept-Ranges: none`, and sends an
+estimated `Content-Length` only when the client passes `estimateContentLength=true`. `http.ServeContent` can't serve
+a filling entry, because it "uses a seek to the end of the content to determine its size", and a range answer on a
+filling entry needs a `Content-Range` with an unknown total. Whether the streaming slice keeps this behavior as a
+declared divergence class, or matches the oracle and lets seeking during a transcode rest on `timeOffset` (the
+`transcodeOffset` extension), is open, owed to the study rung.
+
+The fill-while-read primitive is the streaming slice's choice: `djherbis/stream` v1.5.1 (MIT, 2026-08-29), adopted or
 ported, decided by a race test on cancel, disconnect, and failed exit. That library's `Seek` to the end blocks until
 the stream closes unless `SetSeekEnd` is called. A non-zero ffmpeg exit or a cancelled context evicts the entry
 rather than committing it, attached readers see the error, and the request returns 500, so a truncated encode never
@@ -366,7 +387,8 @@ and reports size, cap headroom, and hit rate as doctor rows. Art variants share 
 
 Revision 2.5 (P conflict 3, rulings 1, 4, and 5; rows A6 and A8). The principles spec's "Downloads and offline listening"
 section is the design. A member's own devices holding the whole library is intended use (ruling 1), so nothing here
-refuses a request. Slice 5 builds three pieces.
+refuses a request. Slice 5 builds the meter and the notice (P conflict 3). This revision also places the volume view
+in slice 5, over the rung 14 admin API.
 
 - **The meter.** Every `stream` and `download` response counts against the member and the credential that
   authenticated it, in bytes sent and distinct tracks over the trailing 24 hours. The meter is store-backed, so a
@@ -374,7 +396,8 @@ refuses a request. Slice 5 builds three pieces.
   stream. A credential's distinct tracks are those with any byte served to it in the window. A member's are the union
   over the member's credentials. A request with a nonzero Range offset adds bytes and no track. The credential id
   comes from authentication, never from the client's `c` parameter. A checkout under a device credential counts like
-  any other served bytes.
+  any other served bytes. The meter keeps its own store-backed counts per P's acceptance row A6; it does not read
+  the event table hook 20 adds, so slice 5 carries no dependency on slice 7.
 - **The notice.** When a member's distinct tracks in a rolling 24 hours pass half the library's tracks or 1,000 tracks,
   whichever is larger (ruling 4, a setting), the admin gets one email per crossing through the rung 5 SMTP notify path.
   It names the member and the credentials that crossed, words a whole-library sync as expected, and asks the admin to
@@ -403,7 +426,7 @@ username is a roster handle: short, ASCII, unique, stable, distinct from the log
 surrogate user id the per-user tables key on. Roles map from the roster (admin or member); the API's finer flags derive
 from the role.
 
-Revision 2.5 (P conflict 3, rulings 4 and 5; rows A7 and A8). Slice 6 adds three things, as the principles spec's
+Revision 2.5 (P conflict 3, ruling 4, row A7). Slice 6 adds three things, as the principles spec's
 "Every credential belongs to a member" specifies.
 
 - **A credential cap per member**, default 10, a setting the admin can change per member. The count covers app
@@ -423,10 +446,10 @@ Shares ship at launch: `createShare`, `updateShare`, `deleteShare`, and `getShar
 ids it names. The token carries at least 128 bits from `crypto/rand` and is compared in constant time. The public path
 is rate-limited per address, and a share is revocable alone.
 
-Revision 2.5 (P conflict 1, rulings 8 to 12, row A4). A share is bounded so a link is useless as a distribution tool.
-The principles spec's "Bounded shares" section is the design and carries the evidence; this section states what slice
-6 builds. Revision 2's scope ("one album or one playlist"), its required expiry, and its direct-path audio are
-superseded.
+Revision 2.5 (P conflict 1, rulings 8 to 12, row A4). A share is bounded so a link offers a pirate nothing a free
+stream doesn't. The principles spec's "Bounded shares" section is the design and carries the evidence; this section
+states what slice 6 builds. Revision 2's scope ("one album or one playlist"), its required expiry, and its
+direct-path audio are superseded.
 
 - **One item.** A share names one song or one album. A folder-view directory that holds exactly one album counts as
   that album, as it does for `download`. A playlist of up to 20 tracks may be shared, and the share snapshots its
@@ -452,9 +475,9 @@ superseded.
   every bound. The owner is the authenticated member, and any owner, user, or username field in the request is
   ignored.
 
-The share page names the member, as "Shared by Maya" (ruling 10), and shows the album's buy links under the principles
-spec's "Money points toward buying". The share page's route is the one public route that serves audio or art, and
-none serves catalog data.
+The share page names the member, as "Shared by Maya", and the share response carries the name (ruling 10). It shows
+the album's buy links under the principles spec's "Money points toward buying". The share page's route is the one
+public route that serves audio or art. No public route serves catalog data.
 
 ### Per-user state
 
@@ -485,16 +508,16 @@ the reporter sees the outcome on the web app. OpenSubsonic has no report verb, s
 whether clients get a second path is an open item.
 
 **Added by.** The album row carries `added_by`, the adding member's surrogate id (hook 17). Revision 2.5 (P conflict
-5, row A10) replaces "intake is the only channel that sets it" with the principles spec's channel table ("dubplate
-never fetches music"). The server sets `added_by` from the authenticated principal of intake (the uploader session, or
-a TUI contribute under a device credential) or of a mirror push (the credential's member). Copy between collections
-carries it from the source row, and hand-over and seize preserve it, never resetting it to the admin. The timer path,
-operator bulk intake, and rung 16's migration store null, shown as "unknown", and restore keeps the backed-up value.
-No client field, API parameter, or admin form writes it. Each album also carries the member's source answer (hook 21),
-which only an admin edits after admission. **Album notes** are a 2.0 table, one note per album, written by the album's
-`added_by` member or an admin. The note reaches every client through `getAlbumInfo2`'s `notes` field, which Navidrome
-fills from Last.fm; dubplate fills it with the member's name and note, and under the note a source line such as "from
-Ana's vinyl" (P conflict 6).
+5, row A10) replaces the rule that only intake sets it with the channel table in the principles spec's "dubplate
+never fetches music" section. The server sets `added_by` from the authenticated principal of intake (the uploader
+session, or a TUI contribute under a device credential) or of a mirror push (the credential's member). Copy between
+collections carries it from the source row, and hand-over and seize preserve it, never resetting it to the admin.
+The timer path, operator bulk intake, and rung 16's migration store null, shown as "unknown", and restore keeps the
+backed-up value. No client field, API parameter, or admin form writes it. Each album also carries the member's source
+answer (hook 21), which only an admin edits after admission. **Album notes** are a 2.0 table, one note per album,
+written by the album's `added_by` member or an admin. The note reaches every client through `getAlbumInfo2`'s `notes`
+field, which Navidrome fills from Last.fm; dubplate fills it with the member's name and note, and under the note a
+source line such as "from Ana's vinyl" (P conflict 6).
 
 **Collaborative playlists.** The playlist header already carries an owner. A collaborator table keys on playlist id
 and surrogate user id. `updatePlaylist` accepts a write from the owner or a collaborator, and the stored-order delta
@@ -519,10 +542,14 @@ Tunnel and Tailscale Funnel as equal options, and dubplate depends on neither.
 
 **Navidrome import.** `dubplate import navidrome` reads a stopped Navidrome's SQLite database and its music folder
 mapping. It invites each Navidrome user as a member through the roster's normal add path, which sends a magic link;
-passwords are never carried over. Revision 2.5 (P, "A member cap bounds the roster", row A1): it counts the members it
-would add before it writes anything, and if the total passes the member cap it stops, names the setting, and writes
-nothing, so no skipped member's stars or playlists are orphaned. It imports each user's stars, playlists, play counts, and last-played dates, matching
-tracks by the alternate keys (release MBID, then audio key) and never by path. Every track it cannot match is reported
+passwords are never carried over.
+
+Revision 2.5 (P, "A member cap bounds the roster", row A1): it counts the members it would add before it writes
+anything, and if the total passes the member cap it stops, names the setting, and writes nothing. The operator raises
+the cap or passes an explicit list of members to bring, so no skipped member's stars or playlists are orphaned.
+
+It imports each user's stars, playlists, play counts, and last-played dates, matching tracks by the alternate keys
+(release MBID, then audio key) and never by path. Every track it cannot match is reported
 by name, and nothing is silently merged. The group's own cutover uses this command rather than a harness-only export.
 Reading Navidrome's data carries no license question; its code is still never copied.
 
@@ -553,8 +580,10 @@ Every `subsonic-response` carries `openSubsonic`, `serverVersion`, and `type` be
 
 Revision 2.5 (S finding 5): browser clients need CORS. Feishin's web build and Airsonic Refix run in a browser, and the
 `transcoding` extension's JSON POST triggers a preflight. The API surface answers CORS requests, preflight for an
-`application/json` body included. The policy itself (which origins, which headers, and whether credentials are ever
-allowed) is open, owed to the study rung, measured against the browser clients in the roster.
+`application/json` body included. A preflight answer carries CORS headers and no data, so
+`getOpenSubsonicExtensions` stays the only endpoint that returns data without credentials (principles row A3). The
+policy itself (which origins, which headers, and whether credentials are ever allowed) is open, owed to the study
+rung, measured against the browser clients in the roster.
 
 Launch implements the endpoints the client roster exercises: system (`ping`, `getLicense`, `getOpenSubsonicExtensions`,
 `getScanStatus`), browsing in both ID3 and folder views, album lists, search, media (stream, download, cover art, lyrics
@@ -564,10 +593,10 @@ stubbed), annotation (star, unstar, scrobble), playlists, play queue, shares, an
 Revision 2.5 (P conflict 2, row A5): no single request returns more than an album. `download` accepts a song id or an
 album id and returns the song or an album zip in the pipeline's own layout with sanitized names. A folder-view
 directory that holds exactly one album counts as that album. Every other id kind (an artist, a playlist, a directory
-above the album level, a music folder) answers error 50, "User is not authorized for the given operation.", with a
-message that names the song-or-album rule. Error 70 would be untrue for an id that exists, and error 50 is what
-Navidrome answers when downloads are off. Revision 2's artist and playlist zips, and the playlist zip's `.m3u8`, are
-superseded.
+above the album level, a music folder) answers error 50, which the OpenSubsonic error list defines as "User is not
+authorized for the given operation.", and its message names the song-or-album rule. Error 70 would be untrue for an
+id that exists, and error 50 is what Navidrome answers when downloads are off. Revision 2's artist and playlist
+zips, and the playlist zip's `.m3u8`, are superseded.
 
 Every other endpoint returns error code 0 inside a well-formed `subsonic-response` with a message naming the endpoint,
 never a bare 404. The exception is the set of endpoints clients require to answer with an empty success; the study rung
@@ -593,8 +622,10 @@ volume view, and the device page carries the credential cap's refusal ("Identity
 Device sync is a local-binary job, not a server feature. Every capability a sync needs is present on a workstation and
 absent on the VPS, which reaches the group through Cloudflare. 2.0 grows no device verb and no MTP. The largest real
 DAP class is a phone, which the clients' own offline caches already serve. The server's contribution is `download`,
-specified above. Revision 2.5 (P conflict 2): `download` returns at most one album, so a player loads per album, or
-through the local binary's export profile. A DAP export profile in the local binary is on the 2.1 list, gated on a real device in the group.
+specified above.
+
+Revision 2.5 (P conflict 2): `download` returns at most one album, so a player loads one album at a time. From 2.1,
+the local binary's DAP export profile is the other path, gated on a real device in the group.
 
 ### Cutover and operations
 
@@ -607,15 +638,15 @@ lists, playlists, and play history built in Navidrome are imported once through 
 
 After the flip the box runs the dubplate binary, ffmpeg, cloudflared, and the timers. Provisioning adds ffmpeg and the
 cache directory. The streamer's state lives under the existing state directory, so backup covers it. Doctor gains rows
-for ffmpeg's version, cache size against cap, index rebuild parity, and the drift count.
+for ffmpeg's version, cache size against cap, index rebuild parity, and the drift count. Configuration adds an
+integration class in rung 4's shape: enabled, cache cap, concurrent encodes, the profile set, and the app-password key,
+each required when enabled.
 
 Revision 2.5 (P "Before 0.8", ruling 3, row A13). Until the flip, Navidrome's sharing and downloads stay at its
 defaults, a residual the owner accepted. Whenever Navidrome serves as the escape hatch after the flip, a `doctor` row
 flags Navidrome sharing that is on. The row reads `shareRole` from Navidrome's `getUser`, which Navidrome sets from the effective
 `EnableSharing`. It never reads `navidrome.toml` alone, because `ND_ENABLESHARING` in the environment outranks the
-file. Any later check on sharing follows the same rule. Configuration adds an
-integration class in rung 4's shape: enabled, cache cap, concurrent encodes, the profile set, and the app-password key,
-each required when enabled.
+file. Any later check on sharing follows the same rule.
 
 ## The ladder
 
@@ -630,7 +661,8 @@ interval are set in its own plan, never here.
 2. Harness (M). The fixture library, the pinned Navidrome and gonic containers, the JSON schema validator and the XML
    rule the study rung sets, the recorded session, the differ, the divergence ledger, and the client roster's scripted
    walk. The client and the validator wiring are the protocol module's client and conformance checker, built under its
-   import boundary.
+   import boundary. The checker carries `getkin/kin-openapi` as a module dependency, where the survey adopted it for
+   tests only; this rung's plan weighs that.
 3. Catalog projection and browsing (L). Splits into passes at its own planning; it carries the projector, both browse
    views, and the id space.
 4. Art and search (M).
@@ -724,11 +756,10 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
 19. The listener as a configured choice, rung 12. The proxy-hygiene ingress keeps plain HTTP and a direct TLS listener
     both possible, and the real-client-IP rule has a direct mode that trusts no forwarded header. Added 2026-09-24
     (hosting and setup).
-20. The credential and the bytes on every serve event, 0.8 slices 5 and 7. Every serve event carries the authenticating
-    credential id and the bytes sent, and a download is an event kind, so the meter and play history read one event
-    stream. The event table's first builder is 0.8's per-user state, under the "built by its first consumer" rule, so
-    no current rung builds it; a current rung plan that shapes an event-shaped table (hook 4) weighs this hook. Added
-    2026-09-25 (P conflict 4).
+20. The credential and the bytes on every serve event, 0.8 slice 7. Every serve event carries the authenticating
+    credential id and the bytes sent, and a download is an event kind. The event table's first builder is 0.8's
+    per-user state, under the "built by its first consumer" rule, so no current rung builds it; a current rung plan
+    that shapes an event-shaped table (hook 4) weighs this hook. Added 2026-09-25 (P conflict 4).
 21. The source answer on the submission, rung 7, carried to the album row at rung 9's admission beside `added_by`.
     The uploader asks where the music came from once per upload, with a per-album override, and the answer is an
     intake API field so every intake client carries it. Intake refuses a submission without a known value, in the
@@ -761,7 +792,7 @@ alike, so that signal discriminates nothing and adoption evidence does the real 
 | `golang.org/x/time/rate` | Per-account and per-address auth rate limits | BSD-3, URL from study rung | Exemplar | Go team | 14,348 importers | Adopt. The repo's MusicBrainz limiter solves a different problem. |
 | `crypto/aes` and `cipher.NewGCM` | App-password encryption at rest | stdlib | n/a | n/a | n/a | Adopt the stdlib; no KDF library is needed. |
 | Schema migrations | Rung 6's mechanism | stdlib | n/a | n/a | n/a | Hand-roll with `embed.FS` and `PRAGMA user_version`. `pressly/goose` is declined: it direct-requires ten database drivers for a Go-function migration mechanism no hook asks for, and its decline rests chiefly on its silent-ahead `Up`, which applies every migration newer than the tracked version with no confirmation step (erratum 2026-09-23, rung 6 spec, erratum 12). |
-| Stream-through transcode cache | 2.0 rung 5 | stdlib | n/a | n/a | n/a | Hand-roll the size cap and eviction. `djherbis/fscache` is declined: 7 importers, its last tag is v0.10.1 (2020-04-15), and Navidrome pins an untagged pseudo-version. The fill-while-read primitive under it, `djherbis/stream` (MIT), now has a tagged v1.5.1 (2026-08-29); the streaming slice adopts or ports it, decided by a race test (revision 2.5, S finding 7). |
+| Stream-through transcode cache | 2.0 rung 5 | stdlib; `djherbis/stream` MIT if adopted | n/a | n/a | n/a | Hand-roll the size cap and eviction. `djherbis/fscache` is declined: 7 importers, its last tag is v0.10.1 (2020-04-15), and Navidrome pins an untagged pseudo-version. The fill-while-read primitive under it, `djherbis/stream` (MIT), now has a tagged v1.5.1 (2026-08-29); the streaming slice adopts or ports it, decided by a race test (revision 2.5, S finding 7). |
 | `internal/atomicfile` | Streaming atomic writes for blobs and cache entries | in-repo | n/a | n/a | n/a | Extend it with a streaming write rather than inventing a second temp-file convention. |
 | M3U read and write; Subsonic XML and JSON dual encoding | Cutover import and the response layer | stdlib | n/a | n/a | n/a | Hand-roll both. The study rung enumerates the encoding quirks (attribute-heavy XML, the wrapper, singleton-versus-array in JSON, JSONP) so the harness tests them. |
 | Chromaprint via `fpcalc` | Acoustic fingerprinting for untagged uploads | MIT source, but the distributed library is LGPL-2.1+ | n/a | Stable upstream | The AcoustID standard | Adopt for 2.1 as a subprocess only. Never link the library, and pin the FFT backend so a GPL build never lands. |
@@ -827,8 +858,10 @@ Revision 2.5 adds these, each open, owed to the study rung. The sources state th
   with seeking on `timeOffset` ("Streaming and transcoding"; S finding 4).
 - The CORS policy: allowed origins and headers, and whether credentials are ever allowed ("API surface"; S finding 5).
 - The AAC container for stream-through: fragmented MP4 or ADTS ("Streaming and transcoding"; S finding 6).
-- The protocol module's wire types, generated or hand-written, and its license, MIT or Apache-2.0 ("The protocol
-  layer is a separable module"; G).
+- The protocol module's license, MIT or Apache-2.0, and what NOTICE obligation it carries from the Apache-2.0 OpenAPI
+  file it validates against ("The protocol layer is a separable module"; G).
+- Which credential a stream authenticates with before slice 6 builds app passwords, owed to the slice 5 plan
+  ("Served volume"; P conflict 3).
 - The word "collection". OpenSubsonic PR #237, "Add collections" (open, 51 comments, updated 2026-09-20), defines a
   collection as a user-owned ordered list of items, while dubplate's collection maps to a music folder. If the PR
   lands, API docs and UI copy need a distinct word for one of them. PR #162 (open) would extend `musicFolderId` to
