@@ -22,6 +22,9 @@ architecture reads. Lane 2 merges 6c-fix through the merge ritual, then runs tra
 (`plans/2026-09-25-translit-table-at-setup.md`, approved, 3.3M) or 5d-i once 5c-iv closes and Geoff rules 5d.
 Box read-only; nothing deploys until 5d.
 
+**Unattended 2026-09-26 (Geoff):** 16M cap (flag 12.8M); finish 5c-iv, merge 6c-fix, then
+transliteration; 5d's ceilings deferred to the next sitting, so 5d-i does not start.
+
 ## Owner questions
 
 - Navidrome 0.64 bump for GHSA-82gh: open (Geoff 2026-09-25: sharing stays at zero until 0.8).
