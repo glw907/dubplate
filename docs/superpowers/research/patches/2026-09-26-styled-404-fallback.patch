@@ -1,0 +1,683 @@
+diff --git a/cmd/dubplate-server/web.go b/cmd/dubplate-server/web.go
+index 496f31b..3e93af5 100644
+--- a/cmd/dubplate-server/web.go
++++ b/cmd/dubplate-server/web.go
+@@ -78,12 +78,15 @@ const notConfigured = "none"
+ // a large file refuses startup rather than loading it into memory.
+ const operatorCSSMaxBytes = 256 << 10
+ 
+-// The build tree's three document paths, relative to the embedded
+-// build root.
++// The build tree's four document paths, relative to the embedded
++// build root. The not-found document is the build's fallback: it boots
++// the client router at whatever path it is served under, and the router
++// renders its own not-found page there.
+ const (
+ 	loginDocumentName     = "login.html"
+ 	loginLinkDocumentName = "login/link.html"
+ 	membersDocumentName   = "members.html"
++	notFoundDocumentName  = "404.html"
+ )
+ 
+ // webDocument is one document the web routes serve: its path inside
+@@ -169,7 +172,8 @@ func registerWebConfig(reg *config.Registry) {
+ // shell's owned prefix. operator is nil when no operator CSS file is
+ // configured, which leaves its path to the terminator's 404. members
+ // is the members document with no gate of its own, so it is never
+-// mounted except behind [auth.RequireAdmin].
++// mounted except behind [auth.RequireAdmin]. notFound answers every
++// owned path no route claims.
+ type webRoutes struct {
+ 	login    http.Handler
+ 	members  http.Handler
+@@ -178,12 +182,16 @@ type webRoutes struct {
+ 	icons    http.Handler
+ 	branding http.Handler
+ 	operator http.Handler
++	notFound http.Handler
+ }
+ 
+ // register mounts wr's public routes on shell under their subtree
+-// names, the login documents logged through the shell's own logger.
+-// It leaves members to the caller, which alone holds the admin gate.
++// names, the login documents logged through the shell's own logger,
++// and sets wr.notFound as the shell's answer to an unclaimed owned
++// path. It leaves members to the caller, which alone holds the admin
++// gate.
+ func (wr webRoutes) register(shell *serve.Shell) {
++	shell.SetNotFound(wr.notFound)
+ 	shell.Register(loginRouteName, serve.LogRequests(shell.Logger(), wr.login))
+ 	shell.Register(assetsRouteName, wr.assets)
+ 	shell.Register(fontsRouteName, wr.fonts)
+@@ -296,17 +304,20 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string,
+ 		{Href: prefix.String() + "/" + faviconSVGRouteName, Type: "image/svg+xml"},
+ 		{Href: prefix.String() + "/" + faviconPNGRouteName, Type: "image/png", Sizes: "32x32"},
+ 	}
+-	documents := make(map[string]http.Handler, len(webDocuments))
+-	for i, d := range webDocuments {
+-		cfg := serve.VariantConfig{
++	variantConfig := func(tierRoot string) serve.VariantConfig {
++		return serve.VariantConfig{
+ 			Placeholder: themePlaceholder,
+ 			Match:       match,
+ 			Palettes:    palettes,
+-			TierHrefs:   tierHrefs(d.name, hasOperatorCSS),
++			TierHrefs:   tierHrefs(tierRoot, hasOperatorCSS),
+ 			SiteName:    siteName,
+ 			ThemeColors: colors,
+ 			Icons:       icons,
+ 		}
++	}
++	documents := make(map[string]http.Handler, len(webDocuments))
++	for i, d := range webDocuments {
++		cfg := variantConfig(relativeRoot(d.name))
+ 		if d.noIndex {
+ 			cfg.Robots = authRobots
+ 		}
+@@ -324,10 +335,14 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string,
+ 			CSP:            csps[i],
+ 		})
+ 	}
++	notFound, err := notFoundRoute(buildFS, prefix, variantConfig(prefix.String()+"/"), palette)
++	if err != nil {
++		return webRoutes{}, err
++	}
+ 	membersPath := prefix.String() + "/" + membersRouteName
+-	members := newExactPathRoutes(map[string]http.Handler{membersPath: documents[membersPath]})
++	members := exactPathRoutes(map[string]http.Handler{membersPath: documents[membersPath]}, notFound)
+ 	delete(documents, membersPath)
+-	login := newExactPathRoutes(documents)
++	login := exactPathRoutes(documents, notFound)
+ 
+ 	assetsFS, err := fs.Sub(buildFS, "_app")
+ 	if err != nil {
+@@ -352,6 +367,7 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string,
+ 		fonts:    fontsRoute,
+ 		icons:    iconsRoute,
+ 		branding: stylesheetRoute(prefix, brandingRouteName, branding),
++		notFound: notFound,
+ 	}
+ 	if hasOperatorCSS {
+ 		routes.operator = stylesheetRoute(prefix, operatorCSSRouteName, operatorCSS)
+@@ -359,6 +375,52 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string,
+ 	return routes, nil
+ }
+ 
++// notFoundRoute returns the handler for an owned path no route claims.
++// A GET or HEAD answers 404 with the build's fallback document, rebased
++// under prefix and rewritten into one variant per palette like every
++// other document, so the client router boots at the unmatched path and
++// renders the app's own not-found page. Any other method answers
++// [serve.Terminator]'s 404, since no document answers it. The
++// fallback's tier links are prefix-absolute, since the document is
++// served at every depth under the prefix and a relative link resolves
++// against the path it is served at.
++func notFoundRoute(buildFS fs.FS, prefix serve.Prefix, cfg serve.VariantConfig, palette string) (http.Handler, error) {
++	raw, err := fs.ReadFile(buildFS, notFoundDocumentName)
++	if err != nil {
++		return nil, fmt.Errorf("web: document %q: %w", notFoundDocumentName, err)
++	}
++	rebased, err := serve.RebaseFallback(notFoundDocumentName, raw, prefix)
++	if err != nil {
++		return nil, err
++	}
++	csp, err := serve.DocumentCSP(notFoundDocumentName, rebased)
++	if err != nil {
++		return nil, err
++	}
++	variants, err := serve.BuildDocumentVariants(notFoundDocumentName, rebased, cfg)
++	if err != nil {
++		return nil, err
++	}
++	if err := checkVariantCSP(notFoundDocumentName, variants, csp); err != nil {
++		return nil, err
++	}
++	document := serve.NewDocument(serve.DocumentConfig{
++		Variants:       variants,
++		DefaultPalette: palette,
++		CacheControl:   "no-cache",
++		CSP:            csp,
++		Status:         http.StatusNotFound,
++	})
++	terminator := serve.Terminator()
++	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		if r.Method != http.MethodGet && r.Method != http.MethodHead {
++			terminator.ServeHTTP(w, r)
++			return
++		}
++		document.ServeHTTP(w, r)
++	}), nil
++}
++
+ // checkVariantCSP refuses when any served variant of the document
+ // name holds an inline script the build's own CSP meta does not hash,
+ // or yields a policy other than served, the header computed over the
+@@ -728,16 +790,21 @@ func withoutPath(err error) error {
+ 	return err
+ }
+ 
+-// tierHrefs returns the tier links for the document at docPath inside
+-// the build tree: the branding stylesheet always, and the operator
+-// stylesheet when one is configured. Each href is relative to the
+-// document's own URL, as the build's own links are, so the same
+-// document resolves them under any prefix.
+-func tierHrefs(docPath string, hasOperatorCSS bool) []string {
+-	root := "./"
++// relativeRoot returns the prefix's own directory as a reference
++// relative to the document at docPath inside the build tree, as the
++// build's own links are written, so the same document resolves it under
++// any prefix.
++func relativeRoot(docPath string) string {
+ 	if depth := strings.Count(docPath, "/"); depth > 0 {
+-		root = strings.Repeat("../", depth)
++		return strings.Repeat("../", depth)
+ 	}
++	return "./"
++}
++
++// tierHrefs returns the tier links under root, the prefix's own
++// directory as a document references it: the branding stylesheet
++// always, and the operator stylesheet when one is configured.
++func tierHrefs(root string, hasOperatorCSS bool) []string {
+ 	hrefs := []string{root + brandingRouteName}
+ 	if hasOperatorCSS {
+ 		hrefs = append(hrefs, root+operatorCSSRouteName)
+@@ -837,12 +904,17 @@ func stampablePalettes(selectors map[string]struct{}, match string) []string {
+ // same handler, so the exact-match check here is what keeps a deeper
+ // or trailing-slash path from reaching a document (R-5cii21).
+ func newExactPathRoutes(routes map[string]http.Handler) http.Handler {
+-	terminator := serve.Terminator()
++	return exactPathRoutes(routes, serve.Terminator())
++}
++
++// exactPathRoutes is [newExactPathRoutes] answering miss, rather than
++// the terminator, to a path routes does not hold.
++func exactPathRoutes(routes map[string]http.Handler, miss http.Handler) http.Handler {
+ 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ 		if h, ok := routes[r.URL.Path]; ok {
+ 			h.ServeHTTP(w, r)
+ 			return
+ 		}
+-		terminator.ServeHTTP(w, r)
++		miss.ServeHTTP(w, r)
+ 	})
+ }
+diff --git a/cmd/dubplate-server/web_test.go b/cmd/dubplate-server/web_test.go
+index abd428e..64f6165 100644
+--- a/cmd/dubplate-server/web_test.go
++++ b/cmd/dubplate-server/web_test.go
+@@ -45,11 +45,20 @@ const fixtureSiteName = "Fixture Group"
+ // satisfies.
+ const fixtureCSPMeta = `<meta http-equiv="content-security-policy" content="script-src 'self'">`
+ 
++// fixtureFallbackDoc is the fixture build's fallback document, shaped
++// as the build writes one: a root-absolute stylesheet link and one
++// inline script setting the router base to "", its hash in the CSP
++// meta, computed once with `printf '%s' '__k = {base: ""};' | openssl
++// dgst -sha256 -binary | base64`.
++const fixtureFallbackDoc = `<html data-theme="` + themePlaceholder + `"><head>` +
++	`<meta http-equiv="content-security-policy" content="script-src 'self' 'sha256-SLAKqbKhjfCsTh5Qledz1zWg9wKYqpRB/hjWxy0Xea8='">` +
++	`<link href="/_app/assets/0.css" rel="stylesheet"></head><body><script>__k = {base: ""};</script></body></html>`
++
+ // newFixtureBuildFS returns a build tree fstest.MapFS shaped like the
+ // real SvelteKit output this task rewrites: a login document, a
+-// login/link document, and a members document, each carrying a CSP
+-// meta, the placeholder on its data-theme attribute, and a stylesheet
+-// link resolved relative to its own path, and the linked CSS itself.
++// login/link document, a members document, and the fallback document,
++// each carrying a CSP meta, the placeholder on its data-theme
++// attribute, and a stylesheet link, and the linked CSS itself.
+ // The two counts set how often the login and login/link documents
+ // carry the placeholder; the members document carries it once.
+ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.MapFS {
+@@ -63,6 +72,7 @@ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.M
+ 		"login.html":             &fstest.MapFile{Data: []byte(loginDoc)},
+ 		"login/link.html":        &fstest.MapFile{Data: []byte(linkDoc)},
+ 		"members.html":           &fstest.MapFile{Data: []byte(membersDoc)},
++		"404.html":               &fstest.MapFile{Data: []byte(fixtureFallbackDoc)},
+ 		"_app/assets/0.css":      &fstest.MapFile{Data: []byte(fixtureThemeCSS)},
+ 		"_app/entry/start.js":    &fstest.MapFile{Data: []byte("// entry")},
+ 		"login/nested/other.txt": &fstest.MapFile{Data: []byte("unrelated")},
+diff --git a/internal/serve/csp.go b/internal/serve/csp.go
+index 3020f6e..f241e34 100644
+--- a/internal/serve/csp.go
++++ b/internal/serve/csp.go
+@@ -122,25 +122,44 @@ func metaScriptHashes(doc []byte) ([]string, error) {
+ // checkInlineScripts reports the first script in doc that is not a
+ // bare <script> or whose body's sha256 is not among hashes.
+ func checkInlineScripts(doc []byte, hashes []string) error {
++	bodies, err := scriptBodies(doc)
++	if err != nil {
++		return err
++	}
++	for _, body := range bodies {
++		if hash := scriptHash(body); !slices.Contains(hashes, hash) {
++			return fmt.Errorf("%w: %s", errUnhashedScript, hash)
++		}
++	}
++	return nil
++}
++
++// scriptBodies returns the body of every script in doc, in document
++// order, refusing any script tag that is not a bare <script> and any
++// script left unclosed.
++func scriptBodies(doc []byte) ([][]byte, error) {
++	var bodies [][]byte
+ 	rest := doc
+ 	for {
+ 		loc := scriptOpenRE.FindIndex(rest)
+ 		if loc == nil {
+-			return nil
++			return bodies, nil
+ 		}
+ 		if loc[1] >= len(rest) || rest[loc[1]] != '>' {
+-			return errUnrecognizedScript
++			return nil, errUnrecognizedScript
+ 		}
+ 		body := rest[loc[1]+1:]
+ 		end := scriptCloseRE.FindIndex(body)
+ 		if end == nil {
+-			return fmt.Errorf("%w: it is never closed", errUnrecognizedScript)
+-		}
+-		sum := sha256.Sum256(body[:end[0]])
+-		hash := "sha256-" + base64.StdEncoding.EncodeToString(sum[:])
+-		if !slices.Contains(hashes, hash) {
+-			return fmt.Errorf("%w: %s", errUnhashedScript, hash)
++			return nil, fmt.Errorf("%w: it is never closed", errUnrecognizedScript)
+ 		}
++		bodies = append(bodies, body[:end[0]])
+ 		rest = body[end[1]:]
+ 	}
+ }
++
++// scriptHash returns body's CSP hash source, unquoted.
++func scriptHash(body []byte) string {
++	sum := sha256.Sum256(body)
++	return "sha256-" + base64.StdEncoding.EncodeToString(sum[:])
++}
+diff --git a/internal/serve/document.go b/internal/serve/document.go
+index db7e42a..cbd7390 100644
+--- a/internal/serve/document.go
++++ b/internal/serve/document.go
+@@ -40,6 +40,65 @@ func RewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
+ 	}
+ }
+ 
++// The two shapes the build's fallback document carries that tie it to
++// the site root: each asset reference opens a quoted, root-absolute
++// path, and the inline script sets the client router's base to the
++// empty root.
++var (
++	fallbackAssetRef = []byte(`"/_app/`)
++	fallbackBase     = []byte(`base: ""`)
++)
++
++// RebaseFallback returns raw, the build's fallback document, moved
++// under prefix: every quoted "/_app/ reference gains prefix ahead of
++// it, the router base "" becomes prefix, and the CSP meta's hash of
++// each script the move changed becomes the changed script's hash.
++//
++// Every prerendered document references its assets relative to its own
++// URL, but the fallback is written for no one URL: it answers whatever
++// unmatched path a request names, at any depth, so the build writes its
++// references root-absolute and its base empty, and neither resolves
++// under an owned prefix. prefix is a validated [Prefix], so it carries
++// no quote, backslash, or angle bracket that could leave the string or
++// attribute it lands in.
++//
++// A document with no root-absolute asset reference, or whose router
++// base is not "" exactly once, is refused, naming it: either is a
++// build shape this rewrite was not written for. So is a changed script
++// whose hash the meta does not list exactly once. The result still
++// passes through [DocumentCSP], which refuses any inline script the
++// rewritten meta does not hash.
++func RebaseFallback(name string, raw []byte, prefix Prefix) ([]byte, error) {
++	if !bytes.Contains(raw, fallbackAssetRef) {
++		return nil, fmt.Errorf("serve: document %q: no root-absolute asset reference to rebase", name)
++	}
++	if n := bytes.Count(raw, fallbackBase); n != 1 {
++		return nil, fmt.Errorf("serve: document %q: the router base %q appears %d times, want exactly 1", name, fallbackBase, n)
++	}
++	rebased := bytes.ReplaceAll(raw, fallbackAssetRef, []byte(`"`+prefix.value+`/_app/`))
++	rebased = bytes.Replace(rebased, fallbackBase, []byte(`base: "`+prefix.value+`"`), 1)
++
++	before, err := scriptBodies(raw)
++	if err != nil {
++		return nil, fmt.Errorf("serve: document %q: %w", name, err)
++	}
++	after, err := scriptBodies(rebased)
++	if err != nil {
++		return nil, fmt.Errorf("serve: document %q: %w", name, err)
++	}
++	for i, body := range before {
++		if bytes.Equal(body, after[i]) {
++			continue
++		}
++		old := []byte("'" + scriptHash(body) + "'")
++		if n := bytes.Count(rebased, old); n != 1 {
++			return nil, fmt.Errorf("serve: document %q: a rebased script's hash appears %d times, want exactly 1", name, n)
++		}
++		rebased = bytes.Replace(rebased, old, []byte("'"+scriptHash(after[i])+"'"), 1)
++	}
++	return rebased, nil
++}
++
+ // VariantConfig is what [BuildDocumentVariants] rewrites a document
+ // with. Every attribute value it carries is escaped with
+ // html.EscapeString as it is written, so a quote, an angle bracket, or
+@@ -213,6 +272,9 @@ type DocumentConfig struct {
+ 	// CSP is the document's Content-Security-Policy value, as
+ 	// [DocumentCSP] builds it.
+ 	CSP string
++
++	// Status is the status a served variant answers with, or 0 for 200.
++	Status int
+ }
+ 
+ // NewDocument returns an http.Handler serving GET and HEAD only,
+@@ -222,10 +284,10 @@ type DocumentConfig struct {
+ // pairing is the caller's own startup wiring, never a per-request
+ // condition, so a mismatch panics rather than serving an empty body.
+ //
+-// A served document carries cfg.CacheControl, cfg.CSP, and Vary:
+-// Cookie, since the variant depends on the theme cookie and a shared
+-// cache must not answer one visitor with another's. A 405 carries
+-// none of them.
++// A served document answers cfg.Status and carries cfg.CacheControl,
++// cfg.CSP, and Vary: Cookie, since the variant depends on the theme
++// cookie and a shared cache must not answer one visitor with another's.
++// A 405 carries none of them.
+ //
+ // The handler writes no Set-Cookie, on any of these paths, and logs
+ // nothing about the cookie's value: every response is byte-identical
+@@ -247,6 +309,9 @@ func NewDocument(cfg DocumentConfig) http.Handler {
+ 		h.Set("Cache-Control", cfg.CacheControl)
+ 		h.Set("Content-Security-Policy", cfg.CSP)
+ 		h.Set("Vary", "Cookie")
++		if cfg.Status != 0 {
++			w.WriteHeader(cfg.Status)
++		}
+ 		_, _ = w.Write(cfg.Variants[palette])
+ 	}))
+ }
+diff --git a/internal/serve/document_test.go b/internal/serve/document_test.go
+index 80a7892..8597381 100644
+--- a/internal/serve/document_test.go
++++ b/internal/serve/document_test.go
+@@ -879,3 +879,129 @@ func TestThemeSelectors(t *testing.T) {
+ 		})
+ 	}
+ }
++
++// The fallback fixture's one inline script before and after the rebase
++// under "/p", and each body's sha256 source, computed once with
++// `printf '%s' <body> | openssl dgst -sha256 -binary | base64` rather
++// than by any function in this package.
++const (
++	fallbackScript            = `__k = {base: ""}; import("/_app/start.js");`
++	fallbackScriptHash        = "sha256-XyL0X69eYU3i+W+LB6QLaQFQMNSKQmqOzD09NVQMYCw="
++	rebasedFallbackScript     = `__k = {base: "/p"}; import("/p/_app/start.js");`
++	rebasedFallbackScriptHash = "sha256-qPdALEiI0gq7cXL9N/rQLl1bd8dCvUqZg5M2oUlkXvg="
++)
++
++// fallbackDoc returns a fallback document shaped as the build writes
++// one: its CSP meta listing hash, a root-absolute preload and
++// stylesheet link, and script as its one inline script.
++func fallbackDoc(hash, links, script string) string {
++	return `<html><head>` + cspMeta("script-src 'self' '"+hash+"'") + links +
++		`</head><body><script>` + script + `</script></body></html>`
++}
++
++const (
++	fallbackLinks        = `<link href="/_app/start.js" rel="modulepreload"><link href="/_app/0.css" rel="stylesheet">`
++	rebasedFallbackLinks = `<link href="/p/_app/start.js" rel="modulepreload"><link href="/p/_app/0.css" rel="stylesheet">`
++)
++
++func TestRebaseFallback(t *testing.T) {
++	prefix, err := NewPrefix("/p")
++	if err != nil {
++		t.Fatalf("NewPrefix: %v", err)
++	}
++	tests := []struct {
++		name       string
++		raw        string
++		want       string
++		wantErrHas string
++	}{
++		{
++			name: "every reference, the base, and the meta's hash move under the prefix",
++			raw:  fallbackDoc(fallbackScriptHash, fallbackLinks, fallbackScript),
++			want: fallbackDoc(rebasedFallbackScriptHash, rebasedFallbackLinks, rebasedFallbackScript),
++		},
++		{
++			name:       "no root-absolute asset reference",
++			raw:        fallbackDoc(fallbackScriptHash, `<link href="./_app/0.css" rel="stylesheet">`, `__k = {base: ""};`),
++			wantErrHas: `document "404.html": no root-absolute asset reference`,
++		},
++		{
++			name:       "no router base",
++			raw:        fallbackDoc(fallbackScriptHash, fallbackLinks, `import("/_app/start.js");`),
++			wantErrHas: `the router base "base: \"\"" appears 0 times, want exactly 1`,
++		},
++		{
++			name:       "two router bases",
++			raw:        fallbackDoc(fallbackScriptHash, fallbackLinks, fallbackScript+`base: ""`),
++			wantErrHas: `the router base "base: \"\"" appears 2 times, want exactly 1`,
++		},
++		{
++			name:       "a meta that does not list the changed script's hash",
++			raw:        fallbackDoc(bootScriptHash, fallbackLinks, fallbackScript),
++			wantErrHas: `a rebased script's hash appears 0 times, want exactly 1`,
++		},
++		{
++			name:       "a script tag carrying attributes",
++			raw:        strings.Replace(fallbackDoc(fallbackScriptHash, fallbackLinks, fallbackScript), "<script>", `<script type="module">`, 1),
++			wantErrHas: errUnrecognizedScript.Error(),
++		},
++	}
++	for _, tt := range tests {
++		t.Run(tt.name, func(t *testing.T) {
++			got, err := RebaseFallback("404.html", []byte(tt.raw), prefix)
++			if tt.wantErrHas != "" {
++				if err == nil || !strings.Contains(err.Error(), tt.wantErrHas) {
++					t.Fatalf("error = %v, want one containing %q", err, tt.wantErrHas)
++				}
++				return
++			}
++			if err != nil {
++				t.Fatalf("RebaseFallback: %v", err)
++			}
++			if string(got) != tt.want {
++				t.Errorf("RebaseFallback =\n%s\nwant\n%s", got, tt.want)
++			}
++			if _, err := DocumentCSP("404.html", got); err != nil {
++				t.Errorf("the rebased document fails DocumentCSP: %v", err)
++			}
++		})
++	}
++}
++
++// TestNewDocument_Status proves a document built with a status answers
++// it on GET and HEAD, body and headers intact, and one built without
++// answers 200.
++func TestNewDocument_Status(t *testing.T) {
++	tests := []struct {
++		name   string
++		status int
++		method string
++		want   int
++	}{
++		{name: "unset GET", method: http.MethodGet, want: http.StatusOK},
++		{name: "404 GET", status: http.StatusNotFound, method: http.MethodGet, want: http.StatusNotFound},
++		{name: "404 HEAD", status: http.StatusNotFound, method: http.MethodHead, want: http.StatusNotFound},
++	}
++	for _, tt := range tests {
++		t.Run(tt.name, func(t *testing.T) {
++			handler := NewDocument(DocumentConfig{
++				Variants:       documentVariantFixture(),
++				DefaultPalette: "system",
++				CacheControl:   "no-cache",
++				CSP:            "default-src 'self'",
++				Status:         tt.status,
++			})
++			rec := httptest.NewRecorder()
++			handler.ServeHTTP(rec, httptest.NewRequest(tt.method, "/nowhere", nil))
++			if rec.Code != tt.want {
++				t.Errorf("status = %d, want %d", rec.Code, tt.want)
++			}
++			if got := rec.Header().Get("Content-Security-Policy"); got != "default-src 'self'" {
++				t.Errorf("Content-Security-Policy = %q, want the document's own", got)
++			}
++			if tt.method == http.MethodGet && !bytes.Equal(rec.Body.Bytes(), documentVariantFixture()["system"]) {
++				t.Errorf("body = %q, want the default variant", rec.Body.Bytes())
++			}
++		})
++	}
++}
+diff --git a/internal/serve/serve.go b/internal/serve/serve.go
+index ef06752..898685a 100644
+--- a/internal/serve/serve.go
++++ b/internal/serve/serve.go
+@@ -31,6 +31,8 @@ type Shell struct {
+ 	fallthroughHandler http.Handler
+ 	fallthroughSet     bool
+ 
++	notFound http.Handler
++
+ 	hsts bool
+ 
+ 	// handlerBuilt records that Handler has composed the root chain,
+@@ -145,6 +147,20 @@ func (s *Shell) SetFallthrough(h http.Handler) {
+ 	s.fallthroughSet = true
+ }
+ 
++// SetNotFound sets the handler that answers a path under the owned
++// prefix no registered subtree claims, in place of [Terminator]. The
++// handler still stops the request: it never reaches the fallthrough, so
++// an unknown owned path cannot reach the proxy that slot holds. A second
++// call panics, as [Shell.SetFallthrough]'s does, since both calls are
++// the binary's own wiring. A shell with no SetNotFound call answers
++// through [Terminator].
++func (s *Shell) SetNotFound(h http.Handler) {
++	if s.notFound != nil {
++		panic("serve: not-found handler already set")
++	}
++	s.notFound = h
++}
++
+ // Handler composes six steps, in this order, each wrapping the next,
+ // and returns the root http.Handler: the security headers, the ingress
+ // strip, path normalization, the echo-method refusal, the origin check,
+@@ -211,14 +227,18 @@ func refuseEchoMethods(next http.Handler) http.Handler {
+ 
+ // terminated is the owned half of C4: a path under the owned prefix
+ // that some registered subtree claims goes to that subtree, and every
+-// other owned path goes to [Terminator]. The terminator is wired here
+-// explicitly rather than left to http.ServeMux's own default 404,
+-// which answers the same status by coincidence of the mux's behavior
+-// rather than by the shell's decision. Rung 14 depends on the
+-// decision, not the status: an unknown owned path must stop here
+-// rather than reach the proxy at the fallthrough.
++// other owned path goes to [Terminator], or to the handler
++// [Shell.SetNotFound] set. The terminator is wired here explicitly
++// rather than left to http.ServeMux's own default 404, which answers
++// the same status by coincidence of the mux's behavior rather than by
++// the shell's decision. Rung 14 depends on the decision, not the
++// status: an unknown owned path must stop here rather than reach the
++// proxy at the fallthrough.
+ func (s *Shell) terminated() http.Handler {
+-	terminator := Terminator()
++	terminator := s.notFound
++	if terminator == nil {
++		terminator = Terminator()
++	}
+ 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ 		h, pattern := s.mux.Handler(r)
+ 		if pattern == "" {
+diff --git a/internal/serve/serve_test.go b/internal/serve/serve_test.go
+index 5af9ff5..c3f68e5 100644
+--- a/internal/serve/serve_test.go
++++ b/internal/serve/serve_test.go
+@@ -576,6 +576,59 @@ func TestUnclaimedOwnedPathReachesTheTerminator(t *testing.T) {
+ 	}
+ }
+ 
++// TestSetNotFoundAnswersUnclaimedOwnedPaths: with a not-found handler
++// set, a path under the owned prefix that no subtree claims reaches that
++// handler instead of [Terminator], and still never the fallthrough. A
++// claimed path still reaches its subtree, and a path outside the prefix
++// still reaches the fallthrough.
++func TestSetNotFoundAnswersUnclaimedOwnedPaths(t *testing.T) {
++	tests := []struct {
++		name string
++		path string
++		want string
++	}{
++		{name: "unclaimed owned path", path: testPrefix + "/unclaimed", want: "not-found"},
++		{name: "the bare prefix", path: testPrefix, want: "not-found"},
++		{name: "claimed owned path", path: testPrefix + "/echo", want: "owned"},
++		{name: "outside the prefix", path: "/elsewhere", want: "fallthrough"},
++	}
++	for _, tt := range tests {
++		t.Run(tt.name, func(t *testing.T) {
++			shell := newTestShell(t, "")
++			var owned, fall, notFound recorder
++			shell.Register("echo", recordingHandler(&owned))
++			shell.SetFallthrough(recordingHandler(&fall))
++			shell.SetNotFound(recordingHandler(&notFound))
++
++			shell.Handler().ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, tt.path, nil))
++
++			reached := map[string]bool{
++				"owned":       owned.header != nil,
++				"fallthrough": fall.header != nil,
++				"not-found":   notFound.header != nil,
++			}
++			for name, hit := range reached {
++				if hit != (name == tt.want) {
++					t.Errorf("GET %s: %s reached = %v, want only %s reached", tt.path, name, hit, tt.want)
++				}
++			}
++		})
++	}
++}
++
++// TestSetNotFoundTwicePanics: the not-found slot takes at most one
++// handler, like the fallthrough slot.
++func TestSetNotFoundTwicePanics(t *testing.T) {
++	shell := newTestShell(t, "")
++	shell.SetNotFound(http.NotFoundHandler())
++	defer func() {
++		if recover() == nil {
++			t.Fatal("SetNotFound did not panic on a second call")
++		}
++	}()
++	shell.SetNotFound(http.NotFoundHandler())
++}
++
+ // TestRegisterAfterHandlerPanics: registration belongs to
+ // construction. A registration after the root chain is composed lands
+ // on a mux an already-serving binary is reading, so it panics naming
+diff --git a/web/svelte.config.js b/web/svelte.config.js
+index 73aa012..f25002a 100644
+--- a/web/svelte.config.js
++++ b/web/svelte.config.js
+@@ -62,10 +62,14 @@ function sourceVersion() {
+ const config = {
+   preprocess: vitePreprocess(),
+   kit: {
+-    // No `fallback`: every route prerenders (root +layout.ts sets
+-    // `prerender = true`), so adapter-static's default `strict: true`
+-    // has nothing dynamic to reject.
+-    adapter: adapter(),
++    // Every route prerenders (root +layout.ts sets `prerender = true`),
++    // so adapter-static's default `strict: true` has nothing dynamic to
++    // reject. The fallback is the not-found document: the Go server
++    // answers every unmatched path under its prefix with it, status 404,
++    // and the client router boots there and renders +error.svelte. It is
++    // written for the site root, so the server rebases its root-absolute
++    // references under the prefix at startup.
++    adapter: adapter({ fallback: '404.html' }),
+     version: { name: sourceVersion() },
+     // The meta policy these directives write must match the header
+     // internal/serve/csp.go sends, frame-ancestors aside (a meta policy

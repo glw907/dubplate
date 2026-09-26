@@ -85,3 +85,23 @@ Task 10b (Opus) takes the harness items: the 404 fallback page, the deadlines, t
 inline-anchor and favicon narrowing, and item 5. Task 10c takes the page items 1-4 and 6-13.
 The matrix then re-runs, and one fresh read of the changed cells, plus error-not-found, comes
 before Geoff's look.
+
+## Task 10b's escalation and the ruling (2026-09-26)
+
+Task 10b (`47331b4`) landed criteria 2 to 5: the deadlines, capture determinism, and the two
+narrowings. Criterion 1, the styled not-found fallback, did not land. `RequireAdmin`
+(`internal/auth/admin.go:112`) answers a refused request exactly as `http.NotFound` does. That
+way a non-admin cannot tell a gated path from an unregistered one, and two `serve_test.go` tests
+enforce it. So a styled 404 at unknown paths also needs the admin gate's refusal routed through
+the same handler. That is a change to the rung 5 auth surface and needs its own security review.
+The fallback document also needs its links rebased under the prefix, and its inline-script CSP
+hash recomputed.
+
+**Ruling: deferred to rung 7.** A bare 404 on an unknown URL is cosmetic, and today it is
+indistinguishable by design. Rung 7 already owns the error pages' visuals (Ruling 3's
+error-page photos). The unlanded work is kept at
+`docs/superpowers/research/patches/2026-09-26-styled-404-fallback.patch`, and the rung 7 task
+starts from it. That task adds an `AdminConfig.NotFound` (or equivalent) so the gate's refusal
+and an unmatched path answer the same styled document. It runs under a
+`web-auth-security-reviewer` read. For 5c-iv, the error-not-found capture asserts the bare
+404 and keeps `skipUIFloors`.
