@@ -69,6 +69,25 @@
     round         string   the round id this choice belongs to
     choice        "keep"|"pass"|"maybe"
     decided_at    string   an RFC 3339 timestamp
+    focus         optional { x: integer 0-100, y: integer 0-100 }, the
+                  login column's object-position (percent from the top
+                  left) for a photograph candidate showing as "cover"
+                  (below); meaningless and never set while it shows as
+                  "contain". Absent for a photograph nobody has
+                  re-centered (its crop is the default 50/50). At round
+                  close it is copied onto the committed record verbatim.
+    fit           optional "cover"|"contain", how the login column shows
+                  the photo: "cover" crops it (with `focus` above), while
+                  "contain" shows it whole, centered on the black film-
+                  edge carrier, the way a flyer or zine cover always
+                  shows regardless of this field. Absent means the
+                  format's own default: "contain" for a flyer or zine
+                  cover, "cover" for a photograph. Geoff can toggle a
+                  photograph either way (a wide group portrait a tall
+                  column has no good crop for, say); a flyer or zine
+                  cover's control stays hidden, always "contain". At
+                  round close it is copied onto the committed record
+                  verbatim.
     Written only by this page, on Geoff's Y / N / M / tap / Keep / Pass /
     Maybe control, one write in flight per source_id: a second decision
     on the same candidate while a write is in flight queues and replaces
@@ -83,6 +102,13 @@
     At round close a "maybe" is treated like an undecided candidate: it
     stays in the candidate pool for the next round, is never rejected,
     and is never committed.
+    A focus change and a fit change are writes under these same rules
+    (one in flight, round guard, no-op when unchanged), keeping the
+    candidate's current choice. Set while the candidate is undecided,
+    either has no choice document to attach to yet, so it is held on
+    the page only and rides along with the next Y/N/M that decides it;
+    the review mode UI says so. Changing a decided candidate's choice
+    later keeps its stored focus and fit.
 
   Images render from "/_blob/" + <thumb|preview>.id (the assets
   contract's durable pointer), never from the stored `url`, which is
@@ -130,6 +156,11 @@
     --radius-field: 0.25rem;
     --shadow-btn: 2px 2px 0 color-mix(in oklab, var(--color-neutral) 55%, transparent);
     --shadow-card: 3px 3px 0 color-mix(in oklab, var(--color-neutral) 45%, transparent);
+    /* The silver-print tone curve: grayscale to a warm ink-and-cream
+       curve, per the visual identity spec's Photography section. A
+       print treatment, not a theme color, so it is the same value in
+       both palettes and lives here rather than in either dark block. */
+    --silver-print-filter: grayscale(1) sepia(0.45) hue-rotate(-8deg) saturate(1.6) brightness(0.95) contrast(1.08);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -249,17 +280,20 @@
   }
   .round-badge.test { border-color: var(--color-secondary); color: var(--color-secondary); }
   .spacer { flex: 1; }
+  /* The way into review mode, and review mode is the way to see a photo
+     large now, so this is the one primary-filled button in the topbar. */
   #review-open {
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.68rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    border: 2px solid var(--color-neutral-content);
+    border: 2px solid var(--color-primary);
     border-radius: var(--radius-field);
-    background: transparent;
-    color: var(--color-neutral-content);
+    background: var(--color-primary);
+    color: var(--color-primary-content);
     padding: 0.3rem 0.6rem;
     min-height: 2rem;
+    box-shadow: var(--shadow-btn);
   }
   #review-open:disabled { opacity: 0.5; cursor: not-allowed; }
   #save-status {
@@ -392,6 +426,11 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    /* The same silver-print tone curve review mode's mock uses (grain
+       and vignette are skipped at this size: too small to read, and
+       too costly to run on a whole grid of them), so the grid reads
+       like the login page's photos instead of a plain photo library. */
+    filter: var(--silver-print-filter);
   }
   .card-thumb-wrap button.thumb-btn {
     position: absolute;
@@ -505,57 +544,6 @@
   }
   #no-db-state h2, #empty-state h2 { font-size: 1.2rem; margin-bottom: 0.5rem; }
 
-  #preview-overlay {
-    position: fixed;
-    inset: 0;
-    background: color-mix(in oklab, var(--color-neutral) 92%, transparent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    z-index: 20;
-  }
-  .film-frame {
-    background: var(--color-neutral);
-    padding: 0.6rem;
-    max-width: min(92vw, 900px);
-    max-height: 92vh;
-    display: flex;
-    flex-direction: column;
-    border-radius: 2px;
-  }
-  .film-frame img {
-    max-width: 100%;
-    max-height: 70vh;
-    object-fit: contain;
-    display: block;
-  }
-  .film-edge {
-    color: color-mix(in oklab, var(--color-secondary) 85%, var(--color-neutral));
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.45rem 0.2rem 0.15rem;
-    text-wrap: pretty;
-  }
-  #preview-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    min-height: 44px;
-    min-width: 44px;
-    border: 2px solid var(--color-base-100);
-    background: transparent;
-    color: var(--color-base-100);
-    border-radius: var(--radius-field);
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 0.8rem;
-  }
-
   /* ---- review mode ------------------------------------------------- */
   #review-overlay {
     position: fixed;
@@ -607,6 +595,55 @@
     letter-spacing: 0.03em;
     color: var(--ink-warning);
     border-bottom: 2px solid var(--color-base-300);
+  }
+  .review-focus-bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-info);
+    border-bottom: 2px solid var(--color-base-300);
+    background: var(--color-base-200);
+  }
+  #review-reset-focus {
+    min-height: 32px;
+    padding: 0.2rem 0.6rem;
+    border: 2px solid var(--color-base-content);
+    border-radius: var(--radius-field);
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  #review-reset-focus:disabled { opacity: 0.5; cursor: not-allowed; }
+  .review-fit-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .review-fit-toggle button {
+    min-height: 32px;
+    padding: 0.2rem 0.6rem;
+    border: 2px solid var(--color-base-content);
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .review-fit-toggle button:first-child { border-radius: var(--radius-field) 0 0 var(--radius-field); }
+  .review-fit-toggle button:last-child { border-radius: 0 var(--radius-field) var(--radius-field) 0; border-left: none; }
+  .review-fit-toggle button[aria-pressed="true"] {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
   }
   #review-stage {
     flex: 1;
@@ -663,7 +700,21 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    filter: grayscale(1) sepia(0.45) hue-rotate(-8deg) saturate(1.6) brightness(0.95) contrast(1.08);
+    filter: var(--silver-print-filter);
+  }
+  /* A flyer or zine cover is artwork meant to be read whole: shown
+     complete on the frame's own black ground, never cropped. */
+  .login-mock-photo-frame.uncropped img { object-fit: contain; }
+  .focus-marker {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #fff6ea;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--color-primary) 70%, transparent);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   .login-mock-grain,
   .login-mock-vignette {
@@ -757,8 +808,8 @@
     .login-mock { height: auto; min-height: 100%; }
   }
 
-  /* the plain, untreated view: the same film-edge frame the grid's
-     preview overlay uses, with no silver-print treatment */
+  /* the plain, untreated view: a film-edge frame with no silver-print
+     treatment, reachable from review mode by pressing L */
   .plain-frame {
     background: var(--color-neutral);
     padding: 0.6rem;
@@ -767,6 +818,10 @@
     flex-direction: column;
     border-radius: 2px;
   }
+  .plain-frame-photo {
+    position: relative;
+  }
+  .plain-frame-photo.has-focus-control { cursor: crosshair; }
   .plain-frame img {
     max-width: 100%;
     max-height: 60vh;
@@ -886,7 +941,7 @@
       <div class="mark" aria-hidden="true"></div>
       <h1>Photo sorter</h1>
       <span id="round-badge" class="round-badge mono">&nbsp;</span>
-      <button id="review-open" type="button">Review</button>
+      <button id="review-open" type="button">Review in login page</button>
       <div class="spacer"></div>
       <span id="save-status" role="status" aria-live="polite"></span>
     </div>
@@ -919,20 +974,9 @@
     <h2>Choices can&rsquo;t be saved here</h2>
     <p>
       This page has no working connection to its database, so nothing typed
-      or tapped here would be kept. Open the published artifact instead of a
-      copy of the file.
+      or tapped here would be kept. Open this page inside claude.ai (not in
+      its own tab).
     </p>
-  </div>
-
-  <div id="preview-overlay" hidden>
-    <button id="preview-close" aria-label="Close preview">&times;</button>
-    <div class="film-frame">
-      <img id="preview-img" alt="" />
-      <div class="film-edge">
-        <span id="preview-edge-top"></span>
-        <span id="preview-edge-bottom"></span>
-      </div>
-    </div>
   </div>
   </div>
 
@@ -945,6 +989,15 @@
     </div>
     <div id="review-closed-note" class="review-closed-note mono" hidden>
       This round is closed. Choices can no longer change.
+    </div>
+    <div id="review-focus-bar" class="review-focus-bar mono" hidden>
+      <span id="review-focus-hint" role="status" aria-live="polite"></span>
+      <div class="review-fit-toggle" role="group" aria-label="Photo fit">
+        <button id="review-fit-cover" type="button">Crop</button>
+        <button id="review-fit-contain" type="button">Whole</button>
+        <span class="key-hint"> (F)</span>
+      </div>
+      <button id="review-reset-focus" type="button">Reset crop</button>
     </div>
     <div id="review-stage"></div>
     <div class="review-actions">
@@ -977,16 +1030,27 @@
     vocab: null, // photos/meta/vocab.json, verbatim
     round: null, // { id, closed, balance }
     candidates: [], // full list of the current round, score order
-    choices: {}, // source_id -> { choice, decided_at }
+    choices: {}, // source_id -> { choice, decided_at, focus?: { x, y }, fit?: "cover"|"contain" }
     filters: { family: null, subject: null, region: null, decision: null },
     filtersOpen: false, // narrow widths only; the toggle below #topbar controls it
     focusIndex: 0,
-    store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice) }
+    store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice, roundId, focus, fit) }
     reviewOpen: false,
     reviewList: [], // snapshot of filteredCandidates() taken when review opened
     reviewIndex: 0,
     reviewView: "login", // "login" | "plain"
     reviewRoundId: null, // the round id review opened under; a mismatch closes review
+    // A crop focus point {x,y} (0-100 each) or a fit choice set while its
+    // candidate was still undecided: held here until the next decision
+    // saves it, since either is only ever written alongside a choice.
+    pendingFocus: {}, // source_id -> { x, y }
+    pendingFit: {}, // source_id -> "cover" | "contain"
+    // The focus point and fit currently shown, independent of whether
+    // the write that will persist them (through pendingFocus/pendingFit
+    // or a direct update) has resolved yet: a click or the F key must
+    // move or re-fit the crop right away.
+    localFocus: {}, // source_id -> { x, y }
+    localFit: {}, // source_id -> "cover" | "contain"
   };
 
   // The mark, inlined as SVG (mark-medium.svg from the visual identity
@@ -1002,7 +1066,7 @@
 
   // One write in flight per candidate; a decision made while a write is
   // in flight replaces the queued one rather than piling up requests.
-  var pendingWrite = {}; // source_id -> { inFlight: boolean, queued: "keep"|"pass"|"maybe"|null }
+  var pendingWrite = {}; // source_id -> { inFlight: boolean, queued: { choice, focus, fit } | null, roundId }
 
   function isLocalhost() {
     return location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -1087,6 +1151,104 @@
     if (!obj) return "";
     if (state.store && state.store.mode === "fixture") return obj.url;
     return "/_blob/" + obj.id;
+  }
+
+  // ---- crop focus point -----------------------------------------------
+  //
+  // A flyer or zine cover is artwork meant to be read whole: its fit is
+  // always "contain", and the Crop/Whole control that would let Geoff
+  // change it is never shown. A photograph defaults to "cover" (crop
+  // around a focus point Geoff can re-center) but he can toggle either
+  // one to "contain" instead, e.g. a wide group portrait that a tall
+  // login column has no good crop for.
+  function isUncroppedFormat(candidate) {
+    return candidate.format === "flyer" || candidate.format === "zine-cover";
+  }
+
+  function defaultFit(candidate) {
+    return isUncroppedFormat(candidate) ? "contain" : "cover";
+  }
+
+  // The fit to show right now, same priority order as currentFocus
+  // below: a local, not-yet-necessarily-saved value first, then the
+  // candidate's own saved fit, then one held for an undecided candidate,
+  // then the format's default.
+  function currentFit(candidate) {
+    var local = state.localFit[candidate.source_id];
+    if (local) return local;
+    var existing = state.choices[candidate.source_id];
+    if (existing && existing.fit) return existing.fit;
+    var pending = state.pendingFit[candidate.source_id];
+    if (pending) return pending;
+    return defaultFit(candidate);
+  }
+
+  function applyFit(candidate, fit) {
+    state.localFit[candidate.source_id] = fit;
+    updateFit(candidate, fit);
+  }
+
+  function clampPercent(n) {
+    return Math.max(0, Math.min(100, Math.round(n)));
+  }
+
+  // The focus to show right now: a local, not-yet-necessarily-saved
+  // value takes priority (a click must move the crop immediately, not
+  // once its write resolves), then the candidate's own saved focus,
+  // then null (the default center crop, nothing stored).
+  function currentFocus(candidate) {
+    var local = state.localFocus[candidate.source_id];
+    if (local) return local;
+    var existing = state.choices[candidate.source_id];
+    if (existing && existing.focus) return existing.focus;
+    return null;
+  }
+
+  function focusOrDefault(candidate) {
+    return currentFocus(candidate) || { x: 50, y: 50 };
+  }
+
+  function focusObjectPosition(candidate) {
+    var f = focusOrDefault(candidate);
+    return f.x + "% " + f.y + "%";
+  }
+
+  // Maps a pointer event to a 0-100 focus point. "cover" (the login
+  // mock) fills containerRect exactly, so the point is a plain fraction
+  // of it. "contain" (the plain view) can letterbox, so the point is a
+  // fraction of the image's actual rendered sub-rect within that box.
+  function focusFromPoint(clientX, clientY, containerRect, img, fit) {
+    var relX, relY;
+    if (fit === "contain") {
+      var natural = (img.naturalWidth || 1) / (img.naturalHeight || 1);
+      var boxRatio = containerRect.width / containerRect.height;
+      var renderedW, renderedH, offsetX, offsetY;
+      if (natural > boxRatio) {
+        renderedW = containerRect.width;
+        renderedH = containerRect.width / natural;
+        offsetX = 0;
+        offsetY = (containerRect.height - renderedH) / 2;
+      } else {
+        renderedH = containerRect.height;
+        renderedW = containerRect.height * natural;
+        offsetY = 0;
+        offsetX = (containerRect.width - renderedW) / 2;
+      }
+      relX = (clientX - containerRect.left - offsetX) / renderedW;
+      relY = (clientY - containerRect.top - offsetY) / renderedH;
+    } else {
+      relX = (clientX - containerRect.left) / containerRect.width;
+      relY = (clientY - containerRect.top) / containerRect.height;
+    }
+    return { x: clampPercent(relX * 100), y: clampPercent(relY * 100) };
+  }
+
+  // Moves the crop immediately (state.localFocus, then a render() the
+  // caller triggers) and starts the write that persists it, whichever
+  // path that takes (held for the next decision, or written now).
+  function applyFocusPoint(candidate, x, y) {
+    state.localFocus[candidate.source_id] = { x: x, y: y };
+    updateFocus(candidate, x, y);
   }
 
   function yearLabel(c) {
@@ -1240,15 +1402,20 @@
     img.src = imgSrc(candidate.thumb);
     img.alt = "";
     img.loading = "lazy";
+    if (currentFit(candidate) === "contain") {
+      img.style.objectFit = "contain";
+    } else {
+      img.style.objectPosition = focusObjectPosition(candidate);
+    }
     thumbWrap.appendChild(img);
 
     var thumbBtn = document.createElement("button");
     thumbBtn.type = "button";
     thumbBtn.className = "thumb-btn";
-    thumbBtn.setAttribute("aria-label", "Open full-size preview of " + candidate.title);
+    thumbBtn.setAttribute("aria-label", "Open " + candidate.title + " in the login page");
     thumbBtn.addEventListener("click", function () {
       state.focusIndex = index;
-      openPreview(candidate);
+      openReview(candidate);
     });
     thumbWrap.appendChild(thumbBtn);
 
@@ -1376,27 +1543,76 @@
   }
 
   // ---- decisions ----------------------------------------------------
+  //
+  // A decision, a focus change, and a fit change share one write
+  // pipeline: all three end up calling queueOrWrite with the full
+  // record to save (the choice plus whatever focus and fit should ride
+  // along with it), one write in flight per source_id, a second call
+  // while one is in flight replacing the queued record rather than
+  // piling up requests.
 
   function decide(candidate, choice) {
     if (state.round && state.round.closed) return;
     var existing = state.choices[candidate.source_id];
     if (existing && existing.choice === choice) return; // no-op: unchanged
+    // A focus or fit set while this candidate was undecided rides along
+    // with the decision that finally saves it; an already-decided
+    // candidate keeps its own stored focus and fit across a later
+    // choice change.
+    var focus = existing && existing.focus ? existing.focus : state.pendingFocus[candidate.source_id];
+    var fit = existing && existing.fit ? existing.fit : state.pendingFit[candidate.source_id];
+    queueOrWrite(candidate, choice, focus, fit);
+  }
+
+  // A focus or fit change on an undecided candidate has nothing to
+  // attach it to yet, so it is held in state.pendingFocus/pendingFit and
+  // picked up by decide() above; on a decided candidate it is a write in
+  // its own right, keeping that candidate's existing choice.
+  function updateFocus(candidate, x, y) {
+    var existing = state.choices[candidate.source_id];
+    if (!existing) {
+      state.pendingFocus[candidate.source_id] = { x: x, y: y };
+      return;
+    }
+    if (state.round && state.round.closed) return;
+    if (existing.focus && existing.focus.x === x && existing.focus.y === y) return; // no-op: unchanged
+    queueOrWrite(candidate, existing.choice, { x: x, y: y }, existing.fit);
+  }
+
+  function updateFit(candidate, fit) {
+    var existing = state.choices[candidate.source_id];
+    if (!existing) {
+      state.pendingFit[candidate.source_id] = fit;
+      return;
+    }
+    if (state.round && state.round.closed) return;
+    var stored = existing.fit || defaultFit(candidate);
+    if (stored === fit) return; // no-op: unchanged
+    queueOrWrite(candidate, existing.choice, existing.focus, fit);
+  }
+
+  function queueOrWrite(candidate, choice, focus, fit) {
     var pending = pendingWrite[candidate.source_id];
     if (pending && pending.inFlight) {
-      pending.queued = choice;
+      pending.queued = { choice: choice, focus: focus, fit: fit };
       return;
     }
     var roundId = state.round.id;
     pendingWrite[candidate.source_id] = { inFlight: true, queued: null, roundId: roundId };
-    performWrite(candidate, choice, roundId);
+    performWrite(candidate, choice, roundId, focus, fit);
   }
 
-  function performWrite(candidate, choice, roundId) {
+  function performWrite(candidate, choice, roundId, focus, fit) {
     setStatus("Saving" + ELLIPSIS, false);
     state.store
-      .writeChoice(candidate, choice, roundId)
+      .writeChoice(candidate, choice, roundId, focus, fit)
       .then(function () {
-        state.choices[candidate.source_id] = { choice: choice, decided_at: new Date().toISOString() };
+        var saved = { choice: choice, decided_at: new Date().toISOString() };
+        if (focus) saved.focus = focus;
+        if (fit) saved.fit = fit;
+        state.choices[candidate.source_id] = saved;
+        delete state.pendingFocus[candidate.source_id]; // now committed with a choice
+        delete state.pendingFit[candidate.source_id];
         setStatus("Saved", true);
         render();
       })
@@ -1419,23 +1635,31 @@
     // one the write went to, and a queued write is never redirected to a
     // round its decision was never made on.
     var roundChanged = !state.round || state.round.closed || state.round.id !== pending.roundId;
-    if (queued === null || roundChanged) {
+    if (!queued || roundChanged) {
       pending.inFlight = false;
       return;
     }
     var existing = state.choices[candidate.source_id];
-    if (existing && existing.choice === queued) {
+    var sameChoice = existing && existing.choice === queued.choice;
+    var existingFocus = existing && existing.focus;
+    var sameFocus = queued.focus
+      ? existingFocus && existingFocus.x === queued.focus.x && existingFocus.y === queued.focus.y
+      : !existingFocus;
+    var sameFit = (existing && existing.fit) === queued.fit;
+    if (sameChoice && sameFocus && sameFit) {
       pending.inFlight = false;
       return;
     }
-    performWrite(candidate, queued, pending.roundId);
+    performWrite(candidate, queued.choice, pending.roundId, queued.focus, queued.fit);
   }
 
-  // ---- preview --------------------------------------------------------
+  // ---- film edge captions -------------------------------------------
 
   // The film edge's top line (subject, artist, year) and bottom line
-  // (photographer, license), shared by the grid's quick preview and by
-  // review mode's login-context and plain views.
+  // (photographer, license), shared by review mode's login-context and
+  // plain views (the grid's own quick look at a photo large; there is
+  // no separate preview overlay any more, so every large view of a
+  // photo is one of these two).
   function filmEdgeTop(candidate) {
     var artistBit = candidate.photographer && candidate.photographer !== "Unknown" ? candidate.photographer : "";
     return [candidate.title, artistBit, yearLabel(candidate)].filter(Boolean).join(" " + MDASH + " ");
@@ -1444,29 +1668,9 @@
     return [candidate.photographer, candidate.license_display].filter(Boolean).join(" " + MDOT + " ");
   }
 
-  function openPreview(candidate) {
-    var overlay = document.getElementById("preview-overlay");
-    var img = document.getElementById("preview-img");
-    img.src = imgSrc(candidate.preview);
-    img.alt = candidate.title;
-    document.getElementById("preview-edge-top").textContent = filmEdgeTop(candidate);
-    document.getElementById("preview-edge-bottom").textContent = filmEdgeBottom(candidate);
-    overlay.hidden = false;
-    document.getElementById("preview-close").focus();
-  }
-
-  function closePreview() {
-    document.getElementById("preview-overlay").hidden = true;
-  }
-
   document.getElementById("filters-toggle").addEventListener("click", function () {
     state.filtersOpen = !state.filtersOpen;
     render();
-  });
-
-  document.getElementById("preview-close").addEventListener("click", closePreview);
-  document.getElementById("preview-overlay").addEventListener("click", function (e) {
-    if (e.target.id === "preview-overlay") closePreview();
   });
 
   // ---- review mode ------------------------------------------------------
@@ -1498,14 +1702,26 @@
     document.getElementById("app-content").inert = isInert;
   }
 
-  function openReview() {
+  // Opens review at a specific candidate (a thumbnail click, or Space on
+  // the focused card), or, with none given (the topbar's Review button),
+  // at the first undecided candidate in the current filter order.
+  function openReview(startCandidate) {
     var list = filteredCandidates();
     if (!list.length) return;
     var startIndex = 0;
-    for (var i = 0; i < list.length; i++) {
-      if (!state.choices[list[i].source_id]) {
-        startIndex = i;
-        break;
+    if (startCandidate) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].source_id === startCandidate.source_id) {
+          startIndex = i;
+          break;
+        }
+      }
+    } else {
+      for (var j = 0; j < list.length; j++) {
+        if (!state.choices[list[j].source_id]) {
+          startIndex = j;
+          break;
+        }
       }
     }
     state.reviewList = list;
@@ -1636,9 +1852,22 @@
     var img = document.createElement("img");
     img.src = imgSrc(candidate.preview);
     img.alt = "";
+    var uncropped = currentFit(candidate) === "contain";
+    if (uncropped) {
+      frame.classList.add("uncropped");
+    } else {
+      img.style.objectPosition = focusObjectPosition(candidate);
+      frame.style.cursor = "crosshair";
+      frame.addEventListener("click", function (e) {
+        var pt = focusFromPoint(e.clientX, e.clientY, frame.getBoundingClientRect(), img, "cover");
+        applyFocusPoint(candidate, pt.x, pt.y);
+        render();
+      });
+    }
     frame.appendChild(img);
     frame.appendChild(mkEl("div", "login-mock-grain"));
     frame.appendChild(mkEl("div", "login-mock-vignette"));
+    if (!uncropped) frame.appendChild(mkEl("div", "focus-marker"));
     var edgeTop = mkEl("div", "film-edge-top mono");
     edgeTop.textContent = filmEdgeTop(candidate);
     var edgeBottom = mkEl("div", "film-edge-bottom mono");
@@ -1694,10 +1923,21 @@
 
   function buildPlainFrame(candidate) {
     var frame = mkEl("div", "plain-frame");
+    var photoWrap = mkEl("div", "plain-frame-photo");
     var img = document.createElement("img");
     img.src = imgSrc(candidate.preview);
     img.alt = candidate.title;
-    frame.appendChild(img);
+    photoWrap.appendChild(img);
+    if (currentFit(candidate) !== "contain") {
+      photoWrap.classList.add("has-focus-control");
+      photoWrap.appendChild(mkEl("div", "focus-marker"));
+      photoWrap.addEventListener("click", function (e) {
+        var pt = focusFromPoint(e.clientX, e.clientY, photoWrap.getBoundingClientRect(), img, "contain");
+        applyFocusPoint(candidate, pt.x, pt.y);
+        render();
+      });
+    }
+    frame.appendChild(photoWrap);
     var edge = mkEl("div", "film-edge");
     var top = document.createElement("span");
     top.textContent = filmEdgeTop(candidate);
@@ -1752,13 +1992,16 @@
     toggle.hidden = !candidate;
     toggle.textContent = state.reviewView === "login" ? "Show plain photo (L)" : "Show in context (L)";
 
-    // Rebuild the stage's photo and mock only when the shown candidate or
-    // the view mode changes. A write resolving or a store snapshot
-    // arriving calls render() (and so this function) constantly while
-    // Geoff is looking at one photo; rebuilding the <img> on every one of
-    // those would flash the photo he is trying to judge.
+    // Rebuild the stage's photo and mock only when the shown candidate,
+    // the view mode, or the fit changes (cover vs. contain changes the
+    // markup itself: whether a click handler and a focus marker are
+    // even there). A write resolving or a store snapshot arriving calls
+    // render() (and so this function) constantly while Geoff is looking
+    // at one photo; rebuilding the <img> on every one of those would
+    // flash the photo he is trying to judge, so those don't change the
+    // key and so don't force a rebuild.
     var stage = document.getElementById("review-stage");
-    var key = candidate ? candidate.source_id + "|" + state.reviewView : null;
+    var key = candidate ? candidate.source_id + "|" + state.reviewView + "|" + currentFit(candidate) : null;
     if (key !== reviewStageKey || !candidate) {
       stage.innerHTML = "";
       if (candidate) {
@@ -1781,9 +2024,71 @@
     document.getElementById("review-yes").setAttribute("aria-pressed", existing && existing.choice === "keep" ? "true" : "false");
     document.getElementById("review-no").setAttribute("aria-pressed", existing && existing.choice === "pass" ? "true" : "false");
     document.getElementById("review-maybe").setAttribute("aria-pressed", existing && existing.choice === "maybe" ? "true" : "false");
+
+    var focusBar = document.getElementById("review-focus-bar");
+    focusBar.hidden = !candidate || isUncroppedFormat(candidate);
+    if (!focusBar.hidden) {
+      var hint = document.getElementById("review-focus-hint");
+      var held = !existing && !!(state.pendingFocus[candidate.source_id] || state.pendingFit[candidate.source_id]);
+      hint.textContent = held ? "Saved with your next decision." : "";
+      var fit = currentFit(candidate);
+      var fitCoverBtn = document.getElementById("review-fit-cover");
+      var fitContainBtn = document.getElementById("review-fit-contain");
+      fitCoverBtn.setAttribute("aria-pressed", fit === "cover" ? "true" : "false");
+      fitContainBtn.setAttribute("aria-pressed", fit === "contain" ? "true" : "false");
+      fitCoverBtn.disabled = closed;
+      fitContainBtn.disabled = closed;
+      var resetBtn = document.getElementById("review-reset-focus");
+      resetBtn.hidden = fit === "contain";
+      resetBtn.disabled = closed;
+    }
+    if (candidate) updateFocusVisuals(candidate);
   }
 
-  document.getElementById("review-open").addEventListener("click", openReview);
+  // Re-applies the current focus point to whatever the stage is showing
+  // right now: the object-position that crops the login mock's photo,
+  // and the small marker in both the login mock and the plain view. Runs
+  // on every render regardless of whether renderReviewOverlay rebuilt
+  // the stage, so a click moves the crop the same render it happens in.
+  function updateFocusVisuals(candidate) {
+    if (currentFit(candidate) === "contain") return;
+    var f = focusOrDefault(candidate);
+    var loginImg = document.querySelector(".login-mock-photo-frame img");
+    if (loginImg) {
+      loginImg.style.objectPosition = f.x + "% " + f.y + "%";
+      var loginMarker = document.querySelector(".login-mock-photo-frame .focus-marker");
+      if (loginMarker) {
+        loginMarker.style.left = f.x + "%";
+        loginMarker.style.top = f.y + "%";
+      }
+    }
+    var plainWrap = document.querySelector(".plain-frame-photo.has-focus-control");
+    if (plainWrap) {
+      var plainImg = plainWrap.querySelector("img");
+      var plainMarker = plainWrap.querySelector(".focus-marker");
+      var rect = plainWrap.getBoundingClientRect();
+      var natural = (plainImg.naturalWidth || 1) / (plainImg.naturalHeight || 1);
+      var boxRatio = rect.width / rect.height;
+      var renderedW, renderedH, offsetX, offsetY;
+      if (natural > boxRatio) {
+        renderedW = rect.width;
+        renderedH = rect.width / natural;
+        offsetX = 0;
+        offsetY = (rect.height - renderedH) / 2;
+      } else {
+        renderedH = rect.height;
+        renderedW = rect.height * natural;
+        offsetY = 0;
+        offsetX = (rect.width - renderedW) / 2;
+      }
+      plainMarker.style.left = offsetX + (f.x / 100) * renderedW + "px";
+      plainMarker.style.top = offsetY + (f.y / 100) * renderedH + "px";
+    }
+  }
+
+  document.getElementById("review-open").addEventListener("click", function () {
+    openReview(); // no candidate: opens at the first undecided one
+  });
   document.getElementById("review-close").addEventListener("click", closeReview);
   document.getElementById("review-prev").addEventListener("click", function () {
     reviewMove(-1);
@@ -1802,6 +2107,24 @@
   });
   document.getElementById("review-view-toggle").addEventListener("click", function () {
     state.reviewView = state.reviewView === "login" ? "plain" : "login";
+    render();
+  });
+  document.getElementById("review-reset-focus").addEventListener("click", function () {
+    var candidate = state.reviewList[state.reviewIndex];
+    if (!candidate) return;
+    applyFocusPoint(candidate, 50, 50);
+    render();
+  });
+  document.getElementById("review-fit-cover").addEventListener("click", function () {
+    var candidate = state.reviewList[state.reviewIndex];
+    if (!candidate) return;
+    applyFit(candidate, "cover");
+    render();
+  });
+  document.getElementById("review-fit-contain").addEventListener("click", function () {
+    var candidate = state.reviewList[state.reviewIndex];
+    if (!candidate) return;
+    applyFit(candidate, "contain");
     render();
   });
 
@@ -1849,7 +2172,18 @@
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key === "Escape") {
+      var reviewCandidate = state.reviewList[state.reviewIndex];
+      var isArrow = e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "ArrowDown";
+      if (e.shiftKey && isArrow && reviewCandidate && !isUncroppedFormat(reviewCandidate)) {
+        // Cheap keyboard nudge for the crop focus point: 5 points per
+        // press, same directions as the arrows already move by.
+        e.preventDefault();
+        var f = focusOrDefault(reviewCandidate);
+        var nx = f.x + (e.key === "ArrowLeft" ? -5 : e.key === "ArrowRight" ? 5 : 0);
+        var ny = f.y + (e.key === "ArrowUp" ? -5 : e.key === "ArrowDown" ? 5 : 0);
+        applyFocusPoint(reviewCandidate, clampPercent(nx), clampPercent(ny));
+        render();
+      } else if (e.key === "Escape") {
         e.preventDefault();
         closeReview();
       } else if (e.key === "ArrowRight") {
@@ -1874,13 +2208,10 @@
         e.preventDefault();
         state.reviewView = state.reviewView === "login" ? "plain" : "login";
         render();
-      }
-      return;
-    }
-    if (!document.getElementById("preview-overlay").hidden) {
-      if (e.key === "Escape" || e.key === " ") {
+      } else if ((e.key === "f" || e.key === "F") && reviewCandidate && !isUncroppedFormat(reviewCandidate)) {
         e.preventDefault();
-        closePreview();
+        applyFit(reviewCandidate, currentFit(reviewCandidate) === "cover" ? "contain" : "cover");
+        render();
       }
       return;
     }
@@ -1919,8 +2250,8 @@
       if (pc) decide(pc, "pass");
     } else if (e.key === " ") {
       // A focused button, chip, or other control gets its own Space
-      // press (activating it); only open the preview when focus is on
-      // the page at large (a card, or nothing in particular).
+      // press (activating it); only open review when focus is on the
+      // page at large (a card, or nothing in particular).
       var active = document.activeElement;
       var activeTag = active && active.tagName;
       if (activeTag === "BUTTON" || activeTag === "INPUT" || activeTag === "SELECT" || activeTag === "TEXTAREA" || (active && active.isContentEditable)) {
@@ -1928,7 +2259,7 @@
       }
       e.preventDefault();
       var sc = list[state.focusIndex];
-      if (sc) openPreview(sc);
+      if (sc) openReview(sc);
     }
   });
 
@@ -1985,13 +2316,16 @@
   function initRealStore(db) {
     state.store = {
       mode: "real",
-      writeChoice: function (candidate, choice, roundId) {
-        return db.doc("choices/" + candidate.source_id).set({
+      writeChoice: function (candidate, choice, roundId, focus, fit) {
+        var doc = {
           source_id: candidate.source_id,
           round: roundId,
           choice: choice,
           decided_at: new Date().toISOString(),
-        });
+        };
+        if (focus) doc.focus = focus;
+        if (fit) doc.fit = fit;
+        return db.doc("choices/" + candidate.source_id).set(doc);
       },
     };
 
@@ -2075,7 +2409,7 @@
           var choices = {};
           snap.docs.forEach(function (d) {
             var data = d.data();
-            choices[data.source_id] = { choice: data.choice, decided_at: data.decided_at };
+            choices[data.source_id] = { choice: data.choice, decided_at: data.decided_at, focus: data.focus, fit: data.fit };
           });
           state.choices = choices;
           render();
@@ -2099,9 +2433,12 @@
         var choicesMap = {};
         state.store = {
           mode: "fixture",
-          writeChoice: function (candidate, choice, roundId) {
+          writeChoice: function (candidate, choice, roundId, focus, fit) {
             return new Promise(function (resolve) {
-              choicesMap[candidate.source_id] = { choice: choice, round: roundId, decided_at: new Date().toISOString() };
+              var doc = { choice: choice, round: roundId, decided_at: new Date().toISOString() };
+              if (focus) doc.focus = focus;
+              if (fit) doc.fit = fit;
+              choicesMap[candidate.source_id] = doc;
               resolve();
             });
           },
