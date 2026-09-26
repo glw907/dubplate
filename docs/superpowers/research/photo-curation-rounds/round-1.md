@@ -76,3 +76,130 @@ Owner rulings (Geoff, 2026-09-25):
 - The sorting page gains a one-at-a-time review mode with yes, no, and maybe (Geoff: "cycle
   through them with a yes/no/maybe for each"). Conductor ruling: a maybe is treated like an
   unsorted candidate at close, staying in `.candidates/` for the next round, never rejected.
+
+## Task 5 spot-check (2026-09-25)
+
+Reader: a fresh-context Opus spot-check reader. Raw evidence is under
+`photos/.candidates/_spotcheck/raw/`, and the drawn ID list is in `_spotcheck/sample.json`.
+
+**Sample.** `node tools/photos/check.mjs sheet --out photos/.candidates/_sheet/` wrote 121
+candidates and dropped 0 duplicates. The mandatory set holds every record with license
+`LicenseRef-public-domain`, a `public_domain` block, or format `flyer` or `zine-cover`: 34
+records, which include all 9 flyers. The rest holds 87 records. Method: sort the rest ascending
+by the hex `sha256("20260925:" + id)`, then take the first `max(5, ceil(0.2 × 87))` = 18. Seed
+`20260925`, pool 121, sample size 52.
+
+**Channels.** Commons evidence came from `index.php?curid=<id>&action=raw`, plus
+`Template:LABW` and `Template:MikaVäisänen` raw and one batched `imageinfo` upload-history
+query. Commons deletion-request pages were checked for eleven files, and none exists. No
+sampled page carries a delete, copyvio, no-permission, or no-source template. Flickr evidence
+is each photo model's `"license":<n>` together with the license URL rendered on the page. Every
+Flickr owner NSID (94086509@N00, 68537341@N00, 61473396@N04) and every Flickr-origin Commons
+account is absent from `Commons:Questionable_Flickr_images` and its `/Users` list. LOC evidence
+came from `item/<id>/?fo=json`, reading `item.rights`. Registration checks used the Copyright
+Office public-records API.
+
+**Tally.** 36 match, 16 mismatch, 0 changed-since-grant, 0 unverifiable. The Marley record's
+upstream provenance could not be reached (archive.ph 429, worthpoint 403). Its Commons evidence
+was verified, so it is logged as a match with a note. Every mismatch sends the round back for
+re-verification before Task 6, per the spec.
+
+### Mismatches
+
+| Record | Record claims | Evidence shows | Recommended fix |
+|---|---|---|---|
+| archive-loc-2023867575 | basis `us-government-work` | `item.rights`: "In accordance with the wishes of William Gottlieb, the photographs in this collection entered into the public domain on February 16, 2010" | basis `rights-holder-dedication`, quote that line |
+| archive-loc-2023867585 | basis `us-government-work` | same Gottlieb dedication line (LOC date "[1938?]", title "between 1938 and 1948") | basis `rights-holder-dedication` |
+| archive-loc-2023867629 | basis `us-government-work` | same Gottlieb dedication line | basis `rights-holder-dedication` |
+| archive-loc-2023867716 | basis `us-government-work` | same Gottlieb dedication line | basis `rights-holder-dedication` |
+| archive-loc-2023868971 | basis `us-government-work` | same Gottlieb dedication line | basis `rights-holder-dedication` |
+| commons-155873916 (Black Flag flyer) | `us-1978-1989-no-notice-unregistered`, artist "Unknown" | Viewed: the flyer carries Raymond Pettibon's drawing (captioned "If you're really Christ, why don't you raise Janie?") and the four-bar logo, so the artist is not unknown. The file is a 2024 phone photo of a wall showing at least six other flyers (Masque, Anti-Nowhere League, Lewd, Punk Picnic, Nazi…), each a separate artwork the record never analyses. The only no-notice evidence is the uploader's `\|permission= The posters appear all to be from the era when they would have needed copyright notices (which they lack)`. The Copyright Office search found no registration for "Black Flag Meat Puppets" (0 hits); the "Pettibon" name search shows a 1987 VA registration (*Mulholland Drive*), so he did register work in the window | drop (`license`): multiple third-party artworks in frame, misattributed artist, unregistered leg unevidenced |
+| flickr-2255257225 | `us-1978-1989-no-notice-unregistered`, 1989 | The flyer reads "THURSDAY, MAY 25" and "SATURDAY June 3". Both dates fall on those weekdays only in 1989, after the Berne date of 1 March 1989, when notice stopped being required, so the no-notice basis cannot apply. It also reproduces Cruz Records ad copy and the ALL mascot art | drop (`license`) |
+| flickr-2253305393 | `us-1978-1989-no-notice-unregistered`, 1987 | Flickr `"license":4`, `creativecommons.org/licenses/by/2.0/` (the scan only). No notice is visible. The record carries no registration evidence. My Copyright Office search for "Leaping Lizards Productions" returned 7 hits, none 1978 to 1995. The cartoon crowd drawing's source is unknown | re-verify: add the registration search to `verified` and keep only if the conductor accepts the drawing as the promoter's own; else drop |
+| flickr-2256260222 | same basis, 1988 | No notice, and no registration evidence in the record. It embeds the Dischord and Enigma label logos and a large cut-and-paste block of a Chinese-language newspaper, a foreign work the US no-notice rule does not reach | drop (`license`) |
+| flickr-2274222503 | same basis, 1988 | No notice, and no registration evidence. It embeds the Fist Records logo, a halftone fist image, and the NYHC logo | drop (`license`) |
+| flickr-2274349509 | same basis, 1986 | No notice, and no registration evidence. It redraws the Descendents' "Milo" character, published with notice on the band's record sleeves, and the JFA logo | drop (`license`) |
+| commons-16927339 | photographer Danny Lyon, year 1973 exact | `Author = {{NARA-Author\|Pickerell, Jim, 1936-, Photographer\|4588217}}`, `Date = 1974-07`. The license `{{PD-USGov-EPA}}` matches | photographer Jim Pickerell, year 1974 |
+| commons-17083273 | photographer Danny Lyon | `Author = {{NARA-Author\|Calonius, Erik, Photographer\|8464439}}`, `Date = 1973-05`. The license `{{PD-USGov-EPA}}` matches | photographer Erik Calonius |
+| commons-17083311 | photographer Danny Lyon | `Author = {{NARA-Author\|Calonius, Erik, Photographer\|8464439}}`, `Date = 1973-05`. The license `{{PD-USGov-EPA}}` matches | photographer Erik Calonius |
+| commons-17032876 | photographer "Unknown, Commons uploader", no plausibility note | `\|author=[[User:Revup67\|Anthony Gliozzo (revup67)]]` and `{{self\|cc-by-sa-3.0}}`. The photo is dated 1984 and was first uploaded 2011-10-19, 27 years later, so the plan's own-work rule applies, and `verified` gives no reason. The account has only these two uploads, both from one 1984 Irving Plaza show | photographer Anthony Gliozzo, and add the plausibility statement (named real person, backstage access, a single personal set), or drop |
+| commons-17032958 | same | `\|author=[[User:Revup67\|Anthony Gliozzo (Revup67)]]`, `{{self\|cc-by-sa-3.0}}`, uploaded 2011-10-19 | same as above |
+
+### Matches
+
+The date for every row is 2026-09-25.
+
+- FSA/OWI (Marion Post Wolcott), `us-government-work`: archive-loc-2017801730, -2017801734,
+  -2017801737, -2017801843, -2017802165. Evidence: "The contents of the Library of Congress Farm
+  Security Administration/Office of War Information Black-and-White Negatives are in the public
+  domain".
+- commons-139148268 (Kinks): `{{PD-Scan|PD-Pre1978}}` and "they did not include a copyright
+  notice on either the photograph or as part of its caption".
+- commons-26925953 (Standells): `{{PD-Pre1978}}` and "There are no copyright markings as can be
+  seen at the full view link".
+- commons-58940407 (Chocolate Watchband): `{{PD-1978}}` and "All versions of and other unscanned
+  portions of the back of this photo do not display the copyright notice". This is weak
+  provenance, since the source is a blogspot scan with an unknown author.
+- commons-168617945 (Marley 1976): `{{PD-1978}}` and "published in 1977 by the US branch of
+  Island Records ... No copyright markings on the photo". The no-notice claim rests on the
+  uploader's reading of an eBay listing. The listing archive (archive.ph 429) and the worthpoint
+  copy (403) were unreachable, so the claim is unconfirmed upstream. No deletion request exists.
+  The record's `verified` field quotes only the template and should also quote the no-notice
+  line.
+- commons-165167895 (Duperly, "before 1922") and commons-165168466 (Valentine & Sons, 1891):
+  `{{PD-US-expired|PD-Jamaica-old-1946}}`.
+- EPA DOCUMERICA, `{{PD-USGov-EPA}}`: commons-16911725, where the author (Danny Lyon) is right.
+  Its `Date = 1974-07` against the record's circa 1973 is a minor correction.
+- `{{PD-self}}`, `rights-holder-dedication`, where the uploader is the named author and the
+  upload was contemporaneous:
+  - commons-2521430: `{{PD-self|author=[[User:Schlamniel|Schlamniel]]}}`, dated 2006-07-21,
+    first uploaded 2007-08-05 by Schlamniel.
+  - commons-4599589: dated 2008-07-30, uploaded 2008-08-21 by Sbazzone.
+  - commons-6163794 and commons-6172376: dated 2009-02-28, uploaded 2009-03-09 by
+    Bigtimepeace.
+  - commons-7357632: dated 2009-07-21, uploaded 2009-07-21 by Bigtimepeace.
+- `{{PD-text}}`, `below-threshold-of-originality`, each flyer viewed:
+  - commons-53201399: type, star ornaments, and the printer's tiny imprint only. The imprint
+    reads "COLBY POSTER PRINTING CO.", so the record's "Cooley" (copied from Commons) is a
+    spelling fix.
+  - commons-61657014 (1984-06-16): type and two star bullets only.
+  - commons-61686488 (1984-08-10): type and star bullets only.
+  All three predate 1 March 1989 and show no notice.
+- Commons self-licenses:
+  - commons-10429450 `{{self|cc-by-sa-3.0|GFDL}}`. Its `verified` quotes api extmetadata, an
+    aggregator field, so re-quote the wikitext.
+  - commons-125742880 `{{self|cc-by-sa-4.0}}`.
+  - commons-19445529 `{{self|cc-by-3.0}}`.
+  - commons-4235509 `{{self|GFDL|cc-by-3.0}}`.
+  - commons-55096678 `{{self|cc-by-sa-4.0}}`.
+  - commons-172710925 `{{self|cc-by-sa-4.0}}`.
+  - commons-38430378 `{{self|cc-by-sa-4.0}}`, with `{{MikaVäisänen}}`, which carries
+    `{{PermissionTicket|id=2015020510019074}}` and confirms that Mika Väisänen uploads his own
+    pictures from the Mikamote and MikaV accounts. It was dated 1999 and uploaded 2015-02-04,
+    16 years apart.
+- commons-164948851: `{{cc-by-sa-4.0}}` with `{{PermissionTicket|id=2025050810011748}}`.
+- commons-171049547: `{{LABW|...}}`, and `Template:LABW` renders `{{cc-by-4.0|{{{1}}}}}`.
+- commons-73912446: `{{CC-zero}}` under `{{Nationaal Archief}}`, credited "Rob Bogaerts / Anefo".
+- Flickr-origin Commons files, with FlickreviewR or Flickrreview as the evidence of record:
+  - commons-44052504: `{{User:FlickreviewR/reviewed-pass|Sam Howzit|...|2015-10-07 03:32:19|cc-by-2.0|}}`.
+  - commons-2583699: `{{User:FlickreviewR/reviewed-pass|DaigoOliva|...|10:04, 19 August 2007 (UTC)|cc-by-sa-2.0}}`.
+  - commons-40564624: `{{cc-by-sa-2.0}}` and `{{Flickrreview|INeverCry|2015-05-29}}`.
+  - commons-110934684: this crop's page carries no review. Its parent,
+    `File:Michael_Schwartz,_Mix_Master_Mike.jpg`, carries
+    `{{User:FlickreviewR/reviewed-pass|fabbio|...|10:27, 11 September 2007 (UTC)|cc-by-sa-2.0}}`.
+- Flickr direct, where the live page matches the record, so there was no change since the grant:
+  - flickr-4075403267: `"license":4` and `creativecommons.org/licenses/by/2.0/`.
+  - flickr-21014404506: the same.
+
+### Round-wide findings
+
+- The hiphop agent's `verified` fields never quote a line. They say "Raw wikitext license
+  template confirmed ... see raw/ evidence in the hiphop agent directory". This affects 8
+  sampled records and likely all 21 of that agent's records. The license itself matched in every
+  sampled case, but the plan requires the matched line in `verified`.
+- research-a's Commons records quote only the bare license template, never the no-notice or
+  authorship lines the basis rests on. The Marley, Watchband, Standells, and Fuzztones records
+  show this.
+- The `us-1978-1989-no-notice-unregistered` basis failed in every sampled use (6 of 6). No record
+  carried registration evidence, and flyers routinely embed third-party logos and character art
+  that a flyer's own lack of notice does not free.
