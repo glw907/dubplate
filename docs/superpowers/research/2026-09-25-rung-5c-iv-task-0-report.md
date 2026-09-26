@@ -121,3 +121,12 @@ revision exists. Each re-pointed citation reads as the refresh note says:
 - `:340`: curly quotes and apostrophes.
 - `:346`: placeholder text at 62%.
 - `:347`: header links' hover, and the 44px size.
+
+## Item 3, run by the conductor (2026-09-25, 21:20 AKDT)
+
+The implementer could not reach the network, so the conductor ran the lookups. `npm view <pkg> version` for every package in `web/package.json`: every pin equals the registry's latest (`@sveltejs/adapter-static` 3.0.10, `@sveltejs/kit` 2.70.3, `@sveltejs/vite-plugin-svelte` 7.3.1, `@tailwindcss/vite` 4.3.3, `daisyui` 5.7.46, `playwright` 1.63.0, `svelte` 5.57.1, `svelte-check` 4.7.6, `tailwindcss` 4.3.3, `vite` 8.3.1) except two majors:
+
+- `typescript` 6.0.3 against 7.0.2: a major, so it is a question for Geoff, carried in STATUS. It does not block Task 7.
+- `@types/node` 24.13.6 against 26.6.3: the types track the Node runtime's major, and the workstation build runs Node 24, so 24.x stays. Not a question.
+
+`@ibm/plex-mono`: 2.5.0, the pinned version (FONTS.md:70). PyPI's newest `fonttools`: 4.66.0, the pinned conversion version (FONTS.md:21, :53). The `google/fonts` commits and the Alfa Slab One upstream were not re-checked: the files are vendored under recorded hashes from pinned commits, which cannot change, and the Alfa Slab WOFF2 question only matters under Ruling 9's "no". No blocker.
