@@ -50,7 +50,7 @@ var (
 // jobRetentionSetting is DUBPLATE_JOB_RETENTION: how long a finished
 // job record survives past its own kind's newest succeeded record.
 // Its default, 2160h (90 days), carries unchanged the value
-// ops/local's retired retention constant held (R-6bi8, R-6c11).
+// ops/local's retired retention constant held.
 var jobRetentionSetting = config.Setting{
 	Key:     "DUBPLATE_JOB_RETENTION",
 	Kind:    config.KindDuration,
@@ -63,11 +63,10 @@ var jobRetentionSetting = config.Setting{
 
 // storeLocalSnapshotKeepSetting is DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP:
 // how many local pre-migration snapshot copies OpenServe's own keep
-// bound retains. Its default of 3 is a working value R-6bi8 never set:
-// a rollback needs the newest copy, and two older copies cover a bad
-// upgrade found a release late, each a full store whose size doctor
-// already shows (R-6c11). doctor is its first reader (D5); 6d wires it
-// into ServeOptions.Keep.
+// bound retains. Its default of 3 is a working value the retired
+// package never set: a rollback needs the newest copy, and two older
+// copies cover a bad upgrade found a release late, each a full store
+// whose size doctor already shows. doctor is its first reader.
 var storeLocalSnapshotKeepSetting = config.Setting{
 	Key:     "DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP",
 	Kind:    config.KindInt,
@@ -90,7 +89,7 @@ func registerStoreConfig(reg *config.Registry) {
 // jobRetentionReader returns the closure over acc that
 // [local.Config.Retention] reads before every job start: the
 // accessor's typed read of jobRetentionSetting, one per value
-// ops/local needs (R-6c11).
+// ops/local needs.
 func jobRetentionReader(acc *settings.Accessor) func(context.Context) (time.Duration, error) {
 	return func(ctx context.Context) (time.Duration, error) {
 		return acc.Duration(ctx, jobRetentionSetting)

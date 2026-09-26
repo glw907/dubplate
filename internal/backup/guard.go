@@ -40,8 +40,8 @@ func resolveRoot(root string) (string, error) {
 // checkLibrary runs the guards on the resolved root against h's
 // catalog, and returns the --max-delete bound the sync takes. fraction
 // is the caller's own [Job.GuardFraction], already validated
-// structurally (R-6c13); the policy bound on it is the caller's
-// registry to enforce.
+// structurally; the policy bound on it is the caller's registry to
+// enforce.
 func checkLibrary(ctx context.Context, h *store.Handle, root string, fraction float64) (int, error) {
 	var tracks int
 	if err := h.QueryRow(ctx, "SELECT count(*) FROM tracks").Scan(&tracks); err != nil {

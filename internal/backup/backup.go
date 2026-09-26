@@ -44,9 +44,9 @@ type Job struct {
 	// GuardFraction is the share of the catalog's tracks the library
 	// tree must hold as regular files before the sync may run: at
 	// least a value in (0, 1], never NaN. The caller's registry (a
-	// store-homed key, R-6c11) owns the policy default and its
-	// bounds; Run validates only the structural invariant this
-	// package's own arithmetic depends on (R-6c13).
+	// store-homed key) owns the policy default and its bounds; Run
+	// validates only the structural invariant this package's own
+	// arithmetic depends on.
 	GuardFraction float64
 
 	// SnapshotKeep is how many remote snapshots a prune keeps in
@@ -62,8 +62,8 @@ type Job struct {
 }
 
 // validate refuses a structurally invalid GuardFraction, SnapshotKeep,
-// or ArchiveRetention before any rclone launch, the LookPath included
-// (R-6c13). A zero value left at the caller's own zero value would
+// or ArchiveRetention before any rclone launch, the LookPath included.
+// A zero value left at the caller's own zero value would
 // otherwise silently change what the run does rather than fail loudly:
 // a guard fraction of 0 turns the short-tree guard off, an archive
 // retention of 0 purges every archive directory but this run's own,

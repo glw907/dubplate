@@ -26,12 +26,12 @@ type prune struct {
 
 	// snapshotKeep is how many remote snapshots this prune keeps in
 	// total, the run's own included; the caller's own [Job.SnapshotKeep],
-	// already validated structurally (R-6c13).
+	// already validated structurally.
 	snapshotKeep int
 
 	// archiveRetention is how long an archive directory survives past
 	// its stamp; the caller's own [Job.ArchiveRetention], already
-	// validated structurally (R-6c13).
+	// validated structurally.
 	archiveRetention time.Duration
 }
 
@@ -128,8 +128,8 @@ func (p prune) pruneSnapshots(ctx context.Context, entries []remoteEntry) error 
 }
 
 // pruneArchive purges every archive/<stamp>/ directory more than
-// [archiveRetention] before the run's stamp. A name that does not
-// parse as a stamp is left alone.
+// p's own archiveRetention before the run's stamp. A name that does
+// not parse as a stamp is left alone.
 func (p prune) pruneArchive(ctx context.Context) error {
 	entries, err := p.t.list(ctx, p.remote.join("archive"), true)
 	if err != nil {

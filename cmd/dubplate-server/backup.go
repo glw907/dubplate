@@ -41,14 +41,14 @@ var backupIntegrationClass = config.IntegrationClass{
 // backupGuardFractionSetting is DUBPLATE_BACKUP_GUARD_FRACTION: the
 // share of the catalog's tracks a library tree must hold as regular
 // files before a sync may run. Its default, 0.5, carries unchanged the
-// value internal/backup's retired guardFraction constant held
-// (R-6bi8). The floor is the protective minimum against a value that
-// would turn the short-tree guard off by accident (Ruling 3, R-6c11).
+// value internal/backup's retired guardFraction constant held. The
+// floor is the protective minimum against a value that would turn the
+// short-tree guard off by accident.
 var backupGuardFractionSetting = config.Setting{
 	Key:     "DUBPLATE_BACKUP_GUARD_FRACTION",
 	Kind:    config.KindFloat,
 	Default: "0.5",
-	Doc:     "a fraction greater than 0 and at most 1, for example 0.5",
+	Doc:     "a decimal fraction from 0.25 to 1, for example 0.5",
 	Apply:   config.ApplyNextOperation,
 	Floor:   "0.25",
 	Ceiling: "1",
@@ -57,9 +57,9 @@ var backupGuardFractionSetting = config.Setting{
 // backupSnapshotKeepSetting is DUBPLATE_BACKUP_SNAPSHOT_KEEP: how many
 // remote snapshots a prune keeps in total, the run's own included. Its
 // default, 14, carries unchanged the value internal/backup's retired
-// snapshotKeep constant held (R-6bi8). The floor is the protective
-// minimum against a keep that would let one run delete every other
-// pre-upgrade remote snapshot (Ruling 3, R-6c11; spec ruling 10).
+// snapshotKeep constant held. The floor is the protective minimum
+// against a keep that would let one run delete every other
+// pre-upgrade remote snapshot.
 var backupSnapshotKeepSetting = config.Setting{
 	Key:     "DUBPLATE_BACKUP_SNAPSHOT_KEEP",
 	Kind:    config.KindInt,
@@ -73,9 +73,9 @@ var backupSnapshotKeepSetting = config.Setting{
 // backupArchiveRetentionSetting is DUBPLATE_BACKUP_ARCHIVE_RETENTION:
 // how long an archive directory survives past its stamp. Its default,
 // 2160h (90 days), carries unchanged the value internal/backup's
-// retired archiveRetention constant held (R-6bi8). The floor is the
-// protective minimum against a retention that would purge within a day
-// the files a bad sync moved into archive/ (Ruling 3, R-6c11).
+// retired archiveRetention constant held. The floor is the protective
+// minimum against a retention that would purge within a day the files
+// a bad sync moved into archive/.
 var backupArchiveRetentionSetting = config.Setting{
 	Key:     "DUBPLATE_BACKUP_ARCHIVE_RETENTION",
 	Kind:    config.KindDuration,
@@ -107,8 +107,7 @@ func registerBackupConfig(reg *config.Registry) {
 
 // backupSettingsReaders returns the reader functions [runBackup]
 // injects into [local.BackupConfig]: the accessor's typed read of each
-// of the three backup-homed settings, one per value ops/local needs
-// (R-6c11).
+// of the three backup-homed settings, one per value ops/local needs.
 func backupSettingsReaders(acc *settings.Accessor) (
 	guardFraction func(context.Context) (float64, error),
 	snapshotKeep func(context.Context) (int, error),
@@ -124,7 +123,7 @@ func backupSettingsReaders(acc *settings.Accessor) (
 // backupConfigFrom builds ops/local's backup configuration from cfg
 // and acc: the flag and the remote through the integration class, the
 // library root through the owned wall row rung 1 declared (R-6bi18),
-// and the three backup value readers through acc (R-6c11).
+// and the three backup value readers through acc.
 func backupConfigFrom(cfg *config.Config, acc *settings.Accessor) local.BackupConfig {
 	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
 	return local.BackupConfig{

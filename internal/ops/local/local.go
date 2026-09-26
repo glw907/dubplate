@@ -38,8 +38,8 @@ type Config struct {
 
 	// Retention returns DUBPLATE_JOB_RETENTION's value in force. A
 	// start reads it fresh before it queues a record, since a stored
-	// value applies at the next operation that reads it (R-6c11); it
-	// must not be nil.
+	// value applies at the next operation that reads it; it must not
+	// be nil.
 	Retention func(ctx context.Context) (time.Duration, error)
 }
 
@@ -59,8 +59,8 @@ type BackupConfig struct {
 	// GuardFraction, SnapshotKeep, and ArchiveRetention return the
 	// three backup keys' values in force. A backup start reads all
 	// three before it queues a record, so a reader error fails the
-	// start naming the key and leaves no job record (R-6c11); they
-	// must not be nil while Enabled is true.
+	// start naming the key and leaves no job record; they must not be
+	// nil while Enabled is true.
 	GuardFraction    func(ctx context.Context) (float64, error)
 	SnapshotKeep     func(ctx context.Context) (int, error)
 	ArchiveRetention func(ctx context.Context) (time.Duration, error)
@@ -182,8 +182,8 @@ func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBa
 // backupBind returns the binder StartBackup passes to start: a test's
 // own override when one is set, or, in production, the three backup
 // values read now, before start queues a record, so a reader error
-// fails the start and leaves no job record (R-6c11) rather than
-// surfacing only once the bound body runs.
+// fails the start and leaves no job record rather than surfacing only
+// once the bound body runs.
 func (r *Runner) backupBind(ctx context.Context) (binder, error) {
 	if r.bindBackup != nil {
 		return r.bindBackup, nil
@@ -208,7 +208,7 @@ func (r *Runner) backupBind(ctx context.Context) (binder, error) {
 // goroutine that releases the lease when it ends. The retention read
 // happens before insert, fresh on every start rather than once at
 // [New], since a stored value applies at the next operation that reads
-// it (R-6c11).
+// it.
 func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind binder) (ops.Handle, error) {
 	retention, err := r.retention(ctx)
 	if err != nil {

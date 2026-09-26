@@ -267,37 +267,91 @@ func TestRetention_ReaderValue(t *testing.T) {
 }
 
 // TestStartBackup_ReaderErrorNoRecord pins the "Backup start ... a
-// stored backup key outside its bounds" row: a backup value reader
-// that fails answers the start with that error and leaves no job
-// record, since StartBackup reads all three backup values before
-// r.start ever queues one.
+// stored key outside its bounds" row for each of the four values a
+// backup start reads before it queues a record: a start refuses on
+// the first failing reader's own error, with the other three at their
+// defaults, and leaves no job record.
 func TestStartBackup_ReaderErrorNoRecord(t *testing.T) {
+	wantErr := errors.New("value outside its bounds")
+	failing := func(context.Context) (time.Duration, error) { return 0, wantErr }
+	failingFloat := func(context.Context) (float64, error) { return 0, wantErr }
+	failingInt := func(context.Context) (int, error) { return 0, wantErr }
+
+	tests := []struct {
+		name string
+		cfg  func() Config
+	}{
+		{
+			name: "Retention",
+			cfg: func() Config {
+				cfg := backupConfig(t)
+				cfg.Retention = failing
+				return cfg
+			},
+		},
+		{
+			name: "GuardFraction",
+			cfg: func() Config {
+				cfg := backupConfig(t)
+				cfg.Backup.GuardFraction = failingFloat
+				return cfg
+			},
+		},
+		{
+			name: "SnapshotKeep",
+			cfg: func() Config {
+				cfg := backupConfig(t)
+				cfg.Backup.SnapshotKeep = failingInt
+				return cfg
+			},
+		},
+		{
+			name: "ArchiveRetention",
+			cfg: func() Config {
+				cfg := backupConfig(t)
+				cfg.Backup.ArchiveRetention = failing
+				return cfg
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := tt.cfg()
+			r, err := New(context.Background(), cfg)
+			if err != nil {
+				t.Fatalf("New: %v", err)
+			}
+			t.Cleanup(func() { _ = r.Close() })
+
+			_, err = r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			if !errors.Is(err, wantErr) {
+				t.Fatalf("StartBackup() = %v, want it to wrap %v", err, wantErr)
+			}
+			if n := countRecords(t, r.store); n != 0 {
+				t.Errorf("%d records after a refused start, want 0", n)
+			}
+		})
+	}
+}
+
+// backupConfig returns a Config with a fresh store and every backup
+// reader at its passing default, for a test to override the one
+// reader it means to fail.
+func backupConfig(t *testing.T) Config {
+	t.Helper()
 	_, h := newStore(t)
-	wantErr := errors.New("DUBPLATE_BACKUP_GUARD_FRACTION: value \"9\" is above the ceiling 1")
-	r, err := New(context.Background(), Config{
+	return Config{
 		Store:     h,
 		Retention: defaultRetention,
 		Backup: BackupConfig{
 			Enabled:          true,
 			Remote:           "name:dir",
 			LibraryRoot:      t.TempDir(),
-			GuardFraction:    func(context.Context) (float64, error) { return 0, wantErr },
+			GuardFraction:    defaultGuardFraction,
 			SnapshotKeep:     defaultSnapshotKeep,
 			ArchiveRetention: defaultArchiveRetention,
 		},
 		Logger: slog.New(slog.DiscardHandler),
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-	t.Cleanup(func() { _ = r.Close() })
-
-	_, err = r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
-	if !errors.Is(err, wantErr) {
-		t.Fatalf("StartBackup() = %v, want it to wrap %v", err, wantErr)
-	}
-	if n := countRecords(t, h); n != 0 {
-		t.Errorf("%d records after a refused start, want 0", n)
 	}
 }
 

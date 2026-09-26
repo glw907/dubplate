@@ -36,7 +36,7 @@ type binder func(kl *store.KindLease, h ops.Handle) body
 // under the caller's kind lease, from the three backup values
 // [Runner.backupBind] already read: fraction is DUBPLATE_BACKUP_GUARD_FRACTION's
 // value, keep is DUBPLATE_BACKUP_SNAPSHOT_KEEP's, and archiveRetention
-// is DUBPLATE_BACKUP_ARCHIVE_RETENTION's (R-6c11).
+// is DUBPLATE_BACKUP_ARCHIVE_RETENTION's.
 func (r *Runner) backupJob(fraction float64, keep int, archiveRetention time.Duration) binder {
 	return func(kl *store.KindLease, h ops.Handle) body {
 		return backup.Job{
@@ -85,7 +85,7 @@ func storeContext(ctx context.Context) (context.Context, context.CancelFunc) {
 // lease, then deletes every finished record past retention but the
 // newest succeeded record of each kind, in one write. retention is
 // DUBPLATE_JOB_RETENTION's value in force, read by the caller before
-// this call (R-6c11).
+// this call.
 func (r *Runner) insert(ctx context.Context, actor ops.Actor, kind string, retention time.Duration, b body) (*job, error) {
 	ctx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
