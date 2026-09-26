@@ -326,3 +326,7 @@ its 7.5M ceiling (rough estimate 11M).
 - Yellowman: Commons holds only 2007 frames under the size floor and 2018 to 2022 stage shots (CC BY
   3.0); nothing from the 1980s dancehall peak. King Tubby: no freely licensed photo on Commons at all.
   Both are round-two outreach targets (Beth Lesser's reggae archive is the natural first letter).
+- Nightmares on Wax: Commons holds two 2006 DJ E.A.S.E. frames at 600x800, under the floor. Geoff
+  (2026-09-26): "Newer stuff is OK for Nightmares on Wax," an exception to older-is-better. Round
+  two searches Flickr CC BY/BY-SA festival shots for it (no Flickr API key on the workstation, so a
+  search agent, not a quick check).
