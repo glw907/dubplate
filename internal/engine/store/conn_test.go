@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -550,5 +551,57 @@ func TestHandle_QueryRow(t *testing.T) {
 		 VALUES (?, 'backup', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, NewID()).Scan(&id)
 	if !errors.Is(classifyErr(err), errReadOnly) {
 		t.Errorf("write through the read path: err = %v, want read-only", err)
+	}
+}
+
+// TestHandle_Query: the multi-row read returns every committed row in
+// the query's order and runs on the read pool, which refuses a write
+// of its own. Fixture: three jobs committed through the write path.
+func TestHandle_Query(t *testing.T) {
+	h := writeHandle(t, currentStore(t))
+	ctx := deadline(t, 5*time.Second)
+	err := h.Update(ctx, func(ctx context.Context, tx *Tx) error {
+		for _, kind := range []string{"c", "a", "b"} {
+			if _, err := tx.Exec(ctx,
+				`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
+				 VALUES (?, ?, 1, 'queued', 'inst', 'local:test', 0, 1)`, NewID(), kind); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("insert: %v", err)
+	}
+
+	rows, err := h.Query(ctx, "SELECT kind FROM jobs ORDER BY kind")
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+	var kinds []string
+	for rows.Next() {
+		var k string
+		if err := rows.Scan(&k); err != nil {
+			t.Fatalf("scan: %v", err)
+		}
+		kinds = append(kinds, k)
+	}
+	if err := errors.Join(rows.Err(), rows.Close()); err != nil {
+		t.Fatalf("rows: %v", err)
+	}
+	if want := []string{"a", "b", "c"}; !slices.Equal(kinds, want) {
+		t.Errorf("kinds = %q, want %q", kinds, want)
+	}
+
+	rows, err = h.Query(ctx,
+		`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
+		 VALUES (?, 'd', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, NewID())
+	if err == nil {
+		for rows.Next() {
+		}
+		err = errors.Join(rows.Err(), rows.Close())
+	}
+	if !errors.Is(classifyErr(err), errReadOnly) {
+		t.Errorf("write through the multi-row read: err = %v, want read-only", err)
 	}
 }

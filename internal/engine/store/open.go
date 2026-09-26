@@ -75,10 +75,13 @@ type leafState struct {
 	complete  bool
 	hasLock   bool
 	hasLeases bool
+
+	// intent is the leaf's restore-intent record, nil when it has none.
+	intent *intentRecord
 }
 
-// ServeOptions carries serve mode's thresholds, each the caller's: the
-// store reads no environment.
+// ServeOptions carries serve mode's thresholds and its reconciler, each
+// the caller's: the store reads no environment.
 type ServeOptions struct {
 	// BusyTimeout bounds how long a statement waits on another
 	// connection's lock inside SQLite. It must be at least one
@@ -101,6 +104,15 @@ type ServeOptions struct {
 	// Logger receives the lock holders during a wait, and a warning for
 	// a FUSE filesystem. It must not be nil.
 	Logger *slog.Logger
+
+	// Reconcile finishes a restore that left its store below the
+	// binary's version. Serve calls it once the store is migrated, on
+	// a handle at the binary's version, and writes the report it
+	// returns into the leaf before removing the restore-intent record.
+	// A nil Reconcile refuses such a store; an error refuses it too,
+	// leaving the record for the next start. h is valid only for the
+	// call.
+	Reconcile func(ctx context.Context, h *Handle) (report []byte, err error)
 }
 
 // OpenWrite opens the store under stateDir in write mode, holding its
@@ -108,8 +120,10 @@ type ServeOptions struct {
 // leaf, lock file, and leases/ included, never migrates one, and never
 // removes a staging file: a live backup may be staging under its own
 // shared lock. It refuses an absent store naming "start serve first",
-// a leaf serve has not finished creating, and a store at any version
-// but the binary's. ctx bounds the wait for the lock.
+// a leaf serve has not finished creating, a store at any version but
+// the binary's, and a leaf holding a restore-intent record, which it
+// reads again once it holds the lock, since a restore may write one
+// while this open waits. ctx bounds the wait for the lock.
 //
 // The handle takes no lease of its own; a caller that runs jobs takes
 // one with [Handle.TakeInstanceLease].
@@ -122,6 +136,9 @@ func OpenWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 	ls, err := l.stat()
 	if err != nil {
 		return nil, err
+	}
+	if ls.intent != nil {
+		return nil, ls.intent.refusal(l)
 	}
 	if !ls.exists {
 		return nil, noStore(l)
@@ -140,6 +157,10 @@ func OpenWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 	lock, err := acquireShared(ctx, l.lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("open store for writing: %w", err)
+	}
+	// A restore may have written its record while this open waited.
+	if err := l.checkIntent(); err != nil {
+		return nil, errors.Join(err, lock.release())
 	}
 	c, err := classify(ctx, l, busyTimeout, files)
 	if err == nil {
@@ -182,6 +203,12 @@ func writeRefusal(l leaf, c dbClass, head int) error {
 // binary's version holding the lock shared until it closes. It refuses
 // opts without a Logger before it touches any file.
 //
+// Serve accepts one restore-intent record, reconcile-pending, and
+// refuses every other. Beside that record, under the exclusive lock,
+// it migrates the store, calls opts.Reconcile, writes the report into
+// the leaf as restore-report-<stamp>.txt, and removes the record
+// before it opens the store.
+//
 // flock(2) does not convert a lock atomically: "the existing lock is
 // first removed, and then a new lock is established", and another
 // process's pending request may be granted between the two. So serve
@@ -198,10 +225,12 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 	if err != nil {
 		return nil, err
 	}
-	head := len(files)
 	ls, err := l.stat()
 	if err != nil {
 		return nil, err
+	}
+	if ls.intent != nil && ls.intent.State != intentReconcilePending {
+		return nil, ls.intent.refusal(l)
 	}
 	if !ls.complete {
 		if err := l.create(stateDir); err != nil {
@@ -221,19 +250,10 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 		if err != nil {
 			return nil, err
 		}
-		c, err := classify(ctx, l, opts.BusyTimeout, files)
-		if err == nil && c.kind == dbStore && c.version == head {
-			h, err := openHandle(l.dbPath, opts.BusyTimeout)
-			if err != nil {
-				return nil, errors.Join(err, lock.release())
-			}
-			h.version = head
+		h, err := openShared(ctx, l, files, opts)
+		if err == nil && h != nil {
 			h.lock = lock
-			h.leaf = l
 			return h, nil
-		}
-		if err == nil && c.kind == dbStore && c.version > head {
-			err = newerStore(l, c.version, head)
 		}
 		if err := errors.Join(err, lock.release()); err != nil {
 			return nil, err
@@ -249,13 +269,52 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 	}
 }
 
+// openShared is serve mode's read under the shared lock. It returns a
+// handle, holding no lock of its own, on a store at the binary's
+// version, and nil for every store that needs settle's work under the
+// exclusive lock. A restore-intent record always needs it, one a
+// restore wrote while serve waited for this lock included.
+func openShared(ctx context.Context, l leaf, files []migration, opts ServeOptions) (*Handle, error) {
+	recorded, err := pathExists(l.restoreIntentPath)
+	if err != nil || recorded {
+		return nil, err
+	}
+	c, err := classify(ctx, l, opts.BusyTimeout, files)
+	if err != nil {
+		return nil, err
+	}
+	head := len(files)
+	switch {
+	case c.kind != dbStore || c.version < head:
+		return nil, nil
+	case c.version > head:
+		return nil, newerStore(l, c.version, head)
+	}
+	h, err := openHandle(l.dbPath, opts.BusyTimeout)
+	if err != nil {
+		return nil, err
+	}
+	h.version = head
+	h.leaf = l
+	return h, nil
+}
+
 // settle is serve mode's work under the exclusive lock. It re-reads
-// the leaf, removes staging leftovers, and then creates, completes an
-// interrupted create of, or migrates the store. It closes every
-// connection it opens.
+// the leaf, refusing every restore-intent record but a
+// reconcile-pending one, removes staging leftovers, and then creates,
+// completes an interrupted create of, or migrates the store. Beside a
+// reconcile-pending record it then finishes the restore. It closes
+// every connection it opens.
 func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (err error) {
-	if err := l.checkIntent(); err != nil {
+	rec, err := l.readIntent()
+	if err != nil {
 		return err
+	}
+	if rec != nil && rec.State != intentReconcilePending {
+		return rec.refusal(l)
+	}
+	if rec != nil && opts.Reconcile == nil {
+		return refusal(StateRestoreInProgress, "restore-intent record %s (state %s): serve has no reconciler to finish the restore", l.restoreIntentPath, rec.State)
 	}
 	c, err := classify(ctx, l, opts.BusyTimeout, files)
 	if err != nil {
@@ -265,11 +324,14 @@ func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (
 	if c.kind == dbStore && c.version > head {
 		return newerStore(l, c.version, head)
 	}
+	if rec != nil && c.kind != dbStore {
+		return refusal(StateRefused, "restore-intent record %s (state %s) names a restored store, but %s holds none", l.restoreIntentPath, rec.State, l.dbPath)
+	}
 	if err := clearStaging(l.stagingDir); err != nil {
 		return err
 	}
 	switch {
-	case c.kind == dbStore && c.version == head:
+	case c.kind == dbStore && c.version == head && rec == nil:
 		return nil
 	case c.kind == dbAbsent:
 		if err := preCreate(l.dbPath); err != nil {
@@ -282,7 +344,30 @@ func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (
 		return err
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
-	return migrate(ctx, h, l, files, migrateOptions{busyTimeout: opts.BusyTimeout, keep: opts.Keep, backup: opts.Backup})
+	if err := migrate(ctx, h, l, files, migrateOptions{busyTimeout: opts.BusyTimeout, keep: opts.Keep, backup: opts.Backup}); err != nil {
+		return err
+	}
+	if rec == nil {
+		return nil
+	}
+	h.version = head
+	h.leaf = l
+	return finishRestore(ctx, l, h, rec.Stamp, opts.Reconcile)
+}
+
+// finishRestore runs reconcile on h, the migrated store a
+// reconcile-pending record left, writes the report it returns into the
+// leaf, and only then removes the record, so a failure at any step
+// leaves the record for the next start to retry.
+func finishRestore(ctx context.Context, l leaf, h *Handle, stamp string, reconcile func(context.Context, *Handle) ([]byte, error)) error {
+	report, err := reconcile(ctx, h)
+	if err != nil {
+		return fmt.Errorf("reconcile the restored store %s: %w", l.dbPath, err)
+	}
+	if err := writeReport(l, stamp, report); err != nil {
+		return fmt.Errorf("write the reconciliation report: %w", err)
+	}
+	return removeIntent(l)
 }
 
 // waitLock polls for path's lock in mode how (syscall.LOCK_SH or
@@ -326,9 +411,10 @@ func waitLock(ctx context.Context, path string, how int, opts ServeOptions) (*st
 
 // stat runs the steps every mode takes before the filesystem
 // probe: it stats l's leaf and its five names, checks a present leaf's
-// shape and its owner against geteuid(), and refuses when a
-// restore-intent record exists. An absent leaf reports exists false
-// and meets no owner check, since there is nothing yet to own.
+// shape and its owner against geteuid(), and reads the restore-intent
+// record, refusing one it cannot read. Each mode decides what a record
+// it read means. An absent leaf reports exists false and meets no
+// owner check, since there is nothing yet to own.
 func (l leaf) stat() (leafState, error) {
 	info, err := os.Stat(l.root)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -358,19 +444,8 @@ func (l leaf) stat() (leafState, error) {
 			ls.hasLeases = ok
 		}
 	}
-	return ls, l.checkIntent()
-}
-
-// checkIntent refuses when l holds a restore-intent record.
-func (l leaf) checkIntent() error {
-	ok, err := pathExists(l.restoreIntentPath)
-	if err != nil {
-		return err
-	}
-	if ok {
-		return refusal(StateRestoreInProgress, "a restore is in progress (%s): finish it with restore --resume", l.restoreIntentPath)
-	}
-	return nil
+	ls.intent, err = l.readIntent()
+	return ls, err
 }
 
 // probe refuses when l sits on a filesystem that spans hosts, and

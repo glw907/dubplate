@@ -22,6 +22,8 @@ const (
 	StateAbsent State = iota + 1
 
 	// StateRestoreInProgress is a leaf holding a restore-intent record.
+	// The report's Reason names the record's state and what finishes
+	// the restore.
 	StateRestoreInProgress
 
 	// StateBusy is a store whose lock another process holds exclusively.
@@ -174,6 +176,9 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 	ls, err := l.stat()
 	if err != nil {
 		return reportFrom(r, err)
+	}
+	if ls.intent != nil {
+		return reportFrom(r, ls.intent.refusal(l))
 	}
 	if !ls.exists {
 		r.State = StateAbsent

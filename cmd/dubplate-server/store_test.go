@@ -33,8 +33,8 @@ func TestStoreRowStatus(t *testing.T) {
 		},
 		{
 			name:       "restore in progress",
-			report:     store.Report{State: store.StateRestoreInProgress, Reason: "a restore is in progress (/state/store/restore-intent): finish it with restore --resume"},
-			wantStatus: "restore in progress: finish it with restore --resume",
+			report:     store.Report{State: store.StateRestoreInProgress, Reason: "restore-intent record /state/store/restore-intent (state swap): finish the restore with restore --resume"},
+			wantStatus: "restore in progress: restore-intent record /state/store/restore-intent (state swap): finish the restore with restore --resume",
 			wantFailed: true,
 		},
 		{
@@ -137,6 +137,50 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 			t.Error("storeRow() checked = false, want true")
 		}
 	})
+}
+
+// TestStoreRow_RestoreIntent is the store row's render of each
+// restore-intent record state through the real inspect mode: every
+// state fails the row, a reconcile-pending record names serve, every
+// other state names restore --resume, and a record inspect cannot read
+// names why. Each record is written by hand in the record's JSON form.
+func TestStoreRow_RestoreIntent(t *testing.T) {
+	record := func(state, library string) string {
+		return `{"format": 1, "state": "` + state + `", "stamp": "20260925T120000.000000Z",
+"source": {"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z"},
+"incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
+"discard_current": false, "library": ` + library + `, "version": 2}`
+	}
+	tests := []struct {
+		name   string
+		body   string
+		detail string
+	}{
+		{name: "swap", body: record("swap", "null"), detail: "(state swap): finish the restore with restore --resume"},
+		{name: "library", body: record("library", `{"root": "/srv/music", "into_nonempty": false}`), detail: "(state library): finish the restore with restore --resume"},
+		{name: "reconcile", body: record("reconcile", "null"), detail: "(state reconcile): finish the restore with restore --resume"},
+		{name: "reconcile-pending", body: record("reconcile-pending", "null"), detail: "(state reconcile-pending): start serve to finish the restore"},
+		{name: "unreadable", body: "", detail: "is unreadable: the record is empty: finish the restore with restore --resume"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			buildZeroByteStoreLeaf(t, stateDir)
+			path := filepath.Join(stateDir, "store", "restore-intent")
+			if err := os.WriteFile(path, []byte(tt.body), 0o600); err != nil {
+				t.Fatal(err)
+			}
+
+			status, failed, _, checked := storeRow(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir})
+			want := "restore in progress: restore-intent record " + path + " " + tt.detail
+			if status != want {
+				t.Errorf("storeRow() status = %q, want %q", status, want)
+			}
+			if !failed || !checked {
+				t.Errorf("storeRow() failed, checked = %v, %v, want true, true", failed, checked)
+			}
+		})
+	}
 }
 
 // TestStoreRow_BusyTimeoutUnparseable proves storeRow's parseErr

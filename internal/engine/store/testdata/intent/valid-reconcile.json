@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "state": "reconcile",
+  "stamp": "20260925T120000.000000Z",
+  "source": {"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z"},
+  "incoming": "restore-20260925T120000.000000Z.db",
+  "pre_restore": "pre-restore-20260925T120000.000000Z.db",
+  "discard_current": false,
+  "library": null,
+  "version": 2
+}

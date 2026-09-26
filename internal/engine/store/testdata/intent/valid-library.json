@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "state": "library",
+  "stamp": "20260925T120000.000000Z",
+  "source": {"file": "/var/lib/dubplate/store/snapshots/pre-migrate-v2.db"},
+  "incoming": "restore-20260925T120000.000000Z.db",
+  "pre_restore": "",
+  "discard_current": true,
+  "library": {"root": "/srv/music", "into_nonempty": true},
+  "version": 3
+}

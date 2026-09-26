@@ -109,6 +109,13 @@ func (h *Handle) QueryRow(ctx context.Context, query string, args ...any) *sql.R
 	return h.read.QueryRowContext(ctx, query, args...)
 }
 
+// Query runs query on h's read pool, as [Handle.QueryRow] does, and
+// returns every row. The caller closes the rows, which hold one of the
+// pool's connections until then.
+func (h *Handle) Query(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	return h.read.QueryContext(ctx, query, args...)
+}
+
 // openMaintenanceConn opens a maintenance connection at dbPath for one
 // job (a migration run, a snapshot, a retention sweep). The caller
 // closes it when the job ends; the pool is capped at one connection,

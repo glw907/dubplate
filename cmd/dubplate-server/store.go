@@ -113,7 +113,7 @@ func storeRowStatus(r store.Report) (status string, failed bool) {
 	case store.StateAbsent:
 		status = "absent"
 	case store.StateRestoreInProgress:
-		status, failed = "restore in progress: finish it with restore --resume", true
+		status, failed = "restore in progress: "+r.Reason, true
 	case store.StateBusy:
 		status, failed = "busy: "+storeHolders(r.Holders), true
 	case store.StateNotAStore:
