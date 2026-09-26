@@ -87,6 +87,10 @@ type RestoreSession struct {
 
 	// setAside is set once [RestoreSession.SwapOut] has run.
 	setAside bool
+
+	// reported is set once [RestoreSession.WriteReport] has written
+	// the report, which [RestoreSession.Complete] requires.
+	reported bool
 }
 
 // OpenRestore opens the store leaf under stateDir for a restore. It
@@ -714,4 +718,192 @@ func (s *RestoreSession) SwapIn() error {
 		}
 	}
 	return errors.Join(syncDir(s.leaf.snapshotsDir), syncDir(s.leaf.dbDir), syncDir(s.leaf.stagingDir))
+}
+
+// A RestoreStep is what a restore-intent record owes next, and so the
+// step a resume starts from.
+type RestoreStep int
+
+const (
+	// StepSwap owes the swap and, for a restore from a remote
+	// snapshot, the backup reference that names it.
+	StepSwap RestoreStep = iota + 1
+
+	// StepLibrary owes the copy of the library tree.
+	StepLibrary
+
+	// StepReconcile owes the reconciliation report on a store at this
+	// binary's version.
+	StepReconcile
+
+	// StepServe owes the migration of a store older than this binary,
+	// and its reconciliation, which only serve runs.
+	StepServe
+)
+
+// stepOf maps a record state to the step it owes.
+var stepOf = map[intentState]RestoreStep{
+	intentSwap:             StepSwap,
+	intentLibrary:          StepLibrary,
+	intentReconcile:        StepReconcile,
+	intentReconcilePending: StepServe,
+}
+
+// Owed returns the step the session's restore-intent record owes, or 0
+// before [RestoreSession.Record] has written one.
+func (s *RestoreSession) Owed() RestoreStep {
+	if s.intent == nil {
+		return 0
+	}
+	return stepOf[s.intent.State]
+}
+
+// Intent returns the source and library half the session's
+// restore-intent record names, and the zero RestoreIntent before there
+// is one.
+func (s *RestoreSession) Intent() RestoreIntent {
+	r := s.intent
+	if r == nil {
+		return RestoreIntent{}
+	}
+	in := RestoreIntent{Remote: r.Source.Remote, Snapshot: r.Source.Snapshot, File: r.Source.File}
+	if r.Library != nil {
+		in.LibraryRoot, in.IntoNonempty = r.Library.Root, r.Library.IntoNonempty
+	}
+	return in
+}
+
+// Stamp returns the restore's stamp, which names its stage, its
+// report, and every copy it moves aside.
+func (s *RestoreSession) Stamp() string {
+	return s.stamp
+}
+
+// Advance records that the step the restore-intent record owes is
+// done and returns the step now owed.
+//
+// From StepSwap it refuses unless the swap has finished, and then owes
+// StepLibrary when the record carries a library half. Otherwise, and
+// from StepLibrary and StepReconcile, it judges the store in db/
+// against this binary rather than trusting the version the record
+// carries, since the binary may have changed since the record was
+// written: a store at this binary's version owes StepReconcile, an
+// older one StepServe, and a newer one is refused naming both versions.
+// StepServe stays as it is.
+func (s *RestoreSession) Advance(ctx context.Context) (RestoreStep, error) {
+	r := s.intent
+	if r == nil {
+		return 0, errors.New("advance the restore: no restore-intent record")
+	}
+	var next intentState
+	switch r.State {
+	case intentReconcilePending:
+		return StepServe, nil
+	case intentSwap:
+		moves, in, err := s.leaf.swapPlan(r)
+		if err != nil {
+			return 0, err
+		}
+		if len(moves) > 0 || in {
+			return 0, errors.New("advance the restore: the swap has not finished")
+		}
+		if r.Library != nil {
+			next = intentLibrary
+		}
+	}
+	if next == "" {
+		var err error
+		if next, err = s.restoredState(ctx); err != nil {
+			return 0, err
+		}
+	}
+	if next != r.State {
+		advanced := *r
+		advanced.State = next
+		if err := writeIntent(s.leaf, advanced); err != nil {
+			return 0, err
+		}
+		s.intent = &advanced
+	}
+	return stepOf[next], nil
+}
+
+// restoredState is the state that follows the swap and the library
+// half, decided by the version of the store in db/ against this
+// binary's.
+func (s *RestoreSession) restoredState(ctx context.Context) (intentState, error) {
+	c, err := classify(ctx, s.leaf, s.busyTimeout, s.files)
+	if err != nil {
+		return "", err
+	}
+	if c.kind != dbStore {
+		return "", fmt.Errorf("advance the restore: %s holds no restored store", s.leaf.dbPath)
+	}
+	switch head := len(s.files); {
+	case c.version == head:
+		return intentReconcile, nil
+	case c.version < head:
+		return intentReconcilePending, nil
+	default:
+		return "", fmt.Errorf("restored store %s at version %d is newer than this binary's version %d: resume with a binary at version %d or above", s.leaf.dbPath, c.version, head, c.version)
+	}
+}
+
+// WriteReport writes report as the restore's reconciliation report in
+// the leaf at mode 0600, replacing one an interrupted attempt wrote,
+// and returns its path. It refuses unless the record owes
+// StepReconcile.
+func (s *RestoreSession) WriteReport(report []byte) (string, error) {
+	if s.Owed() != StepReconcile {
+		return "", errors.New("write the reconciliation report: the restore does not owe one")
+	}
+	if err := writeReport(s.leaf, s.stamp, report); err != nil {
+		return "", fmt.Errorf("write the reconciliation report: %w", err)
+	}
+	s.reported = true
+	return s.leaf.reportPath(s.stamp), nil
+}
+
+// Complete removes the restore-intent record, which ends the restore.
+// It refuses unless the record owes StepReconcile and
+// [RestoreSession.WriteReport] has written the report in this session.
+func (s *RestoreSession) Complete() error {
+	if s.Owed() != StepReconcile || !s.reported {
+		return errors.New("complete the restore: the reconciliation report is not written")
+	}
+	if err := removeIntent(s.leaf); err != nil {
+		return err
+	}
+	s.intent = nil
+	return nil
+}
+
+// BackupRemote returns the remote the leaf's backup reference names,
+// or "" when the leaf holds none. Beside more than one reference, a
+// crash having stopped a write before its prune, it reads the newest.
+func (s *RestoreSession) BackupRemote() (string, error) {
+	entries, err := os.ReadDir(s.leaf.snapshotsDir)
+	if err != nil {
+		return "", fmt.Errorf("read the backup reference: %w", err)
+	}
+	var newest, name string
+	for _, e := range entries {
+		if stamp, ok := parseBackupRefName(e.Name()); ok && stamp > newest {
+			newest, name = stamp, e.Name()
+		}
+	}
+	if name == "" {
+		return "", nil
+	}
+	p := filepath.Join(s.leaf.snapshotsDir, name)
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return "", fmt.Errorf("read the backup reference: %w", err)
+	}
+	for line := range strings.Lines(string(b)) {
+		if remote, ok := strings.CutPrefix(strings.TrimSuffix(line, "\n"), "remote "); ok {
+			return remote, nil
+		}
+	}
+	return "", fmt.Errorf("backup reference %s names no remote", p)
 }

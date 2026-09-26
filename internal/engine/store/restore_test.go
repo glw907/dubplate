@@ -1084,3 +1084,199 @@ func TestOpenRestore_NilLogger(t *testing.T) {
 		t.Errorf("state directory = %q, want untouched", got)
 	}
 }
+
+// swappedLeaf returns a state directory whose swap has finished, as a
+// restore with no current store leaves it: db/ holds a store through
+// version through, after stmts, staging/ is empty, and the leaf's
+// record, in state, names no pre-restore copy and carries library.
+func swappedLeaf(t *testing.T, through int, stmts string, state intentState, library *libraryOwed) (string, leaf) {
+	t.Helper()
+	stateDir, l := newLeafDir(t)
+	if err := os.WriteFile(l.dbPath, storeBytes(t, through, stmts), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	r := testIntent(state)
+	r.PreRestore = ""
+	r.Library = library
+	plantIntent(t, l, r)
+	return stateDir, l
+}
+
+// TestRestoreSession_Advance: each record state advances to the step
+// the store in db/ earns under this binary, whatever version the record
+// carries, and a refusal leaves the record as it was. The unfinished
+// swap is the no-copy one with its incoming store still in staging/. Every fixture's
+// record says version 2, so a verdict read from it would owe serve.
+func TestRestoreSession_Advance(t *testing.T) {
+	lib := &libraryOwed{Root: "/srv/library"}
+	tests := []struct {
+		name      string
+		through   int
+		stmts     string
+		state     intentState
+		library   *libraryOwed
+		stage     bool
+		want      RestoreStep
+		wantState intentState
+		wantErr   []string
+	}{
+		{name: "swap done, no library, current version", through: binaryHead, state: intentSwap, want: StepReconcile, wantState: intentReconcile},
+		{name: "swap done, library owed", through: binaryHead, state: intentSwap, library: lib, want: StepLibrary, wantState: intentLibrary},
+		{name: "swap done, older store", through: 2, state: intentSwap, want: StepServe, wantState: intentReconcilePending},
+		{name: "library copied, current version", through: binaryHead, state: intentLibrary, library: lib, want: StepReconcile, wantState: intentReconcile},
+		{name: "reconcile under a newer binary", through: 2, state: intentReconcile, want: StepServe, wantState: intentReconcilePending},
+		{name: "reconcile, current version", through: binaryHead, state: intentReconcile, want: StepReconcile, wantState: intentReconcile},
+		{name: "reconcile-pending stays", through: 2, state: intentReconcilePending, want: StepServe, wantState: intentReconcilePending},
+		{
+			name: "reconcile under an older binary", through: binaryHead, stmts: futureLedgerRow, state: intentReconcile, wantState: intentReconcile,
+			wantErr: []string{"at version 4 is newer than this binary's version 3"},
+		},
+		{
+			name: "swap unfinished", through: binaryHead, state: intentSwap, stage: true, wantState: intentSwap,
+			wantErr: []string{"the swap has not finished"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir, l := swappedLeaf(t, tt.through, tt.stmts, tt.state, tt.library)
+			if tt.stage {
+				mv(t, l.dbPath, filepath.Join(l.stagingDir, testIncoming))
+			}
+			s := openSession(t, stateDir, true)
+			got, err := s.Advance(deadline(t, 10*time.Second))
+			if tt.wantErr != nil {
+				assertErrNames(t, err, tt.wantErr...)
+			} else if err != nil {
+				t.Fatalf("Advance(): %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("Advance() = %d, want %d", got, tt.want)
+			}
+			if r := readRecord(t, l); r.State != tt.wantState || r.Version != 2 {
+				t.Errorf("record state %s version %d, want %s version 2", r.State, r.Version, tt.wantState)
+			}
+			if s.Owed() != stepOf[tt.wantState] {
+				t.Errorf("Owed() = %d, want %d", s.Owed(), stepOf[tt.wantState])
+			}
+		})
+	}
+}
+
+// TestRestoreSession_AdvanceNoRecord: a new restore has nothing to
+// advance.
+func TestRestoreSession_AdvanceNoRecord(t *testing.T) {
+	s := openSession(t, currentStore(t), false)
+	_, err := s.Advance(context.Background())
+	assertErrNames(t, err, "no restore-intent record")
+	if s.Owed() != 0 {
+		t.Errorf("Owed() = %d before any record, want 0", s.Owed())
+	}
+}
+
+// TestRestoreSession_Intent: a resume reads back the source and library
+// half the record carries, and a new restore reads the zero value.
+func TestRestoreSession_Intent(t *testing.T) {
+	stateDir, _ := swappedLeaf(t, binaryHead, "", intentLibrary, &libraryOwed{Root: "/srv/library", IntoNonempty: true})
+	s := openSession(t, stateDir, true)
+	want := RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z", LibraryRoot: "/srv/library", IntoNonempty: true}
+	if got := s.Intent(); got != want {
+		t.Errorf("Intent() = %+v, want %+v", got, want)
+	}
+	if got := s.Stamp(); got != testStamp {
+		t.Errorf("Stamp() = %q, want %q", got, testStamp)
+	}
+	if got := openSession(t, currentStore(t), false).Intent(); got != (RestoreIntent{}) {
+		t.Errorf("Intent() on a new restore = %+v, want the zero value", got)
+	}
+}
+
+// TestRestoreSession_ReportAndComplete: the report is written only when
+// the record owes it, replaces an earlier attempt's at 0600, and the
+// record goes only once this session has written it.
+func TestRestoreSession_ReportAndComplete(t *testing.T) {
+	t.Run("reconcile", func(t *testing.T) {
+		stateDir, l := swappedLeaf(t, binaryHead, "", intentReconcile, nil)
+		p := filepath.Join(l.root, "restore-report-"+testStamp+".txt")
+		if err := os.WriteFile(p, []byte("an interrupted attempt's report\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		s := openSession(t, stateDir, true)
+		assertErrNames(t, s.Complete(), "report is not written")
+		if _, err := os.Stat(l.restoreIntentPath); err != nil {
+			t.Fatalf("record after a refused complete: %v", err)
+		}
+		got, err := s.WriteReport([]byte("the report\n"))
+		if err != nil {
+			t.Fatalf("WriteReport(): %v", err)
+		}
+		if got != p {
+			t.Errorf("WriteReport() = %q, want %q", got, p)
+		}
+		assertReport(t, l, "the report\n")
+		if err := s.Complete(); err != nil {
+			t.Fatalf("Complete(): %v", err)
+		}
+		assertNoIntent(t, l)
+	})
+	for _, state := range []intentState{intentSwap, intentLibrary, intentReconcilePending} {
+		t.Run(string(state), func(t *testing.T) {
+			stateDir, l := swappedLeaf(t, binaryHead, "", state, &libraryOwed{Root: "/srv/library"})
+			s := openSession(t, stateDir, true)
+			_, err := s.WriteReport([]byte("the report\n"))
+			assertErrNames(t, err, "does not owe one")
+			if _, err := os.Stat(l.reportPath(testStamp)); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("report beside a record in state %s: %v, want none", state, err)
+			}
+			assertErrNames(t, s.Complete(), "report is not written")
+			if r := readRecord(t, l); r.State != state {
+				t.Errorf("record state %s, want %s", r.State, state)
+			}
+		})
+	}
+}
+
+// TestRestoreSession_BackupRemote: the remote the newest backup
+// reference names, "" with none, and a refusal for a reference naming
+// no remote.
+func TestRestoreSession_BackupRemote(t *testing.T) {
+	const older, newer = "20260923T030000.000000Z", "20260924T030000.000000Z"
+	tests := []struct {
+		name    string
+		refs    map[string]string
+		want    string
+		wantErr string
+	}{
+		{name: "none", want: ""},
+		{name: "one", refs: map[string]string{newer: "stamp " + newer + "\nremote b2:dubplate\n"}, want: "b2:dubplate"},
+		{
+			name: "two, a prune interrupted",
+			refs: map[string]string{
+				older: "stamp " + older + "\nremote old:path\n",
+				newer: "stamp " + newer + "\nremote new:path\n",
+			},
+			want: "new:path",
+		},
+		{name: "no remote line", refs: map[string]string{newer: "stamp " + newer + "\n"}, wantErr: "names no remote"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir, l := newLeafDir(t)
+			for stamp, body := range tt.refs {
+				if err := os.WriteFile(filepath.Join(l.snapshotsDir, "backup-"+stamp+".ref"), []byte(body), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			got, err := openSession(t, stateDir, false).BackupRemote()
+			if tt.wantErr != "" {
+				assertErrNames(t, err, tt.wantErr)
+				return
+			}
+			if err != nil {
+				t.Fatalf("BackupRemote(): %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("BackupRemote() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
