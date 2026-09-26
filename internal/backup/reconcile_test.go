@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -182,9 +183,9 @@ func TestReconcile(t *testing.T) {
 			if tt.absentRoot {
 				root = filepath.Join(root, "gone")
 			}
-			rep, err := Reconcile(ctxFor(t), h, root)
+			rep, err := reconcile(ctxFor(t), h, root)
 			if err != nil {
-				t.Fatalf("Reconcile(): %v", err)
+				t.Fatalf("reconcile(): %v", err)
 			}
 			if !slices.Equal(rep.unfiled, tt.wantUnfiled) {
 				t.Errorf("tracks without a file %q, want %q", rep.unfiled, tt.wantUnfiled)
@@ -192,7 +193,7 @@ func TestReconcile(t *testing.T) {
 			if !slices.Equal(rep.unlisted, tt.wantUnlisted) {
 				t.Errorf("files without a track %q, want %q", rep.unlisted, tt.wantUnlisted)
 			}
-			text := string(rep.Text())
+			text := string(rep.render(math.MaxInt))
 			for _, want := range tt.wantText {
 				if !strings.Contains(text, want) {
 					t.Errorf("report text %q, want it to hold %q", text, want)
@@ -221,15 +222,15 @@ func TestReconcile_WalkError(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(shut, 0o755) })
 
-	rep, err := Reconcile(ctxFor(t), h, root)
+	rep, err := reconcile(ctxFor(t), h, root)
 	if err != nil {
-		t.Fatalf("Reconcile(): %v", err)
+		t.Fatalf("reconcile(): %v", err)
 	}
 	if want := under("open/a.flac"); !slices.Equal(rep.unlisted, want) {
 		t.Errorf("files without a track %q, want %q", rep.unlisted, want)
 	}
 	want := "unreadable subtree " + shut + ": open " + shut + ": permission denied\n"
-	if text := string(rep.Text()); !strings.Contains(text, want) {
+	if text := string(rep.render(math.MaxInt)); !strings.Contains(text, want) {
 		t.Errorf("report text %q, want it to hold %q", text, want)
 	}
 }
@@ -248,13 +249,13 @@ func TestReconcile_NoUsers(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			h := catalogStore(t, tt.withUser)
-			rep, err := Reconcile(ctxFor(t), h, t.TempDir())
+			rep, err := reconcile(ctxFor(t), h, t.TempDir())
 			if err != nil {
-				t.Fatalf("Reconcile(): %v", err)
+				t.Fatalf("reconcile(): %v", err)
 			}
-			got := strings.Contains(string(rep.Text()), "the users table is empty: run member import\n")
+			got := strings.Contains(string(rep.render(math.MaxInt)), "the users table is empty: run member import\n")
 			if got != tt.want {
-				t.Errorf("report %q names member import: %v, want %v", rep.Text(), got, tt.want)
+				t.Errorf("report %q names member import: %v, want %v", rep.render(math.MaxInt), got, tt.want)
 			}
 		})
 	}
@@ -268,12 +269,12 @@ func TestReport_Renders(t *testing.T) {
 		rels = append(rels, fmt.Sprintf("t%02d.flac", i))
 	}
 	h := catalogStore(t, true, rels...)
-	rep, err := Reconcile(ctxFor(t), h, t.TempDir())
+	rep, err := reconcile(ctxFor(t), h, t.TempDir())
 	if err != nil {
-		t.Fatalf("Reconcile(): %v", err)
+		t.Fatalf("reconcile(): %v", err)
 	}
 
-	text, summary := string(rep.Text()), string(rep.summary())
+	text, summary := string(rep.render(math.MaxInt)), string(rep.render(summaryLimit))
 	for _, s := range []string{text, summary} {
 		if !strings.Contains(s, "tracks without a file: 23\nfiles without a track: 0\n") {
 			t.Errorf("render %q lacks the counts", s)

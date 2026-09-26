@@ -19,16 +19,16 @@ import (
 	"github.com/glw907/dubplate/internal/engine/store"
 )
 
-// summaryLimit bounds how many entries of each list a report's summary
-// names.
+// summaryLimit bounds how many entries of each list the operator's
+// terminal names.
 const summaryLimit = 20
 
-// A Report is a reconciliation of a store's catalog against a library
+// A report is a reconciliation of a store's catalog against a library
 // tree: the tracks whose file is not a regular file under the root, and
 // the regular files under the root that no track names. Every path is
 // relative to the root, and holds the catalog's or the file system's
 // bytes as they are, valid UTF-8 or not.
-type Report struct {
+type report struct {
 	root string
 
 	// absent says why the root was not walked, and is "" when it was.
@@ -42,7 +42,7 @@ type Report struct {
 	walkErrs []string
 }
 
-// Reconcile reconciles the catalog h reads against the library tree
+// reconcile reconciles the catalog h reads against the library tree
 // under root. A track's file is its collection's root path joined with
 // its own relative path under root, and counts only when it is a
 // regular file itself, never through a symlink; the walk of root does
@@ -52,8 +52,8 @@ type Report struct {
 // An absent root, or none, is no error: the report says so and lists
 // every track as without a file. A subtree the walk cannot read is
 // named in the report, and the rest of the tree is still reconciled.
-func Reconcile(ctx context.Context, h *store.Handle, root string) (*Report, error) {
-	r := &Report{root: root}
+func reconcile(ctx context.Context, h *store.Handle, root string) (*report, error) {
+	r := &report{root: root}
 	var users int
 	if err := h.QueryRow(ctx, "SELECT count(*) FROM users").Scan(&users); err != nil {
 		return nil, fmt.Errorf("reconcile: count users: %w", err)
@@ -117,7 +117,7 @@ func trackPaths(ctx context.Context, h *store.Handle) (map[string]struct{}, erro
 // walk lists every regular file under r.root that tracks does not
 // name. filepath.WalkDir reports a directory it cannot read in a
 // second call for it, after which the walk goes on with its siblings.
-func (r *Report) walk(ctx context.Context, tracks map[string]struct{}) error {
+func (r *report) walk(ctx context.Context, tracks map[string]struct{}) error {
 	err := filepath.WalkDir(r.root, func(p string, d fs.DirEntry, err error) error {
 		if cerr := ctx.Err(); cerr != nil {
 			return cerr
@@ -144,27 +144,19 @@ func (r *Report) walk(ctx context.Context, tracks map[string]struct{}) error {
 	return nil
 }
 
-// Text renders r in full, as the report file carries it: its counts,
-// then every entry of each list, one per line.
-func (r *Report) Text() []byte {
+// render renders r: its counts, then at most limit entries of each
+// list, one per line, and a count of the rest. The report file carries
+// every entry, with a limit of [math.MaxInt]; the operator's terminal
+// carries [summaryLimit].
+func (r *report) render(limit int) []byte {
 	var b bytes.Buffer
 	r.head(&b)
-	list(&b, "tracks without a file:", r.unfiled, len(r.unfiled))
-	list(&b, "files without a track:", r.unlisted, len(r.unlisted))
+	list(&b, "tracks without a file:", r.unfiled, limit)
+	list(&b, "files without a track:", r.unlisted, limit)
 	return b.Bytes()
 }
 
-// summary renders r for the operator's terminal: its counts, and at
-// most the first [summaryLimit] entries of each list.
-func (r *Report) summary() []byte {
-	var b bytes.Buffer
-	r.head(&b)
-	list(&b, "tracks without a file:", r.unfiled, summaryLimit)
-	list(&b, "files without a track:", r.unlisted, summaryLimit)
-	return b.Bytes()
-}
-
-func (r *Report) head(b *bytes.Buffer) {
+func (r *report) head(b *bytes.Buffer) {
 	if r.absent != "" {
 		b.WriteString(r.absent + ": every track is listed as without a file\n")
 	} else {

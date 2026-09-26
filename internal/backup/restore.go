@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -641,7 +642,7 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 		}
 	}
 	head := "restore " + r.sess.Stamp() + "\nsource: " + sourceLine(in) + "\n" + line
-	path, err := r.sess.WriteReport(append([]byte(head), rep.Text()...))
+	path, err := r.sess.WriteReport(append([]byte(head), rep.render(math.MaxInt)...))
 	if err != nil {
 		return err
 	}
@@ -652,7 +653,7 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err := r.sess.Complete(); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(r.out, "%s%s", head, rep.summary()); err != nil {
+	if _, err := fmt.Fprintf(r.out, "%s%s", head, rep.render(summaryLimit)); err != nil {
 		return fmt.Errorf("restore: write output: %w", err)
 	}
 	return r.say("restored; the reconciliation report is %s", path)
@@ -660,13 +661,13 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 
 // reconcile reconciles the restored store against root on a read
 // handle the session's lock covers.
-func (r restorer) reconcile(ctx context.Context, root string) (_ *Report, err error) {
+func (r restorer) reconcile(ctx context.Context, root string) (_ *report, err error) {
 	h, err := r.sess.OpenRead(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
-	return Reconcile(ctx, h, root)
+	return reconcile(ctx, h, root)
 }
 
 // sourceLine names the source in names.
