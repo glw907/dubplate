@@ -47,14 +47,15 @@ const testInstance = "0123456789abcdef0123456789abcdef"
 // A childRestore is one restore a re-executed test binary runs, and
 // the step at which it kills itself.
 type childRestore struct {
-	StateDir    string
-	Snapshot    string
-	FromFile    string
-	Remote      string
-	Library     bool
-	LibraryRoot string
-	Discard     bool
-	CrashAt     string
+	StateDir     string
+	Snapshot     string
+	FromFile     string
+	Remote       string
+	Library      bool
+	LibraryRoot  string
+	IntoNonempty bool
+	Discard      bool
+	CrashAt      string
 }
 
 // TestRestoreChild is not a test on its own: it does nothing unless a
@@ -88,6 +89,7 @@ func TestRestoreChild(t *testing.T) {
 		Remote:         c.Remote,
 		Library:        c.Library,
 		LibraryRoot:    c.LibraryRoot,
+		IntoNonempty:   c.IntoNonempty,
 		DiscardCurrent: c.Discard,
 		Out:            os.Stdout,
 		Logger:         slog.New(slog.DiscardHandler),
@@ -1082,4 +1084,650 @@ func TestRestore_FetchInterrupted(t *testing.T) {
 			t.Errorf("staging/ after a new restore opened holds %q, want it cleared", got)
 		}
 	})
+}
+
+// recordingRclone puts the stand-in alone on PATH in the place of the
+// real rclone, which it runs after recording each argv, and returns
+// its record.
+func recordingRclone(t *testing.T) fetchStandin {
+	t.Helper()
+	real, err := exec.LookPath("rclone")
+	if err != nil {
+		t.Fatalf("rclone is a prerequisite of this test: %v", err)
+	}
+	bin, s := useFetchStandin(t, "", "")
+	t.Setenv("DUBPLATE_STANDIN_EXEC", real)
+	t.Setenv("PATH", filepath.Dir(bin))
+	return s
+}
+
+// libraryRestore runs a new library restore of the latest snapshot on
+// remote into root in this process, returning its error and what it
+// printed.
+func libraryRestore(t *testing.T, stateDir, remote, root string, intoNonempty bool) (string, error) {
+	t.Helper()
+	var out bytes.Buffer
+	err := Restore(ctxFor(t), RestoreConfig{
+		StateDir:     stateDir,
+		BusyTimeout:  testBusy,
+		Now:          restoreNow,
+		Snapshot:     "latest",
+		Remote:       remote,
+		Library:      true,
+		LibraryRoot:  root,
+		IntoNonempty: intoNonempty,
+		Out:          &out,
+		Logger:       slog.New(slog.DiscardHandler),
+	})
+	return out.String(), err
+}
+
+// readFile returns the contents of path, failing the test when it
+// cannot be read.
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+// TestRestore_LibraryRefusals: a library restore whose root, displaced
+// directory, or remote is wrong refuses before it stages anything,
+// naming what is wrong, and runs rclone no further than the check
+// needs: a local refusal runs it not at all, and a remote without
+// library/ gets as far as the listings and no size, fetch, or copy.
+func TestRestore_LibraryRefusals(t *testing.T) {
+	tests := []struct {
+		name string
+		// arrange returns the library root to name, given a fresh
+		// directory, and the remote.
+		arrange      func(t *testing.T, dir string) (root, remote string)
+		intoNonempty bool
+		want         string
+		wantSubs     []string
+	}{
+		{
+			name: "root absent",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				return filepath.Join(dir, "gone"), remote
+			},
+			want: "gone does not exist",
+		},
+		{
+			name: "root not empty",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				writeTree(t, dir, "mine.flac")
+				return dir, remote
+			},
+			want: "is not empty: restore into it with --into-nonempty",
+		},
+		{
+			name: "root holding lost+found and a file",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				writeTree(t, dir, "lost+found/x", "mine.flac")
+				return dir, remote
+			},
+			want: "restore into it with --into-nonempty",
+		},
+		{
+			name: "displaced path already exists",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				root := filepath.Join(dir, "lib")
+				writeTree(t, root, "mine.flac")
+				if err := os.Mkdir(displacedPath(root, restoreStamp), 0o700); err != nil {
+					t.Fatal(err)
+				}
+				return root, remote
+			},
+			intoNonempty: true,
+			want:         "lib.restore-displaced-" + restoreStamp + " already exists",
+		},
+		{
+			name: "remote without library/",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := snapshotRemote(t, snapshotFile(t))
+				return dir, remote
+			},
+			want:     "the remote holds no fetchtest:",
+			wantSubs: []string{"lsjson", "lsjson"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root, remote := tt.arrange(t, t.TempDir())
+			stateDir := storeWithUser(t, currentUser)
+			s := recordingRclone(t)
+			_, err := libraryRestore(t, stateDir, remote, root, tt.intoNonempty)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("Restore() = %v, want a refusal naming %q", err, tt.want)
+			}
+			if tt.name == "remote without library/" && !strings.Contains(err.Error(), strings.TrimPrefix(remote, "fetchtest:")+"/library") {
+				t.Errorf("Restore() = %v, want it to name the remote's library path", err)
+			}
+			if got := s.subcommands(t); !slices.Equal(got, tt.wantSubs) {
+				t.Errorf("rclone ran %q, want %q", got, tt.wantSubs)
+			}
+			l := leafOf(stateDir)
+			if got := recordState(t, stateDir); got != "" {
+				t.Errorf("record %q after the refusal, want none", got)
+			}
+			if got := entries(t, l.staging); len(got) != 0 {
+				t.Errorf("staging/ holds %q after the refusal, want it empty", got)
+			}
+			if got := users(t, l.db); !slices.Equal(got, []string{currentUser}) {
+				t.Errorf("current store holds %q, want %q", got, currentUser)
+			}
+		})
+	}
+}
+
+// TestRestore_LibraryInto is each library root a restore copies into
+// through a real rclone: what the root holds after, what the displaced
+// directory holds, and what the report and the output say.
+func TestRestore_LibraryInto(t *testing.T) {
+	const (
+		localOnly = "mine/local.flac"
+		differing = "artist/album/one.flac"
+	)
+	tests := []struct {
+		name string
+		// arrange fills dir, and returns the root to name and the root
+		// the restore resolves it to.
+		arrange      func(t *testing.T, dir string) (root, resolved string)
+		intoNonempty bool
+		// wantTree lists the files, beyond the remote's, the root holds
+		// after the restore, each holding its own name.
+		wantTree []string
+		// wantDisplaced maps each file the displaced directory must hold
+		// to its contents; nil wants no displaced directory.
+		wantDisplaced map[string]string
+		wantOut       []string
+		wantReport    []string
+	}{
+		{
+			name: "a symlink to an empty directory",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				target := filepath.Join(dir, "target")
+				if err := os.Mkdir(target, 0o755); err != nil {
+					t.Fatal(err)
+				}
+				link := filepath.Join(dir, "link")
+				if err := os.Symlink(target, link); err != nil {
+					t.Fatal(err)
+				}
+				return link, target
+			},
+		},
+		{
+			name:    "an empty directory on its parent's device",
+			arrange: func(t *testing.T, dir string) (string, string) { return dir, dir },
+			wantOut: []string{" is not a mount point: "},
+		},
+		{
+			name: "a root holding only lost+found",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				if err := os.Mkdir(filepath.Join(dir, "lost+found"), 0o700); err != nil {
+					t.Fatal(err)
+				}
+				return dir, dir
+			},
+		},
+		{
+			name: "a local-only file, with --into-nonempty",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				writeTree(t, dir, localOnly)
+				return dir, dir
+			},
+			intoNonempty: true,
+			wantTree:     []string{localOnly},
+			wantReport:   []string{"\n  " + localOnly + "\n"},
+		},
+		{
+			name: "a local file differing from the remote's, with --into-nonempty",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				p := filepath.Join(dir, differing)
+				if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(p, []byte("the member's retagged copy"), 0o644); err != nil {
+					t.Fatal(err)
+				}
+				return dir, dir
+			},
+			intoNonempty:  true,
+			wantDisplaced: map[string]string{differing: "the member's retagged copy"},
+			wantReport:    []string{".restore-displaced-" + restoreStamp + " holds 1\n"},
+		},
+		{
+			name: "identical and local-only files, with --into-nonempty",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				writeTree(t, dir, differing, localOnly)
+				old := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+				if err := os.Chtimes(filepath.Join(dir, differing), old, old); err != nil {
+					t.Fatal(err)
+				}
+				return dir, dir
+			},
+			intoNonempty: true,
+			wantTree:     []string{localOnly},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remote, files := libraryRemote(t, snapshotFile(t))
+			stateDir := storeWithUser(t, currentUser)
+			lib := filepath.Join(t.TempDir(), "lib")
+			if err := os.Mkdir(lib, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			root, resolved := tt.arrange(t, lib)
+			resolved, err := filepath.EvalSymlinks(resolved)
+			if err != nil {
+				t.Fatal(err)
+			}
+			out, err := libraryRestore(t, stateDir, remote, root, tt.intoNonempty)
+			if err != nil {
+				t.Fatalf("Restore(): %v", err)
+			}
+			want := slices.Sorted(slices.Values(slices.Concat(files, tt.wantTree)))
+			assertTree(t, resolved, want)
+			assertComplete(t, stateDir, completion{incoming: incomingUser, current: currentUser, refs: []string{stampNew}})
+			if tt.name == "a root holding only lost+found" {
+				if _, err := os.Stat(filepath.Join(resolved, "lost+found")); err != nil {
+					t.Errorf("lost+found after the restore: %v", err)
+				}
+			}
+
+			displaced := displacedPath(resolved, restoreStamp)
+			if tt.wantDisplaced == nil {
+				if _, err := os.Lstat(displaced); !errors.Is(err, fs.ErrNotExist) {
+					t.Errorf("displaced directory %s: %v, want none", displaced, err)
+				}
+			}
+			for rel, body := range tt.wantDisplaced {
+				if got := readFile(t, filepath.Join(displaced, rel)); got != body {
+					t.Errorf("displaced %s holds %q, want %q", rel, got, body)
+				}
+			}
+			report := readFile(t, leafOf(stateDir).report)
+			if tt.wantDisplaced == nil && strings.Contains(report, "displaced") {
+				t.Errorf("report %q names a displaced directory, want none", report)
+			}
+			for _, w := range tt.wantReport {
+				if !strings.Contains(report, w) {
+					t.Errorf("report %q, want it to hold %q", report, w)
+				}
+			}
+			wantOut := append([]string{"library root " + resolved + " is "}, tt.wantOut...)
+			for _, w := range wantOut {
+				if !strings.Contains(out, w) {
+					t.Errorf("Restore printed %q, want it to hold %q", out, w)
+				}
+			}
+		})
+	}
+}
+
+// catalogSnapshot returns a verified backup copy of a store holding a
+// member and one collection at catalogRoot with an album of a track at
+// each of rels.
+func catalogSnapshot(t *testing.T, rels ...string) string {
+	t.Helper()
+	dir := t.TempDir()
+	h, err := store.OpenServe(ctxFor(t), dir, store.ServeOptions{
+		BusyTimeout:   testBusy,
+		MigrationWait: 30 * time.Second,
+		Keep:          1,
+		Logger:        slog.New(slog.DiscardHandler),
+	})
+	if err != nil {
+		t.Fatalf("OpenServe: %v", err)
+	}
+	plantCatalog(t, h, rels...)
+	p, err := h.BackupCopy(ctxFor(t), slog.New(slog.DiscardHandler), testInstance)
+	if cerr := h.Close(); cerr != nil {
+		t.Fatal(cerr)
+	}
+	if err != nil {
+		t.Fatalf("BackupCopy: %v", err)
+	}
+	return p
+}
+
+// TestRestore_TreeReport is spec criterion 12: a restore through a real
+// rclone into an empty root yields every backed-up file by relative
+// path and bytes, and the report, written at 0600, names a track whose
+// file is then deleted and a file then planted with no track, each
+// once.
+func TestRestore_TreeReport(t *testing.T) {
+	remote, dir := snapshotRemote(t, catalogSnapshot(t, "a/1.flac", "a/2.flac"))
+	files := under("a/1.flac", "a/2.flac")
+	writeTree(t, filepath.Join(dir, "library"), files...)
+	stateDir := storeWithUser(t, currentUser)
+	root := t.TempDir()
+
+	hooked := false
+	stepHook = func(step string) {
+		if step != stepCopied {
+			return
+		}
+		hooked = true
+		assertTree(t, root, files)
+		if err := os.Remove(filepath.Join(root, catalogRoot, "a/2.flac")); err != nil {
+			t.Fatal(err)
+		}
+		writeTree(t, root, catalogRoot+"/a/extra.flac")
+	}
+	t.Cleanup(func() { stepHook = func(string) {} })
+
+	if _, err := libraryRestore(t, stateDir, remote, root, false); err != nil {
+		t.Fatalf("Restore(): %v", err)
+	}
+	if !hooked {
+		t.Fatal("the restore never reached the copy's step")
+	}
+	l := leafOf(stateDir)
+	info, err := os.Stat(l.report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := info.Mode().Perm(); got != 0o600 {
+		t.Errorf("report mode %v, want 0600", got)
+	}
+	report := readFile(t, l.report)
+	for _, w := range []string{
+		"tracks without a file: 1\nfiles without a track: 1\n",
+		"tracks without a file:\n  main/a/2.flac\n",
+		"files without a track:\n  main/a/extra.flac\n",
+	} {
+		if !strings.Contains(report, w) {
+			t.Errorf("report %q, want it to hold %q", report, w)
+		}
+	}
+	for _, p := range []string{"main/a/2.flac", "main/a/extra.flac"} {
+		if got := strings.Count(report, p); got != 1 {
+			t.Errorf("report names %s %d times, want once", p, got)
+		}
+	}
+	if got := recordState(t, stateDir); got != "" {
+		t.Errorf("record %q after the restore, want it removed", got)
+	}
+}
+
+// crashAtLibrary runs a library restore in a re-executed child that
+// dies once the record owes the copy, and returns the state directory
+// and the remote's library files.
+func crashAtLibrary(t *testing.T, root string, intoNonempty bool) (string, []string) {
+	t.Helper()
+	remote, files := libraryRemote(t, snapshotFile(t))
+	stateDir := storeWithUser(t, currentUser)
+	crashChild(t, childRestore{
+		StateDir: stateDir, Snapshot: stampNew, Remote: remote,
+		Library: true, LibraryRoot: root, IntoNonempty: intoNonempty, CrashAt: stepLibraryOwed,
+	})
+	if got := recordState(t, stateDir); got != "library" {
+		t.Fatalf("record after the crash %q, want library", got)
+	}
+	return stateDir, files
+}
+
+// TestRestore_LibraryResume is resume's rows in the library state: a
+// failed or killed copy leaves the record owing the copy, and a resume
+// finishes into the root the stopped copy partly filled without
+// checking it is empty; a recorded root that is gone or now resolves
+// elsewhere is refused before any rclone run.
+func TestRestore_LibraryResume(t *testing.T) {
+	t.Run("rclone fails", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, _ := crashAtLibrary(t, root, false)
+		bin, _ := useFetchStandin(t, "copy=7", "")
+		t.Setenv("PATH", filepath.Dir(bin))
+		_, err := resume(t, stateDir)
+		if err == nil || !strings.Contains(err.Error(), "rclone-exit-7") {
+			t.Fatalf("resume: %v, want a failure naming rclone's exit 7", err)
+		}
+		if got := recordState(t, stateDir); got != "library" {
+			t.Errorf("record after the failed copy %q, want library", got)
+		}
+	})
+
+	t.Run("a killed copy that wrote one file of two", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, files := crashAtLibrary(t, root, false)
+		path := os.Getenv("PATH")
+		bin, s := useFetchStandin(t, "", "copy")
+		t.Setenv("DUBPLATE_STANDIN_COPY_ONE", files[0])
+		t.Setenv("PATH", filepath.Dir(bin))
+		go func() {
+			for end := time.Now().Add(20 * time.Second); time.Now().Before(end); time.Sleep(10 * time.Millisecond) {
+				b, err := os.ReadFile(s.pid)
+				if err != nil {
+					continue
+				}
+				if _, err := os.Stat(filepath.Join(root, files[0])); err != nil {
+					continue
+				}
+				if pid, err := strconv.Atoi(string(b)); err == nil {
+					_ = syscall.Kill(pid, syscall.SIGKILL)
+				}
+				return
+			}
+		}()
+		_, err := resume(t, stateDir)
+		if err == nil || !strings.Contains(err.Error(), "rclone-signal-KILL") {
+			t.Fatalf("resume: %v, want the killed copy's failure", err)
+		}
+		if got := recordState(t, stateDir); got != "library" {
+			t.Fatalf("record after the killed copy %q, want library", got)
+		}
+		assertTree(t, root, files[:1])
+
+		t.Setenv("PATH", path)
+		t.Setenv("DUBPLATE_STANDIN_COPY_ONE", "")
+		if _, err := resume(t, stateDir); err != nil {
+			t.Fatalf("resume into the partly filled root: %v", err)
+		}
+		assertTree(t, root, files)
+		assertComplete(t, stateDir, completion{incoming: incomingUser, current: currentUser, refs: []string{stampNew}})
+	})
+
+	for _, tt := range []struct {
+		name  string
+		move  func(t *testing.T, root string)
+		want  string
+		after string
+	}{
+		{
+			name: "the recorded root now absent",
+			move: func(t *testing.T, root string) {
+				if err := os.Remove(root); err != nil {
+					t.Fatal(err)
+				}
+			},
+			want: "does not exist",
+		},
+		{
+			name: "the recorded root now resolving elsewhere",
+			move: func(t *testing.T, root string) {
+				elsewhere := root + "-elsewhere"
+				if err := os.Rename(root, elsewhere); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Symlink(elsewhere, root); err != nil {
+					t.Fatal(err)
+				}
+			},
+			want:  " now resolves to ",
+			after: "-elsewhere",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			root, err := filepath.EvalSymlinks(t.TempDir())
+			if err != nil {
+				t.Fatal(err)
+			}
+			root = filepath.Join(root, "lib")
+			if err := os.Mkdir(root, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			stateDir, _ := crashAtLibrary(t, root, false)
+			tt.move(t, root)
+			bin, s := useFetchStandin(t, "", "")
+			t.Setenv("PATH", filepath.Dir(bin))
+			_, err = resume(t, stateDir)
+			if err == nil {
+				t.Fatalf("resume succeeded, want a refusal naming %q", tt.want)
+			}
+			for _, w := range []string{"recorded library root", root, tt.want, tt.after} {
+				if !strings.Contains(err.Error(), w) {
+					t.Errorf("resume: %v, want it to name %q", err, w)
+				}
+			}
+			if lines := s.lines(t); len(lines) != 0 {
+				t.Errorf("the refused resume ran rclone: %q", lines)
+			}
+			if got := recordState(t, stateDir); got != "library" {
+				t.Errorf("record after the refusal %q, want library", got)
+			}
+		})
+	}
+}
+
+// TestRestore_LibraryResumeDisplaced is resume's rows with
+// --into-nonempty: it accepts the displaced directory its interrupted
+// run created, keeps every file that run displaced, and adds the ones
+// it displaces itself; it refuses a displaced path that is anything but
+// such a directory, before any rclone run.
+func TestRestore_LibraryResumeDisplaced(t *testing.T) {
+	t.Run("an interrupted run's directory", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, files := crashAtLibrary(t, root, true)
+		// The state a copy killed part way leaves: one local file
+		// already displaced and the remote's in its place, and one local
+		// file still to be.
+		displaced := displacedPath(root, restoreStamp)
+		if err := os.Mkdir(displaced, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		plant := func(p, body string) {
+			if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		plant(filepath.Join(displaced, files[0]), "the first run's displaced copy")
+		writeTree(t, root, files[0])
+		plant(filepath.Join(root, files[1]), "the member's local copy")
+
+		out, err := resume(t, stateDir)
+		if err != nil {
+			t.Fatalf("resume: %v", err)
+		}
+		assertTree(t, root, files)
+		assertComplete(t, stateDir, completion{incoming: incomingUser, current: currentUser, refs: []string{stampNew}})
+		for rel, body := range map[string]string{files[0]: "the first run's displaced copy", files[1]: "the member's local copy"} {
+			if got := readFile(t, filepath.Join(displaced, rel)); got != body {
+				t.Errorf("displaced %s holds %q, want %q", rel, got, body)
+			}
+		}
+		want := "displaced local files: " + displaced + " holds 2\n"
+		if report := readFile(t, leafOf(stateDir).report); !strings.Contains(report, want) {
+			t.Errorf("report %q, want it to hold %q", report, want)
+		}
+		if !strings.Contains(out, want) {
+			t.Errorf("resume printed %q, want it to hold %q", out, want)
+		}
+	})
+
+	for _, tt := range []struct {
+		name  string
+		plant func(t *testing.T, p string)
+		want  string
+	}{
+		{
+			name: "a symlink",
+			plant: func(t *testing.T, p string) {
+				target := t.TempDir()
+				if err := os.Chmod(target, 0o700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Symlink(target, p); err != nil {
+					t.Fatal(err)
+				}
+			},
+			want: "is a symlink",
+		},
+		{
+			name: "a file",
+			plant: func(t *testing.T, p string) {
+				if err := os.WriteFile(p, nil, 0o700); err != nil {
+					t.Fatal(err)
+				}
+			},
+			want: "is not a directory",
+		},
+		{
+			name: "a directory at 0755",
+			plant: func(t *testing.T, p string) {
+				if err := os.Mkdir(p, 0o700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Chmod(p, 0o755); err != nil {
+					t.Fatal(err)
+				}
+			},
+			want: "is at mode 0755",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			stateDir, _ := crashAtLibrary(t, root, true)
+			displaced := displacedPath(root, restoreStamp)
+			tt.plant(t, displaced)
+			bin, s := useFetchStandin(t, "", "")
+			t.Setenv("PATH", filepath.Dir(bin))
+			_, err := resume(t, stateDir)
+			if err == nil {
+				t.Fatalf("resume succeeded, want a refusal naming %q", tt.want)
+			}
+			for _, w := range []string{displaced, tt.want} {
+				if !strings.Contains(err.Error(), w) {
+					t.Errorf("resume: %v, want it to name %q", err, w)
+				}
+			}
+			if lines := s.lines(t); len(lines) != 0 {
+				t.Errorf("the refused resume ran rclone: %q", lines)
+			}
+			if got := recordState(t, stateDir); got != "library" {
+				t.Errorf("record after the refusal %q, want library", got)
+			}
+		})
+	}
+}
+
+// TestCheckDisplaced is the displaced directory's ownership rule, which
+// a test not running as root can reach only by naming another uid as
+// the caller's: a directory the caller does not own is refused.
+func TestCheckDisplaced(t *testing.T) {
+	p := filepath.Join(t.TempDir(), "displaced")
+	if err := os.Mkdir(p, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkDisplaced(p, os.Getuid()); err != nil {
+		t.Fatalf("checkDisplaced(own directory): %v", err)
+	}
+	other := os.Getuid() + 1
+	err := checkDisplaced(p, other)
+	want := fmt.Sprintf("displaced directory %s is not owned by uid %d", p, other)
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("checkDisplaced(another uid) = %v, want a refusal naming %q", err, want)
+	}
 }

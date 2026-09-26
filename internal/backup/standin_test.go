@@ -50,6 +50,16 @@ const (
 	// directory read-only before it exits, so the stage cannot be
 	// removed.
 	standinLockStageEnv = "DUBPLATE_STANDIN_LOCK_STAGE"
+
+	// standinExecEnv names a real rclone the stand-in runs in its own
+	// place once it has recorded its argv, so a test sees every run of
+	// a real transfer.
+	standinExecEnv = "DUBPLATE_STANDIN_EXEC"
+
+	// standinCopyOneEnv names one relative path that copy writes under
+	// its destination, holding the path itself, before it sleeps or
+	// exits: a transfer stopped part way.
+	standinCopyOneEnv = "DUBPLATE_STANDIN_COPY_ONE"
 )
 
 // The environment a re-executed child reads to run one backup through
@@ -85,9 +95,21 @@ func standIn(args []string) int {
 		_ = os.Rename(pidFile+".tmp", pidFile)
 	}
 
+	if real := os.Getenv(standinExecEnv); real != "" {
+		err := syscall.Exec(real, append([]string{real}, args...), os.Environ())
+		fmt.Fprintf(os.Stderr, "stand-in exec %s: %v\n", real, err)
+		return 2
+	}
+
 	sub := ""
 	if len(args) > 0 {
 		sub = args[0]
+	}
+	if rel := os.Getenv(standinCopyOneEnv); sub == "copy" && rel != "" && len(args) > 2 {
+		p := filepath.Join(args[2], rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err == nil {
+			_ = os.WriteFile(p, []byte(rel), 0o644)
+		}
 	}
 	code := standinExit(os.Getenv(standinExitEnv), sub)
 	exit := func(code int) int {

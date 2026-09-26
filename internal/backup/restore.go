@@ -1,13 +1,19 @@
 package backup
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
@@ -71,9 +77,17 @@ type RestoreConfig struct {
 	Remote string
 
 	// Library also restores the library tree, from Remote's library/
-	// into LibraryRoot. It needs Snapshot.
-	Library      bool
-	LibraryRoot  string
+	// into LibraryRoot, which must exist and, unless IntoNonempty is
+	// set, be empty but for a lost+found directory. It needs Snapshot.
+	Library bool
+
+	// LibraryRoot is the library root. Without Library, the
+	// reconciliation report still reads the tree under it.
+	LibraryRoot string
+
+	// IntoNonempty permits a Library restore into a root that holds
+	// files. A local file the copy replaces is moved into the sibling
+	// directory <root>.restore-displaced-<stamp>, never deleted.
 	IntoNonempty bool
 
 	// Out receives what the restore reports to the operator.
@@ -157,11 +171,16 @@ func Restore(ctx context.Context, cfg RestoreConfig) (err error) {
 	}
 	defer func() { err = errors.Join(err, sess.Close()) }()
 
-	r := restorer{sess: sess, out: cfg.Out}
+	r := restorer{sess: sess, out: cfg.Out, resumed: cfg.Resume, root: cfg.LibraryRoot}
 	if cfg.Resume {
 		return r.resume(ctx)
 	}
-	in, err := r.stage(ctx, cfg, remote)
+	if cfg.Library {
+		if err := checkRoot(root, displacedPath(root, sess.Stamp()), cfg.IntoNonempty); err != nil {
+			return err
+		}
+	}
+	in, err := r.stage(ctx, cfg, remote, root)
 	if err != nil {
 		return err
 	}
@@ -173,6 +192,14 @@ func Restore(ctx context.Context, cfg RestoreConfig) (err error) {
 type restorer struct {
 	sess *store.RestoreSession
 	out  io.Writer
+
+	// resumed is set when the restore takes up a record an earlier run
+	// wrote.
+	resumed bool
+
+	// root is the configured library root, which the report reads when
+	// the restore owes no library half.
+	root string
 }
 
 // transport returns a transport whose rclone inherits the session's
@@ -186,10 +213,11 @@ func (r restorer) transport() (transport, error) {
 	return transport{bin: bin, inherit: r.sess.DupFiles}, nil
 }
 
-// stage runs steps 1 and 2: it chooses the snapshot, fetches it or
+// stage runs steps 1 and 2: it chooses the snapshot, checks the remote
+// library against root when one is owed, fetches the snapshot or
 // copies the local file into staging/, and verifies the stage. It
 // returns the source the record will name.
-func (r restorer) stage(ctx context.Context, cfg RestoreConfig, remote Remote) (store.RestoreIntent, error) {
+func (r restorer) stage(ctx context.Context, cfg RestoreConfig, remote Remote, root string) (store.RestoreIntent, error) {
 	var in store.RestoreIntent
 	if cfg.Snapshot == "" {
 		stepHook(stepOpened)
@@ -213,6 +241,11 @@ func (r restorer) stage(ctx context.Context, cfg RestoreConfig, remote Remote) (
 		snap, err := src.resolve(ctx, cfg.Snapshot, cfg.Older)
 		if err != nil {
 			return in, err
+		}
+		if cfg.Library {
+			if err := src.checkLibrary(ctx, root, r.out); err != nil {
+				return in, err
+			}
 		}
 		stepHook(stepOpened)
 		if err := src.fetch(ctx, r.sess, r.out, snap); err != nil {
@@ -323,30 +356,230 @@ func (r restorer) advance(ctx context.Context, in store.RestoreIntent) error {
 }
 
 // library runs step 6, copying the remote's library/ into the library
-// root the record names, and advances the record.
+// root the record names, and advances the record. It re-resolves the
+// root, refusing one that is gone or now resolves elsewhere, but never
+// re-checks that the root is empty: the record proves the check passed
+// before any copy, and a copy this restore began and was stopped fills
+// the root itself.
 func (r restorer) library(ctx context.Context, in store.RestoreIntent) error {
 	remote, err := ParseRemote(in.Remote)
 	if err != nil {
 		return fmt.Errorf("restore the library: %w", err)
 	}
+	root, err := resolveRoot(in.LibraryRoot)
+	if err != nil {
+		return fmt.Errorf("restore the library: the recorded library root: %w", err)
+	}
+	if root != in.LibraryRoot {
+		return fmt.Errorf("restore the library: the recorded library root %s now resolves to %s", in.LibraryRoot, root)
+	}
 	t, err := r.transport()
 	if err != nil {
 		return err
 	}
-	if err := t.run(ctx, nil, "copy", remote.join("library"), in.LibraryRoot); err != nil {
-		return fmt.Errorf("restore the library into %s: %w", in.LibraryRoot, err)
+
+	args := []string{"copy", remote.join("library"), root}
+	var displaced string
+	if in.IntoNonempty {
+		displaced = displacedPath(root, r.sess.Stamp())
+		if err := r.makeDisplaced(displaced); err != nil {
+			return err
+		}
+		args = append(args, "--backup-dir", displaced)
+	}
+	if err := t.run(ctx, nil, args...); err != nil {
+		if f, ok := errors.AsType[*failure](err); ok {
+			err = fmt.Errorf("%s: %w", f.code, err)
+		}
+		return fmt.Errorf("restore the library into %s: %w", root, err)
+	}
+	if displaced != "" {
+		if err := removeIfEmpty(displaced); err != nil {
+			return err
+		}
 	}
 	stepHook(stepCopied)
 	return r.advance(ctx, in)
 }
 
-// report runs step 7: it writes the reconciliation report and removes
-// the record, which ends the restore.
+// displacedPath is where a restore stamped stamp moves each local file
+// under root that its library copy replaces: a sibling of root, since
+// rclone refuses a backup directory inside the copy's destination.
+func displacedPath(root, stamp string) string {
+	return root + ".restore-displaced-" + stamp
+}
+
+// checkRoot runs step 6's checks on the resolved library root before
+// any rclone run. It refuses a root that holds anything but a
+// lost+found directory, which a freshly made ext file system holds,
+// unless intoNonempty is set; with it, it refuses a displaced path that
+// already exists, which a restore never merges into.
+func checkRoot(root, displaced string, intoNonempty bool) error {
+	des, err := os.ReadDir(root)
+	if err != nil {
+		return fmt.Errorf("restore the library: %w", err)
+	}
+	des = slices.DeleteFunc(des, func(de fs.DirEntry) bool { return de.Name() == "lost+found" && de.IsDir() })
+	if !intoNonempty {
+		if len(des) > 0 {
+			return fmt.Errorf("restore the library: library root %s is not empty: restore into it with --into-nonempty", root)
+		}
+		return nil
+	}
+	switch _, err := os.Lstat(displaced); {
+	case err == nil:
+		return fmt.Errorf("restore the library: %s already exists: move it away before a restore with --into-nonempty", displaced)
+	case !errors.Is(err, fs.ErrNotExist):
+		return fmt.Errorf("restore the library: %w", err)
+	}
+	return nil
+}
+
+// checkLibrary runs step 1's library checks against the remote before
+// the fetch. It refuses a remote with no library/, and a library root
+// whose file system lacks room for the remote tree's bytes, a floor
+// since a backend may report no size for a file. It prints the root,
+// whether it is a mount point, and the free space it read, since an
+// unmounted mount point is an empty directory no check can tell from a
+// root on its parent's file system.
+func (s source) checkLibrary(ctx context.Context, root string, out io.Writer) error {
+	dirs, err := s.t.list(ctx, s.remote.join(""), true)
+	if err != nil {
+		return err
+	}
+	if !slices.ContainsFunc(dirs, func(e remoteEntry) bool { return e.IsDir && e.Name == "library" }) {
+		return fmt.Errorf("restore the library: the remote holds no %s", s.remote.join("library"))
+	}
+	size, err := s.librarySize(ctx)
+	if err != nil {
+		return err
+	}
+	free, mount, err := rootSpace(root)
+	if err != nil {
+		return err
+	}
+	kind := "not a mount point"
+	if mount {
+		kind = "a mount point"
+	}
+	if _, err := fmt.Fprintf(out, "library root %s is %s: %d bytes free; the remote's library/ holds at least %d bytes in %d files, %d of them without a size\n",
+		root, kind, free, size.Bytes, size.Count, size.Sizeless); err != nil {
+		return fmt.Errorf("restore: write output: %w", err)
+	}
+	if free < uint64(max(size.Bytes, 0)) {
+		return fmt.Errorf("restore the library: free space on %s: %d bytes free, need %d", root, free, size.Bytes)
+	}
+	return nil
+}
+
+// rootSpace reports the free bytes on root's file system, and whether
+// root is a mount point: whether its device differs from its parent
+// directory's.
+func rootSpace(root string) (free uint64, mount bool, err error) {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(root, &st); err != nil {
+		return 0, false, fmt.Errorf("restore the library: statfs %s: %w", root, err)
+	}
+	dev, err := device(root)
+	if err != nil {
+		return 0, false, err
+	}
+	parent, err := device(filepath.Dir(root))
+	if err != nil {
+		return 0, false, err
+	}
+	return st.Bavail * uint64(st.Frsize), dev != parent, nil
+}
+
+func device(p string) (uint64, error) {
+	info, err := os.Stat(p)
+	if err != nil {
+		return 0, fmt.Errorf("restore the library: %w", err)
+	}
+	st, ok := info.Sys().(*syscall.Stat_t)
+	if !ok {
+		return 0, fmt.Errorf("restore the library: %s: no device in its file info", p)
+	}
+	return st.Dev, nil
+}
+
+// makeDisplaced creates the displaced directory at mode 0700, since
+// rclone would create a missing one at 0755 under umask 022. A first
+// run refuses a directory that exists; a resume accepts the one its
+// interrupted run created, after [checkDisplaced] passes it.
+func (r restorer) makeDisplaced(p string) error {
+	err := os.Mkdir(p, 0o700)
+	if r.resumed && errors.Is(err, fs.ErrExist) {
+		return checkDisplaced(p, os.Getuid())
+	}
+	if err != nil {
+		return fmt.Errorf("restore the library: create the displaced directory: %w", err)
+	}
+	return nil
+}
+
+// checkDisplaced refuses p unless it is a directory, not a symlink,
+// owned by uid at mode 0700, as [restorer.makeDisplaced] creates it.
+func checkDisplaced(p string, uid int) error {
+	info, err := os.Lstat(p)
+	if err != nil {
+		return fmt.Errorf("restore the library: %w", err)
+	}
+	var found string
+	st, ok := info.Sys().(*syscall.Stat_t)
+	switch {
+	case info.Mode()&fs.ModeSymlink != 0:
+		found = "a symlink"
+	case !info.IsDir():
+		found = "not a directory"
+	case !ok || int(st.Uid) != uid:
+		found = "not owned by uid " + strconv.Itoa(uid)
+	case info.Mode().Perm() != 0o700:
+		found = fmt.Sprintf("at mode %#o", info.Mode().Perm())
+	default:
+		return nil
+	}
+	return fmt.Errorf("restore the library: displaced directory %s is %s: want a directory at mode 0700 owned by uid %d", p, found, uid)
+}
+
+// removeIfEmpty removes the displaced directory p when the copy moved
+// nothing into it. One that holds anything is kept, whichever run
+// moved the files, and never removed recursively.
+func removeIfEmpty(p string) error {
+	des, err := os.ReadDir(p)
+	if err != nil {
+		return fmt.Errorf("restore the library: read the displaced directory: %w", err)
+	}
+	if len(des) > 0 {
+		return nil
+	}
+	if err := os.Remove(p); err != nil {
+		return fmt.Errorf("restore the library: remove the empty displaced directory: %w", err)
+	}
+	return nil
+}
+
+// report runs step 7: it reconciles the restored catalog against the
+// library root, writes the report, and removes the record, which ends
+// the restore.
 func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("restore: %w", err)
 	}
-	path, err := r.sess.WriteReport(reportText(r.sess.Stamp(), in))
+	root := cmp.Or(in.LibraryRoot, r.root)
+	rep, err := r.reconcile(ctx, root)
+	if err != nil {
+		return err
+	}
+	head := "restore " + r.sess.Stamp() + "\nsource: " + sourceLine(in) + "\n"
+	if in.IntoNonempty {
+		line, err := displacedLine(displacedPath(root, r.sess.Stamp()))
+		if err != nil {
+			return err
+		}
+		head += line
+	}
+	path, err := r.sess.WriteReport(append([]byte(head), rep.Text()...))
 	if err != nil {
 		return err
 	}
@@ -354,17 +587,42 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err := r.sess.Complete(); err != nil {
 		return err
 	}
+	if _, err := fmt.Fprintf(r.out, "%s%s", head, rep.summary()); err != nil {
+		return fmt.Errorf("restore: write output: %w", err)
+	}
 	return r.say("restored; the reconciliation report is %s", path)
 }
 
-// reportText is the reconciliation report of the restore stamped stamp
-// from the source in names.
-func reportText(stamp string, in store.RestoreIntent) []byte {
-	src := "file " + in.File
-	if in.Snapshot != "" {
-		src = "snapshot " + in.Snapshot + " on " + in.Remote
+// reconcile reconciles the restored store against root on a read
+// handle the session's lock covers.
+func (r restorer) reconcile(ctx context.Context, root string) (_ *Report, err error) {
+	h, err := r.sess.OpenRead(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return []byte("restore " + stamp + "\nsource: " + src + "\n")
+	defer func() { err = errors.Join(err, h.Close()) }()
+	return Reconcile(ctx, h, root)
+}
+
+// sourceLine names the source in names.
+func sourceLine(in store.RestoreIntent) string {
+	if in.Snapshot != "" {
+		return "snapshot " + in.Snapshot + " on " + in.Remote
+	}
+	return "file " + in.File
+}
+
+// displacedLine names the displaced directory p and how many files it
+// holds, or is "" when the copy displaced nothing and p is gone.
+func displacedLine(p string) (string, error) {
+	if _, err := os.Lstat(p); errors.Is(err, fs.ErrNotExist) {
+		return "", nil
+	}
+	n, err := countFiles(p)
+	if err != nil {
+		return "", fmt.Errorf("restore: count the displaced files: %w", err)
+	}
+	return fmt.Sprintf("displaced local files: %s holds %d\n", p, n), nil
 }
 
 // say writes one line to the operator.
