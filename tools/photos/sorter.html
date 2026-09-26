@@ -624,16 +624,16 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas: "photo form";
+    /* Fills the stage exactly (the stage's own 1rem padding is the 16px
+       gutter), so the photo column is the same tall half-viewport crop
+       the real login page would show at this window size, and it is a
+       definite size regardless of any one photo's aspect ratio: with no
+       definite ancestor height, object-fit:cover falls back to the
+       image's own intrinsic size instead of actually cropping (the
+       earlier bug), and a portrait and a landscape photo asked for very
+       different heights. */
     width: 100%;
-    max-width: 62rem;
-    /* A fixed height, not a minimum: the grid row must be definite so
-       the photo column stretches to fill it and the frame beneath can
-       resolve a real height to cover-crop against. Left as auto (via
-       min-height alone), a portrait image and a landscape image asked
-       for very different heights, since with no definite ancestor
-       height an object-fit:cover image falls back to its own intrinsic
-       aspect ratio instead of actually cropping. */
-    height: 30rem;
+    height: 100%;
     border: 2px solid var(--color-base-content);
     border-radius: var(--radius-box);
     background: var(--color-base-100);
@@ -851,13 +851,14 @@
     color: var(--color-secondary-content);
   }
   @media (max-width: 480px) {
-    /* Yes/No/Maybe become large, one-line, thumb-reachable rows; prev/next
-       shrink to small controls. DOM order (prev, decide, next) becomes
-       the top-to-bottom order, unchanged from desktop's left-to-right. */
-    .review-actions { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.6rem; }
-    .review-nav-btn { align-self: center; flex: none; min-height: 2.5rem; min-width: 2.5rem; font-size: 1rem; }
-    .review-decide { flex-direction: column; }
-    .review-decide-btn { min-height: 3.25rem; font-size: 0.85rem; }
+    /* One row of three equal, thumb-reachable buttons, a ~64px bar. The
+       key hints are chrome for a keyboard, not a thumb, so they drop;
+       prev/next drop too (swipe still moves without deciding) rather
+       than compete with the mock for the little height a phone has. */
+    .review-actions { padding: 0.5rem 0.6rem; gap: 0.5rem; }
+    .review-nav-btn { display: none; }
+    .review-decide-btn { min-height: 48px; font-size: 0.78rem; }
+    .key-hint { display: none; }
   }
 
   [hidden] { display: none !important; }
@@ -936,9 +937,9 @@
     <div class="review-actions">
       <button id="review-prev" type="button" class="review-nav-btn" aria-label="Previous, without deciding">&#8249;</button>
       <div class="review-decide">
-        <button id="review-maybe" type="button" class="review-decide-btn maybe-btn">Maybe (M)</button>
-        <button id="review-no" type="button" class="review-decide-btn no-btn">No (N)</button>
-        <button id="review-yes" type="button" class="review-decide-btn yes-btn">Yes (Y)</button>
+        <button id="review-maybe" type="button" class="review-decide-btn maybe-btn">Maybe<span class="key-hint"> (M)</span></button>
+        <button id="review-no" type="button" class="review-decide-btn no-btn">No<span class="key-hint"> (N)</span></button>
+        <button id="review-yes" type="button" class="review-decide-btn yes-btn">Yes<span class="key-hint"> (Y)</span></button>
       </div>
       <button id="review-next" type="button" class="review-nav-btn" aria-label="Next, without deciding">&#8250;</button>
     </div>
