@@ -6,16 +6,15 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i and 5c-ii, and rung 6's 6a, 6b-i, an
 
 ## Next action
 
-- **5c-iii: segments A, B, C done (Tasks 1-5 accepted, last `610ad61`); next is its review round
-  and Task 6 close, in a fresh session.** Plan `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
+- **5c-iii: segments A, B, C done (Tasks 1-5 accepted, last `610ad61`); its review round ran 2026-09-25
+  (reviews in `research/2026-09-25-rung-5c-iii-review-*.md`, a fold in progress); Task 6 close next.** Plan `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
   conductor actions 4 and 5: one `code-simplifier` over Tasks 1-5 (paste
   `.claude/instructions/simplifier-brief.md`), `svelte-reviewer` + `daisyui-a11y-reviewer` (given the VI
   spec) + `web-auth-security-reviewer` (head insertions, new routes), one fold; then Task 6 (architecture
   reads for `internal/serve`, `cmd/dubplate-server`, `web`; the ledger fold; the refresh read of Tasks 7-11).
   Every full gate is heavy (Chromium, about 3-4 min, about 560 MiB).
-- **6b-ii-b (restore) runs in lane 2** (worktree `lane-2-6b-ii-b`), segment B1 (Tasks 4A-4C, run
-  `wf_a047da45-f4b`) in flight when window 2's attended session was written; B2 (5A, 5B, 6) and B3 (7, close,
-  merge) follow. If this session ended mid-segment: journal first, then relaunch (memory
+- **6b-ii-b (restore) runs in lane 2** (worktree `lane-2-6b-ii-b`), segment B1 (Tasks 4A-4C) accepted (run
+  `wf_a047da45-f4b`); B2 (5A, 5B, 6) running as `wf_a360199a-016`; B3 (7, close, merge) follows. If this session ended mid-segment: journal first, then relaunch (memory
   `pass-execute-cross-session-resume`).
 - **Approved and waiting for a lane:** the transliteration-at-setup pass (`plans/2026-09-25-translit-table-at-setup.md`,
   3.3M, `unidecode install`; keeps dubplate MIT).
