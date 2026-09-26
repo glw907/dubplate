@@ -23,7 +23,8 @@ import (
 // command's human output; on an unsatisfied wall RunE returns a single
 // short error, leaving main as the sole stderr writer. Exit status is 1
 // when [config.Load] refuses environ, the roster row fails to open or
-// names no admin, or the store row reports a failing state; 0
+// names no admin, the store row reports a failing state, the backup
+// remote row fails, or a registered setting's row refuses; 0
 // otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
