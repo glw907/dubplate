@@ -46,7 +46,7 @@ Government Issue, Operation Ivy, the Feelies, Yellowman, King Tubby, Nightmares 
 - Garage: the Sonics, the Seeds, the 13th Floor Elevators, the Monks, ? and the Mysterians, the
   Kingsmen, the Trashmen; revival: the Fleshtones, the Chesterfield Kings, the Lyres, the Miracle
   Workers, the Milkshakes, Billy Childish
-- Rockabilly and psychobilly: Hasil Adkins, Charlie Feathers, Wanda Jackson, Link Wray, Sleepy
+- Rockabilly and psychobilly: Bo Diddley, Hasil Adkins, Charlie Feathers, Wanda Jackson, Link Wray, Sleepy
   LaBeef, Ronnie Dawson, the Meteors, the Stray Cats
 - Outsider artists: the Shaggs, Daniel Johnston, Wesley Willis, Jandek, Moondog, Wild Man Fischer
 - Mod: the Small Faces, the Creation, the Action, the Jam, Secret Affair
