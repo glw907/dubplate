@@ -288,8 +288,8 @@ func TestFontFaceSrcsResolveUnderFonts(t *testing.T) {
 	// A face silently dropped from the build leaves the remaining
 	// faces' srcs all resolving cleanly, so the per-src subtests below
 	// cannot catch it: this set comparison asserts every FONTS.md file
-	// is referenced by exactly one built @font-face src, and nothing
-	// else.
+	// is referenced by at least one built @font-face src, and that no
+	// src resolves to a file outside the manifest.
 	resolvedNames := make(map[string]bool, len(faces))
 	for _, f := range faces {
 		resolved := resolveStylesheetPath(f.cssPath, f.src)

@@ -18,11 +18,13 @@ const HEX_LITERAL = /#[0-9a-fA-F]{3,8}\b/;
  * `text-primary`, `-secondary`, `-accent`, `-neutral`, `-info`,
  * `-success`, `-warning`, and `-error` reach a raw fill, never the
  * measured on-surface ink; markup reaches a status color only through
- * `text-ink-primary`, `-accent`, `-info`, `-error`, or `-warning`
- * (`lib/styles/components.css`). The negative lookahead refuses the
- * bare utility while admitting its `text-ink-*` sibling.
+ * `text-ink-primary`, `-accent`, `-success`, `-info`, `-error`, or
+ * `-warning` (`lib/styles/components.css`). The leading lookahead
+ * admits the `text-ink-*` sibling; the trailing one admits
+ * `text-primary-content` and the other `-content` pairings, which
+ * DaisyUI measures against their own fill.
  */
-const STATUS_TEXT_UTILITY = /\btext-(?!ink-)(primary|secondary|accent|neutral|info|success|warning|error)\b/;
+const STATUS_TEXT_UTILITY = /\btext-(?!ink-)(primary|secondary|accent|neutral|info|success|warning|error)(?![\w-])/;
 /** A Svelte `style:<prop>=` directive, the attribute-shaped sibling of a CSS `prop: value;` declaration. */
 const STYLE_DIRECTIVE =
   /\bstyle:(color|background(-color)?|border(-[a-z]+)?-color|fill|stroke|outline-color|box-shadow|text-decoration-color|caret-color|accent-color)\s*=\s*["']([^"']*)["']/gi;

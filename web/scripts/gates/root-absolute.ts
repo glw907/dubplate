@@ -2,13 +2,17 @@
  * The root-absolute check. The server mounts the app under an operator's
  * prefix, so every page link, fetch, navigation, and asset reference must
  * compose from the runtime base; a URL that starts at `/` escapes the
- * prefix. `src` is scanned for root-absolute `href`, `src`, and `action`
- * attributes and `fetch` and `goto` calls. Its CSS is not scanned,
- * because an `@font-face` source must be root-absolute for Vite to
- * rewrite it; the built stylesheets are scanned instead, since a
- * root-absolute `url()` that survives the build is the real defect. An
- * absent or empty `src`, or a build with no stylesheet, fails rather than
- * passing on an empty iteration.
+ * prefix. `src` is scanned for root-absolute `href`, `src`, `srcset`,
+ * `action`, and `formaction` attributes, and for the navigation and
+ * request sinks that take a URL literal: `fetch`, `goto`, a `location`
+ * write, `window.open`, `new URL`, `new Request`, and `sendBeacon`. A
+ * URL built in a variable escapes any source scan, so the rendered leg
+ * also fails every row on a request that leaves the prefix. `src`'s
+ * CSS is not scanned, because an `@font-face` source must be
+ * root-absolute for Vite to rewrite it; the built stylesheets are
+ * scanned instead, since a root-absolute `url()` that survives the
+ * build is the real defect. An absent or empty `src`, or a build with
+ * no stylesheet, fails rather than passing on an empty iteration.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -25,9 +29,10 @@ const SCANNED_EXTENSIONS = ['.svelte', '.ts', '.js', '.html'];
  * match runs on to the URL's end, so a failure names the URL.
  */
 const SOURCE_PATTERNS: RegExp[] = [
-  /\b(?:href|src|action)\s*=\s*\{?\s*["'`]\/[^"'`\s]*/g,
-  /\bfetch\s*\(\s*["'`]\/[^"'`\s]*/g,
-  /\bgoto\s*\(\s*["'`]\/[^"'`\s]*/g
+  /\b(?:href|src|srcset|action|formaction)\s*=\s*\{?\s*["'`]\/[^"'`\s]*/g,
+  /\b(?:fetch|goto|sendBeacon|window\.open|location\.assign|location\.replace)\s*\(\s*["'`]\/[^"'`\s]*/g,
+  /\bnew\s+(?:URL|Request)\s*\(\s*["'`]\/[^"'`\s]*/g,
+  /\blocation(?:\.href)?\s*=\s*["'`]\/[^"'`\s]*/g
 ];
 
 const CSS_URL = /\burl\(\s*["']?\/[^"')\s]*/g;

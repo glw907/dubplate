@@ -6,8 +6,9 @@
  *   `licenses/` and `FONTS.md` (the license texts and the manifest),
  *   ends in `.woff2` and no other font format is present.
  * - The file count stays within the four-woff2-file budget.
- * - Every `@font-face` rule in `fonts.css` sets `font-display`,
- *   `font-weight`, and `font-style` explicitly.
+ * - Every `@font-face` rule in `fonts.css` sets `font-display: swap`,
+ *   `font-weight`, and `font-style` explicitly, and its `src` names
+ *   one `url()` in `format('woff2')` and nothing else.
  * - Every file's SHA-256 equals its `FONTS.md` row, and every
  *   `FONTS.md` row names a file that exists.
  */
@@ -38,25 +39,43 @@ export function nonWoff2Files(files: string[]): string[] {
 export interface FontFaceRule {
   /** The rule's own text, for a violation message. */
   text: string;
-  descriptors: Set<string>;
+  /** Each declared descriptor, its name lowercased, to its trimmed value. */
+  descriptors: Map<string, string>;
 }
 
-/** Every `@font-face { ... }` block in css, its declared descriptor names lowercased. */
+/** Every `@font-face { ... }` block in css, with its descriptors. */
 export function parseFontFaceRules(css: string): FontFaceRule[] {
   const rules: FontFaceRule[] = [];
   const re = /@font-face\s*\{([^}]*)\}/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(css))) {
-    const body = m[1];
-    const descriptors = new Set<string>();
-    const declRe = /([a-zA-Z-]+)\s*:/g;
-    let d: RegExpExecArray | null;
-    while ((d = declRe.exec(body))) {
-      descriptors.add(d[1].toLowerCase());
+    const descriptors = new Map<string, string>();
+    for (const decl of m[1].split(';')) {
+      const colon = decl.indexOf(':');
+      if (colon === -1) continue;
+      descriptors.set(decl.slice(0, colon).trim().toLowerCase(), decl.slice(colon + 1).trim());
     }
     rules.push({ text: m[0], descriptors });
   }
   return rules;
+}
+
+/** A `src` value naming exactly one `url()`, in the woff2 format and no other. */
+const SINGLE_WOFF2_SRC = /^url\(\s*(['"])[^'"()]+\1\s*\)\s+format\(\s*(['"])woff2\2\s*\)$/;
+
+/** The problems with one rule's descriptors, each a phrase naming what is wrong. */
+export function fontFaceProblems(rule: FontFaceRule): string[] {
+  const problems: string[] = [];
+  for (const descriptor of ['font-display', 'font-weight', 'font-style', 'src']) {
+    if (!rule.descriptors.has(descriptor)) problems.push(`is missing ${descriptor}`);
+  }
+  const display = rule.descriptors.get('font-display');
+  if (display !== undefined && display !== 'swap') problems.push(`sets font-display: ${display}, want swap`);
+  const src = rule.descriptors.get('src');
+  if (src !== undefined && !SINGLE_WOFF2_SRC.test(src)) {
+    problems.push(`sets src: ${src}, want one url() in format('woff2')`);
+  }
+  return problems;
 }
 
 export interface ManifestRow {
@@ -118,10 +137,8 @@ function main() {
     violations.push(`g4: ${FONT_FACE_FILE}: no @font-face rule found`);
   }
   for (const rule of rules) {
-    for (const descriptor of ['font-display', 'font-weight', 'font-style']) {
-      if (!rule.descriptors.has(descriptor)) {
-        violations.push(`g4: a @font-face rule is missing ${descriptor}: ${rule.text.replace(/\s+/g, ' ').trim()}`);
-      }
+    for (const problem of fontFaceProblems(rule)) {
+      violations.push(`g4: a @font-face rule ${problem}: ${rule.text.replace(/\s+/g, ' ').trim()}`);
     }
   }
 

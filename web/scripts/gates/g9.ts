@@ -19,6 +19,14 @@
  * - A pinned-value row: each resolved ink compared to the visual
  *   identity spec's ink table (quoted below), so an ink that drifts
  *   from the spec fails even when it still passes contrast.
+ * - `surface.css`'s `--keyline-base` against each of the three bases,
+ *   at 3:1 (WCAG 1.4.11, a control's edge). A pair under the floor
+ *   needs a `contrast-exception` marker above the declaration that
+ *   records its ratio and names that base; a marker no failing pair
+ *   matches is stale. `--keyline-fill` is not measured: it borders a
+ *   fill whose own contrast identifies the object (VI's dark keylines).
+ * - `--color-base-content` against `--selection-ground`, the
+ *   `color-mix()` in OKLab resolved here, at 4.5:1.
  *
  * `label`'s `--color-secondary` and `label-night`'s `--color-neutral`
  * are fill-only (`FILL_ONLY_EXCLUSIONS` below, VI :108): excluded from
@@ -335,6 +343,117 @@ function checkFillOnlyMarker(
   reportLines.push(`g9: ${where}: ${variable} excluded from the direct-text check (${reason}), marker ${formatRatio(ratio)}`);
 }
 
+/** The non-text floor a control's edge must clear against its ground (WCAG 1.4.11). */
+const NON_TEXT_FLOOR = 3.0;
+
+/** A two-digit hex byte from a 0-1 sRGB channel, clamped. */
+function hexByte(c: number): string {
+  return Math.round(Math.min(1, Math.max(0, c)) * 255)
+    .toString(16)
+    .padStart(2, '0');
+}
+
+/** Linear sRGB to OKLab, Björn Ottosson's published matrices (CSS Color 4's conversion appendix). */
+function linearToOklab([r, g, b]: [number, number, number]): [number, number, number] {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+  ];
+}
+
+/** OKLab to linear sRGB, the inverse of {@link linearToOklab}. */
+function oklabToLinear([L, a, b]: [number, number, number]): [number, number, number] {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
+  ];
+}
+
+/**
+ * `color-mix(in oklab, <a> <p>%, <b>)` with both operands resolved
+ * against `palette`, as the `#rrggbb` a browser paints, or `null` when
+ * `value` has another shape or an operand is not a hex color.
+ */
+function resolveOklabMix(value: string, palette: Map<string, string>): string | null {
+  const m = /^color-mix\(\s*in oklab\s*,\s*(.+?)\s+(\d+(?:\.\d+)?)%\s*,\s*(.+?)\s*\)$/.exec(value.trim());
+  if (!m) return null;
+  const a = parseHex(resolveAgainstPalette(m[1], palette) ?? '');
+  const b = parseHex(resolveAgainstPalette(m[3], palette) ?? '');
+  if (a === null || b === null) return null;
+  const weight = Number(m[2]) / 100;
+  const labA = linearToOklab(a.map(srgbToLinearChannel) as [number, number, number]);
+  const labB = linearToOklab(b.map(srgbToLinearChannel) as [number, number, number]);
+  const mixed = labA.map((v, i) => v * weight + labB[i] * (1 - weight)) as [number, number, number];
+  const encode = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+  return `#${oklabToLinear(mixed).map(encode).map(hexByte).join('')}`;
+}
+
+/**
+ * The keyline rows: `--keyline-base` against each base at the
+ * non-text floor. A marker covers the pairs under the floor only when
+ * each matches its recorded ratio and its reason names that base; a
+ * marker with no pair under the floor is stale. Returns the pairs
+ * measured.
+ */
+function checkKeyline(
+  composed: string,
+  decl: DeclNode,
+  palette: Map<string, string>,
+  bases: Map<string, string | undefined>,
+  violations: string[],
+  lines: string[]
+): number {
+  const resolved = resolveAgainstPalette(decl.value, palette);
+  if (resolved === null) {
+    violations.push(`g9: ${composed}: --keyline-base's value "${decl.value}" does not resolve against this theme's own --color-* set`);
+    return 0;
+  }
+  let measured = 0;
+  let covered = 0;
+  for (const [baseName, baseValue] of bases) {
+    if (!baseValue) continue;
+    const where = `${composed} (${baseName})`;
+    const ratio = measureRatio(where, '--keyline-base', resolved, baseValue, violations);
+    measured++;
+    if (ratio === null) continue;
+    if (ratio >= NON_TEXT_FLOOR) {
+      lines.push(`g9: ${where}: --keyline-base = ${formatRatio(ratio)}`);
+      continue;
+    }
+    const marker = decl.marker;
+    const matches =
+      marker !== null &&
+      marker.variable === '--keyline-base' &&
+      Math.abs(Number(marker.ratio) - ratio) < RATIO_TOLERANCE &&
+      marker.reason.includes(baseName.replace('--color-', ''));
+    if (!matches) {
+      violations.push(
+        `g9: ${where}: --keyline-base measures ${formatRatio(ratio)} against ${NON_TEXT_FLOOR}:1 and no marker records it for ${baseName}`
+      );
+      continue;
+    }
+    covered++;
+    lines.push(`g9: ${where}: --keyline-base = ${formatRatio(ratio)} (exception: ${marker.reason})`);
+  }
+  if (decl.marker !== null && covered === 0) {
+    violations.push(`g9: ${composed}: --keyline-base's exception marker is stale, no base measures under ${NON_TEXT_FLOOR}:1 at its ratio`);
+  }
+  return measured;
+}
+
+function readSurfaceRules(violations: string[]): RuleNode[] {
+  const text = readFileSync(`${THEMES_DIR}/surface.css`, 'utf8');
+  return singleLayerBaseChildren('surface.css', text, violations).filter((n): n is RuleNode => n.kind === 'rule');
+}
+
 function readPaletteBlock(file: string, composed: string): DeclNode[] | null {
   const text = readFileSync(`${THEMES_DIR}/${file}`, 'utf8');
   return pluginBlocksNamed(text).get(composed)?.declarations ?? null;
@@ -354,13 +473,13 @@ const PALETTE_FILES: Record<string, string> = {
  * The closed list's size, per composed theme (DL R2.6, R-5ciii3): 8
  * `-content` pairs + 3 `--color-base-content` rows + 7 direct-text
  * colors (the eighth, per theme, is fill-only and carries a marker
- * instead) + 5 inks x 3 bases = 33, times 2 composed themes = 66.
- * Pinned to the literal rather than derived from `CONTENT_PAIRS`,
- * `BASES`, `DL_R2_6_DIRECT_TEXT_COLORS`, `VI_FILL_ONLY`, or
- * `INK_NAMES`, so a deletion from any of them is caught instead of
- * silently shrinking this count to match.
+ * instead) + 5 inks x 3 bases + 3 keyline rows + 1 selection row = 37,
+ * times 2 composed themes = 74. Pinned to the literal rather than
+ * derived from `CONTENT_PAIRS`, `BASES`, `DL_R2_6_DIRECT_TEXT_COLORS`,
+ * `VI_FILL_ONLY`, or `INK_NAMES`, so a deletion from any of them is
+ * caught instead of silently shrinking this count to match.
  */
-const EXPECTED_MEASURED_PAIRS = 66;
+const EXPECTED_MEASURED_PAIRS = 74;
 
 export interface Report {
   violations: string[];
@@ -398,6 +517,7 @@ export function run(): Report {
   }
 
   const inkRules = readInkRules(violations);
+  const surfaceRules = readSurfaceRules(violations);
   let measuredPairs = 0;
 
   for (const composed of COMPOSED_NAMES) {
@@ -502,6 +622,33 @@ export function run(): Report {
       if (worst !== null) {
         lines.push(`g9: ${composed}: ${inkName} worst case ${formatRatio(worst)}`);
       }
+    }
+
+    const surfaceRule = surfaceRules.find((r) => selectorHasDataTheme(r.selector, composed));
+    const keyline = surfaceRule?.declarations.find((d) => d.name === '--keyline-base');
+    if (!keyline) {
+      violations.push(`g9: ${composed}: --keyline-base is missing from surface.css, contrast cannot be measured`);
+    } else {
+      measuredPairs += checkKeyline(composed, keyline, palette, bases, violations, lines);
+    }
+    const selection = surfaceRule?.declarations.find((d) => d.name === '--selection-ground');
+    const selectionGround = selection ? resolveOklabMix(selection.value, palette) : null;
+    if (selectionGround === null) {
+      violations.push(
+        `g9: ${composed}: --selection-ground ${selection ? `"${selection.value}" is not an OKLab color-mix of two palette colors` : 'is missing from surface.css'}`
+      );
+    } else if (baseContentDecl) {
+      checkFloor(
+        `${composed} (--selection-ground ${selectionGround})`,
+        '--color-base-content',
+        baseContentDecl.value,
+        selectionGround,
+        null,
+        false,
+        violations,
+        lines
+      );
+      measuredPairs++;
     }
   }
 

@@ -36,6 +36,7 @@
     --shadow-color: #000000;
     --shadow-strength-button: 65%;
     --shadow-strength-card: 60%;
+    /* contrast-exception: --keyline-base 2.50:1 on base-300 only, where no page places a control yet; 3.26:1 on base-100 */
     --keyline-base: #706a5f;
     --keyline-fill: #000000;
     --selection-ground: color-mix(in oklab, var(--color-secondary) 45%, var(--color-base-100));
