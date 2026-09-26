@@ -1083,21 +1083,45 @@ async function computedProperty(page: Page, elementId: string, property: string)
 const TABBABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]';
 
-/** The count of {@link TABBABLE_SELECTOR} matches with a painted box. */
-async function tabbableCount(page: Page): Promise<number> {
-  return page.evaluate((selector: string) => {
-    return Array.from(document.querySelectorAll<HTMLElement>(selector)).filter((el) => {
-      if (el.tabIndex < 0) return false;
-      const style = getComputedStyle(el);
-      if (style.display === 'none' || style.visibility === 'hidden') return false;
-      const rect = el.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    }).length;
-  }, TABBABLE_SELECTOR);
+/** The attribute {@link enumerateTabbable} stamps on each queried element, read back by {@link focusedInfo}. */
+const TAB_PROBE_ATTR = 'data-rendered-tab-probe';
+
+/** One {@link TABBABLE_SELECTOR} match with a painted box: `id` is its stable identity, `label` its printable name. */
+interface TabTarget {
+  id: string;
+  label: string;
+}
+
+/**
+ * Every {@link TABBABLE_SELECTOR} match with a painted box, each
+ * stamped with {@link TAB_PROBE_ATTR} so the Tab walk can name which
+ * queried element it lands on by identity rather than by position in
+ * a cycle that may wrap or revisit.
+ */
+async function enumerateTabbable(page: Page): Promise<TabTarget[]> {
+  return page.evaluate(
+    ({ selector, attr }: { selector: string; attr: string }) => {
+      const targets: TabTarget[] = [];
+      for (const el of Array.from(document.querySelectorAll<HTMLElement>(selector))) {
+        if (el.tabIndex < 0) continue;
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const id = String(targets.length);
+        el.setAttribute(attr, id);
+        const label = el.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+        targets.push({ id, label });
+      }
+      return targets;
+    },
+    { selector: TABBABLE_SELECTOR, attr: TAB_PROBE_ATTR }
+  );
 }
 
 interface FocusedInfo {
   label: string;
+  probe: string | null;
   outlineStyle: string;
   outlineWidth: string;
   outlineOffset: string;
@@ -1107,7 +1131,7 @@ interface FocusedInfo {
 
 /** `document.activeElement`'s outline and geometry, or `null` once `Tab` leaves the page (a wrapped cycle). */
 async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
-  return page.evaluate(() => {
+  return page.evaluate((attr: string) => {
     const el = document.activeElement as HTMLElement | null;
     if (el === null || el === document.body) return null;
     const style = getComputedStyle(el);
@@ -1115,13 +1139,14 @@ async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
     const label = el.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
     return {
       label,
+      probe: el.getAttribute(attr),
       outlineStyle: style.outlineStyle,
       outlineWidth: style.outlineWidth,
       outlineOffset: style.outlineOffset,
       outlineColor: style.outlineColor,
       rect: { x: rect.x, y: rect.y, width: rect.width }
     };
-  });
+  }, TAB_PROBE_ATTR);
 }
 
 /**
@@ -1134,7 +1159,12 @@ async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
  * it, and the pixel just inside the ring (the offset gap) and the one
  * just outside it each clear 3:1 against the ring, both sampled above
  * the element's top edge, where the printed surface casts no shadow
- * (the shadow's own offset is bottom-right only).
+ * (the shadow's own offset is bottom-right only). The walk also proves
+ * coverage by identity: every element {@link enumerateTabbable} finds
+ * must be focused at least once (a revisit after a wrap counts once),
+ * and the row fails, naming whichever queried element the walk never
+ * reached, rather than only comparing a visited count against the
+ * query's own total.
  */
 async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   for (const theme of ['label', 'label-night'] as const) {
@@ -1147,7 +1177,8 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
         const visit = await openBooted(context, endpoints.base, served);
         await injectFixtureControls(visit.page);
 
-        const total = await tabbableCount(visit.page);
+        const targets = await enumerateTabbable(visit.page);
+        const total = targets.length;
         if (total === 0) {
           report({ id, fixture: false, property: false, detail: 'no tabbable element found on the page' });
           continue;
@@ -1174,6 +1205,7 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
         await visit.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
         const want = hexRGBA(INK_PRIMARY[theme]);
         const problems: string[] = [];
+        const visitedProbes = new Set<string>();
         let visited = 0;
         // A margin of 2 over `total` absorbs a cycle that wraps back
         // to the first element before this bound stops it; a landing
@@ -1184,6 +1216,7 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
           const focused = await focusedInfo(visit.page);
           if (focused === null) break;
           visited++;
+          if (focused.probe !== null) visitedProbes.add(focused.probe);
           const ring = await paintedColor(visit.page, focused.outlineColor);
           if (
             focused.outlineStyle !== 'solid' ||
@@ -1218,13 +1251,17 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
           report({ id, fixture: false, property: false, detail: `tabbing found no focusable element (of ${total} tabbable by query)` });
           continue;
         }
+        const missing = targets.filter((t) => !visitedProbes.has(t.id));
+        if (missing.length > 0) {
+          problems.push(`never focused: ${missing.map((t) => t.label).join(', ')} (of ${total} queried)`);
+        }
         report({
           id,
           fixture: true,
           property: problems.length === 0,
           detail:
             problems.length === 0
-              ? `${visited} of ${total} tabbable elements visited, every ring clean`
+              ? `${visitedProbes.size} of ${total} tabbable elements visited by identity, every ring clean`
               : problems.join('; ')
         });
       } finally {
@@ -1245,7 +1282,12 @@ function closeTo(a: number, b: number, tolerance = 0.1): boolean {
  * preference), and does not move under `prefers-reduced-motion:
  * reduce`. `transform` alone would miss DaisyUI's own independent
  * `translate` declaration, which composes with it, so this measures
- * the painted box's own position instead of either CSS property.
+ * the painted box's own position instead of either CSS property. The
+ * fixture state itself is `.btn:active`'s `box-shadow: none`
+ * (`lib/styles/components.css`), read back alongside the settled
+ * position, so a mouse-down that never lands on the button (and so
+ * never reaches `:active`) fails the row instead of silently reporting
+ * an unmoved box as `fixture: true`.
  */
 async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   for (const reduce of [false, true]) {
@@ -1264,10 +1306,23 @@ async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void
       await visit.page.mouse.down();
       // DaisyUI's `.btn` transitions `transform` over 0.2s; a read
       // immediately after the press lands mid-transition, so this
-      // waits out the transition before reading the settled position.
+      // waits out the transition before reading the settled position
+      // and the box-shadow, which does not itself transition but is
+      // read alongside the box for one settled snapshot of the
+      // pressed state.
       await visit.page.waitForTimeout(300);
+      const pressedShadow = await computedProperty(visit.page, FIXTURE.btnDefault, 'box-shadow');
       const pressedBox = await locator.boundingBox();
       await visit.page.mouse.up();
+      if (pressedShadow !== 'none') {
+        report({
+          id,
+          fixture: false,
+          property: false,
+          detail: `the button's box-shadow read ${pressedShadow} while the mouse was held down, so its pressed state was never reached (want none)`
+        });
+        continue;
+      }
       if (pressedBox === null) {
         report({ id, fixture: false, property: false, detail: 'the default button lost its box while pressed' });
         continue;
