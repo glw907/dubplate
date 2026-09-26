@@ -35,6 +35,12 @@ type Config struct {
 	// Logger receives every transition the runner cannot record in the
 	// store. It must not be nil.
 	Logger *slog.Logger
+
+	// Retention returns DUBPLATE_JOB_RETENTION's value in force. A
+	// start reads it fresh before it queues a record, since a stored
+	// value applies at the next operation that reads it (R-6c11); it
+	// must not be nil.
+	Retention func(ctx context.Context) (time.Duration, error)
 }
 
 // BackupConfig configures the backup job.
@@ -49,17 +55,30 @@ type BackupConfig struct {
 
 	// LibraryRoot is the library tree a backup syncs.
 	LibraryRoot string
+
+	// GuardFraction, SnapshotKeep, and ArchiveRetention return the
+	// three backup keys' values in force. A backup start reads all
+	// three before it queues a record, so a reader error fails the
+	// start naming the key and leaves no job record (R-6c11); they
+	// must not be nil while Enabled is true.
+	GuardFraction    func(ctx context.Context) (float64, error)
+	SnapshotKeep     func(ctx context.Context) (int, error)
+	ArchiveRetention func(ctx context.Context) (time.Duration, error)
 }
 
 // A Runner runs jobs in this process and answers the four operations
 // of [ops.Seam]. It is safe for concurrent use by multiple goroutines.
 type Runner struct {
-	store  *store.Handle
-	lease  *store.InstanceLease
-	logger *slog.Logger
-	backup BackupConfig
+	store     *store.Handle
+	lease     *store.InstanceLease
+	logger    *slog.Logger
+	backup    BackupConfig
+	retention func(ctx context.Context) (time.Duration, error)
 
-	// bindBackup makes the backup kind's job body.
+	// bindBackup overrides the backup kind's job body: nil in
+	// production, where StartBackup reads the three backup values
+	// itself and binds the real [backup.Job]. A test sets it to run a
+	// body of its own choosing without those reads.
 	bindBackup binder
 
 	mu   sync.Mutex
@@ -74,16 +93,6 @@ var _ ops.Seam = (*Runner)(nil)
 // interrupted. It fails, releasing the lease, when a record's owner
 // lease cannot be read. ctx bounds the recovery's write.
 func New(ctx context.Context, cfg Config) (*Runner, error) {
-	r, err := open(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-	r.bindBackup = r.backupJob
-	return r, nil
-}
-
-// open is New without the backup kind's binding.
-func open(ctx context.Context, cfg Config) (*Runner, error) {
 	if cfg.Logger == nil {
 		return nil, errors.New("open job runner: nil logger")
 	}
@@ -92,11 +101,12 @@ func open(ctx context.Context, cfg Config) (*Runner, error) {
 		return nil, fmt.Errorf("open job runner: %w", err)
 	}
 	r := &Runner{
-		store:  cfg.Store,
-		lease:  lease,
-		logger: cfg.Logger,
-		backup: cfg.Backup,
-		jobs:   make(map[ops.Handle]*job),
+		store:     cfg.Store,
+		lease:     lease,
+		logger:    cfg.Logger,
+		backup:    cfg.Backup,
+		retention: cfg.Retention,
+		jobs:      make(map[ops.Handle]*job),
 	}
 	if err := r.recoverJobs(ctx); err != nil {
 		return nil, errors.Join(fmt.Errorf("open job runner: %w", err), lease.Release())
@@ -158,17 +168,52 @@ func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBa
 	if !r.backup.Enabled {
 		return ops.StartBackupResponse{}, ops.NewUnavailableError(backupDisabled)
 	}
-	h, err := r.start(ctx, actor, ops.KindBackup, r.bindBackup)
+	bind, err := r.backupBind(ctx)
+	if err != nil {
+		return ops.StartBackupResponse{}, fmt.Errorf("start backup job: %w", err)
+	}
+	h, err := r.start(ctx, actor, ops.KindBackup, bind)
 	if err != nil {
 		return ops.StartBackupResponse{}, err
 	}
 	return ops.StartBackupResponse{JobID: h}, nil
 }
 
-// start takes kind's lease, recovers, prunes, inserts a queued record,
-// and runs the body bind makes on a goroutine that releases the lease
-// when it ends.
+// backupBind returns the binder StartBackup passes to start: a test's
+// own override when one is set, or, in production, the three backup
+// values read now, before start queues a record, so a reader error
+// fails the start and leaves no job record (R-6c11) rather than
+// surfacing only once the bound body runs.
+func (r *Runner) backupBind(ctx context.Context) (binder, error) {
+	if r.bindBackup != nil {
+		return r.bindBackup, nil
+	}
+	fraction, err := r.backup.GuardFraction(ctx)
+	if err != nil {
+		return nil, err
+	}
+	keep, err := r.backup.SnapshotKeep(ctx)
+	if err != nil {
+		return nil, err
+	}
+	archiveRetention, err := r.backup.ArchiveRetention(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.backupJob(fraction, keep, archiveRetention), nil
+}
+
+// start reads the retention value in force, takes kind's lease,
+// recovers, inserts a queued record, and runs the body bind makes on a
+// goroutine that releases the lease when it ends. The retention read
+// happens before insert, fresh on every start rather than once at
+// [New], since a stored value applies at the next operation that reads
+// it (R-6c11).
 func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind binder) (ops.Handle, error) {
+	retention, err := r.retention(ctx)
+	if err != nil {
+		return "", fmt.Errorf("start %s job: %w", kind, err)
+	}
 	kl, err := r.store.TakeKindLease(kind)
 	if errors.Is(err, store.ErrLeaseBusy) {
 		return "", r.conflict(ctx, kind)
@@ -179,7 +224,7 @@ func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind b
 	if err := r.recoverJobs(ctx); err != nil {
 		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
-	j, err := r.insert(ctx, actor, kind, nil)
+	j, err := r.insert(ctx, actor, kind, retention, nil)
 	if err != nil {
 		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}

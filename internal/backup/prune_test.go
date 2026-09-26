@@ -2,6 +2,7 @@ package backup_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"log/slog"
 	"os"
@@ -467,6 +468,71 @@ func TestPrune_FewSnapshotsKeepsAll(t *testing.T) {
 		if !slices.Contains(got, stamp+".db") {
 			t.Errorf("snapshots/ lost seeded stamp %s, want every seeded snapshot kept when the total stays at or under the keep count", stamp)
 		}
+	}
+}
+
+// TestPrune_SnapshotKeepReader proves the remote keep consumer: a
+// snapshot keep of 3, over five prior snapshots plus the run's own,
+// keeps only the run's own and the two newest of the five. The
+// default keep of 14 would have kept all six, so this fails unless
+// Job.Run honors the injected reader over the retired package
+// constant.
+func TestPrune_SnapshotKeepReader(t *testing.T) {
+	remote, remoteDir := localRemote(t)
+	now := time.Now()
+	var seeded []string
+	for i := 1; i <= 5; i++ {
+		seeded = append(seeded, store.FormatStamp(now.Add(-time.Duration(i)*time.Hour)))
+	}
+	seedSnapshots(t, remoteDir, seeded)
+
+	h := openWrite(t, newStateDir(t))
+	plantTracks(t, h, 1)
+	lib := t.TempDir()
+	writeTree(t, lib, "a/one.flac")
+
+	keep := func(context.Context) (int, error) { return 3, nil }
+	_, st := runBackupWithBackup(t, h, remote, lib, keep, defaultGuardFraction, defaultArchiveRetention)
+	wantState(t, st, ops.JobSucceeded, "")
+
+	got := treeFiles(t, filepath.Join(remoteDir, "snapshots"))
+	if len(got) != 3 {
+		t.Fatalf("snapshots/ holds %d files, want 3 (the run's own and the 2 newest of 5 seeded): %q", len(got), got)
+	}
+	for _, stamp := range seeded[:2] {
+		if !slices.Contains(got, stamp+".db") {
+			t.Errorf("snapshots/ lost the newest seeded stamp %s, want it kept under a keep of 3", stamp)
+		}
+	}
+	for _, stamp := range seeded[2:] {
+		if slices.Contains(got, stamp+".db") {
+			t.Errorf("snapshots/ kept older stamp %s, want it pruned under a keep of 3", stamp)
+		}
+	}
+}
+
+// TestPrune_ArchiveRetentionReader proves the archive retention
+// consumer: an archive directory 200h past its move is purged under a
+// configured retention of 168h. The default retention of 2160h would
+// have kept it, so this fails unless Job.Run honors the injected
+// reader over the retired package constant.
+func TestPrune_ArchiveRetentionReader(t *testing.T) {
+	remote, remoteDir := localRemote(t)
+	now := time.Now()
+	oldStamp := store.FormatStamp(now.Add(-200 * time.Hour))
+	seedArchiveDir(t, remoteDir, oldStamp)
+
+	h := openWrite(t, newStateDir(t))
+	plantTracks(t, h, 1)
+	lib := t.TempDir()
+	writeTree(t, lib, "a/one.flac")
+
+	retention := func(context.Context) (time.Duration, error) { return 168 * time.Hour, nil }
+	_, st := runBackupWithBackup(t, h, remote, lib, defaultSnapshotKeep, defaultGuardFraction, retention)
+	wantState(t, st, ops.JobSucceeded, "")
+
+	if got := archiveDirNames(t, remoteDir); slices.Contains(got, oldStamp) {
+		t.Errorf("archive/ kept %s, want it purged under an archive retention of 168h", oldStamp)
 	}
 }
 

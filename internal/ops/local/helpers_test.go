@@ -20,6 +20,21 @@ import (
 // testBusy is every test store's busy timeout.
 const testBusy = 5 * time.Second
 
+// defaultJobRetention is R-6c11's default for DUBPLATE_JOB_RETENTION
+// and DUBPLATE_BACKUP_ARCHIVE_RETENTION, 2160h (90 days), the retired
+// package constants' own value carried unchanged.
+const defaultJobRetention = 2160 * time.Hour
+
+// defaultRetention, defaultGuardFraction, defaultSnapshotKeep, and
+// defaultArchiveRetention are the reader functions [newRunner] and
+// [newRunnerFor] fill in for a caller that does not set its own, each
+// returning R-6c11's default literally: DUBPLATE_BACKUP_GUARD_FRACTION
+// at 0.5, DUBPLATE_BACKUP_SNAPSHOT_KEEP at 14.
+func defaultRetention(context.Context) (time.Duration, error)        { return defaultJobRetention, nil }
+func defaultGuardFraction(context.Context) (float64, error)          { return 0.5, nil }
+func defaultSnapshotKeep(context.Context) (int, error)               { return 14, nil }
+func defaultArchiveRetention(context.Context) (time.Duration, error) { return defaultJobRetention, nil }
+
 // testActor is the actor every test start names.
 var testActor = ops.LocalActor("tester")
 
@@ -98,9 +113,16 @@ func (b *syncBuffer) String() string {
 	return b.buf.String()
 }
 
-// newRunner is [New] with b as every backup job's body.
+// newRunner is [New] with b as every backup job's body, overriding the
+// three backup value reads [Runner.backupBind] would otherwise make.
+// cfg's own Retention reader is kept when set; otherwise it defaults
+// to R-6c11's value, since every start reads it regardless of the
+// bindBackup override.
 func newRunner(ctx context.Context, cfg Config, b body) (*Runner, error) {
-	r, err := open(ctx, cfg)
+	if cfg.Retention == nil {
+		cfg.Retention = defaultRetention
+	}
+	r, err := New(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

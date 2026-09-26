@@ -3,6 +3,7 @@ package backup
 import (
 	"context"
 	"log/slog"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,8 +41,46 @@ type Job struct {
 	// resolved once, at the run's start.
 	LibraryRoot string
 
+	// GuardFraction is the share of the catalog's tracks the library
+	// tree must hold as regular files before the sync may run: at
+	// least a value in (0, 1], never NaN. The caller's registry (a
+	// store-homed key, R-6c11) owns the policy default and its
+	// bounds; Run validates only the structural invariant this
+	// package's own arithmetic depends on (R-6c13).
+	GuardFraction float64
+
+	// SnapshotKeep is how many remote snapshots a prune keeps in
+	// total, this run's own included: at least 1.
+	SnapshotKeep int
+
+	// ArchiveRetention is how long an archive directory survives past
+	// its stamp: above zero.
+	ArchiveRetention time.Duration
+
 	// Logger receives what the run cannot report through its result.
 	Logger *slog.Logger
+}
+
+// validate refuses a structurally invalid GuardFraction, SnapshotKeep,
+// or ArchiveRetention before any rclone launch, the LookPath included
+// (R-6c13). A zero value left at the caller's own zero value would
+// otherwise silently change what the run does rather than fail loudly:
+// a guard fraction of 0 turns the short-tree guard off, an archive
+// retention of 0 purges every archive directory but this run's own,
+// and a keep of 0 makes othersKeep -1 and panics indexing the sorted
+// snapshot list. This package never supplies a default of its own; the
+// caller's registry owns the policy bounds, and a second copy of its
+// default here is exactly what the registry exists to prevent.
+func (j Job) validate() error {
+	switch {
+	case j.SnapshotKeep < 1:
+		return fail("job-invalid", "snapshot keep %d must be at least 1", j.SnapshotKeep)
+	case math.IsNaN(j.GuardFraction), j.GuardFraction <= 0, j.GuardFraction > 1:
+		return fail("job-invalid", "guard fraction %g must be greater than 0 and at most 1", j.GuardFraction)
+	case j.ArchiveRetention <= 0:
+		return fail("job-invalid", "archive retention %s must be greater than 0", j.ArchiveRetention)
+	}
+	return nil
 }
 
 // Run runs the backup, reporting each phase through progress, and
@@ -66,6 +105,9 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	if err := progress("checking the library"); err != nil {
 		return "", err
 	}
+	if err := j.validate(); err != nil {
+		return "", err
+	}
 	bin, err := exec.LookPath("rclone")
 	if err != nil {
 		return "", fail("rclone-missing", "rclone is not on PATH: %v", err)
@@ -78,7 +120,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	if err != nil {
 		return "", err
 	}
-	maxDelete, err := checkLibrary(ctx, j.Store, root)
+	maxDelete, err := checkLibrary(ctx, j.Store, root, j.GuardFraction)
 	if err != nil {
 		return "", err
 	}
@@ -130,7 +172,8 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 		return "", err
 	}
 	localDir := filepath.Join(filepath.Dir(filepath.Dir(stage)), "snapshots")
-	p := prune{t: t, remote: remote, stamp: stamp, localDir: localDir, start: start}
+	p := prune{t: t, remote: remote, stamp: stamp, localDir: localDir, start: start,
+		snapshotKeep: j.SnapshotKeep, archiveRetention: j.ArchiveRetention}
 	result := p.run(ctx, j.Logger)
 	if result == "" {
 		result = FinishedMessage

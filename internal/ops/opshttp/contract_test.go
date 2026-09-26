@@ -298,6 +298,25 @@ func bounded(t *testing.T) context.Context {
 	return ctx
 }
 
+// defaultBackupConfig returns the reader functions [local.Config] and
+// [local.BackupConfig] need, each returning R-6c11's default
+// literally: DUBPLATE_JOB_RETENTION and DUBPLATE_BACKUP_ARCHIVE_RETENTION
+// at 2160h (90 days), DUBPLATE_BACKUP_GUARD_FRACTION at 0.5,
+// DUBPLATE_BACKUP_SNAPSHOT_KEEP at 14. This package's fixtures assert
+// nothing about these values, so every construction here uses the
+// default alone.
+func defaultBackupConfig() (
+	retention func(context.Context) (time.Duration, error),
+	guardFraction func(context.Context) (float64, error),
+	snapshotKeep func(context.Context) (int, error),
+	archiveRetention func(context.Context) (time.Duration, error),
+) {
+	return func(context.Context) (time.Duration, error) { return 2160 * time.Hour, nil },
+		func(context.Context) (float64, error) { return 0.5, nil },
+		func(context.Context) (int, error) { return 14, nil },
+		func(context.Context) (time.Duration, error) { return 2160 * time.Hour, nil }
+}
+
 // newContract builds s's fixture over a fresh store in dir, or in a
 // fresh state directory when dir is empty.
 func newContract(t *testing.T, dir string, s setup) *contract {
@@ -314,9 +333,14 @@ func newContract(t *testing.T, dir string, s setup) *contract {
 	t.Cleanup(func() { _ = h.Close() })
 
 	logger := slog.New(slog.NewTextHandler(c.log, nil))
+	retention, guardFraction, snapshotKeep, archiveRetention := defaultBackupConfig()
 	r, err := local.New(context.Background(), local.Config{
-		Store:  h,
-		Backup: local.BackupConfig{Enabled: s.backup, Remote: contractRemote, LibraryRoot: newLibrary(t)},
+		Store:     h,
+		Retention: retention,
+		Backup: local.BackupConfig{
+			Enabled: s.backup, Remote: contractRemote, LibraryRoot: newLibrary(t),
+			GuardFraction: guardFraction, SnapshotKeep: snapshotKeep, ArchiveRetention: archiveRetention,
+		},
 		Logger: logger,
 	})
 	if err != nil {
@@ -822,9 +846,14 @@ func runChild(dir, root string) int {
 		return fail(err)
 	}
 	defer func() { _ = h.Close() }()
+	retention, guardFraction, snapshotKeep, archiveRetention := defaultBackupConfig()
 	r, err := local.New(ctx, local.Config{
-		Store:  h,
-		Backup: local.BackupConfig{Enabled: true, Remote: contractRemote, LibraryRoot: root},
+		Store:     h,
+		Retention: retention,
+		Backup: local.BackupConfig{
+			Enabled: true, Remote: contractRemote, LibraryRoot: root,
+			GuardFraction: guardFraction, SnapshotKeep: snapshotKeep, ArchiveRetention: archiveRetention,
+		},
 		Logger: logger,
 	})
 	if err != nil {

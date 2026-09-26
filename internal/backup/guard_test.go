@@ -122,24 +122,26 @@ func TestGuard(t *testing.T) {
 	tests := []struct {
 		name          string
 		files, tracks int
+		fraction      float64
 		wantMax       int
 		wantCode      string
 		wantMsg       []string
 	}{
-		{name: "zero tracks, empty root", files: 0, tracks: 0, wantCode: "library-empty"},
-		{name: "zero tracks, populated root", files: 3, tracks: 0, wantMax: 0},
-		{name: "below half", files: 1, tracks: 4, wantCode: "library-short", wantMsg: []string{"1 files", "4 tracks"}},
-		{name: "no files, tracks", files: 0, tracks: 1, wantCode: "library-short"},
-		{name: "exactly half", files: 2, tracks: 4, wantMax: 4},
-		{name: "odd count, just under half", files: 2, tracks: 5, wantCode: "library-short"},
-		{name: "odd count, just over half", files: 3, tracks: 5, wantMax: 5},
-		{name: "above", files: 10, tracks: 4, wantMax: 4},
+		{name: "zero tracks, empty root", files: 0, tracks: 0, fraction: 0.5, wantCode: "library-empty"},
+		{name: "zero tracks, populated root", files: 3, tracks: 0, fraction: 0.5, wantMax: 0},
+		{name: "below half", files: 1, tracks: 4, fraction: 0.5, wantCode: "library-short", wantMsg: []string{"1 files", "0.5", "4 tracks"}},
+		{name: "no files, tracks", files: 0, tracks: 1, fraction: 0.5, wantCode: "library-short"},
+		{name: "exactly half", files: 2, tracks: 4, fraction: 0.5, wantMax: 4},
+		{name: "odd count, just under half", files: 2, tracks: 5, fraction: 0.5, wantCode: "library-short"},
+		{name: "odd count, just over half", files: 3, tracks: 5, fraction: 0.5, wantMax: 5},
+		{name: "above", files: 10, tracks: 4, fraction: 0.5, wantMax: 4},
+		{name: "a configured fraction the default would pass", files: 6, tracks: 10, fraction: 0.9, wantCode: "library-short", wantMsg: []string{"6 files", "0.9", "10 tracks"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := guard("/lib", tt.files, tt.tracks)
+			got, err := guard("/lib", tt.files, tt.tracks, tt.fraction)
 			if code := codeOf(err); code != tt.wantCode {
-				t.Fatalf("guard(%d, %d) = %v, want code %q", tt.files, tt.tracks, err, tt.wantCode)
+				t.Fatalf("guard(%d, %d, %g) = %v, want code %q", tt.files, tt.tracks, tt.fraction, err, tt.wantCode)
 			}
 			for _, m := range tt.wantMsg {
 				if !strings.Contains(err.Error(), m) {
@@ -147,7 +149,7 @@ func TestGuard(t *testing.T) {
 				}
 			}
 			if err == nil && got != tt.wantMax {
-				t.Errorf("guard(%d, %d) max-delete = %d, want %d", tt.files, tt.tracks, got, tt.wantMax)
+				t.Errorf("guard(%d, %d, %g) max-delete = %d, want %d", tt.files, tt.tracks, tt.fraction, got, tt.wantMax)
 			}
 		})
 	}

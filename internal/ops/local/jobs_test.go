@@ -22,7 +22,7 @@ func TestRun_CancelFirst(t *testing.T) {
 	logs := &syncBuffer{}
 	r := newRunnerFor(t, h, logs, nil)
 	ran := false
-	j, err := r.insert(deadline(t), testActor, ops.KindBackup, func(context.Context, func(string) error) (string, error) {
+	j, err := r.insert(deadline(t), testActor, ops.KindBackup, defaultJobRetention, func(context.Context, func(string) error) (string, error) {
 		ran = true
 		return "", nil
 	})
@@ -228,6 +228,79 @@ WHERE id = ? AND state = 'interrupted'`, shift, shift, shift, id)
 	}
 }
 
+// TestRetention_ReaderValue proves the retention consumer reads
+// DUBPLATE_JOB_RETENTION fresh at each start rather than once at [New]:
+// the reader's own value changes between the runner's construction and
+// its start, and the prune this start runs must see the later value.
+// A finished record aged 72h survives the default 2160h a stale read
+// at New would have kept, and is deleted only under the 48h a correct
+// per-start read sees.
+func TestRetention_ReaderValue(t *testing.T) {
+	_, h := newStore(t)
+	old := plant(t, h, record{state: "failed", owner: newInstance(),
+		at: time.Now().Add(-72 * time.Hour).UnixMicro(), finished: time.Now().Add(-72 * time.Hour).UnixMicro()})
+
+	value := defaultJobRetention
+	r, err := newRunner(context.Background(), Config{
+		Store:     h,
+		Backup:    BackupConfig{Enabled: true},
+		Logger:    slog.New(slog.DiscardHandler),
+		Retention: func(context.Context) (time.Duration, error) { return value, nil },
+	}, succeed)
+	if err != nil {
+		t.Fatalf("newRunner: %v", err)
+	}
+	value = 48 * time.Hour
+	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	if err != nil {
+		t.Fatalf("StartBackup: %v", err)
+	}
+	if err := r.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	if _, ok := readRecord(t, h, old); ok {
+		t.Errorf("record %x kept, want it deleted under the 48h retention read at start", old)
+	}
+	if n, want := countRecords(t, h), 1; n != want {
+		t.Errorf("%d records after the start, want %d (job %s alone)", n, want, resp.JobID)
+	}
+}
+
+// TestStartBackup_ReaderErrorNoRecord pins the "Backup start ... a
+// stored backup key outside its bounds" row: a backup value reader
+// that fails answers the start with that error and leaves no job
+// record, since StartBackup reads all three backup values before
+// r.start ever queues one.
+func TestStartBackup_ReaderErrorNoRecord(t *testing.T) {
+	_, h := newStore(t)
+	wantErr := errors.New("DUBPLATE_BACKUP_GUARD_FRACTION: value \"9\" is above the ceiling 1")
+	r, err := New(context.Background(), Config{
+		Store:     h,
+		Retention: defaultRetention,
+		Backup: BackupConfig{
+			Enabled:          true,
+			Remote:           "name:dir",
+			LibraryRoot:      t.TempDir(),
+			GuardFraction:    func(context.Context) (float64, error) { return 0, wantErr },
+			SnapshotKeep:     defaultSnapshotKeep,
+			ArchiveRetention: defaultArchiveRetention,
+		},
+		Logger: slog.New(slog.DiscardHandler),
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	t.Cleanup(func() { _ = r.Close() })
+
+	_, err = r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("StartBackup() = %v, want it to wrap %v", err, wantErr)
+	}
+	if n := countRecords(t, h); n != 0 {
+		t.Errorf("%d records after a refused start, want 0", n)
+	}
+}
+
 // TestNew_BindsBackupBody pins the backup kind's binding: a start
 // through [New] runs the backup body with the configuration's remote
 // and library root, each refused in turn before rclone runs.
@@ -250,8 +323,12 @@ func TestNew_BindsBackupBody(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, h := newStore(t)
 			r, err := New(context.Background(), Config{
-				Store:  h,
-				Backup: BackupConfig{Enabled: true, Remote: tt.remote, LibraryRoot: tt.root},
+				Store:     h,
+				Retention: defaultRetention,
+				Backup: BackupConfig{
+					Enabled: true, Remote: tt.remote, LibraryRoot: tt.root,
+					GuardFraction: defaultGuardFraction, SnapshotKeep: defaultSnapshotKeep, ArchiveRetention: defaultArchiveRetention,
+				},
 				Logger: slog.New(slog.DiscardHandler),
 			})
 			if err != nil {

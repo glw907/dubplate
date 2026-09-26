@@ -14,18 +14,6 @@ import (
 	"github.com/glw907/dubplate/internal/engine/store"
 )
 
-// snapshotKeep is how many remote snapshots a prune keeps in total,
-// the run's own included.
-const snapshotKeep = 14
-
-// othersKeep is how many of the remaining remote snapshots a prune
-// keeps besides the run's own, which is always kept by name.
-const othersKeep = snapshotKeep - 1
-
-// archiveRetention is how long an archive directory survives past its
-// stamp.
-const archiveRetention = 90 * 24 * time.Hour
-
 // A prune is one run's pruning of the remote's snapshots and archive,
 // and of the local snapshots directory, run once the send has
 // succeeded.
@@ -35,6 +23,16 @@ type prune struct {
 	stamp    string
 	localDir string
 	start    time.Time
+
+	// snapshotKeep is how many remote snapshots this prune keeps in
+	// total, the run's own included; the caller's own [Job.SnapshotKeep],
+	// already validated structurally (R-6c13).
+	snapshotKeep int
+
+	// archiveRetention is how long an archive directory survives past
+	// its stamp; the caller's own [Job.ArchiveRetention], already
+	// validated structurally (R-6c13).
+	archiveRetention time.Duration
 }
 
 // run prunes p's remote snapshots, its archive, and its local copies.
@@ -101,7 +99,7 @@ func (p prune) checkSafety(entries []remoteEntry) (reason string, ok bool) {
 }
 
 // pruneSnapshots deletes every remote snapshot beyond the run's own
-// and the [othersKeep] newest of the rest, [snapshotKeep] in total. A
+// and the othersKeep newest of the rest, p.snapshotKeep in total. A
 // name that does not parse as <stamp>.db is left alone.
 func (p prune) pruneSnapshots(ctx context.Context, entries []remoteEntry) error {
 	var others []string
@@ -114,6 +112,7 @@ func (p prune) pruneSnapshots(ctx context.Context, entries []remoteEntry) error 
 	}
 	slices.Sort(others)
 	slices.Reverse(others)
+	othersKeep := p.snapshotKeep - 1
 	if len(others) <= othersKeep {
 		return nil
 	}
@@ -150,7 +149,7 @@ func (p prune) pruneArchive(ctx context.Context) error {
 		if err != nil {
 			continue
 		}
-		if own.Sub(stamp) <= archiveRetention {
+		if own.Sub(stamp) <= p.archiveRetention {
 			continue
 		}
 		dest := p.remote.join("archive/" + e.Name)

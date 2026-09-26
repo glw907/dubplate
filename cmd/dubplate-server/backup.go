@@ -21,6 +21,7 @@ import (
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/spf13/cobra"
 )
 
@@ -37,30 +38,102 @@ var backupIntegrationClass = config.IntegrationClass{
 	},
 }
 
-// registerBackupConfig adds backupIntegrationClass to reg.
-// newProductionRegistry calls it after registerStoreConfig. The six
-// names backup replaced (five DUBPLATE_R2_* names and
-// DUBPLATE_BACKUP_STAGING) are superseded entries declared in
-// internal/config/keys.go, on rung 5's own precedent
-// (ee79b5b26d9d8614357c26e7410d9db7d01673a7): a supersession message
-// is base-wall record-keeping, not a rung's own owned surface, so it
-// stays with the package that seeds every registry rather than moving
-// to this rung's file. The "backup targets" reserved class those six
-// names occupied left keys.go in the same commit that added their
-// supersession messages, since a name claimed by both families panics
-// at registration (internal/config/registry.go, claim).
-func registerBackupConfig(reg *config.Registry) {
-	reg.AddIntegrationClass(backupIntegrationClass)
+// backupGuardFractionSetting is DUBPLATE_BACKUP_GUARD_FRACTION: the
+// share of the catalog's tracks a library tree must hold as regular
+// files before a sync may run. Its default, 0.5, carries unchanged the
+// value internal/backup's retired guardFraction constant held
+// (R-6bi8). The floor is the protective minimum against a value that
+// would turn the short-tree guard off by accident (Ruling 3, R-6c11).
+var backupGuardFractionSetting = config.Setting{
+	Key:     "DUBPLATE_BACKUP_GUARD_FRACTION",
+	Kind:    config.KindFloat,
+	Default: "0.5",
+	Doc:     "a fraction greater than 0 and at most 1, for example 0.5",
+	Apply:   config.ApplyNextOperation,
+	Floor:   "0.25",
+	Ceiling: "1",
 }
 
-// backupConfigFrom builds ops/local's backup configuration from cfg:
-// the flag and the remote through the integration class, and the
-// library root through the owned wall row rung 1 declared (R-6bi18).
-func backupConfigFrom(cfg *config.Config) local.BackupConfig {
+// backupSnapshotKeepSetting is DUBPLATE_BACKUP_SNAPSHOT_KEEP: how many
+// remote snapshots a prune keeps in total, the run's own included. Its
+// default, 14, carries unchanged the value internal/backup's retired
+// snapshotKeep constant held (R-6bi8). The floor is the protective
+// minimum against a keep that would let one run delete every other
+// pre-upgrade remote snapshot (Ruling 3, R-6c11; spec ruling 10).
+var backupSnapshotKeepSetting = config.Setting{
+	Key:     "DUBPLATE_BACKUP_SNAPSHOT_KEEP",
+	Kind:    config.KindInt,
+	Default: "14",
+	Doc:     "an integer count of remote snapshots to keep, for example 14",
+	Apply:   config.ApplyNextOperation,
+	Floor:   "3",
+	Ceiling: "1000",
+}
+
+// backupArchiveRetentionSetting is DUBPLATE_BACKUP_ARCHIVE_RETENTION:
+// how long an archive directory survives past its stamp. Its default,
+// 2160h (90 days), carries unchanged the value internal/backup's
+// retired archiveRetention constant held (R-6bi8). The floor is the
+// protective minimum against a retention that would purge within a day
+// the files a bad sync moved into archive/ (Ruling 3, R-6c11).
+var backupArchiveRetentionSetting = config.Setting{
+	Key:     "DUBPLATE_BACKUP_ARCHIVE_RETENTION",
+	Kind:    config.KindDuration,
+	Default: "2160h",
+	Doc:     "a Go duration string, for example 2160h",
+	Apply:   config.ApplyNextOperation,
+	Floor:   "168h",
+	Ceiling: "87600h",
+}
+
+// registerBackupConfig adds backupIntegrationClass and the three
+// backup-homed settings to reg. newProductionRegistry calls it after
+// registerStoreConfig. The six names backup replaced (five
+// DUBPLATE_R2_* names and DUBPLATE_BACKUP_STAGING) are superseded
+// entries declared in internal/config/keys.go, on rung 5's own
+// precedent (ee79b5b26d9d8614357c26e7410d9db7d01673a7): a supersession
+// message is base-wall record-keeping, not a rung's own owned surface,
+// so it stays with the package that seeds every registry rather than
+// moving to this rung's file. The "backup targets" reserved class
+// those six names occupied left keys.go in the same commit that added
+// their supersession messages, since a name claimed by both families
+// panics at registration (internal/config/registry.go, claim).
+func registerBackupConfig(reg *config.Registry) {
+	reg.AddIntegrationClass(backupIntegrationClass)
+	reg.AddSetting(backupGuardFractionSetting)
+	reg.AddSetting(backupSnapshotKeepSetting)
+	reg.AddSetting(backupArchiveRetentionSetting)
+}
+
+// backupSettingsReaders returns the reader functions [runBackup]
+// injects into [local.BackupConfig]: the accessor's typed read of each
+// of the three backup-homed settings, one per value ops/local needs
+// (R-6c11).
+func backupSettingsReaders(acc *settings.Accessor) (
+	guardFraction func(context.Context) (float64, error),
+	snapshotKeep func(context.Context) (int, error),
+	archiveRetention func(context.Context) (time.Duration, error),
+) {
+	return func(ctx context.Context) (float64, error) { return acc.Float(ctx, backupGuardFractionSetting) },
+		func(ctx context.Context) (int, error) { return acc.Int(ctx, backupSnapshotKeepSetting) },
+		func(ctx context.Context) (time.Duration, error) {
+			return acc.Duration(ctx, backupArchiveRetentionSetting)
+		}
+}
+
+// backupConfigFrom builds ops/local's backup configuration from cfg
+// and acc: the flag and the remote through the integration class, the
+// library root through the owned wall row rung 1 declared (R-6bi18),
+// and the three backup value readers through acc (R-6c11).
+func backupConfigFrom(cfg *config.Config, acc *settings.Accessor) local.BackupConfig {
+	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
 	return local.BackupConfig{
-		Enabled:     cfg.IntegrationEnabled(backupIntegrationClass.Name),
-		Remote:      cfg.IntegrationValue(backupIntegrationClass.Name, "DUBPLATE_BACKUP_REMOTE"),
-		LibraryRoot: cfg.LibraryRoot,
+		Enabled:          cfg.IntegrationEnabled(backupIntegrationClass.Name),
+		Remote:           cfg.IntegrationValue(backupIntegrationClass.Name, "DUBPLATE_BACKUP_REMOTE"),
+		LibraryRoot:      cfg.LibraryRoot,
+		GuardFraction:    guardFraction,
+		SnapshotKeep:     snapshotKeep,
+		ArchiveRetention: archiveRetention,
 	}
 }
 
@@ -146,12 +219,14 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
+	acc := settings.NewAccessor(h, reg)
 	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, backupVerbWait)
 	defer cancelRunner()
 	runner, err := local.New(runnerCtx, local.Config{
-		Store:  h,
-		Backup: backupConfigFrom(cfg),
-		Logger: logger,
+		Store:     h,
+		Retention: jobRetentionReader(acc),
+		Backup:    backupConfigFrom(cfg, acc),
+		Logger:    logger,
 	})
 	if err != nil {
 		return err

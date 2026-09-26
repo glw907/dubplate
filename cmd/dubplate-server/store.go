@@ -10,6 +10,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // storeBusyTimeoutThreshold is DUBPLATE_STORE_BUSY_TIMEOUT: the
@@ -46,10 +47,54 @@ var (
 	storeBusyTimeoutCeiling = storeBusyTimeoutCeilingMS * time.Millisecond
 )
 
-// registerStoreConfig registers the store's own thresholds against
-// reg. newProductionRegistry calls it after registerAuthConfig.
+// jobRetentionSetting is DUBPLATE_JOB_RETENTION: how long a finished
+// job record survives past its own kind's newest succeeded record.
+// Its default, 2160h (90 days), carries unchanged the value
+// ops/local's retired retention constant held (R-6bi8, R-6c11).
+var jobRetentionSetting = config.Setting{
+	Key:     "DUBPLATE_JOB_RETENTION",
+	Kind:    config.KindDuration,
+	Default: "2160h",
+	Doc:     "a Go duration string, for example 2160h",
+	Apply:   config.ApplyNextOperation,
+	Floor:   "24h",
+	Ceiling: "87600h",
+}
+
+// storeLocalSnapshotKeepSetting is DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP:
+// how many local pre-migration snapshot copies OpenServe's own keep
+// bound retains. Its default of 3 is a working value R-6bi8 never set:
+// a rollback needs the newest copy, and two older copies cover a bad
+// upgrade found a release late, each a full store whose size doctor
+// already shows (R-6c11). doctor is its first reader (D5); 6d wires it
+// into ServeOptions.Keep.
+var storeLocalSnapshotKeepSetting = config.Setting{
+	Key:     "DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP",
+	Kind:    config.KindInt,
+	Default: "3",
+	Doc:     "an integer count of local snapshot copies to keep, for example 3",
+	Apply:   config.ApplyNextOperation,
+	Floor:   "1",
+	Ceiling: "100",
+}
+
+// registerStoreConfig registers the store's own thresholds and
+// store-homed settings against reg. newProductionRegistry calls it
+// after registerAuthConfig.
 func registerStoreConfig(reg *config.Registry) {
 	reg.AddThreshold(storeBusyTimeoutThreshold)
+	reg.AddSetting(jobRetentionSetting)
+	reg.AddSetting(storeLocalSnapshotKeepSetting)
+}
+
+// jobRetentionReader returns the closure over acc that
+// [local.Config.Retention] reads before every job start: the
+// accessor's typed read of jobRetentionSetting, one per value
+// ops/local needs (R-6c11).
+func jobRetentionReader(acc *settings.Accessor) func(context.Context) (time.Duration, error) {
+	return func(ctx context.Context) (time.Duration, error) {
+		return acc.Duration(ctx, jobRetentionSetting)
+	}
 }
 
 // storeBusyTimeout resolves DUBPLATE_STORE_BUSY_TIMEOUT from environ

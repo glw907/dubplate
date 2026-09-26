@@ -462,6 +462,158 @@ func TestBackupCmd_Conflict(t *testing.T) {
 	}
 }
 
+// plantCatalogTracks plants a member, a collection, an album, and n
+// tracks into stateDir's store, the fixture the guard's end-to-end row
+// needs (internal/backup/job_test.go's own plantTracks, its cmd-level
+// twin).
+func plantCatalogTracks(t *testing.T, stateDir string, n int) {
+	t.Helper()
+	updateStore(t, stateDir, func(ctx context.Context, tx *store.Tx) error {
+		user, coll, album := store.NewID(), store.NewID(), store.NewID()
+		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO albums (id, collection_id, created_at, updated_at) VALUES (?, ?, 1, 1)`, album, coll); err != nil {
+			return err
+		}
+		for i := range n {
+			if _, err := tx.Exec(ctx, `INSERT INTO tracks (id, album_id, collection_id, rel_path, created_at, updated_at)
+VALUES (?, ?, ?, CAST(? AS BLOB), 1, 1)`, store.NewID(), album, coll, fmt.Sprintf("t%d.flac", i)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// plantFinishedJob inserts a finished backup job record aged age past
+// now and returns its id, the fixture the retention end-to-end row
+// needs.
+func plantFinishedJob(t *testing.T, stateDir string, age time.Duration) []byte {
+	t.Helper()
+	id := store.NewID()
+	at := time.Now().Add(-age).UnixMicro()
+	updateStore(t, stateDir, func(ctx context.Context, tx *store.Tx) error {
+		_, err := tx.Exec(ctx, `INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at, finished_at)
+VALUES (?, 'backup', ?, 'failed', 'planted', 'local:planted', ?, ?)`, id, at, at, at)
+		return err
+	})
+	return id
+}
+
+// jobRecordExists reports whether id's job record still exists in
+// stateDir's store.
+func jobRecordExists(t *testing.T, stateDir string, id []byte) bool {
+	t.Helper()
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	defer func() { _ = h.Close() }()
+	var n int
+	if err := h.QueryRow(context.Background(), "SELECT count(*) FROM jobs WHERE id = ?", id).Scan(&n); err != nil {
+		t.Fatalf("count job record: %v", err)
+	}
+	return n > 0
+}
+
+// TestBackupCmd_GuardAdminRow is spec criterion 13's admin half,
+// end to end: a library tree holding 6 of a 10-track catalog's files
+// passes the registry's own default guard fraction (0.5) and aborts
+// under an admin row of 0.9, in each case recording no rclone
+// invocation when it aborts.
+func TestBackupCmd_GuardAdminRow(t *testing.T) {
+	tests := []struct {
+		name      string
+		admin     string
+		wantAbort bool
+	}{
+		{name: "the default 0.5 passes"},
+		{name: "an admin row of 0.9 aborts", admin: "0.9", wantAbort: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			useBackupStandin(t)
+			environ := serveAuthEnviron(t)
+			stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+			seedBackupStore(t, stateDir)
+			plantCatalogTracks(t, stateDir, 10)
+
+			root := t.TempDir()
+			for i := range 6 {
+				p := filepath.Join(root, fmt.Sprintf("t%d.flac", i))
+				if err := os.WriteFile(p, []byte("x"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			environ = replaceKey(environ, "DUBPLATE_LIBRARY_ROOT", root)
+			environ = append(environ, "DUBPLATE_BACKUP_ENABLED=true", "DUBPLATE_BACKUP_REMOTE=teststand:"+t.TempDir())
+
+			if tt.admin != "" {
+				h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+				if err != nil {
+					t.Fatalf("OpenWrite: %v", err)
+				}
+				seedSettingRow(t, h, "DUBPLATE_BACKUP_GUARD_FRACTION", tt.admin, "admin")
+				if err := h.Close(); err != nil {
+					t.Fatalf("close: %v", err)
+				}
+			}
+
+			var stdout bytes.Buffer
+			code, err := backupRunFor(context.Background(), environ, &stdout)
+			if tt.wantAbort {
+				if code != 1 {
+					t.Errorf("exit = %d, want 1; error: %v", code, err)
+				}
+				if err == nil || !strings.Contains(err.Error(), "library-short") {
+					t.Errorf("error = %v, want it to name library-short", err)
+				}
+				if lines := backupStandinLines(t, os.Getenv(backupStandinRecordEnv)); len(lines) != 0 {
+					t.Errorf("stand-in recorded %d invocation(s), want 0: %v", len(lines), lines)
+				}
+			} else if code != 0 {
+				t.Errorf("exit = %d, want 0; error: %v", code, err)
+			}
+		})
+	}
+}
+
+// TestBackupCmd_RetentionReaderPrune is criterion 13's retention half,
+// end to end: an env-seed row of 48h for DUBPLATE_JOB_RETENTION prunes
+// a finished job record aged 72h that the registry's own 2160h default
+// would have kept.
+func TestBackupCmd_RetentionReaderPrune(t *testing.T) {
+	useBackupStandin(t)
+	environ := backupJobEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+
+	old := plantFinishedJob(t, stateDir, 72*time.Hour)
+
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	seedSettingRow(t, h, "DUBPLATE_JOB_RETENTION", "48h", "env-seed")
+	if err := h.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	var stdout bytes.Buffer
+	code, err := backupRunFor(context.Background(), environ, &stdout)
+	if code != 0 {
+		t.Fatalf("exit = %d, want 0; error: %v", code, err)
+	}
+	if jobRecordExists(t, stateDir, old) {
+		t.Errorf("job record %x kept, want it pruned under the 48h retention read at start", old)
+	}
+}
+
 // backupRunFor runs the backup verb's own logic directly, exactly as
 // run(newBackupCmd(...)) does but returning the error rather than
 // printing it to the real os.Stderr, the one write run() and cobra's

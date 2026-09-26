@@ -170,11 +170,15 @@ func runChild(dir string) int {
 		return 2
 	}
 	r, err := local.New(context.Background(), local.Config{
-		Store: h,
+		Store:     h,
+		Retention: defaultRetention,
 		Backup: local.BackupConfig{
-			Enabled:     true,
-			Remote:      os.Getenv(childRemoteEnv),
-			LibraryRoot: os.Getenv(childRootEnv),
+			Enabled:          true,
+			Remote:           os.Getenv(childRemoteEnv),
+			LibraryRoot:      os.Getenv(childRootEnv),
+			GuardFraction:    defaultGuardFraction,
+			SnapshotKeep:     defaultSnapshotKeep,
+			ArchiveRetention: defaultArchiveRetention,
 		},
 		Logger: logger,
 	})

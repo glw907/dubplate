@@ -18,10 +18,6 @@ import (
 // cancel_requested between the body's progress reports.
 const cancelPoll = 2 * time.Second
 
-// retention is how long a finished record is kept, the newest
-// succeeded record of each kind excepted.
-const retention = 90 * 24 * time.Hour
-
 // jobErrorCode is the failure code of a body error that carries none.
 const jobErrorCode = "job-error"
 
@@ -36,18 +32,26 @@ type body func(ctx context.Context, progress func(phase string) error) (final st
 // and has named its handle.
 type binder func(kl *store.KindLease, h ops.Handle) body
 
-// backupJob binds the backup kind's body to the job h names, run under
-// kl.
-func (r *Runner) backupJob(kl *store.KindLease, h ops.Handle) body {
-	return backup.Job{
-		Store:       r.store,
-		Lease:       kl,
-		Instance:    r.lease.Instance(),
-		RunID:       string(h),
-		Remote:      r.backup.Remote,
-		LibraryRoot: r.backup.LibraryRoot,
-		Logger:      r.logger,
-	}.Run
+// backupJob returns a binder that makes the backup kind's body, run
+// under the caller's kind lease, from the three backup values
+// [Runner.backupBind] already read: fraction is DUBPLATE_BACKUP_GUARD_FRACTION's
+// value, keep is DUBPLATE_BACKUP_SNAPSHOT_KEEP's, and archiveRetention
+// is DUBPLATE_BACKUP_ARCHIVE_RETENTION's (R-6c11).
+func (r *Runner) backupJob(fraction float64, keep int, archiveRetention time.Duration) binder {
+	return func(kl *store.KindLease, h ops.Handle) body {
+		return backup.Job{
+			Store:            r.store,
+			Lease:            kl,
+			Instance:         r.lease.Instance(),
+			RunID:            string(h),
+			Remote:           r.backup.Remote,
+			LibraryRoot:      r.backup.LibraryRoot,
+			GuardFraction:    fraction,
+			SnapshotKeep:     keep,
+			ArchiveRetention: archiveRetention,
+			Logger:           r.logger,
+		}.Run
+	}
 }
 
 // coded is implemented by a body error that names its own failure
@@ -79,8 +83,10 @@ func storeContext(ctx context.Context) (context.Context, context.CancelFunc) {
 
 // insert records a queued job of kind owned by this runner's instance
 // lease, then deletes every finished record past retention but the
-// newest succeeded record of each kind, in one write.
-func (r *Runner) insert(ctx context.Context, actor ops.Actor, kind string, b body) (*job, error) {
+// newest succeeded record of each kind, in one write. retention is
+// DUBPLATE_JOB_RETENTION's value in force, read by the caller before
+// this call (R-6c11).
+func (r *Runner) insert(ctx context.Context, actor ops.Actor, kind string, retention time.Duration, b body) (*job, error) {
 	ctx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
 	id := store.NewID()

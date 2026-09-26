@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // TestStoreRowStatus is the golden test for the store row's render: one
@@ -494,5 +496,115 @@ func TestRegisterStoreConfig(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("registerStoreConfig did not register DUBPLATE_STORE_BUSY_TIMEOUT")
+	}
+}
+
+// TestRegisterStoreConfig_Settings proves the two store-homed settings
+// register with R-6c11's defaults.
+func TestRegisterStoreConfig_Settings(t *testing.T) {
+	reg := config.NewRegistry()
+	registerStoreConfig(reg)
+
+	want := map[string]string{
+		"DUBPLATE_JOB_RETENTION":             "2160h",
+		"DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP": "3",
+	}
+	got := make(map[string]string)
+	for _, s := range reg.Settings() {
+		got[s.Key] = s.Default
+	}
+	for key, def := range want {
+		if got[key] != def {
+			t.Errorf("registerStoreConfig registered %s with default %q, want %q", key, got[key], def)
+		}
+	}
+}
+
+// seedSettingRow writes key as a literal settings row of source
+// ("env-seed" or "admin") with a matching seed value, and bumps the
+// generation, in one transaction: production writes a settings row
+// only through the seed apply or, for an admin row, rung 14's write
+// path, so a test seeds one directly by literal SQL.
+func seedSettingRow(t *testing.T, h *store.Handle, key, value, source string) {
+	t.Helper()
+	if source != "env-seed" && source != "admin" {
+		t.Fatalf("seed setting %s: source %q, want env-seed or admin", key, source)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		q := fmt.Sprintf(`INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
+VALUES (?, ?, '%s', ?, 'fixture', 1)`, source)
+		if _, err := tx.Exec(ctx, q, key, value, value); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `UPDATE settings_generation SET generation = generation + 1 WHERE singleton = 1`)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("seed setting %s: %v", key, err)
+	}
+}
+
+// TestSettingsReaders is spec criterion 13's reader half: each of the
+// four keys' reader, built the same way runBackup builds it, returns
+// the registry default while the store holds no row, and a stored
+// env-seed row's non-default value once one exists. Each stored value
+// sits at or above the floor under either answer to Ruling 3.
+func TestSettingsReaders(t *testing.T) {
+	dir := t.TempDir()
+	seedBackupStore(t, dir)
+	h, err := store.OpenWrite(context.Background(), dir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	defer func() { _ = h.Close() }()
+
+	reg := config.NewRegistry()
+	registerStoreConfig(reg)
+	registerBackupConfig(reg)
+	acc := settings.NewAccessor(h, reg)
+	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
+	retention := jobRetentionReader(acc)
+
+	tests := []struct {
+		name        string
+		key         string
+		seed        string
+		read        func() (string, error)
+		wantDefault string
+		wantSeeded  string
+	}{
+		{
+			name: "job retention", key: "DUBPLATE_JOB_RETENTION", seed: "48h",
+			read:        func() (string, error) { v, err := retention(context.Background()); return v.String(), err },
+			wantDefault: "2160h0m0s", wantSeeded: "48h0m0s",
+		},
+		{
+			name: "backup guard fraction", key: "DUBPLATE_BACKUP_GUARD_FRACTION", seed: "0.9",
+			read:        func() (string, error) { v, err := guardFraction(context.Background()); return fmt.Sprint(v), err },
+			wantDefault: "0.5", wantSeeded: "0.9",
+		},
+		{
+			name: "backup snapshot keep", key: "DUBPLATE_BACKUP_SNAPSHOT_KEEP", seed: "3",
+			read:        func() (string, error) { v, err := snapshotKeep(context.Background()); return fmt.Sprint(v), err },
+			wantDefault: "14", wantSeeded: "3",
+		},
+		{
+			name: "backup archive retention", key: "DUBPLATE_BACKUP_ARCHIVE_RETENTION", seed: "168h",
+			read:        func() (string, error) { v, err := archiveRetention(context.Background()); return v.String(), err },
+			wantDefault: "2160h0m0s", wantSeeded: "168h0m0s",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got, err := tt.read(); err != nil || got != tt.wantDefault {
+				t.Fatalf("%s with no row = %q, %v, want the default %q", tt.key, got, err, tt.wantDefault)
+			}
+			seedSettingRow(t, h, tt.key, tt.seed, "env-seed")
+			if got, err := tt.read(); err != nil || got != tt.wantSeeded {
+				t.Errorf("%s after an env-seed row = %q, %v, want %q", tt.key, got, err, tt.wantSeeded)
+			}
+		})
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log/slog"
+	"math"
 	"net/url"
 	"os"
 	"os/exec"
@@ -138,17 +139,51 @@ func treeFiles(t *testing.T, dir string) []string {
 	return files
 }
 
-// newRunner opens a production runner over h with backup on, closed at
-// cleanup before h.
+// defaultRetention, defaultGuardFraction, defaultSnapshotKeep, and
+// defaultArchiveRetention are the reader functions [newRunnerWithBackup]
+// fills in for a caller that does not override them, each returning
+// R-6c11's default literally: DUBPLATE_JOB_RETENTION and
+// DUBPLATE_BACKUP_ARCHIVE_RETENTION at 2160h (90 days),
+// DUBPLATE_BACKUP_GUARD_FRACTION at 0.5, and
+// DUBPLATE_BACKUP_SNAPSHOT_KEEP at 14. Every pre-6c test that does not
+// name a value for one of the three backup keys exercises the same
+// value production uses while the store holds no row for it.
+func defaultRetention(context.Context) (time.Duration, error)        { return 2160 * time.Hour, nil }
+func defaultGuardFraction(context.Context) (float64, error)          { return 0.5, nil }
+func defaultSnapshotKeep(context.Context) (int, error)               { return 14, nil }
+func defaultArchiveRetention(context.Context) (time.Duration, error) { return 2160 * time.Hour, nil }
+
+// newRunner opens a production runner over h with backup on and every
+// backup value reader at R-6c11's default, closed at cleanup before h.
 func newRunner(t *testing.T, h *store.Handle, remote, root string, logs *syncBuffer) *local.Runner {
+	t.Helper()
+	return newRunnerWithBackup(t, h, remote, root, logs, defaultSnapshotKeep, defaultGuardFraction, defaultArchiveRetention)
+}
+
+// newRunnerWithBackup opens a production runner over h with backup on,
+// closed at cleanup before h. snapshotKeep, guardFraction, and
+// archiveRetention are the three backup value readers a test names
+// explicitly, so a test proving one key's consumer overrides only that
+// reader and leaves the other two at their default.
+func newRunnerWithBackup(t *testing.T, h *store.Handle, remote, root string, logs *syncBuffer,
+	snapshotKeep func(context.Context) (int, error),
+	guardFraction func(context.Context) (float64, error),
+	archiveRetention func(context.Context) (time.Duration, error),
+) *local.Runner {
 	t.Helper()
 	logger := slog.New(slog.DiscardHandler)
 	if logs != nil {
 		logger = slog.New(slog.NewTextHandler(logs, nil))
 	}
 	r, err := local.New(context.Background(), local.Config{
-		Store:  h,
-		Backup: local.BackupConfig{Enabled: true, Remote: remote, LibraryRoot: root},
+		Store:     h,
+		Retention: defaultRetention,
+		Backup: local.BackupConfig{
+			Enabled: true, Remote: remote, LibraryRoot: root,
+			GuardFraction:    guardFraction,
+			SnapshotKeep:     snapshotKeep,
+			ArchiveRetention: archiveRetention,
+		},
 		Logger: logger,
 	})
 	if err != nil {
@@ -189,10 +224,22 @@ func await(t *testing.T, r *local.Runner, h ops.Handle) ops.JobStatus {
 	}
 }
 
-// runBackup runs one backup to its end through a runner over h.
+// runBackup runs one backup to its end through a runner over h, its
+// three backup value readers at R-6c11's default.
 func runBackup(t *testing.T, h *store.Handle, remote, root string) (ops.Handle, ops.JobStatus) {
 	t.Helper()
-	r := newRunner(t, h, remote, root, nil)
+	return runBackupWithBackup(t, h, remote, root, defaultSnapshotKeep, defaultGuardFraction, defaultArchiveRetention)
+}
+
+// runBackupWithBackup runs one backup to its end through a runner over
+// h, with the three backup value readers a test names explicitly.
+func runBackupWithBackup(t *testing.T, h *store.Handle, remote, root string,
+	snapshotKeep func(context.Context) (int, error),
+	guardFraction func(context.Context) (float64, error),
+	archiveRetention func(context.Context) (time.Duration, error),
+) (ops.Handle, ops.JobStatus) {
+	t.Helper()
+	r := newRunnerWithBackup(t, h, remote, root, nil, snapshotKeep, guardFraction, archiveRetention)
 	id := start(t, r)
 	st := await(t, r, id)
 	if err := r.Close(); err != nil {
@@ -544,7 +591,7 @@ func TestBackup_Refusals(t *testing.T) {
 				return filepath.Join(base, "lib")
 			},
 			wantCode: "library-short",
-			wantMsg:  "holds 1 files, fewer than half the catalog's 4 tracks",
+			wantMsg:  "holds 1 files, fewer than 0.5 of the catalog's 4 tracks",
 		},
 		{
 			name: "unreadable root",
@@ -598,6 +645,50 @@ func TestBackup_Refusals(t *testing.T) {
 			}
 			if argvs := s.invocations(t); len(argvs) != 0 {
 				t.Errorf("the stand-in recorded %q, want no invocation", argvs)
+			}
+		})
+	}
+}
+
+// TestBackup_StructuralRefusals is R-6c13's structural check: a
+// caller-supplied backup value left at a structurally invalid value
+// fails before any rclone launch, naming the invalid field, and the
+// stand-in records no invocation. The caller's registry owns every
+// policy bound on these values; this table only pins Job.Run's own
+// invariant.
+func TestBackup_StructuralRefusals(t *testing.T) {
+	tests := []struct {
+		name             string
+		snapshotKeep     int
+		guardFraction    float64
+		archiveRetention time.Duration
+		wantMsg          string
+	}{
+		{name: "keep zero", snapshotKeep: 0, guardFraction: 0.5, archiveRetention: time.Hour, wantMsg: "snapshot keep 0"},
+		{name: "fraction zero", snapshotKeep: 1, guardFraction: 0, archiveRetention: time.Hour, wantMsg: "guard fraction 0"},
+		{name: "fraction NaN", snapshotKeep: 1, guardFraction: math.NaN(), archiveRetention: time.Hour, wantMsg: "guard fraction NaN"},
+		{name: "fraction above 1", snapshotKeep: 1, guardFraction: 1.5, archiveRetention: time.Hour, wantMsg: "guard fraction 1.5"},
+		{name: "archive retention zero", snapshotKeep: 1, guardFraction: 0.5, archiveRetention: 0, wantMsg: "archive retention 0s"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := useStandin(t, standinConfig{})
+			h := openWrite(t, newStateDir(t))
+			plantTracks(t, h, 1)
+			lib := t.TempDir()
+			writeTree(t, lib, "a/one.flac")
+
+			keep := func(context.Context) (int, error) { return tt.snapshotKeep, nil }
+			fraction := func(context.Context) (float64, error) { return tt.guardFraction, nil }
+			retention := func(context.Context) (time.Duration, error) { return tt.archiveRetention, nil }
+			_, st := runBackupWithBackup(t, h, "name:dir", lib, keep, fraction, retention)
+
+			wantState(t, st, ops.JobFailed, "job-invalid")
+			if !strings.Contains(st.FailureMessage, tt.wantMsg) {
+				t.Errorf("failure message %q does not name %q", st.FailureMessage, tt.wantMsg)
+			}
+			if argvs := s.invocations(t); len(argvs) != 0 {
+				t.Errorf("the stand-in recorded %q, want no invocation before the structural refusal", argvs)
 			}
 		})
 	}
