@@ -319,3 +319,7 @@ Today storefront, and zine covers generally (three zine flatlays dropped: the co
 and are third-party works). These are outreach targets. Conductor ruling: further photo requests
 this round queue for round two, because each search cost 0.2M to 1.0M tokens and the lane is past
 its 7.5M ceiling (rough estimate 11M).
+- Geoff (2026-09-26): "older is generally better for all of these." Round two's search briefs rank
+  by era first. The Feelies: Commons holds only three 2016 to 2019 reunion-era frames (Central Park
+  2016, Rough Trade Brooklyn 2019, a 2808x547 panorama); queued for round two as an outreach target
+  for 1976 to 1991 photos.
