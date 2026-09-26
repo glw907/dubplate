@@ -358,10 +358,9 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	case ops.JobFailed:
 		return fmt.Errorf("backup %s: failed, code %s: %s", job.ID, job.FailureCode, job.FailureMessage)
 	default:
-		// Interrupted is unreachable in-process: this verb's own runner
-		// holds the job's lease for its whole life, so recovery never
-		// touches this verb's own record. Kept so the state set this
-		// switch handles stays closed over every [ops.JobState].
+		// Interrupted reaches this arm in-process when the job's running
+		// or terminal write failed and the next status read recovered
+		// the stranded record. It exits 1 like any other non-success.
 		return fmt.Errorf("backup %s: %s", job.ID, job.State)
 	}
 }
