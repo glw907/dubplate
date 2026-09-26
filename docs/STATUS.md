@@ -22,7 +22,7 @@ This session conducts both code lanes; a separate docs session owns the document
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | OPEN: 5c-iii closed at `db1e111`; free for 5c-iv's refresh read and Tasks 7-11 |
+| 1 | main tree (master) | OPEN: 5c-iv (plan Tasks 7-11, refreshed at `131283c`: Task 9 split into 9a/9b, ceiling re-derived to about 9.2M from 8.5M for the added chain); segment D-i (Task 0, Task 7) running as `wf_9508455c-ca8`; then the register gate, D-ii (8, 9a, 9b), E (10, reviews, 11) |
 | 2 | worktree `lane-2-6b-ii-b` (branch `lane-2-6b-ii-b`) | OPEN: 6b-ii-b B2 accepted 2026-09-25 (5A `30a66ac`, 5B `cd9afbf`, 6 `9d9c552`, zero fix rounds); B3 Task 7 accepted (`9a7532b`), simplifier `7a56699`, targeted data-loss read `23ee61f` (0 blockers, 2 majors), a fix round running; then Task 8 close and the merge; then 6c (approved, `50a1cf8`) in a fresh worktree; ceiling 7.53M |
 | photos | main tree (master), document lane, owned by the separate docs session (Geoff, 2026-09-25) | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M; raised by Geoff 2026-09-25) |
 
