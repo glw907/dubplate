@@ -1705,7 +1705,8 @@ manifest and `run.ts`**; Task 9b's header reads the `Mark` component this task c
   reads kit's `page.url`, which still holds the token after the native call. It states what is
   about to happen and carries one control; only a click POSTs `token` to `consume-link`. It
   loads nothing from a third party (CSP `default-src 'self'` already forbids it). A missing
-  token renders the `refused` copy with no request.
+  token renders the `refused` copy with no request. The `refused` copy links back to the
+  sign-in page, per the deck's own line.
 - **The error page:** VI's plain sentence in the identity's type and surface, no photo
   (Ruling 3).
 - **Every page carries W3.6's skip link and `<main id="main" tabindex="-1">`.**
@@ -1807,20 +1808,22 @@ rate budget. **Independent of Task 8 by files except the manifest and `run.ts`.*
 - **The roster list:** the members the API returns, each with display name, address, and
   streamer username, and a squared-outline badge marking an admin; the plural-aware count; the
   empty state. It stacks at narrow widths (W4.4, W4.6).
-- **The add-member form:** `fieldset` of address, display name, and an optional streamer
-  username, no `placeholder` attributes; no control named `admin` (the spec deviation above);
-  one primary submit; each roster outcome renders its specific deck line, and `added` refreshes
-  the list. Every string comes from the deck, and the stub's `Members` literal and title leave.
-  The secondary-control rule and the `base-300` rule from Task 8 apply.
-- **A non-admin reaching the page by client navigation** (R-5cii19) sees the not-found
-  sentence, no roster, and no add form, since the API's GET answers the terminator's 404. The
-  task names the mechanism (in-page copy from the deck, or kit's `error(404)` from a
-  client-side load, quoting kit's documentation for it).
+- **The add-member form:** `fieldset` of address, display name, and a required streamer
+  username (`internal/auth/roster.go:610-611`'s `missing_streamer_username`; no "Optional"
+  hint or label), no `placeholder` attributes; no control named `admin` (the spec deviation
+  above); one primary submit; each roster outcome renders its specific deck line, and `added`
+  refreshes the list. Every string comes from the deck, and the stub's `Members` literal and
+  title leave. The secondary-control rule and the `base-300` rule from Task 8 apply.
+- **A non-admin reaching the page by client navigation** (R-5cii19) sees the deck's
+  `TITLES.notFound` and `ERROR_PAGE.notFoundHeading`, no roster, and no add form, since the
+  API's GET answers the terminator's 404. The tab never says "Members" to a non-admin
+  (`internal/auth/admin.go:96-100`). The task names the mechanism (in-page copy from the deck,
+  or kit's `error(404)` from a client-side load, quoting kit's documentation for it).
 - **The client-navigation row's identity (refresh read).** `head/icon/client-navigation` opens
   `login/link` unauthenticated and follows a link to `../members`. Its landing check is
   `MEMBERS_HEADING = 'Members'` (`run.ts:864`), and the stub shows that heading to anyone.
   Once this page renders the not-found state for a session-less visitor, the row's target
-  heading is that state's deck heading. Its prefix and icon assertions stay unchanged.
+  heading is `TITLES.notFound`. Its prefix and icon assertions stay unchanged.
 
 **Acceptance criteria (rendered, both schemes):**
 - An add with a fresh address shows `added` and the list grows by one; a repeat shows
@@ -1849,7 +1852,9 @@ rate budget. **Independent of Task 8 by files except the manifest and `run.ts`.*
 3. Leave `MEMBERS_HEADING` at `'Members'` → `head/icon/client-navigation` fails its identity
    wait.
 
-**2.0 hook: neutral.** `streamer_username` stays optional per R-5c13 until rung 12.
+**2.0 hook: neutral.** `streamer_username` is already the write path's required field
+(`internal/auth/roster.go:610-611`); R-5c13 governs only the admin field's absence from the
+form, not the streamer username.
 **Deliverable count: 3** (the list, the form with the non-admin state, the rendered rows).
 
 ---

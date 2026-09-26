@@ -57,7 +57,7 @@ interface Leaf {
   value: string;
 }
 
-/** The seven page-state keys `deck.ts` declares on `TITLES`. */
+/** The nine page-state keys `deck.ts` declares on `TITLES`. */
 const REQUIRED_TITLES = [
   'login',
   'loginSent',
@@ -65,20 +65,29 @@ const REQUIRED_TITLES = [
   'loginLinkSignedIn',
   'loginLinkRefused',
   'members',
-  'signedOut'
+  'signedOut',
+  'notFound',
+  'error'
 ];
 
 /**
  * Every `REQUIRED_TITLES` key resolves to a non-empty `TITLES` line, and
  * the nil-contact line `unknownAddressLine(null)` renders. `deckLeaves`
  * only ever reads `TITLES.login` through `pageTitle`, so a deleted title
- * for any other page state would otherwise pass silently.
+ * for any other page state would otherwise pass silently. The reverse
+ * check catches the opposite drift: a `TITLES` key `REQUIRED_TITLES`
+ * does not name, which would otherwise ship uncovered.
  */
 function checkRequiredTitles(): void {
   for (const key of REQUIRED_TITLES) {
     const value = (TITLES as Record<string, string | undefined>)[key];
     if (!value) {
       fail(`deck-coverage: TITLES has no line for "${key}"`);
+    }
+  }
+  for (const key of Object.keys(TITLES)) {
+    if (!REQUIRED_TITLES.includes(key)) {
+      fail(`deck-coverage: TITLES."${key}" is not in REQUIRED_TITLES; add it so the two lists cannot drift`);
     }
   }
   if (!unknownAddressLine(null)) {
@@ -114,12 +123,26 @@ function deckLeaves(): Leaf[] {
       leaves.push({ key: `${dictName}.${key}`, value });
     }
   }
-  leaves.push({ key: 'unknownAddressLine(contact)', value: unknownAddressLine('admin@example.test') });
+  leaves.push({
+    key: 'unknownAddressLine(contact)',
+    value: unknownAddressLine({ displayName: 'Root Admin', address: 'admin@example.test' })
+  });
   leaves.push({ key: 'unknownAddressLine(null)', value: unknownAddressLine(null) });
   leaves.push({ key: 'memberCountLine(1)', value: memberCountLine(1) });
   leaves.push({ key: 'memberCountLine(2)', value: memberCountLine(2) });
   leaves.push({ key: 'pageTitle', value: pageTitle(TITLES.login, 'Example Group') });
   return leaves;
+}
+
+/**
+ * `pageTitle` with an empty site name returns the state alone, with no
+ * dangling ` · ` separator (`title.ts`'s empty-meta case).
+ */
+function checkPageTitleEmptySiteName(): void {
+  const got = pageTitle(TITLES.login, '');
+  if (got !== TITLES.login) {
+    fail(`deck-coverage: pageTitle(state, '') = ${JSON.stringify(got)}, want ${JSON.stringify(TITLES.login)}`);
+  }
 }
 
 /** `internal/auth`'s combined outcome set, or a failure naming the parser or the count. */
@@ -208,6 +231,7 @@ function main(): void {
   checkForbiddenChars(leaves);
   checkSignOutWording();
   checkNoAtHtml(files);
+  checkPageTitleEmptySiteName();
 
   process.stdout.write(
     `deck-coverage: passed, ${leaves.length} deck value(s) checked, ${files.length} src file(s) scanned for {@html}.\n`

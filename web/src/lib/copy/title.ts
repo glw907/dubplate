@@ -9,9 +9,13 @@
 /** The meta the document stamps the group's site name into (`internal/serve/document.go`). */
 const SITE_NAME_META = 'dubplate-site-name';
 
-/** The `<title>` text for `state`, given the served site name. */
+/**
+ * The `<title>` text for `state`, given the served site name. An empty
+ * `siteName` (the meta stamp is absent) returns `state` alone, with no
+ * dangling separator.
+ */
 export function pageTitle(state: string, siteName: string): string {
-  return `${state} · ${siteName}`;
+  return siteName ? `${state} · ${siteName}` : state;
 }
 
 /**

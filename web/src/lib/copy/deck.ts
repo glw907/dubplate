@@ -23,7 +23,7 @@ export const LOGIN_SUBLINE = 'Sign in with your email. We’ll send you a link.'
  * admin: the request-link answer's nil `admin_contact` case.
  */
 export const UNKNOWN_ADDRESS_NO_ADMIN =
-  'We don’t recognize that address. Ask whoever runs this server to add you.';
+  'We don’t recognize that address. Check the spelling, or ask whoever runs this server to add you.';
 
 /**
  * Every outcome `internal/auth/handlers.go` answers with, one line
@@ -35,29 +35,30 @@ export const UNKNOWN_ADDRESS_NO_ADMIN =
  */
 export const AUTH_OUTCOMES: Record<string, string> = {
   sent: 'Check your email for a sign-in link.',
-  requested: 'If that address is on the roster, a link is on its way.',
+  requested: 'If that address belongs to a member, we’ll send it a sign-in link. Check your email.',
   unknown: UNKNOWN_ADDRESS_NO_ADMIN,
-  rate_limited: 'Too many requests. Wait a few minutes and try again.',
+  rate_limited: 'Too many requests. Wait a while and try again.',
   invalid_address: 'That doesn’t look like an email address.',
   too_large: 'That request was too large.',
   malformed: 'That request didn’t come through right. Try again.',
   failed: 'Something went wrong with that request. Try again.',
   signed_in: 'You’re signed in.',
-  refused: 'That link didn’t work. Ask for a new one.',
-  // Never claims revocation: this line describes only this device's
-  // session ending, since a magic-link server has no way to end a
-  // session on any other device.
-  signed_out: 'You’re signed out on this device.'
+  refused:
+    'That sign-in link doesn’t work anymore. Each link works only once and expires after a short time. Get a new one from the sign-in page.',
+  // Never claims revocation: sign-out clears only this browser's
+  // cookie and revokes no session.
+  signed_out: 'You’re signed out in this browser.'
 };
 
 /**
  * The `unknown` outcome's line, given the roster's admin contact
- * (`internal/auth/handlers.go:157-164`'s `admin_contact`, `omitempty`).
- * A nil contact renders `UNKNOWN_ADDRESS_NO_ADMIN` instead.
+ * (`internal/auth/handlers.go:157-166`'s `admin_contact`, `omitempty`,
+ * carrying both `display_name` and `address`). A nil contact renders
+ * `UNKNOWN_ADDRESS_NO_ADMIN` instead.
  */
-export function unknownAddressLine(adminContact: string | null): string {
+export function unknownAddressLine(adminContact: { displayName: string; address: string } | null): string {
   return adminContact
-    ? `We don’t recognize that address. Ask ${adminContact} to add you.`
+    ? `We don’t recognize that address. Check the spelling, or ask ${adminContact.displayName} (${adminContact.address}) to add you.`
     : UNKNOWN_ADDRESS_NO_ADMIN;
 }
 
@@ -67,8 +68,8 @@ export const CROSS_ORIGIN_REFUSED = 'That request didn’t come from this site.'
 /** A request that never reached the server at all (a network failure). */
 export const NETWORK_FAILURE = 'We couldn’t reach the server. Check your connection and try again.';
 
-/** The sent moment's own text, shown once the link is on its way. */
-export const SENT_MOMENT_TEXT = 'Check your email for a sign-in link.';
+/** The sent moment's own text, shown once the link is on its way: the `sent` outcome's own line. */
+export const SENT_MOMENT_TEXT = AUTH_OUTCOMES.sent;
 
 /** The sent moment's escape hatch back to the request-link form. */
 export const SENT_ESCAPE_HATCH = 'Use a different address';
@@ -89,28 +90,37 @@ export const ADD_MEMBER_LABELS = {
   streamerUsername: 'Streamer username'
 };
 
-/** The add-member form's field hints. */
+/**
+ * The add-member form's field hints. `streamerUsername` states the
+ * write path's own shape (`internal/auth/roster.go:41-52`): an
+ * alphanumeric first character, then any run of letters, numbers,
+ * periods, underscores, hyphens, plus signs, or `@`, up to 64
+ * characters (the field is ASCII-only, so bytes and characters agree).
+ */
 export const ADD_MEMBER_HINTS = {
-  streamerUsername: 'Used to sign in to the streamer. Letters, numbers, and hyphens only.'
+  streamerUsername:
+    'Used to sign in to the streamer. Starts with a letter or number, then any mix of letters, numbers, periods, underscores, hyphens, plus signs, and @. Up to 64 characters.'
 };
 
 /**
  * Roster-outcome copy, keyed by the value
- * `internal/auth/admin.go`'s outcome constants answer with.
+ * `internal/auth/admin.go`'s outcome constants answer with. Member-facing
+ * lines never say "roster" (W8.2's leak list).
  */
 export const ROSTER_OUTCOMES: Record<string, string> = {
-  added: 'Added to the roster.',
-  duplicate_address: 'That address is already on the roster.',
+  added: 'Added.',
+  duplicate_address: 'That email address already belongs to a member.',
   duplicate_streamer_username: 'That streamer username is already taken.',
-  duplicate_principal: 'That member is already on the roster.',
+  duplicate_principal: 'That streamer username is another member’s email address. Choose a different one.',
   invalid_display_name: 'That name isn’t valid.',
   blank_display_name: 'Enter a name.',
   invalid_streamer_username: 'That streamer username isn’t valid.',
   missing_streamer_username: 'Enter a streamer username.',
   admin_not_grantable: 'That member can’t be made an admin here.',
-  unknown_field: 'That request carried a field the roster doesn’t take.',
-  busy: 'The roster is busy. Try again.',
-  write_unconfirmed: 'The roster write didn’t confirm. Try again.'
+  unknown_field: 'That form couldn’t be read. Try again.',
+  busy: 'That didn’t go through. Try again.',
+  write_unconfirmed:
+    'The member may have been added, but we couldn’t confirm it. Reload the page and check the list before you try again.'
 };
 
 /** The roster list's empty state (no members yet). */
@@ -142,5 +152,7 @@ export const TITLES = {
   loginLinkSignedIn: 'Signed in',
   loginLinkRefused: 'That link didn’t work',
   members: 'Members',
-  signedOut: 'Signed out'
+  signedOut: 'Signed out',
+  notFound: 'Page not found',
+  error: 'Something went wrong'
 };

@@ -5,17 +5,23 @@ The client router's own not-found state: the Go mux answers a served
 lands on a path no route matches.
 -->
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { page } from '$app/state';
+  import { ERROR_PAGE, TITLES } from '$lib/copy/deck';
+  import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
+
+  const notFound = $derived(page.status === 404);
+  const siteName = $derived(browser ? siteNameFromDocument(document) : '');
 </script>
 
 <svelte:head>
-  <title>{page.status === 404 ? 'Page not found' : 'Something went wrong'} · dubplate</title>
+  <title>{pageTitle(notFound ? TITLES.notFound : TITLES.error, siteName)}</title>
 </svelte:head>
 
 <main>
-  {#if page.status === 404}
-    <h1>That page doesn't exist.</h1>
+  {#if notFound}
+    <h1>{ERROR_PAGE.notFoundHeading}</h1>
   {:else}
-    <h1>Something went wrong.</h1>
+    <h1>{ERROR_PAGE.genericHeading}</h1>
   {/if}
 </main>
