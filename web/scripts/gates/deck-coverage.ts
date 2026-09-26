@@ -57,6 +57,35 @@ interface Leaf {
   value: string;
 }
 
+/** The seven page-state keys `deck.ts` declares on `TITLES`. */
+const REQUIRED_TITLES = [
+  'login',
+  'loginSent',
+  'loginLink',
+  'loginLinkSignedIn',
+  'loginLinkRefused',
+  'members',
+  'signedOut'
+];
+
+/**
+ * Every `REQUIRED_TITLES` key resolves to a non-empty `TITLES` line, and
+ * the nil-contact line `unknownAddressLine(null)` renders. `deckLeaves`
+ * only ever reads `TITLES.login` through `pageTitle`, so a deleted title
+ * for any other page state would otherwise pass silently.
+ */
+function checkRequiredTitles(): void {
+  for (const key of REQUIRED_TITLES) {
+    const value = (TITLES as Record<string, string | undefined>)[key];
+    if (!value) {
+      fail(`deck-coverage: TITLES has no line for "${key}"`);
+    }
+  }
+  if (!unknownAddressLine(null)) {
+    fail('deck-coverage: unknownAddressLine(null) has no line');
+  }
+}
+
 /** Every plain-text and dictionary string this module exports, flattened one level. */
 function deckLeaves(): Leaf[] {
   const scalars: Record<string, string> = {
@@ -170,6 +199,7 @@ function main(): void {
   }
 
   checkOutcomeCoverage();
+  checkRequiredTitles();
 
   const leaves = deckLeaves();
   if (leaves.length === 0) {

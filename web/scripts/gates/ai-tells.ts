@@ -104,12 +104,17 @@ const STRUCTURAL: Array<[string, RegExp, string]> = [
 /** Run the blocking lexical and structural rules over one extracted string. */
 export function scan(line: string): Issue[] {
   const issues: Issue[] = [];
+  // The banned lists carry the straight apostrophe (U+0027), but the deck
+  // and every other product string use the curly U+2019 (VI's own rule).
+  // Normalize both curly quotes to straight before matching so the rules
+  // fire on real copy, not only on a form the deck never produces.
+  const norm = line.replace(/[‘’]/g, "'");
   // General/marketing prose: an occasional em dash is human; flag a spray, and flag a
   // clause followed by a short tacked-on fragment after a dash.
-  if (emDashCount(line) > 2) {
+  if (emDashCount(norm) > 2) {
     issues.push({ kind: 'em-dash spray', hint: 'Keep at most one interruption (a pair) per line.' });
   }
-  for (const sent of line.split(SENTENCE_SPLIT)) {
+  for (const sent of norm.split(SENTENCE_SPLIT)) {
     if (emDashCount(sent) === 1) {
       let after = sent.split(EM_DASH)[1] ?? '';
       after = after
@@ -126,7 +131,7 @@ export function scan(line: string): Issue[] {
       }
     }
   }
-  const low = line.toLowerCase();
+  const low = norm.toLowerCase();
   if (low.includes('not only') && low.includes('but also')) {
     issues.push({ kind: 'not only … but also', hint: 'Reword without the correlative pair.' });
   }
@@ -151,7 +156,7 @@ export function scan(line: string): Issue[] {
     }
   }
   for (const [kind, rx, hint] of STRUCTURAL) {
-    if (rx.test(line)) issues.push({ kind, hint });
+    if (rx.test(norm)) issues.push({ kind, hint });
   }
   return issues;
 }
