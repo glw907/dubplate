@@ -9,9 +9,10 @@ Executed against
 `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
 ratified by Geoff 2026-09-25, Rulings 1-10 all yes/as stated), in the main tree, from `fc52232`
 (the plan's own drafting commit; code work starts at `83d5ae9`, which raised window 2's cap to
-run 5c-iii through this close). `git log --oneline --grep="5c-iii" -i | wc -l` counts 31
-commits tagged for this pass, including its plan-authorship and review commits; the code and
-docs commits landing this entry's work are named below.
+run 5c-iii through this close). `git log --oneline --grep="5c-iii" -i HEAD~1 | wc -l` (counted before this close's own docs
+commit, which also matches the grep) counts 31 commits tagged for this pass, including its
+plan-authorship and review commits; the code and docs commits landing this entry's work are
+named below.
 
 ### What landed
 
