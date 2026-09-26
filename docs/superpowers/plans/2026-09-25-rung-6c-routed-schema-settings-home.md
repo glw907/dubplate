@@ -1,15 +1,14 @@
 # Rung 6, Pass 6c (The Routed Schema and the Settings Home) Implementation Plan
 
-Status: **draft for approval, revision 2.1, 2026-09-25.** Revision 1 (`8d0eed8`) went through a
+Status: **approved (Geoff, 2026-09-25), revision 2.1; rulings recorded (1 yes; 2 and 3 yes as design decisions).** Revision 1 (`8d0eed8`) went through a
 three-lens `spec-plan-review` round (contract, mechanics, and risk; the reviews are committed at
 `098f8e5` under `docs/superpowers/research/2026-09-25-rung-6c-plan-review-*.md`). Revision 2
 (`ffde470`) folds them; a fresh-context verification read (`2026-09-25-rung-6c-plan-fold-verification.md`)
 found 0 blockers, 2 majors, and 7 minors, and revision 2.1 folds those. The fold record, one
 disposition per finding for both folds, is
 `docs/superpowers/research/2026-09-25-rung-6c-plan-fold.md`, and it is this plan's review history.
-Three rulings for Geoff ("Rulings awaiting owner"): the ceiling and lane placement, the exit code of
-`doctor` and `check`, and the backup keys' protective minimums. Every answer is executable as
-written.
+Rulings (see "Rulings"): Geoff ruled 1 yes; asked for the best and most idiomatic design on 2 and 3,
+the conductor took yes on both as design decisions, reasons recorded there.
 
 **Ceiling:** 5.4M execution (flag 4.32M), planning recorded against the rung and outside it.
 **Checkpoint interval:** each segment boundary, and the close. **Segments:** A (Tasks 0 to 3), B
@@ -72,7 +71,23 @@ A task that believes it needs any of these stops and reports.
 
 ---
 
-## Rulings awaiting owner
+## Rulings
+
+**Ruled 2026-09-25.** Ruling 1: **yes** (Geoff): 5.4M execution ceiling, flag 4.32M, lane 2 tonight
+once 6b-ii-b merges. Rulings 2 and 3: Geoff asked for "the best and most idiomatic design", so the
+conductor took both as design decisions:
+
+- Ruling 2, **yes**: a pre-flight checker's exit status is its contract (`nginx -t`, `sshd -t`,
+  `systemd-analyze verify`, and `terraform validate` all exit nonzero on a configuration that would
+  fail to start), and a deploy script can gate only on an exit code. `backup` still logs and runs.
+  Erratum D3 is owed, and 6d's `deploy.sh` halts on the exit.
+- Ruling 3, **yes**: the keep count and the deletion guard exist to protect data, so a bound that lets
+  a value switch the protection off makes it optional by accident, against the group-scale principle
+  "easy for intended use, hard to misuse". Floors are also asymmetric to change: lowering one later
+  is a harmless migration, while raising one strands existing rows out of bounds. Expert backup CLIs
+  (restic's `--keep-last 1`) serve a shell user; these values are written from an admin page.
+
+The questions as posed follow, unchanged.
 
 Three questions. Everything else this plan decides is a question with one architecturally correct
 answer, recorded with its reason under "Resolutions this plan takes."
