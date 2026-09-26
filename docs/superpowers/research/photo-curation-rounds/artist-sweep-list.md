@@ -65,3 +65,21 @@ Government Issue, Operation Ivy, the Feelies, Yellowman, King Tubby, Nightmares 
   Burma
 - Bristol, Warp, and trip-hop (*newer ok*): Massive Attack, Smith & Mighty, Tricky, LFO, Coldcut,
   Nightmares on Wax
+
+## Adjacent scenes (Geoff, 2026-09-26)
+
+- Mento: Stanley Beckford, the Jolly Boys, Lord Flea, Count Lasher, the Hiltonaires
+- Calypso: Lord Kitchener, the Mighty Sparrow, Lord Invader, Roaring Lion, Attila the Hun
+- Soul and funk: James Brown, Otis Redding, Booker T. & the M.G.'s, the Meters, Sly and the Family
+  Stone, Parliament-Funkadelic, the J.B.'s, Irma Thomas
+- Northern soul: Wigan Casino, the Twisted Wheel, Frank Wilson, Dobie Gray, the dancers
+- Surf: Dick Dale, the Ventures, the Chantays, the Surfaris
+- No wave: DNA, Lydia Lunch and Teenage Jesus and the Jerks, James Chance and the Contortions, Mars,
+  Glenn Branca
+- Riot grrrl: Bikini Kill, Bratmobile, Heavens to Betsy, Huggy Bear, early Sleater-Kinney
+- Bluegrass and old-time: Bill Monroe, the Stanley Brothers, Flatt & Scruggs, Doc Watson, the Holy
+  Modal Rounders
+- Jungle and drum and bass (*newer ok*): Goldie, LTJ Bukem, Shy FX, Roni Size and Reprazent
+- Zydeco: Clifton Chenier, Boozoo Chavis, Beau Jocque, Rockin' Dopsie
+- Conjunto and Tejano: Flaco Jiménez, Narciso Martínez, Santiago Jiménez Jr., Esteban Jordan, Lydia
+  Mendoza
