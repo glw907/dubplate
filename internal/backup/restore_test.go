@@ -1846,6 +1846,104 @@ func TestRestore_LibraryResumeDisplaced(t *testing.T) {
 	}
 }
 
+// interruptedCopy runs a library restore without --into-nonempty into
+// the empty root, stopping once the record owes the copy, then resumes
+// it with real rclone while the remote's second file is unreadable, so
+// the copy writes the first file and fails. It returns the state
+// directory and the remote's library files, the second readable again.
+func interruptedCopy(t *testing.T, root string) (string, []string) {
+	t.Helper()
+	remote, dir := snapshotRemote(t, snapshotFile(t))
+	files := []string{"artist/album/one.flac", "artist/album/two.flac"}
+	writeTree(t, filepath.Join(dir, "library"), files...)
+	stateDir := storeWithUser(t, currentUser)
+	crashChild(t, childRestore{
+		StateDir: stateDir, Snapshot: stampNew, Remote: remote,
+		Library: true, LibraryRoot: root, CrashAt: stepLibraryOwed,
+	})
+	unreadable := filepath.Join(dir, "library", files[1])
+	if err := os.Chmod(unreadable, 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := resume(t, stateDir); err == nil {
+		t.Fatal("resume with an unreadable remote file succeeded, want the copy to fail")
+	}
+	if err := os.Chmod(unreadable, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got := recordState(t, stateDir); got != "library" {
+		t.Fatalf("record after the failed copy %q, want library", got)
+	}
+	assertTree(t, root, files[:1])
+	return stateDir, files
+}
+
+// TestRestore_LibraryResumeWithoutIntoNonempty is resume's rows for a
+// restore begun into an empty root: the resumed copy displaces a file a
+// person placed in the root between runs rather than overwriting it,
+// and leaves the files the interrupted copy wrote where they are, with
+// no displaced directory left behind.
+func TestRestore_LibraryResumeWithoutIntoNonempty(t *testing.T) {
+	t.Run("a file placed by hand", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, files := interruptedCopy(t, root)
+		const body = "the operator's hand-placed copy"
+		if err := os.WriteFile(filepath.Join(root, files[1]), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		out, err := resume(t, stateDir)
+		if err != nil {
+			t.Fatalf("resume: %v", err)
+		}
+		assertTree(t, root, files)
+		displaced := displacedPath(root, restoreStamp)
+		if got := readFile(t, filepath.Join(displaced, files[1])); got != body {
+			t.Errorf("displaced %s holds %q, want %q", files[1], got, body)
+		}
+		want := "displaced local files: " + displaced + " holds 1\n"
+		if report := readFile(t, leafOf(stateDir).report); !strings.Contains(report, want) {
+			t.Errorf("report %q, want it to hold %q", report, want)
+		}
+		if !strings.Contains(out, want) {
+			t.Errorf("resume printed %q, want it to hold %q", out, want)
+		}
+	})
+
+	t.Run("nothing placed by hand", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, files := interruptedCopy(t, root)
+		first := filepath.Join(root, files[0])
+		before, err := os.Stat(first)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		out, err := resume(t, stateDir)
+		if err != nil {
+			t.Fatalf("resume: %v", err)
+		}
+		assertTree(t, root, files)
+		after, err := os.Stat(first)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !os.SameFile(before, after) || !after.ModTime().Equal(before.ModTime()) {
+			t.Errorf("the resume replaced %s the interrupted copy wrote: inode or modification time changed", files[0])
+		}
+		displaced := displacedPath(root, restoreStamp)
+		if _, err := os.Lstat(displaced); !errors.Is(err, fs.ErrNotExist) {
+			t.Errorf("displaced directory %s after a resume that displaced nothing: %v, want it absent", displaced, err)
+		}
+		if report := readFile(t, leafOf(stateDir).report); strings.Contains(report, "displaced local files") {
+			t.Errorf("report %q names a displaced directory, want none", report)
+		}
+		if strings.Contains(out, "displaced local files") {
+			t.Errorf("resume printed %q, naming a displaced directory, want none", out)
+		}
+	})
+}
+
 // TestCheckDisplaced is the displaced directory's ownership rule, which
 // a test not running as root can reach only by naming another uid as
 // the caller's: a directory the caller does not own is refused.

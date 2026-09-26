@@ -87,7 +87,8 @@ type RestoreConfig struct {
 
 	// IntoNonempty permits a Library restore into a root that holds
 	// files. A local file the copy replaces is moved into the sibling
-	// directory <root>.restore-displaced-<stamp>, never deleted.
+	// directory <root>.restore-displaced-<stamp>, never deleted. A
+	// resumed copy displaces the same way whether or not it is set.
 	IntoNonempty bool
 
 	// Out receives what the restore reports to the operator.
@@ -368,7 +369,8 @@ func (r restorer) advance(ctx context.Context, in store.RestoreIntent) error {
 // root, refusing one that is gone or now resolves elsewhere, but never
 // re-checks that the root is empty: the record proves the check passed
 // before any copy, and a copy this restore began and was stopped fills
-// the root itself.
+// the root itself. A resumed copy moves each local file it replaces
+// into the displaced directory, with or without --into-nonempty.
 func (r restorer) library(ctx context.Context, in store.RestoreIntent) error {
 	remote, err := ParseRemote(in.Remote)
 	if err != nil {
@@ -386,16 +388,21 @@ func (r restorer) library(ctx context.Context, in store.RestoreIntent) error {
 		return err
 	}
 
+	// A resume never ran checkRoot, and a link may have been made since
+	// the interrupted run's check.
+	if r.resumed {
+		if err := refuseSymlinks(root); err != nil {
+			return err
+		}
+	}
 	args := []string{"copy", remote.join("library"), root}
 	var displaced string
-	if in.IntoNonempty {
-		// A resume never ran checkRoot, and a link may have been made
-		// since the interrupted run's check.
-		if r.resumed {
-			if err := refuseSymlinks(root); err != nil {
-				return err
-			}
-		}
+	// A resume displaces whatever the first run's flags were: a person
+	// may have placed a file in the root between the runs. It moves none
+	// of the files the interrupted copy wrote, since rclone's copy skips
+	// a file that is identical at the destination and --backup-dir takes
+	// only a file the copy overwrites.
+	if in.IntoNonempty || r.resumed {
 		displaced = displacedPath(root, r.sess.Stamp())
 		if err := r.makeDisplaced(displaced); err != nil {
 			return err
@@ -466,7 +473,7 @@ func refuseSymlinks(root string) error {
 			return err
 		}
 		if d.Type()&fs.ModeSymlink != 0 {
-			return fmt.Errorf("%s is a symlink: a copy with --into-nonempty writes through a symlink without displacing the local file; replace the link with what it names, or remove it", quotePath(p))
+			return fmt.Errorf("%s is a symlink: a library copy writes through a symlink without displacing the local file; replace the link with what it names, or remove it", quotePath(p))
 		}
 		return nil
 	})
@@ -612,14 +619,11 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err != nil {
 		return err
 	}
-	head := "restore " + r.sess.Stamp() + "\nsource: " + sourceLine(in) + "\n"
-	if in.IntoNonempty {
-		line, err := displacedLine(displacedPath(root, r.sess.Stamp()))
-		if err != nil {
-			return err
-		}
-		head += line
+	line, err := displacedLine(displacedPath(root, r.sess.Stamp()))
+	if err != nil {
+		return err
 	}
+	head := "restore " + r.sess.Stamp() + "\nsource: " + sourceLine(in) + "\n" + line
 	path, err := r.sess.WriteReport(append([]byte(head), rep.Text()...))
 	if err != nil {
 		return err
