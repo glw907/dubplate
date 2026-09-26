@@ -626,7 +626,14 @@
     grid-template-areas: "photo form";
     width: 100%;
     max-width: 62rem;
-    min-height: 22rem;
+    /* A fixed height, not a minimum: the grid row must be definite so
+       the photo column stretches to fill it and the frame beneath can
+       resolve a real height to cover-crop against. Left as auto (via
+       min-height alone), a portrait image and a landscape image asked
+       for very different heights, since with no definite ancestor
+       height an object-fit:cover image falls back to its own intrinsic
+       aspect ratio instead of actually cropping. */
+    height: 30rem;
     border: 2px solid var(--color-base-content);
     border-radius: var(--radius-box);
     background: var(--color-base-100);
@@ -731,6 +738,7 @@
   }
   @media (max-width: 640px) {
     .login-mock {
+      height: auto;
       grid-template-columns: 1fr;
       grid-template-areas: "form" "photo";
     }
@@ -765,6 +773,25 @@
     gap: 1rem;
     padding: 0.45rem 0.2rem 0.15rem;
     text-wrap: pretty;
+  }
+
+  /* the end-of-list panel: a plain sentence, not chrome, so body type
+     rather than the mono/uppercase label style */
+  .review-end {
+    max-width: 26rem;
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .review-end p { font-size: 1.05rem; margin: 0 0 1.25rem; text-wrap: pretty; }
+  .review-end button {
+    min-height: 44px;
+    padding: 0.6rem 1.3rem;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-field);
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+    font-weight: 600;
+    box-shadow: var(--shadow-btn);
   }
 
   .review-actions {
@@ -824,9 +851,13 @@
     color: var(--color-secondary-content);
   }
   @media (max-width: 480px) {
-    .review-actions { flex-wrap: wrap; padding: 0.6rem; }
-    .review-decide { order: 1; width: 100%; }
-    .review-nav-btn { flex: 1; order: 2; }
+    /* Yes/No/Maybe become large, one-line, thumb-reachable rows; prev/next
+       shrink to small controls. DOM order (prev, decide, next) becomes
+       the top-to-bottom order, unchanged from desktop's left-to-right. */
+    .review-actions { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.6rem; }
+    .review-nav-btn { align-self: center; flex: none; min-height: 2.5rem; min-width: 2.5rem; font-size: 1rem; }
+    .review-decide { flex-direction: column; }
+    .review-decide-btn { min-height: 3.25rem; font-size: 0.85rem; }
   }
 
   [hidden] { display: none !important; }
@@ -1462,9 +1493,12 @@
     scrollFocusIntoView();
   }
 
+  // state.reviewIndex ranges 0..reviewList.length inclusive: the extra
+  // position (index === length) is the end-of-list state reached by
+  // deciding the last candidate, with no candidate of its own.
   function reviewMove(delta) {
     var next = state.reviewIndex + delta;
-    if (next < 0 || next >= state.reviewList.length) return;
+    if (next < 0 || next > state.reviewList.length) return;
     state.reviewIndex = next;
     render();
   }
@@ -1474,8 +1508,19 @@
     if (!candidate) return;
     if (state.round && state.round.closed) return; // fully refused: no write, no advance
     decide(candidate, choice);
-    if (state.reviewIndex < state.reviewList.length - 1) state.reviewIndex += 1;
+    state.reviewIndex = Math.min(state.reviewIndex + 1, state.reviewList.length);
     render();
+  }
+
+  function reviewJumpToFirstUndecided() {
+    var list = state.reviewList;
+    for (var i = 0; i < list.length; i++) {
+      if (!state.choices[list[i].source_id]) {
+        state.reviewIndex = i;
+        render();
+        return;
+      }
+    }
   }
 
   function buildLoginMock(candidate) {
@@ -1556,6 +1601,24 @@
     return frame;
   }
 
+  function buildReviewEnd(undecidedCount) {
+    var panel = mkEl("div", "review-end");
+    var p = document.createElement("p");
+    if (undecidedCount > 0) {
+      p.textContent = "End of the list. " + undecidedCount + " still undecided.";
+      panel.appendChild(p);
+      var jump = document.createElement("button");
+      jump.type = "button";
+      jump.textContent = "Review the first undecided";
+      jump.addEventListener("click", reviewJumpToFirstUndecided);
+      panel.appendChild(jump);
+    } else {
+      p.textContent = "All decided.";
+      panel.appendChild(p);
+    }
+    return panel;
+  }
+
   function renderReviewOverlay() {
     var overlay = document.getElementById("review-overlay");
     overlay.hidden = !state.reviewOpen;
@@ -1567,27 +1630,31 @@
     var undecidedCount = list.filter(function (c) {
       return !state.choices[c.source_id];
     }).length;
-    document.getElementById("review-position").textContent =
-      (idx + 1) + " of " + list.length + " " + MDOT + " " + undecidedCount + " undecided";
+    document.getElementById("review-position").textContent = candidate
+      ? (idx + 1) + " of " + list.length + " " + MDOT + " " + undecidedCount + " undecided"
+      : undecidedCount + " undecided";
 
     var closed = !!(state.round && state.round.closed);
     document.getElementById("review-closed-note").hidden = !closed;
 
     var toggle = document.getElementById("review-view-toggle");
+    toggle.hidden = !candidate;
     toggle.textContent = state.reviewView === "login" ? "Show plain photo (L)" : "Show in context (L)";
 
     var stage = document.getElementById("review-stage");
     stage.innerHTML = "";
     if (candidate) {
       stage.appendChild(state.reviewView === "login" ? buildLoginMock(candidate) : buildPlainFrame(candidate));
+    } else {
+      stage.appendChild(buildReviewEnd(undecidedCount));
     }
 
     var existing = candidate && state.choices[candidate.source_id];
     document.getElementById("review-prev").disabled = idx <= 0;
-    document.getElementById("review-next").disabled = idx >= list.length - 1;
+    document.getElementById("review-next").disabled = idx >= list.length;
     ["yes", "no", "maybe"].forEach(function (name) {
       var btn = document.getElementById("review-" + name);
-      btn.disabled = closed;
+      btn.disabled = closed || !candidate;
     });
     document.getElementById("review-yes").setAttribute("aria-pressed", existing && existing.choice === "keep" ? "true" : "false");
     document.getElementById("review-no").setAttribute("aria-pressed", existing && existing.choice === "pass" ? "true" : "false");
