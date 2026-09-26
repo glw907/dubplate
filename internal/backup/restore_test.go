@@ -1216,6 +1216,18 @@ func TestRestore_LibraryRefusals(t *testing.T) {
 			want:         "private cannot be read",
 		},
 		{
+			name: "lost+found is a symlink, with --into-nonempty",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				if err := os.Symlink(t.TempDir(), filepath.Join(dir, "lost+found")); err != nil {
+					t.Fatal(err)
+				}
+				return dir, remote
+			},
+			intoNonempty: true,
+			want:         "lost+found is a symlink",
+		},
+		{
 			name: "remote without library/",
 			arrange: func(t *testing.T, dir string) (string, string) {
 				remote, _ := snapshotRemote(t, snapshotFile(t))
@@ -1791,6 +1803,27 @@ func TestRestore_LibraryResumeDisplaced(t *testing.T) {
 		}
 	})
 
+	t.Run("lost+found made a symlink since the interrupted run", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, _ := crashAtLibrary(t, root, true)
+		link := filepath.Join(root, "lost+found")
+		if err := os.Symlink(t.TempDir(), link); err != nil {
+			t.Fatal(err)
+		}
+		bin, s := useFetchStandin(t, "", "")
+		t.Setenv("PATH", filepath.Dir(bin))
+		_, err := resume(t, stateDir)
+		if err == nil || !strings.Contains(err.Error(), link+" is a symlink") {
+			t.Fatalf("resume: %v, want a refusal naming %s as a symlink", err, link)
+		}
+		if lines := s.lines(t); len(lines) != 0 {
+			t.Errorf("the refused resume ran rclone: %q", lines)
+		}
+		if got := recordState(t, stateDir); got != "library" {
+			t.Errorf("record after the refusal %q, want library", got)
+		}
+	})
+
 	for _, tt := range []struct {
 		name  string
 		plant func(t *testing.T, p string)
@@ -1961,6 +1994,9 @@ func TestRestore_LibraryResumeWithoutIntoNonempty(t *testing.T) {
 // directory can be removed.
 func unreadable(t *testing.T, p string) {
 	t.Helper()
+	if os.Geteuid() == 0 {
+		t.Skip("skipping: root reads a mode-0 directory, so this case cannot exercise the refusal")
+	}
 	if err := os.Mkdir(p, 0); err != nil {
 		t.Fatal(err)
 	}
