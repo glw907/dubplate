@@ -467,27 +467,44 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 // same way: RELEASE finds no savepoint of the runner's name to release.
 func TestMigrate_FileEndingItsOwnTransaction(t *testing.T) {
 	tests := []struct {
-		name  string
-		file2 string
+		name   string
+		file2  string
+		wantE3 bool
 	}{
-		{name: "COMMIT then BEGIN and another table", file2: "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nBEGIN;\nCREATE TABLE e4 (a INTEGER);\n"},
-		{name: "COMMIT with nothing reopened", file2: "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\n"},
-		{name: "ROLLBACK", file2: "CREATE TABLE e3 (a INTEGER);\nROLLBACK;\n"},
+		{name: "COMMIT then BEGIN and another table", file2: "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nBEGIN;\nCREATE TABLE e4 (a INTEGER);\n", wantE3: true},
+		{name: "COMMIT with nothing reopened", file2: "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\n", wantE3: true},
+		{name: "ROLLBACK", file2: "CREATE TABLE e3 (a INTEGER);\nROLLBACK;\n", wantE3: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			l, h := newMigrateStore(t)
 			mustMigrate(t, h, l, synthSet(1), defaultOpts())
+			before := readState(t, l.dbPath)
 
 			// Not assertUnchanged: a body ending in a bare COMMIT (or
 			// COMMIT then ROLLBACK) has already persisted whatever it
 			// created before the runner's own RELEASE runs, so the
-			// schema is not the pre-apply state; only the file name and
-			// the release failure are asserted here (the plan's own
-			// reading of the mechanics probe's rows 2 to 4).
+			// schema is not the pre-apply state; the version and the
+			// ledger are still asserted unchanged, since the runner
+			// never reaches its own version write or ledger insert.
 			src := withSecond(synthSet(2), synthName(2), tt.file2)
 			err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
 			assertErrNames(t, err, synthName(2), "release savepoint")
+
+			got := readState(t, l.dbPath)
+			if got.version != before.version {
+				t.Errorf("user_version = %d, want %d unchanged: the runner never reaches its own version write", got.version, before.version)
+			}
+			if !slices.Equal(got.ledger, before.ledger) {
+				t.Errorf("ledger = %q, want %q unchanged: the runner never reaches its own ledger insert", got.ledger, before.ledger)
+			}
+			wantN := 0
+			if tt.wantE3 {
+				wantN = 1
+			}
+			if n := queryInt(t, l.dbPath, "SELECT count(*) FROM sqlite_schema WHERE type = 'table' AND name = 'e3'"); n != wantN {
+				t.Errorf("table e3 exists = %d, want %d", n, wantN)
+			}
 		})
 	}
 }

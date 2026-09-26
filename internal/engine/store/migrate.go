@@ -41,7 +41,7 @@ const sqliteErrorCode = 1
 // migration may declare a savepoint of this name: a body that runs
 // COMMIT (ending the runner's own transaction) drops the savepoint
 // with it, so RELEASE fails and applyInTx refuses the file before its
-// version write or ledger row (R-6c12). A body that reopens a
+// version write or ledger row. A body that reopens a
 // transaction and declares its own savepoint of this same name defeats
 // the check; commitMigration's "no transaction is active" branch below
 // is the only detection left for that shape.
@@ -302,7 +302,7 @@ func applyRebuild(ctx context.Context, dbPath string, m migration, busyTimeout t
 }
 
 // applyInTx runs m's statements inside tx, between SAVEPOINT and
-// RELEASE (R-6c12), then sets user_version to m's version and records m
+// RELEASE, then sets user_version to m's version and records m
 // in the ledger. The version is formatted into the statement because a
 // PRAGMA takes no bound parameter. The first failing statement ends the
 // file: a multi-statement exec stops there, and nothing after it runs.
@@ -369,11 +369,10 @@ func rollbackMigration(tx *sql.Tx, err error) error {
 // commitMigration commits tx. A COMMIT that finds no open transaction
 // after a clean apply means m ended the transaction itself, so every
 // statement after its own COMMIT, the version write and the ledger row
-// included, committed on its own: a hard error naming m. This is
-// applyInTx's RELEASE check with the runner's savepoint's own name
-// redeclared inside the body's ended-and-reopened transaction, which
-// lets RELEASE succeed on the wrong savepoint (R-6c12); this branch is
-// the only detection left for that shape.
+// included, committed on its own: a hard error naming m. A body that
+// ends the transaction and then declares a savepoint named
+// runnerSavepoint lets applyInTx's RELEASE succeed, so this branch is
+// the only detection for that shape.
 func commitMigration(tx *sql.Tx, dbPath string, m migration) error {
 	err := tx.Commit()
 	if err == nil {
