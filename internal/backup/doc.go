@@ -1,5 +1,5 @@
-// Package backup runs one backup of a library and its store to an
-// rclone remote.
+// Package backup backs up a library and its store to an rclone remote,
+// and restores them from it.
 //
 // A run syncs the library tree to library/ under the remote's path,
 // moving every file the sync would replace or delete into
@@ -18,4 +18,13 @@
 // reaches the caller alone, and inherits the backup kind lease and the
 // store lock, so a transfer that outlives its caller still keeps a
 // second backup out until it exits.
+//
+// A restore stages and verifies the incoming store, then writes the
+// store's restore-intent record before it renames any file. The record
+// names the step still owed, and a resume picks up at that step from
+// the source and library root the record names, never fetching again.
+// A library restore moves each local file its copy would replace into
+// a sibling displaced directory and never deletes one. The store a
+// restore replaces is kept as a pre-restore copy in snapshots/, which
+// no prune removes: it stays until the operator removes it by hand.
 package backup

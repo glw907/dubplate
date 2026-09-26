@@ -25,6 +25,23 @@
 // reference, like a pre-migration copy, keeps serve from creating an
 // empty store where a database file has gone missing.
 //
+// # Restores
+//
+// [OpenRestore] takes the lock for a restore and returns a
+// [RestoreSession]. Before the restore renames any file,
+// [RestoreSession.Record] writes the leaf's restore-intent record, and
+// from then on [OpenWrite] refuses the leaf until the restore removes
+// the record. The record is in one of four states, each owing one
+// step: swap ([StepSwap]), library ([StepLibrary]), reconcile
+// ([StepReconcile]), and reconcile-pending ([StepServe]).
+//
+// A resume takes up at the step its record owes. It judges the store
+// in db/ against this binary rather than the version the record
+// carries: a store below the binary's version is left
+// reconcile-pending, the one state [OpenServe] accepts, and serve
+// finishes it by migrating the store and writing the report
+// [ServeOptions.Reconcile] returns.
+//
 // # Migrations
 //
 // A migration is a SQL file named "<version>_<label>.sql", numbered
