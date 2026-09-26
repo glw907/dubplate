@@ -1000,6 +1000,11 @@ blocker.
 6. **VI is still revision 1.2**, and its ink table, focus rule, and refinement table read as
    R-5ciii3 quotes them.
 
+**At its second run, before Task 7 (refresh read, 2026-09-25):** items 1, 3, 4, and 5 run as
+written. Item 2 reads every `file:line` in Tasks 7 through 11 and in the refresh note under
+Segment D. Item 6 confirms VI is revision 1.3 (`45b80cb`), which Tasks 7 through 11 now cite.
+A later VI revision is a blocker.
+
 ---
 
 ## Segment A (5c-iii)
@@ -1456,19 +1461,106 @@ resolves; `bash scripts/check.sh` green as a formality.
 5c-iv's tasks below take the just-in-time refresh at 5c-iii's close (conductor's action 5)
 before 5c-iv's Task 0 runs; the refresh may amend any of them.
 
+**Refresh read (2026-09-25).** This read checked Tasks 7 through 11 against the tree at
+`20b4f4d`, the 5c-iii handoff (`docs/superpowers/research/handoffs/draft-HISTORY-5c-iii.md`),
+the review fold record, the three architecture reads, and VI revision 1.3. No ruled decision
+changed, and no item needs an owner ruling. The amendments, each with its reason:
+
+1. **VI citations re-pointed to revision 1.3.** `45b80cb` inserted lines above every cited
+   passage. `:304-305`→`:318-319`, `:326`→`:340`, `:131`→`:141`, `:132`→`:142`,
+   `:131-136`→`:141-146`, `:128-131`→`:138-141`, `:237`→`:247`, `:258-261`→`:268-271`,
+   `:332`→`:346`, and `:333`→`:347`. Ruling text above is ruled and keeps revision 1.2's
+   numbers. Task 0's second run checks revision 1.3.
+2. **`theme-bundle.ts:352`→`:378`** (Task 9b). The `theme-controller` refusal moved. `:352` now
+   sits in the `prefers-color-scheme` block check.
+3. **Task 7: the deck module's shape.** Node's type stripping must load it for `run.ts`
+   (measured errors quoted). Values are plain text with U+2019 apostrophes. Titles are
+   composed as state string, ` · `, then site name, which was an open reading.
+4. **Task 7: the coverage test gets a file.** It becomes `web/scripts/gates/deck-coverage.ts`, since the
+   Files list named none. It also carries L2's routed `{@html}` rule, the plain-text and
+   apostrophe checks, and the sign-out wording check. Two named mutations are added. The
+   register input is `deck.ts` itself. The Makefile lines append after `root-absolute.ts`
+   without reordering.
+5. **Task 8: `PAGES`' literal headings** (`run.ts:77-80`, `'Log in'` and `'Confirm login'`)
+   gate every existing row that opens those pages. Task 8 sources them from the deck and the
+   fixture site name.
+6. **Task 8: minted links and a live rate budget (precondition 2, the architecture read).**
+   Rows that POST set `linkRequests` and `consumptions`. The test reconciles the declared totals
+   against its own request log's POSTs and fails on a zero declared total. Two named mutations
+   are added.
+7. **Tasks 8, 9a, 9b, 10: no `.btn-outline`, `.btn-dash`, or status-modified `.btn-ghost`
+   (precondition 1).** Neither page task needs one. DaisyUI 5.7.46 paints their text from
+   `--btn-rest-fg`/`--btn-color` (quoted), so the ghost-with-status case carries the same gap.
+   Task 10's matrix guards every page state. The fix routes to rung 7 through Task 11.
+8. **Task 8: the stub copy (svelte S12, a11y S9)** is named leaving. The API helper is created
+   outright, since Task 7 creates none. The `base-300` control rule is added (a11y W8's
+   marker).
+9. **Task 9 split into 9a (the page) and 9b (the header and toggle)**, its own pre-named split.
+   The amended task would have carried six deliverables: the header, the list, the form, the
+   rows, the focus-walk changes, and the ratchet.
+10. **Task 9a: `MEMBERS_HEADING = 'Members'`** (`run.ts:864`) gates
+    `head/icon/client-navigation`, and the real page changes it. The non-admin row's 404 is read
+    from Playwright's `response` event, since `loggedRequest` records no status.
+11. **Task 9b: the swap in the focus walk, and a bounded settle (precondition 3).** The swap's
+    children transition over 0.2s (quoted), and `focusedInfo` and `settleFocusTransitions`
+    knew only `.input, .select, .textarea`. So `.swap` joins both. The wait covers the subtree
+    and races a 2s bound that names the element. Members-page focus rows are added.
+12. **Task 9b: the header halo's source order** (the `db1e111` lesson), **the header link
+    hover** (a11y S7), **the Phosphor icons' source** (inlined, MIT recorded, no dependency),
+    and **the absent-meta case**, widened to the L3 fold's `themeColorRE`.
+13. **Task 9b: the unlayered-count ratchet.** The fold record routed a11y W7's ratchet to Task
+    9's header work, and no task carried it.
+14. **Task 9b: Ruling 7's "no" branch dropped** (`inks.css` from the Files), since Ruling 7 was
+    ruled yes.
+15. **Task 10: the capture directory, the contact-sheet mechanism, and both deadlines.**
+    `.gitignore` gains `web/rendered-captures/`, since none was ignored. The sheets are
+    composed in the browser, since `png.ts` has no encoder. `renderedScriptTimeout` and
+    `RENDERED_TIMEOUT` move together. The script deadline stays below the fixture link expiry
+    (15m). A limit is raised rather than reusing a link.
+16. **Task 11: three rung 7 handoff items.** The outline and dash text fix, the fold's latent
+    items, and the favicon duplication for the cleanup pass. No 5c-iv task touches `web.go`.
+17. **Exit gate items 8 and 10, the execution table, and the dependencies** now name 9a and
+    9b. Segment D splits at Task 7 so the register gate's fold, which edits `deck.ts`, lands
+    before Task 8 on the same tree.
+
+**Models (unchanged):** Tasks 7, 8, 9a, 9b, 10, and 11 run on `sonnet` at `high`. Task 0 runs
+on `opus`. The plan specifies Task 8's I2 mechanism line by line, so it stays at `sonnet`; its
+reviewer is still the full adversarial cycle at action 8. **Deliverable counts:** 7: 4; 8: 4
+(at its limit, and the pre-named error-page split is taken on a second `fix`); 9a: 3; 9b: 4;
+10: 4; 11: 4. No task exceeds four. The split adds one chain against 5c-iv's ceiling, which
+the conductor re-derives at action 5.
+
 ## Task 7: The string deck, the AI-tells rule, and the register gate's input
 
 Model: `sonnet`.
 
 **Files:**
-- Create: `web/src/lib/copy/deck.ts`, `web/scripts/gates/ai-tells.ts`
-- Modify: `Makefile` (the rule in the `web` target)
+- Create: `web/src/lib/copy/deck.ts`, `web/src/lib/copy/title.ts` (the title helper below),
+  `web/scripts/gates/ai-tells.ts`, `web/scripts/gates/deck-coverage.ts` (the coverage test and
+  the deck's static checks)
+- Modify: `Makefile` (the two gate lines in the `web` target, appended after
+  `root-absolute.ts` in the existing `; \` chain, no existing line reordered)
+
+**The deck module's shape (refresh read).** `deck.ts` has two readers: the pages, through
+`$lib/copy/deck`, and `web/scripts/rendered/run.ts`, through a relative
+`../../src/lib/copy/deck.ts` import under Node 24's type stripping (the gate scripts already
+import `./lib.ts` this way). So the module imports nothing and uses only erasable syntax.
+Measured on this workstation's `node v24.20.0`: an `enum` fails with
+`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX: TypeScript enum is not supported in strip-only mode`, and a
+`$lib/...` import fails with `ERR_MODULE_NOT_FOUND: Cannot find package '$lib'`. Every value is
+plain text: no deck string carries `<`, `>`, or `&`, so no page needs `{@html}` to render one
+(L2). Every apostrophe is U+2019 (VI `:340`), which also retires the stub's straight apostrophe
+(a11y S9). A page `<title>` is the deck's state string, then ` · `, then the site name read
+from the served `dubplate-site-name` meta, which replaces the stubs' literal `dubplate`. The
+login heading is already the site name (VI `:318`), and a group's server carries the group's
+name. The composition lives in `title.ts`, which reads the meta as text, so `deck.ts` stays import-free.
+The register gate may reword a state string but not this form.
 
 **Outcomes:**
 - **The deck** (rung 5 spec `:1452-1460`): every user-facing string of the three pages, the
   error page, and the signed-in header, as named constants:
-  - the login subline ("Sign in with your email. We'll send you a link.", VI `:304-305`, with
-    curly apostrophes per VI `:326`);
+  - the login subline ("Sign in with your email. We'll send you a link.", VI `:318-319`, with
+    curly apostrophes per VI `:340`);
   - one line per request-link outcome (`sent`, `requested`, `unknown` with its admin contact
     and `unknown` with none, `rate_limited`, `invalid_address`, `too_large`, `malformed`,
     `failed`; `handlers.go:52-62`), the cross-origin 403, and a network failure;
@@ -1481,7 +1573,7 @@ Model: `sonnet`.
     (`admin.go:35-46`);
   - the roster list's empty state (W7.1, W7.2) and its plural-aware count (W8.4);
   - the error page's two sentences;
-  - the toggle's accessible name, "Dark theme" (VI `:131`);
+  - the toggle's accessible name, "Dark theme" (VI `:141`);
   - every page `<title>`, one per page and state where the state changes it (W7.14), in VI's
     "Sign in" register, replacing the stubs' "Log in" and "Confirm login".
 
@@ -1492,14 +1584,21 @@ Model: `sonnet`.
   `admin.go` and compares them with the deck's keys. So a parser that matches nothing cannot
   pass, the test first asserts the parsed set contains `signed_out`, `admin_not_grantable`, and
   `write_unconfirmed` and holds at least the 23 values the two files declare at `b9e281b` (11
-  in `handlers.go:52-62`, 12 in `admin.go:35-46`). Every title and the nil-contact line are
-  covered the same way.
+  in `handlers.go:52-62`, 12 in `admin.go:35-46`; both ranges re-read unchanged at `20b4f4d`).
+  Every title and the nil-contact line are covered the same way. The same script also reports
+  and fails by name in each of these cases:
+  - a deck value carrying `<`, `>`, `&`, or U+0027;
+  - a sign-out line containing "everywhere" or "revoked";
+  - any `{@html` in `web/src` (L2's routed rule: every deck consumer renders by text
+    interpolation), reported with its file and line.
+
+  It asserts a nonzero count of scanned `web/src` files before any of these checks can pass.
 - **The AI-tells rule (W12.3; W section 15: "The AI-tells rule also runs inside 5c"):** a port
   of cairn's `scripts/checks/check-admin-prose.mjs` (MIT, 285 lines; the blocking lists
   "ported verbatim from prose-guard") as a gate script scanning every string in `web/src`
   markup and literals, with a `--list` mode. It enforces no register, and it reports and
   asserts a nonzero scanned-string count.
-- **The register gate's input:** the deck's strings in one reviewable file, handed to the
+- **The register gate's input:** `deck.ts` itself, the deck's strings in one reviewable file, handed to the
   conductor's `prose-voice-reviewer` dispatch against the Microsoft editor standard (the 5c-i
   mail-copy precedent), whose findings a small fold task applies. Copy never names a mechanism
   the member cannot see, never puns (VI ruling 4), and a reject, security, or rate-limit line
@@ -1513,27 +1612,77 @@ AI-tells rule fails by name on a seeded "Moreover" and an em dash in a scratch c
 "delve" in a component string → the AI-tells rule fails. 3. Write "you have been signed out
 everywhere" → the register reviewer is asked to catch it; the deck test checks no sign-out
 line contains "everywhere" or "revoked". 4. Break the constant parser's pattern → the
-named-members assertion fails.
+named-members assertion fails. 5. Add `{@html title}` to a scratch component → the deck-coverage script
+names its file and line. 6. Put a straight apostrophe in a deck value → the deck-coverage script names
+the key.
 
-**2.0 hook: neutral.** **Deliverable count: 4** (the deck, the coverage test, the AI-tells
-rule, the register input).
+**2.0 hook: neutral.** **Deliverable count: 4** (the deck, the coverage test with the deck's
+static checks, the AI-tells rule, the register input).
 
 ---
 
 ## Task 8: The login page, the consumption interstitial, and the error page
 
-Model: `sonnet`. Depends on Task 7. **Independent of Task 9 by files except the manifest and
-`run.ts`**; Task 9's header reads the `Mark` component this task creates.
+Model: `sonnet`. Depends on Task 7. **Independent of Tasks 9a and 9b by files except the
+manifest and `run.ts`**; Task 9b's header reads the `Mark` component this task creates.
 
 **Files:**
 - Modify: `web/src/routes/login/+page.svelte`, `web/src/routes/login/link/+page.svelte`,
   `web/src/routes/+error.svelte`, `cmd/dubplate-server/rendered_test.go` (the fixture site
-  name, the manifest IDs), `web/scripts/rendered/run.ts`
-- Create: a `Mark` component under `web/src/lib/components/`; a small API helper under
-  `web/src/lib/` (R-5ciii6) if Task 7 did not
+  name, the minted links, the spend reconciliation, the manifest IDs and their counts),
+  `web/scripts/rendered/run.ts` (the new rows, and `PAGES`' declared headings)
+- Create: a `Mark` component under `web/src/lib/components/`; the API helper under
+  `web/src/lib/` (R-5ciii6). Task 7 creates none, and `web/src/lib/` holds only `styles/` and
+  `themes/` at `20b4f4d`.
+
+**Harness changes the real pages force (refresh read).**
+- **Page identity.** `run.ts` declares each page's identity as a literal `h1`:
+  `PAGES = [{ login, heading: 'Log in' }, { login-link, heading: 'Confirm login' }]`
+  (`run.ts:77-80`). Every existing row that opens either page waits for that heading:
+  first paint, `csp-clean`, `g7`, `head`, and `component/focus`. The real pages replace both
+  headings. The login `h1` is the fixture site name. The interstitial with no token shows
+  its `refused` heading. So `PAGES` takes both values from the deck module and from the
+  fixture site name, which the test passes to the script as `DUBPLATE_RENDERED_SITE_NAME`.
+  These rows must keep passing unchanged. `MEMBERS_HEADING` (`run.ts:864`) stays until Task 9a.
+- **Minted links (R-5ciii4, first built here).** The test mints each link with
+  `auth.MintLink(secret, address, now, expiry)` (`internal/auth/token.go:118`) and
+  `auth.LinkURL(publicOrigin, prefix, token)` (`:172`). It uses the fixture's own link secret
+  and link expiry, as resolved from the fixture environment, and the resolved expiry is 15m by
+  default (`cmd/dubplate-server/auth.go:113-118`). It mints one link per consumption the
+  manifest declares for each address. It passes them to the script in the fixture's own
+  variables, never through the `scriptEnvNames` allowlist.
+- **The rate budget becomes live (architecture read, `rendered_test.go:44-68, :328-353`).**
+  Every row whose browser POST reaches the server sets its counts. Each `request-link` POST
+  adds one to `linkRequests`. Each `consume-link` POST adds one to `consumptions`. The route
+  names are `cmd/dubplate-server/serve.go:42-43`. A request answered by `route.fulfill` never
+  reaches the server, so it counts zero. After the script exits, the test counts the POSTs to
+  `<prefix>/request-link` and `<prefix>/consume-link` in its own request log. It fails, naming
+  both numbers, unless each logged count equals the manifest's declared total. It still runs
+  `checkRateBudget`'s limit check first. The states and their reports:
+  - declared equals logged, and both are under every limit: passes, and logs the counts;
+  - declared differs from logged: fails with both counts and the route;
+  - declared at or over a limit: fails as it does today, naming the limit;
+  - a declared total of zero for either count: fails, naming the count, because the state
+    table's real rows always spend both. `unknown` and `failed` POST `request-link`, and the I2
+    and `signed_in` rows POST `consume-link`. So a manifest whose counts were dropped cannot
+    pass by also logging nothing.
+
+  **Fixture state:** the log is read after the script has exited, so it is complete.
+- **No outline or dash buttons, and no status-modified ghost buttons (5c-iii handoff).**
+  DaisyUI 5.7.46 paints `.btn-outline`, `.btn-dash`, and `.btn-ghost` text as
+  `color: var(--btn-rest-fg, var(--btn-color, var(--color-base-content)))`
+  (`node_modules/daisyui/components/button.css`). `components.css:172` fixes their border
+  only. So a status modifier would paint raw fill text: `label` secondary and warning measure
+  1.83:1, and `label-night` neutral measures 1.09:1. This task's secondary controls, the sent
+  moment's escape hatch among them, use an unmodified `.btn-ghost`, a `.btn-link`
+  (`components.css:223` gives it `--ink-primary`), or a `.link` with an ink modifier. The
+  existing `component/link` rows measure the last two. The text fix routes to rung 7, and Task
+  10's matrix asserts the absence on every page state.
+- **No control on `base-300`.** G9's `label-night` keyline marker (2.50:1 on `base-300`) stands
+  only while no page puts a control there (fold record, a11y W8).
 
 **Outcomes:**
-- **The login page** (rung 5 spec `:1415-1433`; VI `:258-261` under Ruling 3; W6.11, W7.14,
+- **The login page** (rung 5 spec `:1415-1433`; VI `:268-271` under Ruling 3; W6.11, W7.14,
   W7.15, W7.16): the `Mark` and the wordmark in Alfa Slab One, the site name as the `h1` over
   the label rule, the subline, a DaisyUI `fieldset` with `legend`, `label`, and `input
   type="email"` with `autocomplete="email"`, `validator` and a space-reserving
@@ -1543,7 +1692,7 @@ Model: `sonnet`. Depends on Task 7. **Independent of Task 9 by files except the 
   to the form carrying the typed address; when it unmounts the focused form, focus moves
   deliberately (W7.16). The `<title>` follows the state (W7.14). The admin contact renders as
   Svelte text only. The server's copy stays authoritative over `validator`. No theme toggle
-  (VI `:132`). The `Mark` component, built here for its first caller, picks among Task 4's
+  (VI `:142`). The `Mark` component, built here for its first caller, picks among Task 4's
   three SVGs by rendered size (56px and up large, 21 to 55 medium, 20 and below small) through
   kit's `asset()`, with empty `alt`; the wordmark text beside it carries the name.
 - **The interstitial** (rung 5 spec "Consumption"; security I2): on mount it reads `t` from
@@ -1560,6 +1709,9 @@ Model: `sonnet`. Depends on Task 7. **Independent of Task 9 by files except the 
 - **The error page:** VI's plain sentence in the identity's type and surface, no photo
   (Ruling 3).
 - **Every page carries W3.6's skip link and `<main id="main" tabindex="-1">`.**
+- **Every user-facing string on the three pages comes from the deck (svelte S12 and a11y S9,
+  routed here).** The stubs' literals leave: "Log in", "Confirm login", the error page's
+  straight-apostrophe "That page doesn't exist.", and each title's literal `dubplate`.
 
 **The outcome states (W7.15's three classes).** "Real" is produced by the fixture environment
 (R-5ciii4: the kind answer, an unreachable SMTP port); "fulfilled" is `route.fulfill` with the
@@ -1597,7 +1749,7 @@ assertively; plain status announces politely.
   region's politeness and the class match the table. After two submits, exactly one outcome
   element exists. The escape hatch returns to the form with the typed address in the field.
   After the sent moment mounts, `document.activeElement` is its heading. The `<title>` equals
-  the deck's title for each state.
+  the deck's state string, ` · `, and the fixture site name, for each state (Task 7's form).
 - The site-name heading: the fixture's `DUBPLATE_SITE_NAME` carries `"`, `<`, and `&` (at
   `example.test` scope, universal), and the `h1` text equals it literally with no element
   created from it. **Fixture state:** the served `dubplate-site-name` meta asserted present
@@ -1608,6 +1760,10 @@ assertively; plain status announces politely.
   slab and base surface with the skip link first in tab order.
 - One `h1` per page (W12.4's `h1-count`), the skip link first in tab order, and no
   `placeholder` attribute on any input.
+- Every pre-existing row that opens `login` or `login/link` still passes against the real
+  pages, reading its heading from the deck or the fixture site name, never a literal.
+- The rate budget is live: the report pastes the logged and declared `request-link` and
+  `consume-link` totals, which are equal and nonzero.
 - `bash scripts/check.sh` green, heavy lane.
 
 **Named mutations:**
@@ -1618,58 +1774,176 @@ assertively; plain status announces politely.
 4. Drop `autocomplete="email"` → a static row over the login markup fails.
 5. Map every non-`sent` answer to one generic line → the state-table rows for `failed` and
    `rate_limited` fail.
-6. Insert the site name with `{@html}` → the heading row finds an element created from it.
+6. Insert the site name with `{@html}` → Task 7's deck-coverage script names the line. With that check
+   bypassed in a scratch copy, the heading row finds an element created from it.
+7. Set the `failed` row's `linkRequests` to 0 → the reconciliation fails, naming the logged and
+   declared `request-link` totals.
+8. Lower the fixture's `renderedConsumptionAttemptsPerClient` to the declared consumption total
+   → `checkRateBudget` fails, naming that limit.
 
 **2.0 hook: neutral** (the device page will live in this app, VI and S20 `:390-396`; nothing
 here builds for it). **Pre-named split:** the error page and its rows move to their own task
 after this one. **Deliverable count: 4** (login with the `Mark` component, interstitial, error
-page, the rendered rows).
+page, the rendered rows). The rows now carry the minted links, the live budget, and the `PAGES`
+identity change. Those were already this deliverable's fixture under R-5ciii4, so the count
+holds, but the task is at its limit. On a second `fix`, take the pre-named split.
 
 ---
 
-## Task 9: The add-member page, the signed-in header, and the theme toggle
+## Task 9a: The add-member page
 
-Model: `sonnet`. Depends on Task 7, and on Task 8 for the `Mark` component. **Otherwise
-independent of Task 8 by files except the manifest and `run.ts`.**
+Taken from Task 9's pre-named split at the refresh read (2026-09-25). This task is the page body.
+Task 9b is the header and the toggle.
+
+Model: `sonnet`. Depends on Task 7, and on Task 8 for the minted-link sign-in and the live
+rate budget. **Independent of Task 8 by files except the manifest and `run.ts`.**
 
 **Files:**
-- Create: a `SiteHeader` component (mark, wordmark, nav, toggle, sign-out) under
-  `web/src/lib/components/`
-- Modify: `web/src/routes/members/+page.svelte`, `web/src/lib/styles/components.css` (the
-  header's focus treatment), `cmd/dubplate-server/rendered_test.go` (the member sign-in, the
-  manifest IDs), `web/scripts/rendered/run.ts`, and under Ruling 7's no,
-  `web/src/lib/themes/inks.css` (the header-scoped `--ink-primary`)
+- Modify: `web/src/routes/members/+page.svelte`, `cmd/dubplate-server/rendered_test.go` (the
+  admin and member sign-ins, the manifest IDs and their counts), `web/scripts/rendered/run.ts`
+  (the new rows, and `MEMBERS_HEADING`)
 
 **Outcomes:**
-- **The signed-in header (VI `:131-136`):** a neutral bar with the `Mark` and wordmark, and at
-  the right end of the nav the toggle, an icon-only DaisyUI `swap` driven by its hidden
-  checkbox (the stock mechanism, `daisyui` skill "swap" rule "Use only a hidden checkbox to
-  control the swap state"), sun and moon Phosphor bold icons (VI `:237`), accessible name "Dark
-  theme", checked when the stamp resolves dark. Every header foreground (the toggle's icons,
-  the nav links, sign-out, and the wordmark) takes `--color-neutral-content`, since
-  `base-content` on the `label` bar measures 1.00:1 (risk lens). The focus ring on the bar
-  follows Ruling 7. The swap's checkbox stays focusable but DaisyUI's `.swap input` is
-  `appearance:none; border:none` at about 7 by 12 px, so the ring moves to the control with
-  `.swap:has(> input:focus-visible)` and is suppressed on the input (W9.1's descendant path;
-  mechanics lens `pw/swap.mjs`). Choosing a state writes `__Host-dubplate_theme=label|label-night;
-  Path=/; Secure; SameSite=Lax; Max-Age=31536000` (R-5ciii9), sets `data-theme` on the document
-  element (DL R4.2: "The client changes the attribute after hydration"), and leaves exactly one
-  `theme-color` meta, without `media`, whose content is the computed `--color-neutral` (the
-  shape the server stamps for that cookie; under Ruling 10's yes, an absent meta stays absent).
-  Never a `.theme-controller` (DL R4.6; the theme-bundle gate already refuses the class,
-  `theme-bundle.ts:352`). The toggle and each nav link meet 44px (VI `:333`). A sign-out
-  control POSTs `sign-out` and returns to the login page.
 - **The roster list:** the members the API returns, each with display name, address, and
   streamer username, and a squared-outline badge marking an admin; the plural-aware count; the
   empty state. It stacks at narrow widths (W4.4, W4.6).
 - **The add-member form:** `fieldset` of address, display name, and an optional streamer
   username, no `placeholder` attributes; no control named `admin` (the spec deviation above);
   one primary submit; each roster outcome renders its specific deck line, and `added` refreshes
-  the list.
+  the list. Every string comes from the deck, and the stub's `Members` literal and title leave.
+  The secondary-control rule and the `base-300` rule from Task 8 apply.
 - **A non-admin reaching the page by client navigation** (R-5cii19) sees the not-found
   sentence, no roster, and no add form, since the API's GET answers the terminator's 404. The
   task names the mechanism (in-page copy from the deck, or kit's `error(404)` from a
   client-side load, quoting kit's documentation for it).
+- **The client-navigation row's identity (refresh read).** `head/icon/client-navigation` opens
+  `login/link` unauthenticated and follows a link to `../members`. Its landing check is
+  `MEMBERS_HEADING = 'Members'` (`run.ts:864`), and the stub shows that heading to anyone.
+  Once this page renders the not-found state for a session-less visitor, the row's target
+  heading is that state's deck heading. Its prefix and icon assertions stay unchanged.
+
+**Acceptance criteria (rendered, both schemes):**
+- An add with a fresh address shows `added` and the list grows by one; a repeat shows
+  `duplicate_address`; the fixture roster file on disk shows the write (real API). The add form
+  holds no control named `admin` (DOM query), and the intercepted POST body's key set is a
+  subset of `address`, `display_name`, `streamer_username`. **Fixture state:** the signed-in
+  admin from a real consumed link, and the list populated with the fixture roster's two members
+  before the add.
+- The non-admin row: sign the fixture member in through a minted link; on the hydrated
+  interstitial showing `signed_in`, inject `<a href="../members">` through `page.evaluate` and
+  click it. **Fixture state, from two sources.** The Go request log holds no document request
+  for `members` and one roster `GET`. That log records method, path, query, and headers but no
+  status (`loggedRequest`, `rendered_test.go:164-169`). So the 404 is read from Playwright's
+  `response` event for that `GET`. Together they prove a client navigation to a refused
+  roster. Then the not-found sentence is visible, no element contains the admin's fixture
+  address, and no `form`, `fieldset`, or roster list renders.
+- Every manifest row this task adds declares its `linkRequests` and `consumptions`, and Task
+  8's reconciliation stays equal.
+- `head/icon/client-navigation` passes against the real page.
+- `bash scripts/check.sh` green, heavy lane.
+
+**Named mutations:**
+1. Render the roster from a cached copy after a 404 → the non-admin row finds an address.
+2. Add an `admin` checkbox → the DOM query for a control named `admin` fails (an unchecked box
+   is not submitted, so the API refusal alone would never see it).
+3. Leave `MEMBERS_HEADING` at `'Members'` → `head/icon/client-navigation` fails its identity
+   wait.
+
+**2.0 hook: neutral.** `streamer_username` stays optional per R-5c13 until rung 12.
+**Deliverable count: 3** (the list, the form with the non-admin state, the rendered rows).
+
+---
+
+## Task 9b: The signed-in header and the theme toggle
+
+Taken from Task 9's pre-named split at the refresh read (2026-09-25).
+
+Model: `sonnet`. Depends on Task 8 for the `Mark` component and on Task 9a for the members page
+it mounts on. Its Files overlap Task 9a's only in the manifest, `run.ts`, and the members page.
+
+**Files:**
+- Create: a `SiteHeader` component (mark, wordmark, nav, toggle, sign-out) under
+  `web/src/lib/components/`, with the two Phosphor bold icons (`sun`, `moon`) inlined as SVG.
+  Their path data comes from a pinned Phosphor release tag. The tag, the source URLs, and
+  Phosphor's MIT license text are recorded in `web/src/lib/components/PHOSPHOR.md`. No npm
+  dependency is added.
+- Create: `web/scripts/gates/unlayered-count.ts`
+- Modify: `web/src/routes/members/+page.svelte` (mounts the header),
+  `web/src/lib/styles/components.css` (the header's halo and hover), `Makefile` (the
+  ratchet's line, appended after Task 7's), `cmd/dubplate-server/rendered_test.go` (the
+  manifest IDs and their counts), `web/scripts/rendered/run.ts` (the toggle and header rows,
+  the members focus rows, and the focus walk's swap and settle changes)
+
+Ruling 7 was ruled yes, so the "under Ruling 7's no" `inks.css` entry is gone.
+
+**Outcomes:**
+- **The signed-in header (VI `:141-146`):** a neutral bar with the `Mark` and wordmark, and at
+  the right end of the nav the toggle, an icon-only DaisyUI `swap` driven by its hidden
+  checkbox (the stock mechanism, `daisyui` skill "swap" rule "Use only a hidden checkbox to
+  control the swap state"), sun and moon Phosphor bold icons (VI `:247`), accessible name "Dark
+  theme", checked when the stamp resolves dark. Every header foreground (the toggle's icons,
+  the nav links, sign-out, and the wordmark) takes `--color-neutral-content`, since
+  `base-content` on the `label` bar measures 1.00:1 (risk lens). Sign-out is an unmodified
+  `.btn-ghost` or a link (Task 8's secondary-control rule). The swap's checkbox stays
+  focusable but DaisyUI's `.swap input` is
+  `appearance:none; border:none` at about 7 by 12 px, so the ring moves to the control with
+  `.swap:has(> input:focus-visible)` and is suppressed on the input (W9.1's descendant path;
+  mechanics lens `pw/swap.mjs`). Choosing a state writes `__Host-dubplate_theme=label|label-night;
+  Path=/; Secure; SameSite=Lax; Max-Age=31536000` (R-5ciii9), sets `data-theme` on the document
+  element (DL R4.2: "The client changes the attribute after hydration"). If the document
+  carries a `theme-color` meta, it then leaves exactly one, without `media`, whose content is
+  the computed `--color-neutral`. That is the shape the server stamps for that cookie.
+  If the document carries none, it writes none. The server omits the meta in two cases: Ruling
+  10's functional-color branding, and the L3 fold's branding neutral outside `themeColorRE`
+  (`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`, `cmd/dubplate-server/web.go:50`, `:581`).
+  Never a `.theme-controller` (DL R4.6). The theme-bundle gate already refuses any
+  `theme-controller` reference in `web/src` (`theme-bundle.ts:378-381`). The toggle and each
+  nav link meet 44px (VI `:347`). A sign-out control POSTs `sign-out` and returns to the login
+  page.
+- **The header halo (Ruling 7, ruled yes; VI rev 1.3 `:120-124`).** The header controls'
+  `:focus-visible` state takes `box-shadow: 0 0 0 6px var(--color-base-100)` under the 2px
+  `--ink-primary` outline. The rule sits after every `box-shadow` rule a header focusable
+  carries, at no lower specificity. The flat-button rule at `components.css:203-211` is one
+  of them, since it sets `box-shadow: none` on `.btn-ghost`. This follows the 5c-iii fold's
+  `db1e111` lesson: two rules that tie on specificity are decided by source order alone.
+- **The header link hover (a11y S7, routed here; VI `:347`).** Header nav links get a hover
+  state. Its painted text keeps 4.5:1 against the bar.
+- **The focus walk learns the swap, and its settle wait gets a bound (the 5c-iii handoff's
+  precondition).** Two functions pick the wrapper that carries a control's ring:
+  `focusedInfo` (`run.ts:1343`) and `settleFocusTransitions` (`run.ts:1367`). Both use
+  `el.parentElement?.closest('.input, .select, .textarea')`, and both add `.swap`. Otherwise
+  the walk reads the toggle's ring on the 7-by-12 input and misses it. DaisyUI 5.7.46's swap
+  CSS gives every `.swap > *`, the input included, a 0.2s transition on `transform, rotate,
+  opacity` (`node_modules/daisyui/components/swap.css`). That makes this the first task to put
+  an animation in a focusable's subtree. So `settleFocusTransitions` waits on
+  `wrapper.getAnimations({ subtree: true })`, whose option `lib.dom.d.ts:1204-1206` declares
+  as `GetAnimationsOptions { subtree?: boolean }`. It races each wait against a bound of 2s
+  (ten times DaisyUI's 0.2s). The states and their reports:
+  - no animation: returns at once;
+  - every animation settles, or is cancelled so `finished` rejects: returns, as today;
+  - an animation still running at the bound (an infinite animation never settles): the row
+    fails, naming the element's label and each pending animation's property or name. It never
+    waits out the script's 300s deadline.
+- **The focus rows cover the members page.** `component/focus/members/<state>` covers the four
+  states the existing focus rows use (`label`, `label-night`, `system-light`,
+  `system-dark`). Each runs on a signed-in admin context. The rows may reuse one real consumed
+  session's cookie across contexts. Each row declares the consumptions it spends.
+- **The unlayered-count ratchet (W5.8, W12's `unlayered-count` row).** The fold record routed
+  this to Task 9's header work (a11y W7). The script scans every authored `web/src/**/*.css`.
+  It lists each style rule outside every `@layer` block, keyed by its whole selector and its
+  enclosing at-rule. It compares that list for equality with a pinned list in the script.
+  Today the pinned list is one entry: `*, ::before, ::after` under `@media
+  (prefers-reduced-motion: reduce)` in `daisyui-overrides.css`. `@font-face` is an at-rule,
+  not a style rule, and is outside its subject. Svelte `<style>` blocks are also outside its
+  subject: they are scoped by W5.7, and `unlayered-font-clobber` governs them. The states and
+  their reports:
+  - equal: passes, and prints the count;
+  - an unpinned rule: fails, naming the file, line, and selector;
+  - a pinned entry no longer found: fails, naming it, because the ratchet is stale;
+  - zero files scanned: fails.
+
+  If the halo must be unlayered to win, the entry joins the pinned list in the same commit,
+  with its forcing reason. Otherwise the list stays at one.
 
 **Acceptance criteria (rendered, both schemes):**
 - The toggle, from four starts, each asserted before the click: `system` under light emulation
@@ -1677,39 +1951,38 @@ independent of Task 8 by files except the manifest and `run.ts`.**
   cookie `label` (unchecked; writes `label-night`), cookie `label-night` (checked; writes
   `label`). After each click, the context's `cookies()` holds exactly the chosen value with an
   `expires` about a year out; the attribute changed; the one `theme-color` meta reads `#1f1b16`
-  for `label` or `#110f0d` for `label-night` (VI `:128-131`); and a reload's served bytes carry
+  for `label` or `#110f0d` for `label-night` (VI `:138-141`); and a reload's served bytes carry
   the matching stamp. **Fixture state:** the signed-in admin from a real consumed link.
-- The header: each foreground's painted contrast against the bar is 3:1 or better; the toggle
-  and each nav link measure 44px or more (VI `:333`, Ruling 8); the focus row (Task 5) covers
-  every header control, its ring box contains the toggle's icon box, and its two samples clear
-  3:1 in the header under Ruling 7's answer. Ruling 4's row: the toggle is present, and no
-  icon-only control carries a primary fill.
-- An add with a fresh address shows `added` and the list grows by one; a repeat shows
-  `duplicate_address`; the fixture roster file on disk shows the write (real API). The add form
-  holds no control named `admin` (DOM query), and the intercepted POST body's key set is a
-  subset of `address`, `display_name`, `streamer_username`.
-- The non-admin row: sign the fixture member in through a minted link; on the hydrated
-  interstitial showing `signed_in`, inject `<a href="../members">` through `page.evaluate` and
-  click it. **Fixture state:** the Go request log holds no document request for `members` and
-  one roster `GET` answered 404, proving a client navigation. Then the not-found sentence is
-  visible, no element contains the admin's fixture address, and no `form`, `fieldset`, or
-  roster list renders.
+- The header: each foreground's painted contrast against the bar is 3:1 or better. The toggle
+  and each nav link measure 44px or more (VI `:347`, Ruling 8). The members focus rows cover
+  every header control by identity. The toggle's ring sits on `.swap` with none on its input,
+  and the ring box contains the toggle's icon box. Its two samples read the `base-100` halo at
+  3:1 or better: 6.12:1 on `label` and 6.34:1 on `label-night`, per Ruling 7. Ruling 4's row:
+  the toggle is present, and no icon-only control carries a primary fill. A hovered header
+  link's text paints at 4.5:1 or better on the bar.
+- The unlayered-count script passes the tree and fails on each seed below.
+- Every manifest row this task adds declares its counts, and Task 8's reconciliation stays
+  equal.
 - `bash scripts/check.sh` green, heavy lane.
 
 **Named mutations:**
 1. Use `.theme-controller` on the checkbox → the theme-bundle gate fails.
 2. Write the cookie without `Secure` → the browser refuses a `__Host-` cookie, and the reload
    row finds the old stamp.
-3. Render the roster from a cached copy after a 404 → the non-admin row finds an address.
-4. Add an `admin` checkbox → the DOM query for a control named `admin` fails (an unchecked box
-   is not submitted, so the API refusal alone would never see it).
-5. Drop `Max-Age` → the `cookies()` row finds a session cookie.
-6. Set the toggle's icons in `base-content` → the header contrast row fails on `label`.
+3. Drop `Max-Age` → the `cookies()` row finds a session cookie.
+4. Set the toggle's icons in `base-content` → the header contrast row fails on `label`.
+5. Move the halo rule above the flat-button rule → the members focus row's outer sample reads
+   the bar at about 2.34:1 on `label`.
+6. Remove `.swap` from `focusedInfo`'s wrapper list → the toggle's focus row reports a ring
+   missing from its input.
+7. Give the toggle's icon an infinite CSS animation in a scratch copy → the focus row fails
+   within the 2s bound, naming the element, rather than hanging to the 300s deadline.
+8. Add an unlayered `.btn {}` rule to a scratch copy of `components.css` → the ratchet names its
+   file, line, and selector.
 
 **2.0 hook: neutral.** Hook 5 (the stable identity) is untouched: the toggle's cookie carries
-no identity (W section 15), and `streamer_username` stays optional per R-5c13 until rung 12.
-**Pre-named split:** the header and the toggle with their rows move to their own task after
-this one. **Deliverable count: 4** (the header with the toggle, the list, the form, the
+no identity (W section 15). **Deliverable count: 4** (the header with the toggle, its halo, and
+its hover; the focus walk's swap, bound, and members rows; the unlayered-count ratchet; the
 rendered rows).
 
 ---
@@ -1721,10 +1994,37 @@ rendered rows).
 Model: `sonnet` for the capture; the read is the conductor's dispatch.
 
 **Files:**
-- Modify: `cmd/dubplate-server/rendered_test.go` (the capture manifest, the link count),
-  `web/scripts/rendered/run.ts` (the capture matrix and the two floors)
+- Modify: `cmd/dubplate-server/rendered_test.go` (the capture manifest, the link count,
+  `renderedScriptTimeout`, and the fixture limits if the spend needs them),
+  `web/scripts/rendered/run.ts` (the capture matrix and the two floors), `Makefile`
+  (`RENDERED_TIMEOUT`), `.gitignore` (the capture directory)
 - Create: `docs/superpowers/research/2026-09-25-rung-5c-iv-render-and-read.md` (the reader's
   findings, committed by the conductor)
+
+**Refresh read (2026-09-25).**
+- **The capture directory.** No ignored capture directory exists at `20b4f4d`. `.gitignore`
+  ignores `/web/build/*` and `/web/node_modules/`, and `web/` has no `.gitignore`. So this task
+  names one, `web/rendered-captures/`, and ignores it.
+- **The contact sheets** are composed in the browser. The harness loads a local page of the
+  captures as `<img>` elements and screenshots it. `web/scripts/rendered/png.ts` exports a
+  decoder only, with no encoder, and no image dependency is added.
+- **Both deadlines move together.** The script's own deadline is `renderedScriptTimeout = 300
+  * time.Second` (`rendered_test.go:36`). The test binary's is `RENDERED_TIMEOUT := 7m`
+  (`Makefile`). The script deadline goes to at least twice the measured wall time, and
+  `RENDERED_TIMEOUT` stays above it plus the missing-browser run. The report pastes both
+  values and the measurement.
+- **Link expiry and the budget.** Links are minted before the script starts. The fixture's link
+  expiry resolves to 15m by default (`auth.go:113-118`). So the test fails, naming both
+  durations, unless `renderedScriptTimeout` is below the resolved expiry. It never lets a
+  late capture meet an expired link. The capture spend runs through Task 8's live budget. The
+  six signed-in states at ten cells each consume about 60 links, and the Task 8 and 9 rows add
+  more, against a per-client consumption limit of 100 (`rendered_test.go:47-50`). If the
+  declared total reaches a limit, the task raises that fixture limit and reports the new value.
+  It never reuses one link across captures.
+- **The secondary-control guard (the 5c-iii handoff's outline and dash precondition).** Every
+  capture's fixture step also asserts that no element matches `.btn-outline`, `.btn-dash`, or a
+  `.btn-ghost` carrying a status modifier. A match fails the capture, naming the element and
+  the state. The text-color fix for those classes routes to rung 7 (Task 11's handoff).
 
 **Outcomes:**
 - **The capture matrix:** fifteen page states, each at 320, 390, 768, 1440, and 2560 CSS
@@ -1753,12 +2053,14 @@ Model: `sonnet` for the capture; the read is the conductor's dispatch.
   of the changed cells precedes Geoff's look.
 
 **Acceptance criteria:** the manifest holds the fifteen states and the run reports 150 captures,
-each with its fixture state asserted; the overflow floor fails by name on a seeded 400px-wide
+each with its fixture state asserted; a scratch `.btn-outline` on the login page fails the
+secondary-control guard by name; the overflow floor fails by name on a seeded 400px-wide
 element and the touch floor on a seeded 20px control, each passing the real tree; the reader's
 report lists all 60 native cells and all 90 sheet cells (the fifteen states at 320, 768, and
 2560 in both schemes), and its verdict is accept or its accepted findings are folded,
 re-captured, and re-read; `bash scripts/check.sh` green, heavy lane, with the `-timeout` reset
-to at least twice the measured wall time.
+to at least twice the measured wall time; Task 8's reconciliation equal with the capture spend
+included.
 
 **2.0 hook: neutral.** **Deliverable count: 4** (the matrix, the overflow floor, the touch
 floor, the read and its fold).
@@ -1767,14 +2069,24 @@ floor, the read and its fold).
 
 ## Task 11: The 5c-iv close
 
-Model: `sonnet`. As Task 6, over Tasks 7 through 10: the HISTORY and STATUS drafts, the
+Model: `sonnet`. As Task 6, over Tasks 7, 8, 9a, 9b, and 10: the HISTORY and STATUS drafts, the
 errata (the rung 5 spec's 5c row closed; W section 15's rendered and AI-tells lines as
 landed; any erratum the refresh read or the reviews added), and the handoff to 5d (the
 `deploy.sh` clean-build row now includes the rendered leg's absence on the box, since nothing
 Node or Playwright ships) and to rung 7 (Ruling 5's four items, the photo column under Ruling
 3, W12.4's remaining rules, W4.10's 44px promotion question, and both palettes' placeholder
-opacity: VI `:332`'s 62% on `label`, which no 5c page consumes, and `label-night`'s, which VI
-leaves at DaisyUI's default of 4.38:1 on base-100 per the risk lens).
+opacity: VI `:346`'s 62% on `label`, which no 5c page consumes, and `label-night`'s, which VI
+leaves at DaisyUI's default of 4.38:1 on base-100 per the risk lens). The refresh read adds
+three items to the rung 7 handoff:
+- the outline, dash, and status-ghost text fix: DaisyUI's `--btn-rest-fg`/`--btn-color` text,
+  with `components.css:172` fixing only the border, and a text-contrast rendered row that
+  covers `.btn-dash` as well as `.btn-outline`;
+- the 5c-iii fold's latent items: the ink border over DaisyUI's hover fill on outline buttons,
+  a wrapped `<label class="input">` in a status alert taking the halo on its inner input, and
+  root-absolute's `srcset` pattern matching a base64 data URI that starts with `/`;
+- the favicon paths named twice (`web.go:295-298`, `:485-488`), for the architecture cleanup
+  pass, since no 5c-iv task touches `web.go`.
+
 **Deliverable count: 4.**
 
 ---
@@ -1799,11 +2111,11 @@ proving task.
    carry `noindex, nofollow`; no request leaves the prefix, including after a client
    navigation, and none goes to `/favicon.ico`; no root-absolute URL ships (Task 4).
 8. Every tabbable element on every served page shows the 2px `--ink-primary` ring at a 2px
-   offset, at 3:1 or better against its adjacent pixels (Tasks 5 and 9).
+   offset, at 3:1 or better against its adjacent pixels (Tasks 5 and 9b).
 9. The interstitial drops the token before any request, keeps it out of every request, and
    spends it only on a click (Task 8).
 10. The toggle writes a persistent cookie, the meta follows, and the next render stamps it; a
-    non-admin sees no roster and no add form (Task 9).
+    non-admin sees no roster and no add form (Tasks 9b and 9a).
 11. Every deck line exists for every outcome and title; the AI-tells rule and the register gate
     pass (Task 7).
 12. Every page state rendered at five widths in both schemes, floors green, read and folded
@@ -1828,7 +2140,7 @@ palettes' placeholder opacity.
 | `cmd/dubplate-server/web.go`, `serve.go`, their tests | rung 5 | Tasks 1, 3a, 4 | 6b-ii's lane 2 writes `cmd/dubplate-server/restore.go` and `main.go`, disjoint files in the same package |
 | `cmd/dubplate-server/rendered_test.go` (new) | rung 5 | Task 3a onward | none |
 | `internal/serve/document.go` | rung 5 | Task 4 | none |
-| `Makefile`, `scripts/check.sh`, `CLAUDE.md` gate paragraph | shared | Tasks 1, 3a, 4, 7 | **after Task 3a lands, every full gate on every lane launches Chromium and needs `npm ci --prefix web` plus Playwright's browsers**, and runs heavy. 6b-ii's `--scope-changed` gates stay browser-free (its files are outside the trigger set), but its merge ritual's full gates do not; the conductor tells 6b-ii's conductor through the registry |
+| `Makefile`, `scripts/check.sh`, `CLAUDE.md` gate paragraph | shared | Tasks 1, 3a, 4, 7, 9b, 10 | **after Task 3a lands, every full gate on every lane launches Chromium and needs `npm ci --prefix web` plus Playwright's browsers**, and runs heavy. 6b-ii's `--scope-changed` gates stay browser-free (its files are outside the trigger set), but its merge ritual's full gates do not; the conductor tells 6b-ii's conductor through the registry |
 | `go.mod`, `go.sum` | shared | untouched | none |
 | `docs/` ledgers | conductor | Tasks 6 and 11 draft only | every lane |
 
@@ -1884,7 +2196,8 @@ gate, with one re-dispatch on `fix` and a second `fix` as the conductor's decisi
 | **B** | 3a, 3b | STATUS. The registry line to 6b-ii after 3a merges. |
 | **C** | 4, 5 | STATUS. The simplifier, the three reviewers, the fold. |
 | **Close** | 6 | The 5c-iii close; the architecture reads; the ledger fold; the refresh read of Tasks 7 through 11 and its fold. |
-| **D** | 7, 8, 9 | 5c-iv's Task 0 first. STATUS. The register gate after Task 7. |
+| **D-i** | 7 | 5c-iv's Task 0 first. STATUS. The register gate after Task 7 and its fold, which edits `deck.ts`, so it lands before Task 8 starts on the same tree (refresh read). |
+| **D-ii** | 8, 9a, 9b | STATUS. |
 | **E** | 10, 11 | The read, its fold, and the re-read; the simplifier; the reviewers; the close. |
 
 Each boundary sits on a task's own green committed gate.
@@ -1901,9 +2214,11 @@ Task 3a (the harness's refusal set) and Task 4 (operator text into markup). Task
   runs one executor.
 - Tasks 1 through 5, the simplifier, and the reviews → Task 6.
 - Task 6 → the refresh read → 5c-iv's Task 0 → Task 7.
-- Task 7 → Task 8 → Task 9. **Tasks 8 and 9 are independent by files except the manifest,
-  `run.ts`, and the `Mark` component Task 8 creates and Task 9's header reads.**
-- Tasks 8 and 9 → Task 10 → the reviews → Task 11.
+- Task 7 → the register gate and its fold → Task 8 → Task 9a → Task 9b. **Tasks 8, 9a, and 9b
+  are independent by files except the manifest, `run.ts`, the members page (9a and 9b), and
+  the `Mark` component Task 8 creates and Task 9b's header reads.** Task 9a needs Task 8's
+  minted-link sign-in and live budget.
+- Tasks 8, 9a, and 9b → Task 10 → the reviews → Task 11.
 
 **Where this pass splits further, if it must:** at the Task 4 / Task 5 boundary, if segment
 C's re-derivation projects past the flag. Task 5 then opens 5c-iv, since Tasks 8 and 9 are its
