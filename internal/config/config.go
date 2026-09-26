@@ -14,10 +14,10 @@
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class and rung, never "unknown". The
-//     classes are backup targets (rung 6), intake (rung 7), pipeline
-//     (rung 9), monitoring (rung 9), decision and review queues
-//     (rung 13), and the streamer (rung 12). See [ReservedClasses]
-//     for the exact membership.
+//     classes are intake (rung 7), pipeline (rung 9), monitoring
+//     (rung 9), decision and review queues (rung 13), and the
+//     streamer (rung 12). See [ReservedClasses] for the exact
+//     membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
 //     required at Load once the flag is set, and its Optional rows
@@ -25,7 +25,7 @@
 //     Setting a Required or Optional row without its flag enabled is
 //     a load error naming the flag. See [Registry.IntegrationClasses]
 //     for the exact membership; the owning package registers its own
-//     class (rung 4's shadow class, for example).
+//     class (the shadow and backup classes, for example).
 //  4. Superseded: a pre-pivot name with no meaning here. Load errors
 //     naming the replacement, or, for a capability the greenfield
 //     server drops outright (the estate's beets config, the
@@ -45,19 +45,19 @@
 //     plugin-list regression: an unrecognized key refuses the start
 //     rather than degrading it.
 //
-// A behavior tunable a rung registers as a [Threshold] is the one
-// declared name outside those six: rejectNamespace accepts it because
-// the rung that uses it declared it, and it resolves at its point of
-// use rather than at Load. [thresholdOf]'s "fifth classification"
-// counts the lookups rejectNamespace consults, not the classes
-// numbered here.
+// Two kinds of declared name sit outside those six, and rejectNamespace
+// accepts both without parsing their values. A behavior tunable a rung
+// registers as a [Threshold] resolves from the environment at its point
+// of use. A store-homed key a rung registers as a [Setting] lives in
+// the store, and its environment value is only a seed that the seed
+// evaluation parses and bounds; this package never reads it.
 //
-// Every declaration above -- the owned wall, the reserved classes, the
+// Every declaration above (the owned wall, the reserved classes, the
 // adopter-optional integrations, the identity sources, the superseded
-// names, plus the behavior tunables a rung registers as it lands --
-// lives in one [Registry] a caller assembles and passes to [Load].
-// [NewRegistry] returns a registry already seeded with rung 1's own
-// rows; rung 1 registers no threshold and no identity source.
+// names, the thresholds, and the settings with the correlated rules
+// over them) lives in one [Registry] a caller assembles and passes to
+// [Load]. [NewRegistry] returns a registry already seeded with rung 1's
+// own rows; rung 1 registers no threshold, identity source, or setting.
 package config
 
 import (
@@ -322,6 +322,12 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			// Parse* call resolves and validates it at the point of
 			// use. Flagging it here would make a binary refuse the
 			// very tunable it registered.
+			continue
+		}
+		if settingOf(reg, name) {
+			// A store-homed setting's environment value is only a
+			// seed: the seed evaluation parses and bounds it, and
+			// reports what it refuses, so Load must not parse it.
 			continue
 		}
 		w.errs = append(w.errs, fmt.Errorf("%s: unknown configuration key", name))

@@ -10,8 +10,9 @@ import (
 )
 
 // Registry holds every declaration a rung contributes to the config
-// wall: owned wall rows, reserved classes, integration classes, and
-// thresholds, plus the superseded-name map. [NewRegistry] returns a
+// wall: owned wall rows, reserved classes, integration classes,
+// thresholds, identity sources, and store-homed settings with the
+// correlated rules over them, plus the superseded-name map. [NewRegistry] returns a
 // fresh value already carrying rung 1's own declarations; a rung whose
 // package exists registers its own from there.
 //
@@ -37,6 +38,8 @@ type Registry struct {
 	integrationClasses []IntegrationClass
 	thresholds         []Threshold
 	identitySources    []IdentitySource
+	settings           []Setting
+	correlatedRules    []CorrelatedRule
 	superseded         map[string]string
 
 	// claims tracks every key claimed so far to the name of the
@@ -79,7 +82,7 @@ func NewRegistry() *Registry {
 	return r
 }
 
-// familyOwnedWall through familySuperseded name the six declaration
+// familyOwnedWall through familySettings name the seven declaration
 // families a key can belong to, for the collision panic's message.
 const (
 	familyOwnedWall      = "owned wall"
@@ -88,6 +91,7 @@ const (
 	familyThresholds     = "thresholds"
 	familyIdentitySource = "identity sources"
 	familySuperseded     = "superseded names"
+	familySettings       = "settings"
 )
 
 // panicDuplicate panics reporting that key, already declared in
@@ -446,6 +450,80 @@ func identitySourceKey(reg *Registry, name string) bool {
 		}
 	}
 	return false
+}
+
+// AddSetting registers s as a store-homed key. Its key claims across
+// families like every other, so a setting that collides with a
+// threshold, a wall row, a class key, an identity source key, or a
+// superseded name panics naming both families.
+//
+// Registration builds s's validator from its bounds and panics on a
+// declaration that could never be read: a kind with no bounded
+// parser, a bound that does not parse or a floor above the ceiling, a
+// default that does not parse or falls outside the bounds, or an apply
+// mode left at its zero value or set to one no one named.
+func (r *Registry) AddSetting(s Setting) {
+	requirePrefix(familySettings, s.Key)
+	if settingOf(r, s.Key) {
+		panicDuplicate(s.Key, familySettings, familySettings)
+	}
+	switch {
+	case s.Apply == 0:
+		panic(fmt.Sprintf("%s: setting declared with no apply mode", s.Key))
+	case s.Apply > ApplyRestart:
+		panic(fmt.Sprintf("%s: unnamed apply mode %v", s.Key, s.Apply))
+	}
+	s.validate = buildValidator(s)
+	if err := s.validate(s.Default); err != nil {
+		panic(fmt.Sprintf("%s: invalid default %q: %v", s.Key, s.Default, err))
+	}
+	r.claim(familySettings, s.Key)
+	r.settings = append(r.settings, s)
+}
+
+// Settings returns the registered settings in declaration order, each
+// carrying the validator [Registry.AddSetting] built for it.
+func (r *Registry) Settings() []Setting {
+	return slices.Clone(r.settings)
+}
+
+// AddCorrelatedRule registers rule as a check over two or more
+// registered settings. A rule naming a key that is not a registered
+// setting panics naming it, a wall threshold included: a threshold
+// resolves from the environment at its point of use, never through
+// the seed evaluation that runs these rules.
+func (r *Registry) AddCorrelatedRule(rule CorrelatedRule) {
+	if rule.Name == "" {
+		panic("correlated rule declared with an empty Name")
+	}
+	if slices.ContainsFunc(r.correlatedRules, func(existing CorrelatedRule) bool { return existing.Name == rule.Name }) {
+		panic(fmt.Sprintf("correlated rule %q already declared", rule.Name))
+	}
+	if len(rule.Keys) < 2 {
+		panic(fmt.Sprintf("correlated rule %q names %d keys, want two or more", rule.Name, len(rule.Keys)))
+	}
+	if rule.Check == nil {
+		panic(fmt.Sprintf("correlated rule %q declared with no Check", rule.Name))
+	}
+	for i, key := range rule.Keys {
+		if slices.Contains(rule.Keys[:i], key) {
+			panic(fmt.Sprintf("correlated rule %q names %s more than once", rule.Name, key))
+		}
+		if settingOf(r, key) {
+			continue
+		}
+		if family, ok := r.claims[key]; ok {
+			panic(fmt.Sprintf("%s: correlated rule %q names a key that is not a registered setting, declared in %s", key, rule.Name, family))
+		}
+		panic(fmt.Sprintf("%s: correlated rule %q names a key that is not a registered setting", key, rule.Name))
+	}
+	r.correlatedRules = append(r.correlatedRules, rule)
+}
+
+// CorrelatedRules returns the registered correlated rules in
+// declaration order.
+func (r *Registry) CorrelatedRules() []CorrelatedRule {
+	return slices.Clone(r.correlatedRules)
 }
 
 // AddSuperseded registers name as a pre-pivot key with no meaning in

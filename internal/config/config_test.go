@@ -265,6 +265,15 @@ func classificationRegistry() *Registry {
 		Selector: "DUBPLATE_CLASSIFY_SELECTOR",
 		Required: []string{"DUBPLATE_CLASSIFY_SOURCE_KEY"},
 	})
+	reg.AddSetting(Setting{
+		Key:     "DUBPLATE_CLASSIFY_SETTING",
+		Kind:    KindInt,
+		Default: "14",
+		Doc:     "an integer",
+		Apply:   ApplyNextOperation,
+		Floor:   "3",
+		Ceiling: "1000",
+	})
 	return reg
 }
 
@@ -282,7 +291,7 @@ func classificationEnviron() []string {
 	)
 }
 
-// TestClassificationFamilies proves the six classification helpers
+// TestClassificationFamilies proves the seven classification helpers
 // rejectNamespace consults each answer for their own family's names
 // and for no other's, and that a name declared in none of them
 // classifies as unknown.
@@ -302,6 +311,7 @@ func TestClassificationFamilies(t *testing.T) {
 		superseded  = "superseded"
 		integration = "integration"
 		threshold   = "threshold"
+		setting     = "setting"
 		source      = "source"
 		unknown     = "unknown"
 	)
@@ -319,6 +329,7 @@ func TestClassificationFamilies(t *testing.T) {
 		{name: "integration required key", key: "DUBPLATE_CLASSIFY_REQUIRED", want: integration},
 		{name: "integration optional key", key: "DUBPLATE_CLASSIFY_OPTIONAL", want: integration},
 		{name: "registered threshold", key: "DUBPLATE_CLASSIFY_THRESHOLD", want: threshold},
+		{name: "store-homed setting", key: "DUBPLATE_CLASSIFY_SETTING", want: setting},
 		{name: "identity source selector", key: "DUBPLATE_CLASSIFY_SELECTOR", want: source},
 		{name: "identity source required key", key: "DUBPLATE_CLASSIFY_SOURCE_KEY", want: source},
 		{name: "declared nowhere", key: "DUBPLATE_CLASSIFY_ABSENT", want: unknown},
@@ -328,7 +339,7 @@ func TestClassificationFamilies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Each helper is asserted on its own, so a row states one
-			// true answer and six false ones rather than echoing
+			// true answer and seven false ones rather than echoing
 			// rejectNamespace's own branch order back at itself.
 			_, isReserved := reservedClassOf(reg, tt.key)
 			_, isSuperseded := supersessionOf(reg, tt.key)
@@ -340,6 +351,7 @@ func TestClassificationFamilies(t *testing.T) {
 				superseded:  isSuperseded,
 				integration: isIntegration,
 				threshold:   thresholdOf(reg, tt.key),
+				setting:     settingOf(reg, tt.key),
 				source:      identitySourceKey(reg, tt.key),
 			}
 			for family, reported := range got {
@@ -383,6 +395,45 @@ func TestLoad_RegisteredThresholdIsNotUnknown(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "unknown configuration key") {
 		t.Errorf("Load() error = %v, want it to name the key as unknown", err)
+	}
+}
+
+// TestLoad_StoreHomedSettingIsDeclaredNeverParsed proves Load's
+// classification of a store-homed key: whatever its env value, Load
+// accepts it as declared and does not parse it, because the value is
+// only a seed and the seed evaluation is where it is parsed and
+// bounded. The last row is the negative half: the same registry with
+// the setting's name changed by one character.
+func TestLoad_StoreHomedSettingIsDeclaredNeverParsed(t *testing.T) {
+	tests := []struct {
+		name    string
+		entry   string // appended to classificationEnviron; empty adds nothing
+		wantErr string // empty: Load succeeds
+	}{
+		{name: "unset", entry: ""},
+		{name: "set but empty", entry: "DUBPLATE_CLASSIFY_SETTING="},
+		{name: "set, parsing, in bounds", entry: "DUBPLATE_CLASSIFY_SETTING=14"},
+		{name: "set, parsing, below the floor", entry: "DUBPLATE_CLASSIFY_SETTING=1"},
+		{name: "set, not parsing", entry: "DUBPLATE_CLASSIFY_SETTING=fourteen"},
+		{name: "an undeclared near-miss", entry: "DUBPLATE_CLASSIFY_SETTINGX=14", wantErr: "DUBPLATE_CLASSIFY_SETTINGX: unknown configuration key"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := classificationEnviron()
+			if tt.entry != "" {
+				environ = append(environ, tt.entry)
+			}
+			_, err := Load(environ, classificationRegistry())
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Errorf("Load() error = %v, want nil", err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("Load() error = %v, want it to contain %q", err, tt.wantErr)
+			}
+		})
 	}
 }
 
