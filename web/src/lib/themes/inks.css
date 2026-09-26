@@ -6,7 +6,7 @@
  * and every ink clears 4.5:1 on `base-100`, `base-200`, and `base-300`,
  * so no component needs to know which surface it sits on. Values are
  * pinned in the visual identity spec's ink table
- * (docs/superpowers/specs/2026-09-24-visual-identity-design.md:100-106).
+ * (docs/superpowers/specs/2026-09-24-visual-identity-design.md, "Themes").
  * On `dubplate-label-night`, `--ink-info` and `--ink-warning` equal
  * their own fill, so they read `var(--color-info)` and
  * `var(--color-warning)`; every other ink, on both themes, is its own

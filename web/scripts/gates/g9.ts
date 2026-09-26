@@ -29,7 +29,7 @@
  *   `color-mix()` in OKLab resolved here, at 4.5:1.
  *
  * `label`'s `--color-secondary` and `label-night`'s `--color-neutral`
- * are fill-only (`FILL_ONLY_EXCLUSIONS` below, VI :108): excluded from
+ * are fill-only (`FILL_ONLY_EXCLUSIONS` below, VI "Themes"): excluded from
  * the direct-text floor by name, but each still must carry a
  * `contrast-exception` marker reading "fill only, never rendered as
  * text" (W2.6), which G9 checks against the measured ratio without
@@ -96,7 +96,7 @@ const DL_R2_6_DIRECT_TEXT_COLORS = [
 ];
 
 /**
- * The two fills VI marks fill-only (visual identity spec :108): never
+ * The two fills VI marks fill-only (visual identity spec, "Themes"): never
  * measured against the direct-text floor, but each still carries a
  * `contrast-exception` marker, the same text as its own file
  * (`fill only, never rendered as text`), that G9 requires and checks.
@@ -107,7 +107,7 @@ const FILL_ONLY_EXCLUSIONS: { composed: string; name: string; reason: string }[]
 ];
 
 /**
- * VI :108's fill-only pair, transcribed independently of
+ * The fill-only pair in VI "Themes", transcribed independently of
  * `FILL_ONLY_EXCLUSIONS` so an entry added, renamed, or dropped there
  * is caught rather than silently trusted, the same discipline as
  * `DL_R2_6_DIRECT_TEXT_COLORS` above.
@@ -123,7 +123,7 @@ function isFillOnly(composed: string, name: string): boolean {
 
 /**
  * The visual identity spec's ink table, quoted verbatim
- * (docs/superpowers/specs/2026-09-24-visual-identity-design.md:100-106),
+ * (docs/superpowers/specs/2026-09-24-visual-identity-design.md, "Themes"),
  * `label` then `label-night`. An ink whose resolved value drifts from
  * this table fails the pinned-value row even when it still clears the
  * contrast floor.
@@ -308,7 +308,7 @@ function checkFloor(
 
 /**
  * Checks a fill-only color's required `contrast-exception` marker
- * (VI :108, W2.6): the marker must be present and name `variable`, and
+ * (VI "Themes", W2.6): the marker must be present and name `variable`, and
  * its recorded ratio must match the measured one. Unlike `checkFloor`,
  * the floor itself is never gated here, since a fill-only color is
  * deliberately allowed to fall below it.
@@ -327,7 +327,7 @@ function checkFillOnlyMarker(
   if (ratio === null) return;
   if (!marker) {
     violations.push(
-      `g9: ${where}: ${variable} is fill-only and must carry a contrast-exception marker (VI :108, W2.6)`
+      `g9: ${where}: ${variable} is fill-only and must carry a contrast-exception marker (VI "Themes", W2.6)`
     );
     return;
   }
@@ -504,14 +504,14 @@ export function run(): Report {
   for (const pinned of VI_FILL_ONLY) {
     if (!FILL_ONLY_EXCLUSIONS.some((e) => e.composed === pinned.composed && e.name === pinned.name)) {
       violations.push(
-        `g9: FILL_ONLY_EXCLUSIONS is missing ${pinned.composed} ${pinned.name}, which VI :108 names as fill-only`
+        `g9: FILL_ONLY_EXCLUSIONS is missing ${pinned.composed} ${pinned.name}, which VI "Themes" names as fill-only`
       );
     }
   }
   for (const exclusion of FILL_ONLY_EXCLUSIONS) {
     if (!VI_FILL_ONLY.some((p) => p.composed === exclusion.composed && p.name === exclusion.name)) {
       violations.push(
-        `g9: FILL_ONLY_EXCLUSIONS names ${exclusion.composed} ${exclusion.name}, which VI :108's closed list does not`
+        `g9: FILL_ONLY_EXCLUSIONS names ${exclusion.composed} ${exclusion.name}, which VI "Themes" does not name as fill-only`
       );
     }
   }

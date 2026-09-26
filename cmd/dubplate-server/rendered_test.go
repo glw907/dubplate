@@ -30,9 +30,10 @@ import (
 const renderedPrefix = "/rendered"
 
 // renderedScriptTimeout bounds one run of the browser script, at
-// about three times its measured wall time (about 50s once the
-// component rows landed), since a heavy gate shares the machine.
-const renderedScriptTimeout = 150 * time.Second
+// about six times its measured wall time on an idle machine (about 50s
+// once the component rows landed): a gate that shares the machine with
+// another lane's build ran it past 150s at a load average near 20.
+const renderedScriptTimeout = 300 * time.Second
 
 // renderedInstallHint is the command the script names when
 // Playwright's Chromium is not installed.

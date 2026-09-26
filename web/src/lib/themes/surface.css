@@ -2,11 +2,14 @@
  * The surface tokens: a fourth layer, beside the inks and outside the
  * palette block's 21 names, that carries the print-surface values
  * component CSS reaches by name rather than by a literal (DL R2.1;
- * G2's parity rows cover it; G9 does not measure it, since none of
- * these values are text). Values are pinned in the visual identity
- * spec (docs/superpowers/specs/2026-09-24-visual-identity-design.md:200-206,
- * :330-331). Literal colors live here because G1 exempts `lib/themes/`
- * alone (`web/scripts/gates/g1.ts:11`).
+ * G2's parity rows cover it; G9 measures `--keyline-base` against the
+ * three bases and base-content on `--selection-ground`, the two values
+ * a reader must tell apart from their ground). Values are pinned in
+ * the visual identity spec
+ * (docs/superpowers/specs/2026-09-24-visual-identity-design.md, "Depth
+ * and surface" and "Refinement"). Literal colors live here because G1
+ * exempts `lib/themes/` alone (`web/scripts/gates/g1.ts`,
+ * `EXEMPT_PREFIX`).
  *
  * - `--shadow-color` and `--shadow-strength-button`/`-card`: the offset
  *   shadow's ink and its two strengths, neutral on `label`, black on

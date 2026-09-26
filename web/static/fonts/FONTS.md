@@ -45,7 +45,7 @@ per face.
 - Font version: Version 2.012 (the `name` table's ID 5)
 - Upstream: `google/fonts` `ofl/worksans/WorkSans[wght].ttf` at commit
   `8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5` (upstream
-  `weiweihuanghuang/Work-Sans` at `b35c810...` per `upstream_info.md`)
+  `weiweihuanghuang/Work-Sans` at `b35c81086186162164947bd39574683073d9b268` per `upstream_info.md`)
 - License: SIL Open Font License 1.1, `licenses/WorkSans-OFL.txt`
   (`openfontlicense.org`); the source carries the copyright line
   "Copyright 2019 The Work Sans Project Authors"; no Reserved Font
