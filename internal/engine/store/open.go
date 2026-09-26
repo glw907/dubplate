@@ -29,8 +29,8 @@ const holdersLogMsg = "store lock held by another process; waiting"
 // a file that is not a SQLite database answers on its first read.
 const sqliteNotADBCode = 26
 
-// PreRestorePrefix frames the name of a copy taken before a restore.
-const PreRestorePrefix = "pre-restore-"
+// preRestorePrefix frames the name of a copy taken before a restore.
+const preRestorePrefix = "pre-restore-"
 
 // stateError is a refusal carrying the inspect state it reports as.
 type stateError struct {
@@ -587,7 +587,7 @@ func (l leaf) besideCopy(kind dbKind) (dbClass, error) {
 // isCopy reports whether name is a pre-migration or pre-restore copy's.
 func isCopy(name string) bool {
 	_, migrated := parsePreMigrateName(name)
-	return migrated || strings.HasPrefix(name, PreRestorePrefix) && strings.HasSuffix(name, PreMigrateSuffix)
+	return migrated || strings.HasPrefix(name, preRestorePrefix) && strings.HasSuffix(name, dbSuffix)
 }
 
 // newestCopy returns the name of the most recently modified

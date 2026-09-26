@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -176,7 +175,7 @@ func (p prune) pruneLocal() error {
 
 	var errs []error
 	for _, e := range entries {
-		if e.IsDir() || !isPreMigrateName(e.Name()) {
+		if e.IsDir() || !store.IsPreMigrateCopy(e.Name()) {
 			continue
 		}
 		info, err := e.Info()
@@ -193,19 +192,4 @@ func (p prune) pruneLocal() error {
 		}
 	}
 	return errors.Join(errs...)
-}
-
-// isPreMigrateName reports whether name is a pre-migration copy's,
-// store.PreMigratePrefix<N>.db.
-func isPreMigrateName(name string) bool {
-	rest, ok := strings.CutPrefix(name, store.PreMigratePrefix)
-	if !ok {
-		return false
-	}
-	rest, ok = strings.CutSuffix(rest, store.PreMigrateSuffix)
-	if !ok {
-		return false
-	}
-	n, err := strconv.Atoi(rest)
-	return err == nil && n >= 1
 }

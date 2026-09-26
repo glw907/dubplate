@@ -36,7 +36,7 @@ var committedJobs = []string{
 
 // testPreRestore is the pre-restore copy's name for a restore stamped
 // testStamp.
-const testPreRestore = PreRestorePrefix + testStamp + ".db"
+const testPreRestore = preRestorePrefix + testStamp + ".db"
 
 // insertJobSQL is the statement every planted job row goes through.
 const insertJobSQL = `INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at)

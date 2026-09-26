@@ -112,7 +112,7 @@ func presentSidecars(path string, suffixes []string) ([]string, error) {
 // discardedPath is where a restore stamped stamp moves an unopenable
 // current database, in l's snapshots/; its sidecars go beside it.
 func (l leaf) discardedPath(stamp string) string {
-	return filepath.Join(l.snapshotsDir, discardedPrefix+stamp+PreMigrateSuffix)
+	return filepath.Join(l.snapshotsDir, discardedPrefix+stamp+dbSuffix)
 }
 
 // A move renames one leaf file.

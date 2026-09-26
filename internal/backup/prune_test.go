@@ -268,6 +268,50 @@ func TestPrune_LocalCopies(t *testing.T) {
 	}
 }
 
+// TestPrune_LocalCopyNames: prune removes a local file exactly when
+// the store names it a pre-migration copy, so a name the store would
+// never write, such as a zero-padded version, is left alone.
+func TestPrune_LocalCopyNames(t *testing.T) {
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{name: "pre-migrate-v1.db", want: true},
+		{name: "pre-migrate-v12.db", want: true},
+		{name: "pre-migrate-v01.db", want: false},
+		{name: "pre-migrate-v+1.db", want: false},
+		{name: "pre-migrate-v0.db", want: false},
+		{name: "pre-migrate-v-1.db", want: false},
+		{name: "pre-migrate-v.db", want: false},
+		{name: "pre-migrate-v1.db.tmp", want: false},
+		{name: "pre-restore-20260101T000000Z.db", want: false},
+	}
+	remote, _ := localRemote(t)
+	dir := newStateDir(t)
+	h := openWrite(t, dir)
+	plantTracks(t, h, 1)
+	lib := t.TempDir()
+	writeTree(t, lib, "a/one.flac")
+	snapDir := filepath.Join(dir, "store", "snapshots")
+	old := time.Now().Add(-time.Hour)
+	for _, tt := range tests {
+		plantLocalCopy(t, snapDir, tt.name, old)
+	}
+
+	_, st := runBackup(t, h, remote, lib)
+	wantState(t, st, ops.JobSucceeded, "")
+
+	names := localSnapshotNames(t, dir)
+	for _, tt := range tests {
+		if got := store.IsPreMigrateCopy(tt.name); got != tt.want {
+			t.Errorf("store.IsPreMigrateCopy(%q) = %v, want %v", tt.name, got, tt.want)
+		}
+		if removed := !slices.Contains(names, tt.name); removed != tt.want {
+			t.Errorf("prune removed %s: %v, want %v", tt.name, removed, tt.want)
+		}
+	}
+}
+
 // TestPrune_KeepsPreRestoreCopy is a real restore followed by a backup
 // that starts after the pre-restore copy's mtime: the backup prunes an
 // older pre-migration copy but keeps the pre-restore copy, and the
@@ -296,7 +340,7 @@ func TestPrune_KeepsPreRestoreCopy(t *testing.T) {
 	}
 	var preRestore string
 	for _, n := range localSnapshotNames(t, dir) {
-		if strings.HasPrefix(n, store.PreRestorePrefix) {
+		if strings.HasPrefix(n, "pre-restore-") {
 			preRestore = n
 		}
 	}

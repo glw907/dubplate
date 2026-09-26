@@ -18,17 +18,17 @@ import (
 	"github.com/glw907/dubplate/internal/atomicfile"
 )
 
-// PreMigratePrefix and PreMigrateSuffix frame a pre-migration copy's
-// name around its version.
-const (
-	PreMigratePrefix = "pre-migrate-v"
-	PreMigrateSuffix = ".db"
-)
+// dbSuffix ends the name of a store file kept outside db/.
+const dbSuffix = ".db"
+
+// preMigratePrefix and dbSuffix frame a pre-migration copy's name
+// around its version.
+const preMigratePrefix = "pre-migrate-v"
 
 // preMigrateName is the name of the copy taken before migrating a
 // store at version v.
 func preMigrateName(v int) string {
-	return PreMigratePrefix + strconv.Itoa(v) + PreMigrateSuffix
+	return preMigratePrefix + strconv.Itoa(v) + dbSuffix
 }
 
 // takeSnapshot writes a verified copy of the store in l, at version
@@ -246,14 +246,21 @@ func pruneSnapshots(dir string, keep int) error {
 	return nil
 }
 
+// IsPreMigrateCopy reports whether name is exactly the name the store
+// gives the copy it takes before migrating.
+func IsPreMigrateCopy(name string) bool {
+	_, ok := parsePreMigrateName(name)
+	return ok
+}
+
 // parsePreMigrateName reports the version name carries when name is
 // exactly what preMigrateName writes for it.
 func parsePreMigrateName(name string) (int, bool) {
-	digits, ok := strings.CutPrefix(name, PreMigratePrefix)
+	digits, ok := strings.CutPrefix(name, preMigratePrefix)
 	if !ok {
 		return 0, false
 	}
-	digits, ok = strings.CutSuffix(digits, PreMigrateSuffix)
+	digits, ok = strings.CutSuffix(digits, dbSuffix)
 	if !ok {
 		return 0, false
 	}
@@ -292,7 +299,7 @@ func (h *Handle) BackupCopy(ctx context.Context, logger *slog.Logger, instance s
 	if !validInstance(instance) {
 		return "", fmt.Errorf("backup copy: instance %q is not 32 lowercase hex characters", instance)
 	}
-	staged := filepath.Join(h.leaf.stagingDir, backupPrefix+instance+PreMigrateSuffix)
+	staged := filepath.Join(h.leaf.stagingDir, backupPrefix+instance+dbSuffix)
 	if err := h.backupCopy(ctx, logger, staged); err != nil {
 		return "", fmt.Errorf("backup copy %s: %w", staged, err)
 	}
@@ -371,7 +378,7 @@ func (h *Handle) RemoveBackupStages() error {
 	}
 	for _, e := range entries {
 		name := e.Name()
-		if !strings.HasPrefix(name, backupPrefix) || !strings.HasSuffix(name, PreMigrateSuffix) {
+		if !strings.HasPrefix(name, backupPrefix) || !strings.HasSuffix(name, dbSuffix) {
 			continue
 		}
 		if err := os.Remove(filepath.Join(h.leaf.stagingDir, name)); err != nil {

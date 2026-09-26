@@ -17,7 +17,7 @@ import (
 )
 
 // restoreStagePrefix begins the name of a restore's incoming store in
-// staging/, which its stamp and PreMigrateSuffix complete.
+// staging/, which its stamp and dbSuffix complete.
 const restoreStagePrefix = "restore-"
 
 // RestoreOptions carries what [OpenRestore] needs from its caller: the
@@ -173,7 +173,7 @@ func (s *RestoreSession) readRecord(opts RestoreOptions) error {
 			return err
 		}
 		s.stamp = FormatStamp(opts.Now)
-		s.stage = filepath.Join(l.stagingDir, restoreStagePrefix+s.stamp+PreMigrateSuffix)
+		s.stage = filepath.Join(l.stagingDir, restoreStagePrefix+s.stamp+dbSuffix)
 		return nil
 	}
 
@@ -618,7 +618,7 @@ func (s *RestoreSession) Record(in RestoreIntent) error {
 		Version:        s.version,
 	}
 	if s.current == currentQuiesced {
-		r.PreRestore = PreRestorePrefix + s.stamp + PreMigrateSuffix
+		r.PreRestore = preRestorePrefix + s.stamp + dbSuffix
 	}
 	if in.LibraryRoot != "" {
 		r.Library = &libraryOwed{Root: in.LibraryRoot, IntoNonempty: in.IntoNonempty}
