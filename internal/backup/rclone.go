@@ -3,8 +3,10 @@ package backup
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strconv"
@@ -38,20 +40,29 @@ func (f *failure) Error() string { return f.message }
 // FailureCode returns the stable code a job record carries for f.
 func (f *failure) FailureCode() string { return f.code }
 
-// A transport runs rclone as a child that inherits lease's locks.
+// A transport runs rclone as a child that inherits the caller's locks.
 type transport struct {
-	bin   string
-	lease *store.KindLease
+	bin string
+
+	// inherit returns the descriptors the child inherits, from 3 on,
+	// which run closes once the child exits: a backup's kind lease and
+	// store lock, or a restore's exclusive store lock. A nil inherit
+	// passes none.
+	inherit func() ([]*os.File, error)
 }
 
-// run runs rclone with args, of which the first is the subcommand. The
-// child runs in its own process group, holds duplicates of the kind
-// lease and the store lock as descriptors 3 and 4, and on ctx's cancel
-// receives one SIGINT, then a kill once [waitDelay] has passed.
-func (t transport) run(ctx context.Context, args ...string) (err error) {
-	files, err := t.lease.DupFiles()
-	if err != nil {
-		return fmt.Errorf("rclone %s: %w", args[0], err)
+// run runs rclone with args, of which the first is the subcommand,
+// writing its stdout to stdout, which may be nil to discard it. The
+// child runs in its own process group, holds the descriptors
+// t.inherit returns, and on ctx's cancel receives one SIGINT, then a
+// kill once [waitDelay] has passed.
+func (t transport) run(ctx context.Context, stdout io.Writer, args ...string) (err error) {
+	var files []*os.File
+	if t.inherit != nil {
+		files, err = t.inherit()
+		if err != nil {
+			return fmt.Errorf("rclone %s: %w", args[0], err)
+		}
 	}
 	defer func() {
 		for _, f := range files {
@@ -63,12 +74,63 @@ func (t transport) run(ctx context.Context, args ...string) (err error) {
 
 	var stderr lastLine
 	cmd := exec.CommandContext(ctx, t.bin, args...)
+	cmd.Stdout = stdout
 	cmd.Stderr = &stderr
 	cmd.ExtraFiles = files
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Cancel = func() error { return cmd.Process.Signal(os.Interrupt) }
 	cmd.WaitDelay = waitDelay
 	return classify(ctx, args[0], cmd.Run(), stderr.String())
+}
+
+// A remoteEntry is one object rclone's lsjson lists. Size is -1 for a
+// directory, and for an object whose backend does not report a size.
+type remoteEntry struct {
+	Name  string `json:"Name"`
+	IsDir bool   `json:"IsDir"`
+	Size  int64  `json:"Size"`
+}
+
+// snapshotStamp reports the stamp e names, when e is a file named
+// <stamp>.db with a stamp [store.ParseStamp] accepts. A directory, or
+// a name outside that shape, reports false.
+func (e remoteEntry) snapshotStamp() (string, bool) {
+	if e.IsDir {
+		return "", false
+	}
+	stamp, ok := strings.CutSuffix(e.Name, ".db")
+	if !ok {
+		return "", false
+	}
+	if _, err := store.ParseStamp(stamp); err != nil {
+		return "", false
+	}
+	return stamp, true
+}
+
+// list lists the entries directly under dest, a remote path, an absent
+// directory read as empty: rclone v1.74.3's lsjson exits 3 with
+// "directory not found" on one.
+func (t transport) list(ctx context.Context, dest string, dirsOnly bool) ([]remoteEntry, error) {
+	args := []string{"lsjson"}
+	if dirsOnly {
+		args = append(args, "--dirs-only")
+	}
+	args = append(args, dest)
+
+	var stdout bytes.Buffer
+	if err := t.run(ctx, &stdout, args...); err != nil {
+		if f, ok := errors.AsType[*failure](err); ok && f.code == "rclone-exit-3" {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("list %s: %w", dest, err)
+	}
+
+	var entries []remoteEntry
+	if err := json.Unmarshal(stdout.Bytes(), &entries); err != nil {
+		return nil, fmt.Errorf("parse listing of %s: %w", dest, err)
+	}
+	return entries, nil
 }
 
 // classify decides how an rclone run that returned err ended. Any

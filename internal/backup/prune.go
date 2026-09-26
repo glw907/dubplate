@@ -1,14 +1,11 @@
 package backup
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -34,7 +31,7 @@ const archiveRetention = 90 * 24 * time.Hour
 // and of the local snapshots directory, run once the send has
 // succeeded.
 type prune struct {
-	bin      string
+	t        transport
 	remote   Remote
 	stamp    string
 	localDir string
@@ -47,7 +44,7 @@ type prune struct {
 // record's final progress. An empty result means nothing needs
 // reporting.
 func (p prune) run(ctx context.Context, logger *slog.Logger) string {
-	entries, err := p.list(ctx, "snapshots", false)
+	entries, err := p.t.list(ctx, p.remote.join("snapshots"), false)
 	if err != nil {
 		logger.Warn("prune: list remote snapshots", "err", err)
 		return "prune skipped: list remote snapshots: " + err.Error()
@@ -125,7 +122,7 @@ func (p prune) pruneSnapshots(ctx context.Context, entries []remoteEntry) error 
 	var errs []error
 	for _, stamp := range others[othersKeep:] {
 		dest := p.remote.join("snapshots/" + stamp + ".db")
-		if err := runRclone(ctx, p.bin, "deletefile", dest); err != nil {
+		if err := p.t.run(ctx, nil, "deletefile", dest); err != nil {
 			errs = append(errs, fmt.Errorf("delete %s: %w", dest, err))
 		}
 	}
@@ -136,7 +133,7 @@ func (p prune) pruneSnapshots(ctx context.Context, entries []remoteEntry) error 
 // [archiveRetention] before the run's stamp. A name that does not
 // parse as a stamp is left alone.
 func (p prune) pruneArchive(ctx context.Context) error {
-	entries, err := p.list(ctx, "archive", true)
+	entries, err := p.t.list(ctx, p.remote.join("archive"), true)
 	if err != nil {
 		return fmt.Errorf("list archive: %w", err)
 	}
@@ -158,7 +155,7 @@ func (p prune) pruneArchive(ctx context.Context) error {
 			continue
 		}
 		dest := p.remote.join("archive/" + e.Name)
-		if err := runRclone(ctx, p.bin, "purge", dest); err != nil {
+		if err := p.t.run(ctx, nil, "purge", dest); err != nil {
 			errs = append(errs, fmt.Errorf("purge %s: %w", dest, err))
 		}
 	}
@@ -217,78 +214,4 @@ func isLocalCopyName(name string) bool {
 		return err == nil
 	}
 	return false
-}
-
-// A remoteEntry is one object rclone's lsjson lists.
-type remoteEntry struct {
-	Name  string `json:"Name"`
-	IsDir bool   `json:"IsDir"`
-}
-
-// snapshotStamp reports the stamp e names, when e is a file named
-// <stamp>.db with a stamp [store.ParseStamp] accepts. A directory, or
-// a name outside that shape, reports false.
-func (e remoteEntry) snapshotStamp() (string, bool) {
-	if e.IsDir {
-		return "", false
-	}
-	stamp, ok := strings.CutSuffix(e.Name, ".db")
-	if !ok {
-		return "", false
-	}
-	if _, err := store.ParseStamp(stamp); err != nil {
-		return "", false
-	}
-	return stamp, true
-}
-
-// list lists the entries directly under p.remote's sub, an absent
-// directory read as empty: rclone v1.74.3's lsjson exits 3 with
-// "directory not found" on one.
-func (p prune) list(ctx context.Context, sub string, dirsOnly bool) ([]remoteEntry, error) {
-	args := []string{"lsjson"}
-	if dirsOnly {
-		args = append(args, "--dirs-only")
-	}
-	dest := p.remote.join(sub)
-	args = append(args, dest)
-
-	var stdout bytes.Buffer
-	var stderr lastLine
-	cmd := exec.CommandContext(ctx, p.bin, args...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		var ee *exec.ExitError
-		if errors.As(err, &ee) && ee.ExitCode() == 3 {
-			return nil, nil
-		}
-		msg := stderr.String()
-		if msg == "" {
-			msg = err.Error()
-		}
-		return nil, fmt.Errorf("list %s: %s", dest, msg)
-	}
-
-	var entries []remoteEntry
-	if err := json.Unmarshal(stdout.Bytes(), &entries); err != nil {
-		return nil, fmt.Errorf("parse listing of %s: %w", dest, err)
-	}
-	return entries, nil
-}
-
-// runRclone runs bin with args, of which the first is the subcommand,
-// and reports rclone's last stderr line on a nonzero exit.
-func runRclone(ctx context.Context, bin string, args ...string) error {
-	var stderr lastLine
-	cmd := exec.CommandContext(ctx, bin, args...)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		msg := stderr.String()
-		if msg == "" {
-			msg = err.Error()
-		}
-		return errors.New(msg)
-	}
-	return nil
 }

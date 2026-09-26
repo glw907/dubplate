@@ -83,11 +83,11 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 		return "", err
 	}
 
-	t := transport{bin: bin, lease: j.Lease}
+	t := transport{bin: bin, inherit: j.Lease.DupFiles}
 	if err := progress("syncing the library"); err != nil {
 		return "", err
 	}
-	err = t.run(ctx, "sync", root, remote.join("library"),
+	err = t.run(ctx, nil, "sync", root, remote.join("library"),
 		"--backup-dir", remote.join("archive/"+stamp),
 		"--max-delete", strconv.Itoa(maxDelete))
 	if err != nil {
@@ -114,7 +114,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	if err := progress("sending the store"); err != nil {
 		return "", err
 	}
-	err = t.run(ctx, "copyto", stage, remote.join("snapshots/"+stamp+".db"),
+	err = t.run(ctx, nil, "copyto", stage, remote.join("snapshots/"+stamp+".db"),
 		"-M",
 		"--metadata-set", "run_id="+j.RunID,
 		"--metadata-set", "sync_completed="+synced)
@@ -130,7 +130,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 		return "", err
 	}
 	localDir := filepath.Join(filepath.Dir(filepath.Dir(stage)), "snapshots")
-	p := prune{bin: bin, remote: remote, stamp: stamp, localDir: localDir, start: start}
+	p := prune{t: t, remote: remote, stamp: stamp, localDir: localDir, start: start}
 	result := p.run(ctx, j.Logger)
 	if result == "" {
 		result = FinishedMessage
