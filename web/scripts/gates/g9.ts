@@ -223,6 +223,27 @@ const CITES_THREE_TO_ONE = /\b3(?:\.0+)?:1\b/;
 const RATIO_TOLERANCE = 0.005;
 
 /**
+ * The measured ratio between `text` and `base`, pushing a violation for
+ * either color that fails to parse. Returns `null` when either did, the
+ * shared preamble `checkFloor` and `checkFillOnlyMarker` both need
+ * before they diverge on what a marker requires.
+ */
+function measureRatio(where: string, variable: string, text: string, base: string, violations: string[]): number | null {
+  const textLum = relativeLuminance(text);
+  const baseLum = relativeLuminance(base);
+  if (textLum === null) {
+    violations.push(`g9: ${where}: ${variable}'s value "${text}" is not a parseable color`);
+  }
+  if (baseLum === null) {
+    violations.push(`g9: ${where}: ${variable}'s base value "${base}" is not a parseable color`);
+  }
+  if (textLum === null || baseLum === null) return null;
+  const lighter = Math.max(textLum, baseLum);
+  const darker = Math.min(textLum, baseLum);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
  * Checks one text/base pairing against `FLOOR`, pushing a violation for
  * any failure and, on success, a report line to `reportLines`. Returns
  * the measured ratio, or `null` when either color failed to parse.
@@ -242,18 +263,8 @@ function checkFloor(
     violations.push(`g9: ${where}: ${variable} carries an exception marker on a pairing that admits none`);
     marker = null;
   }
-  const textLum = relativeLuminance(text);
-  const baseLum = relativeLuminance(base);
-  if (textLum === null) {
-    violations.push(`g9: ${where}: ${variable}'s value "${text}" is not a parseable color`);
-  }
-  if (baseLum === null) {
-    violations.push(`g9: ${where}: ${variable}'s base value "${base}" is not a parseable color`);
-  }
-  if (textLum === null || baseLum === null) return null;
-  const lighter = Math.max(textLum, baseLum);
-  const darker = Math.min(textLum, baseLum);
-  const ratio = (lighter + 0.05) / (darker + 0.05);
+  const ratio = measureRatio(where, variable, text, base, violations);
+  if (ratio === null) return null;
   const passes = ratio >= FLOOR;
   if (marker) {
     if (marker.variable !== variable) {
@@ -304,15 +315,8 @@ function checkFillOnlyMarker(
   violations: string[],
   reportLines: string[]
 ): void {
-  const textLum = relativeLuminance(text);
-  const baseLum = relativeLuminance(base);
-  if (textLum === null) {
-    violations.push(`g9: ${where}: ${variable}'s value "${text}" is not a parseable color`);
-  }
-  if (baseLum === null) {
-    violations.push(`g9: ${where}: ${variable}'s base value "${base}" is not a parseable color`);
-  }
-  if (textLum === null || baseLum === null) return;
+  const ratio = measureRatio(where, variable, text, base, violations);
+  if (ratio === null) return;
   if (!marker) {
     violations.push(
       `g9: ${where}: ${variable} is fill-only and must carry a contrast-exception marker (VI :108, W2.6)`
@@ -322,9 +326,6 @@ function checkFillOnlyMarker(
   if (marker.variable !== variable) {
     violations.push(`g9: ${where}: the marker above ${variable} names ${marker.variable} instead`);
   }
-  const lighter = Math.max(textLum, baseLum);
-  const darker = Math.min(textLum, baseLum);
-  const ratio = (lighter + 0.05) / (darker + 0.05);
   const recorded = Number(marker.ratio);
   if (Math.abs(recorded - ratio) >= RATIO_TOLERANCE) {
     violations.push(

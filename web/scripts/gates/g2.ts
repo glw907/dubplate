@@ -476,6 +476,35 @@ function checkDuplicates(where: string, declarations: DeclNode[], violations: st
   }
 }
 
+/**
+ * One block per composed theme from a `@layer base` file (`inks.css`
+ * and `surface.css`'s shared shape): checks each block declares exactly
+ * `expectedNames` with no duplicate, and returns the declarations found,
+ * keyed by composed theme.
+ */
+function readThemeBlocks(
+  file: string,
+  text: string,
+  label: string,
+  expectedNames: readonly string[],
+  violations: string[]
+): Map<string, DeclNode[]> {
+  const decls = new Map<string, DeclNode[]>();
+  const rules = singleLayerBaseChildren(file, text, violations).filter((n): n is RuleNode => n.kind === 'rule');
+  for (const composed of COMPOSED_NAMES) {
+    const rule = rules.find((r) => selectorHasDataTheme(r.selector, composed));
+    if (!rule) {
+      violations.push(`g2: ${file}: no ${label} block for "${composed}"`);
+      continue;
+    }
+    decls.set(composed, rule.declarations);
+    const where = `${file} ${label} block "${composed}"`;
+    checkCompleteness(where, rule.declarations.map((d) => d.name), expectedNames, violations);
+    checkDuplicates(where, rule.declarations, violations);
+  }
+  return decls;
+}
+
 function checkNoMetadataFlags(where: string, node: PluginNode, violations: string[]): void {
   for (const key of ['default', 'prefersdark']) {
     if (node.declarations.some((d) => d.name === key)) {
@@ -590,38 +619,10 @@ export function run(): string[] {
   }
 
   // ---- inks.css: one ink block per composed theme, inside `@layer base`.
-  const inkDecls = new Map<string, DeclNode[]>();
-  const inkRules = singleLayerBaseChildren('inks.css', files.inks, violations).filter(
-    (n): n is RuleNode => n.kind === 'rule'
-  );
-  for (const composed of COMPOSED_NAMES) {
-    const rule = inkRules.find((r) => selectorHasDataTheme(r.selector, composed));
-    if (!rule) {
-      violations.push(`g2: inks.css: no ink block for "${composed}"`);
-      continue;
-    }
-    inkDecls.set(composed, rule.declarations);
-    const where = `inks.css ink block "${composed}"`;
-    checkCompleteness(where, rule.declarations.map((d) => d.name), INK_NAMES, violations);
-    checkDuplicates(where, rule.declarations, violations);
-  }
+  const inkDecls = readThemeBlocks('inks.css', files.inks, 'ink', INK_NAMES, violations);
 
   // ---- surface.css: one surface block per composed theme, inside `@layer base`.
-  const surfaceDecls = new Map<string, DeclNode[]>();
-  const surfaceRules = singleLayerBaseChildren('surface.css', files.surface, violations).filter(
-    (n): n is RuleNode => n.kind === 'rule'
-  );
-  for (const composed of COMPOSED_NAMES) {
-    const rule = surfaceRules.find((r) => selectorHasDataTheme(r.selector, composed));
-    if (!rule) {
-      violations.push(`g2: surface.css: no surface block for "${composed}"`);
-      continue;
-    }
-    surfaceDecls.set(composed, rule.declarations);
-    const where = `surface.css surface block "${composed}"`;
-    checkCompleteness(where, rule.declarations.map((d) => d.name), SURFACE_NAMES, violations);
-    checkDuplicates(where, rule.declarations, violations);
-  }
+  const surfaceDecls = readThemeBlocks('surface.css', files.surface, 'surface', SURFACE_NAMES, violations);
 
   // ---- system.css: the unconditional branch and the dark-media branch.
   const sysChildren = singleLayerBaseChildren('system.css', files.system, violations);

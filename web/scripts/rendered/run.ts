@@ -300,9 +300,8 @@ function sameRGBA(a: RGBA, b: RGBA): boolean {
  * Paints `--color-primary` as the document element resolves it onto a
  * one-pixel canvas under cookie and scheme, and returns the sRGB bytes
  * read back (W12.5): the browser resolves and paints the value, so the
- * page's color syntax is never parsed here. The canvas is filled transparent
- * first, so a value the canvas refuses reads back with alpha 0 and can
- * never match an opaque expectation.
+ * page's color syntax is never parsed here. {@link paintedColor} does
+ * the painting once the resolved value is in hand.
  */
 async function paintedPrimary(
   browser: Browser,
@@ -317,23 +316,15 @@ async function paintedPrimary(
       await context.addCookies([{ name: THEME_COOKIE, value: cookie, domain: host, path: '/', secure: true }]);
     }
     const { visit } = await open(context, new URL('login', base).href, 'load');
-    return await visit.page.evaluate((): RGBA => {
+    const resolved = await visit.page.evaluate((): string => {
       const probe = document.createElement('div');
       probe.style.backgroundColor = 'var(--color-primary)';
       document.documentElement.append(probe);
       const resolved = getComputedStyle(probe).backgroundColor;
       probe.remove();
-      const canvas = document.createElement('canvas');
-      canvas.width = 1;
-      canvas.height = 1;
-      const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
-      if (ctx === null) throw new Error('the canvas has no 2d context');
-      ctx.fillStyle = 'transparent';
-      ctx.fillStyle = resolved;
-      ctx.fillRect(0, 0, 1, 1);
-      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1, { colorSpace: 'srgb' }).data;
-      return [r, g, b, a];
+      return resolved;
     });
+    return await paintedColor(visit.page, resolved);
   } finally {
     await context.close();
   }
