@@ -613,8 +613,12 @@
     min-height: 0;
     overflow-y: auto;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    /* "safe" keeps the start edge in view instead of clipping it off
+       both ends when the mock is taller than the stage (a phone in
+       portrait, or a very short landscape window): centering only
+       while it fits, falling back to start alignment otherwise. */
+    align-items: safe center;
+    justify-content: safe center;
     padding: 1rem;
   }
 
@@ -745,6 +749,13 @@
     .login-mock-photo-frame { aspect-ratio: 16 / 7; }
     .login-mock-form { padding: 1.25rem; }
   }
+  /* A short window wide enough to keep the two-column split (a landscape
+     phone, a small resized browser window): let the mock shrink to its
+     natural content height and let the stage scroll to it, rather than
+     force a 100%-height column that clips the form. */
+  @media (min-width: 641px) and (max-height: 500px) {
+    .login-mock { height: auto; min-height: 100%; }
+  }
 
   /* the plain, untreated view: the same film-edge frame the grid's
      preview overlay uses, with no silver-print treatment */
@@ -869,6 +880,7 @@
 />
 
 <div id="app">
+  <div id="app-content">
   <header id="topbar">
     <div class="topbar-inner">
       <div class="mark" aria-hidden="true"></div>
@@ -922,8 +934,9 @@
       </div>
     </div>
   </div>
+  </div>
 
-  <div id="review-overlay" hidden>
+  <div id="review-overlay" hidden role="dialog" aria-modal="true" aria-label="Review candidates">
     <div class="review-topbar">
       <button id="review-close" type="button" class="review-icon-btn" aria-label="Back to grid (Esc)">&times;</button>
       <span id="review-position" class="mono" role="status" aria-live="polite"></span>
@@ -973,6 +986,7 @@
     reviewList: [], // snapshot of filteredCandidates() taken when review opened
     reviewIndex: 0,
     reviewView: "login", // "login" | "plain"
+    reviewRoundId: null, // the round id review opened under; a mismatch closes review
   };
 
   // The mark, inlined as SVG (mark-medium.svg from the visual identity
@@ -988,7 +1002,7 @@
 
   // One write in flight per candidate; a decision made while a write is
   // in flight replaces the queued one rather than piling up requests.
-  var pendingWrite = {}; // source_id -> { inFlight: boolean, queued: "keep"|"pass"|null }
+  var pendingWrite = {}; // source_id -> { inFlight: boolean, queued: "keep"|"pass"|"maybe"|null }
 
   function isLocalhost() {
     return location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -1324,6 +1338,13 @@
   }
 
   function render() {
+    // A round can change out from under an open review (the sitting's
+    // round closes and the next one opens, or the test round is deleted)
+    // whether or not a round is open at all: check before the early
+    // return below, not after it.
+    if (state.reviewOpen && (!state.round || state.round.id !== state.reviewRoundId)) {
+      forceCloseReview();
+    }
     if (!state.round) return;
     renderCounts();
     renderFilters();
@@ -1456,10 +1477,25 @@
   // move without deciding; Esc returns to the grid at the candidate being
   // reviewed.
 
+  // Identifies what #review-stage currently shows ("<source_id>|<view>",
+  // or null for the end-of-list panel or when review is closed), so
+  // renderReviewOverlay only rebuilds the photo and mock when the shown
+  // candidate or the view mode actually changes, rather than on every
+  // write resolution or store snapshot — otherwise the image flashes
+  // while it is being judged.
+  var reviewStageKey = null;
+
   function mkEl(tag, className) {
     var e = document.createElement(tag);
     if (className) e.className = className;
     return e;
+  }
+
+  // While review is open, everything behind it is inert: Tab cannot reach
+  // a Keep/Pass button under the overlay, and Space/Enter on the (still
+  // technically present) grid cannot fire anything hidden beneath it.
+  function setBackgroundInert(isInert) {
+    document.getElementById("app-content").inert = isInert;
   }
 
   function openReview() {
@@ -1474,24 +1510,87 @@
     }
     state.reviewList = list;
     state.reviewIndex = startIndex;
+    state.reviewRoundId = state.round.id;
     state.reviewOpen = true;
+    setBackgroundInert(true);
     render();
+    document.getElementById("review-close").focus();
   }
 
+  // Closes review from the grid side (Esc, the close button): the round
+  // is still the one review opened under, so the reviewed candidate's
+  // position in the current filter order is meaningful. When that exact
+  // candidate has been filtered out from under it (the Undecided filter
+  // is active and it was just decided), focus its nearest remaining
+  // neighbor instead of leaving a stale focusIndex.
   function closeReview() {
     var candidate = state.reviewList[state.reviewIndex];
+    var reviewListIndex = state.reviewIndex;
     state.reviewOpen = false;
+    setBackgroundInert(false);
+    var list = filteredCandidates();
     if (candidate) {
-      var list = filteredCandidates();
+      var exact = -1;
       for (var i = 0; i < list.length; i++) {
         if (list[i].source_id === candidate.source_id) {
-          state.focusIndex = i;
+          exact = i;
           break;
         }
       }
+      if (exact !== -1) {
+        state.focusIndex = exact;
+      } else {
+        // Find the nearest still-listed neighbor by walking outward from
+        // this candidate's old position in the review snapshot.
+        state.focusIndex = nearestRemainingIndex(list, state.reviewList, reviewListIndex);
+      }
     }
     render();
+    var focused = document.querySelector(".card.focused");
+    if (focused) {
+      var firstButton = focused.querySelector("button");
+      if (firstButton) firstButton.focus();
+    } else {
+      document.getElementById("review-open").focus();
+    }
     scrollFocusIntoView();
+  }
+
+  // Closes review because the round it was reviewing has gone away or
+  // been replaced (the sitting stops after this round closes and the
+  // next one opens): the review snapshot no longer means anything, so
+  // this resets without trying to restore a grid position from it.
+  function forceCloseReview() {
+    state.reviewOpen = false;
+    state.reviewList = [];
+    state.reviewIndex = 0;
+    state.reviewRoundId = null;
+    reviewStageKey = null;
+    document.getElementById("review-overlay").hidden = true;
+    setBackgroundInert(false);
+    var openBtn = document.getElementById("review-open");
+    if (openBtn) openBtn.focus();
+  }
+
+  // Walks outward from the reviewed candidate's old position in the
+  // review snapshot (reviewList) to find the closest source_id that is
+  // still present in the current filtered list.
+  function nearestRemainingIndex(list, reviewList, fromIndex) {
+    var idInList = {};
+    list.forEach(function (c, i) {
+      idInList[c.source_id] = i;
+    });
+    for (var offset = 0; offset <= reviewList.length; offset++) {
+      var before = reviewList[fromIndex - offset];
+      if (before && Object.prototype.hasOwnProperty.call(idInList, before.source_id)) {
+        return idInList[before.source_id];
+      }
+      var after = reviewList[fromIndex + offset];
+      if (after && Object.prototype.hasOwnProperty.call(idInList, after.source_id)) {
+        return idInList[after.source_id];
+      }
+    }
+    return 0;
   }
 
   // state.reviewIndex ranges 0..reviewList.length inclusive: the extra
@@ -1507,7 +1606,12 @@
   function reviewDecide(choice) {
     var candidate = state.reviewList[state.reviewIndex];
     if (!candidate) return;
-    if (state.round && state.round.closed) return; // fully refused: no write, no advance
+    // Repeats render()'s stale-round guard: review's own snapshot can
+    // only go stale between a render and the next keypress or click, but
+    // a decision is never written for a candidate under a round it was
+    // not shown in, checked here as well as there.
+    if (!state.round || state.round.id !== state.reviewRoundId) return;
+    if (state.round.closed) return; // fully refused: no write, no advance
     decide(candidate, choice);
     state.reviewIndex = Math.min(state.reviewIndex + 1, state.reviewList.length);
     render();
@@ -1545,6 +1649,9 @@
     mock.appendChild(photo);
 
     var form = mkEl("div", "login-mock-form");
+    // The real login page's fields; this is a picture of them, not a
+    // working form, so the email input never captures a keystroke.
+    form.inert = true;
     var brand = mkEl("div", "login-mock-brand");
     var markWrap = document.createElement("span");
     markWrap.innerHTML = MARK_SVG;
@@ -1623,7 +1730,10 @@
   function renderReviewOverlay() {
     var overlay = document.getElementById("review-overlay");
     overlay.hidden = !state.reviewOpen;
-    if (!state.reviewOpen) return;
+    if (!state.reviewOpen) {
+      reviewStageKey = null;
+      return;
+    }
 
     var list = state.reviewList;
     var idx = state.reviewIndex;
@@ -1642,12 +1752,23 @@
     toggle.hidden = !candidate;
     toggle.textContent = state.reviewView === "login" ? "Show plain photo (L)" : "Show in context (L)";
 
+    // Rebuild the stage's photo and mock only when the shown candidate or
+    // the view mode changes. A write resolving or a store snapshot
+    // arriving calls render() (and so this function) constantly while
+    // Geoff is looking at one photo; rebuilding the <img> on every one of
+    // those would flash the photo he is trying to judge.
     var stage = document.getElementById("review-stage");
-    stage.innerHTML = "";
-    if (candidate) {
-      stage.appendChild(state.reviewView === "login" ? buildLoginMock(candidate) : buildPlainFrame(candidate));
-    } else {
-      stage.appendChild(buildReviewEnd(undecidedCount));
+    var key = candidate ? candidate.source_id + "|" + state.reviewView : null;
+    if (key !== reviewStageKey || !candidate) {
+      stage.innerHTML = "";
+      if (candidate) {
+        stage.appendChild(state.reviewView === "login" ? buildLoginMock(candidate) : buildPlainFrame(candidate));
+      } else {
+        // The end-of-list panel carries no image, so rebuilding it is
+        // free; it also must always reflect the latest undecided count.
+        stage.appendChild(buildReviewEnd(undecidedCount));
+      }
+      reviewStageKey = key;
     }
 
     var existing = candidate && state.choices[candidate.source_id];
@@ -1718,6 +1839,16 @@
 
   document.addEventListener("keydown", function (e) {
     if (state.reviewOpen) {
+      // The mock's email field is inert, but belt and suspenders: never
+      // treat a keystroke typed into any field as a review shortcut, and
+      // never swallow a modified key (Ctrl/Cmd+L and friends stay the
+      // browser's, not "toggle the photo view").
+      var target = e.target;
+      var targetTag = target && target.tagName;
+      if (targetTag === "INPUT" || targetTag === "TEXTAREA" || targetTag === "SELECT" || (target && target.isContentEditable)) {
+        return;
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === "Escape") {
         e.preventDefault();
         closeReview();
@@ -1895,6 +2026,7 @@
             subscribedRoundId = null;
           }
           showNoRoundOpen();
+          render(); // closes review if it was open under the round that just vanished
           return;
         }
         state.round = chosen;
@@ -1981,6 +2113,29 @@
         window.__fixtureSetClosed = function (closed) {
           state.round.closed = closed;
           render();
+        };
+        // Test-only hook: simulates what the real rounds subscription does
+        // when the sitting's round changes (the test round is deleted and
+        // round "1" opens, or vice versa) — a new round id, a fresh
+        // candidate/choice set, one render(). Never wired to any real store.
+        window.__fixtureSetRound = function (newRoundId) {
+          state.round = { id: newRoundId, closed: false, balance: {} };
+          state.candidates = fixture.candidates;
+          state.choices = {};
+          render();
+        };
+        // Test-only hook: read-only introspection into module-scoped
+        // state a test cannot otherwise reach (it lives inside this
+        // IIFE). Never wired to any real store.
+        window.__testState = function () {
+          var reviewCandidate = state.reviewList[state.reviewIndex];
+          return {
+            reviewOpen: state.reviewOpen,
+            reviewRoundId: state.reviewRoundId,
+            reviewCandidateId: reviewCandidate ? reviewCandidate.source_id : null,
+            roundId: state.round && state.round.id,
+            choices: state.choices,
+          };
         };
       });
   }
