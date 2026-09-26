@@ -2,22 +2,27 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, 5a-5c-iii, and all of rung 6 closed; 5c-iii and 6b-ii-b (`restore`) on
-2026-09-25, HISTORY's top two entries (5c-iii: segments A to C not recorded separately, window 2's
+Rungs 1b, 3, 4, 8, 5a-5c-iii, and rung 6 through 6b-ii-b closed; 5c-iii and 6b-ii-b (`restore`)
+on 2026-09-25, HISTORY's top two entries. 6c is merged on master (`e90998a`), its close unfolded (5c-iii: segments A to C not recorded separately, window 2's
 total about 11.0M across all its passes, about 1.6M for tonight's review round and close).
 
 ## Next action
 
 - **Lane 1, 5c-iv** (`plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, Tasks 7-11,
-  ~9.2M): Tasks 0 and 7 accepted; the register gate already ran and was folded (`1f189b7`,
-  `c12ef83`); D-ii (8, 9a, 9b) runs as `wf_5b983a74-956`, then segment E (10, reviews, 11).
-- **Lane 2, pass 6c** (rev 2.2 `50a1cf8`, 5.4M): segment A (0-3) runs as `wf_62218e14-e00`; then
-  transliteration (`plans/2026-09-25-translit-table-at-setup.md`, approved, 3.3M, awaits a lane).
+  ~9.2M): Tasks 0, 7, 8, 9a, 9b accepted (last `1fc7260`, 9b after an escalation and one fix round);
+  register gate folded. Next: segment E (Task 10 render-and-read, the simplifier round with 9b's
+  five stale-comment nits, three reviewers, one fold, Task 11 with architecture reads).
+- **Lane 2, 6c**: merged `1fc7260..e90998a` (range-diff all `=`, disjoint files, both gates
+  green; merged-result review verdict in its HISTORY entry). Next: six architecture reads and the
+  ledger fold (drafts `docs/superpowers/research/handoffs/draft-*-6c.md`, with the must-keep list),
+  then remove worktree `lane-2-6c`. Then transliteration (`plans/2026-09-25-translit-table-at-setup.md`,
+  approved, 3.3M) or 5d-i once Geoff approves 5d.
 
-**Overnight 2026-09-25 (Geoff):** 27M cap (flag 21.6M); 5d-i after 5c-iv closes and 6c merges.
-**Resume:** read this file and memory `session-2026-09-25-handoff`, then continue lane 1
-(`wf_5b983a74-956`) and lane 2 (`wf_62218e14-e00`); relaunch fresh from their journals if the
-session ended. Box read-only; nothing deploys until 5d.
+**Overnight 2026-09-25 (Geoff):** 27M cap (flag 21.6M), stopped at the flag about 03:30; 5d-i
+after 5c-iv closes (6c has merged).
+**Resume:** read this file and memory `overnight-window-2026-09-25`; start 5c-iv segment E in
+lane 1 and 6c's architecture reads and ledger fold. No workflow is running. Box read-only;
+nothing deploys until 5d.
 
 ## Owner questions
 
@@ -26,13 +31,14 @@ session ended. Box read-only; nothing deploys until 5d.
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 - 5d (rev 2.2) awaits two morning rulings: 1, ceilings 5d-i 7.0M / 5d-ii 3.5M; 2, the sitting.
+- 6c crossed its 4.32M pass flag (about 4.5M plus the close, under the 5.4M ceiling); continued.
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), this session | OPEN: 5c-iv D-ii (Tasks 8, 9a, 9b) as `wf_5b983a74-956`; then E |
-| 2 | worktree `lane-2-6c` (branch `lane-2-6c`, cut at `392d1cd`) | OPEN: 6c segment A accepted (Tasks 0-3, `20bd27a`..`257617b`, one fix round, about 2.9M); segment B (Tasks 4, 5) running as `wf_a5a9ec89-e5e`, then simplifier, Task 6, merge; re-derived about 5.0M: crosses the 4.32M pass flag, under the 5.4M ceiling (continued under the overnight grant; morning item) |
+| 1 | main tree (master), this session | OPEN: 5c-iv D-ii accepted (`75526ae`..`1fc7260`); segment E next, not started |
+| 2 | worktree `lane-2-6c` (branch `lane-2-6c`) | 6c merged at `e90998a`; architecture reads, ledger fold, worktree removal next |
 | photos | main tree (master), owned by the separate docs session | OPEN: `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M) |
 
 ## Open items (carried)
@@ -51,12 +57,12 @@ session ended. Box read-only; nothing deploys until 5d.
   shared-origin M2 and 5c-iii's CSP-scope M2, the streamer database's restore place. Full list:
   HISTORY 5c-ii and 5c-iii "What stayed open". To the revoke verb: the epoch store's first writer.
 - To 6d: `ServeOptions.Reconcile` wiring, store identity, migration-wait key, `member:<principal>`
-  actor. To 5c-iv: HISTORY 5c-iii "5c-iv handoff". To 6c: `SAVEPOINT` check, stale `internal/config`
-  doc. To 5d-i: `NewTrustedProxyConfig` has no caller.
+  actor. To 5c-iv: HISTORY 5c-iii "5c-iv handoff". 6c's handoff to 6d: its draft
+  HISTORY. To 5d-i: `NewTrustedProxyConfig` has no caller.
 - Errata and architecture-cleanup reads, file:line in HISTORY: 5c-iii's nine errata and latent
   items; 6b-ii-b's (spec criterion 16, `:712`; plan `:458`, `:459`, `:936`, `:1711`); the 5c-ii,
   6b-i, 6a, window 2, 5c-iii, 6b-ii-b reads; matcher re-run trigger `strdist_test.go:452`. 99
-  coverage gaps, none blocking. Staged legs: 326 process citations, 125 exported-unused.
+  coverage gaps, none blocking. Staged legs: 325 process citations, 128 exported-unused; the citation leg misses `R-6c` patterns.
 - Photo lane, after lane 1: a `check.sh` integrity line, Ruling 3's photo erratum to rung 7, a
   source-URL recheck, a blob-retention call. Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`,
   beets `2.14.1`, mediafile `0.17.0`, unidecode `1.4.0`, lap `0.5.13`, sqlite v1.59.0, rclone v1.74.3.
