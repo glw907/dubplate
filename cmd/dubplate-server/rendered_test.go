@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/auth"
 )
 
@@ -32,11 +33,13 @@ import (
 const renderedPrefix = "/rendered"
 
 // renderedScriptTimeout bounds one run of the browser script, at more
-// than twice its measured wall time on this machine (about 257s, the
-// capture matrix's 150 fresh browser contexts now dominating it) and
-// under renderedMagicLinkExpiry, so a late capture never meets an
-// expired link.
-const renderedScriptTimeout = 10 * time.Minute
+// than twice its measured wall time on a contended machine (378s;
+// about 257s uncontended, the capture matrix's 150 fresh browser
+// contexts dominating it) and under
+// renderedMagicLinkExpiry, so a late capture never meets an expired
+// link. The Makefile's RENDERED_TIMEOUT sits above it plus the
+// missing-browser run, and below the expiry too.
+const renderedScriptTimeout = 13 * time.Minute
 
 // renderedInstallHint is the command the script names when
 // Playwright's Chromium is not installed.
@@ -576,6 +579,55 @@ func (m *mintServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(mintResponse{URL: link})
 }
 
+// rosterResetServer writes the fixture roster back to a baseline on
+// every POST, so each capture cell starts from the same member list and
+// every cell of one members state renders the same count. The baseline
+// is the file as the first POST finds it: the capture matrix runs after
+// every other row, so it keeps the members those rows added, and the
+// members/roster-file check still finds the add-member row's write.
+// Each POST answers {"members": n}, the baseline's member count. The
+// write goes through atomicfile, so the file is replaced under a new
+// inode and the server's cached roster is re-read on its next request.
+// Like [mintServer], it is its own loopback listener.
+type rosterResetServer struct {
+	path string
+
+	mu       sync.Mutex
+	baseline []byte
+	members  int
+}
+
+func (s *rosterResetServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.baseline == nil {
+		data, err := os.ReadFile(s.path)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var roster struct {
+			Members []json.RawMessage `json:"members"`
+		}
+		if err := json.Unmarshal(data, &roster); err != nil {
+			http.Error(w, "parse the baseline roster: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		s.baseline, s.members = data, len(roster.Members)
+	} else if err := atomicfile.WriteFile(s.path, s.baseline, 0o600); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Members int `json:"members"`
+	}{s.members})
+}
+
 // countLogged reports how many records in records are a POST to a
 // path ending in suffix (the owned prefix's own subtree name).
 func countLogged(records []loggedRequest, suffix string) int {
@@ -726,6 +778,9 @@ func parseRows(stdout []byte) (map[string]reportedRow, []string) {
 // unless this test's own pass event appears in the go test -json
 // stream.
 func TestRendered(t *testing.T) {
+	if renderedScriptTimeout >= renderedMagicLinkExpiry {
+		t.Fatalf("renderedScriptTimeout %v is not below renderedMagicLinkExpiry %v; a late row would meet an expired link", renderedScriptTimeout, renderedMagicLinkExpiry)
+	}
 	webDir, err := filepath.Abs(filepath.Join("..", "..", "web"))
 	if err != nil {
 		t.Fatalf("resolve web/: %v", err)
@@ -766,6 +821,8 @@ func TestRendered(t *testing.T) {
 
 	mintSrv := httptest.NewServer(&mintServer{environ: environ})
 	t.Cleanup(mintSrv.Close)
+	resetSrv := httptest.NewServer(&rosterResetServer{path: environValue(environ, "DUBPLATE_ROSTER_FILE")})
+	t.Cleanup(resetSrv.Close)
 
 	env := append(scriptEnviron(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
@@ -783,6 +840,7 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_MEMBERS_HEADER_LINK="+membersHeaderLink,
 		"DUBPLATE_RENDERED_CAPTURE_MINT_URL="+mintSrv.URL,
 		"DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK="+captureInterstitialReadyLink,
+		"DUBPLATE_RENDERED_CAPTURE_ROSTER_RESET_URL="+resetSrv.URL,
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {

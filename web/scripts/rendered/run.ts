@@ -185,6 +185,13 @@ interface Endpoints {
   captureMintURL: string;
   /** A minted link for the fixture admin, never consumed: the capture matrix's `interstitial/ready` state, shared by its ten cells. */
   captureInterstitialReadyLink: string;
+  /**
+   * The capture matrix's roster reset endpoint (`rosterResetServer`,
+   * `rendered_test.go`): a POST writes the fixture roster back to the
+   * baseline the first POST recorded and answers `{ "members": n }`,
+   * the baseline's member count.
+   */
+  captureRosterResetURL: string;
 }
 
 /**
@@ -227,18 +234,21 @@ let prefixWatch: { log: string; prefix: string; seen: number } | null = null;
  * previous row left the owned prefix: a stray URL in any sink (a
  * `location` write, `window.open`, a dependency's own fetch) reaches the
  * log whichever code path built it, which a source scan cannot promise.
+ *
+ * Chromium probes the origin's own `/favicon.ico`, outside any owned
+ * prefix, whenever a document declares no icon link (the
+ * `head/no-favicon-ico` row establishes this). A row whose page has no
+ * HTML head at all, the server's plain-text 404, passes
+ * `faviconProbeExpected` so that one probe is not read as a leak; every
+ * other row still fails on it.
  */
-async function report(row: Row): Promise<void> {
+async function report(row: Row, { faviconProbeExpected = false }: { faviconProbeExpected?: boolean } = {}): Promise<void> {
   if (prefixWatch !== null) {
     const records = await requestLog(prefixWatch.log);
     const watch = prefixWatch;
-    // Chromium probes the origin's own /favicon.ico, outside any owned
-    // prefix, whenever a document declares no icon link
-    // (`head/no-favicon-ico`'s own row already establishes this): a
-    // page with no HTML head at all (the native-fallback plain-text
-    // 404 the capture matrix's `error/not-found` state visits) always
-    // triggers it, a browser quirk unrelated to a leaked application URL.
-    const outside = records.slice(watch.seen).filter((r) => !r.path.startsWith(watch.prefix) && r.path !== '/favicon.ico');
+    const outside = records
+      .slice(watch.seen)
+      .filter((r) => !r.path.startsWith(watch.prefix) && !(faviconProbeExpected && r.path === '/favicon.ico'));
     watch.seen = records.length;
     if (outside.length > 0) {
       row = { ...row, property: false, detail: `${row.detail}; requests outside ${watch.prefix}: ${describe(outside)}` };
@@ -3438,13 +3448,14 @@ const ACTIVATION_SELECTOR =
 
 /**
  * SC 2.5.8's named suppressions this harness recognizes. "Inline" is
- * not a fixed selector: any `<a>` the cascade leaves at its default
- * `display: inline` sits in a line of running text (the login page's
- * "the sign-in page" link inside the refused-outcome sentence, among
- * others), its own height set by the surrounding line box, not an
- * isolated tap target; {@link touchTargetReport} applies that rule
- * directly. This list is the exceptions with no general rule: today
- * only the skip link, which is `display: inline` too but named
+ * not a fixed selector: SC 2.5.8 exempts a target "in a sentence", so
+ * {@link touchTargetReport} excepts an `<a>` only when it is
+ * `display: inline` and its nearest non-inline ancestor also holds
+ * text of its own, outside every control (the login page's "the
+ * sign-in page" link inside the refused-outcome sentence, among
+ * others). An inline link standing alone in its block is an isolated
+ * tap target and meets the floor like any other control. This list is
+ * the exceptions with no general rule: today only the skip link, named
  * explicitly since its own reason (an off-screen control shown only on
  * focus) differs from a visible text link's.
  */
@@ -3473,7 +3484,7 @@ interface TouchReport {
  */
 async function touchTargetReport(page: Page): Promise<TouchReport> {
   return page.evaluate(
-    ({ selector, floor, advisory, exceptions, wrapperSelector }) => {
+    ({ selector, floor, advisory, exceptions, wrapperSelector, controlSelector }) => {
       const failures: TouchViolation[] = [];
       const advisories: TouchViolation[] = [];
       const excepted: { label: string; exception: string }[] = [];
@@ -3498,8 +3509,20 @@ async function touchTargetReport(page: Page): Promise<TouchReport> {
           continue;
         }
         if (el.tagName === 'A' && style.display === 'inline') {
-          excepted.push({ label, exception: 'Inline' });
-          continue;
+          let block = el.parentElement;
+          while (block !== null && getComputedStyle(block).display === 'inline') block = block.parentElement;
+          let sentence = false;
+          if (block !== null) {
+            const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+            for (let node = walker.nextNode(); node !== null && !sentence; node = walker.nextNode()) {
+              const owner = node.parentElement;
+              sentence = (node.textContent ?? '').trim() !== '' && owner !== null && owner.closest(controlSelector) === null;
+            }
+          }
+          if (sentence) {
+            excepted.push({ label, exception: 'Inline' });
+            continue;
+          }
         }
         const side = Math.min(rect.width, rect.height);
         if (side < floor) failures.push({ label, width: rect.width, height: rect.height });
@@ -3507,7 +3530,14 @@ async function touchTargetReport(page: Page): Promise<TouchReport> {
       }
       return { count, failures, advisories, excepted };
     },
-    { selector: ACTIVATION_SELECTOR, floor: TOUCH_FLOOR_PX, advisory: TOUCH_ADVISORY_PX, exceptions: TOUCH_EXCEPTIONS, wrapperSelector: RING_WRAPPER_SELECTOR }
+    {
+      selector: ACTIVATION_SELECTOR,
+      floor: TOUCH_FLOOR_PX,
+      advisory: TOUCH_ADVISORY_PX,
+      exceptions: TOUCH_EXCEPTIONS,
+      wrapperSelector: RING_WRAPPER_SELECTOR,
+      controlSelector: `${ACTIVATION_SELECTOR}, label`
+    }
   );
 }
 
@@ -3554,19 +3584,47 @@ async function mintCaptureLink(endpoints: Endpoints, kind: 'admin' | 'member'): 
   return body.url;
 }
 
-/** A fresh roster address for one capture cell, never shared with another cell or another capture run. */
-function captureAddress(kind: string, width: number, scheme: CaptureScheme): string {
-  return `capture-${kind}-${width}-${scheme}@example.test`;
+/**
+ * One capture state's roster address. Every cell writes the same one,
+ * so every cell of a state renders the same list: the roster is reset
+ * to its baseline before each cell ({@link resetCaptureRoster}), so no
+ * cell meets another's write.
+ */
+function captureAddress(kind: string): string {
+  return `capture-${kind}@example.test`;
+}
+
+/** One capture state's streamer username, shared by its cells as {@link captureAddress} is. */
+function captureUsername(kind: string): string {
+  return `capture-${kind}`;
 }
 
 /**
- * A fresh streamer username for one capture cell: the roster write
- * fields (`admin.go`'s `duplicate_streamer_username`) key on this
- * value too, so a value shared across cells would make every cell but
- * the first meet that refusal instead of `added`.
+ * Writes the fixture roster back to the capture matrix's baseline and
+ * returns the baseline's member count, which each members state's
+ * rendered list is checked against.
  */
-function captureUsername(kind: string, width: number, scheme: CaptureScheme): string {
-  return `capture-${kind}-${width}-${scheme}`;
+async function resetCaptureRoster(endpoints: Endpoints): Promise<number> {
+  const response = await fetch(endpoints.captureRosterResetURL, { method: 'POST' });
+  if (!response.ok) throw new Refusal(`the capture roster reset endpoint answered ${response.status}`);
+  const body = (await response.json()) as { members: number };
+  return body.members;
+}
+
+/**
+ * Waits until the roster list shows exactly `want` rows, bounded by
+ * {@link BOOT_TIMEOUT_MS}, and returns the count it last read: a list
+ * still loading after an add, or one another cell's write had grown,
+ * reads as a count other than `want`.
+ */
+async function rosterRowsSettle(page: Page, want: number): Promise<number> {
+  const rows = page.locator('#roster-list > li');
+  try {
+    await page.waitForFunction((n) => document.querySelectorAll('#roster-list > li').length === n, want, { timeout: BOOT_TIMEOUT_MS });
+  } catch {
+    // The count below reports what the list held instead.
+  }
+  return rows.count();
 }
 
 /**
@@ -3582,10 +3640,15 @@ interface CaptureArrangement {
   detail: string;
 }
 
-/** One of the capture matrix's fifteen page states: an ID matching `renderedCaptureStates` (`rendered_test.go`), and how to reach it in a fresh, sized, schemed context. */
+/**
+ * One of the capture matrix's fifteen page states: an ID matching
+ * `renderedCaptureStates` (`rendered_test.go`), and how to reach it in a
+ * fresh, sized, schemed context. `rosterBaseline` is the member count
+ * the roster was just reset to.
+ */
 interface CaptureState {
   id: string;
-  arrange(context: BrowserContext, endpoints: Endpoints, width: number, scheme: CaptureScheme): Promise<CaptureArrangement>;
+  arrange(context: BrowserContext, endpoints: Endpoints, rosterBaseline: number): Promise<CaptureArrangement>;
   /**
    * True for a state whose arrangement is not the hydrated app at all
    * (`error/not-found`'s native-fallback plain-text 404, which carries
@@ -3594,6 +3657,8 @@ interface CaptureState {
    * not apply to a response with no application UI.
    */
   skipUIFloors?: boolean;
+  /** True for a state whose page has no HTML head, so Chromium probes `/favicon.ico` (see {@link report}). */
+  faviconProbeExpected?: boolean;
 }
 
 const CAPTURE_STATES: CaptureState[] = [
@@ -3749,7 +3814,7 @@ const CAPTURE_STATES: CaptureState[] = [
   },
   {
     id: 'members/populated',
-    async arrange(context, endpoints) {
+    async arrange(context, endpoints, rosterBaseline) {
       const link = await mintCaptureLink(endpoints, 'admin');
       const visit = await signIn(context, link);
       visit.expectsAuthErrorStatus = true;
@@ -3761,8 +3826,12 @@ const CAPTURE_STATES: CaptureState[] = [
       } catch {
         ok = false;
       }
-      const count = ok ? await visit.page.locator('#roster-list > li').count() : 0;
-      return { page: visit.page, ok: ok && count > 0, detail: `roster rows ${count}` };
+      const count = ok ? await rosterRowsSettle(visit.page, rosterBaseline) : 0;
+      return {
+        page: visit.page,
+        ok: ok && rosterBaseline > 0 && count === rosterBaseline,
+        detail: `roster rows ${count} (want the baseline ${rosterBaseline})`
+      };
     }
   },
   {
@@ -3789,16 +3858,16 @@ const CAPTURE_STATES: CaptureState[] = [
   },
   {
     id: 'members/added',
-    async arrange(context, endpoints, width, scheme) {
+    async arrange(context, endpoints, rosterBaseline) {
       const link = await mintCaptureLink(endpoints, 'admin');
       const visit = await signIn(context, link);
       visit.expectsAuthErrorStatus = true;
       await visit.page.goto(new URL('members', endpoints.base).href);
       await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
-      const address = captureAddress('added', width, scheme);
+      const address = captureAddress('added');
       await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
       await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
-      await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(captureUsername('added', width, scheme));
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(captureUsername('added'));
       await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
       const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: ROSTER_OUTCOMES.added });
       let ok = true;
@@ -3807,23 +3876,29 @@ const CAPTURE_STATES: CaptureState[] = [
       } catch {
         ok = false;
       }
-      return { page: visit.page, ok, detail: `added outcome shown ${ok} for ${address}` };
+      const want = rosterBaseline + 1;
+      const count = ok ? await rosterRowsSettle(visit.page, want) : 0;
+      return {
+        page: visit.page,
+        ok: ok && count === want,
+        detail: `added outcome shown ${ok} for ${address}; roster rows ${count} (want the baseline ${rosterBaseline} plus the added member)`
+      };
     }
   },
   {
     id: 'members/duplicate-address',
-    async arrange(context, endpoints, width, scheme) {
+    async arrange(context, endpoints, rosterBaseline) {
       const link = await mintCaptureLink(endpoints, 'admin');
       const visit = await signIn(context, link);
       visit.expectsAuthErrorStatus = true;
       await visit.page.goto(new URL('members', endpoints.base).href);
       await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
-      const address = captureAddress('dup', width, scheme);
+      const address = captureAddress('dup');
       // Both submits use the same address (the point of this state)
       // and the same username: the roster checks a duplicate address
       // before a duplicate username, so the second submit still meets
       // `duplicate_address` regardless.
-      const username = captureUsername('dup', width, scheme);
+      const username = captureUsername('dup');
       const submit = async () => {
         await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
         await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
@@ -3847,7 +3922,13 @@ const CAPTURE_STATES: CaptureState[] = [
       } catch {
         ok = false;
       }
-      return { page: visit.page, ok, detail: `duplicate-address outcome shown ${ok} for ${address}` };
+      const want = rosterBaseline + 1;
+      const count = ok ? await rosterRowsSettle(visit.page, want) : 0;
+      return {
+        page: visit.page,
+        ok: ok && count === want,
+        detail: `duplicate-address outcome shown ${ok} for ${address}; roster rows ${count} (want the baseline ${rosterBaseline} plus the first submit's member)`
+      };
     }
   },
   {
@@ -3877,6 +3958,7 @@ const CAPTURE_STATES: CaptureState[] = [
   {
     id: 'error/not-found',
     skipUIFloors: true,
+    faviconProbeExpected: true,
     // A path this build's router has no entry for is not an "intent"
     // SvelteKit's client can resolve (only login, login/link, and
     // members are in its manifest, this being a fully prerendered,
@@ -3914,6 +3996,58 @@ const CAPTURE_STATES: CaptureState[] = [
   }
 ];
 
+/** How long a capture waits for a pending control or a running animation to settle. */
+const CAPTURE_SETTLE_MS = 2_000;
+
+/**
+ * Settles a capture cell so its screenshot shows the resting page:
+ * parks the pointer outside the viewport, so nothing stays hovered after
+ * a click; waits, bounded by {@link CAPTURE_SETTLE_MS}, for every
+ * `.btn` to leave its disabled (pending) state and for every running
+ * animation or transition in the document to finish; then checks each
+ * visible `.btn-primary` against its resting fill. The resting fill is
+ * read from a hidden, enabled clone inserted beside the button, which no
+ * pointer hovers and no transition has touched. Returns the problem, or
+ * `null` once the page has settled.
+ */
+async function settleCapture(page: Page): Promise<string | null> {
+  await page.mouse.move(-1, -1);
+  try {
+    await page.waitForFunction(() => document.querySelector('.btn:disabled') === null, undefined, { timeout: CAPTURE_SETTLE_MS });
+  } catch {
+    return `a control stayed disabled (pending) past ${CAPTURE_SETTLE_MS}ms`;
+  }
+  const running = await page.evaluate(async (bound) => {
+    const animations = document.getAnimations();
+    const timeout = new Promise<void>((resolve) => setTimeout(resolve, bound));
+    await Promise.race([Promise.all(animations.map((a) => a.finished.catch(() => undefined))), timeout]);
+    return document
+      .getAnimations()
+      .filter((a) => a.playState === 'running' || a.pending)
+      .map((a) => ('transitionProperty' in a ? (a as CSSTransition).transitionProperty : (a as CSSAnimation).animationName || 'animation'));
+  }, CAPTURE_SETTLE_MS);
+  if (running.length > 0) return `animations still running past ${CAPTURE_SETTLE_MS}ms: ${running.join(', ')}`;
+  const unrested = await page.evaluate(() => {
+    const problems: string[] = [];
+    for (const btn of Array.from(document.querySelectorAll<HTMLElement>('.btn-primary'))) {
+      if (btn.getClientRects().length === 0) continue;
+      const clone = btn.cloneNode(true) as HTMLElement;
+      clone.removeAttribute('id');
+      clone.removeAttribute('disabled');
+      clone.style.position = 'absolute';
+      clone.style.visibility = 'hidden';
+      btn.after(clone);
+      const resting = getComputedStyle(clone).backgroundColor;
+      clone.remove();
+      const shown = getComputedStyle(btn).backgroundColor;
+      if (shown !== resting) problems.push(`"${(btn.textContent ?? '').trim()}" fill ${shown}, resting ${resting}`);
+    }
+    return problems;
+  });
+  if (unrested.length > 0) return `primary button off its resting fill: ${unrested.join('; ')}`;
+  return null;
+}
+
 /**
  * Composes a contact sheet in the browser: a fresh page with one
  * `<img>` per cell, its `src` a data URI (no image-encoding dependency,
@@ -3943,9 +4077,10 @@ async function composeContactSheet(browser: Browser, cells: { width: number; sch
 /**
  * The capture matrix: every one of {@link CAPTURE_STATES}' fifteen
  * page states, at every {@link CAPTURE_WIDTHS} width in both
- * {@link CAPTURE_SCHEMES}, 150 captures. Each cell opens its own sized,
- * schemed browser context,
- * stands up the state, and asserts it before screenshotting: the
+ * {@link CAPTURE_SCHEMES}, 150 captures. Each cell resets the fixture
+ * roster to its baseline, opens its own sized, schemed browser context,
+ * stands up the state, asserts it, and settles the page
+ * ({@link settleCapture}) before screenshotting: the settle, the
  * secondary-control guard, the viewport-overflow floor (at 320 and
  * 390), and the touch-target floor all gate the cell's own `property`
  * result. The two native widths (390, 1440) each write their own PNG;
@@ -3961,32 +4096,43 @@ async function captureRows(browser: Browser, endpoints: Endpoints): Promise<void
     for (const width of CAPTURE_WIDTHS) {
       for (const scheme of CAPTURE_SCHEMES) {
         const id = `capture/${state.id}/${width}/${scheme}`;
+        const reportOptions = { faviconProbeExpected: state.faviconProbeExpected ?? false };
+        const rosterBaseline = await resetCaptureRoster(endpoints);
         const context = await browser.newContext({ viewport: { width, height: CAPTURE_HEIGHT }, colorScheme: scheme });
         try {
-          const arranged = await state.arrange(context, endpoints, width, scheme);
+          const arranged = await state.arrange(context, endpoints, rosterBaseline);
           if (!arranged.ok) {
-            await report({ id, fixture: false, property: false, detail: arranged.detail });
+            await report({ id, fixture: false, property: false, detail: arranged.detail }, reportOptions);
             continue;
           }
+          const unsettled = await settleCapture(arranged.page);
           const png = await arranged.page.screenshot({ fullPage: true });
           if (CAPTURE_NATIVE_WIDTHS.has(width)) {
             await writeFile(path.join(dir, `${width}-${scheme}.png`), png);
           } else {
             sheetCells.push({ width, scheme, png });
           }
+          const settled = `settle ${unsettled ?? 'clean'}`;
           if (state.skipUIFloors) {
-            await report({ id, fixture: true, property: true, detail: `${arranged.detail}; UI floors skipped (no application UI)` });
+            await report(
+              { id, fixture: true, property: unsettled === null, detail: `${arranged.detail}; ${settled}; UI floors skipped (no application UI)` },
+              reportOptions
+            );
           } else {
             const secondary = await secondaryControlViolations(arranged.page);
             const overflow = width === 320 || width === 390 ? await overflowReport(arranged.page) : null;
             const touch = await touchTargetReport(arranged.page);
-            const property = secondary.length === 0 && overflow === null && touch.count > 0 && touch.failures.length === 0;
-            await report({
-              id,
-              fixture: true,
-              property,
-              detail: `${arranged.detail}; secondary-control violations ${JSON.stringify(secondary)}; overflow ${overflow ? JSON.stringify(overflow) : 'none'}; touch targets ${touch.count} controls, failures ${JSON.stringify(touch.failures)}, advisory (<${TOUCH_ADVISORY_PX}px) ${JSON.stringify(touch.advisories)}, excepted ${JSON.stringify(touch.excepted)}`
-            });
+            const property =
+              unsettled === null && secondary.length === 0 && overflow === null && touch.count > 0 && touch.failures.length === 0;
+            await report(
+              {
+                id,
+                fixture: true,
+                property,
+                detail: `${arranged.detail}; ${settled}; secondary-control violations ${JSON.stringify(secondary)}; overflow ${overflow ? JSON.stringify(overflow) : 'none'}; touch targets ${touch.count} controls, failures ${JSON.stringify(touch.failures)}, advisory (<${TOUCH_ADVISORY_PX}px) ${JSON.stringify(touch.advisories)}, excepted ${JSON.stringify(touch.excepted)}`
+              },
+              reportOptions
+            );
           }
         } finally {
           await context.close();
@@ -4014,7 +4160,8 @@ async function main(): Promise<void> {
     membersNonAdminLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK'),
     membersHeaderLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_HEADER_LINK'),
     captureMintURL: requiredEnv('DUBPLATE_RENDERED_CAPTURE_MINT_URL'),
-    captureInterstitialReadyLink: requiredEnv('DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK')
+    captureInterstitialReadyLink: requiredEnv('DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK'),
+    captureRosterResetURL: requiredEnv('DUBPLATE_RENDERED_CAPTURE_ROSTER_RESET_URL')
   };
   PAGES[0].heading = endpoints.siteName;
   PAGES[1].heading = TITLES.loginLinkRefused;
