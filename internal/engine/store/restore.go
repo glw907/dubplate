@@ -515,7 +515,7 @@ func (s *RestoreSession) OpenRead(ctx context.Context) (*Handle, error) {
 // WriteBackupRef records the restored snapshot as the leaf's backup
 // reference, exactly as [Handle.WriteBackupRef] records a backup.
 func (s *RestoreSession) WriteBackupRef(stamp, remote string) error {
-	return writeBackupRef(s.leaf, stamp, remote)
+	return s.leaf.writeBackupRef(stamp, remote)
 }
 
 // Quiesce readies the current store in db/ to be renamed as one file,
@@ -623,7 +623,7 @@ func (s *RestoreSession) Record(in RestoreIntent) error {
 	if in.LibraryRoot != "" {
 		r.Library = &libraryOwed{Root: in.LibraryRoot, IntoNonempty: in.IntoNonempty}
 	}
-	if err := writeIntent(s.leaf, r); err != nil {
+	if err := s.leaf.writeIntent(r); err != nil {
 		return err
 	}
 	s.intent = &r
@@ -820,7 +820,7 @@ func (s *RestoreSession) Advance(ctx context.Context) (RestoreStep, error) {
 	if next != r.State {
 		advanced := *r
 		advanced.State = next
-		if err := writeIntent(s.leaf, advanced); err != nil {
+		if err := s.leaf.writeIntent(advanced); err != nil {
 			return 0, err
 		}
 		s.intent = &advanced
@@ -857,7 +857,7 @@ func (s *RestoreSession) WriteReport(report []byte) (string, error) {
 	if s.Owed() != StepReconcile {
 		return "", errors.New("write the reconciliation report: the restore does not owe one")
 	}
-	if err := writeReport(s.leaf, s.stamp, report); err != nil {
+	if err := s.leaf.writeReport(s.stamp, report); err != nil {
 		return "", fmt.Errorf("write the reconciliation report: %w", err)
 	}
 	s.reported = true
@@ -871,7 +871,7 @@ func (s *RestoreSession) Complete() error {
 	if s.Owed() != StepReconcile || !s.reported {
 		return errors.New("complete the restore: the reconciliation report is not written")
 	}
-	if err := removeIntent(s.leaf); err != nil {
+	if err := s.leaf.removeIntent(); err != nil {
 		return err
 	}
 	s.intent = nil

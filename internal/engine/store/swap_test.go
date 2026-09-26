@@ -544,7 +544,7 @@ func TestRestore_RollBackNewerCurrent(t *testing.T) {
 	if v := queryInt(t, filepath.Join(l.snapshotsDir, testPreRestore), "PRAGMA user_version"); v != binaryHead+1 {
 		t.Errorf("pre-restore copy at version %d, want the rolled-back %d", v, binaryHead+1)
 	}
-	if err := removeIntent(l); err != nil {
+	if err := l.removeIntent(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -598,7 +598,7 @@ func TestRestoreSession_SwappedInFile(t *testing.T) {
 	if got := header(t, l.dbPath); got != [2]byte{1, 1} {
 		t.Fatalf("restored store header = %v before any open, want 1/1", got)
 	}
-	if err := removeIntent(l); err != nil {
+	if err := l.removeIntent(); err != nil {
 		t.Fatal(err)
 	}
 	h, err := OpenWrite(deadline(t, 10*time.Second), stateDir, openBusy)

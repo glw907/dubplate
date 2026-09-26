@@ -364,10 +364,10 @@ func finishRestore(ctx context.Context, l leaf, h *Handle, stamp string, reconci
 	if err != nil {
 		return fmt.Errorf("reconcile the restored store %s: %w", l.dbPath, err)
 	}
-	if err := writeReport(l, stamp, report); err != nil {
+	if err := l.writeReport(stamp, report); err != nil {
 		return fmt.Errorf("write the reconciliation report: %w", err)
 	}
-	return removeIntent(l)
+	return l.removeIntent()
 }
 
 // waitLock polls for path's lock in mode how (syscall.LOCK_SH or

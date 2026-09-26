@@ -45,7 +45,7 @@ func testIntent(state intentState) intentRecord {
 // plantIntent writes r as l's record through the record's own writer.
 func plantIntent(t *testing.T, l leaf, r intentRecord) {
 	t.Helper()
-	if err := writeIntent(l, r); err != nil {
+	if err := l.writeIntent(r); err != nil {
 		t.Fatalf("write intent: %v", err)
 	}
 }
@@ -154,7 +154,7 @@ func TestWriteIntent(t *testing.T) {
 	before := hashFile(t, l.restoreIntentPath)
 	bad := testIntent(intentSwap)
 	bad.Incoming = "../db/dubplate.db"
-	if err := writeIntent(l, bad); err == nil || !strings.Contains(err.Error(), "field incoming") {
+	if err := l.writeIntent(bad); err == nil || !strings.Contains(err.Error(), "field incoming") {
 		t.Errorf("write of a record naming a path = %v, want a refusal naming the field", err)
 	}
 	if hashFile(t, l.restoreIntentPath) != before {
@@ -561,7 +561,7 @@ func TestIntentChildRace(t *testing.T) {
 	}
 	fmt.Println("locked")
 	_, _ = io.Copy(io.Discard, os.Stdin)
-	if err := writeIntent(l, testIntent(intentState(state))); err != nil {
+	if err := l.writeIntent(testIntent(intentState(state))); err != nil {
 		t.Fatalf("child write: %v", err)
 	}
 	runtime.KeepAlive(lock)

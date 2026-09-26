@@ -395,12 +395,12 @@ func (h *Handle) RemoveBackupStages() error {
 // NUL, since the reference's body is line-oriented and any of those
 // would corrupt it or a later parse of it.
 func (h *Handle) WriteBackupRef(stamp, remote string) error {
-	return writeBackupRef(h.leaf, stamp, remote)
+	return h.leaf.writeBackupRef(stamp, remote)
 }
 
-// writeBackupRef is [Handle.WriteBackupRef] on the leaf l, which a
-// restore session shares so the two writers cannot drift.
-func writeBackupRef(l leaf, stamp, remote string) error {
+// writeBackupRef is [Handle.WriteBackupRef] on l, which a restore
+// session shares so the two writers cannot drift.
+func (l leaf) writeBackupRef(stamp, remote string) error {
 	if _, err := ParseStamp(stamp); err != nil {
 		return fmt.Errorf("write backup reference: %w", err)
 	}

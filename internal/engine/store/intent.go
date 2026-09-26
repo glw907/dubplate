@@ -211,7 +211,7 @@ func (r *intentRecord) refusal(l leaf) error {
 // writeIntent writes r as l's restore-intent record, replacing any
 // record there, at intentFilePerm. It refuses a record decodeIntent
 // would refuse, writing nothing.
-func writeIntent(l leaf, r intentRecord) error {
+func (l leaf) writeIntent(r intentRecord) error {
 	if err := r.validate(); err != nil {
 		return fmt.Errorf("write restore-intent record: %w", err)
 	}
@@ -224,7 +224,7 @@ func writeIntent(l leaf, r intentRecord) error {
 
 // removeIntent removes l's restore-intent record and syncs the leaf,
 // so the removal survives a power cut.
-func removeIntent(l leaf) error {
+func (l leaf) removeIntent() error {
 	if err := os.Remove(l.restoreIntentPath); err != nil {
 		return fmt.Errorf("remove restore-intent record: %w", err)
 	}
@@ -239,7 +239,7 @@ func (l leaf) reportPath(stamp string) string {
 
 // writeReport writes report as the reconciliation report of the
 // restore stamped stamp, replacing one an earlier attempt wrote.
-func writeReport(l leaf, stamp string, report []byte) error {
+func (l leaf) writeReport(stamp string, report []byte) error {
 	return atomicfile.WriteStream(l.reportPath(stamp), intentFilePerm, func(w io.Writer) error {
 		_, err := w.Write(report)
 		return err
