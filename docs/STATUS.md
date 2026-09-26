@@ -2,42 +2,61 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i, 5c-ii, and **5c-iii**, and rung 6's 6a, 6b-i, and 6b-ii-a are closed. **5c-iii** (the fonts, theme data, the rendered leg, the document head, the component layer; fold `81988b1`..`8588dd0`, `fix`-round `db1e111` accepted by a second `diff-reviewer`, three merge-side architecture reads all "workmanlike"; 10.8M ceiling, segments A-C not recorded separately, window 2's total about 11.0M at segment B's boundary, about 1.6M for tonight's review round and close only) closed 2026-09-25, lane 1; HISTORY, top entry. 6b-ii-a and the **matcher word-boundary pass** closed 2026-09-25 too; HISTORY, next two entries. Beets 2.14.1 adopted. The visual identity spec is at revision 1.3 (`45b80cb`); three of 5c-iii's plan-named errata already landed there.
+Rungs 1b, 3, 4, 8, rung 5's 5a-5c-iii, and **rung 6 in full** (6a, 6b-i, 6b-ii-a, 6b-ii-b) closed.
+**5c-iii** (fonts, theme, rendered leg, document head, component layer; fold `81988b1`..`8588dd0`,
+fix `db1e111`; 10.8M ceiling, ~12.6M spent) and **6b-ii-b** (the offline `restore` verb,
+`c12ef83..392d1cd`, ~3.5M against 7.53M, merged range accepted by a fresh `diff-reviewer`) both
+closed 2026-09-25, lanes 1 and 2; HISTORY's top two entries, then 6b-ii-a and the matcher pass.
+Beets 2.14.1 adopted; visual identity spec at revision 1.3 (`45b80cb`).
 
 ## Next action
 
-- **5c-iii is closed. Lane 1's next action is the just-in-time refresh read of 5c-iv** (this plan's Tasks 7-11, against 5c-iii's close and review fold, conductor action 5, per Ruling 1's declared just-in-time deviation), **then 5c-iv's own Task 0 and segments D and E.** Plan `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, ceiling 8.5M. The rendered leg's script deadline is now 300s; a standalone run measured 107.4s, the full heavy gate about 3-4 minutes at about 560 MiB peak.
-- **6b-ii-b (restore) runs in lane 2** (worktree `lane-2-6b-ii-b`): B1 accepted (`wf_a047da45-f4b`); B2 (5A, 5B, 6) accepted; B3 Task 7 running as `wf_6b3f2248-285`, then simplifier, the targeted data-loss read, Task 8, the merge. If this session ended mid-segment: journal first, then relaunch (memory `pass-execute-cross-session-resume`).
-- **Approved and waiting for a lane:** the transliteration-at-setup pass (`plans/2026-09-25-translit-table-at-setup.md`, 3.3M, `unidecode install`; keeps dubplate MIT).
+- **Lane 1 runs 5c-iv's D-ii and E**: Task 0/7 accepted (`wf_9508455c-ca8`); D-ii (8, 9a, 9b)
+  running, then the register gate, then E (10, reviews, 11). Ceiling ~9.2M.
+- **Lane 2 runs pass 6c** in worktree `lane-2-6c` (cut at `392d1cd`, rev 2.2 `50a1cf8`, 5.4M
+  ceiling), segment A (0-3) running; then the transliteration pass (3.3M, approved).
 
-**Overnight 2026-09-25 (Geoff):** full queue under an 18M cap, flag 14.4M, counted from the restart; raised to 27M (flag 21.6M) to add the 6c plan and its execution once Geoff approves it tonight. Document lanes: the 6c plan (**approved at revision 2.2, `50a1cf8`, its prose review folded**, 5.4M ceiling, flag 4.32M; runs in lane 2 right after 6b-ii-b merges, then translit) and the 5d plan (review complete, revision 2.2; **awaits Geoff's morning approval on two rulings**: 1, ceilings 5d-i 7.0M / 5d-ii 3.5M; 2, the attended first-deploy sitting). 5d-i launches only after 5c-iv closes and 6c merges. Lane 1: 5c-iii closed; next the refresh read, then 5c-iv (Tasks 7-11). Lane 2: B3 and the merge (at a lane 1 green boundary), then the transliteration pass. Memory `overnight-window-2026-09-25`.
-
-**Resume prompt:** read this file and memory `session-2026-09-25-handoff`, then run 5c-iv's just-in-time refresh read and its Tasks 7-11 in lane 1, and continue 6b-ii-b in lane 2 from its journal. Box read-only; nothing deploys until 5d.
-
-Readings taken (conductor; reversible), in full in HISTORY at each pass's close: OpenSubsonic wire types hand-written (the survey found generators unfit). Geoff 2026-09-25: Navidrome sharing stays at its default (zero shares) until 0.8; the Navidrome 0.64 bump for GHSA-82gh is an open question. Owed: the streamer spec's seven open items (revision 2.5, "Open items") go to its study rung. From the project site spec: settle `init`/`upgrade` naming against `dubplate-server`, and add the configuration-reference generator as a consumer of hook 18.
+**Overnight 2026-09-25 (Geoff):** full queue 18M cap, raised to 27M for 6c. 5d (reviewed, rev 2.2)
+awaits Geoff's morning approval on ceilings and the attended first-deploy sitting; 5d-i launches
+after 5c-iv closes and 6c merges. **Resume:** read this file and memory
+`session-2026-09-25-handoff`, then continue both lanes from their journals; box read-only,
+nothing deploys until 5d (memory `overnight-window-2026-09-25`).
 
 ## Lane registry
 
-This session conducts both code lanes; a separate docs session owns the document lanes (photos).
+This session conducts both code lanes; a separate docs session owns the document lane (photos).
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | OPEN: 5c-iv (plan Tasks 7-11, refreshed at `131283c`: Task 9 split into 9a/9b, ceiling re-derived to about 9.2M from 8.5M for the added chain); segment D-i (Task 0, Task 7) running as `wf_9508455c-ca8`; then the register gate, D-ii (8, 9a, 9b), E (10, reviews, 11) |
-| 2 | worktree `lane-2-6b-ii-b` (branch `lane-2-6b-ii-b`) | OPEN: 6b-ii-b B2 accepted 2026-09-25 (5A `30a66ac`, 5B `cd9afbf`, 6 `9d9c552`, zero fix rounds); B3 Task 7 accepted (`9a7532b`), simplifier `7a56699`, targeted data-loss read `23ee61f` (0 blockers, 2 majors), a fix round running; then Task 8 close and the merge; then 6c (approved, `50a1cf8`) in a fresh worktree; ceiling 7.53M |
-| photos | main tree (master), document lane, owned by the separate docs session (Geoff, 2026-09-25) | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M; raised by Geoff 2026-09-25) |
+| 1 | main tree (master) | OPEN: 5c-iv D-ii (8, 9a, 9b) running; then E (10, reviews, 11) |
+| 2 | worktree `lane-2-6c` (cut at `392d1cd`) | OPEN: 6c segment A running; then translit |
+| photos | main tree, docs session | OPEN: photo curation round one; ceiling 5.5M |
 
-Geoff, 2026-09-25 (attended): beyond the 14.5M window, parallel work runs uncapped for about four hours (6b-ii-b in lane 2, the errata document lane, the transliteration plan). Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 11.0M at segment B's boundary, plus about 1.6M for tonight's 5c-iii review round and close (fold resumed after the power loss, fix round, two simplifier rounds, two diff-reviewer reads, three architecture reads, close drafts; breakdown in HISTORY's 5c-iii entry, earlier segments in window 2's own entries: matcher pass about 1.25M against 2.75M, 6b-ii-a about 1.95M against 3.90M, both incl. merge-side architecture reads). Attended interactions after approval: 0 for every pass tonight. AC online at launch.
+Parallel work uncapped ~4h beyond the 14.5M window (flag 13.4M, Geoff 2026-09-25); per-pass spend
+in HISTORY; 0 attended interactions after approval tonight.
 
 ## Open items (carried)
 
-- No deploy until 5d: `magic-link` env template lacks its nine keys. Owed: `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys' `doctor` row, Ruling 6's old-browser `Referrer-Policy` residual, the branding-in-both-schemes line, `deploy.sh`'s clean-`web/`-build requirement, 6a's and 6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy).
-- To rung 7: guard counting, `--max-delete`, a remote-pruning regression floor, archive uploads; 5c-iii's svelte S13 (input-inset-shadow, `label-night` keyline-vs-specimen) and mono-utility surfaces (a11y S7), for the uploader's design review. From the project site spec: an enumerable reject-reason set with one canonical wording per parameterized reason, and the CREDITS output (with pack grantors' name-only lines) and picked images at stable paths an export manifest can list. To rung 9: library filter, facets, trigram search.
-- To rung 12: no non-admin maps onto a streamer admin; a restore before then loses stars/playlists; roster API/Navidrome-fallthrough shared origin (security M2, a threat-model entry, Geoff 2026-09-25; 5c-iii's own security review routes its CSP-scope M2, same-origin fallthrough streamer, here too); Ruling 7's availability question; re-validate every roster row's `streamer_username`; the header step's fallthrough reconciliation; the streamer database's place in a restore (0.8 forward hook). To the revoke verb: the epoch store's first writer.
-- To 5c-iv: see HISTORY's 5c-iii entry, "5c-iv handoff" section, for the four files crossing Ruling 1's cut (`rendered_test.go`, `run.ts`, `Makefile`, `components.css`), the touch-target seed, the `label-night`/`base-300` keyline exception, and the stub-copy/`{@html}` routings to Tasks 7-9.
-- 5c-iii errata owed (9, drafted paste-ready in HISTORY's "Errata owed") and its latent unfixed items: the rung 5 spec's third split (5c-iii into 5c-iii/5c-iv), the web surface standard's matching line, DL R5.5's family-count clause, W4.1's both-schemes line (now binds at rung 5), the admin-checkbox line, R-5cii8's `no-store` correction, R-5cii22's cookie `Max-Age`, VI's functional-branding-neutral carve-out (Ruling 10), and a11y S2/S4 recorded-not-folded (three plan-named errata already landed at `45b80cb`); plus outline/dash button *text* still painting DaisyUI's raw `--btn-color` (contrast fails on several combinations) and `checkRateBudget`'s unset `linkRequests`/`consumptions` fields (cannot fail yet), route to 5c-iv's refresh read as a precondition for Tasks 8-9, else rung 7, with four smaller latent items in HISTORY's "What a later pass would be wrong to rediscover".
-- To the architecture cleanup pass: the 5c-ii reads (`internal/auth`, `internal/serve`, `internal/identity`), 6b-i's ops/local findings, 6a's cmd findings, this window's five reads (`internal/ops`, `internal/ops/local`, `internal/ops/opshttp`, `internal/engine/matcher`, `internal/harness/conform`), and 5c-iii's three reads (`internal/serve`, `internal/config`, `cmd/dubplate-server` at `db1e111`); leading the queue: `conform`'s dropped `ModeDefault` near misses, matcher's false `Distance.Update` doc and drifted legality checks, `internal/serve`'s unused trusted-proxy machinery, `internal/config`'s stale package doc, and `cmd/dubplate-server`'s hand-agreed magic-link key names across four files. To 6d: a store identity minted at create, the migration-wait key, serve's caller. To 6c: the `SAVEPOINT` check on `COMMIT;BEGIN;` (risk R13) and Task 0/2's stale `internal/config` package doc (backup named an integration class). To 5d-i Task 1: `internal/serve`'s `NewTrustedProxyConfig` has no production caller; its Task 0 reads the finding before wiring trusted-proxy mode. L5/L6 (roster-POST throttle, n5 whole-roster doctor row): no pass assigned.
-- A later Go toolchain bump re-runs the matcher's Unicode class sweep (`wantGoOnlyWordCodePoints`, `strdist_test.go:452`) and the U+0130 case-mapping sweep; both fail loudly with the re-read procedure if the count moves.
-- 99 declared coverage gaps, none blocking. Staged legs warn: 326 process citations, 125 exported-unused. Fork B: 0.8/0.9 FLAC-only, group non-FLAC carried.
-- Queued for the batch after lane 1 closes (photo lane): a `scripts/check.sh` line running `node tools/photos/check.mjs integrity`, and the 5c-iii plan's Ruling 3 erratum routing the photo column to rung 7.
-- Photo lane, before the first release that embeds photos: recheck every committed source URL, and decide whether withdrawn images' blobs may stay in git history once the repo is public (plan fold N2).
-- Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.14.1`, mediafile `0.17.0`, unidecode `1.4.0`, lap `0.5.13`, `modernc.org/sqlite v1.59.0`, rclone v1.74.3. Spend: HISTORY.
+- No deploy until 5d: `magic-link` env template lacks its nine keys; `doctor` exits 0,
+  `ReadWritePaths`, the trusted proxy, `deploy.sh`'s clean-`web/`-build requirement, each pass's
+  runbook rows (6a, 6b-i, 6b-ii-b: "runbook owed to rung 16" in each HISTORY entry).
+- To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's svelte S13/a11y S7,
+  reject-reason wording, CREDITS output. To rung 9: filter, facets, trigram search. To rung 12:
+  non-admin/streamer-admin mapping, restore-before-12 losing stars/playlists, roster/Navidrome
+  shared origin (M2), the streamer database's restore place. To the revoke verb: the epoch
+  store's first writer.
+- To 6d (unplanned): `ServeOptions.Reconcile`/`backup.Reconcile` wiring, a store identity minted
+  at create, the migration-wait key, a `member:<principal>` actor form if needed. To 5c-iv:
+  HISTORY's 5c-iii "5c-iv handoff". To 6c: the `SAVEPOINT` check, stale `internal/config` doc.
+  To 5d-i: `NewTrustedProxyConfig` has no caller.
+- Errata owed and architecture-cleanup reads, each with full file:line, all in HISTORY: 5c-iii's
+  nine errata plus latent items; 6b-ii-b's three (pre-restore-copy retention, the privileged-
+  fields row, R-6bii11's line); 5c-ii's, 6b-i's, 6a's, window 2's five, 5c-iii's, and 6b-ii-b's
+  reads plus carried non-blocking items; matcher re-run trigger `strdist_test.go:452`.
+- 99 declared coverage gaps, none blocking. Staged legs: 326 process citations, 126
+  exported-unused (up one, 6b-ii-b). Fork B: 0.8/0.9 FLAC-only. Readings taken (reversible, see
+  recent HISTORY): the streamer spec's seven open items, `init`/`upgrade` naming owed.
+- Photo lane, after lane 1 closes: a `scripts/check.sh` integrity line, the Ruling 3 photo-column
+  erratum to rung 7, a pre-release source-URL recheck, and a blob-retention call. Pinned:
+  Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.14.1`, mediafile `0.17.0`, unidecode
+  `1.4.0`, lap `0.5.13`, `modernc.org/sqlite v1.59.0`, rclone v1.74.3. Spend: HISTORY.
