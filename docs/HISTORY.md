@@ -30,10 +30,14 @@ Task 3a (`5d54a9d`) added the rendered leg: a build-tagged Go test (`rendered_te
 a Playwright 1.63.0 script (`web/scripts/rendered/run.ts`) against a real Chromium, the
 reproducibility gate (two builds compared byte for byte), and the first-paint rows. Task 3b
 (`591fe53`; narrowed `3db2708`) added G7's computed half and G10 to the same leg, comparing
-colors as painted pixels and narrowing the listener exemption.
+colors as painted pixels and narrowing the listener exemption. The plan's named mutation 1 (put
+`branding.css` before the bundle stylesheet in `tierHrefs`, plan `:1227`) was replaced by
+asserting branding renders inside `@layer base`; the plan still names the original mutation.
 
 Task 4 (`e320b80`) added the document head: `theme-color`, the site-name and robots metas, the
-mark and icon links, and the root-absolute gate.
+mark and icon links, and the root-absolute gate. The icon mutation proof was strengthened after
+Task 4 found SvelteKit rewrites icon `<link>` tags on hydration, so the check reads the
+server-rendered HTML directly rather than the post-hydration DOM.
 
 Task 5 (`809cf80`; fix rounds `6799598`, `610ad61`) added the component layer: the focus rule,
 the ink utilities, the printed surface, and the refinement rules. The second fix round asserted
@@ -59,10 +63,10 @@ errata below).
 The fold resumed after a power loss stopped the first fold agent before it committed anything;
 the resumed agent kept and fixed that agent's warm, uncommitted `run.ts` test rows rather than
 redoing them. Fold commits: `81988b1` (the component layer, 28 rendered rows, the prefix watch
-on every row, the harness env allowlist — svelte's blocker, most warnings and suggestions,
+on every row, the harness env allowlist (svelte's blocker, most warnings and suggestions,
 security L5), `2c880db` (the static gates: G1, G4, G5's comment, G9, root-absolute), `75fde16`
 (the document rewrite, the site-name grammar, the theme-color grammar, SVG CSP, variant CSP
-equality — security L1 through L4, I1, I2), `8588dd0` (VI section citations, FONTS.md's full
+equality (security L1 through L4, I1, I2)), `8588dd0` (VI section citations, FONTS.md's full
 commit, the rendered script's deadline raised to 300s after an under-load run measured past
 150s). Each commit landed on a full heavy gate that exited 0. The fold's mutation proof ran
 every new rendered row and Go-side check against `8da75b8`'s pre-fold code and confirmed each
@@ -114,7 +118,7 @@ peak, launching Chromium on every invocation since Task 3a.
   which is stale; `keys.go:186`'s `IntegrationClass.Rung` field is set but never read. Noted to
   6c's Task 0/2, since 6c edits this registry and must not build on the stale doc.
 - `cmd/dubplate-server`: `rendered_test.go`'s `linkRequests`/`consumptions` fields
-  (`:44-68,328-353`) are never set, so `checkRateBudget` cannot fail — routed to 5c-iv's refresh
+  (`:44-68,328-353`) are never set, so `checkRateBudget` cannot fail; routed to 5c-iv's refresh
   read, since Task 8 adds login-POST rows that spend a link and give the check something to
   fail against. The magic-link key names kept in agreement by hand across four files
   (`serve.go:25-37`, `auth.go:46-60/268-285/365`, `doctor.go:144`) route to 5d-i Task 6 or the
@@ -153,8 +157,11 @@ block at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (
 > `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`'s Ruling 1
 > splits that scope again at the served-header-versus-pages boundary: 5c-iii carries the fonts,
 > the theme data, the rendered harness and its reproducibility and first-paint gates, the
-> document head, and the component layer, and closed under a 10.8M ceiling at about 1.6M in
-> subagent tokens (this pass's own HISTORY entry has the figure). 5c-iv carries the string
+> document head, and the component layer, and closed under a 10.8M ceiling. Segments A to C
+> (Task 0 through Task 5) ran in window 2 and were not recorded separately; window 2's total was
+> about 11.0M at segment B's boundary across all its passes. About 1.6M covers the review round
+> and close only (tonight, after the power loss); this pass's own HISTORY entry has the figure.
+> 5c-iv carries the string
 > deck, the three pages, and the render-and-read, under this
 > plan's own remaining tasks (7 through 11) and an 8.5M ceiling, taken after a just-in-time
 > refresh read at this close rather than a freshly drafted plan (Ruling 1's declared deviation
@@ -176,7 +183,7 @@ split" erratum):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **R5.5 carries no family count.** The visual identity
 > spec (Geoff's ruling) names three families (Alfa Slab One, Work Sans, IBM Plex Mono) plus a
-> fourth face, Permanent Marker, for one use — four families, four woff2 files. R5.5's "at most
+> fourth face, Permanent Marker, for one use: four families, four woff2 files. R5.5's "at most
 > two families" was a conductor ruling (2026-09-07) that VI's owner ruling supersedes. R5.5 now
 > reads "a theme ships at most four woff2 files in total, counting a variable font as one file
 > per family," with no family count. `web/scripts/gates/g4.ts`'s face-count row checks four
@@ -229,10 +236,11 @@ neighboring rows):
 
 ### Budgets
 
-Tokens: 10.8M ceiling, closed at about 1.6M in subagent tokens for tonight's review round
-and close (fold resumed after the power loss, fix round, two simplifier rounds, two
-diff-reviewer reads, three architecture reads, close drafts); the earlier segments' spend is
-recorded in HISTORY's window 2 entries. Attended time: 0 planning misses, 0 execution sittings
+Tokens: 10.8M ceiling. Segments A to C (Task 0 through Task 5) ran in window 2 and were not
+recorded separately; window 2's total was about 11.0M at segment B's boundary across all its
+passes. About 1.6M covers the review round and close only (tonight, after the power loss: fold
+resumed after the power loss, fix round, two simplifier rounds, two diff-reviewer reads, three
+architecture reads, close drafts). Attended time: 0 planning misses, 0 execution sittings
 after plan approval (Ruling 7's header halo color was Geoff's own ruling on a genuine fork, not
 a sitting).
 
@@ -249,7 +257,7 @@ a sitting).
 - Outline and dash button *text* still paints DaisyUI's raw `--btn-color`
   (`web/src/lib/styles/components.css:172`), unfixed and latent: label secondary and warning
   measure 1.83:1, label-night neutral 1.09:1, label-night primary 3.18:1. This must land before
-  any page adopts `.btn-outline` or `.btn-dash` with a low-contrast status — route to 5c-iv's
+  any page adopts `.btn-outline` or `.btn-dash` with a low-contrast status. Route to 5c-iv's
   refresh read as a precondition for Tasks 8 and 9, else to rung 7. The fixture that would catch
   a regression here covers `.btn-outline` but not `.btn-dash`.
 - Other latent, unfixed items found during the fold and not yet gated: the ink border shows
@@ -262,30 +270,30 @@ a sitting).
   has no production caller; a pass that assumes trusted-proxy mode is live must check
   `cmd/dubplate-server/serve.go`'s wiring first.
 
-## 5c-iv handoff
+### 5c-iv handoff
 
 Full detail above ("What stayed open", "Errata owed"). This section names what 5c-iv's Tasks 7
 through 11 build on, for conductor action 5's refresh read.
 
 **The four files crossing the Ruling 1 cut, and their state at `db1e111`:**
 
-- `cmd/dubplate-server/rendered_test.go` — the build-tagged rendered-leg test. Carries the
+- `cmd/dubplate-server/rendered_test.go`: the build-tagged rendered-leg test. Carries the
   request-log prefix watch (every row fails if a request left the owned prefix since the
   previous row), the fonts/coverage/focus/surface/link/badge/display rows from Tasks 3a, 3b,
   and 5's fold, and the touch-target seed row from Ruling 8. `linkRequests`/`consumptions`
-  fields exist but nothing sets them yet (the architecture-read finding above) — 5c-iv's Task 8
+  fields exist but nothing sets them yet (the architecture-read finding above); 5c-iv's Task 8
   is the first task that spends a link and gives `checkRateBudget` a row to fail against; the
   refresh read decides whether Task 8 wires these fields or whether they're dropped until then.
-- `web/scripts/rendered/run.ts` — the Playwright harness. Carries `settleFocusTransitions`, the
+- `web/scripts/rendered/run.ts`: the Playwright harness. Carries `settleFocusTransitions`, the
   env allowlist (`PATH`, `HOME`, `TMPDIR`, `LANG`, `LC_ALL`, `TZ`, three `XDG_*` vars,
   `PLAYWRIGHT_BROWSERS_PATH`), `paintedProperty`/`paintedColor`/`paintedPrimary`, and the fixture
   page's full component set. 5c-iv's pages are real routes the harness will navigate to instead
   of (or beside) the injected fixture; Task 8's login-page rows and Task 9's header/toggle rows
   are new callers of this harness, not new copies of it.
-- `Makefile` — the `web` target's rule set, including the rendered leg's now-300s deadline.
+- `Makefile`: the `web` target's rule set, including the rendered leg's now-300s deadline.
   Task 7 modifies the same target to add the register-gate rule; the refresh read should confirm
   the two edits compose without reordering an existing rule.
-- `web/src/lib/styles/components.css` — the component layer: the focus rule (with the alert-halo
+- `web/src/lib/styles/components.css`: the component layer, the focus rule (with the alert-halo
   ordering fix), ink utilities, the printed surface, refinement rules, and the still-latent
   outline/dash text-color gap named above. Every 5c-iv page consumes this layer as-is; Task 8 and
   9 must not re-declare a selector this file already owns (G1's `-content` guard and the
@@ -297,8 +305,17 @@ through 11 build on, for conductor action 5's refresh read.
   `contrast-exception` marker naming `base-300` because no page places a control there yet.
   Task 9's add-member page or Task 8's login page, if either places a control on `base-300`,
   must either clear 3:1 or extend the marker's justification.
-  the header halo per Ruling 7 stays with Task 9 specifically (the header is Task 9's).
+- The header halo per Ruling 7 stays with Task 9 specifically (the header is Task 9's).
 - a11y S7 / svelte S7 routing: mono utilities and the header link hover are routed to Task 9
+  (header) and rung 7 (mono surfaces). Task 9's refresh read should confirm the header hover
+  state exists before the render-and-read.
+- svelte S12 / a11y S9 (stub copy): routed to Task 8 directly. The login page's copy must not
+  ship the fixture's placeholder strings.
+- L2's `{@html}` note: routed to Task 7. The site name renders by text interpolation only,
+  never `{@html}`, in the string deck's consuming components.
+- The touch-target rule (Ruling 8): seeded in the rendered leg with a 20px control. Task 10's
+  full render-and-read is where every real control on every real page is measured against it,
+  and Task 9's header controls take their own 44px row.
 
 ## Rung 6, pass 6b-ii-a (the ops seam's HTTP projection): closed 2026-09-25, lane 2
 
