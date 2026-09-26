@@ -1,8 +1,8 @@
 # Translit-table plan: review fold record (revision 1 to 2)
 
 Target: `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md`,
-revision 1 at `b841954`, folded to revision 2 (uncommitted; code lanes share
-the tree). Reviews folded, all in `docs/superpowers/research/`:
+revision 1 at `b841954`, folded to revision 2 (committed at `78f109a`), then
+to revision 2.1 by the second fold at the end of this record. Reviews folded, all in `docs/superpowers/research/`:
 
 - `2026-09-25-translit-table-plan-review-contract.md` (C): 4 major, 9 minor.
 - `2026-09-25-translit-table-plan-review-mechanics.md` (K): 2 major, 5 minor.
@@ -53,9 +53,16 @@ The design, as Task 4 now states it:
 One refinement came from the tree, not the reviews. `server.env` installs
 at `:409-414`, after the binary step, so the staged install runs in a new
 block directly after that install and not directly after the smoke test. A
-fresh box has no env file before `:414`, and a deploy can change
-`DUBPLATE_STATE_DIR`. The live binary stays untouched throughout, so the
-window stays closed.
+fresh box has no env file before `:414`. The live binary stays untouched
+throughout, so the window stays closed.
+
+**Corrected in the second fold.** The first fold also gave "a deploy can
+change `DUBPLATE_STATE_DIR`" as a reason. That reason was wrong: the
+agreement leg (`check.sh:645-658`) pins `DUBPLATE_STATE_DIR` to equal
+`DUBPLATE_LIB_DIR`, and R-tt6 has the verb read that one variable alone.
+The placement itself was also reversed (V-M1 below): the install now takes
+`Environment=DUBPLATE_STATE_DIR=$DUBPLATE_LIB_DIR` and runs directly after
+the smoke test, before the env step.
 
 Sub-parts declined:
 
@@ -133,3 +140,34 @@ loaded once per call. The Go prototype's figures (sha `c954605b...ce85`,
    The fold did not change it.
 
 No review raised a new owner fork.
+
+## Second fold (revision 2 to 2.1)
+
+Input: `docs/superpowers/research/2026-09-25-translit-table-plan-fold-verification.md`
+(1 major, 9 minor, 1 trivial), against revision 2 at `78f109a`. Every
+finding was checked against the tree before it was acted on. The check read
+`scripts/deploy.sh` (`:133-141`, `:304-366`, `:392-414`, `:489-505`),
+`internal/config/config.go:287`, `scripts/check.sh:645-658`,
+`cmd/dubplate-server/store.go:90` and `main.go:138-143` (no verb reads the
+environment outside its own constructor), the Go 1.27.1 `archive/zip`
+source, `go doc net/http.RoundTripper` and `net/http.Request.Clone`, and
+`man systemd-run` and `man systemd.exec` on systemd 259. One read-only ssh
+read the box's `systemctl --version`: systemd 257.
+
+**Counts: 11 findings. 11 folded, 0 refused, 0 owner forks.** No ruling
+changed in substance; Ruling 1 gains the flag-margin note and the
+corrected crossing point.
+
+| ID | Disposition | Where |
+| --- | --- | --- |
+| V-M1 | **Folded as proposed; the tree agrees.** `config.go:287` refuses an unknown `DUBPLATE_*` name, so a failed install after the env step would leave the old binary refusing a key 5d adds. R-tt6 reads `DUBPLATE_STATE_DIR` alone through `lookupEnviron`, and `main.go` hands `os.Environ()` only to constructors, so no other `DUBPLATE_*` key reaches the verb; the property is `-p Environment=DUBPLATE_STATE_DIR=$DUBPLATE_LIB_DIR`, and the agreement leg pins the two equal. The install and the `mv` move to directly after the smoke test (`:366`), before the env step, which now follows the swap (today's binary-then-env order). Step rationale, the four named hardening differences, the failure sentence, named mutation 1, and the reviewer-read order are updated. The first fold's wrong reason is corrected in place above. | Status line; Primary inputs 10; Task 4 steps 2 to 5, failure, criteria, mutation 1 |
+| V-m1 | **Folded.** Task 2 depends on Task 1 having filled the cache, confirmed by the conductor (action 2). | Task 2 header |
+| V-m2 | **Folded.** Task 1's `Fetch` status row names the status only and points to Task 3; Task 3's "download refused" row names the guidance's three parts; Review focus 4 splits the two. | Task 1 table; Task 3 table; Review focus 4 |
+| V-m3 | **Folded, both halves.** The `-p` text is quoted from `man systemd-run`. The box's `systemd 257 (257-23.el10_2.2.alma.1-gdb72f78)` is named from a read-only ssh, with each option's and property's "Added in version" (all at or below 236). "Not verified" names the 5d `--check` and first deploy as the proof of acceptance on 257. | Quoted behaviors; Not verified |
+| V-m4 | **Folded.** The source is cited at Go 1.27.1: `writer.go:647-648` (the raw close returns before the header sums are overwritten), `reader.go:325` (CRC checked only when nonzero; the verifier's `:322` was a line off on this toolchain), and `reader.go:307-309` (a short entry yields `io.ErrUnexpectedEOF`). The CRC row's wrong CRC is nonzero. | Quoted behaviors |
+| V-m5 | **Folded.** The transport forwards `req.Clone(req.Context())` with the URL set on the clone; `go doc net/http.RoundTripper` and `Request.Clone` are quoted. Task 3's transport names the clone too. | Global constraints; Task 3 interfaces |
+| V-m6 | **Folded, first option.** The `--check` `rsync -n` keeps the live path as its target, so `--check` still shows whether the binary changed; the apply rsync alone names `.new`. The reviewer-read checks both targets. | Task 4 step 2, criteria |
+| V-m7 | **Folded.** Step 3 states that neither new `run_remote` call may sit in an `if` or beside `||` or `&&`, and the reviewer-read checks it. | Task 4 step 3, criteria |
+| V-m8 | **Folded.** Task 3's state table gains the `cmd/dubplate-server` row: cached wheel absent under `-count=1` fails naming `make unidecode-wheel`, never skips. | Task 3 table |
+| V-m9 | **Folded.** Ruling 1's "no" answer now says the 2.32M flag is crossed during the merge-side reads (about 2.01M after Task 4, 2.28M after Task 5). The "yes" answer notes the 2.64M flag sits 0.01M above the 2.63M projection, so almost any overrun raises it. | Ruling 1 |
+| Trivial | **Folded.** This record's header now says revision 2 is committed at `78f109a`. | Header |

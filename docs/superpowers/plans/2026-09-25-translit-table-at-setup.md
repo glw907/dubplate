@@ -1,11 +1,14 @@
 # The transliteration table leaves the binary: implementation plan
 
-Status: **draft, revision 2, 2026-09-25; reviewed; two rulings open.**
+Status: **draft, revision 2.1, 2026-09-25; reviewed; two rulings open.**
 Revision 2 folds the three `spec-plan-review` lenses (contract, mechanics,
 risk) per `docs/superpowers/research/2026-09-25-translit-table-plan-fold.md`.
 The largest change is Task 4's deploy transition: the new binary is staged
-and installs its table before it replaces the live one. The plan executes
-under either answer to each ruling.
+and installs its table before it replaces the live one. Revision 2.1 folds
+the fold verification (same record, "Second fold"): the staged install now
+takes `DUBPLATE_STATE_DIR` as its one property-set variable and runs before
+the env step, so a failed install leaves the old binary on the old env. The
+plan executes under either answer to each ruling.
 
 Source: Geoff's decision of 2026-09-25, recorded in `ROADMAP.md`'s
 `give-back` entry ("dubplate stays MIT (Geoff, 2026-09-25; path 1)",
@@ -74,9 +77,12 @@ architecture reads. The ceiling is the projection divided by 0.8, rounded
 up to the next 0.1M, so the 80% flag (2.64M) sits just above the
 projection. Planning is recorded outside the ceiling.
 
-What each answer builds: yes sets the flag at 2.64M. No holds a 2.9M
-ceiling (flag 2.32M), which the projection crosses during Task 5 or the
-merge-side reads, so the conductor asks after Task 4, before the simplifier
+What each answer builds: yes sets the flag at 2.64M, only 0.01M above the
+projection, so almost any overrun raises the flag and the conductor asks
+before the close. No holds a 2.9M ceiling (flag 2.32M). Cumulative spend
+with the fix round is about 2.01M after Task 4 and 2.28M after the
+simplifier round and Task 5, so the projection crosses that flag during the
+merge-side reads; the conductor asks after Task 4, before the simplifier
 round.
 
 **2. Is the operator verb `dubplate-server unidecode install [--from FILE]`?**
@@ -241,13 +247,18 @@ Read these before Task 1, in this order.
     step (`:337-345`: `make build-linux`, then the `rsync` to
     `/usr/local/bin/dubplate-server` at `:343` and its `chmod` at `:344`),
     the smoke test (`:364-366`), `server.env`'s `0600 root:root` install
-    (`:409-414`, after the binary step), the `/var/lib/dubplate`
+    (`:409-414`, after the binary step; the staged install no longer reads
+    it), the `/var/lib/dubplate`
     pre-create (`:489-505`: `DUBPLATE_LIB_DIR` defined at `:502`, the
     `mkdir`/`chown` at `:505`), and `TIMER_UNITS` (`:526`, which
     deliberately omits `dubplate-shadow.timer`). `run_remote` (`:133-141`)
     prints `would run: <command>` under `--check`. The state-dir agreement
     leg (`scripts/check.sh:645-658`) reads `DUBPLATE_LIB_DIR` by pattern,
-    wherever the line sits.
+    wherever the line sits, and requires it to equal the env template's
+    `DUBPLATE_STATE_DIR`. The wall refuses any `DUBPLATE_*` name it does
+    not know (`internal/config/config.go:287`, "unknown configuration
+    key"), so a binary older than the env it runs under refuses every
+    scoring run.
     `systemd/dubplate-shadow.service`: `User=music`,
     `EnvironmentFile=/etc/dubplate/server.env`,
     `ReadWritePaths=/var/lib/dubplate/shadow`, the hardening block
@@ -283,10 +294,17 @@ every entry is read to EOF.
 `go doc archive/zip.Writer.CreateRaw`: "CreateRaw adds a file to the zip
 archive using the provided FileHeader ... In contrast to
 Writer.CreateHeader, the bytes passed to Writer are not compressed." The
-header's `CRC32`, `CompressedSize64`, and `UncompressedSize64` are the
-caller's, so a test writes an entry whose CRC or size disagrees with its
-bytes, which is how the post-checksum stage's CRC and size rows are
-reached.
+doc does not say the header's sums survive; the source does. In
+`archive/zip/writer.go:647-648` (Go 1.27.1) the raw close is `if w.raw {
+return w.writeDataDescriptor() }`, returning before the non-raw path
+overwrites `CRC32`, `CompressedSize64`, and `UncompressedSize64`. So a test
+writes an entry whose CRC or size disagrees with its bytes, which is how
+the post-checksum stage's CRC and size rows are reached. Two reader facts
+from the source shape those rows. `reader.go:325` checks the CRC only when
+it is set: `if r.f.CRC32 != 0 && r.hash.Sum32() != r.f.CRC32 { err =
+ErrChecksum }`, so the CRC row's wrong CRC is nonzero. `reader.go:307-309`
+returns `io.ErrUnexpectedEOF`, not `ErrFormat`, when an entry ends short of
+`UncompressedSize64`; `ErrFormat` (`:301-302`) is the long entry.
 
 `go doc crypto/sha256.Sum256`: "Sum256 returns the SHA256 checksum of the
 data."
@@ -337,6 +355,17 @@ service." So a refusing verb fails the remote command, and `run_remote`'s
 `ssh` returns nonzero. `--pipe`: "standard input, output, and error of the transient
 service are inherited from the systemd-run command itself." `--collect`:
 "Unload the transient unit after it completed, even if it failed."
+`--property=, -p`: "Sets a property on the scope or service unit that is
+created. This option takes an assignment in the same format as
+systemctl(1)'s set-property command." The box runs **systemd 257**
+(`systemctl --version` over read-only ssh, 2026-09-25: `systemd 257
+(257-23.el10_2.2.alma.1-gdb72f78)`). The man pages' "Added in version"
+lines put every option and property Task 4 uses at or below 236: `-p` 211,
+`--wait` 232, `--pipe` 235, `--collect` 236, `ReadWritePaths=` 231,
+`RestrictAddressFamilies=` 211, `NoNewPrivileges=` 187. A `--user` run of
+the exact list on the workstation's 259 parsed every `-p`, including the
+space-bearing `RestrictAddressFamilies` (the fold verification). Acceptance
+on the box's 257 is proved by the first deploy (see "Not verified").
 
 `go doc time/tzdata`: "This package should normally be imported by a
 program's main package, not by a library. Libraries normally shouldn't
@@ -498,8 +527,13 @@ installed beforehand (STATUS, lane registry). No CI workflow exists
 - **Every download in a test goes through a rewriting transport.** Tests
   never reach PyPI. The one test transport is an `http.RoundTripper` that
   asserts the request URL equals `WheelURL`, counts the request, and
-  forwards it to an `httptest` server; any other host is refused with a
-  test failure, never forwarded. Under every named mutation, a stray
+  forwards a clone to an `httptest` server; any other host is refused with
+  a test failure, never forwarded. `go doc net/http.RoundTripper`:
+  "RoundTrip should not modify the request, except for consuming and
+  closing the Request's Body." So the transport rewrites the URL on
+  `req.Clone(req.Context())` (`go doc net/http.Request.Clone`: "Clone
+  returns a deep copy of r with its context changed to ctx"), never on the
+  request it was handed. Under every named mutation, a stray
   request fails the test instead of opening a connection.
 
 ---
@@ -744,8 +778,9 @@ the Unidecode version the venv pins and `Version` stay equal, which
    scoring verb refuses, `doctor` fails the row, and the install verb
    replaces it. Pinned in Task 3.
 4. **A network failure or a wrong download.** Expected: nothing is written,
-   an existing good table stays, and the refusal carries the offline
-   guidance. Pinned in Tasks 1 and 3.
+   an existing good table stays, and the install verb's refusal carries
+   the offline guidance. Pinned in Task 1 (the library's refusal names
+   the status) and Task 3 (the verb adds the guidance).
 5. **The gate touching the network.** Expected: never. The diff-reviewer
    checks that every test client carries the rewriting transport and that
    no verb builds its own client; Task 1's `Fetch` tests run against
@@ -868,7 +903,7 @@ deletes the original.
 | The built table | sha256 differs from the pin | `ErrTableChecksum`, naming both sums |
 | The table given to `Parse` | empty, truncated, trailing bytes, or any byte changed | `ErrTableChecksum` (the pin catches every one) |
 | The bytes given to `decode` (synthetic) | truncated mid-block, or trailing bytes | the decoder's own error, naming the offset |
-| `Fetch` | status 404 or 500 | refuses, naming the status and the offline guidance |
+| `Fetch` | status 404 or 500 | refuses, naming the status (the offline guidance, which names `--from`, is the install verb's; Task 3) |
 | `Fetch` | body of `MaxWheelSize` plus one byte | `ErrWheelTooLarge`, and `!errors.Is(err, ErrWheelChecksum)` |
 | `Fetch` | body of exactly `MaxWheelSize` bytes | not refused for size (it fails the checksum instead) |
 | `Fetch` | the context is canceled | `errors.Is(err, context.Canceled)` |
@@ -932,8 +967,8 @@ cache path, harness verb, and make target; the tests).
 
 ## Task 2: The matcher seam and the four test binaries
 
-Model: `sonnet`. Depends on Task 1 and on the conductor having run `make
-unidecode-wheel` on the workstation. **2.0 hook: neutral** (hook 2 reads
+Model: `sonnet`. Depends on Task 1 having filled the workstation's wheel
+cache, confirmed by the conductor (conductor action 2). **2.0 hook: neutral** (hook 2 reads
 through this seam at rung 9).
 
 **Files:**
@@ -1036,7 +1071,8 @@ unexported helpers: a load that reads and verifies the table from a state
 directory, called by both shadow verbs and the doctor row, and an install
 that passes a loaded table's `Lookup` to the setter, called by the shadow
 verbs only. The tests carry their own rewriting transport in a `_test.go`
-file (a few lines, the same shape as Task 1's), never an exported helper.
+file (a few lines, the same shape as Task 1's, rewriting a
+`req.Clone`), never an exported helper.
 
 **Outcomes:**
 
@@ -1079,11 +1115,12 @@ file (a few lines, the same shape as Task 1's), never an exported helper.
 | Install | `--from` absent or a directory | refuses naming the path; writes nothing |
 | Install | `--from` a file of `MaxWheelSize` plus one byte (a sparse or generated scratch file, never `/dev/zero`) | refuses with `ErrWheelTooLarge` before hashing; writes nothing |
 | Install | `--from` the wrong file under the cap | refuses with `ErrWheelChecksum`, naming both sums; writes nothing |
-| Install | download refused (status, cap, checksum, context) | refuses with the offline guidance; an existing file is untouched |
+| Install | download refused (status, cap, checksum, context) | refuses with the offline guidance (the wheel's URL, its sha256, and `--from`); an existing file is untouched |
 | Install | success | leaf `0755` (set explicitly, so the assertion holds under any umask), file `0644`, `Parse` accepts the file on read-back; the output names the path and the version |
 | A scoring verb | table absent, empty, a directory, or failing `Parse` | refuses before `OpenStore`, naming the path, the reason, and the install verb; no shadow leaf is created |
 | Doctor | each of the four row states | the pinned status text and the pinned exit; the `missing` and `invalid` exit rows run on `baseEnviron()`'s green wall with every other row `ok`, so the exit moves on this row alone (the exit rule is an OR) |
 | Doctor | any state | creates nothing under the state directory (tested); calls the load helper only (reviewer-read, since the scoring-verb tests install process-wide in the same binary, so a test cannot observe it) |
+| The `cmd/dubplate-server` test binary | the cached wheel absent (`-count=1`, `XDG_CACHE_HOME` pointed at an empty scratch directory) | the tests that install a table fail naming `make unidecode-wheel`; they never skip |
 
 **Acceptance criteria:**
 
@@ -1155,21 +1192,22 @@ only after the new one has installed and verified its own table.
      `DUBPLATE_LIB_DIR` by pattern, so it needs no new row. The block's
      comment gains one sentence: the staged install needs the owned state
      directory before it runs.
-  2. **The binary is staged, not swapped.** The rsync at `:341-344` targets
-     `/usr/local/bin/dubplate-server.new` (one variable holding the staged
-     path) and `chmod`s it; the smoke test at `:364-366` runs the staged
-     path. The live binary is untouched.
-  3. **`server.env` installs as today** (`:409-414`). The install must
-     follow it: the install reads `EnvironmentFile=/etc/dubplate/server.env`,
-     which a fresh box lacks until this step, and whose
-     `DUBPLATE_STATE_DIR` may change in the same deploy.
-  4. **The staged binary installs its table**, in a new block directly
-     after the `server.env` install, as `music`, with this exact shape
-     through `run_remote`:
+  2. **The binary is staged, not swapped.** The apply-mode rsync at
+     `:341-344` targets `/usr/local/bin/dubplate-server.new` (one variable
+     holding the staged path) and `chmod`s it; the smoke test at
+     `:364-366` runs the staged path. The live binary is untouched. Under
+     `--check`, the `rsync -n` keeps the live path as its target, since an
+     `-n` run against the staged path always reports a full transfer and
+     would hide whether the binary changed; its comment says so.
+  3. **The staged binary installs its table**, in a new block directly
+     after the smoke test (`:366`) and before the env step (`:409-414`),
+     as `music`, with this exact shape through `run_remote`
+     (`$DUBPLATE_LIB_DIR` expands on the workstation, inside the string
+     `run_remote` sends):
 
      ```
      systemd-run --wait --pipe --collect \
-       -p User=music -p EnvironmentFile=/etc/dubplate/server.env \
+       -p User=music -p Environment=DUBPLATE_STATE_DIR=$DUBPLATE_LIB_DIR \
        -p NoNewPrivileges=yes -p PrivateTmp=yes -p ProtectSystem=strict \
        -p ProtectHome=yes -p ProtectKernelTunables=yes \
        -p ProtectKernelModules=yes -p ProtectControlGroups=yes \
@@ -1183,35 +1221,53 @@ only after the new one has installed and verified its own table.
        /usr/local/bin/dubplate-server.new <verb>
      ```
 
-     The hardening is the shadow unit's, property for property, with three
-     deliberate differences. `ReadWritePaths=$DUBPLATE_LIB_DIR` replaces
-     the unit's `.../shadow` grant, so the verb can create its
-     `unidecode/` leaf; the grant reuses the existing variable, adding no
-     state-directory literal. `RestrictAddressFamilies` keeps `AF_INET` and
-     `AF_INET6`, so the download reaches PyPI (the shadow already reaches
-     MusicBrainz under the same set). `UMask=0027` is omitted, and the verb
-     sets the leaf's mode explicitly regardless. PID 1 reads the env file,
-     so no secret passes through the shell, and `--wait` propagates the
-     verb's exit (quoted above), so a refusal fails `run_remote` and
-     `set -euo pipefail` aborts the deploy. The quoting of the one
-     space-bearing property survives `run_remote`'s single-string `ssh`.
-  5. **Only then is the binary swapped**:
+     The verb reads `DUBPLATE_STATE_DIR` alone through `lookupEnviron`
+     (R-tt6), and the state-dir agreement leg (`check.sh:645-658`) pins
+     that variable to equal `DUBPLATE_LIB_DIR`. So the one `Environment=`
+     property carries exactly what the env file would, carries no secret,
+     and does not depend on `server.env` existing, which a fresh box lacks
+     until the env step. The hardening is the shadow unit's, property for
+     property, with four deliberate differences. `Environment=` replaces
+     the unit's `EnvironmentFile=`, for the reason just given.
+     `ReadWritePaths=$DUBPLATE_LIB_DIR` replaces the unit's `.../shadow`
+     grant, so the verb can create its `unidecode/` leaf; the grant reuses
+     the existing variable, adding no state-directory literal.
+     `RestrictAddressFamilies` keeps `AF_INET` and `AF_INET6`, so the
+     download reaches PyPI (the shadow already reaches MusicBrainz under
+     the same set). `UMask=0027` is omitted, and the verb sets the leaf's
+     mode explicitly regardless. `--wait` propagates the verb's exit
+     (quoted above), so a refusal fails `run_remote` and `set -euo
+     pipefail` aborts the deploy. That abort holds only because the new
+     `run_remote` calls (the install and the `mv`) are plain top-level
+     commands: `set -e` is ignored inside an `if` condition or on the
+     left of `||` or `&&`, so neither call may sit in one. The quoting of
+     the one space-bearing property survives `run_remote`'s single-string
+     `ssh`.
+  4. **Only then is the binary swapped**, directly after the install:
      `mv -f /usr/local/bin/dubplate-server.new /usr/local/bin/dubplate-server`,
      a rename on one filesystem, so a timer firing sees either the old
      binary or the new one, and the new one finds its table.
+  5. **`server.env` installs as today** (`:409-414`), after the swap. This
+     keeps today's binary-then-env order, so a new env never runs under an
+     old binary.
 
   Under `--check`, every step reports its would-run line through
-  `run_remote` and the rsync runs with `-n`, the script's own shape. On a
-  box with a verified table, step 4 makes no network request (R-tt6), so
-  every later deploy is quiet.
+  `run_remote`, and the rsync runs with `-n` against the live path (step
+  2). On a box with a verified table, step 3 makes no network request
+  (R-tt6), so every later deploy is quiet.
 - **Failure and rollback.** A failed install aborts the deploy before the
-  swap: the old binary stays live and the shadow keeps scoring from its
-  embedded table. The staged `.new` file is left behind, harmless, and the
-  next deploy's rsync overwrites it. Rollback after a completed deploy is
-  redeploying the previous commit: its `deploy.sh` rsyncs its own binary
-  over the live one, and that pre-pass binary scores from its own embedded
-  table and ignores `unidecode/`. No state changes, and a later forward
-  deploy finds the table installed and makes no request.
+  swap and before the env step: the old binary stays live on the old
+  `server.env`, and the shadow keeps scoring from its embedded table. (Had
+  the env step come first, a deploy that adds a `DUBPLATE_*` key, as 5d
+  adds the magic-link keys, would leave the old binary refusing that key
+  on every firing: the wall rejects an unknown `DUBPLATE_*` name,
+  `internal/config/config.go:287`.) The staged `.new` file is left behind,
+  harmless, and the next deploy's rsync overwrites it. Rollback after a
+  completed deploy is redeploying the previous commit: its `deploy.sh`
+  rsyncs its own binary over the live one, and that pre-pass binary scores
+  from its own embedded table and ignores `unidecode/`. No state changes,
+  and a later forward deploy finds the table installed and makes no
+  request.
 - **The generator's role** per R-tt7: the docstring's new purpose, the
   pin-update procedure (the two pins and the data-module count), the
   never-commit rule, and the printed output sha256.
@@ -1221,11 +1277,16 @@ only after the new one has installed and verified its own table.
 - shellcheck passes (the gate's leg).
 - `bash scripts/deploy.sh --check` is **not** run (it reaches the box). The
   diff-reviewer reads the transition against this task's five steps: the
-  pre-create precedes the binary step; the rsync and smoke test name only
-  the staged path; the install follows the `server.env` install; its
-  property list matches the shadow unit's hardening except the three named
-  differences, grants write on `$DUBPLATE_LIB_DIR`, and reaches the
-  network; and the `mv` is the only write to the live path.
+  pre-create precedes the binary step; the apply-mode rsync and the smoke
+  test name only the staged path, and the `--check` rsync names the live
+  path; the install directly follows the smoke test, and the `mv` directly
+  follows the install, both before the `server.env` install; its property
+  list matches the shadow unit's hardening except the four named
+  differences, sets `Environment=DUBPLATE_STATE_DIR=$DUBPLATE_LIB_DIR`
+  and no `EnvironmentFile=`, grants write on `$DUBPLATE_LIB_DIR`, and
+  reaches the network; neither new `run_remote` call sits inside an `if`
+  or on either side of `||` or `&&`; and the `mv` is the only write to the
+  live path.
 - `ruff check` and `ruff format --check` run directly on `generate.py`
   pass; the report pastes both.
 - `tools/venv/.venv/bin/python tools/unidecode-table/generate.py
@@ -1235,10 +1296,11 @@ only after the new one has installed and verified its own table.
 
 **Named mutations this task reports:**
 
-1. Reviewer-read: the install placed before the `server.env` install, or
-   the `mv` placed before the install, would respectively read a missing
-   or stale env file on a fresh box, or reopen the tableless window; the
-   reviewer confirms the order.
+1. Reviewer-read: the install (or the `mv`) placed after the
+   `server.env` install would, on a failed install, leave the old binary
+   live on a new env that may carry a key it refuses; the `mv` placed
+   before the install would reopen the tableless window. The reviewer
+   confirms the order: smoke test, install, `mv`, env step.
 2. Reviewer-read: the install carried with the shadow unit's
    `ReadWritePaths=/var/lib/dubplate/shadow` would fail with EROFS creating
    `unidecode/`; the reviewer confirms the grant is `$DUBPLATE_LIB_DIR`.
@@ -1415,8 +1477,11 @@ task is neutral.
 - The staged install run end to end on the box. A read-only `curl -sI` from
   the box to the wheel URL returned `HTTP/2 200` (mechanics review), and the
   shadow already reaches MusicBrainz under the same address families, so
-  TLS and DNS work. The first deploy after this pass is the proof, and under
-  the staged transition a refusal there leaves the old binary scoring.
+  TLS and DNS work. The box's systemd 257 accepting every `-p` property is
+  proved by the 5d `--check` (which prints the would-run line) and the
+  first deploy; each property predates 257 by its man page. The first
+  deploy after this pass is the proof, and under the staged transition a
+  refusal there leaves the old binary scoring on the old env.
 - Whether lane 2's 6b-ii-b edits `doctor.go` or `main.go` (Task 0).
 - The legal reading itself: whether downloading and deriving at setup keeps
   an MIT binary clear of GPL-2.0-or-later obligations. The lawyer's
