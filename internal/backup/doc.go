@@ -22,9 +22,14 @@
 // A restore stages and verifies the incoming store, then writes the
 // store's restore-intent record before it renames any file. The record
 // names the step still owed, and a resume picks up at that step from
-// the source and library root the record names, never fetching again.
-// A library restore moves each local file its copy would replace into
-// a sibling displaced directory and never deletes one. The store a
-// restore replaces is kept as a pre-restore copy in snapshots/, which
-// no prune removes: it stays until the operator removes it by hand.
+// the source and library root the record names, never fetching the
+// store again; a resumed library step still runs rclone copy against
+// the remote's library/ once more. A fresh library restore refuses a
+// root that holds files unless run with --into-nonempty, and one run
+// that way, or a resume, moves each local file its copy would replace
+// into a sibling displaced directory and never deletes one. The store
+// a restore replaces is kept as a pre-restore copy in snapshots/; with
+// --discard-current, a current store that cannot even be opened moves
+// to a discarded copy there instead. Neither copy is ever pruned: each
+// stays until the operator removes it by hand.
 package backup
