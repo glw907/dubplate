@@ -89,7 +89,7 @@ func TestRewriteDocument(t *testing.T) {
 }
 
 func TestBuildDocumentVariants(t *testing.T) {
-	raw := []byte(`<html data-theme="TOKEN"><link href="./a.css" rel="stylesheet">`)
+	raw := []byte(`<html data-theme="TOKEN"><link href="./a.css" rel="stylesheet"></head>`)
 	variants, err := BuildDocumentVariants("doc.html", raw, VariantConfig{
 		Placeholder: "TOKEN",
 		Match:       "dubplate",
@@ -100,9 +100,9 @@ func TestBuildDocumentVariants(t *testing.T) {
 		t.Fatalf("BuildDocumentVariants: %v", err)
 	}
 	want := map[string]string{
-		"label":       `<html data-theme="dubplate-label"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group">`,
-		"label-night": `<html data-theme="dubplate-label-night"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group">`,
-		"system":      `<html data-theme="dubplate-system"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group">`,
+		"label":       `<html data-theme="dubplate-label"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group"></head>`,
+		"label-night": `<html data-theme="dubplate-label-night"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group"></head>`,
+		"system":      `<html data-theme="dubplate-system"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group"></head>`,
 	}
 	if len(variants) != len(want) {
 		t.Fatalf("BuildDocumentVariants: got %d variants, want %d", len(variants), len(want))
@@ -115,9 +115,53 @@ func TestBuildDocumentVariants(t *testing.T) {
 }
 
 func TestBuildDocumentVariants_PropagatesRewriteError(t *testing.T) {
-	raw := []byte(`<link href="./a.css" rel="stylesheet">no token here`)
+	raw := []byte(`<link href="./a.css" rel="stylesheet"></head>no token here`)
 	if _, err := BuildDocumentVariants("doc.html", raw, VariantConfig{Placeholder: "TOKEN", Match: "dubplate", Palettes: []string{"label"}}); err == nil {
 		t.Fatal("BuildDocumentVariants: got nil error, want the missing-placeholder refusal")
+	}
+}
+
+// TestBuildDocumentVariants_PlaceholderInValue covers an operator value
+// carrying the theme placeholder. The rewrite runs on the build's own
+// bytes before any insertion, so a document missing its placeholder is
+// refused as missing even when the site name would supply one, and an
+// inserted value carrying it is refused by name rather than counted.
+func TestBuildDocumentVariants_PlaceholderInValue(t *testing.T) {
+	const token = "__DUBPLATE_THEME__"
+	tests := []struct {
+		name       string
+		raw        string
+		cfg        VariantConfig
+		wantErrHas string
+	}{
+		{
+			name:       "the build lost its placeholder, the site name carries one",
+			raw:        `<html data-theme="x"><head><link href="./0.css" rel="stylesheet"></head></html>`,
+			cfg:        VariantConfig{SiteName: "Group " + token},
+			wantErrHas: `placeholder "__DUBPLATE_THEME__" not found`,
+		},
+		{
+			name:       "the site name carries the placeholder",
+			raw:        `<html data-theme="` + token + `"><head><link href="./0.css" rel="stylesheet"></head></html>`,
+			cfg:        VariantConfig{SiteName: "Group " + token},
+			wantErrHas: `an inserted head value carries the theme placeholder`,
+		},
+		{
+			name:       "a tier href carries the placeholder",
+			raw:        `<html data-theme="` + token + `"><head><link href="./0.css" rel="stylesheet"></head></html>`,
+			cfg:        VariantConfig{SiteName: "Group", TierHrefs: []string{"/" + token + "/branding.css"}},
+			wantErrHas: `an inserted head value carries the theme placeholder`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := tt.cfg
+			cfg.Placeholder, cfg.Match, cfg.Palettes = token, "dubplate", []string{"label"}
+			_, err := BuildDocumentVariants("login.html", []byte(tt.raw), cfg)
+			if err == nil || !strings.Contains(err.Error(), tt.wantErrHas) {
+				t.Fatalf("BuildDocumentVariants error = %v, want one containing %q", err, tt.wantErrHas)
+			}
+		})
 	}
 }
 
@@ -155,15 +199,27 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 		},
 		{
 			name:  "rel before href, one tier",
-			raw:   `<html data-theme="T"><link rel="stylesheet" href="./_app/0.css"></html>`,
+			raw:   `<html data-theme="T"><link rel="stylesheet" href="./_app/0.css"></head></html>`,
 			tiers: []string{"../branding.css"},
-			want:  `<html data-theme="dubplate-label"><link rel="stylesheet" href="./_app/0.css"><link href="../branding.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></html>`,
+			want:  `<html data-theme="dubplate-label"><link rel="stylesheet" href="./_app/0.css"><link href="../branding.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></head></html>`,
 		},
 		{
 			name:  "an href is escaped as an attribute value",
-			raw:   `<html data-theme="T"><link href="./_app/0.css" rel="stylesheet"></html>`,
+			raw:   `<html data-theme="T"><link href="./_app/0.css" rel="stylesheet"></head></html>`,
 			tiers: []string{`./a"b&c.css`},
-			want:  `<html data-theme="dubplate-label"><link href="./_app/0.css" rel="stylesheet"><link href="./a&#34;b&amp;c.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></html>`,
+			want:  `<html data-theme="dubplate-label"><link href="./_app/0.css" rel="stylesheet"><link href="./a&#34;b&amp;c.css" rel="stylesheet"><meta name="dubplate-site-name" content="S"></head></html>`,
+		},
+		{
+			name:       "the last stylesheet link sits past </head>",
+			raw:        `<html data-theme="T"><head><link href="./0.css" rel="stylesheet"></head><body><link href="./1.css" rel="stylesheet"></body></html>`,
+			tiers:      tiers,
+			wantErrHas: `document "members.html": the last stylesheet link sits outside <head>`,
+		},
+		{
+			name:       "no </head>",
+			raw:        `<html data-theme="T"><link href="./0.css" rel="stylesheet"><body></body></html>`,
+			tiers:      tiers,
+			wantErrHas: `document "members.html": the last stylesheet link sits outside <head>`,
 		},
 	}
 	for _, tt := range tests {

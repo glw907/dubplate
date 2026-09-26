@@ -43,11 +43,11 @@ const (
 // one (W7.15).
 const authRobots = "noindex, nofollow"
 
-// bundleNeutralRE is the shape a bundle's own --color-neutral must
-// have before it enters a theme-color meta. The bundle is this
-// server's own build, so a value outside it is a build defect to
-// refuse, never an operator value to pass through.
-var bundleNeutralRE = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+// themeColorRE is the shape a value must have before it enters a
+// theme-color meta. A bundle's own --color-neutral outside it is a
+// build defect to refuse, since the bundle is this server's own build;
+// a branding neutral outside it drops the meta instead.
+var themeColorRE = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
 
 // themePlaceholder is the token app.html carries on <html data-theme>,
 // substituted once per stampable palette at serve startup. It must
@@ -314,7 +314,7 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 		if err != nil {
 			return webRoutes{}, err
 		}
-		if err := checkVariantCSP(d.name, variants); err != nil {
+		if err := checkVariantCSP(d.name, variants, csps[i]); err != nil {
 			return webRoutes{}, err
 		}
 		documents[prefix.String()+d.route] = serve.NewDocument(serve.DocumentConfig{
@@ -360,16 +360,21 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 }
 
 // checkVariantCSP refuses when any served variant of the document
-// name holds an inline script the build's own CSP meta does not hash.
-// The rewrite is meant to touch no script, but a placeholder or a
-// stylesheet-link anchor the build left inside a script body would
-// change that script's hash, and the header, computed over the build's
-// document, would then block it in a browser; checking each served
-// body turns that into a startup refusal.
-func checkVariantCSP(name string, variants map[string][]byte) error {
+// name holds an inline script the build's own CSP meta does not hash,
+// or yields a policy other than served, the header computed over the
+// build's document. The rewrite is meant to touch no script and no
+// meta, but a placeholder or a stylesheet-link anchor the build left
+// inside a script body would change that script's hash, and the
+// header would then block it in a browser; checking each served body
+// turns that into a startup refusal.
+func checkVariantCSP(name string, variants map[string][]byte, served string) error {
 	for _, palette := range slices.Sorted(maps.Keys(variants)) {
-		if _, err := serve.DocumentCSP(name, variants[palette]); err != nil {
+		csp, err := serve.DocumentCSP(name, variants[palette])
+		if err != nil {
 			return fmt.Errorf("web: the %q variant: %w", palette, err)
+		}
+		if csp != served {
+			return fmt.Errorf("web: the %q variant of document %q: its CSP differs from the served header", palette, name)
 		}
 	}
 	return nil
@@ -386,6 +391,12 @@ func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler 
 // staticFile is one embedded file served at an exact path: its bytes,
 // its Content-Type, and its strong ETag, all fixed at startup so no
 // request byte reaches them.
+// svgCSP is the policy every SVG response carries. A browser opening an
+// SVG directly runs it as a document, script and all; the policy
+// refuses every fetch and script and sandboxes it, keeping only the
+// inline styles an SVG's own presentation may use.
+const svgCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+
 type staticFile struct {
 	data        []byte
 	contentType string
@@ -430,6 +441,9 @@ func newStaticFiles(files map[string]staticFile) http.Handler {
 		w.Header().Set("Content-Type", file.contentType)
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", file.etag)
+		if file.contentType == "image/svg+xml" {
+			w.Header().Set("Content-Security-Policy", svgCSP)
+		}
 		http.ServeContent(w, r, path.Base(r.URL.Path), time.Time{}, bytes.NewReader(file.data))
 	})
 }
@@ -544,12 +558,13 @@ func brandingNeutral(decls string) string {
 //
 // A branding neutral flattens every palette, since the branding
 // stylesheet overrides the variable in every theme, so it replaces
-// them all with one meta at its value. The branding grammar admits a
-// color as a hex literal or as a color function, and only a hex
-// literal begins with "#". A color function leaves every document with
-// no theme-color meta and writes one record to logger: the meta then
-// carries no operator value outside a hex grammar, and a configuration
-// the branding grammar admits still starts.
+// them all with one meta at its value. The meta takes the value only
+// when it matches themeColorRE, the same #rgb or #rrggbb grammar a
+// bundle neutral meets. The branding grammar also admits a color
+// function and a four- or eight-digit hex literal; either leaves every
+// document with no theme-color meta and writes one record to logger,
+// so the meta never carries an operator value outside that grammar and
+// a configuration the branding grammar admits still starts.
 func themeColors(neutrals map[string][]serve.ThemeColor, match string, palettes []string, brandNeutral string, logger *slog.Logger) (map[string][]serve.ThemeColor, error) {
 	colors := make(map[string][]serve.ThemeColor, len(palettes))
 	for _, palette := range palettes {
@@ -563,20 +578,20 @@ func themeColors(neutrals map[string][]serve.ThemeColor, match string, palettes 
 	switch {
 	case brandNeutral == "":
 		return colors, nil
-	case strings.HasPrefix(brandNeutral, "#"):
+	case themeColorRE.MatchString(brandNeutral):
 		for _, palette := range palettes {
 			colors[palette] = []serve.ThemeColor{{Color: brandNeutral}}
 		}
 		return colors, nil
 	default:
-		logger.Warn("web: DUBPLATE_BRANDING sets --color-neutral to a color function, so no document carries a theme-color meta; declare it as a hex color to keep one")
+		logger.Warn("web: DUBPLATE_BRANDING sets --color-neutral to a value other than a #rgb or #rrggbb color, so no document carries a theme-color meta; declare it as a three- or six-digit hex color to keep one")
 		return nil, nil
 	}
 }
 
 // paletteThemeColors returns the theme-color metas for theme, from the
 // --color-neutral values its rules declare. Every value must match
-// bundleNeutralRE. One distinct value is one unconditional meta; one
+// themeColorRE. One distinct value is one unconditional meta; one
 // value under the light scheme and a different one under the dark is
 // the media pair. Anything else refuses, naming the theme but never
 // the value: no value at all, or values the two schemes cannot tell
@@ -587,7 +602,7 @@ func paletteThemeColors(theme string, declared []serve.ThemeColor) ([]serve.Them
 	}
 	byScheme := make(map[string]string, len(declared))
 	for _, tc := range declared {
-		if !bundleNeutralRE.MatchString(tc.Color) {
+		if !themeColorRE.MatchString(tc.Color) {
 			return nil, fmt.Errorf("web: theme %q: its --color-neutral is not a #rgb or #rrggbb color", theme)
 		}
 		if prior, ok := byScheme[tc.Scheme]; ok && prior != tc.Color {

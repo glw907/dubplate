@@ -823,3 +823,53 @@ func TestLoad_IdentitySource(t *testing.T) {
 		})
 	}
 }
+
+// TestLoad_SiteNameGrammar covers DUBPLATE_SITE_NAME's grammar: the
+// value enters every served document and the page title, so it must be
+// valid UTF-8 with no control character, no bidirectional override or
+// isolate, and at most siteNameMaxBytes bytes. A refusal names the key
+// and never echoes the value.
+func TestLoad_SiteNameGrammar(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   string
+		wantErr string
+	}{
+		{name: "plain", value: "The Hendersons"},
+		{name: "non-ASCII letters", value: "Café Ñandú 音楽"},
+		{name: "exactly the byte limit", value: strings.Repeat("a", siteNameMaxBytes)},
+		{name: "one byte over", value: strings.Repeat("a", siteNameMaxBytes+1), wantErr: "over 100 bytes"},
+		{name: "invalid UTF-8", value: "Group \xff", wantErr: "not valid UTF-8"},
+		{name: "a C0 control", value: "Group\x07", wantErr: "a control character"},
+		{name: "a tab", value: "Group\tName", wantErr: "a control character"},
+		{name: "DEL", value: "Group\x7f", wantErr: "a control character"},
+		{name: "a C1 control", value: "Group\u0085", wantErr: "a control character"},
+		{name: "a right-to-left override", value: "Group\u202e", wantErr: "a bidirectional override"},
+		{name: "a first-strong isolate", value: "Group\u2068", wantErr: "a bidirectional override"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(dropKey(baseEnviron(), "DUBPLATE_SITE_NAME"), "DUBPLATE_SITE_NAME="+tt.value)
+			cfg, err := Load(environ, NewRegistry())
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Fatalf("Load: %v", err)
+				}
+				if cfg.SiteName != tt.value {
+					t.Errorf("SiteName = %q, want %q", cfg.SiteName, tt.value)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatalf("Load: got nil error, want one containing %q", tt.wantErr)
+			}
+			msg := err.Error()
+			if !strings.Contains(msg, "DUBPLATE_SITE_NAME") || !strings.Contains(msg, tt.wantErr) {
+				t.Errorf("Load error = %q, want it to name DUBPLATE_SITE_NAME and contain %q", msg, tt.wantErr)
+			}
+			if strings.Contains(msg, tt.value) {
+				t.Errorf("Load error = %q echoes the refused value", msg)
+			}
+		})
+	}
+}

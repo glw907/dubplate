@@ -103,18 +103,19 @@ type Icon struct {
 // bundle's own CSS however many stylesheets a page links, so a tier
 // declaration wins every tie of equal specificity by document order,
 // and it keeps every insertion in the head and outside every script
-// body. A document with no stylesheet link is refused, naming it,
-// since the tiers would then have nothing to follow.
+// body. A document with no stylesheet link, or whose last one sits
+// outside <head>, is refused, naming it, since the tiers would then
+// have nothing to follow or would land in the body.
+//
+// The placeholder is substituted in the build's own bytes before the
+// head block goes in, so no operator value (the site name, a prefix in
+// an href) can supply a missing placeholder or add a second one; an
+// inserted value carrying the placeholder is refused outright.
 //
 // The variants are computed once, at startup; [NewDocument] never
 // touches raw again, so no request byte can reach a served document.
 // name identifies the document in a returned error.
 func BuildDocumentVariants(name string, raw []byte, cfg VariantConfig) (map[string][]byte, error) {
-	anchor, err := headAnchor(name, raw)
-	if err != nil {
-		return nil, err
-	}
-
 	var shared bytes.Buffer
 	for _, href := range cfg.TierHrefs {
 		fmt.Fprintf(&shared, `<link href="%s" rel="stylesheet">`, html.EscapeString(href))
@@ -145,21 +146,28 @@ func BuildDocumentVariants(name string, raw []byte, cfg VariantConfig) (map[stri
 		}
 		head.Write(icons.Bytes())
 
-		doc := make([]byte, 0, len(raw)+head.Len())
-		doc = append(doc, raw[:anchor]...)
-		doc = append(doc, head.Bytes()...)
-		doc = append(doc, raw[anchor:]...)
-		body, err := RewriteDocument(name, doc, cfg.Placeholder, cfg.Match+"-"+palette)
+		stamped, err := RewriteDocument(name, raw, cfg.Placeholder, cfg.Match+"-"+palette)
 		if err != nil {
 			return nil, err
 		}
-		variants[palette] = body
+		if bytes.Contains(head.Bytes(), []byte(cfg.Placeholder)) {
+			return nil, fmt.Errorf("serve: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
+		}
+		anchor, err := headAnchor(name, stamped)
+		if err != nil {
+			return nil, err
+		}
+		doc := make([]byte, 0, len(stamped)+head.Len())
+		doc = append(doc, stamped[:anchor]...)
+		doc = append(doc, head.Bytes()...)
+		doc = append(doc, stamped[anchor:]...)
+		variants[palette] = doc
 	}
 	return variants, nil
 }
 
 // headAnchor returns the offset just past the end of raw's last
-// stylesheet link tag.
+// stylesheet link tag, which must precede raw's first </head>.
 func headAnchor(name string, raw []byte) (int, error) {
 	anchor := -1
 	for _, loc := range linkTagRE.FindAllIndex(raw, -1) {
@@ -169,6 +177,9 @@ func headAnchor(name string, raw []byte) (int, error) {
 	}
 	if anchor < 0 {
 		return 0, fmt.Errorf("serve: document %q: no stylesheet link to place the tier links after", name)
+	}
+	if end := bytes.Index(raw, []byte("</head>")); end < anchor {
+		return 0, fmt.Errorf("serve: document %q: the last stylesheet link sits outside <head>", name)
 	}
 	return anchor, nil
 }

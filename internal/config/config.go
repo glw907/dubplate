@@ -67,6 +67,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // ErrMissing marks a required wall row Load found unset. Load wraps it
@@ -215,6 +217,44 @@ func (w *wall) requireEmail(name string) string {
 	return strings.ToLower(addr.Address)
 }
 
+// siteNameMaxBytes bounds DUBPLATE_SITE_NAME: room for any group's
+// name, and short enough for a page title and a mail subject.
+const siteNameMaxBytes = 100
+
+// requireSiteName is [wall.require] for DUBPLATE_SITE_NAME, which
+// every served document and page title carries: it records an error
+// against name when the value is over siteNameMaxBytes, is not valid
+// UTF-8, or holds a C0, DEL, or C1 control character or a
+// bidirectional embedding, override, or isolate, any of which could
+// hide or reorder the text around it. The error never echoes the
+// value.
+func (w *wall) requireSiteName(name string) string {
+	v := w.require(name)
+	var problem string
+	switch {
+	case v == "":
+		return ""
+	case len(v) > siteNameMaxBytes:
+		problem = fmt.Sprintf("is over %d bytes", siteNameMaxBytes)
+	case !utf8.ValidString(v):
+		problem = "is not valid UTF-8"
+	case strings.ContainsFunc(v, unicode.IsControl):
+		problem = "holds a control character"
+	case strings.ContainsFunc(v, isBidiControl):
+		problem = "holds a bidirectional override"
+	default:
+		return v
+	}
+	w.errs = append(w.errs, fmt.Errorf("%s: the site name %s", name, problem))
+	return ""
+}
+
+// isBidiControl reports whether r is a bidirectional embedding or
+// override (U+202A to U+202E) or isolate (U+2066 to U+2069).
+func isBidiControl(r rune) bool {
+	return (r >= '\u202a' && r <= '\u202e') || (r >= '\u2066' && r <= '\u2069')
+}
+
 // integrationEnabled reports whether class's flag resolves true in w's
 // environment. An unset or empty flag is off. A value strconv.ParseBool
 // refuses is reported as an error rather than silently read as off,
@@ -349,7 +389,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 	cfg := &Config{
 		LibraryRoot:  w.require("DUBPLATE_LIBRARY_ROOT"),
 		StateDir:     w.require("DUBPLATE_STATE_DIR"),
-		SiteName:     w.require("DUBPLATE_SITE_NAME"),
+		SiteName:     w.requireSiteName("DUBPLATE_SITE_NAME"),
 		AdminEmail:   w.requireEmail("DUBPLATE_ADMIN_EMAIL"),
 		integrations: make(map[string]integrationResolution, len(reg.integrationClasses)),
 	}

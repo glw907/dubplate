@@ -1389,6 +1389,37 @@ func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 	}
 }
 
+// TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader proves a served
+// variant must yield exactly the policy the header carries, computed
+// from the build's own document: a variant whose meta lists one more
+// hash still covers its every script, so only the equality check can
+// refuse it.
+func TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader(t *testing.T) {
+	source := func(script string) string {
+		sum := sha256.Sum256([]byte(script))
+		return "'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'"
+	}
+	doc := func(sources string) []byte {
+		return []byte(`<meta http-equiv="content-security-policy" content="script-src 'self' ` + sources + `"><script>boot();</script>`)
+	}
+	boot := source("boot();")
+	served, err := serve.DocumentCSP("login.html", doc(boot))
+	if err != nil {
+		t.Fatalf("fixture: DocumentCSP: %v", err)
+	}
+	if err := checkVariantCSP("login.html", map[string][]byte{"label": doc(boot)}, served); err != nil {
+		t.Fatalf("checkVariantCSP on a matching variant: %v", err)
+	}
+	variants := map[string][]byte{"label": doc(boot), "label-night": doc(boot + " " + source("next();"))}
+	err = checkVariantCSP("login.html", variants, served)
+	if err == nil {
+		t.Fatal("checkVariantCSP: got nil error, want the policy mismatch refusal")
+	}
+	if want := `the "label-night" variant of document "login.html": its CSP differs from the served header`; !strings.Contains(err.Error(), want) {
+		t.Errorf("error = %q, want it to contain %q", err.Error(), want)
+	}
+}
+
 // svelteHeadTitleRE captures the text of a <title> inside a route's
 // <svelte:head> block, markup expressions included.
 var svelteHeadTitleRE = regexp.MustCompile(`(?s)<svelte:head>.*?<title>(.+?)</title>.*?</svelte:head>`)
@@ -1563,15 +1594,21 @@ func TestNewWebRoutes_ThemeColorStates(t *testing.T) {
 			want:     every(`<meta name="theme-color" content="#1f1b16">`),
 		},
 		{
-			name:     "branding neutral, eight-digit hex",
-			branding: "--color-neutral: #1f1b16ff",
-			want:     every(`<meta name="theme-color" content="#1f1b16ff">`),
+			name:     "branding neutral, three-digit hex",
+			branding: "--color-neutral: #123",
+			want:     every(`<meta name="theme-color" content="#123">`),
+		},
+		{
+			name:        "branding neutral, eight-digit hex",
+			branding:    "--color-neutral: #1f1b16ff",
+			want:        every(),
+			wantLogLine: "DUBPLATE_BRANDING sets --color-neutral to a value other than a #rgb or #rrggbb color, so no document carries a theme-color meta",
 		},
 		{
 			name:        "branding neutral, a color function",
 			branding:    "--color-neutral: oklch(20% 0 0)",
 			want:        every(),
-			wantLogLine: "DUBPLATE_BRANDING sets --color-neutral to a color function, so no document carries a theme-color meta",
+			wantLogLine: "DUBPLATE_BRANDING sets --color-neutral to a value other than a #rgb or #rrggbb color, so no document carries a theme-color meta",
 		},
 	}
 	for _, tt := range tests {
@@ -1719,7 +1756,7 @@ func TestNewWebRoutes_RobotsMeta(t *testing.T) {
 // TestIconsRoute proves the mark's five files answer at their exact
 // paths over the real bundle, each with the bytes of the checked-in
 // file under web/static/, its own Content-Type, Cache-Control:
-// no-cache, and a strong ETag that answers a matching If-None-Match
+// no-cache, svgCSP on an SVG and no policy on the PNG, and a strong ETag that answers a matching If-None-Match
 // with 304, and that every other shape under the three subtrees
 // answers 404.
 func TestIconsRoute(t *testing.T) {
@@ -1754,6 +1791,13 @@ func TestIconsRoute(t *testing.T) {
 			}
 			if got := rec.Header().Get("Cache-Control"); got != "no-cache" {
 				t.Errorf("Cache-Control = %q, want %q", got, "no-cache")
+			}
+			wantCSP := ""
+			if f.contentType == "image/svg+xml" {
+				wantCSP = svgCSP
+			}
+			if got := rec.Header().Get("Content-Security-Policy"); got != wantCSP {
+				t.Errorf("Content-Security-Policy = %q, want %q", got, wantCSP)
 			}
 			wantETag := fontsFaceETag(want)
 			if got := rec.Header().Get("ETag"); got != wantETag {
