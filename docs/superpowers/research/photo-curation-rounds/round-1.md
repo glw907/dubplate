@@ -248,3 +248,9 @@ approval estimate is superseded by these counts.
   great." Conductor ruling: each photo carries a fit, `cover` (with the focus point) or `contain`
   (whole, on the film-edge carrier), chosen on the sorting page and copied onto the record at
   close. Flyers, posters, and zine covers default to `contain`. The login page honors both fields.
+- Sorting page v6 to v8 (`f204740`, `a9059dd`, `fca3cc2`): the treated login view is the only
+  large view, with a focus point (an image-space point) and a fit per photo. The diff-reviewer
+  returned `fix` on f204740 (stale write queue, wrong plain-view coordinates) and on a9059dd (a
+  failed write retried without limit); the conductor accepted fca3cc2 without a third review,
+  because the fix was narrow and its test counts write attempts directly. The store was checked
+  before v7: no choice carried a v6-era focus. First pass: 111 choices (86 keep, 19 pass, 6 maybe).
