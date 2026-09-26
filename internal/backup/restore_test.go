@@ -881,6 +881,7 @@ func TestRestore_Snapshot(t *testing.T) {
 	for _, want := range []string{
 		"warning: restoring from " + remote + ", but the backup reference names elsewhere:backups",
 		"the reconciliation report is " + leafOf(stateDir).report,
+		"the replaced store is kept at " + filepath.Join(leafOf(stateDir).snapshots, "pre-restore-"+restoreStamp+".db") + " until you remove it by hand",
 	} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("Restore printed %q, want it to name %q", out.String(), want)
@@ -1203,6 +1204,16 @@ func TestRestore_LibraryRefusals(t *testing.T) {
 			},
 			intoNonempty: true,
 			want:         "lib.restore-displaced-" + restoreStamp + " already exists",
+		},
+		{
+			name: "an unreadable directory, with --into-nonempty",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				unreadable(t, filepath.Join(dir, "private"))
+				return dir, remote
+			},
+			intoNonempty: true,
+			want:         "private cannot be read",
 		},
 		{
 			name: "remote without library/",
@@ -1942,6 +1953,116 @@ func TestRestore_LibraryResumeWithoutIntoNonempty(t *testing.T) {
 			t.Errorf("resume printed %q, naming a displaced directory, want none", out)
 		}
 	})
+}
+
+// unreadable makes the directory p at mode 0, which a test not running
+// as root cannot read, as the restore's user cannot read a fresh ext
+// volume's root-owned lost+found; cleanup restores the mode so the
+// directory can be removed.
+func unreadable(t *testing.T, p string) {
+	t.Helper()
+	if err := os.Mkdir(p, 0); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chmod(p, 0o700); err != nil {
+			t.Error(err)
+		}
+	})
+}
+
+// TestRestore_LibraryUnreadableLostFound: every walk for symlinks passes
+// over a lost+found in the library root, as checkRoot does, so a
+// lost+found the restore's user cannot read refuses neither a first run
+// with --into-nonempty nor a resume. rclone's copy leaves a destination
+// directory the remote does not hold unread.
+func TestRestore_LibraryUnreadableLostFound(t *testing.T) {
+	tests := []struct {
+		name string
+		// run restores into root, which holds the unreadable lost+found,
+		// and returns the remote's library files.
+		run func(t *testing.T, root string) (stateDir string, files []string, err error)
+	}{
+		{
+			name: "a first run with --into-nonempty",
+			run: func(t *testing.T, root string) (string, []string, error) {
+				remote, files := libraryRemote(t, snapshotFile(t))
+				stateDir := storeWithUser(t, currentUser)
+				_, err := libraryRestore(t, stateDir, remote, root, true)
+				return stateDir, files, err
+			},
+		},
+		{
+			name: "a resume",
+			run: func(t *testing.T, root string) (string, []string, error) {
+				stateDir, files := crashAtLibrary(t, root, false)
+				_, err := resume(t, stateDir)
+				return stateDir, files, err
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			lostFound := filepath.Join(root, "lost+found")
+			unreadable(t, lostFound)
+			stateDir, files, err := tt.run(t, root)
+			if err != nil {
+				t.Fatalf("restore: %v", err)
+			}
+			if err := os.Chmod(lostFound, 0o700); err != nil {
+				t.Fatal(err)
+			}
+			assertTree(t, root, files)
+			assertComplete(t, stateDir, completion{incoming: incomingUser, current: currentUser, refs: []string{stampNew}})
+		})
+	}
+}
+
+// TestRestore_LibraryIntoLateSymlink: a first run with --into-nonempty
+// walks the root for symlinks again just before its copy, so a link made
+// after checkRoot passed, while the fetch, quiesce, and swap ran, is
+// refused before any copy, leaving the record owing the copy for a
+// resume once the link is gone.
+func TestRestore_LibraryIntoLateSymlink(t *testing.T) {
+	remote, files := libraryRemote(t, snapshotFile(t))
+	stateDir := storeWithUser(t, currentUser)
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "artist")
+	stepHook = func(step string) {
+		if step != stepLibraryOwed {
+			return
+		}
+		if err := os.Symlink(t.TempDir(), link); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Cleanup(func() { stepHook = func(string) {} })
+	s := recordingRclone(t)
+
+	_, err = libraryRestore(t, stateDir, remote, root, true)
+	if err == nil || !strings.Contains(err.Error(), link+" is a symlink") {
+		t.Fatalf("Restore() = %v, want a refusal naming %s as a symlink", err, link)
+	}
+	if got := s.subcommands(t); slices.Contains(got, "copy") {
+		t.Errorf("rclone ran %q, want no copy", got)
+	}
+	if got := recordState(t, stateDir); got != "library" {
+		t.Fatalf("record after the refusal %q, want library", got)
+	}
+
+	stepHook = func(string) {}
+	if err := os.Remove(link); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := resume(t, stateDir); err != nil {
+		t.Fatalf("resume once the link is gone: %v", err)
+	}
+	assertTree(t, root, files)
+	assertComplete(t, stateDir, completion{incoming: incomingUser, current: currentUser, refs: []string{stampNew}})
 }
 
 // TestCheckDisplaced is the displaced directory's ownership rule, which

@@ -388,13 +388,6 @@ func (r restorer) library(ctx context.Context, in store.RestoreIntent) error {
 		return err
 	}
 
-	// A resume never ran checkRoot, and a link may have been made since
-	// the interrupted run's check.
-	if r.resumed {
-		if err := refuseSymlinks(root); err != nil {
-			return err
-		}
-	}
 	args := []string{"copy", remote.join("library"), root}
 	var displaced string
 	// A resume displaces whatever the first run's flags were: a person
@@ -403,6 +396,11 @@ func (r restorer) library(ctx context.Context, in store.RestoreIntent) error {
 	// a file that is identical at the destination and --backup-dir takes
 	// only a file the copy overwrites.
 	if in.IntoNonempty || r.resumed {
+		// A resume never ran checkRoot, and a link may have been made
+		// since any run's check, while the fetch, quiesce, and swap ran.
+		if err := refuseSymlinks(root); err != nil {
+			return err
+		}
 		displaced = displacedPath(root, r.sess.Stamp())
 		if err := r.makeDisplaced(displaced); err != nil {
 			return err
@@ -467,10 +465,24 @@ func checkRoot(root, displaced string, intoNonempty bool) error {
 // link and never moves the local one into the backup directory, and it
 // replaces a symlinked file with a regular one. Either way a local file
 // is lost with nothing displaced to name it.
+//
+// The walk passes over root's lost+found, which a fresh ext file system
+// makes owned by root at mode 0700 and [checkRoot] allows. It refuses
+// any other directory it cannot read, naming it, since a link inside
+// could go unseen: rclone's copy leaves such a directory unread when
+// the remote holds no directory of that name, and fails on it when the
+// remote does.
 func refuseSymlinks(root string) error {
+	lostFound := filepath.Join(root, "lost+found")
 	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if errors.Is(err, fs.ErrPermission) {
+			return fmt.Errorf("%s cannot be read, so the restore cannot check it for symlinks: make it readable by the user the restore runs as, or move it out of the library root", quotePath(p))
+		}
 		if err != nil {
 			return err
+		}
+		if p == lostFound && d.IsDir() {
+			return fs.SkipDir
 		}
 		if d.Type()&fs.ModeSymlink != 0 {
 			return fmt.Errorf("%s is a symlink: a library copy writes through a symlink without displacing the local file; replace the link with what it names, or remove it", quotePath(p))
@@ -619,9 +631,11 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err != nil {
 		return err
 	}
-	line, err := displacedLine(displacedPath(root, r.sess.Stamp()))
-	if err != nil {
-		return err
+	var line string
+	if in.LibraryRoot != "" {
+		if line, err = displacedLine(displacedPath(root, r.sess.Stamp())); err != nil {
+			return err
+		}
 	}
 	head := "restore " + r.sess.Stamp() + "\nsource: " + sourceLine(in) + "\n" + line
 	path, err := r.sess.WriteReport(append([]byte(head), rep.Text()...))
