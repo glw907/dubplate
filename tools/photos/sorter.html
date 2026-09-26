@@ -1481,7 +1481,7 @@
   // or null for the end-of-list panel or when review is closed), so
   // renderReviewOverlay only rebuilds the photo and mock when the shown
   // candidate or the view mode actually changes, rather than on every
-  // write resolution or store snapshot — otherwise the image flashes
+  // write resolution or store snapshot: otherwise the image flashes
   // while it is being judged.
   var reviewStageKey = null;
 
@@ -2116,7 +2116,7 @@
         };
         // Test-only hook: simulates what the real rounds subscription does
         // when the sitting's round changes (the test round is deleted and
-        // round "1" opens, or vice versa) — a new round id, a fresh
+        // round "1" opens, or vice versa): a new round id, a fresh
         // candidate/choice set, one render(). Never wired to any real store.
         window.__fixtureSetRound = function (newRoundId) {
           state.round = { id: newRoundId, closed: false, balance: {} };
