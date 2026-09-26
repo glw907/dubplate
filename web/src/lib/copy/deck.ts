@@ -38,10 +38,10 @@ export const AUTH_OUTCOMES: Record<string, string> = {
   requested: 'If that address belongs to a member, we’ll send it a sign-in link. Check your email.',
   unknown: UNKNOWN_ADDRESS_NO_ADMIN,
   rate_limited: 'Too many requests. Wait a while and try again.',
-  invalid_address: 'That doesn’t look like an email address.',
-  too_large: 'That request was too large.',
-  malformed: 'That request didn’t come through right. Try again.',
-  failed: 'Something went wrong with that request. Try again.',
+  invalid_address: 'That doesn’t look like an email address. Check it and try again.',
+  too_large: 'That was too much to send. Check what you entered and try again.',
+  malformed: 'Something went wrong sending that. Reload the page and try again.',
+  failed: 'Something went wrong on our end. Try again in a few minutes.',
   signed_in: 'You’re signed in.',
   refused:
     'That sign-in link doesn’t work anymore. Each link works only once and expires after a short time. Get a new one from the sign-in page.',
@@ -63,7 +63,8 @@ export function unknownAddressLine(adminContact: { displayName: string; address:
 }
 
 /** The cross-origin refusal a request-link submission can meet. */
-export const CROSS_ORIGIN_REFUSED = 'That request didn’t come from this site.';
+export const CROSS_ORIGIN_REFUSED =
+  'We couldn’t accept that from another site. Go to this site’s address directly and try again.';
 
 /** A request that never reached the server at all (a network failure). */
 export const NETWORK_FAILURE = 'We couldn’t reach the server. Check your connection and try again.';
@@ -75,7 +76,7 @@ export const SENT_MOMENT_TEXT = AUTH_OUTCOMES.sent;
 export const SENT_ESCAPE_HATCH = 'Use a different address';
 
 /** The consumption interstitial's statement, before its one control. */
-export const INTERSTITIAL_STATEMENT = 'Confirm your sign-in.';
+export const INTERSTITIAL_STATEMENT = 'To finish signing in, select Sign in.';
 
 /** The consumption interstitial's one control (I2). */
 export const INTERSTITIAL_CONTROL = 'Sign in';
@@ -110,14 +111,15 @@ export const ADD_MEMBER_HINTS = {
 export const ROSTER_OUTCOMES: Record<string, string> = {
   added: 'Added.',
   duplicate_address: 'That email address already belongs to a member.',
-  duplicate_streamer_username: 'That streamer username is already taken.',
+  duplicate_streamer_username: 'That streamer username is already taken. Choose a different one.',
   duplicate_principal: 'That streamer username is another member’s email address. Choose a different one.',
-  invalid_display_name: 'That name isn’t valid.',
+  invalid_display_name: 'That name is too long, or it has characters it can’t use, such as tabs or line breaks.',
   blank_display_name: 'Enter a name.',
-  invalid_streamer_username: 'That streamer username isn’t valid.',
+  invalid_streamer_username:
+    'Start the username with a letter or number, and use only letters, numbers, periods, underscores, hyphens, plus signs, or @.',
   missing_streamer_username: 'Enter a streamer username.',
-  admin_not_grantable: 'That member can’t be made an admin here.',
-  unknown_field: 'That form couldn’t be read. Try again.',
+  admin_not_grantable: 'Admins can’t be added from this page.',
+  unknown_field: 'This page sent something the server doesn’t accept. Reload the page and try again.',
   busy: 'That didn’t go through. Try again.',
   write_unconfirmed:
     'The member may have been added, but we couldn’t confirm it. Reload the page and check the list before you try again.'
