@@ -244,3 +244,7 @@ approval estimate is superseded by these counts.
   posters, and zine covers are never cropped; they fit whole on the film-edge carrier. The real
   login page needs the same rule and the focus point; route both to the web lane's login-photo
   work and to the visual identity spec's Photography section at round close.
+- Geoff, on the Chocolate Watchband group portrait: "The crop is off ... otherwise it would be
+  great." Conductor ruling: each photo carries a fit, `cover` (with the focus point) or `contain`
+  (whole, on the film-edge carrier), chosen on the sorting page and copied onto the record at
+  close. Flyers, posters, and zine covers default to `contain`. The login page honors both fields.
