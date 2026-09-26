@@ -1,10 +1,12 @@
 # dubplate visual identity
 
-Status: revision 1.2, 2026-09-25, drafted from a live design session with Geoff. It awaits his
+Status: revision 1.3, 2026-09-25, drafted from a live design session with Geoff. It awaits his
 review. Revision 1.1 answers the 5c-ii accessibility review's warnings 4-6: a complete ink layer
 that passes on every surface, one focus-ring color, and the toggle's mechanism. Revision 1.2 folds
 in the craft fixes from a three-lens refinement audit ("Refinement" below). Geoff closed the
-identity work on 2026-09-25; the items under "Open for rung 7" were shown but not ruled. This spec authors the look that the web surface standard
+identity work on 2026-09-25; the items under "Open for rung 7" were shown but not ruled. Revision
+1.3 lands three owed errata (2026-09-25): Permanent Marker's license, a mistyped design-language
+rule citation, and the header focus ring's halo. This spec authors the look that the web surface standard
 (`2026-09-12-web-surface-standard.md`, W below) leaves open in W1.1 ("Rung 7 authors the look"),
 and it lands inside the mechanisms the design-language standard
 (`2026-09-07-design-language-standard.md`, DL below) already fixes. It decides the palette, the
@@ -111,8 +113,16 @@ color. Links, red text, and badge ink use the inks above.
 
 Every focus ring, on every focusable element, is a 2px `--ink-primary` outline at a 2px offset.
 This overrides DaisyUI's per-button `--btn-color` outline, so a fill-only or low-contrast fill
-never becomes a focus indicator. `--ink-primary` clears the 3:1 focus-appearance floor on every
-surface (4.54:1 or better). Checkbox, toggle, and radio modifiers never take a fill-only color.
+never becomes a focus indicator. `--ink-primary` clears the 3:1 focus-appearance floor on the
+three bases (4.54:1 or better) and on `label-night`'s neutral header (6.93:1). On `label`'s
+neutral header the same ring measures 2.34:1, below the floor, because "clears on every
+surface" measured the three bases only and neutral is a fourth. The signed-in header's
+`:focus-visible` state also takes a page-colored halo under the ring, `box-shadow: 0 0 0 6px
+var(--color-base-100)`, filling the offset gap and extending 2px past the ring's outer edge so
+`base-100` borders the ring on both sides (W9.1's page-colored-halo mechanism). This keeps
+the ring the one `--ink-primary` color everywhere; the halo is a page-colored addition scoped to
+the header, not a second ring color. Checkbox, toggle, and radio modifiers never take a
+fill-only color.
 
 A `label-night` primary fill measures 2.94:1 on base-200 and 2.43:1 on base-300. A primary
 button is identified by its label text, which passes 5.15:1 on the fill, so the fill's own
@@ -138,7 +148,7 @@ page.
 ## Type
 
 Three OFL faces, embedded as three woff2 files under DL R5. Work Sans is one variable file, and
-IBM Plex Mono ships one weight (400), so the three together take three of R5.4's four files:
+IBM Plex Mono ships one weight (400), so the three together take three of R5.5's four files:
 
 | Face | Role |
 |---|---|
@@ -146,10 +156,10 @@ IBM Plex Mono ships one weight (400), so the three together take three of R5.4's
 | Work Sans | Everything else: body, labels, controls, and h3 and smaller headings in semibold. |
 | IBM Plex Mono | Data only: catalog lines, durations, badges, photo captions, and technical metadata. |
 
-A fourth face, Permanent Marker (OFL), is permitted in exactly one place: the album title
+A fourth face, Permanent Marker (Apache-2.0), is permitted in exactly one place: the album title
 handwritten on the cream label of a record whose album has no cover art, the way an engineer
 labels a test pressing. It never appears in the chrome, the wordmark, or headings. It is
-the fourth and last woff2 file R5.4 allows, so no further face can join without a DL
+the fourth and last woff2 file R5.5 allows, so no further face can join without a DL
 erratum.
 
 ## The mark
