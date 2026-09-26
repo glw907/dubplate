@@ -41,6 +41,11 @@ __pycache__/
 /web/build/*
 !/web/build/placeholder.txt
 
+# rendered-captures/ is the rendered leg's capture matrix output (Task
+# 10's screenshots and contact sheets): regenerated on every run, never
+# a committed fixture.
+/web/rendered-captures/
+
 # Local brainstorm companion session state; never repo content.
 /.superpowers/
 

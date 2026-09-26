@@ -22,6 +22,8 @@
  * `DUBPLATE_RENDERED_OPERATOR_PRIMARY`, the `--color-primary` values
  * those two fixtures declare.
  */
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { chromium } from 'playwright';
 import type { Browser, BrowserContext, Cookie, Page, Response as PlaywrightResponse } from 'playwright';
 import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
@@ -29,8 +31,10 @@ import {
   ADD_MEMBER_LABELS,
   AUTH_OUTCOMES,
   CROSS_ORIGIN_REFUSED,
+  ERROR_PAGE,
   INTERSTITIAL_CONTROL,
   NETWORK_FAILURE,
+  ROSTER_EMPTY_STATE,
   ROSTER_OUTCOMES,
   THEME_TOGGLE_LABEL,
   TITLES,
@@ -82,6 +86,13 @@ interface Visit {
    * would otherwise each end the whole run.
    */
   expectsAuthErrorStatus: boolean;
+  /**
+   * True on a visit that deliberately navigates client-side to a path
+   * no route matches: SvelteKit's own client router logs its "Not
+   * found: <path>" error to the console before rendering `+error.svelte`,
+   * regardless of the page's own code.
+   */
+  expectsRouterNotFound: boolean;
 }
 
 /**
@@ -166,6 +177,14 @@ interface Endpoints {
    * rather than spending a consumption each.
    */
   membersHeaderLink: string;
+  /**
+   * The capture matrix's own on-demand mint endpoint (`mintServer`,
+   * `rendered_test.go`): a POST `{ "kind": "admin" | "member" }`
+   * answers `{ "url": "..." }`, a freshly minted, single-use link.
+   */
+  captureMintURL: string;
+  /** A minted link for the fixture admin, never consumed: the capture matrix's `interstitial/ready` state, shared by its ten cells. */
+  captureInterstitialReadyLink: string;
 }
 
 /**
@@ -213,7 +232,13 @@ async function report(row: Row): Promise<void> {
   if (prefixWatch !== null) {
     const records = await requestLog(prefixWatch.log);
     const watch = prefixWatch;
-    const outside = records.slice(watch.seen).filter((r) => !r.path.startsWith(watch.prefix));
+    // Chromium probes the origin's own /favicon.ico, outside any owned
+    // prefix, whenever a document declares no icon link
+    // (`head/no-favicon-ico`'s own row already establishes this): a
+    // page with no HTML head at all (the native-fallback plain-text
+    // 404 the capture matrix's `error/not-found` state visits) always
+    // triggers it, a browser quirk unrelated to a leaked application URL.
+    const outside = records.slice(watch.seen).filter((r) => !r.path.startsWith(watch.prefix) && r.path !== '/favicon.ico');
     watch.seen = records.length;
     if (outside.length > 0) {
       row = { ...row, property: false, detail: `${row.detail}; requests outside ${watch.prefix}: ${describe(outside)}` };
@@ -256,7 +281,15 @@ async function open(
   waitUntil: 'load' | 'domcontentloaded'
 ): Promise<{ visit: Visit; body: string }> {
   const page = await context.newPage();
-  const visit: Visit = { url, page, consoleErrors: [], violations: [], expectedBlock: null, expectsAuthErrorStatus: false };
+  const visit: Visit = {
+    url,
+    page,
+    consoleErrors: [],
+    violations: [],
+    expectedBlock: null,
+    expectsAuthErrorStatus: false,
+    expectsRouterNotFound: false
+  };
   page.on('console', (msg) => {
     if (msg.type() !== 'error') return;
     visit.consoleErrors.push(`${msg.text()} (${msg.location().url})`);
@@ -771,6 +804,18 @@ function isExpectedViolation(visit: Visit, v: Violation): boolean {
 const AUTH_ERROR_STATUS_RE =
   /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster)\)$/;
 
+/**
+ * SvelteKit's client router logs this when a client-side navigation
+ * matches no route, its own minified error-name prefix ahead of the
+ * colon left unanchored since a bundle rebuild can change it. The
+ * router's own fallback (`server_fallback`, no matching route means no
+ * client-rendered `+error.svelte`) then performs a real navigation to
+ * that same URL, which Chromium logs as a plain failed top-level
+ * document load, `FAILED_DOCUMENT_RE`.
+ */
+const ROUTER_NOT_FOUND_RE = /Not found: \//;
+const FAILED_DOCUMENT_RE = /^Failed to load resource: the server responded with a status of 404 \(Not Found\)/;
+
 function isExpectedConsoleError(visit: Visit, text: string): boolean {
   if (
     visit.expectedBlock !== null &&
@@ -778,6 +823,7 @@ function isExpectedConsoleError(visit: Visit, text: string): boolean {
   ) {
     return true;
   }
+  if (visit.expectsRouterNotFound && (ROUTER_NOT_FOUND_RE.test(text) || FAILED_DOCUMENT_RE.test(text))) return true;
   return visit.expectsAuthErrorStatus && AUTH_ERROR_STATUS_RE.test(text);
 }
 
@@ -3364,6 +3410,594 @@ async function themeToggleRows(browser: Browser, endpoints: Endpoints, session: 
   }
 }
 
+/**
+ * The capture matrix's own five CSS-pixel widths (W4.1) and two
+ * emulated color-scheme preferences: every one of the fifteen
+ * {@link CAPTURE_STATES} is rendered at all ten combinations.
+ */
+const CAPTURE_WIDTHS = [320, 390, 768, 1440, 2560] as const;
+const CAPTURE_SCHEMES = ['light', 'dark'] as const;
+type CaptureScheme = (typeof CAPTURE_SCHEMES)[number];
+
+/** The two widths kept as their own full-resolution PNG files. */
+const CAPTURE_NATIVE_WIDTHS = new Set<number>([390, 1440]);
+
+/** A tall-enough viewport that a full-page screenshot need not grow it further for any state this matrix renders. */
+const CAPTURE_HEIGHT = 900;
+
+/** Where every capture and contact sheet lands, relative to `web/` (`.gitignore`'s own entry). */
+const CAPTURE_DIR = 'rendered-captures';
+
+/** The square-test floor and advisory sizes (Ruling 8, W4.10). */
+const TOUCH_FLOOR_PX = 24;
+const TOUCH_ADVISORY_PX = 44;
+
+/** Every element a touch-target row measures: the same activation shapes {@link TABBABLE_SELECTOR} enumerates, minus the catch-all `[tabindex]`, which also matches non-interactive landmarks. */
+const ACTIVATION_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled])';
+
+/**
+ * SC 2.5.8's named suppressions this harness recognizes. "Inline" is
+ * not a fixed selector: any `<a>` the cascade leaves at its default
+ * `display: inline` sits in a line of running text (the login page's
+ * "the sign-in page" link inside the refused-outcome sentence, among
+ * others), its own height set by the surrounding line box, not an
+ * isolated tap target; {@link touchTargetReport} applies that rule
+ * directly. This list is the exceptions with no general rule: today
+ * only the skip link, which is `display: inline` too but named
+ * explicitly since its own reason (an off-screen control shown only on
+ * focus) differs from a visible text link's.
+ */
+const TOUCH_EXCEPTIONS: { selector: string; exception: string; reason: string }[] = [
+  { selector: 'a[href="#main"]', exception: 'Inline', reason: 'the skip link sits inline in a line of text' }
+];
+
+interface TouchViolation {
+  label: string;
+  width: number;
+  height: number;
+}
+
+interface TouchReport {
+  count: number;
+  failures: TouchViolation[];
+  advisories: TouchViolation[];
+  excepted: { label: string; exception: string }[];
+}
+
+/**
+ * The touch-target floor (W4.10 at Ruling 8's tiers): every activation
+ * region's shorter side, against {@link TOUCH_FLOOR_PX} (a failure) and
+ * {@link TOUCH_ADVISORY_PX} (an advisory only), skipping
+ * {@link TOUCH_EXCEPTIONS}' named suppressions.
+ */
+async function touchTargetReport(page: Page): Promise<TouchReport> {
+  return page.evaluate(
+    ({ selector, floor, advisory, exceptions, wrapperSelector }) => {
+      const failures: TouchViolation[] = [];
+      const advisories: TouchViolation[] = [];
+      const excepted: { label: string; exception: string }[] = [];
+      let count = 0;
+      for (const el of Array.from(document.querySelectorAll<HTMLElement>(selector))) {
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') continue;
+        // DaisyUI draws a wrapped control (the theme toggle's `.swap`,
+        // among others) on its wrapper, not the bare input inside it,
+        // the same substitution `RING_WRAPPER_SELECTOR` makes for the
+        // focus ring: the wrapper is the activation region a pointer
+        // actually taps.
+        const wrapper = el.closest<HTMLElement>(wrapperSelector);
+        const target = wrapper ?? el;
+        const rect = target.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        count += 1;
+        const label = target.id || el.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+        const match = exceptions.find((e) => el.matches(e.selector));
+        if (match) {
+          excepted.push({ label, exception: match.exception });
+          continue;
+        }
+        if (el.tagName === 'A' && style.display === 'inline') {
+          excepted.push({ label, exception: 'Inline' });
+          continue;
+        }
+        const side = Math.min(rect.width, rect.height);
+        if (side < floor) failures.push({ label, width: rect.width, height: rect.height });
+        else if (side < advisory) advisories.push({ label, width: rect.width, height: rect.height });
+      }
+      return { count, failures, advisories, excepted };
+    },
+    { selector: ACTIVATION_SELECTOR, floor: TOUCH_FLOOR_PX, advisory: TOUCH_ADVISORY_PX, exceptions: TOUCH_EXCEPTIONS, wrapperSelector: RING_WRAPPER_SELECTOR }
+  );
+}
+
+/**
+ * The viewport-overflow floor (W12.4): the document's own scrolling
+ * element must not scroll horizontally. `null` when it does not.
+ */
+async function overflowReport(page: Page): Promise<{ scrollWidth: number; clientWidth: number } | null> {
+  const { scrollWidth, clientWidth } = await page.evaluate(() => {
+    const el = document.scrollingElement as Element;
+    return { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
+  });
+  return scrollWidth > clientWidth ? { scrollWidth, clientWidth } : null;
+}
+
+/**
+ * The secondary-control guard: every `.btn-outline`, `.btn-dash`, or status-modified
+ * `.btn-ghost` on the page, named by tag and class.
+ */
+async function secondaryControlViolations(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const bad: string[] = [];
+    for (const el of Array.from(document.querySelectorAll('.btn'))) {
+      const c = el.className;
+      const forbidden =
+        /\bbtn-outline\b/.test(c) ||
+        /\bbtn-dash\b/.test(c) ||
+        (/\bbtn-ghost\b/.test(c) && /\bbtn-(primary|secondary|accent|neutral|info|success|warning|error)\b/.test(c));
+      if (forbidden) bad.push(`${el.tagName.toLowerCase()}.${c}`);
+    }
+    return bad;
+  });
+}
+
+/** Mints one fresh, single-use link from the capture matrix's own mint endpoint. */
+async function mintCaptureLink(endpoints: Endpoints, kind: 'admin' | 'member'): Promise<string> {
+  const response = await fetch(endpoints.captureMintURL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind })
+  });
+  if (!response.ok) throw new Refusal(`the capture mint endpoint answered ${response.status}`);
+  const body = (await response.json()) as { url: string };
+  return body.url;
+}
+
+/** A fresh roster address for one capture cell, never shared with another cell or another capture run. */
+function captureAddress(kind: string, width: number, scheme: CaptureScheme): string {
+  return `capture-${kind}-${width}-${scheme}@example.test`;
+}
+
+/**
+ * A fresh streamer username for one capture cell: the roster write
+ * fields (`admin.go`'s `duplicate_streamer_username`) key on this
+ * value too, so a value shared across cells would make every cell but
+ * the first meet that refusal instead of `added`.
+ */
+function captureUsername(kind: string, width: number, scheme: CaptureScheme): string {
+  return `capture-${kind}-${width}-${scheme}`;
+}
+
+/**
+ * One capture cell's arrangement result: the booted page to
+ * screenshot, whether its fixture state stood up, and why. An
+ * arrangement that performs a request-link, consume-link, or roster
+ * POST that can answer outside 2xx sets `visit.expectsAuthErrorStatus`
+ * on its own [Visit] directly, the same way every other row does.
+ */
+interface CaptureArrangement {
+  page: Page;
+  ok: boolean;
+  detail: string;
+}
+
+/** One of the capture matrix's fifteen page states: an ID matching `renderedCaptureStates` (`rendered_test.go`), and how to reach it in a fresh, sized, schemed context. */
+interface CaptureState {
+  id: string;
+  arrange(context: BrowserContext, endpoints: Endpoints, width: number, scheme: CaptureScheme): Promise<CaptureArrangement>;
+  /**
+   * True for a state whose arrangement is not the hydrated app at all
+   * (`error/not-found`'s native-fallback plain-text 404, which carries
+   * no control): the secondary-control guard, the overflow floor, and
+   * the touch-target floor, including its nonzero-count assertion, do
+   * not apply to a response with no application UI.
+   */
+  skipUIFloors?: boolean;
+}
+
+const CAPTURE_STATES: CaptureState[] = [
+  {
+    id: 'login/empty',
+    async arrange(context, endpoints) {
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      const value = await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).inputValue();
+      return { page: visit.page, ok: value === '', detail: `address field value ${JSON.stringify(value)}` };
+    }
+  },
+  {
+    id: 'login/sent',
+    async arrange(context, endpoints) {
+      await context.route('**/request-link', (route) =>
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome: 'sent' }) })
+      );
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      const heading = visit.page.locator('#outcome h2');
+      let text = '';
+      let ok = true;
+      try {
+        await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+        text = ((await heading.textContent()) ?? '').trim();
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.sent, detail: `sent moment heading ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'login/unknown-with-admin',
+    async arrange(context, endpoints) {
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(UNKNOWN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      const outcomeEl = visit.page.locator('#outcome');
+      const want = unknownAddressLine({ displayName: endpoints.adminDisplayName, address: ADMIN_ADDRESS });
+      let text = '';
+      let ok = true;
+      try {
+        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+        text = ((await outcomeEl.textContent()) ?? '').trim();
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok: ok && text === want, detail: `unknown-address text ${JSON.stringify(text)} (want ${JSON.stringify(want)})` };
+    }
+  },
+  {
+    id: 'login/failed',
+    async arrange(context, endpoints) {
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(MEMBER_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      const outcomeEl = visit.page.locator('#outcome');
+      let text = '';
+      let ok = true;
+      try {
+        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+        text = ((await outcomeEl.textContent()) ?? '').trim();
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.failed, detail: `failed text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'login/rate-limited',
+    async arrange(context, endpoints) {
+      await context.route('**/request-link', (route) =>
+        route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ outcome: 'rate_limited' }) })
+      );
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      const outcomeEl = visit.page.locator('#outcome');
+      let text = '';
+      let ok = true;
+      try {
+        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+        text = ((await outcomeEl.textContent()) ?? '').trim();
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.rate_limited, detail: `rate-limited text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'login/malformed',
+    async arrange(context, endpoints) {
+      await context.route('**/request-link', (route) =>
+        route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ outcome: 'malformed' }) })
+      );
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      const outcomeEl = visit.page.locator('#outcome');
+      let text = '';
+      let ok = true;
+      try {
+        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+        text = ((await outcomeEl.textContent()) ?? '').trim();
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.malformed, detail: `malformed text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'interstitial/ready',
+    async arrange(context, endpoints) {
+      const { visit } = await open(context, endpoints.captureInterstitialReadyLink, 'load');
+      const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true });
+      let ok = true;
+      try {
+        await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      const controlVisible = ok && (await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).isVisible());
+      const noOutcomeYet = (await visit.page.locator('#outcome').count()) === 0;
+      return {
+        page: visit.page,
+        ok: ok && controlVisible && noOutcomeYet,
+        detail: `interstitial booted ${ok}; control visible ${controlVisible}; no outcome yet ${noOutcomeYet}`
+      };
+    }
+  },
+  {
+    id: 'interstitial/refused',
+    async arrange(context, endpoints) {
+      const visit = await openBooted(context, endpoints.base, PAGES[1]);
+      const text = ((await visit.page.locator('#outcome').textContent()) ?? '').trim();
+      return { page: visit.page, ok: text === AUTH_OUTCOMES.refused, detail: `refused text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'interstitial/signed-in',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      const text = ((await visit.page.locator('#outcome').textContent()) ?? '').trim();
+      return { page: visit.page, ok: text === AUTH_OUTCOMES.signed_in, detail: `signed-in text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'members/populated',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.goto(new URL('members', endpoints.base).href);
+      const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true });
+      let ok = true;
+      try {
+        await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      const count = ok ? await visit.page.locator('#roster-list > li').count() : 0;
+      return { page: visit.page, ok: ok && count > 0, detail: `roster rows ${count}` };
+    }
+  },
+  {
+    id: 'members/empty',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await context.route('**/roster', (route) => {
+        if (route.request().method() !== 'GET') return route.continue();
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ members: [] }) });
+      });
+      await visit.page.goto(new URL('members', endpoints.base).href);
+      const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true });
+      let ok = true;
+      try {
+        await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      const text = ok ? ((await visit.page.locator('main p').first().textContent()) ?? '').trim() : '';
+      return { page: visit.page, ok: ok && text === ROSTER_EMPTY_STATE, detail: `empty-roster text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'members/added',
+    async arrange(context, endpoints, width, scheme) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.goto(new URL('members', endpoints.base).href);
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      const address = captureAddress('added', width, scheme);
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(captureUsername('added', width, scheme));
+      await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
+      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: ROSTER_OUTCOMES.added });
+      let ok = true;
+      try {
+        await outcomeEl.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok, detail: `added outcome shown ${ok} for ${address}` };
+    }
+  },
+  {
+    id: 'members/duplicate-address',
+    async arrange(context, endpoints, width, scheme) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.goto(new URL('members', endpoints.base).href);
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      const address = captureAddress('dup', width, scheme);
+      // Both submits use the same address (the point of this state)
+      // and the same username: the roster checks a duplicate address
+      // before a duplicate username, so the second submit still meets
+      // `duplicate_address` regardless.
+      const username = captureUsername('dup', width, scheme);
+      const submit = async () => {
+        await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
+        await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
+        await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(username);
+        await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
+      };
+      await submit();
+      try {
+        await visit.page
+          .locator('#roster-outcome')
+          .filter({ hasText: ROSTER_OUTCOMES.added })
+          .waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch (err) {
+        return { page: visit.page, ok: false, detail: `the first submit never showed "added": ${message(err)}` };
+      }
+      await submit();
+      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: ROSTER_OUTCOMES.duplicate_address });
+      let ok = true;
+      try {
+        await outcomeEl.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok, detail: `duplicate-address outcome shown ${ok} for ${address}` };
+    }
+  },
+  {
+    id: 'members/non-admin',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'member');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.evaluate(() => {
+        const a = document.createElement('a');
+        a.href = '../members';
+        a.id = 'rendered-capture-members-nav';
+        a.textContent = 'members';
+        document.querySelector('main')?.append(a);
+      });
+      await visit.page.click('#rendered-capture-members-nav');
+      const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.notFound, exact: true });
+      let ok = true;
+      try {
+        await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      return { page: visit.page, ok, detail: `not-found heading shown ${ok}` };
+    }
+  },
+  {
+    id: 'error/not-found',
+    skipUIFloors: true,
+    // A path this build's router has no entry for is not an "intent"
+    // SvelteKit's client can resolve (only login, login/link, and
+    // members are in its manifest, this being a fully prerendered,
+    // `strict: true` static build with no fallback route), so its own
+    // `server_fallback` takes the native-navigation branch
+    // (`@sveltejs/kit` 2.70.3, `client.js`'s `server_fallback`) rather
+    // than rendering `+error.svelte` client-side: this state is
+    // therefore the real served answer for that case, `Terminator`'s
+    // plain `http.NotFound` (`internal/serve/prefix.go`), not the
+    // Svelte-rendered not-found page.
+    async arrange(context, endpoints) {
+      const visit = await openBooted(context, endpoints.base, PAGES[1]);
+      visit.expectsRouterNotFound = true;
+      let status: number | null = null;
+      const onResponse = (res: PlaywrightResponse) => {
+        if (new URL(res.url()).pathname.endsWith('/rendered-capture-nowhere')) status = res.status();
+      };
+      visit.page.on('response', onResponse);
+      await visit.page.evaluate(() => {
+        const a = document.createElement('a');
+        a.href = '../rendered-capture-nowhere';
+        a.id = 'rendered-capture-notfound-nav';
+        a.textContent = 'nowhere';
+        document.querySelector('main')?.append(a);
+      });
+      await Promise.all([
+        visit.page.waitForURL('**/rendered-capture-nowhere', { timeout: BOOT_TIMEOUT_MS }).catch(() => null),
+        visit.page.click('#rendered-capture-notfound-nav')
+      ]);
+      visit.page.off('response', onResponse);
+      const bodyText = ((await visit.page.evaluate(() => document.body.textContent ?? '')) ?? '').trim();
+      const ok = status === 404 && bodyText === '404 page not found';
+      return { page: visit.page, ok, detail: `native-fallback status ${status}; body ${JSON.stringify(bodyText)}` };
+    }
+  }
+];
+
+/**
+ * Composes a contact sheet in the browser: a fresh page with one
+ * `<img>` per cell, its `src` a data URI (no image-encoding dependency,
+ * no file:// page), laid out in a row and screenshotted whole.
+ */
+async function composeContactSheet(browser: Browser, cells: { width: number; scheme: CaptureScheme; png: Buffer }[]): Promise<Buffer> {
+  const page = await browser.newPage();
+  try {
+    const figures = cells
+      .map(
+        (c) =>
+          `<figure><figcaption>${c.width}px ${c.scheme}</figcaption><img src="data:image/png;base64,${c.png.toString('base64')}" style="width:${c.width}px;display:block;border:1px solid #333;"></figure>`
+      )
+      .join('\n');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><style>
+      body { margin: 0; padding: 16px; background: #fff; display: flex; flex-wrap: wrap; gap: 16px; font: 12px sans-serif; }
+      figure { margin: 0; }
+    </style></head><body>${figures}</body></html>`;
+    await page.setContent(html, { waitUntil: 'load' });
+    await page.waitForFunction(() => Array.from(document.images).every((img) => img.complete && img.naturalWidth > 0));
+    return await page.screenshot({ fullPage: true });
+  } finally {
+    await page.close();
+  }
+}
+
+/**
+ * The capture matrix: every one of {@link CAPTURE_STATES}' fifteen
+ * page states, at every {@link CAPTURE_WIDTHS} width in both
+ * {@link CAPTURE_SCHEMES}, 150 captures. Each cell opens its own sized,
+ * schemed browser context,
+ * stands up the state, and asserts it before screenshotting: the
+ * secondary-control guard, the viewport-overflow floor (at 320 and
+ * 390), and the touch-target floor all gate the cell's own `property`
+ * result. The two native widths (390, 1440) each write their own PNG;
+ * the other three compose into one contact sheet per state.
+ */
+async function captureRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  await mkdir(CAPTURE_DIR, { recursive: true });
+  for (const state of CAPTURE_STATES) {
+    const slug = state.id.replace(/\//g, '-');
+    const dir = path.join(CAPTURE_DIR, slug);
+    await mkdir(dir, { recursive: true });
+    const sheetCells: { width: number; scheme: CaptureScheme; png: Buffer }[] = [];
+    for (const width of CAPTURE_WIDTHS) {
+      for (const scheme of CAPTURE_SCHEMES) {
+        const id = `capture/${state.id}/${width}/${scheme}`;
+        const context = await browser.newContext({ viewport: { width, height: CAPTURE_HEIGHT }, colorScheme: scheme });
+        try {
+          const arranged = await state.arrange(context, endpoints, width, scheme);
+          if (!arranged.ok) {
+            await report({ id, fixture: false, property: false, detail: arranged.detail });
+            continue;
+          }
+          const png = await arranged.page.screenshot({ fullPage: true });
+          if (CAPTURE_NATIVE_WIDTHS.has(width)) {
+            await writeFile(path.join(dir, `${width}-${scheme}.png`), png);
+          } else {
+            sheetCells.push({ width, scheme, png });
+          }
+          if (state.skipUIFloors) {
+            await report({ id, fixture: true, property: true, detail: `${arranged.detail}; UI floors skipped (no application UI)` });
+          } else {
+            const secondary = await secondaryControlViolations(arranged.page);
+            const overflow = width === 320 || width === 390 ? await overflowReport(arranged.page) : null;
+            const touch = await touchTargetReport(arranged.page);
+            const property = secondary.length === 0 && overflow === null && touch.count > 0 && touch.failures.length === 0;
+            await report({
+              id,
+              fixture: true,
+              property,
+              detail: `${arranged.detail}; secondary-control violations ${JSON.stringify(secondary)}; overflow ${overflow ? JSON.stringify(overflow) : 'none'}; touch targets ${touch.count} controls, failures ${JSON.stringify(touch.failures)}, advisory (<${TOUCH_ADVISORY_PX}px) ${JSON.stringify(touch.advisories)}, excepted ${JSON.stringify(touch.excepted)}`
+            });
+          }
+        } finally {
+          await context.close();
+        }
+      }
+    }
+    const sheet = await composeContactSheet(browser, sheetCells);
+    await writeFile(path.join(dir, 'contact-sheet.png'), sheet);
+  }
+}
+
 async function main(): Promise<void> {
   const endpoints: Endpoints = {
     base: requiredEnv('DUBPLATE_RENDERED_BASE_URL'),
@@ -3378,7 +4012,9 @@ async function main(): Promise<void> {
     loginLinkSignedIn: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN'),
     membersAddLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_ADD_LINK'),
     membersNonAdminLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK'),
-    membersHeaderLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_HEADER_LINK')
+    membersHeaderLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_HEADER_LINK'),
+    captureMintURL: requiredEnv('DUBPLATE_RENDERED_CAPTURE_MINT_URL'),
+    captureInterstitialReadyLink: requiredEnv('DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK')
   };
   PAGES[0].heading = endpoints.siteName;
   PAGES[1].heading = TITLES.loginLinkRefused;
@@ -3420,6 +4056,7 @@ async function main(): Promise<void> {
     await headerContrastRow(browser, endpoints, headerSession);
     await rulingFourRow(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
+    await captureRows(browser, endpoints);
     refuseUnclean();
     await refuseLateLeaks(endpoints);
   } finally {

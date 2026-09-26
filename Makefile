@@ -105,10 +105,9 @@ web:
 
 # RENDERED_TIMEOUT bounds the rendered test binary. It is explicit
 # because go test's ten-minute default would bind long before a stuck
-# browser is noticed, and it stays at least twice the leg's measured
-# wall time (about 55s for the test, 60s with its compile), and above
-# the script's own 300s deadline plus the missing-browser run.
-RENDERED_TIMEOUT := 7m
+# browser is noticed, and it stays above renderedScriptTimeout's own
+# deadline plus the missing-browser run.
+RENDERED_TIMEOUT := 15m
 
 # web-rendered is the rendered leg: cmd/dubplate-server's
 # rendered_test.go, under its build tag, serves the real shell on

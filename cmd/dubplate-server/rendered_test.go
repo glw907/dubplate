@@ -31,15 +31,23 @@ import (
 // bundle resolves its URLs from the runtime prefix.
 const renderedPrefix = "/rendered"
 
-// renderedScriptTimeout bounds one run of the browser script, at
-// about six times its measured wall time on an idle machine (about 50s
-// once the component rows landed): a gate that shares the machine with
-// another lane's build ran it past 150s at a load average near 20.
-const renderedScriptTimeout = 300 * time.Second
+// renderedScriptTimeout bounds one run of the browser script, at more
+// than twice its measured wall time on this machine (about 257s, the
+// capture matrix's 150 fresh browser contexts now dominating it) and
+// under renderedMagicLinkExpiry, so a late capture never meets an
+// expired link.
+const renderedScriptTimeout = 10 * time.Minute
 
 // renderedInstallHint is the command the script names when
 // Playwright's Chromium is not installed.
 const renderedInstallHint = "npx --prefix web playwright install chromium"
+
+// renderedMagicLinkExpiry is the fixture's own DUBPLATE_MAGIC_LINK_EXPIRY,
+// raised from the 15m default (`magicLinkExpiryThreshold`, `auth.go`)
+// so the capture matrix's own minted links, spent well after the run
+// starts, stay valid for renderedScriptTimeout's own length: it stays
+// under magicLinkExpiryCeiling (one hour, `auth.go`).
+const renderedMagicLinkExpiry = 25 * time.Minute
 
 // The fixture's four rate limits, set through their configuration keys.
 // A full run's spend (renderedSpend) must stay below each, so no row
@@ -72,8 +80,14 @@ type renderedRow struct {
 
 // renderedManifest is every row the browser script must report. A row
 // the script never reports, a row it reports that is not here, and a
-// row reported without its fixture-state result each fail.
-var renderedManifest = []renderedRow{
+// row reported without its fixture-state result each fail. It is
+// renderedBaseManifest plus the capture matrix's own rows
+// (renderedCaptureRows).
+var renderedManifest = append(append([]renderedRow(nil), renderedBaseManifest...), renderedCaptureRows()...)
+
+// renderedBaseManifest is every row the harness reported before the
+// capture matrix.
+var renderedBaseManifest = []renderedRow{
 	{id: "first-paint/cookie-none/light"},
 	{id: "first-paint/cookie-none/dark"},
 	{id: "first-paint/cookie-label/light"},
@@ -191,6 +205,60 @@ var renderedManifest = []renderedRow{
 	{id: "header/toggle/cookie-label-night"},
 }
 
+// renderedCaptureWidths are W4.1's five CSS-pixel widths the capture
+// matrix renders every state at.
+var renderedCaptureWidths = []int{320, 390, 768, 1440, 2560}
+
+// renderedCaptureSchemes are the two emulated color-scheme preferences
+// the capture matrix renders every state under.
+var renderedCaptureSchemes = []string{"light", "dark"}
+
+// renderedCaptureStates is the capture matrix's fifteen page states, as
+// Go literals. linkRequests and consumptions are per cell (one of the state's ten width-by-scheme
+// captures), not per state: a state that signs in mints and consumes
+// one link per cell, since the harness opens a fresh browser context,
+// and so a fresh session, for every cell.
+var renderedCaptureStates = []struct {
+	id           string
+	linkRequests int
+	consumptions int
+}{
+	{id: "login/empty"},
+	{id: "login/sent"},
+	{id: "login/unknown-with-admin", linkRequests: 1},
+	{id: "login/failed", linkRequests: 1},
+	{id: "login/rate-limited"},
+	{id: "login/malformed"},
+	{id: "interstitial/ready"},
+	{id: "interstitial/refused"},
+	{id: "interstitial/signed-in", consumptions: 1},
+	{id: "members/populated", consumptions: 1},
+	{id: "members/empty", consumptions: 1},
+	{id: "members/added", consumptions: 1},
+	{id: "members/duplicate-address", consumptions: 1},
+	{id: "members/non-admin", consumptions: 1},
+	{id: "error/not-found"},
+}
+
+// renderedCaptureRows expands renderedCaptureStates over every width and
+// scheme into the capture matrix's own 150 manifest rows (15 states by
+// 5 widths by 2 schemes), each ID "capture/<state>/<width>/<scheme>".
+func renderedCaptureRows() []renderedRow {
+	rows := make([]renderedRow, 0, len(renderedCaptureStates)*len(renderedCaptureWidths)*len(renderedCaptureSchemes))
+	for _, s := range renderedCaptureStates {
+		for _, w := range renderedCaptureWidths {
+			for _, scheme := range renderedCaptureSchemes {
+				rows = append(rows, renderedRow{
+					id:           fmt.Sprintf("capture/%s/%d/%s", s.id, w, scheme),
+					linkRequests: s.linkRequests,
+					consumptions: s.consumptions,
+				})
+			}
+		}
+	}
+	return rows
+}
+
 // reportedRow is one JSON line the script writes to stdout. The two
 // results are pointers so a line that omits one is told apart from a
 // line reporting false.
@@ -299,6 +367,7 @@ func renderedEnviron(t *testing.T, publicURL string) []string {
 		"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR":             strconv.Itoa(renderedLinkRequestsPerClient),
 		"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR": strconv.Itoa(renderedConsumptionAttemptsPerClient),
 		"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR":                    strconv.Itoa(renderedLinkMailCeiling),
+		"DUBPLATE_MAGIC_LINK_EXPIRY":                             renderedMagicLinkExpiry.String(),
 	} {
 		environ = replaceKey(environ, name, value)
 	}
@@ -429,20 +498,82 @@ func checkRateBudget(t *testing.T, environ []string) {
 // would accept.
 func mintRenderedLink(t *testing.T, environ []string, address string) string {
 	t.Helper()
+	link, err := mintLinkFor(environ, address)
+	if err != nil {
+		t.Fatalf("mintLinkFor: %v", err)
+	}
+	return link
+}
+
+// mintLinkFor mints one magic link for address against environ's own
+// link secret and expiry (`auth.MintLink`, `auth.LinkURL`): the shared
+// mechanism behind both [mintRenderedLink] and [mintServer].
+func mintLinkFor(environ []string, address string) (string, error) {
 	cfg, err := resolveAuthConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveAuthConfig: %v", err)
+		return "", fmt.Errorf("resolveAuthConfig: %w", err)
 	}
 	secret := []byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET"))
 	token, _, err := auth.MintLink(secret, address, time.Now(), cfg.magicLinkExpiry)
 	if err != nil {
-		t.Fatalf("auth.MintLink: %v", err)
+		return "", fmt.Errorf("auth.MintLink: %w", err)
 	}
 	link, err := auth.LinkURL(environValue(environ, "DUBPLATE_PUBLIC_URL"), renderedPrefix, token)
 	if err != nil {
-		t.Fatalf("auth.LinkURL: %v", err)
+		return "", fmt.Errorf("auth.LinkURL: %w", err)
 	}
-	return link
+	return link, nil
+}
+
+// mintRequest is the capture matrix's own request shape to [mintServer]:
+// which fixture address to mint a fresh, single-use link for.
+type mintRequest struct {
+	Kind string `json:"kind"`
+}
+
+// mintResponse is [mintServer]'s answer: one freshly minted link.
+type mintResponse struct {
+	URL string `json:"url"`
+}
+
+// mintServer answers a freshly minted magic link for the fixture admin
+// or member address, one per POST, through [mintLinkFor]: the capture
+// matrix's on-demand source for the sixty links its six signed-in
+// states spend (one per cell, R-5ciii4's "one minted link per
+// capture"), rather than sixty environment variables. It is its own
+// loopback listener, mounting no path on the fixture server's own
+// handler, so it adds no bypass to any production path.
+type mintServer struct {
+	environ []string
+}
+
+func (m *mintServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var req mintRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	var address string
+	switch req.Kind {
+	case "admin":
+		address = renderedAdminAddress
+	case "member":
+		address = renderedMemberAddress
+	default:
+		http.Error(w, "unknown address kind "+req.Kind, http.StatusBadRequest)
+		return
+	}
+	link, err := mintLinkFor(m.environ, address)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(mintResponse{URL: link})
 }
 
 // countLogged reports how many records in records are a POST to a
@@ -628,6 +759,14 @@ func TestRendered(t *testing.T) {
 	// spend.
 	membersHeaderLink := mintRenderedLink(t, environ, renderedAdminAddress)
 
+	// The capture matrix's own "ready" state is never consumed (its
+	// screenshot shows the interstitial before the click), so its ten
+	// cells share one minted link.
+	captureInterstitialReadyLink := mintRenderedLink(t, environ, renderedAdminAddress)
+
+	mintSrv := httptest.NewServer(&mintServer{environ: environ})
+	t.Cleanup(mintSrv.Close)
+
 	env := append(scriptEnviron(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
 		"DUBPLATE_RENDERED_REQUEST_LOG="+logSrv.URL,
@@ -642,6 +781,8 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_MEMBERS_ADD_LINK="+membersAddLink,
 		"DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK="+membersNonAdminLink,
 		"DUBPLATE_RENDERED_MEMBERS_HEADER_LINK="+membersHeaderLink,
+		"DUBPLATE_RENDERED_CAPTURE_MINT_URL="+mintSrv.URL,
+		"DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK="+captureInterstitialReadyLink,
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {
