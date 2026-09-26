@@ -710,6 +710,16 @@ func TestSettingsDoctorRows(t *testing.T) {
 			},
 		},
 		{
+			name:    "admin row, env equal: the administrator's value is in force",
+			checked: true,
+			environ: []string{key + "=40"},
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
+			want: []backupFactRow{
+				{key, `"40" (source admin, next operation)`},
+				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+			},
+		},
+		{
 			name:    "admin row, env different: refusing",
 			checked: true,
 			environ: []string{key + "=50"},
@@ -741,11 +751,31 @@ func TestSettingsDoctorRows(t *testing.T) {
 			},
 		},
 		{
+			name:    "out-of-bounds env-seed row healed by removal",
+			checked: true,
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
+			want: []backupFactRow{
+				{key, `"1" (source env-seed, next operation); returns to the default at serve's next start`},
+				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+			},
+		},
+		{
 			name:    "a stored value that does not parse: refusing naming the reason",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "not-a-number", Source: "env-seed", SeedValue: "not-a-number"}}}),
 			want: []backupFactRow{
 				{key, `refused: stored env-seed value refused: DUBPLATE_TEST_SETTING: invalid value "not-a-number", want an integer`},
+				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+			},
+			wantFailed: true,
+		},
+		{
+			name:    "an env value that does not parse: refusing naming the reason",
+			checked: true,
+			environ: []string{key + "=abc"},
+			report:  current(store.Facts{}),
+			want: []backupFactRow{
+				{key, `refused: environment seed refused: DUBPLATE_TEST_SETTING: invalid value "abc", want an integer`},
 				{secretKey, "(sensitive value withheld) (source default, immediately)"},
 			},
 			wantFailed: true,
@@ -871,6 +901,32 @@ func TestSettingsDoctorRows(t *testing.T) {
 				t.Errorf("failed = %v, want %v", failed, tt.wantFailed)
 			}
 		})
+	}
+}
+
+// TestSettingsDoctorRows_LocalKeep is criterion 13's local-keep half
+// (D10): a stored env-seed value of "2" for
+// DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP renders "2" under
+// registerStoreConfig's own registry, matching the environment so the
+// row carries no change note.
+func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
+	reg := config.NewRegistry()
+	registerStoreConfig(reg)
+	key := storeLocalSnapshotKeepSetting.Key
+
+	report := store.Report{State: store.StateCurrent, Facts: &store.Facts{
+		Settings: []store.SettingsRow{{Key: key, Value: "2", Source: "env-seed", SeedValue: "2"}},
+	}}
+	rows, failed := settingsDoctorRows([]string{key + "=2"}, reg, report, true)
+	if failed {
+		t.Fatalf("failed = true, want false")
+	}
+	idx := slices.IndexFunc(rows, func(r backupFactRow) bool { return r.key == key })
+	if idx < 0 {
+		t.Fatalf("rows carry no entry for %s: %+v", key, rows)
+	}
+	if want := `"2" (source env-seed, next operation)`; rows[idx].status != want {
+		t.Errorf("%s row = %q, want %q", key, rows[idx].status, want)
 	}
 }
 

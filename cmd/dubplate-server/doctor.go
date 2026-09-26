@@ -127,7 +127,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				return err
 			}
 
-			// The settings rows (R-6c9, Ruling 2) print one per
+			// The settings rows print one per
 			// registered setting, in declaration order, after the
 			// backup rows, and one row per orphan the store holds
 			// under a key no rung still declares.

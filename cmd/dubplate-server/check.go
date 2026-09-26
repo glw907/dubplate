@@ -16,7 +16,7 @@ import (
 // success, then runs the store's inspect mode and prints its "store"
 // row the same way doctor does, then evaluates the seed rule
 // read-only against the store's facts and prints one "settings:" line
-// per non-quiet outcome (R-6c9's from-facts entry point). On failure
+// per non-quiet outcome. On failure
 // it returns the failing error unprinted: main is the sole writer of
 // command errors to stderr, so a failed check in a systemd journal is
 // the error alone, never doubled.
@@ -55,7 +55,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			}
 
 			// The settings evaluation runs only when the store handed
-			// back facts to evaluate (Ruling 2): a store this check
+			// back facts to evaluate: a store this check
 			// cannot vouch for already fails on the store row above,
 			// and printing a settings verdict for one it never read
 			// would report on rows it never saw.
@@ -84,7 +84,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // non-quiet outcome the seed rule finds against facts: a refusal
 // always prints, and an outcome that leaves the value in force
 // unchanged never does, since check surfaces only what an operator
-// need act on. It reports whether any outcome refuses (Ruling 2).
+// need act on. It reports whether any outcome refuses.
 func printSettingsRows(w io.Writer, environ []string, reg *config.Registry, facts store.Facts) (failed bool, err error) {
 	ev := settings.EvaluateFacts(reg, environ, facts)
 	for _, o := range ev.Outcomes {

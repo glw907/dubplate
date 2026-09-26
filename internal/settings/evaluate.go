@@ -130,7 +130,7 @@ func Evaluate(ctx context.Context, h *store.Handle, reg *config.Registry, enviro
 // hold no row for any key, so every outcome resolves to its default
 // and reports that the store holds no settings yet, never comparing
 // against the environment. check and doctor call it; backup calls
-// [Evaluate] from its own write-mode handle instead (R-6c9).
+// [Evaluate] from its own write-mode handle instead.
 func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Evaluation {
 	if facts.SettingsAbsent {
 		return evaluateTableAbsent(reg)
@@ -145,8 +145,8 @@ func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Ev
 // evaluateTableAbsent returns one outcome per registered setting
 // resolving to its default, for a store whose version predates the
 // settings table. It never reads environ: a store with pending
-// migrations reads no setting from the environment (R-6c9's pre-seed
-// read), so the report only ever says the store holds no settings yet.
+// migrations reads no setting from the environment ahead of its own
+// seed, so the report only ever says the store holds no settings yet.
 func evaluateTableAbsent(reg *config.Registry) Evaluation {
 	settings := reg.Settings()
 	ev := Evaluation{Outcomes: make([]Outcome, len(settings))}
@@ -252,8 +252,8 @@ func evaluate(reg *config.Registry, environ []string, rows []Row) Evaluation {
 		}
 		if err := rule.Check(values); err != nil {
 			// Every key the rule names carries the refusal on its own
-			// row (Task 5's doctor table): a reader of one key's row
-			// alone still sees the pair the rule compared and why.
+			// outcome, so a reader of one key's row still sees the
+			// pair the rule compared and why.
 			wrapped := fmt.Errorf("correlated rule %q: %w", rule.Name, err)
 			refusals = append(refusals, wrapped)
 			for _, key := range rule.Keys {

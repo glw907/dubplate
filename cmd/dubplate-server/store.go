@@ -201,8 +201,8 @@ type backupFactRow struct {
 }
 
 // settingsDoctorRows renders doctor's one row per registered setting,
-// in declaration order, and one row per orphan (R-6c9, Ruling 2). Its
-// disposition follows the store's own state: a state this binary
+// in declaration order, and one row per orphan. Its disposition
+// follows the store's own state: a state this binary
 // cannot vouch for (busy, mid-restore, not a store, refused, or newer)
 // reports every setting "not checked", never calling into
 // internal/settings; a state whose facts mark the settings table
@@ -256,7 +256,7 @@ func byKey(list []config.Setting, key string) config.Setting {
 // status for the registered setting s: the value in force, its
 // source, and the apply mode, then any note about what changes at
 // serve's next start, or the outcome's own refusal in place of all of
-// it (Ruling 2).
+// it.
 func settingsOutcomeStatus(s config.Setting, o settings.Outcome) string {
 	if o.Err != nil {
 		return o.Report

@@ -689,13 +689,38 @@ func dumpRows(t *testing.T, h *store.Handle, query string) string {
 // store holding an env-seed row of 14 for DUBPLATE_BACKUP_SNAPSHOT_KEEP,
 // with the environment at 20, leaves every settings, settings_audit,
 // and generation row byte-identical, logs the disagreement naming the
-// key, and runs the job with 14 (an apply would have written 20, and
-// the guard fixture below would have needed 20's own track count to
-// pass). Fixture state: a seeded row, so an apply would write.
+// key, and runs the job with 14. It runs against a real local rclone
+// remote, never the stand-in, so the prune it plants can observe the
+// keep the job actually ran with: 18 snapshots already on the remote,
+// more than 14 and fewer than 20, so a keep of 14 prunes 5 of them
+// (13 survivors plus the run's own, 14 total) while a keep of 20 (the
+// environment's value, had an apply reached it) would have kept every
+// one (19 total). Fixture state: a seeded row, so an apply would
+// write.
 func TestBackupCmd_SettingsEvaluationNeverApplies(t *testing.T) {
-	useBackupStandin(t)
+	if _, err := exec.LookPath("rclone"); err != nil {
+		t.Fatalf("rclone is a prerequisite of this test: %v", err)
+	}
 	environ := backupJobEnviron(t)
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+
+	remoteDir := t.TempDir()
+	t.Setenv("RCLONE_CONFIG_SETTINGSTEST_TYPE", "local")
+	environ = replaceKey(environ, "DUBPLATE_BACKUP_REMOTE", "settingstest:"+remoteDir)
+	environ = append(environ, "RCLONE_CONFIG_SETTINGSTEST_TYPE=local")
+
+	snapshotsDir := filepath.Join(remoteDir, "snapshots")
+	if err := os.MkdirAll(snapshotsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	const seeded = 18
+	for i := 1; i <= seeded; i++ {
+		stamp := store.FormatStamp(now.Add(-time.Duration(i) * time.Hour))
+		if err := os.WriteFile(filepath.Join(snapshotsDir, stamp+".db"), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
 	if err != nil {
@@ -715,6 +740,52 @@ func TestBackupCmd_SettingsEvaluationNeverApplies(t *testing.T) {
 	}
 	if !strings.Contains(stderr.String(), "DUBPLATE_BACKUP_SNAPSHOT_KEEP") {
 		t.Errorf("stderr = %q, want a warning naming the disagreeing key", stderr.String())
+	}
+
+	after := dumpSettingsTables(t, stateDir)
+	if before != after {
+		t.Errorf("settings tables changed:\nbefore: %+v\nafter:  %+v", before, after)
+	}
+
+	entries, err := os.ReadDir(snapshotsDir)
+	if err != nil {
+		t.Fatalf("read %s: %v", snapshotsDir, err)
+	}
+	if len(entries) != 14 {
+		t.Errorf("snapshots/ holds %d files, want 14 (13 seeded survivors plus the run's own): the job ran with a keep other than the stored 14", len(entries))
+	}
+}
+
+// TestBackupCmd_SettingsEvaluationRefusalNeverFails is spec criterion
+// 8's other half: backup exits by its job's outcome alone, never by
+// the seed rule's own verdict. An admin row for
+// DUBPLATE_BACKUP_SNAPSHOT_KEEP disagreeing with the environment
+// refuses under the seed rule (Ruling 2's doctor and check exit
+// nonzero on this same state), yet backup still returns nil, only
+// logging the refusal, and writes no settings row.
+func TestBackupCmd_SettingsEvaluationRefusalNeverFails(t *testing.T) {
+	useBackupStandin(t)
+	environ := backupJobEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "admin")
+	if err := h.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	before := dumpSettingsTables(t, stateDir)
+	environ = append(environ, "DUBPLATE_BACKUP_SNAPSHOT_KEEP=20")
+
+	var stdout, stderr bytes.Buffer
+	if err := runBackup(context.Background(), environ, productionRegistry(), &stdout, &stderr); err != nil {
+		t.Fatalf("runBackup: %v, want nil: backup exits by its job's outcome alone, never the seed rule's refusal", err)
+	}
+	if !strings.Contains(stderr.String(), "DUBPLATE_BACKUP_SNAPSHOT_KEEP") {
+		t.Errorf("stderr = %q, want a warning naming the refusing key", stderr.String())
 	}
 
 	after := dumpSettingsTables(t, stateDir)
