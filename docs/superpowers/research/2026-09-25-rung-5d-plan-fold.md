@@ -221,3 +221,55 @@ ratified document; the conductor writes them on lane 2's registry row.
 - The translit plan's rollback ("redeploying the previous commit", its `:1271`) fails for every commit
   from 5b-i on, because each one renders `DUBPLATE_IDENTITY_SOURCE` without secrets. After 5d's
   sitting, a rollback restores a saved binary and `server.env` pair, as Task 10's does.
+
+## Second fold: revision 2 to revision 2.1
+
+Folded: the verification read `2026-09-25-rung-5d-plan-fold-verification.md` (0 blockers, 5 majors, 3
+minors) into revision 2 (`9177429`), making revision 2.1. Each finding was checked against the tree at
+`1eeea40` before it was folded. No box command was run.
+
+### Counts
+
+| Disposition | Count |
+| --- | --- |
+| Folded | 8 (1 with a stated limit, V-M2) |
+| Refused | 0 |
+| Owner fork | 0 |
+
+### Dispositions
+
+| ID | Checked against the tree | Disposition |
+| --- | --- | --- |
+| **V-M1** | Held. The main tree is shared, and `git status` shows modified tracked files from other lanes at this read. | **Folded**, a new Global constraints bullet: every `deploy.sh` evidence run, in Tasks 4D, 5, 6, and 9 and the Task 10 sitting, runs from `git worktree add --detach <scratchpad>/5d-deploy <sha>` at the task's commit, outside `.claude/worktrees/`, and is removed after. The implementer commits first; a defect is fixed by a new commit and re-run in a fresh worktree. Task 4D's scratch edits happen in that worktree. Task 10 step 1 creates it at Task 9's commit and builds the binary there. |
+| **V-M2** | Held. `dubplate-implementer.md:43-44` forbids `ssh` to the box and any network use. `SSH_OPTS` carries `ConnectTimeout=10` (`deploy.sh:74`), `run_remote` prints "would run" in check mode (`:133-137`), and every `rsync -n` ends in `|| true`. | **Folded**. Implementer runs target `192.0.2.1` only; the one real-box `--check` is Task 10 step 6's, run by the conductor. Every dispatch that runs `deploy.sh` names two exceptions to the no-network rule: the bounded `ssh` and `rsync -n` attempts to `192.0.2.1`, and `npm ci`'s registry reads of the lockfile's pins. The exception was chosen over `npm ci --offline`, because `--offline` would prove ordering only against a cache the implementer did not fill and would not match what the script runs. **Stated limit:** a dry-run `rsync` against an unreachable host lists no files, so Task 5 shows the new unit through the units step header (`deploy.sh:264`), and the unit's rsync is seen only at step 6. |
+| **V-M3** | Held. Step 6's `--check`, Geoff's read, and step 8's builds all sit between the old step 5 gate and the beets step (`deploy.sh:530-557`). | **Folded**. Step 5 keeps the activating-unit and upload reads. The boundary check moves to step 7, directly before the window opens and after Geoff's approval. The margin is at least twice step 6's measured wall time, never less than ten minutes, because the apply repeats the builds and turns each diff into a write. On a miss, the sitting waits with the shadow timer still running. |
+| **V-M4** | Held. `git diff --name-only be27434 HEAD -- config/ compose.yaml systemd/ env/` lists `config/roster.example.json`, which box-side md5 cannot see. The translit plan (approved, `unidecode install`) stages its binary and installs its table through `systemd-run`. | **Folded**. Step 6 derives the expected set from that diff, with Task 0's md5 reads adding box-side drift. An "if translit merged" block names the `.new` rsync, the staged smoke test, the `systemd-run` install (a PyPI download on the box), the `mv` swap, and the `unidecode` leaf. Task 0 item 4 quotes those lines from translit's `deploy.sh` and selects the block. "Box facts" and the owner touchpoints name the new file. |
+| **V-M5** | Held. `compat.go` at `be27434` carries `FtPattern` for bug-ft-pattern, and `367564c` retired it with the 2.14.1 pin. | **Folded**. The rollback reinstalls `beets==2.13.1` whenever the `.prev` binary is restored, while the shadow timer is stopped, with no import activating. The earlier "import fails" lever becomes the whole rollback, since beets never moves alone. Ruling 2 (formerly 3) gains the sentence: the first deploy upgrades the live importer from 2.13.1 to 2.14.1, the shadow then scores decisions from the beets the matcher was re-derived against, and a rollback returns beets with the binary. |
+| **V-m1** | Held. The template has no port row (R-5d14). | **Folded**, step 3: `mapfile -t rows < rendered; env -i PATH="$PATH" HOME="$HOME" "${rows[@]}" <worktree>/dubplate-server-linux-amd64 doctor` (the name `make build-linux` writes, `Makefile:14-15`). The port is "added". |
+| **V-m2** | Held. | **Folded**. Task 8 runs after the 5d-i close, in Segment C; a draft written earlier re-greps every citation at the 5d-ii base. The execution table drops "beside A". |
+| **V-m3** | Held. | **Folded**, Task 11: the STATUS draft routes a conductor edit of CLAUDE.md's deploy line and gate paragraph (the state-dir leg and the hard-required `systemd-analyze`). The conductor's action 9 applies it. |
+
+### Conductor decisions recorded in revision 2.1
+
+1. **Revision 2's Ruling 2 becomes R-5d17.** The verify endpoint's move to rung 12 is not an owner
+   fork. CLAUDE.md's forward-hook rule says a hook "is named in the rung plan and built by the rung
+   that first consumes it, and nothing is exported ahead of a caller", and nothing consumes the
+   endpoint before rung 12. R-5d17 carries that reason, the three corroborating facts, and the errata
+   list (the spec's 5d row, 5b-i's moved assertion, `BS:707-714`, `BS:510-513`). Task 4V, its ceiling
+   variant, its privileged-fields row, its territory line, and every "under Ruling 2's no" branch are
+   removed. The ceiling/split stays Ruling 1; the attended sitting becomes Ruling 2, and every
+   cross-reference follows.
+2. **5d-i launches only after 6c merges to master.** 6c (revision 2.1, approved 2026-09-25) runs in
+   lane 2, and its Task 5 edits `doctor.go`, `check.go`, and their tests, which 5d-i's Tasks 1 to 3
+   also edit. The contested-surface row for `doctor.go`, `doctor_test.go`, `check.go`,
+   `check_test.go`, and `main.go` says so (the `internal/config` row is unchanged). Task 0 item 1
+   makes a running 6c a blocker, and item 5 re-reads `doctor.go`'s row order, `doctor_test.go`'s
+   line-count constants, and `check.go` as 6c left them. The dependency list and the conductor's
+   action 1 carry it.
+
+### Rulings after the second fold
+
+1. **Two passes**: 5d-i (Task 0, Tasks 1 to 6) at 7.0M (flag 5.6M), 5d-ii (Tasks 7 to 11) at 3.5M
+   (flag 2.8M). Recommendation: yes.
+2. **The attended first-deploy sitting**, now with the scratch worktree, the timing gate at step 7,
+   the derived expected set, and the rollback that pairs beets with the binary. Recommendation: yes.

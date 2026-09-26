@@ -1,10 +1,15 @@
 # Rung 5, Pass 5d (The Boundary, the Deployment, and the Close) Implementation Plan
 
-Status: **revision 2, 2026-09-25: the three plan lenses (contract, mechanics, risk; committed at
-`70ce7be`) folded; no ruling answered.** The fold record is
-`docs/superpowers/research/2026-09-25-rung-5d-plan-fold.md`, one disposition per finding. Geoff reviews
-this revision at the plan-approval gate. It executes in lane 1 (the main tree) after 5c-iv closes,
-which has not run yet, so Task 0 re-verifies every pointer against the tree 5c-iv leaves.
+Status: **revision 2.1, 2026-09-25: the three plan lenses (contract, mechanics, risk; committed at
+`70ce7be`) folded at revision 2 (`9177429`), then the verification read
+(`docs/superpowers/research/2026-09-25-rung-5d-plan-fold-verification.md`: 0 blockers, 5 majors, 3
+minors) folded here; no ruling answered.** The fold record is
+`docs/superpowers/research/2026-09-25-rung-5d-plan-fold.md`, one disposition per finding, with a
+"Second fold" section for revision 2.1. Revision 2.1 also takes two conductor decisions: revision 2's
+Ruling 2 (the verify endpoint to rung 12) becomes the plan's own resolution R-5d17, so two rulings
+remain; and 5d-i launches only after 6c merges to master. Geoff reviews this revision at the
+plan-approval gate. It executes in lane 1 (the main tree) after 5c-iv closes and 6c merges, neither of
+which has happened yet, so Task 0 re-verifies every pointer against the tree they leave.
 
 **The fold adds one task (Task 4D, the deploy script's safety), which takes the pass past ten tasks,
 so 5d runs as two passes at the named seam** (Ruling 1): **5d-i** is Task 0 and Tasks 1 to 6, the
@@ -14,7 +19,7 @@ file-disjoint at the seam: 5d-ii writes Go only through Task 9's folds.
 Token ceilings (Ruling 1; arithmetic in "Token ceiling"): **5d-i 7.0M, flag 5.6M; 5d-ii 3.5M, flag
 2.8M.** Checkpoint interval: STATUS at every segment boundary, at most three tasks apart. Segments:
 5d-i **A** (Tasks 1, 2, 3), **B** (Tasks 4D, 5, 6), then the 5d-i close; 5d-ii **C** (Tasks 7, 8, the
-adversarial cycle, Task 9), **Sitting** (Task 10, attended, under Ruling 3), **Close** (Task 11).
+adversarial cycle, Task 9), **Sitting** (Task 10, attended, under Ruling 2), **Close** (Task 11).
 Planning spend is recorded against the rung, outside both ceilings.
 
 Sources. Code pointers were resolved at `4c766c3` on master and re-checked by the fold at `70ce7be`,
@@ -57,7 +62,8 @@ installed binary is `pre-greenfield-321-gbe27434`; the timers `dubplate-import`,
 `-disk-check`, `-navidrome-check`, and `-shadow` are all enabled. **Two drifts the apply will carry:**
 the box's beets is **2.13.1** while `deploy.sh` pins `BEETS_VERSION="2.14.1"` (`deploy.sh:32`, adopted
 at `367564c`), and the box's `config/contributors.yaml` and `config/reject-email.txt` differ from master
-(the "family" to "group" copy, `53ecd0a`); `compose.yaml` matches.
+(the "family" to "group" copy, `53ecd0a`); `config/roster.example.json` exists only on master, so the
+`--delete` rsync adds it; `compose.yaml` matches.
 
 **What this pass is.** Rung 5's last pass, in two halves. It gives the serve shell its two remaining
 configuration surfaces, gives `doctor` rows whose status comes from a probe of the running server,
@@ -66,7 +72,7 @@ every local build before the first remote write), writes the deployment (the ser
 `deploy.sh`'s pre-creates and clean web build, the environment template's rows, and a generalized
 state-dir check), writes the operator runbook and the trust-boundary documentation, maps all 50 SEC
 and UNI findings to where each was absorbed, runs the rung's full fresh-context adversarial cycle over
-the whole subsystem, and closes the rung. Under Ruling 3's yes it ends with the first production
+the whole subsystem, and closes the rung. Under Ruling 2's yes it ends with the first production
 deploy of the greenfield server, as one attended sitting with a written rollback.
 
 **What this pass is not.** It builds no streamer driver, reverse proxy, fallthrough, SSO header, or
@@ -78,12 +84,12 @@ fallthrough reconciliation, the streamer database in a restore) and none of the 
 projection's mount, the production authorizer, the bearer channel, Ruling 3's 403, security L5 to L7).
 It does not take L5 (a roster-POST throttle) or L6 (an n5 whole-roster doctor row), which stay
 unassigned in STATUS. It adds no Go module dependency and no web dependency. **It edits nothing under
-`internal/config`** (see "Global constraints"). It writes nothing under `web/`, `internal/auth`
-(except under Ruling 2's no), `internal/identity`, `internal/notify`, `internal/engine`, `internal/ops`,
+`internal/config`** (see "Global constraints"). It writes nothing under `web/`, `internal/auth`,
+`internal/identity`, `internal/notify`, `internal/engine`, `internal/ops`,
 `internal/backup`, `compose.yaml`, `config/` (the example roster already landed at 5b-ii), `corpus/`,
 `tools/`, or `_salvage/`. It edits `docs/bringup-runbook.md` only to add `--apply` to its `deploy.sh`
 apply invocations (Task 4D). **Nothing deploys and nothing writes the box before Task 10**, and Task
-10 exists only under Ruling 3's yes.
+10 exists only under Ruling 2's yes.
 
 > For agentic workers: workflow mode per CLAUDE.md's "Build process", the pass-execute chain per task,
 > sequential within each segment. The implementer is `dubplate-implementer`. The conductor consumes
@@ -99,17 +105,19 @@ apply invocations (Task 4D). **Nothing deploys and nothing writes the box before
 
 ## Rulings
 
-Three yes/no questions, each with a recommendation and what each answer builds. Everything else this
+Two yes/no questions, each with a recommendation and what each answer builds. Everything else this
 plan decides is in "Resolutions this plan takes", each with its reason, because each has one
 architecturally correct answer (Geoff, 2026-09-25: "You don't need to ask questions for the sake of
-ceremony"). The rung 5 spec's rulings, the 5a through 5c-iv plans' rulings, and the rung 6 spec's
-rulings stand and are not reopened.
+ceremony"). Revision 2 asked a third question, whether the forward-auth verify endpoint moves to rung
+12; revision 2.1 takes it as R-5d17, because CLAUDE.md's forward-hook rule settles it. The rung 5
+spec's rulings, the 5a through 5c-iv plans' rulings, and the rung 6 spec's rulings stand and are not
+reopened.
 
 **1. Does 5d run as two passes, 5d-i (Task 0 and Tasks 1 to 6) under a 7.0M ceiling (flag 5.6M) and
 5d-ii (Tasks 7 to 11) under a 3.5M ceiling (flag 2.8M)?** Recommendation: yes.
 
-**Reason:** the fold adds Task 4D, which makes eleven tasks under Ruling 2's yes, past the ten-task
-rule, so the pass splits at the seam revision 1 already named: the build tasks and the
+**Reason:** the fold adds Task 4D, which makes eleven tasks, past the ten-task rule, so the pass
+splits at the seam revision 1 already named: the build tasks and the
 review-and-close tasks are file-disjoint there. "Token ceiling" derives each half's projection from
 5c-i's per-task actual (the most recent rung 5 Go pass with a security read and fold) plus named
 adders; each ceiling is its projection divided by 0.8, rounded up to the build's 0.5M grain, so each
@@ -119,38 +127,9 @@ flag sits at or just above its projection and marks an overrun rather than firin
 the 5d-i close between them (a HISTORY entry, a STATUS handoff naming 5d-ii's resume prompt, the
 simplifier round, and the two architecture reads), and 5d-ii starting as a fresh session. **What no
 builds:** the same two passes under whatever ceilings Geoff names (the split itself follows from the
-task count, not from this ruling). Under Ruling 2's no, 5d-i also carries Task 4V and its ceiling is
-the one in "Token ceiling", "Under Ruling 2's no".
+task count, not from this ruling).
 
-**2. Does the forward-auth verify endpoint move from 5d to rung 12?** Recommendation: yes.
-
-**Reason:** four facts, each in the tree or a ratified document. First, it has no consumer before rung
-12: no adopter exists before launch (rung 16), and the estate reaches serve through the tunnel as
-ingress, never through a forward-auth proxy. CLAUDE.md's 2026-09-12 refinement says a hook "is built by
-the rung that first consumes it, and nothing is exported ahead of a caller." Second, the endpoint's
-answer is driver knowledge the spec's own "Universality" section gives to rung 12: "The header name,
-the injection rules, the bypass paths, the logout wiring, and the post-login destination live with the
-driver at rung 12." A 5d endpoint would pick its answer header (`Remote-User` is the field's usual
-name) with no driver to agree with. Third, STATUS carries "no non-admin maps onto a streamer admin" to
-rung 12, and a verify endpoint in front of a streamer that auto-creates accounts from a trusted header
-opens exactly that path before its guard exists. Fourth, an unguarded verify endpoint is an identity
-oracle (R21's own words), so deferring it removes the one new anonymous-reachable identity surface from
-the first production deploy. Rung 12 keeps the full adversarial cycle (CLAUDE.md, "Review scales to
-rung risk"), so the endpoint is not reviewed less by moving. **What yes builds:** no verify endpoint,
-no forward-auth verify integration class, and no keys (declaring keys for code that does not exist is
-what the reserved-class mechanism is for, and rung 1b's contract forbids a reserved class whose keys
-the rung that declares it will not build). The close records errata (never edits) for every ratified
-promise the move breaks: the spec's 5d row's first clause and 5b-i's moved "a verify subrequest from
-such a peer is refused" assertion; BS ladder entry 5's "the forward-auth verify endpoint with its own
-trust-boundary documentation" (`BS:707-714`); and BS:510-513's "`dubplate doctor` proves the boundary
-by verifying that a spoofed identity header from a non-trusted source is rejected", for the
-forward-auth topology. STATUS's "To rung 12" item gains both the endpoint and that doctor proof. Task
-8 marks every SEC or UNI finding absorbed only by R21 as **carried to rung 12**, never absorbed. The
-trust-boundary documentation (Task 7) states the forward-auth topology as a future integration with
-the requirements BS:504-514 already fixes. Eleven tasks, two passes. **What no builds:** Task 4V
-(below) at `opus` in 5d-i, twelve tasks, the same two passes, with the ceilings in "Token ceiling".
-
-**3. Does 5d end with an attended first-deploy sitting that mints the two HMAC secrets, installs the
+**2. Does 5d end with an attended first-deploy sitting that mints the two HMAC secrets, installs the
 serve unit disabled, bootstraps the admin, and lifts the no-deploy carry?** Recommendation: yes.
 
 **Reason:** the spec's exit gate asks for "`deploy.sh --check` rendering with no unresolved name and
@@ -169,7 +148,13 @@ new. Minting needs one 1Password approval, which is Geoff's touch, so it belongs
 rather than the unattended pass. The spec already names the 5d box deploy as an owner touchpoint
 (`:2835-2836`, risk 10). The sitting stops the shadow timer across the apply, keeps `.prev` copies of
 the binary and `server.env`, runs one manual shadow pass before restarting the timer, and carries a
-written rollback, so a failed deploy never leaves the evidence observer down. **What yes builds:** Task
+written rollback, so a failed deploy never leaves the evidence observer down. **The first deploy also
+upgrades the live importer's beets from 2.13.1 to 2.14.1** (the pin `deploy.sh:32` adopted at
+`367564c`). For the shadow this means the oracle decisions it scores come from the beets the matcher
+was re-derived against, and the ft compat class the box's binary still carries (`be27434`) retires with
+the new binary. The matcher and the importer's beets therefore move as a pair: a rollback that restores
+the `.prev` binary also returns beets to 2.13.1, so the shadow never scores a 2.13.1 emulator against
+2.14.1 decisions (Task 10, "If a step fails"). **What yes builds:** Task
 6 writes the two secrets as bare rows, and Task 10 runs the sitting script in "Task 10". **What no
 builds:** Task 6 writes the two secrets as commented pending rows, Task 10 does not exist, exit gate
 clause 5's `doctor`-exits-0 half is deferred by name to rung 16 (Task 6 proves only exit 1 naming the
@@ -202,19 +187,20 @@ auth leaf and the roster leaf, and a `deploy.sh` that pre-creates every greenfie
 and installs the unit without enabling it; a state-dir check that derives its expectations from every
 greenfield unit and proves the pre-create loop reads the array; a template whose render passes
 `doctor`; an operator runbook; a disposition table covering all 50 SEC and UNI findings; a folded
-two-lens adversarial review; the rung's errata applied; and, under Ruling 3's yes, the greenfield binary
+two-lens adversarial review; the rung's errata applied; and, under Ruling 2's yes, the greenfield binary
 and unit on the box with the admin bootstrapped, `doctor` green, and the shadow still passing.
 
 ---
 
 ## Owner touchpoints
 
-The three rulings, at the plan-approval gate. Under Ruling 3's yes, the Task 10 sitting: Geoff approves
+The two rulings, at the plan-approval gate. Under Ruling 2's yes, the Task 10 sitting: Geoff approves
 the one 1Password read that mints the two secrets; supplies his own display name and streamer username
 for the admin bootstrap (the streamer username should equal his Navidrome login, since rung 12 maps
 it); approves stopping the shadow timer; and approves the apply after reading `deploy.sh --check`'s
-step list against the expected set, which names the beets 2.13.1 to 2.14.1 upgrade and the two
-`config/` copy files the apply carries. What would become a touchpoint: any Go module or web
+step list against the expected set, which names the beets 2.13.1 to 2.14.1 upgrade and every
+`config/` file the apply carries (derived from `git diff --name-only <box stamp> HEAD`, Task 10 step
+6). What would become a touchpoint: any Go module or web
 dependency; any change to `compose.yaml` or the tunnel; any write to the box outside Task 10; any
 `--check` line outside the expected set; a finding from either adversarial lens the fold would refuse
 on a correctness-critical claim (the conductor's overrule then takes CLAUDE.md's `xhigh`-then-`fable`
@@ -255,7 +241,7 @@ above the projection.
 2. The second adversarial lens (universality), which 5c-i did not run: **+0.35M**.
 3. Both lenses read the whole rung 5 subsystem (four packages, `cmd/dubplate-server`'s auth and serve
    files, the unit, and `web/`'s three pages), not one pass's diff: **+0.25M**.
-4. Task 11's rung close plus the sitting's evidence subagents under Ruling 3: **+0.50M** (revision
+4. Task 11's rung close plus the sitting's evidence subagents under Ruling 2: **+0.50M** (revision
    1's adder, which also carried the architecture reads that now sit in 5d-i).
 5. The sitting's added steps (the timer window, the `.prev` pair, the manual shadow pass, the names-only
    env diff, the rollback rehearsal read): **+0.10M**.
@@ -267,10 +253,6 @@ the fold's criteria at 0.25M, the split's second close at 0.25M, and the sitting
 ceilings 10.5M against revision 1's 8.5M. Rung 5's reservation moves from about 41M (5c-ii's close) by
 7.5M over the spec's 3M line for 5d, to about 48.5M.
 
-**Under Ruling 2's no.** 5d-i adds Task 4V at `opus`: seven build tasks at 0.76M (5.32M) plus the same
-three adders (0.80M): projection 6.12M; 6.12 / 0.8 = 7.65, rounded up to **8.0M, flag 6.4M**. 5d-ii is
-unchanged at **3.5M, flag 2.8M**.
-
 **Deliverable count:** Tasks 1, 2, 3, 5 carry four each; Tasks 4D and 6 carry three; Tasks 7, 8, 9,
 11 carry three or four; Task 10 is a conductor-run sitting. None passes four.
 
@@ -278,8 +260,10 @@ unchanged at **3.5M, flag 2.8M**.
 
 ## Global constraints
 
-- **Lane 1, the main tree, on master**, after 5c-iv's close is committed and the lane registry shows
-  lane 1 free with this pass named. No task reads, writes, or runs a command inside
+- **Lane 1, the main tree, on master**, after 5c-iv's close is committed, **after 6c has merged to
+  master** (conductor decision, revision 2.1: 6c's Task 5 edits `doctor.go`, `check.go`, and their
+  tests, which 5d-i's Tasks 1 to 3 also edit, so 5d-i builds on the tree 6c leaves rather than racing
+  it), and the lane registry shows lane 1 free with this pass named. No task reads, writes, or runs a command inside
   `.claude/worktrees/`. The spec's "Worktree, released at the close" for 5d is superseded by the lane
   registry; the close records it.
 - **`internal/config` is untouched, stated plainly for the 6c lane condition.** The rung 6 spec runs 6c
@@ -300,9 +284,7 @@ unchanged at **3.5M, flag 2.8M**.
   `scripts/deploy.sh`; `scripts/check.sh`; `docs/bringup-runbook.md` (the `--apply` invocations only);
   `env/dubplate-server.env.template`; `docs/server-runbook.md` (new); the disposition table and review
   records under `docs/superpowers/research/`; the close drafts; and, at the 5d-ii close only, the errata
-  targets. Under Ruling 2's no, Task 4V adds `internal/auth` (one handler file and its test) and
-  `cmd/dubplate-server` (a new `forwardauth.go`). A task that believes it needs anything else stops and
-  reports.
+  targets. A task that believes it needs anything else stops and reports.
 - **No Go module or web dependency.** `go.mod`, `go.sum`, `web/package.json`, and
   `web/package-lock.json` stay byte-identical. `golang.org/x/net/http/httpguts` is declined for header-
   name validation (R26 fixed rung 5's dependency count at two); a token check against RFC 9110's `tchar`
@@ -310,10 +292,30 @@ unchanged at **3.5M, flag 2.8M**.
 - **No deploy before Task 10, enforced by the tool from Task 4D on.** No task writes the box. Tasks 1,
   2, and 3 never run `scripts/deploy.sh` (until Task 4D lands, a bare invocation applies). From Task 4D
   on, `deploy.sh` with no flag or with `--check` reports every step without applying, and only
-  `--apply` writes (R-5d16). An implementer may run `bash scripts/deploy.sh --check`, always spelled
-  with the flag, and never `--apply`; every such dispatch says so in its prompt. The box stays
-  read-only otherwise (`ssh -o BatchMode=yes` for a read). The incumbent `/usr/local/bin/dubplate` and
-  its units are never touched.
+  `--apply` writes (R-5d16). An implementer may run `bash scripts/deploy.sh --check 192.0.2.1`,
+  always spelled with the flag and the documentation address, and never `--apply`; every such dispatch
+  says so in its prompt. **Implementer runs never target the real box**: `dubplate-implementer.md`
+  forbids `ssh` to `5.78.148.42` and any network use (its hard rules, `:43-44`). `192.0.2.1` routes
+  nowhere, and it proves every property Tasks 4D, 5, and 6 claim: the local build lines, the step
+  headers, the render, and `run_remote`'s "would run" lines print whether or not a host answers
+  (`deploy.sh:133-137`), `remote_reachable`'s BatchMode probe (`:123-125`) fails and reports "can't
+  reach" in place of a diff, and each `rsync -n` dry run ends in `|| true` (`:254-255`, `:267`, `:341`).
+  The one real-box `--check` belongs to Task 10 step 6, run by the conductor. **Two stated exceptions
+  to the implementer's no-network rule, named in every dispatch that runs `deploy.sh`:** the `ssh` and
+  `rsync -n` connection attempts to `192.0.2.1`, each bounded by `ConnectTimeout=10` (`:74`), which
+  cannot reach a host, and `npm ci
+  --prefix web`'s reads from the npm registry, which fetch exactly the packages
+  `web/package-lock.json` pins. The box stays read-only otherwise (`ssh -o BatchMode=yes` for a
+  conductor read). The incumbent `/usr/local/bin/dubplate` and its units are never touched.
+- **Every `deploy.sh` evidence run happens in a detached scratch worktree at the task's commit**, never
+  in the main tree. R-5d13's clean-tree refusal fires on any modified tracked file, in both modes, and
+  the main tree is shared with the document lanes, so a run there prints the refusal instead of the
+  steps whenever any lane holds a warm edit. The implementer commits the task first, then runs `git
+  worktree add --detach <scratchpad>/5d-deploy <sha>` (outside `.claude/worktrees/`), runs every
+  `deploy.sh` evidence command from that directory, makes Task 4D's deliberate scratch edits there, and
+  removes it with `git worktree remove --force <scratchpad>/5d-deploy` afterward. A run that shows a
+  defect is fixed in the main tree by a new commit and re-run in a fresh worktree at that commit. Task
+  10 uses the same form at Task 9's commit.
 - **Assertion discipline at the repo's bar.** No vacuous assertion, no expectation derived from the code
   under test. Every hard-coded expectation cites the spec, a quoted man page or `go doc`, or a measured
   probe. Every test names the fixture state it needs and asserts that state before the property. Every
@@ -347,7 +349,6 @@ unchanged at **3.5M, flag 2.8M**.
 | The public URL (origin check, every link's base, HSTS) | `DUBPLATE_PUBLIC_URL`, a template literal rendered into `server.env` by `deploy.sh`. | No request component; `validateMagicLinkSource` refuses a non-HTTPS non-loopback value at `Load`. |
 | The two state leaves' ownership and mode | `deploy.sh` (as root on the box) creating each with owner `music`, mode 0700. | `auth.Open` refuses a leaf wider than 0700 (`internal/auth/store.go:53-71`, `dirPerm = 0o700` at `:32`); the roster loader refuses a group- or other-writable file (`roster.go:318-319`). |
 | The two HMAC secrets and the SMTP password | The workstation age store, rendered by `deploy.sh` into `/etc/dubplate/server.env` (0600 root:root). | No other channel. No value appears in the repo, a log, a test, a report, or a ledger; checks are name-only. **Residual, recorded:** every `dubplate-server` verb shares `server.env`, so the five-minute shadow (which parses member uploads) holds both HMAC keys and the SMTP password in its environment, readable by any process running as `music`; carried to rung 16 (`LoadCredential=` or a dedicated uid for serve). |
-| (Ruling 2's no) The verify answer's identity header | Task 4V's handler alone, from the seam's roster-resolved principal, only to a permitted peer. | Every inbound spelling of it is stripped by group 1 before the handler; a non-permitted peer meets the terminator's 404. |
 
 ---
 
@@ -574,7 +575,7 @@ these exact names (the registry's note on "NEW non-secret values (SMTP host/port
 0.8, and the flat-namespace hazard that forced `DUBPLATE_STATE_DIR` to a literal
 (`env/dubplate-server.env.template:38-53`) does not apply, because the incumbent and the greenfield
 server use the one transport with the same values. `DUBPLATE_MAGIC_LINK_SECRET` and
-`DUBPLATE_SESSION_SECRET` as bare rows under Ruling 3's yes, commented pending rows under its no.
+`DUBPLATE_SESSION_SECRET` as bare rows under Ruling 2's yes, commented pending rows under its no.
 `DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS` and `DUBPLATE_SESSION_SECRET_PREVIOUS` as commented rows (Optional
 keys, used only across a rotation). `DUBPLATE_TRUSTED_PROXY_ENABLED=false` as an explicit literal,
 because proxyless operation is "chosen, never fallen into" (BS:278-280); the estate's own values (the
@@ -604,6 +605,32 @@ tool's default dangerous for every later lane. **Residual, recorded:** a deliber
 implementer is prevented only by the dispatch prompt. Cross-lane note: translit's staged deploy runs
 `deploy.sh --apply` once this lands (Task 0 reports whether translit has deployed; the contested-surface
 row carries it).
+
+**R-5d17. The forward-auth verify endpoint moves from 5d to rung 12.** Revision 2 asked this as a
+ruling; it is not an owner fork, because CLAUDE.md's forward-hook rule (2026-09-12) settles it: a hook
+"is named in the rung plan and built by the rung that first consumes it, and nothing is exported ahead
+of a caller." **Reason:** nothing consumes the endpoint before rung 12. No adopter exists before launch
+(rung 16), and the estate reaches serve through the tunnel as ingress, never through a forward-auth
+proxy. Three facts corroborate the rule's answer. The endpoint's answer is driver knowledge the spec's
+own "Universality" section gives to rung 12 ("The header name, the injection rules, the bypass paths,
+the logout wiring, and the post-login destination live with the driver at rung 12"), so a 5d endpoint
+would pick its answer header with no driver to agree with. STATUS carries "no non-admin maps onto a
+streamer admin" to rung 12, and a verify endpoint in front of a streamer that auto-creates accounts
+from a trusted header opens that path before its guard exists. An unguarded verify endpoint is an
+identity oracle (R21's own words), so the move keeps the one new anonymous-reachable identity surface
+out of the first production deploy. Rung 12 keeps the full adversarial cycle (CLAUDE.md, "Review
+scales to rung risk"), so the endpoint is not reviewed less by moving. **What it builds:** no verify
+endpoint, no forward-auth verify integration class, and no keys (rung 1b's contract forbids a
+reserved class whose keys the declaring rung will not build). STATUS's "To rung 12" item gains the
+endpoint and its forward-auth doctor proof. Task 8 marks every SEC or UNI finding absorbed only by R21
+as **carried to rung 12**, never absorbed. Task 7 states the forward-auth topology as a future
+integration with the requirements BS:504-514 fixes. **The errata** (recorded by the close, never an
+edit to a ratified document): the spec's 5d row's first clause (`:2519`); 5b-i's moved assertion "a
+verify subrequest from such a peer is refused"; BS ladder entry 5's "the forward-auth verify endpoint
+with its own trust-boundary documentation" (`BS:707-714`); and BS:510-513's "`dubplate doctor` proves
+the boundary by verifying that a spoofed identity header from a non-trusted source is rejected", for
+the forward-auth topology (5d's probe proves serve's own strip). Revision 2's Task 4V, the endpoint
+built at 5d, is removed with its ceiling variant and its privileged-fields row.
 
 ---
 
@@ -640,7 +667,9 @@ Model: `opus`, fresh context, dispatched before any implementer. Reads this plan
 pointer whose content survives is a note; a pointer whose content is gone is a blocker.
 
 1. **Lane 1 free and the tree clean** of warm changes the conductor did not author; the lane registry
-   names this pass; **5c-iv's close is committed on master.** Report HEAD and 5c-iv's close commit.
+   names this pass; **5c-iv's close is committed on master, and 6c has merged to master** (conductor
+   decision, revision 2.1; a 6c still running is a blocker, never a note). Report HEAD, 5c-iv's close
+   commit, and 6c's merge commit.
 2. **5c-iv's handoff to 5d** (5c-iii plan Task 11, `:1768-1777`, and 5c-iv's HISTORY entry): every
    item it names for 5d, and whether any lands outside this plan's tasks. The clean-build row
    (R-5d13) must be among them.
@@ -660,9 +689,19 @@ pointer whose content survives is a note; a pointer whose content is gone is a b
    `unidecode/` leaf is pre-created by `deploy.sh` and granted to any unit (if so it joins
    `DUBPLATE_SERVER_LEAVES` with its own mode argued), any new unit under `systemd/` whose `ExecStart=`
    names `dubplate-server` (R-5d11 must cover it), and **whether translit's deploy has run on the box**
-   (the binary stamp), since R-5d16 changes its apply command.
-5. **Whether 6c has merged or is running**, and whether `internal/config` has changed since
-   `4c766c3`. A 6c value validator changes nothing here (see "Global constraints"); report it.
+   (the binary stamp), since R-5d16 changes its apply command. **If translit has merged**, report the
+   exact `--check` lines its deploy steps print (read from its `deploy.sh`, never run against the box):
+   the staged `.new` binary rsync, the smoke test on the staged path, the `systemd-run` table install
+   (a PyPI download from the box), the `mv` swap, and the `/var/lib/dubplate/unidecode` leaf's
+   pre-create. That report fills Task 10 step 6's "if translit merged" block.
+5. **6c as merged** (`docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`,
+   revision 2.1), and whether `internal/config` has changed since `4c766c3`. A 6c value validator
+   changes nothing here (see "Global constraints"); report it. 6c's Task 5 edits `doctor.go`,
+   `check.go`, and their tests, so **re-read, as 6c left them:** `doctor.go`'s row order (the backup
+   rows' position, after which R-5d5 prints the four new rows, and any settings rows 6c added),
+   `doctor_test.go`'s line-count constants (`storeRowLines`, `backupDoctorRowsOff`, and any 6c added,
+   beside which `probeRowLines` lands), and `check.go` (every fixture or helper Tasks 1 to 3 and 6
+   reuse). Every pointer into those files that 6c moved is re-cited in the report.
 6. **`scripts/check.sh`**: the hard-required tool list (`:138-157`), the systemd leg (`:631-643`), the
    state-dir leg (`:645-658`), and the heavy gate's current wall time and peak memory.
 7. **`scripts/deploy.sh`**: the argument parse (`:81-95`), `UNIT_FILES` (`:59`), the render
@@ -899,45 +938,6 @@ exactly that reason).
 
 ## Segment B
 
-## Task 4V (under Ruling 2's no only): The forward-auth verify endpoint
-
-Model: `opus`. Under Ruling 2's yes this task does not exist.
-
-**Files:**
-- Create: `cmd/dubplate-server/forwardauth.go` and its test; `internal/auth/verify.go` and its test
-- Modify: `cmd/dubplate-server/serve.go`, `cmd/dubplate-server/main.go`
-
-**Outcomes:**
-- The `forward-auth verify` integration class: flag `DUBPLATE_FORWARD_AUTH_VERIFY_ENABLED`, Required
-  `DUBPLATE_FORWARD_AUTH_VERIFY_ADDRS` under R-5d2's grammar (R21).
-- A `verify` route under the owned prefix, mounted only when the class is enabled: to a permitted peer
-  (its `PeerAddress` compared as an unmapped `netip.Addr`) it calls the seam's `VerifyIdentity` with
-  `sameOrigin` false (no refresh, no `Set-Cookie`, no state change) and answers 200 with `Remote-User`
-  carrying the resolved principal and `Cache-Control: no-store`, or 401 with no body; to any other
-  peer, the terminator's 404 (peer checked before method, as R-5d8). It never reads the body. The task
-  quotes the forward-auth documentation of Caddy (`forward_auth`), Traefik (`forwardAuth`), nginx
-  (`auth_request`), and Authelia, each read on the day, for which method each sends, and answers every
-  method the shell admits alike; it quotes `internal/serve/origin.go` for whether a non-safe method
-  from the proxy meets the origin check and registers the route's exemption if it does, with the reason
-  (no state change, peer-gated).
-- Task 7's runbook gains the forward-auth setup steps BS:504-514 requires, the proxy's strip set
-  published from group 1's list.
-
-**Acceptance criteria:** a permitted peer with a valid session gets 200 and the principal; the same
-peer with no cookie, an expired session, a session for a removed member, and a session older than the
-epoch each get 401; a forged `Remote-User` from the permitted peer with no cookie gets 401 (the
-forged value never reaches the answer); a non-permitted peer with a valid session gets the 404; the
-class disabled mounts no route (404); no answer carries `Set-Cookie`. `bash scripts/check.sh` green.
-
-**Named mutations:** pass `sameOrigin` true (a `Set-Cookie` appears); compare the peer through
-`ClientIP` instead of `PeerAddress` (a non-permitted peer behind a configured trusted proxy naming a
-permitted address in the header gets 200); mount the route when disabled.
-
-**0.8 hook:** lands hook 5's read side (the principal is `streamer_username`, required on write since
-5c-i). **Deliverable count: 4.**
-
----
-
 ## Task 4D: The deploy script's safety
 
 Model: `sonnet`. Depends on Task 0 only; runs first in Segment B because Task 5 edits the same script.
@@ -959,16 +959,20 @@ Model: `sonnet`. Depends on Task 0 only; runs first in Segment B because Task 5 
 
 **Acceptance criteria:**
 - `shellcheck` clean.
+- Every run below happens in the detached scratch worktree at the task's commit ("Global
+  constraints"), and the dispatch names the two network exceptions.
 - **The default is safe, proved without a writable target:** `bash scripts/deploy.sh 192.0.2.1` (a
   documentation address that routes nowhere, so no mode can write anything) with no flag prints the
   check banner and reports each step as "would"; the same with `--check` prints the same; `--apply
   --check` is refused before the render. Each output's banner line and exit status are in the report.
-- **The refusal precedes every remote write:** with a scratch edit to a tracked Go file, and separately
-  with an untracked file under `web/src/`, `bash scripts/deploy.sh --check 192.0.2.1` refuses naming the
-  path, and its output contains no `== repo config` line; both scratch edits are removed.
-- **The local builds precede every remote write:** in a clean committed tree, `bash scripts/deploy.sh
-  --check` against the real box (read-only) prints the `npm ci`, web build, and `make build-linux`
-  lines before `== repo config`; the report quotes the full step-header list.
+- **The refusal precedes every remote write:** in the scratch worktree, with a scratch edit to a
+  tracked Go file, and separately with an untracked file under `web/src/`, `bash scripts/deploy.sh
+  --check 192.0.2.1` refuses naming the path, and its output contains no `== repo config` line; both
+  scratch edits are removed before the next run.
+- **The local builds precede every remote write:** in the clean scratch worktree, `bash
+  scripts/deploy.sh --check 192.0.2.1` prints the `npm ci`, web build, and `make build-linux` lines
+  before `== repo config`; the report quotes the full step-header list. (The real box is never the
+  target here; Task 10 step 6 is its one real `--check`.)
 - `bash scripts/check.sh` green, heavy lane.
 
 **Named mutations:**
@@ -1024,9 +1028,12 @@ same script).
   unit's `ExecStart` pointed elsewhere (no greenfield unit found); the loop iterating a literal `auth
   roster` list instead of the array; and the shadow pre-create line deleted.
 - `shellcheck` clean on both scripts.
-- `bash scripts/deploy.sh --check` (read-only; the box is reached for diffs only) reports the unit's
-  install, the two new pre-creates (the `install -d` lines for `auth` and `roster`, and no such line for
-  `shadow`), and the web build; the report quotes those lines.
+- `bash scripts/deploy.sh --check 192.0.2.1`, from the scratch worktree at the task's commit (never
+  the real box, "Global constraints"), reports the two new pre-creates (the `install -d` "would run"
+  lines for `auth` and `roster`, and no such line for `shadow`), the units step header naming the new
+  unit (the header prints every `UNIT_FILES` entry, `deploy.sh:264`), and the web build; the report
+  quotes those lines. A dry-run `rsync` against an unreachable host lists no files, so Task 10 step 6's
+  real `--check` is where the unit shows as added.
 - **The hard requirement is proved, not mutated:** with `systemd-analyze` hidden (a shim directory of
   symlinks to every `/usr/bin` entry except `systemd-analyze`, with `/usr/bin` and `/bin` dropped from
   `PATH` and every other entry kept), `bash scripts/check.sh` fails naming the tool before any leg runs.
@@ -1074,11 +1081,12 @@ Model: `sonnet`. Depends on Tasks 1, 2, 3 (doctor's final row set) and Task 5.
   (nothing substitutes for it); deleting the trusted-proxy flag row leaves it passing (the class is off
   by default), which the test asserts deliberately so a future reader does not mistake the explicit
   `false` for a requirement.
-- Under Ruling 3's no: the two secrets are commented, and the test instead asserts exit 1 naming
+- Under Ruling 2's no: the two secrets are commented, and the test instead asserts exit 1 naming
   exactly those two keys.
 - `TestTemplateKeysClassifiedAgainstProductionRegistry` and `TestTemplateKeysCoverEveryOwnedNowRow`
   pass unchanged.
-- Under Ruling 3's yes, `bash scripts/deploy.sh --check` aborts at the render naming exactly the two
+- Under Ruling 2's yes, `bash scripts/deploy.sh --check 192.0.2.1`, from the scratch worktree at the
+  task's commit, aborts at the render naming exactly the two
   secrets and nothing else, before any remote step; the report quotes the name list. (Under no, it
   renders and reports every step.) From here until the Task 10 mint, `--check` stops at the render.
 - `bash scripts/check.sh` green, heavy lane.
@@ -1137,9 +1145,9 @@ by files; it describes their behavior, so it runs after them.
   client-chosen; that every group 2 name, not only the configured one, survives from a trusted peer
   (nothing reads them at 5d); a port-bearing hop's handling (R-5d4); **the probe route's residual under
   a same-host proxy the operator did not configure as trusted** (R-5d8); the HTTPS precondition (R38);
-  and the forward-auth topology stated as a future integration under Ruling 2's yes (its requirements
-  from BS:504-514: the proxy strips the published set before the verify subrequest and before the
-  streamer, and the streamer trusts only that proxy), or the setup steps under its no.
+  and the forward-auth topology stated as a future integration built at rung 12 (R-5d17), with its
+  requirements from BS:504-514: the proxy strips the published set before the verify subrequest and
+  before the streamer, and the streamer trusts only that proxy.
 - **Browser and presentation notes**: Ruling 6's old-browser `Referrer-Policy` residual; a branding
   color applies in both color schemes (identity spec amendment A4).
 - **Backup rows** carried from 6a and 6b-i: `KillMode=mixed` for a unit that runs rclone, rclone
@@ -1158,8 +1166,11 @@ fold).
 
 ## Task 8: The SEC and UNI disposition table
 
-Model: `opus`. Independent of every code task by files; it may run as a document lane during 5d-i if
-the registry allows, and must land before the adversarial cycle.
+Model: `opus`. Independent of every code task by files, but its `file:line` and test-name citations
+for the proxy, hop, and probe findings do not exist until Tasks 1 to 3 land, and the 5d-i simplifier
+round moves lines after that. **It runs after the 5d-i close**, in Segment C, and must land before the
+adversarial cycle. If the conductor drafts it earlier as a document lane, it re-greps every citation
+at the 5d-ii base before the cycle and the report says so.
 
 **Files:**
 - Create: `docs/superpowers/research/2026-09-25-rung-5-sec-uni-disposition.md`
@@ -1169,8 +1180,8 @@ criticals, 6 highs, 7 mediums, and 3 lows, per the spec's count at `:2003-2006`)
 and a one-line statement; the birth-requirement clause or ruling that absorbed it (a spec pointer); the
 code and the test that prove it at HEAD (`file:line` and test name, grepped, never recalled); and a
 status of absorbed, absorbed with a recorded residual (the residual stated), or carried (to which rung,
-citing the carry). **Under Ruling 2's yes, every finding absorbed only by R21 (the verify endpoint) is
-carried to rung 12, never absorbed**, UNI's High "the forward-auth shape ... is never designed" among
+citing the carry). **Every finding absorbed only by R21 (the verify endpoint) is carried to rung 12,
+never absorbed** (R-5d17), UNI's High "the forward-auth shape ... is never designed" among
 them. A closing section lists the residue in one place, including the plan's own recorded residuals:
 the probe route under an unconfigured same-host proxy, the HMAC keys and SMTP password in every
 `music`-uid verb's environment (carried to rung 16), group 2 surviving from a trusted peer (carried to
@@ -1220,8 +1231,9 @@ the test that fails without it) or refused (with a one-line reason), in the merg
 becomes the rung's final do-not-re-litigate list. A finding outside the territory wall is carried to
 the rung that owns the surface, named in the record. A fix that would touch `internal/config` is
 carried, never made (the 6c lane condition). **A fold that touches `deploy.sh` cannot be exercised by
-`--check` before the Task 10 mint** (the render aborts on the two unminted names under Ruling 3's yes),
-so it is proved by `shellcheck`, a `192.0.2.1` run where the change precedes the render, and Task 10
+`--check` before the Task 10 mint** (the render aborts on the two unminted names under Ruling 2's yes),
+so it is proved by `shellcheck`, a `192.0.2.1` run from the scratch worktree where the change
+precedes the render, and Task 10
 step 6's `--check` read, and the record says which.
 
 **Acceptance criteria:** the record covers every finding in both reports (the counts match); each fold
@@ -1234,7 +1246,7 @@ task, and says so at the checkpoint.
 
 ---
 
-## Task 10 (under Ruling 3's yes): The first-deploy sitting
+## Task 10 (under Ruling 2's yes): The first-deploy sitting
 
 **Attended; conductor-run with Geoff present. No implementer.** Every box write happens here and
 nowhere else. **The record keeps statuses, exit codes, row names, and step headers, never a member
@@ -1258,9 +1270,13 @@ successful pass (`internal/engine/shadow/run.go:89-92`), and a gap is counted on
 is swept before the shadow consumes it (`reconcile.go:49,78-81`), which a short attended pause with the
 next import timed away does not cause.
 
-1. **Preconditions on the workstation:** master green at Task 9's commit; `git status --porcelain
-   --untracked-files=no` empty (and `deploy.sh` refuses otherwise, R-5d13); the lane registry shows no
-   other executor in lane 1 and lane 2 not mid-merge; AC power.
+1. **Preconditions on the workstation:** master green at Task 9's commit; the lane registry shows no
+   other executor in lane 1 and lane 2 not mid-merge; AC power. **Every `deploy.sh` command in this
+   sitting runs from a detached scratch worktree at Task 9's commit** (`git worktree add --detach
+   <scratchpad>/5d-deploy <sha>`, "Global constraints"), because the main tree is shared with the
+   document lanes and R-5d13 refuses any modified tracked file. `git status --porcelain
+   --untracked-files=no` in that worktree is empty. `make build-linux` runs there once now, so step 3
+   has a binary, and the worktree is removed after step 15 or after the rollback.
 2. **The mint** (one 1Password approval, Geoff's touch): for each of `DUBPLATE_MAGIC_LINK_SECRET` and
    `DUBPLATE_SESSION_SECRET`, `openssl rand -base64 48 | ~/.dotfiles/scripts/secrets/secret-set.sh
    NAME --stdin` (48 random bytes, 64 characters, above the 32-byte floor, `secretLengthFloor`,
@@ -1273,8 +1289,10 @@ next import timed away does not cause.
    `sync.sh --verify`. No value is printed.
 3. **The local doctor, pre-deploy:** the template rendered against `~/.local/secrets` into a file of
    rendered rows only, with the scratch state directory, scratch roster (one admin), and the closed port
-   **substituted** for the template's rows, then `env -i PATH="$PATH" HOME="$HOME" $(cat rendered)
-   dubplate-server doctor` (never a shell that sourced `~/.local/secrets`, whose roughly 40 incumbent
+   **substituted** for the template's rows and the closed `DUBPLATE_SERVE_PORT` **added** (the
+   template has no port row, R-5d14), one `NAME=value` per line, then `mapfile -t rows < rendered; env
+   -i PATH="$PATH" HOME="$HOME" "${rows[@]}" <worktree>/dubplate-server-linux-amd64 doctor`, so a value
+   with a space or a glob character stays one word (never a shell that sourced `~/.local/secrets`, whose roughly 40 incumbent
    `DUBPLATE_*` names, `DUBPLATE_STATE_DIR=/var/lib/musicbox` among them, would trip `Load`'s namespace
    rejection or win over the rendered values). Every row read; exit 0. This proves the estate's real
    SMTP and URL values pass the magic-link source's validation before anything reaches the box. Values
@@ -1282,29 +1300,48 @@ next import timed away does not cause.
 4. **Box reads for the expected set** (read-only): Task 0 item 10's reads repeated now, each compared
    with Task 0's report.
 5. **The quiet-box check** (read-only): no `dubplate-*` unit activating (`systemctl list-units
-   --state=activating 'dubplate-*'`); no upload in progress; **the next quarter-hour boundary at least
-   ten minutes away** (the import timer's `OnCalendar=*:0/15`; `RandomizedDelaySec=300` only postpones
-   a firing, so the calendar boundary is the earliest one). If not, wait for the next window; never
-   improvise.
-6. **`bash scripts/deploy.sh --check`**: renders with no unresolved name; the report is read in full
-   against **the expected set**, and any line outside it is a stop:
-   - **Changes expected:** the local clean-tree check and builds; `config/contributors.yaml` and
-     `config/reject-email.txt` (the `53ecd0a` copy, named to Geoff); the unit rsync adding
-     `dubplate-server-serve.service` and no other unit; `/etc/dubplate/env` "would change" only if the
-     names-only diff from step 4 explains it (otherwise a stop); the binary (the stamp at Task 9's
-     commit); `/etc/dubplate/server.env` (the new rows); the `auth` and `roster` pre-creates; the beets
-     install, which upgrades the box from 2.13.1 to the pinned 2.14.1 (named to Geoff as a shadow-
-     evidence event: the incumbent importer moves to the oracle pin the matcher was re-derived against
-     at `367564c`, and the apply also ships every matcher change since `be27434` into the shadow).
-   - **No-ops expected:** `compose.yaml`; the tmpfiles fragment; the shadow, uploads, backup-staging,
-     and musicbox state directories; compose `up -d` (no recreate); `enable --now` on `TIMER_UNITS`
-     (already active).
+   --state=activating 'dubplate-*'`); no upload in progress. The import-boundary timing is taken at step
+   7, directly before the apply, never here.
+6. **`bash scripts/deploy.sh --check 5.78.148.42`** from the scratch worktree, the pass's one real-box
+   `--check`, timed with `time`: renders with no unresolved name; the report is read in full against
+   **the expected set**, and any line outside it is a stop. **The expected set is derived, not
+   recalled:** `git diff --name-only <box stamp> HEAD -- config/ compose.yaml systemd/ env/`, where
+   `<box stamp>` is the commit in the installed binary's `version` (`be27434` at "Box facts"), lists
+   every repo file the apply can change; each listed path maps to its expected line below, and Task 0
+   item 10's md5 reads add any box-side drift the diff cannot see. At `1eeea40` that diff lists
+   `config/contributors.yaml`, `config/reject-email.txt`, `config/roster.example.json`, and
+   `env/dubplate-server.env.template`; 5d adds `systemd/dubplate-server-serve.service`.
+   - **Changes expected:** the local clean-tree check and builds; under `config/`, every path the diff
+     lists, among them `contributors.yaml` and `reject-email.txt` (the `53ecd0a` copy, named to Geoff)
+     and the new `roster.example.json` (an example file nothing on the box reads); the unit rsync adding
+     `dubplate-server-serve.service` and any other unit the diff lists, and no unit it does not;
+     `/etc/dubplate/env` "would change" only if the names-only diff from step 4 explains it (otherwise
+     a stop); the binary (the stamp at Task 9's commit); `/etc/dubplate/server.env` (the new rows); the
+     `auth` and `roster` pre-creates; the beets install, which upgrades the box from 2.13.1 to the
+     pinned 2.14.1 (named to Geoff as a shadow-evidence event: the incumbent importer moves to the
+     oracle pin the matcher was re-derived against at `367564c`, and the apply also ships every matcher
+     change since `be27434` into the shadow, the ft compat class's retirement among them; Ruling 2).
+   - **If translit merged** (Task 0 item 4's report selects this block, with the exact lines it
+     quoted): the staged `.new` binary rsync in place of the direct binary rsync; the smoke test on the
+     staged path; the `systemd-run` table install, which downloads the pinned wheel from PyPI on the
+     box; the `mv` swap of the staged binary; and the `/var/lib/dubplate/unidecode` leaf's pre-create.
+     If translit's deploy already ran on the box, its leaf and table are no-ops instead.
+   - **No-ops expected:** `compose.yaml` unless the diff lists it; the tmpfiles fragment; the shadow,
+     uploads, backup-staging, and musicbox state directories; compose `up -d` (no recreate); `enable
+     --now` on `TIMER_UNITS` (already active).
    Geoff approves stopping the shadow timer and the apply.
-7. **The window opens:** `systemctl stop dubplate-shadow.timer`; confirm `dubplate-shadow.service` is
+7. **The timing gate, then the window opens.** Directly before the window, after Geoff's approval:
+   the next import boundary (the import timer's `OnCalendar=*:0/15`; `RandomizedDelaySec=300` only
+   postpones a firing, so the calendar boundary is the earliest one) must be at least **twice step 6's
+   measured wall time, and never less than ten minutes**, away. The apply repeats step 6's local builds
+   and turns each remote diff into a write, the binary upload and compose the slowest, and its beets
+   step runs near the end (`deploy.sh:530-557`), so the whole apply must finish before the boundary.
+   If the margin fails, wait for the next window with the shadow timer still running; never improvise.
+   When it passes: `systemctl stop dubplate-shadow.timer`; confirm `dubplate-shadow.service` is
    not activating; on the box, `cp -p /usr/local/bin/dubplate-server{,.prev}` and `cp -p
    /etc/dubplate/server.env{,.prev}` (the copy keeps mode 0600 and root ownership); record the `.prev`
    binary's `version` stamp.
-8. **`bash scripts/deploy.sh --apply`.**
+8. **`bash scripts/deploy.sh --apply 5.78.148.42`** from the scratch worktree, at once after step 7.
 9. **One manual shadow pass:** `systemctl start dubplate-shadow.service`; read its `Result` and the
    journal's summary line; it must be `success`.
 10. **Box verification:** the two leaves exist as `music:music 0700`, with their SELinux context read
@@ -1339,11 +1376,17 @@ dubplate-server-serve.service` and `systemctl reset-failed dubplate-server-serve
 over the live ones; `/usr/local/bin/dubplate-server version` shows the `.prev` stamp recorded at step
 7; `rm /etc/systemd/system/dubplate-server-serve.service` and `systemctl daemon-reload`; one manual
 `systemctl start dubplate-shadow.service` reading `success`; `systemctl start dubplate-shadow.timer`.
-The `auth` and `roster` leaves stay, since nothing reads them. The incumbent-side changes the apply
-made (the `config/` copy and beets 2.14.1) are the repo's intended state and are not rolled back; if
-the import run after the apply fails, `runuser -u music -- env HOME=/srv/music uv tool install --force
-beets==2.13.1` is the lever, named here and taken only with Geoff's word. The failure, and the step it
-stopped at, becomes a finding for a follow-up task.
+**Whenever the `.prev` binary is restored, beets returns to 2.13.1 with it**, before the manual shadow
+pass and while the shadow timer is still stopped: `runuser -u music -- env HOME=/srv/music uv tool
+install --force beets==2.13.1`, run with no `dubplate-import.service` activating. The reason: the
+`.prev` binary (`be27434`) predates `367564c` and still carries the ft compat class written for beets
+2.13.1, so the matcher and the importer's beets move as a pair, and a shadow scoring that emulator
+against 2.14.1 decisions would put featuring-title divergences into launch-gating evidence. If the
+apply stopped before its beets step, the command reinstalls the version already there. The `auth` and
+`roster` leaves stay, since nothing reads them. The `config/` copy stays: it is the repo's intended
+state, and the change is member-facing wording ("family" to "group"), not behavior. If the first import run after a successful apply fails, the
+remedy is this whole rollback, binary and beets together, taken only with Geoff's word; beets never
+moves alone. The failure, and the step it stopped at, becomes a finding for a follow-up task.
 
 ---
 
@@ -1355,7 +1398,7 @@ Model: `sonnet`.
 
 **Outcomes:**
 - **The 5d-ii HISTORY entry and the rung 5 summary**: what landed per task across both halves, the gate
-  evidence, the adversarial cycle's counts and dispositions, the sitting's record (under Ruling 3's
+  evidence, the adversarial cycle's counts and dispositions, the sitting's record (under Ruling 2's
   yes, statuses only), declared coverage gaps (the SMTP transport not exercised on the box, carried to
   rung 16), both budgets scored, and "What a later pass would be wrong to rediscover" (at least: the
   hop rule stops at a malformed hop and keeps a port-bearing hop's address; doctor's web row is serve's
@@ -1367,8 +1410,8 @@ Model: `sonnet`.
 - **The STATUS draft**: present tense, rung 5 closed, the lane registry line, the next action, the
   carries 5d hands on: to the cutover (rung 16): the trusted-proxy estate values and the `compose.yaml`
   address pin for cloudflared, the serve bind to the bridge gateway, enabling the unit, the secrets in
-  every `music`-uid verb's environment, and exercising SMTP from the box; to rung 12 under Ruling 2's
-  yes: the verify endpoint and its forward-auth doctor proof (BS:510-513), and stripping every group 2
+  every `music`-uid verb's environment, and exercising SMTP from the box; to rung 12 (R-5d17): the verify
+  endpoint and its forward-auth doctor proof (BS:510-513), and stripping every group 2
   name but the configured header from a trusted peer; to 6c/6d: moving 5d's value checks onto the
   registry's validator.
 - **The errata**, each dated and pasted where the spec's "Errata the close applies" section says,
@@ -1377,8 +1420,8 @@ Model: `sonnet`.
   paste-ready block in that section. Plus the owed errata the fold record lists, never an edit to a
   ratified document beyond the pasted erratum: the rung 5 spec's 5d row as executed (two passes in lane
   1, not a worktree; the example-roster clause already dropped); the SMTP rows bare, not literal
-  (R-5d14); the secrets minted at 5d (Ruling 3's yes) or carried (no); the verify endpoint moved
-  (Ruling 2's yes), with BS ladder entry 5 (`BS:707-714`) and BS:510-513's forward-auth doctor proof;
+  (R-5d14); the secrets minted at 5d (Ruling 2's yes) or carried (no); the verify endpoint moved
+  (R-5d17), with BS ladder entry 5 (`BS:707-714`) and BS:510-513's forward-auth doctor proof;
   the owned-prefix route list (`spec:915-918`) gaining the `boundary-probe` route; R6's "dials the
   service's own configured bind address over loopback" (`spec:366-367`) becoming "dials each configured
   bind address from that address"; "Deployment"'s "`deploy.sh` gains the unit and the two pre-creates,
@@ -1386,6 +1429,14 @@ Model: `sonnet`.
   check-by-default; R23's reservation moved to about 48.5M; and the pass-split table's 5d exit gate's
   "the unit starting ... failing with a named mount-namespacing error" recorded as Task 5's `/dev/shm`
   workstation evidence plus Task 10's box start.
+- **A conductor edit of `CLAUDE.md`, routed by the STATUS draft** (CLAUDE.md is conductor-owned and
+  outside the implementer's wall). Once Task 4D and Task 5 land, CLAUDE.md describes the old tool, and
+  agents read it ("a rule lives where it executes"). The draft names each line and its new text:
+  "Safety rails"' deploy line ("`--check` first for anything risky") becomes "checks by default;
+  `--apply` writes, and only from a clean committed tree"; the gate paragraph's state-dir leg ("the
+  env template, the shadow unit, and `deploy.sh` name the same state directory") becomes the
+  generalized leg over every greenfield unit and `DUBPLATE_SERVER_LEAVES` (R-5d11); and its
+  "pattern-filtered `systemd-analyze verify`" gains "hard-required" (R-5d12).
 - **The contested-surface rows** released: `internal/serve` and `internal/auth` pass to rung 12's
   ownership per the spec's table (`:2545-2546`).
 - A `go-architecture-reader` per Go package Task 9 touched (conductor's dispatch), none if it touched
@@ -1408,18 +1459,18 @@ by name; `git diff --stat <5d base>..HEAD -- internal/config` is empty; `bash sc
    pre-create loop (Task 5).
 3. The unit starting with the roster leaf writable and failing with systemd's named mount-namespacing
    error when its pre-create is removed (Task 5's `/dev/shm` evidence; Task 10's box start under
-   Ruling 3's yes).
+   Ruling 2's yes).
 4. `doctor` reporting the live client-IP mode, the bound addresses, and a boundary-probe row that
    dials the running listener and reports plainly when none answers (Tasks 2 and 3).
 5. `deploy.sh --check` rendering with no unresolved name and `doctor` exiting 0 against the rendered
-   environment (Task 6's gate-resident proof; Task 10's steps 3, 6, and 13 under Ruling 3's yes).
+   environment (Task 6's gate-resident proof; Task 10's steps 3, 6, and 13 under Ruling 2's yes).
 6. The disposition table covering all 50 findings (Task 8).
 7. The adversarial cycle's findings folded or refused with reasons (Task 9).
 8. `internal/config` untouched (both closes' check).
 
-**Deferred, by name:** the verify endpoint and its forward-auth doctor proof (Ruling 2's yes); the
+**Deferred, by name:** the verify endpoint and its forward-auth doctor proof (R-5d17); the
 estate's trusted-proxy values and the cloudflared address pin (rung 16); minor 14 (6d criterion 8); L5
-and L6 (unassigned); **under Ruling 3's no, clause 5's `doctor`-exits-0 half**, carried to rung 16 with
+and L6 (unassigned); **under Ruling 2's no, clause 5's `doctor`-exits-0 half**, carried to rung 16 with
 the live shadow's dependency on it.
 
 ---
@@ -1429,7 +1480,7 @@ the live shadow's dependency on it.
 | Surface | Owner | This pass's position | Contention |
 | --- | --- | --- | --- |
 | Lane 1 (the main tree) | the lane registry | both halves | 5c-iv must close first; the conductor writes the order |
-| `cmd/dubplate-server/doctor.go`, `doctor_test.go`, `check_test.go`, `main.go` | shared | Tasks 1, 2, 3 | lane 2's 6b-ii-b and translit (doctor rows, a verb, registration lines, exit-0 doctor fixtures) and 6c (doctor's settings rendering); a non-fast-forward merge triggers the merge ritual's re-review. Task 0 reports what merged |
+| `cmd/dubplate-server/doctor.go`, `doctor_test.go`, `check.go`, `check_test.go`, `main.go` | shared | Tasks 1, 2, 3 (and Task 6's fixtures) | **6c merges to master before 5d-i's executor launches** (conductor decision, revision 2.1): 6c's Task 5 edits `doctor.go`, `check.go`, and their tests, so the two never run concurrently on these files, and Task 0 item 5 re-reads them as 6c left them. Lane 2's 6b-ii-b and translit (doctor rows, a verb, registration lines, exit-0 doctor fixtures) may still merge during 5d; a non-fast-forward merge triggers the merge ritual's re-review. Task 0 reports what merged |
 | `scripts/deploy.sh` | shared | Tasks 4D, 5 | translit's staged transition (lane 2), whose apply command becomes `--apply` once Task 4D lands (the conductor writes this on the registry row for lane 2); 6d later edits the leaf array |
 | `docs/bringup-runbook.md` | rung 4's file | Task 4D (the `--apply` invocations only) | none; retired at rung 16 |
 | `scripts/check.sh` | shared | Task 5 | every lane; the state-dir leg and the hard-required list are 5d's |
@@ -1446,7 +1497,7 @@ the live shadow's dependency on it.
 
 Not tasks; no implementer performs them.
 
-1. Before Task 0: record planning spend against the rung; write the lane registry's lane 1 row and the
+1. Before Task 0: confirm 6c has merged to master (revision 2.1); record planning spend against the rung; write the lane registry's lane 1 row and the
    contested-surface rows (including the `deploy.sh` `--apply` note for lane 2); arm the runaway guard;
    AC power; confirm the heavy gate string.
 2. Before Task 1: rule Task 0's blockers.
@@ -1455,8 +1506,9 @@ Not tasks; no implementer performs them.
 5. 5d-ii opens as a fresh session from the resume prompt.
 6. After Task 7: the `prose-voice-reviewer` read and its fold inside Task 7.
 7. Between Tasks 8 and 9: the adversarial cycle as written above.
-8. Task 10 under Ruling 3's yes, attended.
-9. At Task 11: any architecture read Task 9's packages need; score both budgets; close the session.
+8. Task 10 under Ruling 2's yes, attended.
+9. At Task 11: apply the `CLAUDE.md` edit its STATUS draft routes; any architecture read Task 9's
+   packages need; score both budgets; close the session.
 
 ---
 
@@ -1468,18 +1520,19 @@ then the gate, with one re-dispatch on `fix` and a second `fix` as the conductor
 
 | Pass | Segment | Tasks | The boundary's own work |
 | --- | --- | --- | --- |
-| 5d-i | **A** | 0, 1, 2, 3 | STATUS. Task 8 may start beside A as a document lane if the registry allows. |
-| 5d-i | **B** | (4V under Ruling 2's no), 4D, 5, 6 | STATUS; the 5d-i close. |
-| 5d-ii | **C** | 7, 8 (if not already landed), the adversarial cycle, 9 | STATUS; the two lenses; the fold. |
-| 5d-ii | **Sitting** | 10 (Ruling 3's yes) | attended |
+| 5d-i | **A** | 0, 1, 2, 3 | STATUS. |
+| 5d-i | **B** | 4D, 5, 6 | STATUS; the 5d-i close. |
+| 5d-ii | **C** | 7, 8 (re-grepped at the 5d-ii base if drafted earlier), the adversarial cycle, 9 | STATUS; the two lenses; the fold. |
+| 5d-ii | **Sitting** | 10 (Ruling 2's yes) | attended |
 | 5d-ii | **Close** | 11 | the ledgers |
 
 Each boundary sits on a task's own green committed gate.
 
 **Models.** `sonnet` at effort `high` by default. **Upshifts to `opus`, unconditional:** Task 0 (fresh
-context), Task 1, Task 3, Task 4V, Task 8, Task 9, and the universality lens.
+context), Task 1, Task 3, Task 8, Task 9, and the universality lens.
 
-**Dependencies, stated exactly:** Task 0 before any task. Task 1 → Task 2 → Task 3. Task 4D → Task 5;
+**Dependencies, stated exactly:** 6c merged to master before Task 0 (conductor decision, revision
+2.1). Task 0 before any task. Task 1 → Task 2 → Task 3. Task 4D → Task 5;
 Task 1 → Task 5. Tasks 2, 3, 5 → Task 6. Tasks 1 to 6 → Task 7. Task 8 depends on nothing but must
 precede the cycle. The lenses → Task 9 → Task 10 → Task 11. **Tasks 4D and 2 are independent by files**
 but run sequentially because one tree runs one executor.
@@ -1500,8 +1553,8 @@ Per CLAUDE.md, from the streamer spec's list (`:770-806`) and the rung 5 prior-a
 | Authelia (Apache-2.0) forwarded-headers documentation | **Adopt as behavior and citation** for the runbook's trust-boundary section (spec `:894-899`). No code read. |
 | Miniflux `AUTH_PROXY_HEADER` with `TRUSTED_REVERSE_PROXY_NETWORKS` | **Adopt as shape corroboration** for R22's class; **decline** its network (CIDR) form, since the spec pins trust to addresses, never a subnet. |
 | `coreos/go-systemd` (sd_notify) | **Decline**: `Type=exec` reports an exec failure without a readiness protocol, and adding a dependency for readiness no consumer needs is ahead of a caller. |
-| Navidrome's reverse-proxy authentication (GPL-3.0) | **Behavior only, and only under Ruling 2's no**, for what a streamer does with `Remote-User`; never read for code. |
-| Caddy `forward_auth`, Traefik `forwardAuth`, nginx `auth_request` documentation | **Consulted under Ruling 2's no** (Task 4V quotes each for the method it sends); not consulted under yes. |
+| Navidrome's reverse-proxy authentication (GPL-3.0) | **Not consulted**: the verify endpoint moved to rung 12 (R-5d17), which consults it for behavior only; never read for code. |
+| Caddy `forward_auth`, Traefik `forwardAuth`, nginx `auth_request` documentation | **Not consulted**: rung 12 quotes each for the method it sends when it builds the verify endpoint (R-5d17). |
 | OpenSubsonic, taglib, wazero, modernc sqlite, goose, mewkiz/flac, Picard, chromaprint | **Neutral**: none touches 5d's surface. |
 
 ---
