@@ -427,8 +427,8 @@ Passed images and uploaded assets are never deleted from the store.
      duplicate that first appears after the MBID step goes back to Geoff unpicked;
    - it writes the updated `rejected.json` (passes and non-duplicate drops merged in),
      `pack.json` (pack records moved in), and `waivers.json` to `_close/meta/`, never editing
-     `photos/meta/` in place; unsorted candidates stay in `.candidates/` for the next round and
-     go nowhere;
+     `photos/meta/` in place; unsorted candidates and `maybe` choices stay in `.candidates/` for the next
+     round and go nowhere (a maybe is never rejected and never committed);
    - `duplicate` drops, from `sheet` or from an agent's `drops.json`, never enter `rejected.json`,
      because integrity fails any key repeated across picked, rejected, and pack records, and the
      winner's record already carries the keys a later round checks against. The round log lists

@@ -73,3 +73,6 @@ Owner rulings (Geoff, 2026-09-25):
 - The sorting page shows each photo in the context of the login page: the silver-print
   treatment and film-edge caption in the login page's photo column, beside the form, at desktop
   and phone widths. The crop to that column is the judgment Geoff makes while sorting.
+- The sorting page gains a one-at-a-time review mode with yes, no, and maybe (Geoff: "cycle
+  through them with a yes/no/maybe for each"). Conductor ruling: a maybe is treated like an
+  unsorted candidate at close, staying in `.candidates/` for the next round, never rejected.
