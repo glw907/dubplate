@@ -6,13 +6,14 @@ three-lens `spec-plan-review` round (contract, mechanics, and risk; the reviews 
 (`ffde470`) folds them; a fresh-context verification read (`2026-09-25-rung-6c-plan-fold-verification.md`)
 found 0 blockers, 2 majors, and 7 minors, and revision 2.1 folds those. Revision 2.2 folds a
 prose-and-facts review (`docs/superpowers/research/2026-09-25-rung-6c-plan-prose-review.md`), the
-5d lane condition's staleness fix included: 5d's plan is now revision 2 (`9177429`), split into 5d-i
-and 5d-ii, and its own text (`:10`) already rules that 5d-i's executor launches only after 6c merges.
+5d lane condition's staleness fix included: 5d's plan is now revision 2.1 (`593d7fd`), split into 5d-i
+and 5d-ii, and its own text (`593d7fd:10`, a revision 2.1 decision) rules that 5d-i's executor launches only after 6c merges.
 The fold record, one disposition per finding for the earlier two folds, is
 `docs/superpowers/research/2026-09-25-rung-6c-plan-fold.md`, and it is this plan's review history.
 Rulings (see "Rulings"): Geoff ruled 1 yes; asked for the best and most idiomatic design on 2 and 3,
 the conductor took yes on both as design decisions, reasons recorded there. This revision does not
-re-open the Rulings.
+re-open the Rulings. Citation note (2026-09-25, no revision bump): citations of the 5d plan now point
+at its revision 2.1 (`593d7fd`), and the contested `internal/config` row matches 5d's own rule.
 
 **Ceiling:** 5.4M execution (flag 4.32M), planning recorded against the rung and outside it.
 **Checkpoint interval:** each segment boundary, and the close. **Segments:** A (Tasks 0 to 3), B
@@ -174,12 +175,12 @@ concurrently. The evidence, read at `5b8f05e` and re-read at `098f8e5`:
   findings": `internal/config/config.go` +42 and `config_test.go`), before this plan's `ffde470`.
   The worktree cut from master carries it, so 6c builds on it and no contested row is needed. Task 0
   blocker 3 confirms no later lane 1 edit is in flight.
-- **5d-i's executor waits on 6c's own merge, by rule, not by a schedule.** 5d's plan is at revision 2
-  (`9177429`, folded from `af7d941`'s revision 1), split into 5d-i (Task 0 and Tasks 1 to 6, the
+- **5d-i's executor waits on 6c's own merge, by rule, not by a schedule.** 5d's plan is at revision 2.1
+  (`593d7fd`, folded from revision 2 at `9177429`), split into 5d-i (Task 0 and Tasks 1 to 6, the
   build, in lane 1 after 5c-iv closes) and 5d-ii (Tasks 7 to 11, the review and close). 5d's own text
-  keeps `internal/config` byte-identical across both halves (`:269-278`) and edits `doctor.go`,
+  keeps `internal/config` byte-identical across both halves (`593d7fd:269-279`) and edits `doctor.go`,
   `doctor_test.go`, `check.go`, `check_test.go`, and `main.go`, which 6c's Task 5 also edits (its own
-  contested-surfaces row, `:1483`: "6c merges to master before 5d-i's executor launches (conductor
+  contested-surfaces row, `593d7fd:1483`: "6c merges to master before 5d-i's executor launches (conductor
   decision, revision 2.1)"). Nothing in this plan makes that rule conditional; the contested-surface
   rows below record it.
 
@@ -783,7 +784,7 @@ and content that is gone is a blocker.
    warm at `098f8e5`, is committed at `75fde16`; confirm the worktree's HEAD contains `75fde16`.
    Report the lane registry's lane 1 row.
 4. **Has 5d-i's executor launched ahead of 6c's merge?** 5d's own plan rules that 5d-i launches only
-   after 6c merges (`:10`); report the lane 1 registry row and `git log` under `internal/config`,
+   after 6c merges (`593d7fd:10`, a revision 2.1 decision); report the lane 1 registry row and `git log` under `internal/config`,
    `doctor.go`, and `check.go` in the main tree. Any 5d-i commit there before this pass's merge is a
    blocker (R-6c1).
 5. **What is the highest migration on master?** 6b-ii-b's segments at `30a66ac` added none; report
@@ -1319,13 +1320,13 @@ launches (spec `:1152-1161`).
 
 | Surface | Owner | 6c's position | Contention |
 | --- | --- | --- | --- |
-| `internal/config` (`registry.go`, `config.go`, the new `settings.go`) | rung 1b's contract | Task 2 | the 5c-iii security L2 grammar (`requireSiteName`) is committed at `75fde16`, before the cut; the rest of 5c-iv writes none (its plan `:63`, `:496`); 5d holds until 6c merges or walls it off (R-6c1) |
+| `internal/config` (`registry.go`, `config.go`, the new `settings.go`) | rung 1b's contract | Task 2 | the 5c-iii security L2 grammar (`requireSiteName`) is committed at `75fde16`, before the cut; the rest of 5c-iv writes none (its plan `:63`, `:496`); 5d-i holds until 6c merges (5d plan `593d7fd:10`; R-6c1) |
 | `internal/config/keys.go` | rung 1 | untouched | the site-name grammar may edit it; not 6c's |
 | `internal/engine/store` migrations | rung 6 | Task 1: `0004`, `0005` | a lane that lands a migration first makes 6c renumber, and the rebase is non-fast-forward |
 | `internal/engine/store/inspect.go`, `migrate.go` | rung 6 | Tasks 1, 5 | none after 6b-ii-b merges |
 | `internal/settings` (new) | rung 6 | Tasks 3, 5 | none |
 | `internal/ops/local`, `internal/backup` | rung 6 | Task 4 | none after 6b-ii-b merges |
-| `cmd/dubplate-server/doctor.go`, `check.go` | rung 1's skeleton | Task 5 | the transliteration pass adds a `doctor` row and runs in lane 2 in sequence; 5d-i's probe rows wait for 6c's merge by its own plan's rule (`:10`) |
+| `cmd/dubplate-server/doctor.go`, `check.go` | rung 1's skeleton | Task 5 | the transliteration pass adds a `doctor` row and runs in lane 2 in sequence; 5d-i's probe rows wait for 6c's merge by its own plan's rule (`593d7fd:10`, revision 2.1) |
 | `cmd/dubplate-server/store.go`, `backup.go` | rung 6 | Tasks 4, 5 | none |
 | `cmd/dubplate-server/main.go` | rung 1 | untouched (expected) | the transliteration pass adds an `AddCommand`; a textual conflict keeps both |
 | `go.mod`, `go.sum` | all | untouched | none |
@@ -1355,7 +1356,7 @@ Not tasks; no implementer performs them.
    (`internal/engine/store`, `internal/config`, `internal/settings`, `internal/ops/local`,
    `internal/backup`, `cmd/dubplate-server`), no plan in context.
 6. Record 6c's ceiling against the actual, and re-derive 6d's figure before its plan is drafted.
-7. Confirm to 5d-i that 6c has merged, so its own rule (`:10`) clears its executor to launch (R-6c1);
+7. Confirm to 5d-i that 6c has merged, so its own rule (`593d7fd:10`, revision 2.1) clears its executor to launch (R-6c1);
    5d-ii is unaffected.
 8. **Do not deploy.**
 
