@@ -513,10 +513,34 @@ const integrityCases = [
     wantRule: 'hash-mismatch',
   },
   {
-    name: 'a bad source_id',
+    name: 'a bad source_id: dash instead of colon',
     // Flip: source_id: "commons:12345".
     setup(root) {
       writePicked(root, 'bad-source-id', { source_id: 'commons-12345' });
+    },
+    wantRule: 'source-id',
+  },
+  {
+    name: 'a bad source_id: non-digit commons key',
+    // Flip: source_id: "commons:12345".
+    setup(root) {
+      writePicked(root, 'bad-source-id-commons-key', { source_id: 'commons:12345a' });
+    },
+    wantRule: 'source-id',
+  },
+  {
+    name: 'a bad source_id: non-digit flickr key',
+    // Flip: source_id: "flickr:12345".
+    setup(root) {
+      writePicked(root, 'bad-source-id-flickr-key', { source_id: 'flickr:abc', origin_id: undefined });
+    },
+    wantRule: 'source-id',
+  },
+  {
+    name: 'a bad source_id: archive with no key segment',
+    // Flip: source_id: "archive:archive.org:004278".
+    setup(root) {
+      writePicked(root, 'bad-source-id-archive-no-key', { source_id: 'archive:archive.org', origin_id: undefined });
     },
     wantRule: 'source-id',
   },
@@ -984,6 +1008,25 @@ test('integrity: two artists with different MBIDs and the same name do not colli
     source_id: 'commons:2',
     origin_id: undefined,
     artists: [{ name: 'Bob Marley', mbid: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' }],
+    place: undefined,
+  });
+  const { status, stdout } = run(['integrity', '--root', root]);
+  assert.equal(status, 0, stdout);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('integrity: a dotted archive source_id (archive.org, digitaltmuseum.se) passes', () => {
+  const root = newRoot();
+  writePicked(root, 'archive-dotted-name', {
+    source_id: 'archive:archive.org:004278',
+    origin_id: undefined,
+    artists: [],
+    place: undefined,
+  });
+  writePicked(root, 'archive-dotted-name-two', {
+    source_id: 'archive:digitaltmuseum.se:021016187835',
+    origin_id: undefined,
+    artists: [],
     place: undefined,
   });
   const { status, stdout } = run(['integrity', '--root', root]);

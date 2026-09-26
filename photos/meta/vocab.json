@@ -95,6 +95,14 @@
     "cumbia": {
       "name": "Cumbia",
       "family": "other"
+    },
+    "sonidero": {
+      "name": "Sonidero",
+      "family": "other"
+    },
+    "rebetiko": {
+      "name": "Rebetiko",
+      "family": "other"
     }
   },
   "families": {
@@ -618,6 +626,14 @@
     {
       "id": "us-1978-1989-no-notice-unregistered",
       "requires": "US publication 1978 to 1989 without notice and with no registration within five years."
+    },
+    {
+      "id": "rights-holder-dedication",
+      "requires": "The copyright holder's own dedication to the public domain, quoted in verified (a photographer's Commons {{PD-self}}, or an estate's or family's recorded dedication, such as the William P. Gottlieb collection)."
+    },
+    {
+      "id": "below-threshold-of-originality",
+      "requires": "A purely typographic work with no drawing, logo art, or photograph (Commons {{PD-text}}), limited to flyers, zine covers, and posters."
     }
   ],
   "reasons": [
@@ -628,7 +644,8 @@
     "duplicate",
     "unavailable",
     "vocab",
-    "format"
+    "format",
+    "off-topic"
   ],
   "people_flags": [
     "personality-rights",

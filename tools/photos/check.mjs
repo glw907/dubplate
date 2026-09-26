@@ -49,7 +49,9 @@ const FLOOR_MINIMUM = 2;
 const LANDMARK_FLOOR_MINIMUM = 2;
 const SURFACE_FLOORS = { error: 3, empty: 3 };
 
-const SOURCE_ID_RE = /^(commons|flickr|archive):[A-Za-z0-9_.~:@+-]{1,190}$/;
+// commons:<digits>, flickr:<digits>, or archive:<name>:<key>, with dots
+// allowed in the archive name (archive.org, digitaltmuseum.se).
+const SOURCE_ID_RE = /^(?:commons:\d+|flickr:\d+|archive:[A-Za-z0-9][A-Za-z0-9.-]*:[A-Za-z0-9_.~-]+)$/;
 // A candidate filename's <id> spells the source_id's colon as a dash.
 const CANDIDATE_ID_RE = /^(commons|flickr|archive)-[A-Za-z0-9_.~-]{1,190}$/;
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
