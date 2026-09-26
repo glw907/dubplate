@@ -1,24 +1,28 @@
 # Rung 6, Pass 6c (The Routed Schema and the Settings Home) Implementation Plan
 
-Status: **approved (Geoff, 2026-09-25), revision 2.1; rulings recorded (1 yes; 2 and 3 yes as design decisions).** Revision 1 (`8d0eed8`) went through a
+Status: **approved (Geoff, 2026-09-25), revision 2.2; rulings recorded (1 yes; 2 and 3 yes as design decisions).** Revision 1 (`8d0eed8`) went through a
 three-lens `spec-plan-review` round (contract, mechanics, and risk; the reviews are committed at
 `098f8e5` under `docs/superpowers/research/2026-09-25-rung-6c-plan-review-*.md`). Revision 2
 (`ffde470`) folds them; a fresh-context verification read (`2026-09-25-rung-6c-plan-fold-verification.md`)
-found 0 blockers, 2 majors, and 7 minors, and revision 2.1 folds those. The fold record, one
-disposition per finding for both folds, is
+found 0 blockers, 2 majors, and 7 minors, and revision 2.1 folds those. Revision 2.2 folds a
+prose-and-facts review (`docs/superpowers/research/2026-09-25-rung-6c-plan-prose-review.md`), the
+5d lane condition's staleness fix included: 5d's plan is now revision 2 (`9177429`), split into 5d-i
+and 5d-ii, and its own text (`:10`) already rules that 5d-i's executor launches only after 6c merges.
+The fold record, one disposition per finding for the earlier two folds, is
 `docs/superpowers/research/2026-09-25-rung-6c-plan-fold.md`, and it is this plan's review history.
 Rulings (see "Rulings"): Geoff ruled 1 yes; asked for the best and most idiomatic design on 2 and 3,
-the conductor took yes on both as design decisions, reasons recorded there.
+the conductor took yes on both as design decisions, reasons recorded there. This revision does not
+re-open the Rulings.
 
 **Ceiling:** 5.4M execution (flag 4.32M), planning recorded against the rung and outside it.
 **Checkpoint interval:** each segment boundary, and the close. **Segments:** A (Tasks 0 to 3), B
-(Tasks 4 and 5, the simplifier round, Task 6, the merge). **Tasks:** seven, Task 0 and the close
-included, the count the spec's band table drew (spec `:1140`).
+(Tasks 4 and 5, the simplifier round, Task 6, the merge). **Tasks:** seven (Task 0, five build tasks,
+and the close), the count the spec's band table drew (spec `:1140`).
 
 **Lane placement (Ruling 1, R-6c1): 6c can run tonight in lane 2, and it need not wait for 5d.** It
 runs in a fresh lane 2 worktree cut from master after 6b-ii-b merges, on two conditions Task 0 checks:
-no lane 1 edit under `internal/config` is uncommitted or in flight when the worktree is cut, and 5d
-does not start executing until 6c merges. "Lane condition, answered" below carries the evidence.
+no lane 1 edit under `internal/config` is uncommitted or in flight when the worktree is cut, and
+5d-i's executor does not launch until 6c merges. "Lane condition, answered" below carries the evidence.
 
 Sources, in order of authority: the ratified rung 6 spec
 (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision 2.2 with errata E1 to E11),
@@ -43,11 +47,11 @@ at `30a66ac`), a read-pool multi-row read this plan relies on (R-6c8). 6c execut
 merges, and Task 0 re-resolves every pointer against the merged master.
 
 **What this pass is.** It lands every table CH routes to rung 6 that 6a did not (spec criteria 1 to
-3), gives the config registry the four pieces of per-key metadata and the correlated-rule list CH
-asks for (criteria 4, 5, and 11), builds `internal/settings`, the accessor with cross-process
-invalidation, the closed seed-rule table, and the audit (criteria 4 to 10), re-homes 6b-i's five
+3). It gives the config registry the four pieces of per-key metadata and the correlated-rule list CH
+asks for (criteria 4, 5, and 11). It builds `internal/settings`, the accessor with cross-process
+invalidation, the closed seed-rule table, and the audit (criteria 4 to 10). It re-homes 6b-i's five
 constants as the first store-homed keys, with `backup.Job` refusing any structurally invalid value
-it is handed (criterion 13, R-6c13), and teaches `backup`, `check`, and `doctor` to evaluate the seed
+it is handed (criterion 13, R-6c13). It teaches `backup`, `check`, and `doctor` to evaluate the seed
 rule read-only (criteria 8, 12, and 14). It also carries 6b-i's routed risk R13: the migration
 runner's `SAVEPOINT` check, which turns a migration file carrying `COMMIT; BEGIN;` from silent into a
 refusal.
@@ -98,13 +102,16 @@ actuals plus the work the review fold added, and "Lane condition, answered" show
 `internal/config` alone for the rest of its plan (its one edit there, security L2, is committed on
 master at `75fde16`) while 5d cannot start before its plan is approved.
 
-What each answer builds: yes sets the flag at 4.32M, the projection itself, so any overrun raises it
-and the conductor asks one combined question before the merge-side reads; the pass runs tonight
-after 6b-ii-b merges (and after the transliteration pass, if the conductor keeps that order in lane
-2). No holds the spec-derived execution figure of 4.5M (flag 3.6M); cumulative spend with the fix
-reserve is about 3.40M after Task 5 and crosses 3.6M during the simplifier round, so the conductor
-asks after Task 5, before that round. "No" to the lane half means 6c waits for 5d's merge and runs
-after it, with Task 0 re-reading 5d's `internal/config` and `doctor.go` edits.
+What each answer builds: yes sets the flag at 4.32M; the projection itself is 4.33M, so an on-plan
+pass crosses the flag at its last architecture read, not from any overrun, and the conductor asks one
+combined question before the merge-side reads; the pass runs tonight after 6b-ii-b merges, then the
+transliteration pass, in that order (`docs/STATUS.md`, "Overnight 2026-09-25"). No holds the plan's
+own execution-only arithmetic, (0.2 + 7 × 0.46 + 0.6) × 1.1 ≈ 4.42M, rounded to 4.5M (flag 3.6M), a
+different number from the spec's own band-table flag of 4.5M for its 5.6M ceiling (`:1140`), which
+includes planning. Cumulative spend with the fix reserve is about 3.40M after Task 5 and crosses 3.6M
+during the simplifier round, so the conductor asks after Task 5, before that round. "No" to the lane
+half means 6c waits for 5d's merge and runs after it, with Task 0 re-reading 5d's `internal/config`
+and `doctor.go` edits.
 
 **2. Do `doctor` and `check` exit nonzero when the seed rule would refuse `serve`'s start?**
 The refusing outcomes are an admin row the env contradicts, a value in force after the seed that is
@@ -153,8 +160,9 @@ The spec gives 6c "lane 2 worktree if 5c and 5d leave `internal/config` untouche
 5d" (spec `:1062`, `:1173-1174`). The purpose is that two lanes never edit `internal/config`
 concurrently. The evidence, read at `5b8f05e` and re-read at `098f8e5`:
 
-- **5c's committed work never touched it.** `git log -- internal/config` shows its last commit is
-  `6e810c4` (6b-i Task 6). No 5c-i, 5c-ii, or 5c-iii commit appears.
+- **5c's committed work touches it only through the next bullet's edit.** `git log -- internal/config`
+  shows `75fde16` (the 5c-iii security fold, L2's site-name grammar) above `6e810c4` (6b-i Task 6); no
+  other 5c-i, 5c-ii, or 5c-iii commit appears.
 - **5c-iii and 5c-iv plan no edit to it.** The 5c-iii plan, which carries 5c-iv as Tasks 7 to 11,
   says "No edit to `internal/config`, `internal/auth`, `internal/identity`, `internal/engine`, or
   `cmd/dubplate-server/{check,doctor,store,backup}.go`" (`plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md:63-64`)
@@ -166,15 +174,17 @@ concurrently. The evidence, read at `5b8f05e` and re-read at `098f8e5`:
   findings": `internal/config/config.go` +42 and `config_test.go`), before this plan's `ffde470`.
   The worktree cut from master carries it, so 6c builds on it and no contested row is needed. Task 0
   blocker 3 confirms no later lane 1 edit is in flight.
-- **5d cannot run tonight.** Its plan is drafted (`af7d941`, revision 1, pre-review) for Geoff's
-  morning review (`docs/STATUS.md`, "Overnight 2026-09-25"). 5d's scope (R5S's pass table) adds the
-  forward-auth and trusted-proxy integration classes, which under the rung 1b contract register from
-  `cmd/dubplate-server`, and `doctor` probe rows in `doctor.go`, which 6c also edits. The conductor
-  therefore holds 5d's launch until 6c merges, or 5d's plan walls off `internal/config`,
-  `doctor.go`, and `check.go`; the contested-surface rows below record it.
+- **5d-i's executor waits on 6c's own merge, by rule, not by a schedule.** 5d's plan is at revision 2
+  (`9177429`, folded from `af7d941`'s revision 1), split into 5d-i (Task 0 and Tasks 1 to 6, the
+  build, in lane 1 after 5c-iv closes) and 5d-ii (Tasks 7 to 11, the review and close). 5d's own text
+  keeps `internal/config` byte-identical across both halves (`:269-278`) and edits `doctor.go`,
+  `doctor_test.go`, `check.go`, `check_test.go`, and `main.go`, which 6c's Task 5 also edits (its own
+  contested-surfaces row, `:1483`: "6c merges to master before 5d-i's executor launches (conductor
+  decision, revision 2.1)"). Nothing in this plan makes that rule conditional; the contested-surface
+  rows below record it.
 
-So 6c runs before 5d under those two conditions, and the spec's "otherwise after 5d" branch applies
-only if a lane 1 edit under `internal/config` is in flight at launch.
+So 6c runs before 5d-i under the one rule above, and the spec's "otherwise after 5d" branch never
+applies while that rule holds.
 
 ---
 
@@ -184,8 +194,9 @@ only if a lane 1 edit under `internal/config` is in flight at launch.
 with Task 0 at about 0.08M and the simplifier round at about 0.16M, over ten build tasks (1S, 1T,
 1A, 1B, 2 to 7) and six fix rounds, so (5.40 − 0.08 − 0.16) / 10 ≈ **0.52M per task**, fix rounds
 included; its merge ritual 0.08M and three architecture reads 0.24M, so **0.08M per read**. 6b-ii-a:
-about 1.95M in all for Task 0 and three tasks, with its plan pricing the close at 0.99M, so
-(1.95 − 0.99 − 0.11) / 3 ≈ **0.28M per task** with one fix round. 6c has no data-destructive path
+about 1.95M measured in all for Task 0 and three tasks (HISTORY's "Both budgets": the actual includes
+reads shared with the matcher pass), against its plan's priced Task 0 (0.11M) and priced close
+(0.99M), so (1.95 − 0.99 − 0.11) / 3 ≈ **0.28M per task** with one fix round. 6c has no data-destructive path
 of its own beyond Task 4's backup inputs and no security surface, so it prices a `sonnet` task at
 0.45M to 0.60M and an `opus` task at 0.55M to 0.70M, with fix rounds reserved separately.
 
@@ -257,7 +268,7 @@ four each (16); Task 4 carries three, Task 6 two. No task passes four.
   (`internal/engine/store/conn.go:187` on master); new code matches no raw SQLite result code outside
   the store's classifiers.
 - **Nothing is exported ahead of a cross-package caller.** At the close every new export has a
-  production caller outside its own package, with exactly the exceptions exit gate 13 names: the
+  production caller outside its own package, with the exceptions exit gate 13 names: the
   registry's correlated-rule entry point (the spec assigns it to 6c; its first production rule is 6d's
   nonce-retention rule), the `Sensitive` field's `true` value (6d declares the first sensitive keys),
   and the apply-mode type's "immediately" and "restart" values (every 6c key is "next operation";
@@ -361,7 +372,7 @@ minor 1).
   generated `lib/sqlite.go` (`:3214-3224`).
 - **Read in the tree.** 6a already declares `collections.visibility TEXT NOT NULL CHECK (visibility IN
   ('group', 'private'))` (`internal/engine/store/migrations/0003_catalog.sql`), so criterion 2 is a
-  proof over an existing constraint, not a new column. Invariant 5 (`checkAttributeBags`,
+  proof over an existing constraint. Invariant 5 (`checkAttributeBags`,
   `invariant_test.go`) refuses any table that pairs a foreign key with a `name`, `key`, or `attr`
   column and a `value` column, so a per-member key-value table cannot pass the gate.
 - **Not quoted, so declared rather than relied on.** Whether a `STRICT` table's non-integer
@@ -411,8 +422,8 @@ home field. `Setting` does not embed `Threshold`, and no method or field yields 
 family: a key registered as a threshold stays on the wall and reads from the env exactly as today
 (criterion 11's first half), and a key registered as a setting is store-homed.
 
-What the compiler guarantees is exactly this: no `Parse*` function (`internal/config/thresholds.go:84`
-onward) and no other function accepts a `Setting`. It cannot stop a hand-built `Threshold` literal
+The compiler guarantees only that no `Parse*` function (`internal/config/thresholds.go:84` onward),
+and no other function, accepts a `Setting`. It cannot stop a hand-built `Threshold` literal
 carrying a store-homed key's name, because `Parse*` accepts an unregistered `Threshold` (mechanics
 review, minor 3). Exit gate 11 covers that residue: a `git grep` of each store-homed key's literal
 shows it only in its `Setting` declaration and tests. The spec's "the compiler forbids a consumer
@@ -438,7 +449,8 @@ entry wins; empty equals unset), on `doctor.go`'s `lookupEnviron` precedent.
 ### R-6c3: the metadata lives on settings only
 
 Apply mode (immediately, next operation, restart), the sensitive marker, and the bounds land on
-`Setting` alone. The fifteen wall thresholds keep their shape: their bounds stay in the sources'
+`Setting` alone. The twenty wall thresholds (auth 10, serve 3, shadow 2, web 4, store's busy timeout
+1) keep their shape: their bounds stay in the sources'
 `Validate` hooks until 6d moves the auth keys, and the serve and shadow keys stay on the wall at
 restart (spec `:791-795`). Hook 18 (a description and a sensitive mark on every registered key) is
 rung 14's and is not built here. Recorded with R-6c2's reading as D9.
@@ -460,7 +472,7 @@ gate 13's named exception.
 
 Site: `internal/config/config.go`. `rejectNamespace` (`config.go:243` at `5b8f05e`) classifies a set
 store-homed key as declared, beside its threshold branch, so setting one is not "unknown
-configuration key." `Load` does not parse a store-homed key's env value, exactly as it does not parse
+configuration key." `Load` does not parse a store-homed key's env value, as it does not parse
 a threshold today: "A registered threshold is a declared name whose own Parse* call resolves and
 validates it at the point of use" (`rejectNamespace`'s threshold branch). A setting's point of use is
 the seed rule, so an unparseable env value is a refusing outcome of the evaluation: `serve` refuses
@@ -478,7 +490,8 @@ Task 0 (today `0003_catalog.sql`, so `0004` and `0005`). Table names are working
 
 - **The settings home** (`0004`): `settings`, keyed by `key` (TEXT primary key, `NOT NULL`), with the
   value (TEXT), the source (`CHECK (source IN ('env-seed', 'admin'))`, since a `default` source
-  stores no row), the seed value, the actor, and `updated_at`; `settings_audit` with an opaque `id`,
+  stores no row), the seed value, the actor (TEXT, no foreign key: invariant 5 refuses a table that
+  pairs a foreign key with a key and value column), and `updated_at`; `settings_audit` with an opaque `id`,
   `at` and `kind` both `NOT NULL`, the actor, the channel, the key, and the old and new values
   (either nullable, for a seed from nothing and a removal); and `settings_generation`, one row, whose
   primary key is a column not named `id` or `*_id` with `CHECK` pinning it to one value, holding an
@@ -572,7 +585,7 @@ read.
 A consumer reads a setting before it enters `Handle.Update`, not inside the callback. The spec's
 rule that "every read a write decides on runs inside the callback" (`:355`) governs rows the write
 changes. A setting read a moment before the write is the value in force for that operation, which is
-exactly the apply mode "next operation" the five keys declare (R-6c11). A "restart"-mode key served
+the apply mode "next operation" the five keys declare (R-6c11). A "restart"-mode key served
 through a reloading accessor would apply live; no 6c key uses that mode, and Task 6 hands the rule to
 6d.
 
@@ -644,8 +657,9 @@ is irreversible. The only new default is the local keep's, which R-6bi8 never se
 | `DUBPLATE_BACKUP_ARCHIVE_RETENTION` | duration | `2160h` | yes: 168h to 87600h; no: 24h to 87600h | next operation | each run's prune (replacing `archiveRetention`) |
 | `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP` | int | `3` | 1 to 100 (`ServeOptions.Keep` "must be at least 1," `open.go:92-94`) | next operation (the next migration) | `doctor`'s row, through the facts entry point; 6d's `serve` passes it as `ServeOptions.Keep` |
 
-6b-i's R-6bi8 said 6d declares `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP` "and 6c re-homes it after,"
-written when 6c was expected after 6d. 6c now runs first, so 6c declares it as a store-homed key
+The 6b-i plan's R-6bi8 section (`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md:178-180`)
+said 6d declares `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP` "and 6c re-homes it after," written when 6c was
+expected after 6d. 6c now runs first, so 6c declares it as a store-homed key
 whose first production reader is `doctor`, which answers R-6bi8's `unused` concern; 6d wires it into
 `serve`. Its default of 3 is a working value: a rollback needs the newest copy, and two older copies
 cover a bad upgrade found a release late, each a full store whose size `doctor` already shows; Task
@@ -678,16 +692,18 @@ migration is the reviewer's to catch.
 
 Site: `internal/backup`. Once the three constants become `backup.Job` fields, a field left at its
 zero value would silently change the run: a guard fraction of 0 turns the short-tree guard off
-(`float64(files) < 0*float64(tracks)` is never true, `guard.go:86`); an archive retention of 0 purges
-every archive directory but the run's own (`own.Sub(stamp) <= 0`, `prune.go:154`); a keep of 0 makes
-`othersKeep` −1 and panics at `others[othersKeep:]` (`prune.go:123`). So `Job.Run` validates the
+(substituting 0 for `guardFraction` in `float64(files) < guardFraction*float64(tracks)`,
+`guard.go:86` at `30a66ac`, is never true); an archive retention of 0 purges every archive directory
+but the run's own (substituting 0 for `archiveRetention` in `own.Sub(stamp) <= archiveRetention`,
+`prune.go:154` at `30a66ac`, is always true); a keep of 0 makes `othersKeep` −1 and panics at
+`others[othersKeep:]` (`prune.go:123` at `30a66ac`). So `Job.Run` validates the
 three fields **before any rclone launch**, the `LookPath` included, and fails with a named failure
 code (working name `job-invalid`) naming the field: keep at least 1, fraction in (0, 1] and not NaN,
 archive retention above 0. `internal/backup` never supplies a default: a second copy of the registry
-default on the data-loss path is exactly what the registry exists to prevent. This check is the
+default on the data-loss path is what the registry exists to prevent. This check is the
 code's own invariant; the policy bounds are the registry's (R-6c11, Ruling 3). The guard's refusal
-text names the fraction in use instead of "fewer than half" (`guard.go:87`, asserted at
-`job_test.go:547`).
+text names the fraction in use instead of "fewer than half" (`guard.go:87` at `30a66ac`, asserted at
+`job_test.go:547` at `30a66ac`).
 
 ---
 
@@ -699,7 +715,7 @@ text names the fraction in use instead of "fewer than half" (`guard.go:87`, asse
 | D2 | `:495-496`, `member_overrides` and `member_preferences` | the columns are CH's named four and `collapse_duplicates`; other preferences arrive with their consumers | R-6c6 |
 | D3 | `:743-745`, "`check` included" | on Ruling 2's yes, `doctor` and `check` fail on a refusing outcome; a disagreement still fails nothing | Ruling 2 |
 | D4 | `:1062`, `:1173-1174`, the lane condition | read as "no concurrent edit to `internal/config`," satisfied by sequencing | R-6c1 |
-| D5 | 6b-i plan R-6bi8 | 6c declares `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP`, read at 6c by `doctor` through the facts entry point; 6d wires it into `serve` | R-6c9, R-6c11 |
+| D5 | 6b-i plan `:178-180` (R-6bi8) | 6c declares `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP`, read at 6c by `doctor` through the facts entry point; 6d wires it into `serve` | R-6c9, R-6c11 |
 | D6 | criterion 5's "the correlated retention rule" | proved with a test pair shaped as the rule; the real rule moves at 6d, which re-runs criterion 5 over the real pair | R-6c4 |
 | D7 | `:763`, "any \| unparseable \| a wall error, as today" | `Load` classifies a store-homed key without parsing it; an unparseable env or stored value is a refusing outcome of the seed evaluation, raised where the value is used | R-6c5 |
 | D8 | `:761`, "any \| stored value outside the binary's bounds" | the bound applies to the value in force after the seed; an out-of-bounds `env-seed` row the env re-seeds or removes is healed and audited | R-6c7 |
@@ -742,7 +758,7 @@ the invariant test; read each new column's meaning."
 ## Task 0: The staleness pre-task
 
 Model: `opus`, fresh context, dispatched by the conductor after the worktree is cut. **Its output is
-blockers with evidence, not fixes.** It writes no code and edits no file. It grades a moved pointer
+blockers with evidence.** It writes no code and edits no file. It grades a moved pointer
 by content: content that survives at any offset or under a new name is a note naming the new site,
 and content that is gone is a blocker.
 
@@ -766,8 +782,9 @@ and content that is gone is a blocker.
    edit under `internal/config` in the main tree is a blocker (R-6c1). L2's `requireSiteName` edit,
    warm at `098f8e5`, is committed at `75fde16`; confirm the worktree's HEAD contains `75fde16`.
    Report the lane registry's lane 1 row.
-4. **Has 5d started?** If a 5d plan is approved and its lane is open, report whether its plan walls
-   off `internal/config`, `doctor.go`, and `check.go`; a 5d executor writing any of them is a
+4. **Has 5d-i's executor launched ahead of 6c's merge?** 5d's own plan rules that 5d-i launches only
+   after 6c merges (`:10`); report the lane 1 registry row and `git log` under `internal/config`,
+   `doctor.go`, and `check.go` in the main tree. Any 5d-i commit there before this pass's merge is a
    blocker (R-6c1).
 5. **What is the highest migration on master?** 6b-ii-b's segments at `30a66ac` added none; report
    `ls internal/engine/store/migrations/` so Task 1 numbers from it.
@@ -810,7 +827,7 @@ a serve event, so neutral.
 
 **Outcomes:**
 
-- **The two migrations**, exactly R-6c6's contents, each with its populated fixture.
+- **The two migrations**, R-6c6's contents, each with its populated fixture.
 - **The exempt list** as R-6c6 and D1 state, with a comment naming each entry's class (keyed or
   singleton).
 - **The savepoint** (R-6c12), under its unique name, with `commitMigration`'s branch kept and its
@@ -831,7 +848,8 @@ a serve event, so neutral.
 | `collections` insert | `group`, `private` | accepted, each |
 | `settings_audit`, `move_intents` insert | `at` NULL, `kind` NULL | refused, extended code 1299, each of the four |
 | `settings` insert | source `default` | refused, extended code 275 |
-| `settings_generation` insert | a second row | refused, extended code 275 |
+| `settings_generation` insert | a second row, a key other than the pinned value | refused, extended code 275 |
+| `settings_generation` insert | a second row repeating the pinned value | refused, extended code 1555, `SQLITE_CONSTRAINT_PRIMARYKEY` (driver `lib/sqlite.go:3228`, confirmed in the module cache) |
 | Migration apply | a synthetic file with `COMMIT; BEGIN;` | refused naming the file and the `RELEASE` failure; no ledger row for it; `user_version` unchanged |
 | Migration apply | a synthetic file ending `COMMIT;`, and one ending `ROLLBACK;` | refused naming the file, each (asserted on the file name and the `RELEASE` failure, since the rollback may join a second error) |
 | Migration apply | a synthetic file ending `COMMIT; SAVEPOINT <the runner's name>;` | refused by `commitMigration`'s branch, naming the file (detection only: the version write and the ledger insert autocommit outside the runner before `Commit` fails, so `user_version` is advanced and the file's ledger row is present, per the mechanics probe) |
@@ -1091,7 +1109,7 @@ Model: `sonnet`. Depends on Task 3. **Neutral** (hook 10's backup is a consumer,
     - retention (`ops/local`): `48h`, and a finished job record aged 72h, which the prune deletes;
     - remote keep (`internal/backup`): `3`, over five prior snapshots plus the run's own in the
       stand-in; three survive, the run's own and the two newest prior (keep counts in total, the
-      run's own included, `prune.go:18-20`);
+      run's own included, `prune.go:18-20` at `30a66ac`);
     - archive retention (`internal/backup`): `168h`, and an archive directory 200h past its move,
       which the prune purges.
   - **End to end in `cmd`:** the guard's admin half below, and the retention prune (a stored `48h`
@@ -1307,7 +1325,7 @@ launches (spec `:1152-1161`).
 | `internal/engine/store/inspect.go`, `migrate.go` | rung 6 | Tasks 1, 5 | none after 6b-ii-b merges |
 | `internal/settings` (new) | rung 6 | Tasks 3, 5 | none |
 | `internal/ops/local`, `internal/backup` | rung 6 | Task 4 | none after 6b-ii-b merges |
-| `cmd/dubplate-server/doctor.go`, `check.go` | rung 1's skeleton | Task 5 | the transliteration pass adds a `doctor` row and runs in lane 2 in sequence; 5d's probe rows wait for 6c's merge |
+| `cmd/dubplate-server/doctor.go`, `check.go` | rung 1's skeleton | Task 5 | the transliteration pass adds a `doctor` row and runs in lane 2 in sequence; 5d-i's probe rows wait for 6c's merge by its own plan's rule (`:10`) |
 | `cmd/dubplate-server/store.go`, `backup.go` | rung 6 | Tasks 4, 5 | none |
 | `cmd/dubplate-server/main.go` | rung 1 | untouched (expected) | the transliteration pass adds an `AddCommand`; a textual conflict keeps both |
 | `go.mod`, `go.sum` | all | untouched | none |
@@ -1337,7 +1355,8 @@ Not tasks; no implementer performs them.
    (`internal/engine/store`, `internal/config`, `internal/settings`, `internal/ops/local`,
    `internal/backup`, `cmd/dubplate-server`), no plan in context.
 6. Record 6c's ceiling against the actual, and re-derive 6d's figure before its plan is drafted.
-7. Release the hold on 5d's launch (R-6c1).
+7. Confirm to 5d-i that 6c has merged, so its own rule (`:10`) clears its executor to launch (R-6c1);
+   5d-ii is unaffected.
 8. **Do not deploy.**
 
 ---
@@ -1414,8 +1433,6 @@ required. Of CLAUDE.md's list, the entries with a 6c surface are the driver, goo
 
 ## Not verified in this revision
 
-- 5d's plan: whether it walls off `internal/config`, `doctor.go`, and `check.go`. Task 0 blocker 4;
-  the conductor holds 5d's launch otherwise.
 - 6b-ii-b's final shape of `internal/backup`, `Handle.Query`'s merge, and its handoff "to 6c." Task
   0 blockers 2 and 7 and item 8.
 - The defaults: 6b-i's values are carried unchanged; the local keep's 3 is a working value Task 4
