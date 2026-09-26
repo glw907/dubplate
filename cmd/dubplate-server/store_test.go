@@ -83,6 +83,12 @@ func TestStoreRowStatus(t *testing.T) {
 			wantFailed: false,
 		},
 		{
+			name:       "an unrecognized state is refused",
+			report:     store.Report{State: store.State(99)},
+			wantStatus: "refused: unrecognized store state 99",
+			wantFailed: true,
+		},
+		{
 			name:       "a FUSE warning appends to the status without changing failed",
 			report:     store.Report{State: store.StateCurrent, StoreVersion: 3, Warning: "/state is on FUSE (type 0x65735546), which may span hosts"},
 			wantStatus: "current (v3); /state is on FUSE (type 0x65735546), which may span hosts",
@@ -883,6 +889,15 @@ func TestSettingsDoctorRows(t *testing.T) {
 			},
 		},
 		{
+			name:    "an unrecognized state: not checked",
+			checked: true,
+			report:  store.Report{State: store.State(99), Facts: &store.Facts{}},
+			want: []backupFactRow{
+				{key, `"10" (source default, next operation); store not checked (unknown)`},
+				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (unknown)"},
+			},
+		},
+		{
 			name:    "storeRow never ran Inspect: not checked",
 			checked: false,
 			want: []backupFactRow{
@@ -899,6 +914,34 @@ func TestSettingsDoctorRows(t *testing.T) {
 			}
 			if failed != tt.wantFailed {
 				t.Errorf("failed = %v, want %v", failed, tt.wantFailed)
+			}
+		})
+	}
+}
+
+// TestStoreRowsAgreeOnVouch pins that the store row and the settings
+// rows read one verdict per store state: the store row fails exactly
+// the states whose settings rows read "not checked", an unrecognized
+// state among them. Every report carries facts, so a state the
+// settings rows wrongly vouched for would evaluate them instead.
+func TestStoreRowsAgreeOnVouch(t *testing.T) {
+	states := []store.State{
+		store.StateAbsent, store.StateRestoreInProgress, store.StateBusy, store.StateNotAStore,
+		store.StateRefused, store.StateOlder, store.StateNewer, store.StateCurrent, store.State(99),
+	}
+	for _, state := range states {
+		t.Run(state.String(), func(t *testing.T) {
+			report := store.Report{State: state, Facts: &store.Facts{}}
+			_, storeFailed := storeRowStatus(report)
+			rows, _ := settingsDoctorRows(nil, settingsDoctorRowsRegistry(), report, true)
+			if len(rows) == 0 {
+				t.Fatal("settingsDoctorRows rendered no rows")
+			}
+			for _, row := range rows {
+				notChecked := strings.Contains(row.status, "store not checked")
+				if notChecked != storeFailed {
+					t.Errorf("state %d: store row failed = %v, but %s row = %q", state, storeFailed, row.key, row.status)
+				}
 			}
 		})
 	}

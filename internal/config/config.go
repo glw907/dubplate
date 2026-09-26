@@ -63,6 +63,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"net/mail"
 	"slices"
 	"strconv"
@@ -277,11 +278,12 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 // owns: a reserved name errors naming its class and rung, a superseded
 // name errors naming its replacement, and anything else errors as
 // unknown. Owned rows are validated by their own require calls, not
-// here, so a valid owned value is never flagged.
+// here, so a valid owned value is never flagged. Names are walked in
+// sorted order so the joined refusal reads the same on every run.
 //
 // ruled, conductor 2026-09-07, R1
 func (w *wall) rejectNamespace(reg *Registry) {
-	for name := range w.env {
+	for _, name := range slices.Sorted(maps.Keys(w.env)) {
 		if !strings.HasPrefix(name, "DUBPLATE_") || ownedNow(reg, name) {
 			continue
 		}
@@ -297,7 +299,10 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			if name == class.Flag {
 				continue
 			}
-			if enabled, err := w.integrationEnabled(class); err != nil || !enabled {
+			// An unparseable flag is set, and Load reports it on its
+			// own; only a flag that resolves false leaves the key set
+			// without it.
+			if enabled, err := w.integrationEnabled(class); err == nil && !enabled {
 				w.errs = append(w.errs, fmt.Errorf("%s: set without %s, the %s integration's enable flag", name, class.Flag, class.Name))
 			}
 			continue

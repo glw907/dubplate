@@ -41,7 +41,11 @@ var errReadOnly = errors.New("store read-only")
 
 // A Handle is an open store: the write pool's one connection, the read
 // pool, and the store lock its mode's open holds until [Handle.Close].
-// It is safe for concurrent use by multiple goroutines.
+// [OpenWrite] and [OpenServe] return a handle that holds the store
+// lock. [RestoreSession.OpenRead] returns one that holds none, since the
+// session's own lock covers it, and such a handle refuses
+// [Handle.TakeKindLease]. It is safe for concurrent use by multiple
+// goroutines.
 type Handle struct {
 	write *sql.DB
 	read  *sql.DB

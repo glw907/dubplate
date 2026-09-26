@@ -151,24 +151,24 @@ func storeRow(ctx context.Context, environ []string) (status string, failed bool
 }
 
 // storeRowStatus renders r as the "store" row's status text, and
-// reports whether r's state exits nonzero: absent,
-// older, and current do not; every other state does.
+// reports whether r's state exits nonzero: every state [storeVouches]
+// cannot vouch for does.
 func storeRowStatus(r store.Report) (status string, failed bool) {
 	switch r.State {
 	case store.StateAbsent:
 		status = "absent"
 	case store.StateRestoreInProgress:
-		status, failed = "restore in progress: "+r.Reason, true
+		status = "restore in progress: " + r.Reason
 	case store.StateBusy:
-		status, failed = "busy: "+storeHolders(r.Holders), true
+		status = "busy: " + storeHolders(r.Holders)
 	case store.StateNotAStore:
-		status, failed = "not a store: "+r.Reason, true
+		status = "not a store: " + r.Reason
 	case store.StateRefused:
-		status, failed = "refused: "+r.Reason, true
+		status = "refused: " + r.Reason
 	case store.StateOlder:
 		status = fmt.Sprintf("older (v%d, binary v%d): pending %s", r.StoreVersion, r.BinaryVersion, strings.Join(r.Pending, ", "))
 	case store.StateNewer:
-		status, failed = fmt.Sprintf("newer (v%d, binary v%d)", r.StoreVersion, r.BinaryVersion), true
+		status = fmt.Sprintf("newer (v%d, binary v%d)", r.StoreVersion, r.BinaryVersion)
 	case store.StateCurrent:
 		status = fmt.Sprintf("current (v%d)", r.StoreVersion)
 	default:
@@ -176,12 +176,24 @@ func storeRowStatus(r store.Report) (status string, failed bool) {
 		// arm reports an unrecognized value rather than silently
 		// printing an empty status, the same defensive shape
 		// thresholdStatus's own default arm takes.
-		status, failed = fmt.Sprintf("refused: unrecognized store state %d", r.State), true
+		status = fmt.Sprintf("refused: unrecognized store state %d", r.State)
 	}
 	if r.Warning != "" {
 		status += "; " + r.Warning
 	}
-	return status, failed
+	return status, !storeVouches(r.State)
+}
+
+// storeVouches reports whether doctor vouches for a store in state s:
+// absent, older, and current it does; every other state, an
+// unrecognized one included, fails the store row and leaves every
+// setting row "not checked".
+func storeVouches(s store.State) bool {
+	switch s {
+	case store.StateAbsent, store.StateOlder, store.StateCurrent:
+		return true
+	}
+	return false
 }
 
 // storeHolders renders a busy store's holder pids, or "held by
@@ -202,8 +214,7 @@ type backupFactRow struct {
 
 // settingsDoctorRows renders doctor's one row per registered setting,
 // in declaration order, and one row per orphan. Its disposition
-// follows the store's own state: a state this binary
-// cannot vouch for (busy, mid-restore, not a store, refused, or newer)
+// follows the store's own state: a state [storeVouches] refuses
 // reports every setting "not checked", never calling into
 // internal/settings; a state whose facts mark the settings table
 // absent, or whose facts this binary never read at all (an absent
@@ -215,8 +226,7 @@ type backupFactRow struct {
 func settingsDoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool) (rows []backupFactRow, failed bool) {
 	list := reg.Settings()
 	switch {
-	case !checked || report.State == store.StateRestoreInProgress || report.State == store.StateBusy ||
-		report.State == store.StateNotAStore || report.State == store.StateRefused || report.State == store.StateNewer:
+	case !checked || !storeVouches(report.State):
 		for _, s := range list {
 			rows = append(rows, backupFactRow{s.Key, settingsNotCheckedStatus(environ, s, report.State, checked)})
 		}

@@ -81,9 +81,12 @@ type Runner struct {
 	// body of its own choosing without those reads.
 	bindBackup binder
 
-	mu   sync.Mutex
-	jobs map[ops.Handle]*job
-	wg   sync.WaitGroup
+	// mu guards jobs and closed. Every wg.Add happens under mu while
+	// closed is false, so none can race Close's Wait at zero.
+	mu     sync.Mutex
+	jobs   map[ops.Handle]*job
+	closed bool
+	wg     sync.WaitGroup
 }
 
 var _ ops.Seam = (*Runner)(nil)
@@ -114,10 +117,14 @@ func New(ctx context.Context, cfg Config) (*Runner, error) {
 	return r, nil
 }
 
-// Close waits for every job this runner started to end, its terminal
-// write included, then releases the instance lease. It cancels no job:
-// a caller that wants its jobs to stop cancels them first.
+// Close refuses every later start, waits for every job this runner
+// started to end, its terminal write included, then releases the
+// instance lease. It cancels no job: a caller that wants its jobs to
+// stop cancels them first.
 func (r *Runner) Close() error {
+	r.mu.Lock()
+	r.closed = true
+	r.mu.Unlock()
 	r.wg.Wait()
 	if err := r.lease.Release(); err != nil {
 		return fmt.Errorf("close job runner: %w", err)
@@ -208,7 +215,10 @@ func (r *Runner) backupBind(ctx context.Context) (binder, error) {
 // goroutine that releases the lease when it ends. The retention read
 // happens before insert, fresh on every start rather than once at
 // [New], since a stored value applies at the next operation that reads
-// it.
+// it. The job is tracked before its record exists, so recovery never
+// finds the record live here without a job running it, and a start
+// after [Runner.Close] has begun answers unavailable and writes
+// nothing.
 func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind binder) (ops.Handle, error) {
 	retention, err := r.retention(ctx)
 	if err != nil {
@@ -224,27 +234,59 @@ func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind b
 	if err := r.recoverJobs(ctx); err != nil {
 		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
-	j, err := r.insert(ctx, actor, kind, retention, nil)
-	if err != nil {
+	j := newJob(ctx, nil)
+	j.body = bind(kl, j.handle)
+	if err := r.track(j); err != nil {
+		j.cancel()
+		return "", errors.Join(err, kl.Release())
+	}
+	if err := r.insert(ctx, actor, kind, retention, j); err != nil {
+		j.cancel()
+		r.untrack(j)
+		r.wg.Done()
 		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
-	j.body = bind(kl, j.handle)
 
-	r.mu.Lock()
-	r.jobs[j.handle] = j
-	r.mu.Unlock()
-	r.wg.Go(func() {
+	go func() {
+		defer r.wg.Done()
 		defer func() {
-			r.mu.Lock()
-			delete(r.jobs, j.handle)
-			r.mu.Unlock()
+			r.untrack(j)
 			if err := kl.Release(); err != nil {
 				r.logger.Error("release kind lease", "job", j.handle, "err", err)
 			}
 		}()
 		r.run(j)
-	})
+	}()
 	return j.handle, nil
+}
+
+// track records j as running under this runner and counts it in
+// Close's wait, which the caller ends with r.wg.Done once j's kind
+// lease is released. It answers unavailable once Close has begun.
+func (r *Runner) track(j *job) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.closed {
+		return ops.NewUnavailableError("job runner closed")
+	}
+	r.jobs[j.handle] = j
+	r.wg.Add(1)
+	return nil
+}
+
+// untrack forgets j once it has made its last write.
+func (r *Runner) untrack(j *job) {
+	r.mu.Lock()
+	delete(r.jobs, j.handle)
+	r.mu.Unlock()
+}
+
+// tracked reports whether a job of this runner's still runs h.
+func (r *Runner) tracked(h ops.Handle) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	_, ok := r.jobs[h]
+	return ok
 }
 
 // conflict answers a start whose kind lease is busy. It recovers first,

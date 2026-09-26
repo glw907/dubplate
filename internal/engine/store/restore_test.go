@@ -1280,3 +1280,31 @@ func TestRestoreSession_BackupRemote(t *testing.T) {
 		})
 	}
 }
+
+// TestRestoreSession_OpenReadRefusesKindLease: a restore's read handle
+// carries no store lock of its own, so it refuses a kind lease rather
+// than hand out one whose DupFiles would have no store lock to
+// duplicate.
+func TestRestoreSession_OpenReadRefusesKindLease(t *testing.T) {
+	stateDir := t.TempDir()
+	buildStore(t, stateDir, binaryHead)
+	s := openSession(t, stateDir, false)
+	h, err := s.OpenRead(deadline(t, 10*time.Second))
+	if err != nil {
+		t.Fatalf("OpenRead: %v", err)
+	}
+	t.Cleanup(func() { _ = h.Close() })
+
+	kl, err := h.TakeKindLease("backup")
+	if err == nil {
+		files, dupErr := kl.DupFiles()
+		for _, f := range files {
+			_ = f.Close()
+		}
+		_ = kl.Release()
+		t.Fatalf("TakeKindLease on a lockless handle = a lease (DupFiles: %v), want errNoStoreLock", dupErr)
+	}
+	if !errors.Is(err, errNoStoreLock) {
+		t.Errorf("TakeKindLease on a lockless handle = %v, want errNoStoreLock", err)
+	}
+}

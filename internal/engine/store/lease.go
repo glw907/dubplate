@@ -17,6 +17,11 @@ import (
 // same kind with a conflict rather than a failure.
 var ErrLeaseBusy = errors.New("lease busy")
 
+// errNoStoreLock is wrapped by the error [Handle.TakeKindLease] returns
+// on a handle that holds no store lock: a kind lease there would have
+// no store lock for [KindLease.DupFiles] to hand a child.
+var errNoStoreLock = errors.New("handle holds no store lock")
+
 // kindLeasePrefix frames a kind lease's file name in leases/.
 const kindLeasePrefix = "kind-"
 
@@ -176,10 +181,15 @@ type KindLease struct {
 // /proc/locks records as having acquired it, or "held by another
 // process" when it names none. An acquirer's pid is not proof of a
 // live holder: a child that inherited the lock holds it after the
-// acquirer exits, and on some filesystems /proc/locks names no one.
+// acquirer exits, and on some filesystems /proc/locks names no one. A
+// handle that holds no store lock, such as [RestoreSession.OpenRead]'s,
+// refuses before it touches leases/.
 func (h *Handle) TakeKindLease(kind string) (*KindLease, error) {
 	if !validKind(kind) {
 		return nil, fmt.Errorf("take kind lease: kind %q is not lowercase ASCII letters, digits, and hyphens", kind)
+	}
+	if h.lock == nil {
+		return nil, fmt.Errorf("take kind lease %s: %w", kind, errNoStoreLock)
 	}
 	path := filepath.Join(h.leaf.leasesDir, kindLeasePrefix+kind)
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, lockFilePerm)

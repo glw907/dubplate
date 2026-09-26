@@ -406,3 +406,26 @@ func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
 		t.Errorf("CancelJob() took %v to answer, want well under the %v busy timeout", elapsed, testBusy)
 	}
 }
+
+// TestStartBackup_AfterCloseRefused pins that a start after Close is
+// refused as unavailable and writes no record: Close has released the
+// instance lease, so a record inserted then would have no live owner
+// and another process's recovery would interrupt a running job.
+func TestStartBackup_AfterCloseRefused(t *testing.T) {
+	_, h := newStore(t)
+	r, err := newRunner(context.Background(), Config{Store: h, Backup: BackupConfig{Enabled: true}, Logger: slog.New(slog.DiscardHandler)}, succeed)
+	if err != nil {
+		t.Fatalf("newRunner: %v", err)
+	}
+	if err := r.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	r.wg.Wait()
+	if !errors.Is(err, ops.ErrUnavailable) {
+		t.Errorf("StartBackup after Close = %+v, %v; want an error matching ops.ErrUnavailable", resp, err)
+	}
+	if n := countRecords(t, h); n != 0 {
+		t.Errorf("StartBackup after Close left %d records, want 0", n)
+	}
+}

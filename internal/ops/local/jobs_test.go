@@ -22,11 +22,11 @@ func TestRun_CancelFirst(t *testing.T) {
 	logs := &syncBuffer{}
 	r := newRunnerFor(t, h, logs, nil)
 	ran := false
-	j, err := r.insert(deadline(t), testActor, ops.KindBackup, defaultJobRetention, func(context.Context, func(string) error) (string, error) {
+	j := newJob(context.Background(), func(context.Context, func(string) error) (string, error) {
 		ran = true
 		return "", nil
 	})
-	if err != nil {
+	if err := r.insert(deadline(t), testActor, ops.KindBackup, defaultJobRetention, j); err != nil {
 		t.Fatalf("insert: %v", err)
 	}
 	resp, err := r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: j.handle})

@@ -924,3 +924,53 @@ func TestLoad_SiteNameGrammar(t *testing.T) {
 		})
 	}
 }
+
+// TestLoad_UnparseableFlagIsNotSetWithout proves a class key set beside
+// a flag that is present but unparseable is not reported as set without
+// the flag: the flag is set, and its own invalid-value error is the one
+// report the operator needs.
+func TestLoad_UnparseableFlagIsNotSetWithout(t *testing.T) {
+	environ := append(slices.Clone(baseEnviron()),
+		"DUBPLATE_FIXTURE_ENABLED=maybe",
+		"DUBPLATE_FIXTURE_REQUIRED_A=a-value",
+		"DUBPLATE_FIXTURE_OPTIONAL=x",
+	)
+	_, err := Load(environ, fixtureRegistry())
+	if err == nil {
+		t.Fatal("Load returned nil; want the flag's invalid-value error")
+	}
+	const want = `DUBPLATE_FIXTURE_ENABLED: invalid value "maybe", want a boolean`
+	if err.Error() != want {
+		t.Errorf("Load error = %q, want exactly %q", err, want)
+	}
+}
+
+// TestLoad_RefusalOrderIsSorted proves the namespace errors in Load's
+// joined refusal are listed in sorted key order on every run, whatever
+// order the environment and Go's map iteration present them in. Twenty
+// runs over five keys would all agree by chance with probability far
+// below one in a million under randomized map order.
+func TestLoad_RefusalOrderIsSorted(t *testing.T) {
+	environ := append(slices.Clone(baseEnviron()),
+		"DUBPLATE_ZULU=1",
+		"DUBPLATE_FIXTURE_REQUIRED_B=b",
+		"DUBPLATE_ALPHA=1",
+		"DUBPLATE_MIKE=1",
+		"DUBPLATE_BRAVO=1",
+	)
+	const want = "DUBPLATE_ALPHA: unknown configuration key\n" +
+		"DUBPLATE_BRAVO: unknown configuration key\n" +
+		"DUBPLATE_FIXTURE_REQUIRED_B: set without DUBPLATE_FIXTURE_ENABLED, the fixture integration's enable flag\n" +
+		"DUBPLATE_MIKE: unknown configuration key\n" +
+		"DUBPLATE_ZULU: unknown configuration key"
+	reg := fixtureRegistry()
+	for run := range 20 {
+		_, err := Load(environ, reg)
+		if err == nil {
+			t.Fatalf("run %d: Load returned nil; want the joined refusal", run)
+		}
+		if err.Error() != want {
+			t.Fatalf("run %d: Load error =\n%s\nwant\n%s", run, err, want)
+		}
+	}
+}
