@@ -960,6 +960,7 @@ func TestRestore_ConfigRefusals(t *testing.T) {
 		{name: "older from a file", cfg: RestoreConfig{FromFile: "x.db", Older: true}, want: "--older applies only to a snapshot"},
 		{name: "older with the library", cfg: RestoreConfig{Snapshot: stampOld, Older: true, Library: true}, want: "--older never combines with --library"},
 		{name: "library from a file", cfg: RestoreConfig{FromFile: "x.db", Library: true}, want: "--library needs a snapshot"},
+		{name: "discard-current with a resume", cfg: RestoreConfig{Resume: true, DiscardCurrent: true}, want: "--discard-current never combines with --resume"},
 		{name: "into-nonempty alone", cfg: RestoreConfig{Snapshot: "latest", IntoNonempty: true}, want: "--into-nonempty applies only to --library"},
 		{name: "remote with no colon", cfg: RestoreConfig{Snapshot: "latest", Remote: "backups"}, want: `backup remote "backups": no colon`},
 	}

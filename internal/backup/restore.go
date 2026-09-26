@@ -69,7 +69,8 @@ type RestoreConfig struct {
 	Resume bool
 
 	// DiscardCurrent moves a current store that cannot be opened aside,
-	// unopened, where a restore would otherwise refuse it.
+	// unopened, where a restore would otherwise refuse it. It never
+	// combines with Resume.
 	DiscardCurrent bool
 
 	// Remote is the backup remote, as [ParseRemote] reads it, that a
@@ -116,6 +117,8 @@ func (c RestoreConfig) check() error {
 		return errors.New("restore: --older never combines with --library: the library on the remote is the latest backup's")
 	case c.Library && c.Snapshot == "":
 		return errors.New("restore: --library needs a snapshot from the remote the library is on")
+	case c.DiscardCurrent && c.Resume:
+		return errors.New("restore: --discard-current never combines with --resume")
 	case c.IntoNonempty && !c.Library:
 		return errors.New("restore: --into-nonempty applies only to --library")
 	}
