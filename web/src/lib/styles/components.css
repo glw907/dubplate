@@ -95,6 +95,21 @@
   }
 
   /*
+   * The theme toggle's checkbox is `appearance:none; border:none` at
+   * about 7 by 12px (DaisyUI 5.7.46's `.swap input`), so the ring moves
+   * to the wrapper it controls, the same shape as a wrapped input's
+   * ring above.
+   */
+  :where(.swap:has(> input:focus-visible)) {
+    outline: 2px solid var(--ink-primary);
+    outline-offset: 2px;
+  }
+
+  :where(.swap > input:focus-visible) {
+    outline: none;
+  }
+
+  /*
    * The printed surface: every raised element takes a hard-edged
    * offset shadow with no blur, in the surface tokens' shadow color at
    * a per-element strength (`lib/themes/surface.css`). A pressed
@@ -250,6 +265,24 @@
    */
   :where(.alert :focus-visible) {
     box-shadow: 0 0 0 6px var(--color-base-100);
+  }
+
+  /*
+   * The signed-in header's own halo (Ruling 7; the `db1e111` lesson):
+   * the neutral bar is the same low-contrast-ring case an alert fill
+   * is, so its focusables take the same page-colored halo. This sits
+   * after every `box-shadow` rule a header focusable carries,
+   * including the flat-button rule above, which sets `.btn-ghost`'s
+   * `box-shadow: none`. The swap wrapper's own `:has()` ring (above)
+   * is covered directly, never its input, which carries no halo.
+   */
+  :where(.site-header a:focus-visible, .site-header button:focus-visible, .site-header .swap:has(> input:focus-visible)) {
+    box-shadow: 0 0 0 6px var(--color-base-100);
+  }
+
+  /* The header nav's hover state (a11y S7): the link's own ink is unchanged, so its contrast holds. */
+  :where(.site-header a:hover) {
+    text-decoration-line: underline;
   }
 
   /*

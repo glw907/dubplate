@@ -100,7 +100,8 @@ web:
 	(cd web && node scripts/gates/theme-bundle.ts); \
 	(cd web && node scripts/gates/root-absolute.ts); \
 	(cd web && node scripts/gates/ai-tells.ts); \
-	(cd web && node scripts/gates/deck-coverage.ts)
+	(cd web && node scripts/gates/deck-coverage.ts); \
+	(cd web && node scripts/gates/unlayered-count.ts)
 
 # RENDERED_TIMEOUT bounds the rendered test binary. It is explicit
 # because go test's ten-minute default would bind long before a stuck

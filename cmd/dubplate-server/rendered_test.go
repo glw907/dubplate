@@ -173,6 +173,21 @@ var renderedManifest = []renderedRow{
 	{id: "auth/interstitial/failed"},
 	{id: "members/add-member", consumptions: 1},
 	{id: "members/non-admin", consumptions: 1},
+	// The header's own rows (the members-page focus walk and the four
+	// toggle starts) share one signed-in admin session, established
+	// once by `establishSession` and reused by cookie across every
+	// context below; the one consumption it spends is declared on the
+	// first of these rows.
+	{id: "component/focus/members/label", consumptions: 1},
+	{id: "component/focus/members/label-night"},
+	{id: "component/focus/members/system-light"},
+	{id: "component/focus/members/system-dark"},
+	{id: "header/contrast/label"},
+	{id: "header/contrast/label-night"},
+	{id: "header/toggle/system-light"},
+	{id: "header/toggle/system-dark"},
+	{id: "header/toggle/cookie-label"},
+	{id: "header/toggle/cookie-label-night"},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two
@@ -607,6 +622,11 @@ func TestRendered(t *testing.T) {
 	membersAddLink := mintRenderedLink(t, environ, renderedAdminAddress)
 	membersNonAdminLink := mintRenderedLink(t, environ, renderedMemberAddress)
 
+	// The header's own rows sign in once and reuse the session cookie
+	// across every context they open, so this is the only link they
+	// spend.
+	membersHeaderLink := mintRenderedLink(t, environ, renderedAdminAddress)
+
 	env := append(scriptEnviron(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
 		"DUBPLATE_RENDERED_REQUEST_LOG="+logSrv.URL,
@@ -620,6 +640,7 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN="+loginLinkSignedIn,
 		"DUBPLATE_RENDERED_MEMBERS_ADD_LINK="+membersAddLink,
 		"DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK="+membersNonAdminLink,
+		"DUBPLATE_RENDERED_MEMBERS_HEADER_LINK="+membersHeaderLink,
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {

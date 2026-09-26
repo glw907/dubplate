@@ -23,7 +23,7 @@
  * those two fixtures declare.
  */
 import { chromium } from 'playwright';
-import type { Browser, BrowserContext, Page, Response as PlaywrightResponse } from 'playwright';
+import type { Browser, BrowserContext, Cookie, Page, Response as PlaywrightResponse } from 'playwright';
 import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
 import {
   ADD_MEMBER_LABELS,
@@ -32,6 +32,7 @@ import {
   INTERSTITIAL_CONTROL,
   NETWORK_FAILURE,
   ROSTER_OUTCOMES,
+  THEME_TOGGLE_LABEL,
   TITLES,
   unknownAddressLine
 } from '../../src/lib/copy/deck.ts';
@@ -158,6 +159,13 @@ interface Endpoints {
   membersAddLink: string;
   /** A real minted link for the fixture member, spent by the non-admin row. */
   membersNonAdminLink: string;
+  /**
+   * A real minted link for the fixture admin, spent once to seed the
+   * header's own rows (the toggle and the members-page focus walk),
+   * which then reuse the session cookie it establishes across contexts
+   * rather than spending a consumption each.
+   */
+  membersHeaderLink: string;
 }
 
 /**
@@ -1389,6 +1397,15 @@ interface Outline {
   color: string;
 }
 
+/**
+ * The selector a control's own wrapper is queried by: DaisyUI draws a
+ * wrapped input's ring on `<label class="input">`, `.select`, or
+ * `.textarea`, and the theme toggle's ring on `.swap` (its checkbox is
+ * `appearance:none; border:none` at about 7 by 12px, so the ring has
+ * nothing to draw on there).
+ */
+const RING_WRAPPER_SELECTOR = '.input, .select, .textarea, .swap';
+
 interface FocusedInfo {
   label: string;
   probe: string | null;
@@ -1396,9 +1413,10 @@ interface FocusedInfo {
   own: Outline;
   /**
    * The outline of the DaisyUI control wrapping the focused element
-   * (`<label class="input">`, `.select`, `.textarea`), or `null` when
-   * nothing wraps it: DaisyUI draws a wrapped control's ring on the
-   * wrapper, so the wrapper is the element the ring is judged on.
+   * (`<label class="input">`, `.select`, `.textarea`, `.swap`), or
+   * `null` when nothing wraps it: DaisyUI draws a wrapped control's
+   * ring on the wrapper, so the wrapper is the element the ring is
+   * judged on.
    */
   wrapper: Outline | null;
   /** The ring-bearing element's box: the wrapper's when there is one. */
@@ -1407,46 +1425,82 @@ interface FocusedInfo {
 
 /** `document.activeElement`'s outline and geometry, or `null` once `Tab` leaves the page (a wrapped cycle). */
 async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
-  return page.evaluate((attr: string) => {
-    const el = document.activeElement as HTMLElement | null;
-    if (el === null || el === document.body) return null;
-    const outline = (target: Element) => {
-      const style = getComputedStyle(target);
-      return {
-        style: style.outlineStyle,
-        width: style.outlineWidth,
-        offset: style.outlineOffset,
-        color: style.outlineColor
+  return page.evaluate(
+    ({ attr, wrapperSelector }: { attr: string; wrapperSelector: string }) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (el === null || el === document.body) return null;
+      const outline = (target: Element) => {
+        const style = getComputedStyle(target);
+        return {
+          style: style.outlineStyle,
+          width: style.outlineWidth,
+          offset: style.outlineOffset,
+          color: style.outlineColor
+        };
       };
-    };
-    const wrapperEl = el.parentElement?.closest('.input, .select, .textarea') ?? null;
-    const rect = (wrapperEl ?? el).getBoundingClientRect();
-    const label = el.id || wrapperEl?.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
-    return {
-      label,
-      probe: el.getAttribute(attr),
-      own: outline(el),
-      wrapper: wrapperEl === null ? null : outline(wrapperEl),
-      rect: { x: rect.x, y: rect.y, width: rect.width }
-    };
-  }, TAB_PROBE_ATTR);
+      const wrapperEl = el.parentElement?.closest(wrapperSelector) ?? null;
+      const rect = (wrapperEl ?? el).getBoundingClientRect();
+      const label = el.id || wrapperEl?.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+      return {
+        label,
+        probe: el.getAttribute(attr),
+        own: outline(el),
+        wrapper: wrapperEl === null ? null : outline(wrapperEl),
+        rect: { x: rect.x, y: rect.y, width: rect.width }
+      };
+    },
+    { attr: TAB_PROBE_ATTR, wrapperSelector: RING_WRAPPER_SELECTOR }
+  );
+}
+
+/** The element {@link settleFocusTransitions} found still animating past its bound, and what it was running. */
+interface SettleTimeout {
+  label: string;
+  pending: string[];
 }
 
 /**
- * Waits out any transition the newly focused element (or the control
- * wrapping it) runs on focus: DaisyUI's `.btn` transitions
- * `box-shadow`, so a screenshot taken at once catches a halo still
- * growing in. A cancelled transition rejects `finished`, which counts
- * as settled.
+ * Waits out any transition or animation the newly focused element (or
+ * the control wrapping it) runs on focus, across its whole subtree:
+ * DaisyUI's `.btn` transitions `box-shadow`, and the theme toggle's
+ * `.swap > *` transitions `transform, rotate, opacity` over 0.2s
+ * (`daisyui/components/swap.css`), so a screenshot taken at once could
+ * catch either mid-transition. `{ subtree: true }` is required to see
+ * the swap's icon children from the wrapper `getAnimations` is called
+ * on. Races the wait against a bound of 2s, ten times DaisyUI's own
+ * 0.2s: an animation still running at the bound (an infinite one never
+ * settles) is reported rather than waited out to the script's own
+ * 300s deadline. A cancelled transition rejects `finished`, which
+ * counts as settled, same as today.
  */
-async function settleFocusTransitions(page: Page): Promise<void> {
-  await page.evaluate(async () => {
+async function settleFocusTransitions(page: Page): Promise<SettleTimeout | null> {
+  return page.evaluate(async (wrapperSelector: string) => {
     const el = document.activeElement;
-    if (el === null) return;
-    const wrapper = el.parentElement?.closest('.input, .select, .textarea') ?? null;
-    const animations = [el, wrapper].flatMap((target) => target?.getAnimations() ?? []);
-    await Promise.all(animations.map((a) => a.finished.catch(() => undefined)));
-  });
+    if (el === null) return null;
+    const wrapper = el.parentElement?.closest(wrapperSelector) ?? null;
+    const target = wrapper ?? el;
+    const animations = target.getAnimations({ subtree: true });
+    if (animations.length === 0) return null;
+    const BOUND_MS = 2000;
+    let timedOut = false;
+    const bound = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        timedOut = true;
+        resolve();
+      }, BOUND_MS);
+    });
+    const settled = Promise.all(animations.map((a) => a.finished.catch(() => undefined))).then(() => undefined);
+    await Promise.race([settled, bound]);
+    if (!timedOut) return null;
+    const label =
+      (el as HTMLElement).id ||
+      (wrapper as HTMLElement | null)?.id ||
+      `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+    const pending = animations
+      .filter((a) => a.playState === 'running')
+      .map((a) => ('transitionProperty' in a ? (a as CSSTransition).transitionProperty : (a as CSSAnimation).animationName || 'animation'));
+    return { label, pending };
+  }, RING_WRAPPER_SELECTOR);
 }
 
 function describeOutline(o: Outline): string {
@@ -1523,78 +1577,101 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
           continue;
         }
 
-        await visit.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-        const want = hexRGBA(INK_PRIMARY[state.palette]);
-        const wantText = `solid 2px ${INK_PRIMARY[state.palette]} offset 2px`;
-        const problems: string[] = [];
-        const visitedProbes = new Set<string>();
-        let visited = 0;
-        // A margin of 2 over `total` absorbs a cycle that wraps back
-        // to the first element before this bound stops it; a landing
-        // back on `document.body` (`focusedInfo` returning `null`)
-        // ends the loop early regardless.
-        for (let i = 0; i < total + 2; i++) {
-          await visit.page.keyboard.press('Tab');
-          await settleFocusTransitions(visit.page);
-          const focused = await focusedInfo(visit.page);
-          if (focused === null) break;
-          visited++;
-          if (focused.probe !== null) visitedProbes.add(focused.probe);
-          if (focused.wrapper !== null && focused.own.style !== 'none') {
-            problems.push(`${focused.label}: a second ring on the wrapped control itself, ${describeOutline(focused.own)} (want none)`);
-            continue;
-          }
-          const ringOutline = focused.wrapper ?? focused.own;
-          const ring = await paintedColor(visit.page, ringOutline.color);
-          if (
-            ringOutline.style !== 'solid' ||
-            ringOutline.width !== '2px' ||
-            ringOutline.offset !== '2px' ||
-            !sameRGBA(ring, want)
-          ) {
-            problems.push(`${focused.label}: outline ${describeOutline(ringOutline)} (want ${wantText})`);
-            continue;
-          }
-          const x = Math.round(focused.rect.x + focused.rect.width / 2);
-          const clipY = Math.round(focused.rect.y - 8);
-          const shot = await visit.page.screenshot({ clip: { x: x - 2, y: clipY, width: 4, height: 8 } });
-          const image = decodePNG(shot);
-          // Relative to clipY: the outline band spans offset 2px to
-          // offset+width 4px above the element's top edge, so row 7
-          // (one pixel below the band) sits inside the offset gap and
-          // row 3 (one pixel above the band) sits outside the ring.
-          const inside = pixelRGBA(image, 2, 7);
-          const outside = pixelRGBA(image, 2, 3);
-          const insideC = contrastRatio(inside, ring);
-          const outsideC = contrastRatio(outside, ring);
-          if (insideC < 3 || outsideC < 3) {
-            problems.push(
-              `${focused.label}: ring contrast inside ${insideC.toFixed(2)}:1, outside ${outsideC.toFixed(2)}:1 (want 3:1 or better)`
-            );
-          }
-        }
-        if (visited === 0) {
-          await report({ id, fixture: false, property: false, detail: `tabbing found no focusable element (of ${total} tabbable by query)` });
-          continue;
-        }
-        const missing = targets.filter((t) => !visitedProbes.has(t.id));
-        if (missing.length > 0) {
-          problems.push(`never focused: ${missing.map((t) => t.label).join(', ')} (of ${total} queried)`);
-        }
-        await report({
-          id,
-          fixture: true,
-          property: problems.length === 0,
-          detail:
-            problems.length === 0
-              ? `${visitedProbes.size} of ${total} tabbable elements visited by identity, every ring clean`
-              : problems.join('; ')
-        });
+        const walk = await walkFocusOrder(visit.page, state.palette, targets);
+        await report({ id, ...walk });
       } finally {
         await context.close();
       }
     }
   }
+}
+
+/**
+ * Tabs through `page`'s whole tab order, asserting the
+ * {@link INK_PRIMARY} ring (its shape, its color, and its contrast
+ * inside and outside the offset gap) and coverage by identity against
+ * `targets`, {@link enumerateTabbable}'s own result. Shared by
+ * {@link focusRows} (the closed fixture set, after its own role
+ * checks) and {@link membersFocusRows} (the real members page): both
+ * need the identical walk, and the members page's header controls are
+ * what proves the halo (page-colored, VI's Ruling 7) actually reads:
+ * with it, the pixel just inside and just outside the ring is
+ * `base-100`, which contrasts the ring color at 6.12:1 (`label`) or
+ * 6.34:1 (`label-night`); without it, the same pixels are the header's
+ * own `--color-neutral`, at about 2.34:1 on `label`, under the 3:1
+ * floor.
+ */
+async function walkFocusOrder(
+  page: Page,
+  palette: 'label' | 'label-night',
+  targets: TabTarget[]
+): Promise<{ fixture: boolean; property: boolean; detail: string }> {
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  const want = hexRGBA(INK_PRIMARY[palette]);
+  const wantText = `solid 2px ${INK_PRIMARY[palette]} offset 2px`;
+  const problems: string[] = [];
+  const visitedProbes = new Set<string>();
+  let visited = 0;
+  // A margin of 2 over the target count absorbs a cycle that wraps
+  // back to the first element before this bound stops it; a landing
+  // back on `document.body` (`focusedInfo` returning `null`) ends the
+  // loop early regardless.
+  for (let i = 0; i < targets.length + 2; i++) {
+    await page.keyboard.press('Tab');
+    const settleTimeout = await settleFocusTransitions(page);
+    if (settleTimeout !== null) {
+      problems.push(
+        `${settleTimeout.label}: an animation never settled within 2000ms: ${settleTimeout.pending.join(', ') || '(unnamed)'}`
+      );
+      continue;
+    }
+    const focused = await focusedInfo(page);
+    if (focused === null) break;
+    visited++;
+    if (focused.probe !== null) visitedProbes.add(focused.probe);
+    if (focused.wrapper !== null && focused.own.style !== 'none') {
+      problems.push(`${focused.label}: a second ring on the wrapped control itself, ${describeOutline(focused.own)} (want none)`);
+      continue;
+    }
+    const ringOutline = focused.wrapper ?? focused.own;
+    const ring = await paintedColor(page, ringOutline.color);
+    if (ringOutline.style !== 'solid' || ringOutline.width !== '2px' || ringOutline.offset !== '2px' || !sameRGBA(ring, want)) {
+      problems.push(`${focused.label}: outline ${describeOutline(ringOutline)} (want ${wantText})`);
+      continue;
+    }
+    const x = Math.round(focused.rect.x + focused.rect.width / 2);
+    const clipY = Math.round(focused.rect.y - 8);
+    const shot = await page.screenshot({ clip: { x: x - 2, y: clipY, width: 4, height: 8 } });
+    const image = decodePNG(shot);
+    // Relative to clipY: the outline band spans offset 2px to
+    // offset+width 4px above the element's top edge, so row 7 (one
+    // pixel below the band) sits inside the offset gap and row 3 (one
+    // pixel above the band) sits outside the ring.
+    const inside = pixelRGBA(image, 2, 7);
+    const outside = pixelRGBA(image, 2, 3);
+    const insideC = contrastRatio(inside, ring);
+    const outsideC = contrastRatio(outside, ring);
+    if (insideC < 3 || outsideC < 3) {
+      problems.push(
+        `${focused.label}: ring contrast inside ${insideC.toFixed(2)}:1, outside ${outsideC.toFixed(2)}:1 (want 3:1 or better)`
+      );
+    }
+  }
+  if (visited === 0) {
+    return { fixture: false, property: false, detail: `tabbing found no focusable element (of ${targets.length} tabbable by query)` };
+  }
+  const missing = targets.filter((t) => !visitedProbes.has(t.id));
+  if (missing.length > 0) {
+    problems.push(`never focused: ${missing.map((t) => t.label).join(', ')} (of ${targets.length} queried)`);
+  }
+  return {
+    fixture: true,
+    property: problems.length === 0,
+    detail:
+      problems.length === 0
+        ? `${visitedProbes.size} of ${targets.length} tabbable elements visited by identity, every ring clean`
+        : problems.join('; ')
+  };
 }
 
 /** Whether `a` and `b` agree within a tenth of a pixel, absorbing subpixel rounding. */
@@ -2918,6 +2995,254 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
   }
 }
 
+const SESSION_COOKIE_NAME = '__Host-dubplate_session';
+
+/**
+ * The subset of `BrowserContext.addCookies`'s own parameter shape this
+ * script builds by hand: a superset of what a real cookie
+ * (`context.cookies()`'s own `Cookie` type) already carries, so a
+ * session cookie read back from one context seeds another unchanged.
+ */
+interface CookieSeed {
+  name: string;
+  value: string;
+  domain?: string;
+  path?: string;
+  expires?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: 'Strict' | 'Lax' | 'None';
+}
+
+
+/**
+ * Spends `link`'s one consumption to sign in, then returns the session
+ * cookie it establishes rather than the visit: every header row below
+ * reuses this one cookie across its own contexts, so the header's
+ * whole set of rows spends one consumption in total.
+ */
+async function establishSession(browser: Browser, link: string): Promise<Cookie> {
+  const context = await browser.newContext();
+  try {
+    await signIn(context, link);
+    const cookie = (await context.cookies()).find((c) => c.name === SESSION_COOKIE_NAME);
+    if (!cookie) throw new Refusal('the header rows: no session cookie after sign-in');
+    return cookie;
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `component/focus/members/<state>`: the real members page's own tab
+ * order (the header's brand link, its toggle, its sign-out control,
+ * and the add-member form), under a signed-in admin session reused by
+ * cookie, walked the same way {@link focusRows} walks the closed
+ * fixture set (`walkFocusOrder`). This is what proves the header halo:
+ * see that function's own doc comment for the contrast numbers it
+ * reads with and without the halo in place.
+ */
+async function membersFocusRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const host = new URL(endpoints.base).hostname;
+  for (const state of ALL_STATES) {
+    const id = `component/focus/members/${state.id}`;
+    const context = await browser.newContext({ colorScheme: state.scheme, viewport: FIXTURE_VIEWPORT });
+    try {
+      const cookies: CookieSeed[] = [session];
+      if (state.cookie !== null) {
+        cookies.push({ name: THEME_COOKIE, value: state.cookie, domain: host, path: '/', secure: true });
+      }
+      await context.addCookies(cookies);
+      const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      const stamp = await visit.page.evaluate(() => document.documentElement.dataset.theme ?? '(none)');
+      if (stamp !== state.stamp) {
+        await report({ id, fixture: false, property: false, detail: `the document is stamped ${stamp}, want ${state.stamp}` });
+        continue;
+      }
+      const targets = await enumerateTabbable(visit.page);
+      if (targets.length === 0) {
+        await report({ id, fixture: false, property: false, detail: 'no tabbable element found on the members page' });
+        continue;
+      }
+      const walk = await walkFocusOrder(visit.page, state.palette, targets);
+      await report({ id, ...walk });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `header/contrast/<palette>`: every header foreground's painted
+ * contrast against the neutral bar at rest (VI's `--color-neutral` and
+ * `--color-neutral-content` pairing), the toggle's and sign-out's 44px
+ * targets (VI `:347`, Ruling 8), and the brand link's hover state
+ * (a11y S7): its text keeps 4.5:1 on the bar, unchanged by the hover
+ * itself (only the underline is new). Neither color is a literal here;
+ * both are read back from the live document the way every other
+ * contrast check in this file does (W12.5).
+ */
+async function headerContrastRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const host = new URL(endpoints.base).hostname;
+  for (const palette of ['label', 'label-night'] as const) {
+    const id = `header/contrast/${palette}`;
+    const context = await browser.newContext();
+    try {
+      const cookies: CookieSeed[] = [session, { name: THEME_COOKIE, value: palette, domain: host, path: '/', secure: true }];
+      await context.addCookies(cookies);
+      const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+      const measured = await visit.page.evaluate(() => {
+        const header = document.querySelector('.site-header');
+        const wordmark = document.querySelector('.site-header .display');
+        const signOut = document.querySelector('.site-header button');
+        const toggleIcon = document.querySelector('.site-header .swap-off svg');
+        const brandLink = document.querySelector('.site-header a');
+        const rect = (el: Element | null) => {
+          if (el === null) return null;
+          const r = el.getBoundingClientRect();
+          return { width: r.width, height: r.height };
+        };
+        if (header === null || wordmark === null || signOut === null || toggleIcon === null || brandLink === null) return null;
+        return {
+          neutral: getComputedStyle(header).backgroundColor,
+          wordmark: getComputedStyle(wordmark).color,
+          signOut: getComputedStyle(signOut).color,
+          toggleIcon: getComputedStyle(toggleIcon).color,
+          signOutRect: rect(signOut),
+          toggleRect: rect(document.querySelector('.site-header .swap')),
+          brandRect: rect(brandLink)
+        };
+      });
+      if (measured === null) {
+        await report({ id, fixture: false, property: false, detail: 'one or more header elements missing' });
+        continue;
+      }
+      const neutral = await paintedColor(visit.page, measured.neutral);
+      const foregrounds: Record<string, RGBA> = {
+        wordmark: await paintedColor(visit.page, measured.wordmark),
+        signOut: await paintedColor(visit.page, measured.signOut),
+        toggleIcon: await paintedColor(visit.page, measured.toggleIcon)
+      };
+      const problems: string[] = [];
+      for (const [name, color] of Object.entries(foregrounds)) {
+        const c = contrastRatio(color, neutral);
+        if (c < 3) problems.push(`${name}: ${c.toFixed(2)}:1 against the bar (want 3:1 or better)`);
+      }
+      for (const [name, rect] of Object.entries({ signOut: measured.signOutRect, toggle: measured.toggleRect, brand: measured.brandRect })) {
+        if (rect === null || rect.width < 44 || rect.height < 44) {
+          problems.push(`${name}: ${rect ? `${rect.width}x${rect.height}` : 'missing'} (want 44px or more)`);
+        }
+      }
+
+      await visit.page.hover('.site-header a');
+      const hovered = await visit.page.evaluate(() => {
+        const brandLink = document.querySelector('.site-header a');
+        if (brandLink === null) return null;
+        const style = getComputedStyle(brandLink);
+        return { color: style.color, textDecorationLine: style.textDecorationLine };
+      });
+      if (hovered === null) {
+        problems.push('brand link: missing on hover');
+      } else {
+        const hoveredColor = await paintedColor(visit.page, hovered.color);
+        const hoveredContrast = contrastRatio(hoveredColor, neutral);
+        if (hoveredContrast < 4.5) problems.push(`brand link hover: ${hoveredContrast.toFixed(2)}:1 against the bar (want 4.5:1 or better)`);
+        if (hovered.textDecorationLine === 'none') problems.push('brand link hover: no visible hover state (text-decoration-line: none)');
+      }
+
+      await report({
+        id,
+        fixture: true,
+        property: problems.length === 0,
+        detail: problems.length === 0 ? 'every header foreground clean' : problems.join('; ')
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/** One toggle click's start and what it must write (the acceptance table's four starts). */
+interface ToggleCase {
+  id: string;
+  cookie: 'label' | 'label-night' | null;
+  scheme: 'light' | 'dark';
+  wantInitialChecked: boolean;
+  writes: 'label' | 'label-night';
+}
+
+const TOGGLE_CASES: ToggleCase[] = [
+  { id: 'header/toggle/system-light', cookie: null, scheme: 'light', wantInitialChecked: false, writes: 'label-night' },
+  { id: 'header/toggle/system-dark', cookie: null, scheme: 'dark', wantInitialChecked: true, writes: 'label' },
+  { id: 'header/toggle/cookie-label', cookie: 'label', scheme: 'light', wantInitialChecked: false, writes: 'label-night' },
+  { id: 'header/toggle/cookie-label-night', cookie: 'label-night', scheme: 'light', wantInitialChecked: true, writes: 'label' }
+];
+
+/**
+ * The theme toggle, from each of {@link TOGGLE_CASES}' four starts: the
+ * checkbox's own initial checked state, the write its one click makes
+ * (the cookie, the `data-theme` stamp, the one `theme-color` meta), and
+ * that a reload serves the matching stamp from the server rather than
+ * only holding it in the DOM.
+ */
+async function themeToggleRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const host = new URL(endpoints.base).hostname;
+  for (const c of TOGGLE_CASES) {
+    const id = c.id;
+    const context = await browser.newContext({ colorScheme: c.scheme });
+    try {
+      const cookies: CookieSeed[] = [session];
+      if (c.cookie !== null) cookies.push({ name: THEME_COOKIE, value: c.cookie, domain: host, path: '/', secure: true });
+      await context.addCookies(cookies);
+      const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+      const toggle = visit.page.getByRole('checkbox', { name: THEME_TOGGLE_LABEL, exact: true });
+      const initialChecked = await toggle.isChecked();
+      // The checkbox sits under its own two icon spans in the same
+      // grid cell (DaisyUI's swap), so a real pointer lands on the
+      // icon, not the input; a browser still toggles the checkbox
+      // through the wrapping `<label>`'s native click-forwarding.
+      // Playwright's own actionability check looks for the click to
+      // land on the checkbox itself, which the icon always covers, so
+      // this clicks the wrapping `.swap` label instead, the same
+      // target a pointer would land on.
+      await visit.page.locator('.swap').click();
+      await settleFocusTransitions(visit.page);
+
+      const stamp = await visit.page.evaluate(() => document.documentElement.dataset.theme ?? '(none)');
+      const wantStamp = `dubplate-${c.writes}`;
+      const themeCookies = (await context.cookies()).filter((k) => k.name === THEME_COOKIE);
+      const oneYearSeconds = 365 * 24 * 3600;
+      const wantExpiry = Date.now() / 1000 + oneYearSeconds;
+      const cookieOK =
+        themeCookies.length === 1 &&
+        themeCookies[0].value === c.writes &&
+        themeCookies[0].secure &&
+        Math.abs(themeCookies[0].expires - wantExpiry) < 3600;
+      const metas = await themeColorMetas(visit.page);
+      const wantColor = c.writes === 'label' ? THEME_COLOR.light : THEME_COLOR.dark;
+      const metaOK = metas.length === 1 && metas[0].media === null && metas[0].content === wantColor;
+
+      const reloadResponse = await visit.page.reload({ waitUntil: 'load' });
+      const reloadBody = reloadResponse === null ? '' : await reloadResponse.text();
+      const reloadOK = reloadBody.includes(`data-theme="${wantStamp}"`);
+
+      await report({
+        id,
+        fixture: initialChecked === c.wantInitialChecked,
+        property: stamp === wantStamp && cookieOK && metaOK && reloadOK,
+        detail: `initial checked ${initialChecked} (want ${c.wantInitialChecked}); stamp after click ${stamp} (want ${wantStamp}); theme cookies ${JSON.stringify(themeCookies)}; metas ${JSON.stringify(metas)} (want one, no media, ${wantColor}); reload carries stamp ${reloadOK}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const endpoints: Endpoints = {
     base: requiredEnv('DUBPLATE_RENDERED_BASE_URL'),
@@ -2931,7 +3256,8 @@ async function main(): Promise<void> {
     loginLinkOrdering: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_ORDERING'),
     loginLinkSignedIn: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN'),
     membersAddLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_ADD_LINK'),
-    membersNonAdminLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK')
+    membersNonAdminLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK'),
+    membersHeaderLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_HEADER_LINK')
   };
   PAGES[0].heading = endpoints.siteName;
   PAGES[1].heading = TITLES.loginLinkRefused;
@@ -2968,6 +3294,10 @@ async function main(): Promise<void> {
     await interstitialFulfilledRows(browser, endpoints);
     await membersAddRow(browser, endpoints);
     await membersNonAdminRow(browser, endpoints);
+    const headerSession = await establishSession(browser, endpoints.membersHeaderLink);
+    await membersFocusRows(browser, endpoints, headerSession);
+    await headerContrastRow(browser, endpoints, headerSession);
+    await themeToggleRows(browser, endpoints, headerSession);
     refuseUnclean();
     await refuseLateLeaks(endpoints);
   } finally {

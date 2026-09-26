@@ -11,6 +11,7 @@ not-found state instead of the roster, with no roster and no form.
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
+  import SiteHeader from '$lib/components/SiteHeader.svelte';
   import {
     ADD_MEMBER_HINTS,
     ADD_MEMBER_LABELS,
@@ -171,12 +172,18 @@ not-found state instead of the roster, with no roster and no form.
 
 <a
   href="#main"
-  class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
+  class="sr-only focus:not-sr-only focus:fixed {status === 'ok'
+    ? 'focus:top-20'
+    : 'focus:top-4'} focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
   >Skip to content</a
 >
 
 <div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
 <div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
+
+{#if status === 'ok'}
+  <SiteHeader />
+{/if}
 
 <main id="main" tabindex="-1" class="p-8">
   {#if status === 'refused'}
