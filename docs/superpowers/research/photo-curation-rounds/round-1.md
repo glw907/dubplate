@@ -235,3 +235,12 @@ uploaded all 222 as assets in 9 calls, wrote `meta/vocab`, and seeded the test r
 (`rounds/test`, `candidates/fixture:1` to `fixture:3`). Round one's 112 writes wait in
 `photos/.candidates/_open/seed-{0,1,2}.json` for Geoff's test-round try. The plan's 150-candidate
 approval estimate is superseded by these counts.
+
+## Sitting notes (2026-09-25)
+
+- Geoff: "Some of these pics are good, but have cropping issues." The sorting page gains a per-photo
+  focus point (`focus: {x, y}` on the choice document), copied onto the committed record at close.
+- Geoff, on the Eazy-E flyer: "It's great, but the top is cut off." Conductor ruling: flyers,
+  posters, and zine covers are never cropped; they fit whole on the film-edge carrier. The real
+  login page needs the same rule and the focus point; route both to the web lane's login-photo
+  work and to the visual identity spec's Photography section at round close.
