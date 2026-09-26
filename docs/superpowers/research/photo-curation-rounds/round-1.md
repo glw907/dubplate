@@ -56,3 +56,20 @@ downloads it cannot finish within the round.
 
 Spend: roughly 4.8M of the 5.5M ceiling at this checkpoint, the 4.4M flag crossed during the
 search.
+
+## Resume after the power loss (2026-09-25)
+
+The conductor session ended mid-question when the laptop lost power. A fresh session resumed from
+this log. The sorting page is published at `https://claude.ai/artifact/7CewFiyc6pE1SG1a4pfQPE`
+(Task 2's close owed this line). Every Task 6 dispatch names it.
+
+Owner rulings (Geoff, 2026-09-25):
+
+- Ceiling raised to 7.0M; the 80% flag moves to 5.6M.
+- Text-only flyers count as public domain under the threshold of originality (Commons
+  `{{PD-text}}`), limited to purely typographic flyers with no drawing, logo art, or photo. The
+  spot-check views each such flyer to confirm. This recovers the three 1984 to 1988 West Coast
+  hip-hop flyers.
+- The sorting page shows each photo in the context of the login page: the silver-print
+  treatment and film-edge caption in the login page's photo column, beside the form, at desktop
+  and phone widths. The crop to that column is the judgment Geoff makes while sorting.
