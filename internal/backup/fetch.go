@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 
 	"github.com/glw907/dubplate/internal/engine/store"
 )
@@ -96,7 +97,8 @@ func pickSnapshot(entries []remoteEntry, dir, want string, older bool) (snapshot
 // the stage is a new file at whatever mode the umask leaves (0644
 // under 022), and a stage created beforehand would be replaced; the
 // chmod, not a pre-created file, is what makes the stage private. The
-// leaf's directories are 0700, so nothing reads it in between. A
+// leaf's directories are 0700, so nothing reads it in between. The
+// fetch then syncs the stage and staging/, as [syncStage] does. A
 // failed or canceled fetch removes the stage.
 func (s source) fetch(ctx context.Context, sess *store.RestoreSession, out io.Writer, snap snapshot) error {
 	src := s.remote.join("snapshots/" + snap.stamp + ".db")
@@ -117,6 +119,33 @@ func (s source) fetch(ctx context.Context, sess *store.RestoreSession, out io.Wr
 	}
 	if err := os.Chmod(stage, 0o600); err != nil {
 		return errors.Join(fmt.Errorf("fetch %s: %w", src, err), removeStage(stage))
+	}
+	if err := syncStage(stage); err != nil {
+		return errors.Join(fmt.Errorf("fetch %s: %w", src, err), removeStage(stage))
+	}
+	return nil
+}
+
+// syncStage flushes the stage rclone wrote, and its directory entry, to
+// disk. rclone's local backend offers no fsync, and the swap syncs only
+// directories, so without it a power cut after the swap could leave
+// db/ naming a file whose blocks were never written.
+func syncStage(stage string) error {
+	// O_RDWR, since a read-only open of a FIFO planted at the stage
+	// path would block until a writer came.
+	f, err := os.OpenFile(stage, os.O_RDWR, 0)
+	if err != nil {
+		return fmt.Errorf("sync the stage: %w", err)
+	}
+	if err := errors.Join(f.Sync(), f.Close()); err != nil {
+		return fmt.Errorf("sync the stage: %w", err)
+	}
+	d, err := os.Open(filepath.Dir(stage))
+	if err != nil {
+		return fmt.Errorf("sync staging: %w", err)
+	}
+	if err := errors.Join(d.Sync(), d.Close()); err != nil {
+		return fmt.Errorf("sync staging: %w", err)
 	}
 	return nil
 }

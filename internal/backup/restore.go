@@ -157,6 +157,11 @@ func Restore(ctx context.Context, cfg RestoreConfig) (err error) {
 		if root, err = resolveRoot(cfg.LibraryRoot); err != nil {
 			return fmt.Errorf("restore: %w", err)
 		}
+		// The record takes only an absolute root, and refusing one there
+		// would come after the fetch and the quiesce.
+		if !filepath.IsAbs(root) {
+			return fmt.Errorf("restore: library root %s is not an absolute path", root)
+		}
 	}
 
 	sess, err := store.OpenRestore(cfg.StateDir, store.RestoreOptions{
@@ -349,6 +354,9 @@ func (r restorer) advance(ctx context.Context, in store.RestoreIntent) error {
 		return r.library(ctx, in)
 	case store.StepServe:
 		stepHook(stepReconcileOwed)
+		if err := r.sayKept(); err != nil {
+			return err
+		}
 		return r.say("the restored store is older than this binary: start serve to finish the restore")
 	}
 	stepHook(stepReconcileOwed)
@@ -381,6 +389,13 @@ func (r restorer) library(ctx context.Context, in store.RestoreIntent) error {
 	args := []string{"copy", remote.join("library"), root}
 	var displaced string
 	if in.IntoNonempty {
+		// A resume never ran checkRoot, and a link may have been made
+		// since the interrupted run's check.
+		if r.resumed {
+			if err := refuseSymlinks(root); err != nil {
+				return err
+			}
+		}
 		displaced = displacedPath(root, r.sess.Stamp())
 		if err := r.makeDisplaced(displaced); err != nil {
 			return err
@@ -412,8 +427,9 @@ func displacedPath(root, stamp string) string {
 // checkRoot runs step 6's checks on the resolved library root before
 // any rclone run. It refuses a root that holds anything but a
 // lost+found directory, which a freshly made ext file system holds,
-// unless intoNonempty is set; with it, it refuses a displaced path that
-// already exists, which a restore never merges into.
+// unless intoNonempty is set; with it, it refuses a root holding a
+// symlink, as [refuseSymlinks] does, and a displaced path that already
+// exists, which a restore never merges into.
 func checkRoot(root, displaced string, intoNonempty bool) error {
 	des, err := os.ReadDir(root)
 	if err != nil {
@@ -426,10 +442,35 @@ func checkRoot(root, displaced string, intoNonempty bool) error {
 		}
 		return nil
 	}
+	if err := refuseSymlinks(root); err != nil {
+		return err
+	}
 	switch _, err := os.Lstat(displaced); {
 	case err == nil:
 		return fmt.Errorf("restore the library: %s already exists: move it away before a restore with --into-nonempty", displaced)
 	case !errors.Is(err, fs.ErrNotExist):
+		return fmt.Errorf("restore the library: %w", err)
+	}
+	return nil
+}
+
+// refuseSymlinks refuses root when a symlink sits anywhere under it,
+// naming the first the walk meets. rclone v1.74.3 lists a symlinked
+// directory as absent, so a copy writes the remote's file through the
+// link and never moves the local one into the backup directory, and it
+// replaces a symlinked file with a regular one. Either way a local file
+// is lost with nothing displaced to name it.
+func refuseSymlinks(root string) error {
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			return fmt.Errorf("%s is a symlink: a copy with --into-nonempty writes through a symlink without displacing the local file; replace the link with what it names, or remove it", quotePath(p))
+		}
+		return nil
+	})
+	if err != nil {
 		return fmt.Errorf("restore the library: %w", err)
 	}
 	return nil
@@ -584,6 +625,9 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 		return err
 	}
 	stepHook(stepReported)
+	if err := r.sayKept(); err != nil {
+		return err
+	}
 	if err := r.sess.Complete(); err != nil {
 		return err
 	}
@@ -623,6 +667,16 @@ func displacedLine(p string) (string, error) {
 		return "", fmt.Errorf("restore: count the displaced files: %w", err)
 	}
 	return fmt.Sprintf("displaced local files: %s holds %d\n", p, n), nil
+}
+
+// sayKept tells the operator where the pre-restore copy is, when the
+// record owes one. No prune removes the copy, since no backup holds the
+// writes the restore rolled away.
+func (r restorer) sayKept() error {
+	if p := r.sess.PreRestorePath(); p != "" {
+		return r.say("the replaced store is kept at %s until you remove it by hand: no backup holds the writes the restore rolled away", p)
+	}
+	return nil
 }
 
 // say writes one line to the operator.

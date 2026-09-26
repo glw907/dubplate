@@ -547,6 +547,31 @@ func TestFetch_FailureRemovesStage(t *testing.T) {
 	}
 }
 
+// TestFetch_SyncFailureRemovesStage: the fetch syncs the stage rclone
+// wrote before anything reads it, and a stage that cannot be synced
+// fails the fetch and is removed. A FIFO stands in for such a stage,
+// since fsync on one fails with EINVAL; the stand-in copyto exits 0
+// and leaves it in place.
+func TestFetch_SyncFailureRemovesStage(t *testing.T) {
+	bin, _ := useFetchStandin(t, "", "")
+	sess := openSession(t)
+	remote, err := ParseRemote("name:dir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := syscall.Mkfifo(sess.StagePath(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	src := source{t: transport{bin: bin, inherit: sess.DupFiles}, remote: remote}
+	err = src.fetch(context.Background(), sess, &bytes.Buffer{}, snapshot{stamp: stampNew, size: 7})
+	if !errors.Is(err, syscall.EINVAL) {
+		t.Errorf("fetch() = %v, want the stage's sync failure, EINVAL", err)
+	}
+	if _, err := os.Lstat(sess.StagePath()); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("stage after a failed sync: %v, want it removed", err)
+	}
+}
+
 // TestParseTreeSize pins rclone size --json's shape, as measured on
 // v1.74.3: the byte floor and the count of objects with no size.
 func TestParseTreeSize(t *testing.T) {

@@ -1,7 +1,9 @@
 package backup_test
 
 import (
+	"bytes"
 	"errors"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
@@ -229,9 +231,10 @@ func TestPrune_FirstRun(t *testing.T) {
 
 // TestPrune_LocalCopies is spec criterion 16: a local snapshots/ leaf
 // holding pre-migrate-v1.db and pre-restore-<stamp>.db dated before
-// the run, a pre-migrate-v2.db dated after its start, and an operator
-// file notes.txt. After a successful run only pre-migrate-v2.db,
-// notes.txt, and the run's own reference survive.
+// the run, a pre-migrate-v2.db dated after its start, and operator
+// files. After a successful run pre-migrate-v1.db alone is gone: a
+// pre-restore copy holds the rows its restore did not bring back, which
+// no backup captured, so no prune removes it.
 func TestPrune_LocalCopies(t *testing.T) {
 	remote, _ := localRemote(t)
 	dir := newStateDir(t)
@@ -244,7 +247,8 @@ func TestPrune_LocalCopies(t *testing.T) {
 	old := time.Now().Add(-time.Hour)
 	future := time.Now().Add(time.Hour)
 	plantLocalCopy(t, snapDir, "pre-migrate-v1.db", old)
-	plantLocalCopy(t, snapDir, "pre-restore-"+store.FormatStamp(time.Now().Add(-2*time.Hour))+".db", old)
+	preRestore := "pre-restore-" + store.FormatStamp(time.Now().Add(-2*time.Hour)) + ".db"
+	plantLocalCopy(t, snapDir, preRestore, old)
 	plantLocalCopy(t, snapDir, "pre-migrate-v2.db", future)
 	plantLocalCopy(t, snapDir, "notes.txt", old)
 	plantLocalCopy(t, snapDir, "other.db", old)
@@ -257,10 +261,70 @@ func TestPrune_LocalCopies(t *testing.T) {
 	if ref == "" {
 		t.Fatalf("local snapshots/ holds %q, no backup reference", names)
 	}
-	want := []string{"notes.txt", "other.db", "pre-migrate-v2.db", ref}
+	want := []string{"notes.txt", "other.db", "pre-migrate-v2.db", preRestore, ref}
 	slices.Sort(want)
 	if !slices.Equal(names, want) {
 		t.Errorf("local snapshots/ holds %q, want %q", names, want)
+	}
+}
+
+// TestPrune_KeepsPreRestoreCopy is a real restore followed by a backup
+// that starts after the pre-restore copy's mtime: the backup prunes an
+// older pre-migration copy but keeps the pre-restore copy, and the
+// restore told the operator where the copy is and that only they
+// remove it.
+func TestPrune_KeepsPreRestoreCopy(t *testing.T) {
+	remote, _ := localRemote(t)
+	src := newStateDir(t)
+	hs := openWrite(t, src)
+	file, err := hs.BackupCopy(deadline(t), slog.New(slog.DiscardHandler), "0123456789abcdef0123456789abcdef")
+	if err != nil {
+		t.Fatalf("BackupCopy: %v", err)
+	}
+	dir := newStateDir(t)
+	var out bytes.Buffer
+	err = backup.Restore(deadline(t), backup.RestoreConfig{
+		StateDir:    dir,
+		BusyTimeout: testBusy,
+		Now:         time.Now(),
+		FromFile:    file,
+		Out:         &out,
+		Logger:      slog.New(slog.DiscardHandler),
+	})
+	if err != nil {
+		t.Fatalf("Restore(): %v", err)
+	}
+	var preRestore string
+	for _, n := range localSnapshotNames(t, dir) {
+		if strings.HasPrefix(n, store.PreRestorePrefix) {
+			preRestore = n
+		}
+	}
+	if preRestore == "" {
+		t.Fatalf("local snapshots/ holds %q, no pre-restore copy", localSnapshotNames(t, dir))
+	}
+	snapDir := filepath.Join(dir, "store", "snapshots")
+	wantOut := "the replaced store is kept at " + filepath.Join(snapDir, preRestore) + " until you remove it by hand"
+	if !strings.Contains(out.String(), wantOut) {
+		t.Errorf("Restore printed %q, want it to hold %q", out.String(), wantOut)
+	}
+
+	old := time.Now().Add(-time.Hour)
+	if err := os.Chtimes(filepath.Join(snapDir, preRestore), old, old); err != nil {
+		t.Fatal(err)
+	}
+	plantLocalCopy(t, snapDir, "pre-migrate-v1.db", old)
+	lib := t.TempDir()
+	writeTree(t, lib, "a/one.flac")
+	_, st := runBackup(t, openWrite(t, dir), remote, lib)
+	wantState(t, st, ops.JobSucceeded, "")
+
+	names := localSnapshotNames(t, dir)
+	if !slices.Contains(names, preRestore) {
+		t.Errorf("local snapshots/ holds %q after the backup, want the pre-restore copy %s kept", names, preRestore)
+	}
+	if slices.Contains(names, "pre-migrate-v1.db") {
+		t.Errorf("local snapshots/ holds %q after the backup, want pre-migrate-v1.db pruned", names)
 	}
 }
 

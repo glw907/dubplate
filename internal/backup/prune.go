@@ -162,10 +162,12 @@ func (p prune) pruneArchive(ctx context.Context) error {
 	return errors.Join(errs...)
 }
 
-// pruneLocal removes every local pre-migration or pre-restore copy in
-// p.localDir modified before p.start. A copy written after the run
-// began was not captured by it and stays; the reference and every
-// other name are untouched.
+// pruneLocal removes every local pre-migration copy in p.localDir
+// modified before p.start. A copy written after the run began was not
+// captured by it and stays. A pre-restore copy always stays: it holds
+// the rows its restore did not bring back, so no backup captured them,
+// and like a discarded store it is removed only by hand. The reference
+// and every other name are untouched.
 func (p prune) pruneLocal() error {
 	entries, err := os.ReadDir(p.localDir)
 	if err != nil {
@@ -174,7 +176,7 @@ func (p prune) pruneLocal() error {
 
 	var errs []error
 	for _, e := range entries {
-		if e.IsDir() || !isLocalCopyName(e.Name()) {
+		if e.IsDir() || !isPreMigrateName(e.Name()) {
 			continue
 		}
 		info, err := e.Info()
@@ -193,25 +195,17 @@ func (p prune) pruneLocal() error {
 	return errors.Join(errs...)
 }
 
-// isLocalCopyName reports whether name is a pre-migration copy's
-// (store.PreMigratePrefix<N>.db) or a pre-restore copy's
-// (store.PreRestorePrefix<stamp>.db).
-func isLocalCopyName(name string) bool {
-	if rest, ok := strings.CutPrefix(name, store.PreMigratePrefix); ok {
-		rest, ok = strings.CutSuffix(rest, store.PreMigrateSuffix)
-		if !ok {
-			return false
-		}
-		n, err := strconv.Atoi(rest)
-		return err == nil && n >= 1
+// isPreMigrateName reports whether name is a pre-migration copy's,
+// store.PreMigratePrefix<N>.db.
+func isPreMigrateName(name string) bool {
+	rest, ok := strings.CutPrefix(name, store.PreMigratePrefix)
+	if !ok {
+		return false
 	}
-	if rest, ok := strings.CutPrefix(name, store.PreRestorePrefix); ok {
-		rest, ok = strings.CutSuffix(rest, store.PreMigrateSuffix)
-		if !ok {
-			return false
-		}
-		_, err := store.ParseStamp(rest)
-		return err == nil
+	rest, ok = strings.CutSuffix(rest, store.PreMigrateSuffix)
+	if !ok {
+		return false
 	}
-	return false
+	n, err := strconv.Atoi(rest)
+	return err == nil && n >= 1
 }

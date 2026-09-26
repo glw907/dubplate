@@ -773,6 +773,16 @@ func (s *RestoreSession) Intent() RestoreIntent {
 	return in
 }
 
+// PreRestorePath returns the path of the pre-restore copy the session's
+// restore-intent record owes, or "" when the record owes none or there
+// is no record.
+func (s *RestoreSession) PreRestorePath() string {
+	if s.intent == nil || s.intent.PreRestore == "" {
+		return ""
+	}
+	return filepath.Join(s.leaf.snapshotsDir, s.intent.PreRestore)
+}
+
 // Stamp returns the restore's stamp, which names its stage, its
 // report, and every copy it moves aside.
 func (s *RestoreSession) Stamp() string {

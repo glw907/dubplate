@@ -890,7 +890,8 @@ func TestRestore_Snapshot(t *testing.T) {
 
 // TestRestore_Older is a restore of a store one version below this
 // binary: it swaps, leaves the record reconcile-pending for serve, and
-// says so; the backup reference is left alone on the file path.
+// says so, naming the pre-restore copy it keeps; the backup reference
+// is left alone on the file path.
 func TestRestore_Older(t *testing.T) {
 	src := snapshotFile(t)
 	setVersion(t, src, currentVersion(t, src)-1)
@@ -903,8 +904,11 @@ func TestRestore_Older(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Restore(): %v", err)
 	}
-	if !strings.Contains(out.String(), "start serve to finish the restore") {
-		t.Errorf("Restore printed %q, want it to name serve", out.String())
+	pre := filepath.Join(leafOf(stateDir).snapshots, "pre-restore-"+restoreStamp+".db")
+	for _, want := range []string{"start serve to finish the restore", "kept at " + pre + " until you remove it by hand"} {
+		if !strings.Contains(out.String(), want) {
+			t.Errorf("Restore printed %q, want it to hold %q", out.String(), want)
+		}
 	}
 	assertComplete(t, stateDir, completion{incoming: incomingUser, current: currentUser, pending: true})
 	assertWriteOpen(t, stateDir, "start serve")
@@ -1175,6 +1179,18 @@ func TestRestore_LibraryRefusals(t *testing.T) {
 			want: "restore into it with --into-nonempty",
 		},
 		{
+			name: "a relative root",
+			arrange: func(t *testing.T, dir string) (string, string) {
+				remote, _ := libraryRemote(t, snapshotFile(t))
+				if err := os.Mkdir(filepath.Join(dir, "lib"), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				t.Chdir(dir)
+				return "lib", remote
+			},
+			want: "library root lib is not an absolute path",
+		},
+		{
 			name: "displaced path already exists",
 			arrange: func(t *testing.T, dir string) (string, string) {
 				remote, _ := libraryRemote(t, snapshotFile(t))
@@ -1369,6 +1385,101 @@ func TestRestore_LibraryInto(t *testing.T) {
 				if !strings.Contains(out, w) {
 					t.Errorf("Restore printed %q, want it to hold %q", out, w)
 				}
+			}
+		})
+	}
+}
+
+// TestRestore_LibraryIntoSymlink: with --into-nonempty, a library root
+// holding a symlink is refused before any rclone run, naming the link.
+// rclone v1.74.3 lists a symlinked directory as absent, so it writes
+// the remote's file through the link without displacing the local
+// one, and it replaces a symlinked file with a regular file; each row
+// checks the local file and the link survive, which fails if the copy
+// ran.
+func TestRestore_LibraryIntoSymlink(t *testing.T) {
+	const local = "the member's only copy"
+	tests := []struct {
+		name string
+		// arrange fills root and outside, a directory beside it, and
+		// returns the link, relative to root.
+		arrange func(t *testing.T, root, outside string) string
+	}{
+		{
+			name: "a symlinked directory",
+			arrange: func(t *testing.T, root, outside string) string {
+				p := filepath.Join(outside, "album", "one.flac")
+				if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(p, []byte(local), 0o644); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Symlink(outside, filepath.Join(root, "artist")); err != nil {
+					t.Fatal(err)
+				}
+				return "artist"
+			},
+		},
+		{
+			name: "a symlinked file",
+			arrange: func(t *testing.T, root, outside string) string {
+				p := filepath.Join(outside, "album", "one.flac")
+				if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(p, []byte(local), 0o644); err != nil {
+					t.Fatal(err)
+				}
+				link := filepath.Join(root, "artist", "album", "one.flac")
+				if err := os.MkdirAll(filepath.Dir(link), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Symlink(p, link); err != nil {
+					t.Fatal(err)
+				}
+				return "artist/album/one.flac"
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remote, _ := libraryRemote(t, snapshotFile(t))
+			stateDir := storeWithUser(t, currentUser)
+			dir, err := filepath.EvalSymlinks(t.TempDir())
+			if err != nil {
+				t.Fatal(err)
+			}
+			root, outside := filepath.Join(dir, "lib"), filepath.Join(dir, "outside")
+			for _, d := range []string{root, outside} {
+				if err := os.Mkdir(d, 0o755); err != nil {
+					t.Fatal(err)
+				}
+			}
+			link := filepath.Join(root, tt.arrange(t, root, outside))
+			s := recordingRclone(t)
+
+			_, err = libraryRestore(t, stateDir, remote, root, true)
+			if err == nil || !strings.Contains(err.Error(), link+" is a symlink") {
+				t.Errorf("Restore() = %v, want a refusal naming %s as a symlink", err, link)
+			}
+			if got := readFile(t, filepath.Join(outside, "album", "one.flac")); got != local {
+				t.Errorf("the local file behind the link holds %q, want %q", got, local)
+			}
+			switch info, err := os.Lstat(link); {
+			case err != nil:
+				t.Errorf("link after the restore: %v", err)
+			case info.Mode()&fs.ModeSymlink == 0:
+				t.Errorf("link %s is %v after the restore, want it still a symlink", link, info.Mode())
+			}
+			if got := s.subcommands(t); len(got) != 0 {
+				t.Errorf("rclone ran %q, want no run", got)
+			}
+			if got := recordState(t, stateDir); got != "" {
+				t.Errorf("record %q after the refusal, want none", got)
+			}
+			if got := users(t, leafOf(stateDir).db); !slices.Equal(got, []string{currentUser}) {
+				t.Errorf("current store holds %q, want %q", got, currentUser)
 			}
 		})
 	}
@@ -1602,8 +1713,9 @@ func TestRestore_LibraryResume(t *testing.T) {
 // TestRestore_LibraryResumeDisplaced is resume's rows with
 // --into-nonempty: it accepts the displaced directory its interrupted
 // run created, keeps every file that run displaced, and adds the ones
-// it displaces itself; it refuses a displaced path that is anything but
-// such a directory, before any rclone run.
+// it displaces itself; it refuses a root that now holds a symlink, and
+// a displaced path that is anything but such a directory, before any
+// rclone run.
 func TestRestore_LibraryResumeDisplaced(t *testing.T) {
 	t.Run("an interrupted run's directory", func(t *testing.T) {
 		root := t.TempDir()
@@ -1644,6 +1756,27 @@ func TestRestore_LibraryResumeDisplaced(t *testing.T) {
 		}
 		if !strings.Contains(out, want) {
 			t.Errorf("resume printed %q, want it to hold %q", out, want)
+		}
+	})
+
+	t.Run("a symlink made in the root since the interrupted run", func(t *testing.T) {
+		root := t.TempDir()
+		stateDir, _ := crashAtLibrary(t, root, true)
+		link := filepath.Join(root, "artist")
+		if err := os.Symlink(t.TempDir(), link); err != nil {
+			t.Fatal(err)
+		}
+		bin, s := useFetchStandin(t, "", "")
+		t.Setenv("PATH", filepath.Dir(bin))
+		_, err := resume(t, stateDir)
+		if err == nil || !strings.Contains(err.Error(), link+" is a symlink") {
+			t.Fatalf("resume: %v, want a refusal naming %s as a symlink", err, link)
+		}
+		if lines := s.lines(t); len(lines) != 0 {
+			t.Errorf("the refused resume ran rclone: %q", lines)
+		}
+		if got := recordState(t, stateDir); got != "library" {
+			t.Errorf("record after the refusal %q, want library", got)
 		}
 	})
 
