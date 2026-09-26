@@ -13,7 +13,8 @@ total about 11.0M across all its passes, about 1.6M for tonight's review round a
   register gate folded. Next: segment E (Task 10 render-and-read, the simplifier round with 9b's
   five stale-comment nits, three reviewers, one fold, Task 11 with architecture reads).
 - **Lane 2, 6c**: merged `1fc7260..e90998a` (range-diff all `=`, disjoint files, both gates
-  green; merged-result review verdict in its HISTORY entry). Next: six architecture reads and the
+  green; the merged-result diff-reviewer returned accept, no semantic conflict; record it in
+  6c's HISTORY entry at the fold). Next: six architecture reads and the
   ledger fold (drafts `docs/superpowers/research/handoffs/draft-*-6c.md`, with the must-keep list),
   then remove worktree `lane-2-6c`. Then transliteration (`plans/2026-09-25-translit-table-at-setup.md`,
   approved, 3.3M) or 5d-i once Geoff approves 5d.
