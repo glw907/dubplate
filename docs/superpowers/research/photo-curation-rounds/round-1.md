@@ -203,3 +203,25 @@ The date for every row is 2026-09-25.
 - The `us-1978-1989-no-notice-unregistered` basis failed in every sampled use (6 of 6). No record
   carried registration evidence, and flyers routinely embed third-party logos and character art
   that a flyer's own lack of notice does not free.
+
+## Re-verification (2026-09-25)
+
+The spot-check's mismatches sent the round back. Three agents re-verified every remaining record
+by directory, so each `verified` field now quotes the matched source line, and each public-domain
+record also quotes the line its basis rests on.
+
+- Dropped: all six flyers resting on the 1978 to 1989 no-notice-unregistered basis (Black Flag
+  and five Kopper flyers; embedded third-party art, no registration evidence);
+  `commons:188415528` (Flickr source gone before FlickreviewR, no archive capture);
+  `commons:150285417` (a wall of third-party Fela posters); `commons:158743918` (the Slits;
+  upstream Flickr is CC BY-NC-ND 2.0, no evidence of a freer grant). Conductor ruling:
+  `commons:168617945` (Marley 1976) moves to round two as `unavailable`, because its no-notice
+  evidence (eBay via archive.ph and worthpoint) answered 429 and 403 twice.
+- Corrected: the five Gottlieb records to `rights-holder-dedication`; the Fuzztones credited to
+  Anthony Gliozzo and kept (author field and a file description name him, a two-file account from
+  one 1984 show); DOCUMERICA credits (Pickerell, Calonius) and dates; the Colby printer imprint;
+  own-work plausibility statements for eight research-a records with twenty-year-plus gaps.
+- Pool after re-verification: 111 candidates.
+- Garage (Geoff asked): the Standells and the Chocolate Watchband (1966, public domain), Q65 on
+  the Scheveningen pier (1966, CC0), and the Fuzztones (1984). Round two targets 1960s garage and
+  the 1980s revival as a named gap.
