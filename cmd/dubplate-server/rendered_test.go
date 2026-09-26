@@ -123,6 +123,8 @@ var renderedManifest = []renderedRow{
 	{id: "component/surface/keyline-base/label-night"},
 	{id: "component/surface/keyline-fill/label"},
 	{id: "component/surface/keyline-fill/label-night"},
+	{id: "component/surface/keyline-outline/label"},
+	{id: "component/surface/keyline-outline/label-night"},
 	{id: "component/surface/border-width/label"},
 	{id: "component/surface/border-width/label-night"},
 	{id: "component/surface/ghost/label"},

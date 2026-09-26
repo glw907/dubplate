@@ -95,16 +95,6 @@
   }
 
   /*
-   * A colored fill (every status alert) sits under 3:1 against the
-   * ring, so a focusable inside one takes a page-colored halo under
-   * it: 6px of base-100 fills the offset gap and reaches 2px past the
-   * ring's outer edge (W9.1's halo, the mechanism VI gives the header).
-   */
-  :where(.alert :focus-visible) {
-    box-shadow: 0 0 0 6px var(--color-base-100);
-  }
-
-  /*
    * The printed surface: every raised element takes a hard-edged
    * offset shadow with no blur, in the surface tokens' shadow color at
    * a per-element strength (`lib/themes/surface.css`). A pressed
@@ -173,6 +163,37 @@
   }
 
   /*
+   * An outline or dash button has no fill, so its border is its only
+   * edge. It paints the status's measured ink (base-content for a
+   * status with none, as the badge does) rather than the fill keyline
+   * the rule above gives the same status, which on `label-night` is
+   * black on a near-black base.
+   */
+  :where(.btn-outline, .btn-dash) {
+    border-color: var(--btn-ink, var(--color-base-content));
+  }
+
+  :where(.btn-primary) {
+    --btn-ink: var(--ink-primary);
+  }
+
+  :where(.btn-accent, .btn-success) {
+    --btn-ink: var(--ink-accent);
+  }
+
+  :where(.btn-info) {
+    --btn-ink: var(--ink-info);
+  }
+
+  :where(.btn-warning) {
+    --btn-ink: var(--ink-warning);
+  }
+
+  :where(.btn-error) {
+    --btn-ink: var(--ink-error);
+  }
+
+  /*
    * Flat buttons (ghost, link, and disabled) carry no border or
    * shadow and so have nothing to press into. The border stays solid
    * and turns transparent rather than `border-style: none`, since
@@ -215,6 +236,20 @@
 
   :where(.input, .select, .textarea) {
     box-shadow: inset 0 1px 2px color-mix(in oklab, var(--keyline-base) 20%, transparent);
+  }
+
+  /*
+   * A colored fill (every status alert) sits under 3:1 against the
+   * ring, so a focusable inside one takes a page-colored halo under
+   * it: 6px of base-100 fills the offset gap and reaches 2px past the
+   * ring's outer edge (W9.1's halo, the mechanism VI gives the header).
+   * Every rule here shares zero specificity, so the later declaration
+   * wins: this one sits after each `box-shadow` a focusable carries
+   * (the button's printed shadow, the flat buttons' none, the inputs'
+   * inset) so the halo replaces it while focused.
+   */
+  :where(.alert :focus-visible) {
+    box-shadow: 0 0 0 6px var(--color-base-100);
   }
 
   /*

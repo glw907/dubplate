@@ -985,6 +985,9 @@ const FIXTURE = {
   validatorHint: 'rendered-fx-validator-hint',
   card: 'rendered-fx-card',
   alert: 'rendered-fx-alert',
+  alertControls: 'rendered-fx-alert-controls',
+  alertButton: 'rendered-fx-alert-btn',
+  alertInput: 'rendered-fx-alert-input',
   proseLink: 'rendered-fx-prose-link',
   badgeUtility: 'rendered-fx-badge-utility',
   display: 'rendered-fx-display',
@@ -1021,9 +1024,21 @@ const STATUS_LINKS: { id: string; className: string; status: Status }[] = [
 ];
 
 /**
+ * The plain outline button and one per status modifier, for the
+ * outline keyline row: an outline button has no fill, so its border is
+ * its only edge.
+ */
+const OUTLINE_BUTTONS: { id: string; className: string; status: Status | null }[] = [
+  { id: 'rendered-fx-btn-outline', className: 'btn btn-outline', status: null },
+  ...STATUSES.map((status) => ({ id: `rendered-fx-btn-outline-${status}`, className: `btn btn-outline btn-${status}`, status }))
+];
+
+/**
  * One alert per fill, each holding a focusable link, so the focus row
  * measures a ring drawn over a colored fill (the plain alert's fill is
- * base-200).
+ * base-200). The fixture adds one more info alert holding a button and
+ * an input, controls that carry box-shadows of their own, so the row
+ * also measures a ring on a fill where the halo must outrank them.
  */
 const ALERTS: { id: string; className: string }[] = [
   { id: 'rendered-fx-alert', className: 'alert' },
@@ -1048,6 +1063,7 @@ function fixtureMarkup(): string {
     button(f.btnDisabled, 'btn btn-primary', ' disabled'),
     button(f.btnDisabledClass, 'btn btn-disabled'),
     button(f.btnLink, 'btn btn-link'),
+    ...OUTLINE_BUTTONS.map((b) => button(b.id, b.className)),
     `<a id="${f.anchorBtn}" class="btn" href="#rendered-fx">${f.anchorBtn}</a>`,
     `<input id="${f.input}" type="text" class="input" aria-label="${f.input}">`,
     `<label id="${f.wrappedInput}" class="input"><span>wrapped</span><input type="text"></label>`,
@@ -1061,6 +1077,7 @@ function fixtureMarkup(): string {
     `<div><input id="${f.validator}" type="text" class="input validator" aria-invalid="true" aria-label="${f.validator}"><p id="${f.validatorHint}" class="validator-hint">fixture hint</p></div>`,
     `<div id="${f.card}" class="card"><div class="card-body">fixture card</div></div>`,
     ...ALERTS.map((a) => `<div id="${a.id}" class="${a.className}">fixture alert <a class="link" href="#rendered-fx">${a.id}</a></div>`),
+    `<div id="${f.alertControls}" class="alert alert-info">${button(f.alertButton, 'btn')}<input id="${f.alertInput}" type="text" class="input" aria-label="${f.alertInput}"></div>`,
     `<p>Body text with <a id="${f.proseLink}" class="link text-ink-primary" href="#rendered-fx">a link</a> in it.</p>`,
     ...STATUS_LINKS.map((l) => `<a id="${l.id}" class="${l.className}" href="#rendered-fx">${l.id}</a>`),
     ...BADGES.map((b) => `<span id="${b.id}" class="${b.className}">${b.status ?? 'plain'}</span>`),
@@ -1336,6 +1353,23 @@ async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
   }, TAB_PROBE_ATTR);
 }
 
+/**
+ * Waits out any transition the newly focused element (or the control
+ * wrapping it) runs on focus: DaisyUI's `.btn` transitions
+ * `box-shadow`, so a screenshot taken at once catches a halo still
+ * growing in. A cancelled transition rejects `finished`, which counts
+ * as settled.
+ */
+async function settleFocusTransitions(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const el = document.activeElement;
+    if (el === null) return;
+    const wrapper = el.parentElement?.closest('.input, .select, .textarea') ?? null;
+    const animations = [el, wrapper].flatMap((target) => target?.getAnimations() ?? []);
+    await Promise.all(animations.map((a) => a.finished.catch(() => undefined)));
+  });
+}
+
 function describeOutline(o: Outline): string {
   return `${o.style} ${o.width} ${o.color} offset ${o.offset}`;
 }
@@ -1353,7 +1387,7 @@ function describeOutline(o: Outline): string {
  * offset gap) and the one just outside it each clear 3:1 against the
  * ring, both sampled above the element's top edge, where the printed
  * surface casts no shadow (the shadow's own offset is bottom-right
- * only); for a link inside a filled alert, those two pixels fall on
+ * only); for a control inside a filled alert, those two pixels fall on
  * the alert's fill unless a page-colored halo covers them. The walk
  * also proves coverage by identity: every element
  * {@link enumerateTabbable} finds must be focused at least once (a
@@ -1399,6 +1433,12 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
         if ((await visit.page.getByRole('link', { name: ALERTS[1].id, exact: true }).count()) === 0) {
           missingRoles.push(`${ALERTS[1].id}'s link`);
         }
+        if ((await visit.page.getByRole('button', { name: FIXTURE.alertButton, exact: true }).count()) === 0) {
+          missingRoles.push(FIXTURE.alertButton);
+        }
+        if ((await visit.page.getByRole('textbox', { name: FIXTURE.alertInput, exact: true }).count()) === 0) {
+          missingRoles.push(FIXTURE.alertInput);
+        }
         if (missingRoles.length > 0) {
           await report({ id, fixture: false, property: false, detail: `missing by role: ${missingRoles.join(', ')}` });
           continue;
@@ -1416,6 +1456,7 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
         // ends the loop early regardless.
         for (let i = 0; i < total + 2; i++) {
           await visit.page.keyboard.press('Tab');
+          await settleFocusTransitions(visit.page);
           const focused = await focusedInfo(visit.page);
           if (focused === null) break;
           visited++;
@@ -1678,7 +1719,7 @@ async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void
     const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, state);
     try {
       if (!stamped) {
-        for (const row of ['keyline-base', 'keyline-fill', 'keyline-controls', 'border-width', 'ghost', 'flat']) {
+        for (const row of ['keyline-base', 'keyline-fill', 'keyline-outline', 'keyline-controls', 'border-width', 'ghost', 'flat']) {
           await report({ id: `component/surface/${row}/${theme}`, fixture: false, property: false, detail: problem });
         }
         for (const name of ['button', 'card', 'alert']) {
@@ -1708,6 +1749,24 @@ async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void
         fixture: true,
         property: sameRGBA(primaryBorder, wantFill) && sameRGBA(alertBorder, wantFill),
         detail: `primary button border [${primaryBorder.join(',')}], alert border [${alertBorder.join(',')}] (want ${SURFACE_EXPECTED.keylineFill[theme]})`
+      });
+
+      // An outline button's border is its only edge, so it paints the
+      // status's ink (base-content for a status with none), never the
+      // fill keyline a filled button of the same status takes.
+      const outlineBorders: string[] = [];
+      let outlineOK = true;
+      for (const b of OUTLINE_BUTTONS) {
+        const got = await border(b.id);
+        const wantInk = statusInk(theme, b.status);
+        if (!sameRGBA(got, hexRGBA(wantInk))) outlineOK = false;
+        outlineBorders.push(`${b.id} [${got.join(',')}] want ${wantInk}`);
+      }
+      await report({
+        id: `component/surface/keyline-outline/${theme}`,
+        fixture: true,
+        property: outlineOK,
+        detail: outlineBorders.join(', ')
       });
 
       // The selection controls' own edges: DaisyUI draws each at 20% to

@@ -85,7 +85,13 @@ Go and static-gate mutations:
   floor on the three bases". It records `label`'s neutral header as a fourth surface that falls
   short. The status alert fills are more such surfaces: 1.03 to 2.34 on `label`, and 1.05 to 2.00
   on `label-night`. The erratum should extend the header's halo sentence to "focusables inside a
-  filled container (the header, every status alert)". This fold did not edit VI.
+  filled container (the header, every status alert)". This fold did not edit VI. **Fix round:**
+  the halo rule first sat before the button's and the inputs' own `box-shadow` rules, and at equal
+  zero specificity the later rule won, so a focused button or input inside an alert got no halo.
+  The rule now follows every `box-shadow` a focusable carries. The fixture adds a button and an
+  input inside an info alert, and the walk requires both by role. Against the old order, the focus
+  rows failed with `rendered-fx-alert-btn: ring contrast inside 1.22:1, outside 1.33:1` on `label`
+  and `inside 1.03:1, outside 1.02:1` on `label-night`.
 - **a11y W2 = svelte S1 (wrapped input and select double rings).** Folded, `81988b1`.
   `--input-color` is `--ink-primary` on a control's `:focus` or `:focus-within`, so DaisyUI draws
   its own ring in the ink on any focus. A bare input inside a wrapper drops its own ring. The fixture
@@ -93,6 +99,11 @@ Go and static-gate mutations:
 - **a11y W3 = svelte W1 (disabled and link buttons look raised).** Folded, `81988b1`. Ghost, link,
   `.btn-disabled`, and `:disabled` or `[aria-disabled]` buttons get a transparent solid border, no
   shadow, and no press translate. Rows: `component/surface/flat/<theme>` and `component/pressed/flat`.
+  **Fix round:** the fold missed svelte W1's outline half. The fill keyline rule also set the border
+  of `.btn-outline.btn-<status>`, which is black on `label-night`'s near-black base, so the button
+  lost its only edge. An outline or dash button's border now paints the status ink, or
+  base-content for a status with none. Row: `component/surface/keyline-outline/<theme>`, which
+  failed before the fix with every status outline border at `[0,0,0,255]` on `label-night`.
 - **a11y W4 = svelte S2 and S4 (links).** Folded, `81988b1`. The global `a:hover` rule is gone.
   Prose links use DaisyUI's `.link`, which is underlined at rest, with `text-ink-primary`.
   `link-<status>` paints the status ink, and `.btn-link` paints `--ink-primary`. `.link-hover` gains
@@ -132,9 +143,12 @@ Go and static-gate mutations:
 
 - **M1 (sinks outside the source scan).** Folded, `81988b1` and `2c880db`. Every rendered row now
   fails when any request the server logged since the previous row left the owned prefix. A final
-  sweep refuses a request logged after the last row. root-absolute scans the listed sinks. The
-  built-JS scan is **refused**: the per-row request watch covers every code path at run time, and a
-  static scan of minified dependency code would flag inert strings.
+  sweep refuses a request logged after the last row. root-absolute scans the listed sinks, and
+  since the fix round a root-absolute URL in a later `srcset` candidate too. The built-JS scan is
+  **refused**: the per-row request watch covers the code paths the rendered rows exercise, and a
+  static scan of minified dependency code would flag inert strings. The G7 branding and operator
+  fixture servers sit outside the request log, so requests to those two bases are outside M1's
+  watch. Sharing the main log would interleave their records with the offsets each row reads.
 - **M2 (CSP scope under a same-origin streamer).** Routed to rung 12, which adds the fallthrough
   streamer: scope `script-src`, `connect-src`, and `form-action` to `<origin><prefix>/`.
 - **L1 (the placeholder in operator text).** Folded, `75fde16`. `BuildDocumentVariants` runs

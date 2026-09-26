@@ -26,10 +26,13 @@ const SCANNED_EXTENSIONS = ['.svelte', '.ts', '.js', '.html'];
 /**
  * Each opening quote may follow a Svelte expression brace, so
  * `href={'/x'}` and ``href={`/x`}`` count as well as `href="/x"`. Each
- * match runs on to the URL's end, so a failure names the URL.
+ * match runs on to the URL's end, so a failure names the URL. A
+ * `srcset` lists candidates separated by commas, so its second pattern
+ * catches a root-absolute URL in any later candidate.
  */
 const SOURCE_PATTERNS: RegExp[] = [
   /\b(?:href|src|srcset|action|formaction)\s*=\s*\{?\s*["'`]\/[^"'`\s]*/g,
+  /\bsrcset\s*=\s*\{?\s*["'`][^"'`]*,\s*\/[^"'`\s]*/g,
   /\b(?:fetch|goto|sendBeacon|window\.open|location\.assign|location\.replace)\s*\(\s*["'`]\/[^"'`\s]*/g,
   /\bnew\s+(?:URL|Request)\s*\(\s*["'`]\/[^"'`\s]*/g,
   /\blocation(?:\.href)?\s*=\s*["'`]\/[^"'`\s]*/g

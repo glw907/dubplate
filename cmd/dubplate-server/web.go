@@ -388,15 +388,15 @@ func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler 
 	})
 }
 
-// staticFile is one embedded file served at an exact path: its bytes,
-// its Content-Type, and its strong ETag, all fixed at startup so no
-// request byte reaches them.
 // svgCSP is the policy every SVG response carries. A browser opening an
 // SVG directly runs it as a document, script and all; the policy
 // refuses every fetch and script and sandboxes it, keeping only the
 // inline styles an SVG's own presentation may use.
 const svgCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 
+// staticFile is one embedded file served at an exact path: its bytes,
+// its Content-Type, and its strong ETag, all fixed at startup so no
+// request byte reaches them.
 type staticFile struct {
 	data        []byte
 	contentType string
