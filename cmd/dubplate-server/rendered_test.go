@@ -22,6 +22,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/glw907/dubplate/internal/auth"
 )
 
 // renderedPrefix is the owned prefix the fixture server mounts under.
@@ -147,6 +149,28 @@ var renderedManifest = []renderedRow{
 	{id: "fonts/alfa-slab-one"},
 	{id: "fonts/work-sans"},
 	{id: "fonts/ibm-plex-mono"},
+	{id: "auth/static/login"},
+	{id: "auth/static/login-link"},
+	{id: "auth/login/site-name-heading"},
+	{id: "auth/login/sent"},
+	{id: "auth/login/requested"},
+	{id: "auth/login/unknown-with-admin", linkRequests: 1},
+	{id: "auth/login/unknown-no-admin"},
+	{id: "auth/login/rate-limited"},
+	{id: "auth/login/invalid-address", linkRequests: 1},
+	{id: "auth/login/too-large"},
+	{id: "auth/login/malformed"},
+	{id: "auth/login/failed", linkRequests: 1},
+	{id: "auth/login/cross-origin"},
+	{id: "auth/login/network-failure"},
+	{id: "auth/login/single-outcome"},
+	{id: "auth/interstitial/token-order", consumptions: 1},
+	{id: "auth/interstitial/signed-in", consumptions: 1},
+	{id: "auth/interstitial/refused-reload"},
+	{id: "auth/interstitial/rate-limited"},
+	{id: "auth/interstitial/too-large"},
+	{id: "auth/interstitial/malformed"},
+	{id: "auth/interstitial/failed"},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two
@@ -205,6 +229,26 @@ func (l *requestLog) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(body)
 }
 
+// snapshot returns a copy of every record l holds so far.
+func (l *requestLog) snapshot() []loggedRequest {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return slices.Clone(l.records)
+}
+
+// The fixture roster's own addresses and display names, and the site
+// name the login heading and title rows read back. The site name and
+// the admin's display name each carry `"`, `<`, or `&` (universal at
+// `example.test` scope), so a page that rendered either with
+// `{@html}` would leave a stray element behind rather than the
+// literal text a rendered row asserts.
+const (
+	renderedSiteName         = `Fixture "Site" <Name> & Co`
+	renderedAdminAddress     = "admin@example.test"
+	renderedAdminDisplayName = "Fixture <Admin>"
+	renderedMemberAddress    = "member@example.test"
+)
+
 // renderedEnviron is the fixture environment: a temporary state
 // directory, a roster of one admin and one member at example.test, the
 // fixed test secrets, publicURL as the server's own origin, an SMTP port
@@ -214,8 +258,8 @@ func renderedEnviron(t *testing.T, publicURL string) []string {
 	t.Helper()
 	rosterPath := filepath.Join(t.TempDir(), "roster.json")
 	roster := `{"schema_version":1,"members":[` +
-		`{"address":"admin@example.test","display_name":"Fixture Admin","admin":true},` +
-		`{"address":"member@example.test","display_name":"Fixture Member"}]}`
+		`{"address":"` + renderedAdminAddress + `","display_name":"` + renderedAdminDisplayName + `","admin":true},` +
+		`{"address":"` + renderedMemberAddress + `","display_name":"Fixture Member"}]}`
 	if err := os.WriteFile(rosterPath, []byte(roster), 0o600); err != nil {
 		t.Fatalf("write fixture roster: %v", err)
 	}
@@ -227,6 +271,7 @@ func renderedEnviron(t *testing.T, publicURL string) []string {
 		"DUBPLATE_SMTP_PORT":                                     strconv.Itoa(closedPort(t)),
 		"DUBPLATE_UNKNOWN_ADDRESS_ANSWER":                        "kind",
 		"DUBPLATE_SERVE_PREFIX":                                  renderedPrefix,
+		"DUBPLATE_SITE_NAME":                                     renderedSiteName,
 		"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR":            strconv.Itoa(renderedLinkRequestsPerAddress),
 		"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR":             strconv.Itoa(renderedLinkRequestsPerClient),
 		"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR": strconv.Itoa(renderedConsumptionAttemptsPerClient),
@@ -354,6 +399,72 @@ func checkRateBudget(t *testing.T, environ []string) {
 	}
 }
 
+// mintRenderedLink mints one magic link for address against environ's
+// own link secret and expiry (`auth.MintLink`, `auth.LinkURL`), so the
+// rendered leg's ordering and `signed_in` rows spend real, single-use
+// links rather than a value neither `auth.VerifyLink` nor the roster
+// would accept.
+func mintRenderedLink(t *testing.T, environ []string, address string) string {
+	t.Helper()
+	cfg, err := resolveAuthConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveAuthConfig: %v", err)
+	}
+	secret := []byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET"))
+	token, _, err := auth.MintLink(secret, address, time.Now(), cfg.magicLinkExpiry)
+	if err != nil {
+		t.Fatalf("auth.MintLink: %v", err)
+	}
+	link, err := auth.LinkURL(environValue(environ, "DUBPLATE_PUBLIC_URL"), renderedPrefix, token)
+	if err != nil {
+		t.Fatalf("auth.LinkURL: %v", err)
+	}
+	return link
+}
+
+// countLogged reports how many records in records are a POST to a
+// path ending in suffix (the owned prefix's own subtree name).
+func countLogged(records []loggedRequest, suffix string) int {
+	n := 0
+	for _, r := range records {
+		if r.Method == http.MethodPost && strings.HasSuffix(r.Path, suffix) {
+			n++
+		}
+	}
+	return n
+}
+
+// checkSpendReconciliation fails t, naming both counts, unless the
+// manifest's declared link-request and consumption totals equal what
+// the fixture server's own request log recorded, and unless both
+// totals are nonzero: the state table's real rows always spend both,
+// so a manifest whose counts were dropped cannot pass by also logging
+// nothing.
+func checkSpendReconciliation(t *testing.T, log *requestLog) {
+	t.Helper()
+	var declaredRequests, declaredConsumptions int
+	for _, row := range renderedManifest {
+		declaredRequests += row.linkRequests
+		declaredConsumptions += row.consumptions
+	}
+	records := log.snapshot()
+	loggedRequests := countLogged(records, "/request-link")
+	loggedConsumptions := countLogged(records, "/consume-link")
+	if declaredRequests == 0 {
+		t.Fatalf("the manifest declares 0 link requests; the live rows always spend at least one")
+	}
+	if declaredConsumptions == 0 {
+		t.Fatalf("the manifest declares 0 consumptions; the live rows always spend at least one")
+	}
+	if declaredRequests != loggedRequests {
+		t.Fatalf("the manifest declares %d request-link POSTs, the log shows %d", declaredRequests, loggedRequests)
+	}
+	if declaredConsumptions != loggedConsumptions {
+		t.Fatalf("the manifest declares %d consume-link POSTs, the log shows %d", declaredConsumptions, loggedConsumptions)
+	}
+	t.Logf("spend reconciliation: %d request-link POSTs, %d consume-link POSTs, both declared and logged", loggedRequests, loggedConsumptions)
+}
+
 // checkServedVersion fails t unless the server's _app/version.json is
 // byte-identical to the one on disk under webDir's build, so a binary
 // embedding a stale bundle cannot pass the leg.
@@ -476,6 +587,13 @@ func TestRendered(t *testing.T) {
 	brandingSrv := startBrandingServer(t)
 	operatorSrv := startOperatorServer(t)
 
+	// The token-ordering row and the state-table's own `signed_in` row
+	// each spend one real, single-use link, so each gets its own:
+	// reusing one would leave the second row consuming an already-spent
+	// link.
+	loginLinkOrdering := mintRenderedLink(t, environ, renderedAdminAddress)
+	loginLinkSignedIn := mintRenderedLink(t, environ, renderedAdminAddress)
+
 	env := append(scriptEnviron(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
 		"DUBPLATE_RENDERED_REQUEST_LOG="+logSrv.URL,
@@ -483,11 +601,16 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_OPERATOR_BASE_URL="+operatorSrv.URL+renderedPrefix+"/",
 		"DUBPLATE_RENDERED_BRANDING_PRIMARY="+renderedBrandingPrimary,
 		"DUBPLATE_RENDERED_OPERATOR_PRIMARY="+renderedOperatorPrimary,
+		"DUBPLATE_RENDERED_SITE_NAME="+renderedSiteName,
+		"DUBPLATE_RENDERED_ADMIN_DISPLAY_NAME="+renderedAdminDisplayName,
+		"DUBPLATE_RENDERED_LOGIN_LINK_ORDERING="+loginLinkOrdering,
+		"DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN="+loginLinkSignedIn,
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {
 		t.Errorf("the browser script exited: %v\n%s", err, stderr)
 	}
+	checkSpendReconciliation(t, log)
 
 	rows, problems := parseRows(stdout)
 	for _, p := range problems {

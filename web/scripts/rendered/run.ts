@@ -25,6 +25,16 @@
 import { chromium } from 'playwright';
 import type { Browser, BrowserContext, Page } from 'playwright';
 import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
+import {
+  ADD_MEMBER_LABELS,
+  AUTH_OUTCOMES,
+  CROSS_ORIGIN_REFUSED,
+  INTERSTITIAL_CONTROL,
+  NETWORK_FAILURE,
+  TITLES,
+  unknownAddressLine
+} from '../../src/lib/copy/deck.ts';
+import { pageTitle } from '../../src/lib/copy/title.ts';
 
 const INSTALL_HINT = 'npx --prefix web playwright install chromium';
 
@@ -61,6 +71,15 @@ interface Visit {
    * and nothing else.
    */
   expectedBlock: string | null;
+  /**
+   * True on a visit that deliberately posts to `request-link` or
+   * `consume-link` and reads a non-2xx answer: Chromium logs "Failed
+   * to load resource: the server responded with a status of NNN" for
+   * any such fetch response regardless of whether the page's own code
+   * handles it, so the auth rows' many intentional 4xx/5xx answers
+   * would otherwise each end the whole run.
+   */
+  expectsAuthErrorStatus: boolean;
 }
 
 /**
@@ -74,9 +93,13 @@ interface ServedPage {
   heading: string;
 }
 
+// Populated in `main`, once the fixture site name is in hand: the
+// login page's own heading is the group's name, and the interstitial's
+// shared boot heading is the deck's own refused-state title, since
+// every row that opens it with no token lands there.
 const PAGES: ServedPage[] = [
-  { name: 'login', path: 'login', heading: 'Log in' },
-  { name: 'login-link', path: 'login/link', heading: 'Confirm login' }
+  { name: 'login', path: 'login', heading: '' },
+  { name: 'login-link', path: 'login/link', heading: '' }
 ];
 
 /**
@@ -122,7 +145,35 @@ interface Endpoints {
   operatorBase: string;
   brandingPrimary: string;
   operatorPrimary: string;
+  /** `DUBPLATE_SITE_NAME`, carrying `"`, `<`, and `&`, so a page that rendered it unescaped would leave a stray element behind. */
+  siteName: string;
+  /** The fixture roster admin's display name, carrying `<` the same way. */
+  adminDisplayName: string;
+  /** A real minted link for the fixture admin, spent by the token-ordering row. */
+  loginLinkOrdering: string;
+  /** A second, distinct real minted link for the fixture admin, spent by the `signed_in` state-table row. */
+  loginLinkSignedIn: string;
 }
+
+/**
+ * The fixture roster's own addresses (`renderedEnviron`,
+ * `cmd/dubplate-server/rendered_test.go`): the admin, the member, and
+ * one address the roster does not carry at all.
+ */
+const ADMIN_ADDRESS = 'admin@example.test';
+const MEMBER_ADDRESS = 'member@example.test';
+const UNKNOWN_ADDRESS = 'stranger@example.test';
+
+/**
+ * An address a browser's `type="email"` constraint validation admits
+ * (its local part is any run of `[a-zA-Z0-9.!#$%&'*+/=?^_\`{|}~-]`,
+ * which does not forbid a repeated `.`) but Go's `net/mail.ParseAddress`
+ * refuses (RFC 5322 dot-atom text forbids an empty atom between two
+ * dots: `mail.ParseAddress("a..b@example.test")` answers `mail: missing
+ * '@' or angle-addr`, measured against `go1.27.1`). So `invalid_address`
+ * is a real answer here, not a fulfilled one.
+ */
+const INVALID_ADDRESS = 'a..b@example.test';
 
 const visits: Visit[] = [];
 
@@ -192,7 +243,7 @@ async function open(
   waitUntil: 'load' | 'domcontentloaded'
 ): Promise<{ visit: Visit; body: string }> {
   const page = await context.newPage();
-  const visit: Visit = { url, page, consoleErrors: [], violations: [], expectedBlock: null };
+  const visit: Visit = { url, page, consoleErrors: [], violations: [], expectedBlock: null, expectsAuthErrorStatus: false };
   page.on('console', (msg) => {
     if (msg.type() !== 'error') return;
     visit.consoleErrors.push(`${msg.text()} (${msg.location().url})`);
@@ -696,11 +747,17 @@ function isExpectedViolation(visit: Visit, v: Violation): boolean {
   return visit.expectedBlock !== null && v.directive === 'img-src' && v.blocked === visit.expectedBlock;
 }
 
+const AUTH_ERROR_STATUS_RE =
+  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link)\)$/;
+
 function isExpectedConsoleError(visit: Visit, text: string): boolean {
-  return (
+  if (
     visit.expectedBlock !== null &&
     text.startsWith(`Loading the image '${visit.expectedBlock}' violates the following Content Security Policy directive: "img-src `)
-  );
+  ) {
+    return true;
+  }
+  return visit.expectsAuthErrorStatus && AUTH_ERROR_STATUS_RE.test(text);
 }
 
 /** Refuses the run when any page reported a problem it did not raise on purpose. */
@@ -2172,6 +2229,527 @@ async function killSwitchRow(browser: Browser, endpoints: Endpoints): Promise<vo
   }
 }
 
+/**
+ * An outcome's announcement class (the state table's own "Class"
+ * column), read independently of `web/src/lib/api/auth.ts`'s own
+ * `outcomeClass`, which cannot be imported here (it imports `deck.ts`
+ * through the `$lib` alias, which Node's type-stripping loader cannot
+ * resolve outside Vite). Re-deriving it from the state table is what
+ * lets this row prove the page's own classification, rather than
+ * assuming it.
+ */
+type OutcomeClass = 'status' | 'warning' | 'error';
+function outcomeClass(outcome: string): OutcomeClass {
+  if (outcome === 'failed') return 'warning';
+  if (outcome === 'sent' || outcome === 'requested' || outcome === 'unknown' || outcome === 'rate_limited' || outcome === 'signed_in') {
+    return 'status';
+  }
+  return 'error';
+}
+
+/**
+ * Static markup every page must carry regardless of outcome: one
+ * `h1`, no `placeholder` attribute, the login page's email input
+ * declaring `autocomplete="email"`, none of the forbidden button
+ * shapes (`.btn-outline`, `.btn-dash`, a status-modified
+ * `.btn-ghost`: DaisyUI 5.7.46 paints their text from an unfixed
+ * variable, so their text contrast cannot be trusted), no control
+ * painted on `base-300`, and the skip link first in tab order.
+ */
+async function staticMarkupRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const served of PAGES) {
+    const id = `auth/static/${served.name}`;
+    const context = await browser.newContext();
+    try {
+      const visit = await openBooted(context, endpoints.base, served);
+      const info = await visit.page.evaluate(() => ({
+        h1Count: document.querySelectorAll('h1').length,
+        placeholderInputs: document.querySelectorAll('input[placeholder]').length,
+        emailAutocomplete: document.querySelector('input[type="email"]')?.getAttribute('autocomplete') ?? null,
+        forbiddenButtons: [...document.querySelectorAll('.btn')].filter((el) => {
+          const c = el.className;
+          return (
+            /\bbtn-outline\b/.test(c) ||
+            /\bbtn-dash\b/.test(c) ||
+            (/\bbtn-ghost\b/.test(c) && /\bbtn-(primary|secondary|accent|neutral|info|success|warning|error)\b/.test(c))
+          );
+        }).length,
+        base300Controls: document.querySelectorAll('[class*="base-300"]').length
+      }));
+      await visit.page.keyboard.press('Tab');
+      const firstFocused = await visit.page.evaluate(() => {
+        const el = document.activeElement;
+        return {
+          tag: el?.tagName ?? null,
+          href: el instanceof HTMLAnchorElement ? el.getAttribute('href') : null
+        };
+      });
+      const skipFirst = firstFocused.tag === 'A' && firstFocused.href === '#main';
+      const emailOK = served.name !== 'login' || info.emailAutocomplete === 'email';
+      await report({
+        id,
+        fixture: true,
+        property:
+          info.h1Count === 1 &&
+          info.placeholderInputs === 0 &&
+          emailOK &&
+          info.forbiddenButtons === 0 &&
+          info.base300Controls === 0 &&
+          skipFirst,
+        detail: `h1 count ${info.h1Count}; placeholder inputs ${info.placeholderInputs}; email autocomplete ${JSON.stringify(info.emailAutocomplete)}; forbidden buttons ${info.forbiddenButtons}; base-300 controls ${info.base300Controls}; first focused ${JSON.stringify(firstFocused)}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * The login `h1` is the served site name literally, with no element
+ * created from it (L2's routed rule proven again in the browser): the
+ * fixture carries `"`, `<`, and `&`, so a page that rendered it with
+ * `{@html}` would either fail the text match or leave a child element
+ * inside the heading.
+ */
+async function siteNameHeadingRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/login/site-name-heading';
+  const context = await browser.newContext();
+  try {
+    const { visit } = await open(context, new URL('login', endpoints.base).href, 'load');
+    const metaPresent = await visit.page.evaluate(() => document.querySelector('meta[name="dubplate-site-name"]') !== null);
+    if (!metaPresent) {
+      await report({ id, fixture: false, property: false, detail: 'served document carries no dubplate-site-name meta' });
+      return;
+    }
+    let text = '';
+    let childCount = -1;
+    try {
+      const heading = visit.page.getByRole('heading', { level: 1, name: endpoints.siteName, exact: true });
+      await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      text = (await heading.textContent()) ?? '';
+      childCount = await heading.evaluate((el: Element) => el.children.length);
+    } catch {
+      // leave text and childCount at their failing defaults
+    }
+    const title = await visit.page.title();
+    const wantTitle = pageTitle(TITLES.login, endpoints.siteName);
+    await report({
+      id,
+      fixture: metaPresent,
+      property: text === endpoints.siteName && childCount === 0 && title === wantTitle,
+      detail: `h1 ${JSON.stringify(text)} (want ${JSON.stringify(endpoints.siteName)}); h1 child elements ${childCount}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)})`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** One login-page request-link case: how the answer is produced, and what it spends. */
+interface LoginCase {
+  id: string;
+  address: string;
+  mode: 'real' | 'abort' | { status: number; body: Record<string, unknown> };
+  /** The outcome the page must classify by; see {@link wantOutcomeText} for the two IDs that share it. */
+  outcome: string;
+  linkRequests: number;
+}
+
+const LOGIN_CASES: LoginCase[] = [
+  { id: 'auth/login/sent', address: ADMIN_ADDRESS, mode: { status: 200, body: { outcome: 'sent' } }, outcome: 'sent', linkRequests: 0 },
+  {
+    id: 'auth/login/requested',
+    address: ADMIN_ADDRESS,
+    mode: { status: 200, body: { outcome: 'requested' } },
+    outcome: 'requested',
+    linkRequests: 0
+  },
+  { id: 'auth/login/unknown-with-admin', address: UNKNOWN_ADDRESS, mode: 'real', outcome: 'unknown', linkRequests: 1 },
+  {
+    id: 'auth/login/unknown-no-admin',
+    address: UNKNOWN_ADDRESS,
+    mode: { status: 200, body: { outcome: 'unknown' } },
+    outcome: 'unknown',
+    linkRequests: 0
+  },
+  {
+    id: 'auth/login/rate-limited',
+    address: ADMIN_ADDRESS,
+    mode: { status: 429, body: { outcome: 'rate_limited' } },
+    outcome: 'rate_limited',
+    linkRequests: 0
+  },
+  { id: 'auth/login/invalid-address', address: INVALID_ADDRESS, mode: 'real', outcome: 'invalid_address', linkRequests: 1 },
+  {
+    id: 'auth/login/too-large',
+    address: ADMIN_ADDRESS,
+    mode: { status: 413, body: { outcome: 'too_large' } },
+    outcome: 'too_large',
+    linkRequests: 0
+  },
+  {
+    id: 'auth/login/malformed',
+    address: ADMIN_ADDRESS,
+    mode: { status: 400, body: { outcome: 'malformed' } },
+    outcome: 'malformed',
+    linkRequests: 0
+  },
+  { id: 'auth/login/failed', address: MEMBER_ADDRESS, mode: 'real', outcome: 'failed', linkRequests: 1 },
+  { id: 'auth/login/cross-origin', address: ADMIN_ADDRESS, mode: { status: 403, body: {} }, outcome: 'error', linkRequests: 0 },
+  { id: 'auth/login/network-failure', address: ADMIN_ADDRESS, mode: 'abort', outcome: 'error', linkRequests: 0 }
+];
+
+/**
+ * The text a login-page case must show. `unknown-with-admin` and
+ * `unknown-no-admin` share the outcome value `unknown` but not the
+ * text, since only the real path's roster carries an admin contact;
+ * `cross-origin` and `network-failure` are the two outcomes this
+ * script's cases never let the server itself answer, so their text
+ * comes from the two synthetic-outcome deck lines directly.
+ */
+function wantOutcomeText(c: LoginCase, endpoints: Endpoints): string {
+  if (c.id === 'auth/login/unknown-with-admin') {
+    return unknownAddressLine({ displayName: endpoints.adminDisplayName, address: ADMIN_ADDRESS });
+  }
+  if (c.id === 'auth/login/unknown-no-admin') return AUTH_OUTCOMES.unknown;
+  if (c.id === 'auth/login/cross-origin') return CROSS_ORIGIN_REFUSED;
+  if (c.id === 'auth/login/network-failure') return NETWORK_FAILURE;
+  return AUTH_OUTCOMES[c.outcome];
+}
+
+/**
+ * One row per login-page outcome state: a real POST, a
+ * `route.fulfill`, or a `route.abort`, per {@link LoginCase.mode}.
+ * `#outcome` is the one element either the sent moment's `<section>`
+ * or the alert `<div>` carries, so every row reads it the same way
+ * regardless of which of
+ * the two the outcome renders as.
+ */
+async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const c of LOGIN_CASES) {
+    const id = c.id;
+    const context = await browser.newContext();
+    try {
+      if (c.mode === 'abort') {
+        await context.route('**/request-link', (route) => route.abort('failed'));
+      } else if (c.mode !== 'real') {
+        const { status, body } = c.mode;
+        await context.route('**/request-link', (route) =>
+          route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
+        );
+      }
+      const before = c.mode === 'real' ? (await requestLog(endpoints.requestLog)).length : 0;
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(c.address);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+
+      const outcomeEl = visit.page.locator('#outcome');
+      let appeared = true;
+      try {
+        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        appeared = false;
+      }
+      if (!appeared) {
+        await report({ id, fixture: false, property: false, detail: 'the #outcome element never appeared' });
+        continue;
+      }
+
+      const isMoment = c.outcome === 'sent' || c.outcome === 'requested';
+      // The moment's `#outcome` is a `<section>` holding both the
+      // heading and the escape-hatch button, so its own textContent
+      // includes the button's label too; the heading alone is the
+      // outcome text every other case's `#outcome` textContent already is.
+      const text = isMoment
+        ? ((await outcomeEl.locator('h2').textContent()) ?? '').trim()
+        : ((await outcomeEl.textContent()) ?? '').trim();
+      const tag = await outcomeEl.evaluate((el) => el.tagName);
+      const cls = (await outcomeEl.getAttribute('class')) ?? '';
+      const childCount = await outcomeEl.evaluate((el) => el.children.length);
+      const outcomeCount = await outcomeEl.count();
+      const politeText = (await visit.page.locator('#announce-polite').textContent()) ?? '';
+      const assertiveText = (await visit.page.locator('#announce-assertive').textContent()) ?? '';
+      const announced = politeText || assertiveText;
+      const announcedPoliteness: 'polite' | 'assertive' | 'none' = politeText ? 'polite' : assertiveText ? 'assertive' : 'none';
+      const titleText = await visit.page.title();
+
+      const wantText = wantOutcomeText(c, endpoints);
+      const wantClass = outcomeClass(c.outcome);
+      const wantPoliteness: 'polite' | 'assertive' = wantClass === 'status' ? 'polite' : 'assertive';
+      const wantModifier = wantClass === 'warning' ? 'alert-warning' : wantClass === 'error' ? 'alert-error' : null;
+      const wantTitle = pageTitle(isMoment ? TITLES.loginSent : TITLES.login, endpoints.siteName);
+      const classes = cls.split(/\s+/);
+      const classOK = isMoment
+        ? tag === 'SECTION'
+        : wantModifier === null
+          ? classes.includes('alert') && !classes.includes('alert-warning') && !classes.includes('alert-error')
+          : classes.includes(wantModifier);
+      const childOK = isMoment || childCount === 0;
+
+      let requestsSeen = 0;
+      if (c.mode === 'real') {
+        const records = await requestLog(endpoints.requestLog);
+        requestsSeen = records.slice(before).filter((r) => r.method === 'POST' && r.path.endsWith('/request-link')).length;
+      }
+
+      await report({
+        id,
+        fixture: true,
+        property:
+          outcomeCount === 1 &&
+          text === wantText &&
+          classOK &&
+          childOK &&
+          announced === wantText &&
+          announcedPoliteness === wantPoliteness &&
+          titleText === wantTitle &&
+          (c.mode !== 'real' || requestsSeen === 1),
+        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(announced)} as ${announcedPoliteness} (want ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * After two submits, exactly one outcome element exists: two
+ * fulfilled answers in a row, each superseding the last, over one
+ * page.
+ */
+async function loginSingleOutcomeRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/login/single-outcome';
+  const context = await browser.newContext();
+  try {
+    let calls = 0;
+    await context.route('**/request-link', (route) => {
+      calls += 1;
+      const outcome = calls === 1 ? 'rate_limited' : 'too_large';
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome }) });
+    });
+    const visit = await openBooted(context, endpoints.base, PAGES[0]);
+    visit.expectsAuthErrorStatus = true;
+    const submit = async () => {
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+    };
+
+    await submit();
+    await visit.page.locator('#outcome').first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const firstText = (await visit.page.locator('#outcome').textContent()) ?? '';
+    const firstCount = await visit.page.locator('#outcome').count();
+
+    await submit();
+    await visit.page
+      .waitForFunction((want) => document.querySelector('#outcome')?.textContent === want, AUTH_OUTCOMES.too_large, {
+        timeout: BOOT_TIMEOUT_MS
+      })
+      .catch(() => undefined);
+    const secondText = (await visit.page.locator('#outcome').textContent()) ?? '';
+    const secondCount = await visit.page.locator('#outcome').count();
+
+    await report({
+      id,
+      fixture: true,
+      property:
+        firstCount === 1 && secondCount === 1 && firstText === AUTH_OUTCOMES.rate_limited && secondText === AUTH_OUTCOMES.too_large,
+      detail: `first #outcome count ${firstCount} text ${JSON.stringify(firstText)}; second #outcome count ${secondCount} text ${JSON.stringify(secondText)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * The token never reaches `location.search` or `history.state` once
+ * the page has settled, no request carries it, and exactly one
+ * `consume-link` POST happens, only after the click.
+ */
+async function interstitialOrderingRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/interstitial/token-order';
+  const context = await browser.newContext();
+  try {
+    const token = new URL(endpoints.loginLinkOrdering).searchParams.get('t') ?? '';
+    const { visit } = await open(context, endpoints.loginLinkOrdering, 'load');
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    // The mailed link's own GET necessarily carries the token in its
+    // query (that is how the token reaches the client at all); every
+    // request logged from here on must not.
+    const sinceLoad = (await requestLog(endpoints.requestLog)).length;
+
+    const readState = () => visit.page.evaluate(() => ({ search: location.search, state: JSON.stringify(history.state) }));
+    const clean = (s: { search: string; state: string }) => s.search === '' && (token === '' || !s.state.includes(token));
+
+    const afterLoad = await readState();
+    await visit.page.locator('a[href="#main"]').first().focus();
+    const afterSkip = await readState();
+
+    const consumePOSTs = (records: LoggedRequest[]) =>
+      records.filter((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
+    const beforeClick = consumePOSTs(await requestLog(endpoints.requestLog)).length;
+
+    await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+    await visit.page.locator('#outcome').first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const afterClick = await readState();
+
+    const records = await requestLog(endpoints.requestLog);
+    const afterClickCount = consumePOSTs(records).length;
+    const anyCarriesToken =
+      token.length > 0 &&
+      records
+        .slice(sinceLoad)
+        .some((r) => r.query.includes(token) || Object.values(r.headers).flat().some((v) => v.includes(token)));
+    const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+
+    await report({
+      id,
+      fixture: token.length > 0,
+      property:
+        clean(afterLoad) &&
+        clean(afterSkip) &&
+        clean(afterClick) &&
+        beforeClick === 0 &&
+        afterClickCount === 1 &&
+        !anyCarriesToken &&
+        text === AUTH_OUTCOMES.signed_in,
+      detail: `afterLoad ${JSON.stringify(afterLoad)}; afterSkip ${JSON.stringify(afterSkip)}; afterClick ${JSON.stringify(afterClick)}; consume-link POSTs before ${beforeClick} after ${afterClickCount}; any request carries the token ${anyCarriesToken}; outcome text ${JSON.stringify(text)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** The state-table's own `signed_in` row: its own minted link, so the token-ordering row's own link is spent once, on that row alone. */
+async function interstitialSignedInRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/interstitial/signed-in';
+  const context = await browser.newContext();
+  try {
+    const { visit } = await open(context, endpoints.loginLinkSignedIn, 'load');
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+
+    const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.loginLinkSignedIn, exact: true });
+    let settled = true;
+    try {
+      await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+    } catch {
+      settled = false;
+    }
+    if (!settled) {
+      await report({ id, fixture: false, property: false, detail: 'the signed-in heading never appeared' });
+      return;
+    }
+
+    const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+    const polite = (await visit.page.locator('#announce-polite').textContent()) ?? '';
+    const title = await visit.page.title();
+    const focusedTag = await visit.page.evaluate(() => document.activeElement?.tagName ?? null);
+    const wantTitle = pageTitle(TITLES.loginLinkSignedIn, endpoints.siteName);
+
+    await report({
+      id,
+      fixture: settled,
+      property: text === AUTH_OUTCOMES.signed_in && polite === AUTH_OUTCOMES.signed_in && title === wantTitle && focusedTag === 'H1',
+      detail: `outcome text ${JSON.stringify(text)}; polite region ${JSON.stringify(polite)}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); focused element ${focusedTag}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** A reload of the stripped URL (no token at all): the refused copy, and no request. */
+async function interstitialRefusedReloadRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/interstitial/refused-reload';
+  const context = await browser.newContext();
+  try {
+    const from = (await requestLog(endpoints.requestLog)).length;
+    const visit = await openBooted(context, endpoints.base, PAGES[1]);
+    const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+    const linkHref = await visit.page
+      .locator('#outcome a')
+      .getAttribute('href', { timeout: 5_000 })
+      .catch(() => null);
+    const records = (await requestLog(endpoints.requestLog)).slice(from);
+    const consumeSent = records.some((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
+    await report({
+      id,
+      fixture: true,
+      property: text === AUTH_OUTCOMES.refused && !consumeSent && linkHref !== null,
+      detail: `outcome text ${JSON.stringify(text)}; consume-link POST sent ${consumeSent}; sign-in link href ${linkHref}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** One consume-link case answered by `route.fulfill`, never the real handler. */
+interface ConsumeCase {
+  id: string;
+  outcome: string;
+  status: number;
+}
+
+const CONSUME_CASES: ConsumeCase[] = [
+  { id: 'auth/interstitial/rate-limited', outcome: 'rate_limited', status: 429 },
+  { id: 'auth/interstitial/too-large', outcome: 'too_large', status: 413 },
+  { id: 'auth/interstitial/malformed', outcome: 'malformed', status: 400 },
+  { id: 'auth/interstitial/failed', outcome: 'failed', status: 500 }
+];
+
+/**
+ * The interstitial's four fulfilled consume-link outcomes: the `h1`
+ * stays "Confirm sign-in" (the deck names no separate title for these,
+ * unlike `signed_in` and `refused`), and the control's own alert
+ * appears beside it.
+ */
+async function interstitialFulfilledRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const c of CONSUME_CASES) {
+    const id = c.id;
+    const context = await browser.newContext();
+    try {
+      await context.route('**/consume-link', (route) =>
+        route.fulfill({ status: c.status, contentType: 'application/json', body: JSON.stringify({ outcome: c.outcome }) })
+      );
+      const url = new URL(`login/link?t=fixture-${c.id}`, endpoints.base).href;
+      const { visit } = await open(context, url, 'load');
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+      await visit.page.locator('#outcome').first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+      const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+      const cls = (await visit.page.locator('#outcome').getAttribute('class')) ?? '';
+      const classes = cls.split(/\s+/);
+      const wantClass = outcomeClass(c.outcome);
+      const wantModifier = wantClass === 'warning' ? 'alert-warning' : wantClass === 'error' ? 'alert-error' : null;
+      const classOK =
+        wantModifier === null
+          ? classes.includes('alert') && !classes.includes('alert-warning') && !classes.includes('alert-error')
+          : classes.includes(wantModifier);
+      const politeText = (await visit.page.locator('#announce-polite').textContent()) ?? '';
+      const assertiveText = (await visit.page.locator('#announce-assertive').textContent()) ?? '';
+      const announced = politeText || assertiveText;
+      const announcedPoliteness: 'polite' | 'assertive' | 'none' = politeText ? 'polite' : assertiveText ? 'assertive' : 'none';
+      const wantPoliteness: 'polite' | 'assertive' = wantClass === 'status' ? 'polite' : 'assertive';
+      const headingUnchanged = await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).count();
+
+      await report({
+        id,
+        fixture: true,
+        property:
+          text === AUTH_OUTCOMES[c.outcome] &&
+          classOK &&
+          announced === AUTH_OUTCOMES[c.outcome] &&
+          announcedPoliteness === wantPoliteness &&
+          headingUnchanged === 1,
+        detail: `text ${JSON.stringify(text)}; class ${JSON.stringify(cls)} (want modifier ${wantModifier}); announced ${JSON.stringify(announced)} as ${announcedPoliteness} (want ${wantPoliteness}); h1 unchanged ${headingUnchanged === 1}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const endpoints: Endpoints = {
     base: requiredEnv('DUBPLATE_RENDERED_BASE_URL'),
@@ -2179,8 +2757,14 @@ async function main(): Promise<void> {
     brandingBase: requiredEnv('DUBPLATE_RENDERED_BRANDING_BASE_URL'),
     operatorBase: requiredEnv('DUBPLATE_RENDERED_OPERATOR_BASE_URL'),
     brandingPrimary: requiredEnv('DUBPLATE_RENDERED_BRANDING_PRIMARY'),
-    operatorPrimary: requiredEnv('DUBPLATE_RENDERED_OPERATOR_PRIMARY')
+    operatorPrimary: requiredEnv('DUBPLATE_RENDERED_OPERATOR_PRIMARY'),
+    siteName: requiredEnv('DUBPLATE_RENDERED_SITE_NAME'),
+    adminDisplayName: requiredEnv('DUBPLATE_RENDERED_ADMIN_DISPLAY_NAME'),
+    loginLinkOrdering: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_ORDERING'),
+    loginLinkSignedIn: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN')
   };
+  PAGES[0].heading = endpoints.siteName;
+  PAGES[1].heading = TITLES.loginLinkRefused;
   prefixWatch = { log: endpoints.requestLog, prefix: new URL(endpoints.base).pathname, seen: 0 };
   const browser = await launch();
   try {
@@ -2204,6 +2788,14 @@ async function main(): Promise<void> {
     await utilityWinsRow(browser, endpoints);
     await fontRows(browser, endpoints);
     await pageTitleRow(browser, endpoints);
+    await staticMarkupRows(browser, endpoints);
+    await siteNameHeadingRow(browser, endpoints);
+    await loginOutcomeRows(browser, endpoints);
+    await loginSingleOutcomeRow(browser, endpoints);
+    await interstitialOrderingRow(browser, endpoints);
+    await interstitialSignedInRow(browser, endpoints);
+    await interstitialRefusedReloadRow(browser, endpoints);
+    await interstitialFulfilledRows(browser, endpoints);
     refuseUnclean();
     await refuseLateLeaks(endpoints);
   } finally {
