@@ -6,27 +6,33 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i and 5c-ii, and rung 6's 6a, 6b-i, an
 
 ## Next action
 
-- **5c-iii is in progress in lane 1.** Task 0 launched at `6e6fd12`: no blockers, no pin bumps
-  owed, Playwright chromium-1243 present. Segment A (Tasks 1, 2) is now running.
-  `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`: split into 5c-iii (10.8M) then
-  5c-iv (8.5M). From Task 3 on, every full gate launches Chromium (heavy lane).
-- **6b-ii-b (restore) is next for a code lane.** `plans/2026-09-25-rung-6b-ii-restore-http.md`
-  split B1 to B3; ceiling 7.53M. Handoff in HISTORY's 6b-ii-a entry: R-6bii9's disabled-class row
-  keys on `IntegrationEnabled`, not `IntegrationValue`'s emptiness.
+- **5c-iii: segments A, B, C done (Tasks 1-5 accepted, last `610ad61`); next is its review round
+  and Task 6 close, in a fresh session.** Plan `plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
+  conductor actions 4 and 5: one `code-simplifier` over Tasks 1-5 (paste
+  `.claude/instructions/simplifier-brief.md`), `svelte-reviewer` + `daisyui-a11y-reviewer` (given the VI
+  spec) + `web-auth-security-reviewer` (head insertions, new routes), one fold; then Task 6 (architecture
+  reads for `internal/serve`, `cmd/dubplate-server`, `web`; the ledger fold; the refresh read of Tasks 7-11).
+  Every full gate is heavy (Chromium, about 3-4 min, about 560 MiB).
+- **6b-ii-b (restore) runs in lane 2** (worktree `lane-2-6b-ii-b`), segment B1 (Tasks 4A-4C, run
+  `wf_a047da45-f4b`) in flight when window 2's attended session was written; B2 (5A, 5B, 6) and B3 (7, close,
+  merge) follow. If this session ended mid-segment: journal first, then relaunch (memory
+  `pass-execute-cross-session-resume`).
+- **Approved and waiting for a lane:** the transliteration-at-setup pass (`plans/2026-09-25-translit-table-at-setup.md`,
+  3.3M, `unidecode install`; keeps dubplate MIT).
 
-**Resume prompt:** execute `docs/superpowers/plans/2026-09-25-unattended-window-2.md` (Geoff's grants
-inside: 5c-iii segments continue in lane 1 through its Task 6 close; 6b-ii-b does not start in
-window 2; cap raised to 14.5M, flag 13.4M (Geoff, 2026-09-25, attended); read-only box).
-Read memory `session-2026-09-25-handoff`. Rung 12 owns the roster API's shared origin
-with the Navidrome fallthrough (5c-ii security M2) as a threat-model entry (Geoff, 2026-09-25).
+**Resume prompt:** read this file and memory `session-2026-09-25-handoff`, then run 5c-iii's review round
+and close in lane 1, and continue 6b-ii-b in lane 2 from its journal. Box read-only; nothing deploys until 5d.
 
-Readings taken (conductor, 2026-09-25; reversible): one more targeted round on 5c-ii Fold A after
-its second `fix`; the plans drafted alongside the fold; the architecture reads' routing; the 6b-i
-CLAUDE.md Gate line without its false "one validator" clause; the light gate lane on both window-2
-lanes until a browser leg exists; L3 (job `FailureMessage` text, admin-only) refused; the reviewer
-note flagging the matcher corpus case's non-hex mbid refused; mutation 4 on 6b-ii-a Task 1
-recorded reviewer-read (architecturally unfireable today). Readings (5c-iii segment A): G9 keeps DL R2.6's ratified direct-text check beside R-5ciii3's ink rows (the ratified standard outranks the plan's ambiguous line, no erratum); Task 2's light-lane gate accepted (no browser leg yet); the second fix round taken by the conductor (pin the 66-pair count, the fill-only list, and the fill-only markers). Navidrome sharing is on at 0.63.2's default with zero shares (read-only check 2026-09-25); Geoff accepts it until the switch to dubplate's streamer. Readings (5c-iii segment B): the plan's Task 3b mutation 1 (link order) cannot fail, because branding's unlayered `:root` beats every layered theme block; replaced by "branding inside `@layer base`", which fails the two label rows and not the system rows (a bare `[data-theme]` ties `:root` and loses by order), accepted as adequate. G7 compares painted canvas bytes per W12.5. Registry line for 6b-ii-b's conductor: every full gate is heavy now and needs Playwright's chromium-1243. Owed: the visual identity spec's
-errata (Permanent Marker is Apache-2.0; R5.4 cites read R5.5; the header focus halo). The group-scale principles spec is ratified (`1aa40f4`, Geoff, 2026-09-25); its owed errata to the streamer (0.8), configuration homes, rung 6, build, and organizer specs and to `IDEAS.md` are listed in `research/2026-09-25-group-scale-principles-fold.md` ("Owed errata", as revised twice); CLAUDE.md's "Refused features" block landed. Navidrome 0.63.2 is in GHSA-82gh's range (share-owner forgery); Geoff's ruling on a 0.64 bump is open. Also owed to the streamer (0.8) spec's next revision: the prior-art survey's eight errata (`research/2026-09-25-streamer-prior-art-survey.md`: the XML/XSD rule, the `transcoding` extension, ranges on an in-flight transcode, CORS, AAC container, short trigram queries, the "collections" name clash, stale table pins). From the project site spec: settle `init`/`upgrade` naming against `dubplate-server` (the bare `dubplate` is the local binary's), and add the configuration-reference generator as a consumer of hook 18.
+Readings taken 2026-09-25 (conductor; reversible), in full in HISTORY at each pass's close: the light gate lane
+until 5c-iii Task 3a; G9 keeps DL R2.6's direct-text check (ratified standard over an ambiguous plan line);
+two conductor-ruled second fix rounds (5c-iii Tasks 2 and 5); 3b's link-order mutation replaced by
+"branding inside `@layer base`"; Task 4's icon mutation strengthened (SvelteKit rewrites icon links on
+hydration); OpenSubsonic wire types hand-written (the survey found generators unfit). Geoff 2026-09-25:
+Navidrome sharing stays at its default (zero shares) until 0.8; the Navidrome 0.64 bump for GHSA-82gh is
+an open question. Owed: the visual identity spec's three errata (landing now as revision 1.3); the streamer
+spec's seven open items (revision 2.5, "Open items") go to its study rung. From the project site spec: settle
+`init`/`upgrade` naming against `dubplate-server`, and add the configuration-reference generator as a consumer
+of hook 18.
 
 ## Lane registry
 
