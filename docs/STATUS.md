@@ -32,7 +32,7 @@ session ended. Box read-only; nothing deploys until 5d.
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (master), this session | OPEN: 5c-iv D-ii (Tasks 8, 9a, 9b) as `wf_5b983a74-956`; then E |
-| 2 | worktree `lane-2-6c` (branch `lane-2-6c`, cut at `392d1cd`), this session | OPEN: 6c segment A (Tasks 0-3) as `wf_62218e14-e00`; then translit |
+| 2 | worktree `lane-2-6c` (branch `lane-2-6c`, cut at `392d1cd`) | OPEN: 6c segment A accepted (Tasks 0-3, `20bd27a`..`257617b`, one fix round, about 2.9M); segment B (Tasks 4, 5) running as `wf_a5a9ec89-e5e`, then simplifier, Task 6, merge; re-derived about 5.0M: crosses the 4.32M pass flag, under the 5.4M ceiling (continued under the overnight grant; morning item) |
 | photos | main tree (master), owned by the separate docs session | OPEN: `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M) |
 
 ## Open items (carried)
