@@ -103,6 +103,18 @@
     "rebetiko": {
       "name": "Rebetiko",
       "family": "other"
+    },
+    "country": {
+      "name": "Country",
+      "family": "other"
+    },
+    "indie": {
+      "name": "Indie and alternative",
+      "family": "other"
+    },
+    "trip-hop": {
+      "name": "Trip-hop",
+      "family": "other"
     }
   },
   "families": {

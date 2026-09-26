@@ -58,7 +58,10 @@ Government Issue, Operation Ivy, the Feelies, Yellowman, King Tubby, Nightmares 
 - Cumbia and sonidero: Lucho Bermúdez, Andrés Landero, Los Corraleros de Majagual, Sonido La
   Changa, Sonido Pancho
 - Rebetiko: Markos Vamvakaris, Rosa Eskenazi, Rita Abatzi, Vassilis Tsitsanis
-- Indie and college rock: Yo La Tengo, Galaxie 500, the Embarrassment, Pylon, the dB's, Mission of
+- Country (early and underground): Johnny Cash, Danny Barnes and the Bad Livers, and the scene's
+  early and underground figures (sweep extrapolates: e.g. the Carter Family, Hank Williams, the
+  Louvin Brothers, Jimmie Rodgers, Townes Van Zandt, Blaze Foley, the Knitters)
+- Indie and college rock: Soul Coughing, Yo La Tengo, Galaxie 500, the Embarrassment, Pylon, the dB's, Mission of
   Burma
 - Bristol, Warp, and trip-hop (*newer ok*): Massive Attack, Smith & Mighty, Tricky, LFO, Coldcut,
   Nightmares on Wax
