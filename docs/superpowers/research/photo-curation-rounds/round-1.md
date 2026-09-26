@@ -323,3 +323,6 @@ its 7.5M ceiling (rough estimate 11M).
   by era first. The Feelies: Commons holds only three 2016 to 2019 reunion-era frames (Central Park
   2016, Rough Trade Brooklyn 2019, a 2808x547 panorama); queued for round two as an outreach target
   for 1976 to 1991 photos.
+- Yellowman: Commons holds only 2007 frames under the size floor and 2018 to 2022 stage shots (CC BY
+  3.0); nothing from the 1980s dancehall peak. King Tubby: no freely licensed photo on Commons at all.
+  Both are round-two outreach targets (Beth Lesser's reggae archive is the natural first letter).
