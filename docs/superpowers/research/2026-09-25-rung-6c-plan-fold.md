@@ -169,3 +169,25 @@ This fold edits no ratified document. Task 6 drafts each erratum paste-ready and
 yes.
 
 CH needs no erratum. R-6c7's reading matches CH `:95-101`.
+
+## Second fold (revision 2.1)
+
+Input: `2026-09-25-rung-6c-plan-fold-verification.md` (0 blockers, 2 majors, 7 minors), read against
+revision 2 (`ffde470`). Each finding was re-checked on master and on the read-only branch
+`lane-2-6b-ii-b` (head `cd9afbf`) before it was folded. All nine are folded. None was refused.
+
+| Finding | Disposition | Where in revision 2.1 |
+| --- | --- | --- |
+| V-M1 | **Folded.** Verified: `local.New` is called at `internal/ops/opshttp/contract_test.go:317` and `:825` on master and on the branch. Task 4's Files add that file, construction only, through one helper that returns R-6c11's defaults. The wall carries a one-clause exception. Task 0 blocker 2 reports every `local.New` caller. | the wall; Task 0 blocker 2; Task 4 Files |
+| V-M2 | **Folded.** Criterion 13 splits in two. (a) A `cmd` test per key shows the injected reader returns the stored value, or the default when no row exists. (b) `ops/local` and `internal/backup` tests show each consumer honors a non-default value. The guard's admin half and the retention prune stay end to end in `cmd`. The keep fixture is stated as five prior snapshots plus the run's own, with three survivors: the run's own and the two newest prior. This matches `prune.go:18-20` ("in total, the run's own included"), verified on the branch. | Task 4 criterion 13 |
+| V-m1 | **Folded.** Verified: `storeRow` at `cmd/dubplate-server/store.go:89` calls `store.Inspect`. Exit gate 15 adds `store.go` to its pathspec. | exit gate 15 |
+| V-m2 | **Folded.** Task 3's "Plus" line gains a row. The accessor reads key A while B's row is unparseable or out of bounds, or while an orphan exists, and returns A's value with no error. | Task 3 "Plus" |
+| V-m3 | **Folded.** The `COMMIT; SAVEPOINT <name>;` row now expects `user_version` advanced and the ledger row present, as detection only, per the mechanics probe. | Task 1 table |
+| V-m4 | **Folded.** A Ruling-3-"no"-only validator row covers the exclusive float floor: at the floor, the value is refused. | Task 2 table |
+| V-m5 | **Folded.** Exit gate 11's grep takes `-- cmd internal ':(exclude)*_test.go'`. | exit gate 11 |
+| V-m6 | **Folded.** Verified: `readFacts` runs only at `version >= jobsVersion` (2) (`inspect.go:216`, branch). `doctor`'s "no settings yet" row now also covers an older store with nil `Facts` and skips the from-facts entry point. | Task 5 `doctor` table |
+| V-m7 | **Folded.** Verified: `75fde16` carries `internal/config/config.go` +42 and `config_test.go`. "Lane condition, answered," Ruling 1's reason, Task 0 blocker 3, and the `internal/config` contested row now cite it. The "Not verified" bullet is dropped. | those four sites |
+
+**Rulings.** The wording of all three rulings is unchanged, except that Ruling 1's reason now cites
+`75fde16`. No figure moved. The `contract_test.go` edit and the split proofs fit inside Task 4's
+existing +0.10M, so the projection stays at 4.33M, the ceiling at 5.4M, and the flag at 4.32M.

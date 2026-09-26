@@ -1,9 +1,11 @@
 # Rung 6, Pass 6c (The Routed Schema and the Settings Home) Implementation Plan
 
-Status: **draft for approval, revision 2, 2026-09-25.** Revision 1 (`8d0eed8`) went through a
+Status: **draft for approval, revision 2.1, 2026-09-25.** Revision 1 (`8d0eed8`) went through a
 three-lens `spec-plan-review` round (contract, mechanics, and risk; the reviews are committed at
-`098f8e5` under `docs/superpowers/research/2026-09-25-rung-6c-plan-review-*.md`). Revision 2 folds
-them; the fold record, one disposition per finding, is
+`098f8e5` under `docs/superpowers/research/2026-09-25-rung-6c-plan-review-*.md`). Revision 2
+(`ffde470`) folds them; a fresh-context verification read (`2026-09-25-rung-6c-plan-fold-verification.md`)
+found 0 blockers, 2 majors, and 7 minors, and revision 2.1 folds those. The fold record, one
+disposition per finding for both folds, is
 `docs/superpowers/research/2026-09-25-rung-6c-plan-fold.md`, and it is this plan's review history.
 Three rulings for Geoff ("Rulings awaiting owner"): the ceiling and lane placement, the exit code of
 `doctor` and `check`, and the backup keys' protective minimums. Every answer is executable as
@@ -78,7 +80,8 @@ answer, recorded with its reason under "Resolutions this plan takes."
 **1. Does pass 6c run under a 5.4M execution ceiling, in lane 2 tonight once 6b-ii-b merges?**
 Recommendation: yes. Reason: "Token ceiling" projects 4.33M from 6b-i's and 6b-ii-a's recorded
 actuals plus the work the review fold added, and "Lane condition, answered" shows 5c leaves
-`internal/config` alone for the rest of its plan while 5d cannot start before its plan is approved.
+`internal/config` alone for the rest of its plan (its one edit there, security L2, is committed on
+master at `75fde16`) while 5d cannot start before its plan is approved.
 
 What each answer builds: yes sets the flag at 4.32M, the projection itself, so any overrun raises it
 and the conductor asks one combined question before the merge-side reads; the pass runs tonight
@@ -141,15 +144,13 @@ concurrently. The evidence, read at `5b8f05e` and re-read at `098f8e5`:
   says "No edit to `internal/config`, `internal/auth`, `internal/identity`, `internal/engine`, or
   `cmd/dubplate-server/{check,doctor,store,backup}.go`" (`plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md:63-64`)
   and "It writes nothing under `internal/config`" (`:496`).
-- **The in-flight review fold is the one open pressure, and it is live.** The security review's L2
-  asks for a `DUBPLATE_SITE_NAME` grammar "at `internal/config/config.go:352`, `keys.go:23`"
-  (`research/2026-09-25-rung-5c-iii-review-security.md:21-23`). At `098f8e5` the main tree carries
-  warm, uncommitted edits to `internal/config/config.go` and `config_test.go` (a `requireSiteName`
-  check), so L2 is being worked in lane 1 now. The review ties L2 to a 5c-iv task, so it may land
-  either as a 5c-iii fold commit or inside 5c-iv. Task 0 blocker 3 reads L2's disposition in the
-  5c-iii security fold record: if L2 is committed on master before the cut, 6c rebases onto it; if it
-  is routed into 5c-iv, the conductor either lands it as a standalone commit before the cut or adds
-  a contested row for `config.go` and holds 5c-iv's L2 edit until 6c merges.
+- **The one lane 1 edit to it has landed.** The security review's L2 asked for a
+  `DUBPLATE_SITE_NAME` grammar "at `internal/config/config.go:352`, `keys.go:23`"
+  (`research/2026-09-25-rung-5c-iii-review-security.md:21-23`). It was warm in the main tree at
+  `098f8e5` and is now committed on master at `75fde16` ("fix(serve): fold 5c-iii's security review
+  findings": `internal/config/config.go` +42 and `config_test.go`), before this plan's `ffde470`.
+  The worktree cut from master carries it, so 6c builds on it and no contested row is needed. Task 0
+  blocker 3 confirms no later lane 1 edit is in flight.
 - **5d cannot run tonight.** Its plan is drafted (`af7d941`, revision 1, pre-review) for Geoff's
   morning review (`docs/STATUS.md`, "Overnight 2026-09-25"). 5d's scope (R5S's pass table) adds the
   forward-auth and trusted-proxy integration classes, which under the rung 1b contract register from
@@ -220,7 +221,8 @@ four each (16); Task 4 carries three, Task 6 two. No task passes four.
   `internal/backup` (Task 4), and `cmd/dubplate-server`'s `store.go`, `backup.go`, `check.go`,
   `doctor.go`, and their tests (Tasks 4 and 5). **It writes nothing under `internal/auth`,
   `internal/identity`, `internal/serve`, `internal/atomicfile`, `internal/notify`, `internal/harness`,
-  `internal/ops` (the seam package), `internal/ops/opshttp`, the rest of `internal/engine`, `web/`,
+  `internal/ops` (the seam package), `internal/ops/opshttp` (except `contract_test.go`'s two
+  `local.New` constructions, Task 4), the rest of `internal/engine`, `web/`,
   `systemd/`, `scripts/`, `env/`, `config/`, `Makefile`, `CLAUDE.md`, `corpus/`, `tools/`, or
   `_salvage/`,** and no `internal/config/keys.go`, `serve.go`, `web.go`, `auth.go`, or `main.go`
   edit beyond what "Contested surfaces" names (none is expected: `registerStoreConfig` and
@@ -739,15 +741,16 @@ and content that is gone is a blocker.
    `backup.go` and added `fetch.go`; report whether restore or its fetch now reads any of the four);
    `backup.Job`'s fields and `Job.Run`'s order up to its first rclone launch; `guard.go`'s
    "fewer than half" text and its assertion; `ops/local`'s `retention` and its reader, `start`,
-   `insert`, the `binder` type, and `Runner.backupJob`; `store.ServeOptions`, whose `Keep` field must
+   `insert`, the `binder` type, and `Runner.backupJob`; every `local.New` caller (today
+   `runBackup` and `internal/ops/opshttp/contract_test.go:317` and `:825`), since Task 4 adds
+   required reader fields to `local.Config`; `store.ServeOptions`, whose `Keep` field must
    survive beside 6b-ii-b's new `Reconcile`; whether `cmd/dubplate-server/restore.go` passes a `Keep`
    or any of the five values.
 3. **Is `internal/config` quiet?** `git log <this plan's commit>..HEAD -- internal/config` and the
    main tree's `git status`: any lane 1 commit there is a note naming what changed; any uncommitted
-   edit under `internal/config` in the main tree is a blocker (R-6c1; at `098f8e5` a
-   `requireSiteName` edit was warm there). Read the 5c-iii security fold record's disposition of L2:
-   if it is routed into 5c-iv and not yet committed, report it so the conductor lands it before the
-   cut or adds the contested row and holds 5c-iv's edit. Report the lane registry's lane 1 row.
+   edit under `internal/config` in the main tree is a blocker (R-6c1). L2's `requireSiteName` edit,
+   warm at `098f8e5`, is committed at `75fde16`; confirm the worktree's HEAD contains `75fde16`.
+   Report the lane registry's lane 1 row.
 4. **Has 5d started?** If a 5d plan is approved and its lane is open, report whether its plan walls
    off `internal/config`, `doctor.go`, and `check.go`; a 5d executor writing any of them is a
    blocker (R-6c1).
@@ -816,7 +819,7 @@ a serve event, so neutral.
 | `settings_generation` insert | a second row | refused, extended code 275 |
 | Migration apply | a synthetic file with `COMMIT; BEGIN;` | refused naming the file and the `RELEASE` failure; no ledger row for it; `user_version` unchanged |
 | Migration apply | a synthetic file ending `COMMIT;`, and one ending `ROLLBACK;` | refused naming the file, each (asserted on the file name and the `RELEASE` failure, since the rollback may join a second error) |
-| Migration apply | a synthetic file ending `COMMIT; SAVEPOINT <the runner's name>;` | refused by `commitMigration`'s branch, naming the file |
+| Migration apply | a synthetic file ending `COMMIT; SAVEPOINT <the runner's name>;` | refused by `commitMigration`'s branch, naming the file (detection only: the version write and the ledger insert autocommit outside the runner before `Commit` fails, so `user_version` is advanced and the file's ledger row is present, per the mechanics probe) |
 | Migration apply | a synthetic file with a `CREATE TRIGGER ... BEGIN ... END` body | applied, ledger row written |
 
 **Acceptance criteria:**
@@ -885,6 +888,7 @@ Model: `opus`. Depends on Task 0; **independent by files of Task 1.** **Lands ho
 | `Load` | a store-homed key unset or empty | no error |
 | `Load` | set, parsing or not, in bounds or not | no error; not "unknown configuration key" (the evaluation reports a parse failure, R-6c5) |
 | Validator | a value at the floor, at the ceiling, and one past each | accepted, accepted, refused naming the bound, refused naming the bound |
+| Validator (Ruling 3 "no" only) | a float setting whose bounds data carries the exclusive-floor flag, given exactly its floor | refused naming the bound (the at-floor "accepted" above then covers inclusive bounds only) |
 | Validator | a float setting given `NaN`, `Inf`, `-Inf` | refused, each by name (test-registered float) |
 
 **Acceptance criteria:**
@@ -964,7 +968,9 @@ test per row):**
 Plus: an env value outside the bounds is refused naming the key and the bound, nothing written
 (criterion 4); the accessor over an out-of-bounds or unparseable stored row errors naming the key;
 the accessor over a store whose `settings_generation` row is missing errors naming the table and
-serves no value.
+serves no value; the accessor reading key A while key B's stored row is unparseable or out of
+bounds, or while an orphan row exists, returns A's value with no error (a reload validates only the
+key it serves).
 
 **Acceptance criteria:**
 
@@ -1028,6 +1034,9 @@ Model: `sonnet`. Depends on Task 3. **Neutral** (hook 10's backup is a consumer,
 - Modify: `internal/backup/guard.go`, `prune.go`, `backup.go` (the three constants become `Job`
   fields; `Job.Run`'s structural check, R-6c13; the guard's message), and their tests, with one test
   helper that fills the three fields with R-6c11's defaults, its literals citing R-6c11
+- Modify: `internal/ops/opshttp/contract_test.go`, construction only: its two `local.New` calls
+  (`:317`, `:825`) pass the new `local.Config` readers through one helper returning R-6c11's
+  defaults, its literals citing R-6c11; no assertion changes (the wall's one exception)
 
 **Outcomes:**
 
@@ -1054,15 +1063,24 @@ Model: `sonnet`. Depends on Task 3. **Neutral** (hook 10's backup is a consumer,
 
 **Acceptance criteria:**
 
-- Spec criterion 13, the "reads through the accessor" half, per key: a stored `env-seed` row with a
-  non-default value reaches the key's consumer, each over a fixture holding an item the default keeps
-  and the stored value removes, so a consumer still reading the default fails:
-  - retention: stored `48h`, and a finished job record aged 72h, which the prune deletes;
-  - remote keep: stored `3` (the floor under either answer to Ruling 3), and five remote snapshots
-    in the stand-in, pruned to three;
-  - archive retention: stored `168h` (the floor under either answer), and an archive directory 200h
-    past its move, which the prune purges;
-  - guard: the admin half below.
+- Spec criterion 13, the "reads through the accessor" half, split by where each fixture can live
+  (the declarations are in package `main`; the remote stand-in that lists snapshots and archive
+  directories is `internal/backup`'s test stand-in, which cannot import `main`):
+  - **(a) The readers, in `cmd/dubplate-server`.** One test per key (retention, remote keep,
+    archive retention, guard fraction) shows the reader `runBackup` injects returns a stored
+    `env-seed` row's non-default value (`48h`, `3`, `168h`, `0.9`), and the default when no row
+    exists. Each stored value sits at or above the floor under either answer to Ruling 3.
+  - **(b) The consumers, in `internal/ops/local` and `internal/backup`.** Each consumer, given a
+    non-default reader value or `Job` field, honors it over a fixture the default would keep, so a
+    consumer still reading the default fails:
+    - retention (`ops/local`): `48h`, and a finished job record aged 72h, which the prune deletes;
+    - remote keep (`internal/backup`): `3`, over five prior snapshots plus the run's own in the
+      stand-in; three survive, the run's own and the two newest prior (keep counts in total, the
+      run's own included, `prune.go:18-20`);
+    - archive retention (`internal/backup`): `168h`, and an archive directory 200h past its move,
+      which the prune purges.
+  - **End to end in `cmd`:** the guard's admin half below, and the retention prune (a stored `48h`
+    row and a finished job record aged 72h, deleted by a start), since both are observable there.
   The local keep's half is Task 5's `doctor` row (D10).
 - Spec criterion 13, the admin half: an `admin` row setting `DUBPLATE_BACKUP_GUARD_FRACTION` to `0.9`
   makes the run abort with no rclone invocation recorded by the stand-in, where the default `0.5`
@@ -1136,7 +1154,7 @@ Model: `sonnet`. Depends on Task 4. **Lands hook 15's marker display**; otherwis
 | current, or older with the settings table | a correlated pair | breaks its rule after the seed | refusing, on each key's row, naming both |
 | current, or older with the settings table | any | does not parse | refusing: "invalid: `<reason>`" from the outcome |
 | current, or older with the settings table | a stored value that does not parse | any | refusing: "invalid: `<reason>`" from the outcome |
-| absent, or older without the settings table | n/a | absent / present | the default, source `default`, "store holds no settings yet"; with an env value, "env `<v>` seeds at serve's next start" |
+| absent, older without the settings table, or older with nil `Facts` (a version-1 store, below `jobsVersion`) | n/a | absent / present | the default, source `default`, "store holds no settings yet", without calling the from-facts entry point; with an env value, "env `<v>` seeds at serve's next start" |
 | restore in progress, busy, not a store, refused, or newer | n/a | any | the default, "store not checked (`<state>`)"; with an env value, "env `<v>` not checked against the store" |
 | current, or older with the settings table | an unregistered key | n/a | an orphan row: the key, "no longer registered; ignored" |
 
@@ -1242,7 +1260,8 @@ The gate green in the worktree and again on master after the merge, plus every a
     `internal/ops/local` import no `settings`; `internal/settings` imports only `config` and `store`
     among internal packages.
 11. No code outside a key's `Setting` declaration and tests names a store-homed key: `git grep -n`
-    of each of the five keys' literals, excluding `*_test.go`, shows only its declaration, pasted.
+    of each of the five keys' literals over `-- cmd internal ':(exclude)*_test.go'` shows only its
+    declaration, pasted.
     `internal/config` exports no reader of a setting's env value.
 12. No production code writes source `admin`: `git diff <base>..HEAD -- internal cmd
     ':(exclude)*_test.go'` filtered to added lines matching `'admin'` or `"admin"`, pasted, every hit
@@ -1253,8 +1272,10 @@ The gate green in the worktree and again on master after the merge, plus every a
     the sensitive marker's `true` value (6d), and the apply mode's "immediately" and "restart" values
     (6d).
 14. `serve.go` is unchanged: `git diff --stat <base>..HEAD -- cmd/dubplate-server/serve.go` is empty.
-15. `check.go` and `doctor.go` open the store only through `store.Inspect`: `git grep -n
-    'store.Open' -- cmd/dubplate-server/check.go cmd/dubplate-server/doctor.go` is empty, pasted.
+15. `check.go`, `doctor.go`, and `store.go`'s `storeRow` (`:89`, `doctor`'s store read) open the
+    store only through `store.Inspect`: `git grep -n 'store.Open' -- cmd/dubplate-server/check.go
+    cmd/dubplate-server/doctor.go cmd/dubplate-server/store.go` is empty, pasted (`store.go` has no
+    `store.Open` call today).
 
 ---
 
@@ -1265,7 +1286,7 @@ launches (spec `:1152-1161`).
 
 | Surface | Owner | 6c's position | Contention |
 | --- | --- | --- | --- |
-| `internal/config` (`registry.go`, `config.go`, the new `settings.go`) | rung 1b's contract | Task 2 | the 5c-iii security L2 grammar (`requireSiteName`, warm in the main tree at `098f8e5`) lands before the cut, or, if routed into 5c-iv, holds until 6c merges; the rest of 5c-iv writes none (its plan `:63`, `:496`); 5d holds until 6c merges or walls it off (R-6c1) |
+| `internal/config` (`registry.go`, `config.go`, the new `settings.go`) | rung 1b's contract | Task 2 | the 5c-iii security L2 grammar (`requireSiteName`) is committed at `75fde16`, before the cut; the rest of 5c-iv writes none (its plan `:63`, `:496`); 5d holds until 6c merges or walls it off (R-6c1) |
 | `internal/config/keys.go` | rung 1 | untouched | the site-name grammar may edit it; not 6c's |
 | `internal/engine/store` migrations | rung 6 | Task 1: `0004`, `0005` | a lane that lands a migration first makes 6c renumber, and the rebase is non-fast-forward |
 | `internal/engine/store/inspect.go`, `migrate.go` | rung 6 | Tasks 1, 5 | none after 6b-ii-b merges |
@@ -1378,8 +1399,6 @@ required. Of CLAUDE.md's list, the entries with a 6c surface are the driver, goo
 
 ## Not verified in this revision
 
-- The 5c-iii fold's disposition of security L2: where the site-name grammar lands (it was warm and
-  uncommitted in the main tree at `098f8e5`), or whether it is routed into 5c-iv. Task 0 blocker 3.
 - 5d's plan: whether it walls off `internal/config`, `doctor.go`, and `check.go`. Task 0 blocker 4;
   the conductor holds 5d's launch otherwise.
 - 6b-ii-b's final shape of `internal/backup`, `Handle.Query`'s merge, and its handoff "to 6c." Task
