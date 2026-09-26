@@ -29,3 +29,9 @@
  * the surface tokens and inks those declare.
  */
 @import './lib/styles/components.css';
+
+/*
+ * The unlayered overrides last: nothing in a layer outranks them, and
+ * only an operator's tier 3 file follows them in the document.
+ */
+@import './lib/styles/daisyui-overrides.css';

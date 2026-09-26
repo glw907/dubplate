@@ -1,9 +1,10 @@
 /*
  * dubplate's component layer (visual identity spec: "Component layer",
  * "Depth and surface", "Refinement"). Every rule keeps DaisyUI's own
- * markup and classes; nothing here adds a class DaisyUI does not
- * already define, and every color reaches this file through a token
- * declared in `lib/themes/` (G1 exempts that path alone).
+ * markup and classes, and every color reaches this file through a token
+ * declared in `lib/themes/` (G1 exempts that path alone). The one class
+ * DaisyUI does not define is the ink utility family below, which W2.7
+ * names as the only way markup reaches a status text color.
  *
  * CSS Cascade 5 section 6.4.3: "Within each layer, nested layers are
  * sorted in appearance order, and style rules without further nesting
@@ -19,18 +20,32 @@
  * `utilities` keeps an operator's tier 3 CSS file, which DL R4.4 gives
  * the last word and which ships unlayered, still winning over every
  * rule below.
+ *
+ * Tailwind's generated utilities share that implicit sublayer and
+ * precede this file, so every selector below sits inside `:where()`:
+ * at zero specificity, a utility in markup (`rounded-full`,
+ * `border-transparent`) still wins, while the layer still beats
+ * DaisyUI. DaisyUI 5.7.46 declares a few properties outside its
+ * sublayers (`.alert`'s `border-color`, for one); those are reached
+ * through the custom property DaisyUI reads, never by raising a
+ * selector's weight.
  */
 
 /*
  * The ink utilities (W2.7): the only way markup reaches a status text
  * color. Tailwind's `@utility` registers each as its own utility,
- * outside the layer block below.
+ * outside the layer block below. Success shares the accent ink (VI's
+ * ink table), so `text-ink-success` names the same value.
  */
 @utility text-ink-primary {
   color: var(--ink-primary);
 }
 
 @utility text-ink-accent {
+  color: var(--ink-accent);
+}
+
+@utility text-ink-success {
   color: var(--ink-accent);
 }
 
@@ -50,18 +65,43 @@
   /*
    * The one focus rule: every focusable element's `:focus-visible`
    * ring is a 2px `--ink-primary` outline at a 2px offset, overriding
-   * DaisyUI's per-button `--btn-color` outline and the input's
-   * `--input-color` outline. The skip target suppresses its own ring
-   * alone (W3.6): a `main` element takes focus only when a skip link
-   * targets it, and the link itself still shows the ring.
+   * DaisyUI's per-button `--btn-color` outline. The skip target
+   * suppresses its own ring alone (W3.6): a `main` element takes focus
+   * only when a skip link targets it, and the link itself still shows
+   * the ring.
    */
-  :focus-visible {
+  :where(:focus-visible) {
     outline: 2px solid var(--ink-primary);
     outline-offset: 2px;
   }
 
-  main:focus-visible {
+  :where(main:focus-visible) {
     outline: none;
+  }
+
+  /*
+   * DaisyUI draws a form control's ring itself, at 2px and a 2px
+   * offset in `--input-color`, on any focus: on the control, or on the
+   * `<label class="input">` wrapping a bare input. Pointing that
+   * variable at the ink gives one ring in the one color, and the bare
+   * input inside a wrapper drops the ring the rule above would add.
+   */
+  :where(.input, .select, .textarea, .file-input):where(:focus, :focus-within) {
+    --input-color: var(--ink-primary);
+  }
+
+  :where(.input, .select, .textarea) :where(:focus-visible) {
+    outline: none;
+  }
+
+  /*
+   * A colored fill (every status alert) sits under 3:1 against the
+   * ring, so a focusable inside one takes a page-colored halo under
+   * it: 6px of base-100 fills the offset gap and reaches 2px past the
+   * ring's outer edge (W9.1's halo, the mechanism VI gives the header).
+   */
+  :where(.alert :focus-visible) {
+    box-shadow: 0 0 0 6px var(--color-base-100);
   }
 
   /*
@@ -72,7 +112,7 @@
    * one, so nothing here writes a second, smaller shadow rule for the
    * pressed state.
    */
-  .btn {
+  :where(.btn) {
     box-shadow: 2px 2px 0 0
       color-mix(in oklab, var(--shadow-color) var(--shadow-strength-button), transparent);
     border-color: var(--keyline-base);
@@ -86,19 +126,25 @@
    * DaisyUI's own `translate: 0 .5px` (`.btn:active:not(...)`)
    * composing on top of it.
    */
-  .btn:active {
+  :where(.btn:active) {
     translate: 2px 2px;
     box-shadow: none;
   }
 
-  .card,
-  .alert,
-  .list {
+  :where(.card, .alert, .list) {
     box-shadow: 3px 3px 0 0
       color-mix(in oklab, var(--shadow-color) var(--shadow-strength-card), transparent);
     border-width: var(--border);
     border-style: solid;
+  }
+
+  :where(.card, .list) {
     border-color: var(--keyline-base);
+  }
+
+  /* DaisyUI styles a bare list with no corner; the frame takes the box radius cards use. */
+  :where(.list) {
+    border-radius: var(--radius-box);
   }
 
   /*
@@ -109,79 +155,210 @@
    * are the same value; on `label-night` they diverge (VI's dark
    * keylines row).
    */
-  .btn-primary,
-  .btn-secondary,
-  .btn-accent,
-  .btn-neutral,
-  .btn-info,
-  .btn-success,
-  .btn-warning,
-  .btn-error,
-  .alert {
+  :where(
+      .btn-primary,
+      .btn-secondary,
+      .btn-accent,
+      .btn-neutral,
+      .btn-info,
+      .btn-success,
+      .btn-warning,
+      .btn-error
+    ) {
     border-color: var(--keyline-fill);
   }
 
-  /* Ghost buttons carry no border or shadow. */
-  .btn-ghost {
-    border-style: none;
+  :where(.alert) {
+    --alert-border-color: var(--keyline-fill);
+  }
+
+  /*
+   * Flat buttons (ghost, link, and disabled) carry no border or
+   * shadow and so have nothing to press into. The border stays solid
+   * and turns transparent rather than `border-style: none`, since
+   * forced-colors mode repaints a transparent border in the system
+   * color and the control keeps its edge there.
+   */
+  :where(
+      .btn-ghost,
+      .btn-link,
+      .btn-disabled,
+      .btn:is(:disabled, [disabled], [aria-disabled='true'])
+    ) {
+    border-color: transparent;
     box-shadow: none;
   }
 
-  /* Inputs add a faint inset shadow over the control border. */
-  .input,
-  .select,
-  .textarea {
+  :where(
+      .btn-ghost,
+      .btn-link,
+      .btn-disabled,
+      .btn:is(:disabled, [disabled], [aria-disabled='true'])
+    ):where(:active) {
+    translate: none;
+  }
+
+  /* DaisyUI sets a link button's text in the raw primary fill; text takes the ink (W2.7). */
+  :where(.btn-link) {
+    color: var(--ink-primary);
+  }
+
+  /*
+   * Controls carry a 2px base-content keyline (VI's component layer);
+   * DaisyUI draws the selection controls' edges at 20% to 50% of
+   * base-content, under 3:1 on every base. Inputs add a faint inset
+   * shadow over the control border.
+   */
+  :where(.input, .select, .textarea, .file-input, .checkbox, .radio, .toggle) {
     border-color: var(--keyline-base);
+  }
+
+  :where(.input, .select, .textarea) {
     box-shadow: inset 0 1px 2px color-mix(in oklab, var(--keyline-base) 20%, transparent);
   }
 
   /*
-   * Badges are squared outlines: a transparent fill, IBM Plex Mono,
-   * uppercase, letter-spaced, with the status color carried by
-   * DaisyUI's own `--badge-color` (unchanged). Warning badges on
-   * `label` read `--ink-warning` instead of the raw warning fill,
-   * since the fill measures under 4.5:1 as text (W2.7).
+   * The state borders DaisyUI sets through `--input-color`, restated
+   * after the keyline above, which would otherwise hide them. The
+   * validator selectors are DaisyUI 5.7.46's own
+   * (`daisyui/components/validator.css`). The hint is text, so it
+   * takes the error ink rather than the raw fill (W2.7).
    */
-  .badge {
+  :where(
+      .input-error,
+      .select-error,
+      .textarea-error,
+      .file-input-error,
+      .validator:is(
+          :user-invalid,
+          :has(:user-invalid),
+          [aria-invalid]:not([aria-invalid='false']),
+          :has([aria-invalid]:not([aria-invalid='false']))
+        )
+    ) {
+    border-color: var(--color-error);
+  }
+
+  :where(
+      .input-success,
+      .select-success,
+      .textarea-success,
+      .file-input-success,
+      .validator:is(:user-valid, :has(:user-valid))
+    ) {
+    border-color: var(--color-success);
+  }
+
+  :where(.validator-hint) {
+    color: var(--ink-error);
+  }
+
+  /*
+   * Badges are squared outlines: a transparent fill with no noise
+   * layer, IBM Plex Mono, uppercase, letter-spaced. DaisyUI sets a
+   * badge's text in its fill's `-content` color, which vanishes on a
+   * transparent fill, so text and border both read `--badge-ink`, the
+   * status's measured ink. Secondary and neutral have no ink (both are
+   * fill-only in one palette), so they fall back to base-content, as
+   * the plain badge does.
+   */
+  :where(.badge) {
     --badge-bg: transparent;
+    background-image: none;
+    color: var(--badge-ink, var(--color-base-content));
+    border-color: var(--badge-ink, var(--color-base-content));
     border-radius: 0;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.6875rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
 
-  .badge-warning {
-    --badge-color: var(--ink-warning);
+  :where(.badge-primary) {
+    --badge-ink: var(--ink-primary);
+  }
+
+  :where(.badge-accent, .badge-success) {
+    --badge-ink: var(--ink-accent);
+  }
+
+  :where(.badge-info) {
+    --badge-ink: var(--ink-info);
+  }
+
+  :where(.badge-warning) {
+    --badge-ink: var(--ink-warning);
+  }
+
+  :where(.badge-error) {
+    --badge-ink: var(--ink-error);
+  }
+
+  /*
+   * Links: DaisyUI's `.link` is underlined at rest, so a link never
+   * relies on color alone (SC 1.4.1). A `link-<status>` modifier paints
+   * the status's ink instead of its raw fill; secondary and neutral
+   * have none, so they read base-content. DaisyUI's `.link-hover`
+   * underlines on hover only; its focus-visible twin keeps W9.2's
+   * parity.
+   */
+  :where(.link-primary) {
+    color: var(--ink-primary);
+  }
+
+  :where(.link-accent, .link-success) {
+    color: var(--ink-accent);
+  }
+
+  :where(.link-info) {
+    color: var(--ink-info);
+  }
+
+  :where(.link-warning) {
+    color: var(--ink-warning);
+  }
+
+  :where(.link-error) {
+    color: var(--ink-error);
+  }
+
+  :where(.link-secondary, .link-neutral) {
+    color: var(--color-base-content);
+  }
+
+  :where(.link-hover:focus-visible) {
+    text-decoration-line: underline;
   }
 
   /*
    * Refinement: display type, body copy, the page-title label rule,
-   * selection, link hover, and motion. The mono sizes and trackings
-   * beyond the badge's own (catalog line, tracklist, film edge) and
-   * the tab, list-row, and figure cursor rules wait for rung 7, whose
-   * pages render those surfaces (Ruling 5).
+   * and selection. The mono sizes and trackings beyond the badge's own
+   * (catalog line, tracklist, film edge) and the tab, list-row, and
+   * figure cursor rules wait for rung 7, whose pages render those
+   * surfaces (Ruling 5).
    */
-  .display {
+  :where(.display) {
+    font-family: var(--font-serif);
+    font-weight: 400;
     line-height: 1.1;
     text-wrap: balance;
   }
 
-  p,
-  .alert {
+  :where(p, .alert) {
     text-wrap: pretty;
   }
 
-  .page-title {
-    border-top: 3px solid var(--color-base-content);
-    padding-top: 4px;
-  }
-
-  .page-title::after {
+  /*
+   * The label rule under the title: a 3px line, a 2px gap, a 1px line.
+   * Preflight's `border-box` counts both borders inside the 6px height.
+   */
+  :where(.page-title)::after {
     content: '';
     display: block;
     margin-top: 4px;
-    border-top: 1px solid var(--color-base-content);
+    height: 6px;
+    border-top: 3px solid var(--color-base-content);
+    border-bottom: 1px solid var(--color-base-content);
   }
 
   ::selection {
@@ -189,12 +366,12 @@
     color: var(--color-base-content);
   }
 
-  a:hover {
-    text-decoration-line: underline;
-  }
-
+  /*
+   * Only the button press moves here; W9.3's global kill switch
+   * (`daisyui-overrides.css`) stops every transition and animation.
+   */
   @media (prefers-reduced-motion: reduce) {
-    .btn:active {
+    :where(.btn:active) {
       translate: none;
     }
   }

@@ -32,7 +32,9 @@ function filesUnder(dir) {
  * each path is hashed with its length-prefixed bytes, so no two input
  * sets share a digest by concatenation. The source is hashed rather
  * than asking git for a commit, so a source tarball without `.git`
- * still builds.
+ * still builds. `scripts/` counts as an input: Tailwind's automatic
+ * source detection scans it, and the rendered leg's fixture markup
+ * there is what puts the classes it measures into the bundle.
  *
  * @returns {string}
  */
@@ -42,6 +44,7 @@ function sourceVersion() {
     'svelte.config.js',
     'tsconfig.json',
     ...readdirSync(webRoot).filter((name) => name.startsWith('vite.config.')),
+    ...filesUnder('scripts'),
     ...filesUnder('src'),
     ...filesUnder('static')
   ];

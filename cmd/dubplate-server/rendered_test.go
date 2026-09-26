@@ -29,8 +29,10 @@ import (
 // bundle resolves its URLs from the runtime prefix.
 const renderedPrefix = "/rendered"
 
-// renderedScriptTimeout bounds one run of the browser script.
-const renderedScriptTimeout = 90 * time.Second
+// renderedScriptTimeout bounds one run of the browser script, at
+// about three times its measured wall time (about 50s once the
+// component rows landed), since a heavy gate shares the machine.
+const renderedScriptTimeout = 150 * time.Second
 
 // renderedInstallHint is the command the script names when
 // Playwright's Chromium is not installed.
@@ -102,8 +104,14 @@ var renderedManifest = []renderedRow{
 	{id: "component/focus/login/label-night"},
 	{id: "component/focus/login-link/label"},
 	{id: "component/focus/login-link/label-night"},
+	{id: "component/focus/login/system-light"},
+	{id: "component/focus/login/system-dark"},
+	{id: "component/focus/login-link/system-light"},
+	{id: "component/focus/login-link/system-dark"},
 	{id: "component/pressed"},
 	{id: "component/reduced-motion"},
+	{id: "component/pressed/flat"},
+	{id: "component/reduced-motion/kill-switch"},
 	{id: "component/surface/shadow/button/label"},
 	{id: "component/surface/shadow/button/label-night"},
 	{id: "component/surface/shadow/card/label"},
@@ -118,6 +126,24 @@ var renderedManifest = []renderedRow{
 	{id: "component/surface/border-width/label-night"},
 	{id: "component/surface/ghost/label"},
 	{id: "component/surface/ghost/label-night"},
+	{id: "component/surface/keyline-controls/label"},
+	{id: "component/surface/keyline-controls/label-night"},
+	{id: "component/surface/flat/label"},
+	{id: "component/surface/flat/label-night"},
+	{id: "component/badge/label"},
+	{id: "component/badge/label-night"},
+	{id: "component/badge/system-light"},
+	{id: "component/badge/system-dark"},
+	{id: "component/input-states/label"},
+	{id: "component/input-states/label-night"},
+	{id: "component/link/label"},
+	{id: "component/link/label-night"},
+	{id: "component/utility-wins"},
+	{id: "component/display-face"},
+	{id: "component/page-title"},
+	{id: "fonts/alfa-slab-one"},
+	{id: "fonts/work-sans"},
+	{id: "fonts/ibm-plex-mono"},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two
@@ -351,6 +377,28 @@ func checkServedVersion(t *testing.T, base, webDir string) {
 	}
 }
 
+// scriptEnvNames are the only parent variables the browser script
+// inherits: what Node and Playwright need to find themselves, their
+// browser cache, and a temporary directory. The test's own
+// environment can hold workstation secrets, and nothing in the
+// script needs them.
+var scriptEnvNames = []string{
+	"PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "TZ",
+	"XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_RUNTIME_DIR",
+	"PLAYWRIGHT_BROWSERS_PATH",
+}
+
+// scriptEnviron is the parent environment filtered to scriptEnvNames.
+func scriptEnviron() []string {
+	var env []string
+	for _, name := range scriptEnvNames {
+		if value, ok := os.LookupEnv(name); ok {
+			env = append(env, name+"="+value)
+		}
+	}
+	return env
+}
+
 // runRenderedScript runs the browser script under webDir with env,
 // returning its stdout and stderr and its exit error.
 func runRenderedScript(ctx context.Context, webDir string, env []string) ([]byte, []byte, error) {
@@ -425,7 +473,7 @@ func TestRendered(t *testing.T) {
 	brandingSrv := startBrandingServer(t)
 	operatorSrv := startOperatorServer(t)
 
-	env := append(os.Environ(),
+	env := append(scriptEnviron(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
 		"DUBPLATE_RENDERED_REQUEST_LOG="+logSrv.URL,
 		"DUBPLATE_RENDERED_BRANDING_BASE_URL="+brandingSrv.URL+renderedPrefix+"/",

@@ -132,7 +132,29 @@ function requiredEnv(name: string): string {
   return value;
 }
 
-function report(row: Row): void {
+/**
+ * The owned prefix every request to the main fixture server must stay
+ * under, and how far into its request log the last reported row read.
+ * Set once `main` has the endpoints.
+ */
+let prefixWatch: { log: string; prefix: string; seen: number } | null = null;
+
+/**
+ * Writes `row`, failing it when any request the server logged since the
+ * previous row left the owned prefix: a stray URL in any sink (a
+ * `location` write, `window.open`, a dependency's own fetch) reaches the
+ * log whichever code path built it, which a source scan cannot promise.
+ */
+async function report(row: Row): Promise<void> {
+  if (prefixWatch !== null) {
+    const records = await requestLog(prefixWatch.log);
+    const watch = prefixWatch;
+    const outside = records.slice(watch.seen).filter((r) => !r.path.startsWith(watch.prefix));
+    watch.seen = records.length;
+    if (outside.length > 0) {
+      row = { ...row, property: false, detail: `${row.detail}; requests outside ${watch.prefix}: ${describe(outside)}` };
+    }
+  }
   process.stdout.write(`${JSON.stringify(row)}\n`);
 }
 
@@ -369,7 +391,7 @@ async function g7ComputedRows(browser: Browser, endpoints: Endpoints): Promise<v
     for (const state of G7_STATES) {
       const id = `g7/computed/${target.label}/${state.id}`;
       if (!fixture) {
-        report({
+        await report({
           id,
           fixture,
           property: false,
@@ -379,7 +401,7 @@ async function g7ComputedRows(browser: Browser, endpoints: Endpoints): Promise<v
       }
       const got = await paintedPrimary(browser, target.base, state.cookie, state.scheme);
       const want = hexRGBA(target.want);
-      report({
+      await report({
         id,
         fixture,
         property: sameRGBA(got, want),
@@ -403,7 +425,7 @@ async function g7ComputedRows(browser: Browser, endpoints: Endpoints): Promise<v
     opTier.operatorCSS.includes(`--color-primary: ${endpoints.operatorPrimary}`);
   const opID = 'g7/computed/operator/label';
   if (!opFixture) {
-    report({
+    await report({
       id: opID,
       fixture: opFixture,
       property: false,
@@ -412,7 +434,7 @@ async function g7ComputedRows(browser: Browser, endpoints: Endpoints): Promise<v
   } else {
     const got = await paintedPrimary(browser, endpoints.operatorBase, 'label', 'light');
     const want = hexRGBA(endpoints.operatorPrimary);
-    report({
+    await report({
       id: opID,
       fixture: opFixture,
       property: sameRGBA(got, want),
@@ -470,7 +492,7 @@ async function g10Rows(browser: Browser, endpoints: Endpoints): Promise<void> {
       const stamp = stampOf(body);
       const fixture = stamp === `dubplate-${identity.cookie}`;
       if (!fixture) {
-        report({ id, fixture, property: false, detail: `served stamp ${stamp}` });
+        await report({ id, fixture, property: false, detail: `served stamp ${stamp}` });
         continue;
       }
       const got = await visit.page.evaluate((names: string[]) => {
@@ -478,7 +500,7 @@ async function g10Rows(browser: Browser, endpoints: Endpoints): Promise<void> {
         return Object.fromEntries(names.map((n) => [n, cs.getPropertyValue(n).trim()]));
       }, Object.keys(STRUCTURAL));
       const mismatches = Object.entries(STRUCTURAL).filter(([name, want]) => got[name] !== want);
-      report({
+      await report({
         id,
         fixture,
         property: mismatches.length === 0,
@@ -499,7 +521,7 @@ async function g10Rows(browser: Browser, endpoints: Endpoints): Promise<void> {
     const stamp = stampOf(body);
     const fixture = stamp.startsWith('dubplate-');
     if (!fixture) {
-      report({ id, fixture, property: false, detail: `served stamp ${stamp}, want a dubplate-* stamp` });
+      await report({ id, fixture, property: false, detail: `served stamp ${stamp}, want a dubplate-* stamp` });
     } else {
       const before = (
         await visit.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--radius-box'))
@@ -510,7 +532,7 @@ async function g10Rows(browser: Browser, endpoints: Endpoints): Promise<void> {
           return getComputedStyle(document.documentElement).getPropertyValue('--radius-box');
         })
       ).trim();
-      report({
+      await report({
         id,
         fixture,
         property: before === STRUCTURAL['--radius-box'] && after === LIGHT_RADIUS_BOX,
@@ -560,7 +582,7 @@ async function firstPaintRows(browser: Browser, endpoints: Endpoints): Promise<v
       const wantCookie = state.cookie === null ? null : `${THEME_COOKIE}=${state.cookie}`;
       const fixture = stamp === state.stamp && logged !== undefined && sentCookie === wantCookie;
       if (!fixture) {
-        report({
+        await report({
           id,
           fixture,
           property: false,
@@ -574,7 +596,7 @@ async function firstPaintRows(browser: Browser, endpoints: Endpoints): Promise<v
         pixelHex(image, image.width >> 1, image.height >> 1),
         pixelHex(image, image.width - 1, image.height - 1)
       ];
-      report({
+      await report({
         id,
         fixture,
         property: samples.every((s) => s === state.paint),
@@ -609,7 +631,7 @@ async function cspCleanRows(browser: Browser, endpoints: Endpoints): Promise<voi
       const fixture = background.includes('url("data:image/svg+xml');
       if (fixture) await visit.page.locator('input.checkbox').screenshot();
       visit.violations = await violations(visit.page);
-      report({
+      await report({
         id,
         fixture,
         property: fixture && visit.violations.length === 0 && visit.consoleErrors.length === 0,
@@ -654,7 +676,7 @@ async function violationListenerRow(browser: Browser, endpoints: Endpoints): Pro
       seen = await violations(visit.page);
       visit.violations = seen;
     }
-    report({
+    await report({
       id,
       fixture,
       property: seen.some((v) => v.directive === 'img-src' && v.blocked === LISTENER_PROBE),
@@ -695,6 +717,14 @@ function refuseUnclean(): void {
       throw new Refusal(`${visit.url}: console error: ${text}`);
     }
   }
+}
+
+/** Refuses the run when a request left the owned prefix after the last row reported. */
+async function refuseLateLeaks(endpoints: Endpoints): Promise<void> {
+  if (prefixWatch === null) return;
+  const watch = prefixWatch;
+  const outside = (await requestLog(endpoints.requestLog)).slice(watch.seen).filter((r) => !r.path.startsWith(watch.prefix));
+  if (outside.length > 0) throw new Refusal(`requests outside ${watch.prefix} after the last row: ${describe(outside)}`);
 }
 
 /** How long a row waits for the browser's own icon fetch. */
@@ -756,7 +786,7 @@ async function themeColorRows(browser: Browser, endpoints: Endpoints): Promise<v
     for (const scheme of ['light', 'dark'] as const) {
       const id = `head/theme-color/system/${scheme}`;
       if (!fixture) {
-        report({ id, fixture, property: false, detail: `served stamp ${stamp}; metas ${JSON.stringify(metas)}` });
+        await report({ id, fixture, property: false, detail: `served stamp ${stamp}; metas ${JSON.stringify(metas)}` });
         continue;
       }
       await visit.page.emulateMedia({ colorScheme: scheme });
@@ -765,7 +795,7 @@ async function themeColorRows(browser: Browser, endpoints: Endpoints): Promise<v
           .filter((m) => !m.media || matchMedia(m.media).matches)
           .map((m) => m.content)
       );
-      report({
+      await report({
         id,
         fixture,
         property: active.length === 1 && active[0] === THEME_COLOR[scheme],
@@ -787,7 +817,7 @@ async function themeColorRows(browser: Browser, endpoints: Endpoints): Promise<v
       const stamp = stampOf(body);
       const fixture = stamp === `dubplate-${cookie}`;
       const metas = await themeColorMetas(visit.page);
-      report({
+      await report({
         id,
         fixture,
         property: fixture && metas.length === 1 && metas[0].media === null && metas[0].content === want,
@@ -818,7 +848,7 @@ async function iconRows(browser: Browser, endpoints: Endpoints): Promise<void> {
       const fixture = records.some((r) => r.path === documentPath);
       const icons = records.filter((r) => paths.icons.includes(r.path));
       const outside = records.filter((r) => !r.path.startsWith(paths.prefix));
-      report({
+      await report({
         id,
         fixture,
         property: icons.length > 0 && outside.length === 0,
@@ -893,7 +923,7 @@ async function clientNavigationRow(browser: Browser, endpoints: Endpoints): Prom
     const fixture = arrived && !documentRequested && pathname.endsWith('/members');
     const outside = records.filter((r) => !r.path.startsWith(paths.prefix));
     const hrefsInPrefix = servedHrefs.length > 0 && servedHrefs.every((h) => h.startsWith(paths.prefix));
-    report({
+    await report({
       id,
       fixture,
       property: fixture && hrefsInPrefix && outside.length === 0,
@@ -916,7 +946,7 @@ async function noFaviconProbeRow(endpoints: Endpoints): Promise<void> {
   const records = await requestLog(endpoints.requestLog);
   const icons = records.filter((r) => paths.icons.includes(r.path));
   const probes = records.filter((r) => r.path === '/favicon.ico');
-  report({
+  await report({
     id,
     fixture: icons.length > 0,
     property: probes.length === 0,
@@ -925,13 +955,11 @@ async function noFaviconProbeRow(endpoints: Endpoints): Promise<void> {
 }
 
 /**
- * Task 5's closed fixture control set (VI's component layer and
- * printed surface): a primary, secondary, warning, and neutral button,
- * a ghost button, a default button, an input, a card, an alert, and a
- * badge, each with the bundle's own DaisyUI classes. The IDs are
- * literal strings so Tailwind's content scan of this file emits the
- * classes' CSS into the built bundle the same way `cspCleanRows`'
- * injected checkbox already does.
+ * The closed fixture control set (VI's component layer and printed
+ * surface), each element carrying the bundle's own DaisyUI classes.
+ * The class strings are literals in this file so Tailwind's content
+ * scan of it emits their CSS into the built bundle, the same way
+ * `cspCleanRows`' injected checkbox already does.
  */
 const FIXTURE = {
   btnDefault: 'rendered-fx-btn-default',
@@ -940,11 +968,107 @@ const FIXTURE = {
   btnWarning: 'rendered-fx-btn-warning',
   btnNeutral: 'rendered-fx-btn-neutral',
   btnGhost: 'rendered-fx-btn-ghost',
+  btnDisabled: 'rendered-fx-btn-disabled',
+  btnDisabledClass: 'rendered-fx-btn-disabled-class',
+  btnLink: 'rendered-fx-btn-link',
+  anchorBtn: 'rendered-fx-anchor-btn',
   input: 'rendered-fx-input',
+  wrappedInput: 'rendered-fx-wrapped-input',
+  select: 'rendered-fx-select',
+  checkbox: 'rendered-fx-checkbox',
+  radio: 'rendered-fx-radio',
+  toggle: 'rendered-fx-toggle',
+  fileInput: 'rendered-fx-file-input',
+  inputError: 'rendered-fx-input-error',
+  inputSuccess: 'rendered-fx-input-success',
+  validator: 'rendered-fx-validator',
+  validatorHint: 'rendered-fx-validator-hint',
   card: 'rendered-fx-card',
   alert: 'rendered-fx-alert',
-  badge: 'rendered-fx-badge'
+  proseLink: 'rendered-fx-prose-link',
+  badgeUtility: 'rendered-fx-badge-utility',
+  display: 'rendered-fx-display',
+  pageTitle: 'rendered-fx-page-title'
 } as const;
+
+/** The status suffixes DaisyUI's badge and link modifiers take. */
+const STATUSES = ['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const;
+type Status = (typeof STATUSES)[number];
+
+/** Every badge the badge row measures: the plain badge, then one per status. */
+const BADGES: { id: string; className: string; status: Status | null }[] = [
+  { id: 'rendered-fx-badge-plain', className: 'badge', status: null },
+  { id: 'rendered-fx-badge-primary', className: 'badge badge-primary', status: 'primary' },
+  { id: 'rendered-fx-badge-secondary', className: 'badge badge-secondary', status: 'secondary' },
+  { id: 'rendered-fx-badge-accent', className: 'badge badge-accent', status: 'accent' },
+  { id: 'rendered-fx-badge-neutral', className: 'badge badge-neutral', status: 'neutral' },
+  { id: 'rendered-fx-badge-info', className: 'badge badge-info', status: 'info' },
+  { id: 'rendered-fx-badge-success', className: 'badge badge-success', status: 'success' },
+  { id: 'rendered-fx-badge-warning', className: 'badge badge-warning', status: 'warning' },
+  { id: 'rendered-fx-badge-error', className: 'badge badge-error', status: 'error' }
+];
+
+/** One link per status modifier, for the link row. */
+const STATUS_LINKS: { id: string; className: string; status: Status }[] = [
+  { id: 'rendered-fx-link-primary', className: 'link link-primary', status: 'primary' },
+  { id: 'rendered-fx-link-secondary', className: 'link link-secondary', status: 'secondary' },
+  { id: 'rendered-fx-link-accent', className: 'link link-accent', status: 'accent' },
+  { id: 'rendered-fx-link-neutral', className: 'link link-neutral', status: 'neutral' },
+  { id: 'rendered-fx-link-info', className: 'link link-info', status: 'info' },
+  { id: 'rendered-fx-link-success', className: 'link link-success', status: 'success' },
+  { id: 'rendered-fx-link-warning', className: 'link link-warning', status: 'warning' },
+  { id: 'rendered-fx-link-error', className: 'link link-error', status: 'error' }
+];
+
+/**
+ * One alert per fill, each holding a focusable link, so the focus row
+ * measures a ring drawn over a colored fill (the plain alert's fill is
+ * base-200).
+ */
+const ALERTS: { id: string; className: string }[] = [
+  { id: 'rendered-fx-alert', className: 'alert' },
+  { id: 'rendered-fx-alert-info', className: 'alert alert-info' },
+  { id: 'rendered-fx-alert-success', className: 'alert alert-success' },
+  { id: 'rendered-fx-alert-warning', className: 'alert alert-warning' },
+  { id: 'rendered-fx-alert-error', className: 'alert alert-error' }
+];
+
+/** The fixture's markup: built from literals and this file's own IDs only, so no page byte reaches it. */
+function fixtureMarkup(): string {
+  const f = FIXTURE;
+  const button = (id: string, className: string, extra = '') =>
+    `<button id="${id}" class="${className}"${extra}>${id}</button>`;
+  return [
+    button(f.btnDefault, 'btn'),
+    button(f.btnPrimary, 'btn btn-primary'),
+    button(f.btnSecondary, 'btn btn-secondary'),
+    button(f.btnWarning, 'btn btn-warning'),
+    button(f.btnNeutral, 'btn btn-neutral'),
+    button(f.btnGhost, 'btn btn-ghost'),
+    button(f.btnDisabled, 'btn btn-primary', ' disabled'),
+    button(f.btnDisabledClass, 'btn btn-disabled'),
+    button(f.btnLink, 'btn btn-link'),
+    `<a id="${f.anchorBtn}" class="btn" href="#rendered-fx">${f.anchorBtn}</a>`,
+    `<input id="${f.input}" type="text" class="input" aria-label="${f.input}">`,
+    `<label id="${f.wrappedInput}" class="input"><span>wrapped</span><input type="text"></label>`,
+    `<select id="${f.select}" class="select" aria-label="${f.select}"><option>fixture</option></select>`,
+    `<input id="${f.checkbox}" type="checkbox" class="checkbox" aria-label="${f.checkbox}">`,
+    `<input id="${f.radio}" type="radio" class="radio" name="rendered-fx-radio" aria-label="${f.radio}">`,
+    `<input id="${f.toggle}" type="checkbox" class="toggle" aria-label="${f.toggle}">`,
+    `<input id="${f.fileInput}" type="file" class="file-input" aria-label="${f.fileInput}">`,
+    `<input id="${f.inputError}" type="text" class="input input-error" aria-label="${f.inputError}">`,
+    `<input id="${f.inputSuccess}" type="text" class="input input-success" aria-label="${f.inputSuccess}">`,
+    `<div><input id="${f.validator}" type="text" class="input validator" aria-invalid="true" aria-label="${f.validator}"><p id="${f.validatorHint}" class="validator-hint">fixture hint</p></div>`,
+    `<div id="${f.card}" class="card"><div class="card-body">fixture card</div></div>`,
+    ...ALERTS.map((a) => `<div id="${a.id}" class="${a.className}">fixture alert <a class="link" href="#rendered-fx">${a.id}</a></div>`),
+    `<p>Body text with <a id="${f.proseLink}" class="link text-ink-primary" href="#rendered-fx">a link</a> in it.</p>`,
+    ...STATUS_LINKS.map((l) => `<a id="${l.id}" class="${l.className}" href="#rendered-fx">${l.id}</a>`),
+    ...BADGES.map((b) => `<span id="${b.id}" class="${b.className}">${b.status ?? 'plain'}</span>`),
+    `<span id="${f.badgeUtility}" class="badge rounded-full">utility</span>`,
+    `<p id="${f.display}" class="display">Fixture display</p>`,
+    `<p id="${f.pageTitle}" class="page-title">Fixture title</p>`
+  ].join('');
+}
 
 /**
  * Appends the closed set to the booted page's `main`, under a wrapper
@@ -953,7 +1077,7 @@ const FIXTURE = {
  * for this run.
  */
 async function injectFixtureControls(page: Page): Promise<void> {
-  await page.evaluate((ids: typeof FIXTURE) => {
+  await page.evaluate((markup: string) => {
     const main = document.querySelector('main');
     if (main === null) throw new Error('no <main> to inject the fixture set into');
     const wrap = document.createElement('div');
@@ -965,59 +1089,106 @@ async function injectFixtureControls(page: Page): Promise<void> {
     // width, so the shadow rows below always find plain background
     // to sample just past an element's right edge.
     wrap.style.alignItems = 'flex-start';
-    const button = (id: string, extra: string) => {
-      const el = document.createElement('button');
-      el.id = id;
-      el.className = `btn ${extra}`.trim();
-      el.textContent = id;
-      wrap.append(el);
-    };
-    button(ids.btnDefault, '');
-    button(ids.btnPrimary, 'btn-primary');
-    button(ids.btnSecondary, 'btn-secondary');
-    button(ids.btnWarning, 'btn-warning');
-    button(ids.btnNeutral, 'btn-neutral');
-    button(ids.btnGhost, 'btn-ghost');
-    const input = document.createElement('input');
-    input.id = ids.input;
-    input.type = 'text';
-    input.className = 'input';
-    wrap.append(input);
-    const card = document.createElement('div');
-    card.id = ids.card;
-    card.className = 'card';
-    card.innerHTML = '<div class="card-body">fixture card</div>';
-    wrap.append(card);
-    const alert = document.createElement('div');
-    alert.id = ids.alert;
-    alert.className = 'alert';
-    alert.textContent = 'fixture alert';
-    wrap.append(alert);
-    const badge = document.createElement('span');
-    badge.id = ids.badge;
-    badge.className = 'badge badge-warning';
-    badge.textContent = 'fixture';
-    wrap.append(badge);
+    wrap.innerHTML = markup;
     main.append(wrap);
-  }, FIXTURE);
+  }, fixtureMarkup());
 }
 
-/** Opens the login page under `cookie`'s stamp and injects the closed set. */
+/**
+ * A stamp and an emulated preference the component rows run under,
+ * and the palette whose values the page must then show: a cookie pins
+ * its palette, and the `system` stamp follows the preference.
+ */
+interface ThemeState {
+  id: string;
+  cookie: 'label' | 'label-night' | null;
+  scheme: 'light' | 'dark';
+  palette: 'label' | 'label-night';
+  stamp: string;
+}
+
+const COOKIE_STATES: ThemeState[] = [
+  { id: 'label', cookie: 'label', scheme: 'light', palette: 'label', stamp: 'dubplate-label' },
+  { id: 'label-night', cookie: 'label-night', scheme: 'dark', palette: 'label-night', stamp: 'dubplate-label-night' }
+];
+
+const ALL_STATES: ThemeState[] = [
+  ...COOKIE_STATES,
+  { id: 'system-light', cookie: null, scheme: 'light', palette: 'label', stamp: 'dubplate-system' },
+  { id: 'system-dark', cookie: null, scheme: 'dark', palette: 'label-night', stamp: 'dubplate-system' }
+];
+
+/**
+ * The fixture contexts' viewport: tall enough that the whole closed set
+ * paints without scrolling, so a rect read from the page and a
+ * screenshot clip share one coordinate space.
+ */
+const FIXTURE_VIEWPORT = { width: 1280, height: 4000 };
+
+/**
+ * Opens `served` under `state` in a new context, injects the closed
+ * set, and reports whether the fixture stands: the document carries
+ * the expected stamp and the set fits the viewport unscrolled. Every
+ * component row checks it before measuring.
+ */
 async function openThemedFixture(
   browser: Browser,
   endpoints: Endpoints,
-  cookie: 'label' | 'label-night'
-): Promise<{ context: BrowserContext; visit: Visit }> {
+  state: ThemeState,
+  served: ServedPage = PAGES[0],
+  options: { reducedMotion?: 'reduce' } = {}
+): Promise<{ context: BrowserContext; visit: Visit; stamped: boolean; problem: string }> {
   const host = new URL(endpoints.base).hostname;
-  const context = await browser.newContext();
-  await context.addCookies([{ name: THEME_COOKIE, value: cookie, domain: host, path: '/', secure: true }]);
-  const visit = await openBooted(context, endpoints.base, PAGES[0]);
+  const context = await browser.newContext({ colorScheme: state.scheme, viewport: FIXTURE_VIEWPORT, ...options });
+  if (state.cookie !== null) {
+    await context.addCookies([{ name: THEME_COOKIE, value: state.cookie, domain: host, path: '/', secure: true }]);
+  }
+  const visit = await openBooted(context, endpoints.base, served);
   await injectFixtureControls(visit.page);
-  return { context, visit };
+  const { stamp, height } = await visit.page.evaluate(() => ({
+    stamp: document.documentElement.dataset.theme ?? '(none)',
+    height: document.documentElement.scrollHeight
+  }));
+  const problems: string[] = [];
+  if (stamp !== state.stamp) problems.push(`the document is stamped ${stamp}, want ${state.stamp}`);
+  if (height > FIXTURE_VIEWPORT.height) problems.push(`the page is ${height}px tall, over the ${FIXTURE_VIEWPORT.height}px viewport`);
+  return { context, visit, stamped: problems.length === 0, problem: problems.join('; ') };
 }
 
-/** `--ink-primary`'s two theme values (VI's ink table). */
+/** `--ink-primary`'s two palette values (VI's ink table). */
 const INK_PRIMARY = { label: '#9d2f26', 'label-night': '#ec7b6a' } as const;
+
+/**
+ * The ink each status's text must paint, per palette, quoted from VI's
+ * ink table. `null` marks a status with no ink (`label` secondary and
+ * `label-night` neutral are fill-only, and neither palette gives
+ * secondary or neutral an ink), which falls back to base-content.
+ */
+const STATUS_INK: Record<'label' | 'label-night', Record<Status, string | null>> = {
+  label: {
+    primary: '#9d2f26',
+    secondary: null,
+    accent: '#2d6136',
+    neutral: null,
+    info: '#2d5a81',
+    success: '#2d6136',
+    warning: '#754f00',
+    error: '#a4261d'
+  },
+  'label-night': {
+    primary: '#ec7b6a',
+    secondary: null,
+    accent: '#66a46e',
+    neutral: null,
+    info: '#6d9cc7',
+    success: '#66a46e',
+    warning: '#e5ad33',
+    error: '#e37866'
+  }
+};
+
+/** `--color-base-content` per palette (VI's palette tables). */
+const BASE_CONTENT = { label: '#1f1b16', 'label-night': '#efe4cc' } as const;
 
 /** `--color-base-100`, the plain page background surrounding the fixture set. */
 const BASE_100 = { label: '#f4ead3', 'label-night': '#1c1916' } as const;
@@ -1110,13 +1281,26 @@ async function enumerateTabbable(page: Page): Promise<TabTarget[]> {
   );
 }
 
+interface Outline {
+  style: string;
+  width: string;
+  offset: string;
+  color: string;
+}
+
 interface FocusedInfo {
   label: string;
   probe: string | null;
-  outlineStyle: string;
-  outlineWidth: string;
-  outlineOffset: string;
-  outlineColor: string;
+  /** The focused element's own outline. */
+  own: Outline;
+  /**
+   * The outline of the DaisyUI control wrapping the focused element
+   * (`<label class="input">`, `.select`, `.textarea`), or `null` when
+   * nothing wraps it: DaisyUI draws a wrapped control's ring on the
+   * wrapper, so the wrapper is the element the ring is judged on.
+   */
+  wrapper: Outline | null;
+  /** The ring-bearing element's box: the wrapper's when there is one. */
   rect: { x: number; y: number; width: number };
 }
 
@@ -1125,53 +1309,67 @@ async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
   return page.evaluate((attr: string) => {
     const el = document.activeElement as HTMLElement | null;
     if (el === null || el === document.body) return null;
-    const style = getComputedStyle(el);
-    const rect = el.getBoundingClientRect();
-    const label = el.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+    const outline = (target: Element) => {
+      const style = getComputedStyle(target);
+      return {
+        style: style.outlineStyle,
+        width: style.outlineWidth,
+        offset: style.outlineOffset,
+        color: style.outlineColor
+      };
+    };
+    const wrapperEl = el.parentElement?.closest('.input, .select, .textarea') ?? null;
+    const rect = (wrapperEl ?? el).getBoundingClientRect();
+    const label = el.id || wrapperEl?.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
     return {
       label,
       probe: el.getAttribute(attr),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-      outlineOffset: style.outlineOffset,
-      outlineColor: style.outlineColor,
+      own: outline(el),
+      wrapper: wrapperEl === null ? null : outline(wrapperEl),
       rect: { x: rect.x, y: rect.y, width: rect.width }
     };
   }, TAB_PROBE_ATTR);
 }
 
+function describeOutline(o: Outline): string {
+  return `${o.style} ${o.width} ${o.color} offset ${o.offset}`;
+}
+
 /**
- * `component/focus/<page>/<theme>`: every tabbable element the page
+ * `component/focus/<page>/<state>`: every tabbable element the page
  * serves, enumerated by DOM query, plus the injected closed set
- * (Ruling 4's icon-only exception does not apply, since the set
- * carries no icon-only control). A page must serve a nonzero tabbable
- * count and every injected control by role before any ring is judged.
- * Each element's ring is read back at `--ink-primary` by tabbing to
- * it, and the pixel just inside the ring (the offset gap) and the one
- * just outside it each clear 3:1 against the ring, both sampled above
- * the element's top edge, where the printed surface casts no shadow
- * (the shadow's own offset is bottom-right only). The walk also proves
- * coverage by identity: every element {@link enumerateTabbable} finds
- * must be focused at least once (a revisit after a wrap counts once),
- * and the row fails, naming whichever queried element the walk never
- * reached, rather than only comparing a visited count against the
- * query's own total.
+ * (the icon-only exception does not apply, since the set carries no
+ * icon-only control), under both cookie stamps and the `system` stamp
+ * in either preference. A page must serve a nonzero tabbable count
+ * and every injected control by role before any ring is judged. Each
+ * element's ring is read back at `--ink-primary` by tabbing to it; a
+ * control DaisyUI wraps shows one ring, on the wrapper, and none on
+ * the focused element inside it. The pixel just inside the ring (the
+ * offset gap) and the one just outside it each clear 3:1 against the
+ * ring, both sampled above the element's top edge, where the printed
+ * surface casts no shadow (the shadow's own offset is bottom-right
+ * only); for a link inside a filled alert, those two pixels fall on
+ * the alert's fill unless a page-colored halo covers them. The walk
+ * also proves coverage by identity: every element
+ * {@link enumerateTabbable} finds must be focused at least once (a
+ * revisit after a wrap counts once), and the row fails, naming
+ * whichever queried element the walk never reached, rather than only
+ * comparing a visited count against the query's own total.
  */
 async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> {
-  for (const theme of ['label', 'label-night'] as const) {
+  for (const state of ALL_STATES) {
     for (const served of PAGES) {
-      const id = `component/focus/${served.name}/${theme}`;
-      const host = new URL(endpoints.base).hostname;
-      const context = await browser.newContext();
-      await context.addCookies([{ name: THEME_COOKIE, value: theme, domain: host, path: '/', secure: true }]);
+      const id = `component/focus/${served.name}/${state.id}`;
+      const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, state, served);
       try {
-        const visit = await openBooted(context, endpoints.base, served);
-        await injectFixtureControls(visit.page);
-
+        if (!stamped) {
+          await report({ id, fixture: false, property: false, detail: problem });
+          continue;
+        }
         const targets = await enumerateTabbable(visit.page);
         const total = targets.length;
         if (total === 0) {
-          report({ id, fixture: false, property: false, detail: 'no tabbable element found on the page' });
+          await report({ id, fixture: false, property: false, detail: 'no tabbable element found on the page' });
           continue;
         }
 
@@ -1187,14 +1385,23 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
         for (const name of buttonNames) {
           if ((await visit.page.getByRole('button', { name, exact: true }).count()) === 0) missingRoles.push(name);
         }
-        if ((await visit.page.getByRole('textbox').count()) === 0) missingRoles.push(FIXTURE.input);
+        if ((await visit.page.getByRole('textbox', { name: 'wrapped', exact: true }).count()) === 0) {
+          missingRoles.push(FIXTURE.wrappedInput);
+        }
+        if ((await visit.page.getByRole('textbox', { name: FIXTURE.input, exact: true }).count()) === 0) {
+          missingRoles.push(FIXTURE.input);
+        }
+        if ((await visit.page.getByRole('link', { name: ALERTS[1].id, exact: true }).count()) === 0) {
+          missingRoles.push(`${ALERTS[1].id}'s link`);
+        }
         if (missingRoles.length > 0) {
-          report({ id, fixture: false, property: false, detail: `missing by role: ${missingRoles.join(', ')}` });
+          await report({ id, fixture: false, property: false, detail: `missing by role: ${missingRoles.join(', ')}` });
           continue;
         }
 
         await visit.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-        const want = hexRGBA(INK_PRIMARY[theme]);
+        const want = hexRGBA(INK_PRIMARY[state.palette]);
+        const wantText = `solid 2px ${INK_PRIMARY[state.palette]} offset 2px`;
         const problems: string[] = [];
         const visitedProbes = new Set<string>();
         let visited = 0;
@@ -1208,16 +1415,19 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
           if (focused === null) break;
           visited++;
           if (focused.probe !== null) visitedProbes.add(focused.probe);
-          const ring = await paintedColor(visit.page, focused.outlineColor);
+          if (focused.wrapper !== null && focused.own.style !== 'none') {
+            problems.push(`${focused.label}: a second ring on the wrapped control itself, ${describeOutline(focused.own)} (want none)`);
+            continue;
+          }
+          const ringOutline = focused.wrapper ?? focused.own;
+          const ring = await paintedColor(visit.page, ringOutline.color);
           if (
-            focused.outlineStyle !== 'solid' ||
-            focused.outlineWidth !== '2px' ||
-            focused.outlineOffset !== '2px' ||
+            ringOutline.style !== 'solid' ||
+            ringOutline.width !== '2px' ||
+            ringOutline.offset !== '2px' ||
             !sameRGBA(ring, want)
           ) {
-            problems.push(
-              `${focused.label}: outline ${focused.outlineStyle} ${focused.outlineWidth} ${focused.outlineColor} offset ${focused.outlineOffset} (want solid 2px ${INK_PRIMARY[theme]} offset 2px)`
-            );
+            problems.push(`${focused.label}: outline ${describeOutline(ringOutline)} (want ${wantText})`);
             continue;
           }
           const x = Math.round(focused.rect.x + focused.rect.width / 2);
@@ -1239,14 +1449,14 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
           }
         }
         if (visited === 0) {
-          report({ id, fixture: false, property: false, detail: `tabbing found no focusable element (of ${total} tabbable by query)` });
+          await report({ id, fixture: false, property: false, detail: `tabbing found no focusable element (of ${total} tabbable by query)` });
           continue;
         }
         const missing = targets.filter((t) => !visitedProbes.has(t.id));
         if (missing.length > 0) {
           problems.push(`never focused: ${missing.map((t) => t.label).join(', ')} (of ${total} queried)`);
         }
-        report({
+        await report({
           id,
           fixture: true,
           property: problems.length === 0,
@@ -1290,23 +1500,23 @@ async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void
       const locator = visit.page.locator(`#${FIXTURE.btnDefault}`);
       const box = await locator.boundingBox();
       if (box === null) {
-        report({ id, fixture: false, property: false, detail: 'the default button has no box' });
+        await report({ id, fixture: false, property: false, detail: 'the default button has no box' });
         continue;
       }
       await visit.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await visit.page.mouse.down();
-      // DaisyUI's `.btn` transitions `transform` over 0.2s; a read
-      // immediately after the press lands mid-transition, so this
-      // waits out the transition before reading the settled position
-      // and the box-shadow, which does not itself transition but is
-      // read alongside the box for one settled snapshot of the
-      // pressed state.
+      // DaisyUI's `.btn` transitions `box-shadow` (and `transform`)
+      // over 0.2s but not `translate`, so the box lands at once while
+      // the shadow is still fading; a read immediately after the press
+      // would catch the shadow mid-transition. This waits the
+      // transition out, then reads the shadow and the box as one
+      // settled snapshot of the pressed state.
       await visit.page.waitForTimeout(300);
       const pressedShadow = await computedProperty(visit.page, FIXTURE.btnDefault, 'box-shadow');
       const pressedBox = await locator.boundingBox();
       await visit.page.mouse.up();
       if (pressedShadow !== 'none') {
-        report({
+        await report({
           id,
           fixture: false,
           property: false,
@@ -1315,13 +1525,13 @@ async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void
         continue;
       }
       if (pressedBox === null) {
-        report({ id, fixture: false, property: false, detail: 'the default button lost its box while pressed' });
+        await report({ id, fixture: false, property: false, detail: 'the default button lost its box while pressed' });
         continue;
       }
       const delta = { x: pressedBox.x - box.x, y: pressedBox.y - box.y };
       const want = reduce ? { x: 0, y: 0 } : { x: 2, y: 2 };
       const moved = closeTo(delta.x, want.x) && closeTo(delta.y, want.y);
-      report({
+      await report({
         id,
         fixture: true,
         property: moved,
@@ -1330,6 +1540,52 @@ async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void
     } finally {
       await context.close();
     }
+  }
+}
+
+/**
+ * `component/pressed/flat`: a ghost button and a link button carry no
+ * shadow to press into, so a press moves neither (VI: "Ghost buttons
+ * carry no border or shadow"). The fixture state is each button
+ * matching `:active` while the mouse is held on it.
+ */
+async function pressedFlatRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'component/pressed/flat';
+  const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, COOKIE_STATES[0]);
+  try {
+    if (!stamped) {
+      await report({ id, fixture: false, property: false, detail: problem });
+      return;
+    }
+    const results: string[] = [];
+    let reached = true;
+    let still = true;
+    for (const name of [FIXTURE.btnGhost, FIXTURE.btnLink]) {
+      const locator = visit.page.locator(`#${name}`);
+      const box = await locator.boundingBox();
+      if (box === null) {
+        reached = false;
+        results.push(`${name} has no box`);
+        continue;
+      }
+      await visit.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await visit.page.mouse.down();
+      await visit.page.waitForTimeout(300);
+      const active = await locator.evaluate((el) => el.matches(':active'));
+      const pressedBox = await locator.boundingBox();
+      await visit.page.mouse.up();
+      if (!active || pressedBox === null) {
+        reached = false;
+        results.push(`${name} never reached :active`);
+        continue;
+      }
+      const delta = { x: pressedBox.x - box.x, y: pressedBox.y - box.y };
+      if (!closeTo(delta.x, 0) || !closeTo(delta.y, 0)) still = false;
+      results.push(`${name} moved (${delta.x.toFixed(2)}, ${delta.y.toFixed(2)})`);
+    }
+    await report({ id, fixture: reached, property: reached && still, detail: `${results.join('; ')} (want (0, 0) each)` });
+  } finally {
+    await context.close();
   }
 }
 
@@ -1382,7 +1638,7 @@ async function shadowRow(
   const geometry = shadowGeometry(boxShadow);
   const wantGeometry = `${offset}px ${offset}px 0px 0px`;
   if (geometry !== wantGeometry) {
-    report({ id, fixture: geometry !== null, property: false, detail: `box-shadow "${boxShadow}" (want geometry ${wantGeometry})` });
+    await report({ id, fixture: geometry !== null, property: false, detail: `box-shadow "${boxShadow}" (want geometry ${wantGeometry})` });
     return;
   }
   const rect = await page.evaluate((elId) => {
@@ -1400,7 +1656,7 @@ async function shadowRow(
   const wantBg = hexRGBA(BASE_100[theme]);
   const shadowOK = sameRGBA(inside, wantShadow);
   const bgOK = sameRGBA(outside, wantBg);
-  report({
+  await report({
     id,
     fixture: true,
     property: shadowOK && bgOK,
@@ -1408,53 +1664,450 @@ async function shadowRow(
   });
 }
 
+/** A computed color that paints nothing: DaisyUI's `#0000` and CSS `transparent` both resolve to it. */
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
+
 async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void> {
-  for (const theme of ['label', 'label-night'] as const) {
-    const { context, visit } = await openThemedFixture(browser, endpoints, theme);
+  for (const state of COOKIE_STATES) {
+    const theme = state.palette;
+    const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, state);
     try {
+      if (!stamped) {
+        for (const row of ['keyline-base', 'keyline-fill', 'keyline-controls', 'border-width', 'ghost', 'flat']) {
+          await report({ id: `component/surface/${row}/${theme}`, fixture: false, property: false, detail: problem });
+        }
+        for (const name of ['button', 'card', 'alert']) {
+          await report({ id: `component/surface/shadow/${name}/${theme}`, fixture: false, property: false, detail: problem });
+        }
+        continue;
+      }
       await shadowRow(visit.page, 'button', theme, FIXTURE.btnDefault, 2, SURFACE_EXPECTED.buttonShadow[theme]);
       await shadowRow(visit.page, 'card', theme, FIXTURE.card, 3, SURFACE_EXPECTED.cardShadow[theme]);
       await shadowRow(visit.page, 'alert', theme, FIXTURE.alert, 3, SURFACE_EXPECTED.cardShadow[theme]);
 
-      const defaultBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.btnDefault, 'border-color'));
-      const cardBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.card, 'border-color'));
-      const primaryBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.btnPrimary, 'border-color'));
-      const alertBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.alert, 'border-color'));
+      const border = async (elementId: string) =>
+        paintedColor(visit.page, await computedProperty(visit.page, elementId, 'border-top-color'));
+      const defaultBorder = await border(FIXTURE.btnDefault);
+      const cardBorder = await border(FIXTURE.card);
+      const primaryBorder = await border(FIXTURE.btnPrimary);
+      const alertBorder = await border(FIXTURE.alert);
       const wantBase = hexRGBA(SURFACE_EXPECTED.keylineBase[theme]);
       const wantFill = hexRGBA(SURFACE_EXPECTED.keylineFill[theme]);
-      report({
+      await report({
         id: `component/surface/keyline-base/${theme}`,
         fixture: true,
         property: sameRGBA(defaultBorder, wantBase) && sameRGBA(cardBorder, wantBase),
         detail: `default button border [${defaultBorder.join(',')}], card border [${cardBorder.join(',')}] (want ${SURFACE_EXPECTED.keylineBase[theme]})`
       });
-      report({
+      await report({
         id: `component/surface/keyline-fill/${theme}`,
         fixture: true,
         property: sameRGBA(primaryBorder, wantFill) && sameRGBA(alertBorder, wantFill),
         detail: `primary button border [${primaryBorder.join(',')}], alert border [${alertBorder.join(',')}] (want ${SURFACE_EXPECTED.keylineFill[theme]})`
       });
 
+      // The selection controls' own edges: DaisyUI draws each at 20% to
+      // 50% of base-content, under 3:1 on every base.
+      const controls = [FIXTURE.checkbox, FIXTURE.radio, FIXTURE.toggle, FIXTURE.fileInput, FIXTURE.select];
+      const controlBorders: string[] = [];
+      let controlsOK = true;
+      for (const control of controls) {
+        const got = await border(control);
+        if (!sameRGBA(got, wantBase)) controlsOK = false;
+        controlBorders.push(`${control} [${got.join(',')}]`);
+      }
+      await report({
+        id: `component/surface/keyline-controls/${theme}`,
+        fixture: true,
+        property: controlsOK,
+        detail: `${controlBorders.join(', ')} (want ${SURFACE_EXPECTED.keylineBase[theme]} each)`
+      });
+
       const defaultBorderWidth = await computedProperty(visit.page, FIXTURE.btnDefault, 'border-top-width');
       const inputBorderWidth = await computedProperty(visit.page, FIXTURE.input, 'border-top-width');
-      report({
+      await report({
         id: `component/surface/border-width/${theme}`,
         fixture: true,
         property: defaultBorderWidth === '2px' && inputBorderWidth === '2px',
         detail: `default button border-top-width ${defaultBorderWidth}, input border-top-width ${inputBorderWidth} (want 2px, 2px)`
       });
 
-      const ghostShadow = await computedProperty(visit.page, FIXTURE.btnGhost, 'box-shadow');
-      const ghostBorderStyle = await computedProperty(visit.page, FIXTURE.btnGhost, 'border-style');
-      report({
+      // A flat button keeps a solid border drawn transparent, never
+      // `border-style: none`: forced-colors mode repaints a transparent
+      // border in the system color, so the control keeps its edge there.
+      const flat = async (elementId: string) => ({
+        id: elementId,
+        shadow: await computedProperty(visit.page, elementId, 'box-shadow'),
+        style: await computedProperty(visit.page, elementId, 'border-top-style'),
+        color: await computedProperty(visit.page, elementId, 'border-top-color')
+      });
+      const isFlat = (f: { shadow: string; style: string; color: string }) =>
+        f.shadow === 'none' && f.style === 'solid' && f.color === TRANSPARENT;
+      const ghost = await flat(FIXTURE.btnGhost);
+      await report({
         id: `component/surface/ghost/${theme}`,
         fixture: true,
-        property: ghostShadow === 'none' && ghostBorderStyle === 'none',
-        detail: `box-shadow ${ghostShadow}, border-style ${ghostBorderStyle} (want none, none)`
+        property: isFlat(ghost),
+        detail: `box-shadow ${ghost.shadow}, border ${ghost.style} ${ghost.color} (want none, solid ${TRANSPARENT})`
+      });
+      const flats = [
+        await flat(FIXTURE.btnDisabled),
+        await flat(FIXTURE.btnDisabledClass),
+        await flat(FIXTURE.btnLink)
+      ];
+      await report({
+        id: `component/surface/flat/${theme}`,
+        fixture: true,
+        property: flats.every(isFlat),
+        detail: `${flats.map((f) => `${f.id}: box-shadow ${f.shadow}, border ${f.style} ${f.color}`).join('; ')} (want none, solid ${TRANSPARENT} each)`
       });
     } finally {
       await context.close();
     }
+  }
+}
+
+/** The WCAG 2.2 text floor (SC 1.4.3) every badge and link color must clear. */
+const TEXT_FLOOR = 4.5;
+
+/** The ink a status's text paints under `palette`, or base-content for a status with none. */
+function statusInk(palette: 'label' | 'label-night', status: Status | null): string {
+  return (status === null ? null : STATUS_INK[palette][status]) ?? BASE_CONTENT[palette];
+}
+
+/**
+ * `component/badge/<state>`: every badge (the plain badge and one per
+ * status) under both cookie stamps and the `system` stamp in either
+ * preference. A badge is a squared outline (VI ruling 12), so the
+ * pixel painted just inside its left padding must be the page's own
+ * base-100, which proves both a transparent fill and no noise layer.
+ * Its text and border must paint the status's ink (base-content for
+ * a status with none), and the text must clear 4.5:1 against that
+ * painted ground.
+ */
+async function badgeRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const state of ALL_STATES) {
+    const id = `component/badge/${state.id}`;
+    const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, state);
+    try {
+      if (!stamped) {
+        await report({ id, fixture: false, property: false, detail: problem });
+        continue;
+      }
+      const wantGround = hexRGBA(BASE_100[state.palette]);
+      const problems: string[] = [];
+      const measured: string[] = [];
+      for (const badge of BADGES) {
+        const rect = await visit.page.evaluate((elId) => {
+          const r = document.getElementById(elId)?.getBoundingClientRect();
+          return r === undefined ? null : { left: r.left, top: r.top, height: r.height };
+        }, badge.id);
+        if (rect === null) {
+          problems.push(`${badge.id} is absent`);
+          continue;
+        }
+        const text = await paintedColor(visit.page, await computedProperty(visit.page, badge.id, 'color'));
+        const edge = await paintedColor(visit.page, await computedProperty(visit.page, badge.id, 'border-top-color'));
+        // 2px of border, then 3px into the 10px padding, clear of every glyph.
+        const ground = await paintedPixelAt(visit.page, Math.round(rect.left) + 5, Math.round(rect.top + rect.height / 2));
+        const wantHex = statusInk(state.palette, badge.status);
+        const want = hexRGBA(wantHex);
+        const ratio = contrastRatio(text, ground);
+        measured.push(`${badge.status ?? 'plain'} ${ratio.toFixed(2)}:1`);
+        if (!sameRGBA(ground, wantGround)) {
+          problems.push(`${badge.id}: ground [${ground.join(',')}] (want ${BASE_100[state.palette]}, no fill and no noise)`);
+        }
+        if (!sameRGBA(text, want) || !sameRGBA(edge, want)) {
+          problems.push(`${badge.id}: text [${text.join(',')}], border [${edge.join(',')}] (want ${wantHex} both)`);
+        }
+        if (ratio < TEXT_FLOOR) {
+          problems.push(`${badge.id}: text ${ratio.toFixed(2)}:1 on its ground (want ${TEXT_FLOOR}:1 or better)`);
+        }
+      }
+      await report({
+        id,
+        fixture: true,
+        property: problems.length === 0,
+        detail: problems.length === 0 ? `every badge clean: ${measured.join(', ')}` : problems.join('; ')
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/** Each palette's `--color-error` and `--color-success` fills and `--ink-error`, quoted from VI's tables. */
+const STATE_COLORS = {
+  label: { error: '#a8261d', success: '#2f6b3a', inkError: '#a4261d' },
+  'label-night': { error: '#e0604f', success: '#5a9e66', inkError: '#e37866' }
+} as const;
+
+/**
+ * `component/input-states/<palette>`: DaisyUI's error and success
+ * input modifiers and its `validator` keep their state borders under
+ * the component layer's base keyline, and a shown validator hint is
+ * set in the error ink rather than the raw error fill (W2.7). The
+ * fixture state is the hint shown: DaisyUI makes it visible only on an
+ * invalid validator.
+ */
+async function inputStateRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const state of COOKIE_STATES) {
+    const id = `component/input-states/${state.palette}`;
+    const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, state);
+    try {
+      const hintVisible = (await computedProperty(visit.page, FIXTURE.validatorHint, 'visibility')) === 'visible';
+      if (!stamped || !hintVisible) {
+        await report({ id, fixture: false, property: false, detail: `${problem}; validator hint visible ${hintVisible}` });
+        continue;
+      }
+      const want = STATE_COLORS[state.palette];
+      const border = async (elementId: string) =>
+        paintedColor(visit.page, await computedProperty(visit.page, elementId, 'border-top-color'));
+      const checks = [
+        { what: `${FIXTURE.inputError} border`, got: await border(FIXTURE.inputError), want: want.error },
+        { what: `${FIXTURE.inputSuccess} border`, got: await border(FIXTURE.inputSuccess), want: want.success },
+        { what: `${FIXTURE.validator} border`, got: await border(FIXTURE.validator), want: want.error },
+        {
+          what: `${FIXTURE.validatorHint} text`,
+          got: await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.validatorHint, 'color')),
+          want: want.inkError
+        }
+      ];
+      await report({
+        id,
+        fixture: true,
+        property: checks.every((c) => sameRGBA(c.got, hexRGBA(c.want))),
+        detail: checks.map((c) => `${c.what} [${c.got.join(',')}] (want ${c.want})`).join('; ')
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `component/link/<palette>`: a prose link is DaisyUI's `.link`,
+ * underlined at rest, so it never relies on color alone (SC 1.4.1);
+ * every `link-<status>` and `.btn-link` paints an ink (base-content
+ * for a status with none) that clears 4.5:1 on base-100; and a
+ * hovered `a.btn` stays free of the link underline.
+ */
+async function linkRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const state of COOKIE_STATES) {
+    const id = `component/link/${state.palette}`;
+    const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, state);
+    try {
+      if (!stamped) {
+        await report({ id, fixture: false, property: false, detail: problem });
+        continue;
+      }
+      const ground = hexRGBA(BASE_100[state.palette]);
+      const problems: string[] = [];
+      const color = async (elementId: string) =>
+        paintedColor(visit.page, await computedProperty(visit.page, elementId, 'color'));
+
+      const proseDecoration = await computedProperty(visit.page, FIXTURE.proseLink, 'text-decoration-line');
+      if (proseDecoration !== 'underline') problems.push(`${FIXTURE.proseLink} text-decoration-line ${proseDecoration} at rest (want underline)`);
+      const inked = [
+        ...STATUS_LINKS.map((l) => ({ id: l.id, want: statusInk(state.palette, l.status) })),
+        { id: FIXTURE.proseLink, want: INK_PRIMARY[state.palette] },
+        { id: FIXTURE.btnLink, want: INK_PRIMARY[state.palette] }
+      ];
+      for (const link of inked) {
+        const got = await color(link.id);
+        const ratio = contrastRatio(got, ground);
+        if (!sameRGBA(got, hexRGBA(link.want)) || ratio < TEXT_FLOOR) {
+          problems.push(`${link.id}: [${got.join(',')}] at ${ratio.toFixed(2)}:1 (want ${link.want}, ${TEXT_FLOOR}:1 or better)`);
+        }
+      }
+
+      const box = await visit.page.locator(`#${FIXTURE.anchorBtn}`).boundingBox();
+      if (box === null) {
+        problems.push(`${FIXTURE.anchorBtn} has no box`);
+      } else {
+        await visit.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        const hovered = await visit.page.locator(`#${FIXTURE.anchorBtn}`).evaluate((el) => el.matches(':hover'));
+        const decoration = await computedProperty(visit.page, FIXTURE.anchorBtn, 'text-decoration-line');
+        if (!hovered) problems.push(`${FIXTURE.anchorBtn} never reached :hover`);
+        if (decoration !== 'none') problems.push(`${FIXTURE.anchorBtn} hovered text-decoration-line ${decoration} (want none)`);
+      }
+      await report({
+        id,
+        fixture: true,
+        property: problems.length === 0,
+        detail: problems.length === 0 ? `prose link underlined at rest; ${inked.length} inked links clean; a.btn hover plain` : problems.join('; ')
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `component/utility-wins`: a Tailwind utility in markup beats the
+ * component layer, which shares its cascade layer. The fixture state
+ * is the plain badge squared by the layer (DaisyUI's own badge is
+ * rounded), proving the layer's rule applies at all; the property is
+ * `rounded-full` rounding a badge again.
+ */
+async function utilityWinsRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'component/utility-wins';
+  const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, COOKIE_STATES[0]);
+  try {
+    const plain = await computedProperty(visit.page, BADGES[0].id, 'border-top-left-radius');
+    const utility = await computedProperty(visit.page, FIXTURE.badgeUtility, 'border-top-left-radius');
+    const fixture = stamped && plain === '0px';
+    await report({
+      id,
+      fixture,
+      property: fixture && utility !== '0px',
+      detail: `${problem} plain badge radius ${plain} (want 0px); rounded-full badge radius ${utility} (want nonzero)`.trim()
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * The three embedded faces (VI "Type"), their files, and the family
+ * name each `@font-face` rule declares, quoted from
+ * web/src/lib/themes/fonts.css.
+ */
+const FACES: { id: string; family: string; file: string }[] = [
+  { id: 'alfa-slab-one', family: 'Alfa Slab One', file: 'AlfaSlabOne-Regular.woff2' },
+  { id: 'work-sans', family: 'Work Sans', file: 'WorkSans-Variable.woff2' },
+  { id: 'ibm-plex-mono', family: 'IBM Plex Mono', file: 'IBMPlexMono-Regular.woff2' }
+];
+
+/**
+ * `fonts/<face>`: each face loads, and its file is fetched from inside
+ * the owned prefix. The fixture state is the face declared in
+ * `document.fonts`. Then `.display` sets the slab face, at weight 400,
+ * and that face is the one loaded (`component/display-face`).
+ */
+async function fontRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const paths = prefixPaths(endpoints.base);
+  // A face in use on the page (Work Sans sets the body) is fetched
+  // while the page loads, so the log is read from before it opens.
+  const from = (await requestLog(endpoints.requestLog)).length;
+  const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, COOKIE_STATES[0]);
+  try {
+    for (const face of FACES) {
+      const id = `fonts/${face.id}`;
+      const declared = await visit.page.evaluate(
+        (family) => [...document.fonts].some((f) => f.family.replace(/["']/g, '') === family),
+        face.family
+      );
+      if (!stamped || !declared) {
+        await report({ id, fixture: false, property: false, detail: `${problem}; ${face.family} declared ${declared}` });
+        continue;
+      }
+      // `document.fonts.load` rejects when a face's file fails to load,
+      // so the rejection is this row's failure, never the run's.
+      const statuses = await visit.page.evaluate(async (family) => {
+        try {
+          return (await document.fonts.load(`400 16px "${family}"`)).map((f) => f.status);
+        } catch (err) {
+          return [`rejected: ${err instanceof Error ? err.message : String(err)}`];
+        }
+      }, face.family);
+      const filePath = `${paths.prefix}fonts/${face.file}`;
+      const records = await logSince(endpoints.requestLog, from, (r) => r.path === filePath, ICON_TIMEOUT_MS);
+      const fetched = records.some((r) => r.method === 'GET' && r.path === filePath);
+      await report({
+        id,
+        fixture: true,
+        property: statuses.length > 0 && statuses.every((s) => s === 'loaded') && fetched,
+        detail: `load statuses ${JSON.stringify(statuses)}; GET ${filePath} logged ${fetched}; all ${describe(records)}`
+      });
+    }
+
+    const id = 'component/display-face';
+    const family = await computedProperty(visit.page, FIXTURE.display, 'font-family');
+    const weight = await computedProperty(visit.page, FIXTURE.display, 'font-weight');
+    const loaded = await visit.page.evaluate(() => document.fonts.check('400 16px "Alfa Slab One"'));
+    await report({
+      id,
+      fixture: stamped,
+      property: stamped && family.startsWith('"Alfa Slab One"') && weight === '400' && loaded,
+      detail: `${problem} .display font-family ${family}, font-weight ${weight} (want "Alfa Slab One" first, 400); face loaded ${loaded}`.trim()
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `component/page-title`: the label rule sits under the title, a 3px
+ * line over a 1px line (VI "Component layer"), and nothing frames it
+ * from above.
+ */
+async function pageTitleRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'component/page-title';
+  const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, COOKIE_STATES[0]);
+  try {
+    const got = await visit.page.evaluate((elId) => {
+      const el = document.getElementById(elId);
+      if (el === null) throw new Error(`no element #${elId}`);
+      const after = getComputedStyle(el, '::after');
+      return {
+        content: after.content,
+        top: after.borderTopWidth,
+        bottom: after.borderBottomWidth,
+        own: getComputedStyle(el).borderTopWidth
+      };
+    }, FIXTURE.pageTitle);
+    const fixture = stamped && got.content !== 'none';
+    await report({
+      id,
+      fixture,
+      property: fixture && got.top === '3px' && got.bottom === '1px' && got.own === '0px',
+      detail: `${problem} ::after content ${got.content}, border-top ${got.top}, border-bottom ${got.bottom}; the title's own border-top ${got.own} (want 3px, 1px, 0px)`.trim()
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `component/reduced-motion/kill-switch`: under `prefers-reduced-motion:
+ * reduce`, no element of the closed set runs a transition or an
+ * animation longer than 1ms, DaisyUI's own included (W9.3). The
+ * fixture state is the default button declaring DaisyUI's transition,
+ * so the row cannot pass on a set with nothing to stop.
+ */
+async function killSwitchRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'component/reduced-motion/kill-switch';
+  const { context, visit, stamped, problem } = await openThemedFixture(browser, endpoints, COOKIE_STATES[0], PAGES[0], {
+    reducedMotion: 'reduce'
+  });
+  try {
+    const got = await visit.page.evaluate((btnId) => {
+      const seconds = (list: string) => list.split(',').map((d) => parseFloat(d));
+      const longest: { what: string; s: number }[] = [];
+      for (const el of document.querySelectorAll('main *')) {
+        for (const pseudo of [null, '::before', '::after']) {
+          const style = getComputedStyle(el, pseudo);
+          const worst = Math.max(...seconds(style.transitionDuration), ...seconds(style.animationDuration));
+          if (worst > 0.001) longest.push({ what: `${el.id || el.tagName.toLowerCase()}${pseudo ?? ''}`, s: worst });
+        }
+      }
+      const btn = document.getElementById(btnId);
+      return {
+        reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        property: btn === null ? '' : getComputedStyle(btn).transitionProperty,
+        longest
+      };
+    }, FIXTURE.btnDefault);
+    const fixture = stamped && got.reduce && got.property.includes('box-shadow');
+    await report({
+      id,
+      fixture,
+      property: fixture && got.longest.length === 0,
+      detail: `${problem} reduce matched ${got.reduce}; default button transition-property ${got.property}; over 1ms: ${JSON.stringify(got.longest.slice(0, 8))}`.trim()
+    });
+  } finally {
+    await context.close();
   }
 }
 
@@ -1467,6 +2120,7 @@ async function main(): Promise<void> {
     brandingPrimary: requiredEnv('DUBPLATE_RENDERED_BRANDING_PRIMARY'),
     operatorPrimary: requiredEnv('DUBPLATE_RENDERED_OPERATOR_PRIMARY')
   };
+  prefixWatch = { log: endpoints.requestLog, prefix: new URL(endpoints.base).pathname, seen: 0 };
   const browser = await launch();
   try {
     await firstPaintRows(browser, endpoints);
@@ -1480,8 +2134,17 @@ async function main(): Promise<void> {
     await noFaviconProbeRow(endpoints);
     await focusRows(browser, endpoints);
     await pressedRows(browser, endpoints);
+    await pressedFlatRow(browser, endpoints);
+    await killSwitchRow(browser, endpoints);
     await surfaceRows(browser, endpoints);
+    await badgeRows(browser, endpoints);
+    await inputStateRows(browser, endpoints);
+    await linkRows(browser, endpoints);
+    await utilityWinsRow(browser, endpoints);
+    await fontRows(browser, endpoints);
+    await pageTitleRow(browser, endpoints);
     refuseUnclean();
+    await refuseLateLeaks(endpoints);
   } finally {
     await browser.close();
   }

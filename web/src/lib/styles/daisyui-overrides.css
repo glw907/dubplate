@@ -1,0 +1,28 @@
+/*
+ * The unlayered overrides (web surface standard W5.8 and W5.22): each
+ * rule here must outrank DaisyUI's own declarations and Tailwind's
+ * utilities alike, so it sits outside every cascade layer. Each entry
+ * names the DaisyUI version it was measured against and the
+ * measurement.
+ */
+
+/*
+ * W9.3's reduced-motion kill switch. DaisyUI 5.7.46 transitions every
+ * button over 0.2s, and its checkbox and toggle over 0.1s to 0.4s,
+ * outside any reduced-motion query (measured by the rendered leg's
+ * `component/reduced-motion/kill-switch` row); only an unlayered
+ * `!important` rule also reaches an operator's or a vendor's later
+ * declarations.
+ * Durations collapse to 0.01ms rather than `none`, so a transition's
+ * end state still applies and `transitionend` still fires.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
