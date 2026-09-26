@@ -254,3 +254,68 @@ approval estimate is superseded by these counts.
   failed write retried without limit); the conductor accepted fca3cc2 without a third review,
   because the fix was narrow and its test counts write attempts directly. The store was checked
   before v7: no choice carried a v6-era focus. First pass: 111 choices (86 keep, 19 pass, 6 maybe).
+
+## Requested additions spot-check (2026-09-26)
+
+Housekeeping before the spot-check: `commons:33882251` (the HABS 9:30 Club interior, recovered
+this pass with a firm 1990/circa date) removed from `research-b/drops.json`, since it is now a
+live candidate in `requests/`. `dolls/commons-103914289.json`'s license evidence, which quoted
+`prop=imageinfo extmetadata`, replaced with Commons structured data fetched raw
+(`action=wbgetentities&ids=M103914289`): statement P275 resolves to Q19068220 ("Creative Commons
+Attribution-ShareAlike 2.0 Generic", confirmed via a second `wbgetentities` call against
+wikidata.org), matching the record's existing `CC-BY-SA-2.0` license; P571 (inception,
+`+2010-06-01T00:00:00Z`) matches the record's year 2010 exact; qualifier P2093 on the P275
+statement names Chris Whippet, matching the record's photographer field.
+
+**Sample.** Pool: the 20 new records across `requests/` (11), `dolls/` (7), and `zines/` (2), all
+`commons:` source ids. Mandatory set: every public-domain record, which is the one HABS interior
+(`commons:33882251`, `LicenseRef-public-domain`); no flyer or zine-cover format record is among
+the 20 (the zines directory holds photographs of zine-fair scenes, not zine covers). Rest: 19.
+Method: sort the rest ascending by the hex `sha256("20260926:" + id)` (`id` in the sheet's
+`<source>-<key>` form), then take the first `max(5, ceil(0.2 x 19))` = 5. Seed `20260926`, pool
+20, sample size 6: `commons-33882251`, `commons-3736388`, `commons-115584322`, `commons-8757805`,
+`commons-25532803`, `commons-93206778`.
+
+**Channels.** Each Commons file's `action=raw` wikitext, fetched under the api lock (`api.php`
+class of endpoint, 0.25s serial spacing). Laundering and deletion: a batched
+`action=query&titles=Commons:Deletion_requests/File:<title>` per sampled file, all `missing`. The
+three Flickr-origin accounts among the sample (Yves Lorson `29572161@N00`, Masao Nakagami
+`45489981@N00`, and `spector1`/Raj Gupta) checked against
+`Commons:Questionable_Flickr_images/Users`, raw wikitext, none present.
+
+**Tally.** 6 match, 0 mismatch, 0 changed-since-grant, 0 unverifiable.
+
+**Matches**, all dated 2026-09-26:
+
+- `commons-33882251`: wikitext `|permission = {{PD-USGov-NPS}}`, `|source =
+  https://www.loc.gov/pictures/item/dc0636.photos.030314p`. Matches the record's
+  `LicenseRef-public-domain` / `us-government-work` basis and citation; no delete, copyvio,
+  no-permission, or no-source template, no open deletion request.
+- `commons-3736388` (The Cramps, Belgium): `{{cc-by-2.0}}` plus
+  `{{User:FlickreviewR/reviewed-pass|Yves Lorson on permanent vacation|...|06:16, 19 March 2008
+  (UTC)|cc-by-2.0}}`. Matches the record's `CC-BY-2.0` and quoted review line.
+- `commons-115584322` (Lux Interior and Poison Ivy, Tokyo): `{{cc-by-sa-2.0}}` plus
+  `{{FlickreviewR|status=passed|author=masao nakagami|...|reviewdate=2022-02-26
+  21:04:35|reviewlicense=cc-by-sa-2.0|reviewer=FlickreviewR 2}}`. Matches the record's
+  `CC-BY-SA-2.0` and quoted review line.
+- `commons-8757805` (Dr Madd Vibe and Fishbone): `{{cc-by-sa-2.0}}{{flickrreview|Bidgee|2009-12-16}}`.
+  Matches the record's `CC-BY-SA-2.0` and quoted old-style review template.
+- `commons-25532803` (the clock at 430 King's Road): `|source={{own}}`,
+  `|author=[[User:Mark Ahsmann|Mark Ahsmann]]`, `{{self|cc-by-sa-3.0}}`, contemporaneous
+  (2011-06-04 photo, matching upload). Matches the record's `CC-BY-SA-3.0`.
+- `commons-93206778` (8-Ball Zine Fair): `|source={{own}}`,
+  `|author=[[User:Elbowplants|Elbowplants]]`, `{{self|cc-by-sa-4.0}}`, contemporaneous
+  (2019-06-22 event and upload). Matches the record's `CC-BY-SA-4.0`.
+
+No record sent the round back for re-verification.
+
+## Requested additions (2026-09-25)
+
+Geoff's mid-sitting requests added 20 candidates to round 1 (131 total): Fishbone 3, Bad Manners 4,
+the 9:30 Club HABS interior (recovered, circa 1990), Skip Groff, Tim Armstrong 2, the Cramps 5,
+430 King's Road 2, zine culture 2. Not available under a shippable license: the New York Dolls'
+original run, Government Issue, Operation Ivy, the Transplants, punk-era Georgetown, the Yesterday &
+Today storefront, and zine covers generally (three zine flatlays dropped: the covers are the subject
+and are third-party works). These are outreach targets. Conductor ruling: further photo requests
+this round queue for round two, because each search cost 0.2M to 1.0M tokens and the lane is past
+its 7.5M ceiling (rough estimate 11M).
