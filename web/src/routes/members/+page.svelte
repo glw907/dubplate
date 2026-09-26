@@ -3,9 +3,9 @@
 The add-member page: an admin's roster list and add form, behind the
 roster API's own admin gate (`internal/auth/admin.go`'s `RequireAdmin`).
 The page ships in public `_app/immutable/` chunks and renders nothing it
-did not fetch (R-5cii19); a non-admin's GET meets the gate's 404 and
-sees the not-found state instead of the roster, with no roster and no
-form. `main` and the skip link satisfy W3.6.
+did not fetch; a non-admin's GET meets the gate's 404 and sees the
+not-found state instead of the roster, with no roster and no form.
+`main` and the skip link give the page a keyboard-reachable landmark.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
@@ -14,7 +14,10 @@ form. `main` and the skip link satisfy W3.6.
   import {
     ADD_MEMBER_HINTS,
     ADD_MEMBER_LABELS,
+    AUTH_OUTCOMES,
+    CROSS_ORIGIN_REFUSED,
     ERROR_PAGE,
+    NETWORK_FAILURE,
     ROSTER_EMPTY_STATE,
     ROSTER_OUTCOMES,
     TITLES,
@@ -23,12 +26,11 @@ form. `main` and the skip link satisfy W3.6.
   import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
 
   // The roster API's own subtree name (`cmd/dubplate-server/serve.go`'s
-  // `rosterRouteName`), composed from the runtime base (R-5ciii6).
+  // `rosterRouteName`), composed from the runtime base.
   const ROSTER_PATH = 'roster';
 
-  // The deck (Task 7's `deck.ts`) names every field's label and hint but
-  // not the form's own legend, submit control, or the admin badge: this
-  // task's Files do not include that module, so these three stay local.
+  // The deck names every field's label and hint but not the form's own
+  // legend, submit control, or the admin badge, so these three stay local.
   const ADD_MEMBER_LEGEND = 'Add a member';
   const ADD_MEMBER_SUBMIT = 'Add member';
   const ADMIN_BADGE_LABEL = 'Admin';
@@ -67,12 +69,22 @@ form. `main` and the skip link satisfy W3.6.
     }
   }
 
-  // 'added' is the only roster outcome that is not a refusal; the rest
-  // read as an error except the two transient write states, which read
-  // as a warning rather than a hard failure.
+  // The line for a roster outcome, an auth-shared outcome (a cross-origin
+  // refusal or a network failure that never reached a roster answer, or
+  // a status like 'failed'), or a last-resort deck line if the server
+  // answers with something neither dictionary names.
+  function resolveOutcome(o: string): string {
+    if (o === 'cross_origin') return CROSS_ORIGIN_REFUSED;
+    if (o === 'network_failure') return NETWORK_FAILURE;
+    return ROSTER_OUTCOMES[o] ?? AUTH_OUTCOMES[o] ?? AUTH_OUTCOMES.failed;
+  }
+
+  // 'added' is the only roster outcome that is not a refusal; 'failed'
+  // and the two transient write states read as a warning rather than a
+  // hard failure, as auth.ts classifies 'failed'.
   function outcomeAlertClass(o: string): string {
     if (o === 'added') return '';
-    if (o === 'busy' || o === 'write_unconfirmed') return 'alert-warning';
+    if (o === 'failed' || o === 'busy' || o === 'write_unconfirmed') return 'alert-warning';
     return 'alert-error';
   }
 
@@ -110,15 +122,29 @@ form. `main` and the skip link satisfy W3.6.
     if (submitting) return;
     submitting = true;
     try {
-      const response = await fetch(apiURL(), {
-        method: 'POST',
-        body: new URLSearchParams({
-          address,
-          display_name: displayName,
-          streamer_username: streamerUsername
-        }),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-      });
+      let response: Response;
+      try {
+        response = await fetch(apiURL(), {
+          method: 'POST',
+          body: new URLSearchParams({
+            address,
+            display_name: displayName,
+            streamer_username: streamerUsername
+          }),
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+      } catch {
+        outcome = 'network_failure';
+        announce(resolveOutcome(outcome), outcomePoliteness(outcome));
+        return;
+      }
+      // The CSRF defense's deny handler answers 403 with a plain-text
+      // body, never JSON, so its status is read before any JSON parse.
+      if (response.status === 403) {
+        outcome = 'cross_origin';
+        announce(resolveOutcome(outcome), outcomePoliteness(outcome));
+        return;
+      }
       let answer: { outcome: string };
       try {
         answer = (await response.json()) as { outcome: string };
@@ -126,7 +152,7 @@ form. `main` and the skip link satisfy W3.6.
         answer = { outcome: 'malformed' };
       }
       outcome = answer.outcome;
-      announce(ROSTER_OUTCOMES[outcome] ?? ROSTER_OUTCOMES.unknown_field, outcomePoliteness(outcome));
+      announce(resolveOutcome(outcome), outcomePoliteness(outcome));
       if (outcome === 'added') {
         address = '';
         displayName = '';
@@ -211,7 +237,7 @@ form. `main` and the skip link satisfy W3.6.
     </form>
     {#if outcome}
       <div id="roster-outcome" class="alert {outcomeAlertClass(outcome)}">
-        {ROSTER_OUTCOMES[outcome] ?? ROSTER_OUTCOMES.unknown_field}
+        {resolveOutcome(outcome)}
       </div>
     {/if}
   {/if}
