@@ -398,7 +398,8 @@ func TestRestoreCmd_ReconcilePending(t *testing.T) {
 // TestRestoreCmd_OutputLostAfterCompletion restores a current-version
 // file with a stdout whose every write fails. The restore still
 // completes and exits 0, since a lost line of output changes nothing
-// on disk, and stderr says the output was lost.
+// on disk, and stderr says the output was lost and repeats the
+// rotation instruction, which the report file does not carry.
 func TestRestoreCmd_OutputLostAfterCompletion(t *testing.T) {
 	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_LIBRARY_ROOT", t.TempDir())
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
@@ -412,6 +413,9 @@ func TestRestoreCmd_OutputLostAfterCompletion(t *testing.T) {
 	assertRestored(t, stateDir)
 	if !strings.Contains(stderr.String(), "restore: finished, but its output to stdout was lost: stdout closed") {
 		t.Errorf("stderr = %q, want it to say the output was lost", stderr.String())
+	}
+	if !strings.Contains(stderr.String(), restoreRotation+"\n") {
+		t.Errorf("stderr = %q, want it to carry the rotation instruction", stderr.String())
 	}
 }
 

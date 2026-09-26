@@ -29,7 +29,9 @@ const (
 // restored store carries the sessions and sign-in links of the moment
 // it was backed up, and rotating both secrets with no previous value
 // fails every one of them.
-const restoreRotation = `Before starting serve, mint new values for DUBPLATE_SESSION_SECRET and DUBPLATE_MAGIC_LINK_SECRET, and leave DUBPLATE_SESSION_SECRET_PREVIOUS and DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS unset, so every session and sign-in link issued before the restore fails.`
+const restoreRotation = "Before starting serve, mint new values for " + sessionSecretKey + " and " + magicLinkSecretKey +
+	", and leave " + sessionSecretPreviousKey + " and " + magicLinkSecretPreviousKey +
+	" unset, so every session and sign-in link issued before the restore fails."
 
 // restoreFlags holds the restore verb's flags.
 type restoreFlags struct {
@@ -200,7 +202,10 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	}
 	_, _ = fmt.Fprintln(out, restoreRotation)
 	if out.err != nil {
+		// The report file holds the report but not the rotation
+		// instruction, so stderr repeats it.
 		_, _ = fmt.Fprintf(stderr, "restore: finished, but its output to stdout was lost: %v; the reconciliation report file in the store holds the report\n", out.err)
+		_, _ = fmt.Fprintln(stderr, restoreRotation)
 	}
 	return nil
 }
