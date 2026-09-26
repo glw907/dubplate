@@ -38,8 +38,8 @@ nothing deploys until 5d.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), this session | OPEN: 5c-iv D-ii accepted (`75526ae`..`1fc7260`); segment E next, not started |
-| 2 | worktree `lane-2-6c` (branch `lane-2-6c`) | 6c merged at `e90998a`; architecture reads, ledger fold, worktree removal next |
+| 1 | main tree (master), session 2026-09-26 | OPEN: 5c-iv segment E, Task 10 running (`wf_06a26525-670`); then the read, reviews, Task 11 |
+| 2 | worktree `lane-2-6c` (branch `lane-2-6c`) | 6c merged at `e90998a`; six architecture reads running (read-only, in this worktree); ledger fold, worktree removal next |
 | photos | main tree (master), owned by the separate docs session | OPEN: `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M) |
 
 ## Open items (carried)
