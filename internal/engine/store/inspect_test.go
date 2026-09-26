@@ -85,8 +85,8 @@ func TestInspect_HotWAL(t *testing.T) {
 		wantPending []string
 	}{
 		{name: "absent", wantState: StateAbsent},
-		{name: "older", through: 1, child: "older", wantState: StateOlder, wantVersion: 2, wantPending: []string{"0003_catalog.sql"}},
-		{name: "newer", through: binaryHead, child: "newer", wantState: StateNewer, wantVersion: 4},
+		{name: "older", through: 1, child: "older", wantState: StateOlder, wantVersion: 2, wantPending: []string{"0003_catalog.sql", "0004_settings.sql", "0005_routed.sql"}},
+		{name: "newer", through: binaryHead, child: "newer", wantState: StateNewer, wantVersion: 6},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -36,6 +36,17 @@ const rebuildMarker = "-- dubplate:foreign-keys-off"
 // code a COMMIT with no open transaction answers.
 const sqliteErrorCode = 1
 
+// runnerSavepoint is the name applyInTx opens around each file's body
+// and expects to still exist when the body returns. No shipped
+// migration may declare a savepoint of this name: a body that runs
+// COMMIT (ending the runner's own transaction) drops the savepoint
+// with it, so RELEASE fails and applyInTx refuses the file before its
+// version write or ledger row (R-6c12). A body that reopens a
+// transaction and declares its own savepoint of this same name defeats
+// the check; commitMigration's "no transaction is active" branch below
+// is the only detection left for that shape.
+const runnerSavepoint = "dubplate_runner"
+
 // migrationName matches a migration file's name: a decimal version,
 // "_", a label, and ".sql".
 var migrationName = regexp.MustCompile(`^([0-9]+)_[^/]+\.sql$`)
@@ -290,11 +301,18 @@ func applyRebuild(ctx context.Context, dbPath string, m migration, busyTimeout t
 	return commitMigration(tx, dbPath, m)
 }
 
-// applyInTx runs m's statements inside tx, then sets user_version to
-// m's version and records m in the ledger. The version is formatted
-// into the statement because a PRAGMA takes no bound parameter. The
-// first failing statement ends the file: a multi-statement exec stops
-// there, and nothing after it runs.
+// applyInTx runs m's statements inside tx, between SAVEPOINT and
+// RELEASE (R-6c12), then sets user_version to m's version and records m
+// in the ledger. The version is formatted into the statement because a
+// PRAGMA takes no bound parameter. The first failing statement ends the
+// file: a multi-statement exec stops there, and nothing after it runs.
+//
+// The SAVEPOINT catches a body that ends the runner's own transaction
+// (a COMMIT, a ROLLBACK, or a COMMIT followed by a BEGIN): RELEASE then
+// fails naming a savepoint that no longer exists, before user_version
+// or the ledger row changes, so the caller's rollback finds nothing of
+// this file committed beyond what the body's own COMMIT already
+// persisted.
 func applyInTx(ctx context.Context, tx *sql.Tx, dbPath string, m migration) error {
 	var current int
 	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&current); err != nil {
@@ -303,8 +321,14 @@ func applyInTx(ctx context.Context, tx *sql.Tx, dbPath string, m migration) erro
 	if current != m.version-1 {
 		return fmt.Errorf("apply %s: store at version %d, want %d", m.name, current, m.version-1)
 	}
+	if _, err := tx.ExecContext(ctx, "SAVEPOINT "+runnerSavepoint); err != nil {
+		return fmt.Errorf("apply %s: open savepoint: %w", m.name, classifyWriteErr(dbPath, err))
+	}
 	if _, err := tx.ExecContext(ctx, m.body); err != nil {
 		return fmt.Errorf("apply %s: %w", m.name, classifyWriteErr(dbPath, err))
+	}
+	if _, err := tx.ExecContext(ctx, "RELEASE "+runnerSavepoint); err != nil {
+		return fmt.Errorf("apply %s: release savepoint: the file's own transaction control ended the runner's transaction: %w", m.name, classifyWriteErr(dbPath, err))
 	}
 	if _, err := tx.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", m.version)); err != nil {
 		return fmt.Errorf("apply %s: set user_version: %w", m.name, classifyWriteErr(dbPath, err))
@@ -345,7 +369,11 @@ func rollbackMigration(tx *sql.Tx, err error) error {
 // commitMigration commits tx. A COMMIT that finds no open transaction
 // after a clean apply means m ended the transaction itself, so every
 // statement after its own COMMIT, the version write and the ledger row
-// included, committed on its own: a hard error naming m.
+// included, committed on its own: a hard error naming m. This is
+// applyInTx's RELEASE check with the runner's savepoint's own name
+// redeclared inside the body's ended-and-reopened transaction, which
+// lets RELEASE succeed on the wrong savepoint (R-6c12); this branch is
+// the only detection left for that shape.
 func commitMigration(tx *sql.Tx, dbPath string, m migration) error {
 	err := tx.Commit()
 	if err == nil {

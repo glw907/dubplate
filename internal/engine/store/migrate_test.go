@@ -457,13 +457,113 @@ func TestMigrate_LedgerRefusals(t *testing.T) {
 	}
 }
 
+// TestMigrate_FileEndingItsOwnTransaction is R-6c12's savepoint check:
+// a file whose body ends the runner's transaction (COMMIT, optionally
+// followed by BEGIN, or ROLLBACK) fails at RELEASE, before the version
+// write or the ledger row, naming the file and the release failure
+// rather than the whole error text, since the runner's own rollback may
+// join a second error over the transaction the body already ended
+// (probe rows 2 to 4). A body that reopens a transaction is caught the
+// same way: RELEASE finds no savepoint of the runner's name to release.
 func TestMigrate_FileEndingItsOwnTransaction(t *testing.T) {
+	tests := []struct {
+		name  string
+		file2 string
+	}{
+		{name: "COMMIT then BEGIN and another table", file2: "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nBEGIN;\nCREATE TABLE e4 (a INTEGER);\n"},
+		{name: "COMMIT with nothing reopened", file2: "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\n"},
+		{name: "ROLLBACK", file2: "CREATE TABLE e3 (a INTEGER);\nROLLBACK;\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l, h := newMigrateStore(t)
+			mustMigrate(t, h, l, synthSet(1), defaultOpts())
+
+			// Not assertUnchanged: a body ending in a bare COMMIT (or
+			// COMMIT then ROLLBACK) has already persisted whatever it
+			// created before the runner's own RELEASE runs, so the
+			// schema is not the pre-apply state; only the file name and
+			// the release failure are asserted here (the plan's own
+			// reading of the mechanics probe's rows 2 to 4).
+			src := withSecond(synthSet(2), synthName(2), tt.file2)
+			err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
+			assertErrNames(t, err, synthName(2), "release savepoint")
+		})
+	}
+}
+
+// TestMigrate_CommitThenBeginLeavesNoLedgerRow is the mechanics probe's
+// clean case: a body that ends the runner's transaction with COMMIT and
+// reopens one with BEGIN never reaches the version write or the ledger
+// insert, so the runner's own rollback undoes only what BEGIN reopened,
+// and the body's own COMMIT stands.
+func TestMigrate_CommitThenBeginLeavesNoLedgerRow(t *testing.T) {
+	l, h := newMigrateStore(t)
+	mustMigrate(t, h, l, synthSet(1), defaultOpts())
+	before := readState(t, l.dbPath)
+
+	src := withSecond(synthSet(2), synthName(2), "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nBEGIN;\nCREATE TABLE e4 (a INTEGER);\n")
+	err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
+	assertErrNames(t, err, synthName(2), "release savepoint")
+
+	got := readState(t, l.dbPath)
+	if got.version != before.version {
+		t.Errorf("user_version = %d, want %d unchanged: the runner never reaches its own version write", got.version, before.version)
+	}
+	if !slices.Equal(got.ledger, before.ledger) {
+		t.Errorf("ledger = %q, want %q unchanged: the runner never reaches its own ledger insert", got.ledger, before.ledger)
+	}
+	if n := queryInt(t, l.dbPath, "SELECT count(*) FROM sqlite_schema WHERE type = 'table' AND name = 'e3'"); n != 1 {
+		t.Errorf("table e3 exists = %d, want 1: the body's own COMMIT persisted it before RELEASE ran", n)
+	}
+	if n := queryInt(t, l.dbPath, "SELECT count(*) FROM sqlite_schema WHERE type = 'table' AND name = 'e4'"); n != 0 {
+		t.Errorf("table e4 exists = %d, want 0: the runner's rollback undid the reopened transaction", n)
+	}
+}
+
+// TestMigrate_SavepointRedeclaredDefeatsRelease is R-6c12's named
+// residual: a body that ends the runner's transaction and then
+// redeclares a savepoint of the runner's own name passes RELEASE, so
+// the version write and the ledger insert run and commit outside the
+// runner's transaction before the runner's own Commit call finds
+// nothing open, which commitMigration's "no transaction is active"
+// branch still catches.
+func TestMigrate_SavepointRedeclaredDefeatsRelease(t *testing.T) {
 	l, h := newMigrateStore(t)
 	mustMigrate(t, h, l, synthSet(1), defaultOpts())
 
-	src := withSecond(synthSet(2), synthName(2), "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nCREATE TABLE e4 (a INTEGER);\n")
+	src := withSecond(synthSet(2), synthName(2), "CREATE TABLE e3 (a INTEGER);\nCOMMIT;\nSAVEPOINT "+runnerSavepoint+";\n")
 	err := migrate(context.Background(), h, l, readMigrationsT(t, src), defaultOpts())
-	assertErrNames(t, err, synthName(2), "ends its own transaction")
+	assertErrNames(t, err, synthName(2), "the file ends its own transaction")
+
+	got := readState(t, l.dbPath)
+	if got.version != 2 {
+		t.Errorf("user_version = %d, want 2: the version write committed outside the runner's own transaction", got.version)
+	}
+	if len(got.ledger) != 2 {
+		t.Errorf("ledger rows = %q, want 2: the ledger insert committed outside the runner's own transaction", got.ledger)
+	}
+}
+
+// TestMigrate_TriggerBodyApplies is R-6c12's non-refusal case: a
+// trigger's own BEGIN ... END body runs inside the CREATE TRIGGER
+// statement, never as a standalone transaction control statement, so it
+// does not touch the runner's savepoint and the file applies normally.
+func TestMigrate_TriggerBodyApplies(t *testing.T) {
+	l, h := newMigrateStore(t)
+	mustMigrate(t, h, l, synthSet(1), defaultOpts())
+
+	body := "CREATE TABLE e3 (a INTEGER);\n" +
+		"CREATE TRIGGER e3_guard AFTER INSERT ON e3 BEGIN SELECT 1; END;\n"
+	mustMigrate(t, h, l, withSecond(synthSet(2), synthName(2), body), defaultOpts())
+
+	got := readState(t, l.dbPath)
+	if got.version != 2 {
+		t.Errorf("user_version = %d, want 2", got.version)
+	}
+	if len(got.ledger) != 2 {
+		t.Errorf("ledger rows = %q, want 2", got.ledger)
+	}
 }
 
 func TestMigrate_KeepBelowOneRefusedBeforeApply(t *testing.T) {

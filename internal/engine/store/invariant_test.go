@@ -23,10 +23,19 @@ var mbForbiddenColumns = map[string]bool{
 }
 
 // invariant6Exempt names every table invariant 6 does not require a
-// BLOB primary key named id from. At 6a it holds the ledger alone,
-// keyed by version; 6c adds its own singleton and keyed tables.
+// BLOB primary key named id from: the ledger, keyed by version; the
+// settings table, keyed by its key; two singletons, each keyed by a
+// column that is neither named id nor ending _id; and three one-to-one
+// extensions of users, each keyed by the parent's own BLOB id rather
+// than a second identity nothing references.
 var invariant6Exempt = map[string]bool{
-	ledgerTable: true,
+	ledgerTable:           true, // keyed by version
+	"settings":            true, // keyed by key
+	"settings_generation": true, // singleton, keyed by singleton
+	"group_quota":         true, // singleton, keyed by singleton
+	"member_overrides":    true, // keyed by user_id
+	"member_preferences":  true, // keyed by user_id
+	"member_quota":        true, // keyed by user_id
 }
 
 // colInfo is one row of pragma_table_info, the columns invariant

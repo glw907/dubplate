@@ -820,7 +820,7 @@ func TestRestoreSession_VerifyStage(t *testing.T) {
 		{
 			name:    "newer",
 			stage:   func(t *testing.T) []byte { return storeBytes(t, binaryHead, futureLedgerRow) },
-			wantErr: "copy at version 4 is newer than this binary's version 3",
+			wantErr: "copy at version 6 is newer than this binary's version 5",
 		},
 		{
 			name: "ledger mismatch",
@@ -949,7 +949,7 @@ func TestRestoreSession_VerifyStageKeepsRecordedStage(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err := s.VerifyStage(deadline(t, 10*time.Second))
-	assertErrNames(t, err, "copy at version 4 is newer than this binary's version 3")
+	assertErrNames(t, err, "copy at version 6 is newer than this binary's version 5")
 	if _, err := os.Stat(s.StagePath()); err != nil {
 		t.Errorf("the recorded stage after a refusal: %v, want it kept", err)
 	}
@@ -968,7 +968,7 @@ func TestCopyInto_ExactVersion(t *testing.T) {
 	precreateFile(t, staged)
 
 	err = copyInto(context.Background(), db, staged, openBusy, binaryHead)
-	assertErrNames(t, err, staged, "copy at version 2, want 3")
+	assertErrNames(t, err, staged, "copy at version 4, want 5")
 }
 
 // TestRestoreSession_OpenRead: while the session holds the lock
@@ -1004,7 +1004,7 @@ func TestRestoreSession_OpenRead(t *testing.T) {
 		buildStore(t, stateDir, 2)
 		s := openSession(t, stateDir, false)
 		_, err := s.OpenRead(deadline(t, 10*time.Second))
-		assertErrNames(t, err, "at version 2, binary at version 3: only serve opens it")
+		assertErrNames(t, err, "at version 2, binary at version 5: only serve opens it")
 	})
 }
 
@@ -1129,7 +1129,7 @@ func TestRestoreSession_Advance(t *testing.T) {
 		{name: "reconcile-pending stays", through: 2, state: intentReconcilePending, want: StepServe, wantState: intentReconcilePending},
 		{
 			name: "reconcile under an older binary", through: binaryHead, stmts: futureLedgerRow, state: intentReconcile, wantState: intentReconcile,
-			wantErr: []string{"at version 4 is newer than this binary's version 3"},
+			wantErr: []string{"at version 6 is newer than this binary's version 5"},
 		},
 		{
 			name: "swap unfinished", through: binaryHead, state: intentSwap, stage: true, wantState: intentSwap,

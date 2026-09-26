@@ -9,35 +9,43 @@ import (
 	"testing"
 )
 
-// sqliteUniqueCode and sqliteDatatypeCode are SQLite's extended result
-// codes this file pins beyond write_test.go's sqliteFKCode
-// (sqlite.org/rescode.html): SQLITE_CONSTRAINT_UNIQUE, and
-// SQLITE_MISMATCH's type-affinity form, which a STRICT table answers
-// when a bound value's storage class does not match a column's
-// declared type.
+// sqliteUniqueCode through sqlitePrimaryKeyCode are SQLite's extended
+// result codes this file pins beyond write_test.go's sqliteFKCode
+// (sqlite.org/rescode.html): SQLITE_CONSTRAINT_UNIQUE; SQLITE_MISMATCH's
+// type-affinity form, which a STRICT table answers when a bound value's
+// storage class does not match a column's declared type;
+// SQLITE_CONSTRAINT_NOTNULL; SQLITE_CONSTRAINT_CHECK; and
+// SQLITE_CONSTRAINT_PRIMARYKEY, a second row's own extended code for a
+// duplicate rowid-less primary key, distinct from SQLITE_CONSTRAINT_UNIQUE.
 const (
-	sqliteUniqueCode   = 2067
-	sqliteDatatypeCode = 3091
+	sqliteUniqueCode     = 2067
+	sqliteDatatypeCode   = 3091
+	sqliteNotNullCode    = 1299
+	sqliteCheckCode      = 275
+	sqlitePrimaryKeyCode = 1555
 )
 
 // fullyMigratedStore returns a store migrated to head and populated
 // with every migration's fixture, so a test has one user
 // (a1a1...a1), one collection (b1b1...b1) it owns, one album
-// (c1c1...c1), and one track (d1d1...d1) to build on.
+// (c1c1...c1), and one track (d1d1...d1) to build on, plus each later
+// migration's own fixture rows (0004's settings and audit rows, 0005's
+// per-member and routed rows).
 func fullyMigratedStore(t *testing.T) (leaf, *Handle) {
 	t.Helper()
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
-	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts()); err != nil {
+	files := readMigrationsT(t, migrationSource())
+	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
 		t.Fatalf("migrate to head: %v", err)
 	}
-	for _, name := range []string{"0001_ledger.sql", "0002_jobs.sql", "0003_catalog.sql"} {
-		body, err := os.ReadFile(filepath.Join("testdata", "fixtures", name))
+	for _, m := range files {
+		body, err := os.ReadFile(filepath.Join("testdata", "fixtures", m.name))
 		if err != nil {
-			t.Fatalf("read fixture %s: %v", name, err)
+			t.Fatalf("read fixture %s: %v", m.name, err)
 		}
 		if _, err := h.write.ExecContext(ctx, string(body)); err != nil {
-			t.Fatalf("apply fixture %s: %v", name, err)
+			t.Fatalf("apply fixture %s: %v", m.name, err)
 		}
 	}
 	return l, h
@@ -284,9 +292,11 @@ func TestSchemaForeignKeyRefusals(t *testing.T) {
 // file, a trailing newline included, then fails this table instead of
 // every existing store's ledger check at its next start.
 var migrationHashes = map[string]string{
-	"0001_ledger.sql":  "9c0accd382e16f0a546ade4e76231c2235977e27bfc30106f69fa4516566291a",
-	"0002_jobs.sql":    "d91729ec63c3fa4132f4af9fc19325d2077a135f4116d7bdd13178a6bfa2e1d5",
-	"0003_catalog.sql": "f962133f7366b5e941e2346fc1d2e3cd4defa743ec02902241408e9173a089c5",
+	"0001_ledger.sql":   "9c0accd382e16f0a546ade4e76231c2235977e27bfc30106f69fa4516566291a",
+	"0002_jobs.sql":     "d91729ec63c3fa4132f4af9fc19325d2077a135f4116d7bdd13178a6bfa2e1d5",
+	"0003_catalog.sql":  "f962133f7366b5e941e2346fc1d2e3cd4defa743ec02902241408e9173a089c5",
+	"0004_settings.sql": "9d312b17c391dc7e4a4059ac2c302d4affa381b5955fc1038dedb099e74bfc1f",
+	"0005_routed.sql":   "e3eeb662f78b5142f23729d69fc59db332fc04305f1618269347e06a5d2a8a4c",
 }
 
 // TestSchemaMigrationHashPins asserts readMigrations, which every
@@ -348,4 +358,237 @@ func TestID(t *testing.T) {
 	if mintedAsInt == rowid {
 		t.Errorf("minted id's low 8 bytes read as int64 (%d) coincided with rowid %d", mintedAsInt, rowid)
 	}
+}
+
+// TestSchemaMoveIntentPathRefusesGoString is spec criterion 11's
+// checklist line repeated for the routed schema: move_intents.old_path
+// and .new_path are BLOB columns on a STRICT table, so a Go string
+// bound into either is refused under the datatype-mismatch code, the
+// same one TestSchemaBlobColumnRefusesText proves for tracks.rel_path.
+func TestSchemaMoveIntentPathRefusesGoString(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		oldPath any
+		newPath any
+	}{
+		{"old_path", "a Go string, not a []byte", []byte("new/path.flac")},
+		{"new_path", []byte("old/path.flac"), "a Go string, not a []byte"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			_, h := fullyMigratedStore(t)
+			_, err := h.write.ExecContext(context.Background(),
+				`INSERT INTO move_intents (id, at, kind, old_path, new_path, granularity, state)
+				 VALUES (?, 1, 'rename', ?, ?, 'file', 'pending')`,
+				NewID(), tt.oldPath, tt.newPath,
+			)
+			assertErrNames(t, err, "cannot store TEXT value in BLOB column")
+			if code := sqliteCode(err); code != sqliteDatatypeCode {
+				t.Errorf("code = %d, want %d", code, sqliteDatatypeCode)
+			}
+		})
+	}
+}
+
+// TestSchemaMemberOverridesForeignKeyRefusals is criterion 2's proof
+// over member_overrides: a user_id naming no users row is refused under
+// the foreign-key code, and a NULL user_id is refused under the
+// NOT NULL code (member_overrides has no other primary key to fall
+// back to). Fixture state: the fully migrated store already carries a
+// member_overrides row for the fixture's own user, so each subtest's
+// user_id differs from it to isolate the failure under test.
+func TestSchemaMemberOverridesForeignKeyRefusals(t *testing.T) {
+	t.Run("a user_id with no users row", func(t *testing.T) {
+		_, h := fullyMigratedStore(t)
+		_, err := h.write.ExecContext(context.Background(),
+			`INSERT INTO member_overrides (user_id, quota_bytes, may_upload, may_create_collections, upload_concurrency_cap, updated_at)
+			 VALUES (?, NULL, NULL, NULL, NULL, 1)`,
+			[]byte("\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99"),
+		)
+		assertErrNames(t, err, "FOREIGN KEY constraint failed")
+		if code := sqliteCode(err); code != sqliteFKCode {
+			t.Errorf("code = %d, want %d", code, sqliteFKCode)
+		}
+	})
+
+	t.Run("a NULL user_id", func(t *testing.T) {
+		_, h := fullyMigratedStore(t)
+		_, err := h.write.ExecContext(context.Background(),
+			`INSERT INTO member_overrides (user_id, quota_bytes, may_upload, may_create_collections, upload_concurrency_cap, updated_at)
+			 VALUES (NULL, NULL, NULL, NULL, NULL, 1)`,
+		)
+		assertErrNames(t, err, "NOT NULL constraint failed: member_overrides.user_id")
+		if code := sqliteCode(err); code != sqliteNotNullCode {
+			t.Errorf("code = %d, want %d", code, sqliteNotNullCode)
+		}
+		assertColumnNotNull(t, h, "member_overrides", "user_id")
+	})
+}
+
+// assertColumnNotNull fails the test unless pragma_table_info reports
+// table.column as declared NOT NULL, the schema-level half of a NOT
+// NULL refusal proof: an insert failing is not proof the column is
+// declared NOT NULL rather than refused some other way.
+func assertColumnNotNull(t *testing.T, h *Handle, table, column string) {
+	t.Helper()
+	cols, err := tableColumns(context.Background(), h.write, table)
+	if err != nil {
+		t.Fatalf("read columns of %s: %v", table, err)
+	}
+	for _, c := range cols {
+		if c.name == column {
+			if !c.notNull {
+				t.Errorf("%s.%s is not declared NOT NULL", table, column)
+			}
+			return
+		}
+	}
+	t.Fatalf("%s has no column %s", table, column)
+}
+
+// TestSchemaCollectionVisibilityCheck is criterion 3's proof over
+// collections.visibility (declared at 6a): 'public' and the empty
+// string are both outside the CHECK's closed set and refused, while
+// 'group' and 'private' are both accepted. Each subtest's root_path
+// differs to keep the UNIQUE constraint from masking the row under
+// test.
+func TestSchemaCollectionVisibilityCheck(t *testing.T) {
+	insert := func(t *testing.T, h *Handle, rootPath []byte, visibility string) error {
+		t.Helper()
+		_, err := h.write.ExecContext(context.Background(),
+			`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
+			 VALUES (?, 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', ?, 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
+			NewID(), rootPath, visibility,
+		)
+		return err
+	}
+
+	for _, tt := range []struct {
+		visibility string
+		wantErr    bool
+	}{
+		{"public", true},
+		{"", true},
+		{"group", false},
+		{"private", false},
+	} {
+		t.Run("visibility "+tt.visibility, func(t *testing.T) {
+			_, h := fullyMigratedStore(t)
+			err := insert(t, h, []byte("second-"+tt.visibility), tt.visibility)
+			if tt.wantErr {
+				assertErrNames(t, err, "CHECK constraint failed")
+				if code := sqliteCode(err); code != sqliteCheckCode {
+					t.Errorf("code = %d, want %d", code, sqliteCheckCode)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("visibility %q: %v", tt.visibility, err)
+			}
+		})
+	}
+}
+
+// TestSchemaAtKindNotNull is invariant 3's proof over the two routed
+// event-shaped tables criterion 1 names: settings_audit (named _audit)
+// and move_intents (carries a kind column), each refusing a NULL at or
+// a NULL kind under the NOT NULL code, four subtests over the two
+// tables and two columns.
+func TestSchemaAtKindNotNull(t *testing.T) {
+	tests := []struct {
+		name   string
+		table  string
+		column string
+		query  string
+		args   []any
+		want   string
+	}{
+		{
+			name:   "settings_audit.at NULL",
+			table:  "settings_audit",
+			column: "at",
+			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, NULL, 'seed', 'system', 'env-seed', 'K', NULL, 'v')`,
+			args:   []any{NewID()},
+			want:   "NOT NULL constraint failed: settings_audit.at",
+		},
+		{
+			name:   "settings_audit.kind NULL",
+			table:  "settings_audit",
+			column: "kind",
+			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, 1, NULL, 'system', 'env-seed', 'K', NULL, 'v')`,
+			args:   []any{NewID()},
+			want:   "NOT NULL constraint failed: settings_audit.kind",
+		},
+		{
+			name:   "move_intents.at NULL",
+			table:  "move_intents",
+			column: "at",
+			query:  `INSERT INTO move_intents (id, at, kind, old_path, new_path, granularity, state) VALUES (?, NULL, 'rename', ?, ?, 'file', 'pending')`,
+			args:   []any{NewID(), []byte("a/b"), []byte("a/c")},
+			want:   "NOT NULL constraint failed: move_intents.at",
+		},
+		{
+			name:   "move_intents.kind NULL",
+			table:  "move_intents",
+			column: "kind",
+			query:  `INSERT INTO move_intents (id, at, kind, old_path, new_path, granularity, state) VALUES (?, 1, NULL, ?, ?, 'file', 'pending')`,
+			args:   []any{NewID(), []byte("a/b"), []byte("a/c")},
+			want:   "NOT NULL constraint failed: move_intents.kind",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, h := fullyMigratedStore(t)
+			_, err := h.write.ExecContext(context.Background(), tt.query, tt.args...)
+			assertErrNames(t, err, tt.want)
+			if code := sqliteCode(err); code != sqliteNotNullCode {
+				t.Errorf("code = %d, want %d", code, sqliteNotNullCode)
+			}
+			assertColumnNotNull(t, h, tt.table, tt.column)
+		})
+	}
+}
+
+// TestSchemaSettingsSourceCheck is R-6c6's proof that settings.source
+// admits only 'env-seed' and 'admin': a row stored with no source means
+// the value is the registry's default (R-6c7), so 'default' as a
+// literal source value is outside the CHECK's closed set.
+func TestSchemaSettingsSourceCheck(t *testing.T) {
+	_, h := fullyMigratedStore(t)
+	_, err := h.write.ExecContext(context.Background(),
+		`INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES ('K', 'v', 'default', 'v', 'system', 1)`,
+	)
+	assertErrNames(t, err, "CHECK constraint failed")
+	if code := sqliteCode(err); code != sqliteCheckCode {
+		t.Errorf("code = %d, want %d", code, sqliteCheckCode)
+	}
+}
+
+// TestSchemaSettingsGenerationSingleton is R-6c6's proof that
+// settings_generation never holds more than the one row the migration
+// inserts: a second row under a different key is outside the CHECK
+// pinning singleton to 1, and a second row repeating the pinned key
+// collides on the primary key itself, a different extended code from
+// the CHECK refusal.
+func TestSchemaSettingsGenerationSingleton(t *testing.T) {
+	t.Run("a second row, a different key", func(t *testing.T) {
+		_, h := fullyMigratedStore(t)
+		_, err := h.write.ExecContext(context.Background(),
+			`INSERT INTO settings_generation (singleton, generation) VALUES (2, 0)`,
+		)
+		assertErrNames(t, err, "CHECK constraint failed")
+		if code := sqliteCode(err); code != sqliteCheckCode {
+			t.Errorf("code = %d, want %d", code, sqliteCheckCode)
+		}
+	})
+
+	t.Run("a second row repeating the pinned key", func(t *testing.T) {
+		_, h := fullyMigratedStore(t)
+		_, err := h.write.ExecContext(context.Background(),
+			`INSERT INTO settings_generation (singleton, generation) VALUES (1, 99)`,
+		)
+		assertErrNames(t, err, "UNIQUE constraint failed: settings_generation.singleton")
+		if code := sqliteCode(err); code != sqlitePrimaryKeyCode {
+			t.Errorf("code = %d, want %d", code, sqlitePrimaryKeyCode)
+		}
+	})
 }
