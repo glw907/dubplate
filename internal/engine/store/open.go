@@ -410,12 +410,23 @@ func waitLock(ctx context.Context, path string, how int, opts ServeOptions) (*st
 }
 
 // stat runs the steps every mode takes before the filesystem
-// probe: it stats l's leaf and its five names, checks a present leaf's
-// shape and its owner against geteuid(), and reads the restore-intent
-// record, refusing one it cannot read. Each mode decides what a record
-// it read means. An absent leaf reports exists false and meets no
-// owner check, since there is nothing yet to own.
+// probe: statLeaf's, and then a read of the restore-intent record,
+// refusing one it cannot read. Each mode decides what a record it read
+// means.
 func (l leaf) stat() (leafState, error) {
+	ls, err := l.statLeaf()
+	if err != nil || !ls.exists {
+		return ls, err
+	}
+	ls.intent, err = l.readIntent()
+	return ls, err
+}
+
+// statLeaf stats l's leaf and its five names, and checks a present
+// leaf's shape and its owner against geteuid(). An absent leaf reports
+// exists false and meets no owner check, since there is nothing yet to
+// own.
+func (l leaf) statLeaf() (leafState, error) {
 	info, err := os.Stat(l.root)
 	if errors.Is(err, fs.ErrNotExist) {
 		return leafState{}, nil
@@ -444,8 +455,7 @@ func (l leaf) stat() (leafState, error) {
 			ls.hasLeases = ok
 		}
 	}
-	ls.intent, err = l.readIntent()
-	return ls, err
+	return ls, nil
 }
 
 // probe refuses when l sits on a filesystem that spans hosts, and

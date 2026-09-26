@@ -103,51 +103,78 @@ func copyInto(ctx context.Context, db *sql.DB, staged string, busyTimeout time.D
 	return verifyCopy(ctx, staged, busyTimeout, want)
 }
 
+// versionRule is how a copy's user_version must compare with the
+// version a verifier wants.
+type versionRule int
+
+const (
+	// versionExact accepts only the wanted version: a copy the store
+	// takes of itself.
+	versionExact versionRule = iota + 1
+
+	// versionAtMost accepts the wanted version or any below it: a
+	// snapshot a restore brings in, which serve migrates.
+	versionAtMost
+)
+
 // verifyCopy refuses the copy at path unless PRAGMA integrity_check
 // answers the single row "ok", user_version reads want, and
-// application_id reads the store marker. An empty file passes the
-// integrity check, so the version and marker are what prove the copy.
-// It opens the copy through the inspect DSN: the copy is a
-// rollback-journal database, and a writing DSN would convert it to WAL
-// and leave -wal and -shm files beside it.
+// application_id reads the store marker. It opens the copy through the
+// inspect DSN: the copy is a rollback-journal database, and a writing
+// DSN would convert it to WAL and leave -wal and -shm files beside it.
 func verifyCopy(ctx context.Context, path string, busyTimeout time.Duration, want int) (err error) {
 	db, err := sql.Open(sqliteDriverName, inspectDSN(path, busyTimeout))
 	if err != nil {
 		return fmt.Errorf("verify %s: %w", path, err)
 	}
 	defer func() { err = errors.Join(err, db.Close()) }()
+	_, err = verifyOpen(ctx, db, path, want, versionExact)
+	return err
+}
 
+// verifyOpen is the check a verifier runs on db, open on the copy at
+// path, and returns the copy's user_version. It refuses unless PRAGMA
+// integrity_check answers the single row "ok", user_version meets want
+// under rule, and application_id reads the store marker. An empty file
+// passes the integrity check and reads version 0, so the marker is
+// what refuses it.
+func verifyOpen(ctx context.Context, db *sql.DB, path string, want int, rule versionRule) (int, error) {
 	rows, err := db.QueryContext(ctx, "PRAGMA integrity_check")
 	if err != nil {
-		return fmt.Errorf("verify %s: integrity check: %w", path, err)
+		return 0, fmt.Errorf("verify %s: integrity check: %w", path, err)
 	}
 	var report []string
 	for rows.Next() {
 		var line string
 		if err := rows.Scan(&line); err != nil {
 			_ = rows.Close()
-			return fmt.Errorf("verify %s: integrity check: %w", path, err)
+			return 0, fmt.Errorf("verify %s: integrity check: %w", path, err)
 		}
 		report = append(report, line)
 	}
 	if err := errors.Join(rows.Err(), rows.Close()); err != nil {
-		return fmt.Errorf("verify %s: integrity check: %w", path, err)
+		return 0, fmt.Errorf("verify %s: integrity check: %w", path, err)
 	}
 	if !slices.Equal(report, []string{"ok"}) {
-		return fmt.Errorf("verify %s: integrity check: %s", path, strings.Join(report, "; "))
+		return 0, fmt.Errorf("verify %s: integrity check: %s", path, strings.Join(report, "; "))
 	}
 
 	var version, marker int
 	if err := db.QueryRowContext(ctx, "SELECT user_version, application_id FROM pragma_user_version, pragma_application_id").Scan(&version, &marker); err != nil {
-		return fmt.Errorf("verify %s: read version and marker: %w", path, err)
+		return 0, fmt.Errorf("verify %s: read version and marker: %w", path, err)
 	}
-	if version != want {
-		return fmt.Errorf("verify %s: copy at version %d, want %d", path, version, want)
+	switch {
+	case rule == versionExact && version != want:
+		return 0, fmt.Errorf("verify %s: copy at version %d, want %d", path, version, want)
+	case rule == versionAtMost && version > want:
+		return 0, fmt.Errorf("verify %s: copy at version %d is newer than this binary's version %d", path, version, want)
+	case version < 0:
+		return 0, fmt.Errorf("verify %s: user_version %d is below any version a migration sets", path, version)
 	}
 	if marker != storeMarker {
-		return fmt.Errorf("verify %s: application_id %#x, want the store marker %#x", path, marker, storeMarker)
+		return 0, fmt.Errorf("verify %s: application_id %#x, want the store marker %#x", path, marker, storeMarker)
 	}
-	return nil
+	return version, nil
 }
 
 // checkFreeSpace refuses unless the filesystem holding dir has room for
@@ -158,8 +185,12 @@ func checkFreeSpace(ctx context.Context, db *sql.DB, dir string) error {
 	if err := db.QueryRowContext(ctx, "SELECT page_count, page_size FROM pragma_page_count, pragma_page_size").Scan(&pages, &pageSize); err != nil {
 		return fmt.Errorf("read store size: %w", classifyErr(err))
 	}
-	need := pages*pageSize + journalSizeLimit
+	return requireFree(dir, pages*pageSize+journalSizeLimit)
+}
 
+// requireFree refuses unless the filesystem holding dir has need bytes
+// available to an unprivileged user.
+func requireFree(dir string, need uint64) error {
 	var st syscall.Statfs_t
 	if err := statfsFunc(dir, &st); err != nil {
 		return fmt.Errorf("statfs %s: %w", dir, err)
@@ -364,6 +395,12 @@ func (h *Handle) RemoveBackupStages() error {
 // NUL, since the reference's body is line-oriented and any of those
 // would corrupt it or a later parse of it.
 func (h *Handle) WriteBackupRef(stamp, remote string) error {
+	return writeBackupRef(h.leaf, stamp, remote)
+}
+
+// writeBackupRef is [Handle.WriteBackupRef] on the leaf l, which a
+// restore session shares so the two writers cannot drift.
+func writeBackupRef(l leaf, stamp, remote string) error {
 	if _, err := ParseStamp(stamp); err != nil {
 		return fmt.Errorf("write backup reference: %w", err)
 	}
@@ -371,7 +408,7 @@ func (h *Handle) WriteBackupRef(stamp, remote string) error {
 		return fmt.Errorf("write backup reference: remote %q contains a newline, a carriage return, or a NUL", remote)
 	}
 	name := backupPrefix + stamp + backupRefSuffix
-	path := filepath.Join(h.leaf.snapshotsDir, name)
+	path := filepath.Join(l.snapshotsDir, name)
 	body := "stamp " + stamp + "\nremote " + remote + "\n"
 	err := atomicfile.WriteStream(path, 0o600, func(w io.Writer) error {
 		_, err := io.WriteString(w, body)
@@ -381,7 +418,7 @@ func (h *Handle) WriteBackupRef(stamp, remote string) error {
 		return fmt.Errorf("write backup reference: %w", err)
 	}
 
-	entries, err := os.ReadDir(h.leaf.snapshotsDir)
+	entries, err := os.ReadDir(l.snapshotsDir)
 	if err != nil {
 		return fmt.Errorf("remove earlier backup references: %w", err)
 	}
@@ -389,7 +426,7 @@ func (h *Handle) WriteBackupRef(stamp, remote string) error {
 		if _, ok := parseBackupRefName(e.Name()); !ok || e.Name() == name {
 			continue
 		}
-		if err := os.Remove(filepath.Join(h.leaf.snapshotsDir, e.Name())); err != nil {
+		if err := os.Remove(filepath.Join(l.snapshotsDir, e.Name())); err != nil {
 			return fmt.Errorf("remove earlier backup reference: %w", err)
 		}
 	}
