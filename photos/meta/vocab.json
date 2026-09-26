@@ -115,6 +115,50 @@
     "trip-hop": {
       "name": "Trip-hop",
       "family": "other"
+    },
+    "mento": {
+      "name": "Mento",
+      "family": "reggae"
+    },
+    "calypso": {
+      "name": "Calypso",
+      "family": "other"
+    },
+    "soul-funk": {
+      "name": "Soul and funk",
+      "family": "other"
+    },
+    "northern-soul": {
+      "name": "Northern soul",
+      "family": "other"
+    },
+    "surf": {
+      "name": "Surf",
+      "family": "other"
+    },
+    "no-wave": {
+      "name": "No wave",
+      "family": "punk"
+    },
+    "riot-grrrl": {
+      "name": "Riot grrrl",
+      "family": "punk"
+    },
+    "bluegrass": {
+      "name": "Bluegrass and old-time",
+      "family": "other"
+    },
+    "jungle": {
+      "name": "Jungle and drum and bass",
+      "family": "other"
+    },
+    "zydeco": {
+      "name": "Zydeco",
+      "family": "other"
+    },
+    "conjunto": {
+      "name": "Conjunto and Tejano",
+      "family": "other"
     }
   },
   "families": {
