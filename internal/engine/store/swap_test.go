@@ -404,18 +404,24 @@ func TestRestoreSession_NoCurrentStore(t *testing.T) {
 	}
 }
 
-// discardFixture plants an unopenable database, -wal, and -shm in l's
-// db/, each with its own bytes, and returns the bytes by suffix.
-func discardFixture(t *testing.T, l leaf) map[string][]byte {
+// discardFixture plants in l's db/ the current files named by suffix,
+// "" for an unopenable database, "-wal", and "-shm", each with its own
+// bytes, and returns the bytes by suffix.
+func discardFixture(t *testing.T, l leaf, suffixes ...string) map[string][]byte {
 	t.Helper()
-	planted := map[string][]byte{"": []byte("unopenable database"), "-wal": []byte("its wal"), "-shm": []byte("its shm")}
-	for suffix, b := range planted {
-		if err := os.WriteFile(l.dbPath+suffix, b, 0o600); err != nil {
+	contents := map[string][]byte{"": []byte("unopenable database"), "-wal": []byte("its wal"), "-shm": []byte("its shm")}
+	planted := make(map[string][]byte, len(suffixes))
+	for _, suffix := range suffixes {
+		planted[suffix] = contents[suffix]
+		if err := os.WriteFile(l.dbPath+suffix, planted[suffix], 0o600); err != nil {
 			t.Fatal(err)
 		}
 	}
 	return planted
 }
+
+// allCurrent is every current file a discard moves.
+var allCurrent = []string{"", "-wal", "-shm"}
 
 // TestRestoreSession_Discard: with --discard-current, the quiesce opens
 // and moves nothing, so a crash before the record leaves every current
@@ -424,7 +430,7 @@ func discardFixture(t *testing.T, l leaf) map[string][]byte {
 // each, and the second renames the incoming store in.
 func TestRestoreSession_Discard(t *testing.T) {
 	stateDir, l := newLeafDir(t)
-	planted := discardFixture(t, l)
+	planted := discardFixture(t, l, allCurrent...)
 	s := stageFrom(t, stateDir, incomingBytes(t, ""))
 
 	if err := s.Quiesce(deadline(t, 10*time.Second), true); err != nil {
@@ -450,6 +456,48 @@ func TestRestoreSession_Discard(t *testing.T) {
 		if got := readFile(t, discarded+suffix); !bytes.Equal(got, b) {
 			t.Errorf("%s holds %q, want %q", discarded+suffix, got, b)
 		}
+	}
+	if got := listDir(t, l.dbDir); !slices.Equal(got, []string{dbFileName}) {
+		t.Errorf("db/ = %q, want the restored database alone", got)
+	}
+	if got := listDir(t, l.stagingDir); len(got) != 0 {
+		t.Errorf("staging/ = %q, want empty", got)
+	}
+	if got := jobIDs(t, l.dbPath); !slices.Equal(got, []string{incomingJob}) {
+		t.Errorf("restored store jobs = %q, want %q", got, incomingJob)
+	}
+}
+
+// TestRestoreSession_DiscardSidecarsAlone: with --discard-current and
+// a db/ holding a -wal and a -shm beside no database, the record still
+// owes a discard, the swap's first half moves the two sidecars to their
+// discarded names and no database, and the second renames the incoming
+// store in.
+func TestRestoreSession_DiscardSidecarsAlone(t *testing.T) {
+	stateDir, l := newLeafDir(t)
+	planted := discardFixture(t, l, "-wal", "-shm")
+	s := stageFrom(t, stateDir, incomingBytes(t, ""))
+
+	if err := s.Quiesce(deadline(t, 10*time.Second), true); err != nil {
+		t.Fatalf("quiesce: %v", err)
+	}
+	moved := recordAndSwap(t, s, RestoreIntent{File: "source.db"})
+	discarded := l.discardedPath(testStamp)
+	if want := []string{discarded + "-wal", discarded + "-shm"}; !slices.Equal(moved, want) {
+		t.Errorf("moved = %q, want %q", moved, want)
+	}
+	r := readRecord(t, l)
+	if !r.DiscardCurrent || r.PreRestore != "" {
+		t.Errorf("record owes discard %v, pre_restore %q; want the discard alone", r.DiscardCurrent, r.PreRestore)
+	}
+	for suffix, b := range planted {
+		if got := readFile(t, discarded+suffix); !bytes.Equal(got, b) {
+			t.Errorf("%s holds %q, want %q", discarded+suffix, got, b)
+		}
+	}
+	base := filepath.Base(discarded)
+	if got, want := listDir(t, l.snapshotsDir), []string{base + "-shm", base + "-wal"}; !slices.Equal(got, want) {
+		t.Errorf("snapshots/ = %q, want the discarded sidecars alone %q", got, want)
 	}
 	if got := listDir(t, l.dbDir); !slices.Equal(got, []string{dbFileName}) {
 		t.Errorf("db/ = %q, want the restored database alone", got)
@@ -577,6 +625,9 @@ const (
 	owesCopy swapKind = iota + 1
 	owesNothing
 	owesDiscard
+	// owesWALDiscard is a discard record for a db/ that held a -wal
+	// beside no database.
+	owesWALDiscard
 )
 
 // mv renames from to to, failing the test on an error.
@@ -702,6 +753,41 @@ func TestRestoreSession_ResumeCombinations(t *testing.T) {
 				mv(t, filepath.Join(l.stagingDir, testIncoming), l.dbPath)
 			},
 		},
+		{name: "discard of a -wal alone owed, nothing moved", kind: owesWALDiscard, moved: []string{"-wal"}},
+		{
+			name:    "discard of a -wal alone owed, -wal moved",
+			kind:    owesWALDiscard,
+			arrange: func(t *testing.T, l leaf) { mv(t, l.dbPath+"-wal", l.discardedPath(testStamp)+"-wal") },
+		},
+		{
+			name: "discard of a -wal alone owed, swap finished",
+			kind: owesWALDiscard,
+			arrange: func(t *testing.T, l leaf) {
+				mv(t, l.dbPath+"-wal", l.discardedPath(testStamp)+"-wal")
+				mv(t, filepath.Join(l.stagingDir, testIncoming), l.dbPath)
+			},
+		},
+		{
+			name: "discard of a -wal alone owed, incoming lost",
+			kind: owesWALDiscard,
+			arrange: func(t *testing.T, l leaf) {
+				mv(t, l.dbPath+"-wal", l.discardedPath(testStamp)+"-wal")
+				mv(t, filepath.Join(l.stagingDir, testIncoming), filepath.Join(t.TempDir(), "elsewhere.db"))
+			},
+			wantErr: func(l leaf) []string {
+				return []string{"names files in no state a swap leaves", l.dbPath + " absent", l.discardedPath(testStamp) + "-wal present", manualRecovery}
+			},
+		},
+		{
+			name: "discard owed, incoming lost before any move",
+			kind: owesDiscard,
+			arrange: func(t *testing.T, l leaf) {
+				mv(t, filepath.Join(l.stagingDir, testIncoming), filepath.Join(t.TempDir(), "elsewhere.db"))
+			},
+			wantErr: func(l leaf) []string {
+				return []string{"names files in no state a swap leaves", l.dbPath + " present", l.discardedPath(testStamp) + " absent", manualRecovery}
+			},
+		},
 		{
 			name: "discard owed, database in both places",
 			kind: owesDiscard,
@@ -730,7 +816,10 @@ func TestRestoreSession_ResumeCombinations(t *testing.T) {
 				r.PreRestore = ""
 			case owesDiscard:
 				r.PreRestore, r.DiscardCurrent = "", true
-				planted = discardFixture(t, l)
+				planted = discardFixture(t, l, allCurrent...)
+			case owesWALDiscard:
+				r.PreRestore, r.DiscardCurrent = "", true
+				planted = discardFixture(t, l, "-wal")
 			}
 			if err := os.WriteFile(filepath.Join(l.stagingDir, testIncoming), incomingBytes(t, ""), 0o600); err != nil {
 				t.Fatal(err)
@@ -784,7 +873,15 @@ func TestRestoreSession_ResumeCombinations(t *testing.T) {
 				if got := listDir(t, l.snapshotsDir); len(got) != 0 {
 					t.Errorf("snapshots/ = %q, want empty", got)
 				}
-			case owesDiscard:
+			case owesDiscard, owesWALDiscard:
+				var names []string
+				for suffix := range planted {
+					names = append(names, filepath.Base(l.discardedPath(testStamp))+suffix)
+				}
+				slices.Sort(names)
+				if got := listDir(t, l.snapshotsDir); !slices.Equal(got, names) {
+					t.Errorf("snapshots/ = %q, want the discarded files alone %q", got, names)
+				}
 				for suffix, b := range planted {
 					if got := readFile(t, l.discardedPath(testStamp)+suffix); !bytes.Equal(got, b) {
 						t.Errorf("discarded%s holds %q, want %q", suffix, got, b)

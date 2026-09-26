@@ -216,10 +216,12 @@ func (l leaf) swapPlan(r *intentRecord) (moves []move, in bool, err error) {
 // moves are the database's, then its -wal's, then its -shm's. While the
 // incoming store waits in staging/, each current file still in db/ is
 // to be moved, and no file may be in both places; once the incoming
-// store is in db/, the database must already have moved.
+// store is in db/, some current file must already have moved: the
+// database, or a sidecar when db/ held no database.
 func discardPlan(aside []move, exists map[string]bool, staged bool) (moves []move, in, ok bool) {
 	if !staged {
-		return nil, false, exists[aside[0].from] && exists[aside[0].to]
+		discarded := slices.ContainsFunc(aside, func(m move) bool { return exists[m.to] })
+		return nil, false, exists[aside[0].from] && discarded
 	}
 	for _, m := range aside {
 		if exists[m.from] && exists[m.to] {
