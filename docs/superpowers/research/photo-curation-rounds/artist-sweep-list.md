@@ -25,6 +25,8 @@ Government Issue, Operation Ivy, the Feelies, Yellowman, King Tubby, Nightmares 
 - Proto-punk: the Stooges, MC5, the Velvet Underground, Suicide, the Modern Lovers
 - New York punk: Richard Hell, Television, the Ramones, Dead Boys, Blondie, Patti Smith, Johnny
   Thunders and the Heartbreakers
+- Post-punk and art punk (US): early Devo (1973 to 1980), the Mystic Knights of the Oingo Boingo
+  (1972 to 1979) and early Oingo Boingo
 - UK punk and post-punk: the Clash, X-Ray Spex, the Raincoats, Gang of Four, the Pop Group, the
   Ruts, Buzzcocks, Wire, the Adverts
 - US hardcore: Rites of Spring, Scream, Void, Black Flag, Minutemen, Hüsker Dü, the Replacements,
