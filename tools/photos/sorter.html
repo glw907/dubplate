@@ -68,14 +68,23 @@
     source_id     string   same value as the document id
     round         string   the round id this choice belongs to
     choice        "keep"|"pass"|"maybe"
-    decided_at    string   an RFC 3339 timestamp
+    decided_at    string   an RFC 3339 timestamp, the moment `choice` was
+                  set (or last changed to a different choice); a focus-
+                  only or fit-only write is not a decision and leaves
+                  this alone, whatever it already was.
     focus         optional { x: integer 0-100, y: integer 0-100 }, the
-                  login column's object-position (percent from the top
-                  left) for a photograph candidate showing as "cover"
-                  (below); meaningless and never set while it shows as
-                  "contain". Absent for a photograph nobody has
-                  re-centered (its crop is the default 50/50). At round
-                  close it is copied onto the committed record verbatim.
+                  image-space point (a fraction of the photo's own
+                  pixels, top-left origin, independent of any column or
+                  window size) to keep in view, for a photograph
+                  candidate showing as "cover" (below); meaningless and
+                  never set while it shows as "contain". The login
+                  column's object-position is derived from it at render
+                  time (the point as close to the column's centre as its
+                  crop allows), never stored directly, so it stays
+                  correct regardless of the column's own size. Absent for
+                  a photograph nobody has re-centered (its crop is the
+                  image's own default 50/50 centre). At round close it is
+                  copied onto the committed record verbatim.
     fit           optional "cover"|"contain", how the login column shows
                   the photo: "cover" crops it (with `focus` above), while
                   "contain" shows it whole, centered on the black film-
@@ -1034,22 +1043,20 @@
     filters: { family: null, subject: null, region: null, decision: null },
     filtersOpen: false, // narrow widths only; the toggle below #topbar controls it
     focusIndex: 0,
-    store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice, roundId, focus, fit) }
+    store: null, // { mode: "real"|"fixture", writeChoice(candidate, choice, roundId, focus, fit, decidedAt) }
     reviewOpen: false,
     reviewList: [], // snapshot of filteredCandidates() taken when review opened
     reviewIndex: 0,
     reviewView: "login", // "login" | "plain"
     reviewRoundId: null, // the round id review opened under; a mismatch closes review
-    // A crop focus point {x,y} (0-100 each) or a fit choice set while its
-    // candidate was still undecided: held here until the next decision
-    // saves it, since either is only ever written alongside a choice.
-    pendingFocus: {}, // source_id -> { x, y }
-    pendingFit: {}, // source_id -> "cover" | "contain"
-    // The focus point and fit currently shown, independent of whether
-    // the write that will persist them (through pendingFocus/pendingFit
-    // or a direct update) has resolved yet: a click or the F key must
-    // move or re-fit the crop right away.
-    localFocus: {}, // source_id -> { x, y }
+    // The focus point and fit currently shown, regardless of whether a
+    // choice document exists yet for this candidate or a write to it has
+    // resolved: a click or the F key must move or re-fit the crop right
+    // away, and this is also where an undecided candidate's crop lives
+    // until the next decision saves it (a focus or fit is only ever
+    // written alongside a choice). intendedRecord() below is the single
+    // place that reconciles this against pendingWrite and state.choices.
+    localFocus: {}, // source_id -> { x, y } (image-space, see below)
     localFit: {}, // source_id -> "cover" | "contain"
   };
 
@@ -1064,9 +1071,27 @@
     '<circle cx="16" cy="16" r="1.0" fill="#0b0a09"/>' +
     "</svg>";
 
-  // One write in flight per candidate; a decision made while a write is
-  // in flight replaces the queued one rather than piling up requests.
-  var pendingWrite = {}; // source_id -> { inFlight: boolean, queued: { choice, focus, fit } | null, roundId }
+  // One write in flight per candidate. `record` is always the latest
+  // intended {choice, focus, fit} for that candidate, whether it is the
+  // one currently being sent or one set after that send started: a
+  // second change while a write is in flight updates `record` in place
+  // (never a separate queue slot), so intendedRecord() below always
+  // reads the true latest intent instead of a stale snapshot, and
+  // advanceWriteQueue sends `record` again if it still differs from
+  // what the in-flight write ends up confirming.
+  var pendingWrite = {}; // source_id -> { inFlight: boolean, record: { choice, focus, fit } | null, roundId }
+
+  // A round change (a new one opens, the sitting's round closes with
+  // nothing to replace it, or the test round hook simulates either) means
+  // every candidate identity from before it may never be seen again:
+  // drop the local crop edits and in-flight bookkeeping keyed by them,
+  // never carrying a stale focus or fit onto whatever source_id comes
+  // next (which, in the fixture harness, can even be the very same id).
+  function resetLocalCropState() {
+    state.localFocus = {};
+    state.localFit = {};
+    pendingWrite = {};
+  }
 
   function isLocalhost() {
     return location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -1169,86 +1194,139 @@
     return isUncroppedFormat(candidate) ? "contain" : "cover";
   }
 
-  // The fit to show right now, same priority order as currentFocus
-  // below: a local, not-yet-necessarily-saved value first, then the
-  // candidate's own saved fit, then one held for an undecided candidate,
-  // then the format's default.
-  function currentFit(candidate) {
-    var local = state.localFit[candidate.source_id];
-    if (local) return local;
-    var existing = state.choices[candidate.source_id];
-    if (existing && existing.fit) return existing.fit;
-    var pending = state.pendingFit[candidate.source_id];
-    if (pending) return pending;
-    return defaultFit(candidate);
-  }
-
-  function applyFit(candidate, fit) {
-    state.localFit[candidate.source_id] = fit;
-    updateFit(candidate, fit);
-  }
-
   function clampPercent(n) {
     return Math.max(0, Math.min(100, Math.round(n)));
   }
+  function clampUnit(n) {
+    return Math.max(0, Math.min(1, n));
+  }
 
-  // The focus to show right now: a local, not-yet-necessarily-saved
-  // value takes priority (a click must move the crop immediately, not
-  // once its write resolves), then the candidate's own saved focus,
-  // then null (the default center crop, nothing stored).
+  // The single reconciliation point for "what should the next write for
+  // this candidate contain": local optimistic edits (the latest click or
+  // key press, whether or not it has been sent) win over whatever the
+  // in-flight-or-queued write for this candidate already carries, which
+  // in turn wins over the last confirmed document. Every read used to
+  // decide whether something changed, and every write's payload, goes
+  // through this so a second change made before the first write resolves
+  // is never lost (the bug class this replaces: comparing against and
+  // building from state.choices alone, which lags behind).
+  function intendedRecord(candidate) {
+    var id = candidate.source_id;
+    var pending = pendingWrite[id];
+    var base = (pending && pending.record) || state.choices[id] || null;
+    var choice = base ? base.choice : null;
+    var focus = Object.prototype.hasOwnProperty.call(state.localFocus, id) ? state.localFocus[id] : (base && base.focus) || null;
+    var fit = Object.prototype.hasOwnProperty.call(state.localFit, id) ? state.localFit[id] : (base && base.fit) || null;
+    return { choice: choice, focus: focus, fit: fit };
+  }
+
+  function recordsEqual(a, b) {
+    if (!a || !b) return a === b;
+    if (a.choice !== b.choice) return false;
+    var af = a.focus,
+      bf = b.focus;
+    var focusEqual = af && bf ? af.x === bf.x && af.y === bf.y : !af === !bf; // undefined and null both mean "none"
+    if (!focusEqual) return false;
+    return (a.fit || null) === (b.fit || null);
+  }
+
+  // The fit to show right now: intendedRecord's fit, or the format's
+  // default when nothing has ever set one.
+  function currentFit(candidate) {
+    return intendedRecord(candidate).fit || defaultFit(candidate);
+  }
+
+  // Review mode's own guards, mirroring reviewDecide's: refuse silently
+  // (no write, no local mutation) rather than let a click or key press
+  // during a closed round, a round review is no longer showing, or (for
+  // focus specifically) a candidate currently shown whole produce a
+  // change nothing will show or save.
+  function canEditFitOrFocus(candidate) {
+    return !!candidate && !!state.round && !state.round.closed && state.round.id === state.reviewRoundId;
+  }
+  function canEditFocus(candidate) {
+    return canEditFitOrFocus(candidate) && currentFit(candidate) !== "contain";
+  }
+  function canEditFit(candidate) {
+    return canEditFitOrFocus(candidate) && !isUncroppedFormat(candidate);
+  }
+
+  function applyFit(candidate, fit) {
+    if (!canEditFit(candidate)) return;
+    var before = intendedRecord(candidate);
+    state.localFit[candidate.source_id] = fit;
+    commitIntent(candidate, before, { choice: before.choice, focus: before.focus, fit: fit });
+  }
+
+  // The focus to show right now: intendedRecord's focus (an image-space
+  // point, see below), or null when nothing has ever set one (the
+  // default center crop).
   function currentFocus(candidate) {
-    var local = state.localFocus[candidate.source_id];
-    if (local) return local;
-    var existing = state.choices[candidate.source_id];
-    if (existing && existing.focus) return existing.focus;
-    return null;
+    return intendedRecord(candidate).focus;
   }
 
   function focusOrDefault(candidate) {
     return currentFocus(candidate) || { x: 50, y: 50 };
   }
 
+  // `focus` is an image-space point (0-100 each axis, a fraction of the
+  // photo's own pixels, independent of any column or window size): "the
+  // part of the picture to keep in view." Deriving a crop from it is two
+  // small, inverse pieces of geometry, both against object-fit: cover's
+  // own rules (the login mock; the grid thumbnail approximates the same
+  // idea against its own square box):
+  //
+  //  - coverGeometry: how large the image renders once scaled to cover a
+  //    column of a given size.
+  //  - imageFractionToObjectPosition: given an image-space fraction,
+  //    the object-position percent that puts that point as close to the
+  //    column's centre as the crop allows (clamped where the image can't
+  //    scroll any further, and centered outright on an axis with no
+  //    overflow to crop at all).
+  //  - imageFractionToFrameFraction / frameFractionToImageFraction: the
+  //    forward and inverse mapping between an image-space fraction and
+  //    where that lands within the displayed column, needed respectively
+  //    to place the on-screen focus marker and to turn a click in the
+  //    column back into the image-space point it landed on (a click is
+  //    always relative to what is on screen right now, which already
+  //    reflects whatever focus point led to the current object-position,
+  //    so recovering the point clicked has to invert that, not just read
+  //    the click as if the crop were still centered).
+  function coverGeometry(naturalW, naturalH, colW, colH) {
+    var scale = Math.max(colW / naturalW, colH / naturalH);
+    return { dw: naturalW * scale, dh: naturalH * scale };
+  }
+  function imageFractionToObjectPosition(p, dImg, dCol) {
+    var overflow = dImg - dCol;
+    if (overflow <= 0.001) return 50;
+    return clampPercent(((p * dImg - dCol / 2) / overflow) * 100);
+  }
+  function imageFractionToFrameFraction(p, dImg, dCol, posPercent) {
+    var origin = (dCol - dImg) * (posPercent / 100);
+    return clampUnit((origin + p * dImg) / dCol);
+  }
+  function frameFractionToImageFraction(clickFrac, dImg, dCol, posPercent) {
+    var origin = (dCol - dImg) * (posPercent / 100);
+    return clampUnit((clickFrac * dCol - origin) / dImg);
+  }
+
+  // The grid thumbnail approximates the login column's own math against
+  // its own (square) box; a simple percent works there directly since
+  // focusObjectPosition is only ever handed the thumbnail's own object-
+  // position, not asked to invert a click.
   function focusObjectPosition(candidate) {
     var f = focusOrDefault(candidate);
     return f.x + "% " + f.y + "%";
-  }
-
-  // Maps a pointer event to a 0-100 focus point. "cover" (the login
-  // mock) fills containerRect exactly, so the point is a plain fraction
-  // of it. "contain" (the plain view) can letterbox, so the point is a
-  // fraction of the image's actual rendered sub-rect within that box.
-  function focusFromPoint(clientX, clientY, containerRect, img, fit) {
-    var relX, relY;
-    if (fit === "contain") {
-      var natural = (img.naturalWidth || 1) / (img.naturalHeight || 1);
-      var boxRatio = containerRect.width / containerRect.height;
-      var renderedW, renderedH, offsetX, offsetY;
-      if (natural > boxRatio) {
-        renderedW = containerRect.width;
-        renderedH = containerRect.width / natural;
-        offsetX = 0;
-        offsetY = (containerRect.height - renderedH) / 2;
-      } else {
-        renderedH = containerRect.height;
-        renderedW = containerRect.height * natural;
-        offsetY = 0;
-        offsetX = (containerRect.width - renderedW) / 2;
-      }
-      relX = (clientX - containerRect.left - offsetX) / renderedW;
-      relY = (clientY - containerRect.top - offsetY) / renderedH;
-    } else {
-      relX = (clientX - containerRect.left) / containerRect.width;
-      relY = (clientY - containerRect.top) / containerRect.height;
-    }
-    return { x: clampPercent(relX * 100), y: clampPercent(relY * 100) };
   }
 
   // Moves the crop immediately (state.localFocus, then a render() the
   // caller triggers) and starts the write that persists it, whichever
   // path that takes (held for the next decision, or written now).
   function applyFocusPoint(candidate, x, y) {
+    if (!canEditFocus(candidate)) return;
+    var before = intendedRecord(candidate);
     state.localFocus[candidate.source_id] = { x: x, y: y };
-    updateFocus(candidate, x, y);
+    commitIntent(candidate, before, { choice: before.choice, focus: { x: x, y: y }, fit: before.fit });
   }
 
   function yearLabel(c) {
@@ -1544,75 +1622,58 @@
 
   // ---- decisions ----------------------------------------------------
   //
-  // A decision, a focus change, and a fit change share one write
-  // pipeline: all three end up calling queueOrWrite with the full
-  // record to save (the choice plus whatever focus and fit should ride
-  // along with it), one write in flight per source_id, a second call
-  // while one is in flight replacing the queued record rather than
-  // piling up requests.
+  // A decision, a focus change, and a fit change all go through
+  // commitIntent, which compares the record before and after against
+  // intendedRecord (never against state.choices alone, which lags
+  // behind an in-flight write) and, on a real change, hands the record
+  // to scheduleWrite: one write in flight per source_id, a second
+  // change while one is in flight updating pendingWrite[id].record in
+  // place rather than piling up requests or losing the earlier one.
 
   function decide(candidate, choice) {
     if (state.round && state.round.closed) return;
-    var existing = state.choices[candidate.source_id];
-    if (existing && existing.choice === choice) return; // no-op: unchanged
-    // A focus or fit set while this candidate was undecided rides along
-    // with the decision that finally saves it; an already-decided
-    // candidate keeps its own stored focus and fit across a later
-    // choice change.
-    var focus = existing && existing.focus ? existing.focus : state.pendingFocus[candidate.source_id];
-    var fit = existing && existing.fit ? existing.fit : state.pendingFit[candidate.source_id];
-    queueOrWrite(candidate, choice, focus, fit);
+    var before = intendedRecord(candidate);
+    if (before.choice === choice) return; // no-op: unchanged
+    commitIntent(candidate, before, { choice: choice, focus: before.focus, fit: before.fit });
   }
 
   // A focus or fit change on an undecided candidate has nothing to
-  // attach it to yet, so it is held in state.pendingFocus/pendingFit and
-  // picked up by decide() above; on a decided candidate it is a write in
-  // its own right, keeping that candidate's existing choice.
-  function updateFocus(candidate, x, y) {
-    var existing = state.choices[candidate.source_id];
-    if (!existing) {
-      state.pendingFocus[candidate.source_id] = { x: x, y: y };
-      return;
-    }
-    if (state.round && state.round.closed) return;
-    if (existing.focus && existing.focus.x === x && existing.focus.y === y) return; // no-op: unchanged
-    queueOrWrite(candidate, existing.choice, { x: x, y: y }, existing.fit);
+  // attach it to yet (before.choice is null), so it is left in
+  // state.localFocus/localFit only, picked up by decide() above via
+  // intendedRecord when a choice finally arrives; on a decided candidate
+  // it is a write in its own right, keeping that candidate's existing
+  // choice.
+  function commitIntent(candidate, before, after) {
+    if (!after.choice) return; // still undecided: nothing to write yet
+    if (recordsEqual(before, after)) return; // no-op: nothing actually changed
+    scheduleWrite(candidate, after);
   }
 
-  function updateFit(candidate, fit) {
-    var existing = state.choices[candidate.source_id];
-    if (!existing) {
-      state.pendingFit[candidate.source_id] = fit;
-      return;
-    }
-    if (state.round && state.round.closed) return;
-    var stored = existing.fit || defaultFit(candidate);
-    if (stored === fit) return; // no-op: unchanged
-    queueOrWrite(candidate, existing.choice, existing.focus, fit);
-  }
-
-  function queueOrWrite(candidate, choice, focus, fit) {
-    var pending = pendingWrite[candidate.source_id];
-    if (pending && pending.inFlight) {
-      pending.queued = { choice: choice, focus: focus, fit: fit };
-      return;
-    }
+  function scheduleWrite(candidate, record) {
+    var id = candidate.source_id;
+    var pending = pendingWrite[id] || (pendingWrite[id] = { inFlight: false, record: null, roundId: null });
+    pending.record = record; // always the latest intent, in flight or not
+    if (pending.inFlight) return; // the in-flight write's .then() will pick this up
     var roundId = state.round.id;
-    pendingWrite[candidate.source_id] = { inFlight: true, queued: null, roundId: roundId };
-    performWrite(candidate, choice, roundId, focus, fit);
+    pending.roundId = roundId;
+    pending.inFlight = true;
+    performWrite(candidate, record, roundId);
   }
 
-  function performWrite(candidate, choice, roundId, focus, fit) {
+  function performWrite(candidate, record, roundId) {
     setStatus("Saving" + ELLIPSIS, false);
+    // A focus- or fit-only write keeps the existing decision's
+    // decided_at; only an actual choice change (or the first time this
+    // candidate is decided) sets a new one.
+    var prev = state.choices[candidate.source_id];
+    var decidedAt = prev && prev.choice === record.choice ? prev.decided_at : new Date().toISOString();
     state.store
-      .writeChoice(candidate, choice, roundId, focus, fit)
+      .writeChoice(candidate, record.choice, roundId, record.focus, record.fit, decidedAt)
       .then(function () {
-        var saved = { choice: choice, decided_at: new Date().toISOString() };
-        if (focus) saved.focus = focus;
-        if (fit) saved.fit = fit;
+        var saved = { choice: record.choice, decided_at: decidedAt };
+        if (record.focus) saved.focus = record.focus;
+        if (record.fit) saved.fit = record.fit;
         state.choices[candidate.source_id] = saved;
-        delete state.pendingFocus[candidate.source_id]; // now committed with a choice
-        delete state.pendingFit[candidate.source_id];
         setStatus("Saved", true);
         render();
       })
@@ -1628,29 +1689,27 @@
   function advanceWriteQueue(candidate) {
     var pending = pendingWrite[candidate.source_id];
     if (!pending) return;
-    var queued = pending.queued;
-    pending.queued = null;
-    // A round change (closed, or replaced by a different round while this
-    // write was in flight) drops the queue: the captured round id is the
-    // one the write went to, and a queued write is never redirected to a
-    // round its decision was never made on.
+    pending.inFlight = false;
+    // A round change (closed, or replaced by a different round while
+    // this write was in flight) drops whatever is queued: the captured
+    // round id is the one the write went to, and a queued write is
+    // never redirected to a round its decision was never made on.
     var roundChanged = !state.round || state.round.closed || state.round.id !== pending.roundId;
-    if (!queued || roundChanged) {
-      pending.inFlight = false;
+    if (roundChanged) {
+      pending.record = null;
       return;
     }
-    var existing = state.choices[candidate.source_id];
-    var sameChoice = existing && existing.choice === queued.choice;
-    var existingFocus = existing && existing.focus;
-    var sameFocus = queued.focus
-      ? existingFocus && existingFocus.x === queued.focus.x && existingFocus.y === queued.focus.y
-      : !existingFocus;
-    var sameFit = (existing && existing.fit) === queued.fit;
-    if (sameChoice && sameFocus && sameFit) {
-      pending.inFlight = false;
+    var record = pending.record;
+    if (!record) return;
+    var confirmed = state.choices[candidate.source_id];
+    if (recordsEqual(confirmed, record)) {
+      pending.record = null; // already matches what the last write saved
       return;
     }
-    performWrite(candidate, queued.choice, pending.roundId, queued.focus, queued.fit);
+    var roundId = state.round.id;
+    pending.roundId = roundId;
+    pending.inFlight = true;
+    performWrite(candidate, record, roundId);
   }
 
   // ---- film edge captions -------------------------------------------
@@ -1856,11 +1915,29 @@
     if (uncropped) {
       frame.classList.add("uncropped");
     } else {
-      img.style.objectPosition = focusObjectPosition(candidate);
       frame.style.cursor = "crosshair";
+      // The image may not have decoded yet (a real /_blob/ URL, unlike
+      // the fixture's inline data: URIs, takes real time): naturalWidth
+      // is 0 until then, and the object-position/marker math below needs
+      // it, so both the click math and the initial placement wait for it.
+      img.addEventListener("load", function () {
+        updateFocusVisuals(candidate);
+      });
       frame.addEventListener("click", function (e) {
-        var pt = focusFromPoint(e.clientX, e.clientY, frame.getBoundingClientRect(), img, "cover");
-        applyFocusPoint(candidate, pt.x, pt.y);
+        if (!canEditFocus(candidate) || !img.naturalWidth || !img.naturalHeight) return;
+        var rect = frame.getBoundingClientRect();
+        var geo = coverGeometry(img.naturalWidth, img.naturalHeight, rect.width, rect.height);
+        // The object-position currently in effect, to invert correctly:
+        // a click is relative to what is on screen right now, which
+        // already reflects whatever focus point led to it.
+        var before = focusOrDefault(candidate);
+        var curPosX = imageFractionToObjectPosition(before.x / 100, geo.dw, rect.width);
+        var curPosY = imageFractionToObjectPosition(before.y / 100, geo.dh, rect.height);
+        var clickFracX = (e.clientX - rect.left) / rect.width;
+        var clickFracY = (e.clientY - rect.top) / rect.height;
+        var px = frameFractionToImageFraction(clickFracX, geo.dw, rect.width, curPosX);
+        var py = frameFractionToImageFraction(clickFracY, geo.dh, rect.height, curPosY);
+        applyFocusPoint(candidate, clampPercent(px * 100), clampPercent(py * 100));
         render();
       });
     }
@@ -1931,9 +2008,21 @@
     if (currentFit(candidate) !== "contain") {
       photoWrap.classList.add("has-focus-control");
       photoWrap.appendChild(mkEl("div", "focus-marker"));
+      // object-fit: contain never letterboxes the <img> element's own
+      // box (it has no forced width/height, so it sizes to its content),
+      // so a click is a plain fraction of the image's own rect: measure
+      // that, never the wrapper's, which can be wider once the image
+      // itself is narrower than the column (that mismatch is what saved
+      // the wrong coordinates before this fix).
+      img.addEventListener("load", function () {
+        updateFocusVisuals(candidate);
+      });
       photoWrap.addEventListener("click", function (e) {
-        var pt = focusFromPoint(e.clientX, e.clientY, photoWrap.getBoundingClientRect(), img, "contain");
-        applyFocusPoint(candidate, pt.x, pt.y);
+        if (!canEditFocus(candidate) || !img.naturalWidth) return;
+        var rect = img.getBoundingClientRect();
+        var x = clampPercent(((e.clientX - rect.left) / rect.width) * 100);
+        var y = clampPercent(((e.clientY - rect.top) / rect.height) * 100);
+        applyFocusPoint(candidate, x, y);
         render();
       });
     }
@@ -2029,7 +2118,10 @@
     focusBar.hidden = !candidate || isUncroppedFormat(candidate);
     if (!focusBar.hidden) {
       var hint = document.getElementById("review-focus-hint");
-      var held = !existing && !!(state.pendingFocus[candidate.source_id] || state.pendingFit[candidate.source_id]);
+      var held =
+        !existing &&
+        (Object.prototype.hasOwnProperty.call(state.localFocus, candidate.source_id) ||
+          Object.prototype.hasOwnProperty.call(state.localFit, candidate.source_id));
       hint.textContent = held ? "Saved with your next decision." : "";
       var fit = currentFit(candidate);
       var fitCoverBtn = document.getElementById("review-fit-cover");
@@ -2045,44 +2137,45 @@
     if (candidate) updateFocusVisuals(candidate);
   }
 
-  // Re-applies the current focus point to whatever the stage is showing
-  // right now: the object-position that crops the login mock's photo,
-  // and the small marker in both the login mock and the plain view. Runs
-  // on every render regardless of whether renderReviewOverlay rebuilt
-  // the stage, so a click moves the crop the same render it happens in.
+  // Re-applies the current (image-space) focus point to whatever the
+  // stage is showing right now: the object-position that crops the
+  // login mock's photo, and the small marker in both the login mock and
+  // the plain view. Runs on every render regardless of whether
+  // renderReviewOverlay rebuilt the stage, so a click moves the crop the
+  // same render it happens in, and again once the image finishes
+  // loading (its own "load" listener calls this), since the geometry
+  // below needs its natural size.
   function updateFocusVisuals(candidate) {
     if (currentFit(candidate) === "contain") return;
     var f = focusOrDefault(candidate);
     var loginImg = document.querySelector(".login-mock-photo-frame img");
-    if (loginImg) {
-      loginImg.style.objectPosition = f.x + "% " + f.y + "%";
-      var loginMarker = document.querySelector(".login-mock-photo-frame .focus-marker");
+    if (loginImg && loginImg.naturalWidth && loginImg.naturalHeight) {
+      var frameEl = loginImg.parentElement;
+      var rect = frameEl.getBoundingClientRect();
+      var geo = coverGeometry(loginImg.naturalWidth, loginImg.naturalHeight, rect.width, rect.height);
+      var posX = imageFractionToObjectPosition(f.x / 100, geo.dw, rect.width);
+      var posY = imageFractionToObjectPosition(f.y / 100, geo.dh, rect.height);
+      loginImg.style.objectPosition = posX + "% " + posY + "%";
+      var loginMarker = frameEl.querySelector(".focus-marker");
       if (loginMarker) {
-        loginMarker.style.left = f.x + "%";
-        loginMarker.style.top = f.y + "%";
+        loginMarker.style.left = imageFractionToFrameFraction(f.x / 100, geo.dw, rect.width, posX) * 100 + "%";
+        loginMarker.style.top = imageFractionToFrameFraction(f.y / 100, geo.dh, rect.height, posY) * 100 + "%";
       }
     }
     var plainWrap = document.querySelector(".plain-frame-photo.has-focus-control");
     if (plainWrap) {
       var plainImg = plainWrap.querySelector("img");
       var plainMarker = plainWrap.querySelector(".focus-marker");
-      var rect = plainWrap.getBoundingClientRect();
-      var natural = (plainImg.naturalWidth || 1) / (plainImg.naturalHeight || 1);
-      var boxRatio = rect.width / rect.height;
-      var renderedW, renderedH, offsetX, offsetY;
-      if (natural > boxRatio) {
-        renderedW = rect.width;
-        renderedH = rect.width / natural;
-        offsetX = 0;
-        offsetY = (rect.height - renderedH) / 2;
-      } else {
-        renderedH = rect.height;
-        renderedW = rect.height * natural;
-        offsetY = 0;
-        offsetX = (rect.width - renderedW) / 2;
+      if (plainImg && plainMarker && plainImg.naturalWidth) {
+        // The image's own rect, never the wrapper's (see the click
+        // handler's comment above): the marker is positioned relative
+        // to plainWrap (its offsetParent), so its own rect's offset
+        // from that is added in.
+        var imgRect = plainImg.getBoundingClientRect();
+        var wrapRect = plainWrap.getBoundingClientRect();
+        plainMarker.style.left = imgRect.left - wrapRect.left + (f.x / 100) * imgRect.width + "px";
+        plainMarker.style.top = imgRect.top - wrapRect.top + (f.y / 100) * imgRect.height + "px";
       }
-      plainMarker.style.left = offsetX + (f.x / 100) * renderedW + "px";
-      plainMarker.style.top = offsetY + (f.y / 100) * renderedH + "px";
     }
   }
 
@@ -2174,7 +2267,7 @@
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       var reviewCandidate = state.reviewList[state.reviewIndex];
       var isArrow = e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "ArrowDown";
-      if (e.shiftKey && isArrow && reviewCandidate && !isUncroppedFormat(reviewCandidate)) {
+      if (e.shiftKey && isArrow && canEditFocus(reviewCandidate)) {
         // Cheap keyboard nudge for the crop focus point: 5 points per
         // press, same directions as the arrows already move by.
         e.preventDefault();
@@ -2208,7 +2301,7 @@
         e.preventDefault();
         state.reviewView = state.reviewView === "login" ? "plain" : "login";
         render();
-      } else if ((e.key === "f" || e.key === "F") && reviewCandidate && !isUncroppedFormat(reviewCandidate)) {
+      } else if ((e.key === "f" || e.key === "F") && canEditFit(reviewCandidate)) {
         e.preventDefault();
         applyFit(reviewCandidate, currentFit(reviewCandidate) === "cover" ? "contain" : "cover");
         render();
@@ -2316,12 +2409,12 @@
   function initRealStore(db) {
     state.store = {
       mode: "real",
-      writeChoice: function (candidate, choice, roundId, focus, fit) {
+      writeChoice: function (candidate, choice, roundId, focus, fit, decidedAt) {
         var doc = {
           source_id: candidate.source_id,
           round: roundId,
           choice: choice,
-          decided_at: new Date().toISOString(),
+          decided_at: decidedAt,
         };
         if (focus) doc.focus = focus;
         if (fit) doc.fit = fit;
@@ -2355,6 +2448,7 @@
           state.round = null;
           state.candidates = [];
           state.choices = {};
+          resetLocalCropState();
           if (subscribedRoundId !== null) {
             unsubscribeCandidatesAndChoices();
             subscribedRoundId = null;
@@ -2370,6 +2464,7 @@
           subscribedRoundId = chosen.id;
           state.candidates = [];
           state.choices = {};
+          resetLocalCropState();
           subscribeCandidatesAndChoices(db, chosen.id);
         }
         render();
@@ -2431,20 +2526,30 @@
         state.round = fixture.round;
         state.candidates = fixture.candidates;
         var choicesMap = {};
+        var writeDelayMs = 0; // set by __fixtureSetWriteDelay, test-only
         state.store = {
           mode: "fixture",
-          writeChoice: function (candidate, choice, roundId, focus, fit) {
+          writeChoice: function (candidate, choice, roundId, focus, fit, decidedAt) {
             return new Promise(function (resolve) {
-              var doc = { choice: choice, round: roundId, decided_at: new Date().toISOString() };
-              if (focus) doc.focus = focus;
-              if (fit) doc.fit = fit;
-              choicesMap[candidate.source_id] = doc;
-              resolve();
+              window.setTimeout(function () {
+                var doc = { choice: choice, round: roundId, decided_at: decidedAt };
+                if (focus) doc.focus = focus;
+                if (fit) doc.fit = fit;
+                choicesMap[candidate.source_id] = doc;
+                resolve();
+              }, writeDelayMs);
             });
           },
         };
         state.choices = choicesMap;
         render();
+        // Test-only hook: delays the fixture's write resolution so a test
+        // can reliably interleave a second change while the first is
+        // still in flight, the way a real network write's latency would.
+        // Never wired to any real store.
+        window.__fixtureSetWriteDelay = function (ms) {
+          writeDelayMs = ms;
+        };
         // Test-only hook: the render harness flips a fixture round closed
         // without a second fixture file. Never wired to any real store.
         window.__fixtureSetClosed = function (closed) {
@@ -2459,6 +2564,7 @@
           state.round = { id: newRoundId, closed: false, balance: {} };
           state.candidates = fixture.candidates;
           state.choices = {};
+          resetLocalCropState();
           render();
         };
         // Test-only hook: read-only introspection into module-scoped
@@ -2472,6 +2578,9 @@
             reviewCandidateId: reviewCandidate ? reviewCandidate.source_id : null,
             roundId: state.round && state.round.id,
             choices: state.choices,
+            localFocus: state.localFocus,
+            localFit: state.localFit,
+            pendingWrite: pendingWrite,
           };
         };
       });
