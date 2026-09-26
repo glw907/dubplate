@@ -1,7 +1,10 @@
 # The transliteration table leaves the binary: implementation plan
 
-Status: **draft, revision 1, 2026-09-25; unreviewed; two rulings open.**
-The plan-review lenses (`spec-plan-review`) have not run. The plan executes
+Status: **draft, revision 2, 2026-09-25; reviewed; two rulings open.**
+Revision 2 folds the three `spec-plan-review` lenses (contract, mechanics,
+risk) per `docs/superpowers/research/2026-09-25-translit-table-plan-fold.md`.
+The largest change is Task 4's deploy transition: the new binary is staged
+and installs its table before it replaces the live one. The plan executes
 under either answer to each ruling.
 
 Source: Geoff's decision of 2026-09-25, recorded in `ROADMAP.md`'s
@@ -33,8 +36,8 @@ with unidecode's own `_get_repl_str` rules. Package `matcher` loses its
 `dubplate-server` verb builds the table into a state-directory leaf, online
 from PyPI or offline from a wheel file. Every scoring verb loads and verifies
 the table at startup and refuses to run without it. `doctor` reports it, and
-`deploy.sh` runs the install step so the live shadow keeps scoring after the
-next deploy.
+`deploy.sh` stages the new binary and runs its install verb before swapping
+it in, so the live shadow keeps scoring through the next deploy.
 
 **What this pass is not.** It changes no scoring behavior, no corpus record,
 no `corpus/manifest.json` field, and no Tunables value. It publishes no
@@ -63,16 +66,18 @@ believes it needs any of these stops and reports.
 
 Two questions. The 2026-09-25 decision stands and is not reopened.
 
-**1. Does this pass run under a 3.1M execution ceiling?** Recommendation:
-yes. Reason: "Token ceiling" projects 2.35M from the matcher word-boundary
+**1. Does this pass run under a 3.3M execution ceiling?** Recommendation:
+yes. Reason: "Token ceiling" projects 2.63M from the matcher word-boundary
 pass's measured per-task actuals, scaled for a new package, a new verb in
-`cmd/dubplate-server`, and three merge-side architecture reads. A 3.1M
-ceiling puts the 80% flag at 2.48M, above the projection. Planning is
-recorded outside the ceiling.
+`cmd/dubplate-server`, the revision 2 folds, and three merge-side
+architecture reads. The ceiling is the projection divided by 0.8, rounded
+up to the next 0.1M, so the 80% flag (2.64M) sits just above the
+projection. Planning is recorded outside the ceiling.
 
-What each answer builds: yes sets the flag at 2.48M. No holds a 2.75M
-ceiling (flag 2.2M), which the projection crosses during the merge-side
-reads, so the conductor asks after Task 5, before those reads.
+What each answer builds: yes sets the flag at 2.64M. No holds a 2.9M
+ceiling (flag 2.32M), which the projection crosses during Task 5 or the
+merge-side reads, so the conductor asks after Task 4, before the simplifier
+round.
 
 **2. Is the operator verb `dubplate-server unidecode install [--from FILE]`?**
 Recommendation: yes. Reason: the offline path tells an operator to download
@@ -106,10 +111,21 @@ setup runs one verb, online or offline, and `doctor` says whether it ran.
 The two rulings above, at plan approval. Nothing else is expected during
 execution. Routed, not asked by this pass:
 
-- **The lawyer's confirmation** of the distribution reading (the binary
-  downloads and derives at setup; the repo and binary carry no Unidecode
-  data) before the first stranger-installable release. `give-back` and
-  `packaging` carry it.
+- **The lawyer's confirmation** of the distribution reading before the
+  first stranger-installable release. `give-back` and `packaging` carry it.
+  The reading, stated exactly: the binary downloads and derives the table at
+  setup and carries no Unidecode data. The repo still carries four
+  Unidecode-derived items, each plausibly de minimis, and the lawyer reads
+  this list rather than an absolute claim:
+  - `internal/engine/matcher/testdata/case-mapping-sweep.tsv`: 56 data
+    rows of post-strip outputs computed through Unidecode 1.4.0 (its header
+    says so);
+  - the pinned lookup rows in the new package's tests (about ten code
+    points and their Unidecode outputs);
+  - `tools/unidecode-table/generate.py`, which imports the GPL library;
+  - `Lookup`'s port of `_get_repl_str`'s rules, read from the GPL
+    `__init__.py` (`translit.go` already carried the same port before this
+    pass).
 - **Git history.** The `.tbl` stays in every commit before this pass's
   Task 2. The repo is private today (`gh repo view`, per the survey). Whether
   history must be rewritten before the repo goes public is a question for
@@ -119,11 +135,11 @@ execution. Routed, not asked by this pass:
 
 What would become one: a byte mismatch the Go port cannot close (Task 1
 stops), a module dependency, or any change to what the box runs beyond the
-one `deploy.sh` step Task 4 adds.
+staged `deploy.sh` transition Task 4 adds.
 
 ---
 
-## Token ceiling: 3.1M execution (Ruling 1)
+## Token ceiling: 3.3M execution (Ruling 1)
 
 The basis is the matcher word-boundary pass's recorded actuals
 (`docs/HISTORY.md`, that entry's spend line): Task 0 0.08M; Task 1 0.14M
@@ -133,20 +149,25 @@ plus review 0.06M; Task 2 0.27M plus reviews 0.18M; Task 3 0.20M plus review
 the second reference.
 
 1. Task 0, a staleness read at `sonnet`: **0.08M**.
-2. Task 1, the `unidecode` package and the wheel fetch: **0.50M**, above
+2. Task 1, the `unidecode` package and the wheel fetch: **0.58M**, above
    the matcher pass's largest task, since it carries a lexer, a byte-identity
-   proof, and a network function with its refusals.
+   proof, a network function with its refusals, and (revision 2) the
+   synthetic-zip rows and the rewriting transport.
 3. Task 2, the matcher seam and the four test binaries: **0.35M**.
 4. Task 3, the install verb, the scoring verbs' load, and the doctor row:
-   **0.45M**; every full gate is heavy (Chromium) now.
-5. Task 4, `deploy.sh` and the generator's new role: **0.15M**.
+   **0.55M**; every full gate is heavy (Chromium) now, and revision 2 adds
+   the leaf rows, the `--from` cap, the injected client, and the table
+   fixture for every exit-0 doctor test.
+5. Task 4, `deploy.sh`'s staged transition and the generator's new role:
+   **0.25M** (revision 2 moves one block and splits the binary step).
 6. Task 5, the close drafts: **0.12M**.
 7. One fix round: **0.20M**.
 8. The simplifier round with its one review: **0.15M**.
 9. The merge-side reads: three `go-architecture-reader` dispatches
    (`internal/engine/matcher`, `internal/engine/matcher/unidecode`,
    `cmd/dubplate-server`) at **0.30M**, and the merge ritual at **0.05M**.
-10. **The projection is 2.35M.**
+10. **The projection is 2.63M.** Revision 1 projected 2.35M; the folds
+    add 0.08M to Task 1, 0.10M to Task 3, and 0.10M to Task 4.
 
 Checkpoint: STATUS at the segment boundary after Task 3, and at the close.
 Every task reports its spend, its mutation outcomes, and its measured gate
@@ -185,7 +206,10 @@ Read these before Task 1, in this order.
    `data` tuple), `sweep_digest` (`_get_repl_str` per code point, the
    `>I` code point, `\x00` for None, `\x01` plus a `>I` length plus UTF-8
    bytes otherwise), and `write_table`.
-5. **`internal/harness/conform/defaults.go:81-93`** (`CheckUnidecodeVersion`,
+5. **`internal/harness/conform/arch_test.go`**: `checkNoTimeNow` walks every
+   `.go` file under `internal/engine`, `_test.go` files included, and fails
+   on any `time.Now` call.
+   **`internal/harness/conform/defaults.go:81-93`** (`CheckUnidecodeVersion`,
    comparing `manifest.Unidecode` with `matcher.UnidecodeVersion`) and its
    tests at `defaults_test.go:125-153`; `corpus/manifest.json:4`
    (`"unidecode": "1.4.0"`).
@@ -213,13 +237,27 @@ Read these before Task 1, in this order.
    `scripts/check.sh`'s header and its ruff leg (`:433-440`, tracked files
    only); `.golangci.yml:17-25` (why the exported-unused leg lives in
    `check.sh`).
-10. **`scripts/deploy.sh`**: the binary step (`:337-345`), the smoke test
-    (`:364-366`), the `/var/lib/dubplate` pre-create (`:490-504`), and
-    `server.env`'s `0600 root:root` install (`:409-414`);
-    `systemd/dubplate-shadow.service` (`User=music`,
-    `ReadWritePaths=/var/lib/dubplate/shadow`, and its operator rule: a
-    hand-run verb goes through `systemd-run` carrying the unit's properties,
-    never the bare binary as root).
+10. **`scripts/deploy.sh`**, line numbers read at `6777d43`: the binary
+    step (`:337-345`: `make build-linux`, then the `rsync` to
+    `/usr/local/bin/dubplate-server` at `:343` and its `chmod` at `:344`),
+    the smoke test (`:364-366`), `server.env`'s `0600 root:root` install
+    (`:409-414`, after the binary step), the `/var/lib/dubplate`
+    pre-create (`:489-505`: `DUBPLATE_LIB_DIR` defined at `:502`, the
+    `mkdir`/`chown` at `:505`), and `TIMER_UNITS` (`:526`, which
+    deliberately omits `dubplate-shadow.timer`). `run_remote` (`:133-141`)
+    prints `would run: <command>` under `--check`. The state-dir agreement
+    leg (`scripts/check.sh:645-658`) reads `DUBPLATE_LIB_DIR` by pattern,
+    wherever the line sits.
+    `systemd/dubplate-shadow.service`: `User=music`,
+    `EnvironmentFile=/etc/dubplate/server.env`,
+    `ReadWritePaths=/var/lib/dubplate/shadow`, the hardening block
+    (`NoNewPrivileges` through `RestrictAddressFamilies=AF_INET AF_INET6
+    AF_UNIX`, with `UMask=0027`), and its operator rule: a hand-run verb
+    goes through `systemd-run` carrying the unit's properties, never the
+    bare binary as root. `systemd/dubplate-shadow.timer:23`
+    (`OnCalendar=*:0/5`). **The shadow timer is live on the box** (enabled
+    and active, read-only check 2026-09-25): Geoff enabled it by hand at the
+    launch sitting, and `deploy.sh` never stops or starts it.
 
 ### Behaviors this plan relies on, quoted
 
@@ -242,12 +280,29 @@ entry's CRC-32 is set and disagrees, and `ErrFormat` when more bytes arrive
 than `UncompressedSize64`. A reader that stops before EOF sees neither, so
 every entry is read to EOF.
 
+`go doc archive/zip.Writer.CreateRaw`: "CreateRaw adds a file to the zip
+archive using the provided FileHeader ... In contrast to
+Writer.CreateHeader, the bytes passed to Writer are not compressed." The
+header's `CRC32`, `CompressedSize64`, and `UncompressedSize64` are the
+caller's, so a test writes an entry whose CRC or size disagrees with its
+bytes, which is how the post-checksum stage's CRC and size rows are
+reached.
+
 `go doc crypto/sha256.Sum256`: "Sum256 returns the SHA256 checksum of the
 data."
 
+`go doc sync/atomic.Pointer`: "A Pointer is an atomic pointer of type *T.
+The zero value is a nil *T." It is the race-free holder R-tt1 names.
+
+`go doc os.MkdirAll`: "The permission bits perm (before umask) are used for
+all directories that MkdirAll creates." The leaf's mode therefore depends on
+the process umask unless the verb sets it explicitly after creation.
+
 `go doc net/http.Client.Do`: "A non-2xx status code doesn't cause an
 error." And: "If the returned error is nil, the Response will contain a
-non-nil Body which the user is expected to close." `go doc net/http.Client`
+non-nil Body which the user is expected to close." And: "Any returned error
+will be of type *url.Error", so a canceled request is tested with
+`errors.Is(err, context.Canceled)`, never by equality. `go doc net/http.Client`
 (`Timeout`): "The timeout includes connection time, any redirects, and
 reading the response body." `go doc net/http.NewRequestWithContext`: "For an
 outgoing client request, the context controls the entire lifetime of a
@@ -264,6 +319,24 @@ one byte past the cap.
 `go doc os.UserCacheDir`: "On Unix systems, it returns $XDG_CACHE_HOME ...
 if non-empty, else $HOME/.cache", and "Users should create their own
 application-specific subdirectory within this one."
+
+`go help test`: "Tests that open files within the package's module or that
+consult environment variables only match future runs in which the files and
+environment variables are unchanged." The source
+(`$(go env GOROOT)/src/cmd/go/internal/test/test.go:2051-2063`) reads: "Do
+not recheck files outside the module, GOPATH, or GOROOT root." The cached
+wheel lives under `~/.cache`, so Go's test cache does not track it: a cached
+`ok` for the four packages survives a deleted or replaced wheel, and only a
+run that misses the cache rebuilds the table. `make test` is `go test ./...`
+with no `-count` (`Makefile:17-18`).
+
+`man systemd-run` (systemd 259): `--wait`: "Synchronously wait for the
+transient service to terminate." EXIT STATUS: "If systemd-run waits for
+the service to terminate, the return value will be propagated from the
+service." So a refusing verb fails the remote command, and `run_remote`'s
+`ssh` returns nonzero. `--pipe`: "standard input, output, and error of the transient
+service are inherited from the systemd-run command itself." `--collect`:
+"Unload the transient unit after it completed, even if it failed."
 
 `go doc time/tzdata`: "This package should normally be imported by a
 program's main package, not by a library. Libraries normally shouldn't
@@ -305,7 +378,10 @@ tree):
   `None` names, one `data` name per file, 48,597 commas (one after every
   entry, the last included), one `=`, `(`, and `)` per file, and 48,486
   comments. 43,119 strings are single-quoted and one is double-quoted
-  (`x020.py:93`, `"''''"`). No string carries a prefix or triple quotes, and
+  (`x020.py:93`, `"''''"`). The mechanics review's Go prototype confirmed
+  the grammar and two shapes a line-per-entry lexer would miss: `x000.py`
+  packs sixteen entries per line, and three modules carry standalone
+  comment lines holding `"` and `'`. No string carries a prefix or triple quotes, and
   no two strings are adjacent (no implicit concatenation). The escapes are
   `\'` (128), `\\` (18), and `\x0a` (3, at `x020.py:42-43`). Every source
   byte is ASCII, and no file carries a carriage return. `'#'` is a string
@@ -319,6 +395,14 @@ tree):
   `c954605b805e4a21d1d9e79b4d93bc6b89684de9996dd21720b256fc58a6ce85`,
   identical to `sha256sum internal/engine/matcher/unidecode-1.4.0.tbl` at
   `1c012a8`: 190 blocks and 48,597 entries.
+- **The Go port's feasibility, proved in Go.** The mechanics review
+  (`docs/superpowers/research/2026-09-25-translit-table-plan-review-mechanics.md`)
+  wrote a stdlib-only prototype outside the tree: `zip.NewReader` over the
+  verified bytes, every entry read to EOF, a strict token lexer, the sweep,
+  and `generate.py`'s format. Its output had sha256
+  `c954605b805e4a21d1d9e79b4d93bc6b89684de9996dd21720b256fc58a6ce85`, and
+  `cmp` against the committed table reported no difference. The build took
+  about 0.14s, sweep included, race detector off.
 
 **`_get_repl_str`, read from the pinned venv**
 (`tools/venv/.venv/lib/python3.13/site-packages/unidecode/__init__.py`):
@@ -335,7 +419,12 @@ tree edit), over every package whose test binary links `matcher`
 (`go list -test`): `internal/engine/matcher`, `internal/engine/tag`,
 `internal/engine/shadow`, and `internal/harness/conform` fail;
 `internal/engine/musicbrainz` and `cmd/dubplate-server` pass. None of the
-four has a `TestMain` today (`git grep -l 'func TestMain'`).
+four has a `TestMain` today (`git grep -l 'func TestMain'`). The set is the
+same under no tag, `oracle`, and `rendered` (mechanics review).
+`cmd/dubplate-server` already has a `TestMain` (`backup_test.go:68`) and
+gets no table install there; after Task 3 its test binary reads the cached
+wheel too, through the install verb with `--from`, so the "fail naming
+`make unidecode-wheel`" rule covers it as well.
 
 **How the gate treats the network today.** `make check` runs no fetch.
 Its prerequisites are fetched out of band and refused when absent or stale,
@@ -368,6 +457,11 @@ installed beforehand (STATUS, lane registry). No CI workflow exists
   `cmd/dubplate-server/main.go`, `doctor.go`, `doctor_test.go`, `shadow.go`,
   `shadow_test.go`, `cmd/harness/main.go`, `Makefile`, `scripts/deploy.sh`,
   and `tools/unidecode-table/generate.py`. Task 5 writes drafts only.
+- **No `time.Now` under `internal/engine`, tests included.**
+  `checkNoTimeNow` (`internal/harness/conform/arch_test.go`) fails the
+  conform suite on one. A timeout comes from the caller's client or
+  context; wall time comes from `go test -v` output, never a clock read in
+  code.
 - **The gate stays hermetic.** No leg of `scripts/check.sh` or `make check`
   opens a network connection. Tests read the pinned wheel from a
   user-cache file that the workstation fills once with `make
@@ -398,9 +492,15 @@ installed beforehand (STATUS, lane registry). No CI workflow exists
   Every full gate is heavy (Chromium), so it runs in the default lane.
   Evidence runs use `-count=1` and report wall time. Commit specific files
   only, footer `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` or
-  the dispatch's footer. **The workstation's wheel cache must be filled
-  (`make unidecode-wheel`) before Task 2's gate**, since Task 2 is the first
-  task whose gate needs it; Task 1 lands the target and runs it.
+  the dispatch's footer. **The workstation's wheel cache is filled by Task
+  1** (`make unidecode-wheel`), whose own byte-identity test reads it; the
+  conductor confirms the cached file's `sha256sum` before Task 2.
+- **Every download in a test goes through a rewriting transport.** Tests
+  never reach PyPI. The one test transport is an `http.RoundTripper` that
+  asserts the request URL equals `WheelURL`, counts the request, and
+  forwards it to an `httptest` server; any other host is refused with a
+  test failure, never forwarded. Under every named mutation, a stray
+  request fails the test instead of opening a connection.
 
 ---
 
@@ -408,9 +508,10 @@ installed beforehand (STATUS, lane registry). No CI workflow exists
 
 | Field | Channels that may set it | What refuses every other channel |
 | --- | --- | --- |
-| The matcher's installed transliterator | `cmd/dubplate-server`'s scoring-verb startup, after `unidecode.Parse` verified the table; each of the four `TestMain` files, after `unidecode.Build` verified the cached wheel and the table. | No type refuses it, since the setter is exported for the cmd caller. The exit gate's `git grep` finds exactly one non-test call site. A scoring call before any installation panics, naming the setter (R-tt3). |
+| The matcher's installed transliterator | `cmd/dubplate-server`'s scoring-verb startup (`shadow observe`, `shadow reevaluate`), after `unidecode.Parse` verified the table; each of the four `TestMain` files, after `unidecode.Build` verified the cached wheel and the table. `doctor` never installs: it calls the load half only. The uninstalled-panic test clears the holder through package-internal access, never through the exported setter. | No type refuses it, since the setter is exported for the cmd caller. The setter refuses a nil function by panicking, so it offers no uninstall channel. The exit gate's `git grep` finds exactly one non-test call site. A scoring call before any installation panics, naming the setter (R-tt1). |
+| The download client | `main`'s constructor argument to the install verb and to `harness fetch-unidecode` (the bounded production client); tests pass a client carrying the rewriting transport. | Neither verb builds its own client, so no test can fall through to `http.DefaultTransport`. |
 | The table file in the leaf | The install verb alone: it writes atomically, only bytes whose wheel and table checksums both matched. | Every load runs `unidecode.Parse`, which refuses bytes whose sha256 differs from the pin, so a hand-copied, truncated, or edited file is refused at startup and by `doctor`. |
-| The wheel and table pins (version, wheel file name, URL, wheel sha256, table sha256) | Source edits to the `unidecode` package, re-derived by `generate.py` under the pinned venv (R-tt7). | `TestBuildIsByteIdenticalToThePin` (Task 1) fails when the Go build of the pinned wheel differs from the table pin; `CheckUnidecodeVersion` fails when the version differs from `corpus/manifest.json`. |
+| The wheel and table pins (version, wheel file name, URL, wheel sha256, table sha256, the data-module count 190) | Source edits to the `unidecode` package, re-derived by `generate.py` under the pinned venv (R-tt7). | `TestBuildIsByteIdenticalToThePin` (Task 1) hashes the build itself and compares with a literal in the test file, independent of the package's pin constant, so a pin edited to match a wrong build still fails; `CheckUnidecodeVersion` fails when the version differs from `corpus/manifest.json`. |
 | The workstation wheel cache | `harness fetch-unidecode` (`make unidecode-wheel`), which writes only bytes whose sha256 matched. | Every test read runs `unidecode.Build`, which verifies the wheel's sha256 first, so a hand-placed wrong file reds the gate with the checksum named. |
 
 ---
@@ -424,7 +525,8 @@ landing commit.
 ### R-tt1: the seam is process-wide, installed by the main package
 
 Package `matcher` gains one exported setter taking a `func(rune) (string,
-bool)` and keeps an unexported, race-free holder for it. `Transliterate`
+bool)` and keeps an unexported `sync/atomic.Pointer` holder for it.
+`Transliterate` loads the holder once per call, not once per rune. `Transliterate`
 reads the installed function for every rune, ASCII included; the `< 0x80`
 passthrough and the `0xeffff` cutoff move into the table's lookup, because
 they are `_get_repl_str`'s rules and the seam carries `_get_repl_str`
@@ -448,6 +550,14 @@ consults the data, and the program's main package decides where it comes
 from. Installing it in `main`'s verb path is an explicit dependency, never
 an `init` side effect.
 
+The process-wide holder is right for dubplate's binary and an open question
+for the published library: a package-global setter that panics until called
+forces every importer's test binaries to carry a `TestMain`, and it rules
+out two tables in one process. The seam's type suits the library either
+way. This pass does not change the holder; Task 5's HISTORY draft names the
+tension and the conductor routes it to `give-back`, beside the survey's
+AnyAscii default.
+
 ### R-tt2: the new package owns the table and moves with the matcher
 
 `internal/engine/matcher/unidecode` holds everything about the table that
@@ -465,16 +575,29 @@ callers:
 | `Version` | const, `"1.4.0"` | `conform.CheckUnidecodeVersion`; the cmd table file name |
 | `WheelURL`, `WheelSHA256` | consts, the PyPI values above | the install verb's offline guidance text |
 | `TableFileName` | const, `"unidecode-1.4.0.tbl"` | the cmd leaf path |
-| `Fetch(ctx, *http.Client) ([]byte, error)` | downloads the pinned wheel and verifies it | the install verb; `harness fetch-unidecode` |
+| `Fetch(ctx, *http.Client) ([]byte, error)` | downloads the pinned wheel, capped at `MaxWheelSize`, and verifies it | the install verb; `harness fetch-unidecode` |
+| `MaxWheelSize` | const, 1 MiB | the install verb's `--from` read, which applies the same cap-plus-one refusal |
+| `ErrWheelTooLarge` | sentinel | the install verb matches it for both the download and `--from` |
 | `Build(wheel []byte) ([]byte, error)` | verifies the wheel, extracts, builds, verifies the table | the install verb |
 | `Parse(table []byte) (*Table, error)` | verifies the table's sha256, decodes | the scoring verbs' startup; the doctor row |
 | `(*Table).Lookup(r rune) (string, bool)` | `_get_repl_str` | installed through the matcher setter in cmd |
 | `WheelCachePath() (string, error)` | the workstation cache file path | `harness fetch-unidecode` |
 | `ErrWheelChecksum`, `ErrTableChecksum` | sentinels | the install verb and doctor row match them with `errors.Is` |
 
-The table's sha256 pin stays unexported: only `Build` and `Parse` read it.
-The cache path sits under `os.UserCacheDir()` in a subdirectory named for
-the package, never for dubplate, so the published module keeps it.
+The table's sha256 pin and the data-module count stay unexported: only
+`Build` and `Parse` read them. The cache path sits under
+`os.UserCacheDir()` in a subdirectory named for the package, never for
+dubplate, so the published module keeps it.
+
+Two unexported stages carry the checks that the pins make unreachable
+through the exported functions, and their tests drive them directly:
+`extract` (the zip read, every entry to EOF, the entry selection and count,
+and the lexer, returning the blocks), which `Build` calls after the wheel
+checksum; and `decode` (the truncation-checked reader and its trailing-byte
+refusal), which `Parse` calls after the table checksum. Any altered wheel or
+table stops at a checksum sentinel, so a row asserting a zip, count, lexer,
+or truncation refusal through `Build` or `Parse` could never be written, or
+would pass vacuously on the checksum.
 
 ### R-tt3: the table is built from the wheel only, with a strict lexer
 
@@ -488,7 +611,9 @@ Go form of `generate.py`'s `len(name) == 4 and name[0] == "x"` plus a hex
 parse; a lexer that accepts exactly the grammar measured above and refuses
 anything else, naming the file, line, and column; the blocks sorted by
 section; the sweep digest over `[0, 0x10FFFF]` computed through the same
-lookup `Parse` returns, with `generate.py`'s encoding; the table written in
+`Lookup` over the in-memory blocks (`Parse` cannot be called yet, since the
+table's bytes do not exist until the digest is written), with
+`generate.py`'s encoding; the table written in
 `generate.py`'s format with `Version` as its version field; and the table's
 sha256 against the pin. The lexer is strict on purpose: a pinned wheel
 cannot change, so any token outside the measured set is a defect in the
@@ -531,10 +656,16 @@ unidecode-wheel`, and exits nonzero without running a test. The user cache,
 never a gitignored repo directory, so a second-lane worktree shares one
 download, as it shares Go's module cache.
 
-Every test binary rebuilds the table from the wheel, so every gate run
-re-proves the port byte-identical. Task 1 measures the build's cost; above
-0.5s per binary, the task reports it, and the conductor decides whether the
-three downstream binaries read a cached table file instead.
+Every test binary that runs rebuilds the table from the wheel, so every
+uncached test run re-proves the port byte-identical. Go's test cache does
+not track the wheel (quoted above), so a gate run whose sources are
+unchanged reports a cached `ok` without rebuilding; that is sound, because
+the wheel is pinned by sha256 and cannot change under a valid cache entry.
+The one state the cache can hide is "wheel absent", so every proof of that
+state runs with `-count=1`. The mechanics prototype measured the build at
+about 0.14s; Task 1 re-measures it, and above 0.5s per binary the conductor
+decides whether the three downstream binaries read a cached table file
+instead.
 
 `make check` gains no dependency on the fetch target, so the gate never
 opens a connection; `make test`'s failure message is the prompt. Any future
@@ -552,18 +683,31 @@ apply.
 
 The install verb reads `DUBPLATE_STATE_DIR` alone through `lookupEnviron`,
 never `config.Load`, because setup runs it before the rest of the wall may
-be rendered. It refuses, writing nothing, when the variable is unset, the
-directory is absent, or the effective user does not own it; the last
-refusal names the owner and the `runuser -u <owner> -- dubplate-server
-<verb>` fix in `internal/engine/store/leaf.go`'s own words, so a root run
-never leaves a root-owned leaf. When the file already exists and `Parse`
-accepts it, the verb prints that the table is installed and exits 0 with no
-network. Otherwise it obtains the wheel (`Fetch`, or the `--from` file),
-runs `Build`, creates the leaf, writes through `internal/atomicfile`, reads
-the file back through `Parse`, and prints the path and version. A failed
-download or build writes nothing and leaves any existing file in place.
-The download uses a client with a bounded timeout and a size cap well above
-235,837 bytes (1 MiB); an over-cap body is refused.
+be rendered. Its refusals run in this order, each writing nothing, and all
+of them before the "already installed" check, so a root run on a valid
+table still refuses:
+
+1. the variable is unset;
+2. the state directory is absent;
+3. the effective user does not own the state directory;
+4. the `unidecode/` leaf exists but is not a directory, is owned by
+   another user, or has a mode other than `0755` (the store leaf's
+   `checkLeafShape` and `checkOwner` are the precedent, `leaf.go:104-129`).
+
+The ownership refusals name the owner and the `runuser -u <owner> --
+dubplate-server <verb>` fix in `internal/engine/store/leaf.go`'s own words,
+so a root run never leaves a root-owned leaf. When the file already exists
+and `Parse` accepts it, the verb prints that the table is installed and
+exits 0 with no network. Otherwise it obtains the wheel (`Fetch`, or the
+`--from` file read under the same `MaxWheelSize` cap-plus-one refusal),
+runs `Build`, creates the leaf and sets its mode to `0755` explicitly with
+`os.Chmod` (so the mode holds under any umask), writes through
+`internal/atomicfile`, reads the file back through `Parse`, and prints the
+path and version. A failed download or build writes nothing and leaves any
+existing file in place. The verb's constructor takes the `*http.Client`,
+the way `newDoctorCmd` takes `environ`; `main` passes a client with a
+bounded timeout, and the cap (1 MiB, well above 235,837 bytes) refuses an
+over-cap body.
 
 The verb's offline guidance (its long help, and the text of every download
 refusal) states the wheel's URL, its sha256, and `--from`.
@@ -573,9 +717,10 @@ refusal) states the wheel's URL, its sha256, and `--from`.
 The Go port replaces `generate.py` at runtime. Python stays in the loop only
 where it is independent: re-deriving the pin. On a Unidecode bump, a
 maintainer bumps the venv, runs `generate.py` to a scratch path, and takes
-the file's sha256 as the new table pin; the Go build of the new wheel must
-then match it. `generate.py`'s docstring says so, names `unidecode.Version`
-and the two sha256 pins as what the run updates, states that its output
+the file's sha256 as the new table pin, and updates the data-module count
+from the new wheel's listing; the Go build of the new wheel must then match
+the pin. `generate.py`'s docstring says so, names `unidecode.Version`,
+the two sha256 pins, and the data-module count as what the run updates, states that its output
 must never be committed, and drops the committed-path example. Its output
 path stays an argument. It prints the output's sha256 beside its existing
 figures. The venv stays the source of truth for beets and its dependencies;
@@ -588,8 +733,9 @@ the Unidecode version the venv pins and `Version` stay equal, which
 ## Review focus
 
 1. **Byte identity.** Expected: the Go build of the pinned wheel equals the
-   pinned sha256 on every gate run. Pinned in Task 1, re-proved by every
-   `TestMain` in Task 2.
+   literal `c954...ce85` on every uncached test run. Pinned in Task 1,
+   re-proved by every `TestMain` in Task 2 whenever its package misses the
+   test cache.
 2. **A scoring verb that runs without a verified table.** Expected: never;
    it refuses before creating anything, and an uninstalled seam panics on
    the first call of any input. Pinned in Tasks 2 and 3.
@@ -601,8 +747,13 @@ the Unidecode version the venv pins and `Version` stay equal, which
    an existing good table stays, and the refusal carries the offline
    guidance. Pinned in Tasks 1 and 3.
 5. **The gate touching the network.** Expected: never. The diff-reviewer
-   checks each task's tests for an `http` call outside an `httptest`
-   server; Task 1's `Fetch` tests run against `httptest` only.
+   checks that every test client carries the rewriting transport and that
+   no verb builds its own client; Task 1's `Fetch` tests run against
+   `httptest` only.
+6. **The deploy transition on a box whose shadow timer is live.** Expected:
+   the live binary is replaced only after the staged binary has installed
+   and verified its table, so a failed download leaves the old binary
+   scoring. Pinned in Task 4 by reviewer read against the property list.
 
 ---
 
@@ -630,8 +781,9 @@ site; a pointer whose content is gone is a blocker.
    does `corpus/manifest.json` still pin `"unidecode": "1.4.0"`?
 4. Does PyPI's JSON for Unidecode 1.4.0 still give the wheel sha256
    `c3c7606c27503ad8d501270406e345ddb480a7b5f38827eafe4fa82a137f0021`, and
-   is the release still unyanked? (A read-only fetch of the JSON; no
-   download into the tree.)
+   is the release still present and unyanked? (A read-only fetch of the
+   JSON; no download into the tree. A deleted release returns 404 for the
+   JSON and the file URL alike.)
 5. Does the overlay probe (Primary inputs, "The test binaries that reach
    the table") still name exactly the four packages? Run it with the overlay
    under the scratchpad, never a tree edit.
@@ -643,7 +795,12 @@ site; a pointer whose content is gone is a blocker.
 7. Report every `cmd/dubplate-server` test that runs `shadow observe` or
    `shadow reevaluate` past their configuration refusals; Task 3 must give
    each one an installed table.
-8. Report the doctor tests that pin the row count or the last row's name.
+8. Report the doctor tests that pin the row count or the last row's name,
+   and every doctor test that expects exit 0 with `DUBPLATE_STATE_DIR` set
+   (at `6777d43`: `TestDoctorCmd`'s "full valid wall" case at
+   `doctor_test.go:45-48`, and the tests setting the variable at `:415`,
+   `:915`, `:926`, `:937`, `:992`, `:1045`, `:1077`, and `:1117`). After
+   Task 3 each one needs an installed table.
 9. Report `go version`; a version other than 1.27.1 is a note only.
 
 **2.0 hook:** neutral. **Deliverable count: 1** (the report).
@@ -683,50 +840,71 @@ deletes the original.
   its stage.
 - **The fetch and the cache.** `Fetch` issues one GET to `WheelURL` with the
   caller's client and context, refuses a non-200 status naming it, reads at
-  most the cap plus one byte and refuses an over-cap body, and refuses a
-  checksum mismatch with `ErrWheelChecksum`, naming both sums.
-  `WheelCachePath` per R-tt5. `harness fetch-unidecode` is a no-op when the
-  cached file verifies, else fetches and writes atomically; `make
-  unidecode-wheel` runs it. The target's comment says the gate never runs it
-  and why.
-- **The tests.** Lexer rows over synthetic sources; `Parse` and `Lookup`
-  rows; `Fetch` over `httptest` only; the byte-identity test and the sweep
-  test over the cached wheel.
+  most `MaxWheelSize` plus one byte and refuses an over-cap body with
+  `ErrWheelTooLarge`, and refuses a checksum mismatch with
+  `ErrWheelChecksum`, naming both sums. `WheelCachePath` per R-tt5.
+  `harness fetch-unidecode` takes its `*http.Client` from `main` (the
+  channels table), is a no-op when the cached file verifies, else fetches
+  and writes atomically, replacing a cached file that fails its checksum;
+  `make unidecode-wheel` runs it. The target's comment says the gate never
+  runs it and why.
+- **The tests.** Lexer rows over synthetic sources; `extract` rows over
+  synthetic zips built in memory with `archive/zip.Writer` (`CreateRaw` for
+  the CRC and size rows), each asserting the stage's own error and
+  `!errors.Is(err, ErrWheelChecksum)`; `decode` rows for truncation and
+  trailing bytes; `Parse` and `Lookup` rows; `Fetch` over `httptest`
+  through the rewriting transport only; the byte-identity test over the
+  cached wheel.
 
 **States each check meets, and its report:**
 
 | Check | State | Report |
 | --- | --- | --- |
 | The wheel given to `Build` | sha256 differs from the pin | `ErrWheelChecksum`, naming both sums; nothing unzipped |
-| The wheel | not a zip, or an entry fails CRC or size | the zip error, naming the entry |
-| The data entries | fewer or more than 190, or a name outside the pattern that starts `unidecode/x` | refuses, naming the count or the name |
-| A data module | a token outside the measured grammar (a prefix, triple quotes, an unknown escape, a missing comma, text after `)`, a non-ASCII byte, a CR, an unterminated string) | refuses, naming the file, line, column, and token |
+| The zip given to `extract` (synthetic) | not a zip, or an entry whose CRC or size disagrees (`CreateRaw`) | the zip error, naming the entry |
+| The data entries given to `extract` (synthetic) | fewer or more than the pinned count, or a name outside the pattern that starts `unidecode/x` | refuses, naming the count or the name |
+| A data module (synthetic source) | a token outside the measured grammar (a prefix, triple quotes, an unknown escape, a missing comma, text after `)`, a non-ASCII byte, a CR, an unterminated string) | refuses, naming the file, line, column, and token |
 | A data module | `'#'` as an entry | lexed as a one-character string, never a comment |
 | The built table | sha256 differs from the pin | `ErrTableChecksum`, naming both sums |
-| The table given to `Parse` | empty, truncated, trailing bytes, or any byte changed | `ErrTableChecksum` first (the pin catches every one); the decoder's own errors stay for a table that matches the pin, which cannot be malformed |
+| The table given to `Parse` | empty, truncated, trailing bytes, or any byte changed | `ErrTableChecksum` (the pin catches every one) |
+| The bytes given to `decode` (synthetic) | truncated mid-block, or trailing bytes | the decoder's own error, naming the offset |
 | `Fetch` | status 404 or 500 | refuses, naming the status and the offline guidance |
-| `Fetch` | body of cap plus one byte | refuses, naming the cap |
-| `Fetch` | the context is canceled | returns the context's error |
+| `Fetch` | body of `MaxWheelSize` plus one byte | `ErrWheelTooLarge`, and `!errors.Is(err, ErrWheelChecksum)` |
+| `Fetch` | body of exactly `MaxWheelSize` bytes | not refused for size (it fails the checksum instead) |
+| `Fetch` | the context is canceled | `errors.Is(err, context.Canceled)` |
 | `Fetch` | a 200 body with the wrong bytes | `ErrWheelChecksum` |
-| The cached wheel for a test | absent | the test fails naming `make unidecode-wheel`; it never skips |
-| `harness fetch-unidecode` | the cache verifies | exits 0 with no request (proved with an `httptest` server that counts requests, pointed at by a test-only client) |
+| The cached wheel for a test | absent (`-count=1`, `XDG_CACHE_HOME` pointed at an empty scratch directory) | the test fails naming `make unidecode-wheel`; it never skips |
+| The cached wheel for a test | `os.UserCacheDir` returns an error (`HOME` and `XDG_CACHE_HOME` both unset) | the test fails printing the error |
+| `harness fetch-unidecode` | the cache verifies | exits 0 with no request (the rewriting transport's count is 0) |
+| `harness fetch-unidecode` | the cached file is present but fails its checksum | refetches through the transport and replaces it; the count is 1 |
 
 **Acceptance criteria:**
 
-- `TestBuildIsByteIdenticalToThePin` builds the cached wheel and compares
-  the output's sha256 with
-  `c954605b805e4a21d1d9e79b4d93bc6b89684de9996dd21720b256fc58a6ce85`; it
-  also counts 190 blocks and 48,597 entries, so a vacuous build cannot pass.
-  The report pastes the three figures and the build's wall time.
-- The sweep test moves here: it parses the built table and recomputes the
-  digest over the header's range through `Lookup`, matching the header.
+- `TestBuildIsByteIdenticalToThePin` builds the cached wheel, computes
+  `sha256.Sum256` of the output itself, and compares it with the literal
+  `c954605b805e4a21d1d9e79b4d93bc6b89684de9996dd21720b256fc58a6ce85`
+  written in the test file, never with the package's pin constant. That
+  literal is Python's output (`generate.py`), independent of the Go port,
+  so a pin edited to match a wrong build still fails. It also counts 190
+  blocks and 48,597 entries, so a vacuous build cannot pass. The report
+  pastes the three figures and the build's wall time from `go test -v`.
+  The diff-reviewer confirms that the source pin equals the same literal.
+- Today's `TestUnidecodeTableFullSweep` (Go's lookup against Python's
+  digest) is not moved: after this pass, byte identity is the proof that
+  replaces it, since a matching file carries Python's digest (R-tt3). A
+  sweep that recomputes the digest through the same `Lookup` that wrote it
+  would pass under any `Lookup` defect.
 - The lookup rows `translit_test.go:21-44` carries today (`A`, U+00E9,
   U+0080, U+0241, U+3042, U+10000, U+F0000) pass against the built table,
   plus one row per `\x0a` entry (U+2028 maps to `"\n"`, U+2029 to `"\n\n"`,
   from `x020.py:42-43`) and one for `x020.py:93` (U+2057 maps to `''''`).
-- `make unidecode-wheel` run twice: the first fetches, the second makes no
-  request; the report pastes both outputs and `sha256sum` of the cached file.
-- No test in the package opens a connection outside `httptest`.
+- `make unidecode-wheel` run twice with `XDG_CACHE_HOME` pointed at a fresh
+  scratch directory (so a fix-round re-dispatch still starts empty): the
+  first fetches, the second makes no request. Then run once without the
+  override, filling the real cache for Task 2 onward. The report pastes all
+  three outputs and `sha256sum` of each cached file.
+- No test in the package opens a connection outside `httptest`; every test
+  client carries the rewriting transport.
 - `go doc -short ./internal/engine/matcher/unidecode` lists exactly the R-tt2
   names; the report pastes it.
 - The gate is green.
@@ -743,7 +921,9 @@ deletes the original.
 4. Flip one byte of the cached wheel in a temporary copy: `Build` refuses
    with `ErrWheelChecksum` before any zip read.
 5. Flip one byte of a built table: `Parse` refuses with `ErrTableChecksum`.
-6. Remove the cap-plus-one read from `Fetch`: the over-cap row fails.
+6. Remove the cap-plus-one read from `Fetch`: the over-cap row fails (it
+   asserts `ErrWheelTooLarge`, not merely a refusal).
+7. Make `extract` accept 189 data entries: the synthetic count row fails.
 
 **Deliverable count: 4** (the format and lookup; the extraction; the fetch,
 cache path, harness verb, and make target; the tests).
@@ -786,17 +966,21 @@ setter".
   with `unidecode.Version`, and its message says the binary pins the
   version. Its two tests keep their shape. Its doc comment keeps the
   architectural reason it lives in the harness.
-- **The matcher's tests.** `TestUnidecodeVersion` and
-  `TestUnidecodeTableFullSweep` are removed (Task 1 carries both proofs).
-  `TestTransliterate` stays and runs through the installed seam. A new test
-  proves the uninstalled panic on an ASCII input, restoring the installed
-  function afterwards.
+- **The matcher's tests.** `TestUnidecodeVersion`,
+  `TestTransliterateRune`, and `TestUnidecodeTableFullSweep` are removed
+  (Task 1's lookup rows carry the first two; byte identity replaces the
+  sweep). `TestTransliterate` stays and runs through the installed seam. A
+  new serial test proves the uninstalled panic on an ASCII input: it
+  clears the holder through package-internal access (`translit_test.go` is
+  `package matcher`) and restores the installed function afterwards.
 
 **States each check meets, and its report:**
 
 | Check | State | Report |
 | --- | --- | --- |
-| A `TestMain` | cached wheel absent | prints the reason and `run make unidecode-wheel`; exits nonzero; no test runs |
+| A `TestMain` | cached wheel absent (run with `-count=1`, since the test cache does not track the wheel) | prints the reason and `run make unidecode-wheel`; exits nonzero; no test runs |
+| A `TestMain` | `os.UserCacheDir` returns an error | prints the error; exits nonzero |
+| The setter | given a nil function | panics; no uninstall channel |
 | A `TestMain` | cached wheel fails a checksum | prints the sentinel's message; exits nonzero |
 | The seam | nothing installed, input `"abc"` | panics naming the setter |
 | The seam | installed twice, scored from many goroutines | no race under `go test -race ./internal/engine/matcher` (reported, run once, outside the gate) |
@@ -820,8 +1004,8 @@ setter".
 
 1. Remove the matcher's `TestMain`: every test that scores panics, and the
    message names the setter.
-2. Point one `TestMain` at a nonexistent cache path: that binary exits
-   nonzero naming `make unidecode-wheel`.
+2. Point one `TestMain` at a nonexistent cache path and run with
+   `-count=1`: that binary exits nonzero naming `make unidecode-wheel`.
 3. Make the seam fall back to an ASCII-only passthrough when uninstalled: the
    panic test fails.
 4. Compare the manifest with a literal `"1.4.1"` in `CheckUnidecodeVersion`:
@@ -846,9 +1030,13 @@ config key, and `init`, when built, composes it as a setup step.
   `doctor_test.go` (the row)
 
 **Interfaces:** consumes Task 1's names and Task 2's setter. Produces the
-verb (Task 4's `deploy.sh` step runs it) and one unexported helper that
-loads and installs the table from a state directory, which both shadow
-verbs and the doctor row call.
+verb (Task 4's `deploy.sh` step runs it), whose constructor takes the
+`*http.Client` from `newRootCmd` (which takes it from `main`), and two
+unexported helpers: a load that reads and verifies the table from a state
+directory, called by both shadow verbs and the doctor row, and an install
+that passes a loaded table's `Lookup` to the setter, called by the shadow
+verbs only. The tests carry their own rewriting transport in a `_test.go`
+file (a few lines, the same shape as Task 1's), never an exported helper.
 
 **Outcomes:**
 
@@ -857,18 +1045,25 @@ verbs and the doctor row call.
 - **The scoring verbs' load** (R-tt4). `shadow observe` and `shadow
   reevaluate` load, verify, and install the table after their existing
   refusals and before `shadow.OpenStore`; a failure refuses with the path,
-  the reason, and the install verb. Every existing test Task 0 named in note
-  7 installs a table into its temporary state directory by running the
-  install verb with `--from` the cached wheel, never by copying bytes.
+  the reason, and the install verb. Every existing test Task 0 named in
+  notes 7 and 8 (the scoring-verb tests, and every doctor test expecting
+  exit 0 with `DUBPLATE_STATE_DIR` set) installs a table into its temporary
+  state directory by running the install verb with `--from` the cached
+  wheel, never by copying bytes.
 - **The doctor row** (named per Ruling 2). It prints exactly one line,
   always, after the backup rows, the store row's precedent. Its states:
   `not checked` when `DUBPLATE_STATE_DIR` is unset (no failure of its own;
   the wall row already fails); `ok (1.4.0)` for a table `Parse` accepts;
-  `missing: run dubplate-server <verb>` and `invalid: <reason>: run
-  dubplate-server <verb>` otherwise, each failing the command's exit, since
-  a missing table makes the scoring verbs refuse, as the roster row reasons
-  for its own file. The row never touches the network. The command's doc
-  comment and exit rule name the new failing row.
+  `missing: run dubplate-server <verb>` when the read fails with
+  `fs.ErrNotExist` (an absent state directory, leaf, or file); and
+  `invalid: <reason>: run dubplate-server <verb>` for every other failure
+  (a directory in the file's place, permission denied, a `Parse` refusal).
+  `missing` and `invalid` each fail the command's exit, since a missing
+  table makes the scoring verbs refuse, as the roster row reasons for its
+  own file. The row calls the load helper only, so `doctor` never installs
+  a transliterator; it never touches the network and creates nothing under
+  the state directory. The command's doc comment and exit rule name the new
+  failing row.
 
 **States each check meets, and its report:**
 
@@ -877,18 +1072,26 @@ verbs and the doctor row call.
 | Install | `DUBPLATE_STATE_DIR` unset | refuses naming the variable; writes nothing |
 | Install | state directory absent | refuses naming the path |
 | Install | state directory owned by another user | refuses naming the owner and the `runuser` fix (test through a swappable effective-uid seam, `leaf.go`'s `geteuid` precedent) |
-| Install | valid table present | `already installed`, exit 0, no request (proved with a counting `httptest` server) |
+| Install | `unidecode/` leaf is a file, has a mode other than `0755`, or is owned by another user | refuses naming the path and the fix; writes nothing |
+| Install | state directory owned by another user and a valid table present | refuses (the ownership checks run before the "already installed" check) |
+| Install | valid table present | `already installed`, exit 0, no request (the rewriting transport's count is 0) |
 | Install | invalid table present | rebuilds and replaces it; the old bytes never survive a success |
-| Install | `--from` absent, a directory, or the wrong file | refuses naming the path and the sha256 mismatch; writes nothing |
+| Install | `--from` absent or a directory | refuses naming the path; writes nothing |
+| Install | `--from` a file of `MaxWheelSize` plus one byte (a sparse or generated scratch file, never `/dev/zero`) | refuses with `ErrWheelTooLarge` before hashing; writes nothing |
+| Install | `--from` the wrong file under the cap | refuses with `ErrWheelChecksum`, naming both sums; writes nothing |
 | Install | download refused (status, cap, checksum, context) | refuses with the offline guidance; an existing file is untouched |
-| Install | success | leaf `0755`, file `0644`, `Parse` accepts the file on read-back; the output names the path and the version |
+| Install | success | leaf `0755` (set explicitly, so the assertion holds under any umask), file `0644`, `Parse` accepts the file on read-back; the output names the path and the version |
 | A scoring verb | table absent, empty, a directory, or failing `Parse` | refuses before `OpenStore`, naming the path, the reason, and the install verb; no shadow leaf is created |
-| Doctor | each of the four row states | the pinned status text and the pinned exit |
+| Doctor | each of the four row states | the pinned status text and the pinned exit; the `missing` and `invalid` exit rows run on `baseEnviron()`'s green wall with every other row `ok`, so the exit moves on this row alone (the exit rule is an OR) |
+| Doctor | any state | creates nothing under the state directory (tested); calls the load helper only (reviewer-read, since the scoring-verb tests install process-wide in the same binary, so a test cannot observe it) |
 
 **Acceptance criteria:**
 
-- The install tests run against `httptest` and the cached wheel, never the
-  network. The report pastes one successful run's output.
+- The install tests run against `httptest` through the rewriting transport
+  and the cached wheel, never the network. The report pastes one
+  successful run's output.
+- Every doctor test Task 0 note 8 named still exits 0, on an installed
+  table.
 - `shadow observe` with an absent table exits nonzero and leaves the
   temporary state directory without a `shadow/` leaf; the test asserts both.
 - Doctor's tests pin the new row's four states and the command's exit for
@@ -906,6 +1109,9 @@ verbs and the doctor row call.
 3. Make the doctor row pass on a missing table: its exit assertion fails.
 4. Drop the owner check: the ownership row fails.
 5. Make the idempotent path fetch anyway: the request-count assertion fails.
+6. Drop the explicit `os.Chmod` on the leaf: the success row fails, since
+   it runs under `syscall.Umask(0o027)` set in that serial test and
+   restored afterwards.
 
 **Deliverable count: 4** (the verb; the scoring verbs' load with the test
 updates; the doctor row; the verb's tests).
@@ -920,38 +1126,106 @@ checkpoint), on a commit the gate proved green. Task 4 touches only
 
 ---
 
-## Task 4: The deploy step and the generator's new role
+## Task 4: The staged deploy transition and the generator's new role
 
 Model: `sonnet`. Depends on Task 3 (the verb the step runs). **2.0 hook:
-neutral.**
+neutral.** The implementer invokes `vps-conventions` first.
 
 **Files:**
 
 - Modify: `scripts/deploy.sh`, `tools/unidecode-table/generate.py`
 
+**Why the transition is staged.** `dubplate-shadow.timer` is live on the
+box and fires `shadow observe` every five minutes; `deploy.sh` never stops
+it (`TIMER_UNITS`, `:526`). Revision 1 swapped the binary at `:343` and
+installed the table later, so every firing in between ran a binary with no
+table, and a failed install (PyPI unreachable, a checksum refusal, a
+sandbox error) aborted the deploy with that binary live and the shadow
+failing every five minutes, unmonitored ("no monitoring at rung 4", the
+unit's own comment). Staging closes the window: the live binary is replaced
+only after the new one has installed and verified its own table.
+
 **Outcomes:**
 
-- **The deploy step.** After the `/var/lib/dubplate` pre-create and the
-  binary's smoke test, `deploy.sh` runs the install verb on the box as the
-  `music` user with the server env file's `DUBPLATE_STATE_DIR`, never as
-  root and never with a new state-directory literal (so the state-dir
-  agreement leg needs no new row). The shadow unit's operator rule suggests
-  a `systemd-run` carrying `User=music` and
-  `EnvironmentFile=/etc/dubplate/server.env`; the implementer chooses under
-  `vps-conventions` and states why. Under `--check` it reports the would-run
-  line through `run_remote`, the script's own shape. A refusal aborts the
-  deploy with the verb's message, before the timers are enabled. On a box
-  with a verified table, the step makes no network request (R-tt6), so
+- **The deploy transition**, in this order (line numbers at `6777d43`):
+  1. **The pre-create moves ahead of the binary step.** The
+     `/var/lib/dubplate` block (`:489-505`, with its `DUBPLATE_LIB_DIR`
+     definition at `:502`) moves unchanged to just before the binary step
+     (`:304`). It is idempotent, and the state-dir agreement leg reads
+     `DUBPLATE_LIB_DIR` by pattern, so it needs no new row. The block's
+     comment gains one sentence: the staged install needs the owned state
+     directory before it runs.
+  2. **The binary is staged, not swapped.** The rsync at `:341-344` targets
+     `/usr/local/bin/dubplate-server.new` (one variable holding the staged
+     path) and `chmod`s it; the smoke test at `:364-366` runs the staged
+     path. The live binary is untouched.
+  3. **`server.env` installs as today** (`:409-414`). The install must
+     follow it: the install reads `EnvironmentFile=/etc/dubplate/server.env`,
+     which a fresh box lacks until this step, and whose
+     `DUBPLATE_STATE_DIR` may change in the same deploy.
+  4. **The staged binary installs its table**, in a new block directly
+     after the `server.env` install, as `music`, with this exact shape
+     through `run_remote`:
+
+     ```
+     systemd-run --wait --pipe --collect \
+       -p User=music -p EnvironmentFile=/etc/dubplate/server.env \
+       -p NoNewPrivileges=yes -p PrivateTmp=yes -p ProtectSystem=strict \
+       -p ProtectHome=yes -p ProtectKernelTunables=yes \
+       -p ProtectKernelModules=yes -p ProtectControlGroups=yes \
+       -p RestrictNamespaces=yes -p RestrictRealtime=yes \
+       -p RestrictSUIDSGID=yes -p LockPersonality=yes \
+       -p MemoryDenyWriteExecute=yes -p SystemCallFilter=@system-service \
+       -p SystemCallArchitectures=native -p AmbientCapabilities= \
+       -p CapabilityBoundingSet= \
+       -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
+       -p ReadWritePaths=$DUBPLATE_LIB_DIR \
+       /usr/local/bin/dubplate-server.new <verb>
+     ```
+
+     The hardening is the shadow unit's, property for property, with three
+     deliberate differences. `ReadWritePaths=$DUBPLATE_LIB_DIR` replaces
+     the unit's `.../shadow` grant, so the verb can create its
+     `unidecode/` leaf; the grant reuses the existing variable, adding no
+     state-directory literal. `RestrictAddressFamilies` keeps `AF_INET` and
+     `AF_INET6`, so the download reaches PyPI (the shadow already reaches
+     MusicBrainz under the same set). `UMask=0027` is omitted, and the verb
+     sets the leaf's mode explicitly regardless. PID 1 reads the env file,
+     so no secret passes through the shell, and `--wait` propagates the
+     verb's exit (quoted above), so a refusal fails `run_remote` and
+     `set -euo pipefail` aborts the deploy. The quoting of the one
+     space-bearing property survives `run_remote`'s single-string `ssh`.
+  5. **Only then is the binary swapped**:
+     `mv -f /usr/local/bin/dubplate-server.new /usr/local/bin/dubplate-server`,
+     a rename on one filesystem, so a timer firing sees either the old
+     binary or the new one, and the new one finds its table.
+
+  Under `--check`, every step reports its would-run line through
+  `run_remote` and the rsync runs with `-n`, the script's own shape. On a
+  box with a verified table, step 4 makes no network request (R-tt6), so
   every later deploy is quiet.
+- **Failure and rollback.** A failed install aborts the deploy before the
+  swap: the old binary stays live and the shadow keeps scoring from its
+  embedded table. The staged `.new` file is left behind, harmless, and the
+  next deploy's rsync overwrites it. Rollback after a completed deploy is
+  redeploying the previous commit: its `deploy.sh` rsyncs its own binary
+  over the live one, and that pre-pass binary scores from its own embedded
+  table and ignores `unidecode/`. No state changes, and a later forward
+  deploy finds the table installed and makes no request.
 - **The generator's role** per R-tt7: the docstring's new purpose, the
-  pin-update procedure, the never-commit rule, and the printed output
-  sha256.
+  pin-update procedure (the two pins and the data-module count), the
+  never-commit rule, and the printed output sha256.
 
 **Acceptance criteria:**
 
 - shellcheck passes (the gate's leg).
-- `bash scripts/deploy.sh --check` is **not** run (it reaches the box); the
-  diff-reviewer reads the step against R-tt6 and the shadow unit's rule.
+- `bash scripts/deploy.sh --check` is **not** run (it reaches the box). The
+  diff-reviewer reads the transition against this task's five steps: the
+  pre-create precedes the binary step; the rsync and smoke test name only
+  the staged path; the install follows the `server.env` install; its
+  property list matches the shadow unit's hardening except the three named
+  differences, grants write on `$DUBPLATE_LIB_DIR`, and reaches the
+  network; and the `mv` is the only write to the live path.
 - `ruff check` and `ruff format --check` run directly on `generate.py`
   pass; the report pastes both.
 - `tools/venv/.venv/bin/python tools/unidecode-table/generate.py
@@ -961,9 +1235,14 @@ neutral.**
 
 **Named mutations this task reports:**
 
-1. Reviewer-read: the step placed before the binary step would run an old
-   binary without the verb; the reviewer confirms the order.
-2. Run `generate.py` against a scratch venv copy with the version check
+1. Reviewer-read: the install placed before the `server.env` install, or
+   the `mv` placed before the install, would respectively read a missing
+   or stale env file on a fresh box, or reopen the tableless window; the
+   reviewer confirms the order.
+2. Reviewer-read: the install carried with the shadow unit's
+   `ReadWritePaths=/var/lib/dubplate/shadow` would fail with EROFS creating
+   `unidecode/`; the reviewer confirms the grant is `$DUBPLATE_LIB_DIR`.
+3. Run `generate.py` against a scratch venv copy with the version check
    left as is: no mutation is available without a second Unidecode release
    in the venv, so this is reviewer-read.
 
@@ -986,16 +1265,24 @@ Model: `sonnet`. Depends on Tasks 0 to 4 and the simplifier round.
   gate evidence, R-tt1 to R-tt7 with where each landed, the rulings'
   outcomes, both budgets, and "what a later pass would be wrong to
   rediscover." That section carries at minimum: the measured grammar and
-  the `'#'` string entries; the Python prototype's byte-identity figures;
-  why the digest in a Go build still proves Python's lookup (R-tt3); the
-  pin-update procedure (R-tt7); the four test binaries and the overlay probe
-  that found them; the `make unidecode-wheel` prerequisite; that `serve`
-  loads the table when it first scores; and the git-history question routed
-  to `give-back`.
-- **The STATUS draft** adds a carried item for 5d's runbook (the install
-  step runs before the first shadow observation after the next deploy) and
-  the workstation prerequisite, and records nothing else unless the pass
-  found something.
+  the `'#'` string entries; the Python and Go prototypes' byte-identity
+  figures; why the digest in a Go build still proves Python's lookup
+  (R-tt3); the pin-update procedure (R-tt7); the four test binaries and the
+  overlay probe that found them; that Go's test cache does not track the
+  wheel; the `make unidecode-wheel` prerequisite; the staged deploy
+  transition and why (the live shadow timer); that `serve` loads the table
+  when it first scores; the process-wide holder's tension for a published
+  library (R-tt1); and, routed to `give-back`, the git-history question and
+  the list of Unidecode-derived items the repo still carries ("Owner
+  touchpoints").
+- **The STATUS draft** adds a carried item for 5d's runbook: run
+  `deploy.sh --check` first and read the staged install's would-run line;
+  the deploy stages, installs, and only then swaps; rollback is redeploying
+  the previous commit; and the workstation's verified wheel cache
+  (`make unidecode-wheel`'s output) is the estate's offline copy, the
+  `--from` source if PyPI ever deletes the release. It also names the
+  workstation prerequisite, and records nothing else unless the pass found
+  something.
 
 **Acceptance criteria:** every count in the drafts comes from a command the
 report pastes; every commit id resolves; the STATUS draft is at most 60
@@ -1010,12 +1297,17 @@ lines. The gate is green as a formality.
 `cairn-run-gate 'bash /var/home/glw907/Projects/dubplate/scripts/check.sh'`
 green on master after the last commit, plus:
 
-1. The Go build of the pinned wheel equals the pinned table sha256 (Task 1).
+1. The Go build of the pinned wheel equals the literal `c954...ce85`
+   (Task 1), on a `-count=1` run.
 2. `git ls-files '*.tbl'` prints nothing, and `git grep -n 'go:embed' --
-   internal/engine` prints nothing (Task 2).
-3. `strings dubplate-server-linux-amd64 | grep -c 'Kayng '` prints 0 after
-   `make build-linux` (a `x0f9.py` entry, so the table's text is absent from
-   the binary), run by the conductor.
+   internal/engine/matcher` prints nothing (Task 2). The scope is the
+   matcher: `internal/engine/store/migrations.go` embeds its migrations
+   legitimately.
+3. `strings dubplate-server-linux-amd64 | grep -c 'Kayng '` (a `x0f9.py`
+   entry) run by the conductor on two `make build-linux` binaries: at the
+   pass's base commit it prints a nonzero count (the positive control), and
+   at HEAD it prints 0 (and `grep -c` exits 1, which is the expected
+   pass).
 4. The setter has exactly one non-test call site (Task 3).
 5. The corpus sweeps pass with no expected figure moved (Task 2).
 6. `go doc -short ./internal/engine/matcher` at the base and at HEAD differ
@@ -1032,7 +1324,7 @@ green on master after the last commit, plus:
 | `internal/harness/conform` | rung 3/4 | `defaults.go` and a `TestMain` (Task 2) | main tree only |
 | `cmd/dubplate-server` | rungs 4 to 6 | Task 3 | lane 1 (5c-iii: `web.go`, `serve.go`, rendered tests) and lane 2 (6b-ii-b restore); Task 0 blocker 1 |
 | `cmd/harness`, `Makefile` | rung 2 | Task 1 | `Makefile` also carries lane 1's web targets; Task 1 touches its own target only |
-| `scripts/deploy.sh` | rung 4 and 5d | Task 4 | 5d owes its own runbook rows; this step joins them |
+| `scripts/deploy.sh` | rung 4 and 5d | Task 4 (moves the pre-create, stages the binary step, adds the install block) | 5d owes its own runbook rows; this transition joins them |
 | `docs/` ledgers, `CLAUDE.md` | conductor | Task 5 drafts only | every lane |
 
 ---
@@ -1044,9 +1336,9 @@ Not tasks; no implementer performs them.
 1. Before Task 0: record the rulings' outcomes; confirm the lanes per
    Task 0 blocker 1; record the planning spend; write the lane registry row;
    arm the runaway guard; check AC power.
-2. Before Task 2: run `make unidecode-wheel` on the workstation once
-   (a network act outside the gate), and confirm `sha256sum` of the cached
-   file.
+2. Before Task 2: confirm from Task 1's report that `make
+   unidecode-wheel` filled the real workstation cache (a network act
+   outside the gate), and confirm `sha256sum` of the cached file.
 3. At the segment boundary: STATUS; re-derive the ceiling from Tasks 0 to
    3's reports.
 4. After Task 4: one `code-simplifier` round over Tasks 1 to 3's Go,
@@ -1060,8 +1352,10 @@ Not tasks; no implementer performs them.
    `generate.py` (the "Gate" list and "Stack rules: Python") to its new role,
    and add a line under "Gate" naming `make unidecode-wheel` as a
    workstation prerequisite beside `npm ci`; route the git-history question
-   and the lawyer's confirmation to ROADMAP `give-back`.
-7. **Do not deploy.** The next deploy (5d) carries Task 4's step.
+   the lawyer's confirmation (with the "Owner touchpoints" list of
+   Unidecode-derived items), and R-tt1's holder question to ROADMAP
+   `give-back`.
+7. **Do not deploy.** The next deploy (5d) carries Task 4's transition.
 
 ---
 
@@ -1079,7 +1373,7 @@ one-line reason.
 
 Dependencies: Task 0, then Task 1 (the package), then Task 2 (the seam reads
 it), then Task 3 (the verb installs through the seam), then Task 4 (the
-deploy step runs the verb), then Task 5. No task is independent.
+deploy transition runs the verb), then Task 5. No task is independent.
 
 **Budget:** the ceiling and flag in "Token ceiling" (Ruling 1), planning
 recorded separately, STATUS at the boundary and at the close, spend scored
@@ -1112,19 +1406,25 @@ task is neutral.
 
 ## Not verified in this revision
 
-- The Go port itself. The byte-identity claim rests on a Python prototype
-  using the same restricted lexer and `_get_repl_str` rules; Task 1 is the
-  proof.
-- The per-binary cost of building the table in each `TestMain` (R-tt5 sets
-  a 0.5s report threshold).
-- Whether the box reaches `files.pythonhosted.org`. `deploy.sh` already
-  installs beets from PyPI with `uv` on the box (`deploy.sh:554-557`), which
-  suggests it does; the first deploy after this pass is the proof, and a
-  refusal aborts that deploy before the timers.
+- The Go port as it will ship. Two prototypes, one in Python and one in Go
+  (the mechanics review's, stdlib only, outside the tree), both built a
+  table byte-identical to the committed one under the same restricted lexer
+  and `_get_repl_str` rules; Task 1 is the proof for the shipped code.
+- The shipped build's per-binary cost (the Go prototype measured about
+  0.14s; R-tt5 keeps a 0.5s report threshold).
+- The staged install run end to end on the box. A read-only `curl -sI` from
+  the box to the wheel URL returned `HTTP/2 200` (mechanics review), and the
+  shadow already reaches MusicBrainz under the same address families, so
+  TLS and DNS work. The first deploy after this pass is the proof, and under
+  the staged transition a refusal there leaves the old binary scoring.
 - Whether lane 2's 6b-ii-b edits `doctor.go` or `main.go` (Task 0).
 - The legal reading itself: whether downloading and deriving at setup keeps
   an MIT binary clear of GPL-2.0-or-later obligations. The lawyer's
-  confirmation is owed before the first stranger-installable release.
+  confirmation is owed before the first stranger-installable release, over
+  the list in "Owner touchpoints".
 - Whether PyPI keeps serving the 1.4.0 wheel. The file URL is
-  content-addressed and marked immutable, and the offline `--from` path
-  covers an operator who kept a copy.
+  content-addressed and marked immutable, but `immutable` does not bind the
+  project owner, who can delete the release. The workstation's verified
+  cache is the estate's offline copy for `--from` (Task 5's 5d runbook
+  row); where a stranger gets the wheel after a deletion is `packaging`'s
+  question.
