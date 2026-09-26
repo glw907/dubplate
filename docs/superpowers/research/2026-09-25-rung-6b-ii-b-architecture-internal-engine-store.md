@@ -44,9 +44,9 @@ Read at HEAD `960e760`, no plan in context, per CLAUDE.md's "Reviewers" (one
 
 ## Best code in the package
 
-- `swap.go:126-213` — `swapPlan` built entirely from existing files.
-- `write.go:98-135` — the `Tx` first-error latch.
-- `open.go:212-269` — the flock conversion re-read.
+- `swap.go:126-213`: `swapPlan` built entirely from existing files.
+- `write.go:98-135`: the `Tx` first-error latch.
+- `open.go:212-269`: the flock conversion re-read.
 
 ## Routing
 

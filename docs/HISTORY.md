@@ -12,21 +12,27 @@ branch `lane-2-6b-ii-b`). Scope: Task 0 and Tasks 4A-7. The
 projection-side outcomes (R-6bii1 to R-6bii5, the contract suite) are
 6b-ii-a's, already folded.
 
+Every commit id below is the master id the merge's rebase produced. The
+branch was deleted after the merge, so its pre-rebase ids (for example
+Task 4A's `685b80f` and the doc fix's `2c064ff`) survive only as
+unreachable objects; `git range-diff` in "The merge" below proved each
+master commit patch-identical to its branch original.
+
 Segment B1 ran as run `wf_a047da45-f4b` in the prior session: 4A
-`685b80f`, 4B `ced021e` then `c3dc967`, 4C `044a433` then `0ee7aba`.
+`02eab94`, 4B `7c03d4a` then `8bee69d`, 4C `fe3af9e` then `ffc6cfd`.
 Segment B2's first attempt (`wf_a360199a-016`) was killed mid-Task-5A by
 a power loss with nothing committed; it relaunched fresh as
-`wf_ed08444b-481`: 5A `30a66ac`, 5B `cd9afbf`, Task 6 `9d9c552`, zero fix
+`wf_ed08444b-481`: 5A `6cfaceb`, 5B `3d1c097`, Task 6 `7c9b452`, zero fix
 rounds, each accepted by its `diff-reviewer` on the first pass. Segment
-B3 ran Task 7 (`9a7532b`, run `wf_6b3f2248-285`, accepted with zero fix
+B3 ran Task 7 (`b4ca358`, run `wf_6b3f2248-285`, accepted with zero fix
 rounds; SIGINT, SIGTERM, and SIGHUP each proven to exit 130 and a held
 lock proven to exit 75, both through real subprocesses; `ErrLockBusy`
 exported with the verb as its first caller), then the `code-simplifier`
-round (`7a56699`, four leaf free functions made methods on `leaf`, no
-behavior change), then the targeted data-loss read (`23ee61f`, `opus`,
+round (`0b87f48`, four leaf free functions made methods on `leaf`, no
+behavior change), then the targeted data-loss read (`4ac4cdc`, `opus`,
 fresh context: 0 blockers, 2 majors, 5 minors), then two fix rounds:
 
-- **Fix round `cba822c`**: closed M1, a proven false premise in spec
+- **Fix round `15d7955`**: closed M1, a proven false premise in spec
   criterion 16. The plan's privileged-fields row for a pre-restore copy
   said 6b-i's local prune deletes it; a pre-restore copy's rows are the
   ones the restore rolled away, so no later backup ever captures them,
@@ -41,7 +47,7 @@ fresh context: 0 blockers, 2 majors, 5 minors), then two fix rounds:
   and the quiesce). m2 (a library root that is a mount point puts the
   displaced directory on the parent filesystem, uncounted by the
   free-space check) was not fixed; it carries to the runbook below.
-- **Follow-up `c18fbeb`** (conductor decision on m5): every resumed
+- **Follow-up `c81f5f9`** (conductor decision on m5): every resumed
   library copy now passes `--backup-dir`, not only a first run under
   `--into-nonempty`, since `rclone copy` skips a destination file
   identical to the source and `--backup-dir` moves only a file the copy
@@ -49,13 +55,13 @@ fresh context: 0 blockers, 2 majors, 5 minors), then two fix rounds:
   operator places in the root between an interrupted run and its resume
   is displaced rather than overwritten. Its `diff-reviewer` returned
   `fix`: the symlink walk descended into a root-owned `lost+found`.
-- **Second fix round `876f8ea`** (conductor-authorized): `lost+found` is
+- **Second fix round `cdc073e`** (conductor-authorized): `lost+found` is
   now skipped by name (the one directory `mklost+found(8)` says every
   fresh filesystem makes, root-owned at 0700); any other unreadable
   directory is refused by name instead of silently walked past; the
   symlink walk re-runs immediately before every displacing copy, so a
   link made after the first check is still caught. Test follow-up
-  `960e760` covers `lost+found` itself replaced by a symlink on both the
+  `c363fa3` covers `lost+found` itself replaced by a symlink on both the
   first-run and resume paths, and guards the `unreadable()` test helper
   against running as root, where a mode-0 directory reads clean and the
   assertions it backs would be vacuous. This fix round's `diff-reviewer`
@@ -64,7 +70,7 @@ fresh context: 0 blockers, 2 majors, 5 minors), then two fix rounds:
 
 ### The architecture reads
 
-Three `go-architecture-reader` grades ran at HEAD `960e760`, each with no
+Three `go-architecture-reader` grades ran at HEAD `c363fa3`, each with no
 plan in context: `internal/backup` (sound with nits, density 0.288
 against `os/exec` 0.670 and `archive/zip` 0.258), `internal/engine/store`
 (workmanlike, density 0.381 against `database/sql` 0.424), and
@@ -73,10 +79,8 @@ density 0.184). The records are
 `docs/superpowers/research/2026-09-25-rung-6b-ii-b-architecture-internal-backup.md`,
 `-internal-engine-store.md`, and `-cmd-restore.md`. Each named items to
 take before the merge; the conductor took nine as the pre-merge batch
-(branch ids `c631e93`, `c2d112e`, `f5fae3a`, `493328c`, `cbfc13d`,
-`49674c1`, each accepted by its own `diff-reviewer`) plus one doc fix
-(`2c064ff`), replayed onto master by the rebase as `bd34f9a`, `9870678`,
-`a66b7d1`, `dcb1f47`, `00739d3`, `418a8aa`, and `392d1cd`:
+(`00739d3`, `418a8aa`, `bd34f9a`, `9870678`, `a66b7d1`, and `dcb1f47`,
+each accepted by its own `diff-reviewer`) plus one doc fix (`392d1cd`):
 
 - **`internal/backup`**: `Report`, `Reconcile`, and `(*Report).Text`
   (`reconcile.go:31,55,149`) were exported ahead of any caller, since
@@ -138,10 +142,11 @@ pass; 6d additionally owns the `OpenServe`/`Reconcile` shape.
 ### The merge
 
 6b-ii-b merges to master at `c12ef83..392d1cd`: the rebase replayed all
-23 commits (Task 0 through the pre-merge batch and the doc fix
-`392d1cd`), a green worktree gate, `git merge --ff-only`, and a green
+23 commits (Task 4A's `02eab94` through the pre-merge batch and the doc
+fix `392d1cd`), a green worktree gate, `git merge --ff-only`, and a green
 gate on master. A merged-range `diff-reviewer` read accepted the result:
-`git range-diff 685b80f^..2c064ff c12ef83..392d1cd` marks all 23 commits
+`git range-diff 685b80f^..2c064ff c12ef83..392d1cd` (the branch range, run
+before its deletion) marks all 23 commits
 `=`, the patches are byte-identical on the new base, and the review's
 two touched lines sit in disjoint file sets. One note it carried
 forward: restore loads the full wall through `config.Load`, so the new
@@ -150,7 +155,7 @@ verb too, and the refusal names the key.
 
 ### The gate evidence
 
-At HEAD `960e760`: `go test -count=1 ./internal/engine/store/...
+At HEAD `c363fa3`: `go test -count=1 ./internal/engine/store/...
 ./internal/backup/... ./cmd/dubplate-server/...`: `internal/engine/store`
 **11.487s**, `internal/backup` **52.529s**, `cmd/dubplate-server`
 **56.083s**. `go test ./... -count=1` at HEAD: **2m28.930s** wall
@@ -164,11 +169,14 @@ log. gitleaks scanned about 114.95 MB in 51.5s and found no leaks.
 
 Two staged legs stayed at warning: **326** process citations in Go
 comments (unchanged from 6b-ii-a's close; this half added no new one)
-and **126** exported-unused `internal/` identifiers (up one from
-6b-ii-a's 125: `PreRestorePath`'s own package caller is `internal/backup`
-non-test code, so it does not add to the count; the rise is a symbol
-this half's own tests do not yet exercise from outside its package,
-named at the architecture read above, not enumerated here).
+and **126** exported-unused `internal/` identifiers at `c363fa3`, up
+one from 6b-ii-a's 125. The new name is `store.RestoreStep`
+(`internal/engine/store/restore.go:725`), which no file outside its own
+references except `restore_test.go`. At the merged `392d1cd` the leg
+reads 125 again: `a66b7d1`'s package doc names `ServeOptions`, and the
+leg counts any non-test reference by name, a doc comment included, so
+`ServeOptions` left the list while still lacking a production caller
+(routed to 6d).
 
 ### The step 3 (quiesce) measurements
 
@@ -191,7 +199,7 @@ the record's named files exist in `db/` and `snapshots/`, never on the
 record's own state string, so a crash between either rename is finished
 from the filesystem alone. The finished state for `--discard-current`
 needs only a discarded file beside the incoming store, not a discarded
-database specifically (`0ee7aba`'s fix): a discard record for a `db/`
+database specifically (`ffc6cfd`'s fix): a discard record for a `db/`
 holding only a `-wal` or `-shm` sidecar (the marked database itself
 already renamed away by an earlier resume) must not refuse a finished
 swap.
@@ -239,13 +247,13 @@ Per the plan's "The exit gate" (Ruling 1's split: 6b-ii-b owns items 2 to
 
 | Resolution | What it decides | Landed |
 | --- | --- | --- |
-| R-6bii6 | Restore's package split, the session, and its staging rule | `internal/engine/store/restore.go` (session, staging, close-on-exec handles), Tasks 4A-4C (`685b80f`, `ced021e`, `c3dc967`, `044a433`, `0ee7aba`); the fetch/transport half in `internal/backup/{fetch,rclone}.go`, Task 5A (`30a66ac`) |
-| R-6bii7 | The intent record's format, its states, and when an open reads it | `internal/engine/store/intent.go`, Task 4A (`685b80f`); write mode's and serve's re-read after the lock, Task 4A; the two-table resume rule exercised through Tasks 5B and 6 |
-| R-6bii8 | The quiesce, the swap, the discard, and what is quoted or measured | `internal/engine/store/swap.go`, Task 4C (`044a433`, `0ee7aba`); step 3's measurements above |
-| R-6bii9 | The sources a restore reads, and every wrong-archive state | `internal/backup/restore.go` (`--from-file` and `--snapshot` staging, the wrong-archive refusals), Task 4B (`ced021e`, `c3dc967`) and Task 5A (`30a66ac`) |
-| R-6bii10 | The free-space check | `internal/backup/restore.go`, Task 5A (`30a66ac`); the mount-point line, Ruling 7 |
-| R-6bii11 | The library half and the reconciliation report | `internal/backup/restore.go` (the copy, the displaced directory, `checkRoot`/`refuseSymlinks`) and `internal/backup/reconcile.go`, Task 6 (`9d9c552`), amended by the fix rounds (`cba822c`, `c18fbeb`, `876f8ea`, `960e760`) |
-| R-6bii12 | The verb, its signals, and its output | `cmd/dubplate-server/restore.go`, Task 7 (`9a7532b`) |
+| R-6bii6 | Restore's package split, the session, and its staging rule | `internal/engine/store/restore.go` (session, staging, close-on-exec handles), Tasks 4A-4C (`02eab94`, `7c03d4a`, `8bee69d`, `fe3af9e`, `ffc6cfd`); the fetch/transport half in `internal/backup/{fetch,rclone}.go`, Task 5A (`6cfaceb`) |
+| R-6bii7 | The intent record's format, its states, and when an open reads it | `internal/engine/store/intent.go`, Task 4A (`02eab94`); write mode's and serve's re-read after the lock, Task 4A; the two-table resume rule exercised through Tasks 5B and 6 |
+| R-6bii8 | The quiesce, the swap, the discard, and what is quoted or measured | `internal/engine/store/swap.go`, Task 4C (`fe3af9e`, `ffc6cfd`); step 3's measurements above |
+| R-6bii9 | The sources a restore reads, and every wrong-archive state | `internal/backup/restore.go` (`--from-file` and `--snapshot` staging, the wrong-archive refusals), Task 4B (`7c03d4a`, `8bee69d`) and Task 5A (`6cfaceb`) |
+| R-6bii10 | The free-space check | `internal/backup/restore.go`, Task 5A (`6cfaceb`); the mount-point line, Ruling 7 |
+| R-6bii11 | The library half and the reconciliation report | `internal/backup/restore.go` (the copy, the displaced directory, `checkRoot`/`refuseSymlinks`) and `internal/backup/reconcile.go`, Task 6 (`7c9b452`), amended by the fix rounds (`15d7955`, `c81f5f9`, `cdc073e`, `c363fa3`) |
+| R-6bii12 | The verb, its signals, and its output | `cmd/dubplate-server/restore.go`, Task 7 (`b4ca358`) |
 
 ### Mutations run, per task
 
@@ -258,8 +266,8 @@ sibling entry it should still check. Tasks 4A, 4B, 4C, 5A, 5B, and 6's
 own named-mutation counts and which test each fired on were not carried
 forward into this task's dispatch brief; this is a declared gap, not a
 claim that no mutations ran. Each task's `diff-reviewer` accepted its
-own dispatch (Task 4C after one re-executed child at `0ee7aba`, 4B after
-one re-executed child at `c3dc967`, both fixes named in their own commit
+own dispatch (Task 4C after one re-executed child at `ffc6cfd`, 4B after
+one re-executed child at `8bee69d`, both fixes named in their own commit
 messages above; 5A, 5B, and 6 each accepted with zero fix rounds). This
 repo's `git log` is the record a later pass should consult for the
 per-task detail this entry could not paste.
@@ -267,7 +275,7 @@ per-task detail this entry could not paste.
 ### The pass-end review
 
 The spec's one targeted fresh-context `opus` read of the data-loss paths
-(`23ee61f`) found 0 blockers, 2 majors, 5 minors: M1, M2, m1, and m3, m4
+(`4ac4cdc`) found 0 blockers, 2 majors, 5 minors: M1, M2, m1, and m3, m4
 fixed above; m2 and m5 (m5 fixed at the follow-up, m2 carried to the
 runbook). Its "Verified sound" section held up the swap, the intent
 record, and every concurrency window it traced without a finding.
@@ -287,13 +295,20 @@ Attended time: **zero attended interactions after approval**, including
 the pre-merge batch's nine architecture-read takes, which the conductor
 authorized without an owner decision. The power-loss relaunch needed no
 owner decision either, since the last committed state (Task 4C's
-`0ee7aba`) was intact and the killed run had committed nothing. Fix
-rounds: Task 4B one (`c3dc967`), Task 4C one (`0ee7aba`), Task 5A none,
+`ffc6cfd`) was intact and the killed run had committed nothing. Fix
+rounds: Task 4B one (`8bee69d`), Task 4C one (`ffc6cfd`), Task 5A none,
 Task 5B none, Task 6 none, Task 7 none; two pass-end fix rounds
-(`cba822c`, `876f8ea`) plus one conductor-decision follow-up (`c18fbeb`)
+(`15d7955`, `cdc073e`) plus one conductor-decision follow-up (`c81f5f9`)
 after the targeted data-loss read.
 
-## The errata this pass owes
+The session's window grant, moved here from STATUS at this fold's
+repair: Geoff, 2026-09-25 (attended): beyond the 14.5M window, parallel
+work runs uncapped for about four hours (6b-ii-b in lane 2, the errata
+document lane, the transliteration plan). Window 2's cap was raised from
+11M to 14.5M by Geoff the same day to run 5c-iii through its close, with
+a stop-don't-ask flag at 13.4M.
+
+### The errata this pass owes
 
 - **Spec criterion 16** (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md:1018`,
   "every local pre-migration and pre-restore snapshot older than its
@@ -303,21 +318,26 @@ after the targeted data-loss read.
   snapshots only; a pre-restore copy is kept, like a `discarded-*` file,
   until an operator removes it by hand.
 - **The plan's privileged-fields row for a pre-restore copy**
-  (`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md:459`,
+  (`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md:458`,
   "deletion by 6b-i's post-backup local prune and spec ruling 7") is
   corrected the same way: `isLocalCopyName` no longer matches the
-  pre-restore prefix (`cba822c`).
+  pre-restore prefix (`15d7955`).
+- **The plan's discarded-store row** (plan `:459`, "6b-i's local prune
+  matches only pre-migration and pre-restore names") is superseded by the
+  same fix: the local prune now matches pre-migration names only, through
+  `store.IsPreMigrateCopy` (`internal/backup/prune.go:178`, since
+  `9870678`).
 - **R-6bii11's "The displaced directory" paragraph**
   (plan `:936`, "applies only with `--into-nonempty`, a resumed copy has
   no operator file to displace") and **Task 6's summary** (plan `:1711`,
   "with Ruling 6's `--backup-dir` on yes, with `--into-nonempty` only")
-  are both superseded by the m5 follow-up (`c18fbeb`): `--backup-dir`
+  are both superseded by the m5 follow-up (`c81f5f9`): `--backup-dir`
   applies on a first run with `--into-nonempty` and on every resume,
   since a resume's root can hold a file an operator placed between runs.
 - Deviations D1-D5 are 6b-ii-a's, unchanged here. D6-D10 (this half's
-  surface) landed as the plan states, with the two corrections above.
+  surface) landed as the plan states, with the corrections above.
 
-## The 6b-ii-b to 6c and 6d handoff
+### The 6b-ii-b to 6c and 6d handoff
 
 **To 6d** (serve's wiring):
 - `ServeOptions.Reconcile` and `backup.Reconcile` are `serve`'s own
@@ -338,7 +358,7 @@ touches no HTTP surface.
 **To rung 12**: the streamer database's place in a restore, unchanged
 (0.8 forward-hook reference; streamer versions re-keyed 2026-09-25).
 
-## The runbook lines owed to rung 16
+### The runbook lines owed to rung 16
 
 - Removing a kept pre-restore copy by hand: no backup holds it (M1's
   fix), so the operator confirms the restored state is correct before
@@ -383,7 +403,7 @@ touches no HTTP surface.
   value refuses before restore does anything, and the refusal names the
   key.
 
-## Carried non-blocking items (not fixed this pass)
+### Carried non-blocking items (not fixed this pass)
 
 From the in-chain reviews across Tasks 4A-7, the two fix rounds, and the
 three architecture reads:
@@ -411,7 +431,7 @@ three architecture reads:
   above, and `cmd/dubplate-server`'s two SIGHUP mechanisms, restated
   exit constants, and duplicated secret-name and exit-mapping code.
 
-## What a later pass would be wrong to rediscover
+### What a later pass would be wrong to rediscover
 
 - **Spec criterion 16 and the plan's own privileged-fields row were both
   wrong about pre-restore-copy retention.** A pre-migration copy's rows
@@ -443,7 +463,7 @@ three architecture reads:
   `lost+found` by name rather than trying to make it readable.
 - **Segment B2's first attempt was lost to a power cut with nothing
   committed**, mid-Task-5A. The relaunch (`wf_ed08444b-481`) started
-  fresh from the last committed state (Task 4C's `0ee7aba`); no partial
+  fresh from the last committed state (Task 4C's `ffc6cfd`); no partial
   work from the killed run survived or needed reconciling, because
   nothing from it had reached a commit.
 - **`backup`'s and `store`'s pre-migrate-copy predicates had silently
@@ -1071,7 +1091,61 @@ and matcher's `Distance.Update` doc claiming a production caller it
 does not have, plus the drifted `quiet_fallback`/`none_rec_action`
 legality checks between `tunables.go` and `verdict.go`.
 
-### What a later pass would be wrong to rediscover (the admin gate, the roster API, and the `web/` tree born gated): closed 2026-09-25, lane 1
+### What a later pass would be wrong to rediscover
+
+- **R-wb3's non-capturing trigger and branch order are load-bearing.**
+  A capture on the un-bracketed branch's trigger group would become
+  group 1 under Go's opening-parenthesis numbering, so `${1}` would
+  re-insert the trigger text into every bracket match and drop the kept
+  character everywhere else: the mechanics lens measured 6,351
+  divergences from beets over a 60,000-string draw. The bracket branch
+  must come first under leftmost-first matching, or a bracket before a
+  trigger survives instead of being removed with it (827 divergences
+  with the branches swapped). A reviewer proposing to restore the
+  trigger's own capture group, or to reorder the branches, is proposing
+  a measured regression.
+- **The kept character's reason.** The bracket branch keeps whichever
+  non-word character preceded the trigger (via `${1}`) because
+  unidecode maps some non-word symbols to ASCII letters before the
+  featuring row ever runs (`©` to `(c)`, `™` to `(tm)`, `€` to `EUR`);
+  dropping the kept character would strip those transliterated letters
+  along with the bracket.
+- **The Unicode-version gap Ruling 2 settled.** 9,039 code points are
+  word characters in Go's `[\pL\pN_]` (Unicode 17.0.0) and not in
+  Python's `\w` (Unicode 15.1.0, `unicodedata.unidata_version`); zero
+  are the reverse. A Go toolchain bump that moves the Go-only count
+  fails `TestStringDistCaseMappingSweep`'s sibling test with a message
+  naming the re-read procedure: re-run the sweep, confirm the
+  Python-only count is still zero, check whether any newly assigned
+  code point can sit before a trigger in a real title, then update
+  `wantGoOnlyWordCodePoints` and record the new figure here.
+- **The U+0130 divergence is the sole such code point.** The sweep that
+  found it (Ruling 3) checked every code point outside the surrogates
+  for whether Python's `str.lower()` changes word-character status on
+  the last character before a trigger; U+0130 is the only one. A later
+  toolchain bump re-runs that sweep rather than assuming the count
+  still holds at one.
+- **The `-run Ledger` trap.** The corpus README's regeneration command
+  (`corpus/README.md:2254`) runs `-run Ledger`, which also matches the
+  album-info and file-tags ledger tests, not only the tie ledger. Under
+  `-update-ledgers` those two rewrite `album_info.json` and
+  `file_tags.json` (`album_info_derive_test.go:91`,
+  `file_tags_derive_test.go:87`) even when neither changed. Task 3
+  named the one test it needed
+  (`-run TestTieLedgerMatchesTheCorpus`) rather than the README's
+  broader pattern, to avoid rewriting those two files incidentally.
+- **`CompilePatternOption`'s configured-pattern class stays documented
+  only,** not built: the plan scoped this pass to the one shipped
+  featuring row, and a configurable-pattern surface was never a
+  deliverable.
+- **`shadow.configHash` (`internal/engine/shadow/match.go:55-75`)
+  hashes the Tunables JSON**, so the new `Replacement` field and the
+  translated pattern text move `matcher_config_hash` at the next
+  deploy. This is intended, not a regression: a shadow report showing
+  two distinct hashes either side of the deploy is expected, not a
+  finding.
+
+## Rung 5, pass 5c-ii (the admin gate, the roster API, and the `web/` tree born gated): closed 2026-09-25, lane 1
 
 Executed against
 `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`

@@ -38,9 +38,9 @@ Read at HEAD `960e760`, no plan in context, per CLAUDE.md's "Reviewers" (one
 
 ## Best code in the package
 
-- `rclone.go:143` — classifies `ctx.Err()` before any other error path.
-- `prune.go:83` — `checkSafety`'s guard shape.
-- `fetch.go:96-150` — `fetch` and `syncStage`.
+- `rclone.go:143`: classifies `ctx.Err()` before any other error path.
+- `prune.go:83`: `checkSafety`'s guard shape.
+- `fetch.go:96-150`: `fetch` and `syncStage`.
 
 ## Routing
 

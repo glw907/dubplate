@@ -30,9 +30,9 @@ Read at HEAD `960e760`, no plan in context, per CLAUDE.md's "Reviewers" (one
 
 ## Best code in the package
 
-- `restore.go:192-200` — checks `ctx.Err()` before `ErrLockBusy`.
-- `restore.go:175,208-222` — the best-effort writer.
-- `restore.go:71-74,146-149` — the flag check runs before load, pinned by a
+- `restore.go:192-200`: checks `ctx.Err()` before `ErrLockBusy`.
+- `restore.go:175,208-222`: the best-effort writer.
+- `restore.go:71-74,146-149`: the flag check runs before load, pinned by a
   test.
 
 ## Routing
