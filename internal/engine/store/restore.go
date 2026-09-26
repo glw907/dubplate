@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -68,8 +69,24 @@ type RestoreSession struct {
 	// stage is the incoming store's path in staging/.
 	stage string
 
-	// intent is the record the open found, nil for a new restore.
+	// intent is the record the open found or [RestoreSession.Record]
+	// wrote, nil before either.
 	intent *intentRecord
+
+	// resumed is set when the open found the record, so the running
+	// binary has yet to judge the incoming store's version.
+	resumed bool
+
+	// version is the stage's user_version once [RestoreSession.VerifyStage]
+	// has passed it, and 0 before: a marked store is at version 1 or
+	// above.
+	version int
+
+	// current is what [RestoreSession.Quiesce] found at db/.
+	current currentFound
+
+	// setAside is set once [RestoreSession.SwapOut] has run.
+	setAside bool
 }
 
 // OpenRestore opens the store leaf under stateDir for a restore. It
@@ -168,6 +185,7 @@ func (s *RestoreSession) readRecord(opts RestoreOptions) error {
 		return refusal(StateRestoreInProgress, "restore-intent record %s is unreadable: %v: restore --resume cannot finish it; recover the leaf by hand as the runbook's restore-intent procedure describes", l.restoreIntentPath, err)
 	}
 	s.intent = &r
+	s.resumed = true
 	s.stamp = r.Stamp
 	s.stage = filepath.Join(l.stagingDir, r.Incoming)
 	return nil
@@ -398,8 +416,12 @@ func copyFile(path string, src io.Reader) error {
 // unless a restore-intent record names it.
 func (s *RestoreSession) VerifyStage(ctx context.Context) (int, error) {
 	version, err := s.verifyStage(ctx)
-	if err == nil || s.intent != nil {
-		return version, err
+	if err == nil {
+		s.version = version
+		return version, nil
+	}
+	if s.intent != nil {
+		return 0, err
 	}
 	for _, p := range []string{s.stage, s.stage + "-wal", s.stage + "-shm"} {
 		if rmErr := os.Remove(p); rmErr != nil && !errors.Is(rmErr, fs.ErrNotExist) {
@@ -490,4 +512,206 @@ func (s *RestoreSession) OpenRead(ctx context.Context) (*Handle, error) {
 // reference, exactly as [Handle.WriteBackupRef] records a backup.
 func (s *RestoreSession) WriteBackupRef(stamp, remote string) error {
 	return writeBackupRef(s.leaf, stamp, remote)
+}
+
+// Quiesce readies the current store in db/ to be renamed as one file,
+// before the restore records its intent. It checkpoints the store's WAL
+// into the database and leaves WAL mode, so the store is one file with
+// no -wal or -shm beside it, and refuses, naming another process, when
+// any other connection holds the store or a sidecar remains after the
+// close. A store newer than this binary is quiesced too, since a
+// restore may roll it back. A database that is not a marked store, or
+// a sidecar in db/ beside no database, is refused naming
+// --discard-current.
+//
+// With discard, Quiesce opens nothing: the swap moves every current
+// file aside unopened, and only after the record names them, so a
+// crash between leaves them in db/.
+func (s *RestoreSession) Quiesce(ctx context.Context, discard bool) error {
+	if s.intent != nil {
+		return fmt.Errorf("quiesce: restore-intent record %s exists, so the current store was settled before it", s.leaf.restoreIntentPath)
+	}
+	db := s.leaf.dbPath
+	current, err := pathExists(db)
+	if err != nil {
+		return err
+	}
+	present, err := presentSidecars(db, sidecars)
+	if err != nil {
+		return err
+	}
+	switch {
+	case discard:
+		if slices.Contains(present, db+"-journal") {
+			return fmt.Errorf("quiesce: %s-journal exists, which the discard does not move: %s", db, manualRecovery)
+		}
+		s.current = currentAbsent
+		if current || len(present) > 0 {
+			s.current = currentDiscard
+		}
+		return nil
+	case !current && len(present) > 0:
+		return fmt.Errorf("quiesce: found %s beside no database %s: %s", strings.Join(present, ", "), db, discardHint)
+	case !current:
+		s.current = currentAbsent
+		return nil
+	}
+
+	if err := quiesce(ctx, db, s.busyTimeout); err != nil {
+		return err
+	}
+	left, err := presentSidecars(db, sidecars)
+	if err != nil {
+		return err
+	}
+	if len(left) > 0 {
+		return fmt.Errorf("quiesce %s: found %s after the close: %s", db, strings.Join(left, ", "), inUseHint)
+	}
+	s.current = currentQuiesced
+	return nil
+}
+
+// A RestoreIntent is what a restore's caller adds to its record: the
+// source of the incoming store, and the library half when one is owed.
+type RestoreIntent struct {
+	// Remote and Snapshot name a snapshot fetched from a remote.
+	Remote   string
+	Snapshot string
+
+	// File names the local file a restore from a file staged.
+	File string
+
+	// LibraryRoot is the library root, resolved to an absolute path,
+	// when the restore owes the library half, and empty when it does
+	// not.
+	LibraryRoot  string
+	IntoNonempty bool
+}
+
+// Record writes the restore-intent record that opens the swap. It
+// refuses unless [RestoreSession.VerifyStage] has passed the stage and
+// [RestoreSession.Quiesce] has settled the current store in this
+// session. The record owes a pre-restore copy of a quiesced store, a
+// discard of the files Quiesce was told to discard, or neither when
+// db/ was empty. From here on every other mode refuses the leaf until
+// the restore finishes.
+func (s *RestoreSession) Record(in RestoreIntent) error {
+	switch {
+	case s.intent != nil:
+		return fmt.Errorf("record the restore: restore-intent record %s exists", s.leaf.restoreIntentPath)
+	case s.version == 0:
+		return errors.New("record the restore: the stage is not verified")
+	case s.current == currentUnsettled:
+		return errors.New("record the restore: the current store is not quiesced")
+	}
+	r := intentRecord{
+		Format:         intentFormat,
+		State:          intentSwap,
+		Stamp:          s.stamp,
+		Source:         intentSource{Remote: in.Remote, Snapshot: in.Snapshot, File: in.File},
+		Incoming:       filepath.Base(s.stage),
+		DiscardCurrent: s.current == currentDiscard,
+		Version:        s.version,
+	}
+	if s.current == currentQuiesced {
+		r.PreRestore = PreRestorePrefix + s.stamp + PreMigrateSuffix
+	}
+	if in.LibraryRoot != "" {
+		r.Library = &libraryOwed{Root: in.LibraryRoot, IntoNonempty: in.IntoNonempty}
+	}
+	if err := writeIntent(s.leaf, r); err != nil {
+		return err
+	}
+	s.intent = &r
+	return nil
+}
+
+// SwapOut is the swap's first half: it sets the current store aside,
+// renaming the quiesced database to its pre-restore copy in
+// snapshots/, or moving the database, its -wal, and its -shm, each
+// when present and in that order, to their discarded names there. It
+// returns the path each file moved to. A leaf with no current store
+// moves nothing.
+//
+// SwapOut acts only on a record in state swap, and decides from which
+// of the files the record names exist, so a resume after a crash
+// anywhere in the swap takes up where it stopped. On a resume it
+// first judges the incoming store against this binary, refusing one
+// newer, since the binary may have changed since the record was
+// written. It refuses every combination a swap cannot leave.
+func (s *RestoreSession) SwapOut(ctx context.Context) ([]string, error) {
+	r := s.intent
+	switch {
+	case r == nil:
+		return nil, errors.New("swap: no restore-intent record: record the restore before the swap")
+	case r.State != intentSwap:
+		return nil, fmt.Errorf("swap: restore-intent record %s is in state %s, past the swap", s.leaf.restoreIntentPath, r.State)
+	}
+	moves, in, err := s.leaf.swapPlan(r)
+	if err != nil {
+		return nil, err
+	}
+	if s.resumed {
+		if err := s.recheckVersion(ctx, in); err != nil {
+			return nil, err
+		}
+	}
+	var moved []string
+	for _, m := range moves {
+		if err := os.Rename(m.from, m.to); err != nil {
+			return moved, fmt.Errorf("swap: set the current store aside: %w", err)
+		}
+		moved = append(moved, m.to)
+	}
+	if len(moves) > 0 {
+		// The incoming rename replaces nothing only if these renames
+		// reached the disk first.
+		if err := errors.Join(syncDir(s.leaf.dbDir), syncDir(s.leaf.snapshotsDir)); err != nil {
+			return moved, err
+		}
+	}
+	s.setAside = true
+	return moved, nil
+}
+
+// recheckVersion refuses an incoming store newer than this binary: the
+// stage, verified again, while it is in staging/, and db/'s store once
+// the swap has renamed it there.
+func (s *RestoreSession) recheckVersion(ctx context.Context, staged bool) error {
+	if staged {
+		_, err := s.VerifyStage(ctx)
+		return err
+	}
+	c, err := classify(ctx, s.leaf, s.busyTimeout, s.files)
+	if err != nil {
+		return err
+	}
+	if head := len(s.files); c.version > head {
+		return fmt.Errorf("swap: restored store %s at version %d is newer than this binary's version %d: resume with a binary at version %d or above", s.leaf.dbPath, c.version, head, c.version)
+	}
+	return nil
+}
+
+// SwapIn is the swap's second half, after [RestoreSession.SwapOut]: it
+// renames the incoming store from staging/ to db/, unless a crash left
+// it already there, and then syncs snapshots/, db/, and staging/, so
+// every rename of the swap is durable. It refuses while a current file
+// is still to be set aside.
+func (s *RestoreSession) SwapIn() error {
+	if !s.setAside {
+		return errors.New("swap in: the current store is not set aside: run SwapOut first")
+	}
+	moves, in, err := s.leaf.swapPlan(s.intent)
+	if err != nil {
+		return err
+	}
+	if len(moves) > 0 {
+		return fmt.Errorf("swap in: %s is still to be set aside", moves[0].from)
+	}
+	if in {
+		if err := os.Rename(s.stage, s.leaf.dbPath); err != nil {
+			return fmt.Errorf("swap in: %w", err)
+		}
+	}
+	return errors.Join(syncDir(s.leaf.snapshotsDir), syncDir(s.leaf.dbDir), syncDir(s.leaf.stagingDir))
 }
