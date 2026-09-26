@@ -1,6 +1,6 @@
 # The transliteration table leaves the binary: implementation plan
 
-Status: **draft, revision 2.1, 2026-09-25; reviewed; two rulings open.**
+Status: **approved (Geoff, 2026-09-25), revision 2.1; rulings recorded (3.3M ceiling; `unidecode install`).**
 Revision 2 folds the three `spec-plan-review` lenses (contract, mechanics,
 risk) per `docs/superpowers/research/2026-09-25-translit-table-plan-fold.md`.
 The largest change is Task 4's deploy transition: the new binary is staged
@@ -65,7 +65,7 @@ believes it needs any of these stops and reports.
 
 ---
 
-## Rulings awaiting owner
+## Rulings (ruled 2026-09-25)
 
 Two questions. The 2026-09-25 decision stands and is not reopened.
 
@@ -85,6 +85,8 @@ simplifier round and Task 5, so the projection crosses that flag during the
 merge-side reads; the conductor asks after Task 4, before the simplifier
 round.
 
+**Ruled (Geoff, 2026-09-25):** yes (3.3M ceiling, flag 2.64M).
+
 **2. Is the operator verb `dubplate-server unidecode install [--from FILE]`?**
 Recommendation: yes. Reason: the offline path tells an operator to download
 "Unidecode 1.4.0's wheel from PyPI", so a verb named for the package they
@@ -101,6 +103,9 @@ named for its contents. Every mention of the verb below reads "the install
 verb" and means whichever name the ruling picks.
 
 ---
+
+
+**Ruled (Geoff, 2026-09-25):** yes (`dubplate-server unidecode install [--from FILE]`).
 
 ## Goal
 
