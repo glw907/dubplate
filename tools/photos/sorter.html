@@ -1230,6 +1230,22 @@
     return (a.fit || null) === (b.fit || null);
   }
 
+  // The baseline commitIntent compares a new record against: the same
+  // in-flight-or-confirmed base intendedRecord uses, but with no local
+  // overlay. After a write fails and gives up (advanceWriteQueue clears
+  // both pending.record and the local overlay), this and intendedRecord
+  // agree again, so repeating the exact same action re-produces a record
+  // that differs from this baseline and is sent as a fresh attempt,
+  // rather than looking like a no-op against the still-optimistic local
+  // value intendedRecord would otherwise still be showing.
+  function confirmedOrPendingRecord(candidate) {
+    var id = candidate.source_id;
+    var pending = pendingWrite[id];
+    var base = (pending && pending.record) || state.choices[id] || null;
+    if (!base) return { choice: null, focus: null, fit: null };
+    return { choice: base.choice, focus: base.focus || null, fit: base.fit || null };
+  }
+
   // The fit to show right now: intendedRecord's fit, or the format's
   // default when nothing has ever set one.
   function currentFit(candidate) {
@@ -1253,9 +1269,9 @@
 
   function applyFit(candidate, fit) {
     if (!canEditFit(candidate)) return;
-    var before = intendedRecord(candidate);
+    var current = intendedRecord(candidate);
     state.localFit[candidate.source_id] = fit;
-    commitIntent(candidate, before, { choice: before.choice, focus: before.focus, fit: fit });
+    commitIntent(candidate, { choice: current.choice, focus: current.focus, fit: fit });
   }
 
   // The focus to show right now: intendedRecord's focus (an image-space
@@ -1324,9 +1340,9 @@
   // path that takes (held for the next decision, or written now).
   function applyFocusPoint(candidate, x, y) {
     if (!canEditFocus(candidate)) return;
-    var before = intendedRecord(candidate);
+    var current = intendedRecord(candidate);
     state.localFocus[candidate.source_id] = { x: x, y: y };
-    commitIntent(candidate, before, { choice: before.choice, focus: { x: x, y: y }, fit: before.fit });
+    commitIntent(candidate, { choice: current.choice, focus: { x: x, y: y }, fit: current.fit });
   }
 
   function yearLabel(c) {
@@ -1622,30 +1638,34 @@
 
   // ---- decisions ----------------------------------------------------
   //
-  // A decision, a focus change, and a fit change all go through
-  // commitIntent, which compares the record before and after against
-  // intendedRecord (never against state.choices alone, which lags
-  // behind an in-flight write) and, on a real change, hands the record
-  // to scheduleWrite: one write in flight per source_id, a second
-  // change while one is in flight updating pendingWrite[id].record in
-  // place rather than piling up requests or losing the earlier one.
+  // A decision, a focus change, and a fit change all build the record
+  // they want (from intendedRecord, so a dimension the caller isn't
+  // touching still carries its current local value forward) and hand it
+  // to commitIntent, which compares it against confirmedOrPendingRecord
+  // (never against the local overlay, so a no-op test can't be fooled by
+  // a still-optimistic value a failed write gave up on) and, on a real
+  // change, hands it to scheduleWrite: one write in flight per
+  // source_id, a second change while one is in flight updating
+  // pendingWrite[id].record in place rather than piling up requests or
+  // losing the earlier one.
 
   function decide(candidate, choice) {
     if (state.round && state.round.closed) return;
-    var before = intendedRecord(candidate);
-    if (before.choice === choice) return; // no-op: unchanged
-    commitIntent(candidate, before, { choice: choice, focus: before.focus, fit: before.fit });
+    var current = intendedRecord(candidate);
+    if (current.choice === choice) return; // no-op: unchanged
+    commitIntent(candidate, { choice: choice, focus: current.focus, fit: current.fit });
   }
 
   // A focus or fit change on an undecided candidate has nothing to
-  // attach it to yet (before.choice is null), so it is left in
+  // attach it to yet (after.choice is null), so it is left in
   // state.localFocus/localFit only, picked up by decide() above via
   // intendedRecord when a choice finally arrives; on a decided candidate
   // it is a write in its own right, keeping that candidate's existing
   // choice.
-  function commitIntent(candidate, before, after) {
+  function commitIntent(candidate, after) {
     if (!after.choice) return; // still undecided: nothing to write yet
-    if (recordsEqual(before, after)) return; // no-op: nothing actually changed
+    var baseline = confirmedOrPendingRecord(candidate);
+    if (recordsEqual(baseline, after)) return; // no-op: nothing actually changed
     scheduleWrite(candidate, after);
   }
 
@@ -1670,23 +1690,32 @@
     state.store
       .writeChoice(candidate, record.choice, roundId, record.focus, record.fit, decidedAt)
       .then(function () {
-        var saved = { choice: record.choice, decided_at: decidedAt };
-        if (record.focus) saved.focus = record.focus;
-        if (record.fit) saved.fit = record.fit;
-        state.choices[candidate.source_id] = saved;
+        // Never backfill a document for a round review has moved past;
+        // that round's own advanceWriteQueue guard already dropped
+        // anything still queued for it, and a stale write's success
+        // still lands here after that.
+        if (state.round && state.round.id === roundId) {
+          var saved = { choice: record.choice, decided_at: decidedAt };
+          if (record.focus) saved.focus = record.focus;
+          if (record.fit) saved.fit = record.fit;
+          state.choices[candidate.source_id] = saved;
+        }
         setStatus("Saved", true);
         render();
+        advanceWriteQueue(candidate, record, false);
       })
       .catch(function (err) {
         setStatus("Couldn" + RSQUO + "t save " + MDASH + " try again", false);
         console.error("dubplate photo sorter: write failed", err);
-      })
-      .then(function () {
-        advanceWriteQueue(candidate);
+        advanceWriteQueue(candidate, record, true);
       });
   }
 
-  function advanceWriteQueue(candidate) {
+  // sentRecord is the exact record object performWrite was just given
+  // (never a fresh read off pendingWrite), so identity comparison below
+  // can tell a genuine failure (nothing else changed while it was in
+  // flight) from one a newer local change has already superseded.
+  function advanceWriteQueue(candidate, sentRecord, failed) {
     var pending = pendingWrite[candidate.source_id];
     if (!pending) return;
     pending.inFlight = false;
@@ -1699,6 +1728,24 @@
       pending.record = null;
       return;
     }
+    if (failed && pending.record === sentRecord) {
+      // Nothing replaced this attempt while it was in flight: give up
+      // rather than resend the same failed write forever. Revert the
+      // display (intendedRecord reads the local overlay first) to the
+      // last confirmed state, so a failure never leaves the screen
+      // showing an unsaved choice as though it had been made; repeating
+      // the exact same action is then compared, via commitIntent's
+      // confirmedOrPendingRecord baseline, against this now-cleared
+      // state, so it reads as a change again and is sent as a fresh
+      // attempt (the manual retry the failure status invites).
+      pending.record = null;
+      delete state.localFocus[candidate.source_id];
+      delete state.localFit[candidate.source_id];
+      render();
+      return;
+    }
+    // A record replaced mid-flight is still sent, whether or not the
+    // attempt that just finished succeeded or failed.
     var record = pending.record;
     if (!record) return;
     var confirmed = state.choices[candidate.source_id];
@@ -1747,6 +1794,18 @@
   // write resolution or store snapshot: otherwise the image flashes
   // while it is being judged.
   var reviewStageKey = null;
+
+  // The login mock's ResizeObserver (there is at most one stage mounted
+  // at a time): disconnected whenever the stage rebuilds for a different
+  // candidate or view, or review closes, so it never keeps observing a
+  // detached frame.
+  var focusResizeObserver = null;
+  function disconnectFocusResizeObserver() {
+    if (focusResizeObserver) {
+      focusResizeObserver.disconnect();
+      focusResizeObserver = null;
+    }
+  }
 
   function mkEl(tag, className) {
     var e = document.createElement(tag);
@@ -1923,16 +1982,29 @@
       img.addEventListener("load", function () {
         updateFocusVisuals(candidate);
       });
+      // Keeps the object-position in sync with the frame's own size, so
+      // a window resize while review is open doesn't leave the applied
+      // crop (and so a click's inversion of it) stale against the new
+      // size; disconnected in renderReviewOverlay when the stage is
+      // rebuilt for a different candidate or view.
+      focusResizeObserver = new ResizeObserver(function () {
+        updateFocusVisuals(candidate);
+      });
+      focusResizeObserver.observe(frame);
       frame.addEventListener("click", function (e) {
         if (!canEditFocus(candidate) || !img.naturalWidth || !img.naturalHeight) return;
+        // Inverts the object-position actually applied right now
+        // (img.dataset, set by updateFocusVisuals) rather than
+        // re-deriving it from the stored focus point: the two must
+        // agree exactly with whatever is on screen, which the applied
+        // value always is and a fresh re-derivation might not be for one
+        // frame after a resize the observer above hasn't caught up to
+        // yet.
+        var curPosX = parseFloat(img.dataset.posX);
+        var curPosY = parseFloat(img.dataset.posY);
+        if (isNaN(curPosX) || isNaN(curPosY)) return; // not placed yet
         var rect = frame.getBoundingClientRect();
         var geo = coverGeometry(img.naturalWidth, img.naturalHeight, rect.width, rect.height);
-        // The object-position currently in effect, to invert correctly:
-        // a click is relative to what is on screen right now, which
-        // already reflects whatever focus point led to it.
-        var before = focusOrDefault(candidate);
-        var curPosX = imageFractionToObjectPosition(before.x / 100, geo.dw, rect.width);
-        var curPosY = imageFractionToObjectPosition(before.y / 100, geo.dh, rect.height);
         var clickFracX = (e.clientX - rect.left) / rect.width;
         var clickFracY = (e.clientY - rect.top) / rect.height;
         var px = frameFractionToImageFraction(clickFracX, geo.dw, rect.width, curPosX);
@@ -2020,9 +2092,15 @@
       photoWrap.addEventListener("click", function (e) {
         if (!canEditFocus(candidate) || !img.naturalWidth) return;
         var rect = img.getBoundingClientRect();
-        var x = clampPercent(((e.clientX - rect.left) / rect.width) * 100);
-        var y = clampPercent(((e.clientY - rect.top) / rect.height) * 100);
-        applyFocusPoint(candidate, x, y);
+        var relX = (e.clientX - rect.left) / rect.width;
+        var relY = (e.clientY - rect.top) / rect.height;
+        // photoWrap, not img, is the click target (a wider wrapper is
+        // exactly the bug the comment above describes), so a click can
+        // land outside the image's own rect, in the wrapper's margin;
+        // that is not a point on the photo at all, so it sets nothing
+        // rather than clamping to whichever edge it was nearest.
+        if (relX < 0 || relX > 1 || relY < 0 || relY > 1) return;
+        applyFocusPoint(candidate, clampPercent(relX * 100), clampPercent(relY * 100));
         render();
       });
     }
@@ -2061,6 +2139,7 @@
     overlay.hidden = !state.reviewOpen;
     if (!state.reviewOpen) {
       reviewStageKey = null;
+      disconnectFocusResizeObserver();
       return;
     }
 
@@ -2092,6 +2171,7 @@
     var stage = document.getElementById("review-stage");
     var key = candidate ? candidate.source_id + "|" + state.reviewView + "|" + currentFit(candidate) : null;
     if (key !== reviewStageKey || !candidate) {
+      disconnectFocusResizeObserver();
       stage.innerHTML = "";
       if (candidate) {
         stage.appendChild(state.reviewView === "login" ? buildLoginMock(candidate) : buildPlainFrame(candidate));
@@ -2156,6 +2236,11 @@
       var posX = imageFractionToObjectPosition(f.x / 100, geo.dw, rect.width);
       var posY = imageFractionToObjectPosition(f.y / 100, geo.dh, rect.height);
       loginImg.style.objectPosition = posX + "% " + posY + "%";
+      // The click handler inverts a click from these, rather than
+      // re-deriving them, so it always agrees exactly with what is
+      // actually on screen (see its own comment).
+      loginImg.dataset.posX = posX;
+      loginImg.dataset.posY = posY;
       var loginMarker = frameEl.querySelector(".focus-marker");
       if (loginMarker) {
         loginMarker.style.left = imageFractionToFrameFraction(f.x / 100, geo.dw, rect.width, posX) * 100 + "%";
@@ -2527,11 +2612,18 @@
         state.candidates = fixture.candidates;
         var choicesMap = {};
         var writeDelayMs = 0; // set by __fixtureSetWriteDelay, test-only
+        var writeShouldFail = false; // set by __fixtureSetWriteFail, test-only
+        var writeAttemptCount = 0; // read by __fixtureWriteAttemptCount, test-only
         state.store = {
           mode: "fixture",
           writeChoice: function (candidate, choice, roundId, focus, fit, decidedAt) {
-            return new Promise(function (resolve) {
+            writeAttemptCount++;
+            return new Promise(function (resolve, reject) {
               window.setTimeout(function () {
+                if (writeShouldFail) {
+                  reject(new Error("fixture: simulated write failure"));
+                  return;
+                }
                 var doc = { choice: choice, round: roundId, decided_at: decidedAt };
                 if (focus) doc.focus = focus;
                 if (fit) doc.fit = fit;
@@ -2549,6 +2641,20 @@
         // Never wired to any real store.
         window.__fixtureSetWriteDelay = function (ms) {
           writeDelayMs = ms;
+        };
+        // Test-only hook: makes every write reject (a persistent failure,
+        // e.g. offline), so a test can verify a failed write gives up
+        // rather than resending itself forever. Never wired to any real
+        // store.
+        window.__fixtureSetWriteFail = function (shouldFail) {
+          writeShouldFail = shouldFail;
+        };
+        // Test-only hook: the number of write attempts made so far (a
+        // fresh network request each time, real or simulated), so a test
+        // can confirm a single user action makes exactly one. Never
+        // wired to any real store.
+        window.__fixtureWriteAttemptCount = function () {
+          return writeAttemptCount;
         };
         // Test-only hook: the render harness flips a fixture round closed
         // without a second fixture file. Never wired to any real store.
