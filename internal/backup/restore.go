@@ -223,10 +223,10 @@ func (r restorer) transport() (transport, error) {
 	return transport{bin: bin, inherit: r.sess.DupFiles}, nil
 }
 
-// stage runs steps 1 and 2: it chooses the snapshot, checks the remote
-// library against root when one is owed, fetches the snapshot or
-// copies the local file into staging/, and verifies the stage. It
-// returns the source the record will name.
+// stage chooses the snapshot, checks the remote library against root
+// when one is owed, fetches the snapshot or copies the local file into
+// staging/, and verifies the stage. It returns the source the record
+// will name.
 func (r restorer) stage(ctx context.Context, cfg RestoreConfig, remote Remote, root string) (store.RestoreIntent, error) {
 	var in store.RestoreIntent
 	if cfg.Snapshot == "" {
@@ -283,8 +283,8 @@ func (r restorer) warnRemote(remote Remote) error {
 	return nil
 }
 
-// record runs steps 3 and 4, settling the current store and writing the
-// restore-intent record, and goes on to the swap.
+// record settles the current store, writes the restore-intent record,
+// and goes on to the swap.
 func (r restorer) record(ctx context.Context, discard bool, in store.RestoreIntent) error {
 	if err := r.sess.Quiesce(ctx, discard); err != nil {
 		return err
@@ -315,9 +315,10 @@ func (r restorer) resume(ctx context.Context) error {
 	}
 }
 
-// swap runs step 5 in its two halves, then rewrites the backup
-// reference for a remote snapshot, and advances the record. A resume
-// runs it whole, since each half does only what remains of it.
+// swap sets the current store aside and then moves the incoming store
+// into db/, rewrites the backup reference for a remote snapshot, and
+// advances the record. A resume runs both halves, since each does only
+// what remains of it.
 func (r restorer) swap(ctx context.Context, in store.RestoreIntent) error {
 	moved, err := r.sess.SwapOut(ctx)
 	if err != nil {
@@ -368,8 +369,8 @@ func (r restorer) advance(ctx context.Context, in store.RestoreIntent) error {
 	return r.report(ctx, in)
 }
 
-// library runs step 6, copying the remote's library/ into the library
-// root the record names, and advances the record. It re-resolves the
+// library copies the remote's library/ into the library root the
+// record names, and advances the record. It re-resolves the
 // root, refusing one that is gone or now resolves elsewhere, but never
 // re-checks that the root is empty: the record proves the check passed
 // before any copy, and a copy this restore began and was stopped fills
@@ -433,12 +434,12 @@ func displacedPath(root, stamp string) string {
 	return root + ".restore-displaced-" + stamp
 }
 
-// checkRoot runs step 6's checks on the resolved library root before
-// any rclone run. It refuses a root that holds anything but a
-// lost+found directory, which a freshly made ext file system holds,
-// unless intoNonempty is set; with it, it refuses a root holding a
-// symlink, as [refuseSymlinks] does, and a displaced path that already
-// exists, which a restore never merges into.
+// checkRoot checks the resolved library root before any rclone run. It
+// refuses a root that holds anything but a lost+found directory, which
+// a freshly made ext file system holds, unless intoNonempty is set;
+// with it, it refuses a root holding a symlink, as [refuseSymlinks]
+// does, and a displaced path that already exists, which a restore
+// never merges into.
 func checkRoot(root, displaced string, intoNonempty bool) error {
 	des, err := os.ReadDir(root)
 	if err != nil {
@@ -499,7 +500,7 @@ func refuseSymlinks(root string) error {
 	return nil
 }
 
-// checkLibrary runs step 1's library checks against the remote before
+// checkLibrary checks the remote library and the library root before
 // the fetch. It refuses a remote with no library/, and a library root
 // whose file system lacks room for the remote tree's bytes, a floor
 // since a backend may report no size for a file. It prints the root,
@@ -623,9 +624,8 @@ func removeIfEmpty(p string) error {
 	return nil
 }
 
-// report runs step 7: it reconciles the restored catalog against the
-// library root, writes the report, and removes the record, which ends
-// the restore.
+// report reconciles the restored catalog against the library root,
+// writes the report, and removes the record, which ends the restore.
 func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("restore: %w", err)
