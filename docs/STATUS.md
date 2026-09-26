@@ -29,7 +29,7 @@ two conductor-ruled second fix rounds (5c-iii Tasks 2 and 5); 3b's link-order mu
 "branding inside `@layer base`"; Task 4's icon mutation strengthened (SvelteKit rewrites icon links on
 hydration); OpenSubsonic wire types hand-written (the survey found generators unfit). Geoff 2026-09-25:
 Navidrome sharing stays at its default (zero shares) until 0.8; the Navidrome 0.64 bump for GHSA-82gh is
-an open question. Owed: the visual identity spec's three errata (landing now as revision 1.3); the streamer
+an open question. The visual identity spec is at revision 1.3 (its three errata landed). Owed: the streamer
 spec's seven open items (revision 2.5, "Open items") go to its study rung. From the project site spec: settle
 `init`/`upgrade` naming against `dubplate-server`, and add the configuration-reference generator as a consumer
 of hook 18.
