@@ -225,3 +225,13 @@ record also quotes the line its basis rests on.
 - Garage (Geoff asked): the Standells and the Chocolate Watchband (1966, public domain), Q65 on
   the Scheveningen pier (1966, CC0), and the Fuzztones (1984). Round two targets 1960s garage and
   the 1980s revival as a named gap.
+
+## Round open (2026-09-25)
+
+The sorting page gained review mode with yes, no, and maybe inside a login-page mockup
+(`46b7e39`, `71b957f`, `15c32cb`, `9aa235e`, `ca41952`; diff-reviewer `fix` then `accept`) and
+is published as version 5 at the same URL. Round open encoded 222 files from 111 candidates,
+uploaded all 222 as assets in 9 calls, wrote `meta/vocab`, and seeded the test round
+(`rounds/test`, `candidates/fixture:1` to `fixture:3`). Round one's 112 writes wait in
+`photos/.candidates/_open/seed-{0,1,2}.json` for Geoff's test-round try. The plan's 150-candidate
+approval estimate is superseded by these counts.
