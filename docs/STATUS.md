@@ -37,8 +37,8 @@ transliteration; 5d's ceilings deferred to the next sitting, so 5d-i does not st
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), session 2026-09-26 | OPEN: 5c-iv segment E, Task 10 running (`wf_06a26525-670`); then the read, reviews, Task 11 |
-| 2 | worktree `lane-2-6c` (branch `lane-2-6c`) | 6c CLOSED (merged `e90998a`); OPEN: pass 6c-fix running (`wf_98ff134f-a42`); then its merge, then the worktree is removed or reused for transliteration |
+| 1 | main tree (master), session 2026-09-26 | OPEN: 5c-iv segment E; Task 10 escalated (`d3fc403`), read folded into Tasks 10b and 10c running as `wf_5d3f3053-99b`; then re-capture, re-read, simplifier, reviewers, Task 11 |
+| 2 | none | 6c-fix merged at `0e3272c`..`8950de7` (review accept, master gate green); worktree `lane-2-6c` removed; transliteration waits for lane 1 (its Task 0 blocker 1, harness in the main tree) |
 | photos | main tree (master), owned by the separate docs session | OPEN: `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M) |
 
 ## Open items (carried)
