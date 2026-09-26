@@ -5,16 +5,33 @@ directly in the component template rather than through an HTML-injecting
 directive (no npm dependency either): `sun` and `moon`, for the theme
 toggle's two faces.
 
-License: MIT. Source: [phosphor-icons/core](https://github.com/phosphor-icons/core).
+- Icons: `sun`, `moon`.
+- Weight: bold.
+- Package: `@phosphor-icons/core` 2.1.1.
+- Tarball: <https://registry.npmjs.org/@phosphor-icons/core/-/core-2.1.1.tgz>.
+- Repository: <https://github.com/phosphor-icons/phosphor-core>.
+- In-package paths: `assets/bold/sun-bold.svg`, `assets/bold/moon-bold.svg`.
 
-**Weight note.** The visual identity spec calls for the bold weight. This
-workstation has no network access in this environment (the harness's
-"no network" rule), so the exact bold-weight path data and the pinned
-release tag could not be fetched or verified against the upstream
-repository for this pass. The path data inlined here is Phosphor's
-**regular** weight, taken from a locally available, already-vetted copy
-in another repo on this workstation
-(`aksailingclub-legacy/assets/icons/{sun,moon}.svg`, sourced there under
-the same MIT license). A later pass with network access should fetch
-the bold weight from a pinned tag and update this file with the tag,
-the exact source URLs, and Phosphor's license text verbatim.
+## License
+
+MIT License
+
+Copyright (c) 2023 Phosphor Icons
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

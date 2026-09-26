@@ -184,6 +184,7 @@ var renderedManifest = []renderedRow{
 	{id: "component/focus/members/system-dark"},
 	{id: "header/contrast/label"},
 	{id: "header/contrast/label-night"},
+	{id: "header/ruling-4"},
 	{id: "header/toggle/system-light"},
 	{id: "header/toggle/system-dark"},
 	{id: "header/toggle/cookie-label"},

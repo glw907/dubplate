@@ -1406,6 +1406,14 @@ interface Outline {
  */
 const RING_WRAPPER_SELECTOR = '.input, .select, .textarea, .swap';
 
+/** A DOM rect's position and size, as `getBoundingClientRect` reports it. */
+interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface FocusedInfo {
   label: string;
   probe: string | null;
@@ -1421,6 +1429,14 @@ interface FocusedInfo {
   wrapper: Outline | null;
   /** The ring-bearing element's box: the wrapper's when there is one. */
   rect: { x: number; y: number; width: number };
+  /**
+   * The wrapper's box and the visible icon's box, when the wrapper is a
+   * theme-toggle `.swap`: `null` for every other control. Read alongside
+   * `wrapper`, this is what proves the ring box (the `.swap` itself)
+   * actually contains the icon it rings, rather than the icon sitting
+   * beside an empty ring.
+   */
+  swapIcon: { wrapper: Box; icon: Box } | null;
 }
 
 /** `document.activeElement`'s outline and geometry, or `null` once `Tab` leaves the page (a wrapped cycle). */
@@ -1441,12 +1457,26 @@ async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
       const wrapperEl = el.parentElement?.closest(wrapperSelector) ?? null;
       const rect = (wrapperEl ?? el).getBoundingClientRect();
       const label = el.id || wrapperEl?.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+      let swapIcon: { wrapper: Box; icon: Box } | null = null;
+      if (wrapperEl !== null && wrapperEl.matches('.swap')) {
+        const checked = (el as HTMLInputElement).checked;
+        const iconEl = wrapperEl.querySelector(checked ? '.swap-on svg' : '.swap-off svg');
+        if (iconEl !== null) {
+          const wr = wrapperEl.getBoundingClientRect();
+          const ir = iconEl.getBoundingClientRect();
+          swapIcon = {
+            wrapper: { x: wr.x, y: wr.y, width: wr.width, height: wr.height },
+            icon: { x: ir.x, y: ir.y, width: ir.width, height: ir.height }
+          };
+        }
+      }
       return {
         label,
         probe: el.getAttribute(attr),
         own: outline(el),
         wrapper: wrapperEl === null ? null : outline(wrapperEl),
-        rect: { x: rect.x, y: rect.y, width: rect.width }
+        rect: { x: rect.x, y: rect.y, width: rect.width },
+        swapIcon
       };
     },
     { attr: TAB_PROBE_ATTR, wrapperSelector: RING_WRAPPER_SELECTOR }
@@ -1599,7 +1629,11 @@ async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> 
  * `base-100`, which contrasts the ring color at 6.12:1 (`label`) or
  * 6.34:1 (`label-night`); without it, the same pixels are the header's
  * own `--color-neutral`, at about 2.34:1 on `label`, under the 3:1
- * floor.
+ * floor. When the ring-bearing wrapper is the theme toggle's `.swap`,
+ * also asserts the ring box contains the toggle's visible icon box: a
+ * layout that shrinks or displaces the wrapper (breaking DaisyUI's own
+ * `inline-grid` stacking) could otherwise draw a clean ring beside an
+ * icon it does not actually ring.
  */
 async function walkFocusOrder(
   page: Page,
@@ -1638,6 +1672,20 @@ async function walkFocusOrder(
     if (ringOutline.style !== 'solid' || ringOutline.width !== '2px' || ringOutline.offset !== '2px' || !sameRGBA(ring, want)) {
       problems.push(`${focused.label}: outline ${describeOutline(ringOutline)} (want ${wantText})`);
       continue;
+    }
+    if (focused.swapIcon !== null) {
+      const { wrapper, icon } = focused.swapIcon;
+      const contained =
+        icon.x >= wrapper.x &&
+        icon.y >= wrapper.y &&
+        icon.x + icon.width <= wrapper.x + wrapper.width &&
+        icon.y + icon.height <= wrapper.y + wrapper.height;
+      if (!contained) {
+        problems.push(
+          `${focused.label}: the ring box ${JSON.stringify(wrapper)} does not contain the icon box ${JSON.stringify(icon)}`
+        );
+        continue;
+      }
     }
     const x = Math.round(focused.rect.x + focused.rect.width / 2);
     const clipY = Math.round(focused.rect.y - 8);
@@ -3165,6 +3213,76 @@ async function headerContrastRow(browser: Browser, endpoints: Endpoints, session
   }
 }
 
+/**
+ * Ruling 4's row: the theme toggle sits in `.site-header` (VI `:141`),
+ * and no icon-only header control (empty text content, named only by
+ * an `aria-label` on itself or a child) carries a primary fill:
+ * DaisyUI's `btn-primary` class, or a painted background equal to the
+ * computed `--color-primary`. A primary fill on an icon-only control
+ * would read as the destructive or call-to-action color the inks
+ * reserve for text and links, not a neutral header chrome. Asserts a
+ * nonzero icon-only count so the row cannot pass on an empty set
+ * (the toggle is always at least one).
+ */
+async function rulingFourRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'header/ruling-4';
+  const context = await browser.newContext();
+  try {
+    await context.addCookies([session]);
+    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+    const measured = await visit.page.evaluate(() => {
+      const header = document.querySelector('.site-header');
+      if (header === null) return null;
+      const hasToggle = header.querySelector('.swap') !== null;
+      const candidates: { classList: string[]; background: string }[] = [];
+      for (const el of Array.from(header.querySelectorAll<HTMLElement>('button, a, label'))) {
+        const ariaLabel = el.getAttribute('aria-label') ?? el.querySelector('[aria-label]')?.getAttribute('aria-label') ?? null;
+        const text = (el.textContent ?? '').trim();
+        if (text === '' && ariaLabel !== null) {
+          candidates.push({ classList: Array.from(el.classList), background: getComputedStyle(el).backgroundColor });
+        }
+      }
+      const primary = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+      return { hasToggle, candidates, primary };
+    });
+    if (measured === null) {
+      await report({ id, fixture: false, property: false, detail: 'the site header is missing' });
+      return;
+    }
+    const problems: string[] = [];
+    if (!measured.hasToggle) problems.push('the theme toggle (.site-header .swap) is missing');
+    if (measured.candidates.length === 0) {
+      problems.push('no icon-only header control found (want at least one, the theme toggle)');
+    } else {
+      const primary = await paintedColor(visit.page, measured.primary);
+      for (const [i, candidate] of measured.candidates.entries()) {
+        if (candidate.classList.includes('btn-primary')) {
+          problems.push(`icon-only control ${i}: carries btn-primary`);
+          continue;
+        }
+        const background = await paintedColor(visit.page, candidate.background);
+        if (sameRGBA(background, primary)) {
+          problems.push(`icon-only control ${i}: background ${candidate.background} paints as --color-primary`);
+        }
+      }
+    }
+
+    await report({
+      id,
+      fixture: true,
+      property: problems.length === 0,
+      detail:
+        problems.length === 0
+          ? `the toggle is present and ${measured.candidates.length} icon-only control(s) carry no primary fill`
+          : problems.join('; ')
+    });
+  } finally {
+    await context.close();
+  }
+}
+
 /** One toggle click's start and what it must write (the acceptance table's four starts). */
 interface ToggleCase {
   id: string;
@@ -3202,14 +3320,17 @@ async function themeToggleRows(browser: Browser, endpoints: Endpoints, session: 
 
       const toggle = visit.page.getByRole('checkbox', { name: THEME_TOGGLE_LABEL, exact: true });
       const initialChecked = await toggle.isChecked();
-      // The checkbox sits under its own two icon spans in the same
-      // grid cell (DaisyUI's swap), so a real pointer lands on the
-      // icon, not the input; a browser still toggles the checkbox
-      // through the wrapping `<label>`'s native click-forwarding.
-      // Playwright's own actionability check looks for the click to
-      // land on the checkbox itself, which the icon always covers, so
-      // this clicks the wrapping `.swap` label instead, the same
-      // target a pointer would land on.
+      // The checkbox and its own two icon spans share one cell of
+      // `.swap`'s `inline-grid` (DaisyUI's layout, centered only by
+      // `place-content: center`; a competing `flex` utility on the
+      // label would break the stacking and collapse the checkbox's
+      // box), so a real pointer lands on the icon, not the input; a
+      // browser still toggles the checkbox through the wrapping
+      // `<label>`'s native click-forwarding. Playwright's own
+      // actionability check looks for the click to land on the
+      // checkbox itself, which the icon always covers, so this clicks
+      // the wrapping `.swap` label instead, the same target a pointer
+      // would land on.
       await visit.page.locator('.swap').click();
       await settleFocusTransitions(visit.page);
 
@@ -3297,6 +3418,7 @@ async function main(): Promise<void> {
     const headerSession = await establishSession(browser, endpoints.membersHeaderLink);
     await membersFocusRows(browser, endpoints, headerSession);
     await headerContrastRow(browser, endpoints, headerSession);
+    await rulingFourRow(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
     refuseUnclean();
     await refuseLateLeaks(endpoints);
