@@ -12,9 +12,10 @@ import (
 // Registry holds every declaration a rung contributes to the config
 // wall: owned wall rows, reserved classes, integration classes,
 // thresholds, identity sources, and store-homed settings with the
-// correlated rules over them, plus the superseded-name map. [NewRegistry] returns a
-// fresh value already carrying rung 1's own declarations; a rung whose
-// package exists registers its own from there.
+// correlated rules over them, plus the superseded-name map.
+// [NewRegistry] returns a fresh value already carrying rung 1's own
+// declarations; a rung whose package exists registers its own from
+// there.
 //
 // Registration is an explicit call rather than an init function, so
 // declaration order stays visible in the caller's own code and a test

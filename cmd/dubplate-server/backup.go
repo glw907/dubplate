@@ -263,8 +263,8 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 // refusal the seed rule finds against the store: a refusal names the
 // key and its reason, an environment disagreement names the key and
 // what serve applies at its next start. backup never applies the
-// rule and never fails on its outcome (R-6c9): serve's own seed at its
-// next start is what carries a change, this run included.
+// rule and never fails on its outcome: serve's own seed at its next
+// start is what carries a change, this run included.
 func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 	for _, o := range ev.Outcomes {
 		switch {
