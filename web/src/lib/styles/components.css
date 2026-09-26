@@ -78,8 +78,16 @@
     border-color: var(--keyline-base);
   }
 
+  /*
+   * `translate` alone, never paired with `transform` on this rule: the
+   * build's CSS processing folds a `transform` declaration and a
+   * sibling `translate` declaration on the same rule into one
+   * `transform` value, which would drop this override and leave
+   * DaisyUI's own `translate: 0 .5px` (`.btn:active:not(...)`)
+   * composing on top of it.
+   */
   .btn:active {
-    transform: translate(2px, 2px);
+    translate: 2px 2px;
     box-shadow: none;
   }
 
@@ -187,7 +195,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .btn:active {
-      transform: none;
+      translate: none;
     }
   }
 }

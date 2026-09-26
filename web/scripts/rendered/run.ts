@@ -955,17 +955,6 @@ const FIXTURE = {
   badge: 'rendered-fx-badge'
 } as const;
 
-/** Every tabbable member of the closed set: the card, alert, and badge take no focus. */
-const FOCUSABLE_FIXTURE_IDS = [
-  FIXTURE.btnDefault,
-  FIXTURE.btnPrimary,
-  FIXTURE.btnSecondary,
-  FIXTURE.btnWarning,
-  FIXTURE.btnNeutral,
-  FIXTURE.btnGhost,
-  FIXTURE.input
-];
-
 /**
  * Appends the closed set to the booted page's `main`, under a wrapper
  * with room above it so a focus ring's outer edge never samples
@@ -981,6 +970,10 @@ async function injectFixtureControls(page: Page): Promise<void> {
     wrap.style.display = 'flex';
     wrap.style.flexDirection = 'column';
     wrap.style.gap = '24px';
+    // `flex-start` keeps every fixture element at its own content
+    // width, so the shadow rows below always find plain background
+    // to sample just past an element's right edge.
+    wrap.style.alignItems = 'flex-start';
     const button = (id: string, extra: string) => {
       const el = document.createElement('button');
       el.id = id;
@@ -1070,36 +1063,6 @@ async function paintedColor(page: Page, cssColor: string): Promise<RGBA> {
   }, cssColor);
 }
 
-/**
- * An element's computed `box-shadow` leads with its color token
- * (Chromium's own serialization order), composited over `backgroundHex`
- * on a canvas the same way the browser composites the shadow over the
- * page. `null` when the element casts no shadow.
- */
-async function paintedShadow(page: Page, elementId: string, backgroundHex: string): Promise<RGBA | null> {
-  return page.evaluate(
-    ({ id, bg }): RGBA | null => {
-      const el = document.getElementById(id);
-      if (el === null) throw new Error(`no element #${id}`);
-      const boxShadow = getComputedStyle(el).boxShadow;
-      const colorToken = /^\S+\([^)]*\)/.exec(boxShadow);
-      if (colorToken === null) return null;
-      const canvas = document.createElement('canvas');
-      canvas.width = 1;
-      canvas.height = 1;
-      const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
-      if (ctx === null) throw new Error('the canvas has no 2d context');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, 1, 1);
-      ctx.fillStyle = colorToken[0];
-      ctx.fillRect(0, 0, 1, 1);
-      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1, { colorSpace: 'srgb' }).data;
-      return [r, g, b, a];
-    },
-    { id: elementId, bg: backgroundHex }
-  );
-}
-
 async function computedProperty(page: Page, elementId: string, property: string): Promise<string> {
   return page.evaluate(
     ({ id, prop }) => {
@@ -1112,82 +1075,177 @@ async function computedProperty(page: Page, elementId: string, property: string)
 }
 
 /**
- * `component/focus/<theme>`: every tabbable member of the closed set,
- * under each theme (Ruling 4's icon-only exception does not apply,
- * since the set carries no icon-only control). Each control's ring is
- * read back at `--ink-primary`, and the pixel just inside the ring
- * (the offset gap) and the one just outside it each clear 3:1 against
- * the ring, both sampled above the control's top edge, where the
- * printed surface casts no shadow (the shadow's own offset is
- * bottom-right only).
+ * Every element a keyboard `Tab` can reach: standard interactive tags
+ * plus an explicit `tabindex`, excluding a negative `tabindex` (removed
+ * from the tab order on purpose) and anything with no painted box
+ * (`display: none`, `visibility: hidden`, or zero size).
+ */
+const TABBABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]';
+
+/** The count of {@link TABBABLE_SELECTOR} matches with a painted box. */
+async function tabbableCount(page: Page): Promise<number> {
+  return page.evaluate((selector: string) => {
+    return Array.from(document.querySelectorAll<HTMLElement>(selector)).filter((el) => {
+      if (el.tabIndex < 0) return false;
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return false;
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    }).length;
+  }, TABBABLE_SELECTOR);
+}
+
+interface FocusedInfo {
+  label: string;
+  outlineStyle: string;
+  outlineWidth: string;
+  outlineOffset: string;
+  outlineColor: string;
+  rect: { x: number; y: number; width: number };
+}
+
+/** `document.activeElement`'s outline and geometry, or `null` once `Tab` leaves the page (a wrapped cycle). */
+async function focusedInfo(page: Page): Promise<FocusedInfo | null> {
+  return page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    if (el === null || el === document.body) return null;
+    const style = getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    const label = el.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+    return {
+      label,
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+      outlineOffset: style.outlineOffset,
+      outlineColor: style.outlineColor,
+      rect: { x: rect.x, y: rect.y, width: rect.width }
+    };
+  });
+}
+
+/**
+ * `component/focus/<page>/<theme>`: every tabbable element the page
+ * serves, enumerated by DOM query, plus the injected closed set
+ * (Ruling 4's icon-only exception does not apply, since the set
+ * carries no icon-only control). A page must serve a nonzero tabbable
+ * count and every injected control by role before any ring is judged.
+ * Each element's ring is read back at `--ink-primary` by tabbing to
+ * it, and the pixel just inside the ring (the offset gap) and the one
+ * just outside it each clear 3:1 against the ring, both sampled above
+ * the element's top edge, where the printed surface casts no shadow
+ * (the shadow's own offset is bottom-right only).
  */
 async function focusRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   for (const theme of ['label', 'label-night'] as const) {
-    const id = `component/focus/${theme}`;
-    const { context, visit } = await openThemedFixture(browser, endpoints, theme);
-    try {
-      const count = await visit.page.evaluate(
-        (ids: string[]) => ids.filter((i) => document.getElementById(i) !== null).length,
-        FOCUSABLE_FIXTURE_IDS
-      );
-      const fixture = count === FOCUSABLE_FIXTURE_IDS.length;
-      if (!fixture) {
-        report({ id, fixture, property: false, detail: `${count} of ${FOCUSABLE_FIXTURE_IDS.length} fixture controls present` });
-        continue;
-      }
-      const want = hexRGBA(INK_PRIMARY[theme]);
-      const problems: string[] = [];
-      for (const controlId of FOCUSABLE_FIXTURE_IDS) {
-        await visit.page.locator(`#${controlId}`).focus();
-        const [style, width, offset, colorRaw, rect] = await Promise.all([
-          computedProperty(visit.page, controlId, 'outline-style'),
-          computedProperty(visit.page, controlId, 'outline-width'),
-          computedProperty(visit.page, controlId, 'outline-offset'),
-          computedProperty(visit.page, controlId, 'outline-color'),
-          visit.page.evaluate((elId) => {
-            const r = document.getElementById(elId)?.getBoundingClientRect();
-            if (!r) throw new Error(`no element #${elId}`);
-            return { x: r.x, y: r.y, width: r.width };
-          }, controlId)
-        ]);
-        const ring = await paintedColor(visit.page, colorRaw);
-        if (style !== 'solid' || width !== '2px' || offset !== '2px' || !sameRGBA(ring, want)) {
-          problems.push(`${controlId}: outline ${style} ${width} ${colorRaw} offset ${offset} (want solid 2px ${INK_PRIMARY[theme]} offset 2px)`);
+    for (const served of PAGES) {
+      const id = `component/focus/${served.name}/${theme}`;
+      const host = new URL(endpoints.base).hostname;
+      const context = await browser.newContext();
+      await context.addCookies([{ name: THEME_COOKIE, value: theme, domain: host, path: '/', secure: true }]);
+      try {
+        const visit = await openBooted(context, endpoints.base, served);
+        await injectFixtureControls(visit.page);
+
+        const total = await tabbableCount(visit.page);
+        if (total === 0) {
+          report({ id, fixture: false, property: false, detail: 'no tabbable element found on the page' });
           continue;
         }
-        const x = Math.round(rect.x + rect.width / 2);
-        const clipY = Math.round(rect.y - 8);
-        const shot = await visit.page.screenshot({ clip: { x: x - 2, y: clipY, width: 4, height: 8 } });
-        const image = decodePNG(shot);
-        // Relative to clipY: the outline band spans offset 2px to
-        // offset+width 4px above the control's top edge, so row 7 (one
-        // pixel below the band) sits inside the offset gap and row 3
-        // (one pixel above the band) sits outside the ring.
-        const inside = pixelRGBA(image, 2, 7);
-        const outside = pixelRGBA(image, 2, 3);
-        const insideC = contrastRatio(inside, ring);
-        const outsideC = contrastRatio(outside, ring);
-        if (insideC < 3 || outsideC < 3) {
-          problems.push(`${controlId}: ring contrast inside ${insideC.toFixed(2)}:1, outside ${outsideC.toFixed(2)}:1 (want 3:1 or better)`);
+
+        const buttonNames = [
+          FIXTURE.btnDefault,
+          FIXTURE.btnPrimary,
+          FIXTURE.btnSecondary,
+          FIXTURE.btnWarning,
+          FIXTURE.btnNeutral,
+          FIXTURE.btnGhost
+        ];
+        const missingRoles: string[] = [];
+        for (const name of buttonNames) {
+          if ((await visit.page.getByRole('button', { name, exact: true }).count()) === 0) missingRoles.push(name);
         }
+        if ((await visit.page.getByRole('textbox').count()) === 0) missingRoles.push(FIXTURE.input);
+        if (missingRoles.length > 0) {
+          report({ id, fixture: false, property: false, detail: `missing by role: ${missingRoles.join(', ')}` });
+          continue;
+        }
+
+        await visit.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+        const want = hexRGBA(INK_PRIMARY[theme]);
+        const problems: string[] = [];
+        let visited = 0;
+        // A margin of 2 over `total` absorbs a cycle that wraps back
+        // to the first element before this bound stops it; a landing
+        // back on `document.body` (`focusedInfo` returning `null`)
+        // ends the loop early regardless.
+        for (let i = 0; i < total + 2; i++) {
+          await visit.page.keyboard.press('Tab');
+          const focused = await focusedInfo(visit.page);
+          if (focused === null) break;
+          visited++;
+          const ring = await paintedColor(visit.page, focused.outlineColor);
+          if (
+            focused.outlineStyle !== 'solid' ||
+            focused.outlineWidth !== '2px' ||
+            focused.outlineOffset !== '2px' ||
+            !sameRGBA(ring, want)
+          ) {
+            problems.push(
+              `${focused.label}: outline ${focused.outlineStyle} ${focused.outlineWidth} ${focused.outlineColor} offset ${focused.outlineOffset} (want solid 2px ${INK_PRIMARY[theme]} offset 2px)`
+            );
+            continue;
+          }
+          const x = Math.round(focused.rect.x + focused.rect.width / 2);
+          const clipY = Math.round(focused.rect.y - 8);
+          const shot = await visit.page.screenshot({ clip: { x: x - 2, y: clipY, width: 4, height: 8 } });
+          const image = decodePNG(shot);
+          // Relative to clipY: the outline band spans offset 2px to
+          // offset+width 4px above the element's top edge, so row 7
+          // (one pixel below the band) sits inside the offset gap and
+          // row 3 (one pixel above the band) sits outside the ring.
+          const inside = pixelRGBA(image, 2, 7);
+          const outside = pixelRGBA(image, 2, 3);
+          const insideC = contrastRatio(inside, ring);
+          const outsideC = contrastRatio(outside, ring);
+          if (insideC < 3 || outsideC < 3) {
+            problems.push(
+              `${focused.label}: ring contrast inside ${insideC.toFixed(2)}:1, outside ${outsideC.toFixed(2)}:1 (want 3:1 or better)`
+            );
+          }
+        }
+        if (visited === 0) {
+          report({ id, fixture: false, property: false, detail: `tabbing found no focusable element (of ${total} tabbable by query)` });
+          continue;
+        }
+        report({
+          id,
+          fixture: true,
+          property: problems.length === 0,
+          detail:
+            problems.length === 0
+              ? `${visited} of ${total} tabbable elements visited, every ring clean`
+              : problems.join('; ')
+        });
+      } finally {
+        await context.close();
       }
-      report({
-        id,
-        fixture,
-        property: problems.length === 0,
-        detail: problems.length === 0 ? `${FOCUSABLE_FIXTURE_IDS.length} controls, every ring clean` : problems.join('; ')
-      });
-    } finally {
-      await context.close();
     }
   }
+}
+
+/** Whether `a` and `b` agree within a tenth of a pixel, absorbing subpixel rounding. */
+function closeTo(a: number, b: number, tolerance = 0.1): boolean {
+  return Math.abs(a - b) <= tolerance;
 }
 
 /**
  * `component/pressed` and `component/reduced-motion`: a pressed
  * button's box moves 2px down and right into its shadow (no motion
  * preference), and does not move under `prefers-reduced-motion:
- * reduce`.
+ * reduce`. `transform` alone would miss DaisyUI's own independent
+ * `translate` declaration, which composes with it, so this measures
+ * the painted box's own position instead of either CSS property.
  */
 async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   for (const reduce of [false, true]) {
@@ -1197,7 +1255,6 @@ async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void
       const visit = await openBooted(context, endpoints.base, PAGES[0]);
       await injectFixtureControls(visit.page);
       const locator = visit.page.locator(`#${FIXTURE.btnDefault}`);
-      const before = await locator.evaluate((el) => getComputedStyle(el).transform);
       const box = await locator.boundingBox();
       if (box === null) {
         report({ id, fixture: false, property: false, detail: 'the default button has no box' });
@@ -1207,17 +1264,22 @@ async function pressedRows(browser: Browser, endpoints: Endpoints): Promise<void
       await visit.page.mouse.down();
       // DaisyUI's `.btn` transitions `transform` over 0.2s; a read
       // immediately after the press lands mid-transition, so this
-      // waits out the transition before reading the settled value.
+      // waits out the transition before reading the settled position.
       await visit.page.waitForTimeout(300);
-      const during = await locator.evaluate((el) => getComputedStyle(el).transform);
+      const pressedBox = await locator.boundingBox();
       await visit.page.mouse.up();
-      const fixture = before === 'none';
-      const moved = during === 'matrix(1, 0, 0, 1, 2, 2)';
+      if (pressedBox === null) {
+        report({ id, fixture: false, property: false, detail: 'the default button lost its box while pressed' });
+        continue;
+      }
+      const delta = { x: pressedBox.x - box.x, y: pressedBox.y - box.y };
+      const want = reduce ? { x: 0, y: 0 } : { x: 2, y: 2 };
+      const moved = closeTo(delta.x, want.x) && closeTo(delta.y, want.y);
       report({
         id,
-        fixture,
-        property: reduce ? !moved : moved,
-        detail: `unpressed transform ${before}; pressed transform ${during} (reducedMotion ${reduce})`
+        fixture: true,
+        property: moved,
+        detail: `box moved (${delta.x.toFixed(2)}, ${delta.y.toFixed(2)}) while pressed (want (${want.x}, ${want.y}))`
       });
     } finally {
       await context.close();
@@ -1240,25 +1302,73 @@ const SURFACE_EXPECTED = {
   keylineFill: { label: '#1f1b16', 'label-night': '#000000' }
 } as const;
 
+/** An element's own `<top>px <right>px 0px 0px` offset-only box-shadow, with its color token stripped. */
+function shadowGeometry(boxShadow: string): string | null {
+  const m = /^\S+\([^)]*\)\s*(.+)$/.exec(boxShadow);
+  return m === null ? null : m[1].trim();
+}
+
+/** The single pixel at document coordinates `(x, y)`, read back from a 1x1 screenshot clip. */
+async function paintedPixelAt(page: Page, x: number, y: number): Promise<RGBA> {
+  const shot = await page.screenshot({ clip: { x, y, width: 1, height: 1 } });
+  return pixelRGBA(decodePNG(shot), 0, 0);
+}
+
+/**
+ * One `component/surface/shadow/<name>/<theme>` row: parses the
+ * element's own computed `box-shadow` geometry against `offset` (the
+ * hard, unblurred `<offset>px <offset>px 0px 0px` the printed surface
+ * always casts), then samples one pixel 1px right of the element's
+ * right edge at mid-height (inside the shadow band, expected
+ * `wantShadow`) and one pixel `offset + 1` past the right edge
+ * (beyond the band, expected the page's own `base-100`).
+ */
+async function shadowRow(
+  page: Page,
+  name: string,
+  theme: 'label' | 'label-night',
+  elementId: string,
+  offset: number,
+  wantShadowHex: string
+): Promise<void> {
+  const id = `component/surface/shadow/${name}/${theme}`;
+  const boxShadow = await computedProperty(page, elementId, 'box-shadow');
+  const geometry = shadowGeometry(boxShadow);
+  const wantGeometry = `${offset}px ${offset}px 0px 0px`;
+  if (geometry !== wantGeometry) {
+    report({ id, fixture: geometry !== null, property: false, detail: `box-shadow "${boxShadow}" (want geometry ${wantGeometry})` });
+    return;
+  }
+  const rect = await page.evaluate((elId) => {
+    const el = document.getElementById(elId);
+    if (el === null) throw new Error(`no element #${elId}`);
+    const r = el.getBoundingClientRect();
+    return { right: r.right, top: r.top, height: r.height };
+  }, elementId);
+  const midY = Math.round(rect.top + rect.height / 2);
+  const insideX = Math.round(rect.right) + 1;
+  const outsideX = Math.round(rect.right) + offset + 1;
+  const inside = await paintedPixelAt(page, insideX, midY);
+  const outside = await paintedPixelAt(page, outsideX, midY);
+  const wantShadow = hexRGBA(wantShadowHex);
+  const wantBg = hexRGBA(BASE_100[theme]);
+  const shadowOK = sameRGBA(inside, wantShadow);
+  const bgOK = sameRGBA(outside, wantBg);
+  report({
+    id,
+    fixture: true,
+    property: shadowOK && bgOK,
+    detail: `geometry ${geometry}; (${insideX},${midY})=[${inside.join(',')}] want shadow ${wantShadowHex}; (${outsideX},${midY})=[${outside.join(',')}] want bg ${BASE_100[theme]}`
+  });
+}
+
 async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   for (const theme of ['label', 'label-night'] as const) {
     const { context, visit } = await openThemedFixture(browser, endpoints, theme);
     try {
-      const bg = BASE_100[theme];
-      const buttonShadow = await paintedShadow(visit.page, FIXTURE.btnDefault, bg);
-      const cardShadow = await paintedShadow(visit.page, FIXTURE.card, bg);
-      report({
-        id: `component/surface/button-shadow/${theme}`,
-        fixture: buttonShadow !== null,
-        property: buttonShadow !== null && sameRGBA(buttonShadow, hexRGBA(SURFACE_EXPECTED.buttonShadow[theme])),
-        detail: `painted [${buttonShadow?.join(',')}] (want ${SURFACE_EXPECTED.buttonShadow[theme]})`
-      });
-      report({
-        id: `component/surface/card-shadow/${theme}`,
-        fixture: cardShadow !== null,
-        property: cardShadow !== null && sameRGBA(cardShadow, hexRGBA(SURFACE_EXPECTED.cardShadow[theme])),
-        detail: `painted [${cardShadow?.join(',')}] (want ${SURFACE_EXPECTED.cardShadow[theme]})`
-      });
+      await shadowRow(visit.page, 'button', theme, FIXTURE.btnDefault, 2, SURFACE_EXPECTED.buttonShadow[theme]);
+      await shadowRow(visit.page, 'card', theme, FIXTURE.card, 3, SURFACE_EXPECTED.cardShadow[theme]);
+      await shadowRow(visit.page, 'alert', theme, FIXTURE.alert, 3, SURFACE_EXPECTED.cardShadow[theme]);
 
       const defaultBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.btnDefault, 'border-color'));
       const cardBorder = await paintedColor(visit.page, await computedProperty(visit.page, FIXTURE.card, 'border-color'));
@@ -1277,6 +1387,15 @@ async function surfaceRows(browser: Browser, endpoints: Endpoints): Promise<void
         fixture: true,
         property: sameRGBA(primaryBorder, wantFill) && sameRGBA(alertBorder, wantFill),
         detail: `primary button border [${primaryBorder.join(',')}], alert border [${alertBorder.join(',')}] (want ${SURFACE_EXPECTED.keylineFill[theme]})`
+      });
+
+      const defaultBorderWidth = await computedProperty(visit.page, FIXTURE.btnDefault, 'border-top-width');
+      const inputBorderWidth = await computedProperty(visit.page, FIXTURE.input, 'border-top-width');
+      report({
+        id: `component/surface/border-width/${theme}`,
+        fixture: true,
+        property: defaultBorderWidth === '2px' && inputBorderWidth === '2px',
+        detail: `default button border-top-width ${defaultBorderWidth}, input border-top-width ${inputBorderWidth} (want 2px, 2px)`
       });
 
       const ghostShadow = await computedProperty(visit.page, FIXTURE.btnGhost, 'box-shadow');
