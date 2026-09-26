@@ -21,7 +21,7 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i and 5c-ii, and rung 6's 6a, 6b-i, an
 
 **Restart 2026-09-25 (power loss):** the fold was relaunched over the dead agent's warm `run.ts` test rows; lane 2's B2 was relaunched fresh as `wf_ed08444b-481` (5A had committed nothing). This session conducts both code lanes; a separate docs session owns the document lanes.
 
-**Overnight 2026-09-25 (Geoff):** full queue under an 18M cap, flag 14.4M, counted from the restart. Lane 1: the fold, the 5c-iii close, then 5c-iv (Tasks 7-11). Lane 2: B2, B3 and the merge (at a lane 1 green boundary), then the transliteration pass. Memory `overnight-window-2026-09-25`.
+**Overnight 2026-09-25 (Geoff):** full queue under an 18M cap, flag 14.4M, counted from the restart; raised to 27M (flag 21.6M) to add the 6c plan and its execution once Geoff approves it tonight. Lane 1: the fold, the 5c-iii close, then 5c-iv (Tasks 7-11). Lane 2: B2, B3 and the merge (at a lane 1 green boundary), then the transliteration pass. Memory `overnight-window-2026-09-25`.
 
 **Resume prompt:** read this file and memory `session-2026-09-25-handoff`, then run 5c-iii's review round
 and close in lane 1, and continue 6b-ii-b in lane 2 from its journal. Box read-only; nothing deploys until 5d.
