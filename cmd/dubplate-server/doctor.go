@@ -126,7 +126,18 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				return err
 			}
 
-			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed {
+			// The settings rows (R-6c9, Ruling 2) print one per
+			// registered setting, in declaration order, after the
+			// backup rows, and one row per orphan the store holds
+			// under a key no rung still declares.
+			settingsRows, settingsFailed := settingsDoctorRows(environ, reg, storeReport, storeChecked)
+			for _, row := range settingsRows {
+				if err := printRow(stdout, row.key, row.status); err != nil {
+					return err
+				}
+			}
+
+			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed || settingsFailed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil

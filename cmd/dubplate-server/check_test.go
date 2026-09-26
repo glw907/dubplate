@@ -2,13 +2,116 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"crypto/sha256"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 )
+
+// dbFileState returns the store's database file's SHA-256 sum and mode
+// bits, and whether its -wal file holds any frames (absent or 0 bytes
+// counts as none), so a test proves check's read-only claim (criterion
+// 14): the state before and after a run must match exactly.
+func dbFileState(t *testing.T, stateDir string) (sum [sha256.Size]byte, mode os.FileMode, walEmpty bool) {
+	t.Helper()
+	dbPath := filepath.Join(stateDir, "store", "db", "dubplate.db")
+	data, err := os.ReadFile(dbPath)
+	if err != nil {
+		t.Fatalf("read %s: %v", dbPath, err)
+	}
+	info, err := os.Stat(dbPath)
+	if err != nil {
+		t.Fatalf("stat %s: %v", dbPath, err)
+	}
+	walInfo, err := os.Stat(dbPath + "-wal")
+	switch {
+	case err == nil:
+		walEmpty = walInfo.Size() == 0
+	case os.IsNotExist(err):
+		walEmpty = true
+	default:
+		t.Fatalf("stat %s-wal: %v", dbPath, err)
+	}
+	return sha256.Sum256(data), info.Mode(), walEmpty
+}
+
+// TestCheckCmd_SettingsRow_Reseed is spec criterion 14: an env value
+// that disagrees with a seeded row prints the disagreement and leaves
+// the database file untouched, since check never applies the rule.
+// Fixture state: an env-seed row of 14 exists so the run has something
+// to compare the env's 20 against; an apply would write here if check
+// called it.
+func TestCheckCmd_SettingsRow_Reseed(t *testing.T) {
+	stateDir := t.TempDir()
+	seedBackupStore(t, stateDir)
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env-seed")
+	if err := h.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	beforeSum, beforeMode, beforeWALEmpty := dbFileState(t, stateDir)
+	if !beforeWALEmpty {
+		t.Fatalf("fixture needs a checkpointed -wal before the first hash")
+	}
+
+	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", stateDir)
+	environ = append(environ, "DUBPLATE_BACKUP_SNAPSHOT_KEEP=20")
+
+	var stdout, stderr bytes.Buffer
+	cmd := newCheckCmd(environ, productionRegistry(), &stdout, &stderr)
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil: a disagreement is not a refusal", err)
+	}
+	if !strings.Contains(stdout.String(), "settings: DUBPLATE_BACKUP_SNAPSHOT_KEEP:") {
+		t.Errorf("stdout = %q, want a settings line naming the disagreeing key", stdout.String())
+	}
+
+	afterSum, afterMode, afterWALEmpty := dbFileState(t, stateDir)
+	if afterSum != beforeSum || afterMode != beforeMode {
+		t.Errorf("database changed: sum/mode before (%x, %v), after (%x, %v)", beforeSum, beforeMode, afterSum, afterMode)
+	}
+	if !afterWALEmpty {
+		t.Error("the -wal holds frames after check, want it empty: check must never write")
+	}
+}
+
+// TestCheckCmd_SettingsRow_AdminConflict is Ruling 2's exit-code half:
+// an env value that disagrees with an admin-set row refuses, and check
+// exits nonzero naming it.
+func TestCheckCmd_SettingsRow_AdminConflict(t *testing.T) {
+	stateDir := t.TempDir()
+	seedBackupStore(t, stateDir)
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_GUARD_FRACTION", "0.9", "admin")
+	if err := h.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", stateDir)
+	environ = append(environ, "DUBPLATE_BACKUP_GUARD_FRACTION=0.3")
+
+	var stdout, stderr bytes.Buffer
+	cmd := newCheckCmd(environ, productionRegistry(), &stdout, &stderr)
+	err = cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: the environment disagrees with the administrator's value")
+	}
+	if !strings.Contains(stdout.String(), "settings: DUBPLATE_BACKUP_GUARD_FRACTION:") {
+		t.Errorf("stdout = %q, want a settings line naming the refusing key", stdout.String())
+	}
+}
 
 // baseEnviron returns a minimal environ with every owned-now key set
 // to a valid value, mirroring internal/config's own test fixture, so a

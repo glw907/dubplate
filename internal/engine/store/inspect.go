@@ -122,6 +122,10 @@ type Report struct {
 // jobsVersion is the lowest store version holding the jobs table.
 const jobsVersion = 2
 
+// settingsVersion is the lowest store version holding the settings
+// table (0004_settings.sql).
+const settingsVersion = 4
+
 // Facts are the upkeep facts [Inspect] reads beside a store's state.
 // Every size comes from stat(2) or statfs(2), never from opening the
 // database or its -wal.
@@ -144,6 +148,16 @@ type Facts struct {
 	// reference is not a copy.
 	Copies     int
 	CopiesSize int64
+
+	// Settings holds every settings row as stored, in key order, and
+	// SettingsGeneration the store's settings generation, for a store
+	// whose version holds the settings table. SettingsAbsent marks a
+	// store whose version predates it (through 0003), so a table
+	// absent is never confused with a table holding no rows; Settings
+	// and SettingsGeneration are unset in that case.
+	Settings           []SettingsRow
+	SettingsGeneration int64
+	SettingsAbsent     bool
 }
 
 // A JobSuccess is a job kind's newest succeeded record.
@@ -154,6 +168,17 @@ type JobSuccess struct {
 	// Progress is the record's final progress text, "" when it has
 	// none.
 	Progress string
+}
+
+// A SettingsRow is one settings row as [Facts] reads it, before
+// internal/settings interprets it.
+type SettingsRow struct {
+	Key       string
+	Value     string
+	Source    string
+	SeedValue string
+	Actor     string
+	UpdatedAt time.Time
 }
 
 // Inspect reports the state of the store under opts.StateDir without
@@ -216,16 +241,17 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 	if c.kind != dbStore || c.version < jobsVersion || c.version > len(files) {
 		return r
 	}
-	if r.Facts, err = readFacts(ctx, l, opts.BusyTimeout); err != nil {
+	if r.Facts, err = readFacts(ctx, l, opts.BusyTimeout, c.version); err != nil {
 		return reportFrom(r, err)
 	}
 	return r
 }
 
 // readFacts reads the upkeep facts of the store in l, whose version
-// holds the jobs table. It queries through the inspect DSN, which
-// opens the database read-only.
-func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration) (*Facts, error) {
+// holds the jobs table, on one shared read-only connection through the
+// inspect DSN: the jobs read and, when version holds the settings
+// table, the settings read.
+func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version int) (_ *Facts, err error) {
 	f := &Facts{}
 	info, err := os.Stat(l.dbPath + "-wal")
 	switch {
@@ -235,8 +261,26 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration) (*Facts, 
 		return nil, refusal(StateRefused, "stat %s-wal: %v", l.dbPath, err)
 	}
 
-	if f.LastSuccess, err = lastSuccesses(ctx, l.dbPath, busyTimeout); err != nil {
+	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, busyTimeout))
+	if err != nil {
+		return nil, refusal(StateRefused, "open %s: %v", l.dbPath, err)
+	}
+	defer func() {
+		if cerr := db.Close(); cerr != nil && err == nil {
+			err = refusal(StateRefused, "close %s: %v", l.dbPath, cerr)
+		}
+	}()
+
+	if f.LastSuccess, err = lastSuccesses(ctx, db, l.dbPath); err != nil {
 		return nil, err
+	}
+
+	if version >= settingsVersion {
+		if f.Settings, f.SettingsGeneration, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
+			return nil, err
+		}
+	} else {
+		f.SettingsAbsent = true
 	}
 
 	var st syscall.Statfs_t
@@ -263,18 +307,8 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration) (*Facts, 
 }
 
 // lastSuccesses returns each job kind's newest succeeded record in the
-// store at dbPath, breaking a tie in finish time by id.
-func lastSuccesses(ctx context.Context, dbPath string, busyTimeout time.Duration) (_ map[string]JobSuccess, err error) {
-	db, err := sql.Open(sqliteDriverName, inspectDSN(dbPath, busyTimeout))
-	if err != nil {
-		return nil, refusal(StateRefused, "open %s: %v", dbPath, err)
-	}
-	defer func() {
-		if cerr := db.Close(); cerr != nil && err == nil {
-			err = refusal(StateRefused, "close %s: %v", dbPath, cerr)
-		}
-	}()
-
+// store db reads, breaking a tie in finish time by id.
+func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]JobSuccess, error) {
 	rows, err := db.QueryContext(ctx, `SELECT kind, finished_at, progress FROM (
 	SELECT kind, finished_at, progress,
 		row_number() OVER (PARTITION BY kind ORDER BY finished_at DESC, id DESC) AS rank
@@ -301,6 +335,40 @@ func lastSuccesses(ctx context.Context, dbPath string, busyTimeout time.Duration
 		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
 	}
 	return last, nil
+}
+
+// readSettingsFacts returns every settings row db reads, in key order,
+// and the settings generation.
+func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, int64, error) {
+	rows, err := db.QueryContext(ctx, `SELECT key, value, source, seed_value, actor, updated_at FROM settings ORDER BY key`)
+	if err != nil {
+		return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var settings []SettingsRow
+	for rows.Next() {
+		var (
+			r    SettingsRow
+			seed sql.NullString
+			at   int64
+		)
+		if err := rows.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
+			return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		}
+		r.SeedValue = seed.String
+		r.UpdatedAt = time.UnixMicro(at).UTC()
+		settings = append(settings, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+	}
+
+	var generation int64
+	if err := db.QueryRowContext(ctx, `SELECT generation FROM settings_generation WHERE singleton = 1`).Scan(&generation); err != nil {
+		return nil, 0, refusal(StateRefused, "read settings_generation in %s: %v", dbPath, err)
+	}
+	return settings, generation, nil
 }
 
 // reportFrom returns r carrying err's state and text: a refusal

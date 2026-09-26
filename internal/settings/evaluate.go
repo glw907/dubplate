@@ -122,6 +122,45 @@ func Evaluate(ctx context.Context, h *store.Handle, reg *config.Registry, enviro
 	return evaluate(reg, environ, rows), nil
 }
 
+// EvaluateFacts runs the seed rule for reg's settings against facts, a
+// [store.Facts] value [store.Inspect] already read, and the
+// environment in environ. It opens no connection of its own: its
+// caller has already inspected the store. When facts marks the
+// settings table absent, a store below the version that adds it can
+// hold no row for any key, so every outcome resolves to its default
+// and reports that the store holds no settings yet, never comparing
+// against the environment. check and doctor call it; backup calls
+// [Evaluate] from its own write-mode handle instead (R-6c9).
+func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Evaluation {
+	if facts.SettingsAbsent {
+		return evaluateTableAbsent(reg)
+	}
+	rows := make([]Row, len(facts.Settings))
+	for i, r := range facts.Settings {
+		rows[i] = Row{Key: r.Key, Value: r.Value, Source: r.Source, SeedValue: r.SeedValue, Actor: r.Actor, UpdatedAt: r.UpdatedAt}
+	}
+	return evaluate(reg, environ, rows)
+}
+
+// evaluateTableAbsent returns one outcome per registered setting
+// resolving to its default, for a store whose version predates the
+// settings table. It never reads environ: a store with pending
+// migrations reads no setting from the environment (R-6c9's pre-seed
+// read), so the report only ever says the store holds no settings yet.
+func evaluateTableAbsent(reg *config.Registry) Evaluation {
+	settings := reg.Settings()
+	ev := Evaluation{Outcomes: make([]Outcome, len(settings))}
+	for i, s := range settings {
+		ev.Outcomes[i] = Outcome{
+			Key:     s.Key,
+			Value:   s.Default,
+			Report:  "the store holds no settings yet",
+			setting: s,
+		}
+	}
+	return ev
+}
+
 // readRows reads every settings row through h's read pool.
 func readRows(ctx context.Context, h *store.Handle) ([]Row, error) {
 	rs, err := h.Query(ctx, selectRows)
@@ -185,8 +224,10 @@ func evaluate(reg *config.Registry, environ []string, rows []Row) Evaluation {
 
 	var refusals []error
 	inForce := make(map[string]string, len(settings))
+	outcomeIdx := make(map[string]int, len(settings))
 	for _, s := range settings {
 		o := outcome(s, environ, byKey[s.Key])
+		outcomeIdx[s.Key] = len(ev.Outcomes)
 		ev.Outcomes = append(ev.Outcomes, o)
 		if o.Err != nil {
 			refusals = append(refusals, o.Err)
@@ -210,7 +251,15 @@ func evaluate(reg *config.Registry, environ []string, rows []Row) Evaluation {
 			continue
 		}
 		if err := rule.Check(values); err != nil {
-			refusals = append(refusals, fmt.Errorf("correlated rule %q: %w", rule.Name, err))
+			// Every key the rule names carries the refusal on its own
+			// row (Task 5's doctor table): a reader of one key's row
+			// alone still sees the pair the rule compared and why.
+			wrapped := fmt.Errorf("correlated rule %q: %w", rule.Name, err)
+			refusals = append(refusals, wrapped)
+			for _, key := range rule.Keys {
+				idx := outcomeIdx[key]
+				ev.Outcomes[idx] = ev.Outcomes[idx].refuse(wrapped)
+			}
 		}
 	}
 	ev.Err = errors.Join(refusals...)

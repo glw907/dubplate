@@ -218,6 +218,15 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
+	evalCtx, cancelEval := context.WithTimeout(opsCtx, backupVerbWait)
+	ev, evalErr := settings.Evaluate(evalCtx, h, reg, environ)
+	cancelEval()
+	if evalErr != nil {
+		logger.Error("evaluate settings", "err", evalErr)
+	} else {
+		logSettingsEvaluation(logger, ev)
+	}
+
 	acc := settings.NewAccessor(h, reg)
 	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, backupVerbWait)
 	defer cancelRunner()
@@ -248,6 +257,23 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	}
 
 	return awaitBackup(ctx, opsCtx, runner, actor, resp.JobID, stdout, logger)
+}
+
+// logSettingsEvaluation logs one warning line per disagreement or
+// refusal the seed rule finds against the store: a refusal names the
+// key and its reason, an environment disagreement names the key and
+// what serve applies at its next start. backup never applies the
+// rule and never fails on its outcome (R-6c9): serve's own seed at its
+// next start is what carries a change, this run included.
+func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
+	for _, o := range ev.Outcomes {
+		switch {
+		case o.Err != nil:
+			logger.Warn("setting refused; serve will not start until it is resolved", "key", o.Key, "reason", o.Err)
+		case o.Change != settings.Unchanged:
+			logger.Warn("setting disagrees with the environment; serve applies it at its next start", "key", o.Key, "outcome", o.Report)
+		}
+	}
 }
 
 // awaitBackup polls h's status until it turns terminal, calling the

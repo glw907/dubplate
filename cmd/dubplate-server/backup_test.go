@@ -614,6 +614,115 @@ func TestBackupCmd_RetentionReaderPrune(t *testing.T) {
 	}
 }
 
+// settingsTableDump is what dumpSettingsTables reads back, in a form
+// two runs compare with ==.
+type settingsTableDump struct {
+	settings, audit, generation string
+}
+
+// dumpSettingsTables reads every settings, settings_audit, and
+// settings_generation row out of stateDir's store, formatted so two
+// dumps compare with ==. It opens and closes its own handle: the
+// caller's own handle, if any, must already be closed.
+func dumpSettingsTables(t *testing.T, stateDir string) settingsTableDump {
+	t.Helper()
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	defer func() {
+		if err := h.Close(); err != nil {
+			t.Fatalf("close: %v", err)
+		}
+	}()
+
+	return settingsTableDump{
+		settings:   dumpRows(t, h, `SELECT key, value, source, seed_value, actor, updated_at FROM settings ORDER BY key`),
+		audit:      dumpRows(t, h, `SELECT id, at, kind, actor, channel, key, old_value, new_value FROM settings_audit ORDER BY at, key`),
+		generation: dumpRows(t, h, `SELECT singleton, generation FROM settings_generation`),
+	}
+}
+
+// dumpRows renders every row query returns as one line per row, column
+// values tab-separated, a NULL rendered "<NULL>".
+func dumpRows(t *testing.T, h *store.Handle, query string) string {
+	t.Helper()
+	rs, err := h.Query(context.Background(), query)
+	if err != nil {
+		t.Fatalf("query %q: %v", query, err)
+	}
+	defer func() { _ = rs.Close() }()
+
+	cols, err := rs.Columns()
+	if err != nil {
+		t.Fatalf("columns for %q: %v", query, err)
+	}
+	var out strings.Builder
+	for rs.Next() {
+		values := make([]any, len(cols))
+		ptrs := make([]any, len(cols))
+		for i := range values {
+			ptrs[i] = &values[i]
+		}
+		if err := rs.Scan(ptrs...); err != nil {
+			t.Fatalf("scan %q: %v", query, err)
+		}
+		for i, v := range values {
+			if i > 0 {
+				out.WriteByte('\t')
+			}
+			if v == nil {
+				out.WriteString("<NULL>")
+				continue
+			}
+			fmt.Fprintf(&out, "%v", v)
+		}
+		out.WriteByte('\n')
+	}
+	if err := rs.Err(); err != nil {
+		t.Fatalf("rows.Err %q: %v", query, err)
+	}
+	return out.String()
+}
+
+// TestBackupCmd_SettingsEvaluationNeverApplies is spec criterion 8: a
+// store holding an env-seed row of 14 for DUBPLATE_BACKUP_SNAPSHOT_KEEP,
+// with the environment at 20, leaves every settings, settings_audit,
+// and generation row byte-identical, logs the disagreement naming the
+// key, and runs the job with 14 (an apply would have written 20, and
+// the guard fixture below would have needed 20's own track count to
+// pass). Fixture state: a seeded row, so an apply would write.
+func TestBackupCmd_SettingsEvaluationNeverApplies(t *testing.T) {
+	useBackupStandin(t)
+	environ := backupJobEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+
+	h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env-seed")
+	if err := h.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	before := dumpSettingsTables(t, stateDir)
+	environ = append(environ, "DUBPLATE_BACKUP_SNAPSHOT_KEEP=20")
+
+	var stdout, stderr bytes.Buffer
+	if err := runBackup(context.Background(), environ, productionRegistry(), &stdout, &stderr); err != nil {
+		t.Fatalf("runBackup: %v", err)
+	}
+	if !strings.Contains(stderr.String(), "DUBPLATE_BACKUP_SNAPSHOT_KEEP") {
+		t.Errorf("stderr = %q, want a warning naming the disagreeing key", stderr.String())
+	}
+
+	after := dumpSettingsTables(t, stateDir)
+	if before != after {
+		t.Errorf("settings tables changed:\nbefore: %+v\nafter:  %+v", before, after)
+	}
+}
+
 // backupRunFor runs the backup verb's own logic directly, exactly as
 // run(newBackupCmd(...)) does but returning the error rather than
 // printing it to the real os.Stderr, the one write run() and cobra's

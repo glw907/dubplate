@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -197,6 +198,133 @@ func storeHolders(holders []string) string {
 // printRow key and its status text.
 type backupFactRow struct {
 	key, status string
+}
+
+// settingsDoctorRows renders doctor's one row per registered setting,
+// in declaration order, and one row per orphan (R-6c9, Ruling 2). Its
+// disposition follows the store's own state: a state this binary
+// cannot vouch for (busy, mid-restore, not a store, refused, or newer)
+// reports every setting "not checked", never calling into
+// internal/settings; a state whose facts mark the settings table
+// absent, or whose facts this binary never read at all (an absent
+// store, or an older one below the version that adds the jobs table),
+// reports every setting at its default with no table to hold a row
+// yet, also without calling in; every other state (current, or older
+// holding the settings table) evaluates through
+// [settings.EvaluateFacts]. It reports whether any row refuses.
+func settingsDoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool) (rows []backupFactRow, failed bool) {
+	list := reg.Settings()
+	switch {
+	case !checked || report.State == store.StateRestoreInProgress || report.State == store.StateBusy ||
+		report.State == store.StateNotAStore || report.State == store.StateRefused || report.State == store.StateNewer:
+		for _, s := range list {
+			rows = append(rows, backupFactRow{s.Key, settingsNotCheckedStatus(environ, s, report.State, checked)})
+		}
+	case report.Facts != nil && !report.Facts.SettingsAbsent:
+		ev := settings.EvaluateFacts(reg, environ, *report.Facts)
+		for _, o := range ev.Outcomes {
+			if o.Err != nil {
+				failed = true
+			}
+			rows = append(rows, backupFactRow{o.Key, settingsOutcomeStatus(byKey(list, o.Key), o)})
+		}
+		for _, orphan := range ev.Orphans {
+			rows = append(rows, backupFactRow{orphan.Key, "no longer registered; ignored"})
+		}
+	default:
+		for _, s := range list {
+			rows = append(rows, backupFactRow{s.Key, settingsNoTableStatus(environ, s)})
+		}
+	}
+	return rows, failed
+}
+
+// byKey returns the setting named key out of list, or its zero value
+// when list carries none, the shape a defensive caller falls back on
+// rather than panics on a key [settings.Evaluate] could not have
+// invented.
+func byKey(list []config.Setting, key string) config.Setting {
+	for _, s := range list {
+		if s.Key == key {
+			return s
+		}
+	}
+	return config.Setting{}
+}
+
+// settingsOutcomeStatus renders one from-facts outcome as doctor's
+// status for the registered setting s: the value in force, its
+// source, and the apply mode, then any note about what changes at
+// serve's next start, or the outcome's own refusal in place of all of
+// it (Ruling 2).
+func settingsOutcomeStatus(s config.Setting, o settings.Outcome) string {
+	if o.Err != nil {
+		return o.Report
+	}
+	value, source := s.Default, "default"
+	if o.Stored != nil {
+		value, source = o.Stored.Value, o.Stored.Source
+	}
+	status := fmt.Sprintf("%s (source %s, %s)", settingShown(s, value), source, s.Apply)
+	if note := settingsChangeNote(s, o); note != "" {
+		status += "; " + note
+	}
+	return status
+}
+
+// settingsChangeNote renders what o's change does at serve's next
+// start, or "" for an outcome the seed rule leaves unchanged.
+func settingsChangeNote(s config.Setting, o settings.Outcome) string {
+	switch o.Change {
+	case settings.Seed:
+		return fmt.Sprintf("env %s seeds at serve's next start", settingShown(s, o.Env))
+	case settings.Reseed:
+		return fmt.Sprintf("env %s re-seeds at serve's next start", settingShown(s, o.Env))
+	case settings.Remove:
+		return "returns to the default at serve's next start"
+	default:
+		return ""
+	}
+}
+
+// settingsNoTableStatus renders s's row for a store that holds no
+// settings table yet, or none of any store at all: the default is in
+// force, and an env value seeds at serve's next start rather than
+// being compared now.
+func settingsNoTableStatus(environ []string, s config.Setting) string {
+	status := fmt.Sprintf("%s (source default, %s); store holds no settings yet", settingShown(s, s.Default), s.Apply)
+	if v, ok := lookupEnviron(environ, s.Key); ok {
+		status += fmt.Sprintf("; env %s seeds at serve's next start", settingShown(s, v))
+	}
+	return status
+}
+
+// settingsNotCheckedStatus renders s's row for a store state this
+// binary cannot vouch for: the default is shown for reference, since
+// no read reached the store's own row, and an env value is named as
+// not checked rather than compared. checked names whether storeRow ran
+// [store.Inspect] at all; when it did not, no state names why, so the
+// row says only "not checked".
+func settingsNotCheckedStatus(environ []string, s config.Setting, state store.State, checked bool) string {
+	label := "not checked"
+	if checked {
+		label = fmt.Sprintf("not checked (%s)", state)
+	}
+	status := fmt.Sprintf("%s (source default, %s); store %s", settingShown(s, s.Default), s.Apply, label)
+	if v, ok := lookupEnviron(environ, s.Key); ok {
+		status += fmt.Sprintf("; env %s not checked against the store", settingShown(s, v))
+	}
+	return status
+}
+
+// settingShown renders v as s's doctor row prints it: quoted, or
+// withheld for a sensitive setting, the same rule [settings.Outcome]
+// applies to its own log lines.
+func settingShown(s config.Setting, v string) string {
+	if s.Sensitive {
+		return "(sensitive value withheld)"
+	}
+	return strconv.Quote(v)
 }
 
 // backupFactsRows renders R-6bi13's read-only facts as doctor's four

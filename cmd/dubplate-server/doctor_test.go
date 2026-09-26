@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 )
 
 // storeRowLines is the store row's fixed contribution to doctor's
@@ -337,7 +339,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
 	}
@@ -619,7 +621,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	// Task 7's backup rows: doctorEnviron's roster names an admin, so
 	// no roster row adds a second, and it never sets
 	// DUBPLATE_BACKUP_ENABLED.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -890,7 +892,7 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			// +1 for the roster row (this failing case), +1 for the
 			// store row, which always prints, plus Task 7's backup
 			// rows (doctorEnviron never sets DUBPLATE_BACKUP_ENABLED).
-			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff
+			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff + len(reg.Settings())
 			if len(lines) != wantTotal {
 				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row plus one store row); stdout = %q", len(lines), wantTotal, out)
 			}
@@ -1169,5 +1171,48 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	}
 	if len(before) != 0 || len(after) != 0 {
 		t.Fatalf("state directory listing before = %v, after = %v, want both empty", before, after)
+	}
+}
+
+// TestDoctorCmd_SettingsRow_ExitCode is Ruling 2's exit-code half, end
+// to end: doctor exits nonzero on an admin-conflict row and exits zero
+// on a pending re-seed.
+func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
+	tests := []struct {
+		name     string
+		source   string
+		stored   string
+		env      string
+		wantFail bool
+	}{
+		{name: "admin conflict fails", source: "admin", stored: "0.9", env: "0.3", wantFail: true},
+		{name: "pending re-seed does not fail", source: "env-seed", stored: "0.6", env: "0.3", wantFail: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := doctorEnviron(t)
+			stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+			seedBackupStore(t, stateDir)
+
+			h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
+			if err != nil {
+				t.Fatalf("OpenWrite: %v", err)
+			}
+			seedSettingRow(t, h, "DUBPLATE_BACKUP_GUARD_FRACTION", tt.stored, tt.source)
+			if err := h.Close(); err != nil {
+				t.Fatalf("close: %v", err)
+			}
+			environ = append(environ, "DUBPLATE_BACKUP_GUARD_FRACTION="+tt.env)
+
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+			err = cmd.Execute()
+			if tt.wantFail && err == nil {
+				t.Error("Execute() error = nil, want a refusal")
+			}
+			if !tt.wantFail && err != nil {
+				t.Errorf("Execute() error = %v, want nil", err)
+			}
+		})
 	}
 }

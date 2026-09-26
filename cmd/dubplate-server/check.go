@@ -1,21 +1,25 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/spf13/cobra"
 )
 
 // newCheckCmd builds the check subcommand: it validates configuration
 // loaded from environ, printing "configuration: ok" to stdout on
 // success, then runs the store's inspect mode and prints its "store"
-// row the same way doctor does. On failure it returns the failing
-// error unprinted: main is the sole writer of command errors to
-// stderr, so a failed check in a systemd journal is the error alone,
-// never doubled.
+// row the same way doctor does, then evaluates the seed rule
+// read-only against the store's facts and prints one "settings:" line
+// per non-quiet outcome (R-6c9's from-facts entry point). On failure
+// it returns the failing error unprinted: main is the sole writer of
+// command errors to stderr, so a failed check in a systemd journal is
+// the error alone, never doubled.
 func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "check",
@@ -49,12 +53,50 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if _, err := fmt.Fprintf(stdout, "store: %s\n", status); err != nil {
 				return err
 			}
+
+			// The settings evaluation runs only when the store handed
+			// back facts to evaluate (Ruling 2): a store this check
+			// cannot vouch for already fails on the store row above,
+			// and printing a settings verdict for one it never read
+			// would report on rows it never saw.
+			settingsFailed := false
+			if r.Facts != nil {
+				settingsFailed, err = printSettingsRows(stdout, environ, reg, *r.Facts)
+				if err != nil {
+					return err
+				}
+			}
+
 			if failed {
 				return fmt.Errorf("store: %s", status)
+			}
+			if settingsFailed {
+				return errors.New("settings: the seed rule refuses to start serve")
 			}
 			return nil
 		},
 	}
 	cmd.SetErr(stderr)
 	return cmd
+}
+
+// printSettingsRows prints one "settings: <key>: <outcome>" line per
+// non-quiet outcome the seed rule finds against facts: a refusal
+// always prints, and an outcome that leaves the value in force
+// unchanged never does, since check surfaces only what an operator
+// need act on. It reports whether any outcome refuses (Ruling 2).
+func printSettingsRows(w io.Writer, environ []string, reg *config.Registry, facts store.Facts) (failed bool, err error) {
+	ev := settings.EvaluateFacts(reg, environ, facts)
+	for _, o := range ev.Outcomes {
+		if o.Err == nil && o.Change == settings.Unchanged {
+			continue
+		}
+		if o.Err != nil {
+			failed = true
+		}
+		if _, err := fmt.Fprintf(w, "settings: %s: %s\n", o.Key, o.Report); err != nil {
+			return failed, err
+		}
+	}
+	return failed, nil
 }

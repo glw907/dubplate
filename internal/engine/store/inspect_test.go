@@ -371,7 +371,7 @@ func TestReadFacts_AbsentWAL(t *testing.T) {
 		t.Fatalf("remove the empty -wal: %v", err)
 	}
 
-	f, err := readFacts(context.Background(), l, openBusy)
+	f, err := readFacts(context.Background(), l, openBusy, binaryHead)
 	if err != nil {
 		t.Fatalf("readFacts: %v", err)
 	}
@@ -393,5 +393,73 @@ func TestInspect_NewerStoreHasNoFacts(t *testing.T) {
 	}
 	if r.Facts != nil {
 		t.Errorf("facts = %+v, want none for a newer store", r.Facts)
+	}
+}
+
+// insertSetting inserts one settings row and bumps the generation by
+// raw SQL, the shape a fixture below the settings runner's own writer
+// plants.
+const insertSettingSQL = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
+	VALUES ('DUBPLATE_TEST_KEY', 'seven', 'env-seed', 'seven', 'system', 1790251200000000);
+UPDATE settings_generation SET generation = 3 WHERE singleton = 1;`
+
+// TestInspect_SettingsFacts is R-6c10's own table, in-package: a
+// current store and an older store whose version holds the settings
+// table (0004, with 0005 pending) both read the stored row and the
+// generation; an older store below that version reads the table
+// absent marker instead, never an empty result mistaken for one.
+func TestInspect_SettingsFacts(t *testing.T) {
+	tests := []struct {
+		name    string
+		through int
+	}{
+		{name: "current", through: binaryHead},
+		{name: "older, settings table present, 0005 pending", through: 4},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			l := buildStore(t, stateDir, tt.through)
+			rawExec(t, l.dbPath, insertSettingSQL)
+
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+			if r.Facts == nil {
+				t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
+			}
+			f := r.Facts
+			if f.SettingsAbsent {
+				t.Fatalf("SettingsAbsent = true, want false for a store holding the settings table")
+			}
+			// Fixture state: the store holds one settings row, so an
+			// empty result here would pass a bug that never reads the
+			// table at all.
+			want := []SettingsRow{{Key: "DUBPLATE_TEST_KEY", Value: "seven", Source: "env-seed", SeedValue: "seven", Actor: "system", UpdatedAt: time.UnixMicro(1790251200000000).UTC()}}
+			if !slices.Equal(f.Settings, want) {
+				t.Errorf("settings = %+v, want %+v", f.Settings, want)
+			}
+			if f.SettingsGeneration != 3 {
+				t.Errorf("settings generation = %d, want 3", f.SettingsGeneration)
+			}
+		})
+	}
+}
+
+// TestInspect_SettingsAbsent: a store whose version predates the
+// settings table (through 0003) reports it absent, distinct from an
+// empty table, and holds no rows or generation.
+func TestInspect_SettingsAbsent(t *testing.T) {
+	stateDir := t.TempDir()
+	buildStore(t, stateDir, 3)
+
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+	if r.Facts == nil {
+		t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
+	}
+	f := r.Facts
+	if !f.SettingsAbsent {
+		t.Errorf("SettingsAbsent = false, want true for a store below the settings table's version")
+	}
+	if len(f.Settings) != 0 || f.SettingsGeneration != 0 {
+		t.Errorf("settings = %+v at generation %d, want none for a store predating the table", f.Settings, f.SettingsGeneration)
 	}
 }
