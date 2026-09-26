@@ -36,7 +36,9 @@ Government Issue, Operation Ivy, the Feelies, Yellowman, King Tubby, Nightmares 
 - Old school: Grandmaster Flash, Afrika Bambaataa, Grandmaster Caz, the Cold Crush Brothers, the
   Treacherous Three, Kurtis Blow, the Sugarhill Gang, Spoonie Gee, Roxanne Shanté, Salt-N-Pepa,
   Boogie Down Productions, Public Enemy, Eric B. & Rakim, Big Daddy Kane, MC Lyte
-- Go-go: Chuck Brown, Trouble Funk, Rare Essence, E.U., Junkyard Band
+- Go-go: Chuck Brown, Trouble Funk, Rare Essence, E.U., Junkyard Band, Backyard Band, Little Benny &
+  the Masters, Redds and the Boys, Hot Cold Sweat, Sugar Bear; scene (*newer ok*): the Howard Theatre,
+  Takoma Station, the Go-Go Museum, Don't Mute DC and Moechella (2019), Chuck Brown Memorial Park
 - Graffiti and b-boy: Fab 5 Freddy, Lee Quiñones, Futura, the Rock Steady Crew, Crazy Legs
 
 ## Everything else
