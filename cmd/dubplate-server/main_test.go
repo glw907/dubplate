@@ -142,3 +142,15 @@ func TestExecuteWithSignalContext_GivesTheCommandACancellableContext(t *testing.
 		t.Error("cmd.Context() is context.Background(), want the signal-derived context")
 	}
 }
+
+// TestNewRootCmd_RegistersRestore proves the root command carries the
+// restore verb.
+func TestNewRootCmd_RegistersRestore(t *testing.T) {
+	found, _, err := newRootCmd().Find([]string{"restore"})
+	if err != nil {
+		t.Fatalf("Find(restore): %v", err)
+	}
+	if found.Name() != "restore" {
+		t.Errorf("Find(restore) = %q, want the restore verb", found.Name())
+	}
+}

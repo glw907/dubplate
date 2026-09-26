@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -63,6 +64,12 @@ const (
 	// backupStandinStderrEnv holds the literal bytes the stand-in
 	// writes to stderr for the "backend" subcommand.
 	backupStandinStderrEnv = "BACKUP_TEST_STANDIN_STDERR"
+
+	// backupStandinExecEnv names a real rclone that the stand-in runs
+	// in its own place, once it has recorded its argv, for every
+	// subcommand but the one backupStandinSleepEnv names, so a test can
+	// block one step of a real transfer. An exec'd run writes no pid.
+	backupStandinExecEnv = "BACKUP_TEST_STANDIN_EXEC"
 )
 
 func TestMain(m *testing.M) {
@@ -72,6 +79,9 @@ func TestMain(m *testing.M) {
 	if os.Getenv(backupVerbChildEnv) != "" {
 		cmd := newBackupCmd(os.Environ(), newProductionRegistry(), os.Stdout, os.Stderr)
 		os.Exit(run(cmd))
+	}
+	if raw := os.Getenv(restoreVerbChildEnv); raw != "" {
+		os.Exit(runRestoreChild(raw))
 	}
 	os.Exit(m.Run())
 }
@@ -87,6 +97,11 @@ func backupStandIn(args []string) int {
 	}
 	record := os.Getenv(backupStandinRecordEnv)
 	appendBackupStandinLine(record, "argv "+strings.Join(args, " "))
+	if real := os.Getenv(backupStandinExecEnv); real != "" && sub != os.Getenv(backupStandinSleepEnv) {
+		err := syscall.Exec(real, append([]string{real}, args...), os.Environ())
+		fmt.Fprintf(os.Stderr, "stand-in exec %s: %v\n", real, err)
+		return 2
+	}
 	if pidFile := os.Getenv(backupStandinPIDEnv); pidFile != "" {
 		_ = os.WriteFile(pidFile, []byte(strconv.Itoa(os.Getpid())), 0o600)
 	}

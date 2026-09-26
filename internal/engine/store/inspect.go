@@ -197,7 +197,7 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 		return reportClass(r, l, c, files)
 	}
 	lock, err := acquireSharedNonblocking(l.lockPath)
-	if errors.Is(err, errLockBusy) {
+	if errors.Is(err, ErrLockBusy) {
 		r.State = StateBusy
 		r.Holders = lockHolders(l.lockPath)
 		r.Reason = err.Error()

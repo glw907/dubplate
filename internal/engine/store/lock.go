@@ -14,10 +14,11 @@ import (
 // flock, since flock(2) has no cancellable blocking form.
 const lockPollInterval = 50 * time.Millisecond
 
-// errLockBusy is the sentinel every busy refusal wraps, so a bounded
-// wait can tell a busy lock from a real I/O error without matching
-// error text.
-var errLockBusy = errors.New("lock busy")
+// ErrLockBusy is the sentinel every refusal of a held store lock
+// wraps, so a caller can tell a busy lock from a real I/O error
+// without matching error text. The refusal's message names the lock's
+// holders where /proc/locks names them.
+var ErrLockBusy = errors.New("lock busy")
 
 // storeLock is a held flock(2) lock on store.lock. The zero value is
 // not usable; obtain one from [acquireSharedNonblocking],
@@ -37,7 +38,7 @@ func (l *storeLock) release() error {
 }
 
 // acquireSharedNonblocking makes one attempt at a shared flock on path
-// and returns [errLockBusy] immediately if another holder has it
+// and returns [ErrLockBusy] immediately if another holder has it
 // exclusively. It never creates path: a missing lock file is a state
 // inspect and write report, not a file they make.
 func acquireSharedNonblocking(path string) (*storeLock, error) {
@@ -66,7 +67,7 @@ func acquireBounded(ctx context.Context, path string, how int) (*storeLock, erro
 		if err == nil {
 			return l, nil
 		}
-		if !errors.Is(err, errLockBusy) {
+		if !errors.Is(err, ErrLockBusy) {
 			return nil, err
 		}
 		select {
@@ -105,9 +106,9 @@ func tryLock(path string, how int) (*storeLock, error) {
 func busyError(path string) error {
 	pids := lockHolders(path)
 	if len(pids) == 0 {
-		return fmt.Errorf("lock %s: held by another process: %w", path, errLockBusy)
+		return fmt.Errorf("lock %s: held by another process: %w", path, ErrLockBusy)
 	}
-	return fmt.Errorf("lock %s: held by pid %s: %w", path, strings.Join(pids, ", "), errLockBusy)
+	return fmt.Errorf("lock %s: held by pid %s: %w", path, strings.Join(pids, ", "), ErrLockBusy)
 }
 
 // lockHolders returns the pid of every process /proc/locks (proc_locks(5))

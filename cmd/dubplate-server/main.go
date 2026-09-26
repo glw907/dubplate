@@ -141,6 +141,7 @@ func newRootCmd() *cobra.Command {
 		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newRestoreCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 	)
 	return cmd
 }

@@ -409,7 +409,7 @@ func fdCloexec(t *testing.T, f *os.File) bool {
 func storeLockBusy(t *testing.T, stateDir string) bool {
 	t.Helper()
 	l, err := tryLock(newLeaf(stateDir).lockPath, syscall.LOCK_EX)
-	if errors.Is(err, errLockBusy) {
+	if errors.Is(err, ErrLockBusy) {
 		return true
 	}
 	if err != nil {

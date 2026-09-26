@@ -81,8 +81,8 @@ func TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid(t *testing.T) {
 	if err == nil {
 		t.Fatal("acquireSharedNonblocking: want busy error, got nil")
 	}
-	if !errors.Is(err, errLockBusy) {
-		t.Errorf("acquireSharedNonblocking error %v does not wrap errLockBusy", err)
+	if !errors.Is(err, ErrLockBusy) {
+		t.Errorf("acquireSharedNonblocking error %v does not wrap ErrLockBusy", err)
 	}
 	wantPid := strconv.Itoa(os.Getpid())
 	if !strings.Contains(err.Error(), wantPid) {
@@ -101,8 +101,8 @@ func TestAcquireShared_BoundedByCtx_HeldExclusive(t *testing.T) {
 	if err == nil {
 		t.Fatal("acquireShared: want busy error after ctx ends, got nil")
 	}
-	if !errors.Is(err, errLockBusy) {
-		t.Errorf("acquireShared error %v does not wrap errLockBusy", err)
+	if !errors.Is(err, ErrLockBusy) {
+		t.Errorf("acquireShared error %v does not wrap ErrLockBusy", err)
 	}
 	if ctx.Err() == nil {
 		t.Error("acquireShared returned before its ctx ended")

@@ -391,7 +391,7 @@ func waitLock(ctx context.Context, path string, how int, opts ServeOptions) (*st
 		if err == nil {
 			return lock, nil
 		}
-		if !errors.Is(err, errLockBusy) {
+		if !errors.Is(err, ErrLockBusy) {
 			return nil, err
 		}
 		if !logged {

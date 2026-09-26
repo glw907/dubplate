@@ -493,7 +493,7 @@ func TestOpenRestore_LockHeld(t *testing.T) {
 				_ = res.s.Close()
 				t.Fatal("OpenRestore with the lock held: got a session, want a refusal")
 			}
-			if !errors.Is(res.err, errLockBusy) || !strings.Contains(res.err.Error(), "lock "+l.lockPath+": held by ") {
+			if !errors.Is(res.err, ErrLockBusy) || !strings.Contains(res.err.Error(), "lock "+l.lockPath+": held by ") {
 				t.Errorf("OpenRestore = %v, want the lock named as held", res.err)
 			}
 			if hashFile(t, l.dbPath) != hash || fileMode(t, l.dbPath) != mode {

@@ -350,7 +350,7 @@ func TestOpenWrite_Current(t *testing.T) {
 	if h.lock == nil {
 		t.Fatal("handle holds no lock")
 	}
-	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, errLockBusy) {
+	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, ErrLockBusy) {
 		t.Errorf("exclusive lock while the write handle is open = %v, want busy", err)
 	}
 	if got, err := os.ReadFile(planted); err != nil || string(got) != "staged" {
@@ -365,8 +365,8 @@ func TestOpenWrite_LockHeldExclusively(t *testing.T) {
 	takeRawExclusive(t, l.lockPath)
 
 	_, err := OpenWrite(deadline(t, 200*time.Millisecond), stateDir, openBusy)
-	if !errors.Is(err, errLockBusy) {
-		t.Errorf("OpenWrite under an exclusive holder = %v, want errLockBusy", err)
+	if !errors.Is(err, ErrLockBusy) {
+		t.Errorf("OpenWrite under an exclusive holder = %v, want ErrLockBusy", err)
 	}
 }
 
@@ -885,8 +885,8 @@ func TestOpenServe_LockHeldPastMigrationWait(t *testing.T) {
 			opts := serveOpts(slog.New(logs))
 			opts.MigrationWait = 300 * time.Millisecond
 			_, err = OpenServe(context.Background(), stateDir, opts)
-			if !errors.Is(err, errLockBusy) {
-				t.Fatalf("OpenServe under a holder = %v, want errLockBusy", err)
+			if !errors.Is(err, ErrLockBusy) {
+				t.Fatalf("OpenServe under a holder = %v, want ErrLockBusy", err)
 			}
 			if got := logs.recorded(); len(got) == 0 || got[0] != tt.want {
 				t.Errorf("holders records = %q, want the first wanting %s", got, tt.want)
@@ -1094,7 +1094,7 @@ func TestOpenServe_CurrentKeepsSharedLock(t *testing.T) {
 	if err := a.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, errLockBusy) {
+	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, ErrLockBusy) {
 		t.Errorf("exclusive lock while the serve handle is open = %v, want busy", err)
 	}
 }
