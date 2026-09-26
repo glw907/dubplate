@@ -19,6 +19,8 @@ Rungs 1b, 3, 4, 8, rung 5's 5a through 5c-i and 5c-ii, and rung 6's 6a, 6b-i, an
 - **Approved and waiting for a lane:** the transliteration-at-setup pass (`plans/2026-09-25-translit-table-at-setup.md`,
   3.3M, `unidecode install`; keeps dubplate MIT).
 
+**Restart 2026-09-25 (power loss):** the fold was relaunched over the dead agent's warm `run.ts` test rows; lane 2's B2 was relaunched fresh as `wf_ed08444b-481` (5A had committed nothing). This session conducts both code lanes; a separate docs session owns the document lanes.
+
 **Resume prompt:** read this file and memory `session-2026-09-25-handoff`, then run 5c-iii's review round
 and close in lane 1, and continue 6b-ii-b in lane 2 from its journal. Box read-only; nothing deploys until 5d.
 
@@ -39,7 +41,7 @@ of hook 18.
 |---|---|---|
 | 1 | main tree (master) | OPEN: 5c-iii segments A and B accepted (3a accepted; 3b `591fe53`+`3db2708`); every full gate now runs heavy (Chromium; about 179s, about 560 MiB peak); segment C (Tasks 4, 5) next |
 | 2 | worktree `lane-2-6b-ii-b` (branch `lane-2-6b-ii-b`, cut at master after `6528321`) | OPEN: 6b-ii-b restore (Geoff, 2026-09-25: extra budget beyond the window cap, about 9M with the two document lanes); ceiling 7.53M, flag 6.02M; heavy gates queue behind lane 1 |
-| photos | main tree (master), document lane | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M; raised by Geoff 2026-09-25) |
+| photos | main tree (master), document lane, owned by the separate docs session (Geoff, 2026-09-25) | OPEN: photo curation round one, `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, and its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M; raised by Geoff 2026-09-25) |
 
 Geoff, 2026-09-25 (attended): beyond the 14.5M window, parallel work runs uncapped for about four hours (6b-ii-b in lane 2, the errata document lane, the transliteration plan). Window 2 spend against the 14.5M cap (raised from 11M by Geoff, 2026-09-25, to run 5c-iii through its close; stop-don't-ask flag 13.4M): about 11.0M at segment B's boundary (incl. about 1.3M of attended extras: two prior-art surveys, the group-scale principles spec and its review) (matcher pass about 1.25M against 2.75M; 6b-ii-a
 about 1.95M against 3.90M, including five merge-side architecture reads split across both passes).
