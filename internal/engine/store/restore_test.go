@@ -43,6 +43,21 @@ func openSession(t *testing.T, stateDir string, resume bool) *RestoreSession {
 	return s
 }
 
+// openSessionFrom opens a new restore session on stateDir that
+// restores from the local file src, failing the test on a refusal, and
+// closes it at cleanup.
+func openSessionFrom(t *testing.T, stateDir, src string) *RestoreSession {
+	t.Helper()
+	opts := restoreOpts(false)
+	opts.FromFile = src
+	s, err := OpenRestore(stateDir, opts)
+	if err != nil {
+		t.Fatalf("open restore from %s: %v", src, err)
+	}
+	t.Cleanup(func() { _ = s.Close() })
+	return s
+}
+
 // storeFile returns the database file of a store migrated through
 // version through, in a state directory of its own, with every
 // connection closed: a cleanly closed WAL-header file with no -wal or
@@ -500,8 +515,8 @@ func TestRestoreSession_StageFile(t *testing.T) {
 
 	src := sourceFile(t, readFile(t, storeFile(t, binaryHead)))
 	srcHash := hashFile(t, src)
-	s := openSession(t, currentStore(t), false)
-	if err := s.StageFile(src); err != nil {
+	s := openSessionFrom(t, currentStore(t), src)
+	if err := s.StageFile(); err != nil {
 		t.Fatalf("stage: %v", err)
 	}
 	if mode := fileMode(t, s.StagePath()); mode != 0o600 {
@@ -521,22 +536,22 @@ func TestRestoreSession_StageFileRefusals(t *testing.T) {
 	good := readFile(t, storeFile(t, binaryHead))
 	tests := []struct {
 		name    string
-		source  func(t *testing.T, s *RestoreSession) string
+		source  func(t *testing.T, l leaf) string
 		wantErr string
 	}{
 		{
 			name:    "absent",
-			source:  func(t *testing.T, _ *RestoreSession) string { return filepath.Join(t.TempDir(), "gone.db") },
+			source:  func(t *testing.T, _ leaf) string { return filepath.Join(t.TempDir(), "gone.db") },
 			wantErr: "no such file or directory",
 		},
 		{
 			name:    "a directory",
-			source:  func(t *testing.T, _ *RestoreSession) string { return t.TempDir() },
+			source:  func(t *testing.T, _ leaf) string { return t.TempDir() },
 			wantErr: "not a regular file",
 		},
 		{
 			name: "unreadable",
-			source: func(t *testing.T, _ *RestoreSession) string {
+			source: func(t *testing.T, _ leaf) string {
 				p := sourceFile(t, good)
 				if err := os.Chmod(p, 0); err != nil {
 					t.Fatal(err)
@@ -547,7 +562,7 @@ func TestRestoreSession_StageFileRefusals(t *testing.T) {
 		},
 		{
 			name: "a -wal beside it",
-			source: func(t *testing.T, _ *RestoreSession) string {
+			source: func(t *testing.T, _ leaf) string {
 				p := sourceFile(t, good)
 				if err := os.WriteFile(p+"-wal", nil, 0o600); err != nil {
 					t.Fatal(err)
@@ -558,7 +573,7 @@ func TestRestoreSession_StageFileRefusals(t *testing.T) {
 		},
 		{
 			name: "a -journal beside it",
-			source: func(t *testing.T, _ *RestoreSession) string {
+			source: func(t *testing.T, _ leaf) string {
 				p := sourceFile(t, good)
 				if err := os.WriteFile(p+"-journal", []byte("j"), 0o600); err != nil {
 					t.Fatal(err)
@@ -569,14 +584,14 @@ func TestRestoreSession_StageFileRefusals(t *testing.T) {
 		},
 		{
 			name:    "the live database",
-			source:  func(_ *testing.T, s *RestoreSession) string { return s.leaf.dbPath },
+			source:  func(_ *testing.T, l leaf) string { return l.dbPath },
 			wantErr: "it is the live database",
 		},
 		{
 			name: "a hard link to the live database",
-			source: func(t *testing.T, s *RestoreSession) string {
-				p := filepath.Join(filepath.Dir(s.leaf.root), "link.db")
-				if err := os.Link(s.leaf.dbPath, p); err != nil {
+			source: func(t *testing.T, l leaf) string {
+				p := filepath.Join(filepath.Dir(l.root), "link.db")
+				if err := os.Link(l.dbPath, p); err != nil {
 					t.Fatal(err)
 				}
 				return p
@@ -584,19 +599,8 @@ func TestRestoreSession_StageFileRefusals(t *testing.T) {
 			wantErr: "it is the live database",
 		},
 		{
-			name: "a file in staging",
-			source: func(t *testing.T, s *RestoreSession) string {
-				p := filepath.Join(s.leaf.stagingDir, "other.db")
-				if err := os.WriteFile(p, good, 0o600); err != nil {
-					t.Fatal(err)
-				}
-				return p
-			},
-			wantErr: "which a restore clears",
-		},
-		{
 			name: "no room in staging",
-			source: func(t *testing.T, _ *RestoreSession) string {
+			source: func(t *testing.T, _ leaf) string {
 				stubFree(t, uint64(len(good))+journalSizeLimit-1)
 				return sourceFile(t, good)
 			},
@@ -605,15 +609,129 @@ func TestRestoreSession_StageFileRefusals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := openSession(t, currentStore(t), false)
-			src := tt.source(t, s)
+			stateDir := currentStore(t)
+			src := tt.source(t, newLeaf(stateDir))
+			s := openSessionFrom(t, stateDir, src)
 			before := listDir(t, s.leaf.stagingDir)
-			err := s.StageFile(src)
+			err := s.StageFile()
 			assertErrNames(t, err, src, tt.wantErr)
 			if got := listDir(t, s.leaf.stagingDir); !slices.Equal(got, before) {
 				t.Errorf("staging = %q, want %q: nothing staged", got, before)
 			}
 		})
+	}
+}
+
+// TestOpenRestore_FromFileInStaging: a new restore from a file that
+// is already in staging/ when the restore opens, or that resolves into
+// it, is refused naming the path, and staging/ keeps every entry, the
+// source included. The control row opens from a file outside staging/
+// beside the same planted entry and finds staging/ cleared, so the
+// refusal rows fail if the check moves after the clear.
+func TestOpenRestore_FromFileInStaging(t *testing.T) {
+	good := readFile(t, storeFile(t, binaryHead))
+	// plant writes a store at name in staging/ and returns its path.
+	plant := func(t *testing.T, l leaf, name string) string {
+		t.Helper()
+		p := filepath.Join(l.stagingDir, name)
+		if err := os.MkdirAll(filepath.Dir(p), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, good, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	// link makes a symlink at p to target and returns p.
+	link := func(t *testing.T, target, p string) string {
+		t.Helper()
+		if err := os.Symlink(target, p); err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	tests := []struct {
+		name string
+		// source plants the row's staging/ entries and returns the
+		// file to restore from.
+		source  func(t *testing.T, l leaf) string
+		refused bool
+	}{
+		{
+			name:    "a file in staging",
+			source:  func(t *testing.T, l leaf) string { return plant(t, l, "other.db") },
+			refused: true,
+		},
+		{
+			name:    "a file under a directory in staging",
+			source:  func(t *testing.T, l leaf) string { return plant(t, l, filepath.Join("dir", "other.db")) },
+			refused: true,
+		},
+		{
+			name: "a symlink outside staging to a file in it",
+			source: func(t *testing.T, l leaf) string {
+				return link(t, plant(t, l, "other.db"), filepath.Join(t.TempDir(), "via.db"))
+			},
+			refused: true,
+		},
+		{
+			name: "a symlink in staging to a file outside it",
+			source: func(t *testing.T, l leaf) string {
+				return link(t, sourceFile(t, good), filepath.Join(l.stagingDir, "via.db"))
+			},
+			refused: true,
+		},
+		{
+			name: "a file outside staging",
+			source: func(t *testing.T, l leaf) string {
+				plant(t, l, "other.db")
+				return sourceFile(t, good)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := currentStore(t)
+			l := newLeaf(stateDir)
+			src := tt.source(t, l)
+			before := listDir(t, l.stagingDir)
+			if len(before) == 0 {
+				t.Fatal("fixture planted nothing in staging")
+			}
+			opts := restoreOpts(false)
+			opts.FromFile = src
+			s, err := OpenRestore(stateDir, opts)
+			if !tt.refused {
+				if err != nil {
+					t.Fatalf("open restore from %s: %v", src, err)
+				}
+				t.Cleanup(func() { _ = s.Close() })
+				if got := listDir(t, l.stagingDir); len(got) != 0 {
+					t.Errorf("staging = %q, want empty", got)
+				}
+				return
+			}
+			if err == nil {
+				_ = s.Close()
+			}
+			assertErrNames(t, err, "restore from "+src, "which a restore clears")
+			if got := listDir(t, l.stagingDir); !slices.Equal(got, before) {
+				t.Errorf("staging = %q, want %q: nothing cleared", got, before)
+			}
+			if !bytes.Equal(readFile(t, src), good) {
+				t.Error("the source changed")
+			}
+		})
+	}
+}
+
+// TestRestoreSession_StageFileNoSource: a session opened without a
+// file to restore from stages nothing.
+func TestRestoreSession_StageFileNoSource(t *testing.T) {
+	s := openSession(t, currentStore(t), false)
+	assertErrNames(t, s.StageFile(), "names no file to restore from")
+	if got := listDir(t, s.leaf.stagingDir); len(got) != 0 {
+		t.Errorf("staging = %q, want empty", got)
 	}
 }
 
@@ -715,8 +833,8 @@ func TestRestoreSession_VerifyStage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := currentStore(t)
-			s := openSession(t, stateDir, false)
-			if err := s.StageFile(sourceFile(t, tt.stage(t))); err != nil {
+			s := openSessionFrom(t, stateDir, sourceFile(t, tt.stage(t)))
+			if err := s.StageFile(); err != nil {
 				t.Fatalf("stage: %v", err)
 			}
 
@@ -762,8 +880,8 @@ func TestRestoreSession_VerifyStageLeavesNoSidecars(t *testing.T) {
 		}
 	}
 
-	s := openSession(t, currentStore(t), false)
-	if err := s.StageFile(sourceFile(t, b)); err != nil {
+	s := openSessionFrom(t, currentStore(t), sourceFile(t, b))
+	if err := s.StageFile(); err != nil {
 		t.Fatalf("stage: %v", err)
 	}
 	if _, err := s.VerifyStage(deadline(t, 10*time.Second)); err != nil {

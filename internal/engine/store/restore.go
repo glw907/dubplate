@@ -37,6 +37,12 @@ type RestoreOptions struct {
 	// with it, the open refuses a leaf holding none.
 	Resume bool
 
+	// FromFile is the local file a restore from a file stages, through
+	// [RestoreSession.StageFile]. A new restore refuses it, before
+	// clearing staging/, when it lies inside staging/. Empty for a
+	// restore that fetches its stage.
+	FromFile string
+
 	// Logger receives a warning for a FUSE filesystem. It must not be
 	// nil.
 	Logger *slog.Logger
@@ -52,6 +58,9 @@ type RestoreSession struct {
 	lock        *storeLock
 	files       []migration
 	busyTimeout time.Duration
+
+	// fromFile is the local file [RestoreSession.StageFile] stages.
+	fromFile string
 
 	// stamp names the restore's stage, report, and moved-aside copies.
 	stamp string
@@ -72,8 +81,9 @@ type RestoreSession struct {
 // since a restore is how that store comes back.
 //
 // A new restore refuses a leaf holding a restore-intent record, naming
-// restore --resume, and removes every entry in staging/: the lock
-// proves no other process is staging. A resume refuses a leaf holding
+// restore --resume, refuses an opts.FromFile inside staging/, naming
+// it, and then removes every entry in staging/: the lock proves no
+// other process is staging. A resume refuses a leaf holding
 // no record, or one it cannot read, and removes nothing. Both refuse
 // before anything is staged when db/, staging/, and snapshots/ do not
 // share one device, since the swap renames between them.
@@ -113,7 +123,7 @@ func OpenRestore(stateDir string, opts RestoreOptions) (_ *RestoreSession, err e
 		}
 	}()
 
-	s := &RestoreSession{leaf: l, lock: lock, files: files, busyTimeout: opts.BusyTimeout}
+	s := &RestoreSession{leaf: l, lock: lock, files: files, busyTimeout: opts.BusyTimeout, fromFile: opts.FromFile}
 	if err := s.readRecord(opts); err != nil {
 		return nil, err
 	}
@@ -121,6 +131,9 @@ func OpenRestore(stateDir string, opts RestoreOptions) (_ *RestoreSession, err e
 		return nil, err
 	}
 	if s.intent == nil {
+		if err := l.checkOutsideStaging(opts.FromFile); err != nil {
+			return nil, err
+		}
 		if err := clearStaging(l.stagingDir); err != nil {
 			return nil, err
 		}
@@ -157,6 +170,45 @@ func (s *RestoreSession) readRecord(opts RestoreOptions) error {
 	s.intent = &r
 	s.stamp = r.Stamp
 	s.stage = filepath.Join(l.stagingDir, r.Incoming)
+	return nil
+}
+
+// checkOutsideStaging refuses src, naming it, when the entry it names
+// or the file it resolves to lies inside l's staging/, since a new
+// restore clears staging/ before it stages. An empty src, or one whose
+// directory is absent, passes: there is nothing in staging/ to lose,
+// and [RestoreSession.StageFile] refuses the absent source.
+func (l leaf) checkOutsideStaging(src string) error {
+	if src == "" {
+		return nil
+	}
+	abs, err := filepath.Abs(src)
+	if err != nil {
+		return refusal(StateRefused, "restore from %s: %v", src, err)
+	}
+	dir, err := filepath.EvalSymlinks(filepath.Dir(abs))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return refusal(StateRefused, "restore from %s: %v", src, err)
+	}
+	staging, err := filepath.EvalSymlinks(l.stagingDir)
+	if err != nil {
+		return refusal(StateRefused, "resolve %s: %v", l.stagingDir, err)
+	}
+	paths := []string{filepath.Join(dir, filepath.Base(abs))}
+	switch resolved, err := filepath.EvalSymlinks(abs); {
+	case err == nil:
+		paths = append(paths, resolved)
+	case !errors.Is(err, fs.ErrNotExist):
+		return refusal(StateRefused, "restore from %s: %v", src, err)
+	}
+	for _, p := range paths {
+		if rel, err := filepath.Rel(staging, p); err == nil && filepath.IsLocal(rel) {
+			return refusal(StateRefused, "restore from %s: it is in %s, which a restore clears", src, l.stagingDir)
+		}
+	}
 	return nil
 }
 
@@ -213,7 +265,7 @@ func (s *RestoreSession) Close() error {
 
 // StagePath returns the path the incoming store is staged at, in
 // staging/. A fetch writes it there itself; [RestoreSession.StageFile]
-// copies a local file there.
+// copies the local file [RestoreOptions.FromFile] names there.
 func (s *RestoreSession) StagePath() string {
 	return s.stage
 }
@@ -243,14 +295,19 @@ func (s *RestoreSession) CheckSpace(size int64) error {
 	return requireFree(s.leaf.stagingDir, uint64(size)+journalSizeLimit)
 }
 
-// StageFile copies the local file src into the session's stage at
-// mode 0600 and syncs it, leaving src untouched. It refuses, staging
-// nothing, when src is absent, not a regular file, or unreadable; when
-// a -wal or -journal file sits beside it, since a byte copy of such a
-// database is torn; when src is the live database or a file in
-// staging/; and when staging/ lacks the space [RestoreSession.CheckSpace]
-// checks.
-func (s *RestoreSession) StageFile(src string) error {
+// StageFile copies the local file [RestoreOptions.FromFile] names,
+// src here, into the session's stage at mode 0600 and syncs it,
+// leaving src untouched. [OpenRestore] has already refused a src
+// inside staging/. StageFile refuses, staging nothing, when the session
+// has no src; when src is absent, not a regular file, or unreadable;
+// when a -wal or -journal file sits beside it, since a byte copy of
+// such a database is torn; when src is the live database; and when
+// staging/ lacks the space [RestoreSession.CheckSpace] checks.
+func (s *RestoreSession) StageFile() error {
+	src := s.fromFile
+	if src == "" {
+		return errors.New("stage: the restore session names no file to restore from")
+	}
 	resolved, err := s.checkSource(src)
 	if err != nil {
 		return err
@@ -296,13 +353,6 @@ func (s *RestoreSession) checkSource(src string) (string, error) {
 		return "", fmt.Errorf("restore from %s: it is the live database %s", src, s.leaf.dbPath)
 	case err != nil && !errors.Is(err, fs.ErrNotExist):
 		return "", fmt.Errorf("stat %s: %w", s.leaf.dbPath, err)
-	}
-	staging, err := filepath.EvalSymlinks(s.leaf.stagingDir)
-	if err != nil {
-		return "", fmt.Errorf("resolve %s: %w", s.leaf.stagingDir, err)
-	}
-	if filepath.Dir(resolved) == staging {
-		return "", fmt.Errorf("restore from %s: it is in %s, which a restore clears", src, s.leaf.stagingDir)
 	}
 	for _, p := range []string{src, resolved} {
 		for _, suffix := range []string{"-wal", "-journal"} {
