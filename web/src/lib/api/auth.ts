@@ -1,10 +1,10 @@
 /**
  * The client side of the auth flow's two POST endpoints
  * (`internal/auth/handlers.go`), and the shared reading of an outcome
- * into what a page renders. Every URL composes from the runtime base
- * (R-5ciii6, S12): `apiURL` joins kit's `resolve('/')` with the
- * endpoint name rather than a root-absolute literal, so a deployment
- * under any prefix reaches its own server.
+ * into what a page renders. Every URL composes from the runtime base:
+ * `apiURL` joins kit's `resolve('/')` with the endpoint name rather
+ * than a root-absolute literal, so a deployment under any prefix
+ * reaches its own server.
  */
 import { resolve } from '$app/paths';
 import { AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, unknownAddressLine } from '$lib/copy/deck';
