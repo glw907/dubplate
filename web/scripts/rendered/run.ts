@@ -23,7 +23,7 @@
  * those two fixtures declare.
  */
 import { chromium } from 'playwright';
-import type { Browser, BrowserContext, Page } from 'playwright';
+import type { Browser, BrowserContext, Page, Response as PlaywrightResponse } from 'playwright';
 import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
 import {
   ADD_MEMBER_LABELS,
@@ -31,6 +31,7 @@ import {
   CROSS_ORIGIN_REFUSED,
   INTERSTITIAL_CONTROL,
   NETWORK_FAILURE,
+  ROSTER_OUTCOMES,
   TITLES,
   unknownAddressLine
 } from '../../src/lib/copy/deck.ts';
@@ -153,6 +154,10 @@ interface Endpoints {
   loginLinkOrdering: string;
   /** A second, distinct real minted link for the fixture admin, spent by the `signed_in` state-table row. */
   loginLinkSignedIn: string;
+  /** A real minted link for the fixture admin, spent by the add-member row. */
+  membersAddLink: string;
+  /** A real minted link for the fixture member, spent by the non-admin row. */
+  membersNonAdminLink: string;
 }
 
 /**
@@ -747,8 +752,16 @@ function isExpectedViolation(visit: Visit, v: Violation): boolean {
   return visit.expectedBlock !== null && v.directive === 'img-src' && v.blocked === visit.expectedBlock;
 }
 
+/**
+ * Chromium logs "Failed to load resource" for any fetch response
+ * outside 2xx, whether or not the page's own code reads the status:
+ * the auth flow's intentional 4xx/5xx answers and the members page's
+ * non-admin row's intentional 404 from `roster` each need this, or the
+ * console-error check below would end the whole run on a deliberate
+ * refusal.
+ */
 const AUTH_ERROR_STATUS_RE =
-  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link)\)$/;
+  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster)\)$/;
 
 function isExpectedConsoleError(visit: Visit, text: string): boolean {
   if (
@@ -917,8 +930,13 @@ async function iconRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   }
 }
 
-/** The members stub's declared identity, the client navigation's target. */
-const MEMBERS_HEADING = 'Members';
+/**
+ * The client navigation row's landing identity. Its visitor carries no
+ * session, so the real members page (Task 9a) answers the roster GET's
+ * 404 with the not-found state, never the roster's own "Members"
+ * heading, which now shows only to a signed-in admin.
+ */
+const MEMBERS_HEADING = TITLES.notFound;
 
 /** How long the navigation row watches for a request outside the prefix. */
 const NAVIGATION_WATCH_MS = 3_000;
@@ -953,6 +971,10 @@ async function clientNavigationRow(browser: Browser, endpoints: Endpoints): Prom
     const before = (await requestLog(endpoints.requestLog)).length;
     const visit = await openBooted(context, endpoints.base, PAGES[1]);
     await logSince(endpoints.requestLog, before, (r) => paths.icons.includes(r.path), ICON_TIMEOUT_MS);
+    // This visitor carries no session, so the members page's own
+    // roster fetch meets the admin gate's 404 once it mounts, the same
+    // deliberate refusal Task 9a's non-admin row spends a session on.
+    visit.expectsAuthErrorStatus = true;
 
     const from = (await requestLog(endpoints.requestLog)).length;
     await visit.page.evaluate(() => {
@@ -2750,6 +2772,149 @@ async function interstitialFulfilledRows(browser: Browser, endpoints: Endpoints)
   }
 }
 
+/**
+ * Opens link's interstitial and clicks its one control, waiting for the
+ * `signed_in` heading: the shared start every members-page row takes,
+ * since the roster API's own admin gate reads the session the click
+ * establishes.
+ */
+async function signIn(context: BrowserContext, link: string): Promise<Visit> {
+  const { visit } = await open(context, link, 'load');
+  await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+  await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+  await visit.page
+    .getByRole('heading', { level: 1, name: TITLES.loginLinkSignedIn, exact: true })
+    .waitFor({ timeout: BOOT_TIMEOUT_MS });
+  return visit;
+}
+
+/** A fresh address the add-member row writes: not on the fixture roster at the run's start. */
+const NEW_MEMBER_ADDRESS = 'new-member@example.test';
+
+/**
+ * The admin's add-member flow against the real roster API (R-5cii19's
+ * boundary, `internal/auth/admin.go`): sign in, read the fixture
+ * roster's two starting members, add a fresh address (`added`, the list
+ * grows by one), repeat it (`duplicate_address`), and prove the form
+ * carries no control named `admin` and the POST body's key set is a
+ * subset of the three write fields.
+ */
+async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'members/add-member';
+  const context = await browser.newContext();
+  try {
+    const visit = await signIn(context, endpoints.membersAddLink);
+    // The repeat submit deliberately meets `duplicate_address`'s 409.
+    visit.expectsAuthErrorStatus = true;
+    await visit.page.goto(new URL('members', endpoints.base).href);
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+    const adminControlCount = await visit.page.locator('[name="admin"]').count();
+    const initialCount = await visit.page.locator('#roster-list > li').count();
+
+    const bodies: string[] = [];
+    visit.page.on('request', (req) => {
+      if (req.method() === 'POST' && new URL(req.url()).pathname.endsWith('/roster')) {
+        bodies.push(req.postData() ?? '');
+      }
+    });
+
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(NEW_MEMBER_ADDRESS);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('New Member');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember1');
+    await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
+    await visit.page
+      .locator('#roster-outcome')
+      .filter({ hasText: ROSTER_OUTCOMES.added })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+    const afterAddCount = await visit.page.locator('#roster-list > li').count();
+
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(NEW_MEMBER_ADDRESS);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('New Member');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember2');
+    await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
+    await visit.page
+      .locator('#roster-outcome')
+      .filter({ hasText: ROSTER_OUTCOMES.duplicate_address })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+    const knownKeys = new Set(['address', 'display_name', 'streamer_username']);
+    const bodyKeysOK = bodies.length === 2 && bodies.every((b) => [...new URLSearchParams(b).keys()].every((k) => knownKeys.has(k)));
+
+    await report({
+      id,
+      fixture: initialCount === 2,
+      property: adminControlCount === 0 && afterAddCount === initialCount + 1 && bodyKeysOK,
+      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * A signed-in non-admin member reaching the members page by client
+ * navigation from the interstitial's own `signed_in` state: the roster
+ * API's GET meets the admin gate's 404 (`internal/auth/admin.go`'s
+ * `RequireAdmin`), so the not-found state renders with no roster, no
+ * form, and no leaked admin address. `loggedRequest` records no status
+ * (`rendered_test.go`'s `loggedRequest`), so the 404 is read from
+ * Playwright's own `response` event.
+ */
+async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'members/non-admin';
+  const context = await browser.newContext();
+  try {
+    const visit = await signIn(context, endpoints.membersNonAdminLink);
+    visit.expectsAuthErrorStatus = true;
+
+    let rosterStatus: number | null = null;
+    const onResponse = (res: PlaywrightResponse) => {
+      if (new URL(res.url()).pathname.endsWith('/roster')) rosterStatus = res.status();
+    };
+    visit.page.on('response', onResponse);
+
+    const from = (await requestLog(endpoints.requestLog)).length;
+    await visit.page.evaluate(() => {
+      const a = document.createElement('a');
+      a.href = '../members';
+      a.id = 'rendered-members-nav';
+      a.textContent = 'members';
+      document.querySelector('main')?.append(a);
+    });
+    await visit.page.click('#rendered-members-nav');
+
+    const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.notFound, exact: true });
+    const arrived = await heading
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    visit.page.off('response', onResponse);
+
+    const membersPath = new URL('members', endpoints.base).pathname;
+    const records = (await requestLog(endpoints.requestLog)).slice(from);
+    const documentRequested = records.some((r) => r.method === 'GET' && r.path === membersPath);
+    const adminAddressLeaked = (await visit.page.getByText(ADMIN_ADDRESS).count()) > 0;
+    const formCount = await visit.page.locator('form').count();
+    const rosterListCount = await visit.page.locator('#roster-list').count();
+
+    await report({
+      id,
+      fixture: arrived,
+      property:
+        rosterStatus === 404 &&
+        !documentRequested &&
+        !adminAddressLeaked &&
+        formCount === 0 &&
+        rosterListCount === 0,
+      detail: `roster GET status ${rosterStatus}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
 async function main(): Promise<void> {
   const endpoints: Endpoints = {
     base: requiredEnv('DUBPLATE_RENDERED_BASE_URL'),
@@ -2761,7 +2926,9 @@ async function main(): Promise<void> {
     siteName: requiredEnv('DUBPLATE_RENDERED_SITE_NAME'),
     adminDisplayName: requiredEnv('DUBPLATE_RENDERED_ADMIN_DISPLAY_NAME'),
     loginLinkOrdering: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_ORDERING'),
-    loginLinkSignedIn: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN')
+    loginLinkSignedIn: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN'),
+    membersAddLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_ADD_LINK'),
+    membersNonAdminLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK')
   };
   PAGES[0].heading = endpoints.siteName;
   PAGES[1].heading = TITLES.loginLinkRefused;
@@ -2796,6 +2963,8 @@ async function main(): Promise<void> {
     await interstitialSignedInRow(browser, endpoints);
     await interstitialRefusedReloadRow(browser, endpoints);
     await interstitialFulfilledRows(browser, endpoints);
+    await membersAddRow(browser, endpoints);
+    await membersNonAdminRow(browser, endpoints);
     refuseUnclean();
     await refuseLateLeaks(endpoints);
   } finally {

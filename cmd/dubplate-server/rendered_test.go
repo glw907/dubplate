@@ -171,6 +171,8 @@ var renderedManifest = []renderedRow{
 	{id: "auth/interstitial/too-large"},
 	{id: "auth/interstitial/malformed"},
 	{id: "auth/interstitial/failed"},
+	{id: "members/add-member", consumptions: 1},
+	{id: "members/non-admin", consumptions: 1},
 }
 
 // reportedRow is one JSON line the script writes to stdout. The two
@@ -247,6 +249,11 @@ const (
 	renderedAdminAddress     = "admin@example.test"
 	renderedAdminDisplayName = "Fixture <Admin>"
 	renderedMemberAddress    = "member@example.test"
+
+	// renderedNewMemberAddress is the address the add-member row writes:
+	// on no roster at the run's start, so `duplicate_address` on the
+	// second submit proves the first write landed.
+	renderedNewMemberAddress = "new-member@example.test"
 )
 
 // renderedEnviron is the fixture environment: a temporary state
@@ -594,6 +601,12 @@ func TestRendered(t *testing.T) {
 	loginLinkOrdering := mintRenderedLink(t, environ, renderedAdminAddress)
 	loginLinkSignedIn := mintRenderedLink(t, environ, renderedAdminAddress)
 
+	// The add-member row signs the fixture admin in once; the non-admin
+	// row signs the fixture member in once. Each spends its own minted
+	// link, single-use like every other consumption row's.
+	membersAddLink := mintRenderedLink(t, environ, renderedAdminAddress)
+	membersNonAdminLink := mintRenderedLink(t, environ, renderedMemberAddress)
+
 	env := append(scriptEnviron(),
 		"DUBPLATE_RENDERED_BASE_URL="+base,
 		"DUBPLATE_RENDERED_REQUEST_LOG="+logSrv.URL,
@@ -605,6 +618,8 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_ADMIN_DISPLAY_NAME="+renderedAdminDisplayName,
 		"DUBPLATE_RENDERED_LOGIN_LINK_ORDERING="+loginLinkOrdering,
 		"DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN="+loginLinkSignedIn,
+		"DUBPLATE_RENDERED_MEMBERS_ADD_LINK="+membersAddLink,
+		"DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK="+membersNonAdminLink,
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {
@@ -643,6 +658,20 @@ func TestRendered(t *testing.T) {
 			t.Log(row.Detail)
 		})
 	}
+
+	// The add-member row's write reaches the fixture roster file on
+	// disk, proving the POST the script drove was the real roster API,
+	// not a fulfilled route.
+	t.Run("members/roster-file", func(t *testing.T) {
+		rosterPath := environValue(environ, "DUBPLATE_ROSTER_FILE")
+		data, err := os.ReadFile(rosterPath)
+		if err != nil {
+			t.Fatalf("read the fixture roster file: %v", err)
+		}
+		if !bytes.Contains(data, []byte(renderedNewMemberAddress)) {
+			t.Fatalf("the fixture roster file does not carry the added address %q: %s", renderedNewMemberAddress, data)
+		}
+	})
 
 	// A browser missing from Playwright's cache must fail the leg with
 	// the install hint, never skip it: an empty browsers path takes the
