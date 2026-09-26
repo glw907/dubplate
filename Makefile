@@ -34,8 +34,10 @@ tidy-check:
 # or drifted `npm ci --prefix web`, builds the SvelteKit static bundle,
 # then runs svelte-check and the static web gates (no server-only file,
 # no hardcoded color, no external origin, font delivery, theme
-# variable completeness, theme contrast, and the built bundle's
-# stamped theme values, and no root-absolute URL). It builds the bundle twice and fails unless
+# variable completeness, theme contrast, the built bundle's stamped
+# theme values, no root-absolute URL, no AI-writing tell in a
+# user-facing string, and the string deck's own coverage against
+# internal/auth's outcome constants). It builds the bundle twice and fails unless
 # the two build trees match file for file, so the build is
 # reproducible. `check` runs it first because the Go tests that read
 # the embedded bundle need it current before `go test` runs; the
@@ -96,7 +98,9 @@ web:
 	(cd web && node scripts/gates/g2.ts); \
 	(cd web && node scripts/gates/g9.ts); \
 	(cd web && node scripts/gates/theme-bundle.ts); \
-	(cd web && node scripts/gates/root-absolute.ts)
+	(cd web && node scripts/gates/root-absolute.ts); \
+	(cd web && node scripts/gates/ai-tells.ts); \
+	(cd web && node scripts/gates/deck-coverage.ts)
 
 # RENDERED_TIMEOUT bounds the rendered test binary. It is explicit
 # because go test's ten-minute default would bind long before a stuck
