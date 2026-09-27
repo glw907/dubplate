@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
+	"github.com/glw907/dubplate/internal/engine/matcher/unidecode"
 	"github.com/glw907/dubplate/internal/harness/analysis"
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
@@ -121,7 +122,7 @@ func TestDefaultsCrossCheckCatchesPerturbedThreshold(t *testing.T) {
 
 // TestUnidecodeCheckAgreesWithCommittedManifest reads
 // corpus/manifest.json (read-only) and confirms its pinned unidecode
-// field agrees with the engine's own embedded table version.
+// field agrees with the binary's own pinned unidecode version.
 func TestUnidecodeCheckAgreesWithCommittedManifest(t *testing.T) {
 	root := repoRoot(t)
 	manifest, err := cassette.LoadManifest(filepath.Join(root, "corpus", "manifest.json"))
@@ -141,7 +142,7 @@ func TestUnidecodeCheckCatchesStampMismatch(t *testing.T) {
 		t.Fatal("expected the unidecode pin check to fire on a mismatched stamp")
 	}
 	msg := err.Error()
-	if !strings.Contains(msg, "1.3.9") || !strings.Contains(msg, matcher.UnidecodeVersion) {
+	if !strings.Contains(msg, "1.3.9") || !strings.Contains(msg, unidecode.Version) {
 		t.Errorf("error does not name both versions: %v", err)
 	}
 }

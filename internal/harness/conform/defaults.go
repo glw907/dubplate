@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
+	"github.com/glw907/dubplate/internal/engine/matcher/unidecode"
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
 
@@ -79,15 +80,15 @@ func gradeTunables(profile string) (matcher.Tunables, error) {
 }
 
 // CheckUnidecodeVersion asserts that manifest's pinned unidecode
-// version equals the engine's own embedded transliteration table
-// version (fold, M-c). Task 3 exports the stamp from package matcher;
-// this is the one place the corpus's own pin is read back against it,
-// because reading the corpus from the harness is the direction the
-// architectural invariant permits (see arch_test.go), and reading it
-// from the engine would trip that same check.
+// version equals the pinned version the binary builds its
+// transliteration table from. This is the one place the corpus's own
+// pin is read back against it, because reading the corpus from the
+// harness is the direction the architectural invariant permits (see
+// arch_test.go), and reading it from the engine would trip that same
+// check.
 func CheckUnidecodeVersion(manifest cassette.Manifest) error {
-	if manifest.Unidecode != matcher.UnidecodeVersion {
-		return fmt.Errorf("unidecode version: manifest pins %q, matcher embeds %q", manifest.Unidecode, matcher.UnidecodeVersion)
+	if manifest.Unidecode != unidecode.Version {
+		return fmt.Errorf("unidecode version: manifest pins %q, binary pins %q", manifest.Unidecode, unidecode.Version)
 	}
 	return nil
 }
