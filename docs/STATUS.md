@@ -33,7 +33,7 @@ gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys un
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), overnight 2026-09-26 | OPEN: transliteration; Task 1 at `5318671`, `1ca79d7` (second fix ruled: narrow Task 1b); 1b, 2, 3 running as `wf_45c82967-ff9`; then the boundary, segment B |
+| 1 | main tree (master), overnight 2026-09-26 | OPEN: transliteration; segment A accepted (Tasks 1 `5318671` `1ca79d7`, 1b `194c01c`, 2 `e8e158d`, 3 `850cb4c` `189a6c8`); spend about 2.1M of 3.3M (flag 2.64M, segment B will cross it; continuing under the overnight grant, as 6c did); segment B (Task 4, simplifier, Task 5) next |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
