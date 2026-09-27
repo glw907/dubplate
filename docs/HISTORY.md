@@ -2,6 +2,298 @@
 
 Per-pass ledger, newest first.
 
+## Rung 5, pass 5c-iv (the string deck, the three real pages, the signed-in header, and the render-and-read): closed 2026-09-26, lane 1
+
+Executed against Tasks 7 through 11 of
+`docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
+ratified 2026-09-25 under Ruling 1's yes; refreshed at `131283c` against 5c-iii's close), in the
+main tree. Segments D-i and D-ii (Task 0, Task 7, the register fold, Tasks 8, 9a, 9b) ran in the
+2026-09-25 overnight window and ended at `1fc7260`. Segment E (Task 10, its folds, the review
+round, and this close) ran on 2026-09-26 from `d3fc403` to `1a08eae`. The code range after D-ii
+is `git log --oneline 1fc7260..1a08eae -- web cmd Makefile .gitignore`, which also lists
+6c's and 6c-fix's lane 2 commits merged in the same window.
+
+### What landed
+
+- **Task 0** (`3987f84`, `23c4dbe`; `research/2026-09-25-rung-5c-iv-task-0-report.md`): the
+  staleness pre-task's second run. No blocker; the pin check closed by the conductor.
+- **Task 7** (`caebe7d`; fix round `e4ce78b`): the string deck (`web/src/lib/copy/deck.ts`),
+  `title.ts`, and two gates wired into the `web` target. `ai-tells.ts` ports cairn's
+  admin-prose check. `deck-coverage.ts` reads `internal/auth`'s outcome constants and fails by
+  name on an uncovered outcome, a forbidden character, a sign-out line claiming revocation, or a
+  stray `{@html}`. The fix round closed a `TITLES` coverage gap and made the AI-tells rules see
+  curly apostrophes, which they had never matched.
+- **The register gate** (`1f189b7`; `research/2026-09-25-rung-5c-iv-register-review.md`): 25
+  items, 24 folded into the deck, `title.ts`, `deck-coverage.ts`, and the plan's Task 8 and 9a
+  text; item 23 ("streamer username") went to Geoff and is still open.
+- **Task 8** (`75526ae`): the real login page, the consumption interstitial (the token read and
+  stripped by the native `history.replaceState` before any other work, spent only on a click),
+  the error page, the `Mark` component, and the auth POST helper. The rendered harness gained
+  the live rate budget: rows declare `linkRequests` and `consumptions`, and the test reconciles
+  them against its own request log, so `checkRateBudget` can fail at last.
+- **Task 9a** (`eb04cbc`; `c231577`, `fe8e687`): the add-member page with the roster list, a
+  required streamer username, no admin control, and a non-admin not-found state proven from
+  both the Go request log and Playwright's `response` event. The fix round caught a rejected
+  fetch and a 403 that had fallen through to "unknown_field".
+- **Task 9b** (`a9ff5d5`; fix round `1fc7260`): `SiteHeader.svelte` (mark, wordmark, theme
+  toggle, Sign out), the header halo and hover, the unlayered-count ratchet, and the header
+  rows. The fix round repaired the swap's collapsed geometry, added a ring-contains-icon check,
+  took Phosphor's bold sun and moon, and added Ruling 4's row.
+- **Task 10** (`d3fc403`): the capture matrix (fifteen states, five widths, both schemes, 150
+  captures, each asserting its fixture state first), the secondary-control guard, the
+  viewport-overflow floor at 320 and 390, and the W4.10 touch floor at Ruling 8's tiers.
+  An on-demand mint endpoint gives each signed-in capture its own single-use link.
+- **Task 10b** (`47331b4`, `opus`): capture determinism (a roster reset per cell, the pointer
+  parked, pending controls and animations waited out, every primary fill checked at rest), the
+  member count asserted per state, the Inline exception narrowed to an anchor in running text,
+  and the `/favicon.ico` carve-out narrowed to the plain-text 404. The script deadline is 13m
+  and `RENDERED_TIMEOUT` 18m, both below the fixture's link expiry, which `TestRendered` checks.
+  The styled 404 did not land (below).
+- **Task 10c** (`9c44d19`; `c1bec33`): the first read's page fold. Items 1 to 4 and 6 to 13
+  landed, and item 14 was refused. The fold covered the reset form's stale invalid state, the
+  duplicate-address field mark, and the sent moment's lede and alignment. It raised field-label
+  contrast to 4.5:1 with a G9 row, gave header and main one capped content measure sharing one
+  `--content-gutter`, and added a root `clamp()` (W4.9). It also joined only the meta segments
+  present and linked the signed-in dead end onward. It kept the signed-in header on a non-admin
+  not-found. `c1bec33` replaced two alignment checks that could not fail.
+- **The simplifier** (`1e48f93`): shared arrange bodies and POST guard, one error-page heading,
+  `OutcomeClass` unexported, and line-number citations replaced by symbol names. One
+  `diff-reviewer` accepted it.
+- **Fold R1** (`913bbc2`, accepted with no fix round): security M1 and M2, the a11y blocker,
+  and the shared plumbing (one announcer, skip link, and `postForm` in the layout and `$lib`).
+  The header moved onto a stock navbar at a pinned height. Lookups use `Object.hasOwn`. A
+  token-absent load has its own line.
+- **Fold R2** (`92147bc`; fix round `aa8e19e`): page accessibility, typography, and the deck.
+  Busy controls use `aria-disabled`, and focus returns. Server errors mark their own field and
+  clear on input. The h1 falls back to a deck title, and members gained an unreachable state
+  with retry. The sent moment splits slab title and body copy. The slab ladder (h1 36, h2 20,
+  wordmark 24/30) landed, with non-breaking meta segments and the ghost button's ink on the
+  column edge.
+- **Fold R3** (`4c5864a`, whose subject mislabels it "Task R2"; `8337877`): one
+  `$lib/api/outcome.ts` resolver replaces three outcome-to-text copies. A non-2xx sign-out
+  reads the generic failure line, and the roster JSON is shape-checked. The pending guard
+  matches `aria-disabled`, and the oracle covers `signed_out`. `deck-coverage` walks every
+  export. The header clears at 320 and 390 through a component breakpoint (D1); the wordmark
+  stays at 20px and the mark at 24px (`8337877`). The meta line is 12px mono (C1), and P1 to P4
+  landed.
+- **Fold R3b** (`1a08eae`): `post.ts` reads every arrived non-JSON answer as `failed` (a 403
+  stays `cross_origin`; `network_failure` only for a fetch that threw), with a rendered row
+  proving a 404 page on sign-out. It also carried the `requested` line's repeat and
+  deck-coverage failing on a nested export. `memberCountLine(1)` is sampled.
+
+### What the gates and reviewers caught
+
+- **The styled 404 (Task 10b's escalation).** `RequireAdmin` (`internal/auth/admin.go:112`)
+  answers a refusal exactly as `http.NotFound` does, so a non-admin cannot tell a gated path from
+  an unregistered one, and two `serve_test.go` tests enforce it. A styled 404 at unknown paths
+  therefore also moves the gate's refusal, which is auth surface. **Ruled: deferred to rung 7.**
+  The unlanded work is at `research/patches/2026-09-26-styled-404-fallback.patch`. The
+  error-not-found capture asserts the bare 404 and keeps `skipUIFloors`.
+- **The render-and-read folds** (`research/2026-09-25-rung-5c-iv-render-and-read.md`): the
+  first read (fold, 14 items) went to 10b and 10c. The re-read at `c1bec33` over all 75 images
+  found nothing broken and ruled four items to the review fold. The lockup on the
+  interstitials went to rung 7, and the valid border beside an unknown-address alert was
+  refused. The final read at `aa8e19e` (`research/2026-09-26-rung-5c-iv-final-reads.md`) found
+  the 320 header collision (D1) and five polish items, all folded in R3.
+- **Security M1, token re-injection.** A fragment on the mailed link made SvelteKit's
+  `reset_focus` `replaceState` restore `?t=` to the address bar and history, reproduced in
+  Chromium (kit 2.70.3). R1's `web/src/hooks.client.ts` init reads the token into a module
+  holder and strips the query before kit resolves the URL; this also closes L2 (token in
+  `page.url`). A `#main` variant joined the ordering row, and L1 now snapshots the log before
+  navigation.
+- **Security M2 and a11y W7, silent sign-out failure.** Sign out navigated to `/login` whatever
+  the answer, leaving the cookie on failure. It now leaves only on a 2xx `signed_out` and
+  otherwise announces. The first fix announced the network line for every failure. The fault
+  was the conductor's R1 ruling text, which named only two lines. The web architecture read
+  caught it, and R3 and R3b made a reached server read `failed`.
+- **The a11y blocker B1.** Sign out on hover and focus in `label` painted DaisyUI's `base-200`
+  under cream text (1.14:1 focused). The header button now takes the bar's colors in the
+  component layer, with a rendered row measuring hover and focus in both themes.
+- **The 320 header collision (D1).** The wordmark touched "Sign out" at 320 in every members
+  state. The component breakpoint fixes it, with a row asserting 8px of clearance at 320 and
+  390.
+- **Refused, with reasons, in the fold record:** L4 (login CSRF through a member's own link;
+  routed), L5, L7, svelte suggestions 3, 8, and 11, and the valid-border items.
+
+The fold record (`research/2026-09-26-rung-5c-iv-review-fold.md`) carries every finding and
+its disposition: security (no Critical or High, two Medium), a11y (one blocker, nine warnings),
+and svelte (no blocker, nine warnings).
+
+### The architecture reads
+
+Both at `aa8e19e`, both **workmanlike**, recorded in `research/2026-09-26-rung-5c-iv-final-reads.md`.
+
+- **`web/`** (source comment density 0.40 against kit's `runtime/client` 0.17, the excess about
+  50 process-citation lines). Its correctness findings folded in R3: the sign-out line, three
+  outcome-to-text copies, the unchecked roster cast, the `.btn:disabled` guard, the oracle's
+  missing `signed_out`, and `deck-coverage`'s hand-kept export list. Its architecture findings
+  route to the cleanup pass: the roster client to `$lib/api/roster.ts`, unused exports, the
+  5,248-line `run.ts` split by concern, and gates named by spec number. Also routed: WCAG
+  luminance computed twice with two thresholds (`g9.ts` 0.03928, `run.ts` 0.04045), the
+  `#outcome` test hook, deck dictionaries typed `Record<string,string>`, and the unreachable
+  `browser` guards.
+- **`cmd/dubplate-server`** (density 0.429 against `cmd/gofmt` 0.298). `storeVouches` closes the
+  prior read's latent finding. Every finding routes: the harness's two link-delivery paths,
+  `requirePOST` restating `methodOnly`, the literal env key names, and the duplicated sum loop
+  go to cleanup. The `rosterResetServer` baseline goes to 6d Task 4, and the new process
+  citations to the comment cleanup.
+
+### The exit gate
+
+`bash scripts/check.sh` green on master through R3b's chain at `1a08eae` (heavy lane, 150
+captures).
+
+1. Faces embedded, pinned, licensed, served, G4 and G5: **met** (5c-iii Task 1).
+2. Inks at 4.5:1 on all three bases, G9's closed list: **met** (5c-iii Task 2; 10c added the
+   field-label row).
+3. The rendered leg in every full gate, manifest, W12.1 refusals: **met** (5c-iii Task 3a).
+4. Tier precedence and match-layer values: **met** (5c-iii Task 3b).
+5. First paint equals base-100 in all six states: **met** (5c-iii Task 3a).
+6. Byte-identical builds: **met** (5c-iii Task 3a).
+7. `theme-color`, escaped site name, `noindex`, prefix, no `/favicon.ico`, no root-absolute URL:
+   **met** (5c-iii Task 4; 10b narrowed the favicon carve-out to the plain-text 404).
+8. The focus ring on every tabbable element: **met** (5c-iii Task 5, 9b, with the header halo,
+   the swap in the walk, and ring-contains-icon).
+9. The interstitial drops the token before any request and spends it on a click: **met**
+   (Task 8; R1 closed the fragment re-injection M1 found).
+10. The toggle's persistent cookie and meta; a non-admin sees no roster and no form: **met**
+    (Tasks 9b, 9a).
+11. Every deck line for every outcome and title; AI-tells and register gate: **met** (Task 7,
+    `1f189b7`).
+12. Every page state at five widths in both schemes, floors green, read and folded: **met**,
+    with one state deferred by name. The error-not-found state renders Go's bare 404 without
+    the UI floors until rung 7's styled 404 (Task 10b's ruling).
+13. The prefix proof's hydration half: **met** (5c-iii Task 3a).
+
+**Deferred, by name** (the plan's list, all to rung 7): the photo column and error-page photos
+(Ruling 3); the sleeve, grain, rim, no-art sleeve, and Permanent Marker (Ruling 5); VI's "Open
+for rung 7" list; W12.4's remaining rendered rules; W11.8's dev fixture; W4.10's 44px
+promotion (Ruling 8); both palettes' placeholder opacity. Added by this pass: the styled 404.
+
+### Errata owed
+
+Task 11 names the rung 5 spec's 5c row and the web surface standard's section 15 lines without
+a file line, so these are owed as paste-ready blocks, not applied. 5c-iii's errata 1 and 2
+(above in its entry) are also still unapplied; apply them first, then these after them.
+
+**5c-iv-E1. The rung 5 spec's 5c row closes.** Append after the last erratum block before "The
+pass split" (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2497-2504`), after
+5c-iii's erratum 1:
+
+> Erratum, 2026-09-26 (pass 5c-iv close): **the 5c row is closed.** 5c ran as four passes,
+> 5c-i, 5c-ii, 5c-iii, and 5c-iv, and 5c-iv closed on 2026-09-26 at `1a08eae`. The row's exit
+> gate (`:2518`) is met with one exception. "All three pages rendered and read by the lane"
+> ran as fifteen page states at five widths in both schemes, read three times by a fresh
+> reader and folded. The styled not-found page is deferred to rung 7, because routing the admin
+> gate's refusal through it is auth surface. Rung 5 continues at 5d.
+
+**5c-iv-E2. The web surface standard's section 15, as landed.** Append after the AI-tells
+paragraph (`docs/superpowers/specs/2026-09-12-web-surface-standard.md:1825-1829`), after
+5c-iii's erratum 2:
+
+> Erratum, 2026-09-26 (pass 5c-iv close): **the render and the AI-tells rule, as landed.**
+> "A lane's own render at the widths it was going to render at anyway" (`:1819-1823`) landed
+> as a gated leg, not a lane's read. The rendered leg captures fifteen page states at W4.1's
+> five widths in both schemes (150 captures) inside every full gate. It adds the W12.4
+> overflow floor at 320 and 390 and the W4.10 touch floor at Ruling 8's tiers. The AI-tells
+> rule landed as `web/scripts/gates/ai-tells.ts` in the `web` target, beside R5's register gate
+> on the deck, which ran as a `prose-voice-reviewer` read and its fold. Neither enforces the
+> other's standard.
+
+**5c-iv-E3. Section 15's W3.7 binding.** Append after `:1813` ("W3.7's 404 split") in the
+same section:
+
+> Erratum, 2026-09-26 (pass 5c-iv close): **W3.7's unknown-path half moves to rung 7.** The
+> 5c pages carry the in-app not-found state (a non-admin on members). An unknown URL still
+> answers Go's bare 404, because the admin gate answers a refusal the same way by design. The
+> styled document for both lands together at rung 7, under a `web-auth-security-reviewer`
+> read.
+
+### Gate evidence
+
+The full heavy gate runs the rendered leg with 150 captures. `renderedScriptTimeout` is 13m and
+`RENDERED_TIMEOUT` 18m (Task 10b), both below the fixture's link expiry, which `TestRendered`
+checks. The 15 final contact sheets from `1a08eae` regenerate under `web/rendered-captures/`
+(ignored) on any full gate.
+
+### What stayed open, and where it goes
+
+**To 5d:**
+
+- `deploy.sh`'s clean `web/` build ships nothing Node or Playwright, so the rendered leg is
+  absent on the box. The clean-build row records that, and nothing on the box runs it.
+- The operator runbook states that the kind unknown-address answer reveals the first admin's
+  contact, and whether an address is a member (security review, informational).
+
+**To rung 7:**
+
+- Ruling 5's four items; the photo column under Ruling 3; W12.4's remaining rules; W4.10's 44px
+  promotion; both palettes' placeholder opacity.
+- The outline, dash, and status-ghost text fix (DaisyUI's `--btn-rest-fg`/`--btn-color`), with a
+  text-contrast row covering `.btn-dash`. The secondary-control guard keeps them off every page
+  until then.
+- 5c-iii's three latent items: the ink border over the outline hover fill, a wrapped
+  `<label class="input">` in a status alert, and root-absolute's `srcset` match on a data URI.
+- The favicon paths named twice (`web.go:295-298`, `:485-488`), for the cleanup pass.
+- The styled 404, with the admin gate's refusal through the same handler (`AdminConfig.NotFound`
+  or equivalent), starting from the saved patch, under a `web-auth-security-reviewer` read;
+  the error page's onward link (a11y S9) goes with it.
+- The toggle following a later OS scheme change under `system` (a11y S11, svelte suggestion 6).
+- A Continue link on the signed-in interstitial and the header wordmark's target (N1), once a
+  member page exists and the consume answer carries an admin flag (`internal/auth` work).
+- The magic-link login-CSRF hardening: a masked "Sign in as a***@" line (security L4).
+- The phone gutter `clamp()` (svelte suggestion 13) and the interstitials' identity lockup.
+
+**To 6d Task 4:** `rosterResetServer`'s baseline (`rendered_test.go:613-659`).
+
+**To the architecture cleanup pass:** the routed findings of both reads (above and in the
+final-reads file). Two more: no independent oracle cross-checks the roster outcome classes,
+and the login title argument and W6's h1 fallback have no rendered proof. A row fulfilling the
+login document without its site-name meta through `context.route` would give them one.
+
+### Budgets
+
+Tokens: segment E spent about **6.0M** in subagent tokens. Task 10 took 0.53M, 10b 0.44M, and
+10c 0.74M. The simplifier and its review took about 0.4M, the three pass-end reviewers about
+0.4M, R1 and R2 1.31M, R3 0.72M, and R3b 0.31M. Five fresh reads and two architecture reads took
+about 1.2M. Segments D-i and D-ii (Task 0, 7, the register fold, 8, 9a, 9b) ran inside the
+2026-09-25 overnight window, which stopped at its 21.6M flag across every pass it ran, and were
+not recorded separately. So the pass total is not scorable against its ceiling: 9.2M
+re-derived at 5c-iii's close, 8.5M in the plan. Segment E alone reached about 65% of 9.2M,
+against the plan's 6.50M projection for all of 5c-iv. With five chains and a register fold
+before it, the pass very likely crossed the 7.36M flag. That is an inference, not a measurement.
+The cause is pass growth: the plan's single Task 10 fold became 10b, 10c, R1, R2, R3, and R3b.
+
+Attended time: **0 execution sittings** after approval; Geoff was asked nothing about 5c-iv
+during execution. **1 planning miss:** the plan's Task 10 did not see that a styled 404 at
+unknown paths crosses the admin gate's indistinguishability contract. The conductor ruled it
+(deferred to rung 7), with no pull-in.
+
+### Process lessons
+
+- A `code-simplifier` dispatch forked into the one tree lane 1 shares. One tree runs one
+  executor, and that holds for the simplifier too.
+- A ruling worded too narrowly produced the wrong line. R1's sign-out ruling named two
+  failure lines, the implementer built exactly that, and every other failure announced the
+  network line. A ruling that enumerates cases needs its catch-all stated.
+- Pass growth: the plan's one small fold after the read became six fold chains (10b, 10c, R1,
+  R2, R3, R3b). Each was defensible alone, and the total is what crossed the budget.
+
+### What a later pass would be wrong to rediscover
+
+- **The harness delivers links two ways**: seven pre-minted `DUBPLATE_RENDERED_*_LINK` env vars
+  and `mintServer` per cell. The expiry override, its guard, and the `RENDERED_TIMEOUT`
+  coupling exist only for the first path; the cleanup makes `mintServer` the only one.
+- **`rosterResetServer`'s baseline** is whatever the roster file holds at the first POST, valid
+  only by script order. 6d Task 4 rewrites this server onto the users table and must make the
+  snapshot explicit.
+- **The `.btn:disabled` pending guard could never fire.** The app marks busy controls
+  `aria-disabled`, never `disabled`. Any harness wait on a busy control matches
+  `.btn[aria-disabled="true"]`.
+- **DaisyUI's `.btn:hover` and `:focus-visible` rules outrank a ghost button's colors on a
+  neutral bar**, painting `base-200` under cream text. A button on the header bar takes the
+  bar's colors in the component layer and needs a rendered hover and focus row in both themes.
+
 ## Rung 6, pass 6c (the routed schema and settings home): closed 2026-09-26, lane 2
 
 Executed against
