@@ -1,0 +1,44 @@
+{
+  "title": "The Sex Pistols at Paradiso",
+  "source_title": "Engelse Punk Rockgroep de Sex Pistols in Paradiso, Bestanddeelnr 928-9661.jpg",
+  "photographer": "Koen Suyk / Anefo",
+  "credit": "Nationaal Archief / Anefo",
+  "source_id": "commons:73897464",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Engelse_Punk_Rockgroep_de_Sex_Pistols_in_Paradiso,_Bestanddeelnr_928-9661.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Engelse_Punk_Rockgroep_de_Sex_Pistols_in_Paradiso%2C_Bestanddeelnr_928-9661.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |Description=... Beschrijving : Engelse \"Punk\" Rockgroep de Sex Pistols in Paradiso ... Datum : 6 januari 1977 ... Instellingsnaam : Paradiso ... Fotograaf : Suyk, Koen / Anefo ... Auteursrechthebbende : Nationaal Archief. License-header: {{CC-zero}}. Verified 2026-09-25 by research-c.",
+  "license": "CC0-1.0",
+  "subject": [
+    "performers",
+    "clubs-and-venues"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "scene": {
+    "primary": "punk"
+  },
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL",
+    "landmark": {
+      "name": "Paradiso",
+      "wikidata_id": "Q1535378"
+    }
+  },
+  "year": {
+    "value": 1977,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Sex Pistols",
+      "mbid": "e5db18cb-4b1f-496d-a308-548b611090d3"
+    }
+  ],
+  "source_sha256": "99fbfb98cff4bd045e7173ee76079f26ed9ca99a8bdadcc7b8e45ae2c37088f9",
+  "status": "picked",
+  "sha256": "6b903e35c4362db71df0aa081a156e7593680f4a757b3949c911231ea6f0ab74",
+  "width": 1600,
+  "height": 1066
+}

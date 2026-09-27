@@ -1,0 +1,33 @@
+{
+  "title": "Muscle Shoals Sound Studio exterior",
+  "source_title": "Muscle Shoals Sound Studio Exterior",
+  "photographer": "A1bi",
+  "source_id": "commons:125742880",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Muscle_Shoals_Sound_Studio_Exterior.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Muscle_Shoals_Sound_Studio_Exterior.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-4.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{self|cc-by-sa-4.0}}\", source={{own}}, date 2022-11-18. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "recording-studios"
+  ],
+  "year": {
+    "value": 2022,
+    "precision": "exact"
+  },
+  "source_sha256": "40063b73419bb6fe286b709fa24a0fcaa08c7e3a1dc8812944a69ccd7eafc9ec",
+  "place": {
+    "city": "Sheffield, Alabama",
+    "country_code": "US",
+    "landmark": {
+      "name": "Muscle Shoals Sound Studio",
+      "wikidata_id": "Q679366"
+    }
+  },
+  "status": "picked",
+  "sha256": "c71f1cb9fdcc673b13482063186ec773135e742e3bbb8d7d19a69b585f42de36",
+  "width": 1600,
+  "height": 1210
+}

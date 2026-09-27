@@ -1,0 +1,30 @@
+{
+  "title": "Sound system at Notting Hill Carnival",
+  "source_title": "sound system at Notting Hill Carnival 2015",
+  "photographer": "Independently London",
+  "source_id": "flickr:50795898158",
+  "source_url": "https://www.flickr.com/photos/independentlylondon/50795898158/",
+  "file_url": "https://live.staticflickr.com/65535/50795898158_9da841652c_o.jpg",
+  "retrieved_at": "2026-09-25T22:59:24Z",
+  "license": "CC-BY-2.0",
+  "verified": "Flickr photo model JSON on the raw page: \"license\":4, mapped through vocab.json's flickr_licenses table to CC-BY-2.0. Page description: \"This photo appears on our blog at www.londependence.party/caribbean_2.\" No aggregator or third-party credit; account (Londependence / Independently London, pathAlias independentlylondon) is a personal London photo-blog account, own upload. Verified 2026-09-25. Re-verified 2026-09-25 (round-1 re-verification): re-fetched raw/flickr-50795898158.html and confirmed \"license\":4 still holds on the live page; no change since the grant.",
+  "format": "photograph",
+  "shot": "candid",
+  "subject": [
+    "sound-systems",
+    "crowds-and-dancers"
+  ],
+  "place": {
+    "city": "London",
+    "country_code": "GB"
+  },
+  "year": {
+    "value": 2015,
+    "precision": "exact"
+  },
+  "source_sha256": "53360db590625a739fc2b7ae7b2abf81b18bb72d701219c93c5cf7ae8a2bb638",
+  "status": "picked",
+  "sha256": "84ab4d24f5dac239c23ea5c77168bbe8dda145a9fa048947573825e338c91871",
+  "width": 1600,
+  "height": 1071
+}

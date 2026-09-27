@@ -1,0 +1,41 @@
+{
+  "title": "James White & The Contortions, SO 36",
+  "photographer": "Braunov",
+  "source_id": "commons:3135253",
+  "source_url": "https://commons.wikimedia.org/wiki/File:James_White_1981_2.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/2/20/James_White_1981_2.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "900137aa35ad81bf5e79660fe1c417a414009495fc54ea163989157570a5c6a6",
+  "scene": {
+    "primary": "no-wave"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1981,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{Information|Source={{Own}}|Author=[[User:Braunov|Braunov]]}} {{cc-by-sa-3.0}} (verified 2026-09-26 by sweep-b). Own-work plausibility: uploaded 2007-11-23, 26 years after the 1981 photo date. User:Braunov's userpage (fetched raw) carries a small personal gallery titled \"Musik/music\" naming this exact frame (\"James White/Chance, 1981, SO 36, Berlin\") alongside three other Berlin concert photos from the same 1980-1982 window (Elvis Costello 1980, The Selecter 1980, Bow Wow Wow 1982), all at the same two Berlin venues (SO 36, Kant-Kino) and all self-credited to the same account. This is a small, internally consistent personal concert-photo archive, not an isolated old-photo claim.",
+  "place": {
+    "city": "Berlin",
+    "country_code": "DE"
+  },
+  "artists": [
+    {
+      "name": "James Chance and the Contortions",
+      "mbid": "80eee8dd-55e4-47ef-8246-f17ffd17c983"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "status": "picked",
+  "sha256": "17d70248471238d83e22857edc2690c53543f16f707bf85703524256a083a17e",
+  "width": 1600,
+  "height": 917,
+  "focus": {
+    "x": 24,
+    "y": 92
+  }
+}

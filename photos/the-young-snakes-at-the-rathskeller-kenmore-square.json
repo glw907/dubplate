@@ -1,0 +1,41 @@
+{
+  "title": "The Young Snakes at the Rathskeller, Kenmore Square",
+  "source_title": "YoungSnakesRat",
+  "photographer": "David Henry",
+  "source_id": "commons:16275755",
+  "source_url": "https://commons.wikimedia.org/wiki/File:YoungSnakesRat.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/de/YoungSnakesRat.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-3.0",
+  "verified": "action=raw wikitext: |source=[http://www.davidphenry.com http://www.davidphenry.com/bands/bands006.htm] |author=[[User:Davidputhenry|David Henry]] |date=1981. License-header: \"{{self|cc-by-sa-3.0}}\". Own-work plausibility (work dated 1981, first uploaded 2011-08-30 per api.php revisions rvdir=newer, a 30-year gap): the uploader account Davidputhenry matches the named photographer David Henry, and the source field points to davidphenry.com, the photographer's own site hosting his band photography, so the account holder is plausibly the site owner and original photographer releasing his own archive. Re-verified 2026-09-25 by research-b (added the missing license-line quote and the own-work plausibility statement).",
+  "format": "photograph",
+  "shot": "live",
+  "subject": [
+    "performers"
+  ],
+  "year": {
+    "value": 1981,
+    "precision": "exact"
+  },
+  "source_sha256": "a77c2565363c441e06d1cb9d5a262f6b5cffe6e9eaae25bb6ceeafd80ea6cc5d",
+  "scene": {
+    "primary": "post-punk"
+  },
+  "place": {
+    "city": "Boston",
+    "country_code": "US",
+    "landmark": {
+      "name": "The Rat (Kenmore Square)"
+    }
+  },
+  "artists": [
+    {
+      "name": "The Young Snakes",
+      "mbid": "10d543a8-7e2f-4d83-a555-8f83595e2c42"
+    }
+  ],
+  "status": "picked",
+  "sha256": "99e952df6c21a10f1cddb223dd7bfb945fea91182ad96f1c7d586db3de994a1a",
+  "width": 1354,
+  "height": 1050
+}

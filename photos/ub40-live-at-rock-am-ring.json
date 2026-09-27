@@ -1,0 +1,37 @@
+{
+  "title": "UB40 live at Rock am Ring",
+  "photographer": "Unknown, Commons uploader",
+  "source_id": "commons:1972265",
+  "source_url": "https://commons.wikimedia.org/wiki/File:UB40%20Rock%20am%20Ring%201987.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/UB40_Rock_am_Ring_1987.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T23:43:53.478Z",
+  "source_sha256": "cc67553ed584dc94d088af7de3ece7c94db07367636f99edfeaf66b8e4794827",
+  "scene": {
+    "primary": "reggae"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1987,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{self|Cc-by-sa-2.0-de|author=Elmar J. Lordemann}} (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Nürburg",
+    "country_code": "DE"
+  },
+  "artists": [
+    {
+      "name": "UB40",
+      "mbid": "7113aab7-628f-4050-ae49-dbecac110ca8"
+    }
+  ],
+  "license": "LicenseRef-CC-BY-SA-2.0-DE",
+  "status": "picked",
+  "sha256": "ce39104e8095ac90b7b0c402d516bcca6adb99d0fca2b90d015569628635048e",
+  "width": 1449,
+  "height": 953
+}

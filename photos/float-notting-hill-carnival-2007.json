@@ -1,0 +1,33 @@
+{
+  "title": "Float, Notting Hill Carnival 2007",
+  "source_title": "Notting Hill Carnival 2007 (London, UK)",
+  "photographer": "Dominic Alves",
+  "source_id": "commons:4632445",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Notting_Hill_Carnival_2007_004.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Notting_Hill_Carnival_2007_004.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{cc-by-2.0}}\" via Flickr upload bot (Flickr-origin, reviewer Okki). Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "candid",
+  "subject": [
+    "crowds-and-dancers"
+  ],
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "source_sha256": "67f5353065d70408b006134f1e39ecd3cd2e386458fba5be2d6d5208f1944000",
+  "origin_id": "flickr:1259144131",
+  "scene": {
+    "primary": "reggae"
+  },
+  "place": {
+    "city": "London",
+    "country_code": "GB"
+  },
+  "status": "picked",
+  "sha256": "71c52aac8516b64942fa8b05ddb0181baa26b7e47e723a8b7a62e2e6c9ca0930",
+  "width": 1600,
+  "height": 1252
+}

@@ -1,0 +1,39 @@
+{
+  "title": "The Kinks, KRLA Beat group photo",
+  "photographer": "KRLA Beat / Beat Publications",
+  "source_id": "commons:139148268",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The%20Kinks%20(1965-06-27%20KRLA%20Beat%20group%20photo%20-%20retouch).jpg",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/The_Kinks_%281965-06-27_KRLA_Beat_group_photo_-_retouch%29.jpg/1920px-The_Kinks_%281965-06-27_KRLA_Beat_group_photo_-_retouch%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-26T00:07:58.149Z",
+  "source_sha256": "56610887d9f24e07c967faf968b60541a487b6a51dc860f7e1c4f68f9a3ec280",
+  "scene": {
+    "primary": "mod"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1965,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{PD-Scan|PD-Pre1978}}; the basis line, from the same page's |permission= field: \"When KRLA BEAT originally published this image, they did not include a copyright notice on either the photograph or as part of its caption. The publication failed to included a blanket copyright notice on any of its pages.\" Published 1965-06-27 in KRLA Beat, well before 1978 (re-verified 2026-09-25 by research-a; adds the no-notice line the round-1 spot-check found missing)",
+  "artists": [
+    {
+      "name": "The Kinks",
+      "mbid": "17b53d9f-5c63-4a09-a593-dde4608e0db9"
+    }
+  ],
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-pre-1978-no-notice",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Studio group portrait, Commons-tagged public domain press photo."
+  },
+  "status": "picked",
+  "sha256": "c99653f7461d328d4ca1bdebee67fb74bb481ed99a19560751f36700a8ed8b5e",
+  "width": 1600,
+  "height": 1294
+}

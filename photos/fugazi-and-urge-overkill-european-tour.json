@@ -1,0 +1,33 @@
+{
+  "title": "Fugazi and Urge Overkill, European tour",
+  "photographer": "Unknown, Commons uploader",
+  "source_id": "commons:112481266",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Fugazi%20&%20Urge%20European%20Tour%201990.jpg",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Fugazi_%26_Urge_European_Tour_1990.jpg/1920px-Fugazi_%26_Urge_European_Tour_1990.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-25T23:54:17.339Z",
+  "source_sha256": "4745e8fb31533d6ad36acd58326550fe8c43c3c7bd52d5c28966e8bd5ecc8d5f",
+  "scene": {
+    "primary": "hardcore"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1990,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{self|cc-by-sa-4.0}}, own work by [[User:URGE - Band|URGE - Band]], dated 2012-06-29 (a scan; the file carries [[Category:Scanned with Epson WorkForce 645]], real scanner EXIF), first cross-wiki uploaded from de.wikipedia to Commons 2021-11-13 (about 22 to 31-year own-work gap from the 1990 tour date). Plausibility for the gap: the uploading account (URGE (Band)) has only two edits total, this photo and its own File:URGE LOGO.jpg, consistent with the band's own minimal official account posting its own archival tour photo and logo rather than an unrelated third party's claim (re-verified 2026-09-25 by research-a)",
+  "artists": [
+    {
+      "name": "Fugazi",
+      "mbid": "233fc3f3-6de2-465c-985e-e721dbabbace"
+    }
+  ],
+  "license": "CC-BY-SA-4.0",
+  "status": "picked",
+  "sha256": "454d113ebcae20875516a9b64364c9cc3a8a69173dc97818b5056ea431ed13cc",
+  "width": 1600,
+  "height": 1163
+}

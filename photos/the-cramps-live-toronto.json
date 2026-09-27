@@ -1,0 +1,45 @@
+{
+  "title": "The Cramps live, Toronto",
+  "photographer": "Jeremy Gilbert (Canada Jack)",
+  "source_id": "commons:6073988",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Cramps1982-07.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/79/Cramps1982-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T20:23:00.000Z",
+  "source_sha256": "4c79314859e1e02c85b8166a5d2bfa4ac38dcb3076576feb3561857a9af3d77a",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "place": {
+    "city": "Toronto",
+    "country_code": "CA"
+  },
+  "year": {
+    "value": 1982,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: Description={{en|1=The Cramps (Lux Interior on vocals, Poison Ivy on guitar) perform at Larry's Hideaway in Toronto, June 14, 1982}}; Author=[[User:Canada Jack|Canada Jack]] aka Jeremy Gilbert; {{self|cc-by-sa-3.0|GFDL}}. Own-work claim is 27 years before the 2009-03-02 upload (imageinfo timestamp), so plausibility: the same account's upload history (allimages, aiuser=Canada Jack) is a large, consistently self-attributed batch of own-work Toronto concert photographs from exactly this era (1980 to 1988: Suicide's Alan Vega and Martin Rev, the Viletones, John Otway, Dave Edmunds, Nick Lowe), all uploaded around the same date with matching black-and-white period character and detailed per-photo metadata -- the pattern of a Toronto scene photographer digitizing their own contact sheets decades later, not an isolated or dubious claim (verified 2026-09-25 by dolls search agent)",
+  "artists": [
+    {
+      "name": "Lux Interior",
+      "mbid": "58856f5c-0589-4811-9441-c08a077d4bd9"
+    },
+    {
+      "name": "Poison Ivy"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "size_exception": "Own-work black-and-white concert photo from a well-documented Toronto club show (Larry's Hideaway, June 14 1982), one of very few surviving freely licensed images from this early, less-photographed era of the band; no larger scan is offered by the uploader.",
+  "status": "picked",
+  "sha256": "84e3b9c63473d1b8349b97d0aef8a9aa96d40a4fa0e791718378b9532239aec1",
+  "width": 790,
+  "height": 1002,
+  "focus": {
+    "x": 26,
+    "y": 39
+  }
+}

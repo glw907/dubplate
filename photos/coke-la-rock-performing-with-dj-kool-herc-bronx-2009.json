@@ -1,0 +1,52 @@
+{
+  "title": "Coke La Rock performing with DJ Kool Herc, Bronx, 2009",
+  "photographer": "Bigtimepeace",
+  "source_id": "commons:6172376",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Coke_La_Rock_raps.JPG",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Coke_La_Rock_raps.JPG",
+  "retrieved_at": "2026-09-26T02:53:58Z",
+  "verified": "Raw wikitext for commons:6172376, fetched 2026-09-26: `{{PD-self}}`, with `|Source={{Own}}` and `|Author=[[User:Bigtimepeace|Bigtimepeace]]`, `|Date=2009-02-28`. No delete, copyvio, or no-permission template present. Basis: rights-holder-dedication (photographer's own PD-self dedication, own work dated the same year as upload).",
+  "source_sha256": "36dbdc9228604f2951e5ec41971797255d1069eae72b5e270978c41e69a4db2a",
+  "license": "LicenseRef-public-domain",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2009,
+    "precision": "exact"
+  },
+  "source_title": "Coke La Rock raps.JPG",
+  "place": {
+    "city": "Bronx",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Coke La Rock",
+      "mbid": "f81e9644-acf3-46ee-be8d-f815d95766ac"
+    },
+    {
+      "name": "DJ Kool Herc",
+      "mbid": "8ecc4c7e-9482-4557-bf0f-d74783a9e670"
+    }
+  ],
+  "public_domain": {
+    "basis": "rights-holder-dedication",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Own-work photograph by uploader User:Bigtimepeace, self-dedicated to the public domain via {{PD-self}}; taken 2009-02-28 and uploaded 2009-03-09, so the own-work claim is contemporaneous."
+  },
+  "status": "picked",
+  "sha256": "12e2024487e4e2e7aa8634d5756c7204f665dbca561a34facf0df3182e6e5ab9",
+  "width": 1200,
+  "height": 1600,
+  "focus": {
+    "x": 47,
+    "y": 43
+  }
+}

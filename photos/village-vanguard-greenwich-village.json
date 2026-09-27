@@ -1,0 +1,36 @@
+{
+  "title": "Village Vanguard, Greenwich Village",
+  "source_title": "Village Vanguard 2018",
+  "photographer": "Alwin Tong",
+  "source_id": "commons:71420610",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Village_Vanguard_2018.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Village_Vanguard_2018.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-4.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{self|cc-by-sa-4.0}}\", source={{own}}, date 2018-07-06. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2018,
+    "precision": "exact"
+  },
+  "source_sha256": "bb394116b4a902807f3ecc56657c922fdf18343c8fc1d7141d2f8f3010537a5f",
+  "scene": {
+    "primary": "jazz"
+  },
+  "place": {
+    "city": "New York",
+    "country_code": "US",
+    "landmark": {
+      "name": "Village Vanguard",
+      "wikidata_id": "Q670623"
+    }
+  },
+  "status": "picked",
+  "sha256": "d3eab6d789d6bf37a837fffb45cec86f70cebf5fe693782e64461e9f985990c8",
+  "width": 1600,
+  "height": 1200
+}

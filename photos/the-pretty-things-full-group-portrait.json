@@ -1,0 +1,38 @@
+{
+  "title": "The Pretty Things, full-group portrait",
+  "photographer": "Joop van Bilsen",
+  "source_id": "commons:59422418",
+  "source_url": "https://commons.wikimedia.org/wiki/File:PrettyThings1965.jpg",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/PrettyThings1965.jpg/1920px-PrettyThings1965.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-26T00:07:41.751Z",
+  "source_sha256": "f65ed598d8e2b9c1880175e89cc46d96ce74f153f79faee370ad2840d1275ec5",
+  "scene": {
+    "primary": "mod"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1965,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{cc-zero}} (verified 2026-09-25 by research-a)",
+  "credit": "Anefo",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "artists": [
+    {
+      "name": "The Pretty Things",
+      "mbid": "07deede6-db1d-4ede-b19e-5d46df592841"
+    }
+  ],
+  "license": "CC0-1.0",
+  "status": "picked",
+  "sha256": "06da3d360def1841ce7490802f25cf6dbf76533b57a3fe9e16e31f68501d1c3a",
+  "width": 1600,
+  "height": 1258
+}

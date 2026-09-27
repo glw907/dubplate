@@ -1,0 +1,34 @@
+{
+  "title": "De La Soul live",
+  "photographer": "Gozamos",
+  "source_id": "commons:76564416",
+  "source_url": "https://commons.wikimedia.org/wiki/File:De_La_Soul_(4971659790).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/De_La_Soul_%284971659790%29.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{FlickreviewR|status=passed|author=gozamos|sourceurl=https://flickr.com/photos/49934554@N08/4971659790|archive=https://web.archive.org/web/20190113025218/https://flickr.com/photos/49934554@N08/4971659790|reviewdate=2019-02-13 23:35:07|reviewlicense=cc-by-sa-2.0|reviewer=FlickreviewR 2}}`; `Author = [https://www.flickr.com/people/49934554@N08 Gozamos]`, `Date = 2010-09-04 20:07`.",
+  "source_sha256": "5b4f5084931d88bef9191f7c06c35fd3d890b3d41e197ca7cd21a8300f66cb25",
+  "license": "CC-BY-SA-2.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2010,
+    "precision": "circa"
+  },
+  "source_title": "De La Soul (4971659790).jpg",
+  "artists": [
+    {
+      "name": "De La Soul",
+      "mbid": "a8ebde98-7e91-46c7-992c-90039ba42017"
+    }
+  ],
+  "status": "picked",
+  "sha256": "2fbbe8956bb369f129ae760e96e12742b67fec832339e459fbcfedc2c13b5c18",
+  "width": 1600,
+  "height": 1067
+}

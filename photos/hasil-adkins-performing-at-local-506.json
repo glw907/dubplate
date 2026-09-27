@@ -1,0 +1,42 @@
+{
+  "title": "Hasil Adkins performing at Local 506",
+  "photographer": "Artie Haywired (Flickr: Fuzzsonic)",
+  "source_id": "commons:31650416",
+  "origin_id": "flickr:11287805",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Hasil_Adkins_at_Local_506_in_2003.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/19/Hasil_Adkins_at_Local_506_in_2003.jpg",
+  "retrieved_at": "2026-09-26T22:15:00.000Z",
+  "source_sha256": "80b2fcc32e47abcd6bc58a80f86f06bd76e8a4ca035a93d89f79bb81e9751c5f",
+  "scene": {
+    "primary": "rockabilly"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2003,
+    "precision": "exact"
+  },
+  "place": {
+    "city": "Chapel Hill",
+    "country_code": "US"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{User:FlickreviewR/reviewed-pass|Fuzzsonic|https://www.flickr.com/photos/82461669@N00/11287805|2014-03-17 00:50:07|cc-by-sa-2.0|}}{{cc-by-sa-2.0}}, |source=https://www.flickr.com/photos/fuzzyt/11287805/. Flickr owner NSID 82461669@N00 (screen name Fuzzsonic) is absent from Commons:Questionable_Flickr_images and its /Users subpage (checked 2026-09-26). (verified 2026-09-26 by sweep-a)",
+  "artists": [
+    {
+      "name": "Hasil Adkins",
+      "mbid": "0c3319f3-d4c9-48d4-ba4c-deb7cd3c125b"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "status": "picked",
+  "sha256": "f50e2075440cd28a2a41e73da7db7362f9ecd9353ee4ea7f0d2f1e7c47a0e55a",
+  "width": 1592,
+  "height": 1600,
+  "focus": {
+    "x": 60,
+    "y": 53
+  }
+}

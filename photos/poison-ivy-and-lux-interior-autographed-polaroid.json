@@ -1,0 +1,45 @@
+{
+  "title": "Poison Ivy and Lux Interior, autographed Polaroid",
+  "photographer": "Masao Nakagami",
+  "source_id": "commons:46529429",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Cramps_1_(3256228691).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Cramps_1_%283256228691%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T20:23:00.000Z",
+  "source_sha256": "acb5783f00b156e01c31f4a02579906023829ba8fc18944e8f15960dab1b50bb",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "place": {
+    "city": "Tokyo",
+    "country_code": "JP"
+  },
+  "year": {
+    "value": 1990,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: Description = {{en|1=Autographed Polaroid of Poison Ivy and Lux Interior of The Cramps in Tokyo, Japan, 19 November 1990}}; Source = https://www.flickr.com/photos/goro_memo/3256228691/; Author = [https://www.flickr.com/people/45489981@N00 Masao Nakagami]; {{cc-by-sa-2.0}} {{User:FlickreviewR/reviewed-pass|masao nakagami|https://flickr.com/photos/45489981@N00/3256228691|2016-01-23 01:48:49|cc-by-sa-2.0|}} (verified 2026-09-25 by dolls search agent)",
+  "artists": [
+    {
+      "name": "Lux Interior",
+      "mbid": "58856f5c-0589-4811-9441-c08a077d4bd9"
+    },
+    {
+      "name": "Poison Ivy"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "source_title": "Autographed Polaroid of Poison Ivy and Lux Interior of The Cramps in Tokyo, Japan, 19 November 1990",
+  "status": "picked",
+  "sha256": "ea2f971c1a75f293eb5fb0a9daa10e0896c8f831d49ca8183b579eb4eb676cb0",
+  "width": 1035,
+  "height": 1229,
+  "focus": {
+    "x": 63,
+    "y": 33
+  }
+}

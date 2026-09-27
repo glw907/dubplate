@@ -1,0 +1,58 @@
+{
+  "title": "Run-D.M.C. and Uncle Jam's Army, Santa Monica Jam Festival, 1984",
+  "photographer": "Uncle Jam's Army",
+  "source_id": "commons:61657014",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Uncle_Jam%27s_Army_-_Run_D.M.C._and_Uncle_Jam%27s_Army_Jam_Festival_Poster.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Uncle_Jam%27s_Army_-_Run_D.M.C._and_Uncle_Jam%27s_Army_Jam_Festival_Poster.jpg",
+  "retrieved_at": "2026-09-26T02:53:58Z",
+  "verified": "Raw wikitext for commons:61657014, fetched 2026-09-26: `{{PD-text}}` under `=={{int:license-header}}==`. Viewed the scan directly (799x1015): blue serif and sans-serif type only, on a plain light-blue ground; no drawing, logo art, or photograph. Basis: below-threshold-of-originality (purely typographic flyer).",
+  "source_sha256": "741cf9ab7ce9cde65419abbf217ee3d07191685759e5f0c5db49a308f8e10f18",
+  "size_exception": "1015px long edge is the only known digitization of this 1984 Uncle Jam's Army/Run-D.M.C. Santa Monica Jam Festival flyer; no larger scan is known to exist.",
+  "license": "LicenseRef-public-domain",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "still-life",
+  "format": "flyer",
+  "year": {
+    "value": 1984,
+    "precision": "exact"
+  },
+  "source_title": "Uncle Jam's Army - Run D.M.C. and Uncle Jam's Army Jam Festival Poster.jpg",
+  "place": {
+    "city": "Santa Monica",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Run-D.M.C.",
+      "mbid": "5ecc3f72-20a6-47a0-8dc5-fb0b3dadeea0"
+    }
+  ],
+  "public_domain": {
+    "basis": "below-threshold-of-originality",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "A purely typographic concert flyer (text only, no drawing, logo art, or photograph), below the threshold of originality for US copyright; Commons {{PD-text}}."
+  },
+  "artwork": {
+    "artist": "Uncle Jam's Army",
+    "credit": "Uncle Jam's Army",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Uncle_Jam%27s_Army_-_Run_D.M.C._and_Uncle_Jam%27s_Army_Jam_Festival_Poster.jpg",
+    "verified": "Raw wikitext for commons:61657014, fetched 2026-09-26: `{{PD-text}}`. Viewed directly: purely typographic layout (type only), below the threshold of originality.",
+    "license": "LicenseRef-public-domain",
+    "public_domain": {
+      "basis": "below-threshold-of-originality",
+      "jurisdiction": "US",
+      "us_status": "public domain",
+      "fact": "A purely typographic concert flyer with no drawing, logo art, or photograph, below the threshold of originality for US copyright; Commons {{PD-text}}. The record's file is a faithful flat scan, so this basis covers the scan too."
+    }
+  },
+  "status": "picked",
+  "sha256": "64a2c2bf250aa14e0f2d11a42e2eb970e6555f15ffba62d7dc2dacebd296e264",
+  "width": 799,
+  "height": 1015
+}

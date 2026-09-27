@@ -1,0 +1,32 @@
+{
+  "title": "430 King's Road, Chelsea",
+  "photographer": "Chris Whippet",
+  "source_id": "commons:103914289",
+  "source_url": "https://commons.wikimedia.org/wiki/File:430_Kings_Road,_Chelsea_-_geograph.org.uk_-_1893747.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/d8/430_Kings_Road%2C_Chelsea_-_geograph.org.uk_-_1893747.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T20:23:00.000Z",
+  "source_sha256": "02b0164083e8e070e0d03e4c077c41b7ca70b4b3c1ef3c55e30ad3e38d186e26",
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "place": {
+    "city": "London",
+    "country_code": "GB",
+    "landmark": {
+      "name": "430 King's Road (SEX, later Seditionaries and Worlds End)"
+    }
+  },
+  "year": {
+    "value": 2010,
+    "precision": "exact"
+  },
+  "verified": "Commons structured data fetched raw (action=wbgetentities, ids=M103914289; the file carries no license wikitext, only structured/Wikidata license data via the {{Geograph from structured data}} template, and the spot-check ruled out extmetadata as evidence for this file type): statement P275 (copyright license) resolves to Q19068220, whose Wikidata label (action=wbgetentities on wikidata.org) is \"Creative Commons Attribution-ShareAlike 2.0 Generic\"; statement P571 (inception) is \"+2010-06-01T00:00:00Z\", matching the record's year; qualifier P2093 on the P275 statement names \"Chris Whippet\" as the credited author. (re-verified 2026-09-26 replacing the prior extmetadata quote per the round-1 spot-check ruling). No period (1974 to 1976) photo of the shop front was found freely licensed; this is the modern landmark photo per the owner's fallback instruction, clearly dated 2010.",
+  "license": "CC-BY-SA-2.0",
+  "source_title": "430 Kings Road, Chelsea",
+  "status": "picked",
+  "sha256": "e78212aca442901cca4c2be30182e95f88be166de8fd1bb34b49e30b0a04eb64",
+  "width": 1600,
+  "height": 1200
+}

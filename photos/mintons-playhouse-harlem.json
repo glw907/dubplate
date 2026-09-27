@@ -1,0 +1,37 @@
+{
+  "title": "Minton's Playhouse, Harlem",
+  "source_title": "Minton's Playhouse",
+  "photographer": "\"MR.119th. STREET\"",
+  "source_id": "commons:10456561",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Minton%27s_Playhouse.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Minton%27s_Playhouse.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{cc-by-sa-2.0}}\" plus FlickreviewR pass record, Flickr source 330679609. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2006,
+    "precision": "exact"
+  },
+  "source_sha256": "f0ffd4b9a053bc7a4d1f807652cceb543bf6c920f6fa555dacc689546bda9fa5",
+  "origin_id": "flickr:330679609",
+  "scene": {
+    "primary": "jazz"
+  },
+  "place": {
+    "city": "New York",
+    "country_code": "US",
+    "landmark": {
+      "name": "Minton's Playhouse",
+      "wikidata_id": "Q1814151"
+    }
+  },
+  "status": "picked",
+  "sha256": "a6c45eb1a7f625fed5142684f382acbd447083ebc9acdc974d906c129b2ae7d2",
+  "width": 1600,
+  "height": 1200
+}

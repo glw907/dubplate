@@ -1,0 +1,36 @@
+{
+  "title": "Miriam Makeba at Grand Gala du Disque Populaire",
+  "source_title": "Miriam Makeba, Bestanddeelnr 922-1835.jpg",
+  "photographer": "Rob Mieremet / Anefo",
+  "credit": "Nationaal Archief / Anefo",
+  "source_id": "commons:66752493",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Miriam_Makeba,_Bestanddeelnr_922-1835.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Miriam_Makeba%2C_Bestanddeelnr_922-1835.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |Description={{nl|... Fotograaf : Rob Mieremet / Anefo ... Auteursrechthebbende : Nationaal Archief ...}} |Date={{Taken on|1969-03-07|location=Netherlands}} |Author=Anefo. License-header: {{CC-zero}}. Verified 2026-09-25 by research-c.",
+  "license": "CC0-1.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "year": {
+    "value": 1969,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Miriam Makeba",
+      "mbid": "bc5c2918-4aba-4ef6-a245-100563a4487f"
+    }
+  ],
+  "source_sha256": "9de021de134d2e064b83deb22c0b665ec9de1f208f61069ee191a0ed78efe394",
+  "status": "picked",
+  "sha256": "d875ba673278440b709db572d912f190b49d831aac07502b8b252e84caf27d85",
+  "width": 1063,
+  "height": 1600
+}

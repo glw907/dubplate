@@ -1,0 +1,33 @@
+{
+  "title": "The Roundhouse, Camden, interior",
+  "source_title": "Interior, Camden Roundhouse",
+  "photographer": "Stephencdickson",
+  "source_id": "commons:69559587",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Interior%2C_Camden_Roundhouse.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/3/36/Interior%2C_Camden_Roundhouse.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-4.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{self|cc-by-sa-4.0}}\", source={{own}}, date 2013-08-12. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "interior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2013,
+    "precision": "exact"
+  },
+  "source_sha256": "9c4fb5d9c90dee518980a55540869f6d3eb626da03e1ee8d73b4c11906ebe92c",
+  "place": {
+    "city": "London",
+    "country_code": "GB",
+    "landmark": {
+      "name": "Roundhouse",
+      "wikidata_id": "Q1780197"
+    }
+  },
+  "status": "picked",
+  "sha256": "0c0adcc84dbb568210c27405f0bac1ec784c23caf6046cd7bbfb618c444a2b03",
+  "width": 1600,
+  "height": 1065
+}

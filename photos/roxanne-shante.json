@@ -1,0 +1,34 @@
+{
+  "title": "Roxanne Shante",
+  "photographer": "WBLS",
+  "source_id": "commons:189386721",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Roxanne_Shante_2.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Roxanne_Shante_2.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{YouTube CC-BY}}`; `Template:YouTube CC-BY/i18n/en` raw confirms it renders `{{cc-by-3.0|{{{1|}}}}}`; `author=WBLS`, `date=2026-03-16`.",
+  "source_sha256": "16193886e93e04e32ebce49dd1ae716240b8636b6b149f1804591e1a9cf788ca",
+  "license": "CC-BY-3.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 2026,
+    "precision": "exact"
+  },
+  "source_title": "Roxanne Shante 2.jpg",
+  "artists": [
+    {
+      "name": "Roxanne Shante",
+      "mbid": "401a5288-4317-4800-ac64-e4f1d8836617"
+    }
+  ],
+  "status": "picked",
+  "sha256": "f02adffb05cb64987eb125d6c91398fa525bd22e542d2c36f8b837fb8eb3ab17",
+  "width": 1472,
+  "height": 1080
+}

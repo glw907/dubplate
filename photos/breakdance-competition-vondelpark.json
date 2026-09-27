@@ -1,0 +1,33 @@
+{
+  "title": "Breakdance competition, Vondelpark",
+  "photographer": "Rob Bogaerts / Anefo",
+  "source_id": "commons:66435514",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Break_Dance_wedstrijd_in_Vondelpark,_Bestanddeelnr_933-0477.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/2/25/Break_Dance_wedstrijd_in_Vondelpark%2C_Bestanddeelnr_933-0477.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext license header: `{{CC-zero}}`; `Author=Rob Bogaerts / Anefo`, `Date=1984-08-11`.",
+  "source_sha256": "5d02ea6c868da2a6939ae799f740159b3cfaf577045a2058e3c5284135328fc1",
+  "license": "CC0-1.0",
+  "scene": {
+    "primary": "b-boy"
+  },
+  "subject": [
+    "crowds-and-dancers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1984,
+    "precision": "exact"
+  },
+  "source_title": "Break Dance wedstrijd in Vondelpark, Bestanddeelnr 933-0477.jpg",
+  "credit": "Nationaal Archief",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "status": "picked",
+  "sha256": "e367af1a25f2f3fbfdd25816c2279d76ec8b0203386534e4dc9725883cd70bd1",
+  "width": 1600,
+  "height": 1062
+}

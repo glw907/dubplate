@@ -1,0 +1,39 @@
+{
+  "title": "Q65 on the Scheveningen pier",
+  "source_title": "Q65-1966.jpg",
+  "photographer": "Jan Voets / Anefo",
+  "credit": "Nationaal Archief / Anefo",
+  "source_id": "commons:59183189",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Q65-1966.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Q65-1966.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |description={{en|1=Haagse Beatgroep Q 65 tijdens optreden op de pier van Scheveningen. Datum 5 juni 1966.}} |source=GaHetNa (Nationaal Archief NL) NL-HaNA 2.24.01.03 0 919-2266 |author={{Anefo|Jan Voets}}. License-header: {{cc-zero}}. Verified 2026-09-25 by research-c.",
+  "license": "CC0-1.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "scene": {
+    "primary": "garage"
+  },
+  "place": {
+    "city": "Scheveningen",
+    "country_code": "NL"
+  },
+  "year": {
+    "value": 1966,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Q65",
+      "mbid": "b81d3f0b-2c65-4075-84db-051e42a3f791"
+    }
+  ],
+  "source_sha256": "a7ebdf303280c097fee3f87293f4c7456fb22b5b7b953df49615bb3b8eee4c8d",
+  "status": "picked",
+  "sha256": "752ad47fe728774e6807074494697acfce00edaba273e1db0f552f419e08a689",
+  "width": 1600,
+  "height": 1524
+}

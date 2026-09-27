@@ -1,0 +1,37 @@
+{
+  "title": "Chess Records studio, Chicago",
+  "source_title": "Chess Records Studio",
+  "photographer": "Zol87",
+  "source_id": "commons:16607122",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Chess_Records_Studio.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/52/Chess_Records_Studio.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{cc-by-sa-2.0}}\" plus FlickreviewR pass record, Flickr source 3557334108, date 2009-05-20. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "recording-studios"
+  ],
+  "year": {
+    "value": 2009,
+    "precision": "exact"
+  },
+  "source_sha256": "63277338602ecbdbc61421eb228d37908bf699127075b546e86eabd182fb4b26",
+  "origin_id": "flickr:3557334108",
+  "scene": {
+    "primary": "blues"
+  },
+  "place": {
+    "city": "Chicago",
+    "country_code": "US",
+    "landmark": {
+      "name": "Chess Records",
+      "wikidata_id": "Q772494"
+    }
+  },
+  "status": "picked",
+  "sha256": "dea76c8a71783b221dca9421a5ad4e059e4c5a0c0a492dd2bc8e620249fd8411",
+  "width": 1200,
+  "height": 1600
+}

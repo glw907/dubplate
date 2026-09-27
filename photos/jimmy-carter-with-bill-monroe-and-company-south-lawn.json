@@ -1,0 +1,47 @@
+{
+  "title": "Jimmy Carter with Bill Monroe and Company, South Lawn",
+  "photographer": "White House Staff Photographers",
+  "source_id": "commons:93080929",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Jimmy_Carter_with_the_Blue_Grass_Band,_Bill_Monroe_and_Company,_at_the_Bandshell_on_the_South_Lawn_-_DPLA_-_049a1605f963fb2d5db001d37e6637dd.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Jimmy_Carter_with_the_Blue_Grass_Band%2C_Bill_Monroe_and_Company%2C_at_the_Bandshell_on_the_South_Lawn_-_DPLA_-_049a1605f963fb2d5db001d37e6637dd.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "8ce805542fc9683a62e9207698745f8cdc9b0377ba311a9f266fde2ce4fa64c2",
+  "scene": {
+    "primary": "bluegrass"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1980,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{PD-USGov}} (bare tag, but the file carries no authorship prose beyond the DPLA transclusion). Commons structured data (action=wbgetentities&ids=M93080929) confirmed instead: statement P6216 (copyright status) = Q19652 \"public domain\", qualified by P1001 (jurisdiction) = Q30 \"United States\" and P459 (determination method) = Q60671452 \"work of the federal government of the United States\" (labels resolved via wikidata.org wbgetentities, verified 2026-09-26 by sweep-b). Statement P180 (depicts) = Q170042 \"Bill Monroe\", confirming the subject. The file is a DPLA-aggregated National Archives item from the Carter White House photo office, consistent with the sweep's own source metadata (\"White House Staff Photographers, 1/20/1977-1/20/1981\").",
+  "place": {
+    "city": "Washington, D.C.",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Bill Monroe",
+      "mbid": "2a2be593-6984-4640-8cf1-717ec7a6e18b"
+    }
+  ],
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-government-work",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Commons structured data statement P459 (determination method) = \"work of the federal government of the United States\", qualifying P6216 (copyright status) = \"public domain\" under P1001 (jurisdiction) = \"United States\"; the image is a White House Staff Photographers item (1977-1981 Carter administration) aggregated via DPLA."
+  },
+  "status": "picked",
+  "sha256": "17ef17d8ee21850c3ee33ff5d6ed3d598647cb82c335c1a746954de355fa434c",
+  "width": 1600,
+  "height": 1149,
+  "focus": {
+    "x": 53,
+    "y": 20
+  }
+}

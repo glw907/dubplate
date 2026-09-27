@@ -1,0 +1,42 @@
+{
+  "title": "Hasil Adkins, Milestone Club",
+  "photographer": "C. Neil Scott",
+  "source_id": "commons:30675317",
+  "origin_id": "flickr:4293570273",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Hasil_Adkins_May_1991_Milestone_Club_in_Charlotte_NC.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/71/Hasil_Adkins_May_1991_Milestone_Club_in_Charlotte_NC.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "ea8b549d26b7ef86474475e886df46720f60f43415aedf1a67df4724eed62f1e",
+  "scene": {
+    "primary": "rockabilly"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1991,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{User:FlickreviewR/reviewed-pass|C. Neil Scott|https://www.flickr.com/photos/80715364@N00/4293570273|2014-01-18 06:50:08|cc-by-sa-2.0|}}{{cc-by-sa-2.0}} (verified 2026-09-26 by sweep-b). The live Flickr page returned HTTP 403 to an unauthenticated fetch (photo now access-restricted or removed), so the FlickreviewR record is the evidence of record for the grant, consistent with a CC grant being irrevocable. Own-work plausibility for the 23-year gap to the 2014 transfer: the Commons description carries a specific venue and exact date (\"performing live at the Milestone Club in Charlotte, NC, on 10 May 1991\"), pulled from the photographer's own Flickr caption at transfer time; the account's public profile (fetched raw) describes the photographer as someone with \"a penchant for capturing the allusive character and soul of a world that's left of center and/or fading. I make music too,\" consistent with a documentary music photographer holding a personal archive of an old show.",
+  "place": {
+    "city": "Charlotte",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Hasil Adkins",
+      "mbid": "0c3319f3-d4c9-48d4-ba4c-deb7cd3c125b"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "status": "picked",
+  "sha256": "1c088c5a265a5c2b642ce2f9090f8a30bb877c91f1c29ecffafa945429c418db",
+  "width": 1546,
+  "height": 1600,
+  "focus": {
+    "x": 64,
+    "y": 37
+  }
+}

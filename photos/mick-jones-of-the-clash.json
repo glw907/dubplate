@@ -1,0 +1,33 @@
+{
+  "title": "Mick Jones of The Clash",
+  "photographer": "Unknown, UCLA Library Special Collections",
+  "source_id": "commons:104865127",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Mick%20Jones%20of%20the%20Clash,%201978.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Mick_Jones_of_the_Clash%2C_1978.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "retrieved_at": "2026-09-26T00:07:29.799Z",
+  "source_sha256": "2ee61e95c558dea9f501cb2c2fa07de9f7645fa8e381cffbf98d3b0673f76acf",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1978,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{cc-by-2.0}}{{FlickreviewR|status=passed|author=Los Angeles Times Photographic Archive|sourceurl=https://flickr.com/photos/127608843@N08/24810703706|archive=|reviewdate=2021-05-03 13:46:12|reviewlicense=cc-by-2.0|reviewer=FlickreviewR 2}}, the FlickreviewR bot record of the grant in force at review (re-verified 2026-09-25 by research-a)",
+  "artists": [
+    {
+      "name": "Mick Jones",
+      "mbid": "01f8343c-06e2-4f05-a137-f8ea7efa85c4"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "dfb0d38bb6523cacf8ef2c8fd99db075125c2f56c7c39da60200c21accc1426d",
+  "width": 1600,
+  "height": 1466
+}

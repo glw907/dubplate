@@ -1,0 +1,33 @@
+{
+  "title": "Jamaican sound system, Coventry",
+  "source_title": "This is the City, Jamaican sound system",
+  "photographer": "A J Paxton",
+  "source_id": "commons:157802365",
+  "source_url": "https://commons.wikimedia.org/wiki/File:This_is_the_City%2C_Jamaican_sound_system_-_geograph.org.uk_-_7208771.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/de/This_is_the_City%2C_Jamaican_sound_system_-_geograph.org.uk_-_7208771.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-2.0",
+  "verified": "action=raw wikitext carries only \"{{Geograph from structured data}}\" (no license template in page text). Raw structured data (api.php action=wbgetentities, ids=M157802365, not the extmetadata aggregator): statement P275 (copyright license) resolves to Q19068220, whose Wikidata label is \"Creative Commons Attribution-ShareAlike 2.0 Generic\"; statement P571 (inception) is \"+2022-05-14T00:00:00Z\", matching the record's year. Re-verified 2026-09-25 by research-b (replaced the prior extmetadata quote with the raw structured-data statement, since this Geograph page carries its license only as Wikibase structured data, never wikitext).",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "sound-systems"
+  ],
+  "year": {
+    "value": 2022,
+    "precision": "exact"
+  },
+  "source_sha256": "eb6102ab643c97b82d7262d588254ae35704df42e529c97a61d4b802dcec1411",
+  "credit": "Geograph Britain and Ireland",
+  "scene": {
+    "primary": "reggae"
+  },
+  "place": {
+    "city": "Coventry",
+    "country_code": "GB"
+  },
+  "status": "picked",
+  "sha256": "4ccb4a3063142b2d23f5aede31749b9bf44999b7acb980ed85668d86badf76e2",
+  "width": 1600,
+  "height": 1195
+}

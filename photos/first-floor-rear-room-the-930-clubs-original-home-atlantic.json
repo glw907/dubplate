@@ -1,0 +1,41 @@
+{
+  "title": "First floor rear room, the 9:30 Club's original home, Atlantic Building",
+  "photographer": "John McWilliams (Historic American Buildings Survey)",
+  "source_id": "commons:33882251",
+  "source_url": "https://commons.wikimedia.org/wiki/File:FIRST_FLOOR_REAR_ROOM,_SAFE_DEPOSIT_ROOM_(Note-_This_was_the_9-30_Club_during_the_early_1980s)_-_Atlantic_Building,_930_F_Street,_Northwest,_Washington,_District_of_Columbia,_DC_HABS_DC,WASH,655A-5.tif",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/52/FIRST_FLOOR_REAR_ROOM%2C_SAFE_DEPOSIT_ROOM_%28Note-_This_was_the_9-30_Club_during_the_early_1980s%29_-_Atlantic_Building%2C_930_F_Street%2C_Northwest%2C_Washington%2C_District_of_Columbia%2C_DC_HABS_DC%2CWASH%2C655A-5.tif",
+  "retrieved_at": "2026-09-26T04:55:00.000Z",
+  "source_sha256": "21ed660ae47c13b50d8d42517bfaf202aef200c4b936085e88369d8d090bb7dd",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "interior",
+  "format": "photograph",
+  "year": {
+    "value": 1990,
+    "precision": "circa"
+  },
+  "verified": "Commons action=raw wikitext quoted: title '...FIRST FLOOR REAR ROOM, SAFE DEPOSIT ROOM (Note- This was the 9-30 Club during the early 1980s) - Atlantic Building, 930 F Street...', permission={{PD-USGov-NPS}}, source=https://www.loc.gov/pictures/item/dc0636.photos.030314p. The LOC item record itself carries no capture year (checked via ?fo=json: created_published/date/sort_date all empty). The HABS survey's own written data page (raw PDF, https://tile.loc.gov/storage-services/master/pnp/habshaer/dc/dc0600/dc0636/data/dc0636data.pdf, pdftotext extract) is captioned 'PHOTOGRAPHS / REDUCED COPIES OF MEASURED DRAWINGS / WRITTEN HISTORICAL AND DESCRIPTIVE DATA' as one submitted HABS DC-569-A package, and its Historian line reads 'Laura Harris/Elizabeth Jiranek, Traceries, 702 H Street, NW Washington, DC, January 1990', dating that package to January 1990. A second Commons file of the same LOC item (File:9-30Club_WashingtonDC_interior_1990.jpeg, action=raw quoted) independently corroborates: |Date = {{otherdate|summer|1990}}, |Author = John McWilliams, |Source = {{LOC-image|hhh.dc0636/photos.030314p}} -- the same LOC item id as this file, naming the photographer and giving a season-precision 1990 date. Year set to 1990/circa on the convergence of the HABS package date and the corroborating record's summer 1990 date; recovered this round after round one dropped it (research-b/drops.json) for lacking a capture year (verified 2026-09-25/26).",
+  "place": {
+    "city": "Washington",
+    "country_code": "US",
+    "landmark": {
+      "name": "9:30 Club (930 F Street NW)"
+    }
+  },
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-government-work",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Historic American Buildings Survey (National Park Service, US Department of the Interior) photograph, a work of the US federal government; {{PD-USGov-NPS}}."
+  },
+  "status": "picked",
+  "sha256": "ebeff9658b34fbcc6f843af29a88b6ee6e3e86589253b97cb088a2734ea4ebd1",
+  "width": 1140,
+  "height": 1600,
+  "focus": {
+    "x": 49,
+    "y": 56
+  }
+}

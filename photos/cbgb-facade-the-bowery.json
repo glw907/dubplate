@@ -1,0 +1,36 @@
+{
+  "title": "CBGB facade, the Bowery",
+  "source_title": "CBGB club facade",
+  "photographer": "Adicarlo",
+  "source_id": "commons:1729803",
+  "source_url": "https://commons.wikimedia.org/wiki/File:CBGB_club_facade.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/da/CBGB_club_facade.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-3.0",
+  "verified": "action=raw wikitext: |Source={{Transferred from|en.wikipedia}} |Date={{original upload date|2005-10-01}} |Author={{user at project|Adicarlo|wikipedia|en}}. License-header is actually \"{{GFDL-user-en-with-disclaimers|Adicarlo|migration=relicense}}\", not a self CC-BY-SA-3.0 template as the prior verified field claimed: this is Wikimedia's standard tag for a pre-2009 GFDL-only English Wikipedia upload that qualified for and received the mass GFDL-to-CC-BY-SA-3.0 relicensing (`migration=relicense`), so CC-BY-SA-3.0 is the correct resulting license, but the record must credit the actual template. Re-verified 2026-09-25 by research-b (the prior quote misdescribed the template actually present on the page).",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2005,
+    "precision": "exact"
+  },
+  "source_sha256": "8eb63525e46352d9f38bfb62079efe78da231a82a426d4cd380b40aaf03974e6",
+  "scene": {
+    "primary": "punk"
+  },
+  "place": {
+    "city": "New York",
+    "country_code": "US",
+    "landmark": {
+      "name": "CBGB",
+      "wikidata_id": "Q1022965"
+    }
+  },
+  "status": "picked",
+  "sha256": "b378479df56df173511cb65e51394752acc24a00df50dc90b92e145cd974e3f9",
+  "width": 1600,
+  "height": 1200
+}

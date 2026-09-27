@@ -1,0 +1,30 @@
+{
+  "title": "Two Zar drummers",
+  "source_title": "Two Egyptian Drummers.jpg",
+  "photographer": "Ahmed Emad H",
+  "source_id": "commons:55096678",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Two_Egyptian_Drummers.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Two_Egyptian_Drummers.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |date=2017-01-07 |source={{own}} |author=[[User:Ahmed Emad H|Ahmed Emad H]]. License-header: {{self|cc-by-sa-4.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-4.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "place": {
+    "city": "Cairo",
+    "country_code": "EG"
+  },
+  "year": {
+    "value": 2017,
+    "precision": "exact"
+  },
+  "artists": [],
+  "source_sha256": "887eb6fbe3a9d69c346844ea58279ab6d28db3ffd630869853431812c122d0f7",
+  "status": "picked",
+  "sha256": "efedae0a097784d06bab02950014101668287ef2be768354ff7c3e58687eb7a1",
+  "width": 1600,
+  "height": 1289
+}

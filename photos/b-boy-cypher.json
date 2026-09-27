@@ -1,0 +1,28 @@
+{
+  "title": "B-boy cypher",
+  "photographer": "Ainali",
+  "source_id": "commons:3180555",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Breaking_-_circle.JPG",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Breaking_-_circle.JPG",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{self|GFDL|cc-by-sa-3.0}}`; `Permission=CC-BY-SA 3.0`; `Author= [[User:Ainali|Ainali]]`, `Date=2007-12-01`.",
+  "source_sha256": "9294f2a57726d5fb4e69e18228034056244ed47af536af0c7713453eeea438b2",
+  "license": "CC-BY-SA-3.0",
+  "scene": {
+    "primary": "b-boy"
+  },
+  "subject": [
+    "crowds-and-dancers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "source_title": "Breaking - circle.JPG",
+  "status": "picked",
+  "sha256": "2ef0e2c337149370919f6407e083baa141feb61172e28d7eaf4040da2ea646dc",
+  "width": 1600,
+  "height": 1550
+}

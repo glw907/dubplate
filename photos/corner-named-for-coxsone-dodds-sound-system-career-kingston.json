@@ -1,0 +1,33 @@
+{
+  "title": "Corner named for Coxsone Dodd's sound-system career, Kingston",
+  "source_title": "Corner Coxsone Dodd Kingston Jamaica",
+  "photographer": "Christina Xu",
+  "source_id": "commons:188411494",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Corner_Coxsone_Dodd_Kingston_Jamaica.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Corner_Coxsone_Dodd_Kingston_Jamaica.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{cc-by-sa-2.0}}{{FlickreviewR|status=passed|...|reviewlicense=cc-by-sa-2.0|reviewer=FlickreviewR 2}}\" (Flickr transfer, review passed). Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "source_sha256": "0198ae66c5978de16ae5a769d2d68aeed72f1b93a7a513509214548d90e0940b",
+  "origin_id": "flickr:1105623251",
+  "scene": {
+    "primary": "reggae"
+  },
+  "place": {
+    "city": "Kingston",
+    "country_code": "JM"
+  },
+  "status": "picked",
+  "sha256": "ed5338be47c8948ce32a438f3a6e84f2099d5875d399372aabe1191c496b3266",
+  "width": 1600,
+  "height": 1064
+}

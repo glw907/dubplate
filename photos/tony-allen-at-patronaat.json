@@ -1,0 +1,36 @@
+{
+  "title": "Tony Allen at Patronaat",
+  "source_title": "TonyAllen1988.jpg",
+  "photographer": "Fotoburo De Boer",
+  "credit": "Noord-Hollands Archief / Fotoburo De Boer",
+  "source_id": "commons:123684751",
+  "source_url": "https://commons.wikimedia.org/wiki/File:TonyAllen1988.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/0/08/TonyAllen1988.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: license-header is {{Noord-Hollands Archief-de Boer}}, which resolves (Template:Noord-Hollands Archief-de Boer, action=raw) to {{#invoke:Autotranslate|...}}{{cc-zero}} with a note: \"See https://noord-hollandsarchief.nl/collecties/beeld/collectie-fotopersbureau-de-boer/overbeeldbankdeboer for the release as {{tl|Cc-zero}}. We also have it in VTRS: {{PermissionTicket|id=2017071610003879}}\". Verified 2026-09-25 by research-c.",
+  "license": "CC0-1.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "place": {
+    "city": "Haarlem",
+    "country_code": "NL"
+  },
+  "year": {
+    "value": 1988,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Tony Allen",
+      "mbid": "ea524cc6-191a-4c05-ab88-3bb5c0880ca5"
+    }
+  ],
+  "source_sha256": "86525d11cfe7b594226510d3180c0a8889eadf2fb685ace42c2766a277b1ae72",
+  "status": "picked",
+  "sha256": "842ffc9cbfd78d4695d18a580ad0f2e4cbc69c3ea902bae05956444c47d0f432",
+  "width": 1066,
+  "height": 1600
+}

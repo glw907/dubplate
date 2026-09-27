@@ -1,0 +1,37 @@
+{
+  "title": "The Soul Partners, Oval Ball Club",
+  "photographer": "John Harwood",
+  "source_title": "The Soul Partners - Oval Ball Club, Wilkinson St, Leigh, Lancs",
+  "source_id": "commons:121483539",
+  "origin_id": "flickr:3396458564",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The_Soul_Partners_-_Oval_Ball_Club,_Wilkinson_St,_Leigh,_Lancs.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/72/The_Soul_Partners_-_Oval_Ball_Club%2C_Wilkinson_St%2C_Leigh%2C_Lancs.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "6063f904db3b621a274e5cb21ef848fe8f72ca432908bb87a4fe84312d33c03d",
+  "scene": {
+    "primary": "northern-soul"
+  },
+  "subject": [
+    "sound-systems"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1974,
+    "precision": "circa"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{cc-by-2.0}}{{FlickreviewR|status=passed|author=J.harwood|sourceurl=https://flickr.com/photos/8851994@N05/3396458564|archive=|reviewdate=2022-08-07 23:10:12|reviewlicense=cc-by-2.0|reviewer=FlickreviewR 2}} (verified 2026-09-26 by sweep-b). Viewed: two DJs behind a turntable rig labeled \"SOUL PARTNERS DISCO\", the resident mobile disco at Leigh's Oval Ball Club, per the photographer's own caption: \"It was one of the few places at the time that you could hear Northern Soul.\"",
+  "place": {
+    "city": "Leigh",
+    "country_code": "GB"
+  },
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "390af984b0d465aeb7d5a0c53fd809f9847de958ff7aac1866130cb0b046fcbd",
+  "width": 1600,
+  "height": 1087,
+  "focus": {
+    "x": 44,
+    "y": 98
+  }
+}

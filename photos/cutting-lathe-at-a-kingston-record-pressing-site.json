@@ -1,0 +1,33 @@
+{
+  "title": "Cutting lathe at a Kingston record-pressing site",
+  "source_title": "Vinyl pressing machine",
+  "photographer": "Christina Xu",
+  "source_id": "commons:4879198",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Vinyl_pressing_machine.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/47/Vinyl_pressing_machine.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"|Permission = {{cc-by-sa-2.0}}{{flickrreview|High Contrast|2009-11-01}}\" (Flickr transfer, review passed). Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "interior",
+  "subject": [
+    "pressing-plants-and-cutting-lathes"
+  ],
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "source_sha256": "e11afad4760a0ef36ccefcbca75023e08bf9adf5c5986e9ece5d2dee82aa87f7",
+  "origin_id": "flickr:1106328646",
+  "scene": {
+    "primary": "reggae"
+  },
+  "place": {
+    "city": "Kingston",
+    "country_code": "JM"
+  },
+  "status": "picked",
+  "sha256": "f90b10c39038ce124a2abfb5717ddedae41fa8f8e183db38a09daeeb96ccc6c5",
+  "width": 1600,
+  "height": 1064
+}

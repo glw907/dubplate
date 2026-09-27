@@ -1,0 +1,46 @@
+{
+  "title": "Tim Armstrong live, House of Blues, Boston",
+  "photographer": "Josh Lowe",
+  "source_id": "commons:7426700",
+  "origin_id": "flickr:3770002813",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Armstronglive.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Armstronglive.jpg",
+  "retrieved_at": "2026-09-26T04:24:00.000Z",
+  "source_sha256": "f068250f24a4cefa17e7c259a00ef12f345b4dc1c208b0aac0e019ae92e6bc3c",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2009,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: |Description={{en|1=Tim Armstrong live at the House of Blues, Boston}}, |Date=2009-07-29; license block: {{cc-by-2.0}}{{User:FlickreviewR/reviewed-pass|Josh Lowe|https://www.flickr.com/photos/32376397@N03/3770002813|00:18, 31 July 2009 (UTC)|cc-by-2.0}} (verified 2026-09-25)",
+  "place": {
+    "city": "Boston",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Tim Armstrong",
+      "mbid": "beaecc2d-20c7-4221-8fd2-682c82f0faab"
+    },
+    {
+      "name": "Rancid",
+      "mbid": "24f8d8a5-269b-475c-a1cb-792990b0b2ee"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "b2ae9eec938dbc2c8d4cc9f76fd5c174ef8d32fdaf866f0ce14cf7a8190bc1c7",
+  "width": 1082,
+  "height": 1600,
+  "focus": {
+    "x": 30,
+    "y": 95
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "title": "Run-D.M.C. and Uncle Jam's Army, Oakland Convention Center, 1984",
+  "photographer": "Nu Wave Productions",
+  "source_id": "commons:61686488",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Nu_Wave_Productions_-_Uncle_Jam%27s_Army_and_Run_D.M.C._August_10,_1984_Concert_Poster.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Nu_Wave_Productions_-_Uncle_Jam%27s_Army_and_Run_D.M.C._August_10%2C_1984_Concert_Poster.jpg",
+  "retrieved_at": "2026-09-26T02:53:58Z",
+  "verified": "Raw wikitext for commons:61686488, fetched 2026-09-26: `{{PD-text}}` under `=={{int:license-header}}==`. Viewed the scan directly (832x1064): black serif and sans-serif type only, on a plain off-white ground; no drawing, logo art, or photograph. Basis: below-threshold-of-originality (purely typographic flyer).",
+  "source_sha256": "c319e0a8d20ca2cea11cbe5f3717c7e1e7534378d877b0d563630a141db748a2",
+  "size_exception": "1064px long edge is the only known digitization of this 1984 Nu Wave Productions/Run-D.M.C. Oakland Convention Center flyer; no larger scan is known to exist.",
+  "license": "LicenseRef-public-domain",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "still-life",
+  "format": "flyer",
+  "year": {
+    "value": 1984,
+    "precision": "exact"
+  },
+  "source_title": "Nu Wave Productions - Uncle Jam's Army and Run D.M.C. August 10, 1984 Concert Poster.jpg",
+  "place": {
+    "city": "Oakland",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Run-D.M.C.",
+      "mbid": "5ecc3f72-20a6-47a0-8dc5-fb0b3dadeea0"
+    }
+  ],
+  "public_domain": {
+    "basis": "below-threshold-of-originality",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "A purely typographic concert flyer (text only, no drawing, logo art, or photograph), below the threshold of originality for US copyright; Commons {{PD-text}}."
+  },
+  "artwork": {
+    "artist": "Nu Wave Productions",
+    "credit": "Nu Wave Productions",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Nu_Wave_Productions_-_Uncle_Jam%27s_Army_and_Run_D.M.C._August_10,_1984_Concert_Poster.jpg",
+    "verified": "Raw wikitext for commons:61686488, fetched 2026-09-26: `{{PD-text}}`. Viewed directly: purely typographic layout (type only), below the threshold of originality.",
+    "license": "LicenseRef-public-domain",
+    "public_domain": {
+      "basis": "below-threshold-of-originality",
+      "jurisdiction": "US",
+      "us_status": "public domain",
+      "fact": "A purely typographic concert flyer with no drawing, logo art, or photograph, below the threshold of originality for US copyright; Commons {{PD-text}}. The record's file is a faithful flat scan, so this basis covers the scan too."
+    }
+  },
+  "status": "picked",
+  "sha256": "39892cb426f51854cdb1bcefab5c996558dc14408bfdb3048ff660ce59e34caf",
+  "width": 832,
+  "height": 1064
+}

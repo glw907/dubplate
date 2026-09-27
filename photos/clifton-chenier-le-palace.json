@@ -1,0 +1,41 @@
+{
+  "title": "Clifton Chenier, Le Palace",
+  "photographer": "Lionel Decoster",
+  "source_id": "commons:79670861",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Clifton_Chenier_1977_19.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/c/c6/Clifton_Chenier_1977_19.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "eacc8e70e2bac8adcff604193a320e91a16ba48171c7c49aadc1e39b5700c61e",
+  "scene": {
+    "primary": "zydeco"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1977,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: |source={{own}}, |author=[[User:Lioneldecoster|Lionel Decoster]], {{self|cc-by-sa-4.0}} (verified 2026-09-26 by sweep-b). Own-work plausibility: uploaded 2019-06-13, 42 years after the 1977-12-14 photo date. User:Lioneldecoster's userpage (fetched raw) carries a personal gallery of 149 photographs of blues, jazz, and R&B musicians shot 1974 to 1983, self-credited \"Lionel DECOSTER CC BY SA\", including two other Clifton Chenier frames from the same show (Clifton_Chenier_1977_32.jpg) and a companion shot of his frottoir player Cleveland Chenier; the account has been an autopatroller since 2010. This is a large, internally consistent personal archive of period concert photography, not an isolated old-photo claim.",
+  "place": {
+    "city": "Paris",
+    "country_code": "FR"
+  },
+  "artists": [
+    {
+      "name": "Clifton Chenier",
+      "mbid": "db1a3066-1586-495d-a09c-1312cabab5be"
+    }
+  ],
+  "license": "CC-BY-SA-4.0",
+  "status": "picked",
+  "sha256": "ca9990a58015a49c4524231f8ce9ee4a79e8679a88447412f5bf65ccb0f8754f",
+  "width": 1200,
+  "height": 1600,
+  "focus": {
+    "x": 62,
+    "y": 29
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "title": "Bo Diddley performing at the Long Beach Blues Festival",
+  "photographer": "Masahiro Sumori",
+  "source_id": "commons:2214791",
+  "source_url": "https://commons.wikimedia.org/wiki/File:BoDiddley1997.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/e/e6/BoDiddley1997.jpg",
+  "retrieved_at": "2026-09-26T22:15:00.000Z",
+  "source_sha256": "b522c626f5b787fc405bfdd94efba48cf611dceaab640ce73dfb61cbbfc73fb9",
+  "scene": {
+    "primary": "blues"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1997,
+    "precision": "exact"
+  },
+  "place": {
+    "city": "Long Beach",
+    "country_code": "US"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{self|GFDL|Cc-by-sa-3.0-migrated|Cc-by-sa-2.5,2.0,1.0}}, |Source={{Own}}, |Author=[[User:Sumori|Masahiro Sumori]], |Date=1997-09-01, plus the caption line \"Photo by Masahiro Sumori\". Own-work claim, uploaded 2007-06-07 by Sumori (imageinfo timestamp), about 10 years after the 1997-09-01 capture date, within the plausible range for a photographer's own set (no plausibility statement required). (verified 2026-09-26 by sweep-a)",
+  "artists": [
+    {
+      "name": "Bo Diddley",
+      "mbid": "bf659d74-0b61-488c-8a7d-594f43bed9e0"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "status": "picked",
+  "sha256": "ce8c350299954ba893749a013091e4fed230be3c9533af2ae70270f857407bc9",
+  "width": 1496,
+  "height": 1416,
+  "focus": {
+    "x": 52,
+    "y": 40
+  }
+}

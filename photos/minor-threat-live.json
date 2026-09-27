@@ -1,0 +1,38 @@
+{
+  "title": "Minor Threat live",
+  "photographer": "Malcolm Riviera",
+  "source_id": "commons:6560984",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Minor-threat-malcolm-riviera.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Minor-threat-malcolm-riviera.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T23:44:06.141Z",
+  "source_sha256": "5919b5bb782210d9b8dce9dded9ffd694f39bd27dec6777cb85b46ee8599fae0",
+  "scene": {
+    "primary": "hardcore"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1981,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{self|cc-by-sa-3.0}}, own work by [[User:Malco23|Malco23]], dated 1981-04-04, first uploaded 2009-04-18 (about 28-year own-work gap). The page's |Permission= field now carries {{PermissionTicket|id=2009041810006222}} (an OTRS/VRT ticket, escalated from {{OTRS pending}} at first upload), an independent volunteer confirmation of the grant. The same account's full upload history (usercontribs, checked 2026-09-25) is exclusively vintage concert photography spanning 1973 to 1983, including the companion File:Bad brains 1983.jpg, consistent with one photographer's own decades-old archive (re-verified 2026-09-25 by research-a)",
+  "artists": [
+    {
+      "name": "Minor Threat",
+      "mbid": "09037f07-42bc-46ac-a1ee-37f834451fee"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "size_exception": "Minor Threat live, 1981 — a genuine period DC hardcore photo, credited photographer, no larger derivative on Commons.",
+  "status": "picked",
+  "sha256": "781122c9437831cc8591c4c7071678d5172f422112db79a50e65015f6336eea0",
+  "width": 1024,
+  "height": 763,
+  "focus": {
+    "x": 46,
+    "y": 22
+  }
+}

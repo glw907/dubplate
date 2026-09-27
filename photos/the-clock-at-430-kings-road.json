@@ -1,0 +1,32 @@
+{
+  "title": "The clock at 430 King's Road",
+  "photographer": "Mark Ahsmann",
+  "source_id": "commons:25532803",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Clock_on_World%27s_End_shop_of_Vivienne_Westwood_4_June_2011.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Clock_on_World%27s_End_shop_of_Vivienne_Westwood_4_June_2011.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T20:23:00.000Z",
+  "source_sha256": "13cc3ad3e0d15777d6c2c0558936bb1e4ea62619fa1d72bcd8dc26eb46bfe0e7",
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "place": {
+    "city": "London",
+    "country_code": "GB",
+    "landmark": {
+      "name": "430 King's Road (SEX, later Seditionaries and Worlds End)"
+    }
+  },
+  "year": {
+    "value": 2011,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: description={{en|1=Detail of clock on Vivienne Westwood's World's End shop 430 King's Road, London, Greater London SW10 0LJ, 2011-06-04.}}; author=[[User:Mark Ahsmann|Mark Ahsmann]]; {{self|cc-by-sa-3.0}} (verified 2026-09-25 by dolls search agent). No period (1974 to 1976) photo of the shop front was found freely licensed; this is the modern landmark photo per the owner's fallback instruction, clearly dated 2011, well after the SEX/Seditionaries years.",
+  "license": "CC-BY-SA-3.0",
+  "source_title": "Detail of clock on Vivienne Westwood's World's End shop 430 King's Road, London, Greater London SW10 0LJ, 2011-06-04",
+  "status": "picked",
+  "sha256": "d3218791097572ddfa62df38e5e3ca84dd926d3c8d9fc077320990a4e7924270",
+  "width": 1600,
+  "height": 1200
+}

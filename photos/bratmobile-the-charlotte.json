@@ -1,0 +1,38 @@
+{
+  "title": "Bratmobile, The Charlotte",
+  "photographer": "Greg Neate",
+  "source_id": "commons:34602246",
+  "origin_id": "flickr:8599432411",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bratmobile.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Bratmobile.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "4025a5afd8530a16bafcb878553b1cddf0d4b6832482a76fb436807525800f6c",
+  "scene": {
+    "primary": "riot-grrrl"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1994,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{User:FlickreviewR/reviewed-pass|neate photos|https://www.flickr.com/photos/29825849@N00/8599432411|2014-08-08 08:53:32|cc-by-2.0|}}{{cc-by-2.0}} (verified 2026-09-26 by sweep-b)",
+  "place": {
+    "city": "Leicester",
+    "country_code": "GB"
+  },
+  "artists": [
+    {
+      "name": "Bratmobile",
+      "mbid": "d6dfbc0b-d737-49df-be8e-517b85985bcb"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "c2f0f3690ff7f45567db7f67cb663975360dc5f2bf71e1471ea019169b990aed",
+  "width": 1600,
+  "height": 1067
+}

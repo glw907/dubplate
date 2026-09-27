@@ -1,0 +1,38 @@
+{
+  "title": "Alpha Blondy at the Fête de l'Humanité",
+  "source_title": "Alpha Blondy - Fête de l'Humanité 2014 - 005.jpg",
+  "photographer": "Thesupermat",
+  "source_id": "commons:37265862",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Alpha_Blondy_-_F%C3%AAte_de_l%27Humanit%C3%A9_2014_-_005.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/83/Alpha_Blondy_-_F%C3%AAte_de_l%27Humanit%C3%A9_2014_-_005.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |Description=Alpha Blondy en concert sur la grande scène lors de la fête de l'Humanité 2014. |Source={{own}} |Date=2014-09-12 |Author=[[User:Thesupermat|Thesupermat]]. Page also carries {{Personality rights}}. License-header: {{self|cc-by-sa-3.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-3.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "scene": {
+    "primary": "reggae"
+  },
+  "place": {
+    "city": "La Courneuve",
+    "country_code": "FR"
+  },
+  "year": {
+    "value": 2014,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Alpha Blondy",
+      "mbid": "88502cc3-20e7-4c5d-b583-ea84ed263db4"
+    }
+  ],
+  "source_sha256": "27a0631bd4734581df263bafcdf0c015c5751d0d1919458499434e07ac86b240",
+  "status": "picked",
+  "sha256": "8b64b40dda748c5ed097cb355e699ebbe4620b393a4781498a27640c0779a035",
+  "width": 1600,
+  "height": 1067
+}

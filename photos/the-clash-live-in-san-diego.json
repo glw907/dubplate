@@ -1,0 +1,37 @@
+{
+  "title": "The Clash live in San Diego",
+  "photographer": "Unknown, UCLA Library Special Collections",
+  "source_id": "commons:172415325",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The%20Clash%20in%20San%20Diego,%201982.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/9/98/The_Clash_in_San_Diego%2C_1982.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "retrieved_at": "2026-09-25T23:54:39.745Z",
+  "source_sha256": "b056c4857b288eecbd179ed560d0078d5a438809c3bc0106cef56043ece69019",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1982,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{cc-by-2.0}}{{FlickreviewR|status=passed|author=Los Angeles Times Photographic Archive|sourceurl=https://flickr.com/photos/127608843@N08/24836983095|archive=|reviewdate=2025-08-12 21:49:03|reviewlicense=cc-by-2.0|reviewer=FlickreviewR 2}}, the FlickreviewR bot record of the grant in force at review (re-verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "San Diego",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "The Clash",
+      "mbid": "8f92558c-2baa-4758-8c38-615519e9deda"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "3bc4b3f24e4c4477d41a647878deada04a91dd6e3b1e9b630819539714c9fbcd",
+  "width": 1600,
+  "height": 1533
+}

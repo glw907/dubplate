@@ -1,0 +1,44 @@
+{
+  "title": "Los Fabulosos Cadillacs at the Zócalo",
+  "source_title": "Fabulosos Cadillacs at Zócalo, 2023 (52953583302).jpg",
+  "photographer": "Gerardo Luna / Secretaría de Cultura CDMX",
+  "credit": "Secretaría de Cultura de la Ciudad de México",
+  "source_id": "commons:134841840",
+  "origin_id": "flickr:52953583302",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Fabulosos_Cadillacs_at_Z%C3%B3calo,_2023_(52953583302).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Fabulosos_Cadillacs_at_Z%C3%B3calo%2C_2023_%2852953583302%29.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |source=https://www.flickr.com/photos/113756879@N03/52953583302/ |author=Secretaria de Cultura CDMX |date=2023-06-05. Description credits \"Fotografia: Gerardo Luna/ Secretaria de Cultura de la Ciudad de Mexico\". License-header: {{cc-by-2.0}}{{FlickreviewR|status=passed|author=Secretaria de Cultura CDMX|sourceurl=https://flickr.com/photos/113756879@N03/52953583302|reviewdate=2023-07-23 18:54:18|reviewlicense=cc-by-2.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-2.0",
+  "subject": [
+    "crowds-and-dancers",
+    "performers"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "scene": {
+    "primary": "ska"
+  },
+  "place": {
+    "city": "Mexico City",
+    "country_code": "MX",
+    "landmark": {
+      "name": "Zócalo"
+    }
+  },
+  "year": {
+    "value": 2023,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Los Fabulosos Cadillacs",
+      "mbid": "cfe85625-10af-46c1-99fb-765ed3a4f1ad"
+    }
+  ],
+  "source_sha256": "7eda1e6ceb87ef4f022ede6d9181246079ea081cff118b56afc4751d485c925f",
+  "status": "picked",
+  "sha256": "7fdea33449d183291089ed40dc375d277f85b6c5ea0241501fa53e30985f65f6",
+  "width": 1600,
+  "height": 1065
+}

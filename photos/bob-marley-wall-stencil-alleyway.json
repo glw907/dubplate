@@ -1,0 +1,32 @@
+{
+  "title": "Bob Marley wall stencil, alleyway",
+  "source_title": "Tuff Gong",
+  "photographer": "Edson Chilundo",
+  "credit": "Edson Chilundo (edson.ac)",
+  "source_id": "flickr:21014404506",
+  "source_url": "https://www.flickr.com/photos/edson_ac/21014404506/",
+  "file_url": "https://live.staticflickr.com/5633/21014404506_81842e5162_o.jpg",
+  "retrieved_at": "2026-09-25T14:57:00Z",
+  "license": "CC-BY-2.0",
+  "verified": "Flickr photo model JSON quoted from the raw page: \"title\":\"Tuff Gong\",\"license\":4,\"sizes\":... ; vocab.json's flickr_licenses maps 4 to CC-BY-2.0. No Commons transfer or FlickreviewR record exists for this photo; the license comes straight from the Flickr photo model. The same raw page's embedded JSON-LD carries dateCreated\":\"2011-04-06T04:25:38.000Z\", the source of the year field. Re-verified 2026-09-25 (round-1 spot-check match, logged as 'no change since the grant'): re-fetched raw/flickr-21014404506.html and confirmed \"license\":4 and the creativecommons.org/licenses/by/2.0/ URL still hold on the live page.",
+  "source_sha256": "1644b4e476d5b75507f5b9263e9554f4a07f6ae34d28e580cb8b563f85e6a9ab",
+  "scene": {
+    "primary": "reggae"
+  },
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "surfaces": [
+    "gallery"
+  ],
+  "year": {
+    "value": 2011,
+    "precision": "exact"
+  },
+  "status": "picked",
+  "sha256": "40ee08b0505760b3978472ab48c6fa736c295f0275821463f6163f20aecf845d",
+  "width": 1600,
+  "height": 1063
+}

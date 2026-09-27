@@ -1,0 +1,32 @@
+{
+  "title": "Notting Hill Carnival crowd",
+  "photographer": "Unknown, Commons uploader",
+  "source_id": "commons:185842476",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Notting%20Hill%20Carnival%201989%20(01).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Notting_Hill_Carnival_1989_%2801%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T23:16:49.414Z",
+  "source_sha256": "3dbfdd97cd2a7818ae937229f210b13fba2a06c87e72f025d13e0f0d54f8b3f1",
+  "scene": {
+    "primary": "reggae"
+  },
+  "subject": [
+    "crowds-and-dancers",
+    "streets-and-neighborhoods"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1989,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{self|cc-by-4.0}}, own work by [[User:Magadag|Magadag]], dated 1989 (year field), first uploaded 2026-03-10 as part of a 13-file batch (File:Notting Hill Carnival 1989 (01) through (13).jpg, all uploaded within the same two minutes), about a 37-year own-work gap. Plausibility for the gap: extmetadata's DateTimeOriginal reads 2023-06-02 (the scan date) and the file carries [[Category:Scanned with Microtek ScanMaker V6USL]], real flatbed-scanner EXIF confirming a physical print scan rather than a re-hosted digital image; the account's entire edit history is this one sequentially-numbered 13-photo carnival set, consistent with one person digitizing a single day's own contact sheet (re-verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "London",
+    "country_code": "GB"
+  },
+  "license": "CC-BY-4.0",
+  "status": "picked",
+  "sha256": "819cdbebce96ae5963a7028a7c8c2ca17f24b2175f758a24347ffb77a2bcb31d",
+  "width": 1398,
+  "height": 1038
+}

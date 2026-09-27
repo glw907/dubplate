@@ -1,0 +1,35 @@
+{
+  "title": "Universal Hip Hop Museum site, the Bronx",
+  "photographer": "Bebo2good1",
+  "source_id": "commons:151935320",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bronx_Pt_-_Hip_Hop_Museum_-_Concourse,_The_Bronx_NY.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Bronx_Pt_-_Hip_Hop_Museum_-_Concourse%2C_The_Bronx_NY.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{self|cc-by-4.0}}`; `author=[[User:Bebo2good1|Bebo2good1]]`, `date=2024-08-28 23:59:22`.",
+  "source_sha256": "27e7ef797a7ccfc25640a5aee54a98eaf1060eca8b26fc984925c4cb34e925d9",
+  "license": "CC-BY-4.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "year": {
+    "value": 2024,
+    "precision": "exact"
+  },
+  "source_title": "Bronx Pt - Hip Hop Museum - Concourse, The Bronx NY.jpg",
+  "place": {
+    "city": "Bronx",
+    "country_code": "US",
+    "landmark": {
+      "name": "Universal Hip Hop Museum"
+    }
+  },
+  "status": "picked",
+  "sha256": "6f1cdbb31e210d3dcec6b36f8914cb54566e6b2dac5dde4248197724a7fd9c75",
+  "width": 1600,
+  "height": 1110
+}

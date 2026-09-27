@@ -1,0 +1,34 @@
+{
+  "title": "A Tribe Called Quest, Rock the Bells",
+  "photographer": "hicharice (Charice L.)",
+  "source_id": "commons:89579382",
+  "source_url": "https://commons.wikimedia.org/wiki/File:A_Tribe_Called_Quest_at_Rock_the_Bells_-14_(3179600140).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/A_Tribe_Called_Quest_at_Rock_the_Bells_-14_%283179600140%29.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{FlickreviewR|status=passed|author=hicharice|sourceurl=https://flickr.com/photos/25397558@N07/3179600140|archive=|reviewdate=2020-04-29 05:04:49|reviewlicense=cc-by-sa-2.0|reviewer=FlickreviewR 2}}`; `Author = [https://www.flickr.com/people/25397558@N07 Charice L.] from USA`, `Date = 2008-07-26 11:29`.",
+  "source_sha256": "cccbb24ae84e7ef3776da2db6c40b1d03684a6adee0e77ead8ff594c265a011a",
+  "license": "CC-BY-SA-2.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2008,
+    "precision": "circa"
+  },
+  "source_title": "A Tribe Called Quest at Rock the Bells -14",
+  "artists": [
+    {
+      "name": "A Tribe Called Quest",
+      "mbid": "9689aa5a-4471-4fb4-9721-07cecda0fa9f"
+    }
+  ],
+  "status": "picked",
+  "sha256": "34406e61bb3b6f00ff1bf35a488aab0e8cd09882ea6ba215a4802f0ba2af3503",
+  "width": 1600,
+  "height": 1200
+}

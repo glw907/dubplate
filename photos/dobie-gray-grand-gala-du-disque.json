@@ -1,0 +1,41 @@
+{
+  "title": "Dobie Gray, Grand Gala du Disque",
+  "photographer": "Fotograaf Onbekend / Anefo",
+  "source_id": "commons:67780239",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Dobie_Gray,_Bestanddeelnr_927-0102.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/9/92/Dobie_Gray%2C_Bestanddeelnr_927-0102.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "c0d050adbddd65c9d284fe9baaf6fa538320184457f4c93ba2cc6ba4e139881d",
+  "scene": {
+    "primary": "soul-funk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1974,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{CC-zero}}, under {{Nationaal Archief}}, with |Permission= blank and the Anefo description block \"Reportage / Serie : Grand Gala du Disque in de RAI ... Datum : 17 februari 1974 ... Auteursrechthebbende : Nationaal Archief\" (verified 2026-09-26 by sweep-b)",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "artists": [
+    {
+      "name": "Dobie Gray",
+      "mbid": "fb5d53ea-6090-49cd-b8ab-0d200bacf4c3"
+    }
+  ],
+  "license": "CC0-1.0",
+  "status": "picked",
+  "sha256": "2f53bca69947041caee57d4677f98ba4a82fdfcf58d7a409eeb15856527f1713",
+  "width": 1600,
+  "height": 1059,
+  "focus": {
+    "x": 58,
+    "y": 87
+  }
+}

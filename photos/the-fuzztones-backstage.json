@@ -1,0 +1,38 @@
+{
+  "title": "The Fuzztones, backstage",
+  "photographer": "Anthony Gliozzo",
+  "source_id": "commons:17032958",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Fuzztones%201984%20Irving%20Plaza%20backstage.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/3/35/Fuzztones_1984_Irving_Plaza_backstage.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-26T00:12:00.169Z",
+  "source_sha256": "c9db6c941563fc3231fe269e372f2094b08132b3dcd9a53df49d77e504916006",
+  "scene": {
+    "primary": "garage"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1984,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{self|cc-by-sa-3.0}}. Photographer plausibility for the >20yr own-work gap (photo 1984, upload 2011-10-19 by User:Revup67): the author field names the real person \"Anthony Gliozzo (Revup67)\", not a bare {{own}}, and the account has only these two 1984 Irving Plaza Fuzztones uploads (the companion File:...on Stage.jpg's own description independently credits \"Photo by Anthony Gliozzo 1984\"), consistent with one attendee's personal negative set from a single show (re-verified 2026-09-25 by research-a; corrects the round-1 photographer field from \"Unknown, Commons uploader\")",
+  "place": {
+    "city": "New York",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "The Fuzztones",
+      "mbid": "611db85b-f31e-4af7-8f16-95282d7b25da"
+    }
+  ],
+  "size_exception": "Kept below 1200px: 1024x688, just under the 1200px floor; needs size_exception.",
+  "license": "CC-BY-SA-3.0",
+  "status": "picked",
+  "sha256": "4fd2842f332685ac52c3f382a4b9d9e4d7959e5a02f725f4b1f15b0b42957cd3",
+  "width": 1024,
+  "height": 688
+}

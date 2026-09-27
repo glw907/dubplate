@@ -1,0 +1,32 @@
+{
+  "title": "Bass Odyssey sound system speaker column",
+  "source_title": "Bass Odyssey Sound System speaker column, Tropical Hut, St. Mary, May 2012",
+  "photographer": "Yaniq Walford",
+  "source_id": "commons:19445529",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bass_Odyssey_Sound_System_speaker_column,_Tropical_Hut,_St._Mary,_May_2012.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Bass_Odyssey_Sound_System_speaker_column%2C_Tropical_Hut%2C_St._Mary%2C_May_2012.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-3.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{self|cc-by-3.0}}\" (own work, self-licensed by uploader Yaniq Walford). Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "sound-systems"
+  ],
+  "year": {
+    "value": 2012,
+    "precision": "exact"
+  },
+  "source_sha256": "b1f50244eaa92c4ba60359ee4ded644d0afc3c6b5a966bdd6dde9fd2a22292e5",
+  "scene": {
+    "primary": "reggae"
+  },
+  "place": {
+    "city": "Tropical Hut, St. Mary",
+    "country_code": "JM"
+  },
+  "status": "picked",
+  "sha256": "d883dd26f521a6fc954c422a2bb6e85ad6ed82430b74cdafc2ab741a93919644",
+  "width": 1600,
+  "height": 1067
+}

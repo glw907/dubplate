@@ -1,0 +1,39 @@
+{
+  "title": "Saturday night juke joint outside Clarksdale",
+  "photographer": "Marion Post Wolcott",
+  "source_id": "archive:loc:2017801737",
+  "source_url": "https://www.loc.gov/item/2017801737/",
+  "file_url": "https://tile.loc.gov/storage-services/service/pnp/fsa/8c10000/8c10900/8c10924v.jpg",
+  "retrieved_at": "2026-09-26T00:13:14.274Z",
+  "source_sha256": "07d1e5a381d299524df6cd46c3adfc6fc7a8f837dbf087427b3d8118fdb4a680",
+  "scene": {
+    "primary": "blues"
+  },
+  "subject": [
+    "clubs-and-venues",
+    "crowds-and-dancers"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "year": {
+    "value": 1939,
+    "precision": "exact"
+  },
+  "verified": "LOC item.rights quoted: \"<p>The contents of the Library of Congress Farm Security Administration/Office of War Information Black-and-White Negatives are in the public domain and are free to use and reuse.</p>\r\n<p> Credit Line: Library of Congress, Prints &amp; Photographs Division, Farm Security Administration/Office of War Information Black-and-White Negatives.</p>\r\n<p>For information about reproducing, publishing, and citing material from this collection, as well as access to the original items, see: <a href=\"https://www.loc.gov/rr/print/res/071_fsab.html\">U.S. Farm Security Administration/Office of War Information Black &amp; White Photographs - Rights and Restrictions Information</a>\r\n</p>\r\n<p>More about <a href=\"/legal/\">Copyright and other Restrictions</a> </p>\r\n<p>For guidance about compiling full citations consult <a href=\"https://www.loc.gov/teachers/usingprimarysources/citing.html\">Citing Primary Sources</a>.</p>\" (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Clarksdale",
+    "country_code": "US"
+  },
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-government-work",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Exterior at night, crowd gathered."
+  },
+  "size_exception": "Marion Post Wolcott FSA/OWI negative; same 1024px JPEG service-copy ceiling as its companion frames. Rare period juke-joint exterior at night.",
+  "status": "picked",
+  "sha256": "e9d40fc9d090cfbb20ea37546c1fa639b8032b6a244ff26cf951eba763b6d21a",
+  "width": 1024,
+  "height": 782
+}

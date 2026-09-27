@@ -1,0 +1,38 @@
+{
+  "title": "Mix Master Mike, Brixton Academy",
+  "photographer": "Fabio Venni",
+  "source_id": "commons:110934684",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Michael_Schwartz,_Mix_Master_Mike_(cropped).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Michael_Schwartz%2C_Mix_Master_Mike_%28cropped%29.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `|Permission=` block cites `{{cc-by-sa-2.0}}` under `== {{int:license-header}} ==`; `Author=[https://www.flickr.com/people/96679304@N00 Fabio Venni] from London, UK`, `Date=2007-09-05 21:09`.",
+  "source_sha256": "df96809b6c6097059cf850ef79bb69c727cca5780c7a8252cc2b4d5e2166dff5",
+  "license": "CC-BY-SA-2.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "source_title": "Michael Schwartz, Mix Master Mike (cropped).jpg",
+  "place": {
+    "city": "London",
+    "country_code": "GB"
+  },
+  "artists": [
+    {
+      "name": "Mix Master Mike",
+      "mbid": "f874ea71-ab00-478b-a09a-d63a3e6e1677"
+    }
+  ],
+  "status": "picked",
+  "sha256": "2726f3999aac51fee319bb8c96c427740e7ba377e10c6443ccdb9f259b3bf3bf",
+  "width": 1600,
+  "height": 1134
+}

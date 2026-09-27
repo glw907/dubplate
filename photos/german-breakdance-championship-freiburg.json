@@ -1,0 +1,34 @@
+{
+  "title": "German breakdance championship, Freiburg",
+  "photographer": "Marlis Decker",
+  "source_id": "commons:171049547",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Freiburg_im_Breisgau-_Erste_S%C3%BCdbadische_Break-Dance-Meisterschaft_-_LABW_-_Staatsarchiv_Freiburg_W_140_Nr._01610.jpeg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/59/Freiburg_im_Breisgau-_Erste_S%C3%BCdbadische_Break-Dance-Meisterschaft_-_LABW_-_Staatsarchiv_Freiburg_W_140_Nr._01610.jpeg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext license header: `{{LABW|Landesarchiv Baden-Württemberg, Staatsarchiv Freiburg ... / Fotograf: Marlis Decker}}`; `Template:LABW` raw renders `{{cc-by-4.0|{{{1}}}}}`; `photographer = {{de|Marlis Decker}}`, `date = 1984-03-31`.",
+  "source_sha256": "d29864c95eeaad33dc342b888021e80d5116d14543993f5898b858d7b1ee691e",
+  "license": "CC-BY-4.0",
+  "scene": {
+    "primary": "b-boy"
+  },
+  "subject": [
+    "crowds-and-dancers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1984,
+    "precision": "exact"
+  },
+  "source_title": "Freiburg im Breisgau: Erste Suedbadische Break-Dance-Meisterschaft, LABW Staatsarchiv Freiburg W 140 Nr. 01610",
+  "credit": "Landesarchiv Baden-Wuerttemberg, Staatsarchiv Freiburg",
+  "place": {
+    "city": "Freiburg im Breisgau",
+    "country_code": "DE"
+  },
+  "size_exception": "1031px long edge; a rare 1984 state-archive photo of Germany's first regional breakdance championship, a scene with almost no other open coverage.",
+  "status": "picked",
+  "sha256": "34f76d7f179c79e46c9f534cea450d1efec5438c701ad669fb5286f0f1821b8d",
+  "width": 1031,
+  "height": 676
+}

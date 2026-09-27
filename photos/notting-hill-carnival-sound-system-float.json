@@ -1,0 +1,32 @@
+{
+  "title": "Notting Hill Carnival sound system float",
+  "photographer": "Unknown, Commons uploader",
+  "source_id": "commons:185842483",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Notting%20Hill%20Carnival%201989%20(08).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Notting_Hill_Carnival_1989_%2808%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T23:16:57.038Z",
+  "source_sha256": "1f09038a3b5ebf2089c3067f175e885cf427c1b48da37f4e3e4bdc6579a06094",
+  "scene": {
+    "primary": "reggae"
+  },
+  "subject": [
+    "sound-systems",
+    "crowds-and-dancers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1989,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{self|cc-by-4.0}}, own work by [[User:Magadag|Magadag]], dated 1989 (year field), first uploaded 2026-03-10 as part of a 13-file batch (File:Notting Hill Carnival 1989 (01) through (13).jpg, all uploaded within the same two minutes), about a 37-year own-work gap. Plausibility for the gap: extmetadata's DateTimeOriginal reads 2023-06-02 (the scan date) and the file carries [[Category:Scanned with Microtek ScanMaker V6USL]], real flatbed-scanner EXIF confirming a physical print scan rather than a re-hosted digital image; the account's entire edit history is this one sequentially-numbered 13-photo carnival set, consistent with one person digitizing a single day's own contact sheet (re-verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "London",
+    "country_code": "GB"
+  },
+  "license": "CC-BY-4.0",
+  "status": "picked",
+  "sha256": "fa873f09a3c3f334c0caa0aa6fcf2e5a2ba44619c4166fe7a966ec7bee1b74d9",
+  "width": 1535,
+  "height": 1033
+}

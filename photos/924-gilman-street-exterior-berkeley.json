@@ -1,0 +1,36 @@
+{
+  "title": "924 Gilman Street exterior, Berkeley",
+  "source_title": "2025-05-03 Gilman Exterior 0008a",
+  "photographer": "Jonathan Botkin",
+  "source_id": "commons:164948851",
+  "source_url": "https://commons.wikimedia.org/wiki/File:2025-05-03_Gilman_Exterior_0008a.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/46/2025-05-03_Gilman_Exterior_0008a.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-4.0",
+  "verified": "action=raw wikitext: |source=From the photographer, Jonathan Botkin, who took these photos for the express purpose of publishing them on Wikimedia Commons |author=Jonathan Botkin |permission={{PermissionTicket|id=2025050810011748}} |date=2025-05-03. License-header: \"{{cc-by-sa-4.0}}\". Re-verified 2026-09-25 by research-b (added the PermissionTicket id quote alongside the license line).",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2025,
+    "precision": "exact"
+  },
+  "source_sha256": "8b4cde9718d674e344b99b41aff8d61f629247196d8c1be1ce8c96582fa7ba6f",
+  "scene": {
+    "primary": "punk"
+  },
+  "place": {
+    "city": "Berkeley",
+    "country_code": "US",
+    "landmark": {
+      "name": "924 Gilman Street",
+      "wikidata_id": "Q2551121"
+    }
+  },
+  "status": "picked",
+  "sha256": "972ab0ef46befa7fc18932790540b275be95fe6eb1f6500bbf3ad5d76ee437e9",
+  "width": 1600,
+  "height": 1132
+}

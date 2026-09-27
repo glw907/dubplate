@@ -1,0 +1,39 @@
+{
+  "title": "Jitterbugging in a juke joint, Memphis",
+  "photographer": "Marion Post Wolcott",
+  "source_id": "archive:loc:2017801843",
+  "source_url": "https://www.loc.gov/item/2017801843/",
+  "file_url": "https://tile.loc.gov/storage-services/service/pnp/fsa/8c11000/8c11000/8c11028v.jpg",
+  "retrieved_at": "2026-09-26T00:13:18.646Z",
+  "source_sha256": "ed3f3fc19c68f1472e489c39046f64a57fe8654a6e41dc5997ba86a8b31c54ae",
+  "scene": {
+    "primary": "blues"
+  },
+  "subject": [
+    "crowds-and-dancers",
+    "clubs-and-venues"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1939,
+    "precision": "exact"
+  },
+  "verified": "LOC item.rights quoted: \"<p>The contents of the Library of Congress Farm Security Administration/Office of War Information Black-and-White Negatives are in the public domain and are free to use and reuse.</p>\r\n<p> Credit Line: Library of Congress, Prints &amp; Photographs Division, Farm Security Administration/Office of War Information Black-and-White Negatives.</p>\r\n<p>For information about reproducing, publishing, and citing material from this collection, as well as access to the original items, see: <a href=\"https://www.loc.gov/rr/print/res/071_fsab.html\">U.S. Farm Security Administration/Office of War Information Black &amp; White Photographs - Rights and Restrictions Information</a>\r\n</p>\r\n<p>More about <a href=\"/legal/\">Copyright and other Restrictions</a> </p>\r\n<p>For guidance about compiling full citations consult <a href=\"https://www.loc.gov/teachers/usingprimarysources/citing.html\">Citing Primary Sources</a>.</p>\" (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Memphis",
+    "country_code": "US"
+  },
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-government-work",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Memphis juke interior, dancers."
+  },
+  "size_exception": "Marion Post Wolcott FSA/OWI negative; same 1024px JPEG service-copy ceiling as its companion frames. Rare period Memphis juke-joint interior.",
+  "status": "picked",
+  "sha256": "c549ed2b68feacd10c60786d3628021299bdd523991cf6f4b017a24d650a9013",
+  "width": 1024,
+  "height": 784
+}

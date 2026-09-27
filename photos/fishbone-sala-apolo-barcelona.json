@@ -1,0 +1,45 @@
+{
+  "title": "Fishbone, Sala Apolo, Barcelona",
+  "photographer": "alterna2",
+  "source_id": "commons:5212512",
+  "origin_id": "flickr:2434557345",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Fishbone-53.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Fishbone-53.jpg",
+  "retrieved_at": "2026-09-26T04:34:00.000Z",
+  "source_sha256": "ba2cedbac73938aadca994aa815766ba105a94a2bed6190d7d453e7429c13a4c",
+  "scene": {
+    "primary": "punk",
+    "secondary": [
+      "ska"
+    ]
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2008,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: |Date=2008-04-22, Source=https://www.flickr.com/photos/alterna2/2434557345/; license block: {{cc-by-2.0}} {{User:FlickreviewR/reviewed-pass|alterna2|https://www.flickr.com/photos/11718030@N07/2434557345|12:39, 16 November 2008 (UTC)|cc-by-2.0}} (verified 2026-09-25)",
+  "place": {
+    "city": "Barcelona",
+    "country_code": "ES"
+  },
+  "artists": [
+    {
+      "name": "Fishbone",
+      "mbid": "9f3764c0-c9f4-4e20-b7a8-9993124fb1b2"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "397f8eaeafd7a021c6c6c8b71437d49f6e9dcc0cff43ffa83ebb35e70d8f9133",
+  "width": 1065,
+  "height": 1600,
+  "focus": {
+    "x": 55,
+    "y": 49
+  }
+}

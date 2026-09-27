@@ -1,1 +1,1333 @@
-[]
+[
+  {
+    "source_id": "commons:10429450",
+    "reason": "passed",
+    "source_sha256": "400467dc94a7d34ddbfb5ce090dbf4741ff1ec11c2d470c1d2ae47a92a703295"
+  },
+  {
+    "source_id": "commons:105820960",
+    "reason": "passed",
+    "source_sha256": "19075a266e72acb13a5e14a54a3f0ca026e27cfc8c064e0aa80063715585ed5a"
+  },
+  {
+    "source_id": "commons:111000303",
+    "reason": "passed",
+    "source_sha256": "b130fb69670a970e399fb7d2211f57ad6823dd5de93cd361a84291aff1e2a1f3"
+  },
+  {
+    "source_id": "commons:113532026",
+    "reason": "passed",
+    "source_sha256": "6d01756b87e76e5d03144a5f861b23f9615acde19e5eb351e73e9b9ad329bc53"
+  },
+  {
+    "source_id": "commons:119124873",
+    "reason": "passed",
+    "source_sha256": "d06db3fed9c983da10d2f48e52e4657a28460f59b1ce8f257e2c74d4de0355cd"
+  },
+  {
+    "source_id": "commons:146097117",
+    "reason": "passed",
+    "source_sha256": "18d828df0d6f37c41761ecf9936bb9ac69b15dc8bb31b2b3aea942bc3203ccc2"
+  },
+  {
+    "source_id": "commons:14710173",
+    "reason": "passed",
+    "source_sha256": "475ee3ba73bd2eb89ebdbb31db1a394bc7ec4045fc5585c0ee9a41969acd2d5a"
+  },
+  {
+    "source_id": "commons:147472558",
+    "reason": "passed",
+    "source_sha256": "df79b2a8bf028028e8d044795611c7be987ff9794e9f4a2bf060c95a953e6add"
+  },
+  {
+    "source_id": "commons:157048391",
+    "reason": "passed",
+    "source_sha256": "7be30f3702c21d4442c44957705269b857a30cc623ac2ebf249f33742bc769fd"
+  },
+  {
+    "source_id": "commons:16911725",
+    "reason": "passed",
+    "source_sha256": "3703442511cb12f03f8206d9870d116baf6b8c3e04333ac050c3a12be1648d80"
+  },
+  {
+    "source_id": "commons:16927339",
+    "reason": "passed",
+    "source_sha256": "66406c082511d465351756734b465bf0db511b68a39785171468ea0f06f34f42"
+  },
+  {
+    "source_id": "commons:17083273",
+    "reason": "passed",
+    "source_sha256": "d2542307bf9a010b1b52c5855a44090ca7203d0ddfdbc262de934e5ed2fe2fb4"
+  },
+  {
+    "source_id": "commons:17083311",
+    "reason": "passed",
+    "source_sha256": "ed9ae60ca13ce3733736a8969512aa3802fbf543e9f5143ed7c7da2a3a32a0a1"
+  },
+  {
+    "source_id": "commons:172710925",
+    "reason": "passed",
+    "source_sha256": "544ab9d517333f49cd0203a3193795d4c6d64a2490a549d5e68ecedda0acc611"
+  },
+  {
+    "source_id": "commons:2313153",
+    "reason": "passed",
+    "source_sha256": "52953a409f0df9d178ac481973864988c054f06df6e3a60e0fd2ceaa39c80a55"
+  },
+  {
+    "source_id": "commons:24712739",
+    "reason": "passed",
+    "origin_id": "flickr:8418182102",
+    "source_sha256": "bb5a14dc0e2c13ff8006b6549ec540e62ca0be65225e4df488cf03880bf4eb4d"
+  },
+  {
+    "source_id": "commons:27344647",
+    "reason": "passed",
+    "source_sha256": "d89c91305648cd2f0a82ab0358f077ce19f0592fb67b2aa6e936cd7abdbec7e4"
+  },
+  {
+    "source_id": "commons:3736388",
+    "reason": "passed",
+    "source_sha256": "11a0c5973666924b307a4df4661a2a0494ec32d4b11c6a0e3bc666397950df52"
+  },
+  {
+    "source_id": "commons:40564624",
+    "reason": "passed",
+    "origin_id": "flickr:11247713983",
+    "source_sha256": "35c4b6f8e22729bcb1f4895abffb0a426fdbb795e2b1b8f43b808f7fc8ca850d"
+  },
+  {
+    "source_id": "commons:44052504",
+    "reason": "passed",
+    "origin_id": "flickr:16381167776",
+    "source_sha256": "be115e70bb4d496f79d1727f31701091fd947e3a80bf5b0dcea69c5ee0cfc5cc"
+  },
+  {
+    "source_id": "commons:7357632",
+    "reason": "passed",
+    "source_sha256": "1e88a95b89bd5d63c63512d1f783eeb064f00972826dd2ac89fa8eedf25ed950"
+  },
+  {
+    "source_id": "commons:77007246",
+    "reason": "passed",
+    "source_sha256": "c082e65a1d7740d6fb64878e1ee1a9c2764c6ea3e4355a08c47464ff824c99d8"
+  },
+  {
+    "source_id": "commons:3895761",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:158743918",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:168617945",
+    "reason": "unavailable"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_004989",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_004365",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_004915",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_005018",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_004278",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_004695",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:archive.org:calauem_005076",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:digitaltmuseum.se:021018217897",
+    "reason": "license"
+  },
+  {
+    "source_id": "archive:digitaltmuseum.se:021016187835",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:72155505",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:151312741",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:7168516",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:66435082",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:66435046",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:105746193",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:61911718",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:156910047",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:191571055",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:1807209",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:5295177",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:6344924",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:10198859",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:145749487",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:7229793",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:29029163",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:188415528",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:8916959",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:59417625",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:25730969",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:91006037",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:57286637",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:537267",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:136328828",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:119736105",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:3549201",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:73369662",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:101368470",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:150558481",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:37270719",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:3134972",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:165292046",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:68432086",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:5665625",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:9887643",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:64129228",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:171129148",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:126457720",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:11223839",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:10260503",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:20353302",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:44857552",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:176783949",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:123951576",
+    "reason": "license"
+  },
+  {
+    "source_id": "unresolved:francois-luambo-au-zaire",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:12566972",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:31853509",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:32528593",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:31854457",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:139756819",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:139756006",
+    "reason": "license"
+  },
+  {
+    "source_id": "unresolved:isaac-musekiwa-joseph-mulama",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:39305969",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:113965899",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:77554352",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:117157430",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:64131595",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:188652742",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:177209868",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:185482890",
+    "reason": "license"
+  },
+  {
+    "source_id": "unresolved:night-club-addis-ethiopia",
+    "reason": "unavailable"
+  },
+  {
+    "source_id": "unresolved:massinko-player-trad-night-club",
+    "reason": "unavailable"
+  },
+  {
+    "source_id": "unresolved:hillaac-band",
+    "reason": "unavailable"
+  },
+  {
+    "source_id": "unresolved:panteon-rococo-so36",
+    "reason": "unavailable"
+  },
+  {
+    "source_id": "commons:1643726",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:150285417",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3251415411",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3258972477",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252241244",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393148141",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251412709",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251415649",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3326914957",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251416631",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3254737404",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3253910405",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252242768",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3254737214",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251412961",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251417587",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3253910371",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251414011",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251416901",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252239484",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252241846",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251417193",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252241564",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3259804666",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251414769",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252241874",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3251415763",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3279566420",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:54550561263",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:9358138071",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:9360916250",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:37954877",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:1286221085",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:1294216775",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:1294227851",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2795583299",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2797608158",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2797695122",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796822031",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796846729",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2797621744",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2797705200",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796867337",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796810669",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796769433",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2797604904",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796839719",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796825611",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796832455",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796772961",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796836065",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2797708626",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796795501",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2796843209",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2198677268",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:15573042867",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:92562598",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:30072641773",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:5948651643",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:13841545184",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:5996380012",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:13684129553",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:13841202313",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52118869926",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52085628186",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:31123877238",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52133937052",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52119990855",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:13684129523",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52094784785",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:13841544784",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52096756254",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52134980368",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52094850930",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52131385066",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52135197614",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52092846485",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52131922920",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52135197724",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:15865061638",
+    "reason": "passed"
+  },
+  {
+    "source_id": "flickr:39822861",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:39822662",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:38044858354",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4710861754",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:54710009955",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:54788130883",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:3393147871",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393148089",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3326916085",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3326915771",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393148863",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393958820",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393147993",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393147763",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3393147703",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3252241526",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3326914925",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3258972417",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3327751202",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3327751056",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:51479849603",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4029309054",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:4547356742",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:54058061579",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4547356778",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:4546721745",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:2853462400",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4547356936",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:4546721669",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:52207543730",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52207316674",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52650488903",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4547356576",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:4547356540",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:52902430417",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52207046243",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:13454293203",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4547356728",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:4547356842",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:52207277694",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:8003055187",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52207046313",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:3914463795",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:52207293464",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:5177529701",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:5244828706",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:8022996107",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:53044391089",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:444895907",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:54557663677",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:6371785521",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:18022276070",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:17587391074",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:4811736944",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:38879986594",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:18183515216",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:16198157681",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:16012550378",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "flickr:2834526157",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "commons:3600920",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:8344990",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:112464714",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:112464737",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:6399181",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:17612544",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:186279254",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:56963241",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:1327446",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:197622337",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:192715612",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:83135582",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:103668937",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:88958220",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:77111847",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:121190472",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:92405100",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:148198999",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:4260176",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3106638816",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3042777515",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:27073596888",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3006668243",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3109022285",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3601345172",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:3006126392",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:320314126",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:152649872",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:776272275",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:543522605",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:410758781",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:6165025723",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:4481986198",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:2341767231",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3478462397",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "flickr:3661225467",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:141862142",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:18730928",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:4013372",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:92719477",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:92719577",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:154935159",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:99370189",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:155873916",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:2255257225",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:2256260222",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:2274222503",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:2274349509",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:2253305393",
+    "reason": "license"
+  },
+  {
+    "source_id": "flickr:2435460179",
+    "reason": "passed"
+  },
+  {
+    "source_id": "flickr:2435356146",
+    "reason": "passed"
+  },
+  {
+    "source_id": "flickr:51462047815",
+    "reason": "passed"
+  },
+  {
+    "source_id": "flickr:51461101786",
+    "reason": "passed"
+  },
+  {
+    "source_id": "flickr:51460335062",
+    "reason": "passed"
+  },
+  {
+    "source_id": "commons:149321662",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:23247957",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:177720856",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:81413116",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:5951222",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:3441061",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "commons:17901396",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:133979932",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:98876028",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:8868894",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "commons:92715073",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:3599307",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:42975981",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:1311699",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:45324532",
+    "reason": "license",
+    "origin_id": "flickr:11969784505"
+  },
+  {
+    "source_id": "commons:45324594",
+    "reason": "license",
+    "origin_id": "flickr:11970612976"
+  },
+  {
+    "source_id": "commons:4251842",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:48606525",
+    "reason": "too-small"
+  },
+  {
+    "source_id": "commons:132193047",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:107219825",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:90493149",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:94956128",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:350623",
+    "reason": "blurred"
+  },
+  {
+    "source_id": "commons:10431748",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "commons:128136647",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:167041187",
+    "reason": "vocab"
+  },
+  {
+    "source_id": "commons:167044446",
+    "reason": "vocab"
+  },
+  {
+    "source_id": "commons:17066758",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:170175331",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:151410277",
+    "reason": "off-topic"
+  },
+  {
+    "source_id": "commons:26939597",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:145834252",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:175544916",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:178101497",
+    "reason": "license"
+  },
+  {
+    "source_id": "commons:144981883",
+    "reason": "license"
+  }
+]

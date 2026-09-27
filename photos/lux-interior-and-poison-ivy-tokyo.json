@@ -1,0 +1,45 @@
+{
+  "title": "Lux Interior and Poison Ivy, Tokyo",
+  "photographer": "Masao Nakagami",
+  "source_id": "commons:115584322",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The_Cramps_(32951715570).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/The_Cramps_%2832951715570%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T20:23:00.000Z",
+  "source_sha256": "8d9e7a419ef7fd6e7e977bf43dab535c4e6e0bd5de5d0900bf80519af33150b5",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "place": {
+    "city": "Tokyo",
+    "country_code": "JP"
+  },
+  "year": {
+    "value": 1990,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: Description = {{en|1=Lux Interior and Poison Ivy of The Cramps in Tokyo, Japan, 19 November 1990}}; Source = https://www.flickr.com/photos/goro_memo/32951715570/; Author = [https://www.flickr.com/people/45489981@N00 Masao Nakagami]; {{cc-by-sa-2.0}} {{FlickreviewR|status=passed|author=masao nakagami|sourceurl=https://flickr.com/photos/45489981@N00/32951715570|archive=|reviewdate=2022-02-26 21:04:35|reviewlicense=cc-by-sa-2.0|reviewer=FlickreviewR 2}} (verified 2026-09-25 by dolls search agent)",
+  "artists": [
+    {
+      "name": "Lux Interior",
+      "mbid": "58856f5c-0589-4811-9441-c08a077d4bd9"
+    },
+    {
+      "name": "Poison Ivy"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "source_title": "Lux Interior and Poison Ivy of The Cramps in Tokyo, Japan, 19 November 1990",
+  "status": "picked",
+  "sha256": "6dedd6b010ffc3b84873b044119c8f07f90d99894ca92701798901d20f814b86",
+  "width": 1000,
+  "height": 1558,
+  "focus": {
+    "x": 62,
+    "y": 42
+  }
+}

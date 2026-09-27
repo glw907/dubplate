@@ -1,0 +1,39 @@
+{
+  "title": "The Standells, press photo",
+  "photographer": "Unknown, credited Tower Records",
+  "source_id": "commons:26925953",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The%20Standells.png",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/The_Standells.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-26T00:08:11.463Z",
+  "source_sha256": "afa675c23432a3868c32b29e39ae688a20e22b57c8e42aad2332e7b20eb3776e",
+  "scene": {
+    "primary": "garage"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1966,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{PD-Pre1978}}; the basis lines, from the page's |Permission= field: \"The ad appeared in the 16 April 1966 issue of Billboard and can be dated from that publication; it is pre-1978.\" and \"There are no copyright markings as can be seen at the full view link.\" (re-verified 2026-09-25 by research-a; adds the no-notice line the round-1 spot-check found missing)",
+  "artists": [
+    {
+      "name": "The Standells",
+      "mbid": "795b83a0-9315-4201-aa82-675a1699a5c6"
+    }
+  ],
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-pre-1978-no-notice",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Period press/promo group shot, over the size floor at 1261x857."
+  },
+  "status": "picked",
+  "sha256": "ee0aa256e80fc1670fbfcf830d4eb618a445cd9a8cc6f5f260d9f9f7a348fd06",
+  "width": 1261,
+  "height": 857
+}

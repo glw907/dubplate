@@ -1,0 +1,42 @@
+{
+  "title": "Lux Interior, live in Madrid",
+  "photographer": "Jorge Correa",
+  "source_id": "commons:2817028",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Lux_interior_-_the_cramps.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Lux_interior_-_the_cramps.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T20:23:00.000Z",
+  "source_sha256": "6ebe0fdd512a4a80d971c1e91d44cf378fc45d82fe32dd9219da056b4a9c1898",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "place": {
+    "city": "Madrid",
+    "country_code": "ES"
+  },
+  "year": {
+    "value": 2006,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: Description= Lux Interior of The Cramps; Source=[https://www.flickr.com/photos/24325001@N00/224702358/ lux interior en acción]; Author=[https://www.flickr.com/people/24325001@N00 Jorge Correa] from Madrid, Spain.; {{cc-by-2.0}} {{User:FlickreviewR/reviewed-pass|jorge.hipster|https://www.flickr.com/photos/24325001@N00/224702358|09:47, 29 September 2007 (UTC)|cc-by-2.0}} (verified 2026-09-25 by dolls search agent)",
+  "artists": [
+    {
+      "name": "Lux Interior",
+      "mbid": "58856f5c-0589-4811-9441-c08a077d4bd9"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "source_title": "lux interior en acción",
+  "status": "picked",
+  "sha256": "8ef6c564b9703d29d9aac91dd0f760bc8b21100eb5818be8a9993eb9d35cebd2",
+  "width": 1200,
+  "height": 874,
+  "focus": {
+    "x": 74,
+    "y": 80
+  }
+}

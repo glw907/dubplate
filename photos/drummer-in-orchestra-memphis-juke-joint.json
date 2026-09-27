@@ -1,0 +1,39 @@
+{
+  "title": "Drummer in orchestra, Memphis juke joint",
+  "photographer": "Marion Post Wolcott",
+  "source_id": "archive:loc:2017802165",
+  "source_url": "https://www.loc.gov/item/2017802165/",
+  "file_url": "https://tile.loc.gov/storage-services/service/pnp/cph/3c30000/3c30000/3c30900/3c30980v.jpg",
+  "retrieved_at": "2026-09-26T00:13:22.998Z",
+  "source_sha256": "129a6b3f22a15a089a3d44decf4bbc8b7b7789a7138411308a37f7fc27deaf9c",
+  "scene": {
+    "primary": "blues"
+  },
+  "subject": [
+    "clubs-and-venues",
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1939,
+    "precision": "exact"
+  },
+  "verified": "LOC item.rights quoted: \"<p>The contents of the Library of Congress Farm Security Administration/Office of War Information Black-and-White Negatives are in the public domain and are free to use and reuse.</p>\r\n<p> Credit Line: Library of Congress, Prints &amp; Photographs Division, Farm Security Administration/Office of War Information Black-and-White Negatives.</p>\r\n<p>For information about reproducing, publishing, and citing material from this collection, as well as access to the original items, see: <a href=\"https://www.loc.gov/rr/print/res/071_fsab.html\">U.S. Farm Security Administration/Office of War Information Black &amp; White Photographs - Rights and Restrictions Information</a>\r\n</p>\r\n<p>More about <a href=\"/legal/\">Copyright and other Restrictions</a> </p>\r\n<p>For guidance about compiling full citations consult <a href=\"https://www.loc.gov/teachers/usingprimarysources/citing.html\">Citing Primary Sources</a>.</p>\" (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Memphis",
+    "country_code": "US"
+  },
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-government-work",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "House band drummer mid-set."
+  },
+  "size_exception": "Marion Post Wolcott FSA/OWI negative; same 1024px JPEG service-copy ceiling as its companion frames. Rare period house-band drummer shot.",
+  "status": "picked",
+  "sha256": "12260e0efbf01e22bfa655ed1fa9f9af9eb18809844cffc479be7c802dbfb6dd",
+  "width": 1024,
+  "height": 819
+}

@@ -1,0 +1,34 @@
+{
+  "title": "The Cavern Club interior, Liverpool",
+  "source_title": "The Cavern of the Cavern Club",
+  "photographer": "Hens Zimmerman",
+  "source_id": "commons:8524622",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The_Cavern_of_the_Cavern_Club%2C_2009.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/53/The_Cavern_of_the_Cavern_Club%2C_2009.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{cc-by-2.0}}\", Flickr upload bot record, source Flickr photo 4057864160. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "interior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2009,
+    "precision": "exact"
+  },
+  "source_sha256": "6288d70aa949fd8c3bf377bcbb4661271a87721c608ce82cc003c3aad5fa2c01",
+  "origin_id": "flickr:4057864160",
+  "place": {
+    "city": "Liverpool",
+    "country_code": "GB",
+    "landmark": {
+      "name": "The Cavern Club",
+      "wikidata_id": "Q909845"
+    }
+  },
+  "status": "picked",
+  "sha256": "2739bbcdf910bda1ebec980ebf3ab5caf67c1f3df7dc84f80d86dda4263934dd",
+  "width": 1600,
+  "height": 1200
+}

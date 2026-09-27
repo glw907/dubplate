@@ -1,0 +1,37 @@
+{
+  "title": "The Selecter live in Berlin",
+  "photographer": "Braunov",
+  "source_id": "commons:3140115",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The%20Selecter%20Berlin%201980.jpg",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/The_Selecter_Berlin_1980.jpg/1920px-The_Selecter_Berlin_1980.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-25T23:06:16.828Z",
+  "source_sha256": "5f652be8e4e1d66a6f3c8b0b66a57f98ff67cecef4e7e32cc4b38abb8b7f448d",
+  "scene": {
+    "primary": "2-tone"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1980,
+    "precision": "circa"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: |Permission= {{cc-by-sa-3.0}}, own work by [[User:Braunov|Braunov]], dated ca. 1980, first uploaded 2007-11-24 (about 27-year own-work gap). Plausibility for the gap: Braunov's 2007 upload history (usercontribs, checked 2026-09-25) carries several other vintage concert photographs from the same early-1980s Berlin scene alongside contemporary 2007 hobby photos: File:James White 1981 2.jpg, File:Bow Wow Wow 1982 Berlin.jpg, File:Annabella Lwin 1982.jpg, and File:Elivis Costello 1980 1.jpg, consistent with one person's own decades-old concert-photography archive rather than a single unsupported own-work claim (re-verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Berlin",
+    "country_code": "DE"
+  },
+  "artists": [
+    {
+      "name": "The Selecter",
+      "mbid": "1329faaf-799f-44e2-91f9-87fe52f17afd"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "status": "picked",
+  "sha256": "e40f5abd16510c6d0c7f2f179b1fea458c61ff9e52fe760e2c50b49a59928b36",
+  "width": 1600,
+  "height": 1063
+}

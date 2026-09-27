@@ -1,0 +1,39 @@
+{
+  "title": "Half Way Tree, Kingston, 1891",
+  "source_title": "Valentine and Sons - At Half Way Tree, Jamaica, 1891",
+  "photographer": "Valentine & Sons (James Valentine's firm, Dundee)",
+  "source_id": "commons:165168466",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Valentine_and_Sons_-_At_Half_Way_Tree%2C_Jamaica%2C_1891_3085032083.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Valentine_and_Sons_-_At_Half_Way_Tree%2C_Jamaica%2C_1891_3085032083.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "LicenseRef-public-domain",
+  "verified": "Commons File page, action=raw wikitext: \"|date=1891 |author={{Creator:Valentine & Sons}}\" then \"{{PD-US-expired|PD-Jamaica-old-1946}}\"; Valentine & Sons was a commercial postcard publisher whose views were published contemporaneously. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "year": {
+    "value": 1891,
+    "precision": "exact"
+  },
+  "source_sha256": "2a8c0d47f2a0e4075de918dcdb39e88b0945a87b83110230be227fe890aec620",
+  "place": {
+    "city": "Kingston",
+    "country_code": "JM",
+    "landmark": {
+      "name": "Half Way Tree",
+      "wikidata_id": "Q1423367"
+    }
+  },
+  "public_domain": {
+    "basis": "pre-1931",
+    "jurisdiction": "United Kingdom",
+    "us_status": "public domain",
+    "fact": "Published 1891 as a Valentine & Sons topographical view/postcard."
+  },
+  "status": "picked",
+  "sha256": "81277fa09400eb3da92d85d31a491d129b14265e04af730ff8710da95c478690",
+  "width": 1600,
+  "height": 1131
+}

@@ -1,1 +1,82 @@
-[]
+[
+  {
+    "rule": "artist",
+    "key": "mbid:30af8e71-6a16-4319-a130-fd09707b5be5",
+    "reason": "Round 1 keep, 2026-09-26 (Bad Manners: four picked images across NZ 2015, JP 1991, and undated 2007 shows)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:58856f5c-0589-4811-9441-c08a077d4bd9",
+    "reason": "Round 1 keep, 2026-09-26 (Lux Interior: four picked images, Tokyo 1990 x2, Madrid 2006, Toronto 1982)"
+  },
+  {
+    "rule": "artist",
+    "key": "name:poison ivy",
+    "reason": "Round 1 keep, 2026-09-26 (Poison Ivy, Cramps guitarist: three picked images, no MusicBrainz match found for this person, name key applies)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:9f3764c0-c9f4-4e20-b7a8-9993124fb1b2",
+    "reason": "Round 1 keep, 2026-09-26 (Fishbone: three picked images, Ottawa 2012, Barcelona 2008, undated Capitol City Carnival)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:17b53d9f-5c63-4a09-a593-dde4608e0db9",
+    "reason": "Round 1 keep, 2026-09-26 (The Kinks: two picked images, KRLA Beat 1965 press photo and a 1967 Dutch fan-club event)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:5ecc3f72-20a6-47a0-8dc5-fb0b3dadeea0",
+    "reason": "Round 1 keep, 2026-09-26 (Run-D.M.C.: two picked images, Santa Monica and Oakland, both 1984)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:611db85b-f31e-4af7-8f16-95282d7b25da",
+    "reason": "Round 1 keep, 2026-09-26 (The Fuzztones: two picked images, both 1984 Irving Plaza, backstage and on stage)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:8f92558c-2baa-4758-8c38-615519e9deda",
+    "reason": "Round 1 keep, 2026-09-26 (The Clash: two picked images, San Diego 1982 live and a 1980 candid with Ian Dury)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:87ac7e25-f278-47a0-b109-5eb131dc96b6",
+    "reason": "Round 1 keep, 2026-09-26 (The Skatalites: two picked images, both 2007 reunion-era shows)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:24f8d8a5-269b-475c-a1cb-792990b0b2ee",
+    "reason": "Round 1 keep, 2026-09-26 (Rancid: three picked images, 2012, 2006, and Tim Armstrong at Nova Rock)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:0c3319f3-d4c9-48d4-ba4c-deb7cd3c125b",
+    "reason": "Round 1 keep, 2026-09-26 (Hasil Adkins: two picked images, Milestone Club 1991 and Local 506)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:8ecc4c7e-9482-4557-bf0f-d74783a9e670",
+    "reason": "Round 1 keep, 2026-09-26 (DJ Kool Herc: three picked images, a 1999 portrait and two 2009 Hunts Point frames)"
+  },
+  {
+    "rule": "artist",
+    "key": "mbid:beaecc2d-20c7-4221-8fd2-682c82f0faab",
+    "reason": "Round 1 keep, 2026-09-26 (Tim Armstrong: two picked images, Nova Rock and House of Blues Boston, both also covered by the Rancid waiver)"
+  },
+  {
+    "rule": "landmark",
+    "key": "name:430 king's road (sex, later seditionaries and worlds end)",
+    "reason": "Round 1 keep, 2026-09-26 (430 King's Road: two picked images, the shopfront and its clock, no Wikidata ID found)"
+  },
+  {
+    "rule": "landmark",
+    "key": "wikidata:Q1022965",
+    "reason": "Round 1 keep, 2026-09-26 (CBGB: two picked images, the facade and the 2008 former storefront)"
+  },
+  {
+    "rule": "landmark",
+    "key": "wikidata:Q1535378",
+    "reason": "Round 1 keep, 2026-09-26 (Paradiso, Amsterdam: two picked images, the Sex Pistols show and the first Dutch punk festival crowd)"
+  }
+]

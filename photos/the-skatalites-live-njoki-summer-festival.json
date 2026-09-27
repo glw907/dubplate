@@ -1,0 +1,37 @@
+{
+  "title": "The Skatalites live, Njoki Summer Festival",
+  "photographer": "Yerpo",
+  "source_id": "commons:2293444",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Skatalites-njoki.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/58/Skatalites-njoki.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T23:05:03.750Z",
+  "source_sha256": "4cd4caa232d786fa3a14f3fb136bd7a28683c64dee5d31cb4e3e796d75fab5ed",
+  "scene": {
+    "primary": "ska"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{Self|GFDL|Cc-by-sa-3.0-migrated|Cc-by-2.5}}, a multi-license self-grant by [[User:Yerpo|Yerpo]] (own work, dated 2007-06-23, first uploaded 2007-06-24 by Yerpo, same day: no own-work gap). CC-BY-SA-3.0 is picked from the offered set (re-verified 2026-09-25 by research-a; corrects the round-1 quote, which named only the CC BY 2.5 option and did not match the record's own chosen license field)",
+  "place": {
+    "city": "Ajdovščina",
+    "country_code": "SI"
+  },
+  "artists": [
+    {
+      "name": "The Skatalites",
+      "mbid": "87ac7e25-f278-47a0-b109-5eb131dc96b6"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "status": "picked",
+  "sha256": "6f0c63b3d445fb1feed24b6be79ac0f41e1c61413a7e87711aa152ff6cc9f258",
+  "width": 1436,
+  "height": 446
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Millie Small arrives at Schiphol",
+  "photographer": "Harry Pot",
+  "source_id": "commons:27838069",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Millie%20Small%20(1964).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Millie_Small_%281964%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "retrieved_at": "2026-09-25T23:04:12.401Z",
+  "source_sha256": "f2d64281303b4e61028375e6fb8f5a28611918782483b49d6004d352f9a39230",
+  "scene": {
+    "primary": "ska"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1964,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: the file's license-header transclusion is bare, {{Nationaal Archief-license}}, with no license= parameter. Template:Nationaal Archief-license's own raw wikitext resolves that no-parameter case to its default: {{cc-by-sa-3.0-nl|1={{{1|}}} }} (comment: \"License part, default cc-by-sa-3.0-nl, but you can change it to something else\"), so CC-BY-SA-3.0-NL applies. Institutional donation (Nationaal Archief / Anefo, photographer Harry Pot), not an individual own-work claim, so the own-work gap rule does not apply (re-verified 2026-09-25 by research-a; clarifies the round-1 quote, which pasted the module comment without stating the resolved license)",
+  "credit": "Nationaal Archief",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "artists": [
+    {
+      "name": "Millie Small",
+      "mbid": "c0dab97a-bd3c-42b2-8bc4-05d941b76b7a"
+    }
+  ],
+  "license": "LicenseRef-CC-BY-SA-3.0-NL",
+  "status": "picked",
+  "sha256": "a03fdecd96cb8cc6b04554d630e51df5bba0bfbe7fd50f438f27865872e7b316",
+  "width": 1200,
+  "height": 1600
+}

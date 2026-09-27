@@ -1,0 +1,49 @@
+{
+  "title": "Art Blakey and the Jazz Messengers, Concertgebouw",
+  "photographer": "Herbert Behrens / Anefo",
+  "source_id": "commons:65425038",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Concertgebouw_Amsterdam,_Art_Blakey_en_Joss_Messengers_Walter_Doois_,_Lee_Morgan,_Bestanddeelnr_910-8267.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/0/09/Concertgebouw_Amsterdam%2C_Art_Blakey_en_Joss_Messengers_Walter_Doois_%2C_Lee_Morgan%2C_Bestanddeelnr_910-8267.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "ff2f880f903ca137f0249099306a7ef418f557a2bbca50fc8918585863dfe40c",
+  "scene": {
+    "primary": "jazz"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1959,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{CC-zero}}, under {{Nationaal Archief}}, with |Permission= blank and the Anefo description block \"Beschrijving : Concertgebouw Amsterdam, Art Blakey en Jazz Messengers Walter Doois , Lee Morgan ... Datum : 15 november 1959 ... Auteursrechthebbende : Nationaal Archief\" (verified 2026-09-26 by sweep-b).",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "artists": [
+    {
+      "name": "Art Blakey",
+      "mbid": "601e7466-eaf5-4a91-9909-ffd770b7e04a"
+    },
+    {
+      "name": "Wayne Shorter",
+      "mbid": "2379937f-6e0d-46a2-b8ff-633fafd72002"
+    },
+    {
+      "name": "Lee Morgan",
+      "mbid": "a1235272-3650-4ed7-9317-5a55a08701ec"
+    }
+  ],
+  "license": "CC0-1.0",
+  "status": "picked",
+  "sha256": "a164ecbcef52c9d0f2591cc752ba8b4271edd39b6e1f847275a94452d60b1fe6",
+  "width": 1537,
+  "height": 1600,
+  "focus": {
+    "x": 58,
+    "y": 97
+  }
+}

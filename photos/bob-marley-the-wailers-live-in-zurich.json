@@ -1,0 +1,37 @@
+{
+  "title": "Bob Marley & The Wailers live in Zürich",
+  "photographer": "Patrick Lüthy",
+  "source_id": "commons:111000292",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bob%20Marley%20&%20The%20Wailing%20Wailers%20Z%C3%BCrich%20Com%20L29-0351-0001-0001.tif",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Bob_Marley_%26_The_Wailing_Wailers_Z%C3%BCrich_Com_L29-0351-0001-0001.tif/lossy-page1-1920px-Bob_Marley_%26_The_Wailing_Wailers_Z%C3%BCrich_Com_L29-0351-0001-0001.tif.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-25T23:06:22.293Z",
+  "source_sha256": "4e8dff4df6144914cf3fa1cfd55073f52a351f31a23ae2b5eb335861d84e3a4a",
+  "scene": {
+    "primary": "reggae"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1980,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{cc-by-sa-4.0| ETH-Bibliothek Zürich, Bildarchiv / Fotograf: Lüthy, Patrick / Com_L29-0351-0001-0001 / CC BY-SA 4.0}} (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Zürich",
+    "country_code": "CH"
+  },
+  "artists": [
+    {
+      "name": "Bob Marley",
+      "mbid": "ed2ac1e9-d51d-4eff-a2c2-85e81abd6360"
+    }
+  ],
+  "license": "CC-BY-SA-4.0",
+  "status": "picked",
+  "sha256": "f419f6c9f6136cce1aada90e4b656e389adfa4c9586243b3f2174c12f5d12c85",
+  "width": 1600,
+  "height": 1066
+}

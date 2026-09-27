@@ -1,0 +1,33 @@
+{
+  "title": "Bad Brains live",
+  "photographer": "Unknown, Commons uploader",
+  "source_id": "commons:5951492",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bad%20brains%201983.jpg",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/60/Bad_brains_1983.jpg/1920px-Bad_brains_1983.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-25T23:44:01.027Z",
+  "source_sha256": "b68a1ae1ad6f0a8f7f04d4b7278be6c81d0b3f43e9e7cacc7f7a0894b423970b",
+  "scene": {
+    "primary": "hardcore"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1983,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{self|cc-by-sa-3.0}}, own work by [[User:Malco23|Malco23]], dated 1983-04-04, first uploaded 2009-02-14 (about 26-year own-work gap; account name at upload time was Malco23~commonswiki). Plausibility for the gap: the same account's full upload history (usercontribs, checked 2026-09-25) is exclusively vintage concert photography spanning 1973 to 1983 (Brownsville Station 1973, Wishbone Ash, Cheap Trick, Todd Rundgren/Utopia Atlanta 1977, The Faith at the Chancery, Stabb, Siouxsie Sioux, Flipper at the 9:30 Club, Youth Brigade, and the companion File:Minor-threat-malcolm-riviera.jpg), consistent with one photographer's own decades-old archive rather than a single unsupported own-work claim (re-verified 2026-09-25 by research-a)",
+  "artists": [
+    {
+      "name": "Bad Brains",
+      "mbid": "e919b253-da5b-4aae-a444-6a368376a2d6"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "status": "picked",
+  "sha256": "3b988d24ad85fc0c03a613b35fef81276dc57b533657b3a887b6d85d6c247f6a",
+  "width": 1600,
+  "height": 1073
+}

@@ -1,0 +1,41 @@
+{
+  "title": "Recording a duet at Bombay Film Centre Studios",
+  "source_title": "Deedar Singh Pardesi's duet recording with Asha Bhosle under Music of Chitra Gupt at Bombay Film Centre Studios, 1969.",
+  "photographer": "Amarjit Chandan",
+  "source_id": "commons:180642085",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Deedar_Singh_Pardesi%27s_duet_recording_with_Asha_Bhosle_under_Music_of_Chitra_Gupt_at_Bombay_Film_Centre_Studios%2C_1969._%28Mere_Dil_Mein_Raho_Arzoo_Ki_Tarha%2C_lyrics_by_Rahi.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Deedar_Singh_Pardesi%27s_duet_recording_with_Asha_Bhosle_under_Music_of_Chitra_Gupt_at_Bombay_Film_Centre_Studios%2C_1969._%28Mere_Dil_Mein_Raho_Arzoo_Ki_Tarha%2C_lyrics_by_Rahi.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |description=Deedar Singh Pardesi's duet recording with Asha Bhosle under Music of Chitra Gupt at Bombay Film Centre Studios, 1969 |date=1969 |source={{own}} |author=[[User:Amarjit Chandan|Amarjit Chandan]], category 'Amarjit Chandan Archive 2025'. Category page points to https://diff.wikimedia.org/2021/10/28/uk-based-punjabi-artist-opens-up-his-archive/ (\"UK based Punjabi artist opens up his archive\"), a documented Wikimedia UK-supported GLAM-style personal-archive donation, which is why the 1969-dated own-work claim by a 2025 upload is plausible: Chandan is releasing his own decades-old personal photo archive, not claiming someone else's recent work. License-header: {{self|cc-by-4.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-4.0",
+  "subject": [
+    "recording-studios"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "place": {
+    "city": "Bombay",
+    "country_code": "IN"
+  },
+  "year": {
+    "value": 1969,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Asha Bhosle",
+      "mbid": "79c5547a-e098-495c-8dac-7e99546aa46b"
+    },
+    {
+      "name": "Deedar Singh Pardesi"
+    },
+    {
+      "name": "Chitra Gupt"
+    }
+  ],
+  "source_sha256": "a823cc3fde195dc81b324a032e215cdfbc65ba1c911b7af08dbeeb290f9c4f89",
+  "status": "picked",
+  "sha256": "3ce944ef4ea4949586e07e6f43806976f9ff5495db23174659364e29b9003f07",
+  "width": 1600,
+  "height": 1067
+}

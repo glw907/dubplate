@@ -1,0 +1,39 @@
+{
+  "title": "9:30 Club marquee, closed for the night",
+  "source_title": "Nightclub 930 Closed on a June summer night",
+  "photographer": "Terps2008",
+  "source_id": "commons:41147685",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Nightclub_930_Closed_on_a_June_summer_night.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/42/Nightclub_930_Closed_on_a_June_summer_night.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-SA-4.0",
+  "verified": "action=raw wikitext: |date=2015-06-22 22:06:32 |source={{own}} |author=[[User:Terps2008|Terps2008]]. License-header: \"{{self|cc-by-sa-4.0}}\". Re-verified 2026-09-25 by research-b (the prior quote captured only the description line, not the license line).",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2015,
+    "precision": "exact"
+  },
+  "source_sha256": "7356e9ce168d1ec9899391b004ac66b20658f85b950004e2316acef564a4eb6c",
+  "scene": {
+    "primary": "punk"
+  },
+  "place": {
+    "city": "Washington, D.C.",
+    "country_code": "US",
+    "landmark": {
+      "name": "9:30 Club",
+      "wikidata_id": "Q4646354"
+    }
+  },
+  "surfaces": [
+    "error"
+  ],
+  "status": "picked",
+  "sha256": "21bc739ceb3b7fa33ca614ee2a0a502eea552c8faf99c5804406fd0f43713cae",
+  "width": 1600,
+  "height": 1064
+}

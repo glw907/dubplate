@@ -1,0 +1,38 @@
+{
+  "title": "Spencer Davis Group, group portrait",
+  "photographer": "Ron Kroon",
+  "source_id": "commons:76963060",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Spencer%20Davis%20Group%201966.jpg",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Spencer_Davis_Group_1966.jpg/1920px-Spencer_Davis_Group_1966.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "retrieved_at": "2026-09-26T00:07:50.212Z",
+  "source_sha256": "ddeab017315fe9fae1f449edbe49ddfb81d5ca64f169272669e0e1145cbed46a",
+  "scene": {
+    "primary": "mod"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1966,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{cc-zero}} (verified 2026-09-25 by research-a)",
+  "credit": "Anefo",
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL"
+  },
+  "artists": [
+    {
+      "name": "Spencer Davis Group",
+      "mbid": "178fdfdf-e02e-4608-9b51-e53471e28a58"
+    }
+  ],
+  "license": "CC0-1.0",
+  "status": "picked",
+  "sha256": "74ad8dddad4c9b3bf4c1c4b45ec1ad3f0e797415d936ff5e54d84ca96d141836",
+  "width": 1600,
+  "height": 1323
+}

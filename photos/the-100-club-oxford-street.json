@@ -1,0 +1,36 @@
+{
+  "title": "The 100 Club, Oxford Street",
+  "source_title": "The 100 Club Oxford Street, London 2023-04-26",
+  "photographer": "Roy Katzenberg",
+  "source_id": "commons:158137669",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The_100_Club_Oxford_Street%2C_London_2023-04-26.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/The_100_Club_Oxford_Street%2C_London_2023-04-26.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "CC-BY-2.0",
+  "verified": "Commons File page, action=raw wikitext: \"{{cc-by-2.0}}{{FlickreviewR|status=passed|...}}\", Flickr source 52856562200, date 2023-04-26. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "year": {
+    "value": 2023,
+    "precision": "exact"
+  },
+  "source_sha256": "ab9f454c871a0e50b1ba0f45325a9770aa07c9c527d5181dc73aadd18498eb31",
+  "origin_id": "flickr:52856562200",
+  "scene": {
+    "primary": "punk"
+  },
+  "place": {
+    "city": "London",
+    "country_code": "GB",
+    "landmark": {
+      "name": "100 Club"
+    }
+  },
+  "status": "picked",
+  "sha256": "16aa16de341f9c37fc873cd46cdf506874d4d90a5064a33290b4c9a0daa479bf",
+  "width": 1600,
+  "height": 1186
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Bad Manners live",
+  "photographer": "milesgehm",
+  "source_id": "commons:7335654",
+  "origin_id": "flickr:846048404",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bad_Manners.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Bad_Manners.jpg",
+  "retrieved_at": "2026-09-26T04:53:00.000Z",
+  "source_sha256": "076e37e056a021685f5ae9ddca921e0215d65e4889e01eb9e12b401760cfdbd5",
+  "scene": {
+    "primary": "2-tone",
+    "secondary": [
+      "ska"
+    ]
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: |Source=https://www.flickr.com/photos/milesgehm/846048404/, |Date=2007-07-18; license block: {{cc-by-2.0}}{{flickrreview|Abigor|2009-07-19}} (verified 2026-09-25)",
+  "size_exception": "Kept below 1200px: 1024x768; the only 2000s-era Bad Manners frame found this pass, filling the gap between the 1991 Japan show and the 2015 reunion set.",
+  "artists": [
+    {
+      "name": "Bad Manners",
+      "mbid": "30af8e71-6a16-4319-a130-fd09707b5be5"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "46422efa49b51a585127a6ab4167913532380ce0994c21cd7799a467c6408282",
+  "width": 1024,
+  "height": 768
+}

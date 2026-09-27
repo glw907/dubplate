@@ -1,0 +1,41 @@
+{
+  "title": "Buster Bloodvessel, Bad Manners, Bodega, Wellington",
+  "photographer": "Wendy Collings",
+  "source_id": "commons:110030409",
+  "origin_id": "flickr:51461106361",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Bad_Manners_072_(51461106361).jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/da/Bad_Manners_072_%2851461106361%29.jpg",
+  "retrieved_at": "2026-09-26T04:53:00.000Z",
+  "source_sha256": "005d09e62333c7115ee13d8eb426319639c6712c13c710a4718c0467ac8ea87a",
+  "scene": {
+    "primary": "2-tone",
+    "secondary": [
+      "ska"
+    ]
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2015,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: |Description = Buster Bloodvessel (Douglas Trendle); Bad Manners (from England) at Bodega, Wellington. |Date = 2015-05-29 23:12; license block: {{cc-by-sa-2.0}} {{FlickreviewR|status=passed|author=Wendy Collings|sourceurl=https://flickr.com/photos/193900660@N05/51461106361|archive=|reviewdate=2021-09-14 04:27:54|reviewlicense=cc-by-sa-2.0|reviewer=FlickreviewR 2}} (verified 2026-09-25)",
+  "place": {
+    "city": "Wellington",
+    "country_code": "NZ"
+  },
+  "artists": [
+    {
+      "name": "Bad Manners",
+      "mbid": "30af8e71-6a16-4319-a130-fd09707b5be5"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "status": "picked",
+  "sha256": "d7ed131d3d92cfdf79a273cf8759293dc51e3aabded912bacf630e7dc1698276",
+  "width": 1600,
+  "height": 1224
+}

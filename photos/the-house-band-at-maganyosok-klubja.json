@@ -1,0 +1,31 @@
+{
+  "title": "The house band at Magányosok klubja",
+  "source_title": "Pécs 1978, Magányosok klubja, zenekar. - Fortepan 89167.jpg",
+  "photographer": "Tamás Urbán",
+  "credit": "FOTO:FORTEPAN / Urbán Tamás",
+  "source_id": "commons:51181650",
+  "source_url": "https://commons.wikimedia.org/wiki/File:P%C3%A9cs_1978,_Mag%C3%A1nyosok_klubja,_zenekar._-_Fortepan_89167.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/50/P%C3%A9cs_1978%2C_Mag%C3%A1nyosok_klubja%2C_zenekar._-_Fortepan_89167.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |source=fortepan.hu/_photo/download/fortepan_89167.jpg |date=1978 |author={{Fortepan|id=89167|...|orig=Urbán Tamás}}. License-header: {{CC-BY-SA-3.0|1=FOTO:FORTEPAN / Urbán Tamás}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-3.0",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "interior",
+  "format": "photograph",
+  "place": {
+    "city": "Pécs",
+    "country_code": "HU"
+  },
+  "year": {
+    "value": 1978,
+    "precision": "exact"
+  },
+  "artists": [],
+  "source_sha256": "dea798cf0f5b139a539d5d72a1d1b5904aacf3e9f629450efdb8e6747ada5242",
+  "status": "picked",
+  "sha256": "693e4fab435de32888daaaafda79e0f69b375f25ce59d73095a58f2d745f792d",
+  "width": 1600,
+  "height": 998
+}

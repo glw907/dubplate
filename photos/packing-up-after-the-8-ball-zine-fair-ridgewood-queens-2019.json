@@ -1,0 +1,34 @@
+{
+  "title": "Packing up after the 8-Ball Zine Fair, Ridgewood, Queens, 2019",
+  "photographer": "Elbowplants",
+  "source_id": "commons:93206778",
+  "source_url": "https://commons.wikimedia.org/wiki/File:8-Ball_NY_Zine_Fair_2019.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/8-Ball_NY_Zine_Fair_2019.jpg",
+  "retrieved_at": "2026-09-25T20:34:00Z",
+  "verified": "Raw wikitext for commons:93206778, fetched 2026-09-25: `{{self|cc-by-sa-4.0}}` under `=={{int:license-header}}==`, with `|source={{own}}` and `|author=[[User:Elbowplants|Elbowplants]]`, dated 2019-06-22 for a 2019-06-22 event (contemporaneous own-work claim, no plausibility statement needed). No delete, copyvio, no-permission, or no-source template on the page; `action=query&titles=Commons:Deletion requests/File:8-Ball NY Zine Fair 2019.jpg` returns `missing`.",
+  "source_sha256": "c81777c9b5034abbf1d755c179a56804e730aadd272a29c3054772e65fca2451",
+  "license": "CC-BY-SA-4.0",
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 2019,
+    "precision": "exact"
+  },
+  "source_title": "8-Ball NY Zine Fair 2019.jpg",
+  "place": {
+    "city": "Queens",
+    "country_code": "US"
+  },
+  "artists": [],
+  "status": "picked",
+  "sha256": "b4fd178340d5dd41aad5ab8dcf8384737330a0ab7a537c4609d5b510c7220a79",
+  "width": 1600,
+  "height": 1061,
+  "focus": {
+    "x": 24,
+    "y": 92
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "title": "Dr Madd Vibe (Angelo Moore) and Fishbone, Capitol City Carnival",
+  "photographer": "Raj Gupta",
+  "source_id": "commons:8757805",
+  "origin_id": "flickr:1473646373",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Dr_Madd_Vibe.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Dr_Madd_Vibe.jpg",
+  "retrieved_at": "2026-09-26T04:53:00.000Z",
+  "source_sha256": "118acf53313216e3146e8ea3b592842abd3073e0ee9188147b6f5103aca36b59",
+  "scene": {
+    "primary": "punk",
+    "secondary": [
+      "ska"
+    ]
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: |Description={{en|1=Dr Madd Vibe and Fishbone at the Capitol City Carnival, |Source=https://www.flickr.com/photos/spector1/1473646373/, |Author=Raj Gupta, |Date=2007-09-22; license block: {{cc-by-sa-2.0}}{{flickrreview|Bidgee|2009-12-16}} (verified 2026-09-25)",
+  "place": {
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Fishbone",
+      "mbid": "9f3764c0-c9f4-4e20-b7a8-9993124fb1b2"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "status": "picked",
+  "sha256": "895dd24a5063c55613422e3e749f61b1a0ecb465e38c395af88ca3ef084b69e1",
+  "width": 1200,
+  "height": 1600
+}

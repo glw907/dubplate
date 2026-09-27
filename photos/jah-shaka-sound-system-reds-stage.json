@@ -1,0 +1,32 @@
+{
+  "title": "Jah Shaka sound system, Reds stage",
+  "source_title": "Jah Shakah Sound System",
+  "photographer": "Dominic Simpson",
+  "source_id": "flickr:4075403267",
+  "source_url": "https://www.flickr.com/photos/goodnight_london/4075403267/",
+  "file_url": "https://live.staticflickr.com/2790/4075403267_7027ef9d5e_o.jpg",
+  "retrieved_at": "2026-09-25T22:59:24Z",
+  "license": "CC-BY-2.0",
+  "verified": "Flickr photo model JSON on the raw page: \"license\":4, mapped through vocab.json's flickr_licenses table to CC-BY-2.0. Page description: \"Jah Shaka onstage with his soundsystem, flanked by a photo on the wall of Haile Selassie. Reds stage, Portishead-curated ATP. 9th December 2007, Butlins Minehead.\" Own-work upload by realname Dominic Simpson (username Goodnight London, pathAlias goodnight_london); EXIF confirms camera model Sony DSC-P100, DateTimeOriginal 2007:12:09, matching the caption's date. Verified 2026-09-25. Re-verified 2026-09-25 (round-1 spot-check match): the live raw page still carries \"license\":4 and the same creativecommons.org/licenses/by/2.0/ URL, so there is no change since the original grant.",
+  "format": "photograph",
+  "shot": "candid",
+  "subject": [
+    "sound-systems"
+  ],
+  "scene": {
+    "primary": "dub"
+  },
+  "place": {
+    "city": "Minehead",
+    "country_code": "GB"
+  },
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "source_sha256": "daf0578728e9c21a6443696c9ddd19a36968b3010a391ac5b8cca60032ecb0c1",
+  "status": "picked",
+  "sha256": "63b581f68ac8747476a7a544ff8dc7babbcae0aef1c29dd4d36484ee9c78c3c1",
+  "width": 1600,
+  "height": 1200
+}

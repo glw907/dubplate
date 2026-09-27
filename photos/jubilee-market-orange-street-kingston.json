@@ -1,0 +1,35 @@
+{
+  "title": "Jubilee Market, Orange Street, Kingston",
+  "source_title": "A. Duperly & Sons - Jubilee Market, Orange Street, Kingston, Jamaica",
+  "photographer": "A. Duperly & Sons",
+  "source_id": "commons:165167895",
+  "source_url": "https://commons.wikimedia.org/wiki/File:A._Duperly_%26_Sons_-_Jubilee_Market%2C_Orange_Street%2C_Kingston%2C_Jamaica_8433582139.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/0/08/A._Duperly_%26_Sons_-_Jubilee_Market%2C_Orange_Street%2C_Kingston%2C_Jamaica_8433582139.jpg",
+  "retrieved_at": "2026-09-25T23:24:45Z",
+  "license": "LicenseRef-public-domain",
+  "verified": "Commons File page, action=raw wikitext: \"|date=before 1922\" and \"{{PD-US-expired|PD-Jamaica-old-1946}}\"; description notes the business had closed by 1922. Retrieved 2026-09-25T23:24:45Z, verified by research-b.",
+  "format": "photograph",
+  "shot": "exterior",
+  "subject": [
+    "streets-and-neighborhoods"
+  ],
+  "year": {
+    "value": 1921,
+    "precision": "circa"
+  },
+  "source_sha256": "df8b74d37aaa78f244229907cf202324733e66dc8376f016175ac0e379c4b8c1",
+  "place": {
+    "city": "Kingston",
+    "country_code": "JM"
+  },
+  "public_domain": {
+    "basis": "pre-1931",
+    "jurisdiction": "Jamaica",
+    "us_status": "public domain",
+    "fact": "Commons page dates the photograph to before 1922 (the Duperly business had closed by then)."
+  },
+  "status": "picked",
+  "sha256": "5ba4f79095f45d55a8b0e3f385b0d6efd81bdef24a56555cab64854c2e18c2ce",
+  "width": 1600,
+  "height": 1047
+}

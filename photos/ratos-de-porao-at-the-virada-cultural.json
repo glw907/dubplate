@@ -1,0 +1,40 @@
+{
+  "title": "Ratos de Porão at the Virada Cultural",
+  "source_title": "Ratosdeporao.jpg",
+  "photographer": "Daigo Oliva",
+  "source_id": "commons:2583699",
+  "origin_id": "flickr:494102350",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Ratosdeporao.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/9/93/Ratosdeporao.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |Description={{pt|Ratos de Porao no evento Virada Cultural, 2007.}} |Source=[https://www.flickr.com/photos/11671827@N00/494102350/ ] |Date=2007-05-11 |Author=[https://www.flickr.com/people/11671827@N00 Daigo Oliva] |Permission={{cc-by-sa-2.0}}{{User:FlickreviewR/reviewed-pass|DaigoOliva|https://www.flickr.com/photos/11671827@N00/494102350|10:04, 19 August 2007 (UTC)|cc-by-sa-2.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-2.0",
+  "subject": [
+    "performers",
+    "crowds-and-dancers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "scene": {
+    "primary": "hardcore"
+  },
+  "place": {
+    "city": "São Paulo",
+    "country_code": "BR"
+  },
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Ratos de Porão",
+      "mbid": "0a61f71a-92e8-4d3e-adc0-e44469aba069"
+    }
+  ],
+  "source_sha256": "79d76415e6ce03731a5546193fc4d5347946a3948090e79a9df6aacfaf25f4be",
+  "status": "picked",
+  "sha256": "96deb6061ce55b01ae6d7cfbb275f743299e039ae1f28cb6f8d1e6aea89e5719",
+  "width": 1032,
+  "height": 1518
+}

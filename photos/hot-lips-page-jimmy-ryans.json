@@ -1,0 +1,38 @@
+{
+  "title": "Hot Lips Page, Jimmy Ryan's",
+  "photographer": "William P. Gottlieb",
+  "source_id": "archive:loc:2023868971",
+  "source_url": "https://www.loc.gov/item/2023868971/",
+  "file_url": "https://tile.loc.gov/image-services/iiif/public:music:musgottlieb-14551:0001/full/pct:100.0/0/default.jpg",
+  "retrieved_at": "2026-09-26T00:12:51.314Z",
+  "source_sha256": "0141d184393ec585ecf6878bf92b48ab76222a90302fed0b506366487ef1be54",
+  "scene": {
+    "primary": "jazz"
+  },
+  "subject": [
+    "clubs-and-venues",
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1947,
+    "precision": "circa"
+  },
+  "verified": "LOC item.rights quoted: \"<p>In accordance with the wishes of William Gottlieb, the photographs in this collection entered into the public domain on February 16, 2010, but rights of privacy and publicity may apply. Privacy and publicity rights protect the interests of the person(s) who may be the subject(s) of the work or intellectual creation. Users of photographs in the Gottlieb collection are responsible for clearing any privacy or publicity rights associated with the use of the images.</p>\n<p>The following items are included in the William P. Gottlieb Collection with permission as noted:</p>\n<p>Articles from <em>Down Beat</em> magazine by William Gottlieb and others, Ed Enright, Editor, <em>Down Beat</em> magazine, 102 North Haven Road, Elmhurst, IL 60126-3370.</p>\n<p>\"The Faces of Jazz,\" by W. Royal Stokes, <em>Civilization</em>, vol. 2, no. 5, September-October 1995, <em>Civilizaton</em>, Attn. Managing Editor, 666 Pennsylvania Ave. SE, Suite 303, Washington, D.C. 20003. Reproduced by permission. All rights reserved.</p>\n<p>Credit Line: William P. Gottlieb/Ira and Leonore S. Gershwin Fund Collection, Music Division, Library of Congress.</p>\" (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "New York",
+    "country_code": "US"
+  },
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "rights-holder-dedication",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "William Gottlieb dedicated the collection to the public domain: LOC item.rights states \"In accordance with the wishes of William Gottlieb, the photographs in this collection entered into the public domain on February 16, 2010\" (re-verified 2026-09-25; reason for the correction: the basis is the donor's own dedication, not federal authorship). Image: Trumpeter mid-solo, club interior."
+  },
+  "status": "picked",
+  "sha256": "6d2477810dc4b6e9ffc6af83d8ec985009b02eb74978c3dd6ec101b1bc8b9f06",
+  "width": 1240,
+  "height": 1600
+}

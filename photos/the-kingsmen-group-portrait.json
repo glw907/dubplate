@@ -1,0 +1,45 @@
+{
+  "title": "The Kingsmen, group portrait",
+  "photographer": "Unknown (KRLA Beat staff or wire photo)",
+  "credit": "KRLA Beat",
+  "source_id": "commons:164908056",
+  "source_url": "https://commons.wikimedia.org/wiki/File:The_Kingsmen_early_1966.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/a/a3/The_Kingsmen_early_1966.jpg",
+  "retrieved_at": "2026-09-26T22:15:00.000Z",
+  "source_sha256": "4182b14bc6729f16d07940ea97d0919f4ef3f322151d80fffbd1b561b1b22fc9",
+  "scene": {
+    "primary": "garage"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "posed",
+  "format": "photograph",
+  "year": {
+    "value": 1966,
+    "precision": "exact"
+  },
+  "size_exception": "Rare full-lineup 1966 print group portrait of the original Kingsmen (all five members); only freely licensed image of the full period lineup found this pass, and no larger scan of this print is known to exist.",
+  "verified": "Commons action=raw wikitext quoted, |permission field: \"When KRLA BEAT originally published this image, they did not include a copyright notice on either the photograph or as part of its caption. The publication failed to included a blanket copyright notice on any of its pages.\", citing |source=https://krlabeat.sakionline.net/issue/5feb66.pdf (5 February 1966 issue). Independently confirmed 2026-09-26 by rendering pages 1-2 of that scanned PDF at 250dpi: the cover carries no copyright line, and the page-2 masthead box (\"The BEAT is published weekly by BEAT Publications, Inc., editorial and advertising offices at 6290 Sunset Blvd...\") names the publisher and subscription terms but carries no copyright notice. (verified 2026-09-26 by sweep-a)",
+  "artists": [
+    {
+      "name": "the Kingsmen",
+      "mbid": "f58654bf-c6e3-45b6-9fcc-62cf8f0021b2"
+    }
+  ],
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-pre-1978-no-notice",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Published in KRLA Beat, 5 February 1966; the issue's own masthead and cover carry no copyright notice (confirmed directly against the scanned issue)."
+  },
+  "status": "picked",
+  "sha256": "915eaa472c96554529370a41379ff0d936254f8e80c5cd41fe3e0abde5f6203c",
+  "width": 1013,
+  "height": 765,
+  "focus": {
+    "x": 59,
+    "y": 49
+  }
+}

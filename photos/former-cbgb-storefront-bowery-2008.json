@@ -1,0 +1,42 @@
+{
+  "title": "Former CBGB storefront, Bowery, 2008",
+  "photographer": "Sbazzone",
+  "source_id": "commons:4599589",
+  "source_url": "https://commons.wikimedia.org/wiki/File:ExCBGB.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/6/68/ExCBGB.jpg",
+  "retrieved_at": "2026-09-26T02:53:58Z",
+  "verified": "Raw wikitext for commons:4599589, fetched 2026-09-26: `{{PD-self}}`, with `|Source={{Own}}`, `|Author=[[User:Sbazzone|Sbazzone]]`, `|Date=2008-07-30`. No delete, copyvio, or no-permission template present. Basis: rights-holder-dedication (photographer's own PD-self dedication, own work uploaded about three weeks after capture).",
+  "source_sha256": "9e4c1e322240a440bc0310aaf990fcba30b3ec3c577bf676a1492096e4b34756",
+  "license": "LicenseRef-public-domain",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "exterior",
+  "format": "photograph",
+  "year": {
+    "value": 2008,
+    "precision": "exact"
+  },
+  "source_title": "ExCBGB.jpg",
+  "place": {
+    "city": "New York",
+    "country_code": "US",
+    "landmark": {
+      "name": "CBGB",
+      "wikidata_id": "Q1022965"
+    }
+  },
+  "public_domain": {
+    "basis": "rights-holder-dedication",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Own-work photograph by uploader User:Sbazzone, self-dedicated to the public domain via {{PD-self}}; photographed 2008-07-30, uploaded 2008-08-21, about three weeks later."
+  },
+  "status": "picked",
+  "sha256": "a75b931cc6c1856a673e362aec5a40ce774034cf81fcfd1a0dcb3c37ee15cbd0",
+  "width": 1600,
+  "height": 1511
+}

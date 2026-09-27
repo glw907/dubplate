@@ -1,0 +1,38 @@
+{
+  "title": "The Skatalites live at Fabrik, Hamburg",
+  "photographer": "Holger Nassenstein",
+  "source_id": "commons:3133755",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Skatalites_hh-01.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Skatalites_hh-01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-25T23:06:13.194Z",
+  "source_sha256": "241e8fb2938261e874579bad62f38612a9c59e25d6c4ce57df7491a878bc9671",
+  "scene": {
+    "primary": "ska"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2007,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{Self|GFDL|Cc-by-sa-3.0-migrated}}, own work by [[User:H.nassenstein|Holger Nassenstein]], dated 2007-07-04, first uploaded 2007-11-23 (no meaningful own-work gap). CC-BY-SA-3.0 is picked from the offered set (re-verified 2026-09-25 by research-a; replaces the round-1 paraphrase with the actual raw line)",
+  "place": {
+    "city": "Hamburg",
+    "country_code": "DE"
+  },
+  "artists": [
+    {
+      "name": "The Skatalites",
+      "mbid": "87ac7e25-f278-47a0-b109-5eb131dc96b6"
+    }
+  ],
+  "license": "CC-BY-SA-3.0",
+  "size_exception": "The Skatalites live at Fabrik, Hamburg, 2007 — the file page offers no larger derivative; keeping the original-lineup reunion-era set thin without it.",
+  "status": "picked",
+  "sha256": "21484e97f4d36400d4933ed552fd2291e616ca23fb8c572a7f6306aaa9db07bd",
+  "width": 1024,
+  "height": 685
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Ian Dury with The Clash",
+  "photographer": "John Coffey",
+  "source_id": "commons:34691850",
+  "source_url": "https://commons.wikimedia.org/wiki/File:IanDuryWithTheClash1980.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/12/IanDuryWithTheClash1980.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "retrieved_at": "2026-09-26T00:07:31.743Z",
+  "source_sha256": "de968c05b214d512645440bc25faae926a73a913d623ed58ff80b998a4051323",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 1980,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{User:FlickreviewR/reviewed-pass|iConJohn|https://www.flickr.com/photos/65258891@N00/4409409393|2014-08-12 13:12:28|cc-by-2.0|}}{{cc-by-2.0}}, the FlickreviewR bot record of the grant in force at review (re-verified 2026-09-25 by research-a)",
+  "artists": [
+    {
+      "name": "Ian Dury",
+      "mbid": "3d5c6889-2471-43c4-b853-08fc5fda810a"
+    },
+    {
+      "name": "The Clash",
+      "mbid": "8f92558c-2baa-4758-8c38-615519e9deda"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "size_exception": "Ian Dury with The Clash, backstage 1980 — a genuine period candid group shot with no larger derivative on Commons.",
+  "status": "picked",
+  "sha256": "f2f8d2fddee6d4c42e2419bdcf4e24455475ad855e1da13fabc8cdcee151c047",
+  "width": 1114,
+  "height": 754
+}

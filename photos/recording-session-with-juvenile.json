@@ -1,0 +1,34 @@
+{
+  "title": "Recording session with Juvenile",
+  "photographer": "Lamar Tribble",
+  "source_id": "commons:185774759",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Donald_XL_Robertson_and_Juvenile_recording_session_studio_photo.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Donald_XL_Robertson_and_Juvenile_recording_session_studio_photo.jpg",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{self|cc-by-4.0}}`; `author=[[User:Lamar Tribble|Lamar Tribble]]`, `date=2013-05-03`.",
+  "source_sha256": "379c647d8a7698f8c60a7a844b4fdab6f14305a3e064025d5021b3e32e5a470f",
+  "license": "CC-BY-4.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "recording-studios"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "year": {
+    "value": 2013,
+    "precision": "exact"
+  },
+  "source_title": "Donald XL Robertson and Juvenile recording session studio photo.jpg",
+  "artists": [
+    {
+      "name": "Juvenile",
+      "mbid": "ba9afaf0-ef3a-42a6-afe0-f924193629bb"
+    }
+  ],
+  "status": "picked",
+  "sha256": "48bce97064acea9d592763624ba7b8c08900cc8f861ae45b2f5e2f057d09009e",
+  "width": 1600,
+  "height": 1067
+}

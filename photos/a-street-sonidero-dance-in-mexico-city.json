@@ -1,0 +1,31 @@
+{
+  "title": "A street sonidero dance in Mexico City",
+  "source_title": "Baile sonidero.jpg",
+  "photographer": "Ederl.mx",
+  "source_id": "commons:76956378",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Baile_sonidero.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Baile_sonidero.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |description={{en|1=Jovenes se divierten durante un baile sonidero callejero durante los festejos previos a semana santa en la colonia Martin Carrera en la Ciudad de Mexico.}} |date=2018-02-24 |source={{own}} |author=[[User:Ederl.mx|Ederl.mx]]. License-header: {{self|cc-by-sa-4.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-4.0",
+  "subject": [
+    "crowds-and-dancers",
+    "streets-and-neighborhoods"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "place": {
+    "city": "Mexico City",
+    "country_code": "MX"
+  },
+  "year": {
+    "value": 2018,
+    "precision": "exact"
+  },
+  "artists": [],
+  "source_sha256": "19ddc8880dff01c93d6beba5eeb6191c0c450041b2ccf6bfbf040f24c0fac106",
+  "status": "picked",
+  "sha256": "7132dcdf5150a65fdac184160826bbd9c555da5fac08190c2a98f6af6a99c6f8",
+  "width": 1600,
+  "height": 1067
+}

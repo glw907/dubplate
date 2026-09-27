@@ -1,0 +1,38 @@
+{
+  "title": "Saturday afternoon in a juke joint, Clarksdale",
+  "photographer": "Marion Post Wolcott",
+  "source_id": "archive:loc:2017801734",
+  "source_url": "https://www.loc.gov/item/2017801734/",
+  "file_url": "https://tile.loc.gov/storage-services/service/pnp/fsa/8c10000/8c10900/8c10921v.jpg",
+  "retrieved_at": "2026-09-26T00:13:10.154Z",
+  "source_sha256": "d4fb0687a7a550f034d0ff7baa9c8d6644e29490df972f9d4fd09c11de91ac84",
+  "scene": {
+    "primary": "blues"
+  },
+  "subject": [
+    "clubs-and-venues"
+  ],
+  "shot": "interior",
+  "format": "photograph",
+  "year": {
+    "value": 1939,
+    "precision": "exact"
+  },
+  "verified": "LOC item.rights quoted: \"<p>The contents of the Library of Congress Farm Security Administration/Office of War Information Black-and-White Negatives are in the public domain and are free to use and reuse.</p>\r\n<p> Credit Line: Library of Congress, Prints &amp; Photographs Division, Farm Security Administration/Office of War Information Black-and-White Negatives.</p>\r\n<p>For information about reproducing, publishing, and citing material from this collection, as well as access to the original items, see: <a href=\"https://www.loc.gov/rr/print/res/071_fsab.html\">U.S. Farm Security Administration/Office of War Information Black &amp; White Photographs - Rights and Restrictions Information</a>\r\n</p>\r\n<p>More about <a href=\"/legal/\">Copyright and other Restrictions</a> </p>\r\n<p>For guidance about compiling full citations consult <a href=\"https://www.loc.gov/teachers/usingprimarysources/citing.html\">Citing Primary Sources</a>.</p>\" (verified 2026-09-25 by research-a)",
+  "place": {
+    "city": "Clarksdale",
+    "country_code": "US"
+  },
+  "license": "LicenseRef-public-domain",
+  "public_domain": {
+    "basis": "us-government-work",
+    "jurisdiction": "US",
+    "us_status": "public domain",
+    "fact": "Bar interior, patrons."
+  },
+  "size_exception": "Marion Post Wolcott FSA/OWI negative; same 1024px JPEG service-copy ceiling as its companion frames (the master TIFF exceeds the 40MB download limit). Rare period juke-joint interior.",
+  "status": "picked",
+  "sha256": "7f578afd80a4a4a7e81502e6ba0e1f25933cb65076d9cc603369698130b78518",
+  "width": 1024,
+  "height": 788
+}

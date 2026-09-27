@@ -1,0 +1,33 @@
+{
+  "title": "Rancid live",
+  "photographer": "Unknown, Commons uploader (Toots Fontaine)",
+  "source_id": "commons:2349806",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Dangerancid.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Dangerancid.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "retrieved_at": "2026-09-25T23:54:32.945Z",
+  "source_sha256": "6faa8a87013b8fc12d2818d93526ce73a727ceb2a82106f68e4e1463f80ccc6d",
+  "scene": {
+    "primary": "punk"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 2006,
+    "precision": "exact"
+  },
+  "verified": "Commons 1600px rendition + action=raw wikitext quoted: {{Cc-by-2.0}}{{Flickrreview|Jaqen|2008-04-02}}, a human Flickrreview confirmation of the grant (source: {{Flickr|...|permission=[https://creativecommons.org/licenses/by/2.0/deed.en Creative Commons Attribution 2.0]}}) (re-verified 2026-09-25 by research-a)",
+  "artists": [
+    {
+      "name": "Rancid",
+      "mbid": "24f8d8a5-269b-475c-a1cb-792990b0b2ee"
+    }
+  ],
+  "license": "CC-BY-2.0",
+  "status": "picked",
+  "sha256": "00d86b9d4051aeb7772462693e3f931eec3139095a8c4c47fbc9e9e05af70667",
+  "width": 1194,
+  "height": 1600
+}

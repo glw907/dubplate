@@ -1,0 +1,38 @@
+{
+  "title": "Les Ambassadeurs at TFF Rudolstadt",
+  "source_title": "Les Ambassadeurs TFF 01.JPG",
+  "photographer": "Schorle",
+  "source_id": "commons:41930354",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Les_Ambassadeurs_TFF_01.JPG",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Les_Ambassadeurs_TFF_01.JPG",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |description={{en|1=Salif Keïta & Les Ambassadeurs at TFF Rudolstadt 2015.}} |date=2015-07-03 |source={{own}} |author=[[User:Schorle|Schorle]]. Page also carries {{Personality rights}}. License-header: {{self|cc-by-sa-4.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-4.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "place": {
+    "city": "Rudolstadt",
+    "country_code": "DE"
+  },
+  "year": {
+    "value": 2015,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Les Ambassadeurs"
+    },
+    {
+      "name": "Salif Keita",
+      "mbid": "b29a24ff-2c55-437e-867b-1456c9f3f73e"
+    }
+  ],
+  "source_sha256": "1ecd8562c64336f4dd76acbc70eda5295eb206e3c56068b8edf833447ea890ca",
+  "status": "picked",
+  "sha256": "95ed995dce8142fb4a763d3304b4022ef90f5e567ce56c3811df7b9d54c56b25",
+  "width": 1600,
+  "height": 1067
+}

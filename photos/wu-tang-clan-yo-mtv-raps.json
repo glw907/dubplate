@@ -1,0 +1,34 @@
+{
+  "title": "Wu-Tang Clan, Yo! MTV Raps",
+  "photographer": "MTV UK",
+  "source_id": "commons:154791780",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Wu_Tang_Clan_concert,_c._1990s.png",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Wu_Tang_Clan_concert%2C_c._1990s.png",
+  "retrieved_at": "2026-09-26T00:12:10Z",
+  "verified": "Commons `action=raw` wikitext: `{{YouTube CC-BY|[https://www.youtube.com/@MTVUK MTV UK]}}`; `Template:YouTube CC-BY/i18n/en` raw confirms it renders `{{cc-by-3.0|{{{1|}}}}}`; `author=MTV UK`, `date={{other date|between|1992|1995}}`.",
+  "source_sha256": "b36bc545fb602fe1687617f01788dc4f67181627d97273e93dcace8f8e0afab7",
+  "license": "CC-BY-3.0",
+  "scene": {
+    "primary": "hip-hop"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1993,
+    "precision": "circa"
+  },
+  "source_title": "Wu Tang Clan concert, c. 1990s.png",
+  "artists": [
+    {
+      "name": "Wu-Tang Clan",
+      "mbid": "0febdcf7-4e1f-4661-9493-b40427de2c13"
+    }
+  ],
+  "status": "picked",
+  "sha256": "3ade9e15030a2d574491144fd57c78f852215df84de3fa6b5c2bec38a767b776",
+  "width": 1280,
+  "height": 720
+}

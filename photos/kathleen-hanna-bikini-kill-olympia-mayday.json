@@ -1,0 +1,42 @@
+{
+  "title": "Kathleen Hanna, Bikini Kill, Olympia Mayday",
+  "photographer": "jonathancharles",
+  "source_id": "commons:39320066",
+  "origin_id": "flickr:1330123908",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Kathleen_Hanna_live_in_Bikini_Kill_in_1991.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Kathleen_Hanna_live_in_Bikini_Kill_in_1991.jpg",
+  "retrieved_at": "2026-09-27T01:18:34.000Z",
+  "source_sha256": "720fc0b3ce61e8d5a9e28959660ea5b682ff80d5f179bfc8ff66dfaf4165f6b3",
+  "scene": {
+    "primary": "riot-grrrl"
+  },
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "year": {
+    "value": 1991,
+    "precision": "exact"
+  },
+  "verified": "Commons action=raw wikitext quoted: {{flickrreview|ww2censor|17:57, 1 April 2015 (UTC)}} {{cc-by-sa-2.0}} (verified 2026-09-26 by sweep-b). Live Flickr page fetched raw: \"license\":5 (CC BY-SA 2.0, matching), title \"Bikini Kill Sylvester Park, Olympia May 1, 1991 | Mayday Cel[ebration]\", og:description \"Mayday Celebration with Bikini Kill. Fun!\" -- a specific, first-person, contemporaneous-sounding account of a named event at a named park, not a generic re-post, supporting that jonathancharles is the photographer who was actually there, despite the 24-year gap to the 2015 Commons transfer.",
+  "place": {
+    "city": "Olympia",
+    "country_code": "US"
+  },
+  "artists": [
+    {
+      "name": "Bikini Kill",
+      "mbid": "1397d045-1603-41fc-80b9-712c18360145"
+    }
+  ],
+  "license": "CC-BY-SA-2.0",
+  "status": "picked",
+  "sha256": "c8c1d4845bc1736bbe5fd200dbefc6b08b8b418ff48c71354e69356b3d96a8b1",
+  "width": 711,
+  "height": 1200,
+  "focus": {
+    "x": 58,
+    "y": 29
+  }
+}

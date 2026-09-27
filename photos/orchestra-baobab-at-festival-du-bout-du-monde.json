@@ -1,0 +1,35 @@
+{
+  "title": "Orchestra Baobab at Festival du Bout du Monde",
+  "source_title": "Festival du Bout du Monde 2017 - Orchestra Baobab - 062.jpg",
+  "photographer": "Thesupermat",
+  "source_id": "commons:64421564",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Festival_du_Bout_du_Monde_2017_-_Orchestra_Baobab_-_062.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Festival_du_Bout_du_Monde_2017_-_Orchestra_Baobab_-_062.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |description=Orchestra Baobab en concert sur la scène Landaoudec lors du festival du Bout du Monde 2016 |date=2017-08-05 |source={{own}} |author=[[User:Thesupermat|Thesupermat]]. Page also carries {{Personality rights}}. License-header: {{self|cc-by-sa-4.0}}. Verified 2026-09-25 by research-c.",
+  "license": "CC-BY-SA-4.0",
+  "subject": [
+    "performers"
+  ],
+  "shot": "live",
+  "format": "photograph",
+  "place": {
+    "city": "Crozon",
+    "country_code": "FR"
+  },
+  "year": {
+    "value": 2017,
+    "precision": "exact"
+  },
+  "artists": [
+    {
+      "name": "Orchestra Baobab",
+      "mbid": "30331c85-26d4-4daa-9f66-3075cac4c20b"
+    }
+  ],
+  "source_sha256": "701d29c77d8678c2de07fedefe262d99458b07b8029a119232d965fb5f5e7482",
+  "status": "picked",
+  "sha256": "dbcb061a286f29713db28f9523f81b075616da69b5e626e5c5262960039eab29",
+  "width": 1600,
+  "height": 1067
+}

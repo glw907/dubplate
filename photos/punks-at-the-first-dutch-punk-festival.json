@@ -1,0 +1,39 @@
+{
+  "title": "Punks at the first Dutch punk festival",
+  "source_title": "Eerste Nederlandse Punkfestival in Paradiso Amsterdam punkers tijdens festiva, Bestanddeelnr 929-5806.jpg",
+  "photographer": "Rob Bogaerts / Anefo",
+  "credit": "Nationaal Archief / Anefo",
+  "source_id": "commons:73912446",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Eerste_Nederlandse_Punkfestival_in_Paradiso_Amsterdam_punkers_tijdens_festiva,_Bestanddeelnr_929-5806.jpg",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/40/Eerste_Nederlandse_Punkfestival_in_Paradiso_Amsterdam_punkers_tijdens_festiva%2C_Bestanddeelnr_929-5806.jpg",
+  "retrieved_at": "2026-09-25T00:00:00Z",
+  "verified": "action=raw wikitext: |Beschrijving : Eerste Nederlandse Punkfestival in Paradiso Amsterdam; \"punkers\" tijdens festival |Datum : 18 februari 1978 |Instellingsnaam : Paradiso |Fotograaf : Bogaerts, Rob / Anefo |Auteursrechthebbende : Nationaal Archief. License-header: {{CC-zero}}. Verified 2026-09-25 by research-c.",
+  "license": "CC0-1.0",
+  "subject": [
+    "crowds-and-dancers",
+    "clubs-and-venues"
+  ],
+  "shot": "candid",
+  "format": "photograph",
+  "scene": {
+    "primary": "punk"
+  },
+  "place": {
+    "city": "Amsterdam",
+    "country_code": "NL",
+    "landmark": {
+      "name": "Paradiso",
+      "wikidata_id": "Q1535378"
+    }
+  },
+  "year": {
+    "value": 1978,
+    "precision": "exact"
+  },
+  "artists": [],
+  "source_sha256": "d36487ef4d731a9de157230444a68136e411aa8846a7bf15d3ae32a45fb74e0d",
+  "status": "picked",
+  "sha256": "5e683c8b332c4601d1c4ee8d8e026721e797c9a396fa1982034f2324cee3d650",
+  "width": 1061,
+  "height": 1600
+}
