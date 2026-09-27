@@ -216,6 +216,11 @@ which supersedes the visual identity spec's curation rules where they differ; th
 `docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`. Inputs:
 `docs/superpowers/research/2026-09-24-identity-photos/`. Owner touchpoints: the sorting sittings
 and sending the outreach letters. Separate from the rung ladder; rung 7 consumes it.
+Round one closed on 2026-09-26 with 116 photos committed to `photos/`, and Geoff ruled the pool
+enough for 0.8.0, so later rounds are continuing work that never blocks a release. Each later
+round starts from the targets in `docs/superpowers/research/photo-curation-rounds/round-1.md`
+(Round close) and the artist list beside it, ranks period photos first, and budgets the sorting
+page as its own task.
 
 ### The project site `project-site`
 dubplate's public project home for strangers: a standard cairn site in its own repo
