@@ -20,6 +20,9 @@ import { fail, isMainModule, walk } from './lib.ts';
 import {
   ADD_MEMBER_HINTS,
   ADD_MEMBER_LABELS,
+  ADD_MEMBER_LEGEND,
+  ADD_MEMBER_SUBMIT,
+  ADMIN_BADGE_LABEL,
   AUTH_OUTCOMES,
   CROSS_ORIGIN_REFUSED,
   ERROR_PAGE,
@@ -28,11 +31,14 @@ import {
   LINK_TOKEN_MISSING,
   LOGIN_SUBLINE,
   NETWORK_FAILURE,
+  REFUSED_LINK,
   ROSTER_EMPTY_STATE,
   ROSTER_OUTCOMES,
+  ROSTER_RETRY,
   SENT_ESCAPE_HATCH,
   SENT_MOMENT_TEXT,
   SIGN_OUT_CONTROL,
+  SKIP_LINK,
   THEME_TOGGLE_LABEL,
   TITLES,
   memberCountLine,
@@ -107,9 +113,14 @@ function deckLeaves(): Leaf[] {
     INTERSTITIAL_STATEMENT,
     INTERSTITIAL_CONTROL,
     SIGN_OUT_CONTROL,
+    SKIP_LINK,
     LINK_TOKEN_MISSING,
     ROSTER_EMPTY_STATE,
-    THEME_TOGGLE_LABEL
+    ROSTER_RETRY,
+    THEME_TOGGLE_LABEL,
+    ADD_MEMBER_LEGEND,
+    ADD_MEMBER_SUBMIT,
+    ADMIN_BADGE_LABEL
   };
   const dictionaries: Record<string, Record<string, string>> = {
     AUTH_OUTCOMES,
@@ -117,7 +128,8 @@ function deckLeaves(): Leaf[] {
     ADD_MEMBER_HINTS,
     ROSTER_OUTCOMES,
     ERROR_PAGE,
-    TITLES
+    TITLES,
+    REFUSED_LINK
   };
   const leaves: Leaf[] = Object.entries(scalars).map(([key, value]) => ({ key, value }));
   for (const [dictName, dict] of Object.entries(dictionaries)) {

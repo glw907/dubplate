@@ -38,6 +38,7 @@ import {
   NETWORK_FAILURE,
   ROSTER_EMPTY_STATE,
   ROSTER_OUTCOMES,
+  ROSTER_RETRY,
   SENT_ESCAPE_HATCH,
   SIGN_OUT_CONTROL,
   THEME_TOGGLE_LABEL,
@@ -2687,13 +2688,15 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
       }
 
       const isMoment = c.outcome === 'sent' || c.outcome === 'requested';
-      // The moment's `#outcome` is a `<section>` holding both the
-      // heading and the escape-hatch button, so its own textContent
-      // includes the button's label too; the heading alone is the
-      // outcome text every other case's `#outcome` textContent already is.
+      // The moment's `#outcome` is a `<section>` holding a short slab
+      // title, the full sentence in a Work Sans `p` (S1: never a full
+      // sentence set in Alfa Slab), and the escape-hatch button. The
+      // paragraph carries the outcome text every other case's
+      // `#outcome` textContent already is; the title is read separately.
       const text = isMoment
-        ? ((await outcomeEl.locator('h2').textContent()) ?? '').trim()
+        ? ((await outcomeEl.locator('p').textContent()) ?? '').trim()
         : ((await outcomeEl.textContent()) ?? '').trim();
+      const momentTitle = isMoment ? ((await outcomeEl.locator('h2').textContent()) ?? '').trim() : '';
       const tag = await outcomeEl.evaluate((el) => el.tagName);
       const cls = (await outcomeEl.getAttribute('class')) ?? '';
       const childCount = await outcomeEl.evaluate((el) => el.children.length);
@@ -2740,10 +2743,14 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
           .catch(() => false);
         ledeHidden = !(await visit.page.getByText(LOGIN_SUBLINE, { exact: true }).isVisible().catch(() => false));
         const h1X = await visit.page.locator('h1.page-title').evaluate((el) => el.getBoundingClientRect().x);
-        const escapeHatchX = await visit.page
-          .getByRole('button', { name: SENT_ESCAPE_HATCH })
-          .evaluate((el) => el.getBoundingClientRect().x);
-        aligned = Math.abs(h1X - escapeHatchX) < 1;
+        const escapeHatch = visit.page.getByRole('button', { name: SENT_ESCAPE_HATCH });
+        const escapeHatchX = await escapeHatch.evaluate((el) => el.getBoundingClientRect().x);
+        // The re-read's item 3: a `.btn`'s own padding put the ink 19px
+        // inside the column edge even though the button's own box
+        // already sat flush against it; a `.link` control carries no
+        // such padding, so the ink itself now lands on the box edge.
+        const escapeHatchPaddingLeft = await escapeHatch.evaluate((el) => getComputedStyle(el).paddingLeft);
+        aligned = Math.abs(h1X - escapeHatchX) < 1 && escapeHatchPaddingLeft === '0px';
       }
 
       await report({
@@ -2757,11 +2764,12 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
           said.text === wantAnnounced &&
           said.politeness === wantPoliteness &&
           titleText === wantTitle &&
+          (!isMoment || momentTitle === TITLES.loginSent) &&
           (c.mode !== 'real' || requestsSeen === 1) &&
           ledeHidden &&
           aligned &&
           headingFocused,
-        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); moment heading focused ${headingFocused}; #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(said.text)} as ${said.politeness} (want ${JSON.stringify(wantAnnounced)} as ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}`
+        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); moment title ${JSON.stringify(momentTitle)}; moment heading focused ${headingFocused}; #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(said.text)} as ${said.politeness} (want ${JSON.stringify(wantAnnounced)} as ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}`
       });
     } finally {
       await context.close();
@@ -2935,6 +2943,135 @@ async function loginRepeatOutcomeRow(browser: Browser, endpoints: Endpoints): Pr
       fixture: text === want,
       property: goneInFlight && fresh && announcements === 2,
       detail: `first alert gone while the second request was in flight ${goneInFlight}; second alert a new element ${fresh}; assertive region texts ${JSON.stringify(seen)} (want ${JSON.stringify(want)} twice)`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * a11y W1: while a submit is in flight, the button never drops to a
+ * native `disabled`, which would blur it to `<body>`; it stays
+ * focusable and focused, marked only `aria-disabled`, and the
+ * re-entrancy guard (not the attribute) is what stops a second click
+ * from reaching the route.
+ */
+async function loginBusyFocusRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/login/busy-focus';
+  const context = await browser.newContext();
+  try {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let calls = 0;
+    await context.route('**/request-link', async (route) => {
+      calls += 1;
+      await held;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome: 'sent' }) });
+    });
+    const visit = await openBooted(context, endpoints.base, PAGES[0]);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+    const submitButton = visit.page.getByRole('button', { name: TITLES.login, exact: true });
+    await submitButton.click();
+    await visit.page
+      .waitForFunction(() => document.activeElement?.getAttribute('aria-disabled') === 'true', undefined, { timeout: 2_000 })
+      .catch(() => undefined);
+    const ariaDisabled = await submitButton.getAttribute('aria-disabled');
+    const nativeDisabled = await submitButton.evaluate((el) => (el as HTMLButtonElement).disabled);
+    const focusedIsButton = await visit.page.evaluate((label) => document.activeElement?.textContent?.trim() === label, TITLES.login);
+    // A second click while busy must never reach the route: the
+    // re-entrancy guard, not the (absent) `disabled` attribute, stops it.
+    await submitButton.click({ force: true });
+    release();
+    await visit.page.locator('#outcome').waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await report({
+      id,
+      fixture: true,
+      property: ariaDisabled === 'true' && !nativeDisabled && focusedIsButton && calls === 1,
+      detail: `aria-disabled ${JSON.stringify(ariaDisabled)}; native disabled ${nativeDisabled}; focus on the submit button ${focusedIsButton}; request-link calls reaching the route ${calls} (want 1)`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * a11y W2: from the sent moment, "Use a different address" unmounts
+ * the moment and focuses the reinstated email field, rather than
+ * dropping focus to `<body>`.
+ */
+async function loginDifferentAddressFocusRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/login/different-address-focus';
+  const context = await browser.newContext();
+  try {
+    await context.route('**/request-link', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome: 'sent' }) })
+    );
+    const visit = await openBooted(context, endpoints.base, PAGES[0]);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+    await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+    await visit.page.locator('#outcome h2').waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await visit.page.getByRole('button', { name: SENT_ESCAPE_HATCH }).click();
+    const focused = await visit.page
+      .waitForFunction(() => document.activeElement?.id === 'address', undefined, { timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false);
+    const addressValue = await visit.page.locator('#address').inputValue();
+    await report({
+      id,
+      fixture: true,
+      property: focused && addressValue === ADMIN_ADDRESS,
+      detail: `focus on #address after "Use a different address" ${focused}; address field kept ${JSON.stringify(addressValue)} (want ${JSON.stringify(ADMIN_ADDRESS)})`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * a11y W9, svelte #5: a roster GET that never reaches a 404 (a network
+ * failure, or a status the gate never answers with) shows the
+ * unreachable state with a retry, distinct from the admin gate's own
+ * refusal; retrying with the route repaired loads the roster. Reuses
+ * the header's own signed-in session, spending no consumption.
+ */
+async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/unreachable';
+  const context = await browser.newContext();
+  try {
+    await context.addCookies([session]);
+    let attempts = 0;
+    await context.route('**/roster', (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      attempts += 1;
+      if (attempts === 1) return route.abort('failed');
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ members: [] }) });
+    });
+    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+    // The aborted roster GET logs "Failed to load resource: net::ERR_FAILED"
+    // regardless of the page's own handling.
+    visit.expectsAuthErrorStatus = true;
+    const alert = visit.page.locator('.alert').filter({ hasText: NETWORK_FAILURE });
+    const alertShown = await alert
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const retry = visit.page.getByRole('button', { name: ROSTER_RETRY, exact: true });
+    const retryPresent = (await retry.count()) > 0;
+    const rosterListBeforeRetry = await visit.page.locator('#roster-list').count();
+    if (retryPresent) await retry.click();
+    const heading = await visit.page
+      .getByRole('heading', { level: 1, name: TITLES.members, exact: true })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const emptyState = (await visit.page.getByText(ROSTER_EMPTY_STATE, { exact: true }).count()) > 0;
+    await report({
+      id,
+      fixture: alertShown && retryPresent,
+      property: rosterListBeforeRetry === 0 && attempts === 2 && heading && emptyState,
+      detail: `unreachable alert shown ${alertShown}; retry control present ${retryPresent}; roster GET attempts ${attempts}; recovered heading shown ${heading}; empty-state text shown ${emptyState}`
     });
   } finally {
     await context.close();
@@ -3302,6 +3439,11 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
       .filter({ hasText: ROSTER_OUTCOMES.added })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
+    // The re-read's item 6: "Added." is announced through the live
+    // region (also confirmed by W1's focus move to the address field,
+    // checked below).
+    const addedAnnounced = await announced(visit.page);
+
     const afterAddCount = await visit.page.locator('#roster-list > li').count();
 
     // Item 1's fold: the reset form leaves no field invalid after a
@@ -3310,6 +3452,10 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     const invalidAfterAdd = await visit.page
       .locator('#add-address, #add-display-name, #add-streamer-username')
       .evaluateAll((els) => els.filter((el) => el.matches(':user-invalid')).map((el) => el.id));
+
+    // a11y W1: a successful add returns focus to the address field
+    // rather than leaving it on the button the reset just cleared.
+    const focusedAfterAdd = await visit.page.evaluate(() => document.activeElement?.id ?? null);
 
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(NEW_MEMBER_ADDRESS);
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('New Member');
@@ -3338,9 +3484,12 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
         afterAddCount === initialCount + 1 &&
         bodyKeysOK &&
         invalidAfterAdd.length === 0 &&
+        focusedAfterAdd === 'add-address' &&
+        addedAnnounced.text === ROSTER_OUTCOMES.added &&
+        addedAnnounced.politeness === 'polite' &&
         addressAriaInvalid === 'true' &&
         addressDescribedBy === 'roster-outcome',
-      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}`
+      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; "Added." announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}`
     });
   } finally {
     await context.close();
@@ -3457,6 +3606,60 @@ async function establishSession(browser: Browser, link: string): Promise<Cookie>
   } finally {
     await context.close();
   }
+}
+
+/**
+ * `component/typography-ladder`: the re-read's item 1. Alfa Slab One
+ * appears at four sizes only, per `ledger-typography.md:28` (which the
+ * identity spec calls "already right"): the page title (36px), the
+ * sent moment's short title (20px), and the wordmark (24px in the
+ * signed-in header, 30px on the login page). All four measurements are
+ * taken at a 1440px viewport, where the root's fluid `font-size`
+ * (`app.css`'s `clamp()`) resolves to exactly 16px, so each Tailwind
+ * step (`text-4xl`, `text-xl`, `text-2xl`, `text-3xl`) lands on its
+ * ladder value precisely rather than the wider viewport's scaled-up one.
+ */
+async function typographyLadderRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'component/typography-ladder';
+  const viewport = { width: 1440, height: 900 };
+
+  const loginContext = await browser.newContext({ viewport });
+  let h1Size = '';
+  let wordmarkLoginSize = '';
+  let momentTitleSize = '';
+  try {
+    await loginContext.route('**/request-link', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome: 'sent' }) })
+    );
+    const visit = await openBooted(loginContext, endpoints.base, PAGES[0]);
+    h1Size = await visit.page.locator('h1.page-title').evaluate((el) => getComputedStyle(el).fontSize);
+    wordmarkLoginSize = await visit.page
+      .locator('main span.display')
+      .first()
+      .evaluate((el) => getComputedStyle(el).fontSize);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+    await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+    await visit.page.locator('#outcome h2').waitFor({ timeout: BOOT_TIMEOUT_MS });
+    momentTitleSize = await visit.page.locator('#outcome h2').evaluate((el) => getComputedStyle(el).fontSize);
+  } finally {
+    await loginContext.close();
+  }
+
+  const headerContext = await browser.newContext({ viewport });
+  let wordmarkHeaderSize = '';
+  try {
+    const visit = await openMembers(headerContext, endpoints, session);
+    wordmarkHeaderSize = await visit.page.locator('.site-header span.display').evaluate((el) => getComputedStyle(el).fontSize);
+  } finally {
+    await headerContext.close();
+  }
+
+  await report({
+    id,
+    fixture: h1Size !== '' && wordmarkLoginSize !== '' && momentTitleSize !== '' && wordmarkHeaderSize !== '',
+    property: h1Size === '36px' && momentTitleSize === '20px' && wordmarkHeaderSize === '24px' && wordmarkLoginSize === '30px',
+    detail: `h1 ${h1Size} (want 36px); sent-moment h2 ${momentTitleSize} (want 20px); header wordmark ${wordmarkHeaderSize} (want 24px); login wordmark ${wordmarkLoginSize} (want 30px)`
+  });
 }
 
 /**
@@ -3758,11 +3961,15 @@ async function membersListJoinRow(browser: Browser, endpoints: Endpoints, sessio
     const metaLines = await visit.page.locator('#roster-list .text-sm').allTextContents();
     const noUsername = (metaLines[0] ?? '').trim();
     const hasUsername = (metaLines[1] ?? '').trim();
+    // Every segment after the first leads with a non-breaking space
+    // (U+00A0), so the separator can never wrap onto a line of its own
+    // (the re-read's item 2).
+    const wantHasUsername = `has-username@example.test · hasuser`;
     await report({
       id,
       fixture: metaLines.length === 2,
-      property: noUsername === 'no-username@example.test' && hasUsername === 'has-username@example.test · hasuser',
-      detail: `no-username meta ${JSON.stringify(noUsername)}; has-username meta ${JSON.stringify(hasUsername)}`
+      property: noUsername === 'no-username@example.test' && hasUsername === wantHasUsername,
+      detail: `no-username meta ${JSON.stringify(noUsername)}; has-username meta ${JSON.stringify(hasUsername)} (want ${JSON.stringify(wantHasUsername)})`
     });
   } finally {
     await context.close();
@@ -4469,6 +4676,8 @@ const CAPTURE_STATES: CaptureState[] = [
       const visit = await openBooted(context, endpoints.base, PAGES[0]);
       await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
       await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      // S1: the moment's `h2` carries only the short slab title now; the
+      // full sentence sits in the paragraph beside it.
       const heading = visit.page.locator('#outcome h2');
       let text = '';
       let ok = true;
@@ -4478,7 +4687,7 @@ const CAPTURE_STATES: CaptureState[] = [
       } catch {
         ok = false;
       }
-      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.sent, detail: `sent moment heading ${JSON.stringify(text)}` };
+      return { page: visit.page, ok: ok && text === TITLES.loginSent, detail: `sent moment heading ${JSON.stringify(text)}` };
     }
   },
   {
@@ -4947,6 +5156,8 @@ async function main(): Promise<void> {
     await loginSingleOutcomeRow(browser, endpoints);
     await loginFallbackRows(browser, endpoints);
     await loginRepeatOutcomeRow(browser, endpoints);
+    await loginBusyFocusRow(browser, endpoints);
+    await loginDifferentAddressFocusRow(browser, endpoints);
     await interstitialOrderingRows(browser, endpoints);
     await interstitialSignedInRow(browser, endpoints);
     await interstitialRefusedReloadRow(browser, endpoints);
@@ -4955,11 +5166,13 @@ async function main(): Promise<void> {
     await membersAddRow(browser, endpoints);
     await membersNonAdminRow(browser, endpoints);
     const headerSession = await establishSession(browser, endpoints.membersHeaderLink);
+    await typographyLadderRow(browser, endpoints, headerSession);
     await membersFocusRows(browser, endpoints, headerSession);
     await headerContrastRow(browser, endpoints, headerSession);
     await rulingFourRow(browser, endpoints, headerSession);
     await layoutContentMeasureRow(browser, endpoints, headerSession);
     await membersListJoinRow(browser, endpoints, headerSession);
+    await membersUnreachableRow(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
     await headerStructureRow(browser, endpoints, headerSession);
     await signOutContrastRows(browser, endpoints, headerSession);

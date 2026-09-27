@@ -96,7 +96,7 @@ live region.
     <nav class="navbar-start">
       <a href={resolve('/members')} class="flex min-h-11 items-center gap-2 text-neutral-content">
         <Mark size={32} />
-        <span class="display text-lg">dubplate</span>
+        <span class="display text-2xl">dubplate</span>
       </a>
     </nav>
     <div class="navbar-end gap-2">

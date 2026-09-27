@@ -21,7 +21,7 @@ found to anyone else.
   import { consumeLink, outcomeAlertClass, outcomePoliteness, outcomeText, type AuthResult } from '$lib/api/auth';
   import { takeLinkToken } from '$lib/api/link-token';
   import { announce } from '$lib/announcer.svelte';
-  import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, LINK_TOKEN_MISSING, TITLES } from '$lib/copy/deck';
+  import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, LINK_TOKEN_MISSING, REFUSED_LINK, TITLES } from '$lib/copy/deck';
   import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
 
   const siteName = browser ? siteNameFromDocument(document) : '';
@@ -30,26 +30,10 @@ found to anyone else.
   type Terminal = 'signed_in' | 'refused' | 'missing';
 
   let terminal = $state<Terminal | null>(token === null ? 'missing' : null);
-  let pending = $state<AuthResult | null>(null);
+  // Never read into; a fresh answer always replaces the whole object.
+  let pending = $state.raw<AuthResult | null>(null);
   let submitting = $state(false);
   let heading = $state<HTMLElement | null>(null);
-
-  // The refused line links back to sign-in through its own phrase
-  // ("the sign-in page"), split out of the deck's own sentence so the
-  // page adds a link without ever writing that sentence's words a
-  // second time.
-  const REFUSED_LINK_PHRASE = 'the sign-in page';
-  const refusedParts = $derived.by(() => {
-    const text = AUTH_OUTCOMES.refused;
-    const i = text.indexOf(REFUSED_LINK_PHRASE);
-    return i === -1
-      ? { before: text, phrase: '', after: '' }
-      : {
-          before: text.slice(0, i),
-          phrase: text.slice(i, i + REFUSED_LINK_PHRASE.length),
-          after: text.slice(i + REFUSED_LINK_PHRASE.length)
-        };
-  });
 
   const headingText = $derived(
     terminal === 'signed_in' ? TITLES.loginLinkSignedIn : terminal === null ? TITLES.loginLink : TITLES.loginLinkRefused
@@ -85,21 +69,22 @@ found to anyone else.
 </svelte:head>
 
 <main id="main" tabindex="-1" class="content-measure flow py-8">
-  <h1 tabindex="-1" bind:this={heading} class="display page-title">{headingText}</h1>
+  <h1 tabindex="-1" bind:this={heading} class="display page-title text-4xl">{headingText}</h1>
 
   {#if terminal === 'signed_in'}
     <p id="outcome">{AUTH_OUTCOMES.signed_in}</p>
   {:else if terminal === 'refused'}
     <p id="outcome">
-      {refusedParts.before}{#if refusedParts.phrase}<a href={resolve('/login')} class="link link-primary"
-          >{refusedParts.phrase}</a
-        >{/if}{refusedParts.after}
+      {REFUSED_LINK.before}<a href={resolve('/login')} class="link link-primary">{REFUSED_LINK.linkText}</a
+      >{REFUSED_LINK.after}
     </p>
   {:else if terminal === 'missing'}
     <p id="outcome">{LINK_TOKEN_MISSING}</p>
   {:else}
     <p>{INTERSTITIAL_STATEMENT}</p>
-    <button type="button" class="btn btn-primary" disabled={submitting} onclick={confirm}>{INTERSTITIAL_CONTROL}</button>
+    <button type="button" class="btn btn-primary" aria-disabled={submitting || undefined} onclick={confirm}
+      >{INTERSTITIAL_CONTROL}</button
+    >
     {#if pending}
       <div id="outcome" class="alert {outcomeAlertClass(pending.outcome)}">{outcomeText(pending)}</div>
     {/if}

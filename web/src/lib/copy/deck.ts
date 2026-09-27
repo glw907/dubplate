@@ -26,6 +26,18 @@ export const UNKNOWN_ADDRESS_NO_ADMIN =
   'We don’t recognize that address. Check the spelling, or ask whoever runs this server to add you.';
 
 /**
+ * The `refused` outcome's line, structured so a page can wrap
+ * `linkText` in an anchor without ever restating the sentence around
+ * it. `AUTH_OUTCOMES.refused` composes the same three parts, so the
+ * two can never drift apart.
+ */
+export const REFUSED_LINK = {
+  before: 'That sign-in link doesn’t work anymore. Each link works only once and expires after a short time. Get a new one from ',
+  linkText: 'the sign-in page',
+  after: '.'
+};
+
+/**
  * Every outcome `internal/auth/handlers.go` answers with, one line
  * each, keyed by the outcome value. Covers both the request-link and
  * the consumption flow, since a status like `rate_limited` answers
@@ -43,8 +55,7 @@ export const AUTH_OUTCOMES: Record<string, string> = {
   malformed: 'Something went wrong sending that. Reload the page and try again.',
   failed: 'Something went wrong on our end. Try again in a few minutes.',
   signed_in: 'You’re signed in.',
-  refused:
-    'That sign-in link doesn’t work anymore. Each link works only once and expires after a short time. Get a new one from the sign-in page.',
+  refused: `${REFUSED_LINK.before}${REFUSED_LINK.linkText}${REFUSED_LINK.after}`,
   // Never claims revocation: sign-out clears only this browser's
   // cookie and revokes no session.
   signed_out: 'You’re signed out in this browser.'
@@ -91,12 +102,28 @@ export const LINK_TOKEN_MISSING = 'Open the link from your email again.';
 /** The signed-in header's sign-out control. */
 export const SIGN_OUT_CONTROL = 'Sign out';
 
+/** The root layout's skip link, ahead of every page's own content (W3.6). */
+export const SKIP_LINK = 'Skip to content';
+
 /** The add-member form's field labels. */
 export const ADD_MEMBER_LABELS = {
   address: 'Email address',
   displayName: 'Name',
   streamerUsername: 'Streamer username'
 };
+
+/** The add-member form's own legend, submit control, and admin badge. */
+export const ADD_MEMBER_LEGEND = 'Add a member';
+export const ADD_MEMBER_SUBMIT = 'Add member';
+export const ADMIN_BADGE_LABEL = 'Admin';
+
+/**
+ * The roster list's own control when it could not be reached at all
+ * (a fetch failure, or a status that is neither a refusal nor a
+ * parseable answer): shown beside {@link NETWORK_FAILURE} or
+ * {@link AUTH_OUTCOMES}'s `failed` line.
+ */
+export const ROSTER_RETRY = 'Try again';
 
 /**
  * The add-member form's field hints. `streamerUsername` states the
