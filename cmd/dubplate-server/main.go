@@ -12,6 +12,8 @@
 //   - serve: run the HTTP server (rung 5)
 //   - backup: snapshot the library database and sync it to remote storage (rung 6)
 //   - restore: restore a library snapshot (rung 6)
+//   - unidecode install: build the pinned Unidecode transliteration
+//     table into the state directory, online or from --from FILE
 //   - import: admit a reviewed batch into the library (rung 9)
 //   - ping-fail: report a failed run to a monitoring endpoint (rung 9)
 //
@@ -23,13 +25,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/spf13/cobra"
 )
+
+// unidecodeInstallTimeout bounds the install verb's own wheel download;
+// Unidecode 1.4.0's wheel is 235,837 bytes, so this is generous.
+const unidecodeInstallTimeout = 30 * time.Second
 
 // version is set via -ldflags "-X main.version=..." at release build
 // time; it stays "dev" for workstation builds.
@@ -50,7 +58,7 @@ var version = "dev"
 var matcherCommit = "dev"
 
 func main() {
-	os.Exit(run(newRootCmd()))
+	os.Exit(run(newRootCmd(&http.Client{Timeout: unidecodeInstallTimeout})))
 }
 
 // run executes cmd under the signal-derived context and returns the
@@ -124,7 +132,7 @@ func newProductionRegistry() *config.Registry {
 // (internal/config/registry.go).
 //
 // ruled, conductor 2026-09-07, R1
-func newRootCmd() *cobra.Command {
+func newRootCmd(client *http.Client) *cobra.Command {
 	reg := newProductionRegistry()
 
 	cmd := &cobra.Command{
@@ -142,6 +150,7 @@ func newRootCmd() *cobra.Command {
 		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newRestoreCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newUnidecodeCmd(os.Environ(), client, os.Stdout, os.Stderr),
 	)
 	return cmd
 }

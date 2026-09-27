@@ -37,6 +37,11 @@ const (
 	backupDoctorRowsOn  = 5
 )
 
+// unidecodeRowLines is the unidecode row's fixed contribution to
+// doctor's line-count assertions, storeRowLines's own precedent: it
+// prints exactly one line regardless of state.
+const unidecodeRowLines = 1
+
 func TestDoctorCmd(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -74,8 +79,12 @@ func TestDoctorCmd(t *testing.T) {
 			// The store row doctor now always prints reads
 			// DUBPLATE_STATE_DIR from environ itself, so every case
 			// here points it at a fresh t.TempDir() rather than
-			// baseEnviron's literal host path.
-			environ := replaceKey(tt.environ, "DUBPLATE_STATE_DIR", t.TempDir())
+			// baseEnviron's literal host path. The unidecode row now
+			// prints unconditionally too, so every case installs a
+			// table into that same directory.
+			stateDir := t.TempDir()
+			installTestUnidecodeTable(t, stateDir)
+			environ := replaceKey(tt.environ, "DUBPLATE_STATE_DIR", stateDir)
 
 			reg := config.NewRegistry()
 			registerShadowIntegration(reg)
@@ -192,6 +201,17 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			// The unidecode row follows the backup rows, always
+			// printing exactly one line; every case here installed a
+			// table into the state directory above, so it reads "ok".
+			if li >= len(lines) {
+				t.Fatalf("stdout ran out of lines before the unidecode row")
+			}
+			if wantPrefix := fmt.Sprintf("%-32s", "unidecode"); !strings.HasPrefix(lines[li], wantPrefix) {
+				t.Errorf("unidecode row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+			}
+			li++
+
 			if li != len(lines) {
 				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store+backup rows: %v", len(lines)-li, lines[li:])
 			}
@@ -229,7 +249,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// Task 7's backup rows: both print unconditionally, so neither is
 	// one of reg's own declared families. doctorLines's own environ
 	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + backupDoctorRowsOff
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + backupDoctorRowsOff + unidecodeRowLines
 	if len(lines) != wantTotal {
 		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + 1 store)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
@@ -339,7 +359,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn + unidecodeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
 	}
@@ -621,7 +641,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	// Task 7's backup rows: doctorEnviron's roster names an admin, so
 	// no roster row adds a second, and it never sets
 	// DUBPLATE_BACKUP_ENABLED.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff + unidecodeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -891,8 +911,10 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 
 			// +1 for the roster row (this failing case), +1 for the
 			// store row, which always prints, plus Task 7's backup
-			// rows (doctorEnviron never sets DUBPLATE_BACKUP_ENABLED).
-			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff + len(reg.Settings())
+			// rows (doctorEnviron never sets DUBPLATE_BACKUP_ENABLED)
+			// and +1 for the unidecode row, doctorEnviron's installed
+			// table.
+			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff + unidecodeRowLines + len(reg.Settings())
 			if len(lines) != wantTotal {
 				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row plus one store row); stdout = %q", len(lines), wantTotal, out)
 			}
@@ -914,7 +936,9 @@ func doctorEnviron(t *testing.T) []string {
 	if err := os.WriteFile(rosterPath, []byte(admin), 0o600); err != nil {
 		t.Fatalf("write fixture roster: %v", err)
 	}
-	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+	stateDir := t.TempDir()
+	installTestUnidecodeTable(t, stateDir)
+	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", stateDir)
 	return append(dropKey(environ, "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
 }
 
@@ -936,7 +960,9 @@ func doctorLines(t *testing.T, reg *config.Registry) []string {
 // table-driven test above cannot go vacuous if OwnedWall ever returned
 // an empty table.
 func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
-	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+	stateDir := t.TempDir()
+	installTestUnidecodeTable(t, stateDir)
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
 	cmd := newDoctorCmd(environ, config.NewRegistry(), &stdout, &stderr)
@@ -991,7 +1017,9 @@ func TestDoctorCmd_ShadowRows(t *testing.T) {
 	reg := config.NewRegistry()
 	registerShadowIntegration(reg)
 	registerShadowThresholds(reg)
-	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+	stateDir := t.TempDir()
+	installTestUnidecodeTable(t, stateDir)
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
 	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
@@ -1044,7 +1072,9 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 		Doc:     "a float between 0 and 1",
 	})
 
-	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+	stateDir := t.TempDir()
+	installTestUnidecodeTable(t, stateDir)
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
 	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
@@ -1116,7 +1146,9 @@ func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()),
+			stateDir := t.TempDir()
+			installTestUnidecodeTable(t, stateDir)
+			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir),
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
 
 			var stdout, stderr bytes.Buffer

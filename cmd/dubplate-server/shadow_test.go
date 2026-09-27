@@ -367,6 +367,51 @@ func TestObserveRefusesWhenTheIntegrationIsDisabled(t *testing.T) {
 	}
 }
 
+// TestObserveRefusesWithoutInstalledTable proves the transliteration
+// table's load runs before shadow.OpenStore (R-tt4): with no table
+// installed, observe refuses naming the install verb and leaves the
+// state directory without a shadow/ leaf.
+func TestObserveRefusesWithoutInstalledTable(t *testing.T) {
+	root := t.TempDir()
+	environ := append(baseServerEnviron(root), shadowEnabledEnviron(root)...)
+	var stdout, stderr bytes.Buffer
+
+	cmd := newShadowCmd(environ, shadowTestRegistry(), "cafebabe", &stdout, &stderr)
+	cmd.SetArgs([]string{"observe"})
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute: got nil error, want a refusal naming the missing transliteration table")
+	}
+	if !strings.Contains(err.Error(), "unidecode install") {
+		t.Errorf("error = %q, want it to name the install verb", err.Error())
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "state", "shadow")); !os.IsNotExist(statErr) {
+		t.Errorf("shadow leaf exists after a refused observe: %v", statErr)
+	}
+}
+
+// TestReevaluateRefusesWithoutInstalledTable is observe's own proof
+// (above) for reevaluate: the table's load runs before
+// shadow.OpenStore there too, on the same ordering.
+func TestReevaluateRefusesWithoutInstalledTable(t *testing.T) {
+	root := t.TempDir()
+	environ := baseServerEnviron(root)
+	var stdout, stderr bytes.Buffer
+
+	cmd := newShadowCmd(environ, shadowTestRegistry(), "cafebabe", &stdout, &stderr)
+	cmd.SetArgs([]string{"reevaluate"})
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute: got nil error, want a refusal naming the missing transliteration table")
+	}
+	if !strings.Contains(err.Error(), "unidecode install") {
+		t.Errorf("error = %q, want it to name the install verb", err.Error())
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "state", "shadow")); !os.IsNotExist(statErr) {
+		t.Errorf("shadow leaf exists after a refused reevaluate: %v", statErr)
+	}
+}
+
 // TestShadowVerbsAreRegisteredAndPrintToStdout proves newShadowCmd
 // carries exactly three verbs, both silence flags are set on the
 // parent and every child, and report writes to the injected stdout

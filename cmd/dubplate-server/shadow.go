@@ -243,10 +243,12 @@ func newShadowCmd(environ []string, reg *config.Registry, matcherCommit string, 
 // order: load config; refuse when shadowFromConfig(cfg) is nil, naming
 // DUBPLATE_SHADOW_ENABLED; refuse when matcherCommit is empty or "dev",
 // creating no store either way; resolve the floor and the cap through
-// the two registered thresholds; compose the User-Agent; open the
-// store; call shadow.Run with time.Now(), legal here because cmd/ is
-// outside the engine's no-clock walk; write the artifacts through
-// storeArtifacts; print a one-line summary.
+// the two registered thresholds; compose the User-Agent; load and
+// install the transliteration table (R-tt4), refusing before anything
+// is created if it is missing or invalid; open the store; call
+// shadow.Run with time.Now(), legal here because cmd/ is outside the
+// engine's no-clock walk; write the artifacts through storeArtifacts;
+// print a one-line summary.
 func newShadowObserveCmd(environ []string, reg *config.Registry, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "observe",
@@ -275,6 +277,10 @@ func newShadowObserveCmd(environ []string, reg *config.Registry, matcherCommit s
 			}
 
 			userAgent := fmt.Sprintf("dubplate-server/%s ( %s )", version, cfg.AdminEmail)
+
+			if err := installUnidecodeTransliterator(cfg.StateDir); err != nil {
+				return fmt.Errorf("shadow observe: %w", err)
+			}
 
 			store, err := shadow.OpenStore(shadow.StoreDir(cfg.StateDir))
 			if err != nil {
@@ -350,7 +356,9 @@ func newShadowReportCmd(environ []string, reg *config.Registry, stdout, stderr i
 // stored responses, refusing to run on an unstamped build on the same
 // grounds observe does (an unstamped commit can never be mechanically
 // distinguished from a later one, so "reevaluate" against it would
-// either restamp everything or nothing).
+// either restamp everything or nothing). It loads and installs the
+// transliteration table (R-tt4) after that refusal and before it opens
+// the store, the same order observe follows.
 func newShadowReevaluateCmd(environ []string, reg *config.Registry, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "reevaluate",
@@ -364,6 +372,10 @@ func newShadowReevaluateCmd(environ []string, reg *config.Registry, matcherCommi
 			}
 			if matcherCommit == "" || matcherCommit == "dev" {
 				return fmt.Errorf("shadow reevaluate: refusing to run on an unstamped matcher commit %q", matcherCommit)
+			}
+
+			if err := installUnidecodeTransliterator(cfg.StateDir); err != nil {
+				return fmt.Errorf("shadow reevaluate: %w", err)
 			}
 
 			store, err := shadow.OpenStore(shadow.StoreDir(cfg.StateDir))

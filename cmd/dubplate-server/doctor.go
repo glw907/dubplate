@@ -24,7 +24,8 @@ import (
 // short error, leaving main as the sole stderr writer. Exit status is 1
 // when [config.Load] refuses environ, the roster row fails to open or
 // names no admin, the store row reports a failing state, the backup
-// remote row fails, or a registered setting's row refuses; 0
+// remote row fails, a registered setting's row refuses, or the
+// unidecode row finds the transliteration table missing or invalid; 0
 // otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -127,6 +128,16 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				return err
 			}
 
+			// The unidecode row follows the backup rows, the store
+			// row's own precedent: it always prints exactly one line,
+			// since the matcher can never score without a verified
+			// table. It calls the load half alone, so doctor never
+			// installs a transliterator.
+			unidecodeStatus, unidecodeFailed := unidecodeRowStatus(environ)
+			if err := printRow(stdout, unidecodeDoctorRow, unidecodeStatus); err != nil {
+				return err
+			}
+
 			// The settings rows print one per
 			// registered setting, in declaration order, after the
 			// backup rows, and one row per orphan the store holds
@@ -138,7 +149,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed || settingsFailed {
+			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed || unidecodeFailed || settingsFailed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil

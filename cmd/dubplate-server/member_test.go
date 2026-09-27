@@ -574,7 +574,7 @@ func TestMemberCmd_RequiresNoRosterSourceRefused(t *testing.T) {
 }
 
 func TestNewRootCmd_RegistersMemberCommand(t *testing.T) {
-	cmd := newRootCmd()
+	cmd := newTestRootCmd()
 	for _, sub := range cmd.Commands() {
 		if sub.Name() == "member" {
 			return
