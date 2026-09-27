@@ -71,3 +71,19 @@ classification, hints, and Continue. Those items are ruled above. Its new items:
   over 200 bytes.
 - Suggestion 12 FOLD: a non-JSON 5xx maps to `failed`, not `network_failure`.
 - Suggestion 13 ROUTED to rung 7 (phone gutter `clamp()`).
+
+## Outcome (2026-09-26)
+
+R1 was accepted with no fix round (`913bbc2`). R2 was accepted after one fix round (`92147bc`,
+then `aa8e19e`). Both ran green gates with 150 captures, and every named mutation fired, except
+R2's title-argument mutation.
+
+- **W8, as landed:** the consume answer has no admin flag, so Continue is omitted for every
+  member, admins included. Adding an `admin` field to the consume answer is `internal/auth`
+  work. It routes to rung 7, where the first member landing page gives Continue somewhere to
+  go.
+- **R2 non-blocking:** the title argument and W6's h1 fallback have no rendered proof. A row
+  could fulfill the login document without its site-name meta through `context.route`. This
+  goes to 5c-iv's close as owed.
+- **The push:** master was pushed to the private origin (`glw907/dubplate`), `57b49fd..aa8e19e`,
+  673 commits. Gitleaks scanned the range first and found no leaks.
