@@ -49,7 +49,7 @@ func installTestUnidecodeTable(t *testing.T, stateDir string) {
 	}
 	var stdout bytes.Buffer
 	environ := []string{"DUBPLATE_STATE_DIR=" + stateDir}
-	if err := runUnidecodeInstall(context.Background(), &http.Client{}, environ, path, &stdout); err != nil {
+	if err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), environ, path, &stdout); err != nil {
 		t.Fatalf("install test unidecode table into %s: %v", stateDir, err)
 	}
 }
@@ -57,8 +57,8 @@ func installTestUnidecodeTable(t *testing.T, stateDir string) {
 // unidecodeRewritingTransport asserts that every request targets
 // unidecode.WheelURL, counts the requests it sees, and forwards a
 // clone to a test server standing in for PyPI. Any other host fails
-// the test instead of reaching the network (Global constraints, "Every
-// download in a test goes through a rewriting transport").
+// the test instead of reaching the network: every download in a test
+// goes through a rewriting transport.
 type unidecodeRewritingTransport struct {
 	t        *testing.T
 	server   *httptest.Server
@@ -89,9 +89,24 @@ func newUnidecodeTestClient(t *testing.T, server *httptest.Server) (*http.Client
 	return &http.Client{Transport: rt}, rt
 }
 
+// newNoNetworkUnidecodeTestClient returns a client for a call this test
+// expects to make no request at all: its transport is
+// unidecodeRewritingTransport over a server whose handler fails the
+// test on any request, so a mutation or regression that reaches the
+// network fails the test instead of opening a real connection.
+func newNoNetworkUnidecodeTestClient(t *testing.T) *http.Client {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		t.Error("unexpected request: this call should reach the network never")
+	}))
+	t.Cleanup(server.Close)
+	client, _ := newUnidecodeTestClient(t, server)
+	return client
+}
+
 func TestUnidecodeInstall_RefusesWithoutStateDir(t *testing.T) {
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), &http.Client{}, nil, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), nil, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), "DUBPLATE_STATE_DIR") {
 		t.Fatalf("error = %v, want a refusal naming DUBPLATE_STATE_DIR", err)
 	}
@@ -103,15 +118,15 @@ func TestUnidecodeInstall_RefusesWithoutStateDir(t *testing.T) {
 func TestUnidecodeInstall_RefusesAbsentStateDir(t *testing.T) {
 	stateDir := filepath.Join(t.TempDir(), "absent")
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), stateDir) {
 		t.Fatalf("error = %v, want a refusal naming %s", err, stateDir)
 	}
 }
 
 // TestUnidecodeInstall_RefusesForeignStateDirOwner proves the state
-// directory's own ownership refusal, and mutation (4) against it: a
-// dropped owner check would let this pass instead.
+// directory's own ownership refusal: a dropped owner check would let
+// this pass instead.
 func TestUnidecodeInstall_RefusesForeignStateDirOwner(t *testing.T) {
 	orig := geteuid
 	geteuid = func() int { return os.Geteuid() + 1 }
@@ -119,7 +134,7 @@ func TestUnidecodeInstall_RefusesForeignStateDirOwner(t *testing.T) {
 
 	stateDir := t.TempDir()
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), "runuser") {
 		t.Fatalf("error = %v, want a refusal naming the runuser fix", err)
 	}
@@ -139,7 +154,7 @@ func TestUnidecodeInstall_OwnershipChecksPrecedeAlreadyInstalled(t *testing.T) {
 	t.Cleanup(func() { geteuid = orig })
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil {
 		t.Fatal("error = nil, want a refusal: ownership checks must run before the already-installed check")
 	}
@@ -174,7 +189,7 @@ func TestUnidecodeInstall_RefusesForeignLeafOwner(t *testing.T) {
 	t.Cleanup(func() { geteuid = orig })
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), leafPath) || !strings.Contains(err.Error(), "runuser") {
 		t.Fatalf("error = %v, want a refusal naming %s and the runuser fix", err, leafPath)
 	}
@@ -211,7 +226,7 @@ func TestUnidecodeInstall_RefusesBadLeafShape(t *testing.T) {
 			tt.setup(t, leafPath)
 
 			var stdout bytes.Buffer
-			err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+			err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 			if err == nil {
 				t.Fatal("error = nil, want a refusal")
 			}
@@ -223,8 +238,8 @@ func TestUnidecodeInstall_RefusesBadLeafShape(t *testing.T) {
 }
 
 // TestUnidecodeInstall_AlreadyInstalledMakesNoRequest proves the
-// idempotent path (mutation 5: an idempotent path that fetches anyway
-// fails this on the request count).
+// idempotent path: an idempotent path that fetches anyway fails this
+// on the request count.
 func TestUnidecodeInstall_AlreadyInstalledMakesNoRequest(t *testing.T) {
 	stateDir := t.TempDir()
 	installTestUnidecodeTable(t, stateDir)
@@ -270,7 +285,7 @@ func TestUnidecodeInstall_ReplacesInvalidTable(t *testing.T) {
 	}
 
 	var stdout bytes.Buffer
-	if err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, wheelPath, &stdout); err != nil {
+	if err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, wheelPath, &stdout); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
 
@@ -300,7 +315,7 @@ func TestUnidecodeInstall_RefusesBadFromPath(t *testing.T) {
 			from := tt.from(t)
 
 			var stdout bytes.Buffer
-			err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, from, &stdout)
+			err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, from, &stdout)
 			if err == nil || !strings.Contains(err.Error(), from) {
 				t.Fatalf("error = %v, want a refusal naming %s", err, from)
 			}
@@ -312,9 +327,9 @@ func TestUnidecodeInstall_RefusesBadFromPath(t *testing.T) {
 }
 
 // TestUnidecodeInstall_RefusesOversizedFromFile proves the --from cap
-// refuses before Build ever hashes the file (mutation ground: a cap
-// check that hashed first would still refuse on checksum instead of
-// ErrWheelTooLarge, which the errors.Is below would catch).
+// refuses before Build ever hashes the file: a cap check that hashed
+// first would still refuse on checksum instead of ErrWheelTooLarge,
+// which the errors.Is below would catch.
 func TestUnidecodeInstall_RefusesOversizedFromFile(t *testing.T) {
 	stateDir := t.TempDir()
 	fromPath := filepath.Join(t.TempDir(), "oversized.whl")
@@ -330,7 +345,7 @@ func TestUnidecodeInstall_RefusesOversizedFromFile(t *testing.T) {
 	}
 
 	var stdout bytes.Buffer
-	err = runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
+	err = runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
 	if !errors.Is(err, unidecode.ErrWheelTooLarge) {
 		t.Fatalf("error = %v, want ErrWheelTooLarge", err)
 	}
@@ -347,7 +362,7 @@ func TestUnidecodeInstall_RefusesWrongFromFile(t *testing.T) {
 	}
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), &http.Client{}, []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
+	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
 	if !errors.Is(err, unidecode.ErrWheelChecksum) {
 		t.Fatalf("error = %v, want ErrWheelChecksum", err)
 	}
@@ -419,7 +434,7 @@ func TestUnidecodeInstall_FailedDownloadLeavesExistingFileUntouched(t *testing.T
 
 // TestUnidecodeInstall_Success proves the success row end to end
 // through the network path: the leaf's mode is set explicitly rather
-// than left to the umask (mutation 6), the table file is 0644, the
+// than left to the umask, the table file is 0644, the
 // written table round-trips through Parse, and the output names the
 // path and version.
 func TestUnidecodeInstall_Success(t *testing.T) {

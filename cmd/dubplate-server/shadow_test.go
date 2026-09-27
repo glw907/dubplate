@@ -368,7 +368,7 @@ func TestObserveRefusesWhenTheIntegrationIsDisabled(t *testing.T) {
 }
 
 // TestObserveRefusesWithoutInstalledTable proves the transliteration
-// table's load runs before shadow.OpenStore (R-tt4): with no table
+// table's load runs before shadow.OpenStore: with no table
 // installed, observe refuses naming the install verb and leaves the
 // state directory without a shadow/ leaf.
 func TestObserveRefusesWithoutInstalledTable(t *testing.T) {

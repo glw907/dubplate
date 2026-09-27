@@ -244,7 +244,7 @@ func newShadowCmd(environ []string, reg *config.Registry, matcherCommit string, 
 // DUBPLATE_SHADOW_ENABLED; refuse when matcherCommit is empty or "dev",
 // creating no store either way; resolve the floor and the cap through
 // the two registered thresholds; compose the User-Agent; load and
-// install the transliteration table (R-tt4), refusing before anything
+// install the transliteration table, refusing before anything
 // is created if it is missing or invalid; open the store; call
 // shadow.Run with time.Now(), legal here because cmd/ is outside the
 // engine's no-clock walk; write the artifacts through storeArtifacts;
@@ -357,7 +357,7 @@ func newShadowReportCmd(environ []string, reg *config.Registry, stdout, stderr i
 // grounds observe does (an unstamped commit can never be mechanically
 // distinguished from a later one, so "reevaluate" against it would
 // either restamp everything or nothing). It loads and installs the
-// transliteration table (R-tt4) after that refusal and before it opens
+// transliteration table after that refusal and before it opens
 // the store, the same order observe follows.
 func newShadowReevaluateCmd(environ []string, reg *config.Registry, matcherCommit string, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{

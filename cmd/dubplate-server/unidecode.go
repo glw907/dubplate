@@ -23,7 +23,7 @@ import (
 // doctor's row name as the fix for a missing or invalid table.
 const unidecodeInstallVerbName = "unidecode install"
 
-// unidecodeDoctorRow is the doctor row's name (Ruling 2).
+// unidecodeDoctorRow is the doctor row's name.
 const unidecodeDoctorRow = "unidecode"
 
 // unidecodeLeafName is the one directory under the state directory the
@@ -64,7 +64,7 @@ func loadUnidecodeTable(stateDir string) (*unidecode.Table, error) {
 }
 
 // installUnidecodeTransliterator loads stateDir's table and installs
-// its lookup as the matcher's process-wide transliterator (R-tt4). A
+// its lookup as the matcher's process-wide transliterator. A
 // scoring verb calls it after its own configuration refusals and
 // before shadow.OpenStore, so a missing or invalid table never leaves
 // a half-started store; doctor never calls it.
@@ -114,9 +114,9 @@ func newUnidecodeCmd(environ []string, client *http.Client, stdout, stderr io.Wr
 	return cmd
 }
 
-// newUnidecodeInstallCmd builds the install verb (Ruling 2): it reads
+// newUnidecodeInstallCmd builds the install verb: it reads
 // DUBPLATE_STATE_DIR alone, never config.Load, because setup runs it
-// before the rest of the wall may be rendered (R-tt6).
+// before the rest of the wall may be rendered.
 func newUnidecodeInstallCmd(environ []string, client *http.Client, stdout, stderr io.Writer) *cobra.Command {
 	var from string
 	cmd := &cobra.Command{
@@ -138,7 +138,7 @@ func newUnidecodeInstallCmd(environ []string, client *http.Client, stdout, stder
 	return cmd
 }
 
-// runUnidecodeInstall runs the install verb's contract (R-tt6), every
+// runUnidecodeInstall runs the install verb's contract, every
 // refusal below writing nothing: DUBPLATE_STATE_DIR unset; the state
 // directory absent or owned by another user; the unidecode leaf, when
 // it already exists, not a unidecodeLeafPerm directory owned by the
