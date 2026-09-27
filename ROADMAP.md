@@ -110,6 +110,10 @@ was (`research/2026-09-24-library-filtering-prior-art.md`), in the visual
 identity spec's language, and it builds on 0.8's saved per-member play queue
 (`streamer-2-0-design.md:297-309`) so a queue carries between clients.
 
+**Before the 0.8 release (Geoff, 2026-09-26):** recheck TypeScript 7 (7.0.2 at the time).
+The bump waits on a svelte-check release that supports it; 4.7.6 does not, and `--tsgo`
+hits rootDir errors (TypeScript #30693, sveltejs/language-tools #2891). No hurry before then.
+
 ### dubplate-server 0.9: the paired local client `local-client-0-9`
 The 0.9 feature (Geoff, 2026-09-25 ruling on version numbering): a local client
 paired with dubplate-server. Scope is unspecified; nothing else about it is
