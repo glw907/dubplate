@@ -301,6 +301,26 @@ if $check_only; then
   fi
 fi
 
+# --- /var/lib/dubplate/shadow (dubplate-shadow.service) -------------------
+# dubplate-shadow.service names /var/lib/dubplate/shadow in its own
+# ReadWritePaths= and, under ProtectSystem=strict, systemd requires that
+# exact leaf to already exist on the host before the unit starts, or the
+# unit fails outright with "Failed to set up mount namespacing" -- same
+# requirement as /var/lib/musicbox above. The unit's own OpenStore
+# (internal/engine/shadow/store.go) cannot create it either: startup fails
+# before dubplate-server ever runs, so nothing inside the process gets a
+# chance to mkdir it. mkdir -p creates /var/lib/dubplate as a side effect
+# and leaves it root-owned, so the chown below names both the parent and
+# the granted leaf, even though ReadWritePaths= grants only the leaf
+# (Resolution R1).
+# music:music matches dubplate-shadow.service's own User=music. This block
+# moves ahead of the binary step below: the staged binary's own table
+# install needs this directory to already be owned by music before it runs.
+DUBPLATE_LIB_DIR="/var/lib/dubplate"
+DUBPLATE_SHADOW_DIR="$DUBPLATE_LIB_DIR/shadow"
+echo "== $DUBPLATE_SHADOW_DIR =="
+run_remote "mkdir -p $DUBPLATE_SHADOW_DIR && chown music:music $DUBPLATE_LIB_DIR $DUBPLATE_SHADOW_DIR"
+
 # --- dubplate-server binary -> /usr/local/bin/dubplate-server -----------
 # Boundary (rung 1, additive deploy path): the incumbent
 # /usr/local/bin/dubplate is frozen -- its source is the pre-greenfield
@@ -334,14 +354,26 @@ fi
 DUBPLATE_STAMP_VERSION="$(git -C "$REPO_ROOT" describe --tags --always --dirty)"
 DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 
-echo "== dubplate-server binary -> $SSH_TARGET:/usr/local/bin/dubplate-server =="
+# The binary is staged at .new, not swapped onto the live path here: the
+# staged copy installs its own transliteration table (below) and only a
+# verified install swaps it onto /usr/local/bin/dubplate-server, so a timer
+# firing mid-deploy always finds either the old binary or a new one that
+# already found its table -- never a new one with none.
+DUBPLATE_SERVER_STAGED="/usr/local/bin/dubplate-server.new"
+echo "== dubplate-server binary -> $SSH_TARGET:$DUBPLATE_SERVER_STAGED =="
 make -C "$REPO_ROOT" build-linux LDFLAGS="-X main.version=$DUBPLATE_STAMP_VERSION -X main.matcherCommit=$DUBPLATE_STAMP_MATCHER_COMMIT"
 DUBPLATE_SERVER_BINARY="$REPO_ROOT/dubplate-server-linux-amd64"
 if $check_only; then
+  # Named against the LIVE path, not the staged one: rsync -n against a
+  # path that never exists on the box (.new is removed by the mv below on
+  # every completed deploy) always reports a full transfer, which would
+  # make --check claim a change on every run regardless of whether the
+  # binary actually differs. Diffing the live path is what --check has
+  # always reported, and it remains the meaningful comparison.
   rsync -avzn -e "$RSYNC_SSH" "$DUBPLATE_SERVER_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate-server" || true
 else
-  rsync -avz -e "$RSYNC_SSH" "$DUBPLATE_SERVER_BINARY" "$SSH_TARGET:/usr/local/bin/dubplate-server"
-  run_remote "chmod 0755 /usr/local/bin/dubplate-server"
+  rsync -avz -e "$RSYNC_SSH" "$DUBPLATE_SERVER_BINARY" "$SSH_TARGET:$DUBPLATE_SERVER_STAGED"
+  run_remote "chmod 0755 $DUBPLATE_SERVER_STAGED"
 fi
 
 # Smoke test: a binary that rsynced and chmodded fine can still fail to
@@ -362,8 +394,50 @@ fi
 # `git describe` string on every request, and a dirty worktree at
 # deploy time ships a -dirty User-Agent.
 echo "== smoke test: dubplate-server version =="
+# Runs against the staged binary, not the live one, so a bad artifact is
+# caught before it ever installs a table or gets swapped in.
 # shellcheck disable=SC2016
-run_remote 'if ! output="$(/usr/local/bin/dubplate-server version)"; then echo "dubplate-server version failed to execute" >&2; exit 1; fi; printf "%s\n" "$output"; commit=$(printf "%s\n" "$output" | awk "/^matcher-commit/{print \$2}"); if [ -z "$commit" ] || [ "$commit" = "dev" ]; then echo "matcher-commit is dev or empty; aborting deploy" >&2; exit 1; fi'
+smoke_cmd='if ! output="$(/usr/local/bin/dubplate-server version)"; then echo "dubplate-server version failed to execute" >&2; exit 1; fi; printf "%s\n" "$output"; commit=$(printf "%s\n" "$output" | awk "/^matcher-commit/{print \$2}"); if [ -z "$commit" ] || [ "$commit" = "dev" ]; then echo "matcher-commit is dev or empty; aborting deploy" >&2; exit 1; fi'
+run_remote "${smoke_cmd/\/usr\/local\/bin\/dubplate-server/$DUBPLATE_SERVER_STAGED}"
+
+# --- staged binary installs its transliteration table --------------------
+# Runs before the swap below: a failed install (PyPI unreachable, a
+# checksum refusal, a sandbox error) aborts the deploy here, with the old
+# binary still live and the shadow timer still scoring from its own
+# embedded table -- the window a same-time swap-then-install would leave
+# open. systemd-run --wait propagates the verb's exit, so this line's own
+# failure trips `set -euo pipefail` and stops the deploy before the mv.
+# The hardening is dubplate-shadow.service's own, property for property,
+# with four differences: Environment= (not EnvironmentFile=) carries only
+# DUBPLATE_STATE_DIR, since server.env is not installed on the box until
+# the env step after the swap, and the verb needs nothing else;
+# ReadWritePaths= grants $DUBPLATE_LIB_DIR (not the shadow unit's own
+# .../shadow leaf), so the verb can create its own unidecode/ leaf;
+# RestrictAddressFamilies keeps AF_INET and AF_INET6 for the download,
+# same set the shadow already reaches MusicBrainz through; and UMask is
+# omitted, since the verb sets the leaf's mode explicitly regardless of
+# umask. This is a plain top-level command, never inside an `if` or on
+# either side of `||`/`&&`, so `set -e` is not silently ignored on it.
+echo "== $DUBPLATE_SERVER_STAGED unidecode install =="
+run_remote "systemd-run --wait --pipe --collect \
+  -p User=music -p Environment=DUBPLATE_STATE_DIR=$DUBPLATE_LIB_DIR \
+  -p NoNewPrivileges=yes -p PrivateTmp=yes -p ProtectSystem=strict \
+  -p ProtectHome=yes -p ProtectKernelTunables=yes \
+  -p ProtectKernelModules=yes -p ProtectControlGroups=yes \
+  -p RestrictNamespaces=yes -p RestrictRealtime=yes \
+  -p RestrictSUIDSGID=yes -p LockPersonality=yes \
+  -p MemoryDenyWriteExecute=yes -p SystemCallFilter=@system-service \
+  -p SystemCallArchitectures=native -p AmbientCapabilities= \
+  -p CapabilityBoundingSet= \
+  -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
+  -p ReadWritePaths=$DUBPLATE_LIB_DIR \
+  $DUBPLATE_SERVER_STAGED unidecode install"
+
+# --- swap: only after the staged binary's table install verified --------
+# A rename on one filesystem: a timer firing mid-mv sees either the old
+# binary or the new one, and the new one already found its table.
+echo "== swap $DUBPLATE_SERVER_STAGED -> /usr/local/bin/dubplate-server =="
+run_remote "mv -f $DUBPLATE_SERVER_STAGED /usr/local/bin/dubplate-server"
 
 # --- /etc/dubplate/env and /etc/dubplate/server.env ---------------------
 # Not deploy_file: this content is assembled in memory from secrets and
@@ -485,24 +559,6 @@ run_remote "mkdir -p $DUBPLATE_BACKUP_STAGING_DIR && chown music:music $DUBPLATE
 DUBPLATE_UPLOADS_DIR="/srv/music/uploads"
 echo "== $DUBPLATE_UPLOADS_DIR =="
 run_remote "mkdir -p $DUBPLATE_UPLOADS_DIR && chown music:music $DUBPLATE_UPLOADS_DIR"
-
-# --- /var/lib/dubplate/shadow (dubplate-shadow.service) -------------------
-# dubplate-shadow.service names /var/lib/dubplate/shadow in its own
-# ReadWritePaths= and, under ProtectSystem=strict, systemd requires that
-# exact leaf to already exist on the host before the unit starts, or the
-# unit fails outright with "Failed to set up mount namespacing" -- same
-# requirement as /var/lib/musicbox above. The unit's own OpenStore
-# (internal/engine/shadow/store.go) cannot create it either: startup fails
-# before dubplate-server ever runs, so nothing inside the process gets a
-# chance to mkdir it. mkdir -p creates /var/lib/dubplate as a side effect
-# and leaves it root-owned, so the chown below names both the parent and
-# the granted leaf, even though ReadWritePaths= grants only the leaf
-# (Resolution R1).
-# music:music matches dubplate-shadow.service's own User=music.
-DUBPLATE_LIB_DIR="/var/lib/dubplate"
-DUBPLATE_SHADOW_DIR="$DUBPLATE_LIB_DIR/shadow"
-echo "== $DUBPLATE_SHADOW_DIR =="
-run_remote "mkdir -p $DUBPLATE_SHADOW_DIR && chown music:music $DUBPLATE_LIB_DIR $DUBPLATE_SHADOW_DIR"
 
 # --- compose stack -------------------------------------------------------
 COMPOSE_CMD="docker compose --env-file $REMOTE_ENV -f $REMOTE_DIR/compose.yaml --project-directory $REMOTE_DIR up -d"

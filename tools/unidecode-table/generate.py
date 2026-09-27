@@ -1,15 +1,22 @@
-r"""Generate the embedded unidecode transliteration table for package matcher.
+r"""Re-derive the Unidecode transliteration table's pin values.
 
-Run once, offline, against the pinned release in ``tools/venv/.venv``
-(rung 3a plan, Task 3)::
+``internal/engine/matcher/unidecode`` builds this table at runtime from
+the pinned wheel; this script no longer feeds a committed artifact. Its
+only remaining job is re-deriving the pins on a Unidecode version bump:
+run it, offline, against the newly bumped release in
+``tools/venv/.venv``, to a scratch path that is never committed::
 
     tools/venv/.venv/bin/python tools/unidecode-table/generate.py \
-        internal/engine/matcher/unidecode-1.4.0.tbl
+        /tmp/scratch.tbl
 
-The generator is committed as the table's provenance and the repo gate
-never invokes it: a unidecode version bump means running this script
-again against the newly pinned venv and committing a differently-named
-table, not editing the one shipped.
+Read the printed sha256 alongside the run's other figures and update
+three pins in ``internal/engine/matcher/unidecode/pins.go`` by hand:
+``Version`` (from the bumped release), ``WheelSHA256`` (from PyPI's
+release metadata for the new wheel), ``tableSHA256`` (the printed
+output digest, once the new wheel's Go build is confirmed to match it),
+and ``dataModuleCount`` (the run's own "blocks" figure below). The Go
+build of the new wheel must then match every updated pin, or the bump
+is not done.
 
 Table file format (all multi-byte integers big-endian)::
 
@@ -144,7 +151,7 @@ def write_table(
 
 
 def main(argv: list[str]) -> int:
-    """Write the table to argv[1] and report the figures the pass cites."""
+    """Write the table to argv[1] and report the figures a pin bump needs."""
     if len(argv) != 2:
         print(f"usage: {argv[0]} <output-path>", file=sys.stderr)
         return 2
@@ -179,7 +186,10 @@ def main(argv: list[str]) -> int:
     sweep_range = f"[{SWEEP_LO:#x}, {SWEEP_HI:#x}]"
     print(f"sweep {sweep_range} digest: {digest.hex()}", file=sys.stderr)
 
-    write_table(Path(argv[1]), version, blocks, digest)
+    output_path = Path(argv[1])
+    write_table(output_path, version, blocks, digest)
+    output_sha256 = hashlib.sha256(output_path.read_bytes()).hexdigest()
+    print(f"output sha256: {output_sha256}", file=sys.stderr)
     return 0
 
 
