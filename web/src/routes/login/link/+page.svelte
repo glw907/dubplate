@@ -11,7 +11,7 @@ takes focus once the click settles into a terminal state (W7.16).
   import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
   import { consumeLink, outcomeAlertClass, outcomePoliteness, outcomeText, type AuthResult } from '$lib/api/auth';
-  import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, TITLES } from '$lib/copy/deck';
+  import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, SIGNED_IN_CONTINUE, TITLES } from '$lib/copy/deck';
   import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
 
   const siteName = browser ? siteNameFromDocument(document) : '';
@@ -112,11 +112,12 @@ takes focus once the click settles into a terminal state (W7.16).
 <div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
 <div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
 
-<main id="main" tabindex="-1" class="p-8">
+<main id="main" tabindex="-1" class="content-measure flow p-8">
   <h1 tabindex="-1" bind:this={heading} class="display page-title">{headingText}</h1>
 
   {#if terminal === 'signed_in'}
     <p id="outcome">{AUTH_OUTCOMES.signed_in}</p>
+    <a href={resolve('/members')} class="btn btn-primary">{SIGNED_IN_CONTINUE}</a>
   {:else if terminal === 'refused'}
     <p id="outcome">
       {refusedParts.before}{#if refusedParts.phrase}<a href={resolve('/login')} class="link link-primary"

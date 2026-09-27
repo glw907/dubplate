@@ -59,6 +59,15 @@ not-found state instead of the roster, with no roster and no form.
   let outcome = $state<string | null>(null);
   let politeText = $state('');
   let assertiveText = $state('');
+  let addMemberForm = $state<HTMLFormElement | null>(null);
+
+  // A roster member's meta line joins only the segments it actually
+  // carries: an address always has one, but an older member's
+  // `streamer_username` can be blank, and a bare address followed by a
+  // dangling " · " is the render-and-read's "members lists" defect.
+  function memberMeta(member: RosterMember): string {
+    return [member.address, member.streamer_username].filter((segment) => segment !== '').join(' · ');
+  }
 
   function announce(text: string, politeness: 'polite' | 'assertive'): void {
     if (politeness === 'polite') {
@@ -158,6 +167,11 @@ not-found state instead of the roster, with no roster and no form.
         address = '';
         displayName = '';
         streamerUsername = '';
+        // The native reset clears the form's own dirty-value flag, so
+        // the required streamer-username field drops its `:user-invalid`
+        // state instead of showing invalid the moment it goes back to
+        // empty (the render-and-read's "members-added" defect).
+        addMemberForm?.reset();
         await loadRoster();
       }
     } finally {
@@ -172,20 +186,20 @@ not-found state instead of the roster, with no roster and no form.
 
 <a
   href="#main"
-  class="sr-only focus:not-sr-only focus:fixed {status === 'ok'
-    ? 'focus:top-20'
-    : 'focus:top-4'} focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
+  class="sr-only focus:not-sr-only focus:fixed {status === 'loading'
+    ? 'focus:top-4'
+    : 'focus:top-20'} focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
   >Skip to content</a
 >
 
 <div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
 <div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
 
-{#if status === 'ok'}
+{#if status === 'ok' || status === 'refused'}
   <SiteHeader />
 {/if}
 
-<main id="main" tabindex="-1" class="p-8">
+<main id="main" tabindex="-1" class="content-measure flow p-8">
   {#if status === 'refused'}
     <h1 class="display page-title">{TITLES.notFound}</h1>
     <p>{ERROR_PAGE.notFoundHeading}</p>
@@ -202,19 +216,29 @@ not-found state instead of the roster, with no roster and no form.
                 <span class="font-medium">{member.display_name}</span>
                 {#if member.admin}<span class="badge">{ADMIN_BADGE_LABEL}</span>{/if}
               </div>
-              <div class="text-sm opacity-70">{member.address} · {member.streamer_username}</div>
+              <div class="text-sm opacity-70">{memberMeta(member)}</div>
             </div>
           </li>
         {/each}
       </ul>
     {/if}
 
-    <form onsubmit={submit}>
+    <form onsubmit={submit} bind:this={addMemberForm}>
       <fieldset class="fieldset">
         <legend class="fieldset-legend">{ADD_MEMBER_LEGEND}</legend>
 
         <label class="label" for="add-address">{ADD_MEMBER_LABELS.address}</label>
-        <input id="add-address" name="address" type="email" autocomplete="email" required class="input" bind:value={address} />
+        <input
+          id="add-address"
+          name="address"
+          type="email"
+          autocomplete="email"
+          required
+          class="input {outcome === 'duplicate_address' ? 'input-error' : ''}"
+          aria-invalid={outcome === 'duplicate_address' ? 'true' : undefined}
+          aria-describedby={outcome === 'duplicate_address' ? 'roster-outcome' : undefined}
+          bind:value={address}
+        />
 
         <label class="label" for="add-display-name">{ADD_MEMBER_LABELS.displayName}</label>
         <input

@@ -202,6 +202,8 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/contrast/label"},
 	{id: "header/contrast/label-night"},
 	{id: "header/ruling-4"},
+	{id: "layout/content-measure"},
+	{id: "members/list-join"},
 	{id: "header/toggle/system-light"},
 	{id: "header/toggle/system-dark"},
 	{id: "header/toggle/cookie-label"},

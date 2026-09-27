@@ -429,6 +429,56 @@
     border-bottom: 1px solid var(--color-base-content);
   }
 
+  /*
+   * The content measure (W3.2, W3.9): the one capped, centered width a
+   * page's `main` and the signed-in header's inner row both take, so
+   * neither a rule, an alert, nor a list ever stretches past it and the
+   * two never drift apart. `--content-measure` is the primitive's own
+   * property, redeclared here as the first line of its rule per W3.9,
+   * so one call site can override it without touching this scale.
+   * Call site: `main` in every route under `web/src/routes/` and the
+   * header's inner row in `SiteHeader.svelte`.
+   */
+  :where(.content-measure) {
+    --content-measure: 40rem;
+    max-width: var(--content-measure);
+    margin-inline: auto;
+  }
+
+  /*
+   * Section rhythm (W3.9): one flow primitive a page's vertical blocks
+   * share, rather than a margin authored per element. A heading takes
+   * tight space below, since the text right after it belongs to the
+   * heading (W3.9's own rule), and every other pair takes the larger
+   * default so a list, a form, and a trailing alert never crowd the
+   * control above them. Named `.flow`, not `.stack`, since DaisyUI
+   * already owns `.stack` for its own layered-card component
+   * (`display: inline-grid`, every child sharing one grid cell); the
+   * collision made an appended sibling overlap the paragraph above it
+   * rather than sit below it. Call site: `main` in every route under
+   * `web/src/routes/`.
+   */
+  :where(.flow > * + *) {
+    margin-top: var(--flow-space, 1.5rem);
+  }
+
+  :where(.flow > .page-title + *) {
+    margin-top: 0.5rem;
+  }
+
+  /*
+   * The field-label ink (W2.7's own floor): DaisyUI's own `.label`
+   * paints `color-mix(in oklab, currentcolor 60%, transparent)`, which
+   * measures 4.22:1 on `label`'s base-100, under the 4.5:1 floor (the
+   * render-and-read's field-label finding). Full-strength
+   * `--color-base-content` already clears every base on both themes
+   * (`g9.ts`'s own base-content rows), so labels take it directly
+   * rather than a diluted mix.
+   */
+  :where(.label) {
+    color: var(--color-base-content);
+  }
+
   ::selection {
     background-color: var(--selection-ground);
     color: var(--color-base-content);

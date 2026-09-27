@@ -6,8 +6,8 @@
  *    dictionaries, read from the Go source itself so a renamed or
  *    added outcome constant surfaces here rather than silently
  *    shipping with no copy.
- * 2. No deck string (nor a title) carries `<`, `>`, `&`, or a straight
- *    apostrophe (U+0027).
+ * 2. No deck string (nor a title) carries `<`, `>`, `&`, a straight
+ *    apostrophe (U+0027), or a straight double quote (U+0022).
  * 3. No sign-out line claims "everywhere" or "revoked": this device's
  *    session ends, not every session.
  * 4. No `{@html` anywhere in `web/src`: every deck consumer renders
@@ -32,6 +32,7 @@ import {
   SENT_ESCAPE_HATCH,
   SENT_MOMENT_TEXT,
   SIGN_OUT_CONTROL,
+  SIGNED_IN_CONTINUE,
   THEME_TOGGLE_LABEL,
   TITLES,
   memberCountLine,
@@ -106,6 +107,7 @@ function deckLeaves(): Leaf[] {
     INTERSTITIAL_STATEMENT,
     INTERSTITIAL_CONTROL,
     SIGN_OUT_CONTROL,
+    SIGNED_IN_CONTINUE,
     ROSTER_EMPTY_STATE,
     THEME_TOGGLE_LABEL
   };
@@ -179,7 +181,7 @@ function checkOutcomeCoverage(): void {
   }
 }
 
-const FORBIDDEN_CHAR = /[<>&']/;
+const FORBIDDEN_CHAR = /[<>&'"]/;
 
 function checkForbiddenChars(leaves: Leaf[]): void {
   for (const { key, value } of leaves) {

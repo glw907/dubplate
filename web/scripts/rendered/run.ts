@@ -33,9 +33,12 @@ import {
   CROSS_ORIGIN_REFUSED,
   ERROR_PAGE,
   INTERSTITIAL_CONTROL,
+  LOGIN_SUBLINE,
   NETWORK_FAILURE,
   ROSTER_EMPTY_STATE,
   ROSTER_OUTCOMES,
+  SIGN_OUT_CONTROL,
+  SIGNED_IN_CONTINUE,
   THEME_TOGGLE_LABEL,
   TITLES,
   unknownAddressLine
@@ -2695,6 +2698,18 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
         requestsSeen = records.slice(before).filter((r) => r.method === 'POST' && r.path.endsWith('/request-link')).length;
       }
 
+      // Item 3's fold, checked on the sent moment only: the stale lede
+      // ("Sign in with your email…") is hidden, and the moment aligns
+      // to the same column the form above it used (never centered).
+      let ledeHidden = true;
+      let aligned = true;
+      if (isMoment) {
+        ledeHidden = !(await visit.page.getByText(LOGIN_SUBLINE, { exact: true }).isVisible().catch(() => false));
+        const h1X = await visit.page.locator('h1.page-title').evaluate((el) => el.getBoundingClientRect().x);
+        const outcomeX = await outcomeEl.evaluate((el) => el.getBoundingClientRect().x);
+        aligned = Math.abs(h1X - outcomeX) < 1;
+      }
+
       await report({
         id,
         fixture: true,
@@ -2706,8 +2721,10 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
           announced === wantText &&
           announcedPoliteness === wantPoliteness &&
           titleText === wantTitle &&
-          (c.mode !== 'real' || requestsSeen === 1),
-        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(announced)} as ${announcedPoliteness} (want ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}`
+          (c.mode !== 'real' || requestsSeen === 1) &&
+          ledeHidden &&
+          aligned,
+        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(announced)} as ${announcedPoliteness} (want ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}`
       });
     } finally {
       await context.close();
@@ -2848,12 +2865,22 @@ async function interstitialSignedInRow(browser: Browser, endpoints: Endpoints): 
     const title = await visit.page.title();
     const focusedTag = await visit.page.evaluate(() => document.activeElement?.tagName ?? null);
     const wantTitle = pageTitle(TITLES.loginLinkSignedIn, endpoints.siteName);
+    // Item 11's fold: a dead end gets a deck-sourced link onward.
+    const continueHref = await visit.page
+      .getByRole('link', { name: SIGNED_IN_CONTINUE, exact: true })
+      .getAttribute('href')
+      .catch(() => null);
 
     await report({
       id,
       fixture: settled,
-      property: text === AUTH_OUTCOMES.signed_in && polite === AUTH_OUTCOMES.signed_in && title === wantTitle && focusedTag === 'H1',
-      detail: `outcome text ${JSON.stringify(text)}; polite region ${JSON.stringify(polite)}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); focused element ${focusedTag}`
+      property:
+        text === AUTH_OUTCOMES.signed_in &&
+        polite === AUTH_OUTCOMES.signed_in &&
+        title === wantTitle &&
+        focusedTag === 'H1' &&
+        continueHref !== null,
+      detail: `outcome text ${JSON.stringify(text)}; polite region ${JSON.stringify(polite)}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); focused element ${focusedTag}; continue link href ${JSON.stringify(continueHref)}`
     });
   } finally {
     await context.close();
@@ -3011,6 +3038,13 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
 
     const afterAddCount = await visit.page.locator('#roster-list > li').count();
 
+    // Item 1's fold: the reset form leaves no field invalid after a
+    // successful add (the `:user-invalid` pseudo-class the component
+    // layer's validator rule keys its red border on).
+    const invalidAfterAdd = await visit.page
+      .locator('#add-address, #add-display-name, #add-streamer-username')
+      .evaluateAll((els) => els.filter((el) => el.matches(':user-invalid')).map((el) => el.id));
+
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(NEW_MEMBER_ADDRESS);
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('New Member');
     await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember2');
@@ -3020,14 +3054,27 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
       .filter({ hasText: ROSTER_OUTCOMES.duplicate_address })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
+    // Item 2's fold: a duplicate-address refusal lands on the email
+    // field itself, through its invalid state and its `aria-describedby`
+    // pointing at the alert that names the conflict.
+    const addressField = visit.page.locator('#add-address');
+    const addressAriaInvalid = await addressField.getAttribute('aria-invalid');
+    const addressDescribedBy = await addressField.getAttribute('aria-describedby');
+
     const knownKeys = new Set(['address', 'display_name', 'streamer_username']);
     const bodyKeysOK = bodies.length === 2 && bodies.every((b) => [...new URLSearchParams(b).keys()].every((k) => knownKeys.has(k)));
 
     await report({
       id,
       fixture: initialCount === 2,
-      property: adminControlCount === 0 && afterAddCount === initialCount + 1 && bodyKeysOK,
-      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}`
+      property:
+        adminControlCount === 0 &&
+        afterAddCount === initialCount + 1 &&
+        bodyKeysOK &&
+        invalidAfterAdd.length === 0 &&
+        addressAriaInvalid === 'true' &&
+        addressDescribedBy === 'roster-outcome',
+      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}`
     });
   } finally {
     await context.close();
@@ -3081,6 +3128,12 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
     const adminAddressLeaked = (await visit.page.getByText(ADMIN_ADDRESS).count()) > 0;
     const formCount = await visit.page.locator('form').count();
     const rosterListCount = await visit.page.locator('#roster-list').count();
+    // Item 12's fold: the not-found body stays, but the signed-in
+    // header still renders (no explicit "Members" nav link, sign-out
+    // kept) so the member is never stranded.
+    const headerPresent = (await visit.page.locator('.site-header').count()) > 0;
+    const membersLinkPresent = (await visit.page.getByRole('link', { name: 'Members', exact: true }).count()) > 0;
+    const signOutPresent = (await visit.page.getByRole('button', { name: SIGN_OUT_CONTROL, exact: true }).count()) > 0;
 
     await report({
       id,
@@ -3091,8 +3144,11 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
         !documentRequested &&
         !adminAddressLeaked &&
         formCount === 0 &&
-        rosterListCount === 0,
-      detail: `roster GET status ${rosterStatus}; roster GETs logged ${rosterGETs}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}`
+        rosterListCount === 0 &&
+        headerPresent &&
+        !membersLinkPresent &&
+        signOutPresent,
+      detail: `roster GET status ${rosterStatus}; roster GETs logged ${rosterGETs}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}; header present ${headerPresent}; "Members" link present ${membersLinkPresent}; sign-out present ${signOutPresent}`
     });
   } finally {
     await context.close();
@@ -3333,6 +3389,93 @@ async function rulingFourRow(browser: Browser, endpoints: Endpoints, session: Co
         problems.length === 0
           ? `the toggle is present and ${measured.candidates.length} icon-only control(s) carry no primary fill`
           : problems.join('; ')
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * W3.2's content measure: the header's inner row and `main` share one
+ * capped, centered width on the one real page that carries both (the
+ * render-and-read's "W3.2" defect: the header sat at `x=8` against
+ * content at `x=32`, uncapped at 768, 1440, and 2560). Reuses the
+ * header's own signed-in session cookie, spending no extra consumption.
+ */
+async function layoutContentMeasureRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'layout/content-measure';
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  try {
+    await context.addCookies([session]);
+    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+    const measured = await visit.page.evaluate(() => {
+      const headerRow = document.querySelector('.site-header > div');
+      const main = document.querySelector('main');
+      if (headerRow === null || main === null) return null;
+      const h = headerRow.getBoundingClientRect();
+      const m = main.getBoundingClientRect();
+      return {
+        headerWidth: h.width,
+        headerLeft: h.left,
+        mainWidth: m.width,
+        mainLeft: m.left,
+        viewportWidth: window.innerWidth
+      };
+    });
+    if (measured === null) {
+      await report({ id, fixture: false, property: false, detail: 'the header row or main element is missing' });
+      return;
+    }
+    const capped = measured.mainWidth < measured.viewportWidth && measured.headerWidth < measured.viewportWidth;
+    const shared = Math.abs(measured.headerWidth - measured.mainWidth) < 1 && Math.abs(measured.headerLeft - measured.mainLeft) < 1;
+    await report({
+      id,
+      fixture: true,
+      property: capped && shared,
+      detail: `header row ${measured.headerWidth}px at x=${measured.headerLeft}; main ${measured.mainWidth}px at x=${measured.mainLeft}; viewport ${measured.viewportWidth}px`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * The render-and-read's "members lists" defect: a member with a blank
+ * `streamer_username` joins only the segments present, never a
+ * dangling " · " separator. A fulfilled roster GET keeps this row
+ * independent of the fixture roster file, reusing the header's own
+ * signed-in session cookie.
+ */
+async function membersListJoinRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/list-join';
+  const context = await browser.newContext();
+  try {
+    await context.addCookies([session]);
+    await context.route('**/roster', (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          members: [
+            { address: 'no-username@example.test', display_name: 'No Username', streamer_username: '', admin: false },
+            { address: 'has-username@example.test', display_name: 'Has Username', streamer_username: 'hasuser', admin: false }
+          ]
+        })
+      });
+    });
+    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const metaLines = await visit.page.locator('#roster-list .text-sm').allTextContents();
+    const noUsername = (metaLines[0] ?? '').trim();
+    const hasUsername = (metaLines[1] ?? '').trim();
+    await report({
+      id,
+      fixture: metaLines.length === 2,
+      property: noUsername === 'no-username@example.test' && hasUsername === 'has-username@example.test · hasuser',
+      detail: `no-username meta ${JSON.stringify(noUsername)}; has-username meta ${JSON.stringify(hasUsername)}`
     });
   } finally {
     await context.close();
@@ -4202,6 +4345,8 @@ async function main(): Promise<void> {
     await membersFocusRows(browser, endpoints, headerSession);
     await headerContrastRow(browser, endpoints, headerSession);
     await rulingFourRow(browser, endpoints, headerSession);
+    await layoutContentMeasureRow(browser, endpoints, headerSession);
+    await membersListJoinRow(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
     await captureRows(browser, endpoints);
     refuseUnclean();

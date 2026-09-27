@@ -84,17 +84,19 @@ still-editable form. `main` and the skip link satisfy W3.6.
 <div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
 <div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
 
-<main id="main" tabindex="-1" class="p-8">
+<main id="main" tabindex="-1" class="content-measure flow p-8">
   <div class="flex items-center gap-2">
     <Mark size={32} />
     <span class="display text-lg">dubplate</span>
   </div>
 
   <h1 class="display page-title">{siteName}</h1>
-  <p>{LOGIN_SUBLINE}</p>
+  {#if !moment}
+    <p>{LOGIN_SUBLINE}</p>
+  {/if}
 
   {#if moment}
-    <section id="outcome" class="text-center">
+    <section id="outcome">
       <h2 tabindex="-1" bind:this={momentHeading} class="display">{outcomeText(moment)}</h2>
       <button type="button" class="btn btn-ghost" onclick={useDifferentAddress}>{SENT_ESCAPE_HATCH}</button>
     </section>

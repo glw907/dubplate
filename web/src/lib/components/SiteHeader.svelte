@@ -76,7 +76,7 @@ carry. Its icons are Phosphor's `sun` and `moon`, inlined as SVG
 </script>
 
 <header class="site-header bg-neutral text-neutral-content">
-  <div class="flex items-center justify-between gap-4 p-2">
+  <div class="content-measure flex items-center justify-between gap-4 p-2">
     <a href={resolve('/members')} class="flex min-h-11 items-center gap-2 text-neutral-content">
       <Mark size={32} />
       <span class="display text-lg">dubplate</span>

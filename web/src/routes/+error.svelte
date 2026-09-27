@@ -25,7 +25,7 @@ no photo, until the photo curation pass supplies one.
   >Skip to content</a
 >
 
-<main id="main" tabindex="-1" class="p-8">
+<main id="main" tabindex="-1" class="content-measure flow p-8">
   {#if notFound}
     <h1 class="display page-title">{ERROR_PAGE.notFoundHeading}</h1>
   {:else}

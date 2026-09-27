@@ -4,6 +4,22 @@
 }
 
 /*
+ * W4.9's ultrawide posture: the root font size holds at 1rem through
+ * 1440px (90rem at the unscaled size), then scales through this one
+ * `clamp()` and holds at its 1.125rem ceiling by 2560px (160rem), so
+ * every rem-based dimension, the content measure included, grows
+ * proportionally instead of reflowing into new columns. The
+ * render-and-read found no such rule (W4.9 at 2560). `@layer base`
+ * joins Tailwind's own base layer (established by the import above),
+ * so this stays out of `unlayered-count`'s ratchet.
+ */
+@layer base {
+  html {
+    font-size: clamp(1rem, 1rem + (100vw - 90rem) / 560, 1.125rem);
+  }
+}
+
+/*
  * The three embedded faces: independent of the theme data below,
  * since a `@font-face` rule declares no custom property.
  */

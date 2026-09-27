@@ -469,17 +469,43 @@ const PALETTE_FILES: Record<string, string> = {
   'dubplate-label-night': 'label-night.css'
 };
 
+const COMPONENTS_FILE = 'src/lib/styles/components.css';
+
+/**
+ * The field-label ink row (the render-and-read's "field labels"
+ * defect): `:where(.label) { color: ... }` in `components.css`
+ * overrides DaisyUI's own 60%-opacity mix, which measures 4.22:1 on
+ * `label`'s base-100, under the 4.5:1 floor. This reads that one
+ * declaration's value and resolves it against each composed theme's
+ * own palette, the same way an ink resolves, so a regression back to
+ * the diluted mix or a removal of the override fails here.
+ */
+const LABEL_COLOR_RE = /:where\(\.label\)\s*\{\s*color:\s*([^;]+);/;
+
+function readLabelColor(violations: string[]): string | null {
+  const text = readFileSync(COMPONENTS_FILE, 'utf8');
+  const m = LABEL_COLOR_RE.exec(text);
+  if (!m) {
+    violations.push(
+      `g9: ${COMPONENTS_FILE}: no ":where(.label) { color: ... }" override found; field labels would fall back to DaisyUI's own 60%-opacity mix, which measures under 4.5:1 on label's base-100`
+    );
+    return null;
+  }
+  return m[1].trim();
+}
+
 /**
  * The closed list's size, per composed theme (DL R2.6, R-5ciii3): 8
  * `-content` pairs + 3 `--color-base-content` rows + 7 direct-text
  * colors (the eighth, per theme, is fill-only and carries a marker
- * instead) + 5 inks x 3 bases + 3 keyline rows + 1 selection row = 37,
- * times 2 composed themes = 74. Pinned to the literal rather than
- * derived from `CONTENT_PAIRS`, `BASES`, `DL_R2_6_DIRECT_TEXT_COLORS`,
- * `VI_FILL_ONLY`, or `INK_NAMES`, so a deletion from any of them is
- * caught instead of silently shrinking this count to match.
+ * instead) + 5 inks x 3 bases + 3 keyline rows + 1 selection row + 3
+ * `.label` rows (one per base) = 40, times 2 composed themes = 80.
+ * Pinned to the literal rather than derived from `CONTENT_PAIRS`,
+ * `BASES`, `DL_R2_6_DIRECT_TEXT_COLORS`, `VI_FILL_ONLY`, or
+ * `INK_NAMES`, so a deletion from any of them is caught instead of
+ * silently shrinking this count to match.
  */
-const EXPECTED_MEASURED_PAIRS = 74;
+const EXPECTED_MEASURED_PAIRS = 80;
 
 export interface Report {
   violations: string[];
@@ -518,6 +544,7 @@ export function run(): Report {
 
   const inkRules = readInkRules(violations);
   const surfaceRules = readSurfaceRules(violations);
+  const labelColorRaw = readLabelColor(violations);
   let measuredPairs = 0;
 
   for (const composed of COMPOSED_NAMES) {
@@ -649,6 +676,21 @@ export function run(): Report {
         lines
       );
       measuredPairs++;
+    }
+
+    if (labelColorRaw !== null) {
+      const resolvedLabel = resolveAgainstPalette(labelColorRaw, palette);
+      if (resolvedLabel === null) {
+        violations.push(
+          `g9: ${composed}: .label's color "${labelColorRaw}" does not resolve against this theme's own --color-* set`
+        );
+      } else {
+        for (const [baseName, baseValue] of bases) {
+          if (!baseValue) continue;
+          checkFloor(`${composed} (${baseName})`, '.label color', resolvedLabel, baseValue, null, false, violations, lines);
+          measuredPairs++;
+        }
+      }
     }
   }
 
