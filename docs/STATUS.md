@@ -40,7 +40,7 @@ lane: draft the 6d plan through `spec-plan-review` for morning approval. Memory
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), session 2026-09-26 | OPEN: 5c-iv segment E; Tasks 10, 10b, 10c, simplify (`1e48f93`) accepted; three reviews ruled (`f81e54e`); review fold R1 then R2 running as `wf_f8c069cb-d23`; then a final re-capture read, Task 11 |
+| 1 | main tree (master), overnight 2026-09-26 | OPEN: 5c-iv segment E; R1 (`913bbc2`), R2 (`aa8e19e`) accepted, pushed to origin; final read and two architecture reads ruled (`1495162`); fold R3 running as `wf_fbd6eb70-91a`; then Task 11's close, translit, photo gate line, 5d-i |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7` (review accept, master gate green); worktree `lane-2-6c` removed; transliteration waits for lane 1 (its Task 0 blocker 1, harness in the main tree) |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks committed, ~13M spent against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
