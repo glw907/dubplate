@@ -39,7 +39,7 @@ transliteration; 5d's ceilings deferred to the next sitting, so 5d-i does not st
 |---|---|---|
 | 1 | main tree (master), session 2026-09-26 | OPEN: 5c-iv segment E; Tasks 10, 10b, 10c, simplify (`1e48f93`) accepted; three reviews ruled (`f81e54e`); review fold R1 then R2 running as `wf_f8c069cb-d23`; then a final re-capture read, Task 11 |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7` (review accept, master gate green); worktree `lane-2-6c` removed; transliteration waits for lane 1 (its Task 0 blocker 1, harness in the main tree) |
-| photos | main tree (master), owned by the separate docs session | OPEN: `plans/2026-09-25-photo-curation-round-one.md`; writes only `photos/`, `tools/photos/`, its research files; never runs `scripts/check.sh`; ceiling 5.5M (flag 4.4M) |
+| photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks committed, ~13M spent against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)
 
