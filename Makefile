@@ -146,7 +146,17 @@ check: web vet lint test web-rendered tidy-check
 derive:
 	go test -tags oracle -timeout 90m ./internal/harness/... ./cmd/harness/...
 
+# unidecode-wheel fills the workstation's cached copy of Unidecode
+# 1.4.0's pinned wheel: package unidecode's tests and
+# dubplate-server's install verb both read it from the user cache
+# rather than downloading it themselves. It is a no-op once the cache
+# verifies. Deliberately outside check: the gate never opens a
+# network connection, so the wheel is fetched here, once, out of
+# band, the same way `npm ci --prefix web` is.
+unidecode-wheel:
+	go run ./cmd/harness fetch-unidecode
+
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check web web-rendered derive clean
+.PHONY: build build-linux test vet lint install tidy-check check web web-rendered derive unidecode-wheel clean

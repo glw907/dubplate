@@ -20,6 +20,9 @@
 //     from its own captured response, the sanctioned way to author a
 //     real-catalog case without an agent reading responses/*.json
 //     directly (corpus/README.md, "The seed-items tool").
+//   - fetch-unidecode: fills the workstation's cached copy of
+//     Unidecode's pinned wheel, a no-op once the cache verifies. `make
+//     unidecode-wheel` runs it; the gate never does.
 //
 // Every live request carries the identified User-Agent
 // corpus/README.md documents; the tool refuses to run at all when
@@ -28,6 +31,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -57,5 +61,6 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newFreezeCmd())
 	cmd.AddCommand(newSynthCmd())
 	cmd.AddCommand(newSeedItemsCmd())
+	cmd.AddCommand(newFetchUnidecodeCmd(&http.Client{Timeout: fetchUnidecodeTimeout}))
 	return cmd
 }
