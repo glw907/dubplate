@@ -306,7 +306,7 @@ fi
 # ReadWritePaths= and, under ProtectSystem=strict, systemd requires that
 # exact leaf to already exist on the host before the unit starts, or the
 # unit fails outright with "Failed to set up mount namespacing" -- same
-# requirement as /var/lib/musicbox above. The unit's own OpenStore
+# requirement as /var/lib/musicbox below. The unit's own OpenStore
 # (internal/engine/shadow/store.go) cannot create it either: startup fails
 # before dubplate-server ever runs, so nothing inside the process gets a
 # chance to mkdir it. mkdir -p creates /var/lib/dubplate as a side effect

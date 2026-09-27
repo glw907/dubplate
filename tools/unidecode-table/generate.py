@@ -10,7 +10,7 @@ run it, offline, against the newly bumped release in
         /tmp/scratch.tbl
 
 Read the printed sha256 alongside the run's other figures and update
-three pins in ``internal/engine/matcher/unidecode/pins.go`` by hand:
+four values in ``internal/engine/matcher/unidecode/pins.go`` by hand:
 ``Version`` (from the bumped release), ``WheelSHA256`` (from PyPI's
 release metadata for the new wheel), ``tableSHA256`` (the printed
 output digest, once the new wheel's Go build is confirmed to match it),
