@@ -137,9 +137,14 @@ live region.
    * and `main` share it (W3.2), so narrowing it here would pull the
    * header's own edges out of line with the page below it. Below the
    * breakpoint, `navbar-start` and `navbar-end` each still take half
-   * the row, but every gap steps down and the mark and wordmark take
-   * one size step, which is enough room for the wordmark and "Sign
-   * out" to keep clear of each other at 320 and 390.
+   * the row, but every gap steps down so the wordmark and "Sign out"
+   * keep clear of each other at 320 and 390. The wordmark itself
+   * stays at the 20px (`text-xl`) ladder step: the identity spec never
+   * sets Alfa Slab One below h2 size, so the breakpoint cannot shrink
+   * it further. The mark steps down to the bottom of its own medium
+   * band (24px) so its rendered size still matches the detail level
+   * `Mark.svelte` already loaded for it (`size={32}` selects
+   * `mark-medium.svg`, drawn for 21-55px).
    */
   @media (max-width: 479px) {
     .navbar {
@@ -151,12 +156,12 @@ live region.
     }
 
     .navbar-start .display {
-      font-size: 1rem;
+      font-size: 1.25rem;
     }
 
     .navbar-start :global(img) {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
     }
 
     .navbar-end {
