@@ -105,3 +105,29 @@ starts from it. That task adds an `AdminConfig.NotFound` (or equivalent) so the 
 and an unmatched path answer the same styled document. It runs under a
 `web-auth-security-reviewer` read. For 5c-iv, the error-not-found capture asserts the bare
 404 and keeps `skipUIFloors`.
+
+## The re-read after the fold (2026-09-26, captures at `c1bec33`)
+
+One fresh-context Opus reader read all 75 images: every native cell and every contact sheet,
+error-not-found included. It found nothing broken. Every sampled text pair clears 4.5:1, both
+schemes hold at all five widths, and no cell overflows. Its verdict was **fold**, with rulings:
+
+1. **The slab ladder is missing.** Every `h1.display.page-title` inherits 16px, so a page title
+   renders smaller than the 18px wordmark, and login-sent's h2 matches the h1. The ladder is
+   h1 36, h2 20/24, and wordmark 24 in the header and 30 on login
+   (`2026-09-24-identity-refinement/ledger-typography.md:28`, which the identity spec calls
+   "already right"). `.display` has no size (`components.css:408`). **Fold (5c-iv's review
+   fold)**, with a rendered row that measures the ladder.
+2. **Identifiers break at their own hyphen** ("capture-" / "added"), and meta lines break just
+   after " · ". **Fold:** keep each segment together, as the identity spec's catalog-line row
+   already asks.
+3. **The login-sent ghost button's ink sits 19px inside the column edge**, so it reads as
+   indented bold text. **Fold:** pull its ink onto the column edge, or give it a link
+   treatment. The header toggle's 11px inset is too small to act on.
+4. **The interstitials carry no mark or group name.** **Deferred to rung 7:** the spec does not
+   mandate the lockup here, and rung 7 authors identity visuals.
+5. **A green valid border beside "We don't recognize that address".** **Refused:** it falls
+   under item 14's ruling. The address is well-formed, so the field is valid.
+6. **The field-to-button gap and the "Added." alert below the fold at 390.** **Fold, verify
+   only:** confirm that focus or a live region announces "Added."; add focus if neither does.
+   The gap stays.
