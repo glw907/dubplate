@@ -4181,6 +4181,15 @@ const SIGN_OUT_CASES: SignOutCase[] = [
     id: 'header/sign-out/not-ok',
     mode: { status: 500, contentType: 'application/json', body: JSON.stringify({ outcome: 'signed_out' }) },
     stays: AUTH_OUTCOMES.failed
+  },
+  // A 404 with no JSON body at all (a proxy's own error page, say): the
+  // shared mapping in `post.ts` answers every non-JSON arrival with
+  // `failed`, never `network_failure`, which is reserved for a request
+  // that never reached the server.
+  {
+    id: 'header/sign-out/not-found',
+    mode: { status: 404, contentType: 'text/html', body: '<html><body>Not Found</body></html>' },
+    stays: AUTH_OUTCOMES.failed
   }
 ];
 

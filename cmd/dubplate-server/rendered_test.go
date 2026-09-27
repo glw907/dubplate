@@ -230,6 +230,7 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/sign-out/network-failure"},
 	{id: "header/sign-out/cross-origin"},
 	{id: "header/sign-out/not-ok"},
+	{id: "header/sign-out/not-found"},
 	{id: "harness/settle-guard"},
 }
 

@@ -11,10 +11,11 @@ import { resolve } from '$app/paths';
  * One POST's result. `outcome` is the server's own outcome value, or
  * one of three synthetic values for an answer that carries none:
  * `cross_origin` for the CSRF defense's 403 (`internal/serve/origin.go`,
- * no JSON body), `failed` for a 5xx without a JSON body (a proxy's error
- * page, say), and `network_failure` for a request that never reached
- * the server or met anything else that is not JSON. `body` is the
- * parsed answer, empty for a synthetic outcome.
+ * no JSON body), `network_failure` for a request that never reached the
+ * server (the `fetch` itself threw), and `failed` for every other
+ * answer that arrived but carried no JSON outcome (a proxy's error
+ * page, a 404, any status). `body` is the parsed answer, empty for a
+ * synthetic outcome.
  */
 export interface PostResult {
   ok: boolean;
@@ -41,7 +42,7 @@ export async function postForm(name: string, fields: Record<string, string>): Pr
   // The CSRF defense's deny handler answers 403 with a plain-text
   // body, never JSON, so its status is read before any JSON parse.
   if (response.status === 403) return synthetic('cross_origin');
-  const notJSON = synthetic(response.status >= 500 ? 'failed' : 'network_failure');
+  const notJSON = synthetic('failed');
   let body: unknown;
   try {
     body = await response.json();

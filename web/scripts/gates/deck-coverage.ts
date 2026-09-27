@@ -93,6 +93,17 @@ const FUNCTION_SAMPLES: Record<string, () => string> = {
 };
 
 /**
+ * A second `FUNCTION_SAMPLES` argument to check for each function
+ * named here, beyond the one {@link deckLeaves} walks: `memberCountLine`
+ * has a singular branch (`1 member`) a lone sample at `2` never
+ * exercises, so its plural-aware wording could drift with no leaf ever
+ * proving the singular line still reads right.
+ */
+const EXTRA_FUNCTION_SAMPLES: Record<string, () => string> = {
+  memberCountLine: () => deck.memberCountLine(1)
+};
+
+/**
  * Every plain-text export, every dictionary export flattened one
  * level, and every function export's sample, walked from `deck.ts`'s
  * own module namespace rather than a hand-kept list of its names,
@@ -113,12 +124,18 @@ function deckLeaves(): Leaf[] {
       }
     } else if (typeof value === 'object' && value !== null) {
       for (const [key, leaf] of Object.entries(value as Record<string, unknown>)) {
-        if (typeof leaf === 'string') leaves.push({ key: `${name}.${key}`, value: leaf });
+        if (typeof leaf !== 'string') {
+          fail(`deck-coverage: deck.ts export "${name}.${key}" is not a string; every dictionary export must be flat.`);
+        }
+        leaves.push({ key: `${name}.${key}`, value: leaf });
       }
     }
   }
   leaves.push({ key: 'unknownAddressLine(null)', value: unknownAddressLine(null) });
   leaves.push({ key: 'pageTitle', value: pageTitle(TITLES.login, 'Example Group') });
+  for (const [name, sample] of Object.entries(EXTRA_FUNCTION_SAMPLES)) {
+    leaves.push({ key: `${name}(extraSample)`, value: sample() });
+  }
   return leaves;
 }
 

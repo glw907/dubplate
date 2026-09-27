@@ -47,7 +47,7 @@ export const REFUSED_LINK = {
  */
 export const AUTH_OUTCOMES: Record<string, string> = {
   sent: 'A sign-in link is on its way to your inbox.',
-  requested: 'If that address belongs to a member, we’ll send it a sign-in link. Check your email.',
+  requested: 'If that address belongs to a member, we’ll send it a sign-in link.',
   unknown: UNKNOWN_ADDRESS_NO_ADMIN,
   rate_limited: 'Too many requests. Wait a while and try again.',
   invalid_address: 'That doesn’t look like an email address. Check it and try again.',
