@@ -1,8 +1,10 @@
 # Rung 6, Pass 6d (Identity, the Handoff, and `serve`'s Store) Implementation Plan
 
-Status: **revision 2, 2026-09-26; reviewed (contract, mechanics, and risk lenses) and folded, no
-ruling answered.** History: revision 1 at `5afe46b`; revision 2 folds the three lens reviews per
-`docs/superpowers/research/2026-09-26-rung-6d-plan-fold.md`. It awaits Geoff's approval gate. It is drafted
+Status: **revision 2.1, 2026-09-26; reviewed (contract, mechanics, and risk lenses), folded, the
+fold verified, and the verification folded; no ruling answered.** History: revision 1 at `5afe46b`;
+revision 2 folds the three lens reviews per `docs/superpowers/research/2026-09-26-rung-6d-plan-fold.md`;
+revision 2.1 folds the verification read (`2026-09-26-rung-6d-plan-fold-verification.md`) per that
+record's "Second fold" section. It awaits Geoff's approval gate. It is drafted
 ahead of its execution: 6d executes only after rung 5 closes (R-6d1), and 5d-i and 5d-ii will rewrite
 most of the files this plan names first. **Task 0 therefore re-resolves every pointer against the tree
 5d leaves, and a pointer whose content is gone is a blocker, not a note.**
@@ -106,8 +108,11 @@ start" is true.
 ## Owner touchpoints
 
 The plan-approval gate and its three rulings, and nothing else. No attended sitting: nothing deploys in
-6d. The 6d upgrade (drop the roster row, restart `serve`, `member import --dry-run`, `member import`)
-rides the next ruled deploy after 6d merges, in the runbook's words Task 8 writes.
+6d. The 6d upgrade rides the next ruled deploy after 6d merges, in the runbook's words Task 8 writes:
+the deploy renders an env with no roster row, and its `try-restart` leaves the stopped serve unit
+stopped (R-6d19); one supervised start and stop, in the form of 5d's sitting step 14, creates the
+store; then `member import --dry-run` and `member import`, each through `systemd-run` (R-6d18).
+Nothing in the upgrade restarts or enables `serve`.
 
 ## Token ceiling: 11.5M execution (Ruling 1)
 
@@ -140,6 +145,12 @@ Revision 2 adds no task and no deliverable, so the ceiling stands. It does add s
 proofs inside Tasks 1, 3, 4, 5, 7, and 8 (the fold record lists them). The 0.88M rate already carries
 6c's fix rounds, and the fold's rows close ambiguities that would otherwise have become fix rounds, so
 the projection is unchanged. Task 0's re-derivation from 5d's actual is where a heavier rate shows.
+
+Revision 2.1 also adds no task and no deliverable; the ceiling stands. It moves files between tasks
+and widens three: Task 3 gains the `ctx` threading at six call sites and loses `Valid`'s refusal to
+Task 4; Task 4 gains the rendered harness's store fixture, `Valid`'s refusal, and 5d's
+rendered-doctor assertions, which makes it the heaviest task; Task 5 gains the template row and the
+test environments' copies of the retired key. The conductor weighs Task 4 at Task 0's re-derivation.
 
 ---
 
@@ -190,8 +201,17 @@ the projection is unchanged. Task 0's re-derivation from 5d's actual is where a 
   `id.Valid()` (`ops.go:43-48`). Two test fixtures build a cookie identity with no id:
   `validIdentity()` (`internal/ops/ops_test.go:38-45`) and `ann`
   (`internal/ops/opshttp/helpers_test.go:22-28`).
-- `cmd/dubplate-server/rendered_test.go` calls `newServeShell` directly (`:420-454`), so every change
-  to that function's signature (Tasks 1, 4, 6, and 7) reaches it.
+- `cmd/dubplate-server/rendered_test.go` never calls `newServeShell`: its two builders
+  (`startRenderedServer`, `startFixtureServer`, `:424-460` at `314c0c8`) call
+  `buildServeShellWithLogger`, which lives in `serve_test.go` (`:66-89`, through
+  `buildServeShellWithContext`, which also calls `resolveAuthConfig`). So a `newServeShell` signature
+  change lands in `serve_test.go`. The rendered harness is built on the roster file instead:
+  `renderedEnviron` (`:372-399`) writes `roster.json` (two members, no `streamer_username`) and sets
+  `DUBPLATE_ROSTER_FILE`; `rosterResetServer` (`:613-659`) resets the capture matrix by rewriting
+  that file and answers each POST `{"members": n}`, the contract `web/scripts/rendered/run.ts`
+  (`captureRosterResetURL`) reads; the `members/roster-file` subtest (`:918-927`) proves the
+  add-member write by reading the file; and `mintLinkFor` (`:535`) calls `resolveAuthConfig`.
+  Tasks 4, 5, 6, and 7 reach it (B1 in the verification read).
 - `internal/engine/store/leaf.go`: `create` refuses unless the process uid owns the state directory
   (`:66-77`), and `checkOwner`'s refusal names `runuser -u <name> -- dubplate-server <command>`
   (`:113`), a hint four store tests assert (`leaf_test.go`, `inspect_test.go`, `restore_test.go`,
@@ -209,11 +229,12 @@ the projection is unchanged. Task 0's re-derivation from 5d's actual is where a 
 | --- | --- | --- |
 | `database/sql` `Row.Scan` (`go doc database/sql Row.Scan`) | "If more than one row matches the query, Scan uses the first row and discards the rest. If no row matches the query, Scan returns ErrNoRows." | `Lookup` on an absent or tombstoned address |
 | `store.Row.Scan` (`internal/engine/store/write.go`) | "Scan copies the row's columns into dest, as [sql.Row.Scan] does, and records any error but [sql.ErrNoRows], which it returns." | A collision read inside `Update` that finds nothing does not poison the transaction |
-| `store.Handle.Update` (`write.go:44-63`) | "commits only when fn returns nil and no statement fn issued through tx failed"; "ctx must carry a deadline"; "The first statement reads user_version, and Update refuses without calling fn when it differs from the binary's version." | Every write: import, add, the seed apply |
+| `store.Handle.Update` (`write.go:44-63`) | "commits only when fn returns nil and no statement fn issued through tx failed"; "ctx must carry a deadline, which bounds the wait for the write pool's one connection inside this process. The wait on another process's write lock is bounded by the busy timeout alone"; "The first statement reads user_version, and Update refuses without calling fn when it differs from the binary's version." | Every write: import, add, the seed apply |
 | `store.NewID` (`id.go`) | "returns 16 random bytes for a new entity's primary key ... It reports no error because [rand.Read] never returns one and always fills its buffer entirely." | The surrogate id's one mint |
 | `crypto/sha256.Sum256` (`go doc`) | "Sum256 returns the SHA256 checksum of the data." | The import record's file hash |
 | SQLite `NOCASE` (sqlite.org/datatype3.html) | "the 26 upper case characters of ASCII are folded to their lower case equivalents before the comparison is performed. Note that only ASCII characters are case folded." | `users.streamer_username ... UNIQUE COLLATE NOCASE` agrees with `principalCollision`'s `strings.EqualFold` only because the write path's pattern admits ASCII alone; Task 3 keeps the pattern check before the insert |
 | `flock(2)`, `LOCK_SH` (`man 2 flock`) | "More than one process may hold a shared lock for a given file at a given time." | A current-version `serve` start never waits on a running backup; only a migrating start (exclusive) does |
+| `flock(2)`, one process, two descriptors (`man 2 flock`) | "If a process uses open(2) (or similar) to obtain more than one file descriptor for the same file, these file descriptors are treated independently by flock()." `tryLock` opens a fresh descriptor per attempt (`lock.go:85-90`) | Task 4: the rendered harness's reset server may take its own shared write-mode handle beside the serve shell's in one test process |
 | `flock(2)` conversion (spec `:361-365`) | "Converting a lock ... is not guaranteed to be atomic" | Already honored by `OpenServe`; 6d adds no conversion |
 | `systemd.exec(5)`, `ReadWritePaths=` | "Paths in ReadWritePaths= ... may be prefixed with "-", in which case they will be ignored when they do not exist." | The store leaf is granted unprefixed, so `deploy.sh` must pre-create it (CLAUDE.md's standing fact) |
 | `runuser(1)` | "runuser defaults to not changing the current directory and to setting only the environment variables HOME and SHELL (plus USER and LOGNAME if the target user is not root)." | `runuser` loads no environment file, so a store-opening verb run from `deploy.sh` needs the rendered env supplied another way (R-6d15) |
@@ -258,8 +279,11 @@ text, a removed behavior is a blocker.
   lane (the web leg launches Chromium). On exit 75, re-issue the same command until it prints
   `gate exit:`. Never commit red.
 - **No deploy, no box write.** Box reads are read-only ssh, and only if Task 0 needs a fact.
-- **No `web/` edit** (R-6d17). `cmd/dubplate-server/rendered_test.go` is edited only at its
-  `newServeShell` call sites, to follow that function's signature; nothing else in it changes.
+- **No `web/` edit** (R-6d17). `cmd/dubplate-server/rendered_test.go` changes only as the store move
+  and the settings move require: the fixture members move into the store (Task 4), the roster-file
+  key leaves its environment (Task 5), and `mintLinkFor` stops calling `resolveAuthConfig` (Tasks 6
+  and 7). Its reset server keeps its HTTP contract (a POST answers `{"members": n}`), so
+  `web/scripts/rendered/run.ts` needs no change. Nothing else in it changes.
 - **Commits**: each task commits its own files, Conventional Commits, the repo's attribution footer.
 - **Implementers never dispatch agents**; the conductor owns `code-simplifier` and every reviewer.
 
@@ -351,7 +375,12 @@ post-seed value (quoted):
 contract. A refusal (an `admin` row disagreeing with the env, a stored value in force outside bounds,
 an unparseable env value, a correlated rule failing) ends `serve`'s start nonzero with the joined
 refusal, and the listener never opens. Each change logs one line after the commit, as `apply` does
-today. With it wired, `backup.go:274`'s and `store.go:280-284`'s strings become true; Task 2 re-reads
+today. `Update` refuses a context without a deadline (`errNoDeadline`, `write.go:23-25`, `:68-69`),
+and `apply` sets none, so the preparation function wraps the apply's context in
+`context.WithTimeout` under a named write wait of 30s, on `memberVerbWriteWait`'s precedent
+(`member.go:26`, `:95`); the deadline bounds only the in-process wait for the write connection, and
+the busy timeout bounds another process's lock (`Update`'s doc, quoted). `member import` (Task 5)
+uses `memberVerbWriteWait` itself. With it wired, `backup.go:274`'s and `store.go:280-284`'s strings become true; Task 2 re-reads
 both and changes a word only if one is still false. Handoff item 6 (a restored `admin` row may refuse
 the seed) needs no code: the refusal names the conflict, and its resolving channel is rung 14's.
 
@@ -479,7 +508,10 @@ raw store error. Reading 6d-R4.
 
 In the same commit as the verb (spec `:815-817`), the key leaves `magicLinkSource.Required` and
 registers through `AddSuperseded` with the message "superseded: the roster lives in the store; move a
-roster file in once with dubplate-server member import --roster PATH". `member import` takes the path
+roster file in once with dubplate-server member import --roster PATH". The same commit drops the
+template's `DUBPLATE_ROSTER_FILE` row and every test environment's copy of the key, since from that
+commit a rendered env carrying the row fails every verb's wall load; 5d's rendered-doctor test
+(5d Task 6) follows in that commit. `member import` takes the path
 as a flag, never from the env. `web.go`'s `privateFiles.roster` entry goes with the key, since the
 store leaf sits under the state directory, which the same check already refuses.
 
@@ -532,14 +564,27 @@ The add-member page already requires a streamer username with the write path's p
 `HEAD`, `web/src/routes/members/+page.svelte:216-224`), and the roster API's JSON shape does not
 change. The page's comment that "an older member's `streamer_username` can be blank" (`:66-68`)
 becomes stale once every member carries one; it routes to lane 1's next `web/` pass as a one-line
-note, since `web/` is not 6d's territory.
+note, since `web/` is not 6d's territory. `web/scripts/rendered/run.ts:3938`'s comment naming "the
+fixture roster file" rides the same note once Task 4 moves the fixture into the store.
 
 ### R-6d18: the runbook
 
 5d's Task 7 creates `docs/server-runbook.md`, although the rung 6 spec expected rung 16 to author the
 runbook. A runbook telling an operator to `member add` before `serve` starts is false after 6d, so
 Task 8 updates its install order and adds the 6d upgrade section, and records the remaining owed lines
-for rung 16. The upgrade section keeps the roster file until 5d's `.prev` copies are superseded by a
+for rung 16.
+
+The upgrade must create the store before it imports. After 5d the box has no store: 5d's step 14
+started the pre-6d binary, which never opens one (6d-R11 relies on the same fact). The deploy's
+`try-restart` is a no-op on the stopped unit (R-6d19), and `member import` opens through `OpenWrite`,
+which refuses an absent store naming "start serve first" (`open.go:656`). So the section runs, after
+the deploy, one supervised start in the form of 5d's sitting step 14 (5d plan `:1377-1380`):
+`systemctl start` on the serve unit; `doctor`, whose store row reads the binary's version and whose
+members row fails naming `member import` (Task 4's "no member" state, expected here); then
+`systemctl stop`. The unit stays disabled and nothing routes to it. The import steps follow the
+stop, each through `systemd-run --wait --pipe --uid=<owner> --gid=<owner> -p EnvironmentFile=<env>`
+with the store leaf in `ReadWritePaths` (R-6d15; 5d's step 12 form), and `member list` verifies.
+The upgrade section keeps the roster file until 5d's `.prev` copies are superseded by a
 later attended deploy, since rolling back past 6d needs the old template and the old file (spec
 `:834-836`); only then does it tell the operator to delete the file.
 
@@ -549,11 +594,17 @@ later attended deploy, since rolling back past 6d needs the old template and the
 plan R-5d10, Task 4's outcomes). `systemctl restart` starts a stopped unit, which would put `serve`
 on the production box without a ruling, holding the shared lock and answering logins against an
 empty `users` table. So `deploy.sh` restarts `serve` with `systemctl try-restart` (quoted: it "does
-nothing if units are not running"). Its steps run in this order: render the env, install the binary,
-run the owner-run `check` (R-6d15), halt on a nonzero exit, then `try-restart`. `check` must see the
-new binary and the new env, or the superseded `DUBPLATE_ROSTER_FILE` in a stale env would halt the
+nothing if units are not running"). The rule for its steps is that the owner-run `check` (R-6d15)
+runs after both the binary swap and the `server.env` install, in whatever order 5d's `--apply`
+already takes them (5d swaps the binary first, 5d plan `:1255-1260`; Task 8 keeps that order), then
+`deploy.sh` halts on a nonzero exit, and only then runs `try-restart`. `check` must see the new
+binary and the new env, or the superseded `DUBPLATE_ROSTER_FILE` in a stale env would halt the
 deploy, and a bad new env would slip through. Until rung 16 enables the unit, `try-restart` is a
-no-op on the box, and the holder line still prints from `check`.
+no-op on the box, and the holder line still prints from `check`. The state-dir leg gains one presence
+check guarding this resolution: it fails when any `systemctl` line in `deploy.sh` runs `restart`,
+`start`, or `enable` (as whole words, so `try-restart` does not match) on the serve unit, by its
+name or the variable holding it, or when the timer list `deploy.sh` enables names it. The step order
+itself stays unchecked by the gate (C-M10's refusal).
 
 ---
 
@@ -616,13 +667,16 @@ note naming the new site, and content that is gone is a blocker.
 2. **Did 5d land what 6d edits?** Report, by symbol: 5d's serve unit (file name, `Type=`, `Restart=`,
    `RestartSec=`, `ReadWritePaths=`, `EnvironmentFile=`), `deploy.sh`'s leaf pre-creates (the array
    the 5d plan says 6d extends by one word, 5d plan `:544`), its check-by-default and `--apply`
-   modes, whether it runs `check` before restarting `serve` and halts on a nonzero exit (6c's Ruling
+   modes, how it names the serve unit (a literal or a variable, which R-6d19's presence check
+   matches), whether it runs `check` before restarting `serve` and halts on a nonzero exit (6c's Ruling
    2, owed by 5d), how it restarts `serve` if it does at all (R-6d19), the order of its env render,
    binary install, and restart steps, the state-dir leg in `scripts/check.sh`, the template's `DUBPLATE_ROSTER_FILE`
-   row, and `docs/server-runbook.md`'s install-order section. A missing 6c Ruling 2 halt is not a
+   row, 5d's rendered-doctor test (5d Task 6, in `cmd/dubplate-server/templatekeys_test.go`: its
+   name, its fixture roster, and each assertion naming the `roster` row or the `DUBPLATE_ROSTER_FILE`
+   row, which Tasks 4 and 5 rewrite), and `docs/server-runbook.md`'s install-order section. A missing 6c Ruling 2 halt is not a
    blocker; it becomes a Task 8 outcome, reported.
-3. **Do `serve.go`, `auth.go`, `member.go`, `doctor.go`, and `web.go` still carry every symbol the
-   "Code pointers" list names?** 5d-i adds the trusted proxy and probe rows; report each changed
+3. **Do `serve.go`, `auth.go`, `member.go`, `doctor.go`, `web.go`, and `rendered_test.go` still
+   carry every symbol the "Code pointers" list names?** 5d-i adds the trusted proxy and probe rows; report each changed
    signature, above all `newServeShell`'s and `authHandlersConfig`'s.
 4. **Is the highest migration `0005`?** Report `ls internal/engine/store/migrations/`; Task 3 numbers
    from it.
@@ -653,7 +707,9 @@ migration runner and the one writer); lands none.
   threshold and the keep read), and their tests
 - Modify: `internal/engine/store/open.go` (the reconciler's root, the re-entry log line) and tests
 - Modify: `internal/backup/reconcile.go` or `restore.go` (the exported reconciler) and tests
-- Modify: `cmd/dubplate-server/rendered_test.go`, only its `newServeShell` call sites
+- Modify: `cmd/dubplate-server/serve_test.go`'s shell builders (`buildServeShellWithContext`), which
+  `rendered_test.go` reaches through `buildServeShellWithLogger`; `rendered_test.go` itself does not
+  change here
 
 **Outcomes:**
 - `DUBPLATE_STORE_MIGRATION_WAIT`, R-6d3, with its `doctor` threshold row.
@@ -722,7 +778,8 @@ Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hooks:** completes hook
   `store.go:280-284`, editing only a string still false
 
 **Outcomes:**
-- The apply exported, called once after `OpenServe` and before `serve.Run` (R-6d5).
+- The apply exported, called once after `OpenServe` and before `serve.Run` (R-6d5), under the named
+  30s write wait R-6d5 fixes (`Update` refuses a context with no deadline).
 - A refusal ends the start nonzero with the joined refusal, before any listener.
 
 **States:**
@@ -750,7 +807,8 @@ Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hooks:** completes hook
 
 **Named mutations:** move the apply out of the preparation function to after it returns (the seeded
 row is absent when the function returns); swallow the apply's error (the refusal row returns a
-shell).
+shell); drop the write wait's deadline (every writing row fails with `errNoDeadline`'s "store write
+needs a context deadline").
 
 **Deliverable count: 2** (the export and call, the refusal path).
 
@@ -769,18 +827,27 @@ neutral.
 - Create: `internal/engine/store/migrations/0006_member_imports.sql` (number from Task 0 item 4), its
   populated fixture under `testdata/fixtures/`
 - Modify: `internal/auth/roster.go`, `roster_test.go`, `seam.go`, `seam_test.go`
-- Modify: `internal/identity/identity.go`, `identity_test.go`
-- Modify (test fixtures only): `internal/ops/ops_test.go` (`validIdentity`) and
-  `internal/ops/opshttp/helpers_test.go` (`ann`), which gain a `UserID` once `Valid` requires one
+- Modify: `internal/identity/identity.go`, `identity_test.go` (the `UserID` field only; `Valid`
+  changes in Task 4)
+- Modify (the `ctx` threading only, a mechanical change): the six production callers of `Lookup` and
+  `List` outside this task's own files, `internal/auth/handlers.go` (`:210`, `:308`, `:366`),
+  `internal/auth/admin.go` (`:206`), `cmd/dubplate-server/member.go` (`:162`), and
+  `cmd/dubplate-server/doctor.go` (`:173`, in the roster row Task 4 replaces, which takes its
+  caller's context), and the tests that call either method
 - Modify: `internal/auth/admin_test.go` (the roster API's duplicate-username case, below)
 
 **Outcomes:**
 - The migration (R-6d11), passing the invariant test with its fixture.
 - The users-backed roster (R-6d10): constructor over a handle; `Lookup`, `List`, `AddMember` with
-  `ctx`; the file-backed constructor and its file I/O deleted once Task 4 moves the callers (this task
-  may keep them only until then, and the diff-reviewer checks Task 4 deletes them).
+  `ctx`, threaded through every caller in one commit, so the task is green on its own; the
+  file-backed constructor and its file I/O deleted once Task 4 moves the callers (this task may keep
+  them only until then, and the diff-reviewer checks Task 4 deletes them).
 - `Identity.UserID`: comparable, its zero value meaning unresolved, set only by the seam from
-  `Lookup`; `Valid` refuses a zero id on the cookie channel. `Principal` is the streamer username.
+  `Lookup`. `Principal` is the streamer username. **`Valid` does not change here**: `serve` stays on
+  the file-backed roster until Task 4, whose rows carry no id, so a zero-id refusal now would fail
+  every admin-gated test over `serve` (`RequireAdmin` refuses on `!v.Identity.Valid()`,
+  `admin.go:92`, `:121`) between the two tasks. Task 4 makes `Valid` refuse a zero id once `serve`
+  reads `users`.
 - `AddMember`'s write rules inside one `Update`.
 
 **States:**
@@ -805,7 +872,6 @@ neutral.
 | `AddMember` | a command-line non-admin add into a table with no live admin | refused with `errNoAdmin`, naming `member add --admin` |
 | `List` | an empty table | an empty list, no error |
 | `List` | two live rows and one tombstoned row | the two live rows, in `created_at`, then `id`, order |
-| `Valid` | a cookie-channel identity with a zero `UserID` | false |
 
 **Acceptance criteria:**
 - Spec criterion 5: a verified identity's `UserID` equals the row's id and its `Principal` the row's
@@ -824,12 +890,13 @@ neutral.
 **Named mutations:** mint a new id on reactivation; keep the stored admin flag on reactivation;
 compare usernames case-sensitively; limit the username collision read to live rows (the tombstoned
 username row answers a constraint error); count a tombstoned admin as the actor's authority; drop the at-least-one-admin
-check; drop the `tombstoned_at IS NULL` filter in `Lookup`; set `Principal` from the address; make
-`Valid` ignore `UserID`. Reading the actor's flag outside the `Update` (through the read pool) is a
+check; drop the `tombstoned_at IS NULL` filter in `Lookup`; set `Principal` from the address. Reading the actor's flag outside the `Update` (through the read pool) is a
 race no deterministic test catches; the diff-reviewer checks every read `AddMember` decides on sits
 inside the callback, by name.
 
-**Deliverable count: 4** (the migration, the roster over the store, `UserID`, the write rules).
+**Deliverable count: 4** (the migration, the roster over the store, `UserID`, the write rules). The
+`ctx` threading rides the roster deliverable; `Valid`'s zero-id refusal moved to Task 4 (revision
+2.1, M1).
 
 ---
 
@@ -846,7 +913,21 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
 - Modify: `internal/auth/roster.go` (delete the file-backed constructor, the file write, and the
   file lock once no caller remains; keep `parseRoster`, `validateRoster`, and `memberRecord`, which
   Task 5's import uses)
-- Modify: `cmd/dubplate-server/rendered_test.go`, only its `newServeShell` call sites
+- Modify: `internal/identity/identity.go`, `identity_test.go` (`Valid` refuses a zero `UserID` on
+  the cookie channel, moved from Task 3); the two test fixtures that then need an id,
+  `internal/ops/ops_test.go` (`validIdentity`) and `internal/ops/opshttp/helpers_test.go` (`ann`)
+- Modify: `cmd/dubplate-server/rendered_test.go`, the harness's roster fixture (B1): the two fixture
+  members seeded into the store with streamer usernames after the preparation function creates it
+  and before the server starts; `rosterResetServer` resetting the `users` table instead of the file
+  (the live ids the first POST finds are the baseline; each later POST deletes, in one `Update`, every
+  row outside it, so the rows the earlier rendered rows added survive as today), through its own
+  write-mode handle over the fixture state directory (the two-descriptor `flock` row, quoted) or the
+  shell's, keeping its HTTP contract (a POST answers `{"members": n}`) so `run.ts` needs no change;
+  and `members/roster-file` reading the added address from `users` instead of the file. The fixture
+  still sets `DUBPLATE_ROSTER_FILE` here, since the key stays required until Task 5.
+- Modify: `cmd/dubplate-server/templatekeys_test.go` (5d's rendered-doctor test, Task 0 item 2):
+  its assertions on the `roster` row become the members row's, under the table below (the rendered
+  environment has no store, so the row reads "no store yet" with the exit unaffected)
 
 **Outcomes:**
 - `serve` builds the roster over its handle. `member add` and `member list` open write mode, under
@@ -855,7 +936,10 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
   `OpenWrite`'s "start serve first", which is now satisfiable.
 - The members row (R-6d13), its reads version-guarded in `Facts`.
 - `web.go` drops the roster path (R-6d12).
-- The file-backed roster code deleted.
+- The file-backed roster code deleted, and with it the last roster whose rows carry no id, so
+  `Valid` now refuses a zero `UserID` on the cookie channel (moved from Task 3, M1).
+- The rendered harness runs on the store (B1), its capture matrix and `members/roster-file` subtest
+  green with no `web/` change.
 
 **The members row's states:**
 
@@ -880,13 +964,27 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
   holds a tombstoned admin row, so counting tombstoned rows shows.
 - `grep` finds no caller of the file-backed constructor and no `rosterFileKey` reader but Task 5's
   supersession.
+- `Valid`: a cookie-channel identity with a zero `UserID` is false, by its own subtest; an identity
+  the seam resolves over `users` is true.
+- The full rendered leg passes (it runs in the gate): the capture matrix's reset answers the
+  baseline count on every POST after the add-member row, and `members/roster-file` finds the added
+  address in `users`. **Fixture state:** the add-member row has added a member before the first
+  reset, so a reset that deletes every row but the two seeded ones and a reset that deletes nothing
+  answer different counts.
+- 5d's rendered-doctor test passes with its members-row assertions.
 - The gate green.
 
 **Named mutations:** open inspect mode in `member add` (the write fails read-only); count tombstoned
 rows as members (the no-admin golden fails); drop the `member_imports` version guard (the
-`0003`-to-`0005` row refuses).
+`0003`-to-`0005` row refuses); make `Valid` ignore `UserID` (the zero-id subtest passes an
+unresolved identity); make the reset server delete nothing (a capture cell's added
+`capture-<kind>@example.test` member survives into the next cell, so the rendered list no longer
+matches the baseline count `resetCaptureRoster` returns, `run.ts:4569-4574`).
 
-**Deliverable count: 4** (serve and the verbs, the members row, the web guard, the deletion).
+**Deliverable count: 4** (serve and the verbs, the members row, the web guard, the deletion with
+`Valid`'s refusal). Revision 2.1 adds no deliverable but makes this the heaviest task: the rendered
+harness rework, `Valid`'s refusal, and 5d's rendered-doctor assertions land here (B1, M1, M2).
+Task 0's ceiling re-derivation weighs it.
 
 ---
 
@@ -901,15 +999,26 @@ Model: `sonnet`, effort `high`. Depends on Task 4. **0.8 hooks:** lands hook 5's
 - Modify: `cmd/dubplate-server/auth.go` (`Required` loses the key; `AddSuperseded` gains it),
   `internal/auth` for the parse-and-validate of a roster file it already owns (`parseRoster`,
   `validateRoster`), exported only as far as the verb calls it
+- Modify: `env/dubplate-server.env.template` (the `DUBPLATE_ROSTER_FILE` row dropped, and the
+  header comment naming it, R-6d12) and `cmd/dubplate-server/templatekeys_test.go` (5d's
+  rendered-doctor test: its fixture roster and the "delete the `DUBPLATE_ROSTER_FILE` row fails naming
+  the missing key" assertion retire; the test instead asserts a rendered env carrying the row fails
+  the load with the supersession message)
+- Modify: every test environment that sets the key, which from this commit fails the wall load:
+  `renderedEnviron` in `rendered_test.go`, `authEnviron`'s required-key list in `auth_test.go`, and
+  the helpers in `check_test.go`, `backup_test.go`, `member_test.go`, `serve_test.go`, and
+  `doctor_test.go` (`grep -n DUBPLATE_ROSTER_FILE cmd/dubplate-server/*_test.go` finds them; Task 5's
+  own criterion-4 test is the one that keeps it)
 
 **Outcomes:**
-- `member import --roster PATH [--dry-run]`, one `Update` under the shared lock, with the import
-  record, the actor from `resolveActor`, and every read it decides on (the record, the existing rows)
-  inside the callback.
+- `member import --roster PATH [--dry-run]`, one `Update` under the shared lock and under
+  `memberVerbWriteWait`'s deadline (R-6d5), with the import record, the actor from `resolveActor`,
+  and every read it decides on (the record, the existing rows) inside the callback.
 - The thirteen states below, the file read as R-6d11 states (mode refusal, one read hashed and
   parsed, each entry through `validateWriteCandidate`); `--dry-run` reports every refusal at once and
   writes nothing.
-- `DUBPLATE_ROSTER_FILE` superseded (R-6d12).
+- `DUBPLATE_ROSTER_FILE` superseded (R-6d12), with the template's row and every test environment's
+  copy dropped in the same commit.
 - The import's merge with members added before it (R-6d11).
 
 **States** (entries are named by position and field, never by address or username, R-6d11):
@@ -946,16 +1055,25 @@ Model: `sonnet`, effort `high`. Depends on Task 4. **0.8 hooks:** lands hook 5's
   `member_imports`, and the settings generation unchanged.
 - A fault fixture: the test adds a `BEFORE INSERT ON users` trigger to its temp store that raises on
   the third insert; the import fails, `member_imports` holds no row, and `users` holds none of the
-  file's entries.
+  file's entries. The fixture catches the variant of "the record outside the transaction" that
+  writes the record in its own `Update` **before** the inserts (that record survives the users
+  fault); a record written in its own `Update` after the inserts never runs when an insert faults,
+  so this fixture cannot see it, and the diff-reviewer checks by name that the record's insert sits
+  in the same callback as the users inserts.
 - Two imports of one valid file run concurrently: exactly one succeeds and the other refuses naming
   the record.
 - Spec criterion 3: a member added through the verb before the import merges when the entry matches
   and refuses naming the position and the field when the entry's admin flag differs.
 - Spec criterion 4: with `DUBPLATE_ROSTER_FILE` set, one table test over the registered command tree
   runs every verb that loads the wall and asserts each fails the load with the message verbatim.
+- Spec criterion 14's template half (moved from Task 8, M2): the template carries no
+  `DUBPLATE_ROSTER_FILE` row, `TestTemplateKeysClassifiedAgainstProductionRegistry` agrees, and 5d's
+  rendered-doctor test passes against the template as this commit leaves it.
 - The gate green.
 
-**Named mutations:** write the record outside the transaction (the fault fixture leaves a record);
+**Named mutations:** write the record in its own `Update` before the inserts (the fault fixture
+leaves a record); re-add the template's `DUBPLATE_ROSTER_FILE` row (5d's rendered-doctor test fails
+naming the supersession message);
 let `--dry-run` enter `Update` without rolling back (the valid dry run writes); drop the mode check
 (the writable-file row imports); validate entries with the loader's rule alone (the username-pattern
 row imports); drop the case fold on the username duplicate check. A record read outside the callback
@@ -981,7 +1099,10 @@ Model: `opus`, effort `high` (the config contract). Depends on Task 5. **0.8 hoo
   string read; the withholding removed)
 - Modify: `cmd/dubplate-server/auth.go` (ten settings, two correlated rules, `validateMagicLinkSource`
   trimmed, `resolveAuthConfig`'s env parse replaced), `serve.go`, `store.go` (the withholding
-  removed), `doctor_test.go` goldens, and `rendered_test.go`'s `newServeShell` call sites
+  removed), `doctor_test.go` goldens, `serve_test.go`'s shell builder (`buildServeShellWithContext`
+  calls `resolveAuthConfig`), and `rendered_test.go`'s `mintLinkFor`, which reads the link expiry
+  through `resolveAuthConfig` (`:535-540`) and needs the expiry the fixture's seed puts in force
+  another way (the task's report names which)
 
 **Outcomes:**
 - The closed-set string kind, `parse`'s arm, and the accessor's string read (R-6d7).
@@ -1038,8 +1159,9 @@ Model: `opus`, effort `high` (live security thresholds). Depends on Task 6. **0.
 - Modify: `internal/auth/handlers.go`, `seam.go`, `admin.go`, `nonce.go` (`Insert`, `Sweep`, and
   `RunSweep`'s sweep function gain `ctx`), and tests (reader functions in place of values)
 - Modify: `cmd/dubplate-server/serve.go` (including `startNonceSweep`), `auth.go` (`authConfig` and
-  `resolveAuthConfig` deleted; readers built over the serve accessor), tests, and `rendered_test.go`'s
-  `newServeShell` call sites
+  `resolveAuthConfig` deleted; readers built over the serve accessor), tests (`serve_test.go`'s shell
+  builder among them), and `rendered_test.go`'s `mintLinkFor`, whose `resolveAuthConfig` call goes
+  with the function
 
 **Outcomes:**
 - Each "next operation" and "immediately" value read through an injected reader at its point of use
@@ -1094,8 +1216,8 @@ Model: `sonnet`, effort `high`; invokes `vps-conventions`. Depends on Task 7 (in
 Tasks 6 and 7, but sequenced to keep one gate lane). **0.8 hooks:** neutral.
 
 **Files:**
-- Modify: 5d's serve unit, `scripts/deploy.sh`, `scripts/check.sh` (the state-dir leg),
-  `env/dubplate-server.env.template`, `docs/server-runbook.md`
+- Modify: 5d's serve unit, `scripts/deploy.sh`, `scripts/check.sh` (the state-dir leg and its
+  serve-unit presence check), `docs/server-runbook.md` (the template's roster row left in Task 5)
 - Modify: `internal/engine/store/inspect.go` and `cmd/dubplate-server/check.go` (holders named for an
   older store), tests
 - Modify: `internal/engine/store/leaf.go` (`checkOwner`'s hint, R-6d15) and the four store tests that
@@ -1112,11 +1234,16 @@ Tasks 6 and 7, but sequenced to keep one gate lane). **0.8 hooks:** neutral.
   excluding its own pid (`Inspect` holds its own shared lock while it reads, and `/proc/locks` lists
   the caller, quoted), so `deploy.sh`'s printed `check` output names the holder before the restart.
   `checkOwner`'s hint names the rendered environment instead of `runuser`.
-- The template drops `DUBPLATE_ROSTER_FILE`; the runbook's install order becomes: render the env,
-  start `serve` (it creates the store), `member add --admin` or `member import`, `doctor`; and a 6d
-  upgrade section: remove the roster row, deploy, `member import --dry-run --roster <file>`,
-  `member import`, verify with `member list`, and keep the file until 5d's `.prev` copies are
-  superseded (R-6d18).
+- The template's `DUBPLATE_ROSTER_FILE` row is already gone (Task 5, M2). The runbook's install
+  order becomes: render the env, start `serve` (it creates the store), `member add --admin` or
+  `member import`, `doctor`; and a 6d upgrade section, in this order (R-6d18): deploy (the rendered
+  env carries no roster row; `try-restart` leaves the stopped unit stopped); one supervised start in
+  5d step 14's form (`systemctl start` on the serve unit, `doctor` showing the store row at the
+  binary's version and the members row failing naming `member import`, `systemctl stop`; the unit
+  stays disabled); `member import --dry-run --roster <file>` and `member import`, each through
+  `systemd-run` with the store leaf in `ReadWritePaths`; verify with `member list`; and keep the file
+  until 5d's `.prev` copies are superseded.
+- The state-dir leg's serve-unit presence check (R-6d19).
 
 **States of `check`'s store row:**
 
@@ -1133,22 +1260,29 @@ Tasks 6 and 7, but sequenced to keep one gate lane). **0.8 hooks:** neutral.
   unit's `ReadWritePaths` entry for the store leaf carries a `-` prefix, and when `deploy.sh`'s leaves
   array lacks `store` or still names `roster`. Each is a gate check on the files, the leg's existing
   precedent; no gate leg runs `deploy.sh`, which needs the box.
-- Spec criterion 14 (6d-R10): the template carries no `DUBPLATE_ROSTER_FILE` row (the gate's
-  template-keys test agrees); `shellcheck` clean. The step order R-6d19 fixes (render, install, owner
-  `check` through `systemd-run --wait`, halt, `try-restart`) is not machine-checked, since shell
+- Spec criterion 14 (6d-R10): the template half landed in Task 5 and stays green; `shellcheck`
+  clean. The state-dir leg fails when `deploy.sh` runs `restart`, `start`, or `enable` on the serve
+  unit, or enables it through the timer list, and passes on `try-restart` (R-6d19's presence check,
+  R-M3's guard). The step order R-6d19 fixes (the binary swap and the `server.env` install as 5d
+  orders them, then the owner `check` through `systemd-run --wait`, halt, `try-restart`) is not
+  machine-checked, since shell
   carries no behavior tests (CLAUDE.md) and `deploy.sh --check` needs ssh to the box; the
   diff-reviewer reads that order by name against R-6d19, and the task's report quotes the lines.
 - `check`'s rows above, each in a golden, with the shared holder a second process.
 - The owner-refusal hint: the four store tests assert the new text.
-- The runbook sections read by the task's own render-and-read (the page opened and read in full).
+- The runbook sections read by the task's own render-and-read (the page opened and read in full),
+  which checks the upgrade section's order: the deploy, then the supervised start and stop, then the
+  two import steps, with no step restarting or enabling `serve`.
 - The gate green.
 
 **Named mutations:** grant the leaf with a `-` prefix (the extended leg fails); leave `roster` in the
 leaves array (the leg fails); break the unit's store path (the leg fails); name holders only when busy
-(the shared-holder golden fails); list `check`'s own pid (the no-other-holder golden fails).
+(the shared-holder golden fails); list `check`'s own pid (the no-other-holder golden fails); replace
+`try-restart` with `restart` on the serve unit (the presence check fails; R-M3's mutation, restored
+as a gate check since its `--check` golden needs the box).
 
 **Deliverable count: 4** (unit and leg, `deploy.sh`, the store's operator strings in `check` and
-`checkOwner`, template and runbook).
+`checkOwner`, the runbook).
 
 **Segment C ends here.** The conductor dispatches `web-auth-security-reviewer` over Tasks 6 and 7 and
 folds; then the simplifier round; then the merge ritual.
@@ -1187,8 +1321,9 @@ reported failing.
 
 Every file below is shared with rung 5's closed work or another lane; no other executor edits one
 while 6d runs: `cmd/dubplate-server/serve.go`, `auth.go`, `store.go`, `doctor.go`, `check.go`,
-`member.go`, `web.go`, `main.go`'s registration block, and `rendered_test.go`'s `newServeShell`
-call sites; `internal/auth/*`; `internal/identity`; the two `internal/ops` test fixtures
+`member.go`, `web.go`, `main.go`'s registration block, `serve_test.go`'s shell builders,
+`templatekeys_test.go` (5d's rendered-doctor test), every `_test.go` environment setting
+`DUBPLATE_ROSTER_FILE`, and `rendered_test.go`'s roster fixture, reset server, and `mintLinkFor`; `internal/auth/*`; `internal/identity`; the two `internal/ops` test fixtures
 (`ops_test.go`, `opshttp/helpers_test.go`); `internal/config/settings.go` and `registry.go`;
 `internal/settings`; `internal/engine/store` (`open.go`, `inspect.go`, `leaf.go` and the tests
 asserting its hint, `migrations/`); `internal/backup` (the reconciler); 5d's serve unit;
@@ -1243,3 +1378,8 @@ commit. No task runs in parallel: every task after Task 2 reads the one before.
 - The trigger-based fault fixture (Task 5) was probed through Python's `sqlite3`, not through
   `modernc.org/sqlite`; both are SQLite, and Task 5's first run of the fixture is the confirmation.
 - R-6d3's 5m default is reasoned from lock semantics, not measured on a populated store.
+- Task 4's reset server taking its own write-mode handle beside the serve shell's in one process is
+  quoted from `flock(2)` and `tryLock`'s fresh descriptor, not probed; Task 4's first rendered run is
+  the confirmation, and the shell's own handle is the fallback.
+- The line citations into `rendered_test.go` are at `314c0c8`; another lane's warm edits to it may
+  move them, and Task 0 re-resolves them.

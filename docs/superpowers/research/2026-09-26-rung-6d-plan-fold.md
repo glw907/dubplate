@@ -89,7 +89,7 @@ cannot exist.
 | R-m9 | No proof that `check` fails on an auth refusal | Folded: Task 6 row and mutation. |
 | R-m10 | Import-record concurrency; the pre-6d restore report line | Folded in part: R-6d11 places the record read inside the callback, and Task 5 adds the concurrent-imports test (a schema singleton was not needed). **Refused in part:** the spec's "the report says to run `member import`" (`:715-716`) is not built, because no pre-6d store or snapshot can exist (`OpenWrite` refuses an absent store and 5d never starts `serve`); recorded as 6d-R11, owed erratum E-c. |
 | R planning-miss item 4 | The limiter proof needs a request count | Folded: Task 7's fixture state names a count that trips A and not B. |
-| F1 (fold) | `rendered_test.go` calls `newServeShell` (`:420-454`), whose signature Tasks 1, 4, 6, and 7 change, while the plan forbade editing that file | Folded: the global constraint now allows edits at those call sites only; each task's Files and contested surfaces name them. |
+| F1 (fold) | `rendered_test.go` calls `newServeShell` (`:420-454`), whose signature Tasks 1, 4, 6, and 7 change, while the plan forbade editing that file | Folded: the global constraint now allows edits at those call sites only; each task's Files and contested surfaces name them. **Corrected in the second fold (B1): the premise was a misreading.** `:420-454` are doc comments naming `newServeShell`; the calls go through `serve_test.go`'s `buildServeShellWithLogger`. The file's real 6d exposure is its roster-file harness. |
 
 ## Owed errata to ratified documents
 
@@ -119,3 +119,60 @@ spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`):
   review, not re-read.
 - The trigger fault fixture is probed on Python's `sqlite3`, not `modernc.org/sqlite`; the plan's
   "Not verified" list carries it.
+
+## Second fold: revision 2 to revision 2.1
+
+Target: the plan at revision 2 (`adb9644`), folded to revision 2.1 against the verification read
+(`2026-09-26-rung-6d-plan-fold-verification.md`, committed at `314c0c8`): 1 blocker, 3 majors, and 4
+minors. Every finding was re-checked against committed `HEAD` (`314c0c8`) before folding;
+`rendered_test.go` moved a few lines since `adb9644` (5c-iv Task R2), so the plan cites its
+`314c0c8` lines. **Folded: 8. Refused: 0. Owner forks: 0.** No task was added, so the ten-task line
+and the 11.5M ceiling (flag 9.2M) stand, and the three rulings are unchanged: every fold adds or
+moves files inside existing tasks, and none touches a ruling's premise.
+
+Evidence gathered for the fold, each quoted or probed, never recalled:
+- `rendered_test.go` at `314c0c8`: `startRenderedServer` and `startFixtureServer` call
+  `buildServeShellWithLogger` (`:428`, `:452`); `renderedEnviron` (`:372-399`) writes a roster with no
+  `streamer_username` and sets `DUBPLATE_ROSTER_FILE` (`:383`); `rosterResetServer` (`:613-659`)
+  rewrites that file; `members/roster-file` (`:918-927`) reads it; `mintLinkFor` (`:535`) calls
+  `resolveAuthConfig`, which Tasks 6 and 7 replace and delete. `serve_test.go:66-89`'s builder calls
+  `resolveAuthConfig` and `newServeShell`.
+- `run.ts:4569-4574`: `resetCaptureRoster` POSTs and reads `{ members: number }`; `:5061` compares
+  each capture state against it.
+- `flock(2)` (installed man page): "If a process uses open(2) (or similar) to obtain more than one
+  file descriptor for the same file, these file descriptors are treated independently by flock()."
+  `tryLock` opens a fresh descriptor per attempt (`lock.go:85-90`).
+- Roster callers: `grep` finds `Lookup` at `handlers.go:210`, `:366` and `seam.go:114`, and `List` at
+  `handlers.go:308`, `admin.go:206`, `member.go:162`, `doctor.go:173`. `Identity.Valid`
+  (`identity.go:208-211`) checks no id today; `RequireAdmin` refuses on `!v.Identity.Valid()`
+  (`admin.go:92`, `:121`).
+- `write.go:68-69`: `Update` returns `errNoDeadline` when `ctx.Deadline()` is unset; `apply`
+  (`apply.go:29-31`) passes its caller's context straight to `Update`; `memberVerbWriteWait` is 30s
+  (`member.go:26`, used at `:95`).
+- `open.go:656`: an absent store refuses "no store at %s: start serve first".
+- 5d plan: Task 6's rendered-doctor test lives in `templatekeys_test.go` (`:1055-1097`), with the
+  roster-row and `DUBPLATE_ROSTER_FILE`-row assertions the verification names; step 14 (`:1377-1380`)
+  is the supervised start; `--apply` swaps the binary before installing `server.env` (`:1256-1257`).
+  The repo's template at `HEAD` has no `DUBPLATE_ROSTER_FILE` row yet (only a comment at `:72`); 5d
+  adds it.
+- `grep -n DUBPLATE_ROSTER_FILE cmd/dubplate-server/*_test.go` finds the key in seven test files'
+  environments, not only `rendered_test.go`.
+
+| ID | Finding | Disposition |
+| --- | --- | --- |
+| B1 | `rendered_test.go`'s harness is built on the roster file; the global constraint forbade the rework; F1's premise was wrong | **Folded.** Confirmed at `314c0c8`. The global constraint now reads "changes only as the store move and the settings move require". Task 4's Files take the rework: the two fixture members seeded into the store with streamer usernames; `rosterResetServer` resetting `users` (the first POST's live ids are the baseline, later POSTs delete rows outside it) through its own write-mode handle or the shell's, keeping `{"members": n}` so `run.ts` and R-6d17 hold; `members/roster-file` reading `users`. Two proofs and a mutation added. The code pointer and Task 1's Files are corrected (Task 1 touches `serve_test.go`'s builders, not `rendered_test.go`); the F1 row above is corrected. Found while verifying and folded with it: `mintLinkFor` calls `resolveAuthConfig`, so Tasks 6 and 7 name it; `run.ts:3938`'s stale comment joins R-6d17's routed note. The in-process second handle is quoted from `flock(2)`, not probed, and the plan's "Not verified" list says so. |
+| M1 | Task 3 is not green alone: `ctx` breaks six callers outside its Files, and `Valid`'s zero-id refusal breaks `RequireAdmin` until Task 4 | **Folded, by moving the `Valid` change.** Task 3's Files gain the `ctx` threading at the six call sites the verification names (confirmed by `grep`). `Valid`'s zero-id refusal, its state row, its mutation, and the two `internal/ops` fixtures move to Task 4, where `serve` first reads `users`. Moving `serve`'s roster construction into Task 3 was weighed and declined: it would drag the rendered harness rework and the member verbs into Task 3, which is the identity surface's `opus` task. Neither task's deliverable count changes. |
+| M2 | The template keeps `DUBPLATE_ROSTER_FILE` from Task 5 to Task 8; 5d's rendered-doctor test is unnamed | **Folded.** R-6d12 now drops the template row in Task 5's commit, with the header comment. Task 0 item 2 names the test. Task 4's Files take its members-row assertions (an absent store reads "no store yet", exit unaffected). Task 5's Files take its key assertions: the fixture roster and the deleted-row assertion retire, and a re-added row fails naming the supersession message, which is Task 5's new mutation. Criterion 14's template half moves from Task 8 to Task 5. Widened on the same evidence: every test environment that sets the key fails the wall load from Task 5, so Task 5's Files name the seven test files' helpers. |
+| M3 | The 6d upgrade cannot run: no store exists, `try-restart` is a no-op, `member import` refuses an absent store; Owner touchpoints said "restart `serve`" | **Folded.** R-6d18 adds one supervised start after the deploy, in 5d step 14's form: `systemctl start`, then `doctor` (the store row at the binary's version; the members row failing naming `member import`, which is expected here), then `systemctl stop`, with the unit left disabled. The import steps follow the stop, through `systemd-run` with the store leaf in `ReadWritePaths`. Task 8's runbook outcome and render-and-read check this order. Owner touchpoints no longer says "restart", and agrees with R-6d19. |
+| m1 | R-M3's `try-restart`-to-`restart` mutation dropped without a recorded refusal | **Folded as a one-grep check.** The state-dir leg fails when a `systemctl` line in `deploy.sh` runs `restart`, `start`, or `enable` (whole words, so `try-restart` passes) on the serve unit, or when the enabled timer list names it. R-M3's mutation is restored against it. The step-order grep stays refused (C-M10). |
+| m2 | The seed apply and `member import` are new `Update` callers with no stated deadline | **Folded.** R-6d5 names a 30s write wait on `memberVerbWriteWait`'s precedent for the seed apply, and `member import` uses `memberVerbWriteWait` itself. `Update`'s behaviors row now quotes what the deadline bounds. Task 2 adds the outcome and a mutation (dropping the deadline fails every writing row with `errNoDeadline`). |
+| m3 | R-6d19's "render the env, install the binary" reverses 5d's install order | **Folded.** R-6d19 and Task 8 now state the rule that matters: `check` runs after both the binary swap and the `server.env` install, in 5d's existing order. |
+| m4 | The fault fixture catches only one variant of "the record outside the transaction" | **Folded.** Task 5 names the variant the fixture catches (the record in its own `Update` before the inserts) and rewrites the mutation to it. The after-the-inserts variant, which the fixture cannot see, goes to the diff-reviewer by name. |
+
+### What the second fold could not verify
+
+- The reset server's second handle in the serve shell's process is quoted, not probed (see B1).
+- 5d's rendered-doctor test does not exist yet (5d has not executed), so its Task 4 and Task 5 edits
+  are specified against the 5d plan's text; Task 0 item 2 reports the landed test.
+- Whether 5d's `deploy.sh` holds the serve unit's name in a variable, which m1's presence check
+  must match, waits on 5d's landed file; Task 0 item 2 reports it.
