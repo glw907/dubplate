@@ -90,6 +90,16 @@ The signed-in header renders in every state, loading included, and
   let erroredField = $state<'address' | 'display_name' | 'streamer_username' | null>(null);
   let addMemberForm = $state<HTMLFormElement | null>(null);
   let addressInput = $state<HTMLInputElement | null>(null);
+  let displayNameInput = $state<HTMLInputElement | null>(null);
+  let streamerUsernameInput = $state<HTMLInputElement | null>(null);
+
+  // W5: every field-specific server outcome moves focus to the field it
+  // marks, not only the address field.
+  function inputForField(field: 'address' | 'display_name' | 'streamer_username'): HTMLInputElement | null {
+    if (field === 'address') return addressInput;
+    if (field === 'display_name') return displayNameInput;
+    return streamerUsernameInput;
+  }
 
   // A roster member's meta line joins only the segments it actually
   // carries: an address always has one, but an older member's
@@ -226,9 +236,9 @@ The signed-in header renders in every state, loading included, and
         // rather than leaving it on the button the reset just cleared.
         await tick();
         addressInput?.focus();
-      } else if (erroredField === 'address') {
+      } else if (erroredField) {
         await tick();
-        addressInput?.focus();
+        inputForField(erroredField)?.focus();
       }
     } finally {
       submitting = false;
@@ -306,6 +316,7 @@ The signed-in header renders in every state, loading included, and
           aria-describedby={erroredField === 'display_name' ? 'roster-outcome' : undefined}
           oninput={() => clearFieldError('display_name')}
           bind:value={displayName}
+          bind:this={displayNameInput}
         />
 
         <label class="label" for="add-streamer-username">{ADD_MEMBER_LABELS.streamerUsername}</label>
@@ -321,6 +332,7 @@ The signed-in header renders in every state, loading included, and
           aria-describedby={erroredField === 'streamer_username' ? 'streamer-hint roster-outcome' : 'streamer-hint'}
           oninput={() => clearFieldError('streamer_username')}
           bind:value={streamerUsername}
+          bind:this={streamerUsernameInput}
         />
         <p id="streamer-hint" class="text-sm opacity-70">{ADD_MEMBER_HINTS.streamerUsername}</p>
       </fieldset>

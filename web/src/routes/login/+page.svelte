@@ -25,7 +25,10 @@ the layout's live regions. `main` is the root layout's skip-link target
 
   const siteNameFromMeta = browser ? siteNameFromDocument(document) : '';
   // a11y W6: an absent site-name meta falls back to the deck's own
-  // login title, so the `h1` never renders empty.
+  // login title, so the `h1` never renders empty. The fallback is for
+  // the heading only: `pageTitle` gets the meta value as-is, since an
+  // empty site name is its own documented case (the state alone, no
+  // separator).
   const siteName = $derived(siteNameFromMeta || TITLES.login);
 
   let address = $state('');
@@ -95,7 +98,7 @@ the layout's live regions. `main` is the root layout's skip-link target
 </script>
 
 <svelte:head>
-  <title>{pageTitle(titleState, siteName)}</title>
+  <title>{pageTitle(titleState, siteNameFromMeta)}</title>
 </svelte:head>
 
 <main id="main" tabindex="-1" class="content-measure flow py-8">
@@ -128,7 +131,7 @@ the layout's live regions. `main` is the root layout's skip-link target
           required
           class="input validator {addressInvalid ? 'input-error' : ''}"
           aria-invalid={addressInvalid ? 'true' : undefined}
-          aria-describedby="address-hint"
+          aria-describedby={addressInvalid ? 'address-hint' : undefined}
           oninput={clearAddressError}
           bind:value={address}
           bind:this={addressInput}

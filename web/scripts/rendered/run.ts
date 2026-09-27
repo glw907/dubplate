@@ -2565,11 +2565,17 @@ async function siteNameHeadingRow(browser: Browser, endpoints: Endpoints): Promi
     }
     const title = await visit.page.title();
     const wantTitle = pageTitle(TITLES.login, endpoints.siteName);
+
+    // The finding's other half (W4): a pristine, never-submitted address
+    // field carries no `aria-describedby`, so the hidden invalid-address
+    // hint contributes nothing to its accessible description.
+    const addressDescribedByPristine = await visit.page.locator('#address').getAttribute('aria-describedby');
+
     await report({
       id,
       fixture: metaPresent,
-      property: text === endpoints.siteName && childCount === 0 && title === wantTitle,
-      detail: `h1 ${JSON.stringify(text)} (want ${JSON.stringify(endpoints.siteName)}); h1 child elements ${childCount}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)})`
+      property: text === endpoints.siteName && childCount === 0 && title === wantTitle && addressDescribedByPristine === null,
+      detail: `h1 ${JSON.stringify(text)} (want ${JSON.stringify(endpoints.siteName)}); h1 child elements ${childCount}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); pristine address aria-describedby ${JSON.stringify(addressDescribedByPristine)}`
     });
   } finally {
     await context.close();
@@ -2726,6 +2732,20 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
         requestsSeen = records.slice(before).filter((r) => r.method === 'POST' && r.path.endsWith('/request-link')).length;
       }
 
+      // The invalid-address case is the login page's own field-specific
+      // outcome (a11y W5): the address field carries the mark and takes
+      // focus, and its `aria-describedby` points only at the hint while
+      // the field is invalid.
+      let addressAriaInvalid: string | null = null;
+      let addressDescribedBy: string | null = null;
+      let addressFocused = true;
+      if (c.id === 'auth/login/invalid-address') {
+        const addressField = visit.page.locator('#address');
+        addressAriaInvalid = await addressField.getAttribute('aria-invalid');
+        addressDescribedBy = await addressField.getAttribute('aria-describedby');
+        addressFocused = await visit.page.evaluate(() => document.activeElement?.id === 'address');
+      }
+
       // Item 3's fold, checked on the sent moment only: the stale lede
       // ("Sign in with your email…") is hidden, and the moment aligns
       // to the same column the form above it used (never centered).
@@ -2768,8 +2788,10 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
           (c.mode !== 'real' || requestsSeen === 1) &&
           ledeHidden &&
           aligned &&
-          headingFocused,
-        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); moment title ${JSON.stringify(momentTitle)}; moment heading focused ${headingFocused}; #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(said.text)} as ${said.politeness} (want ${JSON.stringify(wantAnnounced)} as ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}`
+          headingFocused &&
+          (c.id !== 'auth/login/invalid-address' ||
+            (addressAriaInvalid === 'true' && addressDescribedBy === 'address-hint' && addressFocused)),
+        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); moment title ${JSON.stringify(momentTitle)}; moment heading focused ${headingFocused}; #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(said.text)} as ${said.politeness} (want ${JSON.stringify(wantAnnounced)} as ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}; address aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)} focused ${addressFocused}`
       });
     } finally {
       await context.close();
@@ -3473,8 +3495,35 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     const addressAriaInvalid = await addressField.getAttribute('aria-invalid');
     const addressDescribedBy = await addressField.getAttribute('aria-describedby');
 
+    // A third submit: a fresh address but a `streamer_username` already
+    // taken by the first add, meeting `duplicate_streamer_username`
+    // (`internal/auth/admin.go`'s `errDuplicateStreamerUsername`). Proves
+    // W5's field-specific marks reach the streamer-username field too,
+    // not only address, and that typing clears the mark.
+    const thirdAddress = 'third-member@example.test';
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(thirdAddress);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Third Member');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember1');
+    await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
+    await visit.page
+      .locator('#roster-outcome')
+      .filter({ hasText: ROSTER_OUTCOMES.duplicate_streamer_username })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+    const usernameField = visit.page.locator('#add-streamer-username');
+    const usernameAriaInvalid = await usernameField.getAttribute('aria-invalid');
+    const usernameDescribedBy = await usernameField.getAttribute('aria-describedby');
+    const usernameHasErrorClass = await usernameField.evaluate((el) => el.classList.contains('input-error'));
+    const focusedAfterDuplicateUsername = await visit.page.evaluate(() => document.activeElement?.id ?? null);
+
+    // Typing into the field clears its own mark (the `clearFieldError`
+    // handler), independent of the other two fields' outcome-derived state.
+    await usernameField.fill('newmember1x');
+    const usernameAriaInvalidAfterInput = await usernameField.getAttribute('aria-invalid');
+    const usernameHasErrorClassAfterInput = await usernameField.evaluate((el) => el.classList.contains('input-error'));
+
     const knownKeys = new Set(['address', 'display_name', 'streamer_username']);
-    const bodyKeysOK = bodies.length === 2 && bodies.every((b) => [...new URLSearchParams(b).keys()].every((k) => knownKeys.has(k)));
+    const bodyKeysOK = bodies.length === 3 && bodies.every((b) => [...new URLSearchParams(b).keys()].every((k) => knownKeys.has(k)));
 
     await report({
       id,
@@ -3488,8 +3537,14 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
         addedAnnounced.text === ROSTER_OUTCOMES.added &&
         addedAnnounced.politeness === 'polite' &&
         addressAriaInvalid === 'true' &&
-        addressDescribedBy === 'roster-outcome',
-      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; "Added." announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}`
+        addressDescribedBy === 'roster-outcome' &&
+        usernameAriaInvalid === 'true' &&
+        usernameDescribedBy === 'streamer-hint roster-outcome' &&
+        usernameHasErrorClass &&
+        focusedAfterDuplicateUsername === 'add-streamer-username' &&
+        usernameAriaInvalidAfterInput === null &&
+        !usernameHasErrorClassAfterInput,
+      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; "Added." announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}; streamer-username aria-invalid ${JSON.stringify(usernameAriaInvalid)} aria-describedby ${JSON.stringify(usernameDescribedBy)} input-error ${usernameHasErrorClass} focused ${JSON.stringify(focusedAfterDuplicateUsername)}; after typing aria-invalid ${JSON.stringify(usernameAriaInvalidAfterInput)} input-error ${usernameHasErrorClassAfterInput}`
     });
   } finally {
     await context.close();
