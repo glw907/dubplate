@@ -17,33 +17,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stripComments } from './g1.ts';
 import { fail, isMainModule, walk } from './lib.ts';
-import {
-  ADD_MEMBER_HINTS,
-  ADD_MEMBER_LABELS,
-  ADD_MEMBER_LEGEND,
-  ADD_MEMBER_SUBMIT,
-  ADMIN_BADGE_LABEL,
-  AUTH_OUTCOMES,
-  CROSS_ORIGIN_REFUSED,
-  ERROR_PAGE,
-  INTERSTITIAL_CONTROL,
-  INTERSTITIAL_STATEMENT,
-  LINK_TOKEN_MISSING,
-  LOGIN_SUBLINE,
-  NETWORK_FAILURE,
-  REFUSED_LINK,
-  ROSTER_EMPTY_STATE,
-  ROSTER_OUTCOMES,
-  ROSTER_RETRY,
-  SENT_ESCAPE_HATCH,
-  SENT_MOMENT_TEXT,
-  SIGN_OUT_CONTROL,
-  SKIP_LINK,
-  THEME_TOGGLE_LABEL,
-  TITLES,
-  memberCountLine,
-  unknownAddressLine
-} from '../../src/lib/copy/deck.ts';
+import * as deck from '../../src/lib/copy/deck.ts';
+import { AUTH_OUTCOMES, ROSTER_OUTCOMES, SIGN_OUT_CONTROL, TITLES, unknownAddressLine } from '../../src/lib/copy/deck.ts';
 import { pageTitle } from '../../src/lib/copy/title.ts';
 
 const SRC_ROOT = 'src';
@@ -102,48 +77,47 @@ function checkRequiredTitles(): void {
   }
 }
 
-/** Every plain-text and dictionary string this module exports, flattened one level. */
+/**
+ * How to call each function `deck.ts` exports to reach a representative
+ * line: a function's own arguments cannot be inferred from a walk, so
+ * this is the one hand-kept list the walk cannot replace. `deck.ts`'s
+ * own promise (every export is covered) still holds for every plain
+ * string and dictionary, which {@link deckLeaves} walks generically; a
+ * function `deck.ts` adds with no entry here fails instead of walking
+ * past uncovered.
+ */
+const FUNCTION_SAMPLES: Record<string, () => string> = {
+  unknownAddressLine: () => unknownAddressLine({ displayName: 'Root Admin', address: 'admin@example.test' }),
+  memberCountLine: () => deck.memberCountLine(2),
+  addedMemberLine: () => deck.addedMemberLine('New Member')
+};
+
+/**
+ * Every plain-text export, every dictionary export flattened one
+ * level, and every function export's sample, walked from `deck.ts`'s
+ * own module namespace rather than a hand-kept list of its names,
+ * so an added string or dictionary is covered without a second edit
+ * here.
+ */
 function deckLeaves(): Leaf[] {
-  const scalars: Record<string, string> = {
-    LOGIN_SUBLINE,
-    CROSS_ORIGIN_REFUSED,
-    NETWORK_FAILURE,
-    SENT_MOMENT_TEXT,
-    SENT_ESCAPE_HATCH,
-    INTERSTITIAL_STATEMENT,
-    INTERSTITIAL_CONTROL,
-    SIGN_OUT_CONTROL,
-    SKIP_LINK,
-    LINK_TOKEN_MISSING,
-    ROSTER_EMPTY_STATE,
-    ROSTER_RETRY,
-    THEME_TOGGLE_LABEL,
-    ADD_MEMBER_LEGEND,
-    ADD_MEMBER_SUBMIT,
-    ADMIN_BADGE_LABEL
-  };
-  const dictionaries: Record<string, Record<string, string>> = {
-    AUTH_OUTCOMES,
-    ADD_MEMBER_LABELS,
-    ADD_MEMBER_HINTS,
-    ROSTER_OUTCOMES,
-    ERROR_PAGE,
-    TITLES,
-    REFUSED_LINK
-  };
-  const leaves: Leaf[] = Object.entries(scalars).map(([key, value]) => ({ key, value }));
-  for (const [dictName, dict] of Object.entries(dictionaries)) {
-    for (const [key, value] of Object.entries(dict)) {
-      leaves.push({ key: `${dictName}.${key}`, value });
+  const leaves: Leaf[] = [];
+  for (const [name, value] of Object.entries(deck)) {
+    if (typeof value === 'string') {
+      leaves.push({ key: name, value });
+    } else if (typeof value === 'function') {
+      const sample = FUNCTION_SAMPLES[name];
+      if (!sample) {
+        fail(`deck-coverage: deck.ts exports a function "${name}" with no FUNCTION_SAMPLES entry to walk it.`);
+      } else {
+        leaves.push({ key: `${name}(sample)`, value: sample() });
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      for (const [key, leaf] of Object.entries(value as Record<string, unknown>)) {
+        if (typeof leaf === 'string') leaves.push({ key: `${name}.${key}`, value: leaf });
+      }
     }
   }
-  leaves.push({
-    key: 'unknownAddressLine(contact)',
-    value: unknownAddressLine({ displayName: 'Root Admin', address: 'admin@example.test' })
-  });
   leaves.push({ key: 'unknownAddressLine(null)', value: unknownAddressLine(null) });
-  leaves.push({ key: 'memberCountLine(1)', value: memberCountLine(1) });
-  leaves.push({ key: 'memberCountLine(2)', value: memberCountLine(2) });
   leaves.push({ key: 'pageTitle', value: pageTitle(TITLES.login, 'Example Group') });
   return leaves;
 }

@@ -22,8 +22,9 @@ live region.
   import { resolve } from '$app/paths';
   import Mark from './Mark.svelte';
   import { postForm } from '$lib/api/post';
+  import { outcomeText } from '$lib/api/outcome';
   import { announce } from '$lib/announcer.svelte';
-  import { CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, SIGN_OUT_CONTROL, THEME_TOGGLE_LABEL } from '$lib/copy/deck';
+  import { SIGN_OUT_CONTROL, THEME_TOGGLE_LABEL } from '$lib/copy/deck';
 
   const THEME_COOKIE = '__Host-dubplate_theme';
   const SIGN_OUT_PATH = 'sign-out';
@@ -84,7 +85,13 @@ live region.
         await goto(resolve('/login'), { state: { signedOut: true } });
         return;
       }
-      announce(result.outcome === 'cross_origin' ? CROSS_ORIGIN_REFUSED : NETWORK_FAILURE, 'assertive');
+      // The outcome string alone is not enough: a non-2xx answer that
+      // names `signed_out` did not come from the handler that clears
+      // the cookie, so only a synthetic outcome (`postForm`'s own
+      // `network_failure` or `cross_origin`) is trusted as-is; every
+      // other non-2xx reads as the generic failure line.
+      const synthetic = result.outcome === 'network_failure' || result.outcome === 'cross_origin';
+      announce(outcomeText(synthetic ? result.outcome : 'failed'), 'assertive');
     } finally {
       signingOut = false;
     }
@@ -122,3 +129,42 @@ live region.
     </div>
   </div>
 </header>
+
+<style>
+  /*
+   * W3.10: a breakpoint cannot read a custom property, so this one is a
+   * fixed value, stated here. `--content-gutter` stays put: the header
+   * and `main` share it (W3.2), so narrowing it here would pull the
+   * header's own edges out of line with the page below it. Below the
+   * breakpoint, `navbar-start` and `navbar-end` each still take half
+   * the row, but every gap steps down and the mark and wordmark take
+   * one size step, which is enough room for the wordmark and "Sign
+   * out" to keep clear of each other at 320 and 390.
+   */
+  @media (max-width: 479px) {
+    .navbar {
+      gap: 0.5rem;
+    }
+
+    .navbar-start a {
+      gap: 0.25rem;
+    }
+
+    .navbar-start .display {
+      font-size: 1rem;
+    }
+
+    .navbar-start :global(img) {
+      width: 20px;
+      height: 20px;
+    }
+
+    .navbar-end {
+      gap: 0.25rem;
+    }
+
+    .navbar-end .btn-ghost {
+      padding-inline: 0.5rem;
+    }
+  }
+</style>

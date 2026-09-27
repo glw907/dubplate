@@ -46,7 +46,7 @@ export const REFUSED_LINK = {
  * an admin contact.
  */
 export const AUTH_OUTCOMES: Record<string, string> = {
-  sent: 'Check your email for a sign-in link.',
+  sent: 'A sign-in link is on its way to your inbox.',
   requested: 'If that address belongs to a member, we’ll send it a sign-in link. Check your email.',
   unknown: UNKNOWN_ADDRESS_NO_ADMIN,
   rate_limited: 'Too many requests. Wait a while and try again.',
@@ -160,6 +160,16 @@ export const ROSTER_OUTCOMES: Record<string, string> = {
     'The member may have been added, but we couldn’t confirm it. Reload the page and check the list before you try again.'
 };
 
+/**
+ * The roster write's own success line, naming the member the write
+ * added. `ROSTER_OUTCOMES.added` stays a plain fallback line for the
+ * deck's own coverage check; a page that has the member's name calls
+ * this instead.
+ */
+export function addedMemberLine(displayName: string): string {
+  return `Added ${displayName}.`;
+}
+
 /** The roster list's empty state (no members yet). */
 export const ROSTER_EMPTY_STATE = 'No members yet.';
 
@@ -192,4 +202,4 @@ export const TITLES = {
   signedOut: 'Signed out',
   notFound: 'Page not found',
   error: 'Something went wrong'
-};
+} as const;

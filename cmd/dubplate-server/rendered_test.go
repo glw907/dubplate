@@ -211,8 +211,11 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/contrast/label-night"},
 	{id: "header/ruling-4"},
 	{id: "layout/content-measure"},
+	{id: "header/wordmark-clearance"},
 	{id: "members/list-join"},
 	{id: "members/unreachable"},
+	{id: "members/malformed-roster/empty-object"},
+	{id: "members/malformed-roster/null-members"},
 	{id: "component/typography-ladder"},
 	{id: "header/toggle/system-light"},
 	{id: "header/toggle/system-dark"},
@@ -227,6 +230,7 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/sign-out/network-failure"},
 	{id: "header/sign-out/cross-origin"},
 	{id: "header/sign-out/not-ok"},
+	{id: "harness/settle-guard"},
 }
 
 // renderedCaptureWidths are W4.1's five CSS-pixel widths the capture

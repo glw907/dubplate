@@ -43,6 +43,7 @@ import {
   SIGN_OUT_CONTROL,
   THEME_TOGGLE_LABEL,
   TITLES,
+  addedMemberLine,
   unknownAddressLine
 } from '../../src/lib/copy/deck.ts';
 import { pageTitle } from '../../src/lib/copy/title.ts';
@@ -2463,7 +2464,7 @@ async function killSwitchRow(browser: Browser, endpoints: Endpoints): Promise<vo
 
 /**
  * An outcome's announcement class (the state table's own "Class"
- * column), read independently of `web/src/lib/api/auth.ts`'s own
+ * column), read independently of `web/src/lib/api/outcome.ts`'s own
  * `outcomeClass`, which cannot be imported here (it imports `deck.ts`
  * through the `$lib` alias, which Node's type-stripping loader cannot
  * resolve outside Vite). Re-deriving it from the state table is what
@@ -2473,7 +2474,14 @@ async function killSwitchRow(browser: Browser, endpoints: Endpoints): Promise<vo
 type OutcomeClass = 'status' | 'warning' | 'error';
 function outcomeClass(outcome: string): OutcomeClass {
   if (outcome === 'failed') return 'warning';
-  if (outcome === 'sent' || outcome === 'requested' || outcome === 'unknown' || outcome === 'rate_limited' || outcome === 'signed_in') {
+  if (
+    outcome === 'sent' ||
+    outcome === 'requested' ||
+    outcome === 'unknown' ||
+    outcome === 'rate_limited' ||
+    outcome === 'signed_in' ||
+    outcome === 'signed_out'
+  ) {
     return 'status';
   }
   return 'error';
@@ -3100,6 +3108,46 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
   }
 }
 
+/**
+ * A 200 roster answer whose body is not the roster's own shape:
+ * `fetchRoster`'s shape check answers both `{}` (no `members` key) and
+ * `{ members: null }` with the unreachable state, never a thrown
+ * `TypeError` on `members.length` (an uncaught exception would surface
+ * as a `pageerror` and fail the whole run through {@link refuseUnclean},
+ * which is what an unguarded property read would have done here).
+ */
+async function membersMalformedRosterRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const cases: { id: string; body: string }[] = [
+    { id: 'members/malformed-roster/empty-object', body: '{}' },
+    { id: 'members/malformed-roster/null-members', body: JSON.stringify({ members: null }) }
+  ];
+  for (const c of cases) {
+    const context = await browser.newContext();
+    try {
+      await context.addCookies([session]);
+      await context.route('**/roster', (route) => {
+        if (route.request().method() !== 'GET') return route.continue();
+        return route.fulfill({ status: 200, contentType: 'application/json', body: c.body });
+      });
+      const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+      const alert = visit.page.locator('.alert').filter({ hasText: AUTH_OUTCOMES.failed });
+      const alertShown = await alert
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      const listCount = await visit.page.locator('#roster-list').count();
+      await report({
+        id: c.id,
+        fixture: true,
+        property: alertShown && listCount === 0,
+        detail: `body ${JSON.stringify(c.body)}; unreachable alert shown ${alertShown}; roster list rendered ${listCount}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 // Records the URL argument of every history write from the document's
 // first script on, so a row can wait for kit's own writes and check
 // that none carried the token. An init script runs before any page
@@ -3458,12 +3506,12 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
       .locator('#roster-outcome')
-      .filter({ hasText: ROSTER_OUTCOMES.added })
+      .filter({ hasText: addedMemberLine('New Member') })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
-    // The re-read's item 6: "Added." is announced through the live
-    // region (also confirmed by W1's focus move to the address field,
-    // checked below).
+    // The re-read's item 6: the added line, naming the member, is
+    // announced through the live region (also confirmed by W1's focus
+    // move to the address field, checked below).
     const addedAnnounced = await announced(visit.page);
 
     const afterAddCount = await visit.page.locator('#roster-list > li').count();
@@ -3534,7 +3582,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
         bodyKeysOK &&
         invalidAfterAdd.length === 0 &&
         focusedAfterAdd === 'add-address' &&
-        addedAnnounced.text === ROSTER_OUTCOMES.added &&
+        addedAnnounced.text === addedMemberLine('New Member') &&
         addedAnnounced.politeness === 'polite' &&
         addressAriaInvalid === 'true' &&
         addressDescribedBy === 'roster-outcome' &&
@@ -3544,7 +3592,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
         focusedAfterDuplicateUsername === 'add-streamer-username' &&
         usernameAriaInvalidAfterInput === null &&
         !usernameHasErrorClassAfterInput,
-      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; "Added." announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}; streamer-username aria-invalid ${JSON.stringify(usernameAriaInvalid)} aria-describedby ${JSON.stringify(usernameDescribedBy)} input-error ${usernameHasErrorClass} focused ${JSON.stringify(focusedAfterDuplicateUsername)}; after typing aria-invalid ${JSON.stringify(usernameAriaInvalidAfterInput)} input-error ${usernameHasErrorClassAfterInput}`
+      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; added line announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}; streamer-username aria-invalid ${JSON.stringify(usernameAriaInvalid)} aria-describedby ${JSON.stringify(usernameDescribedBy)} input-error ${usernameHasErrorClass} focused ${JSON.stringify(focusedAfterDuplicateUsername)}; after typing aria-invalid ${JSON.stringify(usernameAriaInvalidAfterInput)} input-error ${usernameHasErrorClassAfterInput}`
     });
   } finally {
     await context.close();
@@ -3987,6 +4035,44 @@ async function layoutContentMeasureRow(browser: Browser, endpoints: Endpoints, s
 }
 
 /**
+ * D1: the signed-in header's wordmark and "Sign out" control clear each
+ * other by at least 8px at the narrowest two viewports, in both color
+ * schemes (the render-and-read's own finding: the wordmark's "e" ended
+ * at x=207, "Sign out"'s "S" started at x=208, a zero-pixel gap).
+ * Reuses the header's own signed-in session cookie, spending no extra
+ * consumption.
+ */
+async function headerWordmarkClearanceRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'header/wordmark-clearance';
+  const widths = [320, 390];
+  const schemes: ('light' | 'dark')[] = ['light', 'dark'];
+  const details: string[] = [];
+  let property = true;
+  for (const width of widths) {
+    for (const scheme of schemes) {
+      const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
+      try {
+        await context.addCookies([session]);
+        const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+        await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+        const gap = await visit.page.evaluate(() => {
+          const wordmark = document.querySelector('.site-header .navbar-start .display');
+          const signOut = document.querySelector('.site-header .navbar-end button');
+          if (wordmark === null || signOut === null) return null;
+          return signOut.getBoundingClientRect().left - wordmark.getBoundingClientRect().right;
+        });
+        const ok = gap !== null && gap >= 8;
+        property = property && ok;
+        details.push(`${width}px ${scheme}: gap ${gap === null ? 'missing element' : `${gap.toFixed(1)}px`}`);
+      } finally {
+        await context.close();
+      }
+    }
+  }
+  await report({ id, fixture: true, property, detail: details.join('; ') });
+}
+
+/**
  * The render-and-read's "members lists" defect: a member with a blank
  * `streamer_username` joins only the segments present, never a
  * dangling " · " separator. A fulfilled roster GET keeps this row
@@ -4013,13 +4099,14 @@ async function membersListJoinRow(browser: Browser, endpoints: Endpoints, sessio
     });
     const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
     await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
-    const metaLines = await visit.page.locator('#roster-list .text-sm').allTextContents();
+    const metaLines = await visit.page.locator('#roster-list .text-xs').allTextContents();
     const noUsername = (metaLines[0] ?? '').trim();
     const hasUsername = (metaLines[1] ?? '').trim();
-    // Every segment after the first leads with a non-breaking space
-    // (U+00A0), so the separator can never wrap onto a line of its own
-    // (the re-read's item 2).
-    const wantHasUsername = `has-username@example.test · hasuser`;
+    // The separator is a suffix of the segment before it (P3): a
+    // wrapped line never starts with a dangling "·". The visible
+    // gap on one line is the list's own flex gap, not a space in the
+    // text.
+    const wantHasUsername = `has-username@example.test ·hasuser`;
     await report({
       id,
       fixture: metaLines.length === 2,
@@ -4088,11 +4175,12 @@ const SIGN_OUT_CASES: SignOutCase[] = [
   { id: 'header/sign-out/network-failure', mode: 'abort', stays: NETWORK_FAILURE },
   { id: 'header/sign-out/cross-origin', mode: { status: 403, contentType: 'text/plain', body: 'Forbidden' }, stays: CROSS_ORIGIN_REFUSED },
   // The outcome alone is not enough: a non-2xx answer that names it
-  // did not come from the handler that clears the cookie.
+  // did not come from the handler that clears the cookie, so the
+  // header reads it as the generic failure line, not the network line.
   {
     id: 'header/sign-out/not-ok',
     mode: { status: 500, contentType: 'application/json', body: JSON.stringify({ outcome: 'signed_out' }) },
-    stays: NETWORK_FAILURE
+    stays: AUTH_OUTCOMES.failed
   }
 ];
 
@@ -4885,7 +4973,7 @@ const CAPTURE_STATES: CaptureState[] = [
       await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
       await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(captureUsername('added'));
       await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
-      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: ROSTER_OUTCOMES.added });
+      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: addedMemberLine('Capture Member') });
       let ok = true;
       try {
         await outcomeEl.waitFor({ timeout: BOOT_TIMEOUT_MS });
@@ -4925,7 +5013,7 @@ const CAPTURE_STATES: CaptureState[] = [
       try {
         await visit.page
           .locator('#roster-outcome')
-          .filter({ hasText: ROSTER_OUTCOMES.added })
+          .filter({ hasText: addedMemberLine('Capture Member') })
           .waitFor({ timeout: BOOT_TIMEOUT_MS });
       } catch (err) {
         return { page: visit.page, ok: false, detail: `the first submit never showed "added": ${message(err)}` };
@@ -5029,7 +5117,13 @@ const CAPTURE_SETTLE_MS = 2_000;
 async function settleCapture(page: Page): Promise<string | null> {
   await page.mouse.move(-1, -1);
   try {
-    await page.waitForFunction(() => document.querySelector('.btn:disabled') === null, undefined, { timeout: CAPTURE_SETTLE_MS });
+    // The app marks a pending control with `aria-disabled`, never the
+    // native `disabled` attribute (`SiteHeader.svelte`'s own in-flight
+    // guard comment): `.btn:disabled` never matches anything the app
+    // renders, so this waited on nothing.
+    await page.waitForFunction(() => document.querySelector('.btn[aria-disabled="true"]') === null, undefined, {
+      timeout: CAPTURE_SETTLE_MS
+    });
   } catch {
     return `a control stayed disabled (pending) past ${CAPTURE_SETTLE_MS}ms`;
   }
@@ -5062,6 +5156,32 @@ async function settleCapture(page: Page): Promise<string | null> {
   });
   if (unrested.length > 0) return `primary button off its resting fill: ${unrested.join('; ')}`;
   return null;
+}
+
+/**
+ * {@link settleCapture}'s own self-test: seeds a booted page with a
+ * control stuck `aria-disabled="true"`, the only pending marker the app
+ * ever sets, and checks that the guard actually reports it rather than
+ * waiting on an attribute nothing sets.
+ */
+async function settleGuardSelfTestRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'harness/settle-guard';
+  const context = await browser.newContext();
+  try {
+    const visit = await openBooted(context, endpoints.base, PAGES[0]);
+    await visit.page.evaluate(() => {
+      document.querySelector('.btn')?.setAttribute('aria-disabled', 'true');
+    });
+    const unsettled = await settleCapture(visit.page);
+    await report({
+      id,
+      fixture: true,
+      property: unsettled !== null,
+      detail: `settleCapture on a seeded stuck control reported ${JSON.stringify(unsettled)} (want a non-null problem)`
+    });
+  } finally {
+    await context.close();
+  }
 }
 
 /**
@@ -5226,14 +5346,17 @@ async function main(): Promise<void> {
     await headerContrastRow(browser, endpoints, headerSession);
     await rulingFourRow(browser, endpoints, headerSession);
     await layoutContentMeasureRow(browser, endpoints, headerSession);
+    await headerWordmarkClearanceRow(browser, endpoints, headerSession);
     await membersListJoinRow(browser, endpoints, headerSession);
     await membersUnreachableRow(browser, endpoints, headerSession);
+    await membersMalformedRosterRows(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
     await headerStructureRow(browser, endpoints, headerSession);
     await signOutContrastRows(browser, endpoints, headerSession);
     await membersInheritedOutcomeRow(browser, endpoints, headerSession);
     await signOutInFlightRow(browser, endpoints, headerSession);
     await signOutRows(browser, endpoints, headerSession);
+    await settleGuardSelfTestRow(browser, endpoints);
     await captureRows(browser, endpoints);
     refuseUnclean();
     await refuseLateLeaks(endpoints);

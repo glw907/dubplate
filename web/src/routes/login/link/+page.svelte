@@ -18,7 +18,8 @@ found to anyone else.
   import { tick } from 'svelte';
   import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
-  import { consumeLink, outcomeAlertClass, outcomePoliteness, outcomeText, type AuthResult } from '$lib/api/auth';
+  import { consumeLink, type AuthResult } from '$lib/api/auth';
+  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '$lib/api/outcome';
   import { takeLinkToken } from '$lib/api/link-token';
   import { announce } from '$lib/announcer.svelte';
   import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, LINK_TOKEN_MISSING, REFUSED_LINK, TITLES } from '$lib/copy/deck';
@@ -56,7 +57,7 @@ found to anyone else.
         announce('', 'polite');
       } else {
         pending = result;
-        announce(outcomeText(result), outcomePoliteness(result.outcome));
+        announce(outcomeText(result.outcome, result.adminContact), outcomePoliteness(result.outcome));
       }
     } finally {
       submitting = false;
@@ -86,7 +87,7 @@ found to anyone else.
       >{INTERSTITIAL_CONTROL}</button
     >
     {#if pending}
-      <div id="outcome" class="alert {outcomeAlertClass(pending.outcome)}">{outcomeText(pending)}</div>
+      <div id="outcome" class="alert {outcomeAlertClass(pending.outcome)}">{outcomeText(pending.outcome, pending.adminContact)}</div>
     {/if}
   {/if}
 </main>

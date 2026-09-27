@@ -18,7 +18,8 @@ the layout's live regions. `main` is the root layout's skip-link target
   import { browser } from '$app/environment';
   import { page } from '$app/state';
   import Mark from '$lib/components/Mark.svelte';
-  import { requestLink, outcomeAlertClass, outcomePoliteness, outcomeText, type AuthResult } from '$lib/api/auth';
+  import { requestLink, type AuthResult } from '$lib/api/auth';
+  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '$lib/api/outcome';
   import { announce } from '$lib/announcer.svelte';
   import { ADD_MEMBER_LABELS, AUTH_OUTCOMES, LOGIN_SUBLINE, SENT_ESCAPE_HATCH, TITLES } from '$lib/copy/deck';
   import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
@@ -40,7 +41,7 @@ the layout's live regions. `main` is the root layout's skip-link target
   // A sign-out lands here through `goto` with `signedOut` in the page
   // state (`SiteHeader.svelte`), and the page opens on that outcome.
   const signedOut: AuthResult | null = page.state.signedOut ? { outcome: 'signed_out', adminContact: null } : null;
-  if (signedOut) announce(outcomeText(signedOut), outcomePoliteness(signedOut.outcome));
+  if (signedOut) announce(outcomeText(signedOut.outcome, signedOut.adminContact), outcomePoliteness(signedOut.outcome));
 
   // Never read into; a fresh answer always replaces the whole object.
   let result = $state.raw<AuthResult | null>(signedOut);
@@ -73,7 +74,7 @@ the layout's live regions. `main` is the root layout's skip-link target
       const answer = await requestLink(address);
       result = answer;
       if (answer.outcome !== 'sent' && answer.outcome !== 'requested') {
-        announce(outcomeText(answer), outcomePoliteness(answer.outcome));
+        announce(outcomeText(answer.outcome, answer.adminContact), outcomePoliteness(answer.outcome));
       }
       if (answer.outcome === 'invalid_address') {
         addressInvalid = true;
@@ -115,7 +116,7 @@ the layout's live regions. `main` is the root layout's skip-link target
   {#if moment}
     <section id="outcome">
       <h2 tabindex="-1" bind:this={momentHeading} class="display text-xl">{titleState}</h2>
-      <p>{outcomeText(moment)}</p>
+      <p>{outcomeText(moment.outcome, moment.adminContact)}</p>
       <button type="button" class="link link-primary" onclick={useDifferentAddress}>{SENT_ESCAPE_HATCH}</button>
     </section>
   {:else}
@@ -141,7 +142,7 @@ the layout's live regions. `main` is the root layout's skip-link target
       <button type="submit" class="btn btn-primary" aria-disabled={submitting || undefined}>{TITLES.login}</button>
     </form>
     {#if result}
-      <div id="outcome" class="alert {outcomeAlertClass(result.outcome)}">{outcomeText(result)}</div>
+      <div id="outcome" class="alert {outcomeAlertClass(result.outcome)}">{outcomeText(result.outcome, result.adminContact)}</div>
     {/if}
   {/if}
 </main>

@@ -17,6 +17,7 @@ The signed-in header renders in every state, loading included, and
   import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
   import { postForm } from '$lib/api/post';
+  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '$lib/api/outcome';
   import { announce } from '$lib/announcer.svelte';
   import SiteHeader from '$lib/components/SiteHeader.svelte';
   import {
@@ -26,13 +27,12 @@ The signed-in header renders in every state, loading included, and
     ADD_MEMBER_SUBMIT,
     ADMIN_BADGE_LABEL,
     AUTH_OUTCOMES,
-    CROSS_ORIGIN_REFUSED,
     ERROR_PAGE,
     NETWORK_FAILURE,
     ROSTER_EMPTY_STATE,
-    ROSTER_OUTCOMES,
     ROSTER_RETRY,
     TITLES,
+    addedMemberLine,
     memberCountLine
   } from '$lib/copy/deck';
   import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
@@ -105,42 +105,30 @@ The signed-in header renders in every state, loading included, and
   // carries: an address always has one, but an older member's
   // `streamer_username` can be blank, and a bare address followed by a
   // dangling " · " is the render-and-read's "members lists" defect.
-  // Every segment after the first leads with a non-breaking space, so
-  // each part renders in its own `nowrap` span (the re-read's item 2):
-  // a wrap can only land ahead of a separator, never inside a segment
-  // at its own hyphen, and never right after the separator leaving it
-  // orphaned at the end of a line.
+  // The separator is a suffix of the segment before it, glued on with a
+  // non-breaking space, never a prefix of the segment after: each part
+  // is its own `nowrap` span, so a wrap can only land between two
+  // parts, and gluing the separator to the earlier one means a wrapped
+  // line always starts clean, never with a dangling "·". The visible
+  // gap between parts on one line comes from the list's own flex gap,
+  // not a space in the text.
   function memberMetaParts(member: RosterMember): string[] {
     const segments = [member.address, member.streamer_username].filter((segment) => segment !== '');
-    return segments.map((segment, i) => (i === 0 ? segment : ` · ${segment}`));
+    return segments.map((segment, i) => (i === segments.length - 1 ? segment : `${segment} ·`));
   }
 
-  // The line for a roster outcome, an auth-shared outcome (a cross-origin
-  // refusal or a network failure that never reached a roster answer, or
-  // a status like 'failed'), or a last-resort deck line if the server
-  // answers with something neither dictionary names. The lookups test
-  // own properties, so an outcome named after an inherited member
-  // (`toString`, `constructor`) falls through to that last resort.
+  // The line for a roster outcome: `$lib/api/outcome.ts`'s shared
+  // resolver, except `added`, which names the member the write just
+  // added and so needs its own deck function instead of a dictionary
+  // lookup.
   function resolveOutcome(o: string): string {
-    if (o === 'cross_origin') return CROSS_ORIGIN_REFUSED;
-    if (o === 'network_failure') return NETWORK_FAILURE;
-    if (Object.hasOwn(ROSTER_OUTCOMES, o)) return ROSTER_OUTCOMES[o];
-    if (Object.hasOwn(AUTH_OUTCOMES, o)) return AUTH_OUTCOMES[o];
-    return AUTH_OUTCOMES.failed;
+    return o === 'added' ? addedMemberLine(addedMemberName) : outcomeText(o);
   }
 
-  // 'added' is the only roster outcome that is not a refusal; 'failed'
-  // and the two transient write states read as a warning rather than a
-  // hard failure, as auth.ts classifies 'failed'.
-  function outcomeAlertClass(o: string): string {
-    if (o === 'added') return '';
-    if (o === 'failed' || o === 'busy' || o === 'write_unconfirmed') return 'alert-warning';
-    return 'alert-error';
-  }
-
-  function outcomePoliteness(o: string): 'polite' | 'assertive' {
-    return o === 'added' ? 'polite' : 'assertive';
-  }
+  // The added member's own name, captured before the form's reset
+  // clears `displayName`, since the outcome alert renders after that
+  // reset runs.
+  let addedMemberName = $state('');
 
   function clearFieldError(field: 'address' | 'display_name' | 'streamer_username'): void {
     if (erroredField === field) erroredField = null;
@@ -163,12 +151,16 @@ The signed-in header renders in every state, loading included, and
     }
     if (response.status === 404) return { ok: false, notFound: true };
     if (!response.ok) return { ok: false, notFound: false, message: AUTH_OUTCOMES.failed };
+    let body: unknown;
     try {
-      const body = (await response.json()) as { members: RosterMember[] };
-      return { ok: true, members: body.members };
+      body = await response.json();
     } catch {
       return { ok: false, notFound: false, message: AUTH_OUTCOMES.failed };
     }
+    if (typeof body !== 'object' || body === null || !Array.isArray((body as Record<string, unknown>).members)) {
+      return { ok: false, notFound: false, message: AUTH_OUTCOMES.failed };
+    }
+    return { ok: true, members: (body as { members: RosterMember[] }).members };
   }
 
   async function loadRoster(): Promise<void> {
@@ -221,6 +213,7 @@ The signed-in header renders in every state, loading included, and
       });
       outcome = answer.outcome;
       erroredField = FIELD_FOR_OUTCOME[answer.outcome] ?? null;
+      if (outcome === 'added') addedMemberName = displayName;
       announce(resolveOutcome(outcome), outcomePoliteness(outcome));
       if (outcome === 'added') {
         address = '';
@@ -273,7 +266,7 @@ The signed-in header renders in every state, loading included, and
                 <span class="font-medium">{member.display_name}</span>
                 {#if member.admin}<span class="badge">{ADMIN_BADGE_LABEL}</span>{/if}
               </div>
-              <div class="font-mono flex flex-wrap text-sm opacity-70">
+              <div class="font-mono flex flex-wrap gap-x-1 text-xs opacity-70">
                 {#each memberMetaParts(member) as part, i (i)}<span class="whitespace-nowrap">{part}</span>{/each}
               </div>
             </div>

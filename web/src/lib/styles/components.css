@@ -502,6 +502,22 @@
   }
 
   /*
+   * The tight pairing above is for text that belongs to the title (a
+   * subline, an inline alert). A `section` that follows the title
+   * instead carries its own heading (the login page's sent/requested
+   * moment), so it takes the flow's large default and this heading's
+   * own line stays tight underneath it, per W3.9's own rule applied one
+   * level down.
+   */
+  :where(.flow > .page-title + section) {
+    margin-top: var(--flow-space, 1.5rem);
+  }
+
+  :where(section > h2 + *) {
+    margin-top: 0.25rem;
+  }
+
+  /*
    * The field-label ink (W2.7's own floor): DaisyUI's own `.label`
    * paints `color-mix(in oklab, currentcolor 60%, transparent)`, which
    * measures 4.22:1 on `label`'s base-100, under the 4.5:1 floor (the
