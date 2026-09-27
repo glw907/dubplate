@@ -221,6 +221,32 @@ function validatePublicDomain(obj, vocab, file, errors, rulePrefix) {
   }
 }
 
+// focus (the image-space point the login column keeps in view, { x, y }
+// integers 0-100) and fit ("cover"|"contain") are optional per-photo crop
+// state the sorting page writes onto a picked record at round close. A
+// flyer or zine-cover format is artwork meant to be read whole, so it must
+// never carry fit: "cover" (Geoff's ruling, uncropped formats).
+function validateCropFields(record, file, errors) {
+  const push = (rule, message) => errors.push({ file, rule, message });
+  if (record.focus !== undefined) {
+    const f = record.focus;
+    const isPlainObject = f && typeof f === 'object' && !Array.isArray(f);
+    const validShape = isPlainObject && Object.keys(f).sort().join(',') === 'x,y';
+    const validValues =
+      validShape && Number.isInteger(f.x) && Number.isInteger(f.y) && f.x >= 0 && f.x <= 100 && f.y >= 0 && f.y <= 100;
+    if (!validValues) {
+      push('crop-focus', `focus ${JSON.stringify(f)} must be { x, y } integers 0-100`);
+    }
+  }
+  if (record.fit !== undefined) {
+    if (record.fit !== 'cover' && record.fit !== 'contain') {
+      push('crop-fit', `fit ${JSON.stringify(record.fit)} must be "cover" or "contain"`);
+    } else if (record.fit === 'cover' && (record.format === 'flyer' || record.format === 'zine-cover')) {
+      push('crop-fit-forbidden', `fit "cover" is forbidden on format ${JSON.stringify(record.format)}, never cropped`);
+    }
+  }
+}
+
 // screen, flags, and pack are candidate-only fields (Storage): a committed
 // record (picked, withdrawn, or a pack.json entry) never carries them.
 function forbidCandidateOnlyFields(record, file, errors) {
@@ -443,6 +469,7 @@ function runIntegrity(root) {
 
     validateCommonFields(record, vocab, file, errors, { width: record.width, height: record.height });
     forbidCandidateOnlyFields(record, file, errors);
+    validateCropFields(record, file, errors);
 
     for (const [kind, value] of identityPairs(record)) claim(kind, value, file);
 

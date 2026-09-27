@@ -966,6 +966,64 @@ const integrityCases = [
     },
     wantRule: 'pack-license',
   },
+  {
+    name: 'a focus missing y',
+    // Flip: focus: { x: 50, y: 50 }.
+    setup(root) {
+      writePicked(root, 'focus-missing-y', { focus: { x: 50 } });
+    },
+    wantRule: 'crop-focus',
+  },
+  {
+    name: 'a focus with x out of range',
+    // Flip: focus: { x: 100, y: 50 }.
+    setup(root) {
+      writePicked(root, 'focus-out-of-range', { focus: { x: 101, y: 50 } });
+    },
+    wantRule: 'crop-focus',
+  },
+  {
+    name: 'a focus with a non-integer y',
+    // Flip: focus: { x: 50, y: 50 }.
+    setup(root) {
+      writePicked(root, 'focus-non-integer', { focus: { x: 50, y: 50.5 } });
+    },
+    wantRule: 'crop-focus',
+  },
+  {
+    name: 'a focus with an extra key',
+    // Flip: remove the z key.
+    setup(root) {
+      writePicked(root, 'focus-extra-key', { focus: { x: 50, y: 50, z: 0 } });
+    },
+    wantRule: 'crop-focus',
+  },
+  {
+    name: 'a fit that is not "cover" or "contain"',
+    // Flip: fit: "cover".
+    setup(root) {
+      writePicked(root, 'fit-bad-string', { fit: 'stretch' });
+    },
+    wantRule: 'crop-fit',
+  },
+  {
+    name: 'a flyer with fit: "cover"',
+    // Flip: fit: "contain", or drop fit entirely.
+    setup(root) {
+      writePicked(root, 'flyer-with-cover-fit', {
+        format: 'flyer',
+        fit: 'cover',
+        artwork: {
+          artist: 'The Artist',
+          license: 'CC-BY-2.0',
+          credit: 'The Artist',
+          source_url: 'https://example.org/flyer',
+          verified: "Quoted from the artist's own site.",
+        },
+      });
+    },
+    wantRule: 'crop-fit-forbidden',
+  },
 ];
 
 for (const c of integrityCases) {
@@ -1027,6 +1085,26 @@ test('integrity: a dotted archive source_id (archive.org, digitaltmuseum.se) pas
     source_id: 'archive:digitaltmuseum.se:021016187835',
     origin_id: undefined,
     artists: [],
+    place: undefined,
+  });
+  writePicked(root, 'archive-dotted-name-underscore-key', {
+    source_id: 'archive:archive.org:calauem_004278',
+    origin_id: undefined,
+    artists: [],
+    place: undefined,
+  });
+  const { status, stdout } = run(['integrity', '--root', root]);
+  assert.equal(status, 0, stdout);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('integrity: a valid focus and fit pass, and their absence passes', () => {
+  const root = newRoot();
+  writePicked(root, 'focus-and-fit-set', { focus: { x: 40, y: 60 }, fit: 'contain' });
+  writePicked(root, 'no-focus-or-fit', {
+    source_id: 'commons:9001',
+    origin_id: undefined,
+    artists: [{ name: 'Another Band' }],
     place: undefined,
   });
   const { status, stdout } = run(['integrity', '--root', root]);
