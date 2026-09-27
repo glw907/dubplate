@@ -94,6 +94,22 @@ func TestExtractRefusesWrongCount(t *testing.T) {
 	if !strings.Contains(err.Error(), "189") {
 		t.Fatalf("extract(189 modules) error = %q, want it to name the count", err)
 	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a module-count refusal must not read as a wheel checksum error")
+	}
+}
+
+func TestExtractRefusesTooManyModules(t *testing.T) {
+	_, err := extract(validModulesZip(t, dataModuleCount+1))
+	if err == nil {
+		t.Fatal("extract(191 modules) = nil error, want a count refusal")
+	}
+	if !strings.Contains(err.Error(), "191") {
+		t.Fatalf("extract(191 modules) error = %q, want it to name the count", err)
+	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a module-count refusal must not read as a wheel checksum error")
+	}
 }
 
 func TestExtractRefusesMalformedDataName(t *testing.T) {
@@ -110,11 +126,73 @@ func TestExtractRefusesMalformedDataName(t *testing.T) {
 	if !strings.Contains(err.Error(), "xzzz.py") {
 		t.Fatalf("extract error = %q, want it to name unidecode/xzzz.py", err)
 	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a malformed-name refusal must not read as a wheel checksum error")
+	}
+}
+
+// TestExtractRefusesNearMissDataName covers names that carry the
+// unidecode/x prefix and .py suffix dataModuleName's prefix/suffix
+// check alone would accept, but whose hex portion is the wrong length
+// or uses uppercase digits: strconv.ParseUint accepts A-F, so the
+// length and case rules must be enforced separately from the parse.
+func TestExtractRefusesNearMissDataName(t *testing.T) {
+	tests := []struct {
+		name  string
+		entry string
+	}{
+		{name: "wrong length, too short", entry: "unidecode/x12.py"},
+		{name: "wrong length, too long", entry: "unidecode/x0000.py"},
+		{name: "uppercase hex", entry: "unidecode/xABC.py"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			zipBytes := buildZip(t, func(zw *zip.Writer) {
+				for i := range dataModuleCount {
+					addFile(t, zw, fmt.Sprintf("unidecode/x%03x.py", i), fmt.Sprintf("data = (\n'v%03d',\n)\n", i))
+				}
+				addFile(t, zw, tt.entry, "data = (\n'bad',\n)\n")
+			})
+			_, err := extract(zipBytes)
+			if err == nil {
+				t.Fatalf("extract with entry %s = nil error, want a refusal", tt.entry)
+			}
+			if !strings.Contains(err.Error(), tt.entry) {
+				t.Fatalf("extract error = %q, want it to name %s", err, tt.entry)
+			}
+			if errors.Is(err, ErrWheelChecksum) {
+				t.Fatal("a near-miss name refusal must not read as a wheel checksum error")
+			}
+		})
+	}
+}
+
+func TestExtractRefusesDuplicateSection(t *testing.T) {
+	zipBytes := buildZip(t, func(zw *zip.Writer) {
+		for i := range dataModuleCount {
+			addFile(t, zw, fmt.Sprintf("unidecode/x%03x.py", i), fmt.Sprintf("data = (\n'v%03d',\n)\n", i))
+		}
+		addFile(t, zw, "unidecode/x000.py", "data = (\n'dup',\n)\n")
+	})
+	_, err := extract(zipBytes)
+	if err == nil {
+		t.Fatal("extract with a duplicated section = nil error, want a refusal")
+	}
+	if !strings.Contains(err.Error(), "unidecode/x000.py") {
+		t.Fatalf("extract error = %q, want it to name the duplicate entry", err)
+	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a duplicate-section refusal must not read as a wheel checksum error")
+	}
 }
 
 func TestExtractRefusesNotAZip(t *testing.T) {
-	if _, err := extract([]byte("not a zip file")); err == nil {
+	_, err := extract([]byte("not a zip file"))
+	if err == nil {
 		t.Fatal("extract(garbage) = nil error, want a zip read error")
+	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a zip-read refusal must not read as a wheel checksum error")
 	}
 }
 
@@ -151,5 +229,11 @@ func TestExtractRefusesSizeMismatch(t *testing.T) {
 	_, err := extract(zipBytes)
 	if !errors.Is(err, io.ErrUnexpectedEOF) {
 		t.Fatalf("extract with an oversized declared length error = %v, want io.ErrUnexpectedEOF", err)
+	}
+	if !strings.Contains(err.Error(), "unidecode/x000.py") {
+		t.Fatalf("extract error = %q, want it to name unidecode/x000.py", err)
+	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a size-mismatch refusal must not read as a wheel checksum error")
 	}
 }

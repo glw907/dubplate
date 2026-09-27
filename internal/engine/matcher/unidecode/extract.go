@@ -42,12 +42,16 @@ func Build(wheel []byte) ([]byte, error) {
 	return encoded, nil
 }
 
-// extract reads every unidecode/x???.py data module out of a wheel's
-// zip archive and lexes it, refusing a module whose name looks like a
-// data module but fails to parse as one hex section id, and refusing
-// any count other than dataModuleCount: a pinned wheel cannot ship an
-// anomalous name or a different module count, so either is a defect in
-// this extraction, not a file to skip.
+// extract reads every entry of a wheel's zip archive to EOF, refusing
+// at the first entry whose CRC or declared size disagrees with its
+// bytes, so a defect anywhere in the archive is caught rather than
+// skipped alongside the entries this package has no use for. Every
+// unidecode/x???.py data module is lexed; a name that looks like a
+// data module but does not match exactly x plus three lowercase hex
+// digits, or a section seen twice, is refused. So is any count other
+// than dataModuleCount: a pinned wheel cannot ship an anomalous name,
+// a duplicate section, or a different module count, so any of those is
+// a defect in this extraction, not a file to skip.
 func extract(wheel []byte) (map[uint16][]*string, error) {
 	r, err := zip.NewReader(bytes.NewReader(wheel), int64(len(wheel)))
 	if err != nil {
@@ -55,20 +59,30 @@ func extract(wheel []byte) (map[uint16][]*string, error) {
 	}
 
 	blocks := make(map[uint16][]*string)
+	matched := 0
 	for _, f := range r.File {
-		base, isModule := dataModuleName(f.Name)
-		if !isModule {
-			continue
-		}
-		section, err := strconv.ParseUint(base[1:], 16, 16)
-		if err != nil {
-			return nil, fmt.Errorf("unidecode: %s: not a hex section id: %w", f.Name, err)
-		}
+		section, isModule, nameErr := dataModuleName(f.Name)
 
 		rc, err := f.Open()
 		if err != nil {
 			return nil, fmt.Errorf("unidecode: open %s: %w", f.Name, err)
 		}
+
+		if !isModule {
+			_, readErr := io.Copy(io.Discard, rc)
+			closeErr := rc.Close()
+			if nameErr != nil {
+				return nil, nameErr
+			}
+			if readErr != nil {
+				return nil, fmt.Errorf("unidecode: read %s: %w", f.Name, readErr)
+			}
+			if closeErr != nil {
+				return nil, fmt.Errorf("unidecode: close %s: %w", f.Name, closeErr)
+			}
+			continue
+		}
+
 		content, err := io.ReadAll(rc)
 		closeErr := rc.Close()
 		if err != nil {
@@ -82,31 +96,56 @@ func extract(wheel []byte) (map[uint16][]*string, error) {
 		if err != nil {
 			return nil, err
 		}
-		blocks[uint16(section)] = entries
+		if _, dup := blocks[section]; dup {
+			return nil, fmt.Errorf("unidecode: %s: duplicate data module for section %#04x", f.Name, section)
+		}
+		blocks[section] = entries
+		matched++
 	}
-	if len(blocks) != dataModuleCount {
-		return nil, fmt.Errorf("unidecode: wheel carries %d data modules, want %d", len(blocks), dataModuleCount)
+	if matched != dataModuleCount {
+		return nil, fmt.Errorf("unidecode: wheel carries %d data modules, want %d", matched, dataModuleCount)
 	}
 	return blocks, nil
 }
 
-// dataModuleName reports whether name is a data module under
+// dataModuleName reports whether entryName is a data module under
 // unidecode/ (unidecode/x000.py through unidecode/x1f6.py), and if so
-// its base name without the .py suffix. The Go form of
-// tools/unidecode-table/generate.py's `len(name) == 4 and name[0] ==
-// "x"` module filter, applied to a zip entry's path instead of an
-// imported module's __name__.
-func dataModuleName(entryName string) (base string, ok bool) {
-	const prefix = "unidecode/"
+// its section id. The Go form of tools/unidecode-table/generate.py's
+// `len(name) == 4 and name[0] == "x"` module filter, applied to a zip
+// entry's path instead of an imported module's __name__. Any entry
+// under unidecode/x that ends .py but does not match exactly x plus
+// three lowercase hex digits (wrong length, or uppercase hex) is
+// refused by name rather than silently skipped: a pinned wheel cannot
+// ship one, so an entry shaped like a near-miss module name is a
+// defect in the extraction, not a file to pass over.
+func dataModuleName(entryName string) (section uint16, ok bool, err error) {
+	const prefix = "unidecode/x"
 	const suffix = ".py"
 	if !strings.HasPrefix(entryName, prefix) || !strings.HasSuffix(entryName, suffix) {
-		return "", false
+		return 0, false, nil
 	}
-	base = strings.TrimSuffix(strings.TrimPrefix(entryName, prefix), suffix)
-	if len(base) != 4 || base[0] != 'x' {
-		return "", false
+	hex := strings.TrimSuffix(strings.TrimPrefix(entryName, prefix), suffix)
+	if len(hex) != 3 || !isLowerHex3(hex) {
+		return 0, false, fmt.Errorf("unidecode: %s: refused as a data module name, want unidecode/x[0-9a-f]{3}.py", entryName)
 	}
-	return base, true
+	id, err := strconv.ParseUint(hex, 16, 16)
+	if err != nil {
+		return 0, false, fmt.Errorf("unidecode: %s: not a hex section id: %w", entryName, err)
+	}
+	return uint16(id), true, nil
+}
+
+// isLowerHex3 reports whether s is exactly three lowercase hex digits.
+func isLowerHex3(s string) bool {
+	if len(s) != 3 {
+		return false
+	}
+	for _, b := range []byte(s) {
+		if (b < '0' || b > '9') && (b < 'a' || b > 'f') {
+			return false
+		}
+	}
+	return true
 }
 
 // sweepDigest hashes t's own [Table.Lookup] over every codepoint in

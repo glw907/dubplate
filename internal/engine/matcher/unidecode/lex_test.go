@@ -87,6 +87,16 @@ func TestLexModule(t *testing.T) {
 			src:       "table = (\n'a',\n)\n",
 			errSubstr: `identifier "data"`,
 		},
+		{
+			name:      "string prefix refused",
+			src:       "data = (\nb'x',\n)\n",
+			errSubstr: "test.py:2:1: expected a string or None",
+		},
+		{
+			name:      "triple-quoted string refused",
+			src:       "data = (\n'''x''',\n)\n",
+			errSubstr: `test.py:2:3: expected ","`,
+		},
 	}
 
 	for _, tt := range tests {
