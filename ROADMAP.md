@@ -220,7 +220,9 @@ Round one closed on 2026-09-26 with 116 photos committed to `photos/`, and Geoff
 enough for 0.8.0, so later rounds are continuing work that never blocks a release. Each later
 round starts from the targets in `docs/superpowers/research/photo-curation-rounds/round-1.md`
 (Round close) and the artist list beside it, ranks period photos first, and budgets the sorting
-page as its own task.
+page as its own task. The outreach letters (drafted under the identity-photos research) wait
+until dubplate has a public product to point to (Geoff, 2026-09-26); most of the outreach list's
+gaps, such as early Devo, go-go, and the 1980s dancehall archives, are reachable only that way.
 
 ### The project site `project-site`
 dubplate's public project home for strangers: a standard cairn site in its own repo
