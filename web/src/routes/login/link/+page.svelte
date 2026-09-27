@@ -21,16 +21,15 @@ takes focus once the click settles into a terminal state (W7.16).
   // through the native history.replaceState rather
   // than kit's own $app/navigation replaceState. Kit's replaceState
   // re-embeds page.url.href, which still carries the token, into the
-  // history entry's own state under [PAGE_URL_KEY]
-  // (@sveltejs/kit client.js:2573 sets `[PAGE_URL_KEY]: page.url.href`
-  // from the current, still-tokened, URL); the native call instead
-  // keeps history.state exactly as kit's own bootstrap left it (its
-  // HISTORY_INDEX/NAVIGATION_INDEX keys, no PAGE_URL_KEY, client.js:371-384),
-  // so nothing this page does puts the token anywhere but this one
-  // local variable. Kit wraps the native history.replaceState only
-  // inside `if (DEV && BROWSER)` (client.js:90-114), to print a
-  // console warning; a production build never installs that wrapper,
-  // so this call is the plain native one there too.
+  // history entry's own state under its PAGE_URL_KEY, keyed from the
+  // current, still-tokened, URL; the native call instead keeps
+  // history.state exactly as kit's own bootstrap left it (its
+  // HISTORY_INDEX/NAVIGATION_INDEX keys, no PAGE_URL_KEY), so nothing
+  // this page does puts the token anywhere but this one local
+  // variable. Kit wraps the native history.replaceState only inside
+  // its dev-mode check, to print a console warning; a production
+  // build never installs that wrapper, so this call is the plain
+  // native one there too.
   let token: string | null = null;
   if (browser) {
     token = new URLSearchParams(location.search).get('t');

@@ -13,6 +13,7 @@ no photo, until the photo curation pass supplies one.
 
   const notFound = $derived(page.status === 404);
   const siteName = $derived(browser ? siteNameFromDocument(document) : '');
+  const heading = $derived(notFound ? ERROR_PAGE.notFoundHeading : ERROR_PAGE.genericHeading);
 </script>
 
 <svelte:head>
@@ -26,9 +27,5 @@ no photo, until the photo curation pass supplies one.
 >
 
 <main id="main" tabindex="-1" class="content-measure flow py-8">
-  {#if notFound}
-    <h1 class="display page-title">{ERROR_PAGE.notFoundHeading}</h1>
-  {:else}
-    <h1 class="display page-title">{ERROR_PAGE.genericHeading}</h1>
-  {/if}
+  <h1 class="display page-title">{heading}</h1>
 </main>

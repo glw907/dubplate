@@ -52,7 +52,7 @@ export const AUTH_OUTCOMES: Record<string, string> = {
 
 /**
  * The `unknown` outcome's line, given the roster's admin contact
- * (`internal/auth/handlers.go:157-166`'s `admin_contact`, `omitempty`,
+ * (`internal/auth/handlers.go`'s `answer.AdminContact`, `omitempty`,
  * carrying both `display_name` and `address`). A nil contact renders
  * `UNKNOWN_ADDRESS_NO_ADMIN` instead.
  */
@@ -100,7 +100,8 @@ export const ADD_MEMBER_LABELS = {
 
 /**
  * The add-member form's field hints. `streamerUsername` states the
- * write path's own shape (`internal/auth/roster.go:41-52`): an
+ * write path's own shape (`internal/auth/roster.go`'s
+ * `streamerUsernamePattern`): an
  * alphanumeric first character, then any run of letters, numbers,
  * periods, underscores, hyphens, plus signs, or `@`, up to 64
  * characters (the field is ASCII-only, so bytes and characters agree).

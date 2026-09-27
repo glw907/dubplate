@@ -541,6 +541,17 @@ type mintResponse struct {
 	URL string `json:"url"`
 }
 
+// requirePOST answers 405 and reports false unless r is a POST, the
+// shared guard [mintServer] and [rosterResetServer] open their
+// ServeHTTP with.
+func requirePOST(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return false
+	}
+	return true
+}
+
 // mintServer answers a freshly minted magic link for the fixture admin
 // or member address, one per POST, through [mintLinkFor]: the capture
 // matrix's on-demand source for the sixty links its six signed-in
@@ -553,8 +564,7 @@ type mintServer struct {
 }
 
 func (m *mintServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	if !requirePOST(w, r) {
 		return
 	}
 	var req mintRequest
@@ -600,8 +610,7 @@ type rosterResetServer struct {
 }
 
 func (s *rosterResetServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	if !requirePOST(w, r) {
 		return
 	}
 	s.mu.Lock()

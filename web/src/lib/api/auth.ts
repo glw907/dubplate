@@ -13,7 +13,7 @@ function apiURL(name: string): string {
   return resolve('/') + name;
 }
 
-/** The roster's admin contact, as `internal/auth/handlers.go:157-166`'s `admin_contact` names it. */
+/** The roster's admin contact, as `internal/auth/handlers.go`'s `answer.AdminContact` field names it. */
 export interface AdminContact {
   displayName: string;
   address: string;
@@ -84,9 +84,9 @@ export function consumeLink(token: string): Promise<AuthResult> {
  * mints nothing having gone wrong on the server's own end, so it
  * alone is a warning; every other non-status outcome is an error.
  */
-export type OutcomeClass = 'status' | 'warning' | 'error';
+type OutcomeClass = 'status' | 'warning' | 'error';
 
-export function outcomeClass(outcome: string): OutcomeClass {
+function outcomeClass(outcome: string): OutcomeClass {
   switch (outcome) {
     case 'failed':
       return 'warning';

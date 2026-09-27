@@ -3832,6 +3832,41 @@ interface CaptureState {
   faviconProbeExpected?: boolean;
 }
 
+/**
+ * One capture cell that fills the login address field, submits, and
+ * waits for `#outcome` to read `want`: the shape shared by every
+ * login-page outcome state below except `sent` (its own moment
+ * `<section>` needs `#outcome h2`, not `#outcome` itself). Always sets
+ * `expectsAuthErrorStatus`, since every one of these either hits the
+ * real server's non-2xx answer or is fulfilled to look like one.
+ */
+async function loginAddressOutcomeArrange(
+  context: BrowserContext,
+  endpoints: Endpoints,
+  address: string,
+  want: string,
+  label: string
+): Promise<CaptureArrangement> {
+  const visit = await openBooted(context, endpoints.base, PAGES[0]);
+  visit.expectsAuthErrorStatus = true;
+  await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
+  await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+  const outcomeEl = visit.page.locator('#outcome');
+  let text = '';
+  let ok = true;
+  try {
+    await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+    text = ((await outcomeEl.textContent()) ?? '').trim();
+  } catch {
+    ok = false;
+  }
+  return {
+    page: visit.page,
+    ok: ok && text === want,
+    detail: `${label} text ${JSON.stringify(text)} (want ${JSON.stringify(want)})`
+  };
+}
+
 const CAPTURE_STATES: CaptureState[] = [
   {
     id: 'login/empty',
@@ -3865,40 +3900,14 @@ const CAPTURE_STATES: CaptureState[] = [
   {
     id: 'login/unknown-with-admin',
     async arrange(context, endpoints) {
-      const visit = await openBooted(context, endpoints.base, PAGES[0]);
-      visit.expectsAuthErrorStatus = true;
-      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(UNKNOWN_ADDRESS);
-      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
-      const outcomeEl = visit.page.locator('#outcome');
       const want = unknownAddressLine({ displayName: endpoints.adminDisplayName, address: ADMIN_ADDRESS });
-      let text = '';
-      let ok = true;
-      try {
-        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
-        text = ((await outcomeEl.textContent()) ?? '').trim();
-      } catch {
-        ok = false;
-      }
-      return { page: visit.page, ok: ok && text === want, detail: `unknown-address text ${JSON.stringify(text)} (want ${JSON.stringify(want)})` };
+      return loginAddressOutcomeArrange(context, endpoints, UNKNOWN_ADDRESS, want, 'unknown-address');
     }
   },
   {
     id: 'login/failed',
     async arrange(context, endpoints) {
-      const visit = await openBooted(context, endpoints.base, PAGES[0]);
-      visit.expectsAuthErrorStatus = true;
-      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(MEMBER_ADDRESS);
-      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
-      const outcomeEl = visit.page.locator('#outcome');
-      let text = '';
-      let ok = true;
-      try {
-        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
-        text = ((await outcomeEl.textContent()) ?? '').trim();
-      } catch {
-        ok = false;
-      }
-      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.failed, detail: `failed text ${JSON.stringify(text)}` };
+      return loginAddressOutcomeArrange(context, endpoints, MEMBER_ADDRESS, AUTH_OUTCOMES.failed, 'failed');
     }
   },
   {
@@ -3907,20 +3916,7 @@ const CAPTURE_STATES: CaptureState[] = [
       await context.route('**/request-link', (route) =>
         route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ outcome: 'rate_limited' }) })
       );
-      const visit = await openBooted(context, endpoints.base, PAGES[0]);
-      visit.expectsAuthErrorStatus = true;
-      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
-      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
-      const outcomeEl = visit.page.locator('#outcome');
-      let text = '';
-      let ok = true;
-      try {
-        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
-        text = ((await outcomeEl.textContent()) ?? '').trim();
-      } catch {
-        ok = false;
-      }
-      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.rate_limited, detail: `rate-limited text ${JSON.stringify(text)}` };
+      return loginAddressOutcomeArrange(context, endpoints, ADMIN_ADDRESS, AUTH_OUTCOMES.rate_limited, 'rate-limited');
     }
   },
   {
@@ -3929,20 +3925,7 @@ const CAPTURE_STATES: CaptureState[] = [
       await context.route('**/request-link', (route) =>
         route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ outcome: 'malformed' }) })
       );
-      const visit = await openBooted(context, endpoints.base, PAGES[0]);
-      visit.expectsAuthErrorStatus = true;
-      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
-      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
-      const outcomeEl = visit.page.locator('#outcome');
-      let text = '';
-      let ok = true;
-      try {
-        await outcomeEl.first().waitFor({ timeout: BOOT_TIMEOUT_MS });
-        text = ((await outcomeEl.textContent()) ?? '').trim();
-      } catch {
-        ok = false;
-      }
-      return { page: visit.page, ok: ok && text === AUTH_OUTCOMES.malformed, detail: `malformed text ${JSON.stringify(text)}` };
+      return loginAddressOutcomeArrange(context, endpoints, ADMIN_ADDRESS, AUTH_OUTCOMES.malformed, 'malformed');
     }
   },
   {
