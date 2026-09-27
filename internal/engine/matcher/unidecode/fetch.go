@@ -58,3 +58,23 @@ func WheelCachePath() (string, error) {
 	}
 	return filepath.Join(dir, "unidecode", "Unidecode-1.4.0-py3-none-any.whl"), nil
 }
+
+// LoadCachedTable builds and parses a Table from the workstation's
+// cached wheel (see WheelCachePath). It is every scoring package's own
+// TestMain fixture, so a missing cache names `make unidecode-wheel`
+// rather than a raw os.ReadFile error.
+func LoadCachedTable() (*Table, error) {
+	path, err := WheelCachePath()
+	if err != nil {
+		return nil, err
+	}
+	wheel, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read cached unidecode wheel at %s: %w; run make unidecode-wheel", path, err)
+	}
+	data, err := Build(wheel)
+	if err != nil {
+		return nil, err
+	}
+	return Parse(data)
+}

@@ -77,7 +77,7 @@ func (t *Table) Lookup(r rune) (repl string, ok bool) {
 //
 // Blocks are written in ascending section order, so encode is
 // deterministic regardless of the map's own iteration order.
-func encode(t *Table) []byte {
+func (t *Table) encode() []byte {
 	var buf bytes.Buffer
 	buf.WriteString("UNTB")
 

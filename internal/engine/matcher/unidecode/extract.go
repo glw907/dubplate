@@ -31,9 +31,9 @@ func Build(wheel []byte) ([]byte, error) {
 	}
 
 	t := &Table{version: Version, sweepLo: sweepLo, sweepHi: sweepHi, blocks: blocks}
-	t.digest = sweepDigest(t)
+	t.digest = t.sweepDigest()
 
-	encoded := encode(t)
+	encoded := t.encode()
 	sum = sha256.Sum256(encoded)
 	got = hex.EncodeToString(sum[:])
 	if got != tableSHA256 {
@@ -48,10 +48,10 @@ func Build(wheel []byte) ([]byte, error) {
 // skipped alongside the entries this package has no use for. Every
 // unidecode/x???.py data module is lexed; a name that looks like a
 // data module but does not match exactly x plus three lowercase hex
-// digits, or a section seen twice, is refused. So is any count other
-// than dataModuleCount: a pinned wheel cannot ship an anomalous name,
-// a duplicate section, or a different module count, so any of those is
-// a defect in this extraction, not a file to skip.
+// digits and a .py suffix, or a section seen twice, is refused. So is
+// any count other than dataModuleCount: a pinned wheel cannot ship an
+// anomalous name, a duplicate section, or a different module count, so
+// any of those is a defect in this extraction, not a file to skip.
 func extract(wheel []byte) (map[uint16][]*string, error) {
 	r, err := zip.NewReader(bytes.NewReader(wheel), int64(len(wheel)))
 	if err != nil {
@@ -157,7 +157,7 @@ func isLowerHex3(s string) bool {
 // [sweepLo, sweepHi], in tools/unidecode-table/generate.py's
 // sweep_digest encoding. It runs before the table's bytes exist, so it
 // reads t's in-memory blocks directly rather than through Parse.
-func sweepDigest(t *Table) [32]byte {
+func (t *Table) sweepDigest() [32]byte {
 	h := sha256.New()
 	var cp [4]byte
 	var length [4]byte

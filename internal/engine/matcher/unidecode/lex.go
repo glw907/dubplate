@@ -240,10 +240,10 @@ func lexModule(file string, data []byte) ([]*string, error) {
 	if name.kind != tokName || name.text != "data" {
 		return nil, fmt.Errorf("%s:%d:%d: expected identifier \"data\"", file, name.line, name.col)
 	}
-	if err := expect(l, tokEquals, "="); err != nil {
+	if err := l.expect(tokEquals, "="); err != nil {
 		return nil, err
 	}
-	if err := expect(l, tokLParen, "("); err != nil {
+	if err := l.expect(tokLParen, "("); err != nil {
 		return nil, err
 	}
 
@@ -267,7 +267,7 @@ func lexModule(file string, data []byte) ([]*string, error) {
 			return nil, fmt.Errorf("%s:%d:%d: expected a string or None", file, tok.line, tok.col)
 		}
 		entries = append(entries, entry)
-		if err := expect(l, tokComma, ","); err != nil {
+		if err := l.expect(tokComma, ","); err != nil {
 			return nil, err
 		}
 	}
@@ -282,7 +282,7 @@ func lexModule(file string, data []byte) ([]*string, error) {
 	return entries, nil
 }
 
-func expect(l *lexer, kind tokenKind, want string) error {
+func (l *lexer) expect(kind tokenKind, want string) error {
 	tok, err := l.next()
 	if err != nil {
 		return err

@@ -16,26 +16,11 @@ import (
 // cache does not track it, and a cached "ok" would survive a missing
 // or replaced wheel.
 func TestMain(m *testing.M) {
-	path, err := unidecode.WheelCachePath()
+	table, err := unidecode.LoadCachedTable()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	wheel, err := os.ReadFile(path)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "read cached unidecode wheel at %s: %v; run make unidecode-wheel\n", path, err)
-		os.Exit(1)
-	}
-	table, err := unidecode.Build(wheel)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	parsed, err := unidecode.Parse(table)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	matcher.SetTransliterator(parsed.Lookup)
+	matcher.SetTransliterator(table.Lookup)
 	os.Exit(m.Run())
 }

@@ -23,9 +23,9 @@ func buildTestTable() *Table {
 
 func TestEncodeDecodeRoundTrip(t *testing.T) {
 	want := buildTestTable()
-	got, err := decode(encode(want))
+	got, err := decode(want.encode())
 	if err != nil {
-		t.Fatalf("decode(encode(table)): %v", err)
+		t.Fatalf("decode(table.encode()): %v", err)
 	}
 	if got.version != want.version {
 		t.Errorf("version = %q, want %q", got.version, want.version)
@@ -60,7 +60,7 @@ func TestEncodeDecodeRoundTrip(t *testing.T) {
 }
 
 func TestDecodeTruncated(t *testing.T) {
-	full := encode(buildTestTable())
+	full := buildTestTable().encode()
 	for cut := range full {
 		if cut == 0 {
 			continue
@@ -72,14 +72,14 @@ func TestDecodeTruncated(t *testing.T) {
 }
 
 func TestDecodeTrailingBytes(t *testing.T) {
-	full := append(encode(buildTestTable()), 0x00)
+	full := append(buildTestTable().encode(), 0x00)
 	if _, err := decode(full); err == nil {
 		t.Fatal("decode(table with trailing byte) = nil error, want a trailing-byte error")
 	}
 }
 
 func TestParseRefusesChecksumMismatch(t *testing.T) {
-	if _, err := Parse(encode(buildTestTable())); !errors.Is(err, ErrTableChecksum) {
+	if _, err := Parse(buildTestTable().encode()); !errors.Is(err, ErrTableChecksum) {
 		t.Fatalf("Parse(unpinned table) error = %v, want ErrTableChecksum", err)
 	}
 }

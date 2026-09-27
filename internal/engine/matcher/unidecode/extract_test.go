@@ -132,10 +132,11 @@ func TestExtractRefusesMalformedDataName(t *testing.T) {
 }
 
 // TestExtractRefusesNearMissDataName covers names that carry the
-// unidecode/x prefix and .py suffix dataModuleName's prefix/suffix
-// check alone would accept, but whose hex portion is the wrong length
-// or uses uppercase digits: strconv.ParseUint accepts A-F, so the
-// length and case rules must be enforced separately from the parse.
+// unidecode/x prefix dataModuleName's own prefix check alone would
+// accept, but whose hex portion is the wrong length, uses uppercase
+// digits, or whose extension is not .py: strconv.ParseUint accepts
+// A-F, so the length and case rules must be enforced separately from
+// the parse.
 func TestExtractRefusesNearMissDataName(t *testing.T) {
 	tests := []struct {
 		name  string

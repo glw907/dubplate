@@ -244,8 +244,8 @@ func newShadowCmd(environ []string, reg *config.Registry, matcherCommit string, 
 // DUBPLATE_SHADOW_ENABLED; refuse when matcherCommit is empty or "dev",
 // creating no store either way; resolve the floor and the cap through
 // the two registered thresholds; compose the User-Agent; load and
-// install the transliteration table, refusing before anything
-// is created if it is missing or invalid; open the store; call
+// install the transliteration table, refusing before anything is
+// created if it is missing or invalid; open the store; call
 // shadow.Run with time.Now(), legal here because cmd/ is outside the
 // engine's no-clock walk; write the artifacts through storeArtifacts;
 // print a one-line summary.
