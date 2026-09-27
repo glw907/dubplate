@@ -4,14 +4,19 @@ The login page: a single column (no photo, until the photo curation
 pass supplies one), the group's name as the heading. The `h1` is the
 served site name and never changes with an outcome; the "sent" and
 "requested" outcomes replace the form with a centered moment instead,
-per W7.15 and W7.16. Every other outcome shows an alert beside the
-still-editable form. `main` and the skip link satisfy W3.6.
+per W7.15 and W7.16; the moment's heading takes focus, so the moment
+is never also announced. Every other outcome shows an alert beside the
+still-editable form, as does the signed-out state a sign-out lands on,
+and is announced through the layout's live regions. `main` is the root
+layout's skip-link target (W3.6).
 -->
 <script lang="ts">
   import { tick } from 'svelte';
   import { browser } from '$app/environment';
+  import { page } from '$app/state';
   import Mark from '$lib/components/Mark.svelte';
   import { requestLink, outcomeAlertClass, outcomePoliteness, outcomeText, type AuthResult } from '$lib/api/auth';
+  import { announce } from '$lib/announcer.svelte';
   import { ADD_MEMBER_LABELS, AUTH_OUTCOMES, LOGIN_SUBLINE, SENT_ESCAPE_HATCH, TITLES } from '$lib/copy/deck';
   import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
 
@@ -19,22 +24,16 @@ still-editable form. `main` and the skip link satisfy W3.6.
 
   let address = $state('');
   let submitting = $state(false);
-  let result = $state<AuthResult | null>(null);
+  // A sign-out lands here through `goto` with `signedOut` in the page
+  // state (`SiteHeader.svelte`), and the page opens on that outcome.
+  const signedOut: AuthResult | null = page.state.signedOut ? { outcome: 'signed_out', adminContact: null } : null;
+  if (signedOut) announce(outcomeText(signedOut), outcomePoliteness(signedOut.outcome));
+
+  let result = $state<AuthResult | null>(signedOut);
   let momentHeading = $state<HTMLElement | null>(null);
-  let politeText = $state('');
-  let assertiveText = $state('');
 
   const moment = $derived(result && (result.outcome === 'sent' || result.outcome === 'requested') ? result : null);
-
-  function announce(text: string, politeness: 'polite' | 'assertive'): void {
-    if (politeness === 'polite') {
-      assertiveText = '';
-      politeText = text;
-    } else {
-      politeText = '';
-      assertiveText = text;
-    }
-  }
+  const titleState = $derived(moment ? TITLES.loginSent : result?.outcome === 'signed_out' ? TITLES.signedOut : TITLES.login);
 
   // W7.16: an async transition that unmounts the focused control
   // moves focus deliberately, in an effect keyed on the discriminant
@@ -47,9 +46,16 @@ still-editable form. `main` and the skip link satisfy W3.6.
     event.preventDefault();
     if (submitting) return;
     submitting = true;
+    // The stale outcome leaves while the request is in flight, so a
+    // repeated identical answer visibly arrives again.
+    result = null;
+    announce('', 'polite');
     try {
-      result = await requestLink(address);
-      announce(outcomeText(result), outcomePoliteness(result.outcome));
+      const answer = await requestLink(address);
+      result = answer;
+      if (answer.outcome !== 'sent' && answer.outcome !== 'requested') {
+        announce(outcomeText(answer), outcomePoliteness(answer.outcome));
+      }
     } finally {
       submitting = false;
     }
@@ -64,25 +70,8 @@ still-editable form. `main` and the skip link satisfy W3.6.
 </script>
 
 <svelte:head>
-  <title>{pageTitle(moment ? TITLES.loginSent : TITLES.login, siteName)}</title>
+  <title>{pageTitle(titleState, siteName)}</title>
 </svelte:head>
-
-<a
-  href="#main"
-  class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
-  >Skip to content</a
->
-
-<!--
-  W7.6: one persistent, unconditionally rendered live region per
-  politeness. The visible alert below carries no role or aria-live of
-  its own, so only these announce; a repeated identical outcome would
-  need to clear and re-set on the next frame to re-announce, which no
-  outcome here repeats back to back since a fresh submit always
-  replaces the previous result.
--->
-<div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
-<div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
 
 <main id="main" tabindex="-1" class="content-measure flow py-8">
   <div class="flex items-center gap-2">

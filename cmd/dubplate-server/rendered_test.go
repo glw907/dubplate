@@ -181,20 +181,26 @@ var renderedBaseManifest = []renderedRow{
 	{id: "auth/login/cross-origin"},
 	{id: "auth/login/network-failure"},
 	{id: "auth/login/single-outcome"},
+	{id: "auth/login/inherited-outcome"},
+	{id: "auth/login/non-json-5xx"},
+	{id: "auth/login/repeat-outcome"},
 	{id: "auth/interstitial/token-order", consumptions: 1},
+	{id: "auth/interstitial/token-order/fragment", consumptions: 1},
 	{id: "auth/interstitial/signed-in", consumptions: 1},
 	{id: "auth/interstitial/refused-reload"},
+	{id: "auth/interstitial/refused"},
 	{id: "auth/interstitial/rate-limited"},
 	{id: "auth/interstitial/too-large"},
 	{id: "auth/interstitial/malformed"},
 	{id: "auth/interstitial/failed"},
 	{id: "members/add-member", consumptions: 1},
 	{id: "members/non-admin", consumptions: 1},
-	// The header's own rows (the members-page focus walk and the four
-	// toggle starts) share one signed-in admin session, established
-	// once by `establishSession` and reused by cookie across every
-	// context below; the one consumption it spends is declared on the
-	// first of these rows.
+	// Every row from here to the end of this list shares one signed-in
+	// admin session, established once by `establishSession` and reused
+	// by cookie across every context; the one consumption it spends is
+	// declared on the first of these rows. Sign-out clears the cookie in
+	// its own context only and revokes nothing, so the rows after it
+	// still hold a live session.
 	{id: "component/focus/members/label", consumptions: 1},
 	{id: "component/focus/members/label-night"},
 	{id: "component/focus/members/system-light"},
@@ -208,6 +214,15 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/toggle/system-dark"},
 	{id: "header/toggle/cookie-label"},
 	{id: "header/toggle/cookie-label-night"},
+	{id: "header/structure"},
+	{id: "header/sign-out-contrast/label"},
+	{id: "header/sign-out-contrast/label-night"},
+	{id: "members/inherited-outcome"},
+	{id: "header/sign-out/in-flight"},
+	{id: "header/sign-out/signed-out"},
+	{id: "header/sign-out/network-failure"},
+	{id: "header/sign-out/cross-origin"},
+	{id: "header/sign-out/not-ok"},
 }
 
 // renderedCaptureWidths are W4.1's five CSS-pixel widths the capture
@@ -807,11 +822,12 @@ func TestRendered(t *testing.T) {
 	brandingSrv := startBrandingServer(t)
 	operatorSrv := startOperatorServer(t)
 
-	// The token-ordering row and the state-table's own `signed_in` row
-	// each spend one real, single-use link, so each gets its own:
-	// reusing one would leave the second row consuming an already-spent
-	// link.
+	// The token-ordering row, its fragment variant, and the
+	// state-table's own `signed_in` row each spend one real, single-use
+	// link, so each gets its own: reusing one would leave a later row
+	// consuming an already-spent link.
 	loginLinkOrdering := mintRenderedLink(t, environ, renderedAdminAddress)
+	loginLinkOrderingFragment := mintRenderedLink(t, environ, renderedAdminAddress)
 	loginLinkSignedIn := mintRenderedLink(t, environ, renderedAdminAddress)
 
 	// The add-member row signs the fixture admin in once; the non-admin
@@ -845,6 +861,7 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_SITE_NAME="+renderedSiteName,
 		"DUBPLATE_RENDERED_ADMIN_DISPLAY_NAME="+renderedAdminDisplayName,
 		"DUBPLATE_RENDERED_LOGIN_LINK_ORDERING="+loginLinkOrdering,
+		"DUBPLATE_RENDERED_LOGIN_LINK_ORDERING_FRAGMENT="+loginLinkOrderingFragment,
 		"DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN="+loginLinkSignedIn,
 		"DUBPLATE_RENDERED_MEMBERS_ADD_LINK="+membersAddLink,
 		"DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK="+membersNonAdminLink,

@@ -82,11 +82,11 @@ export const INTERSTITIAL_STATEMENT = 'To finish signing in, select Sign in.';
 export const INTERSTITIAL_CONTROL = 'Sign in';
 
 /**
- * The `signed_in` terminal's own link onward. Rung 5 builds no
- * post-login redirect (the destination is a later rung's driver
- * capability), so this is a manual control rather than a navigation.
+ * The consumption page's line when it loaded with no token at all (a
+ * reload, or a copied address missing its query): nothing was spent,
+ * so the mailed link itself still works.
  */
-export const SIGNED_IN_CONTINUE = 'Continue';
+export const LINK_TOKEN_MISSING = 'Open the link from your email again.';
 
 /** The signed-in header's sign-out control. */
 export const SIGN_OUT_CONTROL = 'Sign out';

@@ -20,12 +20,6 @@ no photo, until the photo curation pass supplies one.
   <title>{pageTitle(notFound ? TITLES.notFound : TITLES.error, siteName)}</title>
 </svelte:head>
 
-<a
-  href="#main"
-  class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
-  >Skip to content</a
->
-
 <main id="main" tabindex="-1" class="content-measure flow py-8">
   <h1 class="display page-title">{heading}</h1>
 </main>

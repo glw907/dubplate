@@ -1,17 +1,10 @@
 /**
  * The client side of the auth flow's two POST endpoints
  * (`internal/auth/handlers.go`), and the shared reading of an outcome
- * into what a page renders. Every URL composes from the runtime base:
- * `apiURL` joins kit's `resolve('/')` with the endpoint name rather
- * than a root-absolute literal, so a deployment under any prefix
- * reaches its own server.
+ * into what a page renders.
  */
-import { resolve } from '$app/paths';
 import { AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, unknownAddressLine } from '$lib/copy/deck';
-
-function apiURL(name: string): string {
-  return resolve('/') + name;
-}
+import { postForm, type PostResult } from '$lib/api/post';
 
 /** The roster's admin contact, as `internal/auth/handlers.go`'s `answer.AdminContact` field names it. */
 export interface AdminContact {
@@ -19,62 +12,34 @@ export interface AdminContact {
   address: string;
 }
 
-interface AuthAnswer {
-  outcome: string;
-  admin_contact?: { display_name: string; address: string };
-}
-
 /**
- * One POST's result. `outcome` is the server's own outcome value, or
- * one of two synthetic values this module assigns for a case the
- * server never answers with a body: `cross_origin` for the CSRF
- * defense's 403 (`internal/serve/origin.go`, no JSON body), and
- * `network_failure` for a request that never reached the server at
- * all (a network failure, or an intercepted request the page never
- * meant to make).
+ * One auth POST's result: the outcome as {@link postForm} reads it, and
+ * the admin contact the `unknown` answer may carry.
  */
 export interface AuthResult {
   outcome: string;
   adminContact: AdminContact | null;
 }
 
-async function post(url: string, body: URLSearchParams): Promise<AuthResult> {
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: 'POST',
-      body,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
-  } catch {
-    return { outcome: 'network_failure', adminContact: null };
-  }
-  // The CSRF defense's deny handler answers 403 with a plain-text
-  // body, never JSON, so its status is read before any JSON parse is
-  // attempted.
-  if (response.status === 403) {
-    return { outcome: 'cross_origin', adminContact: null };
-  }
-  let answer: AuthAnswer;
-  try {
-    answer = (await response.json()) as AuthAnswer;
-  } catch {
-    return { outcome: 'network_failure', adminContact: null };
-  }
-  const adminContact = answer.admin_contact
-    ? { displayName: answer.admin_contact.display_name, address: answer.admin_contact.address }
-    : null;
-  return { outcome: answer.outcome, adminContact };
+function adminContactOf(body: Record<string, unknown>): AdminContact | null {
+  const contact = body.admin_contact;
+  if (typeof contact !== 'object' || contact === null) return null;
+  const { display_name: displayName, address } = contact as Record<string, unknown>;
+  return typeof displayName === 'string' && typeof address === 'string' ? { displayName, address } : null;
+}
+
+function authResult(result: PostResult): AuthResult {
+  return { outcome: result.outcome, adminContact: adminContactOf(result.body) };
 }
 
 /** Posts address to the request-link endpoint. */
-export function requestLink(address: string): Promise<AuthResult> {
-  return post(apiURL('request-link'), new URLSearchParams({ address }));
+export async function requestLink(address: string): Promise<AuthResult> {
+  return authResult(await postForm('request-link', { address }));
 }
 
 /** Posts token to the consume-link endpoint. */
-export function consumeLink(token: string): Promise<AuthResult> {
-  return post(apiURL('consume-link'), new URLSearchParams({ token }));
+export async function consumeLink(token: string): Promise<AuthResult> {
+  return authResult(await postForm('consume-link', { token }));
 }
 
 /**
@@ -95,6 +60,7 @@ function outcomeClass(outcome: string): OutcomeClass {
     case 'unknown':
     case 'rate_limited':
     case 'signed_in':
+    case 'signed_out':
       return 'status';
     default:
       return 'error';
@@ -116,5 +82,7 @@ export function outcomeText(result: AuthResult): string {
   if (result.outcome === 'cross_origin') return CROSS_ORIGIN_REFUSED;
   if (result.outcome === 'network_failure') return NETWORK_FAILURE;
   if (result.outcome === 'unknown') return unknownAddressLine(result.adminContact);
-  return AUTH_OUTCOMES[result.outcome] ?? AUTH_OUTCOMES.failed;
+  // An own-property test, so an outcome named after an inherited member
+  // (`toString`, `constructor`) falls through to the fallback line.
+  return Object.hasOwn(AUTH_OUTCOMES, result.outcome) ? AUTH_OUTCOMES[result.outcome] : AUTH_OUTCOMES.failed;
 }

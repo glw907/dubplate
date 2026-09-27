@@ -280,8 +280,37 @@
     box-shadow: 0 0 0 6px var(--color-base-100);
   }
 
-  /* The header nav's hover state (a11y S7): the link's own ink is unchanged, so its contrast holds. */
-  :where(.site-header a:hover) {
+  /*
+   * The layout's skip link shows at the top of the viewport, over a
+   * page's header bar where one renders, so it carries the same
+   * page-colored halo: its ring reads against base-100 whatever sits
+   * under it.
+   */
+  :where(.skip-link:focus-visible) {
+    box-shadow: 0 0 0 6px var(--color-base-100);
+  }
+
+  /*
+   * The header's flat button on the neutral bar. DaisyUI 5.7.46 fills a
+   * hovered or focused `.btn` from `--btn-color`, falling back to
+   * base-200, and paints its text in `--btn-fg`, falling back to
+   * base-content: a cream fill under the bar's cream text. Pointing
+   * both at the bar's own pair keeps the fill on the bar (hover darkens
+   * it 7%) and the text in neutral-content, at rest, hovered, and
+   * focused.
+   */
+  :where(.site-header .btn-ghost) {
+    --btn-color: var(--color-neutral);
+    --btn-fg: var(--color-neutral-content);
+    --btn-rest-fg: var(--color-neutral-content);
+  }
+
+  /*
+   * The header's hover state: the link's and the button's
+   * own ink is unchanged, so their contrast holds, and the underline is
+   * what marks the hover.
+   */
+  :where(.site-header a:hover, .site-header .btn-ghost:hover) {
     text-decoration-line: underline;
   }
 

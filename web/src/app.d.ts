@@ -5,7 +5,10 @@ declare global {
     // interface Error {}
     // interface Locals {}
     // interface PageData {}
-    // interface PageState {}
+    interface PageState {
+      /** Set by the header's sign-out on its way to the login page, which opens on the signed-out line. */
+      signedOut?: boolean;
+    }
     // interface Platform {}
   }
 }

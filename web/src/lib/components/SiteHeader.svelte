@@ -1,20 +1,29 @@
 <!--
 @component
-The signed-in header (visual identity spec, "Themes"): a neutral bar
-carrying the mark and wordmark as a link back to the members page, the
-theme toggle, and the sign-out control. Every header foreground reads
-`--color-neutral-content`, since `base-content` measures 1.00:1 on the
+The signed-in header (visual identity spec, "Themes"): a neutral bar,
+a stock DaisyUI `navbar` at a pinned height, carrying the mark and
+wordmark as a link back to the members page inside the `nav` landmark,
+then the sign-out control and the theme toggle. Every header
+foreground reads `--color-neutral-content`, since `base-content` measures 1.00:1 on the
 `label` bar. The toggle is a stock DaisyUI `swap`, driven only by its
 hidden checkbox; choosing a state writes the theme cookie, stamps
 `data-theme`, and updates the one `theme-color` meta the document may
 carry. Its icons are Phosphor's `sun` and `moon`, inlined as SVG
 (`PHOSPHOR.md`).
+
+Sign-out leaves for the login page's signed-out state only when the
+server answers 2xx with `signed_out`. Any other answer leaves the
+member here, still signed in, and announces why through the layout's
+live region.
 -->
 <script lang="ts">
   import { browser } from '$app/environment';
+  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import Mark from './Mark.svelte';
-  import { SIGN_OUT_CONTROL, THEME_TOGGLE_LABEL } from '$lib/copy/deck';
+  import { postForm } from '$lib/api/post';
+  import { announce } from '$lib/announcer.svelte';
+  import { CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, SIGN_OUT_CONTROL, THEME_TOGGLE_LABEL } from '$lib/copy/deck';
 
   const THEME_COOKIE = '__Host-dubplate_theme';
   const SIGN_OUT_PATH = 'sign-out';
@@ -62,26 +71,35 @@ carry. Its icons are Phosphor's `sun` and `moon`, inlined as SVG
     restampThemeColorMeta();
   }
 
-  // Sign-out clears only this browser's cookie (the deck's own bound):
-  // the destination page reads the cleared session fresh either way,
-  // so a network failure here still returns to sign-in.
+  // The in-flight guard is a plain flag rather than `disabled`, which
+  // would drop the focused control's focus to <body> mid-request.
+  let signingOut = false;
+
   async function signOut(): Promise<void> {
+    if (signingOut) return;
+    signingOut = true;
     try {
-      await fetch(resolve('/') + SIGN_OUT_PATH, { method: 'POST', body: new URLSearchParams() });
-    } catch {
-      // Falls through to the navigation below regardless.
+      const result = await postForm(SIGN_OUT_PATH, {});
+      if (result.ok && result.outcome === 'signed_out') {
+        await goto(resolve('/login'), { state: { signedOut: true } });
+        return;
+      }
+      announce(result.outcome === 'cross_origin' ? CROSS_ORIGIN_REFUSED : NETWORK_FAILURE, 'assertive');
+    } finally {
+      signingOut = false;
     }
-    window.location.assign(resolve('/login'));
   }
 </script>
 
 <header class="site-header bg-neutral text-neutral-content">
-  <div class="content-measure flex items-center justify-between gap-4 py-2">
-    <a href={resolve('/members')} class="flex min-h-11 items-center gap-2 text-neutral-content">
-      <Mark size={32} />
-      <span class="display text-lg">dubplate</span>
-    </a>
-    <nav class="flex items-center gap-2">
+  <div class="navbar content-measure h-16 gap-4">
+    <nav class="navbar-start">
+      <a href={resolve('/members')} class="flex min-h-11 items-center gap-2 text-neutral-content">
+        <Mark size={32} />
+        <span class="display text-lg">dubplate</span>
+      </a>
+    </nav>
+    <div class="navbar-end gap-2">
       <button type="button" class="btn btn-ghost min-h-11 text-neutral-content" onclick={signOut}>{SIGN_OUT_CONTROL}</button
       >
       <label class="swap h-11 w-11">
@@ -101,6 +119,6 @@ carry. Its icons are Phosphor's `sun` and `moon`, inlined as SVG
           >
         </span>
       </label>
-    </nav>
+    </div>
   </div>
 </header>

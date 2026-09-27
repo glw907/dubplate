@@ -33,13 +33,13 @@ import {
   CROSS_ORIGIN_REFUSED,
   ERROR_PAGE,
   INTERSTITIAL_CONTROL,
+  LINK_TOKEN_MISSING,
   LOGIN_SUBLINE,
   NETWORK_FAILURE,
   ROSTER_EMPTY_STATE,
   ROSTER_OUTCOMES,
   SENT_ESCAPE_HATCH,
   SIGN_OUT_CONTROL,
-  SIGNED_IN_CONTINUE,
   THEME_TOGGLE_LABEL,
   TITLES,
   unknownAddressLine
@@ -168,6 +168,8 @@ interface Endpoints {
   adminDisplayName: string;
   /** A real minted link for the fixture admin, spent by the token-ordering row. */
   loginLinkOrdering: string;
+  /** A second real minted link for the fixture admin, spent by the token-ordering row's `#main` fragment variant. */
+  loginLinkOrderingFragment: string;
   /** A second, distinct real minted link for the fixture admin, spent by the `signed_in` state-table row. */
   loginLinkSignedIn: string;
   /** A real minted link for the fixture admin, spent by the add-member row. */
@@ -286,8 +288,10 @@ async function launch(): Promise<Browser> {
  * Opens `path` under the base URL in a new page of `context`, refusing
  * a server that does not answer, a status outside 2xx, and a final URL
  * that differs from the one requested (a redirect the harness would
- * otherwise follow and judge the wrong page by). Returns the visit and
- * the served document's bytes.
+ * otherwise follow and judge the wrong page by). A mailed link's URL
+ * may also settle with its query stripped, since the client hook
+ * removes the token from the address bar as the app starts. Returns
+ * the visit and the served document's bytes.
  */
 async function open(
   context: BrowserContext,
@@ -318,7 +322,10 @@ async function open(
     throw new Refusal(`${url}: the server does not answer: ${message(err)}`);
   }
   if (response === null) throw new Refusal(`${url}: the server does not answer: no response`);
-  if (response.request().redirectedFrom() !== null || page.url() !== url) {
+  const stripped = new URL(url);
+  stripped.search = '';
+  const settledOn = page.url() === url || (new URL(url).searchParams.has('t') && page.url() === stripped.href);
+  if (response.request().redirectedFrom() !== null || !settledOn) {
     throw new Refusal(`${url}: the final URL ${page.url()} differs from the one requested`);
   }
   if (response.status() < 200 || response.status() > 299) {
@@ -339,6 +346,23 @@ async function openBooted(context: BrowserContext, base: string, served: ServedP
     );
   }
   return visit;
+}
+
+/**
+ * Resolves after two animation frames: the layout's announcer writes a
+ * live region's text on the frame after a page's call, so a row reads
+ * the regions only once that frame has run.
+ */
+async function afterFrames(page: Page): Promise<void> {
+  await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
+}
+
+/** The two live regions' text, read once the announcer's frame has run. */
+async function announced(page: Page): Promise<{ text: string; politeness: 'polite' | 'assertive' | 'none' }> {
+  await afterFrames(page);
+  const polite = (await page.locator('#announce-polite').textContent()) ?? '';
+  const assertive = (await page.locator('#announce-assertive').textContent()) ?? '';
+  return { text: polite || assertive, politeness: polite ? 'polite' : assertive ? 'assertive' : 'none' };
 }
 
 async function violations(page: Page): Promise<Violation[]> {
@@ -816,7 +840,7 @@ function isExpectedViolation(visit: Visit, v: Violation): boolean {
  * refusal.
  */
 const AUTH_ERROR_STATUS_RE =
-  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster)\)$/;
+  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster|sign-out)\)$/;
 
 /**
  * SvelteKit's client router logs this when a client-side navigation
@@ -2674,15 +2698,15 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
       const cls = (await outcomeEl.getAttribute('class')) ?? '';
       const childCount = await outcomeEl.evaluate((el) => el.children.length);
       const outcomeCount = await outcomeEl.count();
-      const politeText = (await visit.page.locator('#announce-polite').textContent()) ?? '';
-      const assertiveText = (await visit.page.locator('#announce-assertive').textContent()) ?? '';
-      const announced = politeText || assertiveText;
-      const announcedPoliteness: 'polite' | 'assertive' | 'none' = politeText ? 'polite' : assertiveText ? 'assertive' : 'none';
+      const said = await announced(visit.page);
       const titleText = await visit.page.title();
 
       const wantText = wantOutcomeText(c, endpoints);
       const wantClass = outcomeClass(c.outcome);
-      const wantPoliteness: 'polite' | 'assertive' = wantClass === 'status' ? 'polite' : 'assertive';
+      // The sent moment's heading takes focus, which reads it; the live
+      // region stays silent so the line is not heard twice.
+      const wantAnnounced = isMoment ? '' : wantText;
+      const wantPoliteness: 'polite' | 'assertive' | 'none' = isMoment ? 'none' : wantClass === 'status' ? 'polite' : 'assertive';
       const wantModifier = wantClass === 'warning' ? 'alert-warning' : wantClass === 'error' ? 'alert-error' : null;
       const wantTitle = pageTitle(isMoment ? TITLES.loginSent : TITLES.login, endpoints.siteName);
       const classes = cls.split(/\s+/);
@@ -2708,7 +2732,12 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
       // eye actually lines up against the column.
       let ledeHidden = true;
       let aligned = true;
+      let headingFocused = true;
       if (isMoment) {
+        headingFocused = await visit.page
+          .waitForFunction(() => document.activeElement === document.querySelector('#outcome h2'), undefined, { timeout: 2_000 })
+          .then(() => true)
+          .catch(() => false);
         ledeHidden = !(await visit.page.getByText(LOGIN_SUBLINE, { exact: true }).isVisible().catch(() => false));
         const h1X = await visit.page.locator('h1.page-title').evaluate((el) => el.getBoundingClientRect().x);
         const escapeHatchX = await visit.page
@@ -2725,13 +2754,14 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
           text === wantText &&
           classOK &&
           childOK &&
-          announced === wantText &&
-          announcedPoliteness === wantPoliteness &&
+          said.text === wantAnnounced &&
+          said.politeness === wantPoliteness &&
           titleText === wantTitle &&
           (c.mode !== 'real' || requestsSeen === 1) &&
           ledeHidden &&
-          aligned,
-        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(announced)} as ${announcedPoliteness} (want ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}`
+          aligned &&
+          headingFocused,
+        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(wantText)}); moment heading focused ${headingFocused}; #outcome count ${outcomeCount} tag ${tag} class ${JSON.stringify(cls)} children ${childCount}; announced ${JSON.stringify(said.text)} as ${said.politeness} (want ${JSON.stringify(wantAnnounced)} as ${wantPoliteness}); title ${JSON.stringify(titleText)} (want ${JSON.stringify(wantTitle)}); real request-link POSTs seen ${requestsSeen}; lede hidden ${ledeHidden}; aligned to column ${aligned}`
       });
     } finally {
       await context.close();
@@ -2787,62 +2817,257 @@ async function loginSingleOutcomeRow(browser: Browser, endpoints: Endpoints): Pr
   }
 }
 
+/** One login-page answer the page must read as `failed`, fulfilled with a raw body. */
+interface FallbackCase {
+  id: string;
+  status: number;
+  contentType: string;
+  body: string;
+  /** The alert modifier the class table gives the read outcome. */
+  wantModifier: string;
+}
+
+const LOGIN_FALLBACK_CASES: FallbackCase[] = [
+  // A name every object inherits: a plain property lookup would find
+  // `Object.prototype.toString` and render a function's source.
+  {
+    id: 'auth/login/inherited-outcome',
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ outcome: 'toString' }),
+    wantModifier: 'alert-error'
+  },
+  // A proxy's own error page: a 5xx whose body is not JSON is the
+  // server side failing, never the member's connection.
+  { id: 'auth/login/non-json-5xx', status: 502, contentType: 'text/plain', body: 'Bad Gateway', wantModifier: 'alert-warning' }
+];
+
+/** Each {@link LOGIN_FALLBACK_CASES} answer shows the deck's `failed` line. */
+async function loginFallbackRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const c of LOGIN_FALLBACK_CASES) {
+    const context = await browser.newContext();
+    try {
+      await context.route('**/request-link', (route) => route.fulfill({ status: c.status, contentType: c.contentType, body: c.body }));
+      const visit = await openBooted(context, endpoints.base, PAGES[0]);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+      const appeared = await visit.page
+        .locator('#outcome')
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      const text = appeared ? ((await visit.page.locator('#outcome').textContent()) ?? '').trim() : '';
+      const cls = appeared ? ((await visit.page.locator('#outcome').getAttribute('class')) ?? '') : '';
+      await report({
+        id: c.id,
+        fixture: appeared,
+        property: text === AUTH_OUTCOMES.failed && cls.split(/\s+/).includes(c.wantModifier),
+        detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(AUTH_OUTCOMES.failed)}); class ${JSON.stringify(cls)} (want ${c.wantModifier})`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
 /**
- * The token never reaches `location.search` or `history.state` once
- * the page has settled, no request carries it, and exactly one
- * `consume-link` POST happens, only after the click.
+ * The same outcome twice in a row is announced twice and visibly
+ * arrives twice: the live region empties and refills (a region that
+ * is set to the text it already holds announces nothing), and the
+ * first answer's alert leaves while the second request is in flight,
+ * so the second answer's alert is a new element. A `MutationObserver`
+ * on the assertive region records every text it takes.
  */
-async function interstitialOrderingRow(browser: Browser, endpoints: Endpoints): Promise<void> {
-  const id = 'auth/interstitial/token-order';
+async function loginRepeatOutcomeRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/login/repeat-outcome';
   const context = await browser.newContext();
   try {
-    const token = new URL(endpoints.loginLinkOrdering).searchParams.get('t') ?? '';
-    const { visit } = await open(context, endpoints.loginLinkOrdering, 'load');
-    await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
-    // The mailed link's own GET necessarily carries the token in its
-    // query (that is how the token reaches the client at all); every
-    // request logged from here on must not.
-    const sinceLoad = (await requestLog(endpoints.requestLog)).length;
+    let release: () => void = () => undefined;
+    let held: Promise<void> = Promise.resolve();
+    await context.route('**/request-link', async (route) => {
+      await held;
+      await route.fulfill({ status: 413, contentType: 'application/json', body: JSON.stringify({ outcome: 'too_large' }) });
+    });
+    const visit = await openBooted(context, endpoints.base, PAGES[0]);
+    visit.expectsAuthErrorStatus = true;
+    await visit.page.evaluate(() => {
+      const region = document.getElementById('announce-assertive');
+      const seen: string[] = [];
+      (window as unknown as { __renderedAssertive: string[] }).__renderedAssertive = seen;
+      if (region === null) return;
+      new MutationObserver(() => seen.push(region.textContent ?? '')).observe(region, {
+        childList: true,
+        characterData: true,
+        subtree: true
+      });
+    });
+    const want = AUTH_OUTCOMES.too_large;
+    const submit = async () => {
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(ADMIN_ADDRESS);
+      await visit.page.getByRole('button', { name: TITLES.login, exact: true }).click();
+    };
 
-    const readState = () => visit.page.evaluate(() => ({ search: location.search, state: JSON.stringify(history.state) }));
-    const clean = (s: { search: string; state: string }) => s.search === '' && (token === '' || !s.state.includes(token));
+    await submit();
+    await visit.page.locator('#outcome').waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await afterFrames(visit.page);
+    await visit.page.locator('#outcome').evaluate((el) => el.setAttribute('data-rendered-first', ''));
 
-    const afterLoad = await readState();
-    await visit.page.locator('a[href="#main"]').first().focus();
-    const afterSkip = await readState();
+    held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await submit();
+    const goneInFlight = await visit.page
+      .waitForFunction(() => document.querySelector('#outcome') === null, undefined, { timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false);
+    release();
+    await visit.page.locator('#outcome').waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await afterFrames(visit.page);
 
-    const consumePOSTs = (records: LoggedRequest[]) =>
-      records.filter((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
-    const beforeClick = consumePOSTs(await requestLog(endpoints.requestLog)).length;
-
-    await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
-    await visit.page.locator('#outcome').first().waitFor({ timeout: BOOT_TIMEOUT_MS });
-    const afterClick = await readState();
-
-    const records = await requestLog(endpoints.requestLog);
-    const afterClickCount = consumePOSTs(records).length;
-    const anyCarriesToken =
-      token.length > 0 &&
-      records
-        .slice(sinceLoad)
-        .some((r) => r.query.includes(token) || Object.values(r.headers).flat().some((v) => v.includes(token)));
-    const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+    const fresh = await visit.page.locator('#outcome').evaluate((el) => !el.hasAttribute('data-rendered-first'));
+    const text = ((await visit.page.locator('#outcome').textContent()) ?? '').trim();
+    const seen = await visit.page.evaluate(() => (window as unknown as { __renderedAssertive: string[] }).__renderedAssertive);
+    const announcements = seen.filter((t) => t === want).length;
 
     await report({
       id,
-      fixture: token.length > 0,
-      property:
-        clean(afterLoad) &&
-        clean(afterSkip) &&
-        clean(afterClick) &&
-        beforeClick === 0 &&
-        afterClickCount === 1 &&
-        !anyCarriesToken &&
-        text === AUTH_OUTCOMES.signed_in,
-      detail: `afterLoad ${JSON.stringify(afterLoad)}; afterSkip ${JSON.stringify(afterSkip)}; afterClick ${JSON.stringify(afterClick)}; consume-link POSTs before ${beforeClick} after ${afterClickCount}; any request carries the token ${anyCarriesToken}; outcome text ${JSON.stringify(text)}`
+      fixture: text === want,
+      property: goneInFlight && fresh && announcements === 2,
+      detail: `first alert gone while the second request was in flight ${goneInFlight}; second alert a new element ${fresh}; assertive region texts ${JSON.stringify(seen)} (want ${JSON.stringify(want)} twice)`
     });
   } finally {
     await context.close();
+  }
+}
+
+// Records the URL argument of every history write from the document's
+// first script on, so a row can wait for kit's own writes and check
+// that none carried the token. An init script runs before any page
+// script, so the first write it can miss is none.
+const HISTORY_RECORDER = `
+  window.__renderedHistoryWrites = [];
+  for (const name of ['pushState', 'replaceState']) {
+    const native = History.prototype[name];
+    History.prototype[name] = function (state, unused, url) {
+      window.__renderedHistoryWrites.push(url === undefined || url === null ? null : String(url));
+      return native.call(this, state, unused, url);
+    };
+  }
+`;
+
+/** One variant of the token-ordering row: the mailed link as sent, or with a fragment appended. */
+interface OrderingVariant {
+  id: string;
+  link: (endpoints: Endpoints) => string;
+  fragment: string;
+}
+
+const ORDERING_VARIANTS: OrderingVariant[] = [
+  { id: 'auth/interstitial/token-order', link: (e) => e.loginLinkOrdering, fragment: '' },
+  // Kit's focus reset on a URL with a fragment naming an element
+  // (`main`'s own id) replaces the history entry with `page.url` after
+  // the page renders: had kit ever held the token, that write would
+  // restore it to the address bar and the history entry.
+  { id: 'auth/interstitial/token-order/fragment', link: (e) => e.loginLinkOrderingFragment, fragment: '#main' }
+];
+
+/**
+ * The token never reaches `location.search`, `history.state`, or any
+ * history write once the page has settled; no request but the mailed
+ * link's own document GET carries it, from before that GET on; the
+ * served document carries the no-referrer meta; and exactly one
+ * `consume-link` POST happens, only after the click.
+ */
+async function interstitialOrderingRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const variant of ORDERING_VARIANTS) {
+    const id = variant.id;
+    const context = await browser.newContext();
+    try {
+      await context.addInitScript(HISTORY_RECORDER);
+      const link = variant.link(endpoints);
+      const token = new URL(link).searchParams.get('t') ?? '';
+      const linkPath = new URL(link).pathname;
+      const sinceBeforeGoto = (await requestLog(endpoints.requestLog)).length;
+      const { visit } = await open(context, link + variant.fragment, 'load');
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+
+      // The fragment variant's fixture state is kit's own focus-reset
+      // write having run. Three writes name the fragment by then: the
+      // token's removal, kit's first navigation, and kit's focus reset.
+      const writesNamingFragment = (fragment: string) =>
+        ((window as unknown as { __renderedHistoryWrites?: (string | null)[] }).__renderedHistoryWrites ?? []).filter(
+          (u) => u !== null && u.endsWith(fragment)
+        ).length;
+      let kitWriteSeen = true;
+      if (variant.fragment !== '') {
+        kitWriteSeen = await visit.page
+          .waitForFunction(
+            (fragment) =>
+              ((window as unknown as { __renderedHistoryWrites?: (string | null)[] }).__renderedHistoryWrites ?? []).filter(
+                (u) => u !== null && u.endsWith(fragment)
+              ).length >= 3,
+            variant.fragment,
+            { timeout: BOOT_TIMEOUT_MS }
+          )
+          .then(() => true)
+          .catch(() => false);
+      }
+
+      const readState = () =>
+        visit.page.evaluate(() => ({
+          search: location.search,
+          state: JSON.stringify(history.state),
+          writes: (window as unknown as { __renderedHistoryWrites?: (string | null)[] }).__renderedHistoryWrites ?? []
+        }));
+      const clean = (s: { search: string; state: string; writes: (string | null)[] }) =>
+        s.search === '' && (token === '' || (!s.state.includes(token) && !s.writes.some((u) => u !== null && u.includes(token))));
+
+      const referrerMeta = await visit.page.evaluate(
+        () => document.querySelector('meta[name="referrer"]')?.getAttribute('content') ?? null
+      );
+      const afterLoad = await readState();
+      await visit.page.locator('a[href="#main"]').first().focus();
+      const afterSkip = await readState();
+
+      const consumePOSTs = (records: LoggedRequest[]) =>
+        records.filter((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
+      const beforeClick = consumePOSTs((await requestLog(endpoints.requestLog)).slice(sinceBeforeGoto)).length;
+
+      await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+      await visit.page.locator('#outcome').first().waitFor({ timeout: BOOT_TIMEOUT_MS });
+      const afterClick = await readState();
+
+      // Every request from before the goto on, less exactly one: the
+      // mailed link's own document GET, which is how the token reaches
+      // the client at all.
+      const records = (await requestLog(endpoints.requestLog)).slice(sinceBeforeGoto);
+      const documentIndex = records.findIndex((r) => r.method === 'GET' && r.path === linkPath && r.query.includes(token));
+      const rest = records.filter((_, i) => i !== documentIndex);
+      const afterClickCount = consumePOSTs(records).length;
+      const carriers = rest.filter(
+        (r) => r.query.includes(token) || Object.values(r.headers).flat().some((v) => v.includes(token))
+      );
+      const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+      const fragmentWrites = variant.fragment === '' ? 0 : await visit.page.evaluate(writesNamingFragment, variant.fragment);
+
+      await report({
+        id,
+        fixture: token.length > 0 && documentIndex !== -1 && kitWriteSeen,
+        property:
+          clean(afterLoad) &&
+          clean(afterSkip) &&
+          clean(afterClick) &&
+          referrerMeta === 'no-referrer' &&
+          beforeClick === 0 &&
+          afterClickCount === 1 &&
+          carriers.length === 0 &&
+          text === AUTH_OUTCOMES.signed_in,
+        detail: `afterLoad ${JSON.stringify(afterLoad)}; afterSkip ${JSON.stringify(afterSkip)}; afterClick ${JSON.stringify(afterClick)}; history writes naming the fragment ${fragmentWrites}; referrer meta ${JSON.stringify(referrerMeta)}; document GET found ${documentIndex !== -1}; consume-link POSTs before ${beforeClick} after ${afterClickCount}; other requests carrying the token ${describe(carriers)}; outcome text ${JSON.stringify(text)}`
+      });
+    } finally {
+      await context.close();
+    }
   }
 }
 
@@ -2868,33 +3093,37 @@ async function interstitialSignedInRow(browser: Browser, endpoints: Endpoints): 
     }
 
     const text = (await visit.page.locator('#outcome').textContent()) ?? '';
-    const polite = (await visit.page.locator('#announce-polite').textContent()) ?? '';
+    const focused = await visit.page
+      .waitForFunction(() => document.activeElement?.tagName === 'H1', undefined, { timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false);
+    // The focused heading reads the terminal state, so the live regions
+    // stay silent rather than saying it twice.
+    const said = await announced(visit.page);
     const title = await visit.page.title();
-    const focusedTag = await visit.page.evaluate(() => document.activeElement?.tagName ?? null);
     const wantTitle = pageTitle(TITLES.loginLinkSignedIn, endpoints.siteName);
-    // Item 11's fold: a dead end gets a deck-sourced link onward.
-    const continueHref = await visit.page
-      .getByRole('link', { name: SIGNED_IN_CONTINUE, exact: true })
-      .getAttribute('href')
-      .catch(() => null);
+    // The consume answer says nothing of the admin flag, and the members
+    // page answers not found to a non-admin, so no link leads there.
+    const membersLinks = await visit.page.evaluate(
+      () => Array.from(document.querySelectorAll('a[href]')).filter((a) => new URL((a as HTMLAnchorElement).href).pathname.endsWith('/members')).length
+    );
 
     await report({
       id,
       fixture: settled,
-      property:
-        text === AUTH_OUTCOMES.signed_in &&
-        polite === AUTH_OUTCOMES.signed_in &&
-        title === wantTitle &&
-        focusedTag === 'H1' &&
-        continueHref !== null,
-      detail: `outcome text ${JSON.stringify(text)}; polite region ${JSON.stringify(polite)}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); focused element ${focusedTag}; continue link href ${JSON.stringify(continueHref)}`
+      property: text === AUTH_OUTCOMES.signed_in && said.text === '' && title === wantTitle && focused && membersLinks === 0,
+      detail: `outcome text ${JSON.stringify(text)}; announced ${JSON.stringify(said.text)} (want none); title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); heading focused ${focused}; links to members ${membersLinks}`
     });
   } finally {
     await context.close();
   }
 }
 
-/** A reload of the stripped URL (no token at all): the refused copy, and no request. */
+/**
+ * A reload of the stripped URL (no token at all): the missing-token
+ * line, never the used-link refusal (nothing was spent, so the mailed
+ * link still works), and no request.
+ */
 async function interstitialRefusedReloadRow(browser: Browser, endpoints: Endpoints): Promise<void> {
   const id = 'auth/interstitial/refused-reload';
   const context = await browser.newContext();
@@ -2902,17 +3131,50 @@ async function interstitialRefusedReloadRow(browser: Browser, endpoints: Endpoin
     const from = (await requestLog(endpoints.requestLog)).length;
     const visit = await openBooted(context, endpoints.base, PAGES[1]);
     const text = (await visit.page.locator('#outcome').textContent()) ?? '';
-    const linkHref = await visit.page
-      .locator('#outcome a')
-      .getAttribute('href', { timeout: 5_000 })
-      .catch(() => null);
     const records = (await requestLog(endpoints.requestLog)).slice(from);
     const consumeSent = records.some((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
     await report({
       id,
       fixture: true,
-      property: text === AUTH_OUTCOMES.refused && !consumeSent && linkHref !== null,
-      detail: `outcome text ${JSON.stringify(text)}; consume-link POST sent ${consumeSent}; sign-in link href ${linkHref}`
+      property: text === LINK_TOKEN_MISSING && !consumeSent,
+      detail: `outcome text ${JSON.stringify(text)} (want ${JSON.stringify(LINK_TOKEN_MISSING)}); consume-link POST sent ${consumeSent}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * The server's own refusal of a spent or expired link (fulfilled, so
+ * no real link is spent): the refused heading, which takes focus, and
+ * the deck's refused line with its link back to sign-in.
+ */
+async function interstitialRefusedRow(browser: Browser, endpoints: Endpoints): Promise<void> {
+  const id = 'auth/interstitial/refused';
+  const context = await browser.newContext();
+  try {
+    await context.route('**/consume-link', (route) =>
+      route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ outcome: 'refused' }) })
+    );
+    const { visit } = await open(context, new URL('login/link?t=fixture-refused', endpoints.base).href, 'load');
+    visit.expectsAuthErrorStatus = true;
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+    const settled = await visit.page
+      .getByRole('heading', { level: 1, name: TITLES.loginLinkRefused, exact: true })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+    const linkHref = await visit.page
+      .locator('#outcome a')
+      .getAttribute('href', { timeout: 2_000 })
+      .catch(() => null);
+    await report({
+      id,
+      fixture: settled,
+      property: text === AUTH_OUTCOMES.refused && linkHref !== null,
+      detail: `outcome text ${JSON.stringify(text)}; sign-in link href ${linkHref}`
     });
   } finally {
     await context.close();
@@ -2963,10 +3225,7 @@ async function interstitialFulfilledRows(browser: Browser, endpoints: Endpoints)
         wantModifier === null
           ? classes.includes('alert') && !classes.includes('alert-warning') && !classes.includes('alert-error')
           : classes.includes(wantModifier);
-      const politeText = (await visit.page.locator('#announce-polite').textContent()) ?? '';
-      const assertiveText = (await visit.page.locator('#announce-assertive').textContent()) ?? '';
-      const announced = politeText || assertiveText;
-      const announcedPoliteness: 'polite' | 'assertive' | 'none' = politeText ? 'polite' : assertiveText ? 'assertive' : 'none';
+      const said = await announced(visit.page);
       const wantPoliteness: 'polite' | 'assertive' = wantClass === 'status' ? 'polite' : 'assertive';
       const headingUnchanged = await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).count();
 
@@ -2976,10 +3235,10 @@ async function interstitialFulfilledRows(browser: Browser, endpoints: Endpoints)
         property:
           text === AUTH_OUTCOMES[c.outcome] &&
           classOK &&
-          announced === AUTH_OUTCOMES[c.outcome] &&
-          announcedPoliteness === wantPoliteness &&
+          said.text === AUTH_OUTCOMES[c.outcome] &&
+          said.politeness === wantPoliteness &&
           headingUnchanged === 1,
-        detail: `text ${JSON.stringify(text)}; class ${JSON.stringify(cls)} (want modifier ${wantModifier}); announced ${JSON.stringify(announced)} as ${announcedPoliteness} (want ${wantPoliteness}); h1 unchanged ${headingUnchanged === 1}`
+        detail: `text ${JSON.stringify(text)}; class ${JSON.stringify(cls)} (want modifier ${wantModifier}); announced ${JSON.stringify(said.text)} as ${said.politeness} (want ${wantPoliteness}); h1 unchanged ${headingUnchanged === 1}`
       });
     } finally {
       await context.close();
@@ -3510,6 +3769,331 @@ async function membersListJoinRow(browser: Browser, endpoints: Endpoints, sessio
   }
 }
 
+/** Opens the members page under `session`, waiting for its signed-in heading. */
+async function openMembers(context: BrowserContext, endpoints: Endpoints, session: Cookie): Promise<Visit> {
+  await context.addCookies([session]);
+  const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+  await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+  return visit;
+}
+
+/**
+ * A roster answer named after an inherited member (`toString`) shows
+ * the last-resort `failed` line: a plain property lookup would find
+ * `Object.prototype.toString` and render a function's source. The POST
+ * is fulfilled, so the fixture roster is untouched.
+ */
+async function membersInheritedOutcomeRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/inherited-outcome';
+  const context = await browser.newContext();
+  try {
+    await context.route('**/roster', (route) => {
+      if (route.request().method() !== 'POST') return route.continue();
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome: 'toString' }) });
+    });
+    const visit = await openMembers(context, endpoints, session);
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill('inherited@example.test');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Inherited');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('inherited');
+    await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
+    const appeared = await visit.page
+      .locator('#roster-outcome')
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const text = appeared ? ((await visit.page.locator('#roster-outcome').textContent()) ?? '').trim() : '';
+    await report({
+      id,
+      fixture: appeared,
+      property: text === AUTH_OUTCOMES.failed,
+      detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(AUTH_OUTCOMES.failed)})`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** One sign-out answer, and whether the header must leave for the login page on it. */
+interface SignOutCase {
+  id: string;
+  mode: 'real' | 'abort' | { status: number; contentType: string; body: string };
+  /** The line the header announces when it stays; `null` when it leaves. */
+  stays: string | null;
+}
+
+const SIGN_OUT_CASES: SignOutCase[] = [
+  { id: 'header/sign-out/signed-out', mode: 'real', stays: null },
+  { id: 'header/sign-out/network-failure', mode: 'abort', stays: NETWORK_FAILURE },
+  { id: 'header/sign-out/cross-origin', mode: { status: 403, contentType: 'text/plain', body: 'Forbidden' }, stays: CROSS_ORIGIN_REFUSED },
+  // The outcome alone is not enough: a non-2xx answer that names it
+  // did not come from the handler that clears the cookie.
+  {
+    id: 'header/sign-out/not-ok',
+    mode: { status: 500, contentType: 'application/json', body: JSON.stringify({ outcome: 'signed_out' }) },
+    stays: NETWORK_FAILURE
+  }
+];
+
+/**
+ * Sign-out from the members page: a real `signed_out` answer lands on
+ * the login page's signed-out state, with the session cookie gone from
+ * the browser; every other answer leaves the member on the members
+ * page, the session cookie in place, with the reason announced
+ * assertively.
+ */
+async function signOutRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  for (const c of SIGN_OUT_CASES) {
+    const context = await browser.newContext();
+    try {
+      if (c.mode === 'abort') {
+        await context.route('**/sign-out', (route) => route.abort('failed'));
+      } else if (c.mode !== 'real') {
+        const { status, contentType, body } = c.mode;
+        await context.route('**/sign-out', (route) => route.fulfill({ status, contentType, body }));
+      }
+      const visit = await openMembers(context, endpoints, session);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByRole('button', { name: SIGN_OUT_CONTROL, exact: true }).click();
+
+      const sessionHeld = async () => (await context.cookies()).some((k) => k.name === SESSION_COOKIE_NAME);
+      if (c.stays === null) {
+        const landed = await visit.page
+          .getByRole('heading', { level: 1, name: endpoints.siteName, exact: true })
+          .waitFor({ timeout: BOOT_TIMEOUT_MS })
+          .then(() => true)
+          .catch(() => false);
+        const text = landed ? ((await visit.page.locator('#outcome').textContent()) ?? '').trim() : '';
+        const said = await announced(visit.page);
+        const title = await visit.page.title();
+        const wantTitle = pageTitle(TITLES.signedOut, endpoints.siteName);
+        const path = new URL(visit.page.url()).pathname;
+        const cookieGone = !(await sessionHeld());
+        await report({
+          id: c.id,
+          fixture: landed,
+          property:
+            path.endsWith('/login') &&
+            text === AUTH_OUTCOMES.signed_out &&
+            said.text === AUTH_OUTCOMES.signed_out &&
+            said.politeness === 'polite' &&
+            title === wantTitle &&
+            cookieGone,
+          detail: `path ${path}; outcome text ${JSON.stringify(text)}; announced ${JSON.stringify(said.text)} as ${said.politeness}; title ${JSON.stringify(title)} (want ${JSON.stringify(wantTitle)}); session cookie gone ${cookieGone}`
+        });
+        continue;
+      }
+      const want = c.stays;
+      const heard = await visit.page
+        .waitForFunction((w) => document.getElementById('announce-assertive')?.textContent === w, want, { timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      const stillMembers = (await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).count()) === 1;
+      const path = new URL(visit.page.url()).pathname;
+      const kept = await sessionHeld();
+      await report({
+        id: c.id,
+        fixture: true,
+        property: heard && stillMembers && path.endsWith('/members') && kept,
+        detail: `announced ${JSON.stringify(want)} assertively ${heard}; still on members ${stillMembers} (path ${path}); session cookie kept ${kept}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * A second sign-out click while the first request is in flight sends
+ * nothing: two clicks in one task, then the held answer released,
+ * reach the server's route once.
+ */
+async function signOutInFlightRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'header/sign-out/in-flight';
+  const context = await browser.newContext();
+  try {
+    let calls = 0;
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await context.route('**/sign-out', async (route) => {
+      calls += 1;
+      await held;
+      await route.fulfill({ status: 403, contentType: 'text/plain', body: 'Forbidden' });
+    });
+    const visit = await openMembers(context, endpoints, session);
+    visit.expectsAuthErrorStatus = true;
+    await visit.page.evaluate((name) => {
+      const button = Array.from(document.querySelectorAll<HTMLButtonElement>('.site-header button')).find(
+        (b) => (b.textContent ?? '').trim() === name
+      );
+      button?.click();
+      button?.click();
+    }, SIGN_OUT_CONTROL);
+    const deadline = Date.now() + 2_000;
+    while (calls === 0 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50));
+    // A second request, had the guard let one through, is already on
+    // its way by now: both clicks ran in one task.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const firstArrived = calls >= 1;
+    release();
+    await visit.page
+      .waitForFunction((w) => document.getElementById('announce-assertive')?.textContent === w, CROSS_ORIGIN_REFUSED, {
+        timeout: BOOT_TIMEOUT_MS
+      })
+      .catch(() => undefined);
+    await report({
+      id,
+      fixture: firstArrived,
+      property: calls === 1,
+      detail: `sign-out requests reaching the route ${calls} (want 1)`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** `fg` painted over `bg` at `fg`'s own alpha. */
+function over(fg: RGBA, bg: RGBA): RGBA {
+  const a = fg[3] / 255;
+  const mix = (i: number) => Math.round(fg[i] * a + bg[i] * (1 - a));
+  return [mix(0), mix(1), mix(2), 255];
+}
+
+/**
+ * `header/sign-out-contrast/<palette>`: Sign out's text against what
+ * paints behind it (its own fill over the bar) at rest, hovered, and
+ * keyboard-focused, each at 4.5:1 or better, and a hover state a reader
+ * can see (the underline). DaisyUI fills a hovered or focused `.btn`
+ * from base-200 unless the button names its own color, which put a
+ * cream fill under cream text.
+ */
+async function signOutContrastRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const host = new URL(endpoints.base).hostname;
+  for (const palette of ['label', 'label-night'] as const) {
+    const id = `header/sign-out-contrast/${palette}`;
+    const context = await browser.newContext();
+    try {
+      await context.addCookies([{ name: THEME_COOKIE, value: palette, domain: host, path: '/', secure: true }]);
+      const visit = await openMembers(context, endpoints, session);
+      const button = visit.page.locator('.site-header button', { hasText: SIGN_OUT_CONTROL });
+      const settle = () =>
+        button.evaluate(async (el) => {
+          await Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined)));
+        });
+      const read = async () => {
+        await settle();
+        const got = await button.evaluate((el) => {
+          const style = getComputedStyle(el);
+          const bar = document.querySelector('.site-header');
+          return {
+            color: style.color,
+            background: style.backgroundColor,
+            bar: bar === null ? 'transparent' : getComputedStyle(bar).backgroundColor,
+            underline: style.textDecorationLine,
+            focused: document.activeElement === el && el.matches(':focus-visible')
+          };
+        });
+        const bar = await paintedColor(visit.page, got.bar);
+        const behind = over(await paintedColor(visit.page, got.background), bar);
+        const ratio = contrastRatio(over(await paintedColor(visit.page, got.color), behind), behind);
+        return { ratio, underline: got.underline, focused: got.focused };
+      };
+
+      await visit.page.mouse.move(-1, -1);
+      const rest = await read();
+      await button.hover();
+      const hover = await read();
+      await visit.page.mouse.move(-1, -1);
+      let focusReached = false;
+      for (let i = 0; i < 10 && !focusReached; i++) {
+        await visit.page.keyboard.press('Tab');
+        focusReached = await button.evaluate((el) => document.activeElement === el);
+      }
+      const focus = await read();
+
+      const problems: string[] = [];
+      for (const [state, m] of Object.entries({ rest, hover, focus })) {
+        if (m.ratio < TEXT_FLOOR) problems.push(`${state}: ${m.ratio.toFixed(2)}:1 (want ${TEXT_FLOOR}:1 or better)`);
+      }
+      if (hover.underline === rest.underline) problems.push(`hover: no visible hover state (text-decoration-line ${hover.underline} at rest and hovered)`);
+      await report({
+        id,
+        fixture: focusReached && focus.focused,
+        property: problems.length === 0,
+        detail: `rest ${rest.ratio.toFixed(2)}:1, hover ${hover.ratio.toFixed(2)}:1 (${hover.underline}), focus ${focus.ratio.toFixed(2)}:1${problems.length > 0 ? `; ${problems.join('; ')}` : ''}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/** The header's pinned height (W3.4): DaisyUI's navbar at `h-16`. */
+const HEADER_HEIGHT_PX = 64;
+
+/**
+ * `header/structure`: the header renders while the roster is still
+ * loading, and in both that state and the loaded one it is a stock
+ * DaisyUI navbar at its pinned height, with the home link inside the
+ * `nav` landmark and sign-out beside it. The roster GET is held until
+ * the loading state has been measured, then let through to the real
+ * server. Measured at 320px, the narrowest capture width.
+ */
+async function headerStructureRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'header/structure';
+  const context = await browser.newContext({ viewport: { width: 320, height: 900 } });
+  try {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await context.route('**/roster', async (route) => {
+      if (route.request().method() === 'GET') await held;
+      await route.continue();
+    });
+    await context.addCookies([session]);
+    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+    const measure = () =>
+      visit.page.evaluate(() => {
+        const header = document.querySelector('.site-header');
+        const bar = header?.firstElementChild ?? null;
+        const homeLink = header?.querySelector('nav a[href]') ?? null;
+        const signOut = Array.from(header?.querySelectorAll('button') ?? []).find((b) => (b.textContent ?? '').trim() !== '');
+        return {
+          header: header !== null,
+          navbar: bar?.classList.contains('navbar') ?? false,
+          start: header !== null && header.querySelector('.navbar-start') !== null,
+          end: header !== null && header.querySelector('.navbar-end') !== null,
+          homeInNav: homeLink !== null && new URL((homeLink as HTMLAnchorElement).href).pathname.endsWith('/members'),
+          signOut: signOut !== undefined,
+          height: header === null ? 0 : header.getBoundingClientRect().height,
+          heading: document.querySelector('h1')?.textContent ?? null
+        };
+      });
+    const headerShown = await visit.page
+      .locator('.site-header')
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const loading = await measure();
+    release();
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const loaded = await measure();
+
+    const shapeOK = (m: typeof loading) =>
+      m.header && m.navbar && m.start && m.end && m.homeInNav && m.signOut && Math.abs(m.height - HEADER_HEIGHT_PX) < 0.5;
+    await report({
+      id,
+      fixture: loading.heading === null,
+      property: headerShown && shapeOK(loading) && shapeOK(loaded),
+      detail: `loading ${JSON.stringify(loading)}; loaded ${JSON.stringify(loaded)} (want a navbar, start and end, the home link in nav, sign-out, height ${HEADER_HEIGHT_PX}px)`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
 /** One toggle click's start and what it must write (the acceptance table's four starts). */
 interface ToggleCase {
   id: string;
@@ -3950,9 +4534,23 @@ const CAPTURE_STATES: CaptureState[] = [
   },
   {
     id: 'interstitial/refused',
+    // The server's refusal of a spent link, fulfilled so no real link
+    // is spent; a page with no token at all shows the missing-token
+    // line instead.
     async arrange(context, endpoints) {
-      const visit = await openBooted(context, endpoints.base, PAGES[1]);
-      const text = ((await visit.page.locator('#outcome').textContent()) ?? '').trim();
+      await context.route('**/consume-link', (route) =>
+        route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ outcome: 'refused' }) })
+      );
+      const { visit } = await open(context, new URL('login/link?t=capture-refused', endpoints.base).href, 'load');
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      await visit.page.getByRole('button', { name: INTERSTITIAL_CONTROL, exact: true }).click();
+      const settled = await visit.page
+        .getByRole('heading', { level: 1, name: TITLES.loginLinkRefused, exact: true })
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      const text = settled ? ((await visit.page.locator('#outcome').textContent()) ?? '').trim() : '';
       return { page: visit.page, ok: text === AUTH_OUTCOMES.refused, detail: `refused text ${JSON.stringify(text)}` };
     }
   },
@@ -4309,6 +4907,7 @@ async function main(): Promise<void> {
     siteName: requiredEnv('DUBPLATE_RENDERED_SITE_NAME'),
     adminDisplayName: requiredEnv('DUBPLATE_RENDERED_ADMIN_DISPLAY_NAME'),
     loginLinkOrdering: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_ORDERING'),
+    loginLinkOrderingFragment: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_ORDERING_FRAGMENT'),
     loginLinkSignedIn: requiredEnv('DUBPLATE_RENDERED_LOGIN_LINK_SIGNED_IN'),
     membersAddLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_ADD_LINK'),
     membersNonAdminLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_NON_ADMIN_LINK'),
@@ -4346,9 +4945,12 @@ async function main(): Promise<void> {
     await siteNameHeadingRow(browser, endpoints);
     await loginOutcomeRows(browser, endpoints);
     await loginSingleOutcomeRow(browser, endpoints);
-    await interstitialOrderingRow(browser, endpoints);
+    await loginFallbackRows(browser, endpoints);
+    await loginRepeatOutcomeRow(browser, endpoints);
+    await interstitialOrderingRows(browser, endpoints);
     await interstitialSignedInRow(browser, endpoints);
     await interstitialRefusedReloadRow(browser, endpoints);
+    await interstitialRefusedRow(browser, endpoints);
     await interstitialFulfilledRows(browser, endpoints);
     await membersAddRow(browser, endpoints);
     await membersNonAdminRow(browser, endpoints);
@@ -4359,6 +4961,11 @@ async function main(): Promise<void> {
     await layoutContentMeasureRow(browser, endpoints, headerSession);
     await membersListJoinRow(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
+    await headerStructureRow(browser, endpoints, headerSession);
+    await signOutContrastRows(browser, endpoints, headerSession);
+    await membersInheritedOutcomeRow(browser, endpoints, headerSession);
+    await signOutInFlightRow(browser, endpoints, headerSession);
+    await signOutRows(browser, endpoints, headerSession);
     await captureRows(browser, endpoints);
     refuseUnclean();
     await refuseLateLeaks(endpoints);

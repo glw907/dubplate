@@ -5,12 +5,15 @@ roster API's own admin gate (`internal/auth/admin.go`'s `RequireAdmin`).
 The page ships in public `_app/immutable/` chunks and renders nothing it
 did not fetch; a non-admin's GET meets the gate's 404 and sees the
 not-found state instead of the roster, with no roster and no form.
-`main` and the skip link give the page a keyboard-reachable landmark.
+The signed-in header renders in every state, loading included, and
+`main` is the root layout's skip-link target.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
+  import { postForm } from '$lib/api/post';
+  import { announce } from '$lib/announcer.svelte';
   import SiteHeader from '$lib/components/SiteHeader.svelte';
   import {
     ADD_MEMBER_HINTS,
@@ -57,8 +60,6 @@ not-found state instead of the roster, with no roster and no form.
   let streamerUsername = $state('');
   let submitting = $state(false);
   let outcome = $state<string | null>(null);
-  let politeText = $state('');
-  let assertiveText = $state('');
   let addMemberForm = $state<HTMLFormElement | null>(null);
 
   // A roster member's meta line joins only the segments it actually
@@ -69,24 +70,18 @@ not-found state instead of the roster, with no roster and no form.
     return [member.address, member.streamer_username].filter((segment) => segment !== '').join(' · ');
   }
 
-  function announce(text: string, politeness: 'polite' | 'assertive'): void {
-    if (politeness === 'polite') {
-      assertiveText = '';
-      politeText = text;
-    } else {
-      politeText = '';
-      assertiveText = text;
-    }
-  }
-
   // The line for a roster outcome, an auth-shared outcome (a cross-origin
   // refusal or a network failure that never reached a roster answer, or
   // a status like 'failed'), or a last-resort deck line if the server
-  // answers with something neither dictionary names.
+  // answers with something neither dictionary names. The lookups test
+  // own properties, so an outcome named after an inherited member
+  // (`toString`, `constructor`) falls through to that last resort.
   function resolveOutcome(o: string): string {
     if (o === 'cross_origin') return CROSS_ORIGIN_REFUSED;
     if (o === 'network_failure') return NETWORK_FAILURE;
-    return ROSTER_OUTCOMES[o] ?? AUTH_OUTCOMES[o] ?? AUTH_OUTCOMES.failed;
+    if (Object.hasOwn(ROSTER_OUTCOMES, o)) return ROSTER_OUTCOMES[o];
+    if (Object.hasOwn(AUTH_OUTCOMES, o)) return AUTH_OUTCOMES[o];
+    return AUTH_OUTCOMES.failed;
   }
 
   // 'added' is the only roster outcome that is not a refusal; 'failed'
@@ -131,36 +126,16 @@ not-found state instead of the roster, with no roster and no form.
     event.preventDefault();
     if (submitting) return;
     submitting = true;
+    // The stale outcome leaves while the request is in flight, so a
+    // repeated identical answer visibly arrives again.
+    outcome = null;
+    announce('', 'polite');
     try {
-      let response: Response;
-      try {
-        response = await fetch(apiURL(), {
-          method: 'POST',
-          body: new URLSearchParams({
-            address,
-            display_name: displayName,
-            streamer_username: streamerUsername
-          }),
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
-      } catch {
-        outcome = 'network_failure';
-        announce(resolveOutcome(outcome), outcomePoliteness(outcome));
-        return;
-      }
-      // The CSRF defense's deny handler answers 403 with a plain-text
-      // body, never JSON, so its status is read before any JSON parse.
-      if (response.status === 403) {
-        outcome = 'cross_origin';
-        announce(resolveOutcome(outcome), outcomePoliteness(outcome));
-        return;
-      }
-      let answer: { outcome: string };
-      try {
-        answer = (await response.json()) as { outcome: string };
-      } catch {
-        answer = { outcome: 'malformed' };
-      }
+      const answer = await postForm(ROSTER_PATH, {
+        address,
+        display_name: displayName,
+        streamer_username: streamerUsername
+      });
       outcome = answer.outcome;
       announce(resolveOutcome(outcome), outcomePoliteness(outcome));
       if (outcome === 'added') {
@@ -184,20 +159,7 @@ not-found state instead of the roster, with no roster and no form.
   <title>{pageTitle(status === 'refused' ? TITLES.notFound : TITLES.members, siteName)}</title>
 </svelte:head>
 
-<a
-  href="#main"
-  class="sr-only focus:not-sr-only focus:fixed {status === 'loading'
-    ? 'focus:top-4'
-    : 'focus:top-20'} focus:left-4 focus:z-50 focus:bg-base-100 focus:px-4 focus:py-2 focus:text-base-content"
-  >Skip to content</a
->
-
-<div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
-<div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
-
-{#if status === 'ok' || status === 'refused'}
-  <SiteHeader />
-{/if}
+<SiteHeader />
 
 <main id="main" tabindex="-1" class="content-measure flow py-8">
   {#if status === 'refused'}
