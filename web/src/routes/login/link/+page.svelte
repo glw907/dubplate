@@ -112,7 +112,7 @@ takes focus once the click settles into a terminal state (W7.16).
 <div id="announce-polite" aria-live="polite" class="sr-only">{politeText}</div>
 <div id="announce-assertive" aria-live="assertive" class="sr-only">{assertiveText}</div>
 
-<main id="main" tabindex="-1" class="content-measure flow p-8">
+<main id="main" tabindex="-1" class="content-measure flow py-8">
   <h1 tabindex="-1" bind:this={heading} class="display page-title">{headingText}</h1>
 
   {#if terminal === 'signed_in'}

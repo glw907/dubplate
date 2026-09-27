@@ -37,6 +37,7 @@ import {
   NETWORK_FAILURE,
   ROSTER_EMPTY_STATE,
   ROSTER_OUTCOMES,
+  SENT_ESCAPE_HATCH,
   SIGN_OUT_CONTROL,
   SIGNED_IN_CONTINUE,
   THEME_TOGGLE_LABEL,
@@ -2701,13 +2702,19 @@ async function loginOutcomeRows(browser: Browser, endpoints: Endpoints): Promise
       // Item 3's fold, checked on the sent moment only: the stale lede
       // ("Sign in with your email…") is hidden, and the moment aligns
       // to the same column the form above it used (never centered).
+      // `text-align: center` never moves a block box, so comparing the
+      // section's own border box against `h1` cannot catch a centered
+      // moment; the escape-hatch button's left edge is what a reader's
+      // eye actually lines up against the column.
       let ledeHidden = true;
       let aligned = true;
       if (isMoment) {
         ledeHidden = !(await visit.page.getByText(LOGIN_SUBLINE, { exact: true }).isVisible().catch(() => false));
         const h1X = await visit.page.locator('h1.page-title').evaluate((el) => el.getBoundingClientRect().x);
-        const outcomeX = await outcomeEl.evaluate((el) => el.getBoundingClientRect().x);
-        aligned = Math.abs(h1X - outcomeX) < 1;
+        const escapeHatchX = await visit.page
+          .getByRole('button', { name: SENT_ESCAPE_HATCH })
+          .evaluate((el) => el.getBoundingClientRect().x);
+        aligned = Math.abs(h1X - escapeHatchX) < 1;
       }
 
       await report({
@@ -3397,48 +3404,69 @@ async function rulingFourRow(browser: Browser, endpoints: Endpoints, session: Co
 
 /**
  * W3.2's content measure: the header's inner row and `main` share one
- * capped, centered width on the one real page that carries both (the
+ * capped, centered width and one visible left edge, at both a narrow
+ * and a wide viewport, on the one real page that carries both (the
  * render-and-read's "W3.2" defect: the header sat at `x=8` against
- * content at `x=32`, uncapped at 768, 1440, and 2560). Reuses the
- * header's own signed-in session cookie, spending no extra consumption.
+ * content at `x=32`, uncapped at 768, 1440, and 2560). Comparing the
+ * two border boxes alone cannot catch a shared box with mismatched
+ * inline padding, so this row also compares the mark link's left edge
+ * against `h1.page-title`'s left edge, the two elements a reader's eye
+ * actually lines up against the column. Reuses the header's own
+ * signed-in session cookie, spending no extra consumption.
  */
 async function layoutContentMeasureRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
   const id = 'layout/content-measure';
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  try {
-    await context.addCookies([session]);
-    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
-    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+  const widths = [390, 1440];
+  const details: string[] = [];
+  let property = true;
+  for (const width of widths) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    try {
+      await context.addCookies([session]);
+      const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
 
-    const measured = await visit.page.evaluate(() => {
-      const headerRow = document.querySelector('.site-header > div');
-      const main = document.querySelector('main');
-      if (headerRow === null || main === null) return null;
-      const h = headerRow.getBoundingClientRect();
-      const m = main.getBoundingClientRect();
-      return {
-        headerWidth: h.width,
-        headerLeft: h.left,
-        mainWidth: m.width,
-        mainLeft: m.left,
-        viewportWidth: window.innerWidth
-      };
-    });
-    if (measured === null) {
-      await report({ id, fixture: false, property: false, detail: 'the header row or main element is missing' });
-      return;
+      const measured = await visit.page.evaluate(() => {
+        const headerRow = document.querySelector('.site-header > div');
+        const main = document.querySelector('main');
+        const mark = document.querySelector('.site-header a');
+        const title = document.querySelector('h1.page-title');
+        if (headerRow === null || main === null || mark === null || title === null) return null;
+        const h = headerRow.getBoundingClientRect();
+        const m = main.getBoundingClientRect();
+        const markRect = mark.getBoundingClientRect();
+        const titleRect = title.getBoundingClientRect();
+        return {
+          headerWidth: h.width,
+          headerLeft: h.left,
+          mainWidth: m.width,
+          mainLeft: m.left,
+          markLeft: markRect.left,
+          titleLeft: titleRect.left,
+          viewportWidth: window.innerWidth
+        };
+      });
+      if (measured === null) {
+        property = false;
+        details.push(`${width}px: the header row, mark link, main, or page title is missing`);
+        continue;
+      }
+      // The cap only bites once the viewport exceeds the measure
+      // (40rem, 640px): a narrower viewport legitimately fills it
+      // edge to edge, which is not a capping failure.
+      const capped =
+        width <= 640 || (measured.mainWidth < measured.viewportWidth && measured.headerWidth < measured.viewportWidth);
+      const shared = Math.abs(measured.headerWidth - measured.mainWidth) < 1 && Math.abs(measured.headerLeft - measured.mainLeft) < 1;
+      const edgesAligned = Math.abs(measured.markLeft - measured.titleLeft) < 1;
+      property = property && capped && shared && edgesAligned;
+      details.push(
+        `${width}px: header row ${measured.headerWidth}px at x=${measured.headerLeft}; main ${measured.mainWidth}px at x=${measured.mainLeft}; mark left=${measured.markLeft}; title left=${measured.titleLeft}; viewport ${measured.viewportWidth}px`
+      );
+    } finally {
+      await context.close();
     }
-    const capped = measured.mainWidth < measured.viewportWidth && measured.headerWidth < measured.viewportWidth;
-    const shared = Math.abs(measured.headerWidth - measured.mainWidth) < 1 && Math.abs(measured.headerLeft - measured.mainLeft) < 1;
-    await report({
-      id,
-      fixture: true,
-      property: capped && shared,
-      detail: `header row ${measured.headerWidth}px at x=${measured.headerLeft}; main ${measured.mainWidth}px at x=${measured.mainLeft}; viewport ${measured.viewportWidth}px`
-    });
-  } finally {
-    await context.close();
   }
+  await report({ id, fixture: true, property, detail: details.join('; ') });
 }
 
 /**

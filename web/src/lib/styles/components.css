@@ -433,16 +433,22 @@
    * The content measure (W3.2, W3.9): the one capped, centered width a
    * page's `main` and the signed-in header's inner row both take, so
    * neither a rule, an alert, nor a list ever stretches past it and the
-   * two never drift apart. `--content-measure` is the primitive's own
-   * property, redeclared here as the first line of its rule per W3.9,
-   * so one call site can override it without touching this scale.
-   * Call site: `main` in every route under `web/src/routes/` and the
-   * header's inner row in `SiteHeader.svelte`.
+   * two never drift apart. `--content-measure` and `--content-gutter`
+   * are the primitive's own properties, redeclared here as the first
+   * lines of its rule per W3.9, so one call site can override either
+   * without touching this scale. The gutter is the one inline padding
+   * both call sites share, so the mark's left edge lands on the page
+   * title's left edge instead of each call site choosing its own
+   * horizontal padding. Call site: `main` in every route under
+   * `web/src/routes/` and the header's inner row in
+   * `SiteHeader.svelte`, each keeping its own vertical padding.
    */
   :where(.content-measure) {
     --content-measure: 40rem;
+    --content-gutter: 2rem;
     max-width: var(--content-measure);
     margin-inline: auto;
+    padding-inline: var(--content-gutter);
   }
 
   /*

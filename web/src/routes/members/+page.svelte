@@ -199,7 +199,7 @@ not-found state instead of the roster, with no roster and no form.
   <SiteHeader />
 {/if}
 
-<main id="main" tabindex="-1" class="content-measure flow p-8">
+<main id="main" tabindex="-1" class="content-measure flow py-8">
   {#if status === 'refused'}
     <h1 class="display page-title">{TITLES.notFound}</h1>
     <p>{ERROR_PAGE.notFoundHeading}</p>
