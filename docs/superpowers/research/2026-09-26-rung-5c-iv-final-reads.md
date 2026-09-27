@@ -49,3 +49,20 @@ Since e90998a: storeVouches closes the prior latent finding; the prior read's fi
 - backup.go:360-364 three-line comment -> one-line label or own case. ROUTE: cleanup.
 - New process citations rendered_test.go:232, :577, :66, :443, :475; renderedScriptTimeout doc (:35-41) is history; :241 over-long. ROUTE: comment cleanup.
 Best: store.go:187-197 storeVouches; rendered_test.go:673-702 with :289-294 spend reconciliation; :730-750 scriptEnvNames allowlist.
+
+## Fold R3's outcome and R3b (2026-09-26)
+
+R3 landed in two commits, `4c5864a` (its subject mislabels it "Task R2") and `8337877`. Its
+reviewer escalated one literal gap. `post.ts` still mapped a non-JSON 4xx other than 403 to
+`network_failure`, so a sign-out answered by a 404 page announced the connection line.
+
+**Ruling (conductor):** an answer that arrived means the server was reached. So every arrived
+non-JSON answer reads `failed`, a 403 still reads `cross_origin`, and `network_failure` is only
+for a fetch that threw. This takes path (a), which changes the shared mapping for login and link
+as well. R3b folds it, with three of the reviewer's cheap non-blocking items:
+
+- the `requested` line's repeated "Check your email";
+- deck-coverage failing on a nested object export;
+- `memberCountLine(1)` sampled.
+
+**Routed to cleanup:** no independent oracle cross-checks the roster outcome classes.
