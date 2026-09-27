@@ -24,8 +24,8 @@ Box read-only; nothing deploys until 5d.
 
 **Overnight 2026-09-26 (Geoff):** 22M cap (flag 17.6M). Queue, serial in the main tree: finish
 5c-iv (R1, R2, final capture read, Task 11), push master to private origin (gitleaks over
-`origin/master..master` first), the TypeScript 7 upgrade through `dependency-upgrade` (Geoff asked
-to move to it), transliteration, the photo integrity gate line, then 5d-i (approved). Document
+`origin/master..master` first), a TypeScript 7 probe in a scratch copy (no
+bump: svelte-check 4.7.6 has no TS 7 support yet, per cairn's tsgo canary), transliteration, the photo integrity gate line, then 5d-i (approved). Document
 lane: draft the 6d plan through `spec-plan-review` for morning approval. Memory
 `overnight-window-2026-09-26` holds the grants.
 
