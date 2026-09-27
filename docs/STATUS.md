@@ -12,13 +12,16 @@ Any full gate regenerates them under `web/rendered-captures/` (ignored).
 
 ## Next action
 
-**Overnight 2026-09-26 (Geoff):** 22M cap (flag 17.6M). Queue, serial in the main tree:
-transliteration (master pushed through `d618bff`; push again at each close, gitleaks first), the photo integrity gate line, then 5d-i. The 6d plan awaits approval. Memory
-`overnight-window-2026-09-26` holds the grants.
+**Overnight 2026-09-26 (Geoff):** ended early 2026-09-27 when Geoff closed the laptop, at about
+14.5M of the 22M cap. Transliteration is mid-pass: Tasks 0 to 4 (with 1b) and the simplifier
+accepted at `aeea780`, about 3.4M against its 3.3M ceiling (flag crossed, continued under the
+overnight grant). Its own architecture reads are ruled (`6d5c198`), and Task 3c folds them.
 
-**Resume:** read this file and memory `overnight-window-2026-09-26`. Next is transliteration
-(`plans/2026-09-25-translit-table-at-setup.md`, approved, 3.3M, Task 0 first), then the photo
-gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys until 5d.
+**Resume:** read this file. Relaunch transliteration Task 3c fresh through pass-execute
+(criteria: every FOLD item in `research/2026-09-27-translit-architecture-reads.md`; the stopped
+run `wf_ca338e5b-9ed` made no edit). Then Task 5's close drafts, the ledger fold (must-keep list),
+one diff-reviewer on it, and a push (gitleaks first). Next: the photo integrity gate line, then
+5d-i (approved), under a new window grant. Box read-only; nothing deploys until 5d.
 
 ## Owner questions
 
@@ -33,7 +36,7 @@ gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys un
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), overnight 2026-09-26 | OPEN: transliteration; segment A accepted (Tasks 1 `5318671` `1ca79d7`, 1b `194c01c`, 2 `e8e158d`, 3 `850cb4c` `189a6c8`); spend about 2.1M of 3.3M (flag 2.64M, segment B will cross it; continuing under the overnight grant, as 6c did); segment B (Task 4, simplifier, Task 5) next |
+| 1 | main tree (master) | PAUSED 2026-09-27 (laptop closed): transliteration Tasks 0-4, 1b, and the simplifier (`aeea780`) accepted; Task 3c stopped before any edit (tree clean); next: relaunch Task 3c fresh, then Task 5's close |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
