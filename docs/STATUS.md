@@ -22,16 +22,18 @@ architecture reads. Lane 2 merges 6c-fix through the merge ritual, then runs tra
 (`plans/2026-09-25-translit-table-at-setup.md`, approved, 3.3M) or 5d-i once 5c-iv closes and Geoff rules 5d.
 Box read-only; nothing deploys until 5d.
 
-**Unattended 2026-09-26 (Geoff):** 16M cap (flag 12.8M); finish 5c-iv, merge 6c-fix, then
-transliteration; 5d's ceilings deferred to the next sitting, so 5d-i does not start.
+**Overnight 2026-09-26 (Geoff):** 22M cap (flag 17.6M). Queue, serial in the main tree: finish
+5c-iv (R1, R2, final capture read, Task 11), push master to private origin (gitleaks over
+`origin/master..master` first), the TypeScript 7 upgrade through `dependency-upgrade` (Geoff asked
+to move to it), transliteration, the photo integrity gate line, then 5d-i (approved). Document
+lane: draft the 6d plan through `spec-plan-review` for morning approval. Memory
+`overnight-window-2026-09-26` holds the grants.
 
 ## Owner questions
 
 - Navidrome 0.64 bump for GHSA-82gh: open (Geoff 2026-09-25: sharing stays at zero until 0.8).
-- TypeScript 6.0.3 to 7.0.2, a major (5c-iv Task 0's pin check, `rung-5c-iv-task-0-report.md`).
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
-- 5d (rev 2.2) awaits two morning rulings: 1, ceilings 5d-i 7.0M / 5d-ii 3.5M; 2, the sitting.
 
 ## Lane registry
 

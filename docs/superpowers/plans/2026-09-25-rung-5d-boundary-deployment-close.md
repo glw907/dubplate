@@ -1,6 +1,6 @@
 # Rung 5, Pass 5d (The Boundary, the Deployment, and the Close) Implementation Plan
 
-Status: **revision 2.2, 2026-09-25; no ruling answered.** Revision 2.2 folds a prose-and-facts review
+Status: **revision 2.2, 2026-09-25; approved (Geoff, 2026-09-26): Ruling 1 yes (5d-i 7.0M, 5d-ii 3.5M), Ruling 2 yes (the attended deploy sitting).** Revision 2.2 folds a prose-and-facts review
 (`docs/superpowers/research/2026-09-25-rung-5d-plan-prose-review.md`). The review history, one
 disposition per finding for the earlier folds, is `docs/superpowers/research/2026-09-25-rung-5d-plan-fold.md`.
 Geoff reviews this revision at the plan-approval gate. 5d-i launches in lane 1 (the main tree) only
