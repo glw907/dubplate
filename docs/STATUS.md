@@ -13,10 +13,10 @@ Any full gate regenerates them under `web/rendered-captures/` (ignored).
 ## Next action
 
 **Overnight 2026-09-26 (Geoff):** 22M cap (flag 17.6M). Queue, serial in the main tree:
-transliteration, the photo integrity gate line, then 5d-i. The 6d plan awaits approval. Memory
+push master (gitleaks over `origin/master..master` first; origin at `aa8e19e`), transliteration, the photo integrity gate line, then 5d-i. The 6d plan awaits approval. Memory
 `overnight-window-2026-09-26` holds the grants.
 
-**Resume:** read this file and memory `overnight-window-2026-09-26`. Next is transliteration
+**Resume:** read this file and memory `overnight-window-2026-09-26`. Next: push master (gitleaks first), then transliteration
 (`plans/2026-09-25-translit-table-at-setup.md`, approved, 3.3M, Task 0 first), then the photo
 gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys until 5d.
 
@@ -70,7 +70,9 @@ gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys un
   criterion 16, `:712`; plan `:458`, `:459`, `:936`, `:1711`); 6c's errata 6c-E1 to 6c-E10; the
   5c-ii, 6b-i, 6a, window 2, 5c-iii, 6b-ii-b reads; 6c's reads' non-correctness findings,
   including the NaN float-parser disagreement and 117 plus 41 process-citation lines; 5c-iv's
-  cleanup routings (`research/2026-09-26-rung-5c-iv-final-reads.md`); matcher re-run trigger `strdist_test.go:452`. 103 coverage gaps (6c added 4), none
+  cleanup routings (`research/2026-09-26-rung-5c-iv-final-reads.md`, plus the login title-argument
+  and h1-fallback rendered proof, and 9b's five stale-comment nits from run `wf_5b983a74-956`,
+  which the simplifier round did not take); matcher re-run trigger `strdist_test.go:452`. 103 coverage gaps (6c added 4), none
   blocking. Staged legs: 325 process citations, 128 exported-unused; the citation leg misses
   `R-6c` patterns.
 - Photo lane, after lane 1: a `check.sh` integrity line, Ruling 3's photo erratum to rung 7, a

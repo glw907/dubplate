@@ -58,7 +58,8 @@ is `git log --oneline 1fc7260..1a08eae -- web cmd Makefile .gitignore`, which al
   not-found. `c1bec33` replaced two alignment checks that could not fail.
 - **The simplifier** (`1e48f93`): shared arrange bodies and POST guard, one error-page heading,
   `OutcomeClass` unexported, and line-number citations replaced by symbol names. One
-  `diff-reviewer` accepted it.
+  `diff-reviewer` accepted it. It did not take 9b's five stale-comment nits (run
+  `wf_5b983a74-956`), which route to the comment cleanup.
 - **Fold R1** (`913bbc2`, accepted with no fix round): security M1 and M2, the a11y blocker,
   and the shared plumbing (one announcer, skip link, and `postForm` in the layout and `$lib`).
   The header moved onto a stock navbar at a pinned height. Lookups use `Object.hasOwn`. A
@@ -174,7 +175,7 @@ promotion (Ruling 8); both palettes' placeholder opacity. Added by this pass: th
 
 Task 11 names the rung 5 spec's 5c row and the web surface standard's section 15 lines without
 a file line, so these are owed as paste-ready blocks, not applied. 5c-iii's errata 1 and 2
-(above in its entry) are also still unapplied; apply them first, then these after them.
+(below, in its entry) are also still unapplied; apply them first, then these after them.
 
 **5c-iv-E1. The rung 5 spec's 5c row closes.** Append after the last erratum block before "The
 pass split" (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2497-2504`), after
@@ -264,8 +265,8 @@ against the plan's 6.50M projection for all of 5c-iv. With five chains and a reg
 before it, the pass very likely crossed the 7.36M flag. That is an inference, not a measurement.
 The cause is pass growth: the plan's single Task 10 fold became 10b, 10c, R1, R2, R3, and R3b.
 
-Attended time: **0 execution sittings** after approval; Geoff was asked nothing about 5c-iv
-during execution. **1 planning miss:** the plan's Task 10 did not see that a styled 404 at
+Attended time: **0 execution sittings** after approval; no pull-in during execution; the
+register review's item 23 went to Geoff as a batched owner question and is still open. **1 planning miss:** the plan's Task 10 did not see that a styled 404 at
 unknown paths crosses the admin gate's indistinguishability contract. The conductor ruled it
 (deferred to rung 7), with no pull-in.
 
