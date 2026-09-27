@@ -351,3 +351,75 @@ U-Roy, Jah Shaka, Justin Hinds, Tenor Saw, Dennis Bovell, Louisa Mark, the Beat,
 Mysterians, the Shaggs, the Lyres, the Embarrassment, the rebetiko singers, Lee Quiñones, Spoonie
 Gee, the Treacherous Three, the Rock Steady Crew, Blaze Foley, the mento artists, DNA, Goldie, LTJ
 Bukem, Heavens to Betsy, Smith & Mighty, X-Ray Spex, the Plugz, and the Chantays.
+
+## Artist sweep additions spot-check (2026-09-26)
+
+Reader: the conductor, inline. Two new candidate directories: `photos/.candidates/sweep-a/`
+(3 records) and `photos/.candidates/sweep-b/` (10 records), the first tranche of the artist
+sweep's 30-record verify batch.
+
+**Sample.** Pool: 13 records. Mandatory set: every public-domain record — `commons:164908056`
+(the Kingsmen, `us-pre-1978-no-notice`), `commons:17282573` (Thelonious Monk,
+`rights-holder-dedication`), and `commons:93080929` (Bill Monroe with Jimmy Carter,
+`us-government-work`) — 3 records. No flyer or zine-cover format record is in this tranche. Rest:
+10. Method: sort the rest ascending by the hex `sha256("20260926b:" + id)` (`id` in the sheet's
+`<source>-<key>` form), then take the first `max(5, ceil(0.2 x 10))` = 5. Seed `20260926b`, pool
+13, sample size 8: `commons-164908056`, `commons-17282573`, `commons-93080929` (mandatory), plus
+`commons-39320066`, `commons-2214791`, `commons-79670861`, `commons-65425038`, `commons-34602246`
+(drawn).
+
+**Channels.** Raw channel only, reusing each candidate's saved `raw/` evidence
+(`photos/.candidates/sweep-a/raw/`, `photos/.candidates/sweep-b/raw/`) where a fresh fetch would
+duplicate it, plus independent fetches this pass added: a batched
+`Commons:Deletion_requests/File:<title>` check per sampled file (one request per title, under
+the API lock with the 0.25s serial spacing) and a `Commons:Questionable_Flickr_images/Users` raw
+check for the two Flickr-origin accounts in the sample (Greg Neate for the Bratmobile photo,
+`jonathancharles` for the Kathleen Hanna photo).
+
+**Tally.** 8 match, 0 mismatch, 0 changed-since-grant, 0 unverifiable.
+
+**Matches**, all dated 2026-09-26:
+
+- `commons-164908056` (the Kingsmen, group portrait, 1966): Commons `action=raw` wikitext
+  `|permission` field quotes, verbatim, "When *KRLA BEAT* originally published this image, they
+  did not include a copyright notice on either the photograph or as part of its caption. The
+  publication failed to included a blanket copyright notice on any of its pages," citing
+  `https://krlabeat.sakionline.net/issue/5feb66.pdf` (the 5 February 1966 issue). The record's
+  `verified` field quotes this line and adds an independent page-render check of the same PDF.
+  This is the KRLA Beat no-notice evidence the plan required in `verified`; confirmed present.
+- `commons-17282573` (Thelonious Monk, Minton's Playhouse, ca. 1947): license header
+  `{{PD-Gottlieb}}`; `Template:PD-Gottlieb` raw quotes "In accordance with the wishes of William
+  Gottlieb, the photographs in this collection entered into the public domain on February 16,
+  2010." Matches the record's `rights-holder-dedication` basis and quoted fact exactly.
+- `commons-93080929` (Bill Monroe with Jimmy Carter, South Lawn, 1980): the page's bare
+  `{{PD-USGov}}` tag carries no authorship prose, so the record instead cites Commons structured
+  data. `action=wbgetentities&ids=M93080929` confirms statement P6216 (copyright status) =
+  Q19652 "public domain," qualified by P459 (determination method) = Q60671452 "work of the
+  federal government of the United States" and P1001 (jurisdiction) = Q30 "United States"; P180
+  (depicts) = Q170042 "Bill Monroe." Matches the record's `us-government-work` basis and quoted
+  fact.
+- `commons-39320066` (Kathleen Hanna, Bikini Kill, Olympia Mayday 1991): `{{flickrreview|ww2censor|17:57,
+  1 April 2015 (UTC)}}` plus `{{cc-by-sa-2.0}}`. Matches the record's `CC-BY-SA-2.0`.
+- `commons-2214791` (Bo Diddley, Long Beach Blues Festival, 1997): `{{self|GFDL|Cc-by-sa-3.0-migrated|Cc-by-sa-2.5,2.0,1.0}}`,
+  own-work by Masahiro Sumori. Matches the record's `CC-BY-SA-3.0` (the migrated tag).
+- `commons-79670861` (Clifton Chenier, Le Palace, Paris, 1977): `|source={{own}}`,
+  `|author=[[User:Lioneldecoster|Lionel Decoster]]`, `{{self|cc-by-sa-4.0}}`. Matches the
+  record's `CC-BY-SA-4.0`.
+- `commons-65425038` (Art Blakey and the Jazz Messengers, Concertgebouw, 1959): Nationaal
+  Archief / Anefo, `{{CC-zero}}`, credited "Herbert Behrens / Anefo." Matches the record's
+  `CC0-1.0`.
+- `commons-34602246` (Bratmobile, The Charlotte, Leicester, 1994):
+  `{{User:FlickreviewR/reviewed-pass|neate photos|...|2014-08-08 08:53:32|cc-by-2.0|}}{{cc-by-2.0}}`.
+  Matches the record's `CC-BY-2.0`.
+
+**Laundering and deletion.** A batched `Commons:Deletion_requests/File:<title>` query for all 8
+sampled files returned `missing` for every one: no open deletion request. The two Flickr-origin
+accounts in the sample (Greg Neate, `jonathancharles`) are both absent from
+`Commons:Questionable_Flickr_images/Users`.
+
+No mismatch. The round does not go back for re-verification on this tranche.
+- Artist sweep verification (top 30): 13 kept and added to round 1 (144 total); 17 dropped, mostly
+  US publicity and trade-ad photos with a bare no-notice tag (the 1957 Johnny Cash Cash Box ad's own
+  masthead carries a notice), plus name collisions (a Madrid rock band for Junkyard Band, an MC5
+  mural). Calypso photos on a Trinidad and Tobago term (`{{PD-TT-photo}}`) are a round-two research
+  item: whether a 1937 Trinidad photo is also public domain in the US.
