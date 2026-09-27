@@ -30,6 +30,8 @@ lane: draft the 6d plan through `spec-plan-review` for morning approval. Memory
 
 ## Owner questions
 
+- 6d plan rev 2.2 (`plans/2026-09-26-rung-6d-identity-serve-store.md`) awaits approval: three rulings (one pass at 11.5M; the epoch to the revoke verb; store identity to rung 16), all recommended yes. Reviewed by three lenses, verified, folded twice, prose-reviewed.
+
 - Navidrome 0.64 bump for GHSA-82gh: open (Geoff 2026-09-25: sharing stays at zero until 0.8).
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
