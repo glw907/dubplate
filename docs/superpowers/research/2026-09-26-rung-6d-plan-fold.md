@@ -176,3 +176,38 @@ Evidence gathered for the fold, each quoted or probed, never recalled:
   are specified against the 5d plan's text; Task 0 item 2 reports the landed test.
 - Whether 5d's `deploy.sh` holds the serve unit's name in a variable, which m1's presence check
   must match, waits on 5d's landed file; Task 0 item 2 reports it.
+
+## Prose fold: revision 2.1 to revision 2.2
+
+Source: `2026-09-26-rung-6d-plan-prose-review.md` (one `prose-voice-reviewer`, Opus, over the plan
+at `985ff3a`). The fold took all 3 blockers, all 11 warnings, and all 6 suggestions, and refused
+none. It changes no fact, ruling, task, deliverable, or criterion; the one number that moved is
+W4's variant arithmetic, which the review asked to recompute. Every citation fix was checked against
+the spec, CH, or the code before it was written. Between `20f4a7c` and `985ff3a` the specs,
+`internal/`, `scripts/`, and every `cmd/` file but `rendered_test.go` (cited at `314c0c8`) are
+unchanged, so those line numbers hold at either base.
+
+| ID | Finding | Disposition |
+| --- | --- | --- |
+| B1 | Ruling 3's yes/no inverted in the header, Ruling 1, and the variants | **Folded.** All three now read "a 'no' on Ruling 2 or on Ruling 3", matching Ruling 3, 6d-R8, and Task 9. |
+| B2 | 6d-R11's reason said 5d never starts `serve` | **Folded** with the review's text: 5d's one supervised start runs the pre-6d binary, which never opens a store, and `OpenWrite` refuses an absent one. Confirmed against 5d plan step 14 (`:1377`). |
+| B3 | 6d-R2 and 6d-R11 cite wrong spec lines | **Folded.** 6d-R2 now cites `:839-840` and 6d-R11 `:713-714`; both quotes confirmed at those lines. |
+| W1 | Four more wrong citations | **Folded, one corrected.** CH `:83-84`, spec `:843-846`, and spec `:1128-1130` beside `:1141` confirmed as given. The `flock(2)` quote starts at spec `:374` ("Converting a lock") and reaches "not guaranteed to be atomic" at `:375`, so the row cites `:374-375`, not the review's `:375-376`. |
+| W2 | Citation bases mixed | **Folded, premise corrected.** The members-page lines the plan cited (`:216-224`, `:66-68`) were right at `20f4a7c`; R2 at `92147bc` moved them, and they are now re-cited at `985ff3a` (`:312-318`, `:95-97`). The `run.ts` lines were already at `985ff3a` (R2 moved them too). The Sources line and the code-pointers heading name each base, `check.sh`'s "at HEAD" became the default base, and "Not verified" gains the `web/` line. |
+| W3 | Task 4's fixture-state claim paired the wrong mutations | **Folded** with the review's text; "longer than it" became "longer than that count". |
+| W4 | Ceiling variants omit the split cost; "this table" is a list | **Folded.** Each variant adds about 0.5M for the split: one task projects 10.29M, ceiling 13.0M, flag 10.4M; both project 11.17M, ceiling 14.0M, flag 11.2M, totals across both halves. Ruling 1 now points to "the 'Token ceiling' arithmetic". |
+| W5 | Tasks 6 and 7 overlap on `mintLinkFor` | **Folded.** Task 6 moves `mintLinkFor` off `resolveAuthConfig`; Task 7 confirms no caller remains; the global constraint says the same. |
+| W6 | Owner touchpoints contradicted itself | **Folded** as three numbered steps and the review's closing sentence. |
+| W7 | Ruling labels collide; review labels undefined | **Folded.** "Spec ruling 9", "the rung 5 review's minor finding 14", "the spec's erratum row 10", and "the 6c plan's Ruling 2" at each site (four, one in Task 0 split across two sentences). Task 5's "(ruling 8)" became "(spec ruling 8)" on the same rule. A Sources line defines B1, M1, M2, C-M10, R-M3, D10, S20, and R5S, and says a bare "Ruling N" is this plan's. |
+| W8 | Rulings 2 and 3 hard to scan | **Folded.** Each opens with a one-sentence definition (the dual-key epoch from the spec's "The epoch"; the store identity from 6b-i's R9 option b), gives its reasons as a short list, and keeps its recommendation and both "what each answer builds" paragraphs. |
+| W9 | Two procedures are run-on prose | **Folded.** R-6d19's order is four numbered steps; Task 8's runbook outcome is a four-step install order and a five-step upgrade section. |
+| W10 | The execution model contradicted Task 8's header | **Folded** with the review's text. |
+| W11 | Stale parenthetical in Task 8's Files | **Folded** with the review's text. |
+| S1 | `store.go:280-284` should be `:286-298` | **Folded as `:285-298`.** `settingsChangeNote`'s doc comment begins at `:285` and already says "serve's next start". Also fixed the same citation in Task 2's Files. |
+| S2 | The demote grep "finds only comments" | **Folded.** It finds comments and tests (`admin_test.go`, `roster_test.go`). |
+| S3 | "will rewrite most of the files this plan names first" | **Folded.** |
+| S4 | "planning recorded against the rung and outside it" | **Folded.** |
+| S5 | Split the status line | **Folded.** The status line carries the revision and state; the history is a list. |
+| S6 | Task 3's Files omit `identity.go`'s `Principal` doc comment | **Folded.** Confirmed at `identity.go:190-193` ("so rung 6 can substitute a durable surrogate id here"). |
+
+Refused: none.

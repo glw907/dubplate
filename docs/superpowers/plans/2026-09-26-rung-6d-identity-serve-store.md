@@ -1,22 +1,33 @@
 # Rung 6, Pass 6d (Identity, the Handoff, and `serve`'s Store) Implementation Plan
 
-Status: **revision 2.1, 2026-09-26; reviewed (contract, mechanics, and risk lenses), folded, the
-fold verified, and the verification folded; no ruling answered.** History: revision 1 at `5afe46b`;
-revision 2 folds the three lens reviews per `docs/superpowers/research/2026-09-26-rung-6d-plan-fold.md`;
-revision 2.1 folds the verification read (`2026-09-26-rung-6d-plan-fold-verification.md`) per that
-record's "Second fold" section. It awaits Geoff's approval gate. It is drafted
-ahead of its execution: 6d executes only after rung 5 closes (R-6d1), and 5d-i and 5d-ii will rewrite
-most of the files this plan names first. **Task 0 therefore re-resolves every pointer against the tree
-5d leaves, and a pointer whose content is gone is a blocker, not a note.**
+Status: **revision 2.2, 2026-09-26; no ruling answered.** It awaits Geoff's approval gate.
 
-**Ceiling (Ruling 1):** 11.5M execution, flag 9.2M; planning recorded against the rung and outside it.
+History:
+
+- Revision 1 at `5afe46b`.
+- Revision 2 folds the three lens reviews (contract, mechanics, and risk) per
+  `docs/superpowers/research/2026-09-26-rung-6d-plan-fold.md`.
+- Revision 2.1 folds the verification read (`2026-09-26-rung-6d-plan-fold-verification.md`) per that
+  record's "Second fold" section.
+- Revision 2.2 folds the prose review (`2026-09-26-rung-6d-plan-prose-review.md`) per the fold
+  record's "Prose fold" section. It corrects text and citations and changes no fact, ruling, task, or
+  criterion.
+
+The plan is drafted ahead of its execution. 6d executes only after rung 5 closes (R-6d1), and 5d-i
+and 5d-ii will first rewrite most of the files this plan names. **Task 0 therefore re-resolves every
+pointer against the tree 5d leaves, and a pointer whose content is gone is a blocker, not a note.**
+
+**Ceiling (Ruling 1):** 11.5M execution, flag 9.2M. Planning spend is recorded against rung 6,
+outside this ceiling.
 **Checkpoint interval:** each segment boundary (at most three tasks apart), and the close.
 **Segments:** A (Task 0, Tasks 1 and 2), B (Tasks 3, 4, and 5, then the security read of B), C (Tasks
 6, 7, and 8, then the security read of C, the simplifier round, and the merge), then Task 9, the close.
 **Tasks:** ten (Task 0, eight build tasks, and the close), at the spec's ten-task line (spec `:1149`)
-and not past it. A "no" on Ruling 2 or a "yes" on Ruling 3 adds a task and splits the pass (Ruling 1).
+and not past it. A "no" on Ruling 2 or on Ruling 3 adds a task and splits the pass (Ruling 1).
 
-Sources, in order of authority, cited at `20f4a7c` on master:
+Sources, in order of authority. Code and spec lines are cited at `20f4a7c` on master unless a
+citation names another commit; the `rendered_test.go` lines are at `314c0c8`, and the `web/` lines
+are at `985ff3a`.
 
 - The ratified rung 6 spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
   2.2 with errata E1 to E11, "the spec"): the 6d pass section and criteria 1 to 14 (`:1086-1117`),
@@ -34,7 +45,7 @@ Sources, in order of authority, cited at `20f4a7c` on master:
 - The 6c architecture reads (`docs/superpowers/research/2026-09-26-rung-6c-architecture-reads.md`):
   `internal/engine/store` finding 1 (`OpenServe` has no production caller; `OpenWrite`'s "start serve
   first" cannot be satisfied on a fresh box) and `internal/settings` finding 1 (the apply is unexported
-  and uncalled while `cmd/dubplate-server/backup.go:274` and `store.go:280-284` promise serve applies
+  and uncalled while `cmd/dubplate-server/backup.go:274` and `store.go:285-298` promise serve applies
   settings at its next start). 6d wires both.
 - The 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, which still says
   2.0): "Forward hooks the current build owes" (`:683-768`) and "Prior art" (`:770-806`).
@@ -42,6 +53,13 @@ Sources, in order of authority, cited at `20f4a7c` on master:
   approved): its serve unit, `deploy.sh` rework (Task 4D), runbook (Task 7, R-5d15), and the sitting's
   step 13 (`:1370-1376`), which already treats the pre-6d seed string as a stop.
 - The repo `CLAUDE.md`, the 6c plan (`2026-09-25-rung-6c-routed-schema-settings-home.md`) for shape.
+- Labels this plan borrows from other documents: B1, M1, and M2 are the verification read's
+  blocker and majors (`2026-09-26-rung-6d-plan-fold-verification.md`); C-M10 is the contract lens's
+  major M10 and R-M3 the risk lens's major M3 (`2026-09-26-rung-6d-plan-review-contract.md`,
+  `-risk.md`); D10 is the 6c plan's deviation row D10 (the local keep's prune proof moved to 6d);
+  S20 is the 0.8 streamer spec and R5S the rung 5 spec (`2026-09-08-rung-5-identity-auth.md`), as
+  the rung 6 spec abbreviates them. "Ruling N" alone means this plan's ruling; another document's
+  ruling is named with its document.
 
 **What this pass is.** It makes `serve` open the store through `store.OpenServe`, creating or
 migrating it, finishing a reconcile-pending restore, and then applying the seed rule before the
@@ -68,29 +86,48 @@ Recommendation: yes. Reason: the ceiling is derived from 6c's actual rate, which
 the spec's priced rate, and ten tasks sit at the spec's split line without crossing it ("Token
 ceiling"). What yes builds: one pass, three segments, one close. What no builds: the conductor re-cuts
 at the B/C seam into 6d-i (Tasks 0 to 5 and a close) and 6d-ii (Tasks 6 to 8 and a close), about 0.5M
-more for the second Task 0 and close. If Ruling 2 is no or Ruling 3 is yes, the task count passes ten
-and that split happens regardless, with each half's ceiling re-derived from this table.
+more for the second Task 0 and close. A "no" on Ruling 2 or on Ruling 3 takes the task count past
+ten, and that split happens regardless, with each half's ceiling re-derived from the "Token ceiling"
+arithmetic.
 
 **2. Does the dual-key epoch (spec criteria 7 and 8) move to the revoke verb, its first writer, rather
-than land in 6d?** Recommendation: yes. Reason: `EpochStore.Bump` has no production caller today
-(`grep -rn '\.Bump(' --include=*.go internal cmd` returns only tests), so no epoch record has ever been
-written on any box, and 6d's tests would prove a revocation path nothing in production can reach; the
-repo's rule is that a hook is built by its first consumer. Ruling 9's "same id on re-add" also means
-the address-to-id resolution never changes in production, which the revoke verb's own plan can weigh
-when it decides whether it needs the address key at all. What yes builds: 6d leaves `epoch.go`
-untouched; criteria 7 and 8, rung 5's review minor 14, and erratum row 10's "bumps to both keys" route
-to the revoke verb's plan by name. What no builds: Task 5b (the dual-key read, both-key bumps, and a
-cross-process advisory lock on the epoch directory with a monotonic write), about 0.9M, and the pass
-splits under Ruling 1.
+than land in 6d?** The dual-key epoch is the revocation check that reads both epoch records, one keyed
+by the session's address and one by its resolved `UserID`, and takes the later.
 
-**3. Does the store identity (6b-i's R9 option b: a random id minted at create, a remote marker, and
-backup and restore refusing another store's remote or snapshot) route to rung 16, where backups first
-run on a timer, rather than land in 6d?** Recommendation: yes. Reason: nothing binds it to create,
-because a migration can mint the id for an existing store at any later version, and its exposure (two
-servers pointed at one remote) starts when backup runs unattended, which rung 16's timer begins; its
-consumers are `internal/backup`'s, which 6d otherwise does not touch beyond one exported reconciler.
-What yes builds: nothing in 6d; the forward item moves from STATUS's "To 6d" to "To rung 16" with R9's
-text. What no builds: a Task 8b (a singleton identity row minted by a migration, the backup-run marker
+Recommendation: yes. Reasons:
+
+- `EpochStore.Bump` has no production caller today. `grep -rn '\.Bump(' --include=*.go internal cmd`
+  returns only tests.
+- So no epoch record has ever been written on any box, and 6d's tests would prove a revocation path
+  nothing in production can reach.
+- The repo's rule is that a hook is built by its first consumer.
+- Spec ruling 9's "same id on re-add" means the address-to-id resolution never changes in
+  production. The revoke verb's own plan can weigh that when it decides whether it needs the address
+  key at all.
+
+What yes builds: 6d leaves `epoch.go` untouched. Criteria 7 and 8, the rung 5 review's minor finding
+14, and the spec's erratum row 10 ("bumps to both keys") route to the revoke verb's plan by name.
+
+What no builds: Task 5b (the dual-key read, both-key bumps, and a cross-process advisory lock on the
+epoch directory with a monotonic write), about 0.9M, and the pass splits under Ruling 1.
+
+**3. Does the store identity route to rung 16, where backups first run on a timer, rather than land
+in 6d?** The store identity is 6b-i's R9 option b: a random id minted at create, a remote marker, and
+backup and restore refusing another store's remote or snapshot.
+
+Recommendation: yes. Reasons:
+
+- Nothing binds it to create, because a migration can mint the id for an existing store at any later
+  version.
+- Its exposure, two servers pointed at one remote, starts when backup runs unattended. Rung 16's
+  timer begins that.
+- Its consumers are in `internal/backup`, which 6d otherwise touches only for one exported
+  reconciler.
+
+What yes builds: nothing in 6d. The forward item moves from STATUS's "To 6d" to "To rung 16" with
+R9's text.
+
+What no builds: a Task 8b (a singleton identity row minted by a migration, the backup-run marker
 check refusing a foreign remote, and restore refusing a foreign snapshot), about 0.9M, and the pass
 splits under Ruling 1.
 
@@ -109,10 +146,15 @@ start" is true.
 
 The plan-approval gate and its three rulings, and nothing else. No attended sitting: nothing deploys in
 6d. The 6d upgrade rides the next ruled deploy after 6d merges, in the runbook's words Task 8 writes:
-the deploy renders an env with no roster row, and its `try-restart` leaves the stopped serve unit
-stopped (R-6d19); one supervised start and stop, in the form of 5d's sitting step 14, creates the
-store; then `member import --dry-run` and `member import`, each through `systemd-run` (R-6d18).
-Nothing in the upgrade restarts or enables `serve`.
+
+1. Deploy. The deploy renders an env with no roster row, and its `try-restart` leaves the stopped
+   serve unit stopped (R-6d19).
+2. Run one supervised start and stop, in the form of 5d's sitting step 14. The start creates the
+   store.
+3. Run `member import --dry-run` and then `member import`, each through `systemd-run` (R-6d18).
+
+Apart from the supervised start in step 2, nothing in the upgrade starts, restarts, or enables
+`serve`.
 
 ## Token ceiling: 11.5M execution (Ruling 1)
 
@@ -131,12 +173,17 @@ and six architecture reads cost about 0.75M, about **0.11M per read**.
 5. **Projection 8.91M.** 8.91 / 0.8 = 11.14, rounded up to the next 0.5M: **11.5M**, flag at 80%,
    **9.2M**.
 
-Variants: one added task (Ruling 2 no, or Ruling 3 yes) projects 9.79M, ceiling 12.5M, flag 10.0M;
-both project 10.67M, ceiling 13.5M, flag 10.8M. Either variant passes ten tasks and splits.
+Variants: either variant passes ten tasks and splits, and each includes about 0.5M for the split's
+second Task 0 and close (Ruling 1). Totals are across both halves:
 
-The spec's own row was 6.6M for nine tasks (spec `:1141`), priced at 0.46M per task; 6c's actual
-rate is the better evidence and is what CLAUDE.md's "re-derived from the previous pass's actual"
-requires (spec `:1147-1149`).
+- One added task (a "no" on Ruling 2 or on Ruling 3): 8.91 + 0.88 + 0.5 = 10.29M projected;
+  10.29 / 0.8 = 12.86, ceiling **13.0M**, flag **10.4M**.
+- Both added tasks: 8.91 + 1.76 + 0.5 = 11.17M projected; 11.17 / 0.8 = 13.96, ceiling **14.0M**,
+  flag **11.2M**.
+
+The spec's own row was 6.6M for nine tasks (spec `:1141`), priced at 0.46M per task (spec
+`:1128-1130`). 6c's actual rate is the better evidence, and it is what CLAUDE.md's "re-derived from
+the previous pass's actual" requires (spec `:1147-1149`).
 
 Deliverable count: thirty across Tasks 1 to 8 (Tasks 1, 3, 4, 5, 6, 7, and 8 carry four; Task 2
 carries two), plus Task 0's report and Task 9's drafts. No task passes four.
@@ -156,7 +203,7 @@ test environments' copies of the retired key. The conductor weighs Task 4 at Tas
 
 ## Primary inputs
 
-### Code pointers (at `20f4a7c`; Task 0 re-resolves every one)
+### Code pointers (at `20f4a7c` unless one names another commit; Task 0 re-resolves every one)
 
 - `cmd/dubplate-server/serve.go`: `newServeCmd` (resolves the wall, then `newServeShell`, then
   `serve.Run`), `newServeShell` (opens `auth.Open`, the nonce and epoch stores, `auth.OpenRoster`
@@ -218,10 +265,11 @@ test environments' copies of the retired key. The conductor weighs Task 4 at Tas
   `open_test.go`).
 - Deploy files (5d rewrites all of them): `scripts/deploy.sh`, `systemd/` (5d's serve unit; the
   name is 5d's, `dubplate-server-serve.service` in 5d's sitting text), `env/dubplate-server.env.template`,
-  `scripts/check.sh`'s state-dir agreement leg (`:645-660` at HEAD), `docs/server-runbook.md` (5d
+  `scripts/check.sh`'s state-dir agreement leg (`:645-660`), `docs/server-runbook.md` (5d
   Task 7 creates it).
-- `web/src/routes/members/+page.svelte` (read at committed `HEAD` only): the streamer-username input
-  is already `required` with a pattern (`:216-224`); 6d changes no `web/` file (R-6d17).
+- `web/src/routes/members/+page.svelte` (at `985ff3a`, committed state only; R2 at `92147bc` moved
+  these lines): the streamer-username input is already `required` with a pattern (`:312-318`); 6d
+  changes no `web/` file (R-6d17).
 
 ### Behaviors this plan relies on, quoted
 
@@ -235,7 +283,7 @@ test environments' copies of the retired key. The conductor weighs Task 4 at Tas
 | SQLite `NOCASE` (sqlite.org/datatype3.html) | "the 26 upper case characters of ASCII are folded to their lower case equivalents before the comparison is performed. Note that only ASCII characters are case folded." | `users.streamer_username ... UNIQUE COLLATE NOCASE` agrees with `principalCollision`'s `strings.EqualFold` only because the write path's pattern admits ASCII alone; Task 3 keeps the pattern check before the insert |
 | `flock(2)`, `LOCK_SH` (`man 2 flock`) | "More than one process may hold a shared lock for a given file at a given time." | A current-version `serve` start never waits on a running backup; only a migrating start (exclusive) does |
 | `flock(2)`, one process, two descriptors (`man 2 flock`) | "If a process uses open(2) (or similar) to obtain more than one file descriptor for the same file, these file descriptors are treated independently by flock()." `tryLock` opens a fresh descriptor per attempt (`lock.go:85-90`) | Task 4: the rendered harness's reset server may take its own shared write-mode handle beside the serve shell's in one test process |
-| `flock(2)` conversion (spec `:361-365`) | "Converting a lock ... is not guaranteed to be atomic" | Already honored by `OpenServe`; 6d adds no conversion |
+| `flock(2)` conversion (spec `:374-375`) | "Converting a lock ... is not guaranteed to be atomic" | Already honored by `OpenServe`; 6d adds no conversion |
 | `systemd.exec(5)`, `ReadWritePaths=` | "Paths in ReadWritePaths= ... may be prefixed with "-", in which case they will be ignored when they do not exist." | The store leaf is granted unprefixed, so `deploy.sh` must pre-create it (CLAUDE.md's standing fact) |
 | `runuser(1)` | "runuser defaults to not changing the current directory and to setting only the environment variables HOME and SHELL (plus USER and LOGNAME if the target user is not root)." | `runuser` loads no environment file, so a store-opening verb run from `deploy.sh` needs the rendered env supplied another way (R-6d15) |
 | `config.Setting` (`internal/config/settings.go`) | "A string has no bounds, so KindString is refused at registration." `buildValidator` panics on any other kind; `boundedValidator` panics when a floor or ceiling does not parse. | `DUBPLATE_UNKNOWN_ADDRESS_ANSWER` and `DUBPLATE_SESSION_LIFETIME` cannot register as settings unchanged (R-6d7, R-6d8) |
@@ -281,8 +329,8 @@ text, a removed behavior is a blocker.
 - **No deploy, no box write.** Box reads are read-only ssh, and only if Task 0 needs a fact.
 - **No `web/` edit** (R-6d17). `cmd/dubplate-server/rendered_test.go` changes only as the store move
   and the settings move require: the fixture members move into the store (Task 4), the roster-file
-  key leaves its environment (Task 5), and `mintLinkFor` stops calling `resolveAuthConfig` (Tasks 6
-  and 7). Its reset server keeps its HTTP contract (a POST answers `{"members": n}`), so
+  key leaves its environment (Task 5), and `mintLinkFor` stops calling `resolveAuthConfig` (Task 6;
+  Task 7 confirms no caller remains). Its reset server keeps its HTTP contract (a POST answers `{"members": n}`), so
   `web/scripts/rendered/run.ts` needs no change. Nothing else in it changes.
 - **Commits**: each task commits its own files, Conventional Commits, the repo's attribution footer.
 - **Implementers never dispatch agents**; the conductor owns `code-simplifier` and every reviewer.
@@ -380,7 +428,7 @@ and `apply` sets none, so the preparation function wraps the apply's context in
 `context.WithTimeout` under a named write wait of 30s, on `memberVerbWriteWait`'s precedent
 (`member.go:26`, `:95`); the deadline bounds only the in-process wait for the write connection, and
 the busy timeout bounds another process's lock (`Update`'s doc, quoted). `member import` (Task 5)
-uses `memberVerbWriteWait` itself. With it wired, `backup.go:274`'s and `store.go:280-284`'s strings become true; Task 2 re-reads
+uses `memberVerbWriteWait` itself. With it wired, `backup.go:274`'s and `store.go:285-298`'s strings become true; Task 2 re-reads
 both and changes a word only if one is still false. Handoff item 6 (a restored `admin` row may refuse
 the seed) needs no code: the refusal names the conflict, and its resolving channel is rung 14's.
 
@@ -405,7 +453,7 @@ itself, so `equal` is exact byte equality; without it, `outcome` refuses every s
 (quoted), and the second `serve` start after a string seed refuses (the mechanics lens reproduced
 this). The accessor gains a typed string read, whose caller is the handlers' answer
 reader. Leaving the key on the wall was weighed and declined: it is a tunable with a default, which CH
-homes in the store (CH `:66`).
+homes in the store (CH `:83-84`).
 
 ### R-6d8: bounds and both correlated rules move into the registry
 
@@ -469,7 +517,7 @@ spec's "without touching a call site" did not foresee: a database read needs a c
   requires is already set by both callers (`admin.go:255`, `member.go:95`).
 - **No last-admin guard is built.** The spec's "5c builds the last-admin guard, and 6d re-establishes
   it in the write transaction" (spec `:182-183`) presumes a demotion or removal path; none exists
-  (`grep -rn -i 'demot\|RemoveMember' internal/auth cmd` finds only comments), so the guard and
+  (`grep -rn -i 'demot\|RemoveMember' internal/auth cmd` finds only comments and tests), so the guard and
   criterion 6's "concurrent self-demotion of the last two admins" route to the first verb that can
   remove or demote. Reading 6d-R3.
 - `List` returns live rows only, ordered by `created_at` and then `id`, since the file's order is
@@ -561,8 +609,8 @@ logger guard already exists (`OpenServe`'s first line); Task 0 confirms it. Both
 ### R-6d17: no `web/` change
 
 The add-member page already requires a streamer username with the write path's pattern (committed
-`HEAD`, `web/src/routes/members/+page.svelte:216-224`), and the roster API's JSON shape does not
-change. The page's comment that "an older member's `streamer_username` can be blank" (`:66-68`)
+`985ff3a`, `web/src/routes/members/+page.svelte:312-318`), and the roster API's JSON shape does not
+change. The page's comment that "an older member's `streamer_username` can be blank" (`:95-97`)
 becomes stale once every member carries one; it routes to lane 1's next `web/` pass as a one-line
 note, since `web/` is not 6d's territory. `web/scripts/rendered/run.ts:3938`'s comment naming "the
 fixture roster file" rides the same note once Task 4 moves the fixture into the store.
@@ -594,13 +642,18 @@ later attended deploy, since rolling back past 6d needs the old template and the
 plan R-5d10, Task 4's outcomes). `systemctl restart` starts a stopped unit, which would put `serve`
 on the production box without a ruling, holding the shared lock and answering logins against an
 empty `users` table. So `deploy.sh` restarts `serve` with `systemctl try-restart` (quoted: it "does
-nothing if units are not running"). The rule for its steps is that the owner-run `check` (R-6d15)
-runs after both the binary swap and the `server.env` install, in whatever order 5d's `--apply`
-already takes them (5d swaps the binary first, 5d plan `:1255-1260`; Task 8 keeps that order), then
-`deploy.sh` halts on a nonzero exit, and only then runs `try-restart`. `check` must see the new
-binary and the new env, or the superseded `DUBPLATE_ROSTER_FILE` in a stale env would halt the
-deploy, and a bad new env would slip through. Until rung 16 enables the unit, `try-restart` is a
-no-op on the box, and the holder line still prints from `check`. The state-dir leg gains one presence
+nothing if units are not running"). `deploy.sh --apply` runs its steps in this order:
+
+1. The binary swap and the `server.env` install, in the order 5d's `--apply` already takes them.
+   5d swaps the binary first (5d plan `:1255-1260`), and Task 8 keeps that order.
+2. The owner-run `check` (R-6d15).
+3. A halt on `check`'s nonzero exit.
+4. `systemctl try-restart` on the serve unit.
+
+`check` must see the new binary and the new env. Otherwise the superseded `DUBPLATE_ROSTER_FILE` in
+a stale env would halt the deploy, and a bad new env would slip through. Until rung 16 enables the
+unit, `try-restart` is a no-op on the box, and the holder line still prints from `check`. The
+state-dir leg gains one presence
 check guarding this resolution: it fails when any `systemctl` line in `deploy.sh` runs `restart`,
 `start`, or `enable` (as whole words, so `try-restart` does not match) on the serve unit, by its
 name or the variable holding it, or when the timer list `deploy.sh` enables names it. The step order
@@ -613,7 +666,7 @@ itself stays unchecked by the gate (C-M10's refusal).
 | # | Spec text | 6d reading | Reason |
 | --- | --- | --- | --- |
 | 6d-R1 | STATUS "5d's deploy gate checks that 6d's two wiring items have landed" | 6d lands before any deploy that enables or routes to the serve unit | R-6d1 |
-| 6d-R2 | "The store moves behind the roster's interface without touching a call site" (`:853-855`) | The constructor is the one substitution; the methods gain `ctx` | R-6d10 |
+| 6d-R2 | "The store moves behind the roster's interface without touching a call site" (`:839-840`) | The constructor is the one substitution; the methods gain `ctx` | R-6d10 |
 | 6d-R3 | Criterion 6's last-admin clause; `:182-183` | Routed to the first demote or remove verb | R-6d10 |
 | 6d-R4 | The import's "nine states" (`:820-831`) and criterion 2's "eight import refusal states" | Thirteen: an empty file, a file writable by others, an entry failing a field rule, and a tombstoned address each refuse; "naming both entries" names positions | R-6d11 |
 | 6d-R5 | Criterion 14's "through `runuser`" | `systemd-run --uid` with the env file | R-6d15 |
@@ -623,7 +676,7 @@ itself stays unchecked by the gate (C-M10's refusal).
 | 6d-R8 | STATUS "To 6d: store identity" (Ruling 3 yes) | Routed to rung 16 | Ruling 3 |
 | 6d-R9 | Criterion 9's "with the env holding A and an in-package admin row holding B ... a limiter built at the next start uses B" | At the next start the env is unset or set to B; env A beside admin row B refuses the start (the seed rule, spec `:759`), and that refusal is its own sub-case | Task 7 |
 | 6d-R10 | Criterion 14's "names the holder before restarting `serve`" | `check` names the holder; `deploy.sh` then runs `try-restart`, a no-op until rung 16 enables the unit | R-6d19 |
-| 6d-R11 | "Restoring a pre-6d snapshot under a 6d binary leaves the users table empty, and the report says to run `member import`" (`:715-716`) | Not built: no pre-6d store or snapshot can exist, since `OpenWrite` refuses an absent store and 5d never starts `serve` | Fold record |
+| 6d-R11 | "Restoring a pre-6d snapshot under a 6d binary leaves the users table empty, and the report says to run `member import`" (`:713-714`) | Not built: no pre-6d store or snapshot can exist. 5d's one supervised start runs the pre-6d binary, which never opens a store, and `OpenWrite` refuses an absent one | Fold record |
 | 6d-R12 | Criterion 1's "an imported admin can grant admin through the CLI" | Proved as the imported flags per row plus the imported admin's authority on the cookie channel; the CLI grant checks no member's flag, so the literal clause proves nothing about the import | Task 5 |
 
 ---
@@ -668,13 +721,13 @@ note naming the new site, and content that is gone is a blocker.
    `RestartSec=`, `ReadWritePaths=`, `EnvironmentFile=`), `deploy.sh`'s leaf pre-creates (the array
    the 5d plan says 6d extends by one word, 5d plan `:544`), its check-by-default and `--apply`
    modes, how it names the serve unit (a literal or a variable, which R-6d19's presence check
-   matches), whether it runs `check` before restarting `serve` and halts on a nonzero exit (6c's Ruling
-   2, owed by 5d), how it restarts `serve` if it does at all (R-6d19), the order of its env render,
+   matches), whether it runs `check` before restarting `serve` and halts on a nonzero exit (the 6c plan's
+   Ruling 2, owed by 5d), how it restarts `serve` if it does at all (R-6d19), the order of its env render,
    binary install, and restart steps, the state-dir leg in `scripts/check.sh`, the template's `DUBPLATE_ROSTER_FILE`
    row, 5d's rendered-doctor test (5d Task 6, in `cmd/dubplate-server/templatekeys_test.go`: its
    name, its fixture roster, and each assertion naming the `roster` row or the `DUBPLATE_ROSTER_FILE`
-   row, which Tasks 4 and 5 rewrite), and `docs/server-runbook.md`'s install-order section. A missing 6c Ruling 2 halt is not a
-   blocker; it becomes a Task 8 outcome, reported.
+   row, which Tasks 4 and 5 rewrite), and `docs/server-runbook.md`'s install-order section. A missing halt under the 6c plan's Ruling 2
+   is not a blocker; it becomes a Task 8 outcome, reported.
 3. **Do `serve.go`, `auth.go`, `member.go`, `doctor.go`, `web.go`, and `rendered_test.go` still
    carry every symbol the "Code pointers" list names?** 5d-i adds the trusted proxy and probe rows; report each changed
    signature, above all `newServeShell`'s and `authHandlersConfig`'s.
@@ -775,7 +828,7 @@ Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hooks:** completes hook
 **Files:**
 - Modify: `internal/settings/apply.go`, `apply_test.go` (the export)
 - Modify: `cmd/dubplate-server/serve.go`, `serve_test.go`; re-read `backup.go:262-275` and
-  `store.go:280-284`, editing only a string still false
+  `store.go:285-298`, editing only a string still false
 
 **Outcomes:**
 - The apply exported, called once after `OpenServe` and before `serve.Run` (R-6d5), under the named
@@ -827,8 +880,9 @@ neutral.
 - Create: `internal/engine/store/migrations/0006_member_imports.sql` (number from Task 0 item 4), its
   populated fixture under `testdata/fixtures/`
 - Modify: `internal/auth/roster.go`, `roster_test.go`, `seam.go`, `seam_test.go`
-- Modify: `internal/identity/identity.go`, `identity_test.go` (the `UserID` field only; `Valid`
-  changes in Task 4)
+- Modify: `internal/identity/identity.go`, `identity_test.go` (the `UserID` field, and
+  `Principal`'s doc comment, which still promises the surrogate-id substitution that this task's
+  outcome rules out; `Valid` changes in Task 4)
 - Modify (the `ctx` threading only, a mechanical change): the six production callers of `Lookup` and
   `List` outside this task's own files, `internal/auth/handlers.go` (`:210`, `:308`, `:366`),
   `internal/auth/admin.go` (`:206`), `cmd/dubplate-server/member.go` (`:162`), and
@@ -969,8 +1023,9 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
 - The full rendered leg passes (it runs in the gate): the capture matrix's reset answers the
   baseline count on every POST after the add-member row, and `members/roster-file` finds the added
   address in `users`. **Fixture state:** the add-member row has added a member before the first
-  reset, so a reset that deletes every row but the two seeded ones and a reset that deletes nothing
-  answer different counts.
+  reset. A reset whose baseline is only the two seeded rows then answers 2 where the correct reset
+  answers 3. A reset that deletes nothing answers the right count but leaves the rendered list
+  longer than that count.
 - 5d's rendered-doctor test passes with its members-row assertions.
 - The gate green.
 
@@ -1032,7 +1087,7 @@ Model: `sonnet`, effort `high`. Depends on Task 4. **0.8 hooks:** lands hook 5's
 | an entry failing a field rule (the write path's username pattern, a blank display name, a bad address, a refused rune, an overlong field) | refused naming its position and the rule |
 | two entries with one address | refused naming both positions |
 | two entries with one username, differing in case | refused naming both positions |
-| entries with no `streamer_username` | refused naming each position (ruling 8) |
+| entries with no `streamer_username` | refused naming each position (spec ruling 8) |
 | no admin in the file or the table | refused naming the rule |
 | an entry colliding with a different existing member on address or username | refused naming the position and the field |
 | an entry whose address matches a tombstoned row | refused naming the position; the import is not a reactivation channel |
@@ -1101,8 +1156,9 @@ Model: `opus`, effort `high` (the config contract). Depends on Task 5. **0.8 hoo
   trimmed, `resolveAuthConfig`'s env parse replaced), `serve.go`, `store.go` (the withholding
   removed), `doctor_test.go` goldens, `serve_test.go`'s shell builder (`buildServeShellWithContext`
   calls `resolveAuthConfig`), and `rendered_test.go`'s `mintLinkFor`, which reads the link expiry
-  through `resolveAuthConfig` (`:535-540`) and needs the expiry the fixture's seed puts in force
-  another way (the task's report names which)
+  through `resolveAuthConfig` (`:535-540`). In this task `mintLinkFor` stops calling
+  `resolveAuthConfig` and reads the expiry the fixture's seed puts in force another way (the task's
+  report names which)
 
 **Outcomes:**
 - The closed-set string kind, `parse`'s arm, and the accessor's string read (R-6d7).
@@ -1129,7 +1185,7 @@ Model: `opus`, effort `high` (the config contract). Depends on Task 5. **0.8 hoo
 | Seed | a stored `env-seed` string row, env equal | unchanged, no refusal |
 | `doctor` | each re-homed key | value, source, apply mode, and the marker on three keys |
 | `backup` start | an auth env value out of bounds | logs the refusal, does not fail |
-| `check` | an auth env value out of bounds | exits nonzero naming the key (6c's Ruling 2, now the deploy gate for auth values) |
+| `check` | an auth env value out of bounds | exits nonzero naming the key (the 6c plan's Ruling 2, now the deploy gate for auth values) |
 
 **Acceptance criteria:**
 - Spec criterion 5, re-run over the real pair (6c-E6): the two correlated rows above.
@@ -1160,8 +1216,8 @@ Model: `opus`, effort `high` (live security thresholds). Depends on Task 6. **0.
   `RunSweep`'s sweep function gain `ctx`), and tests (reader functions in place of values)
 - Modify: `cmd/dubplate-server/serve.go` (including `startNonceSweep`), `auth.go` (`authConfig` and
   `resolveAuthConfig` deleted; readers built over the serve accessor), tests (`serve_test.go`'s shell
-  builder among them), and `rendered_test.go`'s `mintLinkFor`, whose `resolveAuthConfig` call goes
-  with the function
+  builder among them); the task confirms that no caller of `resolveAuthConfig` remains, including
+  `rendered_test.go`'s `mintLinkFor`, which Task 6 moved off it
 
 **Outcomes:**
 - Each "next operation" and "immediately" value read through an injected reader at its point of use
@@ -1217,7 +1273,7 @@ Tasks 6 and 7, but sequenced to keep one gate lane). **0.8 hooks:** neutral.
 
 **Files:**
 - Modify: 5d's serve unit, `scripts/deploy.sh`, `scripts/check.sh` (the state-dir leg and its
-  serve-unit presence check), `docs/server-runbook.md` (the template's roster row left in Task 5)
+  serve-unit presence check), `docs/server-runbook.md` (the template edit moved to Task 5)
 - Modify: `internal/engine/store/inspect.go` and `cmd/dubplate-server/check.go` (holders named for an
   older store), tests
 - Modify: `internal/engine/store/leaf.go` (`checkOwner`'s hint, R-6d15) and the four store tests that
@@ -1229,20 +1285,27 @@ Tasks 6 and 7, but sequenced to keep one gate lane). **0.8 hooks:** neutral.
 - `deploy.sh` pre-creates the `store` leaf (owner, mode 0700), no longer the roster leaf; runs
   store-opening verbs as the owner by R-6d15; and, per R-6d19, renders the env, installs the binary,
   runs the owner-run `check`, halts on its nonzero exit, and only then runs `systemctl try-restart`
-  on the serve unit (landing 6c's Ruling 2 here only if Task 0 found 5d did not).
+  on the serve unit (landing the 6c plan's Ruling 2 here only if Task 0 found 5d did not).
 - `check`'s store row names the holders' pids for an older store whose lock another process holds,
   excluding its own pid (`Inspect` holds its own shared lock while it reads, and `/proc/locks` lists
   the caller, quoted), so `deploy.sh`'s printed `check` output names the holder before the restart.
   `checkOwner`'s hint names the rendered environment instead of `runuser`.
-- The template's `DUBPLATE_ROSTER_FILE` row is already gone (Task 5, M2). The runbook's install
-  order becomes: render the env, start `serve` (it creates the store), `member add --admin` or
-  `member import`, `doctor`; and a 6d upgrade section, in this order (R-6d18): deploy (the rendered
-  env carries no roster row; `try-restart` leaves the stopped unit stopped); one supervised start in
-  5d step 14's form (`systemctl start` on the serve unit, `doctor` showing the store row at the
-  binary's version and the members row failing naming `member import`, `systemctl stop`; the unit
-  stays disabled); `member import --dry-run --roster <file>` and `member import`, each through
-  `systemd-run` with the store leaf in `ReadWritePaths`; verify with `member list`; and keep the file
-  until 5d's `.prev` copies are superseded.
+- The template's `DUBPLATE_ROSTER_FILE` row is already gone (Task 5, M2).
+- The runbook's install order becomes:
+  1. Render the env.
+  2. Start `serve`, which creates the store.
+  3. Run `member add --admin` or `member import`.
+  4. Run `doctor`.
+- The runbook gains a 6d upgrade section, in this order (R-6d18):
+  1. Deploy. The rendered env carries no roster row, and `try-restart` leaves the stopped unit
+     stopped.
+  2. Run one supervised start in 5d step 14's form: `systemctl start` on the serve unit; `doctor`,
+     showing the store row at the binary's version and the members row failing naming
+     `member import`; then `systemctl stop`. The unit stays disabled.
+  3. Run `member import --dry-run --roster <file>`, then `member import`, each through `systemd-run`
+     with the store leaf in `ReadWritePaths`.
+  4. Verify with `member list`.
+  5. Keep the file until 5d's `.prev` copies are superseded.
 - The state-dir leg's serve-unit presence check (R-6d19).
 
 **States of `check`'s store row:**
@@ -1352,7 +1415,8 @@ edit; it lands before Task 8 or after the merge, never during it.
 `implementer: "dubplate-implementer"`, `reviewer: "diff-reviewer"`, `maxFix: 1`, `stopOnEscalate:
 true`, the heavy-lane gate string above, and each task's `model` as named. The security reads, the
 fold tasks, the simplifier round, and Task 9 run between invocations. Each boundary lands on a green
-commit. No task runs in parallel: every task after Task 2 reads the one before.
+commit. No task runs in parallel. Every task from Task 3 to Task 7 reads the one before, and Task 8
+runs last to keep one gate lane.
 
 ## Prior art consulted
 
@@ -1360,7 +1424,7 @@ commit. No task runs in parallel: every task after Task 2 reads the one before.
 | --- | --- |
 | `modernc.org/sqlite` | Adopted (spec); `0006` rides it. `NOCASE` behavior quoted and relied on for ASCII usernames only. |
 | `pressly/goose`, `golang-migrate` | Declined (spec); `0006` joins the hand-rolled runner. |
-| Navidrome (behavior only, GPL) | Consulted: its external-auth auto-creation of an unknown user is why `Principal` stays the streamer username and never the id (spec `:855-860`). No code. |
+| Navidrome (behavior only, GPL) | Consulted: its external-auth auto-creation of an unknown user is why `Principal` stays the streamer username and never the id (spec `:843-846`). No code. |
 | OpenSubsonic specification | No 6d surface; `UserID` is what 0.8's per-user rows key on (S20 hook 5). |
 | `golang.org/x/time/rate` | Already adopted by rung 5; 6d only moves when its limits are read (restart mode). |
 | `crypto/sha256`, `crypto/rand` (via `store.NewID`) | Adopted (stdlib) for the import record and the id. |
@@ -1383,3 +1447,6 @@ commit. No task runs in parallel: every task after Task 2 reads the one before.
   the confirmation, and the shell's own handle is the fallback.
 - The line citations into `rendered_test.go` are at `314c0c8`; another lane's warm edits to it may
   move them, and Task 0 re-resolves them.
+- The `web/` line citations (the members page and `web/scripts/rendered/run.ts`) are at `985ff3a`,
+  not at `20f4a7c`. R2 at `92147bc` moved the members-page lines and the `run.ts` lines between the
+  two commits, and Task 0 re-resolves them.
