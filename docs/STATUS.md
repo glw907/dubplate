@@ -33,7 +33,7 @@ gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys un
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master), overnight 2026-09-26 | 5c-iv CLOSED at `1a08eae` (this close's docs commit follows); next: transliteration, Task 0 first |
+| 1 | main tree (master), overnight 2026-09-26 | OPEN: transliteration; Task 0 launch (`62ad346`); segment A (Tasks 1-3) running as `wf_581a3dd5-5c5`; then the boundary, segment B (Task 4, simplifier, Task 5) |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
