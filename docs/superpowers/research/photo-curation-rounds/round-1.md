@@ -330,3 +330,24 @@ its 7.5M ceiling (rough estimate 11M).
   (2026-09-26): "Newer stuff is OK for Nightmares on Wax," an exception to older-is-better. Round
   two searches Flickr CC BY/BY-SA festival shots for it (no Flickr API key on the workstation, so a
   search agent, not a quick check).
+
+## Artist sweep (2026-09-26)
+
+Geoff asked for "a round of direct artist searches" across the whole library's range. The list is
+`artist-sweep-list.md` (about 290 artists and scenes, including eleven adjacent scenes Geoff
+approved and added to `vocab.json` at `5c54f6a` and `f8641cb`). A scripted Commons metadata sweep
+(two passes, one API request per second after Commons rate-limited the first attempt, 0 skipped)
+found candidates for 223 entries and none for 52; a judgment prune removed name collisions (the Gang
+of Four, Suicide, Television, the Seattle SuperSonics for the Sonics) and kept 408 of 765. Geoff
+chose to verify the top 30 tonight (period photos and his named artists first; the lane cap stays
+near 13M); the other 30 of the verify set wait for round two. Candidate AI-retouched derivatives are
+refused in favour of the original file.
+
+Outreach targets (no shippable Commons photo): early Devo (only 2003 to 2010 shots), the Mystic
+Knights of the Oingo Boingo, Danny Barnes and the Bad Livers, Soul Coughing as a band (only Mike
+Doughty solo), the DC go-go scene beyond Chuck Brown, E.U., Junkyard Band, and Little Benny (Trouble
+Funk, Hot Cold Sweat, Redds and the Boys, the Go-Go Museum, Don't Mute DC, Moechella), Augustus Pablo,
+U-Roy, Jah Shaka, Justin Hinds, Tenor Saw, Dennis Bovell, Louisa Mark, the Beat, ? and the
+Mysterians, the Shaggs, the Lyres, the Embarrassment, the rebetiko singers, Lee Quiñones, Spoonie
+Gee, the Treacherous Three, the Rock Steady Crew, Blaze Foley, the mento artists, DNA, Goldie, LTJ
+Bukem, Heavens to Betsy, Smith & Mighty, X-Ray Spex, the Plugz, and the Chantays.
