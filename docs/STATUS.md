@@ -13,10 +13,10 @@ Any full gate regenerates them under `web/rendered-captures/` (ignored).
 ## Next action
 
 **Overnight 2026-09-26 (Geoff):** 22M cap (flag 17.6M). Queue, serial in the main tree:
-push master (gitleaks over `origin/master..master` first; origin at `aa8e19e`), transliteration, the photo integrity gate line, then 5d-i. The 6d plan awaits approval. Memory
+transliteration (master pushed through `d618bff`; push again at each close, gitleaks first), the photo integrity gate line, then 5d-i. The 6d plan awaits approval. Memory
 `overnight-window-2026-09-26` holds the grants.
 
-**Resume:** read this file and memory `overnight-window-2026-09-26`. Next: push master (gitleaks first), then transliteration
+**Resume:** read this file and memory `overnight-window-2026-09-26`. Next is transliteration
 (`plans/2026-09-25-translit-table-at-setup.md`, approved, 3.3M, Task 0 first), then the photo
 gate line, then 5d-i (plan rev 2.2, approved). Box read-only; nothing deploys until 5d.
 
