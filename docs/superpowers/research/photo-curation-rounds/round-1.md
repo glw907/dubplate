@@ -423,3 +423,33 @@ No mismatch. The round does not go back for re-verification on this tranche.
   masthead carries a notice), plus name collisions (a Madrid rock band for Junkyard Band, an MC5
   mural). Calypso photos on a Trinidad and Tobago term (`{{PD-TT-photo}}`) are a round-two research
   item: whether a 1937 Trinidad photo is also public domain in the US.
+
+## Round close (2026-09-26)
+
+Round 1 closed with 144 candidates sorted: 117 keep, 22 pass, 5 maybe. Committed at `e4754e8`: 116
+picked pairs (each .webp the exact preview Geoff judged; 25 records carry his focus or fit), 16
+waivers (13 artist, 3 landmark), and `rejected.json` with 326 entries (22 passes plus the agents'
+non-duplicate drops). `check.mjs integrity` passes on the committed pool; `check.mjs` validates
+the new `focus` and `fit` fields since `779d3e7` (diff-reviewer accept).
+
+Returned unpicked: `commons:139197098` (Run-DMC, Long Beach Arena). The page's name-based
+second-image flag missed it ("Run-DMC" against "Run-D.M.C."); the close's MusicBrainz step found all
+three frames share one MBID. The other two are committed with a waiver; this one stays in
+`.candidates/` for Geoff's call. The five maybes also stay in `.candidates/`. Round two should key
+the page's second-image flag on MBID where the sheet has one.
+
+MBIDs: 55 of 59 artist names resolved; Chitra Gupt, Deedar Singh Pardesi, Les Ambassadeurs, and
+Poison Ivy stay name-keyed.
+
+Balance: every family share is below target (116 photos against a 300-photo aim), which blocks the
+done checkpoint, not this commit.
+
+Round two targets: the 30 verify-set candidates not yet checked (`sweep/verify-set.json`); the
+outreach list above (early Devo, the Mystic Knights, the Bad Livers, go-go, the New York Dolls,
+Government Issue, Op Ivy, the Feelies, Yellowman, King Tubby, and the sweep's 52 empties); the
+Trinidad and Tobago public-domain question for 1930s calypso; Nightmares on Wax on Flickr; 1960s
+garage and the 1980s revival. Search briefs rank by era first.
+
+Spend: roughly 13M against a 7.5M ceiling raised mid-round. The page rebuilds (review mode, crop
+controls, three review cycles) and the mid-sitting searches drove the overrun; a later round should
+budget the sorting page as its own task and batch owner requests into the next round's search.
