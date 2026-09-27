@@ -112,19 +112,24 @@ func extract(wheel []byte) (map[uint16][]*string, error) {
 // unidecode/ (unidecode/x000.py through unidecode/x1f6.py), and if so
 // its section id. The Go form of tools/unidecode-table/generate.py's
 // `len(name) == 4 and name[0] == "x"` module filter, applied to a zip
-// entry's path instead of an imported module's __name__. Any entry
-// under unidecode/x that ends .py but does not match exactly x plus
-// three lowercase hex digits (wrong length, or uppercase hex) is
-// refused by name rather than silently skipped: a pinned wheel cannot
-// ship one, so an entry shaped like a near-miss module name is a
-// defect in the extraction, not a file to pass over.
+// entry's path instead of an imported module's __name__. Only the
+// `unidecode/x` prefix gates a skip: any entry under it that does not
+// match exactly x plus three lowercase hex digits and a .py suffix
+// (the wrong extension, wrong length, or uppercase hex) is refused by
+// name rather than silently skipped. A pinned wheel cannot ship one,
+// so an entry shaped like a near-miss module name is a defect in the
+// extraction, not a file to pass over.
 func dataModuleName(entryName string) (section uint16, ok bool, err error) {
 	const prefix = "unidecode/x"
-	const suffix = ".py"
-	if !strings.HasPrefix(entryName, prefix) || !strings.HasSuffix(entryName, suffix) {
+	if !strings.HasPrefix(entryName, prefix) {
 		return 0, false, nil
 	}
-	hex := strings.TrimSuffix(strings.TrimPrefix(entryName, prefix), suffix)
+	const suffix = ".py"
+	hex := strings.TrimPrefix(entryName, prefix)
+	if !strings.HasSuffix(hex, suffix) {
+		return 0, false, fmt.Errorf("unidecode: %s: refused as a data module name, want unidecode/x[0-9a-f]{3}.py", entryName)
+	}
+	hex = strings.TrimSuffix(hex, suffix)
 	if len(hex) != 3 || !isLowerHex3(hex) {
 		return 0, false, fmt.Errorf("unidecode: %s: refused as a data module name, want unidecode/x[0-9a-f]{3}.py", entryName)
 	}

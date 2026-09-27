@@ -144,6 +144,7 @@ func TestExtractRefusesNearMissDataName(t *testing.T) {
 		{name: "wrong length, too short", entry: "unidecode/x12.py"},
 		{name: "wrong length, too long", entry: "unidecode/x0000.py"},
 		{name: "uppercase hex", entry: "unidecode/xABC.py"},
+		{name: "wrong extension", entry: "unidecode/x000.pyc"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -214,6 +215,56 @@ func TestExtractRefusesCRCMismatch(t *testing.T) {
 	}
 	if errors.Is(err, ErrWheelChecksum) {
 		t.Fatal("a zip-level CRC error must not read as a wheel checksum error")
+	}
+}
+
+// TestExtractRefusesNonModuleCRCMismatch proves that extract's drain of
+// a non-module entry (the io.Copy to io.Discard dataModuleName's
+// isModule=false path takes) still reads the entry through the zip
+// reader's own CRC check, so a corrupted entry this package has no use
+// for is refused rather than skipped unread.
+func TestExtractRefusesNonModuleCRCMismatch(t *testing.T) {
+	content := []byte("Version: 1.4.0\n")
+	wrongCRC := crc32.ChecksumIEEE(content) + 1
+	zipBytes := buildZip(t, func(zw *zip.Writer) {
+		for i := range dataModuleCount {
+			addFile(t, zw, fmt.Sprintf("unidecode/x%03x.py", i), fmt.Sprintf("data = (\n'v%03d',\n)\n", i))
+		}
+		addRawFile(t, zw, "Unidecode-1.4.0.dist-info/METADATA", content, wrongCRC, uint64(len(content)))
+	})
+	_, err := extract(zipBytes)
+	if !errors.Is(err, zip.ErrChecksum) {
+		t.Fatalf("extract with a bad CRC on a non-module entry error = %v, want zip.ErrChecksum", err)
+	}
+	if !strings.Contains(err.Error(), "dist-info/METADATA") {
+		t.Fatalf("extract error = %q, want it to name the entry", err)
+	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a non-module CRC error must not read as a wheel checksum error")
+	}
+}
+
+// TestExtractRefusesNonModuleSizeMismatch is TestExtractRefusesNonModuleCRCMismatch's
+// size-declaration counterpart: the drain must read to EOF against the
+// declared UncompressedSize64, not merely open and discard the entry.
+func TestExtractRefusesNonModuleSizeMismatch(t *testing.T) {
+	content := []byte("Version: 1.4.0\n")
+	crc := crc32.ChecksumIEEE(content)
+	zipBytes := buildZip(t, func(zw *zip.Writer) {
+		for i := range dataModuleCount {
+			addFile(t, zw, fmt.Sprintf("unidecode/x%03x.py", i), fmt.Sprintf("data = (\n'v%03d',\n)\n", i))
+		}
+		addRawFile(t, zw, "Unidecode-1.4.0.dist-info/METADATA", content, crc, uint64(len(content))+5)
+	})
+	_, err := extract(zipBytes)
+	if !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Fatalf("extract with an oversized declared length on a non-module entry error = %v, want io.ErrUnexpectedEOF", err)
+	}
+	if !strings.Contains(err.Error(), "dist-info/METADATA") {
+		t.Fatalf("extract error = %q, want it to name the entry", err)
+	}
+	if errors.Is(err, ErrWheelChecksum) {
+		t.Fatal("a non-module size error must not read as a wheel checksum error")
 	}
 }
 
