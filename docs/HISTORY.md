@@ -239,7 +239,17 @@ exist in four copies with two refusal wordings, and the `TestMain` shim
   binary rsync names the live path rather than the staged one: the staged
   path never exists between deploys, so diffing it would report a change on
   every run. Acceptance of the `systemd-run` property list by the box's
-  systemd 257 is unproved until the first deploy.
+  systemd 257 is unproved until the first deploy. The man pages and a
+  workstation run on systemd 259 accept it.
+
+  The runbook for the first deploy:
+
+  1. Run `deploy.sh --check` first and read the staged install's `would run:
+     systemd-run ... unidecode install` line.
+  2. Roll back by redeploying the previous commit.
+  3. Keep the workstation's verified wheel cache (`make unidecode-wheel`'s
+     output). It is the estate's offline copy and the `--from` source if PyPI
+     ever deletes the 1.4.0 release.
 - **`serve` does not load the table.** `serve` does not score today, so only
   `shadow observe` and `shadow reevaluate` load it, and `shadow report`
   needs nothing. The verb that first scores inside `serve` (rung 9's tagging,

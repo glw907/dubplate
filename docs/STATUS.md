@@ -33,29 +33,30 @@ deploys until 5d.
 ## Open items (carried)
 
 - **Owed:** the streamer spec's seven open items (rev 2.5) to its study rung; from the site spec,
-  `init`/`upgrade` naming against `dubplate-server` and the configuration-reference generator as a
-  hook 18 consumer. Reading taken: OpenSubsonic wire types hand-written.
-- No deploy until 5d (`plans/2026-09-25-rung-5d-boundary-deployment-close.md`): nine `magic-link`
-  env keys, `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys' `doctor` row,
-  Ruling 6's `Referrer-Policy` residual, branding in both schemes, `deploy.sh`'s clean-`web/` build,
-  6a's and 6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy),
-  6c's Ruling 2 (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`), 5c-iv's two
-  rows (HISTORY 5c-iv "To 5d"), and the transliteration runbook row (HISTORY transliteration: the
-  staged `systemd-run` table install, unproved on systemd 257 until the first deploy). 5d's deploy gate
-  checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16. To 5d-i: `NewTrustedProxyConfig`
-  has no caller.
-- To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason
-  set, CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota`
-  reservations and default-collection preference, 5c-iv's handoff (the styled 404 among it). To
-  rung 9: filter, facets, trigram. To rung 12: streamer-admin mapping, restore-before-12 losing
-  stars/playlists, shared-origin M2 and 5c-iii's CSP-scope M2, the streamer database's restore
-  place (full lists: HISTORY 5c-ii, 5c-iii, 5c-iv). To the revoke verb: the epoch store's first
-  writer. To rung 14: 6c's admin write path and a resolving channel for a `serve`-refusing `admin` row.
+  settle `init`/`upgrade` naming against `dubplate-server` and add the configuration-reference
+  generator as a hook 18 consumer. Reading taken: OpenSubsonic wire types hand-written.
+- No deploy until 5d (`plans/2026-09-25-rung-5d-boundary-deployment-close.md`): nine `magic-link` env
+  keys, `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys' `doctor` row, Ruling
+  6's `Referrer-Policy` residual, branding in both schemes, `deploy.sh`'s clean-`web/` build, 6a's and
+  6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy), 6c's Ruling 2
+  (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`), 5c-iv's two rows (HISTORY
+  5c-iv "To 5d"), and the transliteration runbook row (HISTORY transliteration, "The deploy transition
+  is staged": `--check` first, rollback by redeploy, the wheel cache as `--from` source). 5d's deploy
+  gate checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16. To 5d-i:
+  `NewTrustedProxyConfig` has no caller.
+- To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason set,
+  CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota` reservations
+  and default-collection preference, 5c-iv's handoff (HISTORY 5c-iv "To rung 7", the styled 404 among
+  it). To rung 9: filter, facets, trigram. To rung 12: streamer-admin mapping, restore-before-12
+  losing stars/playlists, shared-origin M2 and 5c-iii's CSP-scope M2, the streamer database's restore
+  place. Full lists for rungs 7 and 12: HISTORY 5c-ii, 5c-iii, and 5c-iv. To the revoke verb: the
+  epoch store's first writer. To rung 14: 6c's admin write path and a resolving channel for a
+  `serve`-refusing `admin` row.
 - To 6d: `ServeOptions.Reconcile` wiring, store identity, migration-wait key, `member:<principal>`
-  actor, 6c's handoff (HISTORY 6c). Before any deploy exposing the strings: wire settings `apply`
-  at `serve` start (`cmd/dubplate-server/backup.go:274`, `store.go:280-284` claim it) and open the
-  store through `OpenServe` (else `OpenWrite`'s "start serve first" cannot be met on a fresh box).
-  To 6d Task 4: `rosterResetServer`'s baseline (HISTORY 5c-iv).
+  actor, 6c's handoff (HISTORY 6c). Before any deploy exposing the strings: wire settings `apply` at
+  `serve` start (`cmd/dubplate-server/backup.go:274`, `store.go:280-284` claim it) and open the store
+  through `OpenServe` (unwired today, so `OpenWrite`'s "start serve first" refusal cannot be satisfied
+  on a fresh box). To 6d Task 4: `rosterResetServer`'s baseline (HISTORY 5c-iv).
 - Errata and architecture-cleanup reads, file:line in HISTORY: 5c-iii's nine errata; 5c-iv-E1 to E3;
   6b-ii-b's; 6c-E1 to 6c-E10; the 5c-ii, 6b-i, 6a, window 2, 5c-iii, 6b-ii-b, and 6c reads (the NaN
   float-parser disagreement among 6c's); 5c-iv's routings (`research/2026-09-26-rung-5c-iv-final-reads.md`,
@@ -67,7 +68,7 @@ deploys until 5d.
   tension, the Unidecode-derived items still carried (HISTORY transliteration, "Routed").
 - Workstation prerequisite: `make unidecode-wheel` once per machine before `make test`; prove
   "wheel absent" with `-count=1`. A gate failing on a `/tmp` disk-quota write is a lost run.
-- Photo lane, after lane 1: a `check.sh` integrity line, Ruling 3's photo erratum to rung 7, a
-  source-URL recheck, a blob-retention call. Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`,
-  beets `2.14.1`, mediafile `0.17.0`, unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap
-  `0.5.13`, sqlite v1.59.0, rclone v1.74.3.
+- Photo lane, after lane 1: Ruling 3's photo erratum to rung 7, a source-URL recheck, a blob-retention
+  call. Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.14.1`, mediafile `0.17.0`,
+  unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap `0.5.13`, sqlite v1.59.0, rclone
+  v1.74.3.
