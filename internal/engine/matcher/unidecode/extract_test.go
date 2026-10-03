@@ -94,7 +94,7 @@ func TestExtractRefusesWrongCount(t *testing.T) {
 	if !strings.Contains(err.Error(), "189") {
 		t.Fatalf("extract(189 modules) error = %q, want it to name the count", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a module-count refusal must not read as a wheel checksum error")
 	}
 }
@@ -107,7 +107,7 @@ func TestExtractRefusesTooManyModules(t *testing.T) {
 	if !strings.Contains(err.Error(), "191") {
 		t.Fatalf("extract(191 modules) error = %q, want it to name the count", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a module-count refusal must not read as a wheel checksum error")
 	}
 }
@@ -126,7 +126,7 @@ func TestExtractRefusesMalformedDataName(t *testing.T) {
 	if !strings.Contains(err.Error(), "xzzz.py") {
 		t.Fatalf("extract error = %q, want it to name unidecode/xzzz.py", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a malformed-name refusal must not read as a wheel checksum error")
 	}
 }
@@ -162,7 +162,7 @@ func TestExtractRefusesNearMissDataName(t *testing.T) {
 			if !strings.Contains(err.Error(), tt.entry) {
 				t.Fatalf("extract error = %q, want it to name %s", err, tt.entry)
 			}
-			if errors.Is(err, ErrWheelChecksum) {
+			if errors.Is(err, errWheelChecksum) {
 				t.Fatal("a near-miss name refusal must not read as a wheel checksum error")
 			}
 		})
@@ -183,7 +183,7 @@ func TestExtractRefusesDuplicateSection(t *testing.T) {
 	if !strings.Contains(err.Error(), "unidecode/x000.py") {
 		t.Fatalf("extract error = %q, want it to name the duplicate entry", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a duplicate-section refusal must not read as a wheel checksum error")
 	}
 }
@@ -193,7 +193,7 @@ func TestExtractRefusesNotAZip(t *testing.T) {
 	if err == nil {
 		t.Fatal("extract(garbage) = nil error, want a zip read error")
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a zip-read refusal must not read as a wheel checksum error")
 	}
 }
@@ -214,7 +214,7 @@ func TestExtractRefusesCRCMismatch(t *testing.T) {
 	if !strings.Contains(err.Error(), "unidecode/x000.py") {
 		t.Fatalf("extract error = %q, want it to name the entry", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a zip-level CRC error must not read as a wheel checksum error")
 	}
 }
@@ -240,7 +240,7 @@ func TestExtractRefusesNonModuleCRCMismatch(t *testing.T) {
 	if !strings.Contains(err.Error(), "dist-info/METADATA") {
 		t.Fatalf("extract error = %q, want it to name the entry", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a non-module CRC error must not read as a wheel checksum error")
 	}
 }
@@ -264,7 +264,7 @@ func TestExtractRefusesNonModuleSizeMismatch(t *testing.T) {
 	if !strings.Contains(err.Error(), "dist-info/METADATA") {
 		t.Fatalf("extract error = %q, want it to name the entry", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a non-module size error must not read as a wheel checksum error")
 	}
 }
@@ -285,7 +285,29 @@ func TestExtractRefusesSizeMismatch(t *testing.T) {
 	if !strings.Contains(err.Error(), "unidecode/x000.py") {
 		t.Fatalf("extract error = %q, want it to name unidecode/x000.py", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("a size-mismatch refusal must not read as a wheel checksum error")
+	}
+}
+
+// TestExtractRefusesNameBeforeOpening proves a near-miss data-module
+// name is refused as a name even when the entry itself cannot be
+// opened: the entry's compression method is one archive/zip does not
+// support, so an Open before the name check would report that failure
+// instead.
+func TestExtractRefusesNameBeforeOpening(t *testing.T) {
+	zipBytes := buildZip(t, func(zw *zip.Writer) {
+		fh := &zip.FileHeader{Name: "unidecode/xABC.py", Method: 99}
+		w, err := zw.CreateRaw(fh)
+		if err != nil {
+			t.Fatalf("create raw entry: %v", err)
+		}
+		if _, err := w.Write([]byte("x")); err != nil {
+			t.Fatalf("write raw entry: %v", err)
+		}
+	})
+	_, err := extract(zipBytes)
+	if err == nil || !strings.Contains(err.Error(), "refused as a data module name") {
+		t.Fatalf("extract error = %v, want a name refusal", err)
 	}
 }

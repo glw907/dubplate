@@ -22,7 +22,7 @@ func Build(wheel []byte) ([]byte, error) {
 	sum := sha256.Sum256(wheel)
 	got := hex.EncodeToString(sum[:])
 	if got != WheelSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", ErrWheelChecksum, got, WheelSHA256)
+		return nil, fmt.Errorf("%w: got %s, want %s", errWheelChecksum, got, WheelSHA256)
 	}
 
 	blocks, err := extract(wheel)
@@ -37,7 +37,7 @@ func Build(wheel []byte) ([]byte, error) {
 	sum = sha256.Sum256(encoded)
 	got = hex.EncodeToString(sum[:])
 	if got != tableSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", ErrTableChecksum, got, tableSHA256)
+		return nil, fmt.Errorf("%w: got %s, want %s", errTableChecksum, got, tableSHA256)
 	}
 	return encoded, nil
 }
@@ -61,7 +61,10 @@ func extract(wheel []byte) (map[uint16][]*string, error) {
 	blocks := make(map[uint16][]*string)
 	matched := 0
 	for _, f := range r.File {
-		section, isModule, nameErr := dataModuleName(f.Name)
+		section, isModule, err := dataModuleName(f.Name)
+		if err != nil {
+			return nil, err
+		}
 
 		rc, err := f.Open()
 		if err != nil {
@@ -71,9 +74,6 @@ func extract(wheel []byte) (map[uint16][]*string, error) {
 		if !isModule {
 			_, readErr := io.Copy(io.Discard, rc)
 			closeErr := rc.Close()
-			if nameErr != nil {
-				return nil, nameErr
-			}
 			if readErr != nil {
 				return nil, fmt.Errorf("unidecode: read %s: %w", f.Name, readErr)
 			}

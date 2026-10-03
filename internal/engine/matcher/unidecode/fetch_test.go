@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -98,7 +100,7 @@ func TestFetchRefusesNon200Status(t *testing.T) {
 }
 
 func TestFetchRefusesOversizedBody(t *testing.T) {
-	body := bytes.Repeat([]byte{'x'}, MaxWheelSize+1)
+	body := bytes.Repeat([]byte{'x'}, maxWheelSize+1)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(body)
 	}))
@@ -106,16 +108,16 @@ func TestFetchRefusesOversizedBody(t *testing.T) {
 	client, _ := newTestClient(t, server)
 
 	_, err := Fetch(context.Background(), client)
-	if !errors.Is(err, ErrWheelTooLarge) {
-		t.Fatalf("Fetch(oversized body) error = %v, want ErrWheelTooLarge", err)
+	if !errors.Is(err, errWheelTooLarge) {
+		t.Fatalf("Fetch(oversized body) error = %v, want errWheelTooLarge", err)
 	}
-	if errors.Is(err, ErrWheelChecksum) {
+	if errors.Is(err, errWheelChecksum) {
 		t.Fatal("an oversized body must refuse on size, not checksum")
 	}
 }
 
 func TestFetchDoesNotRefuseExactMaxSizeForSize(t *testing.T) {
-	body := bytes.Repeat([]byte{'x'}, MaxWheelSize)
+	body := bytes.Repeat([]byte{'x'}, maxWheelSize)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(body)
 	}))
@@ -123,11 +125,11 @@ func TestFetchDoesNotRefuseExactMaxSizeForSize(t *testing.T) {
 	client, _ := newTestClient(t, server)
 
 	_, err := Fetch(context.Background(), client)
-	if errors.Is(err, ErrWheelTooLarge) {
-		t.Fatal("a body of exactly MaxWheelSize must not be refused for size")
+	if errors.Is(err, errWheelTooLarge) {
+		t.Fatal("a body of exactly maxWheelSize must not be refused for size")
 	}
-	if !errors.Is(err, ErrWheelChecksum) {
-		t.Fatalf("Fetch(exact-size wrong body) error = %v, want ErrWheelChecksum", err)
+	if !errors.Is(err, errWheelChecksum) {
+		t.Fatalf("Fetch(exact-size wrong body) error = %v, want errWheelChecksum", err)
 	}
 }
 
@@ -139,8 +141,8 @@ func TestFetchRefusesWrongChecksum(t *testing.T) {
 	client, _ := newTestClient(t, server)
 
 	_, err := Fetch(context.Background(), client)
-	if !errors.Is(err, ErrWheelChecksum) {
-		t.Fatalf("Fetch(wrong body) error = %v, want ErrWheelChecksum", err)
+	if !errors.Is(err, errWheelChecksum) {
+		t.Fatalf("Fetch(wrong body) error = %v, want errWheelChecksum", err)
 	}
 }
 
@@ -165,5 +167,39 @@ func TestWheelCachePathRequiresACacheDirectory(t *testing.T) {
 	t.Setenv("XDG_CACHE_HOME", "")
 	if _, err := WheelCachePath(); err == nil {
 		t.Fatal("WheelCachePath with no HOME or XDG_CACHE_HOME = nil error, want one")
+	}
+}
+
+type failingReader struct{ err error }
+
+func (r failingReader) Read([]byte) (int, error) { return 0, r.err }
+
+func TestReadWheel(t *testing.T) {
+	wheel := loadCachedWheel(t)
+	readErr := errors.New("disk on fire")
+	tests := []struct {
+		name    string
+		r       io.Reader
+		wantErr error
+	}{
+		{"pinned wheel", bytes.NewReader(wheel), nil},
+		{"oversized", bytes.NewReader(bytes.Repeat([]byte{'x'}, maxWheelSize+1)), errWheelTooLarge},
+		{"exactly the maximum, wrong bytes", bytes.NewReader(bytes.Repeat([]byte{'x'}, maxWheelSize)), errWheelChecksum},
+		{"wrong bytes", strings.NewReader("not the pinned wheel"), errWheelChecksum},
+		{"read failure", failingReader{readErr}, readErr},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ReadWheel(tt.r)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("ReadWheel error = %v, want %v", err, tt.wantErr)
+			}
+			if tt.wantErr == nil && !bytes.Equal(got, wheel) {
+				t.Fatal("ReadWheel returned bytes that differ from the wheel")
+			}
+			if tt.wantErr != nil && got != nil {
+				t.Fatalf("ReadWheel returned %d bytes alongside an error", len(got))
+			}
+		})
 	}
 }

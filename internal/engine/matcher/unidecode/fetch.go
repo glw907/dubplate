@@ -11,11 +11,9 @@ import (
 	"path/filepath"
 )
 
-// Fetch downloads Unidecode 1.4.0's pinned wheel over client and
-// verifies its checksum, refusing a non-200 response, a body over
-// MaxWheelSize, and a body whose sha256 disagrees with WheelSHA256.
-// The caller's ctx bounds the request; Fetch sets no timeout of its
-// own.
+// Fetch downloads Unidecode 1.4.0's pinned wheel over client,
+// refusing a non-200 response and any body [ReadWheel] refuses. The
+// caller's ctx bounds the request; Fetch sets no timeout of its own.
 func Fetch(ctx context.Context, client *http.Client) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, WheelURL, nil)
 	if err != nil {
@@ -32,20 +30,27 @@ func Fetch(ctx context.Context, client *http.Client) ([]byte, error) {
 		return nil, fmt.Errorf("unidecode: fetch wheel: unexpected status %s", resp.Status)
 	}
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxWheelSize+1))
-	if err != nil {
-		return nil, fmt.Errorf("unidecode: read wheel body: %w", err)
-	}
-	if len(body) > MaxWheelSize {
-		return nil, ErrWheelTooLarge
-	}
+	return ReadWheel(resp.Body)
+}
 
-	sum := sha256.Sum256(body)
+// ReadWheel reads the pinned wheel from r and returns its bytes. It
+// reads at most maxWheelSize+1 bytes, so an oversized source refuses
+// before anything is hashed, and refuses bytes whose sha256 disagrees
+// with WheelSHA256.
+func ReadWheel(r io.Reader) ([]byte, error) {
+	wheel, err := io.ReadAll(io.LimitReader(r, maxWheelSize+1))
+	if err != nil {
+		return nil, fmt.Errorf("unidecode: read wheel: %w", err)
+	}
+	if len(wheel) > maxWheelSize {
+		return nil, errWheelTooLarge
+	}
+	sum := sha256.Sum256(wheel)
 	got := hex.EncodeToString(sum[:])
 	if got != WheelSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", ErrWheelChecksum, got, WheelSHA256)
+		return nil, fmt.Errorf("%w: got %s, want %s", errWheelChecksum, got, WheelSHA256)
 	}
-	return body, nil
+	return wheel, nil
 }
 
 // WheelCachePath returns the workstation file the pinned wheel caches
@@ -57,24 +62,4 @@ func WheelCachePath() (string, error) {
 		return "", fmt.Errorf("unidecode: locate cache directory: %w", err)
 	}
 	return filepath.Join(dir, "unidecode", "Unidecode-1.4.0-py3-none-any.whl"), nil
-}
-
-// LoadCachedTable builds and parses a Table from the workstation's
-// cached wheel (see WheelCachePath). It is every scoring package's own
-// TestMain fixture, so a missing cache names `make unidecode-wheel`
-// rather than a raw os.ReadFile error.
-func LoadCachedTable() (*Table, error) {
-	path, err := WheelCachePath()
-	if err != nil {
-		return nil, err
-	}
-	wheel, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read cached unidecode wheel at %s: %w; run make unidecode-wheel", path, err)
-	}
-	data, err := Build(wheel)
-	if err != nil {
-		return nil, err
-	}
-	return Parse(data)
 }

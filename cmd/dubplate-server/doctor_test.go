@@ -207,7 +207,7 @@ func TestDoctorCmd(t *testing.T) {
 			if li >= len(lines) {
 				t.Fatalf("stdout ran out of lines before the unidecode row")
 			}
-			if wantPrefix := fmt.Sprintf("%-32s", "unidecode"); !strings.HasPrefix(lines[li], wantPrefix) {
+			if wantPrefix := fmt.Sprintf("%-32s", unidecodeDoctorRow); !strings.HasPrefix(lines[li], wantPrefix) {
 				t.Errorf("unidecode row %d = %q, want prefix %q", li, lines[li], wantPrefix)
 			}
 			li++

@@ -30,7 +30,7 @@ func Parse(data []byte) (*Table, error) {
 	sum := sha256.Sum256(data)
 	got := hex.EncodeToString(sum[:])
 	if got != tableSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", ErrTableChecksum, got, tableSHA256)
+		return nil, fmt.Errorf("%w: got %s, want %s", errTableChecksum, got, tableSHA256)
 	}
 	return decode(data)
 }
@@ -39,10 +39,10 @@ func Parse(data []byte) (*Table, error) {
 // ok return distinguishes "no mapping" (Unidecode's None) from an
 // explicit empty-string mapping.
 func (t *Table) Lookup(r rune) (repl string, ok bool) {
-	if r < 0x80 {
+	if uint32(r) < 0x80 {
 		return string(r), true
 	}
-	if r > unidecodeMaxCodepoint {
+	if uint32(r) > unidecodeMaxCodepoint {
 		return "", false
 	}
 	section := uint16(r >> 8)

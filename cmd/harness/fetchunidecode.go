@@ -1,9 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -64,6 +63,6 @@ func runFetchUnidecode(ctx context.Context, client *http.Client, stderr io.Write
 }
 
 func wheelChecksumMatches(data []byte) bool {
-	sum := sha256.Sum256(data)
-	return hex.EncodeToString(sum[:]) == unidecode.WheelSHA256
+	_, err := unidecode.ReadWheel(bytes.NewReader(data))
+	return err == nil
 }

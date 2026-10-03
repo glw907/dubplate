@@ -11,7 +11,7 @@ const Version = "1.4.0"
 const WheelURL = "https://files.pythonhosted.org/packages/8f/b7/559f59d57d18b44c6d1250d2eeaa676e028b9c527431f5d0736478a73ba1/Unidecode-1.4.0-py3-none-any.whl"
 
 // WheelSHA256 is Unidecode 1.4.0's wheel checksum, from PyPI's release
-// metadata. Fetch and Build both refuse a wheel that disagrees with it.
+// metadata. ReadWheel and Build both refuse a wheel that disagrees with it.
 const WheelSHA256 = "c3c7606c27503ad8d501270406e345ddb480a7b5f38827eafe4fa82a137f0021"
 
 // tableSHA256 is the checksum of the table Build produces from the
@@ -24,10 +24,10 @@ const tableSHA256 = "c954605b805e4a21d1d9e79b4d93bc6b89684de9996dd21720b256fc58a
 // is stored under.
 const TableFileName = "unidecode-1.4.0.tbl"
 
-// MaxWheelSize bounds how much of a wheel download or offline file
+// maxWheelSize bounds how much of a wheel download or offline file
 // this package reads, well above Unidecode 1.4.0's actual size
 // (235,837 bytes).
-const MaxWheelSize = 1 << 20 // 1 MiB
+const maxWheelSize = 1 << 20 // 1 MiB
 
 // dataModuleCount is how many data modules Unidecode 1.4.0's wheel
 // ships. Build refuses a wheel that extracts to any other count.
@@ -50,14 +50,14 @@ const (
 	sweepHi = 0x10ffff
 )
 
-// ErrWheelChecksum reports that a wheel's sha256 disagreed with
+// errWheelChecksum reports that a wheel's sha256 disagreed with
 // WheelSHA256, whether downloaded or read from a file.
-var ErrWheelChecksum = errors.New("unidecode: wheel checksum mismatch")
+var errWheelChecksum = errors.New("unidecode: wheel checksum mismatch")
 
-// ErrTableChecksum reports that a table's sha256 disagreed with the
+// errTableChecksum reports that a table's sha256 disagreed with the
 // pinned table checksum, whether just built or read from a file.
-var ErrTableChecksum = errors.New("unidecode: table checksum mismatch")
+var errTableChecksum = errors.New("unidecode: table checksum mismatch")
 
-// ErrWheelTooLarge reports that a wheel download or file exceeded
-// MaxWheelSize.
-var ErrWheelTooLarge = errors.New("unidecode: wheel exceeds maximum size")
+// errWheelTooLarge reports that a wheel download or file exceeded
+// maxWheelSize.
+var errWheelTooLarge = errors.New("unidecode: wheel exceeds maximum size")

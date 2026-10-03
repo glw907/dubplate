@@ -23,17 +23,17 @@ import (
 // pinned wheel, filled by `make unidecode-wheel`. It fails rather than
 // skips when the cache is empty, since Go's test cache does not track
 // the wheel file and a stale "ok" would hide the gap.
-func loadCachedUnidecodeWheel(t *testing.T) []byte {
+func loadCachedUnidecodeWheel(t *testing.T) (path string, wheel []byte) {
 	t.Helper()
 	path, err := unidecode.WheelCachePath()
 	if err != nil {
 		t.Fatalf("locate wheel cache: %v", err)
 	}
-	data, err := os.ReadFile(path)
+	wheel, err = os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read cached wheel at %s: %v; run make unidecode-wheel", path, err)
 	}
-	return data
+	return path, wheel
 }
 
 // installTestUnidecodeTable installs a valid table into stateDir by
@@ -42,14 +42,11 @@ func loadCachedUnidecodeWheel(t *testing.T) []byte {
 // doctor or shadow test needs already installed.
 func installTestUnidecodeTable(t *testing.T, stateDir string) {
 	t.Helper()
-	loadCachedUnidecodeWheel(t)
-	path, err := unidecode.WheelCachePath()
-	if err != nil {
-		t.Fatalf("locate wheel cache: %v", err)
-	}
+	path, _ := loadCachedUnidecodeWheel(t)
+	denyUnidecodeNetwork(t)
 	var stdout bytes.Buffer
 	environ := []string{"DUBPLATE_STATE_DIR=" + stateDir}
-	if err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), environ, path, &stdout); err != nil {
+	if err := runUnidecodeInstall(context.Background(), environ, path, &stdout); err != nil {
 		t.Fatalf("install test unidecode table into %s: %v", stateDir, err)
 	}
 }
@@ -83,30 +80,34 @@ func (rt *unidecodeRewritingTransport) RoundTrip(req *http.Request) (*http.Respo
 	return http.DefaultTransport.RoundTrip(clone)
 }
 
-func newUnidecodeTestClient(t *testing.T, server *httptest.Server) (*http.Client, *unidecodeRewritingTransport) {
+// useUnidecodeServer points unidecodeClient at server through a
+// rewriting transport for the test, and returns the transport so a test
+// can read its request count.
+func useUnidecodeServer(t *testing.T, server *httptest.Server) *unidecodeRewritingTransport {
 	t.Helper()
 	rt := &unidecodeRewritingTransport{t: t, server: server}
-	return &http.Client{Transport: rt}, rt
+	orig := unidecodeClient
+	unidecodeClient = &http.Client{Transport: rt}
+	t.Cleanup(func() { unidecodeClient = orig })
+	return rt
 }
 
-// newNoNetworkUnidecodeTestClient returns a client for a call this test
-// expects to make no request at all: its transport is
-// unidecodeRewritingTransport over a server whose handler fails the
-// test on any request, so a mutation or regression that reaches the
-// network fails the test instead of opening a real connection.
-func newNoNetworkUnidecodeTestClient(t *testing.T) *http.Client {
+// denyUnidecodeNetwork points unidecodeClient at a server whose handler
+// fails the test on any request, so a call that should reach the network
+// never fails the test instead of opening a real connection.
+func denyUnidecodeNetwork(t *testing.T) {
 	t.Helper()
 	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Error("unexpected request: this call should reach the network never")
 	}))
 	t.Cleanup(server.Close)
-	client, _ := newUnidecodeTestClient(t, server)
-	return client
+	useUnidecodeServer(t, server)
 }
 
 func TestUnidecodeInstall_RefusesWithoutStateDir(t *testing.T) {
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), nil, "", &stdout)
+	denyUnidecodeNetwork(t)
+	err := runUnidecodeInstall(context.Background(), nil, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), "DUBPLATE_STATE_DIR") {
 		t.Fatalf("error = %v, want a refusal naming DUBPLATE_STATE_DIR", err)
 	}
@@ -118,7 +119,8 @@ func TestUnidecodeInstall_RefusesWithoutStateDir(t *testing.T) {
 func TestUnidecodeInstall_RefusesAbsentStateDir(t *testing.T) {
 	stateDir := filepath.Join(t.TempDir(), "absent")
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	denyUnidecodeNetwork(t)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), stateDir) {
 		t.Fatalf("error = %v, want a refusal naming %s", err, stateDir)
 	}
@@ -134,7 +136,8 @@ func TestUnidecodeInstall_RefusesForeignStateDirOwner(t *testing.T) {
 
 	stateDir := t.TempDir()
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	denyUnidecodeNetwork(t)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), "runuser") {
 		t.Fatalf("error = %v, want a refusal naming the runuser fix", err)
 	}
@@ -154,7 +157,8 @@ func TestUnidecodeInstall_OwnershipChecksPrecedeAlreadyInstalled(t *testing.T) {
 	t.Cleanup(func() { geteuid = orig })
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	denyUnidecodeNetwork(t)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil {
 		t.Fatal("error = nil, want a refusal: ownership checks must run before the already-installed check")
 	}
@@ -189,7 +193,8 @@ func TestUnidecodeInstall_RefusesForeignLeafOwner(t *testing.T) {
 	t.Cleanup(func() { geteuid = orig })
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	denyUnidecodeNetwork(t)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil || !strings.Contains(err.Error(), leafPath) || !strings.Contains(err.Error(), "runuser") {
 		t.Fatalf("error = %v, want a refusal naming %s and the runuser fix", err, leafPath)
 	}
@@ -226,7 +231,8 @@ func TestUnidecodeInstall_RefusesBadLeafShape(t *testing.T) {
 			tt.setup(t, leafPath)
 
 			var stdout bytes.Buffer
-			err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+			denyUnidecodeNetwork(t)
+			err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 			if err == nil {
 				t.Fatal("error = nil, want a refusal")
 			}
@@ -248,10 +254,10 @@ func TestUnidecodeInstall_AlreadyInstalledMakesNoRequest(t *testing.T) {
 		t.Error("unexpected request when a valid table is already installed")
 	}))
 	defer server.Close()
-	client, rt := newUnidecodeTestClient(t, server)
+	rt := useUnidecodeServer(t, server)
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), client, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -278,14 +284,11 @@ func TestUnidecodeInstall_ReplacesInvalidTable(t *testing.T) {
 		t.Fatalf("write invalid table: %v", err)
 	}
 
-	loadCachedUnidecodeWheel(t)
-	wheelPath, err := unidecode.WheelCachePath()
-	if err != nil {
-		t.Fatalf("locate wheel cache: %v", err)
-	}
+	wheelPath, _ := loadCachedUnidecodeWheel(t)
+	denyUnidecodeNetwork(t)
 
 	var stdout bytes.Buffer
-	if err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, wheelPath, &stdout); err != nil {
+	if err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, wheelPath, &stdout); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
 
@@ -315,7 +318,8 @@ func TestUnidecodeInstall_RefusesBadFromPath(t *testing.T) {
 			from := tt.from(t)
 
 			var stdout bytes.Buffer
-			err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, from, &stdout)
+			denyUnidecodeNetwork(t)
+			err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, from, &stdout)
 			if err == nil || !strings.Contains(err.Error(), from) {
 				t.Fatalf("error = %v, want a refusal naming %s", err, from)
 			}
@@ -327,9 +331,9 @@ func TestUnidecodeInstall_RefusesBadFromPath(t *testing.T) {
 }
 
 // TestUnidecodeInstall_RefusesOversizedFromFile proves the --from cap
-// refuses before Build ever hashes the file: a cap check that hashed
-// first would still refuse on checksum instead of ErrWheelTooLarge,
-// which the errors.Is below would catch.
+// refuses before the file is hashed: a cap check that hashed first
+// would refuse on checksum instead, which the message check below
+// would catch. The file is one byte past the 1 MiB cap.
 func TestUnidecodeInstall_RefusesOversizedFromFile(t *testing.T) {
 	stateDir := t.TempDir()
 	fromPath := filepath.Join(t.TempDir(), "oversized.whl")
@@ -337,7 +341,7 @@ func TestUnidecodeInstall_RefusesOversizedFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create scratch file: %v", err)
 	}
-	if err := f.Truncate(unidecode.MaxWheelSize + 1); err != nil {
+	if err := f.Truncate(1<<20 + 1); err != nil {
 		t.Fatalf("truncate scratch file: %v", err)
 	}
 	if err := f.Close(); err != nil {
@@ -345,9 +349,10 @@ func TestUnidecodeInstall_RefusesOversizedFromFile(t *testing.T) {
 	}
 
 	var stdout bytes.Buffer
-	err = runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
-	if !errors.Is(err, unidecode.ErrWheelTooLarge) {
-		t.Fatalf("error = %v, want ErrWheelTooLarge", err)
+	denyUnidecodeNetwork(t)
+	err = runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
+	if err == nil || !strings.Contains(err.Error(), "exceeds maximum size") || !strings.Contains(err.Error(), fromPath) {
+		t.Fatalf("error = %v, want a size refusal naming %s", err, fromPath)
 	}
 	if _, statErr := os.Stat(filepath.Join(stateDir, unidecodeLeafName)); !errors.Is(statErr, fs.ErrNotExist) {
 		t.Errorf("leaf exists after a refused install: %v", statErr)
@@ -362,9 +367,10 @@ func TestUnidecodeInstall_RefusesWrongFromFile(t *testing.T) {
 	}
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), newNoNetworkUnidecodeTestClient(t), []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
-	if !errors.Is(err, unidecode.ErrWheelChecksum) {
-		t.Fatalf("error = %v, want ErrWheelChecksum", err)
+	denyUnidecodeNetwork(t)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, fromPath, &stdout)
+	if err == nil || !strings.Contains(err.Error(), "checksum mismatch") || !strings.Contains(err.Error(), fromPath) {
+		t.Fatalf("error = %v, want a checksum refusal naming %s", err, fromPath)
 	}
 	if !strings.Contains(err.Error(), unidecode.WheelSHA256) {
 		t.Errorf("error = %q, want it to name the pinned sha256 %s", err.Error(), unidecode.WheelSHA256)
@@ -379,11 +385,11 @@ func TestUnidecodeInstall_DownloadRefusalCarriesOfflineGuidance(t *testing.T) {
 		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer server.Close()
-	client, _ := newUnidecodeTestClient(t, server)
+	useUnidecodeServer(t, server)
 
 	stateDir := t.TempDir()
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), client, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil {
 		t.Fatal("error = nil, want a download refusal")
 	}
@@ -416,10 +422,10 @@ func TestUnidecodeInstall_FailedDownloadLeavesExistingFileUntouched(t *testing.T
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
-	client, _ := newUnidecodeTestClient(t, server)
+	useUnidecodeServer(t, server)
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), client, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err == nil {
 		t.Fatal("error = nil, want a download refusal")
 	}
@@ -438,24 +444,24 @@ func TestUnidecodeInstall_FailedDownloadLeavesExistingFileUntouched(t *testing.T
 // written table round-trips through Parse, and the output names the
 // path and version.
 func TestUnidecodeInstall_Success(t *testing.T) {
-	wheel := loadCachedUnidecodeWheel(t)
+	_, wheel := loadCachedUnidecodeWheel(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write(wheel)
 	}))
 	defer server.Close()
-	client, rt := newUnidecodeTestClient(t, server)
+	rt := useUnidecodeServer(t, server)
 
 	stateDir := t.TempDir()
 
 	// This test runs serially (this package runs no test in
 	// parallel): a restrictive umask proves the leaf's 0755 mode is
-	// set by an explicit os.Chmod, not left to whatever MkdirAll's own
+	// set by an explicit os.Chmod, not left to whatever os.Mkdir's own
 	// call produces under the umask in effect.
 	oldMask := syscall.Umask(0o027)
 	defer syscall.Umask(oldMask)
 
 	var stdout bytes.Buffer
-	err := runUnidecodeInstall(context.Background(), client, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
+	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
 	if err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -496,32 +502,76 @@ func TestUnidecodeInstall_Success(t *testing.T) {
 }
 
 // TestUnidecodeInstall_CreatesNothingUnderStateDirOnRefusal proves the
-// state directory's own contents are unchanged after every refusal
-// this file names above that runs before any write.
+// state directory is still empty after each refusal that runs before
+// any write.
 func TestUnidecodeInstall_CreatesNothingUnderStateDirOnRefusal(t *testing.T) {
-	stateDir := t.TempDir()
-	before, err := os.ReadDir(stateDir)
-	if err != nil {
-		t.Fatalf("ReadDir before: %v", err)
+	tests := []struct {
+		name string
+		// setup swaps what the row needs and returns the --from path.
+		setup func(t *testing.T) string
+	}{
+		{"foreign state directory owner", func(t *testing.T) string {
+			denyUnidecodeNetwork(t)
+			orig := geteuid
+			geteuid = func() int { return os.Geteuid() + 1 }
+			t.Cleanup(func() { geteuid = orig })
+			return ""
+		}},
+		{"absent --from file", func(t *testing.T) string {
+			denyUnidecodeNetwork(t)
+			return filepath.Join(t.TempDir(), "missing.whl")
+		}},
+		{"--from directory", func(t *testing.T) string {
+			denyUnidecodeNetwork(t)
+			return t.TempDir()
+		}},
+		{"--from file that is not the pinned wheel", func(t *testing.T) string {
+			denyUnidecodeNetwork(t)
+			path := filepath.Join(t.TempDir(), "wrong.whl")
+			if err := os.WriteFile(path, []byte("not the pinned wheel"), 0o644); err != nil {
+				t.Fatalf("write scratch file: %v", err)
+			}
+			return path
+		}},
+		{"refused download", func(t *testing.T) string {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+			}))
+			t.Cleanup(server.Close)
+			useUnidecodeServer(t, server)
+			return ""
+		}},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			from := tt.setup(t)
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-	}))
-	defer server.Close()
-	client, _ := newUnidecodeTestClient(t, server)
+			var stdout bytes.Buffer
+			if err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, from, &stdout); err == nil {
+				t.Fatal("error = nil, want a refusal")
+			}
 
-	var stdout bytes.Buffer
-	if err := runUnidecodeInstall(context.Background(), client, []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout); err == nil {
-		t.Fatal("error = nil, want a download refusal")
+			after, err := os.ReadDir(stateDir)
+			if err != nil {
+				t.Fatalf("ReadDir: %v", err)
+			}
+			if len(after) != 0 {
+				t.Fatalf("state directory listing = %v, want empty", after)
+			}
+		})
 	}
+}
 
-	after, err := os.ReadDir(stateDir)
-	if err != nil {
-		t.Fatalf("ReadDir after: %v", err)
-	}
-	if len(before) != 0 || len(after) != 0 {
-		t.Fatalf("state directory listing before = %v, after = %v, want both empty", before, after)
+// TestUnidecodeInstallCmd_NamesTheVerbOnce proves the verb's prefix
+// is added at the command boundary, once, to a refusal from below it.
+func TestUnidecodeInstallCmd_NamesTheVerbOnce(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	cmd := newUnidecodeInstallCmd(nil, &stdout, &stderr)
+	cmd.SetArgs(nil)
+	err := cmd.Execute()
+	if err == nil || err.Error() != "unidecode install: DUBPLATE_STATE_DIR is not set" {
+		t.Fatalf("error = %v, want %q", err, "unidecode install: DUBPLATE_STATE_DIR is not set")
 	}
 }
 
@@ -616,8 +666,8 @@ func TestDoctorCmd_UnidecodeRow(t *testing.T) {
 }
 
 // TestDoctorCmd_UnidecodeRowCreatesNothing proves doctor's row calls
-// the load half alone: an absent state directory is unaffected by a
-// doctor run, whatever the row's own state.
+// the load half alone: an empty state directory is still empty after a
+// doctor run reports its table missing.
 func TestDoctorCmd_UnidecodeRowCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	before, err := os.ReadDir(stateDir)

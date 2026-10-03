@@ -10,22 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newTestRootCmd builds the root command with a client whose transport
-// fails the test on any request: every test call site below exercises
-// wiring or refusals no verb here reaches the network for, so a stray
-// request is a regression the test must catch rather than a silent
-// connection to the real network.
-func newTestRootCmd(t *testing.T) *cobra.Command {
-	return newRootCmd(newNoNetworkUnidecodeTestClient(t))
-}
-
 // TestRootCmd_UnknownSubcommand proves the fix for the silent-failure
 // defect: with SilenceUsage and SilenceErrors set, cobra itself
 // writes nothing to either stream on an unrecognized subcommand,
 // leaving main's own stderr print (see main.go) as the single place
 // the error reaches the operator.
 func TestRootCmd_UnknownSubcommand(t *testing.T) {
-	cmd := newTestRootCmd(t)
+	cmd := newRootCmd()
 	cmd.SetArgs([]string{"bogus"})
 
 	var stdout, stderr bytes.Buffer
@@ -66,7 +57,7 @@ func TestNewRootCmd_ConstructsIndependentRegistries(t *testing.T) {
 				t.Fatalf("first newRootCmd() panicked: %v", r)
 			}
 		}()
-		newTestRootCmd(t)
+		newRootCmd()
 	}()
 	func() {
 		defer func() {
@@ -74,7 +65,7 @@ func TestNewRootCmd_ConstructsIndependentRegistries(t *testing.T) {
 				t.Fatalf("second newRootCmd() panicked: %v", r)
 			}
 		}()
-		newTestRootCmd(t)
+		newRootCmd()
 	}()
 }
 
@@ -155,7 +146,7 @@ func TestExecuteWithSignalContext_GivesTheCommandACancellableContext(t *testing.
 // TestNewRootCmd_RegistersRestore proves the root command carries the
 // restore verb.
 func TestNewRootCmd_RegistersRestore(t *testing.T) {
-	found, _, err := newTestRootCmd(t).Find([]string{"restore"})
+	found, _, err := newRootCmd().Find([]string{"restore"})
 	if err != nil {
 		t.Fatalf("Find(restore): %v", err)
 	}

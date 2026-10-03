@@ -262,7 +262,7 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // configuration. No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	var serveCmd, shadowCmd bool
-	for _, child := range newTestRootCmd(t).Commands() {
+	for _, child := range newRootCmd().Commands() {
 		switch child.Use {
 		case "serve":
 			serveCmd = true
@@ -293,7 +293,7 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	}
 	t.Setenv("DUBPLATE_SERVE_PREFIX", "no-leading-separator")
 
-	root := newTestRootCmd(t)
+	root := newRootCmd()
 	root.SetArgs([]string{"serve"})
 	var stdout, stderr bytes.Buffer
 	root.SetOut(&stdout)

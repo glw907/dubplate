@@ -28,6 +28,11 @@ func TestLexModule(t *testing.T) {
 			want: []*string{new("\n"), new("\n\n")},
 		},
 		{
+			name: "hex escape at or above 0x80 is a code point, not a raw byte",
+			src:  "data = (\n'" + `\x80\xff` + "',\n)\n",
+			want: []*string{new("\u0080\u00ff")},
+		},
+		{
 			name: "double quoted string",
 			src:  `data = (` + "\n\"''''\",\n)\n",
 			want: []*string{new("''''")},

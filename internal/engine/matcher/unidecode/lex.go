@@ -2,6 +2,7 @@ package unidecode
 
 import (
 	"fmt"
+	"unicode/utf8"
 )
 
 // tokenKind names one lexical token in a Unidecode data module.
@@ -202,7 +203,7 @@ func (l *lexer) lexString(line, col int) (token, error) {
 			if err != nil {
 				return token{}, err
 			}
-			value = append(value, hi<<4|lo)
+			value = utf8.AppendRune(value, rune(hi<<4|lo))
 		default:
 			return token{}, l.errf("unknown escape \\%c", e)
 		}

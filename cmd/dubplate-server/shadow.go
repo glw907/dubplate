@@ -278,7 +278,7 @@ func newShadowObserveCmd(environ []string, reg *config.Registry, matcherCommit s
 
 			userAgent := fmt.Sprintf("dubplate-server/%s ( %s )", version, cfg.AdminEmail)
 
-			if err := installUnidecodeTransliterator(cfg.StateDir); err != nil {
+			if err := setUnidecodeTransliterator(cfg.StateDir); err != nil {
 				return fmt.Errorf("shadow observe: %w", err)
 			}
 
@@ -374,7 +374,7 @@ func newShadowReevaluateCmd(environ []string, reg *config.Registry, matcherCommi
 				return fmt.Errorf("shadow reevaluate: refusing to run on an unstamped matcher commit %q", matcherCommit)
 			}
 
-			if err := installUnidecodeTransliterator(cfg.StateDir); err != nil {
+			if err := setUnidecodeTransliterator(cfg.StateDir); err != nil {
 				return fmt.Errorf("shadow reevaluate: %w", err)
 			}
 

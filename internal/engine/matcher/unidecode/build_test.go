@@ -101,7 +101,7 @@ func TestBuildRefusesWheelChecksumMismatch(t *testing.T) {
 	corrupted[0] ^= 0xff
 
 	_, err := Build(corrupted)
-	if !errors.Is(err, ErrWheelChecksum) {
-		t.Fatalf("Build(flipped byte) error = %v, want ErrWheelChecksum", err)
+	if !errors.Is(err, errWheelChecksum) {
+		t.Fatalf("Build(flipped byte) error = %v, want errWheelChecksum", err)
 	}
 }

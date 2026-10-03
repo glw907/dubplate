@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/glw907/dubplate/internal/engine/matcher/unidecode"
+	"github.com/glw907/dubplate/internal/engine/matcher/unidecode/unidecodetest"
 )
 
 // TestMain installs the pinned Unidecode transliterator before any
@@ -15,11 +15,18 @@ import (
 // cache does not track it, and a cached "ok" would survive a missing
 // or replaced wheel.
 func TestMain(m *testing.M) {
-	table, err := unidecode.LoadCachedTable()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	table := unidecodetest.LoadCachedTable(mainTB{})
 	SetTransliterator(table.Lookup)
 	os.Exit(m.Run())
+}
+
+// mainTB lets TestMain, which has no *testing.T, call
+// unidecodetest.LoadCachedTable: a failure prints and exits.
+type mainTB struct{ testing.TB }
+
+func (mainTB) Helper() {}
+
+func (mainTB) Fatalf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	os.Exit(1)
 }

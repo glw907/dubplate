@@ -79,8 +79,8 @@ func TestDecodeTrailingBytes(t *testing.T) {
 }
 
 func TestParseRefusesChecksumMismatch(t *testing.T) {
-	if _, err := Parse(buildTestTable().encode()); !errors.Is(err, ErrTableChecksum) {
-		t.Fatalf("Parse(unpinned table) error = %v, want ErrTableChecksum", err)
+	if _, err := Parse(buildTestTable().encode()); !errors.Is(err, errTableChecksum) {
+		t.Fatalf("Parse(unpinned table) error = %v, want errTableChecksum", err)
 	}
 }
 
@@ -100,6 +100,8 @@ func TestTableLookup(t *testing.T) {
 		{"section with no module", 0x0200, "", false},
 		{"position past block end", 0x3005, "", false},
 		{"above the maximum codepoint", 0xf0000, "", false},
+		{"negative rune", -1, "", false},
+		{"negative rune whose bits alias a mapped section", -(1 << 24) + 0x0100, "", false},
 		{"at the maximum codepoint, unmapped section", unidecodeMaxCodepoint, "", false},
 	}
 	for _, tt := range tests {

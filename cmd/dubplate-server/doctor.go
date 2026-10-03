@@ -131,8 +131,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// The unidecode row follows the backup rows, the store
 			// row's own precedent: it always prints exactly one line,
 			// since the matcher can never score without a verified
-			// table. It calls the load half alone, so doctor never
-			// installs a transliterator.
+			// table.
 			unidecodeStatus, unidecodeFailed := unidecodeRowStatus(environ)
 			if err := printRow(stdout, unidecodeDoctorRow, unidecodeStatus); err != nil {
 				return err
