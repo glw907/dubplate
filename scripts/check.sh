@@ -494,6 +494,18 @@ if [ "$mode" = "merge" ]; then
   fi
 fi
 
+echo "== photo pool integrity =="
+# tools/photos/check.mjs integrity verifies the committed pool under
+# photos/ (records, files, vocabulary, dedupe keys). Node is already
+# required by the web leg, so a missing node fails here rather than
+# skipping. Silent on success.
+if ! command -v node >/dev/null 2>&1; then
+  echo "check.sh: node not found; install it (the web leg needs it too)." >&2
+  status=1
+elif ! node tools/photos/check.mjs integrity; then
+  status=1
+fi
+
 echo "== vale (Go comment prose) =="
 if ! scripts/vale-comments.sh; then
   status=1

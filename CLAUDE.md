@@ -144,6 +144,7 @@ generator, tagio's golden-FLAC generator under
 `tools/unidecode-table/generate.py`, now the oracle that re-derives the
 transliteration table's pin on a Unidecode bump, never a source of a
 committed table),
+the photo pool integrity check (`node tools/photos/check.mjs integrity`),
 gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
