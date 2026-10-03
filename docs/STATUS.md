@@ -2,26 +2,16 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, 5a through 5c-iv, and rung 6 through 6c closed. 5c-iv (the deck, the three
-real pages, the header, the render-and-read) closed 2026-09-26 at `1a08eae`, so rung 5 continues
-at 5d. 5c-iv, 6c, and 5c-iii are HISTORY's top entries; 6c-fix merged at `8950de7`.
-
-**First look for Geoff:** the 15 final contact sheets (one per page state, all ten cells each)
-are in `/tmp/claude-1000/-var-home-glw907-Projects-dubplate/22507da8-e76c-4351-96f1-9e6d7c33ef0d/scratchpad/captures-final-1a08eae/`.
-Any full gate regenerates them under `web/rendered-captures/` (ignored).
+Rungs 1b, 3, 4, 8, 5a through 5c-iv, rung 6 through 6c, and the transliteration pass (2026-10-03,
+code at `5530cbb`: the binary carries no Unidecode data; scoring verbs need `unidecode install`'s
+table) closed; rung 5 continues at 5d. HISTORY's top entries: transliteration, 5c-iv, 6c.
 
 ## Next action
 
-**Overnight 2026-09-26 (Geoff):** ended early 2026-09-27 when Geoff closed the laptop, at about
-14.5M of the 22M cap. Transliteration is mid-pass: Tasks 0 to 4 (with 1b) and the simplifier
-accepted at `aeea780`, about 3.4M against its 3.3M ceiling (flag crossed, continued under the
-overnight grant). Its own architecture reads are ruled (`6d5c198`), and Task 3c folds them.
-
-**Resume:** read this file. Relaunch transliteration Task 3c fresh through pass-execute
-(criteria: every FOLD item in `research/2026-09-27-translit-architecture-reads.md`; the stopped
-run `wf_ca338e5b-9ed` made no edit). Then Task 5's close drafts, the ledger fold (must-keep list),
-one diff-reviewer on it, and a push (gitleaks first). Next: the photo integrity gate line, then
-5d-i (approved), under a new window grant. Box read-only; nothing deploys until 5d.
+**Resume:** Read this file. Next: the photo integrity gate line in `scripts/check.sh` (`node
+tools/photos/check.mjs integrity`), then 5d-i (plan rev 2.2 approved 2026-09-26: 7.0M; its deploy
+is an attended sitting). Push master after each close (gitleaks first). Box read-only; nothing
+deploys until 5d.
 
 ## Owner questions
 
@@ -36,48 +26,48 @@ one diff-reviewer on it, and a push (gitleaks first). Next: the photo integrity 
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | RUNNING 2026-10-03: transliteration Task 3c relaunched fresh as `wf_560e7982-63a` (Tasks 0-4, 1b, simplifier accepted at `aeea780`); next: Task 5's close |
+| 1 | main tree (master) | IDLE: transliteration closed at the ledger fold (code at `5530cbb`); next: the photo integrity gate line, then 5d-i |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)
 
 - **Owed:** the streamer spec's seven open items (rev 2.5) to its study rung; from the site spec,
-  settle `init`/`upgrade` naming against `dubplate-server` and add the configuration-reference
-  generator as a hook 18 consumer. Reading taken: OpenSubsonic wire types hand-written.
-- No deploy until 5d (`plans/2026-09-25-rung-5d-boundary-deployment-close.md`): the nine
-  `magic-link` env keys, `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys'
-  `doctor` row, Ruling 6's `Referrer-Policy` residual, the branding-in-both-schemes line,
-  `deploy.sh`'s clean-`web/` build, 6a's and 6b-i's runbook rows (`KillMode=mixed`, rclone
-  v1.74.3+, crypt remote, exit-7 remedy), and 6c's Ruling 2 (`deploy.sh` halts on `check`'s
-  nonzero exit before restarting `serve`). 5c-iv adds two rows, the rendered leg's absence on
-  the box and the unknown-address disclosure in the runbook (HISTORY 5c-iv "To 5d"). 5d's
-  deploy gate checks that 6d's two wiring items below have landed. 6b-ii-b's runbook lines:
-  rung 16 (its HISTORY entry). To 5d-i: `NewTrustedProxyConfig` has no caller.
+  `init`/`upgrade` naming against `dubplate-server` and the configuration-reference generator as a
+  hook 18 consumer. Reading taken: OpenSubsonic wire types hand-written.
+- No deploy until 5d (`plans/2026-09-25-rung-5d-boundary-deployment-close.md`): nine `magic-link`
+  env keys, `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys' `doctor` row,
+  Ruling 6's `Referrer-Policy` residual, branding in both schemes, `deploy.sh`'s clean-`web/` build,
+  6a's and 6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy),
+  6c's Ruling 2 (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`), 5c-iv's two
+  rows (HISTORY 5c-iv "To 5d"), and the transliteration runbook row (HISTORY transliteration: the
+  staged `systemd-run` table install, unproved on systemd 257 until the first deploy). 5d's deploy gate
+  checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16. To 5d-i: `NewTrustedProxyConfig`
+  has no caller.
 - To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason
   set, CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota`
-  reservations and default-collection preference, and 5c-iv's handoff (HISTORY 5c-iv "To rung
-  7", the styled 404 among it). To rung 9: filter, facets, trigram. To rung 12: streamer-admin mapping, restore-before-12 losing
+  reservations and default-collection preference, 5c-iv's handoff (the styled 404 among it). To
+  rung 9: filter, facets, trigram. To rung 12: streamer-admin mapping, restore-before-12 losing
   stars/playlists, shared-origin M2 and 5c-iii's CSP-scope M2, the streamer database's restore
-  place. Full lists: HISTORY 5c-ii, 5c-iii, and 5c-iv "What stayed open". To the revoke verb:
-  the epoch store's first writer. To rung 14: 6c's admin write path and a resolving channel
-  for an `admin` row that refuses `serve`'s start.
+  place (full lists: HISTORY 5c-ii, 5c-iii, 5c-iv). To the revoke verb: the epoch store's first
+  writer. To rung 14: 6c's admin write path and a resolving channel for a `serve`-refusing `admin` row.
 - To 6d: `ServeOptions.Reconcile` wiring, store identity, migration-wait key, `member:<principal>`
-  actor, and 6c's handoff (HISTORY 6c "The 6c to 6d handoff"). From 6c's reads, both before any
-  deploy that exposes the strings: wire settings `apply` at `serve` start (the operator strings at
-  `cmd/dubplate-server/backup.go:274` and `store.go:280-284` claim it today), and make `serve`
-  open the store through `OpenServe` (unwired, so `OpenWrite`'s "start serve first" refusal cannot
-  be satisfied on a fresh box). To 6d Task 4: `rosterResetServer`'s baseline (HISTORY 5c-iv).
-- Errata and architecture-cleanup reads, file:line in HISTORY: 5c-iii's nine errata and latent
-  items; 5c-iv-E1 to E3 (after 5c-iii's 1 and 2); 6b-ii-b's (spec
-  criterion 16, `:712`; plan `:458`, `:459`, `:936`, `:1711`); 6c's errata 6c-E1 to 6c-E10; the
-  5c-ii, 6b-i, 6a, window 2, 5c-iii, 6b-ii-b reads; 6c's reads' non-correctness findings,
-  including the NaN float-parser disagreement and 117 plus 41 process-citation lines; 5c-iv's
-  cleanup routings (`research/2026-09-26-rung-5c-iv-final-reads.md`, plus the login title-argument
-  and h1-fallback rendered proof, and 9b's five stale-comment nits from run `wf_5b983a74-956`,
-  which the simplifier round did not take); matcher re-run trigger `strdist_test.go:452`. 103 coverage gaps (6c added 4), none
-  blocking. Staged legs: 325 process citations, 128 exported-unused; the citation leg misses
-  `R-6c` patterns.
+  actor, 6c's handoff (HISTORY 6c). Before any deploy exposing the strings: wire settings `apply`
+  at `serve` start (`cmd/dubplate-server/backup.go:274`, `store.go:280-284` claim it) and open the
+  store through `OpenServe` (else `OpenWrite`'s "start serve first" cannot be met on a fresh box).
+  To 6d Task 4: `rosterResetServer`'s baseline (HISTORY 5c-iv).
+- Errata and architecture-cleanup reads, file:line in HISTORY: 5c-iii's nine errata; 5c-iv-E1 to E3;
+  6b-ii-b's; 6c-E1 to 6c-E10; the 5c-ii, 6b-i, 6a, window 2, 5c-iii, 6b-ii-b, and 6c reads (the NaN
+  float-parser disagreement among 6c's); 5c-iv's routings (`research/2026-09-26-rung-5c-iv-final-reads.md`,
+  9b's five nits); transliteration's ROUTE items (`research/2026-09-27-translit-architecture-reads.md`)
+  and the four-copy `mainTB` shim in the `TestMain` files; matcher re-run trigger `strdist_test.go:452`.
+  103 coverage gaps, none blocking. Staged legs (gate at `5530cbb`): 323 process citations, 129
+  exported-unused; the citation leg misses `R-6c` patterns.
+- To `give-back` and `packaging`: the deleted table's git history, the process-wide holder's
+  tension, the Unidecode-derived items still carried (HISTORY transliteration, "Routed").
+- Workstation prerequisite: `make unidecode-wheel` once per machine before `make test`; prove
+  "wheel absent" with `-count=1`. A gate failing on a `/tmp` disk-quota write is a lost run.
 - Photo lane, after lane 1: a `check.sh` integrity line, Ruling 3's photo erratum to rung 7, a
   source-URL recheck, a blob-retention call. Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`,
-  beets `2.14.1`, mediafile `0.17.0`, unidecode `1.4.0`, lap `0.5.13`, sqlite v1.59.0, rclone v1.74.3.
+  beets `2.14.1`, mediafile `0.17.0`, unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap
+  `0.5.13`, sqlite v1.59.0, rclone v1.74.3.
