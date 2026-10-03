@@ -84,10 +84,14 @@ Task 3c (`5530cbb`) folded the three architecture reads
 - The matcher's comment no longer cites `time/tzdata` as the precedent (see
   below).
 
-Net change from base to HEAD over the pass's paths: 29 files changed,
-3,357 insertions, 336 deletions (`git diff --shortstat 1c012a8 HEAD`,
-scoped to the matcher, tag, shadow, and conform packages, the new cmd files,
-`deploy.sh`, `generate.py`, and the Makefile).
+Net change from the base to `5530cbb` over the union of the pass commits'
+non-docs files: 36 files changed, 3553 insertions(+), 355 deletions(-).
+The command and its output:
+
+```
+git diff --shortstat 1c012a8 5530cbb -- $(for c in 5318671 1ca79d7 194c01c e8e158d 850cb4c 189a6c8 2ef4000 e8fadec aeea780 5530cbb; do git show --name-only --format= $c; done | sort -u | grep -v '^docs/')
+ 36 files changed, 3553 insertions(+), 355 deletions(-)
+```
 
 ### Resolutions: where each landed
 
