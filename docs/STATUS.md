@@ -8,9 +8,8 @@ table) closed; rung 5 continues at 5d. HISTORY's top entries: transliteration, 5
 
 ## Next action
 
-**Resume:** Read this file. Next: the photo integrity gate line in `scripts/check.sh` (`node
-tools/photos/check.mjs integrity`), then 5d-i (plan rev 2.2 approved 2026-09-26: 7.0M; its deploy
-is an attended sitting). Push master after each close (gitleaks first). Box read-only; nothing
+**Resume:** Read this file. Next: 5d-i in a fresh session (plan rev 2.2 approved 2026-09-26:
+7.0M; its deploy is an attended sitting). The photo integrity leg gates since `b7766d6`. Push master after each close (gitleaks first). Box read-only; nothing
 deploys until 5d.
 
 ## Owner questions
@@ -26,7 +25,7 @@ deploys until 5d.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: transliteration closed at the ledger fold (code at `5530cbb`); next: the photo integrity gate line, then 5d-i |
+| 1 | main tree (master) | IDLE: transliteration closed at the ledger fold (code at `5530cbb`); photo integrity leg added at `b7766d6`; next: 5d-i |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
@@ -68,7 +67,9 @@ deploys until 5d.
   tension, the Unidecode-derived items still carried (HISTORY transliteration, "Routed").
 - Workstation prerequisite: `make unidecode-wheel` once per machine before `make test`; prove
   "wheel absent" with `-count=1`. A gate failing on a `/tmp` disk-quota write is a lost run.
-- Photo lane, after lane 1: Ruling 3's photo erratum to rung 7, a source-URL recheck, a blob-retention
+- Photo lane, after lane 1: `tools/photos/check.test.mjs` fails 2 of 121 (both assume an empty
+  `photos/`), so no gate runs it; the integrity leg reads `photos/` from disk, not `git ls-files`;
+  `check.sh`'s header omits the leg. Ruling 3's photo erratum to rung 7, a source-URL recheck, a blob-retention
   call. Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.14.1`, mediafile `0.17.0`,
   unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap `0.5.13`, sqlite v1.59.0, rclone
   v1.74.3.
