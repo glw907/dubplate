@@ -36,7 +36,7 @@ one diff-reviewer on it, and a push (gitleaks first). Next: the photo integrity 
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | PAUSED 2026-09-27 (laptop closed): transliteration Tasks 0-4, 1b, and the simplifier (`aeea780`) accepted; Task 3c stopped before any edit (tree clean); next: relaunch Task 3c fresh, then Task 5's close |
+| 1 | main tree (master) | RUNNING 2026-10-03: transliteration Task 3c relaunched fresh as `wf_560e7982-63a` (Tasks 0-4, 1b, simplifier accepted at `aeea780`); next: Task 5's close |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
