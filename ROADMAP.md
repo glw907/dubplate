@@ -169,7 +169,18 @@ and publishes only after a release has proven it. The evidence is in
   a `doctor` row. The table stays byte-identical, so conformance is unchanged. The matcher reads
   it through the same `func(rune) (string, bool)` seam the published library needs. A small pass,
   due before the first release strangers can install (with `packaging`), plus a lawyer's
-  confirmation of the distribution reading before that release.
+  confirmation of the distribution reading before that release. **Landed 2026-10-03**
+  (HISTORY, the transliteration entry). Routed here for the module's publication:
+  - The lawyer reads the four Unidecode-derived items the repo still carries, not an absolute
+    claim: `internal/engine/matcher/testdata/case-mapping-sweep.tsv` (56 rows computed through
+    Unidecode 1.4.0), the pinned lookup rows in `internal/engine/matcher/unidecode`'s tests,
+    `tools/unidecode-table/generate.py` (imports the GPL library), and `Lookup`'s port of
+    `_get_repl_str`'s rules.
+  - Git history: the `.tbl` stays in every commit before the pass's Task 2. Whether history is
+    rewritten before the repo goes public is the same lawyer's question (the fresh scrubbed
+    repo planned at 0.8 may answer it).
+  - The transliterator holder is process-wide, installed once by the main package. A published
+    matcher library should weigh passing the seam explicitly instead.
 
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): group accounts

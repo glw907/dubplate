@@ -141,7 +141,9 @@ siblings under `internal/harness/oracle/`, that package's FLAC template
 generator, tagio's golden-FLAC generator under
 `internal/engine/tagio/testdata/`, the matcher's featuring-golden generator
 `internal/engine/matcher/testdata/gen_featuring_golden.py`, and
-`tools/unidecode-table/generate.py`),
+`tools/unidecode-table/generate.py`, now the oracle that re-derives the
+transliteration table's pin on a Unidecode bump, never a source of a
+committed table),
 gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
@@ -149,6 +151,10 @@ excluded), `docker compose config` (skipped when Docker isn't present),
 a pattern-filtered `systemd-analyze verify`, and the state-dir agreement
 leg (the env template, the shadow unit, and `deploy.sh` name the same
 state directory).
+Two workstation prerequisites sit outside the gate, because the gate
+never opens a network connection: `npm ci --prefix web` and
+`make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
+cache, which the unidecode tests and the install verb's tests read).
 The `web/` leg runs today, first in `make check`'s prerequisite chain:
 Node and npm required and named on failure, a stale or drifted
 `npm ci --prefix web` refused, the SvelteKit static bundle built, then
@@ -211,6 +217,9 @@ today and gate at the comment-cleanup task.
   `tools/unidecode-table/generate.py`):
   invoke the `python-conventions` skill BEFORE writing any Python. Python
   stays confined to workstation-only derivation and generation tooling;
+  `generate.py` only re-derives the table pin (its output is never
+  committed; the binary builds the table at setup with
+  `dubplate-server unidecode install`);
   nothing Python ships to the box. The oracle shim drives pinned beets
   under a uv-managed venv (`tools/venv/`) that the gate never requires and
   never runs (derivation is `make derive`, tagged `oracle`, workstation
