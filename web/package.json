@@ -13,13 +13,13 @@
     "@sveltejs/kit": "2.70.3",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tailwindcss/vite": "4.3.3",
-    "@types/node": "24.13.6",
-    "daisyui": "5.7.46",
+    "@types/node": "24.19.1",
+    "daisyui": "5.7.47",
     "playwright": "1.63.0",
     "svelte": "5.57.1",
     "svelte-check": "4.7.6",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
-    "vite": "8.3.1"
+    "vite": "8.3.2"
   }
 }

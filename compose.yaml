@@ -59,7 +59,7 @@ services:
       - "127.0.0.1:4533:4533"
 
   cloudflared:
-    image: cloudflare/cloudflared:2026.8.2
+    image: cloudflare/cloudflared:2026.9.3
     restart: unless-stopped
     # No local --config: a token-run tunnel is remotely managed, so a local
     # ingress file would be silently ignored (cloudflare/cloudflared issues

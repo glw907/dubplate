@@ -70,6 +70,6 @@ deploys until 5d.
 - Photo lane, after lane 1: `tools/photos/check.test.mjs` fails 2 of 121 (both assume an empty
   `photos/`), so no gate runs it; the integrity leg reads `photos/` from disk, not `git ls-files`;
   `check.sh`'s header omits the leg. Ruling 3's photo erratum to rung 7, a source-URL recheck, a blob-retention
-  call. Pinned: Navidrome `0.63.2`, cloudflared `2026.8.2`, beets `2.14.1`, mediafile `0.17.0`,
-  unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap `0.5.13`, sqlite v1.59.0, rclone
+  call. Pinned: Navidrome `0.63.2`, cloudflared `2026.9.3`, beets `2.14.1`, mediafile `0.17.0`,
+  unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap `0.5.13`, sqlite v1.60.1, rclone
   v1.74.3.
