@@ -49,6 +49,21 @@ familiarity alone. **Refined (Geoff, 2026-09-12):** a 0.8 forward hook is
 named in the rung plan and built by the rung that first consumes it,
 and nothing is exported ahead of a caller.
 
+**Current dependencies (Geoff, 2026-10-04).** Development runs on the
+newest production version of every library, tool, and pinned binary, so
+dubplate releases with no dependency debt and uses what its libraries
+offer. Pins stay exact, at the newest version. Every pass opens with a
+`dependency-upgrade` sweep over `go.mod`, `web/package.json`,
+`tools/venv/requirements.txt`, and the pinned binaries (`compose.yaml`
+images, rclone, golangci-lint, Playwright); a sweep with nothing to move
+is one line in the pass record. The skill's survey is the point: a new
+capability that replaces hand-rolled code is ruled take-now or filed to
+the rung that first leans on it, and a workaround for an old version
+never outlives the bump that fixes it. Minors and patches land without
+asking; a major waits for Geoff and is recorded with its unblock
+condition. A rung plan that adopts a library names its newest version.
+The last sweep: `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
+
 ## Ledgers
 
 - `docs/STATUS.md` — read in full at session start; present tense only.
