@@ -17,7 +17,6 @@ deploys until 5d.
 - 6d plan rev 2.2 (`plans/2026-09-26-rung-6d-identity-serve-store.md`) awaits approval: three
   rulings (one pass at 11.5M; the epoch to the revoke verb; store identity to rung 16), all
   recommended yes. Reviewed by three lenses, verified, folded twice, prose-reviewed.
-- Navidrome 0.64 bump for GHSA-82gh: open (Geoff 2026-09-25: sharing stays at zero until 0.8).
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 
@@ -70,6 +69,6 @@ deploys until 5d.
 - Photo lane, after lane 1: `tools/photos/check.test.mjs` fails 2 of 121 (both assume an empty
   `photos/`), so no gate runs it; the integrity leg reads `photos/` from disk, not `git ls-files`;
   `check.sh`'s header omits the leg. Ruling 3's photo erratum to rung 7, a source-URL recheck, a blob-retention
-  call. Pinned: Navidrome `0.63.2`, cloudflared `2026.9.3`, beets `2.14.1`, mediafile `0.17.0`,
+  call. Pinned: Navidrome `0.63.2` (no further bumps: Geoff 2026-10-04, dubplate no longer uses it), cloudflared `2026.9.3`, beets `2.14.1`, mediafile `0.17.0`,
   unidecode `1.4.0` (sha256 pins in `unidecode/pins.go`), lap `0.5.13`, sqlite v1.60.1, rclone
   v1.74.3.
