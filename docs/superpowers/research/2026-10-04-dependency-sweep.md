@@ -328,3 +328,29 @@ Recommendation: take the in-major update now (24.13.6 to 24.19.1, the
 newest 24.x; minor, no ruling needed) and hold the major. Unblock
 condition: mise moves the workstation to Node 26 once it is LTS. Bump
 `@types/node` to 26 in the same change as the runtime.
+
+## Rulings and outcome
+
+Minors and patches landed at `0677934` (full gate green, diff-reviewer accept). Every
+module go.mod lists is at its newest non-major. The graph-only modules `go list -m -u all`
+still reports (x/net, x/tools, yaml/v3, pprof, ccgo/v4, gc/v3, go-md2man, check.v1) are
+not in go.mod, provide no package to the build, and stay where minimal version selection
+puts them. `make derive` was not re-run after the two Python bumps; run it once before the
+next oracle-dependent rung.
+
+Geoff ruled on 2026-10-04:
+
+- SvelteKit 3 with adapter-static 4: take now, as its own task before rung 5d-i.
+- Navidrome: no further bumps. The 0.64 question is closed, and later sweeps skip it.
+
+Held, each with its unblock condition:
+
+| Package | Held at | Unblocks when |
+|---|---|---|
+| typescript 7 | 6.0.3 | svelte-check and @sveltejs/kit declare a `^7` peer range, and sveltejs/language-tools#3063 is closed |
+| @types/node 26 | 24.x | Node 26 reaches LTS and the workstation's mise Node moves to 26; bump both in one change |
+| rclone v1.75.1 (workstation) | v1.74.3 | Fedora ships v1.75.x for the workstation binary the backup tests drive; the box takes it at 5d |
+
+Refactor candidates: nothing in range replaces hand-rolled code. The stale reason at
+`internal/engine/musicbrainz/query.go:235-238` (x/text/cases is already linked through
+go-mail) is corrected the next time that package is touched.
