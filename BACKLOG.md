@@ -44,5 +44,10 @@
   (`:187`) and documents this leg as "skipped when Docker isn't present" (`:166`).
   Either make Docker hard-required or record the exception. Found by 5d-i Task 5's
   review, 2026-10-05 #infra #project:prod-polish
+- [ ] #12 `dubplate-server member add --help` does not mark `--name` and
+  `--streamer-username` as required, though `MarkFlagRequired` enforces both
+  (`cmd/dubplate-server/member.go:100-107`); cobra adds no help annotation, so say
+  "(required)" in each flag's usage string. Found by 5d-ii Task 7, 2026-10-05
+  #onboarding #project:prod-polish
 
 ## Done
