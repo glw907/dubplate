@@ -33,7 +33,7 @@ write STATUS, and stop. AC confirmed. No deploy; box read-only.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | ACTIVE: 5d-i closed 2026-10-05 (HISTORY 5d-i); 5d-ii Segment C opening in the same session under the overnight grant. Spend about 2.4M of the 8.4M window flag |
+| 1 | main tree (master) | ACTIVE: 5d-i closed (HISTORY 5d-i). 5d-ii Segment C under the overnight grant: Task 7 runbook `5ca9fc1`, prose fold `5262504`; Task 8 table `4ee5c00`; security lens committed `5cf5d98` (no critical or high; M1-M3, L1-L7); universality lens running; then Task 9, split at the shell/Go seam (L4 port change refused: nothing listens on 8080). Spend about 3.9M of the 8.4M flag |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
