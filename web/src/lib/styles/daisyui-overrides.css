@@ -7,7 +7,7 @@
  */
 
 /*
- * W9.3's reduced-motion kill switch. DaisyUI 5.7.46 transitions every
+ * W9.3's reduced-motion kill switch. DaisyUI 5.7.47 transitions every
  * button over 0.2s, and its checkbox and toggle over 0.1s to 0.4s,
  * outside any reduced-motion query (measured by the rendered leg's
  * `component/reduced-motion/kill-switch` row); only an unlayered

@@ -25,7 +25,7 @@
  * precede this file, so every selector below sits inside `:where()`:
  * at zero specificity, a utility in markup (`rounded-full`,
  * `border-transparent`) still wins, while the layer still beats
- * DaisyUI. DaisyUI 5.7.46 declares a few properties outside its
+ * DaisyUI. DaisyUI 5 declares a few properties outside its
  * sublayers (`.alert`'s `border-color`, for one); those are reached
  * through the custom property DaisyUI reads, never by raising a
  * selector's weight.
@@ -96,7 +96,7 @@
 
   /*
    * The theme toggle's checkbox is `appearance:none; border:none` at
-   * about 7 by 12px (DaisyUI 5.7.46's `.swap input`), so the ring moves
+   * about 7 by 12px (DaisyUI 5's `.swap input`), so the ring moves
    * to the wrapper it controls, the same shape as a wrapped input's
    * ring above.
    */
@@ -291,7 +291,7 @@
   }
 
   /*
-   * The header's flat button on the neutral bar. DaisyUI 5.7.46 fills a
+   * The header's flat button on the neutral bar. DaisyUI 5 fills a
    * hovered or focused `.btn` from `--btn-color`, falling back to
    * base-200, and paints its text in `--btn-fg`, falling back to
    * base-content: a cream fill under the bar's cream text. Pointing
@@ -317,7 +317,7 @@
   /*
    * The state borders DaisyUI sets through `--input-color`, restated
    * after the keyline above, which would otherwise hide them. The
-   * validator selectors are DaisyUI 5.7.46's own
+   * validator selectors are DaisyUI 5's own
    * (`daisyui/components/validator.css`). The hint is text, so it
    * takes the error ink rather than the raw fill (W2.7).
    */

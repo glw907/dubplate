@@ -14,12 +14,11 @@ The signed-in header renders in every state, loading included, and
 -->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { browser } from '$app/environment';
-  import { resolve } from '$app/paths';
-  import { postForm } from '$lib/api/post';
-  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '$lib/api/outcome';
-  import { announce } from '$lib/announcer.svelte';
-  import SiteHeader from '$lib/components/SiteHeader.svelte';
+  import { browser } from '$app/env';
+  import { endpointPath, postForm } from '#lib/api/post.js';
+  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '#lib/api/outcome.js';
+  import { announce } from '#lib/announcer.svelte.js';
+  import SiteHeader from '#lib/components/SiteHeader.svelte';
   import {
     ADD_MEMBER_HINTS,
     ADD_MEMBER_LABELS,
@@ -34,8 +33,8 @@ The signed-in header renders in every state, loading included, and
     TITLES,
     addedMemberLine,
     memberCountLine
-  } from '$lib/copy/deck';
-  import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
+  } from '#lib/copy/deck.js';
+  import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   // The roster API's own subtree name (`cmd/dubplate-server/serve.go`'s
   // `rosterRouteName`), composed from the runtime base.
@@ -64,7 +63,7 @@ The signed-in header renders in every state, loading included, and
   const siteName = browser ? siteNameFromDocument(document) : '';
 
   function apiURL(): string {
-    return resolve('/') + ROSTER_PATH;
+    return endpointPath(ROSTER_PATH);
   }
 
   type Status = 'loading' | 'ok' | 'refused' | 'unreachable';
@@ -117,7 +116,7 @@ The signed-in header renders in every state, loading included, and
     return segments.map((segment, i) => (i === segments.length - 1 ? segment : `${segment} ·`));
   }
 
-  // The line for a roster outcome: `$lib/api/outcome.ts`'s shared
+  // The line for a roster outcome: `#lib/api/outcome.ts`'s shared
   // resolver, except `added`, which names the member the write just
   // added and so needs its own deck function instead of a dictionary
   // lookup.

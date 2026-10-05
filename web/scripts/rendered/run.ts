@@ -602,7 +602,7 @@ const STRUCTURAL: Record<string, string> = {
 };
 
 /** The built-in `light` theme's own `--radius-box`, quoted from
- * daisyui@5.7.46's theme/light.css (`0.5rem`) and confirmed against
+ * daisyui@5.7.47's theme/light.css (`0.5rem`) and confirmed against
  * the built bundle's computed value by the same probe: `light`'s
  * minified value has no leading zero. */
 const LIGHT_RADIUS_BOX = '.5rem';
@@ -1726,7 +1726,20 @@ async function walkFocusOrder(
   palette: 'label' | 'label-night',
   targets: TabTarget[]
 ): Promise<{ fixture: boolean; property: boolean; detail: string }> {
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  // The walk starts at the top of the document. A blur alone leaves the
+  // sequential focus starting point on the blurred element, so a page
+  // that focused its own heading on load would start the walk mid-page;
+  // focusing the body and then dropping its tabindex moves the starting
+  // point to the document's start and leaves nothing focused.
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    const body = document.body;
+    const tabindex = body.getAttribute('tabindex');
+    body.tabIndex = -1;
+    body.focus({ preventScroll: true });
+    if (tabindex === null) body.removeAttribute('tabindex');
+    else body.setAttribute('tabindex', tabindex);
+  });
   const want = hexRGBA(INK_PRIMARY[palette]);
   const wantText = `solid 2px ${INK_PRIMARY[palette]} offset 2px`;
   const problems: string[] = [];
@@ -2465,9 +2478,10 @@ async function killSwitchRow(browser: Browser, endpoints: Endpoints): Promise<vo
 /**
  * An outcome's announcement class (the state table's own "Class"
  * column), read independently of `web/src/lib/api/outcome.ts`'s own
- * `outcomeClass`, which cannot be imported here (it imports `deck.ts`
- * through the `$lib` alias, which Node's type-stripping loader cannot
- * resolve outside Vite). Re-deriving it from the state table is what
+ * `outcomeClass`, which cannot be imported here: it imports
+ * `#lib/copy/deck.js`, and Node resolves that subpath import literally
+ * to a `.js` file that does not exist, where Vite and TypeScript map
+ * it to `deck.ts`. Re-deriving it from the state table is what
  * lets this row prove the page's own classification, rather than
  * assuming it.
  */
@@ -2492,7 +2506,7 @@ function outcomeClass(outcome: string): OutcomeClass {
  * `h1`, no `placeholder` attribute, the login page's email input
  * declaring `autocomplete="email"`, none of the forbidden button
  * shapes (`.btn-outline`, `.btn-dash`, a status-modified
- * `.btn-ghost`: DaisyUI 5.7.46 paints their text from an unfixed
+ * `.btn-ghost`: DaisyUI 5 paints their text from an unfixed
  * variable, so their text contrast cannot be trusted), no control
  * painted on `base-300`, and the skip link first in tab order.
  */
@@ -3172,9 +3186,9 @@ interface OrderingVariant {
 
 const ORDERING_VARIANTS: OrderingVariant[] = [
   { id: 'auth/interstitial/token-order', link: (e) => e.loginLinkOrdering, fragment: '' },
-  // Kit's focus reset on a URL with a fragment naming an element
-  // (`main`'s own id) replaces the history entry with `page.url` after
-  // the page renders: had kit ever held the token, that write would
+  // Kit's first navigation on a URL with a fragment naming an element
+  // (`main`'s own id) replaces the history entry with `page.url`,
+  // fragment included: had kit ever held the token, that write would
   // restore it to the address bar and the history entry.
   { id: 'auth/interstitial/token-order/fragment', link: (e) => e.loginLinkOrderingFragment, fragment: '#main' }
 ];
@@ -3199,9 +3213,11 @@ async function interstitialOrderingRows(browser: Browser, endpoints: Endpoints):
       const { visit } = await open(context, link + variant.fragment, 'load');
       await visit.page.getByRole('heading', { level: 1, name: TITLES.loginLink, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
 
-      // The fragment variant's fixture state is kit's own focus-reset
-      // write having run. Three writes name the fragment by then: the
-      // token's removal, kit's first navigation, and kit's focus reset.
+      // The fragment variant's fixture state is kit's own write having
+      // run. Two writes name the fragment by then: the token's removal
+      // and kit's first navigation. Kit's focus reset moves the
+      // sequential focus starting point to the fragment's element with
+      // no history write of its own.
       const writesNamingFragment = (fragment: string) =>
         ((window as unknown as { __renderedHistoryWrites?: (string | null)[] }).__renderedHistoryWrites ?? []).filter(
           (u) => u !== null && u.endsWith(fragment)
@@ -3213,7 +3229,7 @@ async function interstitialOrderingRows(browser: Browser, endpoints: Endpoints):
             (fragment) =>
               ((window as unknown as { __renderedHistoryWrites?: (string | null)[] }).__renderedHistoryWrites ?? []).filter(
                 (u) => u !== null && u.endsWith(fragment)
-              ).length >= 3,
+              ).length >= 2,
             variant.fragment,
             { timeout: BOOT_TIMEOUT_MS }
           )

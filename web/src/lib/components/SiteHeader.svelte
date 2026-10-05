@@ -17,14 +17,14 @@ member here, still signed in, and announces why through the layout's
 live region.
 -->
 <script lang="ts">
-  import { browser } from '$app/environment';
+  import { browser } from '$app/env';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import Mark from './Mark.svelte';
-  import { postForm } from '$lib/api/post';
-  import { outcomeText } from '$lib/api/outcome';
-  import { announce } from '$lib/announcer.svelte';
-  import { SIGN_OUT_CONTROL, THEME_TOGGLE_LABEL } from '$lib/copy/deck';
+  import { postForm } from '#lib/api/post.js';
+  import { outcomeText } from '#lib/api/outcome.js';
+  import { announce } from '#lib/announcer.svelte.js';
+  import { SIGN_OUT_CONTROL, THEME_TOGGLE_LABEL } from '#lib/copy/deck.js';
 
   const THEME_COOKIE = '__Host-dubplate_theme';
   const SIGN_OUT_PATH = 'sign-out';
@@ -82,7 +82,7 @@ live region.
     try {
       const result = await postForm(SIGN_OUT_PATH, {});
       if (result.ok && result.outcome === 'signed_out') {
-        await goto(resolve('/login'), { state: { signedOut: true } });
+        await goto(resolve('login'), { state: { signedOut: true } });
         return;
       }
       // The outcome string alone is not enough: a non-2xx answer that
@@ -101,7 +101,7 @@ live region.
 <header class="site-header bg-neutral text-neutral-content">
   <div class="navbar content-measure h-16 gap-4">
     <nav class="navbar-start">
-      <a href={resolve('/members')} class="flex min-h-11 items-center gap-2 text-neutral-content">
+      <a href={resolve('members')} class="flex min-h-11 items-center gap-2 text-neutral-content">
         <Mark size={32} />
         <span class="display text-2xl">dubplate</span>
       </a>

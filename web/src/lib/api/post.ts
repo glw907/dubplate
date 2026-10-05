@@ -1,11 +1,22 @@
 /**
  * The one form POST every page's write goes through, and its reading
  * of the answer into an outcome. Every URL composes from the runtime
- * base: `resolve('/')` joined with the endpoint name rather than a
- * root-absolute literal, so a deployment under any prefix reaches its
- * own server.
+ * base through `endpointPath` rather than a root-absolute literal, so
+ * a deployment under any prefix reaches its own server.
  */
 import { resolve } from '$app/paths';
+
+const LOGIN_PAGE = 'login';
+
+/**
+ * The path of the server endpoint `name` under the runtime base. The
+ * endpoints sit at the base's root beside the pages, and `resolve`
+ * accepts only a page's own path, so the base root is read off the
+ * login page's resolved path.
+ */
+export function endpointPath(name: string): string {
+  return resolve(LOGIN_PAGE).slice(0, -LOGIN_PAGE.length) + name;
+}
 
 /**
  * One POST's result. `outcome` is the server's own outcome value, or
@@ -31,7 +42,7 @@ function synthetic(outcome: string): PostResult {
 export async function postForm(name: string, fields: Record<string, string>): Promise<PostResult> {
   let response: Response;
   try {
-    response = await fetch(resolve('/') + name, {
+    response = await fetch(endpointPath(name), {
       method: 'POST',
       body: new URLSearchParams(fields),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }

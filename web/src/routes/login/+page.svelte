@@ -15,14 +15,14 @@ the layout's live regions. `main` is the root layout's skip-link target
 -->
 <script lang="ts">
   import { tick } from 'svelte';
-  import { browser } from '$app/environment';
+  import { browser } from '$app/env';
   import { page } from '$app/state';
-  import Mark from '$lib/components/Mark.svelte';
-  import { requestLink, type AuthResult } from '$lib/api/auth';
-  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '$lib/api/outcome';
-  import { announce } from '$lib/announcer.svelte';
-  import { ADD_MEMBER_LABELS, AUTH_OUTCOMES, LOGIN_SUBLINE, SENT_ESCAPE_HATCH, TITLES } from '$lib/copy/deck';
-  import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
+  import Mark from '#lib/components/Mark.svelte';
+  import { requestLink, type AuthResult } from '#lib/api/auth.js';
+  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '#lib/api/outcome.js';
+  import { announce } from '#lib/announcer.svelte.js';
+  import { ADD_MEMBER_LABELS, AUTH_OUTCOMES, LOGIN_SUBLINE, SENT_ESCAPE_HATCH, TITLES } from '#lib/copy/deck.js';
+  import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   const siteNameFromMeta = browser ? siteNameFromDocument(document) : '';
   // a11y W6: an absent site-name meta falls back to the deck's own

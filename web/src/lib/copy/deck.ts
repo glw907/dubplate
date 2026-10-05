@@ -3,10 +3,10 @@
  * and members pages, the error page, and the signed-in header, as
  * named constants and outcome-keyed dictionaries.
  *
- * This module has two readers: the pages, through `$lib/copy/deck`,
+ * This module has two readers: the pages, through `#lib/copy/deck.js`,
  * and the rendered harness's `run.ts`, through a relative import
  * under Node's type-stripping loader. So it imports nothing and uses
- * only erasable TypeScript syntax (no `enum`, no `$lib` import): both
+ * only erasable TypeScript syntax (no `enum`, no `#lib` import): both
  * fail under `node`'s strip-only mode.
  *
  * Every value is plain text. No value carries `<`, `>`, `&`, or a

@@ -22,7 +22,7 @@ let held: string | null = null;
  * path, so a `t` on any other page is left alone.
  */
 export function captureLinkToken(): void {
-  if (location.pathname !== resolve('/login/link')) return;
+  if (location.pathname !== resolve('login/link')) return;
   const params = new URLSearchParams(location.search);
   if (!params.has(TOKEN_PARAM)) return;
   held = params.get(TOKEN_PARAM) || null;

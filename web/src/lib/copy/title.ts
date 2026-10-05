@@ -3,7 +3,7 @@
  * the site name the server stamps into every document. Reads the meta
  * as text, so `deck.ts` stays import-free: this is the module's one
  * caller under Node's type-stripping loader, and the pages' other
- * caller through `$lib/copy/title`.
+ * caller through `#lib/copy/title.js`.
  */
 
 /** The meta the document stamps the group's site name into (`internal/serve/document.go`). */

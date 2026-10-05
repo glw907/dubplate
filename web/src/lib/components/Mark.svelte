@@ -14,7 +14,7 @@ inside the mark, and every caller sets its own wordmark text beside it.
   let { size }: { size: number } = $props();
 
   const src = $derived(
-    size >= 56 ? asset('/mark/mark-large.svg') : size >= 21 ? asset('/mark/mark-medium.svg') : asset('/mark/mark-small.svg')
+    size >= 56 ? asset('mark/mark-large.svg') : size >= 21 ? asset('mark/mark-medium.svg') : asset('mark/mark-small.svg')
   );
 </script>
 

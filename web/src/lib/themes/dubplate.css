@@ -7,7 +7,7 @@
  * differs. This file is replaceable data: a later token change lands
  * here, re-checked by G2 and G9, with no markup change.
  *
- * `daisyui@5.7.46`'s theme plugin (`theme/index.js`) takes one theme
+ * `daisyui@5.7.47`'s theme plugin (`theme/index.js`) takes one theme
  * `name` per `@plugin "daisyui/theme"` block and never composes two
  * names into one block, so the match axis is duplicated here once per
  * composed theme. Neither block declares `color-scheme`, so the

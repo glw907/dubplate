@@ -2,11 +2,11 @@
  * The one outcome-to-text and outcome-to-class resolver, shared by
  * every page and component that reads a server outcome string:
  * `internal/auth/handlers.go`'s auth outcomes, `internal/auth/admin.go`'s
- * roster outcomes, and the three synthetic values `$lib/api/post.ts`
+ * roster outcomes, and the three synthetic values `#lib/api/post.ts`
  * answers with when nothing real came back.
  */
 import type { AdminContact } from './auth';
-import { AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, ROSTER_OUTCOMES, unknownAddressLine } from '$lib/copy/deck';
+import { AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, ROSTER_OUTCOMES, unknownAddressLine } from '#lib/copy/deck.js';
 
 export type OutcomeClass = 'status' | 'warning' | 'error';
 

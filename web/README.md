@@ -14,8 +14,8 @@ npm run build --prefix web
 ```
 
 `npm run check --prefix web` runs `svelte-check` under strict
-TypeScript, including the gate scripts under `scripts/gates/` (see
-`svelte.config.js`'s `kit.typescript.config` hook).
+TypeScript, including the gate scripts under `scripts/` (see
+`tsconfig.json`'s `include`).
 
 ## Rules
 

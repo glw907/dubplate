@@ -5,13 +5,13 @@ a SvelteKit static build has exactly one entry that reaches every page.
 It also carries what every page shares: the skip link, first in tab
 order ahead of any page's header (W3.6), targeting each page's own
 `<main id="main">`, and the app's one pair of live regions
-(`$lib/announcer.svelte`), rendered unconditionally so a page writes
+(`#lib/announcer.svelte.js`), rendered unconditionally so a page writes
 into regions the browser already tracks.
 -->
 <script lang="ts">
   import '../app.css';
-  import { announcer } from '$lib/announcer.svelte';
-  import { SKIP_LINK } from '$lib/copy/deck';
+  import { announcer } from '#lib/announcer.svelte.js';
+  import { SKIP_LINK } from '#lib/copy/deck.js';
 
   let { children } = $props();
 </script>

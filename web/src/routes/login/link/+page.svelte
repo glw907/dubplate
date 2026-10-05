@@ -3,7 +3,7 @@
 The consumption interstitial. It renders a static confirm control on
 load and consumes nothing until the control is clicked, so a mail
 scanner's GET cannot burn the link. The token comes from
-`$lib/api/link-token`, which the client hook filled and stripped from
+`#lib/api/link-token.js`, which the client hook filled and stripped from
 the address bar before kit's router read the URL; this page never reads
 `location` or kit's `page.url` for it. `h1` carries the page's own state
 (never the site name, which the login page's heading already is), and
@@ -16,14 +16,14 @@ found to anyone else.
 -->
 <script lang="ts">
   import { tick } from 'svelte';
-  import { browser } from '$app/environment';
+  import { browser } from '$app/env';
   import { resolve } from '$app/paths';
-  import { consumeLink, type AuthResult } from '$lib/api/auth';
-  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '$lib/api/outcome';
-  import { takeLinkToken } from '$lib/api/link-token';
-  import { announce } from '$lib/announcer.svelte';
-  import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, LINK_TOKEN_MISSING, REFUSED_LINK, TITLES } from '$lib/copy/deck';
-  import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
+  import { consumeLink, type AuthResult } from '#lib/api/auth.js';
+  import { outcomeAlertClass, outcomePoliteness, outcomeText } from '#lib/api/outcome.js';
+  import { takeLinkToken } from '#lib/api/link-token.js';
+  import { announce } from '#lib/announcer.svelte.js';
+  import { AUTH_OUTCOMES, INTERSTITIAL_CONTROL, INTERSTITIAL_STATEMENT, LINK_TOKEN_MISSING, REFUSED_LINK, TITLES } from '#lib/copy/deck.js';
+  import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   const siteName = browser ? siteNameFromDocument(document) : '';
   const token = browser ? takeLinkToken() : null;
@@ -76,7 +76,7 @@ found to anyone else.
     <p id="outcome">{AUTH_OUTCOMES.signed_in}</p>
   {:else if terminal === 'refused'}
     <p id="outcome">
-      {REFUSED_LINK.before}<a href={resolve('/login')} class="link link-primary">{REFUSED_LINK.linkText}</a
+      {REFUSED_LINK.before}<a href={resolve('login')} class="link link-primary">{REFUSED_LINK.linkText}</a
       >{REFUSED_LINK.after}
     </p>
   {:else if terminal === 'missing'}

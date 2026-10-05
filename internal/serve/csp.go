@@ -26,7 +26,7 @@ var (
 // script-src. frame-ancestors is among them because a meta policy
 // cannot carry it, so only the header can refuse framing. img-src
 // admits data: because DaisyUI draws its --noise texture as a data:
-// SVG background image. The kit config in web/svelte.config.js writes
+// SVG background image. The kit options in web/vite.config.ts write
 // the same set into each document's meta, and a test in the serve verb
 // fails when the two differ.
 const (

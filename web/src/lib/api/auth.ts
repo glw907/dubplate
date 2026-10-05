@@ -1,9 +1,9 @@
 /**
  * The client side of the auth flow's two POST endpoints
  * (`internal/auth/handlers.go`). The shared reading of an outcome into
- * what a page renders lives in `$lib/api/outcome.ts`.
+ * what a page renders lives in `#lib/api/outcome.ts`.
  */
-import { postForm, type PostResult } from '$lib/api/post';
+import { postForm, type PostResult } from '#lib/api/post.js';
 
 /** The roster's admin contact, as `internal/auth/handlers.go`'s `answer.AdminContact` field names it. */
 export interface AdminContact {

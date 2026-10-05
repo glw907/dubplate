@@ -6,10 +6,10 @@ lands on a path no route matches. It ships as a plain sentence with
 no photo, until the photo curation pass supplies one.
 -->
 <script lang="ts">
-  import { browser } from '$app/environment';
+  import { browser } from '$app/env';
   import { page } from '$app/state';
-  import { ERROR_PAGE, TITLES } from '$lib/copy/deck';
-  import { pageTitle, siteNameFromDocument } from '$lib/copy/title';
+  import { ERROR_PAGE, TITLES } from '#lib/copy/deck.js';
+  import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   const notFound = $derived(page.status === 404);
   // The document's site-name meta is fixed for the page's lifetime, so

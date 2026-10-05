@@ -86,7 +86,7 @@ web:
 	npm run build --prefix web; \
 	(cd web/build && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) >"$$build_second"; \
 	if ! diff "$$build_first" "$$build_second" >&2; then \
-		echo "make web: two builds of the same source differ (the lines above); kit.version.name in web/svelte.config.js must be deterministic." >&2; \
+		echo "make web: two builds of the same source differ (the lines above); version.name in web/vite.config.ts must be deterministic." >&2; \
 		exit 1; \
 	fi; \
 	echo "make web: two builds of the same source match ($$(sha256sum <"$$build_first" | cut -d' ' -f1))."; \
