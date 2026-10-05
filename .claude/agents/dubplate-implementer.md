@@ -42,7 +42,13 @@ or reshaped symbol is a concern, and neither is a license to re-architect.
 
 - **The box is production.** No `ssh`, no deploy, no write to `5.78.148.42`, ever.
 - **No network.** Never run `make derive`, never call MusicBrainz or any host; every test
-  answers from a stub server or committed fixtures.
+  answers from a stub server or committed fixtures. A dependency bump's registry install and
+  any upstream document fetch belong to the conductor: report BLOCKED naming the network step,
+  and resume once the conductor has run it.
+- **Local servers are shared ground.** Another session shares this machine. Serve any manual
+  render on an ephemeral loopback port (`127.0.0.1:0`), never 4173 or 5173, never `vite
+  preview` or `vite dev`. Stop every server and browser you start before you report, failure
+  included, and paste an `ss -ltnp` check showing none of yours still listens.
 - **Never read a corpus response body** (`corpus/cases/**/responses/*.json`) into context.
   Count, list, or checksum them; do not open them.
 - **Never quote the pinned literal** on `internal/config/keys_test.go`'s `.gitleaksignore` line;
