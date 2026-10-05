@@ -2,8 +2,12 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -188,4 +192,255 @@ func templateKeys(t *testing.T, path string) []string {
 		t.Fatalf("scan template: %v", err)
 	}
 	return names
+}
+
+// renderTemplate resolves template text the way scripts/deploy.sh's
+// render_template does, one line at a time: a blank or '#' line is
+// omitted; a line with no '=' is an error; NAME=value keeps value
+// verbatim (a value may itself contain '='), unless values names NAME,
+// in which case values replaces it; a bare NAME= takes its value from
+// values and is an error when values has none. values only ever
+// replaces the value of a row the template carries, so a row deleted
+// from the template stays deleted. The result is one NAME=value per
+// row, in file order.
+func renderTemplate(template string, values map[string]string) ([]string, error) {
+	var rows []string
+	for line := range strings.SplitSeq(template, "\n") {
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		name, rhs, ok := strings.Cut(line, "=")
+		if !ok {
+			return nil, fmt.Errorf("malformed line (no '='): %s", line)
+		}
+		value, replaced := values[name]
+		switch {
+		case replaced:
+		case rhs != "":
+			value = rhs
+		default:
+			return nil, fmt.Errorf("bare row %s has no value", name)
+		}
+		rows = append(rows, name+"="+value)
+	}
+	return rows, nil
+}
+
+func TestRenderTemplate(t *testing.T) {
+	tests := []struct {
+		name     string
+		template string
+		values   map[string]string
+		want     []string
+		wantErr  string
+	}{
+		{
+			name:     "literal keeps its value",
+			template: "A=one\n",
+			want:     []string{"A=one"},
+		},
+		{
+			name:     "literal containing equals keeps all of it",
+			template: "A=x=y=z\n",
+			want:     []string{"A=x=y=z"},
+		},
+		{
+			name:     "bare row takes the fixture value",
+			template: "A=\n",
+			values:   map[string]string{"A": "fixture"},
+			want:     []string{"A=fixture"},
+		},
+		{
+			name:     "fixture replaces a literal's value",
+			template: "A=one\n",
+			values:   map[string]string{"A": "two"},
+			want:     []string{"A=two"},
+		},
+		{
+			name:     "blank and commented rows are omitted",
+			template: "\n# A=one\nB=two\n",
+			want:     []string{"B=two"},
+		},
+		{
+			name:     "a fixture never appends a row the template lacks",
+			template: "A=one\n",
+			values:   map[string]string{"B": "two"},
+			want:     []string{"A=one"},
+		},
+		{
+			name:     "bare row with no fixture is an error",
+			template: "A=\n",
+			wantErr:  "bare row A has no value",
+		},
+		{
+			name:     "line with no equals is an error",
+			template: "A=one\nnot a row\n",
+			wantErr:  "malformed line (no '='): not a row",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := renderTemplate(tt.template, tt.values)
+			if tt.wantErr != "" {
+				if err == nil || err.Error() != tt.wantErr {
+					t.Fatalf("renderTemplate() error = %v, want %q", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("renderTemplate() error = %v", err)
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("renderTemplate() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// renderedDoctor renders the greenfield template with fixture values
+// for every bare row and for the rows doctor stats or opens (the state
+// directory and the roster file), appends the reserved serve port,
+// and runs doctor against the production registry. stateDir carries an
+// installed transliteration table; roster is the roster file's path,
+// written by the caller or left absent. It returns doctor's stdout
+// and Execute's error. Only the template's own rows reach doctor, bar
+// the serve port, which the template does not carry.
+func renderedDoctor(t *testing.T, template string, stateDir, roster string) (string, error) {
+	t.Helper()
+	secret := strings.Repeat("a", 32)
+	environ, err := renderTemplate(template, map[string]string{
+		"DUBPLATE_ADMIN_EMAIL":             "admin@example.test",
+		"DUBPLATE_MAGIC_LINK_SECRET":       secret,
+		"DUBPLATE_SESSION_SECRET":          strings.Repeat("b", 32),
+		"DUBPLATE_SMTP_HOST":               "smtp.example.test",
+		"DUBPLATE_SMTP_PORT":               "587",
+		"DUBPLATE_SMTP_USER":               "dubplate",
+		"DUBPLATE_SMTP_PASSWORD":           "fixture smtp password, not a real key",
+		"DUBPLATE_SMTP_FROM":               "dubplate@example.test",
+		"DUBPLATE_STATE_DIR":               stateDir,
+		"DUBPLATE_ROSTER_FILE":             roster,
+		"DUBPLATE_SHADOW_OBSERVE_DIR":      "/srv/music/inbox",
+		"DUBPLATE_SHADOW_REVIEW_DIR":       "/srv/music/review",
+		"DUBPLATE_SHADOW_ORACLE_STATE_DIR": "/var/lib/musicbox",
+	})
+	if err != nil {
+		t.Fatalf("render template: %v", err)
+	}
+	environ = append(environ, "DUBPLATE_SERVE_PORT="+strconv.Itoa(reservedPort()))
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	err = cmd.Execute()
+	return stdout.String(), err
+}
+
+// TestRenderedTemplateDoctor runs doctor over the greenfield template
+// rendered the way scripts/deploy.sh renders it, and pins each row's
+// status. A render here is a parity model only: the real proof of the
+// render is the deploy script's own --check run against the template,
+// which resolves bare rows from the age store this test cannot reach.
+func TestRenderedTemplateDoctor(t *testing.T) {
+	raw, err := os.ReadFile("../../env/dubplate-server.env.template")
+	if err != nil {
+		t.Fatalf("read template: %v", err)
+	}
+	template := string(raw)
+
+	const adminRoster = `{"schema_version":1,"members":[{"address":"doctor-admin@example.test","display_name":"Admin","admin":true}]}`
+	const noAdminRoster = `{"schema_version":1,"members":[{"address":"doctor-member@example.test","display_name":"Member","admin":false}]}`
+
+	tests := []struct {
+		name      string
+		template  string
+		roster    string // roster file content; "" leaves the file absent
+		wantErr   bool
+		wantLines []string // each must appear as a whole output line
+		wantNone  []string // no output line may start with one of these
+	}{
+		{
+			name:     "fixture roster present exits 0",
+			template: template,
+			roster:   adminRoster,
+			wantLines: []string{
+				fmt.Sprintf("%-32s %s", "DUBPLATE_IDENTITY_SOURCE", "ok"),
+				fmt.Sprintf("%-32s %s", "magic-link", "active"),
+				fmt.Sprintf("%-32s %s", "store", "absent"),
+				fmt.Sprintf("%-32s %s", "unidecode", "ok (1.4.0)"),
+				fmt.Sprintf("%-32s %s", "client ip", "direct"),
+				fmt.Sprintf("%-32s %s", "web", "ok"),
+				fmt.Sprintf("%-32s %s", "bind addresses", "127.0.0.1 present"),
+				fmt.Sprintf("%-32s %s", "trusted proxy", "disabled"),
+				fmt.Sprintf("%-32s %s", "boundary probe", "127.0.0.1 no listener"),
+			},
+			wantNone: []string{"roster "},
+		},
+		{
+			name:      "doctor before the bootstrap exits 1 naming the roster row",
+			template:  template,
+			wantErr:   true,
+			wantLines: []string{fmt.Sprintf("%-32s %s", "roster", "missing")},
+		},
+		{
+			name:      "roster naming no admin exits 1 naming the roster row",
+			template:  template,
+			roster:    noAdminRoster,
+			wantErr:   true,
+			wantLines: []string{fmt.Sprintf("%-32s %s", "roster", "no admin; run dubplate-server member add --admin")},
+		},
+		{
+			name:      "deleting the roster row leaves nothing to substitute",
+			template:  deleteTemplateRow(template, "DUBPLATE_ROSTER_FILE"),
+			roster:    adminRoster,
+			wantErr:   true,
+			wantLines: []string{fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied: DUBPLATE_ROSTER_FILE missing")},
+		},
+		{
+			name:      "deleting the trusted proxy flag row stays passing, since the class is off by default",
+			template:  deleteTemplateRow(template, "DUBPLATE_TRUSTED_PROXY_ENABLED"),
+			roster:    adminRoster,
+			wantLines: []string{fmt.Sprintf("%-32s %s", "trusted proxy", "disabled")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			installTestUnidecodeTable(t, stateDir)
+			roster := filepath.Join(t.TempDir(), "roster.json")
+			if tt.roster != "" {
+				if err := os.WriteFile(roster, []byte(tt.roster), 0o600); err != nil {
+					t.Fatalf("write roster: %v", err)
+				}
+			}
+
+			out, err := renderedDoctor(t, tt.template, stateDir, roster)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("doctor error = %v, wantErr %v\n%s", err, tt.wantErr, out)
+			}
+			lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+			for _, want := range tt.wantLines {
+				if !slices.Contains(lines, want) {
+					t.Errorf("doctor output lacks line %q\n%s", want, out)
+				}
+			}
+			for _, prefix := range tt.wantNone {
+				for _, line := range lines {
+					if strings.HasPrefix(line, prefix) {
+						t.Errorf("doctor output has line %q, want none starting %q", line, prefix)
+					}
+				}
+			}
+		})
+	}
+}
+
+// deleteTemplateRow returns template without the row named name.
+func deleteTemplateRow(template, name string) string {
+	var kept []string
+	for line := range strings.SplitSeq(template, "\n") {
+		if strings.HasPrefix(line, name+"=") {
+			continue
+		}
+		kept = append(kept, line)
+	}
+	return strings.Join(kept, "\n")
 }
