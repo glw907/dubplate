@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -124,6 +127,26 @@ func baseEnviron() []string {
 		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
 	}
 }
+
+// reservedPort returns a loopback port the test binary reserved once
+// (listened on 127.0.0.1:0, recorded, closed) and never listens on
+// again, so a doctor run that dials its configured serve port reaches
+// no listener, never the host's own 127.0.0.1:8080.
+var reservedPort = sync.OnceValue(func() int {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		panic(fmt.Sprintf("reserve a loopback port: %v", err))
+	}
+	addr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		panic(fmt.Sprintf("reserve a loopback port: address is %T, want *net.TCPAddr", l.Addr()))
+	}
+	port := addr.Port
+	if err := l.Close(); err != nil {
+		panic(fmt.Sprintf("release the reserved port: %v", err))
+	}
+	return port
+})
 
 // authEnviron returns baseEnviron plus a full, satisfied magic-link
 // identity source: the selector and the source's nine required keys,

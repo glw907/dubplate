@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,9 +25,11 @@ import (
 // short error, leaving main as the sole stderr writer. Exit status is 1
 // when [config.Load] refuses environ, the roster row fails to open or
 // names no admin, the store row reports a failing state, the backup
-// remote row fails, a registered setting's row refuses, or the
-// unidecode row finds the transliteration table missing or invalid; 0
-// otherwise.
+// remote row fails, the unidecode row finds the transliteration table
+// missing or invalid, the client ip row refuses the trusted proxy
+// values, the web row refuses what serve startup would refuse, the
+// bind addresses row finds a configured address absent or cannot
+// check it, or a registered setting's row refuses; 0 otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "doctor",
@@ -34,7 +37,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, loadErr := config.Load(environ, reg)
+			cfg, loadErr := config.Load(environ, reg)
 			statuses := rowStatuses(loadErr)
 
 			for _, row := range reg.OwnedWall() {
@@ -137,9 +140,34 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				return err
 			}
 
+			// The four boundary rows follow the unidecode row and
+			// precede the settings rows, so every fixed-count row
+			// comes before the one variable-count family. Each
+			// prints exactly one line whatever its state: client ip
+			// and web read "not checked" when Load refused environ.
+			// The bind addresses row calls [net.InterfaceAddrs]
+			// once and hands the status function both results.
+			clientIPStatus, clientIPFailed := clientIPRowStatus(cfg)
+			if err := printRow(stdout, clientIPDoctorRow, clientIPStatus); err != nil {
+				return err
+			}
+			webStatus, webFailed := webRowStatus(environ, cfg)
+			if err := printRow(stdout, webDoctorRow, webStatus); err != nil {
+				return err
+			}
+			ifaceAddrs, ifaceErr := net.InterfaceAddrs()
+			bindStatus, bindFailed := bindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
+			if err := printRow(stdout, bindAddrsDoctorRow, bindStatus); err != nil {
+				return err
+			}
+			probeStatus, probeFailed := boundaryProbeRowStatus()
+			if err := printRow(stdout, boundaryProbeDoctorRow, probeStatus); err != nil {
+				return err
+			}
+
 			// The settings rows print one per
 			// registered setting, in declaration order, after the
-			// backup rows, and one row per orphan the store holds
+			// boundary rows, and one row per orphan the store holds
 			// under a key no rung still declares.
 			settingsRows, settingsFailed := settingsDoctorRows(environ, reg, storeReport, storeChecked)
 			for _, row := range settingsRows {
@@ -148,7 +176,8 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed || unidecodeFailed || settingsFailed {
+			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed || unidecodeFailed ||
+				clientIPFailed || webFailed || bindFailed || probeFailed || settingsFailed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil

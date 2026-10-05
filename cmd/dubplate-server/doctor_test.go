@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -41,6 +42,13 @@ const (
 // doctor's line-count assertions, storeRowLines's own precedent: it
 // prints exactly one line regardless of state.
 const unidecodeRowLines = 1
+
+// probeRowLines is the four boundary rows' fixed contribution to
+// doctor's line-count assertions (client ip, web, bind addresses,
+// boundary probe), each printing exactly one line whatever its state.
+// It is a literal, never taken from the rows' own list, so a row
+// dropped from doctor changes the count a test expects.
+const probeRowLines = 4
 
 func TestDoctorCmd(t *testing.T) {
 	tests := []struct {
@@ -212,6 +220,17 @@ func TestDoctorCmd(t *testing.T) {
 			}
 			li++
 
+			// The four boundary rows follow the unidecode row.
+			for _, key := range []string{clientIPDoctorRow, webDoctorRow, bindAddrsDoctorRow, boundaryProbeDoctorRow} {
+				if li >= len(lines) {
+					t.Fatalf("stdout ran out of lines before boundary row %s", key)
+				}
+				if wantPrefix := fmt.Sprintf("%-32s", key); !strings.HasPrefix(lines[li], wantPrefix) {
+					t.Errorf("boundary row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+				}
+				li++
+			}
+
 			if li != len(lines) {
 				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store+backup rows: %v", len(lines)-li, lines[li:])
 			}
@@ -249,7 +268,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// Task 7's backup rows: both print unconditionally, so neither is
 	// one of reg's own declared families. doctorLines's own environ
 	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + backupDoctorRowsOff + unidecodeRowLines
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines
 	if len(lines) != wantTotal {
 		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + 1 store)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
@@ -359,7 +378,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn + unidecodeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
 	}
@@ -641,7 +660,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	// Task 7's backup rows: doctorEnviron's roster names an admin, so
 	// no roster row adds a second, and it never sets
 	// DUBPLATE_BACKUP_ENABLED.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff + unidecodeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -914,7 +933,7 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			// rows (doctorEnviron never sets DUBPLATE_BACKUP_ENABLED)
 			// and +1 for the unidecode row, doctorEnviron's installed
 			// table.
-			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff + unidecodeRowLines + len(reg.Settings())
+			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
 			if len(lines) != wantTotal {
 				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row plus one store row); stdout = %q", len(lines), wantTotal, out)
 			}
@@ -939,7 +958,9 @@ func doctorEnviron(t *testing.T) []string {
 	stateDir := t.TempDir()
 	installTestUnidecodeTable(t, stateDir)
 	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", stateDir)
-	return append(dropKey(environ, "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
+	return append(dropKey(environ, "DUBPLATE_ROSTER_FILE"),
+		"DUBPLATE_ROSTER_FILE="+rosterPath,
+		"DUBPLATE_SERVE_PORT="+strconv.Itoa(reservedPort()))
 }
 
 // doctorLines runs newDoctorCmd against reg with a satisfied base
