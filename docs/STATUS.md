@@ -29,7 +29,7 @@ write STATUS, and stop. AC confirmed. No deploy; box read-only.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | ACTIVE: 5d-i opened 2026-10-04 at `311b74c` (pass class `auth-data`, heavy gate); Task 0 ruled at `fafef77`; Segment A run `wf_a9246e81-97e`: Task 1 accepted at `dcdb8bf`, Task 2 at `2fc93bd` (escalation ruled as amendment A6), Task 3 relaunched; dependency sweep: the 2026-10-04 sweep (`0677934`, `b3c2578`) covers this pass |
+| 1 | main tree (master) | ACTIVE: 5d-i, pass class `auth-data`, heavy gate. Task 0 ruled at `fafef77` (A1-A5), A6 at `7a15ef1`. Segment A closed: Task 1 `dcdb8bf`, Task 2 `2fc93bd`, Task 3 `c7f02c6`+`f6432a0` (runs `wf_a9246e81-97e`, `wf_ae514717-4cf`). Next: Segment B (Tasks 4D, 5, 6). Spend about 1.3M of the 8.4M flag. Dependency sweep: the 2026-10-04 sweep (`0677934`, `b3c2578`) covers this pass |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
