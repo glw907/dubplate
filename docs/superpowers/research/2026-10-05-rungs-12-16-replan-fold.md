@@ -171,3 +171,28 @@ The revision changes the meaning of these ratified documents. None was edited by
 replacing adjectives, plus the three owner rulings, the archive chore, and rung 16's ordered steps.
 
 **Ceiling:** the spec carries no token ceiling, and none changed. The removal pass plan sets its own.
+
+## Second fold
+
+Input: `2026-10-05-rungs-12-16-replan-fold-verification.md` (ids V). The spec moves from revision 2 to revision
+2.1 in place. Scope was the verification findings only, each checked against the tree before editing. Owner rulings
+were not touched.
+
+| Id | Disposition |
+|---|---|
+| V1 | Folded. Tree: `cmd/dubplate-server/doctor.go:108-115` prints the `roster` row only on failure; `authStoreDoctorRow` reports the auth leaf. The roster step's check is now "`member list` shows the one admin, and doctor prints no `roster` row". |
+| V2 | Folded. The seven numbered steps are replaced by six ordering constraints (`.prev` before the first `--apply`; backup and a proven restore before the import and re-layout; a store snapshot immediately before the import; import before re-layout; the no-move check after re-layout; the attended gate last) and a list of items the rung 16 plan must include (the 0.8 deploy, the roster step, `init` and TLS, firewall and DNS, enabling `serve`, the import, the re-layout). The sequence is the plan's. The carried-items row "Rung 16, step 1" now reads "Rung 16". |
+| V3 | Folded, re-keyed by an owner grant. Tree: streamer spec `:660-664` gives slice 2 the protocol client, checker, differ, and `kin-openapi` in `go.mod`, so slice 2 is a code lane. Grant (Geoff, 2026-10-05, relayed by the conductor mid-fold): three code lanes when useful and efficient. Ruling 5 and the ladder text now say slice 1 opens now as a document lane and slice 2 opens now as a third code lane in its own git worktree. `CLAUDE.md`'s "harness work never moves to a worktree" covers the matcher's corpus and venv harness, not slice 2's; if the slice 2 plan finds its harness needs the main tree, it says so and takes the next free slot. The `go.mod` collision is handled by order: `kin-openapi` rebases onto the removal pass's dependency sweep, under the merge ritual. `CLAUDE.md`'s "up to two code lanes" line is owed an update in the document pass (added to doc change 6). |
+| V4 | Folded. Tree: `go doc -all ./internal/serve` carries generic "in front of" prose (`doc.go`, HSTS) and a "same-host front" in the trusted-proxy doc; `rendered_test.go:135-140` carries `component/surface/shadow/...` ids. Both greps now name the removed identifiers (`front ?exemption`, `forward-auth`, `driver`, `fallthrough`, `exemption`; `engine/shadow`, `DUBPLATE_SHADOW`, `registerShadow`, `newShadowCmd`, `shadow (observe|program|runner|store|integration|class|leaf)`) and state which legitimate hits stay. |
+| V5 | Folded. `tagio` stays intact with rung 9 as its consumer; the `Tags` unexport is dropped, and HISTORY records that the staged exported-unused leg warns on `tagio` until rung 9. |
+| V6 | Folded. Doc change 1 now supersedes the estate shadow unconditionally and the leaf sentence, ruling 1's adopter clause, and the oracle section's adopter text (with its erratum block) only if Owner ruling 1 is yes. |
+| V7 | Folded. The ladder line reads "unchanged in scope", with 6d's move to revision 2.3 and rung 9's inherited consumers named. |
+| V8 | Folded by assigning one writer per item: the document pass marks only the moot or answered items (shadow length, Navidrome retention, the study rung beside the ladder); slice 1 answers every item owed to the study rung. |
+| V9 | Refused. Tree: `internal/engine/store/testdata/fixtures/0003_catalog.sql:5` inserts into `users (..., streamer_username, ...)`, as do the `0004` and `0005` fixtures. The spec's "`0003` to `0005`" is correct. |
+| Q4.2 | Folded. The `go-architecture-reader` verdict bullet is dropped (the reader still runs at close per `CLAUDE.md`), and the doctor web-row and probe-route rename bullet is dropped; neither answers a measured defect. |
+| Q4.4 | Kept. Task 0's count of the operator-supplied set is a cheap baseline the slice plans measure against. |
+
+**New mechanisms:** none.
+
+**Spec line count:** 443 before, 457 after. V2's constraints plus the must-include list run longer than the seven
+steps, and V3's grant adds lines to ruling 5 and doc change 6.

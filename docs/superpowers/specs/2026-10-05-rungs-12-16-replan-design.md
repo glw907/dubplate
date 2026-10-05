@@ -1,8 +1,9 @@
 # Rungs 12 and 16 re-plan: the built-in streamer at first launch
 
-Status: revision 2, 2026-10-05. Revision 1 (`88c535e`) was approved in conversation (Geoff). Revision 2 folds the
-four-lens adversarial review (fold record: `research/2026-10-05-rungs-12-16-replan-fold.md`). It awaits Geoff's
-written-spec read and the three owner rulings below.
+Status: revision 2.1, 2026-10-05. Revision 1 (`88c535e`) was approved in conversation (Geoff). Revision 2 folds the
+four-lens adversarial review, and revision 2.1 folds its verification (fold record:
+`research/2026-10-05-rungs-12-16-replan-fold.md`). It awaits Geoff's written-spec read and the three owner rulings
+below.
 
 Supersedes, where they conflict:
 
@@ -45,8 +46,12 @@ that no longer runs anywhere. This spec removes that code and gives rungs 12 and
 4. **dubplate integrates with no external streamer.** The driver seam, hook 6, and the Navidrome and Jellyfin
    targets retire. ROADMAP's streamer-integration entry moves to `IDEAS.md` with this reasoning.
 5. **Rung 12 is the built-in streamer, and its first two slices start now.** The streamer spec's slices 1
-   (study) and 2 (harness) touch no production surface and open as a document-and-corpus lane beside 6d and
-   rung 7, under the standing two-lane grant.
+   (study) and 2 (harness) touch no production surface. Slice 1 opens now as a document lane. Slice 2 is a code
+   lane: it builds the protocol module's client, conformance checker, and differ, and adds `getkin/kin-openapi` to
+   `go.mod`. It opens now as a third code lane in its own git worktree, under Geoff's 2026-10-05 grant of three
+   code lanes when useful and efficient. If the slice 2 plan finds that its harness needs the main tree, it says
+   so and takes the next free slot instead. Its `kin-openapi` addition rebases onto the removal pass's dependency
+   sweep, and the merge ritual covers the `go.mod` collision.
 6. **The architecture stays clean, tidy, and beautiful through every change.** A removal reshapes what
    remains so it reads as if it had never had the removed part. Trimming a deletion down to the
    compiler's complaints falls short of this bar. Every touched package is graded by a `go-architecture-reader`
@@ -99,7 +104,8 @@ Each is a yes/no question. The spec builds the recommended answer unless Geoff r
 
 ## The ladder after this spec
 
-Rungs 6d, 7, 9, 10, 11, and 13 are unchanged. Rung 14 is unchanged except its private gate (below).
+Rungs 6d, 7, 9, 10, 11, and 13 are unchanged in scope. 6d moves to revision 2.3 (below), and rung 9's plan inherits
+the consumers named under "The shadow program". Rung 14 is unchanged except its private gate (below).
 
 Every other rung plan still weighs its surface against the streamer spec's forward-hooks list. Hooks 1, 12, 17, and
 21 name rung 7; hooks 2, 3, 11, and 13 name rung 9; hook 16 names rung 13; hooks 15 and 18 name rung 14.
@@ -116,7 +122,8 @@ with its own plan, ceiling, oracle diff, and roster walk:
 7. Per-user state and group features
 8. Hosting and setup
 
-Slices 1 and 2 run now as a document-and-corpus lane. Slices 3 onward start after rung 9 lands the catalog.
+Slice 1 runs now as a document lane, and slice 2 runs now as a third code lane in its own worktree (ruling 5).
+Slices 3 onward start after rung 9 lands the catalog.
 The pinned Navidrome and gonic containers stay in the harness as workstation-only behavior oracles, never on
 the box, under the streamer spec's GPL behavior-only rule. Slice 9 (shadow period, flip, and close-out) is
 deleted, because there is nothing to shadow or flip.
@@ -145,19 +152,20 @@ gate is evaluated against the launch bar as before.
 
 **Rung 16, First launch (0.8.0) (M).** A first install on the box, with no cutover and no incumbent to roll
 back to. Every build-spec rung 16 item that the carried-items table below does not mark moot still stands. The box
-reaches the internet through slice 8's TLS listener, since the tunnel is gone. Rung 16 runs in this order:
+reaches the internet through slice 8's TLS listener, since the tunnel is gone.
 
-1. Provision the backup crypt remote and its secrets, enable backup, run one backup, and prove a restore into a
-   scratch root.
-2. Take the deploy `.prev` set.
-3. Take a store snapshot.
-4. Run the group's `dubplate import navidrome` (dry run first) against the verified off-box copy of the
-   archive's database. The import precedes the re-layout, because its audio-key fallback reads files at
-   Navidrome's recorded paths.
-5. Run the one-time multi-disc re-layout (erratum 2026-09-24) and the per-collection relocation.
-6. Re-run the no-move assertion.
-7. Run one attended gate: login, upload, and playback of a named album fixture in a named client from slice 1's
-   roster.
+The rung 16 plan sets the sequence. It includes the 0.8 binary's deploy, the roster step (under "The username
+rename"), `init` and the TLS listener, firewall and DNS, enabling `serve`, the group's `dubplate import navidrome`
+(dry run first) against the verified off-box copy of the archive's database, and the one-time multi-disc re-layout
+(erratum 2026-09-24) with the per-collection relocation. Its order holds these constraints:
+
+- The deploy `.prev` set precedes the first `deploy.sh --apply`.
+- Backup is provisioned and a restore into a scratch root is proven before the import and the re-layout.
+- A store snapshot immediately precedes the import.
+- The import precedes the re-layout, because its audio-key fallback reads files at Navidrome's recorded paths.
+- The no-move assertion re-runs after the re-layout.
+- One attended gate comes last: login, upload, and playback of a named album fixture in a named client from slice
+  1's roster.
 
 Rollback has two forms. Before the first backup, it is "disable `serve`; data stays". After it, rollback is the
 runbook's restore.
@@ -227,13 +235,13 @@ rationale restated for in-process streaming: `http.ServeContent` reaches `io.Cop
 
 Acceptance:
 
-- `go doc -all ./internal/serve | grep -inE 'front|driver|fallthrough|exemption'` prints nothing.
+- `go doc -all ./internal/serve | grep -inE 'front ?exemption|forward-auth|driver|fallthrough|exemption'` prints
+  nothing. Generic "in front of" prose about a reverse proxy stays.
 - The same holds for the prose in `cmd/dubplate-server/serve*.go`, `internal/auth`, and `internal/config`. Rung and
   history citations in tests are exempt. `TestNewServeShell_StripCarriesNoFrontExemption` is renamed to state its
   surviving property, that a trusted proxy is still identity-stripped.
 - The `servePrefixThreshold` comment makes no claim about a sibling server.
-- The staged exported-unused leg reports no hit in `internal/serve`. The package's `go-architecture-reader`
-  verdict carries no unused-surface finding.
+- The staged exported-unused leg reports no hit in `internal/serve`.
 - Every test that used the fallthrough as a probe keeps its assertion. Each is re-pointed at a registered spy
   subtree with a "spy reached" check, or at a status a 404 cannot also produce. The full list sits in
   `internal/serve/serve_test.go` and `cmd/dubplate-server/serve_test.go`; mechanics review M4 names each one.
@@ -243,7 +251,6 @@ Acceptance:
   is unchanged, since production never set a fallthrough, so no test can fail against today's wiring here.
 - The generic hardening keeps its tests: the trusted-proxy config, the origin check including the bearer bypass,
   and group 1 and group 2 stripping.
-- The doctor web-row and probe-route tests are named in the plan, and the diff touches them only to rename.
 
 ### The shadow program (if Owner ruling 1 is yes)
 
@@ -253,8 +260,8 @@ orphans this way:
 
 - `setUnidecodeTransliterator` is deleted. Rung 9's scoring verb rebuilds it. `unidecode install` and doctor's
   `unidecode` row stay, with rung 9 recorded as their consumer.
-- `internal/engine/tagio` keeps its package, because its golden generator is a gate leg, with rung 9 recorded as its
-  consumer. `Tags`, whose first caller was the shadow reader, becomes unexported or is removed.
+- `internal/engine/tagio` stays intact, because its golden generator is a gate leg, with rung 9 recorded as its
+  consumer. HISTORY records that the staged exported-unused leg warns on `tagio` until rung 9.
 - `musicbrainz.ClassBackground` and `ErrUnavailable`'s shadow justification stay only if rung 9's spec names a
   consumer. Otherwise they are pruned.
 - `internal/harness/analysis` drops its shadow-row subject shape (the release-MBID subject, its required
@@ -268,8 +275,9 @@ conformance remain the matcher's gate.
 
 Acceptance:
 
-- `git grep -nIi shadow -- cmd internal scripts Makefile` returns only CSS `box-shadow` and the "silently shadow"
-  idiom.
+- `git grep -nIiE 'engine/shadow|DUBPLATE_SHADOW|registerShadow|newShadowCmd|shadow (observe|program|runner|store|integration|class|leaf)' -- cmd internal scripts Makefile`
+  returns nothing. CSS `box-shadow`, the rendered gate's `component/surface/shadow/...` ids, and the "shadow" idiom
+  stay.
 - `go list -deps ./cmd/dubplate-server | grep -E 'internal/(harness|engine/shadow)'` is empty.
 
 ### Configuration
@@ -320,7 +328,7 @@ the roster (6d's `member import`, or rung 16 if 6d has not deployed) carries one
 1. Move `roster.json` aside to `roster.json.pre-username` inside the leaf (0600, `music`-owned).
 2. Run `member add <address> --admin --name ... --username ...` through `systemd-run`, which takes the bootstrap
    path.
-3. Check that doctor's `auth store` row reads ok and that `member list` shows the one admin.
+3. Check that `member list` shows the one admin, and doctor prints no `roster` row.
 
 ### Close
 
@@ -342,11 +350,15 @@ A document pass, which can run as a lane beside the removal pass, makes these ed
 
 1. **Build spec.**
    - One header-level erratum states that every passage on Navidrome, a driver, SSO, the forward-auth front, the
-     fallthrough, or the shadow is superseded here. It lists these by section: "Drivers own driver knowledge", the
-     serve-as-ingress and forward-auth trust boundaries, "One owned prefix", the post-login destination, proxy
-     hygiene, the tree shape's `internal/streamer/` and shadow leaf, rung 4 "continuous to launch", the two-tracks
-     text, the interim-estate matcher fallback, "Box safety", and the 2026-09-25 `/share/*` erratum.
-   - Erratum blocks land at rungs 12, 15, 16, and 17, at launch bar part 3, and at "Shadow: the standing oracle".
+     fallthrough, or the estate shadow is superseded here. It lists these by section: "Drivers own driver
+     knowledge", the serve-as-ingress and forward-auth trust boundaries, "One owned prefix", the post-login
+     destination, proxy hygiene, the tree shape's `internal/streamer/`, rung 4 "continuous to launch", the
+     two-tracks text, the interim-estate matcher fallback, "Box safety", and the 2026-09-25 `/share/*` erratum.
+   - Erratum blocks land at rungs 12, 15, 16, and 17, and at launch bar part 3.
+   - The estate shadow (the floor, launch bar part 3, rung 4's "continuous to launch", the box side) is superseded
+     unconditionally. The tree shape's shadow leaf sentence, ruling 1's adopter clause, and the adopter text in
+     "Shadow: the standing oracle" are superseded, with an erratum block at that section, only if Owner ruling 1 is
+     yes.
    - The rung text stays as written, per the repo's practice.
 2. **Streamer spec, revision 3:**
    - Remove the shadow period, the flip, the `shareRole` doctor row, the escape-hatch text, and the arm64
@@ -370,7 +382,8 @@ A document pass, which can run as a lane beside the removal pass, makes these ed
    - Rename hook 5's field to `username`.
    - Slice 6 records the bearer bypass's two contract sentences.
    - Mark the open items on shadow length, Navidrome retention, and "whether the study rung runs beside the
-     current ladder" as answered.
+     current ladder" as moot or answered. This pass writes no other open item: slice 1 answers the items owed to
+     the study rung.
    - Record rulings 1 through 7 and the owner rulings.
 3. **Configuration homes spec.** One erratum. The rung 12 Navidrome verifications are moot, and so is the
    shadow-pair erratum. Rung 14's private gate is re-keyed as above.
@@ -382,6 +395,7 @@ A document pass, which can run as a lane beside the removal pass, makes these ed
    - Rewrite the build-for-0.8 paragraph: rung 12 is the streamer's slices, and every other rung plan still weighs
      the forward-hooks list per task. Hook 6 retires and hook 5 is renamed.
    - The rung 16 cutover sitting becomes the first-launch sitting.
+   - The standing grants' "up to two code lanes" becomes three when useful and efficient (Geoff, 2026-10-05).
 7. **`ROADMAP.md`.**
    - Fold `streamer-0-8` into the greenfield initiative as rung 12.
    - Rewrite the greenfield paragraph (0.x, shadow, box swap) and the `packaging` entry's Navidrome ingredient.
@@ -402,7 +416,7 @@ A document pass, which can run as a lane beside the removal pass, makes these ed
 | SMTP exercised from the box | Rung 16 |
 | 6c's Ruling 2 (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`) | Rung 16 |
 | 6b-ii-b's runbook lines | Rung 16 |
-| Backup schedule key, `RCLONE_CONFIG_*` rows, crypt remote provisioned and restore proven | Rung 16, step 1 |
+| Backup schedule key, `RCLONE_CONFIG_*` rows, crypt remote provisioned and restore proven | Rung 16 |
 | Founding library's single-link migration and the restore-size runbook line | Rung 16 |
 | Per-collection relocation under allocated roots | Rung 16, now unconditional (the import matches by MBID and audio key) |
 | Store identity (6d Ruling 3) | Rung 16, if 6d's Ruling 3 is yes |
@@ -440,4 +454,4 @@ in front of the box.
 - Fork B (formats).
 - The architecture-cleanup inventory, including `doctor`'s twelve-flag OR chain. It stays with the cleanup
   pass.
-- The slice 1 and 2 plans, which are authored just in time in their own lane.
+- The slice 1 and 2 plans, which are authored just in time in their own lanes.
