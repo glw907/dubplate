@@ -1,7 +1,9 @@
 # Re-plan document pass (rungs 12 and 16) Implementation Plan
 
-Status: **revision 1, 2026-10-05, draft.** It awaits its `spec-plan-review` lens (one self-folding lens, `docs`
-class). It carries no ruling for Geoff: every fork it touches was ruled in the spec.
+Status: **revision 2, 2026-10-05.** Revision 1 (`15be3fd`) went through one self-folding `spec-plan-review` lens
+(`docs` class); its findings and their dispositions are in
+`docs/superpowers/research/2026-10-05-replan-document-pass-review.md`. It carries no ruling for Geoff: every fork it
+touches was ruled in the spec.
 
 **Spec:** `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`, approved
 by Geoff 2026-10-05 with all three owner rulings ruled yes ("the spec"). Its "Document changes" section (items 1
@@ -14,11 +16,14 @@ drafted beside this one), lane 1, main tree.
 **Executor:** `dubplate-implementer`, `model: sonnet`, for Tasks 1 to 8 and Task 10's ledger edits. Task 0 is
 dispatched by the conductor to a `general-purpose` agent at `model: sonnet` with the exact command constraints
 below. Task 9 (memory files) is the conductor's own edit, per the spec's doc change 9.
-**Per-task gate:** `cairn-run-gate 'bash scripts/check.sh'` before each commit, re-issued on exit 75 until it
-prints `gate exit:`. This is the full gate on the heavy lane: it builds `web/`, launches Chromium for the rendered
-gates, and runs `internal/backup`'s `rclone` tests. `CAIRN_GATE_LANE=light` is not allowed, because the gate is
-not browserless. No per-task check is lighter for a docs-only diff in this repo; the gate cost is accepted and
-priced into the ceiling.
+**Per-task gate:** `cairn-run-gate 'bash /var/home/glw907/Projects/dubplate/scripts/check.sh'` before each commit,
+re-issued on exit 75 until it prints `gate exit:`. This is the full gate on the heavy lane: it builds `web/`,
+launches Chromium for the rendered gates, and runs `internal/backup`'s `rclone` tests. `CAIRN_GATE_LANE=light` is
+not allowed, because the gate is not browserless. `CLAUDE.md` requires `bash scripts/check.sh` "before every
+commit". The script has a lighter form, `check.sh --reduced`, "the comment-only and docs-only form", but its
+header rules it out here: it is "never the final gate on master", and "a change that reaches master has had the
+full form run over it". Every task in this pass commits straight to master, so every commit takes the full form.
+The gate cost is accepted and priced into the ceiling.
 **Review:** `diff-reviewer` per task at Sonnet, against the task's acceptance criteria, blocking only on an unmet
 outcome or a factual error against the spec or the tree. Specs, plans, `CLAUDE.md`, and the ledgers take no prose
 or register review (spec-plan-review: specs and plans are not register-graded). The one operator-facing document,
@@ -28,10 +33,14 @@ never takes one).
 **Checkpoint interval:** each segment boundary (A ends after Task 4, B after Task 8), and the close. STATUS is
 written at each.
 **Segments:** A (Task 0, then Tasks 1 to 4) runs now, beside the removal pass. B (Tasks 5 to 9, then Task 10, the
-close) waits for the removal pass's merge to master.
+close) waits for "the merge": the removal pass's last task committed on master with its full gate green (its
+`--ff-only` merge, if its plan works on a branch).
 **Execution mode:** nine repo tasks, so each segment runs through `pass-execute` by name, one invocation per
-segment, `passClass: 'docs'`. Tasks inside a segment are file-independent but run one at a time (see "Sharing the
-main tree").
+segment, `passClass: 'docs'`, with `gate` set to the per-task gate string above and `reducedGate` set to the same
+full-gate string. Without that arg, the runner reduces a fix round whose findings are all comment-only (every
+finding in a docs pass) to its class default, "the repo's type check plus only the test files this fix round
+touched", which this repo does not define and which would put a commit on master without the full form. Tasks
+inside a segment are file-independent but run one at a time (see "Sharing the main tree").
 **Dependency sweep:** this pass edits no dependency manifest. The pass-opening `dependency-upgrade` sweep is the
 removal pass's (the spec's "The removal pass"); this pass's record is one line pointing at it. A second sweep
 would collide on `go.mod`.
@@ -53,7 +62,10 @@ memory files.
 
 **Pre-flight (before segment A's first dispatch):** once the removal plan is committed, the conductor's pre-flight
 agent diffs that plan's per-task Files lists against Tasks 1 to 4's files. Any overlap moves the overlapping task
-to segment B. A removal plan that edits any `docs/superpowers/specs/` file is the likeliest hit.
+to segment B. A removal plan that edits any `docs/superpowers/specs/` file is the likeliest hit. The same agent
+reports whether the removal plan commits on master in the main tree, as the lane registry's lane 1 row ("main tree
+(master)") says, or on a branch. If it uses a branch, segment A finishes before that branch is created, so no
+document commit lands on it.
 
 ### What runs now and what waits
 
@@ -78,9 +90,10 @@ Until Task 7 lands, the slice 2 lane's launch cites the spec's ruling 5 for the 
 The document lane shares the main tree and its branch (master) with lane 1. The full gate runs over the whole
 tree, so a code-lane task's warm edits can redden a document task's gate. The rules:
 
-- The conductor dispatches a segment A task only while lane 1 is between tasks: its last task committed and
-  `git status` showing no warm change outside this pass's files. A lane 1 task is not dispatched while a document
-  task is in flight.
+- Segment A runs before lane 1's first `pass-execute` segment launches, or else at a lane 1 segment boundary. A
+  `pass-execute` invocation runs its tasks back to back, so no between-task window exists inside a lane 1 segment.
+  At dispatch, lane 1's last task is committed and `git status` shows no warm change outside this pass's files.
+  Lane 1's next segment does not launch while segment A is in flight.
 - Each task stages and commits only its own named files, never `git add -A`.
 - A red gate whose failing leg sits in a code-lane file is not a document-task failure. The implementer reports it
   and stops without committing; the conductor re-dispatches after lane 1 commits.
@@ -102,36 +115,49 @@ verified, age-encrypted copy on the workstation, and STATUS records where it is 
 
 **Constraints.**
 
-- Read-only on the box, through the box access 5d-ii used: a listing, a hash, and a copy pulled to the
-  workstation. No command writes, moves, or deletes anything on the box, and no unit is started or stopped. The
-  report lists every command run on the box.
+- Read-only on the box, over `root@5.78.148.42` with key auth (`.claude/instructions/api-access.md`): a listing,
+  a hash, and a copy pulled to the workstation. No command writes, moves, or deletes anything on the box, and no
+  unit is started or stopped. The report lists every command run on the box.
 - Quiet-box check first, read-only: `systemctl list-units --state=activating 'dubplate-*'` empty, no upload in
   progress, and the lane registry showing no other box work in flight. A failed check stops the chore.
-- Encryption uses the workstation age store's public recipient, the one `~/.dotfiles/scripts/secrets/secret-set.sh`
-  encrypts to. The encrypted copy lives outside every git repository, at
-  `~/.local/share/dubplate/archive/musicbox-retired-2026-10-05.tar.gz.age`, mode 0600. (The spec says "beside the
-  secrets store"; `~/.dotfiles/secrets/` is a tracked git directory, so "beside" is read as "under the same key,
-  outside the repo". The archive holds members' addresses and listening history and must never be staged.)
+- Encryption uses the workstation age store's public recipient, the `RECIP=` value hard-coded in
+  `~/.dotfiles/scripts/secrets/secret-set.sh` (a public key, safe to print). The encrypted copy lives outside every
+  git repository, at `~/.local/share/dubplate/archive/musicbox-retired-2026-10-05.tar.gz.age`, mode 0600. (The spec
+  says "beside the secrets store"; `~/.dotfiles/secrets/` is a tracked git directory, so "beside" is read as "under
+  the same key, outside the repo". The archive holds members' addresses and listening history and must never be
+  staged.)
+- That copy is not backed up anywhere: the workstation runs no backup job. Until rung 16, the two copies are the
+  box's plaintext tar (root, 0600) and this `.age` file. The spec gives the second off-workstation copy to rung
+  16's backup remote, and Task 10 carries that to rung 16.
 - Decryption for the integrity check uses the session-cached identity the store's tooling maintains
   (`/dev/shm/.age-key-<uid>`). If the cache is cold, warm it once through the store's own tooling
   (`secret-set.sh --sync`, one 1Password fetch). Never read, print, or copy the key.
 - Every plaintext copy on the workstation (the pulled tar, the extracted database) lives in the session scratchpad
-  and is removed with `shred -u` once its check passes. No database content, member address, or secret value is
-  printed; the database is queried only with `PRAGMA integrity_check`.
+  and is removed with `shred -u` once its check passes. The scratchpad sits on tmpfs (`/tmp`), so plaintext never
+  reaches disk; the archive's size from step 1 must fit the scratchpad's free space twice over (the tar plus the
+  extracted database), or the chore stops and reports. No database content, member address, or secret value is
+  printed. The database is queried only with `PRAGMA integrity_check` and `SELECT count(*) FROM sqlite_master`.
 
 **Steps the record must show** (the spec's six, made checkable):
 
-1. The tar listing shows `navidrome.db`, and its `-wal` and `-shm` files if present (names and sizes recorded).
+1. The tar listing shows every member whose name ends in `navidrome.db`, with its `-wal` and `-shm` files if
+   present (paths and sizes recorded). The old stack staged a backup snapshot beside the live database, so more
+   than one copy may be present; each is checked in step 4. None present is a stop.
 2. The archive's sha256, computed on the box.
 3. The pulled copy's sha256 on the workstation equals step 2's, before encryption. The `.age` file's own sha256 is
    recorded too.
-4. A round trip from the `.age` file: decrypt, stream through `tar`, and extract `navidrome.db` (with its `-wal`
-   and `-shm`) into the scratchpad. The decrypted stream's sha256 equals step 2's, and `sqlite3` on the extracted
-   copy prints `ok` for `PRAGMA integrity_check`.
-5. Whether the old stack's R2 `navidrome.db` snapshot still exists, by a read-only listing through the Cloudflare
-   API with `$CLOUDFLARE_API_TOKEN` (the command sources `~/.local/secrets`; the bucket per
-   `~/.claude/docs/cloudflare-estate-inventory.md`). Record the object key, size, and date, or "absent". If no
-   credential can list it, that is the recorded result.
+4. A round trip from the `.age` file: decrypt, stream through `tar`, and extract each step 1 database (with its
+   `-wal` and `-shm`) into the scratchpad. The decrypted stream's sha256 equals step 2's. For each extracted copy,
+   its size is nonzero, `SELECT count(*) FROM sqlite_master` is greater than zero, and `PRAGMA integrity_check`
+   prints `ok`. (SQLite opens a zero-byte or missing file as an empty database, whose integrity check also prints
+   `ok`; the size and schema count keep the check from passing on nothing.)
+5. Whether the old stack's R2 `navidrome.db` snapshot still exists, by a read-only listing of bucket
+   `music-library` (`.claude/instructions/api-access.md`) under `state/` and `_archive/state/` (the old backup's
+   layout, `_salvage/internal/backup/backup.go`). The listing uses the Object Read only credential
+   `MUSIC_R2_RO_*` (kept in the age store, registry entry of that name) or `$CLOUDFLARE_API_TOKEN`; the command
+   sources `~/.local/secrets` and prints no value. Record each `navidrome.db` key with its size and date, or
+   "absent". HISTORY records an earlier listing that found `state/` empty. If no credential can list the bucket,
+   that is the recorded result.
 6. `git -C ~/.dotfiles status --short` and `git -C ~/Projects/dubplate status --short` show no new path.
 
 **Record.** The conductor writes it into STATUS at its next STATUS write (the conductor is STATUS's single writer
@@ -139,8 +165,9 @@ while lane 1 runs): the `.age` path, both sha256 values and their agreement, the
 result, the R2 result, and the date. Task 10 carries it into HISTORY. A failure at any step is a stop: the box copy
 stays the only copy, and the conductor reports before any other box work.
 
-**Acceptance.** Each of steps 1 to 6 has its evidence in the report. The two hashes match. The integrity result
-is `ok`. No plaintext remains in the scratchpad (a `find` over it shows none). STATUS carries the record.
+**Acceptance.** Each of steps 1 to 6 has its evidence in the report. The two hashes match. Every extracted
+database has a nonzero size, a nonzero schema count, and an integrity result of `ok`. No plaintext remains in the
+scratchpad (a `find` over it shows none). STATUS carries the record.
 
 ### Task 1: Build spec errata
 
@@ -163,8 +190,8 @@ is `ok`. No plaintext remains in the scratchpad (a `find` over it shows none). S
   evaluation), rung 16 ("First launch (0.8.0)", first install, no cutover, the ordering constraints by reference
   to the spec), rung 17 (the beets deprecation window gone; archive disposal decided here), launch bar part 3
   (struck; parts 1, 2, and 4 gate; completeness includes the streamer), and "Shadow: the standing oracle".
-- The status line's errata count is updated. `git diff --numstat` shows deletions only on that line: no original
-  sentence is removed or reworded.
+- The status line's errata count is updated. `git diff --numstat` shows one deletion, and `git diff` shows that
+  the deleted line is the status line: no original sentence is removed or reworded.
 
 ### Task 2: Streamer spec revision 3
 
@@ -206,8 +233,12 @@ incumbent, a shadow, or a flip removed or rewritten (doc change 2).
 - The pinned Navidrome and gonic containers stay as workstation-only behavior oracles, under the GPL
   behavior-only rule, stated once.
 - Rulings 1 to 7 and Owner rulings 1 to 3 are recorded with their date.
+- Two passages outside the named sections also assume a cutover and are rewritten to the first-launch import
+  (ruling 2): "Hosting and setup"'s "The group's own cutover uses this command" (`:553` at `33b465c`), and the
+  prior-art table's "Cutover import" cell (`:797`).
 - `grep -niE 'shareRole|escape.hatch|before the flip|slice 9|shadow period|cutover'` hits only the revision
-  history sections, the rev 3 changelog, and the rulings record. The report lists every hit with its section.
+  history sections, the rev 3 changelog, the rulings record, the open item marked moot in place, and the "Cutover
+  and operations" heading if it keeps its name. The report lists every hit with its section.
 
 ### Task 3: Configuration homes spec erratum
 
@@ -220,7 +251,8 @@ incumbent, a shadow, or a flip removed or rewritten (doc change 2).
   driver capability report to slice 3's projector enforcing visibility on every endpoint, and private collections
   ship at first launch per the existing 2.0 ruling.
 - The erratum states that the bearer admin mount (`:123-126`) stands, because the bearer bypass stays.
-- The status line's errata count is updated. Additions only, apart from that line.
+- The status paragraph's errata count is updated. That paragraph wraps over several lines, so the diff may reflow
+  it. Additions only, apart from that paragraph.
 
 ### Task 4: Group-scale principles spec erratum
 
@@ -270,7 +302,8 @@ HISTORY that the exception went unused.
   `systemd-run`, which takes the bootstrap path; check that `member list` shows the one admin and doctor prints no
   `roster` row. It carries no estate value: no address, hostname, or path outside the documented leaf.
 - "The forward-auth topology" section is deleted, and every link to its anchor is removed or re-pointed (a `grep`
-  for `forward-auth-topology` in the repo returns nothing).
+  for `forward-auth-topology` outside `docs/superpowers/` and `docs/HISTORY.md` returns nothing; plans, specs, and
+  research records keep their history).
 - `grep -niE 'forward-auth|navidrome|streamer[_ -]?username|driver'` over the runbook returns nothing, or only
   generic hits the report lists (a database driver, for example). The trusted-proxy sections and the example
   fronts, cloudflared among them, stay as generic hardening.
@@ -299,9 +332,10 @@ dated provenance in the file's "(Geoff, date)" form.
   goes.
 - The review-scaling line names streamer (12) and first launch (16) in place of "streamer/SSO (12), and cutover
   (16)".
-- `grep -niE 'cutover|SSO|0\.x|two code lanes|driver seam|Navidrome still'` on `CLAUDE.md` returns nothing. Every
-  remaining `Navidrome` hit is true under the rulings (the import, prior art, "matches no streamer"), listed in the
-  report.
+- `grep -niE 'cutover|SSO|0\.x|two code lanes|driver seam|Navidrome still'` on `CLAUDE.md` hits only the
+  versions paragraph's reading-rule clause for older documents (which names their 0.x launch and rung 16 cutover).
+  Every remaining `Navidrome` hit is true under the rulings (the import, prior art, "matches no streamer"). The
+  report lists every hit of both.
 - The file's length changes by no more than ten lines.
 
 ### Task 8: ROADMAP and IDEAS (after the merge)
@@ -310,9 +344,12 @@ dated provenance in the file's "(Geoff, date)" form.
 
 **Acceptance.**
 
-- `streamer-0-8` is folded into the Active greenfield entry as rung 12. Its settled decisions, the 2.1 list, the
-  web-player note, and the TypeScript 7 recheck move into the greenfield entry or stay under a pointer; nothing is
-  deleted (pruning means moving). The Planned heading for it is gone.
+- `streamer-0-8` is folded into the Active greenfield entry as rung 12. Its still-live settled decisions, the 2.1
+  list, the web-player note, and the TypeScript 7 recheck move into the greenfield entry or stay under a pointer.
+  Its superseded passages (the "Sequenced after launch (rung 17)" sentence, with its driver seam and escape hatch)
+  leave ROADMAP: the report
+  quotes each one verbatim, and Task 10 moves them into HISTORY's re-plan entry. Nothing is deleted (pruning means
+  moving). The Planned heading for it is gone.
 - The greenfield paragraph is rewritten: first launch 0.8.0 on the built-in streamer, no 0.x pre-release, no
   shadow record in the launch bar, no box swap, the evidence track ending at corpus and conformance.
 - The organizer-spec fold bullets on the Navidrome reference driver and on Cloudflare Access as a forward-auth
@@ -345,13 +382,15 @@ Both frontmatter descriptions and both index lines match. Neither file restates 
    Blockers fold through one `dubplate-implementer` re-dispatch; polish may be refused with a one-line reason.
 2. STATUS: the moot carries in the spec's "Where the carried items land" table leave Open items, and each live
    carry names its landing (rung 16, a slice, or 6d). The username owner question and the re-plan spec's approval
-   question are gone. Task 0's record stays. The lane registry shows lane 1, the slice 1 document lane, and the
-   slice 2 worktree lane as they stand. STATUS gets no longer; anything moved to reach the 60-line target goes to
-   HISTORY.
+   question are gone. Task 0's record stays, and rung 16's carries gain the archive's second copy (the `.age` file
+   to rung 16's backup remote, per the spec's "Preserving the archive"). The lane registry shows lane 1, the slice
+   1 document lane, and the slice 2 worktree lane as they stand. STATUS gets no longer; anything moved to reach the
+   60-line target goes to HISTORY.
 3. HISTORY, newest first: the re-plan (the spec, the rulings, the fold, and this pass's commits by task), the
-   archive record from Task 0, and Task 5's outcome. It records `readFLAC`'s salvage pointer and the `tagio`
-   exported-unused warning only if the removal pass's own entry does not already carry them. "Wrong to
-   rediscover" names that the streamer spec's hook numbers are stable with retired hooks kept in place.
+   archive record from Task 0, Task 5's outcome, and the superseded `streamer-0-8` passages Task 8's report
+   quoted. It records `readFLAC`'s salvage pointer and the `tagio` exported-unused warning only if the removal
+   pass's own entry does not already carry them. "Wrong to rediscover" names that the streamer spec's hook numbers
+   are stable with retired hooks kept in place.
 4. The budget score: tokens against the ceiling, and attended time as planning misses and sittings (none planned).
 5. The resume prompt points at the next action the conductor names (6d revision 2.3 or the next lane).
 
