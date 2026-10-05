@@ -32,8 +32,10 @@ sitting.
   the Cloudflare infrastructure (the tunnel, Access), and the box's beets (the incumbent importer) may
   be removed whenever the conductor likes. Not yet planned: it reshapes rung 12 (the Navidrome
   driver), rung 16 (the cutover with Navidrome streaming), the 0.8 "escape hatch", and the shadow
-  program, whose launch-gating evidence observes the box's beets importer (the workstation's pinned
-  beets oracle under `tools/venv` is separate and stays). The next brainstorm re-plans them. Until then the box serves through the tunnel. The streamer username
+  program. Geoff also ruled the matcher validated: the shadow evidence floor and its adjudication
+  batches no longer gate launch, so the box's beets importer can go with no evidence cost; the corpus
+  and conformance tests stay the matcher's gate, and the workstation's pinned beets oracle under
+  `tools/venv` stays for derivation. The next brainstorm re-plans them. Until then the box serves through the tunnel. The streamer username
   (`glw907`, Geoff's) maps to nothing until then.
 
 ## Lane registry
