@@ -68,8 +68,8 @@ with a note that rung 12 is being re-planned.
   names; after it they see `HOME PATH`.
 - The sitting found the plan's step 7 timing gate almost never qualifies (the shadow timer's
   5-minute cadence lands after the 10-minute floor); one manual shadow pass after the import met the
-  gate's intent. 9B's direct-mode warning fires on doctor's own probe while serve runs, a false
-  alarm for a healthy doctor. Two "exit 1" readings at the sitting (`member list`, a box doctor)
+  gate's intent (moot now: the shadow timer is retired). 9B's direct-mode warning fires on doctor's
+  own probe while serve runs, a false alarm for a healthy doctor, filed as BACKLOG #15. Two "exit 1" readings at the sitting (`member list`, a box doctor)
   came from the conductor's `systemd-run --pipe > file` redirect as root, not the binary; reruns
   exited 0.
 
@@ -78,8 +78,12 @@ with a note that rung 12 is being re-planned.
 Geoff ruled the box serves only dubplate's development: Navidrome, cloudflared and the tunnel,
 Cloudflare Access, the box's beets, the shadow program's box side, Docker, and the incumbent
 `dubplate` binary and its units were retired the same day, and the matcher is validated, so the
-shadow evidence floor and its adjudication batches no longer gate launch. STATUS keeps the
-deployed-box record. These rulings made the plan's rung 16 carries moot (below).
+shadow evidence floor and its adjudication batches no longer gate launch. The box's retired
+pieces: Navidrome, cloudflared and the compose stack, Docker and containerd, beets, `uv`, `msmtp`,
+`yq`, the old binary and its 14 units, `/opt/dubplate`, and the old data directories, archived at
+`/root/musicbox-retired-2026-10-05.tar.gz` (0600); externally the `musicbox` tunnel, the
+`music.907.life` record, the four `dubplate-*` pings checks, and 42 age-store names. STATUS keeps
+the box's present contents. These rulings made the plan's rung 16 carries moot (below).
 
 ### Rung 5 summary
 
@@ -103,10 +107,11 @@ man page and cannot be proved by a test.
 
 The old STATUS's "No deploy until 5d" line was removed when the sitting deployed. Its items:
 the magic-link env rows, `ReadWritePaths`, the trusted proxy, `deploy.sh`'s clean `web/` build, and
-`doctor` exiting 0 landed in Tasks 1 to 6 and 10; the 6a and 6b-i runbook rows, the Referrer-Policy
+`doctor` exiting 0 landed in Tasks 1 to 6 and 10; the theme keys' `doctor` row closed as doctor's
+web row (`cmd/dubplate-server/doctorprobe.go:83`); the 6a and 6b-i runbook rows, the Referrer-Policy
 residual, branding, the transliteration row, and the unknown-address note are in
 `docs/server-runbook.md` (grep-confirmed: KillMode, rclone v1.74.3, the exit-7 remedy, the
-`.prev` set, the wheel cache, the unknown-address answer). Two did not close here: 6c's Ruling 2
+`.prev` set, the wheel cache, the unknown-address answer). 6b-ii-b's runbook lines (HISTORY 6b-ii-b) stay owed to rung 16. Two more did not close here: 6c's Ruling 2
 (`deploy.sh` halting on `check`'s nonzero exit before restarting `serve`) goes to rung 16 with
 enabling the unit, and 6d's two wiring items stay under "To 6d" in STATUS.
 
@@ -130,9 +135,11 @@ enabling the unit, and 6d's two wiring items stay under "To 6d" in STATUS.
   a cloudflared address pin, because cloudflared is gone.
 - Moot under the 2026-10-05 rulings and routed to the rungs 12 and 16 re-plan brainstorm: the
   `compose.yaml` address pin, serve bound to the bridge gateway, the Navidrome verify endpoint
-  (R-5d17) with its forward-auth doctor proof and stripping group 2 names but the configured header,
-  the shadow timer, and the 0.8 escape hatch. Still live for that re-plan: enabling the unit,
-  the secrets in every `music`-uid verb's environment, and exercising SMTP from the box.
+  (R-5d17) with its forward-auth doctor proof, the shadow timer, the plan's step 7 timing gate, and
+  the 0.8 escape hatch. Still live for that re-plan: enabling the unit, the secrets in every
+  `music`-uid verb's environment, exercising SMTP from the box, and stripping group 2 names but the
+  configured header from a trusted peer (the trusted-proxy class serves any stranger's reverse
+  proxy, not only cloudflared).
 
 ### Budgets
 

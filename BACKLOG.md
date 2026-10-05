@@ -39,11 +39,6 @@
 - [ ] #9 Geoff: review the two seed albums parked in
   `/srv/music/review/2026-08-31/geoff/` (Aim "Hinterland (Remastered)",
   illuminati hotties "POWER", plus a TV Girl zine PDF) #pipeline
-- [ ] #11 Resolve the docker compose leg's `command -v docker` skip
-  (`scripts/check.sh:628`): CLAUDE.md both forbids a `command -v || skip` guard
-  (`:187`) and documents this leg as "skipped when Docker isn't present" (`:166`).
-  Either make Docker hard-required or record the exception. Found by 5d-i Task 5's
-  review, 2026-10-05 #infra #project:prod-polish
 - [ ] #12 `dubplate-server member add --help` does not mark `--name` and
   `--streamer-username` as required, though `MarkFlagRequired` enforces both
   (`cmd/dubplate-server/member.go:100-107`); cobra adds no help annotation, so say
@@ -58,5 +53,14 @@
 - [ ] #14 Align `web/package.json`'s `engines` (`>=22.17`) with the Makefile's web
   target, which refuses a Node major below 24; the runbook follows the Makefile.
   From 5d-ii Task 9A, 2026-10-05 #infra #project:prod-polish
+- [ ] #15 `serve`'s direct-mode warning (9B: a loopback or private peer sent a
+  forwarded-address header) fires on `doctor`'s own boundary probe while serve
+  runs, so a healthy doctor makes serve log a false alarm. Have the probe's
+  requests carry a marker the warning skips, or have the warning ignore the probe
+  route (`internal/serve/probe.go`). Found at the 5d-ii Task 10 sitting,
+  2026-10-05 #bug #project:prod-polish
 
 ## Done
+
+- [x] #11 Resolve the docker compose leg's `command -v docker` skip: retired with the leg
+  itself (`d1e93e9` removed the compose leg from `scripts/check.sh`), 2026-10-05 #infra

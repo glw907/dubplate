@@ -2519,7 +2519,7 @@ fold record is `docs/superpowers/research/2026-09-25-rung-5d-review-fold.md`.
 > forward-hook rule (a hook is built by the rung that first consumes it), 5d built no forward-auth
 > verify endpoint, integration class, or keys. R21's endpoint, the build spec's ladder entry 5
 > clause "the forward-auth verify endpoint with its own trust-boundary documentation", the build spec's
-> BS:510-513 forward-auth doctor proof, and its ladder entry 5 line (BS:707-714) now belong to
+> BS:510-513 forward-auth doctor proof, and the forward-auth clause of the build spec's ladder entry 5 now belong to
 > rung 12, which also carries stripping every group 2 name but the configured header from a trusted
 > peer. The "One owned prefix" section's "and, when enabled, the verify endpoint" does not hold at
 > rung 5. The 2026-10-05 retirement of the incumbent stack may remove the driver that consumes it;
