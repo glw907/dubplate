@@ -39,5 +39,10 @@
 - [ ] #9 Geoff: review the two seed albums parked in
   `/srv/music/review/2026-08-31/geoff/` (Aim "Hinterland (Remastered)",
   illuminati hotties "POWER", plus a TV Girl zine PDF) #pipeline
+- [ ] #11 Resolve the docker compose leg's `command -v docker` skip
+  (`scripts/check.sh:628`): CLAUDE.md both forbids a `command -v || skip` guard
+  (`:187`) and documents this leg as "skipped when Docker isn't present" (`:166`).
+  Either make Docker hard-required or record the exception. Found by 5d-i Task 5's
+  review, 2026-10-05 #infra #project:prod-polish
 
 ## Done
