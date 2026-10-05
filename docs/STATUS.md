@@ -28,10 +28,12 @@ sitting.
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 
-- **Owner ruling (Geoff, 2026-10-05):** Navidrome and all the Cloudflare infrastructure (the tunnel,
-  Access) may be removed whenever the conductor likes. Not yet planned: it reshapes rung 12 (the
-  Navidrome driver), rung 16 (the cutover with Navidrome streaming), and the 0.8 "escape hatch"; the
-  next brainstorm re-plans them. Until then the box serves through the tunnel. The streamer username
+- **Owner ruling (Geoff, 2026-10-05):** the box now only serves dubplate's development. Navidrome, all
+  the Cloudflare infrastructure (the tunnel, Access), and the box's beets (the incumbent importer) may
+  be removed whenever the conductor likes. Not yet planned: it reshapes rung 12 (the Navidrome
+  driver), rung 16 (the cutover with Navidrome streaming), the 0.8 "escape hatch", and the shadow
+  program, whose launch-gating evidence observes the box's beets importer (the workstation's pinned
+  beets oracle under `tools/venv` is separate and stays). The next brainstorm re-plans them. Until then the box serves through the tunnel. The streamer username
   (`glw907`, Geoff's) maps to nothing until then.
 
 ## Lane registry
