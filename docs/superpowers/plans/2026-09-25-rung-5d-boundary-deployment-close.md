@@ -751,6 +751,16 @@ baseline gate green at `311b74c`). Its five blockers, ruled:
   the first admin's contact and whether an address is a member. The other is translit's staged-deploy
   row, with its "roll back by redeploying the previous commit" superseded by Task 10's `.prev` rollback.
 
+- **A6 (5d-i, Tasks 2 and 3; ruled at Segment A's escalation).** Task 2's outcome "every environment a
+  doctor test passes to `newDoctorCmd` carries a reserved `DUBPLATE_SERVE_PORT`" cannot hold for a
+  fresh-registry test: `Load` refuses the key as unknown (`internal/config/config.go:338`), while
+  `config.ParseString` still yields the threshold's default without the registry (`thresholds.go:128-140`).
+  The guarantee now lives in two places. Production-registry environments (`doctorEnviron`) carry the
+  reserved port, as Task 2 built. Task 3's probe row consults the registry: when the serve port threshold
+  is not declared in the doctor's registry, the row reads `not probed` with that reason, adds no failure,
+  and never dials. A Task 3 test proves it on a fresh registry, with a mutation that removes the check
+  and shows the row dialing (or attempting to). Task 2 is accepted at `2fc93bd` under this amendment.
+
 The heavy gate's recorded wall time is now about 8m15s (at `5530cbb`), roughly double the figure above.
 The notes (moved pointers whose content survives) are in the report, grouped per task; each task's
 dispatch carries its own.
