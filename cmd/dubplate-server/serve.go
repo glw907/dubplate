@@ -188,7 +188,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			shell, _, err := newServeShell(cmd.Context(), environ, prefix, cfg, authCfg, slog.Default())
+			shell, _, err := newServeShell(cmd.Context(), environ, prefix, addrs, cfg, authCfg, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -245,7 +245,13 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // in force: every identity header is stripped from every peer, the
 // trusted proxy included, since a proxy is trusted for the client
 // address alone.
-func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
+//
+// The boundary probe route mounts under the owned prefix like every
+// other route, so the request it counts is the one the strip has
+// already cleared. Its peer rule reads bindAddrs, the resolved list
+// the caller listens on, and the same trusted proxy configuration the
+// strip carries.
+func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, nil, err
@@ -306,6 +312,9 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, c
 		Logger:   shell.Logger(),
 		BodyCap:  int64(authCfg.authRequestBodyCap),
 	}
+	probePath := prefix.String() + "/" + serve.ProbeRouteName
+	shell.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
+
 	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
 
 	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{

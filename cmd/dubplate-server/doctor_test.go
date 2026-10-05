@@ -270,8 +270,9 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
 	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines
 	if len(lines) != wantTotal {
-		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + 1 store)",
-			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount)
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + backup %d + unidecode %d + boundary %d)",
+			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount,
+			storeRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines)
 	}
 
 	// Owned wall: one line per declared row.

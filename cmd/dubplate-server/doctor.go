@@ -29,7 +29,9 @@ import (
 // missing or invalid, the client ip row refuses the trusted proxy
 // values, the web row refuses what serve startup would refuse, the
 // bind addresses row finds a configured address absent or cannot
-// check it, or a registered setting's row refuses; 0 otherwise.
+// check it, the boundary probe row finds a header the strip should
+// have removed or an answer it cannot read, or a registered setting's
+// row refuses; 0 otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "doctor",
@@ -146,7 +148,9 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// prints exactly one line whatever its state: client ip
 			// and web read "not checked" when Load refused environ.
 			// The bind addresses row calls [net.InterfaceAddrs]
-			// once and hands the status function both results.
+			// once and hands the status function both results. The
+			// boundary probe row dials each bind address on the
+			// serve port, each dial and answer bounded.
 			clientIPStatus, clientIPFailed := clientIPRowStatus(cfg)
 			if err := printRow(stdout, clientIPDoctorRow, clientIPStatus); err != nil {
 				return err
@@ -160,7 +164,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			if err := printRow(stdout, bindAddrsDoctorRow, bindStatus); err != nil {
 				return err
 			}
-			probeStatus, probeFailed := boundaryProbeRowStatus()
+			probeStatus, probeFailed := boundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
 			if err := printRow(stdout, boundaryProbeDoctorRow, probeStatus); err != nil {
 				return err
 			}

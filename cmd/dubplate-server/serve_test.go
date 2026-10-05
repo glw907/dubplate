@@ -77,7 +77,7 @@ func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []str
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, addrs, _, err := resolveServeConfig(environ)
 	if err != nil {
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
@@ -85,7 +85,7 @@ func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []str
 	if err != nil {
 		t.Fatalf("resolveAuthConfig: %v", err)
 	}
-	return newServeShell(ctx, environ, prefix, cfg, authCfg, logger)
+	return newServeShell(ctx, environ, prefix, addrs, cfg, authCfg, logger)
 }
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
@@ -637,7 +637,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, _, _, err := resolveServeConfig(environ)
+			prefix, addrs, _, err := resolveServeConfig(environ)
 			if err != nil {
 				t.Fatalf("resolveServeConfig: %v", err)
 			}
@@ -645,7 +645,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveAuthConfig: %v", err)
 			}
-			shell, _, err := newServeShell(t.Context(), environ, prefix, cfg, authCfg, discardTestLogger())
+			shell, _, err := newServeShell(t.Context(), environ, prefix, addrs, cfg, authCfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}

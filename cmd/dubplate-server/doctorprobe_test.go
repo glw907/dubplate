@@ -2,12 +2,22 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
+
+	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/serve"
 )
 
 // doctorRows runs doctor over environ against the production registry
@@ -42,7 +52,9 @@ func withEnv(environ []string, entries ...string) []string {
 
 // TestDoctorBoundaryRows_Baseline is the green baseline every
 // perturbation below departs from by one value: doctorEnviron exits 0
-// and every boundary row states its own status.
+// and every boundary row states its own status. Its serve port is one
+// the test binary reserved and nothing listens on, so the probe's dial
+// is refused and the row reads "no listener" without failing doctor.
 func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 	rows, lines, err := doctorRows(t, doctorEnviron(t))
 	if err != nil {
@@ -52,7 +64,7 @@ func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 		"client ip":      "direct",
 		"web":            "ok",
 		"bind addresses": "127.0.0.1 present",
-		"boundary probe": "not probed",
+		"boundary probe": "127.0.0.1 no listener",
 	}
 	for key, status := range want {
 		if got := rows[key]; got != status {
@@ -147,6 +159,38 @@ func TestDoctorBoundaryRows_Perturbations(t *testing.T) {
 			wantFail: true,
 			row:      "bind addresses",
 			wantHas:  []string{"invalid: ", "empty entry"},
+		},
+		{
+			name:       "an absent bind address is not probed",
+			env:        []string{"DUBPLATE_SERVE_BIND_ADDRS=192.0.2.1"},
+			wantFail:   true,
+			row:        "boundary probe",
+			wantStatus: "192.0.2.1 not probed (not on any interface)",
+		},
+		{
+			name: "every local address a trusted proxy",
+			env: []string{
+				"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+				"DUBPLATE_TRUSTED_PROXY_ADDRS=127.0.0.1",
+				"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
+				"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1",
+			},
+			row:        "boundary probe",
+			wantStatus: "not probed: every local address is a trusted proxy",
+		},
+		{
+			name:     "an invalid serve prefix fails the web row",
+			env:      []string{"DUBPLATE_SERVE_PREFIX=dubplate"},
+			wantFail: true,
+			row:      "web",
+			wantHas:  []string{"invalid: ", "must begin with a separator"},
+		},
+		{
+			name:       "an invalid serve prefix leaves the probe unprobed",
+			env:        []string{"DUBPLATE_SERVE_PREFIX=dubplate"},
+			wantFail:   true,
+			row:        "boundary probe",
+			wantStatus: "not probed",
 		},
 		{
 			name:       "site name unset: client ip not checked",
@@ -302,6 +346,305 @@ func TestBindAddrsRowStatus(t *testing.T) {
 			}
 			if failed != tt.wantFailed {
 				t.Errorf("failed = %v, want %v", failed, tt.wantFailed)
+			}
+		})
+	}
+}
+
+// freePort returns a loopback port this test listened on at
+// 127.0.0.1:0 and released, for a server the test starts itself.
+// reservedPort is the shared port nothing may ever listen on, so a test
+// that needs a listener takes its own.
+func freePort(t *testing.T) int {
+	t.Helper()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("reserve a loopback port: %v", err)
+	}
+	port := listenerPort(t, l)
+	if err := l.Close(); err != nil {
+		t.Fatalf("release the reserved port: %v", err)
+	}
+	return port
+}
+
+// listenerPort returns the port of a listener bound on 127.0.0.1.
+func listenerPort(t *testing.T, l net.Listener) int {
+	t.Helper()
+	addr, ok := l.Addr().(*net.TCPAddr)
+	if !ok || !addr.IP.Equal(net.IPv4(127, 0, 0, 1)) {
+		t.Fatalf("fixture state: listener at %v, want 127.0.0.1", l.Addr())
+	}
+	return addr.Port
+}
+
+// TestDoctorBoundaryProbe_EndToEnd runs the serve verb itself, the
+// shell newServeShell builds served by serve.Run on 127.0.0.1, and
+// then doctor against the same port: the probe crosses a real socket
+// into the running server's strip, and every count comes back zero.
+func TestDoctorBoundaryProbe_EndToEnd(t *testing.T) {
+	port := freePort(t)
+	environ := withEnv(doctorEnviron(t), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))
+
+	ctx, cancel := context.WithCancel(t.Context())
+	served := make(chan error, 1)
+	go func() {
+		cmd := newServeCmd(environ, productionRegistry(), io.Discard, io.Discard)
+		served <- cmd.ExecuteContext(ctx)
+	}()
+	t.Cleanup(func() {
+		cancel()
+		if err := <-served; err != nil {
+			t.Errorf("serve returned %v, want nil after cancel", err)
+		}
+	})
+
+	// Fixture state: the route answers a plain GET on the port before
+	// doctor runs, so a "refused" row is the strip's answer and never
+	// a server that had not started.
+	url := "http://127.0.0.1:" + strconv.Itoa(port) + "/dubplate/" + serve.ProbeRouteName
+	client := &http.Client{Transport: &http.Transport{}, Timeout: 2 * time.Second}
+	defer client.CloseIdleConnections()
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		resp, err := client.Get(url)
+		if err == nil {
+			_ = resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("fixture state: plain GET answered %d, want 200", resp.StatusCode)
+			}
+			break
+		}
+		select {
+		case err := <-served:
+			t.Fatalf("serve returned before answering: %v", err)
+		default:
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("fixture state: the route never answered: %v", err)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	rows, _, err := doctorRows(t, environ)
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil when the strip refuses every header", err)
+	}
+	want := "127.0.0.1 refused; " + probeTrailer
+	if got := rows["boundary probe"]; got != want {
+		t.Errorf("boundary probe row = %q, want %q", got, want)
+	}
+}
+
+// TestDoctorBoundaryProbe_ListenerAnswers puts a server on the port
+// doctor dials that answers the route's path with a canned reply, one
+// per case: each count the strip should have zeroed, an answer that is
+// not 200, and a body that is not the counts.
+func TestDoctorBoundaryProbe_ListenerAnswers(t *testing.T) {
+	const trailer = "; " + probeTrailer
+	tests := []struct {
+		name       string
+		status     int
+		body       string
+		wantFail   bool
+		wantStatus string
+	}{
+		{
+			name:       "every count zero",
+			status:     http.StatusOK,
+			body:       `{"identity":0,"forwarded":0,"sentinel":0}`,
+			wantStatus: "127.0.0.1 refused" + trailer,
+		},
+		{
+			name:       "identity headers passed",
+			status:     http.StatusOK,
+			body:       `{"identity":2,"forwarded":0,"sentinel":0}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 passed 2 identity header(s)" + trailer,
+		},
+		{
+			name:       "forwarded-address headers passed",
+			status:     http.StatusOK,
+			body:       `{"identity":0,"forwarded":3,"sentinel":0}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 passed 3 forwarded-address header(s)" + trailer,
+		},
+		{
+			name:       "the sentinel passed",
+			status:     http.StatusOK,
+			body:       `{"identity":0,"forwarded":0,"sentinel":1}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 passed the Connection-listed sentinel" + trailer,
+		},
+		{
+			name:       "every group passed",
+			status:     http.StatusOK,
+			body:       `{"identity":1,"forwarded":1,"sentinel":1}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 passed 1 identity header(s) and 1 forwarded-address header(s) and the Connection-listed sentinel" + trailer,
+		},
+		{
+			name:       "a 404",
+			status:     http.StatusNotFound,
+			body:       "404 page not found\n",
+			wantFail:   true,
+			wantStatus: "127.0.0.1 unexpected answer: 404 Not Found",
+		},
+		{
+			name:       "an unparseable body",
+			status:     http.StatusOK,
+			body:       "<html>",
+			wantFail:   true,
+			wantStatus: "127.0.0.1 unexpected answer: 200 OK with an unparseable body",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/dubplate/"+serve.ProbeRouteName {
+					http.NotFound(w, r)
+					return
+				}
+				w.WriteHeader(tt.status)
+				_, _ = io.WriteString(w, tt.body)
+			}))
+			defer srv.Close()
+			port := listenerPort(t, srv.Listener)
+
+			rows, _, err := doctorRows(t, withEnv(doctorEnviron(t), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port)))
+			if (err != nil) != tt.wantFail {
+				t.Fatalf("Execute() error = %v, wantFail %v", err, tt.wantFail)
+			}
+			if got := rows["boundary probe"]; got != tt.wantStatus {
+				t.Errorf("boundary probe row = %q, want %q", got, tt.wantStatus)
+			}
+		})
+	}
+}
+
+// TestDoctorBoundaryProbe_WedgedListener puts a listener on the port
+// that completes the handshake and never answers. The kernel accepts
+// the connection into the backlog whether or not Accept is called, so
+// the dial succeeds and the read is what times out: the row reads a
+// timeout and fails doctor, and the run ends within the response bound
+// rather than hanging.
+func TestDoctorBoundaryProbe_WedgedListener(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = l.Close() }()
+	port := listenerPort(t, l)
+
+	start := time.Now()
+	rows, _, err := doctorRows(t, withEnv(doctorEnviron(t), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port)))
+	elapsed := time.Since(start)
+	if err == nil {
+		t.Fatal("Execute() error = nil, want a failure for a listener that never answers")
+	}
+	if got, want := rows["boundary probe"], "127.0.0.1 unexpected answer: timeout"; got != want {
+		t.Errorf("boundary probe row = %q, want %q", got, want)
+	}
+	if limit := probeResponseBound + 2*time.Second; elapsed > limit {
+		t.Errorf("doctor took %v, want under %v: the response bound did not end the wait", elapsed, limit)
+	}
+}
+
+// TestBoundaryProbeRowStatus_UndeclaredPortNeverDials covers a
+// registry that does not declare the serve port: the row reads "not
+// probed" naming the key, adds no failure, and never dials. The
+// environ names a listener's port so a dial, were one made, lands on a
+// socket this test watches rather than the default 8080. Load refuses
+// the port key as unknown on such a registry, so cfg comes from the
+// same environ without it; the row reads the environ it is handed.
+func TestBoundaryProbeRowStatus_UndeclaredPortNeverDials(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = l.Close() }()
+	var accepted atomic.Int32
+	go func() {
+		for {
+			conn, err := l.Accept()
+			if err != nil {
+				return
+			}
+			accepted.Add(1)
+			_ = conn.Close()
+		}
+	}()
+
+	reg := config.NewRegistry()
+	base := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
+	cfg, err := config.Load(base, reg)
+	if err != nil {
+		t.Fatalf("fixture state: config.Load on a fresh registry: %v", err)
+	}
+	environ := withEnv(base, "DUBPLATE_SERVE_PORT="+strconv.Itoa(listenerPort(t, l)))
+
+	status, failed := boundaryProbeRowStatus(t.Context(), environ, reg, cfg)
+	if want := "not probed: DUBPLATE_SERVE_PORT is not registered"; status != want {
+		t.Errorf("status = %q, want %q", status, want)
+	}
+	if failed {
+		t.Error("failed = true, want no failure of the row's own")
+	}
+	if n := accepted.Load(); n != 0 {
+		t.Errorf("the row dialed the listener %d time(s), want none", n)
+	}
+}
+
+// TestBoundaryProbeRowStatus_NoFailureOfItsOwn pins the states in
+// which the row reports why it did not probe and leaves the failure to
+// the row that owns the cause.
+func TestBoundaryProbeRowStatus_NoFailureOfItsOwn(t *testing.T) {
+	reg := productionRegistry()
+	baseline := doctorEnviron(t)
+	cfg, err := config.Load(baseline, reg)
+	if err != nil {
+		t.Fatalf("fixture state: config.Load on the baseline: %v", err)
+	}
+
+	tests := []struct {
+		name       string
+		environ    []string
+		cfg        *config.Config
+		wantStatus string
+	}{
+		{
+			name:       "an absent bind address, which the bind row fails",
+			environ:    withEnv(baseline, "DUBPLATE_SERVE_BIND_ADDRS=192.0.2.1"),
+			cfg:        cfg,
+			wantStatus: "192.0.2.1 not probed (not on any interface)",
+		},
+		{
+			name:       "an invalid bind list, which the bind row fails",
+			environ:    withEnv(baseline, "DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1,,::1"),
+			cfg:        cfg,
+			wantStatus: "not probed",
+		},
+		{
+			name:       "an invalid prefix, which the web row fails",
+			environ:    withEnv(baseline, "DUBPLATE_SERVE_PREFIX=dubplate"),
+			cfg:        cfg,
+			wantStatus: "not probed",
+		},
+		{
+			name:       "Load refused the environment",
+			environ:    baseline,
+			cfg:        nil,
+			wantStatus: "not probed",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			status, failed := boundaryProbeRowStatus(t.Context(), tt.environ, reg, tt.cfg)
+			if status != tt.wantStatus {
+				t.Errorf("status = %q, want %q", status, tt.wantStatus)
+			}
+			if failed {
+				t.Error("failed = true, want the failure left to the row that owns the cause")
 			}
 		})
 	}
