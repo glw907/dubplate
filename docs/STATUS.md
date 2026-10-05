@@ -37,6 +37,11 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
 
 ## Owner questions
 
+- **Rungs 12/16 re-plan spec awaits Geoff's read:** `specs/2026-10-05-rungs-12-16-replan-design.md`
+  (first launch is 0.8.0 on the built-in streamer; rung 12 = streamer slices 1-8; a `navidrome-removal`
+  pass before 6d; the username rename). On approval: `superpowers:writing-plans` for the removal pass and the
+  document pass.
+
 - 6d plan rev 2.2 awaits approval (`plans/2026-09-26-rung-6d-identity-serve-store.md`): three rulings (one
   pass at 11.5M; the epoch to the revoke verb; store identity to rung 16), all recommended yes.
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
