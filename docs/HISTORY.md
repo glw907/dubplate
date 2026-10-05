@@ -2,6 +2,154 @@
 
 Per-pass ledger, newest first.
 
+## Rung 5d-ii (the review, the sitting, and the rung 5 close): closed 2026-10-05, lane 1
+
+Executed against `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
+(revision 2.2 with amendments A1 to A6), in the main tree on master, from `03e1518` (5d-i's close)
+to this entry's commit. Segment C ran in the overnight window of 2026-10-04 (runs
+`wf_c7243d16-e90`, `wf_e638c15e-7f4`, `wf_4cf6053e-e09`, `wf_9aaaa54f-9d5`), the Task 10 sitting
+ran attended on 2026-10-05, and Task 11 ran in a fresh session. The pass class was `auth-data` for
+Tasks 7 to 9 and `docs` for Task 11. Rung 5 is closed.
+
+### What landed
+
+Task 7 (`7cc6e39`, `5ca9fc1`, prose fold `5262504`) wrote `docs/server-runbook.md`, the install
+order and the trust-boundary documentation. The prose-voice review (`research/2026-10-05-rung-5d-ii-runbook-prose-review.md`)
+found six blockers and nine polish items and the conductor folded all fifteen. Task 8 (`4ee5c00`)
+mapped all 50 login-spec review findings to the clause, code, and test that absorbed each
+(`research/2026-09-25-rung-5-sec-uni-disposition.md`); UNI-H2 rests on R21 alone and is carried to
+rung 12. `5ae2b4a` logged `member add`'s unmarked required flags to the backlog.
+
+The adversarial cycle ran two fresh-context lenses over the whole rung 5 subsystem. The security
+lens (`5cf5d98`, at `6e661a6`) found 3 medium and 7 low with a polish tail; the universality lens
+(`6d694de`, at `5262504`) found 2 high, 3 medium, and 4 low with a polish tail. Neither found a
+critical. The conductor's rulings (`cf20d42`, `research/2026-09-25-rung-5d-review-fold.md`):
+22 fold rows folded, 4 refused with reasons (automating the rollback, a new serve port, a
+loopback relay without auth, and a polish group), 4 carried (the token in the URL fragment to
+BACKLOG, the `/` redirect and group 2 in trailers to rung 12, a failure-alert hook to packaging).
+
+Task 9 ran as three file-disjoint folds and a runbook patch: 9A (`fb5411e`) scrubbed the build's
+environment, widened the clean-tree refusal, pre-created the `unidecode` leaf with its own grant,
+and extended the runbook; 9B (`bac992e`) matched identity headers on the separator-folded key,
+widened the probe to the strip's own forwarded set, and added the direct-mode warning; 9C
+(`07f6f82`) added doctor's `auth store` row and the roster-directory check, bounded the serve port
+to 1024-65535, and moved mail to `SMTPAuthAutoDiscover`; 9D (`8108605`) closed the runbook's
+rollback, `unidecode` step, and doctor-claim gaps. Every task was accepted by its `diff-reviewer`
+with no fix round, and each Go fold carries a test watched failing first.
+
+Task 10, the sitting (statuses only, under Ruling 2's yes): `ad094f9` deployed to the box, the two
+secrets minted, one admin member added, the library imported (6.6 GB), doctor exit 0. The same day
+Geoff ruled the incumbent stack retired (below); the repo followed at `d1e93e9`, `764847b`, and
+`fb0d94c`, and the box was redeployed at `d1e93e9` with doctor exit 0.
+
+The close: the once-per-pass simplifier ran over 9B and 9C's Go and found nothing, so it made no
+commit. Three `go-architecture-reader` reads (`internal/serve`, `cmd/dubplate-server`,
+`internal/notify`) found no correctness defect on a production path, each verdict "workmanlike" or
+"sound with nits"; the record is `research/2026-10-05-rung-5d-ii-architecture-reads.md`. The 5d
+tasks never touched `internal/config`. The tree differs there only by `764847b`, the incumbent's
+retirement, which changed three lines: one comment in `config.go`, and in `keys.go` the message
+string of the `DUBPLATE_TUNNEL_TOKEN` supersession row (a runtime string, the only non-comment
+change; no test pins it).
+
+The conductor applied the `CLAUDE.md` edits at this close (the gate paragraph's `systemd-analyze` and
+state-dir clauses, and the "Safety rails" deploy line); `scripts/check.sh` was read first and both
+describe what the gate and `deploy.sh` do. The close also released the contested-surface rows:
+`internal/serve` and `internal/auth` pass to rung 12's ownership, and the plan's table records it,
+with a note that rung 12 is being re-planned.
+
+### What the gates caught
+
+- The adversarial lenses' two highs were both universality findings: a same-host proxy in direct
+  mode keys every member on loopback (runbook rule plus a one-per-process warning), and the
+  install order ended at a server a stranger could not reach or sign in to (a build step, a front
+  and TLS step, and the login URL).
+- The security lens's medium that mattered most: `deploy.sh` ran `npm ci` and the web build with the
+  sourced workstation secrets in the environment. Before the fix both npm steps saw all 44 sourced
+  names; after it they see `HOME PATH`.
+- The sitting found the plan's step 7 timing gate almost never qualifies (the shadow timer's
+  5-minute cadence lands after the 10-minute floor); one manual shadow pass after the import met the
+  gate's intent. 9B's direct-mode warning fires on doctor's own probe while serve runs, a false
+  alarm for a healthy doctor. Two "exit 1" readings at the sitting (`member list`, a box doctor)
+  came from the conductor's `systemd-run --pipe > file` redirect as root, not the binary; reruns
+  exited 0.
+
+### The 2026-10-05 rulings
+
+Geoff ruled the box serves only dubplate's development: Navidrome, cloudflared and the tunnel,
+Cloudflare Access, the box's beets, the shadow program's box side, Docker, and the incumbent
+`dubplate` binary and its units were retired the same day, and the matcher is validated, so the
+shadow evidence floor and its adjudication batches no longer gate launch. STATUS keeps the
+deployed-box record. These rulings made the plan's rung 16 carries moot (below).
+
+### Rung 5 summary
+
+Rung 5 (identity and auth) ran 5a (the serve shell), 5b-i and 5b-ii (identity, roster, limiters,
+mail), 5c-i to 5c-iv (the pages, the theme, the rendered gates, the string deck), and 5d-i and
+5d-ii (the boundary and the deployment). It delivered the birth-requirement magic-link login, the
+`__Host-` session with epoch and absolute cap, durable nonces, the roster store with the web
+add-member page and the `member` verb, the trust boundary (strip, normalization, trusted-proxy
+resolution, the probe route), the serve unit with its leaves, `deploy.sh` that checks by default,
+the server runbook, and one first deploy. The exit gate's eight assertions: `systemd-analyze`
+clean on the unit and hard-required (Task 5); the state-dir leg failing when either leaf leaves the
+array or the loop (Task 5); the unit's mount-namespacing failure (Task 5's `/dev/shm` evidence, plus
+the box start at Task 10); doctor's client-IP, bind, and probe rows (Tasks 2, 3, 9); `--check`
+rendering with no unresolved name and doctor exiting 0 against the rendered environment (Task 6's
+proof, Task 10's steps); the 50-finding table (Task 8); the cycle folded or refused with reasons
+(Task 9); `internal/config` untouched by any 5d task.
+
+Declared coverage gaps: the SMTP transport is not exercised on the box (carried to rung 16); the
+serve unit is installed and left disabled; `AT_EACCESS` in the `auth store` row's writability check is quoted from its
+man page and cannot be proved by a test.
+
+The old STATUS's "No deploy until 5d" line was removed when the sitting deployed. Its items:
+the magic-link env rows, `ReadWritePaths`, the trusted proxy, `deploy.sh`'s clean `web/` build, and
+`doctor` exiting 0 landed in Tasks 1 to 6 and 10; the 6a and 6b-i runbook rows, the Referrer-Policy
+residual, branding, the transliteration row, and the unknown-address note are in
+`docs/server-runbook.md` (grep-confirmed: KillMode, rclone v1.74.3, the exit-7 remedy, the
+`.prev` set, the wheel cache, the unknown-address answer). Two did not close here: 6c's Ruling 2
+(`deploy.sh` halting on `check`'s nonzero exit before restarting `serve`) goes to rung 16 with
+enabling the unit, and 6d's two wiring items stay under "To 6d" in STATUS.
+
+### What a later pass would be wrong to rediscover
+
+- The hop rule stops at a malformed hop and keeps a port-bearing hop's address.
+- Doctor's web row is serve's own resolution, not a re-derivation.
+- The probe route decides on `PeerAddress` minus the trusted set.
+- The state-dir leg reads `DUBPLATE_SERVER_LEAVES` and proves the pre-create loop iterates it.
+- `deploy.sh` checks by default; `--apply` writes and only from a clean committed tree, which also
+  refuses ignored gate outputs (`web/rendered-captures/`, `__pycache__`), so it runs from a fresh
+  worktree.
+- The unit is installed disabled.
+- The fold's accepted consequences: a trusted peer relayed through a same-host front now
+  receives the probe's identity count; a rung 12 front exemption will make doctor's probe count the
+  exempted header it sent.
+- The adversarial cycle's refusals (the rollback is the runbook's, not `--apply`'s; the loopback
+  relay is filed to `IDEAS.md`) are the do-not-re-litigate list.
+- Retired, not a rule: the plan's warning to stop the shadow timer before an env change that alters
+  the key set. The box has no shadow timer, and the estate's trusted-proxy values no longer wait on
+  a cloudflared address pin, because cloudflared is gone.
+- Moot under the 2026-10-05 rulings and routed to the rungs 12 and 16 re-plan brainstorm: the
+  `compose.yaml` address pin, serve bound to the bridge gateway, the Navidrome verify endpoint
+  (R-5d17) with its forward-auth doctor proof and stripping group 2 names but the configured header,
+  the shadow timer, and the 0.8 escape hatch. Still live for that re-plan: enabling the unit,
+  the secrets in every `music`-uid verb's environment, and exercising SMTP from the box.
+
+### Budgets
+
+Tokens: 5d-ii's Segment C closed with the window total at about 5.7M of the 8.4M flag, and 5d-i
+had recorded about 2.4M of that, so Segment C cost about 3.3M (derived, not separately recorded).
+This close session adds about 0.7M. The sitting's spend was not recorded. Recorded 5d-ii spend is
+therefore about 4.0M against the 3.5M ceiling (flag 2.8M): over the ceiling by about 0.5M, with the
+sitting's tokens unmeasured, so the true figure is higher. Rung 5d's total is about 6.4M of the
+10.5M combined ceiling. Attended time: the Task 10 sitting, one attended session plus the
+retirement ruling in it. Planning misses reaching Geoff: none recorded for 5d-ii; the plan's own
+misses were the timing gate at step 7, the carries the 2026-10-05 ruling made moot, and 5d-i's six
+amendments (A1 to A6).
+
+Fold-rule trial: no finding the 5d spec or plan fold refused turned out to be a real defect during
+execution. The fold's one refusal that touched a live fact (SEC-5d L4, a new serve port) rested on
+a box read that stayed true at the sitting.
+
 ## Rung 5d-i (the boundary and the deployment build): closed 2026-10-05, lane 1
 
 Executed against `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`

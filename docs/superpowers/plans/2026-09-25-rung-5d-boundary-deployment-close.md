@@ -1542,7 +1542,8 @@ the live shadow's dependency on it.
 | `scripts/check.sh` | shared | Task 5 | every lane; the state-dir leg and the hard-required list are 5d's |
 | `env/dubplate-server.env.template` | rung 4's file; rung 5 adds rows | Task 6 | 6d removes the roster row |
 | `systemd/` | shared | Task 5 (one new file) | 6d edits this unit's grant |
-| `internal/serve` | rung 5 until this close, then rung 12 | Tasks 1, 3 | none open (PA:80) |
+| `internal/serve` | rung 5 until this close, then rung 12 | Tasks 1, 3 | none open (PA:80). **Released 2026-10-05 (Task 11) to rung 12's ownership; rung 12 is being re-planned under the 2026-10-05 retirement ruling** |
+| `internal/auth` | rung 5 until this close, then rung 12 | none this pass | **Released 2026-10-05 (Task 11) to rung 12's ownership, per the rung 5 spec's table; rung 12 is being re-planned under the 2026-10-05 retirement ruling** |
 | `internal/config` | rung 1's contract | untouched | 6c's registry edits merge before 5d-i launches (revision 2.1); 5d leaves it byte-identical |
 | The box | production | Task 10 only | the quiet-box check and the timer window; no other lane deploys during 5d |
 | `docs/` ledgers | conductor | the 5d-i close and Task 11 drafts only | every lane |

@@ -526,6 +526,17 @@ the nonce. Consumption failures return one generic outcome, with the
 distinction only in server logs. Tokens never appear in URLs that get
 logged, which the GET/POST split is what makes true.
 
+> Erratum, 2026-10-05 (rung 5's close): "Tokens never appear in URLs
+> that get logged, which the GET/POST split is what makes true" is
+> false. The magic link is a URL carrying the token, so the GET request
+> line reaches the access log, any intermediary's log, and browser
+> history. The GET/POST split closes the security review's prefetch-burn
+> and login-CSRF halves and not its third. What holds instead: the
+> consumption route logs its path and never `RawQuery`, the served
+> surface carries `Referrer-Policy: no-referrer`, the consumption
+> response is `no-store`, and the remaining exposure is a recorded
+> residual bounded by single use and a short expiry.
+
 **Sessions.** HMAC-signed `__Host-` cookie, `Secure`, `HttpOnly`,
 `SameSite=Lax`, stripped before proxying to the streamer. The
 `__Host-` prefix makes the session host-scoped by definition, so
@@ -609,6 +620,14 @@ signal. The streamer's address is configured once, in driver config,
 with per-mode semantics stated there (the proxy target under SSO, the
 public base URL without it); the album deep-link capability derives
 from that configuration, and no second ad-hoc URL enters the wall.
+
+> Erratum, 2026-10-05 (rung 5's close): the "(streamer rung)" marker on
+> proxy hygiene is half wrong. The header-strip set, the ingress removal
+> of `Connection`-listed hop-by-hop headers, the path normalization
+> ahead of prefix routing, and the per-route write-deadline policy are
+> shell-level and land at rung 5. Only the `httputil.ReverseProxy` half,
+> its identity injection, its hop-by-hop consequence inside `Rewrite`,
+> and its cache-control rule are rung 12's.
 
 ## The ladder
 
@@ -713,6 +732,13 @@ are marked [E].
    documentation, and a minimal serve shell hosting it under the one
    owned prefix. The `web-auth-security-reviewer` gate runs inside
    the rung.
+
+   > Erratum, 2026-10-05 (rung 5's close): "the login and consumption pages
+   > (Go-templated, no JavaScript, shared design language)" is superseded.
+   > Design-language standard R1.6, ruled 2026-09-07, makes them SvelteKit
+   > static pages, client-rendered, built to assets the Go binary embeds
+   > and serves, on CLAUDE.md's web rule. Nothing else in this entry
+   > changes.
 6. **Ops seam and store** (M). The ops vocabulary: one Go interface
    plus JSON-serializable request and response types, the job model
    and explicit cancellation from the first version, and the
@@ -800,6 +826,17 @@ are marked [E].
    match navidrome, palette gruvbox. How DaisyUI's bundled
    built-ins reconcile into the two-axis model is a rung 7
    design detail.
+
+   > Erratum, 2026-10-05 (rung 5's close): the `web/` gate leg rejoins at
+   > rung 5 rather than rung 7, per the design-language standard's section
+   > 6, because rung 5's login page is the first web surface. The same
+   > correction applies to the gate-rewiring bullet at BS:332-333, whose
+   > "removes the web legs until rung 7 rebuilds `web/`" is the second
+   > in-document copy. The roster with the birth-requirement validation is
+   > rung 5's, per the parallel-build approach's contested-surface table,
+   > and it is a store with a write path rather than a loader alone, since
+   > Geoff ruled on 2026-09-08 that adding a member is a web-interface
+   > action built at rung 5. Rung 7 consumes it.
 8. **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
    proven against the corpus's expected applied tag sets from rung 2,
    plus the wazero-taglib spike whose recorded decision the

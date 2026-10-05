@@ -2503,6 +2503,61 @@ plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
 > equal the terminator's answer exactly, which carries no CSP
 > (R-5cii20).
 
+**Pass 5d's close, 2026-10-05, adds the corrections below.** Pass 5d ran as 5d-i (the build) and
+5d-ii (the review, the sitting, and this close), both in lane 1 (the main tree, not a worktree). The
+plan is `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md` (revision 2.2); the
+fold record is `docs/superpowers/research/2026-09-25-rung-5d-review-fold.md`.
+
+> Erratum, 2026-10-05 (pass 5d close): **the pass-split table's 5d row, as executed.** The tree
+> column ("Worktree, released at the close") is superseded: 5d ran as two passes in lane 1, the main
+> tree. The example roster file clause was already dropped (5b-ii close, above). The row's "forward-auth
+> verify endpoint and its integration class" and "eight literal rows" are superseded by the next two
+> errata. `deploy.sh` also gained a clean-tree refusal with local builds before its first remote write
+> (R-5d13) and checks by default, writing only under `--apply` (R-5d16).
+
+> Erratum, 2026-10-05 (pass 5d close): **the verify endpoint moved to rung 12 (R-5d17).** Under the
+> forward-hook rule (a hook is built by the rung that first consumes it), 5d built no forward-auth
+> verify endpoint, integration class, or keys. R21's endpoint, the build spec's ladder entry 5
+> clause "the forward-auth verify endpoint with its own trust-boundary documentation", the build spec's
+> BS:510-513 forward-auth doctor proof, and its ladder entry 5 line (BS:707-714) now belong to
+> rung 12, which also carries stripping every group 2 name but the configured header from a trusted
+> peer. The "One owned prefix" section's "and, when enabled, the verify endpoint" does not hold at
+> rung 5. The 2026-10-05 retirement of the incumbent stack may remove the driver that consumes it;
+> the rungs 12 and 16 re-plan decides.
+
+> Erratum, 2026-10-05 (pass 5d close): **the SMTP rows are bare, and the two secrets were minted
+> at the sitting (R-5d14).** `DUBPLATE_SMTP_HOST`, `_PORT`, `_USER`, `_FROM`, and
+> `DUBPLATE_SMTP_PASSWORD` are bare template rows resolved from the age store, not literals; the
+> prior erratum's "six literal rows remain for 5d" and the 5d row's "eight literal rows" are
+> corrected to match. `DUBPLATE_MAGIC_LINK_SECRET` and `DUBPLATE_SESSION_SECRET` were minted in the
+> age store at the Task 10 sitting (Ruling 2's yes).
+
+> Erratum, 2026-10-05 (pass 5d close): **the owned-prefix route list gains `boundary-probe`**
+> (`serve.ProbeRouteName`), the route doctor's probe row dials. The "One owned prefix" section's
+> list of what sits under the prefix is otherwise unchanged.
+
+> Erratum, 2026-10-05 (pass 5d close): **R6's probe dials each configured bind address from
+> that address.** "The boundary probe dials the service's own configured bind address over
+> loopback" is corrected to "dials each configured bind address from that address", so a bind
+> that loopback cannot reach is still proved, and an all-trusted bind reads unproven.
+
+> Erratum, 2026-10-05 (pass 5d close): **"Deployment"'s `deploy.sh` scope.** "`deploy.sh` gains
+> the unit and the two pre-creates, and nothing else" is corrected: it also gained R-5d13's
+> clean-tree refusal (any modified tracked file, and any untracked or ignored file under the build
+> and rsync inputs) with the web and Go builds run locally under a scrubbed environment before the
+> first remote write, R-5d16's check-by-default, and the `unidecode` leaf pre-create with its own
+> grant.
+
+> Erratum, 2026-10-05 (pass 5d close): **R23's reservation moves** from about 41M (5c-ii's close) to
+> about 48.5M: 5d's two ceilings (7.0M and 3.5M, together 10.5M) exceed the spec's 3M line for 5d by
+> 7.5M (the plan's "Token ceiling" section). Recorded 5d spend is in HISTORY's 5d-i and
+> 5d-ii entries.
+
+> Erratum, 2026-10-05 (pass 5d close): **the 5d exit gate's unit-start clause.** "The unit starting
+> with the roster leaf writable and failing with a named mount-namespacing error when its pre-create
+> is removed" was proved by Task 5's `/dev/shm` workstation evidence for the failing half and by
+> Task 10's box start for the starting half.
+
 ---
 
 ## The pass split
