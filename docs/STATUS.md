@@ -2,14 +2,18 @@
 
 ## Current state
 
-Rungs 1b, 3, 4, 8, 5a through 5c-iv, rung 6 through 6c, and the transliteration pass (2026-10-03,
-code at `5530cbb`: the binary carries no Unidecode data; scoring verbs need `unidecode install`'s
-table) closed; rung 5 continues at 5d. HISTORY's top entries: transliteration, 5c-iv, 6c.
+Rungs 1b, 3, 4, 8, 5a through 5c-iv, rung 6 through 6c, the transliteration pass, and 5d-i (2026-10-05:
+the trusted-proxy class, doctor's four boundary rows, the probe route, `deploy.sh` check-by-default,
+the serve unit, the env template's magic-link rows) closed; rung 5 continues at 5d-ii. HISTORY's top
+entries: 5d-i, transliteration, 5c-iv.
 
 ## Next action
 
-**Resume:** Read this file. Next: 5d-i in a fresh session (plan rev 2.2 approved 2026-09-26:
-7.0M; its deploy is an attended sitting). The photo integrity leg gates since `b7766d6`. Push master after each close (gitleaks first). Box read-only; nothing
+**Resume:** Read this file. Next: 5d-ii Segment C (plan rev 2.2 plus amendments A1-A6, "Task 0
+amendments" before "# Pass 5d-i"): Task 7 (runbook and trust-boundary docs, with A5's two rows), Task 8
+(the SEC/UNI disposition table), the adversarial cycle (security and universality lenses over the whole
+rung 5 subsystem), Task 9 (the fold). Then Task 10, the attended first-deploy sitting (A3, A4 apply; it
+mints `DUBPLATE_MAGIC_LINK_SECRET` and `DUBPLATE_SESSION_SECRET`), then Task 11, the rung close. The photo integrity leg gates since `b7766d6`. Push master after each close (gitleaks first). Box read-only; nothing
 deploys until 5d.
 
 **Overnight window (Geoff, 2026-10-04 evening):** run 5d-i to its close, then continue in the same
@@ -29,7 +33,7 @@ write STATUS, and stop. AC confirmed. No deploy; box read-only.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | ACTIVE: 5d-i, pass class `auth-data`, heavy gate. Task 0 ruled at `fafef77` (A1-A5), A6 at `7a15ef1`. Segment A closed: Task 1 `dcdb8bf`, Task 2 `2fc93bd`, Task 3 `c7f02c6`+`f6432a0` (runs `wf_a9246e81-97e`, `wf_ae514717-4cf`). Next: Segment B (Tasks 4D, 5, 6). Spend about 1.3M of the 8.4M flag. Dependency sweep: the 2026-10-04 sweep (`0677934`, `b3c2578`) covers this pass |
+| 1 | main tree (master) | ACTIVE: 5d-i closed 2026-10-05 (HISTORY 5d-i); 5d-ii Segment C opening in the same session under the overnight grant. Spend about 2.4M of the 8.4M window flag |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
@@ -45,12 +49,11 @@ write STATUS, and stop. AC confirmed. No deploy; box read-only.
   (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`), 5c-iv's two rows (HISTORY
   5c-iv "To 5d"), and the transliteration runbook row (HISTORY transliteration, "The deploy transition
   is staged": `--check` first, rollback by redeploy, the wheel cache as `--from` source). 5d's deploy
-  gate checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16. To 5d-i:
-  `NewTrustedProxyConfig` has no caller.
+  gate checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16.
 - To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason set,
   CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota` reservations
   and default-collection preference, 5c-iv's handoff (HISTORY 5c-iv "To rung 7", the styled 404 among
-  it). To rung 9: filter, facets, trigram. To rung 12: streamer-admin mapping, restore-before-12
+  it). To rung 9: filter, facets, trigram. To rung 12: `FrontExemption`'s dual-stack raw-string peer match (rebuild on `TrustedProxyConfig.trusts`; `research/2026-10-05-rung-5d-i-architecture-reads.md`), streamer-admin mapping, restore-before-12
   losing stars/playlists, shared-origin M2 and 5c-iii's CSP-scope M2, the streamer database's restore
   place. Full lists for rungs 7 and 12: HISTORY 5c-ii, 5c-iii, and 5c-iv. To the revoke verb: the
   epoch store's first writer. To rung 14: 6c's admin write path and a resolving channel for a

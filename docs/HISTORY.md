@@ -2,6 +2,72 @@
 
 Per-pass ledger, newest first.
 
+## Rung 5d-i (the boundary and the deployment build): closed 2026-10-05, lane 1
+
+Executed against `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
+(revision 2.2, approved 2026-09-26), in the main tree on master from base `311b74c`, in the
+overnight window of 2026-10-04. The plan predates pass classes; the pass ran as `auth-data`
+(full heavy gate per task, Opus review, coverage gaps blocking, mutation proofs). The baseline gate
+was green at `311b74c`.
+
+### What landed
+
+Task 0 (Opus, read-only, `research/2026-10-04-rung-5d-i-task-0-staleness.md`) found every build
+pointer's content intact and five blockers, ruled as amendments A1 to A5 (`fafef77`): A1 gave
+`dubplate-implementer.md` a stated-exception clause, since `bbd96d2`'s flat no-registry rule
+collided with the plan's `npm ci` inside `deploy.sh --check 192.0.2.1`; A2 placed doctor's four
+new rows after `unidecode` and before 6c's settings rows; A3 to A5 amend 5d-ii (the cloudflared
+recreate, a table before the local doctor, two runbook rows into Task 7).
+
+Segment A (runs `wf_a9246e81-97e`, `wf_ae514717-4cf`). Task 1 (`dcdb8bf`) built the `trusted proxy`
+integration class and its resolver, keyed `TrustedProxyConfig` by unmapped `netip.Addr`, gave
+`NewTrustedProxyConfig` its first production caller, and added `serve.CheckProxyHeader`. Task 2
+(`2fc93bd`) added doctor's `client ip`, `web`, `bind addresses`, and `boundary probe` rows. Task 3
+(`c7f02c6`, fix `f6432a0`) added the boundary probe route and its live-dial doctor row.
+
+Segment B (run `wf_8470c859-db1`, no fix rounds). Task 4D (`c179c99`) made `deploy.sh` report by
+default, apply only under `--apply`, refuse both flags together and a dirty tree, and run every
+local build before the first remote write; the runbook's apply invocations gained `--apply`. Task 5
+(`c152d1c`) added `systemd/dubplate-server-serve.service` (in `UNIT_FILES`, not enabled), the
+`DUBPLATE_SERVER_LEAVES` pre-create loop (`shadow auth roster`; translit's `unidecode` leaf excluded,
+since the verb creates it and no unit is granted it), and generalized the state-dir leg over every
+unit whose `ExecStart` runs `dubplate-server`; `systemd-analyze` became hard-required. Task 6
+(`c589fc5`) added the magic-link and trusted-proxy rows to `env/dubplate-server.env.template` and
+`TestRenderedTemplateDoctor`, which renders the template as `deploy.sh` does and runs doctor over it.
+
+The close: the simplifier round (`7ca2f57`) found no brief-pattern hit and applied five reviewer
+cleanups, including three process citations Task 1 left; its review caught one false unit comment,
+fixed at `6d6a579`. `internal/config` is byte-identical across the pass.
+
+### What the gates caught
+
+- Task 2's review escalated a plan outcome that could not hold (A6, `7a15ef1`): a fresh-registry
+  doctor test cannot carry `DUBPLATE_SERVE_PORT` (`Load` refuses an unknown key), yet
+  `config.ParseString` still yields the threshold's 8080 default, so a probe built like the bind row
+  would have dialed the host's real port from those tests. The probe row now reads `not probed` when
+  the registry does not declare the port.
+- Task 3's review found the probe fail-open: a `200` whose body was `{}`, `null`, or missing a count
+  decoded as all zeros, reporting the strip as working. Counts now decode through pointers.
+
+### What a later pass would be wrong to rediscover
+
+- The two secrets `DUBPLATE_MAGIC_LINK_SECRET` and `DUBPLATE_SESSION_SECRET` are bare template rows
+  and are not minted: `deploy.sh --check` aborts at the render naming exactly those two until Task 10
+  mints them.
+- The architecture reads (`research/2026-10-05-rung-5d-i-architecture-reads.md`) found no correctness
+  gap. `FrontExemption` carries a latent dual-stack bug (raw-string peer match) behind no production
+  caller: to rung 12. The rest (key-name duplication in `cmd/dubplate-server`, exports ahead of a
+  caller, process citations) goes to the architecture-cleanup pass.
+- BACKLOG #11: CLAUDE.md both forbids a `command -v || skip` guard and documents the docker leg's.
+- The gate's recorded wall time is about 8 minutes, and every 5d-i gate queued 20 to 28 minutes on the
+  machine lock behind cairn-cms's browserless checks until that session moved them to the light lane.
+
+### Budgets
+
+About 2.3M of the 7.0M ceiling (flag 5.6M): roughly 2.0M in subagents plus the conductor. Attended
+time: one sitting of three answers (the overnight grant), no planning misses reaching Geoff. Fold-rule
+trial: no finding the plan review's folds refused turned out to be a real defect in execution.
+
 ## Rung translit (the Unidecode table leaves the binary and is built at setup): closed 2026-10-03, lane 1
 
 Executed against `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md`
