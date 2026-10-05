@@ -65,9 +65,9 @@ UV_INSTALLER_SHA256="92e8554321e2bde08c9b1445dae47a65360f885274f31df51cdc2f9faa8
 
 # One job per line, each service beside its own timer (the ping-fail
 # template has none), so a new job is added as a visible pair rather than
-# appended to a run-on line. Every unit below but
-# dubplate-server-serve.service execs the frozen incumbent binary at
-# /usr/local/bin/dubplate, shipped once before rung 1 and never touched
+# appended to a run-on line. Every unit below but dubplate-shadow.service
+# and dubplate-server-serve.service, which run dubplate-server, execs the
+# frozen incumbent binary at /usr/local/bin/dubplate, shipped once before rung 1 and never touched
 # by this script again (the boundary comment at the
 # dubplate-server binary step below has the detail) -- there is no
 # separate scripts-to-/usr/local/bin manifest left now that the shell
