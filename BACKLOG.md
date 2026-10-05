@@ -55,9 +55,10 @@
   From 5d-ii Task 9A, 2026-10-05 #infra #project:prod-polish
 - [ ] #15 `serve`'s direct-mode warning (9B: a loopback or private peer sent a
   forwarded-address header) fires on `doctor`'s own boundary probe while serve
-  runs, so a healthy doctor makes serve log a false alarm. Have the probe's
-  requests carry a marker the warning skips, or have the warning ignore the probe
-  route (`internal/serve/probe.go`). Found at the 5d-ii Task 10 sitting,
+  runs, so a healthy doctor makes serve log a false alarm. The warning is
+  `warnForwardedFromLocalPeer` (`internal/serve/serve.go:205`; its comment opens
+  at `:187`). Have the probe's requests (`internal/serve/probe.go`) carry a marker
+  the warning skips, or have the warning ignore the probe route. Found at the 5d-ii Task 10 sitting,
   2026-10-05 #bug #project:prod-polish
 
 ## Done

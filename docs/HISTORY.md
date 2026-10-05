@@ -69,9 +69,9 @@ with a note that rung 12 is being re-planned.
 - The sitting found the plan's step 7 timing gate almost never qualifies (the shadow timer's
   5-minute cadence lands after the 10-minute floor); one manual shadow pass after the import met the
   gate's intent (moot now: the shadow timer is retired). 9B's direct-mode warning fires on doctor's
-  own probe while serve runs, a false alarm for a healthy doctor, filed as BACKLOG #15. Two "exit 1" readings at the sitting (`member list`, a box doctor)
-  came from the conductor's `systemd-run --pipe > file` redirect as root, not the binary; reruns
-  exited 0.
+  own probe while serve runs, a false alarm for a healthy doctor, filed as BACKLOG #15. Two "exit 1" readings at the sitting (`member list`, a box
+  doctor) came from the conductor's `systemd-run --pipe > file` redirect as root, not the binary;
+  reruns exited 0.
 
 ### The 2026-10-05 rulings
 

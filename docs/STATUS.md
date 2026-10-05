@@ -5,7 +5,8 @@
 Rung 5 is closed (2026-10-05): rungs 1b, 3, 4, 8, 5a through 5d-ii, rung 6 through 6c, and the
 transliteration pass are done. Master is green at `cea546e`. The box runs only dubplate-server: binary
 `d1e93e9` (doctor exit 0), the serve unit installed and disabled, the `auth`, `roster`, `unidecode` leaves,
-one admin member, and `/srv/music/library` (6.6 GB); the retirement record is in HISTORY 5d-ii. HISTORY's
+one admin member, and `/srv/music/library` (6.6 GB). No rollback set remains: the `.prev` copies rolled back
+to the retired stack, so the next `--apply` writes the first fresh set. The retirement record is in HISTORY 5d-ii. HISTORY's
 top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
 
 ## Next action
@@ -40,15 +41,12 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
   pass at 11.5M; the epoch to the revoke verb; store identity to rung 16), all recommended yes.
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
-- **Ruling (Geoff, 2026-10-05):** the box serves only dubplate's development; the incumbent stack is retired
-  and the matcher validated (full text and retirement record: HISTORY 5d-ii).
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (master) | IDLE: rung 5 closed. `internal/serve` and `internal/auth` released to rung 12's ownership; rung 12 is being re-planned |
-| 2 | none | none |
 | photos | main tree, separate docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)
@@ -59,8 +57,7 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
   configured header from a trusted peer, UNI-H2 (`/` to login), group 2 in trailers, `FrontExemption`'s
   dual-stack match. Moot items: HISTORY 5d-ii.
 - **Bugs and chores:** BACKLOG #15 (serve's direct-mode warning fires on doctor's own probe); two dead
-  `docker compose` entries in `.claude/settings.json` for Geoff to drop; BACKLOG #11 is closed (retired with
-  the compose leg, `d1e93e9`).
+  `docker compose` entries in `.claude/settings.json` for Geoff to drop.
 - **Owed:** the streamer spec's seven open items (rev 2.5) to its study rung; from the site spec, settle
   `init`/`upgrade` naming against `dubplate-server` and add the configuration-reference generator as a hook
   18 consumer. Reading taken: OpenSubsonic wire types hand-written.
@@ -77,7 +74,7 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
   (unwired today). To 6d Task 4: `rosterResetServer`'s baseline (HISTORY 5c-iv).
 - Errata and architecture-cleanup inventory: file:line in HISTORY and `research/*-architecture-reads.md`
   (5d-ii's doctor twelve-flag OR chain first); 9b's five nits (HISTORY 5c-iv); 103 coverage gaps, none
-  blocking; staged legs 317/127.
+  blocking; staged legs 317/127 (the citation leg misses `R-6c` patterns).
 - To `give-back` and `packaging`: the deleted table's git history, the process-wide holder's tension, the
   Unidecode-derived items (HISTORY transliteration, "Routed"), UNI-L2's failure-alert hook, the loopback-relay
   mail class (`IDEAS.md`), the token-in-fragment move (BACKLOG #13).
