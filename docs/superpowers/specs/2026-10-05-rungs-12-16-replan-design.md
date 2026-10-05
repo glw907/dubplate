@@ -2,8 +2,8 @@
 
 Status: revision 2.1, 2026-10-05. Revision 1 (`88c535e`) was approved in conversation (Geoff). Revision 2 folds the
 four-lens adversarial review, and revision 2.1 folds its verification (fold record:
-`research/2026-10-05-rungs-12-16-replan-fold.md`). It awaits Geoff's written-spec read and the three owner rulings
-below.
+`research/2026-10-05-rungs-12-16-replan-fold.md`). Approved by Geoff 2026-10-05, with all three owner rulings
+below ruled yes.
 
 Supersedes, where they conflict:
 
@@ -71,7 +71,7 @@ that no longer runs anywhere. This spec removes that code and gives rungs 12 and
 
 ## Owner rulings
 
-Each is a yes/no question. The spec builds the recommended answer unless Geoff rules otherwise.
+Each is a yes/no question. Geoff ruled all three yes on 2026-10-05, so the spec builds each recommended answer.
 
 1. **Delete the shadow program, superseding the build spec's ruling 1 adopter clause ("the local confidence tool an
    adopter runs against their own live beets") and the tree shape's "first-class leaf" sentence?** Recommend
