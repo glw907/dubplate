@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -869,7 +870,7 @@ func TestRequestLink_ClientAddressIsTheShells(t *testing.T) {
 	const perClient = 3
 	limits := generousLimits
 	limits.LinkRequestsPerClient = perClient
-	proxy := serve.NewTrustedProxyConfig([]string{"203.0.113.1"}, "X-Forwarded-For")
+	proxy := serve.NewTrustedProxyConfig([]netip.Addr{netip.MustParseAddr("203.0.113.1")}, "X-Forwarded-For")
 
 	tests := []struct {
 		name        string

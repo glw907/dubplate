@@ -1788,3 +1788,159 @@ func TestNewServeShell_MintedLinkNeverLogsItsToken(t *testing.T) {
 		})
 	}
 }
+
+// trustedProxyEnviron returns serveAuthEnviron with the trusted proxy
+// class enabled for addrs and Cf-Connecting-Ip, and the per-client
+// link-request limit at 1, so a client's second request trips it.
+func trustedProxyEnviron(t *testing.T, addrs string) []string {
+	t.Helper()
+	environ := serveAuthEnviron(t)
+	environ = replaceKey(environ, "DUBPLATE_TRUSTED_PROXY_ENABLED", "true")
+	environ = replaceKey(environ, "DUBPLATE_TRUSTED_PROXY_ADDRS", addrs)
+	environ = replaceKey(environ, "DUBPLATE_TRUSTED_PROXY_HEADER", "Cf-Connecting-Ip")
+	return replaceKey(environ, "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "1")
+}
+
+// TestNewServeShell_TrustedProxyKeysTheLinkLimiter proves the shell's
+// construction reads the trusted proxy class: a request-link POST from
+// the configured proxy is charged to the client its header names, and
+// the same POST from any other peer is charged to that peer.
+//
+// Each POST carries an address that does not parse. The handler
+// charges the per-client bucket before it reads the form, then answers
+// 400 for the address, so a request either spends its client's one
+// request (400) or meets a spent bucket (429), and no mail is ever
+// attempted. Origin and Sec-Fetch-Site match the fixture's public URL,
+// so the origin check admits every POST.
+func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
+	type post struct {
+		peer   string // RemoteAddr
+		client string // the Cf-Connecting-Ip value
+		want   int
+	}
+	tests := []struct {
+		name  string
+		addrs string
+		posts []post
+	}{
+		{
+			name:  "configured proxy: each client behind it has its own bucket",
+			addrs: "192.0.2.10",
+			posts: []post{
+				{"192.0.2.10:40001", "203.0.113.9", http.StatusBadRequest},
+				{"192.0.2.10:40002", "203.0.113.9", http.StatusTooManyRequests},
+				{"192.0.2.10:40003", "203.0.113.10", http.StatusBadRequest},
+			},
+		},
+		{
+			// The proxy is configured in IPv4-mapped form and dials
+			// from its dotted address: the set is compared unmapped.
+			name:  "configured in mapped form: the dotted peer is still the proxy",
+			addrs: "::ffff:198.51.100.7",
+			posts: []post{
+				{"198.51.100.7:40001", "203.0.113.9", http.StatusBadRequest},
+				{"198.51.100.7:40002", "203.0.113.9", http.StatusTooManyRequests},
+				{"198.51.100.7:40003", "203.0.113.10", http.StatusBadRequest},
+			},
+		},
+		{
+			// The header names two different clients, but the peer is
+			// not the proxy, so both POSTs spend the peer's one bucket.
+			name:  "unconfigured peer: every request keys on the peer",
+			addrs: "192.0.2.10",
+			posts: []post{
+				{"198.51.100.20:40001", "203.0.113.9", http.StatusBadRequest},
+				{"198.51.100.20:40002", "203.0.113.10", http.StatusTooManyRequests},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := trustedProxyEnviron(t, tt.addrs)
+			shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+			if err != nil {
+				t.Fatalf("buildServeShell() error = %v, want nil", err)
+			}
+			prefix, _, _, err := resolveServeConfig(environ)
+			if err != nil {
+				t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+			}
+			publicURL := environValue(environ, "DUBPLATE_PUBLIC_URL")
+			handler := shell.Handler()
+
+			for i, p := range tt.posts {
+				req := httptest.NewRequest(http.MethodPost, prefix.String()+"/"+requestLinkRouteName, strings.NewReader("address=not-an-address"))
+				req.RemoteAddr = p.peer
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				req.Header.Set("Origin", publicURL)
+				req.Header.Set("Sec-Fetch-Site", "same-origin")
+				req.Header.Set("Cf-Connecting-Ip", p.client)
+				rec := httptest.NewRecorder()
+				handler.ServeHTTP(rec, req)
+				if rec.Code != p.want {
+					t.Errorf("POST %d from %s naming %s: status = %d, body = %s, want %d", i+1, p.peer, p.client, rec.Code, rec.Body.String(), p.want)
+				}
+			}
+		})
+	}
+}
+
+// TestNewServeShell_StripCarriesNoFrontExemption proves the shell
+// strips every identity header even from the configured trusted proxy:
+// the proxy is trusted for the client address alone, and no front is
+// exempt from the identity strip. The spy also records the configured
+// address header, which the strip keeps from a trusted peer, so the
+// request is known to have arrived as the proxy's.
+func TestNewServeShell_StripCarriesNoFrontExemption(t *testing.T) {
+	environ := trustedProxyEnviron(t, "192.0.2.10")
+	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	if err != nil {
+		t.Fatalf("buildServeShell() error = %v, want nil", err)
+	}
+	prefix, _, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+	}
+
+	var reached bool
+	var got http.Header
+	shell.Register("spy", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reached = true
+		got = r.Header.Clone()
+		w.WriteHeader(http.StatusNoContent)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, prefix.String()+"/spy", nil)
+	req.RemoteAddr = "192.0.2.10:40001"
+	req.Header.Set("Remote-User", "admin@example.com")
+	req.Header.Set("Cf-Connecting-Ip", "203.0.113.9")
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), req)
+
+	if !reached {
+		t.Fatal("the spy route was never reached, so the request proves nothing about the strip")
+	}
+	if got.Get("Cf-Connecting-Ip") != "203.0.113.9" {
+		t.Errorf("Cf-Connecting-Ip = %q, want 203.0.113.9: the peer was not treated as the configured proxy", got.Get("Cf-Connecting-Ip"))
+	}
+	if v := got.Get("Remote-User"); v != "" {
+		t.Errorf("Remote-User = %q reached the spy from the trusted proxy, want stripped", v)
+	}
+}
+
+// TestNewServeShell_RefusesABadTrustedProxyValue proves a value the
+// resolver refuses stops the shell's construction, which runs before
+// serve opens any listener, rather than falling back to direct mode.
+func TestNewServeShell_RefusesABadTrustedProxyValue(t *testing.T) {
+	environ := trustedProxyEnviron(t, "192.0.2.0/24")
+	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	if err == nil {
+		t.Fatal("buildServeShell() error = nil, want the network entry refused")
+	}
+	if !strings.Contains(err.Error(), `DUBPLATE_TRUSTED_PROXY_ADDRS "192.0.2.0/24": an address, not a network`) {
+		t.Errorf("buildServeShell() error = %v, want it to name the network entry", err)
+	}
+	if shell != nil {
+		t.Error("buildServeShell() returned a shell alongside its refusal, want nil")
+	}
+}

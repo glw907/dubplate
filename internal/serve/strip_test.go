@@ -278,13 +278,13 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 		},
 		{
 			name:       "mode on, matching peer: family survives",
-			proxy:      NewTrustedProxyConfig([]string{"203.0.113.10"}, "X-Forwarded-For"),
+			proxy:      NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For"),
 			remoteAddr: "203.0.113.10:1111",
 			wantAbsent: false,
 		},
 		{
 			name:       "mode on, non-matching peer: family removed",
-			proxy:      NewTrustedProxyConfig([]string{"203.0.113.10"}, "X-Forwarded-For"),
+			proxy:      NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For"),
 			remoteAddr: "192.0.2.5:1111",
 			wantAbsent: true,
 		},
@@ -549,7 +549,7 @@ func TestStripWrapRemovesTheConfiguredProxyHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			proxy := NewTrustedProxyConfig([]string{"203.0.113.10"}, tt.header)
+			proxy := NewTrustedProxyConfig(addrs("203.0.113.10"), tt.header)
 			strip := NewStrip("", "", proxy, FrontExemption{})
 
 			r := httptest.NewRequest("GET", "/", nil)
@@ -612,7 +612,7 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			proxy := NewTrustedProxyConfig([]string{proxyAddr}, "X-Forwarded-For")
+			proxy := NewTrustedProxyConfig(addrs(proxyAddr), "X-Forwarded-For")
 			strip := NewStrip("", "", proxy, FrontExemption{})
 
 			r := httptest.NewRequest("GET", "/", nil)
@@ -642,7 +642,7 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 // covers group 2's names and nothing else, so an ordinary header a
 // request lists in Connection is still removed from a trusted peer.
 func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
-	proxy := NewTrustedProxyConfig([]string{"203.0.113.10"}, "X-Forwarded-For")
+	proxy := NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
 	strip := NewStrip("", "", proxy, FrontExemption{})
 
 	r := httptest.NewRequest("GET", "/", nil)

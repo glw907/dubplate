@@ -470,11 +470,7 @@ func (s Strip) stripForwardedAddress(r *http.Request) {
 // from one of the configured proxies. Groups 2 and 3 both turn on this
 // one answer, so they cannot disagree about which peer is the front.
 func (s Strip) trustsPeer(r *http.Request) bool {
-	if s.proxy.Mode() != ModeTrustedProxy {
-		return false
-	}
-	_, trusted := s.proxy.proxies[PeerAddress(r)]
-	return trusted
+	return s.proxy.trusts(PeerAddress(r))
 }
 
 // stripConnectionListed removes group 3: every header the request's

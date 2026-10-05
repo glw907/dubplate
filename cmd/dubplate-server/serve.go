@@ -205,10 +205,11 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // builds the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
-// It returns before any listener opens, so a caller refuses a missing
-// roster file, an unopenable store, an unparseable mail port, a bad
-// theme or branding value, or a refused operator CSS file without ever
-// accepting a connection.
+// It returns before any listener opens, so a caller refuses a trusted
+// proxy value [resolveTrustedProxy] refuses, a missing roster file, an
+// unopenable store, an unparseable mail port, a bad theme or branding
+// value, or a refused operator CSS file without ever accepting a
+// connection.
 //
 // It registers no bearer bypass: rung 5 has no bearer-authenticated
 // path, so every mount stays behind the origin check's cookie-carrying
@@ -236,12 +237,19 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // the credential that authenticates it. Rung 5a's coverage gap 4 was
 // exactly this name being the empty string, which removes nothing.
 //
-// No trusted proxy is configured yet and no front exemption is in
-// force, so proxyConfig's zero value governs both the strip and every
-// handler's ClientIP: PeerAddress is the client address until a later
-// rung configures otherwise.
+// The trusted proxy class, resolved through [resolveTrustedProxy],
+// governs both the strip's forwarded-address carve-out and every
+// handler's ClientIP, so the peer whose forwarded headers survive the
+// strip is exactly the peer whose header names the client. With the
+// class off, PeerAddress is the client address. No front exemption is
+// in force: every identity header is stripped from every peer, the
+// trusted proxy included, since a proxy is trusted for the client
+// address alone.
 func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
-	var proxyConfig serve.TrustedProxyConfig
+	proxyConfig, err := resolveTrustedProxy(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
 	strip := serve.NewStrip("", auth.SessionCookieName, proxyConfig, serve.FrontExemption{})
 	shell := serve.NewShell(prefix, strip, logger)
 	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
