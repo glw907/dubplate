@@ -701,3 +701,67 @@ func TestStripWrapScrubsTrailerOnCloseWithoutRead(t *testing.T) {
 		t.Errorf("after Close without Read: r.Trailer[Remote-User] = %q, want removed", afterTrailer)
 	}
 }
+
+// TestStripWrapRemovesMixedSeparatorSpellings covers the spellings a
+// dash-or-underscore list cannot enumerate: a name of three or more
+// segments may mix the two separators, and CanonicalMIMEHeaderKey
+// gives each mix its own key. A downstream that treats "-" and "_"
+// alike (CGI's HTTP_ variables, nginx with underscores_in_headers)
+// reads any of them as the identity header. Each key is written in the
+// canonical form net/http's parser stores it under, so the header map
+// holds exactly the key a real request would carry.
+func TestStripWrapRemovesMixedSeparatorSpellings(t *testing.T) {
+	tests := []struct {
+		name string
+		key  string
+	}{
+		{"underscore after the second segment", "X-Forwarded_user"},
+		{"underscore after the first segment", "X_forwarded-User"},
+		{"a four-segment name", "Cf-Access_jwt-Assertion"},
+		{"the driver's configured name", "X-Driver_identity"},
+		{"a lowercase key the parser never canonicalized", "x-forwarded-user"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			strip := NewStrip("X-Driver-Identity", "", TrustedProxyConfig{}, FrontExemption{})
+			r := httptest.NewRequest("GET", "/", nil)
+			r.Header[tt.key] = []string{"attacker"}
+			r.Trailer = http.Header{tt.key: []string{"attacker"}}
+
+			var got recorder
+			strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+			if v, ok := got.header[tt.key]; ok {
+				t.Errorf("handler received header %s = %q, want removed", tt.key, v)
+			}
+			if v, ok := got.trailer[tt.key]; ok {
+				t.Errorf("handler received trailer %s = %q, want removed", tt.key, v)
+			}
+		})
+	}
+}
+
+// TestStripWrapExemptionKeepsOnlyTheExactSpelling pins the exemption
+// against the normalized match: from the configured front, the
+// exempted name's dash form survives, and a mixed spelling of the same
+// name is still stripped.
+func TestStripWrapExemptionKeepsOnlyTheExactSpelling(t *testing.T) {
+	exemption := NewFrontExemption("X-Front-Identity", []string{"203.0.113.10"})
+	strip := NewStrip("X-Front-Identity", "", TrustedProxyConfig{}, exemption)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.RemoteAddr = "203.0.113.10:1111"
+	r.Header.Set("X-Front-Identity", "front-asserted-user")
+	r.Header["X-Front_identity"] = []string{"smuggled"}
+
+	var got recorder
+	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+
+	if v := got.header.Get("X-Front-Identity"); v != "front-asserted-user" {
+		t.Errorf("X-Front-Identity = %q, want %q to survive the exemption", v, "front-asserted-user")
+	}
+	if v, ok := got.header["X-Front_identity"]; ok {
+		t.Errorf("X-Front_identity = %q, want removed: only the exact configured spelling is exempt", v)
+	}
+}

@@ -202,18 +202,24 @@ var group3KeepSet = map[string]struct{}{
 	"Sec-Fetch-Site": {},
 }
 
-// identitySpellings returns every name group 1 removes: header (the
-// driver's configured identity header name, empty at rung 5) and every
-// name in identityExtras, each in its dash form and, where a dash
-// makes the two forms distinct, its underscore form too. Both
-// spellings come from one source, so a new name is one line of data.
-func identitySpellings(header string) []string {
+// identityNames returns every name group 1 removes in its dash form:
+// header (the driver's configured identity header name, empty while no
+// driver is configured) and every name in identityExtras.
+func identityNames(header string) []string {
 	names := make([]string, 0, len(identityExtras)+1)
 	if header != "" {
 		names = append(names, header)
 	}
-	names = append(names, identityExtras...)
+	return append(names, identityExtras...)
+}
 
+// identitySpellings returns every name in [identityNames] in its dash
+// form and, where a dash makes the two forms distinct, its all-underscore
+// form too. It is the set the boundary probe sends; group 1 itself
+// matches by [foldedKey], which also covers a name that mixes the two
+// separators.
+func identitySpellings(header string) []string {
+	names := identityNames(header)
 	spellings := make([]string, 0, len(names)*2)
 	for _, name := range names {
 		spellings = append(spellings, name)
@@ -274,6 +280,10 @@ type Strip struct {
 	proxy         TrustedProxyConfig
 	exemption     FrontExemption
 
+	// identity is group 1's removal set in [foldedKey] form, derived
+	// once at construction.
+	identity map[string]struct{}
+
 	// forwarded is group 2's removal set: forwardedAddressHeaders plus
 	// the trusted-proxy configuration's own header name, derived once at
 	// construction. The configured name has to join the set, since an
@@ -308,6 +318,7 @@ func NewStrip(header, sessionCookie string, proxy TrustedProxyConfig, exemption 
 		sessionCookie:  sessionCookie,
 		proxy:          proxy,
 		exemption:      exemption,
+		identity:       identityKeys(header),
 		forwarded:      forwarded,
 		forwardedCanon: canon,
 	}
@@ -362,15 +373,9 @@ func (s Strip) stripIdentity(r *http.Request) {
 		collapseToLast(r.Header, exempt)
 	}
 
-	names := identitySpellings(s.header)
-	for _, name := range names {
-		if exempt != "" && sameHeaderName(name, exempt) {
-			continue
-		}
-		r.Header.Del(name)
-		r.Trailer.Del(name)
-	}
-	scrubTrailerOnRead(r, names, exempt)
+	deleteIdentity(r.Header, s.identity, exempt)
+	deleteIdentity(r.Trailer, s.identity, exempt)
+	scrubTrailerOnRead(r, s.identity, exempt)
 }
 
 // collapseToLast rewrites h so name carries only the last value among
@@ -386,25 +391,68 @@ func collapseToLast(h http.Header, name string) {
 	h.Set(name, values[len(values)-1])
 }
 
+// foldedKey returns the form group 1 matches a header key by: k with
+// every underscore read as a dash, then canonicalized. A downstream
+// that treats "-" and "_" alike (CGI's HTTP_ variables, nginx with
+// underscores_in_headers) reads every key sharing one folded form as
+// the same header, and a name of three or more segments has mixed
+// spellings no dash-or-underscore list enumerates, so the strip
+// compares folded forms rather than spellings.
+func foldedKey(k string) string {
+	return textproto.CanonicalMIMEHeaderKey(strings.ReplaceAll(k, "_", "-"))
+}
+
+// identityKeys returns the [foldedKey] form of every name group 1
+// removes.
+func identityKeys(header string) map[string]struct{} {
+	names := identityNames(header)
+	keys := make(map[string]struct{}, len(names))
+	for _, name := range names {
+		keys[foldedKey(name)] = struct{}{}
+	}
+	return keys
+}
+
+// deleteIdentity deletes from h every key whose [foldedKey] is in keys,
+// other than the canonical form of exempt. It ranges over the keys h
+// actually holds, so a spelling no list names, a lowercase key a
+// handler set directly among them, is matched all the same. The Go
+// specification permits deleting the current entry inside a range over
+// a map, and delete on a nil map is a no-op.
+func deleteIdentity(h http.Header, keys map[string]struct{}, exempt string) {
+	keep := ""
+	if exempt != "" {
+		keep = textproto.CanonicalMIMEHeaderKey(exempt)
+	}
+	for k := range h {
+		if keep != "" && k == keep {
+			continue
+		}
+		if _, ok := keys[foldedKey(k)]; ok {
+			delete(h, k)
+		}
+	}
+}
+
 func sameHeaderName(a, b string) bool {
 	return textproto.CanonicalMIMEHeaderKey(a) == textproto.CanonicalMIMEHeaderKey(b)
 }
 
 // scrubTrailerOnRead wraps r.Body so that once the client's trailer
-// section has arrived, every name in names, other than exempt, is
-// deleted from r.Trailer again. net/http's mergeSetHeader (transfer.go)
+// section has arrived, every key [deleteIdentity] matches against keys,
+// other than exempt, is deleted from r.Trailer again. net/http's mergeSetHeader (transfer.go)
 // copies the wire trailer's values into r.Trailer unconditionally once
 // the body reaches io.EOF, which re-adds any name this task's up-front
 // delete removed; wrapping the body is the one point that reliably runs
 // after that merge.
-func scrubTrailerOnRead(r *http.Request, names []string, exempt string) {
+func scrubTrailerOnRead(r *http.Request, keys map[string]struct{}, exempt string) {
 	if r.Body == nil {
 		return
 	}
-	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, req: r, names: names, exempt: exempt}
+	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, req: r, keys: keys, exempt: exempt}
 }
 
-// trailerScrubbingBody deletes names, other than exempt, from its
+// trailerScrubbingBody deletes the identity keys, other than exempt, from its
 // request's Trailer the moment the wrapped reader signals end of
 // stream, which is when net/http has just finished populating that
 // map with the values the client sent.
@@ -417,7 +465,7 @@ func scrubTrailerOnRead(r *http.Request, names []string, exempt string) {
 type trailerScrubbingBody struct {
 	io.ReadCloser
 	req    *http.Request
-	names  []string
+	keys   map[string]struct{}
 	exempt string
 }
 
@@ -442,15 +490,11 @@ func (b *trailerScrubbingBody) Close() error {
 	return err
 }
 
-// scrub deletes every name but exempt from the request's Trailer. It is
-// idempotent, so the two arming points may both fire on one request.
+// scrub deletes every identity key but exempt from the request's
+// Trailer. It is idempotent, so the two arming points may both fire on
+// one request.
 func (b *trailerScrubbingBody) scrub() {
-	for _, name := range b.names {
-		if b.exempt != "" && sameHeaderName(name, b.exempt) {
-			continue
-		}
-		b.req.Trailer.Del(name)
-	}
+	deleteIdentity(b.req.Trailer, b.keys, b.exempt)
 }
 
 // stripForwardedAddress removes group 2 unless trusted-proxy mode is

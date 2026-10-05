@@ -8,8 +8,10 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/textproto"
 	"strings"
+	"sync"
 	"unicode"
 )
 
@@ -32,6 +34,11 @@ type Shell struct {
 	fallthroughSet     bool
 
 	hsts bool
+
+	// forwardedWarning holds the direct-mode warning
+	// warnForwardedFromLocalPeer writes to once per shell, and serve
+	// builds one shell per process.
+	forwardedWarning sync.Once
 
 	// handlerBuilt records that Handler has composed the root chain,
 	// after which the mux is live and a further registration would
@@ -174,7 +181,56 @@ func (s *Shell) Handler() http.Handler {
 	guarded := refuseEchoMethods(protected)
 	normalized := Normalize(guarded)
 	stripped := s.strip.Wrap(normalized)
-	return securityHeaders(s.hsts, s.logRefusal(stripped))
+	return securityHeaders(s.hsts, s.logRefusal(s.warnForwardedFromLocalPeer(stripped)))
+}
+
+// warnForwardedFromLocalPeer wraps next, the strip, and in direct mode
+// logs one warning for the shell the first time a loopback or
+// private peer sends a forwarded-address header. That request is the
+// signature of a same-host or same-network front left in direct mode:
+// every client it relays arrives from the front's own address, so the
+// whole group shares one rate-limit key and one client's flood locks
+// every member out of sign-in. A browser sends no such header on its
+// own, so the warning names the likely cause rather than a certainty.
+// It runs before the strip, which
+// removes these headers from every peer in direct mode. Outside direct
+// mode it returns next unchanged, since a configured trusted proxy is
+// the remedy.
+//
+// The count is the strip's own group 2 set by the strip's own
+// comparison, so the warning fires on exactly the headers the strip
+// discards. [netip.Addr.IsPrivate] documents itself as no security
+// property and no access-control input; it decides only whether to
+// log.
+func (s *Shell) warnForwardedFromLocalPeer(next http.Handler) http.Handler {
+	if s.strip.proxy.Mode() != ModeDirect {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.noteForwardedFromLocalPeer(r)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Shell) noteForwardedFromLocalPeer(r *http.Request) {
+	peer := PeerAddress(r)
+	addr, err := netip.ParseAddr(peer)
+	if err != nil {
+		return
+	}
+	if addr = addr.Unmap(); !addr.IsLoopback() && !addr.IsPrivate() {
+		return
+	}
+	n := countPresent(r.Header, s.strip.forwarded)
+	if n == 0 {
+		return
+	}
+	s.forwardedWarning.Do(func() {
+		s.logger.Warn("serve: a loopback or private peer sent a forwarded-address header in direct mode; a front on this host or network must be configured as a trusted proxy, or every client it relays shares its address and its rate limits",
+			"peer", peer,
+			"forwarded_headers", n,
+		)
+	})
 }
 
 // Logger returns the logger the shell writes its refusal record to,
@@ -465,18 +521,19 @@ func boundedPath(path string) string {
 	return fmt.Sprintf("%s...[truncated, %d bytes]", path[:maxLoggedPathBytes], len(path))
 }
 
-// identitySpellingPresent reports whether r's header carries any of the
-// strip's identity spellings for driverHeader, group 1's own list
-// (identityExtras plus the driver's configured name), so logRefusal
-// asserts against the same set the strip removes rather than a second
-// one written out here.
+// identitySpellingPresent reports whether r's header carries any key
+// the strip's group 1 removal matches for driverHeader, by the same
+// [foldedKey] comparison against the same [identityKeys] set, so
+// logRefusal asserts against what the strip removes rather than a
+// second set written out here.
 //
 // It tests the key's presence in the map, not the value it holds. A
 // header sent with an empty value is still a header the client sent,
 // and the record exists to say whether one arrived at all.
 func identitySpellingPresent(r *http.Request, driverHeader string) bool {
-	for _, name := range identitySpellings(driverHeader) {
-		if _, ok := r.Header[textproto.CanonicalMIMEHeaderKey(name)]; ok {
+	keys := identityKeys(driverHeader)
+	for k := range r.Header {
+		if _, ok := keys[foldedKey(k)]; ok {
 			return true
 		}
 	}

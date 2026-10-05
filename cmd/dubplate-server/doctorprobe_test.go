@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -176,7 +177,7 @@ func TestDoctorBoundaryRows_Perturbations(t *testing.T) {
 				"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1",
 			},
 			row:        "boundary probe",
-			wantStatus: "not probed: every local address is a trusted proxy",
+			wantStatus: "127.0.0.1 no listener (a trusted proxy, identity only); " + wantAllTrustedUnproven,
 		},
 		{
 			name:     "an invalid serve prefix fails the web row",
@@ -689,9 +690,11 @@ func TestBoundaryProbeRowStatus_NoFailureOfItsOwn(t *testing.T) {
 }
 
 // TestBoundaryProbeRowStatus_MixedTrustedBind binds two loopback
-// addresses, one of them a trusted proxy: that one is skipped by name,
-// the other is still dialed on the reserved port, where nothing
-// listens, and the row joins both parts without failing.
+// addresses, one of them a trusted proxy: both are dialed on the
+// reserved port, where nothing listens, the trusted one is named as
+// probed for identity only, and the row joins both parts without
+// failing. One address is not a trusted proxy, so the row carries no
+// all-trusted clause.
 func TestBoundaryProbeRowStatus_MixedTrustedBind(t *testing.T) {
 	reg := productionRegistry()
 	environ := withEnv(doctorEnviron(t),
@@ -706,10 +709,164 @@ func TestBoundaryProbeRowStatus_MixedTrustedBind(t *testing.T) {
 	}
 
 	status, failed := boundaryProbeRowStatus(t.Context(), environ, reg, cfg)
-	if want := "127.0.0.1 not probed: a trusted proxy, 127.0.0.2 no listener"; status != want {
+	if want := "127.0.0.1 no listener (a trusted proxy, identity only), 127.0.0.2 no listener"; status != want {
 		t.Errorf("status = %q, want %q", status, want)
 	}
 	if failed {
 		t.Error("failed = true, want no failure")
+	}
+}
+
+// wantAllTrustedUnproven is the clause the probe row adds when every bind
+// address is a trusted proxy, written out here rather than read from
+// the production constant so a changed clause fails these tests.
+const wantAllTrustedUnproven = "forwarded and Connection-listed removal unproven: every local address is a trusted proxy"
+
+// trustedLoopback is the same-host front's configuration: 127.0.0.1 is
+// the one bind address and the one trusted proxy.
+var trustedLoopback = []string{
+	"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+	"DUBPLATE_TRUSTED_PROXY_ADDRS=127.0.0.1",
+	"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
+	"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1",
+}
+
+// TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd runs the serve verb
+// behind the same-host front's configuration and doctor against it.
+// The route answers a trusted peer with the identity count alone, so
+// the row proves group 1 at 127.0.0.1, says so, and reads the rest as
+// unproven rather than passing it, and doctor exits 0.
+func TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd(t *testing.T) {
+	port := freePort(t)
+	environ := withEnv(doctorEnviron(t), append(slices.Clone(trustedLoopback), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))...)
+
+	ctx, cancel := context.WithCancel(t.Context())
+	served := make(chan error, 1)
+	go func() {
+		cmd := newServeCmd(environ, productionRegistry(), io.Discard, io.Discard)
+		served <- cmd.ExecuteContext(ctx)
+	}()
+	t.Cleanup(func() {
+		cancel()
+		if err := <-served; err != nil {
+			t.Errorf("serve returned %v, want nil after cancel", err)
+		}
+	})
+
+	// Fixture state: the route answers before doctor runs, so the row
+	// reads the strip's answer and never a server that had not started.
+	url := "http://127.0.0.1:" + strconv.Itoa(port) + "/dubplate/" + serve.ProbeRouteName
+	client := &http.Client{Transport: &http.Transport{}, Timeout: 2 * time.Second}
+	defer client.CloseIdleConnections()
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		resp, err := client.Get(url)
+		if err == nil {
+			_ = resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("fixture state: plain GET answered %d, want 200", resp.StatusCode)
+			}
+			break
+		}
+		select {
+		case err := <-served:
+			t.Fatalf("serve returned before answering: %v", err)
+		default:
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("fixture state: the route never answered: %v", err)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	rows, _, err := doctorRows(t, environ)
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil when the strip refuses every identity header", err)
+	}
+	want := "127.0.0.1 refused (a trusted proxy, identity only); " + wantAllTrustedUnproven + "; " + probeTrailer
+	if got := rows["boundary probe"]; got != want {
+		t.Errorf("boundary probe row = %q, want %q", got, want)
+	}
+}
+
+// TestDoctorBoundaryProbe_TrustedAnswers puts a canned listener at the
+// trusted loopback address. A trusted peer's answer holds the identity
+// count alone, so the row reads that count and nothing else, and a
+// body without it is still not the route's answer.
+func TestDoctorBoundaryProbe_TrustedAnswers(t *testing.T) {
+	const tail = " (a trusted proxy, identity only); " + wantAllTrustedUnproven
+	tests := []struct {
+		name       string
+		body       string
+		wantFail   bool
+		wantStatus string
+	}{
+		{
+			name:       "identity refused",
+			body:       `{"identity":0}`,
+			wantStatus: "127.0.0.1 refused" + tail + "; " + probeTrailer,
+		},
+		{
+			name:       "identity headers passed",
+			body:       `{"identity":2}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 passed 2 identity header(s)" + tail + "; " + probeTrailer,
+		},
+		{
+			name:       "no identity count",
+			body:       `{"forwarded":0,"sentinel":0}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 unexpected answer: 200 OK with an unparseable body" + tail,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/dubplate/"+serve.ProbeRouteName {
+					http.NotFound(w, r)
+					return
+				}
+				_, _ = io.WriteString(w, tt.body)
+			}))
+			defer srv.Close()
+			port := listenerPort(t, srv.Listener)
+
+			environ := withEnv(doctorEnviron(t), append(slices.Clone(trustedLoopback), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))...)
+			rows, _, err := doctorRows(t, environ)
+			if (err != nil) != tt.wantFail {
+				t.Fatalf("Execute() error = %v, wantFail %v", err, tt.wantFail)
+			}
+			if got := rows["boundary probe"]; got != tt.wantStatus {
+				t.Errorf("boundary probe row = %q, want %q", got, tt.wantStatus)
+			}
+		})
+	}
+}
+
+// TestDoctorBoundaryProbe_SendsTheConfiguredHeader configures a
+// client-address header outside the fixed family, from a proxy that is
+// not a bind address, and records what the probe request carried: the
+// configured header is the one [serve.ClientIP] reads, so a probe that
+// never sent it could not prove the strip removes it.
+func TestDoctorBoundaryProbe_SendsTheConfiguredHeader(t *testing.T) {
+	var got atomic.Value
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got.Store(r.Header.Get("X-House-Client-Address"))
+		_, _ = io.WriteString(w, `{"identity":0,"forwarded":0,"sentinel":0}`)
+	}))
+	defer srv.Close()
+	port := listenerPort(t, srv.Listener)
+
+	environ := withEnv(doctorEnviron(t),
+		"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+		"DUBPLATE_TRUSTED_PROXY_ADDRS=203.0.113.7",
+		"DUBPLATE_TRUSTED_PROXY_HEADER=X-House-Client-Address",
+		"DUBPLATE_SERVE_PORT="+strconv.Itoa(port),
+	)
+	if _, _, err := doctorRows(t, environ); err != nil {
+		t.Fatalf("Execute() error = %v, want nil", err)
+	}
+	if v, _ := got.Load().(string); v != "probe" {
+		t.Errorf("probe request X-House-Client-Address = %q, want %q", v, "probe")
 	}
 }

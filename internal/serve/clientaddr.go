@@ -47,7 +47,9 @@ func NewTrustedProxyConfig(proxies []netip.Addr, header string) TrustedProxyConf
 // strip would remove it before [ClientIP] reads it, when adding it to
 // the forwarded-address group would strip a header the shell depends
 // on from every untrusted peer, or when it carries no address list a
-// hop could parse. The comparison is case-insensitive, and a name's
+// hop could parse. A header of the last kind would leave every client
+// keyed on the proxy's own address, so one client's flood would spend
+// the rate limits of the whole group. The comparison is case-insensitive, and a name's
 // underscore spelling is refused with its dash spelling.
 func CheckProxyHeader(name string) error {
 	if name == "" {
@@ -67,12 +69,16 @@ func CheckProxyHeader(name string) error {
 // refuses to the reason it gives.
 func refusedProxyHeaders() map[string]string {
 	refused := map[string]string{
-		"Forwarded":         "its for= parameters are not an address list, so every hop would be malformed",
-		"Host":              "an end-to-end header that carries no client address",
-		"Connection":        "a framing header that carries no client address",
-		"Content-Length":    "a framing header that carries no client address",
-		"Transfer-Encoding": "a framing header that carries no client address",
-		"Authorization":     "an end-to-end header that carries no client address",
+		"Forwarded":          "its for= parameters are not an address list, so every hop would be malformed",
+		"X-Forwarded-Host":   "a forwarded header that carries the original host and no client address, so every hop would be malformed",
+		"X-Forwarded-Proto":  "a forwarded header that carries the original scheme and no client address, so every hop would be malformed",
+		"X-Forwarded-Prefix": "a forwarded header that carries the original path prefix and no client address, so every hop would be malformed",
+		"Content-Type":       "the shell reads it to parse request bodies, and naming it would strip it from every untrusted peer",
+		"Host":               "an end-to-end header that carries no client address",
+		"Connection":         "a framing header that carries no client address",
+		"Content-Length":     "a framing header that carries no client address",
+		"Transfer-Encoding":  "a framing header that carries no client address",
+		"Authorization":      "an end-to-end header that carries no client address",
 	}
 	for name := range group3KeepSet {
 		refused[name] = "the shell reads it for sessions or the origin check, and naming it would strip it from every untrusted peer"

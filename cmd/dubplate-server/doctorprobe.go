@@ -199,6 +199,16 @@ const probeAnswerCap = 4 << 10
 // says nothing about a proxy in front of it.
 const probeTrailer = "proves this server's strip, not a proxy's"
 
+// trustedProbeNote follows each trusted address's part of the row: the
+// route answers a trusted peer with the identity count alone.
+const trustedProbeNote = " (a trusted proxy, identity only)"
+
+// allTrustedUnproven is the row's clause when every bind address is a
+// trusted proxy: no address could prove the forwarded-address or the
+// Connection-listed removal, so the row says so instead of passing
+// them.
+const allTrustedUnproven = "forwarded and Connection-listed removal unproven: every local address is a trusted proxy"
+
 // boundaryProbeRowStatus dials each configured bind address on the
 // configured port, from that same address, sends the one probe request
 // [serve.NewProbeRequest] builds, and reports what the running
@@ -212,9 +222,17 @@ const probeTrailer = "proves this server's strip, not a proxy's"
 // status other than 200, a body that is not the counts, or a
 // connection that accepts and never answers, which fails.
 //
-// An address in the trusted proxy set is not probed, since the route
-// refuses a trusted peer by design; when every address is one, the row
-// says so and adds no failure.
+// An address in the trusted proxy set is probed for group 1 alone,
+// since the strip keeps the forwarded-address headers for a trusted
+// peer by design and the route answers it with the identity count
+// only; its part carries a note saying so. When every address is one,
+// the row adds a clause naming the forwarded-address and
+// Connection-listed removal unproven, which is no failure: a same-host
+// front configured as trusted is the recommended topology, and the
+// identity count is all a probe from that address can prove. The probe
+// request carries the trusted proxy configuration's own header beside
+// the fixed forwarded-address family, so an untrusted address proves
+// the strip removes the one header the client address is read from.
 //
 // The row probes nothing, and adds no failure of its own, when reg
 // does not declare the serve port (a registry built for a test of
@@ -236,13 +254,13 @@ func boundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.R
 	if err != nil {
 		return "not probed", false
 	}
-	trusted, err := trustedProxyAddrs(cfg)
+	proxy, trusted, err := trustedProxy(cfg)
 	if err != nil {
 		return "not probed", false
 	}
 
 	parts := make([]string, 0, len(addrs))
-	skipped, answered := 0, false
+	trustedCount, answered := 0, false
 	for _, text := range addrs {
 		ip, err := netip.ParseAddr(text)
 		if err != nil {
@@ -252,43 +270,44 @@ func boundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.R
 			continue
 		}
 		ip = ip.Unmap()
-		if _, ok := trusted[ip]; ok {
-			skipped++
-			parts = append(parts, text+" not probed: a trusted proxy")
-			continue
+		_, isTrusted := trusted[ip]
+		result := probeAddress(ctx, prefix, ip, port, proxy, isTrusted)
+		part := text + " " + result.status
+		if isTrusted {
+			trustedCount++
+			part += trustedProbeNote
 		}
-		result := probeAddress(ctx, prefix, ip, port)
-		parts = append(parts, text+" "+result.status)
+		parts = append(parts, part)
 		failed = failed || result.failed
 		answered = answered || result.answered
 	}
-	if skipped == len(addrs) {
-		return "not probed: every local address is a trusted proxy", false
-	}
 	status = strings.Join(parts, ", ")
+	if len(addrs) > 0 && trustedCount == len(addrs) {
+		status += "; " + allTrustedUnproven
+	}
 	if answered {
 		status += "; " + probeTrailer
 	}
 	return status, failed
 }
 
-// trustedProxyAddrs returns the trusted proxy set cfg configures,
-// empty when the class is off, and [resolveTrustedProxy]'s refusal
-// when its values do not resolve.
-func trustedProxyAddrs(cfg *config.Config) (map[netip.Addr]struct{}, error) {
+// trustedProxy returns the trusted proxy configuration cfg resolves to
+// and its set of proxy addresses, empty when the class is off, or
+// [resolveTrustedProxy]'s refusal when its values do not resolve.
+func trustedProxy(cfg *config.Config) (serve.TrustedProxyConfig, map[netip.Addr]struct{}, error) {
 	proxy, err := resolveTrustedProxy(cfg)
 	if err != nil {
-		return nil, err
+		return serve.TrustedProxyConfig{}, nil, err
 	}
 	set := make(map[netip.Addr]struct{})
 	if proxy.Mode() == serve.ModeDirect {
-		return set, nil
+		return proxy, set, nil
 	}
 	addrs, _ := parseProxyAddrs(cfg.IntegrationValue(trustedProxyIntegrationClass.Name, trustedProxyAddrsKey))
 	for _, a := range addrs {
 		set[a] = struct{}{}
 	}
-	return set, nil
+	return proxy, set, nil
 }
 
 // probeResult is one address's part of the probe row.
@@ -300,10 +319,13 @@ type probeResult struct {
 	answered bool
 }
 
-// probeAddress probes the server listening on ip and port. The dial
-// binds ip as its local address, so the peer the server sees is the
-// address it was configured to listen on, which the route permits.
-func probeAddress(ctx context.Context, prefix serve.Prefix, ip netip.Addr, port int) probeResult {
+// probeAddress probes the server listening on ip and port with the
+// probe request built for proxy. The dial binds ip as its local
+// address, so the peer the server sees is the address it was
+// configured to listen on, which the route permits. trusted reports
+// whether ip is one of proxy's addresses, whose answer carries the
+// identity count alone.
+func probeAddress(ctx context.Context, prefix serve.Prefix, ip netip.Addr, port int, proxy serve.TrustedProxyConfig, trusted bool) probeResult {
 	dialer := net.Dialer{
 		Timeout:   probeDialBound,
 		LocalAddr: &net.TCPAddr{IP: ip.AsSlice()},
@@ -321,21 +343,23 @@ func probeAddress(ctx context.Context, prefix serve.Prefix, ip netip.Addr, port 
 	}
 	defer func() { _ = conn.Close() }()
 
-	counts, err := probeExchange(ctx, conn, prefix, host)
+	counts, err := probeExchange(ctx, conn, prefix, host, proxy, trusted)
 	if err != nil {
 		return probeResult{status: "unexpected answer: " + err.Error(), failed: true}
 	}
 	return countsResult(counts)
 }
 
-// probeExchange writes the probe request on conn and reads the
-// route's counts, all within [probeResponseBound]. The error it
-// returns is the text the row prints after "unexpected answer: ".
-func probeExchange(ctx context.Context, conn net.Conn, prefix serve.Prefix, host string) (serve.ProbeCounts, error) {
+// probeExchange writes the probe request built for proxy on conn and
+// reads the route's counts, all within [probeResponseBound]. For a
+// trusted peer only the identity count is required, and the other two
+// read as zero whatever the body holds. The error it returns is the
+// text the row prints after "unexpected answer: ".
+func probeExchange(ctx context.Context, conn net.Conn, prefix serve.Prefix, host string, proxy serve.TrustedProxyConfig, trusted bool) (serve.ProbeCounts, error) {
 	if err := conn.SetDeadline(time.Now().Add(probeResponseBound)); err != nil {
 		return serve.ProbeCounts{}, err
 	}
-	req, err := serve.NewProbeRequest(ctx, prefix, host)
+	req, err := serve.NewProbeRequest(ctx, prefix, host, proxy)
 	if err != nil {
 		return serve.ProbeCounts{}, err
 	}
@@ -358,7 +382,13 @@ func probeExchange(ctx context.Context, conn net.Conn, prefix serve.Prefix, host
 		}
 		return serve.ProbeCounts{}, unparseable
 	}
-	if answer.Identity == nil || answer.Forwarded == nil || answer.Sentinel == nil {
+	if answer.Identity == nil {
+		return serve.ProbeCounts{}, unparseable
+	}
+	if trusted {
+		return serve.ProbeCounts{Identity: *answer.Identity}, nil
+	}
+	if answer.Forwarded == nil || answer.Sentinel == nil {
 		return serve.ProbeCounts{}, unparseable
 	}
 	return serve.ProbeCounts{

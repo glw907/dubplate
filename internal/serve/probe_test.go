@@ -29,12 +29,24 @@ const (
 	wantUnstrippedSentinel  = 1
 )
 
-// probeOver sends the shared probe request to srv and decodes the
-// counts its route answers, failing the test on anything but a 200
-// carrying the JSON object.
-func probeOver(t *testing.T, srv *httptest.Server, prefix Prefix) ProbeCounts {
+// probeOver sends the shared probe request, built for proxy, to srv
+// and decodes the counts its route answers, failing the test on
+// anything but a 200 carrying the JSON object.
+func probeOver(t *testing.T, srv *httptest.Server, prefix Prefix, proxy TrustedProxyConfig) ProbeCounts {
 	t.Helper()
-	req, err := NewProbeRequest(t.Context(), prefix, srv.Listener.Addr().String())
+	var counts ProbeCounts
+	if err := json.Unmarshal(probeBody(t, srv, prefix, proxy), &counts); err != nil {
+		t.Fatalf("decode probe answer: %v", err)
+	}
+	return counts
+}
+
+// probeBody sends the shared probe request, built for proxy, to srv and
+// returns the body of the route's 200, failing the test on any other
+// answer.
+func probeBody(t *testing.T, srv *httptest.Server, prefix Prefix, proxy TrustedProxyConfig) []byte {
+	t.Helper()
+	req, err := NewProbeRequest(t.Context(), prefix, srv.Listener.Addr().String(), proxy)
 	if err != nil {
 		t.Fatalf("NewProbeRequest: %v", err)
 	}
@@ -50,11 +62,11 @@ func probeOver(t *testing.T, srv *httptest.Server, prefix Prefix) ProbeCounts {
 	if got := resp.Header.Get("Cache-Control"); got != "no-store" {
 		t.Errorf("Cache-Control = %q, want no-store", got)
 	}
-	var counts ProbeCounts
-	if err := json.NewDecoder(resp.Body).Decode(&counts); err != nil {
-		t.Fatalf("decode probe answer: %v", err)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read probe answer: %v", err)
 	}
-	return counts
+	return body
 }
 
 // TestProbeRoute_ThroughShellCountsNothing serves the route on a real
@@ -72,7 +84,7 @@ func TestProbeRoute_ThroughShellCountsNothing(t *testing.T) {
 	srv := httptest.NewServer(shell.Handler())
 	defer srv.Close()
 
-	got := probeOver(t, srv, prefix)
+	got := probeOver(t, srv, prefix, TrustedProxyConfig{})
 	if got != (ProbeCounts{}) {
 		t.Errorf("counts through the shell = %+v, want all zero", got)
 	}
@@ -92,7 +104,7 @@ func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
 	srv := httptest.NewServer(NewProbeRoute([]string{"127.0.0.1"}, TrustedProxyConfig{}))
 	defer srv.Close()
 
-	got := probeOver(t, srv, prefix)
+	got := probeOver(t, srv, prefix, TrustedProxyConfig{})
 	want := ProbeCounts{
 		Identity:  wantUnstrippedIdentity,
 		Forwarded: wantUnstrippedForwarded,
@@ -131,7 +143,8 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 		{name: "POST from a non-local peer", bind: []string{"127.0.0.1"}, method: http.MethodPost, remoteAddr: "198.51.100.7:40000"},
 		{name: "POST from loopback", bind: []string{"127.0.0.1"}, method: http.MethodPost, remoteAddr: "127.0.0.1:40000"},
 		{name: "HEAD from loopback", bind: []string{"127.0.0.1"}, method: http.MethodHead, remoteAddr: "127.0.0.1:40000"},
-		{name: "GET from loopback configured as a trusted proxy", bind: []string{"127.0.0.1"}, proxy: loopbackProxy, method: http.MethodGet, remoteAddr: "127.0.0.1:40000"},
+		{name: "GET from loopback configured as a trusted proxy answers", bind: []string{"127.0.0.1"}, proxy: loopbackProxy, method: http.MethodGet, remoteAddr: "127.0.0.1:40000", wantOK: true},
+		{name: "POST from loopback configured as a trusted proxy", bind: []string{"127.0.0.1"}, proxy: loopbackProxy, method: http.MethodPost, remoteAddr: "127.0.0.1:40000"},
 		{
 			name:       "GET from a non-local trusted proxy naming loopback",
 			bind:       []string{"127.0.0.1"},
@@ -191,7 +204,121 @@ func TestNewProbeRequest_RefusesBadInput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := NewProbeRequest(t.Context(), prefix, "127.0.0.1:%zz"); err == nil {
+	if _, err := NewProbeRequest(t.Context(), prefix, "127.0.0.1:%zz", TrustedProxyConfig{}); err == nil {
 		t.Error("NewProbeRequest with an unparseable host: error = nil, want one")
+	}
+}
+
+// TestCountPresentMatchesNormalizedKeys proves the count reads a key by
+// the same normalized match the strip removes it by, so a spelling the
+// strip handles is a spelling the probe can see. Each key the header
+// carries is counted once; an unrelated key is not.
+func TestCountPresentMatchesNormalizedKeys(t *testing.T) {
+	tests := []struct {
+		name   string
+		header http.Header
+		want   int
+	}{
+		{"the dash form", http.Header{"Remote-User": {"x"}}, 1},
+		{"the underscore form", http.Header{"Remote_user": {"x"}}, 1},
+		{"a mixed-separator form", http.Header{"X-Forwarded_user": {"x"}}, 1},
+		{"a key the parser never canonicalized", http.Header{"x-forwarded-user": {"x"}}, 1},
+		{"two spellings of one name", http.Header{"Remote-User": {"x"}, "Remote_user": {"x"}}, 2},
+		{"an unrelated key", http.Header{"X-App-Debug-Trace": {"x"}}, 0},
+		{"a key with no value", http.Header{"Remote-User": {}}, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := countPresent(tt.header, probeIdentityNames()); got != tt.want {
+				t.Errorf("countPresent(%v) = %d, want %d", tt.header, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestProbeConfiguredHeader proves the probe carries, and counts, the
+// trusted-proxy header an adopter configured outside the fixed family:
+// the one header [ClientIP] reads. Without the strip the route counts
+// it beside the fixed family's ten, so the zero through the shell is
+// the strip removing it, not a probe that never sent it. The peer,
+// 127.0.0.1, is not the configured proxy, so the strip treats it as
+// any client.
+func TestProbeConfiguredHeader(t *testing.T) {
+	prefix, err := NewPrefix("/dubplate")
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxy := NewTrustedProxyConfig(addrs("192.0.2.10"), "X-House-Client-Address")
+
+	req, err := NewProbeRequest(t.Context(), prefix, "127.0.0.1:1", proxy)
+	if err != nil {
+		t.Fatalf("NewProbeRequest: %v", err)
+	}
+	if got := req.Header.Get("X-House-Client-Address"); got != "probe" {
+		t.Errorf("probe request X-House-Client-Address = %q, want %q", got, "probe")
+	}
+
+	t.Run("without the strip the route counts it", func(t *testing.T) {
+		srv := httptest.NewServer(NewProbeRoute([]string{"127.0.0.1"}, proxy))
+		defer srv.Close()
+		got := probeOver(t, srv, prefix, proxy)
+		if want := wantUnstrippedForwarded + 1; got.Forwarded != want {
+			t.Errorf("forwarded count = %d, want %d", got.Forwarded, want)
+		}
+	})
+
+	t.Run("through the shell the strip removes it", func(t *testing.T) {
+		strip := NewStrip("", "dubplate_session", proxy, FrontExemption{})
+		shell := NewShell(prefix, strip, slog.New(slog.NewTextHandler(io.Discard, nil)))
+		shell.Register(ProbeRouteName, NewProbeRoute([]string{"127.0.0.1"}, proxy))
+		srv := httptest.NewServer(shell.Handler())
+		defer srv.Close()
+		if got := probeOver(t, srv, prefix, proxy); got != (ProbeCounts{}) {
+			t.Errorf("counts through the shell = %+v, want all zero", got)
+		}
+	})
+}
+
+// TestProbeRoute_TrustedPeerReceivesIdentityOnly probes from 127.0.0.1
+// configured as the trusted proxy, the same-host front's topology. The
+// strip keeps group 2 for that peer by design, so the route answers
+// the identity count alone, never a forwarded or sentinel count a
+// reader could take for a strip failure. Without the strip the
+// identity count is every spelling, which is what makes the zero
+// through the shell the strip's work.
+func TestProbeRoute_TrustedPeerReceivesIdentityOnly(t *testing.T) {
+	prefix, err := NewPrefix("/dubplate")
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxy := NewTrustedProxyConfig(addrs("127.0.0.1"), "X-Forwarded-For")
+
+	tests := []struct {
+		name         string
+		strip        bool
+		wantIdentity int
+	}{
+		{"without the strip", false, wantUnstrippedIdentity},
+		{"through the shell", true, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewProbeRoute([]string{"127.0.0.1"}, proxy)
+			if tt.strip {
+				shell := NewShell(prefix, NewStrip("", "dubplate_session", proxy, FrontExemption{}), slog.New(slog.NewTextHandler(io.Discard, nil)))
+				shell.Register(ProbeRouteName, h)
+				h = shell.Handler()
+			}
+			srv := httptest.NewServer(h)
+			defer srv.Close()
+
+			var answer map[string]int
+			if err := json.Unmarshal(probeBody(t, srv, prefix, proxy), &answer); err != nil {
+				t.Fatalf("decode probe answer: %v", err)
+			}
+			if want := map[string]int{"identity": tt.wantIdentity}; !maps.Equal(answer, want) {
+				t.Errorf("answer = %v, want %v", answer, want)
+			}
+		})
 	}
 }

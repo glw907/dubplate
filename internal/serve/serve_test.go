@@ -717,6 +717,11 @@ func TestIdentitySpellingPresentReadsKeyPresence(t *testing.T) {
 			want:   true,
 		},
 		{
+			name:   "a mixed-separator identity spelling is present",
+			header: http.Header{"X-Forwarded_user": []string{"attacker"}},
+			want:   true,
+		},
+		{
 			name:   "an unrelated header is not",
 			header: http.Header{"X-App-Debug-Trace": []string{"trace-id"}},
 			want:   false,
@@ -1110,5 +1115,69 @@ func TestOriginRefusalEmitsTheRefusalRecord(t *testing.T) {
 	}
 	if got := records[0]["path"]; got != "/outside" {
 		t.Errorf("record path = %v, want %q", got, "/outside")
+	}
+}
+
+// TestDirectModeWarnsOnceOnForwardedFromLocalPeer covers the same-host
+// front left in direct mode: every client it relays arrives from its
+// own loopback or private address, so the whole group shares one rate
+// limit key. The request carrying a forwarded-address header from such
+// a peer is the one signal the shell has, and it logs one warning for
+// the shell, however many requests carry it. Each row sends its
+// request twice, so a warning logged per request reads as two lines.
+// A public peer is a browser the shell already keys correctly, and a
+// configured trusted proxy is the remedy, so neither warns.
+func TestDirectModeWarnsOnceOnForwardedFromLocalPeer(t *testing.T) {
+	const warning = "a loopback or private peer sent a forwarded-address header in direct mode"
+	loopbackProxy := NewTrustedProxyConfig(addrs("127.0.0.1"), "X-Forwarded-For")
+	remoteProxy := NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
+
+	tests := []struct {
+		name       string
+		proxy      TrustedProxyConfig
+		remoteAddr string
+		header     string
+		want       int
+	}{
+		{"IPv4 loopback with X-Forwarded-For", TrustedProxyConfig{}, "127.0.0.1:40000", "X-Forwarded-For", 1},
+		{"IPv6 loopback with X-Real-Ip", TrustedProxyConfig{}, "[::1]:40000", "X-Real-Ip", 1},
+		{"mapped loopback", TrustedProxyConfig{}, "[::ffff:127.0.0.1]:40000", "X-Forwarded-For", 1},
+		{"a private IPv4 peer with Cf-Connecting-Ip", TrustedProxyConfig{}, "10.0.0.5:40000", "Cf-Connecting-Ip", 1},
+		{"a private IPv6 peer", TrustedProxyConfig{}, "[fd00::5]:40000", "X-Forwarded-For", 1},
+		{"a public peer", TrustedProxyConfig{}, "198.51.100.7:40000", "X-Forwarded-For", 0},
+		{"loopback with no forwarded header", TrustedProxyConfig{}, "127.0.0.1:40000", "", 0},
+		{"loopback configured as the trusted proxy", loopbackProxy, "127.0.0.1:40000", "X-Forwarded-For", 0},
+		{"a private peer while another proxy is trusted", remoteProxy, "10.0.0.5:40000", "X-Forwarded-For", 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prefix, err := NewPrefix(testPrefix)
+			if err != nil {
+				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+			}
+			var buf strings.Builder
+			shell := NewShell(prefix, NewStrip("", "", tt.proxy, FrontExemption{}), slog.New(slog.NewTextHandler(&buf, nil)))
+			handler := shell.Handler()
+
+			for range 2 {
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+				r.RemoteAddr = tt.remoteAddr
+				if tt.header != "" {
+					r.Header.Set(tt.header, "198.51.100.9")
+				}
+				handler.ServeHTTP(httptest.NewRecorder(), r)
+			}
+
+			got := 0
+			for line := range strings.Lines(buf.String()) {
+				if strings.Contains(line, "level=WARN") && strings.Contains(line, warning) {
+					got++
+				}
+			}
+			if got != tt.want {
+				t.Errorf("logged %d warning(s), want %d; log:\n%s", got, tt.want, buf.String())
+			}
+		})
 	}
 }
