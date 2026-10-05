@@ -29,7 +29,7 @@
 //  4. Superseded: a pre-pivot name with no meaning here. Load errors
 //     naming the replacement, or, for a capability the greenfield
 //     server drops outright (the estate's beets config, the
-//     Cloudflare Tunnel credential compose.yaml reads directly),
+//     Cloudflare Tunnel credential of the retired incumbent stack),
 //     naming that it retired with no successor.
 //  5. Declared by an identity source: the selector naming the active
 //     source, or a key one of the registry's identity sources

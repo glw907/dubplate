@@ -2,11 +2,10 @@
 
 - **Cloudflare**: `$CLOUDFLARE_API_TOKEN` (a script must
   `source ~/.local/secrets`). Full-account scope; the canonical inventory is
-  `~/.claude/docs/cloudflare-estate-inventory.md`. Used here for: tunnel
-  remote config (PUT the ingress from
-  `config/cloudflared-tunnel-config.json`'s recipe — compose does NOT read
-  that file), DNS, the Access app on inbox.907.life, R2 (`music-library`
-  bucket). Access/Workers-domain writes need curl, not the MCP plugin.
+  `~/.claude/docs/cloudflare-estate-inventory.md`. Used here for: R2
+  (`music-library` bucket). The tunnel and its DNS were deleted 2026-10-05
+  with the retired incumbent stack. Access/Workers-domain writes need curl,
+  not the MCP plugin.
 - **Hetzner**: token sourced the same way; consumed by
   `scripts/provision.sh` (server create, volume, firewall). Firewall changes
   are API-reversible from the workstation — that is the SSH-lockout
@@ -19,6 +18,6 @@
   into the age store as `DUBPLATE_PING_*`.
 - **Secrets flow**: age store is the origin
   (`~/.dotfiles/scripts/secrets/secret-set.sh`, registry in
-  `~/.dotfiles/secrets/registry.md`); `env/dubplate.env.template` is the
-  manifest deploy.sh renders onto the box. Never commit values; never print
+  `~/.dotfiles/secrets/registry.md`); `deploy.sh` renders the box's
+  env file from it. Never commit values; never print
   them.

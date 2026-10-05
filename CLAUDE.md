@@ -2,7 +2,7 @@
 
 A group of family or friends building a well-organized library for a shared
 music server. This repo is the whole estate: the `dubplate` Go binary,
-the VPS provisioning (cloud-init, compose, systemd), and the web app. The
+the VPS provisioning (cloud-init, systemd), and the web app. The
 pings Worker lives in `~/Projects/pings`. Ease of setup by a stranger is a
 primary product goal: no site-specific value, path, or identity default
 outside `internal/config`.

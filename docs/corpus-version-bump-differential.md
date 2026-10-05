@@ -1,6 +1,6 @@
 # Version-bump differential job
 
-Standing operational doc, alongside `docs/bringup-runbook.md`. Self-contained:
+Standing operational doc, alongside `docs/server-runbook.md`. Self-contained:
 whoever runs this job, in a year or in an afternoon, may be neither Geoff nor
 an agent that has read the rung 2 plans. It describes a job, not a script that
 exists yet; nothing in this file runs anything, and running it issues no live

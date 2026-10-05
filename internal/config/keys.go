@@ -144,8 +144,8 @@ var supersededKeys = map[string]string{
 	"DUBPLATE_BEETS_DB":     "retired: the greenfield server never embeds beets",
 	"DUBPLATE_NAVIDROME_DB": "retired: the streamer driver reaches Navidrome " +
 		"through its HTTP API only, never its database file",
-	"DUBPLATE_TUNNEL_TOKEN": "retired: compose.yaml's cloudflared service reads " +
-		"this directly, dubplate-server never does",
+	"DUBPLATE_TUNNEL_TOKEN": "retired: only the incumbent stack's cloudflared " +
+		"read this, and that stack is gone; dubplate-server never does",
 	"DUBPLATE_R2_ACCOUNT_ID": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
 		"in rclone's RCLONE_CONFIG_<NAME>_* environment form",
 	"DUBPLATE_R2_BUCKET": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +
