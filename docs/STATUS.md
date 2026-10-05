@@ -17,7 +17,7 @@ brainstorm that re-plans rungs 12 and 16 under the 2026-10-05 Navidrome and Clou
 Task 11 owes: the once-per-pass simplifier over 5d-ii's Go (9B, 9C), the architecture reads for
 `internal/serve`, `cmd/dubplate-server`, and `internal/notify`, the 5d-ii HISTORY entry, the
 `CLAUDE.md` gate-description edit (state-dir leg now covers every `dubplate-server` unit and
-`DUBPLATE_SERVER_LEAVES`; `systemd-analyze` hard-required), and both budgets. Box read-only until the
+`DUBPLATE_SERVER_LEAVES`; `systemd-analyze` hard-required), plus the 2026-10-05 rulings where `CLAUDE.md` still names the shadow adjudication batches as a launch gate and the box as Navidrome plus guardian timers, and both budgets. Box read-only until the
 sitting.
 
 ## Owner questions
