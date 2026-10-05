@@ -26,18 +26,20 @@ set -euo pipefail
 # are refused.
 #
 # The local half runs in every mode, before the first remote write: the
-# script refuses a working tree with a modified tracked file or an
-# untracked file under web/, then runs npm ci and the Vite build under
-# web/ and cross-compiles the stamped binary. A dirty tree or a failed
-# build aborts before anything reaches the box.
+# script refuses a working tree with a modified tracked file, or with an
+# untracked or ignored file under any build or rsync input (BUILD_INPUTS
+# below), then runs npm ci and the Vite build under web/ and
+# cross-compiles the stamped binary, each under an environment holding
+# only PATH and HOME. A dirty tree or a failed build aborts before
+# anything reaches the box.
 #
 # --apply writes the whole estate, not one component:
 #   - rsyncs compose.yaml and config/ to /opt/dubplate with --delete;
 #   - rsyncs every unit in UNIT_FILES to /etc/systemd/system;
 #   - installs /etc/tmpfiles.d/dubplate.conf and runs systemd-tmpfiles;
 #   - creates and chowns the state, shadow, backup-staging, and uploads
-#     directories, and creates the auth and roster leaves under the state
-#     directory;
+#     directories, and creates the auth, roster, and unidecode leaves under
+#     the state directory;
 #   - stages the dubplate-server binary, runs its unidecode install on the
 #     box (a PyPI download), and swaps it onto /usr/local/bin;
 #   - installs /etc/dubplate/env and /etc/dubplate/server.env, and
@@ -292,13 +294,24 @@ fi
 
 # --- local builds: committed source only, built before any remote write --
 # `git describe` below would stamp a reviewed commit's id on
-# unreviewed code, and an untracked file under web/ would be embedded by
-# go:embed, so either refuses the run before the first remote write.
+# unreviewed code, so a modified tracked file anywhere refuses the run
+# before the first remote write. BUILD_INPUTS names every path the binary
+# is built from or that rsync ships: an untracked .go or migration file
+# under cmd/ or internal/ is compiled in, a file under web/ is embedded
+# by go:embed, and a file under config/ reaches the box through
+# `rsync --delete`, which reads no .gitignore. So an untracked or an
+# ignored file under any of them refuses the run too. `--ignored` with no
+# mode is git-status(1)'s "traditional" mode, which reports an ignored
+# directory as one line, and the three excluded paths are the build's own
+# output: npm ci's node_modules, kit's generated .svelte-kit, and
+# adapter-static's build directory.
+BUILD_INPUTS=(cmd internal web config compose.yaml go.mod go.sum)
+BUILD_OUTPUTS=(':(exclude)web/node_modules' ':(exclude)web/.svelte-kit' ':(exclude)web/build')
 dirty_tracked="$(git -C "$REPO_ROOT" status --porcelain --untracked-files=no)"
-dirty_web="$(git -C "$REPO_ROOT" status --porcelain -- web/)"
-if [ -n "$dirty_tracked" ] || [ -n "$dirty_web" ]; then
+dirty_inputs="$(git -C "$REPO_ROOT" status --porcelain --ignored -- "${BUILD_INPUTS[@]}" "${BUILD_OUTPUTS[@]}")"
+if [ -n "$dirty_tracked" ] || [ -n "$dirty_inputs" ]; then
   echo "deploy.sh: refusing to deploy a tree that differs from its commit:" >&2
-  printf '%s\n%s\n' "$dirty_tracked" "$dirty_web" | sed '/^$/d' | sort -u | sed 's/^/  /' >&2
+  printf '%s\n%s\n' "$dirty_tracked" "$dirty_inputs" | sed '/^$/d' | sort -u | sed 's/^/  /' >&2
   exit 1
 fi
 
@@ -312,12 +325,23 @@ DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 
 # `vite build` alone: `make web` would run the gates a second time. Nothing
 # Node ships to the box.
-echo "== local build: npm ci --prefix web =="
-npm ci --prefix "$REPO_ROOT/web"
+#
+# This shell has sourced ~/.local/secrets above, and Vite, its plugins,
+# and npm all run third-party code that can read the environment it
+# inherits. So every local build runs under BUILD_ENV, which hands the
+# child PATH and HOME and nothing else: npm and Go find their caches
+# under HOME, and no workstation token or rendered secret reaches them.
+# --ignore-scripts keeps npm from running any package's install script
+# (npm's config docs: "npm does not run scripts specified in package.json
+# files"); the lockfile's only one belongs to fsevents, which is
+# macOS-only. `npm run build` still runs the build script it names.
+BUILD_ENV=(env -i "PATH=$PATH" "HOME=$HOME")
+echo "== local build: npm ci --ignore-scripts --prefix web =="
+"${BUILD_ENV[@]}" npm ci --ignore-scripts --prefix "$REPO_ROOT/web"
 echo "== local build: npm run build --prefix web =="
-npm run build --prefix "$REPO_ROOT/web"
+"${BUILD_ENV[@]}" npm run build --prefix "$REPO_ROOT/web"
 echo "== local build: make build-linux =="
-make -C "$REPO_ROOT" build-linux LDFLAGS="-X main.version=$DUBPLATE_STAMP_VERSION -X main.matcherCommit=$DUBPLATE_STAMP_MATCHER_COMMIT"
+"${BUILD_ENV[@]}" make -C "$REPO_ROOT" build-linux LDFLAGS="-X main.version=$DUBPLATE_STAMP_VERSION -X main.matcherCommit=$DUBPLATE_STAMP_MATCHER_COMMIT"
 DUBPLATE_SERVER_BINARY="$REPO_ROOT/dubplate-server-linux-amd64"
 
 # --- repo config: compose.yaml + config/ -------------------------------
@@ -404,10 +428,9 @@ run_remote "mkdir -p $DUBPLATE_SHADOW_DIR && chown music:music $DUBPLATE_LIB_DIR
 #   roster  dubplate-server-serve.service (the member roster file)
 # shadow is skipped by name here: the live shadow leaf is mode 0755 on the
 # box and `install -d -m 0700` would re-mode an existing directory. The
-# unidecode leaf is not listed: no unit is granted it, because the
-# `unidecode install` verb creates it under the systemd-run grant of
-# $DUBPLATE_LIB_DIR in the binary step below. 0700 matches what auth.Open
-# requires of its leaf and keeps the roster private to music.
+# unidecode leaf is not listed: no unit is granted it, and it is
+# pre-created on its own just below. 0700 matches what auth.Open requires
+# of its leaf and keeps the roster private to music.
 DUBPLATE_SERVER_LEAVES=(shadow auth roster)
 for leaf in "${DUBPLATE_SERVER_LEAVES[@]}"; do
   if [ "$leaf" = shadow ]; then
@@ -416,6 +439,19 @@ for leaf in "${DUBPLATE_SERVER_LEAVES[@]}"; do
   echo "== $DUBPLATE_LIB_DIR/$leaf =="
   run_remote "install -d -o music -g music -m 0700 $DUBPLATE_LIB_DIR/$leaf"
 done
+
+# --- /var/lib/dubplate/unidecode (the table install below) ---------------
+# The table install's systemd-run grants this leaf alone, so the verb can
+# write its table and nothing else under $DUBPLATE_LIB_DIR: the auth store
+# and the roster sit beside it. A granted path must exist before the
+# transient unit starts (the same namespace failure as the leaves above),
+# so it is created here. 0755 and music's ownership are what the verb's
+# own leaf check requires of an existing leaf (unidecodeLeafPerm and
+# checkUnidecodeOwner in cmd/dubplate-server/unidecode.go), and on a box
+# whose leaf already has that shape this line changes nothing.
+DUBPLATE_UNIDECODE_DIR="$DUBPLATE_LIB_DIR/unidecode"
+echo "== $DUBPLATE_UNIDECODE_DIR =="
+run_remote "install -d -o music -g music -m 0755 $DUBPLATE_UNIDECODE_DIR"
 
 # --- dubplate-server binary -> /usr/local/bin/dubplate-server -----------
 # Boundary (rung 1, additive deploy path): the incumbent
@@ -488,8 +524,8 @@ run_remote "${smoke_cmd/\/usr\/local\/bin\/dubplate-server/$DUBPLATE_SERVER_STAG
 # with four differences: Environment= (not EnvironmentFile=) carries only
 # DUBPLATE_STATE_DIR, since server.env is not installed on the box until
 # the env step after the swap, and the verb needs nothing else;
-# ReadWritePaths= grants $DUBPLATE_LIB_DIR (not the shadow unit's own
-# .../shadow leaf), so the verb can create its own unidecode/ leaf;
+# ReadWritePaths= grants the pre-created $DUBPLATE_UNIDECODE_DIR (not the
+# shadow unit's own .../shadow leaf), the only directory the verb writes;
 # RestrictAddressFamilies keeps AF_INET and AF_INET6 for the download,
 # same set the shadow already reaches MusicBrainz through; and UMask is
 # omitted, since the verb sets the leaf's mode explicitly regardless of
@@ -507,7 +543,7 @@ run_remote "systemd-run --wait --pipe --collect \
   -p SystemCallArchitectures=native -p AmbientCapabilities= \
   -p CapabilityBoundingSet= \
   -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
-  -p ReadWritePaths=$DUBPLATE_LIB_DIR \
+  -p ReadWritePaths=$DUBPLATE_UNIDECODE_DIR \
   $DUBPLATE_SERVER_STAGED unidecode install"
 
 # --- swap: only after the staged binary's table install verified --------

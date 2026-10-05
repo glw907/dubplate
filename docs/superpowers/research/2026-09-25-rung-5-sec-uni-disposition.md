@@ -147,9 +147,13 @@ first time and not yet routed to a rung.
    did not configure as trusted forwards internet traffic from loopback, so that traffic reaches
    the probe route and learns the counts of its own headers the strip left. Recorded at plan:347
    and in Task 7's runbook outline (plan:1182-1183).
-2. **Secrets in every `music`-uid verb's environment.** Every `dubplate-server` verb reads
-   `server.env`, so the shadow holds both HMAC keys and the SMTP password. Carried to rung 16
-   (plan:140, plan:350).
+2. **Secrets, roster, and epoch integrity under the shared `music` uid.** Every `dubplate-server`
+   verb reads `server.env`, so the shadow holds both HMAC keys and the SMTP password. The same uid
+   owns `roster.json` and the epoch store, so any code that runs as `music` can rewrite them. The
+   deploy's beets install (`uv tool install` from PyPI, run as `music` outside any sandbox) is one
+   such path: it could grant itself the admin flag with no audit record, or delete an epoch record
+   and undo a revocation (the rung 5d security review's L5). Carried to rung 16 (plan:140,
+   plan:350).
 3. **Group 2 survives from a trusted peer.** From a configured proxy, every forwarded-address
    header is kept, the configured one and every other (`internal/serve/strip.go:460`). Carried to rung
    12: strip every group 2 name but the configured header from a trusted peer (plan:1223-1224;

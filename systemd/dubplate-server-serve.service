@@ -1,9 +1,15 @@
 [Unit]
 Description=dubplate-server: the web surface, sign-in, and the boundary probe
-# Why docker.service and not network-online.target: serve binds the bridge
-# gateway address alongside loopback (the compose stack's pinned network),
-# so the bridge must exist before the listener opens. It reaches no
-# outbound host at startup, so it has nothing to wait on from the network.
+# Why docker.service and not network-online.target: serve binds the
+# addresses in DUBPLATE_SERVE_BIND_ADDRS, 127.0.0.1 when that key is unset,
+# as it is in the shipped template. A host that adds the compose bridge's
+# gateway address to that list needs the bridge to exist before the
+# listener opens, and this ordering provides it. With loopback alone the
+# ordering is inert, and on a host with no docker.service it orders
+# nothing, since After= is an ordering and pulls in no unit
+# (systemd.unit(5): "independent of and orthogonal to the requirement
+# dependencies"). serve reaches no outbound host at startup, so it has
+# nothing to wait on from the network.
 After=docker.service
 # OnFailure= is wired and inert. The slug is this unit's own, distinct from
 # the incumbent uploader's "serve" slug, so a later monitoring mint pages
