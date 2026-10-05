@@ -354,3 +354,20 @@ Held, each with its unblock condition:
 Refactor candidates: nothing in range replaces hand-rolled code. The stale reason at
 `internal/engine/musicbrainz/query.go:235-238` (x/text/cases is already linked through
 go-mail) is corrected the next time that package is touched.
+
+## SvelteKit 3 migration
+
+Taken at `b3c2578` (the official `sv migrate sveltekit-3` codemod, then hand correction) and
+review-folded at `4a3e23e`, both through the full gate. diff-reviewer, svelte-reviewer, and
+daisyui-a11y-reviewer read it. Owner-visible behavior: none. The login link page's heading takes
+focus only after `confirm()`'s async outcome, as W7.16 specifies. The heading-focus `$effect` would
+have started taking focus on first load under kit 3, because kit 3 no longer resets focus after
+mount, and that `$effect` is gone. Rendered rows now pin the settled focus on load and after the
+transition. `pollInterval: 0`, since nothing reads `updated`. `engines.node >= 22.17`, kit 3's floor.
+
+Refused, with reasons: the gate's import of `vite.config.ts` for `kitOptions` loads the plugin
+stack, a cost accepted for one config home; the `browser` guards under `ssr = false` and
+`members/+page.svelte`'s `apiURL()` predate the migration. Filed to the next a11y pass:
+`aria-describedby` from the link page's h1 to `#outcome`, a full tab-order sequence check in
+`walkFocusOrder` (it proves coverage, not order), and a check that the sign-out `goto` to `/login`
+announces once under kit 3's route announcer.
