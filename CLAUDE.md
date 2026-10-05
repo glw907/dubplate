@@ -164,9 +164,12 @@ the photo pool integrity check (`node tools/photos/check.mjs integrity`),
 gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
-excluded), a pattern-filtered `systemd-analyze verify`, and the
-state-dir agreement leg (the server env template, the serve unit, and
-`deploy.sh` name the same state directory and leaves).
+excluded), a pattern-filtered `systemd-analyze verify` (hard-required:
+a missing `systemd-analyze` fails the gate), and the state-dir agreement
+leg (the server env template, every `dubplate-server` unit, and
+`deploy.sh`'s `DUBPLATE_SERVER_LEAVES` name the same state directory and
+leaves, and the leg proves `deploy.sh`'s pre-create loop iterates that
+array).
 Two workstation prerequisites sit outside the gate, because the gate
 never opens a network connection: `npm ci --prefix web` and
 `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
@@ -304,6 +307,6 @@ Never build, and never accept a contribution that adds:
 - Never commit secrets, `.env` values, or `~/.local/secrets` content.
   No mechanism in the gate scans for them; review a diff by eye before
   staging anything that might carry one.
-- Deploys go through `scripts/deploy.sh` (idempotent, `--check` first for
-  anything risky). Never edit the box by hand and call it done — the repo
+- Deploys go through `scripts/deploy.sh` (idempotent; it checks by
+  default, and `--apply` writes, only from a clean committed tree). Never edit the box by hand and call it done — the repo
   is the source of truth.
