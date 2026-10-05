@@ -69,7 +69,8 @@ start yet.
      -p RestrictNamespaces=yes -p RestrictRealtime=yes \
      -p RestrictSUIDSGID=yes -p LockPersonality=yes \
      -p MemoryDenyWriteExecute=yes -p SystemCallFilter=@system-service \
-     -p SystemCallArchitectures=native -p UMask=0027 \
+     -p SystemCallArchitectures=native -p AmbientCapabilities= \
+     -p CapabilityBoundingSet= -p UMask=0027 \
      -p 'ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/roster' \
      /usr/local/bin/dubplate-server member add admin@example.org --admin \
        --name "Ada Admin" --streamer-username ada
