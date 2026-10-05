@@ -12,6 +12,11 @@ table) closed; rung 5 continues at 5d. HISTORY's top entries: transliteration, 5
 7.0M; its deploy is an attended sitting). The photo integrity leg gates since `b7766d6`. Push master after each close (gitleaks first). Box read-only; nothing
 deploys until 5d.
 
+**Overnight window (Geoff, 2026-10-04 evening):** run 5d-i to its close, then continue in the same
+session through 5d-ii Segment C (Tasks 7, 8, the two adversarial lenses, Task 9), stopping before Task
+10's attended sitting. Cap 10.5M across both halves, flag 8.4M: at the flag, finish the task in flight,
+write STATUS, and stop. AC confirmed. No deploy; box read-only.
+
 ## Owner questions
 
 - 6d plan rev 2.2 (`plans/2026-09-26-rung-6d-identity-serve-store.md`) awaits approval: three
@@ -24,7 +29,7 @@ deploys until 5d.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | ACTIVE: 5d-i opened 2026-10-04 at `311b74c` (pass class `auth-data`, heavy gate); Task 0 running; dependency sweep: the 2026-10-04 sweep (`0677934`, `b3c2578`) covers this pass |
+| 1 | main tree (master) | ACTIVE: 5d-i opened 2026-10-04 at `311b74c` (pass class `auth-data`, heavy gate); Task 0 ruled at `fafef77`; Segment A (Tasks 1-3) running as `wf_a9246e81-97e`; dependency sweep: the 2026-10-04 sweep (`0677934`, `b3c2578`) covers this pass |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
