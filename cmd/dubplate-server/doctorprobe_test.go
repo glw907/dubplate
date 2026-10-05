@@ -497,6 +497,27 @@ func TestDoctorBoundaryProbe_ListenerAnswers(t *testing.T) {
 			wantFail:   true,
 			wantStatus: "127.0.0.1 unexpected answer: 200 OK with an unparseable body",
 		},
+		{
+			name:       "an empty object",
+			status:     http.StatusOK,
+			body:       `{}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 unexpected answer: 200 OK with an unparseable body",
+		},
+		{
+			name:       "JSON null",
+			status:     http.StatusOK,
+			body:       `null`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 unexpected answer: 200 OK with an unparseable body",
+		},
+		{
+			name:       "an object missing two counts",
+			status:     http.StatusOK,
+			body:       `{"identity":0}`,
+			wantFail:   true,
+			wantStatus: "127.0.0.1 unexpected answer: 200 OK with an unparseable body",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -605,6 +626,17 @@ func TestBoundaryProbeRowStatus_NoFailureOfItsOwn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fixture state: config.Load on the baseline: %v", err)
 	}
+	// Load accepts a network as the trusted proxy value, so cfg is
+	// non-nil and the refusal comes from the row's own resolve.
+	networkProxy := withEnv(baseline,
+		"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+		"DUBPLATE_TRUSTED_PROXY_ADDRS=203.0.113.0/24",
+		"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
+	)
+	networkProxyCfg, err := config.Load(networkProxy, reg)
+	if err != nil {
+		t.Fatalf("fixture state: config.Load with a network as the trusted proxy: %v", err)
+	}
 
 	tests := []struct {
 		name       string
@@ -631,6 +663,12 @@ func TestBoundaryProbeRowStatus_NoFailureOfItsOwn(t *testing.T) {
 			wantStatus: "not probed",
 		},
 		{
+			name:       "a trusted proxy value that does not resolve, which the client ip row fails",
+			environ:    networkProxy,
+			cfg:        networkProxyCfg,
+			wantStatus: "not probed",
+		},
+		{
 			name:       "Load refused the environment",
 			environ:    baseline,
 			cfg:        nil,
@@ -647,5 +685,31 @@ func TestBoundaryProbeRowStatus_NoFailureOfItsOwn(t *testing.T) {
 				t.Error("failed = true, want the failure left to the row that owns the cause")
 			}
 		})
+	}
+}
+
+// TestBoundaryProbeRowStatus_MixedTrustedBind binds two loopback
+// addresses, one of them a trusted proxy: that one is skipped by name,
+// the other is still dialed on the reserved port, where nothing
+// listens, and the row joins both parts without failing.
+func TestBoundaryProbeRowStatus_MixedTrustedBind(t *testing.T) {
+	reg := productionRegistry()
+	environ := withEnv(doctorEnviron(t),
+		"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+		"DUBPLATE_TRUSTED_PROXY_ADDRS=127.0.0.1",
+		"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
+		"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1,127.0.0.2",
+	)
+	cfg, err := config.Load(environ, reg)
+	if err != nil {
+		t.Fatalf("fixture state: config.Load: %v", err)
+	}
+
+	status, failed := boundaryProbeRowStatus(t.Context(), environ, reg, cfg)
+	if want := "127.0.0.1 not probed: a trusted proxy, 127.0.0.2 no listener"; status != want {
+		t.Errorf("status = %q, want %q", status, want)
+	}
+	if failed {
+		t.Error("failed = true, want no failure")
 	}
 }

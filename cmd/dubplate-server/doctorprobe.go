@@ -350,14 +350,32 @@ func probeExchange(ctx context.Context, conn net.Conn, prefix serve.Prefix, host
 	if resp.StatusCode != http.StatusOK {
 		return serve.ProbeCounts{}, errors.New(resp.Status)
 	}
-	var counts serve.ProbeCounts
-	if err := json.NewDecoder(io.LimitReader(resp.Body, probeAnswerCap)).Decode(&counts); err != nil {
+	unparseable := fmt.Errorf("%s with an unparseable body", resp.Status)
+	var answer probeAnswer
+	if err := json.NewDecoder(io.LimitReader(resp.Body, probeAnswerCap)).Decode(&answer); err != nil {
 		if isTimeout(err) {
 			return serve.ProbeCounts{}, errProbeTimeout
 		}
-		return serve.ProbeCounts{}, fmt.Errorf("%s with an unparseable body", resp.Status)
+		return serve.ProbeCounts{}, unparseable
 	}
-	return counts, nil
+	if answer.Identity == nil || answer.Forwarded == nil || answer.Sentinel == nil {
+		return serve.ProbeCounts{}, unparseable
+	}
+	return serve.ProbeCounts{
+		Identity:  *answer.Identity,
+		Forwarded: *answer.Forwarded,
+		Sentinel:  *answer.Sentinel,
+	}, nil
+}
+
+// probeAnswer is [serve.ProbeCounts] as the probe reads it, with each
+// count a pointer so a key the body leaves out stays nil. A 200 whose
+// body lacks any count, or is JSON null, did not come from the route,
+// and reading it as all zeros would report a strip that never ran.
+type probeAnswer struct {
+	Identity  *int `json:"identity"`
+	Forwarded *int `json:"forwarded"`
+	Sentinel  *int `json:"sentinel"`
 }
 
 // errProbeTimeout is the answer error for a connection that accepted
