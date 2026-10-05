@@ -94,7 +94,7 @@ func isTokenChar(r rune) bool {
 }
 
 // ProxyMode describes which client-IP source is live for a
-// [TrustedProxyConfig], in the form rung 5d's doctor row renders
+// [TrustedProxyConfig], in the form the doctor row renders
 // without re-deriving it from the configuration.
 type ProxyMode int
 

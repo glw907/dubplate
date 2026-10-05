@@ -679,7 +679,7 @@ if [ "$mode" != "reduced" ]; then
   fi
   server_units=()
   for unit in systemd/*.service; do
-    if grep -q '^ExecStart=/usr/local/bin/dubplate-server ' "$unit"; then
+    if grep -Eq '^ExecStart=/usr/local/bin/dubplate-server( |$)' "$unit"; then
       server_units+=("$unit")
     fi
   done

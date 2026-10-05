@@ -294,7 +294,7 @@ type Strip struct {
 // construction value that does not exist until 5b; the strip itself
 // never removes a cookie, and [Shell] reads this name to remove that
 // one cookie on the way out to the fallthrough. proxy
-// is Task 1's trusted-proxy configuration and the sole input to group
+// is the trusted-proxy configuration and the sole input to group
 // 2's carve-out. exemption is the mechanism a later front configures;
 // the zero value exempts nothing.
 func NewStrip(header, sessionCookie string, proxy TrustedProxyConfig, exemption FrontExemption) Strip {
@@ -455,7 +455,7 @@ func (b *trailerScrubbingBody) scrub() {
 
 // stripForwardedAddress removes group 2 unless trusted-proxy mode is
 // on and the request's peer address is one of the configured proxies
-// (R27's carve-out), read through Task 1's TrustedProxyConfig rather
+// (R27's carve-out), read through [TrustedProxyConfig] rather
 // than a second derivation of the peer address.
 func (s Strip) stripForwardedAddress(r *http.Request) {
 	if s.trustsPeer(r) {

@@ -36,7 +36,8 @@ set -euo pipefail
 #   - rsyncs every unit in UNIT_FILES to /etc/systemd/system;
 #   - installs /etc/tmpfiles.d/dubplate.conf and runs systemd-tmpfiles;
 #   - creates and chowns the state, shadow, backup-staging, and uploads
-#     directories;
+#     directories, and creates the auth and roster leaves under the state
+#     directory;
 #   - stages the dubplate-server binary, runs its unidecode install on the
 #     box (a PyPI download), and swaps it onto /usr/local/bin;
 #   - installs /etc/dubplate/env and /etc/dubplate/server.env, and
@@ -64,9 +65,10 @@ UV_INSTALLER_SHA256="92e8554321e2bde08c9b1445dae47a65360f885274f31df51cdc2f9faa8
 
 # One job per line, each service beside its own timer (the ping-fail
 # template has none), so a new job is added as a visible pair rather than
-# appended to a run-on line. Every unit below execs the frozen incumbent
-# binary at /usr/local/bin/dubplate, shipped once before rung 1 and never
-# touched by this script again (the boundary comment at the
+# appended to a run-on line. Every unit below but
+# dubplate-server-serve.service execs the frozen incumbent binary at
+# /usr/local/bin/dubplate, shipped once before rung 1 and never touched
+# by this script again (the boundary comment at the
 # dubplate-server binary step below has the detail) -- there is no
 # separate scripts-to-/usr/local/bin manifest left now that the shell
 # layer is gone.
@@ -289,7 +291,7 @@ else
 fi
 
 # --- local builds: committed source only, built before any remote write --
-# `git describe --dirty` below would stamp a reviewed commit's id on
+# `git describe` below would stamp a reviewed commit's id on
 # unreviewed code, and an untracked file under web/ would be embedded by
 # go:embed, so either refuses the run before the first remote write.
 dirty_tracked="$(git -C "$REPO_ROOT" status --porcelain --untracked-files=no)"
@@ -305,7 +307,7 @@ fi
 # tags). main.go's matcherCommit stays "dev" (and shadow observe refuses to
 # run) on any build that skips these -X flags, so a bare `go build` or
 # `make build-linux` outside this script never reaches the box stamped.
-DUBPLATE_STAMP_VERSION="$(git -C "$REPO_ROOT" describe --tags --always --dirty)"
+DUBPLATE_STAMP_VERSION="$(git -C "$REPO_ROOT" describe --tags --always)"
 DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 
 # `vite build` alone: `make web` would run the gates a second time. Nothing

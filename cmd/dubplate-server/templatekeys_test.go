@@ -309,19 +309,16 @@ func renderedDoctor(t *testing.T, template string, stateDir, roster string) (str
 	t.Helper()
 	secret := strings.Repeat("a", 32)
 	environ, err := renderTemplate(template, map[string]string{
-		"DUBPLATE_ADMIN_EMAIL":             "admin@example.test",
-		"DUBPLATE_MAGIC_LINK_SECRET":       secret,
-		"DUBPLATE_SESSION_SECRET":          strings.Repeat("b", 32),
-		"DUBPLATE_SMTP_HOST":               "smtp.example.test",
-		"DUBPLATE_SMTP_PORT":               "587",
-		"DUBPLATE_SMTP_USER":               "dubplate",
-		"DUBPLATE_SMTP_PASSWORD":           "fixture smtp password, not a real key",
-		"DUBPLATE_SMTP_FROM":               "dubplate@example.test",
-		"DUBPLATE_STATE_DIR":               stateDir,
-		"DUBPLATE_ROSTER_FILE":             roster,
-		"DUBPLATE_SHADOW_OBSERVE_DIR":      "/srv/music/inbox",
-		"DUBPLATE_SHADOW_REVIEW_DIR":       "/srv/music/review",
-		"DUBPLATE_SHADOW_ORACLE_STATE_DIR": "/var/lib/musicbox",
+		"DUBPLATE_ADMIN_EMAIL":       "admin@example.test",
+		"DUBPLATE_MAGIC_LINK_SECRET": secret,
+		"DUBPLATE_SESSION_SECRET":    strings.Repeat("b", 32),
+		"DUBPLATE_SMTP_HOST":         "smtp.example.test",
+		"DUBPLATE_SMTP_PORT":         "587",
+		"DUBPLATE_SMTP_USER":         "dubplate",
+		"DUBPLATE_SMTP_PASSWORD":     "fixture smtp password, not a real key",
+		"DUBPLATE_SMTP_FROM":         "dubplate@example.test",
+		"DUBPLATE_STATE_DIR":         stateDir,
+		"DUBPLATE_ROSTER_FILE":       roster,
 	})
 	if err != nil {
 		t.Fatalf("render template: %v", err)
