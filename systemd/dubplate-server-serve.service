@@ -1,25 +1,13 @@
 [Unit]
 Description=dubplate-server: the web surface, sign-in, and the boundary probe
-# Why docker.service and not network-online.target: serve binds the
-# addresses in DUBPLATE_SERVE_BIND_ADDRS, 127.0.0.1 when that key is unset,
-# as it is in the shipped template. A host that adds the compose bridge's
-# gateway address to that list needs the bridge to exist before the
-# listener opens, and this ordering provides it. With loopback alone the
-# ordering is inert, and on a host with no docker.service it orders
-# nothing, since After= is an ordering and pulls in no unit
-# (systemd.unit(5): "independent of and orthogonal to the requirement
-# dependencies"). serve reaches no outbound host at startup, so it has
+# No network-online ordering: serve binds the addresses in
+# DUBPLATE_SERVE_BIND_ADDRS, 127.0.0.1 when that key is unset, as it is in
+# the shipped template, and reaches no outbound host at startup, so it has
 # nothing to wait on from the network.
-After=docker.service
-# OnFailure= is wired and inert. The slug is this unit's own, distinct from
-# the incumbent uploader's "serve" slug, so a later monitoring mint pages
-# this unit's check and never the other's. An unset URL no-ops rather than
-# erroring (the shadow unit records the same precedent).
-OnFailure=dubplate-ping-fail@server-serve.service
-# Interval 0 would mean systemd never gives up restarting, the unit would
-# never enter "failed", and OnFailure= above would never fire. 300s with 30
-# restarts leaves room for transient start failures and still trips, and
-# alerts, on a real crash loop.
+#
+# A crash loop must end in "failed" rather than restart forever: 30
+# restarts inside 300s leaves room for transient start failures and still
+# stops a real crash loop.
 StartLimitIntervalSec=300
 StartLimitBurst=30
 
@@ -54,7 +42,7 @@ TimeoutStopSec=30
 # deploy.sh's leaf list staying in agreement.
 ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/roster
 
-# --- hardening, carried from dubplate-shadow.service ---
+# --- hardening ---
 # The process never gains privilege through setuid or file capabilities.
 NoNewPrivileges=yes
 # Private /tmp and /var/tmp, gone at stop.

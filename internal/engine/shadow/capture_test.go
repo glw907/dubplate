@@ -107,8 +107,8 @@ func TestCaptureExcludesAMultiAlbumDirectory(t *testing.T) {
 // TestCaptureExcludesAFlatArtistOnlyMultiAlbumDirectory proves the
 // artist fallback: two ARTIST values under one ALBUM, with no
 // ALBUMARTIST anywhere, is the shape a flat contributor ZIP produces
-// (config/beets-config.yaml:19-22) and the shape beets splits at
-// stages.py:102-103. An albumartist-only key would collapse this to
+// (config/beets-config.yaml at the pre-greenfield tag) and the shape
+// beets splits at stages.py:102-103. An albumartist-only key would collapse this to
 // one group (conductor ruling C1, spec:444).
 func TestCaptureExcludesAFlatArtistOnlyMultiAlbumDirectory(t *testing.T) {
 	dir := t.TempDir()

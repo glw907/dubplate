@@ -2469,7 +2469,8 @@ work, per ladder entry 8. So is the wazero-taglib spike. Nothing in
 ## Config profiles
 
 `corpus/profiles/estate.yaml` derives from `config/beets-config.yaml`,
-dubplate's live import profile, under the transform below: every
+the retired importer's import profile (removed from the tree with that
+importer; read it at the `pre-greenfield` tag), under the transform below: every
 verdict-moving key survives verbatim, every key that only affects
 importer execution or output layout is dropped, and the plugin set
 narrows to the single metadata source the corpus's design requires

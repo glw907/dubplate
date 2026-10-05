@@ -83,10 +83,10 @@ const (
 
 // serveBindAddrsThreshold is the comma-separated list of addresses the
 // serve verb binds. Its default, loopback only, is the salvage
-// configuration's own default (env/dubplate.env.template:104-113). The
-// registry has no list kind (R-B), so this registers as KindString and
-// [serve.SplitBindAddrs] splits and validates it in the package that
-// binds, keeping the address grammar with the code that uses it.
+// configuration's own default. The registry has no list kind (R-B), so
+// this registers as KindString and [serve.SplitBindAddrs] splits and
+// validates it in the package that binds, keeping the address grammar
+// with the code that uses it.
 var serveBindAddrsThreshold = config.Threshold{
 	Key:     "DUBPLATE_SERVE_BIND_ADDRS",
 	Kind:    config.KindString,

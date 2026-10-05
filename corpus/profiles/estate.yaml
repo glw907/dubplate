@@ -1,5 +1,5 @@
-# estate.yaml: dubplate's live import profile
-# (config/beets-config.yaml), reduced to the subset that can move a
+# estate.yaml: the retired importer's import profile
+# (config/beets-config.yaml at the pre-greenfield tag), reduced to the subset that can move a
 # match verdict. The full key-by-key transform, with every stripped
 # key's reason, is documented in corpus/README.md ("Config profiles");
 # do not add a key here without adding it there too.

@@ -624,27 +624,27 @@ if [ "$mode" != "reduced" ]; then
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== docker compose config =="
-  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-    if ! docker compose -f compose.yaml config -q; then
-      status=1
-    fi
-  else
-    echo "check.sh: docker (or the compose plugin) not found; skipping compose.yaml validation." >&2
-  fi
-
   echo "== systemd unit verification =="
   # systemd-analyze verify insists every ExecStart= binary already exists on
   # THIS machine, which is never true here: the paths are box-only
-  # (/usr/local/bin/dubplate, installed by deploy.sh, never present on the
-  # workstation). That specific complaint is expected and filtered out
+  # (/usr/local/bin/dubplate-server, installed by deploy.sh, never present
+  # on the workstation). That specific complaint is expected and filtered out
   # by pattern; any other verify output (bad section, missing directive, bad
   # OnCalendar syntax, and so on) still fails the gate. This is the
   # pattern-filtered `systemd-analyze verify` approach, not a grep-based
   # fallback: `--recursive-errors=no` alone does not suppress the
   # missing-executable complaint, so the filter is the actual mechanism doing
   # the work.
+  # Every unit kind the directory can hold, with nullglob so a kind the
+  # tree does not ship drops out instead of reaching systemd-analyze as a
+  # literal pattern. An empty list is a failure, never a pass.
+  shopt -s nullglob
   unit_files=(systemd/*.service systemd/*.timer systemd/*.path)
+  shopt -u nullglob
+  if [ "${#unit_files[@]}" -eq 0 ]; then
+    echo "check.sh: no unit files under systemd/ to verify." >&2
+    status=1
+  fi
   verify_output="$(systemd-analyze verify --recursive-errors=no "${unit_files[@]}" 2>&1 || true)"
   unexpected="$(grep -v -E ': Command /usr/local/bin/[A-Za-z0-9_.-]+ is not executable: No such file or directory$' <<<"$verify_output" || true)"
   if [ -n "$unexpected" ]; then
@@ -727,8 +727,8 @@ if [ "$mode" != "reduced" ]; then
     echo "check.sh: state-dir: the DUBPLATE_SERVER_LEAVES loop in scripts/deploy.sh never runs install -d" >&2
     state_ok=false
   fi
-  if ! grep -qF "run_remote \"mkdir -p \$DUBPLATE_SHADOW_DIR" scripts/deploy.sh; then
-    echo "check.sh: state-dir: scripts/deploy.sh has no pre-create line for \$DUBPLATE_SHADOW_DIR" >&2
+  if ! grep -qF "run_remote \"install -d -o music -g music -m 0755 \$DUBPLATE_LIB_DIR\"" scripts/deploy.sh; then
+    echo "check.sh: state-dir: scripts/deploy.sh has no pre-create line for \$DUBPLATE_LIB_DIR" >&2
     state_ok=false
   fi
   if ! $state_ok; then

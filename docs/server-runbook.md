@@ -710,10 +710,8 @@ database snapshot after it. These prerequisites sit outside the binary, so
 
 `scripts/deploy.sh` deploys the maintainers' own estate, and a stranger
 installs by hand (see [Install order](#install-order)). Its HOST defaults to the
-maintainers' server, it reads the maintainers' workstation age store, it
-renders the incumbent's `/etc/dubplate/env`, it brings up the compose stack, and
-it installs beets. The template it renders carries the maintainers' public URL
-and site name. This section describes the script for the people who run it.
+maintainers' server, and it reads the maintainers' workstation age store. The
+template it renders carries the maintainers' public URL and site name. This section describes the script for the people who run it.
 
 The script reports by default and writes the box only under `--apply`. Run it
 as a check first, read what it prints, then apply.
@@ -726,7 +724,7 @@ bash scripts/deploy.sh --apply <host>
 With no flag, the script behaves as `--check`, so a dropped flag is safe.
 Passing both flags is refused. Every mode first refuses a working tree with a
 modified tracked file, or with an untracked or ignored file under `cmd`,
-`internal`, `web`, `config`, `compose.yaml`, `go.mod`, or `go.sum`. The
+`internal`, `web`, `go.mod`, or `go.sum`. The
 build's own output, `web/node_modules`, `web/.svelte-kit`, and `web/build`,
 is exempt. Run the script from a fresh worktree of the commit you deploy, so
 that no stray file stops it. It then builds the `web/` bundle with
@@ -745,8 +743,9 @@ again.
 ### A staged binary swap
 
 The new binary installs its transliteration table before it replaces the
-live one. A timer that scores can fire at any moment, and a swap followed by an install would leave a window in which a
-scoring verb finds a new binary with no table and refuses to start. The staged
+live one. A unit can start the binary at any moment, and a swap followed by an
+install would leave a window in which a verb finds a new binary with no table
+and refuses to start. The staged
 order closes it:
 
 1. the script copies the new binary to `/usr/local/bin/dubplate-server.new`;
@@ -757,8 +756,7 @@ order closes it:
    roster beside it;
 3. only a verified install is moved over the live path with `mv`.
 
-A failed install stops the deploy with the old binary still live and still
-scoring, and leaves `dubplate-server.new` on the box, which the next deploy's
+A failed install stops the deploy with the old binary still live, and leaves `dubplate-server.new` on the box, which the next deploy's
 copy overwrites. Remove it by hand if you do not plan another deploy.
 
 Before the first deploy that carries this swap:
@@ -791,30 +789,21 @@ every file the apply rewrites together:
 ```sh
 cp -p /usr/local/bin/dubplate-server /usr/local/bin/dubplate-server.prev
 cp -p /etc/dubplate/server.env /etc/dubplate/server.env.prev
-cp -p /etc/dubplate/env /etc/dubplate/env.prev   # only on a host that also runs the legacy stack
-cp -p /etc/dubplate/contributors.yaml /etc/dubplate/contributors.yaml.prev
-cp -p /etc/tmpfiles.d/dubplate.conf /etc/tmpfiles.d/dubplate.conf.prev
-cp -p /srv/music/.config/beets/config.yaml /srv/music/.config/beets/config.yaml.prev
-cp -a /opt/dubplate /opt/dubplate.prev
 install -d -m 0700 /root/dubplate-units.prev
 cp -a /etc/systemd/system/dubplate-* /root/dubplate-units.prev/
-runuser -u music -- env HOME=/srv/music uv tool list   # record the beets version it prints
 ```
 
-The apply replaces `/opt/dubplate` with `rsync --delete`, rewrites the unit
-files, the tmpfiles fragment, the contributors file, and the beets
-configuration, and upgrades beets as the `music` user, so the binary and the
-environment files are not the whole set. The unit copies sit outside
+The apply also rewrites the unit files, so the binary and the environment
+file are not the whole set. The unit copies sit outside
 `/etc/systemd/system`, where systemd would read them as units.
 
 The copies do not cover the directories the apply creates or re-owns (the
-state, shadow, backup-staging, and uploads directories and their leaves), the
-transliteration table the staged install writes, the compose stack's
-containers, or which timers are enabled. A rollback leaves those as the apply
-left them.
+state directory and its leaves), the transliteration table the staged install
+writes, or which units are enabled. A rollback leaves those as the apply left
+them.
 
-Each copy keeps its mode and its owner, and the two environment files stay
-0600 and root-owned. Record the `.prev` binary's version with
+Each copy keeps its mode and its owner, and the environment file stays 0600
+and root-owned. Record the `.prev` binary's version with
 `/usr/local/bin/dubplate-server.prev version`.
 
 To roll back:
@@ -823,14 +812,12 @@ To roll back:
    (`systemctl stop dubplate-server-serve.service`, then
    `systemctl reset-failed dubplate-server-serve.service`, since
    `Restart=on-failure` loops a failing start).
-2. Copy the `.prev` binary, environment files, contributors file, tmpfiles
-   fragment, and beets configuration over the live ones together (`cp -p
-   <file>.prev <file>` for each), and run `dubplate-server version` to see the
-   recorded stamp.
-3. Restore the configuration and the units, then reload systemd:
+2. Copy the `.prev` binary and environment file over the live ones together
+   (`cp -p <file>.prev <file>` for each), and run `dubplate-server version` to
+   see the recorded stamp.
+3. Restore the units, then reload systemd:
 
    ```sh
-   rsync -a --delete --checksum /opt/dubplate.prev/ /opt/dubplate/
    rsync -a --delete --checksum --include='dubplate-*' --exclude='*' \
      /root/dubplate-units.prev/ /etc/systemd/system/
    systemctl daemon-reload
@@ -841,15 +828,7 @@ To roll back:
    deletes a `dubplate-*` unit the apply added, because the copy lacks it. The
    `--exclude='*'` filter protects every other file in
    `/etc/systemd/system` from the delete.
-4. Reinstall the beets version you recorded:
-
-   ```sh
-   runuser -u music -- env HOME=/srv/music uv tool install --force "beets==<recorded version>"
-   ```
-
-5. Bring the compose stack up again, so it reads the restored configuration
-   and, on a host that runs the legacy stack, the restored `/etc/dubplate/env`.
-6. Restart the timers you stopped.
+4. Start the serve unit if it ran before, and any timer you stopped.
 
 Leave the copies on the box until the next attended deploy replaces them.
 

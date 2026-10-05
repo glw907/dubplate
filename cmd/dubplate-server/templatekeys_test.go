@@ -15,20 +15,9 @@ import (
 )
 
 // templateEnvPaths names every environment template these tests
-// classify against, one entry per adopter-facing template
-// scripts/deploy.sh renders (ENV_TEMPLATE at deploy.sh:27,
-// SERVER_ENV_TEMPLATE at deploy.sh:28, both rendered by render_template
-// at deploy.sh:205, called at deploy.sh:240 and deploy.sh:241). A name
-// missing from either fails deploy the same way, which is why both are
-// read rather than one.
-//
-// dubplate.env.template is the frozen pre-pivot template, kept so a
-// name the wall still classifies as superseded stays proven reachable
-// from a real file rather than only from the superseded table's own
-// literals. dubplate-server.env.template is the greenfield template,
-// which the completeness direction below reads by name.
+// classify against, one entry per template scripts/deploy.sh renders
+// (SERVER_ENV_TEMPLATE, rendered by its render_template).
 var templateEnvPaths = []string{
-	"../../env/dubplate.env.template",
 	"../../env/dubplate-server.env.template",
 }
 

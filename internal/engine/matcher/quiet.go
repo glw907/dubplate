@@ -17,8 +17,8 @@ package matcher
 func QuietImportTunables() Tunables {
 	tun := DefaultTunables()
 	tun.Quiet = true           // the -q flag the incumbent passes beet import
-	tun.QuietFallback = "skip" // config/beets-config.yaml:16
-	tun.NoneRecAction = "skip" // config/beets-config.yaml:17
-	tun.Timid = false          // config/beets-config.yaml:18
+	tun.QuietFallback = "skip" // corpus/profiles/estate.yaml import.quiet_fallback
+	tun.NoneRecAction = "skip" // corpus/profiles/estate.yaml import.none_rec_action
+	tun.Timid = false          // corpus/profiles/estate.yaml import.timid
 	return tun
 }

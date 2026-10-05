@@ -16,8 +16,10 @@ pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees are frozen under
 `_salvage/` (git tag `pre-greenfield`) as SALVAGE TIER: read-only
 adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte
 bars), never imported, and retired at launch. The group's system is not
-live; the box runs only Navidrome + guardian timers until the new server
-launches complete (Go matcher included). Two standing bars, from memory:
+live; the box runs only dubplate-server (Navidrome, the Cloudflare
+tunnel, the box's beets, and the incumbent musicbox stack are retired,
+Geoff 2026-10-05) until the new server launches complete (Go matcher
+included). Two standing bars, from memory:
 exemplary Go (`idiomatic-beautiful-go`) and render-and-read every
 user-path page before any attended ask (`see-it-before-geoff-tests-it`).
 
@@ -54,8 +56,7 @@ newest production version of every library, tool, and pinned binary, so
 dubplate releases with no dependency debt and uses what its libraries
 offer. Pins stay exact, at the newest version. Every pass opens with a
 `dependency-upgrade` sweep over `go.mod`, `web/package.json`,
-`tools/venv/requirements.txt`, and the pinned binaries (`compose.yaml`
-images, rclone, golangci-lint, Playwright); a sweep with nothing to move
+`tools/venv/requirements.txt`, and the pinned binaries (rclone, golangci-lint, Playwright); a sweep with nothing to move
 is one line in the pass record. The skill's survey is the point: a new
 capability that replaces hand-rolled code is ruled take-now or filed to
 the rung that first leans on it, and a workaround for an old version
@@ -140,9 +141,9 @@ dispatch may refuse a finding whose fix costs more than the risk it
 removes, with a one-line reason in the fold record.
 
 **Expected owner touchpoints, and only these:** rung-spec rulings
-(known ahead: rung 9's concurrency model), corpus and shadow
-adjudication batches (small and regular; an unadjudicated divergence
-blocks the launch gate), the rung 7 uploader before/after, and the
+(known ahead: rung 9's concurrency model), corpus adjudication batches
+(small and regular; the shadow evidence floor no longer gates launch,
+Geoff 2026-10-05), the rung 7 uploader before/after, and the
 rung 16 cutover sitting.
 
 ## Gate
@@ -163,10 +164,9 @@ the photo pool integrity check (`node tools/photos/check.mjs integrity`),
 gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
-excluded), `docker compose config` (skipped when Docker isn't present),
-a pattern-filtered `systemd-analyze verify`, and the state-dir agreement
-leg (the env template, the shadow unit, and `deploy.sh` name the same
-state directory).
+excluded), a pattern-filtered `systemd-analyze verify`, and the
+state-dir agreement leg (the server env template, the serve unit, and
+`deploy.sh` name the same state directory and leaves).
 Two workstation prerequisites sit outside the gate, because the gate
 never opens a network connection: `npm ci --prefix web` and
 `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
@@ -226,9 +226,8 @@ today and gate at the comment-cleanup task.
   starts (deploy.sh pre-creates). cloud-init runs at first boot only;
   converging a live box is deploy.sh's job.
 - **Cloudflare**: API-first with `$CLOUDFLARE_API_TOKEN` (script must
-  `source ~/.local/secrets`). The tunnel is remote-managed:
-  `config/cloudflared-tunnel-config.json` is the record of what gets PUT to
-  the API, not a file compose reads. See `.claude/instructions/api-access.md`.
+  `source ~/.local/secrets`). The tunnel and its DNS are deleted (Geoff,
+  2026-10-05). See `.claude/instructions/api-access.md`.
 - **Python** (`internal/harness/oracle/*.py`, `internal/engine/matcher/testdata/gen_featuring_golden.py`,
   `tools/unidecode-table/generate.py`):
   invoke the `python-conventions` skill BEFORE writing any Python. Python
@@ -279,29 +278,20 @@ Never build, and never accept a contribution that adds:
 
 - Failure pings are POST to `<url>/fail`; success is GET. The Worker 404s a
   GET to `/fail` — this was a live bug once.
-- Lock files live in `/var/lib/musicbox/` (persistent), NOT `/run/musicbox`
-  (RuntimeDirectory, deleted at unit stop). The Go layer uses NO runtime
-  directory at all: the scan URL builds inline and the roster loads into
-  memory (the retired shell layer's temp-file pattern died with it).
-- On the interim estate (retired at rung 16), the beets database is the only
-  import success record: the tag log records skips only, and beets renames
-  every file. Never infer success from the filesystem. The greenfield
-  server's store is its own record.
+- dubplate-server's state lives under `/var/lib/dubplate/` (persistent),
+  never in a RuntimeDirectory (deleted at unit stop). The server uses NO
+  runtime directory at all.
 - The album is the verdict unit: one failing track rejects the batch. Never
   admit a partial album.
 - Reject wording is contract (`internal/reject` / `friendly_reason`): the
   uploader page and emails share it verbatim; upload-check reuses it.
-- `env/dubplate.env.template` is a secrets MANIFEST rendered by deploy.sh
-  from the age store — inline values in it are not defaults and adding a
-  name there requires minting it (`secret-set.sh`, registry).
-- On the interim estate, collections route via a beets flexible attribute
-  with query-prefixed path formats, the default collection unprefixed, and
-  there is no second beets database. The greenfield server does not inherit
-  this: a collection is a store row whose root the server allocates from its
+- `env/dubplate-server.env.template` is the render manifest deploy.sh
+  turns into `/etc/dubplate/server.env`: a bare `NAME=` row resolves from
+  the age store, so adding one requires minting it (`secret-set.sh`,
+  registry); a `NAME=value` row is a literal.
+- A collection is a store row whose root the server allocates from its
   id, with no two roots nested, per
-  `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`. Rung 16
-  relocates the migrated collections once, conditional on rung 12's
-  Navidrome check.
+  `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
 - Config keys are declared through the registry in each rung's own file,
   never by editing `internal/config/keys.go` (rung 1b).
 

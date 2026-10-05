@@ -55,18 +55,18 @@ type excludedDir struct {
 // one rather than failing the pass.
 //
 // A directory whose items group to more than one album is EXCLUDED with
-// its group count (contract S9). The box runs group_albums: yes
-// (config/beets-config.yaml:23), so beets is free to split one uploaded
-// directory into several verdicts, while tag.Album takes items
-// []matcher.ItemFields and calls MostCommonTags over all of them
-// (internal/engine/tag/tag.go:75). Rung 4 observes only what groups to
-// exactly one album, and counts the rest.
+// its group count (contract S9). The incumbent ran group_albums: yes
+// (config/beets-config.yaml at the pre-greenfield tag), so beets is free
+// to split one uploaded directory into several verdicts, while
+// tag.Album takes items []matcher.ItemFields and calls MostCommonTags
+// over all of them (internal/engine/tag/tag.go:75). Rung 4 observes
+// only what groups to exactly one album, and counts the rest.
 //
 // The key is (cmp.Or(AlbumArtist, Artist), Album), which is beets' own:
 // group(item) returns (item.albumartist or item.artist, item.album)
 // (beets/importer/stages.py:102-103, consumed at :112-113). The
 // fallback is what handles the estate's real material: a contributor
-// ZIP extracts flat (config/beets-config.yaml:19-22) and its tracks
+// ZIP extracts flat (the same file, lines 19-22) and its tracks
 // often carry ARTIST and no ALBUMARTIST, which an albumartist-only key
 // collapses into one group and observes as one album while beets splits
 // it into several verdicts. The fallback is conductor ruling C1 at
