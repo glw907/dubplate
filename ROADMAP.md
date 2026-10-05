@@ -94,7 +94,7 @@ Build shape A: an oracle harness (Navidrome and dubplate
 against one library, responses diffed and adjudicated) and a written
 Navidrome study first, then vertical slices each walked by a named client
 roster. Sequenced after launch (rung 17); the driver seam stays and
-Navidrome remains the escape hatch through 0.8's first months. Navidrome
+Navidrome remains the escape hatch through 0.8's first months. (Owner ruling, Geoff, 2026-10-05: Navidrome and all the Cloudflare infrastructure may be removed whenever the conductor likes; the escape hatch and rungs 12 and 16 are re-planned at the next brainstorm.) Navidrome
 is GPLv3: study it for behavior, never copy; its permissive dependencies
 (taglib via wazero, x/image, fscache) are ours to use. **Standing rule
 while the ladder builds:** each rung's plan weighs its surface against

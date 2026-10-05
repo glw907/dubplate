@@ -9,24 +9,10 @@ entries: 5d-i, transliteration, 5c-iv.
 
 ## Next action
 
-**Resume:** Read this file. 5d-ii Segment C is closed (2026-10-05, overnight window): Task 7's runbook
-(`docs/server-runbook.md`, last at `8108605`), Task 8's disposition table (`4ee5c00`), both adversarial
-lenses (`5cf5d98`, `6d694de`, no critical), and Task 9's fold (`fb5411e`, `bac992e`, `07f6f82`,
-`8108605`; record `research/2026-09-25-rung-5d-review-fold.md`). Next: **Task 10, the attended
-first-deploy sitting** (plan rev 2.2 with amendments A1-A6), then Task 11, the rung close, in a fresh
-session. For the sitting:
-
-- Geoff approves the one 1Password read that mints `DUBPLATE_MAGIC_LINK_SECRET` and
-  `DUBPLATE_SESSION_SECRET`, gives his display name and streamer username (his Navidrome login),
-  approves stopping the shadow timer, and approves the apply after reading `--check`'s step list.
-- `--check`'s expected set now also carries: the cloudflared recreate, a brief tunnel restart (A3);
-  the `unidecode` leaf pre-create and its narrowed grant; `npm ci --ignore-scripts` under a scrubbed
-  environment. Run `deploy.sh` from a fresh worktree: the clean-tree refusal now refuses ignored gate
-  outputs (`web/rendered-captures/`, `__pycache__`).
-- Step 3's local doctor needs `unidecode install --from <wheel cache>` into the scratch state dir first
-  (A4); doctor now has an `auth store` row.
-- The rollback follows the runbook's widened `.prev` set; disable any newly enabled timer before the
-  unit restore (9D review note).
+**Resume:** Read this file. 5d-ii Tasks 7 to 10 are done: Segment C closed at `8108605`, and the
+attended first-deploy sitting deployed `ad094f9` to the box on 2026-10-05 (see "Deployed" under Open
+items). Next: **Task 11, the rung 5 close**, in a fresh session (plan rev 2.2, "## Task 11"), then the
+brainstorm that re-plans rungs 12 and 16 under the 2026-10-05 Navidrome and Cloudflare ruling.
 
 Task 11 owes: the once-per-pass simplifier over 5d-ii's Go (9B, 9C), the architecture reads for
 `internal/serve`, `cmd/dubplate-server`, and `internal/notify`, the 5d-ii HISTORY entry, the
@@ -42,11 +28,17 @@ sitting.
 - "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 
+- **Owner ruling (Geoff, 2026-10-05):** Navidrome and all the Cloudflare infrastructure (the tunnel,
+  Access) may be removed whenever the conductor likes. Not yet planned: it reshapes rung 12 (the
+  Navidrome driver), rung 16 (the cutover with Navidrome streaming), and the 0.8 "escape hatch"; the
+  next brainstorm re-plans them. Until then the box serves through the tunnel. The streamer username
+  (`glw907`, Geoff's) maps to nothing until then.
+
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: 5d-i closed; 5d-ii Segment C closed at `8108605` in the overnight window (about 5.7M of the 8.4M flag; runs `wf_c7243d16-e90`, `wf_e638c15e-7f4`, `wf_4cf6053e-e09`, `wf_9aaaa54f-9d5`). Next: Task 10 sitting, attended |
+| 1 | main tree (master) | IDLE: 5d-i closed; 5d-ii through Task 10 done (deployed `ad094f9`, 2026-10-05). Next: Task 11, the rung 5 close |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
@@ -55,14 +47,21 @@ sitting.
 - **Owed:** the streamer spec's seven open items (rev 2.5) to its study rung; from the site spec,
   settle `init`/`upgrade` naming against `dubplate-server` and add the configuration-reference
   generator as a hook 18 consumer. Reading taken: OpenSubsonic wire types hand-written.
-- No deploy until 5d (`plans/2026-09-25-rung-5d-boundary-deployment-close.md`): nine `magic-link` env
-  keys, `doctor` exits 0, `ReadWritePaths`, the trusted proxy, the theme keys' `doctor` row, Ruling
-  6's `Referrer-Policy` residual, branding in both schemes, `deploy.sh`'s clean-`web/` build, 6a's and
-  6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy), 6c's Ruling 2
-  (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`), 5c-iv's two rows (HISTORY
-  5c-iv "To 5d"), and the transliteration runbook row (HISTORY transliteration, "The deploy transition
-  is staged": `--check` first, rollback by the `.prev` copies, never a redeploy, the wheel cache as `--from` source; in the runbook since 5d-ii Task 7). 5d's deploy
-  gate checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16.
+- **Deployed 2026-10-05 (5d-ii Task 10 sitting, attended):** binary `ad094f9` (`pre-greenfield-985`)
+  replaces `be27434`; `server.env` carries the magic-link rows (21 variables); the `auth`, `roster`
+  (0700) and `unidecode` (0755) leaves; the table installed; the serve unit installed and disabled,
+  started once under supervision (doctor exit 0, `boundary probe` refused), then stopped; beets 2.13.1
+  to 2.14.1; cloudflared recreated at 2026.9.3; one admin member. The rollback set stays on the box
+  until the next attended deploy replaces it: the `.prev` binary, `server.env`, `env`, contributors,
+  tmpfiles and beets config, `/opt/dubplate.prev`, and `/root/dubplate-units.prev` (runbook "Roll
+  back"); a binary rollback returns beets to 2.13.1 with it. The next deploy runs `deploy.sh --apply`
+  from a fresh worktree after a `--check` read. The two HMAC keys are in the age store and registry
+  (dotfiles `c463de1`).
+- To Task 11: the plan's step 7 timing gate almost never qualifies (the shadow timer's 5-minute
+  cadence lands after the 10-minute floor); the sitting ran one manual shadow pass after the import
+  instead, which met the gate's intent. 9B's direct-mode warning fires on doctor's own probe while
+  serve runs, a false alarm for a healthy doctor. A first `member list` exited 1 with stderr discarded;
+  the identical rerun exited 0.
 - To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason set,
   CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota` reservations
   and default-collection preference, 5c-iv's handoff (HISTORY 5c-iv "To rung 7", the styled 404 among
