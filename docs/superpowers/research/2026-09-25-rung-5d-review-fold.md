@@ -64,3 +64,27 @@ The fold needs code in more than six places, so it runs as three tasks at file-d
 - **SEC-5d polish, group 2 in trailers.** Nothing reads trailers before the streamer proxy; carried to
   rung 12.
 - **UNI-5d L2, a generic failure-alert hook.** Carried to packaging.
+
+## Landed
+
+The fold ran as `wf_4cf6053e-e09`, every task accepted by its `diff-reviewer` with no fix round:
+9A at `fb5411e` (`deploy.sh`, the serve unit, the runbook, disposition residual 2), 9B at `bac992e`
+(`internal/serve` and the probe), and 9C at `07f6f82` (doctor, the port bound, mail). Each Go fold
+carries a test watched failing before the fix, recorded in the run's mutation ledgers. The `deploy.sh`
+folds were proved by `--check 192.0.2.1` runs from a scratch worktree under a scratch `HOME` holding
+dummy secret values: before the fix, both npm steps saw all 44 sourced names and an untracked `zz.go`
+compiled into the stamped binary; after it, npm sees `HOME PATH` only and both refusals fire. 9D
+closes three runbook gaps the 9A review and the 9C report surfaced (the rollback copy set, step 7's
+`unidecode install`, and a stale doctor claim); its commit is recorded in HISTORY.
+
+Accepted consequences of the folds, recorded so a later pass does not re-litigate them:
+
+- The widened clean-tree refusal also refuses ignored outputs a gate leaves behind
+  (`web/rendered-captures/`, `__pycache__`), so `deploy.sh` runs from a fresh worktree; the runbook
+  says so.
+- The probe route now answers a peer relayed through a same-host trusted front with one identity
+  count, where it used to 404; this is the fold's "a trusted peer receives the identity count".
+- Once rung 12 configures a front exemption for a trusted address, doctor's probe of that address will
+  count the exempted identity header it sent. Rung 12 owns that interaction alongside `FrontExemption`.
+- `AT_EACCESS` in the auth-store row's writability check is quoted from its man page but cannot be
+  proved by a test, since the test process always has equal real and effective uids.

@@ -9,17 +9,30 @@ entries: 5d-i, transliteration, 5c-iv.
 
 ## Next action
 
-**Resume:** Read this file. Next: 5d-ii Segment C (plan rev 2.2 plus amendments A1-A6, "Task 0
-amendments" before "# Pass 5d-i"): Task 7 (runbook and trust-boundary docs, with A5's two rows), Task 8
-(the SEC/UNI disposition table), the adversarial cycle (security and universality lenses over the whole
-rung 5 subsystem), Task 9 (the fold). Then Task 10, the attended first-deploy sitting (A3, A4 apply; it
-mints `DUBPLATE_MAGIC_LINK_SECRET` and `DUBPLATE_SESSION_SECRET`), then Task 11, the rung close. The photo integrity leg gates since `b7766d6`. Push master after each close (gitleaks first). Box read-only; nothing
-deploys until 5d.
+**Resume:** Read this file. 5d-ii Segment C is closed (2026-10-05, overnight window): Task 7's runbook
+(`docs/server-runbook.md`, last at `8108605`), Task 8's disposition table (`4ee5c00`), both adversarial
+lenses (`5cf5d98`, `6d694de`, no critical), and Task 9's fold (`fb5411e`, `bac992e`, `07f6f82`,
+`8108605`; record `research/2026-09-25-rung-5d-review-fold.md`). Next: **Task 10, the attended
+first-deploy sitting** (plan rev 2.2 with amendments A1-A6), then Task 11, the rung close, in a fresh
+session. For the sitting:
 
-**Overnight window (Geoff, 2026-10-04 evening):** run 5d-i to its close, then continue in the same
-session through 5d-ii Segment C (Tasks 7, 8, the two adversarial lenses, Task 9), stopping before Task
-10's attended sitting. Cap 10.5M across both halves, flag 8.4M: at the flag, finish the task in flight,
-write STATUS, and stop. AC confirmed. No deploy; box read-only.
+- Geoff approves the one 1Password read that mints `DUBPLATE_MAGIC_LINK_SECRET` and
+  `DUBPLATE_SESSION_SECRET`, gives his display name and streamer username (his Navidrome login),
+  approves stopping the shadow timer, and approves the apply after reading `--check`'s step list.
+- `--check`'s expected set now also carries: the cloudflared recreate, a brief tunnel restart (A3);
+  the `unidecode` leaf pre-create and its narrowed grant; `npm ci --ignore-scripts` under a scrubbed
+  environment. Run `deploy.sh` from a fresh worktree: the clean-tree refusal now refuses ignored gate
+  outputs (`web/rendered-captures/`, `__pycache__`).
+- Step 3's local doctor needs `unidecode install --from <wheel cache>` into the scratch state dir first
+  (A4); doctor now has an `auth store` row.
+- The rollback follows the runbook's widened `.prev` set; disable any newly enabled timer before the
+  unit restore (9D review note).
+
+Task 11 owes: the once-per-pass simplifier over 5d-ii's Go (9B, 9C), the architecture reads for
+`internal/serve`, `cmd/dubplate-server`, and `internal/notify`, the 5d-ii HISTORY entry, the
+`CLAUDE.md` gate-description edit (state-dir leg now covers every `dubplate-server` unit and
+`DUBPLATE_SERVER_LEAVES`; `systemd-analyze` hard-required), and both budgets. Box read-only until the
+sitting.
 
 ## Owner questions
 
@@ -33,7 +46,7 @@ write STATUS, and stop. AC confirmed. No deploy; box read-only.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | ACTIVE: 5d-i closed (HISTORY 5d-i). 5d-ii Segment C under the overnight grant: Task 7 runbook `5ca9fc1`, prose fold `5262504`; Task 8 table `4ee5c00`; security lens committed `5cf5d98` (no critical or high; M1-M3, L1-L7); universality lens running; then Task 9, split at the shell/Go seam (L4 port change refused: nothing listens on 8080). Spend about 3.9M of the 8.4M flag |
+| 1 | main tree (master) | IDLE: 5d-i closed; 5d-ii Segment C closed at `8108605` in the overnight window (about 5.7M of the 8.4M flag; runs `wf_c7243d16-e90`, `wf_e638c15e-7f4`, `wf_4cf6053e-e09`, `wf_9aaaa54f-9d5`). Next: Task 10 sitting, attended |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
@@ -48,7 +61,7 @@ write STATUS, and stop. AC confirmed. No deploy; box read-only.
   6b-i's runbook rows (`KillMode=mixed`, rclone v1.74.3+, crypt remote, exit-7 remedy), 6c's Ruling 2
   (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`), 5c-iv's two rows (HISTORY
   5c-iv "To 5d"), and the transliteration runbook row (HISTORY transliteration, "The deploy transition
-  is staged": `--check` first, rollback by redeploy, the wheel cache as `--from` source). 5d's deploy
+  is staged": `--check` first, rollback by the `.prev` copies, never a redeploy, the wheel cache as `--from` source; in the runbook since 5d-ii Task 7). 5d's deploy
   gate checks 6d's two wiring items below. 6b-ii-b's runbook lines: rung 16.
 - To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason set,
   CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota` reservations

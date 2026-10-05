@@ -49,5 +49,14 @@
   (`cmd/dubplate-server/member.go:100-107`); cobra adds no help annotation, so say
   "(required)" in each flag's usage string. Found by 5d-ii Task 7, 2026-10-05
   #onboarding #project:prod-polish
+- [ ] #13 Move the magic-link token from the query (`?t=`) to the URL fragment
+  (`#t=`), so a front's access log never records a redeemable token
+  (`internal/auth/token.go:181`; the link page's client hook already strips the
+  fragment). Changes the link contract the mail, the page, and consumption share.
+  The runbook mitigation (drop the query from the access log) landed in 5d-ii.
+  From UNI-5d L1, 2026-10-05 #security #project:prod-polish
+- [ ] #14 Align `web/package.json`'s `engines` (`>=22.17`) with the Makefile's web
+  target, which refuses a Node major below 24; the runbook follows the Makefile.
+  From 5d-ii Task 9A, 2026-10-05 #infra #project:prod-polish
 
 ## Done

@@ -49,6 +49,18 @@ differentiator review.
 Each member needs a switch that keeps their listening out of the group views. Builds on
 play history as events (0.8 hook 4). Source: the 2026-09-24 differentiator review.
 
+### Unauthenticated local mail relay
+Let an operator point sign-in mail at a relay on `localhost:25` with no credentials and
+opportunistic TLS, for a host that already runs an MTA. Builds on `internal/notify`'s
+transport, which today requires authenticated submission over TLS. Whether this is a
+supported mail class is a product question. Source: rung 5d's universality review
+(UNI-5d M2), 2026-10-05.
+
+### Mail send test before go-live
+A `doctor --mail` or `notify test` verb that sends one message, so an operator proves mail
+works before the first member signs in; doctor never dials SMTP today. Source: rung 5d's
+universality review (UNI-5d M2), 2026-10-05.
+
 ## Requests
 
 None yet.
