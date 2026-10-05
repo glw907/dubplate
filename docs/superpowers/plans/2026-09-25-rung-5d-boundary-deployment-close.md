@@ -408,7 +408,7 @@ same parse and unmap. A `RemoteAddr` that does not parse is never trusted.
 
 **R-5d5. Doctor's four new rows print unconditionally, and both line-count tests take a named
 constant.** R6 requires the plan to say which way the collision goes. The rows are `client ip`, `web`,
-`bind addresses`, and `boundary probe`, printed after the backup rows. They are not registry
+`bind addresses`, and `boundary probe`, printed after the `unidecode` row and before 6c's settings rows (Task 0 amendment A2). They are not registry
 declarations, so registering them through the registry would invent a family for four fixed rows; the
 store row set this precedent (`storeRowLines`, `doctor_test.go:217-235`). `TestDoctorCmd` and
 `TestDoctorCmd_LineCountFollowsRegistry` each add a `probeRowLines` constant equal to 4, hard-coded,
@@ -730,6 +730,31 @@ pointer whose content survives is a note; a pointer whose content is gone is a b
 12. The spec's staleness questions (`:2641-2700`) that still apply to 5d: the state-dir check still
     hard-coded; `doctor` still deriving registry rows; `.gitleaksignore` still empty or its appends named.
 
+### Task 0 amendments (conductor, 2026-10-04)
+
+Task 0 ran at `311b74c` (report: `docs/superpowers/research/2026-10-04-rung-5d-i-task-0-staleness.md`;
+baseline gate green at `311b74c`). Its five blockers, ruled:
+
+- **A1 (5d-i, Tasks 4D, 5, 6).** `bbd96d2` gave `dubplate-implementer` a flat no-registry-install rule,
+  which collided with this plan's two stated exceptions. The agent definition now honors a network step
+  the dispatch names as a stated exception, so the exceptions above stand unchanged.
+- **A2 (5d-i, R-5d5, Task 2).** Translit's `unidecode` row and 6c's settings rows both follow the backup
+  rows now. The four new rows print after `unidecode` and before the settings rows; `probeRowLines`
+  sits beside `unidecodeRowLines` (`doctor_test.go:43`).
+- **A3 (5d-ii, Task 10 step 6).** The `0677934` sweep moved cloudflared to 2026.9.3, so the apply's
+  `compose.yaml` diff and `up -d` recreate the tunnel container. That recreate joins the expected set, and
+  the sitting names it to Geoff as a brief tunnel restart. It is no longer a no-op.
+- **A4 (5d-ii, Task 10 step 3).** The local pre-deploy `doctor` cannot exit 0 without a table, since
+  translit's `unidecode` row fails on an empty state directory. Step 3 first runs `unidecode install
+  --from <the verified wheel cache>` into the scratch state directory.
+- **A5 (5d-ii, Task 7).** Two runbook rows join Task 7. One is 5c-iv's: the unknown-address answer reveals
+  the first admin's contact and whether an address is a member. The other is translit's staged-deploy
+  row, with its "roll back by redeploying the previous commit" superseded by Task 10's `.prev` rollback.
+
+The heavy gate's recorded wall time is now about 8m15s (at `5530cbb`), roughly double the figure above.
+The notes (moved pointers whose content survives) are in the report, grouped per task; each task's
+dispatch carries its own.
+
 ---
 
 # Pass 5d-i: the build
@@ -815,8 +840,8 @@ Model: `sonnet`. Depends on Task 1.
 Files:
 - Create: `cmd/dubplate-server/doctorprobe.go` (the three offline rows' status functions and Task 3's
   row), `cmd/dubplate-server/doctorprobe_test.go`
-- Modify: `cmd/dubplate-server/doctor.go` (the four rows' print calls after the backup rows and the
-  exit condition), `cmd/dubplate-server/doctor_test.go` (`probeRowLines`, R-5d5),
+- Modify: `cmd/dubplate-server/doctor.go` (the four rows' print calls after the `unidecode` row, before the settings rows, and the
+  exit condition), `cmd/dubplate-server/doctor_test.go` (`probeRowLines`, beside `unidecodeRowLines` at `:43`, R-5d5),
   `cmd/dubplate-server/check_test.go` (the shared fixture's port)
 
 Outcomes:

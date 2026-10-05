@@ -44,7 +44,9 @@ or reshaped symbol is a concern, and neither is a license to re-architect.
 - **No network.** Never run `make derive`, never call MusicBrainz or any host; every test
   answers from a stub server or committed fixtures. A dependency bump's registry install and
   any upstream document fetch belong to the conductor: report BLOCKED naming the network step,
-  and resume once the conductor has run it.
+  and resume once the conductor has run it. The one exception is a network step the dispatch
+  prompt names as a stated exception, such as a lockfile-pinned `npm ci --prefix web` inside a
+  `deploy.sh --check 192.0.2.1` evidence run; run exactly that step and nothing wider.
 - **Local servers are shared ground.** Another session shares this machine. Serve any manual
   render on an ephemeral loopback port (`127.0.0.1:0`), never 4173 or 5173, never `vite
   preview` or `vite dev`. Stop every server and browser you start before you report, failure

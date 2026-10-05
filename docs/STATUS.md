@@ -24,7 +24,7 @@ deploys until 5d.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: transliteration closed at the ledger fold (code at `5530cbb`); photo integrity leg added at `b7766d6`; next: 5d-i |
+| 1 | main tree (master) | ACTIVE: 5d-i opened 2026-10-04 at `311b74c` (pass class `auth-data`, heavy gate); Task 0 running; dependency sweep: the 2026-10-04 sweep (`0677934`, `b3c2578`) covers this pass |
 | 2 | none | 6c-fix merged at `0e3272c`..`8950de7`; worktree `lane-2-6c` removed |
 | photos | main tree (master), owned by the separate docs session | ROUND 1 CLOSED at `c10c0f2` (116 picks, ~13M against a raised 7.5M ceiling); round two unplanned: targets in `research/photo-curation-rounds/round-1.md` (Round close) and `artist-sweep-list.md`; one Run-D.M.C. frame awaits Geoff's call |
 
