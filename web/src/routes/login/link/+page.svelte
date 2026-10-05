@@ -7,8 +7,10 @@ scanner's GET cannot burn the link. The token comes from
 the address bar before kit's router read the URL; this page never reads
 `location` or kit's `page.url` for it. `h1` carries the page's own state
 (never the site name, which the login page's heading already is), and
-takes focus once the page settles into a terminal state (W7.16), so a
-terminal state is never also announced.
+takes focus when the confirm answer moves the page into a terminal state
+(W7.16), so a terminal state is never also announced. Arriving with no
+token is not a transition, so the page leaves focus where the browser
+put it.
 
 The `signed_in` state offers no link onward: the consume answer does not
 say whether the member is an admin, and the members page answers not
@@ -40,12 +42,6 @@ found to anyone else.
     terminal === 'signed_in' ? TITLES.loginLinkSignedIn : terminal === null ? TITLES.loginLink : TITLES.loginLinkRefused
   );
 
-  // W7.16: focus moves to the terminal heading once it mounts, in an
-  // effect keyed on the discriminant plus tick().
-  $effect(() => {
-    if (terminal !== null) tick().then(() => heading?.focus());
-  });
-
   async function confirm(): Promise<void> {
     if (submitting || token === null) return;
     submitting = true;
@@ -55,6 +51,10 @@ found to anyone else.
       if (result.outcome === 'signed_in' || result.outcome === 'refused') {
         terminal = result.outcome;
         announce('', 'polite');
+        // W7.16: the answer is the async transition, so focus moves to
+        // the terminal heading once it has rendered.
+        await tick();
+        heading?.focus();
       } else {
         pending = result;
         announce(outcomeText(result.outcome, result.adminContact), outcomePoliteness(result.outcome));

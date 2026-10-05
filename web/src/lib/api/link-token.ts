@@ -3,9 +3,9 @@
  * nowhere else. The client hook's `init` moves it off the address bar
  * before kit's router first reads the URL, so kit's own `page.url`
  * never carries it. That matters because kit writes `page.url` back
- * into the address bar and history on its own schedule: its focus
- * reset on a link with a fragment (`#main`, say) replaces the history
- * entry with `page.url` after the page has rendered, which would put
+ * into the address bar and history on its own schedule: its first
+ * navigation on a link with a fragment (`#main`, say) replaces the
+ * history entry with `page.url`, fragment included, which would put
  * the token back if kit had ever seen it.
  */
 import { resolve } from '$app/paths';

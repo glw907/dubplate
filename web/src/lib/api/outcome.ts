@@ -5,7 +5,7 @@
  * roster outcomes, and the three synthetic values `#lib/api/post.ts`
  * answers with when nothing real came back.
  */
-import type { AdminContact } from './auth';
+import type { AdminContact } from './auth.js';
 import { AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE, ROSTER_OUTCOMES, unknownAddressLine } from '#lib/copy/deck.js';
 
 export type OutcomeClass = 'status' | 'warning' | 'error';

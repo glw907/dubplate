@@ -351,6 +351,27 @@ async function openBooted(context: BrowserContext, base: string, served: ServedP
 }
 
 /**
+ * Moves the sequential focus starting point to the top of the document,
+ * leaving nothing focused, so the next Tab lands on the first tabbable
+ * element. A blur alone leaves the starting point on the blurred
+ * element, so a page that holds focus on its heading (or a fragment's
+ * target) would start a Tab mid-page; focusing the body and then
+ * dropping its tabindex moves the starting point to the document's
+ * start.
+ */
+async function resetFocusStart(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    const body = document.body;
+    const tabindex = body.getAttribute('tabindex');
+    body.tabIndex = -1;
+    body.focus({ preventScroll: true });
+    if (tabindex === null) body.removeAttribute('tabindex');
+    else body.setAttribute('tabindex', tabindex);
+  });
+}
+
+/**
  * Resolves after two animation frames: the layout's announcer writes a
  * live region's text on the frame after a page's call, so a row reads
  * the regions only once that frame has run.
@@ -1726,20 +1747,7 @@ async function walkFocusOrder(
   palette: 'label' | 'label-night',
   targets: TabTarget[]
 ): Promise<{ fixture: boolean; property: boolean; detail: string }> {
-  // The walk starts at the top of the document. A blur alone leaves the
-  // sequential focus starting point on the blurred element, so a page
-  // that focused its own heading on load would start the walk mid-page;
-  // focusing the body and then dropping its tabindex moves the starting
-  // point to the document's start and leaves nothing focused.
-  await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur();
-    const body = document.body;
-    const tabindex = body.getAttribute('tabindex');
-    body.tabIndex = -1;
-    body.focus({ preventScroll: true });
-    if (tabindex === null) body.removeAttribute('tabindex');
-    else body.setAttribute('tabindex', tabindex);
-  });
+  await resetFocusStart(page);
   const want = hexRGBA(INK_PRIMARY[palette]);
   const wantText = `solid 2px ${INK_PRIMARY[palette]} offset 2px`;
   const problems: string[] = [];
@@ -2530,6 +2538,7 @@ async function staticMarkupRows(browser: Browser, endpoints: Endpoints): Promise
         }).length,
         base300Controls: document.querySelectorAll('[class*="base-300"]').length
       }));
+      await resetFocusStart(visit.page);
       await visit.page.keyboard.press('Tab');
       const firstFocused = await visit.page.evaluate(() => {
         const el = document.activeElement;
@@ -3342,28 +3351,56 @@ async function interstitialSignedInRow(browser: Browser, endpoints: Endpoints): 
   }
 }
 
+/** One no-token load of the interstitial: the stripped URL as reloaded, or with a fragment naming `main`. */
+interface ReloadVariant {
+  id: string;
+  fragment: string;
+  /** The settled `document.activeElement`, as its tag plus `#id`. */
+  wantFocus: string;
+}
+
+const RELOAD_VARIANTS: ReloadVariant[] = [
+  { id: 'auth/interstitial/refused-reload', fragment: '', wantFocus: 'BODY' },
+  // A load whose fragment names `main` leaves focus on `main`, the
+  // fragment's target (it carries `tabindex="-1"`); the heading still
+  // must not take it.
+  { id: 'auth/interstitial/refused-reload/fragment', fragment: '#main', wantFocus: 'MAIN#main' }
+];
+
 /**
  * A reload of the stripped URL (no token at all): the missing-token
  * line, never the used-link refusal (nothing was spent, so the mailed
- * link still works), and no request.
+ * link still works), and no request. Arriving here is not an async
+ * transition, so the heading does not take focus (W7.16): focus
+ * settles where the browser puts it, on the body, or on the fragment's
+ * target when the URL names one.
  */
-async function interstitialRefusedReloadRow(browser: Browser, endpoints: Endpoints): Promise<void> {
-  const id = 'auth/interstitial/refused-reload';
-  const context = await browser.newContext();
-  try {
-    const from = (await requestLog(endpoints.requestLog)).length;
-    const visit = await openBooted(context, endpoints.base, PAGES[1]);
-    const text = (await visit.page.locator('#outcome').textContent()) ?? '';
-    const records = (await requestLog(endpoints.requestLog)).slice(from);
-    const consumeSent = records.some((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
-    await report({
-      id,
-      fixture: true,
-      property: text === LINK_TOKEN_MISSING && !consumeSent,
-      detail: `outcome text ${JSON.stringify(text)} (want ${JSON.stringify(LINK_TOKEN_MISSING)}); consume-link POST sent ${consumeSent}`
-    });
-  } finally {
-    await context.close();
+async function interstitialRefusedReloadRows(browser: Browser, endpoints: Endpoints): Promise<void> {
+  for (const variant of RELOAD_VARIANTS) {
+    const id = variant.id;
+    const context = await browser.newContext();
+    try {
+      const from = (await requestLog(endpoints.requestLog)).length;
+      const visit = await openBooted(context, endpoints.base, { ...PAGES[1], path: PAGES[1].path + variant.fragment });
+      const text = (await visit.page.locator('#outcome').textContent()) ?? '';
+      // Two frames give a mount-time focus call (an effect, a tick, a
+      // frame callback) the time to have run before focus is read.
+      await afterFrames(visit.page);
+      const focus = await visit.page.evaluate(() => {
+        const el = document.activeElement;
+        return el === null ? 'null' : `${el.tagName}${el.id === '' ? '' : `#${el.id}`}`;
+      });
+      const records = (await requestLog(endpoints.requestLog)).slice(from);
+      const consumeSent = records.some((r) => r.method === 'POST' && r.path.endsWith('/consume-link'));
+      await report({
+        id,
+        fixture: true,
+        property: text === LINK_TOKEN_MISSING && !consumeSent && focus === variant.wantFocus,
+        detail: `outcome text ${JSON.stringify(text)} (want ${JSON.stringify(LINK_TOKEN_MISSING)}); consume-link POST sent ${consumeSent}; settled focus ${focus} (want ${variant.wantFocus})`
+      });
+    } finally {
+      await context.close();
+    }
   }
 }
 
@@ -3393,11 +3430,15 @@ async function interstitialRefusedRow(browser: Browser, endpoints: Endpoints): P
       .locator('#outcome a')
       .getAttribute('href', { timeout: 2_000 })
       .catch(() => null);
+    const focused = await visit.page
+      .waitForFunction(() => document.activeElement?.tagName === 'H1', undefined, { timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false);
     await report({
       id,
       fixture: settled,
-      property: text === AUTH_OUTCOMES.refused && linkHref !== null,
-      detail: `outcome text ${JSON.stringify(text)}; sign-in link href ${linkHref}`
+      property: text === AUTH_OUTCOMES.refused && linkHref !== null && focused,
+      detail: `outcome text ${JSON.stringify(text)}; sign-in link href ${linkHref}; heading focused ${focused}`
     });
   } finally {
     await context.close();
@@ -5360,7 +5401,7 @@ async function main(): Promise<void> {
     await loginDifferentAddressFocusRow(browser, endpoints);
     await interstitialOrderingRows(browser, endpoints);
     await interstitialSignedInRow(browser, endpoints);
-    await interstitialRefusedReloadRow(browser, endpoints);
+    await interstitialRefusedReloadRows(browser, endpoints);
     await interstitialRefusedRow(browser, endpoints);
     await interstitialFulfilledRows(browser, endpoints);
     await membersAddRow(browser, endpoints);

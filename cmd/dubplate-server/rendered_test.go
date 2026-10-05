@@ -190,6 +190,7 @@ var renderedBaseManifest = []renderedRow{
 	{id: "auth/interstitial/token-order/fragment", consumptions: 1},
 	{id: "auth/interstitial/signed-in", consumptions: 1},
 	{id: "auth/interstitial/refused-reload"},
+	{id: "auth/interstitial/refused-reload/fragment"},
 	{id: "auth/interstitial/refused"},
 	{id: "auth/interstitial/rate-limited"},
 	{id: "auth/interstitial/too-large"},

@@ -1,8 +1,9 @@
 /**
  * The server-file check. Server-only SvelteKit files and form actions
  * are forbidden (CLAUDE.md's web stack rule): the Go binary is the
- * only server, so a `+page.server.ts` or a `hooks.server.ts` would run
- * nowhere. An absent or empty `src` fails rather than passing on an
+ * only server, so a `+page.server.ts`, a `hooks.server.ts`, or an
+ * `instrumentation.server.ts` (which kit enables by its presence alone)
+ * would run nowhere. An absent or empty `src` fails rather than passing on an
  * empty iteration.
  *
  * The forbidden set is route and hooks entry points, which is a
@@ -27,7 +28,8 @@ export function isForbiddenServerFile(path: string): boolean {
     /^\+page\.server\.(ts|js)$/.test(name) ||
     /^\+layout\.server\.(ts|js)$/.test(name) ||
     /^\+server\.(ts|js)$/.test(name) ||
-    /^hooks\.server\.(ts|js)$/.test(name)
+    /^hooks\.server\.(ts|js)$/.test(name) ||
+    /^instrumentation\.server\.(ts|js)$/.test(name)
   );
 }
 

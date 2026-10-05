@@ -8,14 +8,24 @@ import { resolve } from '$app/paths';
 
 const LOGIN_PAGE = 'login';
 
+const loginPath = resolve(LOGIN_PAGE);
+if (loginPath.startsWith('#') || !loginPath.endsWith(`/${LOGIN_PAGE}`)) {
+  throw new Error(`resolve('${LOGIN_PAGE}') answered ${JSON.stringify(loginPath)}, not a path ending in /${LOGIN_PAGE}`);
+}
+const baseRoot = loginPath.slice(0, -LOGIN_PAGE.length);
+
 /**
  * The path of the server endpoint `name` under the runtime base. The
  * endpoints sit at the base's root beside the pages, and `resolve`
  * accepts only a page's own path, so the base root is read off the
- * login page's resolved path.
+ * login page's resolved path. That holds under path routing only: hash
+ * routing resolves a page to a `#/` URL with no base root to read, so
+ * the module throws at load on a `#` answer, or on any answer not
+ * ending in the login page's own path, rather than compose a wrong
+ * endpoint.
  */
 export function endpointPath(name: string): string {
-  return resolve(LOGIN_PAGE).slice(0, -LOGIN_PAGE.length) + name;
+  return baseRoot + name;
 }
 
 /**
