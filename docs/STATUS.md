@@ -51,21 +51,27 @@ sitting.
 - **Owed:** the streamer spec's seven open items (rev 2.5) to its study rung; from the site spec,
   settle `init`/`upgrade` naming against `dubplate-server` and add the configuration-reference
   generator as a hook 18 consumer. Reading taken: OpenSubsonic wire types hand-written.
-- **Deployed 2026-10-05 (5d-ii Task 10 sitting, attended):** binary `ad094f9` (`pre-greenfield-985`)
-  replaces `be27434`; `server.env` carries the magic-link rows (21 variables); the `auth`, `roster`
-  (0700) and `unidecode` (0755) leaves; the table installed; the serve unit installed and disabled,
-  started once under supervision (doctor exit 0, `boundary probe` refused), then stopped; beets 2.13.1
-  to 2.14.1; cloudflared recreated at 2026.9.3; one admin member. The rollback set stays on the box
-  until the next attended deploy replaces it: the `.prev` binary, `server.env`, `env`, contributors,
-  tmpfiles and beets config, `/opt/dubplate.prev`, and `/root/dubplate-units.prev` (runbook "Roll
-  back"); a binary rollback returns beets to 2.13.1 with it. The next deploy runs `deploy.sh --apply`
-  from a fresh worktree after a `--check` read. The two HMAC keys are in the age store and registry
-  (dotfiles `c463de1`).
+- **Deployed 2026-10-05 (5d-ii Task 10 sitting, attended), then the incumbent retired the same day.**
+  The box now runs only dubplate-server: binary `d1e93e9` (redeployed after the repo retired the stack at
+  `d1e93e9`; doctor exit 0, shadow disabled), `server.env` (15 rows), the serve unit (installed,
+  disabled), the `auth`, `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library`
+  (6.6 GB). Retired under the 2026-10-05 rulings: Navidrome and cloudflared (and the compose stack),
+  Docker and containerd (packages, data, group, repo), beets, `uv`, `msmtp`, `yq`, the old `dubplate`
+  binary and its 14 units (shadow included), `/etc/dubplate/env`, the old rclone credentials, the
+  tmpfiles entry, `/opt/dubplate`, and the old data directories. `tar` was reinstalled after `dnf`
+  removed it as a Docker dependency. History archived at `/root/musicbox-retired-2026-10-05.tar.gz`
+  (Navidrome state, the beets database, old configs; 0600). External: the `musicbox` tunnel and the
+  `music.907.life` record deleted; the four `dubplate-*` pings checks removed (pings `c79320a`); 42
+  retired names deleted from the age store and registry with `secret-set.sh --delete` (dotfiles
+  `abbeb40`, `e7db1e7`). No rollback set remains:
+  the `.prev` copies rolled back to the retired stack. The next deploy runs `deploy.sh --apply` from a
+  fresh worktree after a `--check` read.
 - To Task 11: the plan's step 7 timing gate almost never qualifies (the shadow timer's 5-minute
   cadence lands after the 10-minute floor); the sitting ran one manual shadow pass after the import
   instead, which met the gate's intent. 9B's direct-mode warning fires on doctor's own probe while
-  serve runs, a false alarm for a healthy doctor. A first `member list` exited 1 with stderr discarded;
-  the identical rerun exited 0.
+  serve runs, a false alarm for a healthy doctor. Two "exit 1" readings at the sitting (`member list`, a box
+  doctor) were the conductor's `systemd-run --pipe > file` redirect as root, not the binary; reruns
+  exited 0. `.claude/settings.json` keeps two dead `docker compose` permission entries for Geoff to drop.
 - To rung 7: guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason set,
   CREDITS, picked images at stable paths an export manifest can list, 6c's `member_quota` reservations
   and default-collection preference, 5c-iv's handoff (HISTORY 5c-iv "To rung 7", the styled 404 among
