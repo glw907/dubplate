@@ -16,7 +16,7 @@ print a secret value; name-and-length checks only. On-box work over SSH as root
    step's hand verification (config resolution, SMTP/R2/Navidrome reachability,
    ping URL syntax) once the binary is deployed — run it as step 2's smoke test
    rather than checking each dependency by hand.
-2. **Deploy.** `bash scripts/deploy.sh --check`, review, then `bash scripts/deploy.sh`.
+2. **Deploy.** `bash scripts/deploy.sh --check`, review, then `bash scripts/deploy.sh --apply`.
 3. **Acceptance.** Containers healthy with zero restarts after 60s; tunnel healthy
    (read-only GET on cfd_tunnel b6781175-000b-40c3-a54a-05906ab25037); from the
    workstation, music.907.life serves Navidrome (no Access) and inbox.907.life
@@ -191,7 +191,7 @@ below gives the creation recipe for a genuine rebuild only).
    the path-scoped `music.907.life`/`^/upload` rule first, the bare
    `music.907.life` rule second, before the catch-all.
 4. **Deploy.** `bash scripts/deploy.sh --check`, review, then `bash
-   scripts/deploy.sh`. This rsyncs `dubplate-serve.service` and the
+   scripts/deploy.sh --apply`. This rsyncs `dubplate-serve.service` and the
    `dubplate-import-nudge.path`/`.service` pair; installs and activates
    `/etc/tmpfiles.d/dubplate.conf`, which creates `/run/dubplate/
    nudge-triggers` (only that — `/srv/music/uploads` is a separate,

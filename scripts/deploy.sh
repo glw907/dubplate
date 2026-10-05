@@ -16,12 +16,34 @@ set -euo pipefail
 # separate supervised flip step left to run.
 #
 # Usage:
-#   deploy.sh [--check] [HOST]
+#   deploy.sh [--check | --apply] [HOST]
 # HOST defaults to `hcloud server ip musicbox` (the box's Hetzner server
 # name, unrenamed -- see docs/STATUS.md on the estate rename's box-side
-# remainder) when omitted. --check diffs and reports every step without
-# applying any of them, and without ever writing decrypted secret values to
-# a log or a local file.
+# remainder) when omitted. With no flag, or with --check, the script diffs
+# and reports every step without applying any of them, and without ever
+# writing decrypted secret values to a log or a local file. Only --apply
+# writes the box, so a dropped flag is safe. --apply and --check together
+# are refused.
+#
+# The local half runs in every mode, before the first remote write: the
+# script refuses a working tree with a modified tracked file or an
+# untracked file under web/, then runs npm ci and the Vite build under
+# web/ and cross-compiles the stamped binary. A dirty tree or a failed
+# build aborts before anything reaches the box.
+#
+# --apply writes the whole estate, not one component:
+#   - rsyncs compose.yaml and config/ to /opt/dubplate with --delete;
+#   - rsyncs every unit in UNIT_FILES to /etc/systemd/system;
+#   - installs /etc/tmpfiles.d/dubplate.conf and runs systemd-tmpfiles;
+#   - creates and chowns the state, shadow, backup-staging, and uploads
+#     directories;
+#   - stages the dubplate-server binary, runs its unidecode install on the
+#     box (a PyPI download), and swaps it onto /usr/local/bin;
+#   - installs /etc/dubplate/env and /etc/dubplate/server.env, and
+#     contributors.yaml;
+#   - runs docker compose up -d;
+#   - daemon-reloads and runs systemctl enable --now on TIMER_UNITS;
+#   - installs beets via uv as the music user.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_TEMPLATE="$REPO_ROOT/env/dubplate.env.template"
@@ -74,12 +96,17 @@ UNIT_FILES=(
 SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 \
   -o ControlMaster=auto -o ControlPersist=60s -o "ControlPath=$HOME/.ssh/dubplate-deploy-%r@%h:%p")
 
-check_only=false
+check_only=true
+check_flag=false
+apply_flag=false
 HOST=""
 for arg in "$@"; do
   case "$arg" in
   --check)
-    check_only=true
+    check_flag=true
+    ;;
+  --apply)
+    apply_flag=true
     ;;
   -*)
     echo "Unknown argument: $arg" >&2
@@ -90,6 +117,14 @@ for arg in "$@"; do
     ;;
   esac
 done
+
+if $check_flag && $apply_flag; then
+  echo "deploy.sh: --check and --apply are mutually exclusive; pass one, or neither to check." >&2
+  exit 1
+fi
+if $apply_flag; then
+  check_only=false
+fi
 
 # --- workstation secrets ---------------------------------------------
 # HCLOUD_TOKEN (to look up HOST) and every value env/dubplate.env.template
@@ -246,7 +281,41 @@ if [ "${#render_missing[@]}" -gt 0 ]; then
   exit 1
 fi
 
-echo "dubplate deploy -> $SSH_TARGET$($check_only && echo ' (--check: nothing will be applied)')"
+if $check_only; then
+  echo "dubplate deploy -> $SSH_TARGET (check: nothing will be applied; pass --apply to write the box)"
+else
+  echo "dubplate deploy -> $SSH_TARGET (APPLY: writing the box)"
+fi
+
+# --- local builds: committed source only, built before any remote write --
+# `git describe --dirty` below would stamp a reviewed commit's id on
+# unreviewed code, and an untracked file under web/ would be embedded by
+# go:embed, so either refuses the run before the first remote write.
+dirty_tracked="$(git -C "$REPO_ROOT" status --porcelain --untracked-files=no)"
+dirty_web="$(git -C "$REPO_ROOT" status --porcelain -- web/)"
+if [ -n "$dirty_tracked" ] || [ -n "$dirty_web" ]; then
+  echo "deploy.sh: refusing to deploy a tree that differs from its commit:" >&2
+  printf '%s\n%s\n' "$dirty_tracked" "$dirty_web" | sed '/^$/d' | sort -u | sed 's/^/  /' >&2
+  exit 1
+fi
+
+# The stamp pairs the human-facing version (`git describe`) with the exact
+# commit the box's Go matcher runs (`git rev-parse HEAD`, independent of
+# tags). main.go's matcherCommit stays "dev" (and shadow observe refuses to
+# run) on any build that skips these -X flags, so a bare `go build` or
+# `make build-linux` outside this script never reaches the box stamped.
+DUBPLATE_STAMP_VERSION="$(git -C "$REPO_ROOT" describe --tags --always --dirty)"
+DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+
+# `vite build` alone: `make web` would run the gates a second time. Nothing
+# Node ships to the box.
+echo "== local build: npm ci --prefix web =="
+npm ci --prefix "$REPO_ROOT/web"
+echo "== local build: npm run build --prefix web =="
+npm run build --prefix "$REPO_ROOT/web"
+echo "== local build: make build-linux =="
+make -C "$REPO_ROOT" build-linux LDFLAGS="-X main.version=$DUBPLATE_STAMP_VERSION -X main.matcherCommit=$DUBPLATE_STAMP_MATCHER_COMMIT"
+DUBPLATE_SERVER_BINARY="$REPO_ROOT/dubplate-server-linux-amd64"
 
 # --- repo config: compose.yaml + config/ -------------------------------
 echo "== repo config -> $SSH_TARGET:$REMOTE_DIR =="
@@ -332,28 +401,11 @@ run_remote "mkdir -p $DUBPLATE_SHADOW_DIR && chown music:music $DUBPLATE_LIB_DIR
 # binary and its step retire together at rung 16, once every unit has
 # moved over.
 #
-# Cross-compiles via the Makefile's build-linux target (CGO_ENABLED=0
-# GOOS=linux GOARCH=amd64), the same artifact `make check` never ships
-# itself. The build runs under --check too: it only writes the gitignored
-# local binary (never touches the box), and running it is what lets
-# --check's rsync -n report a real diff instead of guessing from a stale
-# local copy.
+# The cross-compiled, stamped binary is built above, before the first
+# remote write, in both modes: it only writes the gitignored local file, and
+# having it is what lets --check's rsync -n report a real diff instead of
+# guessing from a stale local copy.
 #
-# The plan's "web build before Go cross-compile" ordering (so `go:embed`
-# picks up real Vite output, not just the placeholder) is U9's concern,
-# not this pass's -- no web/ build step exists yet for this line to order
-# against.
-#
-# DUBPLATE_STAMP_VERSION and DUBPLATE_STAMP_MATCHER_COMMIT are the two
-# values that make the smoke step's own assertion meaningful: main.go's
-# matcherCommit stays "dev" (and shadow observe refuses to run) on any
-# build that skips these -X flags, so a bare `go build` or `make
-# build-linux` run outside this script never reaches the box stamped.
-# `git describe` covers the human-facing version; `git rev-parse HEAD`
-# pins the exact commit the box's Go matcher runs, independent of tags.
-DUBPLATE_STAMP_VERSION="$(git -C "$REPO_ROOT" describe --tags --always --dirty)"
-DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
-
 # The binary is staged at .new, not swapped onto the live path here: the
 # staged copy installs its own transliteration table (below) and only a
 # verified install swaps it onto /usr/local/bin/dubplate-server, so a timer
@@ -361,8 +413,6 @@ DUBPLATE_STAMP_MATCHER_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 # already found its table -- never a new one with none.
 DUBPLATE_SERVER_STAGED="/usr/local/bin/dubplate-server.new"
 echo "== dubplate-server binary -> $SSH_TARGET:$DUBPLATE_SERVER_STAGED =="
-make -C "$REPO_ROOT" build-linux LDFLAGS="-X main.version=$DUBPLATE_STAMP_VERSION -X main.matcherCommit=$DUBPLATE_STAMP_MATCHER_COMMIT"
-DUBPLATE_SERVER_BINARY="$REPO_ROOT/dubplate-server-linux-amd64"
 if $check_only; then
   # Named against the LIVE path, not the staged one: rsync -n against a
   # path that never exists on the box (.new is removed by the mv below on
