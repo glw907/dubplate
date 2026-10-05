@@ -155,6 +155,10 @@ if ! command -v gitleaks >/dev/null 2>&1; then
   echo "check.sh: gitleaks not found; install it (brew install gitleaks)." >&2
   exit 1
 fi
+if ! command -v systemd-analyze >/dev/null 2>&1; then
+  echo "check.sh: systemd-analyze not found; install systemd (it verifies every unit under systemd/)." >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------- scope
 
@@ -640,34 +644,94 @@ if [ "$mode" != "reduced" ]; then
   # fallback: `--recursive-errors=no` alone does not suppress the
   # missing-executable complaint, so the filter is the actual mechanism doing
   # the work.
-  if command -v systemd-analyze >/dev/null 2>&1; then
-    unit_files=(systemd/*.service systemd/*.timer systemd/*.path)
-    verify_output="$(systemd-analyze verify --recursive-errors=no "${unit_files[@]}" 2>&1 || true)"
-    unexpected="$(grep -v -E ': Command /usr/local/bin/[A-Za-z0-9_.-]+ is not executable: No such file or directory$' <<<"$verify_output" || true)"
-    if [ -n "$unexpected" ]; then
-      echo "$unexpected" >&2
-      status=1
-    else
-      echo "check.sh: systemd-analyze verify clean, modulo the expected box-only ExecStart paths."
-    fi
+  unit_files=(systemd/*.service systemd/*.timer systemd/*.path)
+  verify_output="$(systemd-analyze verify --recursive-errors=no "${unit_files[@]}" 2>&1 || true)"
+  unexpected="$(grep -v -E ': Command /usr/local/bin/[A-Za-z0-9_.-]+ is not executable: No such file or directory$' <<<"$verify_output" || true)"
+  if [ -n "$unexpected" ]; then
+    echo "$unexpected" >&2
+    status=1
   else
-    echo "check.sh: systemd-analyze not found; skipping unit verification." >&2
+    echo "check.sh: systemd-analyze verify clean, modulo the expected box-only ExecStart paths."
   fi
 
-  echo "== state-dir agreement (env template, shadow unit, deploy.sh) =="
-  # DUBPLATE_STATE_DIR (env/dubplate-server.env.template), the shadow
-  # unit's ReadWritePaths= leaf, and deploy.sh's DUBPLATE_LIB_DIR
-  # assignment are three copies of one path with nothing but this leg
-  # holding them together: an edit to one alone gives a unit that
-  # starts and fails at first write with EROFS under
-  # ProtectSystem=strict (see the derivation comment above
-  # ReadWritePaths= in systemd/dubplate-shadow.service).
+  echo "== state-dir agreement (env template, every dubplate-server unit, deploy.sh) =="
+  # DUBPLATE_STATE_DIR (env/dubplate-server.env.template), each
+  # dubplate-server unit's ReadWritePaths= leaves, and deploy.sh's
+  # DUBPLATE_LIB_DIR and DUBPLATE_SERVER_LEAVES are copies of one tree with
+  # nothing but this leg holding them together: an edit to one alone gives a
+  # unit that fails at start with "Failed to set up mount namespacing" (a
+  # leaf deploy.sh never creates) or at first write with EROFS under
+  # ProtectSystem=strict (see the derivation comments above ReadWritePaths=
+  # in the units).
   template_state_dir="$(sed -n 's/^DUBPLATE_STATE_DIR=//p' env/dubplate-server.env.template)"
-  unit_read_write_paths="$(sed -n 's/^ReadWritePaths=//p' systemd/dubplate-shadow.service)"
   deploy_lib_dir="$(sed -n 's/^DUBPLATE_LIB_DIR="\(.*\)"$/\1/p' scripts/deploy.sh)"
-  echo "check.sh: DUBPLATE_STATE_DIR=$template_state_dir ReadWritePaths=$unit_read_write_paths DUBPLATE_LIB_DIR=$deploy_lib_dir"
-  if [ "$unit_read_write_paths" != "${template_state_dir}/shadow" ] || [ "$deploy_lib_dir" != "$template_state_dir" ]; then
-    echo "check.sh: state-dir literals disagree (want ReadWritePaths=${template_state_dir}/shadow and DUBPLATE_LIB_DIR=${template_state_dir})" >&2
+  leaves_line="$(sed -n 's/^DUBPLATE_SERVER_LEAVES=(\(.*\))$/\1/p' scripts/deploy.sh)"
+  read -r -a server_leaves <<<"$leaves_line"
+  echo "check.sh: DUBPLATE_STATE_DIR=$template_state_dir DUBPLATE_LIB_DIR=$deploy_lib_dir DUBPLATE_SERVER_LEAVES=(${server_leaves[*]})"
+  state_ok=true
+  if [ -z "$template_state_dir" ] || [ "$deploy_lib_dir" != "$template_state_dir" ]; then
+    echo "check.sh: state-dir: DUBPLATE_LIB_DIR ($deploy_lib_dir) does not equal the template's DUBPLATE_STATE_DIR ($template_state_dir)" >&2
+    state_ok=false
+  fi
+  if [ "${#server_leaves[@]}" -eq 0 ]; then
+    echo "check.sh: state-dir: scripts/deploy.sh has no DUBPLATE_SERVER_LEAVES=(...) line" >&2
+    state_ok=false
+  fi
+  server_units=()
+  for unit in systemd/*.service; do
+    if grep -q '^ExecStart=/usr/local/bin/dubplate-server ' "$unit"; then
+      server_units+=("$unit")
+    fi
+  done
+  if [ "${#server_units[@]}" -eq 0 ]; then
+    echo "check.sh: state-dir: no unit under systemd/ has an ExecStart= naming /usr/local/bin/dubplate-server" >&2
+    state_ok=false
+  fi
+  for unit in "${server_units[@]}"; do
+    while read -r -a entries; do
+      for entry in "${entries[@]}"; do
+        case "$entry" in
+          -* | +*)
+            echo "check.sh: state-dir: $unit: ReadWritePaths= entry $entry carries a prefix (a missing leaf would start and fail at first write)" >&2
+            state_ok=false
+            continue
+            ;;
+        esac
+        if [ "$entry" = "$template_state_dir" ]; then
+          continue
+        fi
+        leaf="${entry#"$template_state_dir"/}"
+        if [ "$leaf" = "$entry" ] || [[ "$leaf" == */* ]] || [ -z "$leaf" ]; then
+          echo "check.sh: state-dir: $unit: ReadWritePaths= entry $entry is not a leaf directly under $template_state_dir" >&2
+          state_ok=false
+          continue
+        fi
+        found=false
+        for known in "${server_leaves[@]}"; do
+          if [ "$known" = "$leaf" ]; then
+            found=true
+          fi
+        done
+        if ! $found; then
+          echo "check.sh: state-dir: $unit: ReadWritePaths= leaf $leaf is not in DUBPLATE_SERVER_LEAVES (deploy.sh would not create it)" >&2
+          state_ok=false
+        fi
+      done
+    done < <(sed -n 's/^ReadWritePaths=//p' "$unit")
+  done
+  loop_body="$(awk '/^for [a-z_]+ in "\$\{DUBPLATE_SERVER_LEAVES\[@\]\}"; do$/ {on=1; next} on && /^done$/ {exit} on {print}' scripts/deploy.sh)"
+  if [ -z "$loop_body" ]; then
+    echo "check.sh: state-dir: scripts/deploy.sh has no loop iterating \"\${DUBPLATE_SERVER_LEAVES[@]}\"" >&2
+    state_ok=false
+  elif ! grep -q 'install -d' <<<"$loop_body"; then
+    echo "check.sh: state-dir: the DUBPLATE_SERVER_LEAVES loop in scripts/deploy.sh never runs install -d" >&2
+    state_ok=false
+  fi
+  if ! grep -qF "run_remote \"mkdir -p \$DUBPLATE_SHADOW_DIR" scripts/deploy.sh; then
+    echo "check.sh: state-dir: scripts/deploy.sh has no pre-create line for \$DUBPLATE_SHADOW_DIR" >&2
+    state_ok=false
+  fi
+  if ! $state_ok; then
     status=1
   fi
 fi

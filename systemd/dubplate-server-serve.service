@@ -1,0 +1,79 @@
+[Unit]
+Description=dubplate-server: the web surface, sign-in, and the boundary probe
+# Why docker.service and not network-online.target: serve binds the bridge
+# gateway address alongside loopback (the compose stack's pinned network),
+# so the bridge must exist before the listener opens. It reaches no
+# outbound host at startup, so it has nothing to wait on from the network.
+After=docker.service
+# OnFailure= is wired and inert. The slug is this unit's own, distinct from
+# the incumbent uploader's "serve" slug, so a later monitoring mint pages
+# this unit's check and never the other's. An unset URL no-ops rather than
+# erroring (the shadow unit records the same precedent).
+OnFailure=dubplate-ping-fail@server-serve.service
+# Interval 0 would mean systemd never gives up restarting, the unit would
+# never enter "failed", and OnFailure= above would never fire. 300s with 30
+# restarts leaves room for transient start failures and still trips, and
+# alerts, on a real crash loop.
+StartLimitIntervalSec=300
+StartLimitBurst=30
+
+[Service]
+# Type=exec reports a start failure when the binary cannot be invoked
+# (systemd.service(5): "systemctl start command lines for exec services
+# will report failure when the service's binary cannot be invoked
+# successfully"), which Type=simple does not.
+Type=exec
+User=music
+EnvironmentFile=/etc/dubplate/server.env
+ExecStart=/usr/local/bin/dubplate-server serve
+
+Restart=on-failure
+RestartSec=5
+
+# Serve drains in-flight requests for up to 25 seconds on stop, so the
+# unit's own stop timeout sits above it as the backstop.
+TimeoutStopSec=30
+
+# Why the grant is two leaves: serve writes its sign-in state under
+# auth.StoreDir (DUBPLATE_STATE_DIR plus /auth) and its roster file in the
+# directory of DUBPLATE_ROSTER_FILE (DUBPLATE_STATE_DIR plus /roster), and
+# nothing else on disk. Each entry carries no "-" or "+" prefix:
+# systemd.exec(5) says a "-" prefixed path is ignored when it does not
+# exist, which would turn a missing pre-create into EROFS at first write
+# in place of the namespace failure at start. deploy.sh pre-creates both
+# leaves before the unit ever starts; without them startup fails with
+# "Failed to set up mount namespacing", systemd's own error for a
+# ReadWritePaths= entry that does not exist on the host yet. scripts/
+# check.sh gates the entries, the template's state directory, and
+# deploy.sh's leaf list staying in agreement.
+ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/roster
+
+# --- hardening, carried from dubplate-shadow.service ---
+# The process never gains privilege through setuid or file capabilities.
+NoNewPrivileges=yes
+# Private /tmp and /var/tmp, gone at stop.
+PrivateTmp=yes
+# The whole file system is read-only except the granted leaves above.
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+# Go does not map writable executable memory.
+MemoryDenyWriteExecute=yes
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
+AmbientCapabilities=
+CapabilityBoundingSet=
+# Files serve creates are never world-readable.
+UMask=0027
+# AF_NETLINK stays denied: serve runs no subprocess, and Go's own resolver
+# has its fallback where glibc's lookup would open a netlink socket.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

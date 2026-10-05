@@ -86,6 +86,7 @@ UNIT_FILES=(
   dubplate-shadow.service dubplate-shadow.timer
   "dubplate-ping-fail@.service"
   dubplate-serve.service
+  dubplate-server-serve.service
   dubplate-import-nudge.path dubplate-import-nudge.service
 )
 
@@ -389,6 +390,30 @@ DUBPLATE_LIB_DIR="/var/lib/dubplate"
 DUBPLATE_SHADOW_DIR="$DUBPLATE_LIB_DIR/shadow"
 echo "== $DUBPLATE_SHADOW_DIR =="
 run_remote "mkdir -p $DUBPLATE_SHADOW_DIR && chown music:music $DUBPLATE_LIB_DIR $DUBPLATE_SHADOW_DIR"
+
+# --- every other leaf a greenfield unit is granted ---------------------------
+# DUBPLATE_SERVER_LEAVES names every leaf under $DUBPLATE_LIB_DIR that a
+# unit running dubplate-server is granted in ReadWritePaths=, and
+# scripts/check.sh holds the array, the units, and the env template in
+# agreement. Each leaf must exist before its unit starts (the same
+# "Failed to set up mount namespacing" failure as the shadow leaf above):
+#   shadow  dubplate-shadow.service       (pre-created above)
+#   auth    dubplate-server-serve.service (sign-in nonce and epoch stores)
+#   roster  dubplate-server-serve.service (the member roster file)
+# shadow is skipped by name here: the live shadow leaf is mode 0755 on the
+# box and `install -d -m 0700` would re-mode an existing directory. The
+# unidecode leaf is not listed: no unit is granted it, because the
+# `unidecode install` verb creates it under the systemd-run grant of
+# $DUBPLATE_LIB_DIR in the binary step below. 0700 matches what auth.Open
+# requires of its leaf and keeps the roster private to music.
+DUBPLATE_SERVER_LEAVES=(shadow auth roster)
+for leaf in "${DUBPLATE_SERVER_LEAVES[@]}"; do
+  if [ "$leaf" = shadow ]; then
+    continue
+  fi
+  echo "== $DUBPLATE_LIB_DIR/$leaf =="
+  run_remote "install -d -o music -g music -m 0700 $DUBPLATE_LIB_DIR/$leaf"
+done
 
 # --- dubplate-server binary -> /usr/local/bin/dubplate-server -----------
 # Boundary (rung 1, additive deploy path): the incumbent
