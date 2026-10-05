@@ -79,8 +79,14 @@ A `doctor` run too early correctly reports a server that cannot start yet.
    change either value, the grant must name `$DUBPLATE_STATE_DIR/auth` and the
    roster file's own directory. Change the unit's `ReadWritePaths=` line, the
    two commands in step 6, and the `ReadWritePaths` line of every
-   `systemd-run` command in this runbook together. `doctor` cannot see a
-   mismatch, and the server then fails at start or at its first roster write.
+   `systemd-run` command in this runbook together. `doctor` checks the `auth`
+   row (the store directory's mode and owner, and that the record directories
+   are writable by the user running `doctor`) and that the roster file's
+   directory is writable. It cannot read the unit's `ReadWritePaths=` line, so
+   it cannot see a grant that disagrees with the paths. Run from the
+   `systemd-run` command in step 8, it sees only the grant you gave that
+   command. A unit whose grant is wrong then fails at start or at its first
+   roster write.
 6. **Create the state leaves.** Create each granted directory, owned by the
    service user with mode 0700:
 
@@ -93,17 +99,39 @@ A `doctor` run too early correctly reports a server that cannot start yet.
    failure `226/NAMESPACE`, because systemd cannot mount a path that does not
    exist.
 7. **Install the transliteration table.** The matcher cannot score without it,
-   and `doctor` fails the `unidecode` row until it exists:
+   and `doctor` fails the `unidecode` row until it exists. Create the leaf the
+   install writes, owned by the service user with mode 0755 (the verb refuses
+   an existing leaf with another mode or owner), then run the install as the
+   service user with a grant of that leaf alone:
 
    ```sh
-   dubplate-server unidecode install
+   install -d -o music -g music -m 0755 /var/lib/dubplate/unidecode
+   systemd-run --wait --pipe --collect \
+     -p User=music -p Environment=DUBPLATE_STATE_DIR=/var/lib/dubplate \
+     -p NoNewPrivileges=yes -p PrivateTmp=yes -p ProtectSystem=strict \
+     -p ProtectHome=yes -p ProtectKernelTunables=yes \
+     -p ProtectKernelModules=yes -p ProtectControlGroups=yes \
+     -p RestrictNamespaces=yes -p RestrictRealtime=yes \
+     -p RestrictSUIDSGID=yes -p LockPersonality=yes \
+     -p MemoryDenyWriteExecute=yes -p SystemCallFilter=@system-service \
+     -p SystemCallArchitectures=native -p AmbientCapabilities= \
+     -p CapabilityBoundingSet= \
+     -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
+     -p ReadWritePaths=/var/lib/dubplate/unidecode \
+     /usr/local/bin/dubplate-server unidecode install
    ```
 
-   Offline, pass the wheel you cached with `make unidecode-wheel`:
+   The install downloads the pinned wheel, so this run keeps the network
+   families. Offline, end the command with the wheel you cached with `make
+   unidecode-wheel`:
 
    ```sh
-   dubplate-server unidecode install --from ~/.cache/unidecode/Unidecode-1.4.0-py3-none-any.whl
+   /usr/local/bin/dubplate-server unidecode install --from ~/.cache/unidecode/Unidecode-1.4.0-py3-none-any.whl
    ```
+
+   The grant's `ProtectHome=yes` and `PrivateTmp=yes` hide a wheel left in a
+   home directory or in `/tmp`, so copy the wheel to a path outside both that
+   the service user can read, and pass that path to `--from`.
 
 8. **Add the first admin.** The roster file does not exist until a member is
    added, and `doctor` fails the `roster` row until the roster names an admin.
@@ -758,12 +786,15 @@ Before the first deploy that carries this swap:
 
 Immediately before an apply, on the box, stop any timer that runs a
 `dubplate-server` verb, confirm its service is not running, and keep copies of
-everything the apply changes together:
+every file the apply rewrites together:
 
 ```sh
 cp -p /usr/local/bin/dubplate-server /usr/local/bin/dubplate-server.prev
 cp -p /etc/dubplate/server.env /etc/dubplate/server.env.prev
 cp -p /etc/dubplate/env /etc/dubplate/env.prev   # only on a host that also runs the legacy stack
+cp -p /etc/dubplate/contributors.yaml /etc/dubplate/contributors.yaml.prev
+cp -p /etc/tmpfiles.d/dubplate.conf /etc/tmpfiles.d/dubplate.conf.prev
+cp -p /srv/music/.config/beets/config.yaml /srv/music/.config/beets/config.yaml.prev
 cp -a /opt/dubplate /opt/dubplate.prev
 install -d -m 0700 /root/dubplate-units.prev
 cp -a /etc/systemd/system/dubplate-* /root/dubplate-units.prev/
@@ -771,9 +802,16 @@ runuser -u music -- env HOME=/srv/music uv tool list   # record the beets versio
 ```
 
 The apply replaces `/opt/dubplate` with `rsync --delete`, rewrites the unit
-files, and upgrades beets as the `music` user, so the binary and the
+files, the tmpfiles fragment, the contributors file, and the beets
+configuration, and upgrades beets as the `music` user, so the binary and the
 environment files are not the whole set. The unit copies sit outside
 `/etc/systemd/system`, where systemd would read them as units.
+
+The copies do not cover the directories the apply creates or re-owns (the
+state, shadow, backup-staging, and uploads directories and their leaves), the
+transliteration table the staged install writes, the compose stack's
+containers, or which timers are enabled. A rollback leaves those as the apply
+left them.
 
 Each copy keeps its mode and its owner, and the two environment files stay
 0600 and root-owned. Record the `.prev` binary's version with
@@ -785,18 +823,24 @@ To roll back:
    (`systemctl stop dubplate-server-serve.service`, then
    `systemctl reset-failed dubplate-server-serve.service`, since
    `Restart=on-failure` loops a failing start).
-2. Copy the `.prev` binary and environment files over the live ones together,
-   and run `dubplate-server version` to see the recorded stamp.
+2. Copy the `.prev` binary, environment files, contributors file, tmpfiles
+   fragment, and beets configuration over the live ones together (`cp -p
+   <file>.prev <file>` for each), and run `dubplate-server version` to see the
+   recorded stamp.
 3. Restore the configuration and the units, then reload systemd:
 
    ```sh
    rsync -a --delete --checksum /opt/dubplate.prev/ /opt/dubplate/
-   cp -a /root/dubplate-units.prev/. /etc/systemd/system/
+   rsync -a --delete --checksum --include='dubplate-*' --exclude='*' \
+     /root/dubplate-units.prev/ /etc/systemd/system/
    systemctl daemon-reload
    ```
 
    `--checksum` compares contents, so rsync restores a file the apply changed
-   even when its size and timestamp match the copy's.
+   even when its size and timestamp match the copy's. The unit restore also
+   deletes a `dubplate-*` unit the apply added, because the copy lacks it. The
+   `--exclude='*'` filter protects every other file in
+   `/etc/systemd/system` from the delete.
 4. Reinstall the beets version you recorded:
 
    ```sh
