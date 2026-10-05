@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
+	"golang.org/x/sys/unix"
 )
 
 // The magic-link identity source's key names this file reads through
@@ -98,7 +101,69 @@ var servePortThreshold = config.Threshold{
 	Key:     "DUBPLATE_SERVE_PORT",
 	Kind:    config.KindInt,
 	Default: "8080",
-	Doc:     "an integer TCP port",
+	Doc:     "an integer TCP port from 1024 through 65535",
+}
+
+// servePortFloor and servePortCeiling bound DUBPLATE_SERVE_PORT. The
+// floor is Linux's default net.ipv4.ip_unprivileged_port_start: the
+// serve unit's empty CapabilityBoundingSet= withholds
+// CAP_NET_BIND_SERVICE, so a lower port fails at bind, and port 0 would
+// listen on whatever ephemeral port the kernel picks.
+const (
+	servePortFloor   = 1024
+	servePortCeiling = 65535
+)
+
+// validateServePort checks DUBPLATE_SERVE_PORT against
+// [servePortFloor] and [servePortCeiling], naming the capability a
+// privileged port would need. [validateMagicLinkSource] calls it, so
+// [config.Load] refuses an out-of-range port for doctor and every verb
+// before serve ever binds.
+func validateServePort(environ []string) error {
+	port, err := config.ParseInt(environ, servePortThreshold)
+	if err != nil {
+		return &sourceKeyError{key: servePortThreshold.Key, reason: splitKeyReason(err)}
+	}
+	if port < servePortFloor {
+		return &sourceKeyError{key: servePortThreshold.Key, reason: fmt.Sprintf(
+			"%d is below %d: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port", port, servePortFloor)}
+	}
+	if port > servePortCeiling {
+		return &sourceKeyError{key: servePortThreshold.Key, reason: fmt.Sprintf("%d is above %d", port, servePortCeiling)}
+	}
+	return nil
+}
+
+// errDirNotWritable reports that this process may not list, create,
+// and remove entries in a directory a later write needs.
+var errDirNotWritable = errors.New("not writable")
+
+// checkDirWritable asks the kernel whether this process's effective
+// uid may read, write, and search dir: faccessat(2) with AT_EACCESS,
+// whose man page says it "Perform[s] access checks using the effective
+// user and group IDs" and fails with EROFS when "Write permission was
+// requested for a file on a read-only filesystem", the shape a
+// directory outside the unit's ReadWritePaths takes under
+// ProtectSystem=strict. It writes nothing, so it can neither race the
+// roster's directory flock nor leave a probe file behind. Read and
+// search are asked for beside write because every writer here opens or
+// lists the directory too.
+func checkDirWritable(dir string) error {
+	if err := unix.Faccessat(unix.AT_FDCWD, dir, unix.R_OK|unix.W_OK|unix.X_OK, unix.AT_EACCESS); err != nil {
+		return fmt.Errorf("%s is %w: %w", dir, errDirNotWritable, err)
+	}
+	return nil
+}
+
+// checkRosterDirWritable refuses when the roster file's directory is
+// not writable: every roster write replaces the file by rename under a
+// lock on that directory, so a directory the process cannot write
+// fails the first member add rather than the start.
+func checkRosterDirWritable(rosterPath string) error {
+	if err := checkDirWritable(filepath.Dir(rosterPath)); err != nil {
+		return fmt.Errorf("roster directory %w", err)
+	}
+	return nil
 }
 
 // servePrefixThreshold is B3's one owned path prefix: every route rung
@@ -206,8 +271,8 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // seam, constructs the auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
-// proxy value [resolveTrustedProxy] refuses, a missing roster file, an
-// unopenable store, an unparseable mail port, a bad theme or branding
+// proxy value [resolveTrustedProxy] refuses, a missing roster file, a
+// roster directory it cannot write, an unopenable store, an unparseable mail port, a bad theme or branding
 // value, or a refused operator CSS file without ever accepting a
 // connection.
 //
@@ -274,6 +339,9 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 
 	roster, err := auth.OpenRoster(cfg.IdentitySourceValue(rosterFileKey))
 	if err != nil {
+		return nil, nil, err
+	}
+	if err := checkRosterDirWritable(cfg.IdentitySourceValue(rosterFileKey)); err != nil {
 		return nil, nil, err
 	}
 

@@ -5,10 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
@@ -24,10 +28,12 @@ import (
 // command's human output; on an unsatisfied wall RunE returns a single
 // short error, leaving main as the sole stderr writer. Exit status is 1
 // when [config.Load] refuses environ, the roster row fails to open or
-// names no admin, the store row reports a failing state, the backup
-// remote row fails, the unidecode row finds the transliteration table
-// missing or invalid, the client ip row refuses the trusted proxy
-// values, the web row refuses what serve startup would refuse, the
+// names no admin or sits in a directory the process cannot write, the
+// store row reports a failing state, the auth store row finds a leaf
+// serve would refuse or could not write, the backup remote row fails,
+// the unidecode row finds the transliteration table missing or
+// invalid, the client ip row refuses the trusted proxy values, the web
+// row refuses what serve startup would refuse, the
 // bind addresses row finds a configured address absent or cannot
 // check it, the boundary probe row finds a header the strip should
 // have removed or an answer it cannot read, or a registered setting's
@@ -118,6 +124,15 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				return err
 			}
 
+			// The auth store row follows the store row and always
+			// prints exactly one line: it reads "not checked" when
+			// Load refused environ, since the state directory is then
+			// unknown.
+			authStoreStatus, authStoreFailed := authStoreRowStatus(cfg)
+			if err := printRow(stdout, authStoreDoctorRow, authStoreStatus); err != nil {
+				return err
+			}
+
 			// The backup rows (R-6bi13, R-6bi14, Ruling 2) print
 			// unconditionally, the store row's own precedent: the facts
 			// rows read "not checked" rather than disappear when the
@@ -180,7 +195,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			if loadErr != nil || rosterFailed || storeFailed || backupRemoteFailed || unidecodeFailed ||
+			if loadErr != nil || rosterFailed || storeFailed || authStoreFailed || backupRemoteFailed || unidecodeFailed ||
 				clientIPFailed || webFailed || bindFailed || probeFailed || settingsFailed {
 				return errors.New("configuration is incomplete")
 			}
@@ -190,6 +205,9 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 	cmd.SetErr(stderr)
 	return cmd
 }
+
+// authStoreDoctorRow is the row reporting the auth leaf serve opens.
+const authStoreDoctorRow = "auth store"
 
 // selectedRosterPath returns DUBPLATE_ROSTER_FILE's value when a
 // source reg declares is selected in environ and requires that key.
@@ -207,7 +225,9 @@ func selectedRosterPath(environ []string, reg *config.Registry) (string, bool) {
 
 // rosterRowStatus opens the roster at path and reports the roster
 // row's status and whether the row fails: an [auth.OpenRoster] refusal
-// rendered by rosterStatus, or a roster that loads but names no admin.
+// rendered by rosterStatus, a roster that loads but names no admin, or
+// a roster whose directory the process cannot write, in the words
+// serve refuses to start with.
 func rosterRowStatus(path string) (string, bool) {
 	roster, err := auth.OpenRoster(path)
 	if err != nil {
@@ -220,7 +240,101 @@ func rosterRowStatus(path string) (string, bool) {
 	if !slices.ContainsFunc(members, func(m auth.Member) bool { return m.Admin }) {
 		return "no admin; run dubplate-server member add --admin", true
 	}
+	if err := checkRosterDirWritable(path); err != nil {
+		return err.Error(), true
+	}
 	return "", false
+}
+
+// authStoreLeafPerm is the widest mode [auth.Open] accepts on the auth
+// leaf; a wider leaf refuses serve's start.
+const authStoreLeafPerm = 0o700
+
+// authStoreSubdirs are the two record directories [auth.Open] creates
+// under the leaf, the nonce store's and the epoch store's.
+var authStoreSubdirs = []string{"nonce", "epoch"}
+
+// authStoreRowStatus reports, without writing, whether serve could
+// open the auth leaf under cfg's state directory: "ok" when the leaf
+// is at most 0700, owned by the effective uid, and each record
+// directory is writable; "absent; serve creates it" when the leaf is
+// missing and its nearest existing ancestor is writable. Otherwise it
+// names every problem and fails: the leaf's mode in the words
+// [auth.Open] refuses it with, a foreign owner, or a directory the
+// process cannot write, the shape a path outside the unit's
+// ReadWritePaths takes. A nil cfg reads "not checked" and adds no
+// failure of its own, since Load's own report already fails doctor.
+func authStoreRowStatus(cfg *config.Config) (status string, failed bool) {
+	if cfg == nil {
+		return "not checked", false
+	}
+	leaf := auth.StoreDir(cfg.StateDir)
+	info, err := os.Stat(leaf)
+	if errors.Is(err, fs.ErrNotExist) {
+		if err := checkCreatable(leaf); err != nil {
+			return "absent, and serve cannot create it: " + err.Error(), true
+		}
+		return "absent; serve creates it", false
+	}
+	if err != nil {
+		return err.Error(), true
+	}
+	if !info.IsDir() {
+		return fmt.Sprintf("leaf %s is not a directory", leaf), true
+	}
+
+	var problems []string
+	if mode := info.Mode().Perm(); mode&^authStoreLeafPerm != 0 {
+		problems = append(problems, fmt.Sprintf("leaf %s has mode %o, want at most %o", leaf, mode, authStoreLeafPerm))
+	}
+	// io/fs.FileInfo documents "Sys() any // underlying data source
+	// (can return nil)"; on Linux, os.Stat's carries a *syscall.Stat_t.
+	if st, ok := info.Sys().(*syscall.Stat_t); !ok {
+		problems = append(problems, fmt.Sprintf("leaf %s: cannot determine its owner", leaf))
+	} else if euid := geteuid(); int(st.Uid) != euid {
+		problems = append(problems, fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, st.Uid, euid))
+	}
+	for _, name := range authStoreSubdirs {
+		sub := filepath.Join(leaf, name)
+		_, err := os.Stat(sub)
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+			if err := checkDirWritable(leaf); err != nil {
+				problems = append(problems, fmt.Sprintf("%s is absent, and %v", sub, err))
+			}
+		case err != nil:
+			problems = append(problems, err.Error())
+		default:
+			if err := checkDirWritable(sub); err != nil {
+				problems = append(problems, err.Error())
+			}
+		}
+	}
+	if len(problems) > 0 {
+		return strings.Join(problems, "; "), true
+	}
+	return "ok", false
+}
+
+// checkCreatable reports whether [os.MkdirAll] could create path: it
+// walks up to path's nearest existing ancestor and checks that
+// ancestor with [checkDirWritable].
+func checkCreatable(path string) error {
+	dir := filepath.Dir(path)
+	for {
+		_, err := os.Stat(dir)
+		if err == nil {
+			return checkDirWritable(dir)
+		}
+		if !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return err
+		}
+		dir = parent
+	}
 }
 
 // rosterStatus renders an [auth.OpenRoster] refusal as one doctor
@@ -369,34 +483,37 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 // errors.As, never by parsing the rendered message, so a reason that
 // itself carries a colon cannot be mistaken for a key. It names no
 // value, because a source's required set carries secrets and doctor's
-// table is read on a terminal (Resolution R-5b6).
+// table is read on a terminal: a Required or Optional key's reason is
+// printed only when it does not quote the value, through
+// [sourceKeyWord].
 func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
 	}
 
+	// Each key is named once, by its first report: the per-key sweep
+	// below runs before the Validate rerun, so a key both name keeps
+	// the sweep's reason.
 	var failing []string
+	named := make(map[string]bool)
 	fail := func(key, word string) {
-		line := key + " " + word
-		if !slices.Contains(failing, line) {
-			failing = append(failing, line)
+		if named[key] {
+			return
 		}
+		named[key] = true
+		failing = append(failing, key+" "+word)
 	}
 
-	for _, key := range src.Required {
+	values := identitySourceValues(environ, src)
+	for _, key := range slices.Concat(src.Required, src.Optional) {
 		if status := statuses[key]; status != "" {
-			fail(key, failingWord(status))
-		}
-	}
-	for _, key := range src.Optional {
-		if status := statuses[key]; status != "" {
-			fail(key, failingWord(status))
+			fail(key, sourceKeyWord(status, values[key]))
 		}
 	}
 
 	validateFailed := false
 	if src.Validate != nil {
-		if err := src.Validate(identitySourceValues(environ, src), environ); err != nil {
+		if err := src.Validate(values, environ); err != nil {
 			validateFailed = true
 			for _, leaf := range flattenErrors(err) {
 				if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok {
@@ -420,14 +537,23 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 	return "unsatisfied: " + strings.Join(failing, ", ")
 }
 
-// failingWord renders one per-key status as the single word doctor's
-// source line carries beside the key: "missing" for [rowStatuses]'s
-// "missing" entry, "invalid" for its "invalid: " prefixed entries.
-func failingWord(status string) string {
+// sourceKeyWord renders one per-key status as the text doctor's source
+// line carries beside the key: "missing" for [rowStatuses]'s "missing"
+// entry, and "invalid" for its "invalid: " prefixed entries, followed
+// by the reason in parentheses whenever the reason does not quote
+// value, the key's configured value. A source's own keys have no row
+// of their own, so this is the one place doctor can show the reason
+// check prints; a reason that does quote the value is withheld, since
+// the key may carry a secret and doctor's table is read on a terminal.
+func sourceKeyWord(status, value string) string {
 	if status == "missing" {
 		return "missing"
 	}
-	return "invalid"
+	reason, ok := strings.CutPrefix(status, "invalid: ")
+	if !ok || reason == "" || (value != "" && strings.Contains(reason, value)) {
+		return "invalid"
+	}
+	return "invalid (" + reason + ")"
 }
 
 // identitySourceValues resolves src's Required and Optional keys from

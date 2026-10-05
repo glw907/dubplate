@@ -17,8 +17,8 @@ import (
 )
 
 // implicitTLSPort is the port at which Send dials with TLS from the
-// first byte instead of upgrading via STARTTLS. Hetzner blocks outbound
-// 465 by default, so the box's own route is STARTTLS on 587; this branch
+// first byte instead of upgrading via STARTTLS. Some hosts block
+// outbound 465, so STARTTLS on 587 is the usual route; this branch
 // exists for any provider that still reserves 465 for implicit TLS.
 const implicitTLSPort = 465
 
@@ -114,7 +114,13 @@ func (m *Mailer) Send(ctx context.Context, to, subject, body string) error {
 
 	opts := []mail.Option{
 		mail.WithPort(m.cfg.Port),
-		mail.WithSMTPAuth(mail.SMTPAuthPlain),
+		// go-mail v0.8.1's SMTPAuthAutoDiscover "dynamically discovers
+		// all authentication mechanisms supported by the SMTP server and
+		// selects the strongest available one" (auth.go): over TLS it
+		// ranks SCRAM, NTLM, CRAM-MD5, PLAIN, then LOGIN
+		// (client.go, authTypeAutoDiscover), so a provider advertising
+		// LOGIN alone still authenticates.
+		mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
 		mail.WithUsername(m.cfg.User),
 		mail.WithPassword(m.cfg.Password),
 	}

@@ -3,6 +3,7 @@ package notify
 import (
 	"bufio"
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -97,6 +98,7 @@ type delivery struct {
 	data []byte
 	user string
 	pass string
+	mech string
 }
 
 // testServer is a minimal SMTP server for this package's own tests, and
@@ -112,6 +114,10 @@ type testServer struct {
 	// rather than accepting it, so TestSend_RCPTRejected can exercise
 	// the send-failure path without reaching a real network.
 	rejectRCPT bool
+
+	// authMechs is the mechanism list EHLO advertises after "AUTH";
+	// empty advertises PLAIN alone.
+	authMechs string
 
 	mu         sync.Mutex
 	deliveries []delivery
@@ -163,7 +169,7 @@ func (s *testServer) handleConn(conn net.Conn) {
 
 	var from string
 	var to []string
-	var user, pass string
+	var user, pass, mech string
 
 	for {
 		line, err := r.ReadString('\n')
@@ -179,7 +185,7 @@ func (s *testServer) handleConn(conn net.Conn) {
 			if s.upgradeTLS != nil {
 				_, _ = fmt.Fprintf(w, "250-STARTTLS\r\n")
 			}
-			_, _ = fmt.Fprintf(w, "250 AUTH PLAIN\r\n")
+			_, _ = fmt.Fprintf(w, "250 AUTH %s\r\n", cmp.Or(s.authMechs, "PLAIN"))
 			_ = w.Flush()
 		case strings.HasPrefix(upper, "STARTTLS"):
 			writeLine("220 ready to start TLS")
@@ -190,6 +196,17 @@ func (s *testServer) handleConn(conn net.Conn) {
 			if payload, ok := strings.CutPrefix(line, "AUTH PLAIN "); ok {
 				user, pass = decodePlainAuth(payload)
 			}
+			mech = "PLAIN"
+			writeLine("235 2.7.0 Authentication successful")
+		case upper == "AUTH LOGIN":
+			// The LOGIN exchange (draft-murchison-sasl-login): the server
+			// prompts with a base64 "Username:" and then "Password:", and
+			// the client answers each prompt with its value in base64.
+			writeLine("334 VXNlcm5hbWU6")
+			user = readBase64Line(r)
+			writeLine("334 UGFzc3dvcmQ6")
+			pass = readBase64Line(r)
+			mech = "LOGIN"
 			writeLine("235 2.7.0 Authentication successful")
 		case strings.HasPrefix(upper, "MAIL FROM:"):
 			from = extractAddr(line)
@@ -206,12 +223,12 @@ func (s *testServer) handleConn(conn net.Conn) {
 			data := readData(r)
 			writeLine("250 2.0.0 OK: queued")
 			s.mu.Lock()
-			s.deliveries = append(s.deliveries, delivery{from: from, to: to, data: data, user: user, pass: pass})
+			s.deliveries = append(s.deliveries, delivery{from: from, to: to, data: data, user: user, pass: pass, mech: mech})
 			s.mu.Unlock()
 		case upper == "NOOP":
 			writeLine("250 2.0.0 OK")
 		case upper == "RSET":
-			from, to, user, pass = "", nil, "", ""
+			from, to, user, pass, mech = "", nil, "", "", ""
 			writeLine("250 2.0.0 OK")
 		case upper == "QUIT":
 			writeLine("221 2.0.0 Bye")
@@ -235,6 +252,20 @@ func decodePlainAuth(b64 string) (user, pass string) {
 		return "", ""
 	}
 	return parts[1], parts[2]
+}
+
+// readBase64Line reads one client line of a LOGIN exchange and decodes
+// it, returning "" for a line that is not base64.
+func readBase64Line(r *bufio.Reader) string {
+	line, err := r.ReadString('\n')
+	if err != nil {
+		return ""
+	}
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimRight(line, "\r\n"))
+	if err != nil {
+		return ""
+	}
+	return string(raw)
 }
 
 func extractAddr(line string) string {
@@ -413,6 +444,48 @@ func TestSend_StartTLS587(t *testing.T) {
 	}
 
 	assertParity(t, receive(t, srv), cfg, "contributor@example.com", subject, body)
+}
+
+// TestSend_AuthMechanismFollowsTheServer proves Send authenticates with
+// whichever of PLAIN and LOGIN the server advertises: a submission
+// server offering LOGIN alone, as Microsoft 365's does, must still
+// accept the configured credentials, and a server offering both gets
+// the stronger-ranked PLAIN.
+func TestSend_AuthMechanismFollowsTheServer(t *testing.T) {
+	tests := []struct {
+		name      string
+		advertise string
+		wantMech  string
+	}{
+		{name: "LOGIN only", advertise: "LOGIN", wantMech: "LOGIN"},
+		{name: "PLAIN only", advertise: "PLAIN", wantMech: "PLAIN"},
+		{name: "LOGIN and PLAIN", advertise: "LOGIN PLAIN", wantMech: "PLAIN"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := &testServer{upgradeTLS: serverTLSConfig, authMechs: tt.advertise}
+			addr := startTestServer(t, srv, false)
+			host, port := splitHostPort(t, addr)
+
+			cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
+			mailer := New(cfg)
+			mailer.tlsConfig = clientTLSConfig
+
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			if err := mailer.Send(ctx, "contributor@example.com", "subject", "body"); err != nil {
+				t.Fatalf("Send() error = %v, want nil", err)
+			}
+			d := receive(t, srv)
+			if d.mech != tt.wantMech {
+				t.Errorf("AUTH mechanism = %q, want %q", d.mech, tt.wantMech)
+			}
+			if d.user != cfg.User || d.pass != cfg.Password {
+				t.Errorf("AUTH credentials = %q/%q, want %q/%q", d.user, d.pass, cfg.User, cfg.Password)
+			}
+		})
+	}
 }
 
 // TestSend_StartTLSNotOffered proves Send fails closed rather than

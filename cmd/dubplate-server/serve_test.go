@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -1942,5 +1943,70 @@ func TestNewServeShell_RefusesABadTrustedProxyValue(t *testing.T) {
 	}
 	if shell != nil {
 		t.Error("buildServeShell() returned a shell alongside its refusal, want nil")
+	}
+}
+
+// TestNewServeShell_UnwritableRosterDirRefusesAtStart proves serve
+// checks the roster file's directory at start: a roster that opens for
+// reading in a directory the process may not write would otherwise
+// start clean and fail the first web member add. The refusal names the
+// directory and carries the kernel's own reason.
+func TestNewServeShell_UnwritableRosterDirRefusesAtStart(t *testing.T) {
+	environ := serveAuthEnviron(t)
+	rosterDir := filepath.Dir(environValue(environ, "DUBPLATE_ROSTER_FILE"))
+	if err := os.Chmod(rosterDir, 0o500); err != nil {
+		t.Fatalf("Chmod roster directory: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(rosterDir, 0o700) })
+
+	_, _, err := buildServeShell(t, environ)
+	if !errors.Is(err, errDirNotWritable) {
+		t.Fatalf("buildServeShell() error = %v, want it to wrap errDirNotWritable", err)
+	}
+	if !errors.Is(err, syscall.EACCES) {
+		t.Errorf("buildServeShell() error = %v, want it to carry EACCES", err)
+	}
+	if want := "roster directory " + rosterDir + " is not writable"; !strings.Contains(err.Error(), want) {
+		t.Errorf("buildServeShell() error = %q, want it to contain %q", err, want)
+	}
+}
+
+// TestServePortBound proves the serve port's bound reaches every verb
+// through [config.Load]: 0 would listen on an ephemeral port, and a
+// port below 1024 cannot bind under the serve unit's empty capability
+// set, so both refuse naming the capability, while 1024 and 65535, the
+// bound's own ends, load.
+func TestServePortBound(t *testing.T) {
+	tests := []struct {
+		port    string
+		wantErr string // a substring of the refusal; empty means Load succeeds
+	}{
+		{port: "0", wantErr: "DUBPLATE_SERVE_PORT: 0 is below 1024"},
+		{port: "80", wantErr: "DUBPLATE_SERVE_PORT: 80 is below 1024"},
+		{port: "1023", wantErr: "DUBPLATE_SERVE_PORT: 1023 is below 1024"},
+		{port: "1024"},
+		{port: "65535"},
+		{port: "65536", wantErr: "DUBPLATE_SERVE_PORT: 65536 is above 65535"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.port, func(t *testing.T) {
+			environ := replaceKey(authEnviron(t), "DUBPLATE_SERVE_PORT", tt.port)
+			_, err := config.Load(environ, productionRegistry())
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Fatalf("config.Load() error = %v, want nil", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatalf("config.Load() error = nil, want a refusal containing %q", tt.wantErr)
+			}
+			if !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("config.Load() error = %q, want it to contain %q", err, tt.wantErr)
+			}
+			if strings.Contains(tt.wantErr, "below") && !strings.Contains(err.Error(), "CAP_NET_BIND_SERVICE") {
+				t.Errorf("config.Load() error = %q, want it to name CAP_NET_BIND_SERVICE", err)
+			}
+		})
 	}
 }

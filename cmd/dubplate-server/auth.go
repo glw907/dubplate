@@ -257,9 +257,9 @@ func (e *sourceKeyError) Error() string {
 // URL's shape, the ten thresholds' bounds (review m5, R28, security
 // constraint 3), the session-lifetime-vs-absolute-cap and
 // nonce-retention-vs-expiry relations, the unknown-address answer's
-// accepted set (R25), DUBPLATE_SMTP_FROM (spec:1289), and the SMTP port
-// bound, joining every failure it finds so [config.Load] reports a
-// short secret and a bad URL together. Every returned error names the
+// accepted set (R25), DUBPLATE_SMTP_FROM (spec:1289), the SMTP port
+// bound, and the serve port bound, joining every failure it finds so
+// [config.Load] reports a short secret and a bad URL together. Every returned error names the
 // offending key and never the value or the length of a secret, so a
 // refusal narrows no guess about what the value was.
 func validateMagicLinkSource(values map[string]string, environ []string) error {
@@ -292,6 +292,10 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		if err := validateSMTPPort(v); err != nil {
 			errs = append(errs, err)
 		}
+	}
+
+	if err := validateServePort(environ); err != nil {
+		errs = append(errs, err)
 	}
 
 	var expiry, retention, lifetime, absoluteCap time.Duration

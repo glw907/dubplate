@@ -37,9 +37,15 @@ func foldRefusal(err error) string {
 	return strings.ReplaceAll(err.Error(), "\n", "; ")
 }
 
+// directAssumption is what direct mode takes for granted: with the
+// trusted proxy class off, every request keys on its peer address, so
+// a proxy left untrusted in front collapses every client onto its own
+// address and one client can exhaust the whole group's sign-in limits.
+const directAssumption = "the peer must be the browser; a proxy in front must be configured as trusted"
+
 // clientIPRowStatus reports how the server learns a client's address:
-// "direct" when the trusted proxy class is off, "trusted proxy:
-// <header> from <n> address(es)" when it is on and
+// "direct" and [directAssumption] when the trusted proxy class is off,
+// "trusted proxy: <header> from <n> address(es)" when it is on and
 // [resolveTrustedProxy] accepts it, and "invalid: " plus every
 // refusal otherwise, which fails the row. cfg is nil when
 // [config.Load] refused the environment, and the row then reads "not
@@ -56,7 +62,7 @@ func clientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 		return "invalid: " + foldRefusal(err), true
 	}
 	if proxy.Mode() == serve.ModeDirect {
-		return proxy.Mode().String(), false
+		return proxy.Mode().String() + ": " + directAssumption, false
 	}
 	class := trustedProxyIntegrationClass.Name
 	header := strings.TrimSpace(cfg.IntegrationValue(class, trustedProxyHeaderKey))

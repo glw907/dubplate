@@ -62,7 +62,7 @@ func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 		t.Fatalf("Execute() error = %v, want nil on the green baseline", err)
 	}
 	want := map[string]string{
-		"client ip":      "direct",
+		"client ip":      "direct: the peer must be the browser; a proxy in front must be configured as trusted",
 		"web":            "ok",
 		"bind addresses": "127.0.0.1 present",
 		"boundary probe": "127.0.0.1 no listener",
@@ -74,7 +74,7 @@ func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 	}
 	reg := productionRegistry()
 	wantLines := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) +
-		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + backupDoctorRowsOff +
+		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + authStoreRowLines + backupDoctorRowsOff +
 		unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if lines != wantLines {
 		t.Errorf("doctor printed %d lines, want %d", lines, wantLines)

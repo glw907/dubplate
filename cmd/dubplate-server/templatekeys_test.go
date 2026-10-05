@@ -363,7 +363,7 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 				fmt.Sprintf("%-32s %s", "magic-link", "active"),
 				fmt.Sprintf("%-32s %s", "store", "absent"),
 				fmt.Sprintf("%-32s %s", "unidecode", "ok (1.4.0)"),
-				fmt.Sprintf("%-32s %s", "client ip", "direct"),
+				fmt.Sprintf("%-32s %s", "client ip", "direct: the peer must be the browser; a proxy in front must be configured as trusted"),
 				fmt.Sprintf("%-32s %s", "web", "ok"),
 				fmt.Sprintf("%-32s %s", "bind addresses", "127.0.0.1 present"),
 				fmt.Sprintf("%-32s %s", "trusted proxy", "disabled"),
