@@ -217,7 +217,9 @@ network, so it never replaces step 10.
 
 A fresh install never meets this section. Follow it only when your roster file
 was written by a build that predates the required `--username` flag. Such a
-file has members with no username. Re-create the roster with the first admin:
+file has members with no username. Re-creating the roster drops every member
+but the admin you add in step 2, so re-add the others afterward. Re-create the
+roster with the first admin:
 
 1. Move the roster file aside, inside its leaf. The new name keeps the old
    file for reference, and the server never reads it.
@@ -227,15 +229,18 @@ file has members with no username. Re-create the roster with the first admin:
       /var/lib/dubplate/roster/roster.json.pre-username
    ```
 
-   Both files stay mode `0600` and owned by `music`. Run the command as
-   `music`, or restore the mode and owner afterward.
-2. Add the admin again through `systemd-run`, with the command from install
-   step 8. With no roster file present, `member add` takes the bootstrap path
-   and writes a new file:
+   `mv` keeps the file's mode `0600` and its owner `music`.
+2. Add the admin again with the `systemd-run` command from install step 8.
+   Put the admin's own address, name, and username in the `member add`
+   arguments, which end the command:
 
    ```sh
-   member add admin@example.org --admin --name "Ada Admin" --username ada
+     /usr/local/bin/dubplate-server member add ADDRESS --admin \
+       --name "NAME" --username USERNAME
    ```
+
+   With no roster file present, `member add` takes the bootstrap path and
+   writes a new file.
 
 3. Run `member list` the same way. It shows exactly one member, the admin.
    Then run `doctor` as in install step 10. It prints no `roster` row, because

@@ -60,9 +60,10 @@
   at `:187`). Have the probe's requests (`internal/serve/probe.go`) carry a marker
   the warning skips, or have the warning ignore the probe route. Found at the 5d-ii Task 10 sitting,
   2026-10-05 #bug #project:prod-polish
-- [ ] #16 A username may equal another member's normalized address, and `principalCollision`
-  (`internal/auth/roster.go:830`) compares principals only, so two members can share a principal and an audit
-  row can name the wrong one. Refuse the collision on write and at load. Found by the navidrome-removal close,
+- [ ] #16 A username may equal the address of a member who has a username of their own. `principalCollision`
+  (`internal/auth/roster.go:830`) already refuses a username equal to an address-principal, but compares
+  principals only, so the two principals differ and an audit row can read as that address. Refuse the collision
+  on write and at load. Found by the navidrome-removal close,
   2026-10-06 #security #project:prod-polish
 - [ ] #17 The members page's `FIELD_FOR_OUTCOME` (`web/src/routes/members/+page.svelte:46`) has no
   `invalid_address` row, so that outcome sets no `aria-invalid` and moves no focus to the address field. Add the

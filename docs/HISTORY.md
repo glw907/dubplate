@@ -2,6 +2,87 @@
 
 Per-pass ledger, newest first.
 
+## Rungs 12 and 16 re-plan, document pass: closed 2026-10-06, lane 1
+
+Executed against `docs/superpowers/plans/2026-10-05-replan-document-pass.md` (revision 2), pass class `docs`, in
+the main tree on master, beside the removal pass (segment A) and after its merge (segment B). The spec is
+`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1); its rulings, reviews, and folds
+are `docs/superpowers/research/2026-10-05-rungs-12-16-replan-*.md`. Geoff ruled all three owner rulings yes.
+
+### What landed
+
+- Task 0 (no commit; STATUS recorded it, committed at `d039f3b`): the archive chore, recorded below.
+- Task 1 `f1ceb9a`. Task 2 `bdd1472`: streamer spec revision 3 and
+  `docs/superpowers/research/2026-10-05-client-roster-audit.md`. The audit carries two Q&A-session handoffs from
+  Geoff (2026-10-05): the ruled client roster (Feishin, Rufin, Amperfy, Tempus, with Navic as alternate), and
+  Melodee's intake comparison as a slice 1 study question.
+- Task 3 `27eae30` and `246bfaf` (one fix round, the errata count). Task 4 `54c909e`. Task 5 `93ef26b`: the
+  `0003` in-place exception erratum on the rung 6 spec. Task 6 `a4a2586`: the roster re-create step, and the
+  forward-auth section dropped from the runbook. Task 7 `fb89c5e`: `CLAUDE.md` for the 0.8.0 first launch and
+  three code lanes. Task 8 `48974e8`: `streamer-0-8` folded into the greenfield entry as rung 12, the retired
+  integrations moved to `IDEAS.md`. Task 9: memory files `version-numbering.md` and `build-for-2-0.md`, outside
+  the repo.
+- Task 10 (this entry's commit): one `prose-voice-reviewer` read of Task 6's runbook section. Two blockers
+  folded (the `member add` fragment that read as a copyable command, and the `0600` and owner sentence that
+  contradicted itself) and one polish (the section now says up front that it drops every member but the admin).
+  The heading rewrite was refused: the old roster carries the old key, so "rename" is accurate.
+
+### Archive record (Task 0, 2026-10-05)
+
+`/root/musicbox-retired-2026-10-05.tar.gz` on the box (99,709,984 B, 0600 root, unchanged) has a verified copy at
+`~/.local/share/dubplate/archive/musicbox-retired-2026-10-05.tar.gz.age` (0600, age to the store's `RECIP=`;
+sha256 `de8f995d...ebec1`). Box and pulled sha256 match: `12b1d576...9044`, re-matched by the decrypted stream.
+The tar holds one `srv/music/state/navidrome/navidrome.db` (1,810,432 B, with `-wal` and `-shm`): 157 schema rows,
+`integrity_check` ok. R2 `music-library` also holds it: `state/navidrome.db` and 35 dated snapshots under
+`_archive/state/` (2026-08-31 to 2026-10-05), which corrects the older "state/ empty". The full tar's only
+off-box copy is the `.age` file; rung 16's backup remote takes a second. No plaintext remains.
+
+### Superseded `streamer-0-8` passages (removed from ROADMAP by Task 8, quoted verbatim)
+
+1. "Sequenced after launch (rung 17); the driver seam stays and Navidrome remains the escape hatch through 0.8's
+   first months. (Owner ruling, Geoff, 2026-10-05: Navidrome, all the Cloudflare infrastructure, and the box's
+   beets may be removed whenever the conductor likes, since the box now only serves dubplate's development; the
+   escape hatch and rungs 12 and 16 are re-planned at the next brainstorm.)"
+2. The organizer-spec fold bullet (moved to `IDEAS.md`): "Streamer integration ships with the Navidrome
+   reference driver only (rung 12). Target systems are Navidrome and Jellyfin (trimmed from 'Jellyfin and
+   Subsonic' by Geoff, 2026-09-03: living Subsonic use is mostly Navidrome itself, Airsonic-Advanced is stale
+   with no theming surface, and headless servers' users live in clients); a Jellyfin driver builds on demand, and
+   the documented driver seam stays universal, so a Subsonic-family driver remains possible if real demand
+   appears. Navidrome is the reference driver, not 'the bonus only dubplate can offer': this page's
+   product-essence line already reads generically ('a shared music server') and needs no further edit."
+3. A fold-bullet clause: "Cloudflare Access an optional forward-auth front (rung 12)." (now in `IDEAS.md` as "A
+   forward-auth front").
+4. Greenfield-paragraph phrases replaced: "box swap, interim retirement"; "This launch is a 0.x pre-release the
+   group uses; 0.8 is the first production release (Geoff, 2026-09-25). Launch bar: the complete server, Go
+   matcher past the two-tier conformance bar, a clean shadow record, layout parity."; "shadow against the live
+   estate as oracle".
+
+### What a later pass would be wrong to rediscover
+
+- The streamer spec's hook numbers are stable: retired hooks stay in place, marked retired, so no hook renumbers.
+- The removal pass's entry above already carries `readFLAC`'s salvage pointer and the `tagio` exported-unused
+  note; this pass adds neither.
+- Task 8's two non-blocking reads stand: the rung 12 entry's opening goal "Subsume Navidrome" is a dated
+  2026-09-07 rationale, and `formats-1-0` still says "cutover" where rung 16 now reads as the first-launch
+  sitting.
+- Moved out of STATUS at this close: the Q&A handoffs bullet (landed in `bdd1472`), and the moot carries (HISTORY
+  5d-ii; restore-before-12 stars and playlists; group 2 stripped from every peer; the front exemption's
+  dual-stack match; the configured-header carve-out; the `SetFallthrough` items), per the spec's "Where the
+  carried items land" table.
+- Moved out of STATUS at this close, still carried: photo lane, after lane 1: `tools/photos/check.test.mjs` fails
+  2 of 121 (both assume an empty `photos/`), so no gate runs it; the integrity leg reads `photos/` from disk, not
+  `git ls-files`; `check.sh`'s header omits the leg; Ruling 3's photo erratum to rung 7, a source-URL recheck, a
+  blob-retention call. To `give-back` and `packaging`: the deleted table's git history, the process-wide
+  holder's tension, the Unidecode-derived items (HISTORY transliteration, "Routed"), UNI-L2's failure-alert
+  hook, the loopback-relay mail class (`IDEAS.md`), the token-in-fragment move (BACKLOG #13). Staged legs 317/127
+  (the citation leg misses `R-6c` patterns).
+
+### Budgets
+
+Tokens: about 1.6M execution tokens against the 3.5M ceiling (flag 2.8M not reached). Attended time: no planned
+sittings. Planning misses: none (the Q&A handoffs were added at dispatch, not missed). Every task was accepted by
+an Opus `diff-reviewer`, and every gate was the full heavy lane, green.
+
 ## Navidrome removal: closed 2026-10-06, lane 1
 
 Executed against `docs/superpowers/plans/2026-10-05-navidrome-removal.md` (revision 2), in the main tree on
