@@ -50,26 +50,26 @@ var geteuid = os.Geteuid
 var unidecodeClient = &http.Client{Timeout: unidecodeInstallTimeout}
 
 // unidecodeTablePath returns the table file the install verb writes
-// and both loads below read, under stateDir's unidecode leaf.
+// and checkUnidecodeTable reads, under stateDir's unidecode leaf.
 func unidecodeTablePath(stateDir string) string {
 	return filepath.Join(stateDir, unidecodeLeafName, unidecode.TableFileName)
 }
 
-// loadUnidecodeTable reads and verifies the table at stateDir's
-// unidecode leaf. The import pipeline's scoring is the table's
-// consumer; doctor's row reads it through this load. It touches the
-// network never, and creates nothing.
-func loadUnidecodeTable(stateDir string) (*unidecode.Table, error) {
+// checkUnidecodeTable reports whether the table at stateDir's unidecode
+// leaf reads and verifies through [unidecode.Parse]. It returns the
+// read error unwrapped, so a missing file satisfies
+// errors.Is(err, fs.ErrNotExist), and wraps a parse refusal with the
+// path. It touches the network never, and creates nothing.
+func checkUnidecodeTable(stateDir string) error {
 	path := unidecodeTablePath(stateDir)
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	table, err := unidecode.Parse(data)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", path, err)
+	if _, err := unidecode.Parse(data); err != nil {
+		return fmt.Errorf("%s: %w", path, err)
 	}
-	return table, nil
+	return nil
 }
 
 // unidecodeRowStatus renders doctor's "unidecode" row: "not checked"
@@ -83,7 +83,7 @@ func unidecodeRowStatus(environ []string) (status string, failed bool) {
 	if !ok {
 		return "not checked", false
 	}
-	_, err := loadUnidecodeTable(stateDir)
+	err := checkUnidecodeTable(stateDir)
 	if err == nil {
 		return fmt.Sprintf("ok (%s)", unidecode.Version), false
 	}
@@ -172,7 +172,7 @@ func runUnidecodeInstall(ctx context.Context, environ []string, from string, std
 		}
 	}
 
-	tablePath := filepath.Join(leafPath, unidecode.TableFileName)
+	tablePath := unidecodeTablePath(stateDir)
 	if leafExists {
 		if existing, err := os.ReadFile(tablePath); err == nil {
 			if _, err := unidecode.Parse(existing); err == nil {

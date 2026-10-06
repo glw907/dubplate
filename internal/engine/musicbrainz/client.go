@@ -16,9 +16,9 @@ import (
 	"github.com/glw907/dubplate/internal/engine/matcher"
 )
 
-// DefaultBaseURL is the live MusicBrainz host beets hard-codes for the
+// defaultBaseURL is the live MusicBrainz host beets hard-codes for the
 // musicbrainz.org branch (beetsplug/_utils/musicbrainz.py:598-599).
-const DefaultBaseURL = "https://musicbrainz.org"
+const defaultBaseURL = "https://musicbrainz.org"
 
 // wsPathPrefix is the WS/2 root beets always appends to api_host
 // (beetsplug/_utils/musicbrainz.py:609-610). This is deliberately a
@@ -75,11 +75,10 @@ var ErrNotFound = errors.New("release not found")
 // status or a transport error. It is the shape of beets' own
 // RetryError, which is deliberately NOT an HTTPError and so is never
 // mapped to a beets exception (beetsplug/_utils/requests.py:78-89).
-// A caller that can postpone its work branches on it to defer a lookup.
+// A caller branches on it to tell an outage from a missing release.
 //
-// No rate-limit-specific sentinel ships beside it: %w is an API
-// commitment justified by a caller that branches, and no caller
-// branches on 429 separately from 503 today.
+// No rate-limit-specific sentinel ships beside it: 429 and 503 both
+// surface as ErrUnavailable.
 var ErrUnavailable = errors.New("musicbrainz unavailable")
 
 // ClientConfig configures a [Client]. UserAgent is required and the
@@ -90,7 +89,7 @@ var ErrUnavailable = errors.New("musicbrainz unavailable")
 // own precedent, with the contact from Config.AdminEmail). Budget is
 // required too; offline callers pass [Unmetered].
 type ClientConfig struct {
-	BaseURL   string        // empty means DefaultBaseURL
+	BaseURL   string        // empty means defaultBaseURL
 	UserAgent string        // required
 	Budget    *Budget       // required
 	Timeout   time.Duration // zero means 30s
@@ -130,7 +129,7 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 
 	baseURL := cfg.BaseURL
 	if baseURL == "" {
-		baseURL = DefaultBaseURL
+		baseURL = defaultBaseURL
 	}
 
 	httpClient := cfg.HTTP
@@ -333,10 +332,9 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 }
 
 // doWithRetry issues one GET at requestURL, acquiring a limiter token
-// before every attempt including retries (R13 divergence 2: beets gets
-// per-request-only metering for free because Retry sits inside the
-// adapter beneath both its limiters, and reproducing that accident here
-// would make the background budget a lie). It returns the response
+// before every attempt including retries, so a retry spends the
+// budget the way a first attempt does. beets meters per request only,
+// because Retry sits inside its adapter beneath both limiters. It returns the response
 // body on a 200, ErrNotFound on a 404, ErrUnavailable when the retries
 // are spent, and a generic error for any other status.
 func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, error) {

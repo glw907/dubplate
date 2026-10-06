@@ -64,7 +64,7 @@ func NewShell(prefix Prefix, strip Strip, logger *slog.Logger) *Shell {
 // Register mounts h under the owned prefix as the subtree name: both
 // prefix+"/"+name and everything under prefix+"/"+name+"/" reach h. A
 // path under the owned prefix that no registered subtree claims is
-// answered by [Terminator].
+// answers 404.
 //
 // Two registrations of the same name panic, naming the subtree, on the
 // same collision-gate precedent internal/config/registry.go cites
@@ -103,8 +103,8 @@ func (s *Shell) Register(name string, h http.Handler) {
 // failing visibly, which is what makes a panic the right answer:
 //
 //   - An empty name registers the owned prefix itself and the whole
-//     owned subtree under it, so one handler swallows every path the
-//     terminator exists to refuse.
+//     owned subtree under it, so one handler swallows every path
+//     the shell otherwise answers 404.
 //   - A name carrying "/" registers a deeper path than the caller wrote,
 //     and one carrying "{" or "}" is a Go 1.22 mux wildcard: "{x}"
 //     matches any single segment, and "{x...}" matches the rest of the
@@ -130,7 +130,7 @@ func subtreeNameRefusal(name string) string {
 // Handler composes six steps, in this order, each wrapping the next,
 // and returns the root http.Handler: the security headers, the ingress
 // strip, path normalization, the echo-method refusal, the origin check,
-// and prefix routing. doc.go states the order and the extension point's
+// and subtree dispatch. doc.go states the order and the extension point's
 // contract; this method builds it. The order is a property of this
 // composition, never a mux feature: no step here is registered as a
 // route.
@@ -138,19 +138,18 @@ func subtreeNameRefusal(name string) string {
 // The security headers are outermost, so every response carries them,
 // a refusal by any later step included.
 //
-// The origin check sits between normalization and prefix routing, so
+// The origin check sits between normalization and subtree dispatch, so
 // it judges only a path normalization has admitted and covers every
 // registered subtree and every path outside the prefix alike. It runs
 // after the echo method refusal, so TRACE and TRACK keep their 405
 // rather than taking the check's 403.
 //
-// A path outside the owned prefix answers 404 from
-// [http.NotFoundHandler].
+// A path no registered subtree claims, outside the owned prefix or
+// under it, answers 404 from [http.NotFoundHandler].
 func (s *Shell) Handler() http.Handler {
 	s.handlerBuilt = true
 
-	routed := s.prefix.Route(s.terminated(), http.NotFoundHandler())
-	protected := s.origin.wrap(routed)
+	protected := s.origin.wrap(s.terminated())
 	guarded := refuseEchoMethods(protected)
 	normalized := Normalize(guarded)
 	stripped := s.strip.Wrap(normalized)
@@ -215,7 +214,7 @@ func (s *Shell) Logger() *slog.Logger {
 }
 
 // refuseEchoMethods answers TRACE and TRACK with 405 before the request
-// reaches prefix routing, so neither method reaches a registered
+// reaches subtree dispatch, so neither method reaches a registered
 // subtree. TRACE echoes the request back to the
 // client by definition, which hands anything an intermediary added,
 // cookies and identity headers included, to whoever can make the
@@ -238,19 +237,20 @@ func refuseEchoMethods(next http.Handler) http.Handler {
 	})
 }
 
-// terminated is the owned half of prefix routing: a path under the
-// owned prefix that some registered subtree claims goes to that
-// subtree, and every other owned path goes to [Terminator]. The
-// terminator is wired here explicitly rather than left to
-// http.ServeMux's own default 404, which answers the same status by
-// coincidence of the mux's behavior rather than by the shell's
-// decision.
+// terminated dispatches a request to the registered subtree that
+// claims its path and answers every other path with
+// [http.NotFoundHandler]. The 404 is wired here explicitly rather than
+// left to [http.ServeMux]'s own default, which answers the same status
+// by coincidence of the mux's behavior rather than by the shell's
+// decision. Subtrees register patterns that end on a segment boundary,
+// so a path sharing a subtree's bytes without the boundary is claimed
+// by none.
 func (s *Shell) terminated() http.Handler {
-	terminator := Terminator()
+	notFound := http.NotFoundHandler()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h, pattern := s.mux.Handler(r)
 		if pattern == "" {
-			terminator.ServeHTTP(w, r)
+			notFound.ServeHTTP(w, r)
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -264,9 +264,9 @@ func (s *Shell) terminated() http.Handler {
 // chain, so statusCapture reaches every handler the shell dispatches
 // to. strip.go keeps the websocket Upgrade handshake intact, so
 // statusCapture stays transparent to streaming and upgraded
-// connections: Unwrap lets [http.ResponseController] reach the real
-// writer, and Flush and Hijack pass through directly for a caller that
-// asserts [http.Flusher] or [http.Hijacker] itself.
+// connections: Unwrap, Flush, and Hijack exist so a streaming handler
+// reaches the real writer, whether through [http.ResponseController]
+// or by asserting [http.Flusher] or [http.Hijacker] itself.
 type statusCapture struct {
 	http.ResponseWriter
 	status int
@@ -346,11 +346,10 @@ func markRefusal(r *http.Request, status int) {
 // wrapper that made it, never on the response status alone: a
 // registered subtree answering 400 to its own bad input is not an
 // ingress refusal, and reading the status would report one every time
-// a handler rejected a malformed form. A 404 from the prefix
-// terminator or the root 404 is likewise no refusal, and
-// emits no record.
+// a handler rejected a malformed form. A 404 for a path no subtree
+// claims is likewise no refusal, and emits no record.
 //
-// Positioned outside strip, normalization, and prefix routing alike,
+// Positioned outside strip, normalization, and subtree dispatch alike,
 // it relies on http.Request's shared header map rather than its own
 // nesting position: by the time next.ServeHTTP returns, r.Header
 // carries whatever the chain actually did to it, strip's removal

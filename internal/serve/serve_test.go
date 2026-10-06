@@ -26,6 +26,18 @@ func newTestShell(t *testing.T) *Shell {
 	return NewShell(prefix, strip, nil)
 }
 
+// callRecorder records whether a handler ran.
+type callRecorder struct {
+	called bool
+}
+
+func recordingHandlerWithStatus(status int, dst *callRecorder) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		dst.called = true
+		w.WriteHeader(status)
+	})
+}
+
 // capturingHandler is a [slog.Handler] that keeps every record's
 // attributes in memory, so a test can assert on the shell's own
 // structured log record against the production root handler rather
@@ -189,8 +201,8 @@ func TestRegisterDuplicateSubtreePanics(t *testing.T) {
 // TestUnroutedPathAnswers404: a path no registered subtree claims
 // answers 404 and invokes no subtree, whether it lies outside the owned
 // prefix or under it. The two answers share a status, so the status
-// does not tell the terminator from the root handler; the owned row
-// pins the terminator's own answer for the owned half.
+// does not tell the 404 handler from the root handler; the owned row
+// pins the shell's own answer for the owned half.
 func TestUnroutedPathAnswers404(t *testing.T) {
 	tests := []struct {
 		name string

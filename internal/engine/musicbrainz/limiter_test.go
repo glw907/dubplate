@@ -35,8 +35,8 @@ func TestDispatcherPrefersUserPresentAndStillFeedsBackground(t *testing.T) {
 	l := newLimiter(ticks)
 	defer closeLimiter(t, l)
 
-	probe := l.Budget("probe", ClassUserPresent, 0)
-	background := l.Budget("background", ClassBackground, 0)
+	probe := l.Budget(ClassUserPresent, 0)
+	background := l.Budget(ClassBackground, 0)
 
 	// served records the order Wait returned in, which is the property
 	// under test.
@@ -81,9 +81,9 @@ func TestReservedTokensRotateThroughTheClassesBelow(t *testing.T) {
 	l := newLimiter(ticks)
 	defer closeLimiter(t, l)
 
-	probe := l.Budget("probe", ClassUserPresent, 0)
-	batch := l.Budget("batch", ClassBatch, 0)
-	background := l.Budget("background", ClassBackground, 0)
+	probe := l.Budget(ClassUserPresent, 0)
+	batch := l.Budget(ClassBatch, 0)
+	background := l.Budget(ClassBackground, 0)
 
 	served := make(chan string, 32)
 
@@ -129,7 +129,7 @@ func TestIdleTickIsHeldAsASpare(t *testing.T) {
 	ticks <- time.Time{}
 	l.awaitTicks(1)
 
-	b := l.Budget("probe", ClassUserPresent, 0)
+	b := l.Budget(ClassUserPresent, 0)
 	if err := b.Wait(context.Background()); err != nil {
 		t.Fatalf("Wait after an idle tick: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestSpareIsCappedAtOne(t *testing.T) {
 	ticks <- time.Time{}
 	l.awaitTicks(2)
 
-	probe := l.Budget("probe", ClassUserPresent, 0)
+	probe := l.Budget(ClassUserPresent, 0)
 	served := make(chan string, 2)
 	startWaiter(probe, "first", served)
 	startWaiter(probe, "second", served)
@@ -174,8 +174,8 @@ func TestCancelledWaiterKeepsItsTokenForTheNextWaiter(t *testing.T) {
 	l := newLimiter(ticks)
 	defer closeLimiter(t, l)
 
-	leaving := l.Budget("leaving", ClassUserPresent, 0)
-	next := l.Budget("next", ClassUserPresent, 0)
+	leaving := l.Budget(ClassUserPresent, 0)
+	next := l.Budget(ClassUserPresent, 0)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	left := make(chan error, 1)
@@ -223,8 +223,8 @@ func TestInFlightTokenPassesToTheNextWaiter(t *testing.T) {
 		})
 	})
 
-	leaving := l.Budget("leaving", ClassUserPresent, 0)
-	next := l.Budget("next", ClassUserPresent, 0)
+	leaving := l.Budget(ClassUserPresent, 0)
+	next := l.Budget(ClassUserPresent, 0)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	left := make(chan error, 1)
@@ -262,7 +262,7 @@ func TestBudgetCapsSequentialSpend(t *testing.T) {
 	l := newLimiter(ticks)
 	defer closeLimiter(t, l)
 
-	b := l.Budget("probe", ClassUserPresent, 2)
+	b := l.Budget(ClassUserPresent, 2)
 	for i := range 2 {
 		res := make(chan error, 1)
 		go func() { res <- b.Wait(context.Background()) }()
@@ -292,7 +292,7 @@ func TestBudgetCapsConcurrentSpend(t *testing.T) {
 	l := newLimiter(ticks)
 	defer closeLimiter(t, l)
 
-	b := l.Budget("probe", ClassUserPresent, 2)
+	b := l.Budget(ClassUserPresent, 2)
 	results := make(chan error, 4)
 	for range 4 {
 		go func() { results <- b.Wait(context.Background()) }()
@@ -334,9 +334,6 @@ func TestUnmeteredNeverWaitsAndStillCounts(t *testing.T) {
 	if b.Spent() != 3 {
 		t.Errorf("Spent() = %d, want 3", b.Spent())
 	}
-	if b.Name() != "unmetered" {
-		t.Errorf("Name() = %q, want %q", b.Name(), "unmetered")
-	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -350,7 +347,7 @@ func TestUnmeteredNeverWaitsAndStillCounts(t *testing.T) {
 
 func TestCloseFailsPendingAndFutureWaiters(t *testing.T) {
 	l := newLimiter(make(chan time.Time))
-	b := l.Budget("probe", ClassUserPresent, 0)
+	b := l.Budget(ClassUserPresent, 0)
 
 	pending := make(chan error, 1)
 	go func() { pending <- b.Wait(context.Background()) }()
@@ -416,10 +413,7 @@ func TestNewLimiterPacesFromItsOwnTicker(t *testing.T) {
 	l := NewLimiter(time.Millisecond)
 	defer closeLimiter(t, l)
 
-	b := l.Budget("probe", ClassUserPresent, 0)
-	if b.Name() != "probe" {
-		t.Errorf("Name() = %q, want %q", b.Name(), "probe")
-	}
+	b := l.Budget(ClassUserPresent, 0)
 	if err := b.Wait(context.Background()); err != nil {
 		t.Fatalf("Wait against a real ticker: %v", err)
 	}

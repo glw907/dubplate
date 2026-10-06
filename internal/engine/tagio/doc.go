@@ -24,16 +24,14 @@
 // file twice, once through Read and once through Parse, rather than
 // reaching for a second read entry point this package does not
 // expose. The double parse is the accepted cost of keeping Read's
-// contract narrow; rung 9, the pipeline that first needs both, is the
-// caller that may fold the two calls into one if the cost is ever
-// worth removing.
+// contract narrow.
 //
 // Tags is Read's tag projection exported over an already-parsed
 // Container, for a caller that wants a file's tags alongside a
-// Container field Read does not return, such as StreamInfo. Its caller
-// is the import pipeline's reader, which parses a file once for its
-// length and its tags rather than parsing it twice through Read and
-// Parse both. Tags performs no I/O and adds no bypass of the seam
+// Container field Read does not return, such as StreamInfo. The import
+// reader is the intended consumer, parsing a file once for its length
+// and its tags rather than twice through Read and Parse both; no
+// caller exists yet. Tags performs no I/O and adds no bypass of the seam
 // registry: Parse's own bypass (ruling, seam_test.go) is what a
 // caller of Tags still goes through.
 package tagio

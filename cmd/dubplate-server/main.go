@@ -1,23 +1,16 @@
 // Command dubplate-server organizes and serves one shared music library.
 //
-// This doc comment carries the subcommand surface, re-derived from the
-// organizer spec's two-binary split minus beet passthrough, which does
-// not exist on the greenfield server. Each verb names the rung that
-// lands it; a rung claiming a new verb amends this list.
+// Its subcommands:
 //
-//   - version: print the build version and matcher commit (rung 1)
-//   - check: validate configuration, exit nonzero on failure (rung 1)
-//   - doctor: report the full config wall's effective values (rung 1)
-//   - serve: run the HTTP server (rung 5)
-//   - backup: snapshot the library database and sync it to remote storage (rung 6)
-//   - restore: restore a library snapshot (rung 6)
+//   - version: print the build version and matcher commit
+//   - check: validate configuration, exit nonzero on failure
+//   - doctor: report the full config wall's effective values
+//   - serve: run the HTTP server
+//   - member: manage the roster of group members
+//   - backup: snapshot the library database and sync it to remote storage
+//   - restore: restore a library snapshot
 //   - unidecode install: build the pinned Unidecode transliteration
 //     table into the state directory, online or from --from FILE
-//   - import: admit a reviewed batch into the library (rung 9)
-//   - ping-fail: report a failed run to a monitoring endpoint (rung 9)
-//
-// nudge-consume is not carried forward: its systemd units were retired
-// in the 2026-09-02 wind-down, and no greenfield rung claims it.
 package main
 
 import (
@@ -38,9 +31,8 @@ var version = "dev"
 
 // matcherCommit is the Go matcher revision this build carries, set via
 // -ldflags "-X main.matcherCommit=..." at build time. It stays "dev"
-// for workstation builds. It names the matcher a deployed binary
-// scores with, so an operator can read which revision produced a
-// decision.
+// for workstation builds. The version verb prints it, so an operator
+// can read which matcher revision a deployed binary carries.
 //
 // scripts/deploy.sh is the only build path that sets it, passing
 // -X main.matcherCommit= through make build-linux's LDFLAGS variable;

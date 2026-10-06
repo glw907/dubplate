@@ -71,7 +71,7 @@ func CheckOracleBugs(caseIDs []string, adj *AdjudicationLedger, l *OracleBugLedg
 	for _, e := range adj.Entries {
 		adjudicationIDs[e.ID] = true
 	}
-	bySubject := adj.BySubjectCase()
+	bySubject := adj.ByCase()
 
 	var errs []error
 	seen := make(map[string]bool, len(l.Entries))

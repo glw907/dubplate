@@ -1,8 +1,8 @@
 package matcher
 
 // QuietImportTunables returns DefaultTunables with the four assignments
-// an unattended quiet import makes, which is the configuration the
-// import pipeline imports under.
+// an unattended quiet import makes, the settings
+// corpus/profiles/estate.yaml records. No import pipeline calls it yet.
 //
 // It lives here rather than in the harness because internal/engine may
 // import no harness package (TestEngineNeverImportsHarness,
@@ -16,7 +16,7 @@ package matcher
 // configuration rather than as a diff a reader has to compute.
 func QuietImportTunables() Tunables {
 	tun := DefaultTunables()
-	tun.Quiet = true           // the -q flag the incumbent passes beet import
+	tun.Quiet = true           // beet import's -q flag
 	tun.QuietFallback = "skip" // corpus/profiles/estate.yaml import.quiet_fallback
 	tun.NoneRecAction = "skip" // corpus/profiles/estate.yaml import.none_rec_action
 	tun.Timid = false          // corpus/profiles/estate.yaml import.timid

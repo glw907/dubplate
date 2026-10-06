@@ -102,13 +102,6 @@ func ParseFloat(environ []string, t Threshold) (float64, error) {
 }
 
 // thresholdOf reports whether name is a threshold registered on reg.
-// It is the fifth classification the wall recognizes, alongside
-// ownedNow, reservedClassOf, supersessionOf, and integrationClassOf: a
-// rung that declares a threshold in its own file (the rung 1b
-// contract) has declared that name, so setting it must not read as an
-// unknown key. Rung 4's thresholds classified through their
-// integration class instead, which is why the wall needed no such
-// branch before rung 5 declared the first standalone threshold.
 func thresholdOf(reg *Registry, name string) bool {
 	for _, t := range reg.thresholds {
 		if t.Key == name {

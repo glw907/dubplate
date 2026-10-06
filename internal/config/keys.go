@@ -158,8 +158,8 @@ func (r *Registry) supersessionOf(name string) (string, bool) {
 // IntegrationClass is one named integration the wall accepts only when
 // its Flag is set: an adopter-optional capability rather than an owned
 // one (build spec U4). Setting any of its keys with the flag unset is a
-// load error naming the flag, which is what keeps a half-configured
-// integration from running unattended and observing nothing.
+// load error naming the flag, so a half-configured integration is
+// refused rather than silently ignored.
 //
 // Load requires every Required key when the flag is set.
 type IntegrationClass struct {
@@ -184,10 +184,8 @@ func (r *Registry) integrationClassOf(name string) (IntegrationClass, bool) {
 	return IntegrationClass{}, false
 }
 
-// Enabled reports whether c's flag resolves true in environ. An unset or
-// empty flag is off. A value strconv.ParseBool refuses is reported as an
-// error rather than silently read as off, because a typo that disables
-// an unattended observer is the failure this class exists to prevent.
+// Enabled reports whether c's flag resolves true in environ, with the
+// semantics of integrationEnabled.
 func (c IntegrationClass) Enabled(environ []string) (bool, error) {
 	w := newWall(environ)
 	return w.integrationEnabled(c)

@@ -431,7 +431,7 @@ func startRenderedServer(t *testing.T) (*httptest.Server, *requestLog, []string)
 	t.Helper()
 	srv := httptest.NewUnstartedServer(nil)
 	environ := renderedEnviron(t, "http://"+srv.Listener.Addr().String())
-	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newServeShell: %v", err)
 	}
@@ -455,7 +455,7 @@ func startFixtureServer(t *testing.T, overrides map[string]string) *httptest.Ser
 	for name, value := range overrides {
 		environ = replaceKey(environ, name, value)
 	}
-	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newServeShell: %v", err)
 	}

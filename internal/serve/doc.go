@@ -29,9 +29,10 @@
 //     normalization has admitted, and covers every registered subtree
 //     and every path outside the prefix alike, so no mount can forget
 //     to install it.
-//  5. Prefix routing ([Prefix.Route]). The one owned prefix is matched
-//     segment-aware, on case-sensitive bytes, never by a plain string
-//     trim. A path the prefix does not own answers 404 from
+//  5. Subtree dispatch. A path a registered subtree claims reaches
+//     that subtree; the claim is segment-aware, on case-sensitive
+//     bytes, never a plain string trim. Every other path, outside the
+//     owned prefix or under it, answers 404 from
 //     [http.NotFoundHandler].
 //
 // # The extension point

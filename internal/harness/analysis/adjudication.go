@@ -30,7 +30,8 @@ const (
 const AgentAdjudicator = "agent"
 
 // AdjudicationSubject is the join key a row's evidence is read against:
-// the id of a corpus case.
+// the id of a corpus case. The nesting preserves the ledger file's
+// format.
 type AdjudicationSubject struct {
 	CaseID string `json:"case_id"`
 }
@@ -134,12 +135,10 @@ type AdjudicationLedger struct {
 	Entries []AdjudicationEntry `json:"entries"`
 }
 
-// BySubjectCase indexes the ledger's rows by case id.
-//
-// It is exported because two checkers need it: CheckDefectFree's probe
-// walk, which built this map privately, and CheckOracleBugs' probe-case
-// rule (rung 3 spec, the B3 fold).
-func (l *AdjudicationLedger) BySubjectCase() map[string]AdjudicationEntry {
+// ByCase indexes the ledger's rows by case id. A row with no case id is
+// left out. The conform package's checkers read it alongside this
+// package's own.
+func (l *AdjudicationLedger) ByCase() map[string]AdjudicationEntry {
 	rows := make(map[string]AdjudicationEntry, len(l.Entries))
 	for _, e := range l.Entries {
 		if e.Subject.CaseID != "" {
@@ -267,7 +266,7 @@ func CheckDefectFree(bugs *OracleBugLedger, adj *AdjudicationLedger) error {
 		byID[e.ID] = e
 	}
 
-	rows := adj.BySubjectCase()
+	rows := adj.ByCase()
 
 	var errs []error
 	probeCases := make(map[string]bool)

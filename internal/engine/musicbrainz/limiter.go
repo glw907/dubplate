@@ -9,18 +9,14 @@ import (
 )
 
 // Class ranks one caller's claim on the shared MusicBrainz wire budget.
-// Three classes are enough for every consumer the specs name: an
-// uploader probe holds a contributor on the page through its lookups
-// and must outrank a batch import (organizer design, "a user-present
-// probe outranks a batch import"); interactive work must not starve
-// timer imports (build spec, the same section); and deferred background
-// work spends its budget through this limiter and never inline with the
-// probe.
+// A request a person is waiting on outranks a batch import, a batch
+// import is not starved by interactive work, and deferred background
+// work yields to both.
 type Class int
 
 const (
 	ClassUserPresent Class = iota // a person is waiting on this request
-	ClassBatch                    // an operator- or timer-triggered import
+	ClassBatch                    // a batch import
 	ClassBackground               // deferred work, never inline with a probe
 )
 
@@ -62,9 +58,7 @@ const DefaultInterval = time.Second
 // Limiter paces every MusicBrainz request one process issues, across
 // every caller. It owns a goroutine, which is the one place in this
 // package that is justified: the limiter's entire job is to make
-// concurrent callers wait in a defined order, and the uploader probe,
-// the import pipeline, and deferred background work are three real
-// concurrent callers.
+// concurrent callers wait in a defined order.
 //
 // It reads no clock. Pacing comes from a ticker it owns, and a token is
 // "the next tick", never "now minus the last request". That keeps
@@ -125,18 +119,14 @@ func newLimiter(ticks <-chan time.Time) *Limiter {
 	return l
 }
 
-// Budget returns a named per-caller budget in class, spending at most
-// limit requests; a limit of zero or less means no cap, and the budget
-// is still paced and still counts what it spends. The name is what makes
-// spend attributable in a log and is not otherwise interpreted.
+// Budget returns a per-caller budget in class, spending at most limit
+// requests; a limit of zero or less means no cap, and the budget is
+// still paced and still counts what it spends.
 //
-// This is the "per-caller budget interface" the rung 3 spec names: a
-// seam, not a Go interface. go-conventions holds an interface back until
-// a second implementation exists, and one concrete type with an
+// A Budget is a seam, not a Go interface: one concrete type with an
 // injected wait function serves both the metered and the unmetered case.
-func (l *Limiter) Budget(name string, class Class, limit int) *Budget {
+func (l *Limiter) Budget(class Class, limit int) *Budget {
 	return &Budget{
-		name:  name,
 		limit: limit,
 		wait:  func(ctx context.Context) error { return l.acquire(ctx, class) },
 	}
@@ -330,10 +320,9 @@ func (l *Limiter) depart(w *waiter, class Class) {
 	}
 }
 
-// Budget is one named caller's claim on a [Limiter], or the unmetered
+// Budget is one caller's claim on a [Limiter], or the unmetered
 // stand-in [Unmetered] returns.
 type Budget struct {
-	name  string
 	limit int
 	wait  func(context.Context) error
 
@@ -351,7 +340,6 @@ type Budget struct {
 // type with no branch.
 func Unmetered() *Budget {
 	return &Budget{
-		name: "unmetered",
 		wait: func(ctx context.Context) error { return ctx.Err() },
 	}
 }
@@ -400,7 +388,3 @@ func (b *Budget) Spent() int {
 	defer b.mu.Unlock()
 	return b.spent
 }
-
-// Name reports the budget's name, for the caller that logs its own
-// spend.
-func (b *Budget) Name() string { return b.name }

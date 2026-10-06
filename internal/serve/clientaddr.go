@@ -1,6 +1,6 @@
 // Package serve implements the dubplate HTTP shell: the trusted-proxy
 // client-address derivation, the ingress strip, path normalization,
-// and prefix routing that sit in front of the shell's handlers.
+// and subtree dispatch that sit in front of the shell's handlers.
 package serve
 
 import (

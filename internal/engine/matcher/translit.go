@@ -6,15 +6,15 @@ import (
 )
 
 // transliterator holds the process-wide function Transliterate
-// consults for every rune. It starts nil: a program installs the
-// pinned Unidecode table's lookup through SetTransliterator before
-// any scoring call, and a call before that panics, the way
-// crypto.Hash.New panics for a hash no program registered.
+// consults for every rune. It starts nil: any program that scores must
+// install the pinned Unidecode table's lookup through SetTransliterator
+// first, and a call before that panics, the way crypto.Hash.New panics
+// for a hash no program registered.
 var transliterator atomic.Pointer[func(rune) (string, bool)]
 
 // SetTransliterator installs fn as the transliterator every
-// Transliterate call consults from this point on. A program calls it
-// once, before scoring. It panics on a nil fn: there is no channel to
+// Transliterate call consults from this point on. Any program that
+// scores must call it once, before scoring; no present command does. It panics on a nil fn: there is no channel to
 // uninstall a transliterator once one is installed.
 func SetTransliterator(fn func(rune) (string, bool)) {
 	if fn == nil {

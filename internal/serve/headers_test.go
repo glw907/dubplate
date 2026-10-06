@@ -10,7 +10,7 @@ import (
 // TestShellHandler_SecurityHeadersOnEveryResponse proves the header
 // step reaches a response from every step of the chain: a registered
 // subtree, the normalization refusal, the echo-method refusal, the
-// origin refusal, the terminator, and a path outside the prefix. HSTS is
+// origin refusal, the shell's 404, and a path outside the prefix. HSTS is
 // present on every row with it enabled and absent on every row
 // without. Referrer-Policy is the header a refusal cannot supply for
 // itself: [http.Error] sets nosniff on its own, so a step moved inside
@@ -26,7 +26,7 @@ func TestShellHandler_SecurityHeadersOnEveryResponse(t *testing.T) {
 		{name: "normalization refusal", method: http.MethodGet, target: testPrefix + "/a/../page", wantStatus: http.StatusBadRequest},
 		{name: "echo method refusal", method: http.MethodTrace, target: testPrefix + "/page", wantStatus: http.StatusMethodNotAllowed},
 		{name: "origin refusal", method: http.MethodPost, target: testPrefix + "/page", wantStatus: http.StatusForbidden},
-		{name: "terminator", method: http.MethodGet, target: testPrefix + "/unknown", wantStatus: http.StatusNotFound},
+		{name: "unclaimed under the prefix", method: http.MethodGet, target: testPrefix + "/unknown", wantStatus: http.StatusNotFound},
 		{name: "outside the prefix", method: http.MethodGet, target: "/elsewhere", wantStatus: http.StatusNotFound},
 	}
 	for _, hsts := range []bool{false, true} {

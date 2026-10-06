@@ -13,30 +13,6 @@ import (
 // under R-A's other answer too.
 const testPrefix = "/anchor"
 
-// callRecorder is one of three distinct recorders TestRoute uses per
-// row, so a row cannot pass by reaching the wrong terminal with the
-// right status.
-type callRecorder struct {
-	called bool
-}
-
-func recordingHandlerWithStatus(status int, dst *callRecorder) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		dst.called = true
-		w.WriteHeader(status)
-	})
-}
-
-// recordingTerminator wraps the package's real [Terminator] rather
-// than faking its status, so a row using it still exercises the
-// production 404 and not a stand-in.
-func recordingTerminator(dst *callRecorder) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		dst.called = true
-		Terminator().ServeHTTP(w, r)
-	})
-}
-
 func TestNewPrefix(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -111,116 +87,43 @@ func TestNewPrefixReportsEachShapeByItsOwnReason(t *testing.T) {
 	}
 }
 
-// terminal names which of the three recorders a row expects to have
-// been called.
-type terminal int
-
-const (
-	terminalRegistered terminal = iota
-	terminalTerminator
-	terminalNext
-)
-
-func TestRoute(t *testing.T) {
+// TestHandlerOwnsOnlySegmentBoundaries registers one subtree and sends
+// paths that share its bytes without a segment boundary, so a matcher
+// that trimmed the prefix as a plain string would reach the subtree
+// for a neighbor such as testPrefix+"echo" instead of answering 404.
+func TestHandlerOwnsOnlySegmentBoundaries(t *testing.T) {
 	tests := []struct {
-		name string
-		path string
-		// useTerminator selects which handler backs the row's "owned"
-		// argument when the path is owned; ignored otherwise.
-		useTerminator bool
-		want          terminal
-		wantStatus    int
+		name        string
+		path        string
+		wantStatus  int
+		wantReached bool
 	}{
-		{
-			name:          "the bare prefix enters and, with nothing registered, reaches the terminator",
-			path:          testPrefix,
-			useTerminator: true,
-			want:          terminalTerminator,
-			wantStatus:    http.StatusNotFound,
-		},
-		{
-			name:          "the prefix with a trailing separator enters and, with nothing registered, reaches the terminator",
-			path:          testPrefix + "/",
-			useTerminator: true,
-			want:          terminalTerminator,
-			wantStatus:    http.StatusNotFound,
-		},
-		{
-			name:          "a path under the prefix enters and reaches a registered route",
-			path:          testPrefix + "/nested",
-			useTerminator: false,
-			want:          terminalRegistered,
-			wantStatus:    http.StatusOK,
-		},
-		{
-			name:          "a different case in a later segment still enters, since only the prefix itself is case-checked",
-			path:          testPrefix + "/PATH",
-			useTerminator: false,
-			want:          terminalRegistered,
-			wantStatus:    http.StatusOK,
-		},
-		{
-			name:       "a neighbor sharing the prefix's bytes without a segment boundary does not enter (the mountBasePath defect)",
-			path:       testPrefix + "foo",
-			want:       terminalNext,
-			wantStatus: http.StatusOK,
-		},
-		{
-			name:       "a differently cased prefix does not enter",
-			path:       "/Anchor",
-			want:       terminalNext,
-			wantStatus: http.StatusOK,
-		},
-		{
-			name:       "the root path does not enter",
-			path:       "/",
-			want:       terminalNext,
-			wantStatus: http.StatusOK,
-		},
-		{
-			name:       "a path that does not begin with the prefix does not enter",
-			path:       "/other",
-			want:       terminalNext,
-			wantStatus: http.StatusOK,
-		},
-	}
-
-	prefix, err := NewPrefix(testPrefix)
-	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		{"the subtree itself", testPrefix + "/echo", http.StatusOK, true},
+		{"a path under the subtree", testPrefix + "/echo/nested", http.StatusOK, true},
+		{"a different case in a later segment", testPrefix + "/echo/PATH", http.StatusOK, true},
+		{"the bare prefix", testPrefix, http.StatusNotFound, false},
+		{"the prefix with a trailing separator", testPrefix + "/", http.StatusNotFound, false},
+		{"a neighbor sharing the prefix's bytes", testPrefix + "echo", http.StatusNotFound, false},
+		{"a neighbor sharing the subtree's bytes", testPrefix + "/echoes", http.StatusNotFound, false},
+		{"a differently cased prefix", "/Anchor/echo", http.StatusNotFound, false},
+		{"the root path", "/", http.StatusNotFound, false},
+		{"a path outside the prefix", "/other", http.StatusNotFound, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var registered, terminated, reachedNext callRecorder
+			shell := newTestShell(t)
+			var reached recorder
+			shell.Register("echo", recordingHandler(&reached))
 
-			var owned http.Handler
-			if tt.useTerminator {
-				owned = recordingTerminator(&terminated)
-			} else {
-				owned = recordingHandlerWithStatus(http.StatusOK, &registered)
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, tt.path, nil))
+
+			if rec.Code != tt.wantStatus {
+				t.Errorf("status = %d, want %d", rec.Code, tt.wantStatus)
 			}
-			next := recordingHandlerWithStatus(http.StatusOK, &reachedNext)
-
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
-			w := httptest.NewRecorder()
-			prefix.Route(owned, next).ServeHTTP(w, req)
-
-			if w.Code != tt.wantStatus {
-				t.Fatalf("status = %d, want %d", w.Code, tt.wantStatus)
-			}
-
-			got := map[terminal]bool{
-				terminalRegistered: registered.called,
-				terminalTerminator: terminated.called,
-				terminalNext:       reachedNext.called,
-			}
-			for term, called := range got {
-				want := term == tt.want
-				if called != want {
-					t.Fatalf("terminal %v called = %v, want %v (registered=%v terminator=%v next=%v)",
-						term, called, want, registered.called, terminated.called, reachedNext.called)
-				}
+			if got := reached.header != nil; got != tt.wantReached {
+				t.Errorf("subtree reached = %v, want %v", got, tt.wantReached)
 			}
 		})
 	}

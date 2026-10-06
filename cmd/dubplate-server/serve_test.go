@@ -56,23 +56,15 @@ func replaceKey(environ []string, name, value string) []string {
 // [newServeShell]'s own three inputs, so a test exercises the verb's
 // real construction path rather than a restatement of it. The shell
 // logs to slog.Default, as the serve verb's does.
-func buildServeShell(t *testing.T, environ []string) (*serve.Shell, <-chan struct{}, error) {
+func buildServeShell(t *testing.T, environ []string) (*serve.Shell, error) {
 	t.Helper()
-	return buildServeShellWithContext(t, t.Context(), environ, slog.Default())
+	return buildServeShellWithLogger(t, environ, slog.Default())
 }
 
 // buildServeShellWithLogger is [buildServeShell] with the shell's
 // logger supplied, so a test reads every record the shell and its
 // handlers write without swapping slog.Default.
-func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
-	t.Helper()
-	return buildServeShellWithContext(t, t.Context(), environ, logger)
-}
-
-// buildServeShellWithContext is [buildServeShell] with the caller's own
-// context, for a test that must control when the sweep's context
-// is canceled rather than relying on t.Context()'s own lifetime.
-func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []string, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
+func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logger) (*serve.Shell, error) {
 	t.Helper()
 	cfg, err := config.Load(environ, productionRegistry())
 	if err != nil {
@@ -86,7 +78,7 @@ func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []str
 	if err != nil {
 		t.Fatalf("resolveAuthConfig: %v", err)
 	}
-	return newServeShell(ctx, environ, prefix, addrs, cfg, authCfg, logger)
+	return newServeShell(t.Context(), environ, prefix, addrs, cfg, authCfg, logger)
 }
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
@@ -349,7 +341,7 @@ func authRoutePOST(handler http.Handler, target, body string) *httptest.Response
 // prefix still terminates at 404 rather than falling through.
 func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
 	environ := serveAuthEnviron(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -391,7 +383,7 @@ func TestNewServeShell_MissingRosterRefusesBeforeConstruction(t *testing.T) {
 	missingPath := filepath.Join(t.TempDir(), "no-such-roster.json")
 	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_ROSTER_FILE", missingPath)
 
-	_, _, err := buildServeShell(t, environ)
+	_, err := buildServeShell(t, environ)
 	if !errors.Is(err, auth.ErrRosterMissing) {
 		t.Fatalf("buildServeShell() error = %v, want it to wrap auth.ErrRosterMissing", err)
 	}
@@ -454,7 +446,7 @@ func TestNewServeShell_OperatorCSSRefusesTheRosterFile(t *testing.T) {
 			path := tt.path(t, rosterPath, valueOf(t, environ, "DUBPLATE_STATE_DIR"))
 			environ = replaceKey(environ, "DUBPLATE_OPERATOR_CSS_FILE", path)
 
-			shell, _, err := buildServeShell(t, environ)
+			shell, err := buildServeShell(t, environ)
 			if err == nil {
 				rec := httptest.NewRecorder()
 				shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dubplate/operator.css", nil))
@@ -475,7 +467,7 @@ func TestNewServeShell_OperatorCSSRefusesTheRosterFile(t *testing.T) {
 // value stops the serve verb's own construction, naming the key.
 func TestNewServeShell_BrandingRefusesStartup(t *testing.T) {
 	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_BRANDING", "--color-base-100: #ffffff; --color-primary: #fff}")
-	_, _, err := buildServeShell(t, environ)
+	_, err := buildServeShell(t, environ)
 	if err == nil {
 		t.Fatal("buildServeShell: got nil error, want the branding refusal")
 	}
@@ -502,7 +494,7 @@ func valueOf(t *testing.T, environ []string, name string) string {
 // owned prefix, carrying neither Sec-Fetch-Site nor Origin, is refused
 // with 403 by the origin check, a status the root 404 cannot produce.
 func TestNewServeShell_StateChangingRequestOutsideThePrefixIsDenied(t *testing.T) {
-	shell, _, err := buildServeShell(t, serveAuthEnviron(t))
+	shell, err := buildServeShell(t, serveAuthEnviron(t))
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -517,11 +509,10 @@ func TestNewServeShell_StateChangingRequestOutsideThePrefixIsDenied(t *testing.T
 	}
 }
 
-// TestStartNonceSweep_RunsAndStopsWithContext is the sweep's leak
-// assertion at the verb's own wiring: canceling ctx stops the
-// goroutine [startNonceSweep] started, proved by the channel that
-// goroutine closes on return rather than by inspecting its source.
-func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
+// TestSweepNonces_StopsWithContext is the sweep's leak assertion:
+// canceling ctx makes [sweepNonces] return, proved by the channel its
+// caller closes rather than by inspecting its source.
+func TestSweepNonces_StopsWithContext(t *testing.T) {
 	stateDir := t.TempDir()
 	store, err := auth.Open(stateDir)
 	if err != nil {
@@ -533,34 +524,22 @@ func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(t.Context())
-	done := startNonceSweep(ctx, nonces, discardTestLogger())
-	cancel()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		sweepNonces(ctx, nonces, discardTestLogger())
+	}()
 
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
-		t.Fatal("startNonceSweep left its goroutine running after ctx was canceled")
+		t.Fatal("sweepNonces returned before ctx was canceled")
+	case <-time.After(50 * time.Millisecond):
 	}
-}
-
-// TestNewServeShell_NonceSweepStopsWithTheGivenContext is the leak
-// assertion against newServeShell's own wiring, not against
-// [startNonceSweep] called directly: it proves the sweep goroutine
-// newServeShell starts is bound to the ctx argument it was passed,
-// rather than to a context of its own, by canceling that argument and
-// waiting on the channel newServeShell returns.
-func TestNewServeShell_NonceSweepStopsWithTheGivenContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(t.Context())
-	_, done, err := buildServeShellWithContext(t, ctx, serveAuthEnviron(t), discardTestLogger())
-	if err != nil {
-		t.Fatalf("buildServeShellWithContext() error = %v, want nil", err)
-	}
-
 	cancel()
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
-		t.Fatal("the nonce sweep did not stop after the passed context was canceled")
+		t.Fatal("sweepNonces kept running after ctx was canceled")
 	}
 }
 
@@ -574,7 +553,7 @@ func TestNewServeShell_NonceSweepStopsWithTheGivenContext(t *testing.T) {
 // concatenation that dropped url.JoinPath's cleaning (which would
 // double the separator for the trailing-slash form alone) fails it.
 //
-// Fixture state: the assertion is a 200, a status the terminator's 404
+// Fixture state: the assertion is a 200, a status the shell's 404
 // and a path outside the prefix's 404 cannot produce, so a pass is
 // never explained by a request that no subtree answered.
 func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
@@ -597,7 +576,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveAuthConfig: %v", err)
 			}
-			shell, _, err := newServeShell(t.Context(), environ, prefix, addrs, cfg, authCfg, discardTestLogger())
+			shell, err := newServeShell(t.Context(), environ, prefix, addrs, cfg, authCfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
@@ -618,7 +597,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("parse minted link: %v", err)
 			}
-			if !prefix.Owns(u.Path) {
+			if !strings.HasPrefix(u.Path, prefix.String()+"/") {
 				t.Fatalf("minted link path %q is not owned by the prefix %q", u.Path, prefix.String())
 			}
 			gotPaths[i] = u.Path
@@ -735,7 +714,7 @@ func headersEqualButDate(a, b http.Header) bool {
 	return true
 }
 
-// wantNotFoundBody is the body [http.NotFound] writes, [serve.Terminator]'s
+// wantNotFoundBody is the body [http.NotFound] writes, [http.NotFoundHandler]'s
 // own answer and the admin gate's refusal alike.
 const wantNotFoundBody = "404 page not found\n"
 
@@ -746,7 +725,7 @@ const wantNotFoundBody = "404 page not found\n"
 // the roster file is unchanged.
 func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	environ, rosterPath := rosterAPIEnviron(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -812,7 +791,7 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	// shell (and the AdminConfig.Logger it hands the roster API) is
 	// built, not merely before the request.
 	logs := captureDefaultLogger(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -855,13 +834,13 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 // exactly what the same requests to an unregistered owned path answer:
 // same status, same body, every header equal but Date, and no
 // Set-Cookie on either side. The POSTs carry Sec-Fetch-Site:
-// same-origin so both reach the gate and the terminator rather than the
+// same-origin so both reach the gate and the 404 rather than the
 // origin check. It then proves the same route answers an admin's GET
 // with the roster list, so the 404s above are the non-admin's and not
 // the path's.
 func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing.T) {
 	environ, _ := rosterAPIEnviron(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -924,13 +903,13 @@ func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing
 
 // TestNewServeShell_RosterExactPathOnly proves that only the exact
 // path answers the roster API, and every deeper path,
-// trailing-slash forms included, answers the terminator's own 404.
+// trailing-slash forms included, answers the shell's 404.
 // Fixture state: the same admin's GET to the exact path answers the
 // list in this same test, so the 404s below are the path's and not the
 // session's.
 func TestNewServeShell_RosterExactPathOnly(t *testing.T) {
 	environ, _ := rosterAPIEnviron(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -975,7 +954,7 @@ func TestNewServeShell_RosterExactPathOnly(t *testing.T) {
 // file at the same instant.
 func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
 	environ, rosterPath := rosterAPIEnviron(t)
-	shell, _, err := buildServeShell(t, environ) // the shell's roster, opened first
+	shell, err := buildServeShell(t, environ) // the shell's roster, opened first
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -1059,7 +1038,7 @@ var defaultIgnorableRoutingRows = []struct {
 // directly.
 func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 	environ := serveAuthEnviron(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -1160,7 +1139,7 @@ func firstImmutableAsset(t *testing.T) string {
 // a host that is not loopback. It proves in the same rows that only a
 // document carries a CSP or Vary: Cookie, and each class's
 // Cache-Control: a 404 and a refusal that is not JSON set none, which
-// is what keeps the gate's 404 equal to the terminator's.
+// is what keeps the gate's 404 equal to the shell's 404.
 //
 // Fixture state: all three public URLs, so HSTS's presence and both
 // absences are each proved, and an admin session, so the JSON row is
@@ -1184,7 +1163,7 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 		{name: "normalization 400", method: http.MethodGet, target: "/dubplate/login/../login", status: http.StatusBadRequest},
 		{name: "origin 403", method: http.MethodPost, target: "/dubplate/request-link", status: http.StatusForbidden},
 		{name: "echo method 405", method: http.MethodTrace, target: "/dubplate/login", status: http.StatusMethodNotAllowed},
-		{name: "terminator 404", method: http.MethodGet, target: "/dubplate/no-such-subtree", status: http.StatusNotFound},
+		{name: "unclaimed subtree 404", method: http.MethodGet, target: "/dubplate/no-such-subtree", status: http.StatusNotFound},
 		{name: "gate 404", method: http.MethodGet, target: "/dubplate/members", status: http.StatusNotFound},
 		{name: "outside the prefix 404", method: http.MethodGet, target: "/elsewhere", status: http.StatusNotFound},
 	}
@@ -1199,7 +1178,7 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 	for _, c := range configs {
 		environ, _ := rosterAPIEnviron(t)
 		environ = replaceKey(environ, "DUBPLATE_PUBLIC_URL", c.publicURL)
-		shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+		shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 		if err != nil {
 			t.Fatalf("%s: buildServeShell: %v", c.publicURL, err)
 		}
@@ -1578,14 +1557,14 @@ func TestServedDocuments_TierOrderAndCache(t *testing.T) {
 // and POST answer exactly what an unregistered owned path answers,
 // with no Set-Cookie. A verified admin's GET answers the stamped
 // document, an admin's POST answers 405, and an admin's request to a
-// deeper path answers the terminator's 404.
+// deeper path answers the shell's 404.
 //
 // Fixture state: the POSTs carry Sec-Fetch-Site: same-origin, so each
-// passes the origin check and reaches the gate, the terminator, or the
+// passes the origin check and reaches the gate, the shell's 404, or the
 // method check.
 func TestNewServeShell_MembersRoute(t *testing.T) {
 	environ, _ := rosterAPIEnviron(t)
-	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err != nil {
 		t.Fatalf("buildServeShell: %v", err)
 	}
@@ -1648,7 +1627,7 @@ func TestNewServeShell_MembersRoute(t *testing.T) {
 			rec := run(http.MethodGet, target, admin, "")
 			unknown := run(http.MethodGet, "/dubplate/no-such-subtree", admin, "")
 			if rec.Code != http.StatusNotFound || rec.Body.String() != unknown.Body.String() {
-				t.Errorf("status %d body %q, want the terminator's 404 %q", rec.Code, rec.Body.String(), unknown.Body.String())
+				t.Errorf("status %d body %q, want the shell's 404 %q", rec.Code, rec.Body.String(), unknown.Body.String())
 			}
 		})
 	}
@@ -1667,7 +1646,7 @@ func TestNewServeShell_MintedLinkNeverLogsItsToken(t *testing.T) {
 	const token = "qz81-minted-fixture-token"
 	environ := serveAuthEnviron(t)
 	var logs bytes.Buffer
-	shell, _, err := buildServeShellWithLogger(t, environ, slog.New(slog.NewJSONHandler(&logs, nil)))
+	shell, err := buildServeShellWithLogger(t, environ, slog.New(slog.NewJSONHandler(&logs, nil)))
 	if err != nil {
 		t.Fatalf("buildServeShell: %v", err)
 	}
@@ -1800,7 +1779,7 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := trustedProxyEnviron(t, tt.addrs)
-			shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+			shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 			if err != nil {
 				t.Fatalf("buildServeShell() error = %v, want nil", err)
 			}
@@ -1836,7 +1815,7 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 // proxy's.
 func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 	environ := trustedProxyEnviron(t, "192.0.2.10")
-	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -1875,7 +1854,7 @@ func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 // serve opens any listener, rather than falling back to direct mode.
 func TestNewServeShell_RefusesABadTrustedProxyValue(t *testing.T) {
 	environ := trustedProxyEnviron(t, "192.0.2.0/24")
-	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err == nil {
 		t.Fatal("buildServeShell() error = nil, want the network entry refused")
 	}
@@ -1900,7 +1879,7 @@ func TestNewServeShell_UnwritableRosterDirRefusesAtStart(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(rosterDir, 0o700) })
 
-	_, _, err := buildServeShell(t, environ)
+	_, err := buildServeShell(t, environ)
 	if !errors.Is(err, errDirNotWritable) {
 		t.Fatalf("buildServeShell() error = %v, want it to wrap errDirNotWritable", err)
 	}

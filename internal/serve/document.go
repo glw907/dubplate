@@ -291,7 +291,7 @@ func loggedMethod(method string) string {
 // and a request path is served only when it is routePrefix followed by
 // a separator and a name root holds as a regular file. Every other
 // shape -- routePrefix itself, a path under it naming a directory, and
-// a path naming no file -- answers [Terminator]'s 404, with no
+// a path naming no file -- answers [http.NotFoundHandler]'s 404, with no
 // directory listing and no redirect, unlike [http.FileServerFS]
 // (R-5cii21).
 //
@@ -300,17 +300,17 @@ func loggedMethod(method string) string {
 // hash, so a name never changes content. Every other file keeps a
 // stable name across builds and is served no-cache.
 func NewAssets(root fs.FS, routePrefix string) http.Handler {
-	terminator := Terminator()
+	notFound := http.NotFoundHandler()
 	prefixSlash := routePrefix + "/"
 	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasPrefix(r.URL.Path, prefixSlash) {
-			terminator.ServeHTTP(w, r)
+			notFound.ServeHTTP(w, r)
 			return
 		}
 		name := strings.TrimPrefix(r.URL.Path, prefixSlash)
 		data, err := fs.ReadFile(root, name)
 		if err != nil {
-			terminator.ServeHTTP(w, r)
+			notFound.ServeHTTP(w, r)
 			return
 		}
 		cacheControl := "no-cache"

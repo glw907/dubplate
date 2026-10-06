@@ -315,7 +315,7 @@ func TestReleaseRetriesOnTransientStatusAndMetersEveryAttempt(t *testing.T) {
 			t.Errorf("Close: %v", err)
 		}
 	}()
-	budget := l.Budget("test", ClassBatch, 0)
+	budget := l.Budget(ClassBatch, 0)
 	go func() {
 		for i := 1; i <= 3; i++ {
 			l.awaitQueued(i)

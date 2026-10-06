@@ -689,7 +689,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 // prefix and the real embedded bundle.
 func TestNewServeShell_RegistersWebRoutes(t *testing.T) {
 	environ := serveAuthEnviron(t)
-	shell, _, err := buildServeShell(t, environ)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell: %v", err)
 	}
@@ -1008,7 +1008,7 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 // TestNewWebRoutesFromFS_OperatorCSSServed proves the admitted states:
 // a file at the bound and an empty file are each served as read, with
 // the tier 3 link in place, and the key unset, empty, or "none" links
-// nothing and leaves the route to the terminator's 404.
+// nothing and leaves the route to the shell's 404.
 func TestNewWebRoutesFromFS_OperatorCSSServed(t *testing.T) {
 	atBound := bytes.Repeat([]byte("a"), 262144)
 	tests := []struct {

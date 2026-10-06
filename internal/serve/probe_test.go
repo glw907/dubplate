@@ -116,7 +116,7 @@ func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
 }
 
 // TestProbeRoute_PeerAndMethod calls the route directly with
-// RemoteAddr set. Every refusal must be byte-equal to the terminator's
+// RemoteAddr set. Every refusal must be byte-equal to an unknown path's
 // answer for an unknown path, so the route's existence is invisible to
 // a peer it refuses. The answering rows are the fixture state that
 // makes each refusal row meaningful: the same handler does answer a
@@ -157,9 +157,9 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 	}
 
 	unknown := httptest.NewRecorder()
-	Terminator().ServeHTTP(unknown, httptest.NewRequest(http.MethodGet, "/dubplate/no-such-route", nil))
+	http.NotFoundHandler().ServeHTTP(unknown, httptest.NewRequest(http.MethodGet, "/dubplate/no-such-route", nil))
 	if unknown.Code != http.StatusNotFound {
-		t.Fatalf("fixture state: terminator answered %d, want 404", unknown.Code)
+		t.Fatalf("fixture state: not-found handler answered %d, want 404", unknown.Code)
 	}
 
 	for _, tt := range tests {
@@ -182,13 +182,13 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 				return
 			}
 			if rec.Code != unknown.Code {
-				t.Errorf("status = %d, want the terminator's %d", rec.Code, unknown.Code)
+				t.Errorf("status = %d, want an unknown path's %d", rec.Code, unknown.Code)
 			}
 			if got, want := rec.Body.String(), unknown.Body.String(); got != want {
-				t.Errorf("body = %q, want the terminator's %q", got, want)
+				t.Errorf("body = %q, want an unknown path's %q", got, want)
 			}
 			if got, want := rec.Header(), unknown.Header(); !maps.EqualFunc(got, want, slices.Equal) {
-				t.Errorf("header = %v, want the terminator's %v", got, want)
+				t.Errorf("header = %v, want an unknown path's %v", got, want)
 			}
 			if allow := rec.Header().Values("Allow"); len(allow) != 0 {
 				t.Errorf("Allow = %q, want none: a 405-style hint names the route", allow)

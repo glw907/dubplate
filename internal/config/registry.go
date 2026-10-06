@@ -107,9 +107,8 @@ func panicDuplicate(key, existing, family string) {
 // class 3, Resolution R16: every family's keys share one flat
 // environment namespace, so a declared key without the prefix would
 // collide with an adopter's own variables). Every Add* entry point
-// calls this for each of its keys before any claim or claim-skip
-// decision, so a key that never reaches claim (AddThreshold's
-// R5-pairing skip, AddIntegrationClass's own) still gets checked.
+// calls this for each of its keys before any claim, so a key that
+// never reaches claim still gets checked.
 func requirePrefix(family, key string) {
 	if !strings.HasPrefix(key, "DUBPLATE_") {
 		panic(fmt.Sprintf("%s: declared in %s without the DUBPLATE_ prefix", key, family))

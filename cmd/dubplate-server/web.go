@@ -167,7 +167,7 @@ func registerWebConfig(reg *config.Registry) {
 
 // webRoutes are the http.Handlers newServeShell mounts under the
 // shell's owned prefix. operator is nil when no operator CSS file is
-// configured, which leaves its path to the terminator's 404. members
+// configured, which leaves its path to the shell's 404. members
 // is the members document with no gate of its own, so it is never
 // mounted except behind [auth.RequireAdmin].
 type webRoutes struct {
@@ -381,7 +381,7 @@ func checkVariantCSP(name string, variants map[string][]byte, served string) err
 }
 
 // stylesheetRoute serves css at exactly <prefix>/<name> and answers
-// the terminator's 404 everywhere under it.
+// the shell's 404 everywhere under it.
 func stylesheetRoute(prefix serve.Prefix, name string, css []byte) http.Handler {
 	return newExactPathRoutes(map[string]http.Handler{
 		prefix.String() + "/" + name: serve.NewStylesheet(css),
@@ -412,7 +412,7 @@ func newStaticFile(data []byte, contentType string) staticFile {
 
 // newStaticFiles returns an http.Handler serving GET and HEAD only, at
 // exactly the request paths files holds, and answering
-// [serve.Terminator]'s 404 on every other path, with no directory
+// [http.NotFoundHandler]'s 404 on every other path, with no directory
 // listing. Every file is served no-cache, since its name stays put
 // across builds while its bytes may not.
 //
@@ -426,7 +426,7 @@ func newStaticFile(data []byte, contentType string) staticFile {
 // net/http.ServeContent), which holds even though every response
 // carries a zero modtime.
 func newStaticFiles(files map[string]staticFile) http.Handler {
-	terminator := serve.Terminator()
+	notFound := http.NotFoundHandler()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			w.Header().Set("Allow", "GET, HEAD")
@@ -435,7 +435,7 @@ func newStaticFiles(files map[string]staticFile) http.Handler {
 		}
 		file, ok := files[r.URL.Path]
 		if !ok {
-			terminator.ServeHTTP(w, r)
+			notFound.ServeHTTP(w, r)
 			return
 		}
 		w.Header().Set("Content-Type", file.contentType)
@@ -454,7 +454,7 @@ func newStaticFiles(files map[string]staticFile) http.Handler {
 // other path under it -- routePrefix itself, a directory (fontsFS's
 // own "licenses/"), a top-level file that is not a .woff2 (FONTS.md),
 // a trailing slash, and a name fontsFS does not hold -- answers
-// [serve.Terminator]'s 404. It refuses when fontsFS holds no .woff2
+// [http.NotFoundHandler]'s 404. It refuses when fontsFS holds no .woff2
 // file, the same shape [isPlaceholderOnly] refuses on for the whole
 // bundle.
 func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
@@ -831,18 +831,18 @@ func stampablePalettes(selectors map[string]struct{}, match string) []string {
 }
 
 // newExactPathRoutes returns an http.Handler dispatching by exact
-// http.Request.URL.Path to routes, answering [serve.Terminator]'s 404
+// http.Request.URL.Path to routes, answering [http.NotFoundHandler]'s 404
 // to any other path, the trailing-slash form of a route included:
 // [serve.Shell.Register] mounts a subtree's every deeper path to the
 // same handler, so the exact-match check here is what keeps a deeper
 // or trailing-slash path from reaching a document (R-5cii21).
 func newExactPathRoutes(routes map[string]http.Handler) http.Handler {
-	terminator := serve.Terminator()
+	notFound := http.NotFoundHandler()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if h, ok := routes[r.URL.Path]; ok {
 			h.ServeHTTP(w, r)
 			return
 		}
-		terminator.ServeHTTP(w, r)
+		notFound.ServeHTTP(w, r)
 	})
 }

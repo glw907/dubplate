@@ -56,7 +56,7 @@ func NewProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 // NewProbeRoute returns the boundary probe route's handler. It answers
 // a GET from a permitted peer with the [ProbeCounts] of the request it
 // received, and every other request, from any peer, with
-// [Terminator]'s 404, so a stranger cannot tell the route from an
+// [http.NotFoundHandler]'s 404, so a stranger cannot tell the route from an
 // unknown path. The peer is checked before the method.
 //
 // A permitted peer is one whose [PeerAddress], parsed and unmapped, is
@@ -86,7 +86,7 @@ func NewProbeRoute(bindAddrs []string, proxy TrustedProxyConfig) http.Handler {
 	}
 	identity := identitySpellings
 	forwarded := forwardedAddressSet(proxy.header)
-	refuse := Terminator()
+	refuse := http.NotFoundHandler()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		peer := PeerAddress(r)

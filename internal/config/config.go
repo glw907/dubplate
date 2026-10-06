@@ -257,8 +257,8 @@ func isBidiControl(r rune) bool {
 // integrationEnabled reports whether class's flag resolves true in w's
 // environment. An unset or empty flag is off. A value strconv.ParseBool
 // refuses is reported as an error rather than silently read as off,
-// because a typo that disables an unattended observer is the failure
-// this class exists to prevent.
+// because a typo silently disabling an integration is the failure this
+// class exists to prevent.
 func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 	v, ok := w.get(class.Flag)
 	if !ok {

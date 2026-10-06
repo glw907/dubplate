@@ -635,7 +635,7 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		return res, nil
 	}
 
-	row, hasRow := led.adj.BySubjectCase()[c.ID]
+	row, hasRow := led.adj.ByCase()[c.ID]
 	switch {
 	case !policy.GradeVerdict:
 		// A hypothesis (or its case's own row) ruled no-correct-answer:
@@ -948,7 +948,7 @@ func policyFor(caseID string, ties *analysis.TieLedger, prox *analysis.Proximity
 		}
 	}
 
-	row, hasRow := adj.BySubjectCase()[caseID]
+	row, hasRow := adj.ByCase()[caseID]
 	for _, e := range bugs.Entries {
 		if !slices.Contains(e.ProbeCaseIDs, caseID) {
 			continue

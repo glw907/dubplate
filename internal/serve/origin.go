@@ -6,7 +6,7 @@ import "net/http"
 // come from this server's own pages. It is the one cross-site request
 // forgery defense for every surface the shell serves: [Shell.Handler]
 // places it after the ingress strip and path normalization and before
-// prefix routing, so every registered subtree and every path outside
+// subtree dispatch, so every registered subtree and every path outside
 // the prefix sit behind it by construction rather than by each mount
 // remembering to install it.
 //

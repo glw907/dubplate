@@ -248,7 +248,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			shell, _, err := newServeShell(cmd.Context(), environ, prefix, addrs, cfg, authCfg, slog.Default())
+			shell, err := newServeShell(cmd.Context(), environ, prefix, addrs, cfg, authCfg, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -271,9 +271,10 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // value, or a refused operator CSS file without ever accepting a
 // connection.
 //
-// It registers no bearer bypass: rung 5 has no bearer-authenticated
-// path, so every mount stays behind the origin check's cookie-carrying
-// protection.
+// It registers no bearer bypass: no mount authenticates by bearer
+// credential, so every mount stays behind the origin check's
+// cookie-carrying protection. The first bypassed route must add a
+// shell-level test that it never reads the session cookie.
 //
 // Every record the shell and its handlers write goes to logger.
 //
@@ -285,11 +286,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // whatever the method or the path, and only a verified admin ever
 // meets a 405.
 //
-// It starts the nonce sweep bound to ctx and returns the channel the
-// sweep's goroutine closes on return, so a caller (this file's own
-// test) can prove the sweep stops when ctx is canceled instead of
-// inspecting RunSweep's own source. Production
-// discards the channel; nothing in this pass reads it.
+// It starts the nonce sweep bound to ctx; see [sweepNonces].
 //
 // The trusted proxy class, resolved through [resolveTrustedProxy],
 // governs both the strip's forwarded-address carve-out and every
@@ -304,10 +301,10 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // already cleared. Its peer rule reads bindAddrs, the resolved list
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
-func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
+func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
@@ -317,20 +314,20 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 
 	store, err := auth.Open(cfg.StateDir)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	nonces, _, err := auth.OpenNonceStore(store, authCfg.nonceRetention, magicLinkExpiryCeiling, time.Now())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	epoch := auth.OpenEpochStore(store)
 
 	roster, err := auth.OpenRoster(cfg.IdentitySourceValue(rosterFileKey))
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if err := checkRosterDirWritable(cfg.IdentitySourceValue(rosterFileKey)); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	limiter := auth.NewLimiter(auth.Limits{
@@ -342,7 +339,7 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 
 	mailer, err := newMailer(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	seam := auth.NewMagicLinkSeam(roster, epoch,
@@ -378,13 +375,13 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 		stateDir: cfg.StateDir,
 	}, shell.Logger())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	webRoutes.register(shell)
 	shell.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
 
-	done := startNonceSweep(ctx, nonces, shell.Logger())
-	return shell, done, nil
+	go sweepNonces(ctx, nonces, shell.Logger())
+	return shell, nil
 }
 
 // sendsHSTS reports whether the shell sends Strict-Transport-Security
@@ -403,15 +400,15 @@ func sendsHSTS(publicURL string) bool {
 	return u.Scheme == "https" && !isLoopbackHost(u.Hostname())
 }
 
-// exactPath wraps next, answering [serve.Terminator]'s own 404 to any
+// exactPath wraps next, answering [http.NotFoundHandler]'s own 404 to any
 // request whose r.URL.Path is not exactly want. [serve.Shell.Register]
 // mounts both the subtree name and everything under name+"/" to the
 // same handler (internal/serve/serve.go:94-96), and the shell
 // dispatches through its mux's own Handler method, which leaves
 // r.Pattern unset, so a mounted handler cannot otherwise tell its own
 // exact path from a deeper one. The roster API needs the distinction:
-// a request to <prefix>/roster/roster must answer the terminator's 404,
-// never the member list, and the terminator's 404 this wrap answers is
+// a request to <prefix>/roster/roster must answer the shell's 404,
+// never the member list, and the shell's 404 this wrap answers is
 // byte-equal to the admin gate's own refusal, so a non-admin sees the
 // same answer on either side of it. It is [newExactPathRoutes] (web.go)
 // narrowed to the one-route case.
@@ -482,16 +479,10 @@ func newMailer(cfg *config.Config) (*notify.Mailer, error) {
 	}), nil
 }
 
-// startNonceSweep starts the nonce sweep as a goroutine bound to ctx,
-// ticking every [auth.SweepInterval], and returns a channel the
-// goroutine closes once it returns.
-func startNonceSweep(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) <-chan struct{} {
+// sweepNonces runs the nonce sweep every [auth.SweepInterval] and
+// returns when ctx is canceled.
+func sweepNonces(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) {
 	ticker := time.NewTicker(auth.SweepInterval)
-	done := make(chan struct{})
-	go func() {
-		defer ticker.Stop()
-		defer close(done)
-		auth.RunSweep(ctx, nonces.Sweep, time.Now, ticker.C, logger)
-	}()
-	return done
+	defer ticker.Stop()
+	auth.RunSweep(ctx, nonces.Sweep, time.Now, ticker.C, logger)
 }
