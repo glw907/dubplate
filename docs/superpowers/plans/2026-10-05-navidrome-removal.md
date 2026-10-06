@@ -379,8 +379,8 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hoo
   document pass's `IDEAS.md` entry.
 
 **Acceptance criteria:**
-- `git grep -nIiE 'engine/shadow|DUBPLATE_SHADOW|registerShadow|newShadowCmd' -- cmd internal scripts Makefile`
-  returns nothing. (The spec's full pattern is closed by Task 2b.)
+- `git grep -nIiE 'engine/shadow|DUBPLATE_SHADOW|registerShadow|newShadowCmd' -- cmd internal scripts Makefile
+  ':!cmd/dubplate-server/main_test.go'` returns nothing. (The spec's full pattern is closed by Task 2b.)
 - `go list -deps ./cmd/dubplate-server | grep -E 'internal/(harness|engine/shadow)'` is empty.
 - A test in `cmd/dubplate-server`, against `newProductionRegistry()` (the suite's `productionRegistry` helper),
   proves `DUBPLATE_SHADOW_ENABLED=true` in the environment fails `config.Load` with "unknown configuration key".
@@ -449,9 +449,11 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 2a. **0.8 ho
 | no `case_id` | refused naming the missing subject |
 
 **Acceptance criteria:**
-- The spec's full grep, `git grep -nIiE 'engine/shadow|DUBPLATE_SHADOW|registerShadow|newShadowCmd|shadow (observe|program|runner|store|integration|class|leaf)' -- cmd internal scripts Makefile`,
-  returns nothing. CSS `box-shadow`, the rendered gate's `component/surface/shadow/...` ids, and the "shadow" idiom
-  stay.
+- The spec's full grep, `git grep -nIiE 'engine/shadow|DUBPLATE_SHADOW|registerShadow|newShadowCmd|shadow (observe|program|runner|store|integration|class|leaf)' -- cmd internal scripts Makefile
+  ':!cmd/dubplate-server/main_test.go'`, returns nothing. CSS `box-shadow`, the rendered gate's
+  `component/surface/shadow/...` ids, and the "shadow" idiom stay. Execution correction (conductor, 2026-10-06,
+  from Task 2b's escalation): `main_test.go` is excluded because Task 2a's required unknown-key test names the
+  retired `DUBPLATE_SHADOW_ENABLED` key on purpose; Task 2b was accepted under this reading at `17f4ebd`.
 - `grep -cE 'release_mbid|matcher_commit|matcher_config_hash' corpus/analysis/adjudications.json` prints `0`
   (verified at plan time), and the corpus tests that load it pass.
 - A test row loads a ledger carrying `release_mbid` and asserts the decode refusal. **Named mutation:** remove

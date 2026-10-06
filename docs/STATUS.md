@@ -51,7 +51,7 @@ off-box copy is the `.age` file; rung 16's backup remote takes a second. No plai
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | RUNNING: `navidrome-removal` Task 0 (dependency sweep, baseline count). Doc Task 0 (archive) done; doc segment A waits for Task 0 |
+| 1 | main tree (master) | RUNNING: `navidrome-removal` segment A done (Tasks 1, 2a, 2b at `17f4ebd`; 2b accepted under the main_test.go grep correction); segment B next. Spend ~1.3M of 8.0M. Doc segment A not yet run |
 | photos | main tree, separate docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)
