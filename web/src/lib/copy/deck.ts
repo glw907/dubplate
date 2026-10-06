@@ -109,7 +109,7 @@ export const SKIP_LINK = 'Skip to content';
 export const ADD_MEMBER_LABELS = {
   address: 'Email address',
   displayName: 'Name',
-  streamerUsername: 'Streamer username'
+  username: 'Username'
 };
 
 /** The add-member form's own legend, submit control, and admin badge. */
@@ -126,16 +126,16 @@ export const ADMIN_BADGE_LABEL = 'Admin';
 export const ROSTER_RETRY = 'Try again';
 
 /**
- * The add-member form's field hints. `streamerUsername` states the
+ * The add-member form's field hints. `username` states the
  * write path's own shape (`internal/auth/roster.go`'s
- * `streamerUsernamePattern`): an
- * alphanumeric first character, then any run of letters, numbers,
- * periods, underscores, hyphens, plus signs, or `@`, up to 64
- * characters (the field is ASCII-only, so bytes and characters agree).
+ * `usernamePattern`): an alphanumeric first character, then any run of
+ * letters, numbers, periods, underscores, hyphens, plus signs, or `@`,
+ * up to 64 characters (the field is ASCII-only, so bytes and characters
+ * agree).
  */
 export const ADD_MEMBER_HINTS = {
-  streamerUsername:
-    'Used to sign in to the streamer. Starts with a letter or number, then any mix of letters, numbers, periods, underscores, hyphens, plus signs, and @. Up to 64 characters.'
+  username:
+    'The name the member types into a music app. Starts with a letter or number, then any mix of letters, numbers, periods, underscores, hyphens, plus signs, and @. Up to 64 characters.'
 };
 
 /**
@@ -146,13 +146,13 @@ export const ADD_MEMBER_HINTS = {
 export const ROSTER_OUTCOMES: Record<string, string> = {
   added: 'Added.',
   duplicate_address: 'That email address already belongs to a member.',
-  duplicate_streamer_username: 'That streamer username is already taken. Choose a different one.',
-  duplicate_principal: 'That streamer username is another member’s email address. Choose a different one.',
+  duplicate_username: 'That username is already taken. Choose a different one.',
+  duplicate_principal: 'That username is another member’s email address. Choose a different one.',
   invalid_display_name: 'That name is too long, or it has characters it can’t use, such as tabs or line breaks.',
   blank_display_name: 'Enter a name.',
-  invalid_streamer_username:
+  invalid_username:
     'Start the username with a letter or number, and use only letters, numbers, periods, underscores, hyphens, plus signs, or @.',
-  missing_streamer_username: 'Enter a streamer username.',
+  missing_username: 'Enter a username.',
   admin_not_grantable: 'Admins can’t be added from this page.',
   unknown_field: 'This page sent something the server doesn’t accept. Reload the page and try again.',
   busy: 'That didn’t go through. Try again.',

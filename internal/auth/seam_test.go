@@ -147,8 +147,8 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 // emitting it would hand a browser request the grant.
 func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
 	const rosterJSON = `[` +
-		`{"address":"lead@example.com","display_name":"Lead","streamer_username":"lead","admin":true},` +
-		`{"address":"member@example.com","display_name":"Member","streamer_username":"member"}]`
+		`{"address":"lead@example.com","display_name":"Lead","username":"lead","admin":true},` +
+		`{"address":"member@example.com","display_name":"Member","username":"member"}]`
 	for _, address := range []string{"lead@example.com", "member@example.com"} {
 		for _, sameOrigin := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s same-origin %v", address, sameOrigin), func(t *testing.T) {

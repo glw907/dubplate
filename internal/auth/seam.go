@@ -114,7 +114,7 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
 
-	principal := member.StreamerUsername
+	principal := member.Username
 	if principal == "" {
 		principal = member.Address
 	}

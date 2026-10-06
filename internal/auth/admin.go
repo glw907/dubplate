@@ -22,28 +22,28 @@ const rosterAPIWriteWait = 5 * time.Second
 // Form fields the roster API's POST reads. They are the whole of what a
 // POST may carry; the admin flag is not among them.
 const (
-	displayNameField      = "display_name"
-	streamerUsernameField = "streamer_username"
-	adminField            = "admin"
+	displayNameField = "display_name"
+	usernameField    = "username"
+	adminField       = "admin"
 )
 
 // rosterFields is the closed set of keys a roster API POST may carry.
-var rosterFields = []string{addressField, displayNameField, streamerUsernameField}
+var rosterFields = []string{addressField, displayNameField, usernameField}
 
 // Outcomes the roster API answers a POST with, beside the shared ones.
 const (
-	outcomeAdded                     = "added"
-	outcomeDuplicateAddress          = "duplicate_address"
-	outcomeDuplicateStreamerUsername = "duplicate_streamer_username"
-	outcomeDuplicatePrincipal        = "duplicate_principal"
-	outcomeInvalidDisplayName        = "invalid_display_name"
-	outcomeBlankDisplayName          = "blank_display_name"
-	outcomeInvalidStreamerUsername   = "invalid_streamer_username"
-	outcomeMissingStreamerUsername   = "missing_streamer_username"
-	outcomeAdminNotGrantable         = "admin_not_grantable"
-	outcomeUnknownField              = "unknown_field"
-	outcomeBusy                      = "busy"
-	outcomeWriteUnconfirmed          = "write_unconfirmed"
+	outcomeAdded              = "added"
+	outcomeDuplicateAddress   = "duplicate_address"
+	outcomeDuplicateUsername  = "duplicate_username"
+	outcomeDuplicatePrincipal = "duplicate_principal"
+	outcomeInvalidDisplayName = "invalid_display_name"
+	outcomeBlankDisplayName   = "blank_display_name"
+	outcomeInvalidUsername    = "invalid_username"
+	outcomeMissingUsername    = "missing_username"
+	outcomeAdminNotGrantable  = "admin_not_grantable"
+	outcomeUnknownField       = "unknown_field"
+	outcomeBusy               = "busy"
+	outcomeWriteUnconfirmed   = "write_unconfirmed"
 )
 
 // AdminConfig is everything the admin gate and the roster API need,
@@ -74,7 +74,7 @@ type AdminConfig struct {
 // [http.NotFound] answers, so it learns nothing about whether the route
 // exists. A verified admin may GET or HEAD the member list and POST one
 // new member as a urlencoded form of address, display_name, and
-// streamer_username. Those answers are JSON carrying an "outcome" or a
+// username. Those answers are JSON carrying an "outcome" or a
 // "members" field. The API answers every path it is mounted on, so the
 // mount confines it to the one path it serves.
 func NewRosterAPI(cfg AdminConfig) http.Handler {
@@ -175,10 +175,10 @@ type rosterListing struct {
 }
 
 type rosterEntry struct {
-	Address          string `json:"address"`
-	DisplayName      string `json:"display_name"`
-	StreamerUsername string `json:"streamer_username"`
-	Admin            bool   `json:"admin"`
+	Address     string `json:"address"`
+	DisplayName string `json:"display_name"`
+	Username    string `json:"username"`
+	Admin       bool   `json:"admin"`
 }
 
 // ServeHTTP refuses on its own when the gate did not run, so a mount
@@ -248,9 +248,9 @@ func (a *rosterAPI) add(w http.ResponseWriter, r *http.Request, actor string) {
 	}
 
 	candidate := Member{
-		Address:          r.PostForm.Get(addressField),
-		DisplayName:      r.PostForm.Get(displayNameField),
-		StreamerUsername: r.PostForm.Get(streamerUsernameField),
+		Address:     r.PostForm.Get(addressField),
+		DisplayName: r.PostForm.Get(displayNameField),
+		Username:    r.PostForm.Get(usernameField),
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), a.writeWait)
 	defer cancel()
@@ -303,8 +303,8 @@ func additionOutcome(err error) (int, string) {
 		return http.StatusCreated, outcomeAdded
 	case errors.Is(err, errDuplicateAddress):
 		return http.StatusConflict, outcomeDuplicateAddress
-	case errors.Is(err, errDuplicateStreamerUsername):
-		return http.StatusConflict, outcomeDuplicateStreamerUsername
+	case errors.Is(err, errDuplicateUsername):
+		return http.StatusConflict, outcomeDuplicateUsername
 	case errors.Is(err, errDuplicatePrincipal):
 		return http.StatusConflict, outcomeDuplicatePrincipal
 	case errors.Is(err, errInvalidMemberAddress):
@@ -313,10 +313,10 @@ func additionOutcome(err error) (int, string) {
 		return http.StatusBadRequest, outcomeInvalidDisplayName
 	case errors.Is(err, errBlankDisplayName):
 		return http.StatusBadRequest, outcomeBlankDisplayName
-	case errors.Is(err, errInvalidStreamerUsername):
-		return http.StatusBadRequest, outcomeInvalidStreamerUsername
-	case errors.Is(err, errMissingStreamerUsername):
-		return http.StatusBadRequest, outcomeMissingStreamerUsername
+	case errors.Is(err, errInvalidUsername):
+		return http.StatusBadRequest, outcomeInvalidUsername
+	case errors.Is(err, errMissingUsername):
+		return http.StatusBadRequest, outcomeMissingUsername
 	case errors.Is(err, errRosterBusy):
 		return http.StatusServiceUnavailable, outcomeBusy
 	case errors.Is(err, errRosterWriteLanded):

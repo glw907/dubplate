@@ -650,14 +650,14 @@ const (
 
 // rosterAPIEnviron returns serveAuthEnviron with DUBPLATE_ROSTER_FILE
 // replaced by a fixture roster holding one admin (with a
-// streamer_username, so a GET has every field shape to answer) and one
+// username, so a GET has every field shape to answer) and one
 // non-admin, and returns the roster's path alongside for a test that
 // reads it directly.
 func rosterAPIEnviron(t *testing.T) ([]string, string) {
 	t.Helper()
 	rosterPath := filepath.Join(t.TempDir(), "roster.json")
 	const members = `{"schema_version":1,"members":[
-		{"address":"` + rosterAdminAddress + `","display_name":"Group Admin","streamer_username":"groupadmin","admin":true},
+		{"address":"` + rosterAdminAddress + `","display_name":"Group Admin","username":"groupadmin","admin":true},
 		{"address":"` + rosterMemberAddress + `","display_name":"Member","admin":false}
 	]}`
 	if err := os.WriteFile(rosterPath, []byte(members), 0o600); err != nil {
@@ -781,7 +781,7 @@ func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 // validPost is a form every field check accepts for a new member,
 // [internal/auth]'s own fixture body (admin_test.go), restated here so
 // this file's tests need no cross-package export.
-const validPost = "address=new%40example.com&display_name=New+Member&streamer_username=newmember"
+const validPost = "address=new%40example.com&display_name=New+Member&username=newmember"
 
 // captureDefaultLogger swaps slog.Default() for a logger writing JSON
 // lines to the returned buffer, restoring the prior default when t
@@ -985,7 +985,7 @@ func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
 	}
 	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
-	apiBody := "address=api-added%40example.com&display_name=API+Added&streamer_username=apiadded"
+	apiBody := "address=api-added%40example.com&display_name=API+Added&username=apiadded"
 	apiReq := sessionRequest(http.MethodPost, prefix.String()+"/roster", adminSession, "same-origin", apiBody)
 	apiRec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(apiRec, apiReq)
@@ -995,7 +995,7 @@ func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
 
 	// addMember opens its own *auth.Roster from rosterPath, strictly
 	// after the API's write above.
-	verbCandidate := auth.Member{Address: "verb-added@example.com", DisplayName: "Verb Added", StreamerUsername: "verbadded"}
+	verbCandidate := auth.Member{Address: "verb-added@example.com", DisplayName: "Verb Added", Username: "verbadded"}
 	if err := addMember(t.Context(), rosterPath, verbCandidate, "operator", discardTestLogger()); err != nil {
 		t.Fatalf("addMember: %v", err)
 	}

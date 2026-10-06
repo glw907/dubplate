@@ -88,7 +88,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// doctor as well as at startup and at write time: it calls
 			// the same [auth.OpenRoster] the magic-link source loads
 			// through, so a missing file, a duplicate address, a
-			// duplicate streamer_username, or an unparseable record is
+			// duplicate username, or an unparseable record is
 			// reported here too. A missing file is a failure like any
 			// other, since R2 makes it a startup refusal: the spec's
 			// runbook order is install, render the environment, run the

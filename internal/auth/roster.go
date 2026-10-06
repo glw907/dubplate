@@ -34,21 +34,21 @@ const rosterSchemaVersion = 1
 // text.
 const maxDisplayNameLength = 200
 
-// maxStreamerUsernameLength bounds streamer_username in bytes: 64
+// maxUsernameLength bounds username in bytes: 64
 // bytes clears every common platform's own username cap (GitHub 39,
 // Discord 32) with headroom, while still refusing an attempt to stuff
 // arbitrary text into what R3 requires as a stable principal.
-const maxStreamerUsernameLength = 64
+const maxUsernameLength = 64
 
-// streamerUsernamePattern is the shape the write path enforces for
-// streamer_username: an alphanumeric first character, refusing a
+// usernamePattern is the shape the write path enforces for
+// username: an alphanumeric first character, refusing a
 // leading dot or hyphen at no cost to a plausible account name, then
 // any run of alphanumerics, '.', '_', '@', '+', or '-'. '@' and '+'
 // admit an email-shaped username, and '_' stays allowed since a
 // username is matched by case-insensitive equality, never a SQL LIKE
 // pattern that would treat it as a wildcard. The loader keeps the older ASCII-printable check, so a
 // roster written before this rule still loads.
-var streamerUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
+var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
 
 // Roster load and lookup sentinels. A refusal names the check that
 // failed and the file's path, never a record's own address or
@@ -74,7 +74,7 @@ var (
 	ErrRosterUnparseable = errors.New("auth: roster file unparseable")
 
 	// ErrRosterRecordInvalid reports that a parsed roster file failed
-	// validation: a duplicate address, a duplicate streamer_username, a
+	// validation: a duplicate address, a duplicate username, a
 	// control character, an out-of-bounds field, or an address
 	// net/mail cannot parse.
 	ErrRosterRecordInvalid = errors.New("auth: roster record invalid")
@@ -102,15 +102,15 @@ var (
 	// member already on the roster, once both are normalized.
 	errDuplicateAddress = errors.New("auth: duplicate address")
 
-	// errDuplicateStreamerUsername reports that a candidate's
-	// streamer_username matches a member already on the roster,
+	// errDuplicateUsername reports that a candidate's
+	// username matches a member already on the roster,
 	// compared case-insensitively.
-	errDuplicateStreamerUsername = errors.New("auth: duplicate streamer_username")
+	errDuplicateUsername = errors.New("auth: duplicate username")
 
 	// errDuplicatePrincipal reports that a member's principal, its
-	// streamer_username when set and otherwise its normalized address,
+	// username when set and otherwise its normalized address,
 	// matches another member's principal compared case-insensitively,
-	// where the two do not both come from a streamer_username. The seam
+	// where the two do not both come from a username. The seam
 	// hands each member its principal, and a principal resolves by
 	// case-insensitive equality, so a match would give two members one
 	// identity.
@@ -129,15 +129,15 @@ var (
 	// it names nobody wherever it is shown.
 	errBlankDisplayName = errors.New("auth: display name is empty or blank")
 
-	// errInvalidStreamerUsername reports that a record's
-	// streamer_username fails its shape check or exceeds
-	// maxStreamerUsernameLength.
-	errInvalidStreamerUsername = errors.New("auth: streamer_username is invalid")
+	// errInvalidUsername reports that a record's
+	// username fails its shape check or exceeds
+	// maxUsernameLength.
+	errInvalidUsername = errors.New("auth: username is invalid")
 
-	// errMissingStreamerUsername reports that a write candidate carries
-	// no streamer_username, which the write path requires even though
+	// errMissingUsername reports that a write candidate carries
+	// no username, which the write path requires even though
 	// the loader still accepts a roster written before this rule.
-	errMissingStreamerUsername = errors.New("auth: streamer_username is required")
+	errMissingUsername = errors.New("auth: username is required")
 
 	// errInvalidActor reports that AddMember's actor or channel failed
 	// the rule its channel imposes: an unrecognized channel, or an
@@ -165,9 +165,9 @@ type Member struct {
 	Address string
 	// DisplayName is the member's human-readable name.
 	DisplayName string
-	// StreamerUsername is the member's stable principal: ASCII-printable
+	// Username is the member's stable principal: ASCII-printable
 	// and unique across the roster when set (R3). Empty means unset.
-	StreamerUsername string
+	Username string
 	// Admin marks the member as an operator.
 	Admin bool
 }
@@ -181,10 +181,10 @@ type rosterFile struct {
 // memberRecord is one roster file entry as read from disk, before
 // validation promotes it to a Member.
 type memberRecord struct {
-	Address          string `json:"address"`
-	DisplayName      string `json:"display_name"`
-	StreamerUsername string `json:"streamer_username,omitempty"`
-	Admin            bool   `json:"admin"`
+	Address     string `json:"address"`
+	DisplayName string `json:"display_name"`
+	Username    string `json:"username,omitempty"`
+	Admin       bool   `json:"admin"`
 }
 
 // Roster is the rung 5 member store (R1): one type opens the file,
@@ -529,7 +529,7 @@ func normalizeMemberAddress(address string) (string, error) {
 // validateRoster promotes records to Members, applying B9's list: each
 // address is parsed and normalized through normalizeMemberAddress and
 // unique after normalization, no field carries a refused rune, every
-// field is bounded, streamer_username, when present, is
+// field is bounded, username, when present, is
 // ASCII-printable, and every member's principal is unique across the
 // roster comparing case-insensitively. A record's own address or
 // principal never appears in a returned error, only its position.
@@ -568,7 +568,7 @@ func validateRoster(records []memberRecord) ([]Member, map[string]int, error) {
 // field-level half of B9's list; the duplicate checks that need the
 // rest of the roster stay in validateRoster's loop and in AddMember's
 // locked re-check, since only those two callers know what "the rest of
-// the roster" currently is. streamer_username keeps the looser
+// the roster" currently is. username keeps the looser
 // ASCII-printable check here: validateWriteCandidate adds the write
 // path's narrower shape on top for a caller that writes the roster.
 func (rec memberRecord) validate() (Member, error) {
@@ -579,23 +579,23 @@ func (rec memberRecord) validate() (Member, error) {
 	if displayNameCarriesRefusedRune(rec.DisplayName) || len(rec.DisplayName) > maxDisplayNameLength {
 		return Member{}, errInvalidDisplayName
 	}
-	if rec.StreamerUsername != "" {
-		if !isASCIIPrintable(rec.StreamerUsername) || len(rec.StreamerUsername) > maxStreamerUsernameLength {
-			return Member{}, errInvalidStreamerUsername
+	if rec.Username != "" {
+		if !isASCIIPrintable(rec.Username) || len(rec.Username) > maxUsernameLength {
+			return Member{}, errInvalidUsername
 		}
 	}
 	return Member{
-		Address:          normalized,
-		DisplayName:      rec.DisplayName,
-		StreamerUsername: rec.StreamerUsername,
-		Admin:            rec.Admin,
+		Address:     normalized,
+		DisplayName: rec.DisplayName,
+		Username:    rec.Username,
+		Admin:       rec.Admin,
 	}, nil
 }
 
 // validateWriteCandidate validates candidate the way validate does,
 // then adds the write path's own rules: the display name is not blank,
-// streamer_username is required, and its shape is the narrower pattern
-// streamerUsernamePattern describes rather than the loader's plain
+// username is required, and its shape is the narrower pattern
+// usernamePattern describes rather than the loader's plain
 // ASCII-printable check. A roster written before those rules existed
 // still loads through validate alone.
 func validateWriteCandidate(candidate Member) (Member, error) {
@@ -606,11 +606,11 @@ func validateWriteCandidate(candidate Member) (Member, error) {
 	if strings.Trim(member.DisplayName, " "+string(zeroWidthNonJoiner)+string(zeroWidthJoiner)) == "" {
 		return Member{}, errBlankDisplayName
 	}
-	if member.StreamerUsername == "" {
-		return Member{}, errMissingStreamerUsername
+	if member.Username == "" {
+		return Member{}, errMissingUsername
 	}
-	if !streamerUsernamePattern.MatchString(member.StreamerUsername) {
-		return Member{}, errInvalidStreamerUsername
+	if !usernamePattern.MatchString(member.Username) {
+		return Member{}, errInvalidUsername
 	}
 	return member, nil
 }
@@ -735,7 +735,7 @@ func (r *Roster) List() ([]Member, error) {
 
 // AddMember validates actor and channel, then candidate against B9's
 // list and the write path's own rules, then, holding the roster's
-// directory lock, re-checks candidate's address and streamer_username
+// directory lock, re-checks candidate's address and username
 // against the file as it is on disk, appends candidate to that disk
 // copy, writes the whole roster atomically, re-reads it, and logs one
 // audit record naming actor, channel, candidate.Address,
@@ -812,10 +812,10 @@ func addTo(path string, disk *rosterSnapshot, member Member, actor string, chann
 }
 
 // principal returns the name the seam hands m's identity as its
-// principal: the streamer_username when set, otherwise the address.
+// principal: the username when set, otherwise the address.
 func (m Member) principal() string {
-	if m.StreamerUsername != "" {
-		return m.StreamerUsername
+	if m.Username != "" {
+		return m.Username
 	}
 	return m.Address
 }
@@ -823,8 +823,8 @@ func (m Member) principal() string {
 // principalCollision reports whether member's principal matches the
 // principal of any of others, compared with strings.EqualFold because
 // a principal resolves by case-insensitive equality. It
-// returns errDuplicateStreamerUsername when both principals are
-// streamer_usernames, errDuplicatePrincipal when either is an address,
+// returns errDuplicateUsername when both principals are
+// usernames, errDuplicatePrincipal when either is an address,
 // and nil when no principal matches.
 func principalCollision(others []Member, member Member) error {
 	p := member.principal()
@@ -832,8 +832,8 @@ func principalCollision(others []Member, member Member) error {
 		if !strings.EqualFold(other.principal(), p) {
 			continue
 		}
-		if other.StreamerUsername != "" && member.StreamerUsername != "" {
-			return errDuplicateStreamerUsername
+		if other.Username != "" && member.Username != "" {
+			return errDuplicateUsername
 		}
 		return errDuplicatePrincipal
 	}

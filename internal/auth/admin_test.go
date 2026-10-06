@@ -23,14 +23,14 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 )
 
-// adminRosterMembers holds an admin with a streamer_username, a second
+// adminRosterMembers holds an admin with a username, a second
 // admin without one (a record written before the write path required
 // it), and a non-admin, so a GET has every field shape to answer and a
 // hand edit demoting the first admin still leaves the roster an admin.
 const adminRosterMembers = `[
-	{"address":"admin@example.com","display_name":"Group Admin","streamer_username":"groupadmin","admin":true},
+	{"address":"admin@example.com","display_name":"Group Admin","username":"groupadmin","admin":true},
 	{"address":"founder@example.com","display_name":"Founder","admin":true},
-	{"address":"member@example.com","display_name":"Member","streamer_username":"member","admin":false}
+	{"address":"member@example.com","display_name":"Member","username":"member","admin":false}
 ]`
 
 // fixtureAddresses is every address a fixture roster or session names;
@@ -43,7 +43,7 @@ var fixtureAddresses = []string{"admin@example.com", "founder@example.com", "mem
 var gateNow = seamBirth.Add(10 * 24 * time.Hour)
 
 // validPost is a form every field check accepts for a new member.
-const validPost = "address=new%40example.com&display_name=New+Member&streamer_username=newmember"
+const validPost = "address=new%40example.com&display_name=New+Member&username=newmember"
 
 const formType = "application/x-www-form-urlencoded"
 
@@ -379,9 +379,9 @@ func TestRosterAPI_List(t *testing.T) {
 		t.Fatalf("decode GET body %q: %v", w.Body, err)
 	}
 	want := map[string]any{"members": []any{
-		map[string]any{"address": "admin@example.com", "display_name": "Group Admin", "streamer_username": "groupadmin", "admin": true},
-		map[string]any{"address": "founder@example.com", "display_name": "Founder", "streamer_username": "", "admin": true},
-		map[string]any{"address": "member@example.com", "display_name": "Member", "streamer_username": "member", "admin": false},
+		map[string]any{"address": "admin@example.com", "display_name": "Group Admin", "username": "groupadmin", "admin": true},
+		map[string]any{"address": "founder@example.com", "display_name": "Founder", "username": "", "admin": true},
+		map[string]any{"address": "member@example.com", "display_name": "Member", "username": "member", "admin": false},
 	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("GET body = %v, want %v", got, want)
@@ -512,16 +512,16 @@ func TestRosterAPI_Post(t *testing.T) {
 		{name: "added under a charset parameter", contentType: formType + "; charset=utf-8", body: validPost, wantStatus: 201, wantOutcome: "added"},
 		{name: "added under Fetch's own serialization", contentType: formType + ";charset=UTF-8", body: validPost, wantStatus: 201, wantOutcome: "added"},
 
-		{name: "duplicate address", body: "address=MEMBER%40example.com&display_name=Dup&streamer_username=dup", wantStatus: 409, wantOutcome: "duplicate_address"},
-		{name: "duplicate streamer username", body: "address=new%40example.com&display_name=New&streamer_username=GroupAdmin", wantStatus: 409, wantOutcome: "duplicate_streamer_username"},
-		{name: "duplicate principal", body: "address=new%40example.com&display_name=New&streamer_username=founder%40example.com", wantStatus: 409, wantOutcome: "duplicate_principal"},
-		{name: "invalid address net/mail quotes", body: "address=new%40example.com+member%40example.com&display_name=New&streamer_username=newmember", wantStatus: 400, wantOutcome: "invalid_address"},
-		{name: "address carrying an invisible rune", body: "address=%22new%E2%80%8B%22%40example.com&display_name=New&streamer_username=newmember", wantStatus: 400, wantOutcome: "invalid_address"},
-		{name: "invalid display name", body: "address=new%40example.com&display_name=New%E2%80%AE&streamer_username=newmember", wantStatus: 400, wantOutcome: "invalid_display_name"},
-		{name: "blank display name", body: "address=new%40example.com&display_name=+++&streamer_username=newmember", wantStatus: 400, wantOutcome: "blank_display_name"},
-		{name: "absent display name", body: "address=new%40example.com&streamer_username=newmember", wantStatus: 400, wantOutcome: "blank_display_name"},
-		{name: "invalid streamer username", body: "address=new%40example.com&display_name=New&streamer_username=-new", wantStatus: 400, wantOutcome: "invalid_streamer_username"},
-		{name: "missing streamer username", body: "address=new%40example.com&display_name=New", wantStatus: 400, wantOutcome: "missing_streamer_username"},
+		{name: "duplicate address", body: "address=MEMBER%40example.com&display_name=Dup&username=dup", wantStatus: 409, wantOutcome: "duplicate_address"},
+		{name: "duplicate username", body: "address=new%40example.com&display_name=New&username=GroupAdmin", wantStatus: 409, wantOutcome: "duplicate_username"},
+		{name: "duplicate principal", body: "address=new%40example.com&display_name=New&username=founder%40example.com", wantStatus: 409, wantOutcome: "duplicate_principal"},
+		{name: "invalid address net/mail quotes", body: "address=new%40example.com+member%40example.com&display_name=New&username=newmember", wantStatus: 400, wantOutcome: "invalid_address"},
+		{name: "address carrying an invisible rune", body: "address=%22new%E2%80%8B%22%40example.com&display_name=New&username=newmember", wantStatus: 400, wantOutcome: "invalid_address"},
+		{name: "invalid display name", body: "address=new%40example.com&display_name=New%E2%80%AE&username=newmember", wantStatus: 400, wantOutcome: "invalid_display_name"},
+		{name: "blank display name", body: "address=new%40example.com&display_name=+++&username=newmember", wantStatus: 400, wantOutcome: "blank_display_name"},
+		{name: "absent display name", body: "address=new%40example.com&username=newmember", wantStatus: 400, wantOutcome: "blank_display_name"},
+		{name: "invalid username", body: "address=new%40example.com&display_name=New&username=-new", wantStatus: 400, wantOutcome: "invalid_username"},
+		{name: "missing username", body: "address=new%40example.com&display_name=New", wantStatus: 400, wantOutcome: "missing_username"},
 
 		{name: "admin=on in the body", body: validPost + "&admin=on", wantStatus: 400, wantOutcome: "admin_not_grantable"},
 		{name: "admin=false in the body", body: validPost + "&admin=false", wantStatus: 400, wantOutcome: "admin_not_grantable"},
@@ -531,6 +531,7 @@ func TestRosterAPI_Post(t *testing.T) {
 
 		{name: "Admin=on", body: validPost + "&Admin=on", wantStatus: 400, wantOutcome: "unknown_field"},
 		{name: "is_admin=1", body: validPost + "&is_admin=1", wantStatus: 400, wantOutcome: "unknown_field"},
+		{name: "streamer_username=x", body: validPost + "&streamer_username=x", wantStatus: 400, wantOutcome: "unknown_field"},
 		{name: "actor=x", body: validPost + "&actor=x", wantStatus: 400, wantOutcome: "unknown_field"},
 		{name: "foo=1 in the query", target: "/dubplate/roster?foo=1", body: validPost, wantStatus: 400, wantOutcome: "unknown_field"},
 
@@ -540,7 +541,7 @@ func TestRosterAPI_Post(t *testing.T) {
 		{name: "no Content-Type", contentType: "-", body: validPost, wantStatus: 400, wantOutcome: "malformed"},
 		{name: "unparseable Content-Type", contentType: formType + "; ;", body: validPost, wantStatus: 400, wantOutcome: "malformed"},
 		{name: "unparseable body", body: validPost + "&%zz", wantStatus: 400, wantOutcome: "malformed"},
-		{name: "fields in the query, empty body", target: "/dubplate/roster?address=new%40example.com&display_name=x&streamer_username=y", body: "", wantStatus: 400, wantOutcome: "malformed"},
+		{name: "fields in the query, empty body", target: "/dubplate/roster?address=new%40example.com&display_name=x&username=y", body: "", wantStatus: 400, wantOutcome: "malformed"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -645,7 +646,7 @@ func TestRosterAPI_PostOverCap(t *testing.T) {
 // audit record. They run on the inner handler, since each changes the
 // roster after the identity was verified.
 func TestRosterAPI_PostFailed(t *testing.T) {
-	demoted := strings.Replace(adminRosterMembers, `"streamer_username":"groupadmin","admin":true`, `"streamer_username":"groupadmin","admin":false`, 1)
+	demoted := strings.Replace(adminRosterMembers, `"username":"groupadmin","admin":true`, `"username":"groupadmin","admin":false`, 1)
 	tests := []struct {
 		name   string
 		change func(t *testing.T, path string)

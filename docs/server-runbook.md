@@ -135,10 +135,10 @@ A `doctor` run too early correctly reports a server that cannot start yet.
 
 8. **Add the first admin.** The roster file does not exist until a member is
    added, and `doctor` fails the `roster` row until the roster names an admin.
-   The verb requires `--name` and `--streamer-username` as well as the address:
+   The verb requires `--name` and `--username` as well as the address:
 
    ```sh
-   dubplate-server member add admin@example.org --admin --name "Ada Admin" --streamer-username ada
+   dubplate-server member add admin@example.org --admin --name "Ada Admin" --username ada
    dubplate-server member list
    ```
 
@@ -161,7 +161,7 @@ A `doctor` run too early correctly reports a server that cannot start yet.
      -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
      -p 'ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/roster' \
      /usr/local/bin/dubplate-server member add admin@example.org --admin \
-       --name "Ada Admin" --streamer-username ada
+       --name "Ada Admin" --username ada
    ```
 
    Replace the `member add ...` arguments with `member list` to run that verb

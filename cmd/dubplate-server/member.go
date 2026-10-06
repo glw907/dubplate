@@ -57,11 +57,11 @@ func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 // configuration, resolves the roster path the selected identity
 // source declares, refuses a foreign directory owner, then creates the
 // roster when it is absent or adds to it when it exists (R-5c8,
-// R-5c14). --name and --streamer-username are required flags; an
+// R-5c14). --name and --username are required flags; an
 // empty value still reaches the roster's own write-path validation,
 // since cobra's required check proves only that the flag was set.
 func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer) *cobra.Command {
-	var name, streamerUsername string
+	var name, username string
 	var admin bool
 
 	cmd := &cobra.Command{
@@ -84,10 +84,10 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 			}
 
 			candidate := auth.Member{
-				Address:          args[0],
-				DisplayName:      name,
-				StreamerUsername: streamerUsername,
-				Admin:            admin,
+				Address:     args[0],
+				DisplayName: name,
+				Username:    username,
+				Admin:       admin,
 			}
 			actor := resolveActor()
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
@@ -98,12 +98,12 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "the member's display name")
-	cmd.Flags().StringVar(&streamerUsername, "streamer-username", "", "the member's streamer username")
+	cmd.Flags().StringVar(&username, "username", "", "the member's username")
 	cmd.Flags().BoolVar(&admin, "admin", false, "grant the member the admin flag")
 	if err := cmd.MarkFlagRequired("name"); err != nil {
 		panic(err)
 	}
-	if err := cmd.MarkFlagRequired("streamer-username"); err != nil {
+	if err := cmd.MarkFlagRequired("username"); err != nil {
 		panic(err)
 	}
 	cmd.SetErr(stderr)
@@ -171,10 +171,10 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 }
 
 // printMemberList writes members to w: a header line, then one line
-// per member in file order, address, display name, streamer username,
+// per member in file order, address, display name, username,
 // and an admin marker, tab-separated.
 func printMemberList(w io.Writer, members []auth.Member) error {
-	if _, err := fmt.Fprint(w, "ADDRESS\tDISPLAY NAME\tSTREAMER USERNAME\tADMIN\n"); err != nil {
+	if _, err := fmt.Fprint(w, "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n"); err != nil {
 		return err
 	}
 	for _, m := range members {
@@ -182,7 +182,7 @@ func printMemberList(w io.Writer, members []auth.Member) error {
 		if m.Admin {
 			marker = "yes"
 		}
-		if _, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", m.Address, m.DisplayName, m.StreamerUsername, marker); err != nil {
+		if _, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", m.Address, m.DisplayName, m.Username, marker); err != nil {
 			return err
 		}
 	}

@@ -43,20 +43,20 @@ The signed-in header renders in every state, loading included, and
   // Which field a roster-write outcome names, so the field itself can
   // carry the invalid state, the description, and the focus a server
   // refusal earns, rather than only the alert beneath the form.
-  const FIELD_FOR_OUTCOME: Record<string, 'address' | 'display_name' | 'streamer_username'> = {
+  const FIELD_FOR_OUTCOME: Record<string, 'address' | 'display_name' | 'username'> = {
     duplicate_address: 'address',
     blank_display_name: 'display_name',
     invalid_display_name: 'display_name',
-    missing_streamer_username: 'streamer_username',
-    invalid_streamer_username: 'streamer_username',
-    duplicate_streamer_username: 'streamer_username',
-    duplicate_principal: 'streamer_username'
+    missing_username: 'username',
+    invalid_username: 'username',
+    duplicate_username: 'username',
+    duplicate_principal: 'username'
   };
 
   interface RosterMember {
     address: string;
     display_name: string;
-    streamer_username: string;
+    username: string;
     admin: boolean;
   }
 
@@ -83,26 +83,26 @@ The signed-in header renders in every state, loading included, and
 
   let address = $state('');
   let displayName = $state('');
-  let streamerUsername = $state('');
+  let username = $state('');
   let submitting = $state(false);
   let outcome = $state<string | null>(null);
-  let erroredField = $state<'address' | 'display_name' | 'streamer_username' | null>(null);
+  let erroredField = $state<'address' | 'display_name' | 'username' | null>(null);
   let addMemberForm = $state<HTMLFormElement | null>(null);
   let addressInput = $state<HTMLInputElement | null>(null);
   let displayNameInput = $state<HTMLInputElement | null>(null);
-  let streamerUsernameInput = $state<HTMLInputElement | null>(null);
+  let usernameInput = $state<HTMLInputElement | null>(null);
 
   // W5: every field-specific server outcome moves focus to the field it
   // marks, not only the address field.
-  function inputForField(field: 'address' | 'display_name' | 'streamer_username'): HTMLInputElement | null {
+  function inputForField(field: 'address' | 'display_name' | 'username'): HTMLInputElement | null {
     if (field === 'address') return addressInput;
     if (field === 'display_name') return displayNameInput;
-    return streamerUsernameInput;
+    return usernameInput;
   }
 
   // A roster member's meta line joins only the segments it actually
   // carries: an address always has one, but an older member's
-  // `streamer_username` can be blank, and a bare address followed by a
+  // `username` can be blank, and a bare address followed by a
   // dangling " · " is the render-and-read's "members lists" defect.
   // The separator is a suffix of the segment before it, glued on with a
   // non-breaking space, never a prefix of the segment after: each part
@@ -112,7 +112,7 @@ The signed-in header renders in every state, loading included, and
   // gap between parts on one line comes from the list's own flex gap,
   // not a space in the text.
   function memberMetaParts(member: RosterMember): string[] {
-    const segments = [member.address, member.streamer_username].filter((segment) => segment !== '');
+    const segments = [member.address, member.username].filter((segment) => segment !== '');
     return segments.map((segment, i) => (i === segments.length - 1 ? segment : `${segment} ·`));
   }
 
@@ -129,7 +129,7 @@ The signed-in header renders in every state, loading included, and
   // reset runs.
   let addedMemberName = $state('');
 
-  function clearFieldError(field: 'address' | 'display_name' | 'streamer_username'): void {
+  function clearFieldError(field: 'address' | 'display_name' | 'username'): void {
     if (erroredField === field) erroredField = null;
   }
 
@@ -208,7 +208,7 @@ The signed-in header renders in every state, loading included, and
       const answer = await postForm(ROSTER_PATH, {
         address,
         display_name: displayName,
-        streamer_username: streamerUsername
+        username
       });
       outcome = answer.outcome;
       erroredField = FIELD_FOR_OUTCOME[answer.outcome] ?? null;
@@ -217,9 +217,9 @@ The signed-in header renders in every state, loading included, and
       if (outcome === 'added') {
         address = '';
         displayName = '';
-        streamerUsername = '';
+        username = '';
         // The native reset clears the form's own dirty-value flag, so
-        // the required streamer-username field drops its `:user-invalid`
+        // the required username field drops its `:user-invalid`
         // state instead of showing invalid the moment it goes back to
         // empty (the render-and-read's "members-added" defect).
         addMemberForm?.reset();
@@ -311,22 +311,22 @@ The signed-in header renders in every state, loading included, and
           bind:this={displayNameInput}
         />
 
-        <label class="label" for="add-streamer-username">{ADD_MEMBER_LABELS.streamerUsername}</label>
+        <label class="label" for="add-username">{ADD_MEMBER_LABELS.username}</label>
         <input
-          id="add-streamer-username"
-          name="streamer_username"
+          id="add-username"
+          name="username"
           type="text"
           pattern="[A-Za-z0-9][A-Za-z0-9._@+\-]*"
           maxlength="64"
           required
-          class="input validator {erroredField === 'streamer_username' ? 'input-error' : ''}"
-          aria-invalid={erroredField === 'streamer_username' ? 'true' : undefined}
-          aria-describedby={erroredField === 'streamer_username' ? 'streamer-hint roster-outcome' : 'streamer-hint'}
-          oninput={() => clearFieldError('streamer_username')}
-          bind:value={streamerUsername}
-          bind:this={streamerUsernameInput}
+          class="input validator {erroredField === 'username' ? 'input-error' : ''}"
+          aria-invalid={erroredField === 'username' ? 'true' : undefined}
+          aria-describedby={erroredField === 'username' ? 'username-hint roster-outcome' : 'username-hint'}
+          oninput={() => clearFieldError('username')}
+          bind:value={username}
+          bind:this={usernameInput}
         />
-        <p id="streamer-hint" class="text-sm opacity-70">{ADD_MEMBER_HINTS.streamerUsername}</p>
+        <p id="username-hint" class="text-sm opacity-70">{ADD_MEMBER_HINTS.username}</p>
       </fieldset>
       <button type="submit" class="btn btn-primary" aria-disabled={submitting || undefined}>{ADD_MEMBER_SUBMIT}</button>
     </form>

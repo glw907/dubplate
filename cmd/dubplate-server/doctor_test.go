@@ -817,7 +817,7 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 
 // TestDoctorCmd_RosterRow proves the R3 roster row: a valid roster
 // naming an admin reports no extra row and no failure, while a missing
-// roster, a roster carrying a duplicate streamer_username, a roster
+// roster, a roster carrying a duplicate username, a roster
 // carrying two bad records, and a hand-edited roster that loads but
 // names no admin, with members or without, and a roster a group may
 // write, each render one roster row
@@ -866,11 +866,11 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			wantStatus:    "missing",
 		},
 		{
-			name: "a roster with a duplicate streamer_username",
+			name: "a roster with a duplicate username",
 			rosterContent: fmt.Sprintf(
 				`{"schema_version":1,"members":[`+
-					`{"address":%q,"display_name":"A","streamer_username":%q},`+
-					`{"address":%q,"display_name":"B","streamer_username":%q}`+
+					`{"address":%q,"display_name":"A","username":%q},`+
+					`{"address":%q,"display_name":"B","username":%q}`+
 					`]}`,
 				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal),
 			wantStatus: "invalid: ",
@@ -885,9 +885,9 @@ func TestDoctorCmd_RosterRow(t *testing.T) {
 			name: "a roster with two bad records",
 			rosterContent: fmt.Sprintf(
 				`{"schema_version":1,"members":[`+
-					`{"address":%q,"display_name":"A","streamer_username":%q},`+
-					`{"address":%q,"display_name":"B","streamer_username":%q},`+
-					`{"address":%q,"display_name":"C","streamer_username":%q}`+
+					`{"address":%q,"display_name":"A","username":%q},`+
+					`{"address":%q,"display_name":"B","username":%q},`+
+					`{"address":%q,"display_name":"C","username":%q}`+
 					`]}`,
 				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal, fixtureAddressC, fixturePrincipal),
 			wantStatus: "invalid: ",

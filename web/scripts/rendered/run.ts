@@ -3559,7 +3559,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
 
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(NEW_MEMBER_ADDRESS);
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('New Member');
-    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember1');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('newmember1');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
       .locator('#roster-outcome')
@@ -3577,7 +3577,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     // successful add (the `:user-invalid` pseudo-class the component
     // layer's validator rule keys its red border on).
     const invalidAfterAdd = await visit.page
-      .locator('#add-address, #add-display-name, #add-streamer-username')
+      .locator('#add-address, #add-display-name, #add-username')
       .evaluateAll((els) => els.filter((el) => el.matches(':user-invalid')).map((el) => el.id));
 
     // a11y W1: a successful add returns focus to the address field
@@ -3586,7 +3586,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
 
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(NEW_MEMBER_ADDRESS);
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('New Member');
-    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember2');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('newmember2');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
       .locator('#roster-outcome')
@@ -3600,22 +3600,22 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     const addressAriaInvalid = await addressField.getAttribute('aria-invalid');
     const addressDescribedBy = await addressField.getAttribute('aria-describedby');
 
-    // A third submit: a fresh address but a `streamer_username` already
-    // taken by the first add, meeting `duplicate_streamer_username`
-    // (`internal/auth/admin.go`'s `errDuplicateStreamerUsername`). Proves
-    // W5's field-specific marks reach the streamer-username field too,
+    // A third submit: a fresh address but a `username` already
+    // taken by the first add, meeting `duplicate_username`
+    // (`internal/auth/admin.go`'s `errDuplicateUsername`). Proves
+    // W5's field-specific marks reach the username field too,
     // not only address, and that typing clears the mark.
     const thirdAddress = 'third-member@example.test';
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(thirdAddress);
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Third Member');
-    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('newmember1');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('newmember1');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
       .locator('#roster-outcome')
-      .filter({ hasText: ROSTER_OUTCOMES.duplicate_streamer_username })
+      .filter({ hasText: ROSTER_OUTCOMES.duplicate_username })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
-    const usernameField = visit.page.locator('#add-streamer-username');
+    const usernameField = visit.page.locator('#add-username');
     const usernameAriaInvalid = await usernameField.getAttribute('aria-invalid');
     const usernameDescribedBy = await usernameField.getAttribute('aria-describedby');
     const usernameHasErrorClass = await usernameField.evaluate((el) => el.classList.contains('input-error'));
@@ -3627,7 +3627,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     const usernameAriaInvalidAfterInput = await usernameField.getAttribute('aria-invalid');
     const usernameHasErrorClassAfterInput = await usernameField.evaluate((el) => el.classList.contains('input-error'));
 
-    const knownKeys = new Set(['address', 'display_name', 'streamer_username']);
+    const knownKeys = new Set(['address', 'display_name', 'username']);
     const bodyKeysOK = bodies.length === 3 && bodies.every((b) => [...new URLSearchParams(b).keys()].every((k) => knownKeys.has(k)));
 
     await report({
@@ -3644,12 +3644,12 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
         addressAriaInvalid === 'true' &&
         addressDescribedBy === 'roster-outcome' &&
         usernameAriaInvalid === 'true' &&
-        usernameDescribedBy === 'streamer-hint roster-outcome' &&
+        usernameDescribedBy === 'username-hint roster-outcome' &&
         usernameHasErrorClass &&
-        focusedAfterDuplicateUsername === 'add-streamer-username' &&
+        focusedAfterDuplicateUsername === 'add-username' &&
         usernameAriaInvalidAfterInput === null &&
         !usernameHasErrorClassAfterInput,
-      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; added line announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}; streamer-username aria-invalid ${JSON.stringify(usernameAriaInvalid)} aria-describedby ${JSON.stringify(usernameDescribedBy)} input-error ${usernameHasErrorClass} focused ${JSON.stringify(focusedAfterDuplicateUsername)}; after typing aria-invalid ${JSON.stringify(usernameAriaInvalidAfterInput)} input-error ${usernameHasErrorClassAfterInput}`
+      detail: `admin controls ${adminControlCount}; roster rows before ${initialCount} after ${afterAddCount}; POST bodies ${JSON.stringify(bodies)}; invalid fields after add ${JSON.stringify(invalidAfterAdd)}; focused element after add ${JSON.stringify(focusedAfterAdd)}; added line announced ${JSON.stringify(addedAnnounced.text)} as ${addedAnnounced.politeness}; address field aria-invalid ${JSON.stringify(addressAriaInvalid)} aria-describedby ${JSON.stringify(addressDescribedBy)}; username aria-invalid ${JSON.stringify(usernameAriaInvalid)} aria-describedby ${JSON.stringify(usernameDescribedBy)} input-error ${usernameHasErrorClass} focused ${JSON.stringify(focusedAfterDuplicateUsername)}; after typing aria-invalid ${JSON.stringify(usernameAriaInvalidAfterInput)} input-error ${usernameHasErrorClassAfterInput}`
     });
   } finally {
     await context.close();
@@ -4131,7 +4131,7 @@ async function headerWordmarkClearanceRow(browser: Browser, endpoints: Endpoints
 
 /**
  * The render-and-read's "members lists" defect: a member with a blank
- * `streamer_username` joins only the segments present, never a
+ * `username` joins only the segments present, never a
  * dangling " · " separator. A fulfilled roster GET keeps this row
  * independent of the fixture roster file, reusing the header's own
  * signed-in session cookie.
@@ -4148,8 +4148,8 @@ async function membersListJoinRow(browser: Browser, endpoints: Endpoints, sessio
         contentType: 'application/json',
         body: JSON.stringify({
           members: [
-            { address: 'no-username@example.test', display_name: 'No Username', streamer_username: '', admin: false },
-            { address: 'has-username@example.test', display_name: 'Has Username', streamer_username: 'hasuser', admin: false }
+            { address: 'no-username@example.test', display_name: 'No Username', username: '', admin: false },
+            { address: 'has-username@example.test', display_name: 'Has Username', username: 'hasuser', admin: false }
           ]
         })
       });
@@ -4200,7 +4200,7 @@ async function membersInheritedOutcomeRow(browser: Browser, endpoints: Endpoints
     const visit = await openMembers(context, endpoints, session);
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill('inherited@example.test');
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Inherited');
-    await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill('inherited');
+    await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('inherited');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     const appeared = await visit.page
       .locator('#roster-outcome')
@@ -4765,7 +4765,7 @@ function captureAddress(kind: string): string {
   return `capture-${kind}@example.test`;
 }
 
-/** One capture state's streamer username, shared by its cells as {@link captureAddress} is. */
+/** One capture state's username, shared by its cells as {@link captureAddress} is. */
 function captureUsername(kind: string): string {
   return `capture-${kind}`;
 }
@@ -5037,7 +5037,7 @@ const CAPTURE_STATES: CaptureState[] = [
       const address = captureAddress('added');
       await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
       await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
-      await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(captureUsername('added'));
+      await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill(captureUsername('added'));
       await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
       const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: addedMemberLine('Capture Member') });
       let ok = true;
@@ -5072,7 +5072,7 @@ const CAPTURE_STATES: CaptureState[] = [
       const submit = async () => {
         await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
         await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
-        await visit.page.getByLabel(ADD_MEMBER_LABELS.streamerUsername, { exact: true }).fill(username);
+        await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill(username);
         await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
       };
       await submit();

@@ -4,13 +4,13 @@
     {
       "address": "admin@example.test",
       "display_name": "Example Admin",
-      "streamer_username": "example-admin",
+      "username": "example-admin",
       "admin": true
     },
     {
       "address": "member@example.test",
       "display_name": "Example Member",
-      "streamer_username": "example-member",
+      "username": "example-member",
       "admin": false
     }
   ]

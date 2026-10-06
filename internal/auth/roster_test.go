@@ -35,7 +35,7 @@ func writeRosterFile(t *testing.T, content string) string {
 
 // bootstrapAdmin is the first member newAdminRoster creates, and the
 // admin every cookie-channel write in these tests names as its actor.
-var bootstrapAdmin = Member{Address: "admin@example.com", DisplayName: "Admin", StreamerUsername: "admin", Admin: true}
+var bootstrapAdmin = Member{Address: "admin@example.com", DisplayName: "Admin", Username: "admin", Admin: true}
 
 // newAdminRoster creates a roster under t.TempDir() through CreateRoster
 // carrying bootstrapAdmin alone, and returns it with its path.
@@ -144,8 +144,8 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 		t.Fatalf("fixture overCapDisplay is %d bytes, want exactly maxDisplayNameLength+1 (%d)", len(overCapDisplay), maxDisplayNameLength+1)
 	}
 
-	atCapUsername := strings.Repeat("a", maxStreamerUsernameLength)
-	overCapUsername := strings.Repeat("a", maxStreamerUsernameLength+1)
+	atCapUsername := strings.Repeat("a", maxUsernameLength)
+	overCapUsername := strings.Repeat("a", maxUsernameLength+1)
 
 	tests := []struct {
 		name    string
@@ -163,10 +163,10 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 			wantSentinel: errDuplicateAddress,
 		},
 		{
-			name:         "a duplicate streamer_username",
-			members:      `[{"address":"a@example.com","display_name":"A","streamer_username":"same"},{"address":"b@example.com","display_name":"B","streamer_username":"same"}]`,
+			name:         "a duplicate username",
+			members:      `[{"address":"a@example.com","display_name":"A","username":"same"},{"address":"b@example.com","display_name":"B","username":"same"}]`,
 			wantErr:      true,
-			wantSentinel: errDuplicateStreamerUsername,
+			wantSentinel: errDuplicateUsername,
 		},
 		{
 			name:         "a control character in a display name",
@@ -262,21 +262,21 @@ func TestOpenRoster_ValidationRows(t *testing.T) {
 			wantSentinel: errInvalidDisplayName,
 		},
 		{
-			name:    "streamer_username exactly at the length cap",
-			members: `[{"address":"a@example.com","display_name":"A","streamer_username":"` + atCapUsername + `"}]`,
+			name:    "username exactly at the length cap",
+			members: `[{"address":"a@example.com","display_name":"A","username":"` + atCapUsername + `"}]`,
 			wantErr: false,
 		},
 		{
-			name:         "streamer_username one byte over the length cap",
-			members:      `[{"address":"a@example.com","display_name":"A","streamer_username":"` + overCapUsername + `"}]`,
+			name:         "username one byte over the length cap",
+			members:      `[{"address":"a@example.com","display_name":"A","username":"` + overCapUsername + `"}]`,
 			wantErr:      true,
-			wantSentinel: errInvalidStreamerUsername,
+			wantSentinel: errInvalidUsername,
 		},
 		{
-			name:         "a streamer_username carrying a non-ASCII-printable byte",
-			members:      `[{"address":"a@example.com","display_name":"A","streamer_username":"na` + "é" + `me"}]`,
+			name:         "a username carrying a non-ASCII-printable byte",
+			members:      `[{"address":"a@example.com","display_name":"A","username":"na` + "é" + `me"}]`,
 			wantErr:      true,
-			wantSentinel: errInvalidStreamerUsername,
+			wantSentinel: errInvalidUsername,
 		},
 	}
 
@@ -423,7 +423,7 @@ func TestRoster_TwoEntryPoints(t *testing.T) {
 		t.Errorf("CreateRoster() file mode = %o, want %o", mode, 0o600)
 	}
 
-	second := Member{Address: "other@example.com", DisplayName: "Other", StreamerUsername: "other", Admin: true}
+	second := Member{Address: "other@example.com", DisplayName: "Other", Username: "other", Admin: true}
 	if _, err := CreateRoster(t.Context(), path, second, "operator", logger); !errors.Is(err, ErrRosterExists) {
 		t.Fatalf("CreateRoster(existing) error = %v, want ErrRosterExists", err)
 	}
@@ -449,14 +449,14 @@ func TestRosterExampleFile(t *testing.T) {
 	}
 }
 
-// TestValidateWriteCandidate_StreamerUsernameShape proves the write
+// TestValidateWriteCandidate_UsernameShape proves the write
 // path's narrower shape check: an alphanumeric first character, then
 // any run of alphanumerics, '.', '_', '@', '+', or '-', within the
 // loader's own ASCII-printable and length checks.
 // Named mutation 5 (drop the alphanumeric first character) admits
 // ".x" and "-rf"; named mutation 6 (drop '@' from the character
 // class) refuses the email-shaped row.
-func TestValidateWriteCandidate_StreamerUsernameShape(t *testing.T) {
+func TestValidateWriteCandidate_UsernameShape(t *testing.T) {
 	tests := []struct {
 		name    string
 		want    string
@@ -477,11 +477,11 @@ func TestValidateWriteCandidate_StreamerUsernameShape(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			candidate := Member{Address: "a@example.com", DisplayName: "A", StreamerUsername: tt.want}
+			candidate := Member{Address: "a@example.com", DisplayName: "A", Username: tt.want}
 			_, err := validateWriteCandidate(candidate)
 			if tt.wantErr {
-				if !errors.Is(err, errInvalidStreamerUsername) {
-					t.Errorf("validateWriteCandidate(%q) error = %v, want it to wrap errInvalidStreamerUsername", tt.want, err)
+				if !errors.Is(err, errInvalidUsername) {
+					t.Errorf("validateWriteCandidate(%q) error = %v, want it to wrap errInvalidUsername", tt.want, err)
 				}
 				return
 			}
@@ -492,51 +492,51 @@ func TestValidateWriteCandidate_StreamerUsernameShape(t *testing.T) {
 	}
 }
 
-// TestValidateWriteCandidate_StreamerUsernameRequired proves the write
-// path refuses a candidate with no streamer_username, while validate
+// TestValidateWriteCandidate_UsernameRequired proves the write
+// path refuses a candidate with no username, while validate
 // alone (the loader's path) still accepts one absent. Named mutation 7
 // (move the requirement to the loader) fails the load half of this
 // test.
-func TestValidateWriteCandidate_StreamerUsernameRequired(t *testing.T) {
+func TestValidateWriteCandidate_UsernameRequired(t *testing.T) {
 	candidate := Member{Address: "a@example.com", DisplayName: "A"}
 
-	if _, err := validateWriteCandidate(candidate); !errors.Is(err, errMissingStreamerUsername) {
-		t.Errorf("validateWriteCandidate(no streamer_username) error = %v, want it to wrap errMissingStreamerUsername", err)
+	if _, err := validateWriteCandidate(candidate); !errors.Is(err, errMissingUsername) {
+		t.Errorf("validateWriteCandidate(no username) error = %v, want it to wrap errMissingUsername", err)
 	}
 	if _, err := memberRecord(candidate).validate(); err != nil {
-		t.Errorf("validate(no streamer_username) error = %v, want nil: the loader keeps it optional", err)
+		t.Errorf("validate(no username) error = %v, want nil: the loader keeps it optional", err)
 	}
 }
 
-// TestAddMember_StreamerUsernameCaseFoldDuplicate proves the write
+// TestAddMember_UsernameCaseFoldDuplicate proves the write
 // path's disk re-check folds case, so "Alice" beside an existing
 // "alice" is refused rather than admitted as two principals mapping to
 // one account. Named mutation 4 (compare with ==) admits this row.
-func TestAddMember_StreamerUsernameCaseFoldDuplicate(t *testing.T) {
+func TestAddMember_UsernameCaseFoldDuplicate(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"alice","admin":true}]}`)
+	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","username":"alice","admin":true}]}`)
 	roster, err := OpenRoster(path)
 	if err != nil {
 		t.Fatalf("OpenRoster: %v", err)
 	}
 
-	candidate := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "Alice"}
+	candidate := Member{Address: "new@example.com", DisplayName: "New", Username: "Alice"}
 	err = roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger)
-	if !errors.Is(err, errDuplicateStreamerUsername) {
-		t.Errorf("AddMember(%q beside existing %q) error = %v, want it to wrap errDuplicateStreamerUsername", "Alice", "alice", err)
+	if !errors.Is(err, errDuplicateUsername) {
+		t.Errorf("AddMember(%q beside existing %q) error = %v, want it to wrap errDuplicateUsername", "Alice", "alice", err)
 	}
 }
 
-// TestOpenRoster_StreamerUsernameCaseFoldDuplicate proves the loader's
+// TestOpenRoster_UsernameCaseFoldDuplicate proves the loader's
 // uniqueness check also folds case, mirroring the write path.
-func TestOpenRoster_StreamerUsernameCaseFoldDuplicate(t *testing.T) {
+func TestOpenRoster_UsernameCaseFoldDuplicate(t *testing.T) {
 	path := writeRosterFile(t, `{"schema_version":1,"members":[
-		{"address":"a@example.com","display_name":"A","streamer_username":"Alice"},
-		{"address":"b@example.com","display_name":"B","streamer_username":"alice"}
+		{"address":"a@example.com","display_name":"A","username":"Alice"},
+		{"address":"b@example.com","display_name":"B","username":"alice"}
 	]}`)
 	_, err := OpenRoster(path)
-	if !errors.Is(err, errDuplicateStreamerUsername) {
-		t.Errorf("OpenRoster(case-differing streamer_username) error = %v, want it to wrap errDuplicateStreamerUsername", err)
+	if !errors.Is(err, errDuplicateUsername) {
+		t.Errorf("OpenRoster(case-differing username) error = %v, want it to wrap errDuplicateUsername", err)
 	}
 }
 
@@ -549,7 +549,7 @@ func TestOpenRoster_StreamerUsernameCaseFoldDuplicate(t *testing.T) {
 // row.
 func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	candidate := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "new"}
+	candidate := Member{Address: "new@example.com", DisplayName: "New", Username: "new"}
 
 	tests := []struct {
 		name    string
@@ -602,7 +602,7 @@ func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 // holding the plain address.
 func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice","streamer_username":"alice"}]}`)
+	path := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"alice@example.com","display_name":"Alice","username":"alice"}]}`)
 	before, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read fixture before AddMember: %v", err)
@@ -612,7 +612,7 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 		t.Fatalf("OpenRoster: %v", err)
 	}
 
-	candidate := Member{Address: "\"a\u200dlice\"@example.com", DisplayName: "Alice", StreamerUsername: "alice-2"}
+	candidate := Member{Address: "\"a\u200dlice\"@example.com", DisplayName: "Alice", Username: "alice-2"}
 	err = roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger)
 	if !errors.Is(err, ErrRosterRecordInvalid) {
 		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap ErrRosterRecordInvalid", err)
@@ -715,12 +715,12 @@ func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 		{identity.ChannelCookie, "admin@example.com", "ab@example.com", "a"},
 		{identity.ChannelCommandLine, "operator", "cd@example.com", "c"},
 	} {
-		plainPath := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true}]}`)
+		plainPath := writeRosterFile(t, `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","username":"admin","admin":true}]}`)
 		plainRoster, err := OpenRoster(plainPath)
 		if err != nil {
 			t.Fatalf("OpenRoster: %v", err)
 		}
-		plainCandidate := Member{Address: tt.address, DisplayName: "A", StreamerUsername: tt.streamer}
+		plainCandidate := Member{Address: tt.address, DisplayName: "A", Username: tt.streamer}
 		if err := plainRoster.AddMember(t.Context(), plainCandidate, tt.actor, tt.channel, "198.51.100.7", logger); err != nil {
 			t.Fatalf("AddMember(plain fixture, %s) = %v, want nil", tt.channel, err)
 		}
@@ -739,7 +739,7 @@ func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 					t.Fatalf("OpenRoster: %v", err)
 				}
 
-				candidate := Member{Address: defaultIgnorableAddress(tt.r), DisplayName: "A", StreamerUsername: "a"}
+				candidate := Member{Address: defaultIgnorableAddress(tt.r), DisplayName: "A", Username: "a"}
 				var actor string
 				if channel == identity.ChannelCommandLine {
 					actor = "operator"
@@ -857,7 +857,7 @@ func TestCreateRoster_PropagatesStatError(t *testing.T) {
 // fails every row here.
 func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	const seedJSON = `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true},{"address":"seed@example.com","display_name":"Seed","streamer_username":"seed"}]}`
+	const seedJSON = `{"schema_version":1,"members":[{"address":"admin@example.com","display_name":"Admin","username":"admin","admin":true},{"address":"seed@example.com","display_name":"Seed","username":"seed"}]}`
 
 	tests := []struct {
 		name      string
@@ -868,28 +868,28 @@ func TestAddMember_ByteIdentityOnFailure(t *testing.T) {
 	}{
 		{
 			name:      "an address that does not parse",
-			candidate: Member{Address: "not-an-address", DisplayName: "A", StreamerUsername: "a"},
+			candidate: Member{Address: "not-an-address", DisplayName: "A", Username: "a"},
 			actor:     "operator",
 			channel:   identity.ChannelCommandLine,
 			wantErr:   errInvalidMemberAddress,
 		},
 		{
 			name:      "a duplicate address",
-			candidate: Member{Address: "seed@example.com", DisplayName: "A", StreamerUsername: "not-seed"},
+			candidate: Member{Address: "seed@example.com", DisplayName: "A", Username: "not-seed"},
 			actor:     "operator",
 			channel:   identity.ChannelCommandLine,
 			wantErr:   errDuplicateAddress,
 		},
 		{
-			name:      "a duplicate streamer_username",
-			candidate: Member{Address: "new@example.com", DisplayName: "A", StreamerUsername: "seed"},
+			name:      "a duplicate username",
+			candidate: Member{Address: "new@example.com", DisplayName: "A", Username: "seed"},
 			actor:     "operator",
 			channel:   identity.ChannelCommandLine,
-			wantErr:   errDuplicateStreamerUsername,
+			wantErr:   errDuplicateUsername,
 		},
 		{
 			name:      "the admin flag on the cookie channel",
-			candidate: Member{Address: "new@example.com", DisplayName: "A", StreamerUsername: "new", Admin: true},
+			candidate: Member{Address: "new@example.com", DisplayName: "A", Username: "new", Admin: true},
 			actor:     "admin@example.com",
 			channel:   identity.ChannelCookie,
 			wantErr:   errAdminGrantForbidden,
@@ -935,7 +935,7 @@ func TestAddMember_WriteReReadAndMode(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	roster, path := newAdminRoster(t)
 
-	candidate := Member{Address: "Alice@Example.com", DisplayName: "Alice", StreamerUsername: "alice"}
+	candidate := Member{Address: "Alice@Example.com", DisplayName: "Alice", Username: "alice"}
 	if err := roster.AddMember(t.Context(), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
 		t.Fatalf("AddMember: %v", err)
 	}
@@ -973,7 +973,7 @@ func TestAddMember_WriteReReadAndMode(t *testing.T) {
 // mutation 5 (drop the channel from the audit record) fails the
 // "channel" key here.
 func TestAddMember_AuditRecord(t *testing.T) {
-	alice := Member{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "alice"}
+	alice := Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
 	tests := []struct {
 		name  string
 		write func(t *testing.T, logger *slog.Logger) error
@@ -1076,15 +1076,15 @@ func TestAddMember_AuditRecord(t *testing.T) {
 // concurrent adds for distinct members both succeed and the file
 // carries both, under -race. Named mutation 2 (take the lock after
 // the re-check) does not reach this test, since these two candidates
-// never collide; TestAddMember_ConcurrentStreamerUsernameCollision
+// never collide; TestAddMember_ConcurrentUsernameCollision
 // covers that.
 func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	roster, path := newAdminRoster(t)
 
 	candidates := []Member{
-		{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "alice"},
-		{Address: "bob@example.com", DisplayName: "Bob", StreamerUsername: "bob"},
+		{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"},
+		{Address: "bob@example.com", DisplayName: "Bob", Username: "bob"},
 	}
 	errs := make([]error, len(candidates))
 	var wg sync.WaitGroup
@@ -1117,18 +1117,18 @@ func TestAddMember_ConcurrentDistinctMembersBothSurvive(t *testing.T) {
 	}
 }
 
-// TestAddMember_ConcurrentStreamerUsernameCollision proves that two
-// concurrent adds claiming the same streamer_username leave exactly
+// TestAddMember_ConcurrentUsernameCollision proves that two
+// concurrent adds claiming the same username leave exactly
 // one member, with the other refused by ErrRosterRecordInvalid. Named
 // mutation 2 (take the lock after the re-check) admits both, so this
 // test fails under that mutation.
-func TestAddMember_ConcurrentStreamerUsernameCollision(t *testing.T) {
+func TestAddMember_ConcurrentUsernameCollision(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	roster, _ := newAdminRoster(t)
 
 	candidates := []Member{
-		{Address: "alice@example.com", DisplayName: "Alice", StreamerUsername: "same"},
-		{Address: "bob@example.com", DisplayName: "Bob", StreamerUsername: "same"},
+		{Address: "alice@example.com", DisplayName: "Alice", Username: "same"},
+		{Address: "bob@example.com", DisplayName: "Bob", Username: "same"},
 	}
 	errs := make([]error, len(candidates))
 	var wg sync.WaitGroup
@@ -1186,6 +1186,16 @@ func TestOpenRoster_StrictLoader(t *testing.T) {
 		{
 			name:    "an unknown member key",
 			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A","role":"owner"}]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "the retired streamer_username key alone on an otherwise valid member",
+			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A","streamer_username":"a"}]}`,
+			wantErr: ErrRosterUnparseable,
+		},
+		{
+			name:    "the retired streamer_username key beside username",
+			content: `{"schema_version":1,"members":[{"address":"a@example.com","display_name":"A","username":"a","streamer_username":"a"}]}`,
 			wantErr: ErrRosterUnparseable,
 		},
 		{
@@ -1452,7 +1462,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 				t.Fatalf("OpenRoster(server): %v", err)
 			}
 
-			if err := cli.AddMember(t.Context(), Member{Address: "carol@example.com", DisplayName: "Carol", StreamerUsername: "carol"}, "operator", identity.ChannelCommandLine, "", logger); err != nil {
+			if err := cli.AddMember(t.Context(), Member{Address: "carol@example.com", DisplayName: "Carol", Username: "carol"}, "operator", identity.ChannelCommandLine, "", logger); err != nil {
 				t.Fatalf("cli AddMember: %v", err)
 			}
 			writeInPlace(t, path, bobRemoved)
@@ -1462,7 +1472,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 					t.Errorf("server Lookup(bob) after the hand removal error = %v, want ErrMemberNotFound", err)
 				}
 			}
-			if err := server.AddMember(t.Context(), Member{Address: "dave@example.com", DisplayName: "Dave", StreamerUsername: "dave"}, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
+			if err := server.AddMember(t.Context(), Member{Address: "dave@example.com", DisplayName: "Dave", Username: "dave"}, "admin@example.com", identity.ChannelCookie, "198.51.100.7", logger); err != nil {
 				t.Fatalf("server AddMember: %v", err)
 			}
 
@@ -1509,7 +1519,7 @@ func TestRoster_ConcurrentWritersAcrossValues(t *testing.T) {
 	for i, r := range rosters {
 		wg.Go(func() {
 			<-start
-			candidate := Member{Address: fmt.Sprintf("writer%d@example.com", i), DisplayName: "Writer", StreamerUsername: fmt.Sprintf("writer%d", i)}
+			candidate := Member{Address: fmt.Sprintf("writer%d@example.com", i), DisplayName: "Writer", Username: fmt.Sprintf("writer%d", i)}
 			errs[i] = r.AddMember(t.Context(), candidate, "operator", identity.ChannelCommandLine, "", logger)
 		})
 	}
@@ -1548,7 +1558,7 @@ func TestCreateRoster_ConcurrentCreate(t *testing.T) {
 		for i := range 2 {
 			wg.Go(func() {
 				<-start
-				first := Member{Address: fmt.Sprintf("admin%d@example.com", i), DisplayName: "Admin", StreamerUsername: fmt.Sprintf("admin%d", i), Admin: true}
+				first := Member{Address: fmt.Sprintf("admin%d@example.com", i), DisplayName: "Admin", Username: fmt.Sprintf("admin%d", i), Admin: true}
 				rosters[i], errs[i] = CreateRoster(t.Context(), path, first, "operator", slog.New(slog.NewTextHandler(io.Discard, nil)))
 			})
 		}
@@ -1628,7 +1638,7 @@ func TestAddMember_BusyWhileLockHeld(t *testing.T) {
 	ctx := &waitObservedContext{Context: timeout, waiting: make(chan struct{})}
 	writeDone := make(chan error, 1)
 	go func() {
-		writeDone <- roster.AddMember(ctx, Member{Address: "bob@example.com", DisplayName: "Bob", StreamerUsername: "bob"}, "operator", identity.ChannelCommandLine, "", logger)
+		writeDone <- roster.AddMember(ctx, Member{Address: "bob@example.com", DisplayName: "Bob", Username: "bob"}, "operator", identity.ChannelCommandLine, "", logger)
 	}()
 	select {
 	case <-ctx.waiting:
@@ -1670,17 +1680,17 @@ func TestAddMember_BusyWhileLockHeld(t *testing.T) {
 func TestRosterWrites_AdminInvariantAndGrant(t *testing.T) {
 	const (
 		oneAdmin = `{"schema_version":1,"members":[` +
-			`{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin","admin":true},` +
-			`{"address":"member@example.com","display_name":"Member","streamer_username":"member"}]}`
+			`{"address":"admin@example.com","display_name":"Admin","username":"admin","admin":true},` +
+			`{"address":"member@example.com","display_name":"Member","username":"member"}]}`
 		noAdmin = `{"schema_version":1,"members":[` +
-			`{"address":"member@example.com","display_name":"Member","streamer_username":"member"}]}`
+			`{"address":"member@example.com","display_name":"Member","username":"member"}]}`
 		noMembers    = `{"schema_version":1,"members":[]}`
 		actorDemoted = `{"schema_version":1,"members":[` +
-			`{"address":"admin@example.com","display_name":"Admin","streamer_username":"admin"},` +
-			`{"address":"member@example.com","display_name":"Member","streamer_username":"member","admin":true}]}`
+			`{"address":"admin@example.com","display_name":"Admin","username":"admin"},` +
+			`{"address":"member@example.com","display_name":"Member","username":"member","admin":true}]}`
 	)
-	newAdmin := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "new", Admin: true}
-	newMember := Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: "new"}
+	newAdmin := Member{Address: "new@example.com", DisplayName: "New", Username: "new", Admin: true}
+	newMember := Member{Address: "new@example.com", DisplayName: "New", Username: "new"}
 
 	tests := []struct {
 		name      string
@@ -1702,20 +1712,20 @@ func TestRosterWrites_AdminInvariantAndGrant(t *testing.T) {
 			wantErr: errNoAdmin,
 		},
 		{
-			name: "create: an admin with no streamer_username", create: true,
+			name: "create: an admin with no username", create: true,
 			candidate: Member{Address: "new@example.com", DisplayName: "New", Admin: true},
 			channel:   identity.ChannelCommandLine, actor: "operator",
-			wantErr: errMissingStreamerUsername,
+			wantErr: errMissingUsername,
 		},
 		{
-			name: "create: an admin with streamer_username .x", create: true,
-			candidate: Member{Address: "new@example.com", DisplayName: "New", StreamerUsername: ".x", Admin: true},
+			name: "create: an admin with username .x", create: true,
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: ".x", Admin: true},
 			channel:   identity.ChannelCommandLine, actor: "operator",
-			wantErr: errInvalidStreamerUsername,
+			wantErr: errInvalidUsername,
 		},
 		{
 			name: "create: an admin whose display name carries U+202E", create: true,
-			candidate: Member{Address: "new@example.com", DisplayName: "Ne\u202ew", StreamerUsername: "new", Admin: true},
+			candidate: Member{Address: "new@example.com", DisplayName: "Ne\u202ew", Username: "new", Admin: true},
 			channel:   identity.ChannelCommandLine, actor: "operator",
 			wantErr: errInvalidDisplayName,
 		},
@@ -1864,7 +1874,7 @@ func readOrAbsent(t *testing.T, path string) []byte {
 
 // TestRoster_EffectivePrincipalUniqueness proves roster uniqueness keys
 // on the principal the seam derives for each member: the
-// streamer_username when set, otherwise the normalized address. A
+// username when set, otherwise the normalized address. A
 // username that case-folds to another member's address, where that
 // member has no username, gives both members one principal, and the
 // streamer resolves a username by case-insensitive equality, so they
@@ -1879,7 +1889,7 @@ func TestRoster_EffectivePrincipalUniqueness(t *testing.T) {
 		// write path's username requirement and has none, so her
 		// principal is her address.
 		legacy = `{"schema_version":1,"members":[` +
-			`{"address":"root@example.test","display_name":"Root","streamer_username":"root","admin":true},` +
+			`{"address":"root@example.test","display_name":"Root","username":"root","admin":true},` +
 			`{"address":"alice@example.test","display_name":"Alice"}]}`
 		collidingValue = "alice@example.test"
 	)
@@ -1891,30 +1901,30 @@ func TestRoster_EffectivePrincipalUniqueness(t *testing.T) {
 	}{
 		{
 			name: "a username equal to a later member's address, case-folded",
-			members: `[{"address":"root@example.test","display_name":"Root","streamer_username":"Alice@Example.TEST","admin":true},` +
+			members: `[{"address":"root@example.test","display_name":"Root","username":"Alice@Example.TEST","admin":true},` +
 				`{"address":"alice@example.test","display_name":"Alice"}]`,
 			wantErr: errDuplicatePrincipal,
 		},
 		{
 			name: "a username equal to an earlier member's address",
 			members: `[{"address":"alice@example.test","display_name":"Alice"},` +
-				`{"address":"root@example.test","display_name":"Root","streamer_username":"alice@example.test","admin":true}]`,
+				`{"address":"root@example.test","display_name":"Root","username":"alice@example.test","admin":true}]`,
 			wantErr: errDuplicatePrincipal,
 		},
 		{
 			name: "a username equal to its own address and to another member's username",
-			members: `[{"address":"alice@example.test","display_name":"Alice","streamer_username":"alice@example.test"},` +
-				`{"address":"root@example.test","display_name":"Root","streamer_username":"ALICE@example.test","admin":true}]`,
-			wantErr: errDuplicateStreamerUsername,
+			members: `[{"address":"alice@example.test","display_name":"Alice","username":"alice@example.test"},` +
+				`{"address":"root@example.test","display_name":"Root","username":"ALICE@example.test","admin":true}]`,
+			wantErr: errDuplicateUsername,
 		},
 		{
 			name:    "a username equal to its own address alone",
-			members: `[{"address":"alice@example.test","display_name":"Alice","streamer_username":"Alice@Example.test","admin":true}]`,
+			members: `[{"address":"alice@example.test","display_name":"Alice","username":"Alice@Example.test","admin":true}]`,
 		},
 		{
 			name: "a username equal to the address of a member who has a username",
-			members: `[{"address":"alice@example.test","display_name":"Alice","streamer_username":"alice"},` +
-				`{"address":"root@example.test","display_name":"Root","streamer_username":"alice@example.test","admin":true}]`,
+			members: `[{"address":"alice@example.test","display_name":"Alice","username":"alice"},` +
+				`{"address":"root@example.test","display_name":"Root","username":"alice@example.test","admin":true}]`,
 		},
 	}
 	for _, tt := range loadTests {
@@ -1943,7 +1953,7 @@ func TestRoster_EffectivePrincipalUniqueness(t *testing.T) {
 	}{
 		{name: "a username equal to a member's address, case-folded", username: "Alice@Example.test", wantErr: errDuplicatePrincipal},
 		{name: "a username equal to a member's address exactly", username: collidingValue, wantErr: errDuplicatePrincipal},
-		{name: "a username equal to another member's username, case-folded", username: "ROOT", wantErr: errDuplicateStreamerUsername},
+		{name: "a username equal to another member's username, case-folded", username: "ROOT", wantErr: errDuplicateUsername},
 		{name: "a username naming no principal", username: "mallory"},
 	}
 	for _, tt := range writeTests {
@@ -1955,7 +1965,7 @@ func TestRoster_EffectivePrincipalUniqueness(t *testing.T) {
 			if err != nil {
 				t.Fatalf("OpenRoster: %v", err)
 			}
-			candidate := Member{Address: "mallory@example.test", DisplayName: "Mallory", StreamerUsername: tt.username}
+			candidate := Member{Address: "mallory@example.test", DisplayName: "Mallory", Username: tt.username}
 			err = roster.AddMember(t.Context(), candidate, "operator", identity.ChannelCommandLine, "", logger)
 			if tt.wantErr == nil {
 				if err != nil {
@@ -1987,7 +1997,7 @@ func TestRoster_EffectivePrincipalUniqueness(t *testing.T) {
 // the owner writes loads whatever it grants for reading. The refusal
 // names the path and never the file's content.
 func TestOpenRoster_RefusesFileWritableByOthers(t *testing.T) {
-	const content = `{"schema_version":1,"members":[{"address":"mode-fixture@example.test","display_name":"A","streamer_username":"a","admin":true}]}`
+	const content = `{"schema_version":1,"members":[{"address":"mode-fixture@example.test","display_name":"A","username":"a","admin":true}]}`
 	tests := []struct {
 		mode    os.FileMode
 		wantErr bool
@@ -2056,7 +2066,7 @@ func TestRosterWrite_LandedFailureStillAudits(t *testing.T) {
 		return errInjected
 	}
 
-	candidate := Member{Address: "landed@example.test", DisplayName: "Landed", StreamerUsername: "landed"}
+	candidate := Member{Address: "landed@example.test", DisplayName: "Landed", Username: "landed"}
 	tests := []struct {
 		name       string
 		create     bool
@@ -2163,7 +2173,7 @@ func TestValidateWriteCandidate_BlankDisplayName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			candidate := Member{Address: "a@example.com", DisplayName: tt.displayName, StreamerUsername: "a"}
+			candidate := Member{Address: "a@example.com", DisplayName: tt.displayName, Username: "a"}
 			_, err := validateWriteCandidate(candidate)
 			if tt.wantErr != errors.Is(err, errBlankDisplayName) {
 				t.Errorf("validateWriteCandidate(display name %q) error = %v, want errBlankDisplayName %v", tt.displayName, err, tt.wantErr)

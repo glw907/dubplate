@@ -44,7 +44,7 @@ func TestMemberAddCmd_CreatesRosterWithFirstAdmin(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--streamer-username", "alice", "a@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr.String())
@@ -69,11 +69,11 @@ func TestMemberAddCmd_CreatesRosterWithFirstAdmin(t *testing.T) {
 func TestMemberAddCmd_AddsToExistingRosterWithAdmin(t *testing.T) {
 	environ := memberEnviron(t)
 	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[{"address":"a@example.test","display_name":"A","streamer_username":"a","admin":true}]}`)
+	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[{"address":"a@example.test","display_name":"A","username":"a","admin":true}]}`)
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "Bob", "--streamer-username", "bob", "b@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "Bob", "--username", "bob", "b@example.test"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr.String())
@@ -98,7 +98,7 @@ func TestMemberAddCmd_NoAdminRefusedOnCreate(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--name", "Carol", "--streamer-username", "carol", "c@example.test"})
+	cmd.SetArgs([]string{"add", "--name", "Carol", "--username", "carol", "c@example.test"})
 
 	err := cmd.Execute()
 	if err == nil {
@@ -118,12 +118,12 @@ func TestMemberAddCmd_NoAdminRefusedOnCreate(t *testing.T) {
 func TestMemberAddCmd_NoAdminRefusedOnHandEditedRoster(t *testing.T) {
 	environ := memberEnviron(t)
 	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	before := `{"schema_version":1,"members":[{"address":"nonadmin@example.test","display_name":"N","streamer_username":"n"}]}`
+	before := `{"schema_version":1,"members":[{"address":"nonadmin@example.test","display_name":"N","username":"n"}]}`
 	writeFixtureRoster(t, rosterPath, before)
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--name", "Dave", "--streamer-username", "dave", "d@example.test"})
+	cmd.SetArgs([]string{"add", "--name", "Dave", "--username", "dave", "d@example.test"})
 
 	err := cmd.Execute()
 	if err == nil {
@@ -147,13 +147,13 @@ func TestMemberAddCmd_MissingUsernameRefusedOnCreate(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--streamer-username", "", "a@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "", "a@example.test"})
 
 	err := cmd.Execute()
 	if err == nil {
 		t.Fatal("Execute() error = nil, want the missing-username refusal")
 	}
-	if !strings.Contains(err.Error(), "streamer_username is required") {
+	if !strings.Contains(err.Error(), "username is required") {
 		t.Errorf("error = %q, want it to name the missing-username refusal", err.Error())
 	}
 	if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
@@ -175,7 +175,7 @@ func TestMemberAddCmd_BlankNameRefusedOnCreate(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 			cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-			cmd.SetArgs([]string{"add", "--admin", "--name", name, "--streamer-username", "a", "a@example.test"})
+			cmd.SetArgs([]string{"add", "--admin", "--name", name, "--username", "a", "a@example.test"})
 
 			err := cmd.Execute()
 			if err == nil {
@@ -198,9 +198,11 @@ func TestMemberAddCmd_MissingRequiredFlagsRefusedBeforeOpen(t *testing.T) {
 	tests := []struct {
 		name string
 		args []string
+		want string
 	}{
-		{name: "missing --name", args: []string{"add", "--streamer-username", "a", "a@example.test"}},
-		{name: "missing --streamer-username", args: []string{"add", "--name", "A", "a@example.test"}},
+		{name: "missing --name", args: []string{"add", "--username", "a", "a@example.test"}, want: `required flag(s) "name" not set`},
+		{name: "missing --username", args: []string{"add", "--name", "A", "a@example.test"}, want: `required flag(s) "username" not set`},
+		{name: "the retired --streamer-username", args: []string{"add", "--name", "A", "--streamer-username", "a", "a@example.test"}, want: "unknown flag: --streamer-username"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -211,8 +213,9 @@ func TestMemberAddCmd_MissingRequiredFlagsRefusedBeforeOpen(t *testing.T) {
 			cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
 			cmd.SetArgs(tt.args)
 
-			if err := cmd.Execute(); err == nil {
-				t.Fatal("Execute() error = nil, want a required-flag error")
+			err := cmd.Execute()
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("Execute() error = %v, want it to contain %q", err, tt.want)
 			}
 			if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
 				t.Errorf("Stat(roster) error = %v, want ErrNotExist; a missing required flag must refuse before any open", statErr)
@@ -239,8 +242,8 @@ func TestMemberCmd_InvalidRosterReportsLoadError(t *testing.T) {
 		{
 			name: "duplicate address fails validation",
 			fixture: `{"schema_version":1,"members":[` +
-				`{"address":"a@example.test","display_name":"A","streamer_username":"a","admin":true},` +
-				`{"address":"a@example.test","display_name":"A2","streamer_username":"a2"}` +
+				`{"address":"a@example.test","display_name":"A","username":"a","admin":true},` +
+				`{"address":"a@example.test","display_name":"A2","username":"a2"}` +
 				`]}`,
 		},
 	}
@@ -248,7 +251,7 @@ func TestMemberCmd_InvalidRosterReportsLoadError(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "add", args: []string{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"}},
+		{name: "add", args: []string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"}},
 		{name: "list", args: []string{"list"}},
 	}
 
@@ -284,7 +287,7 @@ func TestMemberAddCmd_RosterDirectoryAbsentRefused(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"})
 
 	err := cmd.Execute()
 	if err == nil {
@@ -330,7 +333,7 @@ func TestMemberAddCmd_ForeignDirectoryOwnerRefused(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"})
 
 	err = cmd.Execute()
 	if err == nil {
@@ -366,7 +369,7 @@ func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr.String())
@@ -388,7 +391,7 @@ func TestMemberAddCmd_LockHeldPastDeadlineReportsBusy(t *testing.T) {
 	// The directory a roster write locks must exist before the flock
 	// call below; create the empty roster so both the fixture roster
 	// and its directory are in place before the lock is taken.
-	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[{"address":"a@example.test","display_name":"A","streamer_username":"a","admin":true}]}`)
+	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[{"address":"a@example.test","display_name":"A","username":"a","admin":true}]}`)
 
 	dir, err := os.Open(filepath.Dir(rosterPath))
 	if err != nil {
@@ -401,7 +404,7 @@ func TestMemberAddCmd_LockHeldPastDeadlineReportsBusy(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "B", "--streamer-username", "b", "b@example.test"})
+	cmd.SetArgs([]string{"add", "--admin", "--name", "B", "--username", "b", "b@example.test"})
 
 	err = cmd.Execute()
 	if err == nil {
@@ -423,7 +426,7 @@ func TestMemberAddCmd_ConcurrentBootstrapBothLand(t *testing.T) {
 
 	run := func(address, name, username string, stderr *bytes.Buffer) error {
 		cmd := newMemberCmd(environ, reg, &bytes.Buffer{}, stderr)
-		cmd.SetArgs([]string{"add", "--admin", "--name", name, "--streamer-username", username, address})
+		cmd.SetArgs([]string{"add", "--admin", "--name", name, "--username", username, address})
 		return cmd.Execute()
 	}
 
@@ -483,8 +486,8 @@ func TestMemberListCmd_PrintsExactRosterTable(t *testing.T) {
 	environ := memberEnviron(t)
 	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
 	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[`+
-		`{"address":"a@example.test","display_name":"Alice","streamer_username":"alice","admin":true},`+
-		`{"address":"b@example.test","display_name":"Bob","streamer_username":"bob"}`+
+		`{"address":"a@example.test","display_name":"Alice","username":"alice","admin":true},`+
+		`{"address":"b@example.test","display_name":"Bob","username":"bob"}`+
 		`]}`)
 
 	var stdout, stderr bytes.Buffer
@@ -498,7 +501,7 @@ func TestMemberListCmd_PrintsExactRosterTable(t *testing.T) {
 	// want is a literal, independent of printMemberList's own format
 	// string, so a regression in that format (a dropped column, a
 	// changed separator) is caught rather than echoed on both sides.
-	want := "ADDRESS\tDISPLAY NAME\tSTREAMER USERNAME\tADMIN\n" +
+	want := "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n" +
 		"a@example.test\tAlice\talice\tyes\n" +
 		"b@example.test\tBob\tbob\t\n"
 	if got := stdout.String(); got != want {
@@ -515,13 +518,13 @@ func TestMemberListCmd_ReadsWhatAddWrote(t *testing.T) {
 	environ := memberEnviron(t)
 
 	addCmd := newMemberCmd(environ, productionRegistry(), &bytes.Buffer{}, &bytes.Buffer{})
-	addCmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--streamer-username", "alice", "a@example.test"})
+	addCmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"})
 	if err := addCmd.Execute(); err != nil {
 		t.Fatalf("first add Execute() error = %v, want nil", err)
 	}
 
 	addCmd = newMemberCmd(environ, productionRegistry(), &bytes.Buffer{}, &bytes.Buffer{})
-	addCmd.SetArgs([]string{"add", "--name", "Bob", "--streamer-username", "bob", "b@example.test"})
+	addCmd.SetArgs([]string{"add", "--name", "Bob", "--username", "bob", "b@example.test"})
 	if err := addCmd.Execute(); err != nil {
 		t.Fatalf("second add Execute() error = %v, want nil", err)
 	}
@@ -533,7 +536,7 @@ func TestMemberListCmd_ReadsWhatAddWrote(t *testing.T) {
 		t.Fatalf("list Execute() error = %v, want nil", err)
 	}
 
-	want := "ADDRESS\tDISPLAY NAME\tSTREAMER USERNAME\tADMIN\n" +
+	want := "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n" +
 		"a@example.test\tAlice\talice\tyes\n" +
 		"b@example.test\tBob\tbob\t\n"
 	if got := stdout.String(); got != want {
@@ -556,7 +559,7 @@ func TestMemberCmd_RequiresNoRosterSourceRefused(t *testing.T) {
 	environ := append(baseEnviron(), "DUBPLATE_IDENTITY_SOURCE=no-roster")
 
 	for _, args := range [][]string{
-		{"add", "--admin", "--name", "A", "--streamer-username", "a", "a@example.test"},
+		{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"},
 		{"list"},
 	} {
 		var stdout, stderr bytes.Buffer
