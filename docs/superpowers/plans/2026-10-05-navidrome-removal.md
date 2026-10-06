@@ -1,8 +1,9 @@
 # Navidrome removal pass Implementation Plan
 
-Status: **revision 1, 2026-10-05, drafted; not yet reviewed.** It carries no ruling for Geoff: every fork it
-touches was ruled in the spec. It takes eight readings of its own ("Readings this plan takes"), each flagged for
-plan review.
+Status: **revision 2, 2026-10-05, reviewed and folded.** Three review lenses (contract, mechanics, risk) under
+`docs/superpowers/research/2026-10-05-navidrome-removal-plan-review-*.md`; the fold record is
+`docs/superpowers/research/2026-10-05-navidrome-removal-plan-fold.md`. It carries no ruling for Geoff: every fork it
+touches was ruled in the spec. It takes eight readings of its own ("Readings this plan takes").
 
 **Spec:** `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`, approved by
 Geoff 2026-10-05 with all three owner rulings ruled yes ("the spec"). Its "The removal pass" section and its four
@@ -18,9 +19,11 @@ architecture-cleanup inventory (the identity-source default, `doctor`'s flag cha
 
 **Pass class:** `tool` (Go: `go-conventions`, an Opus reviewer, a `go-architecture-reader` per touched package).
 Task 1 is `auth-data`: it edits the ingress strip, the origin check's surroundings, and the session cookie's last
-remover, so its re-pointed tests take a mutation proof each. Tasks 4a and 4b are `sweep` (a behavior-preserving
-rename with grep post-conditions). The close runs the union: `tool`'s architecture reads, `auth-data`'s
-`web-auth-security-reviewer` and live auth smoke, and `sweep`'s spot captures (the members page).
+remover, so its re-pointed tests take a mutation proof each. Task 4b is `auth-data` too: it changes the roster
+file's accepted key, the roster API's closed field set and wire codes, and a required CLI flag, and its acceptance
+is a states table with named mutations. Task 4a is `sweep` (a column rename with grep and hash post-conditions).
+The close runs the union: `tool`'s architecture reads, `auth-data`'s `web-auth-security-reviewer` and live auth
+smoke, and `sweep`'s spot capture (the members page).
 **Executor:** `dubplate-implementer`, `model: sonnet`, effort `high`, for Tasks 1 to 4b and Task 5's ledger
 edits. No task upshifts: the spec names every symbol each task removes or renames, and the plan names each test's
 disposition, so no task carries novel logic. A second `fix` verdict on Task 1 is the one upshift trigger the
@@ -35,7 +38,7 @@ re-issued on exit 75 until it prints `gate exit:`. Heavy lane: the web leg launc
 task's class bar. At the close: one `code-simplifier:code-simplifier` dispatch over the changed Go, TypeScript, and
 Svelte, pasting `.claude/instructions/simplifier-brief.md` verbatim, with one `diff-reviewer` read of its diff; one
 `go-architecture-reader` per touched Go package (list in Task 5); `web-auth-security-reviewer` over the
-`internal/serve` and `cmd/dubplate-server/serve*.go` diff, asking for correctness gaps ranked by consequence,
+`internal/serve`, `cmd/dubplate-server/serve*.go`, and Task 4b `internal/auth` roster and admin diff, asking for correctness gaps ranked by consequence,
 vacuous re-pointed tests first; `svelte-reviewer` and `daisyui-a11y-reviewer` on one shared brief scoped to the
 rename's `web/` diff, passing `docs/superpowers/specs/2026-09-24-visual-identity-design.md` and asking for
 conformance to it (the copy register above all) graded beside correctness. Every reviewer dispatch asks for
@@ -48,12 +51,19 @@ reviews and Task 5. Every boundary lands on a green commit.
 **Execution mode:** seven implementer tasks, so each segment runs through `pass-execute` by name, one invocation
 per segment, sequential, with `implementer: "dubplate-implementer"`, `reviewer: "diff-reviewer"`, `maxFix: 1`,
 `stopOnEscalate: true`, `passClass: "tool"`, each task's own `passClass` where it differs, `gate` and
-`reducedGate` both the full string above.
-**Independence:** Task 4a is file-independent of Tasks 1 to 3 and 4b. Task 2b depends on 2a (it prunes what only
-`shadow` used). Task 3 follows 2a (both edit `doctor_test.go`). Task 1 precedes 2a (both edit
+`reducedGate` both the full string above, `gateLane: "heavy"`, and `reviewerModel: "claude-opus-5-5"`. The last two
+override class defaults that would contradict this plan: the runner gives `tool` a `light` gate lane
+(`pass-execute.js:267`, resolved at `:359`) and `sweep` a Sonnet reviewer (`:252`, resolved at `:569`).
+**Shared heavy lock:** the cairn-cms session shares the machine's heavy gate lock (`~/.claude/docs/pass-gate-economy.md`,
+"Sessions sharing the heavy lock coordinate"). The conductor sends that session one line through `SendMessage`
+before a heavy stretch expected to run over 15 minutes (each segment, Task 0's bumps), and never re-runs a full gate
+on an unchanged commit: a segment boundary reuses the last task's full gate when `HEAD` has not moved since.
+**Independence:** Task 4a is file-independent of Tasks 1 to 3 and 4b. Task 2b depends on 2a (it disposes of what
+only `shadow` used). Task 3 follows 2a (both edit `doctor_test.go`). Task 1 precedes 2a (both edit
 `cmd/dubplate-server/serve.go` and `serve_test.go`). Task 4b follows 1 and 3 (it edits `internal/auth`). All tasks
 run one at a time in the main tree regardless: the gate runs over `./...` and `CLAUDE.md` forbids a second
-executor in one tree. Independence only frees the conductor to reorder 4a around a stalled task.
+executor in one tree. Task 4a's precondition is settled before segment B launches (below), so no task waits inside
+a segment.
 
 ## Where it runs, and the shared tree
 
@@ -71,8 +81,17 @@ The document pass's "Sharing the main tree" rules hold for this pass in reverse:
   Each task stages only its named files, never `git add -A`.
 - A red gate whose failing leg sits in a document-lane file is not a task failure here: the implementer reports
   it and stops without committing.
+- Task 0 is a lane 1 segment for these rules: it runs only when no document segment is in flight (before document
+  segment A launches, or at its boundary), and each bump's commit lands before the next document dispatch.
+- The close's code-touching steps (the conductor's steps 1 to 4 in Task 5 and any fold task they spawn) are an
+  in-flight lane 1 segment. Document segment B launches after the last of them commits green, which is what the
+  document plan's "the merge" means for this pass.
 - The slice 2 lane works in its own worktree. Its `kin-openapi` addition to `go.mod` rebases onto Task 0's
-  commits (spec ruling 5), which land on master first.
+  commits (spec ruling 5), which land on master first. Its merge ritual's `--ff-only` and full gate on master run
+  in this tree, so slice 2 merges only at a lane 1 segment boundary with no document segment in flight; the
+  conductor holds the merge token and the full gate on master is green before the next segment launches. Task 0
+  tells slice 2's conductor before bumping a PATH-resolved binary the worktree's gate shares (`golangci-lint`,
+  `rclone`).
 
 ## Readings this plan takes
 
@@ -86,12 +105,28 @@ Each is a method or placement call, decided here and flagged for plan review.
    `http.Hijacker` and cannot be unexported, which the name-based leg cannot see; the spec keeps both. The other
    six predate the re-plan and belong to the architecture-cleanup inventory, which the spec puts out of scope.
    Task 1's criterion is therefore: the leg's `internal/serve` list after Task 1 is the base list minus
-   `NewFrontExemption`, with no new name.
-2. **`musicbrainz.ClassBackground` and `ErrUnavailable` are pruned.** The spec keeps them "only if rung 9's spec
-   names a consumer". No rung 9 spec exists at HEAD (`ls docs/superpowers/specs/` has none), so none names one.
-   Rung 9 re-adds either with its consumer in the same commit, the simplifier brief's pattern 4.
+   `NewFrontExemption`, with no new name. The leg prints only the first twenty rows of a sorted list
+   (`scripts/check.sh:615-618`), and the `internal/serve` rows sort past them, so the list is read by running the
+   leg's block (`check.sh:566-611`) on its own into a scratch work directory with the cap lifted and grepping
+   `^internal/serve`. At Task 2a `ReadFrom` joins the list: the leg is name-based, and the shadow package held the
+   only other reference to the name. It stays (spec, `io.ReaderFrom`), and HISTORY records that the spec's "no hit
+   in `internal/serve`" ends the pass at nine names (the eight above plus `ReadFrom`), none the removal's own.
+2. **`musicbrainz.ClassBackground` and `ErrUnavailable` stay; their shadow justification is pruned.** The spec's
+   sentence ("`ClassBackground` and `ErrUnavailable`'s shadow justification stay only if rung 9's spec names a
+   consumer. Otherwise they are pruned") reads two ways, and this plan takes the reading that leaves the cleaner
+   architecture. The limiter is a three-class design: its anti-starvation reservation rotates round-robin through
+   the classes below the one strict priority would serve (`limiter.go:30-41`, the `cursor` walk at `:283-291`).
+   With two classes the rotation has one element, and the cursor, the walk, and
+   `TestReservedTokensRotateThroughTheClassesBelow` become structure with nothing to do, so pruning one class means
+   a concurrency redesign inside a removal pass. Pruning it also buys no consumer honesty: `ClassUserPresent` and
+   `ClassBatch` have no non-shadow caller either, and after the shadow goes the whole `Limiter` waits on the import
+   pipeline. `ErrUnavailable` is the client's retry-exhaustion contract (`client.go:392` wraps it); deleting it
+   changes the client's error shape for no consumer. Both keep their code, and their comments state the class
+   ("deferred work") and the sentinel ("every retry was spent") without the shadow.
 3. **`config.IntegrationClass.Optional` and the registry's Optional-threshold pairing skip are removed as a shadow
-   orphan the spec's list missed.** The shadow class is the only production class declaring `Optional`
+   orphan the spec's list missed.** `config.IdentitySource.Optional` (`registry.go:365`) is a different field with
+   production uses (`cmd/dubplate-server/auth.go:57`, `config.go:371`, `doctor.go:508`, `:570`: the `_PREVIOUS`
+   rotation secrets) and is out of scope; it is not a "second production use". The shadow class is the only production class declaring `Optional`
    (`backup.go:32-39` and `proxy.go:25-33` declare none), and `registry.go:205-215` names the shadow class as the
    pairing's reason. Ruling 6 ("a removal reshapes what remains") governs. If the task finds a second production
    use, it keeps both and reports.
@@ -102,13 +137,18 @@ Each is a method or placement call, decided here and flagged for plan review.
 5. **The beets-migration `IDEAS.md` entry is the document pass's.** Its plan places it (its Task 8, after the
    merge). This pass's HISTORY entry records the pre-deletion commit the entry cites.
 6. **A comment-only package still takes a `go-architecture-reader`.** Ruling 6 says every touched package is
-   graded. A package touched only in `_test.go` files takes none, since the reader grades non-test source.
+   graded. A package touched only in `_test.go` files takes none, since the reader grades non-test source. Two
+   reviews suggested dropping the readers for comment-only packages to save budget; ruling 6 is an owner ruling
+   whose text excludes no touched package, so this plan keeps them.
 7. **The nonce sweep's "driver" wording is rephrased** (`cmd/dubplate-server/serve.go:293-295` and `:497`, the
-   "interval driver"), so the spec's prose grep over `serve*.go` holds without an exemption list. It is a
-   different sense of the word, and one word is cheaper than a standing exemption.
+   "interval driver"; `serve_test.go:73`, `:562-610`, the "sweep driver", including the test name
+   `TestNewServeShell_SweepDriverStopsWithTheGivenContext`, renamed to `..._NonceSweepStopsWithTheGivenContext`), so
+   the spec's prose grep over `serve*.go` holds without an exemption list. It is a different sense of the word, and
+   one word is cheaper than a standing exemption.
 8. **Two `0003` preconditions were read at plan time** (below), before the document pass's archive chore ran.
    Both reads were read-only listings. Task 4a's re-confirmation runs only after that chore's STATUS record
-   exists, the order the document pass requires.
+   exists, the order the document pass requires, and before segment B launches, since a `pass-execute` invocation
+   has no between-task window. The re-confirmation makes the plan-time reads non-load-bearing.
 
 ## Behaviors this plan relies on, quoted
 
@@ -121,6 +161,7 @@ Each is a method or placement call, decided here and flagged for plan review.
 | `internal/serve/origin.go:103-116` | `allowed` returns true for GET, HEAD, and OPTIONS; for any other method with neither `Sec-Fetch-Site` nor `Origin` it returns whether `o.bypass` resolves `bypassMatch` | Task 1: a POST outside the prefix carrying neither header answers 403 before routing |
 | `go doc encoding/json/v2 RejectUnknownMembers` | "RejectUnknownMembers specifies that unknown members should be rejected when unmarshaling a JSON object." | Task 4b: `parseRoster` (`internal/auth/roster.go:340`) refuses a file carrying `streamer_username` with `ErrRosterUnparseable` |
 | `go doc encoding/json Decoder.DisallowUnknownFields` | "DisallowUnknownFields causes the Decoder to return an error when the destination is a struct and the input contains object keys which do not match any non-ignored, exported fields in the destination." | Task 2b: `readJSON` (`internal/harness/analysis/ledger.go:19-20`) refuses a row carrying a removed shadow field |
+| `github.com/spf13/pflag@v1.0.10/errors.go:40` | `return fmt.Sprintf("unknown flag: --%s", e.name)` | Task 4b: `member add --streamer-username` refuses with "unknown flag: --streamer-username" |
 | `go doc github.com/spf13/cobra Command.MarkFlagRequired` | "causes your command to report an error if invoked without the flag." | Task 4b: `member add` without `--username` |
 | `internal/config/config.go:311`, `:315`, `:338` | `"%s: reserved for %s, arrives at rung %d"`; `"%s: %s"` (a superseded key's message); `"%s: unknown configuration key"` | Tasks 2a and 3: a deleted row refuses as unknown; a retired row refuses with its message. No key moves into the required set |
 | `internal/engine/store/migrate.go:237-238` | `if name != m.name \|\| sum != m.sum { return fmt.Errorf("ledger version %d records %s (sha256 %s), this binary has %s (sha256 %s)", ...` | Task 4a: any store migrated under the old `0003` fails loudly at open |
@@ -139,8 +180,13 @@ Read-only ssh to the box (`5.78.148.42`), 2026-10-05, at plan time:
   no remote holds a store snapshot.
 - `dubplate-server-serve.service` is installed and `disabled`.
 
-Task 4a re-confirms both before its commit (conductor, read-only, after the archive chore) and cites the evidence in
-its commit message. If either fails, Task 4a becomes an amending migration `0006` and the in-place edit is not made.
+The conductor re-confirms both, read-only, after the document pass's archive chore is recorded in STATUS and before
+segment B launches, and carries the date and a summary of the output in Task 4a's dispatch text so its commit
+message can cite them. If either fails, the conductor re-cuts Task 4a as an amending migration `0006` before
+launching segment B, and the in-place edit is not made. If the re-confirmation cannot run because the archive chore
+stopped, Task 4a takes the same `0006` path, which needs no box read. On the `0006` path the conductor quotes
+SQLite's `ALTER TABLE ... RENAME COLUMN` documentation on how the rename treats the column's constraints, and amends
+Task 4a's grep acceptance to exclude `0003_catalog.sql` and its fixture, which keep `streamer_username`.
 
 ## Privileged fields and their channels
 
@@ -163,15 +209,24 @@ Conductor. Before segment A. **0.8 hooks:** neutral.
   patches land as their own gate-green commits on master; a major waits for Geoff and is recorded with its unblock
   condition. A sweep with nothing to move is one line in the pass record. The last sweep was
   `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
-- The spec's baseline (rung 12, "The streamer's configuration"): the count of values a default install's operator
-  supplies by hand, at the commit after the sweep. Method: build the binary; run `dubplate-server check` with an
-  empty environment; supply every key it reports as "required setting unset"; repeat until it reports none. The
-  count is the number of keys supplied, recorded with their names. At plan time two rounds reported five then nine
-  keys (fourteen so far, not run to the end).
+- Task 0 runs only when no document segment is in flight (see "Where it runs"), and tells slice 2's conductor
+  before bumping `golangci-lint` or `rclone`.
+- The spec's baseline (rung 12, "The streamer's configuration"): the set of values a default install's operator
+  supplies by hand, at the commit after the sweep. Method: build the binary; run it as
+  `env -i HOME="$HOME" PATH=/usr/bin:/bin ./dubplate-server check` (the conductor's shell exports DUBPLATE_*
+  values from `~/.local/secrets`, which would hide keys), with every path-valued key pointed at a scratch
+  directory; supply every key it reports as "required setting unset" with a valid sample value (a placeholder
+  that `check` refuses as malformed does not advance the loop); repeat until it prints `configuration: ok`. The
+  review's run at `7036ebc` ended in three rounds at fourteen keys (five, then nine).
+- Each key is recorded by name and classified: a literal the env template supplies (`DUBPLATE_STATE_DIR`,
+  `DUBPLATE_ROSTER_FILE`, `DUBPLATE_IDENTITY_SOURCE`, for example), a secret the deploy generates or mints, or a
+  value the operator types. The baseline count is the operator-typed class; all three lists are recorded, so either
+  reading stays auditable. Beside it, uncounted, the non-key inputs a default install also supplies by name: the
+  admin bootstrap's `member add` arguments and the `unidecode install` step.
 - Report to the slice 2 lane's conductor that the sweep is on master.
 
-**Acceptance:** the pass record names the sweep's outcome (each bump, or "nothing to move") and the count with its
-key list and commit.
+**Acceptance:** the pass record names the sweep's outcome (each bump, or "nothing to move"), and the classified key
+set with its count, the non-key inputs, the exact command, and the commit.
 
 ## Task 1: `internal/serve` loses the front, the fallthrough, and the driver header
 
@@ -197,7 +252,9 @@ consumers.
 - Deleted: the driver `header` parameter and `Strip.header`. `NewStrip(proxy TrustedProxyConfig) Strip` takes one
   argument. Group 1's name set no longer takes a parameter: `identityNames`, `identitySpellings`, `identityKeys`,
   `identitySpellingPresent`, and `probeIdentityNames` (`strip.go:205-230`, `:405-414`; `serve.go:524-541`;
-  `probe.go:32-37`) reshape to a set derived once, so no caller passes `""`.
+  `probe.go:32-37`) reshape to one package-level set derived once from `identityExtras` and read directly, the
+  stdlib shape for a fixed lookup table. `Strip.identity`, `trailerScrubbingBody.keys`, and the `keys` parameters
+  of `deleteIdentity` and `scrubTrailerOnRead` go, since the set no longer varies.
 - `originCheck.addBearerBypass` stays. Its doc names its consumers by function, never by rung (the admin API's
   bearer mount, and the OpenSubsonic API's non-GET requests), and keeps its two contract sentences: a bypassed
   handler must not read the session cookie, and the pattern registers twice because either registration alone
@@ -210,7 +267,9 @@ consumers.
   `defaultWriteTimeout` (`server.go:58-66`), `identityExtras` (`strip.go:11-14` and the Navidrome bullet at
   `:33-37`; Remote-User keeps its Authelia citation), `newServeShell`'s doc (`cmd/dubplate-server/serve.go:299-312`),
   and `servePrefixThreshold` (`:169-175`), which makes no claim about a sibling server. The nonce sweep's
-  "interval driver" wording is rephrased (Reading 7). No new comment carries a rung, task, or plan citation.
+  "interval driver" wording is rephrased (Reading 7). The unexported comments the `go doc` criterion cannot see
+  are covered too, among them `origin.go:9`, `serve.go:246`, `:255`, `:275`, `:389`, `:435`, `:474`, `prefix.go:47`,
+  and `probe.go:33`. No new comment carries a rung, task, or plan citation.
 
 **Test dispositions** (the spec requires one per test; every re-pointed test keeps its assertion):
 
@@ -221,15 +280,17 @@ consumers.
 | `TestSessionCookieOtherCookiesSurviveAtFallthrough`, `TestSessionCookieRawHeaderSurvivesVerbatim`, `TestSessionCookieDuplicateNamedCookieBothRemoved`, `TestSessionCookieRemovedFromEveryCookieLine`, `TestSessionCookieRemovedFirstInLineLeavesNoLeadingSpace`, `TestSessionCookieOnlyCookieOnALineDropsTheLine`, `TestSessionCookieRemovedWhenTheNameCarriesSpace`, `TestSessionCookieSpacedNameLeavesTheOthersReadable` | Delete: each one's sole subject is the cookie removal |
 | `TestOrderStripBeforeFallthrough` | Delete: no handler exists outside the prefix, and `TestOrderStripBeforeOwnedSubtree` keeps the order assertion |
 | `TestOrderRawVsDecodedRefusedBeforeAnyHandler` | Re-point: the outside-prefix row asserts 400 (a 404 cannot produce it); the owned spy's "never invoked" check stays |
-| `TestOrderPrefixRequiresSegmentBoundary` | Re-point: the owned spy is never invoked and the status is 404; the positive "reaches `next`" half stays proven by `prefix_test.go`'s `Route` table, which passes its own `next` spy |
+| `TestOrderPrefixRequiresSegmentBoundary` | Delete. In the composed shell both of `Prefix.Route`'s arms now answer 404, so its only observable subject was the fallthrough as destination: with `Owns` broken to a bare `strings.HasPrefix`, the neighbor path reaches `Terminator`'s 404 and the test still passes. `prefix_test.go`'s `TestRoute` row "a neighbor sharing the prefix's bytes without a segment boundary does not enter" (`:163-164`) proves the property with distinct `owned` and `next` spies; the report names that row and the mutation (`Owns` as bare `HasPrefix`) failing there |
 | `TestRefusalLogsIdentityAlreadyGone` | Re-point: drop the fallthrough recorder; the 400 and the record assertions stand |
 | `TestEmptyFallthroughAnswers404` | Re-scope and rename: a path outside the prefix answers 404 |
-| `TestResponseControllerFlushReachesRealWriter` | Keep the owned half; delete the fallthrough half (the owned half proves the same writer) |
+| `TestResponseControllerFlushReachesRealWriter` | Keep the owned half; delete the fallthrough half. The owned handler records that it ran (a `reached` flag, or `*dst` seeded with a sentinel error), so a handler that never runs fails the test |
 | `TestReadFromReachesRealWriter` | Re-point at a registered spy subtree under the prefix; the `used` and body assertions stand |
-| `TestUnclaimedOwnedPathReachesTheTerminator` | Re-point: drop the fallthrough recorder; the 404 and owned-not-invoked checks stand |
+| `TestUnclaimedOwnedPathReachesTheTerminator` | Re-point and rename to what it still proves: an owned, unclaimed path answers 404 and invokes no subtree. Drop the fallthrough recorder. It no longer separates `Terminator` from `next` (both answer 404 by design); it pins `Terminator`'s answer |
 | `TestEchoMethodsRefusedBeforeRouting` | Re-point: the two outside rows keep 405 and "no handler reached" against the owned spy |
 | `TestOriginCheckCoversSubtreeAndFallthrough` | Rename (subtree and outside the prefix); rows unchanged, since 403 and 404 already separate the check from the destination |
-| `TestIdentitySpellingPresentReadsKeyPresence`, `newTestShell`, every `NewStrip("", ...)` call | Signature only |
+| `TestIdentitySpellingPresentReadsKeyPresence`, every `NewStrip("", ...)` call | Signature only |
+| `newTestShell(t, sessionCookie string)` | Drop the `sessionCookie` parameter and its doc's driver-header paragraph |
+| `cookieValue` (`serve_test.go:289`), `cookieLines` (`:475`) | Delete: each one's callers are deleted tests (`unused` lints test files) |
 | `strip_test.go`: `TestStripWrapExemption`, `TestStripWrapEmptyExemptionExemptsNothing`, `TestStripWrapExemptedHeaderSurvivesConnectionListing`, `TestStripWrapExemptionKeepsOnlyTheExactSpelling` | Delete: each one's sole subject is the exemption or the driver header |
 | `TestStripWrapRemovesEveryIdentitySpelling`, `TestStripWrapRemovesMixedSeparatorSpellings` | Keep; drop the driver header's entries from `expectedIdentitySpellings` and the "driver's configured name" row |
 | `prefix_test.go`'s `terminalFallthrough`, `headers_test.go:13`, `server_test.go:57` comments | Rename to name `next` or "outside the prefix" |
@@ -237,6 +298,7 @@ consumers.
 | `TestNewServeShell_StateChangingFallthroughRequestIsDenied` | Re-point and rename: a cookie-carrying POST outside the prefix with neither header answers 403 (a 404 cannot produce it); the spy goes |
 | `TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree` | Re-point: drop the fallthrough sentinel; the 200 from the login subtree is a status a 404 cannot produce. Its fixture-state comment is rewritten |
 | `TestNewServeShell_StripCarriesNoFrontExemption` | Rename to its surviving property: a trusted proxy is still identity-stripped. Body unchanged |
+| `TestNewServeShell_SweepDriverStopsWithTheGivenContext` | Rename to `..._NonceSweepStopsWithTheGivenContext`, with its "sweep driver" comments (Reading 7). Body unchanged |
 
 The generic hardening keeps every test it has: the trusted-proxy configuration, the origin check (the bearer bypass
 included), and group 1 and group 2 stripping.
@@ -256,17 +318,25 @@ included), and group 1 and group 2 stripping.
 - `go doc -all ./internal/serve | grep -inE 'front ?exemption|forward-auth|driver|fallthrough|exemption'` prints
   nothing. The same grep over `cmd/dubplate-server/serve*.go` prints nothing outside rung and history citations in
   tests. Generic "in front of" prose stays.
+- The source grep, which also sees unexported comments:
+  `git grep -niE 'front ?exemption|forward-auth|driver|fallthrough|navidrome' -- 'internal/serve/*.go' ':!*_test.go'`
+  prints only `strip.go`'s authentik "forward-auth configuration" citation (a source title) and the bearer
+  bypass's "exemption" wording in `origin.go`, if kept. The report shows its output.
 - `git grep -nE 'FrontExemption|SetFallthrough|removeCookie|withoutCookie|collapseToLast|sessionCookie' -- internal/serve cmd/dubplate-server`
   returns nothing.
 - `go doc ./internal/serve NewStrip` prints `func NewStrip(proxy TrustedProxyConfig) Strip`.
-- The exported-unused leg's `internal/serve` list is the base list minus `NewFrontExemption` (Reading 1).
+- The exported-unused leg's `internal/serve` list, read by Reading 1's method, is exactly `ErrInvalidBindAddr`,
+  `ProxyMode`, `RewriteDocument`, `ThemeCookieName`, `ErrInvalidPrefix`, `Owns`, `Flush`, and `Hijack`.
 - Every row of the dispositions table is done as written; the report lists each test by name with its disposition.
 - **Named mutations, each reported failing:** swap `http.NotFoundHandler()` for a handler answering 200 (the 404
   re-scope and the origin check's same-origin outside row fail); drop `s.origin.wrap` from `Handler` (both 403
   outside rows fail); drop `refuseEchoMethods` (the outside TRACE row fails); delete `statusCapture.ReadFrom` (the
-  re-pointed `TestReadFromReachesRealWriter` fails); skip group 1's deletion of `Remote-User` (the renamed
-  trusted-proxy test fails). **Fixture state:** each re-pointed probe asserts its spy was reached, or asserts a
-  status a 404 cannot produce, so none passes against a request that never routed.
+  re-pointed `TestReadFromReachesRealWriter` fails); delete both `statusCapture.Flush` and `Unwrap` (the kept
+  Flush test fails, since `http.ResponseController` then returns `http.ErrNotSupported`); make `Terminator` answer
+  200 (the renamed unclaimed-path test fails); skip group 1's deletion of `Remote-User` (the renamed trusted-proxy
+  test fails). **Fixture state:** each re-pointed probe asserts its spy was reached, or asserts a status a 404
+  cannot produce, so none passes against a request that never routed. The one exception is the unclaimed-path
+  test, which pins `Terminator`'s 404 and says so in its name.
 - The gate green.
 
 ## Task 2a: The shadow program leaves
@@ -278,9 +348,12 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hoo
 - Modify: `cmd/dubplate-server/main.go` (`:11`, `:39-51`, `:112-113`, `:143`, `:152-158`), `main_test.go`
   (`:40-50`), `doctor_test.go` (`:95-110`, `:1066-1113`), `serve.go` (`:68-73`, `:182-187`), `serve_test.go`
   (`:252-280`), `templatekeys_test.go` (`:35`), `unidecode.go` (`:35`, `:75-90`), `unidecode_test.go` (`:42`)
-- Modify: `internal/config/registry.go` (`:197-230`), `keys.go` (`:172-199`), `config_test.go` (`:443-444`),
-  `keys_test.go` (`:136-165`), `thresholds_test.go` (`:119-129`), and the config tests that exercise
-  `Optional` (Reading 3)
+- Modify: `internal/config/registry.go` (`:197-300`: the class doc, the cross-class claim loop at `:241` and
+  `:251`, `AddThreshold`'s skip at `:280` and its "one exemption" sentence, `isOptionalIntegrationKey`),
+  `keys.go` (`:172-202`, including the integration lookup at `:202`), `config.go` (`:21-28`, the package doc's
+  integration Optional rows), `config_test.go` (`:443-444`), `keys_test.go` (`:136-165`), `thresholds_test.go`
+  (`:119-129`), and the config tests that exercise `IntegrationClass.Optional` (Reading 3). Never
+  `IdentitySource.Optional`.
 - Modify: `Makefile` (`:3-8`)
 
 **Outcomes:**
@@ -292,7 +365,8 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hoo
 - `matcherCommit` stays as build identity. Its rationale in `main.go` (`:39-51`, `:152-158`) and the `Makefile`
   (`:3-8`) states what it identifies, with no shadow refusal.
 - `IntegrationClass.Optional` and the Optional-threshold pairing skip go (Reading 3), with their tests; the
-  fixture class keeps its Required rows.
+  fixture class keeps its Required rows. `IdentitySource.Optional` and the `_PREVIOUS` rotation rows are
+  untouched.
 - Doctor's shadow fixtures: the table test at `doctor_test.go:95-110` registers no shadow class.
   `TestDoctorCmd_ShadowRows`' two generic properties (a duration threshold renders as a duration; an integration
   row reports its flag) are re-pointed at a production registration (a backup duration threshold and the backup
@@ -306,8 +380,13 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hoo
 - `git grep -nIiE 'engine/shadow|DUBPLATE_SHADOW|registerShadow|newShadowCmd' -- cmd internal scripts Makefile`
   returns nothing. (The spec's full pattern is closed by Task 2b.)
 - `go list -deps ./cmd/dubplate-server | grep -E 'internal/(harness|engine/shadow)'` is empty.
-- A test proves `DUBPLATE_SHADOW_ENABLED=true` in the environment fails `config.Load` with "unknown configuration
-  key". **Fixture state:** an environment otherwise valid, so the shadow key is the only error.
+- A test in `cmd/dubplate-server`, against `newProductionRegistry()` (the suite's `productionRegistry` helper),
+  proves `DUBPLATE_SHADOW_ENABLED=true` in the environment fails `config.Load` with "unknown configuration key".
+  `internal/config`'s fixture registry never knew the shadow keys, so a test there passes before the task too.
+  **Fixture state:** an environment otherwise valid, so the shadow key is the only error. **Named mutation:**
+  re-add `registerShadowIntegration(reg)` to `newProductionRegistry`; the report shows the test failing then.
+- `auth_test.go`'s existing `_PREVIOUS` rows (`:73-74`, `:239-241`) pass unchanged, and the report names them,
+  proving the rotation secrets still load.
 - **Named mutations:** drop `newServeCmd` from `AddCommand` (the re-pointed wiring test fails); render a
   duration threshold through the int path (the re-pointed doctor row fails).
 - The gate green.
@@ -317,24 +396,40 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hoo
 Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 2a. **0.8 hooks:** neutral.
 
 **Files:**
-- Modify: `internal/harness/analysis/adjudication.go`, `adjudication_test.go`
-- Modify: `internal/engine/musicbrainz/limiter.go`, `limiter_test.go`, `client.go`, `client_test.go`
+- Modify: `internal/harness/analysis/adjudication.go`, `adjudication_test.go`, `corpus/README.md` (`:2290-2303`,
+  the `adjudications.json` schema contract)
+- Modify (comments only): `internal/engine/musicbrainz/limiter.go` (`:11-41`), `client.go` (`:74-84`)
 - Modify (comments only): `internal/engine/tag/tag.go` (`:58-67`, `:161`), `internal/engine/tagio/doc.go`
   (`:34`), `internal/engine/tagio/container.go` (`:68`), `internal/engine/matcher/quiet.go` (`:5`),
   `internal/engine/store/leaf.go` (`:14`), `internal/auth/store.go` (`:28`, `:120`); test comments in
   `internal/atomicfile/atomicfile_test.go` (`:153`), `internal/engine/tagio/container_test.go` (`:271`),
   `internal/harness/conform/defaults_test.go` (`:205`)
-- Modify: `internal/engine/tag/tag_test.go` (`:274`, the "503 propagates" row)
 
 **Outcomes:**
 - `internal/harness/analysis` is case-only: `AdjudicationSubject` keeps `CaseID` alone, `AdjudicationEntry` loses
   `MatcherCommit` and `MatcherConfigHash`, and the validator's shadow branches go. The JSON shape of a case row is
-  unchanged, so `corpus/analysis/adjudications.json` loads as it is.
-- `musicbrainz.ClassBackground` and `ErrUnavailable` are pruned (Reading 2). The limiter's doc and its
-  anti-starvation reasoning are restated for two classes. Retry exhaustion still returns an error that wraps the
-  last failure; the tag test's 503 row asserts that and that it is not `ErrNotFound`.
+  unchanged, so `corpus/analysis/adjudications.json` loads as it is. `corpus/README.md`'s schema contract describes
+  the case-only subject. `TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost` keeps its round trip and loses its
+  two `matcher_commit`/`matcher_config_hash` assertions and their doc paragraph, whose subject no longer exists.
+- `musicbrainz.ClassBackground` and `ErrUnavailable` keep their code (Reading 2). The `Class` doc, the
+  `ClassBackground` line, the reservation's anti-starvation reasoning, and `ErrUnavailable`'s doc state their reason
+  with no shadow named. The limiter's behavior and tests are unchanged.
 - `internal/engine/tagio` stays intact, its doc naming the import pipeline's reader as its consumer without a rung
-  number. Its exported names now have no importer, so the exported-unused leg warns on them; HISTORY records it.
+  number.
+- The exported names the deletion leaves with no non-test reference each keep their code, consumed by the import
+  pipeline the matcher library is built for or by type inference. The report confirms each against the uncapped
+  leg (Reading 1's method) run before and after Task 2a, and names any name the diff shows that this table lacks:
+
+  | Name | Disposition |
+  | --- | --- |
+  | `serve.statusCapture.ReadFrom` | Keep: satisfies `io.ReaderFrom` for `http.ServeContent` (spec) |
+  | `tag.Proposal` | Keep: `tag.Album`'s return type, used by `internal/harness/conform/case.go:401` |
+  | `matcher.ActionApply` | Keep: a value of the verdict vocabulary `verdict.go` validates and returns |
+  | `matcher.SetTransliterator` | Keep: the seam rung 9's scoring verb rebuilds `setUnidecodeTransliterator` on (spec) |
+  | `matcher.QuietImportTunables` | Keep: the import pipeline's tunables profile |
+  | `musicbrainz.Class`, `ClassBackground`, `DefaultInterval`, `ErrBudgetExhausted`, `ErrLimiterClosed`, `Spent`, `DefaultBaseURL` | Keep: the limiter's and client's API for the import pipeline (Reading 2) |
+
+  `tagio`'s nine names warned before the pass as after it; HISTORY records the real delta from this table.
 - Every remaining comment naming the shadow, its store, or its observation is rewritten to state the code's reason
   without it.
 
@@ -355,8 +450,6 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 2a. **0.8 ho
   (verified at plan time), and the corpus tests that load it pass.
 - A test row loads a ledger carrying `release_mbid` and asserts the decode refusal. **Named mutation:** remove
   `dec.DisallowUnknownFields()` and the row fails.
-- **Named mutation:** disable the limiter's reservation (every token by strict priority) and the restated
-  anti-starvation test fails.
 - The gate green.
 
 ## Task 3: Configuration retirements and the remaining stale prose
@@ -399,11 +492,15 @@ justified on its own terms.
 **Acceptance criteria:**
 - With Task 1, the spec's prose criterion holds in full:
   `go doc -all ./internal/auth` and `go doc -all ./internal/config`, each piped to
-  `grep -inE 'front ?exemption|forward-auth|driver|fallthrough|exemption'`, print nothing.
+  `grep -inE 'front ?exemption|forward-auth|driver|fallthrough|exemption'`, print nothing. The source grep,
+  `git grep -niE 'front ?exemption|forward-auth|driver|fallthrough|navidrome' -- 'internal/auth/*.go' 'internal/config/*.go' ':!*_test.go'`,
+  prints only Go's `fallthrough` keyword (`limit.go:231`) and the two retired rows' key names, so the unexported
+  comments (`config.go:121`, `:424`, `registry.go:289`) are covered too.
 - `git grep -niE 'navidrome' -- cmd internal ':!*_test.go'` returns only the two retired rows' key names.
 - A table test covers each row of the states table above. **Named mutation:** delete the
   `DUBPLATE_PUBLIC_NAVIDROME_URL` superseded row and its row reports "unknown" instead of the message.
-- Ruling 7: the required-key count `check` reports with an empty environment matches Task 0's count.
+- Ruling 7: the iterated required-key set, run by Task 0's exact method at this task's commit, equals Task 0's
+  set, key by key.
 - The gate green.
 
 ## Task 4a: The store column becomes `username`
@@ -412,8 +509,9 @@ Pass class: `sweep`. Model: `sonnet`, effort `high`. Independent of every other 
 5 (the users row's handle is named `username`); builds nothing new.
 
 **Precondition:** the conductor's read-only re-confirmation of "The `0003` preconditions" passes, after the
-document pass's archive chore is recorded in STATUS. On a failure the task is re-cut as migration `0006`, a
-`RENAME COLUMN`, and the conductor amends this task before dispatch.
+document pass's archive chore is recorded in STATUS and before segment B launches. On a failure, or when the
+archive chore stopped, the conductor re-cuts this task as migration `0006`, a `RENAME COLUMN`, before launching
+segment B (see that section).
 
 **Files:**
 - Modify: `internal/engine/store/migrations/0003_catalog.sql` (`:5`)
@@ -439,8 +537,8 @@ document pass's archive chore is recorded in STATUS. On a failure the task is re
 
 ## Task 4b: The roster, the API, the CLI, and the page say "username"
 
-Pass class: `sweep`. Model: `sonnet`, effort `high`. Depends on Tasks 1 and 3. **0.8 hooks:** realigns hook 5's
-field name; neutral otherwise.
+Pass class: `auth-data`. Model: `sonnet`, effort `high`. Depends on Tasks 1 and 3. **0.8 hooks:** realigns hook
+5's field name; neutral otherwise.
 
 **Files:**
 - Modify: `internal/auth/roster.go`, `admin.go`, `seam.go`, and their tests (`roster_test.go`, `admin_test.go`,
@@ -449,7 +547,8 @@ field name; neutral otherwise.
   (`member_test.go`, `doctor_test.go`, `serve_test.go`, `backup_test.go`, `restore_test.go`)
 - Modify: `internal/backup/job_test.go`, `reconcile_test.go`, `restore_test.go`
 - Modify: `web/src/routes/members/+page.svelte`, `web/src/lib/copy/deck.ts`, `web/scripts/rendered/run.ts`
-- Modify: `config/roster.example.json`, `docs/server-runbook.md` (`:138`, `:141`, `:164` only)
+- Modify: `config/roster.example.json`, `docs/server-runbook.md` (`:138`, `:141`, `:164` only), `BACKLOG.md`
+  (`:43`, which names the retired flag)
 
 **Outcomes:**
 - `StreamerUsername` becomes `Username`, `streamer_username` becomes `username` as the roster file's key and the
@@ -463,9 +562,9 @@ field name; neutral otherwise.
 - The members page: the field's label is "Username"; its hint says it is the name the member types into a music
   app, then the shape rule; the field's `id`, `name`, and hint `id` drop "streamer"; `FIELD_FOR_OUTCOME` and the
   page's state follow. The copy follows the visual identity spec's "Copy" section (Microsoft editor standard).
-  The task checks Microsoft's A-Z word list for "user name": if it spells two words, `deck.ts` records the
-  departure beside the label, citing ruling 3 and the music apps' own label. The report states what the guide
-  says and the URL read.
+  The conductor fetches Microsoft's A-Z word list entry for "user name" in segment B's pre-flight (the implementer
+  has no fetch tool) and carries the quote and URL in Task 4b's dispatch. If the guide spells two words, `deck.ts`
+  records the departure beside the label, citing ruling 3 and the music apps' own label.
 - `run.ts` follows every renamed id, label key, outcome key, and mocked member field.
 - `config/roster.example.json` and the runbook's two bootstrap commands use `username` and `--username`.
 - `Principal` stays the username exactly as today; 6d's revision 2.3 re-justifies it (spec).
@@ -481,12 +580,13 @@ field name; neutral otherwise.
 | API POST carrying `streamer_username` | `unknown_field` |
 | API POST with no `username` / a bad shape / a case-folded duplicate / another member's address | `missing_username` / `invalid_username` / `duplicate_username` / `duplicate_principal` |
 | API POST carrying `admin` | `admin_not_grantable` (unchanged) |
-| `member add` with `--streamer-username` | cobra's unknown-flag error |
+| `member add` with `--streamer-username` | "unknown flag: --streamer-username" (pflag, quoted above) |
 | `member add` without `--username` | cobra's required-flag error |
 
 **Acceptance criteria:**
-- `git grep -nIiE 'streamer[_ -]?username' -- cmd internal web/src web/scripts config docs/server-runbook.md`
-  returns nothing, and `git grep -n 'streamer-hint' -- web` returns nothing.
+- `git grep -nIiE 'streamer[_ -]?username' -- cmd internal web/src web/scripts config docs/server-runbook.md BACKLOG.md ':!internal/engine/store'`
+  returns nothing (Task 4a's own grep covers the store), `git grep -n 'streamer-hint' -- web` returns nothing, and
+  `git grep -niw streamer -- web/src web/scripts` returns nothing (it catches the old hint copy, `deck.ts:138`).
 - `TestRosterExampleFile` (`roster_test.go:440-451`) passes against the renamed example.
 - A test row per states-table line. **Named mutations:** decode the roster without `RejectUnknownMembers` (the
   old-key row loads and fails the test); add `streamer_username` to `rosterFields` (the `unknown_field` row
@@ -505,9 +605,9 @@ The conductor runs, in order, before dispatching Task 5:
 
 1. `code-simplifier:code-simplifier` over the pass's changed Go, TypeScript, and Svelte, with
    `.claude/instructions/simplifier-brief.md` pasted verbatim, then one `diff-reviewer` read of its diff.
-2. `web-auth-security-reviewer` over the Task 1 diff (`internal/serve`, `cmd/dubplate-server/serve*.go`), asking
-   for correctness gaps ranked by consequence, vacuous re-pointed tests first. One fold task if it returns a
-   blocking finding.
+2. `web-auth-security-reviewer` over the Task 1 diff (`internal/serve`, `cmd/dubplate-server/serve*.go`) and Task
+   4b's `internal/auth/roster.go` and `admin.go` diff, in one dispatch, asking for correctness gaps ranked by
+   consequence, vacuous re-pointed tests first. One fold task if it returns a blocking finding.
 3. `svelte-reviewer` and `daisyui-a11y-reviewer` on one shared brief scoped to Task 4b's `web/` diff, with the
    visual identity spec's path.
 4. One `go-architecture-reader` per touched package, no plan in context: `internal/serve`,
@@ -520,16 +620,23 @@ The conductor runs, in order, before dispatching Task 5:
    members-page capture in both themes, read by the conductor.
 6. Update `.claude/agents/dubplate-implementer.md:60`, which still names `internal/engine/shadow` (a rule lives
    where it executes).
+7. Re-run Task 0's operator-values method at the last code commit and compare the key set with Task 0's (ruling 7).
+
+Steps 1 to 4 and any fold task they spawn are an in-flight lane 1 segment: document segment B launches after the
+last of them commits green.
 
 **Task 5's outcomes:**
 - The pass's HISTORY entry, newest first: what landed per task; the gate evidence; each reviewer's dispositions;
   both budgets (tokens against 8.0M; attended time); and "What a later pass would be wrong to rediscover": the
   bearer bypass stays on purpose with its consumers; `0003` was edited in place under the read preconditions, and
   any older store fails at its ledger check; the roster carries no compatibility shim and the first
-  roster-reading deploy takes the runbook step; `tagio` warns on the exported-unused leg until the import pipeline
-  imports it; `readFLAC` is salvage for rung 9 at `internal/engine/shadow/libraryread.go` in the pre-deletion
-  commit; `ClassBackground`, `ErrUnavailable`, and `IntegrationClass.Optional` were pruned for a consumer to
-  re-add; Task 0's operator-supplied count. It names any finding a fold refused that proved real in execution, or
+  roster-reading deploy takes the runbook step; the exported-unused leg's real delta from Task 2b's table (`tagio`'s
+  nine names warned before the pass as after it, until the import pipeline imports it) and `internal/serve`'s
+  closing list of nine (Reading 1); `readFLAC` is salvage for rung 9 at `internal/engine/shadow/libraryread.go` in
+  the pre-deletion commit; `ClassBackground` and `ErrUnavailable` kept their code under Reading 2, and
+  `IntegrationClass.Optional` was pruned for a consumer to re-add; the plan-time box read preceded the archive chore
+  and the re-confirmation followed it (or the `0006` path was taken, and why); Task 0's classified key set and its
+  close-time comparison. It names any finding a fold refused that proved real in execution, or
   says none did.
 - STATUS, present tense: the pass closed; the lane 1 row; the next actions (6d's revision 2.3, the document pass's
   segment B); the moot carries the removal closed (`FrontExemption`'s dual-stack match, the configured-header
@@ -538,10 +645,12 @@ The conductor runs, in order, before dispatching Task 5:
 
 ## Contested surfaces
 
-- With the document pass (main tree): `docs/server-runbook.md` (this pass edits three lines in Task 4b; the
+- With the document pass (main tree): `BACKLOG.md` (Task 4b's one line; outside the document pass's territory),
+  `docs/server-runbook.md` (this pass edits three lines in Task 4b; the
   document pass edits the rest after this pass merges), `docs/STATUS.md` and `docs/HISTORY.md` (this pass's close
   writes first; the document pass writes after), `IDEAS.md` (the document pass's only).
-- With the slice 2 lane (worktree): `go.mod` and `go.sum` (Task 0 lands first; slice 2 rebases).
+- With the slice 2 lane (worktree): `go.mod` and `go.sum` (Task 0 lands first; slice 2 rebases). Slice 2 merges
+  only at a lane 1 segment boundary with no document segment in flight (see "Where it runs").
 - With 6d (not running): every `internal/auth`, `cmd/dubplate-server`, and `internal/engine/store` file here. 6d
   moves to revision 2.3 after this pass (spec).
 
@@ -549,11 +658,13 @@ The conductor runs, in order, before dispatching Task 5:
 
 1. Before Task 0: the live-executor check (lane registry, `git status`, document lane state), the lane registry
    row, the runaway guard, AC power. Commit this plan and point STATUS at it.
-2. Task 0 through the `dependency-upgrade` skill; record the count.
+2. Task 0 through the `dependency-upgrade` skill, with no document segment in flight; record the classified key
+   set.
 3. Before each segment: one `haiku` pre-flight that checks every file:line and claim the segment's tasks cite at
-   HEAD; amend the plan, then launch.
-4. Before Task 4a: the read-only `0003` re-confirmation, after the archive chore's STATUS record.
-5. At each segment boundary: STATUS; the 6.4M flag.
+   HEAD; amend the plan, then launch. Before a heavy stretch, the one-line `SendMessage` to the cairn-cms session.
+4. Before segment B launches: the read-only `0003` re-confirmation, after the archive chore's STATUS record (or
+   the `0006` re-cut); the Microsoft A-Z fetch for Task 4b.
+5. At each segment boundary: STATUS; the 6.4M flag; a slice 2 merge, if one is waiting, before the next launch.
 6. The close's reviews and reads (Task 5's list), then Task 5, then close the session.
 
 ## Prior art consulted
@@ -565,7 +676,9 @@ by the slices that build.
 
 - Line citations are at `1c37e40`. Task 0's sweep and the document lane's commits can move them; each segment's
   pre-flight re-resolves its tasks' citations.
-- Microsoft's A-Z entry for "user name" was not fetched (the guide's URL for it returned 404); Task 4b checks it.
-- The operator-supplied count was probed for two rounds only; Task 0 runs it to the end.
+- Microsoft's A-Z entry for "user name" was not fetched (the guide's URL for it returned 404); segment B's
+  pre-flight fetches it.
+- The operator-values set was run to the end by the risk review at `7036ebc` (fourteen keys, three rounds); Task 0
+  re-runs it after the sweep and classifies it.
 - The rendered gate's sign-in walk is relied on as the live auth smoke; the pre-flight confirms it mints and
   consumes a real link.

@@ -33,8 +33,8 @@ never takes one).
 **Checkpoint interval:** each segment boundary (A ends after Task 4, B after Task 8), and the close. STATUS is
 written at each.
 **Segments:** A (Task 0, then Tasks 1 to 4) runs now, beside the removal pass. B (Tasks 5 to 9, then Task 10, the
-close) waits for "the merge": the removal pass's last task committed on master with its full gate green (its
-`--ff-only` merge, if its plan works on a branch).
+close) waits for "the merge": the removal pass's last code commit on master with its full gate green, counting
+its close's simplifier and review-fold commits (its `--ff-only` merge, if its plan works on a branch).
 **Execution mode:** nine repo tasks, so each segment runs through `pass-execute` by name, one invocation per
 segment, `passClass: 'docs'`, with `gate` set to the per-task gate string above and `reducedGate` set to the same
 full-gate string. Without that arg, the runner reduces a fix round whose findings are all comment-only (every
