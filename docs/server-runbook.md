@@ -213,6 +213,37 @@ A `doctor` run too early correctly reports a server that cannot start yet.
 environment. It runs none of the checks that need the filesystem or the
 network, so it never replaces step 10.
 
+## Re-create a roster written before the username rename
+
+A fresh install never meets this section. Follow it only when your roster file
+was written by a build that predates the required `--username` flag. Such a
+file has members with no username. Re-create the roster with the first admin:
+
+1. Move the roster file aside, inside its leaf. The new name keeps the old
+   file for reference, and the server never reads it.
+
+   ```sh
+   mv /var/lib/dubplate/roster/roster.json \
+      /var/lib/dubplate/roster/roster.json.pre-username
+   ```
+
+   Both files stay mode `0600` and owned by `music`. Run the command as
+   `music`, or restore the mode and owner afterward.
+2. Add the admin again through `systemd-run`, with the command from install
+   step 8. With no roster file present, `member add` takes the bootstrap path
+   and writes a new file:
+
+   ```sh
+   member add admin@example.org --admin --name "Ada Admin" --username ada
+   ```
+
+3. Run `member list` the same way. It shows exactly one member, the admin.
+   Then run `doctor` as in install step 10. It prints no `roster` row, because
+   that row prints only on failure.
+
+Add the other members afterward with `member add` (without `--admin`) or on the
+members page.
+
 ## The doctor rows
 
 `doctor` prints one line per row and exits 1 when any row fails.
@@ -609,25 +640,6 @@ local proxy between the CDN and the server instead:
 
 The ranges change, so keep the local proxy's list current with the CDN's
 published list.
-
-### The forward-auth topology
-
-This topology is not built yet. It arrives with the streamer driver in a later
-release, and this section states its boundary in advance so an adopter plans for it.
-
-In a forward-auth deployment the proxy asks a verify endpoint whether to admit
-a request, and the server is not in the streamer's request path. Every strip
-the server performs is then inert for the streamer, so the boundary is the
-adopter's proxy. The driver will publish its strip set. Your proxy must:
-
-1. strip that set from every inbound request before it makes the verify
-   subrequest;
-2. strip the same set again before it forwards a request to the streamer; and
-3. send the streamer only requests that came through the proxy, with the
-   streamer configured to trust that proxy and no other source.
-
-`doctor`'s boundary probe will prove the server's half of this, and nothing
-will prove the proxy's.
 
 ## Browser and presentation notes
 
