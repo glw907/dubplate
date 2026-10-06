@@ -25,9 +25,8 @@ const (
 )
 
 // dirPerm and filePerm are this leaf's directory and record-file
-// permissions (R10): identity state is not the shadow store's evidence
-// tier, so this rung states its own permission in code rather than
-// inheriting rung 4's 0755/0644 or leaving it to the unit's umask.
+// permissions: identity state is private, so the leaf states its own
+// permission in code rather than leaving it to the unit's umask.
 const (
 	dirPerm  = 0o700
 	filePerm = 0o600

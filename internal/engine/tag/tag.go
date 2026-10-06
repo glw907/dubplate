@@ -55,16 +55,16 @@ type Options struct {
 // Every request Album issues spends one token from src's own budget, so
 // a caller caps its MusicBrainz spend by the budget it built the client
 // with (musicbrainz.NewClient requires one, client.go:128-130). A
-// conformance run passes musicbrainz.Unmetered(). Rung 4's shadow passes
-// a deferred background budget; rung 9's pipeline passes a batch one.
+// conformance run passes musicbrainz.Unmetered(), deferred work passes a
+// background budget, and the import pipeline passes a batch one.
 //
 // evalDate is a parameter and never a clock read.
 //
 // It returns ErrNoCandidates when nothing was admitted. A lookup that
 // 404s drops that candidate silently, reproducing album_for_id's return
 // None (beetsplug/musicbrainz.py:777-781). Every other client error is
-// returned wrapped, including musicbrainz.ErrUnavailable, which rung 4's
-// shadow branches on to defer rather than record a divergence.
+// returned wrapped, including musicbrainz.ErrUnavailable, which a caller can
+// branch on to defer the lookup.
 func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFields,
 	tun matcher.Tunables, compat matcher.Compat, evalDate time.Time, opts Options) (*Proposal, error) {
 	tun = compat.Apply(tun)

@@ -202,7 +202,7 @@ func TestPatternTableNamesResolve(t *testing.T) {
 // between two live definitions of one configuration: gradeTunables must
 // stay profile-driven, because the stock profile overlays nothing
 // (translate.go:205-206), while matcher.QuietImportTunables is the
-// engine-side constructor rung 4's shadow needs and may not reach
+// engine-side constructor the import pipeline uses and may not reach
 // across the arch wall for it. Two definitions of one configuration
 // is the drift internal/engine/matcher/info.go:148-150 warns about;
 // this one-line assertion is what fires the day either moves.

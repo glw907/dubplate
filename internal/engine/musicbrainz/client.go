@@ -75,8 +75,7 @@ var ErrNotFound = errors.New("release not found")
 // status or a transport error. It is the shape of beets' own
 // RetryError, which is deliberately NOT an HTTPError and so is never
 // mapped to a beets exception (beetsplug/_utils/requests.py:78-89).
-// Rung 4's shadow branches on it to defer a lookup rather than record a
-// divergence.
+// A caller that can postpone its work branches on it to defer a lookup.
 //
 // No rate-limit-specific sentinel ships beside it: %w is an API
 // commitment justified by a caller that branches, and no caller
@@ -337,7 +336,7 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 // before every attempt including retries (R13 divergence 2: beets gets
 // per-request-only metering for free because Retry sits inside the
 // adapter beneath both its limiters, and reproducing that accident here
-// would make rung 4's shadow budget a lie). It returns the response
+// would make the background budget a lie). It returns the response
 // body on a 200, ErrNotFound on a 404, ErrUnavailable when the retries
 // are spent, and a generic error for any other status.
 func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, error) {

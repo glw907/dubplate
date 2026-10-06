@@ -64,10 +64,8 @@ type Block struct {
 }
 
 // StreamInfo is STREAMINFO's decoded payload (RFC 9639 section 8.2),
-// laid out at the payload offsets
-// plans/2026-09-05-rung-4a-shadow-runner.md:2404-2416 corrects: the
-// four size fields, the eight-byte pack at [10:18], then the
-// sixteen-byte MD5 at [18:34].
+// laid out at its payload offsets: the four size fields, the
+// eight-byte pack at [10:18], then the sixteen-byte MD5 at [18:34].
 type StreamInfo struct {
 	MinBlockSize  uint16
 	MaxBlockSize  uint16

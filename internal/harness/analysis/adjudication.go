@@ -30,22 +30,16 @@ const (
 const AgentAdjudicator = "agent"
 
 // AdjudicationSubject is the join key a row's evidence is read against:
-// a corpus case id today, or an album plus release MBID for a live
-// shadow divergence rung 4 will write. Exactly one shape is populated.
+// the id of a corpus case.
 type AdjudicationSubject struct {
-	CaseID string `json:"case_id,omitempty"`
-	Album  string `json:"album,omitempty"`
-	// ReleaseMBID is the release under dispute, filled by whichever side
-	// proposed one: the oracle's when the oracle applied, the Go matcher's
-	// when the oracle skipped and Go applied.
-	ReleaseMBID string `json:"release_mbid,omitempty"`
+	CaseID string `json:"case_id"`
 }
 
-// AdjudicationEntry is one divergence row: a case (or, at rung 4, a
-// live shadow run) whose derived verdict is suspected wrong against
-// release truth. The oracle's own record (recommendation, action,
-// distance, the best candidate's penalty breakdown) is never
-// re-transcribed here; Subject is the reference back to it.
+// AdjudicationEntry is one divergence row: a corpus case whose derived
+// verdict is suspected wrong against release truth. The oracle's own
+// record (recommendation, action, distance, the best candidate's
+// penalty breakdown) is never re-transcribed here; Subject is the
+// reference back to it.
 type AdjudicationEntry struct {
 	ID               string              `json:"id"`
 	Subject          AdjudicationSubject `json:"subject"`
@@ -57,17 +51,6 @@ type AdjudicationEntry struct {
 	Reason           string              `json:"reason"`
 	Adjudicator      string              `json:"adjudicator"`
 	Date             string              `json:"date"`
-
-	// MatcherCommit is the matcher's git commit at the time a shadow row
-	// (an album-plus-release-mbid subject) was written: required on that
-	// shape, since a live shadow divergence has no committed case to
-	// anchor it to a matcher version otherwise.
-	MatcherCommit string `json:"matcher_commit,omitempty"`
-	// MatcherConfigHash is the matcher's config hash at the same moment.
-	// Named apart from cassette.Expected.ConfigHash on purpose: that
-	// field hashes the oracle shim's config, and this one the matcher's,
-	// two different things a shadow row must not conflate.
-	MatcherConfigHash string `json:"matcher_config_hash,omitempty"`
 
 	// DefectFree is the distance a case scores once the named defect is
 	// removed, derived through pinned beets with one SD_PATTERNS
@@ -143,17 +126,15 @@ var StringHeuristicHypotheses = []string{"bug-remix-parenthetical"}
 var LegalPatternTables = []string{"SDPatternsNoBracketDiscount"}
 
 // AdjudicationLedger is corpus/analysis/adjudications.json: the general
-// divergence log, forward-compatible with rung 4's shadow divergences.
-// Unlike ties.json and proximity.json it is not a coverage ledger over
-// every corpus case; it is an exception log, carrying a row only for a
-// case an author or a batch task suspects the oracle got wrong.
+// divergence log. Unlike ties.json and proximity.json it is not a
+// coverage ledger over every corpus case; it is an exception log,
+// carrying a row only for a case an author or a batch task suspects the
+// oracle got wrong.
 type AdjudicationLedger struct {
 	Entries []AdjudicationEntry `json:"entries"`
 }
 
-// BySubjectCase indexes the ledger's case-subject rows by case id. A row
-// whose subject is the album-plus-release-mbid shape rung 4's shadow
-// writes is omitted, because it has no case to join on.
+// BySubjectCase indexes the ledger's rows by case id.
 //
 // It is exported because two checkers need it: CheckDefectFree's probe
 // walk, which built this map privately, and CheckOracleBugs' probe-case
@@ -177,11 +158,11 @@ func LoadAdjudications(path string) (*AdjudicationLedger, error) {
 	return &l, nil
 }
 
-// CheckAdjudications proves every row is internally consistent and, for
-// a case-subject row, resolves to a committed corpus case: a missing or
-// unrecognized disposition, a row with no written suspicion or no
-// written release truth, and a non-pending disposition set by an agent
-// adjudicator are all reported, not just the first.
+// CheckAdjudications proves every row is internally consistent and
+// resolves to a committed corpus case: a missing or unrecognized
+// disposition, a row with no written suspicion or no written release
+// truth, and a non-pending disposition set by an agent adjudicator are
+// all reported, not just the first.
 func CheckAdjudications(caseIDs []string, l *AdjudicationLedger) error {
 	known := make(map[string]bool, len(caseIDs))
 	for _, id := range caseIDs {
@@ -206,25 +187,10 @@ func checkAdjudicationEntry(known map[string]bool, e AdjudicationEntry) []error 
 	var errs []error
 
 	switch {
-	case e.Subject.CaseID != "" && (e.Subject.Album != "" || e.Subject.ReleaseMBID != ""):
-		errs = append(errs, fmt.Errorf("adjudications: %s: subject: case_id and album/release_mbid both set; a row is one or the other", e.ID))
-	case e.Subject.CaseID != "":
-		if !known[e.Subject.CaseID] {
-			errs = append(errs, fmt.Errorf("adjudications: %s: subject case_id %q: no such committed case", e.ID, e.Subject.CaseID))
-		}
-	case e.Subject.Album != "" && e.Subject.ReleaseMBID != "":
-		// A shadow-divergence subject; nothing to resolve against the corpus.
-		if e.MatcherCommit == "" {
-			errs = append(errs, fmt.Errorf("adjudications: %s: subject is a shadow row, but matcher_commit is missing", e.ID))
-		}
-	case e.Subject.Album != "" || e.Subject.ReleaseMBID != "":
-		errs = append(errs, fmt.Errorf("adjudications: %s: subject: album and release_mbid must both be set, or neither", e.ID))
-	default:
-		errs = append(errs, fmt.Errorf("adjudications: %s: subject: names neither a case id nor an album/release_mbid pair", e.ID))
-	}
-
-	if e.Subject.CaseID != "" && (e.MatcherCommit != "" || e.MatcherConfigHash != "") {
-		errs = append(errs, fmt.Errorf("adjudications: %s: subject is a case row, but carries matcher_commit or matcher_config_hash, which only a shadow row may carry", e.ID))
+	case e.Subject.CaseID == "":
+		errs = append(errs, fmt.Errorf("adjudications: %s: subject: case_id missing", e.ID))
+	case !known[e.Subject.CaseID]:
+		errs = append(errs, fmt.Errorf("adjudications: %s: subject case_id %q: no such committed case", e.ID, e.Subject.CaseID))
 	}
 
 	if e.Suspected == "" {
@@ -257,25 +223,11 @@ func checkAdjudicationEntry(known map[string]bool, e AdjudicationEntry) []error 
 	}
 
 	if e.AppliedField != nil {
-		// Legal only on a case-subject row: the block cites a corpus
-		// case's own ledger row, which a shadow subject (album plus
-		// release_mbid) or an empty subject has none of.
-		if e.Subject.CaseID == "" {
-			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field block on a row whose subject is not a case id", e.ID))
-		}
 		if e.AppliedField.Field == "" {
 			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field: field: missing", e.ID))
 		}
 		if e.AppliedField.Commit == "" {
 			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field: commit: missing", e.ID))
-		}
-		// A case-subject row carrying a matcher stamp already fails the
-		// check above (matcher_commit and matcher_config_hash are a
-		// shadow row's alone), but that check is general, not
-		// applied_field's own; state it here too so an applied_field row
-		// names the violation as its own rule rather than borrowing one.
-		if e.MatcherCommit != "" || e.MatcherConfigHash != "" {
-			errs = append(errs, fmt.Errorf("adjudications: %s: applied_field block carries a matcher stamp (matcher_commit or matcher_config_hash), which only a shadow row may carry", e.ID))
 		}
 	}
 

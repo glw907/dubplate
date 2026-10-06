@@ -150,7 +150,7 @@ func TestWriteFileLeavesTheOldContentWhenTheWriteFails(t *testing.T) {
 
 	// Removing the target directory's write bit fails the write before
 	// the rename and leaves path untouched. That is the crash-safety
-	// property the shadow store rests on: a reader sees the old content
+	// property every store write rests on: a reader sees the old content
 	// or the new content, never neither.
 	if err := os.Chmod(dir, 0o500); err != nil {
 		t.Fatalf("Chmod: %v", err)

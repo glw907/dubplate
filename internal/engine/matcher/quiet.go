@@ -1,8 +1,8 @@
 package matcher
 
 // QuietImportTunables returns DefaultTunables with the four assignments
-// an unattended quiet import makes, which is the configuration rung 4's
-// shadow observes under and rung 9's pipeline will import under.
+// an unattended quiet import makes, which is the configuration the
+// import pipeline imports under.
 //
 // It lives here rather than in the harness because internal/engine may
 // import no harness package (TestEngineNeverImportsHarness,

@@ -11,7 +11,7 @@ import (
 )
 
 // leafDirName is the one directory under the state directory the store
-// occupies, following the shadow and auth leaves.
+// occupies.
 const leafDirName = "store"
 
 // leafDirPerm is the mode every directory in the leaf carries: the leaf

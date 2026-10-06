@@ -13,16 +13,15 @@ import (
 // uploader probe holds a contributor on the page through its lookups
 // and must outrank a batch import (organizer design, "a user-present
 // probe outranks a batch import"); interactive work must not starve
-// timer imports (build spec, the same section); and rung 4's shadow
-// spends deferred background budget through this limiter and never
-// inline with the probe. Rung 9 re-verifies the policy against its real
-// callers.
+// timer imports (build spec, the same section); and deferred background
+// work spends its budget through this limiter and never inline with the
+// probe.
 type Class int
 
 const (
 	ClassUserPresent Class = iota // a person is waiting on this request
 	ClassBatch                    // an operator- or timer-triggered import
-	ClassBackground               // deferred work: rung 4's shadow, and later
+	ClassBackground               // deferred work, never inline with a probe
 )
 
 const numClasses = int(ClassBackground) + 1
@@ -38,8 +37,7 @@ const numClasses = int(ClassBackground) + 1
 // outright, which is the timer import the build spec's constraint
 // protects; and a weighted fair queue makes a probe wait its weighted
 // turn behind a batch, which is the latency the uploader journey cannot
-// absorb. This one integer is the whole difference, and it is what rung
-// 9 re-verifies rather than a whole policy.
+// absorb. This one integer is the whole difference.
 const reservationInterval = 4
 
 // ErrBudgetExhausted is returned by [Budget.Wait] when the budget's own
@@ -64,9 +62,9 @@ const DefaultInterval = time.Second
 // Limiter paces every MusicBrainz request one process issues, across
 // every caller. It owns a goroutine, which is the one place in this
 // package that is justified: the limiter's entire job is to make
-// concurrent callers wait in a defined order, and rung 7's probe,
-// rung 9's import and rung 4's shadow are three real concurrent
-// callers.
+// concurrent callers wait in a defined order, and the uploader probe,
+// the import pipeline, and deferred background work are three real
+// concurrent callers.
 //
 // It reads no clock. Pacing comes from a ticker it owns, and a token is
 // "the next tick", never "now minus the last request". That keeps

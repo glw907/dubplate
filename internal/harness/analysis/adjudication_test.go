@@ -45,25 +45,6 @@ func TestCheckAdjudications(t *testing.T) {
 		Date:         "2026-09-03",
 	}
 
-	shadowSubject := base
-	shadowSubject.Subject = AdjudicationSubject{Album: "Some Album", ReleaseMBID: "aaaa-bbbb"}
-	shadowSubject.MatcherCommit = "abc1234"
-
-	shadowSubjectNoCommit := base
-	shadowSubjectNoCommit.Subject = AdjudicationSubject{Album: "Some Album", ReleaseMBID: "aaaa-bbbb"}
-
-	caseSubjectWithMatcherFields := base
-	caseSubjectWithMatcherFields.MatcherCommit = "abc1234"
-
-	caseSubjectWithConfigHashOnly := base
-	caseSubjectWithConfigHashOnly.MatcherConfigHash = "deadbeef"
-
-	bothSubjects := base
-	bothSubjects.Subject = AdjudicationSubject{CaseID: "clean-match", Album: "Some Album"}
-
-	halfShadowSubject := base
-	halfShadowSubject.Subject = AdjudicationSubject{Album: "Some Album"}
-
 	noSubject := base
 	noSubject.Subject = AdjudicationSubject{}
 
@@ -106,14 +87,8 @@ func TestCheckAdjudications(t *testing.T) {
 		wantHas string // empty means the ledger is accepted
 	}{
 		{"a well-formed pending row", []string{"clean-match"}, []AdjudicationEntry{base}, ""},
-		{"a well-formed shadow-subject row", nil, []AdjudicationEntry{shadowSubject}, ""},
-		{"a shadow-subject row with no matcher_commit", nil, []AdjudicationEntry{shadowSubjectNoCommit}, "subject is a shadow row, but matcher_commit is missing"},
-		{"a case-subject row carrying matcher_commit", []string{"clean-match"}, []AdjudicationEntry{caseSubjectWithMatcherFields}, "subject is a case row, but carries matcher_commit or matcher_config_hash"},
-		{"a case-subject row carrying matcher_config_hash only", []string{"clean-match"}, []AdjudicationEntry{caseSubjectWithConfigHashOnly}, "subject is a case row, but carries matcher_commit or matcher_config_hash"},
 		{"a human ruling oracle-wrong with a corrected verdict", []string{"clean-match"}, []AdjudicationEntry{humanRulesOracleWrong}, ""},
-		{"a subject naming both a case id and an album", []string{"clean-match"}, []AdjudicationEntry{bothSubjects}, "case_id and album/release_mbid both set"},
-		{"a shadow subject missing release_mbid", nil, []AdjudicationEntry{halfShadowSubject}, "album and release_mbid must both be set"},
-		{"a subject naming nothing", []string{"clean-match"}, []AdjudicationEntry{noSubject}, "names neither a case id"},
+		{"a subject naming nothing", []string{"clean-match"}, []AdjudicationEntry{noSubject}, "case_id missing"},
 		{"a case id no committed case carries", []string{"clean-match"}, []AdjudicationEntry{unknownCase}, "no such committed case"},
 		{"no written suspicion", []string{"clean-match"}, []AdjudicationEntry{noSuspected}, "suspected: missing"},
 		{"no written release truth", []string{"clean-match"}, []AdjudicationEntry{noReleaseTruth}, "release_truth: missing"},
@@ -257,12 +232,6 @@ func TestCheckAdjudications_AppliedFieldWithinRowRules(t *testing.T) {
 	block := goodBlock
 	withBlock.AppliedField = &block
 
-	blockOnShadowSubject := base
-	blockOnShadowSubject.Subject = AdjudicationSubject{Album: "Some Album", ReleaseMBID: "aaaa-bbbb"}
-	blockOnShadowSubject.MatcherCommit = "abc1234"
-	shadowBlock := goodBlock
-	blockOnShadowSubject.AppliedField = &shadowBlock
-
 	emptyField := base
 	b1 := goodBlock
 	b1.Field = ""
@@ -279,22 +248,15 @@ func TestCheckAdjudications_AppliedFieldWithinRowRules(t *testing.T) {
 	b3 := goodBlock
 	blockOnNonPendingAgentRow.AppliedField = &b3
 
-	blockWithMatcherStamp := base
-	b4 := goodBlock
-	blockWithMatcherStamp.AppliedField = &b4
-	blockWithMatcherStamp.MatcherCommit = "abc1234"
-
 	tests := []struct {
 		name    string
 		entry   AdjudicationEntry
 		wantHas string
 	}{
 		{"a well-formed applied_field block", withBlock, ""},
-		{"a block on a shadow-subject row", blockOnShadowSubject, "applied_field block on a row whose subject is not a case id"},
 		{"a block with field empty", emptyField, "applied_field: field: missing"},
 		{"a block with commit empty", emptyCommit, "applied_field: commit: missing"},
 		{"a block on a row whose disposition is not pending with the agent adjudicator", blockOnNonPendingAgentRow, "only a human name may set anything but"},
-		{"a block on a row carrying a matcher stamp", blockWithMatcherStamp, "applied_field block carries a matcher stamp"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -450,13 +412,7 @@ func TestCheckDefectFree(t *testing.T) {
 // literal angle brackets get escaped by Go's encoder unless
 // SetEscapeHTML(false) is used. So the comparison decodes both the
 // original bytes and the re-encoded bytes into map[string]any trees
-// and compares those, order-independent. It also asserts the raw
-// re-encoded bytes carry neither "matcher_commit" nor
-// "matcher_config_hash" anywhere, which is the real detector for
-// omitempty: every committed row is a case-subject row, so both
-// fields are always empty, and a missing omitempty tag would still
-// pass a field-set comparison but would print the key with an empty
-// value.
+// and compares those, order-independent.
 func TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost(t *testing.T) {
 	root := repoRoot(t)
 	path := filepath.Join(root, "corpus", "analysis", "adjudications.json")
@@ -489,13 +445,6 @@ func TestTheCommittedLedgerRoundTripsWithNoKeyGainedOrLost(t *testing.T) {
 	if !reflect.DeepEqual(wantTree, gotTree) {
 		t.Fatalf("re-encoded ledger tree does not match the original: gained or lost a key")
 	}
-
-	if bytes.Contains(reencoded, []byte("matcher_commit")) {
-		t.Error("re-encoded ledger carries matcher_commit, but every committed row is a case-subject row")
-	}
-	if bytes.Contains(reencoded, []byte("matcher_config_hash")) {
-		t.Error("re-encoded ledger carries matcher_config_hash, but every committed row is a case-subject row")
-	}
 }
 
 func TestLoadAdjudicationsRejectsAnInventedKey(t *testing.T) {
@@ -506,5 +455,36 @@ func TestLoadAdjudicationsRejectsAnInventedKey(t *testing.T) {
 	}
 	if _, err := LoadAdjudications(path); err == nil {
 		t.Fatal("LoadAdjudications accepted a key nothing parses")
+	}
+}
+
+// TestLoadAdjudicationsRefusesAFieldTheLedgerNoLongerCarries proves a
+// row carrying a removed field fails at decode, naming the field, so a
+// stale row cannot load as if the field still meant something.
+func TestLoadAdjudicationsRefusesAFieldTheLedgerNoLongerCarries(t *testing.T) {
+	tests := []struct {
+		name string
+		row  string
+		want string
+	}{
+		{"album in the subject", `{"id":"a","subject":{"case_id":"c","album":"Some Album"}}`, `"album"`},
+		{"release_mbid in the subject", `{"id":"a","subject":{"case_id":"c","release_mbid":"aaaa-bbbb"}}`, `"release_mbid"`},
+		{"matcher_commit on the row", `{"id":"a","subject":{"case_id":"c"},"matcher_commit":"abc1234"}`, `"matcher_commit"`},
+		{"matcher_config_hash on the row", `{"id":"a","subject":{"case_id":"c"},"matcher_config_hash":"deadbeef"}`, `"matcher_config_hash"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "adjudications.json")
+			if err := os.WriteFile(path, []byte(`{"entries":[`+tt.row+`]}`), 0o644); err != nil {
+				t.Fatalf("write fixture: %v", err)
+			}
+			_, err := LoadAdjudications(path)
+			if err == nil {
+				t.Fatalf("LoadAdjudications accepted a row carrying %s", tt.want)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("error %q does not name %s", err, tt.want)
+			}
+		})
 	}
 }

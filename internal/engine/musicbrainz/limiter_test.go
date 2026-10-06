@@ -36,13 +36,13 @@ func TestDispatcherPrefersUserPresentAndStillFeedsBackground(t *testing.T) {
 	defer closeLimiter(t, l)
 
 	probe := l.Budget("probe", ClassUserPresent, 0)
-	shadow := l.Budget("shadow", ClassBackground, 0)
+	background := l.Budget("background", ClassBackground, 0)
 
 	// served records the order Wait returned in, which is the property
 	// under test.
 	served := make(chan string, 16)
 
-	startWaiter(shadow, "shadow", served)
+	startWaiter(background, "background", served)
 	l.awaitQueued(1)
 	for range 8 {
 		startWaiter(probe, "probe", served)
@@ -56,16 +56,16 @@ func TestDispatcherPrefersUserPresentAndStillFeedsBackground(t *testing.T) {
 	}
 
 	// Precedence: the first token goes to a probe queued after the
-	// shadow waiter, not to the shadow.
+	// background waiter, which was queued first.
 	if order[0] != "probe" {
 		t.Errorf("first token went to %q, want the user-present waiter", order[0])
 	}
-	// Anti-starvation: reservationInterval is 4, so the shadow waiter is
+	// Anti-starvation: reservationInterval is 4, so the background waiter is
 	// served on the fourth token and not left behind eight probes.
-	if !slices.Contains(order, "shadow") {
+	if !slices.Contains(order, "background") {
 		t.Errorf("background waiter never served across 8 tokens: %v", order)
 	}
-	if order[reservationInterval-1] != "shadow" {
+	if order[reservationInterval-1] != "background" {
 		t.Errorf("token %d went to %q, want the reserved background waiter",
 			reservationInterval, order[reservationInterval-1])
 	}
@@ -74,7 +74,8 @@ func TestDispatcherPrefersUserPresentAndStillFeedsBackground(t *testing.T) {
 // TestReservedTokensRotateThroughTheClassesBelow is the three-class row.
 // Two classes cannot see the starvation this fixture catches: with a
 // saturated background stream, a reservation sent to the lowest non-empty
-// class serves the shadow every time and the batch import never runs.
+// class serves the background class every time and the batch import
+// never runs.
 func TestReservedTokensRotateThroughTheClassesBelow(t *testing.T) {
 	ticks := make(chan time.Time)
 	l := newLimiter(ticks)
@@ -82,13 +83,13 @@ func TestReservedTokensRotateThroughTheClassesBelow(t *testing.T) {
 
 	probe := l.Budget("probe", ClassUserPresent, 0)
 	batch := l.Budget("batch", ClassBatch, 0)
-	shadow := l.Budget("shadow", ClassBackground, 0)
+	background := l.Budget("background", ClassBackground, 0)
 
 	served := make(chan string, 32)
 
 	startWaiter(batch, "batch", served)
 	for range 3 {
-		startWaiter(shadow, "shadow", served)
+		startWaiter(background, "background", served)
 	}
 	l.awaitQueued(4)
 	const tokens = 3 * reservationInterval
@@ -106,7 +107,7 @@ func TestReservedTokensRotateThroughTheClassesBelow(t *testing.T) {
 	if order[0] != "probe" {
 		t.Errorf("first token went to %q, want the user-present waiter", order[0])
 	}
-	for _, label := range []string{"probe", "batch", "shadow"} {
+	for _, label := range []string{"probe", "batch", "background"} {
 		if !slices.Contains(order, label) {
 			t.Errorf("%s never served across %d tokens: %v", label, tokens, order)
 		}

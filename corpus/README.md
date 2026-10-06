@@ -2289,17 +2289,12 @@ never derived: neither needs the venv or a `make derive` run, and both
 are checked on every `bash scripts/check.sh` by
 `internal/harness/analysis`.
 
-**`adjudications.json` is the general divergence row**, designed
-forward-compatible with rung 4 (Shadow): the build spec names a
-divergence log and an adjudication artifact there for a structurally
-identical problem, a human ruling on a matcher disagreement from a
-written artifact alone. This pass originates the schema. A row's
+**`adjudications.json` is the general divergence row**: a human ruling
+on a matcher disagreement from a written artifact alone. A row's
 `subject` is the join key back to the oracle's own record rather than a
 re-transcription of it (`cassette.Expected` already holds
 recommendation, action, distance, and the best candidate's full penalty
-breakdown): either a corpus `case_id`, or an `album` plus
-`release_mbid` pair for a live shadow divergence, never both and never
-neither. A row also carries `suspected` (what is suspected wrong and
+breakdown): a corpus `case_id`, and nothing else. A row also carries `suspected` (what is suspected wrong and
 why, in prose, with its `citation`, an issue number or an
 evolution-lessons finding id such as `U1/ft-pattern`), `release_truth`
 (the correct verdict with its own citation, or an explicit statement

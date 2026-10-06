@@ -268,8 +268,8 @@ func TestParseCommentNameU007EPreserved(t *testing.T) {
 }
 
 // TestParseRepeatedCommentKeyPreserved proves a repeated comment key
-// is carried twice, in order, rather than merged, which the shadow
-// reader's map cannot hold.
+// is carried twice, in order, rather than merged, which a map keyed
+// by comment name cannot hold.
 func TestParseRepeatedCommentKeyPreserved(t *testing.T) {
 	blocks := wellFormedBlocks()
 	blocks[1].Payload = vorbisCommentPayload("tagio test", []string{"GENRE=Ambient", "GENRE=Drone"})
