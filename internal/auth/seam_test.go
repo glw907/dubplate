@@ -76,25 +76,36 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 		rosterJSON string
 		address    string
 		wantAdmin  bool
+		wantPrinc  string
 		wantErr    error
 	}{
 		{
-			name:       "member on roster",
+			name:       "member on roster with a username",
+			rosterJSON: `[{"address":"member@example.com","username":"member","display_name":"Member","admin":false}]`,
+			address:    "member@example.com",
+			wantAdmin:  false,
+			wantPrinc:  "member",
+		},
+		{
+			name:       "member on roster with no username: the principal is the address",
 			rosterJSON: `[{"address":"member@example.com","display_name":"Member","admin":false}]`,
 			address:    "member@example.com",
 			wantAdmin:  false,
+			wantPrinc:  "member@example.com",
 		},
 		{
 			name:       "admin member on roster",
 			rosterJSON: `[{"address":"lead@example.com","display_name":"Lead","admin":true}]`,
 			address:    "lead@example.com",
 			wantAdmin:  true,
+			wantPrinc:  "lead@example.com",
 		},
 		{
 			name:       "address named admin is not itself an admin claim",
 			rosterJSON: `[{"address":"admin@example.com","display_name":"Not Actually Admin","admin":false}]`,
 			address:    "admin@example.com",
 			wantAdmin:  false,
+			wantPrinc:  "admin@example.com",
 		},
 		{
 			name:       "address removed from roster",
@@ -131,6 +142,9 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 			}
 			if got.Identity.Address != tt.address {
 				t.Errorf("Address = %q, want %q", got.Identity.Address, tt.address)
+			}
+			if got.Identity.Principal != tt.wantPrinc {
+				t.Errorf("Principal = %q, want %q", got.Identity.Principal, tt.wantPrinc)
 			}
 			if got.Admin != tt.wantAdmin {
 				t.Errorf("Admin = %v, want %v", got.Admin, tt.wantAdmin)
