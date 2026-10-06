@@ -56,8 +56,7 @@ or reshaped symbol is a concern, and neither is a license to re-architect.
 - **Never quote the pinned literal** on `internal/config/keys_test.go`'s `.gitleaksignore` line;
   gitleaks scans the tracked worktree and flags the quotation. Insert new rows below it.
 - **The architectural tests** in `internal/harness/conform/arch_test.go` stay green: the engine
-  never imports the harness, never reads the clock (callers pass `now time.Time`), and
-  `internal/engine/shadow` never imports `internal/config`.
+  never imports the harness and never reads the clock (callers pass `now time.Time`).
 - **Every file write on a store path goes through `internal/atomicfile`.** No `os.WriteFile`
   onto state.
 - **Never edit `docs/STATUS.md` or `docs/HISTORY.md`.** The conductor owns the ledgers.

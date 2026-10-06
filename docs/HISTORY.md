@@ -2,6 +2,115 @@
 
 Per-pass ledger, newest first.
 
+## Navidrome removal: closed 2026-10-06, lane 1
+
+Executed against `docs/superpowers/plans/2026-10-05-navidrome-removal.md` (revision 2), in the main tree on
+master, from `7d6dee4` (the dependency sweep record) to this entry's commit. Pass class `auth-data` for the code
+tasks and `docs` for the close. Segment A ran Tasks 1, 2a, and 2b; segment B ran Tasks 3, 4a, and 4b under run
+`wf_b30c2938-54e`, which Geoff paused once mid Task 4b and resumed with a keep-or-revert note on the partial work.
+
+### What landed
+
+- Task 0 (`cf3299f`): `@sveltejs/kit` 3.0.1. The sweep (`7d6dee4`) moved nothing else; holds are typescript 7,
+  `@types/node` 26, and rclone 1.75.1. The install-key baseline classified 14 required keys: 6 env-template
+  literals, 2 minted secrets, and 6 operator-typed (`ADMIN_EMAIL` and five SMTP keys). Counting `SITE_NAME` and
+  `PUBLIC_URL` as typed by a stranger gives 8. Task 3's `env -i` re-run found the identical set.
+- Task 1 (`680afed`): the front exemption, the fallthrough, and the driver header left `internal/serve`.
+- Task 2a (`ea5571e`): the shadow program, its class, and its keys. Task 2b (`17f4ebd`): its orphans in
+  `analysis`, the limiter, and comments. `1285ea0` checkpointed segment A and corrected Task 2b's grep to exclude
+  `cmd/dubplate-server/main_test.go`, because Task 2a's required unknown-key test names `DUBPLATE_SHADOW_ENABLED`
+  on purpose; 2b was accepted under the corrected grep.
+- Task 3 (`2fcb60f`): the streamer and front configuration keys and the stale prose around them.
+- Task 4a (`2f4d052`): the store's `users` column became `username`. Task 4b (`a46f046`, fix round `2b679ad`):
+  username across the roster, the API, the CLI, and the members page; the fix round asserted the principal
+  `VerifyIdentity` returns, with and without a username.
+- Simplifier (`a15d1eb`, `e80804b`): the first dispatch skipped the four-pattern hunt and was re-dispatched on
+  Opus. Hits: `VerifyIdentity` uses `Member.principal()`; two serve 404 tests merged into
+  `TestUnroutedPathAnswers404`; five config free functions became `Registry` methods; `auth.SessionCookieName`
+  unexported.
+- Fold F1 (`7bc4792`, fix `5d95514`): the architecture readers' removal residue. Serve routing collapsed to one
+  404 path, removing `Prefix.Route`, `Owns`, and `Terminator`; cmd's unidecode load path and `main.go` docs;
+  `newServeShell` returns `(*serve.Shell, error)`; musicbrainz `DefaultBaseURL` unexported and `Budget.Name`
+  deleted; stale caller docs rewritten in config, tag, analysis (`BySubjectCase` became `ByCase`), tagio, and
+  matcher. The bearer-bypass doc now says no route registers a bypass and names the 0.8 OpenSubsonic API or the
+  rung 14 bearer admin mount as its first consumer. One fix round.
+- Fold F2 (`374b98c`): `TestNewServeShell_StateChangingRequestIsDenied` sends a POST with a cookie and no Origin
+  to all 15 registered subtrees and expects 403 (its mutation fired). The add-member Address and Username fields
+  carry `autocomplete=off`, `data-1p-ignore`, and `data-lpignore`; the roster line's username segment has an
+  sr-only "Username" label and an aria-hidden separator.
+
+### What the gates caught
+
+Every task was accepted by an Opus `diff-reviewer`, and every gate was a full heavy-lane run and green. The
+catches were Task 2b's grep contradicting Task 2a's required test, Task 4b's unasserted principal (the fix
+round), and the simplifier's skipped hunt. Network drops (ECONNRESET, ECONNREFUSED) interrupted Task 1's review
+and Task 2a's implementer once each; both resumed from the run journal.
+
+Settle: the rendered gate's sign-in walk mints and consumes a real link against a real serve shell
+(`web/scripts/rendered/run.ts:188-192`, `3265-3266`), which stands in for `auth-data`'s live smoke (no deploy
+happened). The conductor read the members-page captures (members-added at 1440 light, members-populated at 390
+dark) at F2's gate: the Username label and the music-app hint render, the roster line reads address, username,
+and dark mobile reflows cleanly.
+
+### Reviewer dispositions
+
+- Simplifier diff-review: accept.
+- `web-auth-security-reviewer`: nothing blocking or major, no protection weakened (the strip is stricter); four
+  minors folded in F1 and F2.
+- `svelte-reviewer`: accept. `daisyui-a11y-reviewer`: accept, with its autofill finding folded in F2.
+- Ten `go-architecture-reader` dispatches: config, analysis sound; `cmd/dubplate-server`, store, tag sound with
+  nits; serve, auth, musicbrainz, tagio, matcher needed work. The removal-residue findings folded in F1. Plan
+  decisions kept with honest docs: the bearer bypass, Flush/Hijack, tagio exports, `QuietImportTunables`,
+  `SetTransliterator`, `ClassBackground`, `ErrUnavailable`. `auth.Seam`, a single-implementation interface, goes
+  to the architecture-cleanup inventory per spec ruling 2. Pre-existing findings went to that inventory, one line
+  per package (full reports in the conductor's scratchpad `arch-reads.txt`, not committed):
+  - config: package-level `OwnedWall`/`ReservedClasses`, `AddSuperseded`/`Superseded`, and `WallRow.Pending` are
+    test-only; `validateThresholdDefault` restates the parser switch and `ParseFloat` accepts NaN; 64 process
+    citations.
+  - analysis: stale "nothing at rung 2 can" comments, process citations, a duplicated disposition switch, nine
+    unexport candidates.
+  - cmd/dubplate-server: duplicated key constants and literals, three owner checks, a doctorprobe branch that
+    exists for tests, repeated proxy parsing, process citations.
+  - store: `OpenServe`/`ServeOptions` have no non-test caller, test-only lock seams, repeated rollback, snapshot,
+    checkpoint, and sqlite-code duplication, `open.go` holds three concerns.
+  - tag: test-only `Options.SearchIDs`, unread `Proposal.CurArtist`/`CurAlbum`, duplicated propose sequence,
+    process citations, a stale "planned" tagio mention.
+  - serve: six exported names with no outside caller, three repeated refusal pairs, `document.go` mixes four
+    concerns, process citations.
+  - auth: `Seam.Read` and the epoch subscriber machinery have no callers, `RunSweep` and `writeWait` test seams,
+    `CheckSession`/`CheckLink` duplication, 47 process citations.
+  - musicbrainz: `GroupRelations` and `Validate` unexport candidates, test-only limiter and client seams,
+    duplicated predicates and retry tail, process citations.
+  - tagio: nearly the whole exported surface never called outside the package (Format, Sniff, Serialize, and
+    others), a one-row registry map that exists for tests, two 69-case switches, byte-order duplication.
+  - matcher: test-only `Distance.Update` and regexp-cache seams, two duplicated validation pairs, 21 one-component
+    files, an exported-surface list used only by tests, process citations.
+- Fold-rule trial: no refused review finding proved real in execution.
+
+### What a later pass would be wrong to rediscover
+
+- The bearer bypass stays on purpose. No route registers one today; its first consumer (the 0.8 OpenSubsonic API
+  or rung 14's bearer admin mount) owes a shell-level test that a bypassed route never reads the session cookie.
+- Serve routing is now one origin-wrapped mux with a 404 default, and the CSRF proof covers every registered
+  subtree (15 today). A new subtree is covered only if it registers on that mux.
+- `0003` was edited in place, under box preconditions read-only over ssh: no store leaf, 0 backup keys, 0 timers.
+  The plan-time read preceded the archive chore (a sequencing deviation, reads only) and was re-confirmed
+  read-only on 2026-10-06 after it. Any older store fails at its ledger check. The `0006` path was not taken.
+- The roster carries no compatibility shim: the first roster-reading deploy takes the runbook step.
+- The exported-unused leg's real delta from Task 2b's table: `tagio`'s nine names warned before the pass as after
+  it, until the import pipeline imports it. `internal/serve`'s closing list is nine.
+- `readFLAC` is salvage for rung 9 at `internal/engine/shadow/libraryread.go` in the pre-deletion commit.
+- Reading 2 kept `ClassBackground` and `ErrUnavailable` (code, and the limiter's three-class design and the
+  client's retry contract), pruning only their shadow justification; `IntegrationClass.Optional` was pruned for a
+  consumer to re-add. This departs from the spec's literal default, which prunes both.
+- Task 0's classified key set (14 required keys) is the baseline Task 3 compared against.
+
+### Budgets
+
+Tokens: about 3.7M against the 8.0M ceiling (flag 6.4M not reached). Attended time: Geoff approved both plans in
+one sitting, ruled "proceed on battery", and paused twice (one pause mid Task 4b). Planning misses: one, Task
+2b's grep contradicting Task 2a's required test. Execution miss: the simplifier's skipped hunt.
+
 ## Rung 5d-ii (the review, the sitting, and the rung 5 close): closed 2026-10-05, lane 1
 
 Executed against `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
@@ -10740,6 +10849,7 @@ subagent acting alone):
   unattended `set -e` first-boot script without a confirmed AlmaLinux 10 install path.
   Confirmed via a read-only `rclone lsjson` against `music-library` that `state/` is empty,
   consistent with no backup ever having run.
+  Erratum (2026-10-06): R2 is not empty; it holds `state/navidrome.db` and 35 dated snapshots (STATUS archive record).
 
 Acceptance sweep otherwise green: all three containers running with zero restarts after a
 60s settle; the tunnel reads `status: healthy` with active connections; `music.907.life`

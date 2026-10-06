@@ -2,34 +2,31 @@
 
 ## Current state
 
-Rung 5 is closed (2026-10-05): rungs 1b, 3, 4, 8, 5a through 5d-ii, rung 6 through 6c, and the
-transliteration pass are done. Master is green at `cea546e`. The box runs only dubplate-server: binary
-`d1e93e9` (doctor exit 0), the serve unit installed and disabled, the `auth`, `roster`, `unidecode` leaves,
-one admin member, and `/srv/music/library` (6.6 GB). No rollback set remains: the `.prev` copies rolled back
-to the retired stack, so the next `--apply` writes the first fresh set. The retirement record is in HISTORY 5d-ii. HISTORY's
-top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
+Rung 5 is closed (2026-10-05), and the navidrome-removal pass closed 2026-10-06 (HISTORY's top entry): the
+shadow program, the front exemption, the fallthrough, and the streamer and front keys are gone, and the store's
+`users` column and the roster, API, CLI, and members page say `username`. Master is green. The box runs only
+dubplate-server: binary `d1e93e9` (doctor exit 0), the serve unit installed and disabled, the `auth`, `roster`,
+`unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB); the removal pass deployed nothing.
+No rollback set remains: the next `--apply` writes the first fresh set. The first roster-reading deploy takes
+the runbook step (the roster has no compatibility shim). Reading 2 departs from the spec's literal default:
+`ClassBackground` and `ErrUnavailable` stay, because no rung 9 spec names a consumer and the limiter's
+three-class design and the client's retry contract need them; only their shadow justification was pruned.
 
 ## Next action
 
 > **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
 >
-> **Goal:** execute two approved plans (Geoff, 2026-10-05) as a thin conductor:
-> `plans/2026-10-05-navidrome-removal.md` (code, lane 1, rev 2) and `plans/2026-10-05-replan-document-pass.md`
-> (docs lane, rev 2). Spec: `specs/2026-10-05-rungs-12-16-replan-design.md` (rev 2.1, rulings 1-3 yes).
->
-> **Order:** (1) the document pass's Task 0 archive chore, before any other box work; (2) the removal pass's
-> Task 0 (dependency sweep and install-key baseline), counted as a lane 1 segment; (3) document segment A
-> (Tasks 1-4) and removal segments at each other's boundaries, never two in flight in the main tree; (4) the
-> box re-confirmation before removal segment B; (5) document segment B after the removal merge; (6) the
-> removal close (Task 5), never during document segment B. Each plan's header carries its ceiling, segments,
-> runner args (`gateLane: "heavy"`, `reviewerModel: "claude-opus-5-5"`), and conductor actions.
+> **Goal:** execute the document pass, `plans/2026-10-05-replan-document-pass.md` (rev 2; spec
+> `specs/2026-10-05-rungs-12-16-replan-design.md`, rev 2.1). Segment A (Tasks 1-4) now, then segment B
+> (Tasks 5-8), then Task 10, the close. The plan's header carries its ceiling, runner args
+> (`gateLane: "heavy"`, `reviewerModel: "claude-opus-5-5"`), and conductor actions.
 >
 > **Run:** `pass-execute` by name, one invocation per segment, runaway guard armed, lane registry updated.
 > Shared heavy-gate lock with the cairn-cms session: a heads-up via SendMessage before any heavy stretch over
 > 15 minutes, and never re-run a full gate on an unchanged commit (`~/.claude/docs/pass-gate-economy.md`).
 >
-> **Then, not in these plans:** 6d rev 2.3 (rebased onto the removal pass, its own review and approval);
-> slice 1 (document lane) and slice 2 (third code lane, own worktree) plans per spec ruling 5.
+> **Then, not in that plan:** 6d revision 2.3 (rebased onto the removal pass, its own review and approval);
+> then the slice 1 (document lane) and slice 2 (third code lane, own worktree) plans per spec ruling 5.
 
 ## Archive record (document pass Task 0, 2026-10-05)
 
@@ -51,16 +48,23 @@ off-box copy is the `.age` file; rung 16's backup remote takes a second. No plai
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | RUNNING: `navidrome-removal` segment A done (Tasks 1, 2a, 2b at `17f4ebd`; 2b accepted under the main_test.go grep correction); segment B next. Spend ~1.3M of 8.0M. Doc segment A not yet run |
+| 1 | main tree (master) | IDLE: `navidrome-removal` closed 2026-10-06 (spend about 3.7M of 8.0M). Next: the document pass, segment A |
 | photos | main tree, separate docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)
 
+- **Handoffs from the Q&A session (Geoff, 2026-10-05), for document segment A:** commit
+  `~/.local/share/dubplate/handoff/2026-10-05-client-roster-audit.md` to `docs/superpowers/research/` (the
+  ruled client roster: Feishin, Rufin, Amperfy, Tempus with Navic alternate); point streamer spec rev 3's roster
+  open item at it; add Melodee's intake pipeline comparison as a named slice 1 study question (one line in rev 3,
+  full scope in the slice 1 plan).
+
 - **To the rungs 12 and 16 re-plan, still live:** enabling the serve unit, the secrets in every `music`-uid
   verb's environment, exercising SMTP from the box, 6c's Ruling 2 (`deploy.sh` halting on `check`'s nonzero
-  exit before restarting `serve`), 6b-ii-b's runbook lines (HISTORY 6b-ii-b), stripping group 2 names but the
-  configured header from a trusted peer, UNI-H2 (`/` to login), group 2 in trailers, `FrontExemption`'s
-  dual-stack match. Moot items: HISTORY 5d-ii.
+  exit before restarting `serve`), 6b-ii-b's runbook lines (HISTORY 6b-ii-b), stripping group 2 names from
+  a trusted peer, UNI-H2 (`/` to login), group 2 in trailers. Moot items: HISTORY 5d-ii; the removal closed
+  `FrontExemption`'s dual-stack match, the configured-header carve-out, and the `SetFallthrough` items. The
+  bearer bypass's first consumer owes a shell-level cookie test (HISTORY).
 - **Bugs and chores:** BACKLOG #15 (serve's direct-mode warning fires on doctor's own probe); two dead
   `docker compose` entries in `.claude/settings.json` for Geoff to drop.
 - **Owed:** the streamer spec's seven open items (rev 2.5) to its study rung; from the site spec, settle

@@ -60,6 +60,23 @@
   at `:187`). Have the probe's requests (`internal/serve/probe.go`) carry a marker
   the warning skips, or have the warning ignore the probe route. Found at the 5d-ii Task 10 sitting,
   2026-10-05 #bug #project:prod-polish
+- [ ] #16 A username may equal another member's normalized address, and `principalCollision`
+  (`internal/auth/roster.go:830`) compares principals only, so two members can share a principal and an audit
+  row can name the wrong one. Refuse the collision on write and at load. Found by the navidrome-removal close,
+  2026-10-06 #security #project:prod-polish
+- [ ] #17 The members page's `FIELD_FOR_OUTCOME` (`web/src/routes/members/+page.svelte:46`) has no
+  `invalid_address` row, so that outcome sets no `aria-invalid` and moves no focus to the address field. Add the
+  row. Found by the navidrome-removal close, 2026-10-06 #web #project:prod-polish
+- [ ] #18 The rendered gate reaches the add-member username field only through `duplicate_username`
+  (`web/scripts/rendered/run.ts`); the client-side pattern refusal is never exercised. Add a row. Found by the
+  navidrome-removal close, 2026-10-06 #web #project:prod-polish
+- [ ] #19 The add-member hint text uses `opacity-70` on `base-content`
+  (`web/src/routes/members/+page.svelte:323`, and the roster line at `:252`), a contrast the theme gate does not
+  measure. Measure it or use a token with a gated pair. Found by the navidrome-removal close, 2026-10-06
+  #web #project:prod-polish
+- [ ] #20 No rendered row asserts the autofill-ignore attributes (`autocomplete=off`, `data-1p-ignore`,
+  `data-lpignore`) on the add-member Address and Username fields. Add one assertion. Found by the
+  navidrome-removal close, 2026-10-06 #web #project:prod-polish
 
 ## Done
 
