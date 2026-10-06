@@ -200,9 +200,9 @@ func TestRegisterDuplicateSubtreePanics(t *testing.T) {
 
 // TestUnroutedPathAnswers404: a path no registered subtree claims
 // answers 404 and invokes no subtree, whether it lies outside the owned
-// prefix or under it. The two answers share a status, so the status
-// does not tell the 404 handler from the root handler; the owned row
-// pins the shell's own answer for the owned half.
+// prefix or under it. The status alone does not tell the shell's 404
+// from a registered subtree's own 404, so the recorder proves the
+// subtree was never invoked.
 func TestUnroutedPathAnswers404(t *testing.T) {
 	tests := []struct {
 		name string

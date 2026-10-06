@@ -4162,8 +4162,8 @@ async function membersListJoinRow(browser: Browser, endpoints: Endpoints, sessio
     // The separator is a suffix of the segment before it (P3): a
     // wrapped line never starts with a dangling "·". The visible
     // gap on one line is the list's own flex gap, not a space in the
-    // text.
-    const wantHasUsername = `has-username@example.test ·hasuser`;
+    // text. The sr-only "Username" label is part of the text content.
+    const wantHasUsername = `has-username@example.test ·Username hasuser`;
     await report({
       id,
       fixture: metaLines.length === 2,

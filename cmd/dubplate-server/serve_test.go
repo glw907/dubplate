@@ -489,23 +489,51 @@ func valueOf(t *testing.T, environ []string, name string) string {
 	return ""
 }
 
-// TestNewServeShell_StateChangingRequestOutsideThePrefixIsDenied proves
-// no bypass pattern is registered: a cookie-carrying POST outside the
-// owned prefix, carrying neither Sec-Fetch-Site nor Origin, is refused
-// with 403 by the origin check, a status the root 404 cannot produce.
-func TestNewServeShell_StateChangingRequestOutsideThePrefixIsDenied(t *testing.T) {
+// TestNewServeShell_StateChangingRequestIsDenied proves no bypass
+// pattern is registered: a cookie-carrying POST carrying neither
+// Sec-Fetch-Site nor Origin is refused with 403 by the origin check, a
+// status neither the root 404 nor any subtree's own answer produces for
+// these paths. The rows are a path outside the owned prefix and one
+// path under every subtree [newServeShell] registers, so a bypass
+// registered for any of them fails its row.
+func TestNewServeShell_StateChangingRequestIsDenied(t *testing.T) {
+	under := func(name string) string { return "/dubplate/" + name }
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"outside the owned prefix", "/outside"},
+		{"request-link", under(requestLinkRouteName)},
+		{"consume-link", under(consumeLinkRouteName)},
+		{"sign-out", under(signOutRouteName)},
+		{"boundary probe", under(serve.ProbeRouteName)},
+		{"roster API", under(rosterRouteName)},
+		{"roster API member", under(rosterRouteName) + "/a-member"},
+		{"members", under(membersRouteName)},
+		{"login", under(loginRouteName)},
+		{"assets", under(assetsRouteName) + "/app.js"},
+		{"fonts", under(fontsRouteName) + "/f.woff2"},
+		{"favicon.svg", under(faviconSVGRouteName)},
+		{"favicon.png", under(faviconPNGRouteName)},
+		{"mark", under(markRouteName)},
+		{"branding.css", under(brandingRouteName)},
+		{"operator.css", under(operatorCSSRouteName)},
+	}
 	shell, err := buildServeShell(t, serveAuthEnviron(t))
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, tt.path, nil)
+			req.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: "a-session-value"})
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, req)
 
-	req := httptest.NewRequest(http.MethodPost, "/outside", nil)
-	req.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: "a-session-value"})
-	rec := httptest.NewRecorder()
-	shell.Handler().ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusForbidden {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusForbidden)
+			if rec.Code != http.StatusForbidden {
+				t.Errorf("POST %s: status = %d, want %d", tt.path, rec.Code, http.StatusForbidden)
+			}
+		})
 	}
 }
 

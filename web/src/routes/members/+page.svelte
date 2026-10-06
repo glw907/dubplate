@@ -100,22 +100,6 @@ The signed-in header renders in every state, loading included, and
     return usernameInput;
   }
 
-  // A roster member's meta line joins only the segments it actually
-  // carries: an address always has one, but an older member's
-  // `username` can be blank, and a bare address followed by a
-  // dangling " · " is the render-and-read's "members lists" defect.
-  // The separator is a suffix of the segment before it, glued on with a
-  // non-breaking space, never a prefix of the segment after: each part
-  // is its own `nowrap` span, so a wrap can only land between two
-  // parts, and gluing the separator to the earlier one means a wrapped
-  // line always starts clean, never with a dangling "·". The visible
-  // gap between parts on one line comes from the list's own flex gap,
-  // not a space in the text.
-  function memberMetaParts(member: RosterMember): string[] {
-    const segments = [member.address, member.username].filter((segment) => segment !== '');
-    return segments.map((segment, i) => (i === segments.length - 1 ? segment : `${segment} ·`));
-  }
-
   // The line for a roster outcome: `#lib/api/outcome.ts`'s shared
   // resolver, except `added`, which names the member the write just
   // added and so needs its own deck function instead of a dictionary
@@ -266,7 +250,12 @@ The signed-in header renders in every state, loading included, and
                 {#if member.admin}<span class="badge">{ADMIN_BADGE_LABEL}</span>{/if}
               </div>
               <div class="font-mono flex flex-wrap gap-x-1 text-xs opacity-70">
-                {#each memberMetaParts(member) as part, i (i)}<span class="whitespace-nowrap">{part}</span>{/each}
+                <!-- The separator trails the address, glued on with a non-breaking
+                     space, and each part is its own nowrap span: a wrap can only
+                     land between the parts, so a wrapped line never starts with a
+                     dangling "·", and a blank username leaves no separator at all.
+                     The gap on one line is the flex gap, not a text space. -->
+                <span class="whitespace-nowrap">{member.address}{#if member.username !== ''}<span aria-hidden="true">&nbsp;·</span>{/if}</span>{#if member.username !== ''}<span class="whitespace-nowrap"><span class="sr-only">{ADD_MEMBER_LABELS.username}{' '}</span>{member.username}</span>{/if}
               </div>
             </div>
           </li>
@@ -286,7 +275,9 @@ The signed-in header renders in every state, loading included, and
           id="add-address"
           name="address"
           type="email"
-          autocomplete="email"
+          autocomplete="off"
+          data-1p-ignore
+          data-lpignore="true"
           required
           class="input validator {erroredField === 'address' ? 'input-error' : ''}"
           aria-invalid={erroredField === 'address' ? 'true' : undefined}
@@ -316,6 +307,9 @@ The signed-in header renders in every state, loading included, and
           id="add-username"
           name="username"
           type="text"
+          autocomplete="off"
+          data-1p-ignore
+          data-lpignore="true"
           pattern="[A-Za-z0-9][A-Za-z0-9._@+\-]*"
           maxlength="64"
           required
