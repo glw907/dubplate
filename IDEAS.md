@@ -61,6 +61,39 @@ A `doctor --mail` or `notify test` verb that sends one message, so an operator p
 works before the first member signs in; doctor never dials SMTP today. Source: rung 5d's
 universality review (UNI-5d M2), 2026-10-05.
 
+### External streamer integration
+A driver seam that wires dubplate to a separate music streamer, with Navidrome as the
+reference driver and Jellyfin on demand, so a group keeps the streamer it already runs.
+Target systems were trimmed to Navidrome and Jellyfin by Geoff on 2026-09-03: living
+Subsonic use is mostly Navidrome itself, Airsonic-Advanced is stale with no theming
+surface, and headless servers' users live in clients. A group would want it to adopt
+dubplate's library tools without changing how it listens. It builds on the verify-identity
+seam and the lifecycle hooks. Retired because dubplate's own OpenSubsonic streamer is the
+first launch (rung 12): one binary serves the web app and the music apps, so a second
+service has nothing left to add. The 0.8 spec's hook 6 retired with it. Source: ruling 4
+of the 2026-10-05 re-plan, Geoff; the entry moved from ROADMAP's folded organizer-spec
+bullets.
+
+### A forward-auth front
+Cloudflare Access, or any identity-aware proxy, as an optional front that signs members
+in before dubplate sees them, with the verify-identity seam reading the identity the front
+asserts. A group already behind such a front would want one sign-in. Music apps
+authenticate with app passwords that a front cannot gate, so a front would guard only the
+web app. The promise also lived in three places (the seam's doc, the `DUBPLATE_ACCESS_*`
+messages, and the runbook's topology section), which Owner ruling 2 removed. Builds on
+`auth.Seam`. Source: Owner ruling 2 of the 2026-10-05 re-plan, Geoff; the entry moved from
+ROADMAP's folded organizer-spec bullets.
+
+### Beets-migration confidence check
+A tool a switcher runs against their own live beets library, to see how dubplate's matcher
+and writer would treat it before committing to the move. A group leaving beets would want
+the proof before the import. It builds on the matcher and the conformance corpus. The
+shadow program was the first form of it, deleted by the removal pass under Owner ruling 1
+because few strangers run a live beets import timer and 0.8's switcher path is
+`dubplate import navidrome`. Source: the `pre-greenfield` tag and commit `680afed`, the
+last commit with `internal/engine/shadow` and its verb, plus Owner ruling 1 of the
+2026-10-05 re-plan, Geoff.
+
 ## Requests
 
 None yet.

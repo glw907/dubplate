@@ -15,44 +15,39 @@
 The universal shared-library server, built fresh and foundation-first on
 a 17-rung ladder per the ratified build spec
 (docs/superpowers/specs/2026-09-02-greenfield-server-build.md, revision
-2.1), which supersedes the organizer spec's own build order while the
-organizer spec continues to govern purview, API shape, and the ops seam
+2.1, with the 2026-10-05 re-plan errata), which supersedes the organizer
+spec's own build order while the organizer spec continues to govern
+purview, API shape, and the ops seam
 (docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md, amended
 through 2026-09-02, folded per "Roadmap revisions this spec carries"
 below). Two tracks dependency-merge at rung 15: the architecture spine
-(foundation, auth, ops seam + store, intake, pipeline, streamer
-drivers/SSO, decision queue, versioned API) and an independent evidence
-track (corpus/harness, Go matcher, shadow against the live estate as
-oracle), closing with the launch cutover (rung 16: beets DB migration,
-box swap, interim retirement) and close-out (rung 17). This launch is a
-0.x pre-release the group uses; 0.8 is the first production release
-(Geoff, 2026-09-25). Launch bar: the
-complete server, Go matcher past the two-tier conformance bar, a clean
-shadow record, layout parity. Old code is salvage tier, frozen at the
-`pre-greenfield` tag under `_salvage/`. Server before TUI is a hard
-boundary: the organizer spec's rung 10 (two-binary split, local TUI) and
-the remote-TUI half of its rung 11 move past launch, unscheduled on the
-new ladder. Rung 1 (foundation) through rung 8 (tag I/O: the writer
-core and reader, PICTURE and the conformance instrument, and the
-shadow's absorption and repoint) are landed, alongside rung 4 (the
-shadow), rung 1b, rung 3, and rung 5's passes 5a and 5b-i (identity,
-auth, config contract, session, and the two state records). Next: rung
-5's pass 5b-ii (roster, limiters, notify, origin check, verify seam,
-handlers).
+(foundation, auth, ops seam + store, intake, pipeline, the built-in
+streamer, decision queue, versioned API) and an independent evidence
+track (corpus/harness, Go matcher), which ends at the corpus and the
+conformance bar. The ladder closes with the first-launch sitting (rung
+16: the beets DB migration and the Navidrome import from the retirement
+archive) and close-out (rung 17). The first launch is 0.8.0 on the
+built-in streamer (Geoff, 2026-10-05, superseding the 2026-09-25 plan for
+a 0.x pre-release): the group listens through dubplate's own OpenSubsonic
+streamer from the first day, with no shadow record in the launch bar and
+no box swap, because the incumbent stack was retired on 2026-10-05. Launch
+bar: the complete server, streamer included, with the Go matcher past the
+two-tier conformance bar and layout parity. Old code is salvage tier,
+frozen at the `pre-greenfield` tag under `_salvage/`. Server before TUI
+is a hard boundary: the organizer spec's rung 10 (two-binary split, local
+TUI) and the remote-TUI half of its rung 11 move past launch,
+unscheduled on the new ladder. Rung 1 (foundation) through rung 8 (tag
+I/O: the writer core and reader, PICTURE and the conformance instrument)
+are landed, alongside rung 4 (whose shadow program the removal pass
+deleted on 2026-10-05; its history is the `pre-greenfield` tag and git),
+rung 1b, rung 3, and rung 5's passes 5a and 5b-i (identity, auth, config
+contract, session, and the two state records). Next: rung 5's pass 5b-ii
+(roster, limiters, notify, origin check, verify seam, handlers); rung 12's
+slices 1 (the Navidrome study) and 2 (the oracle harness) start now,
+beside the ladder.
 
 Folded from the organizer spec's "Roadmap revisions this spec carries"
 (2026-09-01-dubplate-organizer-design.md):
-- Streamer integration ships with the Navidrome reference driver only
-  (rung 12). Target systems are Navidrome and Jellyfin (trimmed from
-  "Jellyfin and Subsonic" by Geoff, 2026-09-03: living Subsonic use
-  is mostly Navidrome itself, Airsonic-Advanced is stale with no
-  theming surface, and headless servers' users live in clients);
-  a Jellyfin driver builds on demand, and the documented driver seam
-  stays universal, so a Subsonic-family driver remains possible if
-  real demand appears. Navidrome is the reference driver, not "the
-  bonus only dubplate can offer": this page's product-essence line
-  already reads generically ("a shared music server") and needs no
-  further edit.
 - The built-ins roster is set by policy and probe-backed demotions
   (rung 11), superseding any fixed plugin roster or adoption-band
   ship criterion; the survey backing it is
@@ -66,18 +61,21 @@ Folded from the organizer spec's "Roadmap revisions this spec carries"
   admin) are separate paths; migration between rungs is not
   backup/restore-only.
 - Auth generalizes to a verify-identity seam (rung 5); magic-link is
-  the reference implementation, Cloudflare Access an optional
-  forward-auth front (rung 12).
+  the reference implementation. (Cloudflare Access as an optional
+  forward-auth front moved to `IDEAS.md`, 2026-10-05.)
 
-## Planned
-
-### dubplate-server 0.8: the built-in streamer `streamer-0-8`
-(Re-keyed from "2.0"/`streamer-2-0`, Geoff, 2026-09-25: 0.8 is the first production release.)
+### Rung 12: the built-in streamer
+(Keyed `streamer-2-0`, re-keyed `streamer-0-8` by Geoff, 2026-09-25: 0.8 is the first production release.
+Folded into the greenfield initiative as rung 12, Geoff, 2026-10-05: the first launch is 0.8.0
+on this streamer, so it is a rung of the ladder, not a release after it.)
 Subsume Navidrome so the estate is one clean integrated system (Geoff,
 2026-09-07; primary driver: one binary a stranger can set up). Brainstormed
 2026-09-07; spec at `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`
-(revision 2.1, ratified 2026-09-07 after four adversarial reviews under
-`docs/superpowers/research/2026-09-07-streamer-2-0-review-*.md`). Settled so
+(revision 3, 2026-10-05; ratified 2026-09-07 after four adversarial reviews under
+`docs/superpowers/research/2026-09-07-streamer-2-0-review-*.md`). Rung 12 is the spec's
+eight slices; the shadow-and-flip slice is deleted. Slices 1 (the study) and 2
+(the harness) start now, ahead of rung 12's turn on the ladder (re-plan
+design, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`). Settled so
 far: OpenSubsonic API first, first-party web player later; the pipeline's
 catalog is the index (no scanner admits music; a reconcile walk only
 reports drift); app passwords minted per device from the roster account;
@@ -93,9 +91,9 @@ Cloudflare, a general Navidrome import, arm64 builds, `dubplate init`, and
 Build shape A: an oracle harness (Navidrome and dubplate
 against one library, responses diffed and adjudicated) and a written
 Navidrome study first, then vertical slices each walked by a named client
-roster. Sequenced after launch (rung 17); the driver seam stays and
-Navidrome remains the escape hatch through 0.8's first months. (Owner ruling, Geoff, 2026-10-05: Navidrome, all the Cloudflare infrastructure, and the box's beets may be removed whenever the conductor likes, since the box now only serves dubplate's development; the escape hatch and rungs 12 and 16 are re-planned at the next brainstorm.) Navidrome
-is GPLv3: study it for behavior, never copy; its permissive dependencies
+roster. dubplate integrates with no external streamer: the driver seam, hook 6,
+and the Navidrome and Jellyfin targets are retired (Geoff, 2026-10-05; the entry
+moved to `IDEAS.md`). Navidrome is GPLv3: study it for behavior, never copy; its permissive dependencies
 (taglib via wazero, x/image, fscache) are ours to use. **Standing rule
 while the ladder builds:** each rung's plan weighs its surface against
 the 0.8 spec's forward-hooks list (content hash and folded sort key on
@@ -114,6 +112,8 @@ identity spec's language, and it builds on 0.8's saved per-member play queue
 The bump waits on a svelte-check release that supports it; 4.7.6 does not, and `--tsgo`
 hits rootDir errors (TypeScript #30693, sveltejs/language-tools #2891). No hurry before then.
 
+## Planned
+
 ### dubplate-server 0.9: the paired local client `local-client-0-9`
 The 0.9 feature (Geoff, 2026-09-25 ruling on version numbering): a local client
 paired with dubplate-server. Scope is unspecified; nothing else about it is
@@ -124,7 +124,7 @@ settled yet.
 feature; 0.8 and 0.9 stay FLAC-only.)
 Ruled by Geoff, 2026-09-08 (rung 8 spec, owner ruling 5, closing fork
 B): 0.8 and 0.9 ship FLAC-only, and the other formats target the 1.0
-release, sequenced after launch and after `streamer-0-8`. The ladder, each
+release, sequenced after the 0.8.0 launch, which the rung 12 streamer carries. The ladder, each
 step its own pass in the shape of rung 8 (a per-container writer behind
 the seam, a golden container, a corpus stratum derived through beets,
 and a conformance run against the ledger): MP3 (ID3v2.4, the recorded
@@ -199,8 +199,8 @@ two-binary shape, remote-capable TUI, and plugin built-ins all stand,
 sequenced behind the server per the 2026-09-02 rulings.
 
 ### Packaging `packaging`
-Make the estate easy for a stranger to set up from its ingredients (Navidrome,
-beets or its harvested successor, the binaries, their Cloudflare account, any
+Make the estate easy for a stranger to set up from its ingredients (beets
+or its harvested successor, the binaries, their Cloudflare account, any
 VPS). Opens with a brainstorm; context staged in agent memory (distribution
 model: binary-as-installer vs clone floor; cloud-init generation; existing-box
 bootstrap; pre-setup-VPS option map). **Runs after `dubplate-organizer`**
