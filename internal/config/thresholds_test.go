@@ -116,7 +116,7 @@ func TestParseInt_InvalidDefaultIsRegistrationError(t *testing.T) {
 }
 
 func TestParseDuration(t *testing.T) {
-	th := Threshold{Key: "DUBPLATE_SHADOW_FLOOR", Kind: KindDuration, Default: "720h", Doc: "a Go duration"}
+	th := Threshold{Key: "DUBPLATE_TEST_WINDOW", Kind: KindDuration, Default: "720h", Doc: "a Go duration"}
 	tests := []struct {
 		name    string
 		environ []string
@@ -124,9 +124,9 @@ func TestParseDuration(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "unset takes the default", want: 720 * time.Hour},
-		{name: "empty takes the default", environ: []string{"DUBPLATE_SHADOW_FLOOR="}, want: 720 * time.Hour},
-		{name: "set wins", environ: []string{"DUBPLATE_SHADOW_FLOOR=48h"}, want: 48 * time.Hour},
-		{name: "a bad value errors", environ: []string{"DUBPLATE_SHADOW_FLOOR=soon"}, wantErr: true},
+		{name: "empty takes the default", environ: []string{"DUBPLATE_TEST_WINDOW="}, want: 720 * time.Hour},
+		{name: "set wins", environ: []string{"DUBPLATE_TEST_WINDOW=48h"}, want: 48 * time.Hour},
+		{name: "a bad value errors", environ: []string{"DUBPLATE_TEST_WINDOW=soon"}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

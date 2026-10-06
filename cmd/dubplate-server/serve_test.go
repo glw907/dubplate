@@ -250,7 +250,7 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 }
 
 // TestNewServeCmd_WiredIntoRootCmd proves newServeCmd's line sits
-// inside newRootCmd's AddCommand block, beside newShadowCmd's: a verb
+// inside newRootCmd's AddCommand block, beside newDoctorCmd's: a verb
 // constructed but never added is unreachable through the command tree
 // cobra dispatches, and root.Find alone would not tell the two apart
 // from a verb reachable only because some other command re-added it.
@@ -262,20 +262,20 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // sentinel, which can only happen if the added command resolved
 // configuration. No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
-	var serveCmd, shadowCmd bool
+	var serveCmd, doctorCmd bool
 	for _, child := range newRootCmd().Commands() {
 		switch child.Use {
 		case "serve":
 			serveCmd = true
-		case "shadow":
-			shadowCmd = true
+		case "doctor":
+			doctorCmd = true
 		}
 	}
 	if !serveCmd {
-		t.Error("newRootCmd().Commands() carries no serve verb, want it added beside shadow")
+		t.Error("newRootCmd().Commands() carries no serve verb, want it added beside doctor")
 	}
-	if !shadowCmd {
-		t.Fatal("newRootCmd().Commands() carries no shadow verb; the AddCommand block this test reads against has moved")
+	if !doctorCmd {
+		t.Fatal("newRootCmd().Commands() carries no doctor verb; the AddCommand block this test reads against has moved")
 	}
 
 	// newRootCmd reads os.Environ() at construction, so the process

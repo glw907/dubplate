@@ -138,9 +138,9 @@ func TestCollisionGate_WithinFamily(t *testing.T) {
 			},
 		},
 		{
-			name: "integration classes, single class repeats a key across Required and Optional",
+			name: "integration classes, single class repeats a Required key",
 			fn: func(r *Registry) {
-				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{"DUBPLATE_TEST_DUP"}, Optional: []string{"DUBPLATE_TEST_DUP"}})
+				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{"DUBPLATE_TEST_DUP", "DUBPLATE_TEST_DUP"}})
 			},
 		},
 		{
@@ -180,43 +180,23 @@ func TestCollisionGate_CrossFamily(t *testing.T) {
 	}
 }
 
-// TestCollisionGate_OptionalCrossFamily proves an integration class's
-// Optional key claims across families exactly as Flag and Required do
-// (Resolution B): an Optional key that repeats a reserved-class key
-// panics naming both families, rather than registering silently.
-func TestCollisionGate_OptionalCrossFamily(t *testing.T) {
+// TestCollisionGate_RequiredCrossFamily proves an integration class's
+// Required key claims across families exactly as its Flag does: a
+// Required key that repeats a reserved-class key panics naming both
+// families, rather than registering silently.
+func TestCollisionGate_RequiredCrossFamily(t *testing.T) {
 	r := NewRegistry()
-	r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_OPTIONAL_CROSS"}})
+	r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_REQUIRED_CROSS"}})
 
 	msg := panicMessage(t, func() {
-		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Optional: []string{"DUBPLATE_TEST_OPTIONAL_CROSS"}})
+		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{"DUBPLATE_TEST_REQUIRED_CROSS"}})
 	})
-	if !strings.Contains(msg, "DUBPLATE_TEST_OPTIONAL_CROSS") {
+	if !strings.Contains(msg, "DUBPLATE_TEST_REQUIRED_CROSS") {
 		t.Errorf("panic message %q does not name the offending key", msg)
 	}
 	if !strings.Contains(msg, familyReserved) || !strings.Contains(msg, familyIntegration) {
 		t.Errorf("panic message %q does not name both families", msg)
 	}
-}
-
-// TestCollisionGate_OptionalThresholdPairing_ReverseOrder proves the
-// R5 pairing ([Registry.AddIntegrationClass]'s own doc) also holds in
-// the order production never exercises: a threshold registered first,
-// then an integration class carrying that same key as Optional.
-// AddIntegrationClass's own `continue` exemption for a key already
-// claimed by the thresholds family is what this guards.
-func TestCollisionGate_OptionalThresholdPairing_ReverseOrder(t *testing.T) {
-	r := NewRegistry()
-	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_REVERSE_PAIR", Default: "1"})
-
-	func() {
-		defer func() {
-			if rec := recover(); rec != nil {
-				t.Fatalf("registering the already-thresholded key as Optional panicked: %v", rec)
-			}
-		}()
-		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_REVERSE_FLAG", Optional: []string{"DUBPLATE_TEST_REVERSE_PAIR"}})
-	}()
 }
 
 // TestCollisionGate_MissingPrefix fires O5 class 3: a declared key
@@ -337,7 +317,7 @@ func TestCollisionGate_WallRowNeitherKeyNorStatus(t *testing.T) {
 
 // TestCollisionGate_IntegrationFlag fires O5 class 5: an integration
 // class with an empty Flag, or whose Flag also appears in its own
-// Required or Optional set.
+// Required set.
 func TestCollisionGate_IntegrationFlag(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -352,11 +332,6 @@ func TestCollisionGate_IntegrationFlag(t *testing.T) {
 		{
 			name:  "flag in required",
 			class: IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{"DUBPLATE_TEST_FLAG"}},
-			want:  "integration class's Flag DUBPLATE_TEST_FLAG also appears in its own key set",
-		},
-		{
-			name:  "flag in optional",
-			class: IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Optional: []string{"DUBPLATE_TEST_FLAG"}},
 			want:  "integration class's Flag DUBPLATE_TEST_FLAG also appears in its own key set",
 		},
 	}

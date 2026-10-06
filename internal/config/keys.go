@@ -175,31 +175,23 @@ func supersessionOf(reg *Registry, name string) (string, bool) {
 // load error naming the flag, which is what keeps a half-configured
 // integration from running unattended and observing nothing.
 //
-// Required and Optional differ in what Load does with them, not in what
-// rejectNamespace accepts. Load requires every Required key when the
-// flag is set. An Optional key is accepted and never required, because
-// it is a registered threshold whose Default stands when it is unset
-// (thresholds.go:60-79, parseThreshold, shared by ParseInt and
-// ParseDuration).
+// Load requires every Required key when the flag is set.
 type IntegrationClass struct {
 	Name     string
 	Rung     int
 	Flag     string
 	Required []string
-	Optional []string
 }
 
 // integrationClassOf reports the integration class name belongs to in
-// reg, by its Flag, a Required key, or an Optional key, if any. It
-// walks reg's own declared classes rather than a package-level table,
-// so a second integration class needs no second lookup site (rung 4's
-// class registers itself as an example, from
-// cmd/dubplate-server/shadow.go).
+// reg, by its Flag or a Required key, if any. It walks reg's own
+// declared classes rather than a package-level table, so a second
+// integration class needs no second lookup site.
 //
 // ruled, conductor 2026-09-07, R5
 func integrationClassOf(reg *Registry, name string) (IntegrationClass, bool) {
 	for _, class := range reg.integrationClasses {
-		if name == class.Flag || slices.Contains(class.Required, name) || slices.Contains(class.Optional, name) {
+		if name == class.Flag || slices.Contains(class.Required, name) {
 			return class, true
 		}
 	}

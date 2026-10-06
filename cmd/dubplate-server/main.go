@@ -8,7 +8,6 @@
 //   - version: print the build version and matcher commit (rung 1)
 //   - check: validate configuration, exit nonzero on failure (rung 1)
 //   - doctor: report the full config wall's effective values (rung 1)
-//   - shadow: run the matcher against an existing library without writing (rung 4)
 //   - serve: run the HTTP server (rung 5)
 //   - backup: snapshot the library database and sync it to remote storage (rung 6)
 //   - restore: restore a library snapshot (rung 6)
@@ -39,16 +38,14 @@ var version = "dev"
 
 // matcherCommit is the Go matcher revision this build carries, set via
 // -ldflags "-X main.matcherCommit=..." at build time. It stays "dev"
-// for workstation builds, and shadow observe REFUSES to run on "dev"
-// or on an empty value, because an unstamped divergence cannot be
-// mechanically re-evaluated and is therefore worse than no
-// observation.
+// for workstation builds. It names the matcher a deployed binary
+// scores with, so an operator can read which revision produced a
+// decision.
 //
 // scripts/deploy.sh is the only build path that sets it, passing
 // -X main.matcherCommit= through make build-linux's LDFLAGS variable;
 // every other build (bare `go build`, `make build`, a bare `make
-// build-linux`) leaves it "dev", so the refusal keeps firing for
-// workstation builds.
+// build-linux`) leaves it "dev".
 var matcherCommit = "dev"
 
 func main() {
@@ -109,8 +106,6 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 // (merge carry 2).
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	registerShadowIntegration(reg)
-	registerShadowThresholds(reg)
 	registerServeConfig(reg)
 	registerAuthConfig(reg)
 	registerStoreConfig(reg)
@@ -140,7 +135,6 @@ func newRootCmd() *cobra.Command {
 		newVersionCmd(),
 		newCheckCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newShadowCmd(os.Environ(), reg, matcherCommit, os.Stdout, os.Stderr),
 		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
@@ -152,10 +146,7 @@ func newRootCmd() *cobra.Command {
 
 // newVersionCmd prints two labeled rows, "version" then
 // "matcher-commit", in doctor.go's own printRow shape. The
-// matcher-commit row is what a real deploy's smoke step asserts on
-// (Resolution R4): shadow observe refuses to run on a "dev" or empty
-// matcherCommit, so an operator reading this output can see the same
-// value the refusal checks before it ever reaches the box.
+// matcher-commit row is what a real deploy's smoke step asserts on.
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",

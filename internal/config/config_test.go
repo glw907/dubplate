@@ -252,7 +252,6 @@ func classificationRegistry() *Registry {
 		Rung:     99,
 		Flag:     "DUBPLATE_CLASSIFY_ENABLED",
 		Required: []string{"DUBPLATE_CLASSIFY_REQUIRED"},
-		Optional: []string{"DUBPLATE_CLASSIFY_OPTIONAL"},
 	})
 	reg.AddThreshold(Threshold{
 		Key:     "DUBPLATE_CLASSIFY_THRESHOLD",
@@ -327,7 +326,6 @@ func TestClassificationFamilies(t *testing.T) {
 		{name: "superseded name", key: "DUBPLATE_CLASSIFY_SUPERSEDED", want: superseded},
 		{name: "integration flag", key: "DUBPLATE_CLASSIFY_ENABLED", want: integration},
 		{name: "integration required key", key: "DUBPLATE_CLASSIFY_REQUIRED", want: integration},
-		{name: "integration optional key", key: "DUBPLATE_CLASSIFY_OPTIONAL", want: integration},
 		{name: "registered threshold", key: "DUBPLATE_CLASSIFY_THRESHOLD", want: threshold},
 		{name: "store-homed setting", key: "DUBPLATE_CLASSIFY_SETTING", want: setting},
 		{name: "identity source selector", key: "DUBPLATE_CLASSIFY_SELECTOR", want: source},
@@ -438,20 +436,14 @@ func TestLoad_StoreHomedSettingIsDeclaredNeverParsed(t *testing.T) {
 }
 
 // fixtureIntegrationClass is a fixture integration class this test
-// declares for itself, with no rung-4 name. It drives Load's generic
-// required-when-enabled resolution (Resolution R5): the eight-row
-// table TestLoadShadowIntegration used to prove moved verbatim to
-// cmd/dubplate-server/shadow_test.go, where the shadow class now
-// lives, and this test proves the same job generically instead.
+// declares for itself. It drives Load's generic required-when-enabled
+// resolution (Resolution R5).
 var fixtureIntegrationClass = IntegrationClass{
 	Name: "fixture",
 	Flag: "DUBPLATE_FIXTURE_ENABLED",
 	Required: []string{
 		"DUBPLATE_FIXTURE_REQUIRED_A",
 		"DUBPLATE_FIXTURE_REQUIRED_B",
-	},
-	Optional: []string{
-		"DUBPLATE_FIXTURE_OPTIONAL",
 	},
 }
 
@@ -507,11 +499,6 @@ func TestLoadIntegrationRequiredWhenEnabled(t *testing.T) {
 		{
 			name:        "flag set with every required key resolves, reachable by class name",
 			extra:       append([]string{"DUBPLATE_FIXTURE_ENABLED=true"}, requiredKeys...),
-			wantEnabled: true,
-		},
-		{
-			name:        "an optional key is accepted and never required",
-			extra:       append([]string{"DUBPLATE_FIXTURE_ENABLED=true", "DUBPLATE_FIXTURE_OPTIONAL=x"}, requiredKeys...),
 			wantEnabled: true,
 		},
 		{
@@ -933,7 +920,6 @@ func TestLoad_UnparseableFlagIsNotSetWithout(t *testing.T) {
 	environ := append(slices.Clone(baseEnviron()),
 		"DUBPLATE_FIXTURE_ENABLED=maybe",
 		"DUBPLATE_FIXTURE_REQUIRED_A=a-value",
-		"DUBPLATE_FIXTURE_OPTIONAL=x",
 	)
 	_, err := Load(environ, fixtureRegistry())
 	if err == nil {

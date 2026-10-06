@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -39,10 +40,9 @@ func TestRootCmd_UnknownSubcommand(t *testing.T) {
 // TestNewRootCmd_ConstructsIndependentRegistries proves R12's
 // double-registration hazard is gone under R1's value registry:
 // newRootCmd runs more than once in a test binary (this file's own
-// TestRootCmd_UnknownSubcommand, plus doctor_test.go's direct
-// registerShadowThresholds calls), and each call now builds its own
-// fresh *config.Registry rather than sharing one. A registry panics on
-// a duplicate key (internal/config/registry.go), so a newRootCmd that
+// TestRootCmd_UnknownSubcommand), and each call builds its own fresh
+// *config.Registry rather than sharing one. A registry panics on a
+// duplicate key (internal/config/registry.go), so a newRootCmd that
 // leaked a shared registry across calls would panic here on the
 // second construction; this replaces the retired
 // TestNewRootCmd_RegistersShadowThresholdsOnce, whose own proof read
@@ -152,5 +152,24 @@ func TestNewRootCmd_RegistersRestore(t *testing.T) {
 	}
 	if found.Name() != "restore" {
 		t.Errorf("Find(restore) = %q, want the restore verb", found.Name())
+	}
+}
+
+// TestProductionRegistry_RefusesRetiredShadowKey proves a retired
+// DUBPLATE_SHADOW_* key in an otherwise valid environment fails the
+// load as an unknown key, so a stale server.env is refused rather
+// than silently ignored.
+func TestProductionRegistry_RefusesRetiredShadowKey(t *testing.T) {
+	environ := authEnviron(t)
+	if _, err := config.Load(environ, productionRegistry()); err != nil {
+		t.Fatalf("fixture state: config.Load without the retired key: %v", err)
+	}
+
+	_, err := config.Load(append(environ, "DUBPLATE_SHADOW_ENABLED=true"), productionRegistry())
+	if err == nil {
+		t.Fatal("config.Load with DUBPLATE_SHADOW_ENABLED set error = nil, want unknown key")
+	}
+	if want := "DUBPLATE_SHADOW_ENABLED: unknown configuration key"; !strings.Contains(err.Error(), want) {
+		t.Errorf("config.Load error = %q, want it to contain %q", err, want)
 	}
 }

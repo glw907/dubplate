@@ -39,7 +39,7 @@ func loadCachedUnidecodeWheel(t *testing.T) (path string, wheel []byte) {
 // installTestUnidecodeTable installs a valid table into stateDir by
 // running the install verb's own logic against --from the
 // workstation's cached wheel, never by copying bytes: the leaf a
-// doctor or shadow test needs already installed.
+// doctor test needs already installed.
 func installTestUnidecodeTable(t *testing.T, stateDir string) {
 	t.Helper()
 	path, _ := loadCachedUnidecodeWheel(t)

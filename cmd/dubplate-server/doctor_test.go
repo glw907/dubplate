@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -101,8 +102,6 @@ func TestDoctorCmd(t *testing.T) {
 			environ := replaceKey(tt.environ, "DUBPLATE_STATE_DIR", stateDir)
 
 			reg := config.NewRegistry()
-			registerShadowIntegration(reg)
-			registerShadowThresholds(reg)
 
 			var stdout, stderr bytes.Buffer
 			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
@@ -1063,52 +1062,41 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_ShadowRows proves the duration threshold renders as a
-// duration rather than "invalid:", and the shadow integration row
-// reflects its flag state.
-func TestDoctorCmd_ShadowRows(t *testing.T) {
+// TestDoctorCmd_IntegrationRow proves an integration class's row
+// reports its enable flag: disabled until the flag is set, enabled
+// once it is. The duration-threshold rendering that rides alongside it
+// is proven by TestDoctorCmd_StoreBusyTimeoutDefault.
+func TestDoctorCmd_IntegrationRow(t *testing.T) {
+	useBackupStandin(t)
+	t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
+
 	reg := config.NewRegistry()
-	registerShadowIntegration(reg)
-	registerShadowThresholds(reg)
-	stateDir := t.TempDir()
-	installTestUnidecodeTable(t, stateDir)
-	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
+	registerBackupConfig(reg)
+	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
-	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v, want nil", err)
+	tests := []struct {
+		name  string
+		extra []string
+		want  string
+	}{
+		{name: "flag unset", want: "disabled"},
+		{name: "flag set", extra: []string{
+			"DUBPLATE_BACKUP_ENABLED=true",
+			"DUBPLATE_BACKUP_REMOTE=name:" + t.TempDir(),
+			"RCLONE_CONFIG_NAME_TYPE=local",
+		}, want: "enabled"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(append(slices.Clone(environ), tt.extra...), reg, &stdout, &stderr)
+			_ = cmd.Execute()
 
-	wantFloor := fmt.Sprintf("%-32s %s\n", "DUBPLATE_SHADOW_FLOOR", "720h0m0s")
-	if !strings.Contains(stdout.String(), wantFloor) {
-		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantFloor)
-	}
-
-	wantBudget := fmt.Sprintf("%-32s %s\n", "DUBPLATE_SHADOW_BUDGET", "60")
-	if !strings.Contains(stdout.String(), wantBudget) {
-		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantBudget)
-	}
-
-	wantDisabled := fmt.Sprintf("%-32s %s\n", "shadow", "disabled")
-	if !strings.Contains(stdout.String(), wantDisabled) {
-		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantDisabled)
-	}
-
-	enabledEnviron := append(environ,
-		"DUBPLATE_SHADOW_ENABLED=true",
-		"DUBPLATE_SHADOW_OBSERVE_DIR=/srv/inbox",
-		"DUBPLATE_SHADOW_ORACLE_STATE_DIR=/var/lib/incumbent",
-		"DUBPLATE_SHADOW_REVIEW_DIR=/srv/review",
-	)
-	stdout.Reset()
-	cmd = newDoctorCmd(enabledEnviron, reg, &stdout, &stderr)
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v, want nil", err)
-	}
-	wantEnabled := fmt.Sprintf("%-32s %s\n", "shadow", "enabled")
-	if !strings.Contains(stdout.String(), wantEnabled) {
-		t.Errorf("stdout = %q, want it to contain %q", stdout.String(), wantEnabled)
+			want := fmt.Sprintf("%-32s %s\n", "backup", tt.want)
+			if !strings.Contains(stdout.String(), want) {
+				t.Errorf("stdout = %q, want it to contain %q", stdout.String(), want)
+			}
+		})
 	}
 }
 

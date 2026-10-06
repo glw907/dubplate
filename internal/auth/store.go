@@ -116,8 +116,7 @@ func RecordID(kind, value string) string {
 // validID reports whether id is safe to use as a single path segment
 // under root. Ids are digest-derived (RecordID), so anything else is a
 // bug rather than input, and this check makes it a loud one rather than
-// a path traversal (shape adopted from
-// internal/engine/shadow/store.go:66-70).
+// a path traversal.
 func validID(id string) bool {
 	if id == "" || id == "." || id == ".." {
 		return false

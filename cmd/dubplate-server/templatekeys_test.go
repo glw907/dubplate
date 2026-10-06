@@ -32,8 +32,8 @@ var templateEnvPaths = []string{
 // It lives in this package rather than in internal/config as a
 // consequence of the rung 1b registry contract: a rung declares its
 // keys in its own file, so internal/config's base registry cannot see
-// DUBPLATE_SHADOW_* (rung 4, shadow.go) or DUBPLATE_SERVE_* (rung 5,
-// serve.go), and classifying a template there would report every such
+// DUBPLATE_BACKUP_* (backup.go) or DUBPLATE_SERVE_*
+// (serve.go), and classifying a template there would report every such
 // name as unknown. Only the composed production registry knows the
 // whole wall, and productionRegistry (serve_test.go) builds it exactly
 // as newRootCmd does. Rung 5 is the pass that moved this test, because
@@ -105,7 +105,7 @@ func classifyKey(reg *config.Registry, name string) string {
 		return "superseded"
 	}
 	for _, class := range reg.IntegrationClasses() {
-		if name == class.Flag || slices.Contains(class.Required, name) || slices.Contains(class.Optional, name) {
+		if name == class.Flag || slices.Contains(class.Required, name) {
 			return "integration class"
 		}
 	}

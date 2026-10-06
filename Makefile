@@ -2,8 +2,7 @@ BINARY := dubplate-server
 
 # LDFLAGS defaults to empty so a bare `make build-linux` from a
 # workstation still produces a "dev"-stamped binary (main.go's own
-# version and matcherCommit defaults), which keeps shadow observe's
-# refusal firing for workstation builds. deploy.sh is the only caller
+# version and matcherCommit defaults). deploy.sh is the only caller
 # that sets it, passing the two -X main.version=/-X main.matcherCommit=
 # flags a real release stamps.
 LDFLAGS :=

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
-	"github.com/glw907/dubplate/internal/engine/matcher"
 	"github.com/glw907/dubplate/internal/engine/matcher/unidecode"
 	"github.com/spf13/cobra"
 )
@@ -32,9 +31,9 @@ const unidecodeDoctorRow = "unidecode"
 const unidecodeLeafName = "unidecode"
 
 // unidecodeLeafPerm and unidecodeTablePerm are the leaf's and the
-// table file's modes: the shadow leaf's own tier, since the table is
-// public data whose integrity comes from its checksum at every load,
-// never from its mode.
+// table file's modes: world-readable, since the table is public data
+// whose integrity comes from its checksum at every load, never from
+// its mode.
 const (
 	unidecodeLeafPerm  = 0o755
 	unidecodeTablePerm = 0o644
@@ -57,8 +56,9 @@ func unidecodeTablePath(stateDir string) string {
 }
 
 // loadUnidecodeTable reads and verifies the table at stateDir's
-// unidecode leaf. It is the one load doctor's row and every scoring
-// verb share: it touches the network never, and creates nothing.
+// unidecode leaf. The import pipeline's scoring is the table's
+// consumer; doctor's row reads it through this load. It touches the
+// network never, and creates nothing.
 func loadUnidecodeTable(stateDir string) (*unidecode.Table, error) {
 	path := unidecodeTablePath(stateDir)
 	data, err := os.ReadFile(path)
@@ -70,20 +70,6 @@ func loadUnidecodeTable(stateDir string) (*unidecode.Table, error) {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	return table, nil
-}
-
-// setUnidecodeTransliterator loads stateDir's table and installs its
-// lookup as the matcher's transliterator. A scoring verb calls it
-// before shadow.OpenStore, so a missing or invalid table never leaves
-// a half-started store.
-func setUnidecodeTransliterator(stateDir string) error {
-	table, err := loadUnidecodeTable(stateDir)
-	if err != nil {
-		return fmt.Errorf("load transliteration table: %w; run dubplate-server %s",
-			err, unidecodeInstallVerbName)
-	}
-	matcher.SetTransliterator(table.Lookup)
-	return nil
 }
 
 // unidecodeRowStatus renders doctor's "unidecode" row: "not checked"

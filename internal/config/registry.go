@@ -197,36 +197,25 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // AddIntegrationClass registers class as an adopter-optional
 // integration, distinct from a reserved class because it is enabled by
 // a flag rather than blocked until a rung lands (Resolution R2). class
-// must carry a non-empty Flag that appears in neither its own Required
-// nor its own Optional set; an integration whose enable flag is itself
-// one of the keys it gates could never be told apart from a required
-// row in an error message.
+// must carry a non-empty Flag that is not one of its own Required
+// keys; an integration whose enable flag is itself one of the keys it
+// gates could never be told apart from a required row in an error
+// message.
 //
-// Flag, Required, and Optional all claim across families, so an
-// Optional key that collides with an owned-wall, reserved, or
-// superseded name is refused rather than registering silently. The one
-// deliberate overlap is an Optional key that is also a registered
-// [Threshold]: an Optional row is accepted and never required
-// precisely because it carries a threshold default (IntegrationClass's
-// own doc), so the same key legitimately carries two declarations, one
-// per family (Resolution R5, re-expressing rung 4's ruling 1: rung 4's
-// shadow class registers DUBPLATE_SHADOW_FLOOR and DUBPLATE_SHADOW_BUDGET
-// this way). This method and [Registry.AddThreshold] each recognize
-// that one pairing and skip the claim rather than panicking on it.
+// Flag and Required claim across families, so a key that collides
+// with an owned-wall, reserved, or superseded name is refused rather
+// than registering silently.
 //
 // ruled, conductor 2026-09-07, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	if class.Flag == "" {
 		panic(fmt.Sprintf("%s: integration class declared with an empty Flag", class.Name))
 	}
-	if slices.Contains(class.Required, class.Flag) || slices.Contains(class.Optional, class.Flag) {
+	if slices.Contains(class.Required, class.Flag) {
 		panic(fmt.Sprintf("%s: integration class's Flag %s also appears in its own key set", class.Name, class.Flag))
 	}
 
-	keys := make([]string, 0, 1+len(class.Required)+len(class.Optional))
-	keys = append(keys, class.Flag)
-	keys = append(keys, class.Required...)
-	keys = append(keys, class.Optional...)
+	keys := append([]string{class.Flag}, class.Required...)
 
 	for _, key := range keys {
 		requirePrefix(familyIntegration, key)
@@ -238,20 +227,13 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	}
 	for _, key := range keys {
 		for _, existing := range r.integrationClasses {
-			if key == existing.Flag || slices.Contains(existing.Required, key) || slices.Contains(existing.Optional, key) {
+			if key == existing.Flag || slices.Contains(existing.Required, key) {
 				panicDuplicate(key, familyIntegration, familyIntegration)
 			}
 		}
 	}
 
-	claimed := append([]string{class.Flag}, class.Required...)
-	for _, key := range claimed {
-		r.claim(familyIntegration, key)
-	}
-	for _, key := range class.Optional {
-		if existing, ok := r.claims[key]; ok && existing == familyThresholds {
-			continue // already a registered threshold: the documented pairing (R5)
-		}
+	for _, key := range keys {
 		r.claim(familyIntegration, key)
 	}
 	r.integrationClasses = append(r.integrationClasses, class)
@@ -277,24 +259,8 @@ func (r *Registry) AddThreshold(t Threshold) {
 		panicDuplicate(t.Key, familyThresholds, familyThresholds)
 	}
 	validateThresholdDefault(t)
-	if !r.isOptionalIntegrationKey(t.Key) {
-		r.claim(familyThresholds, t.Key)
-	}
+	r.claim(familyThresholds, t.Key)
 	r.thresholds = append(r.thresholds, t)
-}
-
-// isOptionalIntegrationKey reports whether key is already registered as
-// some integration class's Optional row. An Optional row may also be a
-// registered threshold, the R5 pairing ([Registry.AddIntegrationClass]'s
-// own doc); that pairing is the one exemption AddThreshold makes from
-// the generic cross-family claim, rather than panicking on it.
-func (r *Registry) isOptionalIntegrationKey(key string) bool {
-	for _, class := range r.integrationClasses {
-		if slices.Contains(class.Optional, key) {
-			return true
-		}
-	}
-	return false
 }
 
 // validateThresholdDefault panics if t's Default cannot be parsed

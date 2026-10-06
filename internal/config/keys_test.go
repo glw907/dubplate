@@ -133,15 +133,15 @@ func TestSupersessionOf(t *testing.T) {
 	}
 }
 
-// TestIntegrationClassesCoverEveryShadowKey proves no integration key
+// TestIntegrationClassesCoverEveryKey proves no integration key
 // is declared without appearing in its own class: every name a class
-// claims (its Flag, its Required rows, its Optional rows) resolves
+// claims (its Flag and its Required rows) resolves
 // back to that same class through integrationClassOf, which is what
 // rejectNamespace's acceptance path depends on. Retargeted at the
 // registry's integration family (Resolution R5), driven by
 // fixtureIntegrationClass (config_test.go), the fixture this package's
-// own tests declare rather than a rung-4 name.
-func TestIntegrationClassesCoverEveryShadowKey(t *testing.T) {
+// own tests declare.
+func TestIntegrationClassesCoverEveryKey(t *testing.T) {
 	reg := fixtureRegistry()
 	classes := reg.IntegrationClasses()
 	if len(classes) != 2 {
@@ -151,11 +151,10 @@ func TestIntegrationClassesCoverEveryShadowKey(t *testing.T) {
 	if c.Name != fixtureIntegrationClass.Name || c.Flag != fixtureIntegrationClass.Flag {
 		t.Errorf("class = %+v, want the fixture class", c)
 	}
-	if len(c.Required) != 2 || len(c.Optional) != 1 {
-		t.Errorf("Required/Optional = %d/%d, want 2/1", len(c.Required), len(c.Optional))
+	if len(c.Required) != 2 {
+		t.Errorf("Required = %d, want 2", len(c.Required))
 	}
 	names := append([]string{c.Flag}, c.Required...)
-	names = append(names, c.Optional...)
 	for _, name := range names {
 		if got, ok := integrationClassOf(reg, name); !ok || got.Name != c.Name {
 			t.Errorf("integrationClassOf(%s) = %v, %v; want the fixture class", name, got.Name, ok)

@@ -86,7 +86,7 @@ func TestAddSetting_Panics(t *testing.T) {
 		{
 			name: "a key already an integration class key",
 			setup: func(r *Registry) {
-				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Optional: []string{key}})
+				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{key}})
 			},
 			s:    testSetting(key),
 			want: []string{key, familyIntegration, familySettings},

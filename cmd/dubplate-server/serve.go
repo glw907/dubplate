@@ -66,11 +66,10 @@ const (
 )
 
 // serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
-// are the rung 5a serve shell's own three keys, declared in this file
-// rather than internal/config (R-C, following rung 4's
-// registerShadowThresholds precedent in shadow.go): the alternative,
-// declaring inside internal/serve, would make the shell import
-// internal/config, which it has no reason to do.
+// are the serve shell's own three keys, declared in this file rather
+// than internal/config: the alternative, declaring inside
+// internal/serve, would make the shell import internal/config, which
+// it has no reason to do.
 //
 // The three keys replace internal/config/keys.go's own "serve" reserved
 // class, deleted in the same commit as this declaration (the removal
@@ -178,8 +177,7 @@ var servePrefixThreshold = config.Threshold{
 }
 
 // registerServeConfig adds the serve shell's three thresholds to reg,
-// a plain function on registerShadowThresholds' own precedent
-// (shadow.go): newRootCmd builds a fresh, independent registry on
+// a plain function: newRootCmd builds a fresh, independent registry on
 // every construction, so registering onto it can never collide with a
 // prior process's own registration.
 func registerServeConfig(reg *config.Registry) {

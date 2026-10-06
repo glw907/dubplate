@@ -20,12 +20,11 @@
 //     membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
-//     required at Load once the flag is set, and its Optional rows
-//     are accepted as registered thresholds rather than wall fields.
-//     Setting a Required or Optional row without its flag enabled is
-//     a load error naming the flag. See [Registry.IntegrationClasses]
-//     for the exact membership; the owning package registers its own
-//     class (the shadow and backup classes, for example).
+//     required at Load once the flag is set. Setting a Required row
+//     without its flag enabled is a load error naming the flag. See
+//     [Registry.IntegrationClasses] for the exact membership; the
+//     owning package registers its own class (the backup class, for
+//     example).
 //  4. Superseded: a pre-pivot name with no meaning here. Load errors
 //     naming the replacement, or, for a capability the greenfield
 //     server drops outright (the estate's beets config, the
