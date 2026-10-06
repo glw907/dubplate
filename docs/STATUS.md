@@ -31,6 +31,16 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
 > **Then, not in these plans:** 6d rev 2.3 (rebased onto the removal pass, its own review and approval);
 > slice 1 (document lane) and slice 2 (third code lane, own worktree) plans per spec ruling 5.
 
+## Archive record (document pass Task 0, 2026-10-05)
+
+`/root/musicbox-retired-2026-10-05.tar.gz` on the box (99,709,984 B, 0600 root, unchanged) has a verified copy at
+`~/.local/share/dubplate/archive/musicbox-retired-2026-10-05.tar.gz.age` (0600, age to the store's `RECIP=`;
+sha256 `de8f995d...ebec1`). Box and pulled sha256 match: `12b1d576...9044`, re-matched by the decrypted stream.
+The tar holds one `srv/music/state/navidrome/navidrome.db` (1,810,432 B, with `-wal` and `-shm`): 157 schema rows,
+`integrity_check` ok. R2 `music-library` also holds it: `state/navidrome.db` and 35 dated snapshots under
+`_archive/state/` (2026-08-31 to 2026-10-05), which corrects HISTORY's "state/ empty". The full tar's only
+off-box copy is the `.age` file; rung 16's backup remote takes a second. No plaintext remains.
+
 ## Owner questions
 
 - 6d: rev 2.2's approval is superseded; rev 2.3 (after the removal pass, per the re-plan spec) carries its
@@ -41,7 +51,7 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: `navidrome-removal` approved, not launched. A docs lane (re-plan document pass) shares this tree at segment boundaries |
+| 1 | main tree (master) | RUNNING: `navidrome-removal` Task 0 (dependency sweep, baseline count). Doc Task 0 (archive) done; doc segment A waits for Task 0 |
 | photos | main tree, separate docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)
