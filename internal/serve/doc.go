@@ -1,6 +1,6 @@
-// Package serve implements the dubplate HTTP shell (PA:79): the root
+// Package serve implements the dubplate HTTP shell: the root
 // composition every request passes through before reaching a
-// registered handler or the fallthrough.
+// registered handler.
 //
 // # Composition order
 //
@@ -27,28 +27,18 @@
 //     with a 403.
 //  4. The origin check (originCheck). It judges only a path
 //     normalization has admitted, and covers every registered subtree
-//     and the fallthrough alike, so no mount can forget to install it.
+//     and every path outside the prefix alike, so no mount can forget
+//     to install it.
 //  5. Prefix routing ([Prefix.Route]). The one owned prefix is matched
 //     segment-aware, on case-sensitive bytes, never by a plain string
-//     trim. The fallthrough it dispatches to is empty at rung 5, which
-//     is what makes rung 5 safe to ship without a driver. Rung 12's
-//     reverse proxy occupies this point, and no other: by the
-//     one-owned-prefix rule the streamer owns everything outside it,
-//     so the driver is the root mux's fallthrough rather than a
-//     subtree mounted under the prefix.
+//     trim. A path the prefix does not own answers 404 from
+//     [http.NotFoundHandler].
 //
 // # The extension point
 //
 // A consumer registers a subtree under the owned prefix by name, at
 // construction time, through [Shell.Register]; the shell owns the mux
 // the registration lands in, and two registrations of the same name
-// panic, naming the subtree. A consumer sets the one root-level
-// fallthrough slot through [Shell.SetFallthrough]; a second call panics.
-// Neither method takes or returns an interface of this package's own:
-// both take [http.Handler], the stdlib's, which is the whole point of
-// an extension point built for a rung 5 with no driver yet to bring one.
-//
-// The shell's own session cookie (R-E) is removed from any request
-// reaching the fallthrough, so rung 12's proxy never forwards it to the
-// streamer; a shell built with no cookie name removes nothing.
+// panic, naming the subtree. The method takes an [http.Handler], the
+// stdlib's, and no interface of this package's own.
 package serve

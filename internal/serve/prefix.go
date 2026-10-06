@@ -13,11 +13,10 @@ import (
 // prefix value fails construction validation.
 var ErrInvalidPrefix = errors.New("invalid serve prefix")
 
-// Prefix is the one path prefix dubplate owns end to end (B3): every
-// route rung 5 through rung 14 register, and rung 14's OpenSubsonic
-// surface under the 2.0 hook, lives under it, and everything else is
-// the fallthrough. A Prefix is built once, from [NewPrefix], and
-// carries the owned value, [Prefix.Owns]'s segment-aware match, and
+// Prefix is the one path prefix dubplate owns end to end: every route
+// the shell registers lives under it, and every path outside it
+// answers 404. A Prefix is built once, from [NewPrefix], and carries
+// the owned value, [Prefix.Owns]'s segment-aware match, and
 // [Prefix.Route]'s composition of that match with the terminator.
 type Prefix struct {
 	value string
@@ -44,7 +43,7 @@ func validatePrefix(value string) error {
 	// A bare "/" also satisfies HasSuffix(value, "/"), so this same
 	// check refuses the root path as an owned prefix along with every
 	// other trailing separator: the root owns nothing distinguishable
-	// from the fallthrough.
+	// from the paths outside the prefix.
 	if strings.HasSuffix(value, "/") {
 		return fmt.Errorf("%q: must carry no trailing separator: %w", value, ErrInvalidPrefix)
 	}
@@ -96,8 +95,8 @@ func validatePrefix(value string) error {
 	return nil
 }
 
-// String returns p's owned value, the form Task 5's composition uses
-// to build patterns for the subtrees it registers under p.
+// String returns p's owned value, the form the shell uses to build
+// patterns for the subtrees it registers under p.
 func (p Prefix) String() string {
 	return p.value
 }
@@ -121,13 +120,9 @@ func (p Prefix) Owns(path string) bool {
 }
 
 // Terminator answers with 404 and nothing else. It is what a request
-// under p's owned surface reaches when no subtree Task 5 registers
-// claims its exact path: the request stops here rather than falling
-// through to whatever the next composed step -- rung 12's reverse
-// proxy chief among them -- would otherwise do with an unknown owned
-// path (spec:900-904). Rung 14 depends on this: an unknown API path
-// under the owned prefix must not reach the proxy that could forward
-// it to a driver never meant to see it.
+// under p's owned surface reaches when no registered subtree claims
+// its path: the request stops here, so an unknown path under the owned
+// prefix never reaches a subtree.
 func Terminator() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
@@ -135,11 +130,13 @@ func Terminator() http.Handler {
 }
 
 // Route returns the prefix-routing step: a request whose path p owns
-// is handed to owned, and every other request is handed to next.
-// Task 5 composes Route as the chain's third step, passing the mux it
-// registers subtrees on as owned; that mux's own default handler (or
-// [Terminator], set explicitly) answers a path p owns that no subtree
-// claims.
+// is handed to owned, and every other request is handed to next. The
+// decision is p's alone: a path outside the prefix is never offered to
+// owned, and a path inside it is never offered to next, so a later
+// root route arrives as a named route the shell owns rather than a
+// change to the owned surface. The shell passes the mux it registers
+// subtrees on as owned, and [Terminator] answers a path p owns that no
+// subtree claims.
 //
 // The bare prefix and the prefix followed by a separator are both
 // handled here, by p.Owns, rather than left to [http.ServeMux]'s own

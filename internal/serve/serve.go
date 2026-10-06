@@ -9,19 +9,17 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
-	"net/textproto"
 	"strings"
 	"sync"
 	"unicode"
 )
 
-// Shell is the dubplate HTTP shell's construction value (C1, C5): the
-// point a consumer registers a subtree under the owned prefix and sets
-// the one root-level fallthrough slot, before [Shell.Handler] builds
-// the composed root http.Handler. The shell owns the mux every
-// registration lands in (R-L); it exposes no interface of its own,
-// since http.Handler is the stdlib's and the extension point's whole
-// value is that a consumer brings one.
+// Shell is the dubplate HTTP shell's construction value: the point a
+// consumer registers a subtree under the owned prefix before
+// [Shell.Handler] builds the composed root http.Handler. The shell owns
+// the mux every registration lands in; it exposes no interface of its
+// own, since http.Handler is the stdlib's and the extension point's
+// whole value is that a consumer brings one.
 type Shell struct {
 	prefix   Prefix
 	strip    Strip
@@ -29,9 +27,6 @@ type Shell struct {
 	logger   *slog.Logger
 	mux      *http.ServeMux
 	subtrees map[string]struct{}
-
-	fallthroughHandler http.Handler
-	fallthroughSet     bool
 
 	hsts bool
 
@@ -66,12 +61,10 @@ func NewShell(prefix Prefix, strip Strip, logger *slog.Logger) *Shell {
 	}
 }
 
-// Register mounts h under the owned prefix as the subtree name, one
-// method taking a subtree name and an http.Handler (ruled, conductor
-// 2026-09-08, R-L, as applied): both prefix+"/"+name and everything
-// under prefix+"/"+name+"/" reach h. A path under the owned prefix that
-// no registered subtree claims falls through to the mux's own default
-// 404 (C4's terminator), never to the fallthrough slot.
+// Register mounts h under the owned prefix as the subtree name: both
+// prefix+"/"+name and everything under prefix+"/"+name+"/" reach h. A
+// path under the owned prefix that no registered subtree claims is
+// answered by [Terminator].
 //
 // Two registrations of the same name panic, naming the subtree, on the
 // same collision-gate precedent internal/config/registry.go cites
@@ -134,49 +127,29 @@ func subtreeNameRefusal(name string) string {
 	return ""
 }
 
-// SetFallthrough sets the one root-level slot rung 12's reverse proxy
-// occupies (C5, 2.0 hook 6's fallthrough half). A second call panics:
-// like [Shell.Register], both calls are the binary's own wiring rather
-// than adopter input, so a second call is a programmer error caught at
-// construction instead of deferred to a request. A shell with no
-// SetFallthrough call answers every request outside the owned prefix
-// 404, the same status the prefix terminator returns (ruled, conductor
-// 2026-09-08, R-N, as applied): a deployment with no streamer leaves
-// the slot empty, which is what makes rung 5 safe to ship without a
-// driver.
-func (s *Shell) SetFallthrough(h http.Handler) {
-	if s.fallthroughSet {
-		panic("serve: fallthrough already set")
-	}
-	s.fallthroughHandler = h
-	s.fallthroughSet = true
-}
-
 // Handler composes six steps, in this order, each wrapping the next,
 // and returns the root http.Handler: the security headers, the ingress
 // strip, path normalization, the echo-method refusal, the origin check,
-// and prefix routing with its fallthrough. doc.go states the order and
-// the extension point's contract; this method builds it. The order is a
-// property of this composition, never a mux feature: no step here is
-// registered as a route.
+// and prefix routing. doc.go states the order and the extension point's
+// contract; this method builds it. The order is a property of this
+// composition, never a mux feature: no step here is registered as a
+// route.
 //
 // The security headers are outermost, so every response carries them,
 // a refusal by any later step included.
 //
 // The origin check sits between normalization and prefix routing, so
 // it judges only a path normalization has admitted and covers every
-// registered subtree and the fallthrough alike. It runs after the echo
-// method refusal, so TRACE and TRACK keep their 405 rather than taking
-// the check's 403.
+// registered subtree and every path outside the prefix alike. It runs
+// after the echo method refusal, so TRACE and TRACK keep their 405
+// rather than taking the check's 403.
+//
+// A path outside the owned prefix answers 404 from
+// [http.NotFoundHandler].
 func (s *Shell) Handler() http.Handler {
 	s.handlerBuilt = true
 
-	fallthroughHandler := s.fallthroughHandler
-	if fallthroughHandler == nil {
-		fallthroughHandler = http.HandlerFunc(http.NotFound)
-	}
-
-	routed := s.prefix.Route(s.terminated(), s.stripSessionCookie(fallthroughHandler))
+	routed := s.prefix.Route(s.terminated(), http.NotFoundHandler())
 	protected := s.origin.wrap(routed)
 	guarded := refuseEchoMethods(protected)
 	normalized := Normalize(guarded)
@@ -243,7 +216,7 @@ func (s *Shell) Logger() *slog.Logger {
 
 // refuseEchoMethods answers TRACE and TRACK with 405 before the request
 // reaches prefix routing, so neither method reaches a registered
-// subtree or the fallthrough. TRACE echoes the request back to the
+// subtree. TRACE echoes the request back to the
 // client by definition, which hands anything an intermediary added,
 // cookies and identity headers included, to whoever can make the
 // browser send it; TRACK is IIS's undocumented synonym, and a server
@@ -251,8 +224,8 @@ func (s *Shell) Logger() *slog.Logger {
 // net/http never answers either on its own.
 //
 // No Allow header accompanies the 405. The shell knows only that these
-// two methods are refused everywhere, not which methods any subtree or
-// the fallthrough accepts, and an Allow header naming a guessed set
+// two methods are refused everywhere, not which methods any subtree
+// accepts, and an Allow header naming a guessed set
 // would be a claim about handlers this step has never seen.
 func refuseEchoMethods(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -265,14 +238,13 @@ func refuseEchoMethods(next http.Handler) http.Handler {
 	})
 }
 
-// terminated is the owned half of C4: a path under the owned prefix
-// that some registered subtree claims goes to that subtree, and every
-// other owned path goes to [Terminator]. The terminator is wired here
-// explicitly rather than left to http.ServeMux's own default 404,
-// which answers the same status by coincidence of the mux's behavior
-// rather than by the shell's decision. Rung 14 depends on the
-// decision, not the status: an unknown owned path must stop here
-// rather than reach the proxy at the fallthrough.
+// terminated is the owned half of prefix routing: a path under the
+// owned prefix that some registered subtree claims goes to that
+// subtree, and every other owned path goes to [Terminator]. The
+// terminator is wired here explicitly rather than left to
+// http.ServeMux's own default 404, which answers the same status by
+// coincidence of the mux's behavior rather than by the shell's
+// decision.
 func (s *Shell) terminated() http.Handler {
 	terminator := Terminator()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -285,113 +257,16 @@ func (s *Shell) terminated() http.Handler {
 	})
 }
 
-// stripSessionCookie wraps next, the fallthrough handler, removing the
-// shell's own session cookie before next sees the request (ruled,
-// conductor 2026-09-08, R-E, as applied: the removal lands at 5a, at
-// the fallthrough boundary, parameterized by the cookie name). The
-// removal lands here, on the way out to the fallthrough, rather than as
-// a fourth strip group: the cookie's construction is 5b's, and the
-// prefix-owned surface that reads it must still see it. A shell built
-// with no cookie name removes nothing, which is 5a's own wiring.
-func (s *Shell) stripSessionCookie(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		removeCookie(r, s.strip.sessionCookie)
-		next.ServeHTTP(w, r)
-	})
-}
-
-// removeCookie deletes every cookie named name from every Cookie
-// header line r carries, leaving every other cookie's text
-// byte-for-byte as the client sent it. It operates on the header
-// strings directly rather than [http.Request.Cookies] and a rebuilt
-// Name+"="+Value: the latter loses RFC 6265 double quotes net/http
-// strips on parse and drops any pair net/http considers invalid,
-// either of which would hand rung 12's proxy a Cookie header the
-// client never sent. A request carrying name twice loses both
-// instances, so a front that appends rather than replaces cannot
-// smuggle a second value past the removal. An empty name is a no-op,
-// the shape a shell built before 5b's cookie exists takes.
-//
-// Every line is read, not only the first. A client may send Cookie
-// more than once, and net/http keeps each as its own value; rewriting
-// only r.Header.Get("Cookie")'s line would collapse the rest of them
-// into nothing and leave a session cookie standing on any line but the
-// first.
-func removeCookie(r *http.Request, name string) {
-	if name == "" {
-		return
-	}
-	values := r.Header["Cookie"]
-	if len(values) == 0 {
-		return
-	}
-
-	kept := make([]string, 0, len(values))
-	for _, value := range values {
-		if rewritten := withoutCookie(value, name); rewritten != "" {
-			kept = append(kept, rewritten)
-		}
-	}
-
-	if len(kept) == 0 {
-		r.Header.Del("Cookie")
-		return
-	}
-	r.Header["Cookie"] = kept
-}
-
-// withoutCookie returns one Cookie header value with every segment
-// naming name removed, or "" when nothing survives. A value naming
-// nothing is returned unchanged, so the common case never rewrites the
-// client's bytes at all. Surviving segments keep their exact text,
-// quotes and spacing included; the one edit is trimming the leading
-// space that separated a dropped first segment from the one now at the
-// head of the value.
-//
-// The name is extracted the way net/http's own readCookies extracts it
-// (net/http/cookie.go): cut the segment at the first "=", then trim the
-// name with [textproto.TrimString]. RFC 6265 section 5.4 has a user
-// agent send no space around the "=", but a request that sends one
-// anyway is still parsed by net/http, so "sess =v" is a cookie
-// [http.Request.Cookie] answers to. Trimming the whole segment before
-// the cut, which this function did once, leaves that spelling standing:
-// the name read out is "sess " and matches nothing, while the request
-// r.Cookie reads still carries the session cookie past the removal.
-func withoutCookie(value, name string) string {
-	segments := strings.Split(value, ";")
-	kept := make([]string, 0, len(segments))
-	for _, segment := range segments {
-		rawName, _, _ := strings.Cut(segment, "=")
-		if textproto.TrimString(rawName) == name {
-			continue
-		}
-		kept = append(kept, segment)
-	}
-
-	if len(kept) == len(segments) {
-		return value
-	}
-	if len(kept) == 0 {
-		return ""
-	}
-	kept[0] = strings.TrimLeft(kept[0], " \t")
-	if len(kept) == 1 && kept[0] == "" {
-		return ""
-	}
-	return strings.Join(kept, ";")
-}
-
 // statusCapture is a http.ResponseWriter wrapper that records the
 // status written, so logRefusal can decide whether the wrapped chain
 // refused a request by observing the response it actually sent, never
 // by reading the chain's construction. logRefusal wraps the whole
 // chain, so statusCapture reaches every handler the shell dispatches
-// to, registered subtrees and the fallthrough alike; doc.go reserves
-// the fallthrough for rung 12's reverse proxy, and strip.go keeps the
-// websocket Upgrade handshake intact, so statusCapture stays
-// transparent to both: Unwrap lets [http.ResponseController] reach the
-// real writer, and Flush and Hijack pass through directly for a caller
-// that asserts [http.Flusher] or [http.Hijacker] itself.
+// to. strip.go keeps the websocket Upgrade handshake intact, so
+// statusCapture stays transparent to streaming and upgraded
+// connections: Unwrap lets [http.ResponseController] reach the real
+// writer, and Flush and Hijack pass through directly for a caller that
+// asserts [http.Flusher] or [http.Hijacker] itself.
 type statusCapture struct {
 	http.ResponseWriter
 	status int
@@ -432,8 +307,9 @@ func (c *statusCapture) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 // one, and copies otherwise. net/http's own response writer implements
 // io.ReaderFrom to reach sendfile(2), and [io.Copy] consults the
 // destination for that interface; a wrapper that did not forward it
-// would silently downgrade every proxied stream rung 12 serves to a
-// userspace copy.
+// would silently downgrade every file [http.ServeContent] serves to a
+// userspace copy, since ServeContent copies through [io.CopyN], which
+// reaches [io.Copy] with a source that has no WriteTo.
 func (c *statusCapture) ReadFrom(src io.Reader) (int64, error) {
 	if rf, ok := c.ResponseWriter.(io.ReaderFrom); ok {
 		return rf.ReadFrom(src)
@@ -471,7 +347,7 @@ func markRefusal(r *http.Request, status int) {
 // registered subtree answering 400 to its own bad input is not an
 // ingress refusal, and reading the status would report one every time
 // a handler rejected a malformed form. A 404 from the prefix
-// terminator or the empty fallthrough is likewise no refusal, and
+// terminator or the root 404 is likewise no refusal, and
 // emits no record.
 //
 // Positioned outside strip, normalization, and prefix routing alike,
@@ -494,7 +370,7 @@ func (s *Shell) logRefusal(next http.Handler) http.Handler {
 		s.logger.Info("serve: refused request",
 			"path", boundedPath(r.URL.Path),
 			"status", capture.status,
-			"identity_spelling_present", identitySpellingPresent(r, s.strip.header),
+			"identity_spelling_present", identitySpellingPresent(r),
 		)
 	})
 }
@@ -522,18 +398,17 @@ func boundedPath(path string) string {
 }
 
 // identitySpellingPresent reports whether r's header carries any key
-// the strip's group 1 removal matches for driverHeader, by the same
-// [foldedKey] comparison against the same [identityKeys] set, so
-// logRefusal asserts against what the strip removes rather than a
-// second set written out here.
+// the strip's group 1 removal matches, by the same [foldedKey]
+// comparison against the same [identityKeys] set, so logRefusal asserts
+// against what the strip removes rather than a second set written out
+// here.
 //
 // It tests the key's presence in the map, not the value it holds. A
 // header sent with an empty value is still a header the client sent,
 // and the record exists to say whether one arrived at all.
-func identitySpellingPresent(r *http.Request, driverHeader string) bool {
-	keys := identityKeys(driverHeader)
+func identitySpellingPresent(r *http.Request) bool {
 	for k := range r.Header {
-		if _, ok := keys[foldedKey(k)]; ok {
+		if _, ok := identityKeys[foldedKey(k)]; ok {
 			return true
 		}
 	}

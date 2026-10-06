@@ -70,7 +70,7 @@ func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logg
 }
 
 // buildServeShellWithContext is [buildServeShell] with the caller's own
-// context, for a test that must control when the sweep driver's context
+// context, for a test that must control when the sweep's context
 // is canceled rather than relying on t.Context()'s own lifetime.
 func buildServeShellWithContext(t *testing.T, ctx context.Context, environ []string, logger *slog.Logger) (*serve.Shell, <-chan struct{}, error) {
 	t.Helper()
@@ -332,48 +332,6 @@ func TestDoctorCmd_CarriesServeThresholdsAndNoServeReservedRow(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_RemovesTheSessionCookieAtTheFallthrough closes 5a's
-// declared coverage gap 4. The shell rung 5a shipped was constructed
-// with an empty cookie name, which removes nothing, so the removal was
-// proved for an arbitrary name and never for the one the server
-// actually sets. This row runs the shell the serve verb constructs,
-// with the cookie name written out rather than read from the constant
-// under test, and asserts the property behaviourally: the session
-// cookie is gone at the fallthrough and every other cookie arrives
-// intact, so a request leaving the owned surface carries no credential
-// that authenticates against this server.
-func TestNewServeShell_RemovesTheSessionCookieAtTheFallthrough(t *testing.T) {
-	shell, _, err := buildServeShell(t, serveAuthEnviron(t))
-	if err != nil {
-		t.Fatalf("buildServeShell() error = %v, want nil", err)
-	}
-
-	var got http.Header
-	shell.SetFallthrough(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		got = r.Header.Clone()
-	}))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: "a-session-value"})
-	r.AddCookie(&http.Cookie{Name: "navidrome_session", Value: "another-value"})
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if got == nil {
-		t.Fatal("the fallthrough handler was never invoked")
-	}
-	arrived := &http.Request{Header: got}
-	if c, err := arrived.Cookie("__Host-dubplate_session"); err == nil {
-		t.Errorf("fallthrough request carries %q = %q, want it removed", c.Name, c.Value)
-	}
-	c, err := arrived.Cookie("navidrome_session")
-	if err != nil {
-		t.Fatalf("fallthrough request carries no %q cookie: %v", "navidrome_session", err)
-	}
-	if c.Value != "another-value" {
-		t.Errorf("cookie %q = %q, want %q", c.Name, c.Value, "another-value")
-	}
-}
-
 // authRoutePOST issues a same-origin POST against target with body,
 // the one shape [methodOnly] and the origin check both admit.
 func authRoutePOST(handler http.Handler, target, body string) *httptest.ResponseRecorder {
@@ -539,17 +497,15 @@ func valueOf(t *testing.T, environ []string, name string) string {
 	return ""
 }
 
-// TestNewServeShell_StateChangingFallthroughRequestIsDenied proves no
-// bypass pattern is registered: a cookie-carrying POST outside the
+// TestNewServeShell_StateChangingRequestOutsideThePrefixIsDenied proves
+// no bypass pattern is registered: a cookie-carrying POST outside the
 // owned prefix, carrying neither Sec-Fetch-Site nor Origin, is refused
-// by the origin check rather than reaching the fallthrough.
-func TestNewServeShell_StateChangingFallthroughRequestIsDenied(t *testing.T) {
+// with 403 by the origin check, a status the root 404 cannot produce.
+func TestNewServeShell_StateChangingRequestOutsideThePrefixIsDenied(t *testing.T) {
 	shell, _, err := buildServeShell(t, serveAuthEnviron(t))
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	reached := false
-	shell.SetFallthrough(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { reached = true }))
 
 	req := httptest.NewRequest(http.MethodPost, "/outside", nil)
 	req.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: "a-session-value"})
@@ -559,13 +515,10 @@ func TestNewServeShell_StateChangingFallthroughRequestIsDenied(t *testing.T) {
 	if rec.Code != http.StatusForbidden {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusForbidden)
 	}
-	if reached {
-		t.Error("the fallthrough handler was reached; a bypass pattern must not exempt it")
-	}
 }
 
-// TestStartNonceSweep_RunsAndStopsWithContext is the sweep driver's
-// leak assertion at the verb's own wiring: canceling ctx stops the
+// TestStartNonceSweep_RunsAndStopsWithContext is the sweep's leak
+// assertion at the verb's own wiring: canceling ctx stops the
 // goroutine [startNonceSweep] started, proved by the channel that
 // goroutine closes on return rather than by inspecting its source.
 func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
@@ -590,13 +543,13 @@ func TestStartNonceSweep_RunsAndStopsWithContext(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_SweepDriverStopsWithTheGivenContext is the leak
+// TestNewServeShell_NonceSweepStopsWithTheGivenContext is the leak
 // assertion against newServeShell's own wiring, not against
-// [startNonceSweep] called directly: it proves the driver goroutine
+// [startNonceSweep] called directly: it proves the sweep goroutine
 // newServeShell starts is bound to the ctx argument it was passed,
 // rather than to a context of its own, by canceling that argument and
 // waiting on the channel newServeShell returns.
-func TestNewServeShell_SweepDriverStopsWithTheGivenContext(t *testing.T) {
+func TestNewServeShell_NonceSweepStopsWithTheGivenContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	_, done, err := buildServeShellWithContext(t, ctx, serveAuthEnviron(t), discardTestLogger())
 	if err != nil {
@@ -607,7 +560,7 @@ func TestNewServeShell_SweepDriverStopsWithTheGivenContext(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
-		t.Fatal("the sweep driver did not stop after the passed context was canceled")
+		t.Fatal("the nonce sweep did not stop after the passed context was canceled")
 	}
 }
 
@@ -615,17 +568,15 @@ func TestNewServeShell_SweepDriverStopsWithTheGivenContext(t *testing.T) {
 // security review finding 2, R-5c9's routing test: a link minted
 // through the real handler config, the prefix and the public origin
 // [newServeShell] itself resolves, lands on a path the owned prefix
-// owns and a registered "login" subtree answers, never the
-// fallthrough. It runs for both public-URL forms, a bare origin and one
-// carrying a trailing separator, and asserts the same link path for
-// each, so a hand concatenation that dropped url.JoinPath's cleaning
-// (which would double the separator for the trailing-slash form alone)
-// fails it.
+// owns and a registered "login" subtree answers. It runs for both
+// public-URL forms, a bare origin and one carrying a trailing
+// separator, and asserts the same link path for each, so a hand
+// concatenation that dropped url.JoinPath's cleaning (which would
+// double the separator for the trailing-slash form alone) fails it.
 //
-// Fixture state: the fallthrough's recorded query starts at a sentinel
-// a real request's RawQuery can never equal, so a pass cannot be
-// explained by a 404 that terminates the request before the
-// fallthrough is even reached.
+// Fixture state: the assertion is a 200, a status the terminator's 404
+// and a path outside the prefix's 404 cannot produce, so a pass is
+// never explained by a request that no subtree answered.
 func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 	origins := []string{"https://h.example.test", "https://h.example.test/"}
 	gotPaths := make([]string, len(origins))
@@ -659,12 +610,6 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
 			}
 
-			const sentinel = "fallthrough not invoked"
-			fallthroughQuery := sentinel
-			shell.SetFallthrough(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-				fallthroughQuery = r.URL.RawQuery
-			}))
-
 			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
 			if err != nil {
 				t.Fatalf("auth.LinkURL: %v", err)
@@ -682,15 +627,11 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			rec := httptest.NewRecorder()
 			shell.Handler().ServeHTTP(rec, r)
 
-			// newServeShell's own "login" subtree is real now (Task 5):
-			// a minted link routes to its "login/link" document, so the
-			// registered-subtree proof is that it answers 200, never a
-			// 404 from the terminator or the fallthrough being reached.
+			// A minted link routes to the login subtree's "login/link"
+			// document, so the registered-subtree proof is that it
+			// answers 200.
 			if rec.Code != http.StatusOK {
 				t.Errorf("the registered login subtree answered %d, want 200", rec.Code)
-			}
-			if fallthroughQuery != sentinel {
-				t.Errorf("fallthrough saw RawQuery=%q, want it never reached", fallthroughQuery)
 			}
 		})
 	}
@@ -1350,7 +1291,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	shell := serve.NewShell(prefix, serve.NewStrip("", "", serve.TrustedProxyConfig{}, serve.FrontExemption{}), discardTestLogger())
+	shell := serve.NewShell(prefix, serve.NewStrip(serve.TrustedProxyConfig{}), discardTestLogger())
 	routes.register(shell)
 	shell.Register(membersRouteName, routes.members)
 	return shell.Handler(), nil
@@ -1887,13 +1828,13 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_StripCarriesNoFrontExemption proves the shell
+// TestNewServeShell_StripsIdentityFromTheTrustedProxy proves the shell
 // strips every identity header even from the configured trusted proxy:
-// the proxy is trusted for the client address alone, and no front is
-// exempt from the identity strip. The spy also records the configured
-// address header, which the strip keeps from a trusted peer, so the
-// request is known to have arrived as the proxy's.
-func TestNewServeShell_StripCarriesNoFrontExemption(t *testing.T) {
+// the proxy is trusted for the client address alone. The spy also
+// records the configured address header, which the strip keeps from a
+// trusted peer, so the request is known to have arrived as the
+// proxy's.
+func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 	environ := trustedProxyEnviron(t, "192.0.2.10")
 	shell, _, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err != nil {

@@ -78,7 +78,7 @@ func TestProbeRoute_ThroughShellCountsNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	strip := NewStrip("", "dubplate_session", TrustedProxyConfig{}, FrontExemption{})
+	strip := NewStrip(TrustedProxyConfig{})
 	shell := NewShell(prefix, strip, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	shell.Register(ProbeRouteName, NewProbeRoute([]string{"127.0.0.1"}, TrustedProxyConfig{}))
 	srv := httptest.NewServer(shell.Handler())
@@ -229,7 +229,7 @@ func TestCountPresentMatchesNormalizedKeys(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := countPresent(tt.header, probeIdentityNames()); got != tt.want {
+			if got := countPresent(tt.header, identitySpellings); got != tt.want {
 				t.Errorf("countPresent(%v) = %d, want %d", tt.header, got, tt.want)
 			}
 		})
@@ -268,7 +268,7 @@ func TestProbeConfiguredHeader(t *testing.T) {
 	})
 
 	t.Run("through the shell the strip removes it", func(t *testing.T) {
-		strip := NewStrip("", "dubplate_session", proxy, FrontExemption{})
+		strip := NewStrip(proxy)
 		shell := NewShell(prefix, strip, slog.New(slog.NewTextHandler(io.Discard, nil)))
 		shell.Register(ProbeRouteName, NewProbeRoute([]string{"127.0.0.1"}, proxy))
 		srv := httptest.NewServer(shell.Handler())
@@ -305,7 +305,7 @@ func TestProbeRoute_TrustedPeerReceivesIdentityOnly(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewProbeRoute([]string{"127.0.0.1"}, proxy)
 			if tt.strip {
-				shell := NewShell(prefix, NewStrip("", "dubplate_session", proxy, FrontExemption{}), slog.New(slog.NewTextHandler(io.Discard, nil)))
+				shell := NewShell(prefix, NewStrip(proxy), slog.New(slog.NewTextHandler(io.Discard, nil)))
 				shell.Register(ProbeRouteName, h)
 				h = shell.Handler()
 			}

@@ -10,7 +10,7 @@ import (
 // TestShellHandler_SecurityHeadersOnEveryResponse proves the header
 // step reaches a response from every step of the chain: a registered
 // subtree, the normalization refusal, the echo-method refusal, the
-// origin refusal, the terminator, and the empty fallthrough. HSTS is
+// origin refusal, the terminator, and a path outside the prefix. HSTS is
 // present on every row with it enabled and absent on every row
 // without. Referrer-Policy is the header a refusal cannot supply for
 // itself: [http.Error] sets nosniff on its own, so a step moved inside
@@ -30,7 +30,7 @@ func TestShellHandler_SecurityHeadersOnEveryResponse(t *testing.T) {
 		{name: "outside the prefix", method: http.MethodGet, target: "/elsewhere", wantStatus: http.StatusNotFound},
 	}
 	for _, hsts := range []bool{false, true} {
-		shell := newTestShell(t, "")
+		shell := newTestShell(t)
 		shell.Register("page", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			_, _ = w.Write([]byte("page"))
 		}))
@@ -69,7 +69,7 @@ func TestShellHandler_SecurityHeadersOnEveryResponse(t *testing.T) {
 }
 
 func TestShell_EnableHSTSAfterHandlerPanics(t *testing.T) {
-	shell := newTestShell(t, "")
+	shell := newTestShell(t)
 	shell.Handler()
 	defer func() {
 		if recover() == nil {

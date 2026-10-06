@@ -166,13 +166,10 @@ func checkRosterDirWritable(rosterPath string) error {
 	return nil
 }
 
-// servePrefixThreshold is B3's one owned path prefix: every route rung
-// 5 through rung 14 register, and 2.0's OpenSubsonic surface under the
-// same 2.0 hook, lives under it, and everything else is the
-// fallthrough. Its default, /dubplate, collides with none of
-// Navidrome's own surface (/rest, /share, /app, /auth), is one segment
-// so the segment-aware match has a boundary to find, and carries no
-// estate value.
+// servePrefixThreshold is the one owned path prefix: every route the
+// shell registers lives under it, and every path outside it answers
+// 404. Its default, /dubplate, is one segment so the segment-aware
+// match has a boundary to find, and carries no estate value.
 var servePrefixThreshold = config.Threshold{
 	Key:     "DUBPLATE_SERVE_PREFIX",
 	Kind:    config.KindString,
@@ -290,26 +287,19 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // whatever the method or the path, and only a verified admin ever
 // meets a 405.
 //
-// It starts the nonce sweep's interval driver bound to ctx and returns
-// the channel the driver's goroutine closes on return, so a caller
-// (this file's own test) can prove the driver stops when ctx is
-// canceled instead of inspecting RunSweep's own source. Production
+// It starts the nonce sweep bound to ctx and returns the channel the
+// sweep's goroutine closes on return, so a caller (this file's own
+// test) can prove the sweep stops when ctx is canceled instead of
+// inspecting RunSweep's own source. Production
 // discards the channel; nothing in this pass reads it.
-//
-// The strip carries auth.SessionCookieName, so the shell removes the
-// server's own session cookie from any request it hands the
-// fallthrough: no request leaving this server's owned surface carries
-// the credential that authenticates it. Rung 5a's coverage gap 4 was
-// exactly this name being the empty string, which removes nothing.
 //
 // The trusted proxy class, resolved through [resolveTrustedProxy],
 // governs both the strip's forwarded-address carve-out and every
 // handler's ClientIP, so the peer whose forwarded headers survive the
 // strip is exactly the peer whose header names the client. With the
-// class off, PeerAddress is the client address. No front exemption is
-// in force: every identity header is stripped from every peer, the
-// trusted proxy included, since a proxy is trusted for the client
-// address alone.
+// class off, PeerAddress is the client address. Every identity header
+// is stripped from every peer, the trusted proxy included, since a
+// proxy is trusted for the client address alone.
 //
 // The boundary probe route mounts under the owned prefix like every
 // other route, so the request it counts is the one the strip has
@@ -321,7 +311,7 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 	if err != nil {
 		return nil, nil, err
 	}
-	strip := serve.NewStrip("", auth.SessionCookieName, proxyConfig, serve.FrontExemption{})
+	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
 	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
 		shell.EnableHSTS()
@@ -494,8 +484,7 @@ func newMailer(cfg *config.Config) (*notify.Mailer, error) {
 	}), nil
 }
 
-// startNonceSweep starts the nonce sweep's interval driver as a
-// goroutine bound to ctx, ticking every [auth.SweepInterval], and
+// startNonceSweep starts the nonce sweep as a goroutine bound to ctx, ticking every [auth.SweepInterval], and
 // returns a channel the goroutine closes once it returns.
 func startNonceSweep(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) <-chan struct{} {
 	ticker := time.NewTicker(auth.SweepInterval)

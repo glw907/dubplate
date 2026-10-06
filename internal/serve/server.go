@@ -56,16 +56,15 @@ const (
 	shutdownGrace = 25 * time.Second
 
 	// defaultWriteTimeout protects every ordinary response, the ones
-	// that never call the extension mechanism below. It must not become
-	// rung 12's problem: an SSE stream or an audio response can
-	// legitimately run past 30 seconds, and a single fixed write
-	// timeout would kill both, which is the mistake the salvage server
-	// made (_salvage/internal/serve/serve.go:601, applied at :632). The
-	// mechanism that saves the streaming case is
-	// http.ResponseController.SetWriteDeadline: a handler wired at the
-	// shell's fallthrough slot can extend or clear its own deadline
-	// before this default expires, while every handler that never calls
-	// it stays bound by this default.
+	// that never call the extension mechanism below. An SSE stream or
+	// an audio response can legitimately run past 30 seconds, and a
+	// single fixed write timeout would kill both, which is the mistake
+	// the salvage server made (_salvage/internal/serve/serve.go:601,
+	// applied at :632). The mechanism that saves the streaming case is
+	// http.ResponseController.SetWriteDeadline: a streaming handler can
+	// extend or clear its own deadline before this default expires,
+	// while every handler that never calls it stays bound by this
+	// default.
 	defaultWriteTimeout = 30 * time.Second
 )
 

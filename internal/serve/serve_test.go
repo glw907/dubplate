@@ -13,20 +13,16 @@ import (
 	"testing"
 )
 
-// newTestShell builds a [Shell] over testPrefix (prefix_test.go), a
-// [Strip] with sessionCookie as its session-cookie name and no
-// trusted-proxy or front-exemption configuration, none of which this
-// file's order and extension-point assertions exercise. The driver
-// header is "X-Driver-Identity", matching expectedIdentitySpellings
-// (strip_test.go), which already carries that name and its underscore
-// twin as the written-out proof of the driver-contribution mechanism.
-func newTestShell(t *testing.T, sessionCookie string) *Shell {
+// newTestShell builds a [Shell] over testPrefix (prefix_test.go) and a
+// [Strip] with no trusted-proxy configuration, which this file's order
+// and extension-point assertions do not exercise.
+func newTestShell(t *testing.T) *Shell {
 	t.Helper()
 	prefix, err := NewPrefix(testPrefix)
 	if err != nil {
 		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 	}
-	strip := NewStrip("X-Driver-Identity", sessionCookie, TrustedProxyConfig{}, FrontExemption{})
+	strip := NewStrip(TrustedProxyConfig{})
 	return NewShell(prefix, strip, nil)
 }
 
@@ -67,7 +63,7 @@ func (h *capturingHandler) snapshot() []map[string]any {
 // bearing every spelling in the strip set reaches a handler registered
 // under the owned prefix with none of them.
 func TestOrderStripBeforeOwnedSubtree(t *testing.T) {
-	shell := newTestShell(t, "")
+	shell := newTestShell(t)
 	var got recorder
 	shell.Register("echo", recordingHandler(&got))
 
@@ -88,53 +84,28 @@ func TestOrderStripBeforeOwnedSubtree(t *testing.T) {
 	}
 }
 
-// TestOrderStripBeforeFallthrough is the on-the-fallthrough half of the
-// same assertion: the same spelling set, on a path outside the owned
-// prefix, carries none of them either.
-func TestOrderStripBeforeFallthrough(t *testing.T) {
-	shell := newTestShell(t, "")
-	var got recorder
-	shell.SetFallthrough(recordingHandler(&got))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	for _, name := range expectedIdentitySpellings {
-		r.Header.Set(name, "attacker")
-	}
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if got.header == nil {
-		t.Fatal("the fallthrough was never invoked")
-	}
-	for _, name := range expectedIdentitySpellings {
-		if v := got.header.Get(name); v != "" {
-			t.Errorf("fallthrough handler received %s = %q, want removed", name, v)
-		}
-	}
-}
-
 // TestOrderRawVsDecodedRefusedBeforeAnyHandler is the second order
 // assertion: a request whose escaped and decoded paths disagree is
-// refused, and no registered handler and no fallthrough handler is
-// invoked. Normalize wraps the whole routing decision (C1 step 2), so
-// both rows matter: a mismatch under the owned prefix, where the
-// registered subtree would otherwise see it, and one outside it, where
-// only the fallthrough would.
+// refused with 400, and no registered handler is invoked. Normalize
+// wraps the whole routing decision, so both rows matter: a mismatch
+// under the owned prefix, where the registered subtree would otherwise
+// see it, and one outside it, where only the root 404 would answer. The
+// 400 is a status that 404 cannot produce, so the outside row proves
+// the refusal ran rather than the routing.
 func TestOrderRawVsDecodedRefusedBeforeAnyHandler(t *testing.T) {
 	tests := []struct {
 		name string
 		raw  string
 	}{
 		{"under the owned prefix", "GET " + testPrefix + "/echo/%2e%2e HTTP/1.1\r\nHost: example.test\r\n\r\n"},
-		{"outside the owned prefix, on the fallthrough", "GET /outside%2e%2e HTTP/1.1\r\nHost: example.test\r\n\r\n"},
+		{"outside the owned prefix", "GET /outside%2e%2e HTTP/1.1\r\nHost: example.test\r\n\r\n"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			shell := newTestShell(t, "")
-			var owned, fall recorder
+			shell := newTestShell(t)
+			var owned recorder
 			shell.Register("echo", recordingHandler(&owned))
-			shell.SetFallthrough(recordingHandler(&fall))
 
 			r := readRequest(t, tt.raw)
 
@@ -147,30 +118,7 @@ func TestOrderRawVsDecodedRefusedBeforeAnyHandler(t *testing.T) {
 			if owned.header != nil {
 				t.Error("the owned-prefix handler was invoked on a refused request")
 			}
-			if fall.header != nil {
-				t.Error("the fallthrough handler was invoked on a refused request")
-			}
 		})
-	}
-}
-
-// TestOrderPrefixRequiresSegmentBoundary is the third order assertion:
-// a path that string-prefixes the owned prefix without a segment
-// boundary reaches the fallthrough, never the owned surface.
-func TestOrderPrefixRequiresSegmentBoundary(t *testing.T) {
-	shell := newTestShell(t, "")
-	var owned, fall recorder
-	shell.Register("foo", recordingHandler(&owned))
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, testPrefix+"foo", nil)
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if owned.header != nil {
-		t.Error("the owned-prefix handler was invoked for a path that only string-prefixes the owned prefix")
-	}
-	if fall.header == nil {
-		t.Fatal("the fallthrough was never invoked")
 	}
 }
 
@@ -187,12 +135,11 @@ func TestRefusalLogsIdentityAlreadyGone(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 	}
-	strip := NewStrip("", "", TrustedProxyConfig{}, FrontExemption{})
+	strip := NewStrip(TrustedProxyConfig{})
 	shell := NewShell(prefix, strip, slog.New(handler))
 
-	var owned, fall recorder
+	var owned recorder
 	shell.Register("echo", recordingHandler(&owned))
-	shell.SetFallthrough(recordingHandler(&fall))
 
 	r := httptest.NewRequest(http.MethodGet, testPrefix+"/../secret", nil)
 	r.Header.Set("Remote-User", "attacker")
@@ -205,9 +152,6 @@ func TestRefusalLogsIdentityAlreadyGone(t *testing.T) {
 	}
 	if owned.header != nil {
 		t.Error("the owned-prefix handler was invoked on a refused request")
-	}
-	if fall.header != nil {
-		t.Error("the fallthrough handler was invoked on a refused request")
 	}
 
 	records := handler.snapshot()
@@ -226,7 +170,7 @@ func TestRefusalLogsIdentityAlreadyGone(t *testing.T) {
 // TestRegisterDuplicateSubtreePanics: two registrations of the same
 // subtree name panic at construction, naming the subtree.
 func TestRegisterDuplicateSubtreePanics(t *testing.T) {
-	shell := newTestShell(t, "")
+	shell := newTestShell(t)
 	shell.Register("dup", http.NotFoundHandler())
 
 	defer func() {
@@ -242,24 +186,12 @@ func TestRegisterDuplicateSubtreePanics(t *testing.T) {
 	shell.Register("dup", http.NotFoundHandler())
 }
 
-// TestSetFallthroughTwicePanics: the fallthrough slot takes at most one
-// handler; a second call panics.
-func TestSetFallthroughTwicePanics(t *testing.T) {
-	shell := newTestShell(t, "")
-	shell.SetFallthrough(http.NotFoundHandler())
-
-	defer func() {
-		if recover() == nil {
-			t.Fatal("SetFallthrough did not panic on a second call")
-		}
-	}()
-	shell.SetFallthrough(http.NotFoundHandler())
-}
-
-// TestEmptyFallthroughAnswers404: with no fallthrough registered, a
-// path outside the owned prefix answers 404 and invokes no handler.
-func TestEmptyFallthroughAnswers404(t *testing.T) {
-	shell := newTestShell(t, "")
+// TestPathOutsideThePrefixAnswers404: a path outside the owned prefix
+// answers 404 and invokes no registered subtree.
+func TestPathOutsideThePrefixAnswers404(t *testing.T) {
+	shell := newTestShell(t)
+	var owned recorder
+	shell.Register("echo", recordingHandler(&owned))
 
 	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
 	rec := httptest.NewRecorder()
@@ -267,6 +199,9 @@ func TestEmptyFallthroughAnswers404(t *testing.T) {
 
 	if rec.Code != http.StatusNotFound {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+	if owned.header != nil {
+		t.Error("a registered subtree was invoked for a path outside the owned prefix")
 	}
 }
 
@@ -284,124 +219,29 @@ func cookieNames(got *recorder) []string {
 	return names
 }
 
-// cookieValue returns the value got's Cookie header carries for name,
-// decoded through the stdlib cookie parser, or "" if name is absent.
-func cookieValue(got *recorder, name string) string {
-	if got.header == nil {
-		return ""
-	}
-	req := &http.Request{Header: got.header}
-	c, err := req.Cookie(name)
-	if err != nil {
-		return ""
-	}
-	return c.Value
-}
-
 const testSessionCookie = "dubplate_session"
 
-// TestSessionCookieRemovedAtFallthroughPresentAtOwnedPrefix: the
-// session cookie is absent at the fallthrough handler and present at a
-// handler registered under the owned prefix, since the removal is on
-// the way out and not a second strip group.
-func TestSessionCookieRemovedAtFallthroughPresentAtOwnedPrefix(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var owned, fall recorder
+// TestSessionCookieReachesARegisteredSubtreeIntact: the session cookie
+// arrives, byte for byte, at a handler registered under the owned
+// prefix. The shell removes no cookie, and the handlers that
+// authenticate a member read it from the request they are given.
+func TestSessionCookieReachesARegisteredSubtreeIntact(t *testing.T) {
+	shell := newTestShell(t)
+	var owned recorder
 	shell.Register("echo", recordingHandler(&owned))
-	shell.SetFallthrough(recordingHandler(&fall))
-	root := shell.Handler()
 
-	ownedReq := httptest.NewRequest(http.MethodGet, testPrefix+"/echo", nil)
-	ownedReq.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "abc"})
-	root.ServeHTTP(httptest.NewRecorder(), ownedReq)
+	req := httptest.NewRequest(http.MethodGet, testPrefix+"/echo", nil)
+	req.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "abc"})
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), req)
 
+	if owned.header == nil {
+		t.Fatal("the registered subtree was never invoked")
+	}
 	if !slices.Contains(cookieNames(&owned), testSessionCookie) {
 		t.Errorf("owned-prefix handler cookies = %v, want %q present", cookieNames(&owned), testSessionCookie)
 	}
-
-	fallReq := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	fallReq.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "abc"})
-	root.ServeHTTP(httptest.NewRecorder(), fallReq)
-
-	if slices.Contains(cookieNames(&fall), testSessionCookie) {
-		t.Errorf("fallthrough handler cookies = %v, want %q removed", cookieNames(&fall), testSessionCookie)
-	}
-}
-
-// TestSessionCookieOtherCookiesSurviveAtFallthrough: a request carrying
-// three cookies, including the named one, arrives at the fallthrough
-// with the other two unchanged in both name and value. Asserting names
-// alone would pass an implementation that rebuilds each surviving
-// cookie's text (for example by round-tripping through
-// [http.Request.Cookies], which strips RFC 6265 double quotes on
-// read), which is why this row checks the exact surviving value too.
-func TestSessionCookieOtherCookiesSurviveAtFallthrough(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var fall recorder
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.AddCookie(&http.Cookie{Name: "a", Value: "1"})
-	r.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "abc"})
-	r.AddCookie(&http.Cookie{Name: "b", Value: "2"})
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	names := cookieNames(&fall)
-	if slices.Contains(names, testSessionCookie) {
-		t.Errorf("fallthrough handler cookies = %v, want %q removed", names, testSessionCookie)
-	}
-	if got, want := cookieValue(&fall, "a"), "1"; got != want {
-		t.Errorf("fallthrough handler cookie %q = %q, want %q", "a", got, want)
-	}
-	if got, want := cookieValue(&fall, "b"), "2"; got != want {
-		t.Errorf("fallthrough handler cookie %q = %q, want %q", "b", got, want)
-	}
-}
-
-// TestSessionCookieRawHeaderSurvivesVerbatim: a request whose raw
-// Cookie header carries a double-quoted value arrives at the
-// fallthrough with that exact header text minus the named cookie, not
-// a value net/http's cookie parser has normalized. This is the row
-// that would catch an implementation rebuilding the header from
-// [http.Request.Cookies], which the row above's name-and-value check
-// cannot distinguish from a correct one when the surviving value has
-// no quotes to lose.
-func TestSessionCookieRawHeaderSurvivesVerbatim(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var fall recorder
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.Header.Set("Cookie", `a="quoted"; `+testSessionCookie+`=abc; b=2`)
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if fall.header == nil {
-		t.Fatal("the fallthrough handler was never invoked")
-	}
-	want := `a="quoted"; b=2`
-	if got := fall.header.Get("Cookie"); got != want {
-		t.Errorf("fallthrough handler Cookie header = %q, want %q", got, want)
-	}
-}
-
-// TestSessionCookieDuplicateNamedCookieBothRemoved: a request carrying
-// the named cookie twice loses both instances at the fallthrough,
-// never leaving one under arrival order.
-func TestSessionCookieDuplicateNamedCookieBothRemoved(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var fall recorder
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "first"})
-	r.AddCookie(&http.Cookie{Name: testSessionCookie, Value: "second"})
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if names := cookieNames(&fall); slices.Contains(names, testSessionCookie) {
-		t.Errorf("fallthrough handler cookies = %v, want %q removed entirely", names, testSessionCookie)
+	if got, want := owned.header.Get("Cookie"), testSessionCookie+"=abc"; got != want {
+		t.Errorf("Cookie header = %q, want %q", got, want)
 	}
 }
 
@@ -410,7 +250,7 @@ func TestSessionCookieDuplicateNamedCookieBothRemoved(t *testing.T) {
 // subtrees registered at construction, each receiving only its own
 // paths.
 func TestTwoSubtreesEachReceiveOnlyOwnPaths(t *testing.T) {
-	shell := newTestShell(t, "")
+	shell := newTestShell(t)
 	var alpha, beta recorder
 	shell.Register("alpha", recordingHandler(&alpha))
 	shell.Register("beta", recordingHandler(&beta))
@@ -437,10 +277,8 @@ func TestTwoSubtreesEachReceiveOnlyOwnPaths(t *testing.T) {
 // flushingHandler calls http.NewResponseController(w).Flush() and
 // records the error it returns, so a test can prove the writer a
 // handler receives is not opaque to [http.ResponseController]: logRefusal
-// wraps the whole chain, and rung 12's reverse proxy occupies the
-// fallthrough this handler stands in for, so a writer that answers
-// "feature not supported" here would defeat the streaming rung 12
-// needs.
+// wraps the whole chain, so a writer that answers "feature not
+// supported" here would defeat every streaming handler.
 func flushingHandler(dst *error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		*dst = http.NewResponseController(w).Flush()
@@ -449,118 +287,36 @@ func flushingHandler(dst *error) http.Handler {
 }
 
 // TestResponseControllerFlushReachesRealWriter: logRefusal's status
-// capture stays transparent to http.ResponseController at both a
-// registered subtree and the fallthrough, proving the root handler
-// never hands rung 12's proxy an opaque writer.
+// capture stays transparent to http.ResponseController at a registered
+// subtree, proving the root handler never hands a streaming handler an
+// opaque writer. The error starts as a sentinel the handler overwrites,
+// so a handler that never ran fails the test rather than passing on a
+// nil it never set.
 func TestResponseControllerFlushReachesRealWriter(t *testing.T) {
-	shell := newTestShell(t, "")
-	var ownedErr, fallErr error
+	errNeverRan := errors.New("the handler never ran")
+	shell := newTestShell(t)
+	ownedErr := errNeverRan
 	shell.Register("echo", flushingHandler(&ownedErr))
-	shell.SetFallthrough(flushingHandler(&fallErr))
-	root := shell.Handler()
 
-	root.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, testPrefix+"/echo", nil))
+	shell.Handler().ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, testPrefix+"/echo", nil))
+
+	if errors.Is(ownedErr, errNeverRan) {
+		t.Fatal("the registered subtree was never invoked")
+	}
 	if ownedErr != nil {
 		t.Errorf("Flush() at the owned prefix = %v, want nil", ownedErr)
 	}
-
-	root.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/outside", nil))
-	if fallErr != nil {
-		t.Errorf("Flush() at the fallthrough = %v, want nil", fallErr)
-	}
 }
 
-// cookieLines returns every Cookie header line got carries, in order,
-// as the raw text the handler received.
-func cookieLines(got *recorder) []string {
-	if got.header == nil {
-		return nil
-	}
-	return got.header["Cookie"]
-}
-
-// TestSessionCookieRemovedFromEveryCookieLine: a client may send Cookie
-// more than once, and net/http keeps each line separately. The named
-// cookie goes from every line, each surviving line keeps its own text
-// byte for byte (the quoted value included), and no line is folded
-// into another. An implementation reading only the first line would
-// leave the second line's session cookie standing and collapse the
-// rest of the request's cookies into nothing.
-func TestSessionCookieRemovedFromEveryCookieLine(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var fall recorder
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.Header.Add("Cookie", `a="quoted"; `+testSessionCookie+`=first`)
-	r.Header.Add("Cookie", testSessionCookie+`=second; b=2`)
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if fall.header == nil {
-		t.Fatal("the fallthrough handler was never invoked")
-	}
-	want := []string{`a="quoted"`, `b=2`}
-	if got := cookieLines(&fall); !slices.Equal(got, want) {
-		t.Errorf("fallthrough handler Cookie lines = %q, want %q", got, want)
-	}
-}
-
-// TestSessionCookieRemovedFirstInLineLeavesNoLeadingSpace: dropping the
-// first segment of a line must not leave the separator's own space at
-// the head of the value, which would hand the fallthrough a Cookie
-// header no client would have sent.
-func TestSessionCookieRemovedFirstInLineLeavesNoLeadingSpace(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var fall recorder
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.Header.Set("Cookie", testSessionCookie+`=abc; a=1; b=2`)
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if fall.header == nil {
-		t.Fatal("the fallthrough handler was never invoked")
-	}
-	want := `a=1; b=2`
-	if got := fall.header.Get("Cookie"); got != want {
-		t.Errorf("fallthrough handler Cookie header = %q, want %q", got, want)
-	}
-}
-
-// TestSessionCookieOnlyCookieOnALineDropsTheLine: a line carrying
-// nothing but the named cookie leaves no empty Cookie header behind.
-func TestSessionCookieOnlyCookieOnALineDropsTheLine(t *testing.T) {
-	shell := newTestShell(t, testSessionCookie)
-	var fall recorder
-	shell.SetFallthrough(recordingHandler(&fall))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.Header.Add("Cookie", testSessionCookie+`=abc`)
-	r.Header.Add("Cookie", `a=1`)
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	if fall.header == nil {
-		t.Fatal("the fallthrough handler was never invoked")
-	}
-	want := []string{`a=1`}
-	if got := cookieLines(&fall); !slices.Equal(got, want) {
-		t.Errorf("fallthrough handler Cookie lines = %q, want %q", got, want)
-	}
-}
-
-// TestUnclaimedOwnedPathReachesTheTerminator: a path under the owned
-// prefix that no registered subtree claims answers 404 through
-// [Terminator], reaching neither a registered subtree nor the
-// fallthrough. Rung 14 depends on this: an unknown owned path must not
-// reach the proxy the fallthrough holds.
-func TestUnclaimedOwnedPathReachesTheTerminator(t *testing.T) {
-	shell := newTestShell(t, "")
-	var owned, fall recorder
+// TestUnclaimedOwnedPathAnswers404FromTheTerminator: a path under the
+// owned prefix that no registered subtree claims answers 404 and
+// invokes no subtree. A path outside the prefix also answers 404, so
+// the status does not tell the terminator from the root handler; the
+// test pins the terminator's own answer for the owned half.
+func TestUnclaimedOwnedPathAnswers404FromTheTerminator(t *testing.T) {
+	shell := newTestShell(t)
+	var owned recorder
 	shell.Register("echo", recordingHandler(&owned))
-	shell.SetFallthrough(recordingHandler(&fall))
 
 	rec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, testPrefix+"/unclaimed", nil))
@@ -571,9 +327,6 @@ func TestUnclaimedOwnedPathReachesTheTerminator(t *testing.T) {
 	if owned.header != nil {
 		t.Error("the registered subtree was invoked for a path it does not claim")
 	}
-	if fall.header != nil {
-		t.Error("the fallthrough was invoked for a path under the owned prefix; the terminator must stop it")
-	}
 }
 
 // TestRegisterAfterHandlerPanics: registration belongs to
@@ -581,7 +334,7 @@ func TestUnclaimedOwnedPathReachesTheTerminator(t *testing.T) {
 // on a mux an already-serving binary is reading, so it panics naming
 // the subtree rather than racing.
 func TestRegisterAfterHandlerPanics(t *testing.T) {
-	shell := newTestShell(t, "")
+	shell := newTestShell(t)
 	shell.Handler()
 
 	defer func() {
@@ -611,7 +364,7 @@ func TestRefusalRecordOnlyForTheShellsOwnRefusals(t *testing.T) {
 			t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 		}
 		log := &capturingHandler{}
-		strip := NewStrip("", "", TrustedProxyConfig{}, FrontExemption{})
+		strip := NewStrip(TrustedProxyConfig{})
 		return NewShell(prefix, strip, slog.New(log)), log
 	}
 
@@ -675,18 +428,19 @@ type plainReader struct{ io.Reader }
 // [io.ReaderFrom] to the writer beneath it, so a handler copying a
 // stream through io.Copy keeps the underlying writer's fast path.
 // Without the forward, io.Copy would find no ReaderFrom on the capture
-// and silently fall back to a userspace copy for every stream rung
-// 12's proxy serves.
+// and silently fall back to a userspace copy for every file
+// [http.ServeContent] serves. The handler is registered under the
+// prefix, and the body assertion fails if it never ran.
 func TestReadFromReachesRealWriter(t *testing.T) {
-	shell := newTestShell(t, "")
-	shell.SetFallthrough(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	shell := newTestShell(t)
+	shell.Register("stream", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, err := io.Copy(w, plainReader{strings.NewReader("payload")}); err != nil {
 			t.Errorf("io.Copy: %v", err)
 		}
 	}))
 
 	w := &readerFromRecorder{ResponseRecorder: httptest.NewRecorder()}
-	shell.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/outside", nil))
+	shell.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, testPrefix+"/stream", nil))
 
 	if !w.used {
 		t.Error("io.Copy did not reach the underlying writer's ReadFrom, want the capture to forward it")
@@ -732,7 +486,7 @@ func TestIdentitySpellingPresentReadsKeyPresence(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header = tt.header
-			if got := identitySpellingPresent(r, ""); got != tt.want {
+			if got := identitySpellingPresent(r); got != tt.want {
 				t.Errorf("identitySpellingPresent() = %t, want %t", got, tt.want)
 			}
 		})
@@ -751,7 +505,7 @@ func TestRefusalLogBoundsThePath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 	}
-	shell := NewShell(prefix, NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}), slog.New(capture))
+	shell := NewShell(prefix, NewStrip(TrustedProxyConfig{}), slog.New(capture))
 
 	const pathBytes = 1 << 20
 	long := "/" + strings.Repeat("a", pathBytes-1)
@@ -785,82 +539,6 @@ func TestRefusalLogBoundsThePath(t *testing.T) {
 	}
 }
 
-// TestSessionCookieRemovedWhenTheNameCarriesSpace is the parity
-// assertion against net/http's own parser. readCookies (net/http/
-// cookie.go) cuts each segment at "=" and then trims the NAME with
-// textproto.TrimString, so "sess =leak" is a cookie r.Cookie("sess")
-// answers to. A removal that trimmed the whole segment before cutting
-// reads the name as "sess " and matches nothing, leaving the session
-// cookie standing on the way out to the fallthrough while the shell
-// believed it removed it. Each row is verified with r.Cookie on the
-// header the fallthrough actually received, never by string matching,
-// so the assertion is exactly "can a handler read this cookie".
-func TestSessionCookieRemovedWhenTheNameCarriesSpace(t *testing.T) {
-	tests := []struct {
-		name  string
-		value string
-	}{
-		{"space before the separator", "sess =v"},
-		{"tab before the separator", "sess\t=v"},
-		{"space on both sides and around the value", " sess = v "},
-		{"a spaced name after an ordinary cookie", "a=1; sess =v"},
-		{"the ordinary spelling", "sess=v"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			shell := newTestShell(t, "sess")
-			var got recorder
-			shell.SetFallthrough(recordingHandler(&got))
-
-			r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-			r.Header.Set("Cookie", tt.value)
-			if _, err := r.Cookie("sess"); err != nil {
-				t.Fatalf("the fixture %q is not a cookie net/http reads as \"sess\": %v", tt.value, err)
-			}
-
-			shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-			if got.header == nil {
-				t.Fatal("the fallthrough was never invoked")
-			}
-			reread := &http.Request{Header: got.header}
-			if _, err := reread.Cookie("sess"); !errors.Is(err, http.ErrNoCookie) {
-				t.Errorf("the fallthrough can still read the session cookie from %q: Cookie(\"sess\") error = %v, want http.ErrNoCookie", got.header.Get("Cookie"), err)
-			}
-		})
-	}
-}
-
-// TestSessionCookieSpacedNameLeavesTheOthersReadable is the other half:
-// the widened match must not take a cookie whose name merely ends in
-// the session name, and every other cookie stays readable.
-func TestSessionCookieSpacedNameLeavesTheOthersReadable(t *testing.T) {
-	shell := newTestShell(t, "sess")
-	var got recorder
-	shell.SetFallthrough(recordingHandler(&got))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	r.Header.Set("Cookie", "a=1; sess =leak; notsess =2; b=3")
-
-	shell.Handler().ServeHTTP(httptest.NewRecorder(), r)
-
-	reread := &http.Request{Header: got.header}
-	if _, err := reread.Cookie("sess"); !errors.Is(err, http.ErrNoCookie) {
-		t.Errorf("Cookie(\"sess\") error = %v, want http.ErrNoCookie", err)
-	}
-	for name, want := range map[string]string{"a": "1", "notsess": "2", "b": "3"} {
-		c, err := reread.Cookie(name)
-		if err != nil {
-			t.Errorf("Cookie(%q) error = %v, want the cookie to survive", name, err)
-			continue
-		}
-		if c.Value != want {
-			t.Errorf("Cookie(%q).Value = %q, want %q", name, c.Value, want)
-		}
-	}
-}
-
 // TestRegisterRefusesNamesThatWidenTheMount pins the four shapes that
 // mount more than one subtree, or nothing at all. Each is a wiring
 // mistake with no request-time symptom: an empty name mounts the whole
@@ -883,7 +561,7 @@ func TestRegisterRefusesNamesThatWidenTheMount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			shell := newTestShell(t, "")
+			shell := newTestShell(t)
 			defer func() {
 				got := recover()
 				if got == nil {
@@ -909,7 +587,7 @@ func TestRegisterRefusesNamesThatWidenTheMount(t *testing.T) {
 // refusal above: a plain segment still registers and still serves, so
 // the validation cannot pass by refusing everything.
 func TestRegisterAdmitsAnOrdinaryName(t *testing.T) {
-	shell := newTestShell(t, "")
+	shell := newTestShell(t)
 	var got recorder
 	shell.Register("echo", recordingHandler(&got))
 
@@ -920,9 +598,9 @@ func TestRegisterAdmitsAnOrdinaryName(t *testing.T) {
 	}
 }
 
-// TestEchoMethodsRefusedBeforeRouting proves TRACE and TRACK reach
-// neither a registered subtree nor the fallthrough. TRACE echoes the
-// request back by definition, which hands whatever an intermediary
+// TestEchoMethodsRefusedBeforeRouting proves TRACE and TRACK reach no
+// registered subtree, whatever the path. TRACE echoes the request back
+// by definition, which hands whatever an intermediary
 // added, cookies included, to whoever can make a browser send it; TRACK
 // is the same behavior under IIS's name, and refusing one alone refuses
 // nothing.
@@ -935,9 +613,9 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 		wantCalled bool
 	}{
 		{"TRACE under the owned prefix", http.MethodTrace, testPrefix + "/echo", http.StatusMethodNotAllowed, false},
-		{"TRACE on the fallthrough", http.MethodTrace, "/outside", http.StatusMethodNotAllowed, false},
+		{"TRACE outside the prefix", http.MethodTrace, "/outside", http.StatusMethodNotAllowed, false},
 		{"TRACK under the owned prefix", "TRACK", testPrefix + "/echo", http.StatusMethodNotAllowed, false},
-		{"TRACK on the fallthrough", "TRACK", "/outside", http.StatusMethodNotAllowed, false},
+		{"TRACK outside the prefix", "TRACK", "/outside", http.StatusMethodNotAllowed, false},
 		{"GET still reaches the subtree", http.MethodGet, testPrefix + "/echo", http.StatusOK, true},
 	}
 
@@ -948,11 +626,10 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 			if err != nil {
 				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 			}
-			shell := NewShell(prefix, NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}), slog.New(capture))
+			shell := NewShell(prefix, NewStrip(TrustedProxyConfig{}), slog.New(capture))
 
-			var owned, fallthroughGot recorder
+			var owned recorder
 			shell.Register("echo", recordingHandler(&owned))
-			shell.SetFallthrough(recordingHandler(&fallthroughGot))
 
 			w := httptest.NewRecorder()
 			shell.Handler().ServeHTTP(w, httptest.NewRequest(tt.method, tt.target, nil))
@@ -960,9 +637,8 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 			if w.Code != tt.wantStatus {
 				t.Errorf("status = %d, want %d", w.Code, tt.wantStatus)
 			}
-			called := owned.header != nil || fallthroughGot.header != nil
-			if called != tt.wantCalled {
-				t.Errorf("a handler was reached = %v, want %v", called, tt.wantCalled)
+			if called := owned.header != nil; called != tt.wantCalled {
+				t.Errorf("the subtree was reached = %v, want %v", called, tt.wantCalled)
 			}
 			if tt.wantCalled {
 				return
@@ -978,14 +654,14 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 	}
 }
 
-// TestOriginCheckCoversSubtreeAndFallthrough runs the origin check
-// through the composed root handler rather than the wrapper alone, so
-// what it proves is placement: a registered subtree and the empty
-// fallthrough both refuse a cookie-carrying POST that carries neither
+// TestOriginCheckCoversSubtreeAndPathsOutsideThePrefix runs the origin
+// check through the composed root handler rather than the wrapper
+// alone, so what it proves is placement: a registered subtree and a
+// path outside the prefix both refuse a cookie-carrying POST that carries neither
 // Sec-Fetch-Site nor Origin, without any mount installing the check
 // itself. Each same-origin row is the control that the refusal came
 // from the check rather than from the destination.
-func TestOriginCheckCoversSubtreeAndFallthrough(t *testing.T) {
+func TestOriginCheckCoversSubtreeAndPathsOutsideThePrefix(t *testing.T) {
 	tests := []struct {
 		name        string
 		target      string
@@ -1006,14 +682,14 @@ func TestOriginCheckCoversSubtreeAndFallthrough(t *testing.T) {
 			wantReached: true,
 		},
 		{
-			// The fallthrough is empty and answers 404 on its own, so
-			// a 403 here can only be the check's.
-			name:   "empty fallthrough, POST carrying neither header, is refused",
+			// A path outside the prefix answers 404 on its own, so a
+			// 403 here can only be the check's.
+			name:   "outside the prefix, POST carrying neither header, is refused",
 			target: "/outside",
 			want:   http.StatusForbidden,
 		},
 		{
-			name:       "empty fallthrough, same-origin POST, reaches the 404",
+			name:       "outside the prefix, same-origin POST, reaches the 404",
 			target:     "/outside",
 			sameOrigin: true,
 			want:       http.StatusNotFound,
@@ -1021,7 +697,7 @@ func TestOriginCheckCoversSubtreeAndFallthrough(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			shell := newTestShell(t, testSessionCookie)
+			shell := newTestShell(t)
 			var owned callRecorder
 			shell.Register("echo", recordingHandlerWithStatus(http.StatusOK, &owned))
 
@@ -1071,7 +747,7 @@ func TestOriginCheckRunsAfterNormalize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			shell := newTestShell(t, "")
+			shell := newTestShell(t)
 			shell.Register("echo", http.NotFoundHandler())
 			var denied bool
 			shell.origin.deny = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -1101,7 +777,7 @@ func TestOriginRefusalEmitsTheRefusalRecord(t *testing.T) {
 		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 	}
 	log := &capturingHandler{}
-	shell := NewShell(prefix, NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}), slog.New(log))
+	shell := NewShell(prefix, NewStrip(TrustedProxyConfig{}), slog.New(log))
 
 	rec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/outside", nil))
@@ -1157,7 +833,7 @@ func TestDirectModeWarnsOnceOnForwardedFromLocalPeer(t *testing.T) {
 				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
 			}
 			var buf strings.Builder
-			shell := NewShell(prefix, NewStrip("", "", tt.proxy, FrontExemption{}), slog.New(slog.NewTextHandler(&buf, nil)))
+			shell := NewShell(prefix, NewStrip(tt.proxy), slog.New(slog.NewTextHandler(&buf, nil)))
 			handler := shell.Handler()
 
 			for range 2 {

@@ -6,9 +6,9 @@ import "net/http"
 // come from this server's own pages. It is the one cross-site request
 // forgery defense for every surface the shell serves: [Shell.Handler]
 // places it after the ingress strip and path normalization and before
-// prefix routing, so every registered subtree and the fallthrough sit
-// behind it by construction rather than by each mount remembering to
-// install it.
+// prefix routing, so every registered subtree and every path outside
+// the prefix sit behind it by construction rather than by each mount
+// remembering to install it.
 //
 // The mechanism is [http.CrossOriginProtection], which honors
 // Sec-Fetch-Site on its own and falls back to comparing Origin's host
@@ -39,11 +39,13 @@ import "net/http"
 // A request authenticated by a bearer credential rather than by the
 // session cookie cannot be forged by a third-party page, which can make
 // a browser attach cookies but never a bearer credential. Such a path
-// is exempted through [originCheck.addBearerBypass], and the exemption
-// carries a contract every handler behind a bypassed pattern keeps: it
-// must not read the session cookie to authenticate a request. A
-// bypassed handler that fell back to the cookie would turn the
-// exemption into exactly the forgery this check refuses.
+// is exempted through [originCheck.addBearerBypass], keyed on its
+// path. The admin API's bearer mount and the OpenSubsonic API's
+// non-GET requests are its consumers. The exemption carries a contract
+// every handler behind a bypassed pattern keeps: it must not read the
+// session cookie to authenticate a request. A bypassed handler that
+// fell back to the cookie would turn the exemption into exactly the
+// forgery this check refuses.
 type originCheck struct {
 	protection *http.CrossOriginProtection
 

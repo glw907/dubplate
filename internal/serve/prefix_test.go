@@ -118,7 +118,7 @@ type terminal int
 const (
 	terminalRegistered terminal = iota
 	terminalTerminator
-	terminalFallthrough
+	terminalNext
 )
 
 func TestRoute(t *testing.T) {
@@ -162,25 +162,25 @@ func TestRoute(t *testing.T) {
 		{
 			name:       "a neighbor sharing the prefix's bytes without a segment boundary does not enter (the mountBasePath defect)",
 			path:       testPrefix + "foo",
-			want:       terminalFallthrough,
+			want:       terminalNext,
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "a differently cased prefix does not enter",
 			path:       "/Anchor",
-			want:       terminalFallthrough,
+			want:       terminalNext,
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "the root path does not enter",
 			path:       "/",
-			want:       terminalFallthrough,
+			want:       terminalNext,
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "a path that does not begin with the prefix does not enter",
 			path:       "/other",
-			want:       terminalFallthrough,
+			want:       terminalNext,
 			wantStatus: http.StatusOK,
 		},
 	}
@@ -192,7 +192,7 @@ func TestRoute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var registered, terminated, fellThrough callRecorder
+			var registered, terminated, reachedNext callRecorder
 
 			var owned http.Handler
 			if tt.useTerminator {
@@ -200,7 +200,7 @@ func TestRoute(t *testing.T) {
 			} else {
 				owned = recordingHandlerWithStatus(http.StatusOK, &registered)
 			}
-			next := recordingHandlerWithStatus(http.StatusOK, &fellThrough)
+			next := recordingHandlerWithStatus(http.StatusOK, &reachedNext)
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
 			w := httptest.NewRecorder()
@@ -211,15 +211,15 @@ func TestRoute(t *testing.T) {
 			}
 
 			got := map[terminal]bool{
-				terminalRegistered:  registered.called,
-				terminalTerminator:  terminated.called,
-				terminalFallthrough: fellThrough.called,
+				terminalRegistered: registered.called,
+				terminalTerminator: terminated.called,
+				terminalNext:       reachedNext.called,
 			}
 			for term, called := range got {
 				want := term == tt.want
 				if called != want {
-					t.Fatalf("terminal %v called = %v, want %v (registered=%v terminator=%v fallthrough=%v)",
-						term, called, want, registered.called, terminated.called, fellThrough.called)
+					t.Fatalf("terminal %v called = %v, want %v (registered=%v terminator=%v next=%v)",
+						term, called, want, registered.called, terminated.called, reachedNext.called)
 				}
 			}
 		})

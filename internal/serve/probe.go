@@ -29,13 +29,6 @@ type ProbeCounts struct {
 	Sentinel  int `json:"sentinel"`
 }
 
-// probeIdentityNames is group 1 as the probe sends and counts it: every
-// identity spelling the strip removes while no driver header is
-// configured, which is every deployment the shell serves today.
-func probeIdentityNames() []string {
-	return identitySpellings("")
-}
-
 // NewProbeRequest builds the one probe request every caller sends: a
 // GET for the probe route under prefix on host, carrying every group 1
 // spelling in both forms, every group 2 name the strip built for proxy
@@ -49,7 +42,7 @@ func NewProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 	if err != nil {
 		return nil, err
 	}
-	for _, name := range probeIdentityNames() {
+	for _, name := range identitySpellings {
 		req.Header.Add(name, "probe")
 	}
 	for _, name := range forwardedAddressSet(proxy.header) {
@@ -91,7 +84,7 @@ func NewProbeRoute(bindAddrs []string, proxy TrustedProxyConfig) http.Handler {
 			local[addr.Unmap()] = struct{}{}
 		}
 	}
-	identity := probeIdentityNames()
+	identity := identitySpellings
 	forwarded := forwardedAddressSet(proxy.header)
 	refuse := Terminator()
 

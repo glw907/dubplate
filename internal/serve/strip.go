@@ -9,13 +9,10 @@ import (
 )
 
 // identityExtras is the fixed set of trusted-header-SSO header names
-// group 1 removes in addition to the driver's configured header name.
-// Rung 12 declares a driver's header through the seam [NewStrip] reads
-// at construction; this list never gains a driver-specific name of its
-// own. Every name here is documented by the project that owns it as a
-// header it sets or reads to carry an authenticated identity into a
-// backend application; identitySpellings derives each name's
-// underscore twin, so a new entry is one line.
+// group 1 removes. Every name here is documented by the project that
+// owns it as a header it sets or reads to carry an authenticated
+// identity into a backend application; identitySpellings derives each
+// name's underscore twin, so a new entry is one line.
 //
 // Names are written in [textproto.CanonicalMIMEHeaderKey] form, which
 // is not always the casing the citing project prints. Header names are
@@ -23,17 +20,12 @@ import (
 // the two spellings name the same header; the citations keep the
 // project's own casing.
 //
-// Every candidate this task could cite, and every one it dropped:
+// Every candidate cited, and every one dropped:
 //
 //   - Remote-User, Remote-Name, Remote-Email, Remote-Groups: Authelia's
 //     trusted-header-SSO response headers, injected by the reverse
 //     proxy into the request the backend application receives.
 //     https://www.authelia.com/integration/trusted-header-sso/introduction/,
-//     read 2026-09-08.
-//   - Remote-User is also Navidrome's own default ExtAuth.UserHeader,
-//     the header the streamer rung 12 proxies reads for externalized
-//     authentication.
-//     https://www.navidrome.org/docs/usage/integration/authentication/,
 //     read 2026-09-08.
 //   - X-Forwarded-User, X-Forwarded-Email, X-Forwarded-Preferred-Username,
 //     X-Forwarded-Groups: oauth2-proxy's pass_user_headers set (on by
@@ -72,8 +64,7 @@ import (
 //     ingress-nginx, Traefik, or authentik was found stating either, so
 //     both are dropped rather than shipped on recollection.
 //
-// The security review's second round added these, each with the page
-// that states it:
+// Further names, each with the page that states it:
 //
 //   - X-WEBAUTH-USER: Grafana's auth.proxy default header_name, the
 //     header Grafana reads as the authenticated user.
@@ -103,9 +94,8 @@ import (
 //     authentication server.
 //     https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/,
 //     read 2026-09-08.
-//   - Cf-Access-Authenticated-User-Email, dropped by the previous round
-//     as uncitable, is cited now: Cloudflare's own Access tutorial
-//     reads it off the incoming request as the email Access
+//   - Cf-Access-Authenticated-User-Email: Cloudflare's own Access
+//     tutorial reads it off the incoming request as the email Access
 //     authenticated.
 //     https://developers.cloudflare.com/cloudflare-one/tutorials/access-workers/,
 //     read 2026-09-08.
@@ -202,24 +192,17 @@ var group3KeepSet = map[string]struct{}{
 	"Sec-Fetch-Site": {},
 }
 
-// identityNames returns every name group 1 removes in its dash form:
-// header (the driver's configured identity header name, empty while no
-// driver is configured) and every name in identityExtras.
-func identityNames(header string) []string {
-	names := make([]string, 0, len(identityExtras)+1)
-	if header != "" {
-		names = append(names, header)
-	}
-	return append(names, identityExtras...)
-}
-
-// identitySpellings returns every name in [identityNames] in its dash
-// form and, where a dash makes the two forms distinct, its all-underscore
+// identitySpellings is every name in identityExtras in its dash form
+// and, where a dash makes the two forms distinct, its all-underscore
 // form too. It is the set the boundary probe sends; group 1 itself
 // matches by [foldedKey], which also covers a name that mixes the two
 // separators.
-func identitySpellings(header string) []string {
-	names := identityNames(header)
+var identitySpellings = withUnderscoreTwins(identityExtras)
+
+// identityKeys is the [foldedKey] form of every name group 1 removes.
+var identityKeys = foldedKeys(identityExtras)
+
+func withUnderscoreTwins(names []string) []string {
 	spellings := make([]string, 0, len(names)*2)
 	for _, name := range names {
 		spellings = append(spellings, name)
@@ -230,59 +213,25 @@ func identitySpellings(header string) []string {
 	return spellings
 }
 
-// FrontExemption names the one identity header spelling a configured
-// front may exempt from group 1's removal, and the peer addresses from
-// which the exemption applies. The zero value exempts nothing, which
-// is every deployment rung 5 ships: no front exists before rung 12
-// (spec:849-862).
-type FrontExemption struct {
-	header  string
-	proxies map[string]struct{}
+func foldedKeys(names []string) map[string]struct{} {
+	keys := make(map[string]struct{}, len(names))
+	for _, name := range names {
+		keys[foldedKey(name)] = struct{}{}
+	}
+	return keys
 }
 
-// NewFrontExemption builds a [FrontExemption] that exempts header, in
-// its dash form only, from group 1's removal when the request's peer
-// address is one of proxies. Every other identity spelling, header's
-// underscore twin included, is still stripped. An empty header exempts
-// nothing.
-func NewFrontExemption(header string, proxies []string) FrontExemption {
-	set := make(map[string]struct{}, len(proxies))
-	for _, p := range proxies {
-		set[p] = struct{}{}
-	}
-	return FrontExemption{header: header, proxies: set}
-}
-
-// headerFor returns the header this exemption exempts for a request
-// whose peer address is peer, or "" when the exemption is empty or
-// peer is not one of its configured proxies.
-func (e FrontExemption) headerFor(peer string) string {
-	if e.header == "" {
-		return ""
-	}
-	if _, trusted := e.proxies[peer]; !trusted {
-		return ""
-	}
-	return e.header
-}
-
-// Strip is the rung 5 ingress strip (C2): a wrapper that removes every
+// Strip is the ingress strip: a wrapper that removes every
 // identity-header spelling, the forwarded-address family, and any
 // header a request's own Connection header lists, before the request
 // reaches the mux. It clears both r.Header and r.Trailer, so a value
 // smuggled in an announced trailer is removed on the same pass as one
-// arriving in a header field (R-P). Task 5 composes Strip as the
-// outermost step; Strip wraps the mux, never a handler, which is what
-// makes the removal hold for every path without enumerating them.
+// arriving in a header field. The shell composes Strip as the
+// outermost routing step; Strip wraps the mux, never a handler, which
+// is what makes the removal hold for every path without enumerating
+// them.
 type Strip struct {
-	header        string
-	sessionCookie string
-	proxy         TrustedProxyConfig
-	exemption     FrontExemption
-
-	// identity is group 1's removal set in [foldedKey] form, derived
-	// once at construction.
-	identity map[string]struct{}
+	proxy TrustedProxyConfig
 
 	// forwarded is group 2's removal set: forwardedAddressHeaders plus
 	// the trusted-proxy configuration's own header name, derived once at
@@ -297,28 +246,17 @@ type Strip struct {
 	forwardedCanon map[string]struct{}
 }
 
-// NewStrip builds a [Strip]. header is the driver's configured
-// identity header name, a construction value that is empty at rung 5
-// since no driver exists yet; rung 12 supplies it through the driver
-// seam. sessionCookie is the shell's own session-cookie name (R-S), a
-// construction value that does not exist until 5b; the strip itself
-// never removes a cookie, and [Shell] reads this name to remove that
-// one cookie on the way out to the fallthrough. proxy
-// is the trusted-proxy configuration and the sole input to group
-// 2's carve-out. exemption is the mechanism a later front configures;
-// the zero value exempts nothing.
-func NewStrip(header, sessionCookie string, proxy TrustedProxyConfig, exemption FrontExemption) Strip {
+// NewStrip builds a [Strip]. proxy is the trusted-proxy configuration
+// and the sole input to group 2's carve-out. Group 1's name set is
+// fixed, and no peer is exempt from it.
+func NewStrip(proxy TrustedProxyConfig) Strip {
 	forwarded := forwardedAddressSet(proxy.header)
 	canon := make(map[string]struct{}, len(forwarded))
 	for _, name := range forwarded {
 		canon[textproto.CanonicalMIMEHeaderKey(name)] = struct{}{}
 	}
 	return Strip{
-		header:         header,
-		sessionCookie:  sessionCookie,
 		proxy:          proxy,
-		exemption:      exemption,
-		identity:       identityKeys(header),
 		forwarded:      forwarded,
 		forwardedCanon: canon,
 	}
@@ -351,14 +289,12 @@ func (s Strip) Wrap(next http.Handler) http.Handler {
 }
 
 // stripIdentity removes group 1: every identity spelling from r.Header
-// and r.Trailer on the same pass (R-P), then wraps r.Body so the same
-// names are deleted from r.Trailer again once the client's trailer
-// section has actually arrived. The up-front delete removes an
-// announced key before the body is read; net/http's mergeSetHeader
-// re-adds that key once the trailer's value arrives, so the read-time
-// scrub is what removes a value smuggled after the body. The one
-// exemption a configured front may carry is honored in both passes
-// (R-Q, R-S's sibling for group 1).
+// and r.Trailer on the same pass, then wraps r.Body so the same names
+// are deleted from r.Trailer again once the client's trailer section
+// has actually arrived. The up-front delete removes an announced key
+// before the body is read; net/http's mergeSetHeader re-adds that key
+// once the trailer's value arrives, so the read-time scrub is what
+// removes a value smuggled after the body.
 //
 // The body is wrapped unconditionally, never only when the request
 // announced a Trailer header. A chunked request may send a trailer
@@ -368,27 +304,9 @@ func (s Strip) Wrap(next http.Handler) http.Handler {
 // request's identity headers standing, which is the whole strip
 // bypassed by omitting one header.
 func (s Strip) stripIdentity(r *http.Request) {
-	exempt := s.exemption.headerFor(PeerAddress(r))
-	if exempt != "" {
-		collapseToLast(r.Header, exempt)
-	}
-
-	deleteIdentity(r.Header, s.identity, exempt)
-	deleteIdentity(r.Trailer, s.identity, exempt)
-	scrubTrailerOnRead(r, s.identity, exempt)
-}
-
-// collapseToLast rewrites h so name carries only the last value among
-// any it currently has (R-Q). A front that appends rather than
-// replaces produces a request carrying the exempted name twice, and
-// Header.Get returns the first of those; this rule decides which of
-// the two a downstream handler sees.
-func collapseToLast(h http.Header, name string) {
-	values := h.Values(name)
-	if len(values) < 2 {
-		return
-	}
-	h.Set(name, values[len(values)-1])
+	deleteIdentity(r.Header)
+	deleteIdentity(r.Trailer)
+	scrubTrailerOnRead(r)
 }
 
 // foldedKey returns the form group 1 matches a header key by: k with
@@ -402,33 +320,15 @@ func foldedKey(k string) string {
 	return textproto.CanonicalMIMEHeaderKey(strings.ReplaceAll(k, "_", "-"))
 }
 
-// identityKeys returns the [foldedKey] form of every name group 1
-// removes.
-func identityKeys(header string) map[string]struct{} {
-	names := identityNames(header)
-	keys := make(map[string]struct{}, len(names))
-	for _, name := range names {
-		keys[foldedKey(name)] = struct{}{}
-	}
-	return keys
-}
-
-// deleteIdentity deletes from h every key whose [foldedKey] is in keys,
-// other than the canonical form of exempt. It ranges over the keys h
-// actually holds, so a spelling no list names, a lowercase key a
-// handler set directly among them, is matched all the same. The Go
-// specification permits deleting the current entry inside a range over
-// a map, and delete on a nil map is a no-op.
-func deleteIdentity(h http.Header, keys map[string]struct{}, exempt string) {
-	keep := ""
-	if exempt != "" {
-		keep = textproto.CanonicalMIMEHeaderKey(exempt)
-	}
+// deleteIdentity deletes from h every key whose [foldedKey] is in
+// identityKeys. It ranges over the keys h actually holds, so a spelling
+// no list names, a lowercase key a handler set directly among them, is
+// matched all the same. The Go specification permits deleting the
+// current entry inside a range over a map, and delete on a nil map is a
+// no-op.
+func deleteIdentity(h http.Header) {
 	for k := range h {
-		if keep != "" && k == keep {
-			continue
-		}
-		if _, ok := keys[foldedKey(k)]; ok {
+		if _, ok := identityKeys[foldedKey(k)]; ok {
 			delete(h, k)
 		}
 	}
@@ -439,23 +339,23 @@ func sameHeaderName(a, b string) bool {
 }
 
 // scrubTrailerOnRead wraps r.Body so that once the client's trailer
-// section has arrived, every key [deleteIdentity] matches against keys,
-// other than exempt, is deleted from r.Trailer again. net/http's mergeSetHeader (transfer.go)
-// copies the wire trailer's values into r.Trailer unconditionally once
-// the body reaches io.EOF, which re-adds any name this task's up-front
-// delete removed; wrapping the body is the one point that reliably runs
-// after that merge.
-func scrubTrailerOnRead(r *http.Request, keys map[string]struct{}, exempt string) {
+// section has arrived, every key [deleteIdentity] matches is deleted
+// from r.Trailer again. net/http's mergeSetHeader (transfer.go) copies
+// the wire trailer's values into r.Trailer unconditionally once the
+// body reaches io.EOF, which re-adds any name the up-front delete
+// removed; wrapping the body is the one point that reliably runs after
+// that merge.
+func scrubTrailerOnRead(r *http.Request) {
 	if r.Body == nil {
 		return
 	}
-	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, req: r, keys: keys, exempt: exempt}
+	r.Body = &trailerScrubbingBody{ReadCloser: r.Body, req: r}
 }
 
-// trailerScrubbingBody deletes the identity keys, other than exempt, from its
-// request's Trailer the moment the wrapped reader signals end of
-// stream, which is when net/http has just finished populating that
-// map with the values the client sent.
+// trailerScrubbingBody deletes the identity keys from its request's
+// Trailer the moment the wrapped reader signals end of stream, which
+// is when net/http has just finished populating that map with the
+// values the client sent.
 //
 // It holds the request rather than the Trailer map it had at wrap
 // time. For a request that announced no trailer, r.Trailer is nil
@@ -464,9 +364,7 @@ func scrubTrailerOnRead(r *http.Request, keys map[string]struct{}, exempt string
 // scrub deleting from nothing while the request carried the values.
 type trailerScrubbingBody struct {
 	io.ReadCloser
-	req    *http.Request
-	keys   map[string]struct{}
-	exempt string
+	req *http.Request
 }
 
 func (b *trailerScrubbingBody) Read(p []byte) (int, error) {
@@ -490,11 +388,10 @@ func (b *trailerScrubbingBody) Close() error {
 	return err
 }
 
-// scrub deletes every identity key but exempt from the request's
-// Trailer. It is idempotent, so the two arming points may both fire on
-// one request.
+// scrub deletes every identity key from the request's Trailer. It is
+// idempotent, so the two arming points may both fire on one request.
 func (b *trailerScrubbingBody) scrub() {
-	deleteIdentity(b.req.Trailer, b.keys, b.exempt)
+	deleteIdentity(b.req.Trailer)
 }
 
 // stripForwardedAddress removes group 2 unless trusted-proxy mode is
@@ -523,11 +420,7 @@ func (s Strip) trustsPeer(r *http.Request) bool {
 // handshake sends Connection: Upgrade alongside Upgrade: websocket and
 // the listed removal would otherwise delete the handshake it needs.
 // group3KeepSet is never removed by this rule (R-S), whatever
-// Connection says, and neither is the one header a configured front is
-// exempt from group 1 on: an attacker who could name that header in
-// Connection would delete the front's own identity assertion, turning
-// a header a trusted peer set into a request the shell reads as
-// anonymous.
+// Connection says.
 //
 // The same argument covers group 2's names when the peer is trusted.
 // Group 2 preserves the forwarded-address headers a trusted front sets,
@@ -543,10 +436,6 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 		return
 	}
 
-	exempt := ""
-	if header := s.exemption.headerFor(PeerAddress(r)); header != "" {
-		exempt = textproto.CanonicalMIMEHeaderKey(header)
-	}
 	keepForwarded := s.trustsPeer(r)
 
 	upgrade := false
@@ -569,9 +458,6 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 			if _, keep := s.forwardedCanon[canon]; keep {
 				continue
 			}
-		}
-		if exempt != "" && canon == exempt {
-			continue
 		}
 		r.Header.Del(token)
 	}

@@ -54,7 +54,7 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 
 // TestWriteDeadlineExtension proves the write timeout newHTTPServer
 // wires is real, and that http.ResponseController.SetWriteDeadline,
-// exposed to the fallthrough handler by newHTTPServer's ordinary
+// exposed to every handler by newHTTPServer's ordinary
 // construction, lets a handler survive past it. It passes a short
 // write timeout through the constructor, so both rows exercise
 // newHTTPServer's actual wiring path (proving a dropped WriteTimeout

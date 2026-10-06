@@ -77,13 +77,10 @@ var expectedIdentitySpellings = []string{
 	"Tailscale-User-Login", "Tailscale_User_Login",
 	"Tailscale-User-Name", "Tailscale_User_Name",
 	"X-Original-URL", "X_Original_URL",
-	// The driver's configured header name and its underscore twin,
-	// proving the driver-contribution mechanism rung 12 will use.
-	"X-Driver-Identity", "X_Driver_Identity",
 }
 
 func TestStripWrapRemovesEveryIdentitySpelling(t *testing.T) {
-	strip := NewStrip("X-Driver-Identity", "", TrustedProxyConfig{}, FrontExemption{})
+	strip := NewStrip(TrustedProxyConfig{})
 
 	r := httptest.NewRequest("GET", "/", nil)
 	for _, name := range expectedIdentitySpellings {
@@ -106,7 +103,7 @@ func TestStripWrapClearsAnnouncedTrailerOnceBodyIsRead(t *testing.T) {
 	// clear it on that same pass, not only on r.Header up front.
 	var beforeHeader, afterHeader, afterTrailer string
 	var beforeTrailerPresent bool
-	srv := httptest.NewServer(NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}).Wrap(
+	srv := httptest.NewServer(NewStrip(TrustedProxyConfig{}).Wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			beforeHeader = r.Header.Get("Remote-User")
 			_, beforeTrailerPresent = r.Trailer["Remote-User"]
@@ -218,7 +215,7 @@ func TestStripWrapConnectionListedRemoval(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strip := NewStrip("", "", TrustedProxyConfig{}, FrontExemption{})
+			strip := NewStrip(TrustedProxyConfig{})
 
 			r := httptest.NewRequest("GET", "/", nil)
 			for _, c := range tt.connection {
@@ -292,7 +289,7 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strip := NewStrip("", "", tt.proxy, FrontExemption{})
+			strip := NewStrip(tt.proxy)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = tt.remoteAddr
@@ -316,81 +313,6 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 	}
 }
 
-func TestStripWrapExemption(t *testing.T) {
-	exemption := NewFrontExemption("X-Front-Identity", []string{"203.0.113.10"})
-	strip := NewStrip("X-Front-Identity", "", TrustedProxyConfig{}, exemption)
-
-	t.Run("matching peer: the named header survives", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = "203.0.113.10:1111"
-		r.Header.Set("X-Front-Identity", "front-asserted-user")
-
-		var got recorder
-		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-		if v := got.header.Get("X-Front-Identity"); v != "front-asserted-user" {
-			t.Errorf("X-Front-Identity = %q, want %q to survive the exemption", v, "front-asserted-user")
-		}
-	})
-
-	t.Run("matching peer: the underscore twin does not survive", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = "203.0.113.10:1111"
-		r.Header.Set("X_Front_Identity", "smuggled")
-
-		var got recorder
-		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-		if v := got.header.Get("X_Front_Identity"); v != "" {
-			t.Errorf("X_Front_Identity = %q, want removed: only the exact configured spelling is exempt", v)
-		}
-	})
-
-	t.Run("non-matching peer: the named header is stripped like any other", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = "192.0.2.5:1111"
-		r.Header.Set("X-Front-Identity", "front-asserted-user")
-
-		var got recorder
-		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-		if v := got.header.Get("X-Front-Identity"); v != "" {
-			t.Errorf("X-Front-Identity = %q, want removed: the peer does not match the front's configuration", v)
-		}
-	})
-
-	t.Run("duplicate exempted name collapses to its last value", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = "203.0.113.10:1111"
-		r.Header.Add("X-Front-Identity", "first")
-		r.Header.Add("X-Front-Identity", "second")
-
-		var got recorder
-		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-		values := got.header.Values("X-Front-Identity")
-		if len(values) != 1 || values[0] != "second" {
-			t.Errorf("X-Front-Identity values = %v, want exactly [\"second\"]", values)
-		}
-	})
-}
-
-func TestStripWrapEmptyExemptionExemptsNothing(t *testing.T) {
-	// A shell constructed with no front exempts nothing (spec:849-862).
-	strip := NewStrip("X-Driver-Identity", "", TrustedProxyConfig{}, FrontExemption{})
-
-	r := httptest.NewRequest("GET", "/", nil)
-	r.RemoteAddr = "203.0.113.10:1111"
-	r.Header.Set("X-Driver-Identity", "attacker")
-
-	var got recorder
-	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-	if v := got.header.Get("X-Driver-Identity"); v != "" {
-		t.Errorf("X-Driver-Identity = %q, want removed: no front is configured, so nothing is exempt", v)
-	}
-}
-
 // TestStripWrapClearsUnannouncedTrailerOnceBodyIsRead is the
 // announcement-free half of R-P: a chunked request may send a trailer
 // section it never named in a Trailer header, and net/http merges that
@@ -406,7 +328,7 @@ func TestStripWrapEmptyExemptionExemptsNothing(t *testing.T) {
 func TestStripWrapClearsUnannouncedTrailerOnceBodyIsRead(t *testing.T) {
 	var afterHeader, afterTrailer string
 	var trailerKeyPresent bool
-	srv := httptest.NewServer(NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}).Wrap(
+	srv := httptest.NewServer(NewStrip(TrustedProxyConfig{}).Wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(io.Discard, r.Body) //nolint:errcheck // test drains to trigger trailer population
 			afterHeader = r.Header.Get("Remote-User")
@@ -458,45 +380,6 @@ func TestStripWrapClearsUnannouncedTrailerOnceBodyIsRead(t *testing.T) {
 	}
 }
 
-// TestStripWrapExemptedHeaderSurvivesConnectionListing: the one header
-// a configured front is exempt from group 1 on survives group 3 too.
-// Without the carve-out an attacker could name that header in its own
-// Connection header and delete the front's identity assertion, turning
-// a request a trusted peer authenticated into one the shell reads as
-// anonymous.
-func TestStripWrapExemptedHeaderSurvivesConnectionListing(t *testing.T) {
-	exemption := NewFrontExemption("X-Front-Identity", []string{"203.0.113.10"})
-	strip := NewStrip("X-Front-Identity", "", TrustedProxyConfig{}, exemption)
-
-	t.Run("matching peer: Connection cannot delete the exempted header", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = "203.0.113.10:1111"
-		r.Header.Set("X-Front-Identity", "front-asserted-user")
-		r.Header.Set("Connection", "X-Front-Identity")
-
-		var got recorder
-		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-		if v := got.header.Get("X-Front-Identity"); v != "front-asserted-user" {
-			t.Errorf("X-Front-Identity = %q, want %q: the exemption must outrank a client-supplied Connection listing", v, "front-asserted-user")
-		}
-	})
-
-	t.Run("non-matching peer: nothing is exempt from either group", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = "192.0.2.5:1111"
-		r.Header.Set("X-Front-Identity", "attacker")
-		r.Header.Set("Connection", "X-Front-Identity")
-
-		var got recorder
-		strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-		if v := got.header.Get("X-Front-Identity"); v != "" {
-			t.Errorf("X-Front-Identity = %q, want removed: the peer does not match the front's configuration", v)
-		}
-	})
-}
-
 // clientIPFamily is the client-address half of group 2, written out
 // independently of forwardedAddressHeaders so a strip that lost one
 // still fails. Every name is one a real front sets, which is what makes
@@ -510,7 +393,7 @@ var clientIPFamily = []string{
 }
 
 func TestStripWrapRemovesTheClientIPFamily(t *testing.T) {
-	strip := NewStrip("", "", TrustedProxyConfig{}, FrontExemption{})
+	strip := NewStrip(TrustedProxyConfig{})
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "192.0.2.5:1111"
@@ -550,7 +433,7 @@ func TestStripWrapRemovesTheConfiguredProxyHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			proxy := NewTrustedProxyConfig(addrs("203.0.113.10"), tt.header)
-			strip := NewStrip("", "", proxy, FrontExemption{})
+			strip := NewStrip(proxy)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = "192.0.2.5:1111" // not a configured proxy
@@ -613,7 +496,7 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			proxy := NewTrustedProxyConfig(addrs(proxyAddr), "X-Forwarded-For")
-			strip := NewStrip("", "", proxy, FrontExemption{})
+			strip := NewStrip(proxy)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = tt.remoteAddr
@@ -643,7 +526,7 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 // request lists in Connection is still removed from a trusted peer.
 func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
 	proxy := NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
-	strip := NewStrip("", "", proxy, FrontExemption{})
+	strip := NewStrip(proxy)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "203.0.113.10:1111"
@@ -668,7 +551,7 @@ func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
 // trailer.
 func TestStripWrapScrubsTrailerOnCloseWithoutRead(t *testing.T) {
 	var afterTrailer string
-	srv := httptest.NewServer(NewStrip("", "", TrustedProxyConfig{}, FrontExemption{}).Wrap(
+	srv := httptest.NewServer(NewStrip(TrustedProxyConfig{}).Wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_ = r.Body.Close()
 			afterTrailer = r.Trailer.Get("Remote-User")
@@ -718,13 +601,12 @@ func TestStripWrapRemovesMixedSeparatorSpellings(t *testing.T) {
 		{"underscore after the second segment", "X-Forwarded_user"},
 		{"underscore after the first segment", "X_forwarded-User"},
 		{"a four-segment name", "Cf-Access_jwt-Assertion"},
-		{"the driver's configured name", "X-Driver_identity"},
 		{"a lowercase key the parser never canonicalized", "x-forwarded-user"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strip := NewStrip("X-Driver-Identity", "", TrustedProxyConfig{}, FrontExemption{})
+			strip := NewStrip(TrustedProxyConfig{})
 			r := httptest.NewRequest("GET", "/", nil)
 			r.Header[tt.key] = []string{"attacker"}
 			r.Trailer = http.Header{tt.key: []string{"attacker"}}
@@ -739,29 +621,5 @@ func TestStripWrapRemovesMixedSeparatorSpellings(t *testing.T) {
 				t.Errorf("handler received trailer %s = %q, want removed", tt.key, v)
 			}
 		})
-	}
-}
-
-// TestStripWrapExemptionKeepsOnlyTheExactSpelling pins the exemption
-// against the normalized match: from the configured front, the
-// exempted name's dash form survives, and a mixed spelling of the same
-// name is still stripped.
-func TestStripWrapExemptionKeepsOnlyTheExactSpelling(t *testing.T) {
-	exemption := NewFrontExemption("X-Front-Identity", []string{"203.0.113.10"})
-	strip := NewStrip("X-Front-Identity", "", TrustedProxyConfig{}, exemption)
-
-	r := httptest.NewRequest("GET", "/", nil)
-	r.RemoteAddr = "203.0.113.10:1111"
-	r.Header.Set("X-Front-Identity", "front-asserted-user")
-	r.Header["X-Front_identity"] = []string{"smuggled"}
-
-	var got recorder
-	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
-
-	if v := got.header.Get("X-Front-Identity"); v != "front-asserted-user" {
-		t.Errorf("X-Front-Identity = %q, want %q to survive the exemption", v, "front-asserted-user")
-	}
-	if v, ok := got.header["X-Front_identity"]; ok {
-		t.Errorf("X-Front_identity = %q, want removed: only the exact configured spelling is exempt", v)
 	}
 }

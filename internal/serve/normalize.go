@@ -23,9 +23,9 @@ const maxPathBytes = 2048
 // It is a gate, never a rewriter: an admitted request reaches next
 // with the path it arrived on, byte for byte.
 //
-// A refusal is answered here and nowhere else. No route, no prefix
-// decision, and no fallthrough sees a refused request, which is what
-// makes the rules a boundary rather than a filter.
+// A refusal is answered here and nowhere else. No route and no prefix
+// decision sees a refused request, which is what makes the rules a
+// boundary rather than a filter.
 //
 // Normalize wraps the mux and is never registered as a route on one.
 // http.ServeMux cleans a path and redirects before any route runs, so
@@ -46,26 +46,24 @@ const maxPathBytes = 2048
 //     The rule closes %2F, %5C, and %2E%2E, and it refuses a benign
 //     encoded byte such as /%E2%98%83 too. That blanket refusal is the
 //     stated policy rather than a side effect: the shell owns no path
-//     needing an encoded byte, a driver declares its paths as
-//     literals, and a rule admitting some encodings has to decide
+//     needing an encoded byte, every route declares its path as a
+//     literal, and a rule admitting some encodings has to decide
 //     which at the one place in the shell where a wrong decision is
-//     invisible. Rung 12 revisits the strictness with measured
-//     evidence from a real driver.
+//     invisible.
 //  2. No "." or ".." segment, refused rather than cleaned. Cleaning is
-//     what http.ServeMux does, and a streamer behind the fallthrough
-//     may normalize differently again.
+//     what http.ServeMux does, and a handler behind the shell may
+//     normalize differently again.
 //  3. No doubled separator anywhere. The leading separator is not a
 //     segment and a single trailing separator is admitted, so "/",
 //     "/dubplate/", and "/dubplate/x/" pass while "//dubplate" and
 //     "/dubplate//x" are refused.
-//  4. No backslash, which a streamer's own router may read as a
-//     separator on the fallthrough. This rule is defense in depth
+//  4. No backslash, which a handler's own router may read as a
+//     separator. This rule is defense in depth
 //     behind rule 1 rather than the first line against a backslash:
 //     net/url escapes a backslash in a path, so a request carrying one
 //     normally has EscapedPath differ from Path and rule 1 refuses it
 //     first. Rule 4 is what still refuses one should a future net/url
-//     stop escaping it, or should rule 1's strictness be relaxed the
-//     way rule 1's own note reserves for rung 12.
+//     stop escaping it, or should rule 1's strictness ever be relaxed.
 //  5. No path past maxPathBytes.
 //  6. No request target whose path fails to begin with a separator
 //     (ruled, conductor 2026-09-08, R-U, as applied). A CONNECT
