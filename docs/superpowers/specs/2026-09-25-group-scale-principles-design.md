@@ -1,6 +1,6 @@
 # What dubplate is for, and what it isn't
 
-Design spec. Revision 3, 2026-09-25. Status: **ratified (Geoff, 2026-09-25); all twelve rulings ruled, 4 to 12 as recommended.**
+Design spec. Revision 3, 2026-09-25. Status: **ratified (Geoff, 2026-09-25); all twelve rulings ruled, 4 to 12 as recommended.** Erratum 2026-10-05: the incumbent stack is retired, so "Before 0.8" and row A13 are moot (see the erratum block below).
 Revision 1 (`1d6bc6a`) went through four review lenses (contract, mechanics, misuse,
 consistency) and an early prose read. Revision 2 (`08c812f`) went through a fold verification
 read, and revision 3 folds that read and Geoff's rulings of 2026-09-25. The fold record,
@@ -29,6 +29,30 @@ admin adds each member, and nothing plays without a login except a bounded share
 sends. dubplate can't get music from the internet, so the library holds only what members
 bring. These choices shape the product the project ships. dubplate is self-hosted, so they
 aren't an enforcement system. The operator of a server can change the code.
+
+> Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+> revision 2.1, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): Geoff retired the incumbent
+> stack, so three passages of this spec change. The rest of the text stays as written.
+>
+> - "Before 0.8" and row A13 are moot. No Navidrome serves audio, so the residuals the
+>   section lists (sharing and downloads at Navidrome's defaults, the credentials and volume
+>   gap) and the escape-hatch sharing check have no subject. The rule that a sharing check
+>   reads the effective value, never a configuration file alone, stays sound for the 0.8
+>   streamer's own settings. Every other passage that names Navidrome as the running server
+>   (the interim-period lines in "Versions this spec speaks to" and "dubplate is, and
+>   dubplate isn't", the ledger rows for the residuals and for the escape-hatch check, and
+>   conflict 8 and ruling 3 in the lists below) is covered by this block.
+> - The delegated route class and its rows have no subject until slice 3 of the re-plan.
+>   The route inventory (in "The group stays small and closed") and acceptance row A2 name
+>   the shell's fallthrough as the one delegated row. That fallthrough is removed, so until
+>   the streamer's routes arrive the inventory has public, session, and admin rows only.
+> - "Versions this spec speaks to" reads under ruling 1 of the re-plan: the first launch is
+>   0.8.0 on the built-in streamer, and no 0.x pre-release exists. The 0.8, 0.9, and 1.0
+>   lines keep their scope.
+>
+> Navidrome mentions that stay true: `dubplate import navidrome` (the switcher path, which stays
+> in 0.8) and the prior-art evidence from Navidrome's share dialog, defaults, share id
+> length, and advisory.
 
 ## Versions this spec speaks to
 
