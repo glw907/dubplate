@@ -3,14 +3,74 @@
 **Re-keyed to the 0.8 release (Geoff, 2026-09-25 ruling on version numbering).** Everywhere
 this document says "2.0" it means 0.8. The title and body are left as written.
 
-Status: **Ratified 2026-09-07.** Revision 2.5, 2026-09-25 (errata from the ratified group-scale principles spec, the streamer prior-art survey, and the give-back decision; listed under "Revision 2.5, 2026-09-25"). Revision 2.4, 2026-09-24 (Geoff's ruling: five hosting and setup features join the 2.0 target, recorded under "Hosting and setup at launch", "Hosting and setup", the widened Navidrome import, forward hooks 18 and 19, and slice 8). Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
-Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`, sequenced after the
-greenfield ladder's launch (rung 17).
+Status: **Ratified 2026-09-07.** Revision 3, 2026-10-05 (the built-in streamer is the group's first launch, so every passage that assumed an incumbent, a shadow, or a flip is removed or rewritten; listed under "Revision 3, 2026-10-05", with the rulings recorded under "Rulings of revision 3"). Revision 2.5, 2026-09-25 (errata from the ratified group-scale principles spec, the streamer prior-art survey, and the give-back decision; listed under "Revision 2.5, 2026-09-25"). Revision 2.4, 2026-09-24 (Geoff's ruling: five hosting and setup features join the 2.0 target, recorded under "Hosting and setup at launch", "Hosting and setup", the widened Navidrome import, forward hooks 18 and 19, and slice 8). Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
+Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`. It is rung 12 of the ladder: its eight slices are rung 12's
+passes, and the group's first launch (0.8.0) runs on it.
 
 This document governs the initiative's purview, its architecture, and the forward hooks the current build owes it. Where
 it names a current rung (5, 6, 7, 8, 9, 12, 16), it asks that rung's plan to weigh a hook, never to build a 2.0 feature
 early. One sentence in revision 1 trimmed rung 12 while the document claimed to amend nothing; that conflict is open
 ruling 1 rather than a silent amendment.
+
+## Revision 3, 2026-10-05
+
+Revision 3 follows the re-plan in `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1).
+On 2026-10-05 Geoff retired the incumbent stack, so the group listens through dubplate's own streamer from the first
+day and nothing remains to shadow, flip to, or fall back on. This revision edits in place, and the earlier revision
+sections stay as written. Each item names the reason and the section that carries the change.
+
+1. The shadow period, the flip, and the Navidrome retention window are removed. The reason: no incumbent serves the
+   group, so there is nothing to compare against live or to flip from (rulings 1 and 4). "Cutover and operations".
+2. The `shareRole` doctor row and the escape-hatch text are removed, because no Navidrome serves as an escape hatch.
+   "Cutover and operations".
+3. The arm64 walk "before the flip" is removed. The arm64 build stays. "Hosting and setup".
+4. Slice 9 (shadow period, flip, and close-out) is deleted, and slices 1 to 8 are stated as rung 12's passes. The
+   reason: there is nothing to shadow or flip. "The ladder".
+5. "Relation to the current ladder" and the header's "sequenced after the greenfield ladder's launch" are rewritten,
+   and the rejected alternatives are marked superseded. The reason is ruling 1: first launch is the streamer, so no
+   ladder finishes with Navidrome as the reference driver.
+6. "Cutover and operations" is rewritten to the streamer's configuration properties: always on, no enable flag, no
+   integration class, no driver, no cloudflared, tunables as registered thresholds with defaults, secrets on the auth
+   secrets' pattern, and a per-slice delta to the operator-supplied set. The reason is ruling 7: a stranger's install
+   stays easy.
+7. Slice 8 gains four import criteria, the unit's `CAP_NET_BIND_SERVICE` in TLS mode, the certificate leaf, and Owner
+   ruling 3's walk of the install path. The import's rationale is rewritten to the first-launch import (ruling 2).
+   "Hosting and setup" and "The ladder".
+8. Slice 6 records the bearer bypass's two contract sentences and that the bypass is path-keyed. "The ladder".
+9. Hook 6 and hook 15's capability clause are retired in place, and capability reporting is dropped unless a slice
+   names a consumer. Hook 19 is re-homed to slice 8, and hook 5's field is `username` (rulings 3 and 4). Hook numbers
+   never change, because other documents cite them. "Forward hooks the current build owes".
+10. The open items on the shadow period's length and the Navidrome retention window are marked moot, and the open item
+    on whether the study rung runs beside the current ladder is marked answered: slice 1 runs now as a document lane.
+    The open item on the client roster's membership points at the roster audit record. No other open item changes.
+11. Two passages outside the named sections that assumed a cutover are rewritten to the first-launch import (ruling
+    2): "Hosting and setup" and the prior-art table's import cell.
+12. The pinned Navidrome and gonic containers stay as workstation-only behavior oracles, under the GPL behavior-only
+    rule ("Evidence").
+13. Slice 1 gains a study question on Melodee's intake pipeline ("The ladder").
+
+## Rulings of revision 3
+
+Rulings 1 to 7 are Geoff's, 2026-10-05, from the re-plan spec. Owner rulings 1 to 3 were ruled yes the same day.
+
+1. First launch is 0.8.0, on the built-in streamer. No 0.x pre-release exists, and 0.9 and 1.0 keep their meaning.
+2. `dubplate import navidrome` stays in 0.8. It serves a stranger switching from Navidrome, and the group's first
+   launch runs it once against the Navidrome database in the retirement archive, so members keep their stars,
+   playlists, and play counts.
+3. The roster's streamer username becomes `username` everywhere: column, JSON key, flag, Go identifiers, wire codes,
+   and copy.
+4. dubplate integrates with no external streamer. The driver seam, hook 6, and the Navidrome and Jellyfin targets
+   retire.
+5. Rung 12 is the built-in streamer, and its first two slices start now: slice 1 as a document lane, slice 2 as a code
+   lane in its own worktree.
+6. The architecture stays clean, tidy, and beautiful through every change.
+7. dubplate stays extremely easy to install and configure for a new operator, and every change is weighed against it.
+
+Owner rulings, all yes:
+
+1. The shadow program is deleted, superseding the build spec's ruling 1 adopter clause.
+2. The forward-auth front retires along with the external streamers.
+3. Slice 8 closes on a walk of the install path on a fresh throwaway host, with blocking defects.
 
 ## Revision 2.5, 2026-09-25
 
@@ -36,7 +96,7 @@ Revision 2.5 lands errata from three sources. Each item names its source, and th
 6. `getAlbum` and `getAlbumInfo2` fill `musicBrainzId`, and `notes` carries the source line (P conflict 6). "API
    surface" and "Group features".
 7. While Navidrome is the escape hatch, a `doctor` row reads its effective sharing value (P row A13). "Cutover and
-   operations".
+   operations". Superseded by revision 3: no Navidrome serves, so the row is gone.
 8. XML is validated either in a legacy form against the official XSD or against a derived XSD; the choice is open (S
    finding 1). "Evidence".
 9. The OpenSubsonic `transcoding` extension against the profile order is open (S finding 2). "Streaming and
@@ -184,10 +244,16 @@ the packaging initiative means 2.0 ships them to the first stranger rather than 
 
 ### Relation to the current ladder
 
-The ladder finishes to launch with Navidrome as the reference driver. The driver seam stays, so 2.0's streamer arrives
-as one more driver and the cutover is a configuration flip per estate. Rung 12's scope and rung 7's theming axis are
-open ruling 1. Rejected: folding 2.0 into the ladder before launch (launch slides behind the largest subsystem on a
-system that is not live), replacing rung 12 with the built-in streamer (loses the escape hatch).
+Revision 3 (ruling 1). The built-in streamer is rung 12 and the group's first launch, 0.8.0. The ladder reaches launch
+with dubplate's own streamer and no external one behind a driver seam, so there is no incumbent to shadow, flip to, or
+fall back on. The streamer's eight slices are rung 12's passes, and slices 3 onward start after rung 9 lands the
+catalog.
+
+Rejected, and superseded by ruling 1: finishing the ladder to launch with Navidrome as the reference driver and
+arriving at the streamer as one more driver (the group no longer runs Navidrome, so the driver would be code built to
+be deleted), folding 2.0 into the ladder before launch (launch is the streamer, so no second launch event
+exists), and replacing rung 12 with the built-in streamer while keeping Navidrome as a fallback (the fallback retired
+with the incumbent).
 
 ### Evidence: a contract tier, two oracles, and a client roster
 
@@ -203,6 +269,9 @@ official Subsonic 1.16.1 XSD rejects the `openSubsonic`, `type`, and `serverVers
 `subsonic-response` carries (see "API surface"). The harness validates XML one of two ways: a legacy form that omits
 the OpenSubsonic attributes, validated against the official XSD, or every response against a derived XSD that admits
 them. Either way the choice is recorded as a declared divergence. Which one is open, owed to the study rung.
+
+Revision 3: the pinned Navidrome and gonic containers stay as workstation-only behavior oracles in the harness, never
+on the box, under the GPL behavior-only rule in "License".
 
 The oracle tier serves the same fixture
 library from Navidrome and from gonic and diffs dubplate's responses against them, with gonic authoritative for
@@ -533,7 +602,7 @@ Navidrome's `.nsp` files is an open item.
 
 ### Hosting and setup
 
-**HTTPS.** The listener is a configured choice: plain HTTP behind a tunnel or proxy, as the estate runs, or TLS
+**HTTPS.** The listener is a configured choice: plain HTTP behind a tunnel or proxy the operator runs, or TLS
 terminated in the binary with certificates from Let's Encrypt through `golang.org/x/crypto/acme/autocert` (BSD-3). TLS
 mode needs one value, the public hostname, plus ports 80 and 443. It keeps certificates under the state directory, so
 backup covers them. A direct listener has no proxy, so the real-client-IP rule reads the connection address and trusts
@@ -550,11 +619,11 @@ the cap or passes an explicit list of members to bring, so no skipped member's s
 
 It imports each user's stars, playlists, play counts, and last-played dates, matching tracks by the alternate keys
 (release MBID, then audio key) and never by path. Every track it cannot match is reported
-by name, and nothing is silently merged. The group's own cutover uses this command rather than a harness-only export.
-Reading Navidrome's data carries no license question; its code is still never copied.
+by name, and nothing is silently merged. Revision 3 (ruling 2): the import serves a stranger switching from Navidrome, and the group's first launch runs it once
+against the Navidrome database in the retirement archive, so no harness-only export exists. Reading Navidrome's data carries no license question; its code is still never copied.
 
 **arm64.** The release builds `linux/arm64` beside `linux/amd64`. modernc SQLite is pure Go, so the build needs no
-cross toolchain. The gate builds both, and the client roster's walk runs once against an arm64 host before the flip.
+cross toolchain. The gate builds both, and the client roster's walk runs once against an arm64 host.
 
 **`dubplate init`.** An interactive command, and a first-run web page for a server started with an empty
 configuration, that asks for the site name, the admin email, the library and state directories, SMTP settings, and the
@@ -629,24 +698,23 @@ the local binary's DAP export profile is the other path, gated on a real device 
 
 ### Cutover and operations
 
-The streamer is one more driver behind rung 12's seam, selected by one configuration value. Its first weeks run as a
-shadow: Navidrome stays the group's server, 2.0 serves the same library on a second hostname, the harness runs on a
-timer against the live box, and the roster walks it. The flip is a configuration change and a deploy in one owner
-sitting. Navidrome's container stays defined but stopped for a named period and is removed at a dated close-out. Starred
-lists, playlists, and play history built in Navidrome are imported once through `dubplate import navidrome` (see
-"Hosting and setup"); differences are reported, never silently merged.
+Revision 3 rewrote this section; the heading keeps its name because other documents cite it. No switch from an
+incumbent happens: the group's first launch is the streamer (ruling 1). The box runs the dubplate binary, ffmpeg, and
+the timers, with no Navidrome, no cloudflared, and no driver. Starred lists, playlists, and play history built in Navidrome enter once
+through `dubplate import navidrome` (see "Hosting and setup"); differences are reported, never silently merged.
 
-After the flip the box runs the dubplate binary, ffmpeg, cloudflared, and the timers. Provisioning adds ffmpeg and the
-cache directory. The streamer's state lives under the existing state directory, so backup covers it. Doctor gains rows
-for ffmpeg's version, cache size against cap, index rebuild parity, and the drift count. Configuration adds an
-integration class in rung 4's shape: enabled, cache cap, concurrent encodes, the profile set, and the app-password key,
-each required when enabled.
+The streamer's configuration holds these properties for every slice:
 
-Revision 2.5 (P "Before 0.8", ruling 3, row A13). Until the flip, Navidrome's sharing and downloads stay at its
-defaults, a residual the owner accepted. Whenever Navidrome serves as the escape hatch after the flip, a `doctor` row
-flags Navidrome sharing that is on. The row reads `shareRole` from Navidrome's `getUser`, which Navidrome sets from the effective
-`EnableSharing`. It never reads `navidrome.toml` alone, because `ND_ENABLESHARING` in the environment outranks the
-file. Any later check on sharing follows the same rule.
+- The streamer is always on. It declares no enable flag and no integration class.
+- Its tunables (cache cap, concurrent encodes, the profile set) are registered thresholds with defaults.
+- Any streamer secret, such as the app-password key, follows the auth secrets' pattern (the session secret and its
+  `_PREVIOUS` rotation row) and is generated by slice 8's `init`, so an operator never types one.
+- Each slice plan states its delta to the set of values a default install's operator supplies by hand. A nonzero delta
+  needs an owner ruling (ruling 7).
+
+Provisioning adds ffmpeg and the cache directory. The streamer's state lives under the existing state directory, so
+backup covers it. Doctor gains rows for ffmpeg's version, cache size against cap, index rebuild parity, and the drift
+count.
 
 ## The ladder
 
@@ -654,7 +722,10 @@ Magnitude bands are relative and carry no time units, matching the build spec's 
 interval are set in its own plan, never here.
 
 1. Study (M). A written record of what Navidrome and gonic do where the spec is silent, cited to a version and a harness
-   test, with the ideas and lessons their code teaches recorded in dubplate's own words. Ships the pre-seeded divergence
+   test, with the ideas and lessons their code teaches recorded in dubplate's own words. One study question: how
+   Melodee's ingest pipeline (staging, validation, admission into the library) compares with dubplate's
+   intake-as-the-one-door model, recorded as ideas and lessons. Melodee is MIT, so its code may be reused as well as
+   read. Ships the pre-seeded divergence
    ledger, the empty-success endpoint set, the launch extension subset, the per-endpoint oracle assignment, and the
    prior-art table's open cells. Revision 2.5 adds the answers to the items "Open items" marks as owed to the study
    rung.
@@ -669,16 +740,29 @@ interval are set in its own plan, never here.
 5. Streaming and transcoding (L). Splits at its own planning; it carries the cache, the concurrency model, and range
    behavior on both paths. Revision 2.5 adds the served-volume meter, its admin notice, and the volume view.
 6. Identity, app passwords, and shares (M). Revision 2.5 adds the credential cap, the admin credential list and its
-   one-step revoke, and the share bounds.
+   one-step revoke, and the share bounds. Revision 3 records the bearer bypass's two contract sentences: a bypassed
+   handler must not read the session cookie, and the pattern registers twice because either registration alone leaves
+   one form refusing. The bypass is path-keyed.
 7. Per-user state and group features (L). Splits at its own planning; it carries starred, playlists (collaborative and
    smart), the queue, play history, album notes, and the report page.
 8. Hosting and setup (M). The TLS listener, `dubplate import navidrome`, the arm64 build, `dubplate init`, and
-   `dubplate upgrade`. The import lands here so the shadow slice can run the group's cutover through it.
-9. Shadow period, flip, and close-out (M). Retires Navidrome and records the post-mortem.
+   `dubplate upgrade`. The import serves a stranger switching from Navidrome, and the group's first launch runs it once
+   against the Navidrome database in the retirement archive (ruling 2). Revision 3 adds these acceptance criteria:
+   - The import prints a dry-run report before any write.
+   - It matches a member by address, then by username under `COLLATE NOCASE`, and refuses with a report when the two
+     disagree.
+   - Per-user writes land in one transaction, or are keyed so that a rerun is a no-op.
+   - The import reads an extracted copy of the database, never the archive itself.
+   - The unit carries `CAP_NET_BIND_SERVICE` in TLS mode only.
+   - The certificate directory is a leaf: the unit's `ReadWritePaths`, `deploy.sh`'s pre-create, and the state-dir
+     agreement leg all name it.
+   - Owner ruling 3: one short-lived VPS with no age store and no `deploy.sh` goes from the release artifact through
+     `init` to a played track. Each unclear step either blocks this slice's close or goes to `IDEAS.md` by owner
+     ruling.
 
-Each slice is a pass with its own plan, ceiling, oracle diff, and roster walk, under the conducting loop in CLAUDE.md.
-Rungs 1 and 2 touch no production surface and may run as a document-and-corpus lane beside the current ladder's later
-rungs.
+Slices 1 to 8 are rung 12's passes. Each is a pass with its own plan, ceiling, oracle diff, and roster walk, under the
+conducting loop in CLAUDE.md. Slices 1 and 2 touch no production surface: slice 1 runs now as a document lane, and
+slice 2 as a code lane in its own worktree.
 
 ## Forward hooks the current build owes
 
@@ -699,9 +783,10 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
 4. Play history as timestamped events, rung 6 schema. Any event-shaped table carries a timestamp and an event kind,
    never a bare counter.
 5. A stable identity, rung 5 and rung 6. Rung 6 mints a durable surrogate user id that per-user rows key on, and rung 5
-   resolves a roster identity to it. The roster's `streamer_username` becomes required, unique, and stable rather than
-   optional, and it is the renameable handle the surrogate id protects against.
-6. The driver seam stays universal, rung 12. Address, proxy, and provisioning choreography are per-driver capabilities a
+   resolves a roster identity to it. The roster's `username` (renamed from `streamer_username` by revision 3, ruling 3) becomes required, unique, and stable
+   rather than optional, and it is the renameable handle the surrogate id protects against.
+6. Retired in revision 3 (ruling 4: dubplate integrates with no external streamer, so no driver seam exists). Text kept
+   as written: The driver seam stays universal, rung 12. Address, proxy, and provisioning choreography are per-driver capabilities a
    driver may decline to declare, because an in-process streamer has no address and needs no proxy. Scan trigger and
    scan status must be satisfiable by a driver that owns the catalog and never scans. Capability reporting is the
    mechanism that makes both true, and rung 12 builds no more of the Navidrome driver than SSO and roster sync.
@@ -736,8 +821,9 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     disjoint `root_path`, a writer epoch, a mirror generation, a last-mirror time, and a duplicate-collapse flag beside
     `writer`, with share rows reserved beside visibility and foreign keys enabled in the DSN. The rung 14 admin API
     exposes settings and collections on two mounts (cookie and bearer) so the web app and the TUI share one surface.
-    Hook 6's capability report also declares a driver's shape constraints (subtree collections, art filenames read,
-    tags read) and per-user folder access; private is unsettable without it. Design:
+    Retired in revision 3: hook 6's capability report, which also declared a driver's shape constraints (subtree collections, art filenames read,
+    tags read) and per-user folder access, is retired with hook 6, and private stays unsettable until slice 3's
+    projector enforces visibility on every endpoint. Capability reporting is dropped unless a slice names a consumer. Design:
     `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`. Amended 2026-09-25 (P conflict 1): the share
     rows stay reserved, with no table or column before slice 6 builds them, and they carry the fields the share bounds
     need: the item (or a playlist share's track snapshot), creation and expiry times, the listener count and threshold,
@@ -753,7 +839,7 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
 18. A description and a sensitive mark on every registered config key, rung 14. The settings surface is the first
     consumer of both, and `dubplate init` reads the same declarations, so setup questions are never a hand-kept list.
     The wall rows and integration-class keys carry neither today. Added 2026-09-24 (hosting and setup).
-19. The listener as a configured choice, rung 12. The proxy-hygiene ingress keeps plain HTTP and a direct TLS listener
+19. The listener as a configured choice, slice 8 (re-homed from rung 12's driver seam by revision 3). The proxy-hygiene ingress keeps plain HTTP and a direct TLS listener
     both possible, and the real-client-IP rule has a direct mode that trusts no forwarded header. Added 2026-09-24
     (hosting and setup).
 20. The credential and the bytes on every serve event, 0.8 slice 7. Every serve event carries the authenticating
@@ -794,7 +880,7 @@ alike, so that signal discriminates nothing and adoption evidence does the real 
 | Schema migrations | Rung 6's mechanism | stdlib | n/a | n/a | n/a | Hand-roll with `embed.FS` and `PRAGMA user_version`. `pressly/goose` is declined: it direct-requires ten database drivers for a Go-function migration mechanism no hook asks for, and its decline rests chiefly on its silent-ahead `Up`, which applies every migration newer than the tracked version with no confirmation step (erratum 2026-09-23, rung 6 spec, erratum 12). |
 | Stream-through transcode cache | 2.0 rung 5 | stdlib; `djherbis/stream` MIT if adopted | n/a | n/a | n/a | Hand-roll the size cap and eviction. `djherbis/fscache` is declined: 7 importers, its last tag is v0.10.1 (2020-04-15), and Navidrome pins an untagged pseudo-version. The fill-while-read primitive under it, `djherbis/stream` (MIT), now has a tagged v1.5.1 (2026-08-29); the streaming slice adopts or ports it, decided by a race test (revision 2.5, S finding 7). |
 | `internal/atomicfile` | Streaming atomic writes for blobs and cache entries | in-repo | n/a | n/a | n/a | Extend it with a streaming write rather than inventing a second temp-file convention. |
-| M3U read and write; Subsonic XML and JSON dual encoding | Cutover import and the response layer | stdlib | n/a | n/a | n/a | Hand-roll both. The study rung enumerates the encoding quirks (attribute-heavy XML, the wrapper, singleton-versus-array in JSON, JSONP) so the harness tests them. |
+| M3U read and write; Subsonic XML and JSON dual encoding | First-launch import and the response layer | stdlib | n/a | n/a | n/a | Hand-roll both. The study rung enumerates the encoding quirks (attribute-heavy XML, the wrapper, singleton-versus-array in JSON, JSONP) so the harness tests them. |
 | Chromaprint via `fpcalc` | Acoustic fingerprinting for untagged uploads | MIT source, but the distributed library is LGPL-2.1+ | n/a | Stable upstream | The AcoustID standard | Adopt for 2.1 as a subprocess only. Never link the library, and pin the FFT backend so a GPL build never lands. |
 | Symfonium compatibility notes | Where servers diverge in practice | Documentation | n/a | Live wiki and forum | The best public record of client-side divergence | Adopt as a study input. |
 | beets `convert`; MusicBee device sync | The export-profile shape for the local binary | Documentation | n/a | Current | Behavior references | Adopt as prior art for the future local binary, never for the server. |
@@ -832,21 +918,21 @@ The three items the reviews routed to the owner were ruled by Geoff on 2026-09-0
 
 These do not block the study rung.
 
-- The client roster's exact membership. The live candidates are Symfonium, Feishin, Supersonic, Substreamer, and Tempus;
-  which the group installs decides the roster, answered at the harness rung. Symfonium is proprietary and paid, so the
-  group must own a copy.
+- The client roster's exact membership. Geoff ruled it on 2026-10-05: Feishin and Rufin on the Linux desktop, Amperfy on
+  iOS and iPadOS, and Tempus on Android with Navic as the alternate. Open source is favored, and a closed client joins
+  only if a member uses it daily. The record is
+  `docs/superpowers/research/2026-10-05-client-roster-audit.md`.
 - Whether folder browsing ships at launch at all. It doubles the browse surface and the id space, modern clients use
   ID3, and only gonic can grade it. The study rung brings the evidence.
 - The app-password key's exact name in the age store. The identity slice mints it.
-- The shadow period's length and the Navidrome retention window. Owner rulings at the cutover slice.
+- Moot (revision 3): the shadow period's length and the Navidrome retention window. No shadow or retention exists.
 - Whether clients get a report path beside the web app page. The candidate is a reserved per-member playlist named
   "Report a problem": adding a track files a report, which works in every client with no new verb. The slice 7 plan
   decides.
 - Whether an admin's fix for a reported album has an edit path by 2.0, or a report resolves by re-upload through
   intake. Rung 13's plan records which one exists.
 - Whether smart playlists import Navidrome's `.nsp` files for switchers. The study rung records the format.
-- Whether the study rung runs beside the current ladder or after launch. A document lane is permitted by the standing
-  grant; the conductor decides on the lane registry's state.
+- Answered (revision 3): whether the study rung runs beside the current ladder. Slice 1 runs now as a document lane.
 
 Revision 2.5 adds these, each open, owed to the study rung. The sources state the facts and don't make the decision.
 
