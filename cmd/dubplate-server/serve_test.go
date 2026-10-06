@@ -710,7 +710,7 @@ func sessionRequest(method, target, session, sfs, body string) *http.Request {
 		r.Header.Set("Sec-Fetch-Site", sfs)
 	}
 	if session != "" {
-		r.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: session})
+		r.AddCookie(&http.Cookie{Name: "__Host-dubplate_session", Value: session})
 	}
 	return r
 }

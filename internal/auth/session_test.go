@@ -41,8 +41,8 @@ func fixtureSession() Session {
 // cookie is Secure, carries no Domain, and has Path=/, so the name and
 // the attributes asserted below are one rule, not two.
 func TestSessionCookieName(t *testing.T) {
-	if SessionCookieName != "__Host-dubplate_session" {
-		t.Errorf("SessionCookieName = %q, want %q", SessionCookieName, "__Host-dubplate_session")
+	if sessionCookieName != "__Host-dubplate_session" {
+		t.Errorf("sessionCookieName = %q, want %q", sessionCookieName, "__Host-dubplate_session")
 	}
 }
 
@@ -112,8 +112,8 @@ func TestSessionCookieRenderedHeader(t *testing.T) {
 func TestClearSessionCookie(t *testing.T) {
 	c := ClearSessionCookie()
 
-	if c.Name != SessionCookieName {
-		t.Errorf("Name = %q, want %q", c.Name, SessionCookieName)
+	if c.Name != sessionCookieName {
+		t.Errorf("Name = %q, want %q", c.Name, sessionCookieName)
 	}
 	if c.Value != "" {
 		t.Errorf("Value = %q, want empty", c.Value)

@@ -29,12 +29,12 @@ func OwnedWall() []WallRow {
 	return slices.Clone(ownedWall)
 }
 
-// ownedNow reports whether name is an owned row in reg that [Load]
+// ownedNow reports whether name is an owned row in r that [Load]
 // requires now, as opposed to a row still carrying a Pending status.
 //
 // ruled, conductor 2026-09-07, R1
-func ownedNow(reg *Registry, name string) bool {
-	for _, row := range reg.ownedWall {
+func (r *Registry) ownedNow(name string) bool {
+	for _, row := range r.ownedWall {
 		if row.Name == name {
 			return row.Pending == ""
 		}
@@ -100,11 +100,11 @@ func ReservedClasses() []ReservedClass {
 	return slices.Clone(reservedClasses)
 }
 
-// reservedClassOf reports the class name belongs to in reg, if any.
+// reservedClassOf reports the class name belongs to in r, if any.
 //
 // ruled, conductor 2026-09-07, R1
-func reservedClassOf(reg *Registry, name string) (ReservedClass, bool) {
-	for _, class := range reg.reservedClasses {
+func (r *Registry) reservedClassOf(name string) (ReservedClass, bool) {
+	for _, class := range r.reservedClasses {
 		if slices.Contains(class.Keys, name) {
 			return class, true
 		}
@@ -146,12 +146,12 @@ var supersededKeys = map[string]string{
 		"under DUBPLATE_STATE_DIR",
 }
 
-// supersessionOf reports the disposition message reg carries for a
+// supersessionOf reports the disposition message r carries for a
 // superseded name, if any.
 //
 // ruled, conductor 2026-09-07, R1
-func supersessionOf(reg *Registry, name string) (string, bool) {
-	msg, ok := reg.superseded[name]
+func (r *Registry) supersessionOf(name string) (string, bool) {
+	msg, ok := r.superseded[name]
 	return msg, ok
 }
 
@@ -170,13 +170,13 @@ type IntegrationClass struct {
 }
 
 // integrationClassOf reports the integration class name belongs to in
-// reg, by its Flag or a Required key, if any. It walks reg's own
+// r, by its Flag or a Required key, if any. It walks r's own
 // declared classes rather than a package-level table, so a second
 // integration class needs no second lookup site.
 //
 // ruled, conductor 2026-09-07, R5
-func integrationClassOf(reg *Registry, name string) (IntegrationClass, bool) {
-	for _, class := range reg.integrationClasses {
+func (r *Registry) integrationClassOf(name string) (IntegrationClass, bool) {
+	for _, class := range r.integrationClasses {
 		if name == class.Flag || slices.Contains(class.Required, name) {
 			return class, true
 		}

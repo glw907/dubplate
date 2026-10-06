@@ -76,7 +76,7 @@ func TestReservedClassOf(t *testing.T) {
 	reg := NewRegistry()
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			class, ok := reservedClassOf(reg, tt.input)
+			class, ok := reg.reservedClassOf(tt.input)
 			if ok != tt.wantFound {
 				t.Fatalf("reservedClassOf(%q) found = %v, want %v", tt.input, ok, tt.wantFound)
 			}
@@ -125,7 +125,7 @@ func TestSupersessionOf(t *testing.T) {
 	reg := NewRegistry()
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			_, ok := supersessionOf(reg, tt.input)
+			_, ok := reg.supersessionOf(tt.input)
 			if ok != tt.wantFound {
 				t.Errorf("supersessionOf(%q) found = %v, want %v", tt.input, ok, tt.wantFound)
 			}
@@ -156,7 +156,7 @@ func TestIntegrationClassesCoverEveryKey(t *testing.T) {
 	}
 	names := append([]string{c.Flag}, c.Required...)
 	for _, name := range names {
-		if got, ok := integrationClassOf(reg, name); !ok || got.Name != c.Name {
+		if got, ok := reg.integrationClassOf(name); !ok || got.Name != c.Name {
 			t.Errorf("integrationClassOf(%s) = %v, %v; want the fixture class", name, got.Name, ok)
 		}
 	}

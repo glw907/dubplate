@@ -282,14 +282,14 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 // ruled, conductor 2026-09-07, R1
 func (w *wall) rejectNamespace(reg *Registry) {
 	for _, name := range slices.Sorted(maps.Keys(w.env)) {
-		if !strings.HasPrefix(name, "DUBPLATE_") || ownedNow(reg, name) {
+		if !strings.HasPrefix(name, "DUBPLATE_") || reg.ownedNow(name) {
 			continue
 		}
 		if _, ok := w.get(name); !ok {
 			continue // set but empty: treated as unset, nothing to flag
 		}
 
-		if class, ok := integrationClassOf(reg, name); ok {
+		if class, ok := reg.integrationClassOf(name); ok {
 			// The flag names itself, so it is never "set without"
 			// itself. Load already reports an unparseable flag value;
 			// reporting it again here would emit two errors for one
@@ -305,15 +305,15 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			}
 			continue
 		}
-		if class, ok := reservedClassOf(reg, name); ok {
+		if class, ok := reg.reservedClassOf(name); ok {
 			w.errs = append(w.errs, fmt.Errorf("%s: reserved for %s, arrives at rung %d", name, class.Name, class.Rung))
 			continue
 		}
-		if msg, ok := supersessionOf(reg, name); ok {
+		if msg, ok := reg.supersessionOf(name); ok {
 			w.errs = append(w.errs, fmt.Errorf("%s: %s", name, msg))
 			continue
 		}
-		if identitySourceKey(reg, name) {
+		if reg.identitySourceKey(name) {
 			// A declared source's key is declared whether or not its
 			// source is the selected one, so an adopter who keeps a
 			// second source's configuration in place is not told it is

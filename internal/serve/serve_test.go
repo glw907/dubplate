@@ -186,22 +186,35 @@ func TestRegisterDuplicateSubtreePanics(t *testing.T) {
 	shell.Register("dup", http.NotFoundHandler())
 }
 
-// TestPathOutsideThePrefixAnswers404: a path outside the owned prefix
-// answers 404 and invokes no registered subtree.
-func TestPathOutsideThePrefixAnswers404(t *testing.T) {
-	shell := newTestShell(t)
-	var owned recorder
-	shell.Register("echo", recordingHandler(&owned))
-
-	r := httptest.NewRequest(http.MethodGet, "/outside", nil)
-	rec := httptest.NewRecorder()
-	shell.Handler().ServeHTTP(rec, r)
-
-	if rec.Code != http.StatusNotFound {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotFound)
+// TestUnroutedPathAnswers404: a path no registered subtree claims
+// answers 404 and invokes no subtree, whether it lies outside the owned
+// prefix or under it. The two answers share a status, so the status
+// does not tell the terminator from the root handler; the owned row
+// pins the terminator's own answer for the owned half.
+func TestUnroutedPathAnswers404(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"outside the owned prefix", "/outside"},
+		{"owned and unclaimed", testPrefix + "/unclaimed"},
 	}
-	if owned.header != nil {
-		t.Error("a registered subtree was invoked for a path outside the owned prefix")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			shell := newTestShell(t)
+			var owned recorder
+			shell.Register("echo", recordingHandler(&owned))
+
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, tt.path, nil))
+
+			if rec.Code != http.StatusNotFound {
+				t.Errorf("status = %d, want %d", rec.Code, http.StatusNotFound)
+			}
+			if owned.header != nil {
+				t.Errorf("the registered subtree was invoked for %s, a path it does not claim", tt.path)
+			}
+		})
 	}
 }
 
@@ -305,27 +318,6 @@ func TestResponseControllerFlushReachesRealWriter(t *testing.T) {
 	}
 	if ownedErr != nil {
 		t.Errorf("Flush() at the owned prefix = %v, want nil", ownedErr)
-	}
-}
-
-// TestUnclaimedOwnedPathAnswers404FromTheTerminator: a path under the
-// owned prefix that no registered subtree claims answers 404 and
-// invokes no subtree. A path outside the prefix also answers 404, so
-// the status does not tell the terminator from the root handler; the
-// test pins the terminator's own answer for the owned half.
-func TestUnclaimedOwnedPathAnswers404FromTheTerminator(t *testing.T) {
-	shell := newTestShell(t)
-	var owned recorder
-	shell.Register("echo", recordingHandler(&owned))
-
-	rec := httptest.NewRecorder()
-	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, testPrefix+"/unclaimed", nil))
-
-	if rec.Code != http.StatusNotFound {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotFound)
-	}
-	if owned.header != nil {
-		t.Error("the registered subtree was invoked for a path it does not claim")
 	}
 }
 

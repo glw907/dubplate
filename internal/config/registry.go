@@ -405,13 +405,13 @@ func (r *Registry) IdentitySources() []IdentitySource {
 }
 
 // identitySourceKey reports whether name is declared by an identity
-// source in reg: the selector every source shares, or any source's
+// source in r: the selector every source shares, or any source's
 // Required or Optional key. The selector answers here as well as on
 // the owned wall, because a registry can declare a source before any
 // rung registers the selector as a wall row, and the wall must not
 // call the selector unknown in the meantime.
-func identitySourceKey(reg *Registry, name string) bool {
-	for _, src := range reg.identitySources {
+func (r *Registry) identitySourceKey(name string) bool {
+	for _, src := range r.identitySources {
 		if name == src.Selector || slices.Contains(src.Required, name) || slices.Contains(src.Optional, name) {
 			return true
 		}

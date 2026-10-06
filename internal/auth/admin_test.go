@@ -100,7 +100,7 @@ func rosterRequest(method, target, session, body string) *http.Request {
 		r.Header.Set("Content-Type", formType)
 	}
 	if session != "" {
-		r.AddCookie(&http.Cookie{Name: SessionCookieName, Value: session})
+		r.AddCookie(&http.Cookie{Name: sessionCookieName, Value: session})
 	}
 	return r
 }
@@ -259,7 +259,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 				t.Fatalf("read roster: %v", err)
 			}
 			var cookieValue string
-			if c, err := r.Cookie(SessionCookieName); err == nil {
+			if c, err := r.Cookie(sessionCookieName); err == nil {
 				cookieValue = c.Value
 			}
 			want := notFoundFor(r.Clone(t.Context()))

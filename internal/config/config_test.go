@@ -387,18 +387,18 @@ func TestClassificationFamilies(t *testing.T) {
 			// Each helper is asserted on its own, so a row states one
 			// true answer and seven false ones rather than echoing
 			// rejectNamespace's own branch order back at itself.
-			_, isReserved := reservedClassOf(reg, tt.key)
-			_, isSuperseded := supersessionOf(reg, tt.key)
-			_, isIntegration := integrationClassOf(reg, tt.key)
+			_, isReserved := reg.reservedClassOf(tt.key)
+			_, isSuperseded := reg.supersessionOf(tt.key)
+			_, isIntegration := reg.integrationClassOf(tt.key)
 			got := map[string]bool{
-				owned:       ownedNow(reg, tt.key),
+				owned:       reg.ownedNow(tt.key),
 				pending:     wallRowPending(reg, tt.key),
 				reserved:    isReserved,
 				superseded:  isSuperseded,
 				integration: isIntegration,
 				threshold:   thresholdOf(reg, tt.key),
 				setting:     settingOf(reg, tt.key),
-				source:      identitySourceKey(reg, tt.key),
+				source:      reg.identitySourceKey(tt.key),
 			}
 			for family, reported := range got {
 				if reported != (family == tt.want) {

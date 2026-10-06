@@ -482,8 +482,9 @@ func newMailer(cfg *config.Config) (*notify.Mailer, error) {
 	}), nil
 }
 
-// startNonceSweep starts the nonce sweep as a goroutine bound to ctx, ticking every [auth.SweepInterval], and
-// returns a channel the goroutine closes once it returns.
+// startNonceSweep starts the nonce sweep as a goroutine bound to ctx,
+// ticking every [auth.SweepInterval], and returns a channel the
+// goroutine closes once it returns.
 func startNonceSweep(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) <-chan struct{} {
 	ticker := time.NewTicker(auth.SweepInterval)
 	done := make(chan struct{})

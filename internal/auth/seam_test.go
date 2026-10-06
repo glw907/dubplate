@@ -59,7 +59,7 @@ func requestWithSession(t *testing.T, value string) *http.Request {
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
-	req.AddCookie(&http.Cookie{Name: SessionCookieName, Value: value})
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: value})
 	return req
 }
 

@@ -98,7 +98,7 @@ func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previous
 // expiry. A refresh, when the request is same-origin, runs last, after
 // every refusal has already had its chance to deny.
 func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error) {
-	cookie, err := r.Cookie(SessionCookieName)
+	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
@@ -114,15 +114,10 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
 
-	principal := member.Username
-	if principal == "" {
-		principal = member.Address
-	}
-
 	result := VerifiedIdentity{
 		Identity: identity.Identity{
 			Address:     member.Address,
-			Principal:   principal,
+			Principal:   member.principal(),
 			DisplayName: member.DisplayName,
 			Source:      magicLinkSource,
 			Channel:     identity.ChannelCookie,

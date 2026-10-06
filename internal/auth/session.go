@@ -10,14 +10,14 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 )
 
-// SessionCookieName is the name of the session cookie (ruled,
+// sessionCookieName is the name of the session cookie (ruled,
 // conductor 2026-09-08, R-5b9). The __Host- prefix is enforced by the
 // browser rather than by this server: a cookie so named is stored only
 // when it is Secure, carries no Domain, and has Path=/, which is why
 // [SessionCookie] sets exactly those attributes and why same-origin is
 // a stated precondition of the session rather than something a
 // deployment can relax.
-const SessionCookieName = "__Host-dubplate_session"
+const sessionCookieName = "__Host-dubplate_session"
 
 const (
 	// sessionVersion labels the cookie's field layout, on the wire and
@@ -154,7 +154,7 @@ func (s *Session) clampExpiry(lifetime, absoluteCap time.Duration) {
 
 // SessionCookie builds the cookie carrying value, expiring at
 // expiresAt as measured from now. Every attribute follows from the
-// __Host- prefix [SessionCookieName] carries: Secure and Path=/ are
+// __Host- prefix [sessionCookieName] carries: Secure and Path=/ are
 // required for the browser to store it at all, and Domain must stay
 // empty, which is also what confines the cookie to the exact origin
 // that set it. SameSite is Lax so a magic link followed from a mail
@@ -171,7 +171,7 @@ func (s *Session) clampExpiry(lifetime, absoluteCap time.Duration) {
 // what the server enforces.
 func SessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
 	return &http.Cookie{
-		Name:     SessionCookieName,
+		Name:     sessionCookieName,
 		Value:    value,
 		Path:     "/",
 		Expires:  expiresAt,
@@ -196,7 +196,7 @@ func SessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
 // revokes it. A caller's sign-out copy must not claim more than that.
 func ClearSessionCookie() *http.Cookie {
 	return &http.Cookie{
-		Name:     SessionCookieName,
+		Name:     sessionCookieName,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0).UTC(),
