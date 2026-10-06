@@ -23,22 +23,23 @@ included). Two standing bars, from memory:
 exemplary Go (`idiomatic-beautiful-go`) and render-and-read every
 user-path page before any attended ask (`see-it-before-geoff-tests-it`).
 
-**Versions (Geoff, 2026-09-25).** The ladder's rung 16 cutover, with
-Navidrome still streaming, is a 0.x pre-release. **0.8** is the first
-production release: the built-in streamer replaces Navidrome. **0.9** adds
-the paired local client. **1.0** adds polish and the remaining features,
-the format ladder among them. Documents written before this ruling say
-"1.0" for the launch, "1.1" for the formats, and "2.0" for the streamer,
-and they stay as written.
+**Versions (Geoff, 2026-09-25, re-planned 2026-10-05).** The first launch
+is **0.8.0**, on the built-in streamer: no earlier pre-release and no
+box swap. **0.9** adds the paired local client. **1.0** adds polish and the
+remaining features, the format ladder among them. Documents written before
+this ruling say "1.0" for the launch, "1.1" for the formats, and "2.0" for
+the streamer, and they stay as written. Documents before 2026-10-05
+describe a 0.x launch and a rung 16 cutover under the earlier plan, and
+they stay as written too.
 
-**Build for 0.8 (Geoff, 2026-09-07, re-keyed 2026-09-25).** The next
-initiative after launch is dubplate-server 0.8, the built-in OpenSubsonic
-streamer that subsumes Navidrome (ROADMAP `streamer-0-8`; the spec under
-`docs/superpowers/specs/` still says 2.0). Every rung plan authored from
-now on weighs its surface against that spec's forward-hooks list and
-states per task whether it lands a hook or is neutral; a rung 6 schema or
-a rung 12 driver seam built without 0.8 in view is rework. Route newly
-discovered hooks into that list; never build 0.8 features early. The same spec carries a prior-art list (the
+**Build for 0.8 (Geoff, 2026-09-07, re-keyed 2026-09-25, re-planned
+2026-10-05).** Rung 12 is the built-in OpenSubsonic streamer, slices 1 to 8
+of `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (the spec
+still says 2.0). Every other rung plan weighs its surface against that
+spec's forward-hooks list and states per task whether it lands a hook or is
+neutral; a rung 6 schema built without 0.8 in view is rework. Hook 6
+retires and hook 5 is renamed to `username`. Route newly discovered hooks
+into that list; never build 0.8 features early. The same spec carries a prior-art list (the
 OpenSubsonic specification, Navidrome and gonic for behavior only under
 GPL, taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag
 tables, chromaprint); a rung plan names which entries it consulted and
@@ -91,12 +92,13 @@ handoff. Canonical record: the build spec's Process section and
 **Standing grants (Geoff, 2026-09-02, extended 2026-09-03):**
 workflow mode for the whole build, execution and prep both; batch
 human questions into checkpoint bundles; when Geoff is unavailable,
-continue unblocked work rather than idling; up to two code lanes
-plus any number of document lanes at once.
+continue unblocked work rather than idling; up to three code lanes
+when useful and efficient (Geoff, 2026-10-05) plus any number of document
+lanes at once.
 
 **Lanes.** A lane is one rung's execution with a named package
 territory. The primary code lane and all document lanes share the
-tree; a second code lane gets its own git worktree, because
+tree; each code lane past the primary gets its own git worktree, because
 `scripts/check.sh` runs the module gate over `./...` and two
 whole-repo legs besides. Corpus and harness work never moves to a
 worktree. Every lane launch runs the checklist: reverse edges
@@ -117,7 +119,7 @@ ritual: merge token, rebase, full gate in-tree, `--ff-only`, full
 gate on master, and one `diff-reviewer` on the merged result
 whenever the rebase was not a fast-forward. Review scales to rung
 risk: mechanical rungs ride the in-chain diff-reviewer; auth (5),
-streamer/SSO (12), and cutover (16) keep the full fresh-context
+streamer (12) and first launch (16) keep the full fresh-context
 adversarial cycle. Subagents cannot dispatch agents: never instruct
 an implementer to run `code-simplifier`; the conductor owns that
 dispatch.
@@ -142,9 +144,8 @@ removes, with a one-line reason in the fold record.
 
 **Expected owner touchpoints, and only these:** rung-spec rulings
 (known ahead: rung 9's concurrency model), corpus adjudication batches
-(small and regular; the shadow evidence floor no longer gates launch,
-Geoff 2026-10-05), the rung 7 uploader before/after, and the
-rung 16 cutover sitting.
+(small and regular), the rung 7 uploader before/after, and the
+first-launch sitting.
 
 ## Gate
 
