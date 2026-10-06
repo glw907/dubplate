@@ -1044,21 +1044,24 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 		t.Errorf("stdout = %q, want it to contain %q", authStdout.String(), wantIdentity)
 	}
 
-	// Resolution R15: reserved classes print in table order, not rung
-	// order, and rung 13 (decision and review queues) precedes rung 12
-	// (streamer) in that table. TestDoctorCmd itself cannot pin this: it
-	// builds its expected lines by iterating config.ReservedClasses()
-	// itself, so a registry that sorted both the production output and
-	// the test's own expectations would still agree. This assertion pins
+	// Reserved classes print in table order, and the table lists
+	// pipeline before monitoring, two classes at the same rung, so the
+	// table is the only order that separates them: the surviving rungs
+	// already ascend, so a rung sort cannot be told apart from the
+	// table. This pins the table against a name sort, which would print
+	// monitoring first. TestDoctorCmd itself cannot pin this: it builds
+	// its expected lines by iterating config.ReservedClasses() itself,
+	// so a registry that sorted both the production output and the
+	// test's own expectations would still agree. This assertion pins
 	// the order against the raw stdout instead.
 	out := stdout.String()
-	queuesIdx := strings.Index(out, "decision and review queues")
-	streamerIdx := strings.Index(out, "streamer")
-	if queuesIdx < 0 || streamerIdx < 0 {
-		t.Fatalf("stdout missing a reserved class row: queues idx %d, streamer idx %d", queuesIdx, streamerIdx)
+	pipelineIdx := strings.Index(out, "pipeline")
+	monitoringIdx := strings.Index(out, "monitoring")
+	if pipelineIdx < 0 || monitoringIdx < 0 {
+		t.Fatalf("stdout missing a reserved class row: pipeline idx %d, monitoring idx %d", pipelineIdx, monitoringIdx)
 	}
-	if queuesIdx >= streamerIdx {
-		t.Errorf("decision and review queues printed at %d, streamer at %d; want queues before streamer (R15)", queuesIdx, streamerIdx)
+	if pipelineIdx >= monitoringIdx {
+		t.Errorf("pipeline printed at %d, monitoring at %d; want pipeline before monitoring", pipelineIdx, monitoringIdx)
 	}
 }
 

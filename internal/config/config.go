@@ -15,9 +15,8 @@
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class and rung, never "unknown". The
 //     classes are intake (rung 7), pipeline (rung 9), monitoring
-//     (rung 9), decision and review queues (rung 13), and the
-//     streamer (rung 12). See [ReservedClasses] for the exact
-//     membership.
+//     (rung 9), and decision and review queues (rung 13). See
+//     [ReservedClasses] for the exact membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
 //     required at Load once the flag is set. Setting a Required row
@@ -117,8 +116,7 @@ type Config struct {
 // integrationResolution is one integration class's resolved state:
 // Enabled records whether its Flag resolved true, independently of
 // whether it resolved any key, so a class with an empty Required set
-// (hook 6's driver-declines-capabilities case) still reports enabled
-// when its flag is set. Required carries the class's own Required key
+// still reports enabled when its flag is set. Required carries the class's own Required key
 // values, populated only when Enabled is true.
 type integrationResolution struct {
 	Enabled  bool
@@ -419,8 +417,8 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 	// class name: no class name appears in this loop, so a second
 	// integration class needs no second branch (Resolution R5). Enabled
 	// is recorded independently of whether Required resolved any key,
-	// which is what lets a class with an empty Required set (hook 6's
-	// driver-declines-capabilities case) still report enabled.
+	// which is what lets a class with an empty Required set still report
+	// enabled.
 	for _, class := range reg.integrationClasses {
 		enabled, err := w.integrationEnabled(class)
 		if err != nil {

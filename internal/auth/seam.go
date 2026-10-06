@@ -17,9 +17,7 @@ const magicLinkSource = "magic-link"
 // A Seam verifies the credential a request carries and yields the
 // identity it asserts, so a caller never inspects a credential's own
 // encoding to decide who is logged in or whether they are an operator.
-// MagicLinkSeam is this rung's reference implementation; a forward-auth
-// front is an alternate that reads a proxy-set header instead of a
-// cookie and implements the same interface.
+// MagicLinkSeam is its implementation.
 type Seam interface {
 	// VerifyIdentity verifies the credential r carries and returns the
 	// identity it asserts. now is the instant every time comparison

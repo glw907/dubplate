@@ -17,9 +17,9 @@ import (
 // storeBusyTimeoutThreshold is DUBPLATE_STORE_BUSY_TIMEOUT: the
 // inspect mode's only production reader at this rung, doctor and
 // check, bounding how long a read waits on another process's write
-// lock inside SQLite. Its default follows the estate's own streamer:
-// Navidrome's default DSN carries _busy_timeout=15000 on the same
-// SQLite.
+// lock inside SQLite. The 15s default is long enough to ride out a
+// snapshot or a migration holding the lock, short enough that a stuck
+// writer surfaces as a doctor failure rather than a hang.
 var storeBusyTimeoutThreshold = config.Threshold{
 	Key:     "DUBPLATE_STORE_BUSY_TIMEOUT",
 	Kind:    config.KindDuration,

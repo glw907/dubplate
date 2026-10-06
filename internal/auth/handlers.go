@@ -103,8 +103,7 @@ type HandlersConfig struct {
 
 	// Prefix is the owned prefix's string form (serve.Prefix's String),
 	// so a mailed link lands under the surface the shell routes to this
-	// package's own handlers rather than to whatever the fallthrough
-	// slot holds.
+	// package's own handlers.
 	Prefix string
 
 	// BodyCap is the byte limit on every request body, applied before

@@ -84,7 +84,6 @@ var reservedClasses = []ReservedClass{
 			"DUBPLATE_PING_IMPORT_URL",
 			"DUBPLATE_PING_BACKUP_URL",
 			"DUBPLATE_PING_DISK_URL",
-			"DUBPLATE_PING_NAVIDROME_URL",
 		},
 	},
 	{
@@ -92,15 +91,6 @@ var reservedClasses = []ReservedClass{
 		Rung: 13,
 		Keys: []string{
 			"DUBPLATE_REVIEW_DIR",
-		},
-	},
-	{
-		Name: "streamer",
-		Rung: 12,
-		Keys: []string{
-			"DUBPLATE_NAVIDROME_URL",
-			"DUBPLATE_NAVIDROME_ADMIN_USER",
-			"DUBPLATE_NAVIDROME_ADMIN_PASSWORD",
 		},
 	},
 }
@@ -128,22 +118,18 @@ func reservedClassOf(reg *Registry, name string) (ReservedClass, bool) {
 // greenfield server drops outright, that it retired with no
 // successor.
 var supersededKeys = map[string]string{
-	"DUBPLATE_LIBRARY_DIR":     "renamed to DUBPLATE_LIBRARY_ROOT",
-	"DUBPLATE_SERVE_SITE_NAME": "renamed to DUBPLATE_SITE_NAME",
-	"DUBPLATE_ACCESS_TEAM_DOMAIN": "moved to the forward-auth front's own config; " +
-		"the seam admits one, and its configuration arrives with the rung that builds it",
-	"DUBPLATE_ACCESS_AUD": "moved to the forward-auth front's own config; " +
-		"the seam admits one, and its configuration arrives with the rung that builds it",
-	"DUBPLATE_PUBLIC_NAVIDROME_URL": "moved to the streamer driver's own config, " +
-		"arriving at rung 12",
+	"DUBPLATE_LIBRARY_DIR":          "renamed to DUBPLATE_LIBRARY_ROOT",
+	"DUBPLATE_SERVE_SITE_NAME":      "renamed to DUBPLATE_SITE_NAME",
+	"DUBPLATE_ACCESS_TEAM_DOMAIN":   "retired: dubplate delegates sign-in to no external service",
+	"DUBPLATE_ACCESS_AUD":           "retired: dubplate delegates sign-in to no external service",
+	"DUBPLATE_PUBLIC_NAVIDROME_URL": "retired: dubplate integrates with no external streamer",
 	"DUBPLATE_CONTRIBUTORS_FILE": "renamed to DUBPLATE_ROSTER_FILE, the magic-link " +
 		"identity source's own roster location key (rung 5)",
 	"DUBPLATE_REJECT_EMAIL_TEMPLATE": "retired: reject copy is a code contract in " +
 		"internal/reject (rung 7), not a config-supplied template",
 	"DUBPLATE_BEETS_CONFIG": "retired: the greenfield server never embeds beets",
 	"DUBPLATE_BEETS_DB":     "retired: the greenfield server never embeds beets",
-	"DUBPLATE_NAVIDROME_DB": "retired: the streamer driver reaches Navidrome " +
-		"through its HTTP API only, never its database file",
+	"DUBPLATE_NAVIDROME_DB": "retired: dubplate integrates with no external streamer",
 	"DUBPLATE_TUNNEL_TOKEN": "retired: only the incumbent stack's cloudflared " +
 		"read this, and that stack is gone; dubplate-server never does",
 	"DUBPLATE_R2_ACCOUNT_ID": "superseded by DUBPLATE_BACKUP_REMOTE; configure the remote " +

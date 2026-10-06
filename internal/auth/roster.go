@@ -45,9 +45,8 @@ const maxStreamerUsernameLength = 64
 // leading dot or hyphen at no cost to a plausible account name, then
 // any run of alphanumerics, '.', '_', '@', '+', or '-'. '@' and '+'
 // admit an email-shaped username, and '_' stays allowed since a
-// downstream streamer resolves a username with a case-insensitive
-// equality check, never a SQL LIKE pattern that would treat it as a
-// wildcard. The loader keeps the older ASCII-printable check, so a
+// username is matched by case-insensitive equality, never a SQL LIKE
+// pattern that would treat it as a wildcard. The loader keeps the older ASCII-printable check, so a
 // roster written before this rule still loads.
 var streamerUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
 
@@ -112,9 +111,9 @@ var (
 	// streamer_username when set and otherwise its normalized address,
 	// matches another member's principal compared case-insensitively,
 	// where the two do not both come from a streamer_username. The seam
-	// hands each member its principal, and the streamer resolves one by
+	// hands each member its principal, and a principal resolves by
 	// case-insensitive equality, so a match would give two members one
-	// streamer account.
+	// identity.
 	errDuplicatePrincipal = errors.New("auth: duplicate principal")
 
 	// errInvalidMemberAddress reports that a record's address does not
@@ -823,7 +822,7 @@ func (m Member) principal() string {
 
 // principalCollision reports whether member's principal matches the
 // principal of any of others, compared with strings.EqualFold because
-// the streamer resolves a username by case-insensitive equality. It
+// a principal resolves by case-insensitive equality. It
 // returns errDuplicateStreamerUsername when both principals are
 // streamer_usernames, errDuplicatePrincipal when either is an address,
 // and nil when no principal matches.

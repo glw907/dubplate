@@ -95,6 +95,54 @@ func TestLoad_ContractTable(t *testing.T) {
 			errContain: []string{"intake", "rung 7"},
 		},
 		{
+			name:       "deleted, dubplate_navidrome_url",
+			environ:    append(baseEnviron(), "DUBPLATE_NAVIDROME_URL=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_NAVIDROME_URL: unknown configuration key"},
+		},
+		{
+			name:       "deleted, dubplate_navidrome_admin_user",
+			environ:    append(baseEnviron(), "DUBPLATE_NAVIDROME_ADMIN_USER=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_NAVIDROME_ADMIN_USER: unknown configuration key"},
+		},
+		{
+			name:       "deleted, dubplate_navidrome_admin_password",
+			environ:    append(baseEnviron(), "DUBPLATE_NAVIDROME_ADMIN_PASSWORD=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_NAVIDROME_ADMIN_PASSWORD: unknown configuration key"},
+		},
+		{
+			name:       "deleted, dubplate_ping_navidrome_url",
+			environ:    append(baseEnviron(), "DUBPLATE_PING_NAVIDROME_URL=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_PING_NAVIDROME_URL: unknown configuration key"},
+		},
+		{
+			name:       "retired, dubplate_public_navidrome_url",
+			environ:    append(baseEnviron(), "DUBPLATE_PUBLIC_NAVIDROME_URL=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_PUBLIC_NAVIDROME_URL: retired: dubplate integrates with no external streamer"},
+		},
+		{
+			name:       "retired, dubplate_navidrome_db",
+			environ:    append(baseEnviron(), "DUBPLATE_NAVIDROME_DB=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_NAVIDROME_DB: retired: dubplate integrates with no external streamer"},
+		},
+		{
+			name:       "retired, dubplate_access_team_domain",
+			environ:    append(baseEnviron(), "DUBPLATE_ACCESS_TEAM_DOMAIN=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_ACCESS_TEAM_DOMAIN: retired: dubplate delegates sign-in to no external service"},
+		},
+		{
+			name:       "retired, dubplate_access_aud",
+			environ:    append(baseEnviron(), "DUBPLATE_ACCESS_AUD=x"),
+			wantErr:    true,
+			errContain: []string{"DUBPLATE_ACCESS_AUD: retired: dubplate delegates sign-in to no external service"},
+		},
+		{
 			// Spec criterion 19: each of the six retired backup names
 			// fails the load with its message verbatim, one row per name.
 			name:    "superseded, r2 account id",
@@ -447,10 +495,9 @@ var fixtureIntegrationClass = IntegrationClass{
 	},
 }
 
-// fixtureNoRequiredClass is hook 6's motivating shape: an integration
-// declaring no Required key at all, the way a driver declining every
-// capability would. Its enabled state must be reachable independently
-// of whether Load resolved any key.
+// fixtureNoRequiredClass is an integration declaring no Required key
+// at all. Its enabled state must be reachable independently of whether
+// Load resolved any key.
 var fixtureNoRequiredClass = IntegrationClass{
 	Name: "fixture-no-required",
 	Flag: "DUBPLATE_FIXTURE_NO_REQUIRED_ENABLED",
@@ -551,11 +598,10 @@ func TestLoadIntegrationRequiredWhenEnabled(t *testing.T) {
 	}
 }
 
-// TestLoadIntegrationEnabledIndependentOfResolvedKeys proves hook 6's
-// motivating shape: a class with an empty Required set still reports
-// enabled when its flag is set, and reports not enabled when its flag
-// is unset. A driver declining every capability declares no required
-// key and must still be told apart from a disabled one.
+// TestLoadIntegrationEnabledIndependentOfResolvedKeys proves a class
+// with an empty Required set still reports enabled when its flag is
+// set, and reports not enabled when its flag is unset. A class with no
+// required key must still be told apart from a disabled one.
 func TestLoadIntegrationEnabledIndependentOfResolvedKeys(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -566,7 +612,7 @@ func TestLoadIntegrationEnabledIndependentOfResolvedKeys(t *testing.T) {
 			name: "flag unset: not enabled",
 		},
 		{
-			name:        "flag set on an empty-Required class still reports enabled (hook 6)",
+			name:        "flag set on an empty-Required class still reports enabled",
 			extra:       []string{"DUBPLATE_FIXTURE_NO_REQUIRED_ENABLED=true"},
 			wantEnabled: true,
 		},

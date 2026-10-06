@@ -66,7 +66,7 @@ func TestReservedClassOf(t *testing.T) {
 		wantFound bool
 	}{
 		{input: "DUBPLATE_R2_BUCKET", wantFound: false},
-		{input: "DUBPLATE_NAVIDROME_URL", wantClass: "streamer", wantRung: 12, wantFound: true},
+		{input: "DUBPLATE_REVIEW_DIR", wantClass: "decision and review queues", wantRung: 13, wantFound: true},
 		{input: "DUBPLATE_UPLOADS_DIR", wantClass: "intake", wantRung: 7, wantFound: true},
 		{input: "DUBPLATE_PING_IMPORT_URL", wantClass: "monitoring", wantRung: 9, wantFound: true},
 		{input: "DUBPLATE_LIBRARY_ROOT", wantFound: false},

@@ -15,7 +15,7 @@ import (
 // browser rather than by this server: a cookie so named is stored only
 // when it is Secure, carries no Domain, and has Path=/, which is why
 // [SessionCookie] sets exactly those attributes and why same-origin is
-// a stated precondition of the SSO capability rather than something a
+// a stated precondition of the session rather than something a
 // deployment can relax.
 const SessionCookieName = "__Host-dubplate_session"
 

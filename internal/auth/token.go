@@ -160,11 +160,11 @@ func VerifyLink(current, previous []byte, value string, now time.Time) (LinkToke
 // request supplied would mail an attacker's origin a token minted for
 // someone else. prefix is the owned prefix's string form (serve.Prefix's
 // String), so the link lands on a path the shell routes to its own
-// handlers rather than to the fallthrough, whatever that slot holds.
+// handlers.
 //
 // prefix must name a real subtree: an empty or "/" prefix would build
 // a link at the bare origin, which is outside the owned prefix and
-// falls through to whatever the shell mounts there (n2, the same
+// lies outside the surface the shell routes to these handlers (n2, the same
 // defect major 2 named). Today's only caller passes a
 // [serve.Prefix.String] value, which serve.NewPrefix already refuses
 // in both shapes, so this check exists for a future caller that skips
