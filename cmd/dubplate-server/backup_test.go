@@ -470,7 +470,7 @@ func plantCatalogTracks(t *testing.T, stateDir string, n int) {
 	t.Helper()
 	updateStore(t, stateDir, func(ctx context.Context, tx *store.Tx) error {
 		user, coll, album := store.NewID(), store.NewID(), store.NewID()
-		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}

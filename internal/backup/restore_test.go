@@ -182,7 +182,7 @@ func storeWithUser(t *testing.T, address string) string {
 		t.Fatalf("OpenServe: %v", err)
 	}
 	err = h.Update(ctxFor(t), func(ctx context.Context, tx *store.Tx) error {
-		_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+		_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, ?, 'User', ?, 1, 1)`, store.NewID(), address, strings.Split(address, "@")[0])
 		return err
 	})

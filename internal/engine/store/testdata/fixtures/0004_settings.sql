@@ -5,7 +5,7 @@
 -- has no earlier fixture's rows to build on, and every fixture also
 -- layers onto every earlier one in fullyMigratedStore, so a shared id or
 -- a shared unique value here would collide with 0003's row there.
-INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 VALUES (x'a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6a6', 'member2@example.invalid', 'Member Two', 'member2', 0, NULL, 1700000000000000, 1700000000000000);
 
 INSERT INTO collections (

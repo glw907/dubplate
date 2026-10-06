@@ -585,7 +585,7 @@ func backedUpLeaf(t *testing.T) restoreFixture {
 	seedBackupStore(t, fix.stateDir)
 	updateStore(t, fix.stateDir, func(ctx context.Context, tx *store.Tx) error {
 		user, coll, album := store.NewID(), store.NewID(), store.NewID()
-		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, ?, ?, 'owner', 1, 1)`, user, restoreOwner, restoreOwnerName); err != nil {
 			return err
 		}
@@ -619,7 +619,7 @@ VALUES (?, ?, ?, ?, 1, 1)`, store.NewID(), album, coll, []byte(rel)); err != nil
 	}
 
 	updateStore(t, fix.stateDir, func(ctx context.Context, tx *store.Tx) error {
-		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, ?, 'Added', 'added', 2, 2)`, store.NewID(), restoreAddedAddress); err != nil {
 			return err
 		}

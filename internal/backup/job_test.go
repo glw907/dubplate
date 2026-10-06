@@ -73,7 +73,7 @@ func plantTracks(t *testing.T, h *store.Handle, n int) {
 	t.Helper()
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		user, coll, album := store.NewID(), store.NewID(), store.NewID()
-		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}
@@ -481,7 +481,7 @@ func TestBackup_SendsCommittedRows(t *testing.T) {
 	insert := func() error {
 		n := committed.Load()
 		return h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
-			_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, streamer_username, created_at, updated_at)
+			_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, ?, 'Member', ?, 1, 1)`, store.NewID(), fmt.Sprintf("m%d@example.org", n), fmt.Sprintf("m%d", n))
 			return err
 		})

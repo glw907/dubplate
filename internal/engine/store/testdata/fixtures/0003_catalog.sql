@@ -2,7 +2,7 @@
 -- refuses a TEXT literal even by value, so their hex literals below
 -- decode to "group/music" and "Member One/Group Library/01 Track.flac".
 
-INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 VALUES (x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'member1@example.invalid', 'Member One', 'member1', 1, NULL, 1700000000000000, 1700000000000000);
 
 INSERT INTO collections (

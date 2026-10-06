@@ -2,7 +2,7 @@ CREATE TABLE users (
 	id BLOB NOT NULL PRIMARY KEY,
 	address TEXT NOT NULL UNIQUE,
 	display_name TEXT NOT NULL,
-	streamer_username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+	username TEXT NOT NULL UNIQUE COLLATE NOCASE,
 	admin INTEGER NOT NULL DEFAULT 0 CHECK (admin IN (0, 1)),
 	tombstoned_at INTEGER,
 	created_at INTEGER NOT NULL,

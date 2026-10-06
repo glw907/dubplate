@@ -6,7 +6,7 @@
 -- a shared unique value here would collide with an earlier fixture's
 -- row there. old_path and new_path decode to "Member One/Old
 -- Location/01 Track.flac" and "Member One/New Location/01 Track.flac".
-INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 VALUES (x'a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7', 'member3@example.invalid', 'Member Three', 'member3', 0, NULL, 1700000000000000, 1700000000000000);
 
 INSERT INTO collections (

@@ -191,14 +191,14 @@ func TestSchemaBlobColumnRefusesText(t *testing.T) {
 // TestSchemaDuplicateAddressRefused is spec criterion 12: a duplicate
 // address is refused whether the existing row is live or tombstoned,
 // under extended code 2067, and a case-folded duplicate
-// streamer_username is refused the same way.
+// username is refused the same way.
 func TestSchemaDuplicateAddressRefused(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("against a live row", func(t *testing.T) {
 		_, h := fullyMigratedStore(t)
 		_, err := h.write.ExecContext(ctx,
-			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'member1@example.invalid', 'Someone Else', 'someoneelse', 0, NULL, 2, 2)`,
 			NewID(),
 		)
@@ -211,14 +211,14 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 	t.Run("against a tombstoned row", func(t *testing.T) {
 		_, h := fullyMigratedStore(t)
 		if _, err := h.write.ExecContext(ctx,
-			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'gone@example.invalid', 'Gone', 'gone', 0, 999, 2, 2)`,
 			NewID(),
 		); err != nil {
 			t.Fatalf("insert the tombstoned baseline: %v", err)
 		}
 		_, err := h.write.ExecContext(ctx,
-			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'gone@example.invalid', 'Someone Else', 'someoneelse2', 0, NULL, 3, 3)`,
 			NewID(),
 		)
@@ -228,14 +228,14 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		}
 	})
 
-	t.Run("a case-folded streamer_username", func(t *testing.T) {
+	t.Run("a case-folded username", func(t *testing.T) {
 		_, h := fullyMigratedStore(t)
 		_, err := h.write.ExecContext(ctx,
-			`INSERT INTO users (id, address, display_name, streamer_username, admin, tombstoned_at, created_at, updated_at)
+			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'other@example.invalid', 'Other', 'Member1', 0, NULL, 2, 2)`,
 			NewID(),
 		)
-		assertErrNames(t, err, "UNIQUE constraint failed: users.streamer_username")
+		assertErrNames(t, err, "UNIQUE constraint failed: users.username")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
 			t.Errorf("code = %d, want %d", code, sqliteUniqueCode)
 		}
@@ -294,7 +294,7 @@ func TestSchemaForeignKeyRefusals(t *testing.T) {
 var migrationHashes = map[string]string{
 	"0001_ledger.sql":   "9c0accd382e16f0a546ade4e76231c2235977e27bfc30106f69fa4516566291a",
 	"0002_jobs.sql":     "d91729ec63c3fa4132f4af9fc19325d2077a135f4116d7bdd13178a6bfa2e1d5",
-	"0003_catalog.sql":  "f962133f7366b5e941e2346fc1d2e3cd4defa743ec02902241408e9173a089c5",
+	"0003_catalog.sql":  "42834b8f62df9727bea686bbc02030f1b9af0de2a6c61a59050be72399c7b7fd",
 	"0004_settings.sql": "9d312b17c391dc7e4a4059ac2c302d4affa381b5955fc1038dedb099e74bfc1f",
 	"0005_routed.sql":   "e3eeb662f78b5142f23729d69fc59db332fc04305f1618269347e06a5d2a8a4c",
 }
