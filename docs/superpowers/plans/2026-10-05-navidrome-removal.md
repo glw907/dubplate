@@ -159,6 +159,8 @@ Each is a method or placement call, decided here and flagged for plan review.
 | `net/http/fs.go:430` (Go 1.27.1) and `io/io.go:363-364` | `io.CopyN(w, sendContent, sendSize)`; `CopyN` is `written, err = Copy(dst, LimitReader(src, n))` | Task 1: `http.ServeContent` reaches `io.Copy` with a `LimitReader` source, which has no `WriteTo`, so the writer's `ReadFrom` is consulted |
 | `go doc net/http CrossOriginProtection.AddInsecureBypassPattern` | "AddInsecureBypassPattern permits all requests that match the given pattern. ... Only requests that match the pattern directly are permitted." "AddInsecureBypassPattern panics if the pattern conflicts with one already registered" | Task 1: the bypass stays path-keyed; its doc keeps "registers twice" |
 | `internal/serve/origin.go:103-116` | `allowed` returns true for GET, HEAD, and OPTIONS; for any other method with neither `Sec-Fetch-Site` nor `Origin` it returns whether `o.bypass` resolves `bypassMatch` | Task 1: a POST outside the prefix carrying neither header answers 403 before routing |
+| `go doc -src net/http.ResponseController.Flush` (Go 1.27.1) | `switch t := rw.(type) { case interface{ FlushError() error }: ... case Flusher: ... case rwUnwrapper: rw = t.Unwrap() ... default: return errNotSupported() }` | Task 1: with `Flush` and `Unwrap` both deleted from `statusCapture`, `ResponseController.Flush` reaches `default` and returns an error (`http.ErrNotSupported`), so the kept Flush test fails |
+| `golangci-lint run --help` (2.14.0, pinned) | `--tests  Analyze tests (*_test.go) (default true)`; `.golangci.yml` sets no `run.tests` | Task 1: `unused` lints test files, so a helper whose only callers are deleted tests is a finding. Verified by running `golangci-lint run --help \| grep -- --tests` and `grep tests .golangci.yml` |
 | `go doc encoding/json/v2 RejectUnknownMembers` | "RejectUnknownMembers specifies that unknown members should be rejected when unmarshaling a JSON object." | Task 4b: `parseRoster` (`internal/auth/roster.go:340`) refuses a file carrying `streamer_username` with `ErrRosterUnparseable` |
 | `go doc encoding/json Decoder.DisallowUnknownFields` | "DisallowUnknownFields causes the Decoder to return an error when the destination is a struct and the input contains object keys which do not match any non-ignored, exported fields in the destination." | Task 2b: `readJSON` (`internal/harness/analysis/ledger.go:19-20`) refuses a row carrying a removed shadow field |
 | `github.com/spf13/pflag@v1.0.10/errors.go:40` | `return fmt.Sprintf("unknown flag: --%s", e.name)` | Task 4b: `member add --streamer-username` refuses with "unknown flag: --streamer-username" |
@@ -384,7 +386,8 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hoo
   proves `DUBPLATE_SHADOW_ENABLED=true` in the environment fails `config.Load` with "unknown configuration key".
   `internal/config`'s fixture registry never knew the shadow keys, so a test there passes before the task too.
   **Fixture state:** an environment otherwise valid, so the shadow key is the only error. **Named mutation:**
-  re-add `registerShadowIntegration(reg)` to `newProductionRegistry`; the report shows the test failing then.
+  run the new test at the pre-deletion commit (this task's base); it fails there, since the shadow class is
+  registered and the key is not unknown. The report shows that failure.
 - `auth_test.go`'s existing `_PREVIOUS` rows (`:73-74`, `:239-241`) pass unchanged, and the report names them,
   proving the rotation secrets still load.
 - **Named mutations:** drop `newServeCmd` from `AddCommand` (the re-pointed wiring test fails); render a
@@ -398,7 +401,9 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 2a. **0.8 ho
 **Files:**
 - Modify: `internal/harness/analysis/adjudication.go`, `adjudication_test.go`, `corpus/README.md` (`:2290-2303`,
   the `adjudications.json` schema contract)
-- Modify (comments only): `internal/engine/musicbrainz/limiter.go` (`:11-41`), `client.go` (`:74-84`)
+- Modify (comments only): `internal/engine/musicbrainz/limiter.go` (`:11-41`, `:68`), `client.go` (`:74-84`,
+  `:340`); `limiter_test.go` (its comments, plus the `"shadow"` budget label renamed to a neutral `"background"`,
+  assertions unchanged)
 - Modify (comments only): `internal/engine/tag/tag.go` (`:58-67`, `:161`), `internal/engine/tagio/doc.go`
   (`:34`), `internal/engine/tagio/container.go` (`:68`), `internal/engine/matcher/quiet.go` (`:5`),
   `internal/engine/store/leaf.go` (`:14`), `internal/auth/store.go` (`:28`, `:120`); test comments in
@@ -413,12 +418,13 @@ Pass class: `tool`. Model: `sonnet`, effort `high`. Depends on Task 2a. **0.8 ho
   two `matcher_commit`/`matcher_config_hash` assertions and their doc paragraph, whose subject no longer exists.
 - `musicbrainz.ClassBackground` and `ErrUnavailable` keep their code (Reading 2). The `Class` doc, the
   `ClassBackground` line, the reservation's anti-starvation reasoning, and `ErrUnavailable`'s doc state their reason
-  with no shadow named. The limiter's behavior and tests are unchanged.
+  with no shadow named. The limiter's behavior and its assertions are unchanged.
 - `internal/engine/tagio` stays intact, its doc naming the import pipeline's reader as its consumer without a rung
   number.
 - The exported names the deletion leaves with no non-test reference each keep their code, consumed by the import
-  pipeline the matcher library is built for or by type inference. The report confirms each against the uncapped
-  leg (Reading 1's method) run before and after Task 2a, and names any name the diff shows that this table lacks:
+  pipeline the matcher library is built for or by type inference. The conductor's segment A pre-flight records the
+  uncapped leg's full list at `HEAD` (Task 1's base; Reading 1's method) and passes it in this task's notes. The
+  report diffs its own after-run against that list and names any name the diff shows that this table lacks:
 
   | Name | Disposition |
   | --- | --- |
@@ -478,7 +484,12 @@ justified on its own terms.
   or the column's `COLLATE NOCASE`, rather than a downstream streamer.
 - The `DUBPLATE_STORE_BUSY_TIMEOUT` comment (`store.go:17-22`) states the 15s default's reason without the retired
   system.
-- Doctor's reserved-class order test (`doctor_test.go:1048-1063`) pins table order against two surviving classes.
+- Doctor's reserved-class order test (`doctor_test.go:1048-1063`) pins `pipeline` before `monitoring`, two surviving
+  classes at the same rung (9), so table order is the only order that separates them. Its doc states that a rung
+  sort can no longer be told apart from the table once `streamer` is gone (the surviving rungs already ascend), and
+  that the pin now guards against a name sort. **Named mutation:** sort the printed classes by name; `monitoring`
+  then precedes `pipeline` and the test fails. **Fixture state:** both rows appear in the stdout under test, and the
+  test fails on a missing row rather than passing.
 
 **States a retired or deleted key meets:**
 
@@ -495,12 +506,14 @@ justified on its own terms.
   `grep -inE 'front ?exemption|forward-auth|driver|fallthrough|exemption'`, print nothing. The source grep,
   `git grep -niE 'front ?exemption|forward-auth|driver|fallthrough|navidrome' -- 'internal/auth/*.go' 'internal/config/*.go' ':!*_test.go'`,
   prints only Go's `fallthrough` keyword (`limit.go:231`) and the two retired rows' key names, so the unexported
-  comments (`config.go:121`, `:424`, `registry.go:289`) are covered too.
+  comments (`config.go:121`, `:424`) are covered too. (`registry.go:289`'s "the one exemption" sits outside the
+  pattern, and Task 2a removes it with `isOptionalIntegrationKey`.)
 - `git grep -niE 'navidrome' -- cmd internal ':!*_test.go'` returns only the two retired rows' key names.
 - A table test covers each row of the states table above. **Named mutation:** delete the
   `DUBPLATE_PUBLIC_NAVIDROME_URL` superseded row and its row reports "unknown" instead of the message.
 - Ruling 7: the iterated required-key set, run by Task 0's exact method at this task's commit, equals Task 0's
-  set, key by key.
+  set, key by key. The conductor carries Task 0's classified set and its sample environment (names and values) in
+  this task's dispatch notes, since the pass record is not a file the implementer reads.
 - The gate green.
 
 ## Task 4a: The store column becomes `username`
@@ -620,10 +633,10 @@ The conductor runs, in order, before dispatching Task 5:
    members-page capture in both themes, read by the conductor.
 6. Update `.claude/agents/dubplate-implementer.md:60`, which still names `internal/engine/shadow` (a rule lives
    where it executes).
-7. Re-run Task 0's operator-values method at the last code commit and compare the key set with Task 0's (ruling 7).
 
 Steps 1 to 4 and any fold task they spawn are an in-flight lane 1 segment: document segment B launches after the
-last of them commits green.
+last of them commits green. Task 5 runs before document segment B launches, or after its Tasks 5 to 8 invocation
+ends, never during it.
 
 **Task 5's outcomes:**
 - The pass's HISTORY entry, newest first: what landed per task; the gate evidence; each reviewer's dispositions;
@@ -635,10 +648,13 @@ last of them commits green.
   closing list of nine (Reading 1); `readFLAC` is salvage for rung 9 at `internal/engine/shadow/libraryread.go` in
   the pre-deletion commit; `ClassBackground` and `ErrUnavailable` kept their code under Reading 2, and
   `IntegrationClass.Optional` was pruned for a consumer to re-add; the plan-time box read preceded the archive chore
-  and the re-confirmation followed it (or the `0006` path was taken, and why); Task 0's classified key set and its
-  close-time comparison. It names any finding a fold refused that proved real in execution, or
+  and the re-confirmation followed it (or the `0006` path was taken, and why); Task 0's classified key set and Task 3's
+  comparison against it. It names any finding a fold refused that proved real in execution, or
   says none did.
-- STATUS, present tense: the pass closed; the lane 1 row; the next actions (6d's revision 2.3, the document pass's
+- STATUS, present tense: one line that Reading 2 departs from the spec's literal default (the spec says
+  `ClassBackground` and `ErrUnavailable` are otherwise pruned; no rung 9 spec names a consumer, and the plan kept
+  both, pruning only their shadow justification, for the limiter's three-class design and the client's retry
+  contract); the pass closed; the lane 1 row; the next actions (6d's revision 2.3, the document pass's
   segment B); the moot carries the removal closed (`FrontExemption`'s dual-stack match, the configured-header
   carve-out).
 - Out-of-scope findings from any dispatch go to `BACKLOG.md`, verified first.
@@ -661,9 +677,11 @@ last of them commits green.
 2. Task 0 through the `dependency-upgrade` skill, with no document segment in flight; record the classified key
    set.
 3. Before each segment: one `haiku` pre-flight that checks every file:line and claim the segment's tasks cite at
-   HEAD; amend the plan, then launch. Before a heavy stretch, the one-line `SendMessage` to the cairn-cms session.
+   HEAD; amend the plan, then launch. Segment A's pre-flight also records the uncapped exported-unused list at
+   `HEAD` for Task 2b's notes. Before a heavy stretch, the one-line `SendMessage` to the cairn-cms session.
 4. Before segment B launches: the read-only `0003` re-confirmation, after the archive chore's STATUS record (or
-   the `0006` re-cut); the Microsoft A-Z fetch for Task 4b.
+   the `0006` re-cut); the Microsoft A-Z fetch for Task 4b; Task 0's classified key set and sample environment into Task 3's
+   dispatch notes.
 5. At each segment boundary: STATUS; the 6.4M flag; a slice 2 merge, if one is waiting, before the next launch.
 6. The close's reviews and reads (Task 5's list), then Task 5, then close the session.
 

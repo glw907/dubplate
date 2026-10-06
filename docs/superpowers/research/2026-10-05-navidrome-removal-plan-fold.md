@@ -120,3 +120,16 @@ cairn-cms session one line through `SendMessage`. It never re-runs a full gate o
 - **Ceiling:** 8.0M, unchanged, with the flag still at 6.4M. Removing the limiter rewrite (PM4) offsets the
   heavier `auth-data` bar on Task 4b. The ten architecture readers stay.
 - **Sibling plan:** one line changed (the "Segments" definition of "the merge").
+
+## Verification minors
+
+- PV1: folded. Task 2b's Files add `limiter.go:68`, `client.go:340`, and `limiter_test.go` (comments, label rename to `"background"`); the outcome says assertions, not tests, are unchanged.
+- PV2: folded. Task 2a's mutation is now "run the new test at the pre-deletion commit and show it fails there".
+- PV3: folded. Segment A's pre-flight records the uncapped list at `HEAD`; the conductor passes it in Task 2b's notes; Task 2b's own before-run is dropped.
+- PV4: folded. Conductor action 4 and Task 3's acceptance carry Task 0's classified set and sample environment in Task 3's dispatch notes.
+- PV5: folded. The doctor order test pins `pipeline` before `monitoring` with the named mutation "sort by name" (verified: `keys.go` has both at rung 9, alphabetical order reverses them).
+- PV6: folded. Task 5 states it runs before document segment B launches or after its Tasks 5 to 8 invocation ends, never during it.
+- PV7: folded. Two quoted rows added: `go doc -src net/http.ResponseController.Flush` (source switch) and `golangci-lint run --help` (`--tests` default true, 2.14.0), with the verifying command.
+- PV8: folded. Task 5's STATUS outcome carries one line naming Reading 2's departure from the spec's default and why.
+- PV9: folded. `registry.go:289` dropped from Task 3's coverage claim, with a note that Task 2a removes it.
+- Over-engineering Q4 item 2: folded. Close step 7 dropped as a repeat of Task 3's key check; the HISTORY outcome now cites Task 3's comparison.

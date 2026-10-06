@@ -37,10 +37,11 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
 
 ## Owner questions
 
-- **Rungs 12/16 re-plan spec awaits Geoff's read:** `specs/2026-10-05-rungs-12-16-replan-design.md`
-  (first launch is 0.8.0 on the built-in streamer; rung 12 = streamer slices 1-8; a `navidrome-removal`
-  pass before 6d; the username rename). On approval: `superpowers:writing-plans` for the removal pass and the
-  document pass.
+- **Two plans await Geoff's approval** (spec `specs/2026-10-05-rungs-12-16-replan-design.md`, approved with
+  rulings 1-3 yes): `plans/2026-10-05-navidrome-removal.md` (code, lane 1, rev 2, three-lens review folded and
+  verified) and `plans/2026-10-05-replan-document-pass.md` (docs, rev 2, self-folded lens). Its Task 0 archive
+  chore runs before any other box work. 6d rev 2.3 follows the removal pass; slice 1 (doc lane) and slice 2
+  (third code lane, worktree) open per spec ruling 5.
 
 - 6d plan rev 2.2 awaits approval (`plans/2026-09-26-rung-6d-identity-serve-store.md`): three rulings (one
   pass at 11.5M; the epoch to the revoke verb; store identity to rung 16), all recommended yes.
