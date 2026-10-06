@@ -4,10 +4,10 @@ Design spec. Revision 3, 2026-09-12. Status: **ratified, Geoff read the file 202
 six errata of that date (the founding library's hand-over, per-collection layout parity, and
 four the ratified rung 6 spec owes: the shadow pair stays on the wall, the roster file
 retires from the wall list, the backup schedule key is rung 16's, and apply mode plus the
-sensitive flag are registry metadata), and two errata of 2026-09-25 from the ratified
+sensitive flag are registry metadata), one erratum of 2026-09-24 (the multi-disc default template), and two errata of 2026-09-25 from the ratified
 group-scale principles spec (the bounded-share exception to the sharing decline, and checkout
 scope under the served-volume meter), and one erratum of 2026-10-05 from the rungs 12 to 16
-re-plan (the Navidrome verifications retire, and the private gate re-keys): nine errata in all.
+re-plan (the Navidrome verifications retire, and the private gate re-keys): ten errata in all.
 
 > Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
 > revision 2.1 at `33b465c`, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): Geoff retired
