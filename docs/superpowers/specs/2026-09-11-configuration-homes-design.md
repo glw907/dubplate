@@ -6,7 +6,30 @@ four the ratified rung 6 spec owes: the shadow pair stays on the wall, the roste
 retires from the wall list, the backup schedule key is rung 16's, and apply mode plus the
 sensitive flag are registry metadata), and two errata of 2026-09-25 from the ratified
 group-scale principles spec (the bounded-share exception to the sharing decline, and checkout
-scope under the served-volume meter).
+scope under the served-volume meter), and one erratum of 2026-10-05 from the rungs 12 to 16
+re-plan (the Navidrome verifications retire, and the private gate re-keys): nine errata in all.
+
+> Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+> revision 2.1 at `33b465c`, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): Geoff retired
+> the incumbent stack, so three passages of this spec change.
+>
+> - The rung 12 Navidrome verifications are moot: the check of the pinned build's per-user
+>   library API ("At 1.0 every collection is group-visible"), the art, tag, and
+>   folder-browsing checks in the rung 12 hooks, and the 2026-09-23 check that per-user stars
+>   and playlists survive a file move. The pinned build is no longer run, so nothing in this
+>   spec is conditional on those checks, including the layout-parity item in the rung 16
+>   migration hook.
+> - The 2026-09-23 erratum on the shadow floor and budget ("the shadow floor and budget
+>   are a third example of this wall category") is moot: the shadow program is gone, so the
+>   pair has no reader and no home.
+> - Rung 14's private gate ("The rung 14 API refuses to set private for as long as the
+>   active driver does not declare per-user folder access in its capability report") re-keys.
+>   The API refuses private until slice 3's projector enforces visibility on every endpoint.
+>   There is no driver and no capability report to consult. Private collections ship at first
+>   launch per the existing 2.0 ruling, and the meaning of private is unchanged.
+>
+> The bearer admin mount ("The admin API is served on two mounts") stands, because the
+> bearer bypass stays.
 
 Revision 1 is dated 2026-09-11, revisions 2 and 3 fold five adversarial reviews
 (competitors and demand; collection interactions; technical design; threat model;
