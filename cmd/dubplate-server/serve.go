@@ -273,7 +273,8 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 //
 // It registers no bearer bypass: no mount authenticates by bearer
 // credential, so every mount stays behind the origin check's
-// cookie-carrying protection. The first bypassed route must add a
+// cookie-carrying protection. The first bypassed route will be the
+// 0.8 OpenSubsonic API or the bearer admin mount, and it must add a
 // shell-level test that it never reads the session cookie.
 //
 // Every record the shell and its handlers write goes to logger.

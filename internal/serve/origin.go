@@ -40,8 +40,10 @@ import "net/http"
 // session cookie cannot be forged by a third-party page, which can make
 // a browser attach cookies but never a bearer credential. Such a path
 // is exempted through [originCheck.addBearerBypass], keyed on its
-// path. The admin API's bearer mount and the OpenSubsonic API's
-// non-GET requests are its consumers. The exemption carries a contract
+// path. No route registers a bypass today. The first consumer will be
+// the 0.8 OpenSubsonic API or the bearer admin mount, and that consumer
+// must add a shell-level test that a bypassed route never reads the
+// session cookie. The exemption carries a contract
 // every handler behind a bypassed pattern keeps: it must not read the
 // session cookie to authenticate a request. A bypassed handler that
 // fell back to the cookie would turn the exemption into exactly the
