@@ -2,7 +2,8 @@
 
 Status: **revision 2.2, ratified by Geoff 2026-09-23**: all fourteen owner rulings below are ruled
 yes, as recommended. The errata this spec owes land in the documents they name. Its review history, every finding's disposition, and the arguments this spec only states
-are in `research/2026-09-23-rung-6-spec-fold-record.md`.
+are in `research/2026-09-23-rung-6-spec-fold-record.md`. Erratum 2026-10-06: a one-time exception to the
+append-only rule for `0003_catalog.sql` (see the erratum block under "Migrations").
 
 Rung 6 builds dubplate-server's library store and its operation vocabulary. The store is one
 SQLite file on the pure-Go modernc driver. It runs in WAL mode with `synchronous=FULL` and one writer
@@ -423,6 +424,24 @@ The runner's other rules:
   proof migrates the job-records fixture forward through the skeleton.
 - Files are append-only once merged. A lane that rebases onto another lane's migration renumbers its
   own, and the rebase is non-fast-forward, so merge ritual step 5 runs.
+
+> Erratum, 2026-10-06 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+> revision 2.1, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): a one-time exception to the append-only
+> rule above. `0003_catalog.sql` and its fixtures `0003_catalog.sql`, `0004_settings.sql`, and
+> `0005_routed.sql` under `internal/engine/store/testdata/fixtures/` were edited in place to rename the
+> `users.streamer_username` column to `username`, and for that rename only. The exception rests on two
+> preconditions, both checked read-only against the box on 2026-10-06:
+>
+> - Doctor's `store` row reads `absent`: the state directory holds no store leaf, so no store was ever
+>   migrated under the old `0003`.
+> - Backup was never enabled (`server.env` carries no backup keys and no `dubplate-*` timer exists), so the
+>   remote holds no store snapshot.
+>
+> Master commit `2f4d0524836d1f88d2377f7b6e29f7e5aec7ac39` made the edit and re-pinned `migrationHashes`'
+> `0003_catalog.sql` entry to `42834b8f62df9727bea686bbc02030f1b9af0de2a6c61a59050be72399c7b7fd`. Any older
+> store fails loudly at open: the runner compares each ledger row's sha256 against the embedded file and
+> refuses the open on a mismatch. The append-only rule's text is unchanged, and no later edit in place
+> follows from this one.
 
 Rolling back to an older binary meets the newer-store refusal. While the local pre-migration
 snapshot survives ruling 7, the way back is that binary's `restore --from-file`, which accepts a
