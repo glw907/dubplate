@@ -1,6 +1,6 @@
 # dubplate-server: greenfield build spec
 
-Status: revision 2.1, ratified 2026-09-02, with six dated errata.
+Status: revision 2.1, ratified 2026-09-02, with seven dated errata.
 
 **Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
 `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
@@ -76,6 +76,28 @@ deploy is owed, and nothing routes a pin to rung 12. Any later check on sharing 
 effective value, never a configuration file alone (that spec's row A13). (2) "Out of scope"
 gains the features the project refuses to build: fetching music, fetch integrations,
 federation between servers, and a public library.
+
+**Erratum 2026-10-05 (Geoff, from the rungs 12 and 16 re-plan; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`, owner
+rulings 1 through 3 all ruled yes).** Every passage below on Navidrome, a driver, SSO, the
+forward-auth front, the fallthrough, or the estate shadow is superseded and stands only as
+history. By section: (1) "Drivers own driver knowledge" in Universality. (2) The trust-boundary
+sections, serve-as-ingress and forward-auth, and the sentence in the first that carries the
+2026-09-25 `/share/*` erratum. (3) "One owned prefix", where the streamer no longer owns
+everything else: dubplate's built-in streamer is served by the same binary. (4) "One identity
+source", "Post-login destination", and "Proxy hygiene". (5) The tree shape's
+`internal/streamer/` driver seam and its `navidrome/` reference driver. (6) Rung 4's
+"continuous to launch" and the shadow runner it builds. (7) "Two tracks, dependency-merged",
+including the shadow track, the evidence clock that runs unattended, and the retirement of the
+interim estate after a deprecation window. (8) The interim-estate matcher fallback, in the
+launch bar's "no partial launch" paragraph and in "What this spec supersedes". (9) "Box safety
+during the build". (10) The 2026-09-25 `/share/*` erratum's residual: no Navidrome serves share
+links at first launch. The estate shadow is superseded whole: the floor (the "Rulings on the
+review round" item 1), launch bar part 3, rung 4's "continuous to launch", and the box side.
+Under owner ruling 1's yes, three more passages are superseded: the tree shape's "first-class
+leaf" sentence, ruling 1's adopter clause, and the adopter text in "Shadow: the standing
+oracle". First launch is 0.8.0, on dubplate's built-in streamer, with no cutover. The rung
+entries gain their own erratum blocks at rungs 12, 15, 16, and 17, at launch bar part 3, and at
+"Shadow: the standing oracle". The rung text stays as written.
 
 **The config wall is registry contents, not a closed table.** After
 rung 1b, `internal/config.Load` takes the registry it enforces against
@@ -158,6 +180,12 @@ server. The launch gate has four parts, and all four hold at once:
 3. **A clean shadow record.** The shadow run defined below is clean:
    zero unadjudicated divergences and zero false confident matches
    against live beets decisions, over the floor ruling 1 defines.
+
+   > Erratum, 2026-10-05 (Geoff; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`): this part is struck.
+   > No estate shadow runs, and the shadow program is deleted, so there is no shadow record to
+   > be clean. Parts 1, 2, and 4 gate. Part 1's completeness now includes the built-in
+   > streamer (rung 12). The text above stands as history.
+
 4. **Layout parity.** A dry-run diff proves the new pipeline's
    computed paths equal the on-disk layout of the live library before
    anything writes. This part has its own evidence machinery (rung
@@ -390,6 +418,17 @@ write follows the quiet-box discipline. The observation mechanism
 (how the runner sees the import timer's material) is designed in the
 shadow rung's plan; the deployment machinery it needs is priced in
 rung 4's band, not assumed.
+
+> Erratum, 2026-10-05 (Geoff; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`, owner ruling 1
+> yes): this section is superseded. The estate shadow is retired: the box runs no interim
+> beets pipeline to observe, the divergence log and its floor are gone, and the box side (the
+> additive unit and its quiet-box deploy) is never built. The adopter text is superseded too:
+> the shadow runner is no longer a local confidence tool for a beets-migrating adopter, because
+> 0.8's switcher path is `dubplate import navidrome`. The `engine/shadow` package, its verb, and
+> its configuration class are deleted. The `pre-greenfield` tag and git history keep the code,
+> and `IDEAS.md` carries the idea of a beets-migration confidence check. The corpus, with its
+> real-catalog and adversarial strata, is the matcher's standing evidence. The text above
+> stands as history.
 
 ## Repo pivot and tree shape
 
@@ -922,6 +961,18 @@ are marked [E].
     supported-by-design to reachable-through-the-seam-on-demand
     (rationale and evidence in ROADMAP's streamer note and the
     theme-collection brief).
+    > Erratum, 2026-10-05 (Geoff; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`): this entry is
+    > superseded. Rung 12 is the built-in streamer, not a driver seam, SSO, or an ingress proxy.
+    > dubplate integrates with no external streamer: the driver seam, the Navidrome and Jellyfin
+    > targets, the forward-auth front, and the proxy-hygiene reverse proxy retire, and so does
+    > the estate theming note. The rung runs as the streamer spec's slices 1 through 8, each a
+    > pass with its own plan: study, harness, catalog projection and browsing, art and search,
+    > streaming and transcoding, identity, app passwords, and shares, per-user state and group
+    > features, and hosting and setup. Slice 9, the shadow period and flip, is deleted. The
+    > pinned Navidrome and gonic containers stay in the harness as workstation-only behavior
+    > oracles. Slices 1 and 2 start before rung 9; slices 3 onward start after rung 9 lands the
+    > catalog.
+
 13. **Decision and review queues** (M). Persisted decision records
     serializing candidates, distances, and penalty breakdowns; the
     queue verbs (`list pending`, `answer`, `defer`) with a minimal
@@ -942,6 +993,10 @@ are marked [E].
     launch bar, and every page on the user path is rendered and read
     before any attended ask. The domain reviewer fan-out for the
     whole surface runs here.
+    > Erratum, 2026-10-05 (Geoff; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`): the shadow record
+    > leaves this rung's evaluation. The conformance gate is evaluated against launch bar parts
+    > 1, 2, and 4, and part 1 includes the streamer. The rest of the entry stands.
+
 16. **Launch cutover** (M). The box swap under a written, exercised
     rollback; the beets database archived to R2; systemd, deploy.sh,
     compose, and cloud-init converged for the new server per
@@ -963,11 +1018,33 @@ are marked [E].
     > re-layout of multi-disc albums to the disc-aware layout, before
     > or at the swap; see the launch bar's layout-parity erratum.
 
+    > Erratum, 2026-10-05 (Geoff; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`): this rung is
+    > renamed "First launch (0.8.0)" and is superseded as a cutover. It is a first install on
+    > the box, with no incumbent to cut over from and no beets stack to roll back to. It
+    > deploys the 0.8 binary, runs the roster step (the `username` rename), runs `init`, brings
+    > up the TLS listener, firewall, and DNS, enables `serve`, runs the group's
+    > `dubplate import navidrome` (dry run first) against the verified off-box copy of the
+    > retirement archive's database, and performs the multi-disc re-layout with the
+    > per-collection relocation. The spec orders these steps and sets the constraints: the
+    > deploy `.prev` set precedes the first `deploy.sh --apply`; backup is provisioned and a
+    > restore into a scratch root is proven before the import and the re-layout; a store
+    > snapshot immediately precedes the import; the import precedes the re-layout; the no-move
+    > assertion re-runs after the re-layout; and one attended gate comes last. Rollback is
+    > "disable `serve`; data stays" before the first backup, and the runbook's restore after it.
+    > The ingress-before-ExtAuth ordering, the R2-archived beets database, and the resident
+    > beets stack with its deprecation window are moot.
+
 17. **Launch close-out** (S, after the deprecation window). The
     interim estate's remnants and `_salvage/` retire, the beets
     deprecation window closes, ROADMAP and the organizer spec
     reconcile, and the initiative's post-mortem and ledger entries
     land.
+
+    > Erratum, 2026-10-05 (Geoff; `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`): the beets
+    > deprecation window is gone, because no beets stack stays resident. This rung's close-out
+    > covers `_salvage/`, the interim remnants, ROADMAP and the organizer spec, and the
+    > post-mortem as before. It also decides the retirement archive's disposal after the import
+    > has read it: every copy of the archive, and the shadow directories inside it.
 
 ## Rulings on the review round
 
