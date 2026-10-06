@@ -11,48 +11,37 @@ top entries: 5d-ii (with the rung 5 summary), 5d-i, transliteration.
 
 ## Next action
 
-> **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort high)**
+> **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
 >
-> **Goal:** re-plan rungs 12 and 16, the 0.8 escape hatch, and the shadow program under the 2026-10-05
-> ruling (the box serves only dubplate's development; the incumbent stack is retired; the matcher is validated).
+> **Goal:** execute two approved plans (Geoff, 2026-10-05) as a thin conductor:
+> `plans/2026-10-05-navidrome-removal.md` (code, lane 1, rev 2) and `plans/2026-10-05-replan-document-pass.md`
+> (docs lane, rev 2). Spec: `specs/2026-10-05-rungs-12-16-replan-design.md` (rev 2.1, rulings 1-3 yes).
 >
-> **Scope:** in: the shape of rung 12 (streamer driver, SSO, `internal/serve`'s forward hooks), rung 16 (the
-> cutover), the 0.8 escape hatch, and what remains of the shadow program (code in `cmd/dubplate-server/shadow.go`).
-> Out: rung 6d (its plan awaits Geoff's approval separately), rung 7 onward, any code change.
+> **Order:** (1) the document pass's Task 0 archive chore, before any other box work; (2) the removal pass's
+> Task 0 (dependency sweep and install-key baseline), counted as a lane 1 segment; (3) document segment A
+> (Tasks 1-4) and removal segments at each other's boundaries, never two in flight in the main tree; (4) the
+> box re-confirmation before removal segment B; (5) document segment B after the removal merge; (6) the
+> removal close (Task 5), never during document segment B. Each plan's header carries its ceiling, segments,
+> runner args (`gateLane: "heavy"`, `reviewerModel: "claude-opus-5-5"`), and conductor actions.
 >
-> **Settled, do not re-brainstorm:** the ruling above; the moot list (the cloudflared address pin and
-> `compose.yaml` values, serve bound to the bridge gateway, the Navidrome verify endpoint R-5d17 and its
-> forward-auth doctor proof, the shadow timer and its step 7 gate); the matcher is validated, so the shadow
-> floor and adjudication batches do not gate launch (corpus and conformance stay its gate); the refused
-> features in CLAUDE.md.
+> **Run:** `pass-execute` by name, one invocation per segment, runaway guard armed, lane registry updated.
+> Shared heavy-gate lock with the cairn-cms session: a heads-up via SendMessage before any heavy stretch over
+> 15 minutes, and never re-run a full gate on an unchanged commit (`~/.claude/docs/pass-gate-economy.md`).
 >
-> **Still open, brainstorm these:** whether rung 12's Navidrome driver survives at all; what the cutover becomes
-> with no incumbent; whether `FrontExemption`, `SetFallthrough`, the driver header, and the bearer bypass
-> stay in `internal/serve` or go; what the streamer-username term and mapping mean with no Navidrome
-> (owner question below); the live carries listed under Open items; whether the shadow code is deleted.
->
-> **Approach:** `superpowers:brainstorming`, then `superpowers:writing-plans`. Inputs: HISTORY 5d-ii ("wrong to
-> rediscover"), `research/2026-10-05-rung-5d-ii-architecture-reads.md` and `-5d-i-architecture-reads.md`, the
-> streamer 0.8 spec (`docs/superpowers/specs/`), and the Open items below. Bring one design for approval.
+> **Then, not in these plans:** 6d rev 2.3 (rebased onto the removal pass, its own review and approval);
+> slice 1 (document lane) and slice 2 (third code lane, own worktree) plans per spec ruling 5.
 
 ## Owner questions
 
-- **Two plans await Geoff's approval** (spec `specs/2026-10-05-rungs-12-16-replan-design.md`, approved with
-  rulings 1-3 yes): `plans/2026-10-05-navidrome-removal.md` (code, lane 1, rev 2, three-lens review folded and
-  verified) and `plans/2026-10-05-replan-document-pass.md` (docs, rev 2, self-folded lens). Its Task 0 archive
-  chore runs before any other box work. 6d rev 2.3 follows the removal pass; slice 1 (doc lane) and slice 2
-  (third code lane, worktree) open per spec ruling 5.
-
-- 6d plan rev 2.2 awaits approval (`plans/2026-09-26-rung-6d-identity-serve-store.md`): three rulings (one
-  pass at 11.5M; the epoch to the revoke verb; store identity to rung 16), all recommended yes.
-- "Streamer username": a term admins know before 0.8? (`rung-5c-iv-register-review.md` item 23).
+- 6d: rev 2.2's approval is superseded; rev 2.3 (after the removal pass, per the re-plan spec) carries its
+  rulings forward for approval (`plans/2026-09-26-rung-6d-identity-serve-store.md`).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 
 ## Lane registry
 
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: rung 5 closed. `internal/serve` and `internal/auth` released to rung 12's ownership; rung 12 is being re-planned |
+| 1 | main tree (master) | IDLE: `navidrome-removal` approved, not launched. A docs lane (re-plan document pass) shares this tree at segment boundaries |
 | photos | main tree, separate docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff's call |
 
 ## Open items (carried)

@@ -1,6 +1,6 @@
 # Re-plan document pass (rungs 12 and 16) Implementation Plan
 
-Status: **revision 2, 2026-10-05.** Revision 1 (`15be3fd`) went through one self-folding `spec-plan-review` lens
+Status: **revision 2, 2026-10-05; approved by Geoff 2026-10-05.** Revision 1 (`15be3fd`) went through one self-folding `spec-plan-review` lens
 (`docs` class); its findings and their dispositions are in
 `docs/superpowers/research/2026-10-05-replan-document-pass-review.md`. It carries no ruling for Geoff: every fork it
 touches was ruled in the spec.

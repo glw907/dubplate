@@ -1,6 +1,6 @@
 # Navidrome removal pass Implementation Plan
 
-Status: **revision 2, 2026-10-05, reviewed and folded.** Three review lenses (contract, mechanics, risk) under
+Status: **revision 2, 2026-10-05, reviewed and folded; approved by Geoff 2026-10-05.** Three review lenses (contract, mechanics, risk) under
 `docs/superpowers/research/2026-10-05-navidrome-removal-plan-review-*.md`; the fold record is
 `docs/superpowers/research/2026-10-05-navidrome-removal-plan-fold.md`. It carries no ruling for Geoff: every fork it
 touches was ruled in the spec. It takes eight readings of its own ("Readings this plan takes").
