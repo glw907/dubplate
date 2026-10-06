@@ -46,8 +46,9 @@ const maxUsernameLength = 64
 // any run of alphanumerics, '.', '_', '@', '+', or '-'. '@' and '+'
 // admit an email-shaped username, and '_' stays allowed since a
 // username is matched by case-insensitive equality, never a SQL LIKE
-// pattern that would treat it as a wildcard. The loader keeps the older ASCII-printable check, so a
-// roster written before this rule still loads.
+// pattern that would treat it as a wildcard. The loader keeps the
+// older ASCII-printable check, so a roster written before this rule
+// still loads.
 var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
 
 // Roster load and lookup sentinels. A refusal names the check that

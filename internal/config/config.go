@@ -116,8 +116,9 @@ type Config struct {
 // integrationResolution is one integration class's resolved state:
 // Enabled records whether its Flag resolved true, independently of
 // whether it resolved any key, so a class with an empty Required set
-// still reports enabled when its flag is set. Required carries the class's own Required key
-// values, populated only when Enabled is true.
+// still reports enabled when its flag is set. Required carries the
+// class's own Required key values, populated only when Enabled is
+// true.
 type integrationResolution struct {
 	Enabled  bool
 	Required map[string]string
