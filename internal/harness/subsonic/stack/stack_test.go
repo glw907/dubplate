@@ -60,6 +60,21 @@ func fakePodman(args []string) int {
 			key = "FAKE_ADDR_GONIC"
 		}
 		fmt.Println(os.Getenv(key))
+	case "container":
+		// container inspect --format {{.Image}} NAME
+		name := args[len(args)-1]
+		if strings.HasSuffix(name, "-gonic") {
+			fmt.Println("image-gonic")
+		} else {
+			fmt.Println("image-navidrome")
+		}
+	case "image":
+		// image inspect ID
+		key := "FAKE_INSPECT_NAVIDROME"
+		if args[len(args)-1] == "image-gonic" {
+			key = "FAKE_INSPECT_GONIC"
+		}
+		fmt.Println(os.Getenv(key))
 	case "logs":
 		b, _ := os.ReadFile(os.Getenv("FAKE_SECRET_FILE"))
 		fmt.Printf("starting\nadmin password is %s\n", b)
@@ -481,5 +496,52 @@ func TestStartRedactsLogTail(t *testing.T) {
 	}
 	if strings.Contains(msg, string(secret)) {
 		t.Errorf("error carries the run password:\n%s", msg)
+	}
+}
+
+func TestImageDigest(t *testing.T) {
+	const other = "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+	pinDigest := pinNavidrome[strings.Index(pinNavidrome, "@")+1:]
+	tests := []struct {
+		name    string
+		inspect string
+		want    string
+		wantErr bool
+	}{
+		{"digest field", `[{"Digest":"` + pinDigest + `","RepoDigests":[]}]`, pinDigest, false},
+		{"repo digest beside a different digest",
+			`[{"Digest":"` + other + `","RepoDigests":["registry.example/nd@` + pinDigest + `"]}]`, pinDigest, false},
+		{"no pin anywhere",
+			`[{"Digest":"` + other + `","RepoDigests":["registry.example/nd@` + other + `"]}]`, "", true},
+		{"tag-only repo digest does not match by prefix",
+			`[{"Digest":"","RepoDigests":["docker.io/deluan/navidrome:latest"]}]`, "", true},
+		{"empty inspect list", `[]`, "", true},
+		{"malformed inspect", `not json`, "", true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			e := newEnv(t, oracleServer(t, false, 3), oracleServer(t, false, 3))
+			s, err := Start(t.Context(), e.cfg)
+			if err != nil {
+				t.Fatalf("Start: %v", err)
+			}
+			t.Setenv("FAKE_INSPECT_NAVIDROME", tc.inspect)
+			got, err := s.ImageDigest(t.Context(), s.Navidrome)
+			if tc.wantErr {
+				if !errors.Is(err, ErrImageNotPinned) {
+					t.Fatalf("error = %v, want ErrImageNotPinned", err)
+				}
+				if !strings.Contains(err.Error(), pinNavidrome) {
+					t.Errorf("error %q does not name the image %s", err, pinNavidrome)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != tc.want {
+				t.Errorf("digest = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

@@ -26,6 +26,9 @@
 //   - oracle-up: builds the streamer fixture library, runs the pinned
 //     Navidrome and gonic oracles on it under podman, prints their
 //     loopback URLs and run credentials, and removes them on interrupt.
+//   - record-oracle: runs the same oracles and writes a session of the
+//     answers each gives to a spec's requests, resolving symbolic
+//     references to each oracle's own ids.
 //
 // Every live request carries the identified User-Agent
 // corpus/README.md documents; the tool refuses to run at all when
@@ -66,5 +69,6 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newSeedItemsCmd())
 	cmd.AddCommand(newFetchUnidecodeCmd(&http.Client{Timeout: fetchUnidecodeTimeout}))
 	cmd.AddCommand(newOracleUpCmd())
+	cmd.AddCommand(newRecordOracleCmd())
 	return cmd
 }

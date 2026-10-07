@@ -1,0 +1,6 @@
+<subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
+    <directory id="al-7" parent="al-6" name="Double Feature">
+        <child id="al-8" artist="" displayArtist="" displayAlbumArtist="" coverArt="tr-8" created="2026-10-07T07:46:30.717034305Z" isDir="true" isVideo="false" parent="al-7" title="Disc 1" year="1998" musicBrainzId=""></child>
+        <child id="al-9" artist="" displayArtist="" displayAlbumArtist="" coverArt="tr-10" created="2026-10-07T07:46:30.717689368Z" isDir="true" isVideo="false" parent="al-7" title="Disc 2" year="1998" musicBrainzId=""></child>
+    </directory>
+</subsonic-response>

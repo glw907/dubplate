@@ -1,0 +1,7 @@
+<subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
+    <song id="tr-7" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist feat. Guest Singer" displayAlbumArtist="Alpha Artist" bitRate="50" contentType="audio/flac" coverArt="al-5" created="2026-10-07T07:46:30.714600676Z" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/03 Together.flac" size="11305" suffix="flac" title="Together" track="3" discNumber="1" type="music" year="2001" musicBrainzId="">
+        <artists id="ar-1" name="Alpha Artist"></artists>
+        <artists id="ar-2" name="Guest Singer"></artists>
+        <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
+    </song>
+</subsonic-response>

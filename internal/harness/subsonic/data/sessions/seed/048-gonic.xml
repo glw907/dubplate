@@ -1,0 +1,6 @@
+<subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
+    <song id="tr-16" album="Greatest Hits" albumId="al-13" artist="Delta Duo" artistId="ar-5" displayArtist="Delta Duo" displayAlbumArtist="Delta Duo" bitRate="40" contentType="audio/flac" created="2026-10-07T07:46:30.716268355Z" isDir="false" isVideo="false" parent="al-13" path="Delta Duo/Greatest Hits/01 First Light.flac" size="10547" suffix="flac" title="First Light" track="1" type="music" year="2012" musicBrainzId="">
+        <artists id="ar-5" name="Delta Duo"></artists>
+        <albumArtists id="ar-5" name="Delta Duo"></albumArtists>
+    </song>
+</subsonic-response>

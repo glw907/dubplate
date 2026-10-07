@@ -1,0 +1,374 @@
+{
+ "requests": [
+  {
+   "endpoint": "ping",
+   "format": "json"
+  },
+  {
+   "endpoint": "getLicense",
+   "format": "json"
+  },
+  {
+   "endpoint": "getOpenSubsonicExtensions",
+   "format": "json"
+  },
+  {
+   "endpoint": "getMusicFolders",
+   "format": "json"
+  },
+  {
+   "endpoint": "getIndexes",
+   "format": "json"
+  },
+  {
+   "endpoint": "getArtists",
+   "format": "json"
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "json",
+   "params": {
+    "id": "artist:Alpha Artist"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "json",
+   "params": {
+    "id": "artist:Delta Duo"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "json",
+   "params": {
+    "id": "artist:Various Artists"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "json",
+   "params": {
+    "id": "artist:Borealis Trio"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "json",
+   "params": {
+    "id": "artist:Carmine Ensemble"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "json",
+   "params": {
+    "id": "album:Alpha Artist/Single Disc"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "json",
+   "params": {
+    "id": "album:Alpha Artist/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "json",
+   "params": {
+    "id": "album:Delta Duo/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "json",
+   "params": {
+    "id": "album:Various Artists/Mixtape Volume One"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "json",
+   "params": {
+    "id": "album:Carmine Ensemble/Two Sides"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "json",
+   "params": {
+    "id": "song:Alpha Artist/Single Disc/Together"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "json",
+   "params": {
+    "id": "song:Alpha Artist/Greatest Hits/Opening"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "json",
+   "params": {
+    "id": "song:Delta Duo/Greatest Hits/First Light"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "json",
+   "params": {
+    "id": "song:Various Artists/Mixtape Volume One/Hello Again"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "json",
+   "params": {
+    "id": "song:Carmine Ensemble/Two Sides/Side B One"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Alpha Artist"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Alpha Artist/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Delta Duo"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Delta Duo/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Various Artists"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Various Artists/Mixtape Volume One"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Borealis Trio"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Borealis Trio/Double Feature"
+   }
+  },
+  {
+   "endpoint": "ping",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getLicense",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getOpenSubsonicExtensions",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getMusicFolders",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getIndexes",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getArtists",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "xml",
+   "params": {
+    "id": "artist:Alpha Artist"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "xml",
+   "params": {
+    "id": "artist:Delta Duo"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "xml",
+   "params": {
+    "id": "artist:Various Artists"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "xml",
+   "params": {
+    "id": "artist:Borealis Trio"
+   }
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "xml",
+   "params": {
+    "id": "artist:Carmine Ensemble"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "xml",
+   "params": {
+    "id": "album:Alpha Artist/Single Disc"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "xml",
+   "params": {
+    "id": "album:Alpha Artist/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "xml",
+   "params": {
+    "id": "album:Delta Duo/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "xml",
+   "params": {
+    "id": "album:Various Artists/Mixtape Volume One"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "xml",
+   "params": {
+    "id": "album:Carmine Ensemble/Two Sides"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "xml",
+   "params": {
+    "id": "song:Alpha Artist/Single Disc/Together"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "xml",
+   "params": {
+    "id": "song:Alpha Artist/Greatest Hits/Opening"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "xml",
+   "params": {
+    "id": "song:Delta Duo/Greatest Hits/First Light"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "xml",
+   "params": {
+    "id": "song:Various Artists/Mixtape Volume One/Hello Again"
+   }
+  },
+  {
+   "endpoint": "getSong",
+   "format": "xml",
+   "params": {
+    "id": "song:Carmine Ensemble/Two Sides/Side B One"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Alpha Artist"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Alpha Artist/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Delta Duo"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Delta Duo/Greatest Hits"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Various Artists"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Various Artists/Mixtape Volume One"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Borealis Trio"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Borealis Trio/Double Feature"
+   }
+  }
+ ]
+}

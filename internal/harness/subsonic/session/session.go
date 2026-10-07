@@ -47,6 +47,10 @@ var (
 // authParams are the parameters that carry or select a credential.
 var authParams = []string{"u", "p", "t", "s", "apiKey"}
 
+// IsAuthParam reports whether name carries or selects a credential, which
+// no session may hold.
+func IsAuthParam(name string) bool { return slices.Contains(authParams, name) }
+
 // Session is one loaded or about-to-be-written session.
 type Session struct {
 	Sources map[string]Source
@@ -304,7 +308,7 @@ func (s *Session) validate() []error {
 		}
 		for _, p := range req.Params {
 			used[p.Value] = true
-			if slices.Contains(authParams, p.Name) {
+			if IsAuthParam(p.Name) {
 				problems = append(problems, fmt.Errorf("%s: parameter %q: %w", at, p.Name, errAuthParam))
 			}
 		}

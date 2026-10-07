@@ -41,6 +41,10 @@ var ErrNotReady = errors.New("stack: oracle not ready")
 // number of tracks than the manifest declares.
 var ErrTrackCount = errors.New("stack: scan track count differs from manifest")
 
+// ErrImageNotPinned marks a running image whose inspect output does not
+// carry the pinned digest.
+var ErrImageNotPinned = errors.New("stack: running image does not carry the pinned digest")
+
 const (
 	labelKey     = "dubplate-harness-run"
 	teardownWait = 30 * time.Second
@@ -67,9 +71,12 @@ type Config struct {
 // Oracle is one running server.
 type Oracle struct {
 	Name     string
+	Image    string // the pinned reference the container was started from
 	BaseURL  string
 	User     string
 	Password string
+
+	container string
 }
 
 // Stack is the running pair.
@@ -152,7 +159,7 @@ func Start(ctx context.Context, cfg Config) (*Stack, error) {
 			s.Close(ctx)
 			return nil, fmt.Errorf("start %s: %w", sp.name, err)
 		}
-		oracles[i] = &Oracle{Name: sp.name, BaseURL: base, User: sp.user, Password: sp.password}
+		oracles[i] = &Oracle{Name: sp.name, Image: sp.ref, BaseURL: base, User: sp.user, Password: sp.password, container: name}
 	}
 	s.Navidrome, s.Gonic = *oracles[0], *oracles[1]
 
@@ -179,6 +186,43 @@ func (s *Stack) Close(ctx context.Context) {
 	// Teardown is best effort: the containers are loopback-only and
 	// labelled, so a failure leaves an orphan the label finds.
 	_, _ = s.exec(ctx, nil, args...)
+}
+
+// ImageDigest inspects the image o's container is running and returns the
+// pinned digest, taken from the inspect output: the image's Digest field
+// or the digest half of one of its RepoDigests. It refuses with
+// [ErrImageNotPinned] when neither carries the digest o.Image pins, so a
+// container started from a moved or substituted image never records.
+func (s *Stack) ImageDigest(ctx context.Context, o Oracle) (string, error) {
+	_, pin, _ := strings.Cut(o.Image, "@")
+	id, err := s.exec(ctx, nil, "container", "inspect", "--format", "{{.Image}}", o.container)
+	if err != nil {
+		return "", err
+	}
+	out, err := s.exec(ctx, nil, "image", "inspect", strings.TrimSpace(id))
+	if err != nil {
+		return "", err
+	}
+	var infos []struct {
+		Digest      string
+		RepoDigests []string
+	}
+	if err := json.Unmarshal([]byte(out), &infos); err != nil {
+		return "", fmt.Errorf("%w: %s: parse inspect output: %v", ErrImageNotPinned, o.Image, err)
+	}
+	var seen []string
+	for _, info := range infos {
+		seen = append(seen, fmt.Sprintf("Digest %q RepoDigests %q", info.Digest, info.RepoDigests))
+		if info.Digest == pin {
+			return pin, nil
+		}
+		for _, rd := range info.RepoDigests {
+			if _, d, ok := strings.Cut(rd, "@"); ok && d == pin {
+				return pin, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("%w: %s: inspect reports %s", ErrImageNotPinned, o.Image, strings.Join(seen, "; "))
 }
 
 func (s *Stack) run(ctx context.Context, cfg Config, sp spec, name, runID string) (string, error) {

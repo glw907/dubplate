@@ -1,0 +1,15 @@
+<subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
+    <album id="al-3" created="2026-10-07T07:46:30.715699523Z" artistId="ar-1" artist="Alpha Artist" displayArtist="Alpha Artist" title="Greatest Hits" album="Greatest Hits" coverArt="al-3" name="Greatest Hits" songCount="2" duration="0" playCount="0" year="2010">
+        <artists id="ar-1" name="Alpha Artist"></artists>
+        <song id="tr-1" album="Greatest Hits" albumId="al-3" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="47" contentType="audio/flac" coverArt="al-3" created="2026-10-07T07:46:30.715699523Z" isDir="false" isVideo="false" parent="al-3" path="Alpha Artist/Greatest Hits/01 Opening.flac" size="10884" suffix="flac" title="Opening" track="1" type="music" year="2010" musicBrainzId="">
+            <artists id="ar-1" name="Alpha Artist"></artists>
+            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
+        </song>
+        <song id="tr-2" album="Greatest Hits" albumId="al-3" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="50" contentType="audio/flac" coverArt="al-3" created="2026-10-07T07:46:30.716012224Z" isDir="false" isVideo="false" parent="al-3" path="Alpha Artist/Greatest Hits/02 Together.flac" size="11045" suffix="flac" title="Together" track="2" type="music" year="2010" musicBrainzId="">
+            <artists id="ar-1" name="Alpha Artist"></artists>
+            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
+        </song>
+        <isCompilation>false</isCompilation>
+        <releaseTypes></releaseTypes>
+    </album>
+</subsonic-response>
