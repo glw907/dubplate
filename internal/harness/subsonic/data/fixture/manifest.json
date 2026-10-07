@@ -1,0 +1,550 @@
+{
+  "seeds": [
+    {
+      "name": "README.md",
+      "sha256": "daff3c83d9f22c7977c42110b17db1a39cc30711e94bceefb96e4b7875ce20f7"
+    },
+    {
+      "name": "cover-a.jpg",
+      "sha256": "909dd40bd0675f16874e4d4961cecc9a9e92652caa61c44c6e698905435bfc51"
+    },
+    {
+      "name": "cover-b.jpg",
+      "sha256": "943867eea141d9cf6259f0ff594ffd8ca0c5434b00188ed6e3baabe94ebedb28"
+    },
+    {
+      "name": "embedded-a.png",
+      "sha256": "9ca8d3a620b373d924d5e5c11769ac2c2fa6515458d93e5f745c5074994f824d"
+    },
+    {
+      "name": "tone-220.flac",
+      "sha256": "50b65abb861976443b02205028a36f21b30285ef32d537a12ea258fa770f4865"
+    },
+    {
+      "name": "tone-330.flac",
+      "sha256": "ea399c9c72e73a3c356c02b2eda7a86b14576978d224e43ac694795d4930c416"
+    },
+    {
+      "name": "tone-440.flac",
+      "sha256": "b919fdfffa7281c6198195db2c7c30ffa282d220783be1fd4ece179d0d38d468"
+    }
+  ],
+  "albums": [
+    {
+      "artist": "Alpha Artist",
+      "title": "Single Disc",
+      "cover": {
+        "path": "Alpha Artist/Single Disc/cover.jpg",
+        "seed": "cover-a.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Alpha Artist/Single Disc/01 Opening.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Opening",
+            "track": 1,
+            "mb_trackid": "9a1b2c3d-0000-4000-8000-0000000000c1",
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Single Disc",
+            "year": 2001,
+            "tracktotal": 3,
+            "disc": 1,
+            "disctotal": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a1",
+            "mb_releasegroupid": "9a1b2c3d-0000-4000-8000-0000000000d1"
+          }
+        },
+        {
+          "path": "Alpha Artist/Single Disc/02 Middle.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Middle",
+            "track": 2,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Single Disc",
+            "year": 2001,
+            "tracktotal": 3,
+            "disc": 1,
+            "disctotal": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a1",
+            "mb_releasegroupid": "9a1b2c3d-0000-4000-8000-0000000000d1"
+          }
+        },
+        {
+          "path": "Alpha Artist/Single Disc/03 Together.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Together",
+            "track": 3,
+            "artist": "Alpha Artist feat. Guest Singer",
+            "albumartist": "Alpha Artist",
+            "album": "Single Disc",
+            "year": 2001,
+            "tracktotal": 3,
+            "disc": 1,
+            "disctotal": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a1",
+            "mb_releasegroupid": "9a1b2c3d-0000-4000-8000-0000000000d1",
+            "artists": [
+              "Alpha Artist",
+              "Guest Singer"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Alpha Artist",
+      "title": "Second Light",
+      "tracks": [
+        {
+          "path": "Alpha Artist/Second Light/01 Dawn.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Dawn",
+            "track": 1,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Second Light",
+            "year": 2004,
+            "tracktotal": 2
+          }
+        },
+        {
+          "path": "Alpha Artist/Second Light/02 Dusk.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Dusk",
+            "track": 2,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Second Light",
+            "year": 2004,
+            "tracktotal": 2
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Alpha Artist",
+      "title": "Greatest Hits",
+      "cover": {
+        "path": "Alpha Artist/Greatest Hits/cover.jpg",
+        "seed": "cover-b.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Alpha Artist/Greatest Hits/01 Opening.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Opening",
+            "track": 1,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Greatest Hits",
+            "year": 2010,
+            "tracktotal": 2
+          }
+        },
+        {
+          "path": "Alpha Artist/Greatest Hits/02 Together.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Together",
+            "track": 2,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Greatest Hits",
+            "year": 2010,
+            "tracktotal": 2
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Delta Duo",
+      "title": "Greatest Hits",
+      "tracks": [
+        {
+          "path": "Delta Duo/Greatest Hits/01 First Light.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "First Light",
+            "track": 1,
+            "artist": "Delta Duo",
+            "albumartist": "Delta Duo",
+            "album": "Greatest Hits",
+            "year": 2012,
+            "tracktotal": 2
+          }
+        },
+        {
+          "path": "Delta Duo/Greatest Hits/02 Last Light.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Last Light",
+            "track": 2,
+            "artist": "Delta Duo",
+            "albumartist": "Delta Duo",
+            "album": "Greatest Hits",
+            "year": 2012,
+            "tracktotal": 2
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Borealis Trio",
+      "title": "Double Feature",
+      "cover": {
+        "path": "Borealis Trio/Double Feature/cover.jpg",
+        "seed": "cover-a.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Borealis Trio/Double Feature/Disc 1/01 Overture.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Overture",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2"
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Borealis Trio/Double Feature/Disc 1/02 Interlude.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Interlude",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 2,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2"
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Borealis Trio/Double Feature/Disc 2/01 Reprise.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Reprise",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2"
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Borealis Trio/Double Feature/Disc 2/02 Finale.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Finale",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 2,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2"
+          },
+          "picture": "embedded-a.png"
+        }
+      ]
+    },
+    {
+      "artist": "Carmine Ensemble",
+      "title": "Two Sides",
+      "tracks": [
+        {
+          "path": "Carmine Ensemble/Two Sides/1-01 Side A One.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Side A One",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 1
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Carmine Ensemble/Two Sides/1-02 Side A Two.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Side A Two",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 2
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Carmine Ensemble/Two Sides/2-01 Side B One.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Side B One",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 1
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Carmine Ensemble/Two Sides/2-02 Side B Two.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Side B Two",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 2
+          },
+          "picture": "embedded-a.png"
+        }
+      ]
+    },
+    {
+      "artist": "Various Artists",
+      "title": "Mixtape Volume One",
+      "cover": {
+        "path": "Various Artists/Mixtape Volume One/cover.jpg",
+        "seed": "cover-b.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Various Artists/Mixtape Volume One/01 Opening Remix.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Opening Remix",
+            "track": 1,
+            "artist": "Alpha Artist",
+            "albumartist": "Various Artists",
+            "album": "Mixtape Volume One",
+            "year": 1999,
+            "tracktotal": 3,
+            "comp": true,
+            "albumartist_sort": "Various Artists"
+          }
+        },
+        {
+          "path": "Various Artists/Mixtape Volume One/02 Hello Again.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Hello Again",
+            "track": 2,
+            "artist": "Delta Duo",
+            "albumartist": "Various Artists",
+            "album": "Mixtape Volume One",
+            "year": 1999,
+            "tracktotal": 3,
+            "comp": true,
+            "albumartist_sort": "Various Artists"
+          }
+        },
+        {
+          "path": "Various Artists/Mixtape Volume One/03 Snow Song.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Snow Song",
+            "track": 3,
+            "artist": "Borealis Trio",
+            "albumartist": "Various Artists",
+            "album": "Mixtape Volume One",
+            "year": 1999,
+            "tracktotal": 3,
+            "comp": true,
+            "albumartist_sort": "Various Artists"
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Zoë Ångström",
+      "title": "Café Années",
+      "tracks": [
+        {
+          "path": "Zoë Ångström/Café Années/01 Élégie.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Élégie",
+            "track": 1,
+            "artist": "Zoë Ångström",
+            "albumartist": "Zoë Ångström",
+            "album": "Café Années",
+            "year": 2015,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 1
+          }
+        },
+        {
+          "path": "Zoë Ångström/Café Années/02 Naïve.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Naïve",
+            "track": 2,
+            "artist": "Zoë Ångström",
+            "albumartist": "Zoë Ångström",
+            "album": "Café Années",
+            "year": 2015,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 1
+          }
+        }
+      ]
+    },
+    {
+      "artist": "夜明けの音楽",
+      "title": "朝のうた",
+      "tracks": [
+        {
+          "path": "夜明けの音楽/朝のうた/01 はじまり.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "はじまり",
+            "track": 1,
+            "artist": "夜明けの音楽",
+            "albumartist": "夜明けの音楽",
+            "album": "朝のうた",
+            "year": 2018,
+            "tracktotal": 2
+          }
+        },
+        {
+          "path": "夜明けの音楽/朝のうた/02 おわり.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "おわり",
+            "track": 2,
+            "artist": "夜明けの音楽",
+            "albumartist": "夜明けの音楽",
+            "album": "朝のうた",
+            "year": 2018,
+            "tracktotal": 2
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Ансамбль Рассвет",
+      "title": "Утренние песни",
+      "tracks": [
+        {
+          "path": "Ансамбль Рассвет/Утренние песни/01 Начало.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Начало",
+            "track": 1,
+            "artist": "Ансамбль Рассвет",
+            "albumartist": "Ансамбль Рассвет",
+            "album": "Утренние песни",
+            "year": 1972,
+            "tracktotal": 2
+          }
+        },
+        {
+          "path": "Ансамбль Рассвет/Утренние песни/02 Конец.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Конец",
+            "track": 2,
+            "artist": "Ансамбль Рассвет",
+            "albumartist": "Ансамбль Рассвет",
+            "album": "Утренние песни",
+            "year": 1972,
+            "tracktotal": 2
+          }
+        }
+      ]
+    },
+    {
+      "artist": "The Meridians",
+      "title": "Long Way Home",
+      "tracks": [
+        {
+          "path": "The Meridians/Long Way Home/01 Leaving.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Leaving",
+            "track": 1,
+            "artist": "The Meridians",
+            "albumartist": "The Meridians",
+            "album": "Long Way Home",
+            "year": 2007,
+            "tracktotal": 2,
+            "artist_sort": "Meridians, The",
+            "albumartist_sort": "Meridians, The"
+          }
+        },
+        {
+          "path": "The Meridians/Long Way Home/02 Arriving.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Arriving",
+            "track": 2,
+            "artist": "The Meridians",
+            "albumartist": "The Meridians",
+            "album": "Long Way Home",
+            "year": 2007,
+            "tracktotal": 2,
+            "artist_sort": "Meridians, The",
+            "albumartist_sort": "Meridians, The"
+          }
+        }
+      ]
+    },
+    {
+      "artist": "(untagged)",
+      "title": "Loose files",
+      "tracks": [
+        {
+          "path": "Loose/untagged.flac",
+          "seed": "tone-220.flac",
+          "tags": {}
+        }
+      ]
+    }
+  ]
+}
