@@ -123,8 +123,8 @@ var supersededKeys = map[string]string{
 	"DUBPLATE_ACCESS_TEAM_DOMAIN":   "retired: dubplate delegates sign-in to no external service",
 	"DUBPLATE_ACCESS_AUD":           "retired: dubplate delegates sign-in to no external service",
 	"DUBPLATE_PUBLIC_NAVIDROME_URL": "retired: dubplate integrates with no external streamer",
-	"DUBPLATE_CONTRIBUTORS_FILE": "renamed to DUBPLATE_ROSTER_FILE, the magic-link " +
-		"identity source's own roster location key (rung 5)",
+	"DUBPLATE_CONTRIBUTORS_FILE": "retired: members live in the store; add the first " +
+		"admin with dubplate-server member add ADDRESS --admin",
 	"DUBPLATE_REJECT_EMAIL_TEMPLATE": "retired: reject copy is a code contract in " +
 		"internal/reject (rung 7), not a config-supplied template",
 	"DUBPLATE_BEETS_CONFIG": "retired: the greenfield server never embeds beets",

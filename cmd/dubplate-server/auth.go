@@ -22,12 +22,11 @@ var identitySourceSelectorRow = config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}
 
 // magicLinkSource is the shipped default identity source: a login link
 // mailed to a roster address, backed by an HMAC-signed session cookie.
-// Its nine required names and two optional names retire
+// Its eight required names and two optional names retire
 // internal/config/keys.go's "auth and identity" reserved class in the
-// same commit that declares them (R-5b3): DUBPLATE_ROSTER_FILE and the
-// five DUBPLATE_SMTP_* names land here, declared and
-// required-when-selected, though their consumers (the roster store,
-// the mail seam) arrive at 5b-ii. The two optional names carry a
+// same commit that declares them (R-5b3): the five DUBPLATE_SMTP_*
+// names land here, declared and required-when-selected, though their
+// consumers (the mail seam) arrive at 5b-ii. The two optional names carry a
 // rotation-overlap secret each, so a deployment can roll a secret
 // without a window where every existing token or session fails at
 // once (R-5b6): they are the source's Optional keys rather than
@@ -44,7 +43,6 @@ var magicLinkSource = config.IdentitySource{
 	Name:     "magic-link",
 	Selector: identitySourceSelectorRow.Name,
 	Required: []string{
-		"DUBPLATE_ROSTER_FILE",
 		"DUBPLATE_MAGIC_LINK_SECRET",
 		"DUBPLATE_SESSION_SECRET",
 		"DUBPLATE_PUBLIC_URL",
@@ -215,9 +213,19 @@ var (
 	}
 )
 
-// registerAuthConfig adds rung 5's twelve names and ten thresholds to
+// rosterFileKey names the pre-store roster file's location key, which
+// the wall now rejects with rosterFileSupersession.
+const rosterFileKey = "DUBPLATE_ROSTER_FILE"
+
+// rosterFileSupersession is the message the wall reports for
+// rosterFileKey: members live in the store, and the first admin comes
+// from the member verb.
+const rosterFileSupersession = "superseded: members live in the store; " +
+	"add the first admin with dubplate-server member add ADDRESS --admin"
+
+// registerAuthConfig adds rung 5's eleven names and ten thresholds to
 // reg: the selector as an owned wall row, magic-link as a declared
-// identity source, R-5b10's first four thresholds, and the six
+// identity source, the retired roster file key as a superseded name, R-5b10's first four thresholds, and the six
 // remaining thresholds spec:1587-1593 lists. It is a plain function on
 // registerServeConfig's own precedent (serve.go), called once from the
 // binary's shared registry constructor (newProductionRegistry,
@@ -225,6 +233,7 @@ var (
 func registerAuthConfig(reg *config.Registry) {
 	reg.AddWallRow(identitySourceSelectorRow)
 	reg.AddIdentitySource(magicLinkSource)
+	reg.AddSuperseded(rosterFileKey, rosterFileSupersession)
 	reg.AddThreshold(magicLinkExpiryThreshold)
 	reg.AddThreshold(sessionLifetimeThreshold)
 	reg.AddThreshold(sessionAbsoluteCapThreshold)

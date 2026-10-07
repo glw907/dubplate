@@ -28,10 +28,9 @@ import (
 // every row from reg so no rung hard-codes a count. That table is the
 // command's human output; on an unsatisfied wall RunE returns a single
 // short error, leaving main as the sole stderr writer. Exit status is 1
-// when [config.Load] refuses environ, the roster row fails to open or
-// names no admin or sits in a directory the process cannot write, the
-// store row reports a failing state, the auth store row finds a leaf
-// serve would refuse or could not write, the backup remote row fails,
+// when [config.Load] refuses environ, the members row finds a store
+// with no live admin, the store row reports a failing state, the auth
+// store row finds a leaf serve would refuse or could not write, the backup remote row fails,
 // the unidecode row finds the transliteration table missing or
 // invalid, the client ip row refuses the trusted proxy values, the web
 // row refuses what serve startup would refuse, the
@@ -81,6 +80,16 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 
 			for _, src := range reg.IdentitySources() {
 				if err := printRow(stdout, src.Name, identitySourceStatus(environ, src, statuses)); err != nil {
+					return err
+				}
+			}
+
+			// A load error keyed by a name no printed row claims (a
+			// superseded, reserved-class, or unknown key) would leave
+			// the exit status unexplained, so each prints on a line of
+			// its own, and only when one exists.
+			for _, key := range unclaimedLoadErrors(reg, statuses) {
+				if err := printRow(stdout, key, statuses[key]); err != nil {
 					return err
 				}
 			}
@@ -182,6 +191,34 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 	}
 	cmd.SetErr(stderr)
 	return cmd
+}
+
+// unclaimedLoadErrors returns, in sorted order, the DUBPLATE_ keys
+// statuses reports for which no row doctor prints is responsible: the
+// owned wall rows, the thresholds, and the identity sources' selector
+// and keys each read their status from statuses, so every other key reaches
+// the operator only through the list this returns.
+func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []string {
+	claimed := make(map[string]bool)
+	for _, row := range reg.OwnedWall() {
+		claimed[row.Name] = true
+	}
+	for _, th := range reg.Thresholds() {
+		claimed[th.Key] = true
+	}
+	for _, src := range reg.IdentitySources() {
+		for _, key := range slices.Concat([]string{src.Selector}, src.Required, src.Optional) {
+			claimed[key] = true
+		}
+	}
+	var keys []string
+	for key := range statuses {
+		if strings.HasPrefix(key, "DUBPLATE_") && !claimed[key] {
+			keys = append(keys, key)
+		}
+	}
+	slices.Sort(keys)
+	return keys
 }
 
 // authStoreDoctorRow is the row reporting the auth leaf serve opens.

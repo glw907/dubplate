@@ -364,9 +364,7 @@ const renderedSiteName = `Fixture "Site" <Name> & Co`
 // example.test, the fixed test secrets, publicURL as the server's own
 // origin, an SMTP port nothing listens on, the kind unknown-address
 // answer, the non-default prefix, and the fixture's four rate limits.
-// The store exists, members seeded, before any server opens it. The
-// environment still carries DUBPLATE_ROSTER_FILE, which the wall
-// requires.
+// The store exists, members seeded, before any server opens it.
 func renderedEnviron(t *testing.T, publicURL string) []string {
 	t.Helper()
 	environ := serveAuthEnviron(t)

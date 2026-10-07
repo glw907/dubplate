@@ -988,11 +988,6 @@ func verbChildEnviron(t *testing.T, standinDir string) []string {
 		t.Fatalf("write library fixture: %v", err)
 	}
 
-	rosterPath := filepath.Join(t.TempDir(), "roster.json")
-	if err := os.WriteFile(rosterPath, []byte(`{"schema_version":1,"members":[]}`), 0o600); err != nil {
-		t.Fatalf("write fixture roster: %v", err)
-	}
-
 	return []string{
 		"PATH=" + standinDir,
 		"DUBPLATE_LIBRARY_ROOT=" + root,
@@ -1000,7 +995,6 @@ func verbChildEnviron(t *testing.T, standinDir string) []string {
 		"DUBPLATE_SITE_NAME=Test Family",
 		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
 		"DUBPLATE_IDENTITY_SOURCE=magic-link",
-		"DUBPLATE_ROSTER_FILE=" + rosterPath,
 		"DUBPLATE_MAGIC_LINK_SECRET=fixture magic link secret, not a real key",
 		"DUBPLATE_SESSION_SECRET=fixture session secret, not a real key",
 		"DUBPLATE_PUBLIC_URL=https://dubplate.example.test",

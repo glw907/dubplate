@@ -691,10 +691,9 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 		t.Errorf("stdout has %d line(s) starting with %q, want exactly 1: one line per source, not per key", matches, "magic-link")
 	}
 
-	// storeRowLines and backupDoctorRowsOff are the store row and
-	// Task 7's backup rows: doctorEnviron's roster names an admin, so
-	// no roster row adds a second, and it never sets
-	// DUBPLATE_BACKUP_ENABLED.
+	// storeRowLines and backupDoctorRowsOff are the store row and the
+	// backup rows: doctorEnviron loads cleanly, so no unclaimed-error
+	// line prints, and it never sets DUBPLATE_BACKUP_ENABLED.
 	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)

@@ -4,10 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/spf13/cobra"
 
 	"github.com/glw907/dubplate/internal/config"
 )
@@ -34,7 +39,7 @@ func TestRegisterAuthConfig_SelectorIsOwnedNow(t *testing.T) {
 }
 
 // TestRegisterAuthConfig_MagicLinkSource proves the magic-link source
-// declares exactly the nine required and two optional names R-5b3
+// declares exactly the eight required and two optional names R-5b3
 // rules, on the selector registerAuthConfig also registers as a wall
 // row.
 func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
@@ -55,7 +60,6 @@ func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
 	}
 
 	wantRequired := []string{
-		"DUBPLATE_ROSTER_FILE",
 		"DUBPLATE_MAGIC_LINK_SECRET",
 		"DUBPLATE_SESSION_SECRET",
 		"DUBPLATE_PUBLIC_URL",
@@ -887,4 +891,101 @@ func TestResolveAuthConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+// rosterSupersessionMessage is the wording every wall-loading verb
+// reports for a retired DUBPLATE_ROSTER_FILE; the test holds it as a
+// literal so the registration cannot be compared against itself.
+const rosterSupersessionMessage = "DUBPLATE_ROSTER_FILE: superseded: members live in the store; " +
+	"add the first admin with dubplate-server member add ADDRESS --admin"
+
+// TestRosterFileKey_Superseded runs the seven verbs that load the wall
+// with the retired key set to a real, valid roster file, and asserts
+// each fails the load with the supersession message: a check that
+// refused only a missing file would let the fixture through. The
+// leaf walk below fails when a verb is added without being classified
+// as a loader or a non-loader.
+func TestRosterFileKey_Superseded(t *testing.T) {
+	rosterPath := filepath.Join(t.TempDir(), "roster.json")
+	if err := os.WriteFile(rosterPath, []byte(`{"schema_version":1,"members":[]}`), 0o600); err != nil {
+		t.Fatalf("write roster fixture: %v", err)
+	}
+
+	verbs := []struct {
+		name string
+		args []string
+		cmd  func(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command
+	}{
+		{"check", []string{"check"}, newCheckCmd},
+		{"doctor", []string{"doctor"}, newDoctorCmd},
+		{"serve", []string{"serve"}, newServeCmd},
+		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, newMemberCmd},
+		{"member list", []string{"member", "list"}, newMemberCmd},
+		{"backup", []string{"backup"}, newBackupCmd},
+		{"restore", []string{"restore", "--snapshot", "latest"}, newRestoreCmd},
+	}
+
+	for _, value := range []struct{ name, set string }{
+		{"a real file", rosterPath},
+		{"an absent path", filepath.Join(t.TempDir(), "absent.json")},
+		{"a malformed value", "not a path\x01"},
+	} {
+		t.Run(value.name, func(t *testing.T) {
+			environ := append(doctorEnviron(t), "DUBPLATE_ROSTER_FILE="+value.set)
+			for _, v := range verbs {
+				t.Run(v.name, func(t *testing.T) {
+					var stdout, stderr bytes.Buffer
+					root := &cobra.Command{Use: "dubplate-server", SilenceUsage: true, SilenceErrors: true}
+					root.AddCommand(v.cmd(environ, productionRegistry(), &stdout, &stderr))
+					root.SetArgs(v.args)
+					err := root.Execute()
+
+					if v.name == "doctor" {
+						// doctor prints the load error no row claims.
+						if err == nil {
+							t.Fatal("doctor error = nil, want the incomplete-configuration failure")
+						}
+						line := fmt.Sprintf("%-32s %s", "DUBPLATE_ROSTER_FILE", "invalid: superseded: members live in the store; "+
+							"add the first admin with dubplate-server member add ADDRESS --admin")
+						if !slices.Contains(strings.Split(stdout.String(), "\n"), line) {
+							t.Errorf("doctor output lacks the unclaimed-error line %q:\n%s", line, stdout.String())
+						}
+						return
+					}
+					if err == nil || !strings.Contains(err.Error(), rosterSupersessionMessage) {
+						t.Errorf("%s error = %v, want it to carry %q", v.name, err, rosterSupersessionMessage)
+					}
+				})
+			}
+		})
+	}
+
+	t.Run("an empty value loads", func(t *testing.T) {
+		environ := append(doctorEnviron(t), "DUBPLATE_ROSTER_FILE=")
+		if _, err := config.Load(environ, productionRegistry()); err != nil {
+			t.Errorf("config.Load error = %v, want the empty value treated as unset", err)
+		}
+	})
+
+	t.Run("the command tree is classified", func(t *testing.T) {
+		var leaves []string
+		var walk func(c *cobra.Command)
+		walk = func(c *cobra.Command) {
+			if len(c.Commands()) == 0 {
+				leaves = append(leaves, strings.TrimPrefix(c.CommandPath(), "dubplate-server "))
+				return
+			}
+			for _, sub := range c.Commands() {
+				walk(sub)
+			}
+		}
+		walk(newRootCmd())
+		slices.Sort(leaves)
+
+		want := []string{"backup", "check", "doctor", "member add", "member list", "restore", "serve",
+			"unidecode install", "version"}
+		if !slices.Equal(leaves, want) {
+			t.Errorf("leaf verbs = %q, want %q: classify a new verb as a wall loader (add it to verbs) or a non-loader", leaves, want)
+		}
+	})
 }
