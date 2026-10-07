@@ -87,6 +87,20 @@
   `Expected`; `synth.go:49-52` claims capture has a seed-only contract it lacks. Lift synth's guard into one
   `refuseExistingCase` helper both verbs call, and add a capture overwrite test. Found by the slice 2a architecture
   read, 2026-10-07 #harness #project:prod-polish
+- [ ] #23 `web/src/lib/api/post.ts:65` maps every 403 to `cross_origin` before reading the body, so the roster API's
+  new 403 `refused` (a demoted admin's add, 6d `2ea9dba`) shows the cross-site copy. Read a JSON outcome on 403 first
+  and fall back to `cross_origin` only for the CSRF handler's plain-text body. Found by the 6d segment C fold,
+  2026-10-07 #web #project:prod-polish
+- [ ] #24 `auth.RunSweep` (`internal/auth/nonce.go:132`) logs a failed sweep's `err.Error()`, which can wrap a
+  setting read's text; give it the `SettingError` fixed-reason treatment 6d gave the gate and handlers. Found by the
+  6d segment C fold, 2026-10-07 #auth #project:prod-polish
+- [ ] #25 `internal/settings/evaluate.go:265` wraps `s.Validate(stored.Value)` with `%w` after `parse` failed; if
+  `Validate` ever returns nil there, the message reads `%!w(<nil>)`. Wrap the parse error instead. Found by the 6d
+  architecture reads, 2026-10-07 #config #project:prod-polish
+- [ ] #26 The 6d architecture reads' findings on lines 6d did not touch (unused auth and identity exports, three
+  `syncDir` copies, the settings accessor's mutex across a database read, threshold bounds without Floor and
+  Ceiling, doctor's file split, and more): `docs/superpowers/research/2026-10-07-6d-architecture-reads.md`, "To
+  file". Route to the architecture-cleanup task. 2026-10-07 #arch #project:prod-polish
 
 ## Done
 
