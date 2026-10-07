@@ -832,27 +832,10 @@ packages. `go list -deps ./cmd/dubplate-server | grep -E 'internal/(harness|open
 nothing. Every committed session loads through Task 4's loader, which refuses an auth parameter. `git grep -n
 '\.\./' -- internal/opensubsonic` prints nothing. The oracle-tag vet is clean.
 
-## Pass 2b (sketch; authored in full at its Task 0)
+## Pass 2b
 
-2b starts when slice 1's record lands. Its Task 0 re-reads that record and re-derives its ceiling, and its plan
-revision replaces this sketch. It names these slice 1 deliverables as inputs, and each blocks only its own task.
-
-| 2b task | Slice 1 input it waits on | Spec source |
-|---|---|---|
-| 10. The XML rule: validate XML per slice 1's choice (a legacy form against the official XSD, or a derived XSD), through `xmllint`, which the test names and fails without. The XSD carries no license text (survey `:272`), so it is fetched into the user cache and verified by sha256, never committed, unless slice 1's record settles its license. A new workstation prerequisite joins `CLAUDE.md`'s gate paragraph. | The XML validation rule | `:269-271`, `:939-940` |
-| 11. The seeded ledger and the oracle assignment: slice 1's pre-seeded divergence rows transcribed into Task 6's machine form, through a Markdown-to-rows converter proven by a round trip on slice 1's actual table (moved from 2a, its first caller), each `active` where a recorded session exercises it and `owed` otherwise, and the per-endpoint oracle assignment (contract only, Navidrome, gonic, or the roster) as data the grader reads when one side is dubplate. The assignment's first non-test consumer is slice 3's grade, so 2b builds the data and its loader, and the verb's dubplate-side flag waits for slice 3. | The pre-seeded ledger; the per-endpoint oracle assignment | `:728-730` |
-| 12. Encoding quirks: a session and a perturbation row for each quirk slice 1 enumerates (the attribute-heavy XML form, the wrapper, singleton versus array, JSONP). | The encoding-quirk list | `:883` |
-| 13. The roster walk: a walk script per roster client (Feishin and Rufin on the desktop under the isolated configuration homes slice 1 sets up, Tempus in the emulator slice 1 installs), each step stating the observation to record, run once against `harness oracle-up` to prove the script, with the record committed under `docs/superpowers/research/`. Amperfy, which the workstation cannot drive, is listed for rung 16's attended gate (re-plan `:140-141`). | The flows each client exercises (slice 1's client-demands record) | `:732-734`; roster audit `:16-19` |
-| Re-pin, if slice 1's PR re-read moved the OpenAPI build, and regenerate the seed golden. | The re-read of PRs #237, #162, #258, #261 | `:951-955` |
-
-The search comparison (a set plus a top-N ordering assertion, spec `:287-289`) is built by slice 4's grader work,
-its first consumer, on the order table and per-path comparison Task 8 leaves.
-
-**One slice 1 owner fork reaches 2a's work.** Slice 1 brings "folder browsing at launch" to Geoff (its Task 7).
-If he rules it out, gonic loses its folder-view role but keeps `getMusicFolders` (spec `:276-278`), the seed
-session's `getIndexes` and `getMusicDirectory` rows become reference observations, and 2b's Task 0 retires the
-`by-construction` ledger rows that grade them. 2a builds the spec's design as written, since gonic's place in the
-stack is one image and one set of variables, and waiting on the ruling would stall segment A.
+Authored in full as `docs/superpowers/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md`, which replaces this section's sketch.
+Its scope table maps each sketch task to the 2b tasks that carry it.
 
 ## Not verified at planning
 
