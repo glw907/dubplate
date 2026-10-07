@@ -167,10 +167,13 @@ the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
 first large data directory), vale (Go comment prose, `_salvage/`
 excluded), a pattern-filtered `systemd-analyze verify` (hard-required:
 a missing `systemd-analyze` fails the gate), and the state-dir agreement
-leg (the server env template, every `dubplate-server` unit, and
+leg, which lives in `scripts/check-state-dir.sh` (the full gate runs it, it
+runs alone in seconds, and shellcheck covers it with the rest of
+`scripts/*`): the server env template, every `dubplate-server` unit, and
 `deploy.sh`'s `DUBPLATE_SERVER_LEAVES` name the same state directory and
-leaves, and the leg proves `deploy.sh`'s pre-create loop iterates that
-array).
+leaves; every granted leaf is in that array and every array entry is
+granted; the serve unit is granted the `store` leaf; and the leg proves
+`deploy.sh`'s pre-create loop iterates that array.
 Two workstation prerequisites sit outside the gate, because the gate
 never opens a network connection: `npm ci --prefix web` and
 `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
@@ -205,8 +208,8 @@ today and gate at the comment-cleanup task.
   rules (no silent-success fakes, no vacuous assertions — prove tests can
   fail).
 - **Shell** (`scripts/`): ops tooling only (`deploy.sh`, `provision.sh`,
-  `check.sh`, `vale-comments.sh`), shellcheck clean, no behavior tests
-  of its own. The box-side import/backup shell layer is fully retired
+  `check.sh`, `check-state-dir.sh`, `vale-comments.sh`), shellcheck clean,
+  no behavior tests of its own. The box-side import/backup shell layer is fully retired
   (Go rewrite, 2026-08-31); never add subcommand logic here.
 - **Web** (`web/`): SvelteKit in static mode (Geoff, 2026-09-07;
   supersedes the standalone rule): Svelte 5 runes, DaisyUI 5,

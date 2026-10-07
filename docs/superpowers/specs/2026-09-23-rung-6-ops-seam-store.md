@@ -4,6 +4,8 @@ Status: **revision 2.2, ratified by Geoff 2026-09-23**: all fourteen owner rulin
 yes, as recommended. The errata this spec owes land in the documents they name. Its review history, every finding's disposition, and the arguments this spec only states
 are in `research/2026-09-23-rung-6-spec-fold-record.md`. Erratum 2026-10-06: a one-time exception to the
 append-only rule for `0003_catalog.sql` (see the erratum block under "Migrations").
+Erratum 2026-10-07: rung 6d's close applies fourteen readings and two 6c errata, each inline at the text it
+changes and listed under "Applied 2026-10-07 (rung 6d close)" in "Errata this spec owes".
 
 Rung 6 builds dubplate-server's library store and its operation vocabulary. The store is one
 SQLite file on the pure-Go modernc driver. It runs in WAL mode with `synchronous=FULL` and one writer
@@ -57,6 +59,12 @@ then `member import --dry-run`, then `member import`. No roster member can log i
 restart and the import. A member added through the CLI verb in that window merges rather than
 blocking the import.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R4, owner ruling 1):** `member import` is not built. The ruling's other half stands: `DUBPLATE_ROSTER_FILE`
+retires, through `AddSuperseded` with a message naming `member add --admin`. No roster file exists for the verb to read,
+because nothing was released and the box's one file carries the pre-rename `streamer_username` key, so the 6d upgrade
+re-adds the one member through `member add --admin`. Between `serve`'s first start and that command, every sign-in
+request answers as an unknown address, the outage window this ruling states.
+
 **2. Do S20's hook columns 1, 2, 3, and 11 land with the rungs that compute them, rather than as
 nullable columns at 6c?** Recommendation: yes. Reason: CLAUDE.md's 2026-09-12 refinement, which
 postdates S20, says a hook is built by its first consumer, so the audio key, file hash, sort key,
@@ -99,6 +107,10 @@ Recommendation: yes. Reason: the username names the member's existing streamer a
 invented one creates a fresh account that orphans the member's history. What it changes: an adopter
 fills the field before importing. `member import --dry-run` names every member missing one, and a
 refused import leaves `serve` running with the login outage of ruling 1.
+
+**Erratum 2026-10-07 (rung 6d close, 6d-R4 and 6d-R14, owner ruling 8):** With no import, `member import --dry-run` does not exist. The field is `username`
+(the rungs 12 to 16 re-plan's ruling 3), and `member add` and the add-member page already refuse a
+missing or duplicate username by name.
 
 **9. Does re-adding a removed member give them back the same identity?** Recommendation: yes.
 Reason: stars and history are keyed on that identity, and the address is the member's login proof.
@@ -189,6 +201,11 @@ pauses them, so restore's reconciliation report is the net.
   which cannot exist before 6d. `serve` opens the store at 6d, the pass that grants its leaf, so a
   5d deploy from a master carrying 6a through 6c never touches an ungranted leaf.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R3):** 6d builds no last-admin guard. The guard presumes a demotion or removal path, and none exists
+outside two comments. It routes, with criterion 6's concurrent self-demotion clause, to rung 14's removal verb (CH:576-583,
+CH:732), the first verb that can remove or demote. Between 6d and rung 14 a removal is a raw statement against the store,
+and nothing is live in that window.
+
 ---
 
 ## Package territory
@@ -254,6 +271,11 @@ runs every store-opening verb through `runuser -u <owner>`.
 
 **Erratum 2026-09-24 (6a plan approval, E9):** a create also requires the effective uid to own
 the state directory, and otherwise refuses naming that owner before anything is created.
+
+**Erratum 2026-10-07 (rung 6d close, 6d-R5):** `deploy.sh` does not run store-opening verbs through `runuser` at 6d. The `check` halt is
+`deploy.sh`'s first store-opening verb and belongs to rung 16, whose operator form is `systemd-run` with the server's
+environment file. The owner refusal's text now names the leaf owner's account with that file loaded in place of the
+`runuser` command.
 
 The lock is an advisory `flock` on `store.lock`, released when the process exits:
 
@@ -395,6 +417,10 @@ process has been forked off" (systemd.service(5)), so no start timeout bounds th
 exposure is a backup holding the lock for a whole sync, hours on a first run, after a deploy that
 brings migrations; 6d's `deploy.sh` runs the new binary's `check` first and, when the store is older
 and the lock held, names the holder before restarting `serve`.
+
+**Erratum 2026-10-07 (rung 6d close, 6d-R10):** `deploy.sh` restarts nothing at 6d (it never enables, starts, or restarts a unit), so the
+`check` run and the holder line are rung 16's, with 6c's Ruling 2 (a halt on `check`'s nonzero exit before the
+restart) and the enabling of the serve unit.
 
 The runner's other rules:
 
@@ -732,6 +758,11 @@ A crash at any step before the intent is removed leaves it, and every write-mode
 Restoring a pre-6d snapshot under a 6d binary leaves the users table empty, and the report says to
 run `member import`.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R11):** The report line already exists (`internal/backup/reconcile.go`) and now reads "the users
+table is empty: run member add ADDRESS --admin", since `member import` is not built. No pre-6d store or snapshot exists
+(the box has no store leaf and never enabled backup), but a snapshot taken before the first admin reaches the same
+empty table.
+
 ---
 
 ## The settings home **[CH]**
@@ -853,6 +884,12 @@ file in place; the runbook tells the operator to delete it after verifying the i
 past 6d needs the old template and the old file, and members added since then are re-added through
 the verb afterward.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R4, 6d-R12):** This section is not built: no `member import` verb, no import record, no `member_imports`
+table, and none of the nine states. The retirement of the key and the removal of its `Required` entry are built, as
+ruling 1's erratum above says, and `deploy.sh` no longer pre-creates the roster leaf (R5S:198-200, PA:218). The
+roster leaf stays on the box after the deploy, and the runbook's upgrade section moves the file aside. Rolling back
+past 6d needs the old template and the old file.
+
 ### The resolution point
 
 R5S ruled that the store moves behind the roster's interface without touching a call site
@@ -872,6 +909,12 @@ import is the one other admin channel, once, from the file. 5c's last-admin guar
 of the last two admins leaves one. The member-change audit record stays the log record rung 5 built
 (`roster.go:316`); CH routes no member-audit table.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R2 and 6d-R14):** The constructor is the one substitution, and the roster's methods gain `ctx` first
+(a database read needs a context), so the call sites do change. The proxy header and Navidrome's auto-creation, the reasons given
+above, are gone. `Principal` stays the username on two present reasons: the 0.8 streamer authenticates by the Subsonic
+username (S20:493-495), and the username is the readable name in logs and the network actor. The field is `username`.
+`UserID`, the durable key, keys the per-user rows. The last-admin clause above reads as 6d-R3's erratum.
+
 ### The epoch
 
 The epoch gets no bulk move. Records are named `sha256(kind, value)`
@@ -886,10 +929,21 @@ epoch backward. Rung 5's revocation notification (R35, R5S:714) keeps its addres
 sessions carry the address, and gains the `UserID`. The records stay files, as rung 5's R18 rules
 (R5S:538-539). With no copy there is no half-finished state for a crash to leave.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R7):** The dual-key epoch is not built at 6d. `EpochStore.Bump` has no production caller, so no
+epoch record has ever been written, and the repo builds a hook with its first consumer. It routes to the revoke verb's
+plan, with slice 6 (app passwords carry the valid-after epoch) named beside it; the first of the two to write an epoch
+weighs whether it needs the address key at all. Criteria 7 and 8, the rung 5 review's minor finding 14, and erratum row 10
+route with it.
+
 ### `serve` and the store
 
 6d wires `serve` to the store in `cmd/dubplate-server/serve.go`: the serve-mode open and its
 migration procedure, then recovery, then the seed rule, then the listener.
+
+**Erratum 2026-10-07 (rung 6d close, 6d-R6 and 6d-R15):** "Then recovery" reads as `OpenServe`'s own staging cleanup and restore finish; job
+recovery belongs to rung 14, and `serve` builds no runner at 6d. On an older store, a refusal the pre-open evaluation
+already shows comes before the open, so the store is never migrated only to refuse; the seed rule after the open is
+unchanged and stays the authority.
 
 ---
 
@@ -1137,6 +1191,14 @@ fixture state it needs and the reason it would fail.
     no longer the roster leaf, runs store-opening verbs through `runuser`, and names the holder before
     restarting `serve` onto an older store whose lock is held.
 
+**Erratum 2026-10-07 (rung 6d close, 6d-R4, R5, R7, R9, R10, R13, R14):** Criteria 1 to 3 are not built (`member import` does not exist). Criterion 4 names
+`member add --admin`. Criterion 5's "streamer handle" and criterion 6's `streamer_username` read `username`, and
+criterion 6 has no last-admin clause (6d-R3). Criteria 7 and 8 route to the revoke verb (6d-R7). Criterion 9's "with the
+env holding A and an in-package admin row holding B ... a limiter built at the next start uses B" reads: at the next
+start the environment is unset or set to B, and the environment holding A beside an `admin` row B refuses the start (the
+seed rule), which is its own sub-case. Criterion 14's `runuser` and holder clauses route to rung 16 (6d-R5, 6d-R10);
+its template and leaf halves are built.
+
 ### Band and ceilings
 
 The ladder drew rung 6 as band M, one pass (BS:656; bands at BS:563-567). The ratified CH routes a
@@ -1267,6 +1329,28 @@ name. Notes per row:
 - E9: this spec, "Layout, ownership, and the lock," the ownership paragraph.
 - E10: this spec, "The store exposes one way to write," the deadline bullet, Ruling 4 yes.
 - E11: this spec, "Three open modes," the serve mode bullet, Ruling 3 yes.
+
+**Applied 2026-10-07 (rung 6d close):** the plan's table of readings (6d-R1 to 6d-R15, 6d-E1, 6d-E2) landed, dated,
+where its rows name text. Notes per row:
+
+- 6d-R1: the 6d plan and STATUS only. Revision 2.2's "6d lands before any deploy that enables or routes to the serve
+  unit" is retired: rung 5 has closed, and enabling the unit is rung 16's.
+- 6d-R2: this spec, "The resolution point."
+- 6d-R3: this spec, "What rung 6 does not build," the state bullet; criteria 6 (the criteria erratum).
+- 6d-R4: this spec, owner ruling 1; owner ruling 8; "The import"; the 6d criteria (1 to 3).
+- 6d-R5: this spec, "Layout, ownership, and the lock," the ownership paragraph (after E9).
+- 6d-R6: this spec, "`serve` and the store."
+- 6d-R7: this spec, "The epoch"; the 6d criteria (7 and 8).
+- 6d-R8: STATUS only. "To 6d: store identity" routes to rung 16 under Ruling 3's yes, with R9's option b text.
+- 6d-R9: this spec, the 6d criteria (9).
+- 6d-R10: this spec, "Migrations," the runner's wait paragraph; the 6d criteria (14).
+- 6d-R11: this spec, "The restore verb," the closing sentence.
+- 6d-R12 applies only under Ruling 4's no and was not applied.
+- 6d-R13: this spec, the 6d criteria (4).
+- 6d-R14: this spec, owner ruling 8; "The resolution point"; the 6d criteria (5 and 6).
+- 6d-R15: this spec, "`serve` and the store."
+- 6d-E1 and 6d-E2: `docs/HISTORY.md`, the 6c entry, "The errata this pass owes."
+- Ruling 4's yes: an erratum at owner ruling 1 and "The import" (6d-R4).
 
 ---
 

@@ -2,6 +2,216 @@
 
 Per-pass ledger, newest first.
 
+## Rung 6, pass 6d (identity in the store, the auth settings, and `serve`'s store): closed 2026-10-07, lane 1
+
+Executed against `docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md` (revision 2.5), pass class
+`auth-data`, in the main tree on master, as three segments (A: Tasks 0 to 2, B: 3 to 5, C: 6 to 8) under the
+2026-10-07 unattended window. Geoff ruled Rulings 1, 3, and 4 yes at approval: one pass under a 10.5M ceiling with an
+8.4M flag, the store identity routed to rung 16, and `member import` dropped. The build ran `beda726..4de73e7`; the
+conductor's running ledger is `docs/superpowers/research/2026-10-07-overnight-conductor-notes.md`.
+
+### What landed
+
+- Task 0 `f58a559`, `0782059`, `af879f5`, `beda726`: the dependency sweep. svelte 5.57.2, vite 8.3.3, and a web
+  lockfile refresh of four transitives; the record is `research/2026-10-07-dependency-sweep.md`, with typescript 7,
+  `@types/node` 26, and the workstation's rclone held.
+- Task 1 `9f8bd41`: `serve` reads the migration wait and the local keep, opens the store through `OpenServe`, and
+  holds the handle until `serve.Run` returns. The restore reconciler is exported from `internal/backup` and takes the
+  restore record's stamp and source, and the settle loop warns on a second settle.
+- Task 2 `6bd91bb`, fix `acad661`: `settings.Apply` is exported and `serve` calls it once after the open, under a 30s
+  write wait. A refusal ends the start with the joined refusal and closes the handle. The fix round added the test
+  of an out-of-bounds refusal on a key only the seed checks.
+- Task 3 `09eea88` (opus), fix `55d7ba8`: `NewRoster` backs the roster with the `users` table. `Lookup`, `List`, and
+  `AddMember` take `ctx`, and `AddMember` runs every rule it decides on inside one store write: the cookie actor's
+  live admin flag, the address's live or tombstoned row, a case-insensitive username collision across live and
+  tombstoned rows, and at least one live admin after the write. A tombstoned address reactivates under its old id.
+  The seam carries the row's id as `Identity.UserID`.
+- Task 4 `d703856`, fix `4268e30`: the roster's callers move to the store and the file-backed roster code is deleted
+  whole. `member add` and `member list` open the store in write mode under its shared lock and owner rule,
+  `doctor`'s roster row becomes a members row, `Identity.Valid` refuses a zero `UserID`, and the rendered fixture
+  seeds its members into the store with a reset server on a named baseline (R-6d23).
+- Task 5 `894b956`, fix `5ff5da2`: `DUBPLATE_ROSTER_FILE` retires through `AddSuperseded` with a message naming
+  `member add --admin`, the template row is gone, and `doctor` names the load errors no row claims. The fix round
+  pinned those claims with tests.
+- Segment B security fold `4da3eb8`, `4d55adc`: see the reads below.
+- Task 6 `e1dfa2d` (opus): the ten auth thresholds register as store settings with their bounds as data and their
+  apply modes, the two relations as correlated rules, and the link expiry, session lifetime, and absolute cap marked
+  sensitive. A closed-set string kind admits the unknown-address answer. `resolveAuthConfig` retires.
+- Task 7 `aacea8e` (opus): each auth setting reads at its point of use through an `auth.Setting` reader over the
+  accessor. The absolute cap reads at every verification, the link expiry, lifetime, body cap, answer, and nonce
+  retention at the next operation, and the four rate limits once after the seed. A failed read answers a server
+  error naming the key, burns no link, and never falls back to a default.
+- Task 8 `5229394`: the serve unit's `ReadWritePaths` and `deploy.sh`'s leaf list swap `roster` for `store`, the
+  state-dir agreement leg moves out of `check.sh` into `scripts/check-state-dir.sh`, the owner refusal names the
+  leaf owner's account with the server's environment file loaded in place of `runuser`, and
+  `docs/server-runbook.md` is rewritten around the store (the 6d upgrade section among it).
+- Segment C security fold `2ea9dba`, the simplifier `6db67b7` (methods for free functions over their own type,
+  auth-only sentinels unexported), and the two architecture folds `5079b38` (every correctness finding) and `4de73e7`
+  (the structural findings on lines 6d changed).
+- Docs commits beside the build: `fe2090f` (the lane checkpoint and BACKLOG #22), `38b2877` (#21), `123b1c2` (the park
+  and the architecture-read carries), `b1e3c08` (Geoff's ruling to close over the flag).
+
+Fix rounds: Task 2, 3, 4, and 5 one each; Tasks 1, 6, 7, and 8 none. Tasks 3, 6, and 7 ran on opus.
+
+### The gate evidence
+
+- Every task's full gate ran green inside its chain.
+- The live auth smoke passed 7 of 7 at `6db67b7`, on the real binary through a real mail path: a loopback STARTTLS
+  and AUTH PLAIN sink with a scratch certificate trusted through `SSL_CERT_FILE`, under `env -i`. It covered a first
+  start that creates the store and seeds before the listener, `member add --admin`, a mailed link signed in and
+  replayed (refused), the roster API's add and its two duplicate refusals, a garbage cookie answering 404, and a
+  restart where both members sign in again with the non-admin refused the roster. The record is the conductor's
+  scratch `6d-smoke/SMOKE-RECORD.md`. Two paths stay unexercised: the `systemd-run` sandboxed `member add` and `doctor`
+  (rung 16's), and the roster-file upgrade path.
+- Seven `go-architecture-reader` dispatches graded the touched packages on `6db67b7` (`cmd/dubplate-server`
+  workmanlike; `internal/auth`, `identity`, `engine/store`, `backup`, `settings`, `config` each sound with nits): 9
+  correctness, 32 architecture, and 33 polish findings. The record is `research/2026-10-07-6d-architecture-reads.md`.
+- The simplifier round (`6db67b7`) passed its own `diff-reviewer` read.
+
+### The two security reads
+
+- **Segment B (`web-auth-security-reviewer`): ship.** Low 1 (a store failure at the admin gate logged at Info as an
+  ordinary bad login), Low 2 (a write that could not get the lock answered a non-retryable 500), and the Info that
+  the reconciler counted tombstoned users were folded in `4da3eb8` and `4d55adc`; the second export, `store.ErrBusy`,
+  widens the store's API by one name. Low 3 (sessions key on the address, so a removed and re-added member revives
+  old sessions) routes to rung 14's removal verb, which must bump the address's revocation epoch as it tombstones. The
+  Info that the serve unit still granted the roster leaf was Task 8's by R-6d19.
+- **Segment C: ship with fixes.** Low 1 (a bad-MAC cookie and every sign-out POST cost a settings read under the
+  accessor's one lock), Low 2 (the pre-open check skipped a `0001` store), Low 3 (a typed setting-read error, so a log
+  line carries the key and never wrapped text), and Low 6 (a demoted admin's roster add answered 500, now 403
+  `refused`) were folded in `2ea9dba`, nine mutations proven. Low 5 (the "busy" outcome comment said the page tells the
+  member to retry) had a false premise, because `web/src/lib/copy/deck.ts:158` carries busy copy, so the comment stays.
+  Low 4 (a failed lifetime read during a refresh turns a verified admin into a 404) was refused: it already fails
+  closed, and admitting the request past a failed read would be the fallback R-6d9 forbids.
+- The fold-rule trial line: five findings were refused across the pass (Low 4, and the architecture reads' four:
+  `VerifySession`'s shape, `RunSweep`'s `now`, the kind-to-parser triplication, `normalizeMemberAddress`), each with its
+  reason recorded, and none turned out to be a real defect.
+
+### Deviations
+
+- Task 4's fix round edited `web/scripts/gates/deck-coverage.ts` (the outcome floor 23 to 20, `duplicate_username` on
+  its must-list) against R-6d17's "no `web/` edit". The conductor accepted it as gate tooling: the web leg reddened on
+  the outcomes Task 4 retired, and no component changed. The B-fold touched the file again (`4da3eb8`, four lines).
+  BACKLOG #21 files the cause, a floor and three outcome names hardcoded on the Go side's count.
+- The segment C pre-flight (`research/2026-10-07-6d-segment-c-preflight.md`) re-read every claim in Tasks 6 to 8
+  against the tree: they held, with moved line numbers and one signature (`newServeShell` now returns the store handle
+  and opens the store before `auth.Open`), which Task 6 resolved by reading the auth values inside it after the seed.
+- Task 6 met a plan defect: the States row "absent store with an expiry above the default retention" cannot occur, so
+  the implementer substituted a reachable row.
+- Task 4 removed `outcomeBusy` and `outcomeWriteUnconfirmed` beyond the plan's list, under the deletion rule that a
+  workaround never outlives its cause; the B-fold later restored a busy answer, from the store's classification.
+- The architecture-correctness fold reached lines 6d did not write (all nine correctness findings, among them the
+  shared invisible-rune predicate and the relative-library-root refusal), because the conductor dispatched
+  all nine, pre-existing lines included. The shape fold stayed on 6d's lines; the rest is BACKLOG #26.
+- The runner's note "use the light lane" was ignored: dubplate's gate launches Chromium, so every gate here ran heavy.
+
+### The errata
+
+The errata table's rows are applied, dated 2026-10-07, in the rung 6 spec (`2026-09-23-rung-6-ops-seam-store.md`) at
+the text each row names, and 6d-E1 and 6d-E2 in "The errata this pass owes" of the 6c entry below. Under Ruling 4's
+yes, an erratum sits at the spec's owner ruling 1 and its import section: member import is not built.
+
+### Routed items
+
+- **The revoke verb and slice 6:** spec criteria 7 and 8 (the dual-key epoch, R-6d20), the rung 5 review's minor
+  finding 14, and the spec's erratum row 10. `EpochStore.Bump` has no production caller; the first of the revoke verb
+  and slice 6's app passwords to write an epoch weighs whether it needs the address key at all.
+- **Rung 14:** the last-admin guard and criterion 6's concurrent self-demotion clause, with the removal verb (CH
+  `:576-583`, `:732`); the removal verb bumping the address's revocation epoch as it tombstones (the segment B read's
+  Low 3); the network actor keyed on `UserID`, since a renamed principal breaks a job's correlation; and the admin
+  write path's resolving channel for an `admin` row that refuses `serve`'s start.
+- **The plan of the first migration after `0005`:** R-6d4's keep limit (a pre-lock `Inspect` that sees the store busy
+  or under an intent yields no facts, so a migrating start prunes to the default), and Task 1's older-store test
+  helper, whose table map that migration's tables must join or every helper-built fixture fails "table already exists".
+- **Rung 16:** the store identity (Ruling 3's yes; R9's option b text stays); criterion 14's `runuser` and holder
+  clauses with 6c's Ruling 2 (`deploy.sh` halts on `check`'s nonzero exit before restarting `serve`) and the enabling
+  of the serve unit; the remaining runbook lines; and the `systemd-run` sandboxed `member add` and `doctor`, which
+  the smoke did not exercise.
+- **Slice 6:** the `duplicate_principal` code and BACKLOG #16 (a username equal to another member's address).
+- **Lane 1's next `web/` pass:** R-6d17's note (the roster line's blank-username conditionals, the unreachable
+  `duplicate_principal` mapping and copy, `rendered/run.ts`'s comments naming the fixture roster file) and BACKLOG
+  #23 (`post.ts` maps every 403 to the cross-site copy, so a demoted admin's `refused` reads wrong).
+- **The architecture-cleanup task:** BACKLOG #24 to #26 and the "To file" list in the architecture-reads record.
+
+### What a later pass would be wrong to rediscover
+
+- **The start order is a contract (R-6d2).** The wall load, the serve and store thresholds, the local-keep read, then
+  `OpenServe`, the seed, the accessor, the auth construction, and `serve.Run`, which is the only call that opens a
+  listener. The keep read's `Inspect` and evaluation double as a pre-open check: an older store whose evaluation
+  already refuses never migrates, so a typo in the environment cannot strand the rollback binary on a newer store
+  that the rollback copies exclude. The check covers a `0001` store since the C-fold; a current or absent store
+  migrates nothing and gets none, and the seed stays the authority.
+- **`sensitive` means "dangerous to change live" (R-6d6).** That is CH's marker, and the value is shown with it. 6c's
+  "a value a report must not print" would have hidden an operator's session lifetime for no reason.
+- **No last-admin guard exists because no path can demote or remove (R-6d10).** The spec presumed one; the only hits
+  for demote or remove outside tests are two comments. Between 6d and rung 14, removal is a raw statement against
+  the store, and nothing is live in that window.
+- **The closed-set kind needs its allowed list as its bound (R-6d7).** `KindString` registers only with a non-empty
+  list, a default inside it, and no floor or ceiling; registration panics otherwise.
+- **`settings.parse` needs a `KindString` arm, or `outcome` refuses every stored string row.** Without it the second
+  `serve` start after a string seed refuses.
+- **The no-table evaluation (R-6d21).** With the bounds out of `config.Load`, `check` and `doctor` evaluate the seed
+  against an empty row set for an absent store and for one below the settings table's version, facts or not. Without
+  it a bad auth value passes both and refuses `serve`'s first start. This reverses 6c's "never reads environ" for that
+  case.
+- **The keep extraction is one rule (R-6d4).** A stored in-bounds row wins even when the environment differs, never
+  `Outcome.Value`, which is the post-seed value; an out-of-bounds row follows its outcome; no row or no facts takes
+  the registry default.
+- **The reset baseline is a named set (R-6d23).** The two fixture members and the add-member row's address; each reset
+  deletes every other `users` row, so the capture matrix's rows never survive and the answer does not depend on when
+  the first POST arrives.
+- **`Principal` stays the username (R-6d14).** The proxy header and Navidrome's auto-creation are gone; the reasons
+  now are S20's Subsonic username and a readable name in logs and the network actor. The durable key is `UserID`.
+- **`deploy.sh` still restarts nothing (R-6d19).** It never enables, starts, or restarts a unit, so the `try-restart`
+  order and the gate presence check guarded a restart that does not happen, and neither was built. The roster leaf
+  stays on the box after the deploy, and the upgrade section moves the file aside.
+- **A bad-MAC cookie must not reach a settings read.** Task 7 read the absolute cap before the MAC check, so any
+  forged cookie queued behind the accessor's one lock; the read follows the MAC now, and sign-out bounds its body by
+  the registered ceiling.
+- **A conductor pre-flight before a segment pays.** It caught two would-be fix rounds in segment B (the rendered
+  fixture's store seeding and the older-store helper's targets) and handed segment C its moved pointers and one
+  signature, so segment C ran with no fix round.
+- **The runner's `tool` class defaults to the light gate lane.** Pass `gateLane: "heavy"` for a gate that launches
+  Chromium; slice 2a's first segment ran its gates light by that default.
+- **Stale `DUBPLATE_*` exports break the gate.** About 41 Navidrome-era and R2-era variables in the workstation shell
+  fail `check` and `doctor` outside `env -i`; the smoke ran under `env -i`.
+- **The shipped unknown-address answer is `kind`.** A member and a stranger get different answers until
+  `DUBPLATE_UNKNOWN_ADDRESS_ANSWER=generic` is set; the smoke needed `generic` to see identical bodies. The runbook
+  now says so.
+
+### Moved out of STATUS at this close
+
+- The resume prompt as it stood (parked at 6d's flag):
+
+  > **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
+  > **Goal:** close 6d, then merge and close slice 2a. Both parked 2026-10-07 at 10:15 when 6d crossed its 8.4M flag
+  > (about 9.5M spent of 10.5M). **6d** has only Task 9 left (the HISTORY entry, the errata, STATUS and the
+  > `CLAUDE.md` gate line); every build task, both security reads and folds, the simplifier, seven architecture reads
+  > and their folds (`5079b38`, `4de73e7`), and a 7/7 live auth smoke are done. **Slice 2a** (worktree
+  > `.claude/worktrees/lane-3-slice-2`, branch at `25c442a`, about 6.0M of 9.0M) has only Task 9 steps 4, 6, and 7
+  > left: the merge ritual after 6d closes, then its ledgers. **Settled:** merge order 6d then 2a; the 2a rulings (2 s
+  > seeds, Two Sides as the multi-disc album) are in the conductor's notes. **Approach:** invoke `pass-core`; nothing
+  > deploys; push master (no force, `gitleaks` first) at each close.
+
+- The owner question "6d crossed its 8.4M flag at about 9.5M (its architecture fold alone was 2.6M); close both lanes
+  over the flag? 6d's Task 9 is docs, about 0.4M, inside the 10.5M ceiling." Geoff answered yes after the window.
+- The "To 6d" carry (the reconciler wiring, the store identity, the migration-wait key, the `member:<principal>`
+  actor, 6c's handoff, re-validating existing usernames, the two `serve` wiring items, and `rosterResetServer`'s
+  baseline): landed above or routed above. The store identity went to rung 16, the existing usernames needed no pass
+  (R-6d22: every row comes through the write path), and the actor stayed `member:<principal>`.
+- The lane 1 row as it stood: "PARKED at its flag 2026-10-07 10:15: 6d Tasks 0-8, both security folds, simplifier,
+  architecture folds, live auth smoke done (through `4de73e7`, ~9.5M); Task 9 left".
+
+### Budgets
+
+Tokens: about 9.5M against the 10.5M ceiling, by the conductor's estimate at the park, with the 8.4M flag crossed
+during the architecture fold (2.6M on its own). The runner's tallies ran Task 0 0.12M, segment A 1.14M, segment B
+1.77M, segment C 2.29M, about 6.1M before the architecture fold, and they do not reconcile to the park figure to the
+decimal. Geoff ruled to close both lanes over the flag, and this close adds about 0.4M, inside the ceiling. Attended
+time: none during the unattended window, one question at the morning sitting (the close over the flag, answered yes).
+One planning miss: Task 6's States row, a plan defect found at execution.
+
+
 ## Rung 12 slice 1, the study: closed 2026-10-07, document lane
 
 Executed against `docs/superpowers/plans/2026-10-06-rung-12-slice-1-study.md` (revision 1.1), pass class `docs`,
@@ -1344,6 +1554,17 @@ and readings that take effect on approval" table (`:715-724`). All dated 2026-09
   accessor" is read as: the local keep's pre-seed read resolves from `Inspect`'s raw rows through
   the facts entry point, since no handle exists before the migration it caps; its `OpenServe`
   prune proof moves to 6d, the first caller.
+
+Two later errata, dated 2026-10-07, come from rung 6d:
+
+- **6d-E1 (6d R-6d6).** `Setting.Sensitive` (R-6c3, documented as "a value a report must not print," withheld by
+  `doctor` and by `Outcome.Report`) now carries CH's meaning, "dangerous to change live even though they are not
+  secrets," gated by re-authentication at rung 14. A report prints the value with the marker. 6d Task 6 (`e1dfa2d`)
+  re-documented the field and removed the withholding.
+- **6d-E2 (6d R-6d21).** `evaluateTableAbsent`'s "never reads environ" holds no longer. With no settings table, `check`
+  and `doctor` evaluate the seed against an empty row set, for an absent store and for one below the settings table's
+  version, so a bad auth value that left `config.Load` still refuses before `serve`'s first start. It changes no
+  stored row.
 
 ### The 6c to 6d handoff
 

@@ -439,7 +439,9 @@ example one.
 ### The mail ceiling and the unknown-address answer
 
 `DUBPLATE_UNKNOWN_ADDRESS_ANSWER` is `kind` by default, and the second value is
-`generic`. Three facts about the default follow from how the limits compose.
+`generic`. The default answers a member and a stranger differently, and `generic`
+is the setting that hides who is a member: under it both get the same answer.
+Three facts about the default follow from how the limits compose.
 
 #### The kind answer reveals two things
 
