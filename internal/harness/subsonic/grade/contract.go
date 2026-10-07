@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/glw907/dubplate/internal/harness/subsonic/xmlrule"
 	"github.com/glw907/dubplate/internal/opensubsonic/conformance"
 )
 
@@ -17,9 +18,18 @@ const openapiFile = "openapi.json"
 // re-pin replaces the file, its provenance record, and this sum together.
 const pinnedDocSum = "cb54c03c33835d132c555863e9771e30dfaa2930312853ca27dfece2ed46bfb6"
 
+// contract is the pinned OpenAPI document's two checkers: the JSON
+// checker, and the XML tier, which scopes the Subsonic XSD by the same
+// document.
+type contract struct {
+	json *conformance.Checker
+	xml  *xmlrule.Validator
+}
+
 // loadContract reads the OpenAPI document in dir, verifies its sha256
-// against sum, and returns a checker over it.
-func loadContract(dir, sum string) (*conformance.Checker, error) {
+// against sum, and returns both checkers over it. The XML tier reads the
+// cached XSD and needs xmllint at its pinned version.
+func loadContract(dir, sum string) (*contract, error) {
 	path := filepath.Join(dir, openapiFile)
 	doc, err := os.ReadFile(path)
 	if err != nil {
@@ -33,5 +43,9 @@ func loadContract(dir, sum string) (*conformance.Checker, error) {
 	if err != nil {
 		return nil, fmt.Errorf("openapi document %s: %w", path, err)
 	}
-	return c, nil
+	x, err := xmlrule.New(doc)
+	if err != nil {
+		return nil, fmt.Errorf("openapi document %s: %w", path, err)
+	}
+	return &contract{json: c, xml: x}, nil
 }

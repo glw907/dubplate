@@ -15,6 +15,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
+	"github.com/glw907/dubplate/internal/harness/subsonic/xmlrule"
 	"github.com/glw907/dubplate/internal/opensubsonic/client"
 )
 
@@ -65,14 +66,14 @@ func TestSeedGrade(t *testing.T) {
 	}
 	// The totals sit here as well, so an -update that moves them needs a
 	// reviewed edit to this test.
-	if r.Len() != 1686 || r.Unledgered() != 893 {
-		t.Errorf("findings %d, unledgered %d; want 1686 and 893", r.Len(), r.Unledgered())
+	if r.Len() != 1769 || r.Unledgered() != 976 {
+		t.Errorf("findings %d, unledgered %d; want 1769 and 976", r.Len(), r.Unledgered())
 	}
 	byKind := map[Kind]int{}
 	for _, f := range r.findings {
 		byKind[f.Kind]++
 	}
-	wantKinds := map[Kind]int{KindContract: 51, KindIdentity: 13, KindPresence: 1218, KindType: 35, KindValue: 369}
+	wantKinds := map[Kind]int{KindContract: 134, KindIdentity: 13, KindPresence: 1218, KindType: 35, KindValue: 369}
 	if !maps.Equal(byKind, wantKinds) {
 		t.Errorf("findings by kind %v, want %v", byKind, wantKinds)
 	}
@@ -122,19 +123,33 @@ func handSession(t *testing.T, name string, bodies [2][]byte, digests [2]string)
 // sources answered with status.
 func handSessionAt(t *testing.T, name, endpoint string, status int, bodies [2][]byte, digests [2]string) string {
 	t.Helper()
+	return handSessionIn(t, name, endpoint, handForm{client.JSON, "0.64.2 (10114574)", "application/json"}, status, bodies, digests)
+}
+
+// handForm is the format a hand-built session's request asked for, the
+// server version both sources record, and the content type both answered
+// with.
+type handForm struct {
+	format      client.Format
+	version     string
+	contentType string
+}
+
+// handSessionIn is handSessionAt for a request in form.
+func handSessionIn(t *testing.T, name, endpoint string, form handForm, status int, bodies [2][]byte, digests [2]string) string {
+	t.Helper()
 	dir := filepath.Join(t.TempDir(), name)
-	const version = "0.64.2 (10114574)"
 	s := &session.Session{
 		Sources: map[string]session.Source{
-			"navidrome": {LibraryDigest: digests[0], ServerVersion: version},
-			"copy":      {LibraryDigest: digests[1], ServerVersion: version},
+			"navidrome": {LibraryDigest: digests[0], ServerVersion: form.version},
+			"copy":      {LibraryDigest: digests[1], ServerVersion: form.version},
 		},
 		Requests: []session.Request{{
-			Endpoint: endpoint, Format: client.JSON,
+			Endpoint: endpoint, Format: form.format,
 			Params: []session.Param{{Name: "id", Value: "album:Alpha Artist/Single Disc"}},
 			Responses: []session.Response{
-				{Source: "navidrome", Status: status, ContentType: "application/json", Body: bodies[0]},
-				{Source: "copy", Status: status, ContentType: "application/json", Body: bodies[1]},
+				{Source: "navidrome", Status: status, ContentType: form.contentType, Body: bodies[0]},
+				{Source: "copy", Status: status, ContentType: form.contentType, Body: bodies[1]},
 			},
 		}},
 	}
@@ -178,6 +193,264 @@ func TestGradeIdenticalBodiesReportOnlyContract(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+}
+
+const (
+	seedLibraryHash = "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c"
+	albumGonicXML   = seedSession + "/043-gonic.xml"
+)
+
+var gonicXMLForm = handForm{format: client.XML, version: gonicVersion, contentType: "application/xml"}
+
+// gradeXML grades a hand-built XML session of one request to endpoint
+// that both sources answered with body, under an empty ledger.
+func gradeXML(t *testing.T, endpoint, contentType string, body []byte) (*Report, error) {
+	t.Helper()
+	form := gonicXMLForm
+	form.contentType = contentType
+	dir := handSessionIn(t, "xml", endpoint, form, 200, [2][]byte{body, body}, [2]string{seedLibraryHash, seedLibraryHash})
+	g, err := New(emptyLedger(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return g.Grade(context.Background(), dir, [2]string{"navidrome", "copy"})
+}
+
+func summaries(r *Report) []string {
+	var got []string
+	for _, f := range r.findings {
+		got = append(got, string(f.Kind)+" "+strings.Join(f.Sources, ",")+" "+f.Path+" "+strings.Join(f.Values, ","))
+	}
+	return got
+}
+
+// TestGradeIdenticalXMLBodiesReportOnlyContract is the XML twin of the
+// identical-bodies proof: the seed's real gonic getAlbum body, served by
+// both sources, carries gonic's title and album residuals on the album,
+// so the oracle tier is clean and the contract tier reports each once
+// per source at the tree path.
+func TestGradeIdenticalXMLBodiesReportOnlyContract(t *testing.T) {
+	r, err := gradeXML(t, "getAlbum", "application/xml", readBody(t, albumGonicXML))
+	if err != nil {
+		t.Fatal(err)
+	}
+	const (
+		reason = ` is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart`
+		title  = `attribute "Single Disc": attribute "title"` + reason
+		album  = `attribute "Single Disc": attribute "album"` + reason
+	)
+	want := []string{
+		"contract copy subsonic-response/album/album " + album,
+		"contract navidrome subsonic-response/album/album " + album,
+		"contract copy subsonic-response/album/title " + title,
+		"contract navidrome subsonic-response/album/title " + title,
+	}
+	if got := summaries(r); !slices.Equal(got, want) {
+		t.Errorf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+	for _, f := range r.findings {
+		if f.Format != client.XML {
+			t.Errorf("finding %+v is not format xml", f)
+		}
+	}
+}
+
+// TestGradeLocatesAnXMLViolationByItsTreePath places one undeclared
+// attribute on a song and reads the path back: the second of three songs
+// is indexed, and the only song of a one-song album is not.
+func TestGradeLocatesAnXMLViolationByItsTreePath(t *testing.T) {
+	real := readBody(t, albumGonicXML)
+	single := []byte(`<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="gonic" serverVersion="0.22.0" openSubsonic="true"><album id="a" name="A"><song id="s" bogus="1"/></album></subsonic-response>`)
+	tests := []struct {
+		name string
+		body []byte
+		want string
+	}{
+		{"second of three songs", replaceOnce(t, real, `id="tr-6"`, `bogus="1" id="tr-6"`), "subsonic-response/album/song/1/bogus"},
+		{"only song", single, "subsonic-response/album/song/bogus"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := gradeXML(t, "getAlbum", "application/xml", tt.body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var paths []string
+			for _, f := range r.findings {
+				if strings.Contains(f.Path, "bogus") && f.Sources[0] == "navidrome" {
+					paths = append(paths, f.Path)
+				}
+			}
+			if !slices.Equal(paths, []string{tt.want}) {
+				t.Errorf("bogus attribute reported at %q, want [%s]", paths, tt.want)
+			}
+		})
+	}
+}
+
+// TestGradeXMLContractStates covers the states an XML answer can meet in
+// the contract tier. The sessions are built in memory, since the session
+// format refuses a body with no readable envelope.
+func TestGradeXMLContractStates(t *testing.T) {
+	real := readBody(t, albumGonicXML)
+	tests := []struct {
+		name        string
+		endpoint    string
+		contentType string
+		body        []byte
+		want        []string // contract findings, none for an empty list
+		wantParse   bool     // the oracle tier's parse finding as well
+		unvalidated map[string]int
+	}{
+		{
+			name: "unknown endpoint is the no-route outcome", endpoint: "getNothing", contentType: "application/xml", body: real,
+			want: []string{
+				"left subsonic-response no-route",
+				"right subsonic-response no-route",
+			},
+		},
+		{name: "binary endpoint answered with a non-xml body", endpoint: "getCoverArt", contentType: "image/png", body: []byte("\x89PNG"), wantParse: true},
+		{
+			name: "body that does not parse", endpoint: "getAlbum", contentType: "application/xml", body: []byte(`<subsonic-response><a></b></subsonic-response>`),
+			want: []string{
+				"left subsonic-response absent: malformed XML: XML syntax error on line 1: element <a> closed by </b>",
+				"right subsonic-response absent: malformed XML: XML syntax error on line 1: element <a> closed by </b>",
+			},
+			wantParse: true,
+		},
+		{
+			name: "payload outside the schema is declared unvalidated", endpoint: "getOpenSubsonicExtensions", contentType: "application/xml",
+			body:        []byte(`<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="t" serverVersion="1" openSubsonic="true"><openSubsonicExtensions name="x"><versions>1</versions></openSubsonicExtensions></subsonic-response>`),
+			unvalidated: map[string]int{"getOpenSubsonicExtensions left": 1, "getOpenSubsonicExtensions right": 1},
+		},
+	}
+	g, err := New(emptyLedger(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	pair := [2]string{"left", "right"}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp := func(src string) session.Response {
+				return session.Response{Source: src, Status: 200, ContentType: tt.contentType, Body: tt.body}
+			}
+			s := &session.Session{Requests: []session.Request{{
+				Endpoint: tt.endpoint, Format: client.XML, Responses: []session.Response{resp("left"), resp("right")},
+			}}}
+			found, unvalidated, err := g.contractTier(context.Background(), s, pair)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got []string
+			for _, f := range found {
+				got = append(got, strings.Join(f.Sources, ",")+" "+f.Path+" "+strings.Join(f.Values, ","))
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("contract findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(tt.want, "\n"))
+			}
+			if !maps.Equal(unvalidated, tt.unvalidated) {
+				t.Errorf("unvalidated %v, want %v", unvalidated, tt.unvalidated)
+			}
+			oracle := g.oracleTier(s, pair, nil)
+			if parsed := slices.ContainsFunc(oracle, func(f Finding) bool { return f.Kind == KindParse }); parsed != tt.wantParse {
+				t.Errorf("parse finding present = %v, want %v", parsed, tt.wantParse)
+			}
+		})
+	}
+}
+
+// TestReportListsUnvalidatedBodies pins the header the count lands in.
+func TestReportListsUnvalidatedBodies(t *testing.T) {
+	r := &Report{unvalidated: map[string]int{"getB right": 1, "getA left": 2}}
+	const want = "declared unvalidated xml bodies:\n  getA left: 2\n  getB right: 1\nledger rows matched:\n"
+	if got := string(r.Format()); !strings.Contains(got, want) {
+		t.Errorf("report lacks %q:\n%s", want, got)
+	}
+}
+
+// TestGradeEndsOnAnXMLToolFailure grades a body that reaches xmllint with
+// a context already cancelled: the tool cannot run, and no report is
+// better than a report that silently lacks the tier.
+func TestGradeEndsOnAnXMLToolFailure(t *testing.T) {
+	body := readBody(t, albumGonicXML)
+	dir := handSessionIn(t, "xml", "getAlbum", gonicXMLForm, 200, [2][]byte{body, body}, [2]string{seedLibraryHash, seedLibraryHash})
+	g, err := New(emptyLedger(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	r, err := g.Grade(ctx, dir, [2]string{"navidrome", "copy"})
+	if !errors.Is(err, xmlrule.ErrToolFailure) || r != nil {
+		t.Fatalf("Grade = %v, %v; want ErrToolFailure and no report", r, err)
+	}
+}
+
+// TestGradeXMLRowSuppressesOnlyXML grades a session whose JSON and XML
+// answers each violate the contract at one path, under a contract row
+// naming format xml: the XML finding is ledgered and the JSON finding at
+// the same path is not.
+func TestGradeXMLRowSuppressesOnlyXML(t *testing.T) {
+	const path = "subsonic-response/album/songCount"
+	jsonBody := replaceOnce(t, readBody(t, albumJSON), `"serverVersion":"0.64.2 (10114574)"`, `"serverVersion":"`+gonicVersion+`"`)
+	jsonBody = replaceOnce(t, jsonBody, `"songCount":3`, `"songCount":"x"`)
+	xmlBody := replaceOnce(t, readBody(t, albumGonicXML), `songCount="3"`, `songCount="x"`)
+	req := func(format client.Format, ct string, body []byte) session.Request {
+		return session.Request{
+			Endpoint: "getAlbum", Format: format,
+			Params: []session.Param{{Name: "id", Value: "album:Alpha Artist/Single Disc"}},
+			Responses: []session.Response{
+				{Source: "navidrome", Status: 200, ContentType: ct, Body: body},
+				{Source: "copy", Status: 200, ContentType: ct, Body: body},
+			},
+		}
+	}
+	row := activeRow("xml-rating", ClassContract)
+	row.Sources, row.Source, row.Session = []string{"navidrome", "copy"}, "copy", "mixed"
+	row.Versions = map[string]string{"navidrome": gonicVersion, "copy": gonicVersion}
+	row.Pattern = Pattern{Endpoint: "getAlbum", Format: "xml", Path: path}
+	ledger, sessions := writeLedger(t, []Row{row}, "mixed")
+	dir := filepath.Join(t.TempDir(), "mixed")
+	s := &session.Session{
+		Sources: map[string]session.Source{
+			"navidrome": {LibraryDigest: seedLibraryHash, ServerVersion: gonicVersion},
+			"copy":      {LibraryDigest: seedLibraryHash, ServerVersion: gonicVersion},
+		},
+		Requests: []session.Request{req(client.JSON, "application/json", jsonBody), req(client.XML, "application/xml", xmlBody)},
+	}
+	if err := session.Write(dir, s); err != nil {
+		t.Fatal(err)
+	}
+	cfg := seedConfig(ledger)
+	cfg.Sessions = sessions
+	g, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := g.Grade(context.Background(), dir, [2]string{"navidrome", "copy"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var xmlMatched, jsonMatched, jsonSeen int
+	for i, f := range r.findings {
+		if f.Kind != KindContract || f.Path != path || f.Sources[0] != "copy" {
+			continue
+		}
+		switch f.Format {
+		case client.XML:
+			if r.ledger.Matches[i] == row.ID {
+				xmlMatched++
+			}
+		case client.JSON:
+			jsonSeen++
+			if r.ledger.Matches[i] == row.ID {
+				jsonMatched++
+			}
+		}
+	}
+	if xmlMatched != 1 || jsonSeen != 1 || jsonMatched != 0 {
+		t.Errorf("xml matched %d (want 1), json findings %d (want 1) matched %d (want 0)", xmlMatched, jsonSeen, jsonMatched)
 	}
 }
 

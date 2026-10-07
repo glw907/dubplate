@@ -125,12 +125,12 @@ func TestSeedGetAlbumContract(t *testing.T) {
 			}
 			seen[resp.Source]++
 			t.Run(resp.Source+"/"+album, func(t *testing.T) {
-				got := c.Check(context.Background(), http.MethodGet, "/rest/getAlbum", resp.Status, resp.ContentType, resp.Body)
+				got := c.json.Check(context.Background(), http.MethodGet, "/rest/getAlbum", resp.Status, resp.ContentType, resp.Body)
 				if got.Outcome != conformance.Invalid || !slices.Equal(got.Violations, want) {
 					t.Fatalf("got %s %+v\nwant %+v", got.Outcome, got.Violations, want)
 				}
 				repaired := removePointers(t, resp.Body, drop)
-				fixed := c.Check(context.Background(), http.MethodGet, "/rest/getAlbum", resp.Status, resp.ContentType, repaired)
+				fixed := c.json.Check(context.Background(), http.MethodGet, "/rest/getAlbum", resp.Status, resp.ContentType, repaired)
 				if fixed.Outcome != conformance.Valid {
 					t.Errorf("repaired body: %s %+v", fixed.Outcome, fixed.Violations)
 				}

@@ -14,6 +14,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
+	"github.com/glw907/dubplate/internal/harness/subsonic/xmlrule"
 	"github.com/glw907/dubplate/internal/opensubsonic/client"
 	"github.com/glw907/dubplate/internal/opensubsonic/conformance"
 )
@@ -43,7 +44,7 @@ type Config struct {
 // document, and one fixture library.
 type Grader struct {
 	ledger   *Ledger
-	contract *conformance.Checker
+	contract *contract
 	lib      *library
 }
 
@@ -72,6 +73,9 @@ type Report struct {
 	session  string
 	sources  [2]string
 	ledger   Result
+	// unvalidated counts the XML bodies the contract tier declared
+	// unvalidated, keyed by endpoint and source.
+	unvalidated map[string]int
 }
 
 // Len returns the number of findings.
@@ -95,6 +99,9 @@ func (r *Report) Unledgered() int {
 // Grade refuses, with no Report, a source the session lacks, two sources
 // recorded over different libraries, naming both digests, and a ledger
 // row adjudicated against another oracle version ([ErrVersionMismatch]).
+// It also refuses when the XML contract tier fails, wrapping
+// [xmlrule.ErrToolFailure], since a report without the tier would pass
+// for a clean one.
 // When an applied row matches nothing it returns the Report and an error
 // wrapping [ErrStaleRow].
 func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report, error) {
@@ -126,13 +133,17 @@ func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report
 		}
 	}
 	findings := g.oracleTier(s, pair, scopes)
-	findings = append(findings, g.contractTier(ctx, s, pair)...)
+	contractFound, unvalidated, err := g.contractTier(ctx, s, pair)
+	if err != nil {
+		return nil, err
+	}
+	findings = append(findings, contractFound...)
 	slices.SortFunc(findings, compareFindings)
 	res, err := g.ledger.Apply(s, name, pair, findings)
 	if errors.Is(err, ErrVersionMismatch) {
 		return nil, err
 	}
-	return &Report{findings: findings, session: name, sources: pair, ledger: res}, err
+	return &Report{findings: findings, session: name, sources: pair, ledger: res, unvalidated: unvalidated}, err
 }
 
 func compareFindings(a, b Finding) int {
@@ -257,45 +268,99 @@ func parseNote(format client.Format, err error) string {
 	return string(format) + ": " + err.Error()
 }
 
-// contractTier checks every JSON answer either source of the pair gave
-// against the OpenAPI document. Any outcome but valid is a finding
-// carrying that one source.
-func (g *Grader) contractTier(ctx context.Context, s *session.Session, pair [2]string) []Finding {
+// contractTier checks every answer either source of the pair gave against
+// the OpenAPI document: JSON bodies through the OpenAPI checker, XML
+// bodies through the XML tier. Any outcome but valid is a finding
+// carrying that one source, except a body the XML tier declares
+// unvalidated, which is tallied by endpoint and source instead. A failed
+// XML tier ends the check with an error.
+func (g *Grader) contractTier(ctx context.Context, s *session.Session, pair [2]string) ([]Finding, map[string]int, error) {
 	var found []Finding
+	unvalidated := map[string]int{}
 	for _, req := range s.Requests {
-		if req.Format != client.JSON {
-			continue
-		}
 		for _, resp := range req.Responses {
 			if !slices.Contains(pair[:], resp.Source) {
 				continue
 			}
-			res := g.contract.Check(ctx, http.MethodGet, "/rest/"+req.Endpoint, resp.Status, resp.ContentType, resp.Body)
 			base := Finding{
 				Request: req.Key(), Endpoint: req.Endpoint, Format: req.Format,
 				Sources: []string{resp.Source}, Kind: KindContract, Path: envelopePath,
 			}
-			if res.Outcome != conformance.Invalid {
-				if res.Outcome != conformance.Valid {
-					base.Values = []string{string(res.Outcome)}
-					found = append(found, base)
+			if req.Format != client.JSON {
+				fs, skipped, err := g.contractXML(ctx, req, resp, base)
+				if err != nil {
+					return nil, nil, fmt.Errorf("xml contract check of %s from %s: %w", req.Key(), resp.Source, err)
 				}
+				if skipped {
+					unvalidated[req.Endpoint+" "+resp.Source]++
+				}
+				found = append(found, fs...)
 				continue
 			}
-			// A body the contract check judged Invalid may not decode; a nil tree
-			// makes at return nil, which renders as the absent value.
-			tree, _ := decode(resp.Body, client.JSON)
-			for _, v := range res.Violations {
-				f := base
-				if v.Pointer != "" {
-					f.Path = pointerPath(v.Pointer)
-				}
-				f.Values = []string{at(tree, f.Path).render() + ": " + v.Reason}
-				found = append(found, f)
-			}
+			found = append(found, g.contractJSON(ctx, req, resp, base)...)
 		}
 	}
+	return found, unvalidated, nil
+}
+
+func (g *Grader) contractJSON(ctx context.Context, req session.Request, resp session.Response, base Finding) []Finding {
+	res := g.contract.json.Check(ctx, http.MethodGet, "/rest/"+req.Endpoint, resp.Status, resp.ContentType, resp.Body)
+	if res.Outcome != conformance.Invalid {
+		if res.Outcome == conformance.Valid {
+			return nil
+		}
+		base.Values = []string{string(res.Outcome)}
+		return []Finding{base}
+	}
+	// A body the contract check judged Invalid may not decode; a nil tree
+	// makes at return nil, which renders as the absent value.
+	tree, _ := decode(resp.Body, client.JSON)
+	var found []Finding
+	for _, v := range res.Violations {
+		f := base
+		if v.Pointer != "" {
+			f.Path = pointerPath(v.Pointer)
+		}
+		f.Values = []string{at(tree, f.Path).render() + ": " + v.Reason}
+		found = append(found, f)
+	}
 	return found
+}
+
+// contractXML checks one XML answer. An endpoint the document declares no
+// path for is the no-route finding the JSON tier gives, and a binary
+// endpoint's non-XML answer has nothing for this tier to check. The
+// second result reports a body declared unvalidated. Every other failure
+// of the tier is an error.
+func (g *Grader) contractXML(ctx context.Context, req session.Request, resp session.Response, base Finding) (found []Finding, unvalidated bool, err error) {
+	res, err := g.contract.xml.Check(ctx, req.Endpoint, resp.Status, resp.ContentType, resp.Body)
+	switch {
+	case errors.Is(err, xmlrule.ErrUnknownEndpoint):
+		base.Values = []string{string(conformance.NoRoute)}
+		return []Finding{base}, false, nil
+	case errors.Is(err, xmlrule.ErrNotXML):
+		return nil, false, nil
+	case err != nil:
+		return nil, false, err
+	case res.Outcome == xmlrule.Unvalidated:
+		return nil, true, nil
+	}
+	// A body whose elements cannot be walked leaves every ordinal at the
+	// envelope.
+	paths, _ := xmlElementPaths(resp.Body)
+	tree, _ := decode(resp.Body, client.XML)
+	for _, v := range res.Violations {
+		f := base
+		if v.Source != xmlrule.Document && v.Ordinal >= 2 && v.Ordinal <= len(paths) {
+			f.Path = paths[v.Ordinal-1]
+		}
+		if v.Attr != "" {
+			f.Path += "/" + v.Attr
+		}
+		f.Values = []string{at(tree, f.Path).render() + ": " + v.Message}
+		found = append(found, f)
+	}
+	return found, false, nil
 }
 
 // pointerUnescape undoes RFC 6901 segment escaping.
@@ -344,6 +409,10 @@ func (r *Report) Format() []byte {
 	fmt.Fprintf(&b, "findings: %d, unledgered %d\n", len(r.findings), r.Unledgered())
 	for _, k := range slices.Sorted(maps.Keys(byKind)) {
 		fmt.Fprintf(&b, "  %s: %d\n", k, byKind[k])
+	}
+	b.WriteString("declared unvalidated xml bodies:\n")
+	for _, key := range slices.Sorted(maps.Keys(r.unvalidated)) {
+		fmt.Fprintf(&b, "  %s: %d\n", key, r.unvalidated[key])
 	}
 	b.WriteString("ledger rows matched:\n")
 	for _, id := range slices.Sorted(maps.Keys(r.ledger.Counts)) {

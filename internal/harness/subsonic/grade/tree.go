@@ -269,3 +269,69 @@ func readElement(dec *xml.Decoder, start xml.StartElement) (*node, error) {
 		}
 	}
 }
+
+// xmlElem is one element of a body's structure, kept apart from the
+// comparable tree because its document order matters here.
+type xmlElem struct {
+	name string
+	kids []*xmlElem
+}
+
+// xmlElementPaths returns the tree path of every element of an XML body,
+// in document order, so index n-1 is the path of the element whose
+// 1-based ordinal is n. The paths follow decodeXML's rule: a name
+// repeated among one element's children is an array and takes an index,
+// and a name that occurs once does not.
+func xmlElementPaths(body []byte) ([]string, error) {
+	dec := xml.NewDecoder(bytes.NewReader(body))
+	var root *xmlElem
+	var stack []*xmlElem
+	for {
+		tok, err := dec.Token()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		switch t := tok.(type) {
+		case xml.StartElement:
+			e := &xmlElem{name: t.Name.Local}
+			switch {
+			case len(stack) > 0:
+				top := stack[len(stack)-1]
+				top.kids = append(top.kids, e)
+			case root != nil:
+				return nil, errors.New("a second root element")
+			default:
+				root = e
+			}
+			stack = append(stack, e)
+		case xml.EndElement:
+			stack = stack[:len(stack)-1]
+		}
+	}
+	if root == nil {
+		return nil, errors.New("no root element")
+	}
+	var paths []string
+	var walk func(e *xmlElem, path string)
+	walk = func(e *xmlElem, path string) {
+		paths = append(paths, path)
+		count := map[string]int{}
+		for _, k := range e.kids {
+			count[k.name]++
+		}
+		seen := map[string]int{}
+		for _, k := range e.kids {
+			kp := path + "/" + k.name
+			if count[k.name] > 1 {
+				kp += "/" + strconv.Itoa(seen[k.name])
+				seen[k.name]++
+			}
+			walk(k, kp)
+		}
+	}
+	walk(root, root.name)
+	return paths, nil
+}

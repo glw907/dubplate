@@ -1,10 +1,13 @@
 session seed: navidrome against gonic
-findings: 1686, unledgered 893
-  contract: 51
+findings: 1769, unledgered 976
+  contract: 134
   identity: 13
   presence: 1218
   type: 35
   value: 369
+declared unvalidated xml bodies:
+  getOpenSubsonicExtensions gonic: 1
+  getOpenSubsonicExtensions navidrome: 1
 ledger rows matched:
   folder-view-getindexes: 40
   folder-view-getmusicdirectory: 570
@@ -1379,6 +1382,9 @@ getAlbum.json&id=album%3AVarious+Artists%2FMixtape+Volume+One
     ledger: unledgered
 
 getAlbum.xml&id=album%3AAlpha+Artist%2FGreatest+Hits
+  contract subsonic-response/album/album
+    gonic: attribute "Greatest Hits": attribute "album" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/album
     navidrome: absent
     gonic: attribute "Greatest Hits"
@@ -1475,6 +1481,9 @@ getAlbum.xml&id=album%3AAlpha+Artist%2FGreatest+Hits
     navidrome: attribute "greatest hits"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/album/title
+    gonic: attribute "Greatest Hits": attribute "title" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/title
     navidrome: absent
     gonic: attribute "Greatest Hits"
@@ -1493,6 +1502,9 @@ getAlbum.xml&id=album%3AAlpha+Artist%2FGreatest+Hits
     ledger: unledgered
 
 getAlbum.xml&id=album%3AAlpha+Artist%2FSingle+Disc
+  contract subsonic-response/album/album
+    gonic: attribute "Single Disc": attribute "album" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/album
     navidrome: absent
     gonic: attribute "Single Disc"
@@ -1629,6 +1641,9 @@ getAlbum.xml&id=album%3AAlpha+Artist%2FSingle+Disc
     navidrome: attribute "single disc"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/album/title
+    gonic: attribute "Single Disc": attribute "title" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/title
     navidrome: absent
     gonic: attribute "Single Disc"
@@ -1647,6 +1662,9 @@ getAlbum.xml&id=album%3AAlpha+Artist%2FSingle+Disc
     ledger: unledgered
 
 getAlbum.xml&id=album%3ACarmine+Ensemble%2FTwo+Sides
+  contract subsonic-response/album/album
+    gonic: attribute "Two Sides": attribute "album" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/album
     navidrome: absent
     gonic: attribute "Two Sides"
@@ -1819,6 +1837,9 @@ getAlbum.xml&id=album%3ACarmine+Ensemble%2FTwo+Sides
     navidrome: attribute "two sides"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/album/title
+    gonic: attribute "Two Sides": attribute "title" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/title
     navidrome: absent
     gonic: attribute "Two Sides"
@@ -1837,6 +1858,9 @@ getAlbum.xml&id=album%3ACarmine+Ensemble%2FTwo+Sides
     ledger: unledgered
 
 getAlbum.xml&id=album%3ADelta+Duo%2FGreatest+Hits
+  contract subsonic-response/album/album
+    gonic: attribute "Greatest Hits": attribute "album" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/album
     navidrome: absent
     gonic: attribute "Greatest Hits"
@@ -1945,6 +1969,9 @@ getAlbum.xml&id=album%3ADelta+Duo%2FGreatest+Hits
     navidrome: attribute "greatest hits"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/album/title
+    gonic: attribute "Greatest Hits": attribute "title" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/title
     navidrome: absent
     gonic: attribute "Greatest Hits"
@@ -1963,6 +1990,9 @@ getAlbum.xml&id=album%3ADelta+Duo%2FGreatest+Hits
     ledger: unledgered
 
 getAlbum.xml&id=album%3AVarious+Artists%2FMixtape+Volume+One
+  contract subsonic-response/album/album
+    gonic: attribute "Mixtape Volume One": attribute "album" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/album/album
     navidrome: absent
     gonic: attribute "Mixtape Volume One"
@@ -2094,6 +2124,9 @@ getAlbum.xml&id=album%3AVarious+Artists%2FMixtape+Volume+One
   presence subsonic-response/album/sortName
     navidrome: attribute "mixtape volume one"
     gonic: absent
+    ledger: unledgered
+  contract subsonic-response/album/title
+    gonic: attribute "Mixtape Volume One": attribute "title" is declared by neither schema type AlbumWithSongsID3 nor its OpenAPI counterpart
     ledger: unledgered
   presence subsonic-response/album/title
     navidrome: absent
@@ -2644,6 +2677,9 @@ getArtist.json&id=artist%3AVarious+Artists
     ledger: unledgered
 
 getArtist.xml&id=artist%3AAlpha+Artist
+  contract subsonic-response/artist/album/0/album
+    gonic: attribute "Greatest Hits": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/0/album
     navidrome: absent
     gonic: attribute "Single Disc"
@@ -2672,6 +2708,9 @@ getArtist.xml&id=artist%3AAlpha+Artist
     navidrome: attribute "single disc"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/artist/album/0/title
+    gonic: attribute "Greatest Hits": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/0/title
     navidrome: absent
     gonic: attribute "Single Disc"
@@ -2679,6 +2718,9 @@ getArtist.xml&id=artist%3AAlpha+Artist
   presence subsonic-response/artist/album/1
     navidrome: absent
     gonic: element
+    ledger: unledgered
+  contract subsonic-response/artist/album/1/album
+    gonic: attribute "Mixtape Volume One": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   presence subsonic-response/artist/album/1/album
     navidrome: absent
@@ -2708,9 +2750,15 @@ getArtist.xml&id=artist%3AAlpha+Artist
     navidrome: attribute "second light"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/artist/album/1/title
+    gonic: attribute "Mixtape Volume One": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/1/title
     navidrome: absent
     gonic: attribute "Second Light"
+    ledger: unledgered
+  contract subsonic-response/artist/album/2/album
+    gonic: attribute "Second Light": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   presence subsonic-response/artist/album/2/album
     navidrome: absent
@@ -2736,9 +2784,18 @@ getArtist.xml&id=artist%3AAlpha+Artist
     navidrome: attribute "greatest hits"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/artist/album/2/title
+    gonic: attribute "Second Light": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/2/title
     navidrome: absent
     gonic: attribute "Greatest Hits"
+    ledger: unledgered
+  contract subsonic-response/artist/album/3/album
+    gonic: attribute "Single Disc": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/artist/album/3/title
+    gonic: attribute "Single Disc": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   value subsonic-response/artist/albumCount
     navidrome: attribute "3"
@@ -2778,9 +2835,27 @@ getArtist.xml&id=artist%3ABorealis+Trio
     navidrome: album:Borealis Trio/Double Feature on 1 element
     gonic: album:Borealis Trio/Double Feature on 2 elements
     ledger: unledgered
+  contract subsonic-response/artist/album/0/album
+    gonic: attribute "Double Feature": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/artist/album/0/title
+    gonic: attribute "Double Feature": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/artist/album/1/album
+    gonic: attribute "Double Feature": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/artist/album/1/title
+    gonic: attribute "Double Feature": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/2
     navidrome: absent
     gonic: element
+    ledger: unledgered
+  contract subsonic-response/artist/album/2/album
+    gonic: attribute "Mixtape Volume One": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/artist/album/2/title
+    gonic: attribute "Mixtape Volume One": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   value subsonic-response/artist/albumCount
     navidrome: attribute "1"
@@ -2816,6 +2891,9 @@ getArtist.xml&id=artist%3ABorealis+Trio
     ledger: unledgered
 
 getArtist.xml&id=artist%3ACarmine+Ensemble
+  contract subsonic-response/artist/album/album
+    gonic: attribute "Two Sides": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/album
     navidrome: absent
     gonic: attribute "Two Sides"
@@ -2843,6 +2921,9 @@ getArtist.xml&id=artist%3ACarmine+Ensemble
   presence subsonic-response/artist/album/sortName
     navidrome: attribute "two sides"
     gonic: absent
+    ledger: unledgered
+  contract subsonic-response/artist/album/title
+    gonic: attribute "Two Sides": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   presence subsonic-response/artist/album/title
     navidrome: absent
@@ -2878,6 +2959,9 @@ getArtist.xml&id=artist%3ACarmine+Ensemble
     ledger: unledgered
 
 getArtist.xml&id=artist%3ADelta+Duo
+  contract subsonic-response/artist/album/0/album
+    gonic: attribute "Greatest Hits": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/0/album
     navidrome: absent
     gonic: attribute "Greatest Hits"
@@ -2906,6 +2990,9 @@ getArtist.xml&id=artist%3ADelta+Duo
     navidrome: attribute "greatest hits"
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/artist/album/0/title
+    gonic: attribute "Greatest Hits": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/0/title
     navidrome: absent
     gonic: attribute "Greatest Hits"
@@ -2913,6 +3000,12 @@ getArtist.xml&id=artist%3ADelta+Duo
   presence subsonic-response/artist/album/1
     navidrome: absent
     gonic: element
+    ledger: unledgered
+  contract subsonic-response/artist/album/1/album
+    gonic: attribute "Mixtape Volume One": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/artist/album/1/title
+    gonic: attribute "Mixtape Volume One": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   value subsonic-response/artist/albumCount
     navidrome: attribute "1"
@@ -2948,6 +3041,9 @@ getArtist.xml&id=artist%3ADelta+Duo
     ledger: unledgered
 
 getArtist.xml&id=artist%3AVarious+Artists
+  contract subsonic-response/artist/album/album
+    gonic: attribute "Mixtape Volume One": attribute "album" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artist/album/album
     navidrome: absent
     gonic: attribute "Mixtape Volume One"
@@ -2971,6 +3067,9 @@ getArtist.xml&id=artist%3AVarious+Artists
   presence subsonic-response/artist/album/sortName
     navidrome: attribute "mixtape volume one"
     gonic: absent
+    ledger: unledgered
+  contract subsonic-response/artist/album/title
+    gonic: attribute "Mixtape Volume One": attribute "title" is declared by neither schema type AlbumID3 nor its OpenAPI counterpart
     ledger: unledgered
   presence subsonic-response/artist/album/title
     navidrome: absent
@@ -3176,6 +3275,9 @@ getArtists.xml
     navidrome: element
     gonic: absent
     ledger: unledgered
+  contract subsonic-response/artists/lastModified
+    navidrome: attribute "1791360041000": attribute "lastModified" is declared by neither schema type ArtistsID3 nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/artists/lastModified
     navidrome: attribute "1791360041000"
     gonic: absent
@@ -3300,6 +3402,18 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/0/artist/0/albumCount
+    gonic: attribute "3": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/0/artist/0/coverArt
+    navidrome: attribute "ar-2KUSszF9p7PLQO8gtyXqZT": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/0/artist/1/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/0/artist/1/coverArt
+    navidrome: attribute "ar-0uqWkqTEScVAiUINwabt8k": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/1
     navidrome: absent
     gonic: element
@@ -3308,6 +3422,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/1/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/1/artist/coverArt
+    navidrome: attribute "ar-47oq4zXQXZeNbxWV1qZScA": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/2
     navidrome: absent
     gonic: element
@@ -3316,6 +3436,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/2/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/2/artist/coverArt
+    navidrome: attribute "ar-0ogf5js9XmDUyadWQFiGrg": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/3
     navidrome: absent
     gonic: element
@@ -3324,6 +3450,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/3/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/3/artist/coverArt
+    navidrome: attribute "ar-76bFNzTHKvH8zozCfl0mxH": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/4
     navidrome: absent
     gonic: element
@@ -3332,6 +3464,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/4/artist/albumCount
+    gonic: attribute "0": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/4/artist/coverArt
+    navidrome: attribute "ar-1lj7eQ5rxStq8ASeeE39t7": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/5
     navidrome: absent
     gonic: element
@@ -3340,6 +3478,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/5/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/5/artist/coverArt
+    navidrome: attribute "ar-0MnXvRfyaXQgtSUwk5XA1A": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/6
     navidrome: absent
     gonic: element
@@ -3348,6 +3492,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/6/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/6/artist/coverArt
+    navidrome: attribute "ar-63sqASlAfjbGMuLP4JhnZU": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/7
     navidrome: absent
     gonic: element
@@ -3356,6 +3506,12 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/7/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/7/artist/coverArt
+    navidrome: attribute "ar-1WfpLljfkQOhsU1upL1Xjw": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/indexes/index/8
     navidrome: absent
     gonic: element
@@ -3364,6 +3520,15 @@ getIndexes.xml
     navidrome: element
     gonic: absent
     ledger: folder-view-getindexes
+  contract subsonic-response/indexes/index/8/artist/albumCount
+    gonic: attribute "1": attribute "albumCount" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/index/8/artist/coverArt
+    navidrome: attribute "ar-6QiT23Pg8GAJHZop58uMKH": attribute "coverArt" is declared by neither schema type Artist nor its OpenAPI counterpart
+    ledger: unledgered
+  contract subsonic-response/indexes/lastModified
+    gonic: absent: Element '{http://subsonic.org/restapi}indexes': The attribute 'lastModified' is required but missing.
+    ledger: unledgered
   presence subsonic-response/indexes/lastModified
     navidrome: attribute "1791360041000"
     gonic: absent
@@ -5038,6 +5203,9 @@ getMusicDirectory.json&id=folder%3AVarious+Artists%2FMixtape+Volume+One
     ledger: unledgered
 
 getMusicDirectory.xml&id=folder%3AAlpha+Artist
+  contract subsonic-response/directory/albumCount
+    navidrome: attribute "3": attribute "albumCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/albumCount
     navidrome: attribute "3"
     gonic: absent
@@ -5086,10 +5254,16 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist
     navidrome: attribute "9a1b2c3d-0000-4000-8000-0000000000a1"
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/0/name
+    navidrome: attribute "Single Disc": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/0/name
     navidrome: attribute "Single Disc"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/0/songCount
+    navidrome: attribute "3": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/0/songCount
     navidrome: attribute "3"
     gonic: absent
@@ -5146,10 +5320,16 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist
     navidrome: absent
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/1/name
+    navidrome: attribute "Second Light": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/1/name
     navidrome: attribute "Second Light"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/1/songCount
+    navidrome: attribute "2": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/1/songCount
     navidrome: attribute "2"
     gonic: absent
@@ -5202,10 +5382,16 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist
     navidrome: absent
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/2/name
+    navidrome: attribute "Greatest Hits": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/2/name
     navidrome: attribute "Greatest Hits"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/2/songCount
+    navidrome: attribute "2": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/2/songCount
     navidrome: attribute "2"
     gonic: absent
@@ -5248,10 +5434,16 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist%2FGreatest+Hits
     navidrome: element
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/coverArt
+    navidrome: attribute "al-0O9C7cRT9zTWUsnx6kIAIz": attribute "coverArt" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/coverArt
     navidrome: attribute "al-0O9C7cRT9zTWUsnx6kIAIz"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/songCount
+    navidrome: attribute "2": attribute "songCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/songCount
     navidrome: attribute "2"
     gonic: absent
@@ -5270,6 +5462,9 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist%2FGreatest+Hits
     ledger: unledgered
 
 getMusicDirectory.xml&id=folder%3ABorealis+Trio
+  contract subsonic-response/directory/albumCount
+    navidrome: attribute "1": attribute "albumCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/albumCount
     navidrome: attribute "1"
     gonic: absent
@@ -5322,10 +5517,16 @@ getMusicDirectory.xml&id=folder%3ABorealis+Trio
     navidrome: attribute "9a1b2c3d-0000-4000-8000-0000000000a2"
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/name
+    navidrome: attribute "Double Feature": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/name
     navidrome: attribute "Double Feature"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/songCount
+    navidrome: attribute "4": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/songCount
     navidrome: attribute "4"
     gonic: absent
@@ -5380,10 +5581,16 @@ getMusicDirectory.xml&id=folder%3ABorealis+Trio%2FDouble+Feature
     navidrome: element
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/coverArt
+    navidrome: attribute "al-2zalXirehPfSQpEypzurvi": attribute "coverArt" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/coverArt
     navidrome: attribute "al-2zalXirehPfSQpEypzurvi"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/songCount
+    navidrome: attribute "4": attribute "songCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/songCount
     navidrome: attribute "4"
     gonic: absent
@@ -5402,6 +5609,9 @@ getMusicDirectory.xml&id=folder%3ABorealis+Trio%2FDouble+Feature
     ledger: unledgered
 
 getMusicDirectory.xml&id=folder%3ACarmine+Ensemble
+  contract subsonic-response/directory/albumCount
+    navidrome: attribute "1": attribute "albumCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/albumCount
     navidrome: attribute "1"
     gonic: absent
@@ -5450,10 +5660,16 @@ getMusicDirectory.xml&id=folder%3ACarmine+Ensemble
     navidrome: absent
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/name
+    navidrome: attribute "Two Sides": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/name
     navidrome: attribute "Two Sides"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/songCount
+    navidrome: attribute "4": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/songCount
     navidrome: attribute "4"
     gonic: absent
@@ -5656,10 +5872,16 @@ getMusicDirectory.xml&id=folder%3ACarmine+Ensemble%2FTwo+Sides
     navidrome: attribute "side b two"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/coverArt
+    navidrome: attribute "al-1RCRSAcAZK1GMrWoprkhp3": attribute "coverArt" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/coverArt
     navidrome: attribute "al-1RCRSAcAZK1GMrWoprkhp3"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/songCount
+    navidrome: attribute "4": attribute "songCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/songCount
     navidrome: attribute "4"
     gonic: absent
@@ -5678,6 +5900,9 @@ getMusicDirectory.xml&id=folder%3ACarmine+Ensemble%2FTwo+Sides
     ledger: unledgered
 
 getMusicDirectory.xml&id=folder%3ADelta+Duo
+  contract subsonic-response/directory/albumCount
+    navidrome: attribute "1": attribute "albumCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/albumCount
     navidrome: attribute "1"
     gonic: absent
@@ -5730,10 +5955,16 @@ getMusicDirectory.xml&id=folder%3ADelta+Duo
     navidrome: absent
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/name
+    navidrome: attribute "Greatest Hits": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/name
     navidrome: attribute "Greatest Hits"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/songCount
+    navidrome: attribute "2": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/songCount
     navidrome: attribute "2"
     gonic: absent
@@ -5776,10 +6007,16 @@ getMusicDirectory.xml&id=folder%3ADelta+Duo%2FGreatest+Hits
     navidrome: element
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/coverArt
+    navidrome: attribute "al-5d7sA05zH5Csdnlr2bip3j": attribute "coverArt" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/coverArt
     navidrome: attribute "al-5d7sA05zH5Csdnlr2bip3j"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/songCount
+    navidrome: attribute "2": attribute "songCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/songCount
     navidrome: attribute "2"
     gonic: absent
@@ -5798,6 +6035,9 @@ getMusicDirectory.xml&id=folder%3ADelta+Duo%2FGreatest+Hits
     ledger: unledgered
 
 getMusicDirectory.xml&id=folder%3AVarious+Artists
+  contract subsonic-response/directory/albumCount
+    navidrome: attribute "1": attribute "albumCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/albumCount
     navidrome: attribute "1"
     gonic: absent
@@ -5846,10 +6086,16 @@ getMusicDirectory.xml&id=folder%3AVarious+Artists
     navidrome: absent
     gonic: attribute ""
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/name
+    navidrome: attribute "Mixtape Volume One": attribute "name" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/name
     navidrome: attribute "Mixtape Volume One"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/child/songCount
+    navidrome: attribute "3": attribute "songCount" is declared by neither schema type Child nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/child/songCount
     navidrome: attribute "3"
     gonic: absent
@@ -6008,10 +6254,16 @@ getMusicDirectory.xml&id=folder%3AVarious+Artists%2FMixtape+Volume+One
     navidrome: attribute "snow song"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/coverArt
+    navidrome: attribute "al-1P3tf53QPdAL2kU4BU04pg": attribute "coverArt" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/coverArt
     navidrome: attribute "al-1P3tf53QPdAL2kU4BU04pg"
     gonic: absent
     ledger: folder-view-getmusicdirectory
+  contract subsonic-response/directory/songCount
+    navidrome: attribute "3": attribute "songCount" is declared by neither schema type Directory nor its OpenAPI counterpart
+    ledger: unledgered
   presence subsonic-response/directory/songCount
     navidrome: attribute "3"
     gonic: absent

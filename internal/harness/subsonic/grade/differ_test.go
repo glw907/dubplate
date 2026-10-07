@@ -370,3 +370,50 @@ func TestDecode(t *testing.T) {
 		})
 	}
 }
+
+// TestXMLElementPaths pins the path of every element by ordinal: a
+// repeated name is indexed from zero, a single child is not, and indexes
+// count only the siblings of that name.
+func TestXMLElementPaths(t *testing.T) {
+	tests := []struct {
+		name    string
+		body    string
+		want    []string
+		wantErr string
+	}{
+		{"root only", `<r/>`, []string{"r"}, ""},
+		{
+			"single child is not indexed", `<r><a><b/></a></r>`,
+			[]string{"r", "r/a", "r/a/b"}, "",
+		},
+		{
+			"repeated name is indexed", `<r><a/><a/></r>`,
+			[]string{"r", "r/a/0", "r/a/1"}, "",
+		},
+		{
+			"other siblings do not shift the index", `<r><a/><x/><a><b/></a></r>`,
+			[]string{"r", "r/a/0", "r/x", "r/a/1", "r/a/1/b"}, "",
+		},
+		{
+			"document order is depth first", `<r><a><c/><c/></a><b><c/></b></r>`,
+			[]string{"r", "r/a", "r/a/c/0", "r/a/c/1", "r/b", "r/b/c"}, "",
+		},
+		{"malformed", `<r><a></b></r>`, nil, "closed by"},
+		{"no element", ` `, nil, "no root element"},
+		{"second root", `<r/><s/>`, nil, "second root"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := xmlElementPaths([]byte(tt.body))
+			if tt.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+					t.Fatalf("err = %v, want %q", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil || !slices.Equal(got, tt.want) {
+				t.Errorf("paths = %q, %v; want %q", got, err, tt.want)
+			}
+		})
+	}
+}
