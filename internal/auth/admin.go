@@ -203,7 +203,7 @@ func (a *rosterAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // list answers the whole roster or, when the roster fails to load,
 // failed alone, never a partial list.
 func (a *rosterAPI) list(w http.ResponseWriter, r *http.Request) {
-	members, err := a.cfg.Roster.List()
+	members, err := a.cfg.Roster.List(r.Context())
 	if err != nil {
 		a.cfg.Logger.Error("roster listing failed", "reason", err.Error(), "client_ip", a.cfg.ClientIP(r))
 		writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
@@ -211,7 +211,7 @@ func (a *rosterAPI) list(w http.ResponseWriter, r *http.Request) {
 	}
 	listing := rosterListing{Members: make([]rosterEntry, 0, len(members))}
 	for _, m := range members {
-		listing.Members = append(listing.Members, rosterEntry(m))
+		listing.Members = append(listing.Members, rosterEntry{Address: m.Address, DisplayName: m.DisplayName, Username: m.Username, Admin: m.Admin})
 	}
 	if r.Method == http.MethodHead {
 		writeJSONHeader(w, http.StatusOK)

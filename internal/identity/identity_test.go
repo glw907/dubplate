@@ -428,9 +428,8 @@ func TestIdentity_Valid(t *testing.T) {
 }
 
 // TestIdentity_PrincipalDistinctFromAddress proves the two fields do
-// not collapse to one another: rung 6's surrogate-id substitution
-// (2.0 hook 5) depends on Principal being free to diverge from
-// Address.
+// not collapse to one another: Principal carries a username, which
+// differs from the login address.
 func TestIdentity_PrincipalDistinctFromAddress(t *testing.T) {
 	id := Identity{
 		Address:   "alice@example.com",

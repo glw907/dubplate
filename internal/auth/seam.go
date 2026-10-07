@@ -42,8 +42,8 @@ type Seam interface {
 // verified.
 type VerifiedIdentity struct {
 	// Identity is the verified login, carrying the login address, the
-	// resolved principal, the display name, the source, and the
-	// channel it was asserted on.
+	// member's id, the resolved principal, the display name, the
+	// source, and the channel it was asserted on.
 	Identity identity.Identity
 
 	// Admin is read from the roster record at the seam, never from
@@ -109,7 +109,7 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 	if err := m.epoch.CheckSession(sess); err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
-	member, err := m.roster.Lookup(sess.Address)
+	member, err := m.roster.Lookup(r.Context(), sess.Address)
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
@@ -117,6 +117,7 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 	result := VerifiedIdentity{
 		Identity: identity.Identity{
 			Address:     member.Address,
+			UserID:      member.ID,
 			Principal:   member.principal(),
 			DisplayName: member.DisplayName,
 			Source:      magicLinkSource,

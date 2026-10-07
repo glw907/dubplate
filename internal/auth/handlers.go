@@ -206,7 +206,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeInvalid})
 		return
 	}
-	member, err := h.cfg.Roster.Lookup(address)
+	member, err := h.cfg.Roster.Lookup(r.Context(), address)
 	known := err == nil
 	if err != nil && !errors.Is(err, ErrMemberNotFound) {
 		// A roster that fails to load is never reported as an unknown
@@ -252,7 +252,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !known {
-		contact, err := h.adminContact()
+		contact, err := h.adminContact(r.Context())
 		if err != nil {
 			log.Error("auth roster unavailable", "reason", err.Error())
 			writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
@@ -303,8 +303,8 @@ func (h *handlers) logSendFailure(log *slog.Logger, err error) {
 
 // adminContact returns the first admin on the roster, or nil when the
 // roster names none. A roster that fails to load returns its error.
-func (h *handlers) adminContact() (*adminContact, error) {
-	members, err := h.cfg.Roster.List()
+func (h *handlers) adminContact(ctx context.Context) (*adminContact, error) {
+	members, err := h.cfg.Roster.List(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	value, sess, err := h.consume(now, r.PostForm.Get(tokenField))
+	value, sess, err := h.consume(r.Context(), now, r.PostForm.Get(tokenField))
 	if err != nil {
 		log.Info("auth link consumption failed", "reason", err.Error())
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeRefused})
@@ -357,12 +357,12 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 
 // consume verifies token and consumes its nonce, returning the signed
 // session it mints. Any non-nil error is a refusal.
-func (h *handlers) consume(now time.Time, token string) (string, Session, error) {
+func (h *handlers) consume(ctx context.Context, now time.Time, token string) (string, Session, error) {
 	tok, err := VerifyLink(h.cfg.LinkSecret, h.cfg.PreviousLinkSecret, token, now)
 	if err != nil {
 		return "", Session{}, err
 	}
-	if _, err := h.cfg.Roster.Lookup(tok.Address); err != nil {
+	if _, err := h.cfg.Roster.Lookup(ctx, tok.Address); err != nil {
 		return "", Session{}, err
 	}
 	if err := h.cfg.Epoch.CheckLink(tok); err != nil {

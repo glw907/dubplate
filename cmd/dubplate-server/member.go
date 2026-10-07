@@ -146,7 +146,7 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(*cobra.Command, []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfg, err := config.Load(environ, reg)
 			if err != nil {
 				return err
@@ -159,7 +159,7 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 			if err != nil {
 				return err
 			}
-			members, err := roster.List()
+			members, err := roster.List(cmd.Context())
 			if err != nil {
 				return err
 			}

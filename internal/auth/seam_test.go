@@ -303,3 +303,36 @@ func TestMagicLinkSeam_Read(t *testing.T) {
 		t.Errorf("Read = %v, want %v", got, bumpTime.Truncate(time.Second))
 	}
 }
+
+// TestMagicLinkSeam_VerifyIdentity_UsersTable proves the seam resolves a
+// session through the users table: the identity carries the row's id as
+// UserID and the row's username as Principal. The member's address and
+// username differ, so a Principal built from the address fails.
+func TestMagicLinkSeam_VerifyIdentity_UsersTable(t *testing.T) {
+	h := newUsersStore(t)
+	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
+	seam := NewMagicLinkSeam(NewRoster(h), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), seamLifetime, seamCap)
+	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", seamBirth, seamLifetime, seamCap)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+
+	got, err := seam.VerifyIdentity(requestWithSession(t, value), seamBirth.Add(time.Hour), false)
+	if err != nil {
+		t.Fatalf("VerifyIdentity: %v", err)
+	}
+	want := identity.Identity{
+		Address:     "alice@example.com",
+		UserID:      identity.UserID{0xa1, 0x1c, 0xe0},
+		Principal:   "ally",
+		DisplayName: "Alice",
+		Source:      magicLinkSource,
+		Channel:     identity.ChannelCookie,
+	}
+	if got.Identity != want {
+		t.Errorf("Identity = %+v, want %+v", got.Identity, want)
+	}
+	if got.Admin {
+		t.Error("Admin = true, want the row's false")
+	}
+}

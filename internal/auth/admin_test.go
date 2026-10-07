@@ -583,7 +583,7 @@ func TestRosterAPI_Post(t *testing.T) {
 					t.Errorf("audit record[%q] = %v, want %v", key, got, want)
 				}
 			}
-			if _, err := fx.roster.Lookup("new@example.com"); err != nil {
+			if _, err := fx.roster.Lookup(t.Context(), "new@example.com"); err != nil {
 				t.Errorf("Lookup(new member) after added: %v", err)
 			}
 		})
@@ -714,7 +714,7 @@ func TestRosterAPI_PostWriteUnconfirmed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenRoster: %v", err)
 	}
-	if _, err := reopened.Lookup("new@example.com"); err != nil {
+	if _, err := reopened.Lookup(t.Context(), "new@example.com"); err != nil {
 		t.Errorf("Lookup(new member) after write_unconfirmed: %v; want the member on disk", err)
 	}
 }
@@ -750,4 +750,34 @@ func TestRosterAPI_PostBusy(t *testing.T) {
 		t.Errorf("busy answered after %v, want just past the %v wait", elapsed, wait)
 	}
 	assertUnchanged(t, fx.rosterPath, before)
+}
+
+// TestRosterAPI_PostDuplicateUsernameOverUsersTable proves the page's
+// half of the username rule on the users table: through the gate, a new
+// address asking for an existing username in another case answers
+// duplicate_username, never a constraint failure's 500, and writes
+// nothing.
+func TestRosterAPI_PostDuplicateUsernameOverUsersTable(t *testing.T) {
+	h := newUsersStore(t)
+	insertUsers(t, h, liveAdmin)
+	roster := NewRoster(h)
+	logs := newLogCapture()
+	cfg := AdminConfig{
+		Seam:     NewMagicLinkSeam(roster, newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), seamLifetime, seamCap),
+		Roster:   roster,
+		ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
+		Now:      func() time.Time { return gateNow },
+		Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
+		BodyCap:  4096,
+	}
+	before := dumpUsers(t, h)
+
+	body := "address=new%40example.com&display_name=New&username=GROUPADMIN"
+	w := serveOne(NewRosterAPI(cfg), rosterRequest(http.MethodPost, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), body))
+	if w.Code != http.StatusConflict || outcomeOf(t, w) != outcomeDuplicateUsername {
+		t.Fatalf("POST = %d %s, want 409 %s", w.Code, w.Body, outcomeDuplicateUsername)
+	}
+	if after := dumpUsers(t, h); after != before {
+		t.Errorf("a refused POST changed the users table:\nbefore %s\nafter  %s", before, after)
+	}
 }

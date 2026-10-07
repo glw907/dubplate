@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -53,7 +54,7 @@ func newAdminRoster(t *testing.T) (*Roster, string) {
 // not load.
 func mustList(t *testing.T, r *Roster) []Member {
 	t.Helper()
-	members, err := r.List()
+	members, err := r.List(t.Context())
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -336,7 +337,7 @@ func TestRoster_LookupErrorNamesNoAddress(t *testing.T) {
 		t.Fatalf("OpenRoster: %v", err)
 	}
 
-	_, err = roster.Lookup(first + ", " + second)
+	_, err = roster.Lookup(t.Context(), first+", "+second)
 	if !errors.Is(err, ErrMemberNotFound) {
 		t.Fatalf("Lookup() error = %v, want it to wrap ErrMemberNotFound", err)
 	}
@@ -384,7 +385,7 @@ func TestRoster_LookupCaseInsensitive(t *testing.T) {
 		t.Fatalf("OpenRoster: %v", err)
 	}
 
-	got, err := roster.Lookup("alice@EXAMPLE.com")
+	got, err := roster.Lookup(t.Context(), "alice@EXAMPLE.com")
 	if err != nil {
 		t.Fatalf("Lookup: %v", err)
 	}
@@ -392,7 +393,7 @@ func TestRoster_LookupCaseInsensitive(t *testing.T) {
 		t.Errorf("Lookup().Address = %q, want %q", got.Address, "alice@example.com")
 	}
 
-	if _, err := roster.Lookup("nobody@example.com"); !errors.Is(err, ErrMemberNotFound) {
+	if _, err := roster.Lookup(t.Context(), "nobody@example.com"); !errors.Is(err, ErrMemberNotFound) {
 		t.Errorf("Lookup(unknown) error = %v, want ErrMemberNotFound", err)
 	}
 }
@@ -503,7 +504,7 @@ func TestValidateWriteCandidate_UsernameRequired(t *testing.T) {
 	if _, err := validateWriteCandidate(candidate); !errors.Is(err, errMissingUsername) {
 		t.Errorf("validateWriteCandidate(no username) error = %v, want it to wrap errMissingUsername", err)
 	}
-	if _, err := memberRecord(candidate).validate(); err != nil {
+	if _, err := recordOf(candidate).validate(); err != nil {
 		t.Errorf("validate(no username) error = %v, want nil: the loader keeps it optional", err)
 	}
 }
@@ -940,7 +941,7 @@ func TestAddMember_WriteReReadAndMode(t *testing.T) {
 		t.Fatalf("AddMember: %v", err)
 	}
 
-	got, err := roster.Lookup("alice@example.com")
+	got, err := roster.Lookup(t.Context(), "alice@example.com")
 	if err != nil {
 		t.Fatalf("Lookup after AddMember: %v", err)
 	}
@@ -1328,7 +1329,7 @@ func TestRoster_ReloadsChangedFile(t *testing.T) {
 			if err != nil {
 				t.Fatalf("OpenRoster: %v", err)
 			}
-			if _, err := roster.Lookup("alice@example.com"); err != nil {
+			if _, err := roster.Lookup(t.Context(), "alice@example.com"); err != nil {
 				t.Fatalf("Lookup(alice) before the change: %v", err)
 			}
 
@@ -1338,7 +1339,7 @@ func TestRoster_ReloadsChangedFile(t *testing.T) {
 				address string
 				want    error
 			}{{"alice@example.com", tt.wantAlice}, {"bob@example.com", tt.wantBob}} {
-				_, err := roster.Lookup(row.address)
+				_, err := roster.Lookup(t.Context(), row.address)
 				if row.want == nil && err != nil {
 					t.Errorf("Lookup(%s) error = %v, want nil", row.address, err)
 				}
@@ -1347,7 +1348,7 @@ func TestRoster_ReloadsChangedFile(t *testing.T) {
 				}
 			}
 			if tt.wantBob != nil {
-				if _, err := roster.List(); !errors.Is(err, tt.wantBob) {
+				if _, err := roster.List(t.Context()); !errors.Is(err, tt.wantBob) {
 					t.Errorf("List() error = %v, want it to wrap %v", err, tt.wantBob)
 				}
 			}
@@ -1417,8 +1418,8 @@ func TestRoster_ModTimeTrustWindow(t *testing.T) {
 				t.Fatal("fixture: the rewrite changed the inode, the size, or the modification time")
 			}
 
-			_, aliceErr := roster.Lookup("alice@example.com")
-			_, carolErr := roster.Lookup("carol@example.com")
+			_, aliceErr := roster.Lookup(t.Context(), "alice@example.com")
+			_, carolErr := roster.Lookup(t.Context(), "carol@example.com")
 			if tt.wantOld {
 				if aliceErr != nil || !errors.Is(carolErr, ErrMemberNotFound) {
 					t.Errorf("Lookup(alice) = %v, Lookup(carol) = %v; want the cached answer (alice resolves, carol does not)", aliceErr, carolErr)
@@ -1468,7 +1469,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 			writeInPlace(t, path, bobRemoved)
 
 			if lookupFirst {
-				if _, err := server.Lookup("bob@example.com"); !errors.Is(err, ErrMemberNotFound) {
+				if _, err := server.Lookup(t.Context(), "bob@example.com"); !errors.Is(err, ErrMemberNotFound) {
 					t.Errorf("server Lookup(bob) after the hand removal error = %v, want ErrMemberNotFound", err)
 				}
 			}
@@ -1488,7 +1489,7 @@ func TestRoster_CrossProcessWrites(t *testing.T) {
 			if !slices.Equal(got, want) {
 				t.Errorf("final file members = %v, want %v", got, want)
 			}
-			if _, err := server.Lookup("bob@example.com"); !errors.Is(err, ErrMemberNotFound) {
+			if _, err := server.Lookup(t.Context(), "bob@example.com"); !errors.Is(err, ErrMemberNotFound) {
 				t.Errorf("server Lookup(bob) after its add error = %v, want ErrMemberNotFound", err)
 			}
 		})
@@ -1646,7 +1647,7 @@ func TestAddMember_BusyWhileLockHeld(t *testing.T) {
 		t.Fatalf("AddMember() returned %v without waiting on the held directory lock", err)
 	}
 
-	if _, err := roster.Lookup("alice@example.com"); err != nil {
+	if _, err := roster.Lookup(t.Context(), "alice@example.com"); err != nil {
 		t.Errorf("Lookup(alice) while a writer waits error = %v, want nil", err)
 	}
 	if timeout.Err() != nil {
@@ -1842,7 +1843,7 @@ func TestRosterWrites_AdminInvariantAndGrant(t *testing.T) {
 			if err != nil {
 				t.Fatalf("OpenRoster after the write: %v", err)
 			}
-			got, err := onDisk.Lookup(tt.candidate.Address)
+			got, err := onDisk.Lookup(t.Context(), tt.candidate.Address)
 			if err != nil {
 				t.Fatalf("Lookup(candidate) after the write: %v", err)
 			}
@@ -2181,9 +2182,438 @@ func TestValidateWriteCandidate_BlankDisplayName(t *testing.T) {
 			if !tt.wantErr && err != nil {
 				t.Errorf("validateWriteCandidate(display name %q) error = %v, want nil", tt.displayName, err)
 			}
-			if _, err := memberRecord(candidate).validate(); err != nil {
+			if _, err := recordOf(candidate).validate(); err != nil {
 				t.Errorf("validate(display name %q) error = %v, want nil: the loader keeps admitting it", tt.displayName, err)
 			}
+		})
+	}
+}
+
+// usersBusy is the busy timeout every users-table test store opens with.
+const usersBusy = 5 * time.Second
+
+// newUsersStore creates a current store under t.TempDir() and returns
+// its serve-mode handle, closed at cleanup.
+func newUsersStore(t *testing.T) *store.Handle {
+	t.Helper()
+	h, err := store.OpenServe(context.Background(), t.TempDir(), store.ServeOptions{
+		BusyTimeout:   usersBusy,
+		MigrationWait: 30 * time.Second,
+		Keep:          1,
+		Logger:        slog.New(slog.DiscardHandler),
+	})
+	if err != nil {
+		t.Fatalf("OpenServe: %v", err)
+	}
+	t.Cleanup(func() { _ = h.Close() })
+	return h
+}
+
+// writeCtx returns a context carrying the deadline every store write
+// needs.
+func writeCtx(t *testing.T) context.Context {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	t.Cleanup(cancel)
+	return ctx
+}
+
+// userRow is a users row a test writes directly, before the code under
+// test runs. No production path removes a member, so a tombstoned row
+// exists only this way.
+type userRow struct {
+	id                             identity.UserID
+	address, displayName, username string
+	admin, tombstoned              bool
+	createdAt                      int64
+}
+
+// insertUsers writes rows into h's users table in one transaction.
+func insertUsers(t *testing.T, h *store.Handle, rows ...userRow) {
+	t.Helper()
+	err := h.Update(writeCtx(t), func(ctx context.Context, tx *store.Tx) error {
+		for _, r := range rows {
+			var tombstonedAt any
+			if r.tombstoned {
+				tombstonedAt = r.createdAt + 1
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				r.id[:], r.address, r.displayName, r.username, r.admin, tombstonedAt, r.createdAt, r.createdAt); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("insert fixture users: %v", err)
+	}
+}
+
+// storedUser is one users row as the table holds it.
+type storedUser struct {
+	id                    []byte
+	displayName, username string
+	admin                 int
+	tombstoned            bool
+}
+
+// readUser returns address's users row, failing the test when there is
+// none.
+func readUser(t *testing.T, h *store.Handle, address string) storedUser {
+	t.Helper()
+	var u storedUser
+	err := h.QueryRow(t.Context(), `SELECT id, display_name, username, admin, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, address).
+		Scan(&u.id, &u.displayName, &u.username, &u.admin, &u.tombstoned)
+	if err != nil {
+		t.Fatalf("read users row %s: %v", address, err)
+	}
+	return u
+}
+
+// dumpUsers renders every users row, so a refused write can be shown to
+// have changed none.
+func dumpUsers(t *testing.T, h *store.Handle) string {
+	t.Helper()
+	rows, err := h.Query(t.Context(), `SELECT hex(id), address, display_name, username, admin, coalesce(tombstoned_at, -1), created_at, updated_at FROM users ORDER BY address`)
+	if err != nil {
+		t.Fatalf("dump users: %v", err)
+	}
+	defer func() { _ = rows.Close() }()
+	var b strings.Builder
+	for rows.Next() {
+		var id, address, displayName, username string
+		var admin, tombstonedAt, createdAt, updatedAt int64
+		if err := rows.Scan(&id, &address, &displayName, &username, &admin, &tombstonedAt, &createdAt, &updatedAt); err != nil {
+			t.Fatalf("scan users: %v", err)
+		}
+		fmt.Fprintf(&b, "%s %s %q %s %d %d %d %d\n", id, address, displayName, username, admin, tombstonedAt, createdAt, updatedAt)
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatalf("dump users: %v", err)
+	}
+	return b.String()
+}
+
+// Fixed ids for the users-table fixtures, so a test can assert an id
+// byte for byte.
+var (
+	adminID  = identity.UserID{0xad, 0x01}
+	aliceID  = identity.UserID{0xa1, 0x1c, 0xe0}
+	goneID   = identity.UserID{0x60, 0x0e}
+	formerID = identity.UserID{0xf0, 0x12}
+	plainID  = identity.UserID{0x9a, 0x17}
+)
+
+// liveAdmin is a live admin row every cookie-channel fixture names as
+// its actor.
+var liveAdmin = userRow{id: adminID, address: "admin@example.com", displayName: "Admin", username: "groupadmin", admin: true, createdAt: 100}
+
+// TestUsersRoster_Lookup proves the users-backed lookup: a live row
+// resolves with its id, an absent or tombstoned row and an address that
+// does not normalize are ErrMemberNotFound, and a store error is never
+// mistaken for an unknown address. The tombstoned row fails the
+// "tombstoned_at IS NULL" filter's removal.
+func TestUsersRoster_Lookup(t *testing.T) {
+	alice := userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", admin: true, createdAt: 100}
+	tests := []struct {
+		name    string
+		rows    []userRow
+		address string
+		close   bool
+		want    Member
+		wantErr error
+	}{
+		{
+			name:    "a live row",
+			rows:    []userRow{alice},
+			address: "Alice@Example.COM",
+			want:    Member{ID: aliceID, Address: "alice@example.com", DisplayName: "Alice", Username: "ally", Admin: true},
+		},
+		{name: "no row", rows: []userRow{alice}, address: "bob@example.com", wantErr: ErrMemberNotFound},
+		{
+			name:    "only a tombstoned row",
+			rows:    []userRow{{id: goneID, address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true, createdAt: 100}},
+			address: "gone@example.com",
+			wantErr: ErrMemberNotFound,
+		},
+		{name: "an address that does not normalize", rows: []userRow{alice}, address: "alice@example.com, bob@example.com", wantErr: ErrMemberNotFound},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newUsersStore(t)
+			insertUsers(t, h, tt.rows...)
+			got, err := NewRoster(h).Lookup(t.Context(), tt.address)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("Lookup(%q) error = %v, want %v", tt.address, err, tt.wantErr)
+				}
+				if strings.Contains(err.Error(), "example.com") {
+					t.Errorf("Lookup error = %q, want it to name no address", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Lookup(%q): %v", tt.address, err)
+			}
+			if got != tt.want {
+				t.Errorf("Lookup(%q) = %+v, want %+v", tt.address, got, tt.want)
+			}
+		})
+	}
+
+	t.Run("the store closed", func(t *testing.T) {
+		h := newUsersStore(t)
+		insertUsers(t, h, alice)
+		roster := NewRoster(h)
+		if err := h.Close(); err != nil {
+			t.Fatalf("close store: %v", err)
+		}
+		_, err := roster.Lookup(t.Context(), "alice@example.com")
+		if err == nil || errors.Is(err, ErrMemberNotFound) {
+			t.Fatalf("Lookup on a closed store error = %v, want the store's error, not ErrMemberNotFound", err)
+		}
+	})
+}
+
+// TestUsersRoster_List proves List answers live rows only, in
+// created_at order and then id order, whatever order they were written
+// in.
+func TestUsersRoster_List(t *testing.T) {
+	t.Run("an empty table", func(t *testing.T) {
+		got, err := NewRoster(newUsersStore(t)).List(t.Context())
+		if err != nil {
+			t.Fatalf("List: %v", err)
+		}
+		if len(got) != 0 {
+			t.Errorf("List = %+v, want none", got)
+		}
+	})
+
+	t.Run("two live rows and one tombstoned row", func(t *testing.T) {
+		h := newUsersStore(t)
+		insertUsers(t, h,
+			userRow{id: aliceID, address: "later@example.com", displayName: "Later", username: "later", createdAt: 300},
+			userRow{id: goneID, address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true, createdAt: 50},
+			userRow{id: adminID, address: "first@example.com", displayName: "First", username: "first", admin: true, createdAt: 100},
+		)
+		got, err := NewRoster(h).List(t.Context())
+		if err != nil {
+			t.Fatalf("List: %v", err)
+		}
+		want := []Member{
+			{ID: adminID, Address: "first@example.com", DisplayName: "First", Username: "first", Admin: true},
+			{ID: aliceID, Address: "later@example.com", DisplayName: "Later", Username: "later"},
+		}
+		if !slices.Equal(got, want) {
+			t.Errorf("List = %+v, want %+v", got, want)
+		}
+	})
+
+	t.Run("one created_at orders by id", func(t *testing.T) {
+		h := newUsersStore(t)
+		insertUsers(t, h,
+			userRow{id: identity.UserID{0x02}, address: "two@example.com", displayName: "Two", username: "two", admin: true, createdAt: 100},
+			userRow{id: identity.UserID{0x01}, address: "one@example.com", displayName: "One", username: "one", createdAt: 100},
+		)
+		got, err := NewRoster(h).List(t.Context())
+		if err != nil {
+			t.Fatalf("List: %v", err)
+		}
+		if len(got) != 2 || got[0].Address != "one@example.com" || got[1].Address != "two@example.com" {
+			t.Errorf("List = %+v, want one@ then two@", got)
+		}
+	})
+}
+
+// TestUsersRoster_AddMember proves every write rule AddMember applies in
+// its one transaction, one subtest per state. A refused row changes no
+// users row. The reactivation rows assert the id byte for byte and
+// re-add under the row's own old username, so a fresh id or a
+// self-collision both fail them; the cookie-channel reactivation of a
+// former admin fails a write that keeps the stored flag. The tombstoned
+// username row answers errDuplicateUsername only when the collision
+// read reaches tombstoned rows; otherwise the insert meets the UNIQUE
+// constraint instead.
+func TestUsersRoster_AddMember(t *testing.T) {
+	gone := userRow{id: goneID, address: "gone@example.com", displayName: "Old Name", username: "gone", tombstoned: true, createdAt: 50}
+	formerAdmin := userRow{id: formerID, address: "former@example.com", displayName: "Former", username: "former", admin: true, tombstoned: true, createdAt: 60}
+	plain := userRow{id: plainID, address: "plain@example.com", displayName: "Plain", username: "plain", createdAt: 70}
+
+	tests := []struct {
+		name      string
+		rows      []userRow
+		candidate Member
+		actor     string
+		channel   identity.Channel
+		wantErr   error
+		wantText  string
+		check     func(t *testing.T, h *store.Handle)
+	}{
+		{
+			name:      "a new address and username",
+			rows:      []userRow{liveAdmin},
+			candidate: Member{Address: "New@Example.com", DisplayName: "New", Username: "newbie"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			check: func(t *testing.T, h *store.Handle) {
+				u := readUser(t, h, "new@example.com")
+				if len(u.id) != len(identity.UserID{}) || bytes.Equal(u.id, make([]byte, len(u.id))) || bytes.Equal(u.id, adminID[:]) {
+					t.Errorf("new row id = %x, want a fresh 16-byte id", u.id)
+				}
+				if u.username != "newbie" || u.displayName != "New" || u.admin != 0 || u.tombstoned {
+					t.Errorf("new row = %+v, want username newbie, display New, not admin, live", u)
+				}
+			},
+		},
+		{
+			name:      "a live row on the address",
+			rows:      []userRow{liveAdmin, plain},
+			candidate: Member{Address: "PLAIN@example.com", DisplayName: "Again", Username: "again"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errDuplicateAddress,
+		},
+		{
+			name:      "a tombstoned row on the address, re-added with its own old username",
+			rows:      []userRow{liveAdmin, gone},
+			candidate: Member{Address: "gone@example.com", DisplayName: "New Name", Username: "gone"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			check: func(t *testing.T, h *store.Handle) {
+				u := readUser(t, h, "gone@example.com")
+				if !bytes.Equal(u.id, goneID[:]) {
+					t.Errorf("reactivated id = %x, want the old id %x", u.id, goneID[:])
+				}
+				if u.tombstoned || u.displayName != "New Name" || u.username != "gone" {
+					t.Errorf("reactivated row = %+v, want live, New Name, gone", u)
+				}
+			},
+		},
+		{
+			name:      "a tombstoned admin row, re-added on the cookie channel",
+			rows:      []userRow{liveAdmin, formerAdmin},
+			candidate: Member{Address: "former@example.com", DisplayName: "Former", Username: "former"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			check: func(t *testing.T, h *store.Handle) {
+				u := readUser(t, h, "former@example.com")
+				if !bytes.Equal(u.id, formerID[:]) {
+					t.Errorf("reactivated id = %x, want the old id %x", u.id, formerID[:])
+				}
+				if u.admin != 0 || u.tombstoned {
+					t.Errorf("reactivated row = %+v, want admin 0 and live", u)
+				}
+			},
+		},
+		{
+			name:      "another live row's username, differing only in ASCII case",
+			rows:      []userRow{liveAdmin},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "GroupAdmin"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errDuplicateUsername,
+		},
+		{
+			name:      "a new address asking for a tombstoned row's username, differing in ASCII case",
+			rows:      []userRow{liveAdmin, gone},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "GONE"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errDuplicateUsername,
+		},
+		{
+			name:      "no username",
+			rows:      []userRow{liveAdmin},
+			candidate: Member{Address: "new@example.com", DisplayName: "New"},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errMissingUsername,
+		},
+		{
+			name:      "admin requested on the cookie channel",
+			rows:      []userRow{liveAdmin},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie", Admin: true},
+			actor:     "admin@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errAdminGrantForbidden,
+		},
+		{
+			name:      "admin on the command-line channel",
+			candidate: Member{Address: "first@example.com", DisplayName: "First", Username: "first", Admin: true},
+			actor:     "operator",
+			channel:   identity.ChannelCommandLine,
+			check: func(t *testing.T, h *store.Handle) {
+				if u := readUser(t, h, "first@example.com"); u.admin != 1 || u.tombstoned {
+					t.Errorf("command-line admin row = %+v, want admin 1 and live", u)
+				}
+			},
+		},
+		{
+			name:      "a cookie actor with no live row",
+			rows:      []userRow{liveAdmin},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
+			actor:     "stranger@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errActorNotAdmin,
+		},
+		{
+			name:      "a cookie actor with a non-admin live row",
+			rows:      []userRow{liveAdmin, plain},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
+			actor:     "plain@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errActorNotAdmin,
+		},
+		{
+			name:      "a cookie actor with only a tombstoned admin row",
+			rows:      []userRow{liveAdmin, formerAdmin},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
+			actor:     "former@example.com",
+			channel:   identity.ChannelCookie,
+			wantErr:   errActorNotAdmin,
+		},
+		{
+			name:      "a command-line non-admin add into an empty table",
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
+			actor:     "operator",
+			channel:   identity.ChannelCommandLine,
+			wantErr:   errNoAdmin,
+			wantText:  "member add --admin",
+		},
+		{
+			name:      "a command-line non-admin add beside only a tombstoned admin",
+			rows:      []userRow{formerAdmin},
+			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
+			actor:     "operator",
+			channel:   identity.ChannelCommandLine,
+			wantErr:   errNoAdmin,
+			wantText:  "member add --admin",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newUsersStore(t)
+			insertUsers(t, h, tt.rows...)
+			before := dumpUsers(t, h)
+
+			err := NewRoster(h).AddMember(writeCtx(t), tt.candidate, tt.actor, tt.channel, "192.0.2.1", slog.New(slog.DiscardHandler))
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("AddMember error = %v, want %v", err, tt.wantErr)
+				}
+				if !strings.Contains(err.Error(), tt.wantText) {
+					t.Errorf("AddMember error = %q, want it to contain %q", err, tt.wantText)
+				}
+				if after := dumpUsers(t, h); after != before {
+					t.Errorf("a refused add changed the users table:\nbefore %s\nafter  %s", before, after)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("AddMember: %v", err)
+			}
+			tt.check(t, h)
 		})
 	}
 }

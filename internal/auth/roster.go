@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"unicode"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -151,16 +153,21 @@ var (
 	errNoAdmin = errors.New("auth: the roster must name at least one admin")
 
 	// errActorNotAdmin reports that a change arriving over the network
-	// named an actor whose record in the roster on disk does not hold
-	// the admin flag.
+	// named an actor with no live roster record holding the admin flag,
+	// as the write itself reads the roster.
 	errActorNotAdmin = errors.New("auth: the actor is not an admin")
 )
 
-// Member is one roster entry (R1): a login address, a display name, an
-// optional stable principal, and the admin flag. The admin flag is the
-// whole of rung 5's authorization vocabulary (spec:1111-1115): a later
-// rung reaching for a role model is adding one, not extending one.
+// Member is one roster entry (R1): a durable id, a login address, a
+// display name, an optional stable principal, and the admin flag. The
+// admin flag is the whole of rung 5's authorization vocabulary
+// (spec:1111-1115): a later rung reaching for a role model is adding
+// one, not extending one.
 type Member struct {
+	// ID is the member's durable id, minted once by the store when the
+	// member is first added. It is zero for a member read from a roster
+	// file, which carries none.
+	ID identity.UserID
 	// Address is the member's login address, normalized by
 	// normalizeMemberAddress.
 	Address string
@@ -188,16 +195,20 @@ type memberRecord struct {
 	Admin       bool   `json:"admin"`
 }
 
-// Roster is the rung 5 member store (R1): one type opens the file,
-// validates it, answers a lookup, and lists the roster. No caller
-// outside this file knows the format is JSON, which is what makes
-// rung 6's substitution a change of one constructor.
+// Roster is the member store (R1): it answers a lookup, lists the
+// members, and adds one. [NewRoster] keeps the members in the store's
+// users table; [OpenRoster] and [CreateRoster] keep them in a JSON file.
+// No caller outside this file knows which backs a Roster.
 //
-// The file may change under a Roster: another process writes it, or an
-// operator edits it by hand. Every Lookup and List checks the file and
-// re-reads it when it has changed, and every write merges into the
-// copy on disk, never the copy in memory.
+// The file may change under a file-backed Roster: another process
+// writes it, or an operator edits it by hand. Every Lookup and List
+// checks the file and re-reads it when it has changed, and every write
+// merges into the copy on disk, never the copy in memory.
 type Roster struct {
+	// users is the store holding the members, or nil for a roster
+	// backed by the file at path.
+	users *store.Handle
+
 	path string
 
 	// mu guards snap. A writer holds it only to swap in the copy it
@@ -250,6 +261,15 @@ var errRosterWriteLanded = errors.New("auth: the roster change is on disk, but t
 // rename, which no real filesystem does on demand.
 var writeRosterStream = atomicfile.WriteStream
 
+// NewRoster returns a roster over the users table of the store h
+// opens. Each Lookup and List reads the table's committed state, and
+// AddMember writes it in one transaction, so another process's writes
+// through its own handle are seen at the next call. h must stay open
+// for the roster's life.
+func NewRoster(h *store.Handle) *Roster {
+	return &Roster{users: h}
+}
+
 // OpenRoster is the read-open (R1, R2): it reads and validates the
 // roster file at path, and never creates it, so a fresh install with
 // no roster fails closed rather than answering an empty one. A
@@ -276,7 +296,7 @@ func OpenRoster(path string) (*Roster, error) {
 // deployment owns that.
 func CreateRoster(ctx context.Context, path string, first Member, actor string, logger *slog.Logger) (*Roster, error) {
 	const channel = identity.ChannelCommandLine
-	member, actor, err := checkAddition(path, first, actor, channel)
+	member, actor, err := checkAddition(first, actor, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -353,6 +373,11 @@ func parseRoster(path string, data []byte) ([]Member, map[string]int, error) {
 	return members, byAddress, nil
 }
 
+// recordOf returns m's roster file entry, which carries no id.
+func recordOf(m Member) memberRecord {
+	return memberRecord{Address: m.Address, DisplayName: m.DisplayName, Username: m.Username, Admin: m.Admin}
+}
+
 // writeRoster writes members to path through atomicfile, so a reader
 // sees the old file or the new one and never a partial one. A failure
 // after the rename, when path already holds the new content, wraps
@@ -362,7 +387,7 @@ func writeRoster(path string, members []Member) error {
 	// than null, which the loader refuses.
 	records := make([]memberRecord, 0, len(members))
 	for _, m := range members {
-		records = append(records, memberRecord(m))
+		records = append(records, recordOf(m))
 	}
 	data, err := json.Marshal(rosterFile{SchemaVersion: rosterSchemaVersion, Members: records})
 	if err != nil {
@@ -518,11 +543,9 @@ func (s *rosterSnapshot) matches(path string) bool {
 		info.ModTime().Equal(s.info.ModTime())
 }
 
-// normalizeMemberAddress is the store's single resolution point (R1,
-// S20:367-373): the only place a login address becomes the identity
-// value the roster keys, compares, and looks members up by. Rung 6
-// substitutes a durable surrogate id here without touching a caller
-// (2.0 hook 5).
+// normalizeMemberAddress is the roster's single resolution point: the
+// only place a login address becomes the value the roster keys,
+// compares, and looks members up by.
 func normalizeMemberAddress(address string) (string, error) {
 	return identity.NormalizeAddress(address)
 }
@@ -600,7 +623,7 @@ func (rec memberRecord) validate() (Member, error) {
 // ASCII-printable check. A roster written before those rules existed
 // still loads through validate alone.
 func validateWriteCandidate(candidate Member) (Member, error) {
-	member, err := memberRecord(candidate).validate()
+	member, err := recordOf(candidate).validate()
 	if err != nil {
 		return Member{}, err
 	}
@@ -696,17 +719,21 @@ func isASCIIPrintable(s string) bool {
 // Lookup resolves address to its roster member, matching
 // case-insensitively on the normalized address, with normalization
 // happening before any keying, logging, or rate-limit lookup
-// (spec:1161-1163). It re-reads the file first when the file has
-// changed, and a re-read that fails returns its load error, never
-// ErrMemberNotFound, so a caller can tell a broken roster from an
-// unknown address.
-func (r *Roster) Lookup(address string) (Member, error) {
+// (spec:1161-1163). Over the users table only a live row answers; a
+// tombstoned row is ErrMemberNotFound. A file-backed roster re-reads
+// the file first when the file has changed. A store or load error is
+// returned as itself, never as ErrMemberNotFound, so a caller can tell
+// a broken roster from an unknown address.
+func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 	// The parse error is dropped rather than wrapped: net/mail quotes
 	// the unparsed remainder of its input, which would carry an address
 	// into an error this package promises never names one.
 	normalized, err := normalizeMemberAddress(address)
 	if err != nil {
 		return Member{}, fmt.Errorf("%w: address does not parse", ErrMemberNotFound)
+	}
+	if r.users != nil {
+		return r.lookupUser(ctx, normalized)
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -721,10 +748,14 @@ func (r *Roster) Lookup(address string) (Member, error) {
 	return snap.members[idx], nil
 }
 
-// List returns a copy of every member on the roster, in file order,
-// re-reading the file first when it has changed. A re-read that fails
-// returns its load error.
-func (r *Roster) List() ([]Member, error) {
+// List returns every member on the roster. Over the users table it
+// returns the live rows in the order they were first added; a
+// file-backed roster returns them in file order, re-reading the file
+// first when it has changed. A failed read returns its error.
+func (r *Roster) List(ctx context.Context) ([]Member, error) {
+	if r.users != nil {
+		return r.listUsers(ctx)
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	snap, err := r.current()
@@ -735,36 +766,48 @@ func (r *Roster) List() ([]Member, error) {
 }
 
 // AddMember validates actor and channel, then candidate against B9's
-// list and the write path's own rules, then, holding the roster's
-// directory lock, re-checks candidate's address and username
-// against the file as it is on disk, appends candidate to that disk
-// copy, writes the whole roster atomically, re-reads it, and logs one
-// audit record naming actor, channel, candidate.Address,
+// list and the write path's own rules, then writes candidate and logs
+// one audit record naming actor, channel, candidate.Address,
 // candidate.Admin, and clientIP. On identity.ChannelCookie the record
 // names actor normalized. On identity.ChannelCommandLine the record's
 // client_ip reads "local" whatever clientIP holds, so every record
-// keeps one shape. A write that fails after the new file reached disk
-// still logs the record, at warning level, and returns its error. The
-// lock wait ends with an error when ctx does. It is the roster's only
-// member write after CreateRoster.
+// keeps one shape. It is the roster's only member write after
+// CreateRoster.
+//
+// Over the users table the write is one store transaction, so ctx must
+// carry a deadline. A new address gets a fresh id; an address whose row
+// is tombstoned is reactivated under its old id, every field taken from
+// candidate. A username matching any other row, live or tombstoned,
+// compared case-insensitively, is refused.
+//
+// A file-backed roster holds its directory lock while it re-checks
+// candidate's address and username against the file as it is on disk,
+// appends candidate to that disk copy, writes the whole roster
+// atomically, and re-reads it; the lock wait ends with an error when
+// ctx does. A write that fails after the new file reached disk still
+// logs the record, at warning level, and returns its error.
 //
 // Only identity.ChannelCommandLine may set candidate.Admin; any other
-// channel is refused with errAdminGrantForbidden before the lock is
-// taken. On any other channel the actor must also hold the admin flag
-// in the disk copy re-read under the lock, so a hand edit demoting the
-// actor after a caller checked it still refuses the write. Whatever
-// the channel, the roster written must name at least one admin.
+// channel is refused with errAdminGrantForbidden before anything is
+// read. On any other channel the actor must also hold the admin flag in
+// the state the write decides on, read inside the write, so a demotion
+// after a caller checked the actor still refuses it. Whatever the
+// channel, the roster written must name at least one admin.
 //
-// Every check runs before the write, so a refused candidate, actor, or
-// channel changes no byte on disk.
+// Every check runs before the write lands, so a refused candidate,
+// actor, or channel changes nothing.
 func (r *Roster) AddMember(ctx context.Context, candidate Member, actor string, channel identity.Channel, clientIP string, logger *slog.Logger) error {
-	member, actor, err := checkAddition(r.path, candidate, actor, channel)
+	member, actor, err := checkAddition(candidate, actor, channel)
 	if err != nil {
 		return err
 	}
-	err = r.update(ctx, func(disk *rosterSnapshot) ([]Member, error) {
-		return addTo(r.path, disk, member, actor, channel)
-	})
+	if r.users != nil {
+		err = r.addUser(ctx, member, actor, channel)
+	} else {
+		err = r.update(ctx, func(disk *rosterSnapshot) ([]Member, error) {
+			return addTo(r.path, disk, member, actor, channel)
+		})
+	}
 	logAddition(ctx, logger, member, actor, channel, clientIP, err)
 	return err
 }
@@ -773,17 +816,17 @@ func (r *Roster) AddMember(ctx context.Context, candidate Member, actor string, 
 // the admin grant's channel, the actor's rule for its channel, and the
 // candidate's own fields. It returns the candidate as validated and the
 // actor as validateActor returns it.
-func checkAddition(path string, candidate Member, actor string, channel identity.Channel) (Member, string, error) {
+func checkAddition(candidate Member, actor string, channel identity.Channel) (Member, string, error) {
 	if candidate.Admin && channel != identity.ChannelCommandLine {
 		return Member{}, "", fmt.Errorf("%w: channel %s", errAdminGrantForbidden, channel)
 	}
 	actor, err := validateActor(actor, channel)
 	if err != nil {
-		return Member{}, "", fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
+		return Member{}, "", fmt.Errorf("%w: %w", ErrRosterRecordInvalid, err)
 	}
 	member, err := validateWriteCandidate(candidate)
 	if err != nil {
-		return Member{}, "", fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
+		return Member{}, "", fmt.Errorf("%w: %w", ErrRosterRecordInvalid, err)
 	}
 	return member, actor, nil
 }
@@ -810,6 +853,135 @@ func addTo(path string, disk *rosterSnapshot, member Member, actor string, chann
 		return nil, fmt.Errorf("%w: %s: %w", ErrRosterRecordInvalid, path, err)
 	}
 	return append(slices.Clone(disk.members), member), nil
+}
+
+// memberColumns are the users columns a Member is scanned from, in
+// scanMember's order.
+const memberColumns = `id, address, display_name, username, admin`
+
+// scanMember scans one users row, selected as memberColumns, through
+// scan.
+func scanMember(scan func(dest ...any) error) (Member, error) {
+	var (
+		m  Member
+		id []byte
+	)
+	if err := scan(&id, &m.Address, &m.DisplayName, &m.Username, &m.Admin); err != nil {
+		return Member{}, err
+	}
+	if len(id) != len(m.ID) {
+		return Member{}, fmt.Errorf("auth: a users row's id is %d bytes, want %d", len(id), len(m.ID))
+	}
+	m.ID = identity.UserID(id)
+	return m, nil
+}
+
+// lookupUser returns the live users row whose address is normalized.
+func (r *Roster) lookupUser(ctx context.Context, normalized string) (Member, error) {
+	row := r.users.QueryRow(ctx, `SELECT `+memberColumns+` FROM users WHERE address = ? AND tombstoned_at IS NULL`, normalized)
+	m, err := scanMember(row.Scan)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return Member{}, ErrMemberNotFound
+	case err != nil:
+		return Member{}, fmt.Errorf("auth: look up member: %w", err)
+	}
+	return m, nil
+}
+
+// listUsers returns every live users row, ordered by when it was first
+// added and then by id, so two rows added in one tick still list in one
+// stable order.
+func (r *Roster) listUsers(ctx context.Context) ([]Member, error) {
+	rows, err := r.users.Query(ctx, `SELECT `+memberColumns+` FROM users WHERE tombstoned_at IS NULL ORDER BY created_at, id`)
+	if err != nil {
+		return nil, fmt.Errorf("auth: list members: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+	var members []Member
+	for rows.Next() {
+		m, err := scanMember(rows.Scan)
+		if err != nil {
+			return nil, fmt.Errorf("auth: list members: %w", err)
+		}
+		members = append(members, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("auth: list members: %w", err)
+	}
+	return members, nil
+}
+
+// addUser writes member, already validated, into the users table in one
+// transaction. Every row the write decides on is read inside that
+// transaction, which holds the store's write lock from its start, so a
+// concurrent writer in this process or another cannot change the
+// answer between the read and the write. In order: an actor on any
+// channel but the command line must have a live row holding the admin
+// flag; a live row on member's address refuses the add, and a
+// tombstoned one is reactivated under its own id with every field,
+// the admin flag included, taken from member; any other row, live or
+// tombstoned, holding member's username compared case-insensitively
+// refuses the add; and the table must hold a live admin once the write
+// lands.
+func (r *Roster) addUser(ctx context.Context, member Member, actor string, channel identity.Channel) error {
+	return r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		if channel != identity.ChannelCommandLine {
+			// validateActor has already normalized a cookie actor.
+			var admin bool
+			err := tx.QueryRow(ctx, `SELECT admin FROM users WHERE address = ? AND tombstoned_at IS NULL`, actor).Scan(&admin)
+			switch {
+			case errors.Is(err, sql.ErrNoRows) || (err == nil && !admin):
+				return fmt.Errorf("%w: %w", ErrRosterRecordInvalid, errActorNotAdmin)
+			case err != nil:
+				return fmt.Errorf("auth: read the actor's row: %w", err)
+			}
+		}
+
+		var (
+			id         []byte
+			tombstoned bool
+		)
+		err := tx.QueryRow(ctx, `SELECT id, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, member.Address).Scan(&id, &tombstoned)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			// A new address: id stays nil, and the write inserts.
+		case err != nil:
+			return fmt.Errorf("auth: read the address's row: %w", err)
+		case !tombstoned:
+			return fmt.Errorf("%w: %w", ErrRosterRecordInvalid, errDuplicateAddress)
+		}
+
+		var taken bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE username = ? COLLATE NOCASE AND address != ?)`,
+			member.Username, member.Address).Scan(&taken); err != nil {
+			return fmt.Errorf("auth: read the username's rows: %w", err)
+		}
+		if taken {
+			return fmt.Errorf("%w: %w", ErrRosterRecordInvalid, errDuplicateUsername)
+		}
+
+		at := time.Now().UnixMicro()
+		if id != nil {
+			_, err = tx.Exec(ctx, `UPDATE users SET display_name = ?, username = ?, admin = ?, tombstoned_at = NULL, updated_at = ? WHERE id = ?`,
+				member.DisplayName, member.Username, member.Admin, at, id)
+		} else {
+			_, err = tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+				store.NewID(), member.Address, member.DisplayName, member.Username, member.Admin, at, at)
+		}
+		if err != nil {
+			return fmt.Errorf("auth: write the member's row: %w", err)
+		}
+
+		var adminLive bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE admin = 1 AND tombstoned_at IS NULL)`).Scan(&adminLive); err != nil {
+			return fmt.Errorf("auth: read the admins: %w", err)
+		}
+		if !adminLive {
+			return fmt.Errorf("%w: %w: add the first admin with dubplate-server member add --admin", ErrRosterRecordInvalid, errNoAdmin)
+		}
+		return nil
+	})
 }
 
 // principal returns the name the seam hands m's identity as its

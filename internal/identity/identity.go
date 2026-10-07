@@ -182,15 +182,23 @@ func (c Channel) Valid() bool {
 	return ok
 }
 
+// A UserID is a member's durable surrogate id: the 16-byte key the
+// store mints once when the member is first added, which outlives a
+// change of address or username. Per-member records key on it.
+type UserID [16]byte
+
 // Identity is a verified login. The zero value is not a valid
 // Identity; call [Identity.Valid] before trusting one.
 type Identity struct {
 	// Address is the login address, normalized by [NormalizeAddress].
 	Address string
-	// Principal is what names this member to a downstream consumer,
-	// kept separate from Address so rung 6 can substitute a durable
-	// surrogate id here without touching a call site that reads
-	// either field.
+	// UserID is the member's durable id as the store holds it. The
+	// zero value means the identity was never resolved against the
+	// store.
+	UserID UserID
+	// Principal is the member's username: the readable name a log
+	// line, an audit actor, or a music app knows the member by. It is
+	// never the durable key; UserID is.
 	Principal string
 	// DisplayName is the member's human-readable name.
 	DisplayName string

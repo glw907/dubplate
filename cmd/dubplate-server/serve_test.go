@@ -1031,7 +1031,7 @@ func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.OpenRoster: %v", err)
 	}
-	members, err := listRoster.List()
+	members, err := listRoster.List(t.Context())
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

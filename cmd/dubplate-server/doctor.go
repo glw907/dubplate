@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -107,7 +108,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// names the command that recovers it.
 			rosterFailed := false
 			if path, ok := selectedRosterPath(environ, reg); ok {
-				if status, failed := rosterRowStatus(path); failed {
+				if status, failed := rosterRowStatus(cmd.Context(), path); failed {
 					rosterFailed = true
 					if err := printRow(stdout, "roster", status); err != nil {
 						return err
@@ -228,12 +229,12 @@ func selectedRosterPath(environ []string, reg *config.Registry) (string, bool) {
 // rendered by rosterStatus, a roster that loads but names no admin, or
 // a roster whose directory the process cannot write, in the words
 // serve refuses to start with.
-func rosterRowStatus(path string) (string, bool) {
+func rosterRowStatus(ctx context.Context, path string) (string, bool) {
 	roster, err := auth.OpenRoster(path)
 	if err != nil {
 		return rosterStatus(err), true
 	}
-	members, err := roster.List()
+	members, err := roster.List(ctx)
 	if err != nil {
 		return rosterStatus(err), true
 	}
