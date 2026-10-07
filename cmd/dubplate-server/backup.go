@@ -195,12 +195,9 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	if err != nil {
 		return err
 	}
-	busyTimeout, parseErr, rangeErr := storeBusyTimeout(environ)
-	if parseErr != nil {
-		return parseErr
-	}
-	if rangeErr != nil {
-		return rangeErr
+	busyTimeout, err := storeBusyTimeout(environ)
+	if err != nil {
+		return err
 	}
 
 	logger := slog.New(slog.NewTextHandler(stderr, nil))

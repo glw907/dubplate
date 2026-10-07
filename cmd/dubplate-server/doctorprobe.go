@@ -57,20 +57,14 @@ func clientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	proxy, err := resolveTrustedProxy(cfg)
+	proxy, distinct, err := trustedProxy(cfg)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
 	if proxy.Mode() == serve.ModeDirect {
 		return proxy.Mode().String() + ": " + directAssumption, false
 	}
-	class := trustedProxyIntegrationClass.Name
-	header := strings.TrimSpace(cfg.IntegrationValue(class, trustedProxyHeaderKey))
-	addrs, _ := parseProxyAddrs(cfg.IntegrationValue(class, trustedProxyAddrsKey))
-	distinct := make(map[netip.Addr]struct{}, len(addrs))
-	for _, addr := range addrs {
-		distinct[addr] = struct{}{}
-	}
+	header := strings.TrimSpace(cfg.IntegrationValue(trustedProxyIntegrationClass.Name, trustedProxyHeaderKey))
 	noun := "addresses"
 	if len(distinct) == 1 {
 		noun = "address"

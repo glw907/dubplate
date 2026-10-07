@@ -40,12 +40,9 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			// own value resolves at its point of use rather than at
 			// Load, so config.Load succeeding above says nothing
 			// about it yet.
-			d, parseErr, rangeErr := storeBusyTimeout(environ)
-			if parseErr != nil {
-				return parseErr
-			}
-			if rangeErr != nil {
-				return rangeErr
+			d, err := storeBusyTimeout(environ)
+			if err != nil {
+				return err
 			}
 
 			r := store.Inspect(cmd.Context(), store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: d})

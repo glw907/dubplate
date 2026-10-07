@@ -48,18 +48,25 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			cfg, loadErr := config.Load(environ, reg)
 			statuses := rowStatuses(loadErr)
 
+			// Every family appends its rows, in print order, and ORs its
+			// own failure into failed. One loop prints them once every
+			// probe has run, so a row is added in one place.
+			var rows []doctorRow
+			failed := loadErr != nil
+			add := func(key, status string) {
+				rows = append(rows, doctorRow{key, status})
+			}
+			addChecked := func(key, status string, rowFailed bool) {
+				add(key, status)
+				failed = failed || rowFailed
+			}
+
 			for _, row := range reg.OwnedWall() {
-				status := cmp.Or(statuses[row.Name], "ok")
-				if err := printRow(stdout, row.Name, status); err != nil {
-					return err
-				}
+				add(row.Name, cmp.Or(statuses[row.Name], "ok"))
 			}
 
 			for _, class := range reg.ReservedClasses() {
-				status := fmt.Sprintf("disabled (arrives at rung %d)", class.Rung)
-				if err := printRow(stdout, class.Name, status); err != nil {
-					return err
-				}
+				add(class.Name, fmt.Sprintf("disabled (arrives at rung %d)", class.Rung))
 			}
 
 			for _, class := range reg.IntegrationClasses() {
@@ -67,21 +74,15 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				if enabled, err := class.Enabled(environ); err == nil && enabled {
 					status = "enabled"
 				}
-				if err := printRow(stdout, class.Name, status); err != nil {
-					return err
-				}
+				add(class.Name, status)
 			}
 
 			for _, th := range reg.Thresholds() {
-				if err := printRow(stdout, th.Key, thresholdStatus(environ, statuses, th)); err != nil {
-					return err
-				}
+				add(th.Key, thresholdStatus(environ, statuses, th))
 			}
 
 			for _, src := range reg.IdentitySources() {
-				if err := printRow(stdout, src.Name, identitySourceStatus(environ, src, statuses)); err != nil {
-					return err
-				}
+				add(src.Name, identitySourceStatus(environ, src, statuses))
 			}
 
 			// A load error keyed by a name no printed row claims (a
@@ -89,9 +90,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// the exit status unexplained, so each prints on a line of
 			// its own, and only when one exists.
 			for _, key := range unclaimedLoadErrors(reg, statuses) {
-				if err := printRow(stdout, key, statuses[key]); err != nil {
-					return err
-				}
+				add(key, statuses[key])
 			}
 
 			// The store row runs the inspect mode after every other
@@ -99,26 +98,20 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// included: a store the doctor run cannot vouch for is as
 			// reportable as a missing config key.
 			storeStatus, storeFailed, storeReport, storeChecked := storeRow(cmd.Context(), environ)
-			if err := printRow(stdout, "store", storeStatus); err != nil {
-				return err
-			}
+			addChecked("store", storeStatus, storeFailed)
 
 			// The members row prints from the report the store row
 			// read, so doctor inspects once, and always prints exactly
 			// one line.
 			membersStatus, membersFailed := membersRowStatus(storeReport, storeChecked)
-			if err := printRow(stdout, membersDoctorRow, membersStatus); err != nil {
-				return err
-			}
+			addChecked(membersDoctorRow, membersStatus, membersFailed)
 
 			// The auth store row follows the store row and always
 			// prints exactly one line: it reads "not checked" when
 			// Load refused environ, since the state directory is then
 			// unknown.
 			authStoreStatus, authStoreFailed := authStoreRowStatus(cfg)
-			if err := printRow(stdout, authStoreDoctorRow, authStoreStatus); err != nil {
-				return err
-			}
+			addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
 
 			// The backup rows (R-6bi13, R-6bi14, Ruling 2) print
 			// unconditionally, the store row's own precedent: the facts
@@ -126,23 +119,17 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// store cannot supply them, and the remote row reads
 			// "unavailable" rather than disappear while the flag is off.
 			for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
-				if err := printRow(stdout, row.key, row.status); err != nil {
-					return err
-				}
+				add(row.key, row.status)
 			}
 			backupRemoteStatus, backupRemoteFailed := backupRemoteRowStatus(cmd.Context(), environ)
-			if err := printRow(stdout, backupRemoteRow, backupRemoteStatus); err != nil {
-				return err
-			}
+			addChecked(backupRemoteRow, backupRemoteStatus, backupRemoteFailed)
 
 			// The unidecode row follows the backup rows, the store
 			// row's own precedent: it always prints exactly one line,
 			// since the matcher can never score without a verified
 			// table.
 			unidecodeStatus, unidecodeFailed := unidecodeRowStatus(environ)
-			if err := printRow(stdout, unidecodeDoctorRow, unidecodeStatus); err != nil {
-				return err
-			}
+			addChecked(unidecodeDoctorRow, unidecodeStatus, unidecodeFailed)
 
 			// The four boundary rows follow the unidecode row and
 			// precede the settings rows, so every fixed-count row
@@ -154,36 +141,29 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// boundary probe row dials each bind address on the
 			// serve port, each dial and answer bounded.
 			clientIPStatus, clientIPFailed := clientIPRowStatus(cfg)
-			if err := printRow(stdout, clientIPDoctorRow, clientIPStatus); err != nil {
-				return err
-			}
+			addChecked(clientIPDoctorRow, clientIPStatus, clientIPFailed)
 			webStatus, webFailed := webRowStatus(environ, cfg)
-			if err := printRow(stdout, webDoctorRow, webStatus); err != nil {
-				return err
-			}
+			addChecked(webDoctorRow, webStatus, webFailed)
 			ifaceAddrs, ifaceErr := net.InterfaceAddrs()
 			bindStatus, bindFailed := bindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
-			if err := printRow(stdout, bindAddrsDoctorRow, bindStatus); err != nil {
-				return err
-			}
+			addChecked(bindAddrsDoctorRow, bindStatus, bindFailed)
 			probeStatus, probeFailed := boundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
-			if err := printRow(stdout, boundaryProbeDoctorRow, probeStatus); err != nil {
-				return err
-			}
+			addChecked(boundaryProbeDoctorRow, probeStatus, probeFailed)
 
-			// The settings rows print one per
-			// registered setting, in declaration order, after the
-			// boundary rows, and one row per orphan the store holds
-			// under a key no rung still declares.
+			// The settings rows print one per registered setting, in
+			// declaration order, after the boundary rows, and one row
+			// per orphan the store holds under a key no rung still
+			// declares.
 			settingsRows, settingsFailed := settingsDoctorRows(environ, reg, storeReport, storeChecked)
-			for _, row := range settingsRows {
+			rows = append(rows, settingsRows...)
+			failed = failed || settingsFailed
+
+			for _, row := range rows {
 				if err := printRow(stdout, row.key, row.status); err != nil {
 					return err
 				}
 			}
-
-			if loadErr != nil || storeFailed || membersFailed || authStoreFailed || backupRemoteFailed || unidecodeFailed ||
-				clientIPFailed || webFailed || bindFailed || probeFailed || settingsFailed {
+			if failed {
 				return errors.New("configuration is incomplete")
 			}
 			return nil
@@ -344,6 +324,11 @@ func checkCreatable(path string) error {
 		}
 		dir = parent
 	}
+}
+
+// doctorRow is one doctor line: a printRow key and its status text.
+type doctorRow struct {
+	key, status string
 }
 
 // printRow writes one doctor line in the pinned "%-32s %s" form.

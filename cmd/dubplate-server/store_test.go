@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -192,11 +193,11 @@ func TestStoreRow_RestoreIntent(t *testing.T) {
 	}
 }
 
-// TestStoreRow_BusyTimeoutUnparseable proves storeRow's parseErr
+// TestStoreRow_BusyTimeoutUnparseable proves storeRow's parse-failure
 // branch: an unparseable DUBPLATE_STORE_BUSY_TIMEOUT reports "not
 // checked" and fails the row without ever opening the state directory,
 // distinct from TestStoreBusyTimeout_ParseFailure's proof that
-// storeBusyTimeout itself sets parseErr rather than rangeErr.
+// the parse failure does not wrap errOutOfRange.
 func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
 	environ := []string{
 		"DUBPLATE_STATE_DIR=" + t.TempDir(),
@@ -256,38 +257,34 @@ func TestStoreBusyTimeout_Bounds(t *testing.T) {
 			if tt.value != "" {
 				environ = []string{"DUBPLATE_STORE_BUSY_TIMEOUT=" + tt.value}
 			}
-			_, parseErr, rangeErr := storeBusyTimeout(environ)
-			if parseErr != nil {
-				t.Fatalf("storeBusyTimeout() parseErr = %v, want nil", parseErr)
-			}
+			_, err := storeBusyTimeout(environ)
 			if tt.wantErr {
-				if rangeErr == nil {
-					t.Fatal("storeBusyTimeout() rangeErr = nil, want a refusal")
+				if !errors.Is(err, errOutOfRange) {
+					t.Fatalf("storeBusyTimeout() error = %v, want one wrapping errOutOfRange", err)
 				}
-				if !strings.Contains(rangeErr.Error(), "DUBPLATE_STORE_BUSY_TIMEOUT") {
-					t.Errorf("rangeErr = %q, want it to name DUBPLATE_STORE_BUSY_TIMEOUT", rangeErr.Error())
+				if !strings.Contains(err.Error(), "DUBPLATE_STORE_BUSY_TIMEOUT") {
+					t.Errorf("error = %q, want it to name DUBPLATE_STORE_BUSY_TIMEOUT", err.Error())
 				}
 				return
 			}
-			if rangeErr != nil {
-				t.Errorf("storeBusyTimeout() rangeErr = %v, want nil", rangeErr)
+			if err != nil {
+				t.Errorf("storeBusyTimeout() error = %v, want nil", err)
 			}
 		})
 	}
 }
 
-// TestStoreBusyTimeout_ParseFailure proves storeBusyTimeout reports a
-// parse failure through parseErr, distinct from a range failure: a
-// caller (storeRow, check.go) tells the two apart without matching
-// error text.
+// TestStoreBusyTimeout_ParseFailure proves a parse failure is distinct
+// from a range failure: a caller (storeRow) tells the two apart with
+// errors.Is rather than by matching error text.
 func TestStoreBusyTimeout_ParseFailure(t *testing.T) {
 	environ := []string{"DUBPLATE_STORE_BUSY_TIMEOUT=not-a-duration"}
-	_, parseErr, rangeErr := storeBusyTimeout(environ)
-	if parseErr == nil {
-		t.Fatal("storeBusyTimeout() parseErr = nil, want a parse failure")
+	_, err := storeBusyTimeout(environ)
+	if err == nil {
+		t.Fatal("storeBusyTimeout() error = nil, want a parse failure")
 	}
-	if rangeErr != nil {
-		t.Errorf("storeBusyTimeout() rangeErr = %v, want nil alongside a parse failure", rangeErr)
+	if errors.Is(err, errOutOfRange) {
+		t.Errorf("storeBusyTimeout() error = %v, want a parse failure that does not wrap errOutOfRange", err)
 	}
 }
 
@@ -331,14 +328,14 @@ func TestBackupFactsRows(t *testing.T) {
 		now     time.Time
 		report  store.Report
 		checked bool
-		want    []backupFactRow
+		want    []doctorRow
 	}{
 		{
 			name:    "not checked at all: storeRow never ran Inspect",
 			now:     testNow,
 			report:  store.Report{},
 			checked: false,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{backupLastSuccessRow, "not checked"},
 				{backupWALSizeRow, "not checked"},
 				{backupFreeSpaceRow, "not checked"},
@@ -350,7 +347,7 @@ func TestBackupFactsRows(t *testing.T) {
 			now:     testNow,
 			report:  store.Report{State: store.StateAbsent},
 			checked: true,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{backupLastSuccessRow, "not checked"},
 				{backupWALSizeRow, "not checked"},
 				{backupFreeSpaceRow, "not checked"},
@@ -362,7 +359,7 @@ func TestBackupFactsRows(t *testing.T) {
 			now:     testNow,
 			report:  store.Report{State: store.StateCurrent, Facts: &store.Facts{FreeBytes: 2048, FreeKnown: true}},
 			checked: true,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{backupLastSuccessRow, "never"},
 				{backupWALSizeRow, "0 B"},
 				{backupFreeSpaceRow, "2.0 KiB"},
@@ -382,7 +379,7 @@ func TestBackupFactsRows(t *testing.T) {
 				CopiesSize: 3*1024*1024 + 512*1024,
 			}},
 			checked: true,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{backupLastSuccessRow, "1h35m ago"},
 				{backupWALSizeRow, "4.0 KiB"},
 				{backupFreeSpaceRow, "unknown"},
@@ -398,7 +395,7 @@ func TestBackupFactsRows(t *testing.T) {
 				},
 			}},
 			checked: true,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{backupLastSuccessRow, "1m ago: prune skipped: the run's stamp is not the newest on the remote"},
 				{backupWALSizeRow, "0 B"},
 				{backupFreeSpaceRow, "unknown"},
@@ -414,7 +411,7 @@ func TestBackupFactsRows(t *testing.T) {
 				},
 			}},
 			checked: true,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{backupLastSuccessRow, "1d1h ago: prune failed: list remote snapshots: exit status 1"},
 				{backupWALSizeRow, "0 B"},
 				{backupFreeSpaceRow, "unknown"},
@@ -655,14 +652,14 @@ func TestSettingsDoctorRows(t *testing.T) {
 		environ    []string
 		report     store.Report
 		checked    bool
-		want       []backupFactRow
+		want       []doctorRow
 		wantFailed bool
 	}{
 		{
 			name:    "no row, env absent: the default is in force",
 			checked: true,
 			report:  current(store.Facts{}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -672,7 +669,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=20"},
 			report:  current(store.Facts{}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); env "20" seeds at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -682,7 +679,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=20"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"20" (source env-seed, next operation)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -692,7 +689,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=30"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"20" (source env-seed, next operation); env "30" re-seeds at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -701,7 +698,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "env-seed row, env absent: returns to the default at serve's next start",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"20" (source env-seed, next operation); returns to the default at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -710,7 +707,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "admin row, env absent: the administrator's value is in force",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"40" (source admin, next operation)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -720,7 +717,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=40"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"40" (source admin, next operation)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -730,7 +727,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=50"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `refused: DUBPLATE_TEST_SETTING: the environment seeds "50" but an administrator set "40"; unset DUBPLATE_TEST_SETTING, or set it to "40"`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -740,7 +737,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "out-of-bounds admin value stays in force: refusing",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "admin", SeedValue: "1"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `refused: stored admin value refused: DUBPLATE_TEST_SETTING: value "1" is below the floor 3`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -751,7 +748,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=15"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"1" (source env-seed, next operation); env "15" re-seeds at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -760,7 +757,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "out-of-bounds env-seed row healed by removal",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"1" (source env-seed, next operation); returns to the default at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -769,7 +766,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "a stored value that does not parse: refusing naming the reason",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "not-a-number", Source: "env-seed", SeedValue: "not-a-number"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `refused: stored env-seed value refused: DUBPLATE_TEST_SETTING: invalid value "not-a-number", want an integer`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -780,7 +777,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=abc"},
 			report:  current(store.Facts{}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `refused: environment seed refused: DUBPLATE_TEST_SETTING: invalid value "abc", want an integer`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
@@ -790,7 +787,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "an orphan row for an unregistered key",
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: "DUBPLATE_TEST_RETIRED", Value: "1", Source: "admin", SeedValue: "1"}}}),
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 				{"DUBPLATE_TEST_RETIRED", "no longer registered; ignored"},
@@ -800,7 +797,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "absent store: holds no settings yet",
 			checked: true,
 			report:  store.Report{State: store.StateAbsent},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store holds no settings yet`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
@@ -810,7 +807,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=20"},
 			report:  store.Report{State: store.StateAbsent},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store holds no settings yet; env "20" seeds at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
@@ -819,7 +816,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "older store below the version that adds the settings table",
 			checked: true,
 			report:  store.Report{State: store.StateOlder, StoreVersion: 3, Facts: &store.Facts{SettingsAbsent: true}},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store holds no settings yet`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
@@ -828,7 +825,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "older store below the version that adds the jobs table: nil facts",
 			checked: true,
 			report:  store.Report{State: store.StateOlder, StoreVersion: 1},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store holds no settings yet`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
@@ -837,7 +834,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "busy: not checked",
 			checked: true,
 			report:  store.Report{State: store.StateBusy},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (busy)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (busy)"},
 			},
@@ -847,7 +844,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			environ: []string{key + "=20"},
 			report:  store.Report{State: store.StateBusy},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (busy); env "20" not checked against the store`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (busy)"},
 			},
@@ -856,7 +853,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "restore in progress: not checked",
 			checked: true,
 			report:  store.Report{State: store.StateRestoreInProgress},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (restore in progress)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (restore in progress)"},
 			},
@@ -865,7 +862,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "not a store: not checked",
 			checked: true,
 			report:  store.Report{State: store.StateNotAStore},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (not a store)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (not a store)"},
 			},
@@ -874,7 +871,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "refused: not checked",
 			checked: true,
 			report:  store.Report{State: store.StateRefused},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (refused)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (refused)"},
 			},
@@ -883,7 +880,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "newer: not checked",
 			checked: true,
 			report:  store.Report{State: store.StateNewer},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (newer)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (newer)"},
 			},
@@ -892,7 +889,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			name:    "an unrecognized state: not checked",
 			checked: true,
 			report:  store.Report{State: store.State(99), Facts: &store.Facts{}},
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked (unknown)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (unknown)"},
 			},
@@ -900,7 +897,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 		{
 			name:    "storeRow never ran Inspect: not checked",
 			checked: false,
-			want: []backupFactRow{
+			want: []doctorRow{
 				{key, `"10" (source default, next operation); store not checked`},
 				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked"},
 			},
@@ -909,7 +906,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rows, failed := settingsDoctorRows(tt.environ, settingsDoctorRowsRegistry(), tt.report, tt.checked)
-			if !slices.EqualFunc(rows, tt.want, func(a, b backupFactRow) bool { return a == b }) {
+			if !slices.EqualFunc(rows, tt.want, func(a, b doctorRow) bool { return a == b }) {
 				t.Errorf("rows = %+v, want %+v", rows, tt.want)
 			}
 			if failed != tt.wantFailed {
@@ -964,7 +961,7 @@ func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
 	if failed {
 		t.Fatalf("failed = true, want false")
 	}
-	idx := slices.IndexFunc(rows, func(r backupFactRow) bool { return r.key == key })
+	idx := slices.IndexFunc(rows, func(r doctorRow) bool { return r.key == key })
 	if idx < 0 {
 		t.Fatalf("rows carry no entry for %s: %+v", key, rows)
 	}
@@ -992,7 +989,7 @@ func TestSettingsDoctorRows_CorrelatedRule(t *testing.T) {
 		t.Error("failed = false, want true: the correlated rule breaks")
 	}
 	for _, key := range []string{keyExpiry, keyRetention} {
-		idx := slices.IndexFunc(rows, func(r backupFactRow) bool { return r.key == key })
+		idx := slices.IndexFunc(rows, func(r doctorRow) bool { return r.key == key })
 		if idx < 0 {
 			t.Fatalf("rows carry no entry for %s: %+v", key, rows)
 		}

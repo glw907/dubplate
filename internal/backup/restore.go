@@ -625,18 +625,10 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("restore: %w", err)
 	}
-	root := cmp.Or(in.LibraryRoot, r.root)
-	rep, err := r.reconcile(ctx, root)
+	head, rep, err := r.reconcileReport(ctx, in)
 	if err != nil {
 		return err
 	}
-	var line string
-	if in.LibraryRoot != "" {
-		if line, err = displacedLine(displacedPath(root, r.sess.Stamp())); err != nil {
-			return err
-		}
-	}
-	head := reportHead(r.sess.Stamp(), in, line)
 	path, err := r.sess.WriteReport(append([]byte(head), rep.render(math.MaxInt)...))
 	if err != nil {
 		return err
@@ -654,15 +646,34 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 	return r.say("restored; the reconciliation report is %s", path)
 }
 
-// reconcile reconciles the restored store against root on a read
-// handle the session's lock covers.
-func (r restorer) reconcile(ctx context.Context, root string) (_ *report, err error) {
+// reconcileReport builds the restore's report head and reconciliation
+// on a read handle the session's lock covers.
+func (r restorer) reconcileReport(ctx context.Context, in store.RestoreIntent) (_ string, _ *report, err error) {
 	h, err := r.sess.OpenRead(ctx)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
-	return reconcile(ctx, h, root)
+	return reportOf(ctx, h, r.sess.Stamp(), in, r.root)
+}
+
+// reportOf reconciles h against the library root in names, or fallback
+// when in names none, and returns the report head with the
+// reconciliation. A restore's own report and the report a serve writes
+// when it finishes a restore are both built here, so they cannot differ.
+func reportOf(ctx context.Context, h *store.Handle, stamp string, in store.RestoreIntent, fallback string) (string, *report, error) {
+	root := cmp.Or(in.LibraryRoot, fallback)
+	rep, err := reconcile(ctx, h, root)
+	if err != nil {
+		return "", nil, err
+	}
+	var displaced string
+	if in.LibraryRoot != "" {
+		if displaced, err = displacedLine(displacedPath(root, stamp)); err != nil {
+			return "", nil, err
+		}
+	}
+	return reportHead(stamp, in, displaced), rep, nil
 }
 
 // reportHead is the head every restore's report carries: the stamp, the

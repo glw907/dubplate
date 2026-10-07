@@ -375,12 +375,9 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 // reconciler a restore awaiting serve needs. A refusal at any step
 // returns no handle.
 func openServeStore(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config, logger *slog.Logger) (*store.Handle, error) {
-	busyTimeout, parseErr, rangeErr := storeBusyTimeout(environ)
-	if parseErr != nil {
-		return nil, parseErr
-	}
-	if rangeErr != nil {
-		return nil, rangeErr
+	busyTimeout, err := storeBusyTimeout(environ)
+	if err != nil {
+		return nil, err
 	}
 	migrationWait, err := storeMigrationWait(environ)
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -120,24 +121,36 @@ func jobRetentionReader(acc *settings.Accessor) func(context.Context) (time.Dura
 	}
 }
 
+// errOutOfRange marks a threshold that parsed but fell outside its
+// range, as opposed to one that did not parse at all.
+var errOutOfRange = errors.New("out of range")
+
+// rangeError is an out-of-range refusal whose message is its own
+// sentence and whose Unwrap is [errOutOfRange].
+type rangeError string
+
+func (e rangeError) Error() string { return string(e) }
+
+func (e rangeError) Unwrap() error { return errOutOfRange }
+
 // storeBusyTimeout resolves DUBPLATE_STORE_BUSY_TIMEOUT from environ
-// and checks it against its range. parseErr is set only when the
-// value fails to parse at all, a failure doctor's own threshold row
-// already names; rangeErr is set only when it parses but falls outside
-// the range, naming the key and the bound it crossed. A caller never
-// sees both at once, and d is meaningful only when both are nil.
-func storeBusyTimeout(environ []string) (d time.Duration, parseErr, rangeErr error) {
+// and checks it against its range. A value that parses outside the
+// range is refused wrapping errOutOfRange and naming the key and the
+// bound it crossed; a value that fails to parse is returned as
+// config.ParseDuration reports it, a failure doctor's own threshold
+// row already names.
+func storeBusyTimeout(environ []string) (time.Duration, error) {
 	d, err := config.ParseDuration(environ, storeBusyTimeoutThreshold)
 	if err != nil {
-		return 0, err, nil
+		return 0, err
 	}
 	switch {
 	case d < storeBusyTimeoutFloor:
-		return d, nil, fmt.Errorf("%s must be at least %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutFloorMS)
+		return 0, rangeError(fmt.Sprintf("%s must be at least %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutFloorMS))
 	case d > storeBusyTimeoutCeiling:
-		return d, nil, fmt.Errorf("%s must be at most %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutCeilingMS)
+		return 0, rangeError(fmt.Sprintf("%s must be at most %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutCeilingMS))
 	}
-	return d, nil, nil
+	return d, nil
 }
 
 // storeMigrationWait resolves DUBPLATE_STORE_MIGRATION_WAIT from
@@ -236,12 +249,12 @@ func storeRow(ctx context.Context, environ []string) (status string, failed bool
 		return "not checked", false, store.Report{}, false
 	}
 
-	d, parseErr, rangeErr := storeBusyTimeout(environ)
-	if parseErr != nil {
+	d, err := storeBusyTimeout(environ)
+	switch {
+	case errors.Is(err, errOutOfRange):
+		return "not checked: " + err.Error(), true, store.Report{}, false
+	case err != nil:
 		return "not checked", true, store.Report{}, false
-	}
-	if rangeErr != nil {
-		return "not checked: " + rangeErr.Error(), true, store.Report{}, false
 	}
 
 	r := store.Inspect(ctx, store.InspectOptions{StateDir: stateDir, BusyTimeout: d})
@@ -305,12 +318,6 @@ func storeHolders(holders []string) string {
 	return "held by pid " + strings.Join(holders, ", ")
 }
 
-// backupFactRow is one doctor row [backupFactsRows] renders: a
-// printRow key and its status text.
-type backupFactRow struct {
-	key, status string
-}
-
 // settingsDoctorRows renders doctor's one row per registered setting,
 // in declaration order, and one row per orphan. Its disposition
 // follows the store's own state: a state [storeVouches] refuses
@@ -320,12 +327,12 @@ type backupFactRow struct {
 // shows each setting at its default and what serve's next start seeds,
 // unless the seed would refuse, which reports here as it would there.
 // It reports whether any row refuses.
-func settingsDoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool) (rows []backupFactRow, failed bool) {
+func settingsDoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool) (rows []doctorRow, failed bool) {
 	list := reg.Settings()
 	facts, ok := seedFacts(report)
 	if !checked || !storeVouches(report.State) || !ok {
 		for _, s := range list {
-			rows = append(rows, backupFactRow{s.Key, settingsNotCheckedStatus(environ, s, report.State, checked)})
+			rows = append(rows, doctorRow{s.Key, settingsNotCheckedStatus(environ, s, report.State, checked)})
 		}
 		return rows, false
 	}
@@ -336,15 +343,15 @@ func settingsDoctorRows(environ []string, reg *config.Registry, report store.Rep
 		switch {
 		case o.Err != nil:
 			failed = true
-			rows = append(rows, backupFactRow{o.Key, o.Report})
+			rows = append(rows, doctorRow{o.Key, o.Report})
 		case facts.SettingsAbsent:
-			rows = append(rows, backupFactRow{o.Key, settingsNoTableStatus(environ, s)})
+			rows = append(rows, doctorRow{o.Key, settingsNoTableStatus(environ, s)})
 		default:
-			rows = append(rows, backupFactRow{o.Key, settingsOutcomeStatus(s, o)})
+			rows = append(rows, doctorRow{o.Key, settingsOutcomeStatus(s, o)})
 		}
 	}
 	for _, orphan := range ev.Orphans {
-		rows = append(rows, backupFactRow{orphan.Key, "no longer registered; ignored"})
+		rows = append(rows, doctorRow{orphan.Key, "no longer registered; ignored"})
 	}
 	return rows, failed
 }
@@ -465,9 +472,9 @@ func settingTraits(s config.Setting, source string) string {
 // [store.Inspect] leaves nil for a store this binary cannot read as
 // current: absent, busy, mid-restore, not a store, refused, newer, or
 // older below the version that added the jobs table.
-func backupFactsRows(now time.Time, report store.Report, checked bool) []backupFactRow {
+func backupFactsRows(now time.Time, report store.Report, checked bool) []doctorRow {
 	if !checked || report.Facts == nil {
-		return []backupFactRow{
+		return []doctorRow{
 			{backupLastSuccessRow, "not checked"},
 			{backupWALSizeRow, "not checked"},
 			{backupFreeSpaceRow, "not checked"},
@@ -475,7 +482,7 @@ func backupFactsRows(now time.Time, report store.Report, checked bool) []backupF
 		}
 	}
 	f := report.Facts
-	return []backupFactRow{
+	return []doctorRow{
 		{backupLastSuccessRow, lastSuccessStatus(now, f.LastSuccess)},
 		{backupWALSizeRow, formatBytes(f.WALSize)},
 		{backupFreeSpaceRow, freeSpaceStatus(f)},

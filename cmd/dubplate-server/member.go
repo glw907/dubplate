@@ -56,12 +56,9 @@ func openMemberStore(ctx context.Context, environ []string, reg *config.Registry
 	if err != nil {
 		return nil, err
 	}
-	busyTimeout, parseErr, rangeErr := storeBusyTimeout(environ)
-	if parseErr != nil {
-		return nil, parseErr
-	}
-	if rangeErr != nil {
-		return nil, rangeErr
+	busyTimeout, err := storeBusyTimeout(environ)
+	if err != nil {
+		return nil, err
 	}
 	return store.OpenWrite(ctx, cfg.StateDir, busyTimeout)
 }

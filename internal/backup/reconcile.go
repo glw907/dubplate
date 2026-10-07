@@ -2,7 +2,6 @@ package backup
 
 import (
 	"bytes"
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -108,18 +107,11 @@ func reconcile(ctx context.Context, h *store.Handle, root string) (*report, erro
 // record names when the record names one, and libraryRoot otherwise.
 func Reconciler(libraryRoot string) func(ctx context.Context, h *store.Handle, stamp string, in store.RestoreIntent) ([]byte, error) {
 	return func(ctx context.Context, h *store.Handle, stamp string, in store.RestoreIntent) ([]byte, error) {
-		root := cmp.Or(in.LibraryRoot, libraryRoot)
-		rep, err := reconcile(ctx, h, root)
+		head, rep, err := reportOf(ctx, h, stamp, in, libraryRoot)
 		if err != nil {
 			return nil, err
 		}
-		var displaced string
-		if in.LibraryRoot != "" {
-			if displaced, err = displacedLine(displacedPath(root, stamp)); err != nil {
-				return nil, err
-			}
-		}
-		return append([]byte(reportHead(stamp, in, displaced)), rep.render(math.MaxInt)...), nil
+		return append([]byte(head), rep.render(math.MaxInt)...), nil
 	}
 }
 

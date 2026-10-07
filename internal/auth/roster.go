@@ -52,9 +52,11 @@ var errRosterRecordInvalid = errors.New("auth: roster record invalid")
 // the one channel that may grant it.
 var errAdminGrantForbidden = errors.New("auth: admin flag may be granted only from the command line")
 
-// The refusals below are each returned wrapping errRosterRecordInvalid
-// rather than exported on their own: nothing outside this package
-// branches on which one fired, only on errRosterRecordInvalid itself.
+// The refusals below each wrap errRosterRecordInvalid, so a caller
+// outside this package branches on that one sentinel. They are
+// unexported because only code in this package, such as
+// additionOutcome, branches on which one fired, and it may test either
+// the specific refusal or errRosterRecordInvalid.
 var (
 	// errDuplicateAddress reports that a candidate's address matches a
 	// live member, once both are normalized.
