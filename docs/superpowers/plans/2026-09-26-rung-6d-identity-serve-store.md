@@ -1,6 +1,6 @@
 # Rung 6, Pass 6d (Identity, the Handoff, and `serve`'s Store) Implementation Plan
 
-Status: **revision 2.4, 2026-10-06; awaits Geoff's approval.**
+Status: **revision 2.5, 2026-10-06; awaits Geoff's approval.**
 
 History:
 
@@ -21,6 +21,12 @@ History:
   baseline gets its own test; the runbook's rollback, upgrade, and settings text are corrected; the
   reconciler's report names `member add --admin`; member removal is cited to rung 14 (CH). No
   ruling changes, and the ceiling and task count stand.
+- Revision 2.5 folds the verification read of revision 2.4
+  (`docs/superpowers/research/2026-10-06-rung-6d-plan-fold-verification.md`) per the fold record's
+  "Second fold" section: the foreign-owner rows in Tasks 1 and 4 are replaced by a citation of
+  `TestOpenModes_OwnerAndFilesystemRefused`, `Report.StoreVersion` reads `Report.StoreVersion`, R-6d2,
+  R-6d4, and R-6d21 agree on the pre-open check, Ruling 4's no names Task 1, and the state-dir script
+  call stays in the non-reduced block.
 
 **Citation basis.** Every code, spec, and plan line below is cited at `0cb33ae` on master unless the
 citation names another commit. Task 0 re-resolves only the pointers into files that change after
@@ -503,7 +509,7 @@ row set, `serve` refuses before `OpenServe`. A typo in the env then never migrat
 before refusing, which would strand the rollback binary on a newer store that the rollback copies
 exclude (runbook `:817-820`). The check reuses a result the keep read computes anyway and adds no
 evaluation. A current or absent store migrates nothing, so it gets no pre-open check, and neither
-does a state with no facts (busy, an intent); the seed apply after the open decides those and stays
+does a state with no facts (busy, an intent, or a `0001` store); the seed apply after the open decides those and stays
 the authority everywhere.
 The start-order proofs therefore test that function: its return is the moment the listener could
 first open, and a refusal returns an error with no shell, which leaves `serve.Run` nothing to run. No
@@ -544,8 +550,8 @@ post-seed value (quoted):
   strands `serve`.
 - **No keep row, or no facts** (absent, below `0004`, a restore intent, busy, refused, not a store):
   `Keep` is the registry default, and `OpenServe` decides whether the state itself refuses.
-- An unparseable env value for the keep is not a keep decision. On an older store, it refuses
-  through R-6d2's pre-open check; otherwise it is the seed's refusal after the open (Task 2).
+- An unparseable env value for the keep is not a keep decision. On an older store at `0004`, and
+  from Task 6 at `0002` and `0003`, it refuses through R-6d2's pre-open check; otherwise it is the seed's refusal after the open (Task 2).
 
 R-6d21 changes what `EvaluateFacts` reports for a store below `0004`; this rule reads only a stored
 row, so the change does not reach it.
@@ -712,7 +718,7 @@ failure; the members row prints its counts when it passes, which the runbook's d
 then states. Each read is guarded by a version constant beside `settingsVersion`, on
 `SettingsAbsent`'s precedent: the counts need `users` (version 3). An unguarded query would turn
 every older store into `StateRefused` (quoted), failing the store row. The row decides on
-`Report.Version`, never on whether `Facts` is present: `Inspect` returns no facts below `jobsVersion`
+`Report.StoreVersion`, never on whether `Facts` is present: `Inspect` returns no facts below `jobsVersion`
 (`inspect.go:240-242`), so a rule keyed on `Facts` would read a version-1 store as "not read" while
 reading version 2 as "older". Its states are Task 4's table.
 
@@ -851,12 +857,13 @@ from today, where `Load` refuses it.
 
 For a store with no settings table, the post-seed value of every key is the env value or the default,
 since the table `serve` will seed into is empty. So `check` and `doctor` evaluate the seed rule
-against an empty row set for an absent store and for a store whose `Report.Version` is below
+against an empty row set for an absent store and for a store whose `Report.StoreVersion` is below
 `settingsVersion`, facts or not (a version-1 store carries none, `inspect.go:240-242`, and `check`
 today branches on `r.Facts != nil`, `check.go:62`), which reports the same
 refusals `serve` would raise. An in-bounds env value still reports "seeds at serve's next start." A
 store `doctor` cannot vouch for stays "not checked." This reverses 6c's "never reads environ" for that
-case, erratum 6d-E2 to 6c's evaluation design; it changes no stored row and no `serve` behavior.
+case, erratum 6d-E2 to 6c's evaluation design; it changes no stored row. From Task 6, `serve`'s
+pre-open check (R-6d2) also reads this result on a store with facts below `0004`.
 
 ### R-6d22: existing usernames meet the write path's rules by construction
 
@@ -1027,8 +1034,11 @@ tests rather than re-proving them through a cmd fixture: the interrupted create
 `TestOpenServe_LostDatabaseBesideBackupRef`), any other intent (`TestOpenModes_RestoreIntent`,
 `TestOpenServe_ReconcilePendingRefusals`), the exclusive holder and the shared holder past the wait
 (`TestOpenServe_WaitsForExclusive`, `TestOpenServe_LockHeldPastMigrationWait`), the current store
-under a shared holder (`TestOpenServe_CurrentKeepsSharedLock`), and prune by `Keep` and `Backup`
-(`TestOpenServe_BackupFieldControlsPruneOnMigrate`).
+under a shared holder (`TestOpenServe_CurrentKeepsSharedLock`), prune by `Keep` and `Backup`
+(`TestOpenServe_BackupFieldControlsPruneOnMigrate`), and a leaf another uid owns, refused through
+both `OpenWrite` and `OpenServe` (`TestOpenModes_OwnerAndFilesystemRefused`, `open_test.go:622`). The
+store's `geteuid` seam is unexported, so no cmd test reaches it; the `newer` row proves the
+refusal-to-no-shell mapping.
 
 **The keep decision's states** (one pure function over the `store.Report`, the environment, and the
 registry, table-tested on synthetic facts):
@@ -1054,7 +1064,6 @@ registry, table-tested on synthetic facts):
 | newer than the binary (`user_version` raised past the binary's; nothing to drop) | refused naming both versions; no shell |
 | older, the lock held shared by a second descriptor in the test process past a `MigrationWait` of 1s | exits nonzero naming the holder; the store stays at its version, no copy written |
 | a `reconcile-pending` intent over the store | migrated if older, the report written into the leaf over the record's root with restore's head, the intent removed |
-| the state directory owned by another uid (the `geteuid` override) | refused naming the owner (`leaf.create`), nothing created |
 
 **Acceptance criteria:**
 - Spec criterion 11: a test calls the preparation function against an absent store and against the
@@ -1297,7 +1306,7 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
 | Store | Row |
 | --- | --- |
 | absent | "no store yet; start serve, then member add --admin", exit unaffected |
-| `Report.Version` 1 or 2 (no `users` table; version 1 carries no facts) | "members not recorded before store version 3", exit unaffected; the store row reports the pending migrations |
+| `Report.StoreVersion` 1 or 2 (no `users` table; version 1 carries no facts) | "members not recorded before store version 3", exit unaffected; the store row reports the pending migrations |
 | at `0003` or above, no live member | fails naming `member add --admin` |
 | live members but no live admin (a tombstoned admin present) | fails naming `member add --admin` |
 | live members with at least one live admin | passes with both counts |
@@ -1307,11 +1316,13 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
 - A `member add` then `member list` round trip through the verbs against a store Task 1's path
   created. **Fixture state:** two members added in a known order, so `List`'s `created_at`-then-`id`
   order and the count both show.
-- Each member-verb state above by its own subtest; the foreign-owner row uses the `geteuid` override
-  `leaf.go:57-63` provides.
+- Each member-verb state above by its own subtest. The owner refusal is cited, never rebuilt: the
+  store's `geteuid` seam is unexported, and `TestOpenModes_OwnerAndFilesystemRefused`
+  (`open_test.go:622`) proves it through `OpenWrite`. The verbs' refusal mapping is proven by their
+  `OpenWrite` refusal rows (older or newer).
 - The members row renders each state above in a golden. **Fixture state:** the no-admin fixture
   holds a tombstoned admin row, so counting tombstoned rows shows; the older rows use Task 1's helper
-  at `0002` and at `0001`, so a rule keyed on `Facts` rather than `Report.Version` fails the `0001`
+  at `0002` and at `0001`, so a rule keyed on `Facts` rather than `Report.StoreVersion` fails the `0001`
   golden.
 - `TestDoctorCmd_LineCountFollowsRegistry` counts the members row as one unconditional line.
 - `grep` finds no caller of the file-backed constructor and no `rosterFileKey` reader; `grep -rniE
@@ -1489,7 +1500,7 @@ sensitive mark on every key) stays rung 14's.
 - Each R-6d21 row by its own subtest. **Fixture state:** the absent-store rows run with no store
   leaf at all, so `check` has no facts; the below-`0004` row runs against a store at `0003` (Task 1's
   helper), so its facts mark the settings table absent; the `0001` row carries no facts at all, so a
-  rule keyed on `Facts` rather than `Report.Version` fails it. A fixture at `0004` or above would
+  rule keyed on `Facts` rather than `Report.StoreVersion` fails it. A fixture at `0004` or above would
   reach the existing evaluation and prove nothing about R-6d21.
 - `backup` with an out-of-bounds auth value leaves every settings row unchanged and exits on its own
   outcome (the spec's "a timer-run backup never fails over an auth threshold").
@@ -1577,8 +1588,8 @@ grants and the array lists, so slice 8 needs no new leg logic.
 - Modify: `scripts/deploy.sh` (`DUBPLATE_SERVER_LEAVES`, its leaf table comment, the header's leaf
   list `:29-30`, the unidecode comment `:287-298`)
 - Create: `scripts/check-state-dir.sh`, the state-dir leg moved out of `check.sh` (`:657-737`)
-  unchanged, plus its two new checks; `check.sh` calls it unconditionally, as it calls
-  `scripts/vale-comments.sh` (`:514`). Each failing state below then runs in seconds rather than as a
+  unchanged, plus its two new checks; `check.sh` calls it where the leg sits today, inside the
+  non-reduced block (`:626-737`), so `--reduced` still skips it. Each failing state below then runs in seconds rather than as a
   full heavy-lane gate.
 - Modify: `scripts/check.sh` (the leg's block replaced by the call)
 - Modify: `docs/server-runbook.md` (R-6d18)
@@ -1700,7 +1711,7 @@ edit; it lands before Task 0 or after 6d's merge, and the merge ritual reconcile
 
 1. At approval: record Rulings 1, 3, and 4 in this plan and STATUS; record R-6d20's routing in STATUS
    (the revoke verb line names slice 6 beside it); under Ruling 4's no, fold the appendix into Tasks
-   3 to 5 before Task 0.
+   1 and 3 to 5 before Task 0.
 2. Before Task 0: the live-executor check (lane registry, `git status`), the registry row, the runaway
    guard, AC power.
 3. After Task 0: stop on any blocker. Re-derive the ceiling only if the sweep or a merged lane moved a
@@ -1763,9 +1774,13 @@ Under Ruling 4's no, these blocks are folded into the plan at approval, each whe
 revision 2.2's import design (`5ed193f`), rebased: `streamer_username` reads `username`, citations sit
 at `0cb33ae`, and one state is added for the pre-rename key.
 
+**Task 1 under no.** The reconciler criterion and its named mutation drop, since the line keeps
+naming `member import` (6d-R11).
+
 **Task 3 gains** `internal/engine/store/migrations/0006_member_imports.sql` (numbered from Task 0 item
 4) and its populated fixture under `testdata/fixtures/`, passing the invariant test, with the table
-refusing a `NULL` actor; its fourth deliverable.
+refusing a `NULL` actor; its fourth deliverable. Task 3 also adds `member_imports` to Task 1's
+older-store helper's drop list, or every helper-built fixture fails "table already exists".
 
 **Task 4 keeps** `parseRoster`, `validateRoster`, and `memberRecord` for the verb, and the members
 row reads the import record's time when present, guarded at the new migration's version: at `0003` to

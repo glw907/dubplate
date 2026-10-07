@@ -93,3 +93,19 @@ which the line count does not show.
 
 **Ceiling:** unchanged at 10.5M, flag 8.4M (and the variants). The fold moves no task's rate (the plan's
 "Token ceiling" says why). Task count unchanged at ten; deliverables unchanged at 28 across Tasks 1 to 8.
+
+## Second fold
+
+The verification read of revision 2.4 (`2026-10-06-rung-6d-plan-fold-verification.md`) returned one
+major and four minors. This fold takes all five, and the plan moves to revision 2.5. The ceiling,
+the task count, and the rulings are unchanged.
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| V1 (major) | Folded. Task 1's foreign-owner start row is dropped, and its cited-tests paragraph gains `TestOpenModes_OwnerAndFilesystemRefused`. Task 4's criterion cites the same test, and the verbs' mapping rides their existing `OpenWrite` refusal rows. | `leaf.go:63` holds the store's unexported `geteuid`; cmd's own is `unidecode.go:46`. `open_test.go:622-662` has a "leaf owned by another uid" row through `withGeteuid`, and it asserts refusal from both `OpenWrite` and `OpenServe`. |
+| V2 (minor) | Folded. `Report.Version` reads `Report.StoreVersion` in all five places. | `inspect.go:93-98` |
+| V3 (minor) | Folded. R-6d21 says that from Task 6, `serve`'s pre-open check reads its result below `0004`. R-6d4 qualifies the sentence by version. R-6d2 names a `0001` store among the states with no facts. | `evaluate.go:145-150`, `inspect.go:240-242` |
+| V4 (minor) | Folded. The appendix gains "Task 1 under no", which drops the reconciler criterion and mutation. Task 3's block adds `member_imports` to the helper's drop list. The conductor's action 1 reads "Tasks 1 and 3 to 5". | plan Task 1 criteria, appendix |
+| V5 (minor) | Folded. The script call stays inside the non-reduced block, so `--reduced` still skips the leg. | `check.sh:626-737` |
+
+No item is owed from this fold.
