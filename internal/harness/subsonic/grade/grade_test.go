@@ -768,3 +768,62 @@ func TestReportUnledgered(t *testing.T) {
 		t.Errorf("Unledgered = %d, want 2", got)
 	}
 }
+
+// TestGradeReportsABindingViolationAtTheEnvelope grades the real gonic
+// body under a content type the endpoint's binding rejects, and reads one
+// finding per source back at the envelope.
+func TestGradeReportsABindingViolationAtTheEnvelope(t *testing.T) {
+	r, err := gradeXML(t, "getAlbum", "text/plain", readBody(t, albumGonicXML))
+	if err != nil {
+		t.Fatal(err)
+	}
+	const msg = `content type "text/plain" is not application/xml or text/xml`
+	var got []string
+	for _, f := range r.findings {
+		if f.Kind == KindContract && f.Path == "subsonic-response" {
+			got = append(got, strings.Join(f.Sources, ",")+" "+strings.Join(f.Values, ","))
+		}
+	}
+	want := []string{"copy element: " + msg, "navidrome element: " + msg}
+	if !slices.Equal(got, want) {
+		t.Errorf("envelope findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+}
+
+// TestNewRefusesAnUnusableSchemaCache starts from an empty cache, then
+// from a cached file whose sum disagrees with the pin.
+func TestNewRefusesAnUnusableSchemaCache(t *testing.T) {
+	tests := []struct {
+		name  string
+		write bool
+		want  error
+	}{
+		{"empty cache", false, xmlrule.ErrNotCached},
+		{"wrong sum", true, xmlrule.ErrChecksum},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := emptyLedger(t)
+			t.Setenv("XDG_CACHE_HOME", t.TempDir())
+			if tt.write {
+				path, err := xmlrule.CachePath()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(path, []byte("not the schema"), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			g, err := New(cfg)
+			if !errors.Is(err, tt.want) {
+				t.Errorf("New error = %v, want %v", err, tt.want)
+			}
+			if g != nil {
+				t.Errorf("New returned a grader beside the error")
+			}
+		})
+	}
+}
