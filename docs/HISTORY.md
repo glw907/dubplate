@@ -13,7 +13,7 @@ the main tree at lane 1's segment A boundary (`beda726` through `acad661`).
 - A-land (`00d4b1a`): seven evidence records under `docs/superpowers/research/`: `2026-10-06-slice-1-evidence-pins.md`,
   `-contract.md`, `-client-demands.md`, `-base-url.md`, `-server-behavior.md`, `-melodee-intake.md`, and
   `-prior-art-cells.md`.
-- B-land (`the B-land commit after it`): the study record (`-study-record.md`), the divergence ledger (`-divergence-ledger.md`), and
+- B-land (`d11f853`): the study record (`-study-record.md`), the divergence ledger (`-divergence-ledger.md`), and
   streamer spec revision 3.1 (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, built on `bdd1472`'s
   revision 3), with each open item answered or marked answered pending ruling, and the prior-art cells filled.
 - The three owner forks (the `transcoding` extension, the protocol module's license and NOTICE, folder browsing at

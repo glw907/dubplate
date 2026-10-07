@@ -38,7 +38,7 @@ musicbox archive's copy is `~/.local/share/dubplate/archive/musicbox-retired-202
 | Lane | Tree | State |
 |---|---|---|
 | 1 | main tree (master) | RUNNING: segment A closed (Tasks 0-2: `beda726`, `9f8bd41`, `6bd91bb`, `acad661`, ~1.3M spent); segment B (Tasks 3-5) next |
-| slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `the B-land commit after it`) |
+| slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `d11f853`) |
 | slice 2 | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` from `beda726`; contests `go.mod`/`go.sum` (6d merges first) | RUNNING: segment A closed at `7b54596` (Tasks 1-3, boundary gate green, ~1.25M with Task 0); segment B running |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
