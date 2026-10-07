@@ -126,7 +126,7 @@ func TestCreateLeaf_OwnerMismatchRefusesAndCreatesNothing(t *testing.T) {
 	if !strings.Contains(err.Error(), cur.Username) {
 		t.Errorf("create error %q does not name the owner %q", err, cur.Username)
 	}
-	if !strings.Contains(err.Error(), "runuser -u "+cur.Username+" --") {
+	if !strings.Contains(err.Error(), "as "+cur.Username+" with the server's environment file loaded") {
 		t.Errorf("create error %q does not name the fix", err)
 	}
 	if _, statErr := os.Stat(l.root); !errors.Is(statErr, fs.ErrNotExist) {
@@ -176,7 +176,7 @@ func TestCheckOwner(t *testing.T) {
 		wantSubstr string
 	}{
 		{name: "matching euid", euid: realUID, wantErr: false},
-		{name: "mismatched euid", euid: realUID + 1, wantErr: true, wantSubstr: "runuser -u " + cur.Username + " --"},
+		{name: "mismatched euid", euid: realUID + 1, wantErr: true, wantSubstr: "as " + cur.Username + " with the server's environment file loaded"},
 	}
 
 	for _, tt := range tests {

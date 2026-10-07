@@ -69,30 +69,29 @@ A `doctor` run too early correctly reports a server that cannot start yet.
      ```
 
    - The SMTP rows: see [Mail](#mail).
-   - The trusted proxy rows: see step 9.
+   - The trusted proxy rows: see step 8.
 5. **Check that the paths and the grant agree.** The unit grants write access
    to exactly two directories, `/var/lib/dubplate/auth` and
-   `/var/lib/dubplate/roster`, on its `ReadWritePaths=` line. Those are the
+   `/var/lib/dubplate/store`, on its `ReadWritePaths=` line. Those are the
    directories the server writes when `DUBPLATE_STATE_DIR` is
-   `/var/lib/dubplate` and `DUBPLATE_ROSTER_FILE` is
-   `/var/lib/dubplate/roster/roster.json`, as the template sets them. If you
-   change either value, the grant must name `$DUBPLATE_STATE_DIR/auth` and the
-   roster file's own directory. Change the unit's `ReadWritePaths=` line, the
+   `/var/lib/dubplate`, as the template sets it: the sign-in state under
+   `auth` and the member and settings store under `store`. If you change that
+   value, the grant must name `$DUBPLATE_STATE_DIR/auth` and
+   `$DUBPLATE_STATE_DIR/store`. Change the unit's `ReadWritePaths=` line, the
    two commands in step 6, and the `ReadWritePaths` line of every
    `systemd-run` command in this runbook together. `doctor` checks the `auth`
    row (the store directory's mode and owner, and that the record directories
-   are writable by the user running `doctor`) and that the roster file's
-   directory is writable. It cannot read the unit's `ReadWritePaths=` line, so
-   it cannot see a grant that disagrees with the paths. Run from the
-   `systemd-run` command in step 8, it sees only the grant you gave that
-   command. A unit whose grant is wrong then fails at start or at its first
-   roster write.
+   are writable by the user running `doctor`). It cannot read the unit's
+   `ReadWritePaths=` line, so it cannot see a grant that disagrees with the
+   paths. Run from the `systemd-run` command in step 10, it sees only the
+   grant you gave that command. A unit whose grant is wrong then fails at
+   start or at its first store write.
 6. **Create the state leaves.** Create each granted directory, owned by the
    service user with mode 0700:
 
    ```sh
    install -d -o music -g music -m 0700 /var/lib/dubplate/auth
-   install -d -o music -g music -m 0700 /var/lib/dubplate/roster
+   install -d -o music -g music -m 0700 /var/lib/dubplate/store
    ```
 
    A leaf missing from the host stops the unit at start with the namespace
@@ -133,40 +132,7 @@ A `doctor` run too early correctly reports a server that cannot start yet.
    home directory or in `/tmp`, so copy the wheel to a path outside both that
    the service user can read, and pass that path to `--from`.
 
-8. **Add the first admin.** The roster file does not exist until a member is
-   added, and `doctor` fails the `roster` row until the roster names an admin.
-   The verb requires `--name` and `--username` as well as the address:
-
-   ```sh
-   dubplate-server member add admin@example.org --admin --name "Ada Admin" --username ada
-   dubplate-server member list
-   ```
-
-   Run both as the service user through `systemd-run`, carrying the serve
-   unit's own filesystem, privilege, and address-family properties. A hand-run
-   verb never runs as the bare binary under root, because the unit's guarantees
-   belong to the unit. On the host:
-
-   ```sh
-   systemd-run --wait --pipe --collect \
-     -p User=music -p EnvironmentFile=/etc/dubplate/server.env \
-     -p NoNewPrivileges=yes -p PrivateTmp=yes -p ProtectSystem=strict \
-     -p ProtectHome=yes -p ProtectKernelTunables=yes \
-     -p ProtectKernelModules=yes -p ProtectControlGroups=yes \
-     -p RestrictNamespaces=yes -p RestrictRealtime=yes \
-     -p RestrictSUIDSGID=yes -p LockPersonality=yes \
-     -p MemoryDenyWriteExecute=yes -p SystemCallFilter=@system-service \
-     -p SystemCallArchitectures=native -p AmbientCapabilities= \
-     -p CapabilityBoundingSet= -p UMask=0027 \
-     -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
-     -p 'ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/roster' \
-     /usr/local/bin/dubplate-server member add admin@example.org --admin \
-       --name "Ada Admin" --username ada
-   ```
-
-   Replace the `member add ...` arguments with `member list` to run that verb
-   the same way. The `ReadWritePaths` line is the grant step 5 describes.
-9. **Put a TLS front in front of the server.** Sign-in requires HTTPS (see
+8. **Put a TLS front in front of the server.** Sign-in requires HTTPS (see
    [Sign-in requires HTTPS](#sign-in-requires-https)), and the server listens
    on `127.0.0.1:8080` by default, so members reach it through a proxy or a
    tunnel that terminates TLS. Configure the front as a trusted proxy in
@@ -186,43 +152,91 @@ A `doctor` run too early correctly reports a server that cannot start yet.
    [Example fronts](#example-fronts) has a Caddy, an nginx, and a cloudflared
    configuration, and [The trust boundary](#the-trust-boundary) says what the
    front must do with the header.
-10. **Run `doctor`.** Use the same `systemd-run` command as step 8 with
+9. **Start the unit.** The start creates the store and applies the settings
+   in the environment to it (see [The settings rows](#the-settings-rows)).
+
+   ```sh
+   systemctl start dubplate-server-serve.service
+   ```
+
+   Until the first admin exists, every sign-in request answers as an unknown
+   address. The window lasts until the next step.
+10. **Add the first admin.** `member add` needs the store, which the unit's
+    start created, and refuses an absent store with "start serve first". The
+    verb requires `--name` and `--username` as well as the address:
+
+    ```sh
+    dubplate-server member add admin@example.org --admin --name "Ada Admin" --username ada
+    dubplate-server member list
+    ```
+
+    Run both as the service user through `systemd-run`, carrying the serve
+    unit's own filesystem, privilege, and address-family properties. A hand-run
+    verb never runs as the bare binary under root, because the unit's guarantees
+    belong to the unit. On the host:
+
+    ```sh
+    systemd-run --wait --pipe --collect \
+      -p User=music -p EnvironmentFile=/etc/dubplate/server.env \
+      -p NoNewPrivileges=yes -p PrivateTmp=yes -p ProtectSystem=strict \
+      -p ProtectHome=yes -p ProtectKernelTunables=yes \
+      -p ProtectKernelModules=yes -p ProtectControlGroups=yes \
+      -p RestrictNamespaces=yes -p RestrictRealtime=yes \
+      -p RestrictSUIDSGID=yes -p LockPersonality=yes \
+      -p MemoryDenyWriteExecute=yes -p SystemCallFilter=@system-service \
+      -p SystemCallArchitectures=native -p AmbientCapabilities= \
+      -p CapabilityBoundingSet= -p UMask=0027 \
+      -p 'RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX' \
+      -p 'ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/store' \
+      /usr/local/bin/dubplate-server member add admin@example.org --admin \
+        --name "Ada Admin" --username ada
+    ```
+
+    Replace the `member add ...` arguments with `member list` to run that verb
+    the same way. The `ReadWritePaths` line is the grant step 5 describes.
+11. **Run `doctor`.** Use the same `systemd-run` command as step 10 with
     `doctor` as the verb, and leave out the `RestrictAddressFamilies` line.
     The `bind addresses` row reads the interface table over a netlink socket,
     which the restriction denies. With the restriction in place the row reads
     `not checked: route ip+net: netlinkrib: address family not supported by
     protocol` and fails `doctor`, so the unit itself keeps the restriction and
     only this check leaves it off. `doctor` exits 0 only when every row
-    passes.
-11. **Start the unit.**
-
-    ```sh
-    systemctl start dubplate-server-serve.service
-    ```
-
-    Run `doctor` once more with the unit up. `boundary probe` should now read
-    `refused`. The probe skips an address you listed as a trusted proxy in
-    step 9, and the row says so.
+    passes. The unit is up, so `boundary probe` should read `refused`. The
+    probe skips an address you listed as a trusted proxy in step 8, and the row
+    says so.
 12. **Sign in.** Open `https://music.example.org/dubplate/login`, with your own
-    host, and request a link for the admin address from step 8. An admin adds
+    host, and request a link for the admin address from step 10. An admin adds
     members at `https://music.example.org/dubplate/members`. That page answers
     `404 page not found` to anyone not signed in as an admin, and so does `/`.
 
 `dubplate-server check` is the short form of the configuration wall. It prints
 `configuration: ok` and the store state, and exits 0 when `Load` accepts the
 environment. It runs none of the checks that need the filesystem or the
-network, so it never replaces step 10.
+network, so it never replaces step 11.
 
-## Re-create a roster written before the username rename
+## Upgrade a box that holds a roster file
 
-A fresh install never meets this section. Follow it only when your roster file
-was written by a build that predates the required `--username` flag. Such a
-file has members with no username. Re-creating the roster drops every member
-but the admin you add in step 2, so re-add the others afterward. Re-create the
-roster with the first admin:
+The store replaced the roster file. A fresh install never meets this section.
+Follow it on a box that ran an earlier build, whose roster file holds the
+admin. The store starts empty, so `member add --admin` into the
+empty store is the bootstrap, and you re-add every other member afterward. Run
+each verb through the `systemd-run` command in install step 10, with the store
+leaf granted.
 
-1. Move the roster file aside, inside its leaf. The new name keeps the old
-   file for reference, and the server never reads it.
+1. Take the rollback copies (see [The rollback copies](#the-rollback-copies)),
+   then run `deploy.sh --apply`. The rendered environment file has no roster
+   row, the deploy creates the `store` leaf, and it starts nothing.
+2. Run one supervised start and stop of the unit. The start creates the store.
+   `doctor`'s `members` row then fails and names `member add --admin`, as
+   expected at this point.
+
+   ```sh
+   systemctl start dubplate-server-serve.service
+   systemctl stop dubplate-server-serve.service
+   ```
+
+3. Move the roster file aside, inside its leaf. The new name keeps the old file
+   for reference and for a rollback, and no build of this release reads it.
 
    ```sh
    mv /var/lib/dubplate/roster/roster.json \
@@ -230,24 +244,37 @@ roster with the first admin:
    ```
 
    `mv` keeps the file's mode `0600` and its owner `music`.
-2. Add the admin again with the `systemd-run` command from install step 8.
-   Put the admin's own address, name, and username in the `member add`
-   arguments, which end the command:
+4. Add the admin with the `member add` command from install step 10, taking the
+   admin's address, display name, and `streamer_username` from the aside file:
 
    ```sh
      /usr/local/bin/dubplate-server member add ADDRESS --admin \
        --name "NAME" --username USERNAME
    ```
 
-   With no roster file present, `member add` takes the bootstrap path and
-   writes a new file.
+5. Run `member list` the same way. It shows exactly one member, the admin. Then
+   run `doctor` as in install step 11, which exits 0.
 
-3. Run `member list` the same way. It shows exactly one member, the admin.
-   Then run `doctor` as in install step 10. It prints no `roster` row, because
-   that row prints only on failure.
+Nothing in this upgrade enables the unit, and apart from the supervised start
+in step 2 nothing starts it. A re-run after a rollback finds the admin already
+stored: `member add` refuses it as a duplicate, which is correct, and `member
+list` showing that admin is the pass condition. Add the other members
+afterward with `member add` (without `--admin`) or on the members page.
 
-Add the other members afterward with `member add` (without `--admin`) or on the
-members page.
+### Rolling back past the store
+
+The rollback copies restore the previous binary, environment file, and units.
+That binary predates the username flag the upgrade used, so the rollback
+re-creates no admin. Step 3 moved the roster file aside unchanged, so move it
+back:
+
+```sh
+mv /var/lib/dubplate/roster/roster.json.pre-username \
+   /var/lib/dubplate/roster/roster.json
+```
+
+The previous unit grants the `roster` leaf, which the deploy left on the box.
+The `store` leaf stays on disk, unread by the previous binary.
 
 ## The doctor rows
 
@@ -262,9 +289,12 @@ Each owned key, reserved class, integration class, and threshold prints one
 row, in that order. An owned key reads `ok`, `missing`, or `invalid: <reason>`.
 The identity source reads `active`, `inactive`, or `unsatisfied: <key>
 missing` naming every failing key, and never prints a value, since the source's
-keys include secrets. The `roster` row prints only when it fails: `missing`
-before step 8, `invalid: ...` for a duplicate or unparseable record, and `no
-admin; run dubplate-server member add --admin` when nobody holds the flag.
+keys include secrets. The `members` row reads `no store yet; start
+serve, then member add --admin` before the first start, `members: <n>, admins:
+<m>` once the store holds members, and `not read` for a store the `store` row
+cannot vouch for. It fails with `no members; run dubplate-server member add
+--admin` or `members: <n>, admins: 0; run dubplate-server member add --admin`
+when nobody can add a member through the page.
 
 ### The state rows
 
@@ -337,12 +367,19 @@ and its apply mode, for example `"14" (source default, next operation); store
 holds no settings yet`. A key the store holds that no code still declares
 reads `no longer registered; ignored`.
 
-While the store is absent or holds no settings yet, a setting you put in the
-environment reads `...; env "20" seeds at serve's next start`. **That
-statement is not yet true.** `serve` does not apply the seed today, so an
-environment value for a setting does not reach the store until a later release
-wires the seed into `serve`. Until then, treat such a row as a hand-set value
-that has no effect, and clear it from the environment.
+`serve` applies the environment to the store at every start, before it
+listens. An environment value for a setting the store holds no row for becomes
+that setting's row, with the source `env-seed`. An `env-seed` row follows the
+environment afterward: a changed value replaces it, and removing the value
+returns the setting to its default. A row an administrator set is never
+changed by the environment. An environment value outside its bounds, or one
+that does not parse, refuses the start, and `serve` binds no listener.
+
+Before the first start, a setting you put in the environment reads `...; env
+"20" seeds at serve's next start`. An environment value outside its bounds
+fails `doctor` and `check` at that point, with the refusal `serve` would
+raise, so the first start does not surprise you. A row you cannot vouch for
+stays `not checked`.
 
 ## Mail
 
@@ -770,7 +807,7 @@ order closes it:
    with the property list `--check` prints (the env file is not installed until
    a later step). The run may write only `/var/lib/dubplate/unidecode`, which
    the script creates first, so the install cannot touch the auth store or the
-   roster beside it;
+   store beside it;
 3. only a verified install is moved over the live path with `mv`.
 
 A failed install stops the deploy with the old binary still live, and leaves `dubplate-server.new` on the box, which the next deploy's

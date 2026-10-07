@@ -138,8 +138,8 @@ func TestUnidecodeInstall_RefusesForeignStateDirOwner(t *testing.T) {
 	var stdout bytes.Buffer
 	denyUnidecodeNetwork(t)
 	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
-	if err == nil || !strings.Contains(err.Error(), "runuser") {
-		t.Fatalf("error = %v, want a refusal naming the runuser fix", err)
+	if err == nil || !strings.Contains(err.Error(), "with the server's environment file loaded") {
+		t.Fatalf("error = %v, want a refusal naming the environment-file fix", err)
 	}
 }
 
@@ -195,8 +195,8 @@ func TestUnidecodeInstall_RefusesForeignLeafOwner(t *testing.T) {
 	var stdout bytes.Buffer
 	denyUnidecodeNetwork(t)
 	err := runUnidecodeInstall(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir}, "", &stdout)
-	if err == nil || !strings.Contains(err.Error(), leafPath) || !strings.Contains(err.Error(), "runuser") {
-		t.Fatalf("error = %v, want a refusal naming %s and the runuser fix", err, leafPath)
+	if err == nil || !strings.Contains(err.Error(), leafPath) || !strings.Contains(err.Error(), "with the server's environment file loaded") {
+		t.Fatalf("error = %v, want a refusal naming %s and the environment-file fix", err, leafPath)
 	}
 }
 

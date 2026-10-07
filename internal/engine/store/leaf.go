@@ -100,7 +100,8 @@ func (l leaf) create(stateDir string) error {
 
 // checkOwner refuses when info's owning uid differs from geteuid(),
 // naming the owner and the fix a caller running as the wrong user
-// needs.
+// needs: the owner's account with the server's environment file loaded,
+// which a bare su shell does not do.
 func checkOwner(info fs.FileInfo) error {
 	st, ok := info.Sys().(*syscall.Stat_t)
 	if !ok {
@@ -110,7 +111,7 @@ func checkOwner(info fs.FileInfo) error {
 		return nil
 	}
 	name := ownerName(st.Uid)
-	return fmt.Errorf("owned by %s: run as that user: runuser -u %s -- dubplate-server <command>", name, name)
+	return fmt.Errorf("owned by %s: run the command as %s with the server's environment file loaded", name, name)
 }
 
 // checkLeafShape refuses when info, the leaf's own stat, is not a

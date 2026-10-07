@@ -125,13 +125,13 @@ func TestOneDevice(t *testing.T) {
 // TestOpenRestore_Leaf: an absent leaf is created when the caller owns
 // the state directory and refused, creating nothing, when it does not;
 // a present leaf another uid owns is refused naming the owner and the
-// runuser fix.
+// environment-file fix.
 func TestOpenRestore_Leaf(t *testing.T) {
 	cur, err := user.Current()
 	if err != nil {
 		t.Fatalf("current user: %v", err)
 	}
-	fix := "runuser -u " + cur.Username + " --"
+	fix := "as " + cur.Username + " with the server's environment file loaded"
 
 	t.Run("absent, caller owns the state directory", func(t *testing.T) {
 		stateDir := t.TempDir()

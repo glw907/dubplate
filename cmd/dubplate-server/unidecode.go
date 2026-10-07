@@ -255,7 +255,7 @@ func readUnidecodeWheelFile(path string) ([]byte, error) {
 }
 
 // checkUnidecodeOwner refuses when info's owning uid differs from
-// geteuid(), naming the owner and the runuser fix, leaf.go's own
+// geteuid(), naming the owner and the environment-file fix, leaf.go's own
 // checkOwner precedent.
 func checkUnidecodeOwner(info fs.FileInfo, path string) error {
 	st, ok := info.Sys().(*syscall.Stat_t)
@@ -266,8 +266,8 @@ func checkUnidecodeOwner(info fs.FileInfo, path string) error {
 		return nil
 	}
 	name := unidecodeOwnerName(st.Uid)
-	return fmt.Errorf("%s owned by %s: run as that user: runuser -u %s -- dubplate-server %s",
-		path, name, name, unidecodeInstallVerbName)
+	return fmt.Errorf("%s owned by %s: run dubplate-server %s as %s with the server's environment file loaded",
+		path, name, unidecodeInstallVerbName, name)
 }
 
 // checkUnidecodeLeafShape refuses when info, the leaf's own stat, is

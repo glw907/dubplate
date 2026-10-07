@@ -26,7 +26,7 @@ set -euo pipefail
 #
 # --apply writes exactly these, in order:
 #   - rsyncs every unit in UNIT_FILES to /etc/systemd/system;
-#   - creates /var/lib/dubplate owned by music, and the auth, roster, and
+#   - creates /var/lib/dubplate owned by music, and the auth, store, and
 #     unidecode leaves under it;
 #   - stages the dubplate-server binary, smoke-tests it, runs its unidecode
 #     install on the box (a PyPI download), and swaps it onto
@@ -274,11 +274,12 @@ run_remote "install -d -o music -g music -m 0755 $DUBPLATE_LIB_DIR"
 # ProtectSystem=strict; nothing inside the process gets a chance to mkdir
 # it:
 #   auth    dubplate-server-serve.service (sign-in nonce and epoch stores)
-#   roster  dubplate-server-serve.service (the member roster file)
+#   store   dubplate-server-serve.service (the member and settings store)
 # The unidecode leaf is not listed: no unit is granted it, and it is
 # pre-created on its own just below. 0700 matches what auth.Open requires
-# of its leaf and keeps the roster private to music.
-DUBPLATE_SERVER_LEAVES=(auth roster)
+# of its leaf (and leafDirPerm in internal/engine/store of the store leaf)
+# and keeps the members private to music.
+DUBPLATE_SERVER_LEAVES=(auth store)
 for leaf in "${DUBPLATE_SERVER_LEAVES[@]}"; do
   echo "== $DUBPLATE_LIB_DIR/$leaf =="
   run_remote "install -d -o music -g music -m 0700 $DUBPLATE_LIB_DIR/$leaf"
@@ -287,7 +288,7 @@ done
 # --- /var/lib/dubplate/unidecode (the table install below) ---------------
 # The table install's systemd-run grants this leaf alone, so the verb can
 # write its table and nothing else under $DUBPLATE_LIB_DIR: the auth store
-# and the roster sit beside it. A granted path must exist before the
+# and the member store sit beside it. A granted path must exist before the
 # transient unit starts (the same namespace failure as the leaves above),
 # so it is created here. 0755 and music's ownership are what the verb's
 # own leaf check requires of an existing leaf (unidecodeLeafPerm and

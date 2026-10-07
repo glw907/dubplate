@@ -631,7 +631,7 @@ func TestOpenModes_OwnerAndFilesystemRefused(t *testing.T) {
 		{
 			name: "leaf owned by another uid",
 			euid: os.Geteuid() + 1,
-			want: "runuser -u",
+			want: "with the server's environment file loaded",
 		},
 		{
 			name:   "NFS",

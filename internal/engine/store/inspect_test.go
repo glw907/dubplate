@@ -179,7 +179,7 @@ func TestInspect_EveryOtherState(t *testing.T) {
 			setup:      func(t *testing.T, stateDir string) { buildStore(t, stateDir, binaryHead) },
 			euid:       os.Geteuid() + 1,
 			wantState:  StateRefused,
-			wantReason: "runuser -u",
+			wantReason: "with the server's environment file loaded",
 		},
 		{
 			name:      "current",

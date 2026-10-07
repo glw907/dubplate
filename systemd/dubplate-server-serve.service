@@ -29,9 +29,9 @@ RestartSec=5
 TimeoutStopSec=30
 
 # Why the grant is two leaves: serve writes its sign-in state under
-# auth.StoreDir (DUBPLATE_STATE_DIR plus /auth) and its roster file in the
-# directory of DUBPLATE_ROSTER_FILE (DUBPLATE_STATE_DIR plus /roster), and
-# nothing else on disk. Each entry carries no "-" or "+" prefix:
+# auth.StoreDir (DUBPLATE_STATE_DIR plus /auth) and its member and settings
+# store under the store leaf (DUBPLATE_STATE_DIR plus /store), and nothing
+# else on disk. Each entry carries no "-" or "+" prefix:
 # systemd.exec(5) says a "-" prefixed path is ignored when it does not
 # exist, which would turn a missing pre-create into EROFS at first write
 # in place of the namespace failure at start. deploy.sh pre-creates both
@@ -40,7 +40,7 @@ TimeoutStopSec=30
 # ReadWritePaths= entry that does not exist on the host yet. scripts/
 # check.sh gates the entries, the template's state directory, and
 # deploy.sh's leaf list staying in agreement.
-ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/roster
+ReadWritePaths=/var/lib/dubplate/auth /var/lib/dubplate/store
 
 # --- hardening ---
 # The process never gains privilege through setuid or file capabilities.
