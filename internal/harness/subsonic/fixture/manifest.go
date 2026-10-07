@@ -164,3 +164,18 @@ func requireVorbisComment(path string) error {
 	}
 	return nil
 }
+
+// TrackCount checks the manifest at manifestPath and returns the number
+// of tracks it declares, the count a scan of the built library must
+// report.
+func TrackCount(manifestPath string) (int, error) {
+	lib, err := load(manifestPath)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, a := range lib.manifest.Albums {
+		n += len(a.Tracks)
+	}
+	return n, nil
+}
