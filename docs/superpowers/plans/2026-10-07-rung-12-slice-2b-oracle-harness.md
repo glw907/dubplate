@@ -1124,3 +1124,11 @@ and Task 10's degraded forms if they are taken.
   `oracleServer` gains `getMusicFolders`, `/auth/login`, and `/api/library` routes, and the existing stack tests take
   the folder check, the one-collection path included. Housekeeping: the "What 2a built" row for `data/ledger.json` now
   holds 52 owed rows and none active, and the `fixture.Load` cite reads `manifest.go:70-86`.
+- **E6 (segment C, paused 2026-10-07 at Geoff's ask).** Tasks 7 (`55d6398`) and 8 (`f5c916d`) were accepted with no
+  fix rounds; the run was stopped before Task 9 wrote anything, so segment C resumes at Task 9 in its normal form
+  under E5. Task 7 took two readings on review: the loader's refusal names the directory, request, endpoint, and source
+  but not the body file (the file follows from the request and source), and one states row's name ("an escaped query
+  separator is still read") claims a property its body does not exercise. Task 7's scan treats every string leaf
+  containing `?` as a URL and refuses one whose query `ParseQuery` rejects, as the plan's fail-closed rule says, so a
+  title such as "Is This It? 50% off" would refuse a session; filed as BACKLOG #29 for slice 3. Task 8 recorded 30
+  spec entries with no request dropped; every prediction is pinned, the two absent ones as absent.
