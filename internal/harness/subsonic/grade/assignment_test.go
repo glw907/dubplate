@@ -256,6 +256,7 @@ func validAssignment() assignment {
 			{Endpoint: "jukeboxControl", Oracle: oracleContractOnly, Slice: notServed, Reason: "r"},
 		},
 		Areas:       []areaEntry{{Name: "a", Slice: "slice 3", Reason: "r"}},
+		Agreements:  []agreementEntry{{ID: "A-01", Area: "a", Behavior: "b", Evidence: "e", Test: "t", Slice: "slice 3"}},
 		AlbumShapes: []shapeEntry{{Shape: "compilation", Album: "Various Artists/Mixtape Volume One", Reason: "r"}},
 	}
 }
@@ -314,6 +315,27 @@ func TestLoadAssignmentStates(t *testing.T) {
 			name:    "unknown shape",
 			edit:    func(a *assignment) { a.AlbumShapes[0].Shape = "concept album" },
 			wantErr: []string{`unknown shape`}, wantIs: errInvalidAssignment,
+		},
+		{
+			name:    "agreement twice",
+			edit:    func(a *assignment) { a.Agreements = append(a.Agreements, a.Agreements[0]) },
+			wantErr: []string{`agreement "A-01": listed twice`}, wantIs: errInvalidAssignment,
+		},
+		{
+			name: "agreement with every field empty",
+			edit: func(a *assignment) {
+				a.Agreements = append(a.Agreements, agreementEntry{ID: "A-02"})
+			},
+			wantErr: []string{
+				`agreement "A-02": empty area`, `agreement "A-02": empty behavior`, `agreement "A-02": empty evidence`,
+				`agreement "A-02": empty test`, `agreement "A-02": empty slice`,
+			},
+			wantIs: errInvalidAssignment,
+		},
+		{
+			name:    "agreement with no id",
+			edit:    func(a *assignment) { a.Agreements[0].ID = "" },
+			wantErr: []string{`agreement 1: empty id`}, wantIs: errInvalidAssignment,
 		},
 		{
 			name: "many bad",

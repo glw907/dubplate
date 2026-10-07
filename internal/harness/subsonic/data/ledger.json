@@ -1,13 +1,815 @@
 [
   {
-    "id": "apikey-unoracled",
-    "area": "apiKey authentication",
-    "class": "unoracled",
-    "sources": ["dubplate"],
-    "oracle": "Neither pinned oracle covers the apiKey path.",
-    "dubplate": "Graded against the OpenSubsonic specification and the client roster, not against an oracle.",
-    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
+    "id": "L-01",
+    "area": "Format selection, `f` and JSONP",
+    "divergence": "contract-deviation",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Absent, unknown, or mis-cased `f` answers XML on both. `f=jsonp`: Navidrome validates the callback and answers error 0 for a bad one (two bad forms observed, four inferred from the content type); gonic reflects any callback verbatim as script",
+    "dubplate": "XML when `f` is absent or unrecognized, never an error. JSONP is declined: `f=jsonp` gets the unrecognized-`f` answer and no callback is ever reflected. Every API response carries `X-Content-Type-Options: nosniff`",
+    "evidence": "`[contract]` E2, E3; `[clients]` §1 (\"Response format asked\": no roster client sends `jsonp`; Amperfy sends no `f`); `[record]` §18 item 2 (was C-03, C-04, C-05)",
+    "test": "Harness: the five `f` forms plus `f=jsonp` with a hostile callback, asserting no callback text in the body",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-02",
+    "area": "XML form of OpenSubsonic additions",
+    "divergence": "unspecified-shape",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Both put scalars in attributes and lists in repeated elements. gonic writes booleans (`isCompilation`) and `artistImageUrl` as elements; Navidrome omits empty additions from XML",
+    "dubplate": "E4's convention: scalars as attributes, lists of records as repeated elements with no wrapper, lists of strings as repeated text elements. No schema validates it; the oracle diff covers emitted fields",
+    "evidence": "`[contract]` E4, Q3; `[record]` §5 (was C-06)",
+    "test": "Harness: XML oracle diff on emitted additions; rung 16: Amperfy parses XML",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-03",
+    "area": "Empty containers, `null`, idle `nowPlaying`",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic emits JSON `null` for `replayGain`, `structuredLyrics`, and `channel`, and mixes empty containers. Navidrome's idle `nowPlaying` is `{}`, without the required `entry`",
+    "dubplate": "An empty container for a list with no items, never `null`; `nowPlaying` carries `entry: []`",
+    "evidence": "`[contract]` E6 (was C-08)",
+    "test": "Contract tier (the OpenAPI file declares nothing nullable)",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-04",
+    "area": "The emit-empty rule",
+    "divergence": "unspecified-shape",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome emits empty-valued additions in JSON and omits them from XML; gonic's `releaseTypes` is `[\"\"]`",
+    "dubplate": "JSON emits every supported addition with its empty value (the specification's rule); XML omits an empty scalar, and an empty list is no elements; never `[\"\"]`",
+    "evidence": "`[contract]` E4, E6 (was C-09)",
+    "test": "Harness: one empty-valued addition per type, both formats",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-05",
+    "area": "Version negotiation",
+    "divergence": "contract-deviation",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Neither answers error 20 or 30 for any `v`. Navidrome answers error 10 when `v` is missing; gonic does not require it",
+    "dubplate": "`v` is required (error 10 when missing); any value is accepted; error 20 and 30 are never sent; the envelope reports `1.16.1`",
+    "evidence": "`[contract]` E9; `[clients]` §1 (roster `v` values 1.11.0 to 1.16.1) (was C-13)",
+    "test": "Harness: missing, low, equal, and high `v`",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-06",
+    "area": "Error answer on `stream`, `download`, `getCoverArt`",
+    "divergence": "contract-deviation",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "The envelope with HTTP 200, as `application/xml` or `application/json`, never the `text/xml` the specification names",
+    "dubplate": "Same as both oracles: the envelope in the requested format, HTTP 200",
+    "evidence": "`[contract]` E8 (was C-12)",
+    "test": "Harness: a nonexistent id on each binary endpoint; rung 16: Amperfy's under-2,000-byte artwork parse (`[clients]` \"Routed\", slice 4)",
+    "state": "owed",
+    "slice": "slice 4"
+  },
+  {
+    "id": "L-07",
+    "area": "Credentials echoed in response URLs",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "`getArtistInfo2` image URLs carry the requester's `u`, `t`, `s`, `v`, `c`, `f`",
+    "dubplate": "Never rebuild a URL from the request's credentials",
+    "evidence": "`[contract]` E11 (was C-15)",
+    "test": "Harness: scan every captured body for `t=`, `s=`, `p=`, `apiKey=`",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-08",
+    "area": "Error message text",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each oracle words errors its own way, and neither matches the specification's text exactly",
+    "dubplate": "Compare the code and the envelope shape, never the message",
+    "evidence": "`[contract]` Q5 (was C-16)",
+    "test": "Harness: the comparison rule itself",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-09",
+    "area": "Wrong-credential wording",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Says \"invalid username\" or \"invalid password\", which tells a caller which half was wrong; Navidrome gives one message",
+    "dubplate": "Error 40 with one message for both cases",
+    "evidence": "`[contract]` Q5; `[servers]` §5.1, §5.2 lesson 3",
+    "test": "Slice 6",
     "state": "owed",
     "slice": "slice 6"
+  },
+  {
+    "id": "L-10",
+    "area": "`apiKey` authentication and `tokenInfo`",
+    "divergence": "declared: apiKey path",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Neither declares `apiKeyAuthentication`; `apiKey` answers error 10 on both",
+    "dubplate": "Declared when slice 6 lands the hash-only credential (spec `:486-488`); `tokenInfo`; errors 42, 43, 44 per the extension page",
+    "evidence": "`[contract]` Q1, Q6; `[clients]` §3 (Rufin's API-key mode); `[servers]` §5.1 (was C-02, and the apiKey half of D4-21)",
+    "test": "Slice 6, graded against the specification and Rufin",
+    "state": "owed",
+    "slice": "slice 6"
+  },
+  {
+    "id": "L-11",
+    "area": "Plain and hex password (`u`+`p`, `p=enc:`)",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Both accept both forms",
+    "dubplate": "Refused with error 42 (spec `:491`)",
+    "evidence": "`[contract]` Q6; `[servers]` §5.1; `[record]` §18 item 3 (the password half of D4-21)",
+    "test": "Slice 6; roster: each client logs in with the token form by default",
+    "state": "owed",
+    "slice": "slice 6"
+  },
+  {
+    "id": "L-12",
+    "area": "`getOpenSubsonicExtensions` without credentials",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Requires `u` and `c` (error 10); Navidrome answers with no parameters at all",
+    "dubplate": "Answers with no parameters at all; the only data-bearing unauthenticated route (spec `:648`)",
+    "evidence": "`[contract]` Q6; `[servers]` §5 (was C-19, D4-03)",
+    "test": "Harness: an unauthenticated call, Navidrome as the oracle",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-13",
+    "area": "Conflicting credentials",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "`u`+`p`+`t`: Navidrome answers `ok`, gonic error 10. `apiKey` with `u`: Navidrome 40, gonic 10. Neither sends error 43",
+    "dubplate": "Error 43 for conflicting mechanisms, per the specification's error list; slice 6 decides whether a credential in both the query and a form body is a conflict",
+    "evidence": "`[contract]` Q5, Q6; `[record]` §18 item 3",
+    "test": "Slice 6",
+    "state": "owed",
+    "slice": "slice 6"
+  },
+  {
+    "id": "L-14",
+    "area": "An endpoint dubplate does not implement",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome: plain-text HTTP 404, 410, or 501 outside the envelope. gonic: HTTP 200, error 70 \"view not found\"",
+    "dubplate": "Error 0 in a well-formed envelope, HTTP 200, naming the endpoint (spec `:670-671`), except the empty-success set (`[record]` §1). Recorded quirk: Feishin treats error 0 as success on status-checked writes such as `setRating` (`[clients]` §2a)",
+    "evidence": "`[contract]` E8; `[servers]` §1.1; `[record]` tensions (a), (b) (was C-11, D4-01, D4-02)",
+    "test": "Harness: one probe per non-launch path, plus one per empty-success endpoint",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-15",
+    "area": "A missing required parameter",
+    "divergence": "oracle-lenient",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome: `getAlbum` without `id` is error 70; `getSongsByGenre` without `genre`, `getLyrics` without a title, and `search3` without `query` answer `ok`; `createPlaylist` with no parameters is error 0 \"Internal Server Error\". gonic: `star` and `unstar` without `id` answer `ok`; `createPlaylist` with no parameters creates an empty-named playlist",
+    "dubplate": "Error 10, every endpoint, every required parameter",
+    "evidence": "`[contract]` Q5; `[servers]` §1.2, §6.1, §11 (was C-18, D4-23, D4-42, D4-43)",
+    "test": "Harness: a missing-parameter sweep graded by the contract tier",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-16",
+    "area": "An id the server did not issue",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Unparseable id: Navidrome error 70, gonic error 10. Well-formed id with no record: both error 70 on the reads observed; gonic's writes are the exception (`scrobble` error 0, `savePlayQueue` a silent store, L-43, L-47)",
+    "dubplate": "Error 70 for any id the server did not issue; opaque ids have no malformed form (spec `:379`)",
+    "evidence": "`[contract]` Q5; `[record]` §18 item 5",
+    "test": "Harness",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-17",
+    "area": "`download` of an artist, playlist, or folder id",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome returns a zip of the artist; gonic answers error 0",
+    "dubplate": "Error 50 naming the song-or-album rule (spec `:662-668`)",
+    "evidence": "`[contract]` Q5 (was C-17)",
+    "test": "Harness: one id of each refused kind",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-18",
+    "area": "The music folder id",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome: the library's 1-based database id. gonic: the 0-based index into its path list, which changes meaning when paths are reordered",
+    "dubplate": "A stable integer per collection, never reused (hook 22)",
+    "evidence": "`[contract]` E7; `[servers]` §2; `[record]` §17 (was C-10)",
+    "test": "Slice 3: the id survives a restart, `VACUUM`, and a delete-then-create",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-19",
+    "area": "Unknown or invisible `musicFolderId`",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome: error 70 on all ten endpoints. gonic: `ok` with an empty result",
+    "dubplate": "Error 70, with the same answer for a collection the member cannot see",
+    "evidence": "`[servers]` §2; `[record]` §4 (was D4-06, D4-07)",
+    "test": "Harness: an unknown-id row per endpoint; slice 3: a private-collection row",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-20",
+    "area": "`getScanStatus` fields",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome"
+    ],
+    "oracle": "Emits scanner state and vendor fields (`lastScan`, `scanType`, `folderCount`, `elapsedTime`) outside both contracts",
+    "dubplate": "`scanning: false`, `count` of admitted tracks, and `lastScan` set to the catalog's last change, on the known-deviation list",
+    "evidence": "`[contract]` Q3 (\"Residuals\"); `[clients]` §2b (Rufin's freshness marker); `[record]` §18 item 7",
+    "test": "Slice 3; roster: Rufin skips a full refresh",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-21",
+    "area": "`startScan`",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Starts a library scan",
+    "dubplate": "No scan exists, since the catalog is the index (spec `:180-186`); answers the current scan status",
+    "evidence": "`[clients]` §2a, §2b, §2d; `[record]` §1",
+    "test": "Slice 3",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-22",
+    "area": "`getUser` for another username",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Returns the caller's own record for any username; Navidrome answers error 50, also for an unknown name",
+    "dubplate": "A non-admin asking for any other username gets error 50 whether or not it exists; an admin asking for an unknown one gets error 70",
+    "evidence": "`[contract]` Q5",
+    "test": "Slice 6",
+    "state": "owed",
+    "slice": "slice 6"
+  },
+  {
+    "id": "L-23",
+    "area": "Id shape",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Typed prefixes with a database number (`ar-1`, `al-3`, `tr-1`)",
+    "dubplate": "Opaque server-issued tokens (spec `:379`), as Navidrome's are",
+    "evidence": "`[servers]` §8, §11 (was D4-38)",
+    "test": "Harness: an id-shape assertion",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-24",
+    "area": "`search3`, queries of one or two characters",
+    "divergence": "no-oracle",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome: nothing for one character, word-prefix matches for two. gonic: substring matches, a flood for one character",
+    "dubplate": "The prefix lookup for queries under three characters (spec `:403-405`)",
+    "evidence": "`[servers]` §6.2 (was D4-24)",
+    "test": "Harness: a golden list, never an oracle diff",
+    "state": "owed",
+    "slice": "slice 4"
+  },
+  {
+    "id": "L-25",
+    "area": "`search3`, `query=*`",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome strips a trailing `*` and answers everything; gonic matches nothing",
+    "dubplate": "Navidrome's: a trailing `*` is stripped, so a bare `*` is the empty query",
+    "evidence": "`[servers]` §6.1 (was D4-25)",
+    "test": "Harness",
+    "state": "owed",
+    "slice": "slice 4"
+  },
+  {
+    "id": "L-26",
+    "area": "`search3`, the two-quote empty query",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Returns three extra album rows with empty titles (cause unconfirmed)",
+    "dubplate": "Real rows only, in a deterministic natural order",
+    "evidence": "`[servers]` §6.1 (gonic half of D4-22)",
+    "test": "Harness: a whole-library page walk",
+    "state": "owed",
+    "slice": "slice 4"
+  },
+  {
+    "id": "L-27",
+    "area": "`getAlbumList2` `size` edges",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome returns every album for `size=0` or `-1`; gonic returns none for 0 and leaks a SQL syntax error for `-1`",
+    "dubplate": "Above 500 clamps to 500; 0 returns an empty list; negative or non-numeric answers error 0 naming the parameter; never an unbounded list, never a database error",
+    "evidence": "`[servers]` §6.3 (was D4-26)",
+    "test": "Harness: an edge-size table",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-28",
+    "area": "A second request on a filling transcode",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Blocks with no headers until the first encode ends (65.8 s observed), then serves the complete file",
+    "dubplate": "Shares the encode from byte 0, as Navidrome does (spec `:433-434`)",
+    "evidence": "`[servers]` §3.2 (was D4-09)",
+    "test": "Slice 5: a second-listener test",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-29",
+    "area": "`estimateContentLength`",
+    "divergence": "contract-deviation",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome's estimate ignores `timeOffset`; both run about 2.4% high",
+    "dubplate": "Not honored at 0.8: no roster client sends it, and an overshooting length reads as truncation",
+    "evidence": "`[servers]` §3.3; `[clients]` §5; `[record]` §7 (was D4-10, D4-11)",
+    "test": "Slice 5",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-30",
+    "area": "`timeOffset` caching",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome caches each offset as its own entry and serves ranges once it completes; gonic re-encodes every request and ignores Range",
+    "dubplate": "Navidrome's: the offset is part of the cache key",
+    "evidence": "`[servers]` §3.3 (was D4-12)",
+    "test": "Slice 5",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-31",
+    "area": "A failed encode",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic ends the stream cleanly after ffmpeg is killed, indistinguishable from a short track. Navidrome aborts the connection and evicts the entry",
+    "dubplate": "Evict and fail. Before the first byte the request returns 500 (spec `:447-449`); after it, the connection is aborted, never ended cleanly",
+    "evidence": "`[servers]` §3.4; `[record]` §7 (was D4-13, D4-14)",
+    "test": "Slice 5: the failed-exit race test",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-32",
+    "area": "A client disconnect",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome keeps encoding to completion by default; gonic stops ffmpeg within a second",
+    "dubplate": "Kill ffmpeg only when no reader is attached (spec `:449-450`); slice 5 weighs a short grace for Amperfy's probe-then-cancel pattern",
+    "evidence": "`[servers]` §3.4; `[clients]` §5; `[record]` §7 (was D4-15)",
+    "test": "Slice 5: the disconnect race test, plus an Amperfy-shaped probe test",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-33",
+    "area": "The concurrent-encode cap",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome"
+    ],
+    "oracle": "No queue: HTTP 429, `Retry-After: 5`, and an error-0 envelope; gonic has no cap",
+    "dubplate": "A bounded queue in arrival order, then error 0 with HTTP 200 (spec `:450-452`)",
+    "evidence": "`[servers]` §3.5 (was D4-16)",
+    "test": "Slice 5",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-34",
+    "area": "The `transcoding` extension",
+    "divergence": "feature-absent",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Not declared; both endpoints answer error 70. Navidrome declares it",
+    "dubplate": "The `transcoding` extension is not declared at 0.8; both endpoints answer error 0 as unserved paths",
+    "evidence": "`[servers]` §4; `[record]` §6 (was D4-17)",
+    "test": "Harness: an extension-gated test set",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-36",
+    "area": "The device profile against a request",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome"
+    ],
+    "oracle": "A pinned player's bitrate ceiling outranks the request and a posted `ClientInfo`; a forced format applies only if the client can play it; the legacy parameters go through the same decision",
+    "dubplate": "The device profile is a bitrate ceiling and a default format; a request may lower it, never raise it; one decision path for the legacy parameters and the extension (amends spec `:411-412`)",
+    "evidence": "`[servers]` §4.3, §4.4; `[clients]` §5; `[record]` §18 item 1 (was D4-19)",
+    "test": "Slice 5",
+    "state": "owed",
+    "slice": "slice 5"
+  },
+  {
+    "id": "L-37",
+    "area": "Cookies on API responses",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome"
+    ],
+    "oracle": "Sets an `nd-player-<hex>` cookie on every `/rest` response (`Path` follows the base path)",
+    "dubplate": "Sets no cookie on any Subsonic response",
+    "evidence": "`[contract]` E12; `[base-url]` \"Navidrome's `Set-Cookie` under a base path\"",
+    "test": "Harness: no `Set-Cookie` under the Subsonic prefix",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-38",
+    "area": "CORS",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Both allow any origin and never send credentials. gonic stamps fixed headers on every response; Navidrome answers only when `Origin` is present and reflects requested headers",
+    "dubplate": "`Access-Control-Allow-Origin: *` on every Subsonic response; never `Access-Control-Allow-Credentials`; a bodyless preflight allowing `GET`, `POST`, and `Content-Type`; no CORS headers outside the Subsonic prefix",
+    "evidence": "`[servers]` §5; `[clients]` §6; `[base-url]` header table; `[record]` §8 (was D4-20)",
+    "test": "Slice 3: preflight rows; roster: Feishin's web build",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-39",
+    "area": "`getCoverArt` with `Accept: image/webp`",
+    "divergence": "no-oracle",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Neither negotiates; both return JPEG for every `Accept`",
+    "dubplate": "WebP when `Accept` names it (spec `:388`), which Feishin's `<img>` loads do; a format-varying answer sends `Vary: Accept`",
+    "evidence": "`[servers]` §11; `[base-url]` header table; `[record]` tension (h) (was D4-39)",
+    "test": "Slice 4: art rows",
+    "state": "owed",
+    "slice": "slice 4"
+  },
+  {
+    "id": "L-40",
+    "area": "`getCoverArt` with no `id`",
+    "divergence": "oracle-lenient",
+    "sources": [
+      "dubplate",
+      "navidrome"
+    ],
+    "oracle": "HTTP 200 and a 69,228-byte WebP placeholder",
+    "dubplate": "Error 10. A real id with no cover still gets the generated placeholder (spec `:390`)",
+    "evidence": "`[servers]` §11 (was D4-40)",
+    "test": "Slice 4",
+    "state": "owed",
+    "slice": "slice 4"
+  },
+  {
+    "id": "L-41",
+    "area": "`scrobble` with `submission=false`",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Counts a play; Navidrome records now-playing only",
+    "dubplate": "Now-playing only (spec `:564-565`)",
+    "evidence": "`[servers]` §7.2 (was D4-31)",
+    "test": "Slice 7: event-kind rows",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-42",
+    "area": "`scrobble` with several ids",
+    "divergence": "oracle-wrong",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Reads only the first id",
+    "dubplate": "Every id is recorded. A `time` count other than zero or the id count answers error 0 and records nothing, as Navidrome does",
+    "evidence": "`[servers]` §7.2 (was D4-32)",
+    "test": "Slice 7",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-43",
+    "area": "`scrobble` with an unknown id",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "`bogus` (unknown to Navidrome, unparseable for gonic's typed ids): Navidrome answers `ok` and records nothing for it; gonic answers error 10. Well-formed unknown id (`tr-999`): gonic answers error 0 \"error finding track\" ([S], not run)",
+    "dubplate": "Error 70, and nothing in the batch is recorded (one transaction, hook 9; OpenSubsonic PR #202's direction)",
+    "evidence": "`[servers]` §7.2; `[contract]` Q4 (#202) (was D4-33)",
+    "test": "Slice 7; harness: gonic's well-formed-id case",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-44",
+    "area": "`scrobble` with an unparseable `submission`",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome reads it as false; gonic counts it",
+    "dubplate": "Error 0 naming the parameter, nothing recorded, because play history is append-only",
+    "evidence": "`[servers]` §7.2; `[record]` §18 item 6 (was D4-34)",
+    "test": "Slice 7",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-45",
+    "area": "`savePlayQueue` with no `id`",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "Error 10, and the old queue stays; Navidrome clears it",
+    "dubplate": "Clears the saved queue (spec `:567-568`)",
+    "evidence": "`[servers]` §7.1 (was D4-27)",
+    "test": "Slice 7: queue rows",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-46",
+    "area": "`savePlayQueue` with `current` absent or outside the list",
+    "divergence": "oracle-lenient",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome defaults `current` to the first entry; gonic stores `-1` or the stray id",
+    "dubplate": "`current` absent while `id` is non-empty: error 10 (spec `:568`). `current` outside the list: error 0 naming it. The queue is unchanged either way",
+    "evidence": "`[servers]` §7.1 (was D4-28)",
+    "test": "Slice 7",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-47",
+    "area": "`savePlayQueue` with an unknown `id`",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "`bogus` (unknown to Navidrome, unparseable for gonic's typed ids): Navidrome drops it silently; gonic answers error 10. Well-formed unknown id (`tr-999`): gonic stores it silently ([S], not run)",
+    "dubplate": "Error 70 naming the id; the queue is unchanged, so the client learns its view is stale",
+    "evidence": "`[servers]` §7.1 (was D4-29)",
+    "test": "Slice 7; harness: gonic's well-formed-id case",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-48",
+    "area": "`getPlayQueue` with nothing saved",
+    "divergence": "oracles-disagree",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "No `playQueue` element at all; Navidrome answers the element with the zero time",
+    "dubplate": "Navidrome's shape: Feishin dereferences `playQueue` without a guard, and the specification's `PlayQueue` requires its fields",
+    "evidence": "`[servers]` §7.1; `[clients]` §2a (was D4-30)",
+    "test": "Slice 7",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-49",
+    "area": "`savePlayQueue` with a negative or non-numeric `position`",
+    "divergence": "oracle-lenient",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Both store `-5`; both treat `abc` as absent",
+    "dubplate": "An absent `position` means zero (spec `:568-569`); a negative or non-numeric one answers error 0 naming it, and the queue is unchanged",
+    "evidence": "`[servers]` §7.1",
+    "test": "Slice 7",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-50",
+    "area": "Smart playlists and `.nsp`",
+    "divergence": "feature-absent",
+    "sources": [
+      "dubplate",
+      "gonic"
+    ],
+    "oracle": "No smart playlists. Navidrome imports `.nsp` files and serves them read-only",
+    "dubplate": "dubplate's own rule form, read-only to clients (spec `:597-602`); `.nsp` is read only by the switcher import",
+    "evidence": "`[servers]` §9; `[record]` §13 (was D4-41)",
+    "test": "Slice 7; slice 8 for the import",
+    "state": "owed",
+    "slice": "slice 7"
+  },
+  {
+    "id": "L-51",
+    "area": "The folder view against Navidrome",
+    "divergence": "declared: folder view",
+    "sources": [
+      "dubplate",
+      "navidrome"
+    ],
+    "oracle": "A synthesized Artist/Album/Track tree and synthetic `path` values from tags",
+    "dubplate": "An empty `getIndexes` and error 70 from `getMusicDirectory`, graded against the contract and the spec, never against an oracle",
+    "evidence": "`[servers]` §8; `[record]` §12 (was D4-35)",
+    "test": "Slice 3: an empty `getIndexes` and error 70 from `getMusicDirectory`, asserted against the spec",
+    "state": "owed",
+    "slice": "slice 3"
+  },
+  {
+    "id": "L-53",
+    "area": "Shares",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome implements the four share endpoints with no bounds; gonic has none",
+    "dubplate": "The six bounds (spec `:512-548`), graded against the spec only",
+    "evidence": "`[servers]` §1.1, §10.1",
+    "test": "Slice 6",
+    "state": "owed",
+    "slice": "slice 6"
+  },
+  {
+    "id": "L-54",
+    "area": "The declared extension list",
+    "divergence": "by-design",
+    "sources": [
+      "dubplate",
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome declares 7 of 10, gonic 3 of 10 (gonic only with credentials)",
+    "dubplate": "The launch subset without `transcoding`: `formPost`, `transcodeOffset`, and `apiKeyAuthentication` from slice 6; the list equals what is implemented at each slice's close",
+    "evidence": "`[contract]` Q1; `[servers]` §4; `[record]` §2 (was C-01, D4-04)",
+    "test": "Harness: the declared list equals the subset, names and versions",
+    "state": "owed",
+    "slice": "slice 3"
   }
 ]

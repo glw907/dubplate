@@ -540,6 +540,104 @@
       "reason": "A request the member has no right to is refused; Navidrome's suite tests it. Evidence: server-behavior record section 10.3."
     }
   ],
+  "agreements": [
+    {
+      "id": "A-01",
+      "area": "Single-element lists",
+      "behavior": "Always a JSON array, never collapsed to an object",
+      "evidence": "`[contract]` E5 (was C-07)",
+      "test": "Harness: a one-element list per path",
+      "slice": "slice 3"
+    },
+    {
+      "id": "A-02",
+      "area": "Escaping",
+      "behavior": "Literal UTF-8; the Go encoders' HTML-safe JSON escapes; no XML declaration; compare parsed values",
+      "evidence": "`[contract]` E10 (was C-14)",
+      "test": "Harness",
+      "slice": "slice 3"
+    },
+    {
+      "id": "A-03",
+      "area": "Preflight",
+      "behavior": "No body, no data, no credentials needed",
+      "evidence": "`[contract]` Q6; `[servers]` §5 (was C-20)",
+      "test": "Slice 3: CORS rows",
+      "slice": "slice 3"
+    },
+    {
+      "id": "A-04",
+      "area": "`musicFolderId` coverage",
+      "behavior": "Honored on the ten endpoints, ignored elsewhere",
+      "evidence": "`[servers]` §2; `[record]` §4 (was D4-05)",
+      "test": "Harness: a per-endpoint filter table on a two-collection fixture",
+      "slice": "slice 3"
+    },
+    {
+      "id": "A-05",
+      "area": "`search3` empty query",
+      "behavior": "Returns everything, paged without gaps; dubplate adds a deterministic order",
+      "evidence": "`[servers]` §6.1, §6.3 (Navidrome half of D4-22)",
+      "test": "Harness: a whole-library page walk",
+      "slice": "slice 4"
+    },
+    {
+      "id": "A-06",
+      "area": "Range on a transcode",
+      "behavior": "Navidrome's shape adopted: a filling entry answers 200 from byte 0 with `Accept-Ranges: none`; a complete entry serves ranges; spec `:434-435` is retired",
+      "evidence": "`[servers]` §3.2; `[record]` §7 (was D4-08)",
+      "test": "Slice 5; harness: the filling-entry row",
+      "slice": "slice 5"
+    },
+    {
+      "id": "A-07",
+      "area": "The `.view` suffix",
+      "behavior": "Every method answers with and without it",
+      "evidence": "`[pins]` \"The three instances\"; `[base-url]` Tempus section; `[record]` tension (e)",
+      "test": "Slice 3",
+      "slice": "slice 3"
+    },
+    {
+      "id": "A-08",
+      "area": "Server-emitted links under a mount prefix",
+      "behavior": "Share URLs carry the prefix, as Navidrome's do",
+      "evidence": "`[base-url]` \"What the servers document and do\"",
+      "test": "Slice 6",
+      "slice": "slice 6"
+    },
+    {
+      "id": "A-09",
+      "area": "Direct-path ranges",
+      "behavior": "200 with `Accept-Ranges: bytes`; 206 for a range; 416 with `bytes */<size>` when unsatisfiable",
+      "evidence": "`[servers]` §3.1",
+      "test": "Harness",
+      "slice": "slice 5"
+    },
+    {
+      "id": "A-10",
+      "area": "A stream is never a play",
+      "behavior": "No play count from `stream`",
+      "evidence": "`[servers]` §7.2",
+      "test": "Slice 7",
+      "slice": "slice 7"
+    },
+    {
+      "id": "A-11",
+      "area": "Form-body credentials",
+      "behavior": "Accepted in an `application/x-www-form-urlencoded` POST",
+      "evidence": "`[contract]` Q6; `[servers]` §5.1",
+      "test": "Harness",
+      "slice": "slice 3"
+    },
+    {
+      "id": "A-12",
+      "area": "The integration-dependent family",
+      "behavior": "An empty success with no integration configured",
+      "evidence": "`[servers]` §1.2; `[record]` §1",
+      "test": "Harness: the empty-success rows",
+      "slice": "slice 3"
+    }
+  ],
   "album_shapes": [
     {
       "shape": "compilation",

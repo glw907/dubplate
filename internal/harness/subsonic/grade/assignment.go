@@ -69,6 +69,18 @@ type areaEntry struct {
 	Reason string `json:"reason"`
 }
 
+// agreementEntry is a behavior dubplate shares with both oracles. It
+// suppresses nothing; its test is owed.
+type agreementEntry struct {
+	ID       string `json:"id"`
+	Area     string `json:"area"`
+	Behavior string `json:"behavior"`
+	Evidence string `json:"evidence"`
+	Test     string `json:"test"`
+	// Slice is the slice whose plan builds the test.
+	Slice string `json:"slice"`
+}
+
 // shapeEntry names the manifest album ("album artist/album") that carries
 // one album shape.
 type shapeEntry struct {
@@ -105,10 +117,11 @@ var shapes = map[string]func([]fixture.Track) bool{
 // assignment is the loaded oracle assignment and area list. Only its file
 // sets an endpoint's oracle.
 type assignment struct {
-	Endpoints     []endpointEntry `json:"endpoints"`
-	Areas         []areaEntry     `json:"areas"`
-	AlbumShapes   []shapeEntry    `json:"album_shapes"`
-	NotApplicable []unusedShape   `json:"not_applicable"`
+	Endpoints     []endpointEntry  `json:"endpoints"`
+	Areas         []areaEntry      `json:"areas"`
+	Agreements    []agreementEntry `json:"agreements"`
+	AlbumShapes   []shapeEntry     `json:"album_shapes"`
+	NotApplicable []unusedShape    `json:"not_applicable"`
 
 	byEndpoint map[string]endpointEntry
 }
@@ -177,6 +190,27 @@ func (a *assignment) problems(tracks []fixture.Track) []error {
 		areas[ar.Name] = true
 		if ar.Slice == "" || ar.Reason == "" {
 			bad("area %q: empty slice or reason", ar.Name)
+		}
+	}
+	agreements := map[string]bool{}
+	for i, ag := range a.Agreements {
+		label := fmt.Sprintf("agreement %d", i+1)
+		switch {
+		case ag.ID == "":
+			bad("%s: empty id", label)
+		case agreements[ag.ID]:
+			bad("agreement %q: listed twice", ag.ID)
+		}
+		agreements[ag.ID] = true
+		if ag.ID != "" {
+			label = fmt.Sprintf("agreement %q", ag.ID)
+		}
+		for _, c := range []struct{ name, value string }{
+			{"area", ag.Area}, {"behavior", ag.Behavior}, {"evidence", ag.Evidence}, {"test", ag.Test}, {"slice", ag.Slice},
+		} {
+			if c.value == "" {
+				bad("%s: empty %s", label, c.name)
+			}
 		}
 	}
 	albums := map[string][]fixture.Track{}

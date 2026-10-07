@@ -77,13 +77,24 @@ type Pattern struct {
 
 // Row is one adjudicated divergence.
 type Row struct {
-	ID       string   `json:"id"`
-	Area     string   `json:"area"`
-	Class    Class    `json:"class"`
+	ID   string `json:"id"`
+	Area string `json:"area"`
+	// Class is the machine class, required of an active row and absent
+	// from an owed one: the suppression it grants is chosen against a
+	// recorded session.
+	Class Class `json:"class,omitempty"`
+	// Divergence is one of [divergences]: why dubplate differs. An owed
+	// row requires it.
+	Divergence string `json:"divergence,omitempty"`
+	// Sources names the servers the row concerns. An owed row names
+	// dubplate and each oracle the record's row names, up to three; an
+	// active row names the pair it was adjudicated on.
 	Sources  []string `json:"sources"`
 	Oracle   string   `json:"oracle"`
 	Dubplate string   `json:"dubplate"`
 	Evidence string   `json:"evidence"`
+	// Test is the test the row owes, required of an owed row.
+	Test string `json:"test,omitempty"`
 
 	State State `json:"state"`
 	// Source names, for a contract row, the source whose response
@@ -98,6 +109,12 @@ type Row struct {
 	Pattern  Pattern           `json:"pattern,omitzero"`
 	Session  string            `json:"session,omitempty"`
 	Versions map[string]string `json:"versions,omitempty"`
+}
+
+// divergences are the classes of difference a row may record.
+var divergences = []string{
+	"declared: folder view", "declared: apiKey path", "by-design", "contract-deviation", "oracle-wrong",
+	"oracle-lenient", "oracles-disagree", "feature-absent", "no-oracle", "unspecified-shape",
 }
 
 // Ledger is the loaded divergence ledger.
@@ -148,11 +165,12 @@ func (r Row) problems(sessionsDir string) []error {
 			bad("empty %s", c.name)
 		}
 	}
-	if _, ok := classRules[r.Class]; !ok {
-		bad("unknown class %q", r.Class)
+	maxSources := 2
+	if r.State == StateOwed {
+		maxSources = 3
 	}
-	if n := len(r.Sources); n < 1 || n > 2 || slices.Contains(r.Sources, "") || (n == 2 && r.Sources[0] == r.Sources[1]) {
-		bad("sources %q must be one or two distinct names", r.Sources)
+	if n := len(r.Sources); n < 1 || n > maxSources || slices.Contains(r.Sources, "") || hasDuplicate(r.Sources) {
+		bad("sources %q must be one to %d distinct names", r.Sources, maxSources)
 	}
 	switch {
 	case r.Class == ClassContract && r.Source == "":
@@ -170,12 +188,30 @@ func (r Row) problems(sessionsDir string) []error {
 		if r.Slice == "" {
 			bad("owed row names no slice")
 		}
+		if !slices.Contains(divergences, r.Divergence) {
+			bad("owed row has divergence %q, want one of %q", r.Divergence, divergences)
+		}
+		if r.Test == "" {
+			bad("empty test")
+		}
+		if r.Class != "" {
+			bad("owed row carries class %q", r.Class)
+		}
+		if !slices.Contains(r.Sources, dubplate) {
+			bad("owed row sources %q lack %s", r.Sources, dubplate)
+		}
 	case StateActive:
 		ps = append(ps, r.activeProblems(sessionsDir)...)
 	default:
 		bad("unknown state %q", r.State)
 	}
 	return ps
+}
+
+func hasDuplicate(names []string) bool {
+	s := slices.Clone(names)
+	slices.Sort(s)
+	return len(slices.Compact(s)) != len(s)
 }
 
 func (p Pattern) problems() []error {
@@ -202,6 +238,15 @@ func (p Pattern) problems() []error {
 
 func (r Row) activeProblems(sessionsDir string) []error {
 	var ps []error
+	switch _, known := classRules[r.Class]; {
+	case r.Class == "":
+		ps = append(ps, errors.New("active row names no class"))
+	case !known:
+		ps = append(ps, fmt.Errorf("unknown class %q", r.Class))
+	}
+	if r.Divergence != "" && !slices.Contains(divergences, r.Divergence) {
+		ps = append(ps, fmt.Errorf("unknown divergence %q", r.Divergence))
+	}
 	if r.Pattern == (Pattern{}) {
 		ps = append(ps, errors.New("active row has an empty pattern"))
 	}
