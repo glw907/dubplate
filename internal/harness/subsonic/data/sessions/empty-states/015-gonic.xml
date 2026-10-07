@@ -1,0 +1,3 @@
+<subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
+    <starred2></starred2>
+</subsonic-response>

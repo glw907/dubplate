@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "gonic": {
+      "library_digest": "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c",
+      "image_digest": "sha256:516fd9645614ba3a596d86174216c3e944808b9ec970c581678713be4c8b1d49",
+      "server_version": "0.22.0"
+    },
+    "navidrome": {
+      "library_digest": "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c",
+      "image_digest": "sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52",
+      "server_version": "0.64.2 (10114574)"
+    }
+  },
+  "resolutions": {
+    "album:Alpha Artist/Single Disc": {
+      "gonic": "al-5",
+      "navidrome": "2VPHWE2dCmscPc1Lep26ua"
+    },
+    "artist:Alpha Artist": {
+      "gonic": "ar-1",
+      "navidrome": "47oq4zXQXZeNbxWV1qZScA"
+    },
+    "song:Alpha Artist/Single Disc/Together": {
+      "gonic": "tr-7",
+      "navidrome": "5SQZgbvhGYpQsEQHvuXAHL"
+    }
+  },
+  "requests": [
+    {
+      "endpoint": "getArtists",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "001-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "001-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getArtist",
+      "format": "json",
+      "params": [
+        {
+          "name": "id",
+          "value": "artist:Alpha Artist"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "002-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "002-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbum",
+      "format": "json",
+      "params": [
+        {
+          "name": "id",
+          "value": "album:Alpha Artist/Single Disc"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "003-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "003-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getLyrics",
+      "format": "json",
+      "params": [
+        {
+          "name": "artist",
+          "value": "Alpha Artist"
+        },
+        {
+          "name": "title",
+          "value": "Together"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "004-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "004-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getLyricsBySongId",
+      "format": "json",
+      "params": [
+        {
+          "name": "id",
+          "value": "song:Alpha Artist/Single Disc/Together"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "005-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "005-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getNowPlaying",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "006-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "006-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getInternetRadioStations",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "007-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "007-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getPlaylists",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "008-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "008-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred2",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "009-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "009-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getLyrics",
+      "format": "xml",
+      "params": [
+        {
+          "name": "artist",
+          "value": "Alpha Artist"
+        },
+        {
+          "name": "title",
+          "value": "Together"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "010-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "010-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getLyricsBySongId",
+      "format": "xml",
+      "params": [
+        {
+          "name": "id",
+          "value": "song:Alpha Artist/Single Disc/Together"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "011-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "011-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getNowPlaying",
+      "format": "xml",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "012-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "012-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getInternetRadioStations",
+      "format": "xml",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "013-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "013-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getPlaylists",
+      "format": "xml",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "014-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "014-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred2",
+      "format": "xml",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "015-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "015-navidrome.xml"
+        }
+      ]
+    }
+  ]
+}

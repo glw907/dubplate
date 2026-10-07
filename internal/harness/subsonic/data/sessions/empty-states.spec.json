@@ -1,0 +1,84 @@
+{
+ "requests": [
+  {
+   "endpoint": "getArtists",
+   "format": "json"
+  },
+  {
+   "endpoint": "getArtist",
+   "format": "json",
+   "params": {
+    "id": "artist:Alpha Artist"
+   }
+  },
+  {
+   "endpoint": "getAlbum",
+   "format": "json",
+   "params": {
+    "id": "album:Alpha Artist/Single Disc"
+   }
+  },
+  {
+   "endpoint": "getLyrics",
+   "format": "json",
+   "params": {
+    "artist": "Alpha Artist",
+    "title": "Together"
+   }
+  },
+  {
+   "endpoint": "getLyricsBySongId",
+   "format": "json",
+   "params": {
+    "id": "song:Alpha Artist/Single Disc/Together"
+   }
+  },
+  {
+   "endpoint": "getNowPlaying",
+   "format": "json"
+  },
+  {
+   "endpoint": "getInternetRadioStations",
+   "format": "json"
+  },
+  {
+   "endpoint": "getPlaylists",
+   "format": "json"
+  },
+  {
+   "endpoint": "getStarred2",
+   "format": "json"
+  },
+  {
+   "endpoint": "getLyrics",
+   "format": "xml",
+   "params": {
+    "artist": "Alpha Artist",
+    "title": "Together"
+   }
+  },
+  {
+   "endpoint": "getLyricsBySongId",
+   "format": "xml",
+   "params": {
+    "id": "song:Alpha Artist/Single Disc/Together"
+   }
+  },
+  {
+   "endpoint": "getNowPlaying",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getInternetRadioStations",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getPlaylists",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getStarred2",
+   "format": "xml"
+  }
+ ]
+}

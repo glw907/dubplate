@@ -1,0 +1,695 @@
+session empty-states: navidrome against gonic
+findings: 163, unledgered 142
+  contract: 10
+  identity: 1
+  presence: 122
+  type: 4
+  value: 26
+declared unvalidated xml bodies:
+  getLyricsBySongId gonic: 1
+  getLyricsBySongId navidrome: 1
+ledger rows matched:
+  gonic-lyrics-value: 1
+  gonic-nowplaying-error: 2
+  gonic-nowplaying-status: 2
+  gonic-nowplaying-view: 2
+  gonic-song-replaygain-null: 3
+  gonic-song-replaygain-type: 3
+  gonic-structuredlyrics-null: 1
+  gonic-structuredlyrics-presence: 1
+  lyrics-shape: 4
+  navidrome-nowplaying-entry: 1
+  playlists-empty-container: 1
+owed rows by slice:
+
+getAlbum.json&id=album%3AAlpha+Artist%2FSingle+Disc
+  presence subsonic-response/album/album
+    navidrome: absent
+    gonic: "Single Disc"
+    ledger: unledgered
+  presence subsonic-response/album/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/musicBrainzId
+    navidrome: "9a1b2c3d-0000-4000-8000-0000000000a1"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/originalReleaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/playCount
+    navidrome: absent
+    gonic: 0
+    ledger: unledgered
+  presence subsonic-response/album/releaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/releaseTypes/0
+    navidrome: absent
+    gonic: ""
+    ledger: unledgered
+  presence subsonic-response/album/song/0/bitDepth
+    navidrome: 16
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/bpm
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/channelCount
+    navidrome: 1
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/comment
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/0/created
+    navidrome: "2026-10-07T22:17:30.957574947Z"
+    gonic: "2026-10-07T22:17:22.155521867Z"
+    ledger: unledgered
+  presence subsonic-response/album/song/0/displayComposer
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/groupings
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/isVideo
+    navidrome: absent
+    gonic: false
+    ledger: unledgered
+  presence subsonic-response/album/song/0/mediaType
+    navidrome: "song"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/movements
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/0/path
+    navidrome: "Alpha Artist/Single Disc/01-01 - Opening.flac"
+    gonic: "Alpha Artist/Single Disc/01 Opening.flac"
+    ledger: unledgered
+  contract subsonic-response/album/song/0/replayGain
+    gonic: null: Value is not nullable
+    ledger: gonic-song-replaygain-null
+  type subsonic-response/album/song/0/replayGain
+    navidrome: object
+    gonic: null
+    ledger: gonic-song-replaygain-type
+  presence subsonic-response/album/song/0/samplingRate
+    navidrome: 16000
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/sortName
+    navidrome: "opening"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/0/works
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/bitDepth
+    navidrome: 16
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/bpm
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/channelCount
+    navidrome: 1
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/comment
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/1/created
+    navidrome: "2026-10-07T22:17:30.96576517Z"
+    gonic: "2026-10-07T22:17:22.156292348Z"
+    ledger: unledgered
+  presence subsonic-response/album/song/1/displayComposer
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/groupings
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/isVideo
+    navidrome: absent
+    gonic: false
+    ledger: unledgered
+  presence subsonic-response/album/song/1/mediaType
+    navidrome: "song"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/movements
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/1/path
+    navidrome: "Alpha Artist/Single Disc/01-02 - Middle.flac"
+    gonic: "Alpha Artist/Single Disc/02 Middle.flac"
+    ledger: unledgered
+  contract subsonic-response/album/song/1/replayGain
+    gonic: null: Value is not nullable
+    ledger: gonic-song-replaygain-null
+  type subsonic-response/album/song/1/replayGain
+    navidrome: object
+    gonic: null
+    ledger: gonic-song-replaygain-type
+  presence subsonic-response/album/song/1/samplingRate
+    navidrome: 16000
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/sortName
+    navidrome: "middle"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/1/works
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/2/artist
+    navidrome: "Alpha Artist feat. Guest Singer"
+    gonic: "Alpha Artist"
+    ledger: unledgered
+  presence subsonic-response/album/song/2/bitDepth
+    navidrome: 16
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/bpm
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/channelCount
+    navidrome: 1
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/comment
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/2/created
+    navidrome: "2026-10-07T22:17:30.972188343Z"
+    gonic: "2026-10-07T22:17:22.156955585Z"
+    ledger: unledgered
+  presence subsonic-response/album/song/2/displayComposer
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/groupings
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/isVideo
+    navidrome: absent
+    gonic: false
+    ledger: unledgered
+  presence subsonic-response/album/song/2/mediaType
+    navidrome: "song"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/movements
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/album/song/2/path
+    navidrome: "Alpha Artist/Single Disc/01-03 - Together.flac"
+    gonic: "Alpha Artist/Single Disc/03 Together.flac"
+    ledger: unledgered
+  contract subsonic-response/album/song/2/replayGain
+    gonic: null: Value is not nullable
+    ledger: gonic-song-replaygain-null
+  type subsonic-response/album/song/2/replayGain
+    navidrome: object
+    gonic: null
+    ledger: gonic-song-replaygain-type
+  presence subsonic-response/album/song/2/samplingRate
+    navidrome: 16000
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/sortName
+    navidrome: "together"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/song/2/works
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/sortName
+    navidrome: "single disc"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/title
+    navidrome: absent
+    gonic: "Single Disc"
+    ledger: unledgered
+  contract subsonic-response/album/userRating
+    navidrome: 0: number must be at least 1
+    ledger: unledgered
+  presence subsonic-response/album/userRating
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/album/version
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getArtist.json&id=artist%3AAlpha+Artist
+  presence subsonic-response/artist/album/0/album
+    navidrome: absent
+    gonic: "Single Disc"
+    ledger: unledgered
+  identity subsonic-response/artist/album/0/coverArt
+    navidrome: "al-2VPHWE2dCmscPc1Lep26ua_196f55ecf8235620" pairs with "al-5"
+    gonic: "al-5" pairs with "al-2VPHWE2dCmscPc1Lep26ua_196f55ecf8235620" and "dc-2VPHWE2dCmscPc1Lep26ua:1"
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/musicBrainzId
+    navidrome: "9a1b2c3d-0000-4000-8000-0000000000a1"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/originalReleaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/playCount
+    navidrome: absent
+    gonic: 0
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/releaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/releaseTypes/0
+    navidrome: absent
+    gonic: ""
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/sortName
+    navidrome: "single disc"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/title
+    navidrome: absent
+    gonic: "Single Disc"
+    ledger: unledgered
+  contract subsonic-response/artist/album/0/userRating
+    navidrome: 0: number must be at least 1
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/userRating
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/0/version
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/album
+    navidrome: absent
+    gonic: "Second Light"
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/musicBrainzId
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/originalReleaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/playCount
+    navidrome: absent
+    gonic: 0
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/releaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/releaseTypes/0
+    navidrome: absent
+    gonic: ""
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/sortName
+    navidrome: "second light"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/title
+    navidrome: absent
+    gonic: "Second Light"
+    ledger: unledgered
+  contract subsonic-response/artist/album/1/userRating
+    navidrome: 0: number must be at least 1
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/userRating
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/1/version
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/album
+    navidrome: absent
+    gonic: "Greatest Hits"
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/explicitStatus
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/moods
+    navidrome: array of 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/musicBrainzId
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/originalReleaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/playCount
+    navidrome: absent
+    gonic: 0
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/releaseDate
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/releaseTypes/0
+    navidrome: absent
+    gonic: ""
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/sortName
+    navidrome: "greatest hits"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/title
+    navidrome: absent
+    gonic: "Greatest Hits"
+    ledger: unledgered
+  contract subsonic-response/artist/album/2/userRating
+    navidrome: 0: number must be at least 1
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/userRating
+    navidrome: 0
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/album/2/version
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/artist/albumCount
+    navidrome: 3
+    gonic: 4
+    ledger: unledgered
+  presence subsonic-response/artist/musicBrainzId
+    navidrome: ""
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/roles/0
+    navidrome: "maincredit"
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artist/sortName
+    navidrome: "alpha artist"
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getArtists.json
+  value subsonic-response/artists/ignoredArticles
+    navidrome: "The El La Los Las Le Les Os As O A"
+    gonic: ""
+    ledger: unledgered
+  presence subsonic-response/artists/index/0
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/0
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/1
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/1
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/2
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/2
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/3
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/3
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/4
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/4
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/5
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/5
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/6
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/6
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/7
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/7
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/index/8
+    navidrome: absent
+    gonic: object
+    ledger: unledgered
+  presence subsonic-response/artists/index/8
+    navidrome: object
+    gonic: absent
+    ledger: unledgered
+  presence subsonic-response/artists/lastModified
+    navidrome: 1791411449000
+    gonic: absent
+    ledger: unledgered
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getInternetRadioStations.json
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getInternetRadioStations.xml
+  value subsonic-response/version
+    navidrome: attribute "1.16.1"
+    gonic: attribute "1.15.0"
+    ledger: unledgered
+
+getLyrics.json&artist=Alpha+Artist&title=Together
+  presence subsonic-response/lyrics/artist
+    navidrome: absent
+    gonic: "Alpha Artist"
+    ledger: lyrics-shape
+  presence subsonic-response/lyrics/title
+    navidrome: absent
+    gonic: "Together"
+    ledger: lyrics-shape
+  contract subsonic-response/lyrics/value
+    gonic: absent: property "value" is missing
+    ledger: gonic-lyrics-value
+  presence subsonic-response/lyrics/value
+    navidrome: ""
+    gonic: absent
+    ledger: lyrics-shape
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getLyrics.xml&artist=Alpha+Artist&title=Together
+  type subsonic-response/lyrics
+    navidrome: element ""
+    gonic: element
+    ledger: lyrics-shape
+  value subsonic-response/version
+    navidrome: attribute "1.16.1"
+    gonic: attribute "1.15.0"
+    ledger: unledgered
+
+getLyricsBySongId.json&id=song%3AAlpha+Artist%2FSingle+Disc%2FTogether
+  contract subsonic-response/lyricsList/structuredLyrics
+    gonic: null: Value is not nullable
+    ledger: gonic-structuredlyrics-null
+  presence subsonic-response/lyricsList/structuredLyrics
+    navidrome: absent
+    gonic: null
+    ledger: gonic-structuredlyrics-presence
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getLyricsBySongId.xml&id=song%3AAlpha+Artist%2FSingle+Disc%2FTogether
+  value subsonic-response/version
+    navidrome: attribute "1.16.1"
+    gonic: attribute "1.15.0"
+    ledger: unledgered
+
+getNowPlaying.json
+  presence subsonic-response/error
+    navidrome: absent
+    gonic: object
+    ledger: gonic-nowplaying-error
+  presence subsonic-response/nowPlaying
+    navidrome: object
+    gonic: absent
+    ledger: gonic-nowplaying-view
+  contract subsonic-response/nowPlaying/entry
+    navidrome: absent: property "entry" is missing
+    ledger: navidrome-nowplaying-entry
+  value subsonic-response/status
+    navidrome: "ok"
+    gonic: "failed"
+    ledger: gonic-nowplaying-status
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getNowPlaying.xml
+  presence subsonic-response/error
+    navidrome: absent
+    gonic: element
+    ledger: gonic-nowplaying-error
+  presence subsonic-response/nowPlaying
+    navidrome: element ""
+    gonic: absent
+    ledger: gonic-nowplaying-view
+  value subsonic-response/status
+    navidrome: attribute "ok"
+    gonic: attribute "failed"
+    ledger: gonic-nowplaying-status
+  value subsonic-response/version
+    navidrome: attribute "1.16.1"
+    gonic: attribute "1.15.0"
+    ledger: unledgered
+
+getPlaylists.json
+  presence subsonic-response/playlists/playlist
+    navidrome: absent
+    gonic: array of 0
+    ledger: playlists-empty-container
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getPlaylists.xml
+  value subsonic-response/version
+    navidrome: attribute "1.16.1"
+    gonic: attribute "1.15.0"
+    ledger: unledgered
+
+getStarred2.json
+  value subsonic-response/version
+    navidrome: "1.16.1"
+    gonic: "1.15.0"
+    ledger: unledgered
+
+getStarred2.xml
+  value subsonic-response/version
+    navidrome: attribute "1.16.1"
+    gonic: attribute "1.15.0"
+    ledger: unledgered

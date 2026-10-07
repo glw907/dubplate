@@ -1,0 +1,259 @@
+[
+  {
+    "id": "gonic-song-replaygain-null",
+    "area": "getAlbum",
+    "class": "contract",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic emits JSON null for replayGain, which the document does not declare nullable.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "source": "gonic",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "json",
+      "path": "subsonic-response/album/song/*/replayGain"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-song-replaygain-type",
+    "area": "getAlbum",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic emits null for replayGain where Navidrome emits an object, so the pair differs in type.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "json",
+      "path": "subsonic-response/album/song/*/replayGain"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-structuredlyrics-null",
+    "area": "getLyricsBySongId",
+    "class": "contract",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic emits JSON null for structuredLyrics on a song with no lyrics, which the document does not declare nullable.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "source": "gonic",
+    "pattern": {
+      "endpoint": "getLyricsBySongId",
+      "format": "json",
+      "path": "subsonic-response/lyricsList/structuredLyrics"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-structuredlyrics-presence",
+    "area": "getLyricsBySongId",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome omits structuredLyrics on a song with no lyrics where gonic emits null.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getLyricsBySongId",
+      "format": "json",
+      "path": "subsonic-response/lyricsList/structuredLyrics"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "navidrome-nowplaying-entry",
+    "area": "getNowPlaying",
+    "class": "contract",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome's idle nowPlaying omits the entry member the document requires.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "source": "navidrome",
+    "pattern": {
+      "endpoint": "getNowPlaying",
+      "format": "json",
+      "path": "subsonic-response/nowPlaying/entry"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-nowplaying-error",
+    "area": "getNowPlaying",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic serves no getNowPlaying view and answers error 70, where Navidrome answers an empty nowPlaying.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getNowPlaying",
+      "format": "any",
+      "path": "subsonic-response/error"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-nowplaying-view",
+    "area": "getNowPlaying",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic serves no getNowPlaying view and answers error 70, where Navidrome answers an empty nowPlaying.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getNowPlaying",
+      "format": "any",
+      "path": "subsonic-response/nowPlaying"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-nowplaying-status",
+    "area": "getNowPlaying",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic serves no getNowPlaying view and answers error 70, where Navidrome answers an empty nowPlaying.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getNowPlaying",
+      "format": "any",
+      "path": "subsonic-response/status"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-lyrics-value",
+    "area": "getLyrics",
+    "class": "contract",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic omits the value member of lyrics on a song with no lyrics, which the document requires.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "source": "gonic",
+    "pattern": {
+      "endpoint": "getLyrics",
+      "format": "json",
+      "path": "subsonic-response/lyrics/value"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "lyrics-shape",
+    "area": "getLyrics",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "On a song with no lyrics gonic echoes the artist and title and omits the text, where Navidrome answers an empty lyrics element.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getLyrics",
+      "format": "any",
+      "path": "subsonic-response/lyrics"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "playlists-empty-container",
+    "area": "getPlaylists",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "With no playlists Navidrome answers an empty playlists object where gonic adds an empty playlist array.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "empty-states session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getPlaylists",
+      "format": "json",
+      "path": "subsonic-response/playlists/playlist"
+    },
+    "session": "empty-states",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  }
+]
