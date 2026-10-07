@@ -1,7 +1,7 @@
 # Rung 12, Slice 2b (the Oracle Harness, Second Pass) Implementation Plan
 
-Status: **revision 1.2, folded 2026-10-07; awaiting Geoff's approval and one ruling ("Rulings for Geoff").** Owner
-forks A, B, and C from slice 1 are ruled (below). Every other decision is a reading below, taken on its merits and
+Status: **revision 1.2, approved by Geoff 2026-10-07; Ruling 1 answered yes (one pass at 9.0M).** Owner forks A,
+B, and C from slice 1 are ruled (below). Every other decision is a reading below, taken on its merits and
 reported.
 
 History:
@@ -90,7 +90,8 @@ Geoff accepted slice 1's three study forks with the study's recommendation on ea
 
 ## Rulings for Geoff
 
-1. **Run 2b as one eleven-task pass at 9.0M (flag 7.2M)?** Recommendation: **yes.** The four segments already put a
+1. **Run 2b as one eleven-task pass at 9.0M (flag 7.2M)?** Recommendation: **yes.** **Ruled yes by Geoff,
+   2026-10-07.** The four segments already put a
    green full gate and a STATUS checkpoint every three tasks, which bounds an unattended run without a second close.
    The live tasks (9 to 11) share the worktree and the `grade` package with the rest. The two whose evidence rests on
    Navidrome's unquoted library API now carry written degraded forms the conductor takes alone (Task 9's
