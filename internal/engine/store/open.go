@@ -107,12 +107,12 @@ type ServeOptions struct {
 
 	// Reconcile finishes a restore that left its store below the
 	// binary's version. Serve calls it once the store is migrated, on
-	// a handle at the binary's version, and writes the report it
-	// returns into the leaf before removing the restore-intent record.
-	// A nil Reconcile refuses such a store; an error refuses it too,
-	// leaving the record for the next start. h is valid only for the
-	// call.
-	Reconcile func(ctx context.Context, h *Handle) (report []byte, err error)
+	// a handle at the binary's version, with the record's stamp and
+	// source, and writes the report it returns into the leaf before
+	// removing the restore-intent record. A nil Reconcile refuses such
+	// a store; an error refuses it too, leaving the record for the
+	// next start. h is valid only for the call.
+	Reconcile func(ctx context.Context, h *Handle, stamp string, in RestoreIntent) (report []byte, err error)
 }
 
 // OpenWrite opens the store under stateDir in write mode, holding its
@@ -245,6 +245,7 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 		opts.Logger.Warn("store filesystem may span hosts", "detail", warning)
 	}
 
+	settled := 0
 	for {
 		lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, opts)
 		if err != nil {
@@ -263,9 +264,16 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 		if err != nil {
 			return nil, err
 		}
+		if settled > 0 {
+			// A settled store opens on the next pass unless another
+			// process replaced it or recorded a restore after the
+			// exclusive lock was released.
+			opts.Logger.Warn("store changed after it was settled; settling again", "settled", settled)
+		}
 		if err := errors.Join(settle(ctx, l, files, opts), lock.release()); err != nil {
 			return nil, err
 		}
+		settled++
 	}
 }
 
@@ -352,19 +360,19 @@ func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (
 	}
 	h.version = head
 	h.leaf = l
-	return finishRestore(ctx, l, h, rec.Stamp, opts.Reconcile)
+	return finishRestore(ctx, l, h, *rec, opts.Reconcile)
 }
 
 // finishRestore runs reconcile on h, the migrated store a
 // reconcile-pending record left, writes the report it returns into the
 // leaf, and only then removes the record, so a failure at any step
 // leaves the record for the next start to retry.
-func finishRestore(ctx context.Context, l leaf, h *Handle, stamp string, reconcile func(context.Context, *Handle) ([]byte, error)) error {
-	report, err := reconcile(ctx, h)
+func finishRestore(ctx context.Context, l leaf, h *Handle, rec intentRecord, reconcile func(context.Context, *Handle, string, RestoreIntent) ([]byte, error)) error {
+	report, err := reconcile(ctx, h, rec.Stamp, rec.restoreIntent())
 	if err != nil {
 		return fmt.Errorf("reconcile the restored store %s: %w", l.dbPath, err)
 	}
-	if err := l.writeReport(stamp, report); err != nil {
+	if err := l.writeReport(rec.Stamp, report); err != nil {
 		return fmt.Errorf("write the reconciliation report: %w", err)
 	}
 	return l.removeIntent()

@@ -199,7 +199,7 @@ func TestReconcile(t *testing.T) {
 					t.Errorf("report text %q, want it to hold %q", text, want)
 				}
 			}
-			if strings.Contains(text, "run member import") {
+			if strings.Contains(text, "the users table is empty") {
 				t.Errorf("report over a store with a member says %q", text)
 			}
 		})
@@ -237,7 +237,7 @@ func TestReconcile_WalkError(t *testing.T) {
 
 // TestReconcile_NoUsers is the report over a store whose users table is
 // empty, as a snapshot from before the roster moved into the store
-// leaves it: it says to run member import.
+// leaves it: it says to add the first member with the admin flag.
 func TestReconcile_NoUsers(t *testing.T) {
 	for _, tt := range []struct {
 		name     string
@@ -253,9 +253,89 @@ func TestReconcile_NoUsers(t *testing.T) {
 			if err != nil {
 				t.Fatalf("reconcile(): %v", err)
 			}
-			got := strings.Contains(string(rep.render(math.MaxInt)), "the users table is empty: run member import\n")
+			text := string(rep.render(math.MaxInt))
+			got := strings.Contains(text, "the users table is empty: run member add ADDRESS --admin\n")
 			if got != tt.want {
-				t.Errorf("report %q names member import: %v, want %v", rep.render(math.MaxInt), got, tt.want)
+				t.Errorf("report %q names member add: %v, want %v", text, got, tt.want)
+			}
+			if strings.Contains(text, "member import") {
+				t.Errorf("report %q names member import, a verb that does not exist", text)
+			}
+		})
+	}
+}
+
+// TestReconciler is the report serve writes for a restore it finishes:
+// restore's own head, then the reconciliation over the root the record
+// names, or the configured root when it names none. Fixture: one track
+// row, main/a.flac, that the configured root's tree holds and the
+// record's root does not, so the report lists the row as without a file
+// only when the walk read the record's root; the record's root also
+// has a displaced sibling holding one file, for the displaced line.
+func TestReconciler(t *testing.T) {
+	const stamp = "20260925T120000.000000Z"
+	h := catalogStore(t, true, "a.flac")
+
+	configured := t.TempDir()
+	writeTree(t, configured, under("a.flac")...)
+	recorded := filepath.Join(t.TempDir(), "library")
+	writeTree(t, recorded, under("other.flac")...)
+	if err := os.MkdirAll(recorded+".restore-displaced-"+stamp, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	writeTree(t, recorded+".restore-displaced-"+stamp, "old.flac")
+	resolvedRecorded, err := filepath.EvalSymlinks(recorded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resolvedConfigured, err := filepath.EvalSymlinks(configured)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name   string
+		in     store.RestoreIntent
+		want   []string
+		absent []string
+	}{
+		{
+			name: "record names a library root",
+			in:   store.RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z", LibraryRoot: recorded},
+			want: []string{
+				"restore " + stamp + "\nsource: snapshot 20260924T030000.000000Z on remote:dubplate\ndisplaced local files: " + recorded + ".restore-displaced-" + stamp + " holds 1\n",
+				"library root: " + resolvedRecorded + "\n",
+				"tracks without a file: 1\n",
+				"tracks without a file:\n  main/a.flac\n",
+			},
+			absent: []string{resolvedConfigured},
+		},
+		{
+			name: "record names none",
+			in:   store.RestoreIntent{File: "/var/tmp/dubplate.db"},
+			want: []string{
+				"restore " + stamp + "\nsource: file /var/tmp/dubplate.db\nlibrary root: " + resolvedConfigured + "\n",
+				"tracks without a file: 0\n",
+			},
+			absent: []string{"displaced local files", resolvedRecorded},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Reconciler(configured)(ctxFor(t), h, stamp, tt.in)
+			if err != nil {
+				t.Fatalf("Reconciler: %v", err)
+			}
+			text := string(got)
+			for _, want := range tt.want {
+				if !strings.Contains(text, want) {
+					t.Errorf("report %q, want it to hold %q", text, want)
+				}
+			}
+			for _, absent := range tt.absent {
+				if strings.Contains(text, absent) {
+					t.Errorf("report %q holds %q, want it absent", text, absent)
+				}
 			}
 		})
 	}

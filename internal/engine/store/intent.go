@@ -98,6 +98,16 @@ type libraryOwed struct {
 	IntoNonempty bool   `json:"into_nonempty"`
 }
 
+// restoreIntent returns the caller-facing half of r: the source of the
+// restored store and the library half when one is owed.
+func (r intentRecord) restoreIntent() RestoreIntent {
+	in := RestoreIntent{Remote: r.Source.Remote, Snapshot: r.Source.Snapshot, File: r.Source.File}
+	if r.Library != nil {
+		in.LibraryRoot, in.IntoNonempty = r.Library.Root, r.Library.IntoNonempty
+	}
+	return in
+}
+
 // decodeIntent parses b as a restore-intent record, refusing an empty
 // body, a key the record does not carry, anything after the one
 // object, and every record validate refuses.

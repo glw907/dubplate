@@ -48,6 +48,28 @@ var (
 	storeBusyTimeoutCeiling = storeBusyTimeoutCeilingMS * time.Millisecond
 )
 
+// storeMigrationWaitThreshold is DUBPLATE_STORE_MIGRATION_WAIT: how
+// long serve waits for the store lock before it exits naming the
+// holders. A current store waits only on an exclusive holder, a
+// restore, since shared locks coexist; a migrating start waits on
+// every shared holder, a backup's sync above all, which on a first run
+// lasts hours. The 5m default outlasts every member verb and every
+// snapshot copy a group-scale store takes and is far shorter than a
+// first sync; the unit's restart policy retries a start that gave up.
+var storeMigrationWaitThreshold = config.Threshold{
+	Key:     "DUBPLATE_STORE_MIGRATION_WAIT",
+	Kind:    config.KindDuration,
+	Default: "5m",
+	Doc:     "a Go duration string, for example 5m",
+}
+
+// storeMigrationWaitFloor and storeMigrationWaitCeiling bound
+// DUBPLATE_STORE_MIGRATION_WAIT.
+const (
+	storeMigrationWaitFloor   = time.Second
+	storeMigrationWaitCeiling = 24 * time.Hour
+)
+
 // jobRetentionSetting is DUBPLATE_JOB_RETENTION: how long a finished
 // job record survives past its own kind's newest succeeded record.
 // Its default, 2160h (90 days), carries unchanged the value
@@ -83,6 +105,7 @@ var storeLocalSnapshotKeepSetting = config.Setting{
 // after registerAuthConfig.
 func registerStoreConfig(reg *config.Registry) {
 	reg.AddThreshold(storeBusyTimeoutThreshold)
+	reg.AddThreshold(storeMigrationWaitThreshold)
 	reg.AddSetting(jobRetentionSetting)
 	reg.AddSetting(storeLocalSnapshotKeepSetting)
 }
@@ -115,6 +138,71 @@ func storeBusyTimeout(environ []string) (d time.Duration, parseErr, rangeErr err
 		return d, nil, fmt.Errorf("%s must be at most %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutCeilingMS)
 	}
 	return d, nil, nil
+}
+
+// storeMigrationWait resolves DUBPLATE_STORE_MIGRATION_WAIT from
+// environ and checks it against its range, naming the key on every
+// refusal.
+func storeMigrationWait(environ []string) (time.Duration, error) {
+	d, err := config.ParseDuration(environ, storeMigrationWaitThreshold)
+	if err != nil {
+		return 0, err
+	}
+	switch {
+	case d < storeMigrationWaitFloor:
+		return 0, fmt.Errorf("%s must be at least %s", storeMigrationWaitThreshold.Key, storeMigrationWaitFloor)
+	case d > storeMigrationWaitCeiling:
+		return 0, fmt.Errorf("%s must be at most %s", storeMigrationWaitThreshold.Key, storeMigrationWaitCeiling)
+	}
+	return d, nil
+}
+
+// localSnapshotKeep decides [store.ServeOptions.Keep] before serve
+// opens the store, from the facts report holds and the registry's own
+// setting, and refuses a start that a migration would otherwise make
+// unrecoverable.
+//
+// A stored keep row in its bounds is the keep, even when the
+// environment names another value: that value reaches the keep at the
+// seed this start applies after its migration. The outcome's own
+// value is the value in force after the seed, so it decides only when
+// the row is out of bounds, where it is the healed value or a refusal
+// naming the key and the bound. With no keep row, or no facts, the
+// registry default is the keep and the open decides whether the state
+// itself refuses.
+//
+// An older store whose evaluation refuses anything, whether an
+// administrator's row out of bounds or an environment value that does
+// not parse, is refused here, before the migration moves it past the
+// binary a rollback would run. A store that does not migrate gets no
+// such check, and the seed apply after the open decides.
+func localSnapshotKeep(report store.Report, environ []string, reg *config.Registry) (int, error) {
+	setting := byKey(reg.Settings(), storeLocalSnapshotKeepSetting.Key)
+	keep, err := strconv.Atoi(setting.Default)
+	if err != nil {
+		return 0, fmt.Errorf("%s: default %q: %w", setting.Key, setting.Default, err)
+	}
+	if report.Facts == nil || report.Facts.SettingsAbsent {
+		return keep, nil
+	}
+
+	ev := settings.EvaluateFacts(reg, environ, *report.Facts)
+	if report.State == store.StateOlder && ev.Err != nil {
+		return 0, ev.Err
+	}
+	for _, o := range ev.Outcomes {
+		if o.Key != setting.Key || o.Stored == nil {
+			continue
+		}
+		if setting.Validate(o.Stored.Value) == nil {
+			return strconv.Atoi(o.Stored.Value)
+		}
+		if o.Err != nil {
+			return 0, o.Err
+		}
+		return strconv.Atoi(o.Value)
+	}
+	return keep, nil
 }
 
 // storeRow resolves the store's state from environ and renders it as

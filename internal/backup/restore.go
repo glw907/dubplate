@@ -641,7 +641,7 @@ func (r restorer) report(ctx context.Context, in store.RestoreIntent) error {
 			return err
 		}
 	}
-	head := "restore " + r.sess.Stamp() + "\nsource: " + sourceLine(in) + "\n" + line
+	head := reportHead(r.sess.Stamp(), in, line)
 	path, err := r.sess.WriteReport(append([]byte(head), rep.render(math.MaxInt)...))
 	if err != nil {
 		return err
@@ -668,6 +668,12 @@ func (r restorer) reconcile(ctx context.Context, root string) (_ *report, err er
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
 	return reconcile(ctx, h, root)
+}
+
+// reportHead is the head every restore's report carries: the stamp, the
+// source, and displaced, the displaced-files line or "".
+func reportHead(stamp string, in store.RestoreIntent, displaced string) string {
+	return "restore " + stamp + "\nsource: " + sourceLine(in) + "\n" + displaced
 }
 
 // sourceLine names the source in names.

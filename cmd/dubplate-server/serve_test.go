@@ -66,6 +66,14 @@ func buildServeShell(t *testing.T, environ []string) (*serve.Shell, error) {
 // handlers write without swapping slog.Default.
 func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logger) (*serve.Shell, error) {
 	t.Helper()
+	return buildServeShellContext(t, t.Context(), environ, logger)
+}
+
+// buildServeShellContext is [buildServeShellWithLogger] with the
+// context [newServeShell] waits on supplied. The store handle a
+// successful build returns is closed at cleanup.
+func buildServeShellContext(t *testing.T, ctx context.Context, environ []string, logger *slog.Logger) (*serve.Shell, error) {
+	t.Helper()
 	cfg, err := config.Load(environ, productionRegistry())
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
@@ -78,7 +86,16 @@ func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logg
 	if err != nil {
 		t.Fatalf("resolveAuthConfig: %v", err)
 	}
-	return newServeShell(t.Context(), environ, prefix, addrs, cfg, authCfg, logger)
+	shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, authCfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	t.Cleanup(func() {
+		if err := h.Close(); err != nil {
+			t.Errorf("close store handle: %v", err)
+		}
+	})
+	return shell, nil
 }
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
@@ -604,10 +621,11 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveAuthConfig: %v", err)
 			}
-			shell, err := newServeShell(t.Context(), environ, prefix, addrs, cfg, authCfg, discardTestLogger())
+			shell, h, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, authCfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
+			t.Cleanup(func() { _ = h.Close() })
 
 			handlersConfig := authHandlersConfig(prefix, cfg, authCfg, nil, nil, nil, nil, nil, nil, nil)
 			if handlersConfig.SessionAbsoluteCap != authCfg.sessionAbsoluteCap {

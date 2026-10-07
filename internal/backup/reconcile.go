@@ -2,11 +2,13 @@ package backup
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"maps"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -92,6 +94,29 @@ func reconcile(ctx context.Context, h *store.Handle, root string) (*report, erro
 	return r, nil
 }
 
+// Reconciler returns the reconciler serve gives [store.ServeOptions]
+// to finish a restore that left its store below the binary's version.
+// The report it produces is the one restore writes for a store at the
+// binary's version: the same head, then every entry of the
+// reconciliation. The tree it walks is the library root the restore's
+// record names when the record names one, and libraryRoot otherwise.
+func Reconciler(libraryRoot string) func(ctx context.Context, h *store.Handle, stamp string, in store.RestoreIntent) ([]byte, error) {
+	return func(ctx context.Context, h *store.Handle, stamp string, in store.RestoreIntent) ([]byte, error) {
+		root := cmp.Or(in.LibraryRoot, libraryRoot)
+		rep, err := reconcile(ctx, h, root)
+		if err != nil {
+			return nil, err
+		}
+		var displaced string
+		if in.LibraryRoot != "" {
+			if displaced, err = displacedLine(displacedPath(root, stamp)); err != nil {
+				return nil, err
+			}
+		}
+		return append([]byte(reportHead(stamp, in, displaced)), rep.render(math.MaxInt)...), nil
+	}
+}
+
 // trackPaths returns the path of every track's file relative to the
 // library root, as bytes read from the catalog.
 func trackPaths(ctx context.Context, h *store.Handle) (map[string]struct{}, error) {
@@ -164,7 +189,7 @@ func (r *report) head(b *bytes.Buffer) {
 	}
 	fmt.Fprintf(b, "tracks without a file: %d\nfiles without a track: %d\n", len(r.unfiled), len(r.unlisted))
 	if r.noUsers {
-		b.WriteString("the users table is empty: run member import\n")
+		b.WriteString("the users table is empty: run member add ADDRESS --admin\n")
 	}
 	for _, e := range r.walkErrs {
 		b.WriteString(e + "\n")

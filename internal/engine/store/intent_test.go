@@ -174,12 +174,15 @@ type recordingReconciler struct {
 	version     int
 	userVersion int
 	jobIDs      []string
+	stamp       string
+	intent      RestoreIntent
 }
 
-func (r *recordingReconciler) reconcile(ctx context.Context, h *Handle) ([]byte, error) {
+func (r *recordingReconciler) reconcile(ctx context.Context, h *Handle, stamp string, in RestoreIntent) ([]byte, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.calls++
+	r.stamp, r.intent = stamp, in
 	r.version = h.version
 	if err := h.QueryRow(ctx, "PRAGMA user_version").Scan(&r.userVersion); err != nil {
 		return nil, err
@@ -471,6 +474,57 @@ func TestOpenServe_ReconcilePendingCurrent(t *testing.T) {
 	}
 	assertReport(t, l, "clean\n")
 	assertNoIntent(t, l)
+}
+
+// TestOpenServe_ReconcilerReceivesRecord: the reconciler is handed the
+// record's stamp and its source, and the library half exactly when the
+// record owes one. Fixture: a current store beside a reconcile-pending
+// record, one row per record shape.
+func TestOpenServe_ReconcilerReceivesRecord(t *testing.T) {
+	library := testIntent(intentReconcilePending)
+	library.Library = &libraryOwed{Root: "/srv/music/library", IntoNonempty: true}
+	fromFile := testIntent(intentReconcilePending)
+	fromFile.Source = intentSource{File: "/var/tmp/dubplate.db"}
+
+	tests := []struct {
+		name   string
+		record intentRecord
+		want   RestoreIntent
+	}{
+		{
+			name:   "snapshot without a library half",
+			record: testIntent(intentReconcilePending),
+			want:   RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z"},
+		},
+		{
+			name:   "snapshot with a library half",
+			record: library,
+			want:   RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z", LibraryRoot: "/srv/music/library", IntoNonempty: true},
+		},
+		{
+			name:   "file source",
+			record: fromFile,
+			want:   RestoreIntent{File: "/var/tmp/dubplate.db"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			l := buildStore(t, stateDir, binaryHead)
+			plantIntent(t, l, tt.record)
+
+			rec := &recordingReconciler{report: []byte("clean\n")}
+			if err := reconcilingServe(t, stateDir, rec); err != nil {
+				t.Fatalf("OpenServe: %v", err)
+			}
+			if rec.stamp != testStamp {
+				t.Errorf("stamp = %q, want %q", rec.stamp, testStamp)
+			}
+			if rec.intent != tt.want {
+				t.Errorf("intent = %+v, want %+v", rec.intent, tt.want)
+			}
+		})
+	}
 }
 
 // TestOpenServe_ReconcilePendingRefusals: with no reconciler, or one

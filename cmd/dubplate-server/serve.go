@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
@@ -223,8 +225,9 @@ func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
 // configuration wall through [config.Load] against reg, resolves the
 // three serve thresholds and rung 5's ten auth thresholds, builds the
 // shell and mounts the auth handlers through newServeShell, and runs it
-// until cmd's context is done. Every resolution and every store or
-// roster open in newServeShell happens before serve.Run opens a
+// until cmd's context is done, holding the store open until then. Every
+// resolution and every store or roster open in newServeShell happens
+// before serve.Run opens a
 // listener, so a server whose wall or whose auth dependencies are
 // unsatisfied refuses at startup, in the same words doctor reports,
 // rather than accepting connections and failing at the first request
@@ -235,7 +238,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 		Short:         "Run the HTTP server",
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) (err error) {
 			cfg, err := config.Load(environ, reg)
 			if err != nil {
 				return err
@@ -248,10 +251,11 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			shell, err := newServeShell(cmd.Context(), environ, prefix, addrs, cfg, authCfg, slog.Default())
+			shell, h, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, authCfg, slog.Default())
 			if err != nil {
 				return err
 			}
+			defer func() { err = errors.Join(err, h.Close()) }()
 			return serve.Run(cmd.Context(), shell.Logger(), shell.Handler(), addrs, port)
 		},
 	}
@@ -260,13 +264,17 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 	return cmd
 }
 
-// newServeShell builds the shell the serve verb runs, owning prefix,
-// opens the auth store, the nonce and epoch stores, and the roster,
+// newServeShell builds the shell the serve verb runs, owning prefix.
+// It first opens the dubplate store through [store.OpenServe], which
+// creates it, migrates it, or finishes a restore, and returns the
+// handle the caller closes when the shell stops serving; every refusal
+// returns no shell and no handle. It then opens the auth store, the nonce and epoch stores, and the roster,
 // builds the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
-// proxy value [resolveTrustedProxy] refuses, a missing roster file, a
+// proxy value [resolveTrustedProxy] refuses, a store this binary cannot
+// open or must not migrate, a missing roster file, a
 // roster directory it cannot write, an unopenable store, an unparseable mail port, a bad theme or branding
 // value, or a refused operator CSS file without ever accepting a
 // connection.
@@ -302,33 +310,42 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // already cleared. Its peer rule reads bindAddrs, the resolved list
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
-func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (*serve.Shell, error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (_ *serve.Shell, _ *store.Handle, err error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	h, err := openServeStore(ctx, environ, reg, cfg, logger)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() {
+		if err != nil {
+			err = errors.Join(err, h.Close())
+		}
+	}()
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
 	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
 		shell.EnableHSTS()
 	}
 
-	store, err := auth.Open(cfg.StateDir)
+	authStore, err := auth.Open(cfg.StateDir)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	nonces, _, err := auth.OpenNonceStore(store, authCfg.nonceRetention, magicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(authStore, authCfg.nonceRetention, magicLinkExpiryCeiling, time.Now())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	epoch := auth.OpenEpochStore(store)
+	epoch := auth.OpenEpochStore(authStore)
 
 	roster, err := auth.OpenRoster(cfg.IdentitySourceValue(rosterFileKey))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := checkRosterDirWritable(cfg.IdentitySourceValue(rosterFileKey)); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	limiter := auth.NewLimiter(auth.Limits{
@@ -340,7 +357,7 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 
 	mailer, err := newMailer(cfg)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	seam := auth.NewMagicLinkSeam(roster, epoch,
@@ -376,13 +393,49 @@ func newServeShell(ctx context.Context, environ []string, prefix serve.Prefix, b
 		stateDir: cfg.StateDir,
 	}, shell.Logger())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	webRoutes.register(shell)
 	shell.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
 
 	go sweepNonces(ctx, nonces, shell.Logger())
-	return shell, nil
+	return shell, h, nil
+}
+
+// openServeStore opens the dubplate store for serve: it reads the
+// store's thresholds, decides the keep from the facts [store.Inspect]
+// reads, and calls [store.OpenServe] with the backup flag and the
+// reconciler a restore awaiting serve needs. A refusal at any step
+// returns no handle.
+func openServeStore(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config, logger *slog.Logger) (*store.Handle, error) {
+	busyTimeout, parseErr, rangeErr := storeBusyTimeout(environ)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	if rangeErr != nil {
+		return nil, rangeErr
+	}
+	migrationWait, err := storeMigrationWait(environ)
+	if err != nil {
+		return nil, err
+	}
+	report := store.Inspect(ctx, store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: busyTimeout})
+	keep, err := localSnapshotKeep(report, environ, reg)
+	if err != nil {
+		return nil, err
+	}
+	h, err := store.OpenServe(ctx, cfg.StateDir, store.ServeOptions{
+		BusyTimeout:   busyTimeout,
+		MigrationWait: migrationWait,
+		Keep:          keep,
+		Backup:        cfg.IntegrationEnabled(backupIntegrationClass.Name),
+		Logger:        logger,
+		Reconcile:     backup.Reconciler(cfg.LibraryRoot),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("open store: %w", err)
+	}
+	return h, nil
 }
 
 // sendsHSTS reports whether the shell sends Strict-Transport-Security

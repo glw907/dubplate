@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"database/sql"
@@ -1096,5 +1097,45 @@ func TestOpenServe_CurrentKeepsSharedLock(t *testing.T) {
 	}
 	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, ErrLockBusy) {
 		t.Errorf("exclusive lock while the serve handle is open = %v, want busy", err)
+	}
+}
+
+// TestOpenServe_SettleLogsNoWarning: a create, a migration, and a
+// finished restore each settle the store once, and the loop's one
+// re-entry to open the settled store is not a second settle, so none
+// logs the settling-again warning. Fixture: an absent store, and a
+// store at version 2 that holds a job row, so the migration settles
+// real work.
+func TestOpenServe_SettleLogsNoWarning(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, stateDir string)
+	}{
+		{name: "create", setup: func(*testing.T, string) {}},
+		{name: "migrate", setup: func(t *testing.T, stateDir string) {
+			plantJob(t, buildStore(t, stateDir, 2).dbPath)
+		}},
+		{name: "reconcile-pending", setup: func(t *testing.T, stateDir string) {
+			l := buildStore(t, stateDir, 2)
+			plantIntent(t, l, testIntent(intentReconcilePending))
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			tt.setup(t, stateDir)
+
+			var logs bytes.Buffer
+			opts := serveOpts(slog.New(slog.NewTextHandler(&logs, nil)))
+			opts.Reconcile = (&recordingReconciler{report: []byte("ok\n")}).reconcile
+			h, err := OpenServe(context.Background(), stateDir, opts)
+			if err != nil {
+				t.Fatalf("OpenServe: %v", err)
+			}
+			t.Cleanup(func() { _ = h.Close() })
+			if got := logs.String(); strings.Contains(got, "settling again") {
+				t.Errorf("log after one settle = %q, want no settling-again warning", got)
+			}
+		})
 	}
 }
