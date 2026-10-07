@@ -321,24 +321,62 @@ func TestLoadLedgerRefusesEmptyVersionBeforeApply(t *testing.T) {
 
 func TestPatternWildcard(t *testing.T) {
 	tests := []struct {
-		pattern, path string
-		want          bool
+		pattern, path  string
+		exact, subtree bool
 	}{
-		{"album/song/*/title", "album/song/3/title", true},
-		{"album/song/*/title", "album/song/12/title", true},
-		{"album/song/*/title", "album/song/extra/title", false}, // a named segment
-		{"album/song/*/title", "album/song//title", false},
-		{"album/song/*/title", "album/song/3", false},
-		{"album/song/*", "album/song/3/title", true}, // covers beneath
-		{"album/song", "album/song/3/title", true},
-		{"album/song", "album/songs", false}, // segment boundary
-		{"album/song", "album", false},
-		{"album/song/3", "album/song/3", true},
+		{"album/song/*/title", "album/song/3/title", true, true},
+		{"album/song/*/title", "album/song/12/title", true, true},
+		{"album/song/*/title", "album/song/extra/title", false, false}, // a named segment
+		{"album/song/*/title", "album/song//title", false, false},
+		{"album/song/*/title", "album/song/3", false, false},
+		{"album/song/*", "album/song/3/title", false, true}, // beneath the pattern
+		{"album/song", "album/song/3/title", false, true},
+		{"album/song", "album/songs", false, false}, // segment boundary
+		{"album/song", "album", false, false},
+		{"album/song/3", "album/song/3", true, true},
 	}
 	for _, tt := range tests {
-		if got := pathCovers(tt.pattern, tt.path); got != tt.want {
-			t.Errorf("pathCovers(%q, %q) = %t, want %t", tt.pattern, tt.path, got, tt.want)
+		if got := pathCovers(tt.pattern, tt.path, false); got != tt.exact {
+			t.Errorf("pathCovers(%q, %q, exact) = %t, want %t", tt.pattern, tt.path, got, tt.exact)
 		}
+		if got := pathCovers(tt.pattern, tt.path, true); got != tt.subtree {
+			t.Errorf("pathCovers(%q, %q, subtree) = %t, want %t", tt.pattern, tt.path, got, tt.subtree)
+		}
+	}
+}
+
+// TestRowScopeByClass writes every class's row at a parent path and grades
+// one finding of a kind the class suppresses at a child path. Only the
+// surface classes reach beneath their path, so a volatile or contract row
+// written one level too high leaves the child difference reported.
+func TestRowScopeByClass(t *testing.T) {
+	tests := []struct {
+		class      Class
+		kind       Kind
+		sources    []string
+		childTaken bool
+	}{
+		{ClassByConstruction, KindValue, nil, true},
+		{ClassUnoracled, KindPresence, nil, true},
+		{ClassVolatile, KindValue, nil, false},
+		{ClassContract, KindContract, []string{"gonic"}, false},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.class), func(t *testing.T) {
+			row := activeRow("parent", tt.class)
+			row.Pattern.Path = "album"
+			at := func(path string) Finding { return finding(tt.kind, path, tt.sources...) }
+			res, err := (&Ledger{Rows: []Row{row}}).Apply(testSession(), "s1", pairNG, []Finding{at("album"), at("album/name")})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if res.Matches[0] != "parent" {
+				t.Errorf("finding at the row's own path unledgered")
+			}
+			if got := res.Matches[1] == "parent"; got != tt.childTaken {
+				t.Errorf("child finding taken = %t, want %t", got, tt.childTaken)
+			}
+		})
 	}
 }
 
@@ -366,7 +404,7 @@ func TestPatternFormatAndEndpoint(t *testing.T) {
 }
 
 func TestApplyCountsEveryOverlappingRow(t *testing.T) {
-	broad := activeRow("broad", ClassVolatile)
+	broad := activeRow("broad", ClassByConstruction)
 	broad.Pattern.Path = "album"
 	l := &Ledger{Rows: []Row{broad, activeRow("narrow", ClassVolatile)}}
 	res, err := l.Apply(testSession(), "s1", pairNG, []Finding{finding(KindValue, "album/name"), finding(KindValue, "album/year")})

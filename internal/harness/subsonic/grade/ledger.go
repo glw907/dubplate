@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
+	"github.com/glw907/dubplate/internal/opensubsonic/client"
 )
 
 // dubplate is the source name a session gives the server under test.
@@ -60,9 +61,14 @@ const (
 )
 
 // Pattern selects the findings a row covers: one endpoint, one format
-// ("json", "xml", or "any"), and a field path. The path covers the field
-// and everything beneath it. A "*" segment stands for exactly one
-// array-index segment; no other wildcard exists.
+// ("json", "xml", or "any"), and a field path. A "*" segment stands for
+// exactly one array-index segment; no other wildcard exists.
+//
+// A volatile or contract row covers the one field its path names, so a
+// row written for a parent never hides a difference in a child. A
+// by-construction or unoracled row covers its path and everything
+// beneath it, since it names a surface no oracle can grade rather than a
+// field.
 type Pattern struct {
 	Endpoint string `json:"endpoint"`
 	Format   string `json:"format"`
@@ -255,7 +261,6 @@ func (l *Ledger) Apply(s *session.Session, name string, pair [2]string, findings
 		Counts:  map[string]int{},
 		Owed:    map[string]int{},
 	}
-	wantPair := slices.Sorted(slices.Values(pair[:]))
 	var applied []Row
 	var problems []error
 	for _, r := range l.Rows {
@@ -263,7 +268,7 @@ func (l *Ledger) Apply(s *session.Session, name string, pair [2]string, findings
 			res.Owed[r.Slice]++
 			continue
 		}
-		if r.Session != name || !slices.Equal(slices.Sorted(slices.Values(r.Sources)), wantPair) {
+		if !r.applies(name, pair) {
 			continue
 		}
 		applied = append(applied, r)
@@ -298,12 +303,30 @@ func (l *Ledger) Apply(s *session.Session, name string, pair [2]string, findings
 	return res, errors.Join(problems...)
 }
 
+// applies reports whether r is an active row on the session name and on
+// exactly the sources in pair, in either order.
+func (r Row) applies(name string, pair [2]string) bool {
+	return r.State == StateActive && r.Session == name &&
+		slices.Equal(slices.Sorted(slices.Values(r.Sources)), slices.Sorted(slices.Values(pair[:])))
+}
+
+// subtree reports whether r's pattern covers everything beneath its path.
+func (r Row) subtree() bool {
+	return r.Class == ClassByConstruction || r.Class == ClassUnoracled
+}
+
+// selects reports whether r's pattern names the field at path in a
+// response to endpoint in format.
+func (r Row) selects(endpoint string, format client.Format, path string) bool {
+	return r.Pattern.Endpoint == endpoint &&
+		(r.Pattern.Format == "any" || r.Pattern.Format == string(format)) &&
+		pathCovers(r.Pattern.Path, path, r.subtree())
+}
+
 // covers reports whether r, an active row on the finding's pair, selects
 // and suppresses f.
 func (r Row) covers(f Finding) bool {
-	if r.Pattern.Endpoint != f.Endpoint ||
-		(r.Pattern.Format != "any" && r.Pattern.Format != string(f.Format)) ||
-		!pathCovers(r.Pattern.Path, f.Path) {
+	if !r.selects(f.Endpoint, f.Format, f.Path) {
 		return false
 	}
 	switch r.Class {
@@ -320,12 +343,13 @@ func (r Row) covers(f Finding) bool {
 	return false
 }
 
-// pathCovers reports whether path is pattern or lies beneath it, segment
-// by segment; a "*" pattern segment covers only an all-digit segment.
-func pathCovers(pattern, path string) bool {
+// pathCovers reports whether path is pattern, or, when subtree is set,
+// lies beneath it, segment by segment; a "*" pattern segment covers only
+// an all-digit segment.
+func pathCovers(pattern, path string, subtree bool) bool {
 	ps := strings.Split(pattern, "/")
 	segs := strings.Split(path, "/")
-	if len(ps) > len(segs) {
+	if len(ps) > len(segs) || (!subtree && len(ps) != len(segs)) {
 		return false
 	}
 	for i, p := range ps {

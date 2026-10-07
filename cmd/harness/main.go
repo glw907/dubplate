@@ -29,6 +29,9 @@
 //   - record-oracle: runs the same oracles and writes a session of the
 //     answers each gives to a spec's requests, resolving symbolic
 //     references to each oracle's own ids.
+//   - grade --session <dir> --pair <a,b> --out <file>: grades a recorded
+//     session between two of its sources against the divergence ledger
+//     and writes the report, failing on any unledgered finding.
 //
 // Every live request carries the identified User-Agent
 // corpus/README.md documents; the tool refuses to run at all when
@@ -70,5 +73,6 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newFetchUnidecodeCmd(&http.Client{Timeout: fetchUnidecodeTimeout}))
 	cmd.AddCommand(newOracleUpCmd())
 	cmd.AddCommand(newRecordOracleCmd())
+	cmd.AddCommand(newGradeCmd())
 	return cmd
 }

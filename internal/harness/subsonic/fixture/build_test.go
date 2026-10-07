@@ -327,3 +327,49 @@ func TestLoadStates(t *testing.T) {
 		})
 	}
 }
+
+func TestTracks(t *testing.T) {
+	tracks, err := Tracks(committedManifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tracks) != 29 {
+		t.Errorf("got %d tracks, want 29", len(tracks))
+	}
+	byPath := map[string]Track{}
+	for _, tr := range tracks {
+		byPath[tr.Path] = tr
+	}
+	tests := []struct {
+		path string
+		want Track
+	}{
+		{"Borealis Trio/Double Feature/Disc 2/01 Reprise.flac", Track{
+			AlbumArtist: "Borealis Trio", Album: "Double Feature", Title: "Reprise",
+			Artists: []string{"Borealis Trio"}, Disc: 2, Number: 1,
+		}},
+		{"Alpha Artist/Single Disc/03 Together.flac", Track{
+			AlbumArtist: "Alpha Artist", Album: "Single Disc", Title: "Together",
+			Artists: []string{"Alpha Artist feat. Guest Singer", "Alpha Artist", "Guest Singer"}, Disc: 1, Number: 3,
+		}},
+		{"Delta Duo/Greatest Hits/02 Last Light.flac", Track{
+			AlbumArtist: "Delta Duo", Album: "Greatest Hits", Title: "Last Light",
+			Artists: []string{"Delta Duo"}, Number: 2,
+		}},
+		{"Loose/untagged.flac", Track{}},
+	}
+	for _, tt := range tests {
+		got, ok := byPath[tt.path]
+		if !ok {
+			t.Errorf("no track %s", tt.path)
+			continue
+		}
+		tt.want.Path = tt.path
+		if !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%s:\n got %+v\nwant %+v", tt.path, got, tt.want)
+		}
+	}
+	if _, err := Tracks(filepath.Join(t.TempDir(), "manifest.json")); err == nil || !strings.Contains(err.Error(), "read manifest") {
+		t.Errorf("absent manifest: err = %v", err)
+	}
+}

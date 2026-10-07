@@ -1,0 +1,625 @@
+[
+  {
+    "id": "folder-view-getindexes",
+    "area": "getIndexes",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot be graded against gonic's, which follows the paths.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getIndexes",
+      "format": "any",
+      "path": "subsonic-response/indexes"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "folder-view-getmusicdirectory",
+    "area": "getMusicDirectory",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot be graded against gonic's, which follows the paths.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicDirectory",
+      "format": "any",
+      "path": "subsonic-response/directory"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "folder-view-getmusicfolders",
+    "area": "getMusicFolders",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot be graded against gonic's, which follows the paths.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicFolders",
+      "format": "any",
+      "path": "subsonic-response/musicFolders"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "navidrome-album-userrating",
+    "area": "getAlbum",
+    "class": "contract",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome reports an album userRating of 0 where the document's minimum is 1.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "source": "navidrome",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "json",
+      "path": "subsonic-response/album/userRating"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "gonic-song-replaygain",
+    "area": "getAlbum",
+    "class": "contract",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "gonic sends a null replayGain on every song, which the document does not allow.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "source": "gonic",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "json",
+      "path": "subsonic-response/album/song/*/replayGain"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-ping",
+    "area": "ping",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "ping",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-ping",
+    "area": "ping",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "ping",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getlicense",
+    "area": "getLicense",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getLicense",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getlicense",
+    "area": "getLicense",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getLicense",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getopensubsonicextensions",
+    "area": "getOpenSubsonicExtensions",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getOpenSubsonicExtensions",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getopensubsonicextensions",
+    "area": "getOpenSubsonicExtensions",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getOpenSubsonicExtensions",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getmusicfolders",
+    "area": "getMusicFolders",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicFolders",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getmusicfolders",
+    "area": "getMusicFolders",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicFolders",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getindexes",
+    "area": "getIndexes",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getIndexes",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getindexes",
+    "area": "getIndexes",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getIndexes",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getartists",
+    "area": "getArtists",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getArtists",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getartists",
+    "area": "getArtists",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getArtists",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getartist",
+    "area": "getArtist",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getArtist",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getartist",
+    "area": "getArtist",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getArtist",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getalbum",
+    "area": "getAlbum",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getalbum",
+    "area": "getAlbum",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getsong",
+    "area": "getSong",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getSong",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getsong",
+    "area": "getSong",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getSong",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-type-getmusicdirectory",
+    "area": "getMusicDirectory",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server names itself in the envelope's type.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicDirectory",
+      "format": "any",
+      "path": "subsonic-response/type"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "server-version-getmusicdirectory",
+    "area": "getMusicDirectory",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Each server reports its own serverVersion.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicDirectory",
+      "format": "any",
+      "path": "subsonic-response/serverVersion"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "song-created-getalbum",
+    "area": "getAlbum",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "A song's created time is when the server's scan saw the file, so it differs per run and per server.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getAlbum",
+      "format": "any",
+      "path": "subsonic-response/album/song/*/created"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "song-created-getsong",
+    "area": "getSong",
+    "class": "volatile",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "A song's created time is when the server's scan saw the file, so it differs per run and per server.",
+    "dubplate": "Not graded here.",
+    "evidence": "seed session, Navidrome 0.64.2 against gonic 0.22.0",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getSong",
+      "format": "any",
+      "path": "subsonic-response/song/created"
+    },
+    "session": "seed",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  }
+]

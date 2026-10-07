@@ -179,3 +179,54 @@ func TrackCount(manifestPath string) (int, error) {
 	}
 	return n, nil
 }
+
+// Track is one track's identity as the manifest declares it. A tag the
+// manifest leaves unset is the zero value.
+type Track struct {
+	// Path is the track's path relative to the library root.
+	Path        string
+	AlbumArtist string
+	Album       string
+	Title       string
+	// Artists holds the track's artist tag followed by its multi-valued
+	// artists tag.
+	Artists []string
+	Disc    int
+	Number  int
+}
+
+// Tracks checks the manifest at manifestPath and returns every track it
+// declares, in manifest order.
+func Tracks(manifestPath string) ([]Track, error) {
+	lib, err := load(manifestPath)
+	if err != nil {
+		return nil, err
+	}
+	var out []Track
+	for _, a := range lib.manifest.Albums {
+		for _, t := range a.Tracks {
+			tr := Track{
+				Path:        t.Path,
+				AlbumArtist: deref(t.Tags.Albumartist),
+				Album:       deref(t.Tags.Album),
+				Title:       deref(t.Tags.Title),
+				Disc:        deref(t.Tags.Disc),
+				Number:      deref(t.Tags.Track),
+			}
+			if t.Tags.Artist != nil {
+				tr.Artists = append(tr.Artists, *t.Tags.Artist)
+			}
+			tr.Artists = append(tr.Artists, t.Tags.Artists...)
+			out = append(out, tr)
+		}
+	}
+	return out, nil
+}
+
+func deref[T any](p *T) T {
+	if p == nil {
+		var zero T
+		return zero
+	}
+	return *p
+}
