@@ -187,7 +187,7 @@ func TestApply_SeedTable(t *testing.T) {
 			reg := newRegistry()
 			log, buf := bufferLog()
 
-			err := apply(ctxFor(t), h, reg, tt.env, testNow, log)
+			err := Apply(ctxFor(t), h, reg, tt.env, testNow, log)
 
 			wantRows, wantGen := tt.wantRows, int64(fixtureGeneration)
 			if tt.wantErr != nil {
@@ -384,7 +384,7 @@ func TestApply_CorrelatedRule(t *testing.T) {
 				fixtureRow{keyNonce, "48h", "env-seed", "48h"},
 				fixtureRow{keyExpiry, "15m", "env-seed", "15m"})
 
-			err := apply(ctxFor(t), h, correlatedRegistry(), tt.env, testNow, discardLog)
+			err := Apply(ctxFor(t), h, correlatedRegistry(), tt.env, testNow, discardLog)
 
 			if tt.wantErr != nil {
 				wantErrText(t, err, tt.wantErr...)
@@ -410,7 +410,7 @@ func TestApply_RefusedWritesNoAudit(t *testing.T) {
 	h := newStore(t)
 	writeFixture(t, h, fixtureRow{keyKeep, "30", "admin", "20"})
 
-	err := apply(ctxFor(t), h, newRegistry(), []string{keyKeep + "=20", keyRetention + "=48h"}, testNow, discardLog)
+	err := Apply(ctxFor(t), h, newRegistry(), []string{keyKeep + "=20", keyRetention + "=48h"}, testNow, discardLog)
 
 	wantErrText(t, err, keyKeep, `administrator set "30"`)
 	if n := len(readAudit(t, h)); n != 0 {
@@ -428,7 +428,7 @@ func TestApply_RefusedWritesNoAudit(t *testing.T) {
 // row, by the system actor on the env-seed channel.
 func TestApply_OneAuditRowPerSeed(t *testing.T) {
 	h := newStore(t)
-	if err := apply(ctxFor(t), h, newRegistry(), []string{keyKeep + "=20"}, testNow, discardLog); err != nil {
+	if err := Apply(ctxFor(t), h, newRegistry(), []string{keyKeep + "=20"}, testNow, discardLog); err != nil {
 		t.Fatalf("apply: %v", err)
 	}
 	got := readAudit(t, h)
@@ -455,7 +455,7 @@ func TestApply_DefaultStoresNoRow(t *testing.T) {
 		reg := config.NewRegistry()
 		s := keepSetting(fmt.Sprint(def))
 		reg.AddSetting(s)
-		if err := apply(ctxFor(t), h, reg, nil, testNow, discardLog); err != nil {
+		if err := Apply(ctxFor(t), h, reg, nil, testNow, discardLog); err != nil {
 			t.Fatalf("apply under default %d: %v", def, err)
 		}
 		got, err := NewAccessor(h, reg).Int(context.Background(), s)

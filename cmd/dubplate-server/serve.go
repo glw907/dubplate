@@ -18,6 +18,7 @@ import (
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 )
@@ -268,7 +269,9 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // It first opens the dubplate store through [store.OpenServe], which
 // creates it, migrates it, or finishes a restore, and returns the
 // handle the caller closes when the shell stops serving; every refusal
-// returns no shell and no handle. It then opens the auth store, the nonce and epoch stores, and the roster,
+// returns no shell and no handle. It then applies the settings seed to
+// that store through [applySettingsSeed], so a refusal ends the start
+// before anything else is built. It then opens the auth store, the nonce and epoch stores, and the roster,
 // builds the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
@@ -324,6 +327,9 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 			err = errors.Join(err, h.Close())
 		}
 	}()
+	if err := applySettingsSeed(ctx, h, reg, environ, logger); err != nil {
+		return nil, nil, err
+	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
 	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
@@ -436,6 +442,25 @@ func openServeStore(ctx context.Context, environ []string, reg *config.Registry,
 		return nil, fmt.Errorf("open store: %w", err)
 	}
 	return h, nil
+}
+
+// serveSeedWriteWait bounds how long the seed's write waits for the
+// store's write connection. [store.Handle.Update] refuses a context
+// with no deadline; the busy timeout, not this wait, bounds another
+// process's lock.
+const serveSeedWriteWait = 30 * time.Second
+
+// applySettingsSeed applies the environment seed rule to the store h
+// holds, so every setting row serve reads from here on already agrees
+// with the environment. A refusal returns the joined refusal and
+// changes nothing; the caller then starts no listener.
+func applySettingsSeed(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, logger *slog.Logger) error {
+	ctx, cancel := context.WithTimeout(ctx, serveSeedWriteWait)
+	defer cancel()
+	if err := settings.Apply(ctx, h, reg, environ, time.Now(), logger); err != nil {
+		return fmt.Errorf("apply settings seed: %w", err)
+	}
+	return nil
 }
 
 // sendsHSTS reports whether the shell sends Strict-Transport-Security

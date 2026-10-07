@@ -16,7 +16,7 @@ import (
 // lost its one row, so no cache could ever see a change.
 var errNoGeneration = errors.New("settings_generation holds no row")
 
-// apply runs the seed rule for reg's settings against h's store and
+// Apply runs the seed rule for reg's settings against h's store and
 // environ, and writes the result in one transaction: each changed row,
 // an audit row per change, and one generation bump when anything
 // changed. When the rule refuses, it writes nothing and returns the
@@ -26,7 +26,9 @@ var errNoGeneration = errors.New("settings_generation holds no row")
 // The rows are read inside the write's own transaction, so a write
 // another process commits between the read and the write cannot be
 // overwritten. Every row it writes carries the source 'env-seed'.
-func apply(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, now time.Time, log *slog.Logger) error {
+//
+// h.Update refuses a context with no deadline, so ctx must carry one.
+func Apply(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, now time.Time, log *slog.Logger) error {
 	var ev Evaluation
 	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		rs, err := tx.Query(ctx, selectRows)

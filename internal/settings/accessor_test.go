@@ -19,7 +19,7 @@ func TestAccessor_SeesAnotherHandlesWrite(t *testing.T) {
 	reg := newRegistry()
 	keep := keepSetting("14")
 
-	if err := apply(ctxFor(t), b, reg, []string{keyKeep + "=20"}, testNow, discardLog); err != nil {
+	if err := Apply(ctxFor(t), b, reg, []string{keyKeep + "=20"}, testNow, discardLog); err != nil {
 		t.Fatalf("first apply: %v", err)
 	}
 	acc := NewAccessor(a, reg)
@@ -31,7 +31,7 @@ func TestAccessor_SeesAnotherHandlesWrite(t *testing.T) {
 		t.Fatalf("warm read = %d, want 20", got)
 	}
 
-	if err := apply(ctxFor(t), b, reg, []string{keyKeep + "=30"}, testNow, discardLog); err != nil {
+	if err := Apply(ctxFor(t), b, reg, []string{keyKeep + "=30"}, testNow, discardLog); err != nil {
 		t.Fatalf("second apply: %v", err)
 	}
 	got, err = acc.Int(context.Background(), keep)
