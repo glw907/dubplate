@@ -114,7 +114,7 @@ func newEnv(t *testing.T, navidromeAddr, gonicAddr string) env {
 	t.Helper()
 	dir := t.TempDir()
 	digests := filepath.Join(dir, "oracles.json")
-	b, err := json.Marshal(Images{Navidrome: pinNavidrome, Gonic: pinGonic})
+	b, err := json.Marshal(images{Navidrome: pinNavidrome, Gonic: pinGonic})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -347,7 +347,7 @@ func TestStartRefusals(t *testing.T) {
 			prep: func(t *testing.T, e *env) {
 				badDigest(t, *e, `{"navidrome":"docker.io/deluan/navidrome:0.64.2","gonic":"`+pinGonic+`"}`)
 			},
-			want:    ErrNotPinned,
+			want:    errNotPinned,
 			mention: []string{"docker.io/deluan/navidrome:0.64.2"},
 		},
 		{
@@ -355,7 +355,7 @@ func TestStartRefusals(t *testing.T) {
 			prep: func(t *testing.T, e *env) {
 				badDigest(t, *e, `{"navidrome":"a:1","gonic":"b:2"}`)
 			},
-			want:    ErrNotPinned,
+			want:    errNotPinned,
 			mention: []string{`"a:1"`, `"b:2"`},
 		},
 		{
@@ -363,26 +363,26 @@ func TestStartRefusals(t *testing.T) {
 			prep: func(t *testing.T, e *env) {
 				badDigest(t, *e, `{"navidrome":"a@sha256:abc","gonic":"`+pinGonic+`"}`)
 			},
-			want: ErrNotPinned,
+			want: errNotPinned,
 		},
 		{
 			name: "digest file absent",
 			prep: func(t *testing.T, e *env) {
 				e.cfg.DigestFile = filepath.Join(filepath.Dir(e.digests), "none.json")
 			},
-			want:    ErrImagesFile,
+			want:    errImagesFile,
 			mention: []string{"none.json"},
 		},
 		{
 			name:    "digest file empty",
 			prep:    func(t *testing.T, e *env) { badDigest(t, *e, "") },
-			want:    ErrImagesFile,
+			want:    errImagesFile,
 			mention: []string{"oracles.json"},
 		},
 		{
 			name:    "digest file malformed",
 			prep:    func(t *testing.T, e *env) { badDigest(t, *e, `{"navidrome":`) },
-			want:    ErrImagesFile,
+			want:    errImagesFile,
 			mention: []string{"oracles.json"},
 		},
 		{
@@ -390,7 +390,7 @@ func TestStartRefusals(t *testing.T) {
 			prep: func(t *testing.T, e *env) {
 				badDigest(t, *e, `{"navidrome":"`+pinNavidrome+`","gonic":"`+pinGonic+`","extra":1}`)
 			},
-			want: ErrImagesFile,
+			want: errImagesFile,
 		},
 		{
 			name: "podman absent",
@@ -429,25 +429,25 @@ func TestStartReadiness(t *testing.T) {
 		{
 			name: "scan never finishes",
 			nd:   scan{true, 0}, gonic: scan{false, 3},
-			want:    []error{ErrNotReady},
+			want:    []error{errNotReady},
 			mention: []string{"navidrome"}, notMention: []string{"gonic"},
 		},
 		{
 			name: "finished scan counts zero",
 			nd:   scan{false, 3}, gonic: scan{false, 0},
-			want:    []error{ErrTrackCount},
+			want:    []error{errTrackCount},
 			mention: []string{"gonic counted 0, manifest has 3"}, notMention: []string{"navidrome"},
 		},
 		{
 			name: "finished scan counts too many",
 			nd:   scan{false, 4}, gonic: scan{false, 3},
-			want:    []error{ErrTrackCount},
+			want:    []error{errTrackCount},
 			mention: []string{"navidrome counted 4, manifest has 3"},
 		},
 		{
 			name: "both fail",
 			nd:   scan{false, 0}, gonic: scan{true, 0},
-			want:    []error{ErrTrackCount, ErrNotReady},
+			want:    []error{errTrackCount, errNotReady},
 			mention: []string{"navidrome counted 0", "gonic scan did not finish"},
 		},
 	}

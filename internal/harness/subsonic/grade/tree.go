@@ -133,8 +133,8 @@ func decodeJSON(body []byte) (*node, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := dec.ReadToken(); err != io.EOF {
-		return nil, fmt.Errorf("data after the top-level value: %v", err)
+	if _, err := dec.ReadToken(); !errors.Is(err, io.EOF) {
+		return nil, fmt.Errorf("data after the top-level value: %w", err)
 	}
 	return n, nil
 }

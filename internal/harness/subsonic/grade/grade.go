@@ -280,6 +280,8 @@ func (g *Grader) contractTier(ctx context.Context, s *session.Session, pair [2]s
 				}
 				continue
 			}
+			// A body the contract check judged Invalid may not decode; a nil tree
+			// makes at return nil, which renders as the absent value.
 			tree, _ := decode(resp.Body, client.JSON)
 			for _, v := range res.Violations {
 				f := base

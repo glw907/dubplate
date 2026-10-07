@@ -34,12 +34,12 @@ import (
 // ErrNoPodman marks a workstation without a podman executable.
 var ErrNoPodman = errors.New("stack: podman not found in PATH")
 
-// ErrNotReady marks an oracle whose scan never finished by the deadline.
-var ErrNotReady = errors.New("stack: oracle not ready")
+// errNotReady marks an oracle whose scan never finished by the deadline.
+var errNotReady = errors.New("stack: oracle not ready")
 
-// ErrTrackCount marks an oracle whose finished scan counted a different
+// errTrackCount marks an oracle whose finished scan counted a different
 // number of tracks than the manifest declares.
-var ErrTrackCount = errors.New("stack: scan track count differs from manifest")
+var errTrackCount = errors.New("stack: scan track count differs from manifest")
 
 // ErrImageNotPinned marks a running image whose inspect output does not
 // carry the pinned digest.
@@ -105,7 +105,7 @@ type spec struct {
 // library with the manifest's track count. On any failure it removes
 // whatever it started before returning.
 func Start(ctx context.Context, cfg Config) (*Stack, error) {
-	imgs, err := LoadImages(cfg.DigestFile)
+	imgs, err := loadImages(cfg.DigestFile)
 	if err != nil {
 		return nil, err
 	}
@@ -317,9 +317,9 @@ func (s *Stack) waitReady(ctx context.Context, cfg Config, o Oracle) error {
 		select {
 		case <-ctx.Done():
 			if finished >= 0 {
-				return fmt.Errorf("%w: oracle %s counted %d, manifest has %d", ErrTrackCount, o.Name, finished, cfg.Tracks)
+				return fmt.Errorf("%w: oracle %s counted %d, manifest has %d", errTrackCount, o.Name, finished, cfg.Tracks)
 			}
-			return fmt.Errorf("%w: %s scan did not finish: %w", ErrNotReady, o.Name, ctx.Err())
+			return fmt.Errorf("%w: %s scan did not finish: %w", errNotReady, o.Name, ctx.Err())
 		case <-time.After(poll):
 		}
 	}

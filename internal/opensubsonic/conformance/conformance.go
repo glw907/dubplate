@@ -230,11 +230,13 @@ func statusEnum(s *openapi3.Schema) []any {
 	return nil
 }
 
+var pointerEscaper = strings.NewReplacer("~", "~0", "/", "~1")
+
 func pointer(path []string) string {
 	var b strings.Builder
 	for _, seg := range path {
 		b.WriteByte('/')
-		b.WriteString(strings.NewReplacer("~", "~0", "/", "~1").Replace(seg))
+		b.WriteString(pointerEscaper.Replace(seg))
 	}
 	return b.String()
 }
