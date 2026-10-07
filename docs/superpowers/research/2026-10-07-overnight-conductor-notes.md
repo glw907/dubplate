@@ -85,3 +85,4 @@ The conductor's running ledger from the 2026-10-07 unattended window, kept verba
 - Morning FYI: workstation shell exports ~41 stale DUBPLATE_* vars (Navidrome/R2 era) that make check/doctor fail when run unclean (source: ~/.bashrc or ~/.local/secrets); smoke ran under env -i.
 - 6d arch reads: cmd workmanlike, 6 sound w/ nits; 9 corr / 32 arch / 33 polish (6d-arch-findings.json). Fold wf_f32d5b72-875: arch-corr (opus, all 9 corr incl pre-existing lines) then arch-shape (sonnet, arch on 6d lines; report 'to file' list -> BACKLOG). Lane 1 ~6.1M before this fold (flag 8.4).
 - After fold: Task 9 (HISTORY, errata, STATUS+CLAUDE.md line, runbook generic-answer line), file BACKLOG #23/#24 + arch to-file list, push; then slice 2a merge ritual.
+- RULING (Geoff, 2026-10-07 after the window): close both lanes over the flag.
