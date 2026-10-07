@@ -136,3 +136,35 @@ the pinned OpenAPI schema (M3), so the spec's contract tier will carry oracle-si
 - **Ceiling:** 2a from 9.5M (flag 7.6M) to 8.5M (flag 6.8M), re-derived from actual spend; 2b unchanged at 4.0M
   (flag 3.2M). Tasks unchanged at ten (Task 0, eight build tasks, the close); segments unchanged (A: 1 to 3; B: 4
   to 6; C: 7 and 8). No further split.
+
+## Second fold (revision 1.1 to 1.2)
+
+Source: `docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-fold-verification.md` (V1 to V3 major, V4 to V12
+minor), verdict "needs second fold". Scope was the verification findings only. Checked directly for this fold:
+kin-openapi v0.149.0 in the module cache (`openapi3/schema.go:2284`, `:2294`, `:2304`, `:2326`;
+`openapi3/errors.go:57-58`; `openapi3filter/validate_response.go:23-36`); the 6d plan at revision 2.5 (`:432-435`,
+`:951-957`, `:1694-1708`); and the podman 5.8.7 man pages (`podman-run(1)` `-p`, `--label`, `--tmpfs`;
+`podman-port(1)`; `podman-rm(1)` `--volumes`; `podman-ps(1)` `--filter label=`). No live probe was needed.
+
+| ID | Disposition | Where |
+|---|---|---|
+| V1 | Folded, keeping the check. The library digest is recorded per source, a source joins a session through Task 4's writer (refusing a duplicate source or a response to an absent request), Task 5 adds each oracle that way, and slice 3 joins dubplate to a copy of the seed session the same way. The mutation is killed by a hand-built session whose two sources carry different digests. | Header, Task 4, Task 5, Task 8 |
+| V2 | Folded. A `contract` finding carries one source; a `contract` row names the source it excuses and matches only that source's findings. The pair proof gains the oracle-row-against-dubplate case, with its mutation. | Task 6, Task 8 |
+| V3 | Folded. The perturbation table drives the oracle-tier differ alone. `TestGradeIdenticalBodiesReportOnlyContract` runs the full grader over two sources holding Navidrome's real `getAlbum` body and asserts zero oracle-tier findings and exactly Task 7's recorded violations, once per source. It kills the skip-contract mutation. | Header, Task 8 |
+| V4 | Fixed. kin's `oneOf` grouping quoted; the filter descends the `oneOf` error's `Origin`. | Quotes table, Task 7 |
+| V5 | Fixed. Nodes keep their XML form; a form mismatch is one `type` finding. | Task 6, Task 8 |
+| V6 | Fixed. The committed manifest is a grader input; a song with no track number pairs by album and title. | Task 8 |
+| V7 | Fixed. An `active` row carries one version per non-dubplate source. | Task 6 |
+| V8 | Fixed. Both sentences scoped to JSON `subsonic-response` operations, with the no-`status` fallback kept. | Quotes table, Task 7 |
+| V9 | Fixed. Seven Sonnet tasks at 0.5M: 3.5 + 0.8 + 1.5 + 1.0 + 2.2 = 9.0M, flag 7.2M. Ruling 1 updated. | Ceiling, Ruling 1 |
+| V10 | Fixed. 6d re-cited at revision 2.5. | Sources, R9, Global constraints |
+| V11 | Fixed. The podman behaviors quoted from the local man pages; Task 0 re-quotes them. | Quotes table |
+| V12 | Fixed. The checker tests `HEAD` and the four 3xx statuses before routing, as kin does. | Task 7 |
+
+**Refused:** none. **Owed:** none. **New mechanism:** none beyond the verification's own narrow folds (the join
+path through the existing writer, and one source on a `contract` finding and row). The cost of the full-report
+golden's churn through slice 8 (the verification's optional note) is accepted as stated there.
+
+**Measures.** Twelve findings, all folded. Ceiling: 2a from 8.5M (flag 6.8M) to 9.0M (flag 7.2M), an arithmetic
+correction, not a scope change; 2b unchanged at 4.0M. Tasks unchanged at ten (Task 0, eight build tasks, the
+close); segments unchanged.

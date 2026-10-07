@@ -1,6 +1,6 @@
 # Rung 12, Slice 2 (the Oracle Harness) Implementation Plan
 
-Status: **draft revision 1.1, 2026-10-06; its `spec-plan-review` is folded, and it awaits Geoff's approval.** One
+Status: **draft revision 1.2, 2026-10-06; its `spec-plan-review` is folded twice, and it awaits Geoff's approval.** One
 ruling is open (Ruling 1). Every other decision is a reading below, taken on its merits and reported.
 
 History:
@@ -16,6 +16,12 @@ History:
   this branch waits for it. The oracle configuration the live probes measured (the SELinux mount label, gonic's
   paths and multi-value settings, Navidrome's first admin, token auth) is now stated. The Markdown transcription
   proof moves to 2b and the search comparison to slice 4. The ceiling is re-derived from actual spend: 8.5M.
+- Revision 1.2: folds the fold verification read
+  (`docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-fold-verification.md`, V1 to V12) per the fold
+  record's "Second fold". The library digest is recorded per source, and a later source joins a session through
+  Task 4's writer. A `contract` finding and a `contract` row each name one source. The perturbation table drives
+  the differ alone, and a named grader test kills the skip-contract mutation. The ceiling prices seven Sonnet build
+  tasks: 9.0M.
 
 **Spec:** the 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision 3, "the
 spec"; it still says 2.0), slice 2 at `:732-736`, under the re-plan spec
@@ -32,10 +38,12 @@ that runs the contract tier and the oracle differ over a session.
 the oracles (`:274-276`), and its contract tier validates every JSON response (`:261-263`). Slice 3 is the first
 slice with a dubplate side. It needs a differ that reports exactly one finding per real difference, a contract
 tier whose only pass is a real pass, a ledger whose rows match only the pair they were adjudicated on, and a
-recorded oracle session over the same library bytes a slice 3 test builds. 2a proves each directly:
+recorded oracle session over the same library bytes a slice 3 test builds, which that test joins by adding dubplate
+as a source through Task 4's writer. 2a proves each directly:
 
-- **The differ** on a same-source perturbation table: one real recorded body against itself, so the unperturbed
-  baseline is zero findings and each perturbation yields exactly one (Task 8).
+- **The differ** on a same-source perturbation table that drives the oracle-tier differ alone: one real recorded
+  body against itself, so the unperturbed baseline is zero findings and each perturbation yields exactly one
+  (Task 8).
 - **The contract tier** on a hand-authored document with every kin-openapi silent-pass path (Task 7), and on the
   real oracle bodies, whose exact violation lists are asserted (Task 7, harness side).
 - **The ledger** on fixture ledgers and fixture findings (Task 6).
@@ -62,13 +70,14 @@ gets its own plan revision when slice 1 lands. Slice 1 needs nothing from 2a: it
 scratch fixture and cites each behavior to a version now, with a "test owed" column in its ledger (slice 1 plan,
 settled items 3 and 4). 2a's tests are where many of those owed tests land.
 
-**Ceiling (2a):** 8.5M execution tokens, flag 6.8M (80%). Derivation from actual spend: the removal pass spent
+**Ceiling (2a):** 9.0M execution tokens, flag 7.2M (80%). Derivation from actual spend: the removal pass spent
 about 3.7M on seven tasks and its close (`docs/HISTORY.md:191`), about 0.45M a task with the close folded in. 2a
-prices six Sonnet build tasks at 0.5M (3.0M), a 0.4M premium on each live task, Tasks 3 and 5 (0.8M), the Opus
+prices seven Sonnet build tasks, Tasks 1 to 7, at 0.5M (3.5M), a 0.4M premium on each live task, Tasks 3 and 5 (0.8M), the Opus
 Task 8 at 1.5M, one fix round a segment plus one (1.0M), and a close of seven architecture reads, one simplifier
 round with its review, one vacuity read, and two fold tasks (2.2M). The fold moved scope both ways (identity
 pairing, the branch filter, the golden, and the library digest in; the transcription proof and the search rule
-out), and the net is priced above. Planning and plan review are recorded outside it.
+out), and the net is priced above. The sum is 3.5 + 0.8 + 1.5 + 1.0 + 2.2 = 9.0M; revision 1.1 priced six
+Sonnet tasks and so left one task out. Planning and plan review are recorded outside it.
 **Ceiling (2b):** 4.0M, flag 3.2M, re-derived at 2b's Task 0 from 2a's actual rate.
 **Lane sub-ceiling:** lane 3's sub-ceiling is 2a's ceiling, then 2b's. The conductor reconciles both against the
 phase's combined ceiling at each checkpoint.
@@ -131,9 +140,10 @@ touched only `docs/`, so the code pointers hold. Library behavior is quoted at t
 - `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`: the lane-launch checklist (`:249-258`).
 - The repo `CLAUDE.md`: "Lanes" (`:99-110`), "Planning-miss prevention" (`:127-134`), "Findings are ranked"
   (`:136-144`), "Current dependencies" (`:55-68`), and the build-for-0.8 paragraph.
-- The 6d plan, revision 2.4 (`docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md`): "Where it
-  runs" (`:426-429`), Task 0's sweep (`:944-950`), and "Contested surfaces" (`:1694-1697`), which names this
-  slice's `go.mod` addition as the one expected concurrent edit and sets when it may land.
+- The 6d plan, revision 2.5 (`docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md`): "Where it
+  runs" (`:432-435`), Task 0's sweep (`:951-957`), and "Contested surfaces" (`:1694-1708`), whose last sentence
+  (`:1707-1708`) names this slice's `go.mod` addition as the one expected concurrent edit and sets when it may
+  land.
 - The navidrome-removal plan (`docs/superpowers/plans/2026-10-05-navidrome-removal.md`) for the gate and
   execution header lines.
 - The three lens reviews of revision 1 and their probes (`docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-review-contract.md`,
@@ -162,7 +172,8 @@ touched only `docs/`, so the code pointers hold. Library behavior is quoted at t
 | `openapi3filter/validate_response.go`, same | Returns `nil` without validating for a `HEAD` request; for status 301, 304, 307, and 308 ("These status codes will never be validated"); when `responses.Len() == 0`; for an undeclared status with no `default` response unless `IncludeResponseStatus` is set ("By default, status that is not documented is allowed"), in which case it returns `&ResponseError{Input: input, Reason: "status is not supported"}` (`:54-57`); when the response has no content entry (`:99-102`); and when the media type's `Schema == nil` (`:114-117`) | Task 7: the checker resolves status, content, and schema itself and never reads `nil` as valid |
 | `routers/legacy.NewRouter`, same | "If the given OpenAPIv3 document has servers, router will use them." | Task 7 |
 | `openapi3/server.go:145-190`, same | A `{var}` segment in a server URL consumes input up to the next `/`. | Task 7: the pinned file's only server is `{url}`, so a full loopback URL leaves `//127.0.0.1:…/rest/…` unmatched. The probe confirmed that clearing `doc.Servers` and routing by path finds `/rest/getAlbum`. |
-| The pinned bundled OpenAPI file (`cb54c03c…ed46bfb6`, 453,720 bytes, fetched 2026-10-06) | `openapi` 3.0.0, `info.version` 1.16.1, 87 paths, all of the form `/rest/<endpoint>`, none with `.view`; each `200` response has only `application/json` content, and its schema is a success-or-failure union on `status` | Tasks 4 and 7: the canonical endpoint drops a `.view` suffix before routing; the checker filters violations to the branch the body claims |
+| `openapi3/schema.go` and `openapi3/errors.go`, same | A `oneOf` failure collects one error per failing branch, `validationErrors = multiErrorForOneOf{}` (`schema.go:2284`), appended in `OneOf` order as `validationErrors = append(validationErrors, err)` (`:2304`), skipping a branch a discriminator excludes (`:2294`); the `SchemaError` with `SchemaField: "oneOf"` then sets `e.Origin = fmt.Errorf("doesn't match schema due to: %w", validationErrors)` (`:2326`); and `func (meo multiErrorForOneOf) Unwrap() error { return MultiError(meo) }` (`errors.go:57-58`). With no discriminator and no branch matched, entry `i` is `OneOf[i]` | Task 7: the branch filter descends the `oneOf` error's `Origin` rather than flattening every leaf with `errors.As` |
+| The pinned bundled OpenAPI file (`cb54c03c…ed46bfb6`, 453,720 bytes, fetched 2026-10-06) | `openapi` 3.0.0, `info.version` 1.16.1, 87 paths, all of the form `/rest/<endpoint>`, none with `.view`; each JSON `subsonic-response` operation's `200` response has only `application/json` content, and its schema is a success-or-failure union on `status`, which holds for all ten seed endpoints. Fourteen operations' `200` responses carry non-JSON content (`stream`, `download`, `getCoverArt`, and `hls.m3u8` among them), and `getTranscodeDecision` (POST) is not such a union (the verification read) | Tasks 4 and 7: the canonical endpoint drops a `.view` suffix before routing; the checker filters violations to the branch the body claims, falling back to every leaf when it reads no `status` |
 | OpenSubsonic `content/en/docs/api-reference.md:20-25,55-59` at `bed1688` (Apache-2.0) | "`t` … The authentication token computed as md5(password + salt)"; "Use a salt length of at least six characters"; "Treat the strings as UTF-8 encoded"; the worked vector: password `sesame`, salt `c19b2d`, token `26719a1196d2a940705a59634eb18eab`; `f` takes "xml", "json", and "jsonp" | Task 2 |
 | `encoding/json/v2.Unmarshal` | "a nil interface value of an empty interface type is initialized with a zero Go bool, string, float64, map[string]any, or []any" | Task 8: decoding into `any` turns every number into a `float64`, so the grader reads numbers through `encoding/json/jsontext` tokens and keeps the literal |
 | `encoding/xml.Decoder.Token` | "Token expands self-closing elements such as <br> into separate start and end elements"; tokens are "properly nested and matched" | Task 8: `<a/>` and `<a></a>` compare equal |
@@ -173,9 +184,11 @@ touched only `docs/`, so the code pointers hold. Library behavior is quoted at t
 | Navidrome docs, `content/en/docs/developers/dev-environment.md:39-41` (Apache-2.0) | "This option will always create an `admin` user with the specified password … `DevAutoCreateAdminPassword = "password"`" | Task 3: the first admin. The probe confirmed `ND_DEVAUTOCREATEADMINPASSWORD` creates `admin` and logs the password. |
 | gonic `README.md` | "the default login is **admin**/**admin**" (`:31`); `GONIC_MUSIC_PATH` (`:54`), `GONIC_LISTEN_ADDR` (`:60`), `GONIC_SCAN_AT_START_ENABLED` (`:65`); `GONIC_MULTI_VALUE_ARTIST` and `GONIC_MULTI_VALUE_ALBUM_ARTIST` default `none`, "gonic will not attempt to do any multi value processing" (`:72-74,92`); "newer salt and token auth" (`:26`) | Task 3 |
 | The probe (mechanics lens, 2026-10-06) | On this workstation (SELinux enforcing) a bare `:ro` bind mount gave both containers `open /music: permission denied`, and `:ro,z` scanned 3 of 3. gonic exits 1 unless `/playlists` exists; the image sets `GONIC_DB_PATH=/data/gonic.db`, `GONIC_PODCAST_PATH=/podcasts`, `GONIC_CACHE_PATH=/cache`, and `GONIC_PLAYLISTS_PATH=/playlists`. Both oracles answered token auth with `"status":"ok"`. An unreadable library still ends in "Scan completed" with zero tracks. Pulled by digest, `podman image inspect --format '{{.Digest}}'` returns that digest. | Task 3, Task 5 |
+| `podman-run(1)`, `podman-port(1)`, `podman-rm(1)`, podman 5.8.7 man pages | `-p`: "Host port does not have to be specified (e.g. podman run -p 127.0.0.1::80). If it is not, the container port is randomly assigned a port on the host. Use podman port to see the actual mapping: podman port $CONTAINER $CONTAINERPORT."; `--label, -l=key=value`: "Add metadata to a container."; `--tmpfs=fs`: "Mount a temporary filesystem (tmpfs) mount into a container"; `podman port`: "look up the public-facing port that is NAT-ed to the private-port"; `podman rm --volumes, -v`: "Remove anonymous volumes associated with the container. This does not include named volumes created with podman volume create, or the --volume option of podman run and podman create."; `podman-ps(1)`: `podman ps --filter label=app=frontend` | Task 3: the loopback publish, the assigned port, the run label, gonic's tmpfs paths, and teardown's volume removal. The verification read proved the publish, port, label filter, and volume removal live. |
 
-Task 0 re-quotes each row against the base commit and the adopted versions, and quotes `podman-run(1)`'s `z`
-option and `podman-image-inspect(1)`'s `Digest` and `RepoDigests` fields. A changed quote is a note naming the new
+Task 0 re-quotes each row against the base commit and the adopted versions (the podman man page row against the
+workstation's podman), and quotes `podman-run(1)`'s `z` option and `podman-image-inspect(1)`'s `Digest` and
+`RepoDigests` fields. A changed quote is a note naming the new
 text, and a removed behavior is a blocker.
 
 ## Prior art consulted (CLAUDE.md, build-for-0.8)
@@ -277,7 +290,7 @@ Each is settled here, with its reason. The review may contest any of them.
   records its own endpoints, as their first consumer.
 - **R9. 6d merges first, and this branch waits for it.** 6d is on the launch path (the spine: 6, 14, 7, 9), and
   this harness's first grading consumer is slice 3. 6d's own text lets this slice's `go.mod` addition land "before
-  Task 0 or after 6d's merge" (6d `:1694-1697`), and kin-openapi cannot land ahead of the code that imports it,
+  Task 0 or after 6d's merge" (6d `:1707-1708`), and kin-openapi cannot land ahead of the code that imports it,
   because `tidy-check` drops a requirement nothing imports (the probe confirmed it). So 2a builds alongside 6d in
   its worktree, holds its merge-ready branch until lane 1 closes, then rebases onto master and merges in a quiet
   `go.mod` window. 2a never commits in the main tree while the lane registry shows a lane 1 executor, which
@@ -305,7 +318,7 @@ Each is settled here, with its reason. The review may contest any of them.
 
 ## Ruling for Geoff
 
-**1. Does slice 2 run as two passes, 2a now and 2b after slice 1, under ceilings of 8.5M (flag 6.8M) and 4.0M
+**1. Does slice 2 run as two passes, 2a now and 2b after slice 1, under ceilings of 9.0M (flag 7.2M) and 4.0M
 (flag 3.2M)?** Recommendation: **yes.** Reason: the slice is twelve build tasks, past the ten-task line, and
 four of them (the XML rule, the seeded ledger rows with the per-endpoint oracle assignment, the encoding-quirk
 cases, and the roster walk's content) consume slice 1 deliverables that do not yet exist. Planning them now would
@@ -313,7 +326,8 @@ plan against guesses, the plan-staleness defect this build has paid for. What ye
 once 6d has closed, its tests become the "test owed" targets slice 1's ledger names, and 2b's plan revision is
 authored against slice 1's record. What no builds: one pass whose last segment stalls until slice 1 closes and
 Geoff rules its forks, holding the worktree and the lane open meanwhile, with four tasks planned against guesses.
-Revision 1 asked for 9.5M; revision 1.1 re-derives 2a from actual spend (see "Ceiling").
+Revision 1 asked for 9.5M; revision 1.1 re-derived 2a from actual spend, and revision 1.2 corrects that sum to
+9.0M (see "Ceiling").
 
 ## Global constraints
 
@@ -325,7 +339,7 @@ Revision 1 asked for 9.5M; revision 1.1 re-derives 2a from actual spend (see "Ce
   in `cmd/harness/`; `internal/harness/conform/arch_test.go` (one new test and its proof, Task 7). Read-only:
   `internal/engine/tagio`.
 - **Contested with lane 1.** `go.mod` and `go.sum` only, for kin-openapi, under R9. This lane never edits another
-  file on 6d's contested list (6d `:1694-1697`), `scripts/check.sh` among them, and it leaves `Makefile` alone too.
+  file on 6d's contested list (6d `:1694-1708`), `scripts/check.sh` among them, and it leaves `Makefile` alone too.
 - **Contested with slice 1.** The oracle pins (R10) and, in 2b, the Android emulator install, which slice 1 makes
   and records and this lane reuses (slice 1 plan, settled item 9). Ports and `podman` containers never collide:
   each container publishes to a host port podman assigns, and its name and label are unique to the run. Queued
@@ -530,8 +544,8 @@ unredacted. Each must fail a named test.
 **Outcomes.**
 - A session is one directory: a metadata file and one verbatim body file per (request, source) pair. Bodies are
   never re-encoded (`cassette.go:5-13`).
-- The metadata records the library digest (Task 1), each source's image digest and reported `serverVersion`, the
-  resolution map (each symbolic key with the id it resolved to on each source), and the ordered requests. Each
+- The metadata records, per source, the library digest it served (Task 1), its image digest when it is an oracle,
+  and its reported `serverVersion`, plus the resolution map (each symbolic key with the id it resolved to on each source), and the ordered requests. Each
   request names its endpoint in canonical form (the `.view` suffix dropped), its format, and its non-auth
   parameters sorted byte-wise, with entity references in symbolic form (a manifest key, never an oracle id). Each
   response names its source, HTTP status, `Content-Type`, and body file.
@@ -542,19 +556,28 @@ unredacted. Each must fail a named test.
   against every one of its response bodies' envelopes (the JSON `subsonic-response.serverVersion`, the XML
   attribute) and refuses a mismatch.
 - A loader reads and validates a session; a writer writes one atomically.
+- **A source joins a session through the writer.** The writer adds one source to a loaded session (its library
+  digest, any image digest, `serverVersion`, resolutions, and its responses to the session's existing requests) and
+  writes the result atomically to a directory its caller names. It refuses a source already present and a response
+  to a request the session does not hold. Task 5's recorder adds each oracle this way. Slice 3 joins dubplate the
+  same way: its test builds the library from the committed manifest, answers the committed seed session's
+  requests, and adds dubplate as a source to a copy of that session, which Task 8 then grades against an oracle.
 
 **States table.** Absent directory or metadata file: an error naming it. Empty request list: refused. Malformed or
 unknown-member metadata: an error with the location. Many bad (missing body files, duplicate request keys, a
 response for a source the metadata does not declare, a request carrying an auth parameter, a body file nothing
-references, an empty `serverVersion` or library digest, a `serverVersion` its bodies contradict, a resolution-map
-key no request uses): every one named in one error.
+references, a source with an empty `serverVersion` or library digest, a `serverVersion` its bodies contradict, a
+resolution-map key no request uses): every one named in one error. A joining source already present, or one
+answering a request the session lacks: refused, naming the source and the request.
 
 **Test mandate and fixture state.** Tests run on hand-built sessions in `testdata`, at least one valid session
 with two sources and both formats, plus one per bad state. The version cross-check needs a session whose metadata
-version differs from its bodies' envelope version. A round trip writes and reloads a session and compares bytes.
-**Mutations:** allow `t` through the writer (the auth refusal test fails); stop flagging orphan bodies; read
+version differs from its bodies' envelope version. A round trip writes and reloads a session and compares bytes. A
+join test adds a third source to the valid session, reloads the result, and asserts that source's library digest;
+it also asserts both join refusals. **Mutations:** allow `t` through the writer (the auth refusal test fails); stop flagging orphan bodies; read
 bodies through a JSON decode-and-marshal (the byte round trip fails); skip the version cross-check (the hand-edit
-case loads and the test fails).
+case loads and the test fails); let a joining source answer a request the session lacks (the join refusal test
+fails).
 
 ### Task 5: `harness record-oracle` and the seed session
 
@@ -563,8 +586,8 @@ seed session under `internal/harness/subsonic/data/sessions/seed/`. **Hook:** ne
 
 **Outcomes.**
 - The verb reads a session spec (the requests in order, with symbolic references), starts the stack, issues each
-  request against each oracle through the client, and writes a session through Task 4's writer, with the library
-  digest from Task 1's builder.
+  request against each oracle through the client, and writes a session through Task 4's writer, adding each oracle
+  as a source with the library digest from Task 1's builder.
 - A symbolic reference resolves against responses already in the session. An album key resolves through
   `getArtists`, then `getArtist`, then a match on the manifest's album artist and title; a folder key resolves
   through `getIndexes` and `getMusicDirectory`. Each resolution lands in the session's resolution map. A reference
@@ -601,25 +624,28 @@ write a partial session when an oracle fails; accept an empty `serverVersion`.
 
 **Outcomes.**
 - **The `Finding` type, defined here and consumed unchanged by Tasks 7 and 8.** A finding carries the request,
-  the sources, a kind, a path, and both values. The kinds are `value`, `type`, `presence`, `order`, `identity`
+  the sources, a kind, a path, and both values. A `contract` finding carries one source, the one whose body the
+  checker did not pass, and that body's value. The kinds are `value`, `type`, `presence`, `order`, `identity`
   (an id that pairs with two ids, or an entity that pairs with none), `missing-source`, `parse`, and `contract`.
 - **The path grammar.** A path is `/`-separated segment names over the comparable tree Task 8 builds, where an
-  XML attribute and a child element map to the same segment name as the JSON key. A row's pattern is an endpoint
+  XML attribute and a child element map to the same segment name as the JSON key. Each node keeps its XML form,
+  attribute or element, and a form mismatch at one path is one `type` finding. A row's pattern is an endpoint
   (canonical form), a format (`json`, `xml`, or `any`), and a path in which `*` may stand only for one array-index
   segment. A pattern names one field path; no other wildcard exists.
 - **Rows.** Each row carries every column of slice 1's Markdown ledger, so 2b's transcription is mechanical (slice
   1 plan, settled item 6 and Task 7): an id, the endpoint or area, the class, the sources it was adjudicated on,
   the oracle's behavior, dubplate's intended behavior, and an evidence pointer (a spec section or a slice 1
   record line). It adds what a machine needs: a state, `active` or `owed`. An `active` row carries a pattern, the
-  session that exercises it, and the oracle version it was adjudicated against. An `owed` row names the slice
+  session that exercises it, and one oracle version per non-dubplate source it was adjudicated against. An `owed` row names the slice
   whose plan builds its test, since a row about dubplate's own behavior has nothing to match until that slice
   serves a response. The report counts `owed` rows by slice.
 - **A row matches only its own pair.** The grader applies a row only when its sources equal the graded pair. A
   gate test asserts every row in the committed `data/ledger.json` names `dubplate` as one source (R12).
 - **Classes and what each suppresses.** `by-construction` (an oracle cannot grade this surface) suppresses every
   oracle-tier kind in its scope (`value`, `type`, `presence`, `order`, `identity`). `unoracled` (no oracle covers
-  it) suppresses the same. `contract` (an oracle's response violates the OpenAPI file) suppresses the `contract`
-  kind at its path. `volatile` (the value varies per run or per server) suppresses `value` only, so type and
+  it) suppresses the same. `contract` (one source's response violates the OpenAPI file) names that source beside
+  its pair and suppresses the `contract` kind at its path only for a finding from that source, so an oracle's
+  `contract` row never masks the same violation in dubplate's body. `volatile` (the value varies per run or per server) suppresses `value` only, so type and
   presence are still compared. No class suppresses `parse` or `missing-source`.
 - **The committed ledger** holds the spec's two declared classes (`:285-287`) as `owed` rows: Navidrome's folder
   view diverges by construction for `getIndexes`, `getMusicDirectory`, and `getMusicFolders` (owed to slice 3,
@@ -629,8 +655,8 @@ write a partial session when an oracle fails; accept an empty `serverVersion`.
   pair and matches no finding in it, naming the row. The loader refuses an `active` row whose session directory is
   absent under `data/sessions/`. A gate test grades every session any committed `active` row names, so a new
   session joins staleness checking without an edit.
-- **The oracle version is privileged.** An `active` row's version must be non-empty and equal the session's
-  recorded `serverVersion` for that oracle. Only a ledger edit sets it, and the grader refuses a mismatch, so an
+- **The oracle version is privileged.** Each of an `active` row's versions must be non-empty and equal the
+  session's recorded `serverVersion` for its source. Only a ledger edit sets it, and the grader refuses a mismatch, so an
   oracle bump forces the deliberate re-adjudication pass the spec requires (`:279-280`). The session's version has
   its own single channel (Task 4).
 - The report prints each row's match count, so an over-broad row shows on review.
@@ -638,16 +664,19 @@ write a partial session when an oracle fails; accept an empty `serverVersion`.
 **States table.** Absent ledger: an error (the ledger is required). Empty (`[]`): valid, and every finding then
 reports unledgered. Malformed or unknown-member: an error with the location. Many bad (duplicate ids, unknown
 class, an `active` row with an empty pattern, no session, an absent session directory, or an empty version, a
-pattern using `*` outside an array-index segment, an `owed` row naming no slice, a version mismatch, a stale row):
+pattern using `*` outside an array-index segment, a `contract` row naming no source or one outside its pair, an
+`owed` row naming no slice, a version mismatch, a stale row):
 every one named in one error.
 
 **Test mandate and fixture state.** Tests use fixture ledgers against a hand-built findings list holding at least
 one match per class and one finding per kind. The staleness proof needs an `active` row that matches nothing in a
 non-empty findings list, so an empty list cannot make it pass. The pair proof needs a row adjudicated on one pair
-and a finding from another pair at the same path. The every-named-session test is proven on a fixture ledger
+and a finding from another pair at the same path, plus one case where an oracle-source `contract` row leaves the
+same-path `contract` finding from dubplate unledgered. The every-named-session test is proven on a fixture ledger
 naming a fixture session directory, since the committed ledger holds no `active` row in 2a. **Mutations:** skip
 the staleness check; compare versions by prefix; accept an empty version; let a `volatile` row suppress a type
-change; let an `owed` row suppress a finding; match a row regardless of its pair; let `*` match a named segment.
+change; let an `owed` row suppress a finding; match a row regardless of its pair; match a `contract` row on its
+pair without its source; let `*` match a named segment.
 
 ## Segment C
 
@@ -663,16 +692,19 @@ document's loader and its real-body test in `internal/harness/subsonic/grade/`, 
 - The checker loads an OpenAPI document from bytes its caller supplies, clears its servers, and validates a
   response for a named endpoint, method, status, content type, and body. It routes by path (the quotes table
   explains why a full URL fails). It sets `MultiError` and `IncludeResponseStatus`.
-- **It classifies before kin-openapi runs.** It resolves the route, then the status
-  (`Operation.Responses.Status(code)`, then `Default()`), then the content entry (`Content.Get(mime)`), then the
-  schema, and returns one of five outcomes: valid; violations; no route for the endpoint; an undeclared status; or
+- **It classifies before kin-openapi runs.** It first tests for a `HEAD` request and a 301, 304, 307, or 308
+  status, as kin itself does before it reads the route (`validate_response.go:23-36`), and reports those as no schema. It then
+  resolves the route, then the status (`Operation.Responses.Status(code)`, then `Default()`), then the content
+  entry (`Content.Get(mime)`), then the schema, and returns one of five outcomes: valid; violations; no route for the endpoint; an undeclared status; or
   no schema (an empty content entry, a nil schema, a `HEAD` request, or a 301, 304, 307, or 308 status, each of
   which kin-openapi returns `nil` for without validating). `ValidateResponse` runs only when a schema exists. Only
   the first outcome is a pass, and no outcome is read from kin's error text.
-- **Violations name the branch the body claims.** Every `200` schema in the pinned file is a success-or-failure
-  union, so kin reports the failed branch's leaves too (the probe). The checker walks the leaf `SchemaError`s
-  with `errors.As`, keeps those under the branch matching the body's `status` (all of them when the body has no
-  readable `status`), and deduplicates by JSON pointer and reason. Each violation carries its JSON pointer and
+- **Violations name the branch the body claims.** Every JSON `subsonic-response` operation's `200` schema in the
+  pinned file is a success-or-failure union, so kin reports the failed branch's leaves too (the probe). A
+  flattening `errors.As` walk loses which branch a leaf came from, so the checker descends each `SchemaError`
+  whose `SchemaField` is `"oneOf"` through its `Origin` (quotes table), keeps the entry whose `OneOf` schema's
+  `status` enum holds the body's `status` (every entry when the body has no readable `status`), and
+  deduplicates by JSON pointer and reason. Each violation carries its JSON pointer and
   reason.
 - The harness side loads the pinned file and verifies its sha256 before handing it to the checker. A mismatch
   fails, printing both sums.
@@ -715,10 +747,10 @@ fails).
 **Model:** opus.
 
 **Outcomes.**
-- The grader takes a session, a ledger, the pinned document, and a pair of sources to compare, and produces one
-  report holding two tiers. It refuses to compare sources recorded over different library digests, naming both.
-  The contract tier runs every JSON response of both sources through the checker; any outcome but valid is a
-  `contract` finding. The oracle tier diffs the two sources' responses for each request in the same format.
+- The grader takes a session, a ledger, the pinned document, the committed fixture manifest (Task 1), and a pair
+  of sources to compare, and produces one report holding two tiers. It refuses to compare two sources whose
+  recorded library digests differ, naming both. The contract tier runs every JSON response of both sources through
+  the checker; any outcome but valid is a `contract` finding carrying that response's source. The oracle tier diffs the two sources' responses for each request in the same format.
 - Both formats decode into one comparable tree. JSON numbers keep their literal through `jsontext` tokens, and a
   string versus a number is a finding, since clients break on it. XML elements, attributes, and text map to the
   tree under Task 6's path grammar, and a self-closing element equals its expanded form. A JSON singleton where the
@@ -726,7 +758,7 @@ fails).
 - **Ids pair by fixture identity, never by position.** Ids are opaque per server. The grader seeds the
   correspondence from the session's resolution map, then pairs every other id-bearing entity through its manifest
   identity read from the response (an artist by name, an album by album artist and title, a song by album, disc,
-  and track). An id that pairs with two ids, or an entity that matches no manifest identity or several, is an
+  and track number, or by album and title when the track carries no track number). An id that pairs with two ids, or an entity that matches no manifest identity or several, is an
   `identity` finding, never a positional guess. Ids paired inside a `by-construction` row's scope are used only
   inside that scope, so a folder view's divergent ids never leak into the album and song endpoints.
 - **Order is its own assertion.** Arrays compare as sets of paired elements, except on a named table of
@@ -738,7 +770,7 @@ fails).
   exits nonzero on any unledgered finding or stale row.
 - **The seed grade.** A gate test grades the committed seed session, Navidrome against gonic, under the test-only
   ledger `grade/testdata/seed-ledger.json`. That ledger holds the `by-construction` rows for Navidrome's folder
-  view against gonic, the two `contract` rows Task 7 recorded, and the `volatile` rows the pair needs, each with
+  view against gonic, the two `contract` rows Task 7 recorded (each naming the oracle whose body it excuses), and the `volatile` rows the pair needs, each with
   its reason. The test asserts: the report equals the committed golden `grade/testdata/seed-report.golden` byte
   for byte; a second grade yields the same bytes; a `by-construction` finding is present at a named path in the
   compilation's `getMusicDirectory` (the task's report names it); both `contract` findings are present at their
@@ -750,14 +782,22 @@ fails).
 either side: a finding. A body that fails to parse: a `parse` finding naming the format and the error. Sources
 recorded over different library digests: refused. Many findings: all of them, sorted.
 
-**Test mandate and fixture state.** A perturbation table runs on a same-source pair: one real seed-session body in
-each format, from one oracle, compared against itself. The unperturbed pair asserts exactly zero findings. Each
+**Test mandate and fixture state.** A perturbation table drives the oracle-tier differ directly, without the
+contract tier, on a same-source pair: one real seed-session body in each format, from one oracle, compared against
+itself. The unperturbed pair asserts exactly zero findings. The JSON body must be a `getAlbum`, since the order
+table's one entry is an album's song array, and that body fails the schema (Task 7), so a baseline through the full
+grader cannot be zero. Each
 row applies one change and asserts exactly one finding of the expected kind at the expected path: a changed
 value, a missing field, an extra field, a string-for-number swap, a singleton-for-array swap, a reordered
 order-significant array (one `order` finding and no `identity` finding), an id that pairs twice, and an XML
-attribute moved to a child element. **Mutations:** decode numbers into `float64`; pair ids by position (the
+attribute moved to a child element (one `type` finding). `TestGradeIdenticalBodiesReportOnlyContract` runs the
+full grader over a hand-built session whose two sources hold the seed session's real Navidrome `getAlbum` JSON body
+byte for byte, and asserts zero oracle-tier findings and exactly the `contract` violations Task 7 recorded for that
+body, once per source. The mismatched-digest proof grades a hand-built session whose two sources carry different
+library digests and asserts the refusal names both. **Mutations:** decode numbers into `float64`; pair ids by position (the
 reorder row reports a cascade); treat arrays as unordered everywhere; skip the contract tier when the oracle tier
-is clean; drop the library-digest check; leak an id pair out of a `by-construction` scope.
+is clean (`TestGradeIdenticalBodiesReportOnlyContract` fails; the seed grade cannot kill it, since the oracle
+pair's oracle tier is never clean); drop the library-digest check (the mismatched-digest proof fails); leak an id pair out of a `by-construction` scope.
 
 ## Close (2a)
 
