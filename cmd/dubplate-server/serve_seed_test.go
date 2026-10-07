@@ -70,10 +70,10 @@ func readSeedState(t *testing.T, stateDir string) (rows map[string]settingRow, a
 	return rows, audit, generation
 }
 
-// plantSettingRow inserts a settings row into the closed store file at
+// plantSettingRow inserts a DUBPLATE_JOB_RETENTION settings row into the closed store file at
 // path. The source is spelled in the SQL text, as the table's check
 // constraint reads it.
-func plantSettingRow(t *testing.T, path, key, value, source string) {
+func plantSettingRow(t *testing.T, path, value, source string) {
 	t.Helper()
 	var q string
 	switch source {
@@ -84,7 +84,7 @@ func plantSettingRow(t *testing.T, path, key, value, source string) {
 	default:
 		t.Fatalf("source %q", source)
 	}
-	execStoreSQL(t, path, q, key, value, value)
+	execStoreSQL(t, path, q, "DUBPLATE_JOB_RETENTION", value, value)
 }
 
 // TestPrepareServe_AppliesTheSeed is the seed's start states, each
@@ -96,7 +96,6 @@ func plantSettingRow(t *testing.T, path, key, value, source string) {
 func TestPrepareServe_AppliesTheSeed(t *testing.T) {
 	const (
 		retention = "DUBPLATE_JOB_RETENTION"
-		keep      = "DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP"
 	)
 	tests := []struct {
 		name      string
@@ -116,20 +115,20 @@ func TestPrepareServe_AppliesTheSeed(t *testing.T) {
 		},
 		{
 			name:     "env equal to the stored env-seed row: nothing written",
-			plant:    func(t *testing.T, path string) { plantSettingRow(t, path, retention, "720h", "env-seed") },
+			plant:    func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "env-seed") },
 			env:      []string{retention + "=720h"},
 			wantRows: map[string]settingRow{retention: {"720h", "env-seed"}},
 		},
 		{
 			name:      "env absent, an env-seed row present: removed and audited",
-			plant:     func(t *testing.T, path string) { plantSettingRow(t, path, retention, "720h", "env-seed") },
+			plant:     func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "env-seed") },
 			wantRows:  map[string]settingRow{},
 			wantAudit: []string{"remove system env-seed " + retention},
 			wantBump:  true,
 		},
 		{
 			name:  "an admin row, env different: refused naming both values and the way out",
-			plant: func(t *testing.T, path string) { plantSettingRow(t, path, retention, "720h", "admin") },
+			plant: func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "admin") },
 			env:   []string{retention + "=48h"},
 			wantErr: []string{retention, `"48h"`, `"720h"`,
 				"unset " + retention + `, or set it to "720h"`},
@@ -137,9 +136,9 @@ func TestPrepareServe_AppliesTheSeed(t *testing.T) {
 		},
 		{
 			name:     "an admin row outside the bounds, env unset: refused naming the key and the bound",
-			plant:    func(t *testing.T, path string) { plantSettingRow(t, path, keep, "500", "admin") },
-			wantErr:  []string{keep, "above the ceiling 100"},
-			wantRows: map[string]settingRow{keep: {"500", "admin"}},
+			plant:    func(t *testing.T, path string) { plantSettingRow(t, path, "100000h", "admin") },
+			wantErr:  []string{retention, "ceiling", "87600h"},
+			wantRows: map[string]settingRow{retention: {"100000h", "admin"}},
 		},
 		{
 			name:     "env that does not parse: refused naming the key and the accepted form",
@@ -216,7 +215,7 @@ func TestPrepareServe_RefusalReleasesTheStore(t *testing.T) {
 	environ := append(serveAuthEnviron(t), key+"=48h")
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 	path := olderStore(t, stateDir, storeReport(t, t.TempDir()).BinaryVersion)
-	plantSettingRow(t, path, key, "720h", "admin")
+	plantSettingRow(t, path, "720h", "admin")
 
 	if shell, err := buildServeShellWithLogger(t, environ, discardTestLogger()); err == nil || shell != nil {
 		t.Fatalf("prepare = %v, %v, want a refusal", shell, err)
@@ -243,7 +242,7 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	environ := append(serveAuthEnviron(t), key+"=48h")
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 	path := olderStore(t, stateDir, storeReport(t, t.TempDir()).BinaryVersion)
-	plantSettingRow(t, path, key, "720h", "env-seed")
+	plantSettingRow(t, path, "720h", "env-seed")
 	reg := productionRegistry()
 
 	doctorRow := func() string {
