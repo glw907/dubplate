@@ -68,14 +68,14 @@ func TestSeedGrade(t *testing.T) {
 	}
 	// The totals sit here as well, so an -update that moves them needs a
 	// reviewed edit to this test.
-	if r.Len() != 1769 || r.Unledgered() != 976 {
-		t.Errorf("findings %d, unledgered %d; want 1769 and 976", r.Len(), r.Unledgered())
+	if r.Len() != 1645 || r.Unledgered() != 976 {
+		t.Errorf("findings %d, unledgered %d; want 1645 and 976", r.Len(), r.Unledgered())
 	}
 	byKind := map[Kind]int{}
 	for _, f := range r.findings {
 		byKind[f.Kind]++
 	}
-	wantKinds := map[Kind]int{KindContract: 134, KindIdentity: 13, KindPresence: 1218, KindType: 35, KindValue: 369}
+	wantKinds := map[Kind]int{KindContract: 134, KindIdentity: 13, KindPresence: 1218, KindType: 35, KindValue: 245}
 	if !maps.Equal(byKind, wantKinds) {
 		t.Errorf("findings by kind %v, want %v", byKind, wantKinds)
 	}
@@ -523,7 +523,7 @@ func TestGradeCountsOwedRowsBySlice(t *testing.T) {
 func TestGradeRefusesAVersionMismatch(t *testing.T) {
 	row := activeRow("old-gonic", ClassVolatile)
 	row.Session = "seed"
-	row.Pattern = Pattern{Endpoint: "ping", Format: "any", Path: "subsonic-response/type"}
+	row.Pattern = Pattern{Endpoint: "getSong", Format: "any", Path: "subsonic-response/song/created"}
 	row.Versions["gonic"] = "0.21.0"
 	ledger, _ := writeLedger(t, []Row{row})
 	g, err := New(seedConfig(ledger))
@@ -740,9 +740,9 @@ func TestCommittedLedgerRowsAreLive(t *testing.T) {
 // and one names a field no answer carries.
 func TestGradeNamedSessionsReportsAStaleRow(t *testing.T) {
 	live := Row{
-		ID: "live", Area: "ping", Class: ClassVolatile, Sources: []string{"navidrome", "gonic"},
+		ID: "live", Area: "getSong", Class: ClassVolatile, Sources: []string{"navidrome", "gonic"},
 		Oracle: "o", Dubplate: "d", Evidence: "e", State: StateActive,
-		Pattern: Pattern{Endpoint: "ping", Format: "any", Path: "subsonic-response/type"},
+		Pattern: Pattern{Endpoint: "getSong", Format: "any", Path: "subsonic-response/song/created"},
 		Session: "seed", Versions: map[string]string{"navidrome": navidromeVersion, "gonic": gonicVersion},
 	}
 	dead := live

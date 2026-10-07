@@ -11,8 +11,8 @@
 // format, and its non-auth parameters sorted byte-wise, with entity
 // references in symbolic form (a fixture manifest key, never a server's
 // id); the resolution map records the id each key resolved to on each
-// source. No credential parameter is ever written, so a session commits
-// safely.
+// source. No credential parameter is ever written, in a request or in a
+// URL a response body holds, so a session commits safely.
 package session
 
 import (
@@ -44,6 +44,7 @@ var (
 	errSourceExists   = errors.New("source already in session")
 	errUnknownRequest = errors.New("response to a request the session lacks")
 	errDirNotEmpty    = errors.New("session directory is not empty")
+	errBodyCredential = errors.New("credential in response body")
 )
 
 // authParams are the parameters that carry or select a credential, which
@@ -366,7 +367,13 @@ func (s *Session) validate(unread map[[2]int]bool) []error {
 			if resp.Status < 100 || resp.ContentType == "" {
 				add("%s: source %q: status %d, content type %q", at, resp.Source, resp.Status, resp.ContentType)
 			}
-			if !declared || src.ServerVersion == "" || unread[[2]int{i, j}] {
+			if unread[[2]int{i, j}] {
+				continue
+			}
+			for _, leak := range scanCredentials(resp.Body, req.Format) {
+				add("%s: source %q: %s: %w", at, resp.Source, leak, errBodyCredential)
+			}
+			if !declared || src.ServerVersion == "" {
 				continue
 			}
 			env, err := client.ParseEnvelope(resp.Body, req.Format)

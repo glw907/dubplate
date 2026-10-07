@@ -20,6 +20,17 @@ var orderSignificant = []struct{ path, why string }{
 	},
 }
 
+// presenceOnly lists the scalar members that every server fills with its
+// own value, so two sources agree on them when both carry one of the
+// same type and a differing literal is no finding. Ledger row L-08 and
+// the contract's note on the envelope's serverVersion and type give the
+// reason for each.
+var presenceOnly = []struct{ path, why string }{
+	{"subsonic-response/serverVersion", "each server reports its own version"},
+	{"subsonic-response/type", "each server names itself"},
+	{"subsonic-response/error/message", "each server words its failures; the code is what clients branch on"},
+}
+
 // idMembers are the members whose value is a server's own opaque id.
 // They compare through the id pairing, never by their literals.
 var idMembers = []string{"id", "parent", "albumId", "artistId", "coverArt"}
@@ -179,7 +190,7 @@ func (d *differ) compare(path, member string, a, b *node, ca, cb identCtx) {
 	default:
 		if slices.Contains(idMembers, member) {
 			d.compareID(path, member, a, b)
-		} else if a.lit != b.lit {
+		} else if a.lit != b.lit && !d.presenceOnly(path) {
 			d.report(KindValue, path, a.render(), b.render())
 		}
 	}
@@ -308,6 +319,15 @@ func (d *differ) compareArray(path, member string, a, b *node, ca, cb identCtx) 
 	for _, p := range pairs {
 		d.compare(join(path, strconv.Itoa(p.i)), member, a.items[p.i], b.items[p.j], ca, cb)
 	}
+}
+
+func (d *differ) presenceOnly(path string) bool {
+	for _, p := range presenceOnly {
+		if p.path == path {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *differ) ordered(path string) bool {

@@ -34,6 +34,9 @@ type cannedOptions struct {
 	version      string
 	twoHits      bool   // a second album titled "Greatest Hits" under Alpha Artist
 	failEndpoint string // answers this endpoint with HTTP 500
+	// payload, when set, rewrites the members each JSON answer carries
+	// beside the envelope's own.
+	payload func(endpoint, payload string) string
 }
 
 // cannedOracle serves the answers of a small library: Alpha Artist and
@@ -97,6 +100,9 @@ func newCannedOracle(t *testing.T, o cannedOptions) *cannedOracle {
 			_, _ = fmt.Fprintf(w, `<subsonic-response status="ok" version="1.16.1" serverVersion=%q></subsonic-response>`, o.version)
 		default:
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			if o.payload != nil {
+				payload = o.payload(endpoint, payload)
+			}
 			if payload != "" {
 				payload = "," + payload
 			}
@@ -328,6 +334,41 @@ func TestRecordOracleRefusals(t *testing.T) {
 				t.Error("oracles not stopped after a refused run")
 			}
 		})
+	}
+}
+
+// TestRecordOracleRefusesBodyCredential has one oracle echo a credential
+// in a URL its answer carries, and expects a refusal that writes nothing.
+func TestRecordOracleRefusesBodyCredential(t *testing.T) {
+	leaking := nd()
+	leaking.payload = func(endpoint, payload string) string {
+		if endpoint == "getArtists" {
+			return payload + `,"coverUrl":"http://oracle/cover?size=300&t=tokenvalue&s=saltvalue"`
+		}
+		return payload
+	}
+	r := newRecordRun(t, `{"requests":[{"endpoint":"getArtists","format":"json"}]}`, leaking, gonic())
+	err := runRecordOracle(t.Context(), r.cfg)
+	if err == nil {
+		t.Fatal("recording succeeded")
+	}
+	for _, want := range []string{"credential", "navidrome", "getArtists", "subsonic-response/coverUrl", "parameter t, s"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error %q does not mention %q", err, want)
+		}
+	}
+	for _, secret := range []string{"tokenvalue", "saltvalue"} {
+		if strings.Contains(err.Error(), secret) {
+			t.Errorf("error repeats the credential %q: %v", secret, err)
+		}
+	}
+	// Write refuses before it creates the directory, so the output is
+	// absent; an empty directory would hold nothing either.
+	if entries, readErr := os.ReadDir(r.out); readErr == nil && len(entries) > 0 {
+		t.Errorf("refused recording left %d files in %s", len(entries), r.out)
+	}
+	if !*r.stopped {
+		t.Error("oracles not stopped after a refused run")
 	}
 }
 

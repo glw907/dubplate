@@ -1,10 +1,10 @@
 session seed: navidrome against gonic
-findings: 1769, unledgered 976
+findings: 1645, unledgered 976
   contract: 134
   identity: 13
   presence: 1218
   type: 35
-  value: 369
+  value: 245
 declared unvalidated xml bodies:
   getOpenSubsonicExtensions gonic: 1
   getOpenSubsonicExtensions navidrome: 1
@@ -14,26 +14,6 @@ ledger rows matched:
   folder-view-getmusicfolders: 2
   gonic-song-replaygain: 14
   navidrome-album-userrating: 5
-  server-type-getalbum: 10
-  server-type-getartist: 10
-  server-type-getartists: 2
-  server-type-getindexes: 2
-  server-type-getlicense: 2
-  server-type-getmusicdirectory: 20
-  server-type-getmusicfolders: 2
-  server-type-getopensubsonicextensions: 2
-  server-type-getsong: 10
-  server-type-ping: 2
-  server-version-getalbum: 10
-  server-version-getartist: 10
-  server-version-getartists: 2
-  server-version-getindexes: 2
-  server-version-getlicense: 2
-  server-version-getmusicdirectory: 20
-  server-version-getmusicfolders: 2
-  server-version-getopensubsonicextensions: 2
-  server-version-getsong: 10
-  server-version-ping: 2
   song-created-getalbum: 28
   song-created-getsong: 10
 owed rows by slice:
@@ -232,14 +212,6 @@ getAlbum.json&id=album%3AAlpha+Artist%2FGreatest+Hits
     navidrome: ""
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -514,14 +486,6 @@ getAlbum.json&id=album%3AAlpha+Artist%2FSingle+Disc
     navidrome: ""
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -871,14 +835,6 @@ getAlbum.json&id=album%3ACarmine+Ensemble%2FTwo+Sides
     navidrome: ""
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -1090,14 +1046,6 @@ getAlbum.json&id=album%3ADelta+Duo%2FGreatest+Hits
     navidrome: ""
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -1368,14 +1316,6 @@ getAlbum.json&id=album%3AVarious+Artists%2FMixtape+Volume+One
     navidrome: ""
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -1488,14 +1428,6 @@ getAlbum.xml&id=album%3AAlpha+Artist%2FGreatest+Hits
     navidrome: absent
     gonic: attribute "Greatest Hits"
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -1648,14 +1580,6 @@ getAlbum.xml&id=album%3AAlpha+Artist%2FSingle+Disc
     navidrome: absent
     gonic: attribute "Single Disc"
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -1844,14 +1768,6 @@ getAlbum.xml&id=album%3ACarmine+Ensemble%2FTwo+Sides
     navidrome: absent
     gonic: attribute "Two Sides"
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -1976,14 +1892,6 @@ getAlbum.xml&id=album%3ADelta+Duo%2FGreatest+Hits
     navidrome: absent
     gonic: attribute "Greatest Hits"
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -2132,14 +2040,6 @@ getAlbum.xml&id=album%3AVarious+Artists%2FMixtape+Volume+One
     navidrome: absent
     gonic: attribute "Mixtape Volume One"
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getalbum
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getalbum
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -2335,14 +2235,6 @@ getArtist.json&id=artist%3AAlpha+Artist
     navidrome: "alpha artist"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -2384,14 +2276,6 @@ getArtist.json&id=artist%3ABorealis+Trio
     navidrome: "borealis trio"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -2481,14 +2365,6 @@ getArtist.json&id=artist%3ACarmine+Ensemble
     navidrome: "carmine ensemble"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -2578,14 +2454,6 @@ getArtist.json&id=artist%3ADelta+Duo
     navidrome: "delta duo"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -2663,14 +2531,6 @@ getArtist.json&id=artist%3AVarious+Artists
     navidrome: "various artists"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -2817,14 +2677,6 @@ getArtist.xml&id=artist%3AAlpha+Artist
     navidrome: attribute "alpha artist"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -2877,14 +2729,6 @@ getArtist.xml&id=artist%3ABorealis+Trio
     navidrome: attribute "borealis trio"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -2945,14 +2789,6 @@ getArtist.xml&id=artist%3ACarmine+Ensemble
     navidrome: attribute "carmine ensemble"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -3027,14 +2863,6 @@ getArtist.xml&id=artist%3ADelta+Duo
     navidrome: attribute "delta duo"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -3091,14 +2919,6 @@ getArtist.xml&id=artist%3AVarious+Artists
     navidrome: attribute "various artists"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getartist
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getartist
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -3185,14 +3005,6 @@ getArtists.json
     navidrome: 1791360041000
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getartists
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getartists
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -3282,14 +3094,6 @@ getArtists.xml
     navidrome: attribute "1791360041000"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getartists
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getartists
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -3376,14 +3180,6 @@ getIndexes.json
     navidrome: 1791360041000
     gonic: 0
     ledger: folder-view-getindexes
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getindexes
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getindexes
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -3533,42 +3329,18 @@ getIndexes.xml
     navidrome: attribute "1791360041000"
     gonic: absent
     ledger: folder-view-getindexes
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getindexes
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getindexes
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 getLicense.json
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getlicense
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getlicense
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 getLicense.xml
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getlicense
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getlicense
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -3908,14 +3680,6 @@ getMusicDirectory.json&id=folder%3AAlpha+Artist
     navidrome: absent
     gonic: "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -3952,14 +3716,6 @@ getMusicDirectory.json&id=folder%3AAlpha+Artist%2FGreatest+Hits
     navidrome: 2
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4097,14 +3853,6 @@ getMusicDirectory.json&id=folder%3ABorealis+Trio
     navidrome: absent
     gonic: "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4149,14 +3897,6 @@ getMusicDirectory.json&id=folder%3ABorealis+Trio%2FDouble+Feature
     navidrome: 4
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4282,14 +4022,6 @@ getMusicDirectory.json&id=folder%3ACarmine+Ensemble
     navidrome: absent
     gonic: "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4620,14 +4352,6 @@ getMusicDirectory.json&id=folder%3ACarmine+Ensemble%2FTwo+Sides
     navidrome: 4
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4753,14 +4477,6 @@ getMusicDirectory.json&id=folder%3ADelta+Duo
     navidrome: absent
     gonic: "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4797,14 +4513,6 @@ getMusicDirectory.json&id=folder%3ADelta+Duo%2FGreatest+Hits
     navidrome: 2
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -4926,14 +4634,6 @@ getMusicDirectory.json&id=folder%3AVarious+Artists
     navidrome: absent
     gonic: "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -5189,14 +4889,6 @@ getMusicDirectory.json&id=folder%3AVarious+Artists%2FMixtape+Volume+One
     navidrome: 3
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -5404,14 +5096,6 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist
     navidrome: absent
     gonic: attribute "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -5448,14 +5132,6 @@ getMusicDirectory.xml&id=folder%3AAlpha+Artist%2FGreatest+Hits
     navidrome: attribute "2"
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -5543,14 +5219,6 @@ getMusicDirectory.xml&id=folder%3ABorealis+Trio
     navidrome: absent
     gonic: attribute "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -5595,14 +5263,6 @@ getMusicDirectory.xml&id=folder%3ABorealis+Trio%2FDouble+Feature
     navidrome: attribute "4"
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -5682,14 +5342,6 @@ getMusicDirectory.xml&id=folder%3ACarmine+Ensemble
     navidrome: absent
     gonic: attribute "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -5886,14 +5538,6 @@ getMusicDirectory.xml&id=folder%3ACarmine+Ensemble%2FTwo+Sides
     navidrome: attribute "4"
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -5977,14 +5621,6 @@ getMusicDirectory.xml&id=folder%3ADelta+Duo
     navidrome: absent
     gonic: attribute "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -6021,14 +5657,6 @@ getMusicDirectory.xml&id=folder%3ADelta+Duo%2FGreatest+Hits
     navidrome: attribute "2"
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -6108,14 +5736,6 @@ getMusicDirectory.xml&id=folder%3AVarious+Artists
     navidrome: absent
     gonic: attribute "al-1"
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -6268,14 +5888,6 @@ getMusicDirectory.xml&id=folder%3AVarious+Artists%2FMixtape+Volume+One
     navidrome: attribute "3"
     gonic: absent
     ledger: folder-view-getmusicdirectory
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicdirectory
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicdirectory
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -6286,14 +5898,6 @@ getMusicFolders.json
     navidrome: "Music Library"
     gonic: "music"
     ledger: folder-view-getmusicfolders
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getmusicfolders
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getmusicfolders
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -6304,14 +5908,6 @@ getMusicFolders.xml
     navidrome: attribute "Music Library"
     gonic: attribute "music"
     ledger: folder-view-getmusicfolders
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getmusicfolders
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getmusicfolders
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
@@ -6338,14 +5934,6 @@ getOpenSubsonicExtensions.json
     navidrome: object
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getopensubsonicextensions
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getopensubsonicextensions
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
@@ -6372,24 +5960,12 @@ getOpenSubsonicExtensions.xml
     navidrome: element
     gonic: absent
     ledger: unledgered
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getopensubsonicextensions
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getopensubsonicextensions
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 getSong.json&id=song%3AAlpha+Artist%2FGreatest+Hits%2FOpening
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: 16
     gonic: absent
@@ -6461,20 +6037,12 @@ getSong.json&id=song%3AAlpha+Artist%2FGreatest+Hits%2FOpening
     navidrome: array of 0
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 getSong.json&id=song%3AAlpha+Artist%2FSingle+Disc%2FTogether
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getsong
   value subsonic-response/song/artist
     navidrome: "Alpha Artist feat. Guest Singer"
     gonic: "Alpha Artist"
@@ -6550,20 +6118,12 @@ getSong.json&id=song%3AAlpha+Artist%2FSingle+Disc%2FTogether
     navidrome: array of 0
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 getSong.json&id=song%3ACarmine+Ensemble%2FTwo+Sides%2FSide+B+One
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: 16
     gonic: absent
@@ -6635,20 +6195,12 @@ getSong.json&id=song%3ACarmine+Ensemble%2FTwo+Sides%2FSide+B+One
     navidrome: array of 0
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 getSong.json&id=song%3ADelta+Duo%2FGreatest+Hits%2FFirst+Light
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: 16
     gonic: absent
@@ -6724,20 +6276,12 @@ getSong.json&id=song%3ADelta+Duo%2FGreatest+Hits%2FFirst+Light
     navidrome: array of 0
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 getSong.json&id=song%3AVarious+Artists%2FMixtape+Volume+One%2FHello+Again
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: 16
     gonic: absent
@@ -6809,20 +6353,12 @@ getSong.json&id=song%3AVarious+Artists%2FMixtape+Volume+One%2FHello+Again
     navidrome: array of 0
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 getSong.xml&id=song%3AAlpha+Artist%2FGreatest+Hits%2FOpening
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: attribute "16"
     gonic: absent
@@ -6859,20 +6395,12 @@ getSong.xml&id=song%3AAlpha+Artist%2FGreatest+Hits%2FOpening
     navidrome: attribute "opening"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 getSong.xml&id=song%3AAlpha+Artist%2FSingle+Disc%2FTogether
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getsong
   value subsonic-response/song/artist
     navidrome: attribute "Alpha Artist feat. Guest Singer"
     gonic: attribute "Alpha Artist"
@@ -6913,20 +6441,12 @@ getSong.xml&id=song%3AAlpha+Artist%2FSingle+Disc%2FTogether
     navidrome: attribute "together"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 getSong.xml&id=song%3ACarmine+Ensemble%2FTwo+Sides%2FSide+B+One
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: attribute "16"
     gonic: absent
@@ -6963,20 +6483,12 @@ getSong.xml&id=song%3ACarmine+Ensemble%2FTwo+Sides%2FSide+B+One
     navidrome: attribute "side b one"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 getSong.xml&id=song%3ADelta+Duo%2FGreatest+Hits%2FFirst+Light
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: attribute "16"
     gonic: absent
@@ -7017,20 +6529,12 @@ getSong.xml&id=song%3ADelta+Duo%2FGreatest+Hits%2FFirst+Light
     navidrome: attribute "first light"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 getSong.xml&id=song%3AVarious+Artists%2FMixtape+Volume+One%2FHello+Again
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-getsong
   presence subsonic-response/song/bitDepth
     navidrome: attribute "16"
     gonic: absent
@@ -7067,38 +6571,18 @@ getSong.xml&id=song%3AVarious+Artists%2FMixtape+Volume+One%2FHello+Again
     navidrome: attribute "hello again"
     gonic: absent
     ledger: unledgered
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-getsong
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"
     ledger: unledgered
 
 ping.json
-  value subsonic-response/serverVersion
-    navidrome: "0.64.2 (10114574)"
-    gonic: "0.22.0"
-    ledger: server-version-ping
-  value subsonic-response/type
-    navidrome: "navidrome"
-    gonic: "gonic"
-    ledger: server-type-ping
   value subsonic-response/version
     navidrome: "1.16.1"
     gonic: "1.15.0"
     ledger: unledgered
 
 ping.xml
-  value subsonic-response/serverVersion
-    navidrome: attribute "0.64.2 (10114574)"
-    gonic: attribute "0.22.0"
-    ledger: server-version-ping
-  value subsonic-response/type
-    navidrome: attribute "navidrome"
-    gonic: attribute "gonic"
-    ledger: server-type-ping
   value subsonic-response/version
     navidrome: attribute "1.16.1"
     gonic: attribute "1.15.0"

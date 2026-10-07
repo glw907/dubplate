@@ -1,10 +1,12 @@
 package grade
 
 import (
+	"cmp"
 	"encoding/json/v2"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -21,6 +23,12 @@ const committedManifest = "../data/fixture/manifest.json"
 var (
 	albumJSON = filepath.Join(seedSession, "012-navidrome.json")
 	albumXML  = filepath.Join(seedSession, "043-navidrome.xml")
+
+	// Gonic's answers that carry the empty shapes the differ must tell
+	// apart: getAlbum for the compilation (a null replayGain) and
+	// getArtist (an album with releaseTypes [""]).
+	gonicMixtape = filepath.Join(seedSession, "015-gonic.json")
+	gonicArtist  = filepath.Join(seedSession, "008-gonic.json")
 )
 
 func testLibrary(t *testing.T) *library {
@@ -42,10 +50,16 @@ func diffBodies(t *testing.T, format client.Format, left, right []byte) []Findin
 // diffBodiesIn is diffBodies against the given library.
 func diffBodiesIn(t *testing.T, lib *library, format client.Format, left, right []byte) []Finding {
 	t.Helper()
+	return diffEndpoint(t, lib, "getAlbum", "album:Alpha Artist/Single Disc", format, left, right)
+}
+
+// diffEndpoint is diffBodiesIn for any endpoint and entity reference.
+func diffEndpoint(t *testing.T, lib *library, endpoint, ref string, format client.Format, left, right []byte) []Finding {
+	t.Helper()
 	ct := map[client.Format]string{client.JSON: "application/json", client.XML: "application/xml"}[format]
 	s := &session.Session{Requests: []session.Request{{
-		Endpoint: "getAlbum", Format: format,
-		Params: []session.Param{{Name: "id", Value: "album:Alpha Artist/Single Disc"}},
+		Endpoint: endpoint, Format: format,
+		Params: []session.Param{{Name: "id", Value: ref}},
 		Responses: []session.Response{
 			{Source: "left", Status: 200, ContentType: ct, Body: left},
 			{Source: "right", Status: 200, ContentType: ct, Body: right},
@@ -95,6 +109,35 @@ func replaceOnce(t *testing.T, body []byte, old, new string) []byte {
 	return []byte(strings.Replace(string(body), old, new, 1))
 }
 
+// replaceFirst is replaceOnce for a literal the body repeats: it changes
+// the first occurrence and requires at least one.
+func replaceFirst(t *testing.T, body []byte, old, new string) []byte {
+	t.Helper()
+	if !strings.Contains(string(body), old) {
+		t.Fatalf("%q does not occur in the body", old)
+	}
+	return []byte(strings.Replace(string(body), old, new, 1))
+}
+
+// jsonEnvelope and xmlEnvelope wrap payload in a hand-written envelope
+// that names its own server, for rows that need a shape no recorded body
+// has.
+func jsonEnvelope(payload string) []byte {
+	return []byte(`{"subsonic-response":{"status":"ok","version":"1.16.1","type":"a",` +
+		`"serverVersion":"a-1","openSubsonic":true` + payload + `}}`)
+}
+
+func xmlEnvelope(payload string) []byte {
+	return []byte(`<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="a">` +
+		payload + `</subsonic-response>`)
+}
+
+func failedEnvelope(server, message string, code int) []byte {
+	return []byte(`{"subsonic-response":{"status":"failed","version":"1.16.1","type":"` + server +
+		`","serverVersion":"` + server + `-1","openSubsonic":true,"error":{"code":` + strconv.Itoa(code) +
+		`,"message":` + strconv.Quote(message) + `}}}`)
+}
+
 func readBody(t *testing.T, path string) []byte {
 	t.Helper()
 	b, err := os.ReadFile(path)
@@ -117,6 +160,9 @@ func TestDifferPerturbations(t *testing.T) {
 		empty  bool // grade against a library with no tracks
 		kind   Kind // "" means no finding at all
 		path   string
+		// from, when set, is the recorded body to perturb instead of the
+		// album's, and endpoint and ref name the request it answered.
+		from, endpoint, ref string
 	}{
 		{name: "unperturbed json", format: client.JSON, right: func(_ *testing.T, b []byte) []byte { return b }},
 		{name: "re-encoded json", format: client.JSON, right: func(t *testing.T, b []byte) []byte {
@@ -248,12 +294,147 @@ func TestDifferPerturbations(t *testing.T) {
 				return replaceOnce(t, b, `<releaseDate year="2001">`, `<name>Single Disc</name><releaseDate year="2001">`)
 			},
 		},
+		{
+			name: "serverVersion differs by value", format: client.JSON,
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceOnce(t, b, `"serverVersion":"0.64.2 (10114574)"`, `"serverVersion":"9.9.9"`)
+			},
+		},
+		{
+			name: "type differs by value", format: client.JSON,
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceOnce(t, b, `"type":"navidrome"`, `"type":"gonic"`)
+			},
+		},
+		{
+			name: "serverVersion removed", format: client.JSON, kind: KindPresence, path: "subsonic-response/serverVersion",
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceOnce(t, b, `"serverVersion":"0.64.2 (10114574)",`, "")
+			},
+		},
+		{
+			name: "serverVersion becomes a number", format: client.JSON, kind: KindType, path: "subsonic-response/serverVersion",
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceOnce(t, b, `"serverVersion":"0.64.2 (10114574)"`, `"serverVersion":9`)
+			},
+		},
+		{
+			name: "version still differs by value", format: client.JSON, kind: KindValue, path: "subsonic-response/version",
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceOnce(t, b, `"version":"1.16.1"`, `"version":"1.15.0"`)
+			},
+		},
+		{
+			name: "xml serverVersion and type differ by value", format: client.XML,
+			right: func(t *testing.T, b []byte) []byte {
+				b = replaceOnce(t, b, `serverVersion="0.64.2 (10114574)"`, `serverVersion="9.9.9"`)
+				return replaceOnce(t, b, `type="navidrome"`, `type="gonic"`)
+			},
+		},
+		{
+			name: "failed envelope, messages differ", format: client.JSON,
+			left:  func(*testing.T, []byte) []byte { return failedEnvelope("a", "Data not found", 70) },
+			right: func(*testing.T, []byte) []byte { return failedEnvelope("b", "not found", 70) },
+		},
+		{
+			name: "failed envelope, codes differ", format: client.JSON, kind: KindValue, path: "subsonic-response/error/code",
+			left:  func(*testing.T, []byte) []byte { return failedEnvelope("a", "m", 70) },
+			right: func(*testing.T, []byte) []byte { return failedEnvelope("a", "m", 40) },
+		},
+		{
+			name: "failed envelope, message absent", format: client.JSON, kind: KindPresence, path: "subsonic-response/error/message",
+			left: func(*testing.T, []byte) []byte { return failedEnvelope("a", "m", 70) },
+			right: func(*testing.T, []byte) []byte {
+				return []byte(`{"subsonic-response":{"status":"failed","version":"1.16.1","type":"a","serverVersion":"a-1","openSubsonic":true,"error":{"code":70}}}`)
+			},
+		},
+		{
+			name: "null against an empty object", format: client.JSON, kind: KindType, path: "subsonic-response/album/song/0/replayGain",
+			from: gonicMixtape,
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceFirst(t, b, `"replayGain":null`, `"replayGain":{}`)
+			},
+		},
+		{
+			name: "null against an empty array", format: client.JSON, kind: KindType, path: "subsonic-response/album/song/0/replayGain",
+			from: gonicMixtape,
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceFirst(t, b, `"replayGain":null`, `"replayGain":[]`)
+			},
+		},
+		{
+			name: "null against an absent member", format: client.JSON, kind: KindPresence, path: "subsonic-response/album/song/0/replayGain",
+			from: gonicMixtape,
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceFirst(t, b, `,"replayGain":null`, "")
+			},
+		},
+		{
+			name: "an empty object against an empty list", format: client.JSON, kind: KindPresence, path: "subsonic-response/playlists/playlist",
+			left:  func(*testing.T, []byte) []byte { return jsonEnvelope(`,"playlists":{}`) },
+			right: func(*testing.T, []byte) []byte { return jsonEnvelope(`,"playlists":{"playlist":[]}`) },
+		},
+		{
+			name: "an empty string against no element", format: client.JSON, kind: KindPresence,
+			path: "subsonic-response/artist/album/0/releaseTypes/0",
+			from: gonicArtist, endpoint: "getArtist", ref: "artist:Delta Duo",
+			right: func(t *testing.T, b []byte) []byte {
+				return replaceFirst(t, b, `"releaseTypes":[""]`, `"releaseTypes":[]`)
+			},
+		},
+		{
+			name: "json escape against a literal ampersand", format: client.JSON,
+			left:  func(*testing.T, []byte) []byte { return jsonEnvelope(`,"playlists":{"note":"R \u0026 B"}`) },
+			right: func(*testing.T, []byte) []byte { return jsonEnvelope(`,"playlists":{"note":"R & B"}`) },
+		},
+		{
+			name: "a different string is still a value finding", format: client.JSON, kind: KindValue,
+			path:  "subsonic-response/playlists/note",
+			left:  func(*testing.T, []byte) []byte { return jsonEnvelope(`,"playlists":{"note":"R \u0026 B"}`) },
+			right: func(*testing.T, []byte) []byte { return jsonEnvelope(`,"playlists":{"note":"R and B"}`) },
+		},
+		{
+			name: "xml character reference against entity", format: client.XML,
+			left: func(*testing.T, []byte) []byte {
+				return xmlEnvelope(`<playlists note="say &#34;hi&#34;"/>`)
+			},
+			right: func(*testing.T, []byte) []byte {
+				return xmlEnvelope(`<playlists note="say &quot;hi&quot;"/>`)
+			},
+		},
+		{
+			name: "xml declaration present against absent", format: client.XML,
+			left: func(*testing.T, []byte) []byte {
+				return append([]byte(`<?xml version="1.0" encoding="UTF-8"?>`+"\n"), xmlEnvelope(`<playlists/>`)...)
+			},
+			right: func(*testing.T, []byte) []byte { return xmlEnvelope(`<playlists/>`) },
+		},
+		{
+			name: "xml prefix against the default namespace", format: client.XML,
+			left: func(*testing.T, []byte) []byte {
+				return []byte(`<s:subsonic-response xmlns:s="http://subsonic.org/restapi" status="ok" version="1.16.1" type="a"><s:playlists/></s:subsonic-response>`)
+			},
+			right: func(*testing.T, []byte) []byte { return xmlEnvelope(`<playlists/>`) },
+		},
+		{
+			name: "xml singleton against an array stays one finding", format: client.XML, kind: KindPresence,
+			path: "subsonic-response/playlists/playlist/1",
+			left: func(*testing.T, []byte) []byte {
+				return xmlEnvelope(`<playlists><playlist name="x"/></playlists>`)
+			},
+			right: func(*testing.T, []byte) []byte {
+				return xmlEnvelope(`<playlists><playlist name="x"/><playlist name="y"/></playlists>`)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			left := jsonBody
 			if tt.format == client.XML {
 				left = xmlBody
+			}
+			if tt.from != "" {
+				left = readBody(t, tt.from)
 			}
 			lib := testLibrary(t)
 			if tt.empty {
@@ -263,7 +444,8 @@ func TestDifferPerturbations(t *testing.T) {
 			if tt.left != nil {
 				left = tt.left(t, recorded)
 			}
-			got := diffBodiesIn(t, lib, tt.format, left, tt.right(t, recorded))
+			endpoint, ref := cmp.Or(tt.endpoint, "getAlbum"), cmp.Or(tt.ref, "album:Alpha Artist/Single Disc")
+			got := diffEndpoint(t, lib, endpoint, ref, tt.format, left, tt.right(t, recorded))
 			if tt.kind == "" {
 				if len(got) != 0 {
 					t.Fatalf("got %d findings, want none: %+v", len(got), got)
