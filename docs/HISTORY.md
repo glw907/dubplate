@@ -7,7 +7,7 @@ Per-pass ledger, newest first.
 Executed against `docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md` (revision 2.5), pass class
 `auth-data`, in the main tree on master, as three segments (A: Tasks 0 to 2, B: 3 to 5, C: 6 to 8) under the
 2026-10-07 unattended window. Geoff ruled Rulings 1, 3, and 4 yes at approval: one pass under a 10.5M ceiling with an
-8.4M flag, the store identity routed to rung 16, and `member import` dropped. The build ran `beda726..4de73e7`; the
+8.4M flag, the store identity routed to rung 16, and `member import` dropped. The build ran from Task 0 (`f58a559`) through `4de73e7`; the
 conductor's running ledger is `docs/superpowers/research/2026-10-07-overnight-conductor-notes.md`.
 
 ### What landed
@@ -204,13 +204,14 @@ yes, an erratum sits at the spec's owner ruling 1 and its import section: member
 
 ### Budgets
 
-Tokens: about 9.5M against the 10.5M ceiling, by the conductor's estimate at the park, with the 8.4M flag crossed
-during the architecture fold (2.6M on its own). The runner's tallies ran Task 0 0.12M, segment A 1.14M, segment B
-1.77M, segment C 2.29M, about 6.1M before the architecture fold, and they do not reconcile to the park figure to the
-decimal. Geoff ruled to close both lanes over the flag, and this close adds about 0.4M, inside the ceiling. Attended
+Tokens: about 9.5M against the 10.5M ceiling, with the 8.4M flag crossed during the architecture fold. The runner's
+workflow tallies alone (segment A 1.14M, B 1.77M, C 2.29M, the C fold 0.26M, the architecture fold 2.59M) sum to about
+8.05M. The 9.5M park figure is the conductor's sum, which adds the standalone agents: Task 0 about 0.12M, the segment B
+and C pre-flights about 0.1M and 0.12M, the two security reads about 0.12M and 0.17M, the simplifier and its review
+about 0.13M, the seven architecture reads about 0.63M, and the live smoke about 0.13M. Geoff ruled to close both lanes
+over the flag. This close adds about 0.2M (the Task 9 draft and its fold), inside the ceiling. Attended
 time: none during the unattended window, one question at the morning sitting (the close over the flag, answered yes).
 One planning miss: Task 6's States row, a plan defect found at execution.
-
 
 ## Rung 12 slice 1, the study: closed 2026-10-07, document lane
 

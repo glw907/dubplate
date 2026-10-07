@@ -1,7 +1,6 @@
 # dubplate status
 
 ## Current state
-
 Rung 5, the navidrome-removal and re-plan document passes, rung 12 slice 1 (the study), and rung 6d (identity in the
 store, the auth settings, and `serve`'s store) are closed (HISTORY). 6d's code is on master (`beda726..4de73e7`).
 Slice 2a's harness waits on its branch for its merge. Master is green. The box is unchanged: dubplate-server binary
@@ -14,12 +13,13 @@ Slice 2a's harness waits on its branch for its merge. Master is green. The box i
 > `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` at `25c442a` from `beda726`; about 6.0M of 9.0M). Tasks 1
 > to 8, the simplifier, the vacuity fold, the oracle-tag vet, and the architecture reads and their fold are done; Task 9
 > steps 4, 6, 7 are left. **Step 4:** the merge ritual (repo `CLAUDE.md` "Lanes"; plan Task 9 step 4 for the
-> `go.mod`/`go.sum` and kin-openapi handling), then one `diff-reviewer` over the merged range. **Step 6:** `CLAUDE.md`
-> (R1's wording, the gate paragraph) and HISTORY's 2a entry, from the slice 2a sections of
-> `research/2026-10-07-overnight-conductor-notes.md` (golden counts, the 586 s baseline, budgets, the 2 s seed and Two
-> Sides rulings, the light-lane slip, architecture reads before the merge); add the plan erratum for the two rulings
-> and file the `--scope-changed` refinement for `scripts/check.sh`. **Step 7:** hold the worktree for 2b. **Approach:**
-> invoke `pass-core`; pass `gateLane: "heavy"`; nothing deploys; push master (no force, `gitleaks` first) at the close.
+> `go.mod`/`go.sum` and kin-openapi handling), then one `diff-reviewer` over the merged range. **Step 6:** three edits
+> in one batch: `CLAUDE.md` (R1's wording with the `go vet -tags oracle` check; the gate paragraph naming the boundary
+> and no-link tests); HISTORY's 2a entry, from the slice 2a sections of `research/2026-10-07-overnight-conductor-notes.md`
+> (golden counts, the 586 s baseline, budgets, the 2 s seed and Two Sides rulings, the light-lane slip, architecture
+> reads before the merge); this STATUS (lane 3's row, 2b's wait on its plan). Also add the plan erratum for the two
+> rulings and file the `--scope-changed` refinement for `scripts/check.sh`. **Step 7:** hold the worktree for 2b.
+> **Approach:** invoke `pass-core`; pass `gateLane: "heavy"`; nothing deploys; push master (no force, `gitleaks` first).
 
 ## Owner questions
 - R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it (not blocking).
@@ -34,7 +34,7 @@ Slice 2a's harness waits on its branch for its merge. Master is green. The box i
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | 6d closed 2026-10-07 (code through `4de73e7`, ledger at the close commit; ~9.5M of 10.5M) |
+| 1 | main tree (master) | 6d closed 2026-10-07 (code through `4de73e7`, close commit `0aa8d18`; ~9.5M of 10.5M) |
 | slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `d11f853`) |
 | slice 2 | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` from `beda726`; contests `go.mod`/`go.sum` | PARKED for the merge: Tasks 1-8, close steps 1-3 and 5 done (`25c442a`, ~6.0M) |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |

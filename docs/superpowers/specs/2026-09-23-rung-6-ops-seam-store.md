@@ -884,7 +884,7 @@ file in place; the runbook tells the operator to delete it after verifying the i
 past 6d needs the old template and the old file, and members added since then are re-added through
 the verb afterward.
 
-**Erratum 2026-10-07 (rung 6d close, 6d-R4, 6d-R12):** This section is not built: no `member import` verb, no import record, no `member_imports`
+**Erratum 2026-10-07 (rung 6d close, 6d-R4):** This section is not built: no `member import` verb, no import record, no `member_imports`
 table, and none of the nine states. The retirement of the key and the removal of its `Required` entry are built, as
 ruling 1's erratum above says, and `deploy.sh` no longer pre-creates the roster leaf (R5S:198-200, PA:218). The
 roster leaf stays on the box after the deploy, and the runbook's upgrade section moves the file aside. Rolling back
