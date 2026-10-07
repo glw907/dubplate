@@ -7,7 +7,9 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
+	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -202,5 +204,80 @@ func TestTimeNowCheckDescendsIntoNestedPackages(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), filepath.Join("musicbrainz", "events.go")) {
 		t.Errorf("error does not name the nested file: %v", err)
+	}
+}
+
+// serverUnlinkable lists the import-path prefixes the production server
+// binary must never link: the harness, the contract checker, and the
+// OpenAPI library the checker wraps.
+var serverUnlinkable = []string{
+	"github.com/glw907/dubplate/internal/harness",
+	"github.com/glw907/dubplate/internal/opensubsonic/conformance",
+	"github.com/getkin",
+}
+
+// serverLinkViolations returns the paths in a `go list -deps` listing that
+// lie under a prefix in serverUnlinkable. Each line is cut at its first
+// space, which drops a test-variant annotation.
+func serverLinkViolations(listing string) []string {
+	var bad []string
+	for line := range strings.Lines(listing) {
+		path, _, _ := strings.Cut(strings.TrimSpace(line), " ")
+		for _, prefix := range serverUnlinkable {
+			if path == prefix || strings.HasPrefix(path, prefix+"/") {
+				bad = append(bad, path)
+				break
+			}
+		}
+	}
+	return bad
+}
+
+// TestServerNeverLinksTheHarnessOrChecker checks the real build: the
+// dependency closure of cmd/dubplate-server names no harness package, no
+// contract checker, and no kin-openapi path.
+func TestServerNeverLinksTheHarnessOrChecker(t *testing.T) {
+	cmd := exec.CommandContext(t.Context(), "go", "list", "-deps", "./cmd/dubplate-server")
+	cmd.Dir = repoRoot(t)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("go list: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "github.com/glw907/dubplate/cmd/dubplate-server") {
+		t.Fatalf("listing never names the server package; the check proves nothing:\n%s", out)
+	}
+	if bad := serverLinkViolations(string(out)); len(bad) > 0 {
+		t.Errorf("cmd/dubplate-server links packages it must not:\n%s", strings.Join(bad, "\n"))
+	}
+}
+
+// TestServerLinkCheckFiresOnItsOwnListing proves serverLinkViolations
+// names a harness path and a kin-openapi path in a canned listing, and
+// passes a clean one.
+func TestServerLinkCheckFiresOnItsOwnListing(t *testing.T) {
+	const prefix = "github.com/glw907/dubplate/"
+	tests := []struct {
+		name    string
+		listing string
+		want    []string
+	}{
+		{
+			"harness and kin-openapi",
+			"net/http\n" + prefix + "internal/harness/subsonic/grade\ngithub.com/getkin/kin-openapi/openapi3\n",
+			[]string{prefix + "internal/harness/subsonic/grade", "github.com/getkin/kin-openapi/openapi3"},
+		},
+		{"the checker", prefix + "internal/opensubsonic/conformance\n", []string{prefix + "internal/opensubsonic/conformance"}},
+		{"the harness root", prefix + "internal/harness\n", []string{prefix + "internal/harness"}},
+		{"a test-variant line", prefix + "internal/harness/conform [" + prefix + "internal/harness/conform.test]\n", []string{prefix + "internal/harness/conform"}},
+		{"the client is allowed", prefix + "internal/opensubsonic/client\n", nil},
+		{"a sibling with the harness name as a prefix", prefix + "internal/harnessx\n", nil},
+		{"clean", "net/http\n" + prefix + "internal/config\n", nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serverLinkViolations(tt.listing); !slices.Equal(got, tt.want) {
+				t.Errorf("serverLinkViolations = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

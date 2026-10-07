@@ -1,0 +1,103 @@
+{
+  "openapi": "3.0.0",
+  "info": {"title": "conformance test document", "version": "1"},
+  "servers": [{"url": "{url}", "variables": {"url": {"default": "https://example.invalid"}}}],
+  "paths": {
+    "/rest/items": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok or failed",
+            "content": {
+              "application/json": {"schema": {"$ref": "#/components/schemas/ItemsResponse"}}
+            }
+          }
+        }
+      }
+    },
+    "/rest/emptycontent": {
+      "get": {
+        "responses": {"200": {"description": "no content entry", "content": {}}}
+      }
+    },
+    "/rest/noschema": {
+      "get": {
+        "responses": {
+          "200": {"description": "media type without a schema", "content": {"application/json": {}}}
+        }
+      }
+    },
+    "/rest/redirect": {
+      "get": {
+        "responses": {
+          "301": {
+            "description": "moved",
+            "content": {
+              "application/json": {"schema": {"type": "object", "required": ["location"]}}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ItemsResponse": {
+        "type": "object",
+        "properties": {
+          "subsonic-response": {
+            "oneOf": [
+              {"$ref": "#/components/schemas/ItemsSuccess"},
+              {"$ref": "#/components/schemas/Failure"}
+            ]
+          }
+        }
+      },
+      "ItemsSuccess": {
+        "allOf": [
+          {"$ref": "#/components/schemas/Base"},
+          {
+            "type": "object",
+            "properties": {
+              "status": {"type": "string", "enum": ["ok"]},
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"}
+                  },
+                  "required": ["id"]
+                }
+              }
+            },
+            "required": ["status", "items"]
+          }
+        ]
+      },
+      "Failure": {
+        "allOf": [
+          {"$ref": "#/components/schemas/Base"},
+          {
+            "type": "object",
+            "properties": {
+              "status": {"type": "string", "enum": ["failed"]},
+              "error": {
+                "type": "object",
+                "properties": {"code": {"type": "integer"}, "message": {"type": "string"}},
+                "required": ["code"]
+              }
+            },
+            "required": ["status", "error"]
+          }
+        ]
+      },
+      "Base": {
+        "type": "object",
+        "properties": {"version": {"type": "string"}},
+        "required": ["version"]
+      }
+    }
+  }
+}
