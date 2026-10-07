@@ -9,6 +9,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -293,13 +294,14 @@ func formRefusal(r *http.Request) string {
 // additionOutcome maps AddMember's result to a status and an outcome.
 // Every validation refusal also wraps ErrRosterRecordInvalid, as does a
 // demoted actor, so only the specific sentinels decide a 4xx. A write
-// that outwaited its deadline for the store's write lock is busy, which
-// the page tells the member to retry.
+// that outwaited its deadline for the store's write lock, or that the
+// store gave up on after its busy timeout, is busy, which the page
+// tells the member to retry.
 func additionOutcome(err error) (int, string) {
 	switch {
 	case err == nil:
 		return http.StatusCreated, outcomeAdded
-	case errors.Is(err, context.DeadlineExceeded):
+	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, store.ErrBusy):
 		return http.StatusServiceUnavailable, outcomeBusy
 	case errors.Is(err, errDuplicateAddress):
 		return http.StatusConflict, outcomeDuplicateAddress

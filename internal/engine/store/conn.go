@@ -31,9 +31,9 @@ const (
 	sqliteReadOnlyCode = 8
 )
 
-// errBusy wraps a failure after which SQLite's write lock stayed held
+// ErrBusy wraps a failure after which SQLite's write lock stayed held
 // past the busy timeout.
-var errBusy = errors.New("store busy")
+var ErrBusy = errors.New("store busy")
 
 // errReadOnly wraps a write that reached a connection SQLite itself
 // refuses to write to.
@@ -213,7 +213,7 @@ func journalSizeLimitParam() string {
 	return fmt.Sprintf("_pragma=journal_size_limit(%d)", journalSizeLimit)
 }
 
-// classifyErr wraps err in errBusy or errReadOnly when it carries a
+// classifyErr wraps err in ErrBusy or errReadOnly when it carries a
 // *sqlite.Error whose primary code, masking the extended code every
 // connection reports (newConn's extendedResultCodes(true)), is
 // SQLITE_BUSY or SQLITE_READONLY. A caller then matches with errors.Is
@@ -230,7 +230,7 @@ func classifyErr(err error) error {
 	}
 	switch se.Code() & 0xff {
 	case sqliteBusyCode:
-		return fmt.Errorf("%w: %v", errBusy, err)
+		return fmt.Errorf("%w: %v", ErrBusy, err)
 	case sqliteReadOnlyCode:
 		return fmt.Errorf("%w: %v", errReadOnly, err)
 	default:

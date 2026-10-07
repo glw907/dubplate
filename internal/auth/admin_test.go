@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -805,4 +806,25 @@ func TestRosterAPI_PostWriteLockWait(t *testing.T) {
 		t.Errorf("POST = %d %s, want 503 busy", w.Code, w.Body)
 	}
 	assertUnchanged(t, fx.users, before)
+}
+
+// TestAdditionOutcome_StoreBusy proves a write that the store gave up on
+// after its busy timeout, as a cross-process lock holder causes, answers
+// 503 busy rather than the generic failure.
+func TestAdditionOutcome_StoreBusy(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{"bare", store.ErrBusy},
+		{"wrapped", fmt.Errorf("add member: %w", store.ErrBusy)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			status, outcome := additionOutcome(tt.err)
+			if status != http.StatusServiceUnavailable || outcome != outcomeBusy {
+				t.Errorf("additionOutcome = %d %q, want 503 %q", status, outcome, outcomeBusy)
+			}
+		})
+	}
 }

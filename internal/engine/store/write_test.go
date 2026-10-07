@@ -601,8 +601,8 @@ func TestUpdateDeadline(t *testing.T) {
 		err = assertNotBefore(t, busy, func() error {
 			return h.Update(deadline(t, 100*time.Millisecond), func(context.Context, *Tx) error { return nil })
 		})
-		if !errors.Is(err, errBusy) {
-			t.Errorf("update: %v, want errBusy", err)
+		if !errors.Is(err, ErrBusy) {
+			t.Errorf("update: %v, want ErrBusy", err)
 		}
 	})
 }

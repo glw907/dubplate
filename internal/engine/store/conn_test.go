@@ -399,8 +399,8 @@ func TestBusyTimeout(t *testing.T) {
 		if err == nil {
 			t.Fatal("b writes while a holds: got nil error, want the busy error")
 		}
-		if !errors.Is(classifyErr(err), errBusy) {
-			t.Errorf("classifyErr(%v) does not match errBusy", err)
+		if !errors.Is(classifyErr(err), ErrBusy) {
+			t.Errorf("classifyErr(%v) does not match ErrBusy", err)
 		}
 	})
 }
@@ -408,7 +408,7 @@ func TestBusyTimeout(t *testing.T) {
 // TestBusyErrorClassifiesExtendedCode is the mechanics review's probe
 // E shape: a deferred reader that later tries to upgrade to a write
 // after missing a commit gets SQLITE_BUSY_SNAPSHOT (517), and
-// classifyErr still matches it to errBusy by masking the extended code.
+// classifyErr still matches it to ErrBusy by masking the extended code.
 // A maintenance-class transaction under the same sequence takes the
 // write lock at its BEGIN, so it never meets that race.
 func TestBusyErrorClassifiesExtendedCode(t *testing.T) {
@@ -473,8 +473,8 @@ func TestBusyErrorClassifiesExtendedCode(t *testing.T) {
 		if !errors.As(err, &se) || se.Code() != 517 {
 			t.Fatalf("a's deferred upgrade: err = %v, want a *sqlite.Error with code 517", err)
 		}
-		if !errors.Is(classifyErr(err), errBusy) {
-			t.Errorf("classifyErr(%v) does not match errBusy", err)
+		if !errors.Is(classifyErr(err), ErrBusy) {
+			t.Errorf("classifyErr(%v) does not match ErrBusy", err)
 		}
 	})
 
@@ -506,8 +506,8 @@ func TestBusyErrorClassifiesExtendedCode(t *testing.T) {
 		if err == nil {
 			t.Fatal("other's write while m holds the immediate lock: got nil error, want the busy error")
 		}
-		if !errors.Is(classifyErr(err), errBusy) {
-			t.Errorf("classifyErr(%v) does not match errBusy", err)
+		if !errors.Is(classifyErr(err), ErrBusy) {
+			t.Errorf("classifyErr(%v) does not match ErrBusy", err)
 		}
 
 		// m's own write never needed to upgrade a lock it already

@@ -83,7 +83,7 @@ func quiesce(ctx context.Context, path string, busyTimeout time.Duration) (err e
 	var mode string
 	if err := db.QueryRowContext(ctx, "PRAGMA journal_mode=DELETE").Scan(&mode); err != nil {
 		err = classifyErr(err)
-		if errors.Is(err, errBusy) {
+		if errors.Is(err, ErrBusy) {
 			return fmt.Errorf("quiesce %s: leave WAL mode: %v: %s", path, err, inUseHint)
 		}
 		return fmt.Errorf("quiesce %s: leave WAL mode: %w", path, err)
