@@ -230,6 +230,8 @@ func statusEnum(s *openapi3.Schema) []any {
 	return nil
 }
 
+// pointerEscaper escapes one JSON pointer segment as RFC 6901 requires: "~"
+// becomes "~0" and "/" becomes "~1".
 var pointerEscaper = strings.NewReplacer("~", "~0", "/", "~1")
 
 func pointer(path []string) string {

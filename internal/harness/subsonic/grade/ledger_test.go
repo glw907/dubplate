@@ -215,6 +215,9 @@ func TestApplyClassSuppression(t *testing.T) {
 func TestApplyOwedRowSuppressesNothing(t *testing.T) {
 	owed := owedRow("owed", "slice 3")
 	owed.Pattern = Pattern{Endpoint: "getAlbum", Format: "json", Path: "album/name"}
+	// Everything but its state would make the row apply and match.
+	owed.Session = "s1"
+	owed.Versions = map[string]string{"navidrome": navidromeVersion}
 	l := &Ledger{Rows: []Row{owed, owedRow("owed2", "slice 3"), owedRow("owed3", "slice 6")}}
 	res, err := l.Apply(testSession(), "s1", [2]string{"dubplate", "navidrome"},
 		[]Finding{finding(KindValue, "album/name", "dubplate", "navidrome")})
@@ -223,6 +226,9 @@ func TestApplyOwedRowSuppressesNothing(t *testing.T) {
 	}
 	if res.Matches[0] != "" {
 		t.Errorf("owed row matched: %q", res.Matches[0])
+	}
+	if _, applied := res.Counts["owed"]; applied {
+		t.Error("owed row was applied")
 	}
 	if got := res.Owed; got["slice 3"] != 2 || got["slice 6"] != 1 || len(got) != 2 {
 		t.Errorf("Owed = %v, want slice 3 twice and slice 6 once", got)

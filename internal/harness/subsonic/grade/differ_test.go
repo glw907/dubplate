@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -35,6 +36,12 @@ func testLibrary(t *testing.T) *library {
 // two sources answered left and right.
 func diffBodies(t *testing.T, format client.Format, left, right []byte) []Finding {
 	t.Helper()
+	return diffBodiesIn(t, testLibrary(t), format, left, right)
+}
+
+// diffBodiesIn is diffBodies against the given library.
+func diffBodiesIn(t *testing.T, lib *library, format client.Format, left, right []byte) []Finding {
+	t.Helper()
 	ct := map[client.Format]string{client.JSON: "application/json", client.XML: "application/xml"}[format]
 	s := &session.Session{Requests: []session.Request{{
 		Endpoint: "getAlbum", Format: format,
@@ -44,7 +51,7 @@ func diffBodies(t *testing.T, format client.Format, left, right []byte) []Findin
 			{Source: "right", Status: 200, ContentType: ct, Body: right},
 		},
 	}}}
-	g := &Grader{lib: testLibrary(t)}
+	g := &Grader{lib: lib}
 	return g.oracleTier(s, [2]string{"left", "right"}, nil)
 }
 
@@ -105,7 +112,9 @@ func TestDifferPerturbations(t *testing.T) {
 	tests := []struct {
 		name   string
 		format client.Format
+		left   func(t *testing.T, body []byte) []byte // nil leaves the left body as recorded
 		right  func(t *testing.T, body []byte) []byte
+		empty  bool // grade against a library with no tracks
 		kind   Kind // "" means no finding at all
 		path   string
 	}{
@@ -171,6 +180,60 @@ func TestDifferPerturbations(t *testing.T) {
 				})
 			},
 		},
+		{
+			name: "an album the manifest lacks", format: client.JSON, kind: KindIdentity, path: "subsonic-response/album",
+			right: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) { a["name"] = "Nowhere" })
+			},
+		},
+		{
+			name: "an album against an empty manifest", format: client.JSON, empty: true,
+			kind: KindIdentity, path: "subsonic-response/album",
+			right: func(_ *testing.T, b []byte) []byte { return b },
+		},
+		{
+			name: "song removed", format: client.JSON, kind: KindPresence, path: "subsonic-response/album/song/2",
+			right: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) {
+					list, _ := a["song"].([]any)
+					a["song"] = list[:2]
+				})
+			},
+		},
+		{
+			name: "label added", format: client.JSON, kind: KindPresence, path: "subsonic-response/album/recordLabels/0",
+			right: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) { a["recordLabels"] = []any{map[string]any{"name": "Extra"}} })
+			},
+		},
+		{
+			name: "song duplicated", format: client.JSON, kind: KindIdentity, path: "subsonic-response/album/song",
+			right: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) {
+					list, _ := a["song"].([]any)
+					a["song"] = append(list, list[0])
+				})
+			},
+		},
+		{
+			name: "unordered array reordered", format: client.JSON,
+			right: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) {
+					artists, _ := songs(a)[2]["artists"].([]any)
+					artists[0], artists[1] = artists[1], artists[0]
+				})
+			},
+		},
+		{
+			name: "an album id neither source pairs", format: client.JSON, kind: KindIdentity,
+			path: "subsonic-response/album/song/0/albumId",
+			left: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) { songs(a)[0]["albumId"] = "u1" })
+			},
+			right: func(t *testing.T, b []byte) []byte {
+				return editJSON(t, b, func(a map[string]any) { songs(a)[0]["albumId"] = "u2" })
+			},
+		},
 		{name: "unperturbed xml", format: client.XML, right: func(_ *testing.T, b []byte) []byte { return b }},
 		{
 			name: "self-closing element", format: client.XML,
@@ -192,7 +255,15 @@ func TestDifferPerturbations(t *testing.T) {
 			if tt.format == client.XML {
 				left = xmlBody
 			}
-			got := diffBodies(t, tt.format, left, tt.right(t, left))
+			lib := testLibrary(t)
+			if tt.empty {
+				lib = newLibrary(nil)
+			}
+			recorded := left
+			if tt.left != nil {
+				left = tt.left(t, recorded)
+			}
+			got := diffBodiesIn(t, lib, tt.format, left, tt.right(t, recorded))
 			if tt.kind == "" {
 				if len(got) != 0 {
 					t.Fatalf("got %d findings, want none: %+v", len(got), got)
@@ -201,6 +272,56 @@ func TestDifferPerturbations(t *testing.T) {
 			}
 			if len(got) != 1 || got[0].Kind != tt.kind || got[0].Path != tt.path {
 				t.Fatalf("got %+v\nwant one %s finding at %s", got, tt.kind, tt.path)
+			}
+		})
+	}
+}
+
+// TestDifferResolvesEntities edits both sources' bodies alike, so the only
+// finding a row can yield is an entity the manifest cannot place.
+func TestDifferResolvesEntities(t *testing.T) {
+	body := readBody(t, albumJSON)
+	tests := []struct {
+		name string
+		edit func(album map[string]any)
+		want []string // "kind path" of every finding
+	}{
+		{
+			name: "a song on an album two artists share, named by neither",
+			edit: func(a map[string]any) {
+				s := songs(a)[0]
+				s["album"] = "Greatest Hits"
+				delete(s, "displayAlbumArtist")
+				delete(s, "albumArtists")
+				delete(s, "discNumber") // both albums' track 1 then agree on disc 0
+			},
+			want: []string{"identity subsonic-response/album/song/0"},
+		},
+		{
+			name: "an artist the manifest lacks",
+			edit: func(a map[string]any) {
+				artists, _ := a["artists"].([]any)
+				artist, _ := artists[0].(map[string]any)
+				artist["name"] = "Nobody"
+			},
+			want: []string{"identity subsonic-response/album/artists/0"},
+		},
+		{
+			name: "the same song named by its album artist",
+			edit: func(a map[string]any) {
+				songs(a)[0]["album"] = "Greatest Hits"
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			edited := editJSON(t, body, tt.edit)
+			var got []string
+			for _, f := range diffBodies(t, client.JSON, edited, edited) {
+				got = append(got, string(f.Kind)+" "+f.Path)
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("findings %q, want %q", got, tt.want)
 			}
 		})
 	}
@@ -234,6 +355,9 @@ func TestDecode(t *testing.T) {
 			if tt.wantErr != "" {
 				if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
 					t.Fatalf("err = %v, want %q", err, tt.wantErr)
+				}
+				if strings.Contains(err.Error(), "%!") {
+					t.Errorf("err %q carries a formatting verb error", err)
 				}
 				return
 			}

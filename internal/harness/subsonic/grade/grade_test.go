@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"flag"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -62,6 +63,19 @@ func TestSeedGrade(t *testing.T) {
 	if !bytes.Equal(got, want) {
 		t.Errorf("report differs from %s; rerun with -update and review the diff", seedGolden)
 	}
+	// The totals sit here as well, so an -update that moves them needs a
+	// reviewed edit to this test.
+	if len(r.Findings) != 1686 || r.Unledgered() != 893 {
+		t.Errorf("findings %d, unledgered %d; want 1686 and 893", len(r.Findings), r.Unledgered())
+	}
+	byKind := map[Kind]int{}
+	for _, f := range r.Findings {
+		byKind[f.Kind]++
+	}
+	wantKinds := map[Kind]int{KindContract: 51, KindIdentity: 13, KindPresence: 1218, KindType: 35, KindValue: 369}
+	if !maps.Equal(byKind, wantKinds) {
+		t.Errorf("findings by kind %v, want %v", byKind, wantKinds)
+	}
 	again, err := g.Grade(context.Background(), seedSession, pairNG)
 	if err != nil {
 		t.Fatal(err)
@@ -101,6 +115,13 @@ func TestSeedGrade(t *testing.T) {
 // returns its directory.
 func handSession(t *testing.T, name string, bodies [2][]byte, digests [2]string) string {
 	t.Helper()
+	return handSessionAt(t, name, "getAlbum", 200, bodies, digests)
+}
+
+// handSessionAt is handSession for a request to endpoint that both
+// sources answered with status.
+func handSessionAt(t *testing.T, name, endpoint string, status int, bodies [2][]byte, digests [2]string) string {
+	t.Helper()
 	dir := filepath.Join(t.TempDir(), name)
 	const version = "0.64.2 (10114574)"
 	s := &session.Session{
@@ -109,11 +130,11 @@ func handSession(t *testing.T, name string, bodies [2][]byte, digests [2]string)
 			"copy":      {LibraryDigest: digests[1], ServerVersion: version},
 		},
 		Requests: []session.Request{{
-			Endpoint: "getAlbum", Format: client.JSON,
+			Endpoint: endpoint, Format: client.JSON,
 			Params: []session.Param{{Name: "id", Value: "album:Alpha Artist/Single Disc"}},
 			Responses: []session.Response{
-				{Source: "navidrome", Status: 200, ContentType: "application/json", Body: bodies[0]},
-				{Source: "copy", Status: 200, ContentType: "application/json", Body: bodies[1]},
+				{Source: "navidrome", Status: status, ContentType: "application/json", Body: bodies[0]},
+				{Source: "copy", Status: status, ContentType: "application/json", Body: bodies[1]},
 			},
 		}},
 	}
@@ -157,6 +178,86 @@ func TestGradeIdenticalBodiesReportOnlyContract(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+}
+
+// TestGradeReportsContractOutcomesWithoutViolations grades identical
+// bodies that the contract tier cannot validate: each source's answer
+// is one finding at the envelope, whose value is the outcome.
+func TestGradeReportsContractOutcomesWithoutViolations(t *testing.T) {
+	body := readBody(t, albumJSON)
+	digest := "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c"
+	tests := []struct {
+		name     string
+		endpoint string
+		status   int
+		want     string
+	}{
+		{"no route", "getNothing", 200, "no-route"},
+		{"undeclared status", "getAlbum", 500, "undeclared-status"},
+		{"no schema", "getAlbum", 304, "no-schema"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := handSessionAt(t, "outcome", tt.endpoint, tt.status, [2][]byte{body, body}, [2]string{digest, digest})
+			g, err := New(emptyLedger(t))
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, err := g.Grade(context.Background(), dir, [2]string{"navidrome", "copy"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got []string
+			for _, f := range r.Findings {
+				got = append(got, string(f.Kind)+" "+strings.Join(f.Sources, ",")+" "+f.Path+" "+strings.Join(f.Values, ","))
+			}
+			want := []string{
+				"contract copy subsonic-response " + tt.want,
+				"contract navidrome subsonic-response " + tt.want,
+			}
+			if !slices.Equal(got, want) {
+				t.Errorf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+			}
+		})
+	}
+}
+
+// TestGradeCountsOwedRowsBySlice grades a session under a ledger holding
+// one owed row, which the report lists under its slice.
+func TestGradeCountsOwedRowsBySlice(t *testing.T) {
+	body := readBody(t, albumJSON)
+	digest := "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c"
+	dir := handSession(t, "same", [2][]byte{body, body}, [2]string{digest, digest})
+	ledger, _ := writeLedger(t, []Row{owedRow("owed", "slice 3")})
+	g, err := New(seedConfig(ledger))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := g.Grade(context.Background(), dir, [2]string{"navidrome", "copy"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(r.Format()); !strings.Contains(got, "owed rows by slice:\n  slice 3: 1\n") {
+		t.Errorf("report does not list the owed row under its slice:\n%s", got)
+	}
+}
+
+// TestGradeRefusesAVersionMismatch grades the seed under a row adjudicated
+// against another gonic version than the one the session recorded.
+func TestGradeRefusesAVersionMismatch(t *testing.T) {
+	row := activeRow("old-gonic", ClassVolatile)
+	row.Session = "seed"
+	row.Pattern = Pattern{Endpoint: "ping", Format: "any", Path: "subsonic-response/type"}
+	row.Versions["gonic"] = "0.21.0"
+	ledger, _ := writeLedger(t, []Row{row})
+	g, err := New(seedConfig(ledger))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := g.Grade(context.Background(), seedSession, pairNG)
+	if !errors.Is(err, ErrVersionMismatch) || r != nil {
+		t.Fatalf("Grade = %v, %v; want a version refusal and no report", r, err)
 	}
 }
 
