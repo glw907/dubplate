@@ -1098,3 +1098,29 @@ and Task 10's degraded forms if they are taken.
   field (`grade.go`), `cmd/harness/main.go`'s `subsonicPaths` and `defaultSubsonicPaths`, and `cmd/harness/grade.go`.
   Task 6's inline-literal change is `grade/ledger_test.go`'s `owedRow` helper alone. Task 6's agreement round trip
   renders the record's five agreement columns (id, Area, Behavior shared, Evidence, Test owed), with the slice derived.
+- **E5 (segment C pre-flight, at `5d00313`).** Thirteen amendments, passed to the implementers in segment C's
+  criteria. The conductor's Navidrome observation (`docs/superpowers/research/2026-10-07-navidrome-library-request.md`)
+  succeeded in both runs, so Task 9 runs in its normal form; the record drove the UI with the repo's Playwright 1.63.0
+  because the Playwright MCP server found no Chrome, and the replay needed only the bearer header.
+  Task 7: `TestGradeNamedSessionsReportsAStaleRow`'s live row sits at `grade/grade_test.go:741-748` and moves to
+  Endpoint `getSong` with path `subsonic-response/song/created`, or it goes stale. `TestSeedGrade`'s hardcoded totals
+  (`grade_test.go:83-92`) join the Files and move with the 124 retired envelope value findings (expected 1645 findings,
+  976 unledgered, value 245; the report's change by kind confirms). The E5, E10, XML-envelope, and E6 rows already
+  hold on the current differ and land as pinned rows with mutations; only E1 and L-08 change code. The `session` scan
+  carries its own walker over JSON string leaves and XML attribute values and element text, since `grade` imports
+  `session`. The recorder proof adds a payload hook to `cannedOracle`'s options in `cmd/harness/recordoracle_test.go`
+  and asserts an absent or empty output directory, since `Write` refuses before `MkdirAll`. For `?u=a&t=x;s=y` the
+  finding names `u` only, because `ParseQuery` drops the `t=x;s=y` pair whole; the states table says so.
+  Task 8: each spec entry carries one format, so every request is listed once per format, and JSON `getArtists`,
+  `getArtist`, and `getAlbum` entries precede `getLyricsBySongId` so its `song:` key resolves; those requests are part
+  of the recorded session. The test ledger carries gonic's `null` against Navidrome's absent member as
+  `by-construction` rows scoped to each path, since a `contract` row suppresses only the contract finding.
+  Task 9: `cmd/harness/recordoracle.go`'s scope is `recordConfig`, the library build and digest in
+  `runRecordOracle`, and the `startOracles` signature with its test fake, not the stack call only. The collection list
+  is a repeated `--collection name=manifest` flag on `oracle-up` and `record-oracle`, mutually exclusive with the
+  existing `--manifest`, which stays the one-collection default; a name that is empty, starts with `.`, or contains
+  `,`, `->`, `=`, or `/` is refused (a states row). `stack.Start` runs Navidrome's ping, then the login (polled within
+  the readiness timeout), then each creation, then the folder-count and scan wait on both oracles. The fake
+  `oracleServer` gains `getMusicFolders`, `/auth/login`, and `/api/library` routes, and the existing stack tests take
+  the folder check, the one-collection path included. Housekeeping: the "What 2a built" row for `data/ledger.json` now
+  holds 52 owed rows and none active, and the `fixture.Load` cite reads `manifest.go:70-86`.
