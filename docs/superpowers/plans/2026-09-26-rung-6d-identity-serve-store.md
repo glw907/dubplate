@@ -1,6 +1,6 @@
 # Rung 6, Pass 6d (Identity, the Handoff, and `serve`'s Store) Implementation Plan
 
-Status: **revision 2.3, 2026-10-06; awaits Geoff's approval.**
+Status: **revision 2.4, 2026-10-06; awaits Geoff's approval.**
 
 History:
 
@@ -15,6 +15,12 @@ History:
   pass, and the rungs 12 to 16 re-plan. The fold record is
   `docs/superpowers/research/2026-10-06-rung-6d-plan-rebase.md`. Revision 2.2's rulings were never
   answered, and its approval gate is superseded by this revision's.
+- Revision 2.4 folds the three lens reviews of revision 2.3 (contract, mechanics, and risk) per
+  `docs/superpowers/research/2026-10-06-rung-6d-plan-fold.md`: Task 1 proves only what `serve`
+  decides, over a cmd-level older-store helper; `doctor` names an unclaimed load error; the reset
+  baseline gets its own test; the runbook's rollback, upgrade, and settings text are corrected; the
+  reconciler's report names `member add --admin`; member removal is cited to rung 14 (CH). No
+  ruling changes, and the ceiling and task count stand.
 
 **Citation basis.** Every code, spec, and plan line below is cited at `0cb33ae` on master unless the
 citation names another commit. Task 0 re-resolves only the pointers into files that change after
@@ -82,7 +88,8 @@ state-dir leg, the template, and the runbook's install order and 6d upgrade (cri
 template and leaf halves).
 
 **What this pass is not.** It deploys nothing. It builds no HTTP route, no admin write path (rung 14),
-no member removal, demotion, or revoke verb, no web page change, and no `ops/local` runner inside
+no member removal or demotion (rung 14's removal verb, CH `:576-583` and `:732`), no revoke verb, no
+web page change, and no `ops/local` runner inside
 `serve`. It never enables or restarts the serve unit and adds no `check` step to `deploy.sh`: both are
 rung 16's (the re-plan `:414-417`). It builds no dual-key epoch (R-6d20). Under Rulings 3 and 4's
 recommended answers it builds neither the store identity nor `member import`.
@@ -140,7 +147,7 @@ Recommendation: yes. Reasons:
   add a migration, a once-only record table, and fourteen states nobody meets.
 
 What yes builds: Task 3 adds no migration; Task 5 retires the key with a message naming `member add
---admin`; Task 4 deletes the file-backed roster code whole. Criteria 1 to 3 are not built (6d-R4), and
+--admin`; Task 1 rewords the reconciler's empty-`users` line to the same command (6d-R11); Task 4 deletes the file-backed roster code whole. Criteria 1 to 3 are not built (6d-R4), and
 criterion 4 names `member add` (6d-R13). Ceiling 10.5M, flag 8.4M.
 
 What no builds: the appendix, "What Ruling 4's no builds," in place of Task 5's outcomes, migration
@@ -169,9 +176,13 @@ the runbook section Task 8 writes:
    rendered env carries no roster row, the deploy pre-creates the `store` leaf, and it starts nothing.
 2. Run one supervised start and stop of the serve unit. The start creates the store. `doctor`'s
    members row then fails naming `member add --admin`, as expected here.
-3. Move `roster.json` aside, as the re-plan's roster step 1 does.
+3. Move `roster.json` aside to `roster.json.pre-username` inside its leaf, as the re-plan's roster
+   step 1 does (`:328`). The file is kept unchanged, for step 4 and for a rollback.
 4. Run `member add <address> --admin --name ... --username ...` through `systemd-run` with the store
-   leaf granted, then `member list` (one admin) and `doctor` (exit 0).
+   leaf granted, taking the address, display name, and `streamer_username` from the aside file,
+   then `member list` (one admin) and `doctor` (exit 0). On a re-run after a rollback, the store
+   already holds the admin: `member add` refuses it as a duplicate, which is correct, and `member
+   list` showing that admin is the pass condition.
 
 Apart from the supervised start in step 2, nothing in the upgrade starts `serve`, and nothing enables
 it. Enabling the unit is rung 16's.
@@ -208,7 +219,10 @@ Variants. A split includes about 0.5M for its second Task 0 and close (Ruling 1)
   **9.6M**, split.
 - Both no: 8.57 + 0.88 + 0.5 = 9.95M; 9.95 / 0.8 = 12.44, ceiling **12.5M**, flag **10.0M**, split.
 
-Revision 2.2's ceiling was 11.5M on a projection of 8.91M. The difference is Task 0's sweep (+0.10M),
+Revision 2.4's fold moves no task's rate. Task 1 drops about eight subtests that re-proved
+`OpenServe` and a re-executed lock child, and gains the older-store helper. Task 2 gains two rows,
+Task 5 one `doctor` line, and Task 8 a script move and one sibling hint. Revision 2.2's ceiling was
+11.5M on a projection of 8.91M. The difference is Task 0's sweep (+0.10M),
 Task 8's routed work (−0.44M), and Task 5 under Ruling 4's yes (−0.44M). The spec's own row was 6.6M
 for nine tasks (spec `:1160`), priced at 0.46M per task (spec `:1147-1149`); 6c's actual rate is the
 better evidence, and the spec requires re-deriving from the previous pass's actual (spec
@@ -372,7 +386,7 @@ and 5 carry three; Task 2 carries two), plus Task 0's two and Task 9's three. No
 | --- | --- | --- |
 | `database/sql` `Row.Scan` (`go doc database/sql Row.Scan`, Go 1.27.1) | "If more than one row matches the query, Scan uses the first row and discards the rest. If no row matches the query, Scan returns ErrNoRows." | `Lookup` on an absent or tombstoned address |
 | `store.Row.Scan` (`write.go:178-180`) | "Scan copies the row's columns into dest, as [sql.Row.Scan] does, and records any error but [sql.ErrNoRows], which it returns." | A collision read inside `Update` that finds nothing does not poison the transaction |
-| `store.Handle.Update` (`write.go:44-64`) | "commits only when fn returns nil and no statement fn issued through tx failed"; "ctx must carry a deadline, which bounds the wait for the write pool's one connection inside this process. The wait on another process's write lock is bounded by the busy timeout alone"; "The first statement reads user_version, and Update refuses without calling fn when it differs from the binary's version." | Every write: add, the seed apply |
+| `store.Handle.Update` (`write.go:44-64`; `conn.go:146`, `_txlock=immediate`) | "Update runs fn inside one IMMEDIATE transaction on the write pool and commits only when fn returns nil and no statement fn issued through tx failed"; "ctx must carry a deadline, which bounds the wait for the write pool's one connection inside this process. The wait on another process's write lock is bounded by the busy timeout alone"; "The first statement reads user_version, and Update refuses without calling fn when it differs from the binary's version." | Every write: add, the seed apply. IMMEDIATE takes SQLite's write lock at begin, so a CLI `member add` and a page add in another process serialize, and R-6d10's reads inside the callback decide on committed state |
 | `errNoDeadline` (`write.go:23-25`) | "errNoDeadline is returned by a write whose context carries no deadline, before it waits on anything." `var errNoDeadline = errors.New("store write needs a context deadline")` | R-6d5's named write wait |
 | `store.NewID` (`id.go:8-11`) | "NewID returns 16 random bytes for a new entity's primary key ... It reports no error because [rand.Read] never returns one" | The surrogate id's one mint |
 | SQLite `NOCASE` (sqlite.org/datatype3.html) | "the 26 upper case characters of ASCII are folded to their lower case equivalents before the comparison is performed. Note that only ASCII characters are case folded." | `users.username ... UNIQUE COLLATE NOCASE` agrees with a case-insensitive Go comparison only because the write path's pattern admits ASCII alone; Task 3 keeps the pattern check before the insert |
@@ -445,10 +459,10 @@ a blocker.
 | Field | Every channel that may set it | Never |
 | --- | --- | --- |
 | `users.id` (the surrogate id) | the store's `NewID`, in the write path (`AddMember`) alone | a request body, a file, a CLI flag |
-| `users.admin` | `member add --admin` (the CLI grant, 5b-ii's rule); a reactivation writes it from the validated candidate, so a cookie-channel reactivation writes 0 | the roster API and the add-member page (cookie channel), which refuse it as today; a stored flag surviving a reactivation |
-| `users.username` | the add path on every channel (page, API, CLI) | no edit path exists; a reactivation (R-6d10) takes the new value as the add would |
+| `users.admin` | `member add --admin` (the CLI grant, 5b-ii's rule); a reactivation writes it from the validated candidate, so a cookie-channel reactivation writes 0; `restore` (the "any `users` row" line) | the roster API and the add-member page (cookie channel), which refuse it as today; a stored flag surviving a reactivation |
+| `users.username` | the add path on every channel (page, API, CLI); `restore` (the "any `users` row" line) | no edit path exists; a reactivation (R-6d10) takes the new value as the add would |
 | `users.tombstoned_at` | no channel sets it at 6d (no removal path); the write path's reactivation clears it | any request |
-| any `users` row | `AddMember`'s one `Update` (R-6d22) | any other `INSERT INTO users` in production code |
+| any `users` row | `AddMember`'s one `Update` (R-6d22); and `restore` (6b), which replaces the whole database from a snapshot and so sets every `users` field, `admin` and `username` included. It is operator-run, and refusing another store's snapshot is rung 16's under Ruling 3's yes | any other production statement that inserts, replaces, updates, or deletes `users` rows |
 | `Identity.UserID` | the resolution point (`Lookup`) alone, from `users.id` | a session field, a cookie, a request |
 | `Identity.Principal` | the resolution point, from `users.username` | the session's address |
 | settings source `env-seed`, and `default` by removal | `serve`'s seed apply at start alone (now wired) | `check`, `doctor`, `backup`, the member verbs (read-only evaluation) |
@@ -475,13 +489,22 @@ line.
 
 ### R-6d2: `serve`'s start order
 
-`newServeCmd` runs: the wall load; the serve and store thresholds; the local-keep read (R-6d4);
-`store.OpenServe` (create, complete, or migrate; finish a reconcile-pending restore); the seed apply
+`newServeCmd` runs: the wall load; the serve and store thresholds; the local-keep read (R-6d4), whose
+`Inspect` and `EvaluateFacts` also serve as a pre-open check; `store.OpenServe` (create, complete, or migrate; finish a reconcile-pending restore); the seed apply
 (R-6d5); an accessor over the handle; the auth construction, where every restart-mode setting is read
 once (R-6d9); then `serve.Run`. The handle lives until `Run` returns and is closed then, releasing the
 shared lock. Everything before `serve.Run` stays inside the one preparation function the verb calls
 (today `newServeShell`, which gains the store open and the seed apply and hands the verb what it
 needs to close the handle), and `serve.Run` stays the only call in the verb that opens a listener.
+
+**The pre-open check.** When the report says the store is older (a migration is pending) and the
+evaluation the keep read already ran refuses, over the stored rows or (from Task 6) R-6d21's empty
+row set, `serve` refuses before `OpenServe`. A typo in the env then never migrates the store forward
+before refusing, which would strand the rollback binary on a newer store that the rollback copies
+exclude (runbook `:817-820`). The check reuses a result the keep read computes anyway and adds no
+evaluation. A current or absent store migrates nothing, so it gets no pre-open check, and neither
+does a state with no facts (busy, an intent); the seed apply after the open decides those and stays
+the authority everywhere.
 The start-order proofs therefore test that function: its return is the moment the listener could
 first open, and a refusal returns an error with no shell, which leaves `serve.Run` nothing to run. No
 test-only listen seam is added. The spec's "then recovery" (spec `:891-893`) reads as `OpenServe`'s
@@ -521,11 +544,21 @@ post-seed value (quoted):
   strands `serve`.
 - **No keep row, or no facts** (absent, below `0004`, a restore intent, busy, refused, not a store):
   `Keep` is the registry default, and `OpenServe` decides whether the state itself refuses.
-- An unparseable env value for the keep does not refuse here; it is the seed's refusal after the
-  open (Task 2).
+- An unparseable env value for the keep is not a keep decision. On an older store, it refuses
+  through R-6d2's pre-open check; otherwise it is the seed's refusal after the open (Task 2).
 
 R-6d21 changes what `EvaluateFacts` reports for a store below `0004`; this rule reads only a stored
 row, so the change does not reach it.
+
+The keep is taken from a pre-lock `Inspect`. A store that `Inspect` sees busy or under a restore
+intent yields no facts, so a migrating start then prunes to the default even when a stored row says
+more. No state reaches this at 6d: the box has no store, and `0005` is the last migration. Reading
+the keep after `OpenServe` holds the lock would change `ServeOptions.Keep` into a callback, which is
+new store surface for a state no 6d start meets. So 6d records the limit and routes it to the plan
+of the first migration after `0005` (Task 9).
+
+The decision is one pure function over the `store.Report`, the environment, and the registry, so
+every bullet above is table-tested on synthetic facts (Task 1).
 
 ### R-6d5: the seed apply is exported and called once
 
@@ -626,7 +659,9 @@ spec's "without touching a call site" did not foresee: a database read needs a c
   channel refuses it). The audit record stays the log record (`logAddition`). The deadline `Update`
   requires is already set by both callers (`admin.go:255`, `member.go:95`). A refusal no longer
   names a file path, since there is none.
-- **Every row carries a username** (`NOT NULL`, quoted), so `Member.principal`'s address fallback
+- **Every row carries a non-empty username.** The schema's `NOT NULL` (quoted) admits `''`, so the
+  guarantee is R-6d22's single write path, which runs `validateWriteCandidate`; were it ever broken,
+  `Valid` refuses an empty `Principal`, which fails closed. So `Member.principal`'s address fallback
   (`roster.go:815-822`) has no case. Task 4 deletes it with the file code, and with it
   `errDuplicatePrincipal` and `outcomeDuplicatePrincipal` (`admin.go:38`, `:308`), which only that
   fallback reached (quoted). The roster API then never answers `duplicate_principal`. The page's
@@ -637,10 +672,15 @@ spec's "without touching a call site" did not foresee: a database read needs a c
   it in the write transaction" (spec `:183-184`) presumes a demotion or removal path; none exists
   (`grep -rn -i 'demot\|RemoveMember' internal/auth cmd --include=*.go`, outside tests, finds only
   two comments, `admin.go:299` and `roster.go:754`), so the guard and criterion 6's "concurrent
-  self-demotion of the last two admins" route to the first verb that can remove or demote. Reading
-  6d-R3.
+  self-demotion of the last two admins" route to the first verb that can remove or demote. That verb
+  is scheduled: the configuration homes spec files "the removal verb and this data cleanup" at rung
+  14, tombstoning the row (CH `:576-583`), and lists "member removal as the checklist above" in rung
+  14's admin spine (CH `:732`); the re-plan leaves rung 14 unchanged but for its private gate
+  (`:108`). Between 6d and rung 14, removal is a raw statement against the store. Nothing is live in
+  that window, because enabling `serve` is rung 16's, after rung 14. Reading 6d-R3.
 - `List` returns live rows only, ordered by `created_at` and then `id`, since the file's order is
-  gone.
+  gone. Two rows with one `created_at` order by their random ids, so a fixture that needs a stable
+  order gives its rows distinct `created_at` values.
 - `Member` gains the id.
 
 ### R-6d11: the import record (Ruling 4's no only)
@@ -671,7 +711,10 @@ constant for it beside `storeRowLines` (R10's arithmetic). The roster row it rep
 failure; the members row prints its counts when it passes, which the runbook's doctor-rows section
 then states. Each read is guarded by a version constant beside `settingsVersion`, on
 `SettingsAbsent`'s precedent: the counts need `users` (version 3). An unguarded query would turn
-every older store into `StateRefused` (quoted), failing the store row. Its states are Task 4's table.
+every older store into `StateRefused` (quoted), failing the store row. The row decides on
+`Report.Version`, never on whether `Facts` is present: `Inspect` returns no facts below `jobsVersion`
+(`inspect.go:240-242`), so a rule keyed on `Facts` would read a version-1 store as "not read" while
+reading version 2 as "older". Its states are Task 4's table.
 
 ### R-6d14: `Principal` stays the username, and the network actor stays `member:<principal>`
 
@@ -749,11 +792,22 @@ Task 8:
   only reader is the box. Its steps are this plan's "Owner touchpoints," in that order, each verb
   through the install step 8 form with the store leaf granted. It states that `member add --admin`
   into an empty `users` table is the bootstrap, and that every other member is re-added afterward
-  (the box has one).
-- **Rollback past 6d.** The runbook's rollback copies restore the pre-6d binary, env, and units. That
-  binary reads a roster file, which the upgrade moved aside, so the section says to re-create it with
-  the pre-6d runbook's own section (this runbook at `0cb33ae`, `:216-250`). The store leaf stays on
-  disk, unread by the pre-6d binary.
+  (the box has one). Step 3 names the aside file, `roster.json.pre-username` (the re-plan `:328`);
+  step 4 takes the admin's address, display name, and `streamer_username` from it; and a re-run after
+  a rollback meets the admin already stored, so `member add` refuses it as a duplicate and `member
+  list` showing that admin is the pass condition.
+- **Rollback past 6d.** The runbook's rollback copies restore the pre-6d binary, env, and units. The
+  `.prev` binary is `d1e93e9`, which predates the rename: its `member add` takes
+  `--streamer-username` (`git show d1e93e9:cmd/dubplate-server/member.go:101`), so the `0cb33ae`
+  re-create section's `--username` command would fail under it. The upgrade moved the file aside
+  unchanged, so the rollback step is to move it back: `mv
+  /var/lib/dubplate/roster/roster.json.pre-username /var/lib/dubplate/roster/roster.json`. The step
+  names no `member add`. The store leaf stays on disk, unread by the pre-6d binary.
+- **The settings rows section** (`:334-345`). Its paragraph saying "seeds at serve's next start" is
+  "not yet true" and telling the operator to clear such a value from the environment becomes false at
+  Task 2 and would have an operator delete auth tuning they meant to keep after Task 6. It is
+  replaced by the seed rule as `serve` now applies it, and by R-6d21's behavior: before the first
+  start, an env value outside its bounds fails `doctor` and `check`.
 - The doctor-rows section's `roster` line (`:265`) becomes the members row's states, and the staged
   swap's "the roster beside it" (`:773`) becomes "the store beside it."
 
@@ -797,7 +851,9 @@ from today, where `Load` refuses it.
 
 For a store with no settings table, the post-seed value of every key is the env value or the default,
 since the table `serve` will seed into is empty. So `check` and `doctor` evaluate the seed rule
-against an empty row set for an absent store and for a store below `0004`, which reports the same
+against an empty row set for an absent store and for a store whose `Report.Version` is below
+`settingsVersion`, facts or not (a version-1 store carries none, `inspect.go:240-242`, and `check`
+today branches on `r.Facts != nil`, `check.go:62`), which reports the same
 refusals `serve` would raise. An in-bounds env value still reports "seeds at serve's next start." A
 store `doctor` cannot vouch for stays "not checked." This reverses 6c's "never reads environ" for that
 case, erratum 6d-E2 to 6c's evaluation design; it changes no stored row and no `serve` behavior.
@@ -809,8 +865,11 @@ loader admitted any ASCII-printable username while the write path admits the nar
 Ruling 4's yes, every `users` row comes from `AddMember`, which runs `validateWriteCandidate`
 (quoted) before its one `Update`; no other production statement inserts into `users`; and the box's
 one old row is re-added through `member add` in the upgrade. So no row can exist that skipped the
-write path's rules, and no re-validation pass over stored rows is built. Task 4's grep proves the
-single insert site. Under Ruling 4's no, the appendix's import runs each entry through
+write path's rules, and no re-validation pass over stored rows is built. The one other channel is
+`restore`, which brings back rows a snapshot of this same store already held, each written by
+`AddMember` when it was taken. Task 4's grep proves the single write site: it matches insert,
+replace, update, and delete statements on `users`, since `AddMember`'s own reactivation is an
+`UPDATE`. Under Ruling 4's no, the appendix's import runs each entry through
 `validateWriteCandidate`, which carries the same guarantee.
 
 ### R-6d23: `rosterResetServer`'s baseline is a named set
@@ -832,7 +891,7 @@ capture matrix adds (`capture-<kind>@example.test`) never survive a reset.
 | --- | --- | --- | --- |
 | 6d-R1 | Revision 2.2's "6d lands before any deploy that enables or routes to the serve unit" | Retired: rung 5 has closed, and enabling the unit is rung 16's | R-6d1 |
 | 6d-R2 | "The store moves behind the roster's interface without touching a call site" (`:858-859`) | The constructor is the one substitution; the methods gain `ctx` | R-6d10 |
-| 6d-R3 | Criterion 6's last-admin clause; `:183-184` | Routed to the first demote or remove verb | R-6d10 |
+| 6d-R3 | Criterion 6's last-admin clause; `:183-184` | Routed to rung 14's removal verb (CH `:576-583`, `:732`), the first verb that can remove or demote | R-6d10 |
 | 6d-R4 | Owner ruling 1's import, the import's states (`:826-855`), and criteria 1 to 3 | Not built (Ruling 4's yes); under its no, the appendix's fourteen states | Ruling 4 |
 | 6d-R5 | Criterion 14's "runs store-opening verbs through `runuser`"; spec `:252-253` | Routed to rung 16, whose `check` halt is `deploy.sh`'s first store-opening verb; the operator form is `systemd-run` with the env file | R-6d15 |
 | 6d-R6 | "then recovery" (`:891-893`) | `OpenServe`'s staging cleanup and restore finish; job recovery with rung 14 | R-6d2 |
@@ -842,10 +901,11 @@ capture matrix adds (`capture-<kind>@example.test`) never survive a reset.
 | 6d-R8 | STATUS "To 6d: store identity" (Ruling 3 yes) | Routed to rung 16 | Ruling 3 |
 | 6d-R9 | Criterion 9's "with the env holding A and an in-package admin row holding B ... a limiter built at the next start uses B" | At the next start the env is unset or set to B; env A beside admin row B refuses the start (the seed rule, spec `:779`), and that refusal is its own sub-case | Task 7 |
 | 6d-R10 | Criterion 14's "names the holder before restarting `serve` onto an older store whose lock is held" | Routed to rung 16 with 6c's Ruling 2: `deploy.sh` restarts nothing at 6d | R-6d19 |
-| 6d-R11 | "Restoring a pre-6d snapshot under a 6d binary leaves the users table empty, and the report says to run `member import`" (`:732-733`) | Not built: no pre-6d store or snapshot exists. The box has no store leaf and never enabled backup (the removal pass's read, 2026-10-06), and any store from before the `0003` edit fails at its ledger check (spec erratum, `:428-444`) | Fold record |
+| 6d-R11 | "Restoring a pre-6d snapshot under a 6d binary leaves the users table empty, and the report says to run `member import`" (`:732-733`) | The report line is already built (`internal/backup/reconcile.go:166-167`, "the users table is empty: run member import"). Under Ruling 4's yes, Task 1 rewords it to name `member add ADDRESS --admin`; under its no, it stays. No pre-6d store or snapshot exists (the box has no store leaf and never enabled backup, the removal pass's read, 2026-10-06), but a snapshot taken before the first admin reaches the same empty table | Fold records (rebase, 2.4) |
 | 6d-R12 | Criterion 1's "an imported admin can grant admin through the CLI" | Ruling 4's no only (appendix) | Appendix |
 | 6d-R13 | Criterion 4's "naming `member import`" | Under Ruling 4's yes the message names `member add --admin` | R-6d12 |
 | 6d-R14 | Criterion 5's "streamer handle"; criterion 6's "`streamer_username`"; `:860-866`'s reason for `Principal` | The field is `username` (the re-plan's ruling 3); `Principal` stays the username for S20's reason | R-6d14 |
+| 6d-R15 | "the serve-mode open and its migration procedure, then recovery, then the seed rule, then the listener" (`:891-892`) | On an older store, a refusal the pre-open evaluation already shows comes before the open, so the store is never migrated only to refuse; the seed rule after the open is unchanged and stays the authority | R-6d2 |
 
 ---
 
@@ -863,8 +923,10 @@ removes, with a one-line reason. Checklist lines for both:
   `Update` callback, never through the read pool.
 - A tombstoned address re-adds under its old id; a live one refuses; a username collision refuses by
   name, case-insensitively, before the insert.
-- No production statement but `AddMember`'s inserts into `users`.
-- The seed apply runs after `OpenServe` and before `serve.Run`, and a refusal leaves no listener.
+- No production statement but `AddMember`'s writes `users`; `restore` is the one other channel,
+  operator-run, and its foreign-snapshot refusal is rung 16's (Ruling 3).
+- The seed apply runs after `OpenServe` and before `serve.Run`, and a refusal leaves no listener; a
+  refusal the pre-open evaluation already shows stops the start before any migration (R-6d2).
 - The absolute cap is read at every verification; the four rate limits are read once, after the seed.
 - No auth reader falls back to a default on a read error; the answer is read before `Lookup`, and the
   lifetime and cap before `Nonces.Insert`.
@@ -929,39 +991,70 @@ migration runner and the one writer); lands none.
   threshold and the keep read), and their tests
 - Modify: `internal/engine/store/open.go` (the reconciler's arguments, the re-entry log line) and
   tests
-- Modify: `internal/backup/reconcile.go` or `restore.go` (the exported reconciler) and tests
+- Modify: `internal/backup/reconcile.go` or `restore.go` (the exported reconciler, and the
+  empty-`users` line at `reconcile.go:166-167`) and tests
 - Modify: `cmd/dubplate-server/serve_test.go`'s shell builders (`buildServeShellWithLogger`
   `:67-81`, which `rendered_test.go` reaches, and the direct `newServeShell` call at `:596-610`);
   `rendered_test.go` itself does not change here. Every shell-building test's
   `DUBPLATE_STATE_DIR` is a `t.TempDir()` the test's uid owns, which `leaf.create`'s owner check
   needs; a helper that shares a state directory between shells is reported.
+- Create, in a `cmd/dubplate-server` `_test.go` file: **the older-store helper.** `restore_test.go`'s
+  `storeFile` lowers `user_version` and cuts the ledger but leaves the higher migrations' tables, so
+  re-migrating it fails (the mechanics review's probe: "apply 0005_routed.sql: ... table
+  member_overrides already exists"). The helper creates a store through `OpenServe`, drops the
+  tables each migration above the target version created (named per migration in the helper:
+  `0005`'s are `member_overrides`, `member_preferences`, `member_quota`, `group_quota`,
+  `device_credentials`, and `move_intents`), and cuts the ledger and `user_version` to the target.
+  A later migration the helper does not list fails the re-migration loudly ("table already
+  exists"), never vacuously. Tasks 2, 4, and 6 reuse it for their `0004`, `0003`, `0002`, and
+  `0001` fixtures.
 
 **Outcomes:**
 - `DUBPLATE_STORE_MIGRATION_WAIT`, R-6d3, with its `doctor` threshold row.
 - The preparation function opens the store through `OpenServe` per R-6d2 and R-6d4; the verb closes
   the handle when `serve.Run` returns; any refusal returns an error and no shell.
-- The exported reconciler (R-6d16), whose one production caller is `serve`.
+- The exported reconciler (R-6d16), whose one production caller is `serve`. Under Ruling 4's yes, its
+  empty-`users` line names `member add ADDRESS --admin` (6d-R11), since no `member import` verb
+  exists.
 - The settle loop's warning on a second or later settle (R-6d16).
 
-**States each check meets, and its report:**
+**What this task proves, and what it cites.** Task 1 proves what `serve`'s own code decides: the
+keep extraction, the options it passes (`MigrationWait`, `Keep`, `Backup`, `Reconcile`, `Logger`),
+the refusal-to-no-shell mapping, and D10's prune end to end. `OpenServe`'s own refusals and lock
+behavior are already proven at the right altitude in `internal/engine/store`, and Task 1 cites those
+tests rather than re-proving them through a cmd fixture: the interrupted create
+(`TestOpenModes_InterruptedCreate`), E11 (`TestOpenModes_LostDatabaseBesideCopy`,
+`TestOpenServe_LostDatabaseBesideBackupRef`), any other intent (`TestOpenModes_RestoreIntent`,
+`TestOpenServe_ReconcilePendingRefusals`), the exclusive holder and the shared holder past the wait
+(`TestOpenServe_WaitsForExclusive`, `TestOpenServe_LockHeldPastMigrationWait`), the current store
+under a shared holder (`TestOpenServe_CurrentKeepsSharedLock`), and prune by `Keep` and `Backup`
+(`TestOpenServe_BackupFieldControlsPruneOnMigrate`).
+
+**The keep decision's states** (one pure function over the `store.Report`, the environment, and the
+registry, table-tested on synthetic facts):
+
+| Facts and env | `Keep` |
+| --- | --- |
+| an `env-seed` keep row of 1, in bounds, **the keep key unset in the env** | 1 (never `Outcome.Value`, which is the default 3 here) |
+| an in-bounds keep row, the env set to a different in-bounds value | the row's value |
+| an `admin` keep row outside its bounds | refused naming the key and the bound |
+| an `env-seed` keep row outside its bounds, the env re-seeding it in bounds | the env's value (the healed value, R-6d4) |
+| no keep row | the registry default |
+| no facts (absent, busy, an intent, refused) | the registry default |
+
+**The start's states, through the preparation function:**
 
 | Store state at start | Report |
 | --- | --- |
 | absent (no leaf) | created at the binary's version |
 | the leaf present and empty (`deploy.sh`'s pre-create, owner the process uid, 0700) | created at the binary's version |
-| an interrupted create (zero-byte database, no `-wal`) | completed empty |
-| older: at `0004`, an `env-seed` keep row of 1, two pre-migration copies, backup off | migrated; `pre-migrate-v4.db` written; pruned to one copy |
+| older: at `0004` (the helper), an `env-seed` keep row of 1, the keep key unset, two pre-migration copies, backup off | migrated; `pre-migrate-v4.db` written; pruned to one copy |
 | older: at `0004`, no keep row, `pre-migrate-v1` to `-v3`, backup off | migrated; pruned from four copies to the registry default of 3 |
-| older, an `admin` keep row outside its bounds | refused naming the key and bound; the store stays at `0004`, no copy written |
-| older, an `env-seed` keep row outside its bounds, the env re-seeding it in bounds | migrated, pruned to the env's value (the healed value, R-6d4) |
-| newer than the binary | refused naming both versions |
-| a `reconcile-pending` intent over an older store | migrated, the report written into the leaf over the record's root with restore's head, the intent removed |
-| any other intent | refused naming `restore --resume` |
-| an older store, the lock held shared by another process past the wait | exits nonzero naming the holder's pid; the store stays at its version, no copy written |
-| a current store, the lock held shared by another process | opens without waiting |
-| the lock held exclusive by another process past the wait | exits nonzero naming the holder's pid |
-| `snapshots/` holds a copy and the database is gone | refused naming the newest copy (E11, unchanged) |
-| the state directory owned by another uid | refused naming the owner (`leaf.create`), nothing created |
+| older: at `0004`, an `admin` keep row outside its bounds | refused naming the key and bound; the store stays at `0004`, no copy written |
+| newer than the binary (`user_version` raised past the binary's; nothing to drop) | refused naming both versions; no shell |
+| older, the lock held shared by a second descriptor in the test process past a `MigrationWait` of 1s | exits nonzero naming the holder; the store stays at its version, no copy written |
+| a `reconcile-pending` intent over the store | migrated if older, the report written into the leaf over the record's root with restore's head, the intent removed |
+| the state directory owned by another uid (the `geteuid` override) | refused naming the owner (`leaf.create`), nothing created |
 
 **Acceptance criteria:**
 - Spec criterion 11: a test calls the preparation function against an absent store and against the
@@ -970,25 +1063,32 @@ migration runner and the one writer); lands none.
   carries a populated row in `jobs`, so a migration that silently recreated the store would lose it,
   and the assertion checks it. Every refusal row asserts an error, a nil shell, and the store
   unchanged.
-- The three lock rows, with the lock held by a second process (the re-executed test binary the
-  store's criterion 14 test uses), so the named pid differs from the test's own; `MigrationWait` set
-  to 1s.
-- D10's prune proof: the two backup-off fixtures above, each its own `0004` store with more copies
-  than the value it prunes to; never a second run, since a current store does not migrate and so
-  does not prune (`migrate.go:121-123`).
+- The keep decision: each row of its table by its own subtest.
+- The lock row proves `MigrationWait` from the wall reaches `OpenServe`. The holder is a second
+  descriptor in the test process (`flock(2)`, quoted; the store package's own precedent), not a
+  re-executed child. Its assertion accepts either form `busyError` produces, "held by pid N" or "held
+  by another process" (`lock.go:99-108`; `lease_test.go:66`'s precedent), since `/proc/locks` does
+  not resolve the holder on every filesystem.
+- D10's prune proof: the two backup-off rows above, each its own `0004` store with more copies than
+  the value it prunes to; never a second run, since a current store does not migrate and so does not
+  prune (`migrate.go:121-123`).
 - The reconcile row asserts the report file carries restore's head (the stamp and the `source:` line)
   and a body naming a planted row without a file, and that the intent is gone. **Fixture state:** the
   record's library root differs from the configured root, and the planted row resolves differently
   under each.
+- The reconciler's own test, over a store with an empty `users` table, asserts the line names `member
+  add ADDRESS --admin` and no `member import`.
 - A plain migration logs no settle warning.
+- The verb's `defer` that closes the handle when `serve.Run` returns is checked by name by the
+  diff-reviewer: no test runs the verb's listener to return, and process exit releases the `flock` in
+  production. Task 2 proves a refusal after the open releases the handle.
 - The gate green.
 
-**Named mutations:** pass a fixed `Keep` of 3 (the keep-row-1 case fails); skip the prune (both
-prune rows fail); take `Keep` from `Outcome.Value` for an in-bounds row (the keep-row-1 case, with
-the env unset, prunes to the default instead); take the lock exclusive unconditionally (the
-current-store shared row blocks); pass the configured root when the record names one (the reconcile
-row fails); drop the handle's close (a test that runs `restore` after the verb returns fails on
-`ErrLockBusy`).
+**Named mutations:** pass a fixed `Keep` of 3 (the keep-row-1 row fails); skip the prune (both prune
+rows fail); take `Keep` from `Outcome.Value` for an in-bounds row (the keep-row-1 row, with the keep
+key unset, answers the default 3); pass the default instead of the wall's `MigrationWait` (the lock
+row outlasts its 1s bound and fails on the test's own deadline); pass the configured root when the record names one (the reconcile row
+fails); leave the reconciler's line naming `member import` (its test fails).
 
 **Deliverable count: 4** (the threshold, the open, the reconciler, the re-entry line).
 
@@ -1008,6 +1108,8 @@ Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hooks:** completes hook
 - The apply exported, called once after `OpenServe` and before `serve.Run` (R-6d5), under the named
   30s write wait R-6d5 fixes (`Update` refuses a context with no deadline).
 - A refusal ends the start nonzero with the joined refusal, before any listener.
+- R-6d2's pre-open check: an older store whose evaluation already refuses is refused before
+  `OpenServe` migrates it. It rides the refusal-path deliverable.
 
 **States:**
 
@@ -1019,12 +1121,17 @@ Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hooks:** completes hook
 | an in-package `admin` row, env different | refused naming both values and the resolving action `outcome` already prints ("unset KEY, or set it to V"); no row changed; no shell |
 | an in-package `admin` row outside the binary's bounds, env unset | refused naming the key and the bound (spec `:781`, under 6c-E8's value-in-force reading) |
 | an env value that does not parse | refused naming the key and the accepted form |
+| an older store (`0004`, Task 1's helper) and an env value that does not parse | refused by the pre-open check (R-6d2); the store stays at `0004`, no pre-migration copy written |
 
 **Acceptance criteria:**
 - Spec criterion 12's start half: each row by its own subtest, through the preparation function
   (R-6d2); the request half lands in Task 7. **Fixture state:** a current store, created by Task 1's
-  path, with the row each case names; the unchanged row asserts the generation value, never only a
-  nil error. When the function returns a shell, the seed's rows are already committed.
+  path, with the row each case names, except the pre-open row's `0004` store; the unchanged row
+  asserts the generation value, never only a nil error. When the function returns a shell, the
+  seed's rows are already committed.
+- A refusal after `OpenServe` releases the handle: right after the `admin`-row refusal returns, an
+  exclusive open of the store (the one `restore` takes) succeeds. A preparation function that leaks
+  its handle on the error path holds the shared lock and fails this row.
 - The `doctor` and `backup` strings: a test renders `doctor`'s settings row for an env value that
   differs from the stored row and asserts the pre-start render first (the stored value in force and
   the "serve applies it at its next start" note), runs the preparation function, and asserts the row
@@ -1035,7 +1142,8 @@ Model: `sonnet`, effort `high`. Depends on Task 1. **0.8 hooks:** completes hook
 **Named mutations:** move the apply out of the preparation function to after it returns (the seeded
 row is absent when the function returns); swallow the apply's error (the refusal row returns a
 shell); drop the write wait's deadline (every writing row fails with "store write needs a context
-deadline").
+deadline"); drop the pre-open check (the `0004` row migrates and writes `pre-migrate-v4.db`); skip
+the handle's close on the error path (the release row's exclusive open fails busy).
 
 **Deliverable count: 2** (the export and call, the refusal path).
 
@@ -1144,11 +1252,13 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
   (`outcomeDuplicatePrincipal` and its mapping arm), and tests. Under Ruling 4's no, the appendix
   keeps `parseRoster`, `validateRoster`, and `memberRecord` for the import.
 - Modify: `internal/identity/identity.go`, `identity_test.go` (`Valid` refuses a zero `UserID`); the
-  two test fixtures that then need an id, `internal/ops/ops_test.go` (`validIdentity`) and
-  `internal/ops/opshttp/helpers_test.go` (`ann`)
+  three test fixtures that then need an id, `internal/ops/ops_test.go` (`validIdentity`),
+  `internal/ops/opshttp/helpers_test.go` (`ann`), and `internal/auth/admin_test.go` (`fixtureAdmin`,
+  `:123-131`, which `stubSeam` hands to `RequireAdmin`)
 - Modify: `cmd/dubplate-server/rendered_test.go`, the harness's member fixture (B1): the two fixture
   members seeded into the store with usernames after the preparation function creates it and before
-  the server starts; `rosterResetServer` resetting the `users` table to R-6d23's named baseline,
+  the server starts, admin first, with distinct `created_at` values (explicit stamps or an injected
+  clock; the task names which), so the rendered list's order is the same on every run; `rosterResetServer` resetting the `users` table to R-6d23's named baseline,
   through its own write-mode handle over the fixture state directory (the two-descriptor `flock` row,
   quoted) or the shell's, keeping its HTTP contract so `run.ts` needs no change; and the
   `members/roster-file` subtest becoming a `users` read of the added address. The fixture still sets
@@ -1187,7 +1297,7 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
 | Store | Row |
 | --- | --- |
 | absent | "no store yet; start serve, then member add --admin", exit unaffected |
-| older than `0003` (no `users` table) | "members not recorded before store version 3", exit unaffected; the store row reports the pending migrations |
+| `Report.Version` 1 or 2 (no `users` table; version 1 carries no facts) | "members not recorded before store version 3", exit unaffected; the store row reports the pending migrations |
 | at `0003` or above, no live member | fails naming `member add --admin` |
 | live members but no live admin (a tombstoned admin present) | fails naming `member add --admin` |
 | live members with at least one live admin | passes with both counts |
@@ -1200,11 +1310,20 @@ Model: `sonnet`, effort `high`. Depends on Task 3. **0.8 hooks:** consumes hook 
 - Each member-verb state above by its own subtest; the foreign-owner row uses the `geteuid` override
   `leaf.go:57-63` provides.
 - The members row renders each state above in a golden. **Fixture state:** the no-admin fixture
-  holds a tombstoned admin row, so counting tombstoned rows shows.
+  holds a tombstoned admin row, so counting tombstoned rows shows; the older rows use Task 1's helper
+  at `0002` and at `0001`, so a rule keyed on `Facts` rather than `Report.Version` fails the `0001`
+  golden.
 - `TestDoctorCmd_LineCountFollowsRegistry` counts the members row as one unconditional line.
-- `grep` finds no caller of the file-backed constructor and no `rosterFileKey` reader; `grep -rn
-  'INSERT INTO users' --include=*.go internal cmd`, outside tests, finds only `AddMember`'s statement
-  (R-6d22).
+- `grep` finds no caller of the file-backed constructor and no `rosterFileKey` reader; `grep -rniE
+  '(insert|replace|update|delete)[^;]*\busers\b' --include=*.go internal cmd`, outside tests, finds
+  only `AddMember`'s statements as writes, and the task's report names every other hit and why it
+  writes nothing (R-6d22).
+- `rosterResetServer` alone, by its own Go test (R-6d23). **Fixture state:** a store holding the two
+  seeded rows. It POSTs and expects `{"members": 2}`; adds `renderedNewMemberAddress` and one
+  `capture-<kind>@example.test` row; POSTs again and expects `{"members": 3}`, with the capture row
+  gone by a `users` read. This is the test that kills the first-POST-baseline mutation, which the
+  rendered leg cannot: its add-member row writes before the first reset, so a first-POST snapshot
+  holds the same three rows.
 - `Valid`: a cookie-channel identity with a zero `UserID` is false, by its own subtest; an identity
   the seam resolves over `users` is true.
 - The full rendered leg passes (it runs in the gate): the capture matrix's reset answers the named
@@ -1221,8 +1340,8 @@ rows as members (the no-admin golden fails); drop the version guard (the `0002` 
 make `Valid` ignore `UserID` (the zero-id subtest passes an unresolved identity); make the reset
 server delete nothing (a capture cell's added member survives into the next cell, so the rendered list
 no longer matches the count `resetCaptureRoster` returns, `run.ts:4778-4783`); take the baseline from
-the table at the first POST (a test that posts before the add-member write answers 2 where the named
-set answers 3 after it).
+the table at the first POST (`rosterResetServer`'s own test answers 2 on its second POST, where the
+named set answers 3).
 
 **Deliverable count: 4** (serve and the verbs, the members row, the web guard, the deletion with
 `Valid`'s refusal). This is the heaviest task: the rendered harness rework, `Valid`'s refusal, and
@@ -1238,6 +1357,11 @@ appendix lands hook 5's import channel).
 **Files:**
 - Modify: `cmd/dubplate-server/auth.go` (`Required` loses the key; `registerAuthConfig` calls
   `AddSuperseded`)
+- Modify: `cmd/dubplate-server/doctor.go` and `doctor_test.go` (the unclaimed-error line, below)
+- Modify: `internal/config/keys.go:126-127`, the pre-pivot `DUBPLATE_CONTRIBUTORS_FILE`
+  supersession's message, which says "renamed to `DUBPLATE_ROSTER_FILE`" and so points an operator
+  at the key this task retires. The message is reworded to name `member add ADDRESS --admin`; this
+  edits a message and declares no key, so CLAUDE.md's `keys.go` rule does not bar it
 - Modify: `env/dubplate-server.env.template` (the `DUBPLATE_ROSTER_FILE` row and its comment
   `:66-70`, and the header's "nine required keys" `:63-64`) and `cmd/dubplate-server/
   templatekeys_test.go` (`renderedDoctor`'s roster parameter and env row; the "deleting the roster row"
@@ -1253,6 +1377,14 @@ appendix lands hook 5's import channel).
 - `DUBPLATE_ROSTER_FILE` superseded (R-6d12), with the template's row and every test environment's
   copy dropped in the same commit.
 - The required key count drops from 14 to 13 (the re-plan's ruling 7); the task's report records it.
+- **`doctor` names a load error no row claims.** `rejectNamespace` reports a superseded key as
+  `KEY: message` (`config.go:302-305`), and `doctor` folds every load error into a per-key map
+  (`rowStatuses`, `doctor.go:369-391`) that it prints only for the rows it owns (`doctor.go:51-195`).
+  Once `DUBPLATE_ROSTER_FILE` is no row's key, `doctor` exits "configuration is incomplete" with
+  every printed row reading ok and no cause named, and `doctor` is the runbook's diagnosis verb. So
+  `doctor` prints one line per load error that no printed row claimed (a superseded, reserved-class,
+  or unknown key), printed only when one exists, on the old roster row's precedent of printing only
+  on failure. `TestDoctorCmd_LineCountFollowsRegistry`'s unconditional count is unchanged.
 
 **States:**
 
@@ -1263,20 +1395,26 @@ appendix lands hook 5's import channel).
 | set to the empty string | loads; `rejectNamespace` treats it as unset (quoted) |
 
 **Acceptance criteria:**
-- Spec criterion 4 (6d-R13): with the key set, one table test over the registered command tree runs
-  every verb that loads the wall and asserts each fails the load with the message verbatim.
-  **Fixture state:** the key carries a real path to an existing file, so a check that only refuses a
-  missing file cannot pass.
+- Spec criterion 4 (6d-R13): with the key set, one table test runs the seven verbs that load the
+  wall (`check`, `doctor`, `serve`, `member add`, `member list`, `backup`, `restore`) and asserts
+  each fails the load with the message verbatim: `doctor` on its unclaimed-error line, the other six
+  on their returned error. The same test walks `newRootCmd`'s command tree and asserts its leaf set
+  equals those seven plus the named non-loaders (`version` and the `unidecode` leaves), so a verb
+  added later fails the test until someone classifies it. **Fixture state:** the key carries a real
+  path to an existing file, so a check that only refuses a missing file cannot pass.
 - The empty-value row by its own subtest.
 - Spec criterion 14's template half (M2): the template carries no `DUBPLATE_ROSTER_FILE` row,
   `TestTemplateKeysClassifiedAgainstProductionRegistry` agrees, and `TestRenderedTemplateDoctor`
   passes against the template as this commit leaves it.
 - `grep -rn DUBPLATE_ROSTER_FILE --include=*.go cmd internal`, outside tests, finds only the
-  supersession registration.
+  supersession registration (`keys.go:126` no longer names it).
+- The unclaimed-error line by its own `doctor` subtest, and absent when the load is clean (the
+  line-count test).
 - The gate green.
 
-**Named mutations:** re-add the template's row (`TestRenderedTemplateDoctor` fails naming the
-supersession message); leave the key in `Required` beside the supersession (the registry's `claim`
+**Named mutations:** re-add the template's row (`TestRenderedTemplateDoctor` fails, its `doctor`
+output carrying the supersession message on the unclaimed-error line); drop the unclaimed-error line
+(criterion 4's `doctor` row finds no message); leave the key in `Required` beside the supersession (the registry's `claim`
 panics at registration); register the supersession with a message naming a file (the criterion-4
 test's message comparison fails).
 
@@ -1299,7 +1437,9 @@ sensitive mark on every key) stays rung 14's.
 - Modify: `internal/settings/evaluate.go`, `accessor.go`, tests (`parse`'s `KindString` arm; the
   string read; the withholding removed; R-6d21's evaluation with no settings table)
 - Modify: `cmd/dubplate-server/auth.go` (ten settings, two correlated rules, `validateMagicLinkSource`
-  trimmed, `resolveAuthConfig`'s env parse replaced), `serve.go`, `store.go` (the withholding removed;
+  trimmed, `resolveAuthConfig` deleted, since its `config.ParseDuration` and `ParseInt` calls over the
+  ten thresholds, `:518-563`, no longer compile against a `Setting`), `auth_test.go` (the
+  `resolveAuthConfig` table, `:830-890`, retires here), `serve.go`, `store.go` (the withholding removed;
   the no-table doctor rows), `check.go` (R-6d21's absent-store evaluation), `doctor_test.go` and
   `check_test.go` goldens, `serve_test.go`'s callers of `resolveAuthConfig` (`:77`, `:603`, `:696`),
   and `rendered_test.go`'s `checkRateBudget` (`:494-500`) and `mintLinkFor` (`:541-545`). In this task
@@ -1316,9 +1456,9 @@ sensitive mark on every key) stays rung 14's.
 - `check` and `doctor` evaluate the seed against an empty row set when no settings table exists
   (R-6d21).
 - **The interim read.** A key cannot be both a threshold and a setting (`claim` panics, quoted), and
-  `resolveAuthConfig` parses thresholds from the env. So this task replaces that parse: the
-  preparation function reads all ten values once, after the seed, through the accessor over its
-  handle, into `authConfig`. The task is green at that seam; Task 7 then turns the "immediately" and
+  `resolveAuthConfig` parses thresholds from the env. So this task deletes it: the preparation
+  function reads all ten values once, after the seed, through the accessor over its handle, into
+  `authConfig`. The task is green at that seam; Task 7 then turns the "immediately" and
   "next operation" values into per-use readers and deletes `authConfig`.
 
 **States:**
@@ -1336,6 +1476,7 @@ sensitive mark on every key) stays rung 14's.
 | `check` | a current store, an auth env value out of bounds | exits nonzero naming the key (6c's Ruling 2, 6c-E3) |
 | `check` and `doctor` | an absent store, an auth env value out of bounds | fails naming the key and the bound (R-6d21) |
 | `check` and `doctor` | a store below `0004`, an auth env value that does not parse | fails naming the key and the accepted form |
+| `check` and `doctor` | a store at `0001` (no facts), an auth env value out of bounds | fails naming the key and the bound |
 | `check` and `doctor` | an absent store, the env setting the expiry above the default retention | fails naming both keys |
 | `check` and `doctor` | an absent store, an in-bounds auth env value | passes; the row says the value seeds at serve's next start |
 | `doctor` | a busy or refused store, any env value | "not checked", as today |
@@ -1346,9 +1487,10 @@ sensitive mark on every key) stays rung 14's.
   per key, table-driven), and the `doctor` golden shows the source and the `sensitive` marker on both
   lifetimes and the cap, with their values printed.
 - Each R-6d21 row by its own subtest. **Fixture state:** the absent-store rows run with no store
-  leaf at all, so `check` has no facts; the below-`0004` row runs against a store at `0003`, so its
-  facts mark the settings table absent. A fixture at `0004` or above would reach the existing
-  evaluation and prove nothing about R-6d21.
+  leaf at all, so `check` has no facts; the below-`0004` row runs against a store at `0003` (Task 1's
+  helper), so its facts mark the settings table absent; the `0001` row carries no facts at all, so a
+  rule keyed on `Facts` rather than `Report.Version` fails it. A fixture at `0004` or above would
+  reach the existing evaluation and prove nothing about R-6d21.
 - `backup` with an out-of-bounds auth value leaves every settings row unchanged and exits on its own
   outcome (the spec's "a timer-run backup never fails over an auth threshold").
 - The gate green.
@@ -1372,10 +1514,9 @@ Model: `opus`, effort `high` (live security thresholds). Depends on Task 6. **0.
 **Files:**
 - Modify: `internal/auth/handlers.go`, `seam.go`, `admin.go`, `nonce.go` (`Insert`, `Sweep`, and
   `RunSweep`'s sweep function gain `ctx`), and tests (reader functions in place of values)
-- Modify: `cmd/dubplate-server/serve.go` (including `sweepNonces`), `auth.go` (`authConfig` and
-  `resolveAuthConfig` deleted; readers built over the serve accessor), and tests (`auth_test.go`'s
-  `resolveAuthConfig` table, `:830-890`, retires); the task confirms that no caller of
-  `resolveAuthConfig` remains
+- Modify: `cmd/dubplate-server/serve.go` (including `sweepNonces`), `auth.go` (`authConfig` deleted;
+  readers built over the serve accessor), and tests (`resolveAuthConfig` and its table went in Task
+  6)
 
 **Outcomes:**
 - Each "next operation" and "immediately" value read through an injected reader at its point of use
@@ -1407,15 +1548,15 @@ Model: `opus`, effort `high` (live security thresholds). Depends on Task 6. **0.
 - Spec criterion 12's request half: a request handled after start reads the seeded value (the
   unknown-address answer seeded `generic` answers generically).
 - A failing reader per apply mode fails its request through the handler's server-error path and logs
-  the key, with no default: the answer reader in the link request (a member and a stranger get the
-  same 500), the cap reader in verification, and the lifetime reader in `consume`, after which the
+  the key, with no default: the answer reader and the body-cap reader in the link request (each
+  failing alone, a member and a stranger get the same 500), the cap reader in verification, and the lifetime reader in `consume`, after which the
   same link still succeeds once the reader recovers (the nonce was not consumed). The retention
   reader's failure in the sweep logs the key and deletes nothing.
 - The gate green.
 
 **Named mutations:** cache the cap at construction (the lowered-cap case passes a session it must
-refuse); re-read the rate limits per request (the limiter case uses B early); default on a read error;
-read the lifetime after `Nonces.Insert` (the recovered link is refused as replayed); read the answer
+refuse); cache the body cap at construction (its failing reader never fails a request); re-read
+the rate limits per request (the limiter case uses B early); default on a read error; read the lifetime after `Nonces.Insert` (the recovered link is refused as replayed); read the answer
 after `Lookup` (the member and the stranger differ); pass the value in force as `linkExpiryCeiling`
 (a nonce test with an unreadable record and a lowered expiry sweeps it early).
 
@@ -1435,10 +1576,18 @@ grants and the array lists, so slice 8 needs no new leg logic.
 - Modify: `systemd/dubplate-server-serve.service` (`ReadWritePaths=` and its derivation comment)
 - Modify: `scripts/deploy.sh` (`DUBPLATE_SERVER_LEAVES`, its leaf table comment, the header's leaf
   list `:29-30`, the unidecode comment `:287-298`)
-- Modify: `scripts/check.sh` (the state-dir leg's two new checks)
+- Create: `scripts/check-state-dir.sh`, the state-dir leg moved out of `check.sh` (`:657-737`)
+  unchanged, plus its two new checks; `check.sh` calls it unconditionally, as it calls
+  `scripts/vale-comments.sh` (`:514`). Each failing state below then runs in seconds rather than as a
+  full heavy-lane gate.
+- Modify: `scripts/check.sh` (the leg's block replaced by the call)
 - Modify: `docs/server-runbook.md` (R-6d18)
 - Modify: `internal/engine/store/leaf.go` (`checkOwner`'s hint, R-6d15) and the four store tests that
   assert it (`leaf_test.go`, `inspect_test.go`, `open_test.go`, `restore_test.go`)
+- Modify: `cmd/dubplate-server/unidecode.go` (`:258`, `:269`) and `unidecode_test.go` (`:141-142`,
+  `:198-199`): the unidecode verb's own owner refusal carries the same `runuser -u <owner> --
+  dubplate-server ...` hint, and the verb reads `DUBPLATE_STATE_DIR` from the environment
+  (`:111`), which a root shell under `runuser` also lacks, so R-6d15's reason applies to it
 
 **Outcomes:**
 - The unit grants `/var/lib/dubplate/auth /var/lib/dubplate/store`, both unprefixed, and no longer the
@@ -1447,9 +1596,10 @@ grants and the array lists, so slice 8 needs no new leg logic.
   no longer `roster`, and still enables, starts, and restarts nothing (R-6d19).
 - The state-dir leg also fails when `DUBPLATE_SERVER_LEAVES` names a leaf no `dubplate-server` unit
   grants, and when the serve unit grants no `store` leaf.
-- `checkOwner`'s hint names the owner and the environment file, never `runuser`.
-- The runbook per R-6d18: the install order, the 6d upgrade section, the rollback note, and the two
-  string fixes.
+- `checkOwner`'s hint, and the unidecode verb's, name the owner and the environment file, never
+  `runuser`.
+- The runbook per R-6d18: the install order, the 6d upgrade section, the rollback note, the settings
+  rows section, and the two string fixes.
 
 **The state-dir leg's states:**
 
@@ -1460,27 +1610,31 @@ grants and the array lists, so slice 8 needs no new leg logic.
 | serve unit grants no `store` leaf | fails naming the unit (new check) |
 | the store entry prefixed with `-` | fails naming the entry (the existing prefix check) |
 | the unit grants `store`, the array lacks it | fails naming the leaf (the existing check) |
-| the unit's store path misspelled (`/var/lib/dubplate/stor`) | fails twice: the existing array check and the new store check |
+| the unit's store path misspelled (`/var/lib/dubplate/stor`) | fails three times: the existing array check (`stor` is not in the array), the new store check, and the new reverse check (`store` is granted by no unit) |
 
 **Acceptance criteria:**
 - Spec criterion 13: `systemd-analyze verify` (the gate's leg) clean on the unit. Each failing leg
-  state above is shown by applying its one edit in the working tree, running the state-dir leg (a
-  full `check.sh` run if the leg cannot run alone), quoting the leg's refusal in the report, and
-  reverting; the committed files pass.
+  state above is shown by applying its one edit in the working tree, running
+  `scripts/check-state-dir.sh` alone, quoting the leg's refusal in the report, and reverting; the
+  committed files pass. The three states that exercise the existing checks are what prove the move
+  out of `check.sh` kept them.
 - Spec criterion 14's leaf half: the array carries `store` and not `roster`; `shellcheck` clean.
   Criterion 14's `runuser` and holder clauses are rung 16's (6d-R5, 6d-R10).
-- The owner-refusal hint: the four store tests assert the new text, and no store test or source
-  string names `runuser`.
+- The owner-refusal hint: the four store tests and the two unidecode tests assert the new text, and
+  `grep -rn runuser --include=*.go internal cmd` finds nothing.
 - The runbook read by the task's own render-and-read (the page opened and read in full). The read
   checks that the install order starts the unit before the first admin and runs `doctor` after both,
   that the upgrade section runs the deploy, the supervised start and stop, the move aside, and the
   `member add`, `member list`, and `doctor` steps in that order with no step enabling `serve`, and
-  that no line names `DUBPLATE_ROSTER_FILE` or grants the roster leaf outside the rollback note.
+  that no line names `DUBPLATE_ROSTER_FILE` or grants the roster leaf outside the rollback note. It
+  also checks that the rollback step moves `roster.json.pre-username` back and names no `member
+  add`, and that the settings rows section no longer says the seed note is untrue or tells the
+  operator to clear a setting from the environment.
 - The gate green.
 
 **Named mutations:** grant the leaf with a `-` prefix (the leg fails); leave `roster` in the leaves
 array (the reverse check fails); drop `store` from the unit's grant (the store check fails); keep
-`runuser` in the hint (the four tests fail).
+`runuser` in either hint (the four store tests or the two unidecode tests fail).
 
 **Deliverable count: 4** (the unit and the leg, `deploy.sh`, the owner hint, the runbook).
 
@@ -1502,13 +1656,16 @@ Model: `sonnet`. One fold agent drafts, commits the drafts, then folds, with one
   restarts nothing).
 - The errata table above applied, dated, in the spec and the 6c HISTORY entry; under Ruling 4's yes,
   an erratum at the spec's owner ruling 1 and its import section.
-- Routed items: to the revoke verb and slice 6 (criteria 7 and 8, minor 14, R-6d20); to the first
-  demote or remove verb (the last-admin guard); to rung 14 (the network actor on `UserID`; the admin
-  write path's resolving channel for a refusing `admin` row); to rung 16 (the store identity under
+- Routed items: to the revoke verb and slice 6 (criteria 7 and 8, minor 14, R-6d20); to rung 14
+  (the last-admin guard, with its removal verb, CH `:576-583` and `:732`; the network actor on
+  `UserID`; the admin write path's resolving channel for a refusing `admin` row); to the plan of the
+  first migration after `0005` (R-6d4's keep limit on a busy or intent start, and Task 1's
+  older-store helper, which that migration's tables must join); to rung 16 (the store identity under
   Ruling 3's yes; criterion 14's `runuser` and holder clauses with 6c's Ruling 2 and the unit's
   enabling; the remaining runbook lines); to slice 6 (the `duplicate_principal` code and BACKLOG #16);
   to lane 1's next `web/` pass (R-6d17's note).
-- `CLAUDE.md`'s gate paragraph describes the state-dir leg as Task 8 leaves it.
+- `CLAUDE.md`'s gate paragraph describes the state-dir leg as Task 8 leaves it (moved to
+  `scripts/check-state-dir.sh`, which joins the shellcheck list).
 - STATUS rewritten present tense, the "To 6d" line removed.
 
 **Deliverable count: 3** (HISTORY, errata, STATUS with `CLAUDE.md`'s line).
@@ -1527,14 +1684,15 @@ caller; the diff-reviewer's records carry every named mutation reported failing.
 
 Every file below is shared with rung 5's closed work or another lane; no other executor edits one
 while 6d runs: `cmd/dubplate-server/serve.go`, `auth.go`, `store.go`, `doctor.go`, `doctorprobe.go`,
-`check.go`, `member.go`, `web.go`, `serve_test.go`'s shell builders, `templatekeys_test.go`, every
+`check.go`, `member.go`, `web.go`, `unidecode.go` and its test's two hint assertions, `serve_test.go`'s shell builders, `templatekeys_test.go`, every
 `_test.go` environment setting `DUBPLATE_ROSTER_FILE`, and `rendered_test.go`'s member fixture, reset
 server, `checkRateBudget`, and `mintLinkFor`; `internal/auth/*` (rung 12's since rung 5's close, idle
 until slice 3); `internal/identity`; the two `internal/ops` test fixtures (`ops_test.go`,
-`opshttp/helpers_test.go`); `internal/config/settings.go` and `registry.go`; `internal/settings`;
+`opshttp/helpers_test.go`); `internal/config/settings.go`, `registry.go`, and `keys.go`'s one
+supersession message; `internal/settings`;
 `internal/engine/store` (`open.go`, `inspect.go`, `leaf.go` and the tests asserting its hint);
 `internal/backup` (the reconciler); `systemd/dubplate-server-serve.service`; `scripts/deploy.sh`;
-`scripts/check.sh`; the env template; `docs/server-runbook.md`; and `go.mod`, `go.sum`, and
+`scripts/check.sh` and the new `scripts/check-state-dir.sh`; the env template; `docs/server-runbook.md`; and `go.mod`, `go.sum`, and
 `web/package*.json` during Task 0's sweep. Slice 2's `go.mod` addition is the one expected concurrent
 edit; it lands before Task 0 or after 6d's merge, and the merge ritual reconciles it either way.
 
@@ -1592,6 +1750,10 @@ runs last to keep one gate lane.
   not yet tested against 6c's existing table-absent tests, which Task 6 updates.
 - Under Ruling 4's no only: the trigger-based fault fixture was probed through Python's `sqlite3`,
   not through `modernc.org/sqlite`; the appendix's Task 5 run is the confirmation.
+- Task 1's older-store helper was probed at `0004` only (the mechanics review: `Inspect` reports
+  older with facts, and `OpenServe` with `Keep` 1 migrates and leaves `pre-migrate-v4.db`). Its
+  `0003`, `0002`, and `0001` targets drop the `0004` and lower tables the same way, and their first
+  use in Tasks 4 and 6 is the confirmation; a target that fails to re-migrate fails loudly.
 
 ---
 
