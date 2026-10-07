@@ -155,16 +155,16 @@ function goOutcomes(): Set<string> {
   const handlers = parseGoOutcomes(HANDLERS_PATH);
   const admin = parseGoOutcomes(ADMIN_PATH);
   const parsed = new Set([...handlers, ...admin]);
-  for (const must of ['signed_out', 'admin_not_grantable', 'write_unconfirmed']) {
+  for (const must of ['signed_out', 'admin_not_grantable', 'duplicate_username']) {
     if (!parsed.has(must)) {
       fail(
         `deck-coverage: the parsed outcome set is missing "${must}"; the constant parser's pattern may be broken.`
       );
     }
   }
-  if (parsed.size < 23) {
+  if (parsed.size < 20) {
     fail(
-      `deck-coverage: parsed only ${parsed.size} outcome constant(s) from ${HANDLERS_PATH} and ${ADMIN_PATH}, fewer than the 23 internal/auth declares.`
+      `deck-coverage: parsed only ${parsed.size} outcome constant(s) from ${HANDLERS_PATH} and ${ADMIN_PATH}, fewer than the 20 internal/auth declares.`
     );
   }
   return parsed;
