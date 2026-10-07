@@ -2250,6 +2250,20 @@ func insertUsers(t *testing.T, h *store.Handle, rows ...userRow) {
 	}
 }
 
+// insertShortIDUser writes a live users row whose id is three bytes,
+// which the schema's BLOB column accepts and a UserID cannot hold.
+func insertShortIDUser(t *testing.T, h *store.Handle, address string) {
+	t.Helper()
+	err := h.Update(writeCtx(t), func(ctx context.Context, tx *store.Tx) error {
+		_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at)
+			VALUES (?, ?, 'Short', 'short', 0, 100, 100)`, []byte{0x01, 0x02, 0x03}, address)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("insert short-id user: %v", err)
+	}
+}
+
 // storedUser is one users row as the table holds it.
 type storedUser struct {
 	id                    []byte
@@ -2374,6 +2388,18 @@ func TestUsersRoster_Lookup(t *testing.T) {
 			t.Fatalf("Lookup on a closed store error = %v, want the store's error, not ErrMemberNotFound", err)
 		}
 	})
+
+	t.Run("a stored id that is not 16 bytes", func(t *testing.T) {
+		h := newUsersStore(t)
+		insertShortIDUser(t, h, "short@example.com")
+		got, err := NewRoster(h).Lookup(t.Context(), "short@example.com")
+		if err == nil || errors.Is(err, ErrMemberNotFound) {
+			t.Fatalf("Lookup of a short-id row = %+v, %v; want an error that is not ErrMemberNotFound", got, err)
+		}
+		if !strings.Contains(err.Error(), "3 bytes") {
+			t.Errorf("Lookup error = %q, want it to name the 3-byte id", err)
+		}
+	})
 }
 
 // TestUsersRoster_List proves List answers live rows only, in
@@ -2422,6 +2448,34 @@ func TestUsersRoster_List(t *testing.T) {
 		}
 		if len(got) != 2 || got[0].Address != "one@example.com" || got[1].Address != "two@example.com" {
 			t.Errorf("List = %+v, want one@ then two@", got)
+		}
+	})
+
+	// A store error must surface, never read as an empty roster: the
+	// admin contact and the roster API build on List.
+	t.Run("the store closed", func(t *testing.T) {
+		h := newUsersStore(t)
+		insertUsers(t, h, liveAdmin)
+		roster := NewRoster(h)
+		if err := h.Close(); err != nil {
+			t.Fatalf("close store: %v", err)
+		}
+		got, err := roster.List(t.Context())
+		if err == nil || got != nil {
+			t.Fatalf("List on a closed store = %+v, %v; want nil and the store's error", got, err)
+		}
+	})
+
+	t.Run("a stored id that is not 16 bytes", func(t *testing.T) {
+		h := newUsersStore(t)
+		insertUsers(t, h, liveAdmin)
+		insertShortIDUser(t, h, "short@example.com")
+		got, err := NewRoster(h).List(t.Context())
+		if err == nil || got != nil {
+			t.Fatalf("List with a short-id row = %+v, %v; want nil and an error", got, err)
+		}
+		if !strings.Contains(err.Error(), "3 bytes") {
+			t.Errorf("List error = %q, want it to name the 3-byte id", err)
 		}
 	})
 }
