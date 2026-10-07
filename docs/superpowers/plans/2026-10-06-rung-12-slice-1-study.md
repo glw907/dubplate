@@ -165,7 +165,7 @@ These have a clearly correct answer, so the plan takes them and records why.
    build-spec erratum and brings it to Geoff's gate (re-plan `:427`; fold record `:127`).
 9. **The base-URL measurement walks the drivable clients live, now.** The approved re-plan already rules it: "The
    per-slice roster walk is conductor-run on the workstation (desktop clients and the Android emulator). It is never
-   an owner touchpoint. A client the conductor cannot drive is walked at rung 16's attended gate" (`:140-141`).
+   an owner touchpoint. A client the conductor cannot drive is walked at rung 16's attended gate" (`:140-141`). Geoff confirmed the live walks on 2026-10-06.
    Source reading alone misses runtime URL handling (a trailing-slash join, a path a URL library drops, a stream or
    cover URL built by a second code path). Feishin (`org.jeffvli.feishin`) and Rufin (`io.github.screwys.Rufin`) are
    already installed as system Flatpaks and recorded in `~/.dotfiles/bluefin/flatpaks.txt` (lines 17 and 19, read
