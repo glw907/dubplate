@@ -14,21 +14,25 @@ re-create step. The retired musicbox archive's copy is
 ## Next action
 
 > **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
-> **Goal:** 6d revision 2.3: rebase `plans/2026-09-26-rung-6d-identity-serve-store.md` onto the removal pass, run
-> its own `spec-plan-review`, then bring it to Geoff for approval. **Then:** the slice 1 (document lane) and slice 2 (third code lane, own worktree) plans, just in time, per the
-> re-plan spec (`specs/2026-10-05-rungs-12-16-replan-design.md`, rev 2.1) ruling 5. Never re-run a full gate on
-> an unchanged commit (`~/.claude/docs/pass-gate-economy.md`).
+> **Goal:** three plans are reviewed and await Geoff's approval: 6d rev 2.5
+> (`plans/2026-09-26-rung-6d-identity-serve-store.md`), slice 1 rev 1.1 (`plans/2026-10-06-rung-12-slice-1-study.md`),
+> slice 2a rev 1.2 (`plans/2026-10-06-rung-12-slice-2-oracle-harness.md`). On approval: lane 1 executes 6d (Task 0
+> opens with the dependency sweep); slice 1 runs as the document lane; slice 2a runs in
+> `.claude/worktrees/lane-3-slice-2` and merges after 6d. Never re-run a full gate on an unchanged commit.
 
 ## Owner questions
-- 6d: rev 2.2's approval is superseded; rev 2.3 carries its rulings forward for approval.
+- 6d rev 2.5: Ruling 1 (one pass, 10.5M, flag 8.4M), Ruling 3 (store identity to rung 16), Ruling 4 (drop
+  `member import`); each recommended yes. R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it.
+- Slice 2a rev 1.2: Ruling 1 (2a now at 9.0M, 2b after slice 1 at 4.0M); recommended yes.
+- Slice 1 rev 1.1: no ruling; live client walks confirmed by Geoff 2026-10-06.
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: removal pass and document pass closed 2026-10-06. Next: 6d rev 2.3 |
-| slice 1 | document lane | not launched; plan unwritten |
-| slice 2 | own worktree | not launched; plan unwritten |
+| 1 | main tree (master) | IDLE: 6d rev 2.5 reviewed, awaits approval |
+| slice 1 | document lane | not launched; plan rev 1.1 reviewed, awaits go-ahead |
+| slice 2 | `.claude/worktrees/lane-3-slice-2` | not launched; 2a plan rev 1.2 reviewed, awaits approval; merges after 6d |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
