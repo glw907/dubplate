@@ -1,0 +1,391 @@
+{
+ "components": {
+  "schemas": {
+   "Bin": {
+    "properties": {
+     "item": {
+      "items": {
+       "$ref": "#/components/schemas/Sleeve"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "BinResponse": {
+    "properties": {
+     "subsonic-response": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/BinSuccess"
+       },
+       {
+        "$ref": "#/components/schemas/Failure"
+       }
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "BinSuccess": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/Success"
+     },
+     {
+      "properties": {
+       "bin": {
+        "$ref": "#/components/schemas/Bin"
+       }
+      },
+      "required": [
+       "bin"
+      ],
+      "type": "object"
+     }
+    ]
+   },
+   "Crate": {
+    "properties": {
+     "item": {
+      "items": {
+       "$ref": "#/components/schemas/Record"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "CrateResponse": {
+    "properties": {
+     "subsonic-response": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/CrateSuccess"
+       },
+       {
+        "$ref": "#/components/schemas/Failure"
+       }
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "CrateSuccess": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/Success"
+     },
+     {
+      "properties": {
+       "crate": {
+        "$ref": "#/components/schemas/Crate"
+       }
+      },
+      "required": [
+       "crate"
+      ],
+      "type": "object"
+     }
+    ]
+   },
+   "Empty": {
+    "properties": {
+     "subsonic-response": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/Success"
+       },
+       {
+        "$ref": "#/components/schemas/Failure"
+       }
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "EnvelopeBase": {
+    "properties": {
+     "kind": {
+      "type": "string"
+     },
+     "version": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "type": "object"
+   },
+   "Failure": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/EnvelopeBase"
+     },
+     {
+      "properties": {
+       "error": {
+        "$ref": "#/components/schemas/Problem"
+       },
+       "status": {
+        "enum": [
+         "failed"
+        ],
+        "type": "string"
+       }
+      },
+      "required": [
+       "status",
+       "error"
+      ],
+      "type": "object"
+     }
+    ]
+   },
+   "Problem": {
+    "properties": {
+     "code": {
+      "type": "integer"
+     },
+     "hint": {
+      "type": "string"
+     },
+     "message": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Record": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/Thing"
+     },
+     {
+      "properties": {
+       "gloss": {
+        "type": "string"
+       },
+       "label": {
+        "type": "string"
+       },
+       "notes": {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "size": {
+        "type": "integer"
+       },
+       "track": {
+        "items": {
+         "$ref": "#/components/schemas/Track"
+        },
+        "type": "array"
+       }
+      },
+      "type": "object"
+     }
+    ]
+   },
+   "Sleeve": {
+    "properties": {
+     "colour": {
+      "type": "string"
+     },
+     "id": {
+      "type": "string"
+     },
+     "sheen": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Stuff": {
+    "properties": {
+     "name": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StuffResponse": {
+    "properties": {
+     "subsonic-response": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/StuffSuccess"
+       },
+       {
+        "$ref": "#/components/schemas/Failure"
+       }
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "StuffSuccess": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/Success"
+     },
+     {
+      "properties": {
+       "stuff": {
+        "$ref": "#/components/schemas/Stuff"
+       }
+      },
+      "required": [
+       "stuff"
+      ],
+      "type": "object"
+     }
+    ]
+   },
+   "Success": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/EnvelopeBase"
+     },
+     {
+      "properties": {
+       "status": {
+        "enum": [
+         "ok"
+        ],
+        "type": "string"
+       }
+      },
+      "required": [
+       "status"
+      ],
+      "type": "object"
+     }
+    ]
+   },
+   "Thing": {
+    "properties": {
+     "id": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Track": {
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "mood": {
+      "type": "string"
+     },
+     "number": {
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   }
+  }
+ },
+ "info": {
+  "title": "shelf",
+  "version": "1"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/rest/getBin": {
+   "get": {
+    "operationId": "getBin",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BinResponse"
+        }
+       }
+      },
+      "description": "ok or failed"
+     }
+    }
+   }
+  },
+  "/rest/getBlob": {
+   "get": {
+    "operationId": "getBlob",
+    "responses": {
+     "200": {
+      "content": {
+       "application/binary": {
+        "schema": {
+         "format": "binary",
+         "type": "string"
+        }
+       },
+       "text/xml": {
+        "schema": {
+         "type": "object"
+        }
+       }
+      },
+      "description": "binary or error"
+     }
+    }
+   }
+  },
+  "/rest/getCrate": {
+   "get": {
+    "operationId": "getCrate",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CrateResponse"
+        }
+       }
+      },
+      "description": "ok or failed"
+     }
+    }
+   }
+  },
+  "/rest/getStuff": {
+   "get": {
+    "operationId": "getStuff",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StuffResponse"
+        }
+       }
+      },
+      "description": "ok or failed"
+     }
+    }
+   }
+  },
+  "/rest/ping": {
+   "get": {
+    "operationId": "ping",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Empty"
+        }
+       }
+      },
+      "description": "ok or failed"
+     }
+    }
+   }
+  }
+ }
+}

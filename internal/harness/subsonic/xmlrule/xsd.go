@@ -1,8 +1,12 @@
-// Package xmlrule holds the XML tier's inputs for the OpenSubsonic
-// harness. The Subsonic 1.16.1 schema ships without a license text, so
-// no committed file carries its bytes: it lives in the user cache,
-// pinned by size and sha256, and every consumer reads it through
-// Cached.
+// Package xmlrule is the XML tier of the OpenSubsonic harness. It checks
+// a recorded XML response against the Subsonic 1.16.1 schema with
+// xmllint, after projecting away the names the OpenSubsonic OpenAPI
+// document adds to each schema type, and binds each response to what its
+// endpoint answers.
+//
+// The schema ships without a license text, so no committed file carries
+// its bytes: it lives in the user cache, pinned by size and sha256, and
+// every consumer reads it through Cached.
 package xmlrule
 
 import (

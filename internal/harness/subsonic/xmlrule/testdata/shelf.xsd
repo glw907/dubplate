@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A small schema written for the projection's unit tests. Its type
+     names are invented; only the envelope's element name, its status and
+     version attributes, and its error element follow the protocol. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:t="urn:example:shelf"
+           targetNamespace="urn:example:shelf"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified">
+
+    <xs:element name="subsonic-response" type="t:Envelope"/>
+
+    <xs:complexType name="Envelope">
+        <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:element name="crate" type="t:Crate" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="bin" type="t:Bin" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="error" type="t:Fault" minOccurs="1" maxOccurs="1"/>
+        </xs:choice>
+        <xs:attribute name="status" type="xs:string" use="required"/>
+        <xs:attribute name="version" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <!-- item is a Record inside a crate and a Sleeve inside a bin. -->
+    <xs:complexType name="Crate">
+        <xs:sequence>
+            <xs:element name="item" type="t:Record" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Bin">
+        <xs:sequence>
+            <xs:element name="item" type="t:Sleeve" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Record extends Labelled, which extends Thing. -->
+    <xs:complexType name="Thing">
+        <xs:attribute name="id" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="Labelled">
+        <xs:complexContent>
+            <xs:extension base="t:Thing">
+                <xs:attribute name="label" type="xs:string" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Record">
+        <xs:complexContent>
+            <xs:extension base="t:Labelled">
+                <xs:sequence>
+                    <xs:element name="track" type="t:Track" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+                <xs:attribute name="size" type="xs:int" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Sleeve">
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="colour" type="xs:string" use="optional"/>
+    </xs:complexType>
+
+    <xs:complexType name="Track">
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="number" type="xs:int" use="optional"/>
+    </xs:complexType>
+
+    <xs:complexType name="Fault">
+        <xs:attribute name="code" type="xs:int" use="required"/>
+        <xs:attribute name="message" type="xs:string" use="optional"/>
+    </xs:complexType>
+</xs:schema>
