@@ -1,16 +1,61 @@
 <subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
-    <artist id="ar-5" name="Delta Duo" albumCount="2">
-        <roles>albumartist</roles>
-        <roles>artist</roles>
-        <album id="al-13" created="2026-10-07T07:46:30.716268355Z" artistId="ar-5" artist="Delta Duo" displayArtist="Delta Duo" title="Greatest Hits" album="Greatest Hits" name="Greatest Hits" songCount="2" duration="0" playCount="0" year="2012">
-            <artists id="ar-5" name="Delta Duo"></artists>
-            <isCompilation>false</isCompilation>
-            <releaseTypes></releaseTypes>
-        </album>
-        <album id="al-18" created="2026-10-07T07:46:30.719810677Z" artistId="ar-8" artist="Various Artists" displayArtist="Various Artists" title="Mixtape Volume One" album="Mixtape Volume One" coverArt="al-18" name="Mixtape Volume One" songCount="3" duration="0" playCount="0" year="1999">
-            <artists id="ar-8" name="Various Artists"></artists>
-            <isCompilation>true</isCompilation>
-            <releaseTypes></releaseTypes>
-        </album>
-    </artist>
+    <artists ignoredArticles="">
+        <index name="a">
+            <artist id="ar-1" name="Alpha Artist" albumCount="3">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+            <artist id="ar-10" name="Ансамбль Рассвет" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="b">
+            <artist id="ar-3" name="Borealis Trio" albumCount="2">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="c">
+            <artist id="ar-4" name="Carmine Ensemble" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="d">
+            <artist id="ar-5" name="Delta Duo" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="t">
+            <artist id="ar-7" name="The Meridians" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="u">
+            <artist id="ar-6" name="Unknown Artist" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="v">
+            <artist id="ar-8" name="Various Artists" albumCount="1">
+                <roles>albumartist</roles>
+            </artist>
+        </index>
+        <index name="z">
+            <artist id="ar-9" name="Zoë Ångström" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+        <index name="y">
+            <artist id="ar-11" name="夜明けの音楽" albumCount="1">
+                <roles>albumartist</roles>
+                <roles>artist</roles>
+            </artist>
+        </index>
+    </artists>
 </subsonic-response>

@@ -186,6 +186,20 @@
    }
   },
   {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Carmine Ensemble"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "json",
+   "params": {
+    "id": "folder:Carmine Ensemble/Two Sides"
+   }
+  },
+  {
    "endpoint": "ping",
    "format": "xml"
   },
@@ -368,6 +382,20 @@
    "format": "xml",
    "params": {
     "id": "folder:Borealis Trio/Double Feature"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Carmine Ensemble"
+   }
+  },
+  {
+   "endpoint": "getMusicDirectory",
+   "format": "xml",
+   "params": {
+    "id": "folder:Carmine Ensemble/Two Sides"
    }
   }
  ]

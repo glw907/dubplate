@@ -1,7 +1,19 @@
 <subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
-    <song id="tr-7" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist feat. Guest Singer" displayAlbumArtist="Alpha Artist" bitRate="50" contentType="audio/flac" coverArt="al-5" created="2026-10-07T07:46:30.714600676Z" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/03 Together.flac" size="11305" suffix="flac" title="Together" track="3" discNumber="1" type="music" year="2001" musicBrainzId="">
-        <artists id="ar-1" name="Alpha Artist"></artists>
-        <artists id="ar-2" name="Guest Singer"></artists>
-        <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
-    </song>
+    <album id="al-18" created="2026-10-07T08:00:37.124414479Z" artistId="ar-8" artist="Various Artists" displayArtist="Various Artists" title="Mixtape Volume One" album="Mixtape Volume One" coverArt="al-18" name="Mixtape Volume One" songCount="3" duration="6" playCount="0" year="1999">
+        <artists id="ar-8" name="Various Artists"></artists>
+        <song id="tr-21" album="Mixtape Volume One" albumId="al-18" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Various Artists" bitRate="40" contentType="audio/flac" coverArt="al-18" created="2026-10-07T08:00:37.124414479Z" duration="2" isDir="false" isVideo="false" parent="al-18" path="Various Artists/Mixtape Volume One/01 Opening Remix.flac" size="18604" suffix="flac" title="Opening Remix" track="1" type="music" year="1999" musicBrainzId="">
+            <artists id="ar-1" name="Alpha Artist"></artists>
+            <albumArtists id="ar-8" name="Various Artists"></albumArtists>
+        </song>
+        <song id="tr-22" album="Mixtape Volume One" albumId="al-18" artist="Delta Duo" artistId="ar-5" displayArtist="Delta Duo" displayAlbumArtist="Various Artists" bitRate="49" contentType="audio/flac" coverArt="al-18" created="2026-10-07T08:00:37.124718589Z" duration="2" isDir="false" isVideo="false" parent="al-18" path="Various Artists/Mixtape Volume One/02 Hello Again.flac" size="20933" suffix="flac" title="Hello Again" track="2" type="music" year="1999" musicBrainzId="">
+            <artists id="ar-5" name="Delta Duo"></artists>
+            <albumArtists id="ar-8" name="Various Artists"></albumArtists>
+        </song>
+        <song id="tr-23" album="Mixtape Volume One" albumId="al-18" artist="Borealis Trio" artistId="ar-3" displayArtist="Borealis Trio" displayAlbumArtist="Various Artists" bitRate="47" contentType="audio/flac" coverArt="al-18" created="2026-10-07T08:00:37.125061556Z" duration="2" isDir="false" isVideo="false" parent="al-18" path="Various Artists/Mixtape Volume One/03 Snow Song.flac" size="20249" suffix="flac" title="Snow Song" track="3" type="music" year="1999" musicBrainzId="">
+            <artists id="ar-3" name="Borealis Trio"></artists>
+            <albumArtists id="ar-8" name="Various Artists"></albumArtists>
+        </song>
+        <isCompilation>true</isCompilation>
+        <releaseTypes></releaseTypes>
+    </album>
 </subsonic-response>

@@ -422,10 +422,10 @@ type seedAnswer struct {
 }
 
 type seedSong struct {
-	ID      string `json:"id"`
-	Title   string `json:"title"`
-	Album   string `json:"album"`
-	BitRate int    `json:"bitRate"`
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Album    string `json:"album"`
+	Duration int    `json:"duration"`
 }
 
 // TestSeedSession proves the committed seed answers every request from
@@ -504,8 +504,8 @@ func TestSeedSession(t *testing.T) {
 				}
 				for _, sg := range r.Album.Song {
 					songs++
-					if sg.BitRate <= 0 {
-						t.Errorf("%s: song %q has bitRate %d, so the oracle did not read the audio", who, sg.Title, sg.BitRate)
+					if sg.Duration <= 0 {
+						t.Errorf("%s: song %q has duration %d, so the oracle did not decode the audio", who, sg.Title, sg.Duration)
 					}
 				}
 			case "getSong":
@@ -514,8 +514,8 @@ func TestSeedSession(t *testing.T) {
 					t.Errorf("%s: answered song %q on %q (%s), want %q on %q (%s)", who, r.Song.Title, r.Song.Album, r.Song.ID, parts[2], parts[1], id)
 				}
 				songs++
-				if r.Song.BitRate <= 0 {
-					t.Errorf("%s: song %q has bitRate %d, so the oracle did not read the audio", who, r.Song.Title, r.Song.BitRate)
+				if r.Song.Duration <= 0 {
+					t.Errorf("%s: song %q has duration %d, so the oracle did not decode the audio", who, r.Song.Title, r.Song.Duration)
 				}
 			case "getMusicDirectory":
 				if r.Directory.ID != id || r.Directory.Name != path.Base(strings.TrimPrefix(key, "folder:")) {

@@ -1,20 +1,21 @@
 <subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
-    <album id="al-5" created="2026-10-07T07:46:30.713758284Z" artistId="ar-1" artist="Alpha Artist" displayArtist="Alpha Artist" title="Single Disc" album="Single Disc" coverArt="al-5" name="Single Disc" songCount="3" duration="0" playCount="0" year="2001">
-        <artists id="ar-1" name="Alpha Artist"></artists>
-        <song id="tr-5" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="47" contentType="audio/flac" coverArt="al-5" created="2026-10-07T07:46:30.713758284Z" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/01 Opening.flac" size="11137" suffix="flac" title="Opening" track="1" discNumber="1" type="music" year="2001" musicBrainzId="9a1b2c3d-0000-4000-8000-0000000000c1">
-            <artists id="ar-1" name="Alpha Artist"></artists>
-            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
-        </song>
-        <song id="tr-6" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="40" contentType="audio/flac" coverArt="al-5" created="2026-10-07T07:46:30.71423226Z" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/02 Middle.flac" size="10747" suffix="flac" title="Middle" track="2" discNumber="1" type="music" year="2001" musicBrainzId="">
-            <artists id="ar-1" name="Alpha Artist"></artists>
-            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
-        </song>
-        <song id="tr-7" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist feat. Guest Singer" displayAlbumArtist="Alpha Artist" bitRate="50" contentType="audio/flac" coverArt="al-5" created="2026-10-07T07:46:30.714600676Z" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/03 Together.flac" size="11305" suffix="flac" title="Together" track="3" discNumber="1" type="music" year="2001" musicBrainzId="">
-            <artists id="ar-1" name="Alpha Artist"></artists>
-            <artists id="ar-2" name="Guest Singer"></artists>
-            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
-        </song>
-        <isCompilation>false</isCompilation>
-        <releaseTypes></releaseTypes>
-    </album>
+    <artist id="ar-3" name="Borealis Trio" albumCount="3">
+        <roles>albumartist</roles>
+        <roles>artist</roles>
+        <album id="al-8" created="2026-10-07T08:00:37.120928367Z" artistId="ar-3" artist="Borealis Trio" displayArtist="Borealis Trio" title="Double Feature" album="Double Feature" coverArt="tr-8" name="Double Feature" songCount="2" duration="4" playCount="0" year="1998">
+            <artists id="ar-3" name="Borealis Trio"></artists>
+            <isCompilation>false</isCompilation>
+            <releaseTypes></releaseTypes>
+        </album>
+        <album id="al-9" created="2026-10-07T08:00:37.12186876Z" artistId="ar-3" artist="Borealis Trio" displayArtist="Borealis Trio" title="Double Feature" album="Double Feature" coverArt="tr-10" name="Double Feature" songCount="2" duration="4" playCount="0" year="1998">
+            <artists id="ar-3" name="Borealis Trio"></artists>
+            <isCompilation>false</isCompilation>
+            <releaseTypes></releaseTypes>
+        </album>
+        <album id="al-18" created="2026-10-07T08:00:37.124414479Z" artistId="ar-8" artist="Various Artists" displayArtist="Various Artists" title="Mixtape Volume One" album="Mixtape Volume One" coverArt="al-18" name="Mixtape Volume One" songCount="3" duration="6" playCount="0" year="1999">
+            <artists id="ar-8" name="Various Artists"></artists>
+            <isCompilation>true</isCompilation>
+            <releaseTypes></releaseTypes>
+        </album>
+    </artist>
 </subsonic-response>

@@ -2,7 +2,7 @@
   "seeds": [
     {
       "name": "README.md",
-      "sha256": "daff3c83d9f22c7977c42110b17db1a39cc30711e94bceefb96e4b7875ce20f7"
+      "sha256": "c3854c9e5e72378e0e892b1e264b43fd48fb0f878e50385a7431071cedc3c0b2"
     },
     {
       "name": "cover-a.jpg",
@@ -18,15 +18,15 @@
     },
     {
       "name": "tone-220.flac",
-      "sha256": "50b65abb861976443b02205028a36f21b30285ef32d537a12ea258fa770f4865"
+      "sha256": "4613fbc50390786b8b70b14560bde0cb043f388c900f2044d289df600f4e5e4c"
     },
     {
       "name": "tone-330.flac",
-      "sha256": "ea399c9c72e73a3c356c02b2eda7a86b14576978d224e43ac694795d4930c416"
+      "sha256": "98252b9fa55ebc89d4900183497987f38b45df762ab29e1d719147948f944c7a"
     },
     {
       "name": "tone-440.flac",
-      "sha256": "b919fdfffa7281c6198195db2c7c30ffa282d220783be1fd4ece179d0d38d468"
+      "sha256": "7c14d99d177c5420c6d5804d0d511ef287692d7f36339fc6089844e402377f2f"
     }
   ],
   "albums": [

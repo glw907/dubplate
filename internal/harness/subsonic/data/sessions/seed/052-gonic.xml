@@ -1,10 +1,6 @@
 <subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
-    <directory id="al-3" parent="al-2" name="Greatest Hits">
-        <child id="tr-1" album="Greatest Hits" albumId="al-3" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="" bitRate="47" contentType="audio/flac" coverArt="al-3" created="2026-10-07T07:46:30.715699523Z" isDir="false" isVideo="false" parent="al-3" path="Alpha Artist/Greatest Hits/01 Opening.flac" size="10884" suffix="flac" title="Opening" track="1" type="music" year="2010" musicBrainzId="">
-            <artists id="ar-1" name="Alpha Artist"></artists>
-        </child>
-        <child id="tr-2" album="Greatest Hits" albumId="al-3" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="" bitRate="50" contentType="audio/flac" coverArt="al-3" created="2026-10-07T07:46:30.716012224Z" isDir="false" isVideo="false" parent="al-3" path="Alpha Artist/Greatest Hits/02 Together.flac" size="11045" suffix="flac" title="Together" track="2" type="music" year="2010" musicBrainzId="">
-            <artists id="ar-1" name="Alpha Artist"></artists>
-        </child>
-    </directory>
+    <song id="tr-14" album="Two Sides" albumId="al-11" artist="Carmine Ensemble" artistId="ar-4" displayArtist="Carmine Ensemble" displayAlbumArtist="Carmine Ensemble" bitRate="47" contentType="audio/flac" coverArt="tr-14" created="2026-10-07T08:00:37.123545713Z" duration="2" isDir="false" isVideo="false" parent="al-11" path="Carmine Ensemble/Two Sides/2-01 Side B One.flac" size="22557" suffix="flac" title="Side B One" track="1" discNumber="2" type="music" year="1985" musicBrainzId="">
+        <artists id="ar-4" name="Carmine Ensemble"></artists>
+        <albumArtists id="ar-4" name="Carmine Ensemble"></albumArtists>
+    </song>
 </subsonic-response>

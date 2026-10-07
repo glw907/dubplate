@@ -2,12 +2,12 @@
   "schema_version": 1,
   "sources": {
     "gonic": {
-      "library_digest": "f3ea16d9e2dd6a592bf7762498009ad366d0fcc85600d195b7e7175112e8a36a",
+      "library_digest": "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c",
       "image_digest": "sha256:516fd9645614ba3a596d86174216c3e944808b9ec970c581678713be4c8b1d49",
       "server_version": "0.22.0"
     },
     "navidrome": {
-      "library_digest": "f3ea16d9e2dd6a592bf7762498009ad366d0fcc85600d195b7e7175112e8a36a",
+      "library_digest": "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c",
       "image_digest": "sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52",
       "server_version": "0.64.2 (10114574)"
     }
@@ -69,6 +69,14 @@
       "gonic": "al-7",
       "navidrome": "2zalXirehPfSQpEypzurvi"
     },
+    "folder:Carmine Ensemble": {
+      "gonic": "al-10",
+      "navidrome": "76bFNzTHKvH8zozCfl0mxH"
+    },
+    "folder:Carmine Ensemble/Two Sides": {
+      "gonic": "al-11",
+      "navidrome": "1RCRSAcAZK1GMrWoprkhp3"
+    },
     "folder:Delta Duo": {
       "gonic": "al-12",
       "navidrome": "1lj7eQ5rxStq8ASeeE39t7"
@@ -87,23 +95,23 @@
     },
     "song:Alpha Artist/Greatest Hits/Opening": {
       "gonic": "tr-1",
-      "navidrome": "4RuOuNJKcoNBMpIgBWDEgM"
+      "navidrome": "7arhCqhyGc1ZIdLCNHo6iD"
     },
     "song:Alpha Artist/Single Disc/Together": {
       "gonic": "tr-7",
-      "navidrome": "26Nrsx1noEIQByknei3AyX"
+      "navidrome": "2vhDHhznBhKKep54wphnTJ"
     },
     "song:Carmine Ensemble/Two Sides/Side B One": {
       "gonic": "tr-14",
-      "navidrome": "2NfwpwopaBdehrF0hg1NfT"
+      "navidrome": "5YBMKLETvwJReFRljDfQoF"
     },
     "song:Delta Duo/Greatest Hits/First Light": {
       "gonic": "tr-16",
-      "navidrome": "2RujS7uprGMj5829Nl7dlE"
+      "navidrome": "2Mp6bGZlV3E0BIicWPCpE8"
     },
     "song:Various Artists/Mixtape Volume One/Hello Again": {
       "gonic": "tr-22",
-      "navidrome": "7haQAL8NqCW8eTJtNTOMnG"
+      "navidrome": "3LVyaRE64zMDPnmw9xyJfK"
     }
   },
   "requests": [
@@ -768,43 +776,55 @@
       ]
     },
     {
+      "endpoint": "getMusicDirectory",
+      "format": "json",
+      "params": [
+        {
+          "name": "id",
+          "value": "folder:Carmine Ensemble"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "030-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "030-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getMusicDirectory",
+      "format": "json",
+      "params": [
+        {
+          "name": "id",
+          "value": "folder:Carmine Ensemble/Two Sides"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "031-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "031-navidrome.json"
+        }
+      ]
+    },
+    {
       "endpoint": "ping",
-      "format": "xml",
-      "responses": [
-        {
-          "source": "gonic",
-          "status": 200,
-          "content_type": "application/xml",
-          "body": "030-gonic.xml"
-        },
-        {
-          "source": "navidrome",
-          "status": 200,
-          "content_type": "application/xml",
-          "body": "030-navidrome.xml"
-        }
-      ]
-    },
-    {
-      "endpoint": "getLicense",
-      "format": "xml",
-      "responses": [
-        {
-          "source": "gonic",
-          "status": 200,
-          "content_type": "application/xml",
-          "body": "031-gonic.xml"
-        },
-        {
-          "source": "navidrome",
-          "status": 200,
-          "content_type": "application/xml",
-          "body": "031-navidrome.xml"
-        }
-      ]
-    },
-    {
-      "endpoint": "getOpenSubsonicExtensions",
       "format": "xml",
       "responses": [
         {
@@ -822,7 +842,7 @@
       ]
     },
     {
-      "endpoint": "getMusicFolders",
+      "endpoint": "getLicense",
       "format": "xml",
       "responses": [
         {
@@ -840,7 +860,7 @@
       ]
     },
     {
-      "endpoint": "getIndexes",
+      "endpoint": "getOpenSubsonicExtensions",
       "format": "xml",
       "responses": [
         {
@@ -858,7 +878,7 @@
       ]
     },
     {
-      "endpoint": "getArtists",
+      "endpoint": "getMusicFolders",
       "format": "xml",
       "responses": [
         {
@@ -876,14 +896,8 @@
       ]
     },
     {
-      "endpoint": "getArtist",
+      "endpoint": "getIndexes",
       "format": "xml",
-      "params": [
-        {
-          "name": "id",
-          "value": "artist:Alpha Artist"
-        }
-      ],
       "responses": [
         {
           "source": "gonic",
@@ -900,14 +914,8 @@
       ]
     },
     {
-      "endpoint": "getArtist",
+      "endpoint": "getArtists",
       "format": "xml",
-      "params": [
-        {
-          "name": "id",
-          "value": "artist:Delta Duo"
-        }
-      ],
       "responses": [
         {
           "source": "gonic",
@@ -929,7 +937,7 @@
       "params": [
         {
           "name": "id",
-          "value": "artist:Various Artists"
+          "value": "artist:Alpha Artist"
         }
       ],
       "responses": [
@@ -953,7 +961,7 @@
       "params": [
         {
           "name": "id",
-          "value": "artist:Borealis Trio"
+          "value": "artist:Delta Duo"
         }
       ],
       "responses": [
@@ -977,7 +985,7 @@
       "params": [
         {
           "name": "id",
-          "value": "artist:Carmine Ensemble"
+          "value": "artist:Various Artists"
         }
       ],
       "responses": [
@@ -996,12 +1004,12 @@
       ]
     },
     {
-      "endpoint": "getAlbum",
+      "endpoint": "getArtist",
       "format": "xml",
       "params": [
         {
           "name": "id",
-          "value": "album:Alpha Artist/Single Disc"
+          "value": "artist:Borealis Trio"
         }
       ],
       "responses": [
@@ -1020,12 +1028,12 @@
       ]
     },
     {
-      "endpoint": "getAlbum",
+      "endpoint": "getArtist",
       "format": "xml",
       "params": [
         {
           "name": "id",
-          "value": "album:Alpha Artist/Greatest Hits"
+          "value": "artist:Carmine Ensemble"
         }
       ],
       "responses": [
@@ -1049,7 +1057,7 @@
       "params": [
         {
           "name": "id",
-          "value": "album:Delta Duo/Greatest Hits"
+          "value": "album:Alpha Artist/Single Disc"
         }
       ],
       "responses": [
@@ -1073,7 +1081,7 @@
       "params": [
         {
           "name": "id",
-          "value": "album:Various Artists/Mixtape Volume One"
+          "value": "album:Alpha Artist/Greatest Hits"
         }
       ],
       "responses": [
@@ -1097,7 +1105,7 @@
       "params": [
         {
           "name": "id",
-          "value": "album:Carmine Ensemble/Two Sides"
+          "value": "album:Delta Duo/Greatest Hits"
         }
       ],
       "responses": [
@@ -1116,12 +1124,12 @@
       ]
     },
     {
-      "endpoint": "getSong",
+      "endpoint": "getAlbum",
       "format": "xml",
       "params": [
         {
           "name": "id",
-          "value": "song:Alpha Artist/Single Disc/Together"
+          "value": "album:Various Artists/Mixtape Volume One"
         }
       ],
       "responses": [
@@ -1140,12 +1148,12 @@
       ]
     },
     {
-      "endpoint": "getSong",
+      "endpoint": "getAlbum",
       "format": "xml",
       "params": [
         {
           "name": "id",
-          "value": "song:Alpha Artist/Greatest Hits/Opening"
+          "value": "album:Carmine Ensemble/Two Sides"
         }
       ],
       "responses": [
@@ -1169,7 +1177,7 @@
       "params": [
         {
           "name": "id",
-          "value": "song:Delta Duo/Greatest Hits/First Light"
+          "value": "song:Alpha Artist/Single Disc/Together"
         }
       ],
       "responses": [
@@ -1193,7 +1201,7 @@
       "params": [
         {
           "name": "id",
-          "value": "song:Various Artists/Mixtape Volume One/Hello Again"
+          "value": "song:Alpha Artist/Greatest Hits/Opening"
         }
       ],
       "responses": [
@@ -1217,7 +1225,7 @@
       "params": [
         {
           "name": "id",
-          "value": "song:Carmine Ensemble/Two Sides/Side B One"
+          "value": "song:Delta Duo/Greatest Hits/First Light"
         }
       ],
       "responses": [
@@ -1236,12 +1244,12 @@
       ]
     },
     {
-      "endpoint": "getMusicDirectory",
+      "endpoint": "getSong",
       "format": "xml",
       "params": [
         {
           "name": "id",
-          "value": "folder:Alpha Artist"
+          "value": "song:Various Artists/Mixtape Volume One/Hello Again"
         }
       ],
       "responses": [
@@ -1260,12 +1268,12 @@
       ]
     },
     {
-      "endpoint": "getMusicDirectory",
+      "endpoint": "getSong",
       "format": "xml",
       "params": [
         {
           "name": "id",
-          "value": "folder:Alpha Artist/Greatest Hits"
+          "value": "song:Carmine Ensemble/Two Sides/Side B One"
         }
       ],
       "responses": [
@@ -1289,7 +1297,7 @@
       "params": [
         {
           "name": "id",
-          "value": "folder:Delta Duo"
+          "value": "folder:Alpha Artist"
         }
       ],
       "responses": [
@@ -1313,7 +1321,7 @@
       "params": [
         {
           "name": "id",
-          "value": "folder:Delta Duo/Greatest Hits"
+          "value": "folder:Alpha Artist/Greatest Hits"
         }
       ],
       "responses": [
@@ -1337,7 +1345,7 @@
       "params": [
         {
           "name": "id",
-          "value": "folder:Various Artists"
+          "value": "folder:Delta Duo"
         }
       ],
       "responses": [
@@ -1361,7 +1369,7 @@
       "params": [
         {
           "name": "id",
-          "value": "folder:Various Artists/Mixtape Volume One"
+          "value": "folder:Delta Duo/Greatest Hits"
         }
       ],
       "responses": [
@@ -1385,7 +1393,7 @@
       "params": [
         {
           "name": "id",
-          "value": "folder:Borealis Trio"
+          "value": "folder:Various Artists"
         }
       ],
       "responses": [
@@ -1409,7 +1417,7 @@
       "params": [
         {
           "name": "id",
-          "value": "folder:Borealis Trio/Double Feature"
+          "value": "folder:Various Artists/Mixtape Volume One"
         }
       ],
       "responses": [
@@ -1424,6 +1432,102 @@
           "status": 200,
           "content_type": "application/xml",
           "body": "058-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getMusicDirectory",
+      "format": "xml",
+      "params": [
+        {
+          "name": "id",
+          "value": "folder:Borealis Trio"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "059-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "059-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getMusicDirectory",
+      "format": "xml",
+      "params": [
+        {
+          "name": "id",
+          "value": "folder:Borealis Trio/Double Feature"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "060-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "060-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getMusicDirectory",
+      "format": "xml",
+      "params": [
+        {
+          "name": "id",
+          "value": "folder:Carmine Ensemble"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "061-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "061-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getMusicDirectory",
+      "format": "xml",
+      "params": [
+        {
+          "name": "id",
+          "value": "folder:Carmine Ensemble/Two Sides"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "062-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "062-navidrome.xml"
         }
       ]
     }

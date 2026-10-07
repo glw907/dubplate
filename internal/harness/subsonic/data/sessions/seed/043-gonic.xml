@@ -1,13 +1,18 @@
 <subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
-    <album id="al-13" created="2026-10-07T07:46:30.716268355Z" artistId="ar-5" artist="Delta Duo" displayArtist="Delta Duo" title="Greatest Hits" album="Greatest Hits" name="Greatest Hits" songCount="2" duration="0" playCount="0" year="2012">
-        <artists id="ar-5" name="Delta Duo"></artists>
-        <song id="tr-16" album="Greatest Hits" albumId="al-13" artist="Delta Duo" artistId="ar-5" displayArtist="Delta Duo" displayAlbumArtist="Delta Duo" bitRate="40" contentType="audio/flac" created="2026-10-07T07:46:30.716268355Z" isDir="false" isVideo="false" parent="al-13" path="Delta Duo/Greatest Hits/01 First Light.flac" size="10547" suffix="flac" title="First Light" track="1" type="music" year="2012" musicBrainzId="">
-            <artists id="ar-5" name="Delta Duo"></artists>
-            <albumArtists id="ar-5" name="Delta Duo"></albumArtists>
+    <album id="al-5" created="2026-10-07T08:00:37.117357513Z" artistId="ar-1" artist="Alpha Artist" displayArtist="Alpha Artist" title="Single Disc" album="Single Disc" coverArt="al-5" name="Single Disc" songCount="3" duration="6" playCount="0" year="2001">
+        <artists id="ar-1" name="Alpha Artist"></artists>
+        <song id="tr-5" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="47" contentType="audio/flac" coverArt="al-5" created="2026-10-07T08:00:37.117357513Z" duration="2" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/01 Opening.flac" size="20433" suffix="flac" title="Opening" track="1" discNumber="1" type="music" year="2001" musicBrainzId="9a1b2c3d-0000-4000-8000-0000000000c1">
+            <artists id="ar-1" name="Alpha Artist"></artists>
+            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
         </song>
-        <song id="tr-17" album="Greatest Hits" albumId="al-13" artist="Delta Duo" artistId="ar-5" displayArtist="Delta Duo" displayAlbumArtist="Delta Duo" bitRate="50" contentType="audio/flac" created="2026-10-07T07:46:30.716634765Z" isDir="false" isVideo="false" parent="al-13" path="Delta Duo/Greatest Hits/02 Last Light.flac" size="11035" suffix="flac" title="Last Light" track="2" type="music" year="2012" musicBrainzId="">
-            <artists id="ar-5" name="Delta Duo"></artists>
-            <albumArtists id="ar-5" name="Delta Duo"></albumArtists>
+        <song id="tr-6" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="40" contentType="audio/flac" coverArt="al-5" created="2026-10-07T08:00:37.117816386Z" duration="2" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/02 Middle.flac" size="18724" suffix="flac" title="Middle" track="2" discNumber="1" type="music" year="2001" musicBrainzId="">
+            <artists id="ar-1" name="Alpha Artist"></artists>
+            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
+        </song>
+        <song id="tr-7" album="Single Disc" albumId="al-5" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist feat. Guest Singer" displayAlbumArtist="Alpha Artist" bitRate="49" contentType="audio/flac" coverArt="al-5" created="2026-10-07T08:00:37.11823489Z" duration="2" isDir="false" isVideo="false" parent="al-5" path="Alpha Artist/Single Disc/03 Together.flac" size="21127" suffix="flac" title="Together" track="3" discNumber="1" type="music" year="2001" musicBrainzId="">
+            <artists id="ar-1" name="Alpha Artist"></artists>
+            <artists id="ar-2" name="Guest Singer"></artists>
+            <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
         </song>
         <isCompilation>false</isCompilation>
         <releaseTypes></releaseTypes>

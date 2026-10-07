@@ -1,6 +1,23 @@
 <subsonic-response status="ok" version="1.15.0" xmlns="http://subsonic.org/restapi" type="gonic" serverVersion="0.22.0" openSubsonic="true">
-    <song id="tr-1" album="Greatest Hits" albumId="al-3" artist="Alpha Artist" artistId="ar-1" displayArtist="Alpha Artist" displayAlbumArtist="Alpha Artist" bitRate="47" contentType="audio/flac" coverArt="al-3" created="2026-10-07T07:46:30.715699523Z" isDir="false" isVideo="false" parent="al-3" path="Alpha Artist/Greatest Hits/01 Opening.flac" size="10884" suffix="flac" title="Opening" track="1" type="music" year="2010" musicBrainzId="">
-        <artists id="ar-1" name="Alpha Artist"></artists>
-        <albumArtists id="ar-1" name="Alpha Artist"></albumArtists>
-    </song>
+    <album id="al-11" created="2026-10-07T08:00:37.122656383Z" artistId="ar-4" artist="Carmine Ensemble" displayArtist="Carmine Ensemble" title="Two Sides" album="Two Sides" coverArt="tr-12" name="Two Sides" songCount="4" duration="8" playCount="0" year="1985">
+        <artists id="ar-4" name="Carmine Ensemble"></artists>
+        <song id="tr-12" album="Two Sides" albumId="al-11" artist="Carmine Ensemble" artistId="ar-4" displayArtist="Carmine Ensemble" displayAlbumArtist="Carmine Ensemble" bitRate="49" contentType="audio/flac" coverArt="tr-12" created="2026-10-07T08:00:37.122656383Z" duration="2" isDir="false" isVideo="false" parent="al-11" path="Carmine Ensemble/Two Sides/1-01 Side A One.flac" size="23243" suffix="flac" title="Side A One" track="1" discNumber="1" type="music" year="1985" musicBrainzId="">
+            <artists id="ar-4" name="Carmine Ensemble"></artists>
+            <albumArtists id="ar-4" name="Carmine Ensemble"></albumArtists>
+        </song>
+        <song id="tr-13" album="Two Sides" albumId="al-11" artist="Carmine Ensemble" artistId="ar-4" displayArtist="Carmine Ensemble" displayAlbumArtist="Carmine Ensemble" bitRate="47" contentType="audio/flac" coverArt="tr-13" created="2026-10-07T08:00:37.12320724Z" duration="2" isDir="false" isVideo="false" parent="al-11" path="Carmine Ensemble/Two Sides/1-02 Side A Two.flac" size="22557" suffix="flac" title="Side A Two" track="2" discNumber="1" type="music" year="1985" musicBrainzId="">
+            <artists id="ar-4" name="Carmine Ensemble"></artists>
+            <albumArtists id="ar-4" name="Carmine Ensemble"></albumArtists>
+        </song>
+        <song id="tr-14" album="Two Sides" albumId="al-11" artist="Carmine Ensemble" artistId="ar-4" displayArtist="Carmine Ensemble" displayAlbumArtist="Carmine Ensemble" bitRate="47" contentType="audio/flac" coverArt="tr-14" created="2026-10-07T08:00:37.123545713Z" duration="2" isDir="false" isVideo="false" parent="al-11" path="Carmine Ensemble/Two Sides/2-01 Side B One.flac" size="22557" suffix="flac" title="Side B One" track="1" discNumber="2" type="music" year="1985" musicBrainzId="">
+            <artists id="ar-4" name="Carmine Ensemble"></artists>
+            <albumArtists id="ar-4" name="Carmine Ensemble"></albumArtists>
+        </song>
+        <song id="tr-15" album="Two Sides" albumId="al-11" artist="Carmine Ensemble" artistId="ar-4" displayArtist="Carmine Ensemble" displayAlbumArtist="Carmine Ensemble" bitRate="40" contentType="audio/flac" coverArt="tr-15" created="2026-10-07T08:00:37.123866165Z" duration="2" isDir="false" isVideo="false" parent="al-11" path="Carmine Ensemble/Two Sides/2-02 Side B Two.flac" size="20909" suffix="flac" title="Side B Two" track="2" discNumber="2" type="music" year="1985" musicBrainzId="">
+            <artists id="ar-4" name="Carmine Ensemble"></artists>
+            <albumArtists id="ar-4" name="Carmine Ensemble"></albumArtists>
+        </song>
+        <isCompilation>false</isCompilation>
+        <releaseTypes></releaseTypes>
+    </album>
 </subsonic-response>
