@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"errors"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // TestRegisterAuthConfig_SelectorIsOwnedNow proves the selector lands as
@@ -166,65 +168,6 @@ func filler(n int) string {
 	return strings.Repeat("ab", n/2+1)[:n]
 }
 
-// TestRegisterAuthConfig_ThresholdDefaults proves all ten thresholds
-// registerAuthConfig declares carry their literal keys, kinds, and
-// defaults, asserted against the fixed literals rather than by reading
-// the declaration back. The four durations trace to R-5b10; the four
-// rates and the unknown-address answer trace to fork 3's ruled
-// defaults (spec:216-229) and R25/fork 4 respectively; the auth
-// request body cap traces to the stated reason on its own declaration
-// (auth.go, authRequestBodyCapFloor/Ceiling's doc comment): 4KiB
-// comfortably fits the login form's mailed-address field. Each row
-// runs against both a fresh registry and productionRegistry(), on
-// TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass's own
-// precedent (serve_test.go), so a threshold that reaches the binary's
-// own registry only through a path registerAuthConfig alone does not
-// exercise is still caught.
-func TestRegisterAuthConfig_ThresholdDefaults(t *testing.T) {
-	tests := []struct {
-		name    string
-		key     string
-		kind    config.ThresholdKind
-		wantDef string
-	}{
-		{"magic link expiry", "DUBPLATE_MAGIC_LINK_EXPIRY", config.KindDuration, "15m"},
-		{"session lifetime", "DUBPLATE_SESSION_LIFETIME", config.KindDuration, "2160h"},
-		{"session absolute cap", "DUBPLATE_SESSION_ABSOLUTE_CAP", config.KindDuration, "4320h"},
-		{"nonce retention", "DUBPLATE_NONCE_RETENTION", config.KindDuration, "24h"},
-		{"link requests per address", "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", config.KindInt, "5"},
-		{"link requests per client", "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", config.KindInt, "20"},
-		{"consumption attempts per client", "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", config.KindInt, "30"},
-		{"link mail ceiling", "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", config.KindInt, "60"},
-		{"auth request body cap", "DUBPLATE_AUTH_REQUEST_BODY_CAP", config.KindInt, "4096"},
-		{"unknown address answer", "DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind"},
-	}
-
-	registries := map[string]*config.Registry{
-		"fresh":      config.NewRegistry(),
-		"production": productionRegistry(),
-	}
-	registerAuthConfig(registries["fresh"])
-
-	for regName, reg := range registries {
-		thresholds := reg.Thresholds()
-		for _, tt := range tests {
-			t.Run(regName+"/"+tt.name, func(t *testing.T) {
-				i := slices.IndexFunc(thresholds, func(th config.Threshold) bool { return th.Key == tt.key })
-				if i < 0 {
-					t.Fatalf("Thresholds() has no %s", tt.key)
-				}
-				th := thresholds[i]
-				if th.Kind != tt.kind {
-					t.Errorf("Kind = %v, want %v", th.Kind, tt.kind)
-				}
-				if th.Default != tt.wantDef {
-					t.Errorf("Default = %q, want %q", th.Default, tt.wantDef)
-				}
-			})
-		}
-	}
-}
-
 // TestValidateMagicLinkSource_SecretLengthFloor proves the byte-length
 // floor on every one of the four secret keys, including both
 // rotation-overlap keys and a multi-byte fixture proving the count is
@@ -343,337 +286,6 @@ func TestValidateMagicLinkSource_PublicURLNeverEchoesTheValue(t *testing.T) {
 	}
 }
 
-// TestValidateMagicLinkSource_NonceRetention proves R31's floor is
-// inclusive: a retention equal to the link expiry passes and one below
-// it fails, both read from the environment snapshot as thresholds
-// rather than source keys.
-func TestValidateMagicLinkSource_NonceRetention(t *testing.T) {
-	tests := []struct {
-		name      string
-		expiry    string
-		retention string
-		wantErr   bool
-	}{
-		{"retention equal to expiry", "15m", "15m", false},
-		{"retention one minute below expiry", "15m", "14m", true},
-		{"retention well above expiry", "15m", "24h", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			environ := append(baseEnviron(),
-				"DUBPLATE_MAGIC_LINK_EXPIRY="+tt.expiry,
-				"DUBPLATE_NONCE_RETENTION="+tt.retention,
-			)
-			err := validateMagicLinkSource(nil, environ)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err != nil {
-				for _, key := range []string{"DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"} {
-					if !strings.Contains(err.Error(), key) {
-						t.Errorf("error = %q, want it to name %s", err.Error(), key)
-					}
-				}
-			}
-		})
-	}
-}
-
-// TestValidateMagicLinkSource_NonceRetentionNamesBothKeysAsDistinctErrors
-// proves R-5c10's keyed-type mechanism directly: a retention-vs-expiry
-// refusal joins two distinct *sourceKeyError values, one per key, so
-// doctor's errors.As walk (cmd/dubplate-server/doctor.go,
-// identitySourceStatus) can recover both rather than only the one whose
-// message happens to come first.
-func TestValidateMagicLinkSource_NonceRetentionNamesBothKeysAsDistinctErrors(t *testing.T) {
-	environ := append(baseEnviron(),
-		"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
-		"DUBPLATE_NONCE_RETENTION=14m",
-	)
-	err := validateMagicLinkSource(nil, environ)
-	if err == nil {
-		t.Fatal("validateMagicLinkSource() error = nil, want a refusal: retention is below expiry")
-	}
-
-	joined, ok := err.(interface{ Unwrap() []error })
-	if !ok {
-		t.Fatalf("validateMagicLinkSource() error does not implement Unwrap() []error: %v", err)
-	}
-
-	var keys []string
-	for _, leaf := range joined.Unwrap() {
-		if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok {
-			keys = append(keys, keyed.key)
-		}
-	}
-	for _, want := range []string{"DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"} {
-		if !slices.Contains(keys, want) {
-			t.Errorf("keyed errors named %v, want %s among them", keys, want)
-		}
-	}
-}
-
-// TestValidateMagicLinkSource_DurationBounds proves the review m5 fix:
-// each of the four thresholds refuses at and one past its floor, and
-// the two that carry a ceiling (the link expiry and the session
-// absolute cap) refuse at and one past it too. The link expiry's own
-// floor is one minute, not durationFloor's one second, because a mail
-// that quotes the expiry in minutes must never read "0 minutes". Every
-// literal below is written out rather than derived from durationFloor,
-// magicLinkExpiryFloor, magicLinkExpiryCeiling, or
-// sessionAbsoluteCapCeiling, so the test cannot pass by echoing the
-// code under test.
-func TestValidateMagicLinkSource_DurationBounds(t *testing.T) {
-	// bound overrides one threshold key in a base environ that
-	// otherwise satisfies every other threshold and relation, so a
-	// row's own refusal is the only one that can fire.
-	bound := func(key, value string) []string {
-		environ := append(baseEnviron(),
-			"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
-			"DUBPLATE_SESSION_LIFETIME=2160h",
-			"DUBPLATE_SESSION_ABSOLUTE_CAP=4320h",
-			"DUBPLATE_NONCE_RETENTION=24h",
-		)
-		return append(dropKey(environ, key), key+"="+value)
-	}
-
-	tests := []struct {
-		name    string
-		environ []string
-		wantErr bool
-	}{
-		// A positive floor on all four (review m5): zero or a negative
-		// duration cannot mean "never" or "immediately" here. The link
-		// expiry's own floor is one minute; the other three keep the
-		// one-second floor.
-		{"link expiry at the one-minute floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1m"), false},
-		{"link expiry one second below the floor", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "59s"), true},
-		{"session lifetime at the one-second floor", bound("DUBPLATE_SESSION_LIFETIME", "1s"), false},
-		{"session lifetime one below the floor (zero)", bound("DUBPLATE_SESSION_LIFETIME", "0s"), true},
-		// The cap row's own floor is asserted with the session lifetime
-		// also lowered to one second, so R-5c11's separate
-		// lifetime-vs-cap relation cannot fire alongside it.
-		{"session absolute cap at the one-second floor", append(bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "1s"), "DUBPLATE_SESSION_LIFETIME=1s"), false},
-		{"session absolute cap one below the floor (zero)", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "0s"), true},
-		// The retention row's own floor is asserted with the link
-		// expiry also lowered to its own one-minute floor, so R31's
-		// separate retention-vs-expiry relation cannot fire alongside
-		// it: retention's 1s floor can no longer stand alone once
-		// expiry's floor is a full minute above it.
-		{"nonce retention equal to the link expiry at its one-minute floor (the retention-vs-expiry relation, not retention's 1s floor, sets the minimum)", append(bound("DUBPLATE_NONCE_RETENTION", "1m"), "DUBPLATE_MAGIC_LINK_EXPIRY=1m"), false},
-		{"nonce retention one below the floor (zero)", bound("DUBPLATE_NONCE_RETENTION", "0s"), true},
-
-		// A ceiling of one hour on the link expiry (review m5): the
-		// threat model bounds the mail-scanner residual at "a
-		// 15-minute default expiry", and an hour is the generous
-		// headroom the fix admits above it.
-		{"link expiry at the one-hour ceiling", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1h"), false},
-		{"link expiry one second past the ceiling", bound("DUBPLATE_MAGIC_LINK_EXPIRY", "1h0m1s"), true},
-
-		// A ceiling of two years on the session absolute cap (review
-		// m5): generous headroom above the 4320h default without
-		// admitting a cap that is, in practice, permanent.
-		{"session absolute cap at the two-year ceiling", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "17520h"), false},
-		{"session absolute cap one hour past the ceiling", bound("DUBPLATE_SESSION_ABSOLUTE_CAP", "17521h"), true},
-
-		// A ceiling of 240h on nonce retention (R-5c11), ten times its
-		// 24h default on the same ten-times rule the rate thresholds'
-		// ceilings already follow.
-		{"nonce retention at the 240h ceiling", bound("DUBPLATE_NONCE_RETENTION", "240h"), false},
-		{"nonce retention one second past the ceiling", bound("DUBPLATE_NONCE_RETENTION", "240h0m1s"), true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateMagicLinkSource(nil, tt.environ)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-// TestValidateMagicLinkSource_ExpiryBelowFloorNamesKeyNotValue proves
-// the mail-copy fix's load-time half directly on
-// [validateMagicLinkSource]: a link expiry one second below the
-// one-minute floor refuses with a *sourceKeyError naming
-// DUBPLATE_MAGIC_LINK_EXPIRY, and the joined error's own text never
-// quotes the submitted "59s".
-func TestValidateMagicLinkSource_ExpiryBelowFloorNamesKeyNotValue(t *testing.T) {
-	bound := func(key, value string) []string {
-		environ := append(baseEnviron(),
-			"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
-			"DUBPLATE_SESSION_LIFETIME=2160h",
-			"DUBPLATE_SESSION_ABSOLUTE_CAP=4320h",
-			"DUBPLATE_NONCE_RETENTION=24h",
-		)
-		return append(dropKey(environ, key), key+"="+value)
-	}
-
-	err := validateMagicLinkSource(nil, bound("DUBPLATE_MAGIC_LINK_EXPIRY", "59s"))
-	if err == nil {
-		t.Fatal("validateMagicLinkSource() error = nil, want a refusal")
-	}
-
-	joined, ok := err.(interface{ Unwrap() []error })
-	if !ok {
-		t.Fatalf("validateMagicLinkSource() error does not implement Unwrap() []error: %v", err)
-	}
-
-	var found bool
-	for _, leaf := range joined.Unwrap() {
-		if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok && keyed.key == "DUBPLATE_MAGIC_LINK_EXPIRY" {
-			found = true
-		}
-	}
-	if !found {
-		t.Errorf("validateMagicLinkSource() error = %v, want a *sourceKeyError keyed DUBPLATE_MAGIC_LINK_EXPIRY", err)
-	}
-	if strings.Contains(err.Error(), "59s") {
-		t.Errorf("validateMagicLinkSource() error = %q, want it to never quote the submitted value", err.Error())
-	}
-}
-
-// TestDoctorCmd_MagicLinkExpiryBelowFloorNamesKeyNotValue proves the
-// mail-copy fix's load-time half end to end: a link expiry below the
-// one-minute floor makes doctor's magic-link source row report
-// DUBPLATE_MAGIC_LINK_EXPIRY unsatisfied, reading the refusal through
-// [sourceKeyError] the same way [identitySourceStatus] already does
-// for every other threshold. That row's own reporting names only the
-// key, never the submitted "59s" (identitySourceStatus's fail() writes
-// "key invalid", nothing else), the same key-only discipline the
-// nonce-retention-vs-expiry relation already relies on.
-func TestDoctorCmd_MagicLinkExpiryBelowFloorNamesKeyNotValue(t *testing.T) {
-	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
-	environ = dropKey(environ, "DUBPLATE_MAGIC_LINK_EXPIRY")
-	environ = append(environ, "DUBPLATE_MAGIC_LINK_EXPIRY=59s")
-
-	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetOut(&stdout)
-
-	if err := cmd.Execute(); err == nil {
-		t.Fatal("Execute() error = nil, want error")
-	}
-
-	wantPrefix := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied: DUBPLATE_MAGIC_LINK_EXPIRY invalid")
-	var sourceLine string
-	for line := range strings.SplitSeq(stdout.String(), "\n") {
-		if strings.HasPrefix(line, wantPrefix) {
-			sourceLine = line
-			break
-		}
-	}
-	if sourceLine == "" {
-		t.Fatalf("stdout = %q, want a line with prefix %q", stdout.String(), wantPrefix)
-	}
-	if strings.Contains(sourceLine, "59s") {
-		t.Errorf("magic-link row = %q, want it to never quote the submitted value", sourceLine)
-	}
-}
-
-// TestValidateMagicLinkSource_RateAndCapBounds proves the fix rung
-// 5b-ii Task 3 adds: fork 3's four remaining rates and the auth
-// request body cap each refuse at and one past their floor, and each
-// refuse at and one past their ceiling. Every literal is written out
-// rather than derived from rateFloor or a *Ceiling constant, so the
-// test cannot pass by echoing the code under test.
-func TestValidateMagicLinkSource_RateAndCapBounds(t *testing.T) {
-	// intBound overrides one threshold key in a base environ that
-	// otherwise satisfies every other threshold and relation.
-	intBound := func(key string, value int) []string {
-		environ := append(baseEnviron(),
-			"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR=5",
-			"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR=20",
-			"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR=30",
-			"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR=60",
-			"DUBPLATE_AUTH_REQUEST_BODY_CAP=4096",
-		)
-		return append(dropKey(environ, key), fmt.Sprintf("%s=%d", key, value))
-	}
-
-	tests := []struct {
-		name    string
-		environ []string
-		wantErr bool
-	}{
-		{"link requests per address at the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 1), false},
-		{"link requests per address one below the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 0), true},
-		{"link requests per address at the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 50), false},
-		{"link requests per address one past the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", 51), true},
-
-		{"link requests per client at the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 1), false},
-		{"link requests per client one below the floor", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 0), true},
-		{"link requests per client at the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 200), false},
-		{"link requests per client one past the ceiling", intBound("DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", 201), true},
-
-		{"consumption attempts per client at the floor", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 1), false},
-		{"consumption attempts per client one below the floor", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 0), true},
-		{"consumption attempts per client at the ceiling", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 300), false},
-		{"consumption attempts per client one past the ceiling", intBound("DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", 301), true},
-
-		{"link mail ceiling at the floor", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 1), false},
-		{"link mail ceiling one below the floor", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 0), true},
-		{"link mail ceiling at its own ceiling", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 600), false},
-		{"link mail ceiling one past its own ceiling", intBound("DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", 601), true},
-
-		{"auth request body cap at the floor", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 512), false},
-		{"auth request body cap one below the floor", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 511), true},
-		{"auth request body cap at the ceiling", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 65536), false},
-		{"auth request body cap one past the ceiling", intBound("DUBPLATE_AUTH_REQUEST_BODY_CAP", 65537), true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateMagicLinkSource(nil, tt.environ)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-// TestValidateMagicLinkSource_SessionLifetimeAboveCap proves R-5c11's
-// load-time half: a lifetime at or below the cap loads, and one above it
-// refuses naming both keys. The doctor-level repro (lifetime 87600h,
-// cap 1h) is proved separately, through the doctor harness, in
-// doctor_test.go.
-func TestValidateMagicLinkSource_SessionLifetimeAboveCap(t *testing.T) {
-	tests := []struct {
-		name     string
-		lifetime string
-		cap      string
-		wantErr  bool
-	}{
-		{"lifetime equal to the cap", "4320h", "4320h", false},
-		{"lifetime below the cap", "2160h", "4320h", false},
-		{"lifetime one hour above the cap", "4321h", "4320h", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			environ := append(baseEnviron(),
-				"DUBPLATE_MAGIC_LINK_EXPIRY=15m",
-				"DUBPLATE_SESSION_LIFETIME="+tt.lifetime,
-				"DUBPLATE_SESSION_ABSOLUTE_CAP="+tt.cap,
-				"DUBPLATE_NONCE_RETENTION=24h",
-			)
-			err := validateMagicLinkSource(nil, environ)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err != nil {
-				for _, key := range []string{"DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"} {
-					if !strings.Contains(err.Error(), key) {
-						t.Errorf("error = %q, want it to name %s", err.Error(), key)
-					}
-				}
-			}
-		})
-	}
-}
-
 // TestValidateMagicLinkSource_SMTPPort proves R-5c11's port bound: 1
 // and 65535 are the accepted extremes, 0 and 65536 each refuse naming
 // the key, and a non-integer value refuses too (named mutation 6: an
@@ -701,43 +313,6 @@ func TestValidateMagicLinkSource_SMTPPort(t *testing.T) {
 			}
 			if err != nil && !strings.Contains(err.Error(), "DUBPLATE_SMTP_PORT") {
 				t.Errorf("error = %q, want it to name DUBPLATE_SMTP_PORT", err.Error())
-			}
-		})
-	}
-}
-
-// TestValidateMagicLinkSource_UnknownAddressAnswer proves R-5b22's
-// accepted set: kind and generic pass, and every other value refuses
-// with an error naming both accepted values, written out rather than
-// read back from unknownAddressAnswerThreshold.
-func TestValidateMagicLinkSource_UnknownAddressAnswer(t *testing.T) {
-	tests := []struct {
-		name    string
-		answer  string
-		wantErr bool
-	}{
-		{"kind", "kind", false},
-		{"generic", "generic", false},
-		{"unrecognized", "silent", true},
-		{"empty falls to the default", "", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			environ := dropKey(baseEnviron(), "DUBPLATE_UNKNOWN_ADDRESS_ANSWER")
-			if tt.answer != "" {
-				environ = append(environ, "DUBPLATE_UNKNOWN_ADDRESS_ANSWER="+tt.answer)
-			}
-			err := validateMagicLinkSource(nil, environ)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("validateMagicLinkSource() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err != nil {
-				for _, want := range []string{"kind", "generic"} {
-					if !strings.Contains(err.Error(), want) {
-						t.Errorf("error = %q, want it to name %s", err.Error(), want)
-					}
-				}
 			}
 		})
 	}
@@ -819,77 +394,6 @@ func TestConfigLoad_MagicLinkValidationJoinsOtherErrors(t *testing.T) {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("Load() error = %q, want it to name %s", err.Error(), want)
 		}
-	}
-}
-
-// TestResolveAuthConfig proves the resolver reads all ten thresholds'
-// defaults when unset and an adopter's override when set, on
-// resolveServeConfig's own precedent. want is built field by field
-// rather than by re-deriving [authConfig] from the registry, so a
-// resolver that reads the wrong threshold into the wrong field is
-// caught by a mismatch against a value this test owns (named mutation
-// 4: a swapped field reads a rate as a cap).
-func TestResolveAuthConfig(t *testing.T) {
-	tests := []struct {
-		name    string
-		environ []string
-		want    authConfig
-	}{
-		{
-			name:    "defaults",
-			environ: baseEnviron(),
-			want: authConfig{
-				magicLinkExpiry:              15 * time.Minute,
-				sessionLifetime:              2160 * time.Hour,
-				sessionAbsoluteCap:           4320 * time.Hour,
-				nonceRetention:               24 * time.Hour,
-				linkRequestsPerAddress:       5,
-				linkRequestsPerClient:        20,
-				consumptionAttemptsPerClient: 30,
-				linkMailCeiling:              60,
-				authRequestBodyCap:           4096,
-				unknownAddressAnswer:         "kind",
-			},
-		},
-		{
-			name: "overrides",
-			environ: append(baseEnviron(),
-				"DUBPLATE_MAGIC_LINK_EXPIRY=10m",
-				"DUBPLATE_SESSION_LIFETIME=1h",
-				"DUBPLATE_SESSION_ABSOLUTE_CAP=2h",
-				"DUBPLATE_NONCE_RETENTION=1h",
-				"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR=7",
-				"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR=22",
-				"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR=33",
-				"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR=66",
-				"DUBPLATE_AUTH_REQUEST_BODY_CAP=8192",
-				"DUBPLATE_UNKNOWN_ADDRESS_ANSWER=generic",
-			),
-			want: authConfig{
-				magicLinkExpiry:              10 * time.Minute,
-				sessionLifetime:              time.Hour,
-				sessionAbsoluteCap:           2 * time.Hour,
-				nonceRetention:               time.Hour,
-				linkRequestsPerAddress:       7,
-				linkRequestsPerClient:        22,
-				consumptionAttemptsPerClient: 33,
-				linkMailCeiling:              66,
-				authRequestBodyCap:           8192,
-				unknownAddressAnswer:         "generic",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := resolveAuthConfig(tt.environ)
-			if err != nil {
-				t.Fatalf("resolveAuthConfig() error = %v", err)
-			}
-			if got != tt.want {
-				t.Errorf("resolveAuthConfig() = %+v, want %+v", got, tt.want)
-			}
-		})
 	}
 }
 
@@ -988,4 +492,303 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 			t.Errorf("leaf verbs = %q, want %q: classify a new verb as a wall loader (add it to verbs) or a non-loader", leaves, want)
 		}
 	})
+}
+
+// TestRegisterAuthConfig_Settings proves the ten auth settings carry
+// their literal keys, kinds, defaults, bounds, apply modes, and
+// sensitive marks, asserted against fixed literals rather than read
+// back from the declarations, on a fresh registry and on the binary's
+// own. None of the ten may remain a threshold: a key that was both
+// would be read from the environment at its point of use, past the
+// seed rule.
+func TestRegisterAuthConfig_Settings(t *testing.T) {
+	tests := []struct {
+		key            string
+		kind           config.ThresholdKind
+		def            string
+		floor, ceiling string
+		values         []string
+		apply          config.ApplyMode
+		sensitive      bool
+	}{
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", config.KindDuration, "15m", "1m", "1h0m0s", nil, config.ApplyNextOperation, true},
+		{"DUBPLATE_SESSION_LIFETIME", config.KindDuration, "2160h", "1s", "17520h", nil, config.ApplyNextOperation, true},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", config.KindDuration, "4320h", "1s", "17520h", nil, config.ApplyImmediately, true},
+		{"DUBPLATE_NONCE_RETENTION", config.KindDuration, "24h", "1s", "240h", nil, config.ApplyNextOperation, false},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", config.KindInt, "5", "1", "50", nil, config.ApplyRestart, false},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", config.KindInt, "20", "1", "200", nil, config.ApplyRestart, false},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", config.KindInt, "30", "1", "300", nil, config.ApplyRestart, false},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", config.KindInt, "60", "1", "600", nil, config.ApplyRestart, false},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", config.KindInt, "4096", "512", "65536", nil, config.ApplyNextOperation, false},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind", "", "", []string{"kind", "generic"}, config.ApplyNextOperation, false},
+	}
+
+	fresh := config.NewRegistry()
+	registerAuthConfig(fresh)
+	for regName, reg := range map[string]*config.Registry{"fresh": fresh, "production": productionRegistry()} {
+		settingsList := reg.Settings()
+		for _, tt := range tests {
+			t.Run(regName+"/"+tt.key, func(t *testing.T) {
+				i := slices.IndexFunc(settingsList, func(s config.Setting) bool { return s.Key == tt.key })
+				if i < 0 {
+					t.Fatalf("Settings() has no %s", tt.key)
+				}
+				s := settingsList[i]
+				if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling ||
+					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || s.Sensitive != tt.sensitive {
+					t.Errorf("setting = kind %v default %q floor %q ceiling %q values %q apply %v sensitive %v, want %v %q %q %q %q %v %v",
+						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Sensitive,
+						tt.kind, tt.def, tt.floor, tt.ceiling, tt.values, tt.apply, tt.sensitive)
+				}
+				if slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool { return th.Key == tt.key }) {
+					t.Errorf("%s is still a threshold", tt.key)
+				}
+			})
+		}
+	}
+}
+
+// TestAuthSettings_Bounds walks every auth setting's bound through the
+// validator the production registry built: a value at each bound is
+// accepted and one step past it refused, naming the key and the bound.
+// Every literal is written out rather than derived from a declaration,
+// so the test cannot pass by echoing the code under test.
+func TestAuthSettings_Bounds(t *testing.T) {
+	tests := []struct {
+		key, value string
+		want       string // empty: accepted
+	}{
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "1m", ""},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "59s", "below the floor 1m"},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "1h", ""},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "1h0m1s", "above the ceiling 1h0m0s"},
+		{"DUBPLATE_SESSION_LIFETIME", "1s", ""},
+		{"DUBPLATE_SESSION_LIFETIME", "0s", "below the floor 1s"},
+		{"DUBPLATE_SESSION_LIFETIME", "17520h", ""},
+		{"DUBPLATE_SESSION_LIFETIME", "17521h", "above the ceiling 17520h"},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "1s", ""},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "0s", "below the floor 1s"},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "17520h", ""},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "17521h", "above the ceiling 17520h"},
+		{"DUBPLATE_NONCE_RETENTION", "1s", ""},
+		{"DUBPLATE_NONCE_RETENTION", "0s", "below the floor 1s"},
+		{"DUBPLATE_NONCE_RETENTION", "240h", ""},
+		{"DUBPLATE_NONCE_RETENTION", "240h0m1s", "above the ceiling 240h"},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "1", ""},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "0", "below the floor 1"},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "50", ""},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "51", "above the ceiling 50"},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "1", ""},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "0", "below the floor 1"},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "200", ""},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "201", "above the ceiling 200"},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "1", ""},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "0", "below the floor 1"},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "300", ""},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "301", "above the ceiling 300"},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "1", ""},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "0", "below the floor 1"},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "600", ""},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "601", "above the ceiling 600"},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "512", ""},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "511", "below the floor 512"},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "65536", ""},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "65537", "above the ceiling 65536"},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "kind", ""},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", ""},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "open", `"open" is not one of kind, generic`},
+	}
+
+	registered := productionRegistry().Settings()
+	for _, tt := range tests {
+		t.Run(tt.key+"="+tt.value, func(t *testing.T) {
+			i := slices.IndexFunc(registered, func(s config.Setting) bool { return s.Key == tt.key })
+			if i < 0 {
+				t.Fatalf("no setting %s", tt.key)
+			}
+			err := registered[i].Validate(tt.value)
+			if tt.want == "" {
+				if err != nil {
+					t.Errorf("Validate(%q) = %v, want nil", tt.value, err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.want) || !strings.Contains(err.Error(), tt.key) {
+				t.Errorf("Validate(%q) = %v, want a refusal naming %s and %q", tt.value, err, tt.key, tt.want)
+			}
+		})
+	}
+}
+
+// TestAuthCorrelatedRules is spec criterion 5 over the real pair: the
+// seed rule runs the two relations over the values in force after the
+// whole seed, never over the stored rows. Each refusal names both
+// keys, on each key's own outcome. Fixture state: a stored retention
+// row of 30m, below the 45m expiry the rows raise it to, so a rule
+// compared against the stored rows or one key at a time would decide
+// differently from one compared after the seed.
+func TestAuthCorrelatedRules(t *testing.T) {
+	const (
+		expiry    = "DUBPLATE_MAGIC_LINK_EXPIRY"
+		retention = "DUBPLATE_NONCE_RETENTION"
+		lifetime  = "DUBPLATE_SESSION_LIFETIME"
+		absCap    = "DUBPLATE_SESSION_ABSOLUTE_CAP"
+	)
+	row := func(key, value, source string) store.SettingsRow {
+		return store.SettingsRow{Key: key, Value: value, Source: source, SeedValue: value}
+	}
+	tests := []struct {
+		name     string
+		rows     []store.SettingsRow
+		env      []string
+		wantKeys []string // nil: passes
+	}{
+		{
+			name: "retention and expiry raised together in one seed set",
+			rows: []store.SettingsRow{row(expiry, "15m", "env-seed"), row(retention, "30m", "env-seed")},
+			env:  []string{expiry + "=45m", retention + "=1h"},
+		},
+		{
+			name:     "only the expiry raised past the stored retention",
+			rows:     []store.SettingsRow{row(expiry, "15m", "env-seed"), row(retention, "30m", "admin")},
+			env:      []string{expiry + "=45m"},
+			wantKeys: []string{expiry, retention},
+		},
+		{
+			name:     "lifetime above the cap",
+			env:      []string{lifetime + "=4321h", absCap + "=4320h"},
+			wantKeys: []string{lifetime, absCap},
+		},
+		{
+			name: "lifetime equal to the cap",
+			env:  []string{lifetime + "=4320h", absCap + "=4320h"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ev := settings.EvaluateFacts(productionRegistry(), tt.env, store.Facts{Settings: tt.rows})
+			if tt.wantKeys == nil {
+				if ev.Err != nil {
+					t.Fatalf("Err = %v, want the pair to pass", ev.Err)
+				}
+				return
+			}
+			if ev.Err == nil {
+				t.Fatal("Err = nil, want the correlated rule's refusal")
+			}
+			for _, o := range ev.Outcomes {
+				if !slices.Contains(tt.wantKeys, o.Key) {
+					continue
+				}
+				if o.Err == nil {
+					t.Errorf("%s: Err = nil, want the rule's refusal on its own outcome", o.Key)
+					continue
+				}
+				for _, key := range tt.wantKeys {
+					if !strings.Contains(o.Err.Error(), key) {
+						t.Errorf("%s: Err = %q, want it to name %s", o.Key, o.Err, key)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestPrepareServe_RefusesAuthCorrelatedRule proves the seed apply,
+// the authority, refuses the start on a broken pair before any
+// listener could open, and writes no row.
+func TestPrepareServe_RefusesAuthCorrelatedRule(t *testing.T) {
+	environ := append(serveAuthEnviron(t),
+		"DUBPLATE_SESSION_LIFETIME=4321h", "DUBPLATE_SESSION_ABSOLUTE_CAP=4320h")
+	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
+	if err == nil || shell != nil {
+		t.Fatalf("prepare = %v, %v, want a refusal", shell, err)
+	}
+	for _, key := range []string{"DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"} {
+		if !strings.Contains(err.Error(), key) {
+			t.Errorf("error = %q, want it to name %s", err, key)
+		}
+	}
+	if rows, _, _ := readSeedState(t, environValue(environ, "DUBPLATE_STATE_DIR")); len(rows) != 0 {
+		t.Errorf("settings = %v after a refused start, want none", rows)
+	}
+}
+
+// TestAuthSettings_SeedFromEnv is spec criterion 10's seed half, the
+// seed table's second row once per auth key: with no stored row and the
+// environment naming a value other than the default, serve's start
+// seeds one env-seed row for the key alone, audits it, and the auth
+// configuration it reads carries that value in the field named for
+// the key. Each want is a literal, so a read into the wrong field
+// fails its row.
+func TestAuthSettings_SeedFromEnv(t *testing.T) {
+	tests := []struct {
+		key, value string
+		got        func(authConfig) any
+		want       any
+	}{
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", func(c authConfig) any { return c.magicLinkExpiry }, 20 * time.Minute},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", func(c authConfig) any { return c.sessionLifetime }, time.Hour},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(c authConfig) any { return c.sessionAbsoluteCap }, 4000 * time.Hour},
+		{"DUBPLATE_NONCE_RETENTION", "2h", func(c authConfig) any { return c.nonceRetention }, 2 * time.Hour},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", func(c authConfig) any { return c.linkRequestsPerAddress }, 7},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", func(c authConfig) any { return c.linkRequestsPerClient }, 22},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", func(c authConfig) any { return c.consumptionAttemptsPerClient }, 33},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", func(c authConfig) any { return c.linkMailCeiling }, 66},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", func(c authConfig) any { return c.authRequestBodyCap }, 8192},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", func(c authConfig) any { return c.unknownAddressAnswer }, "generic"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.key, func(t *testing.T) {
+			environ := append(serveAuthEnviron(t), tt.key+"="+tt.value)
+			if _, err := buildServeShellWithLogger(t, environ, discardTestLogger()); err != nil {
+				t.Fatalf("prepare: %v", err)
+			}
+
+			rows, audit, _ := readSeedState(t, environValue(environ, "DUBPLATE_STATE_DIR"))
+			if want := map[string]settingRow{tt.key: {tt.value, "env-seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
+				t.Errorf("settings = %v, want %v", rows, want)
+			}
+			if want := "seed system env-seed " + tt.key; !slices.Equal(audit, []string{want}) {
+				t.Errorf("audit = %q, want [%q]", audit, want)
+			}
+			cfg, err := storeAuthConfig(t.Context(), environ)
+			if err != nil {
+				t.Fatalf("storeAuthConfig: %v", err)
+			}
+			if got := tt.got(cfg); got != tt.want {
+				t.Errorf("authConfig field = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestAuthSettings_StringRowSecondStart proves a seeded string row
+// survives the next start: the stored env-seed row equals the
+// environment, so the second start leaves it, writes no audit row, and
+// does not refuse. The first start is what stores the row, so the
+// second meets exactly the state every restart after it meets.
+func TestAuthSettings_StringRowSecondStart(t *testing.T) {
+	const key = "DUBPLATE_UNKNOWN_ADDRESS_ANSWER"
+	environ := append(serveAuthEnviron(t), key+"=generic")
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+
+	ctx, cancel := context.WithCancel(t.Context())
+	if _, err := buildServeShellContext(t, ctx, environ, discardTestLogger()); err != nil {
+		t.Fatalf("first start: %v", err)
+	}
+	cancel()
+	rows, audit, generation := readSeedState(t, stateDir)
+	if want := map[string]settingRow{key: {"generic", "env-seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
+		t.Fatalf("settings after the first start = %v, want %v", rows, want)
+	}
+
+	if _, err := buildServeShellWithLogger(t, environ, discardTestLogger()); err != nil {
+		t.Fatalf("second start: %v, want the equal string row left as it is", err)
+	}
+	rows2, audit2, generation2 := readSeedState(t, stateDir)
+	if fmt.Sprint(rows2) != fmt.Sprint(rows) || len(audit2) != len(audit) || generation2 != generation {
+		t.Errorf("after the second start: settings %v, %d audit rows, generation %d; want %v, %d, %d",
+			rows2, len(audit2), generation2, rows, len(audit), generation)
+	}
 }

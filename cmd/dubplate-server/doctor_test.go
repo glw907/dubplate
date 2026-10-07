@@ -508,73 +508,83 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_NoRunReportsAllGreenOnLoadError is the M4 gate test
-// (D5's own load-bearing acceptance criterion): with the magic-link
-// source selected and every other row satisfied, and only
-// DUBPLATE_NONCE_RETENTION below the link expiry, doctor's exit status
-// is 1 and at least one printed row names a failure. The property is
-// asserted generally, not against one row's literal text, so it also
-// covers whatever other row a future rung's own hook fails against.
-func TestDoctorCmd_NoRunReportsAllGreenOnLoadError(t *testing.T) {
-	environ := append(doctorEnviron(t),
-		"DUBPLATE_MAGIC_LINK_EXPIRY=45m",
-		"DUBPLATE_NONCE_RETENTION=30m",
-	)
-	reg := productionRegistry()
-
-	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want a refusal: the retention is below the link expiry")
-	}
-
-	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	failing := 0
-	for _, line := range lines {
-		if strings.Contains(line, "invalid:") || strings.Contains(line, "missing") || strings.Contains(line, "unsatisfied") {
-			failing++
+// doctorKeyStatus returns the status doctor's output out prints for
+// the row keyed key, whose name may run past the 32-column pad, and
+// reports whether exactly one such row exists.
+func doctorKeyStatus(out, key string) (string, bool) {
+	var found []string
+	for line := range strings.SplitSeq(out, "\n") {
+		if rest, ok := strings.CutPrefix(line, key+" "); ok {
+			found = append(found, strings.TrimLeft(rest, " "))
 		}
 	}
-	if failing == 0 {
-		t.Errorf("stdout = %q, want at least one row naming a failure: doctor must never print an all-satisfied table while Load refuses", stdout.String())
+	if len(found) != 1 {
+		return "", false
 	}
-
-	// The source row itself must report the failure, not just some
-	// threshold row (review M4): DUBPLATE_NONCE_RETENTION is a
-	// threshold key, not one of magic-link's Required or Optional
-	// names, so a doctor that only swept those two lists would print
-	// this row "active" while the source's own Validate hook is the
-	// refusal Load returned.
-	want := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied")
-	if !strings.Contains(stdout.String(), want) {
-		t.Errorf("stdout = %q, want a line with prefix %q", stdout.String(), want)
-	}
+	return found[0], true
 }
 
-// TestDoctorCmd_SessionLifetimeAboveCapReportsUnsatisfied is review
-// finding 12's own repro (a 10-year session lifetime paired with a
-// one-hour absolute cap): doctor's exit status is 1 and the magic-link
-// row itself reports unsatisfied, rather than a green table that hides
-// a configuration that mints a cookie its own server refuses within the
-// hour.
-func TestDoctorCmd_SessionLifetimeAboveCapReportsUnsatisfied(t *testing.T) {
-	environ := append(doctorEnviron(t),
-		"DUBPLATE_SESSION_LIFETIME=87600h",
-		"DUBPLATE_SESSION_ABSOLUTE_CAP=1h",
-	)
-	reg := productionRegistry()
-
-	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above the absolute cap")
+// TestDoctorCmd_AuthSettingRefusals proves an auth setting serve's
+// seed would refuse fails doctor on that setting's own row, with no
+// store yet, and leaves the magic-link source row active, since the
+// bounds and both relations are the seed rule's, not the source's
+// hook. A relation's refusal reaches each key it names. The last case
+// is review finding 12's repro, a ten-year lifetime beside a one-hour
+// cap, which the lifetime's own ceiling now refuses first.
+func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
+	tests := []struct {
+		name string
+		env  []string
+		// want maps each refusing key to every part its row must name.
+		want map[string][]string
+	}{
+		{
+			name: "retention below the expiry",
+			env:  []string{"DUBPLATE_MAGIC_LINK_EXPIRY=45m", "DUBPLATE_NONCE_RETENTION=30m"},
+			want: map[string][]string{
+				"DUBPLATE_MAGIC_LINK_EXPIRY": {"refused:", "DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"},
+				"DUBPLATE_NONCE_RETENTION":   {"refused:", "DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"},
+			},
+		},
+		{
+			name: "lifetime above the cap",
+			env:  []string{"DUBPLATE_SESSION_LIFETIME=2h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h"},
+			want: map[string][]string{
+				"DUBPLATE_SESSION_LIFETIME":     {"refused:", "DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"},
+				"DUBPLATE_SESSION_ABSOLUTE_CAP": {"refused:", "DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"},
+			},
+		},
+		{
+			name: "a ten-year lifetime beside a one-hour cap",
+			env:  []string{"DUBPLATE_SESSION_LIFETIME=87600h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h"},
+			want: map[string][]string{
+				"DUBPLATE_SESSION_LIFETIME": {"refused:", "DUBPLATE_SESSION_LIFETIME", "above the ceiling 17520h"},
+			},
+		},
 	}
-
-	want := fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied")
-	if !strings.Contains(stdout.String(), want) {
-		t.Errorf("stdout = %q, want a line with prefix %q", stdout.String(), want)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(doctorEnviron(t), tt.env...)
+			var stdout, stderr bytes.Buffer
+			if err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute(); err == nil {
+				t.Fatal("Execute() error = nil, want a refusal")
+			}
+			out := stdout.String()
+			for key, parts := range tt.want {
+				status, ok := doctorKeyStatus(out, key)
+				if !ok {
+					t.Fatalf("stdout = %q, want exactly one row keyed %s", out, key)
+				}
+				for _, part := range parts {
+					if !strings.Contains(status, part) {
+						t.Errorf("%s row = %q, want it to contain %q", key, status, part)
+					}
+				}
+			}
+			if want := fmt.Sprintf("%-32s %s\n", "magic-link", "active"); !strings.Contains(out, want) {
+				t.Errorf("stdout = %q, want the source row %q", out, want)
+			}
+		})
 	}
 }
 
@@ -724,16 +734,6 @@ func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
 			name:    "public URL carrying userinfo",
 			extra:   []string{"DUBPLATE_PUBLIC_URL=https://operator:fixture-pass-not-real@dubplate.example.test"},
 			wantKey: "DUBPLATE_PUBLIC_URL",
-		},
-		{
-			// DUBPLATE_MAGIC_LINK_EXPIRY is a registered threshold,
-			// not one of magic-link's Required or Optional keys, so
-			// its bound refusal reaches this row only through
-			// validateMagicLinkSource's own [sourceKeyError], never
-			// through the per-key Required/Optional sweep above.
-			name:    "link expiry above its ceiling",
-			extra:   []string{"DUBPLATE_MAGIC_LINK_EXPIRY=2h"},
-			wantKey: "DUBPLATE_MAGIC_LINK_EXPIRY",
 		},
 	}
 
@@ -1135,11 +1135,10 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_InvalidThresholdPrintsOnce proves a threshold the
-// magic-link source's validation refuses reaches the operator on its
-// own threshold row alone: the unclaimed-load-error list must not
-// repeat a key a row already owns.
-func TestDoctorCmd_InvalidThresholdPrintsOnce(t *testing.T) {
+// TestDoctorCmd_RefusedSettingPrintsOnce proves a setting the seed
+// rule refuses reaches the operator on its own setting row alone: the
+// unclaimed-load-error list must not repeat a key a row already owns.
+func TestDoctorCmd_RefusedSettingPrintsOnce(t *testing.T) {
 	const key = "DUBPLATE_SESSION_LIFETIME"
 	environ := append(doctorEnviron(t),
 		key+"=87600h",
@@ -1149,7 +1148,7 @@ func TestDoctorCmd_InvalidThresholdPrintsOnce(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
 	if err := cmd.Execute(); err == nil {
-		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above the absolute cap")
+		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above its ceiling")
 	}
 
 	var named []string
@@ -1159,10 +1158,10 @@ func TestDoctorCmd_InvalidThresholdPrintsOnce(t *testing.T) {
 		}
 	}
 	if len(named) != 1 {
-		t.Fatalf("rows keyed %s = %q, want exactly one (the threshold row)", key, named)
+		t.Fatalf("rows keyed %s = %q, want exactly one (the setting row)", key, named)
 	}
-	if !strings.HasPrefix(named[0], fmt.Sprintf("%-32s invalid", key)) {
-		t.Errorf("the one row keyed %s = %q, want the threshold row reading invalid", key, named[0])
+	if !strings.HasPrefix(named[0], fmt.Sprintf("%-32s refused:", key)) {
+		t.Errorf("the one row keyed %s = %q, want the setting row reading refused", key, named[0])
 	}
 }
 
@@ -1559,5 +1558,49 @@ func TestDoctorCmd_SourceLinePrintsReasonCarryingNoValue(t *testing.T) {
 				t.Errorf("magic-link row = %q, want it to never quote %q", got, tt.wantNone)
 			}
 		})
+	}
+}
+
+// TestDoctorCmd_AuthSettingsGolden is spec criterion 10's doctor half:
+// after a start seeds every auth key from the environment, each row
+// prints the value in force, its env-seed source, its apply mode, and
+// the sensitive mark on the link expiry, the session lifetime, and the
+// absolute cap, whose values print like any other. Each value differs
+// from its default, so a row that read the default fails.
+func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
+	want := []struct{ key, value, status string }{
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `"20m" (source env-seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", `"1h" (source env-seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `"4000h" (source env-seed, immediately, sensitive)`},
+		{"DUBPLATE_NONCE_RETENTION", "2h", `"2h" (source env-seed, next operation)`},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", `"7" (source env-seed, restart)`},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", `"22" (source env-seed, restart)`},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env-seed, restart)`},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env-seed, restart)`},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env-seed, next operation)`},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env-seed, next operation)`},
+	}
+	environ := doctorEnviron(t)
+	for _, w := range want {
+		environ = append(environ, w.key+"="+w.value)
+	}
+	if _, err := buildServeShellWithLogger(t, environ, discardTestLogger()); err != nil {
+		t.Fatalf("prepare: %v", err)
+	}
+	seedDoctorAdmin(t, environ)
+
+	var stdout, stderr bytes.Buffer
+	if err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute(); err != nil {
+		t.Fatalf("Execute() error = %v, want nil; stdout %q", err, stdout.String())
+	}
+	for _, w := range want {
+		status, ok := doctorKeyStatus(stdout.String(), w.key)
+		if !ok {
+			t.Errorf("stdout = %q, want exactly one row keyed %s", stdout.String(), w.key)
+			continue
+		}
+		if status != w.status {
+			t.Errorf("%s row = %q, want %q", w.key, status, w.status)
+		}
 	}
 }

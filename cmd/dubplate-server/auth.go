@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // identitySourceSelectorRow declares DUBPLATE_IDENTITY_SOURCE as an
@@ -34,9 +36,9 @@ var identitySourceSelectorRow = config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}
 // must be non-empty and doctor prints a threshold's effective value,
 // which would print a secret on an operator's terminal.
 //
-// Validate is [validateMagicLinkSource]: Task 4 assigns the source's
-// value rules (the secret length floor, the public URL's shape, the
-// retention-vs-expiry relation) to this field.
+// Validate is [validateMagicLinkSource], the source's value rules: the
+// secret length floor, the public URL's shape, and the mail and serve
+// ports.
 //
 // ruled, conductor 2026-09-12, R-5b2, R-5b3
 var magicLinkSource = config.IdentitySource{
@@ -68,150 +70,194 @@ var magicLinkSource = config.IdentitySource{
 // bytes passes with room to spare.
 const secretLengthFloor = 32
 
-// durationFloor is the positive floor three of rung 5's four duration
-// thresholds share: zero or a negative duration cannot mean "never" or
-// "immediately" here, and config.ParseDuration accepts both, so this
-// floor is the only refusal of them (review m5).
-const durationFloor = time.Second
-
-// magicLinkExpiryFloor is DUBPLATE_MAGIC_LINK_EXPIRY's own floor,
-// raised above durationFloor: a link that expires inside a minute
-// leaves no time for the mail to arrive and be opened, so a value
-// below one minute is refused rather than merely rounding to "1
-// minute" in the mailed copy.
-const magicLinkExpiryFloor = time.Minute
-
 // magicLinkExpiryCeiling bounds how long a mailed link can stay
 // redeemable. The threat model's mail-scanner residual is bounded by
 // "single use, a 15-minute default expiry"; an hour is generous
 // headroom above the default without admitting a link that survives a
 // whole day in a mail provider's link-scanner cache or a browser's
-// history (review m5).
+// history (review m5). It is [magicLinkExpirySetting]'s registered
+// ceiling, and the nonce store's mtime fallback keeps a record past it
+// rather than past the value in force, since only the ceiling outlives
+// every token a changed expiry could have minted.
 const magicLinkExpiryCeiling = time.Hour
 
-// sessionAbsoluteCapCeiling bounds how long a session can survive
-// however many times it is refreshed. Two years is generous headroom
-// above the 4320h (180-day) default without admitting a cap that is, in
-// every practical sense, permanent (review m5).
-const sessionAbsoluteCapCeiling = 2 * 365 * 24 * time.Hour
-
-// nonceRetentionCeiling bounds how long a consumed link's nonce record
-// stays on disk. Ten times the 24h default, on the same ten-times rule
-// fork 3's four rate ceilings already follow (linkRequestsPerAddressCeiling):
-// generous headroom above the default without admitting a retention
-// that keeps every spent nonce indefinitely.
-const nonceRetentionCeiling = 240 * time.Hour
-
-// magicLinkExpiryThreshold, sessionLifetimeThreshold,
-// sessionAbsoluteCapThreshold, and nonceRetentionThreshold are rung
-// 5b-i's four thresholds (R-5b10). The first three carry product fork
-// 3's ruled durations; the fourth is not a fork value; see the ruling
-// for the reasoning behind its default.
+// magicLinkExpirySetting, sessionLifetimeSetting,
+// sessionAbsoluteCapSetting, and nonceRetentionSetting are the four
+// auth durations. The first three carry product fork 3's ruled
+// defaults (R-5b10).
+//
+// Every duration takes a positive floor, since zero or a negative
+// duration cannot mean "never" or "immediately" here (review m5). The
+// link expiry's floor is a minute instead of a second: a link that
+// expires inside a minute leaves no time for the mail to arrive, and
+// the mailed copy would read "0 minutes". The absolute cap's ceiling,
+// two years, is generous headroom above its 4320h (180-day) default
+// without admitting a cap that is, in every practical sense,
+// permanent, and the lifetime shares it, since a lifetime above the
+// cap is refused anyway. The nonce retention's ceiling, 240h, is ten
+// times its default, the ten-times rule the four rates follow.
+//
+// The link expiry and both session durations are sensitive: a live
+// change to any of them changes how long every member stays signed in
+// or how long a mailed link stays redeemable.
 var (
-	magicLinkExpiryThreshold = config.Threshold{
-		Key:     "DUBPLATE_MAGIC_LINK_EXPIRY",
-		Kind:    config.KindDuration,
-		Default: "15m",
-		Doc:     "a Go duration string, for example 15m",
+	magicLinkExpirySetting = config.Setting{
+		Key:       "DUBPLATE_MAGIC_LINK_EXPIRY",
+		Kind:      config.KindDuration,
+		Default:   "15m",
+		Doc:       "a Go duration string, for example 15m",
+		Apply:     config.ApplyNextOperation,
+		Floor:     "1m",
+		Ceiling:   magicLinkExpiryCeiling.String(),
+		Sensitive: true,
 	}
-	sessionLifetimeThreshold = config.Threshold{
-		Key:     "DUBPLATE_SESSION_LIFETIME",
-		Kind:    config.KindDuration,
-		Default: "2160h",
-		Doc:     "a Go duration string, for example 2160h (90 days)",
+	sessionLifetimeSetting = config.Setting{
+		Key:       "DUBPLATE_SESSION_LIFETIME",
+		Kind:      config.KindDuration,
+		Default:   "2160h",
+		Doc:       "a Go duration string, for example 2160h (90 days)",
+		Apply:     config.ApplyNextOperation,
+		Floor:     "1s",
+		Ceiling:   "17520h",
+		Sensitive: true,
 	}
-	sessionAbsoluteCapThreshold = config.Threshold{
-		Key:     "DUBPLATE_SESSION_ABSOLUTE_CAP",
-		Kind:    config.KindDuration,
-		Default: "4320h",
-		Doc:     "a Go duration string, for example 4320h (180 days)",
+	sessionAbsoluteCapSetting = config.Setting{
+		Key:       "DUBPLATE_SESSION_ABSOLUTE_CAP",
+		Kind:      config.KindDuration,
+		Default:   "4320h",
+		Doc:       "a Go duration string, for example 4320h (180 days)",
+		Apply:     config.ApplyImmediately,
+		Floor:     "1s",
+		Ceiling:   "17520h",
+		Sensitive: true,
 	}
-	nonceRetentionThreshold = config.Threshold{
+	nonceRetentionSetting = config.Setting{
 		Key:     "DUBPLATE_NONCE_RETENTION",
 		Kind:    config.KindDuration,
 		Default: "24h",
 		Doc:     "a Go duration string, for example 24h",
+		Apply:   config.ApplyNextOperation,
+		Floor:   "1s",
+		Ceiling: "240h",
 	}
 )
 
-// rateFloor is the positive floor every one of fork 3's four rate
-// thresholds shares: zero is ambiguous between "unlimited" and "blocked
-// outright", so an operator who wants either extreme states an explicit
-// large or small number instead.
-const rateFloor = 1
-
-// linkRequestsPerAddressCeiling, linkRequestsPerClientCeiling,
-// consumptionAttemptsPerClientCeiling, and linkMailCeilingCeiling bound
-// how far an adopter can raise fork 3's four rates above their default.
-// Each is ten times its threshold's own default, generous headroom for
-// a group larger than the estate's own without admitting a rate that
-// defeats R28's own reasoning: a per-address or per-client limiter set
-// high enough stops bounding anything an enumerator does.
-const (
-	linkRequestsPerAddressCeiling       = 50
-	linkRequestsPerClientCeiling        = 200
-	consumptionAttemptsPerClientCeiling = 300
-	linkMailCeilingCeiling              = 600
-)
-
-// authRequestBodyCapFloor and authRequestBodyCapCeiling bound
-// DUBPLATE_AUTH_REQUEST_BODY_CAP. The floor, 512 bytes, comfortably
-// fits an RFC 5321 address (254 bytes at most) plus its form-encoded
-// field name; the ceiling, 64KiB, is generous headroom that still
-// keeps security constraint 3's amplification bound (M5) meaningful,
-// because a cap large enough to admit an arbitrary upload defeats the
-// reason the cap exists. The default, 4096 bytes, is stated as a
-// literal: the login form the auth handlers accept carries only a
-// mailed-address field, and 4KiB comfortably fits that field plus any
-// form-encoding overhead with room to spare.
-const (
-	authRequestBodyCapFloor   = 512
-	authRequestBodyCapCeiling = 65536
-)
-
-// Fork 3's four remaining rate thresholds (R28), the auth request body
-// cap security constraint 3 requires (spec:1590), and the unknown-
-// address answer fork 4 rules (R25, R-5b22) are rung 5's own remaining
-// six thresholds: spec:1587-1593 lists ten, and 5b-i landed the other
-// four above.
+// Fork 3's four rate limits (R28) each take a floor of one, since zero
+// is ambiguous between "unlimited" and "blocked outright", and a
+// ceiling of ten times the default: generous headroom for a larger
+// group without admitting a rate that defeats R28's own reasoning, as
+// a per-address or per-client limiter set high enough stops bounding
+// anything an enumerator does. The limiter is built once, so each
+// applies at the next start.
 var (
-	linkRequestsPerAddressThreshold = config.Threshold{
+	linkRequestsPerAddressSetting = config.Setting{
 		Key:     "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR",
 		Kind:    config.KindInt,
 		Default: "5",
 		Doc:     "a positive integer, for example 5",
+		Apply:   config.ApplyRestart,
+		Floor:   "1",
+		Ceiling: "50",
 	}
-	linkRequestsPerClientThreshold = config.Threshold{
+	linkRequestsPerClientSetting = config.Setting{
 		Key:     "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR",
 		Kind:    config.KindInt,
 		Default: "20",
 		Doc:     "a positive integer, for example 20",
+		Apply:   config.ApplyRestart,
+		Floor:   "1",
+		Ceiling: "200",
 	}
-	consumptionAttemptsPerClientThreshold = config.Threshold{
+	consumptionAttemptsPerClientSetting = config.Setting{
 		Key:     "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR",
 		Kind:    config.KindInt,
 		Default: "30",
 		Doc:     "a positive integer, for example 30",
+		Apply:   config.ApplyRestart,
+		Floor:   "1",
+		Ceiling: "300",
 	}
-	linkMailCeilingThreshold = config.Threshold{
+	linkMailCeilingSetting = config.Setting{
 		Key:     "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR",
 		Kind:    config.KindInt,
 		Default: "60",
 		Doc:     "a positive integer, for example 60",
-	}
-	authRequestBodyCapThreshold = config.Threshold{
-		Key:     "DUBPLATE_AUTH_REQUEST_BODY_CAP",
-		Kind:    config.KindInt,
-		Default: "4096",
-		Doc:     "a positive integer of bytes, for example 4096",
-	}
-	unknownAddressAnswerThreshold = config.Threshold{
-		Key:     "DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
-		Kind:    config.KindString,
-		Default: "kind",
-		Doc:     "one of kind or generic",
+		Apply:   config.ApplyRestart,
+		Floor:   "1",
+		Ceiling: "600",
 	}
 )
+
+// authRequestBodyCapSetting is the auth request body cap security
+// constraint 3 requires. Its floor, 512 bytes, comfortably fits an RFC
+// 5321 address (254 bytes at most) plus its form-encoded field name;
+// its ceiling, 64KiB, is generous headroom that still keeps the
+// amplification bound (M5) meaningful, because a cap large enough to
+// admit an arbitrary upload defeats the reason the cap exists. Its
+// 4096-byte default fits the login form's one mailed-address field
+// with room to spare.
+var authRequestBodyCapSetting = config.Setting{
+	Key:     "DUBPLATE_AUTH_REQUEST_BODY_CAP",
+	Kind:    config.KindInt,
+	Default: "4096",
+	Doc:     "a positive integer of bytes, for example 4096",
+	Apply:   config.ApplyNextOperation,
+	Floor:   "512",
+	Ceiling: "65536",
+}
+
+// unknownAddressAnswerSetting is fork 4's answer to a login request
+// for an address no member holds (R25, R-5b22): "kind" says so, and
+// "generic" answers exactly as for a member.
+var unknownAddressAnswerSetting = config.Setting{
+	Key:     "DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
+	Kind:    config.KindString,
+	Default: "kind",
+	Doc:     "one of kind or generic",
+	Apply:   config.ApplyNextOperation,
+	Values:  []string{"kind", "generic"},
+}
+
+// nonceRetentionCoversExpiry and sessionLifetimeWithinCap are the
+// auth settings' two relations no single bound expresses. A consumed
+// link's nonce must outlive every token that could still carry it, or
+// the link replays once its record is swept; and a session lifetime
+// above the absolute cap mints a cookie the server itself refuses
+// before it expires. Each refusal names both keys.
+var (
+	nonceRetentionCoversExpiry = config.CorrelatedRule{
+		Name:  "nonce retention covers the link expiry",
+		Keys:  []string{magicLinkExpirySetting.Key, nonceRetentionSetting.Key},
+		Check: durationAtLeast(nonceRetentionSetting.Key, magicLinkExpirySetting.Key),
+	}
+	sessionLifetimeWithinCap = config.CorrelatedRule{
+		Name:  "session lifetime within the absolute cap",
+		Keys:  []string{sessionLifetimeSetting.Key, sessionAbsoluteCapSetting.Key},
+		Check: durationAtLeast(sessionAbsoluteCapSetting.Key, sessionLifetimeSetting.Key),
+	}
+)
+
+// durationAtLeast returns a correlated check that the duration in
+// force for longer is at least the one for shorter, refusing with an
+// error that names both keys and both values. Each value has already
+// passed its own setting's validator, so a parse failure here is a
+// registration defect, reported rather than passed.
+func durationAtLeast(longer, shorter string) func(map[string]string) error {
+	return func(values map[string]string) error {
+		l, err := time.ParseDuration(values[longer])
+		if err != nil {
+			return fmt.Errorf("%s: %w", longer, err)
+		}
+		s, err := time.ParseDuration(values[shorter])
+		if err != nil {
+			return fmt.Errorf("%s: %w", shorter, err)
+		}
+		if l < s {
+			return fmt.Errorf("%s %q is below %s %q", longer, values[longer], shorter, values[shorter])
+		}
+		return nil
+	}
+}
 
 // rosterFileKey names the pre-store roster file's location key, which
 // the wall now rejects with rosterFileSupersession.
@@ -223,27 +269,33 @@ const rosterFileKey = "DUBPLATE_ROSTER_FILE"
 const rosterFileSupersession = "superseded: members live in the store; " +
 	"add the first admin with dubplate-server member add ADDRESS --admin"
 
-// registerAuthConfig adds rung 5's eleven names and ten thresholds to
-// reg: the selector as an owned wall row, magic-link as a declared
-// identity source, the retired roster file key as a superseded name, R-5b10's first four thresholds, and the six
-// remaining thresholds spec:1587-1593 lists. It is a plain function on
-// registerServeConfig's own precedent (serve.go), called once from the
-// binary's shared registry constructor (newProductionRegistry,
-// main.go).
+// registerAuthConfig adds the auth configuration to reg: the
+// selector as an owned wall row, magic-link as a declared identity
+// source, the retired roster file key as a superseded name, the ten
+// auth settings, and their two correlated rules, registered after the
+// settings they name. It is a plain function on registerServeConfig's
+// own precedent (serve.go), called once from the binary's shared
+// registry constructor (newProductionRegistry, main.go).
 func registerAuthConfig(reg *config.Registry) {
 	reg.AddWallRow(identitySourceSelectorRow)
 	reg.AddIdentitySource(magicLinkSource)
 	reg.AddSuperseded(rosterFileKey, rosterFileSupersession)
-	reg.AddThreshold(magicLinkExpiryThreshold)
-	reg.AddThreshold(sessionLifetimeThreshold)
-	reg.AddThreshold(sessionAbsoluteCapThreshold)
-	reg.AddThreshold(nonceRetentionThreshold)
-	reg.AddThreshold(linkRequestsPerAddressThreshold)
-	reg.AddThreshold(linkRequestsPerClientThreshold)
-	reg.AddThreshold(consumptionAttemptsPerClientThreshold)
-	reg.AddThreshold(linkMailCeilingThreshold)
-	reg.AddThreshold(authRequestBodyCapThreshold)
-	reg.AddThreshold(unknownAddressAnswerThreshold)
+	for _, s := range []config.Setting{
+		magicLinkExpirySetting,
+		sessionLifetimeSetting,
+		sessionAbsoluteCapSetting,
+		nonceRetentionSetting,
+		linkRequestsPerAddressSetting,
+		linkRequestsPerClientSetting,
+		consumptionAttemptsPerClientSetting,
+		linkMailCeilingSetting,
+		authRequestBodyCapSetting,
+		unknownAddressAnswerSetting,
+	} {
+		reg.AddSetting(s)
+	}
+	reg.AddCorrelatedRule(nonceRetentionCoversExpiry)
+	reg.AddCorrelatedRule(sessionLifetimeWithinCap)
 }
 
 // sourceKeyError names one identity source key and the reason it
@@ -263,14 +315,13 @@ func (e *sourceKeyError) Error() string {
 
 // validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
-// URL's shape, the ten thresholds' bounds (review m5, R28, security
-// constraint 3), the session-lifetime-vs-absolute-cap and
-// nonce-retention-vs-expiry relations, the unknown-address answer's
-// accepted set (R25), DUBPLATE_SMTP_FROM (spec:1289), the SMTP port
-// bound, and the serve port bound, joining every failure it finds so
-// [config.Load] reports a short secret and a bad URL together. Every returned error names the
-// offending key and never the value or the length of a secret, so a
-// refusal narrows no guess about what the value was.
+// URL's shape, DUBPLATE_SMTP_FROM (spec:1289), the SMTP port bound,
+// and the serve port bound, joining every failure it finds so
+// [config.Load] reports a short secret and a bad URL together. Every
+// returned error names the offending key and never the value or the
+// length of a secret, so a refusal narrows no guess about what the
+// value was. The auth settings' bounds are the seed rule's, not this
+// hook's.
 func validateMagicLinkSource(values map[string]string, environ []string) error {
 	var errs []error
 
@@ -305,42 +356,6 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 
 	if err := validateServePort(environ); err != nil {
 		errs = append(errs, err)
-	}
-
-	var expiry, retention, lifetime, absoluteCap time.Duration
-	var expiryErr, retentionErr, lifetimeErr, absoluteCapErr error
-	errs, expiry, expiryErr = checkDurationBounds(errs, environ, magicLinkExpiryThreshold, magicLinkExpiryFloor, magicLinkExpiryCeiling)
-	errs, lifetime, lifetimeErr = checkDurationBounds(errs, environ, sessionLifetimeThreshold, durationFloor, 0)
-	errs, absoluteCap, absoluteCapErr = checkDurationBounds(errs, environ, sessionAbsoluteCapThreshold, durationFloor, sessionAbsoluteCapCeiling)
-	errs, retention, retentionErr = checkDurationBounds(errs, environ, nonceRetentionThreshold, durationFloor, nonceRetentionCeiling)
-
-	// A relational refusal names both keys it compares: the pair below
-	// appends one sourceKeyError per key rather than one error naming
-	// only the first, so doctor's per-key walk reports both sides of
-	// the comparison.
-	if expiryErr == nil && retentionErr == nil && retention < expiry {
-		errs = append(errs,
-			&sourceKeyError{key: nonceRetentionThreshold.Key, reason: fmt.Sprintf("%s is below %s's %s", retention, magicLinkExpiryThreshold.Key, expiry)},
-			&sourceKeyError{key: magicLinkExpiryThreshold.Key, reason: fmt.Sprintf("%s is above %s's %s", expiry, nonceRetentionThreshold.Key, retention)},
-		)
-	}
-	if lifetimeErr == nil && absoluteCapErr == nil && lifetime > absoluteCap {
-		errs = append(errs,
-			&sourceKeyError{key: sessionLifetimeThreshold.Key, reason: fmt.Sprintf("%s is above %s's %s", lifetime, sessionAbsoluteCapThreshold.Key, absoluteCap)},
-			&sourceKeyError{key: sessionAbsoluteCapThreshold.Key, reason: fmt.Sprintf("%s is below %s's %s", absoluteCap, sessionLifetimeThreshold.Key, lifetime)},
-		)
-	}
-
-	errs = checkIntBounds(errs, environ, linkRequestsPerAddressThreshold, rateFloor, linkRequestsPerAddressCeiling)
-	errs = checkIntBounds(errs, environ, linkRequestsPerClientThreshold, rateFloor, linkRequestsPerClientCeiling)
-	errs = checkIntBounds(errs, environ, consumptionAttemptsPerClientThreshold, rateFloor, consumptionAttemptsPerClientCeiling)
-	errs = checkIntBounds(errs, environ, linkMailCeilingThreshold, rateFloor, linkMailCeilingCeiling)
-	errs = checkIntBounds(errs, environ, authRequestBodyCapThreshold, authRequestBodyCapFloor, authRequestBodyCapCeiling)
-
-	if answer, err := config.ParseString(environ, unknownAddressAnswerThreshold); err != nil {
-		errs = append(errs, &sourceKeyError{key: unknownAddressAnswerThreshold.Key, reason: splitKeyReason(err)})
-	} else if answer != "kind" && answer != "generic" {
-		errs = append(errs, &sourceKeyError{key: unknownAddressAnswerThreshold.Key, reason: fmt.Sprintf("%q is not one of kind, generic", answer)})
 	}
 
 	return errors.Join(errs...)
@@ -381,45 +396,6 @@ func validateSMTPFrom(value string) error {
 		return errors.New("DUBPLATE_SMTP_FROM: invalid email address")
 	}
 	return nil
-}
-
-// checkIntBounds is [checkDurationBounds]'s integer counterpart, minus
-// the parsed value: none of the six thresholds it checks feeds a
-// further relational check the way the nonce-retention-vs-expiry pair
-// does, so this returns only the extended errs.
-func checkIntBounds(errs []error, environ []string, th config.Threshold, floor, ceiling int) []error {
-	n, err := config.ParseInt(environ, th)
-	if err != nil {
-		return append(errs, &sourceKeyError{key: th.Key, reason: splitKeyReason(err)})
-	}
-	if n < floor {
-		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%d is below the floor of %d", n, floor)})
-	}
-	if n > ceiling {
-		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%d is above the ceiling of %d", n, ceiling)})
-	}
-	return errs
-}
-
-// checkDurationBounds parses th against environ and appends a bound
-// refusal to errs when the value is below floor or, when ceiling is
-// positive, above it. It returns the parsed value alongside errs and
-// the parse error, so a caller that needs the value for a further
-// relational check (the retention-vs-expiry comparison) does not parse
-// it a second time.
-func checkDurationBounds(errs []error, environ []string, th config.Threshold, floor, ceiling time.Duration) ([]error, time.Duration, error) {
-	d, err := config.ParseDuration(environ, th)
-	if err != nil {
-		keyed := &sourceKeyError{key: th.Key, reason: splitKeyReason(err)}
-		return append(errs, keyed), 0, keyed
-	}
-	if d < floor {
-		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("below the floor of %s", floor)})
-	}
-	if ceiling > 0 && d > ceiling {
-		errs = append(errs, &sourceKeyError{key: th.Key, reason: fmt.Sprintf("%s is above the ceiling of %s", d, ceiling)})
-	}
-	return errs, d, nil
 }
 
 // validatePublicURL checks value against the conditions a configured
@@ -498,13 +474,9 @@ func isLoopbackHost(host string) bool {
 	return false
 }
 
-// authConfig is resolveAuthConfig's return type: rung 5's ten
-// thresholds, resolved and typed, the auth core takes as plain
-// construction arguments. It replaces a positional return once ten
-// values of mixed type, durations, ints, and a string, made a
-// positional return unreadable; a struct field's name says which
-// threshold it came from at every call site, where a positional return
-// said so only in the signature.
+// authConfig holds the ten auth settings' values, typed, as the auth
+// core takes them for construction: a struct field's name says which
+// setting it came from at every call site.
 type authConfig struct {
 	magicLinkExpiry    time.Duration
 	sessionLifetime    time.Duration
@@ -521,51 +493,42 @@ type authConfig struct {
 	unknownAddressAnswer string
 }
 
-// resolveAuthConfig reads rung 5's ten thresholds against environ and
-// returns an [authConfig], on [resolveServeConfig]'s own precedent
-// (serve.go:81-106): internal/auth never reads the environment itself.
-func resolveAuthConfig(environ []string) (authConfig, error) {
+// readAuthConfig reads the ten auth settings' values in force through
+// acc into an [authConfig]. serve calls it once, after its seed apply,
+// so each value is the one the store holds for this start; a failed
+// read fails the start naming the key, never falling back to a
+// default.
+func readAuthConfig(ctx context.Context, acc *settings.Accessor) (authConfig, error) {
 	var cfg authConfig
 	var err error
-
-	cfg.magicLinkExpiry, err = config.ParseDuration(environ, magicLinkExpiryThreshold)
-	if err != nil {
-		return authConfig{}, err
+	for _, d := range []struct {
+		dst *time.Duration
+		s   config.Setting
+	}{
+		{&cfg.magicLinkExpiry, magicLinkExpirySetting},
+		{&cfg.sessionLifetime, sessionLifetimeSetting},
+		{&cfg.sessionAbsoluteCap, sessionAbsoluteCapSetting},
+		{&cfg.nonceRetention, nonceRetentionSetting},
+	} {
+		if *d.dst, err = acc.Duration(ctx, d.s); err != nil {
+			return authConfig{}, err
+		}
 	}
-	cfg.sessionLifetime, err = config.ParseDuration(environ, sessionLifetimeThreshold)
-	if err != nil {
-		return authConfig{}, err
+	for _, n := range []struct {
+		dst *int
+		s   config.Setting
+	}{
+		{&cfg.linkRequestsPerAddress, linkRequestsPerAddressSetting},
+		{&cfg.linkRequestsPerClient, linkRequestsPerClientSetting},
+		{&cfg.consumptionAttemptsPerClient, consumptionAttemptsPerClientSetting},
+		{&cfg.linkMailCeiling, linkMailCeilingSetting},
+		{&cfg.authRequestBodyCap, authRequestBodyCapSetting},
+	} {
+		if *n.dst, err = acc.Int(ctx, n.s); err != nil {
+			return authConfig{}, err
+		}
 	}
-	cfg.sessionAbsoluteCap, err = config.ParseDuration(environ, sessionAbsoluteCapThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.nonceRetention, err = config.ParseDuration(environ, nonceRetentionThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.linkRequestsPerAddress, err = config.ParseInt(environ, linkRequestsPerAddressThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.linkRequestsPerClient, err = config.ParseInt(environ, linkRequestsPerClientThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.consumptionAttemptsPerClient, err = config.ParseInt(environ, consumptionAttemptsPerClientThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.linkMailCeiling, err = config.ParseInt(environ, linkMailCeilingThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.authRequestBodyCap, err = config.ParseInt(environ, authRequestBodyCapThreshold)
-	if err != nil {
-		return authConfig{}, err
-	}
-	cfg.unknownAddressAnswer, err = config.ParseString(environ, unknownAddressAnswerThreshold)
-	if err != nil {
+	if cfg.unknownAddressAnswer, err = acc.String(ctx, unknownAddressAnswerSetting); err != nil {
 		return authConfig{}, err
 	}
 	return cfg, nil

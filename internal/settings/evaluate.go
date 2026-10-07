@@ -90,11 +90,8 @@ type Outcome struct {
 	Change Change
 	// Err is why the seed rule refuses Key, or nil when it does not.
 	Err error
-	// Report states the outcome in a sentence, a sensitive value
-	// withheld.
+	// Report states the outcome in a sentence.
 	Report string
-
-	setting config.Setting
 }
 
 // An Evaluation is the seed rule's verdict on a whole store.
@@ -126,39 +123,20 @@ func Evaluate(ctx context.Context, h *store.Handle, reg *config.Registry, enviro
 // [store.Facts] value [store.Inspect] already read, and the
 // environment in environ. It opens no connection of its own: its
 // caller has already inspected the store. When facts marks the
-// settings table absent, a store below the version that adds it can
-// hold no row for any key, so every outcome resolves to its default
-// and reports that the store holds no settings yet, never comparing
-// against the environment. check and doctor call it; backup calls
+// settings table absent, the rule runs against an empty row set, which
+// is the table serve's first seed into it will meet: every environment
+// value is bounded and compared now, so a value that start would
+// refuse is refused here first. check and doctor call it; backup calls
 // [Evaluate] from its own write-mode handle instead.
 func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Evaluation {
 	if facts.SettingsAbsent {
-		return evaluateTableAbsent(reg)
+		return evaluate(reg, environ, nil)
 	}
 	rows := make([]Row, len(facts.Settings))
 	for i, r := range facts.Settings {
 		rows[i] = Row{Key: r.Key, Value: r.Value, Source: r.Source, SeedValue: r.SeedValue, Actor: r.Actor, UpdatedAt: r.UpdatedAt}
 	}
 	return evaluate(reg, environ, rows)
-}
-
-// evaluateTableAbsent returns one outcome per registered setting
-// resolving to its default, for a store whose version predates the
-// settings table. It never reads environ: a store with pending
-// migrations reads no setting from the environment ahead of its own
-// seed, so the report only ever says the store holds no settings yet.
-func evaluateTableAbsent(reg *config.Registry) Evaluation {
-	settings := reg.Settings()
-	ev := Evaluation{Outcomes: make([]Outcome, len(settings))}
-	for i, s := range settings {
-		ev.Outcomes[i] = Outcome{
-			Key:     s.Key,
-			Value:   s.Default,
-			Report:  "the store holds no settings yet",
-			setting: s,
-		}
-	}
-	return ev
 }
 
 // readRows reads every settings row through h's read pool.
@@ -273,7 +251,7 @@ func evaluate(reg *config.Registry, environ []string, rows []Row) Evaluation {
 // environment-seeded row that the environment re-seeds or removes is
 // healed rather than refused.
 func outcome(s config.Setting, environ []string, stored *Row) Outcome {
-	o := Outcome{Key: s.Key, Stored: stored, setting: s}
+	o := Outcome{Key: s.Key, Stored: stored}
 	o.Env, o.EnvSet = lookupEnv(environ, s.Key)
 
 	var errs []error
@@ -297,26 +275,26 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 	switch {
 	case stored == nil && !o.EnvSet:
 		o.Value = s.Default
-		o.Report = fmt.Sprintf("no stored value; the default %s is in force", o.shown(s.Default))
+		o.Report = fmt.Sprintf("no stored value; the default %s is in force", strconv.Quote(s.Default))
 	case stored == nil:
 		o.Value, o.Change = o.Env, Seed
-		o.Report = fmt.Sprintf("seeds %s from the environment", o.shown(o.Env))
+		o.Report = fmt.Sprintf("seeds %s from the environment", strconv.Quote(o.Env))
 	case stored.Source == sourceEnvSeed && !o.EnvSet:
 		o.Value, o.Change = s.Default, Remove
 		o.Report = fmt.Sprintf("the environment no longer sets it; returns from %s to the default %s",
-			o.shown(stored.Value), o.shown(s.Default))
+			strconv.Quote(stored.Value), strconv.Quote(s.Default))
 	case stored.Source == sourceEnvSeed && equal(s.Kind, o.Env, stored.Value):
 		o.Value = stored.Value
-		o.Report = fmt.Sprintf("seeded value %s is in force and the environment agrees", o.shown(stored.Value))
+		o.Report = fmt.Sprintf("seeded value %s is in force and the environment agrees", strconv.Quote(stored.Value))
 	case stored.Source == sourceEnvSeed:
 		o.Value, o.Change = o.Env, Reseed
-		o.Report = fmt.Sprintf("re-seeds from %s to %s from the environment", o.shown(stored.Value), o.shown(o.Env))
+		o.Report = fmt.Sprintf("re-seeds from %s to %s from the environment", strconv.Quote(stored.Value), strconv.Quote(o.Env))
 	case o.EnvSet && !equal(s.Kind, o.Env, stored.Value):
 		errs = append(errs, fmt.Errorf("%s: the environment seeds %s but an administrator set %s; unset %s, or set it to %s",
-			s.Key, o.shown(o.Env), o.shown(stored.Value), s.Key, o.shown(stored.Value)))
+			s.Key, strconv.Quote(o.Env), strconv.Quote(stored.Value), s.Key, strconv.Quote(stored.Value)))
 	default:
 		o.Value = stored.Value
-		o.Report = fmt.Sprintf("the administrator's value %s is in force", o.shown(stored.Value))
+		o.Report = fmt.Sprintf("the administrator's value %s is in force", strconv.Quote(stored.Value))
 	}
 
 	// A stored value stays in force when the seed leaves its row
@@ -341,15 +319,6 @@ func (o Outcome) refuse(err error) Outcome {
 	return o
 }
 
-// shown returns v as a report prints it: quoted, or withheld for a
-// sensitive setting.
-func (o Outcome) shown(v string) string {
-	if o.setting.Sensitive {
-		return "(sensitive value withheld)"
-	}
-	return strconv.Quote(v)
-}
-
 // lookupEnv returns key's value in environ, a later entry winning over
 // an earlier one, and reports whether it is set. An empty value is
 // unset, the configuration wall's own rule.
@@ -363,10 +332,13 @@ func lookupEnv(environ []string, key string) (string, bool) {
 	return value, value != ""
 }
 
-// parse reads s under kind, returning an int, a time.Duration, or a
-// float64, so two values parsed under one kind compare with ==.
+// parse reads s under kind, returning an int, a time.Duration, a
+// float64, or the string itself, so two values parsed under one kind
+// compare with ==.
 func parse(kind config.ThresholdKind, s string) (any, error) {
 	switch kind {
+	case config.KindString:
+		return s, nil
 	case config.KindInt:
 		return strconv.Atoi(s)
 	case config.KindDuration:

@@ -56,6 +56,11 @@ func (a *Accessor) Float(ctx context.Context, s config.Setting) (float64, error)
 	})
 }
 
+// String returns the value in force for s, a KindString setting.
+func (a *Accessor) String(ctx context.Context, s config.Setting) (string, error) {
+	return read(ctx, a, s, config.KindString, func(v string) (string, error) { return v, nil })
+}
+
 // read returns s's value in force parsed through p, refusing a setting
 // a's registry does not declare or declares under another kind.
 func read[T any](ctx context.Context, a *Accessor, s config.Setting, kind config.ThresholdKind, p func(string) (T, error)) (T, error) {

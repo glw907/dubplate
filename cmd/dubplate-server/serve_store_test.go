@@ -214,6 +214,16 @@ func TestPrepareServe_StoreRefusals(t *testing.T) {
 			wantVersion: 4,
 		},
 		{
+			name: "older than the settings table, an auth value out of bounds",
+			setup: func(t *testing.T, stateDir string) {
+				olderStore(t, stateDir, 3)
+			},
+			extra:       []string{"DUBPLATE_MAGIC_LINK_EXPIRY=2h"},
+			wantErr:     []string{"DUBPLATE_MAGIC_LINK_EXPIRY", "above the ceiling"},
+			wantState:   store.StateOlder,
+			wantVersion: 3,
+		},
+		{
 			name: "newer than the binary",
 			setup: func(t *testing.T, stateDir string) {
 				path := olderStore(t, stateDir, head)

@@ -424,10 +424,11 @@ func (r *Registry) identitySourceKey(name string) bool {
 // superseded name panics naming both families.
 //
 // Registration builds s's validator from its bounds and panics on a
-// declaration that could never be read: a kind with no bounded
-// parser, a bound that does not parse or a floor above the ceiling, a
-// default that does not parse or falls outside the bounds, or an apply
-// mode left at its zero value or set to one no one named.
+// declaration that could never be read: a kind with no bound, a bound
+// that does not parse or a floor above the ceiling, a KindString
+// setting with no allowed values or a bound of another kind, a default
+// that does not parse or falls outside the bounds, or an apply mode
+// left at its zero value or set to one no one named.
 func (r *Registry) AddSetting(s Setting) {
 	requirePrefix(familySettings, s.Key)
 	if settingOf(r, s.Key) {

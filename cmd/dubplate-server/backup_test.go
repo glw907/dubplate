@@ -794,6 +794,31 @@ func TestBackupCmd_SettingsEvaluationRefusalNeverFails(t *testing.T) {
 	}
 }
 
+// TestBackupCmd_AuthSettingOutOfBoundsNeverFails proves a timer-run
+// backup never fails over an auth setting: an environment rate below
+// its floor passes the wall load, since its bound is the seed rule's,
+// and backup only logs the refusal, writes no settings row, and exits
+// by its job's outcome.
+func TestBackupCmd_AuthSettingOutOfBoundsNeverFails(t *testing.T) {
+	const key = "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR"
+	useBackupStandin(t)
+	environ := backupJobEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+	before := dumpSettingsTables(t, stateDir)
+	environ = append(environ, key+"=0")
+
+	var stdout, stderr bytes.Buffer
+	if err := runBackup(context.Background(), environ, productionRegistry(), &stdout, &stderr); err != nil {
+		t.Fatalf("runBackup: %v, want nil: backup exits by its job's outcome alone", err)
+	}
+	if log := stderr.String(); !strings.Contains(log, "setting refused") || !strings.Contains(log, key) {
+		t.Errorf("stderr = %q, want a refusal warning naming %s", log, key)
+	}
+	if after := dumpSettingsTables(t, stateDir); before != after {
+		t.Errorf("settings tables changed:\nbefore: %+v\nafter:  %+v", before, after)
+	}
+}
+
 // backupRunFor runs the backup verb's own logic directly, exactly as
 // run(newBackupCmd(...)) does but returning the error rather than
 // printing it to the real os.Stderr, the one write run() and cobra's

@@ -7,6 +7,7 @@ import (
 	"math"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -48,15 +49,17 @@ func (m ApplyMode) String() string {
 // reads a threshold from the environment accepts one; this package
 // exports no reader of a setting's environment value at all.
 //
-// Floor and Ceiling are the inclusive bounds, in string form, parsed
-// under Kind. [Registry.AddSetting] builds the setting's validator
-// from them, so every refusal and every report prints a bound from the
-// same data the check compares against.
+// Floor and Ceiling are the inclusive bounds of a KindInt,
+// KindDuration, or KindFloat setting, in string form, parsed under
+// Kind. Values is a KindString setting's bound instead: the closed set
+// of values it accepts, compared byte for byte. [Registry.AddSetting]
+// builds the setting's validator from whichever bound its kind takes,
+// so every refusal and every report prints a bound from the same data
+// the check compares against.
 type Setting struct {
 	Key string
 	// Kind names the parser the value is read through: KindInt,
-	// KindDuration, or KindFloat. A string has no bounds, so KindString
-	// is refused at registration.
+	// KindDuration, KindFloat, or KindString.
 	Kind ThresholdKind
 	// Default is the value in force while the store holds no row for
 	// Key, in string form.
@@ -66,10 +69,13 @@ type Setting struct {
 	Apply   ApplyMode
 	Floor   string
 	Ceiling string
-	// Sensitive marks a value a report must not print.
+	Values  []string
+	// Sensitive marks a value that is dangerous to change while the
+	// server runs, though it is no secret: a write to it will require
+	// fresh re-authentication. A report prints its value and the mark.
 	Sensitive bool
 
-	// validate is the check AddSetting built from Floor and Ceiling;
+	// validate is the check AddSetting built from the setting's bound;
 	// nil on a Setting that never passed through registration.
 	validate func(value string) error
 }
@@ -116,8 +122,12 @@ func parseFiniteFloat(s string) (float64, error) {
 }
 
 // buildValidator returns s's validator, panicking if s's kind has no
-// bounded parser or its bounds do not parse or are out of order.
+// bound, its bounds do not parse or are out of order, or it carries
+// the bound of another kind.
 func buildValidator(s Setting) func(string) error {
+	if s.Kind != KindString && len(s.Values) > 0 {
+		panic(fmt.Sprintf("%s: a %v setting carries allowed values, which only a KindString setting takes", s.Key, s.Kind))
+	}
 	switch s.Kind {
 	case KindInt:
 		return boundedValidator(s, strconv.Atoi)
@@ -125,8 +135,30 @@ func buildValidator(s Setting) func(string) error {
 		return boundedValidator(s, time.ParseDuration)
 	case KindFloat:
 		return boundedValidator(s, parseFiniteFloat)
+	case KindString:
+		return setValidator(s)
 	default:
-		panic(fmt.Sprintf("%s: setting kind %v has no bounds, want KindInt, KindDuration, or KindFloat", s.Key, s.Kind))
+		panic(fmt.Sprintf("%s: setting kind %v has no bounds, want KindInt, KindDuration, KindFloat, or KindString", s.Key, s.Kind))
+	}
+}
+
+// setValidator returns a check that a value is one of s.Values,
+// panicking when the set is empty or s carries a floor or ceiling,
+// which no string compares against.
+func setValidator(s Setting) func(string) error {
+	if len(s.Values) == 0 {
+		panic(fmt.Sprintf("%s: KindString setting declared with no allowed values", s.Key))
+	}
+	if s.Floor != "" || s.Ceiling != "" {
+		panic(fmt.Sprintf("%s: KindString setting declared with a floor or ceiling; its bound is Values", s.Key))
+	}
+	values := slices.Clone(s.Values)
+	set := strings.Join(values, ", ")
+	return func(value string) error {
+		if !slices.Contains(values, value) {
+			return fmt.Errorf("%s: value %q is not one of %s", s.Key, value, set)
+		}
+		return nil
 	}
 }
 

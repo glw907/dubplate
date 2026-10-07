@@ -29,6 +29,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/web"
 )
 
@@ -82,11 +83,7 @@ func buildServeShellContext(t *testing.T, ctx context.Context, environ []string,
 	if err != nil {
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
-	authCfg, err := resolveAuthConfig(environ)
-	if err != nil {
-		t.Fatalf("resolveAuthConfig: %v", err)
-	}
-	shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, authCfg, logger)
+	shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -582,15 +579,15 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveServeConfig: %v", err)
 			}
-			authCfg, err := resolveAuthConfig(environ)
-			if err != nil {
-				t.Fatalf("resolveAuthConfig: %v", err)
-			}
-			shell, h, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, authCfg, discardTestLogger())
+			shell, h, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
 			t.Cleanup(func() { _ = h.Close() })
+			authCfg, err := readAuthConfig(t.Context(), settings.NewAccessor(h, productionRegistry()))
+			if err != nil {
+				t.Fatalf("readAuthConfig: %v", err)
+			}
 
 			handlersConfig := authHandlersConfig(prefix, cfg, authCfg, nil, nil, nil, nil, nil, nil, nil)
 			if handlersConfig.SessionAbsoluteCap != authCfg.sessionAbsoluteCap {
@@ -711,16 +708,17 @@ func environValue(environ []string, name string) string {
 }
 
 // mintServeSession mints a session cookie value for address, signed
-// under environ's own DUBPLATE_SESSION_SECRET and the production
-// lifetime and absolute cap [resolveAuthConfig] resolves from environ,
-// issued at issued: the same construction path [newServeShell]'s own
-// seam verifies against, so a test session is one a real login would
-// have minted.
+// under environ's own DUBPLATE_SESSION_SECRET and the lifetime and
+// absolute cap the store under environ's state directory holds in
+// force, issued at issued: the same values [newServeShell]'s own seam
+// verifies against, so a test session is one a real login would have
+// minted. The shell must already have been built, so its seed has
+// committed.
 func mintServeSession(t *testing.T, environ []string, address string, issued time.Time) string {
 	t.Helper()
-	authCfg, err := resolveAuthConfig(environ)
+	authCfg, err := storeAuthConfig(t.Context(), environ)
 	if err != nil {
-		t.Fatalf("resolveAuthConfig: %v", err)
+		t.Fatalf("storeAuthConfig: %v", err)
 	}
 	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
 	value, _, err := auth.MintSession([]byte(secret), address, issued, authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
@@ -728,6 +726,20 @@ func mintServeSession(t *testing.T, environ []string, address string, issued tim
 		t.Fatalf("auth.MintSession(%s): %v", address, err)
 	}
 	return value
+}
+
+// storeAuthConfig reads the auth settings in force in the store under
+// environ's DUBPLATE_STATE_DIR through [readAuthConfig], on a shared
+// write-mode handle beside any serve handle a test holds open. A test
+// calls it after building the shell, so the values are the ones that
+// shell's seed left in force.
+func storeAuthConfig(ctx context.Context, environ []string) (_ authConfig, err error) {
+	h, err := store.OpenWrite(ctx, environValue(environ, "DUBPLATE_STATE_DIR"), testBackupBusy)
+	if err != nil {
+		return authConfig{}, err
+	}
+	defer func() { err = errors.Join(err, h.Close()) }()
+	return readAuthConfig(ctx, settings.NewAccessor(h, productionRegistry()))
 }
 
 // sessionRequest builds a request to target carrying session as its

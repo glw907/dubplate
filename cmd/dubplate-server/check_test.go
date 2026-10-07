@@ -376,3 +376,132 @@ func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
 		})
 	}
 }
+
+// TestCheckAndDoctor_AuthSettingsEveryStoreState proves check and
+// doctor refuse an auth value serve's seed would refuse in every store
+// state they vouch for, and pass an in-bounds one. Fixture state per
+// row: the absent rows have no store leaf at all, so check has no
+// facts; the 0003 row's facts mark the settings table absent; the 0001
+// row's report carries no facts at all, so a rule keyed on the facts
+// alone would evaluate nothing; the current row reaches the stored
+// rows. Each refusing row names the key and the bound or the accepted
+// form, or both keys of a relation.
+func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
+	tests := []struct {
+		name    string
+		version int // 0: no store; -1: current
+		env     []string
+		// want maps each key whose row the run must print to every
+		// part that row must name.
+		want     map[string][]string
+		wantFail bool
+	}{
+		{
+			name:     "a current store, a rate out of bounds",
+			version:  -1,
+			env:      []string{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR=0"},
+			want:     map[string][]string{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR": {"refused:", "below the floor 1"}},
+			wantFail: true,
+		},
+		{
+			name:     "an absent store, the body cap out of bounds",
+			env:      []string{"DUBPLATE_AUTH_REQUEST_BODY_CAP=100"},
+			want:     map[string][]string{"DUBPLATE_AUTH_REQUEST_BODY_CAP": {"refused:", "below the floor 512"}},
+			wantFail: true,
+		},
+		{
+			name:     "a store at 0003, an expiry that does not parse",
+			version:  3,
+			env:      []string{"DUBPLATE_MAGIC_LINK_EXPIRY=soon"},
+			want:     map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {"refused:", `invalid value "soon"`, "a Go duration string"}},
+			wantFail: true,
+		},
+		{
+			name:     "a store at 0001, a rate out of bounds",
+			version:  1,
+			env:      []string{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR=601"},
+			want:     map[string][]string{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR": {"refused:", "above the ceiling 600"}},
+			wantFail: true,
+		},
+		{
+			name: "an absent store, the retention below the default expiry",
+			env:  []string{"DUBPLATE_NONCE_RETENTION=10m"},
+			want: map[string][]string{
+				"DUBPLATE_NONCE_RETENTION":   {"refused:", "DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"},
+				"DUBPLATE_MAGIC_LINK_EXPIRY": {"refused:", "DUBPLATE_NONCE_RETENTION", "DUBPLATE_MAGIC_LINK_EXPIRY"},
+			},
+			wantFail: true,
+		},
+		{
+			name: "an absent store, an in-bounds expiry",
+			env:  []string{"DUBPLATE_MAGIC_LINK_EXPIRY=20m"},
+			want: map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {`"20m"`, "seeds"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := append(doctorEnviron(t), tt.env...)
+			stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+			switch tt.version {
+			case 0:
+			case -1:
+				seedBackupStore(t, stateDir)
+				seedDoctorAdmin(t, environ)
+			default:
+				olderStore(t, stateDir, tt.version)
+			}
+
+			t.Run("check", func(t *testing.T) {
+				var stdout, stderr bytes.Buffer
+				err := newCheckCmd(environ, productionRegistry(), &stdout, &stderr).Execute()
+				if (err != nil) != tt.wantFail {
+					t.Fatalf("Execute() error = %v, wantFail %v; stdout %q", err, tt.wantFail, stdout.String())
+				}
+				for key, parts := range tt.want {
+					var line string
+					for l := range strings.SplitSeq(stdout.String(), "\n") {
+						if strings.HasPrefix(l, "settings: "+key+": ") {
+							line = l
+						}
+					}
+					if line == "" {
+						t.Fatalf("stdout = %q, want a settings line for %s", stdout.String(), key)
+					}
+					for _, part := range parts {
+						if !strings.Contains(line, part) {
+							t.Errorf("line = %q, want it to contain %q", line, part)
+						}
+					}
+				}
+			})
+
+			t.Run("doctor", func(t *testing.T) {
+				var stdout, stderr bytes.Buffer
+				err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute()
+				if tt.wantFail && err == nil {
+					t.Fatalf("Execute() error = nil, want a refusal; stdout %q", stdout.String())
+				}
+				if !tt.wantFail && err != nil {
+					t.Fatalf("Execute() error = %v, want nil; stdout %q", err, stdout.String())
+				}
+				for key, parts := range tt.want {
+					status, ok := doctorKeyStatus(stdout.String(), key)
+					if !ok {
+						t.Fatalf("stdout = %q, want exactly one row keyed %s", stdout.String(), key)
+					}
+					for _, part := range parts {
+						if !strings.Contains(status, part) {
+							t.Errorf("%s row = %q, want it to contain %q", key, status, part)
+						}
+					}
+				}
+				if !tt.wantFail {
+					status, _ := doctorKeyStatus(stdout.String(), "DUBPLATE_MAGIC_LINK_EXPIRY")
+					if want := `env "20m" seeds at serve's next start`; !strings.Contains(status, want) {
+						t.Errorf("row = %q, want it to contain %q", status, want)
+					}
+				}
+			})
+		})
+	}
+}

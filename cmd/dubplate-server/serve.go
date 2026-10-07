@@ -211,8 +211,9 @@ func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
 
 // newServeCmd builds the serve verb: it validates the owned
 // configuration wall through [config.Load] against reg, resolves the
-// three serve thresholds and rung 5's ten auth thresholds, builds the
-// shell and mounts the auth handlers through newServeShell, and runs it
+// three serve thresholds, builds the shell through newServeShell,
+// which reads the auth settings once its seed commits and mounts the
+// auth handlers, and runs it
 // until cmd's context is done, holding the store open until then. Every
 // resolution and every store or roster open in newServeShell happens
 // before serve.Run opens a
@@ -235,11 +236,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			authCfg, err := resolveAuthConfig(environ)
-			if err != nil {
-				return err
-			}
-			shell, h, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, authCfg, slog.Default())
+			shell, h, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -258,9 +255,10 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // handle the caller closes when the shell stops serving; every refusal
 // returns no shell and no handle. It then applies the settings seed to
 // that store through [applySettingsSeed], so a refusal ends the start
-// before anything else is built. It then opens the auth store and its
-// nonce and epoch stores, builds the roster over the store handle and
-// the rate limiter, the mailer, and the magic-link identity
+// before anything else is built, and reads the auth settings the seed
+// left in force through [readAuthConfig]. It then opens the auth store
+// and its nonce and epoch stores, builds the roster over the store
+// handle, the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
@@ -300,7 +298,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // already cleared. Its peer rule reads bindAddrs, the resolved list
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, authCfg authConfig, logger *slog.Logger) (_ *serve.Shell, _ *store.Handle, err error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (_ *serve.Shell, _ *store.Handle, err error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, nil, err
@@ -315,6 +313,10 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		}
 	}()
 	if err := applySettingsSeed(ctx, h, reg, environ, logger); err != nil {
+		return nil, nil, err
+	}
+	authCfg, err := readAuthConfig(ctx, settings.NewAccessor(h, reg))
+	if err != nil {
 		return nil, nil, err
 	}
 	strip := serve.NewStrip(proxyConfig)

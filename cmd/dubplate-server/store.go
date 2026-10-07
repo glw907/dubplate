@@ -174,15 +174,18 @@ func storeMigrationWait(environ []string) (time.Duration, error) {
 // An older store whose evaluation refuses anything, whether an
 // administrator's row out of bounds or an environment value that does
 // not parse, is refused here, before the migration moves it past the
-// binary a rollback would run. A store that does not migrate gets no
-// such check, and the seed apply after the open decides.
+// binary a rollback would run. A store whose version predates the
+// settings table is evaluated against the empty table its first seed
+// meets. A store that does not migrate gets no such check, nor does
+// one that carries no facts, and the seed apply after the open
+// decides.
 func localSnapshotKeep(report store.Report, environ []string, reg *config.Registry) (int, error) {
 	setting := byKey(reg.Settings(), storeLocalSnapshotKeepSetting.Key)
 	keep, err := strconv.Atoi(setting.Default)
 	if err != nil {
 		return 0, fmt.Errorf("%s: default %q: %w", setting.Key, setting.Default, err)
 	}
-	if report.Facts == nil || report.Facts.SettingsAbsent {
+	if report.Facts == nil {
 		return keep, nil
 	}
 
@@ -304,37 +307,59 @@ type backupFactRow struct {
 // in declaration order, and one row per orphan. Its disposition
 // follows the store's own state: a state [storeVouches] refuses
 // reports every setting "not checked", never calling into
-// internal/settings; a state whose facts mark the settings table
-// absent, or whose facts this binary never read at all (an absent
-// store, or an older one below the version that adds the jobs table),
-// reports every setting at its default with no table to hold a row
-// yet, also without calling in; every other state (current, or older
-// holding the settings table) evaluates through
-// [settings.EvaluateFacts]. It reports whether any row refuses.
+// internal/settings; every other state evaluates the seed rule against
+// the facts [seedFacts] picks. A store with no settings table yet
+// shows each setting at its default and what serve's next start seeds,
+// unless the seed would refuse, which reports here as it would there.
+// It reports whether any row refuses.
 func settingsDoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool) (rows []backupFactRow, failed bool) {
 	list := reg.Settings()
-	switch {
-	case !checked || !storeVouches(report.State):
+	facts, ok := seedFacts(report)
+	if !checked || !storeVouches(report.State) || !ok {
 		for _, s := range list {
 			rows = append(rows, backupFactRow{s.Key, settingsNotCheckedStatus(environ, s, report.State, checked)})
 		}
-	case report.Facts != nil && !report.Facts.SettingsAbsent:
-		ev := settings.EvaluateFacts(reg, environ, *report.Facts)
-		for _, o := range ev.Outcomes {
-			if o.Err != nil {
-				failed = true
-			}
-			rows = append(rows, backupFactRow{o.Key, settingsOutcomeStatus(byKey(list, o.Key), o)})
-		}
-		for _, orphan := range ev.Orphans {
-			rows = append(rows, backupFactRow{orphan.Key, "no longer registered; ignored"})
-		}
-	default:
-		for _, s := range list {
-			rows = append(rows, backupFactRow{s.Key, settingsNoTableStatus(environ, s)})
+		return rows, false
+	}
+
+	ev := settings.EvaluateFacts(reg, environ, facts)
+	for _, o := range ev.Outcomes {
+		s := byKey(list, o.Key)
+		switch {
+		case o.Err != nil:
+			failed = true
+			rows = append(rows, backupFactRow{o.Key, o.Report})
+		case facts.SettingsAbsent:
+			rows = append(rows, backupFactRow{o.Key, settingsNoTableStatus(environ, s)})
+		default:
+			rows = append(rows, backupFactRow{o.Key, settingsOutcomeStatus(s, o)})
 		}
 	}
+	for _, orphan := range ev.Orphans {
+		rows = append(rows, backupFactRow{orphan.Key, "no longer registered; ignored"})
+	}
 	return rows, failed
+}
+
+// seedFacts returns the facts the seed rule is evaluated against for
+// a store in report, and false when there are none to evaluate. An
+// absent store, and an older one whose version predates the settings
+// table, holds no settings row: its facts are an absent table, the
+// empty row set serve's first seed meets, so an environment value that
+// start would refuse is refused before it. An older store below the
+// version that adds the jobs table carries no facts at all, and its
+// state alone marks it. Any other state evaluates the facts
+// [store.Inspect] read, and a state that read none has nothing to
+// evaluate.
+func seedFacts(report store.Report) (store.Facts, bool) {
+	switch {
+	case report.State == store.StateAbsent,
+		report.State == store.StateOlder && (report.Facts == nil || report.Facts.SettingsAbsent):
+		return store.Facts{SettingsAbsent: true}, true
+	case report.Facts != nil:
+		return *report.Facts, true
+	}
+	return store.Facts{}, false
 }
 
 // byKey returns the setting named key out of list, or its zero value
@@ -353,18 +378,14 @@ func byKey(list []config.Setting, key string) config.Setting {
 // settingsOutcomeStatus renders one from-facts outcome as doctor's
 // status for the registered setting s: the value in force, its
 // source, and the apply mode, then any note about what changes at
-// serve's next start, or the outcome's own refusal in place of all of
-// it.
+// serve's next start. A refused outcome never reaches it.
 func settingsOutcomeStatus(s config.Setting, o settings.Outcome) string {
-	if o.Err != nil {
-		return o.Report
-	}
 	value, source := s.Default, "default"
 	if o.Stored != nil {
 		value, source = o.Stored.Value, o.Stored.Source
 	}
-	status := fmt.Sprintf("%s (source %s, %s)", settingShown(s, value), source, s.Apply)
-	if note := settingsChangeNote(s, o); note != "" {
+	status := strconv.Quote(value) + " " + settingTraits(s, source)
+	if note := settingsChangeNote(o); note != "" {
 		status += "; " + note
 	}
 	return status
@@ -372,12 +393,12 @@ func settingsOutcomeStatus(s config.Setting, o settings.Outcome) string {
 
 // settingsChangeNote renders what o's change does at serve's next
 // start, or "" for an outcome the seed rule leaves unchanged.
-func settingsChangeNote(s config.Setting, o settings.Outcome) string {
+func settingsChangeNote(o settings.Outcome) string {
 	switch o.Change {
 	case settings.Seed:
-		return fmt.Sprintf("env %s seeds at serve's next start", settingShown(s, o.Env))
+		return fmt.Sprintf("env %q seeds at serve's next start", o.Env)
 	case settings.Reseed:
-		return fmt.Sprintf("env %s re-seeds at serve's next start", settingShown(s, o.Env))
+		return fmt.Sprintf("env %q re-seeds at serve's next start", o.Env)
 	case settings.Remove:
 		return "returns to the default at serve's next start"
 	default:
@@ -387,12 +408,11 @@ func settingsChangeNote(s config.Setting, o settings.Outcome) string {
 
 // settingsNoTableStatus renders s's row for a store that holds no
 // settings table yet, or none of any store at all: the default is in
-// force, and an env value seeds at serve's next start rather than
-// being compared now.
+// force, and an env value the seed accepts seeds at serve's next start.
 func settingsNoTableStatus(environ []string, s config.Setting) string {
-	status := fmt.Sprintf("%s (source default, %s); store holds no settings yet", settingShown(s, s.Default), s.Apply)
+	status := strconv.Quote(s.Default) + " " + settingTraits(s, "default") + "; store holds no settings yet"
 	if v, ok := lookupEnviron(environ, s.Key); ok {
-		status += fmt.Sprintf("; env %s seeds at serve's next start", settingShown(s, v))
+		status += fmt.Sprintf("; env %q seeds at serve's next start", v)
 	}
 	return status
 }
@@ -408,21 +428,21 @@ func settingsNotCheckedStatus(environ []string, s config.Setting, state store.St
 	if checked {
 		label = fmt.Sprintf("not checked (%s)", state)
 	}
-	status := fmt.Sprintf("%s (source default, %s); store %s", settingShown(s, s.Default), s.Apply, label)
+	status := strconv.Quote(s.Default) + " " + settingTraits(s, "default") + "; store " + label
 	if v, ok := lookupEnviron(environ, s.Key); ok {
-		status += fmt.Sprintf("; env %s not checked against the store", settingShown(s, v))
+		status += fmt.Sprintf("; env %q not checked against the store", v)
 	}
 	return status
 }
 
-// settingShown renders v as s's doctor row prints it: quoted, or
-// withheld for a sensitive setting, the same rule [settings.Outcome]
-// applies to its own log lines.
-func settingShown(s config.Setting, v string) string {
+// settingTraits renders the parenthesized traits doctor prints after a
+// setting's value: the value's source, s's apply mode, and the
+// sensitive mark when s carries it.
+func settingTraits(s config.Setting, source string) string {
 	if s.Sensitive {
-		return "(sensitive value withheld)"
+		return fmt.Sprintf("(source %s, %s, sensitive)", source, s.Apply)
 	}
-	return strconv.Quote(v)
+	return fmt.Sprintf("(source %s, %s)", source, s.Apply)
 }
 
 // backupFactsRows renders R-6bi13's read-only facts as doctor's four

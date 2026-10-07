@@ -140,11 +140,19 @@ func TestAccessor_TypedReads(t *testing.T) {
 	h := newStore(t)
 	writeFixture(t, h,
 		fixtureRow{keyRetention, "720h", "env-seed", "720h"},
-		fixtureRow{guard.Key, "0.75", "env-seed", "0.75"})
+		fixtureRow{guard.Key, "0.75", "env-seed", "0.75"},
+		fixtureRow{answerSetting.Key, "generic", "env-seed", "generic"})
 	reg := newRegistry()
 	reg.AddSetting(guard)
+	reg.AddSetting(answerSetting)
 	acc := NewAccessor(h, reg)
 	ctx := context.Background()
+
+	if got, err := acc.String(ctx, answerSetting); err != nil || got != "generic" {
+		t.Errorf("String = %q, %v, want the stored generic", got, err)
+	}
+	_, err := acc.String(ctx, guard)
+	wantErrText(t, err, guard.Key, "KindFloat setting read as KindString")
 
 	if got, err := acc.Duration(ctx, retentionSetting); err != nil || got != 720*time.Hour {
 		t.Errorf("Duration = %v, %v, want 720h", got, err)
@@ -156,7 +164,7 @@ func TestAccessor_TypedReads(t *testing.T) {
 		t.Errorf("Int = %v, %v, want the default 14", got, err)
 	}
 
-	_, err := acc.Int(ctx, retentionSetting)
+	_, err = acc.Int(ctx, retentionSetting)
 	wantErrText(t, err, keyRetention, "KindDuration setting read as KindInt")
 
 	unknown := keepSetting("14")

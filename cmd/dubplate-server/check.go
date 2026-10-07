@@ -15,8 +15,8 @@ import (
 // loaded from environ, printing "configuration: ok" to stdout on
 // success, then runs the store's inspect mode and prints its "store"
 // row the same way doctor does, then evaluates the seed rule
-// read-only against the store's facts and prints one "settings:" line
-// per non-quiet outcome. On failure
+// read-only against the store's facts, an absent store's included, and
+// prints one "settings:" line per non-quiet outcome. On failure
 // it returns the failing error unprinted: main is the sole writer of
 // command errors to stderr, so a failed check in a systemd journal is
 // the error alone, never doubled.
@@ -54,14 +54,17 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 				return err
 			}
 
-			// The settings evaluation runs only when the store handed
-			// back facts to evaluate: a store this check
-			// cannot vouch for already fails on the store row above,
-			// and printing a settings verdict for one it never read
-			// would report on rows it never saw.
+			// The settings evaluation runs against the facts
+			// seedFacts picks: an absent store, or one older than
+			// the settings table, evaluates the empty table serve's
+			// first seed meets, so a value that start would refuse
+			// fails check first. A store this check cannot vouch for
+			// already fails on the store row above, and printing a
+			// settings verdict for one it never read would report on
+			// rows it never saw.
 			settingsFailed := false
-			if r.Facts != nil {
-				settingsFailed, err = printSettingsRows(stdout, environ, reg, *r.Facts)
+			if facts, ok := seedFacts(r); ok {
+				settingsFailed, err = printSettingsRows(stdout, environ, reg, facts)
 				if err != nil {
 					return err
 				}

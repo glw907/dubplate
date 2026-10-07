@@ -618,8 +618,8 @@ func TestSettingsReaders(t *testing.T) {
 
 // settingsDoctorRowsTestSetting and settingsDoctorRowsSensitive are the
 // two settings TestSettingsDoctorRows registers: an ordinary integer
-// (floor 3, ceiling 100) and a sensitive one whose value and env are
-// never printed.
+// (floor 3, ceiling 100) and a sensitive one, whose value prints with
+// its mark.
 var (
 	settingsDoctorRowsTestSetting = config.Setting{
 		Key: "DUBPLATE_TEST_SETTING", Kind: config.KindInt, Default: "10",
@@ -664,7 +664,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{}),
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -674,7 +674,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{}),
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); env "20" seeds at serve's next start`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -684,7 +684,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
 			want: []backupFactRow{
 				{key, `"20" (source env-seed, next operation)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -694,7 +694,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
 			want: []backupFactRow{
 				{key, `"20" (source env-seed, next operation); env "30" re-seeds at serve's next start`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -703,7 +703,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
 			want: []backupFactRow{
 				{key, `"20" (source env-seed, next operation); returns to the default at serve's next start`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -712,7 +712,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
 			want: []backupFactRow{
 				{key, `"40" (source admin, next operation)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -722,7 +722,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
 			want: []backupFactRow{
 				{key, `"40" (source admin, next operation)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -732,7 +732,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
 			want: []backupFactRow{
 				{key, `refused: DUBPLATE_TEST_SETTING: the environment seeds "50" but an administrator set "40"; unset DUBPLATE_TEST_SETTING, or set it to "40"`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,
 		},
@@ -742,7 +742,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "admin", SeedValue: "1"}}}),
 			want: []backupFactRow{
 				{key, `refused: stored admin value refused: DUBPLATE_TEST_SETTING: value "1" is below the floor 3`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,
 		},
@@ -753,7 +753,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
 			want: []backupFactRow{
 				{key, `"1" (source env-seed, next operation); env "15" re-seeds at serve's next start`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -762,7 +762,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
 			want: []backupFactRow{
 				{key, `"1" (source env-seed, next operation); returns to the default at serve's next start`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
@@ -771,7 +771,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "not-a-number", Source: "env-seed", SeedValue: "not-a-number"}}}),
 			want: []backupFactRow{
 				{key, `refused: stored env-seed value refused: DUBPLATE_TEST_SETTING: invalid value "not-a-number", want an integer`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,
 		},
@@ -782,7 +782,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{}),
 			want: []backupFactRow{
 				{key, `refused: environment seed refused: DUBPLATE_TEST_SETTING: invalid value "abc", want an integer`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,
 		},
@@ -792,7 +792,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: "DUBPLATE_TEST_RETIRED", Value: "1", Source: "admin", SeedValue: "1"}}}),
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 				{"DUBPLATE_TEST_RETIRED", "no longer registered; ignored"},
 			},
 		},
@@ -802,7 +802,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateAbsent},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store holds no settings yet`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store holds no settings yet"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
 		},
 		{
@@ -812,7 +812,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateAbsent},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store holds no settings yet; env "20" seeds at serve's next start`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store holds no settings yet"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
 		},
 		{
@@ -821,7 +821,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateOlder, StoreVersion: 3, Facts: &store.Facts{SettingsAbsent: true}},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store holds no settings yet`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store holds no settings yet"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
 		},
 		{
@@ -830,7 +830,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateOlder, StoreVersion: 1},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store holds no settings yet`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store holds no settings yet"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store holds no settings yet"},
 			},
 		},
 		{
@@ -839,7 +839,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateBusy},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (busy)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (busy)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (busy)"},
 			},
 		},
 		{
@@ -849,7 +849,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateBusy},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (busy); env "20" not checked against the store`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (busy)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (busy)"},
 			},
 		},
 		{
@@ -858,7 +858,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateRestoreInProgress},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (restore in progress)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (restore in progress)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (restore in progress)"},
 			},
 		},
 		{
@@ -867,7 +867,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateNotAStore},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (not a store)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (not a store)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (not a store)"},
 			},
 		},
 		{
@@ -876,7 +876,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateRefused},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (refused)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (refused)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (refused)"},
 			},
 		},
 		{
@@ -885,7 +885,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.StateNewer},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (newer)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (newer)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (newer)"},
 			},
 		},
 		{
@@ -894,7 +894,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			report:  store.Report{State: store.State(99), Facts: &store.Facts{}},
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked (unknown)`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked (unknown)"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked (unknown)"},
 			},
 		},
 		{
@@ -902,7 +902,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: false,
 			want: []backupFactRow{
 				{key, `"10" (source default, next operation); store not checked`},
-				{secretKey, "(sensitive value withheld) (source default, immediately); store not checked"},
+				{secretKey, "\"0\" (source default, immediately, sensitive); store not checked"},
 			},
 		},
 	}
@@ -973,36 +973,32 @@ func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
 	}
 }
 
-// TestSettingsDoctorRows_CorrelatedRule is the doctor table's row 10:
-// a correlated rule the post-seed set breaks refuses on each of its
-// keys' own rows, naming both, not only the joined evaluation error.
+// TestSettingsDoctorRows_CorrelatedRule is the doctor table's row 10
+// over the real pair: a stored administrator's retention of 30m stays
+// in force beside an expiry the environment raises to 45m, so the
+// post-seed pair breaks the retention rule, and each key's own row
+// refuses naming both, not only the joined evaluation error.
 func TestSettingsDoctorRows_CorrelatedRule(t *testing.T) {
-	const keyExpiry, keyRetention = "DUBPLATE_TEST_EXPIRY", "DUBPLATE_TEST_RETENTION"
-	reg := config.NewRegistry()
-	reg.AddSetting(config.Setting{Key: keyExpiry, Kind: config.KindDuration, Default: "15m", Doc: "a Go duration", Apply: config.ApplyNextOperation, Floor: "1m", Ceiling: "87600h"})
-	reg.AddSetting(config.Setting{Key: keyRetention, Kind: config.KindDuration, Default: "48h", Doc: "a Go duration", Apply: config.ApplyNextOperation, Floor: "1m", Ceiling: "87600h"})
-	reg.AddCorrelatedRule(config.CorrelatedRule{
-		Name: "retention covers expiry",
-		Keys: []string{keyExpiry, keyRetention},
-		Check: func(v map[string]string) error {
-			return fmt.Errorf("%s is shorter than %s", keyRetention, keyExpiry)
-		},
-	})
-
+	const keyExpiry, keyRetention = "DUBPLATE_MAGIC_LINK_EXPIRY", "DUBPLATE_NONCE_RETENTION"
 	report := store.Report{State: store.StateCurrent, Facts: &store.Facts{Settings: []store.SettingsRow{
-		{Key: keyExpiry, Value: "72h", Source: "env-seed", SeedValue: "72h"},
-		{Key: keyRetention, Value: "48h", Source: "env-seed", SeedValue: "48h"},
+		{Key: keyExpiry, Value: "15m", Source: "env-seed", SeedValue: "15m"},
+		{Key: keyRetention, Value: "30m", Source: "admin", SeedValue: "24h"},
 	}}}
-	environ := []string{keyExpiry + "=72h", keyRetention + "=48h"}
+	environ := []string{keyExpiry + "=45m"}
 
-	rows, failed := settingsDoctorRows(environ, reg, report, true)
+	rows, failed := settingsDoctorRows(environ, productionRegistry(), report, true)
 
 	if !failed {
 		t.Error("failed = false, want true: the correlated rule breaks")
 	}
-	for _, row := range rows {
-		if !strings.Contains(row.status, "refused:") || !strings.Contains(row.status, keyExpiry) || !strings.Contains(row.status, keyRetention) {
-			t.Errorf("%s: status = %q, want a refusal naming both %s and %s", row.key, row.status, keyExpiry, keyRetention)
+	for _, key := range []string{keyExpiry, keyRetention} {
+		idx := slices.IndexFunc(rows, func(r backupFactRow) bool { return r.key == key })
+		if idx < 0 {
+			t.Fatalf("rows carry no entry for %s: %+v", key, rows)
+		}
+		status := rows[idx].status
+		if !strings.Contains(status, "refused:") || !strings.Contains(status, keyExpiry) || !strings.Contains(status, keyRetention) {
+			t.Errorf("%s: status = %q, want a refusal naming both %s and %s", key, status, keyExpiry, keyRetention)
 		}
 	}
 }

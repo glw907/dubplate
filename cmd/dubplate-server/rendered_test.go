@@ -45,7 +45,7 @@ const renderedScriptTimeout = 13 * time.Minute
 const renderedInstallHint = "npx --prefix web playwright install chromium"
 
 // renderedMagicLinkExpiry is the fixture's own DUBPLATE_MAGIC_LINK_EXPIRY,
-// raised from the 15m default (`magicLinkExpiryThreshold`, `auth.go`)
+// raised from the 15m default (`magicLinkExpirySetting`, `auth.go`)
 // so the capture matrix's own minted links, spent well after the run
 // starts, stay valid for renderedScriptTimeout's own length: it stays
 // under magicLinkExpiryCeiling (one hour, `auth.go`).
@@ -474,14 +474,14 @@ func startOperatorServer(t *testing.T) *httptest.Server {
 }
 
 // checkRateBudget fails t unless the manifest's total link requests
-// and consumptions stay below the limits the shell resolved from
-// environ. Every row's requests are counted against the per-address
+// and consumptions stay below the limits the shell's seed left in
+// force. Every row's requests are counted against the per-address
 // limit, the case where they all name one address.
 func checkRateBudget(t *testing.T, environ []string) {
 	t.Helper()
-	cfg, err := resolveAuthConfig(environ)
+	cfg, err := storeAuthConfig(t.Context(), environ)
 	if err != nil {
-		t.Fatalf("resolveAuthConfig: %v", err)
+		t.Fatalf("storeAuthConfig: %v", err)
 	}
 	var requests, consumptions int
 	for _, row := range renderedManifest {
@@ -513,7 +513,7 @@ func checkRateBudget(t *testing.T, environ []string) {
 // would accept.
 func mintRenderedLink(t *testing.T, environ []string, address string) string {
 	t.Helper()
-	link, err := mintLinkFor(environ, address)
+	link, err := mintLinkFor(t.Context(), environ, address)
 	if err != nil {
 		t.Fatalf("mintLinkFor: %v", err)
 	}
@@ -521,12 +521,13 @@ func mintRenderedLink(t *testing.T, environ []string, address string) string {
 }
 
 // mintLinkFor mints one magic link for address against environ's own
-// link secret and expiry (`auth.MintLink`, `auth.LinkURL`): the shared
-// mechanism behind both [mintRenderedLink] and [mintServer].
-func mintLinkFor(environ []string, address string) (string, error) {
-	cfg, err := resolveAuthConfig(environ)
+// link secret and the expiry the shell's seed left in force
+// (`auth.MintLink`, `auth.LinkURL`): the shared mechanism behind both
+// [mintRenderedLink] and [mintServer].
+func mintLinkFor(ctx context.Context, environ []string, address string) (string, error) {
+	cfg, err := storeAuthConfig(ctx, environ)
 	if err != nil {
-		return "", fmt.Errorf("resolveAuthConfig: %w", err)
+		return "", fmt.Errorf("storeAuthConfig: %w", err)
 	}
 	secret := []byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET"))
 	token, _, err := auth.MintLink(secret, address, time.Now(), cfg.magicLinkExpiry)
@@ -581,7 +582,7 @@ func (m *mintServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown address kind "+req.Kind, http.StatusBadRequest)
 		return
 	}
-	link, err := mintLinkFor(m.environ, address)
+	link, err := mintLinkFor(r.Context(), m.environ, address)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -290,9 +290,9 @@ func TestEvaluate_WritesNothing(t *testing.T) {
 	}
 }
 
-// TestEvaluate_WithholdsSensitiveValues proves a sensitive setting's
-// report never prints its values.
-func TestEvaluate_WithholdsSensitiveValues(t *testing.T) {
+// TestEvaluate_ShowsSensitiveValues proves a sensitive setting's
+// report prints both values: the mark gates a write, never a read.
+func TestEvaluate_ShowsSensitiveValues(t *testing.T) {
 	reg := config.NewRegistry()
 	s := keepSetting("14")
 	s.Sensitive = true
@@ -302,8 +302,78 @@ func TestEvaluate_WithholdsSensitiveValues(t *testing.T) {
 	if len(ev.Outcomes) != 1 || ev.Outcomes[0].Change != Reseed {
 		t.Fatalf("outcomes = %+v, want one reseed", ev.Outcomes)
 	}
-	if r := ev.Outcomes[0].Report; strings.Contains(r, "731") || strings.Contains(r, "529") {
-		t.Errorf("report = %q, want neither value printed", r)
+	if r := ev.Outcomes[0].Report; !strings.Contains(r, `"731"`) || !strings.Contains(r, `"529"`) {
+		t.Errorf("report = %q, want both values printed", r)
+	}
+}
+
+// answerSetting is a closed-set string setting shaped like the
+// unknown-address answer.
+var answerSetting = config.Setting{
+	Key: "DUBPLATE_TEST_ANSWER", Kind: config.KindString, Default: "kind", Doc: "one of kind or generic",
+	Apply: config.ApplyNextOperation, Values: []string{"kind", "generic"},
+}
+
+// TestApply_StringSetting runs the seed rule over a closed-set string
+// setting. The equal-environment row is the one a second serve start
+// meets after a first start seeded the value: the stored row must
+// parse and compare, or that second start refuses.
+func TestApply_StringSetting(t *testing.T) {
+	const key = "DUBPLATE_TEST_ANSWER"
+	tests := []struct {
+		name     string
+		fixture  []fixtureRow
+		env      []string
+		wantErr  []string
+		wantRows []storedRow
+	}{
+		{
+			name:     "no row, env in the set: seeded",
+			env:      []string{key + "=generic"},
+			wantRows: []storedRow{{key, "generic", "env-seed", "generic"}},
+		},
+		{
+			name:     "env-seed row, env equal: unchanged, no refusal",
+			fixture:  []fixtureRow{{key, "generic", "env-seed", "generic"}},
+			env:      []string{key + "=generic"},
+			wantRows: []storedRow{{key, "generic", "env-seed", "generic"}},
+		},
+		{
+			name:     "env-seed row, env the other value: re-seeded",
+			fixture:  []fixtureRow{{key, "generic", "env-seed", "generic"}},
+			env:      []string{key + "=kind"},
+			wantRows: []storedRow{{key, "kind", "env-seed", "kind"}},
+		},
+		{
+			name:    "env outside the set: refused naming the set",
+			env:     []string{key + "=open"},
+			wantErr: []string{key, `"open"`, "not one of kind, generic"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newStore(t)
+			writeFixture(t, h, tt.fixture...)
+			reg := config.NewRegistry()
+			reg.AddSetting(answerSetting)
+			before := readSettings(t, h)
+
+			err := Apply(ctxFor(t), h, reg, tt.env, testNow, discardLog)
+
+			if tt.wantErr != nil {
+				wantErrText(t, err, tt.wantErr...)
+				if got := readSettings(t, h); !slices.Equal(got, before) {
+					t.Errorf("settings = %v after a refusal, want %v", got, before)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("apply: %v", err)
+			}
+			if got := readSettings(t, h); !slices.Equal(got, tt.wantRows) {
+				t.Errorf("settings = %v, want %v", got, tt.wantRows)
+			}
+		})
 	}
 }
 

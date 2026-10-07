@@ -35,37 +35,70 @@ func TestEvaluateFacts_ConvertsStoreRows(t *testing.T) {
 	}
 }
 
-// TestEvaluateFacts_TableAbsent: a facts value marked table absent
-// resolves every key to its default and reports the store holds no
-// settings yet, never comparing against the environment even when it
-// sets a value.
+// TestEvaluateFacts_TableAbsent: a facts value marked table absent is
+// evaluated against an empty row set, so the environment's value is
+// compared and bounded exactly as serve's first seed into that table
+// would compare it. Fixture state: keyKeep's registered default is 14
+// ([newRegistry]), distinct from every environment value below, so a
+// row that skipped the environment would read 14.
 func TestEvaluateFacts_TableAbsent(t *testing.T) {
-	reg := newRegistry()
-	facts := store.Facts{SettingsAbsent: true}
+	tests := []struct {
+		name       string
+		env        []string
+		wantValue  string
+		wantChange Change
+		wantErr    []string
+	}{
+		{
+			name:      "no environment value: the default",
+			wantValue: "14",
+		},
+		{
+			name:       "an in-bounds environment value: seeds",
+			env:        []string{keyKeep + "=20"},
+			wantValue:  "20",
+			wantChange: Seed,
+		},
+		{
+			name:    "an environment value above the ceiling: refused naming the key and the bound",
+			env:     []string{keyKeep + "=5000"},
+			wantErr: []string{keyKeep, "above the ceiling 1000"},
+		},
+		{
+			name:    "an environment value that does not parse: refused naming the accepted form",
+			env:     []string{keyKeep + "=many"},
+			wantErr: []string{keyKeep, `invalid value "many"`, "an integer"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reg := newRegistry()
+			ev := EvaluateFacts(reg, tt.env, store.Facts{SettingsAbsent: true})
 
-	ev := EvaluateFacts(reg, []string{keyKeep + "=999"}, facts)
-
-	if ev.Err != nil {
-		t.Fatalf("EvaluateFacts: %v", ev.Err)
-	}
-	if len(ev.Outcomes) != len(reg.Settings()) {
-		t.Fatalf("outcomes = %d, want %d, one per registered setting", len(ev.Outcomes), len(reg.Settings()))
-	}
-	for _, o := range ev.Outcomes {
-		if o.Report != "the store holds no settings yet" {
-			t.Errorf("%s: report = %q, want the table-absent report", o.Key, o.Report)
-		}
-		if o.Change != Unchanged || o.Err != nil {
-			t.Errorf("%s: change %v, err %v, want unchanged and no error", o.Key, o.Change, o.Err)
-		}
-	}
-	// Fixture state: keyKeep's registered default is 14 ([newRegistry]),
-	// distinct from the env value of 999 above, so a bug that read the
-	// environment instead would read 999, not 14.
-	for _, o := range ev.Outcomes {
-		if o.Key == keyKeep && o.Value != "14" {
-			t.Errorf("%s: value = %q, want the default 14, unread from the environment", o.Key, o.Value)
-		}
+			if len(ev.Outcomes) != len(reg.Settings()) {
+				t.Fatalf("outcomes = %d, want %d, one per registered setting", len(ev.Outcomes), len(reg.Settings()))
+			}
+			var o Outcome
+			for _, oc := range ev.Outcomes {
+				if oc.Key == keyKeep {
+					o = oc
+				}
+			}
+			if o.Stored != nil {
+				t.Errorf("Stored = %+v, want nil: the table holds no row", o.Stored)
+			}
+			if tt.wantErr != nil {
+				wantErrText(t, ev.Err, tt.wantErr...)
+				wantErrText(t, o.Err, tt.wantErr...)
+				return
+			}
+			if ev.Err != nil {
+				t.Fatalf("Err = %v, want nil", ev.Err)
+			}
+			if o.Value != tt.wantValue || o.Change != tt.wantChange {
+				t.Errorf("outcome = value %q change %v, want value %q change %v", o.Value, o.Change, tt.wantValue, tt.wantChange)
+			}
+		})
 	}
 }
 

@@ -163,9 +163,35 @@ func TestAddSetting_Panics(t *testing.T) {
 			want: []string{key, "ApplyMode(99)"},
 		},
 		{
-			name: "a string kind, which has no bounds",
-			s:    with(func(s *Setting) { s.Kind = KindString }),
-			want: []string{key, "KindString"},
+			name: "a string kind with no allowed values",
+			s: with(func(s *Setting) {
+				s.Kind, s.Floor, s.Ceiling, s.Default = KindString, "", "", "kind"
+			}),
+			want: []string{key, "no allowed values"},
+		},
+		{
+			name: "a string kind whose default is outside its values",
+			s: with(func(s *Setting) {
+				s.Kind, s.Floor, s.Ceiling, s.Default, s.Values = KindString, "", "", "open", []string{"kind", "generic"}
+			}),
+			want: []string{key, `invalid default "open"`, "one of kind, generic"},
+		},
+		{
+			name: "a string kind carrying a floor",
+			s: with(func(s *Setting) {
+				s.Kind, s.Ceiling, s.Default, s.Values = KindString, "", "kind", []string{"kind", "generic"}
+			}),
+			want: []string{key, "floor or ceiling"},
+		},
+		{
+			name: "a bounded kind carrying allowed values",
+			s:    with(func(s *Setting) { s.Values = []string{"14"} }),
+			want: []string{key, "allowed values"},
+		},
+		{
+			name: "a kind with no parser",
+			s:    with(func(s *Setting) { s.Kind = ThresholdKind(99) }),
+			want: []string{key, "ThresholdKind(99)", "has no bounds"},
 		},
 	}
 	for _, tt := range tests {
@@ -212,11 +238,14 @@ func TestSettingValidate(t *testing.T) {
 		Apply: ApplyNextOperation, Floor: "168h", Ceiling: "87600h"}
 	fraction := Setting{Key: "DUBPLATE_TEST_FRACTION", Kind: KindFloat, Default: "0.5", Doc: "a number",
 		Apply: ApplyNextOperation, Floor: "0.25", Ceiling: "1"}
+	answer := Setting{Key: "DUBPLATE_TEST_ANSWER", Kind: KindString, Default: "kind", Doc: "one of kind or generic",
+		Apply: ApplyNextOperation, Values: []string{"kind", "generic"}}
 
 	r := NewRegistry()
 	r.AddSetting(keep)
 	r.AddSetting(retention)
 	r.AddSetting(fraction)
+	r.AddSetting(answer)
 	registered := make(map[string]Setting)
 	for _, s := range r.Settings() {
 		registered[s.Key] = s
@@ -250,6 +279,12 @@ func TestSettingValidate(t *testing.T) {
 		{name: "float Inf", key: fraction.Key, value: "Inf", want: `value "Inf" is not a finite number`},
 		{name: "float -Inf", key: fraction.Key, value: "-Inf", want: `value "-Inf" is not a finite number`},
 		{name: "float unparseable", key: fraction.Key, value: "half", want: `invalid value "half", want a number`},
+
+		{name: "string, the default value", key: answer.Key, value: "kind"},
+		{name: "string, the other allowed value", key: answer.Key, value: "generic"},
+		{name: "string outside the set", key: answer.Key, value: "open", want: `DUBPLATE_TEST_ANSWER: value "open" is not one of kind, generic`},
+		{name: "string differing only in case", key: answer.Key, value: "Generic", want: "not one of kind, generic"},
+		{name: "string empty", key: answer.Key, value: "", want: "not one of kind, generic"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
