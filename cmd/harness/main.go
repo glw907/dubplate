@@ -23,6 +23,9 @@
 //   - fetch-unidecode: fills the workstation's cached copy of
 //     Unidecode's pinned wheel, a no-op once the cache verifies. `make
 //     unidecode-wheel` runs it; the gate never does.
+//   - fetch-subsonic-xsd: fills the workstation's cached copy of the
+//     pinned Subsonic 1.16.1 XSD, a no-op once the cache verifies. `make
+//     subsonic-xsd` runs it; the gate never does.
 //   - oracle-up: builds the streamer fixture library, runs the pinned
 //     Navidrome and gonic oracles on it under podman, prints their
 //     loopback URLs and run credentials, and removes them on interrupt.
@@ -72,6 +75,7 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newSynthCmd())
 	cmd.AddCommand(newSeedItemsCmd())
 	cmd.AddCommand(newFetchUnidecodeCmd(&http.Client{Timeout: fetchUnidecodeTimeout}))
+	cmd.AddCommand(newFetchXSDCmd(&http.Client{Timeout: fetchXSDTimeout}))
 	cmd.AddCommand(newOracleUpCmd())
 	cmd.AddCommand(newRecordOracleCmd())
 	cmd.AddCommand(newGradeCmd())

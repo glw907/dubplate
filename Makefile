@@ -155,7 +155,16 @@ derive:
 unidecode-wheel:
 	go run ./cmd/harness fetch-unidecode
 
+# subsonic-xsd fills the workstation's cached copy of the pinned
+# Subsonic 1.16.1 XSD, which the harness's XML tier reads from the user
+# cache because the schema carries no license text and is never
+# committed. It is a no-op once the cache verifies. Deliberately
+# outside check, for the reason unidecode-wheel is: the gate never
+# opens a network connection.
+subsonic-xsd:
+	go run ./cmd/harness fetch-subsonic-xsd
+
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check web web-rendered derive unidecode-wheel clean
+.PHONY: build build-linux test vet lint install tidy-check check web web-rendered derive unidecode-wheel subsonic-xsd clean
