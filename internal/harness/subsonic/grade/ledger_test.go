@@ -471,7 +471,7 @@ func TestCommittedLedger(t *testing.T) {
 			owed[r.Slice]++
 		}
 	}
-	if owed["slice 3"] != 3 || owed["slice 6"] != 1 || len(owed) != 2 {
-		t.Errorf("owed rows by slice = %v, want slice 3 three and slice 6 one", owed)
+	if owed["slice 6"] != 1 || len(owed) != 1 {
+		t.Errorf("owed rows by slice = %v, want slice 6 one", owed)
 	}
 }

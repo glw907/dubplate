@@ -38,6 +38,9 @@ type Config struct {
 	// Manifest is the fixture manifest every graded session was served
 	// from.
 	Manifest string
+	// Assignment is the oracle assignment, which decides the oracle
+	// tier's requests whenever a graded source is dubplate.
+	Assignment string
 }
 
 // Grader grades recorded sessions against one ledger, one OpenAPI
@@ -46,6 +49,7 @@ type Grader struct {
 	ledger   *Ledger
 	contract *contract
 	lib      *library
+	assign   *assignment
 }
 
 // New loads everything cfg names. The OpenAPI document must match the
@@ -63,7 +67,11 @@ func New(cfg Config) (*Grader, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Grader{ledger: l, contract: c, lib: newLibrary(lib.Tracks())}, nil
+	a, err := loadAssignment(cfg.Assignment, lib.Tracks())
+	if err != nil {
+		return nil, err
+	}
+	return &Grader{ledger: l, contract: c, lib: newLibrary(lib.Tracks()), assign: a}, nil
 }
 
 // Report is one graded session: every finding, sorted, and the ledger
@@ -76,6 +84,18 @@ type Report struct {
 	// unvalidated counts the XML bodies the contract tier declared
 	// unvalidated, keyed by endpoint and source.
 	unvalidated map[string]int
+	// skips is set when one graded source is dubplate, and says which
+	// requests the assignment kept out of the oracle tier.
+	skips *skips
+}
+
+// skips counts, by endpoint, the requests a grade of dubplate against one
+// oracle did not send to the oracle tier.
+type skips struct {
+	oracle string
+	// notAssigned holds the endpoints the assignment does not grant to
+	// the oracle, and unmapped the endpoints it lacks.
+	notAssigned, unmapped map[string]int
 }
 
 // Len returns the number of findings.
@@ -95,6 +115,12 @@ func (r *Report) Unledgered() int {
 // Grade grades the session in dir, comparing the two sources in pair.
 // The session's name, the directory's base name, is the name ledger rows
 // use.
+//
+// When one source is dubplate, the assignment decides which requests the
+// oracle tier compares: a request to an endpoint the assignment does not
+// grant to the other source, or lacks, is graded by the contract tier
+// alone and counted in the report. A pair of oracles never consults the
+// assignment.
 //
 // Grade refuses, with no Report, a source the session lacks, two sources
 // recorded over different libraries, naming both digests, and a ledger
@@ -132,7 +158,8 @@ func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report
 			scopes = append(scopes, r)
 		}
 	}
-	findings := g.oracleTier(s, pair, scopes)
+	oracleView, skipped := g.assigned(s, pair)
+	findings := g.oracleTier(oracleView, pair, scopes)
 	contractFound, unvalidated, err := g.contractTier(ctx, s, pair)
 	if err != nil {
 		return nil, err
@@ -143,7 +170,38 @@ func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report
 	if errors.Is(err, ErrVersionMismatch) {
 		return nil, err
 	}
-	return &Report{findings: findings, session: name, sources: pair, ledger: res, unvalidated: unvalidated}, err
+	return &Report{findings: findings, session: name, sources: pair, ledger: res, unvalidated: unvalidated, skips: skipped}, err
+}
+
+// assigned returns the view of s the oracle tier compares. For a pair
+// that names dubplate it holds only the requests the assignment grants to
+// the pair's oracle, and the skips report counts the rest; any other pair
+// gets s whole and no report.
+func (g *Grader) assigned(s *session.Session, pair [2]string) (*session.Session, *skips) {
+	var oracleSource string
+	switch {
+	case pair[0] == dubplate:
+		oracleSource = pair[1]
+	case pair[1] == dubplate:
+		oracleSource = pair[0]
+	default:
+		return s, nil
+	}
+	sk := &skips{oracle: oracleSource, notAssigned: map[string]int{}, unmapped: map[string]int{}}
+	view := *s
+	view.Requests = nil
+	for _, req := range s.Requests {
+		e, ok := g.assign.lookup(req.Endpoint)
+		switch {
+		case !ok:
+			sk.unmapped[req.Endpoint]++
+		case !e.Oracle.grants(oracleSource):
+			sk.notAssigned[req.Endpoint]++
+		default:
+			view.Requests = append(view.Requests, req)
+		}
+	}
+	return &view, sk
 }
 
 func compareFindings(a, b Finding) int {
@@ -413,6 +471,16 @@ func (r *Report) Format() []byte {
 	b.WriteString("declared unvalidated xml bodies:\n")
 	for _, key := range slices.Sorted(maps.Keys(r.unvalidated)) {
 		fmt.Fprintf(&b, "  %s: %d\n", key, r.unvalidated[key])
+	}
+	if r.skips != nil {
+		fmt.Fprintf(&b, "not assigned to %s:\n", r.skips.oracle)
+		for _, endpoint := range slices.Sorted(maps.Keys(r.skips.notAssigned)) {
+			fmt.Fprintf(&b, "  %s: %d\n", endpoint, r.skips.notAssigned[endpoint])
+		}
+		b.WriteString("unmapped:\n")
+		for _, endpoint := range slices.Sorted(maps.Keys(r.skips.unmapped)) {
+			fmt.Fprintf(&b, "  %s: %d\n", endpoint, r.skips.unmapped[endpoint])
+		}
 	}
 	b.WriteString("ledger rows matched:\n")
 	for _, id := range slices.Sorted(maps.Keys(r.ledger.Counts)) {

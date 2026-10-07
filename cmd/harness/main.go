@@ -85,7 +85,7 @@ func newRootCmd() *cobra.Command {
 // subsonicPaths are the committed streamer-harness files the oracle and
 // grade verbs read and write by default.
 type subsonicPaths struct {
-	manifest, digests, ledger, openAPI, sessions, seedSpec, seedSession string
+	manifest, digests, ledger, assignment, openAPI, sessions, seedSpec, seedSession string
 }
 
 // defaultSubsonicPaths locates the committed streamer-harness data under
@@ -101,6 +101,7 @@ func defaultSubsonicPaths() (subsonicPaths, error) {
 		manifest:    filepath.Join(data, "fixture", "manifest.json"),
 		digests:     filepath.Join(data, "oracles.json"),
 		ledger:      filepath.Join(data, "ledger.json"),
+		assignment:  filepath.Join(data, "assignment.json"),
 		openAPI:     filepath.Join(data, "openapi"),
 		sessions:    sessions,
 		seedSpec:    filepath.Join(sessions, "seed.spec.json"),

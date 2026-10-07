@@ -25,10 +25,12 @@ const (
 	seedLedger = "testdata/seed-ledger.json"
 	seedGolden = "testdata/seed-report.golden"
 	sessionsIn = "../data/sessions"
+
+	committedAssignment = "../data/assignment.json"
 )
 
 func seedConfig(ledger string) Config {
-	return Config{Ledger: ledger, Sessions: sessionsIn, OpenAPI: openapiDir, Manifest: committedManifest}
+	return Config{Ledger: ledger, Sessions: sessionsIn, OpenAPI: openapiDir, Manifest: committedManifest, Assignment: committedAssignment}
 }
 
 func hasFinding(r *Report, request string, kind Kind, path, row string) bool {

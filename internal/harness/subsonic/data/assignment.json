@@ -1,0 +1,571 @@
+{
+  "endpoints": [
+    {
+      "endpoint": "addChatMessage",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "changePassword",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "createBookmark",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "createInternetRadioStation",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "createPlaylist",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles; smart playlists are Navidrome only, which ledger row L-50 names. Evidence: study record section 3 (Playlists); divergence ledger L-50."
+    },
+    {
+      "endpoint": "createPodcastChannel",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "createShare",
+      "oracle": "navidrome",
+      "slice": "slice 6",
+      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+    },
+    {
+      "endpoint": "createUser",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "deleteBookmark",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "deleteInternetRadioStation",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "deletePlaylist",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles; smart playlists are Navidrome only, which ledger row L-50 names. Evidence: study record section 3 (Playlists); divergence ledger L-50."
+    },
+    {
+      "endpoint": "deletePodcastChannel",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "deletePodcastEpisode",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "deleteShare",
+      "oracle": "navidrome",
+      "slice": "slice 6",
+      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+    },
+    {
+      "endpoint": "deleteUser",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "download",
+      "oracle": "contract-only",
+      "slice": "slice 5",
+      "reason": "Navidrome zips an artist and gonic answers error 0; the one-album rule and zip layout are dubplate's own. Evidence: study record section 3 (Media); divergence ledger L-17."
+    },
+    {
+      "endpoint": "downloadPodcastEpisode",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "findSonicPath",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getAlbum",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getAlbumInfo",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getAlbumInfo2",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getAlbumList",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Album lists; both oracles carry data. Size edges are a ledger row. Evidence: study record section 3 (Album lists); divergence ledger L-27."
+    },
+    {
+      "endpoint": "getAlbumList2",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Album lists; both oracles carry data. Size edges are a ledger row. Evidence: study record section 3 (Album lists); divergence ledger L-27."
+    },
+    {
+      "endpoint": "getArtist",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getArtistInfo",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Both oracles answer the empty success with no integration configured, and dubplate has none at launch. Evidence: study record sections 1 and 3 (Info family); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "getArtistInfo2",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Both oracles answer the empty success with no integration configured, and dubplate has none at launch. Evidence: study record sections 1 and 3 (Info family); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "getArtists",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getAvatar",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getBookmarks",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getCaptions",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getChatMessages",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getCoverArt",
+      "oracle": "both",
+      "slice": "slice 4",
+      "reason": "Both oracles for the success shape; the contract tier and slice 4's own tests cover WebP and the placeholder, which ledger row L-39 names. Evidence: study record section 3 (Media); divergence ledger L-39."
+    },
+    {
+      "endpoint": "getGenres",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getIndexes",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "No folder browsing at launch, so the endpoint is a reference observation and no dubplate grade compares it with an oracle. Section 3 reads: gonic if fork C is yes; contract only if no. Evidence: study record sections 3 and 12; server-behavior record section 8."
+    },
+    {
+      "endpoint": "getInternetRadioStations",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "Empty-success endpoint: a read where nothing here is true of dubplate's data, graded against the contract alone. Evidence: study record section 1; client-demands record sections 2c to 2e."
+    },
+    {
+      "endpoint": "getLicense",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Envelope and constant answers; both oracles agree. Evidence: study record section 3 (System); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "getLyrics",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "The launch lyrics stub. Evidence: study record section 3 (Media)."
+    },
+    {
+      "endpoint": "getLyricsBySongId",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getMusicDirectory",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "No folder browsing at launch, so the endpoint is a reference observation and no dubplate grade compares it with an oracle. Section 3 reads: gonic if fork C is yes; contract only if no. Evidence: study record sections 3 and 12; server-behavior record section 8."
+    },
+    {
+      "endpoint": "getMusicFolders",
+      "oracle": "gonic",
+      "slice": "slice 3",
+      "reason": "Shape only: the id value differs by design. Under the folder-browsing ruling gonic keeps this endpoint. Evidence: study record section 3 and section 12; divergence ledger L-18."
+    },
+    {
+      "endpoint": "getNewestPodcasts",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "Empty-success endpoint: a read where nothing here is true of dubplate's data, graded against the contract alone. Evidence: study record section 1; client-demands record sections 2c to 2e."
+    },
+    {
+      "endpoint": "getNowPlaying",
+      "oracle": "navidrome",
+      "slice": "slice 7",
+      "reason": "gonic does not implement it, and Navidrome's idle answer lacks the required entry. Evidence: study record section 3; server-behavior record section 1.1; divergence ledger L-03."
+    },
+    {
+      "endpoint": "getOpenSubsonicExtensions",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "Section 3 grants Navidrome for the carve-out and contract only for the list; the narrow value is fair for every request form because gonic requires credentials against the spec and the list is dubplate's own subset. Evidence: study record sections 2 and 3; divergence ledger L-12."
+    },
+    {
+      "endpoint": "getPlayQueue",
+      "oracle": "contract-only",
+      "slice": "slice 7",
+      "reason": "Section 3 grants Navidrome for the empty answer and the contract with the spec's edges for the rest; the narrow value is contract only, since both oracles are lenient on the spec's edges. Evidence: study record section 3 (Play queue); server-behavior record section 7.1; divergence ledger L-45 to L-49."
+    },
+    {
+      "endpoint": "getPlayQueueByIndex",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getPlaylist",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles; smart playlists are Navidrome only, which ledger row L-50 names. Evidence: study record section 3 (Playlists); divergence ledger L-50."
+    },
+    {
+      "endpoint": "getPlaylists",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles; smart playlists are Navidrome only, which ledger row L-50 names. Evidence: study record section 3 (Playlists); divergence ledger L-50."
+    },
+    {
+      "endpoint": "getPodcastEpisode",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getPodcasts",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "Empty-success endpoint: a read where nothing here is true of dubplate's data, graded against the contract alone. Evidence: study record section 1; client-demands record sections 2c to 2e."
+    },
+    {
+      "endpoint": "getRandomSongs",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Album lists; both oracles carry data. Size edges are a ledger row. Evidence: study record section 3 (Album lists); divergence ledger L-27."
+    },
+    {
+      "endpoint": "getScanStatus",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "dubplate has no scanner, and both oracles' answers are scanner state. Evidence: study record section 3 (System); divergence ledger L-20, L-21."
+    },
+    {
+      "endpoint": "getShares",
+      "oracle": "navidrome",
+      "slice": "slice 6",
+      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+    },
+    {
+      "endpoint": "getSimilarSongs",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Both oracles answer the empty success with no integration configured, and dubplate has none at launch. Evidence: study record sections 1 and 3 (Info family); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "getSimilarSongs2",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Both oracles answer the empty success with no integration configured, and dubplate has none at launch. Evidence: study record sections 1 and 3 (Info family); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "getSong",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "ID3 browsing; both oracles answer the same shapes. Evidence: study record section 3 (Browsing, ID3); client-demands record section 1."
+    },
+    {
+      "endpoint": "getSongsByGenre",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Album lists; both oracles carry data. Size edges are a ledger row. Evidence: study record section 3 (Album lists); divergence ledger L-27."
+    },
+    {
+      "endpoint": "getSonicSimilarTracks",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getStarred",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Feishin calls getStarred for its favorites, so both must carry data. Evidence: study record section 3 (Album lists); client-demands record section 2a."
+    },
+    {
+      "endpoint": "getStarred2",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Feishin calls getStarred for its favorites, so both must carry data. Evidence: study record section 3 (Album lists); client-demands record section 2a."
+    },
+    {
+      "endpoint": "getTopSongs",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Both oracles answer the empty success with no integration configured, and dubplate has none at launch. Evidence: study record sections 1 and 3 (Info family); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "getTranscodeDecision",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "No transcoding extension at launch, so the endpoint answers error 0. Evidence: study record section 6 (owner fork A, ruled no)."
+    },
+    {
+      "endpoint": "getTranscodeStream",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "No transcoding extension at launch, so the endpoint answers error 0. Evidence: study record section 6 (owner fork A, ruled no)."
+    },
+    {
+      "endpoint": "getUser",
+      "oracle": "navidrome",
+      "slice": "slice 6",
+      "reason": "gonic returns the caller's record for any username. Evidence: study record section 3 (User); divergence ledger L-22."
+    },
+    {
+      "endpoint": "getUsers",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getVideoInfo",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "getVideos",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "hls.m3u8",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "jukeboxControl",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "ping",
+      "oracle": "both",
+      "slice": "slice 3",
+      "reason": "Envelope and constant answers; both oracles agree. Evidence: study record section 3 (System); server-behavior record section 1.2."
+    },
+    {
+      "endpoint": "refreshPodcasts",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "reportPlayback",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "savePlayQueue",
+      "oracle": "contract-only",
+      "slice": "slice 7",
+      "reason": "Section 3 grants Navidrome for the empty answer and the contract with the spec's edges for the rest; the narrow value is contract only, since both oracles are lenient on the spec's edges. Evidence: study record section 3 (Play queue); server-behavior record section 7.1; divergence ledger L-45 to L-49."
+    },
+    {
+      "endpoint": "savePlayQueueByIndex",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "scrobble",
+      "oracle": "navidrome",
+      "slice": "slice 7",
+      "reason": "gonic counts a non-submission and reads one id. Evidence: study record section 3 (Annotation); server-behavior record section 7.2; divergence ledger L-41, L-42."
+    },
+    {
+      "endpoint": "search",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "search2",
+      "oracle": "both",
+      "slice": "slice 4",
+      "reason": "Both as a set plus top-N, with a golden list for queries under three characters. Evidence: study record section 3 (Search); server-behavior record section 6.2; divergence ledger L-24."
+    },
+    {
+      "endpoint": "search3",
+      "oracle": "both",
+      "slice": "slice 4",
+      "reason": "Both as a set plus top-N, with a golden list for queries under three characters. Evidence: study record section 3 (Search); server-behavior record section 6.2; divergence ledger L-24."
+    },
+    {
+      "endpoint": "setRating",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "star",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles, with gonic's missing-id leniency named by ledger row L-15. Evidence: study record section 3 (Annotation); divergence ledger L-15."
+    },
+    {
+      "endpoint": "startScan",
+      "oracle": "contract-only",
+      "slice": "slice 3",
+      "reason": "dubplate has no scanner, and both oracles' answers are scanner state. Evidence: study record section 3 (System); divergence ledger L-20, L-21."
+    },
+    {
+      "endpoint": "stream",
+      "oracle": "navidrome",
+      "slice": "slice 5",
+      "reason": "Section 3 grants both oracles for direct play (they agree on ranges) and Navidrome for a transcode. The narrow value is Navidrome, fair for every request form; gonic only for direct play. Evidence: study record section 3 (Media); server-behavior record section 3.1; divergence ledger L-28, L-31."
+    },
+    {
+      "endpoint": "tokenInfo",
+      "oracle": "contract-only",
+      "slice": "slice 6",
+      "reason": "The declared apiKey class: contract and the roster (Rufin). Evidence: study record section 3 (Extension endpoints); divergence ledger L-10."
+    },
+    {
+      "endpoint": "unstar",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles, with gonic's missing-id leniency named by ledger row L-15. Evidence: study record section 3 (Annotation); divergence ledger L-15."
+    },
+    {
+      "endpoint": "updateInternetRadioStation",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    },
+    {
+      "endpoint": "updatePlaylist",
+      "oracle": "both",
+      "slice": "slice 7",
+      "reason": "Both oracles; smart playlists are Navidrome only, which ledger row L-50 names. Evidence: study record section 3 (Playlists); divergence ledger L-50."
+    },
+    {
+      "endpoint": "updateShare",
+      "oracle": "navidrome",
+      "slice": "slice 6",
+      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+    },
+    {
+      "endpoint": "updateUser",
+      "oracle": "contract-only",
+      "slice": "not-served-0.8",
+      "reason": "Outside the launch surface, so it answers error 0 and only the contract tier grades it. Evidence: streamer spec, evidence section (every other endpoint answers error 0); study record section 1."
+    }
+  ],
+  "areas": [
+    {
+      "name": "multi-user isolation",
+      "slice": "slice 6",
+      "reason": "One member's data stays out of another's answers; Navidrome's suite tests it. Evidence: server-behavior record section 10.3."
+    },
+    {
+      "name": "per-endpoint folder filtering",
+      "slice": "slice 3",
+      "reason": "The ten musicFolderId endpoints honor the filter, proven against the two-collection fixture. Evidence: server-behavior record sections 2 and 10.3; study record section 4."
+    },
+    {
+      "name": "permission refusals",
+      "slice": "slice 6",
+      "reason": "A request the member has no right to is refused; Navidrome's suite tests it. Evidence: server-behavior record section 10.3."
+    }
+  ],
+  "album_shapes": [
+    {
+      "shape": "compilation",
+      "album": "Various Artists/Mixtape Volume One",
+      "reason": "A Various Artists album artist over tracks by three different artists. Evidence: server-behavior record section 10.3 (gonic's golden fixtures)."
+    },
+    {
+      "shape": "multi-disc",
+      "album": "Borealis Trio/Double Feature",
+      "reason": "Two discs of two tracks each. Evidence: server-behavior record section 10.3."
+    },
+    {
+      "shape": "collaboration credit",
+      "album": "Alpha Artist/Single Disc",
+      "reason": "A track whose artist credit names a guest and carries two artist values. Evidence: server-behavior record section 10.3."
+    },
+    {
+      "shape": "unicode",
+      "album": "Zoë Ångström/Café Années",
+      "reason": "Diacritics in the album artist and the album title. Evidence: server-behavior record section 10.3."
+    }
+  ],
+  "not_applicable": [
+    {
+      "shape": "empty album",
+      "reason": "An album is admitted only with its tracks, so a library never holds an album with none. Evidence: CLAUDE.md, the album is the verdict unit; server-behavior record section 10.3."
+    }
+  ]
+}

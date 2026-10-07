@@ -20,10 +20,11 @@ const subsonicData = "../../internal/harness/subsonic"
 func seedGrader(t *testing.T, ledger string) *grade.Grader {
 	t.Helper()
 	g, err := grade.New(grade.Config{
-		Ledger:   ledger,
-		Sessions: subsonicData + "/data/sessions",
-		OpenAPI:  subsonicData + "/data/openapi",
-		Manifest: subsonicData + "/data/fixture/manifest.json",
+		Ledger:     ledger,
+		Sessions:   subsonicData + "/data/sessions",
+		OpenAPI:    subsonicData + "/data/openapi",
+		Manifest:   subsonicData + "/data/fixture/manifest.json",
+		Assignment: subsonicData + "/data/assignment.json",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -120,10 +121,11 @@ func TestRunGradeExitRule(t *testing.T) {
 				t.Fatal(err)
 			}
 			g, err := grade.New(grade.Config{
-				Ledger:   ledger,
-				Sessions: sessions,
-				OpenAPI:  subsonicData + "/data/openapi",
-				Manifest: subsonicData + "/data/fixture/manifest.json",
+				Ledger:     ledger,
+				Sessions:   sessions,
+				OpenAPI:    subsonicData + "/data/openapi",
+				Manifest:   subsonicData + "/data/fixture/manifest.json",
+				Assignment: subsonicData + "/data/assignment.json",
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -212,5 +214,25 @@ func TestGradeResolvesLedgerSessionsFromTheCommittedHome(t *testing.T) {
 	err = cmd.ExecuteContext(t.Context())
 	if !errors.Is(err, errUnledgered) || errors.Is(err, grade.ErrInvalidLedger) {
 		t.Fatalf("err = %v, want a graded session with unledgered findings", err)
+	}
+}
+
+// TestDefaultSubsonicPathsNameCommittedFiles builds a grader from the
+// default paths alone, so a path that points nowhere fails here.
+func TestDefaultSubsonicPathsNameCommittedFiles(t *testing.T) {
+	p, err := defaultSubsonicPaths()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, path := range map[string]string{"assignment": p.assignment, "ledger": p.ledger, "manifest": p.manifest} {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("default %s path: %v", name, err)
+		}
+	}
+	_, err = grade.New(grade.Config{
+		Ledger: p.ledger, Sessions: p.sessions, OpenAPI: p.openAPI, Manifest: p.manifest, Assignment: p.assignment,
+	})
+	if err != nil {
+		t.Errorf("grade.New over the default paths: %v", err)
 	}
 }

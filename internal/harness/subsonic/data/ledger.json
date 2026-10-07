@@ -1,38 +1,5 @@
 [
   {
-    "id": "folder-view-getindexes",
-    "area": "getIndexes",
-    "class": "by-construction",
-    "sources": ["dubplate", "navidrome"],
-    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot grade this endpoint; gonic grades it.",
-    "dubplate": "Serves the folder view from the library's real paths, graded against gonic.",
-    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
-    "state": "owed",
-    "slice": "slice 3"
-  },
-  {
-    "id": "folder-view-getmusicdirectory",
-    "area": "getMusicDirectory",
-    "class": "by-construction",
-    "sources": ["dubplate", "navidrome"],
-    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot grade this endpoint; gonic grades it.",
-    "dubplate": "Serves the folder view from the library's real paths, graded against gonic.",
-    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
-    "state": "owed",
-    "slice": "slice 3"
-  },
-  {
-    "id": "folder-view-getmusicfolders",
-    "area": "getMusicFolders",
-    "class": "by-construction",
-    "sources": ["dubplate", "navidrome"],
-    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot grade this endpoint; gonic grades it.",
-    "dubplate": "Serves the folder view from the library's real paths, graded against gonic.",
-    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
-    "state": "owed",
-    "slice": "slice 3"
-  },
-  {
     "id": "apikey-unoracled",
     "area": "apiKey authentication",
     "class": "unoracled",
