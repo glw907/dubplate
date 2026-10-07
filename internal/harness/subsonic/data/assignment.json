@@ -40,7 +40,7 @@
       "endpoint": "createShare",
       "oracle": "navidrome",
       "slice": "slice 6",
-      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+      "reason": "Navidrome for shape; the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
     },
     {
       "endpoint": "createUser",
@@ -82,7 +82,7 @@
       "endpoint": "deleteShare",
       "oracle": "navidrome",
       "slice": "slice 6",
-      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+      "reason": "Navidrome for shape; the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
     },
     {
       "endpoint": "deleteUser",
@@ -238,7 +238,7 @@
       "endpoint": "getMusicFolders",
       "oracle": "gonic",
       "slice": "slice 3",
-      "reason": "Shape only: the id value differs by design. Under the folder-browsing ruling gonic keeps this endpoint. Evidence: study record section 3 and section 12; divergence ledger L-18."
+      "reason": "Section 3 reads: gonic (spec `:278`), shape only; the id value differs by design. Under the folder-browsing ruling gonic keeps this endpoint. Evidence: study record section 3 and section 12; divergence ledger L-18."
     },
     {
       "endpoint": "getNewestPodcasts",
@@ -256,13 +256,13 @@
       "endpoint": "getOpenSubsonicExtensions",
       "oracle": "contract-only",
       "slice": "slice 3",
-      "reason": "Section 3 grants Navidrome for the carve-out and contract only for the list; the narrow value is fair for every request form because gonic requires credentials against the spec and the list is dubplate's own subset. Evidence: study record sections 2 and 3; divergence ledger L-12."
+      "reason": "Section 3 grants Navidrome for the carve-out; contract only for the list. The narrow value is fair for every request form because gonic requires credentials, against the spec, and the list is dubplate's subset. Evidence: study record sections 2 and 3; divergence ledger L-12."
     },
     {
       "endpoint": "getPlayQueue",
       "oracle": "contract-only",
       "slice": "slice 7",
-      "reason": "Section 3 grants Navidrome for the empty answer and the contract with the spec's edges for the rest; the narrow value is contract only, since both oracles are lenient on the spec's edges. Evidence: study record section 3 (Play queue); server-behavior record section 7.1; divergence ledger L-45 to L-49."
+      "reason": "Section 3 grants Navidrome for the empty answer; contract and the spec's edges for the rest. The narrow value is contract only, since both oracles are lenient on the spec's edges. Evidence: study record section 3 (Play queue); server-behavior record section 7.1; divergence ledger L-45 to L-49."
     },
     {
       "endpoint": "getPlayQueueByIndex",
@@ -310,7 +310,7 @@
       "endpoint": "getShares",
       "oracle": "navidrome",
       "slice": "slice 6",
-      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+      "reason": "Navidrome for shape; the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
     },
     {
       "endpoint": "getSimilarSongs",
@@ -430,7 +430,7 @@
       "endpoint": "savePlayQueue",
       "oracle": "contract-only",
       "slice": "slice 7",
-      "reason": "Section 3 grants Navidrome for the empty answer and the contract with the spec's edges for the rest; the narrow value is contract only, since both oracles are lenient on the spec's edges. Evidence: study record section 3 (Play queue); server-behavior record section 7.1; divergence ledger L-45 to L-49."
+      "reason": "Section 3 grants Navidrome for the empty answer; contract and the spec's edges for the rest. The narrow value is contract only, since both oracles are lenient on the spec's edges. Evidence: study record section 3 (Play queue); server-behavior record section 7.1; divergence ledger L-45 to L-49."
     },
     {
       "endpoint": "savePlayQueueByIndex",
@@ -484,7 +484,7 @@
       "endpoint": "stream",
       "oracle": "navidrome",
       "slice": "slice 5",
-      "reason": "Section 3 grants both oracles for direct play (they agree on ranges) and Navidrome for a transcode. The narrow value is Navidrome, fair for every request form; gonic only for direct play. Evidence: study record section 3 (Media); server-behavior record section 3.1; divergence ledger L-28, L-31."
+      "reason": "Section 3 grants Both for `stream` (direct), where they agree on ranges, and Navidrome for `stream` (transcode). The narrow value is Navidrome, fair for every request form; gonic only for direct play. Evidence: study record section 3 (Media); server-behavior record section 3.1; divergence ledger L-28, L-31."
     },
     {
       "endpoint": "tokenInfo",
@@ -514,7 +514,7 @@
       "endpoint": "updateShare",
       "oracle": "navidrome",
       "slice": "slice 6",
-      "reason": "Navidrome for shape, the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
+      "reason": "Navidrome for shape; the spec only for the six bounds; gonic has no shares and no oracle bounds a share. Evidence: study record section 3 (Shares); server-behavior record section 1.1; divergence ledger L-53."
     },
     {
       "endpoint": "updateUser",

@@ -555,3 +555,55 @@ func TestGradeOfDubplateFollowsTheAssignment(t *testing.T) {
 		}
 	})
 }
+
+// TestSplitVerdictsQuoteTheStudyRecord pins each split verdict's reason
+// to the wider grant the study record's per-endpoint table words. Every
+// quote must appear in the record and in the reason, so a paraphrase on
+// either side fails.
+func TestSplitVerdictsQuoteTheStudyRecord(t *testing.T) {
+	const record = "../../../../docs/superpowers/research/2026-10-06-slice-1-study-record.md"
+	table := string(mustRead(t, record))
+	section3 := table[strings.Index(table, "## 3. The per-endpoint oracle assignment"):]
+	section3 = section3[:strings.Index(section3, "## 4.")]
+
+	const shares = "Navidrome for shape; the spec only for the six bounds"
+	const playQueue = "Navidrome for the empty answer; contract and the spec's edges for the rest"
+	const folderBrowsing = "gonic if fork C is yes; contract only if no"
+	tests := []struct {
+		endpoint string
+		quotes   []string
+	}{
+		{"stream", []string{"`stream` (direct)", "`stream` (transcode)"}},
+		{"getOpenSubsonicExtensions", []string{"Navidrome for the carve-out; contract only for the list"}},
+		{"getPlayQueue", []string{playQueue}},
+		{"savePlayQueue", []string{playQueue}},
+		{"getShares", []string{shares}},
+		{"createShare", []string{shares}},
+		{"updateShare", []string{shares}},
+		{"deleteShare", []string{shares}},
+		{"getMusicFolders", []string{"gonic (spec `:278`), shape only"}},
+		{"getIndexes", []string{folderBrowsing}},
+		{"getMusicDirectory", []string{folderBrowsing}},
+	}
+	a := committedAssign(t)
+	reasons := make(map[string]string)
+	for _, e := range a.Endpoints {
+		reasons[e.Endpoint] = e.Reason
+	}
+	for _, tc := range tests {
+		t.Run(tc.endpoint, func(t *testing.T) {
+			reason, ok := reasons[tc.endpoint]
+			if !ok {
+				t.Fatalf("%s is not in the assignment", tc.endpoint)
+			}
+			for _, q := range tc.quotes {
+				if !strings.Contains(section3, q) {
+					t.Errorf("section 3 lacks %q", q)
+				}
+				if !strings.Contains(reason, q) {
+					t.Errorf("%s's reason lacks section 3's words %q:\n%s", tc.endpoint, q, reason)
+				}
+			}
+		})
+	}
+}
