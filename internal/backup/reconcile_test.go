@@ -237,18 +237,31 @@ func TestReconcile_WalkError(t *testing.T) {
 
 // TestReconcile_NoUsers is the report over a store whose users table is
 // empty, as a snapshot from before the roster moved into the store
-// leaves it: it says to add the first member with the admin flag.
+// leaves it, or one holding only tombstoned rows: it says to add the
+// first member with the admin flag.
 func TestReconcile_NoUsers(t *testing.T) {
 	for _, tt := range []struct {
-		name     string
-		withUser bool
-		want     bool
+		name          string
+		withUser      bool
+		tombstoneOnly bool
+		want          bool
 	}{
 		{name: "empty users table", withUser: false, want: true},
 		{name: "one member", withUser: true, want: false},
+		{name: "only a tombstoned member", tombstoneOnly: true, want: true},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			h := catalogStore(t, tt.withUser)
+			if tt.tombstoneOnly {
+				err := h.Update(ctxFor(t), func(ctx context.Context, tx *store.Tx) error {
+					_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, tombstoned_at, created_at, updated_at)
+VALUES (?, 'gone@example.org', 'Gone', 'gone', 2, 1, 1)`, store.NewID())
+					return err
+				})
+				if err != nil {
+					t.Fatalf("plant a tombstoned member: %v", err)
+				}
+			}
 			rep, err := reconcile(ctxFor(t), h, t.TempDir())
 			if err != nil {
 				t.Fatalf("reconcile(): %v", err)

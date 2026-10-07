@@ -162,9 +162,9 @@ function goOutcomes(): Set<string> {
       );
     }
   }
-  if (parsed.size < 20) {
+  if (parsed.size < 21) {
     fail(
-      `deck-coverage: parsed only ${parsed.size} outcome constant(s) from ${HANDLERS_PATH} and ${ADMIN_PATH}, fewer than the 20 internal/auth declares.`
+      `deck-coverage: parsed only ${parsed.size} outcome constant(s) from ${HANDLERS_PATH} and ${ADMIN_PATH}, fewer than the 21 internal/auth declares.`
     );
   }
   return parsed;

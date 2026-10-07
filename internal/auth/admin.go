@@ -40,6 +40,7 @@ const (
 	outcomeMissingUsername    = "missing_username"
 	outcomeAdminNotGrantable  = "admin_not_grantable"
 	outcomeUnknownField       = "unknown_field"
+	outcomeBusy               = "busy"
 )
 
 // AdminConfig is everything the admin gate and the roster API need,
@@ -111,16 +112,17 @@ func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 		sameOrigin := r.Header.Get("Sec-Fetch-Site") == "same-origin"
 		v, err := cfg.Seam.VerifyIdentity(r, now, sameOrigin)
 		var reason string
+		level := slog.LevelInfo
 		switch {
 		case err != nil:
-			reason = gateRefusalReason(err)
+			reason, level = gateRefusalReason(err)
 		case !v.Identity.Valid():
 			reason = "identity is not a verified login"
 		case !v.Admin:
 			reason = "not an admin"
 		}
 		if reason != "" {
-			cfg.Logger.Info("admin gate refused", "reason", reason, "client_ip", cfg.ClientIP(r))
+			cfg.Logger.Log(r.Context(), level, "admin gate refused", "reason", reason, "client_ip", cfg.ClientIP(r))
 			http.NotFound(w, r)
 			return
 		}
@@ -144,14 +146,16 @@ var gateRefusals = []error{
 	ErrMemberNotFound,
 }
 
-// gateRefusalReason names err by the first of gateRefusals it wraps.
-func gateRefusalReason(err error) string {
+// gateRefusalReason names err by the first of gateRefusals it wraps,
+// at Info. Any other error is the store failing, not a visitor failing
+// to verify, so it is named by a fixed reason at Error.
+func gateRefusalReason(err error) (string, slog.Level) {
 	for _, known := range gateRefusals {
 		if errors.Is(err, known) {
-			return known.Error()
+			return known.Error(), slog.LevelInfo
 		}
 	}
-	return "identity did not verify"
+	return "roster lookup failed", slog.LevelError
 }
 
 // rosterAPI is the handler the gate wraps. writeWait bounds a POST's
@@ -288,11 +292,15 @@ func formRefusal(r *http.Request) string {
 
 // additionOutcome maps AddMember's result to a status and an outcome.
 // Every validation refusal also wraps ErrRosterRecordInvalid, as does a
-// demoted actor, so only the specific sentinels decide a 4xx.
+// demoted actor, so only the specific sentinels decide a 4xx. A write
+// that outwaited its deadline for the store's write lock is busy, which
+// the page tells the member to retry.
 func additionOutcome(err error) (int, string) {
 	switch {
 	case err == nil:
 		return http.StatusCreated, outcomeAdded
+	case errors.Is(err, context.DeadlineExceeded):
+		return http.StatusServiceUnavailable, outcomeBusy
 	case errors.Is(err, errDuplicateAddress):
 		return http.StatusConflict, outcomeDuplicateAddress
 	case errors.Is(err, errDuplicateUsername):

@@ -713,3 +713,96 @@ func TestRosterAPI_PostDuplicateUsernameOverUsersTable(t *testing.T) {
 		t.Errorf("a refused POST changed the users table:\nbefore %s\nafter  %s", before, after)
 	}
 }
+
+// TestRequireAdmin_RefusalLogLevel proves a refusal a visitor can
+// cause logs at Info under the cause's own name, while a lookup the
+// store failed logs at Error under a fixed reason that carries none of
+// the error's text. Every row still answers http.NotFound's bytes.
+func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
+	tests := []struct {
+		name       string
+		request    func(t *testing.T, fx adminFixture) *http.Request
+		wantLevel  string
+		wantReason string
+	}{
+		{
+			name: "forged cookie",
+			request: func(t *testing.T, fx adminFixture) *http.Request {
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, foreignFixture, "admin@example.com", seamBirth), "")
+			},
+			wantLevel:  "INFO",
+			wantReason: ErrSessionMAC.Error(),
+		},
+		{
+			name: "member removed from the roster",
+			request: func(t *testing.T, fx adminFixture) *http.Request {
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", seamBirth), "")
+			},
+			wantLevel:  "INFO",
+			wantReason: ErrMemberNotFound.Error(),
+		},
+		{
+			name: "store closed under the lookup",
+			request: func(t *testing.T, fx adminFixture) *http.Request {
+				if err := fx.users.Close(); err != nil {
+					t.Fatalf("close store: %v", err)
+				}
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+			},
+			wantLevel:  "ERROR",
+			wantReason: "roster lookup failed",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fx := newAdminFixture(t)
+			r := tt.request(t, fx)
+			w := serveOne(RequireAdmin(fx.cfg, &recordingHandler{}), r)
+			if want := notFoundFor(r.Clone(t.Context())); w.Code != want.status {
+				t.Errorf("status = %d, want %d", w.Code, want.status)
+			}
+			var gate []map[string]any
+			for _, rec := range fx.logs.records(t) {
+				if rec["msg"] == "admin gate refused" {
+					gate = append(gate, rec)
+				}
+			}
+			if len(gate) != 1 {
+				t.Fatalf("gate refusal records = %d, want 1:\n%s", len(gate), fx.logs.text())
+			}
+			if gate[0]["level"] != tt.wantLevel || gate[0]["reason"] != tt.wantReason {
+				t.Errorf("record level %v reason %v, want %s %q", gate[0]["level"], gate[0]["reason"], tt.wantLevel, tt.wantReason)
+			}
+		})
+	}
+}
+
+// TestRosterAPI_PostWriteLockWait proves a POST that cannot get the
+// store's write connection before its wait ends answers 503 busy and
+// writes nothing, while the connection's holder is untouched.
+func TestRosterAPI_PostWriteLockWait(t *testing.T) {
+	fx := newAdminFixture(t)
+	before := dumpUsers(t, fx.users)
+
+	held, release := make(chan struct{}), make(chan struct{})
+	done := make(chan error, 1)
+	go func() {
+		done <- fx.users.Update(writeCtx(t), func(context.Context, *store.Tx) error {
+			close(held)
+			<-release
+			return nil
+		})
+	}()
+	<-held
+	inner := &rosterAPI{cfg: fx.cfg, writeWait: 50 * time.Millisecond}
+	w := serveOne(inner, withAdmin(rosterRequest(http.MethodPost, "/dubplate/roster", "", validPost), fixtureAdmin))
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatalf("holder's Update: %v", err)
+	}
+
+	if w.Code != http.StatusServiceUnavailable || outcomeOf(t, w) != outcomeBusy {
+		t.Errorf("POST = %d %s, want 503 busy", w.Code, w.Body)
+	}
+	assertUnchanged(t, fx.users, before)
+}
