@@ -23,6 +23,15 @@ re-create step. The retired musicbox archive's copy is
 > walks are conductor-run. **Approach:** invoke `pass-core`; run every lane's launch checklist (repo CLAUDE.md
 > "Lanes") before its first dispatch; `pass-execute` by name, one segment per invocation. Never re-run a full gate on
 > an unchanged commit.
+> **Unattended window (Geoff, 2026-10-07): 10+ hours, nobody attending.** Cap: each lane's own plan ceiling, no
+> window cap (25.5M total at most); a lane at its flag finishes its task, writes STATUS, and stops while the others
+> continue. Push: master to origin (private, no force, `gitleaks git --log-opts="origin/master..master"` first) at
+> each lane merge. Laptop open on AC (the battery read 12% at the grant, so the holder's floor gives almost no
+> reserve). Arm at launch: `claude-wf-guard` per workflow, and `/loop` with no interval as the wake-up fallback
+> (1200-1800s) per `~/.claude/docs/unattended-work-guards.md`; confirm `systemd-inhibit --list`. Machine is 8 cores
+> and 15 GB: run the Android emulator and the podman oracles while no heavy gate holds the lock. Nothing deploys and
+> the box stays read-only. A blocker or a genuine fork parks its lane with STATUS and one combined question for the
+> morning; unblocked lanes continue.
 
 ## Owner questions
 - R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it (not blocking).
