@@ -163,6 +163,20 @@ func TestReconcile(t *testing.T) {
 			},
 		},
 		{
+			// The walk and the backup both skip a symlinked directory,
+			// so no backup holds a file reached only through one.
+			name:   "a track under a symlinked directory",
+			tracks: []string{"linked/1.flac"},
+			tree:   under("real/1.flac"),
+			arrange: func(t *testing.T, root string) {
+				if err := os.Symlink("real", filepath.Join(root, catalogRoot, "linked")); err != nil {
+					t.Fatal(err)
+				}
+			},
+			wantUnfiled:  under("linked/1.flac"),
+			wantUnlisted: under("real/1.flac"),
+		},
+		{
 			name:   "a track whose path is a directory",
 			tracks: []string{"x"},
 			tree:   under("x/1.flac"),

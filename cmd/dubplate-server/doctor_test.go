@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -141,13 +142,7 @@ func TestDoctorCmd(t *testing.T) {
 			li := 0
 
 			for _, row := range reg.OwnedWall() {
-				want := "ok"
-				switch {
-				case row.Pending != "":
-					want = row.Pending
-				case tt.rowOverrides[row.Name] != "":
-					want = tt.rowOverrides[row.Name]
-				}
+				want := cmp.Or(tt.rowOverrides[row.Name], "ok")
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before owned row %s", row.Name)
 				}

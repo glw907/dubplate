@@ -22,24 +22,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// The magic-link identity source's key names this file reads through
-// [config.Config.IdentitySourceValue]; auth.go declares them as the
-// source's Required and Optional rows. None of these constants carries
-// a secret value; each names the environment variable a real deployment
-// carries one under.
-const (
-	magicLinkSecretKey         = "DUBPLATE_MAGIC_LINK_SECRET"          // secret-guard-allow
-	magicLinkSecretPreviousKey = "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS" // secret-guard-allow
-	sessionSecretKey           = "DUBPLATE_SESSION_SECRET"             // secret-guard-allow
-	sessionSecretPreviousKey   = "DUBPLATE_SESSION_SECRET_PREVIOUS"    // secret-guard-allow
-	publicURLKey               = "DUBPLATE_PUBLIC_URL"
-	smtpHostKey                = "DUBPLATE_SMTP_HOST"
-	smtpPortKey                = "DUBPLATE_SMTP_PORT"
-	smtpUserKey                = "DUBPLATE_SMTP_USER"
-	smtpPasswordKey            = "DUBPLATE_SMTP_PASSWORD" // secret-guard-allow
-	smtpFromKey                = "DUBPLATE_SMTP_FROM"
-)
-
 // The three subtree names the auth handlers mount under the owned
 // prefix.
 const (
@@ -333,7 +315,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, nil, err
 	}
-	nonces, _, err := auth.OpenNonceStore(ctx, authStore, durationSetting(acc, nonceRetentionSetting), magicLinkExpiryCeiling, time.Now())
+	nonces, err := openNonceStore(ctx, authStore, acc, time.Now())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -472,6 +454,15 @@ func sendsHSTS(publicURL string) bool {
 // narrowed to the one-route case.
 func exactPath(want string, next http.Handler) http.Handler {
 	return newExactPathRoutes(map[string]http.Handler{want: next})
+}
+
+// openNonceStore opens the consumed-nonce store under authStore, its
+// retention reading [nonceRetentionSetting] through acc, and sweeps it
+// once at now. It exists as its own function so a test can open the
+// store newServeShell opens and read the retention it was wired with.
+func openNonceStore(ctx context.Context, authStore *auth.Store, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
+	nonces, _, err := auth.OpenNonceStore(ctx, authStore, durationSetting(acc, nonceRetentionSetting), magicLinkExpiryCeiling, now)
+	return nonces, err
 }
 
 // authHandlersConfig builds the [auth.HandlersConfig] newServeShell

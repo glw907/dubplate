@@ -309,3 +309,34 @@ func TestThresholdKinds(t *testing.T) {
 		})
 	}
 }
+
+// TestParseFloat_RefusesNonFinite proves a KindFloat threshold refuses
+// the three non-finite values strconv.ParseFloat accepts by name, from
+// the environment as an invalid value and as a Default as a
+// registration bug, the way a KindFloat [Setting] refuses them: no
+// bound comparison catches NaN, and an infinity defeats any ratio it
+// scales.
+func TestParseFloat_RefusesNonFinite(t *testing.T) {
+	const key = "DUBPLATE_TEST_FINITE"
+	th := Threshold{Key: key, Kind: KindFloat, Default: "0.5", Doc: "a finite number"}
+	for _, value := range []string{"NaN", "Inf", "-Inf", "+infinity"} {
+		t.Run(value, func(t *testing.T) {
+			got, err := ParseFloat([]string{key + "=" + value}, th)
+			if err == nil {
+				t.Fatalf("ParseFloat(%s=%s) = %v, want an error", key, value, got)
+			}
+			if !strings.Contains(err.Error(), th.Doc) {
+				t.Errorf("ParseFloat(%s=%s) error = %q, want it to name %q", key, value, err, th.Doc)
+			}
+
+			bad := Threshold{Key: key, Kind: KindFloat, Default: value, Doc: th.Doc}
+			if got, err := ParseFloat(nil, bad); err == nil {
+				t.Errorf("ParseFloat with Default %q = %v, want an error", value, got)
+			}
+			msg := panicMessage(t, func() { NewRegistry().AddThreshold(bad) })
+			if want := key + ": invalid default"; !strings.Contains(msg, want) {
+				t.Errorf("AddThreshold with Default %q panic = %q, want it to contain %q", value, msg, want)
+			}
+		})
+	}
+}

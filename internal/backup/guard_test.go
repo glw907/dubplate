@@ -31,8 +31,9 @@ func codeOf(err error) string {
 }
 
 // TestResolveRoot pins the library root's rows: a symlink to a
-// directory resolves to its target, and an absent root, a dangling
-// symlink, and a regular file all read missing.
+// directory resolves to its target, an absent root, a dangling
+// symlink, and a regular file all read missing, and a relative root
+// reads invalid even where it names a directory.
 func TestResolveRoot(t *testing.T) {
 	base := t.TempDir()
 	lib := filepath.Join(base, "lib")
@@ -60,6 +61,17 @@ func TestResolveRoot(t *testing.T) {
 		{name: "regular file", root: file, wantCode: "library-missing"},
 		{name: "under a regular file", root: filepath.Join(file, "x"), wantCode: "library-missing"},
 		{name: "unset", root: "", wantCode: "library-missing"},
+		// Relative to the working directory, which is base, these name
+		// lib and the link to it: a root that resolves against the
+		// server's own working directory is refused, however it
+		// resolves. "-x" would reach rclone as a flag.
+		{name: "relative to an existing directory", root: "lib", wantCode: "library-invalid"},
+		{name: "relative through a symlink", root: "link", wantCode: "library-invalid"},
+		{name: "relative, shaped like a flag", root: "-x", wantCode: "library-invalid"},
+	}
+	t.Chdir(base)
+	if err := os.Mkdir("-x", 0o755); err != nil {
+		t.Fatal(err)
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

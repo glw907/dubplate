@@ -92,13 +92,12 @@ func ParseDuration(environ []string, t Threshold) (time.Duration, error) {
 	return parseThreshold(environ, t, time.ParseDuration)
 }
 
-// ParseFloat resolves t as a float64 against environ; see
-// [parseThreshold] for the unset/set-value/bad-default shape it
-// shares with ParseInt and ParseDuration.
+// ParseFloat resolves t as a finite float64 against environ, refusing
+// NaN and both infinities; see [parseThreshold] for the
+// unset/set-value/bad-default shape it shares with ParseInt and
+// ParseDuration.
 func ParseFloat(environ []string, t Threshold) (float64, error) {
-	return parseThreshold(environ, t, func(s string) (float64, error) {
-		return strconv.ParseFloat(s, 64)
-	})
+	return parseThreshold(environ, t, parseFiniteFloat)
 }
 
 // hasThreshold reports whether name is a threshold registered on r.

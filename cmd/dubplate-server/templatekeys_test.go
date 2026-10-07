@@ -57,8 +57,8 @@ func TestTemplateKeysClassifiedAgainstProductionRegistry(t *testing.T) {
 }
 
 // TestTemplateKeysCoverEveryOwnedNowRow asserts R10's completeness
-// direction: every owned-now row (a wall row [config.Load] requires
-// now rather than one carrying a Pending status) appears in
+// direction: every owned wall row (a key [config.Load] requires)
+// appears in
 // env/dubplate-server.env.template, the template the greenfield server
 // ships. This test never writes the template; a missing row is
 // reported, not repaired, since adding a name there mints a value
@@ -71,9 +71,6 @@ func TestTemplateKeysCoverEveryOwnedNowRow(t *testing.T) {
 	}
 
 	for _, row := range productionRegistry().OwnedWall() {
-		if row.Pending != "" {
-			continue
-		}
 		if !slices.Contains(names, row.Name) {
 			t.Errorf("%s: owned-now row %s does not appear; a rung adding an owned-now row must add it to the greenfield template in the same pass", greenfieldTemplate, row.Name)
 		}
@@ -84,14 +81,9 @@ func TestTemplateKeysCoverEveryOwnedNowRow(t *testing.T) {
 // when reg declares it nowhere. It reads the registry's exported
 // accessors rather than internal/config's own unexported lookups,
 // which this package cannot reach.
-//
-// An owned wall row still carrying Pending is not yet owned, so it
-// does not classify as "owned wall" here, on [config.ownedNow]'s own
-// precedent: a rung's Pending row is reserved space on the wall, not a
-// name [config.Load] requires or a template needs to carry yet.
 func classifyKey(reg *config.Registry, name string) string {
 	for _, row := range reg.OwnedWall() {
-		if row.Name == name && row.Pending == "" {
+		if row.Name == name {
 			return "owned wall"
 		}
 	}
@@ -119,21 +111,6 @@ func classifyKey(reg *config.Registry, name string) string {
 		}
 	}
 	return ""
-}
-
-// TestClassifyKey_PendingRowNotOwned proves classifyKey's Pending
-// carve-out above: a hypothetical Pending row classifies as nothing,
-// never "owned wall". No production registry carries a Pending row
-// after this task (rung 5 retired the last one, keys.go's "identity
-// source" row), so this runs against a scratch fixture rather than the
-// production table.
-func TestClassifyKey_PendingRowNotOwned(t *testing.T) {
-	reg := config.NewRegistry()
-	reg.AddWallRow(config.WallRow{Name: "scratch pending row", Pending: "pending (fixture)"})
-
-	if got := classifyKey(reg, "scratch pending row"); got != "" {
-		t.Errorf("classifyKey(pending row) = %q, want empty", got)
-	}
 }
 
 // TestClassifyKey_SMTPHostMovedToIdentitySource proves the transition

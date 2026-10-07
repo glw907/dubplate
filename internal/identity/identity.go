@@ -47,6 +47,10 @@ var ErrInvalidAddress = errors.New("identity: invalid address")
 // override, or an invisible filler that renders differently from how
 // it compares, and every such rune is refused rather than enumerated
 // one at a time.
+//
+// A returned error wraps [ErrInvalidAddress] and names the rule value
+// broke, a refused rune by its code point, and never quotes any part
+// of value, so a caller may log it.
 func NormalizeAddress(value string) (string, error) {
 	if len(value) > MaxAddressLength {
 		return "", fmt.Errorf("%w: exceeds %d bytes", ErrInvalidAddress, MaxAddressLength)
@@ -55,7 +59,7 @@ func NormalizeAddress(value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if strings.ContainsFunc(normalized, addressRefusesRune) {
+	if strings.ContainsFunc(normalized, IsInvisibleRune) {
 		return "", fmt.Errorf("%w: carries a control character or invisible character (%s)", ErrInvalidAddress, invisibleRune(normalized))
 	}
 	if again, err := parseLower(normalized); err != nil || again != normalized {
@@ -64,15 +68,19 @@ func NormalizeAddress(value string) (string, error) {
 	return normalized, nil
 }
 
-// addressRefusesRune reports whether an address refuses r: every
-// control character, every rune in the Unicode Cf (format), Zs (space
-// separator), Zl (line separator), or Zp (paragraph separator)
-// categories, every rune in the derived Default_Ignorable_Code_Point
-// set ([isDefaultIgnorableCodePoint]), and U+2800 (braille pattern
-// blank). The ordinary space (U+0020, in Zs) is already refused by
-// this rule, so it changes nothing that the byte-range check it
-// replaces did not already refuse.
-func addressRefusesRune(r rune) bool {
+// IsInvisibleRune reports whether r renders as nothing, or as something
+// other than how it compares: every control character, every rune in
+// the Unicode Cf (format), Zs (space separator), Zl (line separator),
+// or Zp (paragraph separator) categories, every rune in the derived
+// Default_Ignorable_Code_Point set, and U+2800 (braille pattern blank).
+// The ordinary space (U+0020, in Zs) is among them.
+//
+// [NormalizeAddress] refuses an address carrying any such rune. Every
+// other package that refuses invisible runes in a name it records or
+// shows calls this predicate rather than keeping a copy, and admits by
+// name any rune its own field needs, such as the space in a display
+// name.
+func IsInvisibleRune(r rune) bool {
 	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp) ||
 		isDefaultIgnorableCodePoint(r) || r == brailleBlankRune
 }
@@ -115,25 +123,28 @@ func isDefaultIgnorableCodePoint(r rune) bool {
 	return true
 }
 
-// invisibleRune returns the first rune in value that addressRefusesRune
+// invisibleRune returns the first rune in value that IsInvisibleRune
 // flags, formatted as its code point ("U+XXXX"), so a refusal can name
 // what it refused without quoting value itself. It returns "" when no
 // rune in value is refused, which never happens on the caller's own
 // path: NormalizeAddress calls it only after confirming
-// strings.ContainsFunc(value, addressRefusesRune).
+// strings.ContainsFunc(value, IsInvisibleRune).
 func invisibleRune(value string) string {
 	for _, r := range value {
-		if addressRefusesRune(r) {
+		if IsInvisibleRune(r) {
 			return fmt.Sprintf("U+%04X", r)
 		}
 	}
 	return ""
 }
 
+// parseLower returns the address value parses to, lowercased. The
+// parse error is dropped rather than wrapped: [net/mail] quotes its
+// input, or the unparsed remainder of it, in several of its errors.
 func parseLower(value string) (string, error) {
 	addr, err := mail.ParseAddress(value)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrInvalidAddress, err)
+		return "", fmt.Errorf("%w: does not parse as a single address", ErrInvalidAddress)
 	}
 	return strings.ToLower(addr.Address), nil
 }

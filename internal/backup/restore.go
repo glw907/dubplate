@@ -162,11 +162,6 @@ func Restore(ctx context.Context, cfg RestoreConfig) (err error) {
 		if root, err = resolveRoot(cfg.LibraryRoot); err != nil {
 			return fmt.Errorf("restore: %w", err)
 		}
-		// The record takes only an absolute root, and refusing one there
-		// would come after the fetch and the quiesce.
-		if !filepath.IsAbs(root) {
-			return fmt.Errorf("restore: library root %s is not an absolute path", root)
-		}
 	}
 
 	sess, err := store.OpenRestore(cfg.StateDir, store.RestoreOptions{

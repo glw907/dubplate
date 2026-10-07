@@ -200,7 +200,7 @@ type defaultIgnorableRow struct {
 	name string
 	r    rune
 	// preExisting notes that the rune was already refused by the
-	// unconditional Cf rule addressRefusesRune carried before the
+	// unconditional Cf rule IsInvisibleRune carried before the
 	// derived-set refusal existed: the row proves no regression rather
 	// than the derived set's own reach.
 	preExisting bool
@@ -231,7 +231,7 @@ func defaultIgnorableRows() []defaultIgnorableRow {
 // refused, while the same address without the code point is accepted,
 // so the refusal is the code point's and not the quoting. The three
 // preExisting rows were already refused by the unconditional Cf rule
-// addressRefusesRune carried before the derived-set refusal existed and
+// IsInvisibleRune carried before the derived-set refusal existed and
 // are labelled regressions rather than proofs of the derived set's own
 // reach; the other seven pass only once isDefaultIgnorableCodePoint or
 // the U+2800 rule exists.
@@ -490,5 +490,70 @@ func TestIdentity_AddressMatchesNormalizer(t *testing.T) {
 	}
 	if id.Address != want {
 		t.Errorf("Identity.Address = %q, want normalizer output %q", id.Address, want)
+	}
+}
+
+// TestNormalizeAddress_ErrorNeverQuotesValue holds NormalizeAddress's
+// error contract: a refusal names its reason and never any part of the
+// value. Each row is an input [net/mail] refuses with an error that
+// quotes the input, or its unparsed remainder, back; "secret" marks
+// the part a log line must never carry.
+func TestNormalizeAddress_ErrorNeverQuotesValue(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{name: "a second address after a comma", input: "alice@example.com, secret@example.com"},
+		{name: "a trailing word", input: "alice@example.com secret"},
+		{name: "invalid UTF-8 in the local part", input: "a\xffsecret@example.com"},
+		{name: "invalid UTF-8 in a quoted string", input: "\"secret\xff\"@example.com"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NormalizeAddress(tt.input)
+			if !errors.Is(err, ErrInvalidAddress) {
+				t.Fatalf("NormalizeAddress(%q) error = %v, want it to wrap ErrInvalidAddress", tt.input, err)
+			}
+			if strings.Contains(err.Error(), "secret") {
+				t.Errorf("NormalizeAddress(%q) error = %q, want no part of the value in it", tt.input, err.Error())
+			}
+		})
+	}
+}
+
+// TestIsInvisibleRune pins the predicate every package outside this
+// one refuses invisible runes through: the address refusal's whole
+// reach, the derived set and U+2800 included, and none of the ordinary
+// letters, digits, and punctuation a name or address carries.
+func TestIsInvisibleRune(t *testing.T) {
+	tests := []struct {
+		name string
+		r    rune
+		want bool
+	}{
+		{name: "a letter", r: 'a', want: false},
+		{name: "a digit", r: '7', want: false},
+		{name: "a hyphen", r: '-', want: false},
+		{name: "a non-ASCII letter", r: 'ë', want: false},
+		{name: "a Hangul syllable", r: '한', want: false},
+		{name: "the ordinary space", r: ' ', want: true},
+		{name: "a newline", r: '\n', want: true},
+		{name: "DEL", r: '\u007f', want: true},
+		{name: "no-break space (Zs)", r: ' ', want: true},
+		{name: "line separator (Zl)", r: ' ', want: true},
+		{name: "paragraph separator (Zp)", r: ' ', want: true},
+		{name: "right-to-left override (Cf)", r: '‮', want: true},
+		{name: "Hangul filler U+3164 (Lo, derived set)", r: 'ㅤ', want: true},
+		{name: "Hangul filler U+115F (Lo, derived set)", r: 'ᅟ', want: true},
+		{name: "combining grapheme joiner U+034F (Mn, derived set)", r: '͏', want: true},
+		{name: "variation selector 16 U+FE0F (Mn, derived set)", r: '️', want: true},
+		{name: "braille pattern blank U+2800", r: '⠀', want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsInvisibleRune(tt.r); got != tt.want {
+				t.Errorf("IsInvisibleRune(%U) = %v, want %v", tt.r, got, tt.want)
+			}
+		})
 	}
 }

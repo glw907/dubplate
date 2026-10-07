@@ -129,31 +129,15 @@ func (r *Registry) claim(family, key string) {
 	r.claims[key] = family
 }
 
-// AddWallRow registers row as an owned wall row. A row is either a
-// DUBPLATE_-prefixed key, checked against every other declared key, or
-// a status row whose Pending text doctor prints in a key's place; a
-// row that is neither panics (O5 class 6).
-//
-// The status-row carve-out exists for the identity source, whose Name
-// is the prose "identity source" rather than an env key: it has not
-// been assigned one yet, so the prefix rule must not reach it, and
-// treating it as a key would make rejectNamespace claim "identity
-// source" is owned.
-//
-// ruled, conductor 2026-09-08, R16
+// AddWallRow registers row as an owned wall row, a key [Load]
+// requires. Its Name must carry the DUBPLATE_ prefix (O5 class 6) and
+// is checked against every other declared key.
 func (r *Registry) AddWallRow(row WallRow) {
-	switch {
-	case strings.HasPrefix(row.Name, "DUBPLATE_"):
-		requirePrefix(familyOwnedWall, row.Name)
-		if slices.ContainsFunc(r.ownedWall, func(existing WallRow) bool { return existing.Name == row.Name }) {
-			panicDuplicate(row.Name, familyOwnedWall, familyOwnedWall)
-		}
-		r.claim(familyOwnedWall, row.Name)
-	case row.Pending != "":
-		// Status row: not a key, not claimed.
-	default:
-		panic(fmt.Sprintf("%s: wall row is neither a DUBPLATE_-prefixed key nor a status row with Pending text", row.Name))
+	requirePrefix(familyOwnedWall, row.Name)
+	if r.ownedNow(row.Name) {
+		panicDuplicate(row.Name, familyOwnedWall, familyOwnedWall)
 	}
+	r.claim(familyOwnedWall, row.Name)
 	r.ownedWall = append(r.ownedWall, row)
 }
 
@@ -286,7 +270,7 @@ func validateThresholdDefault(t Threshold) {
 			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
 		}
 	case KindFloat:
-		if _, err := strconv.ParseFloat(t.Default, 64); err != nil {
+		if _, err := parseFiniteFloat(t.Default); err != nil {
 			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
 		}
 	case KindString:

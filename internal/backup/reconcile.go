@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"maps"
 	"math"
-	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -46,10 +45,11 @@ type report struct {
 
 // reconcile reconciles the catalog h reads against the library tree
 // under root. A track's file is its collection's root path joined with
-// its own relative path under root, and counts only when it is a
-// regular file itself, never through a symlink; the walk of root does
-// not follow symlinks either, so a symlink is never a file without a
-// track.
+// its own relative path under root, and counts only when one walk of
+// root, which follows no symlink, meets it as a regular file. That is
+// the tree a backup copies: a symlink is never a track's file and never
+// a file without a track, and neither is a file reached only through a
+// symlinked directory.
 //
 // An absent root, or none, is no error: the report says so and lists
 // every track as without a file. A subtree the walk cannot read is
@@ -81,16 +81,22 @@ func reconcile(ctx context.Context, h *store.Handle, root string) (*report, erro
 		return r, nil
 	}
 
+	files, err := r.walk(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for p := range tracks {
-		info, err := os.Lstat(filepath.Join(r.root, p))
-		if err != nil || !info.Mode().IsRegular() {
+		if _, ok := files[p]; !ok {
 			r.unfiled = append(r.unfiled, p)
 		}
 	}
-	slices.Sort(r.unfiled)
-	if err := r.walk(ctx, tracks); err != nil {
-		return nil, err
+	for p := range files {
+		if _, ok := tracks[p]; !ok {
+			r.unlisted = append(r.unlisted, p)
+		}
 	}
+	slices.Sort(r.unfiled)
+	slices.Sort(r.unlisted)
 	return r, nil
 }
 
@@ -139,10 +145,12 @@ func trackPaths(ctx context.Context, h *store.Handle) (map[string]struct{}, erro
 	return paths, nil
 }
 
-// walk lists every regular file under r.root that tracks does not
-// name. filepath.WalkDir reports a directory it cannot read in a
-// second call for it, after which the walk goes on with its siblings.
-func (r *report) walk(ctx context.Context, tracks map[string]struct{}) error {
+// walk returns the path, relative to r.root, of every regular file
+// under r.root, and names in r.walkErrs each subtree it cannot read.
+// filepath.WalkDir reports a directory it cannot read in a second call
+// for it, after which the walk goes on with its siblings.
+func (r *report) walk(ctx context.Context) (map[string]struct{}, error) {
+	files := make(map[string]struct{})
 	err := filepath.WalkDir(r.root, func(p string, d fs.DirEntry, err error) error {
 		if cerr := ctx.Err(); cerr != nil {
 			return cerr
@@ -158,15 +166,13 @@ func (r *report) walk(ctx context.Context, tracks map[string]struct{}) error {
 		if err != nil {
 			return err
 		}
-		if _, ok := tracks[rel]; !ok {
-			r.unlisted = append(r.unlisted, rel)
-		}
+		files[rel] = struct{}{}
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("reconcile: walk %s: %w", r.root, err)
+		return nil, fmt.Errorf("reconcile: walk %s: %w", r.root, err)
 	}
-	return nil
+	return files, nil
 }
 
 // render renders r: its counts, then at most limit entries of each

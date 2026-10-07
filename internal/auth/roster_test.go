@@ -115,6 +115,12 @@ func TestDisplayNameCarriesRefusedRune(t *testing.T) {
 		{name: "zero-width space (Cf)", input: "a\u200bb", want: true},
 		{name: "zero-width non-joiner (Cf, admitted)", input: "a\u200cb", want: false},
 		{name: "zero-width joiner (Cf, admitted)", input: "a\u200db", want: false},
+		{name: "an emoji with its presentation selector (admitted)", input: "Alice \u2764\ufe0f", want: false},
+		{name: "a Mongolian free variation selector (admitted)", input: "a\u180bb", want: false},
+		{name: "Hangul filler U+3164 (Lo, derived set)", input: "a\u3164b", want: true},
+		{name: "halfwidth Hangul filler U+FFA0 (Lo, derived set)", input: "a\uffa0b", want: true},
+		{name: "combining grapheme joiner U+034F (Mn, derived set)", input: "a\u034fb", want: true},
+		{name: "braille pattern blank U+2800", input: "a\u2800b", want: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -292,6 +298,8 @@ func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 		{name: "a command-line actor carrying a space", actor: "some operator", channel: identity.ChannelCommandLine},
 		{name: "a command-line actor carrying U+202E", actor: "oper\u202eator", channel: identity.ChannelCommandLine},
 		{name: "a command-line actor carrying a newline", actor: "operator\nforged", channel: identity.ChannelCommandLine},
+		{name: "a command-line actor carrying Hangul filler U+3164", actor: "oper\u3164ator", channel: identity.ChannelCommandLine},
+		{name: "a command-line actor carrying braille pattern blank U+2800", actor: "operator\u2800", channel: identity.ChannelCommandLine},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -572,6 +580,8 @@ func TestValidateWriteCandidate_BlankDisplayName(t *testing.T) {
 		{name: "several spaces", displayName: "   ", wantErr: true},
 		{name: "a zero-width joiner alone", displayName: "\u200d", wantErr: true},
 		{name: "spaces around a zero-width non-joiner", displayName: " \u200c ", wantErr: true},
+		{name: "a variation selector alone", displayName: "\ufe0f", wantErr: true},
+		{name: "an emoji with its presentation selector", displayName: "\u2764\ufe0f"},
 		{name: "one letter", displayName: "A"},
 		{name: "a letter inside spaces", displayName: " A "},
 	}

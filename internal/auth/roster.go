@@ -162,7 +162,7 @@ func validateWriteCandidate(candidate Member) (Member, error) {
 	if len(candidate.Username) > maxUsernameLength {
 		return Member{}, errInvalidUsername
 	}
-	if strings.Trim(candidate.DisplayName, " "+string(zeroWidthNonJoiner)+string(zeroWidthJoiner)) == "" {
+	if strings.TrimFunc(candidate.DisplayName, displayNameAdmitsInvisible) == "" {
 		return Member{}, errBlankDisplayName
 	}
 	if candidate.Username == "" {
@@ -186,8 +186,8 @@ func validateWriteCandidate(candidate Member) (Member, error) {
 // address through [identity.NormalizeAddress], and the record names
 // the normalized address. The command line names an operating-system
 // user, which is no address, so its actor need only be non-empty and
-// free of every rune [actorRefusesRune] names, the ordinary space
-// included, and the record names it as given.
+// free of every rune [identity.IsInvisibleRune] names, the ordinary
+// space included, and the record names it as given.
 func validateActor(actor string, channel identity.Channel) (string, error) {
 	switch channel {
 	case identity.ChannelCookie:
@@ -197,7 +197,7 @@ func validateActor(actor string, channel identity.Channel) (string, error) {
 		}
 		return normalized, nil
 	case identity.ChannelCommandLine:
-		if actor == "" || strings.ContainsFunc(actor, actorRefusesRune) {
+		if actor == "" || strings.ContainsFunc(actor, identity.IsInvisibleRune) {
 			return "", errInvalidActor
 		}
 		return actor, nil
@@ -206,40 +206,35 @@ func validateActor(actor string, channel identity.Channel) (string, error) {
 	}
 }
 
-// actorRefusesRune reports whether a command-line actor refuses r:
-// every control character and every rune in the Unicode Cf, Zs, Zl, or
-// Zp categories. A command-line actor names an operating-system user,
-// never a login address, so it carries none of [identity.NormalizeAddress]'s
-// address-shape rules, including its derived Default_Ignorable_Code_Point
-// refusal: the audit record still names every address that rule
-// reaches, because a cookie actor already passes through
-// [identity.NormalizeAddress] before it reaches this package.
-func actorRefusesRune(r rune) bool {
-	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
-}
-
 // zeroWidthNonJoiner and zeroWidthJoiner are the two Cf runes a display
-// name admits despite the Cf category refusal below: both compose a
-// legal name in scripts that use them (Persian, Indic ligatures), and
-// neither carries the rendering or comparison hazard the rest of Cf
-// does.
+// name admits despite [identity.IsInvisibleRune]: both compose a legal
+// name in scripts that use them (Persian, Indic ligatures), and neither
+// carries the rendering or comparison hazard the rest of Cf does.
 const (
 	zeroWidthNonJoiner = '\u200c'
 	zeroWidthJoiner    = '\u200d'
 )
 
-// displayNameCarriesRefusedRune reports whether s carries a rune a
-// display name refuses: every control character, the line and
-// paragraph separators, every space separator but the ordinary one
-// (U+0020, so "Alice Example" is unaffected), and every format
-// character but the zero-width joiner and non-joiner.
+// displayNameAdmitsInvisible reports whether r is one of the invisible
+// runes a display name admits: the ordinary space, the zero-width
+// joiner and non-joiner, and the variation selectors, which choose a
+// glyph for the rune before them (U+FE0F turns a heart into the emoji
+// heart) and never stand alone in a name. None of them makes a name
+// visible, so a name of nothing else is blank.
+func displayNameAdmitsInvisible(r rune) bool {
+	switch r {
+	case ' ', zeroWidthNonJoiner, zeroWidthJoiner:
+		return true
+	}
+	return unicode.Is(unicode.Variation_Selector, r)
+}
+
+// displayNameCarriesRefusedRune reports whether s carries a rune
+// [identity.IsInvisibleRune] refuses and [displayNameAdmitsInvisible]
+// does not admit back.
 func displayNameCarriesRefusedRune(s string) bool {
 	return strings.ContainsFunc(s, func(r rune) bool {
-		switch r {
-		case ' ', zeroWidthNonJoiner, zeroWidthJoiner:
-			return false
-		}
-		return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp)
+		return identity.IsInvisibleRune(r) && !displayNameAdmitsInvisible(r)
 	})
 }
 

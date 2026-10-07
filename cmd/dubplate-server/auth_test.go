@@ -23,23 +23,15 @@ import (
 )
 
 // TestRegisterAuthConfig_SelectorIsOwnedNow proves the selector lands as
-// an owned wall row with no Pending, retiring keys.go's own pending
-// "identity source" status row (R5): a registry that registers nothing
-// else still requires DUBPLATE_IDENTITY_SOURCE once registerAuthConfig
+// an owned wall row: a registry that registers nothing else still
+// carries DUBPLATE_IDENTITY_SOURCE on its wall once registerAuthConfig
 // has run.
 func TestRegisterAuthConfig_SelectorIsOwnedNow(t *testing.T) {
 	reg := config.NewRegistry()
 	registerAuthConfig(reg)
 
-	rows := reg.OwnedWall()
-	i := slices.IndexFunc(rows, func(row config.WallRow) bool {
-		return row.Name == "DUBPLATE_IDENTITY_SOURCE"
-	})
-	if i < 0 {
+	if !slices.Contains(reg.OwnedWall(), config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}) {
 		t.Fatal("OwnedWall() has no DUBPLATE_IDENTITY_SOURCE row")
-	}
-	if rows[i].Pending != "" {
-		t.Errorf("DUBPLATE_IDENTITY_SOURCE.Pending = %q, want empty", rows[i].Pending)
 	}
 }
 
@@ -723,13 +715,16 @@ func TestPrepareServe_RefusesAuthCorrelatedRule(t *testing.T) {
 // seeds one env-seed row for the key alone, audits it, and the reader
 // serve wires for the key reads that value. The handler readers are
 // read from [authHandlersConfig]'s own return value, the limits through
-// [readAuthLimits], and the retention through the reader serve hands
-// the nonce store. Each want is a literal, so a reader wired to the
-// wrong key fails its row.
+// [readAuthLimits], and the retention from the nonce store
+// [openNonceStore] opens, the one serve opens: a record inserted at t0
+// is kept by a sweep at t0 plus the retention and removed by one a
+// second later. Each want is a literal, so a reader wired to the wrong
+// key fails its row.
 func TestAuthSettings_SeedFromEnv(t *testing.T) {
 	type readers struct {
 		handlers auth.HandlersConfig
 		acc      *settings.Accessor
+		stateDir string
 	}
 	limit := func(pick func(auth.Limits) int) func(context.Context, readers) (any, error) {
 		return func(ctx context.Context, r readers) (any, error) {
@@ -746,8 +741,8 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 		{"DUBPLATE_SESSION_LIFETIME", "1h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionLifetime(ctx) }, time.Hour},
 		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionAbsoluteCap(ctx) }, 4000 * time.Hour},
 		{"DUBPLATE_NONCE_RETENTION", "2h", func(ctx context.Context, r readers) (any, error) {
-			return durationSetting(r.acc, nonceRetentionSetting)(ctx)
-		}, 2 * time.Hour},
+			return sweptAround(ctx, r.acc, r.stateDir, 2*time.Hour)
+		}, [2]int{0, 1}},
 		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", limit(func(l auth.Limits) int { return l.LinkRequestsPerAddress }), 7},
 		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", limit(func(l auth.Limits) int { return l.LinkRequestsPerClient }), 22},
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", limit(func(l auth.Limits) int { return l.ConsumptionAttemptsPerClient }), 33},
@@ -774,7 +769,7 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 				t.Fatalf("config.Load: %v", err)
 			}
 			err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
-				r := readers{handlers: authHandlersConfig(serve.Prefix{}, cfg, acc, nil, nil, nil, nil, nil, nil, nil), acc: acc}
+				r := readers{handlers: authHandlersConfig(serve.Prefix{}, cfg, acc, nil, nil, nil, nil, nil, nil, nil), acc: acc, stateDir: cfg.StateDir}
 				got, err := tt.got(t.Context(), r)
 				if err != nil {
 					return err
@@ -789,6 +784,35 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 			}
 		})
 	}
+}
+
+// sweptAround inserts one consumed nonce at a fixed instant t0 into the
+// nonce store [openNonceStore] opens under stateDir, then sweeps it at
+// t0 plus retention and again a second later. It returns the two
+// sweeps' removed counts: [2]int{0, 1} when the store's retention is
+// retention, since a record at exactly its expiry is kept.
+func sweptAround(ctx context.Context, acc *settings.Accessor, stateDir string, retention time.Duration) ([2]int, error) {
+	authStore, err := auth.Open(stateDir)
+	if err != nil {
+		return [2]int{}, err
+	}
+	nonces, err := openNonceStore(ctx, authStore, acc, time.Now())
+	if err != nil {
+		return [2]int{}, err
+	}
+	t0 := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	if err := nonces.Insert(ctx, [auth.NonceLength]byte{0x5e, 0xed}, t0, t0); err != nil {
+		return [2]int{}, err
+	}
+	var removed [2]int
+	for i, at := range []time.Time{t0.Add(retention), t0.Add(retention + time.Second)} {
+		sweep, err := nonces.Sweep(ctx, at)
+		if err != nil {
+			return [2]int{}, err
+		}
+		removed[i] = sweep.Removed
+	}
+	return removed, nil
 }
 
 // TestAuthSettings_StringRowSecondStart proves a seeded string row

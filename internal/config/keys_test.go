@@ -12,9 +12,7 @@ func TestOwnedWall_RequiredNowRows(t *testing.T) {
 
 	got := make(map[string]bool)
 	for _, row := range OwnedWall() {
-		if row.Pending == "" {
-			got[row.Name] = true
-		}
+		got[row.Name] = true
 	}
 
 	for name := range want {

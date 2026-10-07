@@ -283,12 +283,11 @@ func dropKey(environ []string, name string) []string {
 
 // classificationRegistry returns a registry carrying one fixture
 // declaration in every family the wall classifies a DUBPLATE_* name
-// against, plus a pending owned row. Every name is this test's own; no
+// against. Every name is this test's own; no
 // rung's real key appears.
 func classificationRegistry() *Registry {
 	reg := NewRegistry()
 	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_OWNED"})
-	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_PENDING", Pending: "pending (arrives later)"})
 	reg.AddReservedClass(ReservedClass{
 		Name: "classification fixture",
 		Rung: 99,
@@ -353,7 +352,6 @@ func classificationEnviron() []string {
 func TestClassificationFamilies(t *testing.T) {
 	const (
 		owned       = "owned"
-		pending     = "pending"
 		reserved    = "reserved"
 		superseded  = "superseded"
 		integration = "integration"
@@ -369,7 +367,6 @@ func TestClassificationFamilies(t *testing.T) {
 		want string
 	}{
 		{name: "owned-now row", key: "DUBPLATE_CLASSIFY_OWNED", want: owned},
-		{name: "pending owned row", key: "DUBPLATE_CLASSIFY_PENDING", want: pending},
 		{name: "reserved class key", key: "DUBPLATE_CLASSIFY_RESERVED", want: reserved},
 		{name: "superseded name", key: "DUBPLATE_CLASSIFY_SUPERSEDED", want: superseded},
 		{name: "integration flag", key: "DUBPLATE_CLASSIFY_ENABLED", want: integration},
@@ -392,7 +389,6 @@ func TestClassificationFamilies(t *testing.T) {
 			_, isIntegration := reg.integrationClassOf(tt.key)
 			got := map[string]bool{
 				owned:       reg.ownedNow(tt.key),
-				pending:     wallRowPending(reg, tt.key),
 				reserved:    isReserved,
 				superseded:  isSuperseded,
 				integration: isIntegration,
@@ -407,19 +403,6 @@ func TestClassificationFamilies(t *testing.T) {
 			}
 		})
 	}
-}
-
-// wallRowPending reports whether key is an owned wall row carrying a
-// Pending status, the one classification with no helper of its own:
-// ownedNow answers false for a pending row and for an undeclared name
-// alike, so the test above needs this to tell the two apart.
-func wallRowPending(reg *Registry, key string) bool {
-	for _, row := range reg.OwnedWall() {
-		if row.Name == key {
-			return row.Pending != ""
-		}
-	}
-	return false
 }
 
 // TestLoad_RegisteredThresholdIsNotUnknown proves the fifth
@@ -699,20 +682,15 @@ func scratchSourceRegistry() *Registry {
 
 // TestLoad_RequiresEveryRegisteredOwnedNowRow proves the requirement
 // mechanism (R-5b4): a wall row a rung registers from its own file is
-// required by the registration itself, and a row carrying Pending is
-// neither required nor read. Rung 1's four rows are unaffected because
+// required by the registration itself. Rung 1's four rows are unaffected because
 // they are the rows NewRegistry seeds; the rows here are this test's
 // own.
 func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
-	const (
-		scratchOwned   = "DUBPLATE_TEST_SCRATCH_OWNED"
-		scratchPending = "DUBPLATE_TEST_SCRATCH_PENDING"
-	)
+	const scratchOwned = "DUBPLATE_TEST_SCRATCH_OWNED"
 
 	registry := func() *Registry {
 		reg := NewRegistry()
 		reg.AddWallRow(WallRow{Name: scratchOwned})
-		reg.AddWallRow(WallRow{Name: scratchPending, Pending: "pending (arrives later)"})
 		return reg
 	}
 
@@ -728,7 +706,7 @@ func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
 			wantOnce: scratchOwned,
 		},
 		{
-			name:  "a registered owned-now row set loads clean, with the pending row unset",
+			name:  "a registered owned-now row set loads clean",
 			extra: []string{scratchOwned + "=/srv/scratch"},
 		},
 	}

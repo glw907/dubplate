@@ -17,11 +17,32 @@ import (
 )
 
 // identitySourceSelectorRow declares DUBPLATE_IDENTITY_SOURCE as an
-// owned wall row with no Pending, retiring the pending row keys.go
-// carried from rung 1 (R5): the selector is required now, alongside
-// [magicLinkSource] itself, rather than pending a rung that has
-// arrived.
+// owned wall row: the selector is required, alongside
+// [magicLinkSource] itself.
 var identitySourceSelectorRow = config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}
+
+// The magic-link identity source's key names: [magicLinkSource]
+// declares them, its Validate hook checks them, and serve reads them
+// through [config.Config.IdentitySourceValue]. None of these constants
+// carries a secret value; each names the environment variable a real
+// deployment carries one under.
+const (
+	magicLinkSecretKey         = "DUBPLATE_MAGIC_LINK_SECRET"          // secret-guard-allow
+	magicLinkSecretPreviousKey = "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS" // secret-guard-allow
+	sessionSecretKey           = "DUBPLATE_SESSION_SECRET"             // secret-guard-allow
+	sessionSecretPreviousKey   = "DUBPLATE_SESSION_SECRET_PREVIOUS"    // secret-guard-allow
+	publicURLKey               = "DUBPLATE_PUBLIC_URL"
+	smtpHostKey                = "DUBPLATE_SMTP_HOST"
+	smtpPortKey                = "DUBPLATE_SMTP_PORT"
+	smtpUserKey                = "DUBPLATE_SMTP_USER"
+	smtpPasswordKey            = "DUBPLATE_SMTP_PASSWORD" // secret-guard-allow
+	smtpFromKey                = "DUBPLATE_SMTP_FROM"
+)
+
+// secretKeys names every key [validateMagicLinkSource] holds to
+// [secretLengthFloor]: both HMAC secrets and their rotation-overlap
+// predecessors.
+var secretKeys = []string{magicLinkSecretKey, sessionSecretKey, magicLinkSecretPreviousKey, sessionSecretPreviousKey}
 
 // magicLinkSource is the shipped default identity source: a login link
 // mailed to a roster address, backed by an HMAC-signed session cookie.
@@ -46,18 +67,18 @@ var magicLinkSource = config.IdentitySource{
 	Name:     "magic-link",
 	Selector: identitySourceSelectorRow.Name,
 	Required: []string{
-		"DUBPLATE_MAGIC_LINK_SECRET",
-		"DUBPLATE_SESSION_SECRET",
-		"DUBPLATE_PUBLIC_URL",
-		"DUBPLATE_SMTP_HOST",
-		"DUBPLATE_SMTP_PORT",
-		"DUBPLATE_SMTP_USER",
-		"DUBPLATE_SMTP_PASSWORD",
-		"DUBPLATE_SMTP_FROM",
+		magicLinkSecretKey,
+		sessionSecretKey,
+		publicURLKey,
+		smtpHostKey,
+		smtpPortKey,
+		smtpUserKey,
+		smtpPasswordKey,
+		smtpFromKey,
 	},
 	Optional: []string{
-		"DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS",
-		"DUBPLATE_SESSION_SECRET_PREVIOUS",
+		magicLinkSecretPreviousKey,
+		sessionSecretPreviousKey,
 	},
 	Validate: validateMagicLinkSource,
 }
@@ -331,24 +352,19 @@ func (e *sourceKeyError) Error() string {
 func validateMagicLinkSource(values map[string]string, environ []string) error {
 	var errs []error
 
-	for _, key := range []string{
-		"DUBPLATE_MAGIC_LINK_SECRET",
-		"DUBPLATE_SESSION_SECRET",
-		"DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS",
-		"DUBPLATE_SESSION_SECRET_PREVIOUS",
-	} {
+	for _, key := range secretKeys {
 		if v, ok := values[key]; ok && len(v) < secretLengthFloor {
 			errs = append(errs, &sourceKeyError{key: key, reason: fmt.Sprintf("too short, want at least %d bytes", secretLengthFloor)})
 		}
 	}
 
-	if v, ok := values["DUBPLATE_PUBLIC_URL"]; ok {
+	if v, ok := values[publicURLKey]; ok {
 		if err := validatePublicURL(v); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
-	if v, ok := values["DUBPLATE_SMTP_FROM"]; ok {
+	if v, ok := values[smtpFromKey]; ok {
 		if err := validateSMTPFrom(v); err != nil {
 			errs = append(errs, err)
 		}
@@ -396,10 +412,10 @@ func validateSMTPPort(value string) error {
 // clean. The returned error never repeats value.
 func validateSMTPFrom(value string) error {
 	if strings.ContainsAny(value, "\r\n") {
-		return errors.New("DUBPLATE_SMTP_FROM: invalid email address")
+		return errors.New(smtpFromKey + ": invalid email address")
 	}
 	if _, err := mail.ParseAddress(value); err != nil {
-		return errors.New("DUBPLATE_SMTP_FROM: invalid email address")
+		return errors.New(smtpFromKey + ": invalid email address")
 	}
 	return nil
 }

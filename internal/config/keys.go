@@ -2,15 +2,10 @@ package config
 
 import "slices"
 
-// WallRow is one row of the owned configuration wall: a name and,
-// for a row whose requirement has not arrived yet, the status
-// [Load] and the doctor subcommand report in its place.
+// WallRow is one row of the owned configuration wall: a key [Load]
+// requires.
 type WallRow struct {
 	Name string
-	// Pending is empty for a row [Load] requires now. A non-empty
-	// value is the status doctor reports instead, and Load neither
-	// requires nor reads the row while it is set.
-	Pending string
 }
 
 // ownedWall is the wall's required-now rows (spec, "The config wall,
@@ -29,17 +24,12 @@ func OwnedWall() []WallRow {
 	return slices.Clone(ownedWall)
 }
 
-// ownedNow reports whether name is an owned row in r that [Load]
-// requires now, as opposed to a row still carrying a Pending status.
+// ownedNow reports whether name is an owned row in r, one [Load]
+// requires.
 //
 // ruled, conductor 2026-09-07, R1
 func (r *Registry) ownedNow(name string) bool {
-	for _, row := range r.ownedWall {
-		if row.Name == name {
-			return row.Pending == ""
-		}
-	}
-	return false
+	return slices.ContainsFunc(r.ownedWall, func(row WallRow) bool { return row.Name == name })
 }
 
 // ReservedClass is one named class of configuration the wall

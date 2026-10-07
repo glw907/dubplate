@@ -409,9 +409,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 	// however many times it is called for, so the four do not report
 	// twice.
 	for _, row := range reg.ownedWall {
-		if row.Pending == "" {
-			w.require(row.Name)
-		}
+		w.require(row.Name)
 	}
 
 	// Every enabled class's Required keys resolve here, generically, by

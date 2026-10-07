@@ -608,6 +608,16 @@ func TestBackup_Refusals(t *testing.T) {
 			wantMsg:  "permission denied",
 		},
 		{
+			name: "a relative root shaped like a flag",
+			root: func(t *testing.T, base string) string {
+				writeTree(t, base, "-x/a/one.flac")
+				t.Chdir(base)
+				return "-x"
+			},
+			wantCode: "library-invalid",
+			wantMsg:  "is not an absolute path",
+		},
+		{
 			name:     "remote with no colon",
 			root:     func(t *testing.T, base string) string { writeTree(t, base, "lib/a"); return filepath.Join(base, "lib") },
 			remote:   "relative/dir",

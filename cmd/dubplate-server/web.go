@@ -647,9 +647,13 @@ func resolveOperatorCSS(environ []string, private privateFiles) ([]byte, bool, e
 // once every symbolic link in it is followed, which is the path
 // opened: a link named x.css cannot stand in for another file. The
 // resolved path must not lie under private.stateDir. The file is opened once, with
-// O_NOFOLLOW so a link swapped in after resolution is refused, and
-// with O_NONBLOCK so a FIFO cannot hang startup; the class check
-// reads the open descriptor, so the file checked is the file read.
+// O_NOFOLLOW so a link swapped in for the file itself after resolution
+// is refused, and with O_NONBLOCK so a FIFO cannot hang startup; the
+// class check reads the open descriptor, so the file checked is the
+// file read. O_NOFOLLOW reaches the last path element alone: a
+// directory on the resolved path swapped for a link after resolution
+// is still followed, so the checks above hold only while no one else
+// can write a directory on the path.
 // The content must be UTF-8 text holding no NUL byte and no more than
 // operatorCSSMaxBytes. A returned error names the rule or the reason
 // and never carries the path or any byte of the file.

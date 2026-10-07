@@ -15,10 +15,15 @@ import (
 // resolveRoot resolves every symlink in root and returns the directory
 // it names. filepath.WalkDir does not follow a symlinked root while
 // rclone does, so the count guard and the sync must both read the
-// resolved path.
+// resolved path. A relative root is refused: it would resolve against
+// the process's working directory, a restore's record takes only an
+// absolute root, and rclone reads a root beginning with "-" as a flag.
 func resolveRoot(root string) (string, error) {
 	if root == "" {
 		return "", fail("library-missing", "no library root is configured")
+	}
+	if !filepath.IsAbs(root) {
+		return "", fail("library-invalid", "library root %s is not an absolute path", root)
 	}
 	resolved, err := filepath.EvalSymlinks(root)
 	if errors.Is(err, fs.ErrNotExist) || errors.Is(err, syscall.ENOTDIR) {

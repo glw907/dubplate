@@ -49,7 +49,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			statuses := rowStatuses(loadErr)
 
 			for _, row := range reg.OwnedWall() {
-				status := cmp.Or(row.Pending, statuses[row.Name], "ok")
+				status := cmp.Or(statuses[row.Name], "ok")
 				if err := printRow(stdout, row.Name, status); err != nil {
 					return err
 				}

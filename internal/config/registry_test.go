@@ -286,32 +286,18 @@ func TestCollisionGate_KindStringEmptyDefault(t *testing.T) {
 	}
 }
 
-// TestCollisionGate_IdentitySourceCarveOut proves R16's carve-out in
-// the other direction, O5 class 6: a status row (Pending set, not a
-// DUBPLATE_-prefixed key) must not be claimed as a key. It registers
-// its own fixture status row rather than reading the production table,
-// because rung 5 retired the last pending row NewRegistry ever seeded
-// (keys.go's "identity source" row); reading the production table here
-// after that retirement would pass without ever exercising the
-// carve-out AddWallRow's switch statement provides.
-func TestCollisionGate_IdentitySourceCarveOut(t *testing.T) {
-	r := NewRegistry()
-	r.AddWallRow(WallRow{Name: "test status row", Pending: "pending (fixture)"})
-	if family, ok := r.claims["test status row"]; ok {
-		t.Fatalf("status row registered as a key (family %q); the prefix rule must not reach a status row", family)
-	}
-}
-
-// TestCollisionGate_WallRowNeitherKeyNorStatus fires O5 class 6 in its
-// refusing direction: a wall row that is neither a prefixed key nor a
-// status row carrying Pending text.
-func TestCollisionGate_WallRowNeitherKeyNorStatus(t *testing.T) {
+// TestCollisionGate_WallRowWithoutPrefix fires O5 class 6: a wall row
+// whose name is not a DUBPLATE_-prefixed key.
+func TestCollisionGate_WallRowWithoutPrefix(t *testing.T) {
 	r := NewRegistry()
 	msg := panicMessage(t, func() {
 		r.AddWallRow(WallRow{Name: "not a prefixed key"})
 	})
-	if !strings.Contains(msg, "not a prefixed key") {
-		t.Errorf("panic message %q does not name the offending row", msg)
+	if !strings.Contains(msg, "not a prefixed key") || !strings.Contains(msg, "without the DUBPLATE_ prefix") {
+		t.Errorf("panic message %q, want it to name the offending row and the missing prefix", msg)
+	}
+	if _, ok := r.claims["not a prefixed key"]; ok {
+		t.Error("a refused wall row was claimed as a key")
 	}
 }
 
