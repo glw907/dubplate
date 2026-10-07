@@ -40,9 +40,9 @@ re-create step. The retired musicbox archive's copy is
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: 6d rev 2.5 approved 2026-10-07; launch next session |
-| slice 1 | document lane | not launched; plan rev 1.1 approved 2026-10-07 |
-| slice 2 | `.claude/worktrees/lane-3-slice-2` | not launched; 2a plan rev 1.2 approved 2026-10-07; merges after 6d |
+| 1 | main tree (master) | RUNNING (2026-10-07 overnight): Task 0 closed (sweep `f58a559`..`beda726`, baseline gate 507s green, six blockers clear); segment A Tasks 1-2 in pass-execute run `wf_374c5d4c-7ab` |
+| slice 1 | document lane, staged in the session scratchpad | RUNNING: Tasks 0-8 done (seven records reviewed, fact read folded); spec rev 3.1 drafting; A-land and B-land wait for lane 1's segment A boundary |
+| slice 2 | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` from `beda726` | RUNNING: Task 0 and lane launch; contested `go.mod`/`go.sum` (6d merges first); sub-ceiling 9.0M |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
