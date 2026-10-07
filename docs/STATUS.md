@@ -35,7 +35,7 @@ and Geoff approved it 2026-10-07 with Ruling 1 yes (one pass); it is on master a
 |---|---|---|
 | 1 | main tree (master) | idle: 6d closed 2026-10-07 (code through `4de73e7`, close commit `0aa8d18`; ~9.5M of 10.5M) |
 | slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `d11f853`) |
-| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` | **executing 2b** (launched 2026-10-07 11:50; plan rev 1.3 at `b84c70a` on the branch; sub-ceiling 9.0M, flag 7.2M; contested: `scripts/check.sh` (Task 1), `Makefile` (Task 2), `cmd/harness/main.go`; Task 0: sweep moved nothing, libxml2 2.15.4 pinned, dotfiles `c25573b`) |
+| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` | **executing 2b**, segment A closed (Tasks 1-3 accepted, `9f878c3..f4ba980`, boundary gate green; segment B next) (launched 2026-10-07 11:50; plan rev 1.3 at `b84c70a` on the branch; sub-ceiling 9.0M, flag 7.2M; contested: `scripts/check.sh` (Task 1), `Makefile` (Task 2), `cmd/harness/main.go`; Task 0: sweep moved nothing, libxml2 2.15.4 pinned, dotfiles `c25573b`) |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
