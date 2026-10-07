@@ -100,8 +100,15 @@ lanes at once.
 territory. The primary code lane and all document lanes share the
 tree; each code lane past the primary gets its own git worktree, because
 `scripts/check.sh` runs the module gate over `./...` and two
-whole-repo legs besides. Corpus and harness work never moves to a
-worktree. Every lane launch runs the checklist: reverse edges
+whole-repo legs besides. The matcher corpus and the beets oracle never
+move to a worktree, because the beets venv is gitignored and `make derive`
+sits outside the gate, so a worktree's gate goes green without the one leg
+that exercises beets. The OpenSubsonic harness (`internal/harness/subsonic`,
+`internal/opensubsonic`, `cmd/harness`) needs no venv, no beets, and no
+`corpus/`, so its lane runs in a worktree. One residue applies:
+`cmd/harness`'s `//go:build oracle` files are never built by the gate, so
+every close of a lane that touches them runs
+`go vet -tags oracle ./cmd/harness/... ./internal/harness/...` once. Every lane launch runs the checklist: reverse edges
 cleared, contested surfaces written, runaway guard armed, lane
 registry entry written, venv provisioned if needed, sub-ceiling
 assigned, AC power, throughput baseline. **Never launch a second
@@ -174,6 +181,15 @@ runs alone in seconds, and shellcheck covers it with the rest of
 leaves; every granted leaf is in that array and every array entry is
 granted; the serve unit is granted the `store` leaf; and the leg proves
 `deploy.sh`'s pre-create loop iterates that array.
+Two import-graph tests hold the OpenSubsonic layer's boundaries, and a green
+`go test ./...` runs both. The import-boundary test
+(`internal/opensubsonic/boundary_test.go`) fails if anything under
+`internal/opensubsonic` pulls in a module-internal package outside it, tests
+included. The no-link test (`internal/harness/conform/arch_test.go`) fails if
+`go list -deps ./cmd/dubplate-server` names a package under `internal/harness`
+or `internal/opensubsonic/conformance`, or any `github.com/getkin` path, so the
+server never links the harness, the contract checker, or kin-openapi; the
+protocol client stays linkable.
 Two workstation prerequisites sit outside the gate, because the gate
 never opens a network connection: `npm ci --prefix web` and
 `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user

@@ -101,6 +101,10 @@
   `syncDir` copies, the settings accessor's mutex across a database read, threshold bounds without Floor and
   Ceiling, doctor's file split, and more): `docs/superpowers/research/2026-10-07-6d-architecture-reads.md`, "To
   file". Route to the architecture-cleanup task. 2026-10-07 #arch #project:prod-polish
+- [ ] #27 `scripts/check.sh --scope-changed` runs the rendered (browser) leg whenever the conform suite is in scope
+  (`derive_rendered_affected` follows `derive_conform_affected`, `check.sh:264-275`), so a harness-only change pays
+  the Chromium leg (about 106 s) though nothing it changes reaches the browser. Decouple the two scopes. Filed by
+  slice 2a's plan ("Not verified at planning"), 2026-10-07 #gate #project:prod-polish
 
 ## Done
 

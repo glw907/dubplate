@@ -1,25 +1,23 @@
 # dubplate status
 
 ## Current state
-Rung 5, the navidrome-removal and re-plan document passes, rung 12 slice 1 (the study), and rung 6d (identity in the
-store, the auth settings, and `serve`'s store) are closed (HISTORY). 6d's code is on master (`beda726..4de73e7`).
-Slice 2a's harness waits on its branch for its merge. Master is green. The box is unchanged: dubplate-server binary
+Rung 5, the navidrome-removal and re-plan document passes, rung 12 slice 1 (the study), rung 6d (identity in the
+store, the auth settings, and `serve`'s store), and rung 12 slice 2a (the oracle harness) are closed (HISTORY). 6d's
+code is on master (`beda726..4de73e7`) and 2a's is merged at `70bcc30` (`d87ecc5..70bcc30`). Master is green. 2b's plan
+revision can start now that slice 1 is closed. The box is unchanged: dubplate-server binary
 `d1e93e9`, the serve unit installed and disabled, the `auth`, `roster`, `unidecode` leaves, one admin member, and
 `/srv/music/library` (6.6 GB); the first 6d deploy takes the runbook's 6d upgrade. Archive: HISTORY, "Archive record".
 
 ## Next action
 > **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
-> **Goal:** merge and close rung 12 slice 2a (`plans/2026-10-06-rung-12-slice-2-oracle-harness.md`, worktree
-> `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` at `25c442a` from `beda726`; about 6.0M of 9.0M). Tasks 1
-> to 8, the simplifier, the vacuity fold, the oracle-tag vet, and the architecture reads and their fold are done; Task 9
-> steps 4, 6, 7 are left. **Step 4:** the merge ritual (repo `CLAUDE.md` "Lanes"; plan Task 9 step 4 for the
-> `go.mod`/`go.sum` and kin-openapi handling), then one `diff-reviewer` over the merged range. **Step 6:** three edits
-> in one batch: `CLAUDE.md` (R1's wording with the `go vet -tags oracle` check; the gate paragraph naming the boundary
-> and no-link tests); HISTORY's 2a entry, from the slice 2a sections of `research/2026-10-07-overnight-conductor-notes.md`
-> (golden counts, the 586 s baseline, budgets, the 2 s seed and Two Sides rulings, the light-lane slip, architecture
-> reads before the merge); this STATUS (lane 3's row, 2b's wait on its plan). Also add the plan erratum for the two
-> rulings and file the `--scope-changed` refinement for `scripts/check.sh`. **Step 7:** hold the worktree for 2b.
-> **Approach:** invoke `pass-core`; pass `gateLane: "heavy"`; nothing deploys; push master (no force, `gitleaks` first).
+> **Goal:** two next actions, neither started. **(1) Slice 2b's plan revision**, in a planning session: the plan's
+> "Pass 2b" sketch (`plans/2026-10-06-rung-12-slice-2-oracle-harness.md`) is authored in full at its own Task 0,
+> consuming slice 1's records under `research/` and re-deriving its ceiling; its tasks 10 to 13 and the re-pin wait on
+> those records. It runs in the held worktree `.claude/worktrees/lane-3-slice-2` (branch `lane-3-slice-2`, at
+> `70bcc30`, level with master). **(2) The ladder's next rung.** ROADMAP's rung 6 text still reads "6d is next", so
+> refresh it first; the build spec's spine order (6, 14, 7, 9) puts rung 14 (the versioned API and admin spine) next,
+> after the dependency sweep every pass opens with. **Approach:** invoke `pass-core`; pass `gateLane: "heavy"`;
+> nothing deploys; push master (no force, `gitleaks` first).
 
 ## Owner questions
 - R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it (not blocking).
@@ -34,9 +32,9 @@ Slice 2a's harness waits on its branch for its merge. Master is green. The box i
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | 6d closed 2026-10-07 (code through `4de73e7`, close commit `0aa8d18`; ~9.5M of 10.5M) |
+| 1 | main tree (master) | idle: 6d closed 2026-10-07 (code through `4de73e7`, close commit `0aa8d18`; ~9.5M of 10.5M) |
 | slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `d11f853`) |
-| slice 2 | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` from `beda726`; contests `go.mod`/`go.sum` | PARKED for the merge: Tasks 1-8, close steps 1-3 and 5 done (`25c442a`, ~6.0M) |
+| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` kept | 2a closed and merged at `70bcc30` (~6.0M of 9.0M); worktree held for 2b (plan revision not started) |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
@@ -54,7 +52,9 @@ Slice 2a's harness waits on its branch for its merge. Master is green. The box i
   uniqueness. **Slice 7:** the streamer database in a restore. **Slice 8:** group 2 in trailers,
   `CAP_NET_BIND_SERVICE`, command naming.
 - **Lane 1's next `web/` pass:** R-6d17's note and BACKLOG #23 (HISTORY, 6d, "Routed items"). **Bugs and chores:** the
-  bearer bypass's first consumer owes a cookie test (HISTORY); BACKLOG #15, #16, #21-#26; two dead `docker compose`
+  bearer bypass's first consumer owes a cookie test (HISTORY); BACKLOG #15, #16, #21-#27; two dead `docker compose`
   entries in `.claude/settings.json` for Geoff to drop. **Owed:** settle `init`/`upgrade` naming against
   `dubplate-server`; the configuration-reference generator as a hook 18 consumer.
+- **Slice 2a's carry for 2b:** the seed lacks lyrics, `nowPlaying`, and radio requests, so the study's expected
+  contract flags for them are owed to 2b's recording; BACKLOG #22 and #27 are its other routed items.
 - **Rung 7, rung 9,** errata inventory, `give-back`, `packaging`, photo lane: HISTORY, slice 1 close, "Moved out of STATUS".

@@ -2,6 +2,141 @@
 
 Per-pass ledger, newest first.
 
+## Rung 12 slice 2a, the oracle harness: closed 2026-10-07, lane 3
+
+Executed against `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2), in the worktree
+`.claude/worktrees/lane-3-slice-2` on branch `lane-3-slice-2`, as three segments (A: Tasks 1 to 3, B: 4 to 6, C: 7 and
+8) under the 2026-10-07 unattended window, then a close that waited for 6d's merge. The slice rebased onto master
+(`d87ecc5`) and fast-forwarded as `d87ecc5..70bcc30`; the hashes below are the rebased ones. The conductor's running
+ledger is `docs/superpowers/research/2026-10-07-overnight-conductor-notes.md`. Task 0 recorded lane 1's dependency
+sweep as its own.
+
+### What landed
+
+- Task 1 `8cf682b`: the streamer harness fixture library, the seed library built through `tagio`.
+- Task 2 `b86dcec`: the OpenSubsonic protocol client under `internal/opensubsonic/client` and the import boundary
+  test, which keeps the protocol layer's module-internal imports inside `internal/opensubsonic`.
+- Task 3 `0c78c02`: the oracle stack and `harness oracle-up`, with `data/oracles.json` pinning Navidrome and gonic by
+  digest. Containers publish to podman-assigned host ports, not the plan's reserved range.
+- Task 4 `0dcd078`: the oracle session format and its loader, which refuses an auth parameter.
+- Task 5 `cc4d165` and its fix round Task 5b `29b22f0`: `harness record-oracle` and the 62-request seed session,
+  re-recorded on 2 s seeds.
+- Task 6 `4edbbf1`: the divergence ledger and the `Finding` type.
+- Task 7 `c63c72a`: the contract tier, the OpenAPI conformance checker under `internal/opensubsonic/conformance`, and
+  the pinned document (sha256 `cb54c03c...`, 453,720 bytes) under harness data with its license and provenance.
+- Task 8 `db67bc8` (opus): the grader and `harness grade`, with a committed seed golden.
+- Close step 1, the simplifier `0e3da51` (unexported the stack package's unused seams and tidied the grader). Its
+  `diff-reviewer` read returned fix, and the repair (the `tree.go` trailing-data branch) rode the vacuity fold.
+- Close step 2, the vacuity fold `4db80fb`: the grader's behaviors proved and the trailing-data message fixed.
+- Close step 5, the architecture fold `70bcc30` (opus), over seven reads.
+- The oracle-tag vet (`go vet -tags oracle ./cmd/harness/... ./internal/harness/...`) ran clean once in the worktree.
+
+Fix rounds: Task 5 one (as 5b); Tasks 1 to 4 and 6 to 8 none. Task 8 ran on opus, as did the architecture
+fold. Segment A accepted 3 of 3 tasks, segment B escalated Task 5 and accepted its fix, and segment C accepted 2 of 2.
+
+### The conductor's rulings
+
+- **Fixture tones are 2.0 s.** Navidrome 0.64.2 and gonic 0.22.0 omit a song's `duration` under one second, so Task
+  5's first recording could not carry the `duration > 0` proof the plan intends, and slice 3 needs duration
+  exercised. The seeds lengthened, the proof returned, and the seed session was re-recorded (5b).
+- **"Carmine Ensemble / Two Sides" is the multi-disc album,** with `getMusicDirectory` folder requests added to the
+  seed. gonic splits Borealis, whose discs sit in subfolders, into two albums; the split stays in the golden as an
+  identity finding with no ledger row.
+- The two rulings above are plan errata E1 and E2 in the plan itself.
+- Task 8 kept the subtree reading of `pathCovers` (plan `:634`, `:644-645`, `:762`) and bound the committed ledger
+  through `TestCommittedLedgerRowsAreLive` (0 active rows today).
+
+### The gate evidence
+
+- Every task's full gate ran green inside its chain. Segment A's ran on the light lane (see Deviations).
+- **The seed golden** (`internal/harness/subsonic/grade/testdata/seed-report.golden`) holds 1,686 findings: contract
+  51, identity 13, presence 1,218, type 35, value 369. Of these 893 are unledgered, since the committed ledger has no
+  active rows yet. The golden grades the grader and never the oracles (R12); the findings are recorded evidence of how
+  the two oracles differ.
+- **Throughput baseline.** The worktree's full gate ran about 586 s at launch, the merge gate (`check.sh --merge` on
+  the rebased branch) 610 s, and master's gate after the fast-forward 670 s. `internal/harness/conform`'s
+  `go list -deps` no-link test takes about 157 s of gate time.
+- The staged exported-unused leg reported clean for the six new packages after the simplifier.
+- Seven `go-architecture-reader` dispatches graded `internal/opensubsonic/client`, `.../conformance`,
+  `internal/harness/subsonic/fixture`, `.../stack`, `.../session`, `.../grade`, and `cmd/harness`: seven sound with
+  nits, 2 correctness, 21 architecture, and 24 polish findings.
+- The merge gate and the master gate after the fast-forward were green.
+
+### What the gates and reviewers caught
+
+- **Task 5's escalation.** The first live recording could not keep the duration proof on sub-second seeds, which
+  surfaced two oracle behaviors (no duration under a second; gonic's split of the disc-subfolder album) and produced
+  both rulings.
+- **The vacuity read found eight gaps** (`claude-opus-5-5`, its one question being which test passes while its
+  behavior is broken). The worst was the exit rule: it checked one direction, so a stale ledger row failed open. The
+  rest: the contract tier's no-route, undeclared, and no-schema findings untested; the owed-row test vacuous; the
+  no-manifest identity case unproven; six differ behaviors proven only by the golden; pairs with nothing to compare
+  unreported; owed-by-slice rows unformatted; and a version mismatch untested at `Grade`. The fold took all eight and
+  refused a ninth cluster (resolution seeding, a multi-session walk, a dead self-closing row, a mislabeled case).
+- **The simplifier's `%w`-on-nil regression.** The simplifier applied the conductor's own nit as a `%w` wrap on
+  `tree.go`'s trailing-data branch, where the error is nil, so the message read `%!w(<nil>)`. The `diff-reviewer`
+  caught it; the fix gives the nil case its own message and tightens `differ_test.go` to assert no `%!w`.
+- **The architecture reads' `session.Write` correctness finding.** `Write` over a directory that already held files
+  left a prior session's bodies under the new session's metadata. It refuses a non-empty directory now, and `Join`
+  returns the merged session so `record-oracle` writes once. The second correctness finding was in `conformance`:
+  collection followed any `MultiError` origin, `allOf` included, so `pickBranches` could mis-filter (folded).
+- The fold's structural changes: `CheckRequests` owns the request-list rules the record spec restated, `fixture.Load`
+  returns a `Library` whose tracks and build come from one load, `stack` carries an ordered `Oracles` slice and
+  refuses an image reference without a digest, and `client` unexports its unused error taxonomy.
+
+### Deviations
+
+- The runner's `tool` class defaulted segment A's gates to the light lane, so they ran Chromium on the wrong lane.
+  Segment B onward passed `gateLane: "heavy"`. (The 6d entry records the same default.)
+- The architecture reads ran before the merge, not after it as the plan orders: the rebase touched only `go.mod`
+  and `go.sum`, so the reads graded the same Go.
+- Task 0 recorded lane 1's dependency sweep as its own instead of running a second one.
+- Task 3 used podman-assigned host ports, which the plan's no-fixed-port reading allows.
+- Task 8 added `fixture.Track` and `fixture.Tracks`, exports the plan did not list, for `grade/identity.go`.
+
+### Routed items
+
+- **BACKLOG #22:** `cmd/harness/capture.go` overwrites an existing case with no existence check (pre-existing); the
+  fix is a shared `refuseExistingCase` helper.
+- **BACKLOG #27:** `check.sh --scope-changed` runs the rendered leg whenever the conform suite is in scope.
+- **Slice 2b:** the study's expected contract flags for lyrics, `nowPlaying`, and radio requests, which the seed
+  does not exercise (it needs a later recording); the XSD (version 1.16.1, sha256 `9baee72f...`, 32,775 bytes,
+  fetched from subsonic.org and never committed) for Task 10.
+- **Carried nonblocking items** from segments A to C are listed in the conductor's notes; the two correctness ones
+  were folded at the close and the rest stayed nonblocking.
+
+### What slice 3 would be wrong to rediscover
+
+- **Oracle images are digest-only in the local podman store.** Compare against `.Digest`, never a tag or the
+  reference's repository name.
+- **`swag/jsonname` drops out at jsonpointer v1.0.2.** `go.mod` carries `go-openapi/jsonpointer` v1.0.2 and no `swag`.
+- **The OpenAPI build is pinned by sha256 (`cb54c03c...`), not by URL.** A URL could change under the pin.
+- **gonic splits an album held in disc subfolders into two albums,** Borealis in the seed.
+- **Tracks under one second report no duration** on either oracle, so a fixture exercising duration needs 2 s or more.
+- **The seed lacks lyrics, `nowPlaying`, and radio requests,** so the study's expected contract flags for them are
+  owed to a later recording.
+- **The ledger pattern covers its subtree only for `by-construction` rows.**
+- **The golden grades the grader, not the oracles (R12).** A ledger row never names an oracle-only difference; only a
+  row naming `dubplate` as one side is live.
+
+### Moved out of STATUS at this close
+
+- The resume prompt as it stood (parked for the merge), in brief:
+
+  > **Goal:** merge and close rung 12 slice 2a (worktree `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2`
+  > at `25c442a` from `beda726`; about 6.0M of 9.0M). Tasks 1 to 8, the simplifier, the vacuity fold, the oracle-tag
+  > vet, and the architecture reads and their fold are done; Task 9 steps 4, 6, 7 are left.
+
+- The lane 3 row as it stood: "PARKED for the merge: Tasks 1-8, close steps 1-3 and 5 done (`25c442a`, ~6.0M)".
+
+### Budgets
+
+Tokens: about 6.0M at the park, plus the merge and this close, against the 9.0M ceiling (flag 7.2M, not crossed). The
+runner's tallies by segment: A about 1.09M, B about 0.44M plus 1.36M for the relaunch (5b and Task 6), C about 1.75M,
+the folds the rest, and Task 0 about 0.15M. Attended time: none during the window; the slice's rulings were the
+conductor's and are recorded above. No planning miss reached execution beyond the two plan errata, both from oracle
+behaviors the plan could not know before a live recording.
+
 ## Rung 6, pass 6d (identity in the store, the auth settings, and `serve`'s store): closed 2026-10-07, lane 1
 
 Executed against `docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md` (revision 2.5), pass class

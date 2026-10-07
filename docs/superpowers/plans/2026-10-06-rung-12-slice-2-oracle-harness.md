@@ -864,3 +864,13 @@ stack is one image and one set of variables, and waiting on the ruling would sta
 - The conform suite's and the rendered leg's run time on every task gate. The first task's gate measures them.
   After 6d, the conductor files a `--scope-changed` refinement for `scripts/check.sh` that decouples the rendered
   scope from the conform scope, since nothing in this harness changes what the browser sees.
+
+## Errata (2026-10-07, at the 2a close)
+
+- **E1. The seed tones are 2.0 s, not shorter.** Navidrome 0.64.2 and gonic 0.22.0 omit a song's `duration` under one
+  second, so Task 5's first recording lost the duration proof and escalated. The conductor ruled the seeds lengthened
+  to 2.0 s with the `duration > 0` proof restored (Task 5b, `29b22f0`), since slice 3 needs duration exercised.
+- **E2. "Carmine Ensemble / Two Sides" is the multi-disc album.** The conductor ruled it so and added
+  `getMusicDirectory` folder requests to the seed. gonic splits Borealis (its disc subfolders) into two albums; that
+  split stays in the golden as an identity finding, and Task 8 gave it no ledger row because no committed row names
+  a dubplate side yet.
