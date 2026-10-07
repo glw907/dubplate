@@ -1,8 +1,16 @@
 # Rung 12, Slice 1 (The Study) Implementation Plan
 
-Status: **draft revision 1, 2026-10-06.** It awaits its `spec-plan-review` lens and then Geoff's approval gate.
-It carries one ruling for Geoff (Ruling 1, below). Every other fork it touches is settled here with its reason or
-is routed, by name, to the slice that owns it.
+Status: **draft revision 1.1, 2026-10-06.** Its `spec-plan-review` lens is folded; it awaits Geoff's approval gate.
+It carries no ruling for Geoff at approval. Every fork it touches is settled here with its reason or is routed, by
+name, to the slice that owns it, and the forks the evidence will raise come back at the close.
+
+History:
+
+- Revision 1 (`981876e`): drafted.
+- Revision 1.1: folds the plan-review lens (`research/2026-10-06-rung-12-slice-1-plan-review.md`). Ruling 1 becomes
+  settled item 9, since the approved re-plan already rules the roster walk conductor-run (`:140-141`); client
+  profiles are proven untouched by a before-and-after hash; each observing task runs its own oracle instances; the
+  close's spec check names its sites; reviewers take the seat table's model.
 
 **Spec:** the 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision 3, "the
 spec"; it still says "2.0"). Its ladder entry 1 (`:724-731`) is this pass's scope list, and its "Open items"
@@ -17,21 +25,24 @@ own worktree, plan authored just in time beside this one). This lane shares the 
 It writes no Go, TypeScript, Svelte, Python, shell, unit, or configuration, so no code class fits. The class table
 (`pass-core`) gives `docs` "the docs tier" as its gate and "the register chain" as its review; this repo's docs tier
 is the full gate (see "Per-task gate"), and the register chain here is narrowed as "Review" says.
-**Executor:** a `general-purpose` agent at `model: sonnet` for the evidence tasks (1 to 6), because they need
-network reads, `git clone`, and `podman`, and `dubplate-implementer`'s test-first, commit-per-task shape does not fit
-a staged research record. Task 7 (the synthesis) runs at `model: claude-opus-5-5`, effort `high`, because it makes
-the spec-level readings. Each landing step is a `general-purpose` agent at `model: sonnet`.
+**Executor:** a `general-purpose` agent at `model: sonnet`, effort `high`, for Task 0 and the evidence tasks (1 to
+6), because they need network reads, `git clone`, and `podman`, and `dubplate-implementer`'s test-first,
+commit-per-task shape does not fit a staged research record. Task 7 (the synthesis) runs at `model:
+claude-opus-5-5`, effort `high`, because it makes the spec-level readings. Each landing step is a `general-purpose`
+agent at `model: sonnet`, effort `medium`.
 **Per-task gate:** none inside an evidence task, which commits nothing. Each landing step (A-land, B-land) runs
 `cairn-run-gate 'bash /var/home/glw907/Projects/dubplate/scripts/check.sh'`, re-issued on exit 75 until it prints
 `gate exit:`, before its one commit. The full form follows the re-plan document pass's precedent
 (`plans/2026-10-05-replan-document-pass.md`, "Per-task gate"): `check.sh --reduced` is "never the final gate on
 master", and every commit here lands on master. The gate is not browserless, so `CAIRN_GATE_LANE=light` is not
 allowed. The leg this lane can actually redden is gitleaks over the worktree, which reads every new record.
-**Review:** `diff-reviewer` at Sonnet once per task file at its landing, against that task's acceptance criteria,
-blocking only on an unmet outcome, a factual error against a cited source, or a breach of the clean-room rules below.
-Task 8 adds one fresh-context fact read at `claude-opus-5-5`. The spec revision takes one `prose-voice-reviewer`
-read (the spec prose rule: once per revision, facts and contradictions first). Research records take no register
-review. No `code-simplifier` runs (a `docs` pass never takes one).
+**Review:** `diff-reviewer` at `claude-opus-5-5`, effort `medium` (the seat table in `model-economy.md`), once per
+segment A file at A-land, against that task's acceptance criteria, blocking only on an unmet outcome, a factual
+error against a cited source, or a breach of the clean-room rules below. Task 8 adds one fresh-context fact read at
+`claude-opus-5-5`, effort `medium`, over Task 7's two files. B-land takes one `diff-reviewer` over its whole diff.
+The spec revision takes one `prose-voice-reviewer` read at `claude-opus-5-5`, effort `medium` (the spec prose rule:
+once per revision, facts and contradictions first). Research records take no register review. No `code-simplifier`
+runs (a `docs` pass never takes one).
 **Ceiling:** 6.0M execution tokens, flag 4.8M (80%). Planning and the plan-review lens are recorded outside it. The
 spec bands the study M (`:724`). The weight sits in source reading: two servers, four clients, Melodee, and the
 contract repository, at pinned commits. The runaway guard is armed per research dispatch at the memory file's ~2MB
@@ -43,10 +54,13 @@ Files seam the workstation rule names: Tasks 1 to 6 each write one new file and 
 green commit that bounds them.
 **Tasks:** ten (Task 0, six evidence tasks, the synthesis, the fact read, and the close).
 **Execution mode:** segment A's evidence tasks dispatch through the Agent tool in parallel, one message, after
-Task 0 lands its pins. The `pass-execute` runner is built around an implementer that commits each task under a gate,
-and these tasks stage outside the repo and commit nothing, so the runner's chain does not fit. This is a departure
-from the workstation rule that independent tasks run through `pass-execute`, and the plan-review lens should grade
-it. Segment B is three sequential dispatches.
+Task 0 reports its pins. This departs from the workstation rule that independent tasks run through `pass-execute`,
+for two reasons the runner cannot absorb. Its chain is an implementer that commits each task under the full gate,
+so six tasks would cost six heavy gates (Chromium included, serialized on the shared lock) for six Markdown files.
+Its `parallel` mode runs those implementers in one tree, which here is lane 1's main tree, and the build rule forbids
+a second executor writing that tree. Staging outside the repo and landing once at A-land keeps the tree cold and
+pays one gate. The review half of the chain survives as A-land's per-file `diff-reviewer`. Segment B is three
+sequential dispatches.
 **Dependency sweep:** this lane edits no dependency manifest, so the pass-opening `dependency-upgrade` sweep
 (`CLAUDE.md`, "Current dependencies") does not apply. A sweep here would also collide on `go.mod` with lane 1 and
 slice 2, whose own sweeps own it. The record carries one line saying so. The rule's intent does apply to what the
@@ -149,19 +163,23 @@ These have a clearly correct answer, so the plan takes them and records why.
    plan (`:949-950`). The app-password key's name is slice 6's (`:927`). The report path is slice 7's and the admin fix
    path rung 13's (`:929-933`). The base-URL decision is slice 3's: this lane measures, and slice 3 decides with a
    build-spec erratum and brings it to Geoff's gate (re-plan `:427`; fold record `:127`).
+9. **The base-URL measurement walks the drivable clients live, now.** The approved re-plan already rules it: "The
+   per-slice roster walk is conductor-run on the workstation (desktop clients and the Android emulator). It is never
+   an owner touchpoint. A client the conductor cannot drive is walked at rung 16's attended gate" (`:140-141`).
+   Source reading alone misses runtime URL handling (a trailing-slash join, a path a URL library drops, a stream or
+   cover URL built by a second code path). Feishin (`org.jeffvli.feishin`) and Rufin (`io.github.screwys.Rufin`) are
+   already installed as system Flatpaks and recorded in `~/.dotfiles/bluefin/flatpaks.txt` (lines 17 and 19, read
+   2026-10-06), so the only new install is the Android SDK emulator and the Tempus APK; `~/Android/` did not exist on
+   2026-10-06. That install is recorded in its tier's manifest the same session, with popups, sounds, and badges
+   off, per the calm-desktop rule, and slice 2's roster walk reuses it. Both desktop clients may hold Geoff's own
+   profile, so each runs only under an isolated configuration home that also isolates its credential store (Rufin
+   stores credentials through `oo7`, per its `Cargo.toml`). A client that cannot be isolated is measured by source
+   alone, and the record says so. Amperfy cannot be driven from Linux; it is measured by source, and the re-plan
+   walks it at rung 16.
 
 ## Rulings
 
-1. **May the base-URL measurement drive real clients on the workstation, starting now?** The yes form installs
-   Feishin and the Android emulator with Tempus (recorded in their tier manifests the same session, with popups,
-   sounds, and badges off at install, per the calm-desktop rule) and walks them, plus Rufin, against a local
-   Navidrome served under `/dubplate`. Rufin is Geoff's daily client, so it runs under an isolated configuration
-   home, and no server entry is added to his own profile. If Rufin cannot be isolated, it is measured by source
-   alone and the record says so. Amperfy cannot be driven from Linux and is measured by source alone; the re-plan
-   walks it at rung 16's attended gate (`:140-141`). The no form measures all four clients by source reading.
-   **Recommend yes.** Source reading misses runtime URL handling: trailing-slash joins, a path dropped by a URL
-   library, a stream or cover URL built by a second code path. Slice 2's roster walk needs the same installs, so
-   the marginal cost is the walk itself.
+None at approval. Settled item 9 was Ruling 1 in revision 1.
 
 ### Rulings the record will bring at the close
 
@@ -211,28 +229,36 @@ with a "Routed" section listing anything it hands to another slice.
 ### Task 0: Pin the evidence base and stand up the probe oracles
 
 **Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-evidence-pins.md`.
-**Settles for:** every later task (the pins they cite); slice 2 (the oracle image pins and the specification commit,
-under settled item 5).
+**Settles for:** every later task (the pins they cite and the oracle recipe they run); slice 2 (the oracle image
+pins and the specification commit, under settled item 5).
 
 **Outcome.** One file names, with a date and a source for each: the newest production release of Navidrome and
 gonic with their container image digests; the OpenSubsonic specification repository's commit, and the extension
 count at that commit; the newest release tag and its commit for each roster client (Feishin, Rufin, Amperfy, Tempus)
 and for Melodee; the `navidrome/website` commit; and each repository's LICENSE file URL as the GitHub API reports
-it. It records the fixture recipe (settled item 3) and the run recipe for both oracles: `podman`, `127.0.0.1` only,
-the fixture mounted read-only, and Navidrome configured to serve under `/dubplate` for Task 3. The run recipe
-quotes Navidrome's documented option for a base path from `navidrome/website`, and gonic's from its README, at the
-pinned commits, before relying on either. If Ruling 1 is yes, the file records the client installs and their
-manifest entries.
+it. It records the fixture recipe (settled item 3) and a parameterized run recipe for both oracles: `podman`,
+`127.0.0.1` only, the fixture mounted read-only, and the port, data directory, and base path as parameters, so each
+observing task starts its own instances (Constraints). The fixture holds at least one track long enough that a
+transcode of it is still filling when a second request arrives, so Task 4's filling-entry observation is not
+vacuous. The run recipe quotes Navidrome's documented option for a base path from `navidrome/website`, and gonic's
+from its README, at the pinned commits, before relying on either. The file records the client installs under
+settled item 9 and their manifest entries, and each desktop client's installed version beside its pinned source
+commit.
 
 **Constraints.** A release is a tagged release the project marks as production; a pre-release, nightly, or `-rc`
-tag is skipped. If slice 2 has pinned a subject already, adopt its pin (settled item 5). No container binds a public
-interface. The box is never contacted.
+tag is skipped. Before pinning, read slice 2's plan and its worktree branch for pins; if slice 2 has pinned a
+subject already, adopt its pin (settled item 5). The conductor hands Task 0's pin list to the slice 2 lane when
+Task 0 reports, since the file itself reaches master only at A-land. No container binds a public interface. The box
+is never contacted. Each evidence task that observes an oracle starts its own instances from the recipe on its own
+ports and data directories and stops them before it reports, because a transcode cache or a base path shared across
+parallel tasks would make every fixture state unprovable.
 
 **Acceptance.**
 
 - Every pin carries its source URL and the date it was read.
-- Both oracles started from the recorded recipe, answered `ping` at their own root and Navidrome at `/dubplate`,
-  and listed the fixture's albums. The record states each response's status, not just "worked".
+- Three instances started from the recorded recipe (gonic at its root, Navidrome at its root, and Navidrome under
+  `/dubplate`), each answered `ping` at its configured base and listed the fixture's albums, and each was stopped.
+  The record states each response's status, not just "worked".
 - The base-path option is quoted with its citation, or the record says it does not exist and Task 3 is re-scoped
   before dispatch.
 - The dependency-sweep line and the operator-delta line are present.
@@ -283,7 +309,7 @@ states:
 - Whether it browses by ID3, by folder, or both, and whether it passes `musicFolderId`, and on which endpoints. This
   is evidence for the folder-browsing item (`:925-926`).
 - Which stream formats and containers its player accepts, read from the player library it uses, as evidence for the
-  AAC container item (fragmented MP4 or ADTS, `:427-431`, `:945-946`).
+  AAC container item (fragmented MP4 or ADTS, `:427-431`, `:946`).
 - Whether it runs in a browser context that needs CORS (`:650-655`), and how it sends credentials (query, header,
   or body; planning-miss check 3).
 - Whether it sends `Accept: image/webp` on `getCoverArt`.
@@ -312,16 +338,18 @@ erratum (re-plan `:427`). This task measures and recommends nothing binding.
 - Every second code path that builds a URL (stream, download, cover art, share), since a client can get the API
   right and a stream URL wrong.
 - Any open or closed issue in the client's tracker about sub-path or reverse-proxy base URLs, cited.
-- Under Ruling 1's yes: the live walk against Navidrome at `/dubplate` (login, browse one album, play one track,
-  load its cover), with the requests the oracle logged. Under no, source reading only.
+- For each client settled item 9 lets the lane drive: the live walk against Navidrome at `/dubplate` (login, browse
+  one album, play one track, load its cover), with the requests the oracle logged. The others are read in source.
 
 It also records what Navidrome and gonic document for serving under a sub-path, quoted from their documentation, so
 slice 3 can see how the field treats the question.
 
 **Acceptance.** Four client rows, each with a verdict and evidence; a live verdict states the fixture state (scanned,
-logged in) and the oracle's logged request paths. Rufin's live walk used an isolated configuration home or did not
-run. No setting in Geoff's own client profiles changed. Clients installed under Ruling 1 are in their tier
-manifests. Prior art consulted: Navidrome documentation (Apache-2.0, quotable). Neutral on hooks.
+logged in), the client version walked, and the oracle's logged request paths. Each desktop client's live walk used
+an isolated configuration home or did not run. The record carries a hash of each desktop client's configuration
+and data files under `~/.var/app/<id>/` (caches excluded) taken before the first walk and after the last, and any
+file that changed is listed with its cause. The emulator install is in its tier manifest. Prior art consulted:
+Navidrome documentation (Apache-2.0, quotable). Neutral on hooks.
 
 ### Task 4: Where the specification is silent, what Navidrome and gonic do
 
@@ -463,15 +491,20 @@ removes, with a one-line reason (`CLAUDE.md`, "Findings are ranked, and a fold m
   figures, and a row whose verdict Task 7 changed takes the change with its reason. New hooks join the
   forward-hooks list, numbered after 21. The revision-3.1 changelog lists each change.
 - One `prose-voice-reviewer` read of the spec revision, facts and contradictions first, folded.
-- Each landed file gets its `diff-reviewer` read.
-- STATUS: the slice 1 lane row reads closed, the "Slice 1" and "Owed" carries are removed, and the owner question
-  bundles Ruling 1's outcome (if it was not ruled at approval) with the forks the record brings. HISTORY takes the
+- One `diff-reviewer` reads B-land's whole diff (the fold, the spec revision, and the ledgers).
+- STATUS: the slice 1 lane row reads closed; only the slice 1 clauses leave the carries (the "Slice 1" entry under
+  "Open items" and the "Owed" line's streamer-open-items clause, whose other items stay); and the owner question
+  bundles the forks the record brings. HISTORY takes the
   pass entry: what landed, what the fact read caught, and what a later slice would be wrong to rediscover.
 - One commit on master after the full gate, under A-land's constraints.
 
-**Acceptance.** `grep -n "owed to the study rung" docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` returns
-only lines that also say answered, or lines the revision-3.1 changelog explains. Every "URL from study rung" cell is
-filled. STATUS stays at or under 60 lines. The tokens spent are recorded against the ceiling in HISTORY.
+**Acceptance.** Each spec site that owes the study rung an answer, named by its revision 3 line, now says answered
+(or answered pending ruling) with a pointer to the study record: the XML rule (`:271`), the `transcoding` extension
+(`:418-419`), the AAC container (`:431`), Range on a filling transcode (`:443`), the CORS policy (`:654-655`), the
+empty-success set and extension subset (`:671-672`), the `musicFolderId` list (`:375`), folder browsing (`:926`),
+the `.nsp` format (`:934`), the PR watch (`:954-955`), and each bullet under `:937`. A search for the phrase alone is
+not the check, because it wraps across lines at `:418-419` and `:654-655`. `grep -c "from study rung"` on the spec
+returns 0, and Melodee's quality cell (`:870`) is filled. STATUS stays at or under 60 lines. The tokens spent are recorded against the ceiling in HISTORY.
 
 ## Contested surfaces
 
@@ -481,4 +514,5 @@ filled. STATUS stays at or under 60 lines. The tokens spent are recorded against
 | Oracle image pins and the specification commit | Slice 2 | Settled item 5: the first pin wins |
 | `docs/STATUS.md`, `docs/HISTORY.md` | Lane 1's close | One ledger writer at a time; Task 9 waits for any in-flight lane 1 close |
 | The heavy gate lock | Lane 1 and slice 2 | `cairn-run-gate` serializes; A-land and B-land each run one gate |
-| Workstation ports and `podman` | Slice 2's harness containers | The probe binds its own ports, recorded in Task 0, and stops its containers at A-land |
+| Workstation ports and `podman` | Slice 2's harness containers | Each observing task binds its own ports and stops its own containers before it reports |
+| The Android SDK emulator install | Slice 2's roster walk | Whichever lane installs it first records it in the manifest; the other reuses it |
