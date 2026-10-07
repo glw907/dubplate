@@ -40,9 +40,10 @@ unscheduled on the new ladder. Rung 1 (foundation) through rung 8 (tag
 I/O: the writer core and reader, PICTURE and the conformance instrument)
 are landed, alongside rung 4 (whose shadow program the removal pass
 deleted on 2026-10-05; its history is the `pre-greenfield` tag and git),
-rung 1b, rung 3, and rung 5 (closed 2026-10-05). Rung 6 has passes
-6a to 6c landed; 6d is next. Rung 12's slices 1 (the Navidrome study)
-and 2 (the oracle harness) run now, beside the ladder.
+rung 1b, rung 3, rung 5 (closed 2026-10-05), and rung 6 (6d closed
+2026-10-07). Rung 12's slice 1 (the Navidrome study) and pass 2a of
+slice 2 (the oracle harness) closed 2026-10-07, beside the ladder; 2b
+waits on its plan revision. The spine continues with rung 14.
 
 Folded from the organizer spec's "Roadmap revisions this spec carries"
 (2026-09-01-dubplate-organizer-design.md):

@@ -60,7 +60,11 @@ fold. Segment A accepted 3 of 3 tasks, segment B escalated Task 5 and accepted i
 - Seven `go-architecture-reader` dispatches graded `internal/opensubsonic/client`, `.../conformance`,
   `internal/harness/subsonic/fixture`, `.../stack`, `.../session`, `.../grade`, and `cmd/harness`: seven sound with
   nits, 2 correctness, 21 architecture, and 24 polish findings.
-- The merge gate and the master gate after the fast-forward were green.
+- The merge gate and the master gate after the fast-forward were green. The rebase onto `d87ecc5` was not a
+  fast-forward, so one cross-lane `diff-reviewer` read the merged range `d87ecc5..70bcc30` and accepted it: no file
+  changed on both sides, `go.mod` and `go.sum` only add kin-openapi and its indirects (`go mod tidy` leaves both
+  unchanged, `swag/jsonname` absent), the server links no harness, conformance, or getkin package, and no slice file
+  names a symbol 6d renamed or removed.
 
 ### What the gates and reviewers caught
 
