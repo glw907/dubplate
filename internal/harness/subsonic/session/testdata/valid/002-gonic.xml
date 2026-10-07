@@ -1,0 +1,3 @@
+<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" serverVersion="0.21.0">
+  <artists name="A &amp; B"/>
+</subsonic-response>

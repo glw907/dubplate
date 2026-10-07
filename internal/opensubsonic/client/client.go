@@ -155,7 +155,7 @@ func (c *Client) Do(ctx context.Context, endpoint string, params url.Values, for
 	if len(body) == 0 {
 		return resp, ErrEmptyResponse
 	}
-	resp.Envelope, err = parseEnvelope(body, format)
+	resp.Envelope, err = ParseEnvelope(body, format)
 	if err != nil {
 		return resp, err
 	}
@@ -194,7 +194,9 @@ type xmlEnvelope struct {
 	Error         *wireError `xml:"error"`
 }
 
-func parseEnvelope(body []byte, format Format) (Envelope, error) {
+// ParseEnvelope reads the subsonic-response envelope from body, which must be
+// in the given format. It is the parse Do applies to every answer.
+func ParseEnvelope(body []byte, format Format) (Envelope, error) {
 	malformed := func(reason string) error {
 		return &MalformedError{Format: format, Prefix: string(body[:min(len(body), 40)]), Reason: reason}
 	}

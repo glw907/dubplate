@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "gonic": {
+      "library_digest": "lib1",
+      "image_digest": "sha256:bb",
+      "server_version": "0.21.0"
+    },
+    "navidrome": {
+      "library_digest": "lib1",
+      "image_digest": "sha256:aa",
+      "server_version": "0.99.0 (abc)"
+    }
+  },
+  "resolutions": {
+    "album:one": {
+      "gonic": "al-9",
+      "navidrome": "al-1"
+    }
+  },
+  "requests": [
+    {
+      "endpoint": "getArtists",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "001-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "001-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbum",
+      "format": "xml",
+      "params": [
+        {
+          "name": "id",
+          "value": "album:one"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "text/xml; charset=utf-8",
+          "body": "002-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "002-navidrome.xml"
+        }
+      ]
+    }
+  ]
+}
