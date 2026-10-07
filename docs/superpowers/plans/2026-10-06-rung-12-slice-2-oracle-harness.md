@@ -1,7 +1,7 @@
 # Rung 12, Slice 2 (the Oracle Harness) Implementation Plan
 
-Status: **draft revision 1.2, 2026-10-06; its `spec-plan-review` is folded twice, and it awaits Geoff's approval.** One
-ruling is open (Ruling 1). Every other decision is a reading below, taken on its merits and reported.
+Status: **revision 1.2, approved by Geoff 2026-10-07; its `spec-plan-review` is folded twice.** Ruling 1 is answered
+yes. Every other decision is a reading below, taken on its merits and reported.
 
 History:
 

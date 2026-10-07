@@ -1,6 +1,6 @@
 # Rung 12, Slice 1 (The Study) Implementation Plan
 
-Status: **draft revision 1.1, 2026-10-06.** Its `spec-plan-review` lens is folded; it awaits Geoff's approval gate.
+Status: **revision 1.1, approved by Geoff 2026-10-07.** Its `spec-plan-review` lens is folded.
 It carries no ruling for Geoff at approval. Every fork it touches is settled here with its reason or is routed, by
 name, to the slice that owns it, and the forks the evidence will raise come back at the close.
 

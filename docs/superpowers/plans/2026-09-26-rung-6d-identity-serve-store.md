@@ -1,6 +1,6 @@
 # Rung 6, Pass 6d (Identity, the Handoff, and `serve`'s Store) Implementation Plan
 
-Status: **revision 2.5, 2026-10-06; awaits Geoff's approval.**
+Status: **revision 2.5, approved by Geoff 2026-10-07: Rulings 1, 3, and 4 all answered yes.**
 
 History:
 

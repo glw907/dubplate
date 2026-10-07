@@ -14,25 +14,26 @@ re-create step. The retired musicbox archive's copy is
 ## Next action
 
 > **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
-> **Goal:** three plans are reviewed and await Geoff's approval: 6d rev 2.5
-> (`plans/2026-09-26-rung-6d-identity-serve-store.md`), slice 1 rev 1.1 (`plans/2026-10-06-rung-12-slice-1-study.md`),
-> slice 2a rev 1.2 (`plans/2026-10-06-rung-12-slice-2-oracle-harness.md`). On approval: lane 1 executes 6d (Task 0
-> opens with the dependency sweep); slice 1 runs as the document lane; slice 2a runs in
-> `.claude/worktrees/lane-3-slice-2` and merges after 6d. Never re-run a full gate on an unchanged commit.
+> **Goal:** execute three approved plans as parallel lanes (Geoff, 2026-10-07, every ruling yes):
+> lane 1 runs 6d rev 2.5 (`plans/2026-09-26-rung-6d-identity-serve-store.md`, `auth-data`, 10.5M, flag 8.4M) in the
+> main tree, Task 0 opening with the dependency sweep; slice 1 rev 1.1 (`plans/2026-10-06-rung-12-slice-1-study.md`,
+> `docs`, 6.0M) runs as the document lane; slice 2a rev 1.2 (`plans/2026-10-06-rung-12-slice-2-oracle-harness.md`,
+> `tool`, 9.0M) runs in `.claude/worktrees/lane-3-slice-2` and merges only after 6d closes.
+> **Settled:** merge order 6d then 2a; slice 1's first oracle pin wins and its pin list goes to 2a; the live client
+> walks are conductor-run. **Approach:** invoke `pass-core`; run every lane's launch checklist (repo CLAUDE.md
+> "Lanes") before its first dispatch; `pass-execute` by name, one segment per invocation. Never re-run a full gate on
+> an unchanged commit.
 
 ## Owner questions
-- 6d rev 2.5: Ruling 1 (one pass, 10.5M, flag 8.4M), Ruling 3 (store identity to rung 16), Ruling 4 (drop
-  `member import`); each recommended yes. R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it.
-- Slice 2a rev 1.2: Ruling 1 (2a now at 9.0M, 2b after slice 1 at 4.0M); recommended yes.
-- Slice 1 rev 1.1: no ruling; live client walks confirmed by Geoff 2026-10-06.
+- R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it (not blocking).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | IDLE: 6d rev 2.5 reviewed, awaits approval |
-| slice 1 | document lane | not launched; plan rev 1.1 reviewed, awaits go-ahead |
-| slice 2 | `.claude/worktrees/lane-3-slice-2` | not launched; 2a plan rev 1.2 reviewed, awaits approval; merges after 6d |
+| 1 | main tree (master) | IDLE: 6d rev 2.5 approved 2026-10-07; launch next session |
+| slice 1 | document lane | not launched; plan rev 1.1 approved 2026-10-07 |
+| slice 2 | `.claude/worktrees/lane-3-slice-2` | not launched; 2a plan rev 1.2 approved 2026-10-07; merges after 6d |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
