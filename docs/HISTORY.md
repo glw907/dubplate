@@ -2,6 +2,95 @@
 
 Per-pass ledger, newest first.
 
+## Rung 12 slice 1, the study: closed 2026-10-07, document lane
+
+Executed against `docs/superpowers/plans/2026-10-06-rung-12-slice-1-study.md` (revision 1.1), pass class `docs`,
+as a document lane: every task staged its drafts outside the tree, and two landing steps moved them onto master in
+the main tree at lane 1's segment A boundary (`beda726` through `acad661`).
+
+### What landed
+
+- A-land (`00d4b1a`): seven evidence records under `docs/superpowers/research/`: `2026-10-06-slice-1-evidence-pins.md`,
+  `-contract.md`, `-client-demands.md`, `-base-url.md`, `-server-behavior.md`, `-melodee-intake.md`, and
+  `-prior-art-cells.md`.
+- B-land (`the B-land commit after it`): the study record (`-study-record.md`), the divergence ledger (`-divergence-ledger.md`), and
+  streamer spec revision 3.1 (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, built on `bdd1472`'s
+  revision 3), with each open item answered or marked answered pending ruling, and the prior-art cells filled.
+- The three owner forks (the `transcoding` extension, the protocol module's license and NOTICE, folder browsing at
+  launch) wait in STATUS's owner questions, each with the record's recommendation.
+- Deviation: A-land and B-land shared one full gate at lane 1's segment A boundary, because every task staged
+  outside the tree and nothing in the repo moved between them. The plan priced two gates.
+
+### What the gates caught
+
+- The A-land per-file review returned one fix (Task 2: an error 0 from `getTranscodeDecision` makes Feishin throw
+  in `getStreamUrl`, not degrade) plus small Task 1 slips.
+- The fact read found five, the highest that the "unknown id" probes sent an unparseable id (`bogus`), so gonic's
+  error 10 was a parse failure; a well-formed unknown id gives error 0 on scrobble and a silent store on
+  `savePlayQueue`.
+- The prose review found changelog line references that pointed at the wrong text after the revision grew, and
+  slice 4's routed items missing from ladder entry 4.
+- No finding was refused. The fold-rule trial line: the plan had a lens review, and no refused finding turned out to
+  be a real defect, because the folds refused none.
+
+### What a later slice would be wrong to rediscover
+
+- The machine has no KVM (no vmx/svm flag, no `/dev/kvm`), so the Android emulator cannot run until firmware VT-x is
+  enabled.
+- The oracle images sit in the local podman store digest-only, with no tag.
+- gonic cannot serve under a sub-path on its own: `GONIC_PROXY_PREFIX` only suits a stripping proxy.
+- Tempus never sends `.view`. Amperfy parses XML and sends no `f`.
+- Flatpak `--env` does not override a Flatpak's own `XDG_*`, so isolate a Flatpak client by exporting `HOME` and
+  `XDG_*` inside the command.
+- The probe scripts, clones, captured bodies, and audio stayed in workstation scratch; only the nine records and
+  the spec revision landed.
+
+### Moved out of STATUS at this close
+
+- The resume prompt as it stood (the three-lane grant, verbatim):
+
+  > **Resume prompt (launch in /var/home/glw907/Projects/dubplate; `claude --model claude-opus-5-5`, effort medium)**
+  > **Goal:** execute three approved plans as parallel lanes (Geoff, 2026-10-07, every ruling yes):
+  > lane 1 runs 6d rev 2.5 (`plans/2026-09-26-rung-6d-identity-serve-store.md`, `auth-data`, 10.5M, flag 8.4M) in the
+  > main tree, Task 0 opening with the dependency sweep; slice 1 rev 1.1 (`plans/2026-10-06-rung-12-slice-1-study.md`,
+  > `docs`, 6.0M) runs as the document lane; slice 2a rev 1.2 (`plans/2026-10-06-rung-12-slice-2-oracle-harness.md`,
+  > `tool`, 9.0M) runs in `.claude/worktrees/lane-3-slice-2` and merges only after 6d closes.
+  > **Settled:** merge order 6d then 2a; slice 1's first oracle pin wins and its pin list goes to 2a; the live client
+  > walks are conductor-run. **Approach:** invoke `pass-core`; run every lane's launch checklist (repo CLAUDE.md
+  > "Lanes") before its first dispatch; `pass-execute` by name, one segment per invocation. Never re-run a full gate on
+  > an unchanged commit.
+  > **Unattended window (Geoff, 2026-10-07): 10+ hours, nobody attending.** Cap: each lane's own plan ceiling, no
+  > window cap (25.5M total at most); a lane at its flag finishes its task, writes STATUS, and stops while the others
+  > continue. Push: master to origin (private, no force, `gitleaks git --log-opts="origin/master..master"` first) at
+  > each lane merge. Laptop open on AC (the battery read 12% at the grant, so the holder's floor gives almost no
+  > reserve). Arm at launch: `claude-wf-guard` per workflow, and `/loop` with no interval as the wake-up fallback
+  > (1200-1800s) per `~/.claude/docs/unattended-work-guards.md`; confirm `systemd-inhibit --list`. Machine is 8 cores
+  > and 15 GB: run the Android emulator and the podman oracles while no heavy gate holds the lock. Nothing deploys and
+  > the box stays read-only. A blocker or a genuine fork parks its lane with STATUS and one combined question for the
+  > morning; unblocked lanes continue.
+
+- Slice 1's clauses, now answered: "**Slice 1:** API base URL measurement" (handed to slice 3 by the study record)
+  and the Owed line's "the streamer spec's open items to its study rung (slice 1)".
+- The carries, verbatim:
+
+  - **To rung 7:** guard counting, `--max-delete`, archive uploads, 5c-iii's S13/a11y S7, reject-reason set,
+    CREDITS, picked images at stable paths, 6c's `member_quota` reservations, 5c-iv's handoff (HISTORY 5c-iv "To
+    rung 7"). **Rung 9:** filter, facets, trigram. **Revoke verb:** the epoch store's first writer. **Rung 14:**
+    6c's admin write path and a resolving channel for a `serve`-refusing `admin` row.
+  - **To 6d:** `ServeOptions.Reconcile` wiring, store identity, migration-wait key, `member:<principal>` actor,
+    6c's handoff (HISTORY 6c), re-validating existing rows' usernames. Before any deploy exposing the strings: wire
+    settings `apply` at `serve` start (`cmd/dubplate-server/backup.go:274`, `store.go:280-284` claim it) and open
+    the store through `OpenServe` (unwired today). 6d Task 4: `rosterResetServer`'s baseline (HISTORY 5c-iv).
+  - Errata and architecture-cleanup inventory: HISTORY and `research/*-architecture-reads.md` (5d-ii's doctor
+    twelve-flag OR chain first); 9b's five nits (HISTORY 5c-iv); 103 coverage gaps, none blocking.
+  - To `give-back` and `packaging`: the carries listed in HISTORY, re-plan close, "Moved out of STATUS".
+  - Photo lane, after lane 1: three owed checks and a retest (HISTORY, re-plan close, "Moved out of STATUS").
+
+### Budgets
+
+Tokens: about 3.7M against the 6.0M ceiling (subagent tokens, conductor estimate). Attended time: no planned
+sittings.
+
 ## Rungs 12 and 16 re-plan, document pass: closed 2026-10-06, lane 1
 
 Executed against `docs/superpowers/plans/2026-10-05-replan-document-pass.md` (revision 2), pass class `docs`, in
