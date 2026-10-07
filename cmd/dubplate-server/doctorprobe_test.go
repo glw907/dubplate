@@ -74,7 +74,7 @@ func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 	}
 	reg := productionRegistry()
 	wantLines := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) +
-		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + authStoreRowLines + backupDoctorRowsOff +
+		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff +
 		unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if lines != wantLines {
 		t.Errorf("doctor printed %d lines, want %d", lines, wantLines)
@@ -427,6 +427,7 @@ func TestDoctorBoundaryProbe_EndToEnd(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 
+	seedDoctorAdmin(t, environ)
 	rows, _, err := doctorRows(t, environ)
 	if err != nil {
 		t.Errorf("Execute() error = %v, want nil when the strip refuses every header", err)
@@ -779,6 +780,7 @@ func TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 
+	seedDoctorAdmin(t, environ)
 	rows, _, err := doctorRows(t, environ)
 	if err != nil {
 		t.Errorf("Execute() error = %v, want nil when the strip refuses every identity header", err)

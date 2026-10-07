@@ -288,12 +288,12 @@ func TestRenderTemplate(t *testing.T) {
 
 // renderedDoctor renders the greenfield template with fixture values
 // for every bare row and for the rows doctor stats or opens (the state
-// directory and the roster file), appends the reserved serve port,
-// and runs doctor against the production registry. stateDir carries an
-// installed transliteration table; roster is the roster file's path,
-// written by the caller or left absent. It returns doctor's stdout
-// and Execute's error. Only the template's own rows reach doctor, bar
-// the serve port, which the template does not carry.
+// directory, and the roster file's path while the key stays required),
+// appends the reserved serve port, and runs doctor against the
+// production registry. stateDir carries an installed transliteration
+// table and no store. It returns doctor's stdout and Execute's error.
+// Only the template's own rows reach doctor, bar the serve port, which
+// the template does not carry.
 func renderedDoctor(t *testing.T, template string, stateDir, roster string) (string, error) {
 	t.Helper()
 	secret := strings.Repeat("a", 32)
@@ -332,25 +332,21 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 	}
 	template := string(raw)
 
-	const adminRoster = `{"schema_version":1,"members":[{"address":"doctor-admin@example.test","display_name":"Admin","admin":true}]}`
-	const noAdminRoster = `{"schema_version":1,"members":[{"address":"doctor-member@example.test","display_name":"Member","admin":false}]}`
-
 	tests := []struct {
 		name      string
 		template  string
-		roster    string // roster file content; "" leaves the file absent
 		wantErr   bool
 		wantLines []string // each must appear as a whole output line
 		wantNone  []string // no output line may start with one of these
 	}{
 		{
-			name:     "fixture roster present exits 0",
+			name:     "the rendered environment has no store yet and exits 0",
 			template: template,
-			roster:   adminRoster,
 			wantLines: []string{
 				fmt.Sprintf("%-32s %s", "DUBPLATE_IDENTITY_SOURCE", "ok"),
 				fmt.Sprintf("%-32s %s", "magic-link", "active"),
 				fmt.Sprintf("%-32s %s", "store", "absent"),
+				fmt.Sprintf("%-32s %s", "members", "no store yet; start serve, then member add --admin"),
 				fmt.Sprintf("%-32s %s", "unidecode", "ok (1.4.0)"),
 				fmt.Sprintf("%-32s %s", "client ip", "direct: the peer must be the browser; a proxy in front must be configured as trusted"),
 				fmt.Sprintf("%-32s %s", "web", "ok"),
@@ -361,29 +357,14 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 			wantNone: []string{"roster "},
 		},
 		{
-			name:      "doctor before the bootstrap exits 1 naming the roster row",
-			template:  template,
-			wantErr:   true,
-			wantLines: []string{fmt.Sprintf("%-32s %s", "roster", "missing")},
-		},
-		{
-			name:      "roster naming no admin exits 1 naming the roster row",
-			template:  template,
-			roster:    noAdminRoster,
-			wantErr:   true,
-			wantLines: []string{fmt.Sprintf("%-32s %s", "roster", "no admin; run dubplate-server member add --admin")},
-		},
-		{
 			name:      "deleting the roster row leaves nothing to substitute",
 			template:  deleteTemplateRow(template, "DUBPLATE_ROSTER_FILE"),
-			roster:    adminRoster,
 			wantErr:   true,
 			wantLines: []string{fmt.Sprintf("%-32s %s", "magic-link", "unsatisfied: DUBPLATE_ROSTER_FILE missing")},
 		},
 		{
 			name:      "deleting the trusted proxy flag row stays passing, since the class is off by default",
 			template:  deleteTemplateRow(template, "DUBPLATE_TRUSTED_PROXY_ENABLED"),
-			roster:    adminRoster,
 			wantLines: []string{fmt.Sprintf("%-32s %s", "trusted proxy", "disabled")},
 		},
 	}
@@ -392,11 +373,6 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 			stateDir := t.TempDir()
 			installTestUnidecodeTable(t, stateDir)
 			roster := filepath.Join(t.TempDir(), "roster.json")
-			if tt.roster != "" {
-				if err := os.WriteFile(roster, []byte(tt.roster), 0o600); err != nil {
-					t.Fatalf("write roster: %v", err)
-				}
-			}
 
 			out, err := renderedDoctor(t, tt.template, stateDir, roster)
 			if (err != nil) != tt.wantErr {

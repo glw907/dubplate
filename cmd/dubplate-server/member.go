@@ -8,21 +8,20 @@ import (
 	"log/slog"
 	"os"
 	"os/user"
-	"path/filepath"
 	"strconv"
-	"syscall"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/spf13/cobra"
 )
 
-// memberVerbWriteWait bounds how long a write waits for the roster's
-// directory lock (R-5c19): 30 seconds. It is a package variable rather
-// than a constant so a test can shorten it, on the lock row's own test
-// seam; production never assigns it a second value.
+// memberVerbWriteWait bounds how long a verb waits to open the store
+// and, for add, to write the member: 30 seconds. It is a package
+// variable rather than a constant so a test can shorten it, on the
+// wait's own test seam; production never assigns it a second value.
 var memberVerbWriteWait = 30 * time.Second
 
 // osUserLookupID is os/user.LookupId, held as a package variable so a
@@ -31,18 +30,11 @@ var memberVerbWriteWait = 30 * time.Second
 // database happens to resolve the effective uid.
 var osUserLookupID = user.LookupId
 
-// errForeignRosterOwner reports that the verb's effective uid does not
-// own the roster file's containing directory (R-5c14). Writing there
-// would create a roster the serving unit, running as the directory's
-// owner, cannot read, which fails the server closed at its next start
-// under R2.
-var errForeignRosterOwner = errors.New("member: roster directory owned by a different user")
-
 // newMemberCmd builds the member verb: add and list, the two
-// subcommands rung 5c-i gives an operator for the roster
-// internal/auth keeps (R37). Neither subcommand reads the environment
-// itself; both resolve configuration through config.Load against reg,
-// the same wall serve enforces.
+// subcommands that give an operator the roster internal/auth keeps in
+// the store. Neither subcommand reads the environment itself; both
+// resolve configuration through config.Load against reg, the same wall
+// serve enforces.
 func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
@@ -53,13 +45,32 @@ func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 	return cmd
 }
 
-// newMemberAddCmd builds "member add <address>": it loads
-// configuration, resolves the roster path the selected identity
-// source declares, refuses a foreign directory owner, then creates the
-// roster when it is absent or adds to it when it exists (R-5c8,
-// R-5c14). --name and --username are required flags; an
-// empty value still reaches the roster's own write-path validation,
-// since cobra's required check proves only that the flag was set.
+// openMemberStore loads the wall and opens the store in write mode, the
+// mode both verbs share: it refuses an absent store, a store at any
+// version but the binary's, a restore in progress, and a leaf another
+// user owns, each with the store's own message. Add writes through the
+// handle, and list opens the same mode so one set of refusals covers
+// both verbs. The caller closes the handle.
+func openMemberStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, error) {
+	cfg, err := config.Load(environ, reg)
+	if err != nil {
+		return nil, err
+	}
+	busyTimeout, parseErr, rangeErr := storeBusyTimeout(environ)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	if rangeErr != nil {
+		return nil, rangeErr
+	}
+	return store.OpenWrite(ctx, cfg.StateDir, busyTimeout)
+}
+
+// newMemberAddCmd builds "member add <address>": it opens the store in
+// write mode and adds the member through the roster's one write path.
+// --name and --username are required flags; an empty value still
+// reaches the roster's own write-path validation, since cobra's
+// required check proves only that the flag was set.
 func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer) *cobra.Command {
 	var name, username string
 	var admin bool
@@ -70,18 +81,14 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 		Args:          cobra.ExactArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.Load(environ, reg)
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			ctx, cancel := context.WithTimeout(cmd.Context(), memberVerbWriteWait)
+			defer cancel()
+			h, err := openMemberStore(ctx, environ, reg)
 			if err != nil {
 				return err
 			}
-			rosterPath, ok := selectedRosterPath(environ, reg)
-			if !ok {
-				return fmt.Errorf("member: identity source %q requires no roster", cfg.IdentitySource)
-			}
-			if err := checkRosterDirOwner(filepath.Dir(rosterPath)); err != nil {
-				return err
-			}
+			defer func() { err = errors.Join(err, h.Close()) }()
 
 			candidate := auth.Member{
 				Address:     args[0],
@@ -89,12 +96,8 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 				Username:    username,
 				Admin:       admin,
 			}
-			actor := resolveActor()
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
-
-			ctx, cancel := context.WithTimeout(cmd.Context(), memberVerbWriteWait)
-			defer cancel()
-			return addMember(ctx, rosterPath, candidate, actor, logger)
+			return auth.NewRoster(h).AddMember(ctx, candidate, resolveActor(), identity.ChannelCommandLine, "", logger)
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "the member's display name")
@@ -110,35 +113,10 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 	return cmd
 }
 
-// addMember opens the roster at path and adds candidate under actor,
-// creating the roster when it is absent (R-5c8). When CreateRoster
-// loses a concurrent bootstrap race, it reports ErrRosterExists; this
-// opens the winner's roster and adds through AddMember once, so two
-// concurrent first adds both land and the verb never overwrites a
-// roster.
-func addMember(ctx context.Context, path string, candidate auth.Member, actor string, logger *slog.Logger) error {
-	roster, err := auth.OpenRoster(path)
-	if errors.Is(err, auth.ErrRosterMissing) {
-		_, createErr := auth.CreateRoster(ctx, path, candidate, actor, logger)
-		if errors.Is(createErr, auth.ErrRosterExists) {
-			roster, err = auth.OpenRoster(path)
-			if err != nil {
-				return err
-			}
-			return roster.AddMember(ctx, candidate, actor, identity.ChannelCommandLine, "", logger)
-		}
-		return createErr
-	}
-	if err != nil {
-		return err
-	}
-	return roster.AddMember(ctx, candidate, actor, identity.ChannelCommandLine, "", logger)
-}
-
-// newMemberListCmd builds "member list": it loads configuration,
-// opens the roster read-only, and prints one line per member in file
-// order to stdout, which is the subcommand's whole purpose. Nothing
-// else this file writes carries an address.
+// newMemberListCmd builds "member list": it opens the store and prints
+// one line per live member, in the order they were added, to stdout,
+// which is the subcommand's whole purpose. Nothing else this file
+// writes carries an address.
 func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "list",
@@ -146,20 +124,16 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load(environ, reg)
+		RunE: func(cmd *cobra.Command, _ []string) (err error) {
+			openCtx, cancel := context.WithTimeout(cmd.Context(), memberVerbWriteWait)
+			defer cancel()
+			h, err := openMemberStore(openCtx, environ, reg)
 			if err != nil {
 				return err
 			}
-			rosterPath, ok := selectedRosterPath(environ, reg)
-			if !ok {
-				return fmt.Errorf("member: identity source %q requires no roster", cfg.IdentitySource)
-			}
-			roster, err := auth.OpenRoster(rosterPath)
-			if err != nil {
-				return err
-			}
-			members, err := roster.List(cmd.Context())
+			defer func() { err = errors.Join(err, h.Close()) }()
+
+			members, err := auth.NewRoster(h).List(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -171,7 +145,7 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 }
 
 // printMemberList writes members to w: a header line, then one line
-// per member in file order, address, display name, username,
+// per member in the order given, address, display name, username,
 // and an admin marker, tab-separated.
 func printMemberList(w io.Writer, members []auth.Member) error {
 	if _, err := fmt.Fprint(w, "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n"); err != nil {
@@ -185,26 +159,6 @@ func printMemberList(w io.Writer, members []auth.Member) error {
 		if _, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", m.Address, m.DisplayName, m.Username, marker); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-// checkRosterDirOwner refuses when the effective uid does not own dir,
-// naming both ids and dir (R-5c14). io/fs.FileInfo's doc comment
-// states "Sys() any // underlying data source (can return nil)"; on
-// this platform, the value os.Stat returns carries a *syscall.Stat_t.
-func checkRosterDirOwner(dir string) error {
-	info, err := os.Stat(dir)
-	if err != nil {
-		return fmt.Errorf("member: roster directory: %w", err)
-	}
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		return fmt.Errorf("member: roster directory: cannot determine its owner")
-	}
-	euid := os.Geteuid()
-	if stat.Uid != uint32(euid) {
-		return fmt.Errorf("%w: effective uid %d, directory %s owned by uid %d", errForeignRosterOwner, euid, dir, stat.Uid)
 	}
 	return nil
 }

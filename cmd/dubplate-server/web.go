@@ -109,11 +109,10 @@ var webDocuments = []webDocument{
 }
 
 // privateFiles names the state the operator CSS file must never be:
-// the roster file and anything under the state directory. The operator
-// route is public, so a path naming either would publish it. An empty
-// field guards nothing.
+// anything under the state directory. The operator route is public, so
+// a path under it would publish the store. An empty field guards
+// nothing.
 type privateFiles struct {
-	roster   string
 	stateDir string
 }
 
@@ -642,13 +641,12 @@ func resolveOperatorCSS(environ []string, private privateFiles) ([]byte, bool, e
 // readOperatorCSS reads the operator's stylesheet at path. The route
 // that serves it is public, so the file's class is checked before its
 // bytes are kept: a wrong path would otherwise publish whatever the
-// service user can read, the roster or an environment file included.
+// service user can read, an environment file included.
 //
 // The path must end in ".css", and so must the path it resolves to
 // once every symbolic link in it is followed, which is the path
-// opened: a link named x.css cannot stand in for the roster. The
-// resolved path must not lie under private.stateDir, and the file must
-// not be private.roster under any name. The file is opened once, with
+// opened: a link named x.css cannot stand in for another file. The
+// resolved path must not lie under private.stateDir. The file is opened once, with
 // O_NOFOLLOW so a link swapped in after resolution is refused, and
 // with O_NONBLOCK so a FIFO cannot hang startup; the class check
 // reads the open descriptor, so the file checked is the file read.
@@ -687,11 +685,6 @@ func readOperatorCSS(path string, private privateFiles) ([]byte, error) {
 	}
 	if !info.Mode().IsRegular() {
 		return nil, errors.New("the path is not a regular file")
-	}
-	if private.roster != "" {
-		if roster, err := os.Stat(private.roster); err == nil && os.SameFile(info, roster) {
-			return nil, errors.New("the file is the roster")
-		}
 	}
 	css, err := io.ReadAll(io.LimitReader(f, operatorCSSMaxBytes+1))
 	if err != nil {

@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/auth"
 )
 
@@ -358,35 +357,23 @@ func (l *requestLog) snapshot() []loggedRequest {
 // `example.test` scope), so a page that rendered either with
 // `{@html}` would leave a stray element behind rather than the
 // literal text a rendered row asserts.
-const (
-	renderedSiteName         = `Fixture "Site" <Name> & Co`
-	renderedAdminAddress     = "admin@example.test"
-	renderedAdminDisplayName = "Fixture <Admin>"
-	renderedMemberAddress    = "member@example.test"
-
-	// renderedNewMemberAddress is the address the add-member row writes:
-	// on no roster at the run's start, so `duplicate_address` on the
-	// second submit proves the first write landed.
-	renderedNewMemberAddress = "new-member@example.test"
-)
+const renderedSiteName = `Fixture "Site" <Name> & Co`
 
 // renderedEnviron is the fixture environment: a temporary state
-// directory, a roster of one admin and one member at example.test, the
-// fixed test secrets, publicURL as the server's own origin, an SMTP port
-// nothing listens on, the kind unknown-address answer, the non-default
-// prefix, and the fixture's four rate limits.
+// directory holding a store with the two fixture members at
+// example.test, the fixed test secrets, publicURL as the server's own
+// origin, an SMTP port nothing listens on, the kind unknown-address
+// answer, the non-default prefix, and the fixture's four rate limits.
+// The store exists, members seeded, before any server opens it. The
+// environment still carries DUBPLATE_ROSTER_FILE, which the wall
+// requires.
 func renderedEnviron(t *testing.T, publicURL string) []string {
 	t.Helper()
-	rosterPath := filepath.Join(t.TempDir(), "roster.json")
-	roster := `{"schema_version":1,"members":[` +
-		`{"address":"` + renderedAdminAddress + `","display_name":"` + renderedAdminDisplayName + `","admin":true},` +
-		`{"address":"` + renderedMemberAddress + `","display_name":"Fixture Member"}]}`
-	if err := os.WriteFile(rosterPath, []byte(roster), 0o600); err != nil {
-		t.Fatalf("write fixture roster: %v", err)
-	}
 	environ := serveAuthEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+	seedBackupStore(t, stateDir)
+	seedRenderedMembers(t, stateDir)
 	for name, value := range map[string]string{
-		"DUBPLATE_ROSTER_FILE":                                   rosterPath,
 		"DUBPLATE_PUBLIC_URL":                                    publicURL,
 		"DUBPLATE_SMTP_HOST":                                     "127.0.0.1",
 		"DUBPLATE_SMTP_PORT":                                     strconv.Itoa(closedPort(t)),
@@ -566,17 +553,6 @@ type mintResponse struct {
 	URL string `json:"url"`
 }
 
-// requirePOST answers 405 and reports false unless r is a POST, the
-// shared guard [mintServer] and [rosterResetServer] open their
-// ServeHTTP with.
-func requirePOST(w http.ResponseWriter, r *http.Request) bool {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return false
-	}
-	return true
-}
-
 // mintServer answers a freshly minted magic link for the fixture admin
 // or member address, one per POST, through [mintLinkFor]: the capture
 // matrix's on-demand source for the sixty links its six signed-in
@@ -614,54 +590,6 @@ func (m *mintServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(mintResponse{URL: link})
-}
-
-// rosterResetServer writes the fixture roster back to a baseline on
-// every POST, so each capture cell starts from the same member list and
-// every cell of one members state renders the same count. The baseline
-// is the file as the first POST finds it: the capture matrix runs after
-// every other row, so it keeps the members those rows added, and the
-// members/roster-file check still finds the add-member row's write.
-// Each POST answers {"members": n}, the baseline's member count. The
-// write goes through atomicfile, so the file is replaced under a new
-// inode and the server's cached roster is re-read on its next request.
-// Like [mintServer], it is its own loopback listener.
-type rosterResetServer struct {
-	path string
-
-	mu       sync.Mutex
-	baseline []byte
-	members  int
-}
-
-func (s *rosterResetServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !requirePOST(w, r) {
-		return
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.baseline == nil {
-		data, err := os.ReadFile(s.path)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		var roster struct {
-			Members []json.RawMessage `json:"members"`
-		}
-		if err := json.Unmarshal(data, &roster); err != nil {
-			http.Error(w, "parse the baseline roster: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		s.baseline, s.members = data, len(roster.Members)
-	} else if err := atomicfile.WriteFile(s.path, s.baseline, 0o600); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(struct {
-		Members int `json:"members"`
-	}{s.members})
 }
 
 // countLogged reports how many records in records are a POST to a
@@ -858,7 +786,7 @@ func TestRendered(t *testing.T) {
 
 	mintSrv := httptest.NewServer(&mintServer{environ: environ})
 	t.Cleanup(mintSrv.Close)
-	resetSrv := httptest.NewServer(&rosterResetServer{path: environValue(environ, "DUBPLATE_ROSTER_FILE")})
+	resetSrv := httptest.NewServer(&rosterResetServer{stateDir: environValue(environ, "DUBPLATE_STATE_DIR")})
 	t.Cleanup(resetSrv.Close)
 
 	env := append(scriptEnviron(),
@@ -918,17 +846,13 @@ func TestRendered(t *testing.T) {
 		})
 	}
 
-	// The add-member row's write reaches the fixture roster file on
-	// disk, proving the POST the script drove was the real roster API,
-	// not a fulfilled route.
-	t.Run("members/roster-file", func(t *testing.T) {
-		rosterPath := environValue(environ, "DUBPLATE_ROSTER_FILE")
-		data, err := os.ReadFile(rosterPath)
-		if err != nil {
-			t.Fatalf("read the fixture roster file: %v", err)
-		}
-		if !bytes.Contains(data, []byte(renderedNewMemberAddress)) {
-			t.Fatalf("the fixture roster file does not carry the added address %q: %s", renderedNewMemberAddress, data)
+	// The add-member row's write reaches the users table, proving the
+	// POST the script drove was the real roster API, not a fulfilled
+	// route.
+	t.Run("members/users-table", func(t *testing.T) {
+		got := userAddresses(t, environValue(environ, "DUBPLATE_STATE_DIR"))
+		if !slices.Contains(got, renderedNewMemberAddress) {
+			t.Fatalf("the users table does not carry the added address %q: %v", renderedNewMemberAddress, got)
 		}
 	})
 

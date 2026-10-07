@@ -463,3 +463,47 @@ func TestInspect_SettingsAbsent(t *testing.T) {
 		t.Errorf("settings = %+v at generation %d, want none for a store predating the table", f.Settings, f.SettingsGeneration)
 	}
 }
+
+const insertMembersSQL = `INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at) VALUES
+	(x'01', 'boss@example.test', 'Boss', 'boss', 1, NULL, 1, 1),
+	(x'02', 'plain@example.test', 'Plain', 'plain', 0, NULL, 2, 2),
+	(x'03', 'gone-admin@example.test', 'Gone', 'goneadmin', 1, 3, 3, 3),
+	(x'04', 'gone-plain@example.test', 'Gone', 'goneplain', 0, 4, 4, 4);`
+
+// TestInspect_MemberFacts: a store whose version holds the users table
+// counts its live rows and the live admins among them, tombstoned rows
+// excluded from both. Fixture state: the table holds four rows, two of
+// them tombstoned and one of those an admin, so a count over every row
+// reads 4 and 2. An older store below the table's version reads no
+// counts and is not refused for the missing table.
+func TestInspect_MemberFacts(t *testing.T) {
+	tests := []struct {
+		name        string
+		through     int
+		insert      bool
+		wantMembers int
+		wantAdmins  int
+	}{
+		{name: "current", through: binaryHead, insert: true, wantMembers: 2, wantAdmins: 1},
+		{name: "older at the users table's own version", through: UsersVersion, insert: true, wantMembers: 2, wantAdmins: 1},
+		{name: "current, an empty table", through: binaryHead},
+		{name: "older, below the users table", through: UsersVersion - 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			l := buildStore(t, stateDir, tt.through)
+			if tt.insert {
+				rawExec(t, l.dbPath, insertMembersSQL)
+			}
+
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+			if r.Facts == nil {
+				t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
+			}
+			if r.Facts.Members != tt.wantMembers || r.Facts.Admins != tt.wantAdmins {
+				t.Errorf("members, admins = %d, %d, want %d, %d", r.Facts.Members, r.Facts.Admins, tt.wantMembers, tt.wantAdmins)
+			}
+		})
+	}
+}

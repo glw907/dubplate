@@ -100,10 +100,7 @@ func webRowStatus(environ []string, cfg *config.Config) (status string, failed b
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
-	private := privateFiles{
-		roster:   cfg.IdentitySourceValue(rosterFileKey),
-		stateDir: cfg.StateDir,
-	}
+	private := privateFiles{stateDir: cfg.StateDir}
 	discard := slog.New(slog.NewTextHandler(io.Discard, nil))
 	if _, err := newWebRoutes(environ, prefix, cfg.SiteName, private, discard); err != nil {
 		return "invalid: " + foldRefusal(err), true

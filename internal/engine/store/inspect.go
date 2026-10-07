@@ -122,6 +122,10 @@ type Report struct {
 // jobsVersion is the lowest store version holding the jobs table.
 const jobsVersion = 2
 
+// UsersVersion is the lowest store version holding the users table
+// (0003_catalog.sql), and so the lowest at which [Facts] counts members.
+const UsersVersion = 3
+
 // settingsVersion is the lowest store version holding the settings
 // table (0004_settings.sql).
 const settingsVersion = 4
@@ -158,6 +162,13 @@ type Facts struct {
 	Settings           []SettingsRow
 	SettingsGeneration int64
 	SettingsAbsent     bool
+
+	// Members counts the live users rows and Admins those holding the
+	// admin flag, for a store whose version holds the users table. A
+	// store that predates it (through 0002) leaves both zero, which a
+	// caller tells from an empty table by the report's StoreVersion.
+	Members int
+	Admins  int
 }
 
 // A JobSuccess is a job kind's newest succeeded record.
@@ -283,6 +294,12 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version i
 		f.SettingsAbsent = true
 	}
 
+	if version >= UsersVersion {
+		if f.Members, f.Admins, err = countMembers(ctx, db, l.dbPath); err != nil {
+			return nil, err
+		}
+	}
+
 	var st syscall.Statfs_t
 	if statfsFunc(l.root, &st) == nil {
 		f.FreeBytes, f.FreeKnown = st.Bavail*uint64(st.Frsize), true
@@ -335,6 +352,16 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
 	}
 	return last, nil
+}
+
+// countMembers returns the live users rows db reads and how many of
+// them hold the admin flag.
+func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admins int, err error) {
+	err = db.QueryRowContext(ctx, `SELECT count(*), coalesce(sum(admin), 0) FROM users WHERE tombstoned_at IS NULL`).Scan(&members, &admins)
+	if err != nil {
+		return 0, 0, refusal(StateRefused, "read users in %s: %v", dbPath, err)
+	}
+	return members, admins, nil
 }
 
 // readSettingsFacts returns every settings row db reads, in key order,

@@ -12,11 +12,10 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 )
 
-// rosterAPIWriteWait bounds how long a roster API write waits for the
-// roster's directory lock. A server request's context ends only when
-// the client goes or the handler returns, so without its own bound a
-// write queued behind another process would hold the request open for
-// as long as that process holds the lock.
+// rosterAPIWriteWait bounds how long a roster API write takes, the
+// wait for the store's write lock included. A server request's context
+// ends only when the client goes or the handler returns, and a store
+// write refuses a context with no deadline.
 const rosterAPIWriteWait = 5 * time.Second
 
 // Form fields the roster API's POST reads. They are the whole of what a
@@ -35,15 +34,12 @@ const (
 	outcomeAdded              = "added"
 	outcomeDuplicateAddress   = "duplicate_address"
 	outcomeDuplicateUsername  = "duplicate_username"
-	outcomeDuplicatePrincipal = "duplicate_principal"
 	outcomeInvalidDisplayName = "invalid_display_name"
 	outcomeBlankDisplayName   = "blank_display_name"
 	outcomeInvalidUsername    = "invalid_username"
 	outcomeMissingUsername    = "missing_username"
 	outcomeAdminNotGrantable  = "admin_not_grantable"
 	outcomeUnknownField       = "unknown_field"
-	outcomeBusy               = "busy"
-	outcomeWriteUnconfirmed   = "write_unconfirmed"
 )
 
 // AdminConfig is everything the admin gate and the roster API need,
@@ -146,10 +142,6 @@ var gateRefusals = []error{
 	ErrSessionExpired,
 	ErrSessionRevoked,
 	ErrMemberNotFound,
-	ErrRosterMissing,
-	ErrRosterUnreadable,
-	ErrRosterUnparseable,
-	ErrRosterRecordInvalid,
 }
 
 // gateRefusalReason names err by the first of gateRefusals it wraps.
@@ -163,7 +155,7 @@ func gateRefusalReason(err error) string {
 }
 
 // rosterAPI is the handler the gate wraps. writeWait bounds a POST's
-// wait for the roster's directory lock.
+// store write.
 type rosterAPI struct {
 	cfg       AdminConfig
 	writeWait time.Duration
@@ -305,8 +297,6 @@ func additionOutcome(err error) (int, string) {
 		return http.StatusConflict, outcomeDuplicateAddress
 	case errors.Is(err, errDuplicateUsername):
 		return http.StatusConflict, outcomeDuplicateUsername
-	case errors.Is(err, errDuplicatePrincipal):
-		return http.StatusConflict, outcomeDuplicatePrincipal
 	case errors.Is(err, errInvalidMemberAddress):
 		return http.StatusBadRequest, outcomeInvalid
 	case errors.Is(err, errInvalidDisplayName):
@@ -317,12 +307,6 @@ func additionOutcome(err error) (int, string) {
 		return http.StatusBadRequest, outcomeInvalidUsername
 	case errors.Is(err, errMissingUsername):
 		return http.StatusBadRequest, outcomeMissingUsername
-	case errors.Is(err, errRosterBusy):
-		return http.StatusServiceUnavailable, outcomeBusy
-	case errors.Is(err, errRosterWriteLanded):
-		// The member may be on disk, so a retry could meet
-		// duplicate_address; the caller is told to reload first.
-		return http.StatusInternalServerError, outcomeWriteUnconfirmed
 	default:
 		return http.StatusInternalServerError, outcomeFailed
 	}

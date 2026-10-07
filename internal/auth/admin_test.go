@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"bytes"
 	"cmp"
 	"context"
 	"encoding/json"
@@ -10,28 +9,24 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/atomicfile"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/serve"
 )
 
-// adminRosterMembers holds an admin with a username, a second
-// admin without one (a record written before the write path required
-// it), and a non-admin, so a GET has every field shape to answer and a
-// hand edit demoting the first admin still leaves the roster an admin.
-const adminRosterMembers = `[
-	{"address":"admin@example.com","display_name":"Group Admin","username":"groupadmin","admin":true},
-	{"address":"founder@example.com","display_name":"Founder","admin":true},
-	{"address":"member@example.com","display_name":"Member","username":"member","admin":false}
-]`
+// adminRosterMembers holds two admins and a non-admin, so a hand edit
+// demoting the first admin still leaves the roster an admin.
+var adminRosterMembers = []userRow{
+	{id: adminID, address: "admin@example.com", displayName: "Group Admin", username: "groupadmin", admin: true},
+	{address: "founder@example.com", displayName: "Founder", username: "founder", admin: true},
+	{address: "member@example.com", displayName: "Member", username: "member"},
+}
 
 // fixtureAddresses is every address a fixture roster or session names;
 // no refusal's log record may carry any of them.
@@ -48,18 +43,18 @@ const validPost = "address=new%40example.com&display_name=New+Member&username=ne
 const formType = "application/x-www-form-urlencoded"
 
 type adminFixture struct {
-	rosterPath string
-	roster     *Roster
-	epoch      *EpochStore
-	seam       *MagicLinkSeam
-	logs       *logCapture
-	cfg        AdminConfig
-	api        http.Handler
+	users  *store.Handle
+	roster *Roster
+	epoch  *EpochStore
+	seam   *MagicLinkSeam
+	logs   *logCapture
+	cfg    AdminConfig
+	api    http.Handler
 }
 
 func newAdminFixture(t *testing.T) adminFixture {
 	t.Helper()
-	sf := newSeamFixture(t, adminRosterMembers)
+	sf := newSeamFixture(t, slices.Clone(adminRosterMembers)...)
 	logs := newLogCapture()
 	cfg := AdminConfig{
 		Seam:     sf.seam,
@@ -70,13 +65,13 @@ func newAdminFixture(t *testing.T) adminFixture {
 		BodyCap:  4096,
 	}
 	return adminFixture{
-		rosterPath: sf.roster.path,
-		roster:     sf.roster,
-		epoch:      sf.epoch,
-		seam:       sf.seam,
-		logs:       logs,
-		cfg:        cfg,
-		api:        NewRosterAPI(cfg),
+		users:  sf.users,
+		roster: sf.roster,
+		epoch:  sf.epoch,
+		seam:   sf.seam,
+		logs:   logs,
+		cfg:    cfg,
+		api:    NewRosterAPI(cfg),
 	}
 }
 
@@ -123,6 +118,7 @@ func withAdmin(r *http.Request, v VerifiedIdentity) *http.Request {
 var fixtureAdmin = VerifiedIdentity{
 	Identity: identity.Identity{
 		Address:     "admin@example.com",
+		UserID:      identity.UserID{0xad, 0x01},
 		Principal:   "groupadmin",
 		DisplayName: "Group Admin",
 		Source:      magicLinkSource,
@@ -166,9 +162,10 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 	commandLineAdmin.RefreshedValue = "refreshed-by-stub"
 
 	tests := []struct {
-		name    string
-		seam    Seam
-		request func(t *testing.T, fx adminFixture) *http.Request
+		name        string
+		seam        Seam
+		storeClosed bool // the store is closed, so no table is left to compare
+		request     func(t *testing.T, fx adminFixture) *http.Request
 	}{
 		{
 			name: "no cookie",
@@ -204,9 +201,12 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 			},
 		},
 		{
-			name: "roster store fails on the lookup",
+			name:        "roster store fails on the lookup",
+			storeClosed: true,
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				replaceRosterFile(t, fx.rosterPath, "not json")
+				if err := fx.users.Close(); err != nil {
+					t.Fatalf("close store: %v", err)
+				}
 				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
 			},
 		},
@@ -253,11 +253,8 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 			if tt.seam != nil {
 				cfg.Seam = tt.seam
 			}
+			before := dumpUsers(t, fx.users)
 			r := tt.request(t, fx)
-			before, err := os.ReadFile(fx.rosterPath)
-			if err != nil {
-				t.Fatalf("read roster: %v", err)
-			}
 			var cookieValue string
 			if c, err := r.Cookie(sessionCookieName); err == nil {
 				cookieValue = c.Value
@@ -280,12 +277,8 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 				t.Error("the gate admitted a refused request to the wrapped handler")
 			}
 
-			after, err := os.ReadFile(fx.rosterPath)
-			if err != nil {
-				t.Fatalf("read roster after: %v", err)
-			}
-			if !bytes.Equal(before, after) {
-				t.Errorf("a refused request changed the roster:\nbefore %s\nafter  %s", before, after)
+			if !tt.storeClosed {
+				assertUnchanged(t, fx.users, before)
 			}
 			assertRefusalLogs(t, fx.logs, 2)
 			if cookieValue != "" && strings.Contains(fx.logs.text(), cookieValue) {
@@ -361,7 +354,7 @@ func TestRosterAPI_InnerRefusesAlone(t *testing.T) {
 }
 
 // TestRosterAPI_List proves a verified admin's GET answers the roster
-// in file order with exactly the four fields per member, HEAD answers
+// in the order members were added with exactly the four fields per member, HEAD answers
 // the same header without a body, and any other method answers 405.
 func TestRosterAPI_List(t *testing.T) {
 	fx := newAdminFixture(t)
@@ -380,7 +373,7 @@ func TestRosterAPI_List(t *testing.T) {
 	}
 	want := map[string]any{"members": []any{
 		map[string]any{"address": "admin@example.com", "display_name": "Group Admin", "username": "groupadmin", "admin": true},
-		map[string]any{"address": "founder@example.com", "display_name": "Founder", "username": "", "admin": true},
+		map[string]any{"address": "founder@example.com", "display_name": "Founder", "username": "founder", "admin": true},
 		map[string]any{"address": "member@example.com", "display_name": "Member", "username": "member", "admin": false},
 	}}
 	if !reflect.DeepEqual(got, want) {
@@ -404,13 +397,15 @@ func TestRosterAPI_List(t *testing.T) {
 	}
 }
 
-// TestRosterAPI_ListStoreFailure proves a roster that fails to load
+// TestRosterAPI_ListStoreFailure proves a roster whose store fails
 // answers failed and no member list. It runs on the inner handler:
-// through the gate the seam's own lookup reads the same broken file and
+// through the gate the seam's own lookup reads the same broken store and
 // refuses first.
 func TestRosterAPI_ListStoreFailure(t *testing.T) {
 	fx := newAdminFixture(t)
-	replaceRosterFile(t, fx.rosterPath, "not json")
+	if err := fx.users.Close(); err != nil {
+		t.Fatalf("close store: %v", err)
+	}
 	inner := &rosterAPI{cfg: fx.cfg, writeWait: time.Second}
 
 	w := serveOne(inner, withAdmin(rosterRequest(http.MethodGet, "/dubplate/roster", "", ""), fixtureAdmin))
@@ -514,7 +509,6 @@ func TestRosterAPI_Post(t *testing.T) {
 
 		{name: "duplicate address", body: "address=MEMBER%40example.com&display_name=Dup&username=dup", wantStatus: 409, wantOutcome: "duplicate_address"},
 		{name: "duplicate username", body: "address=new%40example.com&display_name=New&username=GroupAdmin", wantStatus: 409, wantOutcome: "duplicate_username"},
-		{name: "duplicate principal", body: "address=new%40example.com&display_name=New&username=founder%40example.com", wantStatus: 409, wantOutcome: "duplicate_principal"},
 		{name: "invalid address net/mail quotes", body: "address=new%40example.com+member%40example.com&display_name=New&username=newmember", wantStatus: 400, wantOutcome: "invalid_address"},
 		{name: "address carrying an invisible rune", body: "address=%22new%E2%80%8B%22%40example.com&display_name=New&username=newmember", wantStatus: 400, wantOutcome: "invalid_address"},
 		{name: "invalid display name", body: "address=new%40example.com&display_name=New%E2%80%AE&username=newmember", wantStatus: 400, wantOutcome: "invalid_display_name"},
@@ -546,10 +540,7 @@ func TestRosterAPI_Post(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fx := newAdminFixture(t)
-			before, err := os.ReadFile(fx.rosterPath)
-			if err != nil {
-				t.Fatalf("read roster: %v", err)
-			}
+			before := dumpUsers(t, fx.users)
 			target := cmp.Or(tt.target, "/dubplate/roster")
 			r := rosterRequest(http.MethodPost, target, mintAt(t, currentFixture, "Admin@Example.com", seamBirth), tt.body)
 			switch tt.contentType {
@@ -567,7 +558,7 @@ func TestRosterAPI_Post(t *testing.T) {
 			}
 			audits := auditRecords(t, fx.logs)
 			if tt.wantOutcome != outcomeAdded {
-				assertUnchanged(t, fx.rosterPath, before)
+				assertUnchanged(t, fx.users, before)
 				if len(audits) != 0 {
 					t.Errorf("a refused POST logged an audit record: %v", audits)
 				}
@@ -602,14 +593,12 @@ func auditRecords(t *testing.T, logs *logCapture) []map[string]any {
 	return out
 }
 
-func assertUnchanged(t *testing.T, path string, before []byte) {
+// assertUnchanged fails the test when h's users table no longer reads
+// as before, a dumpUsers rendering taken earlier.
+func assertUnchanged(t *testing.T, h *store.Handle, before string) {
 	t.Helper()
-	after, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read roster after: %v", err)
-	}
-	if !bytes.Equal(before, after) {
-		t.Errorf("the roster changed:\nbefore %s\nafter  %s", before, after)
+	if after := dumpUsers(t, h); after != before {
+		t.Errorf("the users table changed:\nbefore %s\nafter  %s", before, after)
 	}
 }
 
@@ -618,10 +607,7 @@ func assertUnchanged(t *testing.T, path string, before []byte) {
 // than one byte past the cap.
 func TestRosterAPI_PostOverCap(t *testing.T) {
 	fx := newAdminFixture(t)
-	before, err := os.ReadFile(fx.rosterPath)
-	if err != nil {
-		t.Fatalf("read roster: %v", err)
-	}
+	before := dumpUsers(t, fx.users)
 	const bodyCap = 512
 	fx.cfg.BodyCap = bodyCap
 	api := NewRosterAPI(fx.cfg)
@@ -638,36 +624,38 @@ func TestRosterAPI_PostOverCap(t *testing.T) {
 	if body.n > bodyCap+1 {
 		t.Errorf("read %d bytes of an oversized body, want at most %d", body.n, bodyCap+1)
 	}
-	assertUnchanged(t, fx.rosterPath, before)
+	assertUnchanged(t, fx.users, before)
 }
 
 // TestRosterAPI_PostFailed proves the refusals a verified admin can
-// still meet at the store answer 500 failed, change no byte, and log no
-// audit record. They run on the inner handler, since each changes the
-// roster after the identity was verified.
+// still meet at the store answer 500 failed and log no audit record.
+// They run on the inner handler, since each changes the roster after
+// the identity was verified. A refusal the write decides changes no row;
+// a closed store has no table left to compare.
 func TestRosterAPI_PostFailed(t *testing.T) {
-	demoted := strings.Replace(adminRosterMembers, `"username":"groupadmin","admin":true`, `"username":"groupadmin","admin":false`, 1)
 	tests := []struct {
-		name   string
-		change func(t *testing.T, path string)
+		name        string
+		storeClosed bool
+		change      func(t *testing.T, h *store.Handle)
 	}{
 		{
-			name: "actor demoted by a hand edit",
-			change: func(t *testing.T, path string) {
-				replaceRosterFile(t, path, `{"schema_version":1,"members":`+demoted+`}`)
-				// The edited roster still loads, so the refusal is the
-				// actor check under the lock, not the load's no-admin
-				// refusal.
-				if _, err := OpenRoster(path); err != nil {
-					t.Fatalf("OpenRoster(edited): %v", err)
+			name: "actor demoted after the identity verified",
+			change: func(t *testing.T, h *store.Handle) {
+				err := h.Update(writeCtx(t), func(ctx context.Context, tx *store.Tx) error {
+					_, err := tx.Exec(ctx, `UPDATE users SET admin = 0 WHERE address = 'admin@example.com'`)
+					return err
+				})
+				if err != nil {
+					t.Fatalf("demote the actor: %v", err)
 				}
 			},
 		},
 		{
-			name: "roster writable by others",
-			change: func(t *testing.T, path string) {
-				if err := os.Chmod(path, 0o666); err != nil {
-					t.Fatalf("chmod: %v", err)
+			name:        "the store closed",
+			storeClosed: true,
+			change: func(t *testing.T, h *store.Handle) {
+				if err := h.Close(); err != nil {
+					t.Fatalf("close store: %v", err)
 				}
 			},
 		},
@@ -675,10 +663,10 @@ func TestRosterAPI_PostFailed(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fx := newAdminFixture(t)
-			tt.change(t, fx.rosterPath)
-			before, err := os.ReadFile(fx.rosterPath)
-			if err != nil {
-				t.Fatalf("read roster: %v", err)
+			tt.change(t, fx.users)
+			var before string
+			if !tt.storeClosed {
+				before = dumpUsers(t, fx.users)
 			}
 			inner := &rosterAPI{cfg: fx.cfg, writeWait: time.Second}
 
@@ -686,70 +674,14 @@ func TestRosterAPI_PostFailed(t *testing.T) {
 			if w.Code != http.StatusInternalServerError || outcomeOf(t, w) != outcomeFailed {
 				t.Errorf("POST = %d %s, want 500 failed", w.Code, w.Body)
 			}
-			assertUnchanged(t, fx.rosterPath, before)
+			if !tt.storeClosed {
+				assertUnchanged(t, fx.users, before)
+			}
 			if audits := auditRecords(t, fx.logs); len(audits) != 0 {
 				t.Errorf("a refused POST logged an audit record: %v", audits)
 			}
 		})
 	}
-}
-
-// TestRosterAPI_PostWriteUnconfirmed proves a write that fails after
-// its rename answers write_unconfirmed, with the member on disk.
-func TestRosterAPI_PostWriteUnconfirmed(t *testing.T) {
-	fx := newAdminFixture(t)
-	t.Cleanup(func() { writeRosterStream = atomicfile.WriteStream })
-	writeRosterStream = func(path string, perm os.FileMode, write func(io.Writer) error) error {
-		if err := atomicfile.WriteStream(path, perm, write); err != nil {
-			return err
-		}
-		return errors.New("injected failure after the rename")
-	}
-
-	w := serveOne(fx.api, rosterRequest(http.MethodPost, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), validPost))
-	if w.Code != http.StatusInternalServerError || outcomeOf(t, w) != outcomeWriteUnconfirmed {
-		t.Errorf("POST = %d %s, want 500 write_unconfirmed", w.Code, w.Body)
-	}
-	reopened, err := OpenRoster(fx.rosterPath)
-	if err != nil {
-		t.Fatalf("OpenRoster: %v", err)
-	}
-	if _, err := reopened.Lookup(t.Context(), "new@example.com"); err != nil {
-		t.Errorf("Lookup(new member) after write_unconfirmed: %v; want the member on disk", err)
-	}
-}
-
-// TestRosterAPI_PostBusy holds the roster directory's lock as another
-// process would, and proves the write gives up with 503 busy once its
-// own wait ends, well before the request would otherwise.
-func TestRosterAPI_PostBusy(t *testing.T) {
-	fx := newAdminFixture(t)
-	before, err := os.ReadFile(fx.rosterPath)
-	if err != nil {
-		t.Fatalf("read roster: %v", err)
-	}
-	dir, err := os.Open(filepath.Dir(fx.rosterPath))
-	if err != nil {
-		t.Fatalf("open roster directory: %v", err)
-	}
-	defer func() { _ = dir.Close() }()
-	if err := syscall.Flock(int(dir.Fd()), syscall.LOCK_EX); err != nil {
-		t.Fatalf("flock roster directory: %v", err)
-	}
-
-	const wait = 100 * time.Millisecond
-	inner := &rosterAPI{cfg: fx.cfg, writeWait: wait}
-	start := time.Now()
-	w := serveOne(inner, withAdmin(rosterRequest(http.MethodPost, "/dubplate/roster", "", validPost), fixtureAdmin))
-	elapsed := time.Since(start)
-
-	if w.Code != http.StatusServiceUnavailable || outcomeOf(t, w) != outcomeBusy {
-		t.Errorf("POST = %d %s, want 503 busy", w.Code, w.Body)
-	}
-	if elapsed < wait || elapsed > 20*wait {
-		t.Errorf("busy answered after %v, want just past the %v wait", elapsed, wait)
-	}
-	assertUnchanged(t, fx.rosterPath, before)
 }
 
 // TestRosterAPI_PostDuplicateUsernameOverUsersTable proves the page's

@@ -2,7 +2,6 @@ package main
 
 import (
 	"cmp"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/spf13/cobra"
 )
 
@@ -85,43 +85,20 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			// The roster row runs R3's principal-collision check in
-			// doctor as well as at startup and at write time: it calls
-			// the same [auth.OpenRoster] the magic-link source loads
-			// through, so a missing file, a duplicate address, a
-			// duplicate username, or an unparseable record is
-			// reported here too. A missing file is a failure like any
-			// other, since R2 makes it a startup refusal: the spec's
-			// runbook order is install, render the environment, run the
-			// bootstrap verb that creates the roster, then start the
-			// unit, so doctor run before the verb correctly reports the
-			// deployment as not yet startable. The row prints only while
-			// a selected identity source requires DUBPLATE_ROSTER_FILE
-			// and the roster fails to open, so R10's line-count
-			// arithmetic stays keyed to reg alone whenever there is
-			// nothing to report. It names no value (Resolution R-5b6):
-			// [auth.OpenRoster]'s own errors carry only a record's
-			// position and the path, never its address or principal, and
-			// a multi-record refusal is folded onto the one line. A
-			// roster that loads but names no admin fails the same row,
-			// since nobody could then change it but by hand, and the row
-			// names the command that recovers it.
-			rosterFailed := false
-			if path, ok := selectedRosterPath(environ, reg); ok {
-				if status, failed := rosterRowStatus(cmd.Context(), path); failed {
-					rosterFailed = true
-					if err := printRow(stdout, "roster", status); err != nil {
-						return err
-					}
-				}
-			}
-
 			// The store row runs the inspect mode after every other
 			// row, always printing exactly one line, absent state
 			// included: a store the doctor run cannot vouch for is as
 			// reportable as a missing config key.
 			storeStatus, storeFailed, storeReport, storeChecked := storeRow(cmd.Context(), environ)
 			if err := printRow(stdout, "store", storeStatus); err != nil {
+				return err
+			}
+
+			// The members row prints from the report the store row
+			// read, so doctor inspects once, and always prints exactly
+			// one line.
+			membersStatus, membersFailed := membersRowStatus(storeReport, storeChecked)
+			if err := printRow(stdout, membersDoctorRow, membersStatus); err != nil {
 				return err
 			}
 
@@ -196,7 +173,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				}
 			}
 
-			if loadErr != nil || rosterFailed || storeFailed || authStoreFailed || backupRemoteFailed || unidecodeFailed ||
+			if loadErr != nil || storeFailed || membersFailed || authStoreFailed || backupRemoteFailed || unidecodeFailed ||
 				clientIPFailed || webFailed || bindFailed || probeFailed || settingsFailed {
 				return errors.New("configuration is incomplete")
 			}
@@ -210,41 +187,35 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 // authStoreDoctorRow is the row reporting the auth leaf serve opens.
 const authStoreDoctorRow = "auth store"
 
-// selectedRosterPath returns DUBPLATE_ROSTER_FILE's value when a
-// source reg declares is selected in environ and requires that key.
-// It reports false when no roster-backed source is selected or the key
-// is unset; the source's own row already reports the unset key.
-func selectedRosterPath(environ []string, reg *config.Registry) (string, bool) {
-	const rosterKey = "DUBPLATE_ROSTER_FILE"
-	for _, src := range reg.IdentitySources() {
-		if src.Selected(environ) && slices.Contains(src.Required, rosterKey) {
-			return lookupEnviron(environ, rosterKey)
-		}
-	}
-	return "", false
-}
+// membersDoctorRow is the row reporting the members the store holds.
+const membersDoctorRow = "members"
 
-// rosterRowStatus opens the roster at path and reports the roster
-// row's status and whether the row fails: an [auth.OpenRoster] refusal
-// rendered by rosterStatus, a roster that loads but names no admin, or
-// a roster whose directory the process cannot write, in the words
-// serve refuses to start with.
-func rosterRowStatus(ctx context.Context, path string) (string, bool) {
-	roster, err := auth.OpenRoster(path)
-	if err != nil {
-		return rosterStatus(err), true
+// membersRowStatus renders the members row from the report the store
+// row read, and reports whether the row fails. It decides on the
+// report's StoreVersion, never on whether Facts is present, since a
+// version 1 store carries no facts while a version 2 store carries
+// facts without the users table. A store the store row cannot vouch
+// for reads "not read"; the row fails only for a store that holds the
+// users table and no live admin, since nobody could then add a member
+// through the page.
+func membersRowStatus(r store.Report, checked bool) (status string, failed bool) {
+	switch {
+	case !checked:
+		return "not read", false
+	case r.State == store.StateAbsent:
+		return "no store yet; start serve, then member add --admin", false
+	case !storeVouches(r.State):
+		return "not read", false
+	case r.StoreVersion < store.UsersVersion:
+		return fmt.Sprintf("members not recorded before store version %d", store.UsersVersion), false
+	case r.Facts == nil:
+		return "not read", false
+	case r.Facts.Members == 0:
+		return "no members; run dubplate-server member add --admin", true
+	case r.Facts.Admins == 0:
+		return fmt.Sprintf("members: %d, admins: 0; run dubplate-server member add --admin", r.Facts.Members), true
 	}
-	members, err := roster.List(ctx)
-	if err != nil {
-		return rosterStatus(err), true
-	}
-	if !slices.ContainsFunc(members, func(m auth.Member) bool { return m.Admin }) {
-		return "no admin; run dubplate-server member add --admin", true
-	}
-	if err := checkRosterDirWritable(path); err != nil {
-		return err.Error(), true
-	}
-	return "", false
+	return fmt.Sprintf("members: %d, admins: %d", r.Facts.Members, r.Facts.Admins), false
 }
 
 // authStoreLeafPerm is the widest mode [auth.Open] accepts on the auth
@@ -336,18 +307,6 @@ func checkCreatable(path string) error {
 		}
 		dir = parent
 	}
-}
-
-// rosterStatus renders an [auth.OpenRoster] refusal as one doctor
-// status: "missing" for an absent file, the wall's own word for an
-// unset row, and otherwise "invalid: " plus the error with every
-// newline an [errors.Join] of several bad records carries folded to
-// "; ", so the refusal stays a single row.
-func rosterStatus(err error) string {
-	if errors.Is(err, auth.ErrRosterMissing) {
-		return "missing"
-	}
-	return "invalid: " + strings.ReplaceAll(err.Error(), "\n", "; ")
 }
 
 // printRow writes one doctor line in the pinned "%-32s %s" form.

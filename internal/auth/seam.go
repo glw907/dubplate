@@ -118,7 +118,7 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 		Identity: identity.Identity{
 			Address:     member.Address,
 			UserID:      member.ID,
-			Principal:   member.principal(),
+			Principal:   member.Username,
 			DisplayName: member.DisplayName,
 			Source:      magicLinkSource,
 			Channel:     identity.ChannelCookie,

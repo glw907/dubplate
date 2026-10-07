@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -29,7 +28,6 @@ import (
 // a secret value; each names the environment variable a real deployment
 // carries one under.
 const (
-	rosterFileKey              = "DUBPLATE_ROSTER_FILE"
 	magicLinkSecretKey         = "DUBPLATE_MAGIC_LINK_SECRET"          // secret-guard-allow
 	magicLinkSecretPreviousKey = "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS" // secret-guard-allow
 	sessionSecretKey           = "DUBPLATE_SESSION_SECRET"             // secret-guard-allow
@@ -157,17 +155,6 @@ func checkDirWritable(dir string) error {
 	return nil
 }
 
-// checkRosterDirWritable refuses when the roster file's directory is
-// not writable: every roster write replaces the file by rename under a
-// lock on that directory, so a directory the process cannot write
-// fails the first member add rather than the start.
-func checkRosterDirWritable(rosterPath string) error {
-	if err := checkDirWritable(filepath.Dir(rosterPath)); err != nil {
-		return fmt.Errorf("roster directory %w", err)
-	}
-	return nil
-}
-
 // servePrefixThreshold is the one owned path prefix: every route the
 // shell registers lives under it, and every path outside it answers
 // 404. Its default, /dubplate, is one segment so the segment-aware
@@ -271,16 +258,16 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // handle the caller closes when the shell stops serving; every refusal
 // returns no shell and no handle. It then applies the settings seed to
 // that store through [applySettingsSeed], so a refusal ends the start
-// before anything else is built. It then opens the auth store, the nonce and epoch stores, and the roster,
-// builds the rate limiter, the mailer, and the magic-link identity
+// before anything else is built. It then opens the auth store and its
+// nonce and epoch stores, builds the roster over the store handle and
+// the rate limiter, the mailer, and the magic-link identity
 // seam, constructs the auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
 // proxy value [resolveTrustedProxy] refuses, a store this binary cannot
-// open or must not migrate, a missing roster file, a
-// roster directory it cannot write, an unopenable store, an unparseable mail port, a bad theme or branding
-// value, or a refused operator CSS file without ever accepting a
-// connection.
+// open or must not migrate, an unparseable mail port, a bad theme or
+// branding value, or a refused operator CSS file without ever accepting
+// a connection.
 //
 // It registers no bearer bypass: no mount authenticates by bearer
 // credential, so every mount stays behind the origin check's
@@ -346,13 +333,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	}
 	epoch := auth.OpenEpochStore(authStore)
 
-	roster, err := auth.OpenRoster(cfg.IdentitySourceValue(rosterFileKey))
-	if err != nil {
-		return nil, nil, err
-	}
-	if err := checkRosterDirWritable(cfg.IdentitySourceValue(rosterFileKey)); err != nil {
-		return nil, nil, err
-	}
+	roster := auth.NewRoster(h)
 
 	limiter := auth.NewLimiter(auth.Limits{
 		LinkRequestsPerAddress:       authCfg.linkRequestsPerAddress,
@@ -394,10 +375,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 
 	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
 
-	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{
-		roster:   cfg.IdentitySourceValue(rosterFileKey),
-		stateDir: cfg.StateDir,
-	}, shell.Logger())
+	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger())
 	if err != nil {
 		return nil, nil, err
 	}

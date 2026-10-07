@@ -21,6 +21,7 @@ const testHandle = "0123456789abcdef0123456789abcdef"
 // ann is the verified member the admitting authorizers answer with.
 var ann = identity.Identity{
 	Address:     "ann@example.com",
+	UserID:      identity.UserID{0x01},
 	Principal:   "ann",
 	DisplayName: "Ann",
 	Source:      "magic-link",

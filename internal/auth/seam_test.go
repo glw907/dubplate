@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -26,29 +27,25 @@ var (
 // fresh so a chmod or a bump in one test never leaks into another.
 type seamFixture struct {
 	roster *Roster
+	users  *store.Handle
 	epoch  *EpochStore
 	seam   *MagicLinkSeam
 	dir    string // stateDir, for reaching the epoch subdirectory directly
 }
 
-// newSeamFixture opens a roster carrying rosterJSON's members array and
-// a fresh epoch store under t.TempDir(), and wires both into a
+// newSeamFixture opens a roster over a fresh store holding rows and a
+// fresh epoch store under t.TempDir(), and wires both into a
 // MagicLinkSeam signing under currentFixture and previousFixture
 // (token_test.go).
-func newSeamFixture(t *testing.T, rosterJSON string) seamFixture {
+func newSeamFixture(t *testing.T, rows ...userRow) seamFixture {
 	t.Helper()
 	stateDir := t.TempDir()
-
-	rosterPath := writeRosterFile(t, `{"schema_version":1,"members":`+rosterJSON+`}`)
-	roster, err := OpenRoster(rosterPath)
-	if err != nil {
-		t.Fatalf("OpenRoster: %v", err)
-	}
+	roster, users := newRosterOver(t, rows...)
 
 	epoch := newEpochStore(t, stateDir)
 
 	seam := NewMagicLinkSeam(roster, epoch, []byte(currentFixture), []byte(previousFixture), seamLifetime, seamCap)
-	return seamFixture{roster: roster, epoch: epoch, seam: seam, dir: stateDir}
+	return seamFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
 }
 
 // requestWithSession builds a request carrying value as the session
@@ -72,52 +69,50 @@ func requestWithSession(t *testing.T, value string) *http.Request {
 // flag.
 func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 	tests := []struct {
-		name       string
-		rosterJSON string
-		address    string
-		wantAdmin  bool
-		wantPrinc  string
-		wantErr    error
+		name      string
+		rows      []userRow
+		address   string
+		wantAdmin bool
+		wantPrinc string
+		wantErr   error
 	}{
 		{
-			name:       "member on roster with a username",
-			rosterJSON: `[{"address":"member@example.com","username":"member","display_name":"Member","admin":false}]`,
-			address:    "member@example.com",
-			wantAdmin:  false,
-			wantPrinc:  "member",
+			name:      "member on roster",
+			rows:      []userRow{{address: "member@example.com", displayName: "Member", username: "member"}},
+			address:   "member@example.com",
+			wantAdmin: false,
+			wantPrinc: "member",
 		},
 		{
-			name:       "member on roster with no username: the principal is the address",
-			rosterJSON: `[{"address":"member@example.com","display_name":"Member","admin":false}]`,
-			address:    "member@example.com",
-			wantAdmin:  false,
-			wantPrinc:  "member@example.com",
+			name:      "admin member on roster",
+			rows:      []userRow{{address: "lead@example.com", displayName: "Lead", username: "chief", admin: true}},
+			address:   "lead@example.com",
+			wantAdmin: true,
+			wantPrinc: "chief",
 		},
 		{
-			name:       "admin member on roster",
-			rosterJSON: `[{"address":"lead@example.com","display_name":"Lead","admin":true}]`,
-			address:    "lead@example.com",
-			wantAdmin:  true,
-			wantPrinc:  "lead@example.com",
+			name:      "address named admin is not itself an admin claim",
+			rows:      []userRow{{address: "admin@example.com", displayName: "Not Actually Admin", username: "plainuser"}},
+			address:   "admin@example.com",
+			wantAdmin: false,
+			wantPrinc: "plainuser",
 		},
 		{
-			name:       "address named admin is not itself an admin claim",
-			rosterJSON: `[{"address":"admin@example.com","display_name":"Not Actually Admin","admin":false}]`,
-			address:    "admin@example.com",
-			wantAdmin:  false,
-			wantPrinc:  "admin@example.com",
+			name:    "address removed from roster",
+			address: "gone@example.com",
+			wantErr: ErrMemberNotFound,
 		},
 		{
-			name:       "address removed from roster",
-			rosterJSON: `[]`,
-			address:    "gone@example.com",
-			wantErr:    ErrMemberNotFound,
+			name:    "address tombstoned",
+			rows:    []userRow{{address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true}},
+			address: "gone@example.com",
+			wantErr: ErrMemberNotFound,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fx := newSeamFixture(t, tt.rosterJSON)
+			fx := newSeamFixture(t, tt.rows...)
 			value, _, err := MintSession([]byte(currentFixture), tt.address, seamBirth, seamLifetime, seamCap)
 			if err != nil {
 				t.Fatalf("MintSession: %v", err)
@@ -160,13 +155,14 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 // user and is the one channel that may grant the admin flag, so a seam
 // emitting it would hand a browser request the grant.
 func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
-	const rosterJSON = `[` +
-		`{"address":"lead@example.com","display_name":"Lead","username":"lead","admin":true},` +
-		`{"address":"member@example.com","display_name":"Member","username":"member"}]`
+	rows := []userRow{
+		{address: "lead@example.com", displayName: "Lead", username: "lead", admin: true},
+		{address: "member@example.com", displayName: "Member", username: "member"},
+	}
 	for _, address := range []string{"lead@example.com", "member@example.com"} {
 		for _, sameOrigin := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s same-origin %v", address, sameOrigin), func(t *testing.T) {
-				fx := newSeamFixture(t, rosterJSON)
+				fx := newSeamFixture(t, rows...)
 				value, _, err := MintSession([]byte(currentFixture), address, seamBirth, seamLifetime, seamCap)
 				if err != nil {
 					t.Fatalf("MintSession: %v", err)
@@ -193,7 +189,7 @@ func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
 // performs a refresh before the bump, so a check reading IssuedAt
 // instead of AnchoredAt would miss it.
 func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
-	fx := newSeamFixture(t, `[{"address":"member@example.com","display_name":"Member","admin":false}]`)
+	fx := newSeamFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
 	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
@@ -231,7 +227,7 @@ func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
 // unconditionally) fails this row, because it would move ExpiresAt
 // forward regardless of sameOrigin.
 func TestMagicLinkSeam_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T) {
-	fx := newSeamFixture(t, `[{"address":"member@example.com","display_name":"Member","admin":false}]`)
+	fx := newSeamFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
 	value, minted, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
@@ -260,7 +256,7 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if os.Geteuid() == 0 {
 		t.Skip("running as root: permission bits do not block reads")
 	}
-	fx := newSeamFixture(t, `[{"address":"member@example.com","display_name":"Member","admin":false}]`)
+	fx := newSeamFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
 	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
@@ -286,7 +282,7 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 // consult directly: a bump with no subscriber registered still shows up
 // on Read, proving Read does not depend on the notification path.
 func TestMagicLinkSeam_Read(t *testing.T) {
-	fx := newSeamFixture(t, `[]`)
+	fx := newSeamFixture(t)
 	bumpTime := seamBirth.Add(time.Minute)
 	if err := fx.epoch.Bump("member@example.com", bumpTime); err != nil {
 		t.Fatalf("Bump: %v", err)

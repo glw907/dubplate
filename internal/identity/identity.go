@@ -209,11 +209,12 @@ type Identity struct {
 	Channel Channel
 }
 
-// Valid reports whether id carries a non-empty address, a non-empty
-// principal, a non-empty source, and a recognized channel other than
-// [ChannelCommandLine], which names an operating-system user and never
-// a verified login. The zero value fails on every one of these.
+// Valid reports whether id carries a non-empty address, a non-zero
+// UserID, a non-empty principal, a non-empty source, and a recognized
+// channel other than [ChannelCommandLine], which names an
+// operating-system user and never a verified login. The zero value
+// fails on every one of these.
 func (id Identity) Valid() bool {
-	return id.Address != "" && id.Principal != "" && id.Source != "" &&
+	return id.Address != "" && id.UserID != (UserID{}) && id.Principal != "" && id.Source != "" &&
 		id.Channel.Valid() && id.Channel != ChannelCommandLine
 }

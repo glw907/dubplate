@@ -740,17 +740,6 @@ func writeOperatorCSS(t *testing.T, content []byte) string {
 	return path
 }
 
-// writeRosterFixture writes content to a fresh roster.json under
-// t.TempDir() and returns its path.
-func writeRosterFixture(t *testing.T, content string) string {
-	t.Helper()
-	path := filepath.Join(t.TempDir(), "roster.json")
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
-		t.Fatalf("write roster fixture: %v", err)
-	}
-	return path
-}
-
 // symlinkFixture creates link pointing at target and returns link.
 func symlinkFixture(t *testing.T, target, link string) string {
 	t.Helper()
@@ -944,24 +933,15 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 			wantErrHas: "the file holds a NUL byte",
 		},
 		{
-			name: "a .css symlink to the roster",
-			path: func(t *testing.T, private *privateFiles) string {
-				private.roster = writeRosterFixture(t, marker)
-				return symlinkFixture(t, private.roster, filepath.Join(t.TempDir(), "operator.css"))
-			},
-			wantErrHas: `the path must resolve to a file ending in ".css"`,
-		},
-		{
-			name: "a .css hard link to the roster",
-			path: func(t *testing.T, private *privateFiles) string {
-				private.roster = writeRosterFixture(t, marker)
-				p := filepath.Join(t.TempDir(), "operator.css")
-				if err := os.Link(private.roster, p); err != nil {
+			name: "a .css symlink to a file not ending in .css",
+			path: func(t *testing.T, _ *privateFiles) string {
+				target := filepath.Join(t.TempDir(), "operator.json")
+				if err := os.WriteFile(target, []byte(marker), 0o600); err != nil {
 					t.Fatal(err)
 				}
-				return p
+				return symlinkFixture(t, target, filepath.Join(t.TempDir(), "operator.css"))
 			},
-			wantErrHas: "the file is the roster",
+			wantErrHas: `the path must resolve to a file ending in ".css"`,
 		},
 		{
 			name: "a parent-directory symlink into the state directory",

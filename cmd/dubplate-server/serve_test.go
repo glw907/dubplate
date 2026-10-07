@@ -21,13 +21,13 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"syscall"
 	"testing"
 	"testing/fstest"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/web"
 )
@@ -392,57 +392,28 @@ func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_MissingRosterRefusesBeforeConstruction proves that
-// a missing roster file refuses the shell's own construction, naming
-// the path, rather than building a shell that would answer requests
-// with no roster behind it.
-func TestNewServeShell_MissingRosterRefusesBeforeConstruction(t *testing.T) {
-	missingPath := filepath.Join(t.TempDir(), "no-such-roster.json")
-	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_ROSTER_FILE", missingPath)
-
-	_, err := buildServeShell(t, environ)
-	if !errors.Is(err, auth.ErrRosterMissing) {
-		t.Fatalf("buildServeShell() error = %v, want it to wrap auth.ErrRosterMissing", err)
-	}
-	if !strings.Contains(err.Error(), missingPath) {
-		t.Errorf("error %q does not name the missing roster path %q", err, missingPath)
-	}
-}
-
-// TestNewServeShell_OperatorCSSRefusesTheRosterFile proves the operator
+// TestNewServeShell_OperatorCSSRefusesPrivateState proves the operator
 // CSS rule on the serve verb's own construction path: the key pointed
-// at the roster file this environment serves from, at a ".css" hard
-// link to it, or at a ".css" file in the state directory refuses
-// startup, naming the key and the rule, and neither the path nor a
-// byte of the roster reaches the error. The last two rows fail unless
-// the verb hands the web routes its own roster path and state
-// directory. A shell that admitted any of them would build and publish
-// the file at <prefix>/operator.css.
-func TestNewServeShell_OperatorCSSRefusesTheRosterFile(t *testing.T) {
+// at the store's database file, or at a ".css" file in the state
+// directory, refuses startup, naming the key and the rule, and neither
+// the path nor a byte of the file reaches the error. The second row
+// fails unless the verb hands the web routes its own state directory. A
+// shell that admitted either would build and publish the file at
+// <prefix>/operator.css.
+func TestNewServeShell_OperatorCSSRefusesPrivateState(t *testing.T) {
 	tests := []struct {
 		name    string
-		path    func(t *testing.T, rosterPath, stateDir string) string
+		path    func(t *testing.T, stateDir string) string
 		wantErr string
 	}{
 		{
-			name:    "the roster file",
-			path:    func(_ *testing.T, rosterPath, _ string) string { return rosterPath },
+			name:    "the store's database file",
+			path:    func(_ *testing.T, stateDir string) string { return storeDBPath(stateDir) },
 			wantErr: `DUBPLATE_OPERATOR_CSS_FILE: the path must end in ".css"`,
 		},
 		{
-			name: "a .css hard link to the roster",
-			path: func(t *testing.T, rosterPath, _ string) string {
-				p := filepath.Join(t.TempDir(), "operator.css")
-				if err := os.Link(rosterPath, p); err != nil {
-					t.Fatal(err)
-				}
-				return p
-			},
-			wantErr: "DUBPLATE_OPERATOR_CSS_FILE: the file is the roster",
-		},
-		{
 			name: "a .css file in the state directory",
-			path: func(t *testing.T, _, stateDir string) string {
+			path: func(t *testing.T, stateDir string) string {
 				p := filepath.Join(stateDir, "operator.css")
 				if err := os.WriteFile(p, []byte("body{}"), 0o600); err != nil {
 					t.Fatal(err)
@@ -455,26 +426,20 @@ func TestNewServeShell_OperatorCSSRefusesTheRosterFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := serveAuthEnviron(t)
-			rosterPath := valueOf(t, environ, "DUBPLATE_ROSTER_FILE")
-			roster, err := os.ReadFile(rosterPath)
-			if err != nil {
-				t.Fatalf("read roster fixture: %v", err)
-			}
-			path := tt.path(t, rosterPath, valueOf(t, environ, "DUBPLATE_STATE_DIR"))
+			path := tt.path(t, valueOf(t, environ, "DUBPLATE_STATE_DIR"))
 			environ = replaceKey(environ, "DUBPLATE_OPERATOR_CSS_FILE", path)
 
 			shell, err := buildServeShell(t, environ)
 			if err == nil {
 				rec := httptest.NewRecorder()
 				shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dubplate/operator.css", nil))
-				t.Fatalf("buildServeShell: got nil error, want the operator CSS refusal; GET operator.css answers %d, serving the roster's bytes: %v",
-					rec.Code, bytes.Equal(rec.Body.Bytes(), roster))
+				t.Fatalf("buildServeShell: got nil error, want the operator CSS refusal; GET operator.css answers %d", rec.Code)
 			}
 			if err.Error() != tt.wantErr {
 				t.Errorf("error = %q, want %q", err.Error(), tt.wantErr)
 			}
-			if strings.Contains(err.Error(), path) || strings.Contains(err.Error(), string(roster)) {
-				t.Errorf("error = %q echoes the path or the roster's bytes", err.Error())
+			if strings.Contains(err.Error(), path) {
+				t.Errorf("error = %q echoes the path", err.Error())
 			}
 		})
 	}
@@ -673,22 +638,64 @@ const (
 	rosterMemberAddress = "member@example.com"
 )
 
-// rosterAPIEnviron returns serveAuthEnviron with DUBPLATE_ROSTER_FILE
-// replaced by a fixture roster holding one admin (with a
-// username, so a GET has every field shape to answer) and one
-// non-admin, and returns the roster's path alongside for a test that
-// reads it directly.
-func rosterAPIEnviron(t *testing.T) ([]string, string) {
+// seedMember is one users row [seedMembers] writes.
+type seedMember struct {
+	address, displayName, username string
+	admin, tombstoned              bool
+}
+
+// seedMembers writes members into the store under stateDir through its
+// own write-mode handle, in order, with created_at values one apart
+// from a fixed base so List's order is the same on every run. It needs
+// a current store, and takes the store's lock shared as a running serve
+// does, so it may run beside one. The ids are fixed, the first byte
+// 0xf0 and the second the row's position.
+func seedMembers(t *testing.T, stateDir string, members ...seedMember) {
 	t.Helper()
-	rosterPath := filepath.Join(t.TempDir(), "roster.json")
-	const members = `{"schema_version":1,"members":[
-		{"address":"` + rosterAdminAddress + `","display_name":"Group Admin","username":"groupadmin","admin":true},
-		{"address":"` + rosterMemberAddress + `","display_name":"Member","admin":false}
-	]}`
-	if err := os.WriteFile(rosterPath, []byte(members), 0o600); err != nil {
-		t.Fatalf("write fixture roster: %v", err)
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	defer cancel()
+	h, err := store.OpenWrite(ctx, stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
 	}
-	return replaceKey(serveAuthEnviron(t), "DUBPLATE_ROSTER_FILE", rosterPath), rosterPath
+	defer func() {
+		if err := h.Close(); err != nil {
+			t.Errorf("close store handle: %v", err)
+		}
+	}()
+	err = h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		for i, m := range members {
+			at := int64(1_000_000 + i)
+			var tombstonedAt any
+			if m.tombstoned {
+				tombstonedAt = at + 1
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				[]byte{0xf0, byte(i + 1), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, m.address, m.displayName, m.username, m.admin, tombstonedAt, at, at); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("seed members: %v", err)
+	}
+}
+
+// rosterAPIEnviron returns serveAuthEnviron over a current store
+// already holding one admin and one non-admin, so a shell built from it
+// opens a store with a roster behind it.
+func rosterAPIEnviron(t *testing.T) []string {
+	t.Helper()
+	environ := serveAuthEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+	seedBackupStore(t, stateDir)
+	seedMembers(t, stateDir,
+		seedMember{address: rosterAdminAddress, displayName: "Group Admin", username: "groupadmin", admin: true},
+		seedMember{address: rosterMemberAddress, displayName: "Member", username: "member"},
+	)
+	return environ
 }
 
 // environValue returns the value environ names name under, or "" when
@@ -768,9 +775,10 @@ const wantNotFoundBody = "404 page not found\n"
 // roster API sits behind the shell's own origin check like every other
 // state-changing route: a POST carrying neither Origin nor
 // Sec-Fetch-Site is refused before it ever reaches the admin gate, and
-// the roster file is unchanged.
+// the roster is unchanged.
 func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
-	environ, rosterPath := rosterAPIEnviron(t)
+	environ := rosterAPIEnviron(t)
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
@@ -781,10 +789,7 @@ func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	}
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
-	before, err := os.ReadFile(rosterPath)
-	if err != nil {
-		t.Fatalf("read fixture before request: %v", err)
-	}
+	before := userAddresses(t, stateDir)
 
 	req := sessionRequest(http.MethodPost, prefix.String()+"/roster", session, "", validPost)
 	rec := httptest.NewRecorder()
@@ -794,12 +799,8 @@ func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 		t.Errorf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusForbidden)
 	}
 
-	after, err := os.ReadFile(rosterPath)
-	if err != nil {
-		t.Fatalf("read fixture after request: %v", err)
-	}
-	if !bytes.Equal(before, after) {
-		t.Errorf("roster file changed: before %q, after %q", before, after)
+	if after := userAddresses(t, stateDir); !slices.Equal(before, after) {
+		t.Errorf("roster changed: before %q, after %q", before, after)
 	}
 }
 
@@ -831,7 +832,7 @@ func captureDefaultLogger(t *testing.T) *bytes.Buffer {
 // own shape are internal/auth's own proof (admin_test.go); this test
 // proves the shell's composition reaches them at all.
 func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
-	environ, rosterPath := rosterAPIEnviron(t)
+	environ := rosterAPIEnviron(t)
 	// [serve.NewShell] reads slog.Default() once, at construction, into
 	// its own stored field, so the capture must be in place before the
 	// shell (and the AdminConfig.Logger it hands the roster API) is
@@ -855,12 +856,8 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 		t.Fatalf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusCreated)
 	}
 
-	after, err := os.ReadFile(rosterPath)
-	if err != nil {
-		t.Fatalf("read fixture after request: %v", err)
-	}
-	if !strings.Contains(string(after), "new@example.com") {
-		t.Errorf("roster file after the POST does not name the new member: %s", after)
+	if after := userAddresses(t, environValue(environ, "DUBPLATE_STATE_DIR")); !slices.Contains(after, "new@example.com") {
+		t.Errorf("roster after the POST = %q, want it to name the new member", after)
 	}
 
 	auditCount := strings.Count(logs.String(), `"msg":"roster member added"`)
@@ -885,7 +882,7 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 // with the roster list, so the 404s above are the non-admin's and not
 // the path's.
 func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing.T) {
-	environ, _ := rosterAPIEnviron(t)
+	environ := rosterAPIEnviron(t)
 	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
@@ -954,7 +951,7 @@ func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing
 // list in this same test, so the 404s below are the path's and not the
 // session's.
 func TestNewServeShell_RosterExactPathOnly(t *testing.T) {
-	environ, _ := rosterAPIEnviron(t)
+	environ := rosterAPIEnviron(t)
 	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
@@ -990,17 +987,16 @@ func TestNewServeShell_RosterExactPathOnly(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_RosterAndMemberVerbShareReload proves "member list
+// TestNewServeShell_RosterAndMemberVerbShareStore proves "member list
 // reads what the API wrote, and the API reads what the verb wrote".
-// Fixture state: the shell's own roster (and the [*auth.Roster] the
-// admin gate holds) is opened, by [buildServeShell], before the verb's
-// first write, and the verb's own [addMember] call opens its roster
-// after the API's write has already landed, so each side's answer can
-// only be explained by a reload rather than by both having opened the
-// file at the same instant.
-func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
-	environ, rosterPath := rosterAPIEnviron(t)
-	shell, err := buildServeShell(t, environ) // the shell's roster, opened first
+// Fixture state: the shell is built, and so holds the store open with
+// its roster, before either write; the verb then opens its own
+// write-mode handle beside the running shell's, as an operator does on
+// a live box, so each side's answer can only be explained by the shared
+// store rather than by both having read one snapshot.
+func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
+	environ := rosterAPIEnviron(t)
+	shell, err := buildServeShell(t, environ)
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
@@ -1018,33 +1014,21 @@ func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
 		t.Fatalf("API POST status = %d, body = %s, want %d", apiRec.Code, apiRec.Body.String(), http.StatusCreated)
 	}
 
-	// addMember opens its own *auth.Roster from rosterPath, strictly
-	// after the API's write above.
-	verbCandidate := auth.Member{Address: "verb-added@example.com", DisplayName: "Verb Added", Username: "verbadded"}
-	if err := addMember(t.Context(), rosterPath, verbCandidate, "operator", discardTestLogger()); err != nil {
-		t.Fatalf("addMember: %v", err)
+	if _, stderr, err := runMember(t, environ, "add", "--name", "Verb Added", "--username", "verbadded", "verb-added@example.com"); err != nil {
+		t.Fatalf("member add error = %v; stderr = %q", err, stderr)
 	}
 
 	// "member list" reads what the API wrote: a fresh open, after both
 	// writes, must see the API's own addition.
-	listRoster, err := auth.OpenRoster(rosterPath)
+	listOut, _, err := runMember(t, environ, "list")
 	if err != nil {
-		t.Fatalf("auth.OpenRoster: %v", err)
+		t.Fatalf("member list error = %v", err)
 	}
-	members, err := listRoster.List(t.Context())
-	if err != nil {
-		t.Fatalf("List: %v", err)
-	}
-	var listOut bytes.Buffer
-	if err := printMemberList(&listOut, members); err != nil {
-		t.Fatalf("printMemberList: %v", err)
-	}
-	if !strings.Contains(listOut.String(), "api-added@example.com") {
-		t.Errorf("member list output does not name the API's addition: %s", listOut.String())
+	if !strings.Contains(listOut, "api-added@example.com") {
+		t.Errorf("member list output does not name the API's addition: %s", listOut)
 	}
 
-	// The API reads what the verb wrote: the shell's own roster, opened
-	// before either write, must reload and see the verb's addition.
+	// The API reads what the verb wrote.
 	getRec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(getRec, sessionRequest(http.MethodGet, prefix.String()+"/roster", adminSession, "", ""))
 	if getRec.Code != http.StatusOK {
@@ -1057,7 +1041,7 @@ func TestNewServeShell_RosterAndMemberVerbShareReload(t *testing.T) {
 
 // defaultIgnorableRoutingRows is the same ten code points
 // internal/identity's TestNormalizeAddress_DefaultIgnorableRefused and
-// internal/auth's TestOpenRoster_DefaultIgnorableAddressRefused pin,
+// internal/auth's TestAddMember_DefaultIgnorableAddressRefused pin,
 // checked here at request-link, reached through the whole shell
 // composition.
 var defaultIgnorableRoutingRows = []struct {
@@ -1222,7 +1206,7 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 		{publicURL: "https://localhost"},
 	}
 	for _, c := range configs {
-		environ, _ := rosterAPIEnviron(t)
+		environ := rosterAPIEnviron(t)
 		environ = replaceKey(environ, "DUBPLATE_PUBLIC_URL", c.publicURL)
 		shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 		if err != nil {
@@ -1609,7 +1593,7 @@ func TestServedDocuments_TierOrderAndCache(t *testing.T) {
 // passes the origin check and reaches the gate, the shell's 404, or the
 // method check.
 func TestNewServeShell_MembersRoute(t *testing.T) {
-	environ, _ := rosterAPIEnviron(t)
+	environ := rosterAPIEnviron(t)
 	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err != nil {
 		t.Fatalf("buildServeShell: %v", err)
@@ -1909,31 +1893,6 @@ func TestNewServeShell_RefusesABadTrustedProxyValue(t *testing.T) {
 	}
 	if shell != nil {
 		t.Error("buildServeShell() returned a shell alongside its refusal, want nil")
-	}
-}
-
-// TestNewServeShell_UnwritableRosterDirRefusesAtStart proves serve
-// checks the roster file's directory at start: a roster that opens for
-// reading in a directory the process may not write would otherwise
-// start clean and fail the first web member add. The refusal names the
-// directory and carries the kernel's own reason.
-func TestNewServeShell_UnwritableRosterDirRefusesAtStart(t *testing.T) {
-	environ := serveAuthEnviron(t)
-	rosterDir := filepath.Dir(environValue(environ, "DUBPLATE_ROSTER_FILE"))
-	if err := os.Chmod(rosterDir, 0o500); err != nil {
-		t.Fatalf("Chmod roster directory: %v", err)
-	}
-	t.Cleanup(func() { _ = os.Chmod(rosterDir, 0o700) })
-
-	_, err := buildServeShell(t, environ)
-	if !errors.Is(err, errDirNotWritable) {
-		t.Fatalf("buildServeShell() error = %v, want it to wrap errDirNotWritable", err)
-	}
-	if !errors.Is(err, syscall.EACCES) {
-		t.Errorf("buildServeShell() error = %v, want it to carry EACCES", err)
-	}
-	if want := "roster directory " + rosterDir + " is not writable"; !strings.Contains(err.Error(), want) {
-		t.Errorf("buildServeShell() error = %q, want it to contain %q", err, want)
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/auth"
@@ -22,6 +23,13 @@ import (
 // state, unlike reg's own declared families, so a count built from reg
 // alone must add it explicitly.
 const storeRowLines = 1
+
+// membersRowLines is the members row's fixed contribution to doctor's
+// line-count assertions, storeRowLines's own precedent: it prints
+// exactly one line regardless of state, so a count built from reg alone
+// must add it explicitly. It is a literal, so a row dropped from doctor
+// changes the count a test expects.
+const membersRowLines = 1
 
 // backupDoctorRowsOff and backupDoctorRowsOn are Task 7's backup
 // family's fixed contribution to doctor's line-count assertions: the
@@ -190,8 +198,7 @@ func TestDoctorCmd(t *testing.T) {
 			}
 
 			// The store row prints unconditionally, for every state
-			// row: this reg declares no identity source, so no
-			// roster row follows the thresholds.
+			// row.
 			if li >= len(lines) {
 				t.Fatalf("stdout ran out of lines before the store row")
 			}
@@ -200,7 +207,17 @@ func TestDoctorCmd(t *testing.T) {
 			}
 			li++
 
-			// The auth store row follows the store row, also
+			// The members row follows the store row, also
+			// unconditionally; these cases have no store yet.
+			if li >= len(lines) {
+				t.Fatalf("stdout ran out of lines before the members row")
+			}
+			if want := fmt.Sprintf("%-32s %s", membersDoctorRow, "no store yet; start serve, then member add --admin"); lines[li] != want {
+				t.Errorf("members row %d = %q, want %q", li, lines[li], want)
+			}
+			li++
+
+			// The auth store row follows the members row, also
 			// unconditionally.
 			if li >= len(lines) {
 				t.Fatalf("stdout ran out of lines before the auth store row")
@@ -279,16 +296,17 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	integrationCount := len(reg.IntegrationClasses())
 	thresholdCount := len(reg.Thresholds())
 	sourceCount := len(reg.IdentitySources())
-	// storeRowLines, authStoreRowLines, and backupDoctorRowsOff are the
-	// store row, the auth store row, and the backup rows: each
+	// storeRowLines, membersRowLines, authStoreRowLines, and
+	// backupDoctorRowsOff are the store row, the members row, the auth
+	// store row, and the backup rows: each
 	// prints unconditionally, so none is one of reg's own declared
 	// families. doctorLines's own environ
 	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines
 	if len(lines) != wantTotal {
-		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + auth store %d + backup %d + unidecode %d + boundary %d)",
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + members %d + auth store %d + backup %d + unidecode %d + boundary %d)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount,
-			storeRowLines, authStoreRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines)
+			storeRowLines, membersRowLines, authStoreRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines)
 	}
 
 	// Owned wall: one line per declared row.
@@ -395,7 +413,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + authStoreRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
 	}
@@ -677,7 +695,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	// Task 7's backup rows: doctorEnviron's roster names an admin, so
 	// no roster row adds a second, and it never sets
 	// DUBPLATE_BACKUP_ENABLED.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -815,183 +833,169 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_RosterRow proves the R3 roster row: a valid roster
-// naming an admin reports no extra row and no failure, while a missing
-// roster, a roster carrying a duplicate username, a roster
-// carrying two bad records, and a hand-edited roster that loads but
-// names no admin, with members or without, and a roster a group may
-// write, each render one roster row
-// and take doctor's own exit status nonzero alongside it. A missing
-// roster fails because R2 makes it a startup refusal. Named mutation 8 (drop the doctor roster row)
-// makes every failing case report a clean table for a roster that
-// refuses to load; the two-record case pins the one-row rule against
-// an errors.Join newline leaking into the table.
-func TestDoctorCmd_RosterRow(t *testing.T) {
-	const fixtureAddressA = "roster-row-a@example.test"
-	const fixtureAddressB = "roster-row-b@example.test"
-	const fixtureAddressC = "roster-row-c@example.test"
-	const fixturePrincipal = "roster-row-principal"
-
+// TestDoctorCmd_MembersRow is the members row's golden over every
+// state it renders, through the real inspect mode and doctor's own exit
+// status. Fixture state: the no-admin store holds a tombstoned admin
+// beside a live non-admin, so a count that includes tombstoned rows
+// reads one admin and passes; the passing store holds a tombstoned
+// member and a tombstoned admin beside its live rows, so the counts
+// show only the live ones; the two older stores come from the helper
+// at version 2 and at version 1, the second of which carries no facts,
+// so a rule keyed on Facts rather than on the report's StoreVersion
+// reads it as "not read" and fails the version 1 row.
+func TestDoctorCmd_MembersRow(t *testing.T) {
+	head := store.Inspect(t.Context(), store.InspectOptions{StateDir: t.TempDir(), BusyTimeout: testBackupBusy}).BinaryVersion
+	reconcilePending := `{"format": 1, "state": "reconcile-pending", "stamp": "20260925T120000.000000Z",
+"source": {"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z"},
+"incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
+"discard_current": false, "library": null, "version": 2}`
+	live := func(address, username string, admin bool) seedMember {
+		return seedMember{address: address, displayName: "Name", username: username, admin: admin}
+	}
+	gone := func(address, username string, admin bool) seedMember {
+		return seedMember{address: address, displayName: "Name", username: username, admin: admin, tombstoned: true}
+	}
 	tests := []struct {
-		name          string
-		rosterContent string      // empty means the roster file is never created
-		rosterMode    os.FileMode // the file's mode once written; zero means 0600
-		dirMode       os.FileMode // the roster directory's mode once written; zero leaves it
-		wantStatus    string      // the roster row's status prefix; empty means no roster row
+		name     string
+		setup    func(t *testing.T, stateDir string)
+		want     string
+		wantFail bool
 	}{
 		{
-			name:          "a valid roster",
-			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A","admin":true}]}`, fixtureAddressA),
-			wantStatus:    "",
+			name:  "no store yet",
+			setup: func(*testing.T, string) {},
+			want:  "no store yet; start serve, then member add --admin",
 		},
 		{
-			name:          "a hand-edited roster with no members",
-			rosterContent: `{"schema_version":1,"members":[]}`,
-			wantStatus:    "no admin; run dubplate-server member add --admin",
+			name:  "store version 1, which carries no facts",
+			setup: func(t *testing.T, stateDir string) { olderStore(t, stateDir, 1) },
+			want:  "members not recorded before store version 3",
 		},
 		{
-			name:          "a hand-edited roster naming no admin",
-			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A"}]}`, fixtureAddressA),
-			wantStatus:    "no admin; run dubplate-server member add --admin",
+			name:  "store version 2, which carries facts without the users table",
+			setup: func(t *testing.T, stateDir string) { olderStore(t, stateDir, 2) },
+			want:  "members not recorded before store version 3",
 		},
 		{
-			name:          "a valid roster in a directory the process may not write",
-			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A","admin":true}]}`, fixtureAddressA),
-			dirMode:       0o500,
-			wantStatus:    "roster directory ",
+			name:     "current, no live member",
+			setup:    func(t *testing.T, stateDir string) { seedBackupStore(t, stateDir) },
+			want:     "no members; run dubplate-server member add --admin",
+			wantFail: true,
 		},
 		{
-			name:          "a roster not yet bootstrapped",
-			rosterContent: "",
-			wantStatus:    "missing",
+			name: "live members and only a tombstoned admin",
+			setup: func(t *testing.T, stateDir string) {
+				seedBackupStore(t, stateDir)
+				seedMembers(t, stateDir, gone("old@example.test", "old", true), live("plain@example.test", "plain", false))
+			},
+			want:     "members: 1, admins: 0; run dubplate-server member add --admin",
+			wantFail: true,
 		},
 		{
-			name: "a roster with a duplicate username",
-			rosterContent: fmt.Sprintf(
-				`{"schema_version":1,"members":[`+
-					`{"address":%q,"display_name":"A","username":%q},`+
-					`{"address":%q,"display_name":"B","username":%q}`+
-					`]}`,
-				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal),
-			wantStatus: "invalid: ",
+			name: "live members with a live admin",
+			setup: func(t *testing.T, stateDir string) {
+				seedBackupStore(t, stateDir)
+				seedMembers(t, stateDir,
+					live("boss@example.test", "boss", true), live("plain@example.test", "plain", false),
+					gone("old@example.test", "old", true), gone("former@example.test", "former", false))
+			},
+			want: "members: 2, admins: 1",
 		},
 		{
-			name:          "a group-writable roster",
-			rosterContent: fmt.Sprintf(`{"schema_version":1,"members":[{"address":%q,"display_name":"A","admin":true}]}`, fixtureAddressA),
-			rosterMode:    0o620,
-			wantStatus:    "invalid: auth: roster file unreadable: ",
+			name: "older at version 3 holding the users table",
+			setup: func(t *testing.T, stateDir string) {
+				path := olderStore(t, stateDir, 3)
+				execStoreSQL(t, path, `INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at)
+					VALUES (x'f001', 'boss@example.test', 'Name', 'boss', 1, 1, 1)`)
+			},
+			want: "members: 1, admins: 1",
 		},
 		{
-			name: "a roster with two bad records",
-			rosterContent: fmt.Sprintf(
-				`{"schema_version":1,"members":[`+
-					`{"address":%q,"display_name":"A","username":%q},`+
-					`{"address":%q,"display_name":"B","username":%q},`+
-					`{"address":%q,"display_name":"C","username":%q}`+
-					`]}`,
-				fixtureAddressA, fixturePrincipal, fixtureAddressB, fixturePrincipal, fixtureAddressC, fixturePrincipal),
-			wantStatus: "invalid: ",
+			name: "newer than the binary",
+			setup: func(t *testing.T, stateDir string) {
+				execStoreSQL(t, olderStore(t, stateDir, head), fmt.Sprintf("PRAGMA user_version = %d", head+1))
+			},
+			want:     "not read",
+			wantFail: true,
+		},
+		{
+			name: "a restore-intent record",
+			setup: func(t *testing.T, stateDir string) {
+				seedBackupStore(t, stateDir)
+				if err := os.WriteFile(filepath.Join(stateDir, "store", "restore-intent"), []byte(reconcilePending), 0o600); err != nil {
+					t.Fatalf("write the restore-intent record: %v", err)
+				}
+			},
+			want:     "not read",
+			wantFail: true,
+		},
+		{
+			name:     "not a store",
+			setup:    buildZeroByteStoreLeaf,
+			want:     "not read",
+			wantFail: true,
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rosterPath := filepath.Join(t.TempDir(), "roster.json")
-			if tt.rosterContent != "" {
-				if err := os.WriteFile(rosterPath, []byte(tt.rosterContent), 0o600); err != nil {
-					t.Fatalf("write fixture roster: %v", err)
-				}
-				if tt.rosterMode != 0 {
-					if err := os.Chmod(rosterPath, tt.rosterMode); err != nil {
-						t.Fatalf("Chmod fixture roster: %v", err)
-					}
-				}
-			}
-			if tt.dirMode != 0 {
-				chmodRestoring(t, filepath.Dir(rosterPath), tt.dirMode)
-			}
+			environ := doctorEnviron(t)
+			tt.setup(t, environValue(environ, "DUBPLATE_STATE_DIR"))
 
-			environ := append(dropKey(doctorEnviron(t), "DUBPLATE_ROSTER_FILE"), "DUBPLATE_ROSTER_FILE="+rosterPath)
-			reg := productionRegistry()
-
-			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
-			err := cmd.Execute()
-
-			wantFailure := tt.wantStatus != ""
-			if wantFailure && err == nil {
-				t.Fatal("Execute() error = nil, want a refusal")
+			rows, _, err := doctorRows(t, environ)
+			if got := rows["members"]; got != tt.want {
+				t.Errorf("members row = %q, want %q", got, tt.want)
 			}
-			if !wantFailure && err != nil {
-				t.Fatalf("Execute() error = %v, want nil", err)
-			}
-
-			out := stdout.String()
-			lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
-			var rosterRows []string
-			for _, line := range lines {
-				if strings.HasPrefix(line, "roster ") {
-					rosterRows = append(rosterRows, line)
-				}
-			}
-			if !wantFailure {
-				if len(rosterRows) != 0 {
-					t.Errorf("stdout has roster row(s) %q, want none", rosterRows)
-				}
-				return
-			}
-
-			if len(rosterRows) != 1 {
-				t.Fatalf("stdout has %d roster row(s), want exactly 1; stdout = %q", len(rosterRows), out)
-			}
-			wantPrefix := fmt.Sprintf("%-32s %s", "roster", tt.wantStatus)
-			if tt.dirMode != 0 {
-				wantPrefix += filepath.Dir(rosterPath) + " is not writable: permission denied"
-			}
-			if !strings.HasPrefix(rosterRows[0], wantPrefix) {
-				t.Errorf("roster row = %q, want prefix %q", rosterRows[0], wantPrefix)
-			}
-
-			for _, value := range []string{fixtureAddressA, fixtureAddressB, fixtureAddressC, fixturePrincipal} {
-				if strings.Contains(out, value) {
-					t.Errorf("stdout = %q, want it to not contain fixture value %q", out, value)
-				}
-			}
-
-			// +1 for the roster row (this failing case), +1 for the
-			// store row, which always prints, the auth store row,
-			// which always prints too, plus the backup
-			// rows (doctorEnviron never sets DUBPLATE_BACKUP_ENABLED)
-			// and +1 for the unidecode row, doctorEnviron's installed
-			// table.
-			wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + 2 + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
-			if len(lines) != wantTotal {
-				t.Errorf("stdout has %d line(s), want %d (the registry's own rows plus one roster row plus one store row); stdout = %q", len(lines), wantTotal, out)
+			if tt.wantFail != (err != nil) {
+				t.Errorf("Execute() error = %v, want a failure = %v", err, tt.wantFail)
 			}
 		})
 	}
+
+	t.Run("a busy store", func(t *testing.T) {
+		environ := doctorEnviron(t)
+		stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+		seedBackupStore(t, stateDir)
+		lock, err := os.Open(filepath.Join(stateDir, "store", "store.lock"))
+		if err != nil {
+			t.Fatalf("open store.lock: %v", err)
+		}
+		defer func() { _ = lock.Close() }()
+		if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
+			t.Fatalf("flock store.lock: %v", err)
+		}
+
+		rows, _, err := doctorRows(t, environ)
+		if got := rows["members"]; got != "not read" {
+			t.Errorf("members row = %q, want %q", got, "not read")
+		}
+		if err == nil {
+			t.Error("Execute() error = nil, want the store row's failure")
+		}
+	})
 }
 
-// doctorEnviron returns authEnviron with DUBPLATE_ROSTER_FILE naming a
-// roster of one admin, written into t.TempDir(), and DUBPLATE_STATE_DIR
-// pointed at a fresh t.TempDir() of its own: doctor's store row now
-// inspects that directory, and authEnviron's own fixed path is not one
-// a test process may create the store leaf's directories under. doctor
-// fails a roster that names no admin, so a test expecting the roster
-// to pass needs one that does rather than authEnviron's empty roster.
+// doctorEnviron returns authEnviron with DUBPLATE_STATE_DIR pointed at
+// a fresh t.TempDir() of its own: doctor's store row now inspects that
+// directory, and authEnviron's own fixed path is not one a test process
+// may create the store leaf's directories under. The directory holds no
+// store, so the members row reads "no store yet" and leaves the exit
+// alone; a test that creates a store there seeds an admin with
+// [seedDoctorAdmin], since doctor fails a store holding no live admin.
 func doctorEnviron(t *testing.T) []string {
 	t.Helper()
-	rosterPath := filepath.Join(t.TempDir(), "roster.json")
-	const admin = `{"schema_version":1,"members":[{"address":"doctor-admin@example.test","display_name":"Admin","admin":true}]}`
-	if err := os.WriteFile(rosterPath, []byte(admin), 0o600); err != nil {
-		t.Fatalf("write fixture roster: %v", err)
-	}
 	stateDir := t.TempDir()
 	installTestUnidecodeTable(t, stateDir)
 	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", stateDir)
-	return append(dropKey(environ, "DUBPLATE_ROSTER_FILE"),
-		"DUBPLATE_ROSTER_FILE="+rosterPath,
-		"DUBPLATE_SERVE_PORT="+strconv.Itoa(reservedPort()))
+	return append(environ, "DUBPLATE_SERVE_PORT="+strconv.Itoa(reservedPort()))
+}
+
+// seedDoctorAdmin gives the store under environ's state directory one
+// live admin, the state a deployed store is in once the operator has
+// run member add --admin.
+func seedDoctorAdmin(t *testing.T, environ []string) {
+	t.Helper()
+	seedMembers(t, environValue(environ, "DUBPLATE_STATE_DIR"),
+		seedMember{address: "doctor-admin@example.test", displayName: "Admin", username: "doctoradmin", admin: true})
 }
 
 // doctorLines runs newDoctorCmd against reg with a satisfied base
@@ -1269,6 +1273,7 @@ func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
 			environ := doctorEnviron(t)
 			stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 			seedBackupStore(t, stateDir)
+			seedDoctorAdmin(t, environ)
 
 			h, err := store.OpenWrite(context.Background(), stateDir, testBackupBusy)
 			if err != nil {

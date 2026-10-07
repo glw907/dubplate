@@ -15,12 +15,14 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
 
+	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/serve"
 )
 
@@ -46,13 +48,13 @@ const handlerPrefix = "/dubplate"
 // handlerRoster carries one admin and four members, so a flood row has
 // distinct known addresses to walk and the kind answer has an admin to
 // name.
-const handlerRoster = `[
-	{"address":"admin@example.com","display_name":"Group Admin","admin":true},
-	{"address":"member@example.com","display_name":"Member","admin":false},
-	{"address":"member1@example.com","display_name":"Member One","admin":false},
-	{"address":"member2@example.com","display_name":"Member Two","admin":false},
-	{"address":"member3@example.com","display_name":"Member Three","admin":false}
-]`
+var handlerRoster = []userRow{
+	{address: "admin@example.com", displayName: "Group Admin", username: "groupadmin", admin: true},
+	{address: "member@example.com", displayName: "Member", username: "member"},
+	{address: "member1@example.com", displayName: "Member One", username: "member1"},
+	{address: "member2@example.com", displayName: "Member Two", username: "member2"},
+	{address: "member3@example.com", displayName: "Member Three", username: "member3"},
+}
 
 // generousLimits admits every request a row sends unless the row sets
 // its own.
@@ -204,13 +206,13 @@ type fixtureOptions struct {
 }
 
 type handlerFixture struct {
-	handlers   Handlers
-	stateDir   string
-	rosterPath string
-	epoch      *EpochStore
-	limiter    *Limiter
-	mail       *fakeMail
-	logs       *logCapture
+	handlers Handlers
+	stateDir string
+	users    *store.Handle
+	epoch    *EpochStore
+	limiter  *Limiter
+	mail     *fakeMail
+	logs     *logCapture
 }
 
 func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
@@ -225,11 +227,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
 	epoch := OpenEpochStore(store)
-	rosterPath := writeRosterFile(t, `{"schema_version":1,"members":`+handlerRoster+`}`)
-	roster, err := OpenRoster(rosterPath)
-	if err != nil {
-		t.Fatalf("OpenRoster: %v", err)
-	}
+	roster, users := newRosterOver(t, slices.Clone(handlerRoster)...)
 
 	limits := opts.limits
 	if limits == (Limits{}) {
@@ -270,7 +268,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		BodyCap:            bodyCap,
 		GenericAnswer:      opts.generic,
 	})
-	return handlerFixture{handlers: h, stateDir: stateDir, rosterPath: rosterPath, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
+	return handlerFixture{handlers: h, stateDir: stateDir, users: users, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
 }
 
 // post builds a urlencoded POST to target from peer carrying body.
@@ -777,12 +775,12 @@ func TestRequestLink_MailCopyExpiryRounding(t *testing.T) {
 	}
 }
 
-// TestRequestLink_BrokenRoster breaks the roster file after the server
-// has opened it, the way a bad hand edit would, and asks for a link.
-// Under the kind answer a broken roster is a failed request, never an
-// unknown address: answering unknown would hand a member the admin
+// TestRequestLink_BrokenRoster closes the store under the roster after
+// the server has opened it, the way a failed disk would, and asks for a
+// link. Under the kind answer a broken roster is a failed request, never
+// an unknown address: answering unknown would hand a member the admin
 // contact meant for a stranger, and would name that admin from a roster
-// that no longer loads. Under the generic answer the response is the
+// that no longer reads. Under the generic answer the response is the
 // same bytes a working roster answers with, and the failure reaches
 // the log alone.
 func TestRequestLink_BrokenRoster(t *testing.T) {
@@ -799,7 +797,7 @@ func TestRequestLink_BrokenRoster(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fx := newHandlerFixture(t, fixtureOptions{generic: tt.generic})
-			if err := os.WriteFile(fx.rosterPath, []byte(`{"schema_version":1,"members":[`), 0o600); err != nil {
+			if err := fx.users.Close(); err != nil {
 				t.Fatalf("break roster: %v", err)
 			}
 

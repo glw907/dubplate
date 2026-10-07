@@ -349,6 +349,7 @@ func TestIdentity_Valid(t *testing.T) {
 			name: "fully populated",
 			id: Identity{
 				Address:     "alice@example.com",
+				UserID:      UserID{0x01},
 				Principal:   "alice",
 				DisplayName: "Alice",
 				Source:      "magic-link",
@@ -357,8 +358,22 @@ func TestIdentity_Valid(t *testing.T) {
 			want: true,
 		},
 		{
+			// The id is minted by the store and set only where the
+			// store resolves a member, so an identity that never met
+			// the store is no login.
+			name: "zero UserID",
+			id: Identity{
+				Address:   "alice@example.com",
+				Principal: "alice",
+				Source:    "magic-link",
+				Channel:   ChannelCookie,
+			},
+			want: false,
+		},
+		{
 			name: "missing address",
 			id: Identity{
+				UserID:    UserID{0x01},
 				Principal: "alice",
 				Source:    "magic-link",
 				Channel:   ChannelCookie,
@@ -369,6 +384,7 @@ func TestIdentity_Valid(t *testing.T) {
 			name: "missing principal",
 			id: Identity{
 				Address: "alice@example.com",
+				UserID:  UserID{0x01},
 				Source:  "magic-link",
 				Channel: ChannelCookie,
 			},
@@ -378,6 +394,7 @@ func TestIdentity_Valid(t *testing.T) {
 			name: "missing source",
 			id: Identity{
 				Address:   "alice@example.com",
+				UserID:    UserID{0x01},
 				Principal: "alice",
 				Channel:   ChannelCookie,
 			},
@@ -387,6 +404,7 @@ func TestIdentity_Valid(t *testing.T) {
 			name: "invalid channel",
 			id: Identity{
 				Address:   "alice@example.com",
+				UserID:    UserID{0x01},
 				Principal: "alice",
 				Source:    "magic-link",
 			},
@@ -399,6 +417,7 @@ func TestIdentity_Valid(t *testing.T) {
 			name: "command-line channel",
 			id: Identity{
 				Address:     "alice@example.com",
+				UserID:      UserID{0x01},
 				Principal:   "alice",
 				DisplayName: "Alice",
 				Source:      "magic-link",
@@ -410,6 +429,7 @@ func TestIdentity_Valid(t *testing.T) {
 			name: "an unrecognized channel past the last constant",
 			id: Identity{
 				Address:     "alice@example.com",
+				UserID:      UserID{0x01},
 				Principal:   "alice",
 				DisplayName: "Alice",
 				Source:      "magic-link",

@@ -38,6 +38,7 @@ func TestLocalActor_EmptyUsernamePanics(t *testing.T) {
 func validIdentity() identity.Identity {
 	return identity.Identity{
 		Address:     "geoff@example.com",
+		UserID:      identity.UserID{0x01},
 		Principal:   "geoff",
 		DisplayName: "Geoff",
 		Source:      "magic-link",

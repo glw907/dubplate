@@ -157,10 +157,8 @@ var reservedPort = sync.OnceValue(func() int {
 // to succeed needs this, rather than baseEnviron alone, because rung 5
 // registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (auth.go).
 // DUBPLATE_ROSTER_FILE names a valid, empty roster written into
-// t.TempDir(). config.Load itself never opens it; serve and doctor do,
-// both through auth.OpenRoster, and doctor additionally fails an empty
-// roster for naming no admin, so a test that needs doctor to pass the
-// roster row uses doctorEnviron's roster of one admin instead.
+// t.TempDir(), since the wall still requires the key. Nothing opens it:
+// the members live in the store.
 func authEnviron(t *testing.T) []string {
 	t.Helper()
 	rosterPath := filepath.Join(t.TempDir(), "roster.json")

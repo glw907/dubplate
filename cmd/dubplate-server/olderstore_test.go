@@ -21,7 +21,13 @@ import (
 // target, so the store re-migrates cleanly: a migration whose tables
 // this list does not name fails the re-migration with "table already
 // exists" rather than passing vacuously.
+//
+// Version 1 needs no entry: the ledger table is the migration's own.
+// Each list drops a table only after the tables that reference it, and
+// an index goes with its table.
 var migrationTables = map[int][]string{
+	2: {"jobs"},
+	3: {"tracks", "albums", "collections", "users"},
 	4: {"settings", "settings_audit", "settings_generation"},
 	5: {"move_intents", "device_credentials", "group_quota", "member_quota", "member_preferences", "member_overrides"},
 }
@@ -53,8 +59,8 @@ func olderStore(t *testing.T, stateDir string, target int) string {
 	}
 
 	head := store.Inspect(context.Background(), store.InspectOptions{StateDir: stateDir, BusyTimeout: testBackupBusy}).BinaryVersion
-	if target < 3 || target > head {
-		t.Fatalf("olderStore target %d: want a version from 3 through %d", target, head)
+	if target < 1 || target > head {
+		t.Fatalf("olderStore target %d: want a version from 1 through %d", target, head)
 	}
 	path := storeDBPath(stateDir)
 	db, err := sql.Open("sqlite", "file:"+path)
@@ -106,7 +112,7 @@ func execStoreSQL(t *testing.T, path, query string, args ...any) {
 // table above the target would refuse.
 func TestOlderStore(t *testing.T) {
 	head := store.Inspect(context.Background(), store.InspectOptions{StateDir: t.TempDir(), BusyTimeout: testBackupBusy}).BinaryVersion
-	for target := 3; target < head; target++ {
+	for target := 1; target < head; target++ {
 		t.Run(fmt.Sprintf("v%d", target), func(t *testing.T) {
 			stateDir := t.TempDir()
 			olderStore(t, stateDir, target)

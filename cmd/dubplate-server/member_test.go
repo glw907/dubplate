@@ -13,184 +13,282 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
 )
 
-// memberEnviron returns authEnviron(t) with DUBPLATE_ROSTER_FILE
-// pointed at a fresh path under a directory the test owns: fixture
-// state for the create rows, which need a roster path whose
-// containing directory exists but whose file does not.
-func memberEnviron(t *testing.T) []string {
+// memberEnviron returns an environment whose state directory is a fresh
+// t.TempDir() holding a current store, and that directory.
+func memberEnviron(t *testing.T) (environ []string, stateDir string) {
 	t.Helper()
-	dir := t.TempDir()
-	return replaceKey(authEnviron(t), "DUBPLATE_ROSTER_FILE", filepath.Join(dir, "roster.json"))
+	environ = serveAuthEnviron(t)
+	stateDir = environValue(environ, "DUBPLATE_STATE_DIR")
+	seedBackupStore(t, stateDir)
+	return environ, stateDir
 }
 
-// writeFixtureRoster writes content to path, the way an operator's
-// hand edit or a prior run would have left it: a literal JSON string,
-// never round-tripped through the roster package's own encoder, so a
-// test asserting against this fixture is not proving the encoder
-// agrees with itself.
-func writeFixtureRoster(t *testing.T, path, content string) {
+// runMember runs the member verb with args against environ and returns
+// what it wrote to stdout and stderr beside its error.
+func runMember(t *testing.T, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
-		t.Fatalf("write fixture roster: %v", err)
-	}
+	var out, errOut bytes.Buffer
+	cmd := newMemberCmd(environ, productionRegistry(), &out, &errOut)
+	cmd.SetArgs(args)
+	err = cmd.Execute()
+	return out.String(), errOut.String(), err
 }
 
-func TestMemberAddCmd_CreatesRosterWithFirstAdmin(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"})
-
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr.String())
-	}
-
-	info, err := os.Stat(rosterPath)
+// userAddresses returns the address of every users row the store under
+// stateDir holds, tombstoned rows included, in address order.
+func userAddresses(t *testing.T, stateDir string) []string {
+	t.Helper()
+	h, err := store.OpenWrite(t.Context(), stateDir, testBackupBusy)
 	if err != nil {
-		t.Fatalf("Stat(roster) after create: %v", err)
+		t.Fatalf("OpenWrite: %v", err)
 	}
-	if perm := info.Mode().Perm(); perm != 0o600 {
-		t.Errorf("roster file mode = %v, want 0600", perm)
-	}
-
-	if audit := stderr.String(); !strings.Contains(audit, `address=a@example.test`) ||
-		!strings.Contains(audit, `admin=true`) ||
-		!strings.Contains(audit, `channel=command-line`) ||
-		!strings.Contains(audit, `client_ip=local`) {
-		t.Errorf("audit record on stderr = %q, want actor, channel=command-line, address=a@example.test, admin=true, client_ip=local", audit)
-	}
-}
-
-func TestMemberAddCmd_AddsToExistingRosterWithAdmin(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[{"address":"a@example.test","display_name":"A","username":"a","admin":true}]}`)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "Bob", "--username", "bob", "b@example.test"})
-
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr.String())
-	}
-
-	data, err := os.ReadFile(rosterPath)
+	defer func() { _ = h.Close() }()
+	rows, err := h.Query(t.Context(), `SELECT address FROM users ORDER BY address`)
 	if err != nil {
-		t.Fatalf("read roster: %v", err)
+		t.Fatalf("read users: %v", err)
 	}
-	got := string(data)
-	if !strings.Contains(got, `"address":"a@example.test"`) {
-		t.Errorf("roster after add = %q, want a@example.test still present", got)
+	defer func() { _ = rows.Close() }()
+	var out []string
+	for rows.Next() {
+		var address string
+		if err := rows.Scan(&address); err != nil {
+			t.Fatalf("scan address: %v", err)
+		}
+		out = append(out, address)
 	}
-	if !strings.Contains(got, `"address":"b@example.test"`) {
-		t.Errorf("roster after add = %q, want b@example.test added", got)
+	if err := rows.Err(); err != nil {
+		t.Fatalf("read users: %v", err)
+	}
+	return out
+}
+
+const memberTableHeader = "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n"
+
+// TestMemberCmd_AddThenListRoundTrip adds an admin and then a second
+// member through the verb against a store serve's own open created, and
+// lists them. Fixture state: two members added in a known order, so
+// List's created_at order and the count both show; the second add is
+// not an admin, so the admin column shows both values. The want text is
+// a literal, independent of printMemberList's own format string.
+func TestMemberCmd_AddThenListRoundTrip(t *testing.T) {
+	environ, _ := memberEnviron(t)
+
+	_, stderr, err := runMember(t, environ, "add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test")
+	if err != nil {
+		t.Fatalf("first add error = %v, want nil; stderr = %q", err, stderr)
+	}
+	for _, want := range []string{"address=a@example.test", "admin=true", "channel=command-line", "client_ip=local"} {
+		if !strings.Contains(stderr, want) {
+			t.Errorf("audit record on stderr = %q, want it to contain %q", stderr, want)
+		}
+	}
+	if _, stderr, err := runMember(t, environ, "add", "--name", "Bob", "--username", "bob", "b@example.test"); err != nil {
+		t.Fatalf("second add error = %v, want nil; stderr = %q", err, stderr)
+	}
+
+	stdout, _, err := runMember(t, environ, "list")
+	if err != nil {
+		t.Fatalf("list error = %v, want nil", err)
+	}
+	want := memberTableHeader +
+		"a@example.test\tAlice\talice\tyes\n" +
+		"b@example.test\tBob\tbob\t\n"
+	if stdout != want {
+		t.Errorf("list stdout = %q, want %q", stdout, want)
 	}
 }
 
-func TestMemberAddCmd_NoAdminRefusedOnCreate(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
+// TestMemberListCmd_OmitsTombstonedMembers proves list prints live rows
+// only. Fixture state: three members added through the verb and one of
+// them tombstoned by a raw statement, since no verb removes a member.
+func TestMemberListCmd_OmitsTombstonedMembers(t *testing.T) {
+	environ, stateDir := memberEnviron(t)
+	for _, args := range [][]string{
+		{"add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"},
+		{"add", "--name", "Bob", "--username", "bob", "b@example.test"},
+		{"add", "--name", "Cy", "--username", "cy", "c@example.test"},
+	} {
+		if _, stderr, err := runMember(t, environ, args...); err != nil {
+			t.Fatalf("%v error = %v; stderr = %q", args, err, stderr)
+		}
+	}
+	execStoreSQL(t, storeDBPath(stateDir), `UPDATE users SET tombstoned_at = 1 WHERE address = 'b@example.test'`)
 
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--name", "Carol", "--username", "carol", "c@example.test"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the no-admin refusal")
+	stdout, _, err := runMember(t, environ, "list")
+	if err != nil {
+		t.Fatalf("list error = %v, want nil", err)
 	}
-	if !strings.Contains(err.Error(), "must name at least one admin") {
-		t.Errorf("error = %q, want it to name the no-admin refusal", err.Error())
-	}
-	if strings.Contains(err.Error(), "c@example.test") {
-		t.Errorf("error = %q, want it never to carry the refused address", err.Error())
-	}
-	if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
-		t.Errorf("Stat(roster) after refusal error = %v, want ErrNotExist; nothing should be created", statErr)
-	}
-}
-
-func TestMemberAddCmd_NoAdminRefusedOnHandEditedRoster(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	before := `{"schema_version":1,"members":[{"address":"nonadmin@example.test","display_name":"N","username":"n"}]}`
-	writeFixtureRoster(t, rosterPath, before)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--name", "Dave", "--username", "dave", "d@example.test"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the no-admin refusal")
-	}
-	if !strings.Contains(err.Error(), "must name at least one admin") {
-		t.Errorf("error = %q, want it to name the no-admin refusal", err.Error())
-	}
-	after, readErr := os.ReadFile(rosterPath)
-	if readErr != nil {
-		t.Fatalf("read roster after refusal: %v", readErr)
-	}
-	if string(after) != before {
-		t.Errorf("roster file changed after refusal: got %q, want unchanged %q", after, before)
+	want := memberTableHeader +
+		"a@example.test\tAlice\talice\tyes\n" +
+		"c@example.test\tCy\tcy\t\n"
+	if stdout != want {
+		t.Errorf("list stdout = %q, want %q", stdout, want)
 	}
 }
 
-func TestMemberAddCmd_MissingUsernameRefusedOnCreate(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "", "a@example.test"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the missing-username refusal")
+// TestMemberCmd_StoreStates proves each state the store can be in
+// refuses both verbs with the store's own words, and that a refusal
+// changes nothing. The owner refusal is not rebuilt here: the store's
+// geteuid seam is unexported, and TestOpenModes_OwnerAndFilesystemRefused
+// proves it through OpenWrite, which both verbs call.
+func TestMemberCmd_StoreStates(t *testing.T) {
+	head := store.Inspect(t.Context(), store.InspectOptions{StateDir: t.TempDir(), BusyTimeout: testBackupBusy}).BinaryVersion
+	reconcilePending := `{"format": 1, "state": "reconcile-pending", "stamp": "20260925T120000.000000Z",
+"source": {"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z"},
+"incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
+"discard_current": false, "library": null, "version": 2}`
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, stateDir string)
+		wantErr string
+		// wantNoLeaf marks the state with no store: nothing may be
+		// created for the verb to have refused.
+		wantNoLeaf bool
+	}{
+		{
+			name:       "absent",
+			setup:      func(*testing.T, string) {},
+			wantErr:    "start serve first",
+			wantNoLeaf: true,
+		},
+		{
+			name:    "older than the binary",
+			setup:   func(t *testing.T, stateDir string) { olderStore(t, stateDir, head-1) },
+			wantErr: "start serve to migrate",
+		},
+		{
+			name: "newer than the binary",
+			setup: func(t *testing.T, stateDir string) {
+				execStoreSQL(t, olderStore(t, stateDir, head), fmt.Sprintf("PRAGMA user_version = %d", head+1))
+			},
+			wantErr: fmt.Sprintf("version %d is newer than this binary's version %d", head+1, head),
+		},
+		{
+			name: "a restore-intent record",
+			setup: func(t *testing.T, stateDir string) {
+				seedBackupStore(t, stateDir)
+				if err := os.WriteFile(filepath.Join(stateDir, "store", "restore-intent"), []byte(reconcilePending), 0o600); err != nil {
+					t.Fatalf("write the restore-intent record: %v", err)
+				}
+			},
+			wantErr: "restore-intent",
+		},
 	}
-	if !strings.Contains(err.Error(), "username is required") {
-		t.Errorf("error = %q, want it to name the missing-username refusal", err.Error())
+	verbs := []struct {
+		name string
+		args []string
+	}{
+		{name: "add", args: []string{"add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"}},
+		{name: "list", args: []string{"list"}},
 	}
-	if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
-		t.Errorf("Stat(roster) after refusal error = %v, want ErrNotExist; nothing should be created", statErr)
+	for _, tt := range tests {
+		for _, verb := range verbs {
+			t.Run(tt.name+"/"+verb.name, func(t *testing.T) {
+				environ := serveAuthEnviron(t)
+				stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+				tt.setup(t, stateDir)
+
+				stdout, _, err := runMember(t, environ, verb.args...)
+				if err == nil {
+					t.Fatalf("%s error = nil, want a refusal naming %q", verb.name, tt.wantErr)
+				}
+				if !strings.Contains(err.Error(), tt.wantErr) {
+					t.Errorf("%s error = %q, want it to contain %q", verb.name, err, tt.wantErr)
+				}
+				if strings.Contains(err.Error(), "a@example.test") {
+					t.Errorf("%s error = %q, want it never to carry the address", verb.name, err)
+				}
+				if stdout != "" {
+					t.Errorf("%s stdout = %q, want nothing beside a refusal", verb.name, stdout)
+				}
+				if _, statErr := os.Stat(filepath.Join(stateDir, "store")); tt.wantNoLeaf != errors.Is(statErr, os.ErrNotExist) {
+					t.Errorf("Stat(store leaf) error = %v, want absent = %v: a refused verb must create nothing", statErr, tt.wantNoLeaf)
+				}
+			})
+		}
 	}
 }
 
-// TestMemberAddCmd_BlankNameRefusedOnCreate proves the bootstrap
-// refuses an admin whose display name is empty or only spaces: the
-// kind answer offers a stranger the admin's display name as the
-// contact, so a blank one names nobody. cobra's required-flag check
-// passes on an explicit empty value, so the roster's own write-path
-// check is what refuses it, before any file is created.
-func TestMemberAddCmd_BlankNameRefusedOnCreate(t *testing.T) {
-	for _, name := range []string{"", "   "} {
-		t.Run(fmt.Sprintf("%q", name), func(t *testing.T) {
-			environ := memberEnviron(t)
-			rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
+// TestMemberAddCmd_WriteRefusals proves the write path's own refusals
+// reach the operator and leave the users table unchanged. Fixture
+// state: a current store holding one admin, so a refusal that wrote
+// regardless would add a second row.
+func TestMemberAddCmd_WriteRefusals(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    []string
+		wantErr string
+	}{
+		{
+			name:    "a missing username",
+			args:    []string{"add", "--admin", "--name", "B", "--username", "", "b@example.test"},
+			wantErr: "username is required",
+		},
+		{
+			name:    "an empty name",
+			args:    []string{"add", "--admin", "--name", "", "--username", "b", "b@example.test"},
+			wantErr: "display name is empty or blank",
+		},
+		{
+			name:    "a blank name",
+			args:    []string{"add", "--admin", "--name", "   ", "--username", "b", "b@example.test"},
+			wantErr: "display name is empty or blank",
+		},
+		{
+			name:    "a duplicate address",
+			args:    []string{"add", "--name", "Again", "--username", "again", "A@Example.test"},
+			wantErr: "duplicate address",
+		},
+		{
+			name:    "a duplicate username in another case",
+			args:    []string{"add", "--name", "Other", "--username", "ALICE", "b@example.test"},
+			wantErr: "duplicate username",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ, stateDir := memberEnviron(t)
+			if _, stderr, err := runMember(t, environ, "add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"); err != nil {
+				t.Fatalf("fixture admin add error = %v; stderr = %q", err, stderr)
+			}
 
-			var stdout, stderr bytes.Buffer
-			cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-			cmd.SetArgs([]string{"add", "--admin", "--name", name, "--username", "a", "a@example.test"})
-
-			err := cmd.Execute()
+			_, _, err := runMember(t, environ, tt.args...)
 			if err == nil {
-				t.Fatal("Execute() error = nil, want the blank-name refusal")
+				t.Fatalf("Execute() error = nil, want a refusal naming %q", tt.wantErr)
 			}
-			if !strings.Contains(err.Error(), "display name is empty or blank") {
-				t.Errorf("error = %q, want it to name the blank-name refusal", err.Error())
+			if !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("error = %q, want it to contain %q", err, tt.wantErr)
 			}
-			if strings.Contains(err.Error(), "a@example.test") {
-				t.Errorf("error = %q, want it never to carry the refused address", err.Error())
+			if strings.Contains(err.Error(), "b@example.test") {
+				t.Errorf("error = %q, want it never to carry the refused address", err)
 			}
-			if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
-				t.Errorf("Stat(roster) after refusal error = %v, want ErrNotExist; nothing should be created", statErr)
+			if got := userAddresses(t, stateDir); len(got) != 1 || got[0] != "a@example.test" {
+				t.Errorf("users after a refusal = %v, want only the fixture admin", got)
 			}
 		})
+	}
+}
+
+// TestMemberAddCmd_NoAdminRefusedIntoEmptyStore proves a non-admin add
+// into a store holding no member refuses naming member add --admin and
+// writes no row.
+func TestMemberAddCmd_NoAdminRefusedIntoEmptyStore(t *testing.T) {
+	environ, stateDir := memberEnviron(t)
+
+	_, _, err := runMember(t, environ, "add", "--name", "Carol", "--username", "carol", "c@example.test")
+	if err == nil {
+		t.Fatal("Execute() error = nil, want the no-admin refusal")
+	}
+	for _, want := range []string{"must name at least one admin", "member add --admin"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error = %q, want it to contain %q", err, want)
+		}
+	}
+	if got := userAddresses(t, stateDir); len(got) != 0 {
+		t.Errorf("users after the refusal = %v, want none", got)
 	}
 }
 
@@ -206,155 +304,17 @@ func TestMemberAddCmd_MissingRequiredFlagsRefusedBeforeOpen(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			environ := memberEnviron(t)
-			rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
+			environ := serveAuthEnviron(t)
+			stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 
-			var stdout, stderr bytes.Buffer
-			cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-			cmd.SetArgs(tt.args)
-
-			err := cmd.Execute()
+			_, _, err := runMember(t, environ, tt.args...)
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("Execute() error = %v, want it to contain %q", err, tt.want)
 			}
-			if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
-				t.Errorf("Stat(roster) error = %v, want ErrNotExist; a missing required flag must refuse before any open", statErr)
+			if _, statErr := os.Stat(filepath.Join(stateDir, "store")); !errors.Is(statErr, os.ErrNotExist) {
+				t.Errorf("Stat(store leaf) error = %v, want ErrNotExist: a missing required flag must refuse before any open", statErr)
 			}
 		})
-	}
-}
-
-// TestMemberCmd_InvalidRosterReportsLoadError proves that both
-// subcommands answer a load failure the same way, because both open
-// the roster through auth.OpenRoster before doing anything else: a
-// file that fails to parse and one that parses but fails validation
-// (a duplicate address) each surface as a non-nil error naming
-// rosterPath, for "add" and for "list".
-func TestMemberCmd_InvalidRosterReportsLoadError(t *testing.T) {
-	tests := []struct {
-		name    string
-		fixture string
-	}{
-		{
-			name:    "unparseable JSON",
-			fixture: `not valid json`,
-		},
-		{
-			name: "duplicate address fails validation",
-			fixture: `{"schema_version":1,"members":[` +
-				`{"address":"a@example.test","display_name":"A","username":"a","admin":true},` +
-				`{"address":"a@example.test","display_name":"A2","username":"a2"}` +
-				`]}`,
-		},
-	}
-	subcommands := []struct {
-		name string
-		args []string
-	}{
-		{name: "add", args: []string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"}},
-		{name: "list", args: []string{"list"}},
-	}
-
-	for _, tt := range tests {
-		for _, sub := range subcommands {
-			t.Run(tt.name+"/"+sub.name, func(t *testing.T) {
-				environ := memberEnviron(t)
-				rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-				writeFixtureRoster(t, rosterPath, tt.fixture)
-
-				var stdout, stderr bytes.Buffer
-				cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-				cmd.SetArgs(sub.args)
-
-				err := cmd.Execute()
-				if err == nil {
-					t.Fatal("Execute() error = nil, want the roster load error")
-				}
-				if !strings.Contains(err.Error(), rosterPath) {
-					t.Errorf("error = %q, want it to name the roster path %q", err.Error(), rosterPath)
-				}
-			})
-		}
-	}
-}
-
-func TestMemberAddCmd_RosterDirectoryAbsentRefused(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	missingDir := filepath.Join(filepath.Dir(rosterPath), "does-not-exist")
-	rosterPath = filepath.Join(missingDir, "roster.json")
-	environ = replaceKey(environ, "DUBPLATE_ROSTER_FILE", rosterPath)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the roster directory refusal")
-	}
-	if !strings.Contains(err.Error(), missingDir) {
-		t.Errorf("error = %q, want it to name the missing directory %q", err.Error(), missingDir)
-	}
-	if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
-		t.Errorf("Stat(roster) error = %v, want ErrNotExist; nothing should be created", statErr)
-	}
-}
-
-// TestMemberAddCmd_ForeignDirectoryOwnerRefused proves R-5c14's uid
-// guard fires and creates nothing, using /tmp itself as dir: /tmp is
-// root-owned with the sticky bit and world-writable, so this test's
-// own process can create a file directly under it despite not owning
-// it, which is what lets the row prove the guard, rather than a bare
-// permission error, is what refuses the write. Pointing the row at
-// "/" instead would fail with EACCES whether or not the guard exists,
-// proving nothing.
-func TestMemberAddCmd_ForeignDirectoryOwnerRefused(t *testing.T) {
-	info, err := os.Stat("/tmp")
-	if err != nil {
-		t.Skipf("Stat(/tmp): %v", err)
-	}
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		t.Skip("cannot read /tmp's owning uid on this platform")
-	}
-	euid := os.Geteuid()
-	if euid == 0 {
-		t.Skip("running as root: the uid guard never refuses root")
-	}
-	if int(stat.Uid) == euid {
-		t.Skip("/tmp is owned by this test's own uid on this system")
-	}
-
-	rosterPath := filepath.Join("/tmp", fmt.Sprintf("dubplate-member-test-%d-%d.json", os.Getpid(), time.Now().UnixNano()))
-	t.Cleanup(func() { _ = os.Remove(rosterPath) })
-
-	environ := replaceKey(memberEnviron(t), "DUBPLATE_ROSTER_FILE", rosterPath)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"})
-
-	err = cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the foreign-owner refusal")
-	}
-	if !errors.Is(err, errForeignRosterOwner) {
-		t.Errorf("error = %v, want it to wrap errForeignRosterOwner", err)
-	}
-	if !strings.Contains(err.Error(), fmt.Sprint(euid)) || !strings.Contains(err.Error(), "/tmp") {
-		t.Errorf("error = %q, want it to name both the effective uid %d and /tmp", err.Error(), euid)
-	}
-	if _, statErr := os.Stat(rosterPath); !errors.Is(statErr, os.ErrNotExist) {
-		t.Errorf("Stat(roster) error = %v, want ErrNotExist; nothing should be created", statErr)
-	}
-}
-
-// TestCheckRosterDirOwner_OwnedDirectoryPasses is the positive row:
-// checkRosterDirOwner accepts a directory this test process owns.
-func TestCheckRosterDirOwner_OwnedDirectoryPasses(t *testing.T) {
-	if err := checkRosterDirOwner(t.TempDir()); err != nil {
-		t.Errorf("checkRosterDirOwner(t.TempDir()) error = %v, want nil", err)
 	}
 }
 
@@ -364,215 +324,83 @@ func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
 	osUserLookupID = func(string) (*user.User, error) {
 		return nil, errors.New("no such user")
 	}
+	environ, _ := memberEnviron(t)
 
-	environ := memberEnviron(t)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"})
-
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr.String())
+	_, stderr, err := runMember(t, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
+	if err != nil {
+		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr)
 	}
-
 	wantActor := fmt.Sprintf("actor=uid:%d", os.Geteuid())
-	if audit := stderr.String(); !strings.Contains(audit, wantActor) {
-		t.Errorf("audit record = %q, want it to contain %q", audit, wantActor)
+	if !strings.Contains(stderr, wantActor) {
+		t.Errorf("audit record = %q, want it to contain %q", stderr, wantActor)
 	}
 }
 
-func TestMemberAddCmd_LockHeldPastDeadlineReportsBusy(t *testing.T) {
+// TestMemberAddCmd_LockHeldPastDeadlineRefuses holds the store's lock
+// exclusively, as a restore would, and proves the verb gives up once its
+// own wait ends rather than waiting on the holder.
+func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
 	orig := memberVerbWriteWait
 	memberVerbWriteWait = 200 * time.Millisecond
 	defer func() { memberVerbWriteWait = orig }()
 
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	// The directory a roster write locks must exist before the flock
-	// call below; create the empty roster so both the fixture roster
-	// and its directory are in place before the lock is taken.
-	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[{"address":"a@example.test","display_name":"A","username":"a","admin":true}]}`)
-
-	dir, err := os.Open(filepath.Dir(rosterPath))
+	environ, stateDir := memberEnviron(t)
+	lock, err := os.Open(filepath.Join(stateDir, "store", "store.lock"))
 	if err != nil {
-		t.Fatalf("open roster directory: %v", err)
+		t.Fatalf("open store.lock: %v", err)
 	}
-	defer func() { _ = dir.Close() }()
-	if err := syscall.Flock(int(dir.Fd()), syscall.LOCK_EX); err != nil {
-		t.Fatalf("flock roster directory: %v", err)
+	defer func() { _ = lock.Close() }()
+	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
+		t.Fatalf("flock store.lock: %v", err)
 	}
 
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"add", "--admin", "--name", "B", "--username", "b", "b@example.test"})
-
-	err = cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the busy refusal")
+	start := time.Now()
+	_, _, err = runMember(t, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
+	elapsed := time.Since(start)
+	if !errors.Is(err, store.ErrLockBusy) {
+		t.Fatalf("Execute() error = %v, want it to wrap store.ErrLockBusy", err)
 	}
-	if !strings.Contains(err.Error(), "roster busy") {
-		t.Errorf("error = %q, want it to contain %q", err.Error(), "roster busy")
+	if elapsed < 200*time.Millisecond || elapsed > 10*time.Second {
+		t.Errorf("the verb gave up after %v, want just past the 200ms wait", elapsed)
+	}
+	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_UN); err != nil {
+		t.Fatalf("release store.lock: %v", err)
+	}
+	if got := userAddresses(t, stateDir); len(got) != 0 {
+		t.Errorf("users after the refusal = %v, want none", got)
 	}
 }
 
-// TestMemberAddCmd_ConcurrentBootstrapBothLand runs two --admin adds
-// for distinct addresses at once against an absent roster, under
-// -race: one wins CreateRoster, the other gets auth.ErrRosterExists
-// and reopens, so both members land and the file holds both.
-func TestMemberAddCmd_ConcurrentBootstrapBothLand(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	reg := productionRegistry()
-
-	run := func(address, name, username string, stderr *bytes.Buffer) error {
-		cmd := newMemberCmd(environ, reg, &bytes.Buffer{}, stderr)
-		cmd.SetArgs([]string{"add", "--admin", "--name", name, "--username", username, address})
-		return cmd.Execute()
-	}
+// TestMemberAddCmd_ConcurrentAdminAddsBothLand runs two --admin adds for
+// distinct addresses at once against one store, under -race: both land
+// and each logs its own audit record.
+func TestMemberAddCmd_ConcurrentAdminAddsBothLand(t *testing.T) {
+	environ, stateDir := memberEnviron(t)
 
 	var wg sync.WaitGroup
 	errs := make([]error, 2)
-	var stderrs [2]bytes.Buffer
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		errs[0] = run("a@example.test", "A", "a", &stderrs[0])
-	}()
-	go func() {
-		defer wg.Done()
-		errs[1] = run("b@example.test", "B", "b", &stderrs[1])
-	}()
+	var stderrs [2]string
+	for i, member := range []struct{ address, name, username string }{
+		{"a@example.test", "A", "a"},
+		{"b@example.test", "B", "b"},
+	} {
+		wg.Go(func() {
+			_, stderrs[i], errs[i] = runMember(t, environ, "add", "--admin", "--name", member.name, "--username", member.username, member.address)
+		})
+	}
 	wg.Wait()
 
 	for i, err := range errs {
 		if err != nil {
-			t.Fatalf("add #%d: %v; stderr = %q", i, err, stderrs[i].String())
+			t.Fatalf("add #%d: %v; stderr = %q", i, err, stderrs[i])
+		}
+		if !strings.Contains(stderrs[i], "roster member added") {
+			t.Errorf("add #%d stderr = %q, want one audit record", i, stderrs[i])
 		}
 	}
-
-	data, err := os.ReadFile(rosterPath)
-	if err != nil {
-		t.Fatalf("read roster: %v", err)
-	}
-	got := string(data)
-	if !strings.Contains(got, `"address":"a@example.test"`) || !strings.Contains(got, `"address":"b@example.test"`) {
-		t.Errorf("roster = %q, want both a@example.test and b@example.test present", got)
-	}
-
-	for i, sb := range stderrs {
-		if !strings.Contains(sb.String(), "roster member added") {
-			t.Errorf("add #%d stderr = %q, want one audit record", i, sb.String())
-		}
-	}
-}
-
-func TestMemberListCmd_AbsentRosterReportsErrRosterMissing(t *testing.T) {
-	environ := memberEnviron(t)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"list"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Fatal("Execute() error = nil, want the missing-roster error")
-	}
-	if !strings.Contains(err.Error(), "roster file missing") {
-		t.Errorf("error = %q, want it to name the roster-missing refusal", err.Error())
-	}
-}
-
-func TestMemberListCmd_PrintsExactRosterTable(t *testing.T) {
-	environ := memberEnviron(t)
-	rosterPath, _ := lookupEnviron(environ, "DUBPLATE_ROSTER_FILE")
-	writeFixtureRoster(t, rosterPath, `{"schema_version":1,"members":[`+
-		`{"address":"a@example.test","display_name":"Alice","username":"alice","admin":true},`+
-		`{"address":"b@example.test","display_name":"Bob","username":"bob"}`+
-		`]}`)
-
-	var stdout, stderr bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	cmd.SetArgs([]string{"list"})
-
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v, want nil", err)
-	}
-
-	// want is a literal, independent of printMemberList's own format
-	// string, so a regression in that format (a dropped column, a
-	// changed separator) is caught rather than echoed on both sides.
-	want := "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n" +
-		"a@example.test\tAlice\talice\tyes\n" +
-		"b@example.test\tBob\tbob\t\n"
-	if got := stdout.String(); got != want {
-		t.Errorf("stdout = %q, want %q", got, want)
-	}
-}
-
-// TestMemberListCmd_ReadsWhatAddWrote proves list reads the roster
-// add itself wrote, rather than only a hand-written fixture: it runs
-// "member add --admin" to create the roster, then a second, non-admin
-// "member add", both through newMemberCmd, and asserts list's exact
-// stdout against the two members that produced.
-func TestMemberListCmd_ReadsWhatAddWrote(t *testing.T) {
-	environ := memberEnviron(t)
-
-	addCmd := newMemberCmd(environ, productionRegistry(), &bytes.Buffer{}, &bytes.Buffer{})
-	addCmd.SetArgs([]string{"add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test"})
-	if err := addCmd.Execute(); err != nil {
-		t.Fatalf("first add Execute() error = %v, want nil", err)
-	}
-
-	addCmd = newMemberCmd(environ, productionRegistry(), &bytes.Buffer{}, &bytes.Buffer{})
-	addCmd.SetArgs([]string{"add", "--name", "Bob", "--username", "bob", "b@example.test"})
-	if err := addCmd.Execute(); err != nil {
-		t.Fatalf("second add Execute() error = %v, want nil", err)
-	}
-
-	var stdout, stderr bytes.Buffer
-	listCmd := newMemberCmd(environ, productionRegistry(), &stdout, &stderr)
-	listCmd.SetArgs([]string{"list"})
-	if err := listCmd.Execute(); err != nil {
-		t.Fatalf("list Execute() error = %v, want nil", err)
-	}
-
-	want := "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n" +
-		"a@example.test\tAlice\talice\tyes\n" +
-		"b@example.test\tBob\tbob\t\n"
-	if got := stdout.String(); got != want {
-		t.Errorf("stdout = %q, want %q", got, want)
-	}
-}
-
-// TestMemberCmd_RequiresNoRosterSourceRefused proves the outcome that
-// the roster-backed identity source's own required set governs: a
-// selected source that declares no roster key refuses both
-// subcommands, naming the selector's value, rather than resolving an
-// empty path and opening whatever that resolves to.
-func TestMemberCmd_RequiresNoRosterSourceRefused(t *testing.T) {
-	reg := config.NewRegistry()
-	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"})
-	reg.AddIdentitySource(config.IdentitySource{
-		Name:     "no-roster",
-		Selector: "DUBPLATE_IDENTITY_SOURCE",
-	})
-	environ := append(baseEnviron(), "DUBPLATE_IDENTITY_SOURCE=no-roster")
-
-	for _, args := range [][]string{
-		{"add", "--admin", "--name", "A", "--username", "a", "a@example.test"},
-		{"list"},
-	} {
-		var stdout, stderr bytes.Buffer
-		cmd := newMemberCmd(environ, reg, &stdout, &stderr)
-		cmd.SetArgs(args)
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Fatalf("Execute(%v) error = nil, want the no-roster refusal", args)
-		}
-		if !strings.Contains(err.Error(), "no-roster") {
-			t.Errorf("Execute(%v) error = %q, want it to name the selected source %q", args, err.Error(), "no-roster")
-		}
+	got := userAddresses(t, stateDir)
+	if len(got) != 2 || got[0] != "a@example.test" || got[1] != "b@example.test" {
+		t.Errorf("users = %v, want both a@example.test and b@example.test", got)
 	}
 }
 
