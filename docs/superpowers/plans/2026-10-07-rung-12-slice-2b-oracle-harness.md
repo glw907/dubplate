@@ -1088,3 +1088,13 @@ and Task 10's degraded forms if they are taken.
 - **E3 (Task 3, observed on review).** Past line 65535 of a projected document, xmllint 21504 reports an error one
   line too high, so the ordinal lookup can land on the next element. No recorded body comes near that size. Filed as
   BACKLOG #28.
+- **E4 (segment B pre-flight, at `f4ba980`).** Six amendments, passed to the implementers in segment B's criteria.
+  Task 4 handles Task 3's two non-fatal returns: `xmlrule.ErrUnknownEndpoint` grades as the JSON tier's `no-route`
+  outcome finding, and `xmlrule.ErrNotXML` (a binary endpoint answered with a non-XML body) yields no XML contract
+  finding. Only `ErrToolFailure`, `ErrNotCached`, and `ErrChecksum` end the grade; both rows join the states table
+  with a proof. Task 4's XML twin extends the hand-session helper to take format, content type, and `serverVersion`,
+  since `handSessionAt` hard-codes JSON and Navidrome's version. Task 4's tests are `contract_test.go`,
+  `grade_test.go`, and `differ_test.go` (no `tree_test.go` exists). Task 5's Files gain `grade.Config`'s assignment
+  field (`grade.go`), `cmd/harness/main.go`'s `subsonicPaths` and `defaultSubsonicPaths`, and `cmd/harness/grade.go`.
+  Task 6's inline-literal change is `grade/ledger_test.go`'s `owedRow` helper alone. Task 6's agreement round trip
+  renders the record's five agreement columns (id, Area, Behavior shared, Evidence, Test owed), with the slice derived.
