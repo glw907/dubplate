@@ -78,6 +78,10 @@
 - [ ] #20 No rendered row asserts the autofill-ignore attributes (`autocomplete=off`, `data-1p-ignore`,
   `data-lpignore`) on the add-member Address and Username fields. Add one assertion. Found by the
   navidrome-removal close, 2026-10-06 #web #project:prod-polish
+- [ ] #21 `web/scripts/gates/deck-coverage.ts:158-167` hardcodes three Go outcome names and an exact floor
+  (20) as its parser sanity check, so retiring any `internal/auth` outcome reddens the web leg only at the full
+  gate, with no hint on the Go side (6d Task 4 hit it: 23 to 20). Derive the floor or check only that the parse
+  is non-empty and names one known outcome. Found by the 6d segment B review, 2026-10-07 #web #project:prod-polish
 
 ## Done
 
