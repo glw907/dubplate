@@ -267,8 +267,10 @@ if [ "$mode" = "scope-changed" ] || [ "$mode" = "reduced" ]; then
     derive_conform_affected
     derive_rendered_affected
     scope_gitleaks=changed
-    if [ "$mode" = "scope-changed" ] && [ "$conform_affected" -eq 0 ]; then
-      scope_conform=skipped
+    if [ "$mode" = "scope-changed" ]; then
+      if [ "$conform_affected" -eq 0 ]; then
+        scope_conform=skipped
+      fi
       if [ "$rendered_affected" -eq 0 ]; then
         scope_rendered=skipped
       fi
@@ -336,18 +338,23 @@ fi
 if [ "$mode" != "reduced" ]; then
   echo "== make check (Go) =="
 fi
-if [ "$scope_conform" = "skipped" ]; then
-  # The scoped form keeps vet, lint and tidy-check whole and narrows only
-  # the test leg, by naming every package but the conform suite.
-  echo "check.sh: the change set touches no harness, engine or corpus file; running go test without internal/harness/conform."
+if [ "$mode" = "scope-changed" ] && { [ "$scope_conform" = "skipped" ] || [ "$scope_rendered" = "skipped" ]; }; then
+  # The scoped form keeps vet, lint and tidy-check whole and narrows the
+  # test leg (the conform suite) and the rendered leg independently, each
+  # by its own inputs.
   if ! make vet lint tidy-check; then
     status=1
   fi
-  mapfile -t scoped_pkgs < <(go list ./... | grep -v '/internal/harness/conform$')
-  if [ "${#scoped_pkgs[@]}" -eq 0 ]; then
-    echo "check.sh: go list returned no packages." >&2
-    status=1
-  elif ! go test "${scoped_pkgs[@]}"; then
+  if [ "$scope_conform" = "skipped" ]; then
+    echo "check.sh: the change set touches no harness, engine or corpus file; running go test without internal/harness/conform."
+    mapfile -t scoped_pkgs < <(go list ./... | grep -v '/internal/harness/conform$')
+    if [ "${#scoped_pkgs[@]}" -eq 0 ]; then
+      echo "check.sh: go list returned no packages." >&2
+      status=1
+    elif ! go test "${scoped_pkgs[@]}"; then
+      status=1
+    fi
+  elif ! make test; then
     status=1
   fi
   # `make check` carries the rendered leg in every other form; this

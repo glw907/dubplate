@@ -207,6 +207,62 @@ func TestRunCaptureFollowsPseudoReleaseAndCapturesBothResponses(t *testing.T) {
 	}
 }
 
+// dirSnapshot maps every file under dir (slash-separated, relative) to
+// its bytes, so a test can prove a refused run changed nothing.
+func dirSnapshot(t *testing.T, dir string) map[string]string {
+	t.Helper()
+	snap := map[string]string{}
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			return err
+		}
+		data, err := os.ReadFile(path)
+		snap[filepath.ToSlash(rel)] = string(data)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("snapshot %s: %v", dir, err)
+	}
+	return snap
+}
+
+func TestRunCaptureRefusesAnExistingCase(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "seeded")
+	if err := runSynth(writeSpecFile(t, minimalSpecJSON), out); err != nil {
+		t.Fatalf("runSynth: %v", err)
+	}
+	before := dirSnapshot(t, out)
+
+	const mbid = "11111111-1111-1111-1111-111111111111"
+	ff := &fakeFetch{responses: map[string][]byte{releaseRequest(mbid): []byte(`{}`)}}
+	withFetch(t, ff)
+	withSleep(t)
+
+	err := runCapture(context.Background(), "1.0.0", "geoff@example.org", mbid, out)
+	if err == nil {
+		t.Fatal("runCapture into a directory holding case.json: got nil error, want a refusal")
+	}
+	if want := filepath.Join(out, "case.json"); !strings.Contains(err.Error(), want) {
+		t.Errorf("error %q does not name %s", err, want)
+	}
+	if len(ff.calls) != 0 {
+		t.Errorf("fetch calls = %d, want 0: a refusal must come before any request", len(ff.calls))
+	}
+	after := dirSnapshot(t, out)
+	if len(after) != len(before) {
+		t.Errorf("file count %d -> %d, want unchanged", len(before), len(after))
+	}
+	for name, want := range before {
+		if got, ok := after[name]; !ok || got != want {
+			t.Errorf("%s changed or vanished after the refused run", name)
+		}
+	}
+}
+
 func TestRunCaptureSurfacesFetchError(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "case-err")
 	f := &fakeFetch{err: errors.New("connection refused")}

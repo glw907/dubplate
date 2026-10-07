@@ -140,6 +140,9 @@ func userAgent(version, contact string) string {
 // requests in a fresh cassette.Case. The case is otherwise empty:
 // Input, Profile, and EvalDate are a human's job once it is seeded.
 func runCapture(ctx context.Context, version, contact, mbid, outDir string) error {
+	if err := refuseExistingCase(outDir); err != nil {
+		return fmt.Errorf("capture: %w", err)
+	}
 	if err := os.MkdirAll(filepath.Join(outDir, "responses"), 0o755); err != nil {
 		return fmt.Errorf("create case dir: %w", err)
 	}
@@ -176,6 +179,24 @@ func runCapture(ctx context.Context, version, contact, mbid, outDir string) erro
 
 	c := &cassette.Case{ID: filepath.Base(outDir), Requests: requests}
 	return c.Write(outDir)
+}
+
+// refuseExistingCase is the guard behind every verb that seeds a case
+// directory (`capture --out`, `synth --out`): a directory already
+// holding a case.json is never written into, so a seed cannot drop an
+// existing case's Input, Profile, EvalDate, or Expected. The error
+// names the case.json path.
+func refuseExistingCase(outDir string) error {
+	path := filepath.Join(outDir, "case.json")
+	_, err := os.Stat(path)
+	switch {
+	case err == nil:
+		return fmt.Errorf("%s already exists; a seed never overwrites a case", path)
+	case errors.Is(err, os.ErrNotExist):
+		return nil
+	default:
+		return fmt.Errorf("check existing case: %w", err)
+	}
 }
 
 // runCaptureMisses loads the existing case at caseDir, fetches exactly

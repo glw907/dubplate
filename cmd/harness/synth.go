@@ -49,7 +49,7 @@ func newSynthCmd() *cobra.Command {
 // case.json plus responses/001.json under outDir. It refuses to
 // overwrite an existing case.json: `harness synth` seeds a case once,
 // and every edit after that runs through the freeze verb instead,
-// matching `harness capture --out`'s own seed-only contract.
+// sharing `harness capture --out`'s guard.
 func runSynth(specPath, outDir string) error {
 	data, err := os.ReadFile(specPath)
 	if err != nil {
@@ -61,10 +61,8 @@ func runSynth(specPath, outDir string) error {
 		return fmt.Errorf("parse spec: %w", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(outDir, "case.json")); err == nil {
-		return fmt.Errorf("synth: %s already carries a case.json; synth only seeds a case, it never overwrites one", outDir)
-	} else if !os.IsNotExist(err) {
-		return fmt.Errorf("synth: check existing case: %w", err)
+	if err := refuseExistingCase(outDir); err != nil {
+		return fmt.Errorf("synth: %w", err)
 	}
 
 	c, doc, err := synth.Build(filepath.Base(outDir), &spec)

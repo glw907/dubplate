@@ -77,7 +77,7 @@ func TestRunSynthRefusesToOverwriteAnExistingCase(t *testing.T) {
 	if err == nil {
 		t.Fatal("second runSynth against the same --out: got nil error, want a refusal")
 	}
-	if !strings.Contains(err.Error(), "already carries a case.json") {
+	if !strings.Contains(err.Error(), "already exists") {
 		t.Errorf("error %q does not explain the overwrite refusal", err)
 	}
 }
