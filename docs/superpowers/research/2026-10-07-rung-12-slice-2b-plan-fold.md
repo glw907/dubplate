@@ -147,3 +147,55 @@ ruled texts, and the transcription test names each exemption with its ruling, so
 - **Ceiling:** unchanged at 9.0M (flag 7.2M). The folds add proofs to Tasks 3, 5, and 6 and one conductor observation;
   they remove Task 3's dedupe rule and half of Task 11's GUI walks. Tasks unchanged at eleven build tasks plus Task 0,
   the conditional Task R, and the close; segments unchanged.
+
+## Second fold (revision 1.1 to 1.2)
+
+A narrow fold of the verification read (`2026-10-07-rung-12-slice-2b-plan-fold-verification.md`, V1 major, V2 to V9
+minor), scoped by the conductor to V1, V2, and V5, plus any other finding that one line of the plan resolves with no
+new mechanism. Each finding was checked against the plan and the code before it was acted on. No probe was needed:
+every behavior stated below is read from the plan at revision 1.1 or the 2a code at `c4b7afd`.
+
+Checked directly:
+
+- **V1.** The plan's conductor step (`:836-844` at 1.1) observes and records, and names no replay. Task 9's readiness
+  (`:865-866`) assumes Navidrome's `getScanStatus` `count` is the total across libraries, which nothing quoted
+  covers. Task 10's fallback fired only "before Task 9" (`:913`). 2a's stack gives Navidrome one mount, `/music`
+  (`stack/stack.go:136-143`), so a library the conductor creates by hand holds no tracks. A replay therefore settles
+  the request and the folder listing, but not the count rule. The fold says so rather than claim the step fixes the
+  rule, and moves the count question to Task 9's live evidence under the new "during Task 9" trigger.
+- **V2.** `Session.validate` refuses a body whose envelope `serverVersion` differs from its source's metadata
+  (`session/session.go:369-377`), and both `Write` (`:195`) and `Load` (`:173`) run it. `Grade` reads every
+  session through `Load` (`grade/grade.go:101`). 2a's `handSessionAt` helper writes through `Write` with Navidrome's
+  version on both sources (`grade/grade_test.go:122-145`). Task 5's `dubplate` source mixes gonic and Navidrome
+  bodies, so it cannot load as written. The same check reaches Task 4's twin, whose two sources hold gonic's body.
+- **V5.** The ceiling's own arithmetic (`:125-132`) gives a build-task rate of about 0.58M. The split is 2b at about
+  6.5M (0.25M + 8 x 0.58M + 0.3M + 1.3M) plus 2c at about 3.3M (3 x 0.58M + Task 11's 0.3M premium + 1.3M). That
+  sums to about 9.8M against the one-pass estimate of 8.55M, a delta of about 1.3M, the second close. Revision 1.1
+  set 9.83M against the 9.0M ceiling, which mixes an estimate with a ceiling. Its 2c line also named "the conductor's
+  observation" where the 0.3M is Task 11's premium; the ceiling note prices the observation as offset by the removed
+  walks, in either shape.
+
+| ID | Disposition | Where (revision 1.2) |
+|---|---|---|
+| V1 | Folded. The conductor's step replays the recorded login and creation with `curl` against a fresh `harness oracle-up` and quotes the creation status, `getMusicFolders`, and `getScanStatus`. The record states the replay cannot settle the count rule over two populated libraries. Task 9 gains a degraded form (Navidrome mounts the first collection only; readiness checks each oracle against its own collections), taken before Task 9 or during it. During Task 9 the implementer reports the live contradiction, and the conductor re-dispatches in the degraded form. The trigger reads "before or during Task 9" in the rulings list, Task 10, "Not verified", and the errata line. Task 9's live evidence also quotes `getScanStatus`. | Unattended-run rulings; Task 9 conductor step, live evidence, degraded form; Task 10; "Not verified at planning"; Errata |
+| V2 | Folded. Task 5's proof rewrites every `dubplate` body's `serverVersion` to its source metadata's one value, citing the loader check. It asserts its non-zero oracle counts below the envelope, since before Task 7's E1 rule the rewritten value differs from both oracles' and would make a bare count vacuous. Task 4's twin names gonic's `serverVersion` in both sources' metadata, the same check on the same helper. | Task 5 test mandate; Task 4 test mandate |
+| V5 | Folded. Ruling 1 states the split's estimates (about 6.5M and 3.3M, about 9.8M together) against this pass's 8.55M estimate: about 1.3M more, the second close, with each split pass carrying its own fix-round headroom besides. The fallback claim now names Task 9's and Task 10's degraded forms and drops Task 11's walk, which was the ordinary walk. The recommendation and the fork are unchanged, and Ruling 1 stays Geoff's. | Rulings for Geoff, item 1 |
+| V6 | Taken, one sentence inside V1's rewrite of the same paragraph. The step's stated reason is now the real trade-off: a one-time observation with no script to maintain, at the cost of GUI work in the conductor and a re-observation owed by R24's next Navidrome bump. M6's row above keeps its original reason as the first fold's dated text, and this row corrects it. | Task 9 conductor step |
+| V7 | Taken, one Files edit: Task 6 names Task 5's assignment loader and its tests (the agreements' validation). | Task 6 Files |
+| V3 | Owed, before segment C (Task 7): drop `grade`'s L-07 finding, since the session loader's refusal makes it unreachable through `Grade`; the writer's and loader's refusal is the L-07 check, and the credential proof calls the `session` scan directly. | Task 7 outcomes, proof |
+| V4 | Owed, before the lane launch: quote `brew pin --help`'s note on dependents, name the held dependents (chafa, ffmpeg, gdk-pixbuf, imagemagick, librsvg, libxkbcommon, shared-mime-info, xdotool) in the lane launch's Brewfile line and the close's CLAUDE.md batch, and end R18's bump path with a `brew upgrade` of them. | Quotes table; R18; Lane launch 5; Task 12 step 6 |
+| V8 | Owed, before segment C (Task 7): say how the scan separates a leaf's query from its URL without `url.Parse` (which errs on a bad path escape before the query is read), and add one states row with a bad path escape. | Task 7 L-07 outcome; states table |
+| V9 | Owed, before segment A (Task 3): under exit 3, an unmatched line that directly follows a validity-error line continues that error's message; only an unmatched line with no error line before it is a tool failure. | Task 3 runner; states table |
+
+**Measures.**
+
+- **Dispositions:** nine findings. Five folded or taken (V1, V2, V5 in scope; V6 and V7 as one-line edits). Four owed
+  (V3, V4, V8, V9), each with the boundary it must clear before. None refused.
+- **New mechanism:** none. The replay is the "replayed over HTTP" criterion revision 1.1 already named, made a step.
+  The degraded form is Task 9's own one-collection path, which already exists, applied to Navidrome alone.
+- **Plan lines:** 1023 before, 1054 after.
+- **Ceiling:** unchanged at 9.0M (flag 7.2M). The replay adds a few HTTP calls to a conductor step that already runs
+  the container. The degraded form replaces Task 9's two-library Navidrome work rather than adding to it, and its
+  re-dispatch is the one fix round the 0.45M above the 8.55M estimate already prices.
+- **Ruling 1 correction for the summary above:** the "about 0.8M more" in "Rulings for Geoff" reads about 1.3M more,
+  estimate against estimate, and the fallbacks it names are Task 9's and Task 10's degraded forms.

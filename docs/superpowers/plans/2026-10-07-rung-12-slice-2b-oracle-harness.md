@@ -1,6 +1,6 @@
 # Rung 12, Slice 2b (the Oracle Harness, Second Pass) Implementation Plan
 
-Status: **revision 1.1, folded 2026-10-07; awaiting Geoff's approval and one ruling ("Rulings for Geoff").** Owner
+Status: **revision 1.2, folded 2026-10-07; awaiting Geoff's approval and one ruling ("Rulings for Geoff").** Owner
 forks A, B, and C from slice 1 are ruled (below). Every other decision is a reading below, taken on its merits and
 reported.
 
@@ -13,6 +13,12 @@ History:
   row's slice are fixed here; the XML tier binds each body to its endpoint; the projection locates errors from the
   bytes it writes and drops residuals before xmllint runs; Navidrome's library request is the conductor's observation;
   Task 11 walks gonic only for the folder view; libxml2 is pinned in Homebrew.
+- Revision 1.2: a second, narrow fold of the verification read
+  (`docs/superpowers/research/2026-10-07-rung-12-slice-2b-plan-fold-verification.md`, V1 to V9), recorded in the fold
+  record's "Second fold". The conductor replays Navidrome's library request before segment C, and Task 9 gains a
+  degraded form, so a failure before or during Task 9 never stops the run (V1). Task 5's three-source session carries
+  one `serverVersion` per source (V2). Ruling 1's split delta and fallback claim are corrected (V5). Task 6's Files
+  name the assignment loader (V7), and the conductor's step states its real trade-off (V6).
 
 **Parent plan:** `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2, "the 2a plan").
 Its readings R1 to R12, its global constraints, and its clean-room rule stay in force for this pass; this plan adds
@@ -86,16 +92,18 @@ Geoff accepted slice 1's three study forks with the study's recommendation on ea
 
 1. **Run 2b as one eleven-task pass at 9.0M (flag 7.2M)?** Recommendation: **yes.** The four segments already put a
    green full gate and a STATUS checkpoint every three tasks, which bounds an unattended run without a second close.
-   The live tasks (9 to 11) share the worktree and the `grade` package with the rest, and revision 1.1 gives each of
-   them a written fallback (Task 10's gonic-only form, Task 11's single-oracle walk), so they no longer carry an
-   unbounded tail.
+   The live tasks (9 to 11) share the worktree and the `grade` package with the rest. The two whose evidence rests on
+   Navidrome's unquoted library API now carry written degraded forms the conductor takes alone (Task 9's
+   first-collection Navidrome, Task 10's gonic-only session), triggered before or during Task 9, so they no longer
+   carry an unbounded tail.
    - **Yes builds:** this plan as written: segments A to D, one close (Task 12), one merge, one set of architecture
      reads.
    - **No builds:** 2b ends after Task 8 with its own close and merge (about 6.5M at the same rates: Task 0, eight
      build tasks, the conditional Task R, the close); Tasks 9 to 11 become a pass 2c with its own plan revision, review,
-     ceiling (about 3.3M: three build tasks, the conductor's observation, and a second close at about 1.3M), and
-     merge. The two together cost about 0.8M more than one pass, and slice 3 waits for 2c, since it consumes the
-     two-collection evidence.
+     ceiling (about 3.3M: three build tasks, Task 11's 0.3M premium, and a second close at about 1.3M), and merge.
+     Estimate against estimate, the two sum to about 9.8M against this pass's 8.55M: about 1.3M more, which is the
+     second close. Each would also carry its own fix-round headroom above its estimate, as 9.0M does above 8.55M.
+     Slice 3 waits for 2c, since it consumes the two-collection evidence.
 
 ## The scope, re-derived against the sketch
 
@@ -180,9 +188,10 @@ returns, writes STATUS, and stops. STATUS is also written at each segment bounda
   touches no ruling (as 2a's errata E1 and E2 did); the remedy is recorded as an erratum at the plan's end;
 - a request an oracle answers outside the envelope, which the recorder cannot hold: it drops from the session spec
   with its reason (Task 8, Task 10);
-- recording Navidrome's second library as unmeasured if the observed request (segment C's conductor step) cannot be
-  made or replayed without reading Navidrome's source; Task 10 then takes its gonic-only form, which is written below
-  and needs no further ruling;
+- recording Navidrome's second library as unmeasured if the conductor's step before segment C cannot observe or
+  replay the creation request without reading Navidrome's source, or if Task 9's live evidence cannot be met on
+  Navidrome with two libraries; Task 9 and Task 10 then take their degraded forms, which are written below and need no
+  further ruling;
 - moving a segment to the heavy lane, and reordering segments C and D if a live task is blocked.
 
 **These stop the run (STATUS written, then stop):**
@@ -623,15 +632,16 @@ the regenerated `grade/testdata/seed-report.golden`. **Hook:** neutral.
 `contract` finding (as for JSON) and the oracle tier's `parse` finding, both kept. A binding violation: one `contract`
 finding at the envelope. Many violations: all, sorted.
 
-**Test mandate and fixture state.** `TestGradeIdenticalBodiesReportOnlyContract` gains an XML twin: a hand-built
-session whose two sources hold the seed's real gonic `getAlbum` XML body byte for byte (it carries the `title` and
-`album` residuals on the ID3 `album`, [contract] Q3), asserting zero oracle-tier findings and a literal, non-empty list
-of `contract` findings, once per source, at their tree paths. A path proof places one violation on the second of two
-`song` elements and asserts the indexed path; a singleton proof places one on the only `song` of a one-song album and
-asserts the unindexed path. A row proof shows a `contract` row with format `xml` suppressing its finding and not the
-same path's JSON finding. **Mutations:** skip XML in the contract tier (the twin's literal list fails); map an ordinal
-to a path by element name alone (the indexed-path proof fails); index a singleton (the singleton proof fails); count
-declared unvalidated as valid and drop it from the header; continue past a tool failure.
+**Test mandate and fixture state.** `TestGradeIdenticalBodiesReportOnlyContract` gains an XML twin: a hand-built session
+whose two sources hold the seed's real gonic `getAlbum` XML body byte for byte, with gonic's `serverVersion` in both
+sources' metadata (it carries the `title` and `album` residuals on the ID3 `album`, [contract] Q3), asserting zero
+oracle-tier findings and a literal, non-empty list of `contract` findings, once per source, at their tree paths. A path
+proof places one violation on the second of two `song` elements and asserts the indexed path; a singleton proof places
+one on the only `song` of a one-song album and asserts the unindexed path. A row proof shows a `contract` row with
+format `xml` suppressing its finding and not the same path's JSON finding. **Mutations:** skip XML in the contract tier
+(the twin's literal list fails); map an ordinal to a path by element name alone (the indexed-path proof fails); index a
+singleton (the singleton proof fails); count declared unvalidated as valid and drop it from the header; continue past a
+tool failure.
 
 ### Task 5: The oracle assignment and the area list
 
@@ -674,15 +684,18 @@ is not `contract-only`, an album shape naming no manifest album or one that lack
   not-served set equals the 87 paths minus R27's 52 served endpoints.
 - **Album shapes**, by computation against the manifest: more than one disc; a `Various Artists` album artist; a track
   with two artist values; a name outside ASCII.
-- **The grading proof** is a hand-built session with sources `dubplate`, `navidrome`, and `gonic` over real seed
-  bodies. Its fixture state: dubplate's `getAlbum` and `getIndexes` bodies are gonic's, so they differ from
-  Navidrome's; dubplate's `getMusicFolders` body is Navidrome's, so it differs from gonic's; dubplate's `getIndexes`
-  body is perturbed so the contract tier reports one known violation (a required member removed); and one request
-  goes to an endpoint the assignment lacks, with differing bodies. Grading dubplate against Navidrome reports a
-  non-zero count of `getAlbum` oracle findings, zero oracle-tier findings and a skip count of one each for
-  `getIndexes` and `getMusicFolders`, the known `getIndexes` contract finding, and the unmapped request under
-  "unmapped" with zero oracle-tier findings. Grading dubplate against gonic reports a non-zero count of
-  `getMusicFolders` oracle findings.
+- **The grading proof** is a hand-built session with sources `dubplate`, `navidrome`, and `gonic` over real seed bodies.
+  The session loader refuses a body whose `serverVersion` differs from its source's metadata (`session.go:369-377`, run
+  by `Write` and `Load`), so every `dubplate` body's envelope `serverVersion` is rewritten to the one value the
+  `dubplate` source's metadata names. Its fixture state: dubplate's `getAlbum` and `getIndexes` bodies are gonic's, so
+  they differ from Navidrome's; dubplate's `getMusicFolders` body is Navidrome's, so it differs from gonic's; dubplate's
+  `getIndexes` body is perturbed so the contract tier reports one known violation (a required member removed); and one
+  request goes to an endpoint the assignment lacks, with differing bodies. Grading dubplate against Navidrome reports a
+  non-zero count of `getAlbum` oracle findings, zero oracle-tier findings and a skip count of one each for `getIndexes`
+  and `getMusicFolders`, the known `getIndexes` contract finding, and the unmapped request under "unmapped" with zero
+  oracle-tier findings. Grading dubplate against gonic reports a non-zero count of `getMusicFolders` oracle findings.
+  Both non-zero counts are asserted below the envelope, since until Task 7 the rewritten `serverVersion` differs from
+  both oracles' by value.
 
 **Mutations:** consult the assignment for an oracle pair (the seed golden changes and `TestSeedGrade` fails); skip the
 contract tier on an unassigned request (the known `getIndexes` finding vanishes); treat an unmapped endpoint as `both`
@@ -693,8 +706,9 @@ shape the manifest lacks.
 ### Task 6: The ledger's machine form and the transcription
 
 **Files:** `grade/ledger.go` and its tests, `data/ledger.json` (rewritten), `data/assignment.json` (its `agreements`
-section), a transcription test in `grade/`, and the inline `Row` literals that build `owed` rows with a class
-(`grade/ledger_test.go`, `grade/grade_test.go`, `cmd/harness/grade_test.go`). **Hook:** neutral.
+section), Task 5's assignment loader in `grade/` and its tests (the agreements' validation), a transcription test in
+`grade/`, and the inline `Row` literals that build `owed` rows with a class (`grade/ledger_test.go`,
+`grade/grade_test.go`, `cmd/harness/grade_test.go`). **Hook:** neutral.
 
 **Outcomes.**
 - **The row gains the record's columns** (R14): `divergence`, one of the record's ten classes (`declared: folder
@@ -833,15 +847,21 @@ nothing (the stale-row assertion fails).
 
 ### Task 9: Two collections in the fixture and the stack
 
-**Before segment C launches (the conductor).** Implementers carry no browser tool, so the conductor observes
-Navidrome's library creation once, with Playwright MCP against the Navidrome container `harness oracle-up` starts at
-the pinned digest: log in as the first admin, open the libraries page, add a library with "+" (the multi-library page,
-`:46-57`) at a container path that exists and does not overlap `/music`, and read the network log. It records the
-login exchange and the creation request (method, path, header names, body shape, status, response body shape; no
-credential value) in `docs/superpowers/research/2026-10-07-navidrome-library-request.md` and commits it before
-segment C launches; the step needs nothing from Tasks 7 or 8. No one opens Navidrome's source. If the observation
-cannot be made, or the recorded request cannot be replayed over HTTP, Navidrome's second library is ruled unmeasured
-(the conductor's ruling) and Task 10 takes its gonic-only form.
+**Before segment C launches (the conductor).** The conductor observes Navidrome's library creation once, inline: a
+one-time observation with no script to maintain, at the cost of GUI work in the conductor and a re-observation owed by
+R24's next deliberate Navidrome bump. It drives Playwright MCP against the Navidrome container `harness oracle-up`
+starts at the pinned digest: log in as the first admin, open the libraries page, add a library with "+" (the
+multi-library page, `:46-57`) at a container path that exists and does not overlap `/music`, and read the network log.
+It records the login exchange and the creation request (method, path, header names, body shape, status, response body
+shape; no credential value). **Then it replays them:** against a fresh `harness oracle-up`, `curl` sends the recorded
+login and creation with the credentials that run prints, and the conductor quotes the creation's status, then
+`getMusicFolders` and `getScanStatus` once the new library's scan finishes (`:62`), passwords redacted. The second
+path holds no tracks (the container mounts only `/music`), so the quote settles the request and the folder listing,
+not how `count` sums over two libraries that both hold tracks; that is Task 9's live evidence. The record of both runs
+lands in `docs/superpowers/research/2026-10-07-navidrome-library-request.md`, committed before segment C launches; the
+step needs nothing from Tasks 7 or 8. No one opens Navidrome's source. If the observation cannot be made or the replay
+fails, Navidrome's second library is ruled unmeasured (the conductor's ruling), and Tasks 9 and 10 are dispatched in
+their degraded forms.
 
 **Files:** two new manifests beside the seed's `manifest.json` in `internal/harness/subsonic/data/fixture/`, so
 `fixture.Load` finds the shared `seeds/` directory unchanged (quotes table); `fixture/`, `stack/`,
@@ -868,7 +888,15 @@ cannot be made, or the recorded request cannot be replayed over HTTP, Navidrome'
   one-collection list's digest is that library's own digest, so the seed's recorded digest still matches.
 - `harness oracle-up` and `harness record-oracle` take the collection list by flag, defaulting to the seed library.
 - **The live evidence:** the implementer runs `harness oracle-up` with both collections and quotes each oracle's
-  `getMusicFolders` (password redacted).
+  `getMusicFolders` and finished `getScanStatus` (password redacted).
+- **The degraded form**, taken when the conductor rules Navidrome's second library unmeasured: before Task 9, by
+  dispatching it in this form; or during it, when the replay answers an error or Navidrome's readiness never sees one
+  folder per collection and the total count. In that second case the implementer reports the live behavior with its
+  quote and does not work around it, and the conductor re-dispatches Task 9 in this form. Navidrome mounts the first
+  collection only, as its `MusicFolder`, and creates no library; gonic still receives every collection. Readiness checks
+  each oracle against its own collections: one folder and the first collection's tracks on Navidrome, one folder per
+  collection and the total on gonic. Each oracle's source records the digest of the collections it mounted, under the
+  rule above. The replay, its fake routes, and their proof drop; a gate test asserts Navidrome's argv carries one mount.
 
 **States table.** An empty collection list: refused. Two collections with one name: refused. Overlapping paths across
 collections: refused, naming both. Navidrome's library creation answering an error: an error naming the status and
@@ -910,9 +938,9 @@ and their tests. **Hook:** neutral (records evidence for hook 22; slice 3 builds
   asserts L-19's recorded behavior directly on the bodies: for `999`, Navidrome answers error 70 on all ten and gonic
   answers `ok` with an empty result; and A-04's: for each collection id, each oracle's filtered `getArtists` lists only
   that collection's artists.
-- **The gonic-only form**, taken only if Navidrome's second library was ruled unmeasured before Task 9: the session
-  records gonic alone for the filter requests, and no pair golden exists. The test asserts A-04 and L-19's gonic half
-  on the bodies. L-19's Navidrome half stays slice 1's observation ([servers] section 2), recorded as an erratum at
+- **The gonic-only form**, taken only if Navidrome's second library was ruled unmeasured before or during Task 9: the
+  session records gonic alone for the filter requests, and no pair golden exists. The test asserts A-04 and L-19's gonic
+  half on the bodies. L-19's Navidrome half stays slice 1's observation ([servers] section 2), recorded as an erratum at
   the plan's end.
 
 **States table.** As Task 8, plus: an ambiguous or unmatched collection key, refused before anything is written; a
@@ -1006,8 +1034,11 @@ Revision 1.1 closed four items from revision 1's list: xmllint's exit codes are 
 the mechanics review resolved `xmllint` inside the gate's own `systemd-run` scope to Homebrew's 2.15.4; it measured the
 light lane's fit (header); and the multi-library page answers the first admin's access (quotes table).
 
-- **Navidrome's library-creation request.** The conductor observes it before Task 9; the gonic-only form of Task 10
-  covers a failed observation.
+- **Navidrome's library-creation request.** The conductor observes and replays it before Task 9. Task 9's and Task
+  10's degraded forms cover a failure before or during Task 9.
+- **Navidrome's `getScanStatus` count over two libraries that both hold tracks.** No quote covers it, and the
+  conductor's replay cannot show it. Task 9's live evidence shows it, and a count other than the total triggers the
+  degraded form.
 - **gonic's folder names under aliases** in `getMusicFolders`. Task 9's live evidence shows them; collection keys
   resolve by artist set, not by name, so either answer works.
 - **The empty-states answers.** [contract] E6 predicts them at the probe fixture; the seed library is a different
@@ -1020,4 +1051,4 @@ light lane's fit (header); and the multi-library page answers the first admin's 
 ## Errata (filled during execution)
 
 None yet. A conductor ruling on a live behavior that contradicts this plan lands here with its task and remedy, as
-does Task 10's gonic-only form if it is taken.
+do Task 9's and Task 10's degraded forms if they are taken.
