@@ -62,9 +62,9 @@ type AdminConfig struct {
 
 	Logger *slog.Logger
 
-	// BodyCap is the byte limit on a POST body, applied before any
-	// parser reads it.
-	BodyCap int64
+	// BodyCap is the byte limit on a POST body, read when the POST
+	// starts and applied before any parser reads the body.
+	BodyCap Setting[int64]
 }
 
 // NewRosterAPI returns the roster API behind the admin gate. A request
@@ -136,7 +136,9 @@ func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 
 // gateRefusals are the causes the gate's log names. A seam error's own
 // text is never logged: the epoch check wraps the normalizer's error,
-// which quotes the address a signed session carries.
+// which quotes the address a signed session carries. A failed setting
+// read is the one exception, since its text names the setting and
+// nothing the request carried.
 var gateRefusals = []error{
 	http.ErrNoCookie,
 	ErrSessionMalformed,
@@ -148,9 +150,13 @@ var gateRefusals = []error{
 }
 
 // gateRefusalReason names err by the first of gateRefusals it wraps,
-// at Info. Any other error is the store failing, not a visitor failing
-// to verify, so it is named by a fixed reason at Error.
+// at Info. Any other error is the server failing, not a visitor failing
+// to verify, so it is named at Error: a failed setting read by its own
+// text, and anything else by a fixed reason.
 func gateRefusalReason(err error) (string, slog.Level) {
+	if errors.Is(err, errSettingUnreadable) {
+		return err.Error(), slog.LevelError
+	}
 	for _, known := range gateRefusals {
 		if errors.Is(err, known) {
 			return known.Error(), slog.LevelInfo
@@ -217,10 +223,11 @@ func (a *rosterAPI) list(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, listing)
 }
 
-// add runs a fixed order: the media type, the body cap while the form
-// parses, then the form's keys, and only then the fields, which come
-// from the body alone. Every refusal before AddMember writes nothing,
-// and AddMember's own refusals change no byte on disk.
+// add runs a fixed order: the media type, the body cap read and then
+// applied while the form parses, then the form's keys, and only then
+// the fields, which come from the body alone. Every refusal before
+// AddMember writes nothing, and AddMember's own refusals change no
+// byte on disk.
 func (a *rosterAPI) add(w http.ResponseWriter, r *http.Request, actor string) {
 	clientIP := a.cfg.ClientIP(r)
 	log := a.cfg.Logger.With("client_ip", clientIP)
@@ -236,7 +243,12 @@ func (a *rosterAPI) add(w http.ResponseWriter, r *http.Request, actor string) {
 		refuse(http.StatusBadRequest, outcomeMalformed)
 		return
 	}
-	if !readForm(w, r, a.cfg.BodyCap, log) {
+	bodyCap, err := a.cfg.BodyCap.read(r.Context())
+	if err != nil {
+		failSetting(w, log, err)
+		return
+	}
+	if !readForm(w, r, bodyCap, log) {
 		return
 	}
 	if outcome := formRefusal(r); outcome != "" {

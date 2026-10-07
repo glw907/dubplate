@@ -62,6 +62,26 @@ const (
 	outcomeSignedOut   = "signed_out"
 )
 
+// errSettingUnreadable marks a failed read of a setting's value in
+// force. A handler answers it as a server error, never as a refusal of
+// what the request carried, and never falls back to a default.
+var errSettingUnreadable = errors.New("auth setting unreadable")
+
+// A Setting returns one setting's value in force. Each call reads it
+// afresh, so a caller that reads at the point of use follows a change
+// without a restart. A non-nil error means the value is unknown, and
+// its text names the setting.
+type Setting[T any] func(ctx context.Context) (T, error)
+
+// read calls s, wrapping a failure in errSettingUnreadable.
+func (s Setting[T]) read(ctx context.Context) (T, error) {
+	v, err := s(ctx)
+	if err != nil {
+		return v, fmt.Errorf("%w: %w", errSettingUnreadable, err)
+	}
+	return v, nil
+}
+
 // HandlersConfig is everything [NewHandlers] needs, resolved by the
 // caller. Every field is required except PreviousLinkSecret.
 type HandlersConfig struct {
@@ -90,12 +110,16 @@ type HandlersConfig struct {
 	// a consumed link mints.
 	LinkSecret, PreviousLinkSecret, SessionSecret []byte
 
-	LinkExpiry, SessionLifetime time.Duration
+	// LinkExpiry is read when a link request starts, and the session
+	// a consumed link mints takes the SessionLifetime read when its
+	// consumption starts.
+	LinkExpiry, SessionLifetime Setting[time.Duration]
 
 	// SessionAbsoluteCap bounds how long a session can survive however
 	// many times it is refreshed. MintSession clamps every minted
-	// session's expiry to it, the same clamp RefreshSession applies.
-	SessionAbsoluteCap time.Duration
+	// session's expiry to the value read when the consumption starts,
+	// the same clamp RefreshSession applies.
+	SessionAbsoluteCap Setting[time.Duration]
 
 	// PublicOrigin is the configured public URL every mailed link is
 	// built from.
@@ -106,16 +130,17 @@ type HandlersConfig struct {
 	// package's own handlers.
 	Prefix string
 
-	// BodyCap is the byte limit on every request body, applied before
-	// any parser reads it.
-	BodyCap int64
+	// BodyCap is the byte limit on every request body, read when the
+	// request starts and applied before any parser reads the body.
+	BodyCap Setting[int64]
 
-	// GenericAnswer selects the generic unknown-address answer: a known
-	// address and an unknown one get the same response, sent before any
-	// mail is. When false, an unknown address is told so and handed the
-	// roster's admin contact, and a known address whose mail fails is
-	// told its request failed.
-	GenericAnswer bool
+	// GenericAnswer, read when a link request starts, selects the
+	// generic unknown-address answer: a known address and an unknown
+	// one get the same response, sent before any mail is. When false,
+	// an unknown address is told so and handed the roster's admin
+	// contact, and a known address whose mail fails is told its request
+	// failed.
+	GenericAnswer Setting[bool]
 }
 
 // Handlers is the three auth endpoints, as values the shell mounts.
@@ -163,16 +188,42 @@ type adminContact struct {
 	Address     string `json:"address"`
 }
 
+// linkRequestSettings are the values in force a link request reads
+// when it starts.
+type linkRequestSettings struct {
+	bodyCap int64
+	expiry  time.Duration
+	generic bool
+}
+
+// readLinkRequestSettings reads the settings a link request uses.
+func (h *handlers) readLinkRequestSettings(ctx context.Context) (linkRequestSettings, error) {
+	var s linkRequestSettings
+	var err error
+	if s.generic, err = h.cfg.GenericAnswer.read(ctx); err != nil {
+		return s, err
+	}
+	if s.bodyCap, err = h.cfg.BodyCap.read(ctx); err != nil {
+		return s, err
+	}
+	s.expiry, err = h.cfg.LinkExpiry.read(ctx)
+	return s, err
+}
+
 // requestLink runs a fixed order: charge the client's link-request
-// limit, cap the body and parse it, normalize the address, resolve it
-// against the roster, charge the address's limit for a known address
-// only, and only then spend mail. The client is charged before the
-// body is even read, so an oversized or unparseable body, and an
-// address that fails to normalize, all still cost the client a
-// request, matching consumeLink's own order of charging its client
-// limit before its own readForm. An unknown address is never charged,
-// so a flood of made-up addresses cannot fill the per-address map and
-// evict a member's spent bucket.
+// limit, read the settings it uses, cap the body and parse it,
+// normalize the address, resolve it against the roster, charge the
+// address's limit for a known address only, and only then spend mail.
+// The client is charged before the body is even read, so an oversized
+// or unparseable body, and an address that fails to normalize, all
+// still cost the client a request, matching consumeLink's own order of
+// charging its client limit before its own readForm. An unknown
+// address is never charged, so a flood of made-up addresses cannot
+// fill the per-address map and evict a member's spent bucket.
+//
+// The settings are read before the body is parsed, so a failed read
+// answers a member, a stranger, and an address that does not parse
+// with the same server error.
 //
 // Under the kind answer a known address over its limit is refused with
 // 429, which tells the requester nothing the kind answer's unknown
@@ -195,7 +246,12 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
-	if !readForm(w, r, h.cfg.BodyCap, log) {
+	vals, err := h.readLinkRequestSettings(r.Context())
+	if err != nil {
+		failSetting(w, log, err)
+		return
+	}
+	if !readForm(w, r, vals.bodyCap, log) {
 		return
 	}
 	// The normalizer's error can quote its input, so it is dropped
@@ -214,7 +270,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		// contact meant for a stranger. The generic answer's bytes stay
 		// the same, so the failure reaches the log alone.
 		log.Error("auth roster unavailable", "reason", err.Error())
-		if h.cfg.GenericAnswer {
+		if vals.generic {
 			writeAnswer(w, http.StatusOK, answer{Outcome: outcomeRequested})
 			return
 		}
@@ -224,7 +280,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	if known {
 		if err := h.cfg.Limiter.allowLinkAddress(now, address); err != nil {
 			log.Warn("auth rate limit tripped", "reason", err.Error())
-			if h.cfg.GenericAnswer {
+			if vals.generic {
 				writeAnswer(w, http.StatusOK, answer{Outcome: outcomeRequested})
 				return
 			}
@@ -233,7 +289,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if h.cfg.GenericAnswer {
+	if vals.generic {
 		log.Info("auth link requested", "known", known)
 		writeAnswer(w, http.StatusOK, answer{Outcome: outcomeRequested})
 		if known {
@@ -243,7 +299,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 			// deadline, which is what bounds the goroutine.
 			ctx := context.WithoutCancel(r.Context())
 			go func() {
-				if err := h.sendLink(ctx, now, member.Address); err != nil {
+				if err := h.sendLink(ctx, now, vals.expiry, member.Address); err != nil {
 					h.logSendFailure(log, err)
 				}
 			}()
@@ -262,7 +318,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusOK, answer{Outcome: outcomeUnknown, AdminContact: contact})
 		return
 	}
-	if err := h.sendLink(r.Context(), now, member.Address); err != nil {
+	if err := h.sendLink(r.Context(), now, vals.expiry, member.Address); err != nil {
 		h.logSendFailure(log, err)
 		if errors.Is(err, ErrRateLimited) {
 			writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
@@ -275,13 +331,13 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	writeAnswer(w, http.StatusOK, answer{Outcome: outcomeSent})
 }
 
-// sendLink charges the global mail ceiling, mints a link for address,
-// and mails it.
-func (h *handlers) sendLink(ctx context.Context, now time.Time, address string) error {
+// sendLink charges the global mail ceiling, mints a link for address
+// expiring after expiry, and mails it.
+func (h *handlers) sendLink(ctx context.Context, now time.Time, expiry time.Duration, address string) error {
 	if err := h.cfg.Limiter.AllowLinkMail(now); err != nil {
 		return err
 	}
-	token, _, err := MintLink(h.cfg.LinkSecret, address, now, h.cfg.LinkExpiry)
+	token, _, err := MintLink(h.cfg.LinkSecret, address, now, expiry)
 	if err != nil {
 		return err
 	}
@@ -289,8 +345,16 @@ func (h *handlers) sendLink(ctx context.Context, now time.Time, address string) 
 	if err != nil {
 		return err
 	}
-	phrase := expiryMinutesPhrase(h.cfg.LinkExpiry)
+	phrase := expiryMinutesPhrase(expiry)
 	return h.cfg.Send(ctx, address, linkMailSubject, fmt.Sprintf(linkMailBodyTemplate, link, phrase))
+}
+
+// failSetting answers a request whose setting read failed with a
+// server error. err names the setting and carries nothing the request
+// sent, so its text is logged.
+func failSetting(w http.ResponseWriter, log *slog.Logger, err error) {
+	log.Error("auth setting unreadable", "reason", err.Error())
+	writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
 }
 
 func (h *handlers) logSendFailure(log *slog.Logger, err error) {
@@ -318,18 +382,22 @@ func (h *handlers) adminContact(ctx context.Context) (*adminContact, error) {
 
 // consumeLink runs a fixed order, and no step may move: the per-client
 // limit, then the token's MAC and expiry, then the roster, then the
-// revocation epoch, then the nonce insert, and only then the session.
+// revocation epoch, then the session's lifetime and cap, then the
+// nonce insert, and only then the session.
 //
 // The limit comes first because a forged token fails at the MAC, so a
 // limit anywhere after it never sees the flood it exists to bound. The
 // roster and epoch checks precede the insert so a link for a removed or
 // revoked member consumes nothing, and the session is minted only once
 // the insert has succeeded, so a replay can never mint a second one.
+// The lifetime and cap are read before the insert, so a failed read
+// leaves the link unconsumed for a retry.
 //
 // Every refusal after the limit answers the same bytes, whatever the
-// cause, and any error at all refuses; the cause reaches the server log
-// alone. The log names the path and never the query, which a mailed
-// link carries its token in.
+// cause, and any error but a failed setting read refuses; the cause
+// reaches the server log alone. A failed setting read says nothing
+// about the token, and answers as a server error. The log names the
+// path and never the query, which a mailed link carries its token in.
 func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 	now := h.cfg.Now()
 	clientIP := h.cfg.ClientIP(r)
@@ -340,11 +408,20 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
-	if !readForm(w, r, h.cfg.BodyCap, log) {
+	bodyCap, err := h.cfg.BodyCap.read(r.Context())
+	if err != nil {
+		failSetting(w, log, err)
+		return
+	}
+	if !readForm(w, r, bodyCap, log) {
 		return
 	}
 
 	value, sess, err := h.consume(r.Context(), now, r.PostForm.Get(tokenField))
+	if errors.Is(err, errSettingUnreadable) {
+		failSetting(w, log, err)
+		return
+	}
 	if err != nil {
 		log.Info("auth link consumption failed", "reason", err.Error())
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeRefused})
@@ -356,7 +433,8 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 }
 
 // consume verifies token and consumes its nonce, returning the signed
-// session it mints. Any non-nil error is a refusal.
+// session it mints. Any non-nil error but one wrapping
+// errSettingUnreadable is a refusal.
 func (h *handlers) consume(ctx context.Context, now time.Time, token string) (string, Session, error) {
 	tok, err := VerifyLink(h.cfg.LinkSecret, h.cfg.PreviousLinkSecret, token, now)
 	if err != nil {
@@ -368,10 +446,18 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 	if err := h.cfg.Epoch.CheckLink(tok); err != nil {
 		return "", Session{}, err
 	}
-	if err := h.cfg.Nonces.Insert(tok.Nonce, now, tok.ExpiresAt); err != nil {
+	lifetime, err := h.cfg.SessionLifetime.read(ctx)
+	if err != nil {
 		return "", Session{}, err
 	}
-	return MintSession(h.cfg.SessionSecret, tok.Address, now, h.cfg.SessionLifetime, h.cfg.SessionAbsoluteCap)
+	absoluteCap, err := h.cfg.SessionAbsoluteCap.read(ctx)
+	if err != nil {
+		return "", Session{}, err
+	}
+	if err := h.cfg.Nonces.Insert(ctx, tok.Nonce, now, tok.ExpiresAt); err != nil {
+		return "", Session{}, err
+	}
+	return MintSession(h.cfg.SessionSecret, tok.Address, now, lifetime, absoluteCap)
 }
 
 // signOut caps and reads its body like every auth endpoint, then
@@ -379,7 +465,12 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 // not do.
 func (h *handlers) signOut(w http.ResponseWriter, r *http.Request) {
 	log := h.cfg.Logger.With("client_ip", h.cfg.ClientIP(r))
-	if !readForm(w, r, h.cfg.BodyCap, log) {
+	bodyCap, err := h.cfg.BodyCap.read(r.Context())
+	if err != nil {
+		failSetting(w, log, err)
+		return
+	}
+	if !readForm(w, r, bodyCap, log) {
 		return
 	}
 	http.SetCookie(w, ClearSessionCookie())

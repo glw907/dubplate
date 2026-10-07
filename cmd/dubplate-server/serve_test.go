@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
@@ -525,7 +526,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	nonces, _, err := auth.OpenNonceStore(store, time.Hour, magicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, magicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		t.Fatalf("auth.OpenNonceStore: %v", err)
 	}
@@ -584,15 +585,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 				t.Fatalf("newServeShell: %v", err)
 			}
 			t.Cleanup(func() { _ = h.Close() })
-			authCfg, err := readAuthConfig(t.Context(), settings.NewAccessor(h, productionRegistry()))
-			if err != nil {
-				t.Fatalf("readAuthConfig: %v", err)
-			}
-
-			handlersConfig := authHandlersConfig(prefix, cfg, authCfg, nil, nil, nil, nil, nil, nil, nil)
-			if handlersConfig.SessionAbsoluteCap != authCfg.sessionAbsoluteCap {
-				t.Errorf("authHandlersConfig SessionAbsoluteCap = %v, want %v", handlersConfig.SessionAbsoluteCap, authCfg.sessionAbsoluteCap)
-			}
+			handlersConfig := authHandlersConfig(prefix, cfg, settings.NewAccessor(h, productionRegistry()), nil, nil, nil, nil, nil, nil, nil)
 			if handlersConfig.Prefix != prefix.String() {
 				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
 			}
@@ -716,30 +709,38 @@ func environValue(environ []string, name string) string {
 // committed.
 func mintServeSession(t *testing.T, environ []string, address string, issued time.Time) string {
 	t.Helper()
-	authCfg, err := storeAuthConfig(t.Context(), environ)
+	var lifetime, absoluteCap time.Duration
+	err := withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
+		var err error
+		if lifetime, err = acc.Duration(t.Context(), sessionLifetimeSetting); err != nil {
+			return err
+		}
+		absoluteCap, err = acc.Duration(t.Context(), sessionAbsoluteCapSetting)
+		return err
+	})
 	if err != nil {
-		t.Fatalf("storeAuthConfig: %v", err)
+		t.Fatalf("read the session settings: %v", err)
 	}
 	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
-	value, _, err := auth.MintSession([]byte(secret), address, issued, authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
+	value, _, err := auth.MintSession([]byte(secret), address, issued, lifetime, absoluteCap)
 	if err != nil {
 		t.Fatalf("auth.MintSession(%s): %v", address, err)
 	}
 	return value
 }
 
-// storeAuthConfig reads the auth settings in force in the store under
-// environ's DUBPLATE_STATE_DIR through [readAuthConfig], on a shared
-// write-mode handle beside any serve handle a test holds open. A test
-// calls it after building the shell, so the values are the ones that
-// shell's seed left in force.
-func storeAuthConfig(ctx context.Context, environ []string) (_ authConfig, err error) {
+// withStoreAccessor calls fn with an accessor over the store under
+// environ's DUBPLATE_STATE_DIR, on a shared write-mode handle beside
+// any serve handle a test holds open, and closes the handle after. A
+// test calls it after building the shell, so the values fn reads are
+// the ones that shell's seed left in force.
+func withStoreAccessor(ctx context.Context, environ []string, fn func(*settings.Accessor) error) (err error) {
 	h, err := store.OpenWrite(ctx, environValue(environ, "DUBPLATE_STATE_DIR"), testBackupBusy)
 	if err != nil {
-		return authConfig{}, err
+		return err
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
-	return readAuthConfig(ctx, settings.NewAccessor(h, productionRegistry()))
+	return fn(settings.NewAccessor(h, productionRegistry()))
 }
 
 // sessionRequest builds a request to target carrying session as its
@@ -1943,6 +1944,430 @@ func TestServePortBound(t *testing.T) {
 			}
 			if strings.Contains(tt.wantErr, "below") && !strings.Contains(err.Error(), "CAP_NET_BIND_SERVICE") {
 				t.Errorf("config.Load() error = %q, want it to name CAP_NET_BIND_SERVICE", err)
+			}
+		})
+	}
+}
+
+// startServeShell builds a serve shell from environ as the verb does
+// and returns it with its store handle, prefix, and config. The caller
+// closes the handle; the shell's background work stops with ctx.
+func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serve.Shell, *store.Handle, serve.Prefix, *config.Config, error) {
+	t.Helper()
+	cfg, err := config.Load(environ, productionRegistry())
+	if err != nil {
+		t.Fatalf("config.Load: %v", err)
+	}
+	prefix, addrs, _, err := resolveServeConfig(environ)
+	if err != nil {
+		t.Fatalf("resolveServeConfig: %v", err)
+	}
+	shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
+	return shell, h, prefix, cfg, err
+}
+
+// writeAdminRows writes each of values as an admin-sourced settings row
+// through h, replacing any row the key holds, and bumps the settings
+// generation in the same transaction: the shape of an admin write, as
+// the settings home's writer will make it.
+func writeAdminRows(t *testing.T, h *store.Handle, values map[string]string) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	defer cancel()
+	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		for _, key := range slices.Sorted(maps.Keys(values)) {
+			if _, err := tx.Exec(ctx, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
+				VALUES (?, ?, 'admin', NULL, 'fixture', 2)
+				ON CONFLICT (key) DO UPDATE SET value = excluded.value, source = 'admin', seed_value = NULL, actor = 'fixture', updated_at = 2`,
+				key, values[key]); err != nil {
+				return err
+			}
+		}
+		_, err := tx.Exec(ctx, `UPDATE settings_generation SET generation = generation + 1 WHERE singleton = 1`)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("write admin rows: %v", err)
+	}
+}
+
+// strangerLinkRequests posts n link requests for an address no member
+// holds through handler and returns each status. A stranger is told so
+// under the kind answer and sent no mail, so the requests spend the
+// client's link-request limit and nothing else.
+func strangerLinkRequests(handler http.Handler, prefix serve.Prefix, n int) []int {
+	var codes []int
+	for range n {
+		rec := authRoutePOST(handler, prefix.String()+"/"+requestLinkRouteName, "address=stranger%40example.com")
+		codes = append(codes, rec.Code)
+	}
+	return codes
+}
+
+// refreshedSession requests the roster as an admin over session with a
+// same-origin GET, so the seam refreshes it, and returns the status,
+// the refreshed cookie value the response sets, and its session,
+// verified against secret at at with absoluteCap.
+func refreshedSession(t *testing.T, handler http.Handler, prefix serve.Prefix, session, secret string, at time.Time, absoluteCap time.Duration) (int, string, auth.Session) {
+	t.Helper()
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, sessionRequest(http.MethodGet, prefix.String()+"/"+rosterRouteName, session, "same-origin", ""))
+	if rec.Code != http.StatusOK {
+		return rec.Code, "", auth.Session{}
+	}
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == "__Host-dubplate_session" {
+			sess, err := auth.VerifySession([]byte(secret), nil, c.Value, at, absoluteCap)
+			if err != nil {
+				t.Fatalf("verify the refreshed session: %v", err)
+			}
+			return rec.Code, c.Value, sess
+		}
+	}
+	t.Fatalf("a same-origin admin GET set no session cookie")
+	return 0, "", auth.Session{}
+}
+
+// TestNewServeShell_AdminRowAppliesByMode is spec criterion 9: serve
+// starts under environment values A, an admin row B is then written
+// for each of five keys with the generation bumped, and each value
+// applies on its own schedule. The link expiry and the session
+// lifetime apply at the next operation, the absolute cap at the next
+// request, and the client's link-request limit only at the next start.
+//
+// Fixture state: a current store holding an admin, and A and B chosen
+// so each step tells them apart. The admin's capped session is five
+// hours old, inside A's ten-hour cap and past B's three, and it is
+// admitted before the write, so its refusal after the write is the
+// cap's. Three stranger requests trip A's limit of two and not B's
+// five.
+func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
+	const (
+		expiryKey   = "DUBPLATE_MAGIC_LINK_EXPIRY"
+		lifetimeKey = "DUBPLATE_SESSION_LIFETIME"
+		capKey      = "DUBPLATE_SESSION_ABSOLUTE_CAP"
+		limitKey    = "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR"
+	)
+	envA := map[string]string{expiryKey: "15m", lifetimeKey: "6h", capKey: "10h", limitKey: "2"}
+	rowB := map[string]string{expiryKey: "40m", lifetimeKey: "1h", capKey: "3h", limitKey: "5"}
+
+	environ := rosterAPIEnviron(t)
+	for _, key := range slices.Sorted(maps.Keys(envA)) {
+		environ = replaceKey(environ, key, envA[key])
+	}
+	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	shell, h, prefix, cfg, err := startServeShell(t, ctx, environ)
+	if err != nil {
+		t.Fatalf("start under A: %v", err)
+	}
+	handler := shell.Handler()
+
+	agedAt := time.Now().Add(-5 * time.Hour)
+	aged, _, err := auth.MintSession([]byte(secret), rosterAdminAddress, agedAt, 6*time.Hour, 10*time.Hour)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+	if code, _, _ := refreshedSession(t, handler, prefix, aged, secret, time.Now(), 10*time.Hour); code != http.StatusOK {
+		t.Fatalf("the five-hour-old session under A's cap answered %d, want 200", code)
+	}
+
+	writeAdminRows(t, h, rowB)
+
+	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
+		var mailed []string
+		hc := authHandlersConfig(prefix, cfg, settings.NewAccessor(h, productionRegistry()), auth.NewRoster(h), nil, nil,
+			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
+			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
+		hc.Send = func(_ context.Context, _, _, body string) error {
+			mailed = append(mailed, body)
+			return nil
+		}
+		rec := authRoutePOST(auth.NewHandlers(hc).RequestLink, "/request-link", "address="+url.QueryEscape(rosterMemberAddress))
+		if rec.Code != http.StatusOK || len(mailed) != 1 {
+			t.Fatalf("request = %d %s with %d mails, want 200 and one mail", rec.Code, rec.Body.String(), len(mailed))
+		}
+		if !strings.Contains(mailed[0], "expires in 40 minutes") {
+			t.Errorf("mail body %q, want B's 40 minutes", mailed[0])
+		}
+		var token string
+		for field := range strings.FieldsSeq(mailed[0]) {
+			if u, err := url.Parse(field); err == nil && u.Scheme == "https" {
+				token = u.Query().Get("t")
+			}
+		}
+		tok, err := auth.VerifyLink([]byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET")), nil, token, time.Now())
+		if err != nil {
+			t.Fatalf("VerifyLink: %v", err)
+		}
+		if got := tok.ExpiresAt.Sub(tok.MintedAt); got != 40*time.Minute {
+			t.Errorf("link life = %v, want B's 40m", got)
+		}
+	})
+
+	t.Run("the next refresh uses B's lifetime", func(t *testing.T) {
+		fresh, _, err := auth.MintSession([]byte(secret), rosterAdminAddress, time.Now(), 6*time.Hour, 10*time.Hour)
+		if err != nil {
+			t.Fatalf("MintSession: %v", err)
+		}
+		code, _, sess := refreshedSession(t, handler, prefix, fresh, secret, time.Now(), 3*time.Hour)
+		if code != http.StatusOK {
+			t.Fatalf("refresh answered %d, want 200", code)
+		}
+		if got := sess.ExpiresAt.Sub(sess.IssuedAt); got != time.Hour {
+			t.Errorf("refreshed lifetime = %v, want B's 1h", got)
+		}
+	})
+
+	t.Run("the next request enforces B's lowered cap", func(t *testing.T) {
+		if code, _, _ := refreshedSession(t, handler, prefix, aged, secret, time.Now(), 10*time.Hour); code != http.StatusNotFound {
+			t.Errorf("the five-hour-old session answered %d after the cap fell to 3h, want the gate's 404", code)
+		}
+	})
+
+	t.Run("the limiter keeps A until a new start", func(t *testing.T) {
+		if got, want := strangerLinkRequests(handler, prefix, 3), []int{200, 200, 429}; !slices.Equal(got, want) {
+			t.Errorf("statuses = %v, want %v under A's limit of 2", got, want)
+		}
+	})
+
+	cancel()
+	if err := h.Close(); err != nil {
+		t.Fatalf("close the first start's store: %v", err)
+	}
+
+	t.Run("a start with env A beside admin row B refuses naming both", func(t *testing.T) {
+		envOnlyLimit := environ
+		for _, key := range []string{expiryKey, lifetimeKey, capKey} {
+			envOnlyLimit = dropKey(envOnlyLimit, key)
+		}
+		_, h2, _, _, err := startServeShell(t, t.Context(), envOnlyLimit)
+		if err == nil {
+			_ = h2.Close()
+			t.Fatal("start succeeded, want the seed's refusal")
+		}
+		for _, want := range []string{limitKey, `"2"`, `"5"`} {
+			if !strings.Contains(err.Error(), want) {
+				t.Errorf("refusal %q, want it to name %s", err, want)
+			}
+		}
+	})
+
+	t.Run("the next start with the env unset uses B's limit", func(t *testing.T) {
+		unset := environ
+		for key := range envA {
+			unset = dropKey(unset, key)
+		}
+		ctx2, cancel2 := context.WithCancel(t.Context())
+		defer cancel2()
+		shell2, h2, prefix2, _, err := startServeShell(t, ctx2, unset)
+		if err != nil {
+			t.Fatalf("restart: %v", err)
+		}
+		defer func() { _ = h2.Close() }()
+		if got, want := strangerLinkRequests(shell2.Handler(), prefix2, 3), []int{200, 200, 200}; !slices.Equal(got, want) {
+			t.Errorf("statuses = %v, want %v under B's limit of 5", got, want)
+		}
+	})
+}
+
+// TestNewServeShell_AdminRowRaisesTheCapThroughARefresh is spec
+// criterion 9's raised-cap case: a cap raised by an admin row admits a
+// session past its old cap only through a refresh, because the cookie's
+// expiry was clamped to the old cap when it was minted. A session
+// refreshed after the write carries an expiry past its anchor plus A,
+// and it verifies at an instant between the two.
+func TestNewServeShell_AdminRowRaisesTheCapThroughARefresh(t *testing.T) {
+	const capKey = "DUBPLATE_SESSION_ABSOLUTE_CAP"
+	environ := replaceKey(replaceKey(rosterAPIEnviron(t), "DUBPLATE_SESSION_LIFETIME", "2h"), capKey, "3h")
+	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	shell, h, prefix, _, err := startServeShell(t, ctx, environ)
+	if err != nil {
+		t.Fatalf("start under A: %v", err)
+	}
+	defer func() { _ = h.Close() }()
+
+	anchor := time.Now().Add(-90 * time.Minute).Truncate(time.Second)
+	session, minted, err := auth.MintSession([]byte(secret), rosterAdminAddress, anchor, 2*time.Hour, 3*time.Hour)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+	capA := anchor.Add(3 * time.Hour)
+	if minted.ExpiresAt.After(capA) {
+		t.Fatalf("minted expiry %v past the anchor plus A, %v", minted.ExpiresAt, capA)
+	}
+
+	writeAdminRows(t, h, map[string]string{capKey: "10h"})
+
+	code, value, refreshed := refreshedSession(t, shell.Handler(), prefix, session, secret, time.Now(), 10*time.Hour)
+	if code != http.StatusOK {
+		t.Fatalf("refresh answered %d, want 200", code)
+	}
+	if !refreshed.ExpiresAt.After(capA) {
+		t.Fatalf("refreshed expiry %v, want past the anchor plus A, %v", refreshed.ExpiresAt, capA)
+	}
+	between := capA.Add(refreshed.ExpiresAt.Sub(capA) / 2)
+	var absoluteCap time.Duration
+	err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
+		var err error
+		absoluteCap, err = acc.Duration(t.Context(), sessionAbsoluteCapSetting)
+		return err
+	})
+	if err != nil {
+		t.Fatalf("read the cap in force: %v", err)
+	}
+	if _, err := auth.VerifySession([]byte(secret), nil, value, between, absoluteCap); err != nil {
+		t.Errorf("verification at %v, between the anchor plus A and the refreshed expiry: %v, want admitted", between, err)
+	}
+}
+
+// TestNewServeShell_RequestReadsTheSeededAnswer is spec criterion 12's
+// request half: a request handled after the start reads the value the
+// seed put in force. With the unknown-address answer seeded generic, a
+// stranger's link request answers requested, where the default kind
+// answer names it unknown.
+func TestNewServeShell_RequestReadsTheSeededAnswer(t *testing.T) {
+	for _, tt := range []struct {
+		answer, want string
+	}{
+		{"", "unknown"},
+		{"generic", "requested"},
+	} {
+		t.Run(cmp.Or(tt.answer, "the default"), func(t *testing.T) {
+			environ := rosterAPIEnviron(t)
+			if tt.answer != "" {
+				environ = replaceKey(environ, "DUBPLATE_UNKNOWN_ADDRESS_ANSWER", tt.answer)
+			}
+			shell, err := buildServeShell(t, environ)
+			if err != nil {
+				t.Fatalf("buildServeShell: %v", err)
+			}
+			prefix, _, _, err := resolveServeConfig(environ)
+			if err != nil {
+				t.Fatalf("resolveServeConfig: %v", err)
+			}
+			rec := authRoutePOST(shell.Handler(), prefix.String()+"/"+requestLinkRouteName, "address=stranger%40example.com")
+			var got struct {
+				Outcome string `json:"outcome"`
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+				t.Fatalf("decode %q: %v", rec.Body.String(), err)
+			}
+			if rec.Code != http.StatusOK || got.Outcome != tt.want {
+				t.Errorf("stranger's request = %d %q, want 200 %q", rec.Code, got.Outcome, tt.want)
+			}
+		})
+	}
+}
+
+// TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling proves serve
+// hands the nonce store the link expiry's registered ceiling, never the
+// expiry in force: a record the sweep cannot parse ages out only past
+// max(the retention, the ceiling), so with the expiry and the retention
+// both below the ceiling, a crash-truncated record older than both but
+// younger than the ceiling survives serve's opening sweep.
+func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
+	environ := replaceKey(replaceKey(serveAuthEnviron(t), "DUBPLATE_MAGIC_LINK_EXPIRY", "5m"), "DUBPLATE_NONCE_RETENTION", "30m")
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+	if _, err := auth.Open(stateDir); err != nil {
+		t.Fatalf("auth.Open: %v", err)
+	}
+	record := filepath.Join(auth.StoreDir(stateDir), "nonce", "truncated")
+	if err := os.WriteFile(record, nil, 0o600); err != nil {
+		t.Fatalf("plant the truncated record: %v", err)
+	}
+	age := time.Now().Add(-45 * time.Minute)
+	if err := os.Chtimes(record, age, age); err != nil {
+		t.Fatalf("age the record: %v", err)
+	}
+
+	if _, err := buildServeShell(t, environ); err != nil {
+		t.Fatalf("buildServeShell: %v", err)
+	}
+	if _, err := os.Stat(record); err != nil {
+		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", magicLinkExpiryCeiling, err)
+	}
+}
+
+// TestNewServeShell_UnreadableSettingFailsTheRequest proves the readers
+// serve wires never fall back to a default: a row the accessor refuses,
+// written after the start so the seed never saw it, fails the request
+// that reads it through each surface's server-error path, and the log
+// names the key. A link request answers 500 failed; the admin gate
+// answers its 404 and logs at Error.
+func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
+	tests := []struct {
+		name, key, value string
+		request          func(t *testing.T, environ []string, prefix serve.Prefix) *http.Request
+		wantCode         int
+	}{
+		{
+			name: "the body cap below its floor", key: "DUBPLATE_AUTH_REQUEST_BODY_CAP", value: "1",
+			request: func(t *testing.T, _ []string, prefix serve.Prefix) *http.Request {
+				return sessionRequest(http.MethodPost, prefix.String()+"/"+requestLinkRouteName, "", "same-origin", "address="+url.QueryEscape(rosterMemberAddress))
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name: "the answer outside its set", key: "DUBPLATE_UNKNOWN_ADDRESS_ANSWER", value: "open",
+			request: func(t *testing.T, _ []string, prefix serve.Prefix) *http.Request {
+				return sessionRequest(http.MethodPost, prefix.String()+"/"+requestLinkRouteName, "", "same-origin", "address=stranger%40example.com")
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+		{
+			name: "the absolute cap below its floor", key: "DUBPLATE_SESSION_ABSOLUTE_CAP", value: "1ms",
+			request: func(t *testing.T, environ []string, prefix serve.Prefix) *http.Request {
+				session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+				return sessionRequest(http.MethodGet, prefix.String()+"/"+rosterRouteName, session, "", "")
+			},
+			wantCode: http.StatusNotFound,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := rosterAPIEnviron(t)
+			var logs bytes.Buffer
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			cfg, err := config.Load(environ, productionRegistry())
+			if err != nil {
+				t.Fatalf("config.Load: %v", err)
+			}
+			prefix, addrs, _, err := resolveServeConfig(environ)
+			if err != nil {
+				t.Fatalf("resolveServeConfig: %v", err)
+			}
+			shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
+			if err != nil {
+				t.Fatalf("newServeShell: %v", err)
+			}
+			defer func() { _ = h.Close() }()
+			r := tt.request(t, environ, prefix)
+
+			writeAdminRows(t, h, map[string]string{tt.key: tt.value})
+			rec := httptest.NewRecorder()
+			shell.Handler().ServeHTTP(rec, r)
+
+			if rec.Code != tt.wantCode {
+				t.Errorf("status = %d %s, want %d", rec.Code, rec.Body.String(), tt.wantCode)
+			}
+			var found bool
+			for line := range strings.Lines(logs.String()) {
+				var record map[string]any
+				if err := json.Unmarshal([]byte(line), &record); err != nil {
+					t.Fatalf("log line %q: %v", line, err)
+				}
+				reason, _ := record["reason"].(string)
+				if record["level"] == "ERROR" && strings.Contains(reason, tt.key) {
+					found = true
+				}
+			}
+			if !found {
+				t.Errorf("no Error record naming %s in:\n%s", tt.key, logs.String())
 			}
 		})
 	}

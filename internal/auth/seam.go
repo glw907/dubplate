@@ -69,7 +69,7 @@ type MagicLinkSeam struct {
 	epoch  *EpochStore
 
 	currentSecret, previousSecret []byte
-	lifetime, absoluteCap         time.Duration
+	lifetime, absoluteCap         Setting[time.Duration]
 }
 
 var _ Seam = (*MagicLinkSeam)(nil)
@@ -77,8 +77,10 @@ var _ Seam = (*MagicLinkSeam)(nil)
 // NewMagicLinkSeam returns a MagicLinkSeam verifying against roster and
 // epoch, signing and clamping refreshed sessions the same way
 // currentSecret, previousSecret, lifetime, and absoluteCap already
-// govern minting and verification.
-func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap time.Duration) *MagicLinkSeam {
+// govern minting and verification. absoluteCap is read at every
+// verification, so a changed cap applies to the next request in both
+// directions; lifetime is read at every refresh.
+func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap Setting[time.Duration]) *MagicLinkSeam {
 	return &MagicLinkSeam{
 		roster:         roster,
 		epoch:          epoch,
@@ -97,12 +99,19 @@ func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previous
 // stops working at their next request rather than at their session's
 // expiry. A refresh, when the request is same-origin, runs last, after
 // every refusal has already had its chance to deny.
+//
+// A failed read of the cap or the lifetime fails the verification with
+// an error wrapping errSettingUnreadable, never a default.
 func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
-	sess, err := VerifySession(m.currentSecret, m.previousSecret, cookie.Value, now, m.absoluteCap)
+	absoluteCap, err := m.absoluteCap.read(r.Context())
+	if err != nil {
+		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
+	}
+	sess, err := VerifySession(m.currentSecret, m.previousSecret, cookie.Value, now, absoluteCap)
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
@@ -127,7 +136,11 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 		Session: sess,
 	}
 	if sameOrigin {
-		value, refreshed := RefreshSession(m.currentSecret, sess, now, m.lifetime, m.absoluteCap)
+		lifetime, err := m.lifetime.read(r.Context())
+		if err != nil {
+			return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
+		}
+		value, refreshed := RefreshSession(m.currentSecret, sess, now, lifetime, absoluteCap)
 		result.Session = refreshed
 		result.RefreshedValue = value
 	}

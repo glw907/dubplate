@@ -45,7 +45,7 @@ func newNonceStore(t *testing.T, stateDir string, retention time.Duration, now t
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(store, retention, fixtureLinkExpiryCeiling, now)
+	nonces, _, err := OpenNonceStore(t.Context(), store, fixed(retention), fixtureLinkExpiryCeiling, now)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestInsertRefusesReplay(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
 
-	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("first Insert: %v", err)
 	}
 	path := recordPathFor(t, stateDir, consumedSample)
@@ -84,7 +84,7 @@ func TestInsertRefusesReplay(t *testing.T) {
 		t.Fatalf("read record: %v", err)
 	}
 
-	err = nonces.Insert(consumedSample, nonceClock.Add(time.Minute), sampleExpiry)
+	err = nonces.Insert(t.Context(), consumedSample, nonceClock.Add(time.Minute), sampleExpiry)
 	if !errors.Is(err, ErrNonceReplayed) {
 		t.Fatalf("second Insert error = %v, want ErrNonceReplayed", err)
 	}
@@ -106,12 +106,12 @@ func TestInsertRefusesReplayAcrossRestart(t *testing.T) {
 	stateDir := t.TempDir()
 
 	first := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := first.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := first.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert before restart: %v", err)
 	}
 
 	restarted := newNonceStore(t, stateDir, fixtureRetention, nonceClock.Add(time.Minute))
-	err := restarted.Insert(consumedSample, nonceClock.Add(time.Minute), sampleExpiry)
+	err := restarted.Insert(t.Context(), consumedSample, nonceClock.Add(time.Minute), sampleExpiry)
 	if !errors.Is(err, ErrNonceReplayed) {
 		t.Fatalf("Insert after restart error = %v, want ErrNonceReplayed", err)
 	}
@@ -144,7 +144,7 @@ func TestFailedMACNeverReachesNonceStore(t *testing.T) {
 	// the compiled statement of the order, so a change to either
 	// signature breaks this test rather than the prose.
 	if err == nil {
-		if err := nonces.Insert(tok.Nonce, nonceClock, tok.ExpiresAt); err != nil {
+		if err := nonces.Insert(t.Context(), tok.Nonce, nonceClock, tok.ExpiresAt); err != nil {
 			t.Fatalf("Insert: %v", err)
 		}
 	}
@@ -173,11 +173,11 @@ func TestSweepPrunesOnCarriedExpiry(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-			if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+			if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 				t.Fatalf("Insert: %v", err)
 			}
 
-			sweep, err := nonces.Sweep(tt.sweepAt)
+			sweep, err := nonces.Sweep(t.Context(), tt.sweepAt)
 			if err != nil {
 				t.Fatalf("Sweep: %v", err)
 			}
@@ -203,12 +203,12 @@ func TestSweepPrunesOnCarriedExpiry(t *testing.T) {
 func TestRecordCarriesTheLongerRetention(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
 	sweepAt := nonceClock.Add(fixtureExpiry).Add(time.Hour)
-	if _, err := nonces.Sweep(sweepAt); err != nil {
+	if _, err := nonces.Sweep(t.Context(), sweepAt); err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
 	if _, err := os.Stat(recordPathFor(t, stateDir, consumedSample)); err != nil {
@@ -218,7 +218,7 @@ func TestRecordCarriesTheLongerRetention(t *testing.T) {
 	// A sweep past the retention does remove it, so the survival
 	// above is the carried expiry holding rather than a sweep that
 	// never removes anything.
-	if _, err := nonces.Sweep(nonceClock.Add(fixtureRetention + time.Second)); err != nil {
+	if _, err := nonces.Sweep(t.Context(), nonceClock.Add(fixtureRetention+time.Second)); err != nil {
 		t.Fatalf("Sweep past retention: %v", err)
 	}
 	if _, err := os.Stat(recordPathFor(t, stateDir, consumedSample)); !errors.Is(err, os.ErrNotExist) {
@@ -247,15 +247,15 @@ func TestRecordOutlivesItsToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("MintLink: %v", err)
 	}
-	if err := nonces.Insert(tok.Nonce, nonceClock, tok.ExpiresAt); err != nil {
+	if err := nonces.Insert(t.Context(), tok.Nonce, nonceClock, tok.ExpiresAt); err != nil {
 		t.Fatalf("first Insert: %v", err)
 	}
-	if err := nonces.Insert(tok.Nonce, nonceClock, tok.ExpiresAt); !errors.Is(err, ErrNonceReplayed) {
+	if err := nonces.Insert(t.Context(), tok.Nonce, nonceClock, tok.ExpiresAt); !errors.Is(err, ErrNonceReplayed) {
 		t.Fatalf("second Insert = %v, want ErrNonceReplayed", err)
 	}
 
 	sweepAt := nonceClock.Add(2 * shortRetention)
-	sweep, err := nonces.Sweep(sweepAt)
+	sweep, err := nonces.Sweep(t.Context(), sweepAt)
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
@@ -265,14 +265,14 @@ func TestRecordOutlivesItsToken(t *testing.T) {
 	if _, err := VerifyLink(current, nil, value, sweepAt); err != nil {
 		t.Fatalf("VerifyLink at %v: %v, want a live token", sweepAt, err)
 	}
-	if err := nonces.Insert(tok.Nonce, sweepAt, tok.ExpiresAt); !errors.Is(err, ErrNonceReplayed) {
+	if err := nonces.Insert(t.Context(), tok.Nonce, sweepAt, tok.ExpiresAt); !errors.Is(err, ErrNonceReplayed) {
 		t.Fatalf("replay Insert after the sweep = %v, want ErrNonceReplayed", err)
 	}
 
 	// Past the token's expiry the record is collectable, so the
 	// survival above is the token's expiry holding rather than a
 	// sweep that never removes anything.
-	sweep, err = nonces.Sweep(tok.ExpiresAt.Add(time.Second))
+	sweep, err = nonces.Sweep(t.Context(), tok.ExpiresAt.Add(time.Second))
 	if err != nil {
 		t.Fatalf("Sweep past the token's expiry: %v", err)
 	}
@@ -287,7 +287,7 @@ func TestRecordOutlivesItsToken(t *testing.T) {
 func TestSweepRetainsMalformedRecord(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
@@ -296,7 +296,7 @@ func TestSweepRetainsMalformedRecord(t *testing.T) {
 		t.Fatalf("write malformed record: %v", err)
 	}
 
-	sweep, err := nonces.Sweep(nonceClock.Add(fixtureRetention + time.Second))
+	sweep, err := nonces.Sweep(t.Context(), nonceClock.Add(fixtureRetention+time.Second))
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
@@ -330,7 +330,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
@@ -343,7 +343,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chmod(unreadable, 0o600) })
 
-	sweep, err := nonces.Sweep(nonceClock.Add(fixtureRetention + time.Second))
+	sweep, err := nonces.Sweep(t.Context(), nonceClock.Add(fixtureRetention+time.Second))
 	if err != nil {
 		t.Fatalf("Sweep: %v, want nil: an unreadable record must not fail the sweep", err)
 	}
@@ -361,7 +361,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 	// retained: O_CREATE|O_EXCL detects the existing file without
 	// reading it, so the insert never needed the mode that blocks
 	// os.ReadFile.
-	if err := nonces.Insert(secondSample, nonceClock, sampleExpiry); !errors.Is(err, ErrNonceReplayed) {
+	if err := nonces.Insert(t.Context(), secondSample, nonceClock, sampleExpiry); !errors.Is(err, ErrNonceReplayed) {
 		t.Errorf("Insert() error = %v, want ErrNonceReplayed while the record is retained", err)
 	}
 
@@ -371,7 +371,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	if _, _, err := OpenNonceStore(store, fixtureRetention, fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
+	if _, _, err := OpenNonceStore(t.Context(), store, fixed(fixtureRetention), fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
 		t.Errorf("OpenNonceStore: %v, want nil: a single unreadable record must not stop startup", err)
 	}
 
@@ -384,7 +384,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 		t.Fatalf("Stat: %v", err)
 	}
 	past := info.ModTime().Add(fixtureRetention + time.Second)
-	sweep, err = nonces.Sweep(past)
+	sweep, err = nonces.Sweep(t.Context(), past)
 	if err != nil {
 		t.Fatalf("Sweep: %v, want nil", err)
 	}
@@ -416,7 +416,7 @@ func TestMtimeFallbackRespectsLinkExpiryCeiling(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(store, shortRetention, fixtureLinkExpiryCeiling, nonceClock)
+	nonces, _, err := OpenNonceStore(t.Context(), store, fixed(shortRetention), fixtureLinkExpiryCeiling, nonceClock)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -436,7 +436,7 @@ func TestMtimeFallbackRespectsLinkExpiryCeiling(t *testing.T) {
 	}
 
 	pastRetention := info.ModTime().Add(shortRetention + time.Second)
-	sweep, err := nonces.Sweep(pastRetention)
+	sweep, err := nonces.Sweep(t.Context(), pastRetention)
 	if err != nil {
 		t.Fatalf("Sweep: %v, want nil", err)
 	}
@@ -448,7 +448,7 @@ func TestMtimeFallbackRespectsLinkExpiryCeiling(t *testing.T) {
 	}
 
 	pastCeiling := info.ModTime().Add(fixtureLinkExpiryCeiling + time.Second)
-	sweep, err = nonces.Sweep(pastCeiling)
+	sweep, err = nonces.Sweep(t.Context(), pastCeiling)
 	if err != nil {
 		t.Fatalf("Sweep: %v, want nil", err)
 	}
@@ -474,14 +474,14 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 		t.Fatalf("write zero-length record: %v", err)
 	}
 
-	sweep, err := nonces.Sweep(nonceClock)
+	sweep, err := nonces.Sweep(t.Context(), nonceClock)
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
 	if sweep.Removed != 0 || sweep.Malformed != 1 {
 		t.Errorf("sweep = %+v, want {Removed:0 Malformed:1}", sweep)
 	}
-	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); !errors.Is(err, ErrNonceReplayed) {
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); !errors.Is(err, ErrNonceReplayed) {
 		t.Errorf("Insert after the sweep = %v, want ErrNonceReplayed", err)
 	}
 
@@ -491,7 +491,7 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 	if err := os.Chtimes(truncated, stale, stale); err != nil {
 		t.Fatalf("Chtimes: %v", err)
 	}
-	sweep, err = nonces.Sweep(nonceClock)
+	sweep, err = nonces.Sweep(t.Context(), nonceClock)
 	if err != nil {
 		t.Fatalf("Sweep after ageing: %v", err)
 	}
@@ -509,7 +509,7 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 func TestOpenSweeps(t *testing.T) {
 	stateDir := t.TempDir()
 	first := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := first.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := first.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
 
@@ -517,7 +517,7 @@ func TestOpenSweeps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	_, sweep, err := OpenNonceStore(store, fixtureRetention, fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second))
+	_, sweep, err := OpenNonceStore(t.Context(), store, fixed(fixtureRetention), fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second))
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -559,7 +559,7 @@ func TestConcurrentInsertAdmitsOne(t *testing.T) {
 		for i := range writers {
 			wg.Go(func() {
 				<-start
-				results[i] = nonces.Insert(nonce, nonceClock, sampleExpiry)
+				results[i] = nonces.Insert(t.Context(), nonce, nonceClock, sampleExpiry)
 			})
 		}
 		close(start)
@@ -591,7 +591,7 @@ func TestRunSweepRunsOnTickWithoutWaitingSweepInterval(t *testing.T) {
 	}
 
 	calls := make(chan struct{}, 1)
-	sweep := func(time.Time) (NonceSweep, error) {
+	sweep := func(context.Context, time.Time) (NonceSweep, error) {
 		calls <- struct{}{}
 		return NonceSweep{Removed: 1}, nil
 	}
@@ -613,7 +613,7 @@ func TestRunSweepRunsOnTickWithoutWaitingSweepInterval(t *testing.T) {
 // stops the driver's goroutine, proved by a channel the goroutine
 // itself closes on return rather than by inspecting RunSweep's source.
 func TestRunSweepStopsWithContext(t *testing.T) {
-	sweep := func(time.Time) (NonceSweep, error) { return NonceSweep{}, nil }
+	sweep := func(context.Context, time.Time) (NonceSweep, error) { return NonceSweep{}, nil }
 	tick := make(chan time.Time)
 	ctx, cancel := context.WithCancel(t.Context())
 
@@ -637,7 +637,7 @@ func TestRunSweepStopsWithContext(t *testing.T) {
 func TestRunSweepLogsAFailureAndContinues(t *testing.T) {
 	calls := make(chan struct{}, 2)
 	first := true
-	sweep := func(time.Time) (NonceSweep, error) {
+	sweep := func(context.Context, time.Time) (NonceSweep, error) {
 		calls <- struct{}{}
 		if first {
 			first = false
@@ -674,10 +674,10 @@ func discardLogger() *slog.Logger {
 func TestNonceErrorsCarryNoNonceValue(t *testing.T) {
 	stateDir := t.TempDir()
 	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
-	if err := nonces.Insert(consumedSample, nonceClock, sampleExpiry); err != nil {
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
 		t.Fatalf("Insert: %v", err)
 	}
-	err := nonces.Insert(consumedSample, nonceClock, sampleExpiry)
+	err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry)
 	if err == nil {
 		t.Fatal("second Insert returned nil")
 	}
@@ -689,5 +689,108 @@ func TestNonceErrorsCarryNoNonceValue(t *testing.T) {
 		if strings.Contains(err.Error(), value) {
 			t.Errorf("replay error echoes a value it must never carry (%d bytes)", len(value))
 		}
+	}
+}
+
+// TestNonceStore_ReadsTheRetentionAtEachUse proves the store reads the
+// retention in force at each insert and each sweep: a record inserted
+// after the retention rises carries the higher value, and a sweep after
+// the retention drops prunes nothing a record still carries.
+func TestNonceStore_ReadsTheRetentionAtEachUse(t *testing.T) {
+	stateDir := t.TempDir()
+	store, err := Open(stateDir)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	retention := newSettingFake(fixtureRetention)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	if err != nil {
+		t.Fatalf("OpenNonceStore: %v", err)
+	}
+	retention.set(2*fixtureRetention, nil)
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
+		t.Fatalf("Insert: %v", err)
+	}
+	retention.set(time.Hour, nil)
+	if _, err := nonces.Sweep(t.Context(), nonceClock.Add(fixtureRetention+time.Second)); err != nil {
+		t.Fatalf("Sweep: %v", err)
+	}
+	if _, err := os.Stat(recordPathFor(t, stateDir, consumedSample)); err != nil {
+		t.Errorf("the record inserted under the raised retention was swept at the original one: %v", err)
+	}
+}
+
+// TestNonceStore_RetentionReadFailure proves a failed retention read
+// fails the insert before any record exists and fails the sweep before
+// it removes anything, each with an error wrapping errSettingUnreadable
+// and the reader's text, never a default retention.
+func TestNonceStore_RetentionReadFailure(t *testing.T) {
+	stateDir := t.TempDir()
+	store, err := Open(stateDir)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	retention := newSettingFake(fixtureRetention)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	if err != nil {
+		t.Fatalf("OpenNonceStore: %v", err)
+	}
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
+		t.Fatalf("Insert: %v", err)
+	}
+	retention.set(0, errFixtureRead)
+
+	err = nonces.Insert(t.Context(), secondSample, nonceClock, sampleExpiry)
+	if !errors.Is(err, errSettingUnreadable) || !errors.Is(err, errFixtureRead) {
+		t.Errorf("Insert error = %v, want errSettingUnreadable wrapping the reader's error", err)
+	}
+	if _, statErr := os.Stat(recordPathFor(t, stateDir, secondSample)); !errors.Is(statErr, os.ErrNotExist) {
+		t.Errorf("a failed read left a record for the second nonce (stat: %v)", statErr)
+	}
+
+	sweep, err := nonces.Sweep(t.Context(), nonceClock.Add(10*fixtureRetention))
+	if !errors.Is(err, errSettingUnreadable) || !strings.Contains(err.Error(), "DUBPLATE_FIXTURE_KEY") {
+		t.Errorf("Sweep error = %v, want errSettingUnreadable naming the key", err)
+	}
+	if sweep != (NonceSweep{}) {
+		t.Errorf("Sweep = %+v, want nothing done", sweep)
+	}
+	if got := len(nonceDirEntries(t, stateDir)); got != 1 {
+		t.Errorf("records after the failed sweep = %d, want the 1 inserted", got)
+	}
+}
+
+// TestRunSweep_RetentionReadFailureLogsTheKey proves the sweep driver
+// logs a failed retention read naming the key and deletes nothing,
+// driving a real store's Sweep.
+func TestRunSweep_RetentionReadFailureLogsTheKey(t *testing.T) {
+	stateDir := t.TempDir()
+	store, err := Open(stateDir)
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	retention := newSettingFake(fixtureRetention)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	if err != nil {
+		t.Fatalf("OpenNonceStore: %v", err)
+	}
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
+		t.Fatalf("Insert: %v", err)
+	}
+	retention.set(0, errFixtureRead)
+
+	logs := newLogCapture()
+	tick := make(chan time.Time, 1)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	go RunSweep(ctx, nonces.Sweep, func() time.Time { return nonceClock.Add(10 * fixtureRetention) }, tick, slog.New(slog.NewJSONHandler(logs, nil)))
+	tick <- nonceClock
+
+	rec := logs.waitFor(t, "nonce sweep failed")
+	if reason, _ := rec["reason"].(string); !strings.Contains(reason, "DUBPLATE_FIXTURE_KEY") {
+		t.Errorf("log reason = %q, want it to name the key", reason)
+	}
+	if got := len(nonceDirEntries(t, stateDir)); got != 1 {
+		t.Errorf("records after the failed sweep = %d, want the 1 inserted", got)
 	}
 }

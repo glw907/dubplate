@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/settings"
 )
@@ -474,62 +475,50 @@ func isLoopbackHost(host string) bool {
 	return false
 }
 
-// authConfig holds the ten auth settings' values, typed, as the auth
-// core takes them for construction: a struct field's name says which
-// setting it came from at every call site.
-type authConfig struct {
-	magicLinkExpiry    time.Duration
-	sessionLifetime    time.Duration
-	sessionAbsoluteCap time.Duration
-	nonceRetention     time.Duration
-
-	linkRequestsPerAddress       int
-	linkRequestsPerClient        int
-	consumptionAttemptsPerClient int
-	linkMailCeiling              int
-
-	authRequestBodyCap int
-
-	unknownAddressAnswer string
+// durationSetting returns an [auth.Setting] reading s's value in force
+// through acc at each call.
+func durationSetting(acc *settings.Accessor, s config.Setting) auth.Setting[time.Duration] {
+	return func(ctx context.Context) (time.Duration, error) { return acc.Duration(ctx, s) }
 }
 
-// readAuthConfig reads the ten auth settings' values in force through
-// acc into an [authConfig]. serve calls it once, after its seed apply,
-// so each value is the one the store holds for this start; a failed
-// read fails the start naming the key, never falling back to a
-// default.
-func readAuthConfig(ctx context.Context, acc *settings.Accessor) (authConfig, error) {
-	var cfg authConfig
-	var err error
-	for _, d := range []struct {
-		dst *time.Duration
-		s   config.Setting
-	}{
-		{&cfg.magicLinkExpiry, magicLinkExpirySetting},
-		{&cfg.sessionLifetime, sessionLifetimeSetting},
-		{&cfg.sessionAbsoluteCap, sessionAbsoluteCapSetting},
-		{&cfg.nonceRetention, nonceRetentionSetting},
-	} {
-		if *d.dst, err = acc.Duration(ctx, d.s); err != nil {
-			return authConfig{}, err
-		}
+// authBodyCap returns an [auth.Setting] reading the auth request body
+// cap in force through acc at each call.
+func authBodyCap(acc *settings.Accessor) auth.Setting[int64] {
+	return func(ctx context.Context) (int64, error) {
+		n, err := acc.Int(ctx, authRequestBodyCapSetting)
+		return int64(n), err
 	}
+}
+
+// genericAnswer returns an [auth.Setting] reporting at each call
+// whether the unknown-address answer in force through acc is generic.
+func genericAnswer(acc *settings.Accessor) auth.Setting[bool] {
+	return func(ctx context.Context) (bool, error) {
+		v, err := acc.String(ctx, unknownAddressAnswerSetting)
+		return v == "generic", err
+	}
+}
+
+// readAuthLimits reads the four rate limits in force through acc. They
+// apply at the next start, so serve reads them once, after its seed
+// apply, and builds its limiter from them; a failed read fails the
+// start naming the key, never falling back to a default.
+func readAuthLimits(ctx context.Context, acc *settings.Accessor) (auth.Limits, error) {
+	var limits auth.Limits
 	for _, n := range []struct {
 		dst *int
 		s   config.Setting
 	}{
-		{&cfg.linkRequestsPerAddress, linkRequestsPerAddressSetting},
-		{&cfg.linkRequestsPerClient, linkRequestsPerClientSetting},
-		{&cfg.consumptionAttemptsPerClient, consumptionAttemptsPerClientSetting},
-		{&cfg.linkMailCeiling, linkMailCeilingSetting},
-		{&cfg.authRequestBodyCap, authRequestBodyCapSetting},
+		{&limits.LinkRequestsPerAddress, linkRequestsPerAddressSetting},
+		{&limits.LinkRequestsPerClient, linkRequestsPerClientSetting},
+		{&limits.ConsumptionAttemptsPerClient, consumptionAttemptsPerClientSetting},
+		{&limits.LinkMailCeiling, linkMailCeilingSetting},
 	} {
-		if *n.dst, err = acc.Int(ctx, n.s); err != nil {
-			return authConfig{}, err
+		v, err := acc.Int(ctx, n.s)
+		if err != nil {
+			return auth.Limits{}, err
 		}
+		*n.dst = v
 	}
-	if cfg.unknownAddressAnswer, err = acc.String(ctx, unknownAddressAnswerSetting); err != nil {
-		return authConfig{}, err
-	}
-	return cfg, nil
+	return limits, nil
 }

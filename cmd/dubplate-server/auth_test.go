@@ -14,8 +14,10 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -717,26 +719,40 @@ func TestPrepareServe_RefusesAuthCorrelatedRule(t *testing.T) {
 // TestAuthSettings_SeedFromEnv is spec criterion 10's seed half, the
 // seed table's second row once per auth key: with no stored row and the
 // environment naming a value other than the default, serve's start
-// seeds one env-seed row for the key alone, audits it, and the auth
-// configuration it reads carries that value in the field named for
-// the key. Each want is a literal, so a read into the wrong field
-// fails its row.
+// seeds one env-seed row for the key alone, audits it, and the reader
+// serve wires for the key reads that value. The handler readers are
+// read from [authHandlersConfig]'s own return value, the limits through
+// [readAuthLimits], and the retention through the reader serve hands
+// the nonce store. Each want is a literal, so a reader wired to the
+// wrong key fails its row.
 func TestAuthSettings_SeedFromEnv(t *testing.T) {
+	type readers struct {
+		handlers auth.HandlersConfig
+		acc      *settings.Accessor
+	}
+	limit := func(pick func(auth.Limits) int) func(context.Context, readers) (any, error) {
+		return func(ctx context.Context, r readers) (any, error) {
+			limits, err := readAuthLimits(ctx, r.acc)
+			return pick(limits), err
+		}
+	}
 	tests := []struct {
 		key, value string
-		got        func(authConfig) any
+		got        func(context.Context, readers) (any, error)
 		want       any
 	}{
-		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", func(c authConfig) any { return c.magicLinkExpiry }, 20 * time.Minute},
-		{"DUBPLATE_SESSION_LIFETIME", "1h", func(c authConfig) any { return c.sessionLifetime }, time.Hour},
-		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(c authConfig) any { return c.sessionAbsoluteCap }, 4000 * time.Hour},
-		{"DUBPLATE_NONCE_RETENTION", "2h", func(c authConfig) any { return c.nonceRetention }, 2 * time.Hour},
-		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", func(c authConfig) any { return c.linkRequestsPerAddress }, 7},
-		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", func(c authConfig) any { return c.linkRequestsPerClient }, 22},
-		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", func(c authConfig) any { return c.consumptionAttemptsPerClient }, 33},
-		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", func(c authConfig) any { return c.linkMailCeiling }, 66},
-		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", func(c authConfig) any { return c.authRequestBodyCap }, 8192},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", func(c authConfig) any { return c.unknownAddressAnswer }, "generic"},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", func(ctx context.Context, r readers) (any, error) { return r.handlers.LinkExpiry(ctx) }, 20 * time.Minute},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionLifetime(ctx) }, time.Hour},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionAbsoluteCap(ctx) }, 4000 * time.Hour},
+		{"DUBPLATE_NONCE_RETENTION", "2h", func(ctx context.Context, r readers) (any, error) {
+			return durationSetting(r.acc, nonceRetentionSetting)(ctx)
+		}, 2 * time.Hour},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", limit(func(l auth.Limits) int { return l.LinkRequestsPerAddress }), 7},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", limit(func(l auth.Limits) int { return l.LinkRequestsPerClient }), 22},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", limit(func(l auth.Limits) int { return l.ConsumptionAttemptsPerClient }), 33},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", limit(func(l auth.Limits) int { return l.LinkMailCeiling }), 66},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", func(ctx context.Context, r readers) (any, error) { return r.handlers.BodyCap(ctx) }, int64(8192)},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", func(ctx context.Context, r readers) (any, error) { return r.handlers.GenericAnswer(ctx) }, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.key, func(t *testing.T) {
@@ -752,12 +768,23 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 			if want := "seed system env-seed " + tt.key; !slices.Equal(audit, []string{want}) {
 				t.Errorf("audit = %q, want [%q]", audit, want)
 			}
-			cfg, err := storeAuthConfig(t.Context(), environ)
+			cfg, err := config.Load(environ, productionRegistry())
 			if err != nil {
-				t.Fatalf("storeAuthConfig: %v", err)
+				t.Fatalf("config.Load: %v", err)
 			}
-			if got := tt.got(cfg); got != tt.want {
-				t.Errorf("authConfig field = %v, want %v", got, tt.want)
+			err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
+				r := readers{handlers: authHandlersConfig(serve.Prefix{}, cfg, acc, nil, nil, nil, nil, nil, nil, nil), acc: acc}
+				got, err := tt.got(t.Context(), r)
+				if err != nil {
+					return err
+				}
+				if got != tt.want {
+					t.Errorf("reader for %s = %v, want %v", tt.key, got, tt.want)
+				}
+				return nil
+			})
+			if err != nil {
+				t.Fatalf("read %s: %v", tt.key, err)
 			}
 		})
 	}

@@ -57,22 +57,22 @@ type NonceStore struct {
 	// path function; every record path below still does.
 	dir string
 
-	// retention is the resolved DUBPLATE_NONCE_RETENTION, the
-	// shortest life a new record is written with. Each record
-	// carries its own life, and the sweep prunes on the carried
-	// value rather than on this one, so lowering the threshold
-	// cannot shorten the life of a record already on disk. This
-	// copy also answers for a record whose own carried value cannot
-	// be read.
-	retention time.Duration
+	// retention reads DUBPLATE_NONCE_RETENTION's value in force at
+	// each insert and each sweep: the shortest life a new record is
+	// written with. Each record carries its own life, and the sweep
+	// prunes on the carried value rather than on this one, so
+	// lowering the threshold cannot shorten the life of a record
+	// already on disk. The value a sweep reads also answers for a
+	// record whose own carried value cannot be read.
+	retention Setting[time.Duration]
 
-	// linkExpiryCeiling is the configured ceiling on the magic-link
-	// expiry, the longest a token minted under any configuration
-	// can outlive its own mint. mtimeFallback answers with
-	// max(retention, linkExpiryCeiling) rather than retention alone,
-	// so a record this store can neither read nor parse cannot be
-	// swept, and its nonce replayed, before every token that could
-	// have produced it has already expired.
+	// linkExpiryCeiling is the registered ceiling on the magic-link
+	// expiry, never the value in force: the longest a token minted
+	// under any configuration can outlive its own mint. mtimeFallback
+	// answers with max(retention, linkExpiryCeiling) rather than
+	// retention alone, so a record this store can neither read nor
+	// parse cannot be swept, and its nonce replayed, before every
+	// token that could have produced it has already expired.
 	linkExpiryCeiling time.Duration
 }
 
@@ -86,18 +86,18 @@ type NonceSweep struct {
 }
 
 // OpenNonceStore returns the consumed-nonce store under store's leaf,
-// with retention the resolved DUBPLATE_NONCE_RETENTION and
-// linkExpiryCeiling the configured ceiling on the magic-link expiry
+// with retention reading DUBPLATE_NONCE_RETENTION's value in force and
+// linkExpiryCeiling the registered ceiling on the magic-link expiry
 // (m5), and sweeps it once at now before returning. The caller runs
 // Sweep on an interval thereafter; this package owns no timer.
-func OpenNonceStore(store *Store, retention, linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
+func OpenNonceStore(ctx context.Context, store *Store, retention Setting[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
 		store:             store,
 		dir:               store.subdir(nonceSubdir),
 		retention:         retention,
 		linkExpiryCeiling: linkExpiryCeiling,
 	}
-	sweep, err := s.Sweep(now)
+	sweep, err := s.Sweep(ctx, now)
 	if err != nil {
 		return nil, sweep, err
 	}
@@ -113,20 +113,21 @@ func OpenNonceStore(store *Store, retention, linkExpiryCeiling time.Duration, no
 const SweepInterval = time.Hour
 
 // RunSweep calls sweep, a NonceStore's own Sweep method in production,
-// once for every value received on tick, passing now() as the sweep's
-// instant, until ctx is done. The caller owns tick's ticker, which is
-// what lets a test drive one sweep without waiting SweepInterval out.
+// once for every value received on tick, passing it ctx and, as the
+// sweep's instant, now(), until ctx is done. The caller owns tick's
+// ticker, which is what lets a test drive one sweep without waiting
+// SweepInterval out.
 //
 // A sweep's own error is logged and never returned: after startup, a
 // record's presence, not its readability, is what blocks a replay, so
 // one failed sweep must not stop the ones after it.
-func RunSweep(ctx context.Context, sweep func(now time.Time) (NonceSweep, error), now func() time.Time, tick <-chan time.Time, logger *slog.Logger) {
+func RunSweep(ctx context.Context, sweep func(ctx context.Context, now time.Time) (NonceSweep, error), now func() time.Time, tick <-chan time.Time, logger *slog.Logger) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-tick:
-			result, err := sweep(now())
+			result, err := sweep(ctx, now())
 			if err != nil {
 				logger.Error("nonce sweep failed", "reason", err.Error())
 				continue
@@ -146,7 +147,13 @@ func RunSweep(ctx context.Context, sweep func(now time.Time) (NonceSweep, error)
 // nonce whatever retention is configured: a retention shortened while
 // a longer-lived link is outstanding, or a clock that steps forward,
 // can lengthen a record's life and never shorten it below the token's.
-func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) error {
+// The retention is read before the record is created, so a failed read,
+// reported wrapping errSettingUnreadable, consumes nothing.
+func (s *NonceStore) Insert(ctx context.Context, nonce [NonceLength]byte, now, expiresAt time.Time) error {
+	retention, err := s.retention.read(ctx)
+	if err != nil {
+		return err
+	}
 	path, err := s.store.NoncePath(RecordID(nonceSubdir, string(nonce[:])))
 	if err != nil {
 		return err
@@ -160,7 +167,7 @@ func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) e
 		return fmt.Errorf("create consumed nonce record: %w", err)
 	}
 	consumedAt := now.UTC().Truncate(time.Second)
-	sweepableAt := consumedAt.Add(s.retention)
+	sweepableAt := consumedAt.Add(retention)
 	if expiresAt.After(sweepableAt) {
 		sweepableAt = expiresAt
 	}
@@ -192,12 +199,18 @@ func (s *NonceStore) Insert(nonce [NonceLength]byte, now, expiresAt time.Time) e
 // is the one filesystem timestamp this store reads and is read only
 // because the record's own expiry is unavailable.
 //
-// The one failure Sweep still fails closed on is the directory listing
-// itself: an unreadable store directory is a deployment defect this
-// store cannot route around, unlike a single unreadable record.
+// The two failures Sweep still fails closed on are a failed retention
+// read, which removes nothing rather than sweep under a default, and
+// the directory listing itself: an unreadable store directory is a
+// deployment defect this store cannot route around, unlike a single
+// unreadable record.
 //
 // ruled, conductor 2026-09-12, A7 fold 5
-func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
+func (s *NonceStore) Sweep(ctx context.Context, now time.Time) (NonceSweep, error) {
+	retention, err := s.retention.read(ctx)
+	if err != nil {
+		return NonceSweep{}, fmt.Errorf("sweep consumed nonces: %w", err)
+	}
 	entries, err := os.ReadDir(s.dir)
 	if err != nil {
 		return NonceSweep{}, fmt.Errorf("sweep consumed nonces: %w", err)
@@ -210,7 +223,7 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 			continue
 		}
 		path := filepath.Join(s.dir, entry.Name())
-		expiresAt, err := s.recordExpiry(path)
+		expiresAt, err := s.recordExpiry(path, retention)
 		switch {
 		case errors.Is(err, fs.ErrNotExist):
 			// Another sweep removed it between the listing
@@ -247,25 +260,26 @@ func (s *NonceStore) Sweep(now time.Time) (NonceSweep, error) {
 	return sweep, nil
 }
 
-// recordExpiry returns when the record at path may be removed. For a
-// record it cannot read or cannot parse it returns the mtime fallback
-// alongside errNonceRecordUnparseable, so the caller has both the
+// recordExpiry returns when the record at path may be removed, with
+// retention the value in force for this sweep. For a record it cannot
+// read or cannot parse it returns the mtime fallback alongside
+// errNonceRecordUnparseable, so the caller has both the
 // reason and the answer: an absent file is reported as its own error
 // instead, since the sweep's caller already answers for that case (it
 // was removed between the listing and the read).
-func (s *NonceStore) recordExpiry(path string) (time.Time, error) {
+func (s *NonceStore) recordExpiry(path string, retention time.Duration) (time.Time, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return time.Time{}, err
 		}
-		return s.mtimeFallback(path)
+		return s.mtimeFallback(path, retention)
 	}
 	expiresAt, err := parseNonceRecord(data)
 	if err == nil {
 		return expiresAt, nil
 	}
-	return s.mtimeFallback(path)
+	return s.mtimeFallback(path, retention)
 }
 
 // mtimeFallback answers for a record recordExpiry could not resolve
@@ -274,8 +288,8 @@ func (s *NonceStore) recordExpiry(path string) (time.Time, error) {
 // take the same mtime-plus-life answer, so an unreadable record ages
 // out of the store exactly as an unparseable one already does.
 //
-// The life added is max(s.retention, s.linkExpiryCeiling), not
-// s.retention alone (m5): a readable record's own life is at least
+// The life added is max(retention, s.linkExpiryCeiling), not
+// retention alone (m5): a readable record's own life is at least
 // its token's expiry (Insert), and a token's expiry is at most the
 // configured link-expiry ceiling, so this bound keeps the fallback at
 // least as long-lived as any record the sweep could have read
@@ -283,12 +297,12 @@ func (s *NonceStore) recordExpiry(path string) (time.Time, error) {
 // expiry together, while a link minted under a longer retention is
 // still outstanding, could sweep its unreadable record and let the
 // link replay before the token it names has expired.
-func (s *NonceStore) mtimeFallback(path string) (time.Time, error) {
+func (s *NonceStore) mtimeFallback(path string, retention time.Duration) (time.Time, error) {
 	info, statErr := os.Stat(path)
 	if statErr != nil {
 		return time.Time{}, statErr
 	}
-	return info.ModTime().Add(max(s.retention, s.linkExpiryCeiling)), errNonceRecordUnparseable
+	return info.ModTime().Add(max(retention, s.linkExpiryCeiling)), errNonceRecordUnparseable
 }
 
 // nonceRecord renders a record at second granularity, which is the

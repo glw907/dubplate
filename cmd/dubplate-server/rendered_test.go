@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // renderedPrefix is the owned prefix the fixture server mounts under.
@@ -479,9 +480,14 @@ func startOperatorServer(t *testing.T) *httptest.Server {
 // limit, the case where they all name one address.
 func checkRateBudget(t *testing.T, environ []string) {
 	t.Helper()
-	cfg, err := storeAuthConfig(t.Context(), environ)
+	var limits auth.Limits
+	err := withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
+		var err error
+		limits, err = readAuthLimits(t.Context(), acc)
+		return err
+	})
 	if err != nil {
-		t.Fatalf("storeAuthConfig: %v", err)
+		t.Fatalf("read the rate limits: %v", err)
 	}
 	var requests, consumptions int
 	for _, row := range renderedManifest {
@@ -489,16 +495,16 @@ func checkRateBudget(t *testing.T, environ []string) {
 		consumptions += row.consumptions
 	}
 	t.Logf("rate budget: %d link requests (limits: %d per address, %d per client, %d mail), %d consumptions (limit %d per client)",
-		requests, cfg.linkRequestsPerAddress, cfg.linkRequestsPerClient, cfg.linkMailCeiling,
-		consumptions, cfg.consumptionAttemptsPerClient)
+		requests, limits.LinkRequestsPerAddress, limits.LinkRequestsPerClient, limits.LinkMailCeiling,
+		consumptions, limits.ConsumptionAttemptsPerClient)
 	for _, limit := range []struct {
 		name         string
 		spend, limit int
 	}{
-		{"link requests per address", requests, cfg.linkRequestsPerAddress},
-		{"link requests per client", requests, cfg.linkRequestsPerClient},
-		{"link mail", requests, cfg.linkMailCeiling},
-		{"consumption attempts per client", consumptions, cfg.consumptionAttemptsPerClient},
+		{"link requests per address", requests, limits.LinkRequestsPerAddress},
+		{"link requests per client", requests, limits.LinkRequestsPerClient},
+		{"link mail", requests, limits.LinkMailCeiling},
+		{"consumption attempts per client", consumptions, limits.ConsumptionAttemptsPerClient},
 	} {
 		if limit.spend >= limit.limit {
 			t.Fatalf("the manifest spends %d %s, at or over the fixture's limit of %d", limit.spend, limit.name, limit.limit)
@@ -525,12 +531,17 @@ func mintRenderedLink(t *testing.T, environ []string, address string) string {
 // (`auth.MintLink`, `auth.LinkURL`): the shared mechanism behind both
 // [mintRenderedLink] and [mintServer].
 func mintLinkFor(ctx context.Context, environ []string, address string) (string, error) {
-	cfg, err := storeAuthConfig(ctx, environ)
+	var expiry time.Duration
+	err := withStoreAccessor(ctx, environ, func(acc *settings.Accessor) error {
+		var err error
+		expiry, err = acc.Duration(ctx, magicLinkExpirySetting)
+		return err
+	})
 	if err != nil {
-		return "", fmt.Errorf("storeAuthConfig: %w", err)
+		return "", fmt.Errorf("read the link expiry: %w", err)
 	}
 	secret := []byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET"))
-	token, _, err := auth.MintLink(secret, address, time.Now(), cfg.magicLinkExpiry)
+	token, _, err := auth.MintLink(secret, address, time.Now(), expiry)
 	if err != nil {
 		return "", fmt.Errorf("auth.MintLink: %w", err)
 	}

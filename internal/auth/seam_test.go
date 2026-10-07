@@ -39,12 +39,19 @@ type seamFixture struct {
 // (token_test.go).
 func newSeamFixture(t *testing.T, rows ...userRow) seamFixture {
 	t.Helper()
+	return newSeamFixtureReading(t, fixed(seamLifetime), fixed(seamCap), rows...)
+}
+
+// newSeamFixtureReading is [newSeamFixture] with the seam reading its
+// lifetime and absolute cap through lifetime and absoluteCap.
+func newSeamFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) seamFixture {
+	t.Helper()
 	stateDir := t.TempDir()
 	roster, users := newRosterOver(t, rows...)
 
 	epoch := newEpochStore(t, stateDir)
 
-	seam := NewMagicLinkSeam(roster, epoch, []byte(currentFixture), []byte(previousFixture), seamLifetime, seamCap)
+	seam := NewMagicLinkSeam(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
 	return seamFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
 }
 
@@ -307,7 +314,7 @@ func TestMagicLinkSeam_Read(t *testing.T) {
 func TestMagicLinkSeam_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkSeam(NewRoster(h), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), seamLifetime, seamCap)
+	seam := NewMagicLinkSeam(NewRoster(h), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap))
 	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
@@ -330,5 +337,111 @@ func TestMagicLinkSeam_VerifyIdentity_UsersTable(t *testing.T) {
 	}
 	if got.Admin {
 		t.Error("Admin = true, want the row's false")
+	}
+}
+
+// TestMagicLinkSeam_ReadsTheCapAtEveryVerification proves the absolute
+// cap applies to the next verification in both directions: one session,
+// minted under a long cap and verified at the same instant, is refused
+// once the cap in force drops below its age and admitted again once the
+// cap rises. A cap cached when the seam was built would answer every
+// row alike.
+func TestMagicLinkSeam_ReadsTheCapAtEveryVerification(t *testing.T) {
+	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
+	absoluteCap := newSettingFake(seamCap)
+	fx := newSeamFixtureReading(t, fixed(seamLifetime), absoluteCap.setting(), member)
+	value, _, err := MintSession([]byte(currentFixture), member.address, seamBirth, seamLifetime, seamCap)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+	at := seamBirth.Add(10 * 24 * time.Hour)
+
+	for _, tt := range []struct {
+		name    string
+		cap     time.Duration
+		wantErr error
+	}{
+		{"the cap in force admits the session's age", seamCap, nil},
+		{"a cap lowered below the session's age refuses it", 5 * 24 * time.Hour, ErrSessionCapReached},
+		{"the cap raised again admits it", seamCap, nil},
+	} {
+		absoluteCap.set(tt.cap, nil)
+		_, err := fx.seam.VerifyIdentity(requestWithSession(t, value), at, false)
+		if !errors.Is(err, tt.wantErr) {
+			t.Errorf("%s: VerifyIdentity error = %v, want %v", tt.name, err, tt.wantErr)
+		}
+	}
+}
+
+// TestMagicLinkSeam_ReadsTheLifetimeAtEachRefresh proves a refresh takes
+// the lifetime in force at that refresh, never the one in force when
+// the seam was built.
+func TestMagicLinkSeam_ReadsTheLifetimeAtEachRefresh(t *testing.T) {
+	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
+	lifetime := newSettingFake(seamLifetime)
+	fx := newSeamFixtureReading(t, lifetime.setting(), fixed(seamCap), member)
+	value, _, err := MintSession([]byte(currentFixture), member.address, seamBirth, seamLifetime, seamCap)
+	if err != nil {
+		t.Fatalf("MintSession: %v", err)
+	}
+	at := seamBirth.Add(time.Hour)
+	const changed = 2 * 24 * time.Hour
+	lifetime.set(changed, nil)
+
+	got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), at, true)
+	if err != nil {
+		t.Fatalf("VerifyIdentity: %v", err)
+	}
+	if want := at.Add(changed); !got.Session.ExpiresAt.Equal(want) {
+		t.Errorf("refreshed expiry = %v, want %v", got.Session.ExpiresAt, want)
+	}
+}
+
+// TestMagicLinkSeam_SettingReadFailure proves a failed read of the cap,
+// on every verification, or of the lifetime, on a refresh, refuses with
+// an error wrapping errSettingUnreadable and the reader's own text,
+// never a default; a lifetime that fails on a request that does not
+// refresh is never read.
+func TestMagicLinkSeam_SettingReadFailure(t *testing.T) {
+	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
+	tests := []struct {
+		name       string
+		failCap    bool
+		sameOrigin bool
+		wantErr    bool
+	}{
+		{"the cap reader fails without a refresh", true, false, true},
+		{"the cap reader fails on a refresh", true, true, true},
+		{"the lifetime reader fails on a refresh", false, true, true},
+		{"the lifetime reader fails without a refresh", false, false, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lifetime, absoluteCap := newSettingFake(seamLifetime), newSettingFake(seamCap)
+			fx := newSeamFixtureReading(t, lifetime.setting(), absoluteCap.setting(), member)
+			value, _, err := MintSession([]byte(currentFixture), member.address, seamBirth, seamLifetime, seamCap)
+			if err != nil {
+				t.Fatalf("MintSession: %v", err)
+			}
+			if tt.failCap {
+				absoluteCap.set(0, errFixtureRead)
+			} else {
+				lifetime.set(0, errFixtureRead)
+			}
+
+			got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), seamBirth.Add(time.Hour), tt.sameOrigin)
+			if !tt.wantErr {
+				if err != nil {
+					t.Fatalf("VerifyIdentity: %v, want nil", err)
+				}
+				return
+			}
+			if !errors.Is(err, errSettingUnreadable) || !errors.Is(err, errFixtureRead) {
+				t.Fatalf("VerifyIdentity error = %v, want errSettingUnreadable wrapping the reader's error", err)
+			}
+			if got != (VerifiedIdentity{}) {
+				t.Errorf("VerifyIdentity result = %+v, want zero value on refusal", got)
+			}
+		})
 	}
 }

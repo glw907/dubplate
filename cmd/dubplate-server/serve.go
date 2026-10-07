@@ -255,11 +255,14 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // handle the caller closes when the shell stops serving; every refusal
 // returns no shell and no handle. It then applies the settings seed to
 // that store through [applySettingsSeed], so a refusal ends the start
-// before anything else is built, and reads the auth settings the seed
-// left in force through [readAuthConfig]. It then opens the auth store
-// and its nonce and epoch stores, builds the roster over the store
-// handle, the rate limiter, the mailer, and the magic-link identity
-// seam, constructs the auth handlers, and mounts them under the owned
+// before anything else is built, and reads the four rate limits the
+// seed left in force through [readAuthLimits]: they apply at the next
+// start, so they are read once, here. Every other auth setting is a
+// reader over the store that its handler, the seam, or the nonce store
+// calls at each use. It then opens the auth store and its nonce and
+// epoch stores, builds the roster over the store handle, the rate
+// limiter, the mailer, and the magic-link identity seam, constructs the
+// auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
 // proxy value [resolveTrustedProxy] refuses, a store this binary cannot
@@ -315,7 +318,8 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err := applySettingsSeed(ctx, h, reg, environ, logger); err != nil {
 		return nil, nil, err
 	}
-	authCfg, err := readAuthConfig(ctx, settings.NewAccessor(h, reg))
+	acc := settings.NewAccessor(h, reg)
+	limits, err := readAuthLimits(ctx, acc)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -329,7 +333,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, nil, err
 	}
-	nonces, _, err := auth.OpenNonceStore(authStore, authCfg.nonceRetention, magicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(ctx, authStore, durationSetting(acc, nonceRetentionSetting), magicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -337,12 +341,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 
 	roster := auth.NewRoster(h)
 
-	limiter := auth.NewLimiter(auth.Limits{
-		LinkRequestsPerAddress:       authCfg.linkRequestsPerAddress,
-		LinkRequestsPerClient:        authCfg.linkRequestsPerClient,
-		ConsumptionAttemptsPerClient: authCfg.consumptionAttemptsPerClient,
-		LinkMailCeiling:              authCfg.linkMailCeiling,
-	})
+	limiter := auth.NewLimiter(limits)
 
 	mailer, err := newMailer(cfg)
 	if err != nil {
@@ -352,10 +351,10 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	seam := auth.NewMagicLinkSeam(roster, epoch,
 		[]byte(cfg.IdentitySourceValue(sessionSecretKey)),
 		[]byte(cfg.IdentitySourceValue(sessionSecretPreviousKey)),
-		authCfg.sessionLifetime, authCfg.sessionAbsoluteCap)
+		durationSetting(acc, sessionLifetimeSetting), durationSetting(acc, sessionAbsoluteCapSetting))
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
-	handlersConfig := authHandlersConfig(prefix, cfg, authCfg, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
+	handlersConfig := authHandlersConfig(prefix, cfg, acc, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
 	handlers := auth.NewHandlers(handlersConfig)
 
 	// The auth handlers apply no method check of their own; mounting
@@ -370,7 +369,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		ClientIP: clientIP,
 		Now:      time.Now,
 		Logger:   shell.Logger(),
-		BodyCap:  int64(authCfg.authRequestBodyCap),
+		BodyCap:  authBodyCap(acc),
 	}
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
 	shell.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
@@ -476,12 +475,13 @@ func exactPath(want string, next http.Handler) http.Handler {
 }
 
 // authHandlersConfig builds the [auth.HandlersConfig] newServeShell
-// mounts the auth handlers from. It exists as its own function so a
-// test can read the config it built rather than recomputing the same
-// values by hand: PublicOrigin, Prefix, and SessionAbsoluteCap are each
-// wiring rather than logic, so the only proof a caller loses each one
-// correctly is a test that reads this function's own return value.
-func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, authCfg authConfig, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
+// mounts the auth handlers from, each setting a reader over acc. It
+// exists as its own function so a test can read the config it built
+// rather than recomputing the same values by hand: PublicOrigin,
+// Prefix, and each reader are wiring rather than logic, so the only
+// proof a caller loses none of them is a test that reads this
+// function's own return value.
+func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.Accessor, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
 	return auth.HandlersConfig{
 		Roster:             roster,
 		Nonces:             nonces,
@@ -494,13 +494,13 @@ func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, authCfg authCon
 		LinkSecret:         []byte(cfg.IdentitySourceValue(magicLinkSecretKey)),
 		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(magicLinkSecretPreviousKey)),
 		SessionSecret:      []byte(cfg.IdentitySourceValue(sessionSecretKey)),
-		LinkExpiry:         authCfg.magicLinkExpiry,
-		SessionLifetime:    authCfg.sessionLifetime,
-		SessionAbsoluteCap: authCfg.sessionAbsoluteCap,
+		LinkExpiry:         durationSetting(acc, magicLinkExpirySetting),
+		SessionLifetime:    durationSetting(acc, sessionLifetimeSetting),
+		SessionAbsoluteCap: durationSetting(acc, sessionAbsoluteCapSetting),
 		PublicOrigin:       cfg.IdentitySourceValue(publicURLKey),
 		Prefix:             prefix.String(),
-		BodyCap:            int64(authCfg.authRequestBodyCap),
-		GenericAnswer:      authCfg.unknownAddressAnswer == "generic",
+		BodyCap:            authBodyCap(acc),
+		GenericAnswer:      genericAnswer(acc),
 	}
 }
 

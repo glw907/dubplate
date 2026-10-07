@@ -63,7 +63,7 @@ func newAdminFixture(t *testing.T) adminFixture {
 		ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 		Now:      func() time.Time { return gateNow },
 		Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
-		BodyCap:  4096,
+		BodyCap:  fixed[int64](4096),
 	}
 	return adminFixture{
 		users:  sf.users,
@@ -610,7 +610,7 @@ func TestRosterAPI_PostOverCap(t *testing.T) {
 	fx := newAdminFixture(t)
 	before := dumpUsers(t, fx.users)
 	const bodyCap = 512
-	fx.cfg.BodyCap = bodyCap
+	fx.cfg.BodyCap = fixed[int64](bodyCap)
 	api := NewRosterAPI(fx.cfg)
 
 	body := &countingReader{r: strings.NewReader(validPost + "&pad=" + strings.Repeat("x", 64<<10))}
@@ -696,12 +696,12 @@ func TestRosterAPI_PostDuplicateUsernameOverUsersTable(t *testing.T) {
 	roster := NewRoster(h)
 	logs := newLogCapture()
 	cfg := AdminConfig{
-		Seam:     NewMagicLinkSeam(roster, newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), seamLifetime, seamCap),
+		Seam:     NewMagicLinkSeam(roster, newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap)),
 		Roster:   roster,
 		ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 		Now:      func() time.Time { return gateNow },
 		Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
-		BodyCap:  4096,
+		BodyCap:  fixed[int64](4096),
 	}
 	before := dumpUsers(t, h)
 
@@ -827,4 +827,75 @@ func TestAdditionOutcome_StoreBusy(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestRequireAdmin_SettingReadFailure proves a failed setting read in
+// the seam reaches the gate's server-error path: the gate answers
+// http.NotFound's bytes, as for every refusal, sets no cookie, never
+// calls next, and logs at Error with the reader's text, which names the
+// key.
+func TestRequireAdmin_SettingReadFailure(t *testing.T) {
+	tests := []struct {
+		name    string
+		failCap bool
+		sfs     string
+	}{
+		{"the cap reader fails", true, "cross-site"},
+		{"the lifetime reader fails on a same-origin refresh", false, "same-origin"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lifetime, absoluteCap := newSettingFake(seamLifetime), newSettingFake(seamCap)
+			sf := newSeamFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
+			logs := newLogCapture()
+			cfg := AdminConfig{
+				Seam:     sf.seam,
+				Roster:   sf.roster,
+				ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
+				Now:      func() time.Time { return gateNow },
+				Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
+				BodyCap:  fixed[int64](4096),
+			}
+			if tt.failCap {
+				absoluteCap.set(0, errFixtureRead)
+			} else {
+				lifetime.set(0, errFixtureRead)
+			}
+			next := &recordingHandler{}
+			r := rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+			r.Header.Set("Sec-Fetch-Site", tt.sfs)
+			w := serveOne(RequireAdmin(cfg, next), r)
+
+			if got, want := responseOf(w), notFoundFor(r.Clone(t.Context())); got.status != want.status || got.body != want.body {
+				t.Errorf("response = %d %q, want %d %q", got.status, got.body, want.status, want.body)
+			}
+			if len(w.Result().Cookies()) != 0 {
+				t.Errorf("a failed read set a cookie")
+			}
+			if next.reached {
+				t.Errorf("the gate called next after a failed read")
+			}
+			rec := logs.waitFor(t, "admin gate refused")
+			reason, _ := rec["reason"].(string)
+			if rec["level"] != "ERROR" || !strings.Contains(reason, "DUBPLATE_FIXTURE_KEY") {
+				t.Errorf("record level %v reason %q, want ERROR naming the key", rec["level"], reason)
+			}
+		})
+	}
+}
+
+// TestRosterAPI_PostBodyCapReadFailure proves a POST reads the body cap
+// when it starts and answers a failed read with a server error that
+// writes nothing, rather than parse under a default cap.
+func TestRosterAPI_PostBodyCapReadFailure(t *testing.T) {
+	fx := newAdminFixture(t)
+	before := dumpUsers(t, fx.users)
+	bodyCap := newSettingFake[int64](4096)
+	fx.cfg.BodyCap = bodyCap.setting()
+	api := NewRosterAPI(fx.cfg)
+	bodyCap.set(0, errFixtureRead)
+
+	w := serveOne(api, rosterRequest(http.MethodPost, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), validPost))
+	wantSettingFailure(t, w, fx.logs)
+	assertUnchanged(t, fx.users, before)
 }

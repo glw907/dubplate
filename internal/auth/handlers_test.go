@@ -56,6 +56,50 @@ var handlerRoster = []userRow{
 	{address: "member3@example.com", displayName: "Member Three", username: "member3"},
 }
 
+// fixed returns a Setting that always reads v.
+func fixed[T any](v T) Setting[T] {
+	return func(context.Context) (T, error) { return v, nil }
+}
+
+// orFixed returns s, or a Setting reading v when s is nil.
+func orFixed[T any](s Setting[T], v T) Setting[T] {
+	if s != nil {
+		return s
+	}
+	return fixed(v)
+}
+
+// settingFake is a Setting a test switches between a value and a
+// failure while the code under test holds it, so a read cached before
+// the switch is told apart from one taken after it.
+type settingFake[T any] struct {
+	mu  sync.Mutex
+	v   T
+	err error
+}
+
+func newSettingFake[T any](v T) *settingFake[T] {
+	return &settingFake[T]{v: v}
+}
+
+func (f *settingFake[T]) set(v T, err error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.v, f.err = v, err
+}
+
+func (f *settingFake[T]) setting() Setting[T] {
+	return func(context.Context) (T, error) {
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		if f.err != nil {
+			var zero T
+			return zero, f.err
+		}
+		return f.v, nil
+	}
+}
+
 // generousLimits admits every request a row sends unless the row sets
 // its own.
 var generousLimits = Limits{
@@ -194,7 +238,8 @@ func (c *logCapture) waitFor(t *testing.T, msg string) map[string]any {
 }
 
 // fixtureOptions are what a row varies; the zero value is the kind
-// answer under generousLimits with ClientIP in direct mode.
+// answer under generousLimits with ClientIP in direct mode. A non-nil
+// reader overrides the fixed value its setting otherwise reads.
 type fixtureOptions struct {
 	generic    bool
 	limits     Limits
@@ -203,6 +248,11 @@ type fixtureOptions struct {
 	mailErr    error
 	maxCalls   int
 	linkExpiry time.Duration
+
+	genericReader                           Setting[bool]
+	bodyCapReader                           Setting[int64]
+	expiryReader, lifetimeReader, capReader Setting[time.Duration]
+	retentionReader                         Setting[time.Duration]
 }
 
 type handlerFixture struct {
@@ -222,7 +272,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(store, fixtureRetention, fixtureLinkExpiryCeiling, handlerNow)
+	nonces, _, err := OpenNonceStore(t.Context(), store, orFixed(opts.retentionReader, fixtureRetention), fixtureLinkExpiryCeiling, handlerNow)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -260,13 +310,13 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		LinkSecret:         []byte(currentFixture),
 		PreviousLinkSecret: []byte(previousFixture),
 		SessionSecret:      []byte(sessionFixture),
-		LinkExpiry:         linkExpiry,
-		SessionLifetime:    seamLifetime,
-		SessionAbsoluteCap: seamCap,
+		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
+		SessionLifetime:    orFixed(opts.lifetimeReader, seamLifetime),
+		SessionAbsoluteCap: orFixed(opts.capReader, seamCap),
 		PublicOrigin:       handlerOrigin,
 		Prefix:             handlerPrefix,
-		BodyCap:            bodyCap,
-		GenericAnswer:      opts.generic,
+		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
+		GenericAnswer:      orFixed(opts.genericReader, opts.generic),
 	})
 	return handlerFixture{handlers: h, stateDir: stateDir, users: users, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
 }
@@ -1208,6 +1258,225 @@ func TestReadForm(t *testing.T) {
 			}
 			if w.Code != tt.wantStatus || outcomeOf(t, w) != tt.wantOutcome {
 				t.Errorf("readForm answered %d %s, want %d %s", w.Code, w.Body, tt.wantStatus, tt.wantOutcome)
+			}
+		})
+	}
+}
+
+// errFixtureRead stands for a setting reader's failure. Its text names
+// a key, as every production reader's error does, so a test can find
+// the key in the log record a failure leaves.
+var errFixtureRead = errors.New("DUBPLATE_FIXTURE_KEY: stored admin value refused")
+
+// wantSettingFailure fails t unless w is the server error a failed
+// setting read answers and the log carries a record naming the key.
+func wantSettingFailure(t *testing.T, w *httptest.ResponseRecorder, logs *logCapture) {
+	t.Helper()
+	if w.Code != http.StatusInternalServerError || outcomeOf(t, w) != outcomeFailed {
+		t.Errorf("response = %d %s, want 500 failed", w.Code, w.Body.String())
+	}
+	rec := logs.waitFor(t, "auth setting unreadable")
+	if rec["level"] != "ERROR" {
+		t.Errorf("log level = %v, want ERROR", rec["level"])
+	}
+	if reason, _ := rec["reason"].(string); !strings.Contains(reason, "DUBPLATE_FIXTURE_KEY") {
+		t.Errorf("log reason = %q, want it to name the key", reason)
+	}
+}
+
+// TestRequestLink_SettingReadFailure proves each setting a link request
+// reads is read when the request starts, before the address parses or
+// the roster is asked: with one reader failing, a member, a stranger,
+// and an address that does not parse all get the same server error,
+// and no mail goes out. Each reader reads its value at construction and
+// fails only afterward, so a value cached when the handlers were built
+// would answer these requests rather than fail them, and the response
+// a default would produce is a 200 or a 400, never this 500.
+func TestRequestLink_SettingReadFailure(t *testing.T) {
+	tests := []struct {
+		name    string
+		generic bool
+		fail    func(answer *settingFake[bool], bodyCap *settingFake[int64], expiry *settingFake[time.Duration])
+	}{
+		{
+			name: "the answer reader fails",
+			fail: func(a *settingFake[bool], _ *settingFake[int64], _ *settingFake[time.Duration]) {
+				a.set(false, errFixtureRead)
+			},
+		},
+		{
+			name: "the body cap reader fails under the kind answer",
+			fail: func(_ *settingFake[bool], b *settingFake[int64], _ *settingFake[time.Duration]) {
+				b.set(0, errFixtureRead)
+			},
+		},
+		{
+			name:    "the body cap reader fails under the generic answer",
+			generic: true,
+			fail: func(_ *settingFake[bool], b *settingFake[int64], _ *settingFake[time.Duration]) {
+				b.set(0, errFixtureRead)
+			},
+		},
+		{
+			name: "the link expiry reader fails",
+			fail: func(_ *settingFake[bool], _ *settingFake[int64], e *settingFake[time.Duration]) {
+				e.set(0, errFixtureRead)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var responses []response
+			for _, address := range []string{"member@example.com", "stranger@example.com", "not an address"} {
+				answer := newSettingFake(tt.generic)
+				bodyCap := newSettingFake[int64](4096)
+				expiry := newSettingFake(fixtureExpiry)
+				fx := newHandlerFixture(t, fixtureOptions{
+					genericReader: answer.setting(),
+					bodyCapReader: bodyCap.setting(),
+					expiryReader:  expiry.setting(),
+				})
+				tt.fail(answer, bodyCap, expiry)
+
+				w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(address)))
+				wantSettingFailure(t, w, fx.logs)
+				responses = append(responses, responseOf(w))
+				if n := fx.mail.count(); n != 0 {
+					t.Errorf("%s: %d mails sent, want none", address, n)
+				}
+			}
+			for i, r := range responses[1:] {
+				if !reflect.DeepEqual(r, responses[0]) {
+					t.Errorf("response %d = %+v, want the member's %+v", i+1, r, responses[0])
+				}
+			}
+		})
+	}
+}
+
+// TestRequestLink_ReadsTheExpiryAtEachRequest proves a link minted after
+// the expiry in force changes carries the new expiry: the mail reads the
+// value each request read, never the one in force at construction.
+func TestRequestLink_ReadsTheExpiryAtEachRequest(t *testing.T) {
+	expiry := newSettingFake(15 * time.Minute)
+	fx := newHandlerFixture(t, fixtureOptions{expiryReader: expiry.setting()})
+	for _, tt := range []struct {
+		expiry time.Duration
+		phrase string
+	}{
+		{15 * time.Minute, "expires in 15 minutes"},
+		{40 * time.Minute, "expires in 40 minutes"},
+	} {
+		expiry.set(tt.expiry, nil)
+		w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody("member@example.com")))
+		if got := outcomeOf(t, w); got != outcomeSent {
+			t.Fatalf("outcome = %q, want sent", got)
+		}
+		m := fx.mail.waitCall(t)
+		if !strings.Contains(m.body, tt.phrase) {
+			t.Errorf("mail body %q, want %q", m.body, tt.phrase)
+		}
+		tok, err := VerifyLink([]byte(currentFixture), nil, tokenFromMail(t, m), handlerNow)
+		if err != nil {
+			t.Fatalf("VerifyLink: %v", err)
+		}
+		if want := handlerNow.Add(tt.expiry); !tok.ExpiresAt.Equal(want) {
+			t.Errorf("link expires at %v, want %v", tok.ExpiresAt, want)
+		}
+	}
+}
+
+// TestConsumeLink_SettingReadFailureLeavesTheLinkUnconsumed proves the
+// session's lifetime and cap, and the nonce retention, are read before
+// the nonce is consumed: with one reader failing, the consumption
+// answers a server error and writes no nonce record, and once the
+// reader recovers the same link signs in. A read moved past the insert
+// would burn the link, and the retry would be refused as a replay.
+func TestConsumeLink_SettingReadFailureLeavesTheLinkUnconsumed(t *testing.T) {
+	tests := []struct {
+		name string
+		opts func(f *settingFake[time.Duration]) fixtureOptions
+		ok   time.Duration
+	}{
+		{"the lifetime reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
+			return fixtureOptions{lifetimeReader: f.setting()}
+		}, seamLifetime},
+		{"the cap reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
+			return fixtureOptions{capReader: f.setting()}
+		}, seamCap},
+		{"the retention reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
+			return fixtureOptions{retentionReader: f.setting()}
+		}, fixtureRetention},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newSettingFake(tt.ok)
+			fx := newHandlerFixture(t, tt.opts(f))
+			token := mintFixtureLink(t, currentFixture, "member@example.com", handlerNow)
+
+			f.set(0, errFixtureRead)
+			w := serveOne(fx.handlers.ConsumeLink, post("/login/link", peerIPPort, consumeBody(token)))
+			wantSettingFailure(t, w, fx.logs)
+			if len(w.Result().Cookies()) != 0 {
+				t.Errorf("a failed read set a cookie")
+			}
+			if got := len(nonceDirEntries(t, fx.stateDir)); got != 0 {
+				t.Errorf("nonce records after the failed read = %d, want 0", got)
+			}
+
+			f.set(tt.ok, nil)
+			w = serveOne(fx.handlers.ConsumeLink, post("/login/link", peerIPPort, consumeBody(token)))
+			if w.Code != http.StatusOK || outcomeOf(t, w) != outcomeSignedIn {
+				t.Fatalf("retry = %d %s, want 200 signed_in", w.Code, w.Body.String())
+			}
+		})
+	}
+}
+
+// TestConsumeLink_ReadsTheLifetimeAtEachConsumption proves a session
+// minted after the lifetime in force changes carries the new lifetime.
+func TestConsumeLink_ReadsTheLifetimeAtEachConsumption(t *testing.T) {
+	lifetime := newSettingFake(time.Hour)
+	fx := newHandlerFixture(t, fixtureOptions{lifetimeReader: lifetime.setting()})
+	for i, want := range []time.Duration{time.Hour, 3 * time.Hour} {
+		lifetime.set(want, nil)
+		token := mintFixtureLink(t, currentFixture, "member@example.com", handlerNow.Add(time.Duration(i)*time.Second))
+		w := serveOne(fx.handlers.ConsumeLink, post("/login/link", peerIPPort, consumeBody(token)))
+		if w.Code != http.StatusOK {
+			t.Fatalf("consume = %d %s, want 200", w.Code, w.Body.String())
+		}
+		sess, err := VerifySession([]byte(sessionFixture), nil, w.Result().Cookies()[0].Value, handlerNow, seamCap)
+		if err != nil {
+			t.Fatalf("VerifySession: %v", err)
+		}
+		if got := sess.ExpiresAt.Sub(sess.IssuedAt); got != want {
+			t.Errorf("session lifetime = %v, want %v", got, want)
+		}
+	}
+}
+
+// TestBodyCapReadFailure proves consumeLink and signOut read the body
+// cap when each request starts and answer a failed read with a server
+// error rather than a default cap.
+func TestBodyCapReadFailure(t *testing.T) {
+	tests := []struct {
+		name    string
+		handler func(Handlers) http.Handler
+		target  string
+		body    string
+	}{
+		{"consumeLink", func(h Handlers) http.Handler { return h.ConsumeLink }, "/login/link", consumeBody("x")},
+		{"signOut", func(h Handlers) http.Handler { return h.SignOut }, "/logout", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bodyCap := newSettingFake[int64](4096)
+			fx := newHandlerFixture(t, fixtureOptions{bodyCapReader: bodyCap.setting()})
+			bodyCap.set(0, errFixtureRead)
+			w := serveOne(tt.handler(fx.handlers), post(tt.target, peerIPPort, tt.body))
+			wantSettingFailure(t, w, fx.logs)
+			if len(w.Result().Cookies()) != 0 {
+				t.Errorf("a failed read set a cookie")
 			}
 		})
 	}
