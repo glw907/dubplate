@@ -1135,6 +1135,60 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 	}
 }
 
+// TestDoctorCmd_InvalidThresholdPrintsOnce proves a threshold the
+// magic-link source's validation refuses reaches the operator on its
+// own threshold row alone: the unclaimed-load-error list must not
+// repeat a key a row already owns.
+func TestDoctorCmd_InvalidThresholdPrintsOnce(t *testing.T) {
+	const key = "DUBPLATE_SESSION_LIFETIME"
+	environ := append(doctorEnviron(t),
+		key+"=87600h",
+		"DUBPLATE_SESSION_ABSOLUTE_CAP=1h",
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above the absolute cap")
+	}
+
+	var named []string
+	for line := range strings.SplitSeq(stdout.String(), "\n") {
+		if strings.HasPrefix(line, key+" ") {
+			named = append(named, line)
+		}
+	}
+	if len(named) != 1 {
+		t.Fatalf("rows keyed %s = %q, want exactly one (the threshold row)", key, named)
+	}
+	if !strings.HasPrefix(named[0], fmt.Sprintf("%-32s invalid", key)) {
+		t.Errorf("the one row keyed %s = %q, want the threshold row reading invalid", key, named[0])
+	}
+}
+
+// TestUnclaimedLoadErrors proves the list holds only DUBPLATE_ keys no
+// row owns, in sorted order.
+func TestUnclaimedLoadErrors(t *testing.T) {
+	reg := config.NewRegistry()
+	wall := reg.OwnedWall()
+	if len(wall) == 0 {
+		t.Fatal("registry has no owned wall rows to test with")
+	}
+	owned := wall[0].Name
+
+	statuses := map[string]string{
+		"OTHER_PREFIX_KEY":  "refused",
+		"DUBPLATE_ZZ_LATE":  "refused",
+		"DUBPLATE_AA_EARLY": "refused",
+		owned:               "refused",
+	}
+	got := unclaimedLoadErrors(reg, statuses)
+	want := []string{"DUBPLATE_AA_EARLY", "DUBPLATE_ZZ_LATE"}
+	if !slices.Equal(got, want) {
+		t.Errorf("unclaimedLoadErrors() = %q, want %q", got, want)
+	}
+}
+
 // TestDoctorCmd_StoreBusyTimeoutDefault proves the threshold row shows
 // 15s by default and the set value when set, in the same "%-32s %s"
 // form every duration threshold uses.
