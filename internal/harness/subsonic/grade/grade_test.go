@@ -31,7 +31,7 @@ func seedConfig(ledger string) Config {
 }
 
 func hasFinding(r *Report, request string, kind Kind, path, row string) bool {
-	for i, f := range r.Findings {
+	for i, f := range r.findings {
 		if f.Request == request && f.Kind == kind && f.Path == path && r.ledger.Matches[i] == row {
 			return true
 		}
@@ -65,11 +65,11 @@ func TestSeedGrade(t *testing.T) {
 	}
 	// The totals sit here as well, so an -update that moves them needs a
 	// reviewed edit to this test.
-	if len(r.Findings) != 1686 || r.Unledgered() != 893 {
-		t.Errorf("findings %d, unledgered %d; want 1686 and 893", len(r.Findings), r.Unledgered())
+	if r.Len() != 1686 || r.Unledgered() != 893 {
+		t.Errorf("findings %d, unledgered %d; want 1686 and 893", r.Len(), r.Unledgered())
 	}
 	byKind := map[Kind]int{}
-	for _, f := range r.Findings {
+	for _, f := range r.findings {
 		byKind[f.Kind]++
 	}
 	wantKinds := map[Kind]int{KindContract: 51, KindIdentity: 13, KindPresence: 1218, KindType: 35, KindValue: 369}
@@ -169,7 +169,7 @@ func TestGradeIdenticalBodiesReportOnlyContract(t *testing.T) {
 		t.Fatal(err)
 	}
 	var got []string
-	for _, f := range r.Findings {
+	for _, f := range r.findings {
 		got = append(got, string(f.Kind)+" "+strings.Join(f.Sources, ",")+" "+f.Path+" "+strings.Join(f.Values, ","))
 	}
 	want := []string{
@@ -209,7 +209,7 @@ func TestGradeReportsContractOutcomesWithoutViolations(t *testing.T) {
 				t.Fatal(err)
 			}
 			var got []string
-			for _, f := range r.Findings {
+			for _, f := range r.findings {
 				got = append(got, string(f.Kind)+" "+strings.Join(f.Sources, ",")+" "+f.Path+" "+strings.Join(f.Values, ","))
 			}
 			want := []string{
@@ -375,7 +375,7 @@ func TestGradeKeepsScopedPairsInScope(t *testing.T) {
 	artist := "getArtist.json&id=artist%3AAlpha+Artist"
 	identities := func(r *Report, request string) []Finding {
 		var out []Finding
-		for _, f := range r.Findings {
+		for _, f := range r.findings {
 			if f.Request == request && f.Kind == KindIdentity {
 				out = append(out, f)
 			}

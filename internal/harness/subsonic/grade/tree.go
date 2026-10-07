@@ -2,6 +2,7 @@ package grade
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json/jsontext"
 	"encoding/xml"
 	"errors"
@@ -63,6 +64,10 @@ func (n *node) field(name string) string {
 }
 
 // render is a node's value as a finding prints it.
+// title is an entity's display title: its name, or its title when it has
+// no name.
+func (n *node) title() string { return cmp.Or(n.field("name"), n.field("title")) }
+
 func (n *node) render() string {
 	if n == nil {
 		return "absent"

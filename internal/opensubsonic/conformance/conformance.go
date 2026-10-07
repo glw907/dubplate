@@ -7,6 +7,10 @@
 // for a handful of redirect statuses, and for a response with no schema to
 // validate against. The checker classifies each of those itself, before
 // kin-openapi runs, so a silent pass is reported as [NoSchema].
+//
+// When a body's subsonic-response member names a status, the violations
+// of a failed oneOf are limited to the branches whose status enum admits
+// it.
 package conformance
 
 import (

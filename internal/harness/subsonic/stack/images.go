@@ -39,17 +39,20 @@ func loadImages(path string) (images, error) {
 		return images{}, fmt.Errorf("%w: %s: %w", errImagesFile, path, err)
 	}
 	if err := imgs.check(); err != nil {
-		return images{}, err
+		return images{}, fmt.Errorf("%s: %w", path, err)
 	}
 	return imgs, nil
 }
 
-// check reports every reference that lacks a digest.
+// check reports every reference that is absent or lacks a digest.
 func (i images) check() error {
 	var errs []error
-	for _, ref := range []string{i.Navidrome, i.Gonic} {
-		if !pinned.MatchString(ref) {
-			errs = append(errs, fmt.Errorf("%w: %q", errNotPinned, ref))
+	for _, m := range []struct{ name, ref string }{{"navidrome", i.Navidrome}, {"gonic", i.Gonic}} {
+		switch {
+		case m.ref == "":
+			errs = append(errs, fmt.Errorf("%w: no %s member", errImagesFile, m.name))
+		case !pinned.MatchString(m.ref):
+			errs = append(errs, fmt.Errorf("%w: %q", errNotPinned, m.ref))
 		}
 	}
 	return errors.Join(errs...)

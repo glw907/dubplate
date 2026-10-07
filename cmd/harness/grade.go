@@ -1,11 +1,11 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
 	"strings"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
@@ -33,19 +33,15 @@ func newGradeCmd() *cobra.Command {
 			if sessionDir == "" || out == "" || len(sources) != 2 {
 				return errors.New("grade needs --session, --out, and --pair naming two sources")
 			}
-			root, err := repoRoot()
+			p, err := defaultSubsonicPaths()
 			if err != nil {
 				return err
 			}
-			data := filepath.Join(root, "internal", "harness", "subsonic", "data")
-			if ledger == "" {
-				ledger = filepath.Join(data, "ledger.json")
-			}
 			cfg := grade.Config{
-				Ledger:   ledger,
-				Sessions: filepath.Dir(filepath.Clean(sessionDir)),
-				OpenAPI:  filepath.Join(data, "openapi"),
-				Manifest: filepath.Join(data, "fixture", "manifest.json"),
+				Ledger:   cmp.Or(ledger, p.ledger),
+				Sessions: p.sessions,
+				OpenAPI:  p.openAPI,
+				Manifest: p.manifest,
 			}
 			g, err := grade.New(cfg)
 			if err != nil {
@@ -54,7 +50,7 @@ func newGradeCmd() *cobra.Command {
 			return runGrade(cmd.Context(), g, sessionDir, [2]string{sources[0], sources[1]}, out, cmd.ErrOrStderr())
 		},
 	}
-	cmd.Flags().StringVar(&sessionDir, "session", "", "session directory to grade; the ledger's sessions are its siblings")
+	cmd.Flags().StringVar(&sessionDir, "session", "", "session directory to grade")
 	cmd.Flags().StringVar(&pair, "pair", "", "the two sources to compare, comma-separated")
 	cmd.Flags().StringVar(&out, "out", "", "file to write the report to")
 	cmd.Flags().StringVar(&ledger, "ledger", "", "divergence ledger (default: the committed one)")
@@ -73,7 +69,7 @@ func runGrade(ctx context.Context, g *grade.Grader, sessionDir string, pair [2]s
 		return fmt.Errorf("write report: %w", err)
 	}
 	unledgered := r.Unledgered()
-	if _, err := fmt.Fprintf(status, "grade: %d findings, %d unledgered; report at %s\n", len(r.Findings), unledgered, out); err != nil {
+	if _, err := fmt.Fprintf(status, "grade: %d findings, %d unledgered; report at %s\n", r.Len(), unledgered, out); err != nil {
 		return err
 	}
 	if unledgered > 0 {

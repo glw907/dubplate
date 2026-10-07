@@ -42,7 +42,7 @@ func readTree(t *testing.T, root string) map[string][]byte {
 }
 
 func TestBuildIsDeterministic(t *testing.T) {
-	lib, err := load(committedManifest)
+	lib, err := Load(committedManifest)
 	if err != nil {
 		t.Fatalf("load committed manifest: %v", err)
 	}
@@ -58,11 +58,11 @@ func TestBuildIsDeterministic(t *testing.T) {
 	}
 
 	dirA, dirB := t.TempDir(), t.TempDir()
-	digestA, err := Build(committedManifest, dirA)
+	digestA, err := lib.Build(dirA)
 	if err != nil {
 		t.Fatalf("first build: %v", err)
 	}
-	digestB, err := Build(committedManifest, dirB)
+	digestB, err := lib.Build(dirB)
 	if err != nil {
 		t.Fatalf("second build: %v", err)
 	}
@@ -88,12 +88,12 @@ func TestBuildIsDeterministic(t *testing.T) {
 }
 
 func TestBuildRoundTripsEveryTrack(t *testing.T) {
-	lib, err := load(committedManifest)
+	lib, err := Load(committedManifest)
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
 	dir := t.TempDir()
-	if _, err := Build(committedManifest, dir); err != nil {
+	if _, err := lib.Build(dir); err != nil {
 		t.Fatalf("build: %v", err)
 	}
 	tracks := 0
@@ -204,26 +204,29 @@ func TestLoadStates(t *testing.T) {
 	}
 
 	tests := []struct {
-		name  string
-		files map[string][]byte // seed files written under seeds/
-		raw   string            // manifest bytes when set, else m is marshalled
-		m     *manifest
-		want  []string // fragments every one of which the error names
+		name        string
+		absent      bool              // no manifest file at all
+		files       map[string][]byte // seed files written under seeds/
+		raw         string            // manifest bytes when set, else m is marshalled
+		m           *manifest
+		want        []string // fragments every one of which the error names
+		wantInvalid bool     // the error is errInvalid
 	}{
 		{
-			name: "absent manifest",
-			raw:  "\x00absent",
-			want: []string{"read manifest", "manifest.json"},
+			name:   "absent manifest",
+			absent: true,
+			want:   []string{"read manifest", "manifest.json"},
 		},
 		{
-			name: "empty",
-			m:    &manifest{},
-			want: []string{"manifest declares no albums"},
+			name:        "empty",
+			m:           &manifest{},
+			want:        []string{"manifest declares no albums"},
+			wantInvalid: true,
 		},
 		{
 			name: "malformed",
 			raw:  `{"seeds": [`,
-			want: []string{"parse manifest"},
+			want: []string{"parse manifest", "offset"},
 		},
 		{
 			name: "unknown member",
@@ -237,7 +240,17 @@ func TestLoadStates(t *testing.T) {
 				Seeds:  []seedEntry{seedDecl("a.flac", good)},
 				Albums: []albumEntry{one("x.flac", "a.flac")},
 			},
-			want: []string{`seed "a.flac": sha256`},
+			want:        []string{`seed "a.flac": sha256`},
+			wantInvalid: true,
+		},
+		{
+			name: "seed declared twice, its file absent",
+			m: &manifest{
+				Seeds:  []seedEntry{seedDecl("a.flac", good), seedDecl("a.flac", good)},
+				Albums: []albumEntry{one("x.flac", "a.flac")},
+			},
+			want:        []string{`seed "a.flac" declared twice`},
+			wantInvalid: true,
 		},
 		{
 			name:  "seed without a VORBIS_COMMENT block",
@@ -246,7 +259,8 @@ func TestLoadStates(t *testing.T) {
 				Seeds:  []seedEntry{seedDecl("n.flac", noComment)},
 				Albums: []albumEntry{one("x.flac", "n.flac")},
 			},
-			want: []string{`seed "n.flac": no VORBIS_COMMENT block`},
+			want:        []string{`seed "n.flac": no VORBIS_COMMENT block`},
+			wantInvalid: true,
 		},
 		{
 			name:  "many bad",
@@ -278,6 +292,7 @@ func TestLoadStates(t *testing.T) {
 				`seed "bent.flac": sha256`,
 				`seed "n.flac": no VORBIS_COMMENT block`,
 			},
+			wantInvalid: true,
 		},
 	}
 	for _, tt := range tests {
@@ -293,7 +308,7 @@ func TestLoadStates(t *testing.T) {
 			}
 			path := filepath.Join(dir, "manifest.json")
 			switch {
-			case tt.raw == "\x00absent":
+			case tt.absent:
 			case tt.raw != "":
 				if err := os.WriteFile(path, []byte(tt.raw), 0o644); err != nil {
 					t.Fatal(err)
@@ -308,31 +323,57 @@ func TestLoadStates(t *testing.T) {
 				}
 			}
 
-			target := filepath.Join(t.TempDir(), "lib")
-			digest, err := Build(path, target)
+			lib, err := Load(path)
 			if err == nil {
-				t.Fatalf("Build succeeded with digest %s, want an error", digest)
+				t.Fatalf("Load succeeded with %d tracks, want an error", len(lib.Tracks()))
 			}
 			for _, frag := range tt.want {
 				if !strings.Contains(err.Error(), frag) {
 					t.Errorf("error does not name %q:\n%v", frag, err)
 				}
 			}
-			if tt.name != "absent manifest" && tt.raw == "" && !errors.Is(err, ErrInvalid) {
-				t.Errorf("error is not ErrInvalid: %v", err)
-			}
-			if _, statErr := os.Stat(target); !errors.Is(statErr, fs.ErrNotExist) {
-				t.Errorf("target was touched by a refused build: %v", statErr)
+			if errors.Is(err, errInvalid) != tt.wantInvalid {
+				t.Errorf("errors.Is(err, errInvalid) = %t, want %t: %v", !tt.wantInvalid, tt.wantInvalid, err)
 			}
 		})
 	}
 }
 
-func TestTracks(t *testing.T) {
-	tracks, err := Tracks(committedManifest)
+func TestLoadAcceptsUppercaseDigest(t *testing.T) {
+	good, err := os.ReadFile("../data/fixture/seeds/tone-220.flac")
 	if err != nil {
 		t.Fatal(err)
 	}
+	dir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dir, "seeds"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "seeds", "a.flac"), good, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	m := manifest{
+		Seeds:  []seedEntry{{Name: "a.flac", SHA256: strings.ToUpper(fmt.Sprintf("%x", sha256.Sum256(good)))}},
+		Albums: []albumEntry{{Tracks: []trackEntry{{Path: "x.flac", Seed: "a.flac"}}}},
+	}
+	b, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "manifest.json")
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err != nil {
+		t.Errorf("Load refused an uppercase digest: %v", err)
+	}
+}
+
+func TestTracks(t *testing.T) {
+	lib, err := Load(committedManifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tracks := lib.Tracks()
 	if len(tracks) != 29 {
 		t.Errorf("got %d tracks, want 29", len(tracks))
 	}
@@ -368,8 +409,5 @@ func TestTracks(t *testing.T) {
 		if !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%s:\n got %+v\nwant %+v", tt.path, got, tt.want)
 		}
-	}
-	if _, err := Tracks(filepath.Join(t.TempDir(), "manifest.json")); err == nil || !strings.Contains(err.Error(), "read manifest") {
-		t.Errorf("absent manifest: err = %v", err)
 	}
 }

@@ -42,6 +42,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -75,4 +76,30 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newRecordOracleCmd())
 	cmd.AddCommand(newGradeCmd())
 	return cmd
+}
+
+// subsonicPaths are the committed streamer-harness files the oracle and
+// grade verbs read and write by default.
+type subsonicPaths struct {
+	manifest, digests, ledger, openAPI, sessions, seedSpec, seedSession string
+}
+
+// defaultSubsonicPaths locates the committed streamer-harness data under
+// the repository root.
+func defaultSubsonicPaths() (subsonicPaths, error) {
+	root, err := repoRoot()
+	if err != nil {
+		return subsonicPaths{}, err
+	}
+	data := filepath.Join(root, "internal", "harness", "subsonic", "data")
+	sessions := filepath.Join(data, "sessions")
+	return subsonicPaths{
+		manifest:    filepath.Join(data, "fixture", "manifest.json"),
+		digests:     filepath.Join(data, "oracles.json"),
+		ledger:      filepath.Join(data, "ledger.json"),
+		openAPI:     filepath.Join(data, "openapi"),
+		sessions:    sessions,
+		seedSpec:    filepath.Join(sessions, "seed.spec.json"),
+		seedSession: filepath.Join(sessions, "seed"),
+	}, nil
 }

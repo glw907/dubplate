@@ -97,7 +97,7 @@ func TestLoadRefusals(t *testing.T) {
 		}, []string{"extra"}},
 		{"malformed", func(t *testing.T, d string) {
 			_ = os.WriteFile(filepath.Join(d, "session.json"), []byte(`{"schema_`), 0o644)
-		}, []string{"decode"}},
+		}, []string{"decode", "session.json", "offset"}},
 		{"absent metadata", func(t *testing.T, d string) { _ = os.Remove(filepath.Join(d, "session.json")) }, []string{"session.json"}},
 		{"version hand-edit", func(t *testing.T, d string) {
 			edit(t, d, `"server_version": "0.21.0"`, `"server_version": "0.21.1"`)
@@ -126,6 +126,14 @@ func TestLoadRefusals(t *testing.T) {
 			}
 		})
 	}
+	t.Run("missing body reports only the read", func(t *testing.T) {
+		dir := copyValid(t)
+		_ = os.Remove(filepath.Join(dir, "001-gonic.json"))
+		_, err := Load(dir)
+		if err == nil || strings.Contains(err.Error(), "no readable envelope") {
+			t.Errorf("err = %v, want the read error without an envelope error", err)
+		}
+	})
 	t.Run("absent directory", func(t *testing.T) {
 		_, err := Load(filepath.Join(t.TempDir(), "nope"))
 		if !errors.Is(err, os.ErrNotExist) {
@@ -168,6 +176,21 @@ func TestWriteRefusals(t *testing.T) {
 		err := Write(filepath.Join(t.TempDir(), "out"), s)
 		if err == nil || !strings.Contains(err.Error(), "duplicate of an earlier request") {
 			t.Errorf("err = %v", err)
+		}
+	})
+	t.Run("directory holding a session", func(t *testing.T) {
+		dir := filepath.Join(t.TempDir(), "out")
+		if err := Write(dir, base(t)); err != nil {
+			t.Fatal(err)
+		}
+		s := base(t)
+		s.Requests = s.Requests[:1]
+		delete(s.Resolutions, "album:one")
+		if err := Write(dir, s); !errors.Is(err, errDirNotEmpty) {
+			t.Fatalf("err = %v, want errDirNotEmpty", err)
+		}
+		if got, err := Load(dir); err != nil || len(got.Requests) != 2 {
+			t.Errorf("first session disturbed by the refused write: %v", err)
 		}
 	})
 	t.Run("unsorted params", func(t *testing.T) {
@@ -234,8 +257,12 @@ func TestJoin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	joined, err := s.Join(joinAddition(t, s))
+	if err != nil {
+		t.Fatal(err)
+	}
 	out := filepath.Join(t.TempDir(), "joined")
-	if err := Join(out, s, joinAddition(t, s)); err != nil {
+	if err := Write(out, joined); err != nil {
 		t.Fatal(err)
 	}
 	got, err := Load(out)
@@ -258,25 +285,23 @@ func TestJoin(t *testing.T) {
 	t.Run("source already present", func(t *testing.T) {
 		a := joinAddition(t, s)
 		a.Name = "gonic"
-		dir := filepath.Join(t.TempDir(), "x")
-		err := Join(dir, s, a)
+		got, err := s.Join(a)
 		if !errors.Is(err, errSourceExists) || !strings.Contains(err.Error(), "gonic") {
 			t.Errorf("err = %v, want errSourceExists naming gonic", err)
 		}
-		if _, err := os.Stat(dir); err == nil {
-			t.Error("refused join wrote a directory")
+		if got != nil {
+			t.Error("refused join returned a session")
 		}
 	})
 	t.Run("request the session lacks", func(t *testing.T) {
 		a := joinAddition(t, s)
 		a.Responses["getSong.json&id=song%3Aq"] = Response{Status: 200, ContentType: "application/json", Body: []byte("{}")}
-		dir := filepath.Join(t.TempDir(), "x")
-		err := Join(dir, s, a)
+		got, err := s.Join(a)
 		if !errors.Is(err, errUnknownRequest) || !strings.Contains(err.Error(), "getSong.json&id=song%3Aq") || !strings.Contains(err.Error(), "dubplate") {
 			t.Errorf("err = %v, want errUnknownRequest naming source and request", err)
 		}
-		if _, err := os.Stat(dir); err == nil {
-			t.Error("refused join wrote a directory")
+		if got != nil {
+			t.Error("refused join returned a session")
 		}
 	})
 }

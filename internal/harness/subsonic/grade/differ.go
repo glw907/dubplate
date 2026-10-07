@@ -212,39 +212,12 @@ func (d *differ) compareObject(path, member string, a, b *node, ca, cb identCtx)
 	if d.learn {
 		d.ids.add(d.scope(path), spaceCover, a.field("coverArt"), b.field("coverArt"))
 	}
-	names := slices.Sorted(maps.Keys(a.fields))
-	for name := range b.fields {
-		if a.fields[name] == nil {
-			names = append(names, name)
-		}
-	}
+	names := slices.Collect(maps.Keys(a.fields))
+	names = slices.AppendSeq(names, maps.Keys(b.fields))
 	slices.Sort(names)
-	for _, name := range names {
+	for _, name := range slices.Compact(names) {
 		d.compare(join(path, name), name, a.fields[name], b.fields[name], ca, cb)
 	}
-}
-
-// describe is an entity's identity as a finding prints it.
-func (id identity) describe(n *node) string {
-	if id.kind == entityNone {
-		return "not an entity: " + n.render()
-	}
-	if id.key == "" {
-		return id.problem
-	}
-	return id.key
-}
-
-// enter returns the context the members of the entity n, resolved to id,
-// see.
-func (c identCtx) enter(id identity, n *node) identCtx {
-	switch id.kind {
-	case entityAlbum:
-		c.album, c.albumArt, c.albumNm = id.key, n.field("artist"), cmp.Or(n.field("name"), n.field("title"))
-	case entityFolder:
-		c.folder = strings.TrimPrefix(id.key, "folder:")
-	}
-	return c
 }
 
 // elementKey is what pairs an array element with its counterpart. A
@@ -268,7 +241,7 @@ func (d *differ) key(member string, n *node, c identCtx) elementKey {
 		if id.key != "" {
 			return elementKey{key: id.key, strict: true}
 		}
-		return elementKey{key: "unresolved " + string(kind) + " " + cmp.Or(n.field("name"), n.field("title")), strict: true}
+		return elementKey{key: "unresolved " + string(kind) + " " + n.title(), strict: true}
 	}
 	for _, k := range naturalKeys {
 		if v := n.field(k); v != "" {
@@ -283,33 +256,28 @@ func (d *differ) key(member string, n *node, c identCtx) elementKey {
 // by more than one element on a side is one identity finding, and on an
 // order-significant path the paired elements must keep one order.
 func (d *differ) compareArray(path, member string, a, b *node, ca, cb identCtx) {
-	keysA := make([]elementKey, len(a.items))
-	keysB := make([]elementKey, len(b.items))
+	var keys [2][]elementKey
 	byKey := map[string][2][]int{}
 	var order []string
-	for i, n := range a.items {
-		keysA[i] = d.key(member, n, ca)
-		g := byKey[keysA[i].key]
-		if g[0] == nil && g[1] == nil {
-			order = append(order, keysA[i].key)
+	ctxs := [2]identCtx{ca, cb}
+	for side, arr := range [2]*node{a, b} {
+		keys[side] = make([]elementKey, len(arr.items))
+		for i, n := range arr.items {
+			k := d.key(member, n, ctxs[side])
+			keys[side][i] = k
+			g := byKey[k.key]
+			if g[0] == nil && g[1] == nil {
+				order = append(order, k.key)
+			}
+			g[side] = append(g[side], i)
+			byKey[k.key] = g
 		}
-		g[0] = append(g[0], i)
-		byKey[keysA[i].key] = g
-	}
-	for j, n := range b.items {
-		keysB[j] = d.key(member, n, cb)
-		g := byKey[keysB[j].key]
-		if g[0] == nil && g[1] == nil {
-			order = append(order, keysB[j].key)
-		}
-		g[1] = append(g[1], j)
-		byKey[keysB[j].key] = g
 	}
 	type match struct{ i, j int }
 	var pairs []match
 	for _, k := range order {
 		g := byKey[k]
-		strict := (len(g[0]) > 0 && keysA[g[0][0]].strict) || (len(g[1]) > 0 && keysB[g[1][0]].strict)
+		strict := (len(g[0]) > 0 && keys[0][g[0][0]].strict) || (len(g[1]) > 0 && keys[1][g[1][0]].strict)
 		if strict && (len(g[0]) > 1 || len(g[1]) > 1) {
 			d.ambiguous(path, member, k, a, b, g)
 			continue
@@ -329,7 +297,7 @@ func (d *differ) compareArray(path, member string, a, b *node, ca, cb identCtx) 
 	if d.ordered(path) && !slices.IsSortedFunc(pairs, func(x, y match) int { return cmp.Compare(x.j, y.j) }) {
 		left := make([]string, len(pairs))
 		for n, p := range pairs {
-			left[n] = keysA[p.i].key
+			left[n] = keys[0][p.i].key
 		}
 		right := slices.Clone(left)
 		slices.SortStableFunc(right, func(x, y string) int {

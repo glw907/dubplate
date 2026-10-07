@@ -58,22 +58,24 @@ func New(cfg Config) (*Grader, error) {
 	if err != nil {
 		return nil, err
 	}
-	tracks, err := fixture.Tracks(cfg.Manifest)
+	lib, err := fixture.Load(cfg.Manifest)
 	if err != nil {
 		return nil, err
 	}
-	return &Grader{ledger: l, contract: c, lib: newLibrary(tracks)}, nil
+	return &Grader{ledger: l, contract: c, lib: newLibrary(lib.Tracks())}, nil
 }
 
 // Report is one graded session: every finding, sorted, and the ledger
 // applied to them.
 type Report struct {
-	Findings []Finding
-
-	session string
-	sources [2]string
-	ledger  Result
+	findings []Finding // paired by index with ledger.Matches
+	session  string
+	sources  [2]string
+	ledger   Result
 }
+
+// Len returns the number of findings.
+func (r *Report) Len() int { return len(r.findings) }
 
 // Unledgered returns the number of findings no ledger row covers.
 func (r *Report) Unledgered() int {
@@ -130,7 +132,7 @@ func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report
 	if errors.Is(err, ErrVersionMismatch) {
 		return nil, err
 	}
-	return &Report{Findings: findings, session: name, sources: pair, ledger: res}, err
+	return &Report{findings: findings, session: name, sources: pair, ledger: res}, err
 }
 
 func compareFindings(a, b Finding) int {
@@ -296,11 +298,14 @@ func (g *Grader) contractTier(ctx context.Context, s *session.Session, pair [2]s
 	return found
 }
 
+// pointerUnescape undoes RFC 6901 segment escaping.
+var pointerUnescape = strings.NewReplacer("~1", "/", "~0", "~")
+
 // pointerPath turns an RFC 6901 pointer into a finding path.
 func pointerPath(pointer string) string {
 	segs := strings.Split(strings.TrimPrefix(pointer, "/"), "/")
 	for i, s := range segs {
-		segs[i] = strings.NewReplacer("~1", "/", "~0", "~").Replace(s)
+		segs[i] = pointerUnescape.Replace(s)
 	}
 	return strings.Join(segs, "/")
 }
@@ -333,10 +338,10 @@ func (r *Report) Format() []byte {
 	var b strings.Builder
 	fmt.Fprintf(&b, "session %s: %s against %s\n", r.session, r.sources[0], r.sources[1])
 	byKind := map[Kind]int{}
-	for _, f := range r.Findings {
+	for _, f := range r.findings {
 		byKind[f.Kind]++
 	}
-	fmt.Fprintf(&b, "findings: %d, unledgered %d\n", len(r.Findings), r.Unledgered())
+	fmt.Fprintf(&b, "findings: %d, unledgered %d\n", len(r.findings), r.Unledgered())
 	for _, k := range slices.Sorted(maps.Keys(byKind)) {
 		fmt.Fprintf(&b, "  %s: %d\n", k, byKind[k])
 	}
@@ -349,7 +354,7 @@ func (r *Report) Format() []byte {
 		fmt.Fprintf(&b, "  %s: %d\n", slice, r.ledger.Owed[slice])
 	}
 	request := ""
-	for i, f := range r.Findings {
+	for i, f := range r.findings {
 		if f.Request != request {
 			request = f.Request
 			fmt.Fprintf(&b, "\n%s\n", request)

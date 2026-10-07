@@ -25,11 +25,11 @@ var (
 
 func testLibrary(t *testing.T) *library {
 	t.Helper()
-	tracks, err := fixture.Tracks(committedManifest)
+	lib, err := fixture.Load(committedManifest)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return newLibrary(tracks)
+	return newLibrary(lib.Tracks())
 }
 
 // diffBodies runs the oracle tier alone over one getAlbum request whose

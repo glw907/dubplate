@@ -1,12 +1,12 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
@@ -42,19 +42,14 @@ func newOracleUpCmd() *cobra.Command {
 
 func runOracleUp(ctx context.Context, cmd *cobra.Command, manifest, digests string) error {
 	if manifest == "" || digests == "" {
-		root, err := repoRoot()
+		p, err := defaultSubsonicPaths()
 		if err != nil {
 			return err
 		}
-		data := filepath.Join(root, "internal", "harness", "subsonic", "data")
-		if manifest == "" {
-			manifest = filepath.Join(data, "fixture", "manifest.json")
-		}
-		if digests == "" {
-			digests = filepath.Join(data, "oracles.json")
-		}
+		manifest = cmp.Or(manifest, p.manifest)
+		digests = cmp.Or(digests, p.digests)
 	}
-	tracks, err := fixture.TrackCount(manifest)
+	lib, err := fixture.Load(manifest)
 	if err != nil {
 		return err
 	}
@@ -63,18 +58,18 @@ func runOracleUp(ctx context.Context, cmd *cobra.Command, manifest, digests stri
 		return fmt.Errorf("create library directory: %w", err)
 	}
 	defer func() { _ = os.RemoveAll(music) }()
-	if _, err := fixture.Build(manifest, music); err != nil {
+	if _, err := lib.Build(music); err != nil {
 		return err
 	}
 
-	s, err := stack.Start(ctx, stack.Config{MusicDir: music, Tracks: tracks, DigestFile: digests})
+	s, err := stack.Start(ctx, stack.Config{MusicDir: music, Tracks: len(lib.Tracks()), DigestFile: digests})
 	if err != nil {
 		return err
 	}
 	defer s.Close(ctx)
 
 	out := cmd.OutOrStdout()
-	for _, o := range []stack.Oracle{s.Navidrome, s.Gonic} {
+	for _, o := range s.Oracles {
 		if _, err := fmt.Fprintf(out, "%-10s %s  user %s  password %s\n", o.Name, o.BaseURL, o.User, o.Password); err != nil {
 			return err
 		}

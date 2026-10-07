@@ -131,11 +131,19 @@ func newEnv(t *testing.T, navidromeAddr, gonicAddr string) env {
 	if err != nil {
 		t.Fatal(err)
 	}
-	e.cfg = Config{
-		MusicDir: e.music, Tracks: 3, DigestFile: digests, Podman: exe,
-		ReadyTimeout: 400 * time.Millisecond, Poll: 10 * time.Millisecond,
-	}
+	e.cfg = Config{MusicDir: e.music, Tracks: 3, DigestFile: digests}
+	swap(t, &podmanName, exe)
+	swap(t, &readyTimeout, 400*time.Millisecond)
+	swap(t, &pollInterval, 10*time.Millisecond)
 	return e
+}
+
+// swap sets *p to v for the rest of the test.
+func swap[T any](t *testing.T, p *T, v T) {
+	t.Helper()
+	old := *p
+	*p = v
+	t.Cleanup(func() { *p = old })
 }
 
 func (e env) calls(t *testing.T) []fakeCall {
@@ -253,19 +261,25 @@ func TestStartRunArguments(t *testing.T) {
 			}
 		})
 	}
-	if nd.Secret == "" || nd.Secret != s.Navidrome.Password {
-		t.Errorf("navidrome process env password = %q, want the run password %q", nd.Secret, s.Navidrome.Password)
+	if len(s.Oracles) != 2 || s.Oracles[0].Name != "navidrome" || s.Oracles[1].Name != "gonic" {
+		t.Fatalf("oracles = %+v, want navidrome then gonic", s.Oracles)
+	}
+	navidrome, gonicOracle := s.Oracles[0], s.Oracles[1]
+	if nd.Secret == "" || nd.Secret != navidrome.Password {
+		t.Errorf("navidrome process env password = %q, want the run password %q", nd.Secret, navidrome.Password)
 	}
 	for _, a := range nd.Args {
-		if strings.Contains(a, s.Navidrome.Password) {
+		if strings.Contains(a, navidrome.Password) {
 			t.Errorf("password appears in argv: %q", a)
 		}
 	}
-	if s.Gonic.User != "admin" || s.Gonic.Password != "admin" || s.Navidrome.User != "admin" {
-		t.Errorf("credentials = %+v / %+v", s.Navidrome, s.Gonic)
+	if gonicOracle.User != "admin" || gonicOracle.Password != "admin" || navidrome.User != "admin" {
+		t.Errorf("credentials = %+v / %+v", navidrome, gonicOracle)
 	}
-	if !strings.HasPrefix(s.Navidrome.BaseURL, "http://127.0.0.1:") {
-		t.Errorf("base url = %q", s.Navidrome.BaseURL)
+	for _, o := range s.Oracles {
+		if !strings.HasPrefix(o.BaseURL, "http://127.0.0.1:") {
+			t.Errorf("%s base url = %q", o.Name, o.BaseURL)
+		}
 	}
 }
 
@@ -313,7 +327,7 @@ func assertRemovedWithVolumes(t *testing.T, e env) {
 func TestStartTearsDownOnCancellation(t *testing.T) {
 	// Never finishes scanning, so Start waits until the context is cancelled.
 	e := newEnv(t, oracleServer(t, true, 0), oracleServer(t, true, 0))
-	e.cfg.ReadyTimeout = time.Minute
+	readyTimeout = time.Minute
 	ctx, cancel := context.WithCancel(t.Context())
 	go func() {
 		for len(e.verb(t, "port")) < 2 {
@@ -386,6 +400,12 @@ func TestStartRefusals(t *testing.T) {
 			mention: []string{"oracles.json"},
 		},
 		{
+			name:    "digest file with no members",
+			prep:    func(t *testing.T, e *env) { badDigest(t, *e, "{}") },
+			want:    errImagesFile,
+			mention: []string{"oracles.json", "no navidrome member", "no gonic member"},
+		},
+		{
 			name: "digest file with unknown member",
 			prep: func(t *testing.T, e *env) {
 				badDigest(t, *e, `{"navidrome":"`+pinNavidrome+`","gonic":"`+pinGonic+`","extra":1}`)
@@ -394,7 +414,7 @@ func TestStartRefusals(t *testing.T) {
 		},
 		{
 			name: "podman absent",
-			prep: func(t *testing.T, e *env) { e.cfg.Podman = "podman-absent-from-path" },
+			prep: func(t *testing.T, e *env) { podmanName = "podman-absent-from-path" },
 			want: ErrNoPodman, mention: []string{"podman-absent-from-path"},
 		},
 	}
@@ -504,19 +524,26 @@ func TestImageDigest(t *testing.T) {
 	pinDigest := pinNavidrome[strings.Index(pinNavidrome, "@")+1:]
 	tests := []struct {
 		name    string
+		image   string // overrides the pinned reference when set
 		inspect string
 		want    string
 		wantErr bool
+		mention []string
 	}{
-		{"digest field", `[{"Digest":"` + pinDigest + `","RepoDigests":[]}]`, pinDigest, false},
-		{"repo digest beside a different digest",
-			`[{"Digest":"` + other + `","RepoDigests":["registry.example/nd@` + pinDigest + `"]}]`, pinDigest, false},
-		{"no pin anywhere",
-			`[{"Digest":"` + other + `","RepoDigests":["registry.example/nd@` + other + `"]}]`, "", true},
-		{"tag-only repo digest does not match by prefix",
-			`[{"Digest":"","RepoDigests":["docker.io/deluan/navidrome:latest"]}]`, "", true},
-		{"empty inspect list", `[]`, "", true},
-		{"malformed inspect", `not json`, "", true},
+		{name: "digest field", inspect: `[{"Digest":"` + pinDigest + `","RepoDigests":[]}]`, want: pinDigest},
+		{name: "repo digest beside a different digest",
+			inspect: `[{"Digest":"` + other + `","RepoDigests":["registry.example/nd@` + pinDigest + `"]}]`, want: pinDigest},
+		{name: "no pin anywhere",
+			inspect: `[{"Digest":"` + other + `","RepoDigests":["registry.example/nd@` + other + `"]}]`, wantErr: true,
+			mention: []string{pinNavidrome, `Digest "` + other + `"`, "registry.example/nd@" + other}},
+		{name: "tag-only repo digest does not match by prefix",
+			inspect: `[{"Digest":"","RepoDigests":["docker.io/deluan/navidrome:latest"]}]`, wantErr: true,
+			mention: []string{pinNavidrome, "docker.io/deluan/navidrome:latest"}},
+		{name: "unpinned reference against an image with no digest", image: "docker.io/deluan/navidrome:latest",
+			inspect: `[{"Digest":"","RepoDigests":[]}]`, wantErr: true,
+			mention: []string{"docker.io/deluan/navidrome:latest"}},
+		{name: "empty inspect list", inspect: `[]`, wantErr: true, mention: []string{pinNavidrome}},
+		{name: "malformed inspect", inspect: `not json`, wantErr: true, mention: []string{pinNavidrome}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -526,13 +553,19 @@ func TestImageDigest(t *testing.T) {
 				t.Fatalf("Start: %v", err)
 			}
 			t.Setenv("FAKE_INSPECT_NAVIDROME", tc.inspect)
-			got, err := s.ImageDigest(t.Context(), s.Navidrome)
+			o := s.Oracles[0]
+			if tc.image != "" {
+				o.image = tc.image
+			}
+			got, err := s.ImageDigest(t.Context(), o)
 			if tc.wantErr {
-				if !errors.Is(err, ErrImageNotPinned) {
-					t.Fatalf("error = %v, want ErrImageNotPinned", err)
+				if !errors.Is(err, errImageNotPinned) {
+					t.Fatalf("error = %v, want errImageNotPinned", err)
 				}
-				if !strings.Contains(err.Error(), pinNavidrome) {
-					t.Errorf("error %q does not name the image %s", err, pinNavidrome)
+				for _, m := range tc.mention {
+					if !strings.Contains(err.Error(), m) {
+						t.Errorf("error %q does not mention %q", err, m)
+					}
 				}
 				return
 			}

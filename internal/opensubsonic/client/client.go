@@ -3,11 +3,11 @@
 //
 // Behavior cites the OpenSubsonic documentation (https://opensubsonic.netlify.app/docs/):
 // "Authentication" for the legacy token scheme, "Response" for the envelope in
-// both formats, and "Error handling" for the failed-status form. The package
-// imports nothing from this module outside internal/opensubsonic.
+// both formats, and "Error handling" for the failed-status form.
 package client
 
 import (
+	"cmp"
 	"context"
 	"crypto/md5"
 	"crypto/rand"
@@ -21,9 +21,9 @@ import (
 	"net/url"
 )
 
-// APIVersion is the protocol version a request declares in its v parameter.
+// apiVersion is the protocol version a request declares in its v parameter.
 // The docs state that a server must answer a client whose version it supports.
-const APIVersion = "1.16.1"
+const apiVersion = "1.16.1"
 
 // Format selects the response encoding, sent as the f parameter.
 type Format string
@@ -34,8 +34,11 @@ const (
 	XML  Format = "xml"
 )
 
-// Client issues requests to one server. The zero value is not usable; set
-// every field except HTTP's optional timeouts.
+// Valid reports whether f is one of the two response encodings.
+func (f Format) Valid() bool { return f == JSON || f == XML }
+
+// Client issues requests to one server. BaseURL, User, Password, and Name
+// must be set.
 type Client struct {
 	// BaseURL is the server root. It may carry a sub-path; endpoints are
 	// requested at BaseURL + "/rest/" + name.
@@ -44,6 +47,7 @@ type Client struct {
 	Password string
 	// Name is the client identifier sent as the c parameter.
 	Name string
+	// HTTP is the client requests go through; nil means http.DefaultClient.
 	HTTP *http.Client
 }
 
@@ -71,25 +75,25 @@ type Error struct {
 
 func (e *Error) Error() string { return fmt.Sprintf("subsonic error %d: %s", e.Code, e.Message) }
 
-// StatusError reports an HTTP status other than 200.
-type StatusError struct{ Code int }
+// statusError reports an HTTP status other than 200.
+type statusError struct{ code int }
 
-func (e *StatusError) Error() string { return fmt.Sprintf("http status %d", e.Code) }
+func (e *statusError) Error() string { return fmt.Sprintf("http status %d", e.code) }
 
-// MalformedError reports a body that is not a subsonic-response envelope in
-// the requested format. Prefix holds the first bytes of the body.
-type MalformedError struct {
-	Format Format
-	Prefix string
-	Reason string
+// malformedError reports a body that is not a subsonic-response envelope in
+// the requested format. prefix holds the first bytes of the body.
+type malformedError struct {
+	format Format
+	prefix string
+	reason string
 }
 
-func (e *MalformedError) Error() string {
-	return fmt.Sprintf("malformed %s envelope (%s): %q", e.Format, e.Reason, e.Prefix)
+func (e *malformedError) Error() string {
+	return fmt.Sprintf("malformed %s envelope (%s): %q", e.format, e.reason, e.prefix)
 }
 
-// ErrEmptyResponse reports a 200 answer with no body.
-var ErrEmptyResponse = errors.New("empty response")
+// errEmptyResponse reports a 200 answer with no body.
+var errEmptyResponse = errors.New("empty response")
 
 // token returns the legacy authentication token: the lowercase hex MD5 of the
 // password followed by the salt.
@@ -111,9 +115,13 @@ func newSalt() (string, error) {
 // Do requests the named endpoint with params in the given format. It never
 // modifies params. The returned Response is non-nil whenever the server
 // answered, including with a non-200 status, an unparsable body, or a failed
-// envelope, so a caller can record the verbatim bytes of an error; the error
-// is then a *StatusError, a *MalformedError, ErrEmptyResponse, or an *Error.
+// envelope, so a caller can record the verbatim bytes of an error. A failed
+// envelope's error is an *Error. An invalid format is refused before any
+// request is sent.
 func (c *Client) Do(ctx context.Context, endpoint string, params url.Values, format Format) (*Response, error) {
+	if !format.Valid() {
+		return nil, fmt.Errorf("request %s: unknown format %q", endpoint, format)
+	}
 	u, err := url.Parse(c.BaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse base url: %w", err)
@@ -130,7 +138,7 @@ func (c *Client) Do(ctx context.Context, endpoint string, params url.Values, for
 	q.Set("u", c.User)
 	q.Set("t", token(c.Password, salt))
 	q.Set("s", salt)
-	q.Set("v", APIVersion)
+	q.Set("v", apiVersion)
 	q.Set("c", c.Name)
 	q.Set("f", string(format))
 	u.RawQuery = q.Encode()
@@ -139,7 +147,7 @@ func (c *Client) Do(ctx context.Context, endpoint string, params url.Values, for
 	if err != nil {
 		return nil, fmt.Errorf("build request: %w", err)
 	}
-	hr, err := c.HTTP.Do(req)
+	hr, err := cmp.Or(c.HTTP, http.DefaultClient).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request %s: %w", endpoint, redactURL(err))
 	}
@@ -150,10 +158,10 @@ func (c *Client) Do(ctx context.Context, endpoint string, params url.Values, for
 	}
 	resp := &Response{StatusCode: hr.StatusCode, Header: hr.Header, Body: body}
 	if hr.StatusCode != http.StatusOK {
-		return resp, &StatusError{Code: hr.StatusCode}
+		return resp, &statusError{code: hr.StatusCode}
 	}
 	if len(body) == 0 {
-		return resp, ErrEmptyResponse
+		return resp, errEmptyResponse
 	}
 	resp.Envelope, err = ParseEnvelope(body, format)
 	if err != nil {
@@ -198,7 +206,7 @@ type xmlEnvelope struct {
 // in the given format. It is the parse Do applies to every answer.
 func ParseEnvelope(body []byte, format Format) (Envelope, error) {
 	malformed := func(reason string) error {
-		return &MalformedError{Format: format, Prefix: string(body[:min(len(body), 40)]), Reason: reason}
+		return &malformedError{format: format, prefix: string(body[:min(len(body), 40)]), reason: reason}
 	}
 	var env Envelope
 	var werr *wireError

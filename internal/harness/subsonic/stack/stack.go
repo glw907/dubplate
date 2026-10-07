@@ -13,7 +13,6 @@ package stack
 
 import (
 	"bytes"
-	"cmp"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -21,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -41,14 +39,22 @@ var errNotReady = errors.New("stack: oracle not ready")
 // number of tracks than the manifest declares.
 var errTrackCount = errors.New("stack: scan track count differs from manifest")
 
-// ErrImageNotPinned marks a running image whose inspect output does not
+// errImageNotPinned marks a running image whose inspect output does not
 // carry the pinned digest.
-var ErrImageNotPinned = errors.New("stack: running image does not carry the pinned digest")
+var errImageNotPinned = errors.New("stack: running image does not carry the pinned digest")
 
 const (
 	labelKey     = "dubplate-harness-run"
 	teardownWait = 30 * time.Second
 	logTail      = "20"
+)
+
+// The podman executable, the bound on each oracle's wait for a finished
+// scan, and the interval between readiness probes. Tests swap them.
+var (
+	podmanName   = "podman"
+	readyTimeout = time.Minute
+	pollInterval = 500 * time.Millisecond
 )
 
 // Config describes one stack run.
@@ -59,33 +65,33 @@ type Config struct {
 	Tracks int
 	// DigestFile is the committed file naming the pinned images.
 	DigestFile string
-	// Podman is the executable; empty means "podman".
-	Podman string
-	// ReadyTimeout bounds each oracle's wait for a finished scan; zero means
-	// one minute.
-	ReadyTimeout time.Duration
-	// Poll is the interval between readiness probes; zero means 500ms.
-	Poll time.Duration
 }
 
 // Oracle is one running server.
 type Oracle struct {
 	Name     string
-	Image    string // the pinned reference the container was started from
 	BaseURL  string
 	User     string
 	Password string
 
+	image     string // the pinned reference the container was started from
 	container string
+}
+
+// Client returns a client for o whose requests are each bounded by timeout.
+func (o Oracle) Client(timeout time.Duration) *client.Client {
+	return &client.Client{
+		BaseURL: o.BaseURL, User: o.User, Password: o.Password,
+		Name: "dubplate-harness", HTTP: &http.Client{Timeout: timeout},
+	}
 }
 
 // Stack is the running pair.
 type Stack struct {
-	Navidrome Oracle
-	Gonic     Oracle
+	// Oracles holds Navidrome, then gonic.
+	Oracles []Oracle
 
 	podman string
-	names  []string
 	secret string
 }
 
@@ -109,7 +115,7 @@ func Start(ctx context.Context, cfg Config) (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	bin, err := exec.LookPath(cmp.Or(cfg.Podman, "podman"))
+	bin, err := exec.LookPath(podmanName)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrNoPodman, err)
 	}
@@ -150,23 +156,25 @@ func Start(ctx context.Context, cfg Config) (*Stack, error) {
 			tmpfs: []string{"/data", "/cache", "/podcasts", "/playlists"},
 		},
 	}
-	oracles := make([]*Oracle, len(specs))
 	for i, sp := range specs {
-		name := "dubplate-oracle-" + runID + "-" + sp.name
-		s.names = append(s.names, name)
-		base, err := s.run(ctx, cfg, sp, name, runID)
+		// The oracle joins s before its container runs, so a partial
+		// start still tears down.
+		s.Oracles = append(s.Oracles, Oracle{
+			Name: sp.name, User: sp.user, Password: sp.password,
+			image: sp.ref, container: "dubplate-oracle-" + runID + "-" + sp.name,
+		})
+		base, err := s.run(ctx, cfg, sp, s.Oracles[i].container, runID)
 		if err != nil {
 			s.Close(ctx)
 			return nil, fmt.Errorf("start %s: %w", sp.name, err)
 		}
-		oracles[i] = &Oracle{Name: sp.name, Image: sp.ref, BaseURL: base, User: sp.user, Password: sp.password, container: name}
+		s.Oracles[i].BaseURL = base
 	}
-	s.Navidrome, s.Gonic = *oracles[0], *oracles[1]
 
 	var errs []error
-	for i, o := range oracles {
-		if err := s.waitReady(ctx, cfg, *o); err != nil {
-			errs = append(errs, fmt.Errorf("%s: %w%s", o.Name, err, s.logTail(ctx, s.names[i])))
+	for _, o := range s.Oracles {
+		if err := waitReady(ctx, cfg, o); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w%s", o.Name, err, s.logTail(ctx, o.container)))
 		}
 	}
 	if err := errors.Join(errs...); err != nil {
@@ -182,7 +190,10 @@ func Start(ctx context.Context, cfg Config) (*Stack, error) {
 func (s *Stack) Close(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), teardownWait)
 	defer cancel()
-	args := append([]string{"rm", "-f", "-v", "-i"}, s.names...)
+	args := []string{"rm", "-f", "-v", "-i"}
+	for _, o := range s.Oracles {
+		args = append(args, o.container)
+	}
 	// Teardown is best effort: the containers are loopback-only and
 	// labelled, so a failure leaves an orphan the label finds.
 	_, _ = s.exec(ctx, nil, args...)
@@ -190,11 +201,15 @@ func (s *Stack) Close(ctx context.Context) {
 
 // ImageDigest inspects the image o's container is running and returns the
 // pinned digest, taken from the inspect output: the image's Digest field
-// or the digest half of one of its RepoDigests. It refuses with
-// [ErrImageNotPinned] when neither carries the digest o.Image pins, so a
-// container started from a moved or substituted image never records.
+// or the digest half of one of its RepoDigests. It refuses when neither
+// carries the digest o's image reference pins, so a container started from
+// a moved or substituted image never records.
 func (s *Stack) ImageDigest(ctx context.Context, o Oracle) (string, error) {
-	_, pin, _ := strings.Cut(o.Image, "@")
+	_, pin, _ := strings.Cut(o.image, "@")
+	if pin == "" {
+		// An empty pin would match an image whose inspect reports no digest.
+		return "", fmt.Errorf("%w: %s names no digest", errImageNotPinned, o.image)
+	}
 	id, err := s.exec(ctx, nil, "container", "inspect", "--format", "{{.Image}}", o.container)
 	if err != nil {
 		return "", err
@@ -208,7 +223,7 @@ func (s *Stack) ImageDigest(ctx context.Context, o Oracle) (string, error) {
 		RepoDigests []string
 	}
 	if err := json.Unmarshal([]byte(out), &infos); err != nil {
-		return "", fmt.Errorf("%w: %s: parse inspect output: %v", ErrImageNotPinned, o.Image, err)
+		return "", fmt.Errorf("%w: %s: parse inspect output: %v", errImageNotPinned, o.image, err)
 	}
 	var seen []string
 	for _, info := range infos {
@@ -222,7 +237,7 @@ func (s *Stack) ImageDigest(ctx context.Context, o Oracle) (string, error) {
 			}
 		}
 	}
-	return "", fmt.Errorf("%w: %s: inspect reports %s", ErrImageNotPinned, o.Image, strings.Join(seen, "; "))
+	return "", fmt.Errorf("%w: %s: inspect reports %s", errImageNotPinned, o.image, strings.Join(seen, "; "))
 }
 
 func (s *Stack) run(ctx context.Context, cfg Config, sp spec, name, runID string) (string, error) {
@@ -295,14 +310,10 @@ func (s *Stack) logTail(ctx context.Context, name string) string {
 
 // waitReady polls until the oracle answers ping and a finished scan
 // reports the manifest's track count, or the deadline passes.
-func (s *Stack) waitReady(ctx context.Context, cfg Config, o Oracle) error {
-	ctx, cancel := context.WithTimeout(ctx, cmp.Or(cfg.ReadyTimeout, time.Minute))
+func waitReady(ctx context.Context, cfg Config, o Oracle) error {
+	ctx, cancel := context.WithTimeout(ctx, readyTimeout)
 	defer cancel()
-	c := &client.Client{
-		BaseURL: o.BaseURL, User: o.User, Password: o.Password,
-		Name: "dubplate-harness", HTTP: &http.Client{Timeout: 5 * time.Second},
-	}
-	poll := cmp.Or(cfg.Poll, 500*time.Millisecond)
+	c := o.Client(5 * time.Second)
 	finished := -1 // count of the last finished scan, -1 when none was seen
 	for {
 		if _, err := c.Do(ctx, "ping", nil, client.JSON); err == nil {
@@ -320,13 +331,13 @@ func (s *Stack) waitReady(ctx context.Context, cfg Config, o Oracle) error {
 				return fmt.Errorf("%w: oracle %s counted %d, manifest has %d", errTrackCount, o.Name, finished, cfg.Tracks)
 			}
 			return fmt.Errorf("%w: %s scan did not finish: %w", errNotReady, o.Name, ctx.Err())
-		case <-time.After(poll):
+		case <-time.After(pollInterval):
 		}
 	}
 }
 
 func scanStatus(ctx context.Context, c *client.Client) (scanning bool, count int, err error) {
-	resp, err := c.Do(ctx, "getScanStatus", url.Values{}, client.JSON)
+	resp, err := c.Do(ctx, "getScanStatus", nil, client.JSON)
 	if err != nil {
 		return false, 0, err
 	}

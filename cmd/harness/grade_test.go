@@ -169,3 +169,48 @@ func TestGradeRegistered(t *testing.T) {
 		t.Fatalf("Find(grade) = %v, %v", cmd, err)
 	}
 }
+
+// TestGradeResolvesLedgerSessionsFromTheCommittedHome grades a copy of the
+// seed session kept outside the committed sessions directory under a
+// ledger whose active row names the committed seed session. The row's
+// session must resolve against the committed home, never against the
+// graded session's parent.
+func TestGradeResolvesLedgerSessionsFromTheCommittedHome(t *testing.T) {
+	seed := subsonicData + "/data/sessions/seed"
+	s, err := session.Load(seed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	elsewhere := filepath.Join(t.TempDir(), "elsewhere")
+	if err := session.Write(elsewhere, s); err != nil {
+		t.Fatal(err)
+	}
+	row := grade.Row{
+		ID: "seed-name", Area: "getAlbum", Class: grade.ClassVolatile, Sources: []string{"navidrome", "gonic"},
+		Oracle: "o", Dubplate: "d", Evidence: "e", State: grade.StateActive,
+		Pattern: grade.Pattern{Endpoint: "getAlbum", Format: "json", Path: "subsonic-response/album/name"},
+		Session: "seed",
+		Versions: map[string]string{
+			"navidrome": s.Sources["navidrome"].ServerVersion,
+			"gonic":     s.Sources["gonic"].ServerVersion,
+		},
+	}
+	raw, err := json.Marshal([]grade.Row{row})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ledger := filepath.Join(t.TempDir(), "ledger.json")
+	if err := os.WriteFile(ledger, raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := newGradeCmd()
+	cmd.SetErr(&bytes.Buffer{})
+	cmd.SetArgs([]string{
+		"--session", elsewhere, "--pair", "navidrome,gonic",
+		"--out", filepath.Join(t.TempDir(), "report.txt"), "--ledger", ledger,
+	})
+	err = cmd.ExecuteContext(t.Context())
+	if !errors.Is(err, errUnledgered) || errors.Is(err, grade.ErrInvalidLedger) {
+		t.Fatalf("err = %v, want a graded session with unledgered findings", err)
+	}
+}

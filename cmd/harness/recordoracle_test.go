@@ -148,17 +148,19 @@ func newRecordRun(t *testing.T, spec string, nd, gon cannedOptions) *recordRun {
 	r.cfg = recordConfig{
 		spec: specPath, manifest: filepath.Join("..", "..", "internal", "harness", "subsonic", "data", "fixture", "manifest.json"),
 		out: r.out,
-		start: func(context.Context, string, int) ([]runningOracle, func(), error) {
-			mk := func(name, url, digest string) runningOracle {
-				return runningOracle{
-					name:        name,
-					client:      &client.Client{BaseURL: url, User: "admin", Password: "pw", Name: "t", HTTP: http.DefaultClient},
-					imageDigest: digest,
-				}
+	}
+	old := startOracles
+	t.Cleanup(func() { startOracles = old })
+	startOracles = func(context.Context, string, string, int) ([]runningOracle, func(), error) {
+		mk := func(name, url, digest string) runningOracle {
+			return runningOracle{
+				name:        name,
+				client:      &client.Client{BaseURL: url, User: "admin", Password: "pw", Name: "t"},
+				imageDigest: digest,
 			}
-			return []runningOracle{mk("navidrome", r.nd.URL, pinnedNavidrome), mk("gonic", r.gon.URL, pinnedGonic)},
-				func() { *r.stopped = true }, nil
-		},
+		}
+		return []runningOracle{mk("navidrome", r.nd.URL, pinnedNavidrome), mk("gonic", r.gon.URL, pinnedGonic)},
+			func() { *r.stopped = true }, nil
 	}
 	return r
 }
@@ -308,9 +310,8 @@ func TestRecordOracleRefusals(t *testing.T) {
 				t.Fatal("recording succeeded")
 			}
 			if tc.status != 0 {
-				var se *client.StatusError
-				if !errors.As(err, &se) || se.Code != tc.status {
-					t.Fatalf("error = %v, want a %d StatusError", err, tc.status)
+				if want := fmt.Sprintf("http status %d", tc.status); !strings.Contains(err.Error(), want) {
+					t.Fatalf("error = %v, want one naming %q", err, want)
 				}
 			} else if !errors.Is(err, tc.want) {
 				t.Fatalf("error = %v, want %v", err, tc.want)
@@ -341,7 +342,7 @@ func TestRecordOracleSpecStates(t *testing.T) {
 		{"no requests", new(`{"requests":[]}`), []string{"lists no requests"}},
 		{"malformed", new(`{"requests":`), []string{"bad session spec"}},
 		{"unknown member", new(`{"requests":[{"endpoint":"ping","format":"json","extra":1}]}`), []string{"bad session spec"}},
-		{"auth parameter", new(`{"requests":[{"endpoint":"ping","format":"json","params":{"t":"abc"}}]}`), []string{`parameter "t" carries a credential`}},
+		{"auth parameter", new(`{"requests":[{"endpoint":"ping","format":"json","params":{"t":"abc"}}]}`), []string{`parameter "t": auth parameter`}},
 		{"many bad", new(`{"requests":[
 			{"endpoint":"ping.view","format":"json"},
 			{"endpoint":"ping","format":"yaml"},
@@ -421,6 +422,11 @@ type seedAnswer struct {
 	} `json:"subsonic-response"`
 }
 
+// xmlEntity is the id attribute of an XML answer's entity element.
+type xmlEntity struct {
+	ID string `xml:"id,attr"`
+}
+
 type seedSong struct {
 	ID       string `json:"id"`
 	Title    string `json:"title"`
@@ -454,6 +460,7 @@ func TestSeedSession(t *testing.T) {
 		format   client.Format
 	}
 	covered := map[cell]bool{}
+	xmlChecked := map[string]int{}
 	songs := 0
 	for i, req := range s.Requests {
 		covered[cell{req.Endpoint, req.Format}] = true
@@ -468,17 +475,26 @@ func TestSeedSession(t *testing.T) {
 			if resp.Status != http.StatusOK {
 				t.Errorf("%s: %s answered HTTP %d", req.Key(), resp.Source, resp.Status)
 			}
-			if req.Format == client.XML && req.Endpoint == "getAlbum" {
+			if req.Format == client.XML && key != "" {
 				var x struct {
-					Album struct {
-						ID string `xml:"id,attr"`
-					} `xml:"album"`
+					Artist    xmlEntity `xml:"artist"`
+					Album     xmlEntity `xml:"album"`
+					Song      xmlEntity `xml:"song"`
+					Directory xmlEntity `xml:"directory"`
 				}
 				if err := xml.Unmarshal(resp.Body, &x); err != nil {
 					t.Fatalf("%s: %s: %v", req.Key(), resp.Source, err)
 				}
-				if want := s.Resolutions[key][resp.Source]; x.Album.ID != want {
-					t.Errorf("%s: %s xml album id = %q, want %q", req.Key(), resp.Source, x.Album.ID, want)
+				got := map[string]string{
+					"getArtist": x.Artist.ID, "getAlbum": x.Album.ID, "getSong": x.Song.ID, "getMusicDirectory": x.Directory.ID,
+				}
+				id, ok := got[req.Endpoint]
+				if !ok {
+					t.Fatalf("%s: no xml identity check for %s", req.Key(), req.Endpoint)
+				}
+				xmlChecked[req.Endpoint]++
+				if want := s.Resolutions[key][resp.Source]; id != want {
+					t.Errorf("%s: %s xml %s id = %q, want %q", req.Key(), resp.Source, req.Endpoint, id, want)
 				}
 			}
 			if req.Format != client.JSON {
@@ -526,6 +542,11 @@ func TestSeedSession(t *testing.T) {
 	}
 	if songs == 0 {
 		t.Error("seed holds no song answers to check")
+	}
+	for _, ep := range []string{"getArtist", "getAlbum", "getSong", "getMusicDirectory"} {
+		if xmlChecked[ep] == 0 {
+			t.Errorf("seed holds no xml %s answer to check", ep)
+		}
 	}
 	endpoints := []string{
 		"ping", "getLicense", "getOpenSubsonicExtensions", "getMusicFolders", "getIndexes",

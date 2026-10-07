@@ -10,17 +10,22 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/glw907/dubplate/internal/engine/tagio"
 )
 
-// ErrInvalid marks a manifest the builder refuses. The error carries
-// every problem found, one per line.
-var ErrInvalid = errors.New("fixture: invalid manifest")
+// errInvalid marks a manifest Load refuses. The error carries every
+// problem found, one per line.
+var errInvalid = errors.New("fixture: invalid manifest")
 
-// vorbisCommentBlock is the FLAC metadata block type of VORBIS_COMMENT
-// (RFC 9639 section 8.1).
-const vorbisCommentBlock = 4
+const (
+	// vorbisCommentBlock is the FLAC metadata block type of VORBIS_COMMENT
+	// (RFC 9639 section 8.1).
+	vorbisCommentBlock = 4
+	// frontCover is the FLAC PICTURE type of a front cover.
+	frontCover = 3
+)
 
 type manifest struct {
 	Seeds  []seedEntry  `json:"seeds"`
@@ -52,17 +57,17 @@ type trackEntry struct {
 	Picture string       `json:"picture,omitempty"`
 }
 
-// library is a manifest whose every check has passed, with the seed
+// Library is a manifest whose every check has passed, with the seed
 // bytes it was checked against.
-type library struct {
+type Library struct {
 	manifest manifest
 	seeds    map[string][]byte
 }
 
-// load reads and checks the manifest at path. The seeds are read from
-// a seeds directory beside it. A manifest with any problem yields one
-// error naming all of them.
-func load(path string) (*library, error) {
+// Load reads and checks the manifest at path. The seeds are read from a
+// seeds directory beside it. A manifest with any problem yields one error
+// naming all of them.
+func Load(path string) (*Library, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read manifest: %w", err)
@@ -72,19 +77,19 @@ func load(path string) (*library, error) {
 		return nil, fmt.Errorf("parse manifest %s: %w", path, err)
 	}
 	if len(m.Albums) == 0 {
-		return nil, fmt.Errorf("%w: manifest declares no albums", ErrInvalid)
+		return nil, fmt.Errorf("%w: manifest declares no albums", errInvalid)
 	}
-	lib := &library{manifest: m, seeds: make(map[string][]byte)}
+	lib := &Library{manifest: m, seeds: make(map[string][]byte)}
 	problems := lib.check(filepath.Join(filepath.Dir(path), "seeds"))
 	if len(problems) > 0 {
-		return nil, fmt.Errorf("%w: %w", ErrInvalid, errors.Join(problems...))
+		return nil, fmt.Errorf("%w: %w", errInvalid, errors.Join(problems...))
 	}
 	return lib, nil
 }
 
 // check reads the declared seeds from dir into l and returns every
 // problem with the seeds and with the paths that use them.
-func (l *library) check(dir string) []error {
+func (l *Library) check(dir string) []error {
 	var problems []error
 	trackSeeds := make(map[string]bool)
 	for _, a := range l.manifest.Albums {
@@ -92,23 +97,25 @@ func (l *library) check(dir string) []error {
 			trackSeeds[t.Seed] = true
 		}
 	}
+	declared := make(map[string]bool)
 	for _, s := range l.manifest.Seeds {
-		if _, dup := l.seeds[s.Name]; dup {
-			problems = append(problems, fmt.Errorf("seed %q declared twice", s.Name))
-			continue
-		}
-		file := filepath.Join(dir, s.Name)
 		if !fs.ValidPath(s.Name) || s.Name == "." {
 			problems = append(problems, fmt.Errorf("seed %q: name is not a plain relative path", s.Name))
 			continue
 		}
+		if declared[s.Name] {
+			problems = append(problems, fmt.Errorf("seed %q declared twice", s.Name))
+			continue
+		}
+		declared[s.Name] = true
+		file := filepath.Join(dir, s.Name)
 		b, err := os.ReadFile(file)
 		if err != nil {
 			problems = append(problems, fmt.Errorf("seed %q: %w", s.Name, err))
 			continue
 		}
 		l.seeds[s.Name] = b
-		if sum := sha256.Sum256(b); hex.EncodeToString(sum[:]) != s.SHA256 {
+		if sum := sha256.Sum256(b); !strings.EqualFold(hex.EncodeToString(sum[:]), s.SHA256) {
 			problems = append(problems, fmt.Errorf("seed %q: sha256 is %x, manifest declares %s", s.Name, sum, s.SHA256))
 		}
 		if trackSeeds[s.Name] {
@@ -165,21 +172,6 @@ func requireVorbisComment(path string) error {
 	return nil
 }
 
-// TrackCount checks the manifest at manifestPath and returns the number
-// of tracks it declares, the count a scan of the built library must
-// report.
-func TrackCount(manifestPath string) (int, error) {
-	lib, err := load(manifestPath)
-	if err != nil {
-		return 0, err
-	}
-	n := 0
-	for _, a := range lib.manifest.Albums {
-		n += len(a.Tracks)
-	}
-	return n, nil
-}
-
 // Track is one track's identity as the manifest declares it. A tag the
 // manifest leaves unset is the zero value.
 type Track struct {
@@ -195,15 +187,11 @@ type Track struct {
 	Number  int
 }
 
-// Tracks checks the manifest at manifestPath and returns every track it
-// declares, in manifest order.
-func Tracks(manifestPath string) ([]Track, error) {
-	lib, err := load(manifestPath)
-	if err != nil {
-		return nil, err
-	}
+// Tracks returns every track l declares, in manifest order. Its length is
+// the count a scan of the built library must report.
+func (l *Library) Tracks() []Track {
 	var out []Track
-	for _, a := range lib.manifest.Albums {
+	for _, a := range l.manifest.Albums {
 		for _, t := range a.Tracks {
 			tr := Track{
 				Path:        t.Path,
@@ -220,7 +208,7 @@ func Tracks(manifestPath string) ([]Track, error) {
 			out = append(out, tr)
 		}
 	}
-	return out, nil
+	return out
 }
 
 func deref[T any](p *T) T {

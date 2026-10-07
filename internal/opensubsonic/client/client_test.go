@@ -64,7 +64,7 @@ func TestDoRequest(t *testing.T) {
 		t.Errorf("path = %q, want /sub/rest/getAlbum", first.path)
 	}
 	q := first.query
-	for k, want := range map[string]string{"u": "alice", "v": APIVersion, "c": "harness", "f": "json", "id": "al-1"} {
+	for k, want := range map[string]string{"u": "alice", "v": apiVersion, "c": "harness", "f": "json", "id": "al-1"} {
 		if q.Get(k) != want {
 			t.Errorf("%s = %q, want %q", k, q.Get(k), want)
 		}
@@ -125,21 +125,21 @@ func TestDoEnvelope(t *testing.T) {
 				return errors.As(err, &e) && e.Code == 70 && e.Message == "not found"
 			}},
 		{name: "non-200", format: JSON, status: 503, body: okJSON,
-			wantErr: func(err error) bool { var e *StatusError; return errors.As(err, &e) && e.Code == 503 }},
+			wantErr: func(err error) bool { var e *statusError; return errors.As(err, &e) && e.code == 503 }},
 		{name: "empty body", format: JSON, status: 200, body: "",
-			wantErr: func(err error) bool { return errors.Is(err, ErrEmptyResponse) }, errText: "empty response"},
+			wantErr: func(err error) bool { return errors.Is(err, errEmptyResponse) }, errText: "empty response"},
 		{name: "json without wrapper", format: JSON, status: 200, body: `{"status":"ok","version":"1.16.1"}`,
-			wantErr: func(err error) bool { var e *MalformedError; return errors.As(err, &e) && e.Format == JSON }, errText: `json`},
+			wantErr: func(err error) bool { var e *malformedError; return errors.As(err, &e) && e.format == JSON }, errText: `json`},
 		{name: "json not json", format: JSON, status: 200, body: "<html>oops</html>",
-			wantErr: func(err error) bool { var e *MalformedError; return errors.As(err, &e) }, errText: "<html>oops"},
+			wantErr: func(err error) bool { var e *malformedError; return errors.As(err, &e) }, errText: "<html>oops"},
 		{name: "xml wrong root", format: XML, status: 200, body: `<html status="ok"></html>`,
-			wantErr: func(err error) bool { var e *MalformedError; return errors.As(err, &e) && e.Format == XML }, errText: "xml"},
+			wantErr: func(err error) bool { var e *malformedError; return errors.As(err, &e) && e.format == XML }, errText: "xml"},
 		{name: "xml given json", format: XML, status: 200, body: okJSON,
-			wantErr: func(err error) bool { var e *MalformedError; return errors.As(err, &e) }},
+			wantErr: func(err error) bool { var e *malformedError; return errors.As(err, &e) }},
 		{name: "unknown status", format: JSON, status: 200, body: `{"subsonic-response":{"status":"weird"}}`,
-			wantErr: func(err error) bool { var e *MalformedError; return errors.As(err, &e) }},
+			wantErr: func(err error) bool { var e *malformedError; return errors.As(err, &e) }},
 		{name: "failed without error member", format: JSON, status: 200, body: `{"subsonic-response":{"status":"failed"}}`,
-			wantErr: func(err error) bool { var e *MalformedError; return errors.As(err, &e) }},
+			wantErr: func(err error) bool { var e *malformedError; return errors.As(err, &e) }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -198,5 +198,38 @@ func TestDoTransportErrorOmitsCredentials(t *testing.T) {
 		if strings.Contains(err.Error(), leak) {
 			t.Errorf("transport error %q leaks %q", err, leak)
 		}
+	}
+}
+
+func TestDoNilHTTPUsesDefaultClient(t *testing.T) {
+	c, got := serve(t, 200, "application/json", okJSON)
+	c.HTTP = nil
+	if _, err := c.Do(context.Background(), "ping", nil, JSON); err != nil {
+		t.Fatal(err)
+	}
+	if len(*got) != 1 {
+		t.Errorf("server saw %d requests, want 1", len(*got))
+	}
+}
+
+func TestDoRefusesUnknownFormatUnsent(t *testing.T) {
+	tests := []struct {
+		name   string
+		format Format
+	}{
+		{"empty", ""},
+		{"unknown", "yaml"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, got := serve(t, 200, "application/json", okJSON)
+			resp, err := c.Do(context.Background(), "ping", nil, tt.format)
+			if err == nil || !strings.Contains(err.Error(), "unknown format") {
+				t.Fatalf("err = %v, want an unknown format refusal", err)
+			}
+			if resp != nil || len(*got) != 0 {
+				t.Errorf("response %v and %d requests sent, want none", resp, len(*got))
+			}
+		})
 	}
 }

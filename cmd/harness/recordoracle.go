@@ -7,10 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -72,28 +70,11 @@ func loadRecordSpec(path string) ([]specRequest, error) {
 	if len(spec.Requests) == 0 {
 		return nil, fmt.Errorf("%w: %s lists no requests", errSpec, path)
 	}
-	var problems []error
-	seen := map[string]bool{}
+	reqs := make([]session.Request, len(spec.Requests))
 	for i, r := range spec.Requests {
-		at := fmt.Sprintf("request %d (%s)", i+1, r.Endpoint)
-		if r.Endpoint == "" || strings.HasSuffix(r.Endpoint, ".view") {
-			problems = append(problems, fmt.Errorf("%s: endpoint is not in canonical form", at))
-		}
-		if r.Format != client.JSON && r.Format != client.XML {
-			problems = append(problems, fmt.Errorf("%s: unknown format %q", at, r.Format))
-		}
-		for _, name := range slices.Sorted(maps.Keys(r.Params)) {
-			if session.IsAuthParam(name) {
-				problems = append(problems, fmt.Errorf("%s: parameter %q carries a credential", at, name))
-			}
-		}
-		if key := r.sessionRequest().Key(); seen[key] {
-			problems = append(problems, fmt.Errorf("%s: duplicate of an earlier request", at))
-		} else {
-			seen[key] = true
-		}
+		reqs[i] = r.sessionRequest()
 	}
-	if err := errors.Join(problems...); err != nil {
+	if err := session.CheckRequests(reqs); err != nil {
 		return nil, fmt.Errorf("%w: %s: %w", errSpec, path, err)
 	}
 	return spec.Requests, nil
@@ -108,11 +89,13 @@ type runningOracle struct {
 
 // recordConfig is one record-oracle run.
 type recordConfig struct {
-	spec, manifest, out string
-	// start runs the oracles on the library under music and returns them
-	// with the function that removes them.
-	start func(ctx context.Context, music string, tracks int) ([]runningOracle, func(), error)
+	spec, manifest, digests, out string
 }
+
+// startOracles runs the oracles pinned in the digest file on the library
+// under music and returns them with the function that removes them. Tests
+// swap it.
+var startOracles = startStack
 
 // newRecordOracleCmd builds the record-oracle subcommand: it starts the
 // pinned oracles on the fixture library, issues a session spec's requests
@@ -128,20 +111,16 @@ func newRecordOracleCmd() *cobra.Command {
 		Args:          cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if spec == "" || manifest == "" || digests == "" || out == "" {
-				root, err := repoRoot()
+				p, err := defaultSubsonicPaths()
 				if err != nil {
 					return err
 				}
-				data := filepath.Join(root, "internal", "harness", "subsonic", "data")
-				spec = cmp.Or(spec, filepath.Join(data, "sessions", "seed.spec.json"))
-				manifest = cmp.Or(manifest, filepath.Join(data, "fixture", "manifest.json"))
-				digests = cmp.Or(digests, filepath.Join(data, "oracles.json"))
-				out = cmp.Or(out, filepath.Join(data, "sessions", "seed"))
+				spec = cmp.Or(spec, p.seedSpec)
+				manifest = cmp.Or(manifest, p.manifest)
+				digests = cmp.Or(digests, p.digests)
+				out = cmp.Or(out, p.seedSession)
 			}
-			return runRecordOracle(cmd.Context(), recordConfig{
-				spec: spec, manifest: manifest, out: out,
-				start: stackStarter(digests),
-			})
+			return runRecordOracle(cmd.Context(), recordConfig{spec: spec, manifest: manifest, digests: digests, out: out})
 		},
 	}
 	cmd.Flags().StringVar(&spec, "spec", "", "session spec (default: the committed seed spec)")
@@ -151,32 +130,23 @@ func newRecordOracleCmd() *cobra.Command {
 	return cmd
 }
 
-// stackStarter returns the production start function: the podman stack,
-// each running image checked against its pin.
-func stackStarter(digests string) func(context.Context, string, int) ([]runningOracle, func(), error) {
-	return func(ctx context.Context, music string, tracks int) ([]runningOracle, func(), error) {
-		s, err := stack.Start(ctx, stack.Config{MusicDir: music, Tracks: tracks, DigestFile: digests})
+// startStack runs the podman stack and checks each running image against
+// its pin.
+func startStack(ctx context.Context, digests, music string, tracks int) ([]runningOracle, func(), error) {
+	s, err := stack.Start(ctx, stack.Config{MusicDir: music, Tracks: tracks, DigestFile: digests})
+	if err != nil {
+		return nil, nil, err
+	}
+	var runs []runningOracle
+	for _, o := range s.Oracles {
+		digest, err := s.ImageDigest(ctx, o)
 		if err != nil {
+			s.Close(ctx)
 			return nil, nil, err
 		}
-		var runs []runningOracle
-		for _, o := range []stack.Oracle{s.Navidrome, s.Gonic} {
-			digest, err := s.ImageDigest(ctx, o)
-			if err != nil {
-				s.Close(ctx)
-				return nil, nil, err
-			}
-			runs = append(runs, runningOracle{
-				name: o.Name,
-				client: &client.Client{
-					BaseURL: o.BaseURL, User: o.User, Password: o.Password,
-					Name: "dubplate-harness", HTTP: &http.Client{Timeout: requestTimeout},
-				},
-				imageDigest: digest,
-			})
-		}
-		return runs, func() { s.Close(ctx) }, nil
+		runs = append(runs, runningOracle{name: o.Name, client: o.Client(requestTimeout), imageDigest: digest})
 	}
+	return runs, func() { s.Close(ctx) }, nil
 }
 
 func runRecordOracle(ctx context.Context, cfg recordConfig) error {
@@ -187,7 +157,7 @@ func runRecordOracle(ctx context.Context, cfg recordConfig) error {
 	if entries, err := os.ReadDir(cfg.out); err == nil && len(entries) > 0 {
 		return fmt.Errorf("%w: %s", errOutExists, cfg.out)
 	}
-	tracks, err := fixture.TrackCount(cfg.manifest)
+	lib, err := fixture.Load(cfg.manifest)
 	if err != nil {
 		return err
 	}
@@ -196,25 +166,25 @@ func runRecordOracle(ctx context.Context, cfg recordConfig) error {
 		return fmt.Errorf("create library directory: %w", err)
 	}
 	defer func() { _ = os.RemoveAll(music) }()
-	libraryDigest, err := fixture.Build(cfg.manifest, music)
+	libraryDigest, err := lib.Build(music)
 	if err != nil {
 		return err
 	}
-	oracles, stop, err := cfg.start(ctx, music, tracks)
+	oracles, stop, err := startOracles(ctx, cfg.digests, music, len(lib.Tracks()))
 	if err != nil {
 		return err
 	}
 	defer stop()
 
-	base := &session.Session{}
+	s := &session.Session{}
 	for _, r := range reqs {
-		base.Requests = append(base.Requests, r.sessionRequest())
+		s.Requests = append(s.Requests, r.sessionRequest())
 	}
 	var additions []session.Addition
 	var errs []error
 	for _, o := range oracles {
 		rec := &recorder{oracle: o}
-		if err := rec.record(ctx, reqs, base.Requests); err != nil {
+		if err := rec.record(ctx, reqs, s.Requests); err != nil {
 			errs = append(errs, err)
 			continue
 		}
@@ -230,38 +200,15 @@ func runRecordOracle(ctx context.Context, cfg recordConfig) error {
 	if err := errors.Join(errs...); err != nil {
 		return err
 	}
-	return writeJoined(cfg.out, base, additions)
-}
-
-// writeJoined writes base with each addition joined to out, one oracle at a
-// time through a scratch directory, and removes out again on failure.
-func writeJoined(out string, base *session.Session, additions []session.Addition) error {
 	if len(additions) == 0 {
 		return errors.New("no oracle recorded")
 	}
-	scratch, err := os.MkdirTemp("", "dubplate-record-session-")
-	if err != nil {
-		return fmt.Errorf("create scratch directory: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(scratch) }()
-
-	s := base
-	for i, a := range additions {
-		dir := filepath.Join(scratch, fmt.Sprint(i))
-		if i == len(additions)-1 {
-			dir = out
-		}
-		if err := session.Join(dir, s, a); err != nil {
-			if dir == out {
-				_ = os.RemoveAll(out)
-			}
-			return err
-		}
-		if s, err = session.Load(dir); err != nil {
+	for _, a := range additions {
+		if s, err = s.Join(a); err != nil {
 			return err
 		}
 	}
-	return nil
+	return session.Write(cfg.out, s)
 }
 
 // recorder drives one oracle through the spec.
@@ -327,10 +274,10 @@ func (r *recorder) record(ctx context.Context, reqs []specRequest, keyed []sessi
 			}
 			q.Set(name, id)
 		}
-		rctx, cancel := context.WithTimeout(ctx, requestTimeout)
-		resp, err := r.oracle.client.Do(rctx, req.Endpoint, q, req.Format)
-		cancel()
-		if _, failed := errors.AsType[*client.Error](err); resp == nil || (err != nil && !failed) {
+		// Do answers a nil error only with a response, and a failed
+		// envelope, an *Error, is an answer the session records.
+		resp, err := r.oracle.client.Do(ctx, req.Endpoint, q, req.Format)
+		if _, failed := errors.AsType[*client.Error](err); err != nil && (resp == nil || !failed) {
 			return fmt.Errorf("%w: %w", at, err)
 		}
 		switch v := resp.Envelope.ServerVersion; {

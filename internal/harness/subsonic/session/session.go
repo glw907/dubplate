@@ -21,6 +21,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"io/fs"
 	"maps"
 	"net/url"
 	"os"
@@ -42,14 +43,12 @@ var (
 	errAuthParam      = errors.New("auth parameter in request")
 	errSourceExists   = errors.New("source already in session")
 	errUnknownRequest = errors.New("response to a request the session lacks")
+	errDirNotEmpty    = errors.New("session directory is not empty")
 )
 
-// authParams are the parameters that carry or select a credential.
-var authParams = []string{"u", "p", "t", "s", "apiKey"}
-
-// IsAuthParam reports whether name carries or selects a credential, which
+// authParams are the parameters that carry or select a credential, which
 // no session may hold.
-func IsAuthParam(name string) bool { return slices.Contains(authParams, name) }
+var authParams = []string{"u", "p", "t", "s", "apiKey"}
 
 // Session is one loaded or about-to-be-written session.
 type Session struct {
@@ -94,7 +93,7 @@ type Response struct {
 }
 
 // Key identifies a request by endpoint, format, and parameters. A request
-// appears once per session, and Join addresses answers by it.
+// appears once per session, and [Session.Join] addresses answers by it.
 func (r Request) Key() string {
 	var b strings.Builder
 	b.WriteString(r.Endpoint + "." + string(r.Format))
@@ -146,20 +145,24 @@ func Load(dir string) (*Session, error) {
 	}
 	s := &Session{Sources: w.Sources, Resolutions: w.Resolutions}
 	referenced := map[string]bool{metaName: true}
+	unread := map[[2]int]bool{} // (request, response) whose body was not read
 	for i, wr := range w.Requests {
 		req := Request{Endpoint: wr.Endpoint, Format: wr.Format, Params: wr.Params}
-		for _, resp := range wr.Responses {
+		for j, resp := range wr.Responses {
 			r := Response{Source: resp.Source, Status: resp.Status, ContentType: resp.ContentType}
 			switch {
 			case !filepath.IsLocal(resp.Body) || filepath.Base(resp.Body) != resp.Body:
 				problems = append(problems, fmt.Errorf("request %d: body %q is not a plain file name", i+1, resp.Body))
+				unread[[2]int{i, j}] = true
 			case referenced[resp.Body]:
 				problems = append(problems, fmt.Errorf("request %d: body file %s named twice", i+1, resp.Body))
+				unread[[2]int{i, j}] = true
 			default:
 				referenced[resp.Body] = true
 				body, err := os.ReadFile(filepath.Join(dir, resp.Body))
 				if err != nil {
 					problems = append(problems, fmt.Errorf("request %d: read body: %w", i+1, err))
+					unread[[2]int{i, j}] = true
 				}
 				r.Body = body
 			}
@@ -167,7 +170,7 @@ func Load(dir string) (*Session, error) {
 		}
 		s.Requests = append(s.Requests, req)
 	}
-	problems = append(problems, s.validate()...)
+	problems = append(problems, s.validate(unread)...)
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("list session directory: %w", err)
@@ -183,12 +186,20 @@ func Load(dir string) (*Session, error) {
 	return s, nil
 }
 
-// Write validates s and writes it to dir, creating the directory. Bodies
-// land first and session.json last, each atomically, so a reader sees a
+// Write validates s and writes it to dir, creating the directory. It
+// refuses a dir that already holds any file, since bodies written over
+// another session's would sit under that session's metadata. Bodies land
+// first and session.json last, each atomically, so a reader sees a
 // complete session or no metadata.
 func Write(dir string, s *Session) error {
-	if err := errors.Join(s.validate()...); err != nil {
+	if err := errors.Join(s.validate(nil)...); err != nil {
 		return fmt.Errorf("session: %w", err)
+	}
+	switch entries, err := os.ReadDir(dir); {
+	case err == nil && len(entries) > 0:
+		return fmt.Errorf("%w: %s", errDirNotEmpty, dir)
+	case err != nil && !errors.Is(err, fs.ErrNotExist):
+		return fmt.Errorf("check session directory: %w", err)
 	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create session directory: %w", err)
@@ -228,12 +239,12 @@ type Addition struct {
 	Responses map[string]Response
 }
 
-// Join adds a to a copy of s and writes the result to dir. It refuses a
-// source s already holds and a response to a request s does not hold,
-// naming each; s itself is unchanged.
-func Join(dir string, s *Session, a Addition) error {
+// Join returns a copy of s with a added. It refuses a source s already
+// holds and a response to a request s does not hold, naming each; s itself
+// is unchanged. [Write] validates the result.
+func (s *Session) Join(a Addition) (*Session, error) {
 	if _, ok := s.Sources[a.Name]; ok {
-		return fmt.Errorf("join %q: %w", a.Name, errSourceExists)
+		return nil, fmt.Errorf("join %q: %w", a.Name, errSourceExists)
 	}
 	byKey := make(map[string]int, len(s.Requests))
 	for i, req := range s.Requests {
@@ -246,7 +257,7 @@ func Join(dir string, s *Session, a Addition) error {
 		}
 	}
 	if err := errors.Join(problems...); err != nil {
-		return err
+		return nil, err
 	}
 	joined := &Session{
 		Sources:     make(map[string]Source, len(s.Sources)+1),
@@ -269,11 +280,55 @@ func Join(dir string, s *Session, a Addition) error {
 		resp.Source = a.Name
 		joined.Requests[i].Responses = append(slices.Clone(joined.Requests[i].Responses), resp)
 	}
-	return Write(dir, joined)
+	return joined, nil
 }
 
-// validate reports every structural problem in s.
-func (s *Session) validate() []error {
+// CheckRequests reports every problem with reqs as a request list: an
+// endpoint not in canonical form, an unknown format, parameters unsorted
+// or carrying a credential, and a request that repeats an earlier one.
+func CheckRequests(reqs []Request) error {
+	return errors.Join(checkRequests(reqs)...)
+}
+
+func checkRequests(reqs []Request) []error {
+	var problems []error
+	add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }
+	seen := map[string]bool{}
+	for i, req := range reqs {
+		at := requestAt(i, req)
+		if req.Endpoint == "" || strings.HasSuffix(req.Endpoint, ".view") {
+			add("%s: endpoint is not in canonical form", at)
+		}
+		if !req.Format.Valid() {
+			add("%s: unknown format %q", at, req.Format)
+		}
+		if !slices.IsSortedFunc(req.Params, func(a, b Param) int {
+			return cmp.Or(cmp.Compare(a.Name, b.Name), cmp.Compare(a.Value, b.Value))
+		}) {
+			add("%s: parameters are not sorted", at)
+		}
+		for _, p := range req.Params {
+			if slices.Contains(authParams, p.Name) {
+				add("%s: parameter %q: %w", at, p.Name, errAuthParam)
+			}
+		}
+		if key := req.Key(); seen[key] {
+			add("%s: duplicate of an earlier request", at)
+		} else {
+			seen[key] = true
+		}
+	}
+	return problems
+}
+
+func requestAt(i int, req Request) string {
+	return "request " + strconv.Itoa(i+1) + " (" + req.Endpoint + ")"
+}
+
+// validate reports every structural problem in s. A response keyed in
+// unread by (request, response) index has a body Load could not read, and
+// its envelope goes unchecked so the read error stands alone.
+func (s *Session) validate(unread map[[2]int]bool) []error {
 	var problems []error
 	add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }
 	if len(s.Requests) == 0 {
@@ -291,34 +346,15 @@ func (s *Session) validate() []error {
 			add("source %q: empty serverVersion", name)
 		}
 	}
+	problems = append(problems, checkRequests(s.Requests)...)
 	used := map[string]bool{}
-	seen := map[string]bool{}
 	for i, req := range s.Requests {
-		at := "request " + strconv.Itoa(i+1) + " (" + req.Endpoint + ")"
-		if req.Endpoint == "" || strings.HasSuffix(req.Endpoint, ".view") {
-			add("%s: endpoint is not in canonical form", at)
-		}
-		if req.Format != client.JSON && req.Format != client.XML {
-			add("%s: unknown format %q", at, req.Format)
-		}
-		if !slices.IsSortedFunc(req.Params, func(a, b Param) int {
-			return cmp.Or(cmp.Compare(a.Name, b.Name), cmp.Compare(a.Value, b.Value))
-		}) {
-			add("%s: parameters are not sorted", at)
-		}
+		at := requestAt(i, req)
 		for _, p := range req.Params {
 			used[p.Value] = true
-			if IsAuthParam(p.Name) {
-				problems = append(problems, fmt.Errorf("%s: parameter %q: %w", at, p.Name, errAuthParam))
-			}
-		}
-		if key := req.Key(); seen[key] {
-			add("%s: duplicate of an earlier request", at)
-		} else {
-			seen[key] = true
 		}
 		answered := map[string]bool{}
-		for _, resp := range req.Responses {
+		for j, resp := range req.Responses {
 			src, declared := s.Sources[resp.Source]
 			switch {
 			case !declared:
@@ -330,7 +366,7 @@ func (s *Session) validate() []error {
 			if resp.Status < 100 || resp.ContentType == "" {
 				add("%s: source %q: status %d, content type %q", at, resp.Source, resp.Status, resp.ContentType)
 			}
-			if !declared || src.ServerVersion == "" {
+			if !declared || src.ServerVersion == "" || unread[[2]int{i, j}] {
 				continue
 			}
 			env, err := client.ParseEnvelope(resp.Body, req.Format)

@@ -105,6 +105,29 @@ type identCtx struct {
 	folder   string // directory path of the enclosing folder, or ""
 }
 
+// describe is an entity's identity as a finding prints it.
+func (id identity) describe(n *node) string {
+	if id.kind == entityNone {
+		return "not an entity: " + n.render()
+	}
+	if id.key == "" {
+		return id.problem
+	}
+	return id.key
+}
+
+// enter returns the context the members of the entity n, resolved to id,
+// see.
+func (c identCtx) enter(id identity, n *node) identCtx {
+	switch id.kind {
+	case entityAlbum:
+		c.album, c.albumArt, c.albumNm = id.key, n.field("artist"), n.title()
+	case entityFolder:
+		c.folder = strings.TrimPrefix(id.key, "folder:")
+	}
+	return c
+}
+
 // resolve finds the manifest identity of the entity n.
 func (l *library) resolve(kind entityKind, n *node, ctx identCtx, member string) identity {
 	id := identity{kind: kind}
@@ -117,7 +140,7 @@ func (l *library) resolve(kind entityKind, n *node, ctx identCtx, member string)
 		}
 		id.key = "artist:" + name
 	case entityAlbum:
-		key := albumKey(n.field("artist"), cmp.Or(n.field("name"), n.field("title")))
+		key := albumKey(n.field("artist"), n.title())
 		if !l.albums[key] {
 			id.problem = "no " + key + " in the manifest"
 			return id

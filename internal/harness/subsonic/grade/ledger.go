@@ -75,8 +75,7 @@ type Pattern struct {
 	Path     string `json:"path"`
 }
 
-// Row is one adjudicated divergence. The first seven fields are the
-// columns of the study's Markdown ledger.
+// Row is one adjudicated divergence.
 type Row struct {
 	ID       string   `json:"id"`
 	Area     string   `json:"area"`
@@ -149,9 +148,7 @@ func (r Row) problems(sessionsDir string) []error {
 			bad("empty %s", c.name)
 		}
 	}
-	switch r.Class {
-	case ClassByConstruction, ClassUnoracled, ClassVolatile, ClassContract:
-	default:
+	if _, ok := classRules[r.Class]; !ok {
 		bad("unknown class %q", r.Class)
 	}
 	if n := len(r.Sources); n < 1 || n > 2 || slices.Contains(r.Sources, "") || (n == 2 && r.Sources[0] == r.Sources[1]) {
@@ -310,37 +307,40 @@ func (r Row) applies(name string, pair [2]string) bool {
 		slices.Equal(slices.Sorted(slices.Values(r.Sources)), slices.Sorted(slices.Values(pair[:])))
 }
 
-// subtree reports whether r's pattern covers everything beneath its path.
-func (r Row) subtree() bool {
-	return r.Class == ClassByConstruction || r.Class == ClassUnoracled
-}
-
 // selects reports whether r's pattern names the field at path in a
 // response to endpoint in format.
 func (r Row) selects(endpoint string, format client.Format, path string) bool {
 	return r.Pattern.Endpoint == endpoint &&
 		(r.Pattern.Format == "any" || r.Pattern.Format == string(format)) &&
-		pathCovers(r.Pattern.Path, path, r.subtree())
+		pathCovers(r.Pattern.Path, path, classRules[r.Class].subtree)
 }
 
 // covers reports whether r, an active row on the finding's pair, selects
 // and suppresses f.
 func (r Row) covers(f Finding) bool {
-	if !r.selects(f.Endpoint, f.Format, f.Path) {
-		return false
-	}
-	switch r.Class {
-	case ClassByConstruction, ClassUnoracled:
-		switch f.Kind {
-		case KindValue, KindType, KindPresence, KindOrder, KindIdentity:
-			return true
-		}
-	case ClassVolatile:
-		return f.Kind == KindValue
-	case ClassContract:
+	rule, ok := classRules[r.Class]
+	return ok && r.selects(f.Endpoint, f.Format, f.Path) && rule.suppresses(r, f)
+}
+
+// classRules holds, for each class, whether a row covers everything
+// beneath its pattern's path and which findings in its scope it
+// suppresses. A class with no entry is unknown.
+var classRules = map[Class]struct {
+	subtree    bool
+	suppresses func(Row, Finding) bool
+}{
+	ClassByConstruction: {true, suppressesOracleTier},
+	ClassUnoracled:      {true, suppressesOracleTier},
+	ClassVolatile:       {false, func(_ Row, f Finding) bool { return f.Kind == KindValue }},
+	ClassContract: {false, func(r Row, f Finding) bool {
 		return f.Kind == KindContract && len(f.Sources) == 1 && f.Sources[0] == r.Source
-	}
-	return false
+	}},
+}
+
+// suppressesOracleTier reports whether f is one of the kinds the oracle
+// tier reports.
+func suppressesOracleTier(_ Row, f Finding) bool {
+	return slices.Contains([]Kind{KindValue, KindType, KindPresence, KindOrder, KindIdentity}, f.Kind)
 }
 
 // pathCovers reports whether path is pattern, or, when subtree is set,
