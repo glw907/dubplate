@@ -37,9 +37,9 @@ musicbox archive's copy is `~/.local/share/dubplate/archive/musicbox-retired-202
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | RUNNING: segment A closed (Tasks 0-2: `beda726`, `9f8bd41`, `6bd91bb`, `acad661`, ~1.3M spent); segment B (Tasks 3-5) next |
+| 1 | main tree (master) | RUNNING: segments A-C closed (Tasks 0-8 plus the segment B security fold, through `5229394`, ~5.6M); next the segment C security read and fold, simplifier, architecture reads, live auth smoke, Task 9 |
 | slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `d11f853`) |
-| slice 2 | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` from `beda726`; contests `go.mod`/`go.sum` (6d merges first) | RUNNING: segment A closed at `7b54596` (Tasks 1-3, boundary gate green, ~1.25M with Task 0); segment B running |
+| slice 2 | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` from `beda726`; contests `go.mod`/`go.sum` (6d merges first) | PARKED for the merge: Tasks 1-8 and close steps 1-3 and 5 done on the branch (`25c442a`, ~6.0M); waits for 6d to close, then the merge ritual and its ledgers |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")

@@ -82,6 +82,11 @@
   (20) as its parser sanity check, so retiring any `internal/auth` outcome reddens the web leg only at the full
   gate, with no hint on the Go side (6d Task 4 hit it: 23 to 20). Derive the floor or check only that the parse
   is non-empty and names one known outcome. Found by the 6d segment B review, 2026-10-07 #web #project:prod-polish
+- [ ] #22 `harness capture --mbid X --out DIR` (`cmd/harness/capture.go:~143`) writes `responses/001.json` and
+  `case.json` with no existence check, so pointed at an existing case it drops `Input`, `Profile`, `EvalDate`, and
+  `Expected`; `synth.go:49-52` claims capture has a seed-only contract it lacks. Lift synth's guard into one
+  `refuseExistingCase` helper both verbs call, and add a capture overwrite test. Found by the slice 2a architecture
+  read, 2026-10-07 #harness #project:prod-polish
 
 ## Done
 
