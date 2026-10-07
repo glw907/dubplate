@@ -70,8 +70,32 @@ var errSettingUnreadable = errors.New("auth setting unreadable")
 // A Setting returns one setting's value in force. Each call reads it
 // afresh, so a caller that reads at the point of use follows a change
 // without a restart. A non-nil error means the value is unknown, and
-// its text names the setting.
+// should be a [*SettingError] naming the setting, so a handler's log
+// can name it.
 type Setting[T any] func(ctx context.Context) (T, error)
+
+// A SettingError reports a failed read of the setting named Key. A
+// handler logs Key and never Err's text, which may carry whatever the
+// read met.
+type SettingError struct {
+	Key string
+	Err error
+}
+
+func (e *SettingError) Error() string { return e.Key + ": " + e.Err.Error() }
+
+func (e *SettingError) Unwrap() error { return e.Err }
+
+// settingFailureReason is the log reason for err, a failed setting
+// read: a fixed phrase naming the key err's [SettingError] carries, or
+// "unnamed" when it carries none.
+func settingFailureReason(err error) string {
+	key := "unnamed"
+	if se, ok := errors.AsType[*SettingError](err); ok {
+		key = se.Key
+	}
+	return "setting unreadable: " + key
+}
 
 // read calls s, wrapping a failure in errSettingUnreadable.
 func (s Setting[T]) read(ctx context.Context) (T, error) {
@@ -130,9 +154,16 @@ type HandlersConfig struct {
 	// package's own handlers.
 	Prefix string
 
-	// BodyCap is the byte limit on every request body, read when the
-	// request starts and applied before any parser reads the body.
+	// BodyCap is the byte limit on every request body but sign-out's,
+	// read when the request starts and applied before any parser reads
+	// the body.
 	BodyCap Setting[int64]
+
+	// BodyCapCeiling is the registered ceiling on BodyCap, never the
+	// value in force. Sign-out bounds its body with it: no limiter
+	// charges a sign-out, so reading a setting there would let any
+	// client spend a store read on every request.
+	BodyCapCeiling int64
 
 	// GenericAnswer, read when a link request starts, selects the
 	// generic unknown-address answer: a known address and an unknown
@@ -350,10 +381,9 @@ func (h *handlers) sendLink(ctx context.Context, now time.Time, expiry time.Dura
 }
 
 // failSetting answers a request whose setting read failed with a
-// server error. err names the setting and carries nothing the request
-// sent, so its text is logged.
+// server error, logging the setting's key and never err's text.
 func failSetting(w http.ResponseWriter, log *slog.Logger, err error) {
-	log.Error("auth setting unreadable", "reason", err.Error())
+	log.Error("auth setting unreadable", "reason", settingFailureReason(err))
 	writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
 }
 
@@ -460,17 +490,13 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 	return MintSession(h.cfg.SessionSecret, tok.Address, now, lifetime, absoluteCap)
 }
 
-// signOut caps and reads its body like every auth endpoint, then
-// clears the session cookie. See [Handlers.SignOut] for what it does
-// not do.
+// signOut caps and reads its body like every auth endpoint, though at
+// the body cap's registered ceiling rather than its value in force,
+// then clears the session cookie. See [Handlers.SignOut] for what it
+// does not do.
 func (h *handlers) signOut(w http.ResponseWriter, r *http.Request) {
 	log := h.cfg.Logger.With("client_ip", h.cfg.ClientIP(r))
-	bodyCap, err := h.cfg.BodyCap.read(r.Context())
-	if err != nil {
-		failSetting(w, log, err)
-		return
-	}
-	if !readForm(w, r, bodyCap, log) {
+	if !readForm(w, r, h.cfg.BodyCapCeiling, log) {
 		return
 	}
 	http.SetCookie(w, ClearSessionCookie())

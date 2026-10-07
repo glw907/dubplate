@@ -32,9 +32,6 @@ server_units=()
 granted_leaves=()
 serve_unit=systemd/dubplate-server-serve.service
 serve_has_store=false
-granted_leaves=()
-serve_unit=systemd/dubplate-server-serve.service
-serve_has_store=false
 for unit in systemd/*.service; do
   if grep -Eq '^ExecStart=/usr/local/bin/dubplate-server( |$)' "$unit"; then
     server_units+=("$unit")

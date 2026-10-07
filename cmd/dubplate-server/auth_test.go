@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -817,5 +818,44 @@ func TestAuthSettings_StringRowSecondStart(t *testing.T) {
 	if fmt.Sprint(rows2) != fmt.Sprint(rows) || len(audit2) != len(audit) || generation2 != generation {
 		t.Errorf("after the second start: settings %v, %d audit rows, generation %d; want %v, %d, %d",
 			rows2, len(audit2), generation2, rows, len(audit), generation)
+	}
+}
+
+// TestAuthSettingReaders_FailureNamesTheKey proves each reader serve
+// hands the auth package reports a failed read as an
+// [*auth.SettingError] carrying the setting's key, the shape the
+// handlers log by key alone. The accessor is built over an empty
+// registry, so every read fails before it reaches a store.
+func TestAuthSettingReaders_FailureNamesTheKey(t *testing.T) {
+	acc := settings.NewAccessor(nil, config.NewRegistry())
+	tests := []struct {
+		name string
+		read func(context.Context) error
+		key  string
+	}{
+		{"duration", func(ctx context.Context) error {
+			_, err := durationSetting(acc, sessionAbsoluteCapSetting)(ctx)
+			return err
+		}, "DUBPLATE_SESSION_ABSOLUTE_CAP"},
+		{"body cap", func(ctx context.Context) error {
+			_, err := authBodyCap(acc)(ctx)
+			return err
+		}, "DUBPLATE_AUTH_REQUEST_BODY_CAP"},
+		{"generic answer", func(ctx context.Context) error {
+			_, err := genericAnswer(acc)(ctx)
+			return err
+		}, "DUBPLATE_UNKNOWN_ADDRESS_ANSWER"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.read(t.Context())
+			se, ok := errors.AsType[*auth.SettingError](err)
+			if !ok {
+				t.Fatalf("read error = %v, want an *auth.SettingError", err)
+			}
+			if se.Key != tt.key {
+				t.Errorf("SettingError key = %q, want %q", se.Key, tt.key)
+			}
+		})
 	}
 }

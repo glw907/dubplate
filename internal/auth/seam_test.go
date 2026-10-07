@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -441,6 +442,54 @@ func TestMagicLinkSeam_SettingReadFailure(t *testing.T) {
 			}
 			if got != (VerifiedIdentity{}) {
 				t.Errorf("VerifyIdentity result = %+v, want zero value on refusal", got)
+			}
+		})
+	}
+}
+
+// TestMagicLinkSeam_CapReadFollowsTheMAC proves the absolute cap is read
+// only for a cookie whose MAC verifies: a cookie that does not parse,
+// or that parses under a secret the seam does not hold, reaches no
+// setting read and so costs no database work, while a valid cookie
+// still reads the cap at its verification.
+func TestMagicLinkSeam_CapReadFollowsTheMAC(t *testing.T) {
+	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
+	mint := func(t *testing.T, secret string) string {
+		t.Helper()
+		value, _, err := MintSession([]byte(secret), member.address, seamBirth, seamLifetime, seamCap)
+		if err != nil {
+			t.Fatalf("MintSession: %v", err)
+		}
+		return value
+	}
+	tests := []struct {
+		name      string
+		value     func(t *testing.T) string
+		wantErr   error
+		wantReads int
+	}{
+		{"a value that does not parse", func(*testing.T) string { return "not-a-session" }, ErrSessionMalformed, 0},
+		{"a MAC under neither secret", func(t *testing.T) string { return mint(t, "an-unrelated-secret-of-enough-length") }, ErrSessionMAC, 0},
+		{"a valid session", func(t *testing.T) string { return mint(t, currentFixture) }, nil, 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var reads int
+			absoluteCap := Setting[time.Duration](func(context.Context) (time.Duration, error) {
+				reads++
+				return seamCap, nil
+			})
+			fx := newSeamFixtureReading(t, fixed(seamLifetime), absoluteCap, member)
+
+			_, err := fx.seam.VerifyIdentity(requestWithSession(t, tt.value(t)), seamBirth.Add(time.Hour), false)
+			if tt.wantErr == nil && err != nil {
+				t.Fatalf("VerifyIdentity: %v, want nil", err)
+			}
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("VerifyIdentity error = %v, want %v", err, tt.wantErr)
+			}
+			if reads != tt.wantReads {
+				t.Errorf("cap reads = %d, want %d", reads, tt.wantReads)
 			}
 		})
 	}

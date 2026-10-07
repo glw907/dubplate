@@ -500,6 +500,7 @@ func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.A
 		PublicOrigin:       cfg.IdentitySourceValue(publicURLKey),
 		Prefix:             prefix.String(),
 		BodyCap:            authBodyCap(acc),
+		BodyCapCeiling:     authRequestBodyCapCeiling,
 		GenericAnswer:      genericAnswer(acc),
 	}
 }

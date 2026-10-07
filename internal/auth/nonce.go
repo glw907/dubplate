@@ -61,7 +61,7 @@ type NonceStore struct {
 	// each insert and each sweep: the shortest life a new record is
 	// written with. Each record carries its own life, and the sweep
 	// prunes on the carried value rather than on this one, so
-	// lowering the threshold cannot shorten the life of a record
+	// lowering the retention cannot shorten the life of a record
 	// already on disk. The value a sweep reads also answers for a
 	// record whose own carried value cannot be read.
 	retention Setting[time.Duration]

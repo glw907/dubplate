@@ -217,6 +217,21 @@ func ClearSessionCookie() *http.Cookie {
 // field. The cap precedes the expiry so a session that has outlived
 // both reports the refusal a refresh cannot cure.
 func VerifySession(current, previous []byte, value string, now time.Time, absoluteCap time.Duration) (Session, error) {
+	s, err := authenticateSession(current, previous, value)
+	if err != nil {
+		return Session{}, err
+	}
+	if err := s.checkLife(now, absoluteCap); err != nil {
+		return Session{}, err
+	}
+	return s, nil
+}
+
+// authenticateSession parses value and verifies its MAC against
+// current and, when previous is non-empty, previous. It checks no
+// time, so a caller that must read the absolute cap from somewhere
+// costly reads it only for a value that has already authenticated.
+func authenticateSession(current, previous []byte, value string) (Session, error) {
 	s, fields, mac, err := parseSession(value)
 	if err != nil {
 		return Session{}, err
@@ -224,13 +239,19 @@ func VerifySession(current, previous []byte, value string, now time.Time, absolu
 	if !macMatches(current, sessionPurpose, fields, mac) && !macMatches(previous, sessionPurpose, fields, mac) {
 		return Session{}, ErrSessionMAC
 	}
+	return s, nil
+}
+
+// checkLife refuses an authenticated s once its anchor plus
+// absoluteCap has passed, and otherwise once its own expiry has.
+func (s Session) checkLife(now time.Time, absoluteCap time.Duration) error {
 	if !now.Before(s.AnchoredAt.Add(absoluteCap)) {
-		return Session{}, ErrSessionCapReached
+		return ErrSessionCapReached
 	}
 	if !now.Before(s.ExpiresAt) {
-		return Session{}, ErrSessionExpired
+		return ErrSessionExpired
 	}
-	return s, nil
+	return nil
 }
 
 func encodeSession(secret []byte, s Session) string {

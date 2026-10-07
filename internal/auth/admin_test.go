@@ -629,18 +629,24 @@ func TestRosterAPI_PostOverCap(t *testing.T) {
 }
 
 // TestRosterAPI_PostFailed proves the refusals a verified admin can
-// still meet at the store answer 500 failed and log no audit record.
-// They run on the inner handler, since each changes the roster after
-// the identity was verified. A refusal the write decides changes no row;
-// a closed store has no table left to compare.
+// still meet at the store log no audit record: an actor demoted after
+// the gate admitted it answers 403 refused, and a store that fails
+// answers 500 failed. They run on the inner handler, since each
+// changes the roster after the identity was verified. A refusal the
+// write decides changes no row; a closed store has no table left to
+// compare.
 func TestRosterAPI_PostFailed(t *testing.T) {
 	tests := []struct {
 		name        string
 		storeClosed bool
 		change      func(t *testing.T, h *store.Handle)
+		wantStatus  int
+		wantOutcome string
 	}{
 		{
-			name: "actor demoted after the identity verified",
+			name:        "actor demoted after the identity verified",
+			wantStatus:  http.StatusForbidden,
+			wantOutcome: outcomeRefused,
 			change: func(t *testing.T, h *store.Handle) {
 				err := h.Update(writeCtx(t), func(ctx context.Context, tx *store.Tx) error {
 					_, err := tx.Exec(ctx, `UPDATE users SET admin = 0 WHERE address = 'admin@example.com'`)
@@ -654,6 +660,8 @@ func TestRosterAPI_PostFailed(t *testing.T) {
 		{
 			name:        "the store closed",
 			storeClosed: true,
+			wantStatus:  http.StatusInternalServerError,
+			wantOutcome: outcomeFailed,
 			change: func(t *testing.T, h *store.Handle) {
 				if err := h.Close(); err != nil {
 					t.Fatalf("close store: %v", err)
@@ -672,8 +680,8 @@ func TestRosterAPI_PostFailed(t *testing.T) {
 			inner := &rosterAPI{cfg: fx.cfg, writeWait: time.Second}
 
 			w := serveOne(inner, withAdmin(rosterRequest(http.MethodPost, "/dubplate/roster", "", validPost), fixtureAdmin))
-			if w.Code != http.StatusInternalServerError || outcomeOf(t, w) != outcomeFailed {
-				t.Errorf("POST = %d %s, want 500 failed", w.Code, w.Body)
+			if w.Code != tt.wantStatus || outcomeOf(t, w) != tt.wantOutcome {
+				t.Errorf("POST = %d %s, want %d %s", w.Code, w.Body, tt.wantStatus, tt.wantOutcome)
 			}
 			if !tt.storeClosed {
 				assertUnchanged(t, fx.users, before)
@@ -875,11 +883,7 @@ func TestRequireAdmin_SettingReadFailure(t *testing.T) {
 			if next.reached {
 				t.Errorf("the gate called next after a failed read")
 			}
-			rec := logs.waitFor(t, "admin gate refused")
-			reason, _ := rec["reason"].(string)
-			if rec["level"] != "ERROR" || !strings.Contains(reason, "DUBPLATE_FIXTURE_KEY") {
-				t.Errorf("record level %v reason %q, want ERROR naming the key", rec["level"], reason)
-			}
+			wantSettingRecord(t, logs.waitFor(t, "admin gate refused"))
 		})
 	}
 }

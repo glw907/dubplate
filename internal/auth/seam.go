@@ -93,8 +93,10 @@ func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previous
 
 // VerifyIdentity implements Seam.
 //
-// The order is fixed: the session cookie's MAC and expiry, then the
-// revocation epoch, then the roster. The roster lookup runs on every
+// The order is fixed: the session cookie's MAC, then the absolute cap
+// and the expiry, then the revocation epoch, then the roster. The cap
+// is read only once the MAC has verified, so a forged cookie costs no
+// setting read. The roster lookup runs on every
 // call rather than once at login, so a member removed after logging in
 // stops working at their next request rather than at their session's
 // expiry. A refresh, when the request is same-origin, runs last, after
@@ -107,12 +109,15 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
+	sess, err := authenticateSession(m.currentSecret, m.previousSecret, cookie.Value)
+	if err != nil {
+		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
+	}
 	absoluteCap, err := m.absoluteCap.read(r.Context())
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
-	sess, err := VerifySession(m.currentSecret, m.previousSecret, cookie.Value, now, absoluteCap)
-	if err != nil {
+	if err := sess.checkLife(now, absoluteCap); err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
 	if err := m.epoch.CheckSession(sess); err != nil {

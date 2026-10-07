@@ -589,6 +589,9 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if handlersConfig.Prefix != prefix.String() {
 				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
 			}
+			if handlersConfig.BodyCapCeiling != 65536 {
+				t.Errorf("authHandlersConfig BodyCapCeiling = %d, want the registered ceiling 65536", handlersConfig.BodyCapCeiling)
+			}
 
 			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
 			if err != nil {

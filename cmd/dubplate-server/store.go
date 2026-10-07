@@ -174,22 +174,30 @@ func storeMigrationWait(environ []string) (time.Duration, error) {
 // An older store whose evaluation refuses anything, whether an
 // administrator's row out of bounds or an environment value that does
 // not parse, is refused here, before the migration moves it past the
-// binary a rollback would run. A store whose version predates the
-// settings table is evaluated against the empty table its first seed
-// meets. A store that does not migrate gets no such check, nor does
-// one that carries no facts, and the seed apply after the open
-// decides.
+// binary a rollback would run. An older store is evaluated against
+// the facts [seedFacts] picks, as check and doctor evaluate it, so one
+// whose version predates the settings table, or the jobs table and
+// with it any facts at all, is evaluated against the empty table its
+// first seed meets. A store that does not migrate gets no such check,
+// nor does one that carries no facts, and the seed apply after the
+// open decides.
 func localSnapshotKeep(report store.Report, environ []string, reg *config.Registry) (int, error) {
 	setting := byKey(reg.Settings(), storeLocalSnapshotKeepSetting.Key)
 	keep, err := strconv.Atoi(setting.Default)
 	if err != nil {
 		return 0, fmt.Errorf("%s: default %q: %w", setting.Key, setting.Default, err)
 	}
-	if report.Facts == nil {
+	var facts store.Facts
+	switch {
+	case report.State == store.StateOlder:
+		facts, _ = seedFacts(report)
+	case report.Facts != nil:
+		facts = *report.Facts
+	default:
 		return keep, nil
 	}
 
-	ev := settings.EvaluateFacts(reg, environ, *report.Facts)
+	ev := settings.EvaluateFacts(reg, environ, facts)
 	if report.State == store.StateOlder && ev.Err != nil {
 		return 0, ev.Err
 	}

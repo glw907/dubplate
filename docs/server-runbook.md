@@ -248,8 +248,8 @@ leaf granted.
    admin's address, display name, and `streamer_username` from the aside file:
 
    ```sh
-     /usr/local/bin/dubplate-server member add ADDRESS --admin \
-       --name "NAME" --username USERNAME
+   /usr/local/bin/dubplate-server member add ADDRESS --admin \
+     --name "NAME" --username USERNAME
    ```
 
 5. Run `member list` the same way. It shows exactly one member, the admin. Then
@@ -443,10 +443,10 @@ example one.
 
 #### The kind answer reveals two things
 
-For an address that is not on the roster, it returns the first admin's name and
+For an address that no member holds, it returns the first admin's name and
 address. It also tells a stranger whether an address is a member: a known
 address gets a sent answer, an unknown one gets the admin contact. Choose
-`generic` if a member's presence on the roster is private.
+`generic` if who is among the members is private.
 
 #### The enumeration bound is per client only
 
@@ -463,7 +463,7 @@ rate-limited answer while an unknown address still gets the admin contact, so
 the two stay distinguishable. With 11 or fewer members at the default rates,
 per-address limits (`DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR`, default 5)
 keep the total under the ceiling (11 times 5 is 55), so the lever works only on
-a larger roster. If you raise the per-address limit or grow the roster past 11,
+a larger group. If you raise the per-address limit or grow past 11 members,
 raise the ceiling with it.
 
 ## The trust boundary

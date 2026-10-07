@@ -136,9 +136,8 @@ func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 
 // gateRefusals are the causes the gate's log names. A seam error's own
 // text is never logged: the epoch check wraps the normalizer's error,
-// which quotes the address a signed session carries. A failed setting
-// read is the one exception, since its text names the setting and
-// nothing the request carried.
+// which quotes the address a signed session carries, and a failed
+// setting read's text may carry whatever the read met.
 var gateRefusals = []error{
 	http.ErrNoCookie,
 	ErrSessionMalformed,
@@ -151,11 +150,11 @@ var gateRefusals = []error{
 
 // gateRefusalReason names err by the first of gateRefusals it wraps,
 // at Info. Any other error is the server failing, not a visitor failing
-// to verify, so it is named at Error: a failed setting read by its own
-// text, and anything else by a fixed reason.
+// to verify, so it is named at Error: a failed setting read by its key,
+// and anything else by a fixed reason.
 func gateRefusalReason(err error) (string, slog.Level) {
 	if errors.Is(err, errSettingUnreadable) {
-		return err.Error(), slog.LevelError
+		return settingFailureReason(err), slog.LevelError
 	}
 	for _, known := range gateRefusals {
 		if errors.Is(err, known) {
@@ -305,16 +304,19 @@ func formRefusal(r *http.Request) string {
 
 // additionOutcome maps AddMember's result to a status and an outcome.
 // Every validation refusal also wraps ErrRosterRecordInvalid, as does a
-// demoted actor, so only the specific sentinels decide a 4xx. A write
-// that outwaited its deadline for the store's write lock, or that the
-// store gave up on after its busy timeout, is busy, which the page
-// tells the member to retry.
+// demoted actor, so only the specific sentinels decide a 4xx. An actor
+// whose roster record lost the admin flag after the gate admitted it
+// is refused. A write that outwaited its deadline for the store's
+// write lock, or that the store gave up on after its busy timeout, is
+// busy, which the page tells the member to retry.
 func additionOutcome(err error) (int, string) {
 	switch {
 	case err == nil:
 		return http.StatusCreated, outcomeAdded
 	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, store.ErrBusy):
 		return http.StatusServiceUnavailable, outcomeBusy
+	case errors.Is(err, errActorNotAdmin):
+		return http.StatusForbidden, outcomeRefused
 	case errors.Is(err, errDuplicateAddress):
 		return http.StatusConflict, outcomeDuplicateAddress
 	case errors.Is(err, errDuplicateUsername):

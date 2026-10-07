@@ -189,6 +189,11 @@ var (
 	}
 )
 
+// authRequestBodyCapCeiling is the auth request body cap's ceiling.
+// Sign-out bounds its body with it directly, so the one auth endpoint
+// no limiter charges reads no setting.
+const authRequestBodyCapCeiling = 65536
+
 // authRequestBodyCapSetting is the auth request body cap security
 // constraint 3 requires. Its floor, 512 bytes, comfortably fits an RFC
 // 5321 address (254 bytes at most) plus its form-encoded field name;
@@ -204,7 +209,7 @@ var authRequestBodyCapSetting = config.Setting{
 	Doc:     "a positive integer of bytes, for example 4096",
 	Apply:   config.ApplyNextOperation,
 	Floor:   "512",
-	Ceiling: "65536",
+	Ceiling: strconv.Itoa(authRequestBodyCapCeiling),
 }
 
 // unknownAddressAnswerSetting is fork 4's answer to a login request
@@ -478,7 +483,10 @@ func isLoopbackHost(host string) bool {
 // durationSetting returns an [auth.Setting] reading s's value in force
 // through acc at each call.
 func durationSetting(acc *settings.Accessor, s config.Setting) auth.Setting[time.Duration] {
-	return func(ctx context.Context) (time.Duration, error) { return acc.Duration(ctx, s) }
+	return func(ctx context.Context) (time.Duration, error) {
+		d, err := acc.Duration(ctx, s)
+		return d, settingReadError(s, err)
+	}
 }
 
 // authBodyCap returns an [auth.Setting] reading the auth request body
@@ -486,7 +494,7 @@ func durationSetting(acc *settings.Accessor, s config.Setting) auth.Setting[time
 func authBodyCap(acc *settings.Accessor) auth.Setting[int64] {
 	return func(ctx context.Context) (int64, error) {
 		n, err := acc.Int(ctx, authRequestBodyCapSetting)
-		return int64(n), err
+		return int64(n), settingReadError(authRequestBodyCapSetting, err)
 	}
 }
 
@@ -495,8 +503,18 @@ func authBodyCap(acc *settings.Accessor) auth.Setting[int64] {
 func genericAnswer(acc *settings.Accessor) auth.Setting[bool] {
 	return func(ctx context.Context) (bool, error) {
 		v, err := acc.String(ctx, unknownAddressAnswerSetting)
-		return v == "generic", err
+		return v == "generic", settingReadError(unknownAddressAnswerSetting, err)
 	}
+}
+
+// settingReadError returns err, a failed read of s, as the
+// [auth.SettingError] the auth handlers log by key, or nil when err is
+// nil.
+func settingReadError(s config.Setting, err error) error {
+	if err == nil {
+		return nil
+	}
+	return &auth.SettingError{Key: s.Key, Err: err}
 }
 
 // readAuthLimits reads the four rate limits in force through acc. They

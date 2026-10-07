@@ -316,6 +316,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		PublicOrigin:       handlerOrigin,
 		Prefix:             handlerPrefix,
 		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
+		BodyCapCeiling:     bodyCap,
 		GenericAnswer:      orFixed(opts.genericReader, opts.generic),
 	})
 	return handlerFixture{handlers: h, stateDir: stateDir, users: users, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
@@ -1263,10 +1264,11 @@ func TestReadForm(t *testing.T) {
 	}
 }
 
-// errFixtureRead stands for a setting reader's failure. Its text names
-// a key, as every production reader's error does, so a test can find
-// the key in the log record a failure leaves.
-var errFixtureRead = errors.New("DUBPLATE_FIXTURE_KEY: stored admin value refused")
+// errFixtureRead stands for a setting reader's failure, a
+// [SettingError] naming its key as every production reader's does. Its
+// wrapped text carries an address, standing for whatever a failed read
+// can meet, so a log record that quoted it would show an '@'.
+var errFixtureRead error = &SettingError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("stored value refused near a@b.example")}
 
 // wantSettingFailure fails t unless w is the server error a failed
 // setting read answers and the log carries a record naming the key.
@@ -1275,12 +1277,49 @@ func wantSettingFailure(t *testing.T, w *httptest.ResponseRecorder, logs *logCap
 	if w.Code != http.StatusInternalServerError || outcomeOf(t, w) != outcomeFailed {
 		t.Errorf("response = %d %s, want 500 failed", w.Code, w.Body.String())
 	}
-	rec := logs.waitFor(t, "auth setting unreadable")
+	wantSettingRecord(t, logs.waitFor(t, "auth setting unreadable"))
+}
+
+// wantSettingRecord fails t unless rec is at Error, its reason names
+// the fixture key, and nothing in it carries an '@', which only the
+// reader's own error text could have put there.
+func wantSettingRecord(t *testing.T, rec map[string]any) {
+	t.Helper()
 	if rec["level"] != "ERROR" {
 		t.Errorf("log level = %v, want ERROR", rec["level"])
 	}
-	if reason, _ := rec["reason"].(string); !strings.Contains(reason, "DUBPLATE_FIXTURE_KEY") {
-		t.Errorf("log reason = %q, want it to name the key", reason)
+	if reason, _ := rec["reason"].(string); reason != "setting unreadable: DUBPLATE_FIXTURE_KEY" {
+		t.Errorf("log reason = %q, want the fixed reason naming the key", reason)
+	}
+	line, err := json.Marshal(rec)
+	if err != nil {
+		t.Fatalf("marshal record: %v", err)
+	}
+	if bytes.ContainsRune(line, '@') {
+		t.Errorf("log record %s carries an '@' from the reader's error", line)
+	}
+}
+
+// TestSettingFailureReason proves a failed setting read's log reason
+// is a fixed phrase naming the key a [SettingError] carries, however
+// deeply wrapped, and never any error's own text.
+func TestSettingFailureReason(t *testing.T) {
+	keyed := &SettingError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("near a@b.example")}
+	tests := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"a setting error", keyed, "setting unreadable: DUBPLATE_FIXTURE_KEY"},
+		{"a wrapped setting error", fmt.Errorf("verify identity: %w: %w", errSettingUnreadable, keyed), "setting unreadable: DUBPLATE_FIXTURE_KEY"},
+		{"an error naming no key", fmt.Errorf("%w: near a@b.example", errSettingUnreadable), "setting unreadable: unnamed"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := settingFailureReason(tt.err); got != tt.want {
+				t.Errorf("settingFailureReason() = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -1455,29 +1494,38 @@ func TestConsumeLink_ReadsTheLifetimeAtEachConsumption(t *testing.T) {
 	}
 }
 
-// TestBodyCapReadFailure proves consumeLink and signOut read the body
-// cap when each request starts and answer a failed read with a server
-// error rather than a default cap.
+// TestBodyCapReadFailure proves consumeLink reads the body cap when
+// each request starts and answers a failed read with a server error
+// rather than a default cap.
 func TestBodyCapReadFailure(t *testing.T) {
-	tests := []struct {
-		name    string
-		handler func(Handlers) http.Handler
-		target  string
-		body    string
-	}{
-		{"consumeLink", func(h Handlers) http.Handler { return h.ConsumeLink }, "/login/link", consumeBody("x")},
-		{"signOut", func(h Handlers) http.Handler { return h.SignOut }, "/logout", ""},
+	bodyCap := newSettingFake[int64](4096)
+	fx := newHandlerFixture(t, fixtureOptions{bodyCapReader: bodyCap.setting()})
+	bodyCap.set(0, errFixtureRead)
+	w := serveOne(fx.handlers.ConsumeLink, post("/login/link", peerIPPort, consumeBody("x")))
+	wantSettingFailure(t, w, fx.logs)
+	if len(w.Result().Cookies()) != 0 {
+		t.Errorf("a failed read set a cookie")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			bodyCap := newSettingFake[int64](4096)
-			fx := newHandlerFixture(t, fixtureOptions{bodyCapReader: bodyCap.setting()})
-			bodyCap.set(0, errFixtureRead)
-			w := serveOne(tt.handler(fx.handlers), post(tt.target, peerIPPort, tt.body))
-			wantSettingFailure(t, w, fx.logs)
-			if len(w.Result().Cookies()) != 0 {
-				t.Errorf("a failed read set a cookie")
-			}
-		})
+}
+
+// TestSignOut_ReadsNoSetting proves sign-out bounds its body with the
+// registered ceiling and reads no setting: no limiter charges an
+// unauthenticated sign-out, so a setting read there would let anyone
+// spend the store's read lock at will. The body cap reader fails and
+// counts, so a read would both show in the count and turn the answer
+// into a server error.
+func TestSignOut_ReadsNoSetting(t *testing.T) {
+	var reads int
+	bodyCap := Setting[int64](func(context.Context) (int64, error) {
+		reads++
+		return 0, errFixtureRead
+	})
+	fx := newHandlerFixture(t, fixtureOptions{bodyCapReader: bodyCap})
+	w := serveOne(fx.handlers.SignOut, post("/logout", peerIPPort, "signout=1"))
+	if w.Code != http.StatusOK || outcomeOf(t, w) != outcomeSignedOut {
+		t.Errorf("response = %d %s, want 200 %s", w.Code, w.Body.String(), outcomeSignedOut)
+	}
+	if reads != 0 {
+		t.Errorf("body cap reads = %d, want 0", reads)
 	}
 }
