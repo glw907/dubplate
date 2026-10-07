@@ -1071,5 +1071,20 @@ light lane's fit (header); and the multi-library page answers the first admin's 
 
 ## Errata (filled during execution)
 
-None yet. A conductor ruling on a live behavior that contradicts this plan lands here with its task and remedy, as
-do Task 9's and Task 10's degraded forms if they are taken.
+A conductor ruling on a live behavior that contradicts this plan lands here with its task and remedy, as do Task 9's
+and Task 10's degraded forms if they are taken.
+
+- **E1 (Task 1, `9f878c3`).** The no-Chromium evidence is the scope header (`conform=full rendered=skipped` for a
+  harness-only change, `conform=skipped rendered=full` for a `web/package.json` change) plus the code path, which
+  never reaches `make web-rendered` when the rendered scope is skipped. The runs were stopped after the header, so no
+  process watch backs it. The conductor accepts the reading; segment B's light-lane gates are the live confirmation.
+- **E2 (Task 3, `ca2991e`).** Three readings the plan left open, taken by the implementer and accepted on review.
+  A fourth violation source, `Document`, covers an empty, malformed, or prefixed body, which none of the plan's three
+  sources names. The endpoint binding holds a set of payload members, each with its required flag, since
+  `jukeboxControl` declares two optional payloads; every other endpoint has one required payload, as the plan says.
+  The payload members exclude the envelope's own names (the XSD root type's attributes plus its additions), or `ping`
+  would read `version` and `serverVersion` as required payloads. A tool failure is a returned error wrapping
+  `ErrToolFailure`, never a `Result` outcome.
+- **E3 (Task 3, observed on review).** Past line 65535 of a projected document, xmllint 21504 reports an error one
+  line too high, so the ordinal lookup can land on the next element. No recorded body comes near that size. Filed as
+  BACKLOG #28.

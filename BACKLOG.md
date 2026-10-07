@@ -105,6 +105,10 @@
   (`derive_rendered_affected` follows `derive_conform_affected`, `check.sh:264-275`), so a harness-only change pays
   the Chromium leg (about 106 s) though nothing it changes reaches the browser. Decouple the two scopes. Filed by
   slice 2a's plan ("Not verified at planning"), 2026-10-07 #gate #project:prod-polish
+- [ ] #28 xmllint 21504 reports a validity error one line too high once the projected document passes line 65535
+  (checked with 65536- and 65540-element stdin documents), so `internal/harness/subsonic/xmlrule/check.go`'s
+  line-to-ordinal lookup can name the wrong element on a very large body. Guard the size or correct the offset before
+  a large recorded session enters the corpus. Found by slice 2b Task 3's review, 2026-10-07 #harness #project:prod-polish
 
 ## Done
 
