@@ -1,6 +1,6 @@
 # Rung 12, Slice 2b (the Oracle Harness, Second Pass) Implementation Plan
 
-Status: **revision 1.2, approved by Geoff 2026-10-07; Ruling 1 answered yes (one pass at 9.0M).** Owner forks A,
+Status: **revision 1.3, approved by Geoff 2026-10-07 at revision 1.2; Ruling 1 answered yes (one pass at 9.0M).** Owner forks A,
 B, and C from slice 1 are ruled (below). Every other decision is a reading below, taken on its merits and
 reported.
 
@@ -19,6 +19,7 @@ History:
   degraded form, so a failure before or during Task 9 never stops the run (V1). Task 5's three-source session carries
   one `serverVersion` per source (V2). Ruling 1's split delta and fallback claim are corrected (V5). Task 6's Files
   name the assignment loader (V7), and the conductor's step states its real trade-off (V6).
+- Revision 1.3: lands the second fold's four owed items (V3, V4, V8, V9) before execution.
 
 **Parent plan:** `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2, "the 2a plan").
 Its readings R1 to R12, its global constraints, and its clean-room rule stay in force for this pass; this plan adds
@@ -247,7 +248,7 @@ quoted at the version this plan uses, and the commands below were run on the wor
 | The same XSD, element types by position | `album` is `sub:AlbumWithSongsID3` in `Response` (`:19`), `sub:Child` in `albumList` (`:387`) and `searchResult2` (`:311`), and `sub:AlbumID3` in `albumList2` (`:393`) and `searchResult3` (`:319`); `entry` is `sub:NowPlayingEntry` in `nowPlaying` (`:284`) and `sub:Child` in playlists (`:350`, `:367`) | Task 3: types resolve by position |
 | `xmllint` (libxml2 2.15.4, `/home/linuxbrew/.linuxbrew/bin/xmllint`, first on `PATH`) | `xmllint --version` writes `xmllint: using libxml version 21504` to **stderr** and nothing to stdout, exit 0 (observed 2026-10-07). `/usr/bin/xmllint` is libxml2 2.12.10 (`21210`). Man page (`--schema SCHEMA`): "Use a W3C XML Schema file named SCHEMA for validation"; `--noout`: "Suppress output". Observed on a seed body: each error is one stderr line `<file>:<line>: Schemas validity error : Element '{http://subsonic.org/restapi}artist', attribute 'sortName': The attribute 'sortName' is not allowed.`, then the trailer `<file> fails to validate`; a valid file prints `<file> validates`. Every schema error is reported at its element's start-tag line, attribute and missing-child errors included. After an unexpected child (`Element '{...}roles': This element is not expected. Expected is ( {...}album )`) no later sibling of that parent is reported, nor anything inside one. Navidrome's seed XML bodies are one line; 30 of gonic's 31 are indented over 2 to 60 lines | Task 3 |
 | libxml2 `v2.15.4` `doc/xmllint.xml`, DIAGNOSTICS | Exit 0 "No error", 1 "Unclassified", 2 "Error in DTD", 3 "Validation error", 4 "Document isn't well-formed or couldn't be read", 5 "Error in schema compilation", 6 "Error writing output". `--nonet`: "Do not use the Internet to fetch DTDs or entities. Has no effect with libxml2 2.15 or later." The 2.15.0 NEWS: "The built-in HTTP client and support for LZMA compression were removed." | Task 3: only 0 and 3 are validation outcomes; the pinned build cannot open a connection, so the gate's no-network rule holds without a flag |
-| Homebrew on this workstation | `uupd.timer` runs daily with its Brew module enabled (journal: `"msg":"Brew module" ... "Enabled":true`), and that module runs `brew update` then `brew upgrade -y` (`ublue-os/uupd` `drv/brew/brew.go:50`, `:63`, on `main`, 2026-10-07). `brew info libxml2`: "Installed (as dependency)"; the Brewfile has no `libxml2` line. `brew pin --help`: "Pin the specified package, preventing it from being upgraded when issuing the brew upgrade formula or cask command. See also unpin." | Lane launch: libxml2 is pinned (R18) |
+| Homebrew on this workstation | `uupd.timer` runs daily with its Brew module enabled (journal: `"msg":"Brew module" ... "Enabled":true`), and that module runs `brew update` then `brew upgrade -y` (`ublue-os/uupd` `drv/brew/brew.go:50`, `:63`, on `main`, 2026-10-07). `brew info libxml2`: "Installed (as dependency)"; the Brewfile has no `libxml2` line. `brew pin --help`: "Pin the specified package, preventing it from being upgraded when issuing the brew upgrade formula or cask command. See also unpin. Note: Other packages which depend on newer versions of a pinned formula might not install or run correctly." | Lane launch: libxml2 is pinned (R18) |
 | `encoding/xml.Decoder.RawToken` (go1.27.1) | "RawToken is like Decoder.Token but does not verify that start and end elements match and does not translate name space prefixes to their corresponding URLs." | Task 3 |
 | `encoding/xml.Decoder.Token` | "Each of the Name structures contained in the Token has the Space set to the URL identifying its name space when known." "Token expands self-closing elements such as <br> into separate start and end elements" | Tasks 3, 4 |
 | `encoding/xml.Encoder.Indent` | "Indent sets the encoder to generate XML in which each element begins on a new indented line" | Task 3. One start tag per line is not "line k is element k": end tags take lines, whitespace character data passed through adds lines, and text can hold a newline (next two rows) |
@@ -332,7 +333,11 @@ Each is settled here, with its reason. The review may contest any of them.
   golden diff, and a bump goes through the dependency sweep. Nothing held the version before this plan: `uupd`
   runs `brew upgrade -y` daily (quotes table), so an upstream release would land overnight and red every lane's gate.
   The lane launch therefore records libxml2 in the Brewfile and runs `brew pin libxml2`; the refusal message names
-  the sweep's bump path (`brew unpin libxml2 && brew upgrade libxml2`, then the goldens, then `brew pin libxml2`).
+  the sweep's bump path (`brew unpin libxml2 && brew upgrade libxml2`, then the goldens, then `brew pin libxml2`, then a
+  `brew upgrade` of the held dependents). `brew pin --help` warns that "Other packages which depend on newer versions
+  of a pinned formula might not install or run correctly", and `brew uses --installed libxml2` names eight on this
+  workstation: chafa, ffmpeg, gdk-pixbuf, imagemagick, librsvg, libxkbcommon, shared-mime-info, and xdotool. While the
+  pin holds they stay on the builds they have; the upgrade after the re-pin brings them level.
 - **R19. The projection resolves an element's type by its position.** The XSD names `album`, `entry`, and `artist`
   with different types under different parents, and the OpenAPI additions differ by type. Keying on the element name,
   as the prototype does, drops `AlbumID3`'s additions from a `Child`-typed `album` and keeps `Child`'s, so every
@@ -419,7 +424,12 @@ The worktree is held from 2a, level with master at `c4b7afd`.
    `ls /dev/kvm`. libxml2 is held (R18): a `brew "libxml2"` line lands in `~/.dotfiles/bluefin/Brewfile` under the
    workstation's manifest rule, and `brew pin libxml2` runs. The conductor quotes `brew list --pinned` naming it, and
    `brew info libxml2`; if that still reads "Installed (as dependency)", it runs `brew install libxml2` and quotes the
-   result, so the formula no longer hangs on its dependents.
+   result, so the formula no longer hangs on its dependents. Done at launch on 2026-10-07: `brew install libxml2` moved
+   it to "Installed (on request)", `brew pin libxml2` ran, `brew list --pinned` names libxml2, `xmllint` resolves to
+   `/home/linuxbrew/.linuxbrew/Cellar/libxml2/2.15.4/bin/xmllint` reporting libxml version 21504, and the Brewfile line
+   landed at dotfiles `c25573b`. The pin holds eight installed dependents on their current builds (chafa, ffmpeg,
+   gdk-pixbuf, imagemagick, librsvg, libxkbcommon, shared-mime-info, xdotool; `brew pin --help` warns that packages
+   needing a newer pinned formula "might not install or run correctly"), so the Brewfile line's comment names them.
 6. **Sub-ceiling** assigned.
 7. **AC power**, and the throughput baseline: the conductor's one full gate in the worktree, timed and quoted (2a's
    was about 586 s).
@@ -555,7 +565,8 @@ neutral. **Model:** opus.
   <cached XSD>` under `exec.CommandContext`, with `Cmd.Stderr` set to its own buffer (quotes table, `ExitError`).
   Exit 0 is valid and exit 3 is violations; any other exit is a tool failure carrying stderr. Under exit 3 only lines
   of the form `<file>:<line>: Schemas validity error : ` are violations and the `<file> fails to validate` trailer is
-  expected; any other line is a tool failure.
+  expected. An unmatched line that directly follows a validity-error line continues that error's message (a long
+  message wraps onto a context line), and joins it; an unmatched line with no error line before it is a tool failure.
 - **Error location** (R20). The line-to-ordinal table counts the newlines the projection actually wrote. Every
   xmllint error line becomes a violation at that line's ordinal, with the attribute name when the message names one
   and the message text after `Schemas validity error : `. An error whose line maps to no element is a violation at
@@ -572,7 +583,8 @@ naming both versions, the resolved path, and the bump path. Empty body: a violat
 violation carrying the parse error. Wrong or missing payload, `failed` without `error`, an undeclared status, or a
 non-XML content type: a binding violation at ordinal 1. Payload outside the choice: declared unvalidated. A prefixed
 body: the unsupported violation. Many errors, past 64 KiB of stderr included: all of them, sorted by ordinal. xmllint
-exiting other than 0 or 3, or printing an unrecognized line under 3: a tool failure.
+exiting other than 0 or 3, or printing under 3 an unrecognized line with no validity-error line before it: a tool
+failure. An unrecognized line directly after a validity-error line: part of that error's message.
 
 **Test mandate and fixture state.** Unit proofs use small XSD and OpenAPI documents written for the tests under
 `xmlrule/testdata/`, with invented type names only, so no file there excerpts the Subsonic XSD (ruling B): one
@@ -764,7 +776,7 @@ activated against the other oracle, fails fidelity.
 ### Task 7: Encoding quirks in the differ, and the credential guard
 
 **Files:** `grade/differ.go`, `grade/tree.go`, their tests; the credential scan in `internal/harness/subsonic/session/`
-(beside 2a's request rule) and its tests; its use in `grade/`; `cmd/harness/recordoracle.go`'s test; the regenerated
+(beside 2a's request rule) and its tests; `cmd/harness/recordoracle.go`'s test; the regenerated
 seed golden; `grade/testdata/seed-ledger.json` (20 rows retire); `grade/grade_test.go` (the stale-row test's live
 row). **Hook:** neutral.
 
@@ -781,16 +793,20 @@ row). **Hook:** neutral.
 - **E5, E10, and the XML envelope.** Bodies that differ only in escaping (the escape `\u0026` against a literal `&`
   in JSON, [contract] E10; `&#34;` against `&quot;` in XML), in the presence of an XML declaration, or in a namespace
   prefix against the default namespace, yield zero findings. A singleton against an array stays one finding (2a).
-- **L-07, the credential scan.** Every string leaf of every body from either graded source that holds a URL whose
-  query carries `u`, `p`, `t`, `s`, or `apiKey` is one `contract` finding for that source at that leaf's path, naming
-  the parameters and never their values. The query is read with `ParseQuery`, whose map holds every valid parameter
-  even when it errs (quotes table); a query it cannot parse cleanly is itself a finding, so the scan fails closed. A
+- **L-07, the credential scan.** Every string leaf of every body that holds a URL whose query carries `u`, `p`, `t`,
+  `s`, or `apiKey` is one finding at that leaf's path, which the `session` scan returns and the writer and loader turn
+  into a refusal. The finding names the parameters and never their values. The query is read with `ParseQuery`, whose map holds every valid parameter
+  even when it errs (quotes table); a query it cannot parse cleanly is itself a finding, so the scan fails closed. The
+  scan separates a leaf's query from its path by cutting at the first `?` (`strings.Cut` semantics) and parses only
+  the remainder (`url.ParseQuery` semantics), never `url.Parse` on the whole leaf, since `url.Parse` errs on a bad
+  percent escape in the path before the query is read. A
   query parameter whose name merely ends in one of them (`format`, `size`) never fires.
 - **The body-side credential guard.** The scan lives in the `session` package beside 2a's request-parameter rule, and
   both the session writer and the loader run it over every body: the writer refuses, naming the request and source
   and writing nothing, and the loader refuses a committed session that carries one. `harness record-oracle` inherits
-  it through the writer, and slice 3's dubplate recorder will too. `grade`'s L-07 finding calls the same function. A
-  session therefore never commits an echoed credential (R21).
+  it through the writer, and slice 3's dubplate recorder will too. `grade` has no L-07 finding of its own: every
+  session reaches `Grade` through the loader, whose refusal makes such a finding unreachable, so the writer's and the
+  loader's refusal is the L-07 check. A session therefore never commits an echoed credential (R21).
 - The seed golden regenerates; the report gives the change in findings by kind (the `serverVersion` and `type` value
   findings leave).
 
@@ -799,7 +815,8 @@ refuse it) or through a response body (the same writer and loader refuse it). Ev
 writer, so no third channel exists.
 
 **States table.** A leaf with no query: no finding. A query `ParseQuery` rejects (`?u=a&t=x;s=y`): one finding naming
-the parse failure and every credential name it did read. A body with several credential URLs: one finding per leaf. A
+the parse failure and every credential name it did read. A leaf with a bad path escape and a credential parameter in
+its query (`/rest/x%zz?p=secret`): still refused, naming `p`. A body with several credential URLs: one finding per leaf. A
 refused recording: nothing written, the request and source named. A committed session carrying one: the loader
 refuses, naming the file.
 
@@ -809,10 +826,12 @@ asserting exactly the expected findings and kinds, or zero. The E6 fixtures: gon
 and a perturbation for the `{}` against `{"playlist":[]}` row. The credential proof perturbs a real Navidrome
 `getArtist` body's `artistImageUrl` (it carries `?size=600`) by appending `&u=admin&t=x&s=y`, asserting one finding
 naming `u`, `t`, and `s` and no value; the unperturbed body yields none; a malformed-query row (`;s=y`) yields its
-finding. The recorder proof uses 2a's fake stack serving such a body and asserts the refusal and an empty output
+finding; a bad-path-escape row (`/rest/x%zz?p=secret`) yields one finding naming `p`. The proof calls the `session`
+scan directly, since `Grade` cannot reach a body that carries a credential. The recorder proof uses 2a's fake stack serving such a body and asserts the refusal and an empty output
 directory; a loader proof refuses a hand-written session carrying one. **Mutations:** compare `serverVersion` by value
 (the golden and a named row fail); match parameter names by suffix (the `size` proof fires); read the query with
-`URL.Query` (the malformed-query row is silent); print a credential's value; let the writer write before scanning;
+`URL.Query` (the malformed-query row is silent); parse the whole leaf with `url.Parse` (the bad-path-escape row is
+silent); print a credential's value; let the writer write before scanning;
 drop the loader's scan (the loader proof fails).
 
 ### Task 8: The empty-states session
@@ -1013,8 +1032,9 @@ polish, and a fold may refuse a finding with a one-line reason.
    `.../fixture`, `.../stack`, `.../session`, and `cmd/harness`. One fold task for accepted
    findings.
 6. Queued repo edits in one batch on master: `CLAUDE.md` (the gate paragraph's prerequisites gain `make subsonic-xsd`
-   and `xmllint` at libxml 2.15.4, held by `brew pin libxml2`; the pinned binaries gain libxml2 with its unpin, bump,
-   regenerate, and re-pin path; the scoped gate's rendered-leg rule as Task 1 left it); the streamer spec's revision
+   and `xmllint` at libxml 2.15.4, held by `brew pin libxml2`, with its eight held dependents named (chafa, ffmpeg,
+   gdk-pixbuf, imagemagick, librsvg, libxkbcommon, shared-mime-info, xdotool); the pinned binaries gain libxml2 with
+   its unpin, bump, regenerate, re-pin, and dependents-upgrade path; the scoped gate's rendered-leg rule as Task 1 left it); the streamer spec's revision
    note marking forks A to C ruled, with `:342-345` amended so gonic is no longer authoritative for `getIndexes` and
    `getMusicDirectory` (ruling C); BACKLOG #22 and #27 closed; HISTORY's 2b entry (what landed, what the gates and
    reviewers caught, each golden's counts by kind, both budgets scored, and what slice 3 would be wrong to

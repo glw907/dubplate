@@ -199,3 +199,11 @@ Checked directly:
   re-dispatch is the one fix round the 0.45M above the 8.55M estimate already prices.
 - **Ruling 1 correction for the summary above:** the "about 0.8M more" in "Rulings for Geoff" reads about 1.3M more,
   estimate against estimate, and the fallbacks it names are Task 9's and Task 10's degraded forms.
+
+**Owed items landed (revision 1.3).** The four owed findings are landed before execution. V4 is in the quotes table
+(`brew pin --help`'s dependents note, quoted), R18 (the bump path ends with a `brew upgrade` of the eight held
+dependents), Lane launch 5 (the pin recorded as done at launch on 2026-10-07, dotfiles `c25573b`), and Task 12 step 6
+(the CLAUDE.md batch names them). V9 is in Task 3's runner and its states table (an unmatched line directly after a
+validity-error line continues that error's message). V3 is in Task 7's outcomes and proof (`grade` has no L-07
+finding; the credential proof calls the `session` scan directly). V8 is in Task 7's L-07 outcome, its states table,
+and its mutations (the scan cuts at the first `?` and parses only the remainder; a bad-path-escape row is added).
