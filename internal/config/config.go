@@ -320,14 +320,14 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			// unknown.
 			continue
 		}
-		if thresholdOf(reg, name) {
+		if reg.hasThreshold(name) {
 			// A registered threshold is a declared name whose own
 			// Parse* call resolves and validates it at the point of
 			// use. Flagging it here would make a binary refuse the
 			// very tunable it registered.
 			continue
 		}
-		if settingOf(reg, name) {
+		if reg.hasSetting(name) {
 			// A store-homed setting's environment value is only a
 			// seed: the seed evaluation parses and bounds it, and
 			// reports what it refuses, so Load must not parse it.

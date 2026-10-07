@@ -431,7 +431,7 @@ func (r *Registry) identitySourceKey(name string) bool {
 // left at its zero value or set to one no one named.
 func (r *Registry) AddSetting(s Setting) {
 	requirePrefix(familySettings, s.Key)
-	if settingOf(r, s.Key) {
+	if r.hasSetting(s.Key) {
 		panicDuplicate(s.Key, familySettings, familySettings)
 	}
 	switch {
@@ -476,7 +476,7 @@ func (r *Registry) AddCorrelatedRule(rule CorrelatedRule) {
 		if slices.Contains(rule.Keys[:i], key) {
 			panic(fmt.Sprintf("correlated rule %q names %s more than once", rule.Name, key))
 		}
-		if settingOf(r, key) {
+		if r.hasSetting(key) {
 			continue
 		}
 		if family, ok := r.claims[key]; ok {

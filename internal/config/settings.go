@@ -194,10 +194,10 @@ func boundedValidator[T cmp.Ordered](s Setting, parse func(string) (T, error)) f
 	}
 }
 
-// settingOf reports whether name is a setting registered on reg. A
+// hasSetting reports whether name is a setting registered on r. A
 // set setting is a declared name: its environment value is a seed the
 // seed evaluation parses and bounds, so [Load] neither flags nor
 // parses it.
-func settingOf(reg *Registry, name string) bool {
-	return slices.ContainsFunc(reg.settings, func(s Setting) bool { return s.Key == name })
+func (r *Registry) hasSetting(name string) bool {
+	return slices.ContainsFunc(r.settings, func(s Setting) bool { return s.Key == name })
 }

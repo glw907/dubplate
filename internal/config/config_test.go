@@ -396,8 +396,8 @@ func TestClassificationFamilies(t *testing.T) {
 				reserved:    isReserved,
 				superseded:  isSuperseded,
 				integration: isIntegration,
-				threshold:   thresholdOf(reg, tt.key),
-				setting:     settingOf(reg, tt.key),
+				threshold:   reg.hasThreshold(tt.key),
+				setting:     reg.hasSetting(tt.key),
 				source:      reg.identitySourceKey(tt.key),
 			}
 			for family, reported := range got {

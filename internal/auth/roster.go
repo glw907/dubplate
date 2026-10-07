@@ -36,25 +36,25 @@ const maxUsernameLength = 64
 // pattern that would treat it as a wildcard.
 var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
 
-// ErrMemberNotFound reports that Lookup's address matched no live
+// errMemberNotFound reports that Lookup's address matched no live
 // member once normalized.
-var ErrMemberNotFound = errors.New("auth: member not found")
+var errMemberNotFound = errors.New("auth: member not found")
 
-// ErrRosterRecordInvalid is wrapped by every refusal of a member
+// errRosterRecordInvalid is wrapped by every refusal of a member
 // write: a duplicate address or username, a field out of bounds, a
 // control character, an address net/mail cannot parse, an actor that
 // does not meet its channel's rule, or a write that would leave no
 // admin.
-var ErrRosterRecordInvalid = errors.New("auth: roster record invalid")
+var errRosterRecordInvalid = errors.New("auth: roster record invalid")
 
 // errAdminGrantForbidden reports that AddMember refused to set the
 // admin flag because the change did not come from the command line,
 // the one channel that may grant it.
 var errAdminGrantForbidden = errors.New("auth: admin flag may be granted only from the command line")
 
-// The refusals below are each returned wrapping ErrRosterRecordInvalid
+// The refusals below are each returned wrapping errRosterRecordInvalid
 // rather than exported on their own: nothing outside this package
-// branches on which one fired, only on ErrRosterRecordInvalid itself.
+// branches on which one fired, only on errRosterRecordInvalid itself.
 var (
 	// errDuplicateAddress reports that a candidate's address matches a
 	// live member, once both are normalized.
@@ -246,8 +246,8 @@ func displayNameCarriesRefusedRune(s string) bool {
 // Lookup resolves address to its live roster member, matching
 // case-insensitively on the normalized address, with normalization
 // happening before any keying, logging, or rate-limit lookup
-// (spec:1161-1163). A tombstoned row is ErrMemberNotFound. A store
-// error is returned as itself, never as ErrMemberNotFound, so a caller
+// (spec:1161-1163). A tombstoned row is errMemberNotFound. A store
+// error is returned as itself, never as errMemberNotFound, so a caller
 // can tell a broken store from an unknown address.
 func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 	// The parse error is dropped rather than wrapped: net/mail quotes
@@ -255,13 +255,13 @@ func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 	// into an error this package promises never names one.
 	normalized, err := normalizeMemberAddress(address)
 	if err != nil {
-		return Member{}, fmt.Errorf("%w: address does not parse", ErrMemberNotFound)
+		return Member{}, fmt.Errorf("%w: address does not parse", errMemberNotFound)
 	}
 	row := r.users.QueryRow(ctx, `SELECT `+memberColumns+` FROM users WHERE address = ? AND tombstoned_at IS NULL`, normalized)
 	m, err := scanMember(row.Scan)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return Member{}, ErrMemberNotFound
+		return Member{}, errMemberNotFound
 	case err != nil:
 		return Member{}, fmt.Errorf("auth: look up member: %w", err)
 	}
@@ -335,11 +335,11 @@ func checkAddition(candidate Member, actor string, channel identity.Channel) (Me
 	}
 	actor, err := validateActor(actor, channel)
 	if err != nil {
-		return Member{}, "", fmt.Errorf("%w: %w", ErrRosterRecordInvalid, err)
+		return Member{}, "", fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
 	member, err := validateWriteCandidate(candidate)
 	if err != nil {
-		return Member{}, "", fmt.Errorf("%w: %w", ErrRosterRecordInvalid, err)
+		return Member{}, "", fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
 	return member, actor, nil
 }
@@ -385,7 +385,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, actor string, chann
 			err := tx.QueryRow(ctx, `SELECT admin FROM users WHERE address = ? AND tombstoned_at IS NULL`, actor).Scan(&admin)
 			switch {
 			case errors.Is(err, sql.ErrNoRows) || (err == nil && !admin):
-				return fmt.Errorf("%w: %w", ErrRosterRecordInvalid, errActorNotAdmin)
+				return fmt.Errorf("%w: %w", errRosterRecordInvalid, errActorNotAdmin)
 			case err != nil:
 				return fmt.Errorf("auth: read the actor's row: %w", err)
 			}
@@ -402,7 +402,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, actor string, chann
 		case err != nil:
 			return fmt.Errorf("auth: read the address's row: %w", err)
 		case !tombstoned:
-			return fmt.Errorf("%w: %w", ErrRosterRecordInvalid, errDuplicateAddress)
+			return fmt.Errorf("%w: %w", errRosterRecordInvalid, errDuplicateAddress)
 		}
 
 		var taken bool
@@ -411,7 +411,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, actor string, chann
 			return fmt.Errorf("auth: read the username's rows: %w", err)
 		}
 		if taken {
-			return fmt.Errorf("%w: %w", ErrRosterRecordInvalid, errDuplicateUsername)
+			return fmt.Errorf("%w: %w", errRosterRecordInvalid, errDuplicateUsername)
 		}
 
 		at := time.Now().UnixMicro()
@@ -431,7 +431,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, actor string, chann
 			return fmt.Errorf("auth: read the admins: %w", err)
 		}
 		if !adminLive {
-			return fmt.Errorf("%w: %w: add the first admin with dubplate-server member add --admin", ErrRosterRecordInvalid, errNoAdmin)
+			return fmt.Errorf("%w: %w: add the first admin with dubplate-server member add --admin", errRosterRecordInvalid, errNoAdmin)
 		}
 		return nil
 	})

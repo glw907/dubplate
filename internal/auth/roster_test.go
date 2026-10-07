@@ -187,8 +187,8 @@ func TestRoster_LookupErrorNamesNoAddress(t *testing.T) {
 	roster, _ := newRosterOver(t)
 
 	_, err := roster.Lookup(t.Context(), first+", "+second)
-	if !errors.Is(err, ErrMemberNotFound) {
-		t.Fatalf("Lookup() error = %v, want it to wrap ErrMemberNotFound", err)
+	if !errors.Is(err, errMemberNotFound) {
+		t.Fatalf("Lookup() error = %v, want it to wrap errMemberNotFound", err)
 	}
 	for _, addr := range []string{first, second} {
 		if strings.Contains(err.Error(), addr) {
@@ -302,8 +302,8 @@ func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 			if !errors.Is(err, errInvalidActor) {
 				t.Errorf("AddMember() error = %v, want it to wrap errInvalidActor", err)
 			}
-			if !errors.Is(err, ErrRosterRecordInvalid) {
-				t.Errorf("AddMember() error = %v, want it to also wrap ErrRosterRecordInvalid", err)
+			if !errors.Is(err, errRosterRecordInvalid) {
+				t.Errorf("AddMember() error = %v, want it to also wrap errRosterRecordInvalid", err)
 			}
 			if after := dumpUsers(t, h); after != before {
 				t.Errorf("AddMember() on a refused actor or channel changed the users table:\nbefore %s\nafter  %s", before, after)
@@ -323,8 +323,8 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 
 	candidate := Member{Address: "\"a\u200dlice\"@example.com", DisplayName: "Alice", Username: "alice-2"}
 	err := roster.AddMember(writeCtx(t), candidate, "admin@example.com", identity.ChannelCookie, "198.51.100.7", slog.New(slog.DiscardHandler))
-	if !errors.Is(err, ErrRosterRecordInvalid) {
-		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap ErrRosterRecordInvalid", err)
+	if !errors.Is(err, errRosterRecordInvalid) {
+		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap errRosterRecordInvalid", err)
 	}
 	if !errors.Is(err, errInvalidMemberAddress) {
 		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap errInvalidMemberAddress", err)
@@ -373,8 +373,8 @@ func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 				if err == nil {
 					t.Fatalf("AddMember() error = nil, want a refusal")
 				}
-				if !errors.Is(err, ErrRosterRecordInvalid) {
-					t.Errorf("AddMember() error = %v, want it to wrap ErrRosterRecordInvalid", err)
+				if !errors.Is(err, errRosterRecordInvalid) {
+					t.Errorf("AddMember() error = %v, want it to wrap errRosterRecordInvalid", err)
 				}
 				if !errors.Is(err, errInvalidMemberAddress) {
 					t.Errorf("AddMember() error = %v, want it to wrap errInvalidMemberAddress", err)
@@ -725,7 +725,7 @@ var liveAdmin = userRow{id: adminID, address: "admin@example.com", displayName: 
 
 // TestUsersRoster_Lookup proves the users-backed lookup: a live row
 // resolves with its id, an absent or tombstoned row and an address that
-// does not normalize are ErrMemberNotFound, and a store error is never
+// does not normalize are errMemberNotFound, and a store error is never
 // mistaken for an unknown address. The tombstoned row fails the
 // "tombstoned_at IS NULL" filter's removal.
 func TestUsersRoster_Lookup(t *testing.T) {
@@ -744,14 +744,14 @@ func TestUsersRoster_Lookup(t *testing.T) {
 			address: "Alice@Example.COM",
 			want:    Member{ID: aliceID, Address: "alice@example.com", DisplayName: "Alice", Username: "ally", Admin: true},
 		},
-		{name: "no row", rows: []userRow{alice}, address: "bob@example.com", wantErr: ErrMemberNotFound},
+		{name: "no row", rows: []userRow{alice}, address: "bob@example.com", wantErr: errMemberNotFound},
 		{
 			name:    "only a tombstoned row",
 			rows:    []userRow{{id: goneID, address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true, createdAt: 100}},
 			address: "gone@example.com",
-			wantErr: ErrMemberNotFound,
+			wantErr: errMemberNotFound,
 		},
-		{name: "an address that does not normalize", rows: []userRow{alice}, address: "alice@example.com, bob@example.com", wantErr: ErrMemberNotFound},
+		{name: "an address that does not normalize", rows: []userRow{alice}, address: "alice@example.com, bob@example.com", wantErr: errMemberNotFound},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -784,8 +784,8 @@ func TestUsersRoster_Lookup(t *testing.T) {
 			t.Fatalf("close store: %v", err)
 		}
 		_, err := roster.Lookup(t.Context(), "alice@example.com")
-		if err == nil || errors.Is(err, ErrMemberNotFound) {
-			t.Fatalf("Lookup on a closed store error = %v, want the store's error, not ErrMemberNotFound", err)
+		if err == nil || errors.Is(err, errMemberNotFound) {
+			t.Fatalf("Lookup on a closed store error = %v, want the store's error, not errMemberNotFound", err)
 		}
 	})
 
@@ -793,8 +793,8 @@ func TestUsersRoster_Lookup(t *testing.T) {
 		h := newUsersStore(t)
 		insertShortIDUser(t, h, "short@example.com")
 		got, err := NewRoster(h).Lookup(t.Context(), "short@example.com")
-		if err == nil || errors.Is(err, ErrMemberNotFound) {
-			t.Fatalf("Lookup of a short-id row = %+v, %v; want an error that is not ErrMemberNotFound", got, err)
+		if err == nil || errors.Is(err, errMemberNotFound) {
+			t.Fatalf("Lookup of a short-id row = %+v, %v; want an error that is not errMemberNotFound", got, err)
 		}
 		if !strings.Contains(err.Error(), "3 bytes") {
 			t.Errorf("Lookup error = %q, want it to name the 3-byte id", err)

@@ -101,9 +101,9 @@ func ParseFloat(environ []string, t Threshold) (float64, error) {
 	})
 }
 
-// thresholdOf reports whether name is a threshold registered on reg.
-func thresholdOf(reg *Registry, name string) bool {
-	for _, t := range reg.thresholds {
+// hasThreshold reports whether name is a threshold registered on r.
+func (r *Registry) hasThreshold(name string) bool {
+	for _, t := range r.thresholds {
 		if t.Key == name {
 			return true
 		}

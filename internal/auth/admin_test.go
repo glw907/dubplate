@@ -748,7 +748,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", seamBirth), "")
 			},
 			wantLevel:  "INFO",
-			wantReason: ErrMemberNotFound.Error(),
+			wantReason: errMemberNotFound.Error(),
 		},
 		{
 			name: "store closed under the lookup",

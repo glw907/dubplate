@@ -205,16 +205,16 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 	l := newLeaf(opts.StateDir)
 	files, err := readMigrations(migrationSource())
 	if err != nil {
-		return reportFrom(Report{}, err)
+		return Report{}.withError(err)
 	}
 	r := Report{BinaryVersion: len(files)}
 
 	ls, err := l.stat()
 	if err != nil {
-		return reportFrom(r, err)
+		return r.withError(err)
 	}
 	if ls.intent != nil {
-		return reportFrom(r, ls.intent.refusal(l))
+		return r.withError(ls.intent.refusal(l))
 	}
 	if !ls.exists {
 		r.State = StateAbsent
@@ -222,15 +222,15 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 	}
 	r.Warning, err = l.probe()
 	if err != nil {
-		return reportFrom(r, err)
+		return r.withError(err)
 	}
 
 	if !ls.hasLock {
 		c, err := l.classifyLockless()
 		if err != nil {
-			return reportFrom(r, err)
+			return r.withError(err)
 		}
-		return reportClass(r, l, c, files)
+		return r.withClass(l, c, files)
 	}
 	lock, err := acquireSharedNonblocking(l.lockPath)
 	if errors.Is(err, ErrLockBusy) {
@@ -240,20 +240,20 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 		return r
 	}
 	if err != nil {
-		return reportFrom(r, err)
+		return r.withError(err)
 	}
 	defer func() { _ = lock.release() }()
 
 	c, err := classify(ctx, l, opts.BusyTimeout, files)
 	if err != nil {
-		return reportFrom(r, err)
+		return r.withError(err)
 	}
-	r = reportClass(r, l, c, files)
+	r = r.withClass(l, c, files)
 	if c.kind != dbStore || c.version < jobsVersion || c.version > len(files) {
 		return r
 	}
 	if r.Facts, err = readFacts(ctx, l, opts.BusyTimeout, c.version); err != nil {
-		return reportFrom(r, err)
+		return r.withError(err)
 	}
 	return r
 }
@@ -398,9 +398,9 @@ func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]Settin
 	return settings, generation, nil
 }
 
-// reportFrom returns r carrying err's state and text: a refusal
+// withError returns r carrying err's state and text: a refusal
 // reports the state it names, and any other error reports refused.
-func reportFrom(r Report, err error) Report {
+func (r Report) withError(err error) Report {
 	r.State = StateRefused
 	if se, ok := errors.AsType[*stateError](err); ok {
 		r.State = se.state
@@ -409,14 +409,14 @@ func reportFrom(r Report, err error) Report {
 	return r
 }
 
-// reportClass returns r carrying what classify found.
-func reportClass(r Report, l leaf, c dbClass, files []migration) Report {
+// withClass returns r carrying what classify found.
+func (r Report) withClass(l leaf, c dbClass, files []migration) Report {
 	switch c.kind {
 	case dbAbsent:
 		r.State = StateAbsent
 		return r
 	case dbInterrupted:
-		return reportFrom(r, interruptedCreate(l))
+		return r.withError(interruptedCreate(l))
 	}
 	r.StoreVersion = c.version
 	switch head := len(files); {

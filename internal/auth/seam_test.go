@@ -108,13 +108,13 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 		{
 			name:    "address removed from roster",
 			address: "gone@example.com",
-			wantErr: ErrMemberNotFound,
+			wantErr: errMemberNotFound,
 		},
 		{
 			name:    "address tombstoned",
 			rows:    []userRow{{address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true}},
 			address: "gone@example.com",
-			wantErr: ErrMemberNotFound,
+			wantErr: errMemberNotFound,
 		},
 	}
 
@@ -281,7 +281,7 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if err == nil {
 		t.Fatalf("VerifyIdentity: got nil error, want a denial from the unreadable epoch directory")
 	}
-	if errors.Is(err, ErrMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
+	if errors.Is(err, errMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
 		t.Fatalf("VerifyIdentity error = %v, want a non-sentinel I/O error", err)
 	}
 }

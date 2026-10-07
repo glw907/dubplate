@@ -565,7 +565,7 @@ func TestSessionErrorsCarryNoFixtureValues(t *testing.T) {
 // covers label instead of sessionPurpose, which is the adversary the
 // domain-separation label exists to refuse.
 func encodeSessionUnderLabel(secret []byte, label string, s Session) string {
-	fields := sessionFields(s)
+	fields := s.fields()
 	parts := make([]string, 0, len(fields)+1)
 	for _, f := range fields {
 		parts = append(parts, base64.RawURLEncoding.EncodeToString(f))

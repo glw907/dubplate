@@ -255,13 +255,13 @@ func (s Session) checkLife(now time.Time, absoluteCap time.Duration) error {
 }
 
 func encodeSession(secret []byte, s Session) string {
-	return encodeSigned(secret, sessionPurpose, sessionFields(s))
+	return encodeSigned(secret, sessionPurpose, s.fields())
 }
 
-// sessionFields is the cookie's field order, shared by the wire
+// fields is the cookie's field order, shared by the wire
 // encoding and the MAC input so the two can never disagree about what
 // was signed.
-func sessionFields(s Session) [][]byte {
+func (s Session) fields() [][]byte {
 	return [][]byte{
 		[]byte(sessionVersion),
 		[]byte(s.Address),

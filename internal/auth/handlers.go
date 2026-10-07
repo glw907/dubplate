@@ -295,7 +295,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	}
 	member, err := h.cfg.Roster.Lookup(r.Context(), address)
 	known := err == nil
-	if err != nil && !errors.Is(err, ErrMemberNotFound) {
+	if err != nil && !errors.Is(err, errMemberNotFound) {
 		// A roster that fails to load is never reported as an unknown
 		// address: the kind answer would hand a member the admin
 		// contact meant for a stranger. The generic answer's bytes stay

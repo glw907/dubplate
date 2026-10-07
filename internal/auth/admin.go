@@ -145,7 +145,7 @@ var gateRefusals = []error{
 	ErrSessionCapReached,
 	ErrSessionExpired,
 	ErrSessionRevoked,
-	ErrMemberNotFound,
+	errMemberNotFound,
 }
 
 // gateRefusalReason names err by the first of gateRefusals it wraps,
@@ -303,7 +303,7 @@ func formRefusal(r *http.Request) string {
 }
 
 // additionOutcome maps AddMember's result to a status and an outcome.
-// Every validation refusal also wraps ErrRosterRecordInvalid, as does a
+// Every validation refusal also wraps errRosterRecordInvalid, as does a
 // demoted actor, so only the specific sentinels decide a 4xx. An actor
 // whose roster record lost the admin flag after the gate admitted it
 // is refused. A write that outwaited its deadline for the store's
