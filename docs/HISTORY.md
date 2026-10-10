@@ -2,6 +2,140 @@
 
 Per-pass ledger, newest first.
 
+## Rung 12 slice 2b, the oracle harness (second pass): closed 2026-10-10, lane 3
+
+Executed against `docs/superpowers/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md` (revision 1.3, errata E1 to
+E7), in the worktree `.claude/worktrees/lane-3-slice-2` on branch `lane-3-slice-2`, as four segments (A: Tasks 1 to 3,
+B: 4 to 6, C: 7 to 9, D: 10 and 11) and a close. Segments A and B and Tasks 7 and 8 ran on 2026-10-07, when Geoff
+paused the run; Task 9 onward ran in the unattended window of 2026-10-10. The branch rebased onto master and
+fast-forwarded as `e561c32..be9abf5` (Task 1 was `9f878c3` before the rebase, and the plan's errata cite that hash).
+Master's full gate: <pending>.
+
+### What landed
+
+- The XML half of the contract tier: Task 2 `e0fd164` pins the Subsonic 1.16.1 XSD in the user cache by sha256 (never
+  committed), Task 3 `a127f68` (opus) adds the scoped projection, the endpoint binding, and the `xmllint` runner under
+  `internal/harness/subsonic/xmlrule`, and Task 4 `a3315dd` and `3e1d457` wire it into the grader with the binding and
+  schema-cache rows.
+- The divergence ledger in machine form: Task 6 `1b604be` transcribes slice 1's rows (52 owed, none active) with a
+  byte-exact round trip and an accounting test over all 66 ids; L-35 and L-52 retire under rulings A and C.
+- The per-endpoint oracle assignment and the area list: Task 5 `9010638` and `2860642`, with each `contract-only`
+  value pinned against the study record.
+- The differ's encoding-quirk coverage and the body credential guard: Task 7 `6959893`.
+- Two more recorded oracle sessions: the empty states (Task 8 `7c7b906`, 30 spec entries) and the music folders (Task
+  10 `e46a3f4`).
+- The two-collection fixture and stack: Task 9 `4acc4d9`, with `--collection name=manifest` on `oracle-up` and
+  `record-oracle`.
+- The first scripted roster walk: Task 11 `6782582`, with `docs/roster-walk.md` and the run record.
+- The routed chores: BACKLOG #22 (capture's overwrite guard) and #27 (the gate scope that ran Chromium for harness-only
+  changes), both in Task 1 `e561c32`.
+- The close: the simplifier `07d24ff`, the vacuity fold `04fc250`, and the architecture folds `432e5ad` and `be9abf5`.
+  This commit carries the ledgers, `CLAUDE.md`, the streamer spec's revision note, and BACKLOG.
+
+Task 3 ran on opus; every other task ran on sonnet. Tasks 7 to 11 had no fix rounds.
+
+### What the gates and reviewers caught
+
+- **E1 (Task 1).** The no-Chromium evidence is the scope header plus the code path; the runs stopped after the header.
+- **E2 (Task 3).** Three readings the plan left open: a `Document` violation source, payload members each with a
+  required flag, and payload members that exclude the envelope's own names.
+- **E3 (Task 3).** xmllint 21504 reports an error one line high past line 65535 (BACKLOG #28).
+- **E4 (segment B pre-flight).** Six amendments, among them Task 4's two non-fatal xmlrule returns and the assignment
+  field on `grade.Config`.
+- **E5 (segment C pre-flight).** Thirteen amendments. The conductor's Navidrome library observation succeeded in both
+  runs, so Task 9 took its normal form.
+- **E6 (the 2026-10-07 pause).** Tasks 7 and 8 accepted with no fix round; Task 7's all-`?` URL scan would refuse a
+  title such as "Is This It? 50% off" (BACKLOG #29). This was the one owner pause.
+- **E7 (segment D pre-flight).** Ten plan claims did not survive a read against the tree, among them that a spec could
+  select collections (a session spec carries requests only), that [clients] section 2 holds a flow list (it is a
+  per-client endpoint table), and that a host Xvfb exists (none does).
+- **Task 10's first gate failed on one errcheck lint,** fixed in the task.
+- **The vacuity read found three vacuous tests,** each proven by mutation and folded at `04fc250`: the XML credential
+  scan was never exercised; the unmapped-endpoint assertion could not fail once Task 7 made `serverVersion` and
+  `error/message` presence-only; three album-shape rows were never driven false.
+- **Six architecture reads, all graded "sound with nits".** Folded at `432e5ad` and `be9abf5`: every music folder keyed
+  as one "library", an identity collision in the two-collection session that a ledger row with the wrong rationale had
+  hidden; unoracled subtree pairs leaking into the session-wide table; the credential scan's false negative on prose
+  before a URL and its false positive (BACKLOG #29); podman `-v` spec injection through `:` in names and relative
+  roots; xmlrule reading an operation with no "200" response as binary; and the fixture now owns the collection-digest
+  protocol.
+- **Refused, each with its reason.** Unexporting surface goes to the exported-unused task (BACKLOG #33). File-split
+  moves are churn with no behavior gain. Older `cmd/harness` verbs are outside the pass (BACKLOG #30). The `pollUntil`
+  and ping-poll duplication, the `allOf` walker duplication, the `requireNonEmpty`, `oracle.valid`, and `identCtx`
+  duplication, and the `loadContract` sum seam are polish. The `folderCollections` map order cannot occur in a valid
+  recording. Two further findings are filed: the stack's image-pin check (BACKLOG #31) and the fixture's file-prefix
+  path (BACKLOG #32).
+
+### The fold-rule trial
+
+The plan's fold refused four new-mechanism findings (C3's `maxOccurs` path rule, C10's raw-token fallback, DR8's
+`--nonet`, M5's own writer) and the sub-proposals in `docs/superpowers/research/2026-10-07-rung-12-slice-2b-plan-fold.md`
+and `-verification.md`. One refusal proved a real defect in part: C10. The plan kept `ParseQuery`'s partial map and a
+fail-closed rule on any parse error, and execution met both costs: E5 recorded that `ParseQuery` drops a
+`t=x;s=y` pair whole, E6 and BACKLOG #29 recorded the false positive on prose, and the architecture read found a false
+negative on prose before a URL. The fix at `be9abf5` reads every `?`, `&`, or `;` field containing `=`, which is the
+field-wise reading C10 proposed. C3, DR8, and M5 produced no defect. This is read from the records, not from a diff
+audit of the scan.
+
+### The goldens
+
+Counts are the committed header lines, by kind.
+
+| Golden | Findings | Unledgered | contract | identity | presence | type | value |
+|---|---|---|---|---|---|---|---|
+| seed | 1,645 | 976 | 134 | 13 | 1,218 | 35 | 245 |
+| empty-states | 163 | 142 | 10 | 1 | 122 | 4 | 26 |
+| music-folders | 3,964 | 3,925 | 208 | 17 | 3,181 | 146 | 412 |
+
+The seed's value count fell from 369 to 245 after Task 7 made the envelope members presence-only (124 findings
+retired, per E5). The music-folders identity count went from 19 to 17 and value from 410 to 412 after the folder-key
+fix. Its two remaining `getMusicFolders` name differences come from Navidrome's default library being named "Music
+Library".
+
+### Live evidence
+
+- **Task 9.** Both oracles listed two folders and counted 22 tracks (Navidrome folders 1 "Music Library" and 2
+  "second"; gonic 0 "first" and 1 "second").
+- **Task 10.** Navidrome resolved `collection:first` and `collection:second` to folders 1 and 2, and gonic to 0 and 1,
+  by exact artist-set equality. L-19 held: for `musicFolderId=999` Navidrome answers error 70 on all ten endpoints and
+  gonic answers ok and empty. A-04 held.
+- **Task 11.** Feishin 1.17.0 and Rufin 0.16.6 passed all 11 flows against Navidrome and ran the folder view against
+  gonic; the real-profile and keyring hashes were unchanged. Tempus is deferred (no `/dev/kvm`) and Amperfy goes to
+  rung 16. The record is `docs/superpowers/research/2026-10-10-slice-2b-roster-walk.md`.
+
+### Merge facts
+
+The rebase onto master was not a fast-forward, but master's only change was `docs/STATUS.md`. `git diff` showed the
+rebased code tree identical to the pre-rebase tree (STATUS only), so no merged-range `diff-reviewer` ran; that is a
+conductor ruling. Master's full gate: <pending>.
+
+### What slice 3 would be wrong to rediscover
+
+- **Navidrome's later libraries are created over `POST /auth/login`, then `POST /api/library` with the
+  `X-ND-Authorization` bearer.** The stack leaves its first library named "Music Library", so nothing may resolve a
+  folder by name.
+- **A `collection:` key resolves by exact artist-set equality from the oracle's own answers,** never by name or order.
+- **A one-collection digest is name-blind,** so the seed digest is the library's own.
+- **gonic's `getMusicDirectory` without `id`, or with `id=0`, answers error 10.**
+- **Navidrome serves a per-track cover that differs from the album cover.**
+- **The credential scan reads every `?`, `&`, or `;` field containing `=`.**
+- **xmllint reports an error one line high past line 65535** (BACKLOG #28).
+- **A row on a `contract-only` endpoint never activates against an oracle.** An active row names a pair of sources, a
+  recorded session, and the oracle versions, and the assignment never compares dubplate with an oracle on those
+  endpoints. So L-17 (slice 5), L-20, L-21, and L-51 (slice 3) stay `owed`, matching no finding. Each closes when its
+  slice builds the test its `test` field names, asserting dubplate's answer against the contract tier and the spec.
+  The row then leaves the ledger as retired by that test and ruling, as L-35 and L-52 did (the accounting test's
+  `retiredRows` map). No code retires a row today; the closing slice's plan adds the entry.
+
+### Budgets
+
+Tokens: the ceiling was 9.0M (flag 7.2M, not crossed). About 3.5M was spent before 2026-10-10. The overnight run spent
+about 2.85M in subagents and about 0.6M conducting, about 7.0M in all. The figure is approximate: `/cost` was not read
+in an unattended run. Clock: the overnight run took about 00:01 to 02:30 AKDT on 2026-10-10 (Task 9 13 min, segment D 38
+min, the boundary full gate 7.5 min, the merge gate 9.4 min including one exit-75 wait). The plan carries no clock
+estimate because it predates the 2026-10-09 rule. Attended time: none overnight, since Geoff scheduled the run; the one
+owner pause (2026-10-07) is recorded in E6.
+
 ## Rung 12 slice 2a, the oracle harness: closed 2026-10-07, lane 3
 
 Executed against `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2), in the worktree

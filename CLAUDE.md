@@ -57,13 +57,17 @@ newest production version of every library, tool, and pinned binary, so
 dubplate releases with no dependency debt and uses what its libraries
 offer. Pins stay exact, at the newest version. Every pass opens with a
 `dependency-upgrade` sweep over `go.mod`, `web/package.json`,
-`tools/venv/requirements.txt`, and the pinned binaries (rclone, golangci-lint, Playwright); a sweep with nothing to move
+`tools/venv/requirements.txt`, and the pinned binaries (rclone, golangci-lint, Playwright, libxml2); a sweep with nothing to move
 is one line in the pass record. The skill's survey is the point: a new
 capability that replaces hand-rolled code is ruled take-now or filed to
 the rung that first leans on it, and a workaround for an old version
 never outlives the bump that fixes it. Minors and patches land without
 asking; a major waits for Geoff and is recorded with its unblock
 condition. A rung plan that adopts a library names its newest version.
+libxml2 (`/home/linuxbrew/.linuxbrew/bin/xmllint`, 2.15.4) is held
+by `brew pin libxml2`, so a bump is deliberate: `brew unpin libxml2 &&
+brew upgrade libxml2`, regenerate the XML goldens, `brew pin libxml2`,
+then upgrade the eight held dependents.
 The last sweep: `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
 
 ## Ledgers
@@ -190,10 +194,21 @@ included. The no-link test (`internal/harness/conform/arch_test.go`) fails if
 or `internal/opensubsonic/conformance`, or any `github.com/getkin` path, so the
 server never links the harness, the contract checker, or kin-openapi; the
 protocol client stays linkable.
-Two workstation prerequisites sit outside the gate, because the gate
-never opens a network connection: `npm ci --prefix web` and
+Three workstation prerequisites sit outside the gate, because the gate
+never opens a network connection: `npm ci --prefix web`,
 `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
-cache, which the unidecode tests and the install verb's tests read).
+cache, which the unidecode tests and the install verb's tests read), and
+`make subsonic-xsd` (the pinned Subsonic 1.16.1 XSD in the user cache,
+read by the harness's XML tier and never committed). The XML tier also
+needs `xmllint` at libxml 2.15.4 on `PATH`, held by `brew pin libxml2`
+because its messages land in goldens; eight installed formulae depend on
+it and are held with it (chafa, ffmpeg, gdk-pixbuf, imagemagick, librsvg,
+libxkbcommon, shared-mime-info, xdotool).
+The scoped gate (`check.sh --scope-changed`) narrows the conform suite and
+the rendered leg independently: a harness-only change runs conform in full
+and skips the rendered leg, and a change under `web/`, `internal/serve/`,
+`internal/auth/`, `internal/identity/`, or the serve shell's files runs the
+rendered leg.
 The `web/` leg runs today, first in `make check`'s prerequisite chain:
 Node and npm required and named on failure, a stale or drifted
 `npm ci --prefix web` refused, the SvelteKit static bundle built, then

@@ -82,11 +82,6 @@
   (20) as its parser sanity check, so retiring any `internal/auth` outcome reddens the web leg only at the full
   gate, with no hint on the Go side (6d Task 4 hit it: 23 to 20). Derive the floor or check only that the parse
   is non-empty and names one known outcome. Found by the 6d segment B review, 2026-10-07 #web #project:prod-polish
-- [ ] #22 `harness capture --mbid X --out DIR` (`cmd/harness/capture.go:~143`) writes `responses/001.json` and
-  `case.json` with no existence check, so pointed at an existing case it drops `Input`, `Profile`, `EvalDate`, and
-  `Expected`; `synth.go:49-52` claims capture has a seed-only contract it lacks. Lift synth's guard into one
-  `refuseExistingCase` helper both verbs call, and add a capture overwrite test. Found by the slice 2a architecture
-  read, 2026-10-07 #harness #project:prod-polish
 - [ ] #23 `web/src/lib/api/post.ts:65` maps every 403 to `cross_origin` before reading the body, so the roster API's
   new 403 `refused` (a demoted admin's add, 6d `2ea9dba`) shows the cross-site copy. Read a JSON outcome on 403 first
   and fall back to `cross_origin` only for the CSRF handler's plain-text body. Found by the 6d segment C fold,
@@ -101,18 +96,35 @@
   `syncDir` copies, the settings accessor's mutex across a database read, threshold bounds without Floor and
   Ceiling, doctor's file split, and more): `docs/superpowers/research/2026-10-07-6d-architecture-reads.md`, "To
   file". Route to the architecture-cleanup task. 2026-10-07 #arch #project:prod-polish
-- [ ] #27 `scripts/check.sh --scope-changed` runs the rendered (browser) leg whenever the conform suite is in scope
-  (`derive_rendered_affected` follows `derive_conform_affected`, `check.sh:264-275`), so a harness-only change pays
-  the Chromium leg (about 106 s) though nothing it changes reaches the browser. Decouple the two scopes. Filed by
-  slice 2a's plan ("Not verified at planning"), 2026-10-07 #gate #project:prod-polish
 - [ ] #28 xmllint 21504 reports a validity error one line too high once the projected document passes line 65535
   (checked with 65536- and 65540-element stdin documents), so `internal/harness/subsonic/xmlrule/check.go`'s
   line-to-ordinal lookup can name the wrong element on a very large body. Guard the size or correct the offset before
   a large recorded session enters the corpus. Found by slice 2b Task 3's review, 2026-10-07 #harness #project:prod-polish
+- [ ] #30 `cmd/harness` cleanup that predates slice 2b, refused at its close as outside the pass. `fetchunidecode.go`
+  and `fetchxsd.go` share one cache-fill body. `seeditems.go` and `capture.go` repeat load and capture steps.
+  `newCaptureCmd`'s environ and version parameters are a test-only seam. `capture.go:242` and `freeze.go:70` use
+  `os.IsNotExist`, which does not unwrap. `capture.go:290` and `synth.go:76` write with `os.WriteFile` where
+  `internal/atomicfile` is the house path. Comments in `main.go`, `capture.go`, and `seeditems.go` carry process
+  citations. Found by slice 2b's architecture read of `cmd/harness`, 2026-10-10 #harness #arch #project:prod-polish
+- [ ] #31 `stack.Start` should verify the oracle image pin and store the result on the `Oracle`: `harness oracle-up`
+  never checks the pin today, and `record-oracle` repeats `Start`'s close-on-failure by hand. Found by slice 2b's
+  architecture read of `stack`, 2026-10-10 #harness #arch #project:prod-polish
+- [ ] #32 `fixture`'s `checkPath` misses a file path that is a directory prefix of another (`a/x.flac` and
+  `a/x.flac/y.flac`): `Load` accepts the manifest and `Build` then fails at `MkdirAll`. Refuse it at load. Found by
+  slice 2b's architecture read of `fixture`, 2026-10-10 #harness #project:prod-polish
+- [ ] #33 For the exported-unused leg's comment-cleanup task: these exports have no caller outside their package
+  beyond tests. `grade`'s ledger surface (`State*`, `Class*`, `Pattern`, `ErrInvalidLedger`, `Ledger`, `LoadLedger`,
+  `Result`, `Apply`, `Finding`, `Kind*`, `ErrVersionMismatch`), `xmlrule`'s `ErrVersion` and `ErrSize`, and `stack`'s
+  `ErrNoPodman`. Unexport them or name the caller that will use them. Refused at slice 2b's close because the leg is
+  staged. Found by slice 2b's architecture reads, 2026-10-10 #arch #project:prod-polish
 
 ## Done
 
 - [x] #11 Resolve the docker compose leg's `command -v docker` skip: retired with the leg
   itself (`d1e93e9` removed the compose leg from `scripts/check.sh`), 2026-10-05 #infra
 - [x] #29 The session credential scan treated every string leaf holding `?` as a URL query: it now splits the leaf
-  on `?`, `&` and `;`, reads only `key=value` fields, and refuses nothing for prose, 2026-10-10 #harness
+  on `?`, `&` and `;`, reads only `key=value` fields, and refuses nothing for prose (`be9abf5`), 2026-10-10 #harness
+- [x] #22 `harness capture` overwrote an existing case with no existence check: capture and synth now share one
+  overwrite guard (`e561c32`, slice 2b Task 1), 2026-10-10 #harness
+- [x] #27 `check.sh --scope-changed` ran the rendered leg for a harness-only change: the conform and rendered scopes
+  are derived apart (`e561c32`, slice 2b Task 1), 2026-10-10 #gate

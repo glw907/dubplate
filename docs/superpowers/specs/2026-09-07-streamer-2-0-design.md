@@ -12,6 +12,20 @@ it names a current rung (5, 6, 7, 8, 9, 12, 16), it asks that rung's plan to wei
 early. One sentence in revision 1 trimmed rung 12 while the document claimed to amend nothing; that conflict is open
 ruling 1 rather than a silent amendment.
 
+## Revision note, 2026-10-10: slice 1's forks A, B, C ruled
+
+Slice 2b closed the three owner forks that slice 1 raised, each ruled by Geoff on 2026-10-07 with the study's
+recommendation (study record section 19):
+
+- **A. No `transcoding` extension at 0.8.** `getTranscodeDecision` and `getTranscodeStream` are not served at 0.8 and
+  answer error 0.
+- **B. The protocol module is MIT, and its conformance checker loads the OpenAPI file as caller input and never
+  vendors it.** The same rule holds for the Subsonic XSD, which lives in the user cache, verified by sha256, and is
+  never committed.
+- **C. No folder browsing at launch.** gonic loses its folder-view role and keeps `getMusicFolders`. The seed
+  session's `getIndexes` and `getMusicDirectory` rows are reference observations that no dubplate grade compares with
+  an oracle. The oracle-tier paragraph under "Evidence" is amended to match.
+
 ## Revision 3.1, 2026-10-07
 
 Revision 3.1 writes the study rung's answers into the spec. Slice 1 of rung 12 ran as a document lane and closed with a
@@ -341,8 +355,9 @@ on the box, under the GPL behavior-only rule in "License".
 
 The oracle tier serves the same fixture
 library from Navidrome and from gonic and diffs dubplate's responses against them, with gonic authoritative for
-`getIndexes`, `getMusicDirectory`, and `getMusicFolders` because Navidrome synthesizes its folder tree from ID3 rather
-than from real paths. The oracle image digest is pinned, the ledger records the oracle version per adjudication, and a
+`getMusicFolders` alone (Geoff, 2026-10-07, ruling C: no folder browsing at launch, so `getIndexes` and
+`getMusicDirectory` are graded against the contract and never against an oracle; Navidrome synthesizes its folder tree
+from ID3 rather than from real paths, and gonic's tree is reference observation only). The oracle image digest is pinned, the ledger records the oracle version per adjudication, and a
 version bump is a deliberate pass that re-runs the ledger. The roster tier walks each slice in the group's apps.
 Rejected: the roster alone (a client hides most of the API), the spec alone (silent where clients depend on de facto
 behavior), a Navidrome-only oracle (it bakes in one server's choices, including two surfaces where it cannot grade
