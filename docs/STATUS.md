@@ -16,10 +16,10 @@ upgrade. Archive: HISTORY, "Archive record".
 ## Next action
 > **Resume prompt (start a fresh brainstorm-and-plan session in /var/home/glw907/Projects/dubplate; `claude --model
 > claude-opus-5-5`, effort high)**
-> **Goal.** Brainstorm and write the plan for the ladder's next pass, rung 14 (versioned API and admin spine; build
-> spec `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`, ladder entry 14), with the carried rung 14 items
-> below. Rung 12 slice 3 is also ready (it consumes 2b's XML tier, ledger, assignment, differ, and the music-folders
-> evidence); the plan session names which of the two runs first and why. **Settled (do not re-brainstorm):** rung 12
+> **Goal.** Start from `docs/superpowers/research/2026-10-10-next-pass-planning-brief.md`: it recommends rung 14
+> (slice 3 waits on rung 9's catalog), lists three questions for Geoff (rung 9's concurrency ruling first), and
+> proposes the scope, decisions, segments, and ceiling. Ask the questions, then spec and plan rung 14.
+> **Settled (do not re-brainstorm):** rung 12
 > slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision note, 2026-10-10"); the lane registry
 > below. **Approach:** invoke `pass-core`; open the pass with the `dependency-upgrade` sweep, which now covers libxml2
 > (held by `brew pin libxml2`); write the plan to `docs/superpowers/plans/`, run it through `spec-plan-review`, and take
