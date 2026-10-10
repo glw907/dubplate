@@ -326,6 +326,49 @@ replaces the selection test with the deleted list's pattern.
 - **P10, `docs/` only (a tracked `ROADMAP.md` edit, class No effect).** Scope line: `rendered=skipped
   rendered_by=none`. No mutation.
 
+### Task 3
+
+**Branch chosen: the probe confirmed invalidation, so conform's hand scoping is deleted.** `go help test`: "The idiomatic
+way to disable test caching explicitly is to use -count=1. Tests that open files within the package's module or that
+consult environment variables only match future runs in which the files and environment variables are unchanged."
+The names and lines at HEAD: `internal/harness/conform/arch_test.go:239:func TestServerNeverLinksTheHarnessOrChecker`
+and `internal/opensubsonic/boundary_test.go:57:func TestLayerImportsNothingInternal`. The conform walks are rooted at
+`internal/engine` (`arch_test.go:144` and `:155`, `root := filepath.Join(repoRoot(t), "internal", "engine")`).
+
+- **P11, the three cache cases** (scratch worktree, `go test ./internal/harness/conform` run twice to reach `(cached)`):
+  - `touch corpus/cases/admit-duplicate-candidate/case.json` (a file the suite reads): `ok ... 153.005s`, a rerun.
+    (`touch .../claims.json`, which the suite never opens, stays `(cached)`, as it should.)
+  - One line appended to `internal/engine/matcher/album_album.go`: `ok ... 183.665s`, a rerun, then `(cached)`.
+  - `docs/probe-note.md` added and `ROADMAP.md` edited: `ok ... (cached)`.
+  - A cold run of the suite costs about 150s, which is what the hand scoping used to avoid on unrelated changes.
+- **Change.** `--scope-changed` runs `make web`, `make vet lint test tidy-check`, then `make web-rendered` only when
+  Task 2 selects it. `derive_conform_affected`, `scope_conform` and the `conform=` field are gone. The Makefile's `test`
+  target runs the two named tests again with `-count=1 -v`, and fails unless both report `--- PASS`.
+- **P12, planted harness import.** Planted: `cmd/dubplate-server/planted_harness.go` blank-importing
+  `internal/harness/cassette`. `go test ./internal/harness/conform` replays `ok ... (cached)` (the red, today's
+  behavior). `make test` fails: `arch_test.go:250: cmd/dubplate-server links packages it must not:
+  github.com/glw907/dubplate/internal/harness/cassette` / `--- FAIL: TestServerNeverLinksTheHarnessOrChecker`, exit 2.
+  The scratch tree needed `make web` (and a `cp -a` of `web/node_modules`) first, because `go test ./...` fails on the
+  embedded placeholder otherwise.
+- **P13, rename.** Renaming `TestServerNeverLinksTheHarnessOrChecker` gives `make test: TestServerNeverLinksTheHarnessOrChecker
+  did not run and pass`; renaming `TestLayerImportsNothingInternal` gives `make test: TestLayerImportsNothingInternal did not
+  run and pass` (and `ok ... [no tests to run]` above it). Both exit 2; the unrenamed tree passes.
+- **P14, end to end** (heavy lane, scratch tree, base committed below the change):
+  - `internal/ops/doc.go` change: scope line `scope=changed ... rendered=run rendered_by=internal/ops/doc.go
+    gitleaks=changed files=1: internal/ops/doc.go`; one `== make web ==`, no `make check` (the Go section ran
+    `go vet ./...`, `golangci-lint run ./...`, `go test ./...`, then `running make web-rendered`); `gate exit: 0`, 1321
+    lines. `internal/harness/conform` reran (`ok ... 149.294s`) because the scratch tree had just had files in that
+    package restored by `git checkout` during P13; its dependency closure holds no `internal/ops`. The first attempt of
+    this run was red on a gofmt error in the plant itself (a comment glued to `package ops`), which shows the lint leg
+    still runs in the scoped form.
+  - `ROADMAP.md` change: `rendered=skipped rendered_by=none files=1: ROADMAP.md`; one `make web`, no `make check`;
+    `ok ... conform (cached)`; `skipping the rendered leg`; `gate exit: 0`, 441 lines.
+  - Timing: the runner printed no run time, and both runs waited on the shared heavy lock (the NOTE for the second:
+    "this gate waited 496s for another gate to release the machine lock", the first 204s), so wall time is unreliable.
+    The log difference is 1321 lines against 441 and the skipped rendered leg; conform alone is 149s cold against
+    cached. The Go section header read `== make check (Go) ==` in these transcripts; it now reads `== make vet lint test
+    tidy-check (Go) ==` in the scoped form (label only, committed after the runs).
+
 ## Review
 
 One lens, mechanics and proportionality, applied in a fresh reread on 2026-10-10. Each finding was verified by a

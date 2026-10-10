@@ -24,21 +24,21 @@ set -euo pipefail
 #   check.sh                  the full gate over the whole tree. The form
 #                             every boundary, every merge gate, and every
 #                             pass end runs. Nothing is scoped away.
-#   check.sh --scope-changed  the full leg list, with three
-#                             blast-radius-insensitive legs narrowed to
+#   check.sh --scope-changed  the full leg list, with two legs narrowed to
 #                             what the tree actually changed: gitleaks
-#                             scans the derived change set, the
-#                             internal/harness/conform suite runs only
-#                             when a file under internal/harness/,
-#                             internal/engine/, or corpus/ changed, and
-#                             the rendered leg runs only when a file
-#                             under web/ changed or a changed file lies
-#                             in a package the rendered test binary
-#                             links (selected by reverse dependency from
+#                             scans the derived change set, and the
+#                             rendered leg runs only when a file under
+#                             web/ changed or a changed file lies in a
+#                             package the rendered test binary links
+#                             (selected by reverse dependency from
 #                             `go list -deps -test -tags rendered`, so
 #                             a new dependency joins the set with no
-#                             edit here). Every other leg runs exactly
-#                             as in the full form.
+#                             edit here). The go test leg always runs
+#                             whole and Go's own test cache decides
+#                             what reruns: a package whose inputs,
+#                             opened files and environment are
+#                             unchanged replays its result. Every other
+#                             leg runs exactly as in the full form.
 #   check.sh --reduced        the comment-only and docs-only form: vale
 #                             over Go comments, shellcheck, gitleaks over
 #                             the change set, and gofmt, go vet and go
@@ -93,7 +93,7 @@ usage() {
 usage: check.sh [--scope-changed | --reduced | --merge] [--base <sha>] [--dry-run]
 
   (no flag)       full gate over the whole tree
-  --scope-changed full leg list, gitleaks and the conform suite scoped to
+  --scope-changed full leg list, gitleaks and the rendered leg scoped to
                   the change set git derives
   --reduced       comment-only and docs-only gate over the change set
   --merge         full gate plus a gitleaks scan of master..HEAD
@@ -455,26 +455,7 @@ derive_changed_packages() {
   mapfile -t changed_packages < <(sort -u "$work_dir/pkgs.txt")
 }
 
-# The conform suite is blast-radius-scoped by hand because it is a
-# package inside `go test ./...` rather than a leg of this script: it
-# reads the corpus and the engine through the harness, so a change under
-# any of those three roots can change its verdict and nothing else can.
-conform_affected=1
-derive_conform_affected() {
-  local f
-  conform_affected=0
-  for f in "${changed_files[@]}"; do
-    case "$f" in
-    internal/harness/* | internal/engine/* | corpus/*)
-      conform_affected=1
-      return
-      ;;
-    esac
-  done
-}
-
 scope_gitleaks=full
-scope_conform=full
 scope_rendered=full
 if [ "$mode" = "reduced" ]; then
   scope_rendered=skipped
@@ -482,12 +463,8 @@ fi
 if [ "$mode" = "scope-changed" ] || [ "$mode" = "reduced" ]; then
   if derive_change_set && classify_change_set; then
     derive_changed_packages
-    derive_conform_affected
     scope_gitleaks=changed
     if [ "$mode" = "scope-changed" ]; then
-      if [ "$conform_affected" -eq 0 ]; then
-        scope_conform=skipped
-      fi
       if [ "${#rendered_selectors[@]}" -eq 0 ]; then
         scope_rendered=skipped
       else
@@ -512,7 +489,7 @@ merge)
   echo "check.sh: scope=full+history; every leg over the whole tree, plus gitleaks over master..HEAD."
   ;;
 scope-changed)
-  echo "check.sh: scope=changed base=$change_base source=$change_source conform=$scope_conform rendered=$scope_rendered rendered_by=${rendered_selectors[*]:-none} gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=changed base=$change_base source=$change_source rendered=$scope_rendered rendered_by=${rendered_selectors[*]:-none} gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 reduced)
   echo "check.sh: scope=reduced base=$change_base source=$change_source rendered=skipped web_check=$web_changed packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
@@ -563,31 +540,21 @@ if [ "$mode" = "scope-changed" ]; then
   fi
 fi
 
-if [ "$mode" != "reduced" ]; then
+if [ "$mode" = "scope-changed" ]; then
+  echo "== make vet lint test tidy-check (Go) =="
+elif [ "$mode" != "reduced" ]; then
   echo "== make check (Go) =="
 fi
-if [ "$mode" = "scope-changed" ] && { [ "$scope_conform" = "skipped" ] || [ "$scope_rendered" = "skipped" ]; }; then
-  # The scoped form keeps vet, lint and tidy-check whole and narrows the
-  # test leg (the conform suite) and the rendered leg independently, each
-  # by its own inputs.
-  if ! make vet lint tidy-check; then
-    status=1
-  fi
-  if [ "$scope_conform" = "skipped" ]; then
-    echo "check.sh: the change set touches no harness, engine or corpus file; running go test without internal/harness/conform."
-    mapfile -t scoped_pkgs < <(go list ./... | grep -v '/internal/harness/conform$')
-    if [ "${#scoped_pkgs[@]}" -eq 0 ]; then
-      echo "check.sh: go list returned no packages." >&2
-      status=1
-    elif ! go test "${scoped_pkgs[@]}"; then
-      status=1
-    fi
-  elif ! make test; then
+if [ "$mode" = "scope-changed" ]; then
+  # The scoped form is `make check` minus the rendered leg's
+  # unconditional run: vet, lint, the whole test leg (Go's test cache
+  # sizes it) and tidy-check, then the rendered leg only when selected.
+  # It never calls `make check`, so the bundle is built once, above.
+  if ! make vet lint test tidy-check; then
     status=1
   fi
   # `make check` carries the rendered leg in every other form; this
-  # branch replaces it, so it runs the leg itself when the change set
-  # can reach it.
+  # branch runs the leg itself when the change set can reach it.
   if [ "$scope_rendered" = "skipped" ]; then
     echo "check.sh: the change set touches no web/ path and no package the rendered test binary links; skipping the rendered leg."
   else

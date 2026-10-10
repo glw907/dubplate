@@ -13,8 +13,23 @@ build:
 build-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BINARY)-linux-amd64 ./cmd/dubplate-server
 
+# Two tests read the module's source through a `go list` subprocess,
+# which Go's test cache cannot see, so a cached pass can replay after
+# the source it checks has changed. They also run with -count=1, the
+# idiom `go help test` names for disabling caching. The run is verbose
+# and the recipe fails unless both tests report a pass, so a rename
+# cannot leave the guard vacuous.
+UNCACHED_TESTS := TestServerNeverLinksTheHarnessOrChecker TestLayerImportsNothingInternal
+UNCACHED_RE := TestServerNeverLinksTheHarnessOrChecker|TestLayerImportsNothingInternal
+
 test:
 	go test ./...
+	@out="$$(go test -count=1 -v -run '^($(UNCACHED_RE))$$' ./internal/harness/conform ./internal/opensubsonic 2>&1)" \
+		|| { printf '%s\n' "$$out"; exit 1; }; \
+	for t in $(UNCACHED_TESTS); do \
+		printf '%s\n' "$$out" | grep -q -- "^--- PASS: $$t " \
+			|| { printf '%s\n' "$$out"; echo "make test: $$t did not run and pass"; exit 1; }; \
+	done
 
 vet:
 	go vet ./...
