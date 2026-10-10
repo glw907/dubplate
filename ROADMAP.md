@@ -116,8 +116,19 @@ hits rootDir errors (TypeScript #30693, sveltejs/language-tools #2891). No hurry
 
 ### dubplate-server 0.9: the paired local client `local-client-0-9`
 The 0.9 feature (Geoff, 2026-09-25 ruling on version numbering): a local client
-paired with dubplate-server. Scope is unspecified; nothing else about it is
-settled yet.
+paired with dubplate-server. Its core is the home copy server (Geoff, 2026-10-10).
+A dubplate install on a machine on a member's home network keeps a one-way synced
+copy of the whole library and serves it to that member's music apps over the same
+OpenSubsonic API. At home the apps stream lossless from the house; away from it they
+use the server. This supersedes the organizer spec's out-of-scope line for "the
+server-to-local mirror" (`2026-09-01-dubplate-organizer-design.md:704`), which stays as
+written. It sits inside the group-scale principles: the copy serves the member's own
+devices, which those principles name as intended use, and it is not a link between two
+catalogs. Rung 9's plan weighs whether a sync source (a change feed over the catalog,
+keyed on hook 1's audio keys) is a 0.8 forward hook, and routes it to the streamer
+spec's list if so. Everything else, including the pairing credential, the sync
+transport, and how an app picks the home copy or the server, is settled when 0.9 is
+planned.
 
 ### dubplate-server 1.0: the format ladder `formats-1-0`
 (Re-keyed from "1.1"/`formats-1-1`, Geoff, 2026-09-25: the format ladder is 1.0's
