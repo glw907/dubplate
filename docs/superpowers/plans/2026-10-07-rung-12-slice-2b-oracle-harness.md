@@ -1132,3 +1132,28 @@ and Task 10's degraded forms if they are taken.
   containing `?` as a URL and refuses one whose query `ParseQuery` rejects, as the plan's fail-closed rule says, so a
   title such as "Is This It? 50% off" would refuse a session; filed as BACKLOG #29 for slice 3. Task 8 recorded 30
   spec entries with no request dropped; every prediction is pinned, the two absent ones as absent.
+- **E7 (segment D pre-flight, at `7c012e7`).** Task 9 was accepted with no fix round; its live run held the normal
+  form (Navidrome listed folders 1 "Music Library" and 2 "second", gonic 0 "first" and 1 "second", both counted 22),
+  so Task 10 runs in its normal form. Navidrome names its first folder "Music Library", so nothing resolves a folder by
+  name. Ten amendments, passed to the implementers in segment D's criteria.
+  Task 10: a session spec carries only requests, so the collections come from the recording command:
+  `record-oracle --spec music-folders.spec.json --collection first=<collection-a.json> --collection
+  second=<collection-b.json> --out .../music-folders`, and those two names are the ones the grader passes. The
+  `collection:` key joins `refKinds`; the recorder gains each collection's `albumartist` set (a `fixture.Load` per
+  manifest) and resolves the key itself, from the `getMusicFolders` answer and one filtered `getArtists` per folder id,
+  never from spec order. The expected sets are A = {Alpha Artist, Delta Duo, Borealis Trio, Zoë Ångström} and B =
+  {Alpha Artist, Carmine Ensemble, Various Artists, The Meridians}. If an oracle lists a set differently (compilation
+  handling or a leading article), the implementer quotes the live list and the resolver matches instead on the artists
+  that sit under exactly one collection and that both oracles list verbatim; the shared artist alone never resolves,
+  so the overlap mutation still fails. That reading needs no further ruling and is reported as an erratum. `harness
+  grade`'s collection flag is new: a repeated `--collection name=manifest`, defaulting to the seed, mutually exclusive
+  with nothing (grade has no manifest flag today). `grade.New` builds every collection; the library the grader reads
+  tracks from is their union in list order, and the assignment loads as today, independent of the list. The new digest
+  check uses `fixture.CombineDigests` with the recorder's names; it is separate from the existing source-to-source
+  comparison.
+  Task 11: [clients] section 2 is a per-client endpoint table with no flow list, so `docs/roster-walk.md` defines the
+  flow list itself (the outcome's list is the checklist), cross-checked against [clients] 2a and 2b and the folder-view
+  demand in section 4; the reviewer reads coverage against that list. No host Xvfb exists, so Rufin's display follows
+  [base-url]'s throwaway Xvfb container, and the record names the image and its digest. Feishin's real
+  `~/.var/app/org.jeffvli.feishin` tree now exists (slice 1 created it) and is hashed as found; the `cache/` and
+  `.ld.so/` exceptions apply to both apps. `/dev/kvm` is still absent, so the Tempus walk stays deferred.
