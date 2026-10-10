@@ -18,8 +18,8 @@ import (
 const pinnedLibxml = "21504"
 
 var (
-	// ErrVersion reports an xmllint built against another libxml.
-	ErrVersion = errors.New("xmlrule: xmllint version is not the pinned one")
+	// errVersion reports an xmllint built against another libxml.
+	errVersion = errors.New("xmlrule: xmllint version is not the pinned one")
 
 	// ErrToolFailure reports an xmllint run that ended in neither a
 	// validation result nor a set of validity errors.
@@ -69,7 +69,7 @@ func newRunner(ctx context.Context, name string) (*runner, error) {
 		return nil, fmt.Errorf("%w: %s reports libxml %s, want %s; to move the pin run "+
 			"brew unpin libxml2 && brew upgrade libxml2, regenerate the goldens, brew pin libxml2, "+
 			"then brew upgrade the dependents the pin held",
-			ErrVersion, path, got, pinnedLibxml)
+			errVersion, path, got, pinnedLibxml)
 	}
 	return &runner{path: path}, nil
 }

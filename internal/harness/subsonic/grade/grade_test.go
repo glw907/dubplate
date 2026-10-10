@@ -803,10 +803,10 @@ func TestNewRefusesAnUnusableSchemaCache(t *testing.T) {
 	tests := []struct {
 		name  string
 		write bool
-		want  error
+		want  string
 	}{
-		{"empty cache", false, xmlrule.ErrNotCached},
-		{"wrong sum", true, xmlrule.ErrChecksum},
+		{"empty cache", false, "schema not cached"},
+		{"wrong sum", true, "schema checksum mismatch"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -825,8 +825,8 @@ func TestNewRefusesAnUnusableSchemaCache(t *testing.T) {
 				}
 			}
 			g, err := New(cfg)
-			if !errors.Is(err, tt.want) {
-				t.Errorf("New error = %v, want %v", err, tt.want)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("New error = %v, want one naming %q", err, tt.want)
 			}
 			if g != nil {
 				t.Errorf("New returned a grader beside the error")

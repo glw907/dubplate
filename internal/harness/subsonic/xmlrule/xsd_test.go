@@ -80,8 +80,8 @@ func TestCached(t *testing.T) {
 		wantMsg []string
 	}{
 		{name: "verifies", seed: good},
-		{name: "absent", seed: nil, wantErr: ErrNotCached, wantMsg: []string{"make subsonic-xsd", xsdFileName}},
-		{name: "one byte changed", seed: corrupt, wantErr: ErrChecksum, wantMsg: []string{xsdSHA256, xsdFileName}},
+		{name: "absent", seed: nil, wantErr: errNotCached, wantMsg: []string{"make subsonic-xsd", xsdFileName}},
+		{name: "one byte changed", seed: corrupt, wantErr: errChecksum, wantMsg: []string{xsdSHA256, xsdFileName}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestCached(t *testing.T) {
 }
 
 // serve returns a client whose every request, asserted to target
-// XSDURL, is answered by h.
+// xsdURL, is answered by h.
 func serve(t *testing.T, h http.HandlerFunc) *http.Client {
 	t.Helper()
 	server := httptest.NewServer(h)
@@ -116,8 +116,8 @@ func serve(t *testing.T, h http.HandlerFunc) *http.Client {
 		t.Fatal(err)
 	}
 	return &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-		if req.URL.String() != XSDURL {
-			t.Errorf("request to %s, want %s", req.URL, XSDURL)
+		if req.URL.String() != xsdURL {
+			t.Errorf("request to %s, want %s", req.URL, xsdURL)
 		}
 		clone := req.Clone(req.Context())
 		clone.URL.Scheme, clone.URL.Host, clone.Host = target.Scheme, target.Host, target.Host
@@ -142,8 +142,8 @@ func TestFetch(t *testing.T) {
 	}{
 		{name: "verified bytes", status: http.StatusOK, body: good},
 		{name: "non-200", status: http.StatusNotFound, body: good, wantMsg: "404"},
-		{name: "wrong sum", status: http.StatusOK, body: wrongSum, wantErr: ErrChecksum},
-		{name: "too long", status: http.StatusOK, body: append(append([]byte(nil), good...), '\n'), wantErr: ErrSize},
+		{name: "wrong sum", status: http.StatusOK, body: wrongSum, wantErr: errChecksum},
+		{name: "too long", status: http.StatusOK, body: append(append([]byte(nil), good...), '\n'), wantErr: errSize},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

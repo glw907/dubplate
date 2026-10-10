@@ -30,7 +30,10 @@ func realCachedXSD(t *testing.T) []byte {
 	return data
 }
 
-// xsdClient answers every request, asserted to target xmlrule.XSDURL,
+// pinnedXSDURL is the pinned schema's address, written out so a change to it is a visible edit.
+const pinnedXSDURL = "https://subsonic.org/pages/inc/api/schema/subsonic-rest-api-1.16.1.xsd"
+
+// xsdClient answers every request, asserted to target the pinned schema URL,
 // with the given status and body, and counts the requests.
 func xsdClient(t *testing.T, status int, body []byte) (*http.Client, *int) {
 	t.Helper()
@@ -45,8 +48,8 @@ func xsdClient(t *testing.T, status int, body []byte) (*http.Client, *int) {
 	}
 	requests := new(int)
 	return &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-		if req.URL.String() != xmlrule.XSDURL {
-			t.Errorf("request to %s, want %s", req.URL, xmlrule.XSDURL)
+		if req.URL.String() != pinnedXSDURL {
+			t.Errorf("request to %s, want %s", req.URL, pinnedXSDURL)
 		}
 		*requests++
 		clone := req.Clone(req.Context())

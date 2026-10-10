@@ -24,8 +24,8 @@ import (
 // The one pin. No other channel sets the schema's address, size, or
 // digest.
 const (
-	// XSDURL is where the pinned schema is fetched from.
-	XSDURL = "https://subsonic.org/pages/inc/api/schema/subsonic-rest-api-1.16.1.xsd"
+	// xsdURL is where the pinned schema is fetched from.
+	xsdURL = "https://subsonic.org/pages/inc/api/schema/subsonic-rest-api-1.16.1.xsd"
 
 	// xsdSize is the pinned schema's length in bytes.
 	xsdSize = 32775
@@ -37,14 +37,14 @@ const (
 )
 
 var (
-	// ErrNotCached reports that the cache holds no schema file.
-	ErrNotCached = errors.New("xmlrule: schema not cached")
+	// errNotCached reports that the cache holds no schema file.
+	errNotCached = errors.New("xmlrule: schema not cached")
 
-	// ErrChecksum reports bytes whose sha256 disagrees with the pin.
-	ErrChecksum = errors.New("xmlrule: schema checksum mismatch")
+	// errChecksum reports bytes whose sha256 disagrees with the pin.
+	errChecksum = errors.New("xmlrule: schema checksum mismatch")
 
-	// ErrSize reports a source longer than the pinned size.
-	ErrSize = errors.New("xmlrule: schema larger than its pinned size")
+	// errSize reports a source longer than the pinned size.
+	errSize = errors.New("xmlrule: schema larger than its pinned size")
 )
 
 // CachePath returns the file the pinned schema caches to, under the
@@ -58,9 +58,9 @@ func CachePath() (string, error) {
 }
 
 // Cached returns the cached schema's bytes, and only when their sha256
-// matches the pin. An absent file wraps ErrNotCached and names the
+// matches the pin. An absent file wraps errNotCached and names the
 // make target that fills it; a file with the wrong sum wraps
-// ErrChecksum and names both sums and the path.
+// errChecksum and names both sums and the path.
 func Cached() ([]byte, error) {
 	path, err := CachePath()
 	if err != nil {
@@ -68,14 +68,14 @@ func Cached() ([]byte, error) {
 	}
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("%w at %s; run make subsonic-xsd", ErrNotCached, path)
+		return nil, fmt.Errorf("%w at %s; run make subsonic-xsd", errNotCached, path)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("xmlrule: read cached schema: %w", err)
 	}
 	if got := sum(data); got != xsdSHA256 {
 		return nil, fmt.Errorf("%w at %s: got %s, want %s; run make subsonic-xsd",
-			ErrChecksum, path, got, xsdSHA256)
+			errChecksum, path, got, xsdSHA256)
 	}
 	return data, nil
 }
@@ -83,7 +83,7 @@ func Cached() ([]byte, error) {
 // Fetch downloads the pinned schema with client and returns its bytes
 // only when they match the pinned size and sha256. Nothing is written.
 func Fetch(ctx context.Context, client *http.Client) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, XSDURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, xsdURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("xmlrule: build schema request: %w", err)
 	}
@@ -100,10 +100,10 @@ func Fetch(ctx context.Context, client *http.Client) ([]byte, error) {
 		return nil, fmt.Errorf("xmlrule: read schema: %w", err)
 	}
 	if len(data) > xsdSize {
-		return nil, ErrSize
+		return nil, errSize
 	}
 	if got := sum(data); got != xsdSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", ErrChecksum, got, xsdSHA256)
+		return nil, fmt.Errorf("%w: got %s, want %s", errChecksum, got, xsdSHA256)
 	}
 	return data, nil
 }

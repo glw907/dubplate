@@ -114,9 +114,9 @@
   slice 2b's architecture read of `fixture`, 2026-10-10 #harness #project:prod-polish
 - [ ] #33 For the exported-unused leg's comment-cleanup task: these exports have no caller outside their package
   beyond tests. `grade`'s ledger surface (`State*`, `Class*`, `Pattern`, `ErrInvalidLedger`, `Ledger`, `LoadLedger`,
-  `Result`, `Apply`, `Finding`, `Kind*`, `ErrVersionMismatch`), `xmlrule`'s `ErrVersion` and `ErrSize`, and `stack`'s
+  `Result`, `Apply`, `Finding`, `Kind*`, `ErrVersionMismatch`) and `stack`'s
   `ErrNoPodman`. Unexport them or name the caller that will use them. Refused at slice 2b's close because the leg is
-  staged. Found by slice 2b's architecture reads, 2026-10-10 #arch #project:prod-polish
+  staged. `xmlrule`'s five (`ErrVersion`, `ErrSize`, `ErrChecksum`, `ErrNotCached`, `XSDURL`) are unexported (slice 2b Task 12). Found by slice 2b's architecture reads, 2026-10-10 #arch #project:prod-polish
 
 ## Done
 

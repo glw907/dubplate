@@ -82,8 +82,8 @@ func TestNewRunnerAbsent(t *testing.T) {
 func TestNewRunnerVersion(t *testing.T) {
 	t.Run("another version is refused", func(t *testing.T) {
 		_, err := fakeRunner(t, "21210", "", 0)
-		if !errors.Is(err, ErrVersion) {
-			t.Fatalf("err = %v, want ErrVersion", err)
+		if !errors.Is(err, errVersion) {
+			t.Fatalf("err = %v, want errVersion", err)
 		}
 		path := filepath.Join(os.Getenv("PATH"), "xmllint")
 		for _, want := range []string{"21210", pinnedLibxml, path, "brew unpin libxml2", "brew pin libxml2"} {
