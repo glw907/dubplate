@@ -1,0 +1,48 @@
+[
+  {
+    "id": "folder-view-getindexes",
+    "area": "getIndexes",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot be graded against gonic's, which follows the paths.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getIndexes",
+      "format": "any",
+      "path": "subsonic-response/indexes"
+    },
+    "session": "music-folders",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  },
+  {
+    "id": "folder-view-getmusicfolders",
+    "area": "getMusicFolders",
+    "class": "by-construction",
+    "sources": [
+      "navidrome",
+      "gonic"
+    ],
+    "oracle": "Navidrome synthesizes its folder tree from ID3 tags rather than from real paths, so its folder view cannot be graded against gonic's, which follows the paths.",
+    "dubplate": "Not graded here; this row exists only for the oracle-against-oracle test of the grader.",
+    "evidence": "streamer spec, oracle tier (the two declared divergence classes)",
+    "state": "active",
+    "pattern": {
+      "endpoint": "getMusicFolders",
+      "format": "any",
+      "path": "subsonic-response/musicFolders"
+    },
+    "session": "music-folders",
+    "versions": {
+      "navidrome": "0.64.2 (10114574)",
+      "gonic": "0.22.0"
+    }
+  }
+]

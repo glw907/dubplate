@@ -1,0 +1,1071 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "gonic": {
+      "library_digest": "7e342ed0efcdacc17d1653d0a5f265b6e13062e07f9f4b3eec631a6f929ca433",
+      "image_digest": "sha256:516fd9645614ba3a596d86174216c3e944808b9ec970c581678713be4c8b1d49",
+      "server_version": "0.22.0"
+    },
+    "navidrome": {
+      "library_digest": "7e342ed0efcdacc17d1653d0a5f265b6e13062e07f9f4b3eec631a6f929ca433",
+      "image_digest": "sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52",
+      "server_version": "0.64.2 (10114574)"
+    }
+  },
+  "resolutions": {
+    "collection:first": {
+      "gonic": "0",
+      "navidrome": "1"
+    },
+    "collection:second": {
+      "gonic": "1",
+      "navidrome": "2"
+    }
+  },
+  "requests": [
+    {
+      "endpoint": "getMusicFolders",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "001-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "001-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getMusicFolders",
+      "format": "xml",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "002-gonic.xml"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/xml",
+          "body": "002-navidrome.xml"
+        }
+      ]
+    },
+    {
+      "endpoint": "getIndexes",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "003-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "003-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getIndexes",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "004-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "004-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getIndexes",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "005-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "005-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getIndexes",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "006-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "006-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getArtists",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "007-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "007-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getArtists",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "008-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "008-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getArtists",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "009-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "009-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getArtists",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "010-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "010-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList",
+      "format": "json",
+      "params": [
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "011-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "011-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        },
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "012-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "012-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        },
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "013-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "013-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        },
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "014-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "014-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList2",
+      "format": "json",
+      "params": [
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "015-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "015-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        },
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "016-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "016-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        },
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "017-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "017-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getAlbumList2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        },
+        {
+          "name": "type",
+          "value": "alphabeticalByName"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "018-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "018-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getRandomSongs",
+      "format": "json",
+      "params": [
+        {
+          "name": "size",
+          "value": "22"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "019-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "019-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getRandomSongs",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        },
+        {
+          "name": "size",
+          "value": "22"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "020-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "020-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getRandomSongs",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        },
+        {
+          "name": "size",
+          "value": "22"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "021-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "021-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getRandomSongs",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        },
+        {
+          "name": "size",
+          "value": "22"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "022-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "022-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getSongsByGenre",
+      "format": "json",
+      "params": [
+        {
+          "name": "genre",
+          "value": "Ambient"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "023-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "023-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getSongsByGenre",
+      "format": "json",
+      "params": [
+        {
+          "name": "genre",
+          "value": "Ambient"
+        },
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "024-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "024-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getSongsByGenre",
+      "format": "json",
+      "params": [
+        {
+          "name": "genre",
+          "value": "Ambient"
+        },
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "025-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "025-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getSongsByGenre",
+      "format": "json",
+      "params": [
+        {
+          "name": "genre",
+          "value": "Ambient"
+        },
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "026-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "026-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "027-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "027-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "028-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "028-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "029-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "029-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "030-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "030-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred2",
+      "format": "json",
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "031-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "031-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "032-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "032-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "033-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "033-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "getStarred2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "034-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "034-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search2",
+      "format": "json",
+      "params": [
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "035-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "035-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        },
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "036-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "036-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        },
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "037-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "037-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search2",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        },
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "038-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "038-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search3",
+      "format": "json",
+      "params": [
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "039-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "039-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search3",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:first"
+        },
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "040-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "040-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search3",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "collection:second"
+        },
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "041-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "041-navidrome.json"
+        }
+      ]
+    },
+    {
+      "endpoint": "search3",
+      "format": "json",
+      "params": [
+        {
+          "name": "musicFolderId",
+          "value": "999"
+        },
+        {
+          "name": "query",
+          "value": ""
+        }
+      ],
+      "responses": [
+        {
+          "source": "gonic",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "042-gonic.json"
+        },
+        {
+          "source": "navidrome",
+          "status": 200,
+          "content_type": "application/json",
+          "body": "042-navidrome.json"
+        }
+      ]
+    }
+  ]
+}

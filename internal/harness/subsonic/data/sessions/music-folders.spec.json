@@ -1,0 +1,298 @@
+{
+ "requests": [
+  {
+   "endpoint": "getMusicFolders",
+   "format": "json"
+  },
+  {
+   "endpoint": "getMusicFolders",
+   "format": "xml"
+  },
+  {
+   "endpoint": "getIndexes",
+   "format": "json"
+  },
+  {
+   "endpoint": "getIndexes",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getIndexes",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getIndexes",
+   "format": "json",
+   "params": {
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getArtists",
+   "format": "json"
+  },
+  {
+   "endpoint": "getArtists",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getArtists",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getArtists",
+   "format": "json",
+   "params": {
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getAlbumList",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName"
+   }
+  },
+  {
+   "endpoint": "getAlbumList",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName",
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getAlbumList",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName",
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getAlbumList",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName",
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getAlbumList2",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName"
+   }
+  },
+  {
+   "endpoint": "getAlbumList2",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName",
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getAlbumList2",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName",
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getAlbumList2",
+   "format": "json",
+   "params": {
+    "type": "alphabeticalByName",
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getRandomSongs",
+   "format": "json",
+   "params": {
+    "size": "22"
+   }
+  },
+  {
+   "endpoint": "getRandomSongs",
+   "format": "json",
+   "params": {
+    "size": "22",
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getRandomSongs",
+   "format": "json",
+   "params": {
+    "size": "22",
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getRandomSongs",
+   "format": "json",
+   "params": {
+    "size": "22",
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getSongsByGenre",
+   "format": "json",
+   "params": {
+    "genre": "Ambient"
+   }
+  },
+  {
+   "endpoint": "getSongsByGenre",
+   "format": "json",
+   "params": {
+    "genre": "Ambient",
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getSongsByGenre",
+   "format": "json",
+   "params": {
+    "genre": "Ambient",
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getSongsByGenre",
+   "format": "json",
+   "params": {
+    "genre": "Ambient",
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getStarred",
+   "format": "json"
+  },
+  {
+   "endpoint": "getStarred",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getStarred",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getStarred",
+   "format": "json",
+   "params": {
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "getStarred2",
+   "format": "json"
+  },
+  {
+   "endpoint": "getStarred2",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "getStarred2",
+   "format": "json",
+   "params": {
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "getStarred2",
+   "format": "json",
+   "params": {
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "search2",
+   "format": "json",
+   "params": {
+    "query": ""
+   }
+  },
+  {
+   "endpoint": "search2",
+   "format": "json",
+   "params": {
+    "query": "",
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "search2",
+   "format": "json",
+   "params": {
+    "query": "",
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "search2",
+   "format": "json",
+   "params": {
+    "query": "",
+    "musicFolderId": "999"
+   }
+  },
+  {
+   "endpoint": "search3",
+   "format": "json",
+   "params": {
+    "query": ""
+   }
+  },
+  {
+   "endpoint": "search3",
+   "format": "json",
+   "params": {
+    "query": "",
+    "musicFolderId": "collection:first"
+   }
+  },
+  {
+   "endpoint": "search3",
+   "format": "json",
+   "params": {
+    "query": "",
+    "musicFolderId": "collection:second"
+   }
+  },
+  {
+   "endpoint": "search3",
+   "format": "json",
+   "params": {
+    "query": "",
+    "musicFolderId": "999"
+   }
+  }
+ ]
+}

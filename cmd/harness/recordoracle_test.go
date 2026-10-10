@@ -38,6 +38,16 @@ type cannedOptions struct {
 	// payload, when set, rewrites the members each JSON answer carries
 	// beside the envelope's own.
 	payload func(endpoint, payload string) string
+	// folders, when set, are the music folders getMusicFolders lists in
+	// order, and getArtists filtered by one answers only its artists.
+	folders []cannedFolder
+}
+
+// cannedFolder is one music folder and the artists a filtered getArtists
+// lists under it.
+type cannedFolder struct {
+	id      string
+	artists []string
 }
 
 // cannedOracle serves the answers of a small library: Alpha Artist and
@@ -87,10 +97,16 @@ func newCannedOracle(t *testing.T, o cannedOptions) *cannedOracle {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		endpoint := strings.TrimPrefix(r.URL.Path, "/rest/")
 		key := endpoint + "|" + r.URL.Query().Get("id")
+		if f := r.URL.Query().Get("musicFolderId"); f != "" {
+			key += "|folder=" + f
+		}
 		c.mu.Lock()
 		c.asks = append(c.asks, key)
 		c.mu.Unlock()
 		payload, ok := answers[key]
+		if len(o.folders) > 0 {
+			payload, ok = folderAnswer(o.folders, endpoint, r.URL.Query().Get("musicFolderId"), payload, ok)
+		}
 		switch {
 		case endpoint == o.failEndpoint:
 			http.Error(w, "boom", http.StatusInternalServerError)
@@ -113,6 +129,32 @@ func newCannedOracle(t *testing.T, o cannedOptions) *cannedOracle {
 	t.Cleanup(srv.Close)
 	c.URL = srv.URL
 	return c
+}
+
+// folderAnswer returns the payload a canned oracle with music folders gives
+// endpoint, falling back to answer and found for any other request.
+func folderAnswer(folders []cannedFolder, endpoint, filter, answer string, found bool) (string, bool) {
+	switch {
+	case endpoint == "getMusicFolders":
+		var list []string
+		for _, f := range folders {
+			list = append(list, fmt.Sprintf(`{"id":%s,"name":"folder %s"}`, f.id, f.id))
+		}
+		return `"musicFolders":{"musicFolder":[` + strings.Join(list, ",") + `]}`, true
+	case endpoint == "getArtists" && filter != "":
+		for _, f := range folders {
+			if f.id != filter {
+				continue
+			}
+			var list []string
+			for i, name := range f.artists {
+				list = append(list, fmt.Sprintf(`{"id":"ar%d","name":%q}`, i, name))
+			}
+			return `"artists":{"index":[{"name":"A","artist":[` + strings.Join(list, ",") + `]}]}`, true
+		}
+		return `"artists":{"index":[]}`, true
+	}
+	return answer, found
 }
 
 const happySpec = `{"requests":[
@@ -668,5 +710,109 @@ func TestRecordOracleTwoCollections(t *testing.T) {
 		if !regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(src.LibraryDigest) || src.LibraryDigest == seedDigest {
 			t.Errorf("%s library digest = %q, want a combined 64-hex digest", name, src.LibraryDigest)
 		}
+	}
+}
+
+// The artists each committed collection manifest names as album artists,
+// written out so the test does not read them the way the recorder does.
+var (
+	artistsOfFirst  = []string{"Alpha Artist", "Delta Duo", "Borealis Trio", "Zoë Ångström"}
+	artistsOfSecond = []string{"Alpha Artist", "Carmine Ensemble", "Various Artists", "The Meridians"}
+)
+
+const foldersSpec = `{"requests":[
+ {"endpoint":"getMusicFolders","format":"json"},
+ {"endpoint":"getArtists","format":"json"},
+ {"endpoint":"getArtists","format":"json","params":{"musicFolderId":"collection:first"}},
+ {"endpoint":"getArtists","format":"json","params":{"musicFolderId":"collection:second"}},
+ {"endpoint":"getArtists","format":"json","params":{"musicFolderId":"999"}}
+]}`
+
+// twoCollections points a run at the two committed collection manifests,
+// under the names the recording command gives them.
+func twoCollections(r *recordRun) {
+	r.cfg.collections = []collection{
+		{name: "first", manifest: fixtureManifest("collection-a.json")},
+		{name: "second", manifest: fixtureManifest("collection-b.json")},
+	}
+}
+
+// TestRecordOracleResolvesACollectionByItsArtistSet gives each oracle its
+// folders in the order opposite to the collection list, and the two sets
+// share one artist: only the full set of a collection's album artists names
+// its folder.
+func TestRecordOracleResolvesACollectionByItsArtistSet(t *testing.T) {
+	ndOpts, goOpts := nd(), gonic()
+	ndOpts.folders = []cannedFolder{{"2", artistsOfSecond}, {"1", artistsOfFirst}}
+	goOpts.folders = []cannedFolder{{"0", artistsOfFirst}, {"1", artistsOfSecond}}
+	r := newRecordRun(t, foldersSpec, ndOpts, goOpts)
+	twoCollections(r)
+	if err := runRecordOracle(t.Context(), r.cfg); err != nil {
+		t.Fatal(err)
+	}
+	s, err := session.Load(r.out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]map[string]string{
+		"collection:first":  {"navidrome": "1", "gonic": "0"},
+		"collection:second": {"navidrome": "2", "gonic": "1"},
+	}
+	for key, w := range want {
+		for src, id := range w {
+			if got := s.Resolutions[key][src]; got != id {
+				t.Errorf("resolution %q on %s = %q, want %q", key, src, got, id)
+			}
+		}
+	}
+	if len(s.Resolutions) != len(want) {
+		t.Errorf("resolution keys = %d, want %d", len(s.Resolutions), len(want))
+	}
+	if got := s.Requests[2].Params[0].Value; got != "collection:first" {
+		t.Errorf("stored param = %q, want the symbolic key", got)
+	}
+	for _, wantAsk := range []string{"getArtists||folder=1", "getArtists||folder=2", "getArtists||folder=999"} {
+		if !slices.Contains(r.nd.asked(), wantAsk) {
+			t.Errorf("navidrome never asked %q; asked %q", wantAsk, r.nd.asked())
+		}
+	}
+}
+
+func TestRecordOracleRefusesAnUnresolvableCollection(t *testing.T) {
+	both := func(a, b []string) []cannedFolder { return []cannedFolder{{"1", a}, {"2", b}} }
+	tests := []struct {
+		name    string
+		folders []cannedFolder
+		spec    string
+		want    error
+		mention []string
+	}{
+		{"two folders list the first set", both(artistsOfFirst, artistsOfFirst), foldersSpec, errAmbiguous, []string{"collection:first", "navidrome"}},
+		{"no folder lists the second set", both(artistsOfFirst, artistsOfFirst[:2]), `{"requests":[{"endpoint":"getArtists","format":"json","params":{"musicFolderId":"collection:second"}}]}`, errNoFolder, []string{"collection:second", "navidrome"}},
+		{"a subset of the set", both(artistsOfFirst[:3], artistsOfSecond), `{"requests":[{"endpoint":"getArtists","format":"json","params":{"musicFolderId":"collection:first"}}]}`, errNoFolder, []string{"collection:first"}},
+		{"a superset of the set", both(append(slices.Clone(artistsOfFirst), "Extra"), artistsOfSecond), `{"requests":[{"endpoint":"getArtists","format":"json","params":{"musicFolderId":"collection:first"}}]}`, errNoFolder, []string{"collection:first"}},
+		{"a collection no flag names", both(artistsOfFirst, artistsOfSecond), `{"requests":[{"endpoint":"getArtists","format":"json","params":{"musicFolderId":"collection:third"}}]}`, errBadRef, []string{"collection:third"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			o := nd()
+			o.folders = tc.folders
+			g := gonic()
+			g.folders = tc.folders
+			r := newRecordRun(t, tc.spec, o, g)
+			twoCollections(r)
+			err := runRecordOracle(t.Context(), r.cfg)
+			if !errors.Is(err, tc.want) {
+				t.Fatalf("error = %v, want %v", err, tc.want)
+			}
+			for _, m := range tc.mention {
+				if !strings.Contains(err.Error(), m) {
+					t.Errorf("error %q does not name %q", err, m)
+				}
+			}
+			if entries, _ := os.ReadDir(r.out); len(entries) > 0 {
+				t.Errorf("a refused run wrote %d entries", len(entries))
+			}
+		})
 	}
 }

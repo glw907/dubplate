@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
 	"github.com/glw907/dubplate/internal/harness/subsonic/stack"
 	"github.com/glw907/dubplate/internal/opensubsonic/client"
@@ -26,6 +28,7 @@ var (
 	errBadRef      = errors.New("malformed reference")
 	errOutExists   = errors.New("output directory is not empty")
 	errNoVersion   = errors.New("response carries no serverVersion")
+	errNoFolder    = errors.New("no music folder lists exactly the collection's artists")
 )
 
 // requestTimeout bounds one oracle request.
@@ -33,7 +36,7 @@ const requestTimeout = 30 * time.Second
 
 // refKinds are the prefixes that mark a spec parameter value as a symbolic
 // reference to a fixture entity. Every other value is sent as written.
-var refKinds = []string{"artist:", "album:", "song:", "folder:"}
+var refKinds = []string{"artist:", "album:", "song:", "folder:", "collection:"}
 
 // recordSpec is the committed list of requests a session records.
 type recordSpec struct {
@@ -181,10 +184,14 @@ func runRecordOracle(ctx context.Context, cfg recordConfig) error {
 	for _, r := range reqs {
 		s.Requests = append(s.Requests, r.sessionRequest())
 	}
+	sets, err := albumArtistSets(cfg.collections)
+	if err != nil {
+		return err
+	}
 	var additions []session.Addition
 	var errs []error
 	for _, o := range oracles {
-		rec := &recorder{oracle: o}
+		rec := &recorder{oracle: o, collectionArtists: sets}
 		if err := rec.record(ctx, reqs, s.Requests); err != nil {
 			errs = append(errs, err)
 			continue
@@ -214,7 +221,13 @@ func runRecordOracle(ctx context.Context, cfg recordConfig) error {
 
 // recorder drives one oracle through the spec.
 type recorder struct {
-	oracle    runningOracle
+	oracle runningOracle
+	// collectionArtists holds each collection's sorted, distinct album
+	// artists by collection name.
+	collectionArtists map[string][]string
+	// folders holds the oracle's music folders, listed once a collection
+	// key first asks.
+	folders   []musicFolder
 	version   string
 	resolved  map[string]string
 	responses map[string]session.Response
@@ -262,6 +275,32 @@ type wireRef struct {
 	IsDir bool   `json:"isDir"`
 }
 
+// musicFolder is one music folder an oracle lists and the distinct artists
+// a getArtists filtered by it lists, sorted.
+type musicFolder struct {
+	id      string
+	artists []string
+}
+
+// albumArtistSets returns the sorted, distinct album artists of each
+// collection's manifest, by collection name.
+func albumArtistSets(cols []collection) (map[string][]string, error) {
+	sets := make(map[string][]string, len(cols))
+	for _, c := range cols {
+		lib, err := fixture.Load(c.manifest)
+		if err != nil {
+			return nil, fmt.Errorf("collection %q: %w", c.name, err)
+		}
+		var names []string
+		for _, t := range lib.Tracks() {
+			names = append(names, t.AlbumArtist)
+		}
+		slices.Sort(names)
+		sets[c.name] = slices.Compact(names)
+	}
+	return sets, nil
+}
+
 func (r *recorder) record(ctx context.Context, reqs []specRequest, keyed []session.Request) error {
 	r.resolved = map[string]string{}
 	r.responses = map[string]session.Response{}
@@ -269,7 +308,7 @@ func (r *recorder) record(ctx context.Context, reqs []specRequest, keyed []sessi
 		at := fmt.Errorf("%s: request %d (%s)", r.oracle.name, i+1, req.Endpoint)
 		q := url.Values{}
 		for name, value := range req.Params {
-			id, err := r.resolve(value)
+			id, err := r.resolve(ctx, value)
 			if err != nil {
 				return fmt.Errorf("%w: %w", at, err)
 			}
@@ -309,19 +348,96 @@ func (r *recorder) record(ctx context.Context, reqs []specRequest, keyed []sessi
 // resolve returns the wire value for a spec parameter value. A reference
 // resolves through the answers recorded so far and lands in the resolution
 // map; any other value is returned as written.
-func (r *recorder) resolve(value string) (string, error) {
+func (r *recorder) resolve(ctx context.Context, value string) (string, error) {
 	if !slices.ContainsFunc(refKinds, func(k string) bool { return strings.HasPrefix(value, k) }) {
 		return value, nil
 	}
 	if id, ok := r.resolved[value]; ok {
 		return id, nil
 	}
-	id, err := r.lookup(value)
+	var id string
+	var err error
+	if name, ok := strings.CutPrefix(value, "collection:"); ok {
+		id, err = r.collectionFolder(ctx, name)
+	} else {
+		id, err = r.lookup(value)
+	}
 	if err != nil {
 		return "", fmt.Errorf("reference %q: %w", value, err)
 	}
 	r.resolved[value] = id
 	return id, nil
+}
+
+// collectionFolder returns the id of the music folder whose filtered
+// getArtists lists exactly the artists of the named collection. It asks the
+// oracle itself, since a folder's id and name are the oracle's to choose and
+// the spec's order says nothing about them.
+func (r *recorder) collectionFolder(ctx context.Context, name string) (string, error) {
+	want, ok := r.collectionArtists[name]
+	if !ok {
+		return "", fmt.Errorf("%w: no --collection names %q", errBadRef, name)
+	}
+	if r.folders == nil {
+		var err error
+		if r.folders, err = r.listFolders(ctx); err != nil {
+			return "", err
+		}
+	}
+	var ids []string
+	for _, f := range r.folders {
+		if slices.Equal(f.artists, want) {
+			ids = append(ids, f.id)
+		}
+	}
+	return one("collection:"+name, ids, errNoFolder)
+}
+
+// listFolders asks the oracle for its music folders and, for each, the
+// artists a getArtists filtered by it lists.
+func (r *recorder) listFolders(ctx context.Context) ([]musicFolder, error) {
+	var listed struct {
+		Response struct {
+			MusicFolders struct {
+				MusicFolder []struct {
+					ID jsontext.Value `json:"id"`
+				} `json:"musicFolder"`
+			} `json:"musicFolders"`
+		} `json:"subsonic-response"`
+	}
+	if err := r.probe(ctx, "getMusicFolders", nil, &listed); err != nil {
+		return nil, err
+	}
+	var folders []musicFolder
+	for _, f := range listed.Response.MusicFolders.MusicFolder {
+		id := strings.Trim(string(f.ID), `"`)
+		var body wireBody
+		if err := r.probe(ctx, "getArtists", url.Values{"musicFolderId": {id}}, &body); err != nil {
+			return nil, err
+		}
+		var names []string
+		for _, ix := range body.Response.Artists.Index {
+			for _, a := range ix.Artist {
+				names = append(names, a.Name)
+			}
+		}
+		slices.Sort(names)
+		folders = append(folders, musicFolder{id: id, artists: slices.Compact(names)})
+	}
+	return folders, nil
+}
+
+// probe issues a request the session does not record and decodes its JSON
+// answer into into.
+func (r *recorder) probe(ctx context.Context, endpoint string, q url.Values, into any) error {
+	resp, err := r.oracle.client.Do(ctx, endpoint, q, client.JSON)
+	if err != nil {
+		return fmt.Errorf("probe %s: %w", endpoint, err)
+	}
+	if err := json.Unmarshal(resp.Body, into); err != nil {
+		return fmt.Errorf("probe %s: decode answer: %w", endpoint, err)
+	}
+	return nil
 }
 
 // lookup walks the recorded answers from the reference's outermost entity
@@ -337,7 +453,7 @@ func (r *recorder) lookup(ref string) (string, error) {
 				all = append(all, ix.Artist...)
 			}
 			return all
-		}, rest, func(c wireRef) string { return c.Name }))
+		}, rest, func(c wireRef) string { return c.Name }), errUnreachable)
 	case "album":
 		artist, title, ok := strings.Cut(rest, "/")
 		if !ok {
@@ -349,7 +465,7 @@ func (r *recorder) lookup(ref string) (string, error) {
 		}
 		return one(ref, r.children("getArtist", parent, func(b wireBody) []wireRef {
 			return b.Response.Artist.Album
-		}, title, func(c wireRef) string { return c.Name }))
+		}, title, func(c wireRef) string { return c.Name }), errUnreachable)
 	case "song":
 		parts := strings.SplitN(rest, "/", 3)
 		if len(parts) != 3 {
@@ -361,7 +477,7 @@ func (r *recorder) lookup(ref string) (string, error) {
 		}
 		return one(ref, r.children("getAlbum", parent, func(b wireBody) []wireRef {
 			return b.Response.Album.Song
-		}, parts[2], func(c wireRef) string { return c.Title }))
+		}, parts[2], func(c wireRef) string { return c.Title }), errUnreachable)
 	case "folder":
 		segments := strings.Split(rest, "/")
 		id, err := one(ref, r.children("getIndexes", "", func(b wireBody) []wireRef {
@@ -370,14 +486,14 @@ func (r *recorder) lookup(ref string) (string, error) {
 				all = append(all, ix.Artist...)
 			}
 			return all
-		}, segments[0], func(c wireRef) string { return c.Name }))
+		}, segments[0], func(c wireRef) string { return c.Name }), errUnreachable)
 		if err != nil {
 			return "", err
 		}
 		for _, seg := range segments[1:] {
 			id, err = one(ref, r.children("getMusicDirectory", id, func(b wireBody) []wireRef {
 				return slices.DeleteFunc(slices.Clone(b.Response.Directory.Child), func(c wireRef) bool { return !c.IsDir })
-			}, seg, func(c wireRef) string { return c.Title }))
+			}, seg, func(c wireRef) string { return c.Title }), errUnreachable)
 			if err != nil {
 				return "", err
 			}
@@ -405,10 +521,11 @@ func (r *recorder) children(endpoint, parent string, list func(wireBody) []wireR
 	return ids
 }
 
-func one(ref string, ids []string) (string, error) {
+// one returns the single id of ids; no id is the error none.
+func one(ref string, ids []string, none error) (string, error) {
 	switch len(ids) {
 	case 0:
-		return "", fmt.Errorf("%w: %s", errUnreachable, ref)
+		return "", fmt.Errorf("%w: %s", none, ref)
 	case 1:
 		return ids[0], nil
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -23,6 +24,10 @@ import (
 // fixture libraries, whose answers cannot be compared.
 var errLibraryMismatch = errors.New("sources served different libraries")
 
+// errCollectionMismatch marks a session recorded over other collections
+// than the grader was given.
+var errCollectionMismatch = errors.New("session was recorded over other collections")
+
 // envelopePath is where a contract finding about a whole body sits: a
 // body with no route, an undeclared status, or nothing to validate has no
 // narrower place, and the envelope member is one every row can name.
@@ -35,12 +40,23 @@ type Config struct {
 	Ledger, Sessions string
 	// OpenAPI is the directory holding the pinned OpenAPI document.
 	OpenAPI string
-	// Manifest is the fixture manifest every graded session was served
-	// from.
+	// Manifest is the fixture manifest the assignment is checked against.
+	// It is also the one collection a session was served from when
+	// Collections is empty.
 	Manifest string
+	// Collections is the ordered list of collections a graded session was
+	// served from, with the names the recording gave them. The grader's
+	// library is their union in list order.
+	Collections []Collection
 	// Assignment is the oracle assignment, which decides the oracle
 	// tier's requests whenever a graded source is dubplate.
 	Assignment string
+}
+
+// Collection is one library a session was served from: the name the
+// recording gave it and the manifest it builds from.
+type Collection struct {
+	Name, Manifest string
 }
 
 // Grader grades recorded sessions against one ledger, one OpenAPI
@@ -50,6 +66,11 @@ type Grader struct {
 	contract *contract
 	lib      *library
 	assign   *assignment
+	// digest is the combined library digest of the collections, which
+	// every graded session must carry.
+	digest string
+	// collections names the collections digest covers, for refusals.
+	collections []string
 }
 
 // New loads everything cfg names. The OpenAPI document must match the
@@ -63,15 +84,53 @@ func New(cfg Config) (*Grader, error) {
 	if err != nil {
 		return nil, err
 	}
-	lib, err := fixture.Load(cfg.Manifest)
+	seed, err := fixture.Load(cfg.Manifest)
 	if err != nil {
 		return nil, err
 	}
-	a, err := loadAssignment(cfg.Assignment, lib.Tracks())
+	a, err := loadAssignment(cfg.Assignment, seed.Tracks())
 	if err != nil {
 		return nil, err
 	}
-	return &Grader{ledger: l, contract: c, lib: newLibrary(lib.Tracks()), assign: a}, nil
+	cols := cfg.Collections
+	if len(cols) == 0 {
+		cols = []Collection{{Name: "music", Manifest: cfg.Manifest}}
+	}
+	tracks, digest, err := buildCollections(cols)
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(cols))
+	for i, c := range cols {
+		names[i] = c.Name
+	}
+	return &Grader{ledger: l, contract: c, lib: newLibrary(tracks), assign: a, digest: digest, collections: names}, nil
+}
+
+// buildCollections returns the tracks of cols in list order and the digest
+// of the whole list. Build is the only source of a library digest, so each
+// collection is built into a directory that is removed before it returns.
+func buildCollections(cols []Collection) ([]fixture.Track, string, error) {
+	root, err := os.MkdirTemp("", "dubplate-grade-")
+	if err != nil {
+		return nil, "", fmt.Errorf("create build directory: %w", err)
+	}
+	defer func() { _ = os.RemoveAll(root) }()
+	var tracks []fixture.Track
+	digests := make([]fixture.NamedDigest, len(cols))
+	for i, c := range cols {
+		lib, err := fixture.Load(c.Manifest)
+		if err != nil {
+			return nil, "", fmt.Errorf("collection %q: %w", c.Name, err)
+		}
+		digest, err := lib.Build(filepath.Join(root, strconv.Itoa(i)))
+		if err != nil {
+			return nil, "", fmt.Errorf("collection %q: %w", c.Name, err)
+		}
+		tracks = append(tracks, lib.Tracks()...)
+		digests[i] = fixture.NamedDigest{Name: c.Name, Digest: digest}
+	}
+	return tracks, fixture.CombineDigests(digests), nil
 }
 
 // Report is one graded session: every finding, sorted, and the ledger
@@ -123,7 +182,9 @@ func (r *Report) Unledgered() int {
 // assignment.
 //
 // Grade refuses, with no Report, a source the session lacks, two sources
-// recorded over different libraries, naming both digests, and a ledger
+// recorded over different libraries, naming both digests, a session
+// recorded over other collections than the grader's, naming the session's
+// digest and the collections', and a ledger
 // row adjudicated against another oracle version ([ErrVersionMismatch]).
 // It also refuses when the XML contract tier fails, wrapping
 // [xmlrule.ErrToolFailure], since a report without the tier would pass
@@ -151,6 +212,10 @@ func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report
 	left, right := s.Sources[pair[0]].LibraryDigest, s.Sources[pair[1]].LibraryDigest
 	if left != right {
 		return nil, fmt.Errorf("%w: %s %s, %s %s", errLibraryMismatch, pair[0], left, pair[1], right)
+	}
+	if left != g.digest {
+		return nil, fmt.Errorf("%w: session %s carries library digest %s, collections %q combine to %s",
+			errCollectionMismatch, name, left, g.collections, g.digest)
 	}
 	var scopes []Row
 	for _, r := range g.ledger.Rows {

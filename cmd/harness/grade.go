@@ -21,6 +21,7 @@ var errUnledgered = errors.New("unledgered findings")
 // between two of its sources and writes the report.
 func newGradeCmd() *cobra.Command {
 	var sessionDir, pair, out, ledger string
+	var collectionFlags []string
 
 	cmd := &cobra.Command{
 		Use:           "grade",
@@ -37,12 +38,19 @@ func newGradeCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			cols, err := parseCollections(collectionFlags)
+			if err != nil {
+				return err
+			}
 			cfg := grade.Config{
 				Ledger:     cmp.Or(ledger, p.ledger),
 				Sessions:   p.sessions,
 				OpenAPI:    p.openAPI,
 				Manifest:   p.manifest,
 				Assignment: p.assignment,
+			}
+			for _, c := range cols {
+				cfg.Collections = append(cfg.Collections, grade.Collection{Name: c.name, Manifest: c.manifest})
 			}
 			g, err := grade.New(cfg)
 			if err != nil {
@@ -55,6 +63,7 @@ func newGradeCmd() *cobra.Command {
 	cmd.Flags().StringVar(&pair, "pair", "", "the two sources to compare, comma-separated")
 	cmd.Flags().StringVar(&out, "out", "", "file to write the report to")
 	cmd.Flags().StringVar(&ledger, "ledger", "", "divergence ledger (default: the committed one)")
+	cmd.Flags().StringArrayVar(&collectionFlags, "collection", nil, "collection the session was recorded over, as name=manifest; repeat for several (default: the committed manifest)")
 	return cmd
 }
 

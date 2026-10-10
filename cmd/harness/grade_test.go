@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json/v2"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -234,5 +235,41 @@ func TestDefaultSubsonicPathsNameCommittedFiles(t *testing.T) {
 	})
 	if err != nil {
 		t.Errorf("grade.New over the default paths: %v", err)
+	}
+}
+
+// TestGradeCmdTakesTheSessionsCollections runs the grade command over the
+// seed session with collection flags: the committed manifest by default and
+// by name, and two other collections, which the session was not recorded
+// over.
+func TestGradeCmdTakesTheSessionsCollections(t *testing.T) {
+	seed := subsonicData + "/data/fixture/manifest.json"
+	tests := []struct {
+		name    string
+		flags   []string
+		wantErr string
+	}{
+		{"default is the seed", nil, "unledgered findings"},
+		{"the seed by name", []string{"--collection", "music=" + seed}, "unledgered findings"},
+		{"two other collections", []string{
+			"--collection", "first=" + subsonicData + "/data/fixture/collection-a.json",
+			"--collection", "second=" + subsonicData + "/data/fixture/collection-b.json",
+		}, "recorded over other collections"},
+		{"a flag without a manifest", []string{"--collection", "first"}, "want name=manifest"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newGradeCmd()
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(append([]string{
+				"--session", subsonicData + "/data/sessions/seed", "--pair", "navidrome,gonic",
+				"--out", filepath.Join(t.TempDir(), "report.txt"),
+			}, tc.flags...))
+			err := cmd.ExecuteContext(t.Context())
+			if err == nil || !strings.Contains(err.Error(), tc.wantErr) {
+				t.Fatalf("error = %v, want one naming %q", err, tc.wantErr)
+			}
+		})
 	}
 }
