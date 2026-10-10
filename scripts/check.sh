@@ -58,11 +58,15 @@ set -euo pipefail
 #                             can see it. It runs before the work leaves
 #                             the branch.
 #
-# The scope is always derived here, from git, and never taken from an
-# argument: a caller's idea of which files a task touched is a
-# prediction made before the work was written, and the working tree is
-# the fact. Each form prints one line naming the scope in force and the
-# files or packages it covers, so a transcript shows what was skipped.
+# The scope is always derived here, from git. A caller never names
+# files, because its idea of which files a task touched is a prediction
+# made before the work was written and the working tree is the fact; it
+# may name only the base commit (--base), validated below, which is a
+# fact the runner recorded. A path the class table cannot place, a
+# gate-machinery path, an invalid base, and an empty change set each
+# promote the run to the full form. Each form prints one line naming
+# the scope in force and the files or packages it covers, so a
+# transcript shows what was skipped; --dry-run prints it and stops.
 #
 # Two legs are staged gates, not optional ones. Each runs on every full
 # invocation, prints its finding count and its first twenty sites, and
@@ -85,22 +89,40 @@ cd "$REPO_ROOT"
 
 usage() {
   cat >&2 <<'EOF'
-usage: check.sh [--scope-changed | --reduced | --merge]
+usage: check.sh [--scope-changed | --reduced | --merge] [--base <sha>] [--dry-run]
 
   (no flag)       full gate over the whole tree
   --scope-changed full leg list, gitleaks and the conform suite scoped to
                   the change set git derives
   --reduced       comment-only and docs-only gate over the change set
   --merge         full gate plus a gitleaks scan of master..HEAD
+  --base <sha>    with --scope-changed or --reduced: the full commit id the
+                  change set is measured from; any other value runs the full
+                  form
+  --dry-run       derive the scope, print the scope line, run no leg
 EOF
 }
 
 mode=full
+base_set=0
+base_arg=""
+dry_run=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --scope-changed) mode=scope-changed ;;
   --reduced) mode=reduced ;;
   --merge) mode=merge ;;
+  --base)
+    if [ "$#" -lt 2 ]; then
+      echo "check.sh: --base needs a commit id." >&2
+      usage
+      exit 2
+    fi
+    base_set=1
+    base_arg="$2"
+    shift
+    ;;
+  --dry-run) dry_run=1 ;;
   -h | --help)
     usage
     exit 0
@@ -114,6 +136,12 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+if [ "$base_set" -eq 1 ] && [ "$mode" != "scope-changed" ] && [ "$mode" != "reduced" ]; then
+  echo "check.sh: --base applies to --scope-changed and --reduced only." >&2
+  usage
+  exit 2
+fi
+
 # A gate lock: only one check.sh runs per tree at a time. `make
 # tidy-check` runs `go mod tidy` before `git diff --exit-code`, and
 # that first half mutates go.mod and go.sum, so two concurrent gate
@@ -123,11 +151,14 @@ done
 # other tree. The non-blocking attempt comes first only so the waiting
 # line prints once, under contention; the second flock then blocks
 # until the holder finishes.
-lock_file="$(git rev-parse --git-dir)/check.sh.lock"
-exec 9>"$lock_file"
-if ! flock -n 9; then
-  echo "check.sh: another check.sh run holds this tree's gate lock; waiting..." >&2
-  flock 9
+# A dry run runs no leg and mutates nothing, so it takes no lock.
+if [ "$dry_run" -eq 0 ]; then
+  lock_file="$(git rev-parse --git-dir)/check.sh.lock"
+  exec 9>"$lock_file"
+  if ! flock -n 9; then
+    echo "check.sh: another check.sh run holds this tree's gate lock; waiting..." >&2
+    flock 9
+  fi
 fi
 
 work_dir="$(mktemp -d)"
@@ -162,34 +193,184 @@ fi
 
 # ---------------------------------------------------------------- scope
 
-# The change set the scoped forms work from. The base is the merge base
-# with master on a branch, and HEAD~1 on master itself, so a run on
-# master still has a change set rather than an empty one. `git diff
-# --name-only <base>` compares the base against the working tree, which
-# covers staged and unstaged edits alike; untracked-but-not-ignored
-# files come from `git status --porcelain`, because a brand-new file is
-# invisible to git diff until it is staged and is exactly the file a
-# gate must not miss. -uall is load-bearing there: the default porcelain
-# output collapses an untracked directory to one entry ending in a
-# slash, and every file inside it would go unscanned.
+# The change set the scoped forms work from. Git derives every file;
+# the caller may supply only the base commit, which is a fact the runner
+# records before the first edit, unlike a file list, which is a
+# prediction. A supplied base is used only when it is a full commit id
+# in the repo's object format, rev-parse resolves it to that same
+# string, and it is an ancestor of HEAD. Anything else (an abbreviation,
+# a ref name, a missing object, a non-ancestor, shell metacharacters)
+# promotes the run to the full form. A later commit passed by mistake
+# would narrow the scope, but every boundary, merge, and close runs the
+# full form. Without --base the base is the merge base with master on a
+# branch, and HEAD~1 on master itself, so a run on master still has a
+# change set rather than an empty one. `git diff --name-only <base>`
+# compares the base against the working tree, which covers staged and
+# unstaged edits alike; untracked-but-not-ignored files come from `git
+# status --porcelain`, because a brand-new file is invisible to git diff
+# until it is staged and is exactly the file a gate must not miss. -uall
+# is load-bearing there: the default porcelain output collapses an
+# untracked directory to one entry ending in a slash, and every file
+# inside it would go unscanned. An empty change set also promotes the
+# run to the full form, since it proves nothing was checked.
 changed_files=()
 change_base=""
-derive_change_set() {
-  local branch
-  branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD)"
-  if [ "$branch" = "master" ]; then
-    change_base="$(git rev-parse --verify --quiet HEAD~1 || true)"
-  else
-    change_base="$(git merge-base master HEAD 2>/dev/null || true)"
-  fi
-  if [ -z "$change_base" ]; then
+change_source=""
+fallback_reason=""
+resolve_supplied_base() {
+  local fmt len resolved re
+  fmt="$(git rev-parse --show-object-format 2>/dev/null || true)"
+  case "$fmt" in
+  sha1) len=40 ;;
+  sha256) len=64 ;;
+  *)
+    fallback_reason="unknown object format '$fmt'"
+    return 1
+    ;;
+  esac
+  re="^[0-9a-f]{${len}}\$"
+  if ! [[ $base_arg =~ $re ]]; then
+    fallback_reason="--base '$base_arg' is not a full $len-hex commit id"
     return 1
   fi
-  {
+  resolved="$(git rev-parse --verify --quiet "${base_arg}^{commit}" 2>/dev/null || true)"
+  if [ "$resolved" != "$base_arg" ]; then
+    fallback_reason="--base $base_arg does not resolve to that commit"
+    return 1
+  fi
+  if ! git merge-base --is-ancestor "$base_arg" HEAD 2>/dev/null; then
+    fallback_reason="--base $base_arg is not an ancestor of HEAD"
+    return 1
+  fi
+  change_base="$base_arg"
+  change_source=caller
+}
+
+derive_change_set() {
+  local branch
+  if [ "$base_set" -eq 1 ]; then
+    resolve_supplied_base || return 1
+  else
+    branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD)"
+    if [ "$branch" = "master" ]; then
+      change_base="$(git rev-parse --verify --quiet HEAD~1 || true)"
+      change_source=HEAD~1
+    else
+      change_base="$(git merge-base master HEAD 2>/dev/null || true)"
+      change_source=merge-base
+    fi
+    if [ -z "$change_base" ]; then
+      fallback_reason="no merge base with master and no HEAD~1"
+      return 1
+    fi
+  fi
+  if ! {
     git diff --name-only "$change_base"
     git status --porcelain -uall | sed -n 's/^?? //p'
-  } | sed 's:/$::' | sort -u >"$work_dir/changed.txt"
+  } | sed 's:/$::' | sort -u >"$work_dir/changed.txt"; then
+    fallback_reason="git could not list the change set"
+    return 1
+  fi
   mapfile -t changed_files <"$work_dir/changed.txt"
+  if [ "${#changed_files[@]}" -eq 0 ]; then
+    fallback_reason="the change set is empty"
+    return 1
+  fi
+}
+
+# The class table. Every changed path gets one class, rows matched in
+# order; a path the table cannot place is unmatched. Gate machinery and
+# unmatched promote the run to the full form in both scoped forms, so an
+# unclassifiable case runs more, never less. The Go package class is the
+# nearest enclosing directory that `go list ./...` names, for any file
+# (testdata, embeds and .py included); a path whose own directory is gone
+# maps to its nearest existing ancestor package.
+declare -A go_pkg_dirs=()
+load_go_pkg_dirs() {
+  local root dir
+  root="$(go list -m -f '{{.Dir}}')" || return 1
+  while IFS= read -r dir; do
+    if [ "$dir" = "$root" ]; then
+      go_pkg_dirs["."]=1
+    else
+      go_pkg_dirs["${dir#"$root"/}"]=1
+    fi
+  done < <(go list -f '{{.Dir}}' ./...) || return 1
+  [ "${#go_pkg_dirs[@]}" -gt 0 ]
+}
+
+classify_path() {
+  local p="$1" dir
+  case "$p" in
+  scripts/check.sh | scripts/check-state-dir.sh | scripts/vale-comments.sh | \
+    scripts/checks/* | Makefile | .golangci.yml | .gitleaks.toml | \
+    .gitleaksignore | .gitignore | .vale.ini | .vale/* | ruff.toml | \
+    go.mod | go.sum | web/package.json | web/package-lock.json | \
+    web/scripts/gates/* | web/scripts/rendered/* | tools/photos/*)
+    echo machinery
+    return
+    ;;
+  web/*)
+    echo web
+    return
+    ;;
+  esac
+  dir="$(dirname "$p")"
+  while :; do
+    if [ -n "${go_pkg_dirs[$dir]+x}" ]; then
+      echo gopkg
+      return
+    fi
+    [ "$dir" = "." ] && break
+    dir="$(dirname "$dir")"
+  done
+  case "$p" in
+  corpus/*) echo corpus ;;
+  photos/*) echo photos ;;
+  systemd/* | cloud-init/* | env/* | scripts/deploy.sh | scripts/provision.sh | \
+    scripts/firewall-rules.json)
+    echo ops
+    ;;
+  tools/unidecode-table/*) echo pytool ;;
+  docs/* | .claude/* | _salvage/* | tools/venv/* | README.md | ROADMAP.md | \
+    IDEAS.md | BACKLOG.md | CLAUDE.md | LICENSE)
+    echo noeffect
+    ;;
+  *) echo unmatched ;;
+  esac
+}
+
+# Promotes the run to the full form when any changed path lands in a
+# class that forces it: gate machinery and unmatched in both scoped
+# forms, and in the reduced form also everything but a Go source file,
+# Web, Photos and No effect.
+classify_change_set() {
+  local f class
+  if ! load_go_pkg_dirs; then
+    fallback_reason="go list could not name the module's packages"
+    return 1
+  fi
+  for f in "${changed_files[@]}"; do
+    class="$(classify_path "$f")"
+    case "$class" in
+    machinery | unmatched)
+      fallback_reason="$f is $class"
+      return 1
+      ;;
+    gopkg)
+      if [ "$mode" = "reduced" ] && [ "${f%.go}" = "$f" ]; then
+        fallback_reason="$f is a non-Go file in a Go package, outside the reduced form"
+        return 1
+      fi
+      ;;
+    corpus | ops | pytool)
+      if [ "$mode" = "reduced" ]; then
+        fallback_reason="$f is $class, outside the reduced form"
+        return 1
+      fi
+      ;;
+    esac
+  done
 }
 
 # The Go packages the change set touches: the directory of every changed
@@ -262,7 +443,7 @@ if [ "$mode" = "reduced" ]; then
   scope_rendered=skipped
 fi
 if [ "$mode" = "scope-changed" ] || [ "$mode" = "reduced" ]; then
-  if derive_change_set; then
+  if derive_change_set && classify_change_set; then
     derive_changed_packages
     derive_conform_affected
     derive_rendered_affected
@@ -276,24 +457,33 @@ if [ "$mode" = "scope-changed" ] || [ "$mode" = "reduced" ]; then
       fi
     fi
   else
-    echo "check.sh: no merge base with master and no HEAD~1; falling back to the full scope." >&2
+    mode=full
+    scope_rendered=full
   fi
 fi
 
 case "$mode" in
 full)
-  echo "check.sh: scope=full; every leg over the whole tree."
+  if [ -n "$fallback_reason" ]; then
+    echo "check.sh: scope=full fallback=\"$fallback_reason\" base=${change_base:-none} source=${change_source:-none}; every leg over the whole tree."
+  else
+    echo "check.sh: scope=full; every leg over the whole tree."
+  fi
   ;;
 merge)
   echo "check.sh: scope=full+history; every leg over the whole tree, plus gitleaks over master..HEAD."
   ;;
 scope-changed)
-  echo "check.sh: scope=changed base=${change_base:-none} conform=$scope_conform rendered=$scope_rendered gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=changed base=$change_base source=$change_source conform=$scope_conform rendered=$scope_rendered gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 reduced)
-  echo "check.sh: scope=reduced base=${change_base:-none} rendered=skipped packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=reduced base=$change_base source=$change_source rendered=skipped packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 esac
+
+if [ "$dry_run" -eq 1 ]; then
+  exit 0
+fi
 
 # ------------------------------------------------------------------ legs
 

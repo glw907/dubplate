@@ -253,6 +253,40 @@ None.
 
 ## Record (filled during execution)
 
+### Task 1
+
+Method: scratch worktree per proof (detached at HEAD 2af4404, removed after), the clean or mutated `check.sh` committed
+below the base, the base `B` taken from that commit, then the planted change after it. Every run is
+`bash scripts/check.sh --scope-changed --dry-run --base $B`; the shellcheck run on `check.sh` is clean.
+
+- **P1, invalid base.** Planted: `docs/probe.md` edit. Scope lines under the code, one per input:
+  `fallback="--base 'da067dad2857' is not a full 40-hex commit id"`, `fallback="--base 'HEAD~1' is not a full 40-hex
+  commit id"`, `fallback="--base deadbeef... does not resolve to that commit"`, `fallback="--base 'abc;true' is not a
+  full 40-hex commit id"`. Red (shape and resolve checks skipped): abbreviated SHA gives `scope=changed
+  base=ba7a61c7aaf6 source=caller conform=skipped rendered=skipped gitleaks=changed files=1: docs/probe.md`. The other
+  three still fall back under that mutation (`HEAD~1` through `scripts/check.sh is machinery`, because the mutated
+  file sits in `HEAD~1..tree`; the missing SHA and `abc;true` through the ancestry check), so only the abbreviation
+  shows the red.
+- **P2, non-ancestor.** Planted: a side commit (`docs/side.md`) on the below-base commit, then `docs/probe.md`. Scope
+  line: `fallback="--base 4d89... is not an ancestor of HEAD"`. Red (ancestry check dropped): `scope=changed
+  base=9fab3d61... source=caller ... files=2: docs/probe.md docs/side.md`.
+- **P3, empty change set.** Planted: nothing, `--base` the below-base HEAD. Scope line: `fallback="the change set is
+  empty" base=c87fa5c1... source=caller`. Red (empty rule dropped): `scope=changed base=69335ba7... conform=skipped
+  rendered=skipped gitleaks=changed files=0:`.
+- **P4, `go.mod`.** Planted: one `// probe` line in `go.mod`, committed after the base. Scope line: `fallback="go.mod is
+  machinery"`. Red under the named mutation (drop `go.mod` from the machinery list) did NOT fire: `fallback="go.mod is
+  unmatched"`, because the root directory is no Go package and the unmatched promotion catches it. Red under the
+  stronger mutation (drop it and list it as no-effect): `scope=changed base=0f563547... files=1: go.mod`.
+- **P5, `check.sh`.** Planted: a `# probe` line in `scripts/check.sh`, committed after the base. Scope line:
+  `fallback="scripts/check.sh is machinery"`. The named mutation did NOT fire: `fallback="scripts/check.sh is
+  unmatched"`. Red under the stronger mutation (also listed as no-effect): `scope=changed base=9be1f576... files=1:
+  scripts/check.sh`.
+- **P6, unmatched path.** Planted: untracked top-level `probe.cfg`. Scope line: `fallback="probe.cfg is unmatched"`.
+  Red (unmatched classified as no-effect): `scope=changed base=4da6101e... files=1: probe.cfg`.
+
+Finding: the machinery list is defense in depth with the unmatched promotion for `go.mod` and `scripts/check.sh`
+(neither lies in a Go package, so the named P4 and P5 mutations cannot fire alone).
+
 ## Review
 
 One lens, mechanics and proportionality, applied in a fresh reread on 2026-10-10. Each finding was verified by a
