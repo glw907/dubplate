@@ -641,10 +641,11 @@ func scopeSession(t *testing.T) string {
 }
 
 // TestGradeKeepsScopedPairsInScope grades the scope session with and
-// without a by-construction row over the folder view. Without the row,
-// the folder's id pairing collides with the artist's and the artist
-// answer reports it; with the row, the folder's pairs stay inside the
-// row's scope and the artist answer reports no identity finding.
+// without a subtree row over the folder view, once per subtree class.
+// Without the row, the folder's id pairing collides with the artist's and
+// the artist answer reports it; with the row, the folder's pairs stay
+// inside the row's scope and the artist answer reports no identity
+// finding.
 func TestGradeKeepsScopedPairsInScope(t *testing.T) {
 	dir := scopeSession(t)
 	artist := "getArtist.json&id=artist%3AAlpha+Artist"
@@ -670,29 +671,33 @@ func TestGradeKeepsScopedPairsInScope(t *testing.T) {
 		t.Fatal("without a scope the folder and artist pairs do not collide; the fixture proves nothing")
 	}
 
-	row := Row{
-		ID: "folder-view", Area: "getMusicDirectory", Class: ClassByConstruction, Sources: []string{"navidrome", "gonic"},
-		Oracle: "o", Dubplate: "d", Evidence: "e", State: StateActive,
-		Pattern: Pattern{Endpoint: "getMusicDirectory", Format: "any", Path: "subsonic-response/directory"},
-		Session: "scope", Versions: map[string]string{"navidrome": navidromeVersion, "gonic": gonicVersion},
-	}
-	ledger, _ := writeLedger(t, []Row{row})
-	cfg := seedConfig(ledger)
-	cfg.Sessions = filepath.Dir(dir)
-	g, err = New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	r, err = g.Grade(context.Background(), dir, pairNG)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := identities(r, artist); len(got) != 0 {
-		t.Errorf("a folder pair leaked into the artist answer: %+v", got)
-	}
-	inScope := identities(r, "getMusicDirectory.json&id=folder%3AAlpha+Artist")
-	if len(inScope) == 0 {
-		t.Error("the collision is not reported inside the folder view's scope")
+	for _, class := range []Class{ClassByConstruction, ClassUnoracled} {
+		t.Run(string(class), func(t *testing.T) {
+			row := Row{
+				ID: "folder-view", Area: "getMusicDirectory", Class: class, Sources: []string{"navidrome", "gonic"},
+				Oracle: "o", Dubplate: "d", Evidence: "e", State: StateActive,
+				Pattern: Pattern{Endpoint: "getMusicDirectory", Format: "any", Path: "subsonic-response/directory"},
+				Session: "scope", Versions: map[string]string{"navidrome": navidromeVersion, "gonic": gonicVersion},
+			}
+			ledger, _ := writeLedger(t, []Row{row})
+			cfg := seedConfig(ledger)
+			cfg.Sessions = filepath.Dir(dir)
+			g, err := New(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, err := g.Grade(context.Background(), dir, pairNG)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := identities(r, artist); len(got) != 0 {
+				t.Errorf("a folder pair leaked into the artist answer: %+v", got)
+			}
+			inScope := identities(r, "getMusicDirectory.json&id=folder%3AAlpha+Artist")
+			if len(inScope) == 0 {
+				t.Error("the collision is not reported inside the folder view's scope")
+			}
+		})
 	}
 }
 

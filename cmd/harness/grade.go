@@ -43,14 +43,12 @@ func newGradeCmd() *cobra.Command {
 				return err
 			}
 			cfg := grade.Config{
-				Ledger:     cmp.Or(ledger, p.ledger),
-				Sessions:   p.sessions,
-				OpenAPI:    p.openAPI,
-				Manifest:   p.manifest,
-				Assignment: p.assignment,
-			}
-			for _, c := range cols {
-				cfg.Collections = append(cfg.Collections, grade.Collection{Name: c.name, Manifest: c.manifest})
+				Ledger:      cmp.Or(ledger, p.ledger),
+				Sessions:    p.sessions,
+				OpenAPI:     p.openAPI,
+				Manifest:    p.manifest,
+				Collections: cols,
+				Assignment:  p.assignment,
 			}
 			g, err := grade.New(cfg)
 			if err != nil {

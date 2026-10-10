@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
 )
 
@@ -25,17 +26,17 @@ func TestGradeRefusesASessionRecordedOverOtherCollections(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		collections []Collection
+		collections []fixture.Collection
 		combined    string // the digest the refusal must name beside the recorded one
 	}{
 		{
 			name:        "two collections",
-			collections: []Collection{{"first", collectionA}, {"second", collectionB}},
+			collections: []fixture.Collection{{Name: "first", Manifest: collectionA}, {Name: "second", Manifest: collectionB}},
 			combined:    "7e342ed0efcdacc17d1653d0a5f265b6e13062e07f9f4b3eec631a6f929ca433",
 		},
 		{
 			name:        "another single collection",
-			collections: []Collection{{"first", collectionA}},
+			collections: []fixture.Collection{{Name: "first", Manifest: collectionA}},
 		},
 	}
 	for _, tc := range tests {

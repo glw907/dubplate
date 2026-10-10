@@ -37,7 +37,7 @@ func testLibrary(t *testing.T) *library {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return newLibrary(lib.Tracks())
+	return newLibrary(lib.Tracks(), []string{fixture.DefaultCollectionName})
 }
 
 // diffBodies runs the oracle tier alone over one getAlbum request whose
@@ -438,7 +438,7 @@ func TestDifferPerturbations(t *testing.T) {
 			}
 			lib := testLibrary(t)
 			if tt.empty {
-				lib = newLibrary(nil)
+				lib = newLibrary(nil, nil)
 			}
 			recorded := left
 			if tt.left != nil {

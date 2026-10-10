@@ -52,7 +52,7 @@ func spaceOf(member string) idSpace {
 }
 
 type tableKey struct {
-	scope string // the by-construction row id, or "" for the session-wide table
+	scope string // the subtree row id, or "" for the session-wide table
 	space idSpace
 }
 
@@ -63,7 +63,7 @@ type idTable struct {
 }
 
 // pairing holds every id pair the grader has learned. A pair learned
-// inside a by-construction row's scope is filed under that row and is
+// inside a subtree row's scope is filed under that row and is
 // visible only to comparisons inside the same scope.
 type pairing struct {
 	tables   map[tableKey]*idTable
@@ -131,7 +131,7 @@ func (p *pairing) once(key string) bool {
 type differ struct {
 	lib     *library
 	ids     *pairing
-	scopes  []Row // the by-construction rows applied to the graded pair
+	scopes  []Row // the subtree rows applied to the graded pair
 	learn   bool
 	request string
 	endpt   string

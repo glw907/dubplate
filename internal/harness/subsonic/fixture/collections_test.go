@@ -115,32 +115,80 @@ func TestCollectionManifestsShape(t *testing.T) {
 }
 
 func TestCombineDigests(t *testing.T) {
-	a := NamedDigest{"first", strings.Repeat("a", 64)}
-	b := NamedDigest{"second", strings.Repeat("b", 64)}
-	if got := CombineDigests([]NamedDigest{a}); got != a.Digest {
-		t.Errorf("one collection digest = %s, want the library's own %s", got, a.Digest)
+	a := namedDigest{"first", strings.Repeat("a", 64)}
+	b := namedDigest{"second", strings.Repeat("b", 64)}
+	if got := combineDigests([]namedDigest{a}); got != a.digest {
+		t.Errorf("one collection digest = %s, want the library's own %s", got, a.digest)
 	}
-	both := CombineDigests([]NamedDigest{a, b})
-	if len(both) != 64 || both == a.Digest || both == b.Digest {
+	both := combineDigests([]namedDigest{a, b})
+	if len(both) != 64 || both == a.digest || both == b.digest {
 		t.Errorf("combined digest = %q, want a fresh 64-hex digest", both)
 	}
 	tests := []struct {
 		name  string
-		other []NamedDigest
+		other []namedDigest
 	}{
-		{"names swapped over the same libraries", []NamedDigest{{"second", a.Digest}, {"first", b.Digest}}},
-		{"order reversed", []NamedDigest{b, a}},
-		{"a library changed", []NamedDigest{a, {"second", strings.Repeat("c", 64)}}},
+		{"names swapped over the same libraries", []namedDigest{{"second", a.digest}, {"first", b.digest}}},
+		{"order reversed", []namedDigest{b, a}},
+		{"a library changed", []namedDigest{a, {"second", strings.Repeat("c", 64)}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := CombineDigests(tt.other); got == both {
+			if got := combineDigests(tt.other); got == both {
 				t.Errorf("digest unchanged: %s", got)
 			}
 		})
 	}
 	// Frozen so a change to the line format is a decision, not an accident.
-	if got, want := CombineDigests([]NamedDigest{a, b}), "c527b2d9b3160095209e88e3623c63b683e47fb2f7419097402966fc9d9cea4b"; got != want {
+	if got, want := combineDigests([]namedDigest{a, b}), "c527b2d9b3160095209e88e3623c63b683e47fb2f7419097402966fc9d9cea4b"; got != want {
 		t.Errorf("combined digest = %s, want %s", got, want)
+	}
+}
+
+func TestBuildCollections(t *testing.T) {
+	// The two committed collections under these names, as the
+	// music-folders session records them.
+	const twoDigest = "7e342ed0efcdacc17d1653d0a5f265b6e13062e07f9f4b3eec631a6f929ca433"
+	for _, name := range []string{DefaultCollectionName, "renamed"} {
+		one, digest, err := BuildCollections(t.TempDir(), []Collection{{name, committedManifest}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(one) != 1 || one[0].Name != name || len(one[0].Library.Tracks()) != 29 {
+			t.Errorf("%s: built %+v, want one collection of 29 tracks", name, one)
+		}
+		if digest != seedLibraryDigest {
+			t.Errorf("%s: digest = %s, want the seed library's own %s", name, digest, seedLibraryDigest)
+		}
+	}
+
+	root := t.TempDir()
+	cols := []Collection{{"first", collectionManifests[0]}, {"second", collectionManifests[1]}}
+	two, digest, err := BuildCollections(root, cols)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if digest != twoDigest {
+		t.Errorf("two collections digest = %s, want %s", digest, twoDigest)
+	}
+	if len(two) != 2 || two[0].Name != "first" || two[1].Name != "second" || two[0].Dir == two[1].Dir {
+		t.Fatalf("built %+v, want first and second in distinct directories", two)
+	}
+	for _, c := range two {
+		if !strings.HasPrefix(c.Dir, root) || len(readTree(t, c.Dir)) == 0 {
+			t.Errorf("%s: no library built under the root at %s", c.Name, c.Dir)
+		}
+	}
+	_, swapped, err := BuildCollections(t.TempDir(), []Collection{{"second", cols[0].Manifest}, {"first", cols[1].Manifest}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if swapped == digest {
+		t.Errorf("the same libraries under swapped names digest alike: %s", swapped)
+	}
+
+	_, _, err = BuildCollections(t.TempDir(), []Collection{{"gone", root + "/absent.json"}})
+	if err == nil || !strings.Contains(err.Error(), `collection "gone"`) {
+		t.Errorf("missing manifest error = %v, want one naming the collection", err)
 	}
 }

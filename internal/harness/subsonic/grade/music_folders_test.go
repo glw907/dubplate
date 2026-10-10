@@ -2,12 +2,15 @@ package grade
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json/v2"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
+	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
 )
 
@@ -21,7 +24,7 @@ const (
 // for: its two collections, under the names the recording gave them.
 func musicFoldersConfig() Config {
 	cfg := seedConfig(musicFoldersLedger)
-	cfg.Collections = []Collection{{"first", collectionA}, {"second", collectionB}}
+	cfg.Collections = []fixture.Collection{{Name: "first", Manifest: collectionA}, {Name: "second", Manifest: collectionB}}
 	return cfg
 }
 
@@ -196,5 +199,65 @@ func TestMusicFoldersGrade(t *testing.T) {
 		if r.ledger.Counts[row.ID] < 1 {
 			t.Errorf("row %s matched nothing", row.ID)
 		}
+	}
+}
+
+// TestMusicFoldersPairEachCollection grades the music-folders session under
+// an empty ledger. Each oracle lists one music folder per collection, so
+// each folder pairs with the other oracle's folder for the same collection:
+// no identity finding, and Navidrome's first library, which keeps its
+// default name, differs from gonic's only in that name.
+func TestMusicFoldersPairEachCollection(t *testing.T) {
+	cfg := emptyLedger(t)
+	cfg.Collections = musicFoldersConfig().Collections
+	g, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := g.Grade(t.Context(), musicFoldersSession, pairNG)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, request := range []string{"getMusicFolders.json", "getMusicFolders.xml"} {
+		t.Run(request, func(t *testing.T) {
+			var got []string
+			for _, f := range r.findings {
+				if f.Request == request && f.Path != "subsonic-response/version" {
+					got = append(got, string(f.Kind)+" "+f.Path+" "+strings.Join(f.Values, " | "))
+				}
+			}
+			if len(got) != 1 || !strings.HasPrefix(got[0], "value subsonic-response/musicFolders/musicFolder/0/name ") ||
+				!strings.Contains(got[0], "Music Library") || !strings.Contains(got[0], "first") {
+				t.Errorf("findings = %q, want only the first library's name differing", got)
+			}
+		})
+	}
+}
+
+func TestResolveFolder(t *testing.T) {
+	folder := &node{kind: kindObject, fields: map[string]*node{
+		"id":   {kind: kindNumber, lit: "7"},
+		"name": {kind: kindString, lit: "second"},
+	}}
+	two := []string{"first", "second"}
+	tests := []struct {
+		name        string
+		collections []string
+		folders     map[string]string
+		want        string // the key, or the problem when no key resolves
+	}{
+		{"one collection is the one library", []string{"music"}, nil, "library"},
+		{"the id resolves to its collection", two, map[string]string{"7": "first"}, "collection:first"},
+		{"the name never decides", two, nil, `no collection resolves music folder "7"`},
+		{"a collection the library lacks", two, map[string]string{"7": "third"}, `no collection resolves music folder "7"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lib := newLibrary(nil, tt.collections)
+			id := lib.resolve(entityLibrary, folder, identCtx{folders: tt.folders}, "musicFolder")
+			if got := cmp.Or(id.key, id.problem); got != tt.want {
+				t.Errorf("resolved to %q, want %q", got, tt.want)
+			}
+		})
 	}
 }

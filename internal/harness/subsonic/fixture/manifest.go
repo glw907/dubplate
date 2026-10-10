@@ -19,9 +19,6 @@ import (
 // problem found, one per line.
 var errInvalid = errors.New("fixture: invalid manifest")
 
-// DefaultCollectionName names the collection a single-manifest run serves.
-const DefaultCollectionName = "music"
-
 const (
 	// vorbisCommentBlock is the FLAC metadata block type of VORBIS_COMMENT
 	// (RFC 9639 section 8.1).

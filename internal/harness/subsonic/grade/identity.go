@@ -13,14 +13,20 @@ import (
 // library is the fixture manifest seen as the set of identities a server
 // response may name.
 type library struct {
-	artists map[string]bool
-	albums  map[string]bool // keyed by albumKey
-	dirs    map[string]bool // every directory a track path passes through
-	tracks  []fixture.Track
+	// collections names the collections the library is the union of, in
+	// list order.
+	collections []string
+	artists     map[string]bool
+	albums      map[string]bool // keyed by albumKey
+	dirs        map[string]bool // every directory a track path passes through
+	tracks      []fixture.Track
 }
 
-func newLibrary(tracks []fixture.Track) *library {
-	l := &library{artists: map[string]bool{}, albums: map[string]bool{}, dirs: map[string]bool{}, tracks: tracks}
+func newLibrary(tracks []fixture.Track, collections []string) *library {
+	l := &library{
+		collections: collections,
+		artists:     map[string]bool{}, albums: map[string]bool{}, dirs: map[string]bool{}, tracks: tracks,
+	}
 	for _, t := range tracks {
 		for _, a := range append([]string{t.AlbumArtist}, t.Artists...) {
 			if a != "" {
@@ -94,15 +100,16 @@ type identity struct {
 }
 
 // identCtx carries what an entity's identity depends on beyond its own
-// members: the request's endpoint and id parameter, and the album or
-// folder enclosing it.
+// members: the request's endpoint and id parameter, the source's music
+// folders, and the album or folder enclosing it.
 type identCtx struct {
 	endpoint string
 	param    string
-	album    string // albumKey of the enclosing album, or ""
-	albumArt string // that album's artist
-	albumNm  string // that album's title
-	folder   string // directory path of the enclosing folder, or ""
+	folders  map[string]string // the source's collection names by music folder id
+	album    string            // albumKey of the enclosing album, or ""
+	albumArt string            // that album's artist
+	albumNm  string            // that album's title
+	folder   string            // directory path of the enclosing folder, or ""
 }
 
 // describe is an entity's identity as a finding prints it.
@@ -156,10 +163,29 @@ func (l *library) resolve(kind entityKind, n *node, ctx identCtx, member string)
 		}
 		id.key = "folder:" + dir
 	case entityLibrary:
-		// The fixture is one library, so every music folder a server
-		// lists for it is that library.
-		id.key = "library"
+		return l.resolveFolder(n, ctx)
 	}
+	return id
+}
+
+// resolveFolder finds the collection a music folder stands for. A library
+// of one collection is that one library whatever the folder, which keeps
+// a single-library grade free of resolutions; otherwise the folder's id
+// must resolve to one of the library's collections. The id decides, never
+// the name, since a server may name a library its own way.
+func (l *library) resolveFolder(n *node, ctx identCtx) identity {
+	id := identity{kind: entityLibrary}
+	if len(l.collections) < 2 {
+		id.key = "library"
+		return id
+	}
+	folder := n.field("id")
+	name, ok := ctx.folders[folder]
+	if !ok || !slices.Contains(l.collections, name) {
+		id.problem = "no collection resolves music folder " + strconv.Quote(folder)
+		return id
+	}
+	id.key = "collection:" + name
 	return id
 }
 

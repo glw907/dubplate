@@ -1,10 +1,10 @@
 session music-folders: navidrome against gonic
 findings: 3964, unledgered 3925
   contract: 208
-  identity: 19
+  identity: 17
   presence: 3181
   type: 146
-  value: 410
+  value: 412
 declared unvalidated xml bodies:
 ledger rows matched:
   folder-view-getindexes: 37
@@ -2988,9 +2988,9 @@ getIndexes.json&musicFolderId=collection%3Asecond
     ledger: unledgered
 
 getMusicFolders.json
-  identity subsonic-response/musicFolders/musicFolder
-    navidrome: library on 2 elements
-    gonic: library on 2 elements
+  value subsonic-response/musicFolders/musicFolder/0/name
+    navidrome: "Music Library"
+    gonic: "first"
     ledger: folder-view-getmusicfolders
   value subsonic-response/version
     navidrome: "1.16.1"
@@ -2998,9 +2998,9 @@ getMusicFolders.json
     ledger: unledgered
 
 getMusicFolders.xml
-  identity subsonic-response/musicFolders/musicFolder
-    navidrome: library on 2 elements
-    gonic: library on 2 elements
+  value subsonic-response/musicFolders/musicFolder/0/name
+    navidrome: attribute "Music Library"
+    gonic: attribute "first"
     ledger: folder-view-getmusicfolders
   value subsonic-response/version
     navidrome: attribute "1.16.1"

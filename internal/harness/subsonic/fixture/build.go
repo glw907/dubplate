@@ -61,27 +61,3 @@ func (l *Library) Build(target string) (string, error) {
 	}
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
-
-// NamedDigest is one collection's name and the library digest Build
-// returned for it.
-type NamedDigest struct {
-	Name   string
-	Digest string
-}
-
-// CombineDigests returns the digest of an ordered collection list: the hex
-// sha256 over each collection's quoted name and library digest, one
-// tab-separated line apiece, in list order. A one-collection list returns
-// that collection's own digest, so a single-library recording keeps the
-// digest Build reported.
-func CombineDigests(ds []NamedDigest) string {
-	if len(ds) == 1 {
-		return ds[0].Digest
-	}
-	h := sha256.New()
-	for _, d := range ds {
-		// hash.Hash.Write never returns an error.
-		_, _ = fmt.Fprintf(h, "%q\t%s\n", d.Name, d.Digest)
-	}
-	return fmt.Sprintf("%x", h.Sum(nil))
-}

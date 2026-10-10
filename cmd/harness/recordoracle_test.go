@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"encoding/xml"
 	"errors"
@@ -17,6 +18,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
 	"github.com/glw907/dubplate/internal/harness/subsonic/stack"
 	"github.com/glw907/dubplate/internal/opensubsonic/client"
@@ -202,7 +204,7 @@ func newRecordRun(t *testing.T, spec string, nd, gon cannedOptions) *recordRun {
 	}
 	r.cfg = recordConfig{
 		spec:        specPath,
-		collections: []collection{{name: "music", manifest: fixtureManifest("manifest.json")}},
+		collections: []fixture.Collection{{Name: "music", Manifest: fixtureManifest("manifest.json")}},
 		out:         r.out,
 	}
 	old := startOracles
@@ -483,6 +485,36 @@ func TestRecordOracleRefusesNonEmptyOut(t *testing.T) {
 	}
 }
 
+func TestRecordOracleRefusesAnOutThatIsNotADirectory(t *testing.T) {
+	r := newRecordRun(t, `{"requests":[{"endpoint":"ping","format":"json"}]}`, nd(), gonic())
+	if err := os.WriteFile(r.out, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := runRecordOracle(t.Context(), r.cfg); err == nil || !strings.Contains(err.Error(), r.out) {
+		t.Fatalf("error = %v, want a refusal naming %s", err, r.out)
+	}
+	if r.started != nil {
+		t.Errorf("oracles started on %+v before the refusal", r.started)
+	}
+}
+
+// TestRecordResolvesParamsInNameOrder gives one request two references that
+// both fail: the one under the first parameter name in sorted order is the
+// one reported, every time.
+func TestRecordResolvesParamsInNameOrder(t *testing.T) {
+	req := specRequest{Endpoint: "getArtist", Format: client.JSON, Params: map[string]string{
+		"id":            "artist:Nobody",
+		"musicFolderId": "collection:none",
+	}}
+	for range 50 {
+		r := &recorder{oracle: runningOracle{name: "t"}}
+		err := r.record(t.Context(), []specRequest{req}, []session.Request{req.sessionRequest()})
+		if !errors.Is(err, errUnreachable) {
+			t.Fatalf("error = %v, want the id parameter's errUnreachable", err)
+		}
+	}
+}
+
 func TestRecordOracleRegistered(t *testing.T) {
 	cmd, _, err := newRootCmd().Find([]string{"record-oracle"})
 	if err != nil || cmd.Name() != "record-oracle" {
@@ -690,9 +722,9 @@ func TestRecordOracleSeedDigestSurvivesTheCollectionList(t *testing.T) {
 
 func TestRecordOracleTwoCollections(t *testing.T) {
 	r := newRecordRun(t, `{"requests":[{"endpoint":"ping","format":"json"}]}`, nd(), gonic())
-	r.cfg.collections = []collection{
-		{name: "first", manifest: fixtureManifest("collection-a.json")},
-		{name: "second", manifest: fixtureManifest("collection-b.json")},
+	r.cfg.collections = []fixture.Collection{
+		{Name: "first", Manifest: fixtureManifest("collection-a.json")},
+		{Name: "second", Manifest: fixtureManifest("collection-b.json")},
 	}
 	if err := runRecordOracle(t.Context(), r.cfg); err != nil {
 		t.Fatal(err)
@@ -731,9 +763,9 @@ const foldersSpec = `{"requests":[
 // twoCollections points a run at the two committed collection manifests,
 // under the names the recording command gives them.
 func twoCollections(r *recordRun) {
-	r.cfg.collections = []collection{
-		{name: "first", manifest: fixtureManifest("collection-a.json")},
-		{name: "second", manifest: fixtureManifest("collection-b.json")},
+	r.cfg.collections = []fixture.Collection{
+		{Name: "first", Manifest: fixtureManifest("collection-a.json")},
+		{Name: "second", Manifest: fixtureManifest("collection-b.json")},
 	}
 }
 
@@ -812,6 +844,23 @@ func TestRecordOracleRefusesAnUnresolvableCollection(t *testing.T) {
 			}
 			if entries, _ := os.ReadDir(r.out); len(entries) > 0 {
 				t.Errorf("a refused run wrote %d entries", len(entries))
+			}
+		})
+	}
+}
+
+func TestFolderID(t *testing.T) {
+	tests := []struct {
+		name, raw, want string
+	}{
+		{"a number", `7`, "7"},
+		{"a string", `"7"`, "7"},
+		{"a string with an escape", `"a\"b"`, `a"b`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := folderID(jsontext.Value(tt.raw)); got != tt.want {
+				t.Errorf("folderID(%s) = %q, want %q", tt.raw, got, tt.want)
 			}
 		})
 	}

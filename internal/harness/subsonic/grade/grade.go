@@ -40,23 +40,17 @@ type Config struct {
 	Ledger, Sessions string
 	// OpenAPI is the directory holding the pinned OpenAPI document.
 	OpenAPI string
-	// Manifest is the fixture manifest the assignment is checked against.
-	// It is also the one collection a session was served from when
-	// Collections is empty.
+	// Manifest is the fixture manifest the assignment's track shape is
+	// checked against. It is also the one collection a session was served
+	// from when Collections is empty.
 	Manifest string
 	// Collections is the ordered list of collections a graded session was
 	// served from, with the names the recording gave them. The grader's
 	// library is their union in list order.
-	Collections []Collection
+	Collections []fixture.Collection
 	// Assignment is the oracle assignment, which decides the oracle
 	// tier's requests whenever a graded source is dubplate.
 	Assignment string
-}
-
-// Collection is one library a session was served from: the name the
-// recording gave it and the manifest it builds from.
-type Collection struct {
-	Name, Manifest string
 }
 
 // Grader grades recorded sessions against one ledger, one OpenAPI
@@ -69,8 +63,6 @@ type Grader struct {
 	// digest is the combined library digest of the collections, which
 	// every graded session must carry.
 	digest string
-	// collections names the collections digest covers, for refusals.
-	collections []string
 }
 
 // New loads everything cfg names. The OpenAPI document must match the
@@ -84,53 +76,43 @@ func New(cfg Config) (*Grader, error) {
 	if err != nil {
 		return nil, err
 	}
-	seed, err := fixture.Load(cfg.Manifest)
-	if err != nil {
-		return nil, err
-	}
-	a, err := loadAssignment(cfg.Assignment, seed.Tracks())
-	if err != nil {
-		return nil, err
-	}
 	cols := cfg.Collections
 	if len(cols) == 0 {
-		cols = []Collection{{Name: fixture.DefaultCollectionName, Manifest: cfg.Manifest}}
+		cols = []fixture.Collection{{Name: fixture.DefaultCollectionName, Manifest: cfg.Manifest}}
 	}
-	tracks, digest, err := buildCollections(cols)
+	built, digest, err := buildCollections(cols)
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, len(cols))
-	for i, c := range cols {
-		names[i] = c.Name
+	shape := built[0].Library
+	if len(cfg.Collections) > 0 {
+		if shape, err = fixture.Load(cfg.Manifest); err != nil {
+			return nil, err
+		}
 	}
-	return &Grader{ledger: l, contract: c, lib: newLibrary(tracks), assign: a, digest: digest, collections: names}, nil
+	a, err := loadAssignment(cfg.Assignment, shape.Tracks())
+	if err != nil {
+		return nil, err
+	}
+	var tracks []fixture.Track
+	names := make([]string, len(built))
+	for i, b := range built {
+		tracks = append(tracks, b.Library.Tracks()...)
+		names[i] = b.Name
+	}
+	return &Grader{ledger: l, contract: c, lib: newLibrary(tracks, names), assign: a, digest: digest}, nil
 }
 
-// buildCollections returns the tracks of cols in list order and the digest
-// of the whole list. Build is the only source of a library digest, so each
-// collection is built into a directory that is removed before it returns.
-func buildCollections(cols []Collection) ([]fixture.Track, string, error) {
+// buildCollections builds cols with [fixture.BuildCollections]. Build is
+// the only source of a library digest, so the libraries are written to a
+// directory that is removed before it returns.
+func buildCollections(cols []fixture.Collection) ([]fixture.BuiltCollection, string, error) {
 	root, err := os.MkdirTemp("", "dubplate-grade-")
 	if err != nil {
 		return nil, "", fmt.Errorf("create build directory: %w", err)
 	}
 	defer func() { _ = os.RemoveAll(root) }()
-	var tracks []fixture.Track
-	digests := make([]fixture.NamedDigest, len(cols))
-	for i, c := range cols {
-		lib, err := fixture.Load(c.Manifest)
-		if err != nil {
-			return nil, "", fmt.Errorf("collection %q: %w", c.Name, err)
-		}
-		digest, err := lib.Build(filepath.Join(root, strconv.Itoa(i)))
-		if err != nil {
-			return nil, "", fmt.Errorf("collection %q: %w", c.Name, err)
-		}
-		tracks = append(tracks, lib.Tracks()...)
-		digests[i] = fixture.NamedDigest{Name: c.Name, Digest: digest}
-	}
-	return tracks, fixture.CombineDigests(digests), nil
+	return fixture.BuildCollections(root, cols)
 }
 
 // Report is one graded session: every finding, sorted, and the ledger
@@ -215,11 +197,11 @@ func (g *Grader) Grade(ctx context.Context, dir string, pair [2]string) (*Report
 	}
 	if left != g.digest {
 		return nil, fmt.Errorf("%w: session %s carries library digest %s, collections %q combine to %s",
-			errCollectionMismatch, name, left, g.collections, g.digest)
+			errCollectionMismatch, name, left, g.lib.collections, g.digest)
 	}
 	var scopes []Row
 	for _, r := range g.ledger.Rows {
-		if r.Class == ClassByConstruction && r.applies(name, pair) {
+		if classRules[r.Class].subtree && r.applies(name, pair) {
 			scopes = append(scopes, r)
 		}
 	}
@@ -323,6 +305,7 @@ func (g *Grader) oracleTier(s *session.Session, pair [2]string, scopes []Row) []
 		work = append(work, w)
 	}
 
+	folders := [2]map[string]string{folderCollections(s, pair[0]), folderCollections(s, pair[1])}
 	ids := newPairing()
 	for _, w := range work {
 		d := g.differFor(w.req, pair, ids, scopes)
@@ -337,12 +320,27 @@ func (g *Grader) oracleTier(s *session.Session, pair [2]string, scopes []Row) []
 		for _, w := range work {
 			d := g.differFor(w.req, pair, ids, scopes)
 			d.learn = learn
-			ctx := identCtx{endpoint: w.req.Endpoint, param: d.param}
-			d.compare("", "", w.trees[0], w.trees[1], ctx, ctx)
+			ca := identCtx{endpoint: w.req.Endpoint, param: d.param, folders: folders[0]}
+			cb := ca
+			cb.folders = folders[1]
+			d.compare("", "", w.trees[0], w.trees[1], ca, cb)
 			found = append(found, d.found...)
 		}
 	}
 	return found
+}
+
+// folderCollections returns the collection each music folder of source
+// stands for, by folder id, as the session's collection resolutions
+// record it.
+func folderCollections(s *session.Session, source string) map[string]string {
+	m := map[string]string{}
+	for key, bySource := range s.Resolutions {
+		if name, ok := strings.CutPrefix(key, "collection:"); ok && bySource[source] != "" {
+			m[bySource[source]] = name
+		}
+	}
+	return m
 }
 
 func (g *Grader) differFor(req session.Request, pair [2]string, ids *pairing, scopes []Row) *differ {
