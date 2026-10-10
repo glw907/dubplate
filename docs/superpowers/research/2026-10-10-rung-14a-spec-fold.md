@@ -116,3 +116,33 @@ channel, a seam, or a package that the conventional fix does without.
 - Ceiling: no change. The spec sets none and derives it from the brief's section 6. The fold moves scope both ways:
   it drops the older-store write mode and keeps the runner out, and adds the error detail, two codes, the re-add bump,
   and the keyword walk.
+
+## Second fold
+
+Input: the verification read (`research/2026-10-10-rung-14a-spec-fold-verification.md`), findings V1 to V8 and its two
+over-ceremony items. Each was checked against the tree at `483057c` before it was folded. The spec moves to revision
+2.1.
+
+| ID | Severity | Verified against | Disposition |
+|---|---|---|---|
+| V1 | major | `local.go:92` asserts `var _ ops.Seam = (*Runner)(nil)`; `local.New` takes an instance lease and recovers jobs (`:94-97`); `ops.Seam` holds the four job and catalog methods (`ops.go:164-189`); `internal/ops` imports no `internal/auth` and nothing under `internal/auth` or `internal/settings` imports `internal/ops`, so a sibling package can implement over the roster without a cycle; `member.go:97` calls `auth.NewRoster(h).AddMember` directly; `roster.go:379-388` skips the in-write admin re-read on the command line | **Folded**, "The mount", with the verifier's shape: a second interface in `internal/ops`, the admin seam, holds the seven operations; the authorizing decorator and `opshttp` take both seams; the `catalog` answer joins the job seam's entries with one per admin operation through `BuildCatalog`; a new 14a package under `internal/ops` implements the admin seam for `serve`; a small type answers the three job methods `unavailable`; `local.Runner` gains nothing. The CLI verbs keep calling the roster and the settings write function directly, which are the shared write path. The contested-surfaces `internal/ops` row names the new pieces. Owed erratum 8. |
+| V2 | major | `evaluate.go:243` sets `Evaluation.Err` to `errors.Join` over every refusal; each key's `Outcome.Err` is per key (`:76-108`), and a correlated rule's refusal is written onto every key it names (`:231-240`) | **Folded**, "One validator": `set_setting` checks the written key's parse, bounds, and environment first; then every settings write evaluates the pre-write and post-write rows and refuses only when a key refuses after that did not before. The written-key check keeps a still-bad value from riding an existing refusal. AC14 gains the two out-of-bounds `admin` rows fixture, reset one at a time, after which `serve` starts; AC11 gains a valid write beside an existing refusal; the states table gains the row. |
+| Over-ceremony 1 | n/a | revision 2's spec:211 let the web write the environment's own value as an `admin` row, the only web path to the two-value reset state | **Folded**: a `set_setting` equal to the serving environment's value writes nothing and answers success naming the environment. The two-value reset answer drops. A `reset_setting` of an `admin` row for a key the serving environment sets answers `conflict`, `environment_sets`, because deleting it would flip the value to the default and back at the next start; only an operator's environment edit can create that row, and `settings reset` still clears it. The page offers neither edit nor reset on such a key. AC10, AC11, AC20, and the states table follow. |
+| Over-ceremony 2 | n/a | `doctor`'s three-way warning | **Not taken**: outside this fold's scope. Owed to the plan, which keeps the split only if the three messages name different actions. |
+| V3 | minor | `schema_formats.go:56-62` registers only `byte`, `date`, `date-time`, `int32`, `int64`; the request body enables 2020-12 at `validate_request.go:359-360` (`:247-248` is `ValidateParameter`) | **Folded**: the validation keywords add `not`, `minimum`, `maximum`, `minLength`, `maxLength`, `pattern`, `minItems`, `maxItems`, `uniqueItems`; `format` is limited to the five registered; `$ref`, `description`, `title`, `example`, and `deprecated` are allowed and validate nothing; the walk refuses any other keyword or format (AC1). The citation is corrected. |
+| V4 | minor | `ops.go:86-161` job types reach no routed answer on the only mount | **Owed to the plan**: one AC7 test marshals job response values (every state, a failure, every timestamp) and validates each against the document's schema directly. |
+| V5 | minor | `admin.go:44`, `:310-311` answer `busy` on lock contention | **Owed to the plan**: a write whose store write lock times out answers `unavailable` with detail `busy`, on every write; `admin_not_grantable` leaves the detail enumeration. |
+| V6 | minor | `roster.go:382` re-reads the actor by address; the folded `Actor` carries `UserID` and the anchor | **Owed to the plan**: `AddMember`'s actor becomes the `UserID`, re-read by id like removal and the settings writes. |
+| V7 | minor | `epoch.go:84-87` writes nothing on a backward bump | **Owed to the plan**: restate the `ErrEpochBackward` reason (the stored epoch is later than now, so committing loses no revocation a write could make) and name the accepted residual, a session anchored between that epoch and the clock step. |
+| V8 | minor | the version policy tells a client to ignore unknown fields, which a published `additionalProperties: false` contradicts | **Folded**: the published document leaves response objects open, and the contract test closes every response object schema in its loaded copy before validating (spec "The contract document", AC2). |
+
+### Owed errata, continued
+
+8. **R6:582**: "`internal/ops` defines one interface" becomes two, the job seam and the admin seam.
+
+### Measures
+
+- Folded: V1, V2, V3, V8, and over-ceremony 1. Owed to the plan: V4 to V7 and over-ceremony 2. Refused: none.
+- Spec length: 609 lines before, 651 after. The growth is V1's paragraph and list, V2's validator rule, and three
+  states rows (the environment's own value, a reset of an environment-set key, and the per-key comparison); the
+  over-ceremony fold removed the two-value answer and its page state.

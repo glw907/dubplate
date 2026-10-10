@@ -1,6 +1,6 @@
 # Rung 14a: the admin API's first half
 
-Status: revision 2, folded from the four-lens review, 2026-10-10. The fold record is
+Status: revision 2.1, folded from the four-lens review and its verification read, 2026-10-10. The fold record is
 `research/2026-10-10-rung-14a-spec-fold.md`. Design approved in session the same day; this document records it.
 
 This spec covers the first of rung 14's two passes. It records the contract-document form, the authorization
@@ -54,17 +54,24 @@ kin-openapi behaviors decide whether those tests can fail, and the contract test
   `IncludeResponseStatus: true` and treat each other silent pass as a failure, on the `conformance` package's
   precedent (`internal/opensubsonic/conformance/conformance.go:96-136`).
 - `openapi3filter` turns on the JSON Schema 2020-12 validator itself for a 3.1 document
-  (`validate_request.go:247-248`, `validate_response.go:76-77`). A direct `Schema.VisitJSON` call passes
+  (`validate_request.go:359-360` for the body, `validate_response.go:76-77`). A direct `Schema.VisitJSON` call passes
   `openapi3.EnableJSONSchema2020()` explicitly.
 - The 2020-12 path compiles each schema as a standalone resource, so a nested `$ref` fails the compile, and the
   validator then falls back silently to the built-in 3.0 validator (`openapi3/schema_jsonschema_validator.go:20-56`,
   `:290-297`, "Fall back to built-in validator if compilation fails"). A 3.1-only keyword such as
-  `unevaluatedProperties`, `dependentRequired`, or `if`/`then` then validates nothing. The document uses only
-  keywords the built-in validator enforces: `type` and type arrays, `const`, `enum`, `required`, `properties`,
-  `additionalProperties`, `items`, `prefixItems`, `oneOf`, `anyOf`, `allOf`, and `format`. A contract test walks the
-  document and fails on any other schema keyword.
-- A renamed field fails validation only when it is `required` or its schema is closed. Every response schema sets
-  `additionalProperties: false` and lists every always-present field under `required`.
+  `unevaluatedProperties`, `dependentRequired`, or `if`/`then` then validates nothing. The document's validation
+  keywords are those the built-in validator enforces: `type` and type arrays, `const`, `enum`, `required`,
+  `properties`, `additionalProperties`, `items`, `prefixItems`, `oneOf`, `anyOf`, `allOf`, `not`, `minimum`,
+  `maximum`, `minLength`, `maxLength`, `pattern`, `minItems`, `maxItems`, `uniqueItems`, and `format`. The built-in
+  validator registers only five formats (`byte`, `date`, `date-time`, `int32`, `int64`;
+  `openapi3/schema_formats.go:56-62`) and passes any other silently, so `format` names one of those five. The
+  document may also carry `$ref` and the annotation keywords `description`, `title`, `example`, and `deprecated`,
+  which validate nothing. A contract test walks the document and fails on any other schema keyword and on any other
+  `format`.
+- A renamed field fails validation only when it is `required` or its schema is closed. Every response schema lists
+  every always-present field under `required`. The published document leaves response objects open, because the
+  version policy below tells a client to ignore an unknown field. The contract test closes every response object
+  schema (`additionalProperties: false`) in its loaded copy before it validates.
 
 kin-openapi appears in `_test.go` files only, in the mount's own package, so the silent-pass classification is
 written once. The no-link test (`internal/harness/conform/arch_test.go:213-217`) forbids any `github.com/getkin` path
@@ -126,18 +133,36 @@ never reads a bearer header, and the origin check covers it like every other pat
 operation carries the actor, the channel, and `client_ip` (security L5 to L7). The shared-origin M2 question stays with
 streamer slice 6, where STATUS routes it.
 
-Each new operation joins `ops.Seam`, the privileges table (`internal/ops/catalog.go:78-83`), the catalog, and
-`opshttp`'s routes, so the HTTP projection and the CLI verb bind to one vocabulary (R6:580-591). Each CLI verb and its
-operation share one write path.
+Each new operation joins the privileges table (`internal/ops/catalog.go:78-83`), the catalog, and `opshttp`'s routes,
+so the HTTP projection and the CLI verb bind to one vocabulary (R6:580-591). The seven operations do not join
+`ops.Seam`. That interface is the job seam, and its one implementation, `local.Runner`, asserts it
+(`internal/ops/local/local.go:92`). `local.New` takes an instance lease and recovers interrupted jobs
+(`local.go:94-97`), which `serve` must not do (below). Seven more methods would also break the Runner's build or
+give it seven stub answers, an asymmetry R6:627-636 would need named.
+
+- `internal/ops` gains a second interface, the admin seam, holding the seven member and settings operations. The
+  authorizing decorator and `opshttp`'s handler take the job seam and the admin seam both. The `catalog` answer joins
+  the job seam's entries with one entry per admin operation, built through `BuildCatalog`.
+- A new 14a package under `internal/ops` implements the admin seam for `serve`, over the roster and the settings
+  write path. R6:582 says `internal/ops` defines one interface; owed erratum 8 records the second.
+- A small type in `internal/ops` implements the job seam for `serve`. It answers `start_backup`, `job_status`, and
+  `cancel_job` with `ErrUnavailable` and a reason, and its `Catalog` reports the three with that reason.
+- `local.Runner` stays a job runner and gains no method.
+
+Each CLI verb and its operation share one write path, and that path is the roster method or the settings write
+function, not the admin seam. The member verbs call `auth.NewRoster` directly today
+(`cmd/dubplate-server/member.go:97`), and `member remove`, `member demote`, and `settings reset` follow that form. The
+roster methods already branch on the channel: on the command line they skip the actor's in-write admin re-read
+(`internal/auth/roster.go:379-388`), as the re-authentication gate skips it.
 
 **The job operations answer `unavailable` on this mount.** `opshttp` routes all four existing operations
 (`opshttp.go:72-77`), but `serve` builds no job runner (R6:943-944, erratum 6d-R6, which routed job recovery to rung
 14), and its unit grants only the `auth` and `store` leaves (`systemd/dubplate-server-serve.service:43`). Ruling 2
-decides it: no 0.8 page starts a backup, and rung 16's timer uses the CLI verb. `serve`'s seam answers
-`start_backup`, `job_status`, and `cancel_job` with `unavailable`, and its catalog reports each with `available:
-false` and a reason (`catalog.go:96-101`). R6:627-636 requires this asymmetry to be named, and this paragraph names
-it. `serve`'s runner, its instance lease, and job recovery go to the first rung whose page starts a job over HTTP
-(rung 9's import or rung 13).
+decides it: no 0.8 page starts a backup, and rung 16's timer uses the CLI verb. `serve`'s job seam, the small type
+above, answers `start_backup`, `job_status`, and `cancel_job` with `unavailable`, and the catalog reports each with
+`available: false` and a reason (`catalog.go:96-101`). R6:627-636 requires this asymmetry to be named, and this
+paragraph names it. `serve`'s runner, its instance lease, and job recovery go to the first rung whose page starts a
+job over HTTP (rung 9's import or rung 13).
 
 The roster API at `roster` (`cmd/dubplate-server/serve.go:359`) retires in this pass. Its list and add join `/api/v1`
 as operations, and the members page calls them there. A member endpoint outside the contract document would be
@@ -193,10 +218,15 @@ value never crosses the wire, because those rows hold site paths, an address, an
 R6:815-816 left the `admin` source unexported until rung 14. HISTORY 6c, "To rung 14", states what the write
 carries: source `admin`, `seed_value` recording the seed it replaced, its channel, and its audit kind.
 
-**One validator.** `set_setting` and `reset_setting` each run the seed rule's own evaluation
-(`internal/settings/evaluate.go`) over the post-write rows and the serving process's environment, and refuse when it
-refuses. That one check covers parse, bounds, every correlated rule, and the environment contradiction, so no write
-from the web can make the next start refuse.
+**One validator.** `set_setting` first checks the written key itself: its value must parse and sit within the
+key's bounds, and the serving environment must not set the key (below). Then `set_setting`, `reset_setting`, and
+`settings reset` each run the seed rule's own evaluation (`internal/settings/evaluate.go`) twice, over the pre-write
+and the post-write rows, with the serving process's environment. A write is refused when the post-write evaluation
+refuses a key whose pre-write outcome did not. The comparison reads each key's `Outcome.Err` (`evaluate.go:76-108`),
+never `Evaluation.Err`, which joins every key's refusal (`:243`). A correlated rule's refusal lands on every key the
+rule names (`:231-240`), so the per-key comparison covers the correlated rules too. A write therefore cannot add a
+refusal the next start would raise. A store that already refuses one key still takes a write that leaves that
+refusal and adds none, so `settings reset` clears two refusing rows one at a time.
 
 - `set_setting` writes the row with source `admin` and bumps the settings generation in one write transaction
   (R6:770-778). Over an `env-seed` row, `seed_value` records the seed replaced. Over an `admin` row it keeps the earlier
@@ -206,15 +236,19 @@ from the web can make the next start refuse.
 - **A write against the environment is refused.** R6's seed table refuses `serve`'s start for an `admin` row whose
   environment value differs (R6:809; `evaluate.go:292-294`), so a durable admin value against an environment value is
   already impossible. Committing it with a warning would arm that refusal for the next deploy or reboot, and only box
-  access clears it. The evaluation refuses it at the write instead, with `conflict` and detail `environment_sets`. The
-  settings page shows such a key as set in the server's environment file, with its value, and offers no edit. Writing
-  the environment's own value back commits. The serving environment can lag an edited environment file; a false
-  refusal then clears at the next restart.
+  access clears it. The write path refuses it at the write instead, with `conflict` and detail `environment_sets`.
+  A `set_setting` equal to the serving environment's value writes nothing and answers success naming the
+  environment as the source in force, because that value is already in force. The settings page shows a key the
+  serving environment sets as set in the server's environment file, with its value, and offers no edit or reset.
+  The serving environment can lag an edited environment file; a false refusal then clears at the next restart.
 - `reset_setting` deletes an `admin` row and audits the same way. Over no row or an `env-seed` row it writes nothing
-  (no row, audit, generation bump, or notice) and answers success naming the source in force. With the row gone, the
-  accessor resolves the default (`internal/settings/accessor.go:113-116`) until the next start seeds the environment's
-  value; R6:1002 keeps the `env-seed` source with the seed rule alone. When the serving environment sets the key, the
-  answer and the page name both values.
+  (no row, audit, generation bump, or notice) and answers success naming the source in force. Over an `admin` row
+  for a key the serving environment sets, it answers `conflict` with detail `environment_sets` and writes nothing.
+  Such a row equals the environment's value, or the start would have refused, and an operator's environment edit
+  after the admin's write is its only source. With the row gone the accessor would resolve the default
+  (`internal/settings/accessor.go:113-116`) until the next start seeds the environment's value, so the reset would
+  flip the value twice to arrive where it began. R6:1002 keeps the `env-seed` source with the seed rule alone.
+  `settings reset` on the command line still deletes such a row.
 - The actor's admin flag is re-read by `UserID` inside each write transaction, as removal does, so a demotion is final
   for writes already in flight.
 - The answer to a write names the key's apply mode.
@@ -464,8 +498,10 @@ The pass opens with the `dependency-upgrade` sweep (CLAUDE.md, "Current dependen
 | add | each existing refusal | its outcome name as `detail`, under `conflict` for a duplicate and `invalid_request` otherwise |
 | `set_setting` | unparseable, out of bounds, a broken correlated rule, a wall key, an unregistered key | `invalid_request` |
 | `set_setting` | the serving environment sets the key to another value | `conflict`, detail `environment_sets` |
+| `set_setting` | the serving environment sets the key to the same value | writes nothing, answers success naming the environment as the source in force |
+| `reset_setting` | an `admin` row for a key the serving environment sets | `conflict`, detail `environment_sets`, nothing written |
+| any settings write | the post-write evaluation refuses a key the pre-write one did not | `invalid_request`, nothing written; a refusal the store already held does not block the write |
 | `reset_setting` or `settings reset` | no row, or an `env-seed` row | writes nothing, answers success naming the source in force |
-| `reset_setting` | the post-reset rows break a correlated rule | `invalid_request` |
 | `settings reset` | older store, newer store, restore intent | `OpenWrite`'s own refusals |
 | hook 18 registration | missing description, zero mark | panic naming the key |
 
@@ -483,7 +519,7 @@ merge ritual; a conflict between functions two lanes own is mechanical and keeps
 | migration `0006`, the older-store map, R-6d4's keep limit | 14a takes none; whichever of 14b and rung 7 merges first takes `0006` and the STATUS item | the other renumbers on rebase and adds its map row |
 | the `internal/config` declaration types (hook 18: `Setting`, `Threshold`, `WallRow`, `IntegrationClass`, and `registry.go`'s `Add*` panics) | 14a, landed in its first segment, which also gives every existing key and wall row its description and mark | rung 7 declares its keys in its own file; if 14a merges first, rung 7's rebase adds a description and mark to each; if rung 7 merges first, 14a's hook-18 task marks rung 7's keys |
 | `internal/config/keys.go` | 14a for the wall rows' declarations; rung 7 for the `intake` reserved class (`:50-57`), which it retires in the commit that registers its keys | both; the regions are disjoint |
-| `internal/ops`, `internal/ops/opshttp`, and the contract document | 14a | rung 7 writes none of them while 14a's lane is open; its JSON endpoints go under `/api/v1` only after 14a merges, and otherwise mount as their own subtree from a rung 7 file, which 14b adopts |
+| `internal/ops` (the admin seam, the unavailable job type, and the new admin package), `internal/ops/opshttp`, and the contract document | 14a | rung 7 writes none of them while 14a's lane is open; its JSON endpoints go under `/api/v1` only after 14a merges, and otherwise mount as their own subtree from a rung 7 file, which 14b adopts |
 | `internal/auth/roster.go` (remove, demote, the re-add bump, the last-admin guard) and `internal/auth/epoch.go` (`Subscribe`'s contract) | 14a | rung 7 reads the roster through its interface |
 | `internal/auth/admin.go` | rung 7 for `RequireAdmin` and the member-level page gate beside it, and the styled 404's hook in their refusals; 14a for removing the roster API's handlers | both; 14a's session middleware for `api` lives in a new 14a file |
 | `internal/serve` | rung 7, for the styled 404's edit of `Shell.terminated` (`internal/serve/serve.go:248-258`), under PA's rung 12 row; 14a writes nothing here, because the `api` subtree terminates its own prefix | 14a registers through `Shell.Register` |
@@ -508,13 +544,15 @@ candidates and the older-store write mode revision 1 carried.
 
 1. One hand-written OpenAPI 3.1 document describes every `/api/v1` operation, its request and response bodies, and
    every wire code and detail it can answer. A test fails when a catalog operation has no path in the document or a
-   path names no catalog operation. A test walks the document and fails on a schema keyword outside the enforced set.
+   path names no catalog operation. A test walks the document and fails on a schema keyword outside the allowed set
+   and on a `format` outside the five the validator registers.
 2. A request a test means to be well formed passes `ValidateRequest`. A request a test means to be malformed at the
    schema level fails it. Every answer to a routed request, refusals included, passes `ValidateResponse` with
    `IncludeResponseStatus: true`, and each other kin-openapi silent pass fails the test. A transport refusal and an
-   unrouted path validate their body against the error schema directly. Three proofs fail as they should: a renamed
-   `required` response field, a Go response field the document omits, and an undocumented status. kin-openapi appears
-   only in `_test.go` files, and the no-link test stays green.
+   unrouted path validate their body against the error schema directly. The test validates against its loaded copy
+   with every response object closed; the published document leaves them open. Three proofs fail as they should: a
+   renamed `required` response field, a Go response field the document omits, and an undocumented status.
+   kin-openapi appears only in `_test.go` files, and the no-link test stays green.
 3. The document states the additive-within-v1 policy, enumeration and detail extension and the journey vocabulary
    included.
 4. `api` is registered through `Shell.Register` from rung 14's own file. Every path under `<prefix>/api` that names
@@ -537,11 +575,13 @@ candidates and the older-store write mode revision 1 carried.
 10. `set_setting` writes source `admin`, the replaced seed in `seed_value`, the generation bump, and one audit row
     with kind, actor, channel, key, and old and new values. An unparseable value, an out-of-bounds value, a broken
     correlated rule, a wall key, and an unregistered key each answer `invalid_request` and change nothing. A value the
-    serving environment contradicts answers `conflict` with detail `environment_sets` and changes nothing; the
-    environment's own value commits.
+    serving environment contradicts answers `conflict` with detail `environment_sets` and changes nothing. A value
+    equal to the serving environment's writes nothing and answers success naming the environment.
 11. A write's answer names the apply mode. A reset whose post-reset rows break a correlated rule answers
-    `invalid_request` and changes nothing. A reset over no row or an `env-seed` row writes nothing. After a reset of a
-    key the serving environment sets, the answer names the default now in force and the value the next start seeds.
+    `invalid_request` and changes nothing. A reset over no row or an `env-seed` row writes nothing. A reset of an
+    `admin` row for a key the serving environment sets answers `conflict` with detail `environment_sets` and changes
+    nothing. With one key already refusing (a stored `admin` row outside its bounds), a valid write to another key
+    commits.
 12. On the cookie mount, from a session anchored outside the re-authentication window, a sensitive write, a sensitive
     reset, an add, a removal, and a demotion each answer `reauthentication_required` and write nothing. The same
     calls from a session anchored inside it commit. A stale session's non-sensitive write and non-sensitive reset
@@ -551,7 +591,8 @@ candidates and the older-store write mode revision 1 carried.
     admins and one removed admin, who receives nothing. A non-sensitive write and a command-line reset mail no one.
     A mail failure is logged and the write stays committed. A seed-rule change mails no one.
 14. With `serve` stopped, `settings reset <key>` on a current store resolves each refusal: an `admin` row the binary
-    cannot parse, one the environment contradicts, and one outside the binary's bounds. `serve` then starts. The verb
+    cannot parse, one the environment contradicts, and one outside the binary's bounds. `serve` then starts. A store
+    holding two out-of-bounds `admin` rows takes a reset of each, one at a time, and `serve` then starts. The verb
     refuses an older store, a newer store, and a restore intent with `OpenWrite`'s messages. All three seed-rule
     messages name the verb, and `serve`'s pre-open refusal of an older store names the previous-release recovery.
 15. `remove_member` and `member remove` tombstone the row, delete the member's preferences, keep their overrides and
@@ -573,9 +614,10 @@ candidates and the older-store write mode revision 1 carried.
     add refusal still moves focus to its field. A JSON 403 never shows the cross-site copy.
 20. The admin settings page, at a route other than `settings` (which the visual identity spec reserves for the member
     preferences page, `specs/2026-09-24-visual-identity-design.md:145-146`), lists every key with its description
-    and mark, edits and resets store-homed keys, shows an environment-set key as set in the environment file with no
-    edit, shows each write's apply mode, and leads a stale session to a fresh sign-in. Both pages follow the visual identity spec, are rendered and read, and pass the
-    `web/` leg's static and rendered gates.
+    and mark, edits and resets store-homed keys, shows a key the serving environment sets as set in the environment
+    file with no edit or reset, shows each write's apply mode, and leads a stale session to a fresh sign-in. Both
+    pages follow the visual identity spec, are rendered and read, and pass the `web/` leg's static and rendered
+    gates.
 21. No code path reads `DUBPLATE_ADMIN_EMAIL` to grant or authorize admin. `doctor`'s `DUBPLATE_ADMIN_EMAIL` row
     warns, without failing, when the address names a live non-admin, a removed member, or no member, reports ok when
     it names a live admin, and adds nothing before bootstrap. The runbook's step 10, key description, and restore
