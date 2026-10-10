@@ -1037,6 +1037,18 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     not have an explicit INTEGER PRIMARY KEY" (`https://www.sqlite.org/lang_vacuum.html`, read 2026-10-07). Built by
     slice 3, its first consumer; a rung that creates collections before slice 3 is neutral, because slice 3's migration
     backfills. Added 2026-10-07 (revision 3.1; study record, section 17; ledger L-18).
+23. No platform assumption in the core, every rung. 0.9's home install runs on Linux (arm64 and amd64), in a
+    multi-arch container image, on macOS, and on Windows (Geoff, 2026-10-10). Code outside the deployment layer
+    assumes no systemd, no Linux-only syscall, and no fixed path. An OS-specific check, such as rung 7's same-device
+    test on staging and the library, sits in its own build-constrained file with a counterpart for the other platforms
+    or a stated refusal there. `systemd/`, `cloud-init/`, and `deploy.sh` stay the VPS deployment and are neutral.
+    A rung plan states per task whether it adds a platform-specific file. Added 2026-10-10 (Geoff's home install
+    ruling; ROADMAP, `local-client-0-9`).
+24. An install that needs no public host, slice 8 and rung 16. `dubplate init` and the listener (hook 19) accept a
+    LAN-only setup with no public hostname, no ACME, and no outbound mail. The verify-identity seam (rung 5) admits a
+    second sign-in method without rework, because a LAN install may have no mail relay for magic links. 0.8 builds
+    neither the LAN sign-in nor the container image; it only keeps both possible. Added 2026-10-10 (Geoff: the
+    standalone home install ships at 0.9, and 0.8 is built ready for it).
 
 ## Prior art
 

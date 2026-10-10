@@ -116,7 +116,15 @@ hits rootDir errors (TypeScript #30693, sveltejs/language-tools #2891). No hurry
 
 ### dubplate-server 0.9: the paired local client `local-client-0-9`
 The 0.9 feature (Geoff, 2026-09-25 ruling on version numbering): a local client
-paired with dubplate-server. Its core is the home copy server (Geoff, 2026-10-10).
+paired with dubplate-server. It ships the home install, in two modes (Geoff,
+2026-10-10). Standalone: dubplate runs at home on the LAN with no VPS, which Geoff
+expects many home audiophiles to need alone. Home copy: described below. It runs on
+any likely home audiophile setup: native Linux on arm64 and amd64, a multi-arch
+container image (Synology, Unraid, TrueNAS, QNAP), macOS, and Windows. macOS and
+Windows verification is reasoned and disclosed, since the workstation cannot run them.
+0.8 is built ready for it through the streamer spec's forward hooks 23 (no platform
+assumption in the core) and 24 (an install that needs no public host); 0.8 builds
+neither mode. The home copy server (Geoff, 2026-10-10):
 A dubplate install on a machine on a member's home network keeps a one-way synced
 copy of the whole library and serves it to that member's music apps over the same
 OpenSubsonic API. At home the apps stream lossless from the house; away from it they
