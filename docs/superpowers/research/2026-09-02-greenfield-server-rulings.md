@@ -43,6 +43,27 @@ review BEFORE any adversarial review round or plan (process correction
    owner-queue and contributor-picks as settings, the classical-appeal
    action rides every setting (already in the organizer spec).
 
+## Rulings taken during the build
+
+10. **Rung 9's concurrency model is a per-album lease** (Geoff,
+    2026-10-10, at rung 14's planning, as PA:118 schedules it). Not an
+    explicit queue. The store already admits jobs through flock leases
+    (`internal/engine/store/lease.go:166-168`, one job per kind), and
+    a lease per album extends that mechanism rather than adding a
+    second one. The album is the verdict unit, so it is the natural
+    unit of exclusion. A per-album lease takes no global lock, so an
+    interactive session holds nothing a timer import waits on; that
+    meets the organizer spec's binding constraint, "an interactive
+    local session must not starve timer imports"
+    (`specs/2026-09-01-dubplate-organizer-design.md:612-616`). The one
+    budget the two still share, MusicBrainz's, is arbitrated by the
+    limiter's caller classes (`internal/engine/musicbrainz/limiter.go`),
+    whose anti-starvation floor rung 9 re-verifies. An explicit queue
+    would have bought a visible order at the cost of a written
+    starvation policy. Consequence for rung 14: `/api/v1` publishes no
+    queue position, and a start that finds an album's lease held
+    answers `conflict` naming the running job, as a second backup does.
+
 ## Approach A: two tracks, dependency-merged (ratified)
 
 - **Architecture spine**, foundation first: config core → identity/auth
