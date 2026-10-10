@@ -120,7 +120,10 @@ paired with dubplate-server. Its core is the home copy server (Geoff, 2026-10-10
 A dubplate install on a machine on a member's home network keeps a one-way synced
 copy of the whole library and serves it to that member's music apps over the same
 OpenSubsonic API. At home the apps stream lossless from the house; away from it they
-use the server. This supersedes the organizer spec's out-of-scope line for "the
+use the server. It must run on a current Raspberry Pi (Geoff, 2026-10-10): arm64,
+the library on an attached USB or NVMe drive, and a memory and CPU budget that 0.9's
+plan measures on the then-current model. It builds on 0.8's arm64 builds (Promoted in
+`IDEAS.md`), and it never transcodes, since it serves the stored FLAC untouched. This supersedes the organizer spec's out-of-scope line for "the
 server-to-local mirror" (`2026-09-01-dubplate-organizer-design.md:704`), which stays as
 written. It sits inside the group-scale principles: the copy serves the member's own
 devices, which those principles name as intended use, and it is not a link between two
