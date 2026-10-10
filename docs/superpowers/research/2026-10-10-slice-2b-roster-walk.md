@@ -11,7 +11,7 @@ text and one audio-element capture. A capture name below is a file in one of tho
 |---|---|---|
 | Feishin 1.17.0 | F1 to F11: 11 of 11 pass | pass (10 folders, one drilled) |
 | Rufin 0.16.6 | F1 to F11: 11 of 11 pass | pass (10 folders) |
-| Tempus 4.28.0 | deferred, no `/dev/kvm` | not run |
+| Tempus 4.29.0 | F1 to F11: 11 of 11 pass (F11 by a different call shape) | pass (10 folders, one drilled) |
 | Amperfy 2.1.1 | rung 16's attended gate | not run |
 
 No step failed on an oracle. The oracle behaviors the walk observed are in "Oracle observations". No hash changed.
@@ -140,7 +140,7 @@ None of these is a failed step. Each is evidence about an oracle.
   /dev/kvm` succeeds after Geoff enables VT-x in the firmware; then the Android SDK, the emulator, and a system image
   install under `~/Android/`, and Tempus 4.28.0 sideloads, per [pins] "Client installs under settled item 9" with their
   manifest lines; then the script runs.
-  **Update, 2026-10-10 (later the same day).** `/dev/kvm` now exists (`emulator -accel-check`: "KVM (version 12) is
+  **Update, 2026-10-10 (later the same day; superseded by the next update and the "Tempus 4.29.0" sections below).** `/dev/kvm` now exists (`emulator -accel-check`: "KVM (version 12) is
   installed and usable"), and the Android command-line tools (build 16111833), platform-tools, emulator 37.2.12, and
   system image `android-36;google_apis;x86_64` are installed under `~/Android/`, with AVD `dubplate-walk`. The newest
   production Tempus is v4.29.0 (released 2026-10-09; `app-tempus-release.apk`, sha256
@@ -149,6 +149,8 @@ None of these is a failed step. Each is evidence about an oracle.
   dies with SIGSEGV (jump to an invalid address) shortly after "Emulator is performing a full startup", on
   `-gpu swiftshader_indirect` and on `-gpu guest`, three times in all. Unblock: try another emulator or system image
   build; then run the script.
+  **Update, 2026-10-10 (afternoon): walked.** The emulator boots with `-gpu host` and the walk ran; results are in "Tempus 4.29.0 against Navidrome" below. The crash, found by trial: the host `qemu-system-x86_64-headless` segfaulted only with KVM on (the same AVD under `-accel off` ran past the crash point), and only with a software GPU path (`-gpu swiftshader_indirect`, `-gpu guest`, and `-gpu off` all failed: swiftshader and `off` killed qemu, and under `guest` and `off` the guest's surfaceflinger aborted in a restart loop). `eu-stack` on the systemd core showed the faulting thread jumping into an address inside the heap, with the vCPU threads idle in `KVM_RUN`; no debugger is installed, so the frame is unnamed. Neither an `android-34;google_apis;x86_64` image (in new AVD `dubplate-walk34`, installed under `~/Android/`), `-feature -Vulkan`, `-wipe-data`, CET switched off through `GLIBC_TUNABLES`, `-cores 1`, nor `-qemu -cpu host` changed the crash; the emulator build 37.2.12 is the only one the SDK offers on every channel, so no stable-channel swap existed. The fix was `-gpu host` (host Mesa through the emulator's own GL path, still headless under `-no-window`): "Boot completed in 73590 ms" on the first try. The walk used `dubplate-walk34` (API 34) because that is where the passing boot was found; `dubplate-walk` (API 36) was not retried under `-gpu host`.
+
 - **Amperfy 2.1.1.** Listed for rung 16's attended gate (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`:
   "A client the conductor cannot drive is walked at rung 16's attended gate."). Its script, from [clients] 2c and the
   sub-path precondition in [base-url], is in `docs/roster-walk.md`, unproven.
@@ -161,3 +163,79 @@ None of these is a failed step. Each is evidence about an oracle.
 - `podman ps -a --filter label=dubplate-harness-run` printed no container, and `podman ps -a` shows only the
   workstation's own `term-headless`.
 - `ss -ltnp` filtered for this run's processes printed nothing. `/tmp/.X11-unix` holds only the desktop's `X0` and `X1`.
+
+## Tempus 4.29.0 against Navidrome
+
+Run on 2026-10-10 from about 10:40 to 10:50 AKDT. Version: Tempus v4.29.0 (`com.eddyizm.tempus`),
+`app-tempus-release.apk`, SHA-256 `3b2e3691d7fcdbe9903e75c6c9d26e74cc33baa4c9d5594d200fea797c8c9a2c` (matches GitHub's
+published digest, rechecked with `sha256sum` before the install). The record and `docs/roster-walk.md` pin 4.28.0; 4.29.0 was
+walked because it is the newest production release (published 2026-10-09) and the project walks the newest production version
+of every client, so the pin is a stale reading to update in `docs/roster-walk.md`, which this record does not edit.
+
+**Stack.** Android emulator 37.2.12, AVD `dubplate-walk34` (Pixel 6 profile, `android-34;google_apis;x86_64`, 1080x2400,
+2 GiB RAM, booted `-no-window -no-audio -no-boot-anim -no-snapshot -gpu host`). `harness oracle-up` from the repo's committed
+fixture: Navidrome 0.64.2 and gonic v0.22.0 at the pinned digests, loopback only. The emulator reaches the host at
+`10.0.2.2`, but the oracles listen on loopback ports chosen at start, so a throwaway logging proxy (`127.0.0.1:18001` to
+Navidrome, `18002` to gonic, outside the repo) forwarded every request and recorded method, path, parameter names (never
+values), `f`, client string, and status. That proxy is why the request shapes below are known. Server entries were typed
+through the UI with the "Low security" box checked, which Tempus requires for an `http://` address; the credentials came from
+the `oracle-up` output file and were typed by `adb input text`, never written to the record.
+
+| Step | Outcome | Observation | Capture |
+|---|---|---|---|
+| F1 add | pass | The Add server dialog takes Server Name, Username, Password, Server URL, an optional Local URL, a Low security checkbox, and an optional client certificate. After Save the server is listed; tapping it logs in. `ping` returned 200 as the first call. | `t03` (dialog), `t05` (list) |
+| F2 login | pass | Home shows "Discovery" (Side B Two, Two Sides), "Flashback" decades, and "Recently added" ([Unknown Album], Long Way Home). Calls: `getAlbumList2` (several types, one with `fromYear` and `toYear`), `getRandomSongs`, `getStarred2`, `getPlaylists`, `getBookmarks`. | `t06` |
+| F3 artists | pass | Library, Browse Artists lists ten: [Unknown Artist], Alpha Artist, Borealis Trio, Carmine Ensemble, Delta Duo, The Meridians, Various Artists, Zoë Ångström, Ансамбль Рассвет, 夜明けの音楽 (the oracle's `getArtists` names the same ten). Opening Borealis Trio showed its album "Double Feature" and Top Songs; the earlier visit said "No top songs", a later one listed Snow Song after `getTopSongs`. | `t08-artists`, `t08c-artists`, `t09-artist` |
+| F4 multi-disc | pass | "Double Feature", Borealis Trio, 1998; the list is grouped under "Disc 1" (1 Overture, 2 Interlude) and "Disc 2" (1 Reprise, 2 Finale), each 0:02. Covers render. | `t10-multidisc` |
+| F5 compilation | pass | "Mixtape Volume One", Various Artists, 1999: Opening Remix (Alpha Artist), Hello Again (Delta Duo), Snow Song (Borealis Trio). The album artist line says Various Artists; each row shows its own track artist. Reached through Search, since the Library grid lists only a few albums per row. | `t19-compilation` |
+| F6 play | pass | Tap on Overture: the player bar shows pause and the title advanced to "Reprise" within seconds (two-second tracks). The server saw five `stream` requests (client string `Dalvik/2.1.0 (Linux; U; Android 14; ...)`, ExoPlayer's default; parameters `id`, `format`, `maxBitRate`) and `scrobble` calls with `id` and `submission`. The queue ended on "Snow Song", a track the walk did not pick: Tempus asked for `getSimilarSongs2` and appended the result. The player sheet shows "flac, 47kbps, 16b, 16kHz". | `t11-play`, `t15-player` |
+| F7 cover art | pass | Covers render in the album header, the player bar, the player sheet, and the search grid. Albums without art show Tempus's record placeholder. `getCoverArt` came in with and without `size`, from both `okhttp` (the image loader) and the media stack. | `t10`, `t15-player`, `t18-search` |
+| F8 folders (Navidrome) | pass | Library shows a "Music folders" sector (Music Library) because `getMusicFolders` returned a list. Opening it calls `getIndexes` with `musicFolderId` and lists ten folders: Ансамбль Рассвет, 夜明けの音楽, Alpha Artist, Borealis Trio, Carmine Ensemble, Delta Duo, The Meridians, Various Artists, Zoë Ångström, [Unknown Artist]. Opening Alpha Artist calls `getMusicDirectory` and lists Greatest Hits, Second Light, Single Disc. | `t20-folder-nd`, `t21-folder-drill-nd` |
+| F9 search | pass | "Alpha" gives Artists (Alpha Artist), Albums (Greatest Hits, Second Light), and Songs ("Play all 8 songs", 8 tracks, 0:16). Tempus issues `search3` on every typed character (42 calls over the walk). "Mixtape" gives the album and "Play all 3 songs". | `t18-search` |
+| F10 star | pass | The heart on the player sheet fills for "Snow Song" (the current track). The oracle's `getStarred2` returned one song, "Snow Song". | `t16-starred` |
+| F11 playlist | pass, different call | Add to playlist on Interlude, "Create", name "Tempus-list", Save. Tempus sent one `createPlaylist` with `name` and `songId` together and no `updatePlaylist`, which the script predicted (`createPlaylist`, `updatePlaylist`). The oracle's `getPlaylists` returned "Tempus-list" with `songCount` 1. | `t13-addpl` |
+
+## Tempus 4.29.0, folder view against gonic
+
+| Step | Outcome | Observation | Capture |
+|---|---|---|---|
+| F1 add (gonic) | pass | Settings, General, "Log out" returns to the server list (there is no server switcher on Home); a second entry `gonic-oracle` was added and opened. `ping`, `getMusicFolders`, `getAlbumList2`, `getRandomSongs`, `getStarred2`, `getPlaylists` all answered 200; `getPodcasts` and `getNewestPodcasts` answered 200 on gonic and 501 on Navidrome, and Tempus showed no error in either case. | `t23-gonic-home` |
+| F8 folders (gonic) | pass | Library shows the sector "music"; opening it lists ten folders: Alpha Artist, Ансамбль Рассвет, Borealis Trio, Carmine Ensemble, Delta Duo, Loose, The Meridians, Various Artists, Zoë Ångström, 夜明けの音楽. Alpha Artist opens to Greatest Hits, Second Light, Single Disc. "Loose" replaces Navidrome's "[Unknown Artist]", as in the Feishin and Rufin walks. | `t24-folders-gonic`, `t25-drill-gonic` |
+
+## Request shapes only Tempus sent
+
+Read from the proxy log (parameter names only, `u`, `p`, `t`, `s`, `v`, `c`, `f` excluded; counts are the whole walk):
+
+- `getRandomSongs(size)`, `getBookmarks`, `getInternetRadioStations`, `getPodcasts(includeEpisodes)`, `getNewestPodcasts(count)`: the Home and Radio and Podcast tabs, called at login with no user action. Navidrome answered 501 to the two podcast calls; gonic answered 200.
+- `getGenres`, `getAlbumInfo2(id)`, `getArtistInfo2(id)`, `getTopSongs(artist, count)`, `getSimilarSongs2(id, count)`, `getLyrics(artist, title)` (12 calls), `getSong(id)` (12 calls): called on opening an artist, an album, or a track, with no matching flow in the script.
+- `getAlbumList2` with `fromYear` and `toYear` and `type` (the Flashback decades), and with `type`, `size`, `offset`.
+- `getIndexes(musicFolderId)` then `getMusicDirectory(id)` for the folder view, and `getMusicFolders` at login.
+- `savePlayQueue(id, current, position)` (2 calls) and `deleteBookmark(id)` (10 calls, one for each track that reached its end).
+- `scrobble(id, submission)` 23 times, including both `submission=false` and the submitted form per track.
+- `createPlaylist(name, songId)` as one call that creates and fills.
+- `getCoverArt(id)` both with and without `size`.
+- `search3` with all seven parameters (`query`, `artistCount`, `artistOffset`, `albumCount`, `albumOffset`, `songCount`, `songOffset`), once per typed character.
+- `getArtist(id)` 26 times and `getAlbum(id)` 18 times: Tempus prefetches every artist and album it lists.
+- Client strings: `okhttp/5.0.0-alpha.14` for every API call and every image; `Dalvik/2.1.0 (Linux; U; Android 14; sdk_gphone64_x86_64 Build/UE1A.230829.050)` for `stream` and a share of `getCoverArt`. No call carried an `Authorization` header or a body; `f=json` on every envelope call.
+
+## Tempus 4.29.0, defects and oddities
+
+None failed against an oracle. Findings, each about Tempus or the setup:
+
+- **Cleartext needs "Low security".** An `http://` server address is accepted only with the Low security checkbox ticked; a walk against dubplate-server on plain HTTP over loopback needs the same step.
+- **Prefetch volume.** `getArtist` and `getAlbum` are called for every listed item, so a library of N albums costs on the order of N requests at first open; a walk against dubplate-server should read the request log for that volume.
+- **Queue extension.** After the album's last track Tempus appends `getSimilarSongs2` results, so a "played" check must read the track it started on, not the one the player shows later.
+- **Top Songs.** An artist page said "No top songs available" on the first visit and listed a song after a later `getTopSongs`; it is Tempus caching or Navidrome answering differently, and was not chased.
+- **F11 prediction was wrong.** The unproven script expected `updatePlaylist`; Tempus uses `createPlaylist` with `songId`. `docs/roster-walk.md` carries the old expectation and should be corrected at the next edit of that file.
+- **Not walked.** Tempus's Download tab, remote play, Android Auto, and transcoding settings were out of the flow list.
+
+Captures (`t01` to `t25` PNG screenshots of the emulator, plus the proxy log) sit in the session's scratchpad and are not committed:
+they were taken on an emulator whose dialog fields briefly showed the run's throwaway oracle credentials (a `uiautomator` text dump
+printed the password once in a terminal; no screenshot shows it, but they were not cropped or reviewed for commit). Nothing was written to
+the production box, and no file outside `~/Android` and this record changed.
+
+## Tempus teardown
+
+- Emulator stopped with `adb emu kill`; no `qemu-system` process remains. AVD `dubplate-walk34` and the image `android-34;google_apis;x86_64` stay under `~/Android/` (their tier-manifest lines are owed: the install session recorded neither the API 34 image nor the AVD).
+- `oracle-up` interrupted (it removes its two containers); `podman ps -a` shows only `term-headless`.
+- Both logging proxies killed; nothing listens on 18001 or 18002.
