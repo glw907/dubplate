@@ -40,7 +40,7 @@ gate has not run at `2f1e3a2`. Spend about 3.5M of the 9.0M ceiling. The box is 
 |---|---|---|
 | 1 | main tree (master) | idle: 6d closed 2026-10-07 (code through `4de73e7`, close commit `0aa8d18`; ~9.5M of 10.5M) |
 | slice 1 | document lane | closed 2026-10-07, landed on master (`00d4b1a`, `d11f853`) |
-| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` | **paused** at `2f1e3a2` (2b Tasks 1-8 accepted; Task 9 next; no executor running; contested on resume: `scripts/check.sh`, `Makefile`, `cmd/harness/main.go`) |
+| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2`, branch `lane-3-slice-2` | **running** (overnight 2026-10-10 from 00:01): segment C's Task 9 in `pass-execute` run `wf_c273e213-588`, then segment D and the close; contested: `scripts/check.sh`, `Makefile`, `cmd/harness/main.go` |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
