@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glw907/dubplate/internal/harness/subsonic/fixture"
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
 	"github.com/glw907/dubplate/internal/harness/subsonic/stack"
 	"github.com/glw907/dubplate/internal/opensubsonic/client"
@@ -89,11 +88,12 @@ type runningOracle struct {
 
 // recordConfig is one record-oracle run.
 type recordConfig struct {
-	spec, manifest, digests, out string
+	spec, digests, out string
+	collections        []collection
 }
 
-// startOracles runs the oracles pinned in the digest file on the library
-// under music and returns them with the function that removes them. Tests
+// startOracles runs the oracles pinned in the digest file on the built
+// collections and returns them with the function that removes them. Tests
 // swap it.
 var startOracles = startStack
 
@@ -102,6 +102,7 @@ var startOracles = startStack
 // against each, and writes the session.
 func newRecordOracleCmd() *cobra.Command {
 	var spec, manifest, digests, out string
+	var collectionFlags []string
 
 	cmd := &cobra.Command{
 		Use:           "record-oracle",
@@ -110,21 +111,25 @@ func newRecordOracleCmd() *cobra.Command {
 		SilenceErrors: true,
 		Args:          cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if spec == "" || manifest == "" || digests == "" || out == "" {
+			cols, digests, err := resolveCollections(manifest, collectionFlags, digests)
+			if err != nil {
+				return err
+			}
+			if spec == "" || out == "" {
 				p, err := defaultSubsonicPaths()
 				if err != nil {
 					return err
 				}
 				spec = cmp.Or(spec, p.seedSpec)
-				manifest = cmp.Or(manifest, p.manifest)
-				digests = cmp.Or(digests, p.digests)
 				out = cmp.Or(out, p.seedSession)
 			}
-			return runRecordOracle(cmd.Context(), recordConfig{spec: spec, manifest: manifest, digests: digests, out: out})
+			return runRecordOracle(cmd.Context(), recordConfig{spec: spec, collections: cols, digests: digests, out: out})
 		},
 	}
 	cmd.Flags().StringVar(&spec, "spec", "", "session spec (default: the committed seed spec)")
-	cmd.Flags().StringVar(&manifest, "manifest", "", "fixture manifest (default: the committed one)")
+	cmd.Flags().StringVar(&manifest, "manifest", "", "fixture manifest, the only collection (default: the committed one)")
+	cmd.Flags().StringArrayVar(&collectionFlags, "collection", nil, "collection as name=manifest; repeat for several")
+	cmd.MarkFlagsMutuallyExclusive("manifest", "collection")
 	cmd.Flags().StringVar(&digests, "digests", "", "oracle image digest file (default: the committed one)")
 	cmd.Flags().StringVar(&out, "out", "", "session directory to create (default: the committed seed session)")
 	return cmd
@@ -132,8 +137,8 @@ func newRecordOracleCmd() *cobra.Command {
 
 // startStack runs the podman stack and checks each running image against
 // its pin.
-func startStack(ctx context.Context, digests, music string, tracks int) ([]runningOracle, func(), error) {
-	s, err := stack.Start(ctx, stack.Config{MusicDir: music, Tracks: tracks, DigestFile: digests})
+func startStack(ctx context.Context, digests string, cols []stack.Collection) ([]runningOracle, func(), error) {
+	s, err := stack.Start(ctx, stack.Config{Collections: cols, DigestFile: digests})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -157,20 +162,16 @@ func runRecordOracle(ctx context.Context, cfg recordConfig) error {
 	if entries, err := os.ReadDir(cfg.out); err == nil && len(entries) > 0 {
 		return fmt.Errorf("%w: %s", errOutExists, cfg.out)
 	}
-	lib, err := fixture.Load(cfg.manifest)
-	if err != nil {
-		return err
-	}
-	music, err := os.MkdirTemp("", "dubplate-record-music-")
+	root, err := os.MkdirTemp("", "dubplate-record-music-")
 	if err != nil {
 		return fmt.Errorf("create library directory: %w", err)
 	}
-	defer func() { _ = os.RemoveAll(music) }()
-	libraryDigest, err := lib.Build(music)
+	defer func() { _ = os.RemoveAll(root) }()
+	built, libraryDigest, err := buildCollections(root, cfg.collections)
 	if err != nil {
 		return err
 	}
-	oracles, stop, err := startOracles(ctx, cfg.digests, music, len(lib.Tracks()))
+	oracles, stop, err := startOracles(ctx, cfg.digests, built)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,252 @@
+{
+  "seeds": [
+    {
+      "name": "cover-b.jpg",
+      "sha256": "943867eea141d9cf6259f0ff594ffd8ca0c5434b00188ed6e3baabe94ebedb28"
+    },
+    {
+      "name": "embedded-a.png",
+      "sha256": "9ca8d3a620b373d924d5e5c11769ac2c2fa6515458d93e5f745c5074994f824d"
+    },
+    {
+      "name": "tone-220.flac",
+      "sha256": "4613fbc50390786b8b70b14560bde0cb043f388c900f2044d289df600f4e5e4c"
+    },
+    {
+      "name": "tone-330.flac",
+      "sha256": "98252b9fa55ebc89d4900183497987f38b45df762ab29e1d719147948f944c7a"
+    },
+    {
+      "name": "tone-440.flac",
+      "sha256": "7c14d99d177c5420c6d5804d0d511ef287692d7f36339fc6089844e402377f2f"
+    }
+  ],
+  "albums": [
+    {
+      "artist": "Alpha Artist",
+      "title": "Second Light",
+      "tracks": [
+        {
+          "path": "Alpha Artist/Second Light/01 Dawn.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Dawn",
+            "track": 1,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Second Light",
+            "year": 2004,
+            "tracktotal": 2,
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Alpha Artist/Second Light/02 Dusk.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Dusk",
+            "track": 2,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Second Light",
+            "year": 2004,
+            "tracktotal": 2,
+            "genres": [
+              "Ambient"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Carmine Ensemble",
+      "title": "Two Sides",
+      "tracks": [
+        {
+          "path": "Carmine Ensemble/Two Sides/1-01 Side A One.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Side A One",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 1,
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Carmine Ensemble/Two Sides/1-02 Side A Two.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Side A Two",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 2,
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Carmine Ensemble/Two Sides/2-01 Side B One.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Side B One",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 1,
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Carmine Ensemble/Two Sides/2-02 Side B Two.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Side B Two",
+            "artist": "Carmine Ensemble",
+            "albumartist": "Carmine Ensemble",
+            "album": "Two Sides",
+            "year": 1985,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 2,
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        }
+      ]
+    },
+    {
+      "artist": "Various Artists",
+      "title": "Mixtape Volume One",
+      "cover": {
+        "path": "Various Artists/Mixtape Volume One/cover.jpg",
+        "seed": "cover-b.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Various Artists/Mixtape Volume One/01 Opening Remix.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Opening Remix",
+            "track": 1,
+            "artist": "Alpha Artist",
+            "albumartist": "Various Artists",
+            "album": "Mixtape Volume One",
+            "year": 1999,
+            "tracktotal": 3,
+            "comp": true,
+            "albumartist_sort": "Various Artists",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Various Artists/Mixtape Volume One/02 Hello Again.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Hello Again",
+            "track": 2,
+            "artist": "Delta Duo",
+            "albumartist": "Various Artists",
+            "album": "Mixtape Volume One",
+            "year": 1999,
+            "tracktotal": 3,
+            "comp": true,
+            "albumartist_sort": "Various Artists",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Various Artists/Mixtape Volume One/03 Snow Song.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Snow Song",
+            "track": 3,
+            "artist": "Borealis Trio",
+            "albumartist": "Various Artists",
+            "album": "Mixtape Volume One",
+            "year": 1999,
+            "tracktotal": 3,
+            "comp": true,
+            "albumartist_sort": "Various Artists",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artist": "The Meridians",
+      "title": "Long Way Home",
+      "tracks": [
+        {
+          "path": "The Meridians/Long Way Home/01 Leaving.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Leaving",
+            "track": 1,
+            "artist": "The Meridians",
+            "albumartist": "The Meridians",
+            "album": "Long Way Home",
+            "year": 2007,
+            "tracktotal": 2,
+            "artist_sort": "Meridians, The",
+            "albumartist_sort": "Meridians, The",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "The Meridians/Long Way Home/02 Arriving.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Arriving",
+            "track": 2,
+            "artist": "The Meridians",
+            "albumartist": "The Meridians",
+            "album": "Long Way Home",
+            "year": 2007,
+            "tracktotal": 2,
+            "artist_sort": "Meridians, The",
+            "albumartist_sort": "Meridians, The",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

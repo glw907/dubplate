@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/harness/subsonic/session"
+	"github.com/glw907/dubplate/internal/harness/subsonic/stack"
 	"github.com/glw907/dubplate/internal/opensubsonic/client"
 )
 
@@ -135,7 +136,13 @@ type recordRun struct {
 	out     string
 	nd, gon *cannedOracle
 	stopped *bool
+	started []stack.Collection // what the last startOracles call was given
 	cfg     recordConfig
+}
+
+// fixtureManifest returns the path of a committed fixture manifest.
+func fixtureManifest(name string) string {
+	return filepath.Join("..", "..", "internal", "harness", "subsonic", "data", "fixture", name)
 }
 
 func newRecordRun(t *testing.T, spec string, nd, gon cannedOptions) *recordRun {
@@ -152,12 +159,14 @@ func newRecordRun(t *testing.T, spec string, nd, gon cannedOptions) *recordRun {
 		stopped: new(bool),
 	}
 	r.cfg = recordConfig{
-		spec: specPath, manifest: filepath.Join("..", "..", "internal", "harness", "subsonic", "data", "fixture", "manifest.json"),
-		out: r.out,
+		spec:        specPath,
+		collections: []collection{{name: "music", manifest: fixtureManifest("manifest.json")}},
+		out:         r.out,
 	}
 	old := startOracles
 	t.Cleanup(func() { startOracles = old })
-	startOracles = func(context.Context, string, string, int) ([]runningOracle, func(), error) {
+	startOracles = func(_ context.Context, _ string, cols []stack.Collection) ([]runningOracle, func(), error) {
+		r.started = cols
 		mk := func(name, url, digest string) runningOracle {
 			return runningOracle{
 				name:        name,
@@ -613,5 +622,51 @@ func TestSeedSession(t *testing.T) {
 	}
 	if a, b := s.Resolutions["album:Alpha Artist/Greatest Hits"], s.Resolutions["album:Delta Duo/Greatest Hits"]; a["navidrome"] == b["navidrome"] || a["gonic"] == b["gonic"] {
 		t.Errorf("the same-title pair shares an id: %v / %v", a, b)
+	}
+}
+
+func TestRecordOracleSeedDigestSurvivesTheCollectionList(t *testing.T) {
+	r := newRecordRun(t, `{"requests":[{"endpoint":"ping","format":"json"}]}`, nd(), gonic())
+	if err := runRecordOracle(t.Context(), r.cfg); err != nil {
+		t.Fatal(err)
+	}
+	s, err := session.Load(r.out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The digest the committed seed session records.
+	const seedDigest = "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c"
+	for name, src := range s.Sources {
+		if src.LibraryDigest != seedDigest {
+			t.Errorf("%s library digest = %s, want the seed's %s", name, src.LibraryDigest, seedDigest)
+		}
+	}
+	if len(r.started) != 1 || r.started[0].Name != "music" || r.started[0].Tracks != 29 {
+		t.Errorf("collections started = %+v, want one named music with 29 tracks", r.started)
+	}
+}
+
+func TestRecordOracleTwoCollections(t *testing.T) {
+	r := newRecordRun(t, `{"requests":[{"endpoint":"ping","format":"json"}]}`, nd(), gonic())
+	r.cfg.collections = []collection{
+		{name: "first", manifest: fixtureManifest("collection-a.json")},
+		{name: "second", manifest: fixtureManifest("collection-b.json")},
+	}
+	if err := runRecordOracle(t.Context(), r.cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(r.started) != 2 || r.started[0].Name != "first" || r.started[1].Name != "second" ||
+		r.started[0].Tracks != 11 || r.started[1].Tracks != 11 || r.started[0].Dir == r.started[1].Dir {
+		t.Errorf("collections started = %+v, want first and second, 11 tracks each, in distinct directories", r.started)
+	}
+	s, err := session.Load(r.out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const seedDigest = "5c82e274df9df7b57e91df2caa48ff103b6036893cf1e8e6bc187c88d668883c"
+	for name, src := range s.Sources {
+		if !regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(src.LibraryDigest) || src.LibraryDigest == seedDigest {
+			t.Errorf("%s library digest = %q, want a combined 64-hex digest", name, src.LibraryDigest)
+		}
 	}
 }

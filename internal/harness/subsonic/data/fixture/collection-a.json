@@ -1,0 +1,271 @@
+{
+  "seeds": [
+    {
+      "name": "cover-a.jpg",
+      "sha256": "909dd40bd0675f16874e4d4961cecc9a9e92652caa61c44c6e698905435bfc51"
+    },
+    {
+      "name": "embedded-a.png",
+      "sha256": "9ca8d3a620b373d924d5e5c11769ac2c2fa6515458d93e5f745c5074994f824d"
+    },
+    {
+      "name": "tone-220.flac",
+      "sha256": "4613fbc50390786b8b70b14560bde0cb043f388c900f2044d289df600f4e5e4c"
+    },
+    {
+      "name": "tone-330.flac",
+      "sha256": "98252b9fa55ebc89d4900183497987f38b45df762ab29e1d719147948f944c7a"
+    },
+    {
+      "name": "tone-440.flac",
+      "sha256": "7c14d99d177c5420c6d5804d0d511ef287692d7f36339fc6089844e402377f2f"
+    }
+  ],
+  "albums": [
+    {
+      "artist": "Alpha Artist",
+      "title": "Single Disc",
+      "cover": {
+        "path": "Alpha Artist/Single Disc/cover.jpg",
+        "seed": "cover-a.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Alpha Artist/Single Disc/01 Opening.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Opening",
+            "track": 1,
+            "mb_trackid": "9a1b2c3d-0000-4000-8000-0000000000c1",
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Single Disc",
+            "year": 2001,
+            "tracktotal": 3,
+            "disc": 1,
+            "disctotal": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a1",
+            "mb_releasegroupid": "9a1b2c3d-0000-4000-8000-0000000000d1",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Alpha Artist/Single Disc/02 Middle.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Middle",
+            "track": 2,
+            "artist": "Alpha Artist",
+            "albumartist": "Alpha Artist",
+            "album": "Single Disc",
+            "year": 2001,
+            "tracktotal": 3,
+            "disc": 1,
+            "disctotal": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a1",
+            "mb_releasegroupid": "9a1b2c3d-0000-4000-8000-0000000000d1",
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Alpha Artist/Single Disc/03 Together.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Together",
+            "track": 3,
+            "artist": "Alpha Artist feat. Guest Singer",
+            "albumartist": "Alpha Artist",
+            "album": "Single Disc",
+            "year": 2001,
+            "tracktotal": 3,
+            "disc": 1,
+            "disctotal": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a1",
+            "mb_releasegroupid": "9a1b2c3d-0000-4000-8000-0000000000d1",
+            "artists": [
+              "Alpha Artist",
+              "Guest Singer"
+            ],
+            "genres": [
+              "Ambient"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Delta Duo",
+      "title": "Greatest Hits",
+      "tracks": [
+        {
+          "path": "Delta Duo/Greatest Hits/01 First Light.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "First Light",
+            "track": 1,
+            "artist": "Delta Duo",
+            "albumartist": "Delta Duo",
+            "album": "Greatest Hits",
+            "year": 2012,
+            "tracktotal": 2,
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Delta Duo/Greatest Hits/02 Last Light.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Last Light",
+            "track": 2,
+            "artist": "Delta Duo",
+            "albumartist": "Delta Duo",
+            "album": "Greatest Hits",
+            "year": 2012,
+            "tracktotal": 2,
+            "genres": [
+              "Ambient"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artist": "Borealis Trio",
+      "title": "Double Feature",
+      "cover": {
+        "path": "Borealis Trio/Double Feature/cover.jpg",
+        "seed": "cover-a.jpg"
+      },
+      "tracks": [
+        {
+          "path": "Borealis Trio/Double Feature/Disc 1/01 Overture.flac",
+          "seed": "tone-440.flac",
+          "tags": {
+            "title": "Overture",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2",
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Borealis Trio/Double Feature/Disc 1/02 Interlude.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Interlude",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 2,
+            "track": 2,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2",
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Borealis Trio/Double Feature/Disc 2/01 Reprise.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Reprise",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 1,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2",
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        },
+        {
+          "path": "Borealis Trio/Double Feature/Disc 2/02 Finale.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Finale",
+            "artist": "Borealis Trio",
+            "albumartist": "Borealis Trio",
+            "album": "Double Feature",
+            "year": 1998,
+            "tracktotal": 2,
+            "disc": 2,
+            "disctotal": 2,
+            "track": 2,
+            "mb_albumid": "9a1b2c3d-0000-4000-8000-0000000000a2",
+            "genres": [
+              "Ambient"
+            ]
+          },
+          "picture": "embedded-a.png"
+        }
+      ]
+    },
+    {
+      "artist": "Zoë Ångström",
+      "title": "Café Années",
+      "tracks": [
+        {
+          "path": "Zoë Ångström/Café Années/01 Élégie.flac",
+          "seed": "tone-220.flac",
+          "tags": {
+            "title": "Élégie",
+            "track": 1,
+            "artist": "Zoë Ångström",
+            "albumartist": "Zoë Ångström",
+            "album": "Café Années",
+            "year": 2015,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 1,
+            "genres": [
+              "Ambient"
+            ]
+          }
+        },
+        {
+          "path": "Zoë Ångström/Café Années/02 Naïve.flac",
+          "seed": "tone-330.flac",
+          "tags": {
+            "title": "Naïve",
+            "track": 2,
+            "artist": "Zoë Ångström",
+            "albumartist": "Zoë Ångström",
+            "album": "Café Années",
+            "year": 2015,
+            "tracktotal": 2,
+            "disc": 1,
+            "disctotal": 1,
+            "genres": [
+              "Ambient"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

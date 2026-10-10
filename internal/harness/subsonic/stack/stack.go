@@ -19,9 +19,11 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +40,17 @@ var errNotReady = errors.New("stack: oracle not ready")
 // errTrackCount marks an oracle whose finished scan counted a different
 // number of tracks than the manifest declares.
 var errTrackCount = errors.New("stack: scan track count differs from manifest")
+
+// errFolderCount marks an oracle that lists a different number of music
+// folders than the run has collections.
+var errFolderCount = errors.New("stack: music folder count differs from collections")
+
+// errCollections marks a collection list Start refuses before it runs
+// anything.
+var errCollections = errors.New("stack: invalid collections")
+
+// errLibrary marks a Navidrome library the stack could not create.
+var errLibrary = errors.New("stack: navidrome library creation failed")
 
 // errImageNotPinned marks a running image whose inspect output does not
 // carry the pinned digest.
@@ -57,14 +70,80 @@ var (
 	pollInterval = 500 * time.Millisecond
 )
 
+// Collection is one built library the stack mounts read-only.
+type Collection struct {
+	// Name identifies the collection: gonic's alias for it, Navidrome's
+	// library name, and its directory under /collections.
+	Name string
+	// Dir is the built library root on the host.
+	Dir string
+	// Tracks is the library's track count.
+	Tracks int
+}
+
 // Config describes one stack run.
 type Config struct {
-	// MusicDir is the built fixture library, mounted read-only.
-	MusicDir string
-	// Tracks is the manifest's track count, which a finished scan must report.
-	Tracks int
+	// Collections is the ordered list of libraries the oracles serve. A
+	// single collection mounts at /music; a longer list mounts each at
+	// /collections/<name>. Navidrome's first collection is its
+	// MusicFolder.
+	Collections []Collection
 	// DigestFile is the committed file naming the pinned images.
 	DigestFile string
+}
+
+// total returns the track count a finished scan must report.
+func (c Config) total() int {
+	n := 0
+	for _, col := range c.Collections {
+		n += col.Tracks
+	}
+	return n
+}
+
+// mount returns where the oracles see col.
+func (c Config) mount(col Collection) string {
+	if len(c.Collections) == 1 {
+		return "/music"
+	}
+	return "/collections/" + col.Name
+}
+
+// checkCollections refuses an empty list, a name that is not a plain
+// alias, a repeated name, and two roots where one contains the other. Every
+// problem is reported.
+func checkCollections(cols []Collection) error {
+	if len(cols) == 0 {
+		return fmt.Errorf("%w: no collections", errCollections)
+	}
+	var problems []error
+	seen := make(map[string]bool)
+	for _, col := range cols {
+		switch {
+		case col.Name == "" || strings.HasPrefix(col.Name, ".") || strings.ContainsAny(col.Name, ",=/") || strings.Contains(col.Name, "->"):
+			problems = append(problems, fmt.Errorf("collection name %q is empty, starts with \".\", or contains one of \",\", \"->\", \"=\", \"/\"", col.Name))
+		case seen[col.Name]:
+			problems = append(problems, fmt.Errorf("collection name %q is used twice", col.Name))
+		}
+		seen[col.Name] = true
+	}
+	for i, a := range cols {
+		for _, b := range cols[i+1:] {
+			if within(a.Dir, b.Dir) || within(b.Dir, a.Dir) {
+				problems = append(problems, fmt.Errorf("collection %q (%s) and %q (%s) overlap", a.Name, a.Dir, b.Name, b.Dir))
+			}
+		}
+	}
+	if err := errors.Join(problems...); err != nil {
+		return fmt.Errorf("%w: %w", errCollections, err)
+	}
+	return nil
+}
+
+// within reports whether path is dir or lies inside it.
+func within(dir, path string) bool {
+	rel, err := filepath.Rel(dir, path)
+	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }
 
 // Oracle is one running server.
@@ -105,12 +184,18 @@ type spec struct {
 	env        []string
 	secretName string // set from the process environment, never argv
 	tmpfs      []string
+	// restLibraries marks the oracle that takes every collection after the
+	// first through its web API.
+	restLibraries bool
 }
 
-// Start runs both oracles and returns once each has finished scanning the
-// library with the manifest's track count. On any failure it removes
-// whatever it started before returning.
+// Start runs both oracles and returns once each lists one music folder per
+// collection and has finished scanning every collection's tracks. On any
+// failure it removes whatever it started before returning.
 func Start(ctx context.Context, cfg Config) (*Stack, error) {
+	if err := checkCollections(cfg.Collections); err != nil {
+		return nil, err
+	}
 	imgs, err := loadImages(cfg.DigestFile)
 	if err != nil {
 		return nil, err
@@ -129,25 +214,36 @@ func Start(ctx context.Context, cfg Config) (*Stack, error) {
 	}
 	s := &Stack{podman: bin, secret: secret}
 
+	first := cfg.mount(cfg.Collections[0])
+	var aliases []string
+	for _, col := range cfg.Collections {
+		aliases = append(aliases, col.Name+"->"+cfg.mount(col))
+	}
+	gonicPath := first
+	if len(cfg.Collections) > 1 {
+		gonicPath = strings.Join(aliases, ",")
+	}
+
 	specs := []spec{
 		{
 			name: "navidrome", ref: imgs.Navidrome, port: 4533,
 			user: "admin", password: secret,
 			env: []string{
-				"ND_MUSICFOLDER=/music",
+				"ND_MUSICFOLDER=" + first,
 				"ND_ENABLEINSIGHTSCOLLECTOR=false",
 				"ND_DEEZER_ENABLED=false",
 				"ND_LASTFM_ENABLED=false",
 				"ND_LISTENBRAINZ_ENABLED=false",
 				"ND_SCANNER_SCANONSTARTUP=true",
 			},
-			secretName: "ND_DEVAUTOCREATEADMINPASSWORD",
+			secretName:    "ND_DEVAUTOCREATEADMINPASSWORD",
+			restLibraries: true,
 		},
 		{
 			name: "gonic", ref: imgs.Gonic, port: 4747,
 			user: "admin", password: "admin",
 			env: []string{
-				"GONIC_MUSIC_PATH=/music",
+				"GONIC_MUSIC_PATH=" + gonicPath,
 				"GONIC_LISTEN_ADDR=0.0.0.0:4747",
 				"GONIC_SCAN_AT_START_ENABLED=true",
 				"GONIC_MULTI_VALUE_ARTIST=multi",
@@ -169,6 +265,18 @@ func Start(ctx context.Context, cfg Config) (*Stack, error) {
 			return nil, fmt.Errorf("start %s: %w", sp.name, err)
 		}
 		s.Oracles[i].BaseURL = base
+	}
+
+	for i, sp := range specs {
+		if !sp.restLibraries || len(cfg.Collections) == 1 {
+			continue
+		}
+		o := s.Oracles[i]
+		if err := s.addLibraries(ctx, cfg, o); err != nil {
+			err = fmt.Errorf("%s: %w%s", o.Name, err, s.logTail(ctx, o.container))
+			s.Close(ctx)
+			return nil, err
+		}
 	}
 
 	var errs []error
@@ -246,7 +354,9 @@ func (s *Stack) run(ctx context.Context, cfg Config, sp spec, name, runID string
 		"--name", name,
 		"--label", labelKey + "=" + runID,
 		"-p", "127.0.0.1::" + strconv.Itoa(sp.port),
-		"-v", cfg.MusicDir + ":/music:ro,z",
+	}
+	for _, col := range cfg.Collections {
+		args = append(args, "-v", col.Dir+":"+cfg.mount(col)+":ro,z")
 	}
 	for _, t := range sp.tmpfs {
 		args = append(args, "--tmpfs", t)
@@ -308,18 +418,24 @@ func (s *Stack) logTail(ctx context.Context, name string) string {
 	return "\nlast log lines:\n" + text
 }
 
-// waitReady polls until the oracle answers ping and a finished scan
-// reports the manifest's track count, or the deadline passes.
+// waitReady polls until the oracle answers ping, lists one music folder per
+// collection, and reports a finished scan counting every collection's
+// tracks, or the deadline passes.
 func waitReady(ctx context.Context, cfg Config, o Oracle) error {
 	ctx, cancel := context.WithTimeout(ctx, readyTimeout)
 	defer cancel()
 	c := o.Client(5 * time.Second)
+	want, total := len(cfg.Collections), cfg.total()
 	finished := -1 // count of the last finished scan, -1 when none was seen
+	folders := -1  // folder count of the last listing, -1 when none was seen
 	for {
 		if _, err := c.Do(ctx, "ping", nil, client.JSON); err == nil {
+			if n, err := musicFolders(ctx, c); err == nil {
+				folders = n
+			}
 			scanning, count, err := scanStatus(ctx, c)
 			if err == nil && !scanning {
-				if count == cfg.Tracks {
+				if count == total && folders == want {
 					return nil
 				}
 				finished = count
@@ -327,13 +443,127 @@ func waitReady(ctx context.Context, cfg Config, o Oracle) error {
 		}
 		select {
 		case <-ctx.Done():
-			if finished >= 0 {
-				return fmt.Errorf("%w: oracle %s counted %d, manifest has %d", errTrackCount, o.Name, finished, cfg.Tracks)
+			switch {
+			case folders >= 0 && folders != want:
+				return fmt.Errorf("%w: oracle %s lists %d music folders, run has %d collections", errFolderCount, o.Name, folders, want)
+			case finished >= 0:
+				return fmt.Errorf("%w: oracle %s counted %d, manifest has %d", errTrackCount, o.Name, finished, total)
 			}
 			return fmt.Errorf("%w: %s scan did not finish: %w", errNotReady, o.Name, ctx.Err())
 		case <-time.After(pollInterval):
 		}
 	}
+}
+
+// addLibraries creates every collection after the first as a Navidrome
+// library, through the web API the admin page uses: it waits for ping,
+// polls the admin login until it answers, then posts one creation per
+// collection. The first admin sees every library without a grant.
+func (s *Stack) addLibraries(ctx context.Context, cfg Config, o Oracle) error {
+	ctx, cancel := context.WithTimeout(ctx, readyTimeout)
+	defer cancel()
+	c := o.Client(5 * time.Second)
+	hc := &http.Client{Timeout: 5 * time.Second}
+
+	if err := pollUntil(ctx, func() bool {
+		_, err := c.Do(ctx, "ping", nil, client.JSON)
+		return err == nil
+	}); err != nil {
+		return fmt.Errorf("%w: %s did not answer ping: %w", errNotReady, o.Name, err)
+	}
+
+	login, err := json.Marshal(struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{o.User, o.Password})
+	if err != nil {
+		return fmt.Errorf("encode login: %w", err)
+	}
+	var token string
+	if err := pollUntil(ctx, func() bool {
+		status, body, err := postJSON(ctx, hc, o.BaseURL+"/auth/login", "", login)
+		if err != nil || status != http.StatusOK {
+			return false
+		}
+		var resp struct {
+			Token string `json:"token"`
+		}
+		if json.Unmarshal(body, &resp) != nil {
+			return false
+		}
+		token = resp.Token
+		return token != ""
+	}); err != nil {
+		return fmt.Errorf("%w: %s login did not succeed: %w", errNotReady, o.Name, err)
+	}
+
+	for _, col := range cfg.Collections[1:] {
+		req, err := json.Marshal(struct {
+			Name string `json:"name"`
+			Path string `json:"path"`
+		}{col.Name, cfg.mount(col)})
+		if err != nil {
+			return fmt.Errorf("encode library %s: %w", col.Name, err)
+		}
+		status, body, err := postJSON(ctx, hc, o.BaseURL+"/api/library", "Bearer "+token, req)
+		if err != nil {
+			return fmt.Errorf("%w: collection %s: %w", errLibrary, col.Name, err)
+		}
+		if status != http.StatusOK {
+			return fmt.Errorf("%w: collection %s: status %d: %s", errLibrary, col.Name, status, s.redact(strings.TrimSpace(string(body))))
+		}
+	}
+	return nil
+}
+
+// pollUntil calls ok every pollInterval until it reports true or ctx ends.
+func pollUntil(ctx context.Context, ok func() bool) error {
+	for !ok() {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(pollInterval):
+		}
+	}
+	return nil
+}
+
+// postJSON posts body to url and returns the status and the response body.
+// A non-empty auth is sent as Navidrome's X-ND-Authorization header.
+func postJSON(ctx context.Context, hc *http.Client, url, auth string, body []byte) (int, []byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if auth != "" {
+		req.Header.Set("X-ND-Authorization", auth)
+	}
+	resp, err := hc.Do(req)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	return resp.StatusCode, b, err
+}
+
+func musicFolders(ctx context.Context, c *client.Client) (int, error) {
+	resp, err := c.Do(ctx, "getMusicFolders", nil, client.JSON)
+	if err != nil {
+		return 0, err
+	}
+	var body struct {
+		Response struct {
+			MusicFolders struct {
+				MusicFolder []struct{} `json:"musicFolder"`
+			} `json:"musicFolders"`
+		} `json:"subsonic-response"`
+	}
+	if err := json.Unmarshal(resp.Body, &body); err != nil {
+		return 0, fmt.Errorf("parse music folders: %w", err)
+	}
+	return len(body.Response.MusicFolders.MusicFolder), nil
 }
 
 func scanStatus(ctx context.Context, c *client.Client) (scanning bool, count int, err error) {

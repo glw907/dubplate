@@ -10,9 +10,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -82,21 +84,93 @@ func fakePodman(args []string) int {
 	return 0
 }
 
-// oracleServer answers ping and getScanStatus like an OpenSubsonic server.
+// oracleServer answers ping, getMusicFolders (one folder), and getScanStatus
+// like an OpenSubsonic server.
 func oracleServer(t *testing.T, scanning bool, count int) string {
 	t.Helper()
+	return newOracle(t, oracleOptions{scan: scan{scanning, count}, folders: 1}).addr
+}
+
+// oracleOptions shapes a fakeOracle.
+type oracleOptions struct {
+	scan scan
+	// folders is the music folder count before any library is created.
+	folders int
+	// loginFailures is how many login attempts answer 401 first.
+	loginFailures int
+	// createStatus is the library creation's status; 0 answers 200.
+	createStatus int
+}
+
+// fakeOracle serves the OpenSubsonic routes the stack polls and Navidrome's
+// login and library creation, recording what it was asked.
+type fakeOracle struct {
+	addr string
+	opts oracleOptions
+
+	mu      sync.Mutex
+	logins  int
+	events  []string
+	created []map[string]string
+	auths   []string
+}
+
+func newOracle(t *testing.T, opts oracleOptions) *fakeOracle {
+	t.Helper()
+	f := &fakeOracle{opts: opts}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f.mu.Lock()
+		defer f.mu.Unlock()
 		switch {
 		case strings.HasSuffix(r.URL.Path, "/ping"):
+			f.events = append(f.events, "ping")
 			_, _ = fmt.Fprint(w, `{"subsonic-response":{"status":"ok","version":"1.16.1"}}`)
+		case strings.HasSuffix(r.URL.Path, "/getMusicFolders"):
+			f.events = append(f.events, "getMusicFolders")
+			var folders []string
+			for i := range f.opts.folders + len(f.created) {
+				folders = append(folders, fmt.Sprintf(`{"id":%d,"name":"f%d"}`, i+1, i+1))
+			}
+			_, _ = fmt.Fprintf(w, `{"subsonic-response":{"status":"ok","musicFolders":{"musicFolder":[%s]}}}`, strings.Join(folders, ","))
 		case strings.HasSuffix(r.URL.Path, "/getScanStatus"):
-			_, _ = fmt.Fprintf(w, `{"subsonic-response":{"status":"ok","scanStatus":{"scanning":%t,"count":%d}}}`, scanning, count)
+			f.events = append(f.events, "getScanStatus")
+			_, _ = fmt.Fprintf(w, `{"subsonic-response":{"status":"ok","scanStatus":{"scanning":%t,"count":%d}}}`, f.opts.scan.scanning, f.opts.scan.count)
+		case r.Method == http.MethodPost && r.URL.Path == "/auth/login":
+			f.events = append(f.events, "login")
+			f.logins++
+			if f.logins <= f.opts.loginFailures {
+				http.Error(w, "not yet", http.StatusUnauthorized)
+				return
+			}
+			_, _ = fmt.Fprint(w, `{"id":"u1","isAdmin":true,"token":"jwt-token","username":"admin"}`)
+		case r.Method == http.MethodPost && r.URL.Path == "/api/library":
+			f.events = append(f.events, "create")
+			f.auths = append(f.auths, r.Header.Get("X-ND-Authorization"))
+			var body map[string]string
+			if err := json.UnmarshalRead(r.Body, &body); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if f.opts.createStatus != 0 {
+				http.Error(w, "path not allowed", f.opts.createStatus)
+				return
+			}
+			f.created = append(f.created, body)
+			_, _ = fmt.Fprint(w, `{"id":"2"}`)
 		default:
 			http.NotFound(w, r)
 		}
 	}))
 	t.Cleanup(srv.Close)
-	return srv.Listener.Addr().String()
+	f.addr = srv.Listener.Addr().String()
+	return f
+}
+
+// eventIndex returns the position of the first event named name, or -1.
+func (f *fakeOracle) eventIndex(name string) int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return slices.Index(f.events, name)
 }
 
 // scan is the scan state an oracleServer reports.
@@ -131,7 +205,7 @@ func newEnv(t *testing.T, navidromeAddr, gonicAddr string) env {
 	if err != nil {
 		t.Fatal(err)
 	}
-	e.cfg = Config{MusicDir: e.music, Tracks: 3, DigestFile: digests}
+	e.cfg = Config{Collections: []Collection{{Name: "seed", Dir: e.music, Tracks: 3}}, DigestFile: digests}
 	swap(t, &podmanName, exe)
 	swap(t, &readyTimeout, 400*time.Millisecond)
 	swap(t, &pollInterval, 10*time.Millisecond)
@@ -575,6 +649,224 @@ func TestImageDigest(t *testing.T) {
 			if got != tc.want {
 				t.Errorf("digest = %q, want %q", got, tc.want)
 			}
+		})
+	}
+}
+
+// twoCollections gives e two disjoint sibling roots holding 2 and 1 tracks.
+func twoCollections(e *env) {
+	e.cfg.Collections = []Collection{
+		{Name: "first", Dir: filepath.Join(e.music, "first"), Tracks: 2},
+		{Name: "second", Dir: filepath.Join(e.music, "second"), Tracks: 1},
+	}
+}
+
+func TestStartMountsEveryCollection(t *testing.T) {
+	ndOracle := newOracle(t, oracleOptions{scan: scan{false, 3}, folders: 1, loginFailures: 2})
+	gonicOracle := newOracle(t, oracleOptions{scan: scan{false, 3}, folders: 2})
+	e := newEnv(t, ndOracle.addr, gonicOracle.addr)
+	twoCollections(&e)
+	if _, err := Start(t.Context(), e.cfg); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	runs := e.verb(t, "run")
+	if len(runs) != 2 {
+		t.Fatalf("run calls = %d, want 2", len(runs))
+	}
+	wantMounts := []string{
+		filepath.Join(e.music, "first") + ":/collections/first:ro,z",
+		filepath.Join(e.music, "second") + ":/collections/second:ro,z",
+	}
+	for _, c := range runs {
+		if got := flagValues(c.Args, "-v"); !slices.Equal(got, wantMounts) {
+			t.Errorf("-v = %q, want %q", got, wantMounts)
+		}
+	}
+	if envs := flagValues(runs[0].Args, "-e"); !slices.Contains(envs, "ND_MUSICFOLDER=/collections/first") {
+		t.Errorf("navidrome -e = %q, want its MusicFolder at the first collection", envs)
+	}
+	wantAlias := "GONIC_MUSIC_PATH=first->/collections/first,second->/collections/second"
+	if envs := flagValues(runs[1].Args, "-e"); !slices.Contains(envs, wantAlias) {
+		t.Errorf("gonic -e = %q, want %q", envs, wantAlias)
+	}
+
+	// Only the second collection is created; the first is the MusicFolder.
+	wantBody := []map[string]string{{"name": "second", "path": "/collections/second"}}
+	if !reflect.DeepEqual(ndOracle.created, wantBody) {
+		t.Errorf("created libraries = %v, want %v", ndOracle.created, wantBody)
+	}
+	if !slices.Equal(ndOracle.auths, []string{"Bearer jwt-token"}) {
+		t.Errorf("creation auth headers = %q, want the login token as a bearer", ndOracle.auths)
+	}
+	if len(gonicOracle.created) != 0 {
+		t.Errorf("gonic was asked to create %v", gonicOracle.created)
+	}
+	if ndOracle.logins != 3 {
+		t.Errorf("login attempts = %d, want 3 (two refused, then one accepted)", ndOracle.logins)
+	}
+	ping, login, create, folders := ndOracle.eventIndex("ping"), ndOracle.eventIndex("login"),
+		ndOracle.eventIndex("create"), ndOracle.eventIndex("getMusicFolders")
+	if ping < 0 || ping > login || login > create || create > folders {
+		t.Errorf("navidrome events = %q, want ping, login, create, then the folder check", ndOracle.events)
+	}
+}
+
+func TestStartCollectionRefusals(t *testing.T) {
+	tests := []struct {
+		name    string
+		cols    func(e env) []Collection
+		mention []string
+	}{
+		{name: "empty list", cols: func(env) []Collection { return nil }, mention: []string{"no collections"}},
+		{
+			name: "one name twice",
+			cols: func(e env) []Collection {
+				return []Collection{{"x", filepath.Join(e.music, "a"), 1}, {"x", filepath.Join(e.music, "b"), 1}}
+			},
+			mention: []string{`"x" is used twice`},
+		},
+		{
+			name: "nested paths",
+			cols: func(e env) []Collection {
+				return []Collection{{"outer", e.music, 1}, {"inner", filepath.Join(e.music, "inner"), 1}}
+			},
+			mention: []string{`"outer"`, `"inner"`, "overlap"},
+		},
+		{
+			name: "same path",
+			cols: func(e env) []Collection {
+				return []Collection{{"one", e.music, 1}, {"two", e.music, 1}}
+			},
+			mention: []string{`"one"`, `"two"`, "overlap"},
+		},
+		{name: "empty name", cols: func(e env) []Collection { return []Collection{{"", e.music, 1}} }, mention: []string{`""`}},
+		{name: "dot name", cols: func(e env) []Collection { return []Collection{{".hidden", e.music, 1}} }, mention: []string{`".hidden"`}},
+		{name: "comma name", cols: func(e env) []Collection { return []Collection{{"a,b", e.music, 1}} }, mention: []string{`"a,b"`}},
+		{name: "arrow name", cols: func(e env) []Collection { return []Collection{{"a->b", e.music, 1}} }, mention: []string{`"a->b"`}},
+		{name: "equals name", cols: func(e env) []Collection { return []Collection{{"a=b", e.music, 1}} }, mention: []string{`"a=b"`}},
+		{name: "slash name", cols: func(e env) []Collection { return []Collection{{"a/b", e.music, 1}} }, mention: []string{`"a/b"`}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := newEnv(t, "127.0.0.1:1", "127.0.0.1:1")
+			e.cfg.Collections = tt.cols(e)
+			_, err := Start(t.Context(), e.cfg)
+			if !errors.Is(err, errCollections) {
+				t.Fatalf("Start error = %v, want errCollections", err)
+			}
+			for _, m := range tt.mention {
+				if !strings.Contains(err.Error(), m) {
+					t.Errorf("error %q does not mention %q", err, m)
+				}
+			}
+			if got := e.calls(t); len(got) != 0 {
+				t.Errorf("podman ran %d times before the refusal: %v", len(got), got)
+			}
+		})
+	}
+}
+
+func TestStartLibraryCreationError(t *testing.T) {
+	ndOracle := newOracle(t, oracleOptions{scan: scan{false, 3}, folders: 1, createStatus: http.StatusBadRequest})
+	e := newEnv(t, ndOracle.addr, oracleServer(t, false, 3))
+	twoCollections(&e)
+	_, err := Start(t.Context(), e.cfg)
+	if !errors.Is(err, errLibrary) {
+		t.Fatalf("Start error = %v, want errLibrary", err)
+	}
+	for _, m := range []string{"navidrome", "second", "400", "path not allowed"} {
+		if !strings.Contains(err.Error(), m) {
+			t.Errorf("error %q does not mention %q", err, m)
+		}
+	}
+	assertRemovedWithVolumes(t, e)
+}
+
+func TestStartLoginNeverSucceeds(t *testing.T) {
+	ndOracle := newOracle(t, oracleOptions{scan: scan{false, 3}, folders: 1, loginFailures: 1 << 20})
+	e := newEnv(t, ndOracle.addr, oracleServer(t, false, 3))
+	twoCollections(&e)
+	_, err := Start(t.Context(), e.cfg)
+	if !errors.Is(err, errNotReady) || !strings.Contains(err.Error(), "navidrome login did not succeed") {
+		t.Fatalf("Start error = %v, want errNotReady naming the login", err)
+	}
+	if len(ndOracle.created) != 0 {
+		t.Errorf("libraries created without a login: %v", ndOracle.created)
+	}
+	assertRemovedWithVolumes(t, e)
+}
+
+func TestStartFolderCount(t *testing.T) {
+	tests := []struct {
+		name          string
+		two           bool
+		nd, gonic     oracleOptions
+		wantErr       bool
+		is            error
+		mention       []string
+		wantNoMention []string
+	}{
+		{
+			name: "one folder per collection",
+			two:  true,
+			nd:   oracleOptions{scan: scan{false, 3}, folders: 1}, gonic: oracleOptions{scan: scan{false, 3}, folders: 2},
+		},
+		{
+			name: "gonic lists one folder for two collections",
+			two:  true,
+			nd:   oracleOptions{scan: scan{false, 3}, folders: 1}, gonic: oracleOptions{scan: scan{false, 3}, folders: 1},
+			wantErr: true, is: errFolderCount, mention: []string{"gonic lists 1 music folders, run has 2 collections"}, wantNoMention: []string{"navidrome"},
+		},
+		{
+			name: "navidrome lists three folders for two collections",
+			two:  true,
+			nd:   oracleOptions{scan: scan{false, 3}, folders: 2}, gonic: oracleOptions{scan: scan{false, 3}, folders: 2},
+			wantErr: true, is: errFolderCount, mention: []string{"navidrome lists 3 music folders, run has 2 collections"},
+		},
+		{
+			name: "one collection, two folders",
+			nd:   oracleOptions{scan: scan{false, 3}, folders: 2}, gonic: oracleOptions{scan: scan{false, 3}, folders: 1},
+			wantErr: true, is: errFolderCount, mention: []string{"navidrome lists 2 music folders, run has 1 collections"},
+		},
+		{
+			name: "one collection, no folders",
+			nd:   oracleOptions{scan: scan{false, 3}, folders: 1}, gonic: oracleOptions{scan: scan{false, 3}},
+			wantErr: true, is: errFolderCount, mention: []string{"gonic lists 0 music folders, run has 1 collections"},
+		},
+		{
+			name: "scan count short of the total",
+			two:  true,
+			nd:   oracleOptions{scan: scan{false, 2}, folders: 1}, gonic: oracleOptions{scan: scan{false, 3}, folders: 2},
+			wantErr: true, is: errTrackCount, mention: []string{"navidrome counted 2, manifest has 3"}, wantNoMention: []string{"gonic"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := newEnv(t, newOracle(t, tt.nd).addr, newOracle(t, tt.gonic).addr)
+			if tt.two {
+				twoCollections(&e)
+			}
+			_, err := Start(t.Context(), e.cfg)
+			if !tt.wantErr {
+				if err != nil {
+					t.Fatalf("Start: %v", err)
+				}
+				return
+			}
+			if !errors.Is(err, tt.is) {
+				t.Fatalf("Start error = %v, want %v", err, tt.is)
+			}
+			for _, m := range tt.mention {
+				if !strings.Contains(err.Error(), m) {
+					t.Errorf("error %q does not mention %q", err, m)
+				}
+			}
+			for _, m := range tt.wantNoMention {
+				if strings.Contains(err.Error(), m) {
+					t.Errorf("error %q mentions %q", err, m)
+				}
+			}
+			assertRemovedWithVolumes(t, e)
 		})
 	}
 }
