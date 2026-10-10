@@ -3,7 +3,7 @@
 ## Current state
 Rung 5, the navidrome-removal and re-plan document passes, rung 6d, and rung 12 slices 1, 2a, and 2b are closed
 (HISTORY). Slice 2b's code is on master through `be9abf5` (`e561c32..be9abf5`) and its ledgers landed in the commit
-after it. Master's full gate: <pending>. Nothing is paused and nothing deploys.
+after it. Master's full gate is green at `313c7ff` (heavy lane, 2026-10-10); the closing unexport `8dbe59a` is test-only and passed the scoped gate. Nothing is paused and nothing deploys.
 
 Slice 3 is ready to plan: it is the first slice with a dubplate side and consumes 2b's XML contract tier, the
 machine-form ledger (52 owed rows, none active), the per-endpoint assignment, the differ with its encoding-quirk

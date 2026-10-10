@@ -9,7 +9,7 @@ E7), in the worktree `.claude/worktrees/lane-3-slice-2` on branch `lane-3-slice-
 B: 4 to 6, C: 7 to 9, D: 10 and 11) and a close. Segments A and B and Tasks 7 and 8 ran on 2026-10-07, when Geoff
 paused the run; Task 9 onward ran in the unattended window of 2026-10-10. The branch rebased onto master and
 fast-forwarded as `e561c32..be9abf5` (Task 1 was `9f878c3` before the rebase, and the plan's errata cite that hash).
-Master's full gate: <pending>.
+Master's full gate is green at `313c7ff` (heavy lane, 2026-10-10); the closing unexport `8dbe59a` is test-only and passed the scoped gate.
 
 ### What landed
 
@@ -107,7 +107,7 @@ Library".
 
 The rebase onto master was not a fast-forward, but master's only change was `docs/STATUS.md`. `git diff` showed the
 rebased code tree identical to the pre-rebase tree (STATUS only), so no merged-range `diff-reviewer` ran; that is a
-conductor ruling. Master's full gate: <pending>.
+conductor ruling. Master's full gate is green at `313c7ff` (heavy lane, 2026-10-10); the closing unexport `8dbe59a` is test-only and passed the scoped gate.
 
 ### What slice 3 would be wrong to rediscover
 
@@ -130,7 +130,7 @@ conductor ruling. Master's full gate: <pending>.
 ### Budgets
 
 Tokens: the ceiling was 9.0M (flag 7.2M, not crossed). About 3.5M was spent before 2026-10-10. The overnight run spent
-about 2.85M in subagents and about 0.6M conducting, about 7.0M in all. The figure is approximate: `/cost` was not read
+about 3.25M in subagents and about 0.65M conducting, about 7.4M in all (past the 7.2M flag during the close, which the plan lets finish). The figure is approximate: `/cost` was not read
 in an unattended run. Clock: the overnight run took about 00:01 to 02:30 AKDT on 2026-10-10 (Task 9 13 min, segment D 38
 min, the boundary full gate 7.5 min, the merge gate 9.4 min including one exit-75 wait). The plan carries no clock
 estimate because it predates the 2026-10-09 rule. Attended time: none overnight, since Geoff scheduled the run; the one
