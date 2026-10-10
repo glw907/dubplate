@@ -119,9 +119,10 @@ outside `check` (`Makefile:136-146`).
     back to full (mutation: skip the shape and resolve checks).
   - P2, non-ancestor base: a commit on a side branch falls back to full (mutation: drop the ancestry check).
   - P3, empty change set: `--base` set to HEAD on a clean tree falls back to full (mutation: drop the empty rule).
-  - P4, `go.mod`: a one-line `go.mod` change runs full (mutation: drop `go.mod` from the machinery list).
+  - P4, `go.mod`: a one-line `go.mod` change runs full (mutation: drop `go.mod` from the machinery list and list it
+    as no-effect; the unmatched promotion alone also sends it to full).
   - P5, `check.sh`: a comment line in `scripts/check.sh`, committed after the base, runs full (mutation: drop
-    `check.sh` from the list).
+    `check.sh` from the list and list it as no-effect, for the same reason).
   - P6, unmatched path: a new top-level `probe.cfg` runs full (mutation: classify unmatched paths as no-effect).
 
 ## Task 2: The rendered leg by reverse dependency, and `svelte-check` in the reduced form
@@ -286,6 +287,21 @@ below the base, the base `B` taken from that commit, then the planted change aft
 
 Finding: the machinery list is defense in depth with the unmatched promotion for `go.mod` and `scripts/check.sh`
 (neither lies in a Go package, so the named P4 and P5 mutations cannot fire alone).
+
+Fix round (review of bfd33c5). The change set now comes from `git diff --name-only --no-renames -z <base>` and `git ls-files
+--others --exclude-standard -z`, each checked on its own, and `go list ./...` is captured to a file with its exit status
+checked. The P4 and P5 mutations in the plan text were amended to "drop from the machinery list and list as no-effect"
+(the strong form run above is now the named one).
+
+- **P1b, `go list` failure.** Planted: untracked `internal/engine/store/zz/zz.go` importing a missing module. Scope line:
+  `fallback="go list could not name the module's packages"`. Red (old process-substitution form): `scope=changed
+  base=0b87e558... conform=full rendered=skipped ... files=1: internal/engine/store/zz/zz.go`.
+- **P1c, `git diff` failure.** Triggered with a `git` shim on `PATH` that exits 1 for `diff` and execs git otherwise
+  (a corrupt index also fails `git status`, which would mask the red). Planted: `ROADMAP.md` edit committed after the
+  base, plus untracked `docs/u.md`. Scope line: `fallback="git diff could not list the tracked changes"`. Red (old
+  piped form): `scope=changed base=10181e9c... files=1: docs/u.md`, the tracked change silently dropped.
+- **P1d, rename.** Planted: `git mv .gitleaksignore docs/gitleaksignore.bak`. Scope line: `fallback=".gitleaksignore is
+  machinery"`. Red (`--no-renames` dropped): `scope=changed base=8557d52e... files=1: docs/gitleaksignore.bak`.
 
 ## Review
 

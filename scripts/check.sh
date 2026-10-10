@@ -207,11 +207,10 @@ fi
 # change set rather than an empty one. `git diff --name-only <base>`
 # compares the base against the working tree, which covers staged and
 # unstaged edits alike; untracked-but-not-ignored files come from `git
-# status --porcelain`, because a brand-new file is invisible to git diff
-# until it is staged and is exactly the file a gate must not miss. -uall
-# is load-bearing there: the default porcelain output collapses an
-# untracked directory to one entry ending in a slash, and every file
-# inside it would go unscanned. An empty change set also promotes the
+# ls-files --others --exclude-standard`, because a brand-new file is
+# invisible to git diff until it is staged and is exactly the file a
+# gate must not miss. It lists every file inside an untracked directory
+# individually, so none goes unscanned. An empty change set also promotes the
 # run to the full form, since it proves nothing was checked.
 changed_files=()
 change_base=""
@@ -264,14 +263,20 @@ derive_change_set() {
       return 1
     fi
   fi
-  if ! {
-    git diff --name-only "$change_base"
-    git status --porcelain -uall | sed -n 's/^?? //p'
-  } | sed 's:/$::' | sort -u >"$work_dir/changed.txt"; then
-    fallback_reason="git could not list the change set"
+  # Separate commands, each checked, so one failing git call cannot
+  # narrow the set to what the other listed. --no-renames lists a
+  # rename's source path as well as its destination, so the source is
+  # classified too; -z keeps odd file names intact.
+  if ! git diff --name-only --no-renames -z "$change_base" >"$work_dir/tracked.z"; then
+    fallback_reason="git diff could not list the tracked changes"
     return 1
   fi
-  mapfile -t changed_files <"$work_dir/changed.txt"
+  if ! git ls-files --others --exclude-standard -z >"$work_dir/untracked.z"; then
+    fallback_reason="git ls-files could not list the untracked files"
+    return 1
+  fi
+  sort -zu "$work_dir/tracked.z" "$work_dir/untracked.z" >"$work_dir/changed.z"
+  mapfile -d '' -t changed_files <"$work_dir/changed.z"
   if [ "${#changed_files[@]}" -eq 0 ]; then
     fallback_reason="the change set is empty"
     return 1
@@ -289,13 +294,16 @@ declare -A go_pkg_dirs=()
 load_go_pkg_dirs() {
   local root dir
   root="$(go list -m -f '{{.Dir}}')" || return 1
+  # Captured to a file so go list's own exit status is checked; a
+  # process substitution would lose it.
+  go list -f '{{.Dir}}' ./... >"$work_dir/pkg-dirs.txt" || return 1
   while IFS= read -r dir; do
     if [ "$dir" = "$root" ]; then
       go_pkg_dirs["."]=1
     else
       go_pkg_dirs["${dir#"$root"/}"]=1
     fi
-  done < <(go list -f '{{.Dir}}' ./...) || return 1
+  done <"$work_dir/pkg-dirs.txt"
   [ "${#go_pkg_dirs[@]}" -gt 0 ]
 }
 
