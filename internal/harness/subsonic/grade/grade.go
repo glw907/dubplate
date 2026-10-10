@@ -94,7 +94,7 @@ func New(cfg Config) (*Grader, error) {
 	}
 	cols := cfg.Collections
 	if len(cols) == 0 {
-		cols = []Collection{{Name: "music", Manifest: cfg.Manifest}}
+		cols = []Collection{{Name: fixture.DefaultCollectionName, Manifest: cfg.Manifest}}
 	}
 	tracks, digest, err := buildCollections(cols)
 	if err != nil {

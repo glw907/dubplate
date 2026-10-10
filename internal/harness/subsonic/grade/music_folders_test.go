@@ -73,7 +73,7 @@ func folderBody(t *testing.T, s *session.Session, endpoint, folder, source strin
 }
 
 // TestMusicFoldersSessionLoads loads the committed session: every request is
-// answered by both oracles, and the three collection keys resolve on both.
+// answered by both oracles, and the two collection keys resolve on both.
 func TestMusicFoldersSessionLoads(t *testing.T) {
 	s, err := session.Load(musicFoldersSession)
 	if err != nil {

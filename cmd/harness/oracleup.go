@@ -89,9 +89,6 @@ type collection struct {
 	name, manifest string
 }
 
-// defaultCollectionName names the one collection a --manifest run serves.
-const defaultCollectionName = "music"
-
 // parseCollections reads repeated name=manifest flag values. Whether a name
 // is acceptable is the stack's to decide.
 func parseCollections(values []string) ([]collection, error) {
@@ -123,7 +120,7 @@ func resolveCollections(manifest string, flags []string, digests string) ([]coll
 		manifest = cmp.Or(manifest, p.manifest)
 	}
 	if len(cols) == 0 {
-		cols = []collection{{name: defaultCollectionName, manifest: manifest}}
+		cols = []collection{{name: fixture.DefaultCollectionName, manifest: manifest}}
 	}
 	return cols, digests, nil
 }
