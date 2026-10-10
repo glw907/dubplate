@@ -18,6 +18,16 @@ A first version reports; a later one proposes fixes into the decision queue. Bui
 the matcher, the catalog's audio keys (0.8 hook 1), and the art blob (hook 3). Source:
 the 2026-09-24 differentiator review.
 
+### Add or fix a MusicBrainz entry
+When MusicBrainz lacks an album or has it wrong, a member can add or fix the entry from
+the web app or the local TUI, then re-match the upload. The known route is release editor
+seeding (MusicBrainz's "Release Editor Seeding" developer page). Picard and Harmony both
+use it. dubplate would pre-fill the editor from the upload's tags and tracklist, and the
+member submits under their own MusicBrainz account, since MusicBrainz has no general edit
+API. It gives the unmatched-album route (ruled for 0.8 on 2026-10-10) a way back to a
+matched album. It builds on the matcher, intake's held uploads, and the 0.9 local client.
+Source: Geoff, 2026-10-10, wanted after 0.8 with no version target yet.
+
 ### Requests
 A member asks whether anyone has an album. When another member uploads a match, intake
 closes the request and tells the asker. A single-user streamer has no reason to build it,
