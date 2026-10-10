@@ -117,6 +117,9 @@
   `Result`, `Apply`, `Finding`, `Kind*`, `ErrVersionMismatch`) and `stack`'s
   `ErrNoPodman`. Unexport them or name the caller that will use them. Refused at slice 2b's close because the leg is
   staged. `xmlrule`'s five (`ErrVersion`, `ErrSize`, `ErrChecksum`, `ErrNotCached`, `XSDURL`) are unexported (slice 2b Task 12). Found by slice 2b's architecture reads, 2026-10-10 #arch #project:prod-polish
+- [ ] #34 A scoped run that skips the rendered leg launches no browser and could take the light lane, but the lane
+  is chosen before `check.sh` classifies the change, so it queues on the heavy lane. Found by the gate scope pass,
+  2026-10-10 #gate
 
 ## Done
 

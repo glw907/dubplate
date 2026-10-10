@@ -2,6 +2,61 @@
 
 Per-pass ledger, newest first.
 
+## Gate scope pass (2026-10-10): closed, lane 1
+
+Executed against `docs/superpowers/plans/2026-10-10-gate-scope-pass.md` (`tool` class, 2.5M ceiling, flag 2.0M) in the
+main tree, Tasks 0 to 4 and a close. The plan's Record holds every proof and red.
+
+### What landed
+
+- `2af4404`, the dependency sweep. Moved: x/sys 0.49.0, x/crypto 0.58.0, x/text 0.43.0, vite 8.3.4, @types/node
+  24.19.2, playwright 1.64.0 (Chromium 156), platformdirs 4.12.4. Held, each with its unblock condition in the sweep
+  record: TypeScript 7.0.2 (svelte-check and kit lack a ^7 peer), @types/node 26, and rclone 1.75.2 (Fedora ships
+  1.74.3).
+- `bfd33c5` and its fix `299607b`: `check.sh --base`, fail-closed classes, and `--dry-run`.
+- `80f91ca`: the rendered leg is chosen by reverse dependency, and svelte-check runs in `--reduced`.
+- `95b5379`: Go's test cache sizes the conform suite, the hand scoping is gone, the double bundle build is gone, and
+  `make test` runs the two subprocess tests with `-count=1` behind a rename guard.
+- `ac479ea`: the `gate-tier.mjs` shim for pass-execute.
+- `f0a2056`: the close docs, plus the rung 14a plan amendment, which takes 14a's clock from about 7 h to about 6.8 h
+  with the ceiling unchanged at 11.8M.
+
+### What the gates caught
+
+- **Task 1's review** found three ways the classification failed open, each reproduced and each now red under its
+  mutation (P1b to P1d): a `go list` failure lost inside process substitution; a `git diff` failure swallowed inside a
+  brace group under `if !`; rename detection hiding a machinery source path.
+- **The first close gate exited 127** (`scripts/check.sh: line 609: e: command not found`). A close docs fix round
+  edited `check.sh`'s header comments while the gate was executing it. Bash reads a script incrementally, so the
+  shifted bytes were read as a command. The rerun on the final tree passed.
+
+### What a later pass would be wrong to rediscover
+
+- Go's test cache cannot see reads made through a subprocess (`exec`, `go list`). A test reading source that way must
+  run with `-count=1`.
+- `opshttp` joins the rendered set when rung 14a mounts it, with no `check.sh` edit.
+- `make tidy-check` diffs go.mod and go.sum against the index, so a sweep must stage go.mod and go.sum before its gate.
+- Never edit a script under `scripts/` while a gate runs it.
+- The plan's P4 and P5 named mutations could not fire, because the unmatched promotion covers both paths. They were
+  amended to the strong form.
+
+### Pass score
+
+- **Output quality:** every task accepted after review; Task 1 needed one fix round.
+- **Tokens:** subagents used about 0.72M against the 2.5M ceiling (flag 2.0M). The conductor's own share is
+  unmeasured; `/cost` is the exact figure.
+- **Attended time:** no planning misses and no execution sitting. Geoff's questions in the session concerned other
+  initiatives.
+- **Clock:** about 5.3 h against the 2 h estimate. `cairn-run-gate --records` for the main tree: gate 2342 s over 6
+  runs, lock wait 2858 s. Task 0 waited 678 s and 1472 s, and Task 3's full gate waited 2158 s, all behind cairn-cms
+  engine pass B's gates; the scratch-tree proof runs waited a further 204 s and 496 s. Rework: Task 1's fix round
+  (about 9 min plus its gate) and the failed close gate (one full gate, about 9 min). The overrun came from lock wait
+  behind another session's announced heavy work, which the plan did not price, plus cold conform runs at about 150 s
+  each in Task 3's proofs.
+- **Departures from the plan:** Task 4 took no per-task full gate; one close gate covered Task 4, the simplifier (it
+  ran over the one JS file and changed nothing), and the close docs, each committed after it passed. No architecture
+  read ran, because no Go package changed.
+
 ## Rung 12 slice 2b, the oracle harness (second pass): closed 2026-10-10, lane 3
 
 Executed against `docs/superpowers/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md` (revision 1.3, errata E1 to

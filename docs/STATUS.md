@@ -1,31 +1,29 @@
 # dubplate status
 
 ## Current state
-Rung 5, the navidrome-removal and re-plan document passes, rung 6d, and rung 12 slices 1, 2a, and 2b are closed
-(HISTORY). Slice 2b's code is on master through `be9abf5` (`e561c32..be9abf5`) and its ledgers landed in the commit
-after it. Master's full gate is green at `313c7ff` (heavy lane, 2026-10-10); the closing unexport `8dbe59a` is test-only and passed the scoped gate. Nothing is paused and nothing deploys.
+Rung 5, the navidrome-removal and re-plan document passes, rung 6d, rung 12 slices 1, 2a, and 2b, and the gate scope
+pass are closed (HISTORY). Master's full gate is green at `f0a2056`. Nothing is paused and nothing deploys.
 
-Slice 3 is ready to plan: it is the first slice with a dubplate side and consumes 2b's XML contract tier, the
-machine-form ledger (52 owed rows, none active), the per-endpoint assignment, the differ with its encoding-quirk
-rows, and the music-folders evidence (both oracles recorded over two collections, the `musicFolderId` filter graded).
-The Tempus walk ran on 2026-10-10 (`1f4f232`, 11 of 11 flows, emulator needs `-gpu host`), and Amperfy's walk is rung 16's attended gate.
+The gate is classified: `check.sh --base`, fail-closed classes, `--dry-run`, the rendered leg chosen by reverse
+dependency, and Go's cache sizing conform. The 0.9 home install scope and forward hooks 23 and 24 landed at `e833365`
+(ROADMAP and the streamer spec).
+
+Slice 3 waits on rung 9's catalog; it consumes 2b's XML contract tier, the machine-form ledger (52 owed rows, none
+active), the per-endpoint assignment, the differ, and the music-folders evidence. The Tempus walk ran on 2026-10-10
+(`1f4f232`, 11 of 11 flows, emulator needs `-gpu host`); Amperfy's walk is rung 16's attended gate.
 The box is unchanged: dubplate-server binary `d1e93e9`, the serve unit installed and disabled, the `auth`, `roster`,
 `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB); the first 6d deploy takes the runbook's 6d
 upgrade. Archive: HISTORY, "Archive record".
 
 ## Next action
-> **Resume prompt (start a fresh brainstorm-and-plan session in /var/home/glw907/Projects/dubplate; `claude --model
-> claude-opus-5-5`, effort high)**
-> **Goal.** Start from `docs/superpowers/research/2026-10-10-next-pass-planning-brief.md`: it recommends rung 14
-> (slice 3 waits on rung 9's catalog), lists three questions for Geoff (rung 9's concurrency ruling first), and
-> proposes the scope, decisions, segments, and ceiling. Ask the questions, then spec and plan rung 14.
-> **Settled (do not re-brainstorm):** rung 12
-> slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision note, 2026-10-10"); the lane registry
-> below. **Approach:** invoke `pass-core`; open the pass with the `dependency-upgrade` sweep, which now covers libxml2
-> (held by `brew pin libxml2`); write the plan to `docs/superpowers/plans/`, run it through `spec-plan-review`, and take
-> it to Geoff for approval before any executor launches. This closed session does not draft the plan.
+Rung 14a: the plan is `docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md`, revision 2.1 as amended at
+`f0a2056`. It awaits Geoff's approval of its task list and ceiling (11.8M, about 6.8 h, about 8.3 h with fix rounds).
+After approval it launches in the worktree `.claude/worktrees/lane-1-rung-14a`, with the lane checklist run first.
+Settled (do not re-brainstorm): rung 12 slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision
+note, 2026-10-10").
 
 ## Owner questions
+- Rung 7 spec revision 2.1 (below) awaits Geoff's read.
 - R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it (not blocking).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 - Workstation: ~41 stale `DUBPLATE_*` exports in `~/.local/secrets` fail `check` outside `env -i`; prune them.
@@ -33,9 +31,19 @@ upgrade. Archive: HISTORY, "Archive record".
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | active 2026-10-10: gate scope pass, `docs/superpowers/plans/2026-10-10-gate-scope-pass.md` (`tool`, 2.5M ceiling) |
-| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2` | closed 2026-10-10; worktree removed; code on master through `be9abf5` |
+| 1 | main tree (master) | idle; next is rung 14a, awaiting plan approval, then the worktree `.claude/worktrees/lane-1-rung-14a` |
+| rung 7 planning | docs only | spec revision 2.1 at `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md` (`102d973`) awaits Geoff's read; his seven rulings are written in; the plan is drafted after approval |
+| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2` | closed 2026-10-10; worktree removed |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
+
+## Owed
+- **After the rung 7 spec approval:** errata to eight documents, listed in
+  `docs/superpowers/research/2026-10-10-rung-7-intake-fold.md` (SS hook 12 and the buy-link hook; CH; 14A; W8.2; VI;
+  BS re-band to L; PCF; CLAUDE.md).
+- **Now:** `docs/roster-walk.md` still pins Tempus 4.28.0 with the wrong F11 expectation (the walk used 4.29.0, and
+  F11 used `createPlaylist(name, songId)`); the rung 14a spec's eight owed errata; the `id3-tags` copy must name a
+  working strip method (`mid3v2 --delete-all` or a tagger), at the rung 7 plan's copy read; `make derive` has to run
+  once before the next oracle-dependent rung (expect no diff).
 
 ## Open items (carried; landings from the re-plan spec's "Where the carried items land")
 - **Revoke verb and slice 6:** spec criteria 7 and 8 (the dual-key epoch, R-6d20; `EpochStore.Bump` has no caller).
@@ -52,7 +60,7 @@ upgrade. Archive: HISTORY, "Archive record".
   offboarding deprovision, CSP-scope and shared-origin M2, username uniqueness. **Slice 7:** the streamer database in
   a restore. **Slice 8:** group 2 in trailers, `CAP_NET_BIND_SERVICE`, command naming.
 - **Lane 1's next `web/` pass:** R-6d17's note and BACKLOG #23 (HISTORY, 6d, "Routed items"). **Bugs and chores:** the
-  bearer bypass's first consumer owes a cookie test (HISTORY); BACKLOG #15, #16, #21, #23-#26, #28, #30-#33; two dead
+  bearer bypass's first consumer owes a cookie test (HISTORY); BACKLOG #15, #16, #21, #23-#26, #28, #30-#34; two dead
   `docker compose` entries in `.claude/settings.json` for Geoff to drop. **Owed:** settle `init`/`upgrade` naming
   against `dubplate-server`; the configuration-reference generator as a hook 18 consumer.
-- **Rung 7, rung 9,** errata inventory, `give-back`, `packaging`, photo lane: HISTORY, slice 1 close, "Moved out of STATUS".
+- **Rung 9,** errata inventory, `give-back`, `packaging`, photo lane: HISTORY, slice 1 close, "Moved out of STATUS".
