@@ -109,14 +109,10 @@
   (checked with 65536- and 65540-element stdin documents), so `internal/harness/subsonic/xmlrule/check.go`'s
   line-to-ordinal lookup can name the wrong element on a very large body. Guard the size or correct the offset before
   a large recorded session enters the corpus. Found by slice 2b Task 3's review, 2026-10-07 #harness #project:prod-polish
-- [ ] #29 The session credential scan (`internal/harness/subsonic/session/credentials.go:65`) treats every string
-  leaf containing `?` as a URL and refuses a session when `url.ParseQuery` rejects the remainder, so a real title or
-  comment such as "Is This It? 50% off" or "Why? Because; yes" would refuse to record or load. Fail-closed is the
-  plan's rule; narrow the leaf set (URL-shaped leaves, or the fields that carry URLs) before slice 3 records a real
-  library. Also rename `credentials_test.go:80`'s row, whose body holds no escape. Found by slice 2b Task 7's
-  review, 2026-10-07 #harness #project:prod-polish
 
 ## Done
 
 - [x] #11 Resolve the docker compose leg's `command -v docker` skip: retired with the leg
   itself (`d1e93e9` removed the compose leg from `scripts/check.sh`), 2026-10-05 #infra
+- [x] #29 The session credential scan treated every string leaf holding `?` as a URL query: it now splits the leaf
+  on `?`, `&` and `;`, reads only `key=value` fields, and refuses nothing for prose, 2026-10-10 #harness

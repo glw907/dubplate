@@ -7,6 +7,8 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
 const (
@@ -79,6 +81,12 @@ func TestProjectionScopeUnit(t *testing.T) {
 			endpoint: "getBin",
 			body:     shelfOpen + `<bin><item id="1" gloss="matte"/></bin>` + closeEnv,
 			wants:    []want{{3, "gloss", Residual, `"gloss" is declared by neither schema type Sleeve`}},
+		},
+		{
+			name:     "a namespaced attribute is a residual named with its namespace",
+			endpoint: "getCrate",
+			body:     shelfOpen + `<crate><item id="1" xmlns:x="urn:example:other" x:gloss="matte"/></crate>` + closeEnv,
+			wants:    []want{{3, "{urn:example:other}gloss", Residual, `attribute "{urn:example:other}gloss"`}},
 		},
 		{
 			name:     "a Sleeve addition in a bin is dropped",
@@ -338,6 +346,32 @@ func TestBinding(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assertViolations(t, check(t, v, tt.endpoint, tt.status, tt.contentType, tt.body), tt.wants)
+		})
+	}
+}
+
+func TestReadBindingNeedsSuccessResponse(t *testing.T) {
+	resp := func() *openapi3.Response { return openapi3.NewResponse().WithDescription("d") }
+	tests := []struct {
+		name    string
+		keys    []string
+		wantErr bool
+	}{
+		{name: "a 200 response", keys: []string{"200", "default"}},
+		{name: "default only", keys: []string{"default"}, wantErr: true},
+		{name: "a 204 without a 200", keys: []string{"204", "default"}, wantErr: true},
+		{name: "no response at all", wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var opts []openapi3.NewResponsesOption
+			for _, k := range tt.keys {
+				opts = append(opts, openapi3.WithName(k, resp()))
+			}
+			_, err := readBinding(openapi3.NewResponses(opts...), nil)
+			if (err != nil) != tt.wantErr || (err != nil && !errors.Is(err, errNoSuccessResponse)) {
+				t.Errorf("err = %v, want refusal %v", err, tt.wantErr)
+			}
 		})
 	}
 }

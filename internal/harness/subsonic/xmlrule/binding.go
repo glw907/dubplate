@@ -16,6 +16,10 @@ import (
 // property an OpenAPI response schema wraps it in.
 const envelopeMember = "subsonic-response"
 
+// errNoSuccessResponse marks an operation that declares no "200" response,
+// whose success the binding could not read.
+var errNoSuccessResponse = errors.New("operation declares no 200 response")
+
 // binding is what the OpenAPI document says one endpoint answers.
 type binding struct {
 	// payloads maps each payload member a success may carry to whether
@@ -62,6 +66,9 @@ func readBindings(doc *openapi3.T, envelopeNames map[string]bool) (map[string]bi
 }
 
 func readBinding(responses *openapi3.Responses, envelopeNames map[string]bool) (binding, error) {
+	if responses.Value("200") == nil {
+		return binding{}, errNoSuccessResponse
+	}
 	b := binding{statuses: make(map[int]bool), payloads: make(map[string]bool), binary: true}
 	for key, ref := range responses.Map() {
 		if key == "default" {

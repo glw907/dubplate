@@ -57,15 +57,27 @@ func TestScanCredentials(t *testing.T) {
 		{name: "no query", format: client.JSON, body: `{"a":"http://h/x"}`},
 		{name: "names that only end in a credential name", format: client.JSON, body: `{"a":"http://h/x?format=mp3&size=9&dt=1&apiKeys=2&password=3"}`},
 		{
-			name: "a query the parser rejects", format: client.JSON,
+			name: "a semicolon-joined credential is named", format: client.JSON,
 			body: `{"a":"http://h/x?u=a&t=x;s=y"}`,
-			want: []string{"a: URL query does not parse carries credential parameter u"},
+			want: []string{"a: URL query carries credential parameter u, t, s"},
 		},
 		{
-			name: "a rejected query that names nothing", format: client.JSON,
-			body: `{"a":"http://h/x?size=1;s=y"}`,
-			want: []string{"a: URL query does not parse"},
+			name: "prose before a URL still names the credential", format: client.JSON,
+			body: `{"a":"Why? see http://h/rest?apiKey=secret"}`,
+			want: []string{"a: URL query carries credential parameter apiKey"},
 		},
+		{
+			name: "an escaped key is named", format: client.JSON,
+			body: `{"a":"http://h/x?%75=secret&size=1"}`,
+			want: []string{"a: URL query carries credential parameter u"},
+		},
+		{
+			name: "an unescapable key falls back to the raw key", format: client.JSON,
+			body: `{"a":"http://h/x?%zz=1&p=secret"}`,
+			want: []string{"a: URL query carries credential parameter p"},
+		},
+		{name: "prose with a question mark and a percent", format: client.JSON, body: `{"a":"Who? 50% off"}`},
+		{name: "a semicolon pair that names nothing", format: client.JSON, body: `{"a":"http://h/x?size=1;fmt=y"}`},
 		{
 			name: "a bad escape in the path", format: client.JSON,
 			body: `{"a":"/rest/x%zz?p=secret"}`,

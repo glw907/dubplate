@@ -214,7 +214,11 @@ func (p *projection) scopeAttrs(ordinal int, attrs []xml.Attr, typ *complexType)
 			kept = append(kept, a)
 		case a.Name.Space == "" && typ.additions[a.Name.Local]:
 		default:
-			p.residuals = append(p.residuals, residual(ordinal, a.Name.Local, "attribute", a.Name.Local, typ))
+			name := a.Name.Local
+			if a.Name.Space != "" {
+				name = "{" + a.Name.Space + "}" + name
+			}
+			p.residuals = append(p.residuals, residual(ordinal, name, "attribute", name, typ))
 		}
 	}
 	return kept

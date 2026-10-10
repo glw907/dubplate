@@ -215,7 +215,7 @@ func Write(dir string, s *Session) error {
 			if err := atomicfile.WriteFile(filepath.Join(dir, name), resp.Body, 0o644); err != nil {
 				return fmt.Errorf("write body: %w", err)
 			}
-			wr.Responses = append(wr.Responses, wireResponse{resp.Source, resp.Status, resp.ContentType, name})
+			wr.Responses = append(wr.Responses, wireResponse{Source: resp.Source, Status: resp.Status, ContentType: resp.ContentType, Body: name})
 		}
 		w.Requests = append(w.Requests, wr)
 	}

@@ -24,6 +24,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -109,9 +110,14 @@ func (c Config) mount(col Collection) string {
 	return "/collections/" + col.Name
 }
 
-// checkCollections refuses an empty list, a name that is not a plain
-// alias, a repeated name, and two roots where one contains the other. Every
-// problem is reported.
+// collectionName is the alias a collection may carry: it becomes a mount path
+// and a Navidrome library name.
+var collectionName = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*$`)
+
+// checkCollections refuses an empty list, a name outside collectionName, a
+// repeated name, a root that is not absolute or holds ':' or ',' (podman
+// reads either as part of the -v argument), and two roots where one contains
+// the other. Every problem is reported.
 func checkCollections(cols []Collection) error {
 	if len(cols) == 0 {
 		return fmt.Errorf("%w: no collections", errCollections)
@@ -120,12 +126,15 @@ func checkCollections(cols []Collection) error {
 	seen := make(map[string]bool)
 	for _, col := range cols {
 		switch {
-		case col.Name == "" || strings.HasPrefix(col.Name, ".") || strings.ContainsAny(col.Name, ",=/") || strings.Contains(col.Name, "->"):
-			problems = append(problems, fmt.Errorf("collection name %q is empty, starts with \".\", or contains one of \",\", \"->\", \"=\", \"/\"", col.Name))
+		case !collectionName.MatchString(col.Name):
+			problems = append(problems, fmt.Errorf("collection name %q does not match %s", col.Name, collectionName))
 		case seen[col.Name]:
 			problems = append(problems, fmt.Errorf("collection name %q is used twice", col.Name))
 		}
 		seen[col.Name] = true
+		if !filepath.IsAbs(col.Dir) || strings.ContainsAny(col.Dir, ":,") {
+			problems = append(problems, fmt.Errorf("collection %q root %q is not an absolute path free of \":\" and \",\"", col.Name, col.Dir))
+		}
 	}
 	for i, a := range cols {
 		for _, b := range cols[i+1:] {

@@ -166,6 +166,13 @@ func newOracle(t *testing.T, opts oracleOptions) *fakeOracle {
 	return f
 }
 
+// snapshot returns copies of what the oracle recorded about library creation.
+func (f *fakeOracle) snapshot() (created []map[string]string, auths []string, logins int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return slices.Clone(f.created), slices.Clone(f.auths), f.logins
+}
+
 // eventIndex returns the position of the first event named name, or -1.
 func (f *fakeOracle) eventIndex(name string) int {
 	f.mu.Lock()
@@ -222,12 +229,23 @@ func swap[T any](t *testing.T, p *T, v T) {
 
 func (e env) calls(t *testing.T) []fakeCall {
 	t.Helper()
-	f, err := os.Open(e.log)
-	if errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
+	calls, err := readCalls(e.log)
 	if err != nil {
 		t.Fatal(err)
+	}
+	return calls
+}
+
+// readCalls decodes the fake podman's call log, and returns no calls when it
+// does not exist yet. It reports errors rather than failing a test, so a
+// goroutine can call it.
+func readCalls(path string) ([]fakeCall, error) {
+	f, err := os.Open(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
 	}
 	defer func() { _ = f.Close() }()
 	var calls []fakeCall
@@ -235,11 +253,11 @@ func (e env) calls(t *testing.T) []fakeCall {
 	for sc.Scan() {
 		var c fakeCall
 		if err := json.Unmarshal(sc.Bytes(), &c); err != nil {
-			t.Fatalf("decode fake log: %v", err)
+			return nil, fmt.Errorf("decode fake log: %w", err)
 		}
 		calls = append(calls, c)
 	}
-	return calls
+	return calls, sc.Err()
 }
 
 func (e env) verb(t *testing.T, verb string) []fakeCall {
@@ -404,10 +422,24 @@ func TestStartTearsDownOnCancellation(t *testing.T) {
 	readyTimeout = time.Minute
 	ctx, cancel := context.WithCancel(t.Context())
 	go func() {
-		for len(e.verb(t, "port")) < 2 {
+		defer cancel()
+		for {
+			calls, err := readCalls(e.log)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			ports := 0
+			for _, c := range calls {
+				if c.Args[0] == "port" {
+					ports++
+				}
+			}
+			if ports >= 2 {
+				return
+			}
 			time.Sleep(5 * time.Millisecond)
 		}
-		cancel()
 	}()
 	s, err := Start(ctx, e.cfg)
 	if err == nil {
@@ -692,17 +724,18 @@ func TestStartMountsEveryCollection(t *testing.T) {
 
 	// Only the second collection is created; the first is the MusicFolder.
 	wantBody := []map[string]string{{"name": "second", "path": "/collections/second"}}
-	if !reflect.DeepEqual(ndOracle.created, wantBody) {
-		t.Errorf("created libraries = %v, want %v", ndOracle.created, wantBody)
+	created, auths, logins := ndOracle.snapshot()
+	if !reflect.DeepEqual(created, wantBody) {
+		t.Errorf("created libraries = %v, want %v", created, wantBody)
 	}
-	if !slices.Equal(ndOracle.auths, []string{"Bearer jwt-token"}) {
-		t.Errorf("creation auth headers = %q, want the login token as a bearer", ndOracle.auths)
+	if !slices.Equal(auths, []string{"Bearer jwt-token"}) {
+		t.Errorf("creation auth headers = %q, want the login token as a bearer", auths)
 	}
-	if len(gonicOracle.created) != 0 {
-		t.Errorf("gonic was asked to create %v", gonicOracle.created)
+	if gonicCreated, _, _ := gonicOracle.snapshot(); len(gonicCreated) != 0 {
+		t.Errorf("gonic was asked to create %v", gonicCreated)
 	}
-	if ndOracle.logins != 3 {
-		t.Errorf("login attempts = %d, want 3 (two refused, then one accepted)", ndOracle.logins)
+	if logins != 3 {
+		t.Errorf("login attempts = %d, want 3 (two refused, then one accepted)", logins)
 	}
 	ping, login, create, folders := ndOracle.eventIndex("ping"), ndOracle.eventIndex("login"),
 		ndOracle.eventIndex("create"), ndOracle.eventIndex("getMusicFolders")
@@ -744,6 +777,11 @@ func TestStartCollectionRefusals(t *testing.T) {
 		{name: "comma name", cols: func(e env) []Collection { return []Collection{{"a,b", e.music, 1}} }, mention: []string{`"a,b"`}},
 		{name: "arrow name", cols: func(e env) []Collection { return []Collection{{"a->b", e.music, 1}} }, mention: []string{`"a->b"`}},
 		{name: "equals name", cols: func(e env) []Collection { return []Collection{{"a=b", e.music, 1}} }, mention: []string{`"a=b"`}},
+		{name: "colon name", cols: func(e env) []Collection { return []Collection{{"a:b", e.music, 1}} }, mention: []string{`"a:b"`}},
+		{name: "space name", cols: func(e env) []Collection { return []Collection{{"a b", e.music, 1}} }, mention: []string{`"a b"`}},
+		{name: "relative root", cols: func(e env) []Collection { return []Collection{{"rel", "music", 1}} }, mention: []string{`"music"`, "absolute"}},
+		{name: "colon in root", cols: func(e env) []Collection { return []Collection{{"c", e.music + ":x", 1}} }, mention: []string{"absolute"}},
+		{name: "comma in root", cols: func(e env) []Collection { return []Collection{{"c", e.music + ",x", 1}} }, mention: []string{"absolute"}},
 		{name: "slash name", cols: func(e env) []Collection { return []Collection{{"a/b", e.music, 1}} }, mention: []string{`"a/b"`}},
 	}
 	for _, tt := range tests {
@@ -790,8 +828,8 @@ func TestStartLoginNeverSucceeds(t *testing.T) {
 	if !errors.Is(err, errNotReady) || !strings.Contains(err.Error(), "navidrome login did not succeed") {
 		t.Fatalf("Start error = %v, want errNotReady naming the login", err)
 	}
-	if len(ndOracle.created) != 0 {
-		t.Errorf("libraries created without a login: %v", ndOracle.created)
+	if created, _, _ := ndOracle.snapshot(); len(created) != 0 {
+		t.Errorf("libraries created without a login: %v", created)
 	}
 	assertRemovedWithVolumes(t, e)
 }
@@ -824,12 +862,12 @@ func TestStartFolderCount(t *testing.T) {
 			wantErr: true, is: errFolderCount, mention: []string{"navidrome lists 3 music folders, run has 2 collections"},
 		},
 		{
-			name: "one collection, two folders",
+			name: "one collection with two folders",
 			nd:   oracleOptions{scan: scan{false, 3}, folders: 2}, gonic: oracleOptions{scan: scan{false, 3}, folders: 1},
 			wantErr: true, is: errFolderCount, mention: []string{"navidrome lists 2 music folders, run has 1 collections"},
 		},
 		{
-			name: "one collection, no folders",
+			name: "one collection with no folders",
 			nd:   oracleOptions{scan: scan{false, 3}, folders: 1}, gonic: oracleOptions{scan: scan{false, 3}},
 			wantErr: true, is: errFolderCount, mention: []string{"gonic lists 0 music folders, run has 1 collections"},
 		},
