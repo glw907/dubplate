@@ -26,7 +26,7 @@ numpy==2.5.3
     #   lap
 packaging==26.3
     # via beets
-platformdirs==4.12.3
+platformdirs==4.12.4
     # via beets
 pyrate-limiter==4.5.0
     # via requests-ratelimiter
