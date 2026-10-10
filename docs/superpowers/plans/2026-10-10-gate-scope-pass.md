@@ -191,6 +191,8 @@ outside `check` (`Makefile:136-146`).
   <tier>]` (`pass-execute.js:449`, `:823`). On every decision, the shim exits 0 and prints exactly one stdout line:
   `bash <root>/scripts/check.sh --scope-changed --base <base>`. `<root>` is the shim's own repo root, so a worktree's
   shim names that worktree's `check.sh`.
+  *Note: the runner line numbers cited in this paragraph are stale. The current sites, recorded under Record, Task 4,
+  are `:513`, `:922`, `:887`, `:904-905`, and `:937-939`.*
 - **Fallback.** The shim prints the full form, `bash <root>/scripts/check.sh`, in four cases: the base is not
   40-hex, the right side is not `HEAD`, the base is empty (the runner's failed base probe yields `--range ..HEAD`), or
   the pin is `full`. Shape-checking the base before embedding it is the shim's one check, and it exists for shell
@@ -368,6 +370,26 @@ and `internal/opensubsonic/boundary_test.go:57:func TestLayerImportsNothingInter
     The log difference is 1321 lines against 441 and the skipped rendered leg; conform alone is 149s cold against
     cached. The Go section header read `== make check (Go) ==` in these transcripts; it now reads `== make vet lint test
     tidy-check (Go) ==` in the scoped form (label only, committed after the runs).
+
+### Task 4
+
+`scripts/checks/gate-tier.mjs` (new, uncommitted; the close gates and commits it). `node --check` clean. The runner's
+call sites at HEAD of `~/.claude/workflows/pass-execute.js` (the plan's `:449`, `:823` have moved): `:513`
+`const classifierCmd = `node scripts/checks/gate-tier.mjs --range ${baseSha}..HEAD${paintFlag}${classFlag}${pinFlag}`;`
+and `:922` `const cmd = `node scripts/checks/gate-tier.mjs --range ${baseSha}..HEAD${paintFlag}${classFlag}`;`. The runner
+also sends `--class <name>` (`:511`) and, only when `ciActive`, `--protected` (`:887`); the shim accepts both and ignores them.
+
+- **P15** (base `95b5379...`, stdout / stderr / exit):
+  - `--range B..HEAD`: `bash <root>/scripts/check.sh --scope-changed --base B` / `scoped to the range` / 0.
+  - `--paint yes` and `--paint no`: same stdout, byte-identical to the no-flag run (`cmp` silent); stderr adds the `--paint ignored` line; 0.
+  - `--pin full`: `bash <root>/scripts/check.sh` / `pinned` / 0. `--pin fast`: same stdout / `--pin fast has no narrower tier here; using the full form` then `pinned` / 0.
+  - `--range ..HEAD`: full form / `empty base` / 0. `--range <12 hex>..HEAD`: full form / `base is not a 40-hex commit` / 0. `--range B..HEAD~1`: full form / `range does not end at HEAD` / 0.
+  - `--range` with no value, no args, and `--range nodots`: empty stdout / `--range <base>..HEAD is required` / 2.
+- **P16** (scratch worktree, base commit then an `internal/ops/doc.go` change): runner-shaped
+  `node scripts/checks/gate-tier.mjs --range <base>..HEAD` printed
+  `bash <scratch>/scripts/check.sh --scope-changed --base <base>`, naming the worktree's own `check.sh`; that string's
+  `--dry-run` printed `check.sh: scope=changed base=<base> source=caller rendered=run rendered_by=internal/ops/doc.go gitleaks=changed files=1: internal/ops/doc.go`.
+  Worktree removed afterward.
 
 ## Review
 

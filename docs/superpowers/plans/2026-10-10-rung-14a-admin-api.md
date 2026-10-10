@@ -1,7 +1,8 @@
 # Rung 14a (the Admin API's First Half) Implementation Plan
 
 Status: **revision 2.1, 2026-10-10: the three `spec-plan-review` lenses folded, then the verification read's V1 to
-V10** (`docs/superpowers/research/2026-10-10-rung-14a-plan-fold.md`, "the plan fold", and its "Second fold").
+V10** (`docs/superpowers/research/2026-10-10-rung-14a-plan-fold.md`, "the plan fold", and its "Second fold"). Amended
+2026-10-10 for the gate scope pass: the per-task gate, its clock, the worktree cut, and lane launch step 8.
 
 **Spec:** `docs/superpowers/specs/2026-10-10-rung-14a-admin-api-design.md`, revision 2.1 at `c7c3fbb` ("the spec").
 Its fold record is `docs/superpowers/research/2026-10-10-rung-14a-spec-fold.md` ("the fold"); this plan places the
@@ -25,7 +26,8 @@ path (spec, "The mount").
 `Inspect` fact, and runbook text, with no write path); Tasks 10a and 10b are `engine-logic` with the `web/` rendered
 leg. Task 10c, the roster API's retirement, keeps `auth-data`.
 **Ceiling:** 11.8M execution tokens, flag 9.4M (80%). Planning and plan review sit outside it.
-**Clock estimate:** about 7 hours of execution, excluding owner pauses; `auth-data` fix rounds push it toward 8.5.
+**Clock estimate:** about 6.8 hours of execution, excluding owner pauses; `auth-data` fix rounds push it toward 8.3
+(re-priced below for the gate scope pass).
 **Checkpoint interval:** four tasks at most: each segment boundary and the close.
 **Segments:** Task 0 (conductor, on master). A: Tasks 1, 2, 3. B: Tasks 4, 5, 6, 7, then the first security read and
 its fold. C: Tasks 8, 9, 10a. D: Tasks 10b, 10c. Then the close, Task 11. Boundaries A, B, and C end on a green full
@@ -50,10 +52,26 @@ here runs), three boundary gates at about 9 minutes, and a close of about 1.65 h
 reviewer reads, one combined fold, the simplifier, the live smoke, the render-and-read, and two full gates (the close
 gate and the on-master gate; the plan fold removed a third).
 
+**Re-priced for the gate scope pass.** Every 14a task still runs the rendered leg: each touches a package the
+rendered test binary links (`internal/{ops, identity, config, auth, settings}`, `cmd/dubplate-server`, `web`), so the
+scoped form's skip never applies here and the 22-minute rate holds for Tasks 1 to 8. The savings fall on Tasks 9 to
+10c, which the old form ran with the conform suite whole and the bundle built twice:
+- Old: 4 tasks x (conform about 150s cold + a second bundle build, estimated at 30s) = 4 x 3.0 = 12 minutes.
+- New: conform's closure (`go list -deps -test ./internal/harness/conform`) excludes `internal/engine/store`, so the
+  suite replays from Go's cache after one cold run, about 150s at the first gate in the fresh worktree (Task 1;
+  without `-trimpath` the build action IDs include the package directory). The bundle builds once per gate: Tasks
+  10a to 10c edit `web/scripts/rendered/run.ts` or `web/scripts/gates/deck-coverage.ts`, which are gate machinery, so
+  their scoped run falls back to the full form and runs `make check`, which builds the bundle once while `go test`
+  reads from the cache. Total 2.5 + 4 x 0.5 = 4.5 minutes, against 12 old plus the 2.5 that Task 1 would not have
+  paid, so the net is about 9.5 minutes.
+- So 7 hours (420 minutes) becomes about 410 minutes, or 6.8 hours. The boundary gates and the close are full-form and
+  unchanged, and so is the fix-round increment (1.5 hours); the allowance moves from 8.5 to 8.3 hours with the base.
+  The 11.8M token ceiling stands: the gates change wall time, not the tokens a task spends.
+
 ## Tree, branch, and execution
 
 **Tree.** Lane 1 runs in its own worktree, `.claude/worktrees/lane-1-rung-14a`, on branch `lane-1-rung-14a`, cut from
-master after Task 0 lands. This departs from CLAUDE.md's "the primary code lane ... share[s] the tree", for three
+master after the gate scope pass and Task 0 have landed. This departs from CLAUDE.md's "the primary code lane ... share[s] the tree", for three
 reasons. pass-core requires the pass's branch or worktree, "never the default branch's checkout". The merge ritual
 (rebase, `--ff-only`) presumes a branch. And the main tree stays on master for the rung 7 planning lane and the
 conductor's ledger commits. The CLAUDE.md rule exists so two code lanes never share one gate's `./...`, and this
@@ -64,23 +82,33 @@ no CI (`.github/workflows` is absent), so pass-core's draft-PR shadow does not a
 effort is the agent's own), except Task 6 on `model: opus` from the start (the gate's decision point, the notice's
 ordering, and seven operations over two write paths).
 
-**Per-task gate:** `cairn-run-gate 'bash /var/home/glw907/Projects/dubplate/.claude/worktrees/lane-1-rung-14a/scripts/check.sh --scope-changed'`,
-re-issued on exit 75 until it prints `gate exit:`, on the heavy lane for every task. Off master, `check.sh` diffs the
-change set from `git merge-base master HEAD` (`scripts/check.sh:177-193`), so the set is cumulative over the pass.
-Task 1 edits `internal/identity/identity.go`, a rendered-leg input (`:246`), and from then on every task's scoped gate
-runs the rendered leg and launches Chromium; from Task 9 on it also runs the conform suite (`:229`).
+**Per-task gate:** the runner's classifier (`scripts/checks/gate-tier.mjs`, run from the worktree) computes it from
+the base the runner recorded before the task's first dispatch: `bash <worktree>/scripts/check.sh --scope-changed
+--base <sha>`. The plan's string stays as the fallback when the classifier refuses or the base is unusable:
+`cairn-run-gate 'bash /var/home/glw907/Projects/dubplate/.claude/worktrees/lane-1-rung-14a/scripts/check.sh --scope-changed'`.
+Either form is re-issued on exit 75 until it prints `gate exit:`, on the heavy lane for every task. With `--base`, the
+change set is the task's own diff; the fallback string still diffs from `git merge-base master HEAD`, so its set is
+cumulative over the pass. Task 1 edits `internal/identity/identity.go`, and every task after it touches a package the
+rendered test binary links (`go list -deps -test -tags rendered ./cmd/dubplate-server`; `opshttp` joins at Task 7's
+mount, with no `check.sh` edit), so every task's scoped gate runs the rendered leg and launches Chromium. The conform
+suite is no longer scoped by hand: it replays from Go's test cache unless its inputs changed. Tasks 10a to 10c edit gate machinery (`web/scripts/rendered/**`, `web/scripts/gates/**`), so their scoped run falls back to the full form.
 `pass-execute`'s `tool` class defaults to the light lane (`PASS_CLASSES.tool.gateLane`), so Tasks 2 and 9 carry
-`gateLane: "heavy"` (HISTORY 6d: "Pass `gateLane: "heavy"` for a gate that launches Chromium"). `reducedGate` is the
-`--reduced` form, which under `auth-data` only a comment-only round takes. Tasks 10a and 10b set their own
-`reducedGate` to the per-task gate string: `engine-logic` lets a test-only round reduce (`testOnlyReduces`,
-`pass-execute.js:310-316`), and `--reduced` skips the rendered leg and `svelte-check` (`check.sh:261-263`), the very
-tests those rounds fix. Boundaries take `check.sh` (full, heavy); the close takes `check.sh --merge` in the worktree,
-then `check.sh` on master.
+`gateLane: "heavy"` (HISTORY 6d: "Pass `gateLane: "heavy"` for a gate that launches Chromium"); both still launch the
+browser, because Task 2 edits `internal/config` and `cmd/dubplate-server`, and Task 9 edits `cmd/dubplate-server` and
+`internal/engine/store`. `reducedGate` is the `--reduced` form, which under `auth-data` only a comment-only round
+takes. Tasks 10a and 10b still set their own `reducedGate` to the per-task gate string: `engine-logic` lets a test-only
+round reduce (`testOnlyReduces`, `pass-execute.js:310-316`), and `--reduced` never runs the rendered leg, which is the
+leg whose rows those rounds fix. (`--reduced` now runs `svelte-check` on a `web/` change, so that is no longer part of
+the reason. The rows live in `web/scripts/rendered/**` and `web/scripts/gates/**`, which are gate machinery and
+promote a reduced run to the full form anyway; a round that touches only `cmd/dubplate-server/rendered_test.go` would
+not, hence the override stays.) Boundaries take `check.sh` (full, heavy); the close takes `check.sh --merge` in the
+worktree, then `check.sh` on master.
 
 **Mode:** `pass-execute` by name, one invocation per segment, sequential, with `repo` set to the worktree path,
 `implementer: "dubplate-implementer"`, `reviewer: "diff-reviewer"`, `reviewerModel: "claude-opus-5-5"`, `maxFix: 1`,
 `stopOnEscalate: true`, `passClass: "auth-data"`, and each task's own `passClass`, `gateLane`, `reducedGate`, and
-`model` as above. No task is marked independent: every task from 3 on reads the one before.
+`model` as above. The plan's gate string is passed as `gate` and acts as the classifier's fallback; the runner reads the
+classifier from the worktree, so it names the worktree's `check.sh`. No task is marked independent: every task from 3 on reads the one before.
 
 ### The unattended run
 
@@ -336,10 +364,6 @@ After Task 0, before Task 1:
    first per-task gate proves its provisioning.
 7. **Pre-flight** per segment (pass-core): one `haiku` dispatch checks every claim the segment's tasks make about code
    at HEAD; the conductor amends the plan, then dispatches.
-8. **At boundary A**, the conductor files two BACKLOG items, each verified first (pass-core, "File every out-of-scope
-   finding"): `check.sh --scope-changed` takes its base only from the merge base, so an `auth-data` pass cannot scope
-   a task to its own diff; and with the conform and rendered scopes both full, `check.sh` runs `make web` and then
-   `make check`, which builds the bundle again (`check.sh:332-335`, `:371-374`).
 
 ## Task 0: The dependency sweep (conductor, on master)
 
@@ -684,7 +708,7 @@ non-admin message into the removed one.
 `web/src/lib/copy/deck.ts` (detail-keyed rows appended); `web/scripts/gates/deck-coverage.ts` (the detail
 enumeration's coverage); the members rows and helpers in `web/scripts/rendered/run.ts` (`:866`, `:1050-1090`,
 `:3086-3151`) and `cmd/dubplate-server/rendered_test.go` (`:218-219`, `:860`), retargeted (spec deviation 2).
-**Class:** `engine-logic`; the scoped gate runs the rendered leg; `reducedGate` is the per-task gate. **Hook:**
+**Class:** `engine-logic`; the scoped gate runs the rendered leg; `reducedGate` is the per-task gate (`--reduced` never runs the rendered leg). **Hook:**
 neutral (consumes hook 15). **Gate:** the per-task gate.
 
 **Outcomes.**
@@ -718,7 +742,7 @@ operations); `web/src/lib/copy/deck.ts` (rows and `TITLES`); `web/scripts/gates/
 `REQUIRED_TITLES` list only, `:43`, since the gate fails a `TITLES` key the list does not name, `:69-72`); the route
 inventory Task 7 lands (`server-settings`, admin class); `SiteHeader.svelte` (one appended navigation entry); `cmd/dubplate-server/web.go` (the
 document row, appended); `serve.go` (the page's registration behind `RequireAdmin`); appended rendered rows.
-**Class:** `engine-logic`; the scoped gate runs the rendered leg; `reducedGate` is the per-task gate. **Hook:**
+**Class:** `engine-logic`; the scoped gate runs the rendered leg; `reducedGate` is the per-task gate (`--reduced` never runs the rendered leg). **Hook:**
 neutral (consumes hook 15). **Gate:** the per-task gate.
 
 **Outcomes.** The server settings page per AC20 and P4, with P5's stale-session flow. It follows the visual identity
@@ -820,8 +844,9 @@ lands before the close gate.
      would be wrong to rediscover" (the 401/500 split, the anchor never `IssuedAt`, the per-key comparison, the
      epoch ordering and the re-add bump, why the job operations answer `unavailable`, the uppercase-hex and empty-id
      traps, the bootstrap ignoring the held cap read, and P5's no-return-parameter reason); and the pass score: tokens
-     against 11.8M, attended time, and clock against about 7 hours (total, gate time, lock wait, and rework with
-     each red's cause).
+     against 11.8M, attended time, and clock against about 6.8 hours (total, gate time, lock wait, and rework with
+     each red's cause). The gate time and lock wait come from `cairn-run-gate --records <toplevel> <branch>` (present in
+     the script's source, checked 2026-10-10 by grep).
    - **The review-growth measure:** the spec grew from 419 to 651 lines across two folds (55%), past the 25% signal,
      and the plan from 609 to its revision 2 length (the plan fold's measures). The entry names the cause (the
      states table, the contested-surfaces table, the quoted kin-openapi behaviors, V1's admin seam, and the plan

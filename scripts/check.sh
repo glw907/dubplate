@@ -37,8 +37,13 @@ set -euo pipefail
 #                             whole and Go's own test cache decides
 #                             what reruns: a package whose inputs,
 #                             opened files and environment are
-#                             unchanged replays its result. Every other
-#                             leg runs exactly as in the full form.
+#                             unchanged replays its result. The two
+#                             tests that read source through a go list
+#                             subprocess, which the cache cannot see,
+#                             run uncached inside `make test`. The
+#                             bundle is built once, and `make check` is
+#                             not called. Every other leg runs exactly
+#                             as in the full form.
 #   check.sh --reduced        the comment-only and docs-only form: vale
 #                             over Go comments, shellcheck, gitleaks over
 #                             the change set, and gofmt, go vet and go
@@ -59,15 +64,52 @@ set -euo pipefail
 #                             can see it. It runs before the work leaves
 #                             the branch.
 #
+# Two flags modify the scoped forms. --base <sha> names the commit the
+# change set is measured from; the full and merge forms refuse it.
+# --dry-run works with any form: it derives the scope, prints the scope
+# line, runs no leg, takes no lock and exits 0.
+#
 # The scope is always derived here, from git. A caller never names
 # files, because its idea of which files a task touched is a prediction
 # made before the work was written and the working tree is the fact; it
 # may name only the base commit (--base), validated below, which is a
-# fact the runner recorded. A path the class table cannot place, a
-# gate-machinery path, an invalid base, and an empty change set each
-# promote the run to the full form. Each form prints one line naming
-# the scope in force and the files or packages it covers, so a
-# transcript shows what was skipped; --dry-run prints it and stops.
+# fact the runner recorded. Without --base the base is the merge base
+# with master on a branch and HEAD~1 on master. Git still derives every
+# file: the tracked diff against the base plus the untracked files.
+# The validation catches a malformed or unrelated base; a later commit
+# passed by mistake would narrow the scope, but every boundary, merge,
+# and close runs the full form.
+#
+# Each changed path takes one class, rows matched in this order:
+#
+#   gate machinery  this script, the other gate scripts, the Makefile,
+#                   linter and secret-scanner configs, go.mod, go.sum,
+#                   web/package*.json, web/scripts/gates and
+#                   web/scripts/rendered, tools/photos: full form
+#   web             web/**: selects the rendered leg; under --reduced,
+#                   runs svelte-check
+#   Go package      the nearest enclosing package `go list ./...` names:
+#                   selects the rendered leg when the package is in the
+#                   rendered test binary's set; under --reduced, a Go
+#                   source file only, anything else is the full form
+#   corpus          full form under --reduced; otherwise its leg runs
+#                   whole
+#   photos          the integrity leg already runs whole
+#   ops             systemd, cloud-init, env, deploy and provision
+#                   scripts: their legs already run whole; the full form
+#                   under --reduced
+#   Python tooling  tools/unidecode-table: ruff already runs whole; the
+#                   full form under --reduced
+#   no effect       docs, .claude, _salvage, tools/venv, the top-level
+#                   markdown files and LICENSE: gitleaks only
+#   unmatched       anything else: full form
+#
+# A gate-machinery or unmatched path, an invalid base, an empty change
+# set, an unknown object format, and any git, sort or go list failure
+# each promote the run to the full form, so an unclassifiable case runs more, never less. Each form
+# prints one line naming the scope in force, the base and where it came
+# from, any fallback reason, and the files or packages it covers, so a
+# transcript shows what was skipped.
 #
 # Two legs are staged gates, not optional ones. Each runs on every full
 # invocation, prints its finding count and its first twenty sites, and
@@ -570,10 +612,10 @@ elif [ "$mode" != "reduced" ]; then
 fi
 
 if [ "$mode" = "reduced" ]; then
-  # The comment-only form skips svelte-check, the static web gates, and
-  # the rendered leg (never a boundary gate), but still rebuilds the
-  # bundle, since a stale build is the one state every form refuses to
-  # read from.
+  # The comment-only form skips the static web gates and the rendered
+  # leg (never a boundary gate), and runs svelte-check only when a web/
+  # path changed. It still rebuilds the bundle, since a stale build is
+  # the one state every form refuses to read from.
   echo "check.sh: the reduced form skips the rendered leg."
   echo "== npm run build --prefix web =="
   if ! npm run build --prefix web; then

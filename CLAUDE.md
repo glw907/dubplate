@@ -204,11 +204,19 @@ needs `xmllint` at libxml 2.15.4 on `PATH`, held by `brew pin libxml2`
 because its messages land in goldens; eight installed formulae depend on
 it and are held with it (chafa, ffmpeg, gdk-pixbuf, imagemagick, librsvg,
 libxkbcommon, shared-mime-info, xdotool).
-The scoped gate (`check.sh --scope-changed`) narrows the conform suite and
-the rendered leg independently: a harness-only change runs conform in full
-and skips the rendered leg, and a change under `web/`, `internal/serve/`,
-`internal/auth/`, `internal/identity/`, or the serve shell's files runs the
-rendered leg.
+The scoped gate (`check.sh --scope-changed`) derives its change set from git against a base: the
+`--base <sha>` the runner recorded (a full commit id that is an ancestor of HEAD), else the merge
+base on a branch and `HEAD~1` on master. It fails closed: a gate-machinery path, an unmatched
+path, an invalid base, an empty change set, or a failed `git` or `go list` call runs the full
+form, and the scope line names the reason. `--dry-run` prints the scope and runs nothing. The
+conform suite is no longer hand-scoped: `go test` runs whole and Go's test cache reruns it only
+when its inputs changed. The rendered leg runs when a `web/` path changed or a changed path lies
+in a package of `go list -deps -test -tags rendered ./cmd/dubplate-server`, so a new dependency
+joins the set with no edit. The scoped form never calls `make check`, so the bundle is built
+once. `--reduced` runs svelte-check on a `web/` change and never the rendered leg. Two tests
+read source through a `go list` subprocess, which the cache cannot see, so `make test` runs
+`TestServerNeverLinksTheHarnessOrChecker` and `TestLayerImportsNothingInternal` again with
+`-count=1` and fails if either does not run and pass.
 The `web/` leg runs today, first in `make check`'s prerequisite chain:
 Node and npm required and named on failure, a stale or drifted
 `npm ci --prefix web` refused, the SvelteKit static bundle built, then
@@ -216,7 +224,7 @@ Node and npm required and named on failure, a stale or drifted
 server-only file, no hardcoded color, no external origin, theme
 variable completeness, theme contrast, and the built bundle's stamped
 theme values). Since rung 5c-iii Task 3a, the leg also runs the rendered
-(browser) gates: a Playwright 1.63.0 script under a `rendered`-tagged Go
+(browser) gates: a Playwright 1.64.0 script under a `rendered`-tagged Go
 test, two builds compared byte for byte, and first paint per theme, so
 every full gate launches Chromium and runs on the heavy lane (about 106s,
 about 560 MiB peak at 3a). Rung 6b-i's merge adds an `rclone`-dependent leg: `internal/backup`'s
@@ -240,7 +248,8 @@ today and gate at the comment-cleanup task.
   fail).
 - **Shell** (`scripts/`): ops tooling only (`deploy.sh`, `provision.sh`,
   `check.sh`, `check-state-dir.sh`, `vale-comments.sh`), shellcheck clean,
-  no behavior tests of its own. The box-side import/backup shell layer is fully retired
+  no behavior tests of its own. `scripts/checks/gate-tier.mjs` is the one JS file under `scripts/`,
+  at the path the pass-execute runner fixes. The box-side import/backup shell layer is fully retired
   (Go rewrite, 2026-08-31); never add subcommand logic here.
 - **Web** (`web/`): SvelteKit in static mode (Geoff, 2026-09-07;
   supersedes the standalone rule): Svelte 5 runes, DaisyUI 5,

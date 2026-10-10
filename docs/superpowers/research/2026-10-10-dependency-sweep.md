@@ -34,7 +34,7 @@ daisyui 5.7.47, beets 2.14.1 and every other venv pin. libxml2 stays held by
 and no package of the build links (x/net, x/sync, x/mod, x/term, x/tools,
 yaml/v3, pprof, ccgo/v4, cc/v4, gc/v3, go-md2man, testify, pty, regexp2, and
 others). They stay where minimal version selection puts them, as in the
-2026-10-04 record. `go mod tidy` moved x/sync, x/tools, and x/term sums as a
+2026-10-04 record. `go mod tidy` moved x/sync and x/tools sums as a
 side effect of x/crypto and x/sys; no package of ours imports them.
 
 ## Go
