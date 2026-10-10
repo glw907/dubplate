@@ -286,7 +286,8 @@ below the base, the base `B` taken from that commit, then the planted change aft
   Red (unmatched classified as no-effect): `scope=changed base=4da6101e... files=1: probe.cfg`.
 
 Finding: the machinery list is defense in depth with the unmatched promotion for `go.mod` and `scripts/check.sh`
-(neither lies in a Go package, so the named P4 and P5 mutations cannot fire alone).
+(neither lies in a Go package, so the named P4 and P5 mutations cannot fire alone). The plan text for P4 and P5 has since been amended to the strong form (drop from the list and list as
+no-effect), so the finding is resolved: the strong mutations are now the named ones.
 
 Fix round (review of bfd33c5). The change set now comes from `git diff --name-only --no-renames -z <base>` and `git ls-files
 --others --exclude-standard -z`, each checked on its own, and `go list ./...` is captured to a file with its exit status
@@ -302,6 +303,28 @@ checked. The P4 and P5 mutations in the plan text were amended to "drop from the
   piped form): `scope=changed base=10181e9c... files=1: docs/u.md`, the tracked change silently dropped.
 - **P1d, rename.** Planted: `git mv .gitleaksignore docs/gitleaksignore.bak`. Scope line: `fallback=".gitleaksignore is
   machinery"`. Red (`--no-renames` dropped): `scope=changed base=8557d52e... files=1: docs/gitleaksignore.bak`.
+
+### Task 2
+
+Same method. `rendered=` is `run` or `skipped`; `rendered_by=` names the selecting paths. The hand-list mutation
+replaces the selection test with the deleted list's pattern.
+
+- **P7, `internal/ops` only.** Planted: a `// probe` line in `internal/ops/doc.go`. Scope line: `rendered=run
+  rendered_by=internal/ops/doc.go`. Red (hand list restored): `rendered=skipped` for the same change.
+- **P8, `opshttp` only.** Planted: a `// probe` line in `internal/ops/opshttp/doc.go`, with
+  `cmd/dubplate-server/opshttp_mount.go` (a blank import of `internal/ops/opshttp`) committed below the base. Scope line:
+  `rendered=run rendered_by=internal/ops/opshttp/doc.go`. Red (hand list, same import): `rendered=skipped`. Without the
+  import the same change gives `rendered=skipped rendered_by=none`, which is correct today. The `go list` lines at
+  HEAD: `262:.../internal/ops` and `263:.../internal/ops/local`, with no `opshttp`.
+- **P9, `web/src/` only.** Planted: a `// probe` line in `web/src/hooks.client.ts`. Scoped line: `rendered=run
+  rendered_by=web/src/hooks.client.ts`; red (Web selector dropped): `rendered=skipped rendered_by=none`. Reduced line:
+  `scope=reduced ... rendered=skipped web_check=1`; red (rule dropped): `web_check=0`. The real run
+  (`CAIRN_GATE_LANE=light cairn-run-gate 'cd <scratch> && bash scripts/check.sh --reduced --base <sha>'`, no browser
+  in the reduced form) printed `gate exit: 0` and the transcript holds `85:== npm run check --prefix web
+  (svelte-check) ==` and `91:... COMPLETED 315 FILES 0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS`. The scratch tree
+  carried a copy of `web/node_modules` (no network).
+- **P10, `docs/` only (a tracked `ROADMAP.md` edit, class No effect).** Scope line: `rendered=skipped
+  rendered_by=none`. No mutation.
 
 ## Review
 

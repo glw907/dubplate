@@ -32,17 +32,18 @@ set -euo pipefail
 #                             when a file under internal/harness/,
 #                             internal/engine/, or corpus/ changed, and
 #                             the rendered leg runs only when a file
-#                             under web/, internal/serve/, internal/auth/,
-#                             or internal/identity/ changed, or one of
-#                             the serve shell's own files under
-#                             cmd/dubplate-server/ (web.go, serve.go,
-#                             auth.go, their tests, rendered_test.go).
-#                             Every other leg runs exactly as in the
-#                             full form.
+#                             under web/ changed or a changed file lies
+#                             in a package the rendered test binary
+#                             links (selected by reverse dependency from
+#                             `go list -deps -test -tags rendered`, so
+#                             a new dependency joins the set with no
+#                             edit here). Every other leg runs exactly
+#                             as in the full form.
 #   check.sh --reduced        the comment-only and docs-only form: vale
 #                             over Go comments, shellcheck, gitleaks over
 #                             the change set, and gofmt, go vet and go
-#                             test over the changed packages only; the
+#                             test over the changed packages only, plus
+#                             svelte-check when a web/ path changed; the
 #                             rendered leg does not run. Never
 #                             the final gate on master and never a
 #                             boundary gate; a change that reaches master
@@ -275,7 +276,10 @@ derive_change_set() {
     fallback_reason="git ls-files could not list the untracked files"
     return 1
   fi
-  sort -zu "$work_dir/tracked.z" "$work_dir/untracked.z" >"$work_dir/changed.z"
+  if ! sort -zu "$work_dir/tracked.z" "$work_dir/untracked.z" >"$work_dir/changed.z"; then
+    fallback_reason="sort could not merge the change set"
+    return 1
+  fi
   mapfile -d '' -t changed_files <"$work_dir/changed.z"
   if [ "${#changed_files[@]}" -eq 0 ]; then
     fallback_reason="the change set is empty"
@@ -348,24 +352,70 @@ classify_path() {
   esac
 }
 
+# The packages the rendered test binary links, by directory relative to
+# the module root. A change inside one can change what the browser sees;
+# a change outside all of them cannot. Captured to a file so go list's
+# own exit status is checked.
+declare -A rendered_pkg_dirs=()
+load_rendered_pkg_dirs() {
+  local root dir
+  root="$(go list -m -f '{{.Dir}}')" || return 1
+  go list -deps -test -tags rendered -f '{{.Dir}}' ./cmd/dubplate-server >"$work_dir/rendered-dirs.txt" || return 1
+  while IFS= read -r dir; do
+    case "$dir" in
+    "$root") rendered_pkg_dirs["."]=1 ;;
+    "$root"/*) rendered_pkg_dirs["${dir#"$root"/}"]=1 ;;
+    esac
+  done <"$work_dir/rendered-dirs.txt"
+  [ "${#rendered_pkg_dirs[@]}" -gt 0 ]
+}
+
+# The nearest enclosing directory of a path that go list names.
+nearest_go_pkg_dir() {
+  local dir
+  dir="$(dirname "$1")"
+  while :; do
+    if [ -n "${go_pkg_dirs[$dir]+x}" ]; then
+      echo "$dir"
+      return
+    fi
+    [ "$dir" = "." ] && return
+    dir="$(dirname "$dir")"
+  done
+}
+
 # Promotes the run to the full form when any changed path lands in a
 # class that forces it: gate machinery and unmatched in both scoped
 # forms, and in the reduced form also everything but a Go source file,
 # Web, Photos and No effect.
+rendered_selectors=()
+web_changed=0
 classify_change_set() {
-  local f class
+  local f class pkg
   if ! load_go_pkg_dirs; then
     fallback_reason="go list could not name the module's packages"
+    return 1
+  fi
+  if [ "$mode" = "scope-changed" ] && ! load_rendered_pkg_dirs; then
+    fallback_reason="go list could not name the rendered test binary's packages"
     return 1
   fi
   for f in "${changed_files[@]}"; do
     class="$(classify_path "$f")"
     case "$class" in
+    web)
+      web_changed=1
+      rendered_selectors+=("$f")
+      ;;
     machinery | unmatched)
       fallback_reason="$f is $class"
       return 1
       ;;
     gopkg)
+      pkg="$(nearest_go_pkg_dir "$f")"
+      if [ -n "${rendered_pkg_dirs[$pkg]+x}" ]; then
+        rendered_selectors+=("$f")
+      fi
       if [ "$mode" = "reduced" ] && [ "${f%.go}" = "$f" ]; then
         fallback_reason="$f is a non-Go file in a Go package, outside the reduced form"
         return 1
@@ -423,27 +473,6 @@ derive_conform_affected() {
   done
 }
 
-# The rendered leg is scoped the same way: it serves the bundle through
-# the serve shell and its auth routes, so only a change to one of those
-# can change what the browser sees.
-rendered_affected=1
-derive_rendered_affected() {
-  local f
-  rendered_affected=0
-  for f in "${changed_files[@]}"; do
-    case "$f" in
-    web/* | internal/serve/* | internal/auth/* | internal/identity/* | \
-      cmd/dubplate-server/web.go | cmd/dubplate-server/web_test.go | \
-      cmd/dubplate-server/serve.go | cmd/dubplate-server/serve_test.go | \
-      cmd/dubplate-server/auth.go | cmd/dubplate-server/auth_test.go | \
-      cmd/dubplate-server/rendered_test.go)
-      rendered_affected=1
-      return
-      ;;
-    esac
-  done
-}
-
 scope_gitleaks=full
 scope_conform=full
 scope_rendered=full
@@ -454,14 +483,15 @@ if [ "$mode" = "scope-changed" ] || [ "$mode" = "reduced" ]; then
   if derive_change_set && classify_change_set; then
     derive_changed_packages
     derive_conform_affected
-    derive_rendered_affected
     scope_gitleaks=changed
     if [ "$mode" = "scope-changed" ]; then
       if [ "$conform_affected" -eq 0 ]; then
         scope_conform=skipped
       fi
-      if [ "$rendered_affected" -eq 0 ]; then
+      if [ "${#rendered_selectors[@]}" -eq 0 ]; then
         scope_rendered=skipped
+      else
+        scope_rendered=run
       fi
     fi
   else
@@ -482,10 +512,10 @@ merge)
   echo "check.sh: scope=full+history; every leg over the whole tree, plus gitleaks over master..HEAD."
   ;;
 scope-changed)
-  echo "check.sh: scope=changed base=$change_base source=$change_source conform=$scope_conform rendered=$scope_rendered gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=changed base=$change_base source=$change_source conform=$scope_conform rendered=$scope_rendered rendered_by=${rendered_selectors[*]:-none} gitleaks=$scope_gitleaks files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 reduced)
-  echo "check.sh: scope=reduced base=$change_base source=$change_source rendered=skipped packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
+  echo "check.sh: scope=reduced base=$change_base source=$change_source rendered=skipped web_check=$web_changed packages=${#changed_packages[@]}: ${changed_packages[*]} files=${#changed_files[@]}: ${changed_files[*]}"
   ;;
 esac
 
@@ -559,9 +589,9 @@ if [ "$mode" = "scope-changed" ] && { [ "$scope_conform" = "skipped" ] || [ "$sc
   # branch replaces it, so it runs the leg itself when the change set
   # can reach it.
   if [ "$scope_rendered" = "skipped" ]; then
-    echo "check.sh: the change set touches no web/, internal/serve/, internal/auth/, internal/identity/, or serve shell file; skipping the rendered leg."
+    echo "check.sh: the change set touches no web/ path and no package the rendered test binary links; skipping the rendered leg."
   else
-    echo "check.sh: the change set touches the rendered leg's inputs; running make web-rendered."
+    echo "check.sh: the change set touches the rendered leg's inputs (${rendered_selectors[*]}); running make web-rendered."
     if ! make web-rendered; then
       status=1
     fi
@@ -581,6 +611,12 @@ if [ "$mode" = "reduced" ]; then
   echo "== npm run build --prefix web =="
   if ! npm run build --prefix web; then
     status=1
+  fi
+  if [ "$web_changed" -eq 1 ]; then
+    echo "== npm run check --prefix web (svelte-check) =="
+    if ! npm run check --prefix web; then
+      status=1
+    fi
   fi
 
   echo "== gofmt, go vet, go test (changed packages) =="
