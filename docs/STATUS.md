@@ -8,7 +8,7 @@ after it. Master's full gate is green at `313c7ff` (heavy lane, 2026-10-10); the
 Slice 3 is ready to plan: it is the first slice with a dubplate side and consumes 2b's XML contract tier, the
 machine-form ledger (52 owed rows, none active), the per-endpoint assignment, the differ with its encoding-quirk
 rows, and the music-folders evidence (both oracles recorded over two collections, the `musicFolderId` filter graded).
-The Tempus walk is deferred until `/dev/kvm` exists, and Amperfy's walk is rung 16's attended gate.
+The Tempus walk ran on 2026-10-10 (`1f4f232`, 11 of 11 flows, emulator needs `-gpu host`), and Amperfy's walk is rung 16's attended gate.
 The box is unchanged: dubplate-server binary `d1e93e9`, the serve unit installed and disabled, the `auth`, `roster`,
 `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB); the first 6d deploy takes the runbook's 6d
 upgrade. Archive: HISTORY, "Archive record".
@@ -29,12 +29,11 @@ upgrade. Archive: HISTORY, "Archive record".
 - R-6d21 overrides 6c's "never reads environ" rule; Geoff may reopen it (not blocking).
 - Fork B: 0.8/0.9 launch FLAC-only; the group non-FLAC question is still open.
 - Workstation: ~41 stale `DUBPLATE_*` exports in `~/.local/secrets` fail `check` outside `env -i`; prune them.
-- VT-x appears disabled in firmware (no `/dev/kvm`): enabling it unblocks the Android emulator and the Tempus walk.
 
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | idle: 6d closed 2026-10-07 (code through `4de73e7`, close commit `0aa8d18`) |
+| 1 | main tree (master) | active 2026-10-10: gate scope pass, `docs/superpowers/plans/2026-10-10-gate-scope-pass.md` (`tool`, 2.5M ceiling) |
 | 3 (slice 2) | `.claude/worktrees/lane-3-slice-2` | closed 2026-10-10; worktree removed; code on master through `be9abf5` |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
