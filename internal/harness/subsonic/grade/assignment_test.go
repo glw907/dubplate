@@ -1,6 +1,7 @@
 package grade
 
 import (
+	"bytes"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
@@ -312,6 +313,30 @@ func TestLoadAssignmentStates(t *testing.T) {
 			wantErr: []string{`album "Alpha Artist/Second Light" lacks the shape`}, wantIs: errInvalidAssignment,
 		},
 		{
+			name: "multi-disc shape the album lacks",
+			edit: func(a *assignment) {
+				a.AlbumShapes[0].Shape = "multi-disc"
+				a.AlbumShapes[0].Album = "Alpha Artist/Single Disc"
+			},
+			wantErr: []string{`album "Alpha Artist/Single Disc" lacks the shape`}, wantIs: errInvalidAssignment,
+		},
+		{
+			name: "collaboration credit shape the album lacks",
+			edit: func(a *assignment) {
+				a.AlbumShapes[0].Shape = "collaboration credit"
+				a.AlbumShapes[0].Album = "Alpha Artist/Second Light"
+			},
+			wantErr: []string{`album "Alpha Artist/Second Light" lacks the shape`}, wantIs: errInvalidAssignment,
+		},
+		{
+			name: "unicode shape the album lacks",
+			edit: func(a *assignment) {
+				a.AlbumShapes[0].Shape = "unicode"
+				a.AlbumShapes[0].Album = "Alpha Artist/Second Light"
+			},
+			wantErr: []string{`album "Alpha Artist/Second Light" lacks the shape`}, wantIs: errInvalidAssignment,
+		},
+		{
 			name:    "unknown shape",
 			edit:    func(a *assignment) { a.AlbumShapes[0].Shape = "concept album" },
 			wantErr: []string{`unknown shape`}, wantIs: errInvalidAssignment,
@@ -425,9 +450,13 @@ func proofSession(t *testing.T) string {
 	if len(perturbed) == len(indexes) {
 		t.Fatal("getIndexes body has no ignoredArticles member to remove")
 	}
-	probe := func(version, msg string) []byte {
+	renamedFolder := bytes.Replace(body("004", "navidrome"), []byte(`"Music Library"`), []byte(`"Dubplate Library"`), 1)
+	if bytes.Equal(renamedFolder, body("004", "navidrome")) {
+		t.Fatal("getMusicFolders body has no folder name to rewrite")
+	}
+	probe := func(version, code, msg string) []byte {
 		return []byte(`{"subsonic-response":{"status":"failed","version":"1.16.1","serverVersion":"` + version +
-			`","error":{"code":0,"message":"` + msg + `"}}}`)
+			`","error":{"code":` + code + `,"message":"` + msg + `"}}}`)
 	}
 	versions := map[string]string{"navidrome": navidromeVersion, "gonic": gonicVersion, dubplate: dubplateVersion}
 	answers := []struct {
@@ -442,10 +471,10 @@ func proofSession(t *testing.T) string {
 			"navidrome": body("005", "navidrome"), "gonic": indexes, dubplate: asDubplate(perturbed),
 		}},
 		{"getMusicFolders", nil, map[string][]byte{
-			"navidrome": body("004", "navidrome"), "gonic": body("004", "gonic"), dubplate: asDubplate(body("004", "navidrome")),
+			"navidrome": body("004", "navidrome"), "gonic": body("004", "gonic"), dubplate: asDubplate(renamedFolder),
 		}},
 		{"noSuchEndpoint", nil, map[string][]byte{
-			"navidrome": probe(navidromeVersion, "n"), "gonic": probe(gonicVersion, "g"), dubplate: probe(dubplateVersion, "d"),
+			"navidrome": probe(navidromeVersion, "0", "n"), "gonic": probe(gonicVersion, "10", "g"), dubplate: probe(dubplateVersion, "70", "d"),
 		}},
 	}
 	s := &session.Session{Sources: map[string]session.Source{}}

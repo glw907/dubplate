@@ -77,7 +77,7 @@ func TestScanCredentials(t *testing.T) {
 			want: []string{"a: URL query carries credential parameter u", "b: URL query carries credential parameter t"},
 		},
 		{
-			name: "an escaped query separator is still read", format: client.JSON,
+			name: "the s parameter is read", format: client.JSON,
 			body: `{"a":"http://h/x?s=1"}`,
 			want: []string{"a: URL query carries credential parameter s"},
 		},
@@ -146,6 +146,38 @@ func TestLoadRefusesBodyCredential(t *testing.T) {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error lacks %q: %v", want, err)
 		}
+	}
+	if strings.Contains(err.Error(), "secretvalue") {
+		t.Errorf("error repeats the credential: %v", err)
+	}
+}
+
+const leakingXML = `<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" serverVersion="0.21.0"><x href="/y?p=secretvalue"/></subsonic-response>`
+
+func TestWriteRefusesXMLBodyCredential(t *testing.T) {
+	s, err := Load("testdata/valid")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.Requests[1].Responses[0].Body = []byte(leakingXML)
+	dir := filepath.Join(t.TempDir(), "out")
+	err = Write(dir, s)
+	if !errors.Is(err, errBodyCredential) {
+		t.Fatalf("err = %v, want errBodyCredential", err)
+	}
+	if strings.Contains(err.Error(), "secretvalue") {
+		t.Errorf("error repeats the credential: %v", err)
+	}
+}
+
+func TestLoadRefusesXMLBodyCredential(t *testing.T) {
+	dir := copyValid(t)
+	if err := os.WriteFile(filepath.Join(dir, "002-gonic.xml"), []byte(leakingXML), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Load(dir)
+	if !errors.Is(err, errBodyCredential) {
+		t.Fatalf("err = %v, want errBodyCredential", err)
 	}
 	if strings.Contains(err.Error(), "secretvalue") {
 		t.Errorf("error repeats the credential: %v", err)
