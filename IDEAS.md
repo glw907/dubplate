@@ -20,11 +20,14 @@ the 2026-09-24 differentiator review.
 
 ### Add or fix a MusicBrainz entry
 When MusicBrainz lacks an album or has it wrong, a member can add or fix the entry from
-the web app or the local TUI, then re-match the upload. The known route is release editor
-seeding (MusicBrainz's "Release Editor Seeding" developer page). Picard and Harmony both
-use it. dubplate would pre-fill the editor from the upload's tags and tracklist, and the
-member submits under their own MusicBrainz account, since MusicBrainz has no general edit
-API. It gives the unmatched-album route (ruled for 0.8 on 2026-10-10) a way back to a
+the web app or the local TUI, then re-match the upload. Adding is documented: MusicBrainz's
+"Release Editor Seeding" developer page (checked 2026-10-10) describes parameters POSTed to
+`/release/add`, and Picard and Harmony both use it. dubplate would pre-fill the editor from
+the upload's tags and tracklist, and the member submits under their own MusicBrainz
+account. The page's `redirect_uri` parameter returns the new release's MBID "under the
+'release_mbid' query parameter", so the re-match can run on its own. Fixing is weaker. The
+page documents seeding for new releases only, so a fix is a link to the existing release's
+edit page, where the member edits by hand. It gives the unmatched-album route (ruled for 0.8 on 2026-10-10) a way back to a
 matched album. It builds on the matcher, intake's held uploads, and the 0.9 local client.
 Source: Geoff, 2026-10-10, wanted after 0.8 with no version target yet.
 
