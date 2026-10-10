@@ -140,6 +140,15 @@ None of these is a failed step. Each is evidence about an oracle.
   /dev/kvm` succeeds after Geoff enables VT-x in the firmware; then the Android SDK, the emulator, and a system image
   install under `~/Android/`, and Tempus 4.28.0 sideloads, per [pins] "Client installs under settled item 9" with their
   manifest lines; then the script runs.
+  **Update, 2026-10-10 (later the same day).** `/dev/kvm` now exists (`emulator -accel-check`: "KVM (version 12) is
+  installed and usable"), and the Android command-line tools (build 16111833), platform-tools, emulator 37.2.12, and
+  system image `android-36;google_apis;x86_64` are installed under `~/Android/`, with AVD `dubplate-walk`. The newest
+  production Tempus is v4.29.0 (released 2026-10-09; `app-tempus-release.apk`, sha256
+  `3b2e3691d7fcdbe9903e75c6c9d26e74cc33baa4c9d5594d200fea797c8c9a2c`, matching GitHub's published digest); the walk
+  pins 4.28.0, so a rerun decides which to walk. The walk did not run: the emulator's `qemu-system-x86_64-headless`
+  dies with SIGSEGV (jump to an invalid address) shortly after "Emulator is performing a full startup", on
+  `-gpu swiftshader_indirect` and on `-gpu guest`, three times in all. Unblock: try another emulator or system image
+  build; then run the script.
 - **Amperfy 2.1.1.** Listed for rung 16's attended gate (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`:
   "A client the conductor cannot drive is walked at rung 16's attended gate."). Its script, from [clients] 2c and the
   sub-path precondition in [base-url], is in `docs/roster-walk.md`, unproven.
