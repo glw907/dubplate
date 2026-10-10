@@ -3,8 +3,9 @@
 Status: revision 2, 2026-10-10. Revision 1 (`9fc7c53`) was drafted from the planning brief
 (`research/2026-10-10-rung-7-planning-brief.md`) and reviewed through `spec-plan-review` under four lenses (contract,
 mechanics, integrity, consistency; `research/2026-10-10-rung-7-intake-review-*.md`, `01a1b99`). Revision 2 folds those
-reviews and Geoff's rulings of 2026-10-10; the fold record is `research/2026-10-10-rung-7-intake-fold.md`. It goes to
-Geoff before any plan is written.
+reviews and Geoff's rulings of 2026-10-10, and a second fold takes the verification read
+(`research/2026-10-10-rung-7-intake-fold-verification.md`); both folds are recorded in
+`research/2026-10-10-rung-7-intake-fold.md`. It goes to Geoff before any plan is written.
 
 This spec covers rung 7 in three passes, 7a, 7b, and 7c. It records the staging location, the submission model, the
 transfer, the gate, the quota rules, the user-present match probe, the reject set, the journey, and the uploader page.
@@ -45,6 +46,9 @@ master at `80f91ca` and re-checked at `01a1b99`; tusd at v2.10.1 from the module
    recordings waits until after 0.8; the matcher and its conformance corpus stay album-only.
 7. **A rejected submission is final; the member re-sends it whole.** PCF's "Multi-file path retry re-sends only the
    failing files" (`passb-copy-final.md:124-126`) is owed a redraft.
+8. **A FLAC file carrying ID3 data gets its own reason.** A new reason, `id3-tags`, tells the member the files carry
+   ID3 tags and how to strip them. It fires for an ID3v2 prefix and a trailing ID3v1 record alike (the gate, step 1
+   and step 4).
 
 ## Conductor rulings (2026-10-10)
 
@@ -409,15 +413,17 @@ transient one is retried.
 | create or PATCH: the floor | 403 | `no-space` |
 | create or PATCH: `statfs` fails | 503 | `could-not-check` (retried, then shown) |
 | receipt into a closed submission | 403 | `conflict` |
+| receipt: a store error | 503 | `could-not-check` (retried; the retry's HEAD answers the full offset, and the sweep finishes receipt) |
 
 ### The client
 
 The page pins `tus-js-client` 4.3.1 exactly (CLAUDE.md's 4.3.x rule). Each option is quoted from `docs/api.md` at
 `v4.3.1`, and the defaults were read from `lib/upload.js:11-47`:
 
-- `uploadUrl` is set for every file to the tus base path plus the file id that `create_submission` returned. The
-  client then HEADs first and creates only after a 404 (`lib/upload.js:432-437`), which covers a lost 201, a second
-  device, and a reloaded page with no stored state.
+- `endpoint` is the tus base path, and `uploadUrl` is the base path plus the file id that `create_submission`
+  returned. The client then HEADs first and creates only after a 404 (`lib/upload.js:432-437`), which covers a lost
+  201, a second device, and a reloaded page with no stored state. Without `endpoint`, a 404 ends the upload with "new
+  upload cannot be created without an endpoint" (`lib/upload.js:685-693`).
 - `storeFingerprintForResuming` is false: the server's file id is the resume key.
 - `chunkSize` keeps its default, `Infinity`; the docs say "**Do not set this value**, unless you are being forced to".
 - `parallelUploads` stays 1; a higher value uses the concatenation extension, which the server does not compose.
@@ -514,40 +520,60 @@ The create call carries the manifest: each file's relative path and size, the co
   `too-large`.
 - A file with an audio extension outside the allowlist: `bad-extension`, parameterized by the extension. A file with
   no audio extension is an extra: booklets, scans, and cue sheets "ride along" (PCF section 1), and their bytes count
-  toward the cap. A separate-tracks submission carries no extras.
+  toward the cap. A separate-tracks submission keeps no extras. The page leaves them out of its manifest, so a
+  separate-tracks manifest naming an extra answers `invalid_request` with detail `extra`, a client fault.
 - At least one audio file, or for a ZIP exactly one file with a `.zip` extension: `no-audio` otherwise.
 - The source answer present and one of the seven values: `missing-source` (PS A9).
 
 ### After the last byte (the files)
 
-**ZIP.** The gate first removes `submissions/<id>/x/`, so a re-run after a crash starts clean. It reads the
-end-of-central-directory record, in its zip64 form where present, the same record `archive/zip`'s `readDirectoryEnd`
-reads, and refuses an entry count over `MAX_FILES` with `too-many-files` before `zip.NewReader` materializes the
-directory. The mechanics probe measured 77 MiB of heap in `NewReader` for a 35 MB ZIP of 400,000 empty entries. The
-walk then reads the central directory without extracting, adopting `_salvage/internal/intake/intake.go`'s shape.
-`zip.NewReader` refuses a non-local name only under `GODEBUG` `zipinsecurepath=0` (`go doc archive/zip.NewReader`), so
-the walk runs the path validator on every name itself. A symlink member (`FileHeader.Mode()` has `fs.ModeSymlink`), a
-name the validator refuses, a directory entry with content, and two members with one name all answer `unsafe-path`.
-The walk sums every member's `UncompressedSize64` and refuses a sum over the cap before writing a byte (`too-large`);
-the reader stops at the declared size ("if r.nread > r.f.UncompressedSize64 { return 0, ErrFormat }",
-`$GOROOT/src/archive/zip/reader.go:301-303`), so that sum bounds decompression. Then comes the reservation `Update`
-under "Quota". A ZIP that does not open, a member read that errors, and a CRC mismatch answer `unpack-failed`.
+**ZIP.** The gate first removes `submissions/<id>/x/`, so a re-run after a crash starts clean. Before `zip.NewReader`
+materializes the central directory, the gate counts its headers in constant memory and refuses the `MAX_FILES + 1`th
+with `too-many-files`. The mechanics probe measured 77 MiB of heap in `NewReader` for a 35 MB ZIP of 400,000 empty
+entries. The end record's entry count bounds nothing: `Reader.init` reads headers "until we encounter a bad one" and
+compares the count only modulo 65536 (`if uint16(len(r.File)) != uint16(end.directoryRecords)`,
+`$GOROOT/src/archive/zip/reader.go:139-161`), and the verification probe read 196,609 entries from a ZIP whose zip64
+end record claimed 1. The count therefore uses `Reader.init`'s own stop rule. It seeks to the directory offset as
+`readDirectoryEnd` computes it, base offset included (`reader.go:544-610`; unexported, so the plan ports that offset
+arithmetic under its BSD-3-Clause license). It reads each 46-byte header, skips the name, extra, and comment lengths
+the header carries, and stops at the first record whose signature is not `0x02014b50` or that ends early, the
+`ErrFormat` and `io.ErrUnexpectedEOF` that break `Reader.init`'s loop (`readDirectoryHeader`, `reader.go:356-380`;
+`directoryHeaderLen` 46, `struct.go:44`). The walk then reads the central directory without extracting, adopting
+`_salvage/internal/intake/intake.go`'s shape. `zip.NewReader` refuses a non-local name only under `GODEBUG`
+`zipinsecurepath=0` (`go doc archive/zip.NewReader`), so the walk runs the path validator on every name itself. A
+symlink member (`FileHeader.Mode()` has `fs.ModeSymlink`), a name the validator refuses, a directory entry with
+content, and two members with one name all answer `unsafe-path`. The walk sums every member's `UncompressedSize64` and
+refuses a sum over the cap before writing a byte (`too-large`); the reader stops at the declared size ("if r.nread >
+r.f.UncompressedSize64 { return 0, ErrFormat }", `$GOROOT/src/archive/zip/reader.go:301-303`), so that sum bounds
+decompression. Then comes the reservation `Update` under "Quota". A ZIP that does not open, a member read that errors,
+and a CRC mismatch answer `unpack-failed`.
 
-Members extract into `submissions/<id>/x/` through the staging root. They are scratch: nothing reads one before the
-verdict commits, and any failure removes the directory, so extraction writes directly rather than through
-`internal/atomicfile`. Member rows are written only in the verdict `Update`. A member name is kept as bytes in
-`rel_path`. A name that is not valid UTF-8, or whose `FileHeader.NonUTF8` is set, is accepted with no decoding guessed
-(`go doc archive/zip.FileHeader`); display replaces invalid bytes with U+FFFD. The archive is removed after the
-verdict commits, and the startup pass and the sweep remove any archive left behind past `checking`.
+Members extract into `submissions/<id>/x/` through the staging root. They are scratch until the verdict: nothing
+reads one before it commits, a re-run removes the directory first, and `rejected` and `check-unfinished` remove it,
+so extraction writes directly rather than through `internal/atomicfile`. Member rows are written only in the verdict
+`Update`. A member name is kept as bytes in `rel_path`. A name that is not valid UTF-8, or whose `FileHeader.NonUTF8`
+is set, is accepted with no decoding guessed (`go doc archive/zip.FileHeader`); display replaces invalid bytes with
+U+FFFD.
+
+**Staged bytes, per state.** Reconcile and cleanup test a submission against this set. For loose files, the staged
+bytes are its received files in `tus/`. For a ZIP, they are the archive in `tus/` through `uploading`, `checking`, and
+`check-unfinished`, so a retry re-extracts from it. From the verdict that leaves `checking` for `matching` or
+`accepted`, they are the kept members in `x/`, and only after that verdict commits is the archive removed. For an
+accepted separate-tracks submission, they are its passing files.
 
 **Per audio file**, in this order. The first failing check is the file's verdict:
 
-1. **Container and format.** `tagio.Sniff` names FLAC, and the extension's format is in the effective allowlist: the
-   collection's `admission_format_allowlist` intersected with the `DUBPLATE_INTAKE_FORMAT_ALLOWLIST` bound (CH:280-282,
-   "the bounds an admin sets that no collection may exceed"), within `tagio.SupportedFormats`; a format outside
-   `tagio`'s set is a startup refusal (BS:808-811). The default is `flac`. A mismatch: `bad-extension`.
-   `tagio.ErrMalformedContainer` maps to `corrupt` and `tagio.ErrUnsupportedContainer` to `bad-extension`, except for
-   a `.flac` file wrapped in ID3, which "Rulings for Geoff" decides.
+1. **Container and format.** A file whose first three bytes are `ID3`, the ID3v2 identifier, gets `id3-tags` (owner
+   ruling 8). mewkiz/flac tests the same three bytes before it skips the prefix (`id3Signature`, `flac.go:136`,
+   `:163-173`), as mutagen 1.48.1 does (`header_data.startswith(b"ID3")`, `mutagen/id3/_file.py:377`). The reference
+   decoder accepts such a file with a warning ("ID3v2 tag found. This is non-standard and strongly discouraged",
+   `flac -t`, run by the verification probe), and so does mewkiz, so only this check catches it; `tagio.Sniff` would
+   misreport it as the wrong format. Otherwise `tagio.Sniff` names FLAC, and the extension's format is in the
+   effective allowlist: the collection's `admission_format_allowlist` intersected with the
+   `DUBPLATE_INTAKE_FORMAT_ALLOWLIST` bound (CH:280-282, "the bounds an admin sets that no collection may exceed"),
+   within `tagio.SupportedFormats`; a format outside `tagio`'s set is a startup refusal (BS:808-811). The default is
+   `flac`. A mismatch: `bad-extension`. `tagio.ErrMalformedContainer` maps to `corrupt` and
+   `tagio.ErrUnsupportedContainer` to `bad-extension`.
 2. **Metadata size.** No Vorbis comment block over `DUBPLATE_INTAKE_MAX_TAG_BYTES`, no picture block over
    `DUBPLATE_INTAKE_MAX_PICTURE_BYTES`, and no chain totalling more than four times the picture cap:
    `tags-too-large` and `picture-too-large`. `tagio.Parse` allocates each block's payload as it walks the chain
@@ -567,6 +593,12 @@ verdict commits, and the startup pass and the sweep remove any archive left behi
    audio samples" and "returns io.EOF to signal a graceful end of FLAC stream" (`flac.go:308-310`). Frame CRC-8 and
    CRC-16 mismatches are errors (`frame/frame.go:317`, `:142`). Any decode error, or bytes hashed unequal to the file's
    size: `corrupt`. Zero samples: `empty-track`.
+
+   A decode error whose file ends in a 128-byte record beginning `TAG`, the ID3v1 identifier, gets `id3-tags` instead
+   of `corrupt`. mutagen 1.48.1 finds ID3v1 the same way: it seeks 128 bytes from the end (`fileobj.seek(-128 -
+   extra_read, 2)`) and looks for `b"TAG"` (`mutagen/id3/_id3v1.py`, `find_id3v1`). Such a file fails both decoders:
+   mewkiz with "frame.Frame.parseHeader: invalid sync-code", and `flac -t` with `LOST_SYNC` (the verification probe).
+   The record is tested only after a decode error, so a valid FLAC whose last bytes happen to spell `TAG` still passes.
 
    The audio key is `Frame.Hash` over every decoded frame into one `crypto/md5`; `Hash` "adds the decoded audio
    samples of the frame to a running MD5 hash" for use with `StreamInfo.MD5sum` (`frame/frame.go:148-152`). When the
@@ -595,12 +627,13 @@ among the extras; the album total from tags differs from the count across discs.
 
 **Separate tracks.** Checks 1 to 4 run per file; 5 to 7 and the warnings do not. A file's failing check is its own
 verdict. With at least one passing file, the submission moves to `accepted` in the unlisted collection; with none, to
-`rejected`. No probe runs.
+`rejected`. No probe runs. A ZIP sent as separate tracks keeps only its audio members: each extra member gets no row,
+is removed with `x/`, and is listed in a non-blocking warning that separate tracks keep audio files only.
 
 **A check that cannot run** (L4): a read error on a staged file, a `tagio` error other than its two sentinels, or a
-`statfs` error at extraction moves the submission to `check-unfinished`, keeping its bytes and reservation (conductor
-ruling 5). A store error during the verdict cannot commit any state; the worker logs it, and the submission stays
-`checking` for the startup pass or the stall event.
+`statfs` error at extraction moves the submission to `check-unfinished`, keeping its staged bytes (a ZIP's archive)
+and its reservation (conductor ruling 5). A store error during the verdict cannot commit any state; the worker logs
+it, and the submission stays `checking` for the startup pass or the stall event.
 
 On `rejected`, cleanup removes the submission's staged files; its rows and events stay.
 
@@ -613,7 +646,8 @@ collection, so CH:651's visibility rule holds, and duplicates across collections
 - An album whose `album_key` equals an `accepted` submission's in the target collection moves to `rejected` with
   `already-in-library`. Of two identical albums racing through `matching`, the second to commit is refused.
 - A separate track whose `audio_key` equals that of a passing file of an `accepted` submission in the target
-  collection gets the verdict `already-in-library`; the others go on.
+  collection gets the verdict `already-in-library`; the others go on. When every passing track is refused this way,
+  the submission ends `rejected`.
 
 No early check runs at gate pass, so a member is never refused for a twin that may still be cancelled. Rung 9 extends
 the refusal to admitted tracks once `tracks` carries the audio key, and adds its admission states to the set it reads.
@@ -730,9 +764,10 @@ New reasons, drafted to PCF's rules (no em dashes, no "This [thing] couldn't be 
 names, W8.2's leak list) and gated by one `prose-voice-reviewer` read: `missing-source`, `uploads-off`, `over-quota`,
 `too-many-files`, `path-too-deep`, `no-audio`, `tags-too-large`, `picture-too-large`, `unsupported-flac`,
 `source-damaged`, `empty-track`, `missing-track-number`, `duplicate-track-position`, `incomplete-album`,
-`already-in-library`, and `could-not-check`. The codes are not copy; "tags" stays a leak in member copy. The two
-completeness warnings carry copy in the same deck. Uploader sessions send no reject email; the page carries every
-verdict (UD:261-262).
+`already-in-library`, `could-not-check`, and `id3-tags`. The codes are not copy; "tags" stays a leak in member copy,
+except in `id3-tags`, whose string must tell the member the files carry ID3 tags and how to strip them (owner ruling
+8). The two completeness warnings and the separate-tracks extras warning carry copy in the same deck. Uploader
+sessions send no reject email; the page carries every verdict (UD:261-262).
 
 ## The journey and the API
 
@@ -771,11 +806,13 @@ under `api`, because 14a's `api` subtree terminates every path under its prefix 
 At startup, after taking the intake lease and before the listener opens, `serve` runs one pass:
 
 1. **Reconcile.** Staging is never backed up (`internal/backup/doc.go:4-7`), so a restore can bring back rows whose
-   bytes are gone. A non-terminal submission whose received files are missing moves to `expired` with a `reason`
-   naming the missing bytes, which ends its reservation and frees its album key. The restore reconciler
-   (`internal/backup/reconcile.go`) is the precedent.
-2. **Clean up.** It removes the staged bytes of every terminal submission, a `submissions/` directory with no row,
-   the archive of a ZIP past `checking`, and the failing files of an accepted separate-tracks submission. Cleanup takes
+   bytes are gone. A non-terminal submission any of whose staged bytes ("Staged bytes, per state") are missing moves
+   to `expired` with a `reason` naming them, which ends its reservation and frees its album key. A ZIP past its
+   verdict is tested against its members, never its archive. The restore reconciler (`internal/backup/reconcile.go`)
+   is the precedent.
+2. **Clean up.** It removes every byte outside each submission's staged set: all of a terminal submission's bytes, a
+   `submissions/` directory with no row, the archive of a ZIP past its verdict (never in `check-unfinished`), and the
+   failing files and extras of an accepted separate-tracks submission. Cleanup takes
    each tus upload's `memorylocker` lock and leaves a file whose lock is held for the next sweep, so deletion is
    idempotent and never part of a transition.
 3. **Receive** every complete, unreceived tus upload of an `uploading` submission.
@@ -963,19 +1000,20 @@ records it in STATUS. The lane registry entry is written before 7a launches (PA:
 
 Quoted above: tusd's `MaxSize`, `DisableDownload`, `DisableTermination`, `Cors.Disable`, the default CORS origin, the
 inert `Upload-Concat` without a concater, the `x/exp/slog` logger and its nil default, the two callbacks,
-`FileInfoChanges.ID` and `MetaData`, `HookEvent.Context`'s values, the absolute `BasePath`, the deferred-length refusal,
-the per-read deadline extension, `UseIn`'s composition, the filestore's permissions, offset, `O_TRUNC`, missing `Sync`,
-and lack of cleanup, `GetUpload`, `sendError`, and `memorylocker`'s lifetime; `tus-js-client`'s `uploadUrl`,
-`chunkSize`, `parallelUploads`, `storeFingerprintForResuming`, `retryDelays`, its success on a full offset, and its
-retry rule; `mewkiz/flac`'s `New`, `ParseNext`, the CRC errors, the bit-depth codes, `Frame.Hash`, and `NSamples`' zero;
-`archive/zip`'s insecure-path condition, the read bound, and `NonUTF8`; `filepath.IsLocal`; `os.Root`;
-`http.Server.ReadTimeout` and `NewResponseController`'s `Unwrap` rule; `rename(2)` across mount points; `statx(2)`'s
-mount id and `stx_mask`; `f_bavail` in `f_frsize` units; `store.Handle.Update`, `OpenServe`'s shared lock, and
-`TakeKindLease`; `tagio`'s `safeCastInt` and its per-block allocation; the config registry's cross-family panic;
-`musicbrainz.NewClient`'s refusals, `Budget`'s lifetime limit, and `ClassUserPresent`; `matcher.Action`. The plan
-quotes before writing: the SQLite pages on unique-index NULLs and `ADD COLUMN` on a STRICT table; `tagio.Read`'s and
-`tagio.Parse`'s errors; each `tagio` field it projects; `handler.NewError`; and the end-of-central-directory layout
-from `archive/zip`'s `readDirectoryEnd`.
+`FileInfoChanges.ID` and `MetaData`, `HookEvent.Context`'s values, the absolute `BasePath`, the deferred-length
+refusal, the per-read deadline extension, `UseIn`'s composition, the filestore's permissions, offset, `O_TRUNC`,
+missing `Sync`, and lack of cleanup, `GetUpload`, `sendError`, and `memorylocker`'s lifetime; `tus-js-client`'s
+`uploadUrl`, `chunkSize`, `parallelUploads`, `storeFingerprintForResuming`, `retryDelays`, its success on a full
+offset, its retry rule, and its `endpoint` requirement; `mewkiz/flac`'s `New`, `ParseNext`, the CRC errors, the
+bit-depth codes, `Frame.Hash`, `NSamples`' zero, and its ID3v2 test; mutagen's ID3v2 and ID3v1 tests; `archive/zip`'s
+insecure-path condition, the read bound, `NonUTF8`, `Reader.init`'s header loop and 16-bit count check, and
+`readDirectoryHeader`; `filepath.IsLocal`; `os.Root`; `http.Server.ReadTimeout` and `NewResponseController`'s `Unwrap`
+rule; `rename(2)` across mount points; `statx(2)`'s mount id and `stx_mask`; `f_bavail` in `f_frsize` units;
+`store.Handle.Update`, `OpenServe`'s shared lock, and `TakeKindLease`; `tagio`'s `safeCastInt` and its per-block
+allocation; the config registry's cross-family panic; `musicbrainz.NewClient`'s refusals, `Budget`'s lifetime limit,
+and `ClassUserPresent`; `matcher.Action`. The plan quotes before writing: the SQLite pages on unique-index NULLs and
+`ADD COLUMN` on a STRICT table; `tagio.Read`'s and `tagio.Parse`'s errors; each `tagio` field it projects;
+`handler.NewError`; and `readDirectoryEnd`'s offset arithmetic, which the header count ports.
 
 ### Privileged fields and every channel that sets them
 
@@ -1012,6 +1050,7 @@ from `archive/zip`'s `readDirectoryEnd`.
 | receipt | response lost after receipt | the client's HEAD answers the full offset; success |
 | receipt | two files finish at once | exactly one move to `checking` |
 | receipt | the submission closed during a PATCH | no change; 403; cleanup removes the bytes |
+| receipt | a store error | 503, retried; the sweep finishes receipt |
 | `create_submission` | manifest empty | `no-audio` |
 | `create_submission` | malformed (bad JSON, negative size, duplicate path) | `invalid_request` with a detail |
 | `create_submission` | many bad files | every failing path listed with its code in `rejects` |
@@ -1020,26 +1059,28 @@ from `archive/zip`'s `readDirectoryEnd`.
 | `create_submission` | each limit | its code, first failing limit only |
 | `create_submission` | cap NULL | no cap check |
 | any write | floor crossed; `statfs` fails | `no-space`; `could-not-check` |
-| ZIP | entry count over `MAX_FILES` | `too-many-files`, before `NewReader` |
+| ZIP | more than `MAX_FILES` central-directory headers, whatever the end record claims | `too-many-files`, before `NewReader` |
 | ZIP | does not open, member errors, or CRC fails | `unpack-failed` |
 | ZIP | symlink, refused name, directory with content, or duplicate name | `unsafe-path` |
 | ZIP | declared total over cap; extracted total over a limit | `too-large` before extraction; `over-quota` or `no-space` |
 | ZIP | non-UTF-8 name | accepted, kept as bytes |
 | ZIP | holds no audio file | `no-audio` |
 | ZIP | re-run after a crash mid-extraction or before the verdict | `x/` removed, the same verdict as an uninterrupted run |
+| ZIP | `check-unfinished`; past its verdict | the archive kept, `x/` removed; the members kept, the archive removed |
 | audio file | each per-file check | its reason as listed under "The gate" |
 | audio file | header MD5 all zero | stored NULL; no comparison |
 | audio file | a block over its cap | refused before the block is allocated |
+| audio file | first bytes `ID3`; a decode error with a trailing `TAG` record | `id3-tags`; `id3-tags` |
 | album | many bad files | `rejected`; each file's first failing check recorded |
 | album | each position fault | `duplicate-track-position` or `incomplete-album` |
 | album | track tag non-numeric or at or below 0 | `missing-track-number` |
-| separate tracks | some files fail; all fail | `accepted` with the passing files; `rejected` |
+| separate tracks | some files fail; all fail; every passing file a duplicate | `accepted` with the passing files; `rejected`; `rejected` |
+| separate tracks | an extra in the manifest; an extra in a ZIP | `invalid_request`, detail `extra`; dropped, with the warning |
 | accept | duplicate album; duplicate separate track | `rejected` with `already-in-library`; that file's verdict |
 | gate | a check cannot run | `check-unfinished`, bytes kept |
 | gate | a store error during the verdict | stays `checking`; the startup pass or stall event |
 | probe | each outcome | as the probe table says |
 | member action | from a state the action does not leave | `conflict` |
-| worker | its compare-and-set fails (the member cancelled) | the verdict is discarded |
 | `get_submission` | unknown id or another member's | `not_found` |
 | sweep | each window passed | `expired`, cleanup follows |
 | sweep | `checking` or `matching` past the threshold | one `stalled` event, one mail to each live admin, never repeated |
@@ -1085,7 +1126,8 @@ state event's `kind`; criterion 4 proves that assertion can fail.
    constructor with only `ReadTimeout` lowered. The test fails when the wrapper's `Unwrap` is removed.
 10. A creation's client metadata never reaches `.info`, and the tus id equals the file id. Fixture: a creation carrying
     extra keys and a forged `uploader`. A creation declaring one byte more than the manifest, and a second creation
-    for a file whose upload exists, each answer 400 before `.info` is written. No callback refusal answers 500.
+    for a file whose upload exists, each answer 400 before `.info` is written. No definitive callback refusal answers
+    500.
 11. Receipt: a fault injected between the last byte and the receipt commit, then a restart, ends with the file
     received and the submission in `checking`; a response dropped after receipt ends with the client reporting
     success; a lost 201 ends with the file sent through `uploadUrl`; two files finishing at once move the submission to
@@ -1114,8 +1156,10 @@ state event's `kind`; criterion 4 proves that assertion can fail.
     `symlink` is exempt, with its reason written in the table.
 18. The ZIP walk refuses a symlink member, an absolute name, a `../` name, a NUL name, a backslash name, a directory
     entry with content, and a duplicate name with `unsafe-path`; refuses a declared total over the cap before writing
-    a file; refuses an entry count over `MAX_FILES` before `zip.NewReader` runs; and stores a non-UTF-8 name's bytes
-    unchanged. Fixture: one crafted ZIP per case, a many-entries ZIP, and a valid one that passes.
+    a file; refuses more than `MAX_FILES` central-directory headers before `zip.NewReader` runs, including when the
+    end record understates the count; and stores a non-UTF-8 name's bytes unchanged. Fixture: one crafted ZIP per
+    case, a many-entries ZIP, a many-entries ZIP whose zip64 end record claims one entry, and a valid one that
+    passes.
 19. A ZIP member whose data exceeds its declared `UncompressedSize64` fails with `unpack-failed` and leaves no file.
     A ZIP stopped partway through extraction, and one whose extraction finished but whose verdict did not commit, each
     reach the uninterrupted run's verdict after a restart. Fixture: a header-understating ZIP and a passing ZIP with
@@ -1123,7 +1167,9 @@ state event's `kind`; criterion 4 proves that assertion can fail.
 20. The gate rejects a flipped frame byte and a truncated file (`corrupt`); a nonzero header MD5 that differs from the
     decode and a sample count unequal to a nonzero `NSamples` (`source-damaged`); a 22.05 kHz file and a 12-bit file
     (`below-cd-quality`); an 18-bit and a 32-bit file (`unsupported-flac`); a zero-sample file (`empty-track`); and a
-    tag block, a picture block, and a chain over their caps, each refused before the block is allocated. A clean file
+    tag block, a picture block, and a chain over their caps, each refused before the block is allocated. A file with
+    an ID3v2 prefix and a file with a trailing ID3v1 record each answer `id3-tags`, and a clean file whose last 128
+    bytes begin `TAG` by chance passes. A clean file
     passes, its `audio_key` equals its header MD5 and its `file_hash` equals `sha256sum`'s output; an all-zero header
     MD5 passes with `header_md5` NULL; a retagged copy keeps its `audio_key` and changes its `file_hash`. Fixture:
     generated FLACs for each case, made by the plan's fixture generator.
@@ -1133,7 +1179,10 @@ state event's `kind`; criterion 4 proves that assertion can fail.
     reads as disc 1; no tag is rewritten. Fixture: one album per case.
 22. Separate tracks: three files, one corrupt, end `accepted` in "Unlisted music" with two passing files, the corrupt
     file's verdict recorded and its bytes removed; three failing files end `rejected`; no track number is required;
-    the fake MusicBrainz transport records no request. Fixture: the two three-file submissions.
+    the fake MusicBrainz transport records no request. Two passing files that both duplicate accepted files end
+    `rejected`. A manifest naming an extra answers `invalid_request`; a ZIP of two tracks and a scan ends `accepted`
+    with the two tracks and the extras warning. Fixture: the two three-file submissions, an accepted twin pair, and
+    the ZIP.
 23. An album uploaded twice to one collection: the second is refused `already-in-library`. The same album on the
     unlisted route while the first sits in "Library" is accepted. Two identical albums racing through `matching`, and
     two racing through `route_unlisted`: exactly one is accepted in each race. A separate track whose audio key equals
@@ -1141,20 +1190,23 @@ state event's `kind`; criterion 4 proves that assertion can fail.
     pair.
 24. A staged-file read fault, a `tagio` non-sentinel error, and a `statfs` fault at extraction each move a passing
     two-track album to `check-unfinished` with its bytes kept; `retry_submission` after the fault clears reaches the
-    album's verdict; the album without a fault passes. A `statfs` fault at create answers `could-not-check`.
+    album's verdict; the album without a fault passes. The same album as a ZIP, faulted during decode, holds its
+    archive and no `x/` in `check-unfinished`, and its retry re-extracts and passes. A `statfs` fault at create answers
+    `could-not-check`. Fixture: the two-track album as loose files and as a ZIP.
 25. The probe stores a proposal and moves to `accepted` on `ActionApply`, to `pushed-back` on another action and on
     `ErrNoCandidates`, and to `match-unavailable` on `ErrUnavailable`, with `ClassUserPresent` on its requests. More
     probes than one budget's limit all reach the transport. Fixture: a fake transport with a strong match, a weak
     match, no candidates, and an outage.
 26. A table of every journey state against `retry_submission`, `route_unlisted`, and `cancel_submission` asserts the
     transition table's move or `conflict` in each cell, and that `route_unlisted` lands the submission in "Unlisted
-    music" without a second upload. A worker verdict that arrives after a cancel is discarded. Fixture: one
-    submission per state with staged files.
+    music" without a second upload. Fixture: one submission per state with staged files. The one race a cancel can
+    meet, a receipt finishing after it, is AC 11's.
 27. A second `serve` on one state directory refuses at the intake lease before any recovery runs. After a restart with
     one submission in `checking` and one in `matching`, both reach a verdict. A store holding an `accepted` and a
     `checking` submission over empty staging starts with both `expired`, and a re-upload of that album is not refused.
-    A `submissions/` directory with no row and a rejected submission's leftover bytes are removed. Fixture: the
-    restored store and the orphaned files.
+    A `submissions/` directory with no row and a rejected submission's leftover bytes are removed. An `accepted` ZIP
+    whose archive is gone and whose members are present, and a `check-unfinished` ZIP holding only its archive, both
+    survive the restart unchanged. Fixture: the restored store, the orphaned files, and the two ZIPs.
 28. The sweep expires an idle upload and each held state past its window, and leaves alone an upload whose tus data
     file was written within the window though its `updated_at` is older. Two sweeps over a long-running check record
     one `stalled` event and send one mail to each of two live admins and none to a removed admin. Fixture: an injected
@@ -1188,7 +1240,8 @@ Errata to ratified documents, none edited by this spec:
   startup refusal supersedes CH:474's copy fallback for staging and the library root.
 - 14A: its contested-surfaces rows for `admin.go` and `internal/serve` are sequenced by "Sequencing with rung 14a"; its
   `keys.go` row gains the `pipeline` edit; the subtree-adoption clauses (14A:36-38, :522, :634) are moot.
-- W: W8.2 gains the format-name exception for reject reasons (conductor ruling 6).
+- W: W8.2 gains the format-name exception for reject reasons (conductor ruling 6), and "ID3 tags" in `id3-tags`
+  (owner ruling 8).
 - VI: the catalog line's format (VI:243-244) and the list view, filtering, album page, and phone layouts in "Open for
   rung 7" (VI:350-372) move to the web pass after rung 9; the sitting rules two items.
 - BS: rung 7 re-bands from M (BS:798) to L.
@@ -1196,6 +1249,9 @@ Errata to ratified documents, none edited by this spec:
   `:143-145`, `:160-161`); every "Private Recordings" string in sections 5 and 6, renamed "Unlisted music" with
   "music" or "recording" where "album" would be wrong; the section 1 hint "One album at a time. Albums go in whole."
   (`:45`), which a multi-submission upload contradicts. The redrafts go through the register read.
+- PCF section 4, the copy contract: the `id3-tags` string (owner ruling 8, Geoff 2026-10-10), which names ID3 tags
+  and how to strip them, and the separate-tracks extras warning, added after the register read with the other new
+  reasons.
 - CLAUDE.md: "The album is the verdict unit" gains the separate-tracks kind (owner ruling 6); the Gate paragraph's
   state-dir leg admits the serve unit's music-volume grant; the fact line on `/var/lib/dubplate/` gains that staging
   lives on the music volume by design.
@@ -1216,12 +1272,4 @@ execution excluding the sitting and owner pauses (revision 1: about 16).
 
 ## Rulings for Geoff
 
-1. **Should a FLAC file wrapped in ID3 tags be rejected as damaged?** Some taggers put an ID3v2 block before a FLAC
-   file or an ID3v1 record after it. `tagio.Sniff` fails on the prefix (`internal/engine/tagio/seam.go:83-104`), so the
-   gate would say "wrong format" for a `.flac` file; the trailing record makes decode fail ("invalid sync-code"), as
-   `flac -t` also does. Options: (a) reject both under `corrupt`, mapping "a `.flac` file that fails the sniff" to it,
-   with no new copy; (b) a new reason whose next step tells the member to remove the ID3 tag; (c) accept them by
-   skipping the ID3 bytes, which leaves those bytes in the library for rung 9's tag writes to meet. Recommendation:
-   yes, (b). It is one more reason in a deck already being drafted, and it names a fix the member can make, where
-   `corrupt`'s "Uploading it again usually fixes this" would send them round the same loop that `source-damaged`
-   exists to avoid. (a) costs less and is safe; (c) keeps foreign bytes in the library.
+None open. The ID3 fork of revision 2 was ruled by Geoff on 2026-10-10 (owner ruling 8).

@@ -216,3 +216,63 @@ the accept-time re-route, and the second naming ruling came out.
 
 **Estimate.** 7a 8.5M to 9.0M (flag 7.2M); 7b 6.5M to 6.8M (flag 5.4M); 7c unchanged at 7.5M. The rung goes from about
 22.5M to about 23.3M, and execution from about 16 hours to about 17, excluding the sitting and owner pauses.
+
+## Second fold: the verification read
+
+Source: `research/2026-10-10-rung-7-intake-fold-verification.md` (1 blocker, 1 major, 5 minors), on revision 2 at
+`5cf5241`. Scope set by the conductor: B1, M1, m1 to m4, and m5 with Geoff's ID3 ruling. The verifier's `Reader.init`
+quote was re-read from Go 1.27.2's `archive/zip/reader.go:118-161` and `:356-380`, mewkiz's ID3v2 test from
+`flac.go:136` and `:163-173`, and mutagen 1.48.1's two ID3 tests from the repo's beets venv
+(`mutagen/id3/_file.py:377`, `mutagen/id3/_id3v1.py`, `find_id3v1`). The `flac -t` behavior and the 196,609-entry
+probe are the verifier's.
+
+### Ruling recorded
+
+Geoff, 2026-10-10: the ID3 fork takes option (b). A new reason, `id3-tags`, tells the member the files carry ID3 tags
+and how to strip them. Spec owner ruling 8; "Rulings for Geoff" now reads "None open".
+
+### Dispositions
+
+| ID | Disposition | Where |
+|---|---|---|
+| ver-B1 | folded | "Staged bytes, per state": a ZIP's archive is its staged bytes through `uploading`, `checking`, and `check-unfinished`; from the verdict that leaves `checking`, the kept `x/` members are, and only then is the archive removed. `check-unfinished` removes `x/` and keeps the archive. Reconcile and cleanup test against that set. AC 24 gains the ZIP held and retried; AC 27 gains an accepted ZIP with members and no archive, and a held ZIP with only its archive, both surviving a restart. |
+| ver-M1 | folded | the end-record pre-check is replaced by a constant-memory count of central-directory headers from the directory offset, with `Reader.init`'s stop rule quoted (`reader.go:139-161`, `:356-380`; `struct.go:44`), refused at the `MAX_FILES + 1`th header. `readDirectoryEnd` is unexported, so the plan ports its offset arithmetic (`:544-610`). AC 18 gains a ZIP whose zip64 end record claims one entry. |
+| ver-m1 | folded | tus refusal row "receipt: a store error, 503, `could-not-check`, retried"; states row; AC 10 scoped to definitive refusals |
+| ver-m2 | folded | "The client": `endpoint` is the base path beside `uploadUrl`, with the 4.3.1 failure text quoted |
+| ver-m3 | folded | AC 26's worker-after-cancel clause removed, since no member action can change a submission under the worker or probe; the one reachable race, receipt after a cancel, stays AC 11's. The general compare-and-set rule stays. The states row that claimed the race was removed. |
+| ver-m4 | folded | an extra in a separate-tracks manifest answers `invalid_request` with detail `extra` (the page leaves extras out, so only a client fault sends one); an extra inside a separate-tracks ZIP is dropped with a non-blocking warning; every passing track a duplicate ends `rejected`. AC 22 gains both. |
+| ver-m5 | folded with the ruling | the gate detects an ID3v2 prefix by its first three bytes, `ID3`, before `tagio.Sniff` (mewkiz `flac.go:136`, `:163-173`; mutagen `_file.py:377`), because `flac -t` and mewkiz both accept it; it detects a trailing ID3v1 record as a decode error with the last 128 bytes beginning `TAG` (mutagen `find_id3v1`), which both decoders refuse. Testing ID3v1 only after a decode error keeps a valid FLAC whose last bytes spell `TAG` from being refused. AC 20 gains both files and that valid one. |
+
+The ver-m4 choice for a ZIP's extras (drop with a warning, not refuse) is the fold's. It keeps a member who zips a
+folder of singles with a cover image from a refusal they cannot act on in the page. The warning is new copy.
+
+### Owed errata added
+
+- **PCF section 4, the copy contract**: the `id3-tags` string (Geoff, 2026-10-10), which names ID3 tags and how to
+  strip them, and the separate-tracks extras warning, after the register read with the other new reasons.
+- **W**: the W8.2 exception (conductor ruling 6) also covers "ID3 tags" in `id3-tags`, by owner ruling 8; "tags"
+  stays a leak everywhere else.
+
+### Not settled
+
+- The `id3-tags` next step must name a way to strip ID3 data from a FLAC file that a member can run. `metaflac`
+  removes Vorbis comments, not ID3. The candidates are mutagen's `mid3v2 --delete-all` and a desktop tagger's "remove
+  ID3" command. The copy read picks one; the spec does not.
+- `flac -t`'s ID3v2 warning text and the 196,609-entry probe come from the verifier's runs, which were not re-run here.
+
+### Measures
+
+New-mechanism findings: 2 folded, 0 refused.
+
+| Folded mechanism | Source that runs it | Defect it answers |
+|---|---|---|
+| A constant-memory central-directory header count, replacing the end-record count of the first fold | `archive/zip`'s own `Reader.init` loop and stop rule (`reader.go:139-161`) | measured: a 21 MB ZIP whose zip64 end record claimed 1 entry gave `NewReader` 196,609 entries and 53 MiB of heap (verification probe) |
+| ID3 detection at the gate (a three-byte prefix test, and a trailing-record test after a decode error) | mewkiz/flac's `id3Signature` test; mutagen 1.48.1's `startswith(b"ID3")` and `find_id3v1` | measured: `flac -t` and mewkiz accept an ID3v2-prefixed file and refuse an ID3v1-suffixed one, while `tagio.Sniff` misreports the prefix (verification probe and mechanics m3) |
+
+The first fold's "end-of-central-directory entry count" row is superseded by the first row above.
+
+**Spec length.** 1,227 lines before the second fold, 1,275 after: +48. Against revision 1's 1,093 lines the spec has
+grown about 17%, still inside the 25% signal.
+
+**Estimate.** Unchanged. The header count replaces the end-record read, and `id3-tags` adds one reason and two
+fixtures inside 7a's 9.0M.
