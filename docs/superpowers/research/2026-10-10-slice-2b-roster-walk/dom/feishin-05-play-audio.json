@@ -1,0 +1,16 @@
+[
+ {
+  "src": "http://127.0.0.1:44565/rest/stream.view?id=1jmvrDratUDijhMfUDTfa9&v=1.13.0&c=Feishin",
+  "t": 0.898451,
+  "d": 2,
+  "paused": false,
+  "err": null
+ },
+ {
+  "src": "http://127.0.0.1:44565/rest/stream.view?id=6qVmJQuAW5lTbxqGtWuEtF&v=1.13.0&c=Feishin",
+  "t": 0,
+  "d": 2,
+  "paused": true,
+  "err": null
+ }
+]
