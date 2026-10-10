@@ -1,7 +1,7 @@
 # Rung 14a (the Admin API's First Half) Implementation Plan
 
-Status: **revision 2, 2026-10-10: the three `spec-plan-review` lenses folded**
-(`docs/superpowers/research/2026-10-10-rung-14a-plan-fold.md`, "the plan fold").
+Status: **revision 2.1, 2026-10-10: the three `spec-plan-review` lenses folded, then the verification read's V1 to
+V10** (`docs/superpowers/research/2026-10-10-rung-14a-plan-fold.md`, "the plan fold", and its "Second fold").
 
 **Spec:** `docs/superpowers/specs/2026-10-10-rung-14a-admin-api-design.md`, revision 2.1 at `c7c3fbb` ("the spec").
 Its fold record is `docs/superpowers/research/2026-10-10-rung-14a-spec-fold.md` ("the fold"); this plan places the
@@ -92,14 +92,15 @@ the stall guard, and the fallback `/loop` wake-up per `~/.claude/docs/unattended
   finishes, and no new segment starts. The first security read and its fold belong to segment B, so segment C never
   starts without them; a flag stop at boundary B names that read as the first resume step.
 - The close is not a new segment: once it starts, it runs to the hard ceiling.
-- The merge ritual (Task 11, steps 5 to 8) starts only with at least 0.5M left. Once started it finishes, or it stops
+- The merge ritual (Task 11, steps 4 to 8, from the merge token) starts only with at least 0.5M left. Once started it finishes, or it stops
   before `--ff-only`, never between `--ff-only` and the on-master gate.
 - At 11.8M the conductor stops after the in-flight chain returns. STATUS is written at each boundary and before any
   stop, naming the step reached.
 
 **The conductor rules alone, recording each in its notes and later in HISTORY:** accept; one re-dispatch on `fix`;
 after that round, one more dispatch on a `fix` still standing, either an Opus upshift (Tasks 4, 7, and 10c first; Task
-6 is already Opus) or a split on the seam the finding names; a flake the rerun rule covers; a pre-flight claim that is
+6 is already Opus) or a split on the seam the finding names (Task 4's pre-approved seam is the member cap, which
+spec deviation 1 shows is separable: its code, fixtures, and mutations move to a Task 4b); a flake the rerun rule covers; a pre-flight claim that is
 wrong at HEAD, amended in the plan before dispatch; any decision a task marks "the implementer's"; a reviewer finding
 refused under CLAUDE.md's fold rule, with its one-line reason; and a dependency held by Task 0's rules.
 
@@ -113,8 +114,9 @@ gate, with STATUS naming the commit and no revert without Geoff.
 
 **Owner-gated steps, batched at the end:** none needs Geoff's go. The live auth smoke and the render-and-read of both
 pages are Claude's verification (pass-core, "Verification a plan parks for the owner is Claude's"), run at the close
-before Geoff sees anything. Their evidence and the pages' captures go to Geoff in the close's one summary. Nothing
-deploys, and the box is never contacted.
+before Geoff sees anything. Their evidence and the pages' captures go to Geoff in the close's one summary. The
+summary also lists the PS:145-147 erratum (spec deviation 1) as decided, with its reason: the spec's `:284`, "Neither
+the seed rule nor the command line sends a notice". Nothing deploys, and the box is never contacted.
 
 ## Global constraints
 
@@ -197,9 +199,11 @@ The spec leaves these to the plan. Each is architecture or method, decided on it
   the add, remove, and demote paths; `member list` and every read build no epoch store and open no auth leaf. The cap
   arrives as an `auth.Setting[int]` built in `cmd/dubplate-server` from the accessor, on the precedent of
   `durationSetting` and `authBodyCap` (`cmd/dubplate-server/auth.go:499-516`); `serve.go` and `member.go` (which
-  already holds `reg`) both build it. The cap is read before `Update`, as the accessor's contract requires (quoted
-  below), and the live count is taken inside it. The empty-roster bootstrap check runs first and reads no cap (PS:140,
-  "never refused").
+  already holds `reg`) both build it. The cap reader is called before `Update`, as the accessor's contract requires
+  (quoted below), and its result and error are held. Inside `Update`, a roster with no live member takes the
+  bootstrap and ignores the held result (PS:140, "never refused"); otherwise a held error refuses with `internal`, and
+  the live count is taken there. No roster read happens outside the transaction, since "no live admin" is decided
+  inside `addUser`'s `Update` today (`roster.go:426-432`).
 - **P12. `user_id` parsing** accepts exactly 32 characters that equal their own lowercase hex re-encoding. The empty
   string and the all-zero id (the `UserID` zero value, "never resolved", `identity.go:205-208`) answer
   `invalid_request`.
@@ -226,8 +230,9 @@ Retiring the roster API cannot stay inside that grant:
 - `cmd/dubplate-server/serve_test.go` drives `/roster` in about ten tests (`:810-1208`).
 - The members rows and helpers in `web/scripts/rendered/run.ts` (`:866`, `:1050-1090`, `:3086-3151`) and
   `cmd/dubplate-server/rendered_test.go` (`:218-219`, `:860`) intercept or prove the roster API.
-14a therefore edits these in place, in Tasks 10a and 10c: the members rows and their helpers, deck-coverage's roster
-outcome source, and the host of the `RequireAdmin` table (every refusal row kept). It changes no `RequireAdmin` line,
+14a therefore edits these in place, in Tasks 10a, 10b, and 10c: the members rows and their helpers, deck-coverage's
+roster outcome source, its detail-constant pattern (10a), its `REQUIRED_TITLES` list (10b, `deck-coverage.ts:43`),
+and the host of the `RequireAdmin` table (every refusal row kept). It changes no `RequireAdmin` line,
 no harness shape, and no other deck rule. Rung 7 is a planning lane today, so this is a coordination note: the lane
 registry row records it (lane launch, step 3), and the spec owes an erratum (the plan fold).
 
@@ -286,11 +291,11 @@ Added rows:
 | any member call | `user_id` empty, uppercase, of the wrong length, not hex, or all zeros | `invalid_request` |
 | add (`add_member`, `member add`) | live members at the cap, a new or re-added address | `conflict`, detail `member_cap`, naming the setting and removal |
 | add | live members at cap minus one | commits |
-| add | `member add --admin` on a roster with no live member, holding cap-many tombstoned rows, beside a cap row that cannot be read | commits; the bootstrap reads no cap (PS bootstrap) |
+| add | `member add --admin` on a roster with no live member, holding cap-many tombstoned rows, beside a cap row that cannot be read | commits; the bootstrap ignores the held cap read (PS bootstrap) |
 | add | the cap cannot be read, roster not empty | `internal`, nothing written |
 | add over `add_member` | a removed admin's address | reactivated without the flag |
 | `member add`, `remove`, `demote` | `auth.Open` refuses (a leaf wider than `0700`, a subdirectory it cannot create) | refused naming the verb and the leaf, nothing written; `member list` opens no auth leaf |
-| `serve` start | the window at or above `DUBPLATE_SESSION_ABSOLUTE_CAP` (the `2h` default against a cap at or below `2h`) | the seed rule refuses, naming both keys; with a cap at or below `5m` the message names the window's floor |
+| `serve` start | the window at or above `DUBPLATE_SESSION_ABSOLUTE_CAP` (the `2h` default against a cap at or below `2h`, with `DUBPLATE_SESSION_LIFETIME` lowered to at most the cap so `sessionLifetimeWithinCap` passes) | the seed rule refuses, naming `DUBPLATE_REAUTH_WINDOW` and the cap; with a cap at or below `5m` the message names the window's floor |
 | the notice | the send fails or outwaits its deadline | logged; the write stays committed |
 | `doctor`'s members row | live members above the cap | warns, without failing (PS A1) |
 | `doctor`'s members row | the cap cannot be read | the count, with "cap not read", without failing |
@@ -322,7 +327,8 @@ Before Task 0:
 After Task 0, before Task 1:
 3. **Contested surfaces written.** Copy the spec's contested-surfaces rows into STATUS's lane registry (the fold's
    conductor-owed item), naming lane 1 as 14a's owner, with spec deviation 2's amendment: 14a edits in place the
-   harness's members rows and helpers, deck-coverage's roster outcome source, and the `RequireAdmin` table's host.
+   harness's members rows and helpers, deck-coverage's roster outcome source, detail-constant pattern, and
+   `REQUIRED_TITLES` list, and the `RequireAdmin` table's host.
 4. **Lane registry row:** lane 1, the worktree, the branch, this plan, the sub-ceiling (the ceiling).
 5. **Provisioning.** `npm ci --prefix web` in the worktree; `make unidecode-wheel` and `make subsonic-xsd` verified
    in the user cache; `xmllint` at libxml 2.15.4 on `PATH`. No venv.
@@ -412,7 +418,8 @@ and their tests. **Hook:** lands hook 15 in part (the settings operations' vocab
 
 **Interfaces.** Produces `ops.AdminSeam` with the seven operations (spec, "The mount", the operation list); its
 request and response types; the two codes' sentinels; an error carrying an optional `detail`, with P8's values as
-named constants (Task 10a's deck gate parses them); and the unavailable job seam's type. Task 6 implements the admin
+exported constants of the one shape `Detail<Name> = "<value>"`, declared together in one `internal/ops` file (Task
+10a's deck gate parses that shape; `internal/ops/admin` reads them, so they are exported); and the unavailable job seam's type. Task 6 implements the admin
 seam; Task 7 mounts the handler.
 
 **Outcomes.**
@@ -436,8 +443,8 @@ admin operation; omit a new code's status (`checkStatuses` fails); report a job 
 ### Task 4: Removal, demotion, the re-add bump, and the cap in the roster
 
 **Files:** `internal/auth/roster.go`, `roster_test.go`, `epoch.go` (`Subscribe`'s doc comment), `epoch_test.go` if
-needed; `internal/auth/admin.go` (the roster API's `AddMember` call and outcome map only, `:265` and `:305`, nothing
-in `RequireAdmin`); every other `NewRoster` caller (`admin_test.go`, `seam_test.go`,
+needed; `internal/auth/admin.go` (the roster API's `AddMember` call, one outcome constant, and the outcome map only,
+`:35-45`, `:265`, and `:305`, nothing in `RequireAdmin`); `web/src/lib/copy/deck.ts` (one `ROSTER_OUTCOMES` line); every other `NewRoster` caller (`admin_test.go`, `seam_test.go`,
 `cmd/dubplate-server/serve_test.go`, `rosterreset_test.go`); `cmd/dubplate-server/serve.go` and `member.go`, for the
 roster's write dependencies (P11); a new `cmd/dubplate-server/api.go` holding `DUBPLATE_MEMBER_CAP`'s declaration
 (P7) and `main.go`'s one registration line. **Hook:** lands hook 5 in part (the in-write actor re-read by `UserID`);
@@ -462,8 +469,11 @@ admin check (P10), and the cap's read on the add path. Consumes the cap as an `a
   naming the verb and the leaf; `member list` opens none.
 - **The cap** (P7, P11): the add path counts live members, admins included, inside the add transaction, and refuses at
   the cap with `member_cap` naming the setting and removal. A tombstoned row does not count. A reactivation counts.
-  The bootstrap check runs first and reads no cap. A cap that cannot be read on a non-empty roster refuses with
-  `internal`, never a default.
+  The cap is read and held before `Update` (P11); inside it, a roster with no live member takes the bootstrap and
+  ignores the held result. A cap that cannot be read on a non-empty roster refuses with `internal`, never a default.
+- The roster API's interim answer for the cap, until Task 10c retires it: a new `outcomeMemberCap = "member_cap"`
+  in `admin.go`, mapped to 409, with one `ROSTER_OUTCOMES` line in `deck.ts`, because deck-coverage requires a deck
+  line for every outcome it parses from `admin.go` (`deck-coverage.ts:179-183`) and runs in every `make web`.
 - `DUBPLATE_MEMBER_CAP` is registered in the production registry and joins Task 2's sensitive pin.
 
 **Acceptance.** AC15 and AC16's roster halves. PS A1's roster rows: at cap minus one the add lands, at the cap it is
@@ -481,6 +491,7 @@ refused, and the bootstrap lands. The states table's remove, demote, and add row
 - The bootstrap: an empty roster holding cap-many tombstoned rows, beside a cap reader that errors, takes
   `member add --admin`.
 - An unreadable cap on a non-empty roster: the reader errors, and nothing is written.
+- An add over the roster API at the cap, answering 409 `member_cap`.
 - Two concurrent adds at cap minus one, under AC16's lock fixture: exactly one lands.
 - A tombstoned admin row re-added on the cookie channel returns as a member.
 - A sole admin's refused self-removal leaves that admin's session verifying.
@@ -488,8 +499,8 @@ refused, and the bootstrap lands. The states table's remove, demote, and add row
 **Mutations:** move the guard outside the transaction (the concurrency proof fails); bump before the guard (the
 refused self-removal fixture fails); bump after the commit; commit despite a non-backward bump error; skip the re-add
 bump; roll back on `ErrEpochBackward`; delete overrides or quota on removal; read the actor's flag by address or
-outside the `Update`; count tombstoned rows toward the cap; count live members outside the `Update`; read the cap
-before the bootstrap check; keep the old row's admin flag on a cookie-channel reactivation.
+outside the `Update`; count tombstoned rows toward the cap; count live members outside the `Update`; refuse on the
+held cap error before the empty-roster test inside `Update` (the bootstrap fixture fails); keep the old row's admin flag on a cookie-channel reactivation.
 
 ### Task 5: The settings write path
 
@@ -547,7 +558,9 @@ states-table row reachable at the seam. **Fixtures:**
 - AC12's actors anchored inside and outside the window;
 - a window reader that errors;
 - a window equal to the absolute cap (refused) and one a second below it (accepted), and the `serve`-start seed
-  refusal with a cap at or below the window;
+  refusal with a cap at or below the window. Each lowers `DUBPLATE_SESSION_LIFETIME` to at most the cap, since any
+  cap of `24h` or less already fails `sessionLifetimeWithinCap` against the lifetime's `2160h` default
+  (`auth.go:260-263`); each refusal's assertion names `DUBPLATE_REAUTH_WINDOW`;
 - AC13's two live admins and one removed admin behind a recording mailer;
 - a mailer that fails, to prove the write stays;
 - a mailer that blocks until released, beside a concurrent writer whose deadline would expire if the send held the
@@ -633,8 +646,9 @@ reset's audit row; each listed verb's usage text carries "(required)" on its req
 - a current store holding each of the three refusing `admin` rows, then `serve` starting;
 - two out-of-bounds rows reset one at a time;
 - an older store, a newer store, and a restore intent;
-- an admin-raised `DUBPLATE_MAGIC_LINK_EXPIRY` row beside an admin `DUBPLATE_NONCE_RETENTION` row, whose reset breaks
-  `nonceRetentionCoversExpiry` and is refused.
+- an admin `DUBPLATE_MAGIC_LINK_EXPIRY` row of `5m`, then an admin `DUBPLATE_NONCE_RETENTION` row of `10m`: resetting
+  the expiry restores its `15m` default, above the retention, so the reset breaks `nonceRetentionCoversExpiry` and
+  is refused (the rule refuses only retention below expiry, `auth.go:255-259`, `:282`).
 
 **Mutations:** open through anything but `OpenWrite`; skip the validator on the CLI reset (the correlated-rule
 fixture fails); drop the verb name from one seed-rule message; skip the CLI reset's audit row.
@@ -677,8 +691,9 @@ neutral (consumes hook 15). **Gate:** the per-task gate.
 - The members page lists, adds, removes, and demotes over `/api/v1` through the new client, confirms before a removal
   or demotion, and shows each refusal's own copy, the member cap's included. Each add refusal moves focus to its
   field. The client reads `error.code` on a JSON 403; only the origin check's plain-text 403 is cross-site.
-- deck-coverage requires a deck line for every P8 detail value, parsed from Task 3's constants with the gate's
-  existing constant parser. The roster API stays live, and its outcome source stays in the gate, until Task 10c.
+- deck-coverage requires a deck line for every P8 detail value, parsed from Task 3's file by a second pattern for
+  the `Detail<Name>` shape beside the existing one, which matches only unexported `outcomeX` names
+  (`deck-coverage.ts:29`). The roster API stays live, and its outcome source stays in the gate, until Task 10c.
 - The existing members rows prove the same behaviors over `/api/v1`: the unreachable row, the malformed-answer rows,
   the non-admin row (which now meets `list_members`'s JSON `forbidden`), the console-noise allowlist, and the proof
   that the script's write reached the real API. The roster reset server writes the store directly and stays.
@@ -688,14 +703,20 @@ neutral (consumes hook 15). **Gate:** the per-task gate.
 - each refusal's copy: last admin, re-authentication needed, forbidden, signed out, and member cap;
 - each add refusal moves focus to its field;
 - the confirm step blocks the call until confirmed;
-- last admin, by sequence against a roster of two admins and one member: demote the other admin, then demote self,
-  then the roster reset restores the fixture.
+- last admin, against the fixture's one admin (`seedRenderedMembers`, `rosterreset_test.go:38-43`): that admin
+  demotes self through the real API, which answers `last_admin` and writes nothing, so no reset is owed. The roster
+  reset server only deletes rows outside its three-address baseline (`rosterreset_test.go:99-104`); it restores no
+  admin flag, tombstone, or epoch, so no row demotes or removes a baseline address;
+- a removal through the real API, after the confirm step, of an address outside the reset baseline that the same row
+  added first, so the reset deletes it and no baseline address takes an epoch bump. A successful demotion needs a
+  second admin, which the web cannot create, so it is proved in Go (Task 4) and in the close's smoke.
 
 ### Task 10b: The server settings page
 
 **Files:** a new `web/src/routes/server-settings/+page.svelte`; the `web/src/lib/api/` client module (the settings
-operations); `web/src/lib/copy/deck.ts` (rows, `TITLES`, and `REQUIRED_TITLES`, which deck-coverage keeps in step,
-`deck-coverage.ts:59-75`); `SiteHeader.svelte` (one appended navigation entry); `cmd/dubplate-server/web.go` (the
+operations); `web/src/lib/copy/deck.ts` (rows and `TITLES`); `web/scripts/gates/deck-coverage.ts` (its
+`REQUIRED_TITLES` list only, `:43`, since the gate fails a `TITLES` key the list does not name, `:69-72`); the route
+inventory Task 7 lands (`server-settings`, admin class); `SiteHeader.svelte` (one appended navigation entry); `cmd/dubplate-server/web.go` (the
 document row, appended); `serve.go` (the page's registration behind `RequireAdmin`); appended rendered rows.
 **Class:** `engine-logic`; the scoped gate runs the rendered leg; `reducedGate` is the per-task gate. **Hook:**
 neutral (consumes hook 15). **Gate:** the per-task gate.
@@ -709,7 +730,11 @@ spec and passes the `web/` leg's static and rendered gates.
 - a write's apply-mode line;
 - the stale-session flow: the first sensitive write is intercepted and fulfilled with a JSON 403
   `reauthentication_required`; the field still holds the edit; the sign-in link opens a new tab; and Retry, reaching
-  the real API, commits. The real gate's refusal is proved in Go (Task 7) and in the close's smoke.
+  the real API, commits. The write is `DUBPLATE_MEMBER_CAP` at its default, `20` (the fixture sets
+  `DUBPLATE_MAGIC_LINK_EXPIRY` in the environment, `rendered_test.go:386`, so that key is not writable), and the
+  same row then resets it through `reset_setting`, because the harness has no settings reset and a later capture
+  cell must not meet an `admin` row. The notice's send fails against the fixture's closed SMTP port and is logged.
+  The real gate's refusal is proved in Go (Task 7) and in the close's smoke.
 
 ### Task 10c: The roster API's retirement
 
@@ -794,7 +819,7 @@ lands before the close gate.
      `member remove`, `member demote`, and `settings reset` routed to rung 16 beside `member add`; "what a later pass
      would be wrong to rediscover" (the 401/500 split, the anchor never `IssuedAt`, the per-key comparison, the
      epoch ordering and the re-add bump, why the job operations answer `unavailable`, the uppercase-hex and empty-id
-     traps, the bootstrap before the cap read, and P5's no-return-parameter reason); and the pass score: tokens
+     traps, the bootstrap ignoring the held cap read, and P5's no-return-parameter reason); and the pass score: tokens
      against 11.8M, attended time, and clock against about 7 hours (total, gate time, lock wait, and rework with
      each red's cause).
    - **The review-growth measure:** the spec grew from 419 to 651 lines across two folds (55%), past the 25% signal,

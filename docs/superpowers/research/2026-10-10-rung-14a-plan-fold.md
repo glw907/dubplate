@@ -118,3 +118,30 @@ fork, its record folded). No owner forks.
 - **Clock:** about 6 hours to about 7 (fix rounds toward 7.5 to toward 8.5). Two more tasks at about 22 minutes, a
   third boundary gate, and a close about 6 minutes shorter (one full gate removed, two smoke steps added, the `5m`
   wait overlapped). The lane-launch baseline gate, outside the estimate, is removed.
+
+## Second fold
+
+Source: the verification read, `2026-10-10-rung-14a-plan-fold-verification.md` (V1 to V10 and its over-ceremony
+list). Each finding was checked against the tree at `c59f808` before its disposition. The plan moves to revision
+2.1. Its "plan text to change when the gate classifier lands" list is not applied here: the gate scope pass amends
+those lines at its close, so the per-task gate notes, lane launch step 8, and the close's clock line are untouched.
+
+| ID | Sev. | Disposition |
+|---|---|---|
+| V1 | major | **Folded as proposed.** Verified `seedRenderedMembers` seeds one admin and one member (`rosterreset_test.go:38-43`) and the reset only deletes rows outside its three-address baseline (`:99-104`). Task 10a's last-admin row is now the fixture admin's self-demotion, which answers `last_admin` and writes nothing; a removal row targets an address outside the baseline that the row added first. Successful demotion stays in Go (Task 4) and the smoke. No harness edit. |
+| V2 | minor | **Folded as proposed.** Verified "no live admin" is decided inside `addUser`'s `Update` (`roster.go:426-432`). P11, Task 4's cap outcome, the states row, the mutation ("refuse on the held cap error before the empty-roster test inside `Update`"), and Task 11's HISTORY phrase restated. |
+| V3 | minor | **Folded as proposed.** Verified the expiry's `15m` default and `1h` ceiling and the retention's `24h` default (`auth.go:104-159`), and that the rule refuses only `l < s` (`:282`). Task 8's fixture writes expiry `5m`, then retention `10m`; the expiry reset restores `15m` and is refused. |
+| V4 | minor | **Folded, widened.** Verified the lifetime's `2160h` default and `sessionLifetimeWithinCap` (`auth.go:260-263`). The states row and Task 6's fixtures lower `DUBPLATE_SESSION_LIFETIME` to at most the cap and assert the refusal names `DUBPLATE_REAUTH_WINDOW`. Widened to the equal-to-cap and one-second-below fixtures: the window's `24h` ceiling forces their cap below the lifetime default too, so the accepted case would fail on correct code. |
+| V5 | minor | **Folded as proposed.** Verified `REQUIRED_TITLES` at `deck-coverage.ts:43` with the reverse check at `:69-72`, and no route inventory test at HEAD. Task 10b's files gain `deck-coverage.ts` (`REQUIRED_TITLES` only) and the inventory's `server-settings` row; spec deviation 2 and lane launch step 3 list the in-place deck-coverage edits (10a's pattern, 10b's list). |
+| V6 | minor | **Folded as proposed.** Verified the pattern matches only `outcome[A-Za-z]+` (`deck-coverage.ts:29`). Task 3 names the shape `Detail<Name> = "<value>"` in one `internal/ops` file; Task 10a adds a second pattern for it. |
+| V7 | minor | **Folded: a new outcome.** Verified the gate requires a deck line per parsed `admin.go` outcome (`deck-coverage.ts:179-183`) and runs in every `make web` (`Makefile:102`), and that no existing outcome fits a cap refusal (`admin.go:35-44`, `additionOutcome` at `:312-337`; `refused` is the not-admin copy). Task 4 adds `outcomeMemberCap = "member_cap"` at 409 with one `ROSTER_OUTCOMES` line in `deck.ts` (added to its files) and a roster API fixture; 10a reuses the copy. |
+| V8 | minor | **Folded.** The ceiling rule reads "steps 4 to 8, from the merge token". |
+| V9 | minor | **Folded.** Verified the rendered fixture sets `DUBPLATE_MAGIC_LINK_EXPIRY` in the environment (`rendered_test.go:386`). The stale-session row writes `DUBPLATE_MEMBER_CAP` at its default `20`, then resets it through `reset_setting` in the same row. |
+| V10 | minor | **Folded.** The owner-gated paragraph has the close summary list the PS:145-147 erratum as decided, citing spec `:284`. |
+| Over-ceremony 1 | n/a | **Taken.** The extra-dispatch rule names the member cap as Task 4's pre-approved split seam (a Task 4b), at no planned cost. |
+
+Refused: none. Every fix is a sentence or a fixture line inside a task's existing files, except V5's two 10b files and
+V7's one `deck.ts` line in Task 4, each forced by a gate that would otherwise fail correct code.
+
+**Measures.** Plan length 819 to 844 lines (+25, +3%). Ceiling unchanged at 11.8M (flag 9.4M): no task added, and the
+new fixture and file lines sit inside the 0.2M fixture allowance. Clock unchanged at about 7 hours.
