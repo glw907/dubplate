@@ -9,108 +9,91 @@
 > local binary follow, `packaging` after that. The group's system is not
 > live until launch.
 
+## Path to 0.8
+
+The order of the remaining work on the greenfield ladder, derived from the dependency analysis
+(`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md`), the reverse-edge note
+(`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`), the re-plan
+(`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`), the intake and `admin-api-1` specs, and the
+lean pass process ruling that puts `intake` after `admin-api-1`. A rung is named, and a pass is `<name>-<n>`.
+
+Landed: `foundation`, `corpus`, `matcher`, `shadow` (its program was deleted on 2026-10-05), `auth`, `store`,
+`tag-io`, and `streamer-1` to `streamer-3`.
+
+1. **`admin-api-1`** (14a). The first slice of the versioned API and the admin surface. Inbound: `auth` and `store`,
+   both landed; the edge from `pipeline` was discharged by Geoff's per-album lease ruling in its spec. Carried work:
+   its planning prompt. STATUS names it as the next pass.
+2. **`intake`** (rung 7). The uploader and the intake path, as `intake-1` to `intake-3`, ending in Geoff's uploader
+   sitting. Inbound: `store`, landed; it follows `admin-api-1` by ruling, so no `intake` segment runs beside it.
+   Carried work: the intake spec's "Owed records", plus its BACKLOG items.
+3. **`admin-api-2`** (14b). The second slice of the API, the part that writes a collection row. Inbound: `intake`,
+   which creates the default collection. Carried work: BACKLOG items tagged `#rung:admin-api`.
+4. **`pipeline`** (rung 9). The admission pipeline and the catalog, large enough to split into passes at its own
+   planning. Inbound: `store` and `tag-io`, landed; it follows `intake` for the handoff record and the `accepted` state,
+   which would otherwise cost a stub producer. It shares no files with `admin-api-2`, so the two may run together.
+5. **`streamer`** (rung 12). Slices 3 to 8 of the built-in OpenSubsonic streamer, as `streamer-4` onward (a slice may
+   take more than one pass). Inbound: `pipeline`'s catalog. It goes first of the rungs that open after `pipeline`
+   because it is the longest and 0.8 ships on it. Slice 7 waits on `queues`.
+6. **`queues`** (rung 13). The decision queue. Inbound: `matcher`, `store`, and `pipeline`. It goes ahead of
+   `migration` and `builtins` because streamer slice 7 consumes it.
+7. **`migration`** (rung 10). Migration and layout parity. Inbound: `corpus`, `store`, and `pipeline`.
+8. **`builtins`** (rung 11). The built-in plugin roster. Inbound: `store`, `tag-io`, and `pipeline`; it is
+   independent of `migration` and `queues`.
+9. **`library-web-1`**, a web pass outside the ladder. The album page, the library grid and list, filtering, and buy
+   links, which the intake spec moved to a web pass after `pipeline`. Inbound: `pipeline`'s catalog.
+10. **`integration`** (rung 15). The whole-system pass against the launch bar. Inbound: every component rung.
+11. **`cutover`** (rung 16). The first launch, 0.8.0, ending in Geoff's first-launch sitting. Inbound: `integration`.
+12. **`closeout`** (rung 17). Clean-up after launch. Inbound: `cutover`, and `migration` latest, because the legacy
+    ledger fixture is captured before `_salvage/` is deleted.
+
+Items whose edges are met may run at once, up to three passes (ruling 1 of the lean pass process); the numbers set the
+start order and are rewritten when the order changes. Items 5 to 9 open together once `pipeline` lands, and items 10 to
+12 are strictly serial. Carried work for each item lives in BACKLOG, under items tagged `#rung:<name>`, except where
+an item names another home.
+
+Frozen documents keep the old rung numbers, and this table bridges them to the names.
+
+| Old rung | Name | Landed passes (old ids) | New pass ids |
+| --- | --- | --- | --- |
+| 1 | `foundation` | 1, 1b | none owed |
+| 2 | `corpus` | 2a to 2d | none owed |
+| 3 | `matcher` | 3a to 3d | none owed |
+| 4 | `shadow` | 4a, 4b | none owed |
+| 5 | `auth` | 5a to 5d | none owed |
+| 6 | `store` | 6a to 6d | none owed |
+| 7 | `intake` | none | `intake-1` to `intake-3` (7a to 7c) |
+| 8 | `tag-io` | 8a to 8c | none owed |
+| 9 | `pipeline` | none | `pipeline-1` onward, split at planning |
+| 10 | `migration` | none | `migration-1` onward |
+| 11 | `builtins` | none | `builtins-1` onward |
+| 12 | `streamer` | slices 1, 2a, 2b | `streamer-1` to `streamer-3` landed; `streamer-4` onward (slices 3 to 8) |
+| 13 | `queues` | none | `queues-1` onward |
+| 14 | `admin-api` | none | `admin-api-1` (14a), `admin-api-2` (14b) |
+| 15 | `integration` | none | `integration-1` onward |
+| 16 | `cutover` | none | `cutover-1` onward |
+| 17 | `closeout` | none | `closeout-1` onward |
+| none | `library-web-1` | none | `library-web-1`, outside the ladder |
+
 ## Active
 
 ### Greenfield dubplate-server `dubplate-organizer`
-The universal shared-library server, built fresh and foundation-first on
-a 17-rung ladder per the ratified build spec
-(docs/superpowers/specs/2026-09-02-greenfield-server-build.md, revision
-2.1, with the 2026-10-05 re-plan errata), which supersedes the organizer
-spec's own build order while the organizer spec continues to govern
-purview, API shape, and the ops seam
-(docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md, amended
-through 2026-09-02, folded per "Roadmap revisions this spec carries"
-below). Two tracks dependency-merge at rung 15: the architecture spine
-(foundation, auth, ops seam + store, intake, pipeline, the built-in
-streamer, decision queue, versioned API) and an independent evidence
-track (corpus/harness, Go matcher), which ends at the corpus and the
-conformance bar. The ladder closes with the first-launch sitting (rung
-16: the beets DB migration and the Navidrome import from the retirement
-archive) and close-out (rung 17). The first launch is 0.8.0 on the
-built-in streamer (Geoff, 2026-10-05, superseding the 2026-09-25 plan for
-a 0.x pre-release): the group listens through dubplate's own OpenSubsonic
-streamer from the first day, with no shadow record in the launch bar and
-no box swap, because the incumbent stack was retired on 2026-10-05. Launch
-bar: the complete server, streamer included, with the Go matcher past the
-two-tier conformance bar and layout parity. Old code is salvage tier,
-frozen at the `pre-greenfield` tag under `_salvage/`. Server before TUI
-is a hard boundary: the organizer spec's rung 10 (two-binary split, local
-TUI) and the remote-TUI half of its rung 11 move past launch,
-unscheduled on the new ladder. Rung 1 (foundation) through rung 8 (tag
-I/O: the writer core and reader, PICTURE and the conformance instrument)
-are landed, alongside rung 4 (whose shadow program the removal pass
-deleted on 2026-10-05; its history is the `pre-greenfield` tag and git),
-rung 1b, rung 3, rung 5 (closed 2026-10-05), and rung 6 (6d closed
-2026-10-07). Rung 12's slice 1 (the Navidrome study) closed 2026-10-07, and slice 2
-(the oracle harness) closed 2026-10-10 with pass 2b, beside the ladder;
-slice 3, the first with a dubplate side, is ready to plan. The spine
-continues with rung 14.
+The universal shared-library server, built fresh and foundation-first on the 17-rung ladder of the ratified build
+spec (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`, revision 2.1, with the 2026-10-05 re-plan
+errata). The organizer spec (`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md`) continues to govern
+purview, API shape, and the ops seam. The first launch is 0.8.0 on the built-in streamer (Geoff, 2026-10-05): the
+group listens through dubplate's own OpenSubsonic streamer from the first day. Launch bar: the complete server,
+streamer included, with the Go matcher past the two-tier conformance bar and layout parity. Old code is salvage tier,
+frozen at the `pre-greenfield` tag under `_salvage/`. Server before TUI is a hard boundary. Next: `admin-api-1`. The
+order of the rest is "Path to 0.8".
 
-Folded from the organizer spec's "Roadmap revisions this spec carries"
-(2026-09-01-dubplate-organizer-design.md):
-- The built-ins roster is set by policy and probe-backed demotions
-  (rung 11), superseding any fixed plugin roster or adoption-band
-  ship criterion; the survey backing it is
-  `docs/superpowers/research/2026-08-31-beets-plugin-usage.md`.
-- The API carries no client assumptions by requirement.
-- Sync between rungs is publish-only; two-way sync is out of scope.
-  (2026-09-12: the laptop-to-server mirror of a whole collection, one
-  writer per collection, and the read-only checkout are in, scheduled
-  with the TUI; configuration homes spec.)
-- Publish (per-album, through intake) and backup/restore (bulk and
-  admin) are separate paths; migration between rungs is not
-  backup/restore-only.
-- Auth generalizes to a verify-identity seam (rung 5); magic-link is
-  the reference implementation. (Cloudflare Access as an optional
-  forward-auth front moved to `IDEAS.md`, 2026-10-05.)
-
-### Rung 12: the built-in streamer
-(Keyed `streamer-2-0`, re-keyed `streamer-0-8` by Geoff, 2026-09-25: 0.8 is the first production release.
-Folded into the greenfield initiative as rung 12, Geoff, 2026-10-05: the first launch is 0.8.0
-on this streamer, so it is a rung of the ladder, not a release after it.)
-Subsume Navidrome so the estate is one clean integrated system (Geoff,
-2026-09-07; primary driver: one binary a stranger can set up). Brainstormed
-2026-09-07; spec at `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`
-(revision 3, 2026-10-05; ratified 2026-09-07 after four adversarial reviews under
-`docs/superpowers/research/2026-09-07-streamer-2-0-review-*.md`). Rung 12 is the spec's
-eight slices; the shadow-and-flip slice is deleted. Slices 1 (the study) and 2
-(the harness) start now, ahead of rung 12's turn on the ladder (re-plan
-design, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`). Settled so
-far: OpenSubsonic API first, first-party web player later; the pipeline's
-catalog is the index (no scanner admits music; a reconcile walk only
-reports drift); app passwords minted per device from the roster account;
-ffmpeg transcoding under a content-keyed cache with a size cap; playlists,
-starred, timestamped play history, and the saved queue at launch; art
-resized on demand from a pipeline-admitted blob; FTS5 trigram search over
-folded text. Group features join the target (Geoff, 2026-09-24; spec revision 2.3):
-report a problem into the decision queue, `added_by` and album notes, collaborative
-playlists, and smart playlists, with forward hooks 16 (rung 13) and 17 (rungs 7 and 9).
-Hosting and setup join too (Geoff, 2026-09-24; revision 2.4): HTTPS without
-Cloudflare, a general Navidrome import, arm64 builds, `dubplate init`, and
-`dubplate upgrade`, with hooks 18 (rung 14) and 19 (rung 12).
-Build shape A: an oracle harness (Navidrome and dubplate
-against one library, responses diffed and adjudicated) and a written
-Navidrome study first, then vertical slices each walked by a named client
-roster. dubplate integrates with no external streamer: the driver seam, hook 6,
-and the Navidrome and Jellyfin targets are retired (Geoff, 2026-10-05; the entry
-moved to `IDEAS.md`). Navidrome is GPLv3: study it for behavior, never copy; its permissive dependencies
-(taglib via wazero, x/image, fscache) are ours to use. **Standing rule
-while the ladder builds:** each rung's plan weighs its surface against
-the 0.8 spec's forward-hooks list (content hash and folded sort key on
-the catalog row, the art blob recorded at admit, play history as events)
-and says per task whether it lands a hook or is neutral, and names which prior-art entries it consulted (rung 6: modernc sqlite, goose; rung 7: mewkiz/flac for the intake integrity check; rung 8: taglib via wazero and Picard's tag tables). 2.1 list:
-scrobbling (ListenBrainz, Last.fm), ratings, artist images, transcode
-pre-warming per profile, the web player, metrics, an edit-distance
-search rerank. The web player needs a strong play-queue interface (Geoff,
-2026-09-24): now playing, up next, reorder, and add from album, track, or
-filter results. It is designed from a prior-art study, as library filtering
-was (`research/2026-09-24-library-filtering-prior-art.md`), in the visual
-identity spec's language, and it builds on 0.8's saved per-member play queue
-(`streamer-2-0-design.md:297-309`) so a queue carries between clients.
-
-**Before the 0.8 release (Geoff, 2026-09-26):** recheck TypeScript 7 (7.0.2 at the time).
-The bump waits on a svelte-check release that supports it; 4.7.6 does not, and `--tsgo`
-hits rootDir errors (TypeScript #30693, sveltejs/language-tools #2891). No hurry before then.
+### The built-in streamer `streamer`
+Subsume Navidrome so the estate is one clean integrated system (Geoff, 2026-09-07): one binary a stranger can set up.
+The spec is `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (revision 3.1, 2026-10-07; the file still says
+2.0), and it carries the forward hooks and the prior-art list that every rung plan weighs its surface against.
+Navidrome is GPLv3: study it for behavior, never copy. Slices 1 to 2b have landed; next: slice 3, which waits on
+`pipeline`'s catalog. The web player needs a strong play-queue interface (Geoff, 2026-09-24): now playing, up next,
+reorder, and add from album, track, or filter results, designed from a prior-art study in the visual identity spec's
+language, and building on 0.8's saved per-member play queue. The order of the work is "Path to 0.8".
 
 ## Planned
 
@@ -135,7 +118,7 @@ plan measures on the then-current model. It builds on 0.8's arm64 builds (Promot
 server-to-local mirror" (`2026-09-01-dubplate-organizer-design.md:704`), which stays as
 written. It sits inside the group-scale principles: the copy serves the member's own
 devices, which those principles name as intended use, and it is not a link between two
-catalogs. Rung 9's plan weighs whether a sync source (a change feed over the catalog,
+catalogs. The `pipeline` plan weighs whether a sync source (a change feed over the catalog,
 keyed on hook 1's audio keys) is a 0.8 forward hook, and routes it to the streamer
 spec's list if so. Everything else, including the pairing credential, the sync
 transport, and how an app picks the home copy or the server, is settled when 0.9 is
@@ -146,10 +129,10 @@ The Pi 5 stereo client research (2026-10-10) is the live input for that plan; it
 ### dubplate-server 1.0: the format ladder `formats-1-0`
 (Re-keyed from "1.1"/`formats-1-1`, Geoff, 2026-09-25: the format ladder is 1.0's
 feature; 0.8 and 0.9 stay FLAC-only.)
-Ruled by Geoff, 2026-09-08 (rung 8 spec, owner ruling 5, closing fork
+Ruled by Geoff, 2026-09-08 (the `tag-io` spec, owner ruling 5, closing fork
 B): 0.8 and 0.9 ship FLAC-only, and the other formats target the 1.0
-release, sequenced after the 0.8.0 launch, which the rung 12 streamer carries. The ladder, each
-step its own pass in the shape of rung 8 (a per-container writer behind
+release, sequenced after the 0.8.0 launch, which the `streamer` rung carries. The ladder, each
+step its own pass in the shape of `tag-io` (a per-container writer behind
 the seam, a golden container, a corpus stratum derived through beets,
 and a conformance run against the ledger): MP3 (ID3v2.4, the recorded
 version) with Ogg Vorbis and Opus riding the same pass; then M4A (AAC
@@ -157,7 +140,7 @@ and ALAC, one container and one iTunes-atom tag model); then WAV and
 AIFF by transcode to FLAC at intake, which waits on the ffmpeg seam
 and may therefore reorder against 0.8. Everything else stays a reject
 whose message names the supported set and suggests a lossless
-conversion to FLAC where one exists. Rung 7's reject copy is written to
+conversion to FLAC where one exists. The `intake` reject copy is written to
 that message shape now, whichever step has landed. Open input: whether
 anyone in the group has ever wanted to upload a non-FLAC file, which decides
 whether the MP3 pass moves ahead of the cutover.
@@ -208,23 +191,16 @@ and publishes only after a release has proven it. The evidence is in
 
 ### PR test CI `pr-test-ci`
 Add a workflow that runs `bash scripts/check.sh` on `pull_request`. Until it lands, the full-suite home is the
-local close gate (ruling 11, lean pass process spec).
+local close gate (ruling 11, lean pass process spec). It lands after `admin-api-1` (ruling 3, alignment design).
 
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): group accounts
 and live-use intake move to the new server's launch; what survives is the
-debris cleanup (stale failed units, doc drift) and the owed rewrite
-post-mortem, foldable into the greenfield build's early passes. Intake for
+debris cleanup (stale failed units, doc drift), foldable into the greenfield build's early passes. Intake for
 live findings: `/log-issue` → `BACKLOG.md` with `#project:prod-polish`.
 Plan (committed 2026-09-01, ahead of need):
 `docs/superpowers/plans/2026-09-01-prod-polish.md`.
 Related: #1, #2, #3, #4, #5, #6, #7, #8
-
-### (folded into Active) dubplate as a music library organizer
-The 2026-09-01 initiative entry is folded into the Active greenfield
-entry above; its settled decisions live in the organizer spec. The
-two-binary shape, remote-capable TUI, and plugin built-ins all stand,
-sequenced behind the server per the 2026-09-02 rulings.
 
 ### Packaging `packaging`
 Make the estate easy for a stranger to set up from its ingredients (beets
@@ -258,7 +234,7 @@ the login rotation, the credits gallery, the empty library, and the error pages.
 which supersedes the visual identity spec's curation rules where they differ; the active plan is
 `docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`. Inputs:
 `docs/superpowers/research/2026-09-24-identity-photos/`. Owner touchpoints: the sorting sittings
-and sending the outreach letters. Separate from the rung ladder; rung 7 consumes it.
+and sending the outreach letters. Separate from the ladder; `intake` consumes it.
 Round one closed on 2026-09-26 with 116 photos committed to `photos/`, and Geoff ruled the pool
 enough for 0.8.0, so later rounds are continuing work that never blocks a release. Each later
 round starts from the targets in `docs/superpowers/research/photo-curation-rounds/round-1.md`
@@ -275,34 +251,18 @@ references from a pinned dubplate release, checked against a lock file. Spec:
 **Trigger:** cairn's docs reset has closed and `create-cairn-site` is published on npm; the
 build doubles as a stranger's trial of cairn's docs. Phase A builds to a `noindex` preview and
 moves the principles spec's is/isn't lines and legal note into `docs/guide/` (its erratum then
-lands). Two owed dubplate lanes: the reject-page generator when rung 7 merges, and the
-configuration-reference generator when rung 14 merges. Phase B publishes with 0.8, beside public
+lands). Two generators are owed to dubplate: the reject-page generator when `intake` merges, and the
+configuration-reference generator when `admin-api` merges. Phase B publishes with 0.8, beside public
 signed binaries and a fresh public source repository from a scrubbed 0.8 snapshot. Open: the
 domain, `dubplate.dev` or `dubplate.studio`, due before Phase B.
 
 ## Someday
 
 ### Open-source the pair `oss-pair`
-Publish the uploader and the pings Worker as documentation-linked siblings —
+Publish the uploader and the pings Worker as documentation-linked siblings:
 a validated-intake drop target and a dead-man's-switch monitor, proven here
 first. Preconditions: months of group use, the uploader's auth/validator
 seams, and a clear-eyed maintainership decision. First deliverable,
 independent of any code release: the validated-intake pattern write-up (what
-each layer catches that the others cannot; 907.life is a natural home) —
-zero maintainership cost, and the packaging demand test.
-
-## Done
-
-### Uploader `uploader`
-Pass A+B built and hardened the full uploader (46-finding fold, fidelity
-chain passed, simplified, deployed); superseded pre-launch by the
-greenfield ruling. The code is salvage tier for the new server (web
-components, tus engine, checks, reject contract); the deployment is
-retired. Spec/plan archived under docs/superpowers/. Closed: 2026-09-02.
-
-### Go rewrite `go-rewrite`
-The box-side shell layer became one `dubplate` binary (import, backup, beet,
-ping-fail, checks, doctor, restore), carrying the musicbox → dubplate estate
-rename. All four jobs green on supervised runs, overnight soak confirmed,
-shell layer and msmtp deleted everywhere.
-Completed: 2026-08-31 (post-mortem owed, tracked as #1)
+each layer catches that the others cannot; 907.life is a natural home),
+which costs no maintainership and doubles as the packaging demand test.
