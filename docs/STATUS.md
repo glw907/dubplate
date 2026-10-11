@@ -12,8 +12,8 @@ The alignment pass is in flight on branch `worktree-dubplate-alignment`. This pa
 appear on that branch only.
 
 ## Next action
-In flight: the alignment pass, session `dubplate-alignment` (id `394cf8c0-5100-4330-bf09-64b2412697bc`), on branch
-`worktree-dubplate-alignment`.
+The alignment PR is open for Geoff's read; the next action starts when it merges. Session `dubplate-alignment` (id
+`394cf8c0-5100-4330-bf09-64b2412697bc`), branch `worktree-dubplate-alignment`.
 
 Once this pass's PR merges, whoever merged it (the conducting session or Geoff) runs these four steps in order:
 
