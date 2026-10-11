@@ -32,6 +32,7 @@
   --color-accent-content: #f4ead3;
   --color-neutral: #1f1b16;
   --color-neutral-content: #f4ead3;
+  /* DaisyUI 5 falls back to base-200 with no warning when a theme omits a state token or its -content pair, so define all eight */
   --color-info: #2e5f8a;
   --color-info-content: #ffffff;
   --color-success: #2f6b3a;
@@ -39,6 +40,7 @@
   /* contrast-exception: --color-warning 1.83:1 fill only, text uses --ink-warning */
   --color-warning: #e0a526;
   --color-warning-content: #1f1b16;
+  /* Keep state tokens saturated: -soft modifiers tint from them, so a pastel token renders a flat pastel surface */
   --color-error: #a8261d;
   --color-error-content: #ffffff;
 }

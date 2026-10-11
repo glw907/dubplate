@@ -246,6 +246,16 @@ contracts are unchanged):
   dotted leader, and the duration in mono. They replace the striped table.
 - Icons come from Phosphor in its bold weight (MIT), so their stroke matches the slab type and
   the 2px borders.
+- Touch targets come from `--size-field`. At `0.28125rem` a plain `.btn` measures 45px, over the
+  44px floor, for every plain button at once; `.btn-sm` still computes to eight times the token
+  (36px), so each small button carries `min-h-11` itself. Set the token in every theme block.
+- An alert holds one child. DaisyUI 5's `.alert` is a grid that adds columns when it has a second
+  direct child, so `flex-col` and `items-start` on it do nothing and a heading, paragraphs, and
+  buttons render as side-by-side columns. Wrap the content in one `div` that carries the flex
+  classes. Do not use `alert-vertical`, which also centers the text.
+- A horizontal `.steps` row shares one grid row across its steps, so a wrapped sublabel lifts a
+  shorter neighbor's label off the common baseline. Give each step's content block `self-start`,
+  and pick the breakpoint from the column's width rather than the viewport's.
 
 ## Photography
 
@@ -321,6 +331,10 @@ We'll send you a link." beneath it. Headings and empty states use plain sentence
 or a destructive confirm is never playful. Ruling 4 withdraws W1.3's vocabulary illustrations
 ("Nothing cut yet", "Pressed and filed"). W's section 19 owes an entry recording that amendment
 when this spec is ratified.
+
+Copy never hardcodes the admin's name. When it sends a member to the admin, it names the first
+admin on the roster, by the display name and address the auth answer carries, and with no admin on
+the roster it says nothing about a person.
 
 ## Refinement
 
