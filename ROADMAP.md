@@ -204,6 +204,10 @@ and publishes only after a release has proven it. The evidence is in
   - The transliterator holder is process-wide, installed once by the main package. A published
     matcher library should weigh passing the seam explicitly instead.
 
+### PR test CI `pr-test-ci`
+Add a workflow that runs `bash scripts/check.sh` on `pull_request`. Until it lands, the full-suite home is the
+local close gate (ruling 11, lean pass process spec).
+
 ### Production cleanup and polish `prod-polish`
 Largely superseded by the greenfield ruling (2026-09-02): group accounts
 and live-use intake move to the new server's launch; what survives is the

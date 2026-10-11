@@ -16,9 +16,10 @@ The box is unchanged: dubplate-server binary `d1e93e9`, the serve unit installed
 upgrade. Archive: HISTORY, "Archive record".
 
 ## Next action
-Rung 14a: the plan is `docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md`, revision 2.1 as amended at
-`f0a2056`. It awaits Geoff's approval of its task list and ceiling (11.8M, about 6.8 h, about 8.3 h with fix rounds).
-After approval it launches in the worktree `.claude/worktrees/lane-1-rung-14a`, with the lane checklist run first.
+Rung 14a is held (ruling 12, lean pass process spec at
+`~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`). Its plan
+`docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` is re-planned as a lean task list in a fresh dubplate
+session after rollout steps 1 to 3 merge; the old plan stays as evidence.
 Settled (do not re-brainstorm): rung 12 slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision
 note, 2026-10-10").
 
@@ -31,7 +32,7 @@ note, 2026-10-10").
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | idle; next is rung 14a, awaiting plan approval, then the worktree `.claude/worktrees/lane-1-rung-14a` |
+| 1 | main tree (master) | idle; rung 14a is held (ruling 12, lean pass process spec at `~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`); re-planned as a lean task list in a fresh dubplate session after rollout steps 1 to 3 merge; the old plan stays as evidence |
 | rung 7 planning | docs only | spec revision 2.1 at `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md` (`102d973`) awaits Geoff's read; his seven rulings are written in; the plan is drafted after approval |
 | 3 (slice 2) | `.claude/worktrees/lane-3-slice-2` | closed 2026-10-10; worktree removed |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
