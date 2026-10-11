@@ -20,13 +20,13 @@ mediafile==0.17.0
     # via beets
 mutagen==1.48.1
     # via mediafile
-numpy==2.5.3
+numpy==2.5.4
     # via
     #   beets
     #   lap
 packaging==26.3
     # via beets
-platformdirs==4.12.4
+platformdirs==4.13.0
     # via beets
 pyrate-limiter==4.5.0
     # via requests-ratelimiter
