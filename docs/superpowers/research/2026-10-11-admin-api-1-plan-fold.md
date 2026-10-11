@@ -125,13 +125,21 @@ its stated reason decide it:
 1. **Approve the 695 task-minute estimate?** pass-core sends a plan back when task-minutes exceed twice the design's
    estimate: the design's 330 minutes puts the line at 660, and the folded plan sits at 695 (path about 585). The rise
    from 535 is the review's proofs on an `auth-data` pass: honest re-estimates of T5, T6, T9, and T10 (mechanics M5),
-   plus the fold's own fixtures in T2, T3, T4, T7, and T8, less 10 minutes from the trimmed render matrix.
-   - **Yes (recommended):** launch as planned. The per-task clock stop still bounds each task at twice its estimate,
-     and every added minute buys a proof a lens ranked major or a fixture that keeps a test from passing vacuously.
-   - **No:** the plan returns for a scope cut before launch. No single cut that leaves the approved design whole
-     reaches 660: the largest candidate, moving the route inventory (PS A2, which no AC of this spec names; the spec
-     carried it only through its now-moot contested-surfaces table) to `admin-api-2`, saves about 20 minutes, so a
-     second cut would be needed.
+   plus the fold's own fixtures in T2, T3, T4, T7, and T8, less 10 minutes from the trimmed render matrix. The
+   planning brief itself expected more than its 330 once fix rounds count: "The `auth-data` fix rounds 6d saw would
+   push it toward 7 hours" (`research/2026-10-10-next-pass-planning-brief.md:334`), which is 420 minutes and a line
+   of 840 on that figure.
+   - **(a) Approve 695 as planned (recommended).** The per-task clock stop still bounds each task at twice its
+     estimate, and every added minute buys a proof a lens ranked major or a fixture that keeps a test from passing
+     vacuously.
+   - **(b) Approve with T11 folded into T10**, about 675 to 680. pass-core's "fold a single-deliverable task into a
+     neighbor": both run inline, both run the full gate, and they already share `deck.ts`, `deck-coverage.ts`,
+     `serve.go`, and the inventory test, so the merge saves one full gate and one per-task review and keeps the design
+     whole. It still sits above 660.
+   - **(c) Return the plan for (b) plus moving the route inventory to `admin-api-2`**, about 655 to 660. This drops
+     work the design gives this pass: PS:580-581 routes the inventory to "The next rung that registers a route", and
+     the spec's surfaces table (spec:530) gives it to the first lane to register one, which is this pass. It is a
+     scope cut, not a free saving.
 
 ## Measures
 
@@ -151,3 +159,22 @@ its stated reason decide it:
   list --porcelain` and `git ls-remote --exit-code` (probed).
 - New mechanisms refused: a layering import-check test (F10), a 31-row states ledger table (F6), a single-dispatch
   gate receipt (M21).
+
+## Second fold
+
+The verification read (`2026-10-11-admin-api-1-plan-fold-verification.md`, against `f546d61`) found 0 blockers, 0
+majors, and 7 minors. Each was checked against the tree before it was acted on.
+
+| ID | Severity | Verified against | Disposition |
+|---|---|---|---|
+| V1 | minor, correctness | the session commits before it dispatches, so its own branch sits at the dispatch sha and passes the ancestor test with no `T<n>:` commit; an earlier line's sha is an ancestor of every later subagent branch | Folded: Resume classifies only the last `dispatch` line, since each dispatch is merged and reviewed before the next, and drops the session's own branch; the prompt's resume paragraph says the same |
+| V2 | minor, correctness | `cmd/dubplate-server/templatekeys_test.go:99` reads `class.Required`, `:109` reads `src.Required` and `src.Optional` as `[]string` | Folded: T2's Files |
+| V3 | minor, correctness | spec:280 ("Every committed `admin`-source write or reset of a sensitive key"); the only reset fixture was the non-sensitive zero-send case | Folded: T5's recording-mailer fixture runs a sensitive `set_setting` and a sensitive `reset_setting`, each one message per live admin; mutation "send no notice on a sensitive reset" |
+| V4 | minor, optional, owner fork | brief:334; PS:580-581; spec:530 | Folded into "Rulings for Geoff", ruling 1, as options (a), (b), and (c), recommendation (a) |
+| V5 | minor, optional | plan States restore row; T8's runbook line | Refused: the spec's restore line guards access (a removed or demoted member regains it); a restored setting grants no one access and shows with its source on the server settings page, so a third widening of a spec sentence is not worth its reading |
+| V6 | minor, optional | `secretLengthFloor = 32` (`cmd/dubplate-server/auth.go:93`); ports and hosts are validated | Folded: free, and it removes a real risk (a sentinel that stops the server makes AC9's scan vacuous). T6's AC9 fixture: every sentinel valid for its key's validator, each port a distinct valid port, each secret at least 32 bytes |
+| V7 | minor, optional | plan Close step 4; Dispatches convention | Refused: the A/B smoke costs a few sign-ins against a loopback sink, while the restart variant rests on an unprobed claim that sessions survive a restart; the verbatim Conventions keep each dispatch identical to what the reviewers read, and the prompt's eight rules already name the subagent's share |
+
+The SQLite trigger mechanism also has two in-tree precedents through the modernc driver
+(`internal/engine/store/migrate_test.go:349`, `internal/ops/local/recovery_test.go:124`), which back the earlier probe.
+Task-minutes are unchanged at 695: V1 to V3 and V6 are a sentence or a fixture line each.
