@@ -66,6 +66,11 @@ export const kitOptions: Config = {
   // `prerender = true`), so adapter-static's default `strict: true`
   // has nothing dynamic to reject.
   adapter: adapter(),
+  // `paths.relative` stays at its default, so prerendered documents
+  // locate themselves from wherever they are served, which holds only
+  // with no `reroute` hook and no fallback page. The cost is that every
+  // route must answer its exact path: a trailing slash gets the
+  // terminator's 404, not the document.
   // No consumer reads `updated`, so the hourly poll for
   // `_app/version.json` would fetch for nothing. Kit still checks that
   // file when the tab regains focus or becomes visible; the Go server

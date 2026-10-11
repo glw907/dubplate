@@ -20,4 +20,9 @@
 // beets: no beets translation call site invokes unicodedata.normalize,
 // so a Go port that "helpfully" normalized would diverge from what it
 // ports.
+//
+// The corpus never grades the retry path. The stub answers 200 or 404
+// only, and a cassette request carries no status field, so a 503 cannot
+// be recorded. The response-status extension stays declined until a case
+// needs a 404 or a 503.
 package musicbrainz

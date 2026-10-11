@@ -61,6 +61,11 @@ type writeMark struct{}
 //
 // The first statement reads user_version, and Update refuses without
 // calling fn when it differs from the binary's version.
+//
+// A caller reads a setting before it enters Update, never inside fn. The
+// rule that every read a write decides on runs inside fn governs the rows
+// the write changes; a setting read just before the write is the value in
+// force for that operation.
 func (h *Handle) Update(ctx context.Context, fn func(ctx context.Context, tx *Tx) error) error {
 	if ctx.Value(writeMark{}) != nil {
 		return errNestedWrite

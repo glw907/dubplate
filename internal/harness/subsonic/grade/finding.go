@@ -5,6 +5,10 @@
 // ledger adjudicates findings: a row says which differences are known and
 // why, and a row that matches nothing is itself an error, so the ledger
 // cannot outlive the behavior it describes.
+//
+// The golden grades the grader, not the oracles. A ledger row never names
+// a difference that exists between the oracles alone; only a row naming
+// dubplate as one side is live.
 package grade
 
 import "github.com/glw907/dubplate/internal/opensubsonic/client"
