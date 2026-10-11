@@ -63,6 +63,8 @@ launch. Canonical record: the build spec's Process section and
 rung-spec rulings, corpus adjudication batches, the rung 7 uploader before/after, and the first-launch
 sitting.
 
+Pass process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
+
 ## Gate
 
 `bash scripts/check.sh` before every commit: `make check` (vet, golangci-lint, test, tidy-check) over the
