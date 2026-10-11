@@ -21,6 +21,9 @@ func TestRootCmd_UnknownSubcommand(t *testing.T) {
 	cmd.SetArgs([]string{"bogus"})
 
 	var stdout, stderr bytes.Buffer
+	// Cobra writes a usage block through OutOrStderr, which falls back to
+	// os.Stderr when only SetErr is wired, so SetOut must be wired too or
+	// a leaked usage block escapes both buffers.
 	cmd.SetOut(&stdout)
 	cmd.SetErr(&stderr)
 
