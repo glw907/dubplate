@@ -1,6 +1,6 @@
 # Standing rules
 
-Detail that CLAUDE.md summarizes. Verbatim from CLAUDE.md as of the lean cutover.
+Detail that CLAUDE.md summarizes, plus lessons harvested from the frozen HISTORY at the lean cutover.
 
 ## Build for 0.8
 

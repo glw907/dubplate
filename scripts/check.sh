@@ -59,7 +59,7 @@ set -euo pipefail
 #                             the final gate on master and never a
 #                             boundary gate; a change that reaches master
 #                             has had the full form run over it.
-#   check.sh --merge          the merge ritual's in-tree gate: the full
+#   check.sh --merge          the close run's in-tree gate: the full
 #                             gate plus one gitleaks pass over the
 #                             branch's own commit range, master..HEAD,
 #                             with git history rather than --no-git. A
