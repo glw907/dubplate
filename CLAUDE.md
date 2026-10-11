@@ -9,6 +9,7 @@ outside `internal/config`.
 
 **The active initiative (2026-09-02) is the greenfield dubplate-server
 build**: a fresh, universal, foundation-first build on a 17-rung ladder
+(each rung has a name, and the run order is ROADMAP's "Path to 0.8")
 per `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), governed by the rulings in
 `docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`. The
@@ -19,20 +20,30 @@ bars), never imported, and retired at launch. The group's system is not
 live; the box runs only dubplate-server (Navidrome, the Cloudflare
 tunnel, the box's beets, and the incumbent musicbox stack are retired,
 Geoff 2026-10-05) until the new server launches complete (Go matcher
-included). Two standing bars, from memory:
-exemplary Go (`idiomatic-beautiful-go`) and render-and-read every
-user-path page before any attended ask (`see-it-before-geoff-tests-it`).
+included).
+
+**Two standing bars (Geoff, 2026-09-02).**
+- *Exemplary Go.* Idiomatic standard-library style and architectural beauty, never mere correctness: the code
+  is part of the product, and a correct but awkward implementation misses the bar the way an unclean UI does.
+  A reviewer may return `fix` on awkward-but-working code, and a dispatch names "idiomatic, architecturally
+  beautiful Go" as an acceptance dimension.
+- *Render and read every user-path page before any attended ask.* Never ask Geoff to test a surface you have
+  not seen, the auth pages in front of the app included, starting from the URL the person will type. A
+  status code is not evidence; a screenshot read in the main loop is. (A deploy once went to Geoff after
+  only a 302 was checked, and the login page behind it carried another organization's branding.)
+
+**Words (Geoff, 2026-09-08 and 2026-09-24).** The people who share a library are "the group" and one person
+is "a member"; "family" survives only in the product-essence line. Specs and UI copy use plain terms, with no
+coined metaphor ("the crate") and no record-shop pun ("Back to the shelf"): the identity lives in the visuals.
 
 **Versions (Geoff, 2026-09-25, re-planned 2026-10-05).** The first launch
 is **0.8.0**, on the built-in streamer: no earlier pre-release and no
 box swap. **0.9** adds the paired local client. **1.0** adds polish and the
-remaining features, the format ladder among them. Documents written before
-this ruling say "1.0" for the launch, "1.1" for the formats, and "2.0" for
-the streamer, and they stay as written. Documents before 2026-10-05
-describe a 0.x launch and a rung 16 cutover under the earlier plan, and
-they stay as written too.
+remaining features, the format ladder among them. A version names what a
+member can do with it. A document older than a ruling keeps its numbers
+and stays as written.
 
-**Build for 0.8.** Rung 12 is the built-in OpenSubsonic streamer (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).
+**Build for 0.8.** The `streamer` rung is the built-in OpenSubsonic streamer (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).
 Rung plans weigh their surface against that spec's forward-hooks list and its prior-art list; a hook is
 named in the plan and built by the rung that first consumes it, and nothing is exported ahead of a caller.
 Never build 0.8 features early. Full text: `docs/standing-rules.md`.
@@ -46,24 +57,20 @@ then upgrade the eight held dependents. Full text and the last sweep: `docs/stan
 
 ## Ledgers
 
-- `docs/STATUS.md` — read in full at session start; present tense only.
-- `docs/HISTORY.md` — per-pass ledger, read on demand.
-- `IDEAS.md` — future consideration: uncommitted features and member requests,
+- `docs/STATUS.md`: read in full at session start; present tense only.
+- `docs/HISTORY.md`: a frozen archive (2026-10-10); git and PR bodies are the record.
+- `BACKLOG.md`: open items, tagged `#rung:<name>` for the rung that takes each.
+- `IDEAS.md`: future consideration: uncommitted features and member requests,
   read on demand. An idea moves to Promoted when an owner ruling targets it.
-- `ROADMAP.md` — initiative queue. Current: the greenfield dubplate-server
-  build (17-rung ladder) → packaging (specs and plans live in
-  `docs/superpowers/`, migrated into the repo at T14; the dotfiles copies
-  are pointers only).
+- `ROADMAP.md`: initiative queue, and the ladder's run order under "Path to 0.8". Current: the greenfield
+  dubplate-server build (17-rung ladder) → packaging. Specs and plans live in `docs/superpowers/`.
 
 ## Build process
 
-The build runs in session-scale phases bounded by merge points: foundation, evidence, spine, surfaces,
-launch. Canonical record: the build spec's Process section and
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`. Owner touchpoints, and only these:
-rung-spec rulings, corpus adjudication batches, the rung 7 uploader before/after, and the first-launch
-sitting.
-
-Pass process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
+The build's milestones, in order, are foundation, evidence, spine, surfaces, and launch; ROADMAP's "Path to 0.8"
+holds the run order. Process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
+Product touchpoints, and only these: corpus adjudication batches, the `intake` uploader sitting, and the
+first-launch sitting. The design approval and the PR read are `pass-core`'s.
 
 ## Gate
 
@@ -84,8 +91,10 @@ never guard one with `command -v || skip`. Never commit red.
   errors with sentinels via `errors.Is`, `ctx` first parameter, every
   subprocess under `exec.CommandContext`, atomic writes via
   `internal/atomicfile`, table-driven tests under the assertion-discipline
-  rules (no silent-success fakes, no vacuous assertions — prove tests can
-  fail).
+  rules (no silent-success fakes, no vacuous assertions; prove tests can
+  fail). A test's expected value is a literal or an independently computed
+  value, never built with the helper the code under test calls: such a test
+  cannot fail when the code regresses, because both sides drift together.
 - **Shell** (`scripts/`): ops tooling only (`deploy.sh`, `provision.sh`,
   `check.sh`, `gate.sh`, `check-state-dir.sh`, `vale-comments.sh`), shellcheck clean,
   no behavior tests of its own. The box-side import/backup shell layer is fully retired
@@ -97,16 +106,22 @@ never guard one with `command -v || skip`. Never commit red.
   server. Server-only SvelteKit files (`+page.server.*`, `+server.*`,
   `hooks.server.*`, form actions) are forbidden and the gate checks that
   none exists. Clean, idiomatic SvelteKit is the bar, as in the cairn
-  family. Invoke `svelte-conventions` and `ts-conventions` before writing
-  components or TS. `tus-js-client` pinned 4.3.x, from rung 7. Node is workstation
-  build-time only; nothing Node ships to the box. Rung 5's login page is
-  the first page built under this rule. The look is the visual identity
+  family. Invoke `svelte-conventions` and `ts-conventions` before writing components or TS. `tus-js-client` pinned 4.3.x, from `intake`. Node is workstation
+  build-time only; nothing Node ships to the box. The `auth` rung's login page is
+  the first page built under this rule. Push hard toward the stack's own idiom
+  (Geoff, 2026-09-01): reach for the DaisyUI component class and its documented
+  modifiers before a hand-rolled utility stack, never fight a component's layout
+  model, take colors only from theme tokens, prefer `$derived` to an effect that
+  mirrors state, and keep `$effect` for real side effects with cleanup. The idiom
+  wins over a finding's literal fix text, un-idiomatic code adjacent to a change is
+  in scope for it, and the exemplar is `~/Projects/cairn-cms/src/lib/admin-toolkit/`
+  and `src/lib/components/`: imitating it beats interpreting the rule. The look is the visual identity
   spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
   Geoff, 2026-09-25): every `web/` task reads it, and it outranks any
   styling habit.
 - **systemd / cloud-init**: invoke the `vps-conventions` skill BEFORE
   touching `systemd/`, `cloud-init/`, or deploy/provision scripts. Units
-  are code — hardened (`NoNewPrivileges`,
+  are code, hardened (`NoNewPrivileges`,
   `PrivateTmp`, `ProtectSystem` with explicit `ReadWritePaths`), verified by
   the gate. A `ReadWritePaths` entry must exist on the host before the unit
   starts (deploy.sh pre-creates). cloud-init runs at first boot only;
@@ -132,7 +147,7 @@ never guard one with `command -v || skip`. Never commit red.
 
 Web UI work matches no streamer: dubplate replaces Navidrome at 0.8 and carries its own visual identity
 (Geoff, 2026-09-24), so no reference screenshots and no visual-fidelity chain. Every user-path page is
-rendered and read before Geoff sees it, and the rung 7 uploader is Geoff's design review. Review at
+rendered and read before Geoff sees it, and the `intake` uploader is Geoff's design review. Review at
 pass end fans out by surface and passes the visual identity spec's path to the `web/` reviewers.
 
 ## Refused features
@@ -151,7 +166,7 @@ Never build, and never accept a contribution that adds:
 ## Facts agents get wrong
 
 - Failure pings are POST to `<url>/fail`; success is GET. The Worker 404s a
-  GET to `/fail` — this was a live bug once.
+  GET to `/fail`; this was a live bug once.
 - dubplate-server's state lives under `/var/lib/dubplate/` (persistent),
   never in a RuntimeDirectory (deleted at unit stop). The server uses NO
   runtime directory at all.
@@ -167,17 +182,19 @@ Never build, and never accept a contribution that adds:
   id, with no two roots nested, per
   `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
 - Config keys are declared through the registry in each rung's own file,
-  never by editing `internal/config/keys.go` (rung 1b).
+  never by editing `internal/config/keys.go` (the config registry pass).
 
 ## Safety rails
 
-- Before any executor touches this repo or the box, check the lane registry for a live executor in the
-  same tree (`pgrep -f Projects/dubplate` matches every lane once a worktree exists) and `git status` for
-  warm changes you did not author. The box (`5.78.148.42`) is production: no writes without a
-  quiet-box check; read-only ssh only during reviews.
+- Before any executor touches a worktree, run `claude agents --json` for a live session whose cwd is that
+  worktree, then `pgrep -f` with a pattern whose literal text never appears in the command (a bracket class,
+  `pgrep -f 'worktrees/<nam>[e]'`, because the Bash tool's wrapper carries the command text; see
+  `~/.claude/docs/bluefin-admin.md`), then `git status` for warm changes you did not author. STATUS records
+  each running pass's session name and id.
+- The box (`5.78.148.42`) is production: no writes without a quiet-box check; read-only ssh only during reviews.
 - Never commit secrets, `.env` values, or `~/.local/secrets` content.
   No mechanism in the gate scans for them; review a diff by eye before
   staging anything that might carry one.
 - Deploys go through `scripts/deploy.sh` (idempotent; it checks by
-  default, and `--apply` writes, only from a clean committed tree). Never edit the box by hand and call it done — the repo
+  default, and `--apply` writes, only from a clean committed tree). Never edit the box by hand and call it done: the repo
   is the source of truth.
