@@ -172,8 +172,9 @@ Never build, and never accept a contribution that adds:
   runtime directory at all.
 - The album is the verdict unit: one failing track rejects the batch. Never
   admit a partial album.
-- Reject wording is contract (`internal/reject` / `friendly_reason`): the
-  uploader page and emails share it verbatim; upload-check reuses it.
+- Reject wording is contract (`friendly_reason`): the uploader page and
+  emails share it verbatim; upload-check reuses it. The code waits in
+  `_salvage/internal/reject` until the `intake` rung ports it.
 - `env/dubplate-server.env.template` is the render manifest deploy.sh
   turns into `/etc/dubplate/server.env`: a bare `NAME=` row resolves from
   the age store, so adding one requires minting it (`secret-set.sh`,
@@ -193,8 +194,9 @@ Never build, and never accept a contribution that adds:
   each running pass's session name and id.
 - The box (`5.78.148.42`) is production: no writes without a quiet-box check; read-only ssh only during reviews.
 - Never commit secrets, `.env` values, or `~/.local/secrets` content.
-  No mechanism in the gate scans for them; review a diff by eye before
-  staging anything that might carry one.
+  The gate's gitleaks leg scans for them, but it misses a value that
+  looks ordinary; review a diff by eye before staging anything that might
+  carry one.
 - Deploys go through `scripts/deploy.sh` (idempotent; it checks by
   default, and `--apply` writes, only from a clean committed tree). Never edit the box by hand and call it done: the repo
   is the source of truth.

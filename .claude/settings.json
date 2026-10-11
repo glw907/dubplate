@@ -13,8 +13,7 @@
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
-      "Bash(git show*)",
-      "Bash(ssh root@5.78.148.42 systemctl reset-failed *)"
+      "Bash(git show*)"
     ]
   }
 }
