@@ -18,6 +18,12 @@ set -euo pipefail
 # check either gates or does not exist). Exits nonzero on any failure so
 # it can be wired into CI or a pre-push hook unmodified.
 #
+# Two habits keep a run honest. Never edit a script under scripts/ while
+# a gate runs it: bash reads a script incrementally, so an edit made
+# mid-run corrupts the run in flight. And stage go.mod and go.sum before
+# a dependency sweep's gate, because tidy-check diffs both against the
+# index and reports a bumped but unstaged module as drift.
+#
 # Four forms, one script, so no caller has to duplicate the gate's
 # internals in a hand-composed command line:
 #
@@ -53,7 +59,7 @@ set -euo pipefail
 #                             the final gate on master and never a
 #                             boundary gate; a change that reaches master
 #                             has had the full form run over it.
-#   check.sh --merge          the merge ritual's in-tree gate: the full
+#   check.sh --merge          the close run's in-tree gate: the full
 #                             gate plus one gitleaks pass over the
 #                             branch's own commit range, master..HEAD,
 #                             with git history rather than --no-git. A

@@ -1,3 +1,4 @@
+> Frozen as of 2026-10-10: git history and PR bodies are the record now (lean pass ruling 8).
 # dubplate history (born musicbox; entries keep the names of their day)
 
 Per-pass ledger, newest first.

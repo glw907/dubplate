@@ -32,43 +32,17 @@ the streamer, and they stay as written. Documents before 2026-10-05
 describe a 0.x launch and a rung 16 cutover under the earlier plan, and
 they stay as written too.
 
-**Build for 0.8 (Geoff, 2026-09-07, re-keyed 2026-09-25, re-planned
-2026-10-05).** Rung 12 is the built-in OpenSubsonic streamer, slices 1 to 8
-of `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (the spec
-still says 2.0). Every other rung plan weighs its surface against that
-spec's forward-hooks list and states per task whether it lands a hook or is
-neutral; a rung 6 schema built without 0.8 in view is rework. Hook 6
-retires and hook 5 is renamed to `username`. Route newly discovered hooks
-into that list; never build 0.8 features early. The same spec carries a prior-art list (the
-OpenSubsonic specification, Navidrome and gonic for behavior only under
-GPL, taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag
-tables, chromaprint); a rung plan names which entries it consulted and
-adopts or declines each with a reason, so no rung rebuilds what a
-license-compatible library already does well. An adoption is judged on
-license, code quality against the house bar, maintenance (release
-cadence, open-issue age, bus factor), and adoption (importers, who
-depends on it), with the evidence recorded in the plan, never on
-familiarity alone. **Refined (Geoff, 2026-09-12):** a 0.8 forward hook is
-named in the rung plan and built by the rung that first consumes it,
-and nothing is exported ahead of a caller.
+**Build for 0.8.** Rung 12 is the built-in OpenSubsonic streamer (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).
+Rung plans weigh their surface against that spec's forward-hooks list and its prior-art list; a hook is
+named in the plan and built by the rung that first consumes it, and nothing is exported ahead of a caller.
+Never build 0.8 features early. Full text: `docs/standing-rules.md`.
 
-**Current dependencies (Geoff, 2026-10-04).** Development runs on the
-newest production version of every library, tool, and pinned binary, so
-dubplate releases with no dependency debt and uses what its libraries
-offer. Pins stay exact, at the newest version. Every pass opens with a
-`dependency-upgrade` sweep over `go.mod`, `web/package.json`,
-`tools/venv/requirements.txt`, and the pinned binaries (rclone, golangci-lint, Playwright, libxml2); a sweep with nothing to move
-is one line in the pass record. The skill's survey is the point: a new
-capability that replaces hand-rolled code is ruled take-now or filed to
-the rung that first leans on it, and a workaround for an old version
-never outlives the bump that fixes it. Minors and patches land without
-asking; a major waits for Geoff and is recorded with its unblock
-condition. A rung plan that adopts a library names its newest version.
-libxml2 (`/home/linuxbrew/.linuxbrew/bin/xmllint`, 2.15.4) is held
-by `brew pin libxml2`, so a bump is deliberate: `brew unpin libxml2 &&
-brew upgrade libxml2`, regenerate the XML goldens, `brew pin libxml2`,
-then upgrade the eight held dependents.
-The last sweep: `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
+**Current dependencies (Geoff, 2026-10-04).** Development runs on the newest production version of every
+library, tool, and pinned binary; pins stay exact. Minors and patches land without asking; a major waits
+for Geoff. libxml2 (`/home/linuxbrew/.linuxbrew/bin/xmllint`, 2.15.4) is held by `brew pin libxml2`: a
+bump is `brew unpin libxml2 && brew upgrade libxml2`, regenerate the XML goldens, `brew pin libxml2`,
+then upgrade the eight held dependents. Full text and the last sweep: `docs/standing-rules.md`,
+`docs/superpowers/research/2026-10-04-dependency-sweep.md`.
 
 ## Ledgers
 
@@ -81,161 +55,27 @@ The last sweep: `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
   `docs/superpowers/`, migrated into the repo at T14; the dotfiles copies
   are pointers only).
 
-## Build process (greenfield initiative; ratified 2026-09-02, re-keyed 2026-09-03)
+## Build process
 
-The build runs in session-scale PHASES bounded by merge points, not
-one session per rung: foundation (rung 1, closed), evidence (2, 3,
-4, with rungs 5 and 8 alongside), spine (6, 14, 7, 9), surfaces (10,
-11, 12, 13), launch (15, 16, 17). Inside a phase: no clears, no
-re-brainstorm. Between phases: close the session, post-mortem,
-STATUS handoff. A phase whose lanes outrun one session may span
-more than one, each intermediate close carrying a written per-lane
-handoff. Canonical record: the build spec's Process section and
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`.
+The build runs in session-scale phases bounded by merge points: foundation, evidence, spine, surfaces,
+launch. Canonical record: the build spec's Process section and
+`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`. Owner touchpoints, and only these:
+rung-spec rulings, corpus adjudication batches, the rung 7 uploader before/after, and the first-launch
+sitting.
 
-**Standing grants (Geoff, 2026-09-02, extended 2026-09-03):**
-workflow mode for the whole build, execution and prep both; batch
-human questions into checkpoint bundles; when Geoff is unavailable,
-continue unblocked work rather than idling; up to three code lanes
-when useful and efficient (Geoff, 2026-10-05) plus any number of document
-lanes at once.
-
-**Lanes.** A lane is one rung's execution with a named package
-territory. The primary code lane and all document lanes share the
-tree; each code lane past the primary gets its own git worktree, because
-`scripts/check.sh` runs the module gate over `./...` and two
-whole-repo legs besides. The matcher corpus and the beets oracle never
-move to a worktree, because the beets venv is gitignored and `make derive`
-sits outside the gate, so a worktree's gate goes green without the one leg
-that exercises beets. The OpenSubsonic harness (`internal/harness/subsonic`,
-`internal/opensubsonic`, `cmd/harness`) needs no venv, no beets, and no
-`corpus/`, so its lane runs in a worktree. One residue applies:
-`cmd/harness`'s `//go:build oracle` files are never built by the gate, so
-every close of a lane that touches them runs
-`go vet -tags oracle ./cmd/harness/... ./internal/harness/...` once. Every lane launch runs the checklist: reverse edges
-cleared, contested surfaces written, runaway guard armed, lane
-registry entry written, venv provisioned if needed, sub-ceiling
-assigned, AC power, throughput baseline. **Never launch a second
-executor into the SAME tree**: the live-executor check is the lane
-registry, not `pgrep -f Projects/dubplate`, which matches every lane
-once a worktree exists.
-
-**The conducting loop, per lane:** execute via the pass-execute
-chain with the runaway guard armed; prep the next rung's plan in a
-workflow against a tree no other executor is writing; land queued
-repo edits in one batch after the executor finishes; plans are
-just-in-time per lane, never front-loaded (plan staleness is the
-proven dominant defect class). A lane closes through the merge
-ritual: merge token, rebase, full gate in-tree, `--ff-only`, full
-gate on master, and one `diff-reviewer` on the merged result
-whenever the rebase was not a fast-forward. Review scales to rung
-risk: mechanical rungs ride the in-chain diff-reviewer; auth (5),
-streamer (12) and first launch (16) keep the full fresh-context
-adversarial cycle. Subagents cannot dispatch agents: never instruct
-an implementer to run `code-simplifier`; the conductor owns that
-dispatch.
-
-**Planning-miss prevention (conductor, 2026-09-23).** Every 5b-ii fix
-round was an ambiguity its plan left open, so every rung plan closes
-these before approval: each stdlib or library behavior a task relies on
-is quoted from `go doc` or the source, never recalled; each state a
-check can meet (absent, empty, malformed, many-bad) names its report;
-each privileged field names every channel that may set it; and each
-proof names the fixture state it needs (selected, populated) so the test
-cannot pass vacuously. The plan-review lenses check these four.
-
-**Findings are ranked, and a fold may refuse (conductor, 2026-09-23).**
-Anthropic's Claude Code guidance warns that "a reviewer prompted to find
-gaps will usually report some, even when the work is sound" and that
-"chasing every finding leads to over-engineering"; the rung 6 spec folded
-about 200 findings with none refused. Every reviewer dispatch asks for
-correctness gaps ranked by consequence, not polish, and every fold
-dispatch may refuse a finding whose fix costs more than the risk it
-removes, with a one-line reason in the fold record.
-
-**Expected owner touchpoints, and only these:** rung-spec rulings
-(known ahead: rung 9's concurrency model), corpus adjudication batches
-(small and regular), the rung 7 uploader before/after, and the
-first-launch sitting.
+Pass process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
 
 ## Gate
 
-`bash scripts/check.sh` before every commit — `make check` (vet,
-golangci-lint, test, tidy-check) over the whole module (`./...`;
-`_salvage/` is invisible to the go tool), shellcheck over `scripts/*`,
-ruff (`check` and `format
---check`) over every tracked `*.py` (the oracle shim and its derivation
-siblings under `internal/harness/oracle/`, that package's FLAC template
-generator, tagio's golden-FLAC generator under
-`internal/engine/tagio/testdata/`, the matcher's featuring-golden generator
-`internal/engine/matcher/testdata/gen_featuring_golden.py`, and
-`tools/unidecode-table/generate.py`, now the oracle that re-derives the
-transliteration table's pin on a Unidecode bump, never a source of a
-committed table),
-the photo pool integrity check (`node tools/photos/check.mjs integrity`),
-gitleaks over
-the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
-first large data directory), vale (Go comment prose, `_salvage/`
-excluded), a pattern-filtered `systemd-analyze verify` (hard-required:
-a missing `systemd-analyze` fails the gate), and the state-dir agreement
-leg, which lives in `scripts/check-state-dir.sh` (the full gate runs it, it
-runs alone in seconds, and shellcheck covers it with the rest of
-`scripts/*`): the server env template, every `dubplate-server` unit, and
-`deploy.sh`'s `DUBPLATE_SERVER_LEAVES` name the same state directory and
-leaves; every granted leaf is in that array and every array entry is
-granted; the serve unit is granted the `store` leaf; and the leg proves
-`deploy.sh`'s pre-create loop iterates that array.
-Two import-graph tests hold the OpenSubsonic layer's boundaries, and a green
-`go test ./...` runs both. The import-boundary test
-(`internal/opensubsonic/boundary_test.go`) fails if anything under
-`internal/opensubsonic` pulls in a module-internal package outside it, tests
-included. The no-link test (`internal/harness/conform/arch_test.go`) fails if
-`go list -deps ./cmd/dubplate-server` names a package under `internal/harness`
-or `internal/opensubsonic/conformance`, or any `github.com/getkin` path, so the
-server never links the harness, the contract checker, or kin-openapi; the
-protocol client stays linkable.
-Three workstation prerequisites sit outside the gate, because the gate
-never opens a network connection: `npm ci --prefix web`,
-`make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
-cache, which the unidecode tests and the install verb's tests read), and
-`make subsonic-xsd` (the pinned Subsonic 1.16.1 XSD in the user cache,
-read by the harness's XML tier and never committed). The XML tier also
-needs `xmllint` at libxml 2.15.4 on `PATH`, held by `brew pin libxml2`
-because its messages land in goldens; eight installed formulae depend on
-it and are held with it (chafa, ffmpeg, gdk-pixbuf, imagemagick, librsvg,
-libxkbcommon, shared-mime-info, xdotool).
-The scoped gate (`check.sh --scope-changed`) derives its change set from git against a base: the
-`--base <sha>` the runner recorded (a full commit id that is an ancestor of HEAD), else the merge
-base on a branch and `HEAD~1` on master. It fails closed: a gate-machinery path, an unmatched
-path, an invalid base, an empty change set, or a failed `git` or `go list` call runs the full
-form, and the scope line names the reason. `--dry-run` prints the scope and runs nothing. The
-conform suite is no longer hand-scoped: `go test` runs whole and Go's test cache reruns it only
-when its inputs changed. The rendered leg runs when a `web/` path changed or a changed path lies
-in a package of `go list -deps -test -tags rendered ./cmd/dubplate-server`, so a new dependency
-joins the set with no edit. The scoped form never calls `make check`, so the bundle is built
-once. `--reduced` runs svelte-check on a `web/` change and never the rendered leg. Two tests
-read source through a `go list` subprocess, which the cache cannot see, so `make test` runs
-`TestServerNeverLinksTheHarnessOrChecker` and `TestLayerImportsNothingInternal` again with
-`-count=1` and fails if either does not run and pass.
-The `web/` leg runs today, first in `make check`'s prerequisite chain:
-Node and npm required and named on failure, a stale or drifted
-`npm ci --prefix web` refused, the SvelteKit static bundle built, then
-`svelte-check` under strict TypeScript and the static web gates (no
-server-only file, no hardcoded color, no external origin, theme
-variable completeness, theme contrast, and the built bundle's stamped
-theme values). Since rung 5c-iii Task 3a, the leg also runs the rendered
-(browser) gates: a Playwright 1.64.0 script under a `rendered`-tagged Go
-test, two builds compared byte for byte, and first paint per theme, so
-every full gate launches Chromium and runs on the heavy lane (about 106s,
-about 560 MiB peak at 3a). Rung 6b-i's merge adds an `rclone`-dependent leg: `internal/backup`'s
-tests exercise the real `rclone` binary (`internal/backup`'s share of
-`go test ./...` runs about 8.3s of it). A check either
-gates or does not exist; never guard one with `command -v || skip`.
-Never commit red. The process-citation leg
-(no rung, task, resolution, or plan-line citation in shipped Go comments)
-and the exported-unused leg (an exported `internal/` symbol whose only
-references are its own file and `_test.go` files) are staged: they warn
-today and gate at the comment-cleanup task.
+`bash scripts/check.sh` before every commit: `make check` (vet, golangci-lint, test, tidy-check) over the
+whole module (`_salvage/` is invisible to the go tool), shellcheck, ruff, the photo pool check, gitleaks,
+vale over Go comments, a hard-required `systemd-analyze verify`, the state-dir agreement leg
+(`scripts/check-state-dir.sh`), and the `web/` leg (static bundle, `svelte-check`, the static web gates,
+and the rendered Playwright gates on the heavy lane). Each leg, the two OpenSubsonic import-graph tests,
+and the workstation prerequisites outside the gate (`npm ci --prefix web`, `make unidecode-wheel`,
+`make subsonic-xsd`, `xmllint` at libxml 2.15.4) are in `docs/standing-rules.md`. The scoped form is
+`check.sh --scope-changed`; it fails closed to the full form. A check either gates or does not exist;
+never guard one with `command -v || skip`. Never commit red.
 
 ## Stack rules (mandatory skills by area)
 
@@ -248,8 +88,7 @@ today and gate at the comment-cleanup task.
   fail).
 - **Shell** (`scripts/`): ops tooling only (`deploy.sh`, `provision.sh`,
   `check.sh`, `check-state-dir.sh`, `vale-comments.sh`), shellcheck clean,
-  no behavior tests of its own. `scripts/checks/gate-tier.mjs` is the one JS file under `scripts/`,
-  at the path the pass-execute runner fixes. The box-side import/backup shell layer is fully retired
+  no behavior tests of its own. The box-side import/backup shell layer is fully retired
   (Go rewrite, 2026-08-31); never add subcommand logic here.
 - **Web** (`web/`): SvelteKit in static mode (Geoff, 2026-09-07;
   supersedes the standalone rule): Svelte 5 runes, DaisyUI 5,
@@ -291,22 +130,10 @@ today and gate at the comment-cleanup task.
 
 ## Reviewers
 
-`diff-reviewer` per plan task. At pass end, fan out by surface:
-`svelte-reviewer` + `daisyui-a11y-reviewer` for `web/`, each dispatch
-passing the visual identity spec's path and asking for conformance to it
-(tokens, inks, the component layer, the copy register) graded alongside
-correctness, since those reviewers are workstation-wide,
-`web-auth-security-reviewer` for the serve/JWT surface,
-`cloudflare-workers-reviewer` only in the pings repo. Web UI work
-matches no streamer: dubplate replaces Navidrome at 0.8 and carries its
-own visual identity (Geoff, 2026-09-24), so no reference screenshots and
-no visual-fidelity chain. Every user-path page is rendered and read
-before Geoff sees it, and the rung 7 uploader is Geoff's design review.
-At each pass's merge the conductor dispatches one `go-architecture-reader`
-per touched Go package, with no plan in context; it grades the package,
-which is the unit the per-task `diff-reviewer` cannot see. Every
-`code-simplifier` dispatch pastes `.claude/instructions/simplifier-brief.md`
-verbatim; the four decidable patterns it names replace a clarity brief.
+Web UI work matches no streamer: dubplate replaces Navidrome at 0.8 and carries its own visual identity
+(Geoff, 2026-09-24), so no reference screenshots and no visual-fidelity chain. Every user-path page is
+rendered and read before Geoff sees it, and the rung 7 uploader is Geoff's design review. Review at
+pass end fans out by surface and passes the visual identity spec's path to the `web/` reviewers.
 
 ## Refused features
 
@@ -344,10 +171,10 @@ Never build, and never accept a contribution that adds:
 
 ## Safety rails
 
-- Before any executor touches this repo or the box: check for live
-  executors (`pgrep -f Projects/dubplate`, `git status` for warm changes
-  you did not author). The box (`5.78.148.42`) is production — no writes
-  without a quiet-box check; read-only ssh only during reviews.
+- Before any executor touches this repo or the box, check the lane registry for a live executor in the
+  same tree (`pgrep -f Projects/dubplate` matches every lane once a worktree exists) and `git status` for
+  warm changes you did not author. The box (`5.78.148.42`) is production: no writes without a
+  quiet-box check; read-only ssh only during reviews.
 - Never commit secrets, `.env` values, or `~/.local/secrets` content.
   No mechanism in the gate scans for them; review a diff by eye before
   staging anything that might carry one.

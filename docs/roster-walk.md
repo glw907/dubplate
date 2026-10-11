@@ -160,8 +160,8 @@ emulator, and a system image under `~/Android/`, and Tempus 4.28.0 (sideloaded f
 
 ## Script: Amperfy 2.1.1 (rung 16's attended gate)
 
-Amperfy cannot run on Linux. The re-plan (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`: "A
-client the conductor cannot drive is walked at rung 16's attended gate.") puts its walk at that gate. The script comes
+Amperfy cannot run on Linux. The re-plan (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`: a
+client the session cannot drive is walked at rung 16's attended gate) puts its walk at that gate. The script comes
 from [clients] 2c and the sub-path precondition in [base-url]; every expectation is unproven.
 
 | Step | Action | Expected observation (unproven) | Record |

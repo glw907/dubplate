@@ -120,6 +120,11 @@
 - [ ] #34 A scoped run that skips the rendered leg launches no browser and could take the light lane, but the lane
   is chosen before `check.sh` classifies the change, so it queues on the heavy lane. Found by the gate scope pass,
   2026-10-10 #gate
+- [ ] #35 `internal/harness/cassette/cassette.go` `validate` rejects Extra-vs-Request and Extra-vs-Extra key clashes
+  but never two Requests sharing `(Method, PathQuery)`, though the `requestKey` comment says it does; add the
+  Request-vs-Request check (from the HISTORY harvest, 2026-10-10) #harness
+- [ ] #36 `web/scripts/gates/root-absolute.ts` second `srcset` pattern flags a base64 data URI (every JPEG payload
+  starts with `/9j/`) as a root-absolute URL; skip `data:` candidates (from the HISTORY harvest, 2026-10-10) #web
 
 ## Done
 
