@@ -6,8 +6,8 @@
 // why, and a row that matches nothing is itself an error, so the ledger
 // cannot outlive the behavior it describes.
 //
-// The golden grades the grader, not the oracles. A ledger row never names
-// a difference that exists between the oracles alone; only a row naming
+// The golden grades the grader, not the oracles. A ledger row must never
+// name a difference that exists between the oracles alone; only a row naming
 // dubplate as one side is live.
 package grade
 

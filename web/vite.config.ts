@@ -71,6 +71,7 @@ export const kitOptions: Config = {
   // with no `reroute` hook and no fallback page. The cost is that every
   // route must answer its exact path: a trailing slash gets the
   // terminator's 404, not the document.
+  //
   // No consumer reads `updated`, so the hourly poll for
   // `_app/version.json` would fetch for nothing. Kit still checks that
   // file when the tab regains focus or becomes visible; the Go server

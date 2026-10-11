@@ -121,9 +121,11 @@ firewall_exists() {
 # is blank, so a malformed value (e.g. a bare comma) never renders as an
 # empty, effectively-no-one-allowed source_ips list without saying so.
 #
-# Callers run this in a command substitution, a subshell where bash cannot
-# re-arm errexit, so a set -e placed inside does nothing. A best-effort call
-# here is enforced by an if guard at the definition.
+# Callers run this in a command substitution, so its exit 1 ends only that
+# subshell, and the substitution does not inherit errexit. A caller that
+# passes the substitution as an argument (render_firewall_rules) loses the
+# status; only an assignment, or an if test on the substitution, stops the
+# script.
 ssh_cidrs_json() {
   local raw=() cidr trimmed cidrs=()
   IFS=',' read -ra raw <<<"$FIREWALL_SSH_CIDRS"
