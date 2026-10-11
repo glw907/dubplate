@@ -15,22 +15,30 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
 
 ## Rules the pass carries
 
-- **One executor per tree.** Before any executor touches the repo or the box, check the lane
-  registry for a live executor in the same tree and run `git status` for warm changes you did not
-  author. `pgrep -f Projects/dubplate` matches every lane once a worktree exists, so the registry is
-  the check. The box (`5.78.148.42`) is production: no writes without a quiet-box check, and only
-  read-only ssh during reviews.
+- **One executor per tree.** Before any executor touches the repo or the box, run `claude agents
+  --json` to list the running sessions, then `pgrep -f` with a bracket-class pattern (for example
+  `pgrep -f '[P]rojects/dubplate/.claude/worktrees/<name>'`, so the check does not match itself) for
+  a process in the same worktree, then `git status` for warm changes you did not author. STATUS
+  records each running pass's session name and id. The box (`5.78.148.42`) is production: no writes
+  without a quiet-box check, and only read-only ssh during reviews.
 - **Mutation proofs are run, never narrated.** A mutation described in a comment beside the
   assertion it defends proves nothing: two of six such mutations in one task did not fire, and no
   reader could tell from the commentary. Run each mutation and record that the test failed.
 - **Read a plan against the shipped code before dispatching it.** A fresh-context read of the
   plan's tasks against the machinery as shipped found five blockers before any dispatch; a stale
   plan is the dominant defect class.
-- **Lanes.** A lane is one rung's execution with a named package territory. Document lanes and the
-  primary code lane share the main tree; each further code lane takes its own worktree, because the
-  gate runs the module over `./...`. Up to three code lanes run at once (Geoff, 2026-10-05).
-- **Plans are just-in-time.** Plan each lane's next rung against a tree no other executor is
+- **Concurrent passes.** Up to three dubplate passes run at once, each its own session, worktree,
+  and PR (Geoff, 2026-10-11, restating his 2026-10-05 cap of three code passes). Each design names
+  the files it touches, so two passes do not edit the same one. With two PRs open, the second to
+  merge first merges master and reruns its close gate.
+- **Plans are just-in-time.** Plan each pass's next rung against a tree no other executor is
   writing, never ahead of the work: plan staleness is the proven dominant defect class.
+- **Errata.** Frozen, ratified specs get no errata, and a superseded one gets at most a one-line
+  header pointer. A living reference (the streamer spec's forward hooks, PCF, the visual identity
+  spec, CH, W, PS, `docs/roster-walk.md`) is edited in place by the pass that changes what it says,
+  as a task in that pass. There is never an owed list.
+- **Carried items.** A pass's design reads BACKLOG's items tagged `#rung:<its rung>` and the ROADMAP
+  "Path to 0.8" entry for its rung.
 - **Planning-miss prevention.** Every plan closes four gaps before approval. Each stdlib or library
   behavior a task relies on is quoted from `go doc` or the source, never recalled. Each state a
   check can meet (absent, empty, malformed, many-bad) names its report. Each privileged field names
@@ -40,8 +48,8 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
   when the work is sound, and chasing every finding over-engineers. Every reviewer dispatch asks for
   correctness gaps ranked by consequence, not polish. A fold may refuse a finding whose fix costs
   more than the risk it removes, with a one-line reason in the fold record.
-- **Owner touchpoints, and only these:** rung-spec rulings, corpus adjudication batches, the rung 7
-  uploader before and after, and the first-launch sitting.
+- **Product touchpoints, and only these:** corpus adjudication batches, the `intake` uploader
+  sitting, and the first-launch sitting. The design approval and the PR read are `pass-core`'s.
 - **Dependency sweep.** Every pass opens with a `dependency-upgrade` sweep over `go.mod`,
   `web/package.json`, `tools/venv/requirements.txt`, and the pinned binaries (rclone,
   golangci-lint, Playwright, libxml2). A sweep with nothing to move is one line in the PR body.
@@ -50,8 +58,10 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
 - **Web review passes the visual identity spec.** Dispatches to the `web/` reviewers carry
   `docs/superpowers/specs/2026-09-24-visual-identity-design.md` and ask for conformance to it
   (tokens, inks, the component layer, the copy register) graded beside correctness.
-- **Pair subagents** use the workstation `site-implementer` definition, or `general-purpose` with the
-  `go-conventions` skill named in the dispatch.
+- **Pair subagents** are `general-purpose`. The dispatch gives the adapter's worktree setup and fast
+  lane (`bash scripts/gate.sh --scope-changed`). For Go it names the `go-conventions` skill and
+  makes "idiomatic, architecturally beautiful Go" an acceptance dimension. For `web/` it names
+  `svelte-conventions`, `ts-conventions`, and the visual identity spec.
 
 ## Adapter
 
@@ -73,7 +83,7 @@ on the close head. When the pass touched `cmd/harness` or `internal/harness`, al
 gitignored and `make derive` sits outside the gate, so a worktree's gate goes green without the one
 leg that exercises beets. Work that needs the venv, `make derive`, or `corpus/` (the matcher corpus
 and the beets oracle) stays in the main tree. The OpenSubsonic harness (`internal/harness/subsonic`,
-`internal/opensubsonic`, `cmd/harness`) needs no venv, no beets, and no `corpus/`, so its lane runs
+`internal/opensubsonic`, `cmd/harness`) needs no venv, no beets, and no `corpus/`, so its pass runs
 in a worktree.
 
 **CI watch**: None. There is no PR CI, so no watch command runs.
@@ -93,7 +103,8 @@ skill for `*.go`.
   Run `bash scripts/gate.sh --merge` as the close run: it is the full gate
   plus one gitleaks pass over `master..HEAD` with git history, the only leg that sees a secret one
   task committed and a later one rewrote.
-- `docs/STATUS.md` in present tense, 60 lines or fewer.
+- `docs/STATUS.md` in present tense, 60 lines or fewer. A STATUS rewrite moves each item to BACKLOG
+  or ROADMAP and never drops an open decision.
 - Archive the plan with `git mv docs/superpowers/plans/<this-pass>.md docs/superpowers/archive/plans/`.
 - The PR body carries the score.
 - Commit specific files only, one commit per task with the task id first in the subject.
