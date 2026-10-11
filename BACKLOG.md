@@ -224,6 +224,19 @@
   2026-10-11 #arch #project:prod-polish
 - [ ] #67 The gate's process-citation leg misses `R-6c` patterns (staged legs 317/127). Carried from the alignment
   pass, 2026-10-11 #gate
+- [ ] #68 provision.sh: compute the allowed CIDRs once at top level so errexit applies. Today an all-blank
+  `FIREWALL_SSH_CIDRS` falls through to jq's failure, and `hcloud firewall create` may get an empty rules file. A
+  behavior change; pairs with #5. Found by the alignment pass, PR #2 #onboarding #project:prod-polish
+- [ ] #69 `scripts/check.sh` still says "boundary gate", a retired term. Found by the alignment pass, PR #2 #gate
+- [ ] #70 `docs/standing-rules.md` "Gate legs" cites old rung ids and says two legs gate at a comment-cleanup task;
+  both legs are warn-only. Found by the alignment pass, PR #2 #gate
+- [ ] #71 The rung 7 spec's 7c cites HISTORY line 898 for the 5c-iv handoff; the list is now #57. The first `intake`
+  pass repoints it. Found by the alignment pass, PR #2 #rung:intake
+- [ ] #72 `label.css` and `label-night.css` set no `--size-field`, though the visual identity spec's "Component
+  layer" says every theme block sets it. Found by the alignment pass, PR #2 #web
+- [ ] #73 Doc corrections: the `internal/serve/serve.go:66-67` typo ("is answers 404"), and the visual identity
+  spec's "Copy" section, which still carries the old note about W's section 19. Found by the alignment pass, PR #2
+  #project:prod-polish
 
 ## Done
 
