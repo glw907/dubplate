@@ -20,6 +20,12 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
   author. `pgrep -f Projects/dubplate` matches every lane once a worktree exists, so the registry is
   the check. The box (`5.78.148.42`) is production: no writes without a quiet-box check, and only
   read-only ssh during reviews.
+- **Mutation proofs are run, never narrated.** A mutation described in a comment beside the
+  assertion it defends proves nothing: two of six such mutations in one task did not fire, and no
+  reader could tell from the commentary. Run each mutation and record that the test failed.
+- **Read a plan against the shipped code before dispatching it.** A fresh-context read of the
+  plan's tasks against the machinery as shipped found five blockers before any dispatch; a stale
+  plan is the dominant defect class.
 - **Lanes.** A lane is one rung's execution with a named package territory. Document lanes and the
   primary code lane share the main tree; each further code lane takes its own worktree, because the
   gate runs the module over `./...`. Up to three code lanes run at once (Geoff, 2026-10-05).

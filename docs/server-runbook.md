@@ -375,6 +375,13 @@ returns the setting to its default. A row an administrator set is never
 changed by the environment. An environment value outside its bounds, or one
 that does not parse, refuses the start, and `serve` binds no listener.
 
+One consequence for the data-loss settings: when an environment line that
+seeds one of them is removed, the setting returns to its registry default at
+the next start. If that default is lower than the value that was in force, the
+next backup prunes the difference. No floor above the registry's own bound
+guards against it, so lower a retention setting on purpose, never by deleting
+its line.
+
 Before the first start, a setting you put in the environment reads `...; env
 "20" seeds at serve's next start`. An environment value outside its bounds
 fails `doctor` and `check` at that point, with the refusal `serve` would

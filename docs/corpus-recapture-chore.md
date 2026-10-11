@@ -99,3 +99,15 @@ This document describes a chore that drives live capture against
 MusicBrainz; it is not the chore. Nothing above was run to write this file,
 no `/ws/2` request was issued, and no `harness capture` invocation happened
 here.
+
+## Two traps to avoid
+
+- **Check `corpus/cases/` before any capture**, real or synthetic. A release
+  that already sits in the corpus under a different case id is a duplicate:
+  one pass captured four byte-identical `adv-alias-*` cases that the
+  `real-nonlatin-*` rows already held, and the rework was pure waste.
+- **Name the one ledger test when regenerating.** `-run Ledger` also matches
+  the album-info and file-tags ledger tests, and under `-update-ledgers` those
+  rewrite `album_info.json` and `file_tags.json` even when neither changed.
+  Regenerate the tie ledger with `-run TestTieLedgerMatchesTheCorpus` alone,
+  and likewise for any other single ledger.

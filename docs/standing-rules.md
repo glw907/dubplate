@@ -109,3 +109,62 @@ Never commit red. The process-citation leg
 and the exported-unused leg (an exported `internal/` symbol whose only
 references are its own file and `_test.go` files) are staged: they warn
 today and gate at the comment-cleanup task.
+
+## Lessons the code cannot carry
+
+Durable facts harvested from the retired per-pass ledger, for the places where
+no test or comment sits next to the code they guard.
+
+**Oracle harness (`internal/harness/subsonic`).**
+- Navidrome's later libraries come from `POST /auth/login`, then `POST
+  /api/library` with the `X-ND-Authorization` bearer. The stack leaves the first
+  library named "Music Library", so nothing may resolve a folder by name.
+- A `collection:` key in a session spec resolves by exact artist-set equality
+  against the oracle's own answers, never by name or order.
+- gonic's `getMusicDirectory` without `id`, or with `id=0`, answers error 10.
+  Navidrome serves a per-track cover that differs from the album cover. gonic
+  splits an album held in disc subfolders into two albums (Borealis in the seed).
+  Tracks under one second report no duration on either oracle, so a fixture that
+  exercises duration needs 2 s or more.
+- The seed lacks lyrics, `nowPlaying`, and radio requests, so the contract flags
+  that depend on them stay owed to a later recording.
+- `go-openapi/jsonpointer` v1.0.2 drops `swag/jsonname`, so `go.mod` carries
+  jsonpointer and no `swag`.
+- gonic cannot serve under a sub-path on its own: `GONIC_PROXY_PREFIX` only suits
+  a stripping proxy.
+- The golden grades the grader, not the oracles. A ledger row never names an
+  oracle-only difference; only a row naming `dubplate` as one side is live.
+
+**Build for 0.8.** The streamer spec's hook numbers are stable: a retired hook
+stays in place, marked retired, so no hook renumbers.
+
+**Serve routing.** Serve routes through one origin-wrapped mux with a 404
+default, and the CSRF proof covers every subtree registered on it. A new subtree
+is covered only if it registers on that mux.
+
+**Settings.** A consumer reads a setting before it enters `Handle.Update`, never
+inside the callback. The rule that every read a write decides on runs inside the
+callback governs the rows the write changes; a setting read just before the write
+is the value in force for that operation.
+
+**Web.** Prerendered documents locate themselves from wherever they are served
+because `paths.relative` stays at its default with no `reroute` hook and no
+fallback page. The cost is that every route must answer its exact path: a
+trailing slash gets the terminator's 404, not the document.
+
+**Matcher and corpus.**
+- The corpus never grades the MusicBrainz retry path: the stub answers 200 or 404
+  only and `cassette.Request` carries no status field. The response-status
+  extension stays declined until a case genuinely needs a 404 or 503.
+- An absent release `status` is a plain, non-pseudo release in the client; beets
+  drops it as a candidate. No corpus lookup omits one (303 of 303 carry it).
+
+**Go tests.**
+- Cobra's usage writer falls back to `os.Stderr` when only `SetErr` is wired, so a
+  command test must wire `SetOut` to observe a leaked usage block.
+- `doctor` row expectations derive from config's own tables (owned, reserved,
+  `Thresholds()`), never from a literal count.
+
+**Shell.** Bash cannot re-arm `errexit` inside a command-substitution subshell, so
+a `set -e` placed there does nothing. Enforce best-effort calls by guarding with
+`if` at the definition.

@@ -44,6 +44,10 @@ func PseudoReleaseTarget(rel *Release) (releaseID string, ok bool) {
 // genres) are outside the vocabulary. Album, Artist, VA, AlbumDisambig,
 // AlbumID, DataSource and Tracks stay the pseudo's.
 //
+// The copy is shallow: merged.Tracks shares the pseudo's backing array,
+// so a caller that mutates a merged track element writes through to the
+// pseudo candidate. A caller that retains both values must clone Tracks.
+//
 // Both arguments are total values, so the KeyError beets can raise on
 // actual[k] (musicbrainz.py:220) has no expression here.
 func MergePseudoRelease(pseudo, actual *matcher.AlbumInfo) *matcher.AlbumInfo {
