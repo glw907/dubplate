@@ -320,8 +320,8 @@ into the PR. The one modified tracked file is the conducting session's and does 
     or a ruling's why that no file holds. The provisional classes, which T4 confirms or corrects with a reason:
     - Retired process: `greenfield-arc-sessions`, `pass-execute-cross-session-resume`,
       `pass-execute-dispatch-mechanics`, `two-lane-run-mechanics`, `ledger-fold-must-keep-list`,
-      `overnight-hold-sized-to-clock` (the inhibitor is tool-held now), and `spec-prose-review-rule` if the
-      `spec-plan-review` skill already governs spec review.
+      `overnight-hold-sized-to-clock` (the inhibitor is tool-held now), and `spec-prose-review-rule` (the
+      `spec-plan-review` skill now runs no prose review on a spec or plan).
     - Session or window logs: `unattended-window-2026-09-05`, `session-2026-09-07-4a-ii-close`,
       `unattended-window-2026-09-07`, `session-2026-09-08-wind-down`, `session-2026-09-12-config-homes-close`,
       `unattended-window-2026-09-12`, `session-2026-09-12-infra-round`, `overnight-window-2026-09-23`,
