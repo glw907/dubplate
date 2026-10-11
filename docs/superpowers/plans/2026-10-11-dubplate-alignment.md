@@ -21,7 +21,7 @@ map; the design's `runner` is the floor), with the `live-account` flag: the sess
 in shipped Go comments (audit item 15, a queued chore); the "boundary gate" wording at `scripts/check.sh:31, 41, 253`
 and any other `check.sh` edit (gate machinery; it goes to "Found, not done"); upgrading a workstation binary (brew's
 golangci-lint, rclone, libxml2), which writes outside the worktree and records itself in the dotfiles manifest, so
-T1 records it for the conducting session; deleting or editing anything outside this pass's worktree. The main
+the PR body records it for the conducting session; deleting or editing anything outside this pass's worktree. The main
 checkout's untracked files (`reports/`, `research_notes/`, the 2026-09-04 research notes) are the conducting
 session's; T0 only reads the three Pi 5 reports.
 
@@ -41,8 +41,8 @@ session's; T0 only reads the three Pi 5 reports.
    ```
 5. The inventory check (T3) prints nothing and counts every row.
 
-**Clock estimate:** 450 task-minutes (T0 45, T1 60, T2 45, T3 55, T4 45, T5 40, T6 30, T7 60, close 70). T2 and T3,
-T4 and T6, and T5 and T7 run as pairs, so the path is about 45 + 60 + 55 + 45 + 60 + 70 = 335 minutes, plus each
+**Clock estimate:** 390 task-minutes (T0 45, T1 waived, T2 45, T3 55, T4 45, T5 40, T6 30, T7 60, close 70). T2 and T3,
+T4 and T6, and T5 and T7 run as pairs, so the path is about 45 + 55 + 45 + 60 + 70 = 275 minutes, plus each
 pair's post-merge fast lane. Every estimate that holds a gate allows for one: recorded dubplate gates ran 10 to 19
 minutes, plus up to 11 minutes of heavy-lane lock wait.
 
@@ -207,7 +207,7 @@ into the PR.
   write into the worktree git dir with one plain command has precedent under this guard: the isolated cairn sessions
   `lean-cutover` and `engine-pass-b` wrote `pass-task-clock` there with a single `printf ... > <path>`, and T0's clock
   write is this pass's first live proof (a refusal there is a stop before any work). Every task
-  that owes the PR body a record (T1's sweep line, T2's removal map, T3's map and dispositions, T4's dry run, T5's
+  that owes the PR body a record (T2's removal map, T3's map and dispositions, T4's dry run, T5's
   triage, T7's lessons table) gets it there. A pair subagent writes nothing outside its worktree: it returns its
   records in its final report, with its worktree path and branch, and the session appends them. The session writes
   with the Write tool or one plain command per write, since the guard refuses a compound command that writes outside
@@ -302,39 +302,12 @@ into the PR.
   `cairn-run-gate` past the guard.
 - **Estimate.** 45 minutes (one full gate plus lock wait). The session runs it inline, first.
 
-### T1. The dependency sweep
+### T1. The dependency sweep (waived)
 
-- **Outcome.** The adapter's standing rule (`SKILL.md:45-49`, Geoff 2026-10-04) opens every pass with a
-  `dependency-upgrade` sweep; only Geoff can waive it, so this pass runs it. The session follows the
-  `dependency-upgrade` skill and `docs/standing-rules.md` "Current dependencies" over `go.mod`, `web/package.json`,
-  `tools/venv/requirements.txt`, and the pinned binaries. Minors and patches land. In this pass the sweep is bounded,
-  because the skill's other outputs reach past this pass's boundaries:
-  - Every "take now" capability or refactor the survey finds is filed, not taken: a BACKLOG item tagged
-    `#rung:<name>` for the rung that first leans on it. A process PR carries no behavior change.
-  - Every held major (today `2026-10-10-dependency-sweep.md:120-121` holds typescript 7.0.2 and @types/node 26) is a
-    BACKLOG item tagged `#rung:<name>` with its unblock condition, and is listed in the PR body for Geoff. It is not
-    taken, and it is not a stop.
-  - Nothing is scheduled (no `schedule` tripwire, no cron, no cloud routine), no ROADMAP line is written, and nothing
-    is written outside the worktree. A newer workstation binary (golangci-lint, rclone, libxml2) is recorded in the PR
-    body for the conducting session, not installed (Out of scope).
-  - The full-suite home is the local `bash scripts/gate.sh` (dubplate has no PR CI), and dubplate keeps no CHANGELOG.
-  - The latest record is `docs/superpowers/research/2026-10-10-dependency-sweep.md`: the survey extends it in place
-    when the skill's same-window test holds, and otherwise starts `2026-10-11-dependency-sweep.md` citing it.
-  A sweep with nothing to move is one line in the PR body. T1's BACKLOG edit precedes T3's: T1 commits before the
-  first pair is dispatched, so T3 branches from it and reads those items as existing BACKLOG content (T3 tags or
-  keeps them and never duplicates them). The held typescript 7 major and inventory row I66 (the TypeScript 7
-  recheck) are one item: T1 writes it with the text "TypeScript 7" and `#rung:integration`, and T3 confirms it rather
-  than adding a second.
-- **Files.** `go.mod`, `go.sum`, `web/package.json`, `web/package-lock.json`, `tools/venv/requirements.txt`,
-  `BACKLOG.md` (append only), and the sweep record (`2026-10-10-dependency-sweep.md` extended, or
-  `2026-10-11-dependency-sweep.md` new), as the sweep moves them.
-- **Risk class.** `runner` (gate machinery: `go.mod`, `go.sum`, `web/package*.json` are machinery rows,
-  `check.sh:367-368`).
-- **Acceptance.** `bash scripts/gate.sh` (the full form; a machinery change forces it anyway) prints `gate exit: 0`.
-  The PR notes carry the sweep's line or table, and every held major names its unblock condition. `git diff
-  <base>..HEAD -- ROADMAP.md` prints nothing, and every BACKLOG line T1 added carries `#rung:`.
-- **Test.** The full gate over the bumped tree.
-- **Estimate.** 60 minutes. The session runs it inline after T0, before the first pair.
+Geoff waived the adapter's per-pass sweep for this pass on 2026-10-11, in the conducting session: it changes
+only docs, skills, memory, and comments, and `admin-api-1`, the next code pass, runs the sweep. No task here
+touches `go.mod`, `go.sum`, `web/package*.json`, or `tools/venv/requirements.txt`. T3 writes the held TypeScript 7
+major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" and `#rung:integration`.
 
 ### T2. ROADMAP: the Path to 0.8, the names, and a lean shape
 
