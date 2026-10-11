@@ -224,6 +224,11 @@
   2026-10-11 #arch #project:prod-polish
 - [ ] #67 The gate's process-citation leg misses `R-6c` patterns (staged legs 317/127). Carried from the alignment
   pass, 2026-10-11 #gate
+- [ ] #68 The member cap on every add channel (PS:128-151, acceptance row A1; ruling 4's default of 20): one check in
+  the roster's add path, `member add` and `add_member` both, the bootstrap never refused, an over-cap roster loaded
+  with a `doctor` row. The pass that builds it edits PS:145-147 in place: no command-line set verb exists, and
+  `admin-api-1`'s notice rule sends no notice for the seed rule or the command line. The `admin-api-1` plan moved it
+  here (its P12), 2026-10-11 #auth #rung:admin-api
 
 ## Done
 
