@@ -1142,6 +1142,8 @@ deployment artifacts are its work, not rung 16's.
 
 ## Process
 
+Superseded 2026-10-11 by the lean pass process (`dubplate-pass`, `pass-core`); the ladder above still governs product order.
+
 Each rung opens with its own spec where the ladder marks decisions
 unsettled, and a plan via writing-plans; L rungs split at their own
 planning. Execution runs the implementer, diff-reviewer, gate chain

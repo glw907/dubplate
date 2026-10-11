@@ -5,7 +5,7 @@ Status: revision 2, 2026-10-10. Revision 1 (`9fc7c53`) was drafted from the plan
 mechanics, integrity, consistency; `research/2026-10-10-rung-7-intake-review-*.md`, `01a1b99`). Revision 2 folds those
 reviews and Geoff's rulings of 2026-10-10, and a second fold takes the verification read
 (`research/2026-10-10-rung-7-intake-fold-verification.md`); both folds are recorded in
-`research/2026-10-10-rung-7-intake-fold.md`. It goes to Geoff before any plan is written.
+`research/2026-10-10-rung-7-intake-fold.md`. It is agent input: when `intake`'s turn comes, a one-page design goes to Geoff, and this spec carries the detail behind it.
 
 This spec covers rung 7 in three passes, 7a, 7b, and 7c. It records the staging location, the submission model, the
 transfer, the gate, the quota rules, the user-present match probe, the reject set, the journey, and the uploader page.
@@ -1232,19 +1232,19 @@ state event's `kind`; criterion 4 proves that assertion can fail.
 
 ## Owed records
 
-Errata to ratified documents, none edited by this spec:
+Errata to ratified documents, none edited by this spec. These are living-reference edits the `intake` passes make as tasks, under the adapter's Errata rule:
 
 - SS: hook 12 moves to rung 9 (conductor ruling 2); a new forward hook for rung 9's MusicBrainz buy-link capture
   (PS:762).
 - CH: the routing row (CH:289) narrowed by `intake_route`; the per-member counter counts what the member added; the
   startup refusal supersedes CH:474's copy fallback for staging and the library root.
-- 14A: its contested-surfaces rows for `admin.go` and `internal/serve` are sequenced by "Sequencing with rung 14a"; its
+- 14A: moot (frozen; lean ruling 8). Its contested-surfaces rows for `admin.go` and `internal/serve` are sequenced by "Sequencing with rung 14a"; its
   `keys.go` row gains the `pipeline` edit; the subtree-adoption clauses (14A:36-38, :522, :634) are moot.
 - W: W8.2 gains the format-name exception for reject reasons (conductor ruling 6), and "ID3 tags" in `id3-tags`
   (owner ruling 8).
 - VI: the catalog line's format (VI:243-244) and the list view, filtering, album page, and phone layouts in "Open for
   rung 7" (VI:350-372) move to the web pass after rung 9; the sitting rules two items.
-- BS: rung 7 re-bands from M (BS:798) to L.
+- BS: moot (frozen; lean ruling 8). Rung 7 re-bands from M (BS:798) to L.
 - PCF: the retry line (`passb-copy-final.md:124-126`) redrafted for owner ruling 7; the three Navidrome strings (`:105`,
   `:143-145`, `:160-161`); every "Private Recordings" string in sections 5 and 6, renamed "Unlisted music" with
   "music" or "recording" where "album" would be wrong; the section 1 hint "One album at a time. Albums go in whole."
@@ -1258,7 +1258,7 @@ Errata to ratified documents, none edited by this spec:
 
 Other records:
 
-- BACKLOG #8: the `tus-js-client` watch item names 5.0.0-pre3 (2026-09-30), not 5.0.0-pre2.
+- BACKLOG #8: the `tus-js-client` watch item names 5.0.0-pre3 (2026-09-30), not 5.0.0-pre2. The fix is T3's (row I67).
 - B's note that ruling 10 was "not yet in the tree" is discharged
   (`research/2026-09-02-greenfield-server-rulings.md:48-65`).
 

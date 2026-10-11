@@ -120,6 +120,13 @@ firewall_exists() {
 # becomes ["1.2.3.4/32","::1/128"]. Exits with a clear message if every entry
 # is blank, so a malformed value (e.g. a bare comma) never renders as an
 # empty, effectively-no-one-allowed source_ips list without saying so.
+#
+# Callers run this in a command substitution, so its exit 1 ends only that
+# subshell, and the substitution does not inherit errexit. Neither caller
+# stops the script: render_firewall_rules passes the substitution as an
+# argument, which drops the status, and firewall_rule_present assigns it
+# while running under an if, where errexit is off. The operator sees this
+# function's stderr message and then jq's own failure.
 ssh_cidrs_json() {
   local raw=() cidr trimmed cidrs=()
   IFS=',' read -ra raw <<<"$FIREWALL_SSH_CIDRS"

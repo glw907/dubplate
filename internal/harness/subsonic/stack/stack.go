@@ -9,6 +9,16 @@
 // to a loopback port podman assigns, and every container carries a
 // run-unique name and label, so an orphan left by a killed process can be
 // found with podman ps --filter label=dubplate-harness-run.
+//
+// Navidrome serves its first collection from the library it creates
+// itself, and that library keeps the name Music Library, so nothing may
+// resolve a folder by name. Every later library comes from a POST to
+// /auth/login for a token, then a POST to /api/library carrying that token
+// in the X-ND-Authorization header.
+//
+// gonic cannot serve under a sub-path on its own: GONIC_PROXY_PREFIX only
+// suits a proxy that strips the prefix, so the stack always serves each
+// oracle at its root.
 package stack
 
 import (

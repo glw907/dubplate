@@ -13,6 +13,12 @@
 // id); the resolution map records the id each key resolved to on each
 // source. No credential parameter is ever written, in a request or in a
 // URL a response body holds, so a session commits safely.
+//
+// A collection: key in the resolution map names a collection by what an
+// oracle itself answers. The recorder resolves it by artist-set equality,
+// an exact match of the collection's album artists against the artists a
+// getArtists call filtered by each music folder lists, never by the
+// folder's name or its order.
 package session
 
 import (

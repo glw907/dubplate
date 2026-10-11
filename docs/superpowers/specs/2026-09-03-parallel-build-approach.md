@@ -2,6 +2,8 @@
 
 Status: PROPOSAL, **revision 2 (folded)**, 2026-09-03. Revision 1 was ratified by Geoff on 2026-09-03 (decisions 1 and 2 as proposed, decision 3 reframed); revision 2 folds the adversarial review at `research/2026-09-02-greenfield-spec-reviews/parallel-approach-review.md`. Amends the execution model of the ratified build spec (`2026-09-02-greenfield-server-build.md`, revision 2.1). It changes no rung's deliverables, no acceptance criterion, and no launch bar item.
 
+Superseded 2026-10-11: execution follows the lean pass process (`dubplate-pass`); the run order is ROADMAP's Path to 0.8.
+
 Erratum, 2026-09-07 (Geoff): the build carries no calendar schedule; the shadow floor is an evidence minimum, never a launch date, and the date arithmetic below was removed.
 
 Erratum, 2026-09-08 (rung 1b close): the 0b paragraph below is corrected on three points, source `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`. The registry's landed scope covers all four declaration families, not two; the gitleaks fingerprint's blast radius is `internal/config/keys_test.go` alone, not every lane's own files; and the re-fingerprint rider is moot, because rung 1b retired `.gitleaksignore` outright rather than re-pinning it.

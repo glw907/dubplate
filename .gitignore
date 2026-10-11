@@ -54,3 +54,7 @@ __pycache__/
 # candidates wait here until Geoff picks them, and only picked images are
 # ever committed.
 /photos/.candidates/
+
+# The visual-collaborator outreach note holds personal email addresses and
+# stays uncommitted (Geoff's ruling).
+/docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md

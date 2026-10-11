@@ -66,6 +66,13 @@ export const kitOptions: Config = {
   // `prerender = true`), so adapter-static's default `strict: true`
   // has nothing dynamic to reject.
   adapter: adapter(),
+  // `paths.relative` stays at its default, so prerendered documents
+  // resolve assets relative to the depth they were prerendered at
+  // (Kit's fallback pages would use absolute paths; none exists). Served
+  // at any other depth they break, so every route answers its exact path
+  // only: a trailing slash gets newExactPathRoutes' 404, not the
+  // document.
+  //
   // No consumer reads `updated`, so the hourly poll for
   // `_app/version.json` would fetch for nothing. Kit still checks that
   // file when the tab regains focus or becomes visible; the Go server
