@@ -140,6 +140,8 @@ keyed on hook 1's audio keys) is a 0.8 forward hook, and routes it to the stream
 spec's list if so. Everything else, including the pairing credential, the sync
 transport, and how an app picks the home copy or the server, is settled when 0.9 is
 planned.
+The Pi 5 stereo client research (2026-10-10) is the live input for that plan; its current decision is
+`docs/superpowers/research/2026-10-10-pi5-client/proven-build.md`.
 
 ### dubplate-server 1.0: the format ladder `formats-1-0`
 (Re-keyed from "1.1"/`formats-1-1`, Geoff, 2026-09-25: the format ladder is 1.0's

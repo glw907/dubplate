@@ -55,15 +55,15 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
 
 ## Adapter
 
-**Gate**: `cairn-run-gate 'bash scripts/check.sh'`. The full gate launches Playwright's Chromium for
-the rendered leg, so it takes the heavy lane. Never commit red.
+**Gate**: `bash scripts/gate.sh`, which runs `check.sh` through `cairn-run-gate`. The full gate
+launches Playwright's Chromium for the rendered leg, so it takes the heavy lane. Never commit red.
 
-**Fast lane**: `bash scripts/check.sh --scope-changed` through `cairn-run-gate`. Pass no `--base`:
+**Fast lane**: `bash scripts/gate.sh --scope-changed`. Pass no `--base`:
 on a branch it measures from the merge base with master. A `--base` that is not a full 40-hex commit
 id silently runs the full form. An empty change set, or any path under `scripts/checks/`, also falls
 back to the full form. `--dry-run` prints the scope and runs nothing.
 
-**Full-suite home**: Local, because the repo has no PR CI (ruling 11). Run one `bash scripts/check.sh`
+**Full-suite home**: Local, because the repo has no PR CI (ruling 11). Run one `bash scripts/gate.sh`
 on the close head. When the pass touched `cmd/harness` or `internal/harness`, also run
 `go vet -tags oracle ./cmd/harness/... ./internal/harness/...`, since the gate never builds the
 `//go:build oracle` files.
@@ -90,7 +90,7 @@ skill for `*.go`.
 
 - The full local gate on the close head, with the harness `go vet` line above where it applies.
 - The scoped form narrows gitleaks to the change set, so the close owes one branch-history scan.
-  Run `bash scripts/check.sh --merge` through `cairn-run-gate` as the close run: it is the full gate
+  Run `bash scripts/gate.sh --merge` as the close run: it is the full gate
   plus one gitleaks pass over `master..HEAD` with git history, the only leg that sees a secret one
   task committed and a later one rewrote.
 - `docs/STATUS.md` in present tense, 60 lines or fewer.

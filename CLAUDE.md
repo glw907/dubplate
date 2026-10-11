@@ -67,7 +67,7 @@ Pass process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loadin
 
 ## Gate
 
-`bash scripts/check.sh` before every commit: `make check` (vet, golangci-lint, test, tidy-check) over the
+`bash scripts/gate.sh` (the wrapper that runs `check.sh` through `cairn-run-gate`) before every commit: `make check` (vet, golangci-lint, test, tidy-check) over the
 whole module (`_salvage/` is invisible to the go tool), shellcheck, ruff, the photo pool check, gitleaks,
 vale over Go comments, a hard-required `systemd-analyze verify`, the state-dir agreement leg
 (`scripts/check-state-dir.sh`), and the `web/` leg (static bundle, `svelte-check`, the static web gates,
@@ -87,7 +87,7 @@ never guard one with `command -v || skip`. Never commit red.
   rules (no silent-success fakes, no vacuous assertions — prove tests can
   fail).
 - **Shell** (`scripts/`): ops tooling only (`deploy.sh`, `provision.sh`,
-  `check.sh`, `check-state-dir.sh`, `vale-comments.sh`), shellcheck clean,
+  `check.sh`, `gate.sh`, `check-state-dir.sh`, `vale-comments.sh`), shellcheck clean,
   no behavior tests of its own. The box-side import/backup shell layer is fully retired
   (Go rewrite, 2026-08-31); never add subcommand logic here.
 - **Web** (`web/`): SvelteKit in static mode (Geoff, 2026-09-07;

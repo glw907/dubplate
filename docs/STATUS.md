@@ -15,6 +15,7 @@ Once the lean-cutover PR merges, re-plan rung 14a (held, ruling 12; lean pass pr
 `~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`) as a lean task list in a fresh
 dubplate session, following the `dubplate-pass` skill. The old plan
 `docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` stays as evidence.
+In flight: the alignment pass, session `dubplate-alignment` (id `394cf8c0-5100-4330-bf09-64b2412697bc`), on branch `worktree-dubplate-alignment`.
 Settled: rung 12 slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision note, 2026-10-10").
 
 ## Owner questions
