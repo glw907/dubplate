@@ -1,13 +1,16 @@
 You are executing the dubplate alignment pass, an `auth-data`-class pass (the design's `runner` class, raised by
 T7's comment-only edit in `cmd/dubplate-server/main_test.go`) with the `live-account` flag, in `~/Projects/dubplate`,
-started from the main checkout. Before any other act, call EnterWorktree with the name `dubplate-alignment`: it
-creates a worktree under `.claude/worktrees/` on a new branch from local `HEAD`. Then run `git merge --no-edit
-worktree-alignment-plan`, which brings in the approved design, the audit, the plan, and the plan's review and fold
-records; a conflict is a stop. Then run `npm ci --prefix web` in the worktree, the adapter's setup.
+started from the main checkout. Your first act is one check: does `.claude/worktrees/dubplate-alignment` exist?
 
-If `.claude/worktrees/dubplate-alignment` already exists, you are resuming: enter it with EnterWorktree's `path`
-instead, skip the merge, follow the plan's "Resume" convention before anything else, and never re-apply a committed
+If it exists, you are resuming: enter it with EnterWorktree's `path`, skip the merge and the setup, rewrite the clock
+file's `start=` to now, follow the plan's "Resume" convention before anything else, and never re-apply a committed
 task.
+
+If it does not exist, call EnterWorktree with the name `dubplate-alignment`: it creates a worktree under
+`.claude/worktrees/` on a new branch from local `HEAD`. Then run `git merge --no-edit worktree-alignment-plan`, which
+brings in the approved design, the audit, the plan, and the plan's review, fold, and verification records; a
+conflict is a stop. Write `launch-base=<HEAD sha>` as the first line of the PR notes (`<git dir>/pr-notes.md`, below).
+Then run `npm ci --prefix web` in the worktree, the adapter's setup.
 
 Load `dubplate-pass` (it loads `pass-core`). Read `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` in full,
 then the design it implements (`docs/superpowers/specs/2026-10-11-dubplate-alignment-design.md`) and its evidence
@@ -20,8 +23,9 @@ the lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.
 Execute T0 and then T1 yourself, in order, committing each. T0 adds `scripts/gate.sh`, commits the Pi 5 research,
 adds the outreach doc to `.gitignore`, and records this session's name (`dubplate-alignment`) and id
 (`$CLAUDE_CODE_SESSION_ID`) in `docs/STATUS.md`. T1 is the dependency sweep the adapter requires, under the
-`dependency-upgrade` skill: minors and patches land, a major is recorded for Geoff and not taken, and a newer
-workstation binary is recorded, not installed. From T0 on, every gate is `bash scripts/gate.sh` (the full gate) or
+`dependency-upgrade` skill, bounded as T1 states: minors and patches land; every take-now item and every held major
+is filed as a BACKLOG item with a `#rung:` tag, not taken; schedule nothing, write no ROADMAP line, and write
+nothing outside the worktree; a newer workstation binary is recorded, not installed; gate locally. From T0 on, every gate is `bash scripts/gate.sh` (the full gate) or
 `bash scripts/gate.sh --scope-changed --base <base>` (the fast lane), run from the worktree root with the Bash tool's
 `timeout: 600000`, re-issued on exit 75 until it prints `gate exit:`. `<base>` is the literal 40-hex id of the commit
 the task started from (yours from the clock file's `base=` line, a pair's from its dispatch commit); the plan's

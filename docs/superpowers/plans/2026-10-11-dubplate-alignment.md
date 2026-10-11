@@ -33,9 +33,12 @@ session's; T0 only reads the three Pi 5 reports.
    first four.
 3. `wc -l < docs/STATUS.md` prints 60 or less, and `grep '^## ' docs/STATUS.md` prints exactly `## Current state`,
    `## Next action`, and `## Open decisions`, in that order.
-4. `sed -n '/^## Path to 0\.8/,/^## Active/p' ROADMAP.md | grep -o -E '^[0-9]+\. \*\*`[a-z0-9-]+' | grep -o -E
-   '[a-z0-9-]+$' | tr '\n' ' '` prints `admin-api-1 intake admin-api-2 pipeline streamer queues migration builtins
-   library-web-1 integration cutover closeout ` (the order derived below).
+4. This prints `admin-api-1 intake admin-api-2 pipeline streamer queues migration builtins library-web-1 integration
+   cutover closeout ` (the order derived below):
+
+   ```bash
+   sed -n '/^## Path to 0\.8/,/^## Active/p' ROADMAP.md | grep -o -E '^[0-9]+\. \*\*`[a-z0-9-]+' | grep -o -E '[a-z0-9-]+$' | tr '\n' ' '
+   ```
 5. The inventory check (T3) prints nothing and counts every row.
 
 **Clock estimate:** 450 task-minutes (T0 45, T1 60, T2 45, T3 55, T4 45, T5 40, T6 30, T7 60, close 70). T2 and T3,
@@ -104,9 +107,9 @@ git -C ~/Projects/dubplate branch --show-current                  # must print m
 git -C ~/Projects/dubplate rev-list --count HEAD..origin/master   # must print 0 (not behind)
 git -C ~/Projects/dubplate rev-list --count origin/master..HEAD   # must print 0 (not ahead)
 git -C ~/Projects/dubplate status --porcelain --untracked-files=no   # must print nothing
-git -C ~/Projects/dubplate/.claude/worktrees/alignment-plan status --porcelain   # must print nothing
+git -C ~/Projects/dubplate/.claude/worktrees/alignment-plan status --porcelain   # must print nothing (skip if that worktree was removed)
 git -C ~/Projects/dubplate rev-parse worktree-alignment-plan origin/worktree-alignment-plan   # two equal lines
-claude agents --json | jq -r '.[] | select(.cwd | startswith("/var/home/glw907/Projects/dubplate/.claude/worktrees/dubplate-alignment")) | .name'   # must print nothing
+claude agents --json | jq -r '.[] | select((.cwd | startswith("/var/home/glw907/Projects/dubplate/.claude/worktrees/dubplate-alignment")) or .name == "dubplate-alignment") | .name'   # must print nothing
 cd ~/Projects/dubplate && claude --bg --model sonnet --effort medium --name dubplate-alignment \
   "$(git -C ~/Projects/dubplate show worktree-alignment-plan:docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt)"
 ```
@@ -145,9 +148,12 @@ into the PR.
   -o -i -E 'lane registry|pass-execute|conducting loop|conductor ruling|errata owed|workflow mode|post-mortem'` prints
   nothing. Joining lines catches a phrase that wraps (today it finds the adapter's "lane registry", split across
   `SKILL.md:18-19`, which a per-line grep misses).
-- **Lane check.** For each file, `tr '\n' ' ' < <file> | tr -s ' ' | grep -o -i -E '\b([[:alnum:]-]+ )?lanes?\b' |
-  grep -v -i -E '^(heavy|light|fast) lanes?$'` prints nothing (today it prints "Document lanes", "photo lane", "dubplate
-  lanes", and others).
+- **Lane check.** For each file, this prints nothing (today it prints "Document lanes", "photo lane", "dubplate
+  lanes", and others; a probe shows it keeps "heavy-lane" and "fast lane" and still prints "every lane"):
+
+  ```bash
+  tr '\n' ' ' < <file> | tr -s ' ' | grep -o -i -E '\b([[:alnum:]]+[ -])?lanes?\b' | grep -v -i -E '^(heavy|light|fast)[ -]lanes?$'
+  ```
 - **Diff checks.** Every diff check reads `git diff -U0 <base>..HEAD -- <paths>` with the literal base, and first
   asserts the diff is non-empty (`... | grep -c '^@@'` prints 1 or more). The comment-only filter, for T5 and T7, is
   this pipeline, which must print nothing:
@@ -159,18 +165,20 @@ into the PR.
   /^[+-]/ { b = substr($0, 2)
     if (b ~ /^[ \t]*$/) next
     if (b ~ /\/\/go:|\/\/line |nolint|@ts-|eslint-|#[ \t]*shellcheck|#[ \t]*noqa/) { print f ": directive: " $0; next }
-    if (f ~ /\.go$/ && (b ~ /^[ \t]*\/\// || b ~ /^[ \t]*\/\*.*\*\/[ \t]*$/)) next
+    if (f ~ /\.go$/ && (b ~ /^[ \t]*\/\// || b ~ /^[ \t]*\/\*([^*]|\*+[^*\/])*\*+\/[ \t]*$/)) next
     if (f ~ /\.ts$/ && b ~ /^[ \t]*\/\//) next
-    if (f ~ /\.css$/ && b ~ /^[ \t]*\/\*.*\*\/[ \t]*$/) next
+    if (f ~ /\.css$/ && b ~ /^[ \t]*\/\*([^*]|\*+[^*\/])*\*+\/[ \t]*$/) next
     if (f ~ /\.(sh|py)$/ && b ~ /^[ \t]*#/ && b !~ /^#!/) next
     print f ": " $0 }'
   ```
 
-  It allows Go `//` and one-line `/* */`, TS `//`, CSS one-line `/* */` only, and shell and Python `#` (not `#!`); it
-  rejects directive comments and skips header lines only before a file's first `@@`. Probed 2026-10-11 on a scratch
-  diff: it flagged all 14 planted lines (`*p = v`, a removed `return nil`, `//go:build`, `// @ts-ignore`, a hunk line
+  It allows Go `//` and a line that is exactly one `/* */` comment, TS `//` only (a TSDoc `/** */` block is flagged,
+  so a TS comment is `//`), CSS exactly-one `/* */` only, and shell and Python `#` (not `#!`); it rejects directive
+  comments and skips header lines only before a file's first `@@`. Probed 2026-10-11 on two scratch diffs: it flagged
+  all 14 planted lines of the first (`*p = v`, a removed `return nil`, `//go:build`, `// @ts-ignore`, a hunk line
   `---flag`, a CSS `* {` and `//` line, `# shellcheck`, `#!`, `local x=1`, `-++counter`, `+--counter`, `# noqa`, a
-  Python call) and passed the 6 plain comments. A `#` line inside a shell heredoc would pass; `scripts/provision.sh`
+  Python call) and passed its 6 plain comments; on the verification read's diff it flags code wrapped in two block
+  comments (`/* x */ y := 2 /* z */`, `/* a */ --color-primary: red; /* b */`), which the earlier `.*` form passed. A `#` line inside a shell heredoc would pass; `scripts/provision.sh`
   has no heredoc (`grep -n -E '<<-?[[:space:]]*["'\'']?[A-Za-z_]' scripts/provision.sh` prints nothing; its `<<<` are
   here-strings), and T7's acceptance reruns that grep.
 - **The main checkout stays untouched.** Every command runs from the task's own worktree. T0 reads three files in
@@ -194,7 +202,11 @@ into the PR.
   ROADMAP`), imperative mood, specific files only (`git add <path>...`, never `-A`), with the trailer the session's
   system reminder names. The session merges a pair half with `git merge --no-edit <branch>`.
 - **Records.** The PR notes live at `<git dir>/pr-notes.md`, where `<git dir>` is `git rev-parse --absolute-git-dir`
-  in the session's worktree: never committed, and it survives a session restart, unlike `$CLAUDE_JOB_DIR`. Every task
+  in the session's worktree: never committed, and it survives a session restart, unlike `$CLAUDE_JOB_DIR`. Its first
+  line, written right after the planning-branch merge, is `launch-base=<sha>` (that `HEAD`), which Resume reads. A
+  write into the worktree git dir with one plain command has precedent under this guard: the isolated cairn sessions
+  `lean-cutover` and `engine-pass-b` wrote `pass-task-clock` there with a single `printf ... > <path>`, and T0's clock
+  write is this pass's first live proof (a refusal there is a stop before any work). Every task
   that owes the PR body a record (T1's sweep line, T2's removal map, T3's map and dispositions, T4's dry run, T5's
   triage, T7's lessons table) gets it there. A pair subagent writes nothing outside its worktree: it returns its
   records in its final report, with its worktree path and branch, and the session appends them. The session writes
@@ -219,12 +231,19 @@ into the PR.
   green after two attempts returns its work uncommitted, and the session applies this rule before merging either
   half.
 - **Resume.** After a crash, an API drop, or a restart, the session (the same one, or a fresh one launched with the
-  same prompt, which enters the existing worktree with EnterWorktree's `path`) does not redo work. It reads the branch's task commits (`git log --format=%s master..HEAD`, subjects
-  starting `T<n>:`) and the clock file, lists pair worktrees and unmerged pair branches (`git worktree list`, `git
-  branch --no-merged HEAD`), and merges a pair branch that committed. A pair worktree with uncommitted work is a stop
-  (global CLAUDE.md: warm uncommitted code is stop-and-investigate), unless the same session can resume that subagent
-  with `SendMessage`. It then resumes at the first task whose acceptance fails, never re-applying a committed task. A
-  merged task whose record is missing from the PR notes gets it rebuilt from its commit.
+  same prompt, which enters the existing worktree with EnterWorktree's `path`) does not redo work. It first rewrites
+  the clock file's `start=` to now (pass-core: "A resume rewrites `start=`"), since a surviving file would trip the
+  clock hook on the first tool call. It reads this pass's task commits with `git fetch origin`, then `git log
+  --no-merges --format='%h %s' <launch base>..HEAD ^origin/master`, where `<launch base>` is the `HEAD` the session
+  recorded right after merging the planning branch (the first line of the PR notes, `launch-base=<sha>`); the
+  `^origin/master` term drops another pass's `T<n>:` commits that the Close's merge of `origin/master` brings in. For
+  pairs it lists the worktrees from its own tree (`git worktree list`, which needs no `-C`) and, for each pair
+  branch, `git log --format=%s <dispatch sha>..<branch>`: a branch with its `T<n>:` commit is merged; a branch with no
+  `T<n>:` commit is a stop, since its worktree may hold warm uncommitted work the session cannot read (the guard
+  refuses `git -C` into another tree; global CLAUDE.md: warm code is stop-and-investigate), unless the same session
+  can resume that subagent with `SendMessage`. It then resumes at the first task whose acceptance fails, never
+  re-applying a committed task. A merged task whose record is missing from the PR notes gets it rebuilt from its
+  commit.
 - **Scope.** A defect found outside a task goes to the PR body's "Found, not done" list.
 
 ## Tasks
@@ -250,7 +269,8 @@ into the PR.
     file `unattended-window-2026-09-07.md`, which T4 classes for deletion). Today only the main checkout's local
     `.git/info/exclude:18` keeps it out. It lands here rather than in T4 because `.gitignore` is gate machinery
     (`check.sh:367`), and T0's gate is already the full form.
-  - Geoff's direction (2026-10-11): the three Pi 5 stereo client reports written 2026-10-10 are committed, byte for
+  - Geoff's direction (2026-10-11, relayed by the conducting session, to which the design's Out of scope gives
+    `reports/`): the three Pi 5 stereo client reports written 2026-10-10 are committed, byte for
     byte, as live input to the 0.9 local client, in `docs/superpowers/research/2026-10-10-pi5-client/`:
     `proven-build.md` (from "Pi 5 stereo client proven build.md", the current decision), `verified-parts.md` (from "Pi
     5 stereo client verified parts.md"), and `hardware.md` (from "Pi 5 stereo client hardware.md"). The planning
@@ -275,8 +295,9 @@ into the PR.
   - `bash scripts/gate.sh` (the full form, which also runs shellcheck over the wrapper) prints `gate exit: 0`.
   - `test -x scripts/gate.sh`; `git check-ignore -v docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md`
     prints a line starting `.gitignore:` (a plain `-q` would pass vacuously: the worktree shares the main repo's
-    `info/exclude`, which already matches it); `cmp` of each Pi 5 copy against its original under `/var/home/glw907/Projects/dubplate/reports/`
-    (absolute paths, quoted) exits 0, and the originals' `stat -c %Y` is unchanged.
+    `info/exclude`, which already matches it); `cmp` of each Pi 5 copy against its original under
+    `/var/home/glw907/Projects/dubplate/reports/` (absolute paths, quoted) exits 0; and `stat -c %Y` on the three
+    originals, run once before the copy (the values go into the PR notes) and once after, prints the same three values.
 - **Test.** The acceptance runs: the refusals prove the allowlist, and the full run proves the wrapper reaches
   `cairn-run-gate` past the guard.
 - **Estimate.** 45 minutes (one full gate plus lock wait). The session runs it inline, first.
@@ -286,17 +307,32 @@ into the PR.
 - **Outcome.** The adapter's standing rule (`SKILL.md:45-49`, Geoff 2026-10-04) opens every pass with a
   `dependency-upgrade` sweep; only Geoff can waive it, so this pass runs it. The session follows the
   `dependency-upgrade` skill and `docs/standing-rules.md` "Current dependencies" over `go.mod`, `web/package.json`,
-  `tools/venv/requirements.txt`, and the pinned binaries. Minors and patches land. A major is recorded with its unblock
-  condition in the survey record and the PR body for Geoff, and is not taken (not a stop). A newer workstation binary
-  (golangci-lint, rclone, libxml2) is recorded for the conducting session, not installed (Out of scope). The survey
-  extends or starts a dated record beside `docs/superpowers/research/2026-10-04-dependency-sweep.md`. A sweep with
-  nothing to move is one line in the PR body.
-- **Files.** `go.mod`, `go.sum`, `web/package.json`, `web/package-lock.json`, `tools/venv/requirements.txt`, and
-  `docs/superpowers/research/2026-10-11-dependency-sweep.md`, as the sweep moves them.
+  `tools/venv/requirements.txt`, and the pinned binaries. Minors and patches land. In this pass the sweep is bounded,
+  because the skill's other outputs reach past this pass's boundaries:
+  - Every "take now" capability or refactor the survey finds is filed, not taken: a BACKLOG item tagged
+    `#rung:<name>` for the rung that first leans on it. A process PR carries no behavior change.
+  - Every held major (today `2026-10-10-dependency-sweep.md:120-121` holds typescript 7.0.2 and @types/node 26) is a
+    BACKLOG item tagged `#rung:<name>` with its unblock condition, and is listed in the PR body for Geoff. It is not
+    taken, and it is not a stop.
+  - Nothing is scheduled (no `schedule` tripwire, no cron, no cloud routine), no ROADMAP line is written, and nothing
+    is written outside the worktree. A newer workstation binary (golangci-lint, rclone, libxml2) is recorded in the PR
+    body for the conducting session, not installed (Out of scope).
+  - The full-suite home is the local `bash scripts/gate.sh` (dubplate has no PR CI), and dubplate keeps no CHANGELOG.
+  - The latest record is `docs/superpowers/research/2026-10-10-dependency-sweep.md`: the survey extends it in place
+    when the skill's same-window test holds, and otherwise starts `2026-10-11-dependency-sweep.md` citing it.
+  A sweep with nothing to move is one line in the PR body. T1's BACKLOG edit precedes T3's: T1 commits before the
+  first pair is dispatched, so T3 branches from it and reads those items as existing BACKLOG content (T3 tags or
+  keeps them and never duplicates them). The held typescript 7 major and inventory row I66 (the TypeScript 7
+  recheck) are one item: T1 writes it with the text "TypeScript 7" and `#rung:integration`, and T3 confirms it rather
+  than adding a second.
+- **Files.** `go.mod`, `go.sum`, `web/package.json`, `web/package-lock.json`, `tools/venv/requirements.txt`,
+  `BACKLOG.md` (append only), and the sweep record (`2026-10-10-dependency-sweep.md` extended, or
+  `2026-10-11-dependency-sweep.md` new), as the sweep moves them.
 - **Risk class.** `runner` (gate machinery: `go.mod`, `go.sum`, `web/package*.json` are machinery rows,
   `check.sh:367-368`).
 - **Acceptance.** `bash scripts/gate.sh` (the full form; a machinery change forces it anyway) prints `gate exit: 0`.
-  The PR notes carry the sweep's line or table, and every held major names its unblock condition.
+  The PR notes carry the sweep's line or table, and every held major names its unblock condition. `git diff
+  <base>..HEAD -- ROADMAP.md` prints nothing, and every BACKLOG line T1 added carries `#rung:`.
 - **Test.** The full gate over the bumped tree.
 - **Estimate.** 60 minutes. The session runs it inline after T0, before the first pair.
 
@@ -323,7 +359,7 @@ into the PR.
     player requirement (`:104-109`: "a strong play-queue interface ... now playing, up next, reorder, and add from
     album, track, or filter results", designed from a prior-art study in the visual identity spec's language) has no
     other home (`grep -rn -i 'up next' docs IDEAS.md` finds no requirement), so it stays as one line in the streamer
-    entry. The report carries the map, one row per removed sentence or range.
+    entry, containing "up next" in lower case (row I70's check is case-sensitive). The report carries the map, one row per removed sentence or range.
   - Planned: `pr-test-ci` gains "after `admin-api-1`" (ruling 3). `prod-polish` loses the owed post-mortem
     (`:214-215`). The folded organizer entry (`:221-225`) goes. `:276`'s "Two owed dubplate lanes" is reworded without
     "lanes". Other Planned entries keep their substance (the `give-back` entry's lawyer, Unidecode, history, and holder
@@ -334,7 +370,7 @@ into the PR.
 - **Acceptance.** The retired-phrase and lane checks print nothing for ROADMAP. End-to-end check 4 prints the
   expected order. `grep -n '^## ' ROADMAP.md` prints, in order, the Path section, Active, Planned, and Someday, and no
   Done. `grep -n -i -E '\brungs? [0-9]' ROADMAP.md` matches only the mapping table and the Path items' parenthesized
-  old numbers. `grep -c -i 'up next' ROADMAP.md` prints 1 or more. T0's Pi 5 pointer survives (`grep -c
+  old numbers. `grep -c 'up next' ROADMAP.md` prints 1 or more. T0's Pi 5 pointer survives (`grep -c
   'pi5-client/proven-build.md' ROADMAP.md` prints 1). No gate in the half (docs only).
 - **Test.** A read of the Path list against this plan's derived order, item by item, and the removal map.
 - **Pair.** Runs as a pair with T3 (disjoint files).
@@ -478,7 +514,7 @@ into the PR.
     (`docs/superpowers/plans/2026-10-11-dubplate-alignment-planning-prompt.txt`): EnterWorktree name
     `admin-api-1-plan`; load `dubplate-pass`; read the 14a spec in full as the approved design, the old plan
     `docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` as evidence only, and BACKLOG's `#rung:admin-api` items;
-    write `docs/superpowers/plans/<date>-admin-api-1.md` in the lean format (this plan is the model), class
+    write `docs/superpowers/plans/<date>-admin-api-1.md` in the lean format (this plan is the model, archived by its Close at `docs/superpowers/archive/plans/2026-10-11-dubplate-alignment.md`), class
     `auth-data`, with two living-reference edits as tasks: CH:171-172 (14a fold, "Owed errata" item 5) and the PS
     member-cap note with its erratum to PS:145-147, whose source is the old plan
     (`2026-10-10-rung-14a-admin-api.md:829-833`); the re-plan decides whether the member cap stays in scope. Run
@@ -502,7 +538,7 @@ into the PR.
     fail; the 14 rows it passes are the carried ones.
   - End-to-end check 3 holds; the retired-phrase and lane checks print nothing for STATUS. `grep -c 'HISTORY'
     docs/STATUS.md` prints 0, and `grep -c 'HISTORY' BACKLOG.md` prints 2 or less (today's count is 2).
-  - `grep -c '#rung:' BACKLOG.md` prints at least 30, and BACKLOG #1 is checked.
+  - `grep -c '#rung:' BACKLOG.md` prints a nonzero count (the inventory check, not a fixed floor, proves coverage, since related rows may share one item), and BACKLOG #1 is checked.
   - The prompt file names the 14a spec path, `auth-data`, the three lenses, `admin-api-1-plan`, `CH:171-172`,
     `PS:145-147`, `2026-10-10-rung-14a-admin-api.md:829`, and the push target `glw907/dubplate` (`grep -c -F` on each
     prints 1 or more).
@@ -589,15 +625,21 @@ into the PR.
   `.claude/agent-memory/dubplate-implementer/MEMORY.md` (removed),
   `.claude/agent-memory/dubplate-implementer/feedback_test-echoes-code.md` (removed).
 - **Risk class.** `runner` (`.claude/`).
-- **Acceptance.** The retired-phrase and lane checks print nothing for CLAUDE.md. `grep -n -i 'from memory\|parallel-
-  build-approach\|at T14' CLAUDE.md` prints nothing. `grep -n -i -E '\brungs? [0-9]' CLAUDE.md` matches only the
-  Versions sentence about older documents. `git ls-files .claude/agent-memory/dubplate-implementer` prints nothing.
-  `wc -l < CLAUDE.md` stays at or under 200. The session, after the pair returns: `test -s` on
-  `<git dir>/memory-index.proposed.md`, then the retired-phrase check over it prints nothing; the dry-run table's row
-  count equals `ls ~/.claude/projects/-var-home-glw907-Projects-dubplate/memory | grep -v -x MEMORY.md | wc -l`; and
-  `find ~/.claude/projects/-var-home-glw907-Projects-dubplate/memory -newermt "@<pair start epoch>"` prints nothing
-  (probed by the mechanics review: a recent epoch printed 0 lines, `@1000` printed all 43 entries). No gate in the
-  half (docs only).
+- **Acceptance.** The retired-phrase and lane checks print nothing for CLAUDE.md. This prints nothing:
+
+  ```bash
+  grep -n -i 'from memory\|parallel-build-approach\|at T14' CLAUDE.md
+  ```
+
+  `grep -n -i -E '\brungs? [0-9]' CLAUDE.md` matches only the Versions sentence about older documents. `git ls-files
+  .claude/agent-memory/dubplate-implementer` prints nothing. `wc -l < CLAUDE.md` stays at or under 200. The session,
+  after the pair returns: `test -s` on `<git dir>/memory-index.proposed.md`, then the retired-phrase check over it
+  prints nothing; the dry-run table's row count equals the directory listing at T4's start (`ls
+  ~/.claude/projects/-var-home-glw907-Projects-dubplate/memory | grep -v -x MEMORY.md | wc -l`); and `find
+  ~/.claude/projects/-var-home-glw907-Projects-dubplate/memory -newermt "@<pair start epoch>"` is read, not required
+  empty (probed: a recent epoch printed 0 lines, `@1000` printed all 43 entries). Other dubplate sessions share that
+  directory, so each printed path goes into the PR notes as written during the pass and is kept by the post-merge
+  re-list; it is a stop only if T4 classed that path delete. No gate in the half (docs only).
 - **Test.** The row count against the directory listing, and the "facts not carried" column read.
 - **Pair.** Runs as a pair with T6 (disjoint files).
 - **Estimate.** 45 minutes.
@@ -680,9 +722,11 @@ into the PR.
 - **Risk class.** `runner`.
 - **Acceptance.**
   - The retired-phrase and lane checks print nothing for the adapter (today the retired-phrase check prints "lane
-    registry" for it). `grep -c 'site-implementer'` on the adapter prints 0. `grep -c -E '^\*\*(Gate|Fast lane|Full-
-    suite home|Worktree setup|CI watch|Risk-class path map|Checklist globs|Close checklist)\*\*:'` on the adapter
-    prints 8.
+    registry" for it). `grep -c 'site-implementer'` on the adapter prints 0. This prints 8 (today too):
+
+    ```bash
+    grep -c -E '^\*\*(Gate|Fast lane|Full-suite home|Worktree setup|CI watch|Risk-class path map|Checklist globs|Close checklist)\*\*:' .claude/skills/dubplate-pass/SKILL.md
+    ```
   - `python3 -I -c 'import json; a = json.load(open(".claude/settings.json"))["permissions"]["allow"]; print(len(a),
     [r for r in a if "docker compose" in r or "systemctl restart" in r], "Bash(ssh root@5.78.148.42 systemctl
     reset-failed *)" in a)'` prints `14 [] True` (today `17`, three entries, `True`).
@@ -700,7 +744,7 @@ into the PR.
   execute each lesson, and the section goes. Each becomes a Go doc comment or a file comment under `go-conventions`
   (no process citation, no em dash, plain paragraphs: gofmt rewrites doc-comment lists and headings, and the gate's
   golangci-lint runs gofmt as a formatter). Each destination's comment carries its token verbatim:
-  - Oracle harness (`:118-136`): the Navidrome multi-library login (token `X-ND-Authorization`) and the gonic sub-path
+  - Oracle harness (`:118-136`): the Navidrome multi-library login (token `Music Library`; `X-ND-Authorization` already appears in `stack.go:541` and `:549`, so it cannot prove arrival, while `Music Library` prints 0 there today) and the gonic sub-path
     limit (`GONIC_PROXY_PREFIX`) into the `internal/harness/subsonic/stack` package doc (`stack/stack.go`); the
     `collection:` key resolution (`artist-set`) into `session/session.go`'s package doc; gonic's error 10
     (`getMusicDirectory`), the per-track cover, disc-subfolder splitting (`Borealis`), the two-second duration floor,
@@ -716,7 +760,7 @@ into the PR.
     registered subtree (`:140-148`). T7 confirms both before dropping.
   - Settings (`:145-148`) into `Handle.Update`'s doc comment (`internal/engine/store/write.go:64`; `reads a setting`).
   - Web (`:150-153`) into a comment beside the kit options in `web/vite.config.ts`, where `adapter-static` is
-    configured (`:68`; no `svelte.config.js` exists) (`paths.relative`).
+    configured (`:68`; no `svelte.config.js` exists) (`paths.relative`), as a `//` comment like the options beside it (the filter flags a TSDoc block).
   - Matcher and corpus (`:155-160`) into `internal/engine/musicbrainz/doc.go` (`retry path`).
   - Go tests (`:162-166`): the cobra usage-writer fact beside the first `SetOut` wiring in
     `cmd/dubplate-server/main_test.go` (`:24`; the comment contains `os.Stderr`). Source: cobra v1.10.2 `UsageFunc`
@@ -744,7 +788,7 @@ into the PR.
     section has a row (home, or "dropped" with its reason) in the report.
   - The fast lane, `--base <dispatch sha>`, prints `gate exit: 0`; its vale-over-Go-comments leg reads the new
     comments.
-  - `diff-reviewer` at task scope reads the T7 commit (pass-core: the `auth-data` read) and returns `accept`.
+  - `diff-reviewer` at task scope reads the T7 commit (pass-core: the `auth-data` read) and returns `accept`; the session runs this read after merging the pair, never the pair itself.
 - **Test.** The comment-only filter. Test-first does not apply: no behavior changes.
 - **Pair.** Runs as a pair with T5.
 - **Estimate.** 60 minutes.

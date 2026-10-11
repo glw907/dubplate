@@ -141,10 +141,38 @@ dispositions.
 - Folded in full: 51. Folded in part: 4 (C4, C8, C20, and R1, whose entry moved to T0). Review forks settled as
   tasks: 3 (C7 and m7 as T1, M7 inside T0; PS-1 rules each a question with one correct answer). Refused: 1 (CO2),
   plus the settings allow rule inside C8 and m2. Kept as recommended: 1 (CO3). Owner forks: 0. Design changes: 0.
-- New mechanisms introduced by the fold, each probed or quoted above: the `--base` convention, the wrapper allowlist
-  and dry-run lane, the docs-only gate skip, the comment-only filter, the joined retired-phrase and lane checks, the
-  inventory check, end-to-end check 4, the `check-ignore -v` proof, the git-dir records, the resume procedure.
-- Plan length: 510 lines before, 786 after; the inventory table is 70 of the added lines, and the Conventions grew by
-  the base, docs-only, filter, records, and resume rules. Launch prompt: 44 lines before, 58 after.
+- New mechanisms introduced by the fold, probed or quoted above: the `--base` convention, the wrapper allowlist and
+  dry-run lane, the docs-only gate skip, the comment-only filter, the joined retired-phrase and lane checks, the
+  inventory check, end-to-end check 4, and the `check-ignore -v` proof. Two were not probed by this fold (corrected
+  after the verification read, finding 10): the git-dir records rest on precedent, not a probe here (two isolated
+  cairn sessions, `lean-cutover` and `engine-pass-b`, wrote `pass-task-clock` into their worktree git dir with one
+  plain `printf ... > <path>`, the second with a `base=` line, as the verification read reports), and T0's clock write
+  is this pass's first live proof, with a refusal there a stop before any work; the resume procedure is unprobed and
+  rests on the git commands it names.
+- Plan length: 510 lines before, 786 after the first fold, 830 after the verification fold; the inventory table is 70
+  of the added lines. Launch prompt: 44 lines before, 58 after the first fold, 62 after the verification fold.
 - Clock estimate: 305 task-minutes and about 210 on the path before; 450 task-minutes and about 335 on the path
-  after, because every gate-bearing task now holds one recorded gate run and the dependency sweep is added.
+  after, because every gate-bearing task now holds one recorded gate run and the dependency sweep is added. The
+  verification fold leaves it unchanged (bounding T1 removes work rather than adding it).
+
+## Verification fold
+
+The verification read (`docs/superpowers/research/2026-10-11-dubplate-alignment-plan-fold-verification.md`, at
+`582d47e`) found no blocker, one major, and ten minors, and no design change or owner fork. Each is folded; none
+needed a new verification read by the verifier's own judgment.
+
+| Id | Disposition | Where the revision carries it |
+|---|---|---|
+| V1 (major) | Folded. T1 is bounded: every take-now item and every held major is a BACKLOG item with a `#rung:` tag, not taken; no tripwire, cron, or cloud routine; no ROADMAP line; nothing outside the worktree; the gate is local and there is no CHANGELOG. `BACKLOG.md` joins T1's files, and the latest record is `2026-10-10-dependency-sweep.md` (held majors at `:120-121`, read). T1 commits before the first pair, so T3 branches from T1's BACKLOG and treats its items as existing; the typescript 7 held major and row I66 are one item. Acceptance adds an empty ROADMAP diff and a `#rung:` on each added line. | T1; prompt's T1 sentence |
+| V2 | Folded. Both one-line block arms use `\/\*([^*]\|\*+[^*\/])*\*+\/`, so a line must be exactly one comment. Probed: on the verifier's `p.diff` the new filter flags `/* x */ y := 2 /* z */`, `/* x */ return nil /* y */`, and `/* a */ --color-primary: red; /* b */`, which the `.*` form passed, and it still flags 14 of 14 on the first probe diff. T7's `vite.config.ts` comment is a `//` comment. | Conventions "Diff checks"; T7 |
+| V3 | Folded. The T4 and T6 grep commands, the lane check, and end-to-end check 4 sit on single lines in fenced blocks. | End-to-end check 4; Conventions "Lane check"; T4 and T6 acceptance |
+| V4 | Folded. The Navidrome lesson's arrival token is `Music Library`, which prints 0 in `stack/stack.go` today (`grep -c -F`); `X-ND-Authorization` is already there twice. | T7 |
+| V5 | Folded. Resume rewrites `start=`; reads task commits with `git log --no-merges <launch base>..HEAD ^origin/master` from a `launch-base=` line the session writes first into the PR notes; judges a pair branch by whether it holds its `T<n>:` commit (from the session's own tree, no `git -C`), a branch without one being a stop; and the prompt now opens with the existence check, then EnterWorktree by `path` or `name`. | Conventions "Resume", "Records"; prompt opening |
+| V6 | Folded. The `find -newermt` output is read, not required empty: each path goes into the PR notes and is kept by the post-merge re-list, and it is a stop only for a path T4 classed delete. | T4 acceptance |
+| V7 | Folded. The fixed floor of 30 is gone; the `#rung:` count must be nonzero, and the inventory check proves coverage. | T3 acceptance |
+| V8 | Folded. The lane check reads `\b([[:alnum:]]+[ -])?lanes?\b` and excludes `^(heavy\|light\|fast)[ -]lanes?$`. Probed: it keeps "heavy-lane" and "fast lane", still prints "Document lanes" and "every lane", and prints 10 lines for today's adapter. | Conventions "Lane check" |
+| V9 | Folded. T7's `diff-reviewer` bullet says the session runs it after the merge, never the pair. | T7 acceptance |
+| V10 | Folded. The Measures line no longer claims probes for the git-dir records or the resume procedure; it cites the cairn precedent the verifier named and calls the resume procedure unprobed. The Records convention cites the same precedent. | Measures; Conventions "Records" |
+| V11 | Folded, each part: T0 records the three originals' `stat -c %Y` before the copy into the PR notes and compares after; the admin-api-1 planning prompt cites this plan's archive path; the launch check also matches `.name == "dubplate-alignment"` (probed with a substituted name against live `claude agents --json`); the Pi 5 direction restores "relayed by the conducting session"; T2 writes "up next" in lower case and its acceptance grep is case-sensitive, matching row I70. | T0; T3 prompt bullet; Launch; T2 |
+
+Verification fold measures: 11 findings, 11 folded, 0 refused, 0 owner forks, 0 design changes.
