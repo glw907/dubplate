@@ -246,16 +246,21 @@ contracts are unchanged):
   dotted leader, and the duration in mono. They replace the striped table.
 - Icons come from Phosphor in its bold weight (MIT), so their stroke matches the slab type and
   the 2px borders.
-- Touch targets come from `--size-field`. At `0.28125rem` a plain `.btn` measures 45px, over the
-  44px floor, for every plain button at once; `.btn-sm` still computes to eight times the token
-  (36px), so each small button carries `min-h-11` itself. Set the token in every theme block.
-- An alert holds one child. DaisyUI 5's `.alert` is a grid that adds columns when it has a second
-  direct child, so `flex-col` and `items-start` on it do nothing and a heading, paragraphs, and
-  buttons render as side-by-side columns. Wrap the content in one `div` that carries the flex
-  classes. Do not use `alert-vertical`, which also centers the text.
-- A horizontal `.steps` row shares one grid row across its steps, so a wrapped sublabel lifts a
-  shorter neighbor's label off the common baseline. Give each step's content block `self-start`,
-  and pick the breakpoint from the column's width rather than the viewport's.
+- Touch targets come from `--size-field`, which sizes buttons, inputs, and selects alike. At
+  `0.28125rem` and the default 16px root, a plain `.btn` measures 45px, over the 44px comfort
+  floor (WCAG 2.5.5, the AAA target; the AA floor in 2.5.8 is 24px), for every plain button at
+  once. `.btn-sm` still computes to eight times the token (36px), so each small button carries
+  `min-h-11` itself. Set the token in every theme block.
+- An alert holds at most an icon and one content wrapper. DaisyUI 5's `.alert` is a grid with one
+  column per direct child, so a heading, paragraphs, and buttons placed directly in it render as
+  side-by-side columns, and `flex-col` on it does nothing. Put the heading, paragraphs, and
+  buttons in one `div` that carries the flex classes. Do not use `alert-vertical`, which also
+  centers the text. An outcome alert shown after an action needs announcing: the layout's live
+  regions or `role="status"` carry that.
+- A horizontal `.steps` row shares one grid row across its steps, so a wrapped sublabel pushes a
+  shorter neighbor's label down off the common baseline. Wrap a bare-text label in a `span`, give
+  each step's content block `self-start`, and pick the breakpoint from the column's width rather
+  than the viewport's.
 
 ## Photography
 
@@ -333,8 +338,8 @@ or a destructive confirm is never playful. Ruling 4 withdraws W1.3's vocabulary 
 when this spec is ratified.
 
 Copy never hardcodes the admin's name. When it sends a member to the admin, it names the first
-admin on the roster, by the display name and address the auth answer carries, and with no admin on
-the roster it says nothing about a person.
+admin on the roster, by the display name and address the unknown-address answer carries, and with
+no admin on the roster it says nothing about a person.
 
 ## Refinement
 

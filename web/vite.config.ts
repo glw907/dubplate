@@ -67,10 +67,11 @@ export const kitOptions: Config = {
   // has nothing dynamic to reject.
   adapter: adapter(),
   // `paths.relative` stays at its default, so prerendered documents
-  // locate themselves from wherever they are served, which holds only
-  // with no `reroute` hook and no fallback page. The cost is that every
-  // route must answer its exact path: a trailing slash gets the
-  // terminator's 404, not the document.
+  // resolve assets relative to the depth they were prerendered at
+  // (Kit's fallback pages would use absolute paths; none exists). Served
+  // at any other depth they break, so every route answers its exact path
+  // only: a trailing slash gets newExactPathRoutes' 404, not the
+  // document.
   //
   // No consumer reads `updated`, so the hourly poll for
   // `_app/version.json` would fetch for nothing. Kit still checks that

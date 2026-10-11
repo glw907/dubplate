@@ -33,7 +33,8 @@ Landed: `foundation`, `corpus`, `matcher`, `shadow` (its program was deleted on 
    which would otherwise cost a stub producer. It shares no files with `admin-api-2`, so the two may run together.
 5. **`streamer`** (rung 12). Slices 3 to 8 of the built-in OpenSubsonic streamer, as `streamer-4` onward (a slice may
    take more than one pass). Inbound: `pipeline`'s catalog. It goes first of the rungs that open after `pipeline`
-   because it is the longest and 0.8 ships on it. Slice 7 waits on `queues`.
+   because it is the longest and 0.8 ships on it. Slice 7 waits on `queues`. A soft edge ties it to `builtins`, which
+   names a post-scan hook event the streamer fires; items 5 to 9 open together, so the order stands.
 6. **`queues`** (rung 13). The decision queue. Inbound: `matcher`, `store`, and `pipeline`. It goes ahead of
    `migration` and `builtins` because streamer slice 7 consumes it.
 7. **`migration`** (rung 10). Migration and layout parity. Inbound: `corpus`, `store`, and `pipeline`.
@@ -200,7 +201,7 @@ debris cleanup (stale failed units, doc drift), foldable into the greenfield bui
 live findings: `/log-issue` → `BACKLOG.md` with `#project:prod-polish`.
 Plan (committed 2026-09-01, ahead of need):
 `docs/superpowers/plans/2026-09-01-prod-polish.md`.
-Related: #1, #2, #3, #4, #5, #6, #7, #8
+Related: #2, #3, #4, #5, #6, #7, #8
 
 ### Packaging `packaging`
 Make the estate easy for a stranger to set up from its ingredients (beets

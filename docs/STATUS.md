@@ -24,7 +24,10 @@ Once this pass's PR merges, whoever merged it (the conducting session or Geoff) 
    ~/.claude/projects/-var-home-glw907-Projects-dubplate memory`. Re-list the directory with `ls -l
    --time-style=+%s` and keep any file modified after T4's start epoch, which the PR body names. Write the new
    `MEMORY.md` from the PR body's proposed index. Show the delete list from the PR body's dry-run table, then delete
-   those files. Re-list the directory and run the retired-phrase check over the new `MEMORY.md`.
+   those files. Re-list the directory, then run `tr '\n' ' ' < MEMORY.md | tr -s ' ' | grep -o -i -E 'lane
+   registry|pass-execute|conducting loop|conductor ruling|errata owed|workflow mode|post-mortem'` over the new
+   `MEMORY.md`; it prints nothing. Check first that the PR body carries T4's start epoch, the proposed index, and the
+   dry-run table.
 3. Trash the three Pi 5 originals: `gio trash` on each file in `~/Projects/dubplate/reports/` that T0 copied into
    `docs/superpowers/research/2026-10-10-pi5-client/`.
 4. Launch the `admin-api-1` re-plan, an unattended Opus planning session that works from the `admin-api` spec

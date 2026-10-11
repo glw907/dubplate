@@ -81,7 +81,7 @@ vale over Go comments, a hard-required `systemd-analyze verify`, the state-dir a
 and the rendered Playwright gates on the heavy lane). Each leg, the two OpenSubsonic import-graph tests,
 and the workstation prerequisites outside the gate (`npm ci --prefix web`, `make unidecode-wheel`,
 `make subsonic-xsd`, `xmllint` at libxml 2.15.4) are in `docs/standing-rules.md`. The scoped form is
-`check.sh --scope-changed`; it fails closed to the full form. A check either gates or does not exist;
+`gate.sh --scope-changed`; it fails closed to the full form. A check either gates or does not exist;
 never guard one with `command -v || skip`. Never commit red.
 
 ## Stack rules (mandatory skills by area)
@@ -114,8 +114,8 @@ never guard one with `command -v || skip`. Never commit red.
   model, take colors only from theme tokens, prefer `$derived` to an effect that
   mirrors state, and keep `$effect` for real side effects with cleanup. The idiom
   wins over a finding's literal fix text, un-idiomatic code adjacent to a change is
-  in scope for it, and the exemplar is `~/Projects/cairn-cms/src/lib/admin-toolkit/`
-  and `src/lib/components/`: imitating it beats interpreting the rule. The look is the visual identity
+  in scope for it, and the exemplar is `~/Projects/cairn-cms/src/lib/admin-toolkit/`:
+  imitating it beats interpreting the rule. The look is the visual identity
   spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
   Geoff, 2026-09-25): every `web/` task reads it, and it outranks any
   styling habit.

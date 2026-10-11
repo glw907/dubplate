@@ -32,7 +32,7 @@
   /* contrast-exception: --color-neutral 1.09:1 fill only, never rendered as text */
   --color-neutral: #110f0d;
   --color-neutral-content: #efe4cc;
-  /* alert-soft and badge-soft paint the raw token as text, so a dark-ground state token must clear 4.5:1 as text, not only as a fill */
+  /* alert-soft and badge-soft paint the raw token as text over an 8% tint of it, so a state token must clear 4.5:1 as text, not only as a fill (the margin is thin on the soft surface) */
   --color-info: #6d9cc7;
   --color-info-content: #1c1916;
   --color-success: #5a9e66;

@@ -28,7 +28,8 @@ while [ $# -gt 0 ]; do
 		shift
 		;;
 	--base)
-		if [ $# -lt 2 ] || ! [[ "$2" =~ ^[0-9a-f]{40}$ ]]; then
+		# An explicit digit list, never a range: a range matches by locale.
+		if [ $# -lt 2 ] || [ "${#2}" -ne 40 ] || [[ "$2" == *[!0123456789abcdef]* ]]; then
 			echo "$usage" >&2
 			exit 2
 		fi
@@ -43,8 +44,12 @@ while [ $# -gt 0 ]; do
 done
 
 # The full gate's rendered leg launches Chromium, so it takes the heavy lane
-# (cairn-run-gate's default). A dry run starts no leg and takes no lock.
+# (cairn-run-gate's default). A dry run launches no browser, so it queues on
+# the light lane's lock instead of behind a heavy gate. Any other run clears an
+# inherited lane, so the full gate never runs under the light lane's memory cap.
 if [ "$dry_run" -eq 1 ]; then
 	export CAIRN_GATE_LANE=light
+else
+	unset CAIRN_GATE_LANE
 fi
 exec cairn-run-gate "bash scripts/check.sh${args:+ $args}"
