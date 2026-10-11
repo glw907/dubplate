@@ -3,11 +3,6 @@
 ## Current state
 Rung 5, the navidrome-removal and re-plan document passes, rung 6d, rung 12 slices 1, 2a, and 2b, and the gate scope
 pass are closed (HISTORY). Master's full gate is green at `f0a2056`. Nothing is paused and nothing deploys.
-
-The gate is classified: `check.sh --base`, fail-closed classes, `--dry-run`, the rendered leg chosen by reverse
-dependency, and Go's cache sizing conform. The 0.9 home install scope and forward hooks 23 and 24 landed at `e833365`
-(ROADMAP and the streamer spec).
-
 Slice 3 waits on rung 9's catalog; it consumes 2b's XML contract tier, the machine-form ledger (52 owed rows, none
 active), the per-endpoint assignment, the differ, and the music-folders evidence. The Tempus walk ran on 2026-10-10
 (`1f4f232`, 11 of 11 flows, emulator needs `-gpu host`); Amperfy's walk is rung 16's attended gate.
@@ -16,12 +11,11 @@ The box is unchanged: dubplate-server binary `d1e93e9`, the serve unit installed
 upgrade. Archive: HISTORY, "Archive record".
 
 ## Next action
-Rung 14a is held (ruling 12, lean pass process spec at
-`~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`). Its plan
-`docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` is re-planned as a lean task list in a fresh dubplate
-session after rollout steps 1 to 3 merge; the old plan stays as evidence.
-Settled (do not re-brainstorm): rung 12 slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision
-note, 2026-10-10").
+Once the lean-cutover PR merges, re-plan rung 14a (held, ruling 12; lean pass process spec at
+`~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`) as a lean task list in a fresh
+dubplate session, following the `dubplate-pass` skill. The old plan
+`docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` stays as evidence.
+Settled: rung 12 slices 1 to 2b are closed; forks A, B, C are ruled (streamer spec, "Revision note, 2026-10-10").
 
 ## Owner questions
 - Rung 7 spec revision 2.1 (below) awaits Geoff's read.
@@ -32,9 +26,8 @@ note, 2026-10-10").
 ## Lane registry
 | Lane | Tree | State |
 |---|---|---|
-| 1 | main tree (master) | idle; rung 14a is held (ruling 12, lean pass process spec at `~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`); re-planned as a lean task list in a fresh dubplate session after rollout steps 1 to 3 merge; the old plan stays as evidence |
+| 1 | main tree (master) | idle; rung 14a is held (see Next action) |
 | rung 7 planning | docs only | spec revision 2.1 at `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md` (`102d973`) awaits Geoff's read; his seven rulings are written in; the plan is drafted after approval |
-| 3 (slice 2) | `.claude/worktrees/lane-3-slice-2` | closed 2026-10-10; worktree removed |
 | photos | main tree, docs session | round 1 closed at `c10c0f2`; one Run-D.M.C. frame awaits Geoff |
 
 ## Owed
