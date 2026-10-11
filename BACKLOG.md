@@ -6,9 +6,6 @@
 
 ## Open
 
-- [ ] #1 Write the Go-rewrite post-mortem (spend, gates, what the pass
-  taught; STATUS has carried "post-mortem owed" since 2026-08-31)
-  #infra #project:prod-polish
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
   (`systemctl reset-failed`; cosmetic, pre-fix 404 era; box write needs
   sanction) #infra #project:prod-polish
@@ -27,8 +24,8 @@
 - [ ] #7 Create the Navidrome group accounts (owed; per-contributor intake
   is the uploader's job, but listeners still need logins) #onboarding
   #project:prod-polish
-- [ ] #8 tus-js-client 5.0 watch item: 5.0.0-pre2 exists under the `next`
-  dist-tag; re-check at the prod-polish pass and record the upgrade verdict
+- [ ] #8 tus-js-client 5.0 watch item: 5.0.0-pre3 (2026-09-30) exists under the
+  `next` dist-tag; re-check at the prod-polish pass and record the upgrade verdict
   #upload
 - [ ] #10 provision.sh refuses to run (even `--check`) when
   `FIREWALL_SSH_CIDRS` is unset, but the SSH allowlist was DECLINED
@@ -43,7 +40,7 @@
   `--username` as required, though `MarkFlagRequired` enforces both
   (`cmd/dubplate-server/member.go:100-107`); cobra adds no help annotation, so say
   "(required)" in each flag's usage string. Found by 5d-ii Task 7, 2026-10-05
-  #onboarding #project:prod-polish
+  #onboarding #project:prod-polish #rung:admin-api
 - [ ] #13 Move the magic-link token from the query (`?t=`) to the URL fragment
   (`#t=`), so a front's access log never records a redeemable token
   (`internal/auth/token.go:181`; the link page's client hook already strips the
@@ -64,7 +61,8 @@
   (`internal/auth/roster.go:830`) already refuses a username equal to an address-principal, but compares
   principals only, so the two principals differ and an audit row can read as that address. Refuse the collision
   on write and at load. Found by the navidrome-removal close,
-  2026-10-06 #security #project:prod-polish
+  2026-10-06. It lands in streamer slice 6 with the `duplicate_principal` code (see #48)
+  #security #project:prod-polish #rung:streamer
 - [ ] #17 The members page's `FIELD_FOR_OUTCOME` (`web/src/routes/members/+page.svelte:46`) has no
   `invalid_address` row, so that outcome sets no `aria-invalid` and moves no focus to the address field. Add the
   row. Found by the navidrome-removal close, 2026-10-06 #web #project:prod-polish
@@ -85,13 +83,14 @@
 - [ ] #23 `web/src/lib/api/post.ts:65` maps every 403 to `cross_origin` before reading the body, so the roster API's
   new 403 `refused` (a demoted admin's add, 6d `2ea9dba`) shows the cross-site copy. Read a JSON outcome on 403 first
   and fall back to `cross_origin` only for the CSRF handler's plain-text body. Found by the 6d segment C fold,
-  2026-10-07 #web #project:prod-polish
+  2026-10-07. The `admin-api` spec closes it by retiring the roster API (see #53) #web #project:prod-polish
+  #rung:admin-api
 - [ ] #24 `auth.RunSweep` (`internal/auth/nonce.go:132`) logs a failed sweep's `err.Error()`, which can wrap a
   setting read's text; give it the `SettingError` fixed-reason treatment 6d gave the gate and handlers. Found by the
   6d segment C fold, 2026-10-07 #auth #project:prod-polish
 - [ ] #25 `internal/settings/evaluate.go:265` wraps `s.Validate(stored.Value)` with `%w` after `parse` failed; if
   `Validate` ever returns nil there, the message reads `%!w(<nil>)`. Wrap the parse error instead. Found by the 6d
-  architecture reads, 2026-10-07 #config #project:prod-polish
+  architecture reads, 2026-10-07 #config #project:prod-polish #rung:admin-api
 - [ ] #26 The 6d architecture reads' findings on lines 6d did not touch (unused auth and identity exports, three
   `syncDir` copies, the settings accessor's mutex across a database read, threshold bounds without Floor and
   Ceiling, doctor's file split, and more): `docs/superpowers/research/2026-10-07-6d-architecture-reads.md`, "To
@@ -125,8 +124,111 @@
   Request-vs-Request check (from the HISTORY harvest, 2026-10-10) #harness
 - [ ] #36 `web/scripts/gates/root-absolute.ts` second `srcset` pattern flags a base64 data URI (every JPEG payload
   starts with `/9j/`) as a root-absolute URL; skip `data:` candidates (from the HISTORY harvest, 2026-10-10) #web
+- [ ] #37 The first deploy of the store-backed binary takes the runbook's 6d upgrade ("Upgrade a box that holds a
+  roster file"). The same launch work: enabling the serve unit; criterion 14's `runuser` and holder clauses from the
+  store spec, with the settings-home pass's Ruling 2 (`deploy.sh` halts on `check`'s nonzero exit before it restarts
+  `serve`); secrets in every `music`-uid verb's environment; and SMTP from the box. Carried from the alignment pass,
+  2026-10-11 #infra #rung:cutover
+- [ ] #38 Drive the `systemd-run` sandboxed `member add` and `doctor` on the box, which the store identity pass's smoke never
+  exercised, and walk the remaining runbook lines against the live box. Carried from the alignment pass, 2026-10-11
+  #infra #rung:cutover
+- [ ] #39 Before launch, settle the archive's second copy, per-collection relocation, and store identity (R9's option
+  b, whose text stays in the store spec). Carried from the alignment pass, 2026-10-11 #infra #rung:cutover
+- [ ] #40 Amperfy's roster walk (`docs/roster-walk.md`) is the attended gate before launch. Tempus's walk ran on
+  2026-10-10 (`1f4f232`, 11 of 11 flows). Carried from the alignment pass, 2026-10-11 #streamer #rung:cutover
+- [ ] #41 Add a restore check (C14 from the `admin-api` spec review): after a same-box restore, which replaces the
+  store and keeps the auth leaf, list each live member whose epoch record is later than the restored snapshot's
+  stamp. The runbook already carries the re-run-removals line. Carried from the `admin-api` spec fold, 2026-10-10
+  #infra #rung:cutover
+- [ ] #42 Streamer slice 3 waits on `pipeline`'s catalog. Its inputs: the XML contract tier from slice 2b, the
+  machine-form ledger (52 owed rows, none active), the per-endpoint assignment, the differ, the music-folders
+  evidence, and the API base URL measurement the slice 1 study handed on. Carried from the alignment pass,
+  2026-10-11 #streamer #rung:streamer
+- [ ] #43 Streamer slice 3 also takes UNI-H2, the prefix-gap and percent-encoding items, and the owed ledger rows
+  L-20, L-21, and L-51. Carried from the alignment pass, 2026-10-11 #streamer #rung:streamer
+- [ ] #44 Update `docs/roster-walk.md` in streamer slice 3 (`streamer-4`): pin Tempus at 4.29.0, not 4.28.0; F11
+  expects `createPlaylist(name, songId)`; and the Android emulator needs `-gpu host`, not the doc's `--disable-gpu`
+  (`roster-walk.md:35`). Found by the Tempus walk, 2026-10-10 #streamer #rung:streamer
+- [ ] #45 The recorded seed lacks lyrics, `nowPlaying`, and radio requests, so the study's expected contract flags
+  for them wait for a later recording. Carried from slice 2a, 2026-10-07 #harness #rung:streamer
+- [ ] #46 Streamer slice 5 takes the owed ledger row L-17. Carried from the alignment pass, 2026-10-11 #streamer
+  #rung:streamer
+- [ ] #47 Streamer slice 6 (the revoke verb and app passwords): the store spec's criteria 7 and 8 (the dual-key
+  epoch, R-6d20), the `auth` review's minor finding 14, and the store spec's erratum row 10. `EpochStore.Bump` has
+  no production caller; whichever of the revoke verb and slice 6's app passwords writes an epoch first weighs
+  whether it needs the address key at all. Carried from the store identity pass's routed items, 2026-10-07 #auth
+  #rung:streamer
+- [ ] #48 Streamer slice 6, the member side: the streamer-admin mapping; the `duplicate_principal` code (with #16);
+  offboarding deprovision; CSP scope and shared-origin M2; and username uniqueness. Carried from the alignment pass,
+  2026-10-11 #streamer #rung:streamer
+- [ ] #49 Streamer slice 7 covers the streamer database in a restore. Carried from the alignment pass, 2026-10-11
+  #streamer #rung:streamer
+- [ ] #50 Streamer slice 8 takes group 2 in trailers, `CAP_NET_BIND_SERVICE`, and command naming. Carried from the
+  alignment pass, 2026-10-11 #streamer #rung:streamer
+- [ ] #51 The roster's admin write path: the last-admin guard and criterion 6's concurrent self-demotion clause,
+  with the removal verb (CH `:576-583`, `:732`); the removal verb bumps the address's revocation epoch as it
+  tombstones; the network actor keyed on `UserID`, since a renamed principal breaks a job's correlation; and the
+  resolving channel for an `admin` settings row that refuses `serve`'s start. The `admin-api` spec designs each one.
+  Carried from the store identity pass's routed items, 2026-10-07 #auth #rung:admin-api
+- [ ] #52 `serve`'s job runner, its instance lease, and job recovery go to the first pass whose page starts a job
+  over HTTP (`admin-api` spec `:638`). `admin-api-1` is not that pass: its mount answers the three job operations
+  `unavailable`. Carried from the `admin-api` spec fold, 2026-10-10 #ops #rung:admin-api
+- [ ] #53 The next `web/` pass takes R-6d17's note: the roster line's blank-username conditionals, the unreachable
+  `duplicate_principal` mapping and copy, and the comments in `web/scripts/rendered/run.ts` that name the fixture
+  roster file. With #23. Carried from the store identity pass's routed items, 2026-10-07 #web #rung:admin-api
+- [ ] #54 The bearer bypass stays on purpose, and no route registers one yet. Its first consumer (the OpenSubsonic
+  API or the bearer admin mount) owes a shell-level cookie test proving a bypassed route never reads the session
+  cookie. Carried from the Navidrome removal pass, 2026-10-06 #auth #rung:streamer #rung:admin-api
+- [ ] #55 The first migration after `0005` (`0006`, which the intake spec assigns to `intake-1`) carries R-6d4's
+  keep limit: a pre-lock `Inspect` that sees the store busy or under an intent yields no facts, so a migrating
+  start prunes to the default. Its tables also join the older-store test helper's table map, or every helper-built
+  fixture fails "table already exists". Carried from the store identity pass's routed items, 2026-10-07 #store
+  #rung:intake
+- [ ] #56 The `id3-tags` reject copy must name a working strip method (`mid3v2 --delete-all` or a tagger), settled
+  at the intake copy read. Carried from the alignment pass, 2026-10-11 #upload #rung:intake
+- [ ] #57 Web carries for `intake-3`, from the `auth` string-deck pass (the intake spec's 7c section points here):
+  Ruling 5's four items; W12.4's remaining rules; W4.10's 44px promotion; both palettes' placeholder opacity; the
+  outline, dash, and status-ghost text fix (DaisyUI's `--btn-rest-fg` and `--btn-color`), with a text-contrast row
+  covering `.btn-dash`; the three latent items from the theme and component-layer pass (the ink border over the outline hover fill,
+  a wrapped `<label class="input">` in a status alert, and root-absolute's `srcset` match on a data URI, see #36);
+  the favicon paths named twice (`web.go:295-298`, `:485-488`); the styled 404 with the admin gate's refusal through
+  the same handler, under a `web-auth-security-reviewer` read, and the error page's onward link (a11y S9); the toggle
+  following a later OS scheme change under `system` (a11y S11); a Continue link on the signed-in interstitial and the
+  header wordmark's target (N1); the masked "Sign in as a***@" line (security L4); and the phone gutter `clamp()`
+  with the interstitials' identity lockup. Carried from the alignment pass, 2026-10-11 #web #rung:intake
+- [ ] #58 The uploader takes the theme and component-layer pass's S13 and a11y S7: picked images live at stable paths. Carried from
+  the alignment pass, 2026-10-11 #web #rung:intake
+- [ ] #59 Run `make derive` once before the first pass that depends on the matcher or the beets oracle (expected:
+  `pipeline`), and expect no diff. Carried from the alignment pass, 2026-10-11 #harness #rung:pipeline
+- [ ] #60 The catalog's library queries: filter, facets, and trigram search. Carried from the alignment pass,
+  2026-10-11 #pipeline #rung:pipeline
+- [ ] #61 Before the 0.8 release, recheck TypeScript 7 (7.0.2 when last checked). The bump waits on a svelte-check
+  release that supports it: 4.7.6 does not, and `--tsgo` hits rootDir errors (TypeScript #30693,
+  `sveltejs/language-tools` #2891). Geoff, 2026-09-26 #web #rung:integration
+- [ ] #62 For the project site: settle the `init` and `upgrade` naming against `dubplate-server` (the site spec's
+  upgrade naming question), and build the configuration-reference generator as a consumer of forward hook 18's key
+  declarations. Carried from the alignment pass, 2026-10-11 #docs #project:project-site
+- [ ] #63 UNI-L2's failure-alert hook for the unidecode table install. Carried from the alignment pass,
+  2026-10-11 #infra #project:packaging
+- [ ] #64 The photo checks: `tools/photos/check.test.mjs` fails 2 of 121 (both assume an empty `photos/`), so no gate
+  runs it; the photo integrity leg reads `photos/` from disk, not `git ls-files`; and `check.sh`'s header omits that
+  leg. Carried from the alignment pass, 2026-10-11 #photos #project:photo-curation
+- [ ] #65 Photo licensing follow-ups: a source-URL recheck of the pool, and a blob-retention call for withdrawn
+  images. Carried from the alignment pass, 2026-10-11 #photos #project:photo-curation
+- [ ] #66 The architecture cleanup: the routed findings in `docs/superpowers/research/*-architecture-reads.md`
+  (5d-ii's doctor twelve-flag OR chain first); the ROUTE items in
+  `research/2026-09-27-translit-architecture-reads.md` (the four `TestMain` shim copies, the four copies of the
+  owner and leaf checks); #24 to #26; the string-deck pass's five stale-comment nits; the roster outcome classes,
+  which no independent oracle cross-checks; and the login title argument and W6's h1 fallback, which have no
+  rendered proof. The coverage read's 103 coverage gaps ride along, none blocking. Carried from the alignment pass,
+  2026-10-11 #arch #project:prod-polish
+- [ ] #67 The gate's process-citation leg misses `R-6c` patterns (staged legs 317/127). Carried from the alignment
+  pass, 2026-10-11 #gate
 
 ## Done
+
+- [x] #1 Write the Go-rewrite retrospective: closed under lean ruling 8: history is git and PR bodies, 2026-10-11
+  #infra #project:prod-polish
 
 - [x] #11 Resolve the docker compose leg's `command -v docker` skip: retired with the leg
   itself (`d1e93e9` removed the compose leg from `scripts/check.sh`), 2026-10-05 #infra
