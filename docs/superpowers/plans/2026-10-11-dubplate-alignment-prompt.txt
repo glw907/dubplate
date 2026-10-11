@@ -1,0 +1,44 @@
+You are executing the dubplate alignment pass, an `auth-data`-class pass (the design's `runner` class, raised by
+T7's comment-only edits under `internal/serve/` and `cmd/dubplate-server/`) in `~/Projects/dubplate`, started from
+the main checkout. Before any other act, call EnterWorktree with the name `dubplate-alignment`: it creates a worktree
+under `.claude/worktrees/` on a new branch from local `HEAD`. Then run `git merge --no-edit worktree-alignment-plan`,
+which brings in the approved design, the audit, the plan, and the plan's review and fold records; a conflict is a
+stop. Then run `npm ci --prefix web` in the worktree, the adapter's setup.
+
+Load `dubplate-pass` (it loads `pass-core`). Read `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` in full,
+then the design it implements (`docs/superpowers/specs/2026-10-11-dubplate-alignment-design.md`) and its evidence
+(`docs/superpowers/research/2026-10-11-dubplate-alignment-audit.md`). Geoff approved the design on 2026-10-11 and its
+five rulings are binding. Where the repo's CLAUDE.md, the adapter, or STATUS still prescribe lanes, a lane registry,
+conductor rules, errata ledgers, workflow mode, or phase post-mortems, the design overrides them: that is what this
+pass removes. Arm the API-drop wake-up (`/loop` with no interval) and the lid-switch hold per
+`~/.claude/docs/unattended-work-guards.md`.
+
+Execute T0 and T1 yourself, in order. T0 adds `scripts/gate.sh` and records this session's name
+(`dubplate-alignment`) and id in `docs/STATUS.md`; commit each. From T0 on, every gate, yours and each pair's, is
+`bash scripts/gate.sh --scope-changed` (the fast lane) or `bash scripts/gate.sh` (the full gate), run from the
+worktree root with the Bash tool's `timeout: 600000`, re-issued on exit 75 until it prints `gate exit:`. This is the
+gate `bash scripts/check.sh` run through `cairn-run-gate`, as the adapter names it; the wrapper exists because a
+worktree-isolated session's Bash guard refuses the quoted `cairn-run-gate '<string>'` form. Never fall back to a bare
+`bash scripts/check.sh` for an acceptance.
+
+Then execute three pairs in order: T2 with T3, T4 with T6, and T5 with T7. Each pair is two Agent-tool subagents with
+`subagent_type: "general-purpose"`, `isolation: "worktree"`, model `sonnet`, effort `medium`, dispatched after your
+latest commit so they branch from it. Give each its task's full text from the plan plus the plan's "Conventions every
+task follows" section, both verbatim, and tell it five things. First, the Clock and Stops conventions belong to you:
+it writes no clock file, and it returns its work to you uncommitted if its gate is not green after two attempts.
+Second, it runs `npm ci --prefix web` first, runs every command from its own worktree, and writes nothing outside
+it: no file in the main checkout, none in `~/.claude/`, and none in `~/Projects/dubplate/reports/`. Third, its final
+report carries every record the plan says goes to the PR notes, and every defect it found outside its task. Fourth,
+it commits and never pushes. Fifth, it skips agent-memory maintenance. Name `go-conventions` in T7's dispatch, and
+the visual identity spec and `python-conventions` in T5's. Before each dispatch write the pair's clock file per the
+plan's Clock convention; when both return, check the overrun and remove it. If either returned uncommitted, apply
+"Stops" before merging either half. Otherwise merge both, append their records to the PR notes, run the fast lane,
+and push. After the T5 and T7 merge, run `diff-reviewer` at task scope on the T7 commit; a `fix` or `escalate`
+verdict stops the line like a red. Then run the Close.
+
+You may commit on your worktree's branch and push it to `glw907/dubplate`; open the PR there. Never push `master`,
+never merge the PR, never delete or edit any file outside your worktree (the auto-memory deletion and the main
+checkout's untracked files are the conducting session's, after Geoff merges), and never write any repo other than
+`~/Projects/dubplate`. A stop follows the plan's "Stops" convention. At the Close's end, open the PR in Geoff's
+browser with `gh pr view <n> -R glw907/dubplate --web`, notify him with `notify-send -u normal` and the PR link,
+and end.
