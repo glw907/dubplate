@@ -30,6 +30,18 @@ var migrationTables = map[int][]string{
 	3: {"tracks", "albums", "collections", "users"},
 	4: {"settings", "settings_audit", "settings_generation"},
 	5: {"move_intents", "device_credentials", "group_quota", "member_quota", "member_preferences", "member_overrides"},
+	6: {"submission_warnings", "submission_events", "submission_files", "submissions"},
+}
+
+// migrationUndo names, per migration file's version, the statements
+// that reverse what the file adds to a table an earlier migration
+// created. That table survives a cut to a later target, so its added
+// column and index would fail the re-migration "duplicate column name".
+// olderStore runs a version's undo before it drops that version's
+// tables. An index goes before its column, because SQLite refuses to
+// drop an indexed column.
+var migrationUndo = map[int][]string{
+	6: {"DROP INDEX collections_intake_route", "ALTER TABLE collections DROP COLUMN intake_route"},
 }
 
 // storeDBPath is the store database file under stateDir.
@@ -38,11 +50,12 @@ func storeDBPath(stateDir string) string {
 }
 
 // olderStore creates a store under stateDir through [store.OpenServe]
-// and then cuts it back to version target: the tables each migration
-// above target created are dropped, the ledger loses their rows, and
-// user_version is set to target. It returns the database path, closed
-// with no -wal or -shm beside it. A migration above target that
-// migrationTables does not list fails the later re-migration.
+// and then cuts it back to version target: each migration above target
+// is undone (migrationUndo) and the tables it created are dropped
+// (migrationTables), the ledger loses their rows, and user_version is
+// set to target. It returns the database path, closed with no -wal or
+// -shm beside it. A migration above target that neither map covers
+// fails the later re-migration.
 func olderStore(t *testing.T, stateDir string, target int) string {
 	t.Helper()
 	h, err := store.OpenServe(context.Background(), stateDir, store.ServeOptions{
@@ -68,6 +81,11 @@ func olderStore(t *testing.T, stateDir string, target int) string {
 		t.Fatal(err)
 	}
 	for v := head; v > target; v-- {
+		for _, stmt := range migrationUndo[v] {
+			if _, err := db.Exec(stmt); err != nil {
+				t.Fatalf("undo %q of migration %d: %v", stmt, v, err)
+			}
+		}
 		for _, table := range migrationTables[v] {
 			if _, err := db.Exec("DROP TABLE " + table); err != nil {
 				t.Fatalf("drop %s of migration %d: %v", table, v, err)

@@ -297,6 +297,7 @@ var migrationHashes = map[string]string{
 	"0003_catalog.sql":  "42834b8f62df9727bea686bbc02030f1b9af0de2a6c61a59050be72399c7b7fd",
 	"0004_settings.sql": "9d312b17c391dc7e4a4059ac2c302d4affa381b5955fc1038dedb099e74bfc1f",
 	"0005_routed.sql":   "e3eeb662f78b5142f23729d69fc59db332fc04305f1618269347e06a5d2a8a4c",
+	"0006_intake.sql":   "e688d90185ae70c7ced94f775124d7e599961f50fa050a7f1b83c3378f728b38",
 }
 
 // TestSchemaMigrationHashPins asserts readMigrations, which every
