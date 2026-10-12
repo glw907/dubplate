@@ -61,8 +61,18 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				failed = failed || rowFailed
 			}
 
+			// The store is inspected before any row is added, though its
+			// row prints later: the admin email row's status reads the
+			// roster standing the same inspection reports, so doctor
+			// still inspects once and the print order is unchanged.
+			storeStatus, storeFailed, storeReport, storeChecked := storeRow(cmd.Context(), environ)
+
 			for _, row := range reg.OwnedWall() {
-				add(row.Name, cmp.Or(statuses[row.Name], "ok"))
+				status := cmp.Or(statuses[row.Name], "ok")
+				if row.Name == adminEmailKey {
+					status = adminEmailRowStatus(status, storeReport, storeChecked)
+				}
+				add(row.Name, status)
 			}
 
 			for _, class := range reg.ReservedClasses() {
@@ -93,11 +103,10 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				add(key, statuses[key])
 			}
 
-			// The store row runs the inspect mode after every other
-			// row, always printing exactly one line, absent state
-			// included: a store the doctor run cannot vouch for is as
-			// reportable as a missing config key.
-			storeStatus, storeFailed, storeReport, storeChecked := storeRow(cmd.Context(), environ)
+			// The store row follows every other row, always printing
+			// exactly one line, absent state included: a store the
+			// doctor run cannot vouch for is as reportable as a missing
+			// config key.
 			addChecked("store", storeStatus, storeFailed)
 
 			// The members row prints from the report the store row
@@ -199,6 +208,47 @@ func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []str
 	}
 	slices.Sort(keys)
 	return keys
+}
+
+// adminEmailKey is the owned wall row naming the operator's address.
+// The environment only seeds the first admin: the roster alone decides
+// who is one, so the row warns when the address no longer names a live
+// admin.
+const adminEmailKey = "DUBPLATE_ADMIN_EMAIL"
+
+// The two warnings the admin email row can carry. A removed member and
+// an address no member holds share the first, since one action fixes
+// both: member add with --admin reactivates a removed row, and the
+// variable may instead name a live admin. A live non-admin has no verb
+// to promote it, since member add refuses a live address, so the only
+// action is to name a live admin.
+const (
+	adminEmailNotMember = "warning: this address is not a live member; run dubplate-server member add <address> --admin, or set " + adminEmailKey + " to a live admin"
+	adminEmailNotAdmin  = "warning: this address is a live member without the admin flag; set " + adminEmailKey + " to a live admin"
+)
+
+// adminEmailRowStatus renders the admin email row from the wall's own
+// status and the report the store row read. The wall's status stands
+// unless it is "ok". An "ok" stays when the store cannot speak for the
+// roster (not checked, not vouched for, absent, older than the users
+// table) and when the roster holds no live member, which the members
+// row already fails. Otherwise the roster standing decides: a live
+// admin is "ok", and any other standing is a warning in the row's
+// status text, which never fails doctor.
+func adminEmailRowStatus(wall string, r store.Report, checked bool) string {
+	switch {
+	case wall != "ok", !checked, !storeVouches(r.State):
+		return wall
+	case r.Facts == nil, r.StoreVersion < store.UsersVersion, r.Facts.Members == 0:
+		return wall
+	}
+	switch r.Standing {
+	case store.StandingNone, store.StandingRemoved:
+		return adminEmailNotMember
+	case store.StandingMember:
+		return adminEmailNotAdmin
+	}
+	return wall
 }
 
 // authStoreDoctorRow is the row reporting the auth leaf serve opens.

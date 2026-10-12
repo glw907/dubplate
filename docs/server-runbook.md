@@ -57,7 +57,10 @@ A `doctor` run too early correctly reports a server that cannot start yet.
      prefix, `/dubplate` by default, sets where the server lives under it.
    - `DUBPLATE_SITE_NAME` is the name the sign-in page shows.
    - `DUBPLATE_ADMIN_EMAIL` is the operator's contact address. The server
-     sends it in the user agent of its MusicBrainz requests.
+     sends it in the user agent of its MusicBrainz requests. It also names
+     the first admin: step 10 adds that address with `--admin`. After that
+     the roster alone decides who is an admin, and the variable grants
+     nothing. `doctor` warns when the address no longer names a live admin.
    - `DUBPLATE_LIBRARY_ROOT` is the directory that holds the music library.
      Every verb requires it, and the backup and restore verbs read it.
    - `DUBPLATE_MAGIC_LINK_SECRET` and `DUBPLATE_SESSION_SECRET` each need at
@@ -162,12 +165,16 @@ A `doctor` run too early correctly reports a server that cannot start yet.
    Until the first admin exists, every sign-in request answers as an unknown
    address. The window lasts until the next step.
 10. **Add the first admin.** `member add` needs the store, which the unit's
-    start created, and refuses an absent store with "start serve first". The
-    verb requires `--name` and `--username` as well as the address:
+    start created, and refuses an absent store with "start serve first". Run
+    `member list` first. Only when it shows no admin, add one with the
+    `DUBPLATE_ADMIN_EMAIL` address from step 4 and `--admin`. On a removed
+    member's address the verb reactivates the row with the flag, so a box that
+    already has an admin never runs it. The verb requires `--name` and
+    `--username` as well as the address:
 
     ```sh
-    dubplate-server member add admin@example.org --admin --name "Ada Admin" --username ada
     dubplate-server member list
+    dubplate-server member add admin@example.org --admin --name "Ada Admin" --username ada
     ```
 
     Run both as the service user through `systemd-run`, carrying the serve
@@ -193,7 +200,9 @@ A `doctor` run too early correctly reports a server that cannot start yet.
     ```
 
     Replace the `member add ...` arguments with `member list` to run that verb
-    the same way. The `ReadWritePaths` line is the grant step 5 describes.
+    the same way. `member remove`, `member demote`, and `settings reset` run
+    through this form too. The `ReadWritePaths` line is the grant step 5
+    describes.
 11. **Run `doctor`.** Use the same `systemd-run` command as step 10 with
     `doctor` as the verb, and leave out the `RestrictAddressFamilies` line.
     The `bind addresses` row reads the interface table over a netlink socket,
@@ -294,7 +303,11 @@ serve, then member add --admin` before the first start, `members: <n>, admins:
 <m>` once the store holds members, and `not read` for a store the `store` row
 cannot vouch for. It fails with `no members; run dubplate-server member add
 --admin` or `members: <n>, admins: 0; run dubplate-server member add --admin`
-when nobody can add a member through the page.
+when nobody can add a member through the page. The `DUBPLATE_ADMIN_EMAIL` row
+reads `ok` when the address names a live admin. It starts `warning:` and does
+not fail `doctor` when the address names a removed member, no member, or a
+member without the admin flag. An empty roster adds no warning there, since the
+`members` row already fails.
 
 ### The state rows
 
@@ -366,6 +379,12 @@ A row reads its value, its source (`default`, `env-seed`, or another channel),
 and its apply mode, for example `"14" (source default, next operation); store
 holds no settings yet`. A key the store holds that no code still declares
 reads `no longer registered; ignored`.
+
+`DUBPLATE_REAUTH_WINDOW` is a store-homed setting beside the others: how long
+after an admin signs in that a change made over the API stays allowed before
+it asks for a fresh sign-in. It defaults to `2h`, accepts `5m` to `24h`, and
+must stay below `DUBPLATE_SESSION_ABSOLUTE_CAP`. A window at or above the cap
+refuses the start.
 
 `serve` applies the environment to the store at every start, before it
 listens. An environment value for a setting the store holds no row for becomes
@@ -768,6 +787,15 @@ database snapshot after it. These prerequisites sit outside the binary, so
    failure or a refusal before it starts, 69 when `DUBPLATE_BACKUP_ENABLED` is
    off, 75 when a backup is already running, and 130 when canceled by any
    means.
+
+### After a restore
+
+A restore brings back the member and settings tables as they stood when the
+snapshot was taken. The backup does not hold the sign-in leaf's epochs, so
+nothing else undoes the difference. A member removed since the snapshot comes
+back, and an admin flag a demotion cleared is set again. Re-run any removal or
+demotion made since the snapshot with `member remove` or `member demote`, and
+re-run any `settings reset` the same way. Then check `member list`.
 
 ## Deploy
 
