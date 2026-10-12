@@ -70,9 +70,9 @@ func (f *zipFixture) bytes() []byte {
 	return f.buf.Bytes()
 }
 
-// stage writes data as the staged archive and returns a root on the staging
+// stageZIP writes data as the staged archive and returns a root on the staging
 // directory.
-func stage(t *testing.T, data []byte) *os.Root {
+func stageZIP(t *testing.T, data []byte) *os.Root {
 	t.Helper()
 	dir := t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, "tus"), 0o755); err != nil {
@@ -95,7 +95,7 @@ func zipPolicy() Policy {
 
 func walkStaged(t *testing.T, data []byte, p Policy, tracks bool) (*os.Root, *ZIPWalk, error) {
 	t.Helper()
-	root := stage(t, data)
+	root := stageZIP(t, data)
 	w, err := WalkZIP(root, stagedArchive, p, tracks)
 	if w != nil {
 		t.Cleanup(func() { _ = w.Close() })
@@ -387,7 +387,7 @@ func TestZIPReadErrorIsCouldNotRun(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		root := stage(t, nil)
+		root := stageZIP(t, nil)
 		err = w.Extract(context.Background(), root, "submissions/s1/x", []string{"f1"})
 		wantCouldNotRun(t, err, syscall.EIO)
 		wantNoExtraction(t, root, "submissions/s1/x")
@@ -516,7 +516,7 @@ func TestExtractNeedsOneNamePerMember(t *testing.T) {
 }
 
 func TestWalkZIPMissingArchiveIsCouldNotRun(t *testing.T) {
-	root := stage(t, nil)
+	root := stageZIP(t, nil)
 	_, err := WalkZIP(root, "tus/absent", zipPolicy(), false)
 	wantCouldNotRun(t, err, fs.ErrNotExist)
 }

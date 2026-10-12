@@ -10,7 +10,6 @@ import (
 	"math"
 	"os"
 	"path"
-	"slices"
 	"strings"
 
 	"github.com/glw907/dubplate/internal/reject"
@@ -110,7 +109,6 @@ func walkZIP(ra io.ReaderAt, size int64, p Policy, separateTracks bool) (*ZIPWal
 	}
 
 	w := &ZIPWalk{src: src}
-	exts := audioExtensions(p.Allowlist)
 	seen := make(map[string]bool, len(zr.File))
 	var total uint64
 	var overflow, audio bool
@@ -130,7 +128,7 @@ func walkZIP(ra io.ReaderAt, size int64, p Policy, separateTracks bool) (*ZIPWal
 		}
 		seen[f.Name] = true
 
-		isAudio := hasExtension(name, exts)
+		_, isAudio := p.admitted(extension(name))
 		if separateTracks && !isAudio {
 			w.Extras = append(w.Extras, []byte(f.Name))
 			continue
@@ -266,21 +264,6 @@ func archiveFault(src *recordedReaderAt, err error) error {
 
 func unsafeMember(f *zip.File) *ZIPRefusal {
 	return &ZIPRefusal{Reason: reject.Of(reject.UnsafePath), Path: []byte(f.Name)}
-}
-
-// audioExtensions returns the extensions of the allowlisted formats.
-func audioExtensions(allowlist []string) []string {
-	var exts []string
-	for _, name := range allowlist {
-		if row, ok := LookupFormat(name); ok {
-			exts = append(exts, row.Extensions...)
-		}
-	}
-	return exts
-}
-
-func hasExtension(name string, exts []string) bool {
-	return slices.Contains(exts, strings.ToLower(path.Ext(name)))
 }
 
 // recordedReaderAt keeps the first read error of the staged archive other
