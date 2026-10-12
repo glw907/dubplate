@@ -17,13 +17,16 @@ const localActorPrefix = "local"
 const networkActorPrefix = "member"
 
 // An Actor identifies who invoked an operation, verified before the
-// call reaches [Seam]: never a field a request type carries, so no
-// request body can widen its own privilege. This package builds the
-// local kind, from an operating-system username, and the network
-// kind, from a verified [identity.Identity].
+// call reaches [Seam] or [AdminSeam]: never a field a request type
+// carries, so no request body can widen its own privilege. This
+// package builds the local kind, from an operating-system username,
+// and the network kind, from a verified [identity.Identity] and the
+// anchor of the session that carried it.
 type Actor struct {
 	wire    string
 	channel identity.Channel
+	userID  identity.UserID
+	anchor  time.Time
 }
 
 // LocalActor builds the local kind of [Actor] from username, the
@@ -40,15 +43,22 @@ func LocalActor(username string) Actor {
 }
 
 // NetworkActor builds the network kind of [Actor] from id, a verified
-// login. It panics unless id.Valid() holds, so a channel other than a
+// login, and anchor, the time the session that carried it was first
+// issued. It panics unless id.Valid() holds, so a channel other than a
 // signed session (a command-line identity above all) can never become
-// a network actor. It renders as "member:<principal>" on the wire and
-// in every log line, and its channel is id's own.
-func NetworkActor(id identity.Identity) Actor {
+// a network actor. It renders as "member:<hex UserID>" on the wire and
+// in every audit row: the durable key, never the principal, so a
+// renamed member keeps one actor. Its channel is id's own.
+func NetworkActor(id identity.Identity, anchor time.Time) Actor {
 	if !id.Valid() {
 		panic("ops: NetworkActor called with an invalid identity")
 	}
-	return Actor{wire: networkActorPrefix + ":" + id.Principal, channel: id.Channel}
+	return Actor{
+		wire:    networkActorPrefix + ":" + hex.EncodeToString(id.UserID[:]),
+		channel: id.Channel,
+		userID:  id.UserID,
+		anchor:  anchor,
+	}
 }
 
 // String returns a's wire form.
@@ -58,6 +68,16 @@ func (a Actor) String() string { return a.wire }
 // for a local actor, or the channel the verified identity carried for
 // a network actor.
 func (a Actor) Channel() identity.Channel { return a.channel }
+
+// UserID returns the durable id of the member a network actor
+// speaks for, so a write can re-read the member's roster record by id.
+// A local actor has none and returns the zero UserID.
+func (a Actor) UserID() identity.UserID { return a.userID }
+
+// Anchor returns when the session behind a network actor was first
+// issued, the instant the re-authentication window counts from. A
+// local actor has no session and returns the zero time.
+func (a Actor) Anchor() time.Time { return a.anchor }
 
 // handleLen is a job [Handle]'s wire length: 32 lowercase hex
 // characters, the hex encoding of 16 random bytes. internal/ops

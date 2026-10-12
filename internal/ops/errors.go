@@ -19,6 +19,13 @@ const (
 	CodeCanceled       Code = "canceled"
 	CodeForbidden      Code = "forbidden"
 	CodeInternal       Code = "internal"
+
+	// CodeUnauthenticated answers a request with no valid session.
+	CodeUnauthenticated Code = "unauthenticated"
+
+	// CodeReauthenticationRequired answers a gated write from a
+	// session anchored outside the re-authentication window.
+	CodeReauthenticationRequired Code = "reauthentication_required"
 )
 
 // The sentinels this package raises. A caller matches one with
@@ -31,6 +38,9 @@ var (
 	ErrCanceled       = errors.New("canceled")
 	ErrForbidden      = errors.New("forbidden")
 	ErrInternal       = errors.New("internal")
+
+	ErrUnauthenticated          = errors.New("unauthenticated")
+	ErrReauthenticationRequired = errors.New("reauthentication required")
 )
 
 // codes maps each declared sentinel to its stable wire [Code]. A
@@ -44,16 +54,22 @@ var codes = map[error]Code{
 	ErrCanceled:       CodeCanceled,
 	ErrForbidden:      CodeForbidden,
 	ErrInternal:       CodeInternal,
+
+	ErrUnauthenticated:          CodeUnauthenticated,
+	ErrReauthenticationRequired: CodeReauthenticationRequired,
 }
 
 // An Error wraps one of this package's sentinels with its stable
 // [Code] and the reason a caller may report as an answer. Reason is
 // required for [ErrUnavailable] (every unavailable answer names why);
 // the other sentinels may carry an empty one when the sentinel alone
-// says enough.
+// says enough. Detail, when set, is one of the Detail constants: an
+// enumerated name finer than Code, which a client may branch on where
+// Reason is free text.
 type Error struct {
 	Code   Code
 	Reason string
+	Detail string
 	err    error
 }
 
@@ -92,6 +108,24 @@ func NewForbiddenError(reason string) *Error { return newError(ErrForbidden, rea
 
 // NewInternalError builds an [*Error] wrapping [ErrInternal].
 func NewInternalError(reason string) *Error { return newError(ErrInternal, reason) }
+
+// NewUnauthenticatedError builds an [*Error] wrapping
+// [ErrUnauthenticated].
+func NewUnauthenticatedError(reason string) *Error { return newError(ErrUnauthenticated, reason) }
+
+// NewReauthenticationRequiredError builds an [*Error] wrapping
+// [ErrReauthenticationRequired].
+func NewReauthenticationRequiredError(reason string) *Error {
+	return newError(ErrReauthenticationRequired, reason)
+}
+
+// WithDetail returns a copy of e carrying detail, one of the Detail
+// constants. e itself is unchanged.
+func (e *Error) WithDetail(detail string) *Error {
+	withDetail := *e
+	withDetail.Detail = detail
+	return &withDetail
+}
 
 // Error implements the error interface, joining e's code and reason.
 func (e *Error) Error() string {

@@ -208,8 +208,9 @@ type Identity struct {
 	// store.
 	UserID UserID
 	// Principal is the member's username: the readable name a log
-	// line, an audit actor, or a music app knows the member by. It is
-	// never the durable key; UserID is.
+	// line or a music app knows the member by. It is never the durable
+	// key; UserID is, so an audit actor carries UserID and a renamed
+	// member keeps one actor.
 	Principal string
 	// DisplayName is the member's human-readable name.
 	DisplayName string

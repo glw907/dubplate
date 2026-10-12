@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 
@@ -51,6 +52,12 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 		{"wrongly typed field", http.MethodPost, "/job_status", "application/json", `{"job_id":5}`, http.StatusBadRequest, ops.CodeInvalidRequest},
 		{"malformed handle on job_status", http.MethodPost, "/job_status", "application/json", `{"job_id":"ABC"}`, http.StatusBadRequest, ops.CodeInvalidRequest},
 		{"missing handle on cancel_job", http.MethodPost, "/cancel_job", "application/json", `{}`, http.StatusBadRequest, ops.CodeInvalidRequest},
+		{"GET on list_members", http.MethodGet, "/list_members", "application/json", `{}`, http.StatusMethodNotAllowed, ops.CodeInvalidRequest},
+		{"query string on set_setting", http.MethodPost, "/set_setting?key=K", "application/json", `{"key":"K","value":"v"}`, http.StatusBadRequest, ops.CodeInvalidRequest},
+		{"no content type on add_member", http.MethodPost, "/add_member", "", `{}`, http.StatusBadRequest, ops.CodeInvalidRequest},
+		{"array body on remove_member", http.MethodPost, "/remove_member", "application/json", `[]`, http.StatusBadRequest, ops.CodeInvalidRequest},
+		{"wrongly typed field on reset_setting", http.MethodPost, "/reset_setting", "application/json", `{"key":5}`, http.StatusBadRequest, ops.CodeInvalidRequest},
+		{"unknown operation beside the admin ones", http.MethodPost, "/list_member", "application/json", `{}`, http.StatusNotFound, ops.CodeNotFound},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -70,8 +77,118 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 			if n := len(f.auth.calls); n != 0 {
 				t.Errorf("authorizer calls = %d, want 0", n)
 			}
-			if n := len(f.seam.calls); n != 0 {
+			if n := len(f.seam.calls) + len(f.admin.calls); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
+			}
+		})
+	}
+}
+
+// TestServeHTTPRoutesAdminOperations posts each of the seven admin
+// operations to the handler and proves the admin seam, not the job
+// seam, receives the decoded request as the admitted actor, with its
+// session anchor, and that the answer is the seam's response.
+func TestServeHTTPRoutesAdminOperations(t *testing.T) {
+	tests := []struct {
+		op       string
+		body     string
+		wantReq  any
+		wantBody string
+	}{
+		{ops.OpListMembers, `{}`, ops.ListMembersRequest{},
+			`{"members":[{"user_id":"` + testHandle + `","address":"ann@example.com","display_name":"","username":"ann","admin":true}]}`},
+		{ops.OpAddMember, `{"address":"bo@example.com","display_name":"Bo","username":"bo"}`,
+			ops.AddMemberRequest{Address: "bo@example.com", DisplayName: "Bo", Username: "bo"},
+			`{"member":{"user_id":"` + testHandle + `","address":"bo@example.com","display_name":"","username":"bo","admin":false}}`},
+		{ops.OpRemoveMember, `{"user_id":"` + testHandle + `"}`, ops.RemoveMemberRequest{UserID: testHandle}, `{}`},
+		{ops.OpDemoteMember, `{"user_id":"` + testHandle + `"}`, ops.DemoteMemberRequest{UserID: testHandle}, `{}`},
+		{ops.OpListSettings, `{}`, ops.ListSettingsRequest{},
+			`{"settings":[{"name":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next-operation","mark":"sensitive"}]}`},
+		{ops.OpSetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
+			ops.SetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW", Value: "3h"},
+			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next-operation","source":"admin"}`},
+		{ops.OpResetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW"}`,
+			ops.ResetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW"},
+			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next-operation","source":"env-seed"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.op, func(t *testing.T) {
+			f := newFixture(t, admitAnn(), successes())
+			rec := f.post(tt.op, tt.body)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200; body %q", rec.Code, rec.Body.String())
+			}
+			if got := rec.Body.String(); got != tt.wantBody {
+				t.Errorf("body = %s, want %s", got, tt.wantBody)
+			}
+			if n := len(f.seam.calls); n != 0 {
+				t.Errorf("job seam calls = %d, want 0", n)
+			}
+			if len(f.admin.calls) != 1 {
+				t.Fatalf("admin seam calls = %d, want 1", len(f.admin.calls))
+			}
+			call := f.admin.calls[0]
+			if call.op != tt.op || call.req != tt.wantReq {
+				t.Errorf("admin seam got %s %+v, want %s %+v", call.op, call.req, tt.op, tt.wantReq)
+			}
+			if call.actor.String() != annWire || !call.actor.Anchor().Equal(annAnchor) {
+				t.Errorf("admin seam got actor %q anchored %v, want %q anchored %v", call.actor, call.actor.Anchor(), annWire, annAnchor)
+			}
+		})
+	}
+}
+
+// TestServeHTTPAddMemberIgnoresAnAdminField proves the add operation
+// cannot be asked to grant admin: a body naming the flag, or an actor,
+// reaches the seam as the request without either.
+func TestServeHTTPAddMemberIgnoresAnAdminField(t *testing.T) {
+	f := newFixture(t, admitAnn(), successes())
+	body := `{"address":"bo@example.com","display_name":"Bo","username":"bo","admin":true,"actor":"local:root"}`
+	if rec := f.post(ops.OpAddMember, body); rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %q", rec.Code, rec.Body.String())
+	}
+	want := ops.AddMemberRequest{Address: "bo@example.com", DisplayName: "Bo", Username: "bo"}
+	if len(f.admin.calls) != 1 || f.admin.calls[0].req != want || f.admin.calls[0].actor.String() != annWire {
+		t.Errorf("admin seam calls = %+v, want one %+v as %q", f.admin.calls, want, annWire)
+	}
+}
+
+// TestServeHTTPErrorDetail proves an error's detail reaches the body
+// beside its code and reason, through a wrapping error, and that a
+// coded error with no detail writes no detail key.
+func TestServeHTTPErrorDetail(t *testing.T) {
+	tests := []struct {
+		name       string
+		err        error
+		wantStatus int
+		wantBody   string
+	}{
+		{"conflict with detail", ops.NewConflictError("no admin would remain").WithDetail(ops.DetailLastAdmin), 409,
+			`{"error":{"code":"conflict","reason":"no admin would remain","detail":"last_admin"}}`},
+		{"detail through a wrapper", fmt.Errorf("remove: %w", ops.NewConflictError("taken").WithDetail(ops.DetailDuplicateAddress)), 409,
+			`{"error":{"code":"conflict","reason":"taken","detail":"duplicate_address"}}`},
+		{"invalid request with detail", ops.NewInvalidRequestError("bad name").WithDetail(ops.DetailInvalidUsername), 400,
+			`{"error":{"code":"invalid_request","reason":"bad name","detail":"invalid_username"}}`},
+		{"unavailable with detail", ops.NewUnavailableError("store busy").WithDetail(ops.DetailBusy), 503,
+			`{"error":{"code":"unavailable","reason":"store busy","detail":"busy"}}`},
+		{"no detail", ops.NewConflictError("elsewhere"), 409,
+			`{"error":{"code":"conflict","reason":"elsewhere"}}`},
+		{"internal never carries one", ops.NewInternalError("secret path").WithDetail(ops.DetailBusy), 500,
+			`{"error":{"code":"internal"}}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t, admitAnn(), successes())
+			f.admin.answers[ops.OpRemoveMember] = fakeAnswer{err: tt.err}
+			rec := f.post(ops.OpRemoveMember, `{"user_id":"`+testHandle+`"}`)
+			if rec.Code != tt.wantStatus {
+				t.Errorf("status = %d, want %d", rec.Code, tt.wantStatus)
+			}
+			if got := rec.Body.String(); got != tt.wantBody {
+				t.Errorf("body = %s, want %s", got, tt.wantBody)
+			}
+			if _, present := errorDetailOf(t, rec); present != strings.Contains(tt.wantBody, `"detail"`) {
+				t.Errorf("detail key present = %v for body %s", present, rec.Body.String())
 			}
 		})
 	}
@@ -180,14 +297,14 @@ func TestServeHTTPDenials(t *testing.T) {
 		{
 			name: "member grant on an admin operation",
 			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.NetworkActor(planted), ops.PrivilegeMember, nil
+				return ops.NetworkActor(planted, annAnchor), ops.PrivilegeMember, nil
 			},
 			wantReason: "granted privilege does not reach the operation's",
 		},
 		{
 			name: "zero grant",
 			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.NetworkActor(planted), 0, nil
+				return ops.NetworkActor(planted, annAnchor), 0, nil
 			},
 			wantReason: "granted privilege does not reach the operation's",
 		},
@@ -239,9 +356,11 @@ func TestServeHTTPDenials(t *testing.T) {
 }
 
 // TestServeHTTPAdmitsByGrant runs each operation under an admin grant
-// and a member grant: admin reaches all four, member only the catalog.
+// and a member grant: admin reaches all eleven, member only the
+// catalog. A refused call reaches neither seam.
 func TestServeHTTPAdmitsByGrant(t *testing.T) {
 	jobBody := `{"job_id":"` + testHandle + `"}`
+	userBody := `{"user_id":"` + testHandle + `"}`
 	tests := []struct {
 		op           string
 		body         string
@@ -251,6 +370,13 @@ func TestServeHTTPAdmitsByGrant(t *testing.T) {
 		{ops.OpJobStatus, jobBody, http.StatusForbidden},
 		{ops.OpCancelJob, jobBody, http.StatusForbidden},
 		{ops.OpCatalog, `{}`, http.StatusOK},
+		{ops.OpListMembers, `{}`, http.StatusForbidden},
+		{ops.OpAddMember, `{"address":"bo@example.com","display_name":"Bo","username":"bo"}`, http.StatusForbidden},
+		{ops.OpRemoveMember, userBody, http.StatusForbidden},
+		{ops.OpDemoteMember, userBody, http.StatusForbidden},
+		{ops.OpListSettings, `{}`, http.StatusForbidden},
+		{ops.OpSetSetting, `{"key":"K","value":"v"}`, http.StatusForbidden},
+		{ops.OpResetSetting, `{"key":"K"}`, http.StatusForbidden},
 	}
 	for _, tt := range tests {
 		for _, g := range []struct {
@@ -273,11 +399,12 @@ func TestServeHTTPAdmitsByGrant(t *testing.T) {
 				if g.status == http.StatusOK {
 					wantSeamCalls = 1
 				}
-				if len(f.seam.calls) != wantSeamCalls {
-					t.Fatalf("seam calls = %d, want %d", len(f.seam.calls), wantSeamCalls)
+				calls := slices.Concat(f.seam.calls, f.admin.calls)
+				if len(calls) != wantSeamCalls {
+					t.Fatalf("seam calls = %d, want %d", len(calls), wantSeamCalls)
 				}
-				if wantSeamCalls == 1 && f.seam.calls[0].actor.String() != annWire {
-					t.Errorf("seam got %q, want %q", f.seam.calls[0].actor, annWire)
+				if wantSeamCalls == 1 && calls[0].actor.String() != annWire {
+					t.Errorf("seam got %q, want %q", calls[0].actor, annWire)
 				}
 			})
 		}
@@ -300,6 +427,8 @@ func TestServeHTTPSeamErrors(t *testing.T) {
 		{"invalid request", ops.NewInvalidRequestError("bad field"), 400, ops.CodeInvalidRequest, "bad field", ""},
 		{"canceled", ops.NewCanceledError("caller went away"), 503, ops.CodeCanceled, "caller went away", ""},
 		{"forbidden", ops.NewForbiddenError("not yours"), 403, ops.CodeForbidden, "not yours", `reason=denied`},
+		{"unauthenticated", ops.NewUnauthenticatedError("sign in again"), 401, ops.CodeUnauthenticated, "sign in again", ""},
+		{"reauthentication required", ops.NewReauthenticationRequiredError("sign in from this browser"), 403, ops.CodeReauthenticationRequired, "sign in from this browser", ""},
 		{"coded internal", ops.NewInternalError("store closed at " + path), 500, ops.CodeInternal, "", ""},
 		{"bare context canceled", fmt.Errorf("wait for the write connection: %w", context.Canceled), 503, ops.CodeCanceled, "", ""},
 		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewConflictError("backup job already running")), 409, ops.CodeConflict, "backup job already running", ""},
@@ -342,13 +471,15 @@ func TestServeHTTPSeamErrors(t *testing.T) {
 
 func TestStatuses(t *testing.T) {
 	want := map[ops.Code]int{
-		"invalid_request": 400,
-		"forbidden":       403,
-		"not_found":       404,
-		"conflict":        409,
-		"unavailable":     503,
-		"canceled":        503,
-		"internal":        500,
+		"invalid_request":           400,
+		"forbidden":                 403,
+		"not_found":                 404,
+		"conflict":                  409,
+		"unavailable":               503,
+		"canceled":                  503,
+		"internal":                  500,
+		"unauthenticated":           401,
+		"reauthentication_required": 403,
 	}
 	if !maps.Equal(statuses, want) {
 		t.Errorf("statuses = %v, want %v", statuses, want)
@@ -372,21 +503,23 @@ func TestNewHandlerRefuses(t *testing.T) {
 	tests := []struct {
 		name    string
 		seam    ops.Seam
+		admin   ops.AdminSeam
 		auth    authorizer
 		channel identity.Channel
 		log     *slog.Logger
 		want    string
 	}{
-		{"nil seam", nil, admitAnn(), identity.ChannelCookie, log, "seam is nil"},
-		{"nil authorizer", &fakeSeam{}, nil, identity.ChannelCookie, log, "authorizer is nil"},
-		{"nil logger", &fakeSeam{}, admitAnn(), identity.ChannelCookie, nil, "logger is nil"},
-		{"zero channel", &fakeSeam{}, admitAnn(), identity.Channel(0), log, "channel 0 is not"},
-		{"unknown channel", &fakeSeam{}, admitAnn(), identity.Channel(99), log, "channel 99 is not"},
-		{"command-line channel", &fakeSeam{}, admitAnn(), identity.ChannelCommandLine, log, "command line"},
+		{"nil seam", nil, &fakeAdmin{}, admitAnn(), identity.ChannelCookie, log, "job seam is nil"},
+		{"nil admin seam", &fakeSeam{}, nil, admitAnn(), identity.ChannelCookie, log, "admin seam is nil"},
+		{"nil authorizer", &fakeSeam{}, &fakeAdmin{}, nil, identity.ChannelCookie, log, "authorizer is nil"},
+		{"nil logger", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.ChannelCookie, nil, "logger is nil"},
+		{"zero channel", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.Channel(0), log, "channel 0 is not"},
+		{"unknown channel", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.Channel(99), log, "channel 99 is not"},
+		{"command-line channel", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.ChannelCommandLine, log, "command line"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, err := newHandler(tt.seam, tt.auth, tt.channel, tt.log)
+			h, err := newHandler(tt.seam, tt.admin, tt.auth, tt.channel, tt.log)
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("newHandler = %v, %v; want an error containing %q", h, err, tt.want)
 			}

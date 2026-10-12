@@ -2,6 +2,7 @@ package opshttp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,9 @@ var statuses = map[ops.Code]int{
 	ops.CodeUnavailable:    http.StatusServiceUnavailable,
 	ops.CodeCanceled:       http.StatusServiceUnavailable,
 	ops.CodeInternal:       http.StatusInternalServerError,
+
+	ops.CodeUnauthenticated:          http.StatusUnauthorized,
+	ops.CodeReauthenticationRequired: http.StatusForbidden,
 }
 
 // checkStatuses fails, naming the first code [ops.Codes] declares that
@@ -43,7 +47,7 @@ func checkStatuses(table map[ops.Code]int) error {
 	return nil
 }
 
-// A handler serves the four operations, each as POST /<name>. It
+// A handler serves the eleven operations, each as POST /<name>. It
 // dispatches by exact path itself rather than through [http.ServeMux],
 // whose method-mismatch and not-found answers are plain text, so that
 // every answer here carries the JSON error shape.
@@ -53,15 +57,15 @@ type handler struct {
 	routes map[string]http.HandlerFunc
 }
 
-// newHandler builds the projection of next, admitting each call
-// through auth on a mount whose verified identities arrive on channel.
-// It fails on a nil next, auth, or log, on a channel no network mount
-// carries, and on a wire code with no HTTP status.
-func newHandler(next ops.Seam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
+// newHandler builds the projection of the job seam and the admin seam,
+// admitting each call through auth on a mount whose verified identities
+// arrive on channel. It fails on a nil seam, auth, or log, on a channel
+// no network mount carries, and on a wire code with no HTTP status.
+func newHandler(jobs ops.Seam, admin ops.AdminSeam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
 	if log == nil {
 		return nil, errors.New("opshttp: logger is nil")
 	}
-	seam, err := newAuthorizingSeam(next, auth, channel)
+	seam, err := newAuthorizingSeam(jobs, admin, auth, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +78,31 @@ func newHandler(next ops.Seam, auth authorizer, channel identity.Channel, log *s
 		ops.OpJobStatus:   h.jobStatus,
 		ops.OpCancelJob:   h.cancelJob,
 		ops.OpCatalog:     h.catalog,
+
+		ops.OpListMembers:  route(h, ops.OpListMembers, seam.ListMembers),
+		ops.OpAddMember:    route(h, ops.OpAddMember, seam.AddMember),
+		ops.OpRemoveMember: route(h, ops.OpRemoveMember, seam.RemoveMember),
+		ops.OpDemoteMember: route(h, ops.OpDemoteMember, seam.DemoteMember),
+		ops.OpListSettings: route(h, ops.OpListSettings, seam.ListSettings),
+		ops.OpSetSetting:   route(h, ops.OpSetSetting, seam.SetSetting),
+		ops.OpResetSetting: route(h, ops.OpResetSetting, seam.ResetSetting),
 	}
 	return h, nil
+}
+
+// route builds the handler of an operation whose request needs no check
+// beyond its decoding: it decodes a Req, calls the operation through
+// the authorizing seam with the zero actor the seam discards, and
+// answers the result.
+func route[Req, Resp any](h *handler, op string, call func(context.Context, ops.Actor, Req) (Resp, error)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req Req
+		if !decode(w, r, &req) {
+			return
+		}
+		resp, err := call(r.Context(), ops.Actor{}, req)
+		h.respond(w, op, resp, err)
+	}
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -211,11 +238,11 @@ func (h *handler) respond(w http.ResponseWriter, op string, resp any, err error)
 		default:
 			h.log.Info("ops operation refused", "op", op, "code", code, "err", err)
 		}
-		var reason string
+		body := errorDetail{Code: code}
 		if opsErr, ok := errors.AsType[*ops.Error](err); ok {
-			reason = opsErr.Reason
+			body.Reason, body.Detail = opsErr.Reason, opsErr.Detail
 		}
-		writeError(w, status, code, reason)
+		writeErrorBody(w, status, body)
 		return
 	}
 	data, err := json.Marshal(resp)
@@ -234,11 +261,16 @@ type errorBody struct {
 type errorDetail struct {
 	Code   ops.Code `json:"code"`
 	Reason string   `json:"reason,omitempty"`
+	Detail string   `json:"detail,omitempty"`
 }
 
 func writeError(w http.ResponseWriter, status int, code ops.Code, reason string) {
-	// A struct of two strings always marshals.
-	data, _ := json.Marshal(errorBody{Error: errorDetail{Code: code, Reason: reason}})
+	writeErrorBody(w, status, errorDetail{Code: code, Reason: reason})
+}
+
+func writeErrorBody(w http.ResponseWriter, status int, e errorDetail) {
+	// A struct of three strings always marshals.
+	data, _ := json.Marshal(errorBody{Error: e})
 	writeBody(w, status, data)
 }
 

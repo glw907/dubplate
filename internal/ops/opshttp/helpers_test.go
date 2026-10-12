@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
@@ -29,17 +30,20 @@ var ann = identity.Identity{
 }
 
 // annWire is ann's network actor's wire form, written out rather than
-// read back from ops.NetworkActor.
-const annWire = "member:ann"
+// read back from ops.NetworkActor: member: and the hex of ann's UserID.
+const annWire = "member:01000000000000000000000000000000"
 
-// A fakeCall is one call the fake seam received.
+// annAnchor is the instant every test session was anchored.
+var annAnchor = time.Date(2026, 10, 11, 9, 30, 0, 0, time.UTC)
+
+// A fakeCall is one call a fake seam received.
 type fakeCall struct {
 	op    string
 	actor ops.Actor
 	req   any
 }
 
-// A fakeAnswer is what the fake seam answers one operation with.
+// A fakeAnswer is what a fake seam answers one operation with.
 type fakeAnswer struct {
 	resp any
 	err  error
@@ -53,10 +57,17 @@ type fakeSeam struct {
 	calls   []fakeCall
 }
 
-func answer[T any](f *fakeSeam, op string, actor ops.Actor, req any) (T, error) {
-	f.calls = append(f.calls, fakeCall{op: op, actor: actor, req: req})
+// A fakeAdmin is the admin seam's counterpart to fakeSeam, with the
+// same recording and the same refusal of an unconfigured operation.
+type fakeAdmin struct {
+	answers map[string]fakeAnswer
+	calls   []fakeCall
+}
+
+func answer[T any](answers map[string]fakeAnswer, calls *[]fakeCall, op string, actor ops.Actor, req any) (T, error) {
+	*calls = append(*calls, fakeCall{op: op, actor: actor, req: req})
 	var zero T
-	a, ok := f.answers[op]
+	a, ok := answers[op]
 	if !ok {
 		return zero, fmt.Errorf("fake seam: %s not configured", op)
 	}
@@ -71,19 +82,60 @@ func answer[T any](f *fakeSeam, op string, actor ops.Actor, req any) (T, error) 
 }
 
 func (f *fakeSeam) StartBackup(_ context.Context, actor ops.Actor, req ops.StartBackupRequest) (ops.StartBackupResponse, error) {
-	return answer[ops.StartBackupResponse](f, ops.OpStartBackup, actor, req)
+	return answer[ops.StartBackupResponse](f.answers, &f.calls, ops.OpStartBackup, actor, req)
 }
 
 func (f *fakeSeam) JobStatus(_ context.Context, actor ops.Actor, req ops.JobStatusRequest) (ops.JobStatusResponse, error) {
-	return answer[ops.JobStatusResponse](f, ops.OpJobStatus, actor, req)
+	return answer[ops.JobStatusResponse](f.answers, &f.calls, ops.OpJobStatus, actor, req)
 }
 
 func (f *fakeSeam) CancelJob(_ context.Context, actor ops.Actor, req ops.CancelJobRequest) (ops.CancelJobResponse, error) {
-	return answer[ops.CancelJobResponse](f, ops.OpCancelJob, actor, req)
+	return answer[ops.CancelJobResponse](f.answers, &f.calls, ops.OpCancelJob, actor, req)
 }
 
 func (f *fakeSeam) Catalog(_ context.Context, actor ops.Actor, req ops.CatalogRequest) (ops.CatalogResponse, error) {
-	return answer[ops.CatalogResponse](f, ops.OpCatalog, actor, req)
+	return answer[ops.CatalogResponse](f.answers, &f.calls, ops.OpCatalog, actor, req)
+}
+
+func (f *fakeAdmin) ListMembers(_ context.Context, actor ops.Actor, req ops.ListMembersRequest) (ops.ListMembersResponse, error) {
+	return answer[ops.ListMembersResponse](f.answers, &f.calls, ops.OpListMembers, actor, req)
+}
+
+func (f *fakeAdmin) AddMember(_ context.Context, actor ops.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
+	return answer[ops.AddMemberResponse](f.answers, &f.calls, ops.OpAddMember, actor, req)
+}
+
+func (f *fakeAdmin) RemoveMember(_ context.Context, actor ops.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
+	return answer[ops.RemoveMemberResponse](f.answers, &f.calls, ops.OpRemoveMember, actor, req)
+}
+
+func (f *fakeAdmin) DemoteMember(_ context.Context, actor ops.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
+	return answer[ops.DemoteMemberResponse](f.answers, &f.calls, ops.OpDemoteMember, actor, req)
+}
+
+func (f *fakeAdmin) ListSettings(_ context.Context, actor ops.Actor, req ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
+	return answer[ops.ListSettingsResponse](f.answers, &f.calls, ops.OpListSettings, actor, req)
+}
+
+func (f *fakeAdmin) SetSetting(_ context.Context, actor ops.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
+	return answer[ops.SetSettingResponse](f.answers, &f.calls, ops.OpSetSetting, actor, req)
+}
+
+func (f *fakeAdmin) ResetSetting(_ context.Context, actor ops.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
+	return answer[ops.ResetSettingResponse](f.answers, &f.calls, ops.OpResetSetting, actor, req)
+}
+
+// adminSuccesses configures every admin operation to succeed.
+func adminSuccesses() map[string]fakeAnswer {
+	return map[string]fakeAnswer{
+		ops.OpListMembers:  {resp: ops.ListMembersResponse{Members: []ops.Member{{UserID: testHandle, Address: "ann@example.com", Username: "ann", Admin: true}}}},
+		ops.OpAddMember:    {resp: ops.AddMemberResponse{Member: ops.Member{UserID: testHandle, Address: "bo@example.com", Username: "bo"}}},
+		ops.OpRemoveMember: {resp: ops.RemoveMemberResponse{}},
+		ops.OpDemoteMember: {resp: ops.DemoteMemberResponse{}},
+		ops.OpListSettings: {resp: ops.ListSettingsResponse{Settings: []ops.SettingEntry{{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Mark: "sensitive"}}}},
+		ops.OpSetSetting:   {resp: ops.SetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next-operation", Source: "admin"}},
+		ops.OpResetSetting: {resp: ops.ResetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next-operation", Source: "env-seed"}},
+	}
 }
 
 // successes configures every operation to succeed.
@@ -111,7 +163,7 @@ func (a *fakeAuthorizer) authorize(_ context.Context, op string) (ops.Actor, ops
 // grant admits every call as the actor id's network actor, granted p.
 func grant(id identity.Identity, p ops.Privilege) *fakeAuthorizer {
 	return &fakeAuthorizer{decide: func(string) (ops.Actor, ops.Privilege, error) {
-		return ops.NetworkActor(id), p, nil
+		return ops.NetworkActor(id, annAnchor), p, nil
 	}}
 }
 
@@ -120,24 +172,27 @@ func admitAnn() *fakeAuthorizer {
 	return grant(ann, ops.PrivilegeAdmin)
 }
 
-// A fixture is a handler over a fake seam and authorizer, with its log
-// captured.
+// A fixture is a handler over fake seams and a fake authorizer, with
+// its log captured. The admin seam answers every operation with a
+// success until a test sets admin.answers.
 type fixture struct {
-	h    *handler
-	seam *fakeSeam
-	auth *fakeAuthorizer
-	log  *bytes.Buffer
+	h     *handler
+	seam  *fakeSeam
+	admin *fakeAdmin
+	auth  *fakeAuthorizer
+	log   *bytes.Buffer
 }
 
 func newFixture(t *testing.T, auth *fakeAuthorizer, answers map[string]fakeAnswer) *fixture {
 	t.Helper()
 	seam := &fakeSeam{answers: answers}
+	admin := &fakeAdmin{answers: adminSuccesses()}
 	var buf bytes.Buffer
-	h, err := newHandler(seam, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
+	h, err := newHandler(seam, admin, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
 	if err != nil {
 		t.Fatalf("newHandler: %v", err)
 	}
-	return &fixture{h: h, seam: seam, auth: auth, log: &buf}
+	return &fixture{h: h, seam: seam, admin: admin, auth: auth, log: &buf}
 }
 
 // do sends one request; an empty contentType sends no Content-Type
@@ -182,6 +237,18 @@ func errorAnswer(t *testing.T, rec *httptest.ResponseRecorder) (code ops.Code, r
 	}
 	reason, hasReason = detail["reason"]
 	return ops.Code(detail["code"]), reason, hasReason
+}
+
+// errorDetailOf reads the optional error.detail of rec's JSON error
+// body, and whether the key is present.
+func errorDetailOf(t *testing.T, rec *httptest.ResponseRecorder) (detail string, present bool) {
+	t.Helper()
+	var body map[string]map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode error body %q: %v", rec.Body.String(), err)
+	}
+	detail, present = body["error"]["detail"]
+	return detail, present
 }
 
 // paddedObject returns a JSON object of exactly n bytes: one unknown
