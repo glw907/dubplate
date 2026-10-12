@@ -29,21 +29,32 @@ import type { Browser, BrowserContext, Cookie, Page, Response as PlaywrightRespo
 import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
 import {
   ADD_MEMBER_LABELS,
+  API_DETAILS,
+  API_REFUSALS,
   AUTH_OUTCOMES,
+  CONFIRM_CANCEL,
+  CONFIRM_DEMOTE,
+  CONFIRM_REMOVE,
   CROSS_ORIGIN_REFUSED,
   ERROR_PAGE,
   INTERSTITIAL_CONTROL,
   LINK_TOKEN_MISSING,
   LOGIN_SUBLINE,
   NETWORK_FAILURE,
+  REAUTH_SIGN_IN,
   ROSTER_EMPTY_STATE,
-  ROSTER_OUTCOMES,
   ROSTER_RETRY,
   SENT_ESCAPE_HATCH,
   SIGN_OUT_CONTROL,
+  SIGNED_OUT_SIGN_IN,
   THEME_TOGGLE_LABEL,
   TITLES,
   addedMemberLine,
+  confirmDemoteLine,
+  confirmRemoveLine,
+  demoteControlLabel,
+  removeControlLabel,
+  removedMemberLine,
   unknownAddressLine
 } from '../../src/lib/copy/deck.ts';
 import { pageTitle } from '../../src/lib/copy/title.ts';
@@ -858,12 +869,12 @@ function isExpectedViolation(visit: Visit, v: Violation): boolean {
  * Chromium logs "Failed to load resource" for any fetch response
  * outside 2xx, whether or not the page's own code reads the status:
  * the auth flow's intentional 4xx/5xx answers and the members page's
- * non-admin row's intentional 404 from `roster` each need this, or the
+ * non-admin row's intentional 403 from `list_members` each need this, or the
  * console-error check below would end the whole run on a deliberate
  * refusal.
  */
 const AUTH_ERROR_STATUS_RE =
-  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster|sign-out)\)$/;
+  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster|sign-out|api\/v1\/[a-z_]+)\)$/;
 
 /**
  * SvelteKit's client router logs this when a client-side navigation
@@ -1047,11 +1058,11 @@ async function iconRows(browser: Browser, endpoints: Endpoints): Promise<void> {
 
 /**
  * The client navigation row's landing identity. Its visitor carries no
- * session, so the real members page (Task 9a) answers the roster GET's
- * 404 with the not-found state, never the roster's own "Members"
- * heading, which now shows only to a signed-in admin.
+ * session, so the real members page meets `list_members`'s 401
+ * `unauthenticated` and shows its signed-out state, never the "Members"
+ * heading, which shows only to a signed-in admin.
  */
-const MEMBERS_HEADING = TITLES.notFound;
+const MEMBERS_HEADING = TITLES.signedOut;
 
 /** How long the navigation row watches for a request outside the prefix. */
 const NAVIGATION_WATCH_MS = 3_000;
@@ -1087,8 +1098,7 @@ async function clientNavigationRow(browser: Browser, endpoints: Endpoints): Prom
     const visit = await openBooted(context, endpoints.base, PAGES[1]);
     await logSince(endpoints.requestLog, before, (r) => paths.icons.includes(r.path), ICON_TIMEOUT_MS);
     // This visitor carries no session, so the members page's own
-    // roster fetch meets the admin gate's 404 once it mounts, the same
-    // deliberate refusal Task 9a's non-admin row spends a session on.
+    // list call meets a 401 once it mounts, a deliberate refusal.
     visit.expectsAuthErrorStatus = true;
 
     const from = (await requestLog(endpoints.requestLog)).length;
@@ -3095,8 +3105,7 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
   try {
     await context.addCookies([session]);
     let attempts = 0;
-    await context.route('**/roster', (route) => {
-      if (route.request().method() !== 'GET') return route.continue();
+    await context.route('**/api/v1/list_members', (route) => {
       attempts += 1;
       if (attempts === 1) return route.abort('failed');
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ members: [] }) });
@@ -3148,10 +3157,9 @@ async function membersMalformedRosterRows(browser: Browser, endpoints: Endpoints
     const context = await browser.newContext();
     try {
       await context.addCookies([session]);
-      await context.route('**/roster', (route) => {
-        if (route.request().method() !== 'GET') return route.continue();
-        return route.fulfill({ status: 200, contentType: 'application/json', body: c.body });
-      });
+      await context.route('**/api/v1/list_members', (route) =>
+        route.fulfill({ status: 200, contentType: 'application/json', body: c.body })
+      );
       const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
       const alert = visit.page.locator('.alert').filter({ hasText: AUTH_OUTCOMES.failed });
       const alertShown = await alert
@@ -3552,7 +3560,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
 
     const bodies: string[] = [];
     visit.page.on('request', (req) => {
-      if (req.method() === 'POST' && new URL(req.url()).pathname.endsWith('/roster')) {
+      if (req.method() === 'POST' && new URL(req.url()).pathname.endsWith('/api/v1/add_member')) {
         bodies.push(req.postData() ?? '');
       }
     });
@@ -3590,7 +3598,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
       .locator('#roster-outcome')
-      .filter({ hasText: ROSTER_OUTCOMES.duplicate_address })
+      .filter({ hasText: API_DETAILS.duplicate_address })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
     // Item 2's fold: a duplicate-address refusal lands on the email
@@ -3612,7 +3620,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
       .locator('#roster-outcome')
-      .filter({ hasText: ROSTER_OUTCOMES.duplicate_username })
+      .filter({ hasText: API_DETAILS.duplicate_username })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
     const usernameField = visit.page.locator('#add-username');
@@ -3628,7 +3636,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     const usernameHasErrorClassAfterInput = await usernameField.evaluate((el) => el.classList.contains('input-error'));
 
     const knownKeys = new Set(['address', 'display_name', 'username']);
-    const bodyKeysOK = bodies.length === 3 && bodies.every((b) => [...new URLSearchParams(b).keys()].every((k) => knownKeys.has(k)));
+    const bodyKeysOK = bodies.length === 3 && bodies.every((b) => Object.keys(JSON.parse(b)).every((k) => knownKeys.has(k)));
 
     await report({
       id,
@@ -3672,9 +3680,9 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
     const visit = await signIn(context, endpoints.membersNonAdminLink);
     visit.expectsAuthErrorStatus = true;
 
-    let rosterStatus: number | null = null;
+    let listStatus: number | null = null;
     const onResponse = (res: PlaywrightResponse) => {
-      if (new URL(res.url()).pathname.endsWith('/roster')) rosterStatus = res.status();
+      if (new URL(res.url()).pathname.endsWith('/api/v1/list_members')) listStatus = res.status();
     };
     visit.page.on('response', onResponse);
 
@@ -3696,10 +3704,10 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
     visit.page.off('response', onResponse);
 
     const membersPath = new URL('members', endpoints.base).pathname;
-    const rosterPath = new URL('roster', endpoints.base).pathname;
+    const listPath = new URL('api/v1/list_members', endpoints.base).pathname;
     const records = (await requestLog(endpoints.requestLog)).slice(from);
     const documentRequested = records.some((r) => r.method === 'GET' && r.path === membersPath);
-    const rosterGETs = records.filter((r) => r.method === 'GET' && r.path === rosterPath).length;
+    const listCalls = records.filter((r) => r.method === 'POST' && r.path === listPath).length;
     const adminAddressLeaked = (await visit.page.getByText(ADMIN_ADDRESS).count()) > 0;
     const formCount = await visit.page.locator('form').count();
     const rosterListCount = await visit.page.locator('#roster-list').count();
@@ -3714,8 +3722,8 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
       id,
       fixture: arrived,
       property:
-        rosterStatus === 404 &&
-        rosterGETs === 1 &&
+        listStatus === 403 &&
+        listCalls === 1 &&
         !documentRequested &&
         !adminAddressLeaked &&
         formCount === 0 &&
@@ -3723,7 +3731,7 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
         headerPresent &&
         !membersLinkPresent &&
         signOutPresent,
-      detail: `roster GET status ${rosterStatus}; roster GETs logged ${rosterGETs}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}; header present ${headerPresent}; "Members" link present ${membersLinkPresent}; sign-out present ${signOutPresent}`
+      detail: `list_members status ${listStatus}; list_members calls logged ${listCalls}; document request for ${membersPath} ${documentRequested}; admin address leaked ${adminAddressLeaked}; form count ${formCount}; roster list count ${rosterListCount}; header present ${headerPresent}; "Members" link present ${membersLinkPresent}; sign-out present ${signOutPresent}`
     });
   } finally {
     await context.close();
@@ -4129,52 +4137,6 @@ async function headerWordmarkClearanceRow(browser: Browser, endpoints: Endpoints
   await report({ id, fixture: true, property, detail: details.join('; ') });
 }
 
-/**
- * The render-and-read's "members lists" defect: a member with a blank
- * `username` joins only the segments present, never a
- * dangling " · " separator. A fulfilled roster GET keeps this row
- * independent of the fixture roster file, reusing the header's own
- * signed-in session cookie.
- */
-async function membersListJoinRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
-  const id = 'members/list-join';
-  const context = await browser.newContext();
-  try {
-    await context.addCookies([session]);
-    await context.route('**/roster', (route) => {
-      if (route.request().method() !== 'GET') return route.continue();
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          members: [
-            { address: 'no-username@example.test', display_name: 'No Username', username: '', admin: false },
-            { address: 'has-username@example.test', display_name: 'Has Username', username: 'hasuser', admin: false }
-          ]
-        })
-      });
-    });
-    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
-    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
-    const metaLines = await visit.page.locator('#roster-list .text-xs').allTextContents();
-    const noUsername = (metaLines[0] ?? '').trim();
-    const hasUsername = (metaLines[1] ?? '').trim();
-    // The separator is a suffix of the segment before it (P3): a
-    // wrapped line never starts with a dangling "·". The visible
-    // gap on one line is the list's own flex gap, not a space in the
-    // text. The sr-only "Username" label is part of the text content.
-    const wantHasUsername = `has-username@example.test ·Username hasuser`;
-    await report({
-      id,
-      fixture: metaLines.length === 2,
-      property: noUsername === 'no-username@example.test' && hasUsername === wantHasUsername,
-      detail: `no-username meta ${JSON.stringify(noUsername)}; has-username meta ${JSON.stringify(hasUsername)} (want ${JSON.stringify(wantHasUsername)})`
-    });
-  } finally {
-    await context.close();
-  }
-}
-
 /** Opens the members page under `session`, waiting for its signed-in heading. */
 async function openMembers(context: BrowserContext, endpoints: Endpoints, session: Cookie): Promise<Visit> {
   await context.addCookies([session]);
@@ -4184,20 +4146,26 @@ async function openMembers(context: BrowserContext, endpoints: Endpoints, sessio
 }
 
 /**
- * A roster answer named after an inherited member (`toString`) shows
- * the last-resort `failed` line: a plain property lookup would find
- * `Object.prototype.toString` and render a function's source. The POST
- * is fulfilled, so the fixture roster is untouched.
+ * A refusal whose code and detail are named after inherited members
+ * (`toString`, `constructor`) shows the last-resort `failed` line: a
+ * plain property lookup would find `Object.prototype.toString` and
+ * render a function's source. The call is fulfilled with that refusal,
+ * so the fixture roster is untouched.
  */
 async function membersInheritedOutcomeRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
   const id = 'members/inherited-outcome';
   const context = await browser.newContext();
   try {
-    await context.route('**/roster', (route) => {
-      if (route.request().method() !== 'POST') return route.continue();
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ outcome: 'toString' }) });
-    });
+    await context.route('**/api/v1/add_member', (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 'toString', detail: 'constructor' } })
+      })
+    );
     const visit = await openMembers(context, endpoints, session);
+    // The fulfilled 400 is a deliberate refusal.
+    visit.expectsAuthErrorStatus = true;
     await visit.page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill('inherited@example.test');
     await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Inherited');
     await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('inherited');
@@ -4213,6 +4181,437 @@ async function membersInheritedOutcomeRow(browser: Browser, endpoints: Endpoints
       fixture: appeared,
       property: text === AUTH_OUTCOMES.failed,
       detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(AUTH_OUTCOMES.failed)})`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** A POST to one `/api/v1` operation, as the page's own request log records it. */
+function apiWrites(page: Page, operation: string): string[] {
+  const seen: string[] = [];
+  page.on('request', (req) => {
+    if (req.method() === 'POST' && new URL(req.url()).pathname.endsWith(`/api/v1/${operation}`)) seen.push(req.postData() ?? '');
+  });
+  return seen;
+}
+
+/** Fills the add form with a fresh member and submits it. */
+async function submitAddForm(page: Page, address: string, name: string, username: string): Promise<void> {
+  await page.getByLabel(ADD_MEMBER_LABELS.address, { exact: true }).fill(address);
+  await page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill(name);
+  await page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill(username);
+  await page.getByRole('button', { name: 'Add member', exact: true }).click();
+}
+
+/** The roster row naming `address`. */
+function memberRow(page: Page, address: string) {
+  return page.locator('#roster-list > li').filter({ hasText: address });
+}
+
+/** A refusal fulfilled in place of one write, and the copy the page must show for it. */
+interface RefusalCase {
+  id: string;
+  operation: 'add_member' | 'remove_member' | 'demote_member';
+  status: number;
+  error: { code: string; detail?: string };
+  want: string;
+}
+
+const REFUSAL_CASES: RefusalCase[] = [
+  { id: 'forbidden', operation: 'add_member', status: 403, error: { code: 'forbidden' }, want: API_REFUSALS.forbidden },
+  { id: 'busy', operation: 'add_member', status: 503, error: { code: 'unavailable', detail: 'busy' }, want: API_DETAILS.busy },
+  {
+    id: 'last-admin-remove',
+    operation: 'remove_member',
+    status: 409,
+    error: { code: 'conflict', detail: 'last_admin' },
+    want: API_DETAILS.last_admin
+  },
+  {
+    id: 'last-admin-demote',
+    operation: 'demote_member',
+    status: 409,
+    error: { code: 'conflict', detail: 'last_admin' },
+    want: API_DETAILS.last_admin
+  },
+  {
+    id: 'reauthentication-required',
+    operation: 'add_member',
+    status: 403,
+    error: { code: 'reauthentication_required' },
+    want: API_REFUSALS.reauthentication_required
+  }
+];
+
+/**
+ * `members/refusal/<id>`: each write's refusal, fulfilled in its place
+ * as JSON, shows its own line, and a JSON 403 never shows the
+ * cross-site copy (only the origin check's plain-text 403 does). Remove
+ * and demote go through the confirm step first. The reauthentication
+ * case also checks what the page offers: a sign-in link that opens in a
+ * new tab with no opener, a retry control, and the add form still
+ * holding what was typed.
+ */
+async function membersRefusalRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  for (const c of REFUSAL_CASES) {
+    const id = `members/refusal/${c.id}`;
+    const context = await browser.newContext();
+    try {
+      await context.route(`**/api/v1/${c.operation}`, (route) =>
+        route.fulfill({ status: c.status, contentType: 'application/json', body: JSON.stringify({ error: c.error }) })
+      );
+      const visit = await openMembers(context, endpoints, session);
+      visit.expectsAuthErrorStatus = true;
+      if (c.operation === 'add_member') {
+        await submitAddForm(visit.page, 'refused@example.test', 'Refused Member', 'refused1');
+      } else {
+        const control = c.operation === 'remove_member' ? 'Remove' : 'Demote';
+        await memberRow(visit.page, ADMIN_ADDRESS).getByRole('button', { name: new RegExp(`^${control} `) }).click();
+        await visit.page.getByRole('button', { name: c.operation === 'remove_member' ? CONFIRM_REMOVE : CONFIRM_DEMOTE, exact: true }).click();
+      }
+      const alert = visit.page.locator('#roster-outcome');
+      const shown = await alert
+        .filter({ hasText: c.want })
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      const crossSite = (await visit.page.getByText(CROSS_ORIGIN_REFUSED).count()) > 0;
+      let extra = '';
+      let extraOK = true;
+      if (c.id === 'reauthentication-required') {
+        const link = alert.getByRole('link', { name: REAUTH_SIGN_IN, exact: true });
+        const target = await link.getAttribute('target');
+        const rel = await link.getAttribute('rel');
+        const href = (await link.getAttribute('href')) ?? '';
+        const retryShown = (await alert.getByRole('button', { name: ROSTER_RETRY, exact: true }).count()) === 1;
+        const held = await visit.page.evaluate(() => ({
+          address: (document.querySelector('#add-address') as HTMLInputElement).value,
+          name: (document.querySelector('#add-display-name') as HTMLInputElement).value,
+          username: (document.querySelector('#add-username') as HTMLInputElement).value
+        }));
+        extraOK =
+          target === '_blank' &&
+          (rel ?? '').split(' ').includes('noopener') &&
+          href.endsWith('/login') &&
+          retryShown &&
+          held.address === 'refused@example.test' &&
+          held.name === 'Refused Member' &&
+          held.username === 'refused1';
+        extra = `; link target ${target} rel ${rel} href ${href}; retry shown ${retryShown}; form holds ${JSON.stringify(held)}`;
+      }
+      await report({
+        id,
+        fixture: shown,
+        property: shown && !crossSite && extraOK,
+        detail: `copy shown ${shown} (want ${JSON.stringify(c.want)}); cross-site copy shown ${crossSite}${extra}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `members/signed-out-write`: a write answered 401 `unauthenticated`
+ * replaces the page with the signed-out state, a heading and a link to
+ * sign in, and leaves no form behind.
+ */
+async function membersSignedOutWriteRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/signed-out-write';
+  const context = await browser.newContext();
+  try {
+    await context.route('**/api/v1/add_member', (route) =>
+      route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: { code: 'unauthenticated' } }) })
+    );
+    const visit = await openMembers(context, endpoints, session);
+    visit.expectsAuthErrorStatus = true;
+    await submitAddForm(visit.page, 'signedout@example.test', 'Signed Out', 'signedout1');
+    const heading = await visit.page
+      .getByRole('heading', { level: 1, name: TITLES.signedOut, exact: true })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const link = visit.page.getByRole('link', { name: SIGNED_OUT_SIGN_IN, exact: true });
+    const href = (await link.count()) === 1 ? ((await link.getAttribute('href')) ?? '') : '';
+    const forms = await visit.page.locator('form').count();
+    await report({
+      id,
+      fixture: heading,
+      property: href.endsWith('/login') && forms === 0,
+      detail: `signed-out heading ${heading}; sign-in link href ${JSON.stringify(href)}; forms ${forms}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** The field each add refusal's detail names, as an element id. */
+const ADD_REFUSAL_FIELDS: { detail: string; status: number; code: string; field: string }[] = [
+  { detail: 'duplicate_address', status: 409, code: 'conflict', field: 'add-address' },
+  { detail: 'invalid_address', status: 400, code: 'invalid_request', field: 'add-address' },
+  { detail: 'blank_display_name', status: 400, code: 'invalid_request', field: 'add-display-name' },
+  { detail: 'invalid_display_name', status: 400, code: 'invalid_request', field: 'add-display-name' },
+  { detail: 'missing_username', status: 400, code: 'invalid_request', field: 'add-username' },
+  { detail: 'invalid_username', status: 400, code: 'invalid_request', field: 'add-username' },
+  { detail: 'duplicate_username', status: 409, code: 'conflict', field: 'add-username' }
+];
+
+/**
+ * `members/add-refusal-focus/<detail>`: each add refusal moves focus to
+ * the field it names, marks it invalid, and points its description at
+ * the alert, `invalid_address` included.
+ */
+async function membersAddRefusalFocusRows(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  for (const c of ADD_REFUSAL_FIELDS) {
+    const id = `members/add-refusal-focus/${c.detail}`;
+    const context = await browser.newContext();
+    try {
+      await context.route('**/api/v1/add_member', (route) =>
+        route.fulfill({
+          status: c.status,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: c.code, detail: c.detail } })
+        })
+      );
+      const visit = await openMembers(context, endpoints, session);
+      visit.expectsAuthErrorStatus = true;
+      await submitAddForm(visit.page, 'focus@example.test', 'Focus Member', 'focus1');
+      const shown = await visit.page
+        .locator('#roster-outcome')
+        .filter({ hasText: API_DETAILS[c.detail] })
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      const focused = await visit.page.evaluate(() => document.activeElement?.id ?? null);
+      const field = visit.page.locator(`#${c.field}`);
+      const invalid = await field.getAttribute('aria-invalid');
+      const describedBy = (await field.getAttribute('aria-describedby')) ?? '';
+      await report({
+        id,
+        fixture: shown,
+        property: focused === c.field && invalid === 'true' && describedBy.split(' ').includes('roster-outcome'),
+        detail: `refusal shown ${shown}; focused ${JSON.stringify(focused)} (want ${c.field}); aria-invalid ${JSON.stringify(invalid)}; aria-describedby ${JSON.stringify(describedBy)}`
+      });
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+/**
+ * `members/confirm-step`: asking to remove or demote opens the confirm
+ * modal with Cancel focused and calls nothing; Cancel closes it, still
+ * calling nothing, and returns focus to the control that opened it. The
+ * request log holds no `/api/v1` write before a confirm (nothing is
+ * intercepted: the real server is reached).
+ */
+async function membersConfirmStepRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/confirm-step';
+  const context = await browser.newContext();
+  try {
+    const visit = await openMembers(context, endpoints, session);
+    const removes = apiWrites(visit.page, 'remove_member');
+    const demotes = apiWrites(visit.page, 'demote_member');
+    const dialog = visit.page.locator('dialog.modal');
+    const results: string[] = [];
+    let ok = true;
+    for (const [kind, control, line] of [
+      ['remove', removeControlLabel, confirmRemoveLine],
+      ['demote', demoteControlLabel, confirmDemoteLine]
+    ] as const) {
+      const name = endpoints.adminDisplayName;
+      const opener = visit.page.getByRole('button', { name: control(name), exact: true });
+      await opener.click();
+      const open = await dialog.evaluate((d) => (d as HTMLDialogElement).open);
+      const question = (await dialog.locator('p').first().textContent())?.trim() ?? '';
+      const focusedText = await visit.page.evaluate(() => document.activeElement?.textContent?.trim() ?? null);
+      await dialog.getByRole('button', { name: CONFIRM_CANCEL, exact: true }).click();
+      // The dialog's close event, which returns the focus, is queued.
+      await afterFrames(visit.page);
+      const closed = !(await dialog.evaluate((d) => (d as HTMLDialogElement).open));
+      const focusBack = await visit.page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? null);
+      const good = open && question === line(name) && focusedText === CONFIRM_CANCEL && closed && focusBack === control(name);
+      ok = ok && good;
+      results.push(`${kind}: open ${open}, question ${JSON.stringify(question)}, focused ${JSON.stringify(focusedText)}, closed ${closed}, focus back on ${JSON.stringify(focusBack)}`);
+    }
+    await report({
+      id,
+      fixture: true,
+      property: ok && removes.length === 0 && demotes.length === 0,
+      detail: `${results.join('; ')}; remove writes ${removes.length}; demote writes ${demotes.length}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `members/remove`: through the real API, a member the row adds first is
+ * removed after the confirm step. The request log holds no
+ * `remove_member` before the confirm and exactly one after, the list
+ * returns to its starting count, and the line naming the member is
+ * announced politely.
+ */
+async function membersRemoveRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/remove';
+  const context = await browser.newContext();
+  try {
+    const visit = await openMembers(context, endpoints, session);
+    const address = 'removable@example.test';
+    const before = await visit.page.locator('#roster-list > li').count();
+    await submitAddForm(visit.page, address, 'Removable Member', 'removable1');
+    await visit.page.locator('#roster-outcome').filter({ hasText: addedMemberLine('Removable Member') }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const writes = apiWrites(visit.page, 'remove_member');
+    await memberRow(visit.page, address).getByRole('button', { name: removeControlLabel('Removable Member'), exact: true }).click();
+    const writesBeforeConfirm = writes.length;
+    await visit.page.getByRole('button', { name: CONFIRM_REMOVE, exact: true }).click();
+    const done = await visit.page
+      .locator('#roster-outcome')
+      .filter({ hasText: removedMemberLine('Removable Member') })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const after = await rosterRowsSettle(visit.page, before);
+    const said = await announced(visit.page);
+    await report({
+      id,
+      fixture: done,
+      property:
+        writesBeforeConfirm === 0 &&
+        writes.length === 1 &&
+        JSON.parse(writes[0]).user_id.length === 32 &&
+        after === before &&
+        said.text === removedMemberLine('Removable Member') &&
+        said.politeness === 'polite',
+      detail: `writes before the confirm ${writesBeforeConfirm}, after ${writes.length}; body ${JSON.stringify(writes[0] ?? null)}; rows ${before} before the add, ${after} after the removal; announced ${JSON.stringify(said.text)} as ${said.politeness}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `members/reauthenticate-retry`: the first add is refused for want of
+ * a recent sign-in (intercepted, once); the form still holds the entry;
+ * Retry, reaching the real API, adds the member.
+ */
+async function membersReauthenticateRetryRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/reauthenticate-retry';
+  const context = await browser.newContext();
+  try {
+    let refused = false;
+    await context.route('**/api/v1/add_member', (route) => {
+      if (refused) return route.continue();
+      refused = true;
+      return route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 'reauthentication_required' } })
+      });
+    });
+    const visit = await openMembers(context, endpoints, session);
+    visit.expectsAuthErrorStatus = true;
+    const before = await visit.page.locator('#roster-list > li').count();
+    await submitAddForm(visit.page, 'retried@example.test', 'Retried Member', 'retried1');
+    const alert = visit.page.locator('#roster-outcome');
+    await alert.filter({ hasText: API_REFUSALS.reauthentication_required }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const heldAddress = await visit.page.locator('#add-address').inputValue();
+    await alert.getByRole('button', { name: ROSTER_RETRY, exact: true }).click();
+    const added = await alert
+      .filter({ hasText: addedMemberLine('Retried Member') })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const after = await rosterRowsSettle(visit.page, before + 1);
+    await report({
+      id,
+      fixture: refused,
+      property: heldAddress === 'retried@example.test' && added && after === before + 1,
+      detail: `refused once ${refused}; the field held ${JSON.stringify(heldAddress)}; added after the retry ${added}; rows ${before} before, ${after} after`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `members/last-admin`: through the real API, the fixture's one admin
+ * demotes themself and the server answers `last_admin`: the alert says
+ * so, the admin badge is still on the row, and the list is unchanged.
+ * The roster reset server restores no flag, so no row may demote or
+ * remove a baseline address successfully.
+ */
+async function membersLastAdminRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/last-admin';
+  const context = await browser.newContext();
+  try {
+    const visit = await openMembers(context, endpoints, session);
+    visit.expectsAuthErrorStatus = true;
+    const before = await visit.page.locator('#roster-list > li').count();
+    const writes = apiWrites(visit.page, 'demote_member');
+    await memberRow(visit.page, ADMIN_ADDRESS).getByRole('button', { name: demoteControlLabel(endpoints.adminDisplayName), exact: true }).click();
+    await visit.page.getByRole('button', { name: CONFIRM_DEMOTE, exact: true }).click();
+    const refused = await visit.page
+      .locator('#roster-outcome')
+      .filter({ hasText: API_DETAILS.last_admin })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const badgeStill = (await memberRow(visit.page, ADMIN_ADDRESS).locator('.badge').count()) === 1;
+    const after = await visit.page.locator('#roster-list > li').count();
+    await report({
+      id,
+      fixture: refused,
+      property: writes.length === 1 && badgeStill && after === before,
+      detail: `last_admin shown ${refused}; demote writes ${writes.length}; admin badge still shown ${badgeStill}; rows ${before} before, ${after} after`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `members/list-rows`: a fulfilled list renders each member's address,
+ * a trailing separator, and the username under its screen-reader label,
+ * an admin's row carries Demote and Remove, and a member's row carries
+ * Remove alone, each named for the member it acts on.
+ */
+async function membersListRowsRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'members/list-rows';
+  const context = await browser.newContext();
+  try {
+    await context.addCookies([session]);
+    await context.route('**/api/v1/list_members', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          members: [
+            { user_id: 'a'.repeat(32), address: 'boss@example.test', display_name: 'Boss', username: 'boss', admin: true },
+            { user_id: 'b'.repeat(32), address: 'plain@example.test', display_name: 'Plain', username: 'plain', admin: false }
+          ]
+        })
+      })
+    );
+    const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
+    await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const metaLines = (await visit.page.locator('#roster-list .text-xs').allTextContents()).map((t) => t.trim());
+    const names = async (rowAddress: string) =>
+      (await memberRow(visit.page, rowAddress).getByRole('button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label'))));
+    const bossButtons = await names('boss@example.test');
+    const plainButtons = await names('plain@example.test');
+    const wantBoss = 'boss@example.test\u00a0·Username boss';
+    const wantPlain = 'plain@example.test\u00a0·Username plain';
+    await report({
+      id,
+      fixture: metaLines.length === 2,
+      property:
+        metaLines[0] === wantBoss &&
+        metaLines[1] === wantPlain &&
+        JSON.stringify(bossButtons) === JSON.stringify([demoteControlLabel('Boss'), removeControlLabel('Boss')]) &&
+        JSON.stringify(plainButtons) === JSON.stringify([removeControlLabel('Plain')]),
+      detail: `meta ${JSON.stringify(metaLines)} (want ${JSON.stringify([wantBoss, wantPlain])}); boss buttons ${JSON.stringify(bossButtons)}; plain buttons ${JSON.stringify(plainButtons)}`
     });
   } finally {
     await context.close();
@@ -4449,10 +4848,10 @@ async function signOutContrastRows(browser: Browser, endpoints: Endpoints, sessi
 const HEADER_HEIGHT_PX = 64;
 
 /**
- * `header/structure`: the header renders while the roster is still
+ * `header/structure`: the header renders while the member list is still
  * loading, and in both that state and the loaded one it is a stock
  * DaisyUI navbar at its pinned height, with the home link inside the
- * `nav` landmark and sign-out beside it. The roster GET is held until
+ * `nav` landmark and sign-out beside it. The list call is held until
  * the loading state has been measured, then let through to the real
  * server. Measured at 320px, the narrowest capture width.
  */
@@ -4464,8 +4863,8 @@ async function headerStructureRow(browser: Browser, endpoints: Endpoints, sessio
     const held = new Promise<void>((resolve) => {
       release = resolve;
     });
-    await context.route('**/roster', async (route) => {
-      if (route.request().method() === 'GET') await held;
+    await context.route('**/api/v1/list_members', async (route) => {
+      await held;
       await route.continue();
     });
     await context.addCookies([session]);
@@ -5010,10 +5409,9 @@ const CAPTURE_STATES: CaptureState[] = [
       const link = await mintCaptureLink(endpoints, 'admin');
       const visit = await signIn(context, link);
       visit.expectsAuthErrorStatus = true;
-      await context.route('**/roster', (route) => {
-        if (route.request().method() !== 'GET') return route.continue();
-        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ members: [] }) });
-      });
+      await context.route('**/api/v1/list_members', (route) =>
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ members: [] }) })
+      );
       await visit.page.goto(new URL('members', endpoints.base).href);
       const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true });
       let ok = true;
@@ -5085,7 +5483,7 @@ const CAPTURE_STATES: CaptureState[] = [
         return { page: visit.page, ok: false, detail: `the first submit never showed "added": ${message(err)}` };
       }
       await submit();
-      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: ROSTER_OUTCOMES.duplicate_address });
+      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: API_DETAILS.duplicate_address });
       let ok = true;
       try {
         await outcomeEl.waitFor({ timeout: BOOT_TIMEOUT_MS });
@@ -5413,13 +5811,20 @@ async function main(): Promise<void> {
     await rulingFourRow(browser, endpoints, headerSession);
     await layoutContentMeasureRow(browser, endpoints, headerSession);
     await headerWordmarkClearanceRow(browser, endpoints, headerSession);
-    await membersListJoinRow(browser, endpoints, headerSession);
+    await membersListRowsRow(browser, endpoints, headerSession);
     await membersUnreachableRow(browser, endpoints, headerSession);
     await membersMalformedRosterRows(browser, endpoints, headerSession);
     await themeToggleRows(browser, endpoints, headerSession);
     await headerStructureRow(browser, endpoints, headerSession);
     await signOutContrastRows(browser, endpoints, headerSession);
     await membersInheritedOutcomeRow(browser, endpoints, headerSession);
+    await membersRefusalRows(browser, endpoints, headerSession);
+    await membersSignedOutWriteRow(browser, endpoints, headerSession);
+    await membersAddRefusalFocusRows(browser, endpoints, headerSession);
+    await membersConfirmStepRow(browser, endpoints, headerSession);
+    await membersRemoveRow(browser, endpoints, headerSession);
+    await membersReauthenticateRetryRow(browser, endpoints, headerSession);
+    await membersLastAdminRow(browser, endpoints, headerSession);
     await signOutInFlightRow(browser, endpoints, headerSession);
     await signOutRows(browser, endpoints, headerSession);
     await settleGuardSelfTestRow(browser, endpoints);

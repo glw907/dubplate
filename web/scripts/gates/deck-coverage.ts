@@ -6,6 +6,10 @@
  *    dictionaries, read from the Go source itself so a renamed or
  *    added outcome constant surfaces here rather than silently
  *    shipping with no copy.
+ * 1b. Every `Detail<Name>` constant in `internal/ops/details.go` has a line
+ *    in `API_DETAILS`, and every wire `Code` in `internal/ops/errors.go` has
+ *    one in `API_REFUSALS`, so an error detail or code the server can answer
+ *    never ships with no copy.
  * 2. No deck string (nor a title) carries `<`, `>`, `&`, a straight
  *    apostrophe (U+0027), or a straight double quote (U+0022).
  * 3. No sign-out line claims "everywhere" or "revoked": this device's
@@ -18,12 +22,28 @@ import { join } from 'node:path';
 import { stripComments } from './g1.ts';
 import { fail, isMainModule, walk } from './lib.ts';
 import * as deck from '../../src/lib/copy/deck.ts';
-import { AUTH_OUTCOMES, ROSTER_OUTCOMES, SIGN_OUT_CONTROL, TITLES, unknownAddressLine } from '../../src/lib/copy/deck.ts';
+import {
+  API_DETAILS,
+  API_REFUSALS,
+  AUTH_OUTCOMES,
+  ROSTER_OUTCOMES,
+  SIGN_OUT_CONTROL,
+  TITLES,
+  unknownAddressLine
+} from '../../src/lib/copy/deck.ts';
 import { pageTitle } from '../../src/lib/copy/title.ts';
 
 const SRC_ROOT = 'src';
 const HANDLERS_PATH = join('..', 'internal', 'auth', 'handlers.go');
 const ADMIN_PATH = join('..', 'internal', 'auth', 'admin.go');
+const DETAILS_PATH = join('..', 'internal', 'ops', 'details.go');
+const ERRORS_PATH = join('..', 'internal', 'ops', 'errors.go');
+
+/** `internal/ops/details.go`'s own `Detail<Name> = "value"` declaration shape. */
+const GO_DETAIL_CONST = /\bDetail[A-Za-z]+\s*=\s*"([^"]*)"/g;
+
+/** `internal/ops/errors.go`'s own `Code<Name> Code = "value"` declaration shape. */
+const GO_CODE_CONST = /\bCode[A-Za-z]+\s+Code\s*=\s*"([^"]*)"/g;
 
 /** `internal/auth`'s own `outcomeX = "value"` declaration shape. */
 const GO_OUTCOME_CONST = /\boutcome[A-Za-z]+\s*=\s*"([^"]*)"/g;
@@ -89,7 +109,13 @@ function checkRequiredTitles(): void {
 const FUNCTION_SAMPLES: Record<string, () => string> = {
   unknownAddressLine: () => unknownAddressLine({ displayName: 'Root Admin', address: 'admin@example.test' }),
   memberCountLine: () => deck.memberCountLine(2),
-  addedMemberLine: () => deck.addedMemberLine('New Member')
+  addedMemberLine: () => deck.addedMemberLine('New Member'),
+  removedMemberLine: () => deck.removedMemberLine('New Member'),
+  demotedMemberLine: () => deck.demotedMemberLine('New Member'),
+  removeControlLabel: () => deck.removeControlLabel('New Member'),
+  demoteControlLabel: () => deck.demoteControlLabel('New Member'),
+  confirmRemoveLine: () => deck.confirmRemoveLine('New Member'),
+  confirmDemoteLine: () => deck.confirmDemoteLine('New Member')
 };
 
 /**
@@ -184,7 +210,36 @@ function checkOutcomeCoverage(): void {
   }
 }
 
-const FORBIDDEN_CHAR = /[<>&'"]/;
+/**
+ * Every value `pattern` captures from the Go source at `path`. It fails
+ * when the source yields none or lacks `mustHave`, since a pattern that
+ * stopped matching would otherwise pass with nothing to check.
+ */
+function parseGoValues(path: string, pattern: RegExp, mustHave: string): string[] {
+  const values = [...readFileSync(path, 'utf8').matchAll(pattern)].map((m) => m[1]);
+  if (!values.includes(mustHave)) {
+    fail(
+      `deck-coverage: ${path} parsed to ${JSON.stringify(values)}, want it to name "${mustHave}"; the constant parser's pattern may be broken.`
+    );
+  }
+  return values;
+}
+
+/** Every error detail and wire code the server can answer has a deck line. */
+function checkAPICoverage(): void {
+  const details = parseGoValues(DETAILS_PATH, GO_DETAIL_CONST, 'last_admin');
+  const missingDetails = details.filter((v) => !Object.hasOwn(API_DETAILS, v));
+  if (missingDetails.length > 0) {
+    fail(`deck-coverage: ${missingDetails.length} error detail(s) in ${DETAILS_PATH} with no API_DETAILS line: ${missingDetails.join(', ')}`);
+  }
+  const codes = parseGoValues(ERRORS_PATH, GO_CODE_CONST, 'unauthenticated');
+  const missingCodes = codes.filter((v) => !Object.hasOwn(API_REFUSALS, v));
+  if (missingCodes.length > 0) {
+    fail(`deck-coverage: ${missingCodes.length} wire code(s) in ${ERRORS_PATH} with no API_REFUSALS line: ${missingCodes.join(', ')}`);
+  }
+}
+
+const FORBIDDEN_CHAR =/[<>&'"]/;
 
 function checkForbiddenChars(leaves: Leaf[]): void {
   for (const { key, value } of leaves) {
@@ -227,6 +282,7 @@ function main(): void {
   }
 
   checkOutcomeCoverage();
+  checkAPICoverage();
   checkRequiredTitles();
 
   const leaves = deckLeaves();

@@ -170,6 +170,81 @@ export function addedMemberLine(displayName: string): string {
   return `Added ${displayName}.`;
 }
 
+/**
+ * What a refused `/api/v1` call says, keyed by its wire code
+ * (`internal/ops/errors.go`'s codes). A code with an `error.detail` reads
+ * {@link API_DETAILS} first. Member-facing lines never say "roster".
+ */
+export const API_REFUSALS: Record<string, string> = {
+  unauthenticated: 'You’re signed out. Sign in again to continue.',
+  reauthentication_required:
+    'This change needs a recent sign-in. Sign in again in this browser, then try it again.',
+  forbidden: 'Your account can’t make this change.',
+  not_found: 'That member is no longer in the group. Reload the page.',
+  conflict: 'That doesn’t match what the group has now. Reload the page and try again.',
+  invalid_request: 'The server didn’t accept that. Reload the page and try again.',
+  unavailable: 'That didn’t go through. Try again.',
+  canceled: 'That didn’t go through. Try again.',
+  internal: AUTH_OUTCOMES.failed
+};
+
+/**
+ * The finer `error.detail` lines, keyed by the value
+ * `internal/ops/details.go` declares. `deck-coverage.ts` reads that file
+ * and fails on a detail with no line here.
+ */
+export const API_DETAILS: Record<string, string> = {
+  duplicate_address: 'That email address already belongs to a member.',
+  duplicate_username: 'That username is already taken. Choose a different one.',
+  invalid_address: 'That doesn’t look like an email address. Check it and try again.',
+  invalid_display_name: 'That name is too long, or it has characters it can’t use, such as tabs or line breaks.',
+  blank_display_name: 'Enter a name.',
+  invalid_username:
+    'Start the username with a letter or number, and use only letters, numbers, periods, underscores, hyphens, plus signs, or @.',
+  missing_username: 'Enter a username.',
+  last_admin: 'The group needs at least one admin, so that member can’t be removed or demoted.',
+  environment_sets: 'The server’s environment file sets this, so it can’t be changed here.',
+  busy: 'That didn’t go through. Try again.'
+};
+
+/** The sign-in control a refusal that needs a fresh sign-in offers, and the one for a signed-out page. */
+export const REAUTH_SIGN_IN = 'Sign in again';
+export const SIGNED_OUT_SIGN_IN = 'Go to the sign-in page';
+
+/** The members page's per-member controls and the confirm step's buttons. */
+export const REMOVE_CONTROL = 'Remove';
+export const DEMOTE_CONTROL = 'Demote';
+export const CONFIRM_REMOVE = 'Remove member';
+export const CONFIRM_DEMOTE = 'Demote member';
+export const CONFIRM_CANCEL = 'Cancel';
+
+/** A control's accessible name, naming the member its row holds. */
+export function removeControlLabel(displayName: string): string {
+  return `Remove ${displayName}`;
+}
+
+export function demoteControlLabel(displayName: string): string {
+  return `Demote ${displayName}`;
+}
+
+/** The confirm step's question. A destructive confirm is plain and never playful. */
+export function confirmRemoveLine(displayName: string): string {
+  return `Remove ${displayName} from the group? They’ll be signed out right away.`;
+}
+
+export function confirmDemoteLine(displayName: string): string {
+  return `Demote ${displayName}? They’ll stay in the group without admin rights.`;
+}
+
+/** The success lines for a removal and a demotion, naming the member. */
+export function removedMemberLine(displayName: string): string {
+  return `Removed ${displayName}.`;
+}
+
+export function demotedMemberLine(displayName: string): string {
+  return `${displayName} is no longer an admin.`;
+}
+
 /** The roster list's empty state (no members yet). */
 export const ROSTER_EMPTY_STATE = 'No members yet.';
 
