@@ -38,12 +38,13 @@ var (
 // first, each with the value in force, its source, and the seed it
 // replaced, then every key only the environment sets, with no value at
 // all. Those hold site paths, addresses, and credentials, so their
-// values never cross the wire; each applies at the next start.
+// values never cross the wire; each applies at the next start. A
+// store-homed key the serving environment sets answers the
+// environment's value and source, which the store holds in step, so the
+// page can show it as set in the environment file.
 func (s *Seam) ListSettings(ctx context.Context, _ ops.Actor, _ ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
 	reg := s.cfg.Registry
-	// The evaluation reads only the stored rows here, so it is handed
-	// no environment.
-	eval, err := settings.Evaluate(ctx, s.cfg.Store, reg, nil)
+	eval, err := settings.Evaluate(ctx, s.cfg.Store, reg, s.cfg.Environ)
 	if err != nil {
 		return ops.ListSettingsResponse{}, err
 	}
@@ -54,11 +55,15 @@ func (s *Seam) ListSettings(ctx context.Context, _ ops.Actor, _ ops.ListSettings
 			Apply: applyNames[setting.Apply], Mark: markNames[setting.Mark],
 			Value: &setting.Default, Source: new(settings.SourceDefault),
 		}
-		if row := eval.Outcomes[i].Stored; row != nil {
+		outcome := eval.Outcomes[i]
+		if row := outcome.Stored; row != nil {
 			entry.Value, entry.Source = &row.Value, &row.Source
 			if row.SeedValue != "" {
 				entry.SeedValue = &row.SeedValue
 			}
+		}
+		if outcome.EnvSet {
+			entry.Value, entry.Source = &outcome.Env, new(settings.SourceEnvironment)
 		}
 		entries = append(entries, entry)
 	}

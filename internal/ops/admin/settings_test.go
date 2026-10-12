@@ -109,6 +109,43 @@ func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
 	}
 }
 
+// TestListSettings_EnvironmentSetKeys proves a store-homed key the
+// serving environment sets answers source "environment" and the
+// environment's value, whether the store holds no row or an admin row
+// equal to it, so the page can show it as set in the environment file
+// with no edit or reset (AC20). A store-homed key the environment leaves
+// alone keeps its stored source.
+func TestListSettings_EnvironmentSetKeys(t *testing.T) {
+	f := newFixtureWith(t, fixtureOptions{reg: fullRegistry(), env: []string{
+		keyLimit + "=7",
+		keyKeep + "=20",
+	}})
+	plantAdminRow(t, f, keyKeep, "20")
+
+	resp, err := f.seam.ListSettings(writeCtx(t), actor(alice, stale), ops.ListSettingsRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]ops.SettingEntry{}
+	for _, e := range resp.Settings {
+		got[e.Name] = e
+	}
+	for _, c := range []struct{ key, value, source string }{
+		{keyLimit, "7", "environment"},
+		{keyKeep, "20", "environment"},
+		{keyLifetime, "1h", "default"},
+	} {
+		e := got[c.key]
+		if e.Value == nil || e.Source == nil {
+			t.Errorf("%s = value %v source %v, want %q from %q", c.key, e.Value, e.Source, c.value, c.source)
+			continue
+		}
+		if *e.Value != c.value || *e.Source != c.source {
+			t.Errorf("%s = %q from %q, want %q from %q", c.key, *e.Value, *e.Source, c.value, c.source)
+		}
+	}
+}
+
 // markName is the wire form of a mark, written out by hand.
 func markName(m config.Sensitivity) string {
 	if m == config.Sensitive {
