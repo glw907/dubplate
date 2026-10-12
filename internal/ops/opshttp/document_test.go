@@ -87,7 +87,7 @@ func closeObjects(ref *openapi3.SchemaRef, seen map[*openapi3.Schema]bool) {
 	}
 	s := ref.Value
 	seen[s] = true
-	if s.Type.Is("object") && len(s.Properties) > 0 {
+	if s.Type.Is("object") {
 		no := false
 		s.AdditionalProperties = openapi3.AdditionalProperties{Has: &no}
 	}
@@ -448,6 +448,48 @@ func jsonFields(typ reflect.Type) (all, required []string) {
 	return all, required
 }
 
+// TestDocument_ClosedCopyClosesEveryResponseObject proves the loaded
+// copy refuses an unknown field on every object schema a response
+// carries, the empty answers of remove_member and demote_member
+// included: a field added to one of those Go types must fail a
+// contract test.
+func TestDocument_ClosedCopyClosesEveryResponseObject(t *testing.T) {
+	d := loadDocument(t, true)
+	var open []string
+	seen := map[*openapi3.Schema]bool{}
+	var walk func(where string, ref *openapi3.SchemaRef)
+	walk = func(where string, ref *openapi3.SchemaRef) {
+		if ref == nil || ref.Value == nil || seen[ref.Value] {
+			return
+		}
+		s := ref.Value
+		seen[s] = true
+		if s.Type.Is("object") && (s.AdditionalProperties.Has == nil || *s.AdditionalProperties.Has) {
+			open = append(open, where)
+		}
+		for name, p := range s.Properties {
+			walk(where+"."+name, p)
+		}
+		walk(where+"[]", s.Items)
+	}
+	for path, item := range d.doc.Paths.Map() {
+		for status, resp := range item.Post.Responses.Map() {
+			for _, media := range resp.Value.Content {
+				walk(path+" "+status, media.Schema)
+			}
+		}
+	}
+	if len(seen) == 0 {
+		t.Fatal("walked no response schema")
+	}
+	if len(open) != 0 {
+		t.Errorf("response objects still open in the closed copy: %v", open)
+	}
+	if empty := d.doc.Components.Schemas["Empty"].Value; empty.AdditionalProperties.Has == nil || *empty.AdditionalProperties.Has {
+		t.Error("the Empty response schema is open: a field added to remove_member's answer would pass")
+	}
+}
+
 // TestDocument_SchemasMatchTheGoTypes proves each wire type's property
 // set and required set equal its Go struct's JSON fields, so no Go
 // field is missing from the document and none is invented, and that no
@@ -455,6 +497,8 @@ func jsonFields(typ reflect.Type) (all, required []string) {
 func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 	d := loadDocument(t, false)
 	for schema, goTypes := range map[string][]any{
+		"Empty":                {ops.RemoveMemberResponse{}, ops.DemoteMemberResponse{}},
+		"EmptyRequest":         {ops.StartBackupRequest{}, ops.CatalogRequest{}, ops.ListMembersRequest{}, ops.ListSettingsRequest{}},
 		"JobStatus":            {ops.JobStatus{}},
 		"JobRequest":           {ops.JobStatusRequest{}, ops.CancelJobRequest{}},
 		"JobResponse":          {ops.JobStatusResponse{}, ops.CancelJobResponse{}},

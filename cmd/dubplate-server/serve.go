@@ -303,7 +303,9 @@ type registrar interface {
 
 // newServeShellVia is [newServeShell] mounting every route through
 // the registrar mount makes of the new shell, so a test sees each name
-// the build registers.
+// the build registers. Every registration must go through that
+// registrar and never through the shell directly: a route registered
+// around it escapes the route inventory test unseen.
 func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *serve.Shell, _ *store.Handle, err error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {

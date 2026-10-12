@@ -185,9 +185,11 @@ paths:
       operationId: list_settings
       summary: List every registered setting with its description, apply mode, and mark.
       description: >-
-        A key the store holds also carries its value, source, and seed value.
-        A key only the server's environment sets carries none, and its value
-        never crosses the wire.
+        Every store-homed key also carries its value and source: the default
+        when the store holds no row, and the environment's value when the
+        serving environment sets it. A key the store holds a seed for carries
+        the seed value too. A key only the server's environment sets carries
+        none of these, and its value never crosses the wire.
       requestBody: { $ref: "#/components/requestBodies/Empty" }
       responses:
         "200":
@@ -249,7 +251,7 @@ components:
       required: true
       content:
         application/json:
-          schema: { $ref: "#/components/schemas/Empty" }
+          schema: { $ref: "#/components/schemas/EmptyRequest" }
   responses:
     InvalidRequest:
       description: The request is malformed or a value is refused.
@@ -287,6 +289,8 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorBody" }
   schemas:
+    EmptyRequest:
+      type: object
     Empty:
       type: object
     ErrorBody:

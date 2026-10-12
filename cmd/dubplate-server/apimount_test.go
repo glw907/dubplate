@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -422,36 +423,64 @@ func TestAPI_AddMemberNeverGrantsAdmin(t *testing.T) {
 	}
 }
 
+// envSentinels gives every key only the environment holds a distinct
+// value no /api/v1 answer may carry. A path, an address, a secret, a
+// host, and every port each gets its own literal, and each is valid for
+// its key's validator so the server starts on it. The two flags that
+// switch an integration on are left true and the three closed
+// enumerations are named in envClosed instead, since their values are
+// words no answer could avoid.
+var envSentinels = map[string]string{
+	"DUBPLATE_LIBRARY_ROOT":               "/srv/sentinel-library-root",
+	"DUBPLATE_SITE_NAME":                  "Sentinel Site Name",
+	"DUBPLATE_ADMIN_EMAIL":                "sentinel-admin@example.test",
+	"DUBPLATE_MAGIC_LINK_SECRET":          "sentinel-magic-link-secret-0123456789abcdef",
+	"DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS": "sentinel-magic-link-previous-0123456789abcdef",
+	"DUBPLATE_SESSION_SECRET":             "sentinel-session-secret-0123456789abcdefgh",
+	"DUBPLATE_SESSION_SECRET_PREVIOUS":    "sentinel-session-previous-0123456789abcdefgh",
+	"DUBPLATE_PUBLIC_URL":                 "https://sentinel-public.example.test",
+	"DUBPLATE_SMTP_HOST":                  "sentinel-smtp.example.test",
+	"DUBPLATE_SMTP_PORT":                  "2525",
+	"DUBPLATE_SMTP_USER":                  "sentinel-smtp-user",
+	"DUBPLATE_SMTP_PASSWORD":              "sentinel-smtp-password-0123456789abcdefgh",
+	"DUBPLATE_SMTP_FROM":                  "sentinel-from@example.test",
+	"DUBPLATE_SERVE_BIND_ADDRS":           "127.77.77.77",
+	"DUBPLATE_SERVE_PORT":                 "7391",
+	"DUBPLATE_SERVE_PREFIX":               "/sentinel-prefix",
+	"DUBPLATE_TRUSTED_PROXY_ADDRS":        "203.0.113.77",
+	"DUBPLATE_TRUSTED_PROXY_HEADER":       "X-Sentinel-Client-Ip",
+	"DUBPLATE_BACKUP_REMOTE":              "teststand:/srv/sentinel-backup-remote",
+	"DUBPLATE_STORE_BUSY_TIMEOUT":         "7777ms",
+	"DUBPLATE_STORE_MIGRATION_WAIT":       "8888ms",
+	"DUBPLATE_OPERATOR_CSS_FILE":          "none",
+	"DUBPLATE_BRANDING":                   "none",
+	"DUBPLATE_THEME_MATCH":                "dubplate",
+	"DUBPLATE_THEME_PALETTE":              "system",
+	"DUBPLATE_IDENTITY_SOURCE":            "magic-link",
+	"DUBPLATE_TRUSTED_PROXY_ENABLED":      "true",
+	"DUBPLATE_BACKUP_ENABLED":             "true",
+}
+
+// envClosed names the keys in envSentinels whose value is a word from a
+// closed set, a flag, or "none", so the scan skips it.
+var envClosed = []string{
+	"DUBPLATE_OPERATOR_CSS_FILE", "DUBPLATE_BRANDING", "DUBPLATE_THEME_MATCH", "DUBPLATE_THEME_PALETTE",
+	"DUBPLATE_IDENTITY_SOURCE", "DUBPLATE_TRUSTED_PROXY_ENABLED", "DUBPLATE_BACKUP_ENABLED",
+}
+
 // TestAPI_NoNonStoreValueReachesTheWire proves no value only the
 // environment holds appears in the raw body of any /api/v1 answer,
-// refusals included (AC9). Every wall, identity-source, and threshold
-// key carries a distinct sentinel.
+// refusals included (AC9). Every wall, identity-source, integration,
+// and threshold key carries a distinct literal, and the test fails when
+// list_settings names an environment key this table does not.
 func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	a := newAPIHarness(t, apiMembers, func(environ []string) []string {
 		stateDir := filepath.Join(environValue(environ, "DUBPLATE_STATE_DIR"), "sentinel-state-dir")
 		if err := os.MkdirAll(stateDir, 0o700); err != nil {
 			t.Fatalf("create the sentinel state directory: %v", err)
 		}
-		for name, value := range map[string]string{
-			"DUBPLATE_STATE_DIR":            stateDir,
-			"DUBPLATE_LIBRARY_ROOT":         "/srv/sentinel-library-root",
-			"DUBPLATE_SITE_NAME":            "Sentinel Site Name",
-			"DUBPLATE_ADMIN_EMAIL":          "sentinel-admin@example.test",
-			"DUBPLATE_MAGIC_LINK_SECRET":    "sentinel-magic-link-secret-0123456789abcdef",
-			"DUBPLATE_SESSION_SECRET":       "sentinel-session-secret-0123456789abcdefgh",
-			"DUBPLATE_PUBLIC_URL":           "https://sentinel-public.example.test",
-			"DUBPLATE_SMTP_HOST":            "sentinel-smtp.example.test",
-			"DUBPLATE_SMTP_PORT":            "2525",
-			"DUBPLATE_SMTP_USER":            "sentinel-smtp-user",
-			"DUBPLATE_SMTP_PASSWORD":        "sentinel-smtp-password-0123456789abcdefgh",
-			"DUBPLATE_SMTP_FROM":            "sentinel-from@example.test",
-			"DUBPLATE_SERVE_PREFIX":         "/sentinel-prefix",
-			"DUBPLATE_OPERATOR_CSS_FILE":    "none",
-			"DUBPLATE_BRANDING":             "none",
-			"DUBPLATE_THEME_PALETTE":        "system",
-			"DUBPLATE_STORE_BUSY_TIMEOUT":   "7777ms",
-			"DUBPLATE_STORE_MIGRATION_WAIT": "8888ms",
-		} {
+		environ = replaceKey(environ, "DUBPLATE_STATE_DIR", stateDir)
+		for name, value := range envSentinels {
 			environ = replaceKey(environ, name, value)
 		}
 		return environ
@@ -459,7 +488,26 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	admin := a.session("admin@example.com", time.Now())
 	member := a.session("member@example.com", time.Now())
 
-	var bodies []string
+	listing := a.call("list_settings", admin, `{}`)
+	var list ops.ListSettingsResponse
+	if err := json.Unmarshal(listing.Body.Bytes(), &list); err != nil || len(list.Settings) == 0 {
+		t.Fatalf("list_settings = %d %.200s (%v), want the registered keys", listing.Code, listing.Body, err)
+	}
+	environmentKeys := 0
+	for _, entry := range list.Settings {
+		if entry.Home != "environment" {
+			continue
+		}
+		environmentKeys++
+		if _, ok := envSentinels[entry.Name]; !ok && entry.Name != "DUBPLATE_STATE_DIR" {
+			t.Errorf("list_settings names the environment key %s, which the sentinel table does not set", entry.Name)
+		}
+	}
+	if environmentKeys < 20 {
+		t.Fatalf("list_settings named %d environment keys, want the registry's whole set", environmentKeys)
+	}
+
+	bodies := []string{listing.Body.String()}
 	collect := func(rec *httptest.ResponseRecorder) { bodies = append(bodies, rec.Body.String()) }
 	for _, cookie := range []string{"", member, admin} {
 		for _, op := range []string{"catalog", "list_members", "list_settings", "no_such_operation"} {
@@ -469,6 +517,7 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	}
 	for _, body := range []string{
 		`{"key":"DUBPLATE_LIBRARY_ROOT","value":"/x"}`,
+		`{"key":"DUBPLATE_SMTP_PASSWORD","value":"x"}`,
 		`{"key":"DUBPLATE_NO_SUCH_KEY","value":"x"}`,
 		`{"key":"DUBPLATE_REAUTH_WINDOW","value":"garbage"}`,
 		`{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
@@ -480,14 +529,19 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	collect(a.call("add_member", admin, `{"address":"not an address","display_name":"x","username":"x"}`))
 	collect(a.call("remove_member", admin, `{"user_id":"`+strings.Repeat("0", 32)+`"}`))
 
-	listed := false
-	for _, body := range bodies {
-		if strings.Contains(strings.ToLower(body), "sentinel") {
-			t.Errorf("a /api/v1 answer carries an environment value: %s", body)
-		}
-		listed = listed || strings.Contains(body, `"DUBPLATE_REAUTH_WINDOW"`)
+	secrets := maps.Clone(envSentinels)
+	secrets["DUBPLATE_STATE_DIR"] = environValue(a.environ, "DUBPLATE_STATE_DIR")
+	for _, name := range envClosed {
+		delete(secrets, name)
 	}
-	if !listed {
-		t.Error("no answer listed DUBPLATE_REAUTH_WINDOW, so the scan read no real list_settings")
+	if len(secrets) < 20 {
+		t.Fatalf("the scan holds %d sentinels, want one for every key that holds a value", len(secrets))
+	}
+	for name, value := range secrets {
+		for _, body := range bodies {
+			if strings.Contains(body, value) {
+				t.Errorf("the value of %s, %q, reached an /api/v1 answer: %.200s", name, value, body)
+			}
+		}
 	}
 }

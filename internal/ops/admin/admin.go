@@ -86,7 +86,9 @@ func (s *Seam) requireFresh(ctx context.Context, actor ops.Actor) error {
 	if err != nil {
 		return fmt.Errorf("read the re-authentication window: %w", err)
 	}
-	if s.cfg.Now().Sub(actor.Anchor()) >= window {
+	// An anchor ahead of the clock was minted under a clock since stepped
+	// back, so its age is unknown and it is no fresher than a stale one.
+	if elapsed := s.cfg.Now().Sub(actor.Anchor()); elapsed < 0 || elapsed >= window {
 		return ops.NewReauthenticationRequiredError("this change needs a sign-in from the last " + window.String())
 	}
 	return nil
