@@ -5842,6 +5842,84 @@ const CAPTURE_STATES: CaptureState[] = [
     }
   },
   {
+    id: 'members/confirm',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.goto(new URL('members', endpoints.base).href);
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      await visit.page.getByRole('button', { name: /^Remove / }).first().click();
+      const open = await visit.page.locator('dialog.modal').evaluate((d) => (d as HTMLDialogElement).open);
+      return { page: visit.page, ok: open, detail: `the confirm modal is open ${open}` };
+    }
+  },
+  {
+    id: 'settings/loaded',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.goto(new URL('server-settings', endpoints.base).href);
+      const heading = visit.page.getByRole('heading', { level: 1, name: TITLES.serverSettings, exact: true });
+      let ok = true;
+      try {
+        await heading.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      const rows = ok ? await visit.page.locator('#settings-editable > li, #settings-environment > li').count() : 0;
+      return { page: visit.page, ok: ok && rows > 0, detail: `settings rows ${rows}` };
+    }
+  },
+  {
+    id: 'settings/invalid-value',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await visit.page.goto(new URL('server-settings', endpoints.base).href);
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.serverSettings, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      const key = 'DUBPLATE_REAUTH_WINDOW';
+      await visit.page.locator(`#setting-${key}`).fill('not a duration');
+      await visit.page.getByRole('button', { name: saveSettingLabel(key), exact: true }).click();
+      const shown = await visit.page
+        .locator('#settings-outcome')
+        .filter({ hasText: SETTING_INVALID_VALUE })
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      return { page: visit.page, ok: shown, detail: `refused-value line shown ${shown}` };
+    }
+  },
+  {
+    id: 'settings/reauthenticate',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await context.route('**/api/v1/set_setting', (route) =>
+        route.fulfill({
+          status: 403,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: 'reauthentication_required' } })
+        })
+      );
+      await visit.page.goto(new URL('server-settings', endpoints.base).href);
+      await visit.page.getByRole('heading', { level: 1, name: TITLES.serverSettings, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+      const key = 'DUBPLATE_REAUTH_WINDOW';
+      await visit.page.locator(`#setting-${key}`).fill('3h');
+      await visit.page.getByRole('button', { name: saveSettingLabel(key), exact: true }).click();
+      const shown = await visit.page
+        .locator('#settings-outcome')
+        .filter({ hasText: API_REFUSALS.reauthentication_required })
+        .waitFor({ timeout: BOOT_TIMEOUT_MS })
+        .then(() => true)
+        .catch(() => false);
+      return { page: visit.page, ok: shown, detail: `re-authentication line shown ${shown}` };
+    }
+  },
+  {
     id: 'error/not-found',
     skipUIFloors: true,
     faviconProbeExpected: true,

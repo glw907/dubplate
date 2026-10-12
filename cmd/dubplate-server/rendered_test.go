@@ -60,7 +60,7 @@ const renderedMagicLinkExpiry = 25 * time.Minute
 const (
 	renderedLinkRequestsPerAddress       = 50
 	renderedLinkRequestsPerClient        = 100
-	renderedConsumptionAttemptsPerClient = 100
+	renderedConsumptionAttemptsPerClient = 200
 	renderedLinkMailCeiling              = 100
 )
 
@@ -268,7 +268,7 @@ var renderedCaptureWidths = []int{320, 390, 768, 1440, 2560}
 // the capture matrix renders every state under.
 var renderedCaptureSchemes = []string{"light", "dark"}
 
-// renderedCaptureStates is the capture matrix's fifteen page states, as
+// renderedCaptureStates is the capture matrix's nineteen page states, as
 // Go literals. linkRequests and consumptions are per cell (one of the state's ten width-by-scheme
 // captures), not per state: a state that signs in mints and consumes
 // one link per cell, since the harness opens a fresh browser context,
@@ -292,11 +292,15 @@ var renderedCaptureStates = []struct {
 	{id: "members/added", consumptions: 1},
 	{id: "members/duplicate-address", consumptions: 1},
 	{id: "members/non-admin", consumptions: 1},
+	{id: "members/confirm", consumptions: 1},
+	{id: "settings/loaded", consumptions: 1},
+	{id: "settings/invalid-value", consumptions: 1},
+	{id: "settings/reauthenticate", consumptions: 1},
 	{id: "error/not-found"},
 }
 
 // renderedCaptureRows expands renderedCaptureStates over every width and
-// scheme into the capture matrix's own 150 manifest rows (15 states by
+// scheme into the capture matrix's own 190 manifest rows (19 states by
 // 5 widths by 2 schemes), each ID "capture/<state>/<width>/<scheme>".
 func renderedCaptureRows() []renderedRow {
 	rows := make([]renderedRow, 0, len(renderedCaptureStates)*len(renderedCaptureWidths)*len(renderedCaptureSchemes))
