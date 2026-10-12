@@ -215,8 +215,8 @@ func (a Actor) String() string {
 }
 
 // CheckAdmin returns nil when id names a live member holding the admin
-// flag as tx reads the users table, an error wrapping [ErrActorNotAdmin]
-// when it does not, and the store's error when the read fails. A write
+// flag as tx reads the users table, [ErrActorNotAdmin] when it does not,
+// and the store's error when the read fails. A write
 // calls it from inside its own transaction, under the store's write
 // lock, so a demotion or removal that committed after a caller's earlier
 // check still refuses the write.

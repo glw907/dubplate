@@ -173,26 +173,26 @@ func TestSettingsResetCmd_ResolvesEachRefusal(t *testing.T) {
 	}
 }
 
-// TestSettingsResetCmd_EnvironmentSetsRefused proves the verb leaves an
-// admin row for a key its own environment sets, and says why. Fixture:
-// an admin row the environment contradicts, so a verb that deleted it
-// would show.
-func TestSettingsResetCmd_EnvironmentSetsRefused(t *testing.T) {
+// TestSettingsResetCmd_DeletesRowTheEnvironmentContradicts proves the
+// verb deletes an admin row for a key its own environment sets, as the
+// design says the command line does where the web refuses. Fixture: an
+// admin row the environment contradicts, so a verb that refused it
+// would leave the row and fail the test.
+func TestSettingsResetCmd_DeletesRowTheEnvironmentContradicts(t *testing.T) {
 	environ, stateDir, path := currentStore(t)
 	plantRow(t, path, retentionKey, "720h", "admin")
 	environ = append(environ, retentionKey+"=48h")
 
-	_, err := runSettings(t, environ, "reset", retentionKey)
+	if _, err := runSettings(t, environ, "reset", retentionKey); err != nil {
+		t.Fatalf("reset: %v", err)
+	}
 
-	if !errors.Is(err, settings.ErrEnvironmentSets) {
-		t.Fatalf("reset error = %v, want it to wrap ErrEnvironmentSets", err)
-	}
 	rows, audit, _ := readSeedState(t, stateDir)
-	if got := rows[retentionKey]; got != (settingRow{"720h", "admin"}) {
-		t.Errorf("row after the refusal = %v, want the admin row kept", got)
+	if got, has := rows[retentionKey]; has {
+		t.Errorf("row after the reset = %v, want it deleted", got)
 	}
-	if len(audit) != 0 {
-		t.Errorf("audit after the refusal = %v, want none", audit)
+	if len(audit) != 1 {
+		t.Errorf("audit after the reset = %v, want one row", audit)
 	}
 }
 

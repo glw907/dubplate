@@ -19,7 +19,7 @@ The signed-in header renders in every state, loading included, and
 `main` is the root layout's skip-link target.
 -->
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { browser } from '$app/env';
   import { resolve } from '$app/paths';
   import { call, failureAlertClass, failureText, isSignedOut, needsReauthentication } from '#lib/api/v1.js';
@@ -31,6 +31,7 @@ The signed-in header renders in every state, loading included, and
     AUTH_OUTCOMES,
     ENVIRONMENT_ONLY_LINE,
     ERROR_PAGE,
+    LIST_REFRESH_FAILED,
     REAUTH_SIGN_IN,
     ROSTER_RETRY,
     SETTINGS_EDITABLE_HEADING,
@@ -88,8 +89,7 @@ The signed-in header renders in every state, loading included, and
   type Status = 'loading' | 'ok' | 'refused' | 'signedOut' | 'unreachable';
 
   let status = $state<Status>('loading');
-  // The list skips Svelte's deep proxy: nothing here reads or writes
-  // into an entry through a derived value.
+  // Replaced whole on every fetch and never mutated, so it skips the deep proxy.
   let entries = $state.raw<Entry[]>([]);
   let unreachableMessage = $state('');
   let refreshFailed = $state(false);
@@ -123,13 +123,19 @@ The signed-in header renders in every state, loading included, and
     return { ok: false, state: 'unreachable', message: failureText(result) };
   }
 
-  /** Takes the list into the page; each stored value seeds its field unless the admin is mid-edit on it. */
+  /**
+   * Takes the list into the page. Each stored value seeds its field,
+   * except where `keepDrafts` is set and the admin has typed something
+   * other than the value the field last held: that edit stays.
+   */
   function take(list: Entry[], keepDrafts: boolean): void {
+    const prior = new Map(entries.map((e) => [e.name, e.value]));
     entries = list;
     const next: Record<string, string> = {};
     for (const e of list) {
       if (e.value === undefined) continue;
-      next[e.name] = keepDrafts && e.name in drafts ? drafts[e.name] : e.value;
+      const edited = keepDrafts && e.name in drafts && drafts[e.name] !== prior.get(e.name);
+      next[e.name] = edited ? drafts[e.name] : e.value;
     }
     drafts = next;
   }
@@ -143,6 +149,7 @@ The signed-in header renders in every state, loading included, and
     }
     status = result.state;
     unreachableMessage = result.message;
+    if (result.state === 'unreachable') announce(result.message, 'assertive');
   }
 
   // A write's own refresh: it never turns the page's `status` away from
@@ -152,11 +159,13 @@ The signed-in header renders in every state, loading included, and
     const result = await fetchEntries();
     if (!result.ok) {
       refreshFailed = true;
+      announce(LIST_REFRESH_FAILED, 'polite');
       return;
     }
     refreshFailed = false;
-    take(result.entries, true);
+    // The field just written shows what the server now holds, an edit or not.
     const written = result.entries.find((e) => e.name === key);
+    take(result.entries, true);
     if (written?.value !== undefined) drafts[key] = written.value;
   }
 
@@ -190,6 +199,9 @@ The signed-in header renders in every state, loading included, and
       key: refusedValue ? key : null,
       reauthenticate
     });
+    // The alert sits above the list, far from the field a long page
+    // puts under the pointer, so the refused field takes the focus.
+    if (refusedValue) void tick().then(() => document.getElementById(fieldId(key))?.focus());
   }
 
   async function write(
@@ -220,6 +232,13 @@ The signed-in header renders in every state, loading included, and
       await refreshAfterWrite(key);
     } finally {
       busy = false;
+    }
+    // A control that removed itself (the retry button, or a Reset whose
+    // row is back at its default) leaves focus on the page body: the
+    // key's field takes it instead.
+    await tick();
+    if (document.activeElement === document.body || document.activeElement === null) {
+      document.getElementById(fieldId(key))?.focus();
     }
   }
 
@@ -269,7 +288,7 @@ The signed-in header renders in every state, loading included, and
     <p>{SETTINGS_INTRO}</p>
 
     {#if refreshFailed}
-      <div class="alert alert-warning">{AUTH_OUTCOMES.failed}</div>
+      <div class="alert alert-warning">{LIST_REFRESH_FAILED}</div>
     {/if}
     {#if notice}
       <div id="settings-outcome" class="alert {notice.alertClass}">
@@ -291,7 +310,7 @@ The signed-in header renders in every state, loading included, and
         <li class="list-row">
           <div class="list-col-grow flow">
             <div class="flex flex-wrap items-center gap-2">
-              <label class="font-mono text-sm font-medium" for={fieldId(e.name)}>{e.name}</label>
+              <label class="font-mono text-[13px] font-medium" for={fieldId(e.name)}>{e.name}</label>
               <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
             </div>
             <p>{e.description}</p>
@@ -339,7 +358,7 @@ The signed-in header renders in every state, loading included, and
         <li class="list-row">
           <div class="list-col-grow flow">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono text-sm font-medium">{e.name}</span>
+              <span class="font-mono text-[13px] font-medium">{e.name}</span>
               <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
             </div>
             <p>{e.description}</p>

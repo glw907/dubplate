@@ -201,11 +201,10 @@ A `doctor` run too early correctly reports a server that cannot start yet.
 
     Replace the `member add ...` arguments with `member list` to run that verb
     the same way. `member remove`, `member demote`, and `settings reset` run
-    through this form too. `settings reset` refuses a key the environment
-    file sets. To clear a stored value that the file contradicts, point
-    `EnvironmentFile` at a copy of `/etc/dubplate/server.env` with that one key
-    removed, or edit the key in the file to the stored value and restart
-    `serve`. The `ReadWritePaths` line is the grant step 5 describes.
+    through this form too. `settings reset` deletes a stored value even when
+    the environment file sets the key, so it clears a value the file
+    contradicts; `serve` seeds the file's value again at its next start. The
+    `ReadWritePaths` line is the grant step 5 describes.
 11. **Run `doctor`.** Use the same `systemd-run` command as step 10 with
     `doctor` as the verb, and leave out the `RestrictAddressFamilies` line.
     The `bind addresses` row reads the interface table over a netlink socket,

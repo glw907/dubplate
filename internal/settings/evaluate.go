@@ -291,8 +291,8 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 		o.Value, o.Change = o.Env, Reseed
 		o.Report = fmt.Sprintf("re-seeds from %s to %s from the environment", strconv.Quote(stored.Value), strconv.Quote(o.Env))
 	case o.EnvSet && !equal(s.Kind, o.Env, stored.Value):
-		errs = append(errs, fmt.Errorf("%s: the environment seeds %s but an administrator set %s; unset %s, or set it to %s, or clear the administrator's value with %s unset by running dubplate-server settings reset %s",
-			s.Key, strconv.Quote(o.Env), strconv.Quote(stored.Value), s.Key, strconv.Quote(stored.Value), s.Key, s.Key))
+		errs = append(errs, fmt.Errorf("%s: the environment seeds %s but an administrator set %s; unset %s, or set it to %s, or clear the administrator's value by running dubplate-server settings reset %s",
+			s.Key, strconv.Quote(o.Env), strconv.Quote(stored.Value), s.Key, strconv.Quote(stored.Value), s.Key))
 	default:
 		o.Value = stored.Value
 		o.Report = fmt.Sprintf("the administrator's value %s is in force", strconv.Quote(stored.Value))

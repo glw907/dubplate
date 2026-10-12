@@ -730,7 +730,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			environ: []string{key + "=50"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
 			want: []doctorRow{
-				{key, `refused: DUBPLATE_TEST_SETTING: the environment seeds "50" but an administrator set "40"; unset DUBPLATE_TEST_SETTING, or set it to "40", or clear the administrator's value with DUBPLATE_TEST_SETTING unset by running dubplate-server settings reset DUBPLATE_TEST_SETTING`},
+				{key, `refused: DUBPLATE_TEST_SETTING: the environment seeds "50" but an administrator set "40"; unset DUBPLATE_TEST_SETTING, or set it to "40", or clear the administrator's value by running dubplate-server settings reset DUBPLATE_TEST_SETTING`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,

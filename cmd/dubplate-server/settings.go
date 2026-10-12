@@ -56,9 +56,6 @@ func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr 
 			}
 			key := args[0]
 			res, err := settings.Reset(ctx, h, reg, environ, by, nil, key, time.Now())
-			if errors.Is(err, settings.ErrEnvironmentSets) {
-				return fmt.Errorf("%w; unset it for this command, and serve seeds its value again at the next start", err)
-			}
 			if err != nil {
 				return err
 			}

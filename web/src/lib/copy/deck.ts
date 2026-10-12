@@ -126,6 +126,12 @@ export const ADMIN_BADGE_LABEL = 'Admin';
 export const ROSTER_RETRY = 'Try again';
 
 /**
+ * Shown beside the list when the read that follows a write that went
+ * through fails: the write stands, so the line never invites a repeat.
+ */
+export const LIST_REFRESH_FAILED = 'The change went through, but the list couldn’t be refreshed and may be out of date. Reload the page.';
+
+/**
  * The add-member form's field hints. `username` states the
  * write path's own shape (`internal/auth/roster.go`'s
  * `usernamePattern`): an alphanumeric first character, then any run of

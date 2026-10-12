@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -24,10 +23,6 @@ type AdminConfig struct {
 
 	Logger *slog.Logger
 }
-
-// adminKey is the context key under which the gate passes the
-// verified admin to the handler it wraps.
-type adminKey struct{}
 
 // RequireAdmin admits a request to next only when its session verifies
 // through cfg.Seam as a valid identity holding the admin flag. Every
@@ -66,7 +61,7 @@ func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 		if v.RefreshedValue != "" {
 			http.SetCookie(w, SessionCookie(v.RefreshedValue, now, v.Session.ExpiresAt))
 		}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), adminKey{}, v)))
+		next.ServeHTTP(w, r)
 	})
 }
 

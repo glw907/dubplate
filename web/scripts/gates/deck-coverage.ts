@@ -51,7 +51,7 @@ interface Leaf {
   value: string;
 }
 
-/** The nine page-state keys `deck.ts` declares on `TITLES`. */
+/** The page-state keys `deck.ts` declares on `TITLES`. */
 const REQUIRED_TITLES = [
   'login',
   'loginSent',

@@ -38,6 +38,7 @@ The signed-in header renders in every state, loading included, and
     CONFIRM_REMOVE,
     DEMOTE_CONTROL,
     ERROR_PAGE,
+    LIST_REFRESH_FAILED,
     REAUTH_SIGN_IN,
     REMOVE_CONTROL,
     ROSTER_EMPTY_STATE,
@@ -86,9 +87,7 @@ The signed-in header renders in every state, loading included, and
   }
 
   let status = $state<Status>('loading');
-  // The list and the form's transient fields skip Svelte's deep proxy:
-  // nothing here reads or writes into their contents through a derived
-  // value.
+  // Replaced whole on every fetch and never mutated, so it skips the deep proxy.
   let members = $state.raw<Member[]>([]);
   let unreachableMessage = $state('');
   // Set only by a refresh after a successful write: the page keeps
@@ -99,6 +98,8 @@ The signed-in header renders in every state, loading included, and
   let address = $state('');
   let displayName = $state('');
   let username = $state('');
+  // True while any write is in flight, an add or a remove or a demote,
+  // so a second one cannot start until the first settles.
   let submitting = $state(false);
   let notice = $state<Notice | null>(null);
   // The write the alert's retry control runs again.
@@ -130,7 +131,7 @@ The signed-in header renders in every state, loading included, and
     if (erroredField === field) erroredField = null;
   }
 
-  /** A read of `list_members`, in the three shapes the page changes on. */
+  /** A read of `list_members`: the list, or the refusal state the page changes to. */
   async function fetchRoster(): Promise<
     { ok: true; members: Member[] } | { ok: false; state: 'refused' | 'signedOut' | 'unreachable'; message: string }
   > {
@@ -154,6 +155,7 @@ The signed-in header renders in every state, loading included, and
     }
     status = result.state;
     unreachableMessage = result.message;
+    if (result.state === 'unreachable') announce(result.message, 'assertive');
   }
 
   // A write's own refresh: it never turns the page's `status` away from
@@ -167,6 +169,7 @@ The signed-in header renders in every state, loading included, and
       refreshFailed = false;
     } else {
       refreshFailed = true;
+      announce(LIST_REFRESH_FAILED, 'polite');
     }
   }
 
@@ -194,8 +197,17 @@ The signed-in header renders in every state, loading included, and
     const reauthenticate = needsReauthentication(result);
     if (reauthenticate) retry = again;
     say(failureText(result), failureAlertClass(result), 'assertive', reauthenticate);
-    if (result.kind === 'refused') erroredField = FIELD_FOR_DETAIL[result.detail] ?? null;
+    if (result.kind === 'refused') {
+      erroredField = Object.hasOwn(FIELD_FOR_DETAIL, result.detail) ? FIELD_FOR_DETAIL[result.detail] : null;
+    }
     return false;
+  }
+
+  /** Moves focus to what a refused write shows: its field, else the alert's text. */
+  async function focusRefusal(): Promise<void> {
+    await tick();
+    if (erroredField) inputForField(erroredField)?.focus();
+    else document.getElementById('roster-outcome-text')?.focus();
   }
 
   async function addMember(): Promise<void> {
@@ -209,14 +221,12 @@ The signed-in header renders in every state, loading included, and
     announce('', 'polite');
     try {
       const result = await call<{ member: Member }>('add_member', { address, display_name: displayName, username });
-      if (!settle(result, addMember)) {
-        if (erroredField) {
-          await tick();
-          inputForField(erroredField)?.focus();
-        }
+      if (result.kind !== 'ok') {
+        settle(result, addMember);
+        await focusRefusal();
         return;
       }
-      say(addedMemberLine(displayName), '', 'polite');
+      say(addedMemberLine(result.value.member.display_name), '', 'polite');
       address = '';
       displayName = '';
       username = '';
@@ -251,18 +261,27 @@ The signed-in header renders in every state, loading included, and
   }
 
   async function change(kind: 'remove' | 'demote', member: Member): Promise<void> {
+    if (submitting) return;
+    submitting = true;
     notice = null;
     retry = null;
     erroredField = null;
     announce('', 'polite');
-    const result = await call(kind === 'remove' ? 'remove_member' : 'demote_member', { user_id: member.user_id });
-    if (!settle(result, () => change(kind, member))) return;
-    say(kind === 'remove' ? removedMemberLine(member.display_name) : demotedMemberLine(member.display_name), '', 'polite');
-    await refreshAfterWrite();
-    // The row that held the control is gone or changed, so focus goes to
-    // the page rather than to nothing.
-    await tick();
-    document.getElementById('main')?.focus();
+    try {
+      const result = await call(kind === 'remove' ? 'remove_member' : 'demote_member', { user_id: member.user_id });
+      if (!settle(result, () => change(kind, member))) {
+        await focusRefusal();
+        return;
+      }
+      say(kind === 'remove' ? removedMemberLine(member.display_name) : demotedMemberLine(member.display_name), '', 'polite');
+      await refreshAfterWrite();
+      // The row that held the control is gone or changed, so focus goes to
+      // the member count, which the change just moved.
+      await tick();
+      document.getElementById('member-count')?.focus();
+    } finally {
+      submitting = false;
+    }
   }
 
   function confirm(): void {
@@ -296,7 +315,7 @@ The signed-in header renders in every state, loading included, and
     <h1 class="display page-title text-4xl">{TITLES.members}</h1>
     <p><a href={resolve('server-settings')} class="link link-primary inline-flex min-h-11 items-center">{SERVER_SETTINGS_LINK}</a></p>
 
-    <p>{members.length === 0 ? ROSTER_EMPTY_STATE : memberCountLine(members.length)}</p>
+    <p id="member-count" tabindex="-1">{members.length === 0 ? ROSTER_EMPTY_STATE : memberCountLine(members.length)}</p>
     {#if members.length > 0}
       <ul id="roster-list" class="list" role="list">
         {#each members as member (member.user_id)}
@@ -335,7 +354,7 @@ The signed-in header renders in every state, loading included, and
       </ul>
     {/if}
     {#if refreshFailed}
-      <div class="alert alert-warning">{AUTH_OUTCOMES.failed}</div>
+      <div class="alert alert-warning">{LIST_REFRESH_FAILED}</div>
     {/if}
 
     <form onsubmit={submit} bind:this={addMemberForm} class="flow">
@@ -399,7 +418,7 @@ The signed-in header renders in every state, loading included, and
     {#if notice}
       <div id="roster-outcome" class="alert {notice.alertClass}">
         <div class="flex flex-col gap-2">
-          <span>{notice.text}</span>
+          <span id="roster-outcome-text" tabindex="-1">{notice.text}</span>
           {#if notice.reauthenticate}
             <div class="flex flex-wrap gap-2">
               <a href={resolve('login')} target="_blank" rel="noopener" class="btn btn-sm min-h-11">{REAUTH_SIGN_IN}</a>

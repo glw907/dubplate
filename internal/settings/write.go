@@ -9,6 +9,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/identity"
 )
 
 // The refusals [Set] and [Reset] return, each wrapped with the key and
@@ -121,16 +122,22 @@ func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []s
 		res.Written, res.Previous = true, previous
 		return &change{"set", stored, &Row{Key: key, Value: value, Source: sourceAdmin, SeedValue: seed}}, nil
 	})
-	return describe(res, s), err
+	if err != nil {
+		return Result{}, err
+	}
+	return describe(res, s), nil
 }
 
 // Reset deletes the administrator's row for the store-homed setting
 // key, in one transaction with one audit row (its new value empty) and
 // a generation bump, under the validator [Set] describes. Over no row
 // or an env-seed row it writes nothing and answers with the source in
-// force. Over an admin row for a key the serving environment sets it is
-// refused with [ErrEnvironmentSets], since the key would read its
-// default until the next start seeded the environment's value again.
+// force. Over an admin row for a key the serving environment sets, a
+// reset from any channel but the command line is refused with
+// [ErrEnvironmentSets], since the key would read its default until the
+// next start seeded the environment's value again. The command line
+// deletes the row: an operator holding the process is the one who can
+// clear a row the environment contradicts.
 //
 // guard, ctx, and now are as for [Set].
 func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by Author, guard Guard, key string, now time.Time) (Result, error) {
@@ -149,13 +156,16 @@ func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ [
 		case stored.Source != sourceAdmin:
 			return nil, fmt.Errorf("%s: stored row has unknown source %q", key, stored.Source)
 		}
-		if _, set := lookupEnv(environ, key); set {
+		if _, set := lookupEnv(environ, key); set && by.Channel != identity.ChannelCommandLine.String() {
 			return nil, fmt.Errorf("%w: %s", ErrEnvironmentSets, key)
 		}
 		res.Written, res.Previous = true, stored.Value
 		return &change{"reset", stored, nil}, nil
 	})
-	return describe(res, s), err
+	if err != nil {
+		return Result{}, err
+	}
+	return describe(res, s), nil
 }
 
 // lookup returns the registered setting named key, or an error

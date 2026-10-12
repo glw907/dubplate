@@ -354,6 +354,42 @@ func TestReset(t *testing.T) {
 	}
 }
 
+// TestReset_EnvironmentSetsByChannel: an admin row for a key the
+// environment sets is refused to a cookie reset and deleted by a
+// command-line one.
+func TestReset_EnvironmentSetsByChannel(t *testing.T) {
+	environ := []string{keyKeep + "=20"}
+	t.Run("the cookie channel is refused", func(t *testing.T) {
+		h := newStore(t)
+		writeFixture(t, h, adminRow(keyKeep, "20", "20"))
+		before := snapshot(t, h)
+
+		_, err := Reset(ctxFor(t), h, writeRegistry(), environ, testAuthor, nil, keyKeep, testNow)
+
+		if !errors.Is(err, ErrEnvironmentSets) {
+			t.Fatalf("Reset err = %v, want ErrEnvironmentSets", err)
+		}
+		wantUnchanged(t, h, before)
+	})
+	t.Run("the command line deletes the row", func(t *testing.T) {
+		h := newStore(t)
+		writeFixture(t, h, adminRow(keyKeep, "20", "20"))
+		operator := Author{Actor: "operator:glw907", Channel: "command-line"}
+
+		got, err := Reset(ctxFor(t), h, writeRegistry(), environ, operator, nil, keyKeep, testNow)
+
+		if err != nil {
+			t.Fatalf("Reset: %v", err)
+		}
+		if !got.Written || got.Previous != "20" {
+			t.Errorf("Result = %+v, want a write that replaced 20", got)
+		}
+		if after := snapshot(t, h); len(after.rows) != 0 {
+			t.Errorf("settings = %v, want the row deleted", after.rows)
+		}
+	})
+}
+
 // TestSet_CorrelatedRule: a write the rule refuses changes nothing,
 // and a store already breaking the rule takes a write that adds no
 // refusal, the per-key comparison covering both keys the rule names.

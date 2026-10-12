@@ -26,7 +26,7 @@ var ErrNotSignedIn = errors.New("auth: no valid session")
 //
 // A refusal wraps [ErrNotSignedIn] and logs at Info the fixed reason
 // [gateRefusalReason] names. Any other failure, a roster lookup or a
-// setting read, is returned unwrapped and logged at Error. Neither log
+// setting read, is returned without [ErrNotSignedIn] and logged at Error. Neither log
 // record carries an error's own text, which may quote an address.
 func CheckRequest(cfg AdminConfig, w http.ResponseWriter, r *http.Request) (VerifiedIdentity, error) {
 	now := cfg.Now()
