@@ -120,38 +120,46 @@ type privateFiles struct {
 // which group of themes the server presents. Rung 5 ships one group,
 // so the only accepted value is acceptedThemeMatch.
 var themeMatchThreshold = config.Threshold{
-	Key:     "DUBPLATE_THEME_MATCH",
-	Kind:    config.KindString,
-	Default: acceptedThemeMatch,
-	Doc:     `exactly "dubplate"`,
+	Key:         "DUBPLATE_THEME_MATCH",
+	Kind:        config.KindString,
+	Default:     acceptedThemeMatch,
+	Doc:         `exactly "dubplate"`,
+	Description: "the theme group the server presents",
+	Mark:        config.NotSensitive,
 }
 
 // themePaletteThreshold is DUBPLATE_THEME_PALETTE: the theme a visitor
 // without a theme cookie sees. Its Doc string is the operator-facing
 // text this key's own doctor row and the config wall report.
 var themePaletteThreshold = config.Threshold{
-	Key:     "DUBPLATE_THEME_PALETTE",
-	Kind:    config.KindString,
-	Default: "system",
-	Doc:     `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
+	Key:         "DUBPLATE_THEME_PALETTE",
+	Kind:        config.KindString,
+	Default:     "system",
+	Doc:         `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
+	Description: "the theme a visitor with no saved choice sees",
+	Mark:        config.NotSensitive,
 }
 
 // brandingThreshold is DUBPLATE_BRANDING: the operator's declaration
 // list, rendered once at startup into the branding stylesheet.
 var brandingThreshold = config.Threshold{
-	Key:     "DUBPLATE_BRANDING",
-	Kind:    config.KindString,
-	Default: notConfigured,
-	Doc:     `"none", or ";"-separated name: value declarations`,
+	Key:         "DUBPLATE_BRANDING",
+	Kind:        config.KindString,
+	Default:     notConfigured,
+	Doc:         `"none", or ";"-separated name: value declarations`,
+	Description: "the operator's style declarations, applied to every page",
+	Mark:        config.NotSensitive,
 }
 
 // operatorCSSFileThreshold is DUBPLATE_OPERATOR_CSS_FILE: the
 // operator's own stylesheet, read once at startup by [readOperatorCSS].
 var operatorCSSFileThreshold = config.Threshold{
-	Key:     "DUBPLATE_OPERATOR_CSS_FILE",
-	Kind:    config.KindString,
-	Default: notConfigured,
-	Doc:     `"none", or a path to a .css file`,
+	Key:         "DUBPLATE_OPERATOR_CSS_FILE",
+	Kind:        config.KindString,
+	Default:     notConfigured,
+	Doc:         `"none", or a path to a .css file`,
+	Description: "the path to the operator's own stylesheet",
+	Mark:        config.Sensitive,
 }
 
 // registerWebConfig adds the web surface's four presentation

@@ -30,6 +30,9 @@ const (
 	keyOrphan    = "DUBPLATE_TEST_ORPHAN"
 )
 
+// testDescription is the description every test setting carries.
+const testDescription = "a test setting"
+
 // keepSetting is an integer setting shaped like the backup snapshot
 // keep: default def, bounds 3 to 1000.
 func keepSetting(def string) config.Setting {
@@ -41,6 +44,9 @@ func keepSetting(def string) config.Setting {
 		Apply:   config.ApplyNextOperation,
 		Floor:   "3",
 		Ceiling: "1000",
+
+		Description: testDescription,
+		Mark:        config.NotSensitive,
 	}
 }
 
@@ -54,6 +60,9 @@ var retentionSetting = config.Setting{
 	Apply:   config.ApplyNextOperation,
 	Floor:   "24h",
 	Ceiling: "87600h",
+
+	Description: testDescription,
+	Mark:        config.NotSensitive,
 }
 
 // newRegistry returns a registry declaring the keep setting with

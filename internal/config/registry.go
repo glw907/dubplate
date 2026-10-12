@@ -129,11 +129,33 @@ func (r *Registry) claim(family, key string) {
 	r.claims[key] = family
 }
 
+// requireDescribed panics if key, declared in family, carries no
+// description or no named sensitive mark. Every Add* entry point calls
+// it for each of its keys, beside [requirePrefix]: a registered key
+// always says what it controls and whether a change to it needs care.
+func requireDescribed(family, key, description string, mark Sensitivity) {
+	if strings.TrimSpace(description) == "" {
+		panic(fmt.Sprintf("%s: declared in %s without a description", key, family))
+	}
+	if mark != NotSensitive && mark != Sensitive {
+		panic(fmt.Sprintf("%s: declared in %s without a sensitive mark, got %v", key, family, mark))
+	}
+}
+
+// requireDescribedKeys applies [requireDescribed] to each of keys.
+func requireDescribedKeys(family string, keys ...[]KeyDecl) {
+	for _, decl := range slices.Concat(keys...) {
+		requireDescribed(family, decl.Name, decl.Description, decl.Mark)
+	}
+}
+
 // AddWallRow registers row as an owned wall row, a key [Load]
 // requires. Its Name must carry the DUBPLATE_ prefix (O5 class 6) and
-// is checked against every other declared key.
+// is checked against every other declared key. A row without a
+// description or a sensitive mark panics naming it.
 func (r *Registry) AddWallRow(row WallRow) {
 	requirePrefix(familyOwnedWall, row.Name)
+	requireDescribed(familyOwnedWall, row.Name, row.Description, row.Mark)
 	if r.ownedNow(row.Name) {
 		panicDuplicate(row.Name, familyOwnedWall, familyOwnedWall)
 	}
@@ -187,18 +209,19 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 //
 // Flag and Required claim across families, so a key that collides
 // with an owned-wall, reserved, or superseded name is refused rather
-// than registering silently.
+// than registering silently. Each carries a description and a
+// sensitive mark, and one without either panics naming the key.
 //
 // ruled, conductor 2026-09-07, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
-	if class.Flag == "" {
+	if class.Flag.Name == "" {
 		panic(fmt.Sprintf("%s: integration class declared with an empty Flag", class.Name))
 	}
-	if slices.Contains(class.Required, class.Flag) {
-		panic(fmt.Sprintf("%s: integration class's Flag %s also appears in its own key set", class.Name, class.Flag))
+	requireDescribedKeys(familyIntegration, []KeyDecl{class.Flag}, class.Required)
+	keys := KeyNames(slices.Concat([]KeyDecl{class.Flag}, class.Required))
+	if slices.Contains(keys[1:], class.Flag.Name) {
+		panic(fmt.Sprintf("%s: integration class's Flag %s also appears in its own key set", class.Name, class.Flag.Name))
 	}
-
-	keys := append([]string{class.Flag}, class.Required...)
 
 	for _, key := range keys {
 		requirePrefix(familyIntegration, key)
@@ -210,7 +233,7 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	}
 	for _, key := range keys {
 		for _, existing := range r.integrationClasses {
-			if key == existing.Flag || slices.Contains(existing.Required, key) {
+			if key == existing.Flag.Name || slices.ContainsFunc(existing.Required, func(k KeyDecl) bool { return k.Name == key }) {
 				panicDuplicate(key, familyIntegration, familyIntegration)
 			}
 		}
@@ -231,13 +254,15 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // AddThreshold registers t as a behavior tunable. t.Default must parse
 // under t.Kind, and t.Kind must name a parser; both are refused here,
 // at registration, rather than left for Load to discover as an
-// environment-shaped parse failure (Resolution R11). This task builds
+// environment-shaped parse failure (Resolution R11). A threshold
+// without a description or a sensitive mark panics naming it. This task builds
 // the check's seat only: rung 1 registers no thresholds, and the kind
 // that motivates the check's own test lands with Task 5.
 //
 // ruled, conductor 2026-09-07, R11
 func (r *Registry) AddThreshold(t Threshold) {
 	requirePrefix(familyThresholds, t.Key)
+	requireDescribed(familyThresholds, t.Key, t.Description, t.Mark)
 	if slices.ContainsFunc(r.thresholds, func(existing Threshold) bool { return existing.Key == t.Key }) {
 		panicDuplicate(t.Key, familyThresholds, familyThresholds)
 	}
@@ -310,8 +335,8 @@ type IdentitySource struct {
 	// source registers it as an owned wall row, which is what makes
 	// Load require it.
 	Selector string
-	Required []string
-	Optional []string
+	Required []KeyDecl
+	Optional []KeyDecl
 	// Validate reports what this source makes of its own
 	// configuration: values carries its resolved Required and Optional
 	// values by key, absent for any that resolved unset, and environ
@@ -342,7 +367,8 @@ func (s IdentitySource) Selected(environ []string) bool {
 // deployment selects between. Its Required and Optional keys claim
 // across families, so a source key colliding with an owned-wall,
 // reserved, integration, or superseded name is refused here rather
-// than misclassifying at load. Two sources may share a key, since two
+// than misclassifying at load, and a key without a description or a
+// sensitive mark panics naming it. Two sources may share a key, since two
 // ways of establishing identity can legitimately need one value, and
 // [Registry.claim] permits a repeat claim from the same family.
 //
@@ -363,7 +389,8 @@ func (r *Registry) AddIdentitySource(src IdentitySource) {
 		}
 	}
 
-	keys := append(slices.Clone(src.Required), src.Optional...)
+	requireDescribedKeys(familyIdentitySource, src.Required, src.Optional)
+	keys := KeyNames(slices.Concat(src.Required, src.Optional))
 	if slices.Contains(keys, src.Selector) {
 		panic(fmt.Sprintf("%s: identity source's Selector %s also appears in its own key set", src.Name, src.Selector))
 	}
@@ -395,7 +422,7 @@ func (r *Registry) IdentitySources() []IdentitySource {
 // call the selector unknown in the meantime.
 func (r *Registry) identitySourceKey(name string) bool {
 	for _, src := range r.identitySources {
-		if name == src.Selector || slices.Contains(src.Required, name) || slices.Contains(src.Optional, name) {
+		if name == src.Selector || slices.ContainsFunc(slices.Concat(src.Required, src.Optional), func(k KeyDecl) bool { return k.Name == name }) {
 			return true
 		}
 	}
@@ -411,10 +438,12 @@ func (r *Registry) identitySourceKey(name string) bool {
 // declaration that could never be read: a kind with no bound, a bound
 // that does not parse or a floor above the ceiling, a KindString
 // setting with no allowed values or a bound of another kind, a default
-// that does not parse or falls outside the bounds, or an apply mode
-// left at its zero value or set to one no one named.
+// that does not parse or falls outside the bounds, an apply mode
+// left at its zero value or set to one no one named, or a missing
+// description or sensitive mark.
 func (r *Registry) AddSetting(s Setting) {
 	requirePrefix(familySettings, s.Key)
+	requireDescribed(familySettings, s.Key, s.Description, s.Mark)
 	if r.hasSetting(s.Key) {
 		panicDuplicate(s.Key, familySettings, familySettings)
 	}

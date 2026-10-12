@@ -305,7 +305,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 
 	// Owned wall: one line per declared row.
-	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SCRATCH_OWNED"})
+	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SCRATCH_OWNED", Description: testDescription, Mark: config.NotSensitive})
 	lines = doctorLines(t, reg)
 	ownedCount++
 	wantTotal++
@@ -340,8 +340,8 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// Integration: one line per class.
 	reg.AddIntegrationClass(config.IntegrationClass{
 		Name:     "scratch integration",
-		Flag:     "DUBPLATE_TEST_SCRATCH_FLAG",
-		Required: []string{"DUBPLATE_TEST_SCRATCH_REQUIRED"},
+		Flag:     testKey("DUBPLATE_TEST_SCRATCH_FLAG"),
+		Required: []config.KeyDecl{testKey("DUBPLATE_TEST_SCRATCH_REQUIRED")},
 	})
 	lines = doctorLines(t, reg)
 	integrationCount++
@@ -354,7 +354,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 
 	// Thresholds: one line per threshold.
-	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Default: "1"})
+	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Description: testDescription, Mark: config.NotSensitive, Default: "1"})
 	lines = doctorLines(t, reg)
 	thresholdCount++
 	wantTotal++
@@ -371,7 +371,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	reg.AddIdentitySource(config.IdentitySource{
 		Name:     "scratch source",
 		Selector: "DUBPLATE_TEST_SCRATCH_SELECTOR",
-		Required: []string{"DUBPLATE_TEST_SCRATCH_SOURCE_A", "DUBPLATE_TEST_SCRATCH_SOURCE_B"},
+		Required: []config.KeyDecl{testKey("DUBPLATE_TEST_SCRATCH_SOURCE_A"), testKey("DUBPLATE_TEST_SCRATCH_SOURCE_B")},
 	})
 	lines = doctorLines(t, reg)
 	sourceCount++
@@ -444,9 +444,9 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 
 	registry := func() *config.Registry {
 		reg := config.NewRegistry()
-		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []string{requiredA}})
-		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []string{requiredB}})
-		reg.AddWallRow(config.WallRow{Name: selector})
+		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []config.KeyDecl{testKey(requiredA)}})
+		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []config.KeyDecl{testKey(requiredB)}})
+		reg.AddWallRow(config.WallRow{Name: selector, Description: testDescription, Mark: config.NotSensitive})
 		return reg
 	}
 
@@ -1112,6 +1112,9 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 		Kind:    config.KindFloat,
 		Default: "0.04",
 		Doc:     "a float between 0 and 1",
+
+		Description: testDescription,
+		Mark:        config.NotSensitive,
 	})
 
 	stateDir := t.TempDir()

@@ -25,10 +25,14 @@ const (
 var trustedProxyIntegrationClass = config.IntegrationClass{
 	Name: "trusted proxy",
 	Rung: 5,
-	Flag: "DUBPLATE_TRUSTED_PROXY_ENABLED",
-	Required: []string{
-		trustedProxyAddrsKey,
-		trustedProxyHeaderKey,
+	Flag: config.KeyDecl{
+		Name:        "DUBPLATE_TRUSTED_PROXY_ENABLED",
+		Description: "turns on trusted-proxy mode, where a header from a trusted front names the client address",
+		Mark:        config.Sensitive,
+	},
+	Required: []config.KeyDecl{
+		{Name: trustedProxyAddrsKey, Description: "the addresses of the fronts permitted to report a client address, comma-separated", Mark: config.Sensitive},
+		{Name: trustedProxyHeaderKey, Description: "the header the trusted fronts report the client address in", Mark: config.Sensitive},
 	},
 }
 

@@ -1,11 +1,65 @@
 package config
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+)
+
+// Sensitivity is the mark every registered key carries: whether a
+// change to it needs care. The zero value is no mark, so a declaration
+// that forgets the field panics at registration rather than reading as
+// not sensitive, on the precedent of ops.Privilege.
+//
+// On a store-homed [Setting] the mark gates the live write. On a key
+// only the environment sets, which changes only at a restart, it marks
+// a path, an address, a credential, or a trust boundary. It never says
+// whether a value is a secret.
+type Sensitivity int
+
+const (
+	// NotSensitive marks a key whose change needs no particular care.
+	NotSensitive Sensitivity = iota + 1
+	// Sensitive marks a key whose change needs care.
+	Sensitive
+)
+
+// String returns m's name as a report prints it, or "Sensitivity(N)"
+// for a mark no one named, the zero value included.
+func (m Sensitivity) String() string {
+	switch m {
+	case NotSensitive:
+		return "not sensitive"
+	case Sensitive:
+		return "sensitive"
+	default:
+		return fmt.Sprintf("Sensitivity(%d)", int(m))
+	}
+}
+
+// KeyDecl declares one environment key an [IntegrationClass] or an
+// [IdentitySource] names, with the description and mark every
+// registered key carries.
+type KeyDecl struct {
+	Name        string
+	Description string
+	Mark        Sensitivity
+}
+
+// KeyNames returns the names of keys in order.
+func KeyNames(keys []KeyDecl) []string {
+	names := make([]string, len(keys))
+	for i, k := range keys {
+		names[i] = k.Name
+	}
+	return names
+}
 
 // WallRow is one row of the owned configuration wall: a key [Load]
 // requires.
 type WallRow struct {
-	Name string
+	Name        string
+	Description string
+	Mark        Sensitivity
 }
 
 // ownedWall is the wall's required-now rows (spec, "The config wall,
@@ -13,10 +67,27 @@ type WallRow struct {
 // registered from cmd/dubplate-server/auth.go rather than here, on the
 // rung 1b registry contract: this package names no rung-specific key.
 var ownedWall = []WallRow{
-	{Name: "DUBPLATE_LIBRARY_ROOT"},
-	{Name: "DUBPLATE_STATE_DIR"},
-	{Name: "DUBPLATE_SITE_NAME"},
-	{Name: "DUBPLATE_ADMIN_EMAIL"},
+	{
+		Name:        "DUBPLATE_LIBRARY_ROOT",
+		Description: "the directory tree that holds the music library",
+		Mark:        Sensitive,
+	},
+	{
+		Name:        "DUBPLATE_STATE_DIR",
+		Description: "the directory that holds the server's persistent state: the store, the auth records, and the snapshots",
+		Mark:        Sensitive,
+	},
+	{
+		Name:        "DUBPLATE_SITE_NAME",
+		Description: "the name the server shows members and puts in the mail it sends",
+		Mark:        NotSensitive,
+	},
+	{
+		Name: "DUBPLATE_ADMIN_EMAIL",
+		Description: "the operator's address: install seeds the first admin from it with member add, " +
+			"it grants no authority at runtime, and it is the contact the music metadata lookups send",
+		Mark: Sensitive,
+	},
 }
 
 // OwnedWall returns the owned wall's rows in table order.
@@ -155,8 +226,8 @@ func (r *Registry) supersessionOf(name string) (string, bool) {
 type IntegrationClass struct {
 	Name     string
 	Rung     int
-	Flag     string
-	Required []string
+	Flag     KeyDecl
+	Required []KeyDecl
 }
 
 // integrationClassOf reports the integration class name belongs to in
@@ -167,7 +238,7 @@ type IntegrationClass struct {
 // ruled, conductor 2026-09-07, R5
 func (r *Registry) integrationClassOf(name string) (IntegrationClass, bool) {
 	for _, class := range r.integrationClasses {
-		if name == class.Flag || slices.Contains(class.Required, name) {
+		if name == class.Flag.Name || slices.ContainsFunc(class.Required, func(k KeyDecl) bool { return k.Name == name }) {
 			return class, true
 		}
 	}

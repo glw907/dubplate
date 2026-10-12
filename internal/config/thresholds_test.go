@@ -17,8 +17,8 @@ func TestRegister_AppearsInThresholds(t *testing.T) {
 		t.Fatalf("Thresholds() before AddThreshold = %v, want empty", got)
 	}
 
-	first := Threshold{Key: "DUBPLATE_TEST_FIRST", Default: "1", Doc: "a positive integer"}
-	second := Threshold{Key: "DUBPLATE_TEST_SECOND", Default: "2", Doc: "a positive integer"}
+	first := Threshold{Key: "DUBPLATE_TEST_FIRST", Description: testDescription, Mark: NotSensitive, Default: "1", Doc: "a positive integer"}
+	second := Threshold{Key: "DUBPLATE_TEST_SECOND", Description: testDescription, Mark: NotSensitive, Default: "2", Doc: "a positive integer"}
 	reg.AddThreshold(first)
 	reg.AddThreshold(second)
 
@@ -36,7 +36,7 @@ func TestRegister_AppearsInThresholds(t *testing.T) {
 // mutating a returned slice must not corrupt what a second call returns.
 func TestThresholds_ReturnsCopy(t *testing.T) {
 	reg := NewRegistry()
-	reg.AddThreshold(Threshold{Key: "DUBPLATE_TEST_ONE", Default: "1", Doc: "a positive integer"})
+	reg.AddThreshold(Threshold{Key: "DUBPLATE_TEST_ONE", Description: testDescription, Mark: NotSensitive, Default: "1", Doc: "a positive integer"})
 
 	got := reg.Thresholds()
 	got[0].Key = "mutated"
@@ -47,7 +47,7 @@ func TestThresholds_ReturnsCopy(t *testing.T) {
 }
 
 func TestParseInt(t *testing.T) {
-	th := Threshold{Key: "DUBPLATE_TEST_QUIESCENT_MIN", Default: "10", Doc: "a positive integer number of minutes"}
+	th := Threshold{Key: "DUBPLATE_TEST_QUIESCENT_MIN", Description: testDescription, Mark: NotSensitive, Default: "10", Doc: "a positive integer number of minutes"}
 
 	tests := []struct {
 		name    string
@@ -104,7 +104,7 @@ func TestParseInt(t *testing.T) {
 }
 
 func TestParseInt_InvalidDefaultIsRegistrationError(t *testing.T) {
-	th := Threshold{Key: "DUBPLATE_TEST_BROKEN_DEFAULT", Default: "not-a-number", Doc: "a positive integer"}
+	th := Threshold{Key: "DUBPLATE_TEST_BROKEN_DEFAULT", Description: testDescription, Mark: NotSensitive, Default: "not-a-number", Doc: "a positive integer"}
 
 	_, err := ParseInt(nil, th)
 	if err == nil {
@@ -116,7 +116,7 @@ func TestParseInt_InvalidDefaultIsRegistrationError(t *testing.T) {
 }
 
 func TestParseDuration(t *testing.T) {
-	th := Threshold{Key: "DUBPLATE_TEST_WINDOW", Kind: KindDuration, Default: "720h", Doc: "a Go duration"}
+	th := Threshold{Key: "DUBPLATE_TEST_WINDOW", Description: testDescription, Mark: NotSensitive, Kind: KindDuration, Default: "720h", Doc: "a Go duration"}
 	tests := []struct {
 		name    string
 		environ []string
@@ -151,7 +151,7 @@ func TestParseDuration(t *testing.T) {
 }
 
 func TestParseDurationRejectsABadDefaultAsARegistrationBug(t *testing.T) {
-	_, err := ParseDuration(nil, Threshold{Key: "K", Kind: KindDuration, Default: "not a duration"})
+	_, err := ParseDuration(nil, Threshold{Key: "K", Description: testDescription, Mark: NotSensitive, Kind: KindDuration, Default: "not a duration"})
 	if err == nil || !strings.Contains(err.Error(), "K") {
 		t.Errorf("ParseDuration on a bad default = %v; want an error naming the key", err)
 	}
@@ -261,7 +261,7 @@ func TestThresholdKinds(t *testing.T) {
 			key := "DUBPLATE_TEST_" + tt.name
 
 			// unset, valid default.
-			th := Threshold{Key: key, Kind: tt.kind, Default: tt.validDefault, Doc: tt.doc}
+			th := Threshold{Key: key, Description: testDescription, Mark: NotSensitive, Kind: tt.kind, Default: tt.validDefault, Doc: tt.doc}
 			got, err := tt.parse(nil, th)
 			if err != nil {
 				t.Fatalf("unset+valid-default: parse() error = %v, want nil", err)
@@ -295,7 +295,7 @@ func TestThresholdKinds(t *testing.T) {
 			// case above because it must not name Doc: an environment
 			// error explains the accepted form, a registration error
 			// does not, since no environment value is at fault.
-			badDefault := Threshold{Key: key, Kind: tt.kind, Default: tt.invalidDefault, Doc: tt.doc}
+			badDefault := Threshold{Key: key, Description: testDescription, Mark: NotSensitive, Kind: tt.kind, Default: tt.invalidDefault, Doc: tt.doc}
 			_, err = tt.parse(nil, badDefault)
 			if err == nil {
 				t.Fatal("unset+invalid-default: parse() error = nil, want error naming the key alone")
@@ -318,7 +318,7 @@ func TestThresholdKinds(t *testing.T) {
 // scales.
 func TestParseFloat_RefusesNonFinite(t *testing.T) {
 	const key = "DUBPLATE_TEST_FINITE"
-	th := Threshold{Key: key, Kind: KindFloat, Default: "0.5", Doc: "a finite number"}
+	th := Threshold{Key: key, Description: testDescription, Mark: NotSensitive, Kind: KindFloat, Default: "0.5", Doc: "a finite number"}
 	for _, value := range []string{"NaN", "Inf", "-Inf", "+infinity"} {
 		t.Run(value, func(t *testing.T) {
 			got, err := ParseFloat([]string{key + "=" + value}, th)
@@ -329,7 +329,7 @@ func TestParseFloat_RefusesNonFinite(t *testing.T) {
 				t.Errorf("ParseFloat(%s=%s) error = %q, want it to name %q", key, value, err, th.Doc)
 			}
 
-			bad := Threshold{Key: key, Kind: KindFloat, Default: value, Doc: th.Doc}
+			bad := Threshold{Key: key, Description: testDescription, Mark: NotSensitive, Kind: KindFloat, Default: value, Doc: th.Doc}
 			if got, err := ParseFloat(nil, bad); err == nil {
 				t.Errorf("ParseFloat with Default %q = %v, want an error", value, got)
 			}
