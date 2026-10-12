@@ -103,13 +103,13 @@ func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 		{ops.OpRemoveMember, `{"user_id":"` + testHandle + `"}`, ops.RemoveMemberRequest{UserID: testHandle}, `{}`},
 		{ops.OpDemoteMember, `{"user_id":"` + testHandle + `"}`, ops.DemoteMemberRequest{UserID: testHandle}, `{}`},
 		{ops.OpListSettings, `{}`, ops.ListSettingsRequest{},
-			`{"settings":[{"name":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next-operation","mark":"sensitive"}]}`},
+			`{"settings":[{"name":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next_operation","mark":"sensitive"}]}`},
 		{ops.OpSetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
 			ops.SetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW", Value: "3h"},
-			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next-operation","source":"admin"}`},
+			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"admin"}`},
 		{ops.OpResetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW"}`,
 			ops.ResetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW"},
-			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next-operation","source":"env-seed"}`},
+			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"env-seed"}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.op, func(t *testing.T) {

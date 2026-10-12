@@ -132,9 +132,9 @@ func adminSuccesses() map[string]fakeAnswer {
 		ops.OpAddMember:    {resp: ops.AddMemberResponse{Member: ops.Member{UserID: testHandle, Address: "bo@example.com", Username: "bo"}}},
 		ops.OpRemoveMember: {resp: ops.RemoveMemberResponse{}},
 		ops.OpDemoteMember: {resp: ops.DemoteMemberResponse{}},
-		ops.OpListSettings: {resp: ops.ListSettingsResponse{Settings: []ops.SettingEntry{{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Mark: "sensitive"}}}},
-		ops.OpSetSetting:   {resp: ops.SetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next-operation", Source: "admin"}},
-		ops.OpResetSetting: {resp: ops.ResetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next-operation", Source: "env-seed"}},
+		ops.OpListSettings: {resp: ops.ListSettingsResponse{Settings: []ops.SettingEntry{{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next_operation", Mark: "sensitive"}}}},
+		ops.OpSetSetting:   {resp: ops.SetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next_operation", Source: "admin"}},
+		ops.OpResetSetting: {resp: ops.ResetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next_operation", Source: "env-seed"}},
 	}
 }
 
@@ -142,8 +142,8 @@ func adminSuccesses() map[string]fakeAnswer {
 func successes() map[string]fakeAnswer {
 	return map[string]fakeAnswer{
 		ops.OpStartBackup: {resp: ops.StartBackupResponse{JobID: testHandle}},
-		ops.OpJobStatus:   {resp: ops.JobStatusResponse{Job: ops.JobStatus{ID: testHandle, State: ops.JobRunning}}},
-		ops.OpCancelJob:   {resp: ops.CancelJobResponse{Job: ops.JobStatus{ID: testHandle, State: ops.JobCanceled}}},
+		ops.OpJobStatus:   {resp: ops.JobStatusResponse{Job: ops.JobStatus{ID: testHandle, Kind: "backup", State: ops.JobRunning}}},
+		ops.OpCancelJob:   {resp: ops.CancelJobResponse{Job: ops.JobStatus{ID: testHandle, Kind: "backup", State: ops.JobCanceled}}},
 		ops.OpCatalog:     {resp: ops.CatalogResponse{}},
 	}
 }

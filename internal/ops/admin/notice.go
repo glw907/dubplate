@@ -10,8 +10,11 @@ import (
 )
 
 // noticeWait bounds the whole sensitive-change notice: the roster read
-// and every send.
-const noticeWait = 30 * time.Second
+// and every send. The caller's answer waits on it, and the server's
+// 30-second write timeout would otherwise cut the connection after a
+// slow mail server and show the admin a failure for a write that
+// committed.
+const noticeWait = 10 * time.Second
 
 // notice mails every live admin that actor changed key, a sensitive
 // setting, as res reports. The caller runs it after the write commits

@@ -1326,7 +1326,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 		return nil, err
 	}
 	shell := serve.NewShell(prefix, serve.NewStrip(serve.TrustedProxyConfig{}), discardTestLogger())
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	shell.Register(membersRouteName, routes.members)
 	return shell.Handler(), nil
 }

@@ -438,7 +438,7 @@ func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) 
 	}
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, logger)
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	return shell.Handler(), &buf
 }
 
@@ -640,7 +640,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, discardTestLogger())
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	handler := shell.Handler()
 
 	documents := []string{prefixValue + "/login", prefixValue + "/login/link"}
@@ -760,7 +760,7 @@ func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Hand
 	}
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, discardTestLogger())
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	return shell.Handler()
 }
 

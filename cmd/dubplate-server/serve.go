@@ -16,6 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/notify"
+	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/spf13/cobra"
@@ -289,7 +290,21 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // already cleared. Its peer rule reads bindAddrs, the resolved list
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (_ *serve.Shell, _ *store.Handle, err error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*serve.Shell, *store.Handle, error) {
+	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s })
+}
+
+// A registrar mounts a route under a subtree name. *serve.Shell is
+// one; the route inventory's test wraps it in a second that records
+// each name before forwarding.
+type registrar interface {
+	Register(name string, h http.Handler)
+}
+
+// newServeShellVia is [newServeShell] mounting every route through
+// the registrar mount makes of the new shell, so a test sees each name
+// the build registers.
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *serve.Shell, _ *store.Handle, err error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, nil, err
@@ -313,6 +328,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
+	routes := mount(shell)
 	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
 		shell.EnableHSTS()
 	}
@@ -347,9 +363,9 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 
 	// The auth handlers apply no method check of their own; mounting
 	// each behind methodOnly is what fixes the one method it accepts.
-	shell.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
-	shell.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
-	shell.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
+	routes.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
+	routes.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
+	routes.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
 
 	adminConfig := auth.AdminConfig{
 		Seam:     seam,
@@ -360,16 +376,27 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		BodyCap:  authBodyCap(acc),
 	}
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
-	shell.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
+	routes.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
 
-	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
+	routes.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
+
+	adminSeam := admin.New(admin.Config{
+		Store: h, Registry: reg, Environ: environ, Roster: roster,
+		Window: durationSetting(acc, reauthWindowSetting),
+		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
+	})
+	apiMount, err := newAPIMount(prefix, adminSeam, adminConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	routes.Register(apiRouteName, apiMount)
 
 	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger())
 	if err != nil {
 		return nil, nil, err
 	}
-	webRoutes.register(shell)
-	shell.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
+	webRoutes.register(routes, shell.Logger())
+	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
 
 	go sweepNonces(ctx, nonces, shell.Logger())
 	return shell, h, nil

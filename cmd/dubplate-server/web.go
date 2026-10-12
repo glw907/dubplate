@@ -187,19 +187,19 @@ type webRoutes struct {
 	operator http.Handler
 }
 
-// register mounts wr's public routes on shell under their subtree
-// names, the login documents logged through the shell's own logger.
+// register mounts wr's public routes on routes under their subtree
+// names, the login documents logged through logger.
 // It leaves members to the caller, which alone holds the admin gate.
-func (wr webRoutes) register(shell *serve.Shell) {
-	shell.Register(loginRouteName, serve.LogRequests(shell.Logger(), wr.login))
-	shell.Register(assetsRouteName, wr.assets)
-	shell.Register(fontsRouteName, wr.fonts)
-	shell.Register(faviconSVGRouteName, wr.icons)
-	shell.Register(faviconPNGRouteName, wr.icons)
-	shell.Register(markRouteName, wr.icons)
-	shell.Register(brandingRouteName, wr.branding)
+func (wr webRoutes) register(routes registrar, logger *slog.Logger) {
+	routes.Register(loginRouteName, serve.LogRequests(logger, wr.login))
+	routes.Register(assetsRouteName, wr.assets)
+	routes.Register(fontsRouteName, wr.fonts)
+	routes.Register(faviconSVGRouteName, wr.icons)
+	routes.Register(faviconPNGRouteName, wr.icons)
+	routes.Register(markRouteName, wr.icons)
+	routes.Register(brandingRouteName, wr.branding)
 	if wr.operator != nil {
-		shell.Register(operatorCSSRouteName, wr.operator)
+		routes.Register(operatorCSSRouteName, wr.operator)
 	}
 }
 
