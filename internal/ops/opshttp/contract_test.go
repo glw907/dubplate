@@ -358,10 +358,11 @@ func newContract(t *testing.T, dir string, s setup) *contract {
 	if admin == nil {
 		admin = &fakeAdmin{answers: adminSuccesses()}
 	}
-	if c.seam, err = newAuthorizingSeam(r, admin, auth, identity.ChannelCookie); err != nil {
+	subs := &fakeSubmissions{answers: submissionSuccesses()}
+	if c.seam, err = newAuthorizingSeam(r, admin, subs, auth, identity.ChannelCookie); err != nil {
 		t.Fatalf("newAuthorizingSeam: %v", err)
 	}
-	projection, err := newHandler(r, admin, auth, identity.ChannelCookie, logger)
+	projection, err := newHandler(r, admin, subs, auth, identity.ChannelCookie, logger)
 	if err != nil {
 		t.Fatalf("newHandler: %v", err)
 	}

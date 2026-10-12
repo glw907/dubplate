@@ -245,6 +245,117 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "500": { $ref: "#/components/responses/Internal" }
         "503": { $ref: "#/components/responses/Unavailable" }
+  /create_submission:
+    post:
+      operationId: create_submission
+      summary: Declare an upload and reserve space for it.
+      description: >-
+        Any signed-in member may call it. The body declares the files, the
+        container, the verdict unit, and where the music came from; the
+        answer names the submission and the id each file uploads under. A
+        refusal by a reject reason answers 400 with error.rejects, every
+        failing file listed with its reason. A limit (uploads paused, too
+        many uploads open, over a quota, no space) answers 409 with the same
+        field, and a free-space read that fails answers 503.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSubmissionRequest" }
+      responses:
+        "200":
+          description: The submission created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreateSubmissionResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /list_submissions:
+    post:
+      operationId: list_submissions
+      summary: List the caller's own submissions, newest first.
+      requestBody: { $ref: "#/components/requestBodies/Empty" }
+      responses:
+        "200":
+          description: The caller's submissions.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListSubmissionsResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/Internal" }
+  /get_submission:
+    post:
+      operationId: get_submission
+      summary: Read one of the caller's submissions with its journey, files, and warnings.
+      description: Another member's submission answers not_found, as an unknown id does.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SubmissionRequest" }
+      responses:
+        "200":
+          description: The submission.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SubmissionResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Internal" }
+  /retry_submission:
+    post:
+      operationId: retry_submission
+      summary: Send a submission whose check could not run back to its check.
+      description: Answers conflict from any other state.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SubmissionRequest" }
+      responses:
+        "200":
+          description: The submission after the retry.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SubmissionResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /cancel_submission:
+    post:
+      operationId: cancel_submission
+      summary: End a submission that is uploading or whose check could not run.
+      description: Answers conflict from any other state.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SubmissionRequest" }
+      responses:
+        "200":
+          description: The submission after the cancel.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SubmissionResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
 components:
   requestBodies:
     Empty:
@@ -269,7 +380,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorBody" }
     NotFound:
-      description: The job or member does not exist.
+      description: The job, member, or submission does not exist.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorBody" }
@@ -328,6 +439,10 @@ components:
                 - last_admin
                 - environment_sets
                 - busy
+                - store_url
+                - extra
+                - manifest
+            rejects: { $ref: "#/components/schemas/Rejects" }
     Handle:
       type: string
       pattern: "^[0-9a-f]{32}$"
@@ -466,3 +581,143 @@ components:
         source:
           type: string
           enum: [admin, env-seed, environment, default]
+    Reason:
+      type: object
+      required: [code, label, friendly, next_step]
+      properties:
+        code: { type: string }
+        label: { type: string }
+        friendly: { type: string }
+        next_step: { type: string }
+    NullableReason:
+      oneOf:
+        - { $ref: "#/components/schemas/Reason" }
+        - { type: "null" }
+    Rejects:
+      type: object
+      required: [submission, files]
+      properties:
+        submission:
+          type: array
+          items: { $ref: "#/components/schemas/Reason" }
+        files:
+          type: array
+          items: { $ref: "#/components/schemas/FileReject" }
+    FileReject:
+      type: object
+      required: [path, reason]
+      properties:
+        path: { type: string }
+        reason: { $ref: "#/components/schemas/Reason" }
+    SubmissionID:
+      type: string
+      pattern: "^[0-9a-f]{32}$"
+    ManifestFile:
+      type: object
+      required: [path, size]
+      properties:
+        path: { type: string }
+        size: { type: integer, format: int64 }
+    CreateSubmissionRequest:
+      type: object
+      required: [verdict_unit, container, files, source]
+      properties:
+        verdict_unit:
+          type: string
+          enum: [album, track]
+        container:
+          type: string
+          enum: [files, zip]
+        files:
+          type: array
+          items: { $ref: "#/components/schemas/ManifestFile" }
+        source: { type: string }
+        source_note: { type: string }
+        store_url: { type: string, maxLength: 2048 }
+    CreatedFile:
+      type: object
+      required: [path, file_id]
+      properties:
+        path: { type: string }
+        file_id: { $ref: "#/components/schemas/SubmissionID" }
+    CreateSubmissionResponse:
+      type: object
+      required: [submission_id, files]
+      properties:
+        submission_id: { $ref: "#/components/schemas/SubmissionID" }
+        files:
+          type: array
+          items: { $ref: "#/components/schemas/CreatedFile" }
+    SubmissionSummary:
+      type: object
+      required: [submission_id, state, verdict_unit, created_at, updated_at]
+      properties:
+        submission_id: { $ref: "#/components/schemas/SubmissionID" }
+        state: { type: string }
+        verdict_unit:
+          type: string
+          enum: [album, track]
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ListSubmissionsResponse:
+      type: object
+      required: [submissions]
+      properties:
+        submissions:
+          type: array
+          items: { $ref: "#/components/schemas/SubmissionSummary" }
+    SubmissionRequest:
+      type: object
+      required: [submission_id]
+      properties:
+        submission_id: { $ref: "#/components/schemas/SubmissionID" }
+    SubmissionEvent:
+      type: object
+      required: [at, kind]
+      properties:
+        at: { type: string, format: date-time }
+        kind: { type: string }
+        reason: { type: string }
+        reject: { $ref: "#/components/schemas/Reason" }
+    SubmissionFile:
+      type: object
+      required: [file_id, path, size, received, verdict]
+      properties:
+        file_id: { $ref: "#/components/schemas/SubmissionID" }
+        path: { type: string }
+        size: { type: integer, format: int64 }
+        received: { type: boolean }
+        verdict: { $ref: "#/components/schemas/NullableReason" }
+    SubmissionWarning:
+      type: object
+      required: [reason, subject]
+      properties:
+        reason: { $ref: "#/components/schemas/Reason" }
+        subject:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+    SubmissionResponse:
+      type: object
+      required: [submission_id, state, verdict_unit, container, source, created_at, updated_at, events, files, warnings]
+      properties:
+        submission_id: { $ref: "#/components/schemas/SubmissionID" }
+        state: { type: string }
+        verdict_unit:
+          type: string
+          enum: [album, track]
+        container:
+          type: string
+          enum: [files, zip]
+        source: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        events:
+          type: array
+          items: { $ref: "#/components/schemas/SubmissionEvent" }
+        files:
+          type: array
+          items: { $ref: "#/components/schemas/SubmissionFile" }
+        warnings:
+          type: array
+          items: { $ref: "#/components/schemas/SubmissionWarning" }

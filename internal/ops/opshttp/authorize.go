@@ -21,8 +21,8 @@ type authorizer interface {
 	authorize(ctx context.Context, op string) (ops.Actor, ops.Privilege, error)
 }
 
-// An authorizingSeam is an [ops.Seam] and an [ops.AdminSeam] that
-// admits a call to the seam beneath only when its authorizer answers a
+// An authorizingSeam is an [ops.Seam], an [ops.AdminSeam], and an
+// [ops.SubmissionSeam] that admits a call to the seam beneath only when its authorizer answers a
 // caller whose privilege reaches the operation's, and then only as the
 // actor the authorizer answered. It discards the actor its own caller
 // passes, so no caller can choose the actor a job or an audit row
@@ -31,24 +31,28 @@ type authorizer interface {
 type authorizingSeam struct {
 	jobs    ops.Seam
 	admin   ops.AdminSeam
+	subs    ops.SubmissionSeam
 	auth    authorizer
 	channel identity.Channel
 }
 
 var (
-	_ ops.Seam      = (*authorizingSeam)(nil)
-	_ ops.AdminSeam = (*authorizingSeam)(nil)
+	_ ops.Seam           = (*authorizingSeam)(nil)
+	_ ops.AdminSeam      = (*authorizingSeam)(nil)
+	_ ops.SubmissionSeam = (*authorizingSeam)(nil)
 )
 
-// newAuthorizingSeam wraps the job seam and the admin seam. It fails
-// on a nil seam or auth, and on a channel that is not valid or that
+// newAuthorizingSeam wraps the job, admin, and submission seams. It
+// fails on a nil seam or auth, and on a channel that is not valid or that
 // names the command line, which no network mount can carry.
-func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
+func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
 	switch {
 	case jobs == nil:
 		return nil, errors.New("opshttp: job seam is nil")
 	case admin == nil:
 		return nil, errors.New("opshttp: admin seam is nil")
+	case subs == nil:
+		return nil, errors.New("opshttp: submission seam is nil")
 	case auth == nil:
 		return nil, errors.New("opshttp: authorizer is nil")
 	case !channel.Valid():
@@ -56,7 +60,7 @@ func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, auth authorizer, cha
 	case channel == identity.ChannelCommandLine:
 		return nil, errors.New("opshttp: mount channel is the command line, which no network mount carries")
 	}
-	return &authorizingSeam{jobs: jobs, admin: admin, auth: auth, channel: channel}, nil
+	return &authorizingSeam{jobs: jobs, admin: admin, subs: subs, auth: auth, channel: channel}, nil
 }
 
 // The causes of a denial. Each is fixed text naming no caller, so a
@@ -147,7 +151,8 @@ func (s *authorizingSeam) CancelJob(ctx context.Context, _ ops.Actor, req ops.Ca
 }
 
 // Catalog implements [ops.Seam]. Its answer is the job seam's entries
-// followed by one entry for each admin operation.
+// followed by one entry for each admin operation and each submission
+// operation.
 func (s *authorizingSeam) Catalog(ctx context.Context, _ ops.Actor, req ops.CatalogRequest) (ops.CatalogResponse, error) {
 	resp, err := authorized(ctx, s, ops.OpCatalog, req, s.jobs.Catalog)
 	if err != nil {
@@ -157,7 +162,11 @@ func (s *authorizingSeam) Catalog(ctx context.Context, _ ops.Actor, req ops.Cata
 	if err != nil {
 		return ops.CatalogResponse{}, err
 	}
-	return ops.CatalogResponse{Operations: slices.Concat(resp.Operations, adminEntries)}, nil
+	submissionEntries, err := ops.SubmissionCatalogEntries()
+	if err != nil {
+		return ops.CatalogResponse{}, err
+	}
+	return ops.CatalogResponse{Operations: slices.Concat(resp.Operations, adminEntries, submissionEntries)}, nil
 }
 
 // ListMembers implements [ops.AdminSeam].
@@ -193,4 +202,29 @@ func (s *authorizingSeam) SetSetting(ctx context.Context, _ ops.Actor, req ops.S
 // ResetSetting implements [ops.AdminSeam].
 func (s *authorizingSeam) ResetSetting(ctx context.Context, _ ops.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
 	return authorized(ctx, s, ops.OpResetSetting, req, s.admin.ResetSetting)
+}
+
+// CreateSubmission implements [ops.SubmissionSeam].
+func (s *authorizingSeam) CreateSubmission(ctx context.Context, _ ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
+	return authorized(ctx, s, ops.OpCreateSubmission, req, s.subs.CreateSubmission)
+}
+
+// ListSubmissions implements [ops.SubmissionSeam].
+func (s *authorizingSeam) ListSubmissions(ctx context.Context, _ ops.Actor, req ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
+	return authorized(ctx, s, ops.OpListSubmissions, req, s.subs.ListSubmissions)
+}
+
+// GetSubmission implements [ops.SubmissionSeam].
+func (s *authorizingSeam) GetSubmission(ctx context.Context, _ ops.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
+	return authorized(ctx, s, ops.OpGetSubmission, req, s.subs.GetSubmission)
+}
+
+// RetrySubmission implements [ops.SubmissionSeam].
+func (s *authorizingSeam) RetrySubmission(ctx context.Context, _ ops.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
+	return authorized(ctx, s, ops.OpRetrySubmission, req, s.subs.RetrySubmission)
+}
+
+// CancelSubmission implements [ops.SubmissionSeam].
+func (s *authorizingSeam) CancelSubmission(ctx context.Context, _ ops.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
+	return authorized(ctx, s, ops.OpCancelSubmission, req, s.subs.CancelSubmission)
 }

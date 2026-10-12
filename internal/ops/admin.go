@@ -130,16 +130,7 @@ var adminOperations = []string{
 // reads. An operation missing from the table fails the call, so the
 // catalog cannot list an operation no authorizer enforces.
 func AdminCatalogEntries() ([]CatalogEntry, error) {
-	entries := make([]CatalogEntry, 0, len(adminOperations))
-	for _, name := range adminOperations {
-		priv, _ := PrivilegeOf(name)
-		entries = append(entries, CatalogEntry{Name: name, Privilege: priv, Available: true})
-	}
-	cat, err := BuildCatalog(entries...)
-	if err != nil {
-		return nil, err
-	}
-	return cat.Entries(), nil
+	return catalogEntries(adminOperations)
 }
 
 // An AdminSeam is what a caller reaches the seven member and settings

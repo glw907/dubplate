@@ -201,15 +201,20 @@ func (s *submissions) reserveExtracted(ctx context.Context, id []byte, total int
 
 // effectiveAllowlist narrows bound, the formats the server admits, to
 // those collection coll admits when its admission_format_allowlist
-// names any, separated by commas: a collection may narrow the bound and
-// never widen it.
+// names any: a collection may narrow the bound and never widen it.
 func effectiveAllowlist(ctx context.Context, tx *store.Tx, coll []byte, bound []string) ([]string, error) {
 	var own sql.NullString
 	if err := tx.QueryRow(ctx, `SELECT admission_format_allowlist FROM collections WHERE id = ?`, coll).Scan(&own); err != nil {
 		return nil, fmt.Errorf("read collection allowlist: %w", err)
 	}
+	return narrow(own, bound), nil
+}
+
+// narrow is bound less every format a collection's allowlist column own,
+// comma-separated, does not name; a NULL column leaves bound whole.
+func narrow(own sql.NullString, bound []string) []string {
 	if !own.Valid {
-		return bound, nil
+		return bound
 	}
 	admits := strings.Split(own.String, ",")
 	for i := range admits {
@@ -217,5 +222,5 @@ func effectiveAllowlist(ctx context.Context, tx *store.Tx, coll []byte, bound []
 	}
 	return slices.DeleteFunc(slices.Clone(bound), func(name string) bool {
 		return !slices.Contains(admits, name)
-	}), nil
+	})
 }

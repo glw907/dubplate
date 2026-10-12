@@ -16,10 +16,25 @@ import (
 	"github.com/glw907/dubplate/internal/ops"
 )
 
-// maxBody is the largest request body read, in bytes. Every request
-// type is an empty object or a single job handle, so an honest body
-// is a small fraction of this.
+// maxBody is the largest request body read, in bytes, unless bodyCaps
+// names the operation. Every other request type is a few short fields,
+// so an honest body is a small fraction of this.
 const maxBody = 4 << 10
+
+// bodyCaps holds the operations whose honest body outgrows maxBody. A
+// create_submission manifest names up to 2000 files, the most the file
+// count setting allows, at 4 KiB a path.
+var bodyCaps = map[string]int64{
+	ops.OpCreateSubmission: 8 << 20,
+}
+
+// bodyCap is the largest body op reads, in bytes.
+func bodyCap(op string) int64 {
+	if limit, ok := bodyCaps[op]; ok {
+		return limit
+	}
+	return maxBody
+}
 
 // statuses maps each wire code to the HTTP status that answers it.
 var statuses = map[ops.Code]int{
@@ -47,7 +62,7 @@ func checkStatuses(table map[ops.Code]int) error {
 	return nil
 }
 
-// A handler serves the eleven operations, each as POST /<name>. It
+// A handler serves the sixteen operations, each as POST /<name>. It
 // dispatches by exact path itself rather than through [http.ServeMux],
 // whose method-mismatch and not-found answers are plain text, so that
 // every answer here carries the JSON error shape.
@@ -61,11 +76,11 @@ type handler struct {
 // admitting each call through auth on a mount whose verified identities
 // arrive on channel. It fails on a nil seam, auth, or log, on a channel
 // no network mount carries, and on a wire code with no HTTP status.
-func newHandler(jobs ops.Seam, admin ops.AdminSeam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
+func newHandler(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
 	if log == nil {
 		return nil, errors.New("opshttp: logger is nil")
 	}
-	seam, err := newAuthorizingSeam(jobs, admin, auth, channel)
+	seam, err := newAuthorizingSeam(jobs, admin, subs, auth, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +101,12 @@ func newHandler(jobs ops.Seam, admin ops.AdminSeam, auth authorizer, channel ide
 		ops.OpListSettings: route(h, ops.OpListSettings, seam.ListSettings),
 		ops.OpSetSetting:   route(h, ops.OpSetSetting, seam.SetSetting),
 		ops.OpResetSetting: route(h, ops.OpResetSetting, seam.ResetSetting),
+
+		ops.OpCreateSubmission: route(h, ops.OpCreateSubmission, seam.CreateSubmission),
+		ops.OpListSubmissions:  route(h, ops.OpListSubmissions, seam.ListSubmissions),
+		ops.OpGetSubmission:    route(h, ops.OpGetSubmission, seam.GetSubmission),
+		ops.OpRetrySubmission:  route(h, ops.OpRetrySubmission, seam.RetrySubmission),
+		ops.OpCancelSubmission: route(h, ops.OpCancelSubmission, seam.CancelSubmission),
 	}
 	return h, nil
 }
@@ -97,7 +118,7 @@ func newHandler(jobs ops.Seam, admin ops.AdminSeam, auth authorizer, channel ide
 func route[Req, Resp any](h *handler, op string, call func(context.Context, ops.Actor, Req) (Resp, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Req
-		if !decode(w, r, &req) {
+		if !decode(w, r, &req, bodyCap(op)) {
 			return
 		}
 		resp, err := call(r.Context(), ops.Actor{}, req)
@@ -131,7 +152,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) startBackup(w http.ResponseWriter, r *http.Request) {
 	var req ops.StartBackupRequest
-	if !decode(w, r, &req) {
+	if !decode(w, r, &req, maxBody) {
 		return
 	}
 	resp, err := h.seam.StartBackup(r.Context(), ops.Actor{}, req)
@@ -140,7 +161,7 @@ func (h *handler) startBackup(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) jobStatus(w http.ResponseWriter, r *http.Request) {
 	var req ops.JobStatusRequest
-	if !decode(w, r, &req) || !validHandle(w, req.JobID) {
+	if !decode(w, r, &req, maxBody) || !validHandle(w, req.JobID) {
 		return
 	}
 	resp, err := h.seam.JobStatus(r.Context(), ops.Actor{}, req)
@@ -149,7 +170,7 @@ func (h *handler) jobStatus(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) cancelJob(w http.ResponseWriter, r *http.Request) {
 	var req ops.CancelJobRequest
-	if !decode(w, r, &req) || !validHandle(w, req.JobID) {
+	if !decode(w, r, &req, maxBody) || !validHandle(w, req.JobID) {
 		return
 	}
 	resp, err := h.seam.CancelJob(r.Context(), ops.Actor{}, req)
@@ -158,21 +179,21 @@ func (h *handler) cancelJob(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) catalog(w http.ResponseWriter, r *http.Request) {
 	var req ops.CatalogRequest
-	if !decode(w, r, &req) {
+	if !decode(w, r, &req, maxBody) {
 		return
 	}
 	resp, err := h.seam.Catalog(r.Context(), ops.Actor{}, req)
 	h.respond(w, ops.OpCatalog, resp, err)
 }
 
-// decode reads r's body into v, which must hold exactly one JSON
-// object, and reports whether it did; on a refusal it has already
+// decode reads r's body, at most limit bytes, into v, which must hold
+// exactly one JSON object, and reports whether it did; on a refusal it has already
 // answered w. Unknown keys are ignored, so a body naming an actor or a
 // privilege changes nothing: neither is a field of any request type.
-func decode(w http.ResponseWriter, r *http.Request, v any) bool {
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxBody))
+func decode(w http.ResponseWriter, r *http.Request, v any, limit int64) bool {
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, limit))
 	if err != nil {
-		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, fmt.Sprintf("request body exceeds %d bytes or could not be read", maxBody))
+		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, fmt.Sprintf("request body exceeds %d bytes or could not be read", limit))
 		return false
 	}
 	if len(body) == 0 {
@@ -240,7 +261,7 @@ func (h *handler) respond(w http.ResponseWriter, op string, resp any, err error)
 		}
 		body := errorDetail{Code: code}
 		if opsErr, ok := errors.AsType[*ops.Error](err); ok {
-			body.Reason, body.Detail = opsErr.Reason, opsErr.Detail
+			body.Reason, body.Detail, body.Rejects = opsErr.Reason, opsErr.Detail, opsErr.Rejects
 		}
 		writeErrorBody(w, status, body)
 		return
@@ -262,6 +283,8 @@ type errorDetail struct {
 	Code   ops.Code `json:"code"`
 	Reason string   `json:"reason,omitempty"`
 	Detail string   `json:"detail,omitempty"`
+	// Rejects is set on a refused submission.
+	Rejects *ops.Rejects `json:"rejects,omitempty"`
 }
 
 func writeError(w http.ResponseWriter, status int, code ops.Code, reason string) {
