@@ -9,9 +9,9 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-In flight: the `admin-api-1` pass, session `admin-api-1`, id `6baa2add-e9c2-4ac4-92a3-3e5054aef3d8`, branch
-`worktree-admin-api-1`. The plan is `docs/superpowers/plans/2026-10-11-admin-api-1.md`; Geoff approved its 695-minute
-estimate before launch.
+The `admin-api-1` PR is open for Geoff's read (branch `worktree-admin-api-1`). Its "Found, not done" list carries a
+proposed disposition for each item; Geoff triages them at the read. The next pass is `intake`, planned against the
+tree after the PR merges.
 
 ## Open decisions
 - R-6d21 overrides the settings-home pass's rule that the server never reads its environment. Geoff may reopen it;
