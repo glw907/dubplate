@@ -11,11 +11,8 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`intake-1`, the intake core (the rung 7 spec's 7a), runs overnight under an approved design
-(`docs/superpowers/plans/2026-10-12-intake-1-design.md`, Geoff, 2026-10-11, with unattended planning and launch). The
-conductor session plans it on branch `intake-1-plan`, reviews the plan, and launches the executor from the main
-checkout as `claude --bg --model sonnet --effort medium --name intake-1`. The pass is `auth-data`: its PR waits for
-Geoff's read on the review desk.
+In flight: `intake-1-plan` (session `ffa5bf00-81bc-4fe4-bbdc-4941e3e13624`) is planning `intake-1` on branch
+`worktree-intake-1-plan`.
 
 ## Open decisions
 - R-6d21 overrides the settings-home pass's rule that the server never reads its environment. Geoff may reopen it;
