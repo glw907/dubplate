@@ -80,7 +80,7 @@ func loadDocument(t *testing.T, closed bool) *document {
 }
 
 // closeObjects sets additionalProperties false on every object schema
-// reachable from ref that declares properties.
+// reachable from ref through properties and items.
 func closeObjects(ref *openapi3.SchemaRef, seen map[*openapi3.Schema]bool) {
 	if ref == nil || ref.Value == nil || seen[ref.Value] {
 		return

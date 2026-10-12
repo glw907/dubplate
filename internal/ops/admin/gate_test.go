@@ -146,18 +146,20 @@ func TestGate_AnchorInsideTheWindowCommits(t *testing.T) {
 				t.Errorf("a refused call wrote:\nbefore:\n%s\nafter:\n%s", before, after)
 			}
 		})
-		t.Run(c.name+", anchored in the future", func(t *testing.T) {
-			f := newFixture(t)
-			if c.prep != nil {
-				c.prep(t, f)
-			}
-			before := snapshot(t, f.h)
-			err := c.call(writeCtx(t), f, actor(alice, testNow.Add(time.Hour)))
-			wantCode(t, err, ops.CodeReauthenticationRequired, "")
-			if after := snapshot(t, f.h); after != before {
-				t.Errorf("a refused call wrote:\nbefore:\n%s\nafter:\n%s", before, after)
-			}
-		})
+		for _, ahead := range []time.Duration{time.Nanosecond, time.Hour} {
+			t.Run(c.name+", anchored "+ahead.String()+" in the future", func(t *testing.T) {
+				f := newFixture(t)
+				if c.prep != nil {
+					c.prep(t, f)
+				}
+				before := snapshot(t, f.h)
+				err := c.call(writeCtx(t), f, actor(alice, testNow.Add(ahead)))
+				wantCode(t, err, ops.CodeReauthenticationRequired, "")
+				if after := snapshot(t, f.h); after != before {
+					t.Errorf("a refused call wrote:\nbefore:\n%s\nafter:\n%s", before, after)
+				}
+			})
+		}
 	}
 }
 

@@ -537,6 +537,11 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	if len(secrets) < 20 {
 		t.Fatalf("the scan holds %d sentinels, want one for every key that holds a value", len(secrets))
 	}
+	for _, body := range bodies {
+		if strings.Contains(strings.ToLower(body), "sentinel") {
+			t.Errorf("a partial or reshaped sentinel reached an /api/v1 answer: %.200s", body)
+		}
+	}
 	for name, value := range secrets {
 		for _, body := range bodies {
 			if strings.Contains(body, value) {
