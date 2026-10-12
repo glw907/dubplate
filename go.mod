@@ -8,7 +8,9 @@ require (
 	github.com/getkin/kin-openapi v0.149.0
 	github.com/mewkiz/flac v1.0.14
 	github.com/spf13/cobra v1.10.2
+	github.com/tus/tusd/v2 v2.10.1
 	github.com/wneessen/go-mail v0.8.1
+	golang.org/x/exp v0.0.0-20260611194520-c48552f49976
 	golang.org/x/sys v0.49.0
 	golang.org/x/time v0.16.0
 	modernc.org/sqlite v1.60.1
