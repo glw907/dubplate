@@ -598,7 +598,7 @@ func TestBoundaryProbeRowStatus_UndeclaredPortNeverDials(t *testing.T) {
 		}
 	}()
 
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	base := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	cfg, err := config.Load(base, reg)
 	if err != nil {

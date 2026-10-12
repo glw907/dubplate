@@ -200,7 +200,7 @@ func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
 }
 
 // newServeCmd builds the serve verb: it validates the owned
-// configuration wall through [config.Load] against reg, resolves the
+// configuration wall through [loadConfig] against reg, resolves the
 // three serve thresholds, builds the shell through newServeShell,
 // which reads the auth settings once its seed commits and mounts the
 // auth handlers, and runs it
@@ -218,7 +218,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) (err error) {
-			cfg, err := config.Load(environ, reg)
+			cfg, err := loadConfig(environ, reg)
 			if err != nil {
 				return err
 			}

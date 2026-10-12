@@ -119,14 +119,6 @@ type ReservedClass struct {
 // unknown.
 var reservedClasses = []ReservedClass{
 	{
-		Name: "intake",
-		Rung: 7,
-		Keys: []string{
-			"DUBPLATE_UPLOADS_DIR",
-			"DUBPLATE_TRIGGER_DIR",
-		},
-	},
-	{
 		// Admission, tagging, layout, and collection routing (ladder
 		// rung 9) own the directories a session moves through once
 		// intake has accepted it.
@@ -134,7 +126,6 @@ var reservedClasses = []ReservedClass{
 		Rung: 9,
 		Keys: []string{
 			"DUBPLATE_INBOX_DIR",
-			"DUBPLATE_STAGING_DIR",
 			"DUBPLATE_QUARANTINE_DIR",
 		},
 	},

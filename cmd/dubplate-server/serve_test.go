@@ -42,10 +42,22 @@ func discardTestLogger() *slog.Logger {
 
 // serveAuthEnviron returns authEnviron with DUBPLATE_STATE_DIR pointed
 // at a fresh t.TempDir(): authEnviron's own fixed path is not one a
-// test process may create the auth leaf's directories under.
+// test process may create the auth leaf's directories under. It points
+// the library root and staging at two directories it creates under one
+// t.TempDir(), so they share a filesystem and a mount.
 func serveAuthEnviron(t *testing.T) []string {
 	t.Helper()
-	return replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+	music := t.TempDir()
+	library := filepath.Join(music, "library")
+	staging := filepath.Join(music, "staging")
+	for _, dir := range []string{library, staging} {
+		if err := os.Mkdir(dir, 0o755); err != nil {
+			t.Fatalf("create %s: %v", dir, err)
+		}
+	}
+	environ := replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+	environ = replaceKey(environ, "DUBPLATE_LIBRARY_ROOT", library)
+	return replaceKey(environ, "DUBPLATE_STAGING_DIR", staging)
 }
 
 // replaceKey returns a copy of environ with name's entry replaced by

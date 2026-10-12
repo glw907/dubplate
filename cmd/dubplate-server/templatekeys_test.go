@@ -318,6 +318,7 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 			template: template,
 			wantLines: []string{
 				fmt.Sprintf("%-32s %s", "DUBPLATE_IDENTITY_SOURCE", "ok"),
+				fmt.Sprintf("%-32s %s", "DUBPLATE_STAGING_DIR", "ok"),
 				fmt.Sprintf("%-32s %s", "magic-link", "active"),
 				fmt.Sprintf("%-32s %s", "store", "absent"),
 				fmt.Sprintf("%-32s %s", "members", "no store yet; start serve, then member add --admin"),

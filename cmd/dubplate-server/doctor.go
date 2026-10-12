@@ -45,7 +45,14 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			// Load and the staging nesting rule run apart rather than
+			// through loadConfig, so the nesting lands on the staging
+			// row as "invalid" and the report carries on with the
+			// config Load resolved.
 			cfg, loadErr := config.Load(environ, reg)
+			if loadErr == nil {
+				loadErr = resolveStaging(cfg)
+			}
 			statuses := rowStatuses(loadErr)
 
 			// Every family appends its rows, in print order, and ORs its
