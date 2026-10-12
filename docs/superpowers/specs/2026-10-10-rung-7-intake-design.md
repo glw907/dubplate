@@ -895,7 +895,7 @@ review, never copies (BS:512-516).
   `specs/2026-09-25-project-site-design.md:170-184`).
 - The photo column on the login page, error-page photos, and the empty-library photo (VI:252-275).
 - The styled 404 (above).
-- 5c's carried items (B item 14 and HISTORY:1445-1448, swept by the plan).
+- 5c's carried items (B item 14 and BACKLOG #57, swept by the plan).
 - VI's open items that need no catalog, built for a verdict at the sitting: the phone header, error alerts as a tinted
   panel, and motion (VI:356-372). The catalog line's format (VI:243-244), the list view, filtering, the album page, and
   the phone album grid move to the web pass after rung 9 (owner ruling 2); VI owes an erratum.

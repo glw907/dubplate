@@ -1127,7 +1127,10 @@ checklist a copy read runs: MusicBrainz, beets, tags, FLAC, transcode,
 matcher, session, roster, epoch, collection. Two are not leaks in every
 context: the push-back screen must say MusicBrainz, with a link and a
 one-line how, because a member genuinely has to learn it, and a
-collection is a product concept once a deployment has more than one.
+collection is a product concept once a deployment has more than one. A
+third context: a reject reason names the formats a member's files must be in
+("FLAC", and "ID3 tags" in the `id3-tags` reason), because the member has to
+act on the name. The rule bars the word anywhere else.
 "beets" and "matcher" never reach a member. Chatty filler is refused, and
 so is a string implying the system has intentions about a member's files,
 which is the honesty rule under cairn's personification ban and does not
