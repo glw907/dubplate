@@ -36,7 +36,11 @@ func understated(b []byte) []byte {
 // zip64Claiming appends a zip64 end record claiming one entry and points the
 // end record at it, the archive the verification probe read 196,609 entries
 // from.
-func zip64Claiming(b []byte) []byte {
+func zip64Claiming(b []byte) []byte { return zip64Records(b, 1) }
+
+// zip64Records is zip64Claiming for a record claiming n entries, which
+// archive/zip trusts for the size of the slice it preallocates.
+func zip64Records(b []byte, n uint64) []byte {
 	end := len(b) - 22
 	dirSize := binary.LittleEndian.Uint32(b[end+12:])
 	dirOffset := binary.LittleEndian.Uint32(b[end+16:])
@@ -44,8 +48,8 @@ func zip64Claiming(b []byte) []byte {
 	rec := make([]byte, 56)
 	binary.LittleEndian.PutUint32(rec[0:], 0x06064b50)
 	binary.LittleEndian.PutUint64(rec[4:], 44)
-	binary.LittleEndian.PutUint64(rec[24:], 1) // entries on this disk
-	binary.LittleEndian.PutUint64(rec[32:], 1) // entries
+	binary.LittleEndian.PutUint64(rec[24:], n) // entries on this disk
+	binary.LittleEndian.PutUint64(rec[32:], n) // entries
 	binary.LittleEndian.PutUint64(rec[40:], uint64(dirSize))
 	binary.LittleEndian.PutUint64(rec[48:], uint64(dirOffset))
 
@@ -112,6 +116,10 @@ func TestWalkZIPCountsCentralDirectoryHeaders(t *testing.T) {
 		{"a prefix before the archive", prefixed(manyEntries(t, countLimit+1)), reject.TooManyFiles},
 		{"a prefixed archive at the limit", prefixed(manyEntries(t, countLimit)), ""},
 		{"a probe header the standard reader refuses", badZip64Probe(t, countLimit+3), reject.TooManyFiles},
+		// archive/zip preallocates the zip64 record's count, so a record
+		// claiming more than the limit is refused whatever it holds.
+		{"a zip64 record claiming more entries than the limit", zip64Records(manyEntries(t, 1), 1<<20), reject.TooManyFiles},
+		{"a zip64 record claiming exactly the limit", zip64Records(manyEntries(t, countLimit), countLimit), ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -135,7 +143,7 @@ func TestWalkZIPCountsCentralDirectoryHeaders(t *testing.T) {
 func TestExceedsHeaders(t *testing.T) {
 	data := manyEntries(t, countLimit+1)
 	r := &recordedReaderAt{r: bytes.NewReader(data)}
-	starts, err := directoryStarts(r, int64(len(data)))
+	starts, _, err := directoryStarts(r, int64(len(data)))
 	if err != nil || len(starts) != 1 {
 		t.Fatalf("directoryStarts = %v, %v, want one offset", starts, err)
 	}
@@ -173,7 +181,7 @@ func TestDirectoryStarts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := directoryStarts(bytes.NewReader(tt.data), int64(len(tt.data)))
+			got, _, err := directoryStarts(bytes.NewReader(tt.data), int64(len(tt.data)))
 			if (err != nil) != tt.err || !slices.Equal(got, tt.want) {
 				t.Errorf("directoryStarts = %v, %v, want %v, error %t", got, err, tt.want, tt.err)
 			}

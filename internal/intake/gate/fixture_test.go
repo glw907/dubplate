@@ -172,6 +172,25 @@ func patchStreamInfo(data []byte, bits, samples *uint64, md5sum []byte) []byte {
 	return out
 }
 
+// patchChannels returns a copy of data with STREAMINFO's channel count
+// rewritten (the three bits above bits per sample in the pack).
+func patchChannels(data []byte, channels uint64) []byte {
+	out := append([]byte(nil), data...)
+	pack := out[streamInfoPayload+10 : streamInfoPayload+18]
+	v := binary.BigEndian.Uint64(pack)
+	v = v&^(0x7<<41) | (channels-1)<<41
+	binary.BigEndian.PutUint64(pack, v)
+	return out
+}
+
+// patchMaxBlockSize returns a copy of data with STREAMINFO's maximum block
+// size (payload [2:4]) rewritten.
+func patchMaxBlockSize(data []byte, size uint16) []byte {
+	out := append([]byte(nil), data...)
+	binary.BigEndian.PutUint16(out[streamInfoPayload+2:], size)
+	return out
+}
+
 // withID3v2Prefix puts a minimal ID3v2.3 header (an empty tag) before data.
 func withID3v2Prefix(data []byte) []byte {
 	return append([]byte{'I', 'D', '3', 3, 0, 0, 0, 0, 0, 0}, data...)

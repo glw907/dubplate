@@ -6,7 +6,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log/slog"
 	"path"
+	"runtime/debug"
 	"slices"
 	"sync"
 
@@ -81,7 +83,7 @@ func (in *Intake) queue(ctx context.Context) ([][]byte, error) {
 // commits nothing either, and the next wake tries again.
 func (in *Intake) check(ctx context.Context, id []byte) {
 	log := in.cfg.Log.With("submission", wireID(id))
-	v, err := in.judge(ctx, id)
+	v, err := in.judgeContained(ctx, id, log)
 	if ctx.Err() != nil {
 		return
 	}
@@ -107,6 +109,20 @@ func (in *Intake) check(ctx context.Context, id []byte) {
 	if err := in.cleanSubmission(ctx, id); err != nil {
 		log.Error("intake: clean up after a verdict", "error", err)
 	}
+}
+
+// judgeContained is judge with a panic in a decoder or the ZIP reader, on a
+// member's bytes, turned into [gate.ErrCouldNotRun]. The panic would
+// otherwise end the process, and the startup pass would queue the same
+// submission to end it again.
+func (in *Intake) judgeContained(ctx context.Context, id []byte, log *slog.Logger) (v verdict, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("intake: a check panicked", "panic", r, "stack", string(debug.Stack()))
+			v, err = verdict{}, fmt.Errorf("%w: panic: %v", gate.ErrCouldNotRun, r)
+		}
+	}()
+	return in.judge(ctx, id)
 }
 
 // unfinish moves checking submission id to check-unfinished, keeping

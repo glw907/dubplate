@@ -89,9 +89,12 @@ func WalkZIP(root *os.Root, name string, p Policy, separateTracks bool) (*ZIPWal
 
 func walkZIP(ra io.ReaderAt, size int64, p Policy, separateTracks bool) (*ZIPWalk, error) {
 	src := &recordedReaderAt{r: ra}
-	starts, err := directoryStarts(src, size)
+	starts, records, err := directoryStarts(src, size)
 	if err != nil {
 		return nil, archiveFault(src, err)
+	}
+	if records > uint64(p.MaxFiles) {
+		return nil, &ZIPRefusal{Reason: reject.Of(reject.TooManyFiles)}
 	}
 	for _, start := range starts {
 		over := exceedsHeaders(src, size, start, p.MaxFiles)

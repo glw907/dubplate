@@ -13,6 +13,7 @@ import (
 	"slices"
 
 	"github.com/mewkiz/flac"
+	"github.com/mewkiz/flac/frame"
 
 	"github.com/glw907/dubplate/internal/engine/tagio"
 	"github.com/glw907/dubplate/internal/reject"
@@ -51,6 +52,10 @@ type FileResult struct {
 // errUndecodable marks a stream the decoder refused while every read
 // succeeded: the file's fault, never the server's.
 var errUndecodable = errors.New("not a decodable FLAC stream")
+
+// errOverrun says a stream ran past its own sample count or past the longest
+// track the gate decodes.
+var errOverrun = errors.New("stream longer than it declares or the gate allows")
 
 // CheckFile runs a file's checks in order and stops at the first that
 // fails: the container and format, the metadata bounds, the stream format,
@@ -121,8 +126,10 @@ func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResu
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return res, couldNotRun("rewind", err)
 	}
-	d, err := decode(ctx, file, size)
+	d, err := decode(ctx, file, size, si, uint64(si.SampleRate)*maxTrackSeconds)
 	switch {
+	case errors.Is(err, errOverrun):
+		return refuse(reject.SourceDamaged)
 	case errors.Is(err, errUndecodable):
 		tagged, err := endsWithID3v1(file, size)
 		if err != nil {
@@ -213,15 +220,26 @@ type decoded struct {
 	audioKey, fileHash []byte
 }
 
+// maxTrackSeconds bounds the audio one file may hold. No track on an album
+// runs a day, and the bound caps the decode and MD5 work a stream of
+// near-empty frames can cost at a fixed multiple of its declared format.
+const maxTrackSeconds = 24 * 60 * 60
+
 // decode makes the one pass over r: a SHA-256 over every byte and a decode
 // of every frame into the audio key, checking ctx between frames.
+//
+// mewkiz/flac checks no frame against STREAMINFO, so decode does: a frame
+// whose depth, channel count, rate, or block size disagrees with it is
+// undecodable, which keeps Frame.Hash on the depths it implements. The
+// pass ends with [errOverrun] at the frame that takes the samples past
+// STREAMINFO's own count, when it states one, or past maxSamples.
 //
 // Neither decoder's error says whose fault it was (mewkiz/flac returns its
 // bit reader's error raw), so decode classifies by its own I/O: a read that
 // failed with anything but io.EOF is [ErrCouldNotRun] whatever the decoder
 // then said, and any other failure, or a stream whose bytes do not add up
 // to size, is [errUndecodable].
-func decode(ctx context.Context, r io.Reader, size int64) (decoded, error) {
+func decode(ctx context.Context, r io.Reader, size int64, si tagio.StreamInfo, maxSamples uint64) (decoded, error) {
 	rec := &recorder{r: r}
 	sum := sha256.New()
 	stream, err := flac.New(io.TeeReader(rec, sum))
@@ -241,8 +259,14 @@ func decode(ctx context.Context, r io.Reader, size int64) (decoded, error) {
 		if err != nil {
 			return decoded{}, rec.fault(err)
 		}
-		fr.Hash(key)
+		if err := disagrees(fr, si); err != nil {
+			return decoded{}, err
+		}
 		samples += uint64(fr.BlockSize)
+		if samples > maxSamples || (si.TotalSamples != 0 && samples > si.TotalSamples) {
+			return decoded{}, fmt.Errorf("%w: %d samples", errOverrun, samples)
+		}
+		fr.Hash(key)
 	}
 	if rec.err != nil {
 		return decoded{}, rec.fault(nil)
@@ -251,6 +275,23 @@ func decode(ctx context.Context, r io.Reader, size int64) (decoded, error) {
 		return decoded{}, fmt.Errorf("%w: hashed %d of %d bytes", errUndecodable, rec.n, size)
 	}
 	return decoded{samples: samples, audioKey: key.Sum(nil), fileHash: sum.Sum(nil)}, nil
+}
+
+// disagrees reports how fr contradicts STREAMINFO, as an [errUndecodable]
+// error, or nil when it does not. A frame rate of 0 is the header's "take it
+// from STREAMINFO".
+func disagrees(fr *frame.Frame, si tagio.StreamInfo) error {
+	switch {
+	case fr.BitsPerSample != si.BitsPerSample:
+		return fmt.Errorf("%w: frame has %d bits per sample, STREAMINFO %d", errUndecodable, fr.BitsPerSample, si.BitsPerSample)
+	case len(fr.Subframes) != int(si.Channels):
+		return fmt.Errorf("%w: frame has %d channels, STREAMINFO %d", errUndecodable, len(fr.Subframes), si.Channels)
+	case fr.SampleRate != 0 && fr.SampleRate != si.SampleRate:
+		return fmt.Errorf("%w: frame has rate %d, STREAMINFO %d", errUndecodable, fr.SampleRate, si.SampleRate)
+	case si.MaxBlockSize != 0 && fr.BlockSize > si.MaxBlockSize:
+		return fmt.Errorf("%w: frame has %d samples, STREAMINFO's maximum is %d", errUndecodable, fr.BlockSize, si.MaxBlockSize)
+	}
+	return nil
 }
 
 // recorder counts the bytes it passes and remembers the first read error

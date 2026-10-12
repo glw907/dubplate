@@ -92,14 +92,20 @@ func skipHeader(br *bufio.Reader) error {
 // unprefixed offset: archive/zip then drops the prefix only when that record
 // also passes readDirectoryHeader's checks, which the count does not repeat,
 // so both offsets are returned and the caller counts from each.
-func directoryStarts(r io.ReaderAt, size int64) ([]int64, error) {
+//
+// It also returns the entry count archive/zip will read from the end record:
+// the 16-bit field, or the zip64 record's 64-bit one. archive/zip
+// preallocates that many pointers when the archive is large enough to hold
+// them, so a zip64 record can ask for far more memory than the headers the
+// count finds.
+func directoryStarts(r io.ReaderAt, size int64) (starts []int64, records uint64, err error) {
 	var end []byte
 	var endOffset int64
 	for i, n := range []int64{1024, 65 * 1024} {
 		n = min(n, size)
 		buf := make([]byte, n)
 		if _, err := r.ReadAt(buf, size-n); err != nil && err != io.EOF {
-			return nil, err
+			return nil, 0, err
 		}
 		if p := findEndSignature(buf); p >= 0 {
 			end = buf[p:]
@@ -107,11 +113,11 @@ func directoryStarts(r io.ReaderAt, size int64) ([]int64, error) {
 			break
 		}
 		if i == 1 || n == size {
-			return nil, zip.ErrFormat
+			return nil, 0, zip.ErrFormat
 		}
 	}
 
-	records := uint64(binary.LittleEndian.Uint16(end[10:]))
+	records = uint64(binary.LittleEndian.Uint16(end[10:]))
 	dirSize := uint64(binary.LittleEndian.Uint32(end[12:]))
 	dirOffset := uint64(binary.LittleEndian.Uint32(end[16:]))
 
@@ -120,21 +126,21 @@ func directoryStarts(r io.ReaderAt, size int64) ([]int64, error) {
 		p, err := findDirectory64End(r, endOffset)
 		if err == nil && p >= 0 {
 			endOffset = p
-			dirSize, dirOffset, err = readDirectory64End(r, p, dirSize, dirOffset)
+			records, dirSize, dirOffset, err = readDirectory64End(r, p, records, dirSize, dirOffset)
 		}
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 	}
 
 	const maxInt64 = 1<<63 - 1
 	if dirSize > maxInt64 || dirOffset > maxInt64 {
-		return nil, zip.ErrFormat
+		return nil, 0, zip.ErrFormat
 	}
 	base := endOffset - int64(dirSize) - int64(dirOffset)
 	start := base + int64(dirOffset)
 	if start < 0 || start >= size {
-		return nil, zip.ErrFormat
+		return nil, 0, zip.ErrFormat
 	}
 
 	// An end record that claims a prefix the directory does not carry: when
@@ -143,10 +149,10 @@ func directoryStarts(r io.ReaderAt, size int64) ([]int64, error) {
 		off := int64(dirOffset)
 		br := bufio.NewReader(io.NewSectionReader(r, off, size-off))
 		if skipHeader(br) == nil {
-			return []int64{start, off}, nil
+			return []int64{start, off}, records, nil
 		}
 	}
-	return []int64{start}, nil
+	return []int64{start}, records, nil
 }
 
 // findDirectory64End reads the zip64 locator just before the end record and
@@ -168,17 +174,17 @@ func findDirectory64End(r io.ReaderAt, endOffset int64) (int64, error) {
 	return int64(binary.LittleEndian.Uint64(buf[8:])), nil
 }
 
-// readDirectory64End returns the directory size and offset the zip64 end
-// record at offset holds.
-func readDirectory64End(r io.ReaderAt, offset int64, dirSize, dirOffset uint64) (uint64, uint64, error) {
+// readDirectory64End returns the entry count, directory size, and offset
+// the zip64 end record at offset holds.
+func readDirectory64End(r io.ReaderAt, offset int64, records, dirSize, dirOffset uint64) (uint64, uint64, uint64, error) {
 	buf := make([]byte, directory64EndLen)
 	if _, err := r.ReadAt(buf, offset); err != nil {
-		return dirSize, dirOffset, err
+		return records, dirSize, dirOffset, err
 	}
 	if binary.LittleEndian.Uint32(buf) != directory64EndSignature {
-		return dirSize, dirOffset, zip.ErrFormat
+		return records, dirSize, dirOffset, zip.ErrFormat
 	}
-	return binary.LittleEndian.Uint64(buf[40:]), binary.LittleEndian.Uint64(buf[48:]), nil
+	return binary.LittleEndian.Uint64(buf[32:]), binary.LittleEndian.Uint64(buf[40:]), binary.LittleEndian.Uint64(buf[48:]), nil
 }
 
 // findEndSignature returns the offset of the last end record in b whose

@@ -138,6 +138,11 @@ func TestCheckFile_Verdicts(t *testing.T) {
 		{"an ID3v2 prefix", withID3v2Prefix(cleanBytes), ".flac", p, reject.ID3Tags},
 		{"a trailing ID3v1 record", append(append([]byte(nil), cleanBytes...), id3v1Record()...), ".flac", p, reject.ID3Tags},
 		{"an all-zero header md5", patchStreamInfo(cleanBytes, nil, nil, make([]byte, 16)), ".flac", p, ""},
+		// With no sample count and no header MD5 to catch them, frames that
+		// disagree with STREAMINFO would otherwise pass the CD-quality floor.
+		{"frames deeper than STREAMINFO says", patchStreamInfo((&clip{rate: 44100, bits: 24, channels: 2, blocks: 2, seed: 30}).encode(t), new(uint64(16)), new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
+		{"frames wider than STREAMINFO says", patchStreamInfo(patchChannels(cleanBytes, 1), nil, new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
+		{"frames larger than STREAMINFO's maximum block size", patchStreamInfo(patchMaxBlockSize(cleanBytes, blockSize/2), nil, new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
 		{"an extension outside the allowlist", cleanBytes, ".mp3", p, reject.BadExtension},
 		{"an empty allowlist", cleanBytes, ".flac", func() Policy { q := p; q.Allowlist = nil; return q }(), reject.BadExtension},
 		{"content that is not FLAC", []byte("OggS\x00\x02 not flac at all"), ".flac", p, reject.BadExtension},
@@ -302,12 +307,12 @@ func TestDecode_ReadErrorIsNeverAVerdict(t *testing.T) {
 		return io.MultiReader(bytes.NewReader(data[:after]), iotest.ErrReader(syscall.EIO))
 	}
 
-	if _, err := decode(t.Context(), bytes.NewReader(data), size); err != nil {
+	if _, err := decode(t.Context(), bytes.NewReader(data), size, cdStream, noLimit); err != nil {
 		t.Fatalf("decode without the fault: %v, want none", err)
 	}
 	for _, after := range []int{0, 30, len(data) / 2, len(data) - 1} {
 		t.Run(fmt.Sprintf("EIO after %d bytes", after), func(t *testing.T) {
-			_, err := decode(t.Context(), faulty(after), size)
+			_, err := decode(t.Context(), faulty(after), size, cdStream, noLimit)
 			if !errors.Is(err, ErrCouldNotRun) || !errors.Is(err, syscall.EIO) {
 				t.Errorf("error = %v, want ErrCouldNotRun wrapping EIO", err)
 			}
@@ -318,7 +323,7 @@ func TestDecode_ReadErrorIsNeverAVerdict(t *testing.T) {
 	}
 
 	t.Run("the same cut, ended cleanly, is the file's fault", func(t *testing.T) {
-		_, err := decode(t.Context(), bytes.NewReader(data[:len(data)/2]), size)
+		_, err := decode(t.Context(), bytes.NewReader(data[:len(data)/2]), size, cdStream, noLimit)
 		if !errors.Is(err, errUndecodable) || errors.Is(err, ErrCouldNotRun) {
 			t.Errorf("error = %v, want errUndecodable alone", err)
 		}
@@ -388,5 +393,54 @@ func BenchmarkCheckFile(b *testing.B) {
 		if err != nil || res.Verdict != "" {
 			b.Fatalf("verdict %q, error %v", res.Verdict, err)
 		}
+	}
+}
+
+// cdStream is the STREAMINFO of the generated CD-quality clips, and noLimit
+// a sample bound no test file reaches.
+var cdStream = tagio.StreamInfo{SampleRate: 44100, Channels: 2, BitsPerSample: 16, MaxBlockSize: blockSize}
+
+const noLimit = 1 << 40
+
+// countingReader counts the bytes read through it.
+type countingReader struct {
+	r io.Reader
+	n int64
+}
+
+func (c *countingReader) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	c.n += int64(n)
+	return n, err
+}
+
+// TestDecode_StopsAtTheLimitsOnTheFrame holds the two bounds on the work a
+// member's bytes can cost: a stream longer than its own sample count, and
+// one longer than any track can be, end the decode at the frame that crosses
+// the bound instead of running to the end of the file.
+func TestDecode_StopsAtTheLimitsOnTheFrame(t *testing.T) {
+	data := cd(40, 40).encode(t)
+	si := cdStream
+	tests := []struct {
+		name       string
+		totalSamp  uint64
+		maxSamples uint64
+	}{
+		{"past the declared sample count", 2 * blockSize, 40 * blockSize},
+		{"past the longest track", 0, 2 * blockSize},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			si := si
+			si.TotalSamples = tt.totalSamp
+			cr := &countingReader{r: bytes.NewReader(data)}
+			_, err := decode(t.Context(), cr, int64(len(data)), si, tt.maxSamples)
+			if !errors.Is(err, errOverrun) {
+				t.Fatalf("decode error = %v, want errOverrun", err)
+			}
+			if cr.n > int64(len(data))/4 {
+				t.Errorf("decode read %d of %d bytes, want it to stop within the first quarter", cr.n, len(data))
+			}
+		})
 	}
 }
