@@ -158,7 +158,7 @@ never an owed list. Each place the plan reads the spec past its literal wording,
 
 ## Rulings for Geoff
 
-1. **Approve the 995 task-minute estimate?** The design says a plan over twice its 390-minute figure (780) comes back
+1. **Approve the 995 task-minute estimate?** **Ruled yes by Geoff, 2026-10-12: "launch at 995".** The design says a plan over twice its 390-minute figure (780) comes back
    before launch. The drafted plan sat at 760; the fold adds 230 and its verification fold 5 (the whole-chain
    metadata bound in T5): honest re-estimates where the reviews found missing work (the serve-test environments and
    `loadConfig` in T3, the older-store undo and the warnings table in T4, the tus refusal table in T9, the details
