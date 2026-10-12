@@ -413,3 +413,48 @@ func TestNewRootCmd_RegistersMemberCommand(t *testing.T) {
 	}
 	t.Error(`newRootCmd().Commands() does not include "member"`)
 }
+
+// TestMemberAddCmd_WideAuthLeafRefused proves member add opens the auth
+// leaf for the re-add bump and refuses a leaf wider than 0700, naming the
+// verb and the leaf, before writing any row. Fixture state: an auth leaf
+// created at 0755 under a current store holding no member.
+func TestMemberAddCmd_WideAuthLeafRefused(t *testing.T) {
+	environ, stateDir := memberEnviron(t)
+	leaf := filepath.Join(stateDir, "auth")
+	if err := os.Mkdir(leaf, 0o700); err != nil {
+		t.Fatalf("create the auth leaf: %v", err)
+	}
+	if err := os.Chmod(leaf, 0o755); err != nil {
+		t.Fatalf("widen the auth leaf: %v", err)
+	}
+
+	_, _, err := runMember(t, environ, "add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test")
+	if err == nil {
+		t.Fatal("add over a wide auth leaf error = nil, want a refusal")
+	}
+	for _, want := range []string{"member add", leaf} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error = %q, want it to contain %q", err, want)
+		}
+	}
+	if got := userAddresses(t, stateDir); len(got) != 0 {
+		t.Errorf("users after the refusal = %v, want none", got)
+	}
+}
+
+// TestMemberListCmd_OpensNoAuthLeaf proves member list reads the roster
+// without opening the auth leaf: a store with no leaf still has none
+// after a list.
+func TestMemberListCmd_OpensNoAuthLeaf(t *testing.T) {
+	environ, stateDir := memberEnviron(t)
+	leaf := filepath.Join(stateDir, "auth")
+	if _, err := os.Stat(leaf); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat(auth leaf) before list = %v, want it absent", err)
+	}
+	if _, _, err := runMember(t, environ, "list"); err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if _, err := os.Stat(leaf); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("Stat(auth leaf) after list = %v, want it still absent", err)
+	}
+}

@@ -327,7 +327,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	}
 	epoch := auth.OpenEpochStore(authStore)
 
-	roster := auth.NewRoster(h)
+	roster := auth.NewRoster(h, epoch, time.Now)
 
 	limiter := auth.NewLimiter(limits)
 
