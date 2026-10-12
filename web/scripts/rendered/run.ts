@@ -5988,11 +5988,13 @@ async function settleCapture(page: Page): Promise<string | null> {
     return `a control stayed disabled (pending) past ${CAPTURE_SETTLE_MS}ms`;
   }
   const running = await page.evaluate(async (bound) => {
-    const animations = document.getAnimations();
+    // A scroll-driven animation (an open DaisyUI modal runs
+    // `set-page-has-scroll` on the scroll timeline) advances with scroll
+    // position, never with time, so it has no end to wait for.
+    const timed = () => document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline);
     const timeout = new Promise<void>((resolve) => setTimeout(resolve, bound));
-    await Promise.race([Promise.all(animations.map((a) => a.finished.catch(() => undefined))), timeout]);
-    return document
-      .getAnimations()
+    await Promise.race([Promise.all(timed().map((a) => a.finished.catch(() => undefined))), timeout]);
+    return timed()
       .filter((a) => a.playState === 'running' || a.pending)
       .map((a) => ('transitionProperty' in a ? (a as CSSTransition).transitionProperty : (a as CSSAnimation).animationName || 'animation'));
   }, CAPTURE_SETTLE_MS);
