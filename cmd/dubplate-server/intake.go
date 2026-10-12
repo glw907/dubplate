@@ -298,7 +298,9 @@ func registerIntakeConfig(reg *config.Registry) {
 // backup syncs and restore refuses to fill, so a partial upload inside
 // it would be backed up and skew the sync guard's count.
 //
-// The comparison is lexical on cleaned paths and never resolves
+// Both paths must be absolute: filepath.Rel fails on a mixed pair, and
+// a relative path is not one directory until the working directory
+// says so. The comparison is lexical on cleaned paths and never resolves
 // symlinks: EvalSymlinks fails on a path that does not exist, and a
 // fresh box must still load its configuration so doctor can report the
 // absence. The startup check compares the resolved paths once both
@@ -307,6 +309,10 @@ func registerIntakeConfig(reg *config.Registry) {
 func resolveStaging(cfg *config.Config) error {
 	staging := filepath.Clean(cfg.WallValue(stagingKey))
 	library := filepath.Clean(cfg.LibraryRoot)
+	if !filepath.IsAbs(staging) || !filepath.IsAbs(library) {
+		return fmt.Errorf("%s: %s and DUBPLATE_LIBRARY_ROOT %s must both be absolute paths, so the overlap check can compare them",
+			stagingKey, staging, library)
+	}
 	if contains(staging, library) || contains(library, staging) {
 		return fmt.Errorf("%s: %s and DUBPLATE_LIBRARY_ROOT %s overlap; staging and the library root must be separate directories",
 			stagingKey, staging, library)

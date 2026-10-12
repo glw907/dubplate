@@ -112,6 +112,16 @@ func TestLoadConfig_StagingFixtures(t *testing.T) {
 			environ: with("/nonexistent-dubplate-test/library", "/nonexistent-dubplate-test/staging"),
 		},
 		{
+			name:    "a relative staging directory",
+			environ: with("/srv/music/library", "staging"),
+			want:    []string{"DUBPLATE_STAGING_DIR", "absolute", "staging"},
+		},
+		{
+			name:    "a relative library root",
+			environ: with("library", "/srv/music/staging"),
+			want:    []string{"DUBPLATE_STAGING_DIR", "absolute", "library"},
+		},
+		{
 			name:    "the retired uploads directory",
 			environ: append(slices.Clone(base), "DUBPLATE_UPLOADS_DIR=/srv/music/uploads"),
 			want:    []string{"DUBPLATE_UPLOADS_DIR", "DUBPLATE_STAGING_DIR"},
