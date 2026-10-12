@@ -313,7 +313,7 @@ The signed-in header renders in every state, loading included, and
               <label class="font-mono text-[13px] font-medium" for={fieldId(e.name)}>{e.name}</label>
               <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
             </div>
-            <p>{e.description}</p>
+            <p class="first-letter:uppercase">{e.description}</p>
             <p class="text-sm opacity-70">
               {sourceLine(e)} {applyLine(e)}
             </p>
@@ -361,7 +361,7 @@ The signed-in header renders in every state, loading included, and
               <span class="font-mono text-[13px] font-medium">{e.name}</span>
               <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
             </div>
-            <p>{e.description}</p>
+            <p class="first-letter:uppercase">{e.description}</p>
             <p class="text-sm opacity-70">{e.value !== undefined ? environmentValueLine(e.value) : ENVIRONMENT_ONLY_LINE}</p>
           </div>
         </li>
