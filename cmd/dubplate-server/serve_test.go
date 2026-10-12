@@ -1283,13 +1283,14 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 // servedDocuments maps each document the build must emit to the path
 // under the default prefix that serves it.
 var servedDocuments = map[string]string{
-	"login.html":      "/dubplate/login",
-	"login/link.html": "/dubplate/login/link",
-	"members.html":    "/dubplate/members",
+	"login.html":           "/dubplate/login",
+	"login/link.html":      "/dubplate/login/link",
+	"members.html":         "/dubplate/members",
+	"server-settings.html": "/dubplate/server-settings",
 }
 
 // checkDocumentSet reports a failure unless buildFS's documents are
-// exactly the three the routes serve. It runs first in each document
+// exactly the four the routes serve. It runs first in each document
 // check, so a check cannot pass over an empty set.
 func checkDocumentSet(buildFS fs.FS) string {
 	var got []string
@@ -1328,6 +1329,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	shell := serve.NewShell(prefix, serve.NewStrip(serve.TrustedProxyConfig{}), discardTestLogger())
 	routes.register(shell, shell.Logger())
 	shell.Register(membersRouteName, routes.members)
+	shell.Register(serverSettingsRouteName, routes.serverSettings)
 	return shell.Handler(), nil
 }
 
@@ -1527,9 +1529,10 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 	}
 
 	wantCache := map[string]string{
-		"login.html":      "no-cache",
-		"login/link.html": "no-store",
-		"members.html":    "no-store",
+		"login.html":           "no-cache",
+		"login/link.html":      "no-store",
+		"members.html":         "no-store",
+		"server-settings.html": "no-store",
 	}
 	var failures []string
 	var bundleStylesheet string

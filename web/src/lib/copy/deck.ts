@@ -244,6 +244,70 @@ export function demotedMemberLine(displayName: string): string {
   return `${displayName} is no longer an admin.`;
 }
 
+/** The members page's one link to the server settings page, and that page's lead. */
+export const SERVER_SETTINGS_LINK = 'Server settings';
+export const SETTINGS_INTRO =
+  'What the server does, and how. A change takes effect when its line says so. Keys set in the server’s environment file are listed beneath, and change only there.';
+
+/** The settings page's two sections. */
+export const SETTINGS_EDITABLE_HEADING = 'Settings you can change';
+export const SETTINGS_ENVIRONMENT_HEADING = 'Set in the environment file';
+
+/** The settings page's per-key controls. */
+export const SETTING_SAVE = 'Save';
+export const SETTING_RESET = 'Reset to default';
+
+/** A key's mark, as the badge on its row reads it. */
+export const SETTING_MARKS: Record<string, string> = {
+  sensitive: 'Sensitive',
+  not_sensitive: 'Not sensitive'
+};
+
+/** When a write takes effect, keyed by the apply mode the server answers with. */
+export const SETTING_APPLY: Record<string, string> = {
+  immediately: 'Takes effect right away.',
+  next_operation: 'Takes effect from the next request.',
+  restart: 'Takes effect at the next server start.'
+};
+
+/** Where a stored value came from, keyed by the source the server answers with. */
+export const SETTING_SOURCES: Record<string, string> = {
+  admin: 'Changed here.',
+  'env-seed': 'Taken from the environment file at first start.',
+  default: 'The default.'
+};
+
+/** A key only the environment file sets, with no value shown. */
+export const ENVIRONMENT_ONLY_LINE = 'Set in the server’s environment file. Change it there and restart the server.';
+
+/** A key whose value the environment file sets, so it cannot be edited or reset here. */
+export function environmentValueLine(value: string): string {
+  return `Set to ${value} in the server’s environment file. Change it there and restart the server.`;
+}
+
+/** What a restart-applied key's stored value means: it is the one the next start applies. */
+export function nextStartLine(value: string): string {
+  return `The stored value ${value} applies at the next server start.`;
+}
+
+/** The success lines for a save and a reset, naming the key and when it takes effect. */
+export function settingSavedLine(key: string, applyLine: string): string {
+  return `Saved ${key}. ${applyLine}`;
+}
+
+export function settingResetLine(key: string, applyLine: string): string {
+  return `Reset ${key} to its default. ${applyLine}`;
+}
+
+/** A control's accessible name, naming the key its row holds. */
+export function saveSettingLabel(key: string): string {
+  return `Save ${key}`;
+}
+
+export function resetSettingLabel(key: string): string {
+  return `Reset ${key}`;
+}
+
 /** The roster list's empty state (no members yet). */
 export const ROSTER_EMPTY_STATE = 'No members yet.';
 
@@ -273,6 +337,7 @@ export const TITLES = {
   loginLinkSignedIn: 'Signed in',
   loginLinkRefused: 'That link didn’t work',
   members: 'Members',
+  serverSettings: 'Server settings',
   signedOut: 'Signed out',
   notFound: 'Page not found',
   error: 'Something went wrong'

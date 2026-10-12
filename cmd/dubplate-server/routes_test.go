@@ -57,6 +57,8 @@ var routeInventory = map[string]routeRow{
 	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/catalog"},
 	rosterRouteName:  {class: routeAdmin, method: http.MethodGet, path: "/" + rosterRouteName},
 	membersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + membersRouteName},
+
+	serverSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + serverSettingsRouteName},
 }
 
 // A recordingRegistrar forwards every registration to its shell and
@@ -138,6 +140,42 @@ func TestRouteInventory(t *testing.T) {
 					t.Errorf("%s: %s = %d %.60q, want the gate's 404", name, who, rec.Code, rec.Body)
 				}
 			}
+		}
+	}
+}
+
+// TestServerSettingsRoute_ServesAdminsOnly proves the settings document
+// answers a verified admin with the page, never cached, and answers a
+// signed-in non-admin, a visitor with no session, and a forged one the
+// gate's 404. The inventory pins the class on the same route.
+func TestServerSettingsRoute_ServesAdminsOnly(t *testing.T) {
+	environ := rosterAPIEnviron(t)
+	shell, err := buildServeShell(t, environ)
+	if err != nil {
+		t.Fatalf("buildServeShell: %v", err)
+	}
+	handler := shell.Handler()
+	get := func(session string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, sessionRequest(http.MethodGet, "/dubplate/server-settings", session, "", ""))
+		return rec
+	}
+
+	admin := get(mintServeSession(t, environ, rosterAdminAddress, time.Now()))
+	if admin.Code != http.StatusOK || !strings.Contains(admin.Body.String(), "<html") {
+		t.Fatalf("admin GET = %d %.80q, want the page", admin.Code, admin.Body)
+	}
+	if got := admin.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", got)
+	}
+	for who, session := range map[string]string{
+		"a non-admin":  mintServeSession(t, environ, rosterMemberAddress, time.Now()),
+		"no session":   "",
+		"a forged one": "not-a-session",
+	} {
+		rec := get(session)
+		if rec.Code != http.StatusNotFound || rec.Body.String() != wantNotFoundBody {
+			t.Errorf("%s: GET = %d %.60q, want the gate's 404", who, rec.Code, rec.Body)
 		}
 	}
 }

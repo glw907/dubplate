@@ -39,6 +39,11 @@ const rosterRouteName = "roster"
 // to verified admins only.
 const membersRouteName = "members"
 
+// serverSettingsRouteName is the admin settings document's subtree name,
+// served to verified admins only. It is not "settings", which the visual
+// identity spec reserves for the member preferences page.
+const serverSettingsRouteName = "server-settings"
+
 // The web subtree names [newWebRoutes] builds routers for: the login
 // documents, the embedded bundle's hashed assets, and the two tier
 // stylesheets that follow the bundle's own.
@@ -399,6 +404,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	}
 	webRoutes.register(routes, shell.Logger())
 	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
+	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.serverSettings)))
 
 	go sweepNonces(ctx, nonces, shell.Logger())
 	return shell, h, nil

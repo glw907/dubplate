@@ -45,6 +45,9 @@ import {
   ROSTER_EMPTY_STATE,
   ROSTER_RETRY,
   SENT_ESCAPE_HATCH,
+  SERVER_SETTINGS_LINK,
+  SETTING_APPLY,
+  SETTING_MARKS,
   SIGN_OUT_CONTROL,
   SIGNED_OUT_SIGN_IN,
   THEME_TOGGLE_LABEL,
@@ -53,8 +56,14 @@ import {
   confirmDemoteLine,
   confirmRemoveLine,
   demoteControlLabel,
+  environmentValueLine,
+  nextStartLine,
   removeControlLabel,
   removedMemberLine,
+  resetSettingLabel,
+  saveSettingLabel,
+  settingResetLine,
+  settingSavedLine,
   unknownAddressLine
 } from '../../src/lib/copy/deck.ts';
 import { pageTitle } from '../../src/lib/copy/title.ts';
@@ -167,6 +176,13 @@ const VIOLATION_RECORDER = `
 /** The off-origin image the listener row injects for `img-src` to block. */
 const LISTENER_PROBE = 'https://example.test/rendered-probe.png';
 
+/** One key of the production registry: its name, its description, and its mark's wire name. */
+interface SettingKey {
+  name: string;
+  description: string;
+  mark: string;
+}
+
 /** The endpoints and fixture values the Go test hands the script. */
 interface Endpoints {
   base: string;
@@ -211,6 +227,8 @@ interface Endpoints {
    * the baseline's member count.
    */
   captureRosterResetURL: string;
+  /** Every key the production registry holds, as the Go host read it from the registry itself. */
+  settingKeys: SettingKey[];
 }
 
 /**
@@ -4618,6 +4636,252 @@ async function membersListRowsRow(browser: Browser, endpoints: Endpoints, sessio
   }
 }
 
+/** Opens the server settings page under `session`, waiting for its signed-in heading. */
+async function openSettings(context: BrowserContext, endpoints: Endpoints, session: Cookie): Promise<Visit> {
+  await context.addCookies([session]);
+  const { visit } = await open(context, new URL('server-settings', endpoints.base).href, 'load');
+  await visit.page.getByRole('heading', { level: 1, name: TITLES.serverSettings, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+  return visit;
+}
+
+/** One entry of `list_settings`'s answer. */
+interface ListedSetting {
+  name: string;
+  home: string;
+  apply: string;
+  value?: string;
+  source?: string;
+}
+
+/** Calls `list_settings` from inside the page, reaching the real server. */
+async function listSettings(page: Page, endpoints: Endpoints): Promise<ListedSetting[]> {
+  const url = new URL('api/v1/list_settings', endpoints.base).href;
+  return page.evaluate(async (target) => {
+    const response = await fetch(target, { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } });
+    return ((await response.json()) as { settings: ListedSetting[] }).settings;
+  }, url);
+}
+
+/** Collapses every run of whitespace, so wrapped text compares with its source line. */
+function squash(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * `settings/keys`: every key the production registry holds appears on
+ * the page exactly once, with its description and its mark. The key
+ * list comes from the Go host, read off the registry itself, and
+ * nothing is intercepted: the page reads the real `list_settings`.
+ */
+async function settingsKeysRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'settings/keys';
+  const context = await browser.newContext();
+  try {
+    const visit = await openSettings(context, endpoints, session);
+    const rows = await visit.page.evaluate(() =>
+      Array.from(document.querySelectorAll('#settings-editable > li, #settings-environment > li')).map((li) => ({
+        name: (li.querySelector('label, span.font-mono')?.textContent ?? '').trim(),
+        text: li.textContent ?? ''
+      }))
+    );
+    const problems: string[] = [];
+    for (const key of endpoints.settingKeys) {
+      const matching = rows.filter((r) => r.name === key.name);
+      if (matching.length !== 1) {
+        problems.push(`${key.name} appears ${matching.length} times`);
+        continue;
+      }
+      const text = squash(matching[0].text);
+      if (!text.includes(squash(key.description))) problems.push(`${key.name} lacks its description`);
+      if (!text.includes(SETTING_MARKS[key.mark])) problems.push(`${key.name} lacks its mark ${SETTING_MARKS[key.mark]}`);
+    }
+    const extra = rows.filter((r) => !endpoints.settingKeys.some((k) => k.name === r.name)).map((r) => r.name);
+    await report({
+      id,
+      fixture: endpoints.settingKeys.length >= 20 && rows.length > 0,
+      property: problems.length === 0 && extra.length === 0,
+      detail: `${endpoints.settingKeys.length} registry keys, ${rows.length} rows; problems ${JSON.stringify(problems)}; rows the registry does not hold ${JSON.stringify(extra)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `settings/restart-value`: an editable key that applies at the next
+ * start names its stored value as the one that start applies. The
+ * fixture sets all four restart-applied keys in its environment, so
+ * none is editable: the row takes the real `list_settings` answer
+ * through `route.fetch` and marks one editable key restart-applied
+ * before the page reads it. Everything else in the answer is the
+ * server's own.
+ */
+async function settingsRestartValueRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'settings/restart-value';
+  const context = await browser.newContext();
+  try {
+    let marked: ListedSetting | undefined;
+    await context.route('**/api/v1/list_settings', async (route) => {
+      const response = await route.fetch();
+      const body = (await response.json()) as { settings: ListedSetting[] };
+      marked = body.settings.find((e) => e.home === 'store' && e.source !== 'environment' && e.value !== undefined);
+      if (marked !== undefined) marked.apply = 'restart';
+      await route.fulfill({ response, json: body });
+    });
+    const visit = await openSettings(context, endpoints, session);
+    if (marked === undefined || marked.value === undefined) {
+      await report({ id, fixture: false, property: false, detail: 'no editable key to mark restart-applied' });
+      return;
+    }
+    const row = visit.page.locator('#settings-editable > li').filter({ has: visit.page.getByText(marked.name, { exact: true }) });
+    const text = squash((await row.textContent()) ?? '');
+    await report({
+      id,
+      fixture: true,
+      property: text.includes(nextStartLine(marked.value)) && text.includes(SETTING_APPLY.restart),
+      detail: `key ${marked.name} value ${JSON.stringify(marked.value)}; row text ${JSON.stringify(text)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/** `settings/from-members`: the members page's one link reaches the settings page. */
+async function settingsFromMembersRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'settings/from-members';
+  const context = await browser.newContext();
+  try {
+    const visit = await openMembers(context, endpoints, session);
+    const link = visit.page.getByRole('link', { name: SERVER_SETTINGS_LINK, exact: true });
+    const linkCount = await link.count();
+    await link.click();
+    const arrived = await visit.page
+      .getByRole('heading', { level: 1, name: TITLES.serverSettings, exact: true })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const pathname = await visit.page.evaluate(() => location.pathname);
+    await report({
+      id,
+      fixture: linkCount === 1,
+      property: arrived && pathname.endsWith('/server-settings'),
+      detail: `links named ${SERVER_SETTINGS_LINK}: ${linkCount}; arrived ${arrived}; location.pathname ${pathname}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `settings/environment-set`: a key the serving environment sets (the
+ * fixture sets `DUBPLATE_MAGIC_LINK_EXPIRY`) is listed as set in the
+ * environment file with its value, and has no field, no save, and no
+ * reset. Nothing is intercepted.
+ */
+async function settingsEnvironmentSetRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'settings/environment-set';
+  const key = 'DUBPLATE_MAGIC_LINK_EXPIRY';
+  const context = await browser.newContext();
+  try {
+    const visit = await openSettings(context, endpoints, session);
+    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.name === key);
+    const value = listed?.value;
+    const row = visit.page.locator('#settings-environment > li').filter({ has: visit.page.getByText(key, { exact: true }) });
+    const inEnvironment = (await row.count()) === 1;
+    const text = squash(inEnvironment ? ((await row.textContent()) ?? '') : '');
+    const fields = await visit.page.locator(`#setting-${key}`).count();
+    const controls = await row.locator('button, input').count();
+    await report({
+      id,
+      fixture: listed?.source === 'environment' && value !== undefined,
+      property: inEnvironment && value !== undefined && text.includes(environmentValueLine(value)) && fields === 0 && controls === 0,
+      detail: `listed ${JSON.stringify(listed)}; in the environment section ${inEnvironment}; row text ${JSON.stringify(text)}; fields ${fields}; controls ${controls}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `settings/reauthenticate-write`: the first sensitive write is refused
+ * for want of a recent sign-in (intercepted, once); the field still
+ * holds the edit; the sign-in link opens a new tab; Retry, reaching the
+ * real API, commits and says when the change takes effect. The same row
+ * then resets the key through `reset_setting`, so no later cell meets
+ * an `admin` row. The write is `DUBPLATE_REAUTH_WINDOW` from its 2h
+ * default to 3h, below the fixture's absolute cap. The notice mail
+ * fails against the fixture's closed SMTP port and is logged.
+ */
+async function settingsReauthenticateWriteRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'settings/reauthenticate-write';
+  const key = 'DUBPLATE_REAUTH_WINDOW';
+  const context = await browser.newContext();
+  try {
+    let refused = false;
+    await context.route('**/api/v1/set_setting', (route) => {
+      if (refused) return route.continue();
+      refused = true;
+      return route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 'reauthentication_required' } })
+      });
+    });
+    const visit = await openSettings(context, endpoints, session);
+    visit.expectsAuthErrorStatus = true;
+    const field = visit.page.locator(`#setting-${key}`);
+    await field.fill('3h');
+    await visit.page.getByRole('button', { name: saveSettingLabel(key), exact: true }).click();
+    const alert = visit.page.locator('#settings-outcome');
+    await alert.filter({ hasText: API_REFUSALS.reauthentication_required }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    const held = await field.inputValue();
+    const link = alert.getByRole('link', { name: REAUTH_SIGN_IN, exact: true });
+    const target = await link.getAttribute('target');
+    const rel = (await link.getAttribute('rel')) ?? '';
+    await alert.getByRole('button', { name: ROSTER_RETRY, exact: true }).click();
+    const saved = await alert
+      .filter({ hasText: settingSavedLine(key, SETTING_APPLY.next_operation) })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    // The refreshed list, not the alert, brings the Reset control.
+    const resetButton = visit.page.getByRole('button', { name: resetSettingLabel(key), exact: true });
+    const resetShown = await resetButton
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => 1)
+      .catch(() => 0);
+    await resetButton.click();
+    const reset = await alert
+      .filter({ hasText: settingResetLine(key, SETTING_APPLY.next_operation) })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const resetGone = await resetButton
+      .waitFor({ state: 'detached', timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const valueAfterReset = await field.inputValue();
+    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.name === key);
+    await report({
+      id,
+      fixture: refused,
+      property:
+        held === '3h' &&
+        target === '_blank' &&
+        rel.split(' ').includes('noopener') &&
+        saved &&
+        resetShown === 1 &&
+        reset &&
+        resetGone &&
+        valueAfterReset === '2h' &&
+        listed?.source === 'default',
+      detail: `refused once ${refused}; the field held ${JSON.stringify(held)}; link target ${target} rel ${rel}; saved line shown ${saved}; reset control shown after the save ${resetShown}; reset line shown ${reset}; reset control gone ${resetGone}; field after the reset ${JSON.stringify(valueAfterReset)}; listed after the reset ${JSON.stringify(listed)}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
 /** One sign-out answer, and whether the header must leave for the login page on it. */
 interface SignOutCase {
   id: string;
@@ -5420,7 +5684,7 @@ const CAPTURE_STATES: CaptureState[] = [
       } catch {
         ok = false;
       }
-      const text = ok ? ((await visit.page.locator('main p').first().textContent()) ?? '').trim() : '';
+      const text = ok ? ((await visit.page.getByText(ROSTER_EMPTY_STATE, { exact: true }).textContent()) ?? '').trim() : '';
       return { page: visit.page, ok: ok && text === ROSTER_EMPTY_STATE, detail: `empty-roster text ${JSON.stringify(text)}` };
     }
   },
@@ -5762,7 +6026,8 @@ async function main(): Promise<void> {
     membersHeaderLink: requiredEnv('DUBPLATE_RENDERED_MEMBERS_HEADER_LINK'),
     captureMintURL: requiredEnv('DUBPLATE_RENDERED_CAPTURE_MINT_URL'),
     captureInterstitialReadyLink: requiredEnv('DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK'),
-    captureRosterResetURL: requiredEnv('DUBPLATE_RENDERED_CAPTURE_ROSTER_RESET_URL')
+    captureRosterResetURL: requiredEnv('DUBPLATE_RENDERED_CAPTURE_ROSTER_RESET_URL'),
+    settingKeys: JSON.parse(requiredEnv('DUBPLATE_RENDERED_SETTING_KEYS')) as SettingKey[]
   };
   PAGES[0].heading = endpoints.siteName;
   PAGES[1].heading = TITLES.loginLinkRefused;
@@ -5825,6 +6090,11 @@ async function main(): Promise<void> {
     await membersRemoveRow(browser, endpoints, headerSession);
     await membersReauthenticateRetryRow(browser, endpoints, headerSession);
     await membersLastAdminRow(browser, endpoints, headerSession);
+    await settingsKeysRow(browser, endpoints, headerSession);
+    await settingsRestartValueRow(browser, endpoints, headerSession);
+    await settingsFromMembersRow(browser, endpoints, headerSession);
+    await settingsEnvironmentSetRow(browser, endpoints, headerSession);
+    await settingsReauthenticateWriteRow(browser, endpoints, headerSession);
     await signOutInFlightRow(browser, endpoints, headerSession);
     await signOutRows(browser, endpoints, headerSession);
     await settleGuardSelfTestRow(browser, endpoints);

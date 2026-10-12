@@ -81,9 +81,10 @@ const operatorCSSMaxBytes = 256 << 10
 // The build tree's three document paths, relative to the embedded
 // build root.
 const (
-	loginDocumentName     = "login.html"
-	loginLinkDocumentName = "login/link.html"
-	membersDocumentName   = "members.html"
+	loginDocumentName          = "login.html"
+	loginLinkDocumentName      = "login/link.html"
+	membersDocumentName        = "members.html"
+	serverSettingsDocumentName = "server-settings.html"
 )
 
 // webDocument is one document the web routes serve: its path inside
@@ -106,6 +107,7 @@ var webDocuments = []webDocument{
 	{name: loginDocumentName, route: "/" + loginRouteName, cacheControl: "no-cache", noIndex: true},
 	{name: loginLinkDocumentName, route: "/" + loginRouteName + "/link", cacheControl: "no-store", noIndex: true},
 	{name: membersDocumentName, route: "/" + membersRouteName, cacheControl: "no-store"},
+	{name: serverSettingsDocumentName, route: "/" + serverSettingsRouteName, cacheControl: "no-store"},
 }
 
 // privateFiles names the state the operator CSS file must never be:
@@ -174,17 +176,18 @@ func registerWebConfig(reg *config.Registry) {
 
 // webRoutes are the http.Handlers newServeShell mounts under the
 // shell's owned prefix. operator is nil when no operator CSS file is
-// configured, which leaves its path to the shell's 404. members
-// is the members document with no gate of its own, so it is never
-// mounted except behind [auth.RequireAdmin].
+// configured, which leaves its path to the shell's 404. members and
+// serverSettings are documents with no gate of their own, so neither is
+// ever mounted except behind [auth.RequireAdmin].
 type webRoutes struct {
-	login    http.Handler
-	members  http.Handler
-	assets   http.Handler
-	fonts    http.Handler
-	icons    http.Handler
-	branding http.Handler
-	operator http.Handler
+	login          http.Handler
+	members        http.Handler
+	serverSettings http.Handler
+	assets         http.Handler
+	fonts          http.Handler
+	icons          http.Handler
+	branding       http.Handler
+	operator       http.Handler
 }
 
 // register mounts wr's public routes on routes under their subtree
@@ -334,6 +337,9 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 	membersPath := prefix.String() + "/" + membersRouteName
 	members := newExactPathRoutes(map[string]http.Handler{membersPath: documents[membersPath]})
 	delete(documents, membersPath)
+	serverSettingsPath := prefix.String() + "/" + serverSettingsRouteName
+	serverSettings := newExactPathRoutes(map[string]http.Handler{serverSettingsPath: documents[serverSettingsPath]})
+	delete(documents, serverSettingsPath)
 	login := newExactPathRoutes(documents)
 
 	assetsFS, err := fs.Sub(buildFS, "_app")
@@ -353,12 +359,13 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 		return webRoutes{}, err
 	}
 	routes := webRoutes{
-		login:    login,
-		members:  members,
-		assets:   serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
-		fonts:    fontsRoute,
-		icons:    iconsRoute,
-		branding: stylesheetRoute(prefix, brandingRouteName, branding),
+		login:          login,
+		members:        members,
+		serverSettings: serverSettings,
+		assets:         serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
+		fonts:          fontsRoute,
+		icons:          iconsRoute,
+		branding:       stylesheetRoute(prefix, brandingRouteName, branding),
 	}
 	if hasOperatorCSS {
 		routes.operator = stylesheetRoute(prefix, operatorCSSRouteName, operatorCSS)

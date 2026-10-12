@@ -42,6 +42,7 @@ The signed-in header renders in every state, loading included, and
     REMOVE_CONTROL,
     ROSTER_EMPTY_STATE,
     ROSTER_RETRY,
+    SERVER_SETTINGS_LINK,
     SIGNED_OUT_SIGN_IN,
     TITLES,
     addedMemberLine,
@@ -293,6 +294,7 @@ The signed-in header renders in every state, loading included, and
     <button type="button" class="btn btn-primary" onclick={loadRoster}>{ROSTER_RETRY}</button>
   {:else if status === 'ok'}
     <h1 class="display page-title text-4xl">{TITLES.members}</h1>
+    <p><a href={resolve('server-settings')} class="link link-primary inline-flex min-h-11 items-center">{SERVER_SETTINGS_LINK}</a></p>
 
     <p>{members.length === 0 ? ROSTER_EMPTY_STATE : memberCountLine(members.length)}</p>
     {#if members.length > 0}

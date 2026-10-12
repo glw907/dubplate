@@ -63,6 +63,7 @@ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.M
 		"login.html":             &fstest.MapFile{Data: []byte(loginDoc)},
 		"login/link.html":        &fstest.MapFile{Data: []byte(linkDoc)},
 		"members.html":           &fstest.MapFile{Data: []byte(membersDoc)},
+		"server-settings.html":   &fstest.MapFile{Data: []byte(membersDoc)},
 		"_app/assets/0.css":      &fstest.MapFile{Data: []byte(fixtureThemeCSS)},
 		"_app/entry/start.js":    &fstest.MapFile{Data: []byte("// entry")},
 		"login/nested/other.txt": &fstest.MapFile{Data: []byte("unrelated")},
