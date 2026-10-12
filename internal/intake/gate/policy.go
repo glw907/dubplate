@@ -57,6 +57,13 @@ func LookupFormat(name string) (FormatRow, bool) {
 // it would otherwise ride along as an extra.
 var audioExtensions = []string{".flac", ".mp3", ".m4a", ".ogg", ".opus", ".wav", ".aiff"}
 
+// IsAudio reports whether a member's path names a music file by its
+// extension, a format the library keeps or not. A file it refuses is an
+// extra, which rides along with an album.
+func IsAudio(path string) bool {
+	return isAudioExt(extension(path))
+}
+
 // isAudioExt reports whether ext names a music format, kept or not.
 func isAudioExt(ext string) bool {
 	return slices.Contains(audioExtensions, ext) || slices.ContainsFunc(formats, func(row FormatRow) bool {
