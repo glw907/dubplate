@@ -11,9 +11,9 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`intake-1` launches from the main checkout under its plan (`docs/superpowers/plans/2026-10-12-intake-1.md`, on
-branch `worktree-intake-1-plan`). Geoff approved the 995 task-minute estimate on 2026-10-12, over the design's
-780-minute line; each task still stops at twice its own estimate.
+`intake-1` is in flight: session `intake-1`, id `930921a1-a634-461c-91be-416fd394c230`, branch `worktree-intake-1`, executing
+`docs/superpowers/plans/2026-10-12-intake-1.md` (995 task-minute estimate approved by Geoff on 2026-10-12; each task
+stops at twice its own estimate).
 
 ## Open decisions
 - R-6d21 overrides the settings-home pass's rule that the server never reads its environment. Geoff may reopen it;
