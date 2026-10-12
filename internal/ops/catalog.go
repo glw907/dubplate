@@ -60,7 +60,8 @@ func (p *Privilege) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// The four operation names, each a [CatalogEntry.Name].
+// The four job-seam operation names, each a [CatalogEntry.Name]. The
+// admin seam's seven are declared beside it in admin.go.
 const (
 	OpStartBackup = "start_backup"
 	OpJobStatus   = "job_status"
@@ -71,15 +72,22 @@ const (
 // KindBackup is the job kind a backup job's record and lease carry.
 const KindBackup = "backup"
 
-// privileges maps each of the four operation names to the privilege
+// privileges maps each of the eleven operation names to the privilege
 // it requires. It is the one table a caller's required privilege is
 // read from: [PrivilegeOf] is the only reader, so the catalog and an
 // authorizing layer can never disagree about what an operation needs.
 var privileges = map[string]Privilege{
-	OpStartBackup: PrivilegeAdmin,
-	OpJobStatus:   PrivilegeAdmin,
-	OpCancelJob:   PrivilegeAdmin,
-	OpCatalog:     PrivilegeMember,
+	OpStartBackup:  PrivilegeAdmin,
+	OpJobStatus:    PrivilegeAdmin,
+	OpCancelJob:    PrivilegeAdmin,
+	OpCatalog:      PrivilegeMember,
+	OpListMembers:  PrivilegeAdmin,
+	OpAddMember:    PrivilegeAdmin,
+	OpRemoveMember: PrivilegeAdmin,
+	OpDemoteMember: PrivilegeAdmin,
+	OpListSettings: PrivilegeAdmin,
+	OpSetSetting:   PrivilegeAdmin,
+	OpResetSetting: PrivilegeAdmin,
 }
 
 // PrivilegeOf returns the privilege op requires and reports whether op

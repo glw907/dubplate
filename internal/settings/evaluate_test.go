@@ -1,6 +1,9 @@
 package settings
 
 import (
+	"errors"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/store"
@@ -133,5 +136,74 @@ func TestEvaluate_CorrelatedRuleRefusesBothRows(t *testing.T) {
 			t.Errorf("%s: Err = nil, want the correlated rule's refusal on its own row", key)
 		}
 		wantErrText(t, o.Err, keyExpiry, keyNonce, "shorter than")
+	}
+}
+
+// TestEvaluate_UnparseableRowWrapsParseError: an admin row of an int
+// setting whose value does not parse is refused with an error that
+// wraps the parse failure, so a caller can branch on it, and whose
+// text still names the key and the accepted form.
+func TestEvaluate_UnparseableRowWrapsParseError(t *testing.T) {
+	reg := newRegistry()
+	facts := store.Facts{Settings: []store.SettingsRow{
+		{Key: keyKeep, Value: "many", Source: "admin", SeedValue: "20"},
+	}}
+
+	ev := EvaluateFacts(reg, nil, facts)
+
+	if !errors.Is(ev.Err, strconv.ErrSyntax) {
+		t.Errorf("Err = %v, want it to wrap strconv.ErrSyntax", ev.Err)
+	}
+	wantErrText(t, ev.Err, keyKeep, `invalid value "many"`, "an integer")
+}
+
+// TestEvaluate_AdminRefusalsNameTheResetVerb: each refusal the seed
+// rule raises over an admin row names the verb that clears it, and the
+// parse refusal over an env-seed row, which a reset leaves in place,
+// does not. Fixture: one populated row per case, on a registry whose
+// keep setting the row's value refuses.
+func TestEvaluate_AdminRefusalsNameTheResetVerb(t *testing.T) {
+	verb := "settings reset " + keyKeep
+	tests := []struct {
+		name     string
+		row      Row
+		environ  []string
+		wantVerb bool
+		wantText string
+	}{
+		{
+			name:     "an admin value that does not parse",
+			row:      Row{Key: keyKeep, Value: "many", Source: "admin", SeedValue: "20"},
+			wantVerb: true,
+			wantText: `invalid value "many"`,
+		},
+		{
+			name:     "an admin value the environment contradicts",
+			row:      Row{Key: keyKeep, Value: "30", Source: "admin", SeedValue: "20"},
+			environ:  []string{keyKeep + "=40"},
+			wantVerb: true,
+			wantText: "unset " + keyKeep,
+		},
+		{
+			name:     "an admin value outside its bounds",
+			row:      Row{Key: keyKeep, Value: "2", Source: "admin", SeedValue: "20"},
+			wantVerb: true,
+			wantText: "below the floor 3",
+		},
+		{
+			name:     "an env-seed value that does not parse",
+			row:      Row{Key: keyKeep, Value: "many", Source: "env-seed", SeedValue: "many"},
+			wantText: `invalid value "many"`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ev := evaluate(newRegistry(), tt.environ, []Row{tt.row})
+
+			wantErrText(t, ev.Err, keyKeep, tt.wantText)
+			if got := strings.Contains(ev.Err.Error(), verb); got != tt.wantVerb {
+				t.Errorf("err = %q, names %q = %v, want %v", ev.Err, verb, got, tt.wantVerb)
+			}
+		})
 	}
 }

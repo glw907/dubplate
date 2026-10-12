@@ -46,15 +46,67 @@ func validIdentity() identity.Identity {
 	}
 }
 
-// TestNetworkActor pins R-6bii2's wire form and channel for a valid
-// login.
+// testAnchor is the instant every network actor here was anchored.
+var testAnchor = time.Date(2026, 10, 11, 9, 30, 0, 0, time.UTC)
+
+// TestNetworkActor pins the wire form, the channel, and the two
+// read-only accessors for a valid login. The wire form is the
+// lowercase hex of the UserID, written out here rather than computed.
 func TestNetworkActor(t *testing.T) {
-	got := NetworkActor(validIdentity())
-	if want := "member:geoff"; got.String() != want {
+	got := NetworkActor(validIdentity(), testAnchor)
+	if want := "member:01000000000000000000000000000000"; got.String() != want {
 		t.Errorf("NetworkActor(...).String() = %q, want %q", got.String(), want)
 	}
 	if got.Channel() != identity.ChannelCookie {
 		t.Errorf("NetworkActor(...).Channel() = %v, want %v", got.Channel(), identity.ChannelCookie)
+	}
+	if want := (identity.UserID{0x01}); got.UserID() != want {
+		t.Errorf("NetworkActor(...).UserID() = %x, want %x", got.UserID(), want)
+	}
+	if !got.Anchor().Equal(testAnchor) {
+		t.Errorf("NetworkActor(...).Anchor() = %v, want %v", got.Anchor(), testAnchor)
+	}
+}
+
+// TestNetworkActor_WireFormFollowsUserID proves the wire form is the
+// durable key alone: two logins with one UserID and different
+// principals render one form, in lowercase, and a login with another
+// UserID renders another.
+func TestNetworkActor_WireFormFollowsUserID(t *testing.T) {
+	login := func(user identity.UserID, principal string) identity.Identity {
+		id := validIdentity()
+		id.UserID, id.Principal = user, principal
+		return id
+	}
+	shared := identity.UserID{0xab, 0xcd, 0xef}
+	const wantShared = "member:abcdef00000000000000000000000000"
+	tests := []struct {
+		name string
+		id   identity.Identity
+		want string
+	}{
+		{"principal geoff", login(shared, "geoff"), wantShared},
+		{"principal renamed", login(shared, "geoffrey"), wantShared},
+		{"another member", login(identity.UserID{0x02}, "geoff"), "member:02000000000000000000000000000000"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NetworkActor(tt.id, testAnchor).String(); got != tt.want {
+				t.Errorf("NetworkActor(%+v).String() = %q, want %q", tt.id, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestLocalActor_CarriesNoSession proves the command line has no
+// durable id and no anchor to read.
+func TestLocalActor_CarriesNoSession(t *testing.T) {
+	got := LocalActor("geoff")
+	if got.UserID() != (identity.UserID{}) {
+		t.Errorf("LocalActor(...).UserID() = %x, want the zero UserID", got.UserID())
+	}
+	if !got.Anchor().IsZero() {
+		t.Errorf("LocalActor(...).Anchor() = %v, want the zero time", got.Anchor())
 	}
 }
 
@@ -80,7 +132,7 @@ func TestNetworkActor_RefusesInvalidIdentity(t *testing.T) {
 					t.Fatalf("NetworkActor(%+v) did not panic", tt.id)
 				}
 			}()
-			NetworkActor(tt.id)
+			NetworkActor(tt.id, testAnchor)
 		})
 	}
 }
@@ -183,6 +235,14 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		FinishedAt:     &finished,
 	}
 
+	fullMember := Member{
+		UserID:      "0123456789abcdef0123456789abcdef",
+		Address:     "ann@example.com",
+		DisplayName: "Ann",
+		Username:    "ann",
+		Admin:       true,
+	}
+
 	tests := []struct {
 		name string
 		run  func(t *testing.T)
@@ -205,6 +265,34 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		}},
 		{"CancelJobResponse", func(t *testing.T) {
 			roundTrip(t, CancelJobResponse{Job: fullStatus})
+		}},
+		{"ListMembersRequest", func(t *testing.T) { roundTrip(t, ListMembersRequest{}) }},
+		{"ListMembersResponse", func(t *testing.T) {
+			roundTrip(t, ListMembersResponse{Members: []Member{fullMember}})
+		}},
+		{"AddMemberRequest", func(t *testing.T) {
+			roundTrip(t, AddMemberRequest{Address: "ann@example.com", DisplayName: "Ann", Username: "ann"})
+		}},
+		{"AddMemberResponse", func(t *testing.T) { roundTrip(t, AddMemberResponse{Member: fullMember}) }},
+		{"RemoveMemberRequest", func(t *testing.T) { roundTrip(t, RemoveMemberRequest{UserID: fullMember.UserID}) }},
+		{"RemoveMemberResponse", func(t *testing.T) { roundTrip(t, RemoveMemberResponse{}) }},
+		{"DemoteMemberRequest", func(t *testing.T) { roundTrip(t, DemoteMemberRequest{UserID: fullMember.UserID}) }},
+		{"DemoteMemberResponse", func(t *testing.T) { roundTrip(t, DemoteMemberResponse{}) }},
+		{"ListSettingsRequest", func(t *testing.T) { roundTrip(t, ListSettingsRequest{}) }},
+		{"ListSettingsResponse, store-homed and environment-only", func(t *testing.T) {
+			value, source, seed := "2h", "admin", "1h"
+			roundTrip(t, ListSettingsResponse{Settings: []SettingEntry{
+				{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Mark: "sensitive", Value: &value, Source: &source, SeedValue: &seed},
+				{Name: "DUBPLATE_STATE_DIR", Home: "environment", Description: "d", Apply: "restart", Mark: "ordinary"},
+			}})
+		}},
+		{"SetSettingRequest", func(t *testing.T) { roundTrip(t, SetSettingRequest{Key: "K", Value: "v"}) }},
+		{"SetSettingResponse", func(t *testing.T) {
+			roundTrip(t, SetSettingResponse{Key: "K", Apply: "next-operation", Source: "admin"})
+		}},
+		{"ResetSettingRequest", func(t *testing.T) { roundTrip(t, ResetSettingRequest{Key: "K"}) }},
+		{"ResetSettingResponse", func(t *testing.T) {
+			roundTrip(t, ResetSettingResponse{Key: "K", Apply: "restart", Source: "env-seed"})
 		}},
 		{"CatalogRequest", func(t *testing.T) { roundTrip(t, CatalogRequest{}) }},
 		{"CatalogResponse", func(t *testing.T) {
@@ -229,6 +317,21 @@ func TestStartBackupRequest_IgnoresActorField(t *testing.T) {
 	}
 	if got != (StartBackupRequest{}) {
 		t.Fatalf("got %#v, want the zero value", got)
+	}
+}
+
+// TestAddMemberRequest_HasNoAdminField proves the add request type
+// cannot carry an admin grant: a body naming one decodes to the same
+// request as a body without it.
+func TestAddMemberRequest_HasNoAdminField(t *testing.T) {
+	var got AddMemberRequest
+	body := `{"address":"ann@example.com","display_name":"Ann","username":"ann","admin":true}`
+	if err := json.Unmarshal([]byte(body), &got); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	want := AddMemberRequest{Address: "ann@example.com", DisplayName: "Ann", Username: "ann"}
+	if got != want {
+		t.Fatalf("got %#v, want %#v", got, want)
 	}
 }
 

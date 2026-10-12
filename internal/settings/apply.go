@@ -31,16 +31,9 @@ var errNoGeneration = errors.New("settings_generation holds no row")
 func Apply(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, now time.Time, log *slog.Logger) error {
 	var ev Evaluation
 	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		rs, err := tx.Query(ctx, selectRows)
+		rows, err := readTxRows(ctx, tx)
 		if err != nil {
-			return fmt.Errorf("read settings: %w", err)
-		}
-		rows, err := scanRows(rs)
-		if closeErr := rs.Close(); err == nil {
-			err = closeErr
-		}
-		if err != nil {
-			return fmt.Errorf("read settings: %w", err)
+			return err
 		}
 
 		ev = evaluate(reg, environ, rows)
@@ -90,9 +83,7 @@ func writeChanges(ctx context.Context, tx *store.Tx, outcomes []Outcome, now tim
 		if err != nil {
 			return fmt.Errorf("%s: write %s: %w", o.Key, o.Change, err)
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value)
-			VALUES (?, ?, ?, 'system', 'env-seed', ?, ?, ?)`,
-			store.NewID(), at, o.Change.String(), o.Key, oldValue, newValue); err != nil {
+		if err := insertAudit(ctx, tx, at, o.Change.String(), "system", "env-seed", o.Key, oldValue, newValue); err != nil {
 			return fmt.Errorf("%s: audit %s: %w", o.Key, o.Change, err)
 		}
 		changed = true
@@ -101,6 +92,37 @@ func writeChanges(ctx context.Context, tx *store.Tx, outcomes []Outcome, now tim
 		return nil
 	}
 
+	return bumpGeneration(ctx, tx)
+}
+
+// readTxRows reads every settings row through tx, so the rows a write
+// decides on are the ones it writes over.
+func readTxRows(ctx context.Context, tx *store.Tx) ([]Row, error) {
+	rs, err := tx.Query(ctx, selectRows)
+	if err != nil {
+		return nil, fmt.Errorf("read settings: %w", err)
+	}
+	rows, err := scanRows(rs)
+	if closeErr := rs.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		return nil, fmt.Errorf("read settings: %w", err)
+	}
+	return rows, nil
+}
+
+// insertAudit writes one settings_audit row through tx. A nil oldValue
+// or newValue is stored as NULL.
+func insertAudit(ctx context.Context, tx *store.Tx, at int64, kind, actor, channel, key string, oldValue, newValue any) error {
+	_, err := tx.Exec(ctx, `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, store.NewID(), at, kind, actor, channel, key, oldValue, newValue)
+	return err
+}
+
+// bumpGeneration advances the settings generation every Accessor
+// compares against.
+func bumpGeneration(ctx context.Context, tx *store.Tx) error {
 	res, err := tx.Exec(ctx, `UPDATE settings_generation SET generation = generation + 1 WHERE singleton = 1`)
 	if err != nil {
 		return fmt.Errorf("bump settings_generation: %w", err)

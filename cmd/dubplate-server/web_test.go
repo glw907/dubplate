@@ -63,6 +63,7 @@ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.M
 		"login.html":             &fstest.MapFile{Data: []byte(loginDoc)},
 		"login/link.html":        &fstest.MapFile{Data: []byte(linkDoc)},
 		"members.html":           &fstest.MapFile{Data: []byte(membersDoc)},
+		"server-settings.html":   &fstest.MapFile{Data: []byte(membersDoc)},
 		"_app/assets/0.css":      &fstest.MapFile{Data: []byte(fixtureThemeCSS)},
 		"_app/entry/start.js":    &fstest.MapFile{Data: []byte("// entry")},
 		"login/nested/other.txt": &fstest.MapFile{Data: []byte("unrelated")},
@@ -438,7 +439,7 @@ func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) 
 	}
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, logger)
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	return shell.Handler(), &buf
 }
 
@@ -640,7 +641,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, discardTestLogger())
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	handler := shell.Handler()
 
 	documents := []string{prefixValue + "/login", prefixValue + "/login/link"}
@@ -760,7 +761,7 @@ func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Hand
 	}
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, discardTestLogger())
-	routes.register(shell)
+	routes.register(shell, shell.Logger())
 	return shell.Handler()
 }
 

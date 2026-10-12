@@ -305,7 +305,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 
 	// Owned wall: one line per declared row.
-	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SCRATCH_OWNED"})
+	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SCRATCH_OWNED", Description: testDescription, Mark: config.NotSensitive})
 	lines = doctorLines(t, reg)
 	ownedCount++
 	wantTotal++
@@ -340,8 +340,8 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// Integration: one line per class.
 	reg.AddIntegrationClass(config.IntegrationClass{
 		Name:     "scratch integration",
-		Flag:     "DUBPLATE_TEST_SCRATCH_FLAG",
-		Required: []string{"DUBPLATE_TEST_SCRATCH_REQUIRED"},
+		Flag:     testKey("DUBPLATE_TEST_SCRATCH_FLAG"),
+		Required: []config.KeyDecl{testKey("DUBPLATE_TEST_SCRATCH_REQUIRED")},
 	})
 	lines = doctorLines(t, reg)
 	integrationCount++
@@ -354,7 +354,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 
 	// Thresholds: one line per threshold.
-	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Default: "1"})
+	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Description: testDescription, Mark: config.NotSensitive, Default: "1"})
 	lines = doctorLines(t, reg)
 	thresholdCount++
 	wantTotal++
@@ -371,7 +371,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	reg.AddIdentitySource(config.IdentitySource{
 		Name:     "scratch source",
 		Selector: "DUBPLATE_TEST_SCRATCH_SELECTOR",
-		Required: []string{"DUBPLATE_TEST_SCRATCH_SOURCE_A", "DUBPLATE_TEST_SCRATCH_SOURCE_B"},
+		Required: []config.KeyDecl{testKey("DUBPLATE_TEST_SCRATCH_SOURCE_A"), testKey("DUBPLATE_TEST_SCRATCH_SOURCE_B")},
 	})
 	lines = doctorLines(t, reg)
 	sourceCount++
@@ -444,9 +444,9 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 
 	registry := func() *config.Registry {
 		reg := config.NewRegistry()
-		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []string{requiredA}})
-		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []string{requiredB}})
-		reg.AddWallRow(config.WallRow{Name: selector})
+		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []config.KeyDecl{testKey(requiredA)}})
+		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []config.KeyDecl{testKey(requiredB)}})
+		reg.AddWallRow(config.WallRow{Name: selector, Description: testDescription, Mark: config.NotSensitive})
 		return reg
 	}
 
@@ -543,7 +543,7 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 		},
 		{
 			name: "lifetime above the cap",
-			env:  []string{"DUBPLATE_SESSION_LIFETIME=2h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h"},
+			env:  []string{"DUBPLATE_SESSION_LIFETIME=2h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h", "DUBPLATE_REAUTH_WINDOW=30m"},
 			want: map[string][]string{
 				"DUBPLATE_SESSION_LIFETIME":     {"refused:", "DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"},
 				"DUBPLATE_SESSION_ABSOLUTE_CAP": {"refused:", "DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"},
@@ -551,7 +551,7 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 		},
 		{
 			name: "a ten-year lifetime beside a one-hour cap",
-			env:  []string{"DUBPLATE_SESSION_LIFETIME=87600h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h"},
+			env:  []string{"DUBPLATE_SESSION_LIFETIME=87600h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h", "DUBPLATE_REAUTH_WINDOW=30m"},
 			want: map[string][]string{
 				"DUBPLATE_SESSION_LIFETIME": {"refused:", "DUBPLATE_SESSION_LIFETIME", "above the ceiling 17520h"},
 			},
@@ -1112,6 +1112,9 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 		Kind:    config.KindFloat,
 		Default: "0.04",
 		Doc:     "a float between 0 and 1",
+
+		Description: testDescription,
+		Mark:        config.NotSensitive,
 	})
 
 	stateDir := t.TempDir()
@@ -1598,4 +1601,105 @@ func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 			t.Errorf("%s row = %q, want %q", w.key, status, w.status)
 		}
 	}
+}
+
+// TestDoctorCmd_AdminEmailRow is the DUBPLATE_ADMIN_EMAIL row's golden
+// over every roster standing the store can report: ok when the address
+// names a live admin (a mixed-case value included, which the wall
+// lowercases), a warning that never fails doctor when it names a live
+// non-admin, a removed member, or no member, and the plain "ok" where
+// the roster cannot speak (an empty roster, which the members row
+// already fails; an absent, unvouched, or older store). Fixture state:
+// every roster-bearing store holds a live admin other than the named
+// address except the empty one, so exit status 0 is reachable and a
+// warning that failed doctor would show; the removed address belongs
+// to a tombstoned admin, so a lookup that ignores tombstones reads it
+// as an admin and reports ok.
+func TestDoctorCmd_AdminEmailRow(t *testing.T) {
+	const (
+		removedOrNone = "warning: this address is not a live member; run dubplate-server member add <address> --admin, or set DUBPLATE_ADMIN_EMAIL to a live admin"
+		nonAdmin      = "warning: this address is a live member without the admin flag; set DUBPLATE_ADMIN_EMAIL to a live admin"
+	)
+	roster := func(t *testing.T, stateDir string) {
+		seedBackupStore(t, stateDir)
+		seedMembers(t, stateDir,
+			seedMember{address: "boss@example.test", displayName: "Boss", username: "boss", admin: true},
+			seedMember{address: "plain@example.test", displayName: "Plain", username: "plain"},
+			seedMember{address: "gone@example.test", displayName: "Gone", username: "gone", admin: true, tombstoned: true})
+	}
+	tests := []struct {
+		name     string
+		address  string
+		setup    func(t *testing.T, stateDir string)
+		want     string
+		wantFail bool
+	}{
+		{name: "a live admin", address: "boss@example.test", setup: roster, want: "ok"},
+		{name: "a mixed-case address naming a live admin", address: "Boss@Example.TEST", setup: roster, want: "ok"},
+		{name: "a live non-admin", address: "plain@example.test", setup: roster, want: nonAdmin},
+		{name: "a tombstoned admin", address: "gone@example.test", setup: roster, want: removedOrNone},
+		{name: "an address no member holds", address: "nobody@example.test", setup: roster, want: removedOrNone},
+		{
+			name:     "an empty roster, which the members row fails",
+			address:  "boss@example.test",
+			setup:    func(t *testing.T, stateDir string) { seedBackupStore(t, stateDir) },
+			want:     "ok",
+			wantFail: true,
+		},
+		{name: "no store yet", address: "boss@example.test", setup: func(*testing.T, string) {}, want: "ok"},
+		{
+			name:     "a store the inspection cannot vouch for",
+			address:  "boss@example.test",
+			setup:    buildZeroByteStoreLeaf,
+			want:     "ok",
+			wantFail: true,
+		},
+		{
+			name:    "a store older than the users table",
+			address: "boss@example.test",
+			setup:   func(t *testing.T, stateDir string) { olderStore(t, stateDir, 2) },
+			want:    "ok",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			environ := withEnv(doctorEnviron(t), "DUBPLATE_ADMIN_EMAIL="+tt.address)
+			tt.setup(t, environValue(environ, "DUBPLATE_STATE_DIR"))
+
+			rows, _, err := doctorRows(t, environ)
+			if got := rows["DUBPLATE_ADMIN_EMAIL"]; got != tt.want {
+				t.Errorf("DUBPLATE_ADMIN_EMAIL row = %q, want %q", got, tt.want)
+			}
+			if tt.wantFail != (err != nil) {
+				t.Errorf("Execute() error = %v, want a failure = %v", err, tt.wantFail)
+			}
+		})
+	}
+
+	t.Run("the row keeps its place before the store row", func(t *testing.T) {
+		environ := withEnv(doctorEnviron(t), "DUBPLATE_ADMIN_EMAIL=plain@example.test")
+		roster(t, environValue(environ, "DUBPLATE_STATE_DIR"))
+		var stdout, stderr bytes.Buffer
+		cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v, want nil: a warning never fails doctor", err)
+		}
+		out := stdout.String()
+		email, store := strings.Index(out, "DUBPLATE_ADMIN_EMAIL "), strings.Index(out, "\nstore ")
+		if email < 0 || store < 0 || email > store {
+			t.Errorf("DUBPLATE_ADMIN_EMAIL at %d, store at %d, want the wall row first", email, store)
+		}
+	})
+
+	t.Run("an invalid address keeps the wall's refusal", func(t *testing.T) {
+		environ := withEnv(doctorEnviron(t), "DUBPLATE_ADMIN_EMAIL=not-an-address")
+		roster(t, environValue(environ, "DUBPLATE_STATE_DIR"))
+		rows, _, err := doctorRows(t, environ)
+		if got := rows["DUBPLATE_ADMIN_EMAIL"]; !strings.HasPrefix(got, "invalid") {
+			t.Errorf("DUBPLATE_ADMIN_EMAIL row = %q, want the wall's invalid status", got)
+		}
+		if err == nil {
+			t.Error("Execute() error = nil, want the wall's failure")
+		}
+	})
 }

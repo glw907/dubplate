@@ -4,7 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"maps"
 	"slices"
+	"strconv"
 	"testing"
 )
 
@@ -26,15 +31,19 @@ func TestSentinelCodes(t *testing.T) {
 		{"canceled", NewCanceledError, CodeCanceled, ErrCanceled},
 		{"forbidden", NewForbiddenError, CodeForbidden, ErrForbidden},
 		{"internal", NewInternalError, CodeInternal, ErrInternal},
+		{"unauthenticated", NewUnauthenticatedError, CodeUnauthenticated, ErrUnauthenticated},
+		{"reauthentication required", NewReauthenticationRequiredError, CodeReauthenticationRequired, ErrReauthenticationRequired},
 	}
 	wantLiterals := map[string]Code{
-		"unavailable":     "unavailable",
-		"not found":       "not_found",
-		"conflict":        "conflict",
-		"invalid request": "invalid_request",
-		"canceled":        "canceled",
-		"forbidden":       "forbidden",
-		"internal":        "internal",
+		"unauthenticated":           "unauthenticated",
+		"reauthentication required": "reauthentication_required",
+		"unavailable":               "unavailable",
+		"not found":                 "not_found",
+		"conflict":                  "conflict",
+		"invalid request":           "invalid_request",
+		"canceled":                  "canceled",
+		"forbidden":                 "forbidden",
+		"internal":                  "internal",
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -110,6 +119,8 @@ func TestCodeOf(t *testing.T) {
 		{"canceled sentinel, wrapped", fmt.Errorf("read status: %w", NewCanceledError("")), CodeCanceled},
 		{"forbidden, wrapped", fmt.Errorf("read status: %w", NewForbiddenError("")), CodeForbidden},
 		{"internal sentinel, wrapped", fmt.Errorf("read status: %w", NewInternalError("")), CodeInternal},
+		{"unauthenticated, wrapped", fmt.Errorf("read status: %w", NewUnauthenticatedError("")), CodeUnauthenticated},
+		{"reauthentication required, wrapped", fmt.Errorf("write: %w", NewReauthenticationRequiredError("")), CodeReauthenticationRequired},
 		{"context.Canceled in the chain, no *Error", fmt.Errorf("write pool: %w", context.Canceled), CodeCanceled},
 		{"context.DeadlineExceeded alone", fmt.Errorf("write pool: %w", context.DeadlineExceeded), CodeInternal},
 		{"any other error", errors.New("sql: database is closed"), CodeInternal},
@@ -123,18 +134,88 @@ func TestCodeOf(t *testing.T) {
 	}
 }
 
-// TestCodes proves the coverage guard's source: exactly the seven
+// TestCodes proves the coverage guard's source: exactly the nine
 // literal wire codes, so a sentinel added to codes without a
-// corresponding contract case would grow this set past seven.
+// corresponding contract case would grow this set past nine.
 func TestCodes(t *testing.T) {
 	want := []Code{
-		CodeUnavailable, CodeNotFound, CodeConflict, CodeInvalidRequest,
-		CodeCanceled, CodeForbidden, CodeInternal,
+		"unavailable", "not_found", "conflict", "invalid_request",
+		"canceled", "forbidden", "internal",
+		"unauthenticated", "reauthentication_required",
 	}
 	got := Codes()
 	slices.Sort(got)
 	slices.Sort(want)
 	if !slices.Equal(got, want) {
 		t.Errorf("Codes() = %v, want %v", got, want)
+	}
+}
+
+// TestError_WithDetail proves a detail rides an error without changing
+// its code, its sentinel, or the error it was built from.
+func TestError_WithDetail(t *testing.T) {
+	base := NewConflictError("the last admin")
+	got := base.WithDetail(DetailLastAdmin)
+	if got.Detail != "last_admin" {
+		t.Errorf("Detail = %q, want %q", got.Detail, "last_admin")
+	}
+	if got.Code != CodeConflict || got.Reason != "the last admin" || !errors.Is(got, ErrConflict) {
+		t.Errorf("WithDetail changed the error: %+v", got)
+	}
+	if base.Detail != "" {
+		t.Errorf("WithDetail wrote through to its receiver: Detail = %q", base.Detail)
+	}
+	wrapped := fmt.Errorf("add member: %w", got)
+	if e, ok := errors.AsType[*Error](wrapped); !ok || e.Detail != "last_admin" {
+		t.Errorf("AsType over a wrapped detail = %+v, %v", e, ok)
+	}
+}
+
+// TestDetailConstants pins the ten wire details as literals read from
+// the source file the parity and deck gates parse: exactly these
+// names, each with exactly this value.
+func TestDetailConstants(t *testing.T) {
+	want := map[string]string{
+		"DetailDuplicateAddress":   "duplicate_address",
+		"DetailDuplicateUsername":  "duplicate_username",
+		"DetailInvalidAddress":     "invalid_address",
+		"DetailInvalidDisplayName": "invalid_display_name",
+		"DetailBlankDisplayName":   "blank_display_name",
+		"DetailInvalidUsername":    "invalid_username",
+		"DetailMissingUsername":    "missing_username",
+		"DetailLastAdmin":          "last_admin",
+		"DetailEnvironmentSets":    "environment_sets",
+		"DetailBusy":               "busy",
+	}
+	f, err := parser.ParseFile(token.NewFileSet(), "details.go", nil, 0)
+	if err != nil {
+		t.Fatalf("parse details.go: %v", err)
+	}
+	got := make(map[string]string)
+	for _, decl := range f.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.CONST {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			vs, ok := spec.(*ast.ValueSpec)
+			if !ok {
+				continue
+			}
+			for i, name := range vs.Names {
+				lit, ok := vs.Values[i].(*ast.BasicLit)
+				if !ok {
+					t.Fatalf("%s is not a literal", name.Name)
+				}
+				value, err := strconv.Unquote(lit.Value)
+				if err != nil {
+					t.Fatalf("%s: %v", name.Name, err)
+				}
+				got[name.Name] = value
+			}
+		}
+	}
+	if !maps.Equal(got, want) {
+		t.Errorf("details.go declares %v, want %v", got, want)
 	}
 }

@@ -11,7 +11,6 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/engine/store"
-	"github.com/glw907/dubplate/internal/identity"
 )
 
 // The rendered fixture's member addresses and the admin's display name.
@@ -149,14 +148,18 @@ func TestRosterResetServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	roster := auth.NewRoster(h)
+	leaf, err := auth.Open(stateDir)
+	if err != nil {
+		t.Fatalf("open the auth leaf: %v", err)
+	}
+	roster := auth.NewRoster(h, auth.OpenEpochStore(leaf), time.Now)
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	for _, m := range []auth.Member{
 		{Address: renderedNewMemberAddress, DisplayName: "New", Username: "newmember"},
 		{Address: "capture-added@example.test", DisplayName: "Capture", Username: "capture-added"},
 	} {
-		if err := roster.AddMember(ctx, m, "operator", identity.ChannelCommandLine, "", discardTestLogger()); err != nil {
+		if err := roster.AddMember(ctx, m, auth.OperatorActor("operator"), discardTestLogger()); err != nil {
 			t.Fatalf("add %s: %v", m.Address, err)
 		}
 	}

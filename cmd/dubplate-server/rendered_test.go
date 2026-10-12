@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -24,6 +25,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -58,7 +60,7 @@ const renderedMagicLinkExpiry = 25 * time.Minute
 const (
 	renderedLinkRequestsPerAddress       = 50
 	renderedLinkRequestsPerClient        = 100
-	renderedConsumptionAttemptsPerClient = 100
+	renderedConsumptionAttemptsPerClient = 200
 	renderedLinkMailCeiling              = 100
 )
 
@@ -213,7 +215,7 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/ruling-4"},
 	{id: "layout/content-measure"},
 	{id: "header/wordmark-clearance"},
-	{id: "members/list-join"},
+	{id: "members/list-rows"},
 	{id: "members/unreachable"},
 	{id: "members/malformed-roster/empty-object"},
 	{id: "members/malformed-roster/null-members"},
@@ -226,6 +228,29 @@ var renderedBaseManifest = []renderedRow{
 	{id: "header/sign-out-contrast/label"},
 	{id: "header/sign-out-contrast/label-night"},
 	{id: "members/inherited-outcome"},
+	{id: "members/refusal/forbidden"},
+	{id: "members/refusal/busy"},
+	{id: "members/refusal/last-admin-remove"},
+	{id: "members/refusal/last-admin-demote"},
+	{id: "members/refusal/reauthentication-required"},
+	{id: "members/signed-out-write"},
+	{id: "members/add-refusal-focus/duplicate_address"},
+	{id: "members/add-refusal-focus/invalid_address"},
+	{id: "members/add-refusal-focus/blank_display_name"},
+	{id: "members/add-refusal-focus/invalid_display_name"},
+	{id: "members/add-refusal-focus/missing_username"},
+	{id: "members/add-refusal-focus/invalid_username"},
+	{id: "members/add-refusal-focus/duplicate_username"},
+	{id: "members/confirm-step"},
+	{id: "members/remove"},
+	{id: "members/reauthenticate-retry"},
+	{id: "members/last-admin"},
+	{id: "settings/keys"},
+	{id: "settings/restart-value"},
+	{id: "settings/from-members"},
+	{id: "settings/environment-set"},
+	{id: "settings/invalid-value"},
+	{id: "settings/reauthenticate-write"},
 	{id: "header/sign-out/in-flight"},
 	{id: "header/sign-out/signed-out"},
 	{id: "header/sign-out/network-failure"},
@@ -243,7 +268,7 @@ var renderedCaptureWidths = []int{320, 390, 768, 1440, 2560}
 // the capture matrix renders every state under.
 var renderedCaptureSchemes = []string{"light", "dark"}
 
-// renderedCaptureStates is the capture matrix's fifteen page states, as
+// renderedCaptureStates is the capture matrix's nineteen page states, as
 // Go literals. linkRequests and consumptions are per cell (one of the state's ten width-by-scheme
 // captures), not per state: a state that signs in mints and consumes
 // one link per cell, since the harness opens a fresh browser context,
@@ -267,11 +292,15 @@ var renderedCaptureStates = []struct {
 	{id: "members/added", consumptions: 1},
 	{id: "members/duplicate-address", consumptions: 1},
 	{id: "members/non-admin", consumptions: 1},
+	{id: "members/confirm", consumptions: 1},
+	{id: "settings/loaded", consumptions: 1},
+	{id: "settings/invalid-value", consumptions: 1},
+	{id: "settings/reauthenticate", consumptions: 1},
 	{id: "error/not-found"},
 }
 
 // renderedCaptureRows expands renderedCaptureStates over every width and
-// scheme into the capture matrix's own 150 manifest rows (15 states by
+// scheme into the capture matrix's own 190 manifest rows (19 states by
 // 5 widths by 2 schemes), each ID "capture/<state>/<width>/<scheme>".
 func renderedCaptureRows() []renderedRow {
 	rows := make([]renderedRow, 0, len(renderedCaptureStates)*len(renderedCaptureWidths)*len(renderedCaptureSchemes))
@@ -388,6 +417,62 @@ func renderedEnviron(t *testing.T, publicURL string) []string {
 		environ = replaceKey(environ, name, value)
 	}
 	return environ
+}
+
+// A renderedSettingKey is one key the production registry holds, as the
+// settings page's rows read it back: its name, its description, and its
+// mark's wire name.
+type renderedSettingKey struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Mark        string `json:"mark"`
+}
+
+// renderedSettingKeys lists every key the production registry holds,
+// read from the registry's own families rather than from the admin API
+// the page reads, so a key the API dropped fails the settings row. Each
+// key appears once, ordered by name.
+func renderedSettingKeys(t *testing.T) string {
+	t.Helper()
+	mark := func(m config.Sensitivity) string {
+		if m == config.Sensitive {
+			return "sensitive"
+		}
+		return "not_sensitive"
+	}
+	byName := map[string]renderedSettingKey{}
+	add := func(name, description string, m config.Sensitivity) {
+		byName[name] = renderedSettingKey{Name: name, Description: description, Mark: mark(m)}
+	}
+	reg := productionRegistry()
+	for _, s := range reg.Settings() {
+		add(s.Key, s.Description, s.Mark)
+	}
+	for _, w := range reg.OwnedWall() {
+		add(w.Name, w.Description, w.Mark)
+	}
+	for _, src := range reg.IdentitySources() {
+		for _, k := range slices.Concat(src.Required, src.Optional) {
+			add(k.Name, k.Description, k.Mark)
+		}
+	}
+	for _, class := range reg.IntegrationClasses() {
+		for _, k := range slices.Concat([]config.KeyDecl{class.Flag}, class.Required) {
+			add(k.Name, k.Description, k.Mark)
+		}
+	}
+	for _, th := range reg.Thresholds() {
+		add(th.Key, th.Description, th.Mark)
+	}
+	keys := make([]renderedSettingKey, 0, len(byName))
+	for _, name := range slices.Sorted(maps.Keys(byName)) {
+		keys = append(keys, byName[name])
+	}
+	out, err := json.Marshal(keys)
+	if err != nil {
+		t.Fatalf("encode the setting keys: %v", err)
+	}
+	return string(out)
 }
 
 // closedPort returns a loopback TCP port nothing listens on: one the
@@ -817,6 +902,7 @@ func TestRendered(t *testing.T) {
 		"DUBPLATE_RENDERED_CAPTURE_MINT_URL="+mintSrv.URL,
 		"DUBPLATE_RENDERED_CAPTURE_INTERSTITIAL_READY_LINK="+captureInterstitialReadyLink,
 		"DUBPLATE_RENDERED_CAPTURE_ROSTER_RESET_URL="+resetSrv.URL,
+		"DUBPLATE_RENDERED_SETTING_KEYS="+renderedSettingKeys(t),
 	)
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {

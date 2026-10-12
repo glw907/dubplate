@@ -36,11 +36,6 @@
 - [ ] #9 Geoff: review the two seed albums parked in
   `/srv/music/review/2026-08-31/geoff/` (Aim "Hinterland (Remastered)",
   illuminati hotties "POWER", plus a TV Girl zine PDF) #pipeline
-- [ ] #12 `dubplate-server member add --help` does not mark `--name` and
-  `--username` as required, though `MarkFlagRequired` enforces both
-  (`cmd/dubplate-server/member.go:100-107`); cobra adds no help annotation, so say
-  "(required)" in each flag's usage string. Found by 5d-ii Task 7, 2026-10-05
-  #onboarding #project:prod-polish #rung:admin-api
 - [ ] #13 Move the magic-link token from the query (`?t=`) to the URL fragment
   (`#t=`), so a front's access log never records a redeemable token
   (`internal/auth/token.go:181`; the link page's client hook already strips the
@@ -63,9 +58,6 @@
   on write and at load. Found by the navidrome-removal close,
   2026-10-06. It lands in streamer slice 6 with the `duplicate_principal` code (see #48)
   #security #project:prod-polish #rung:streamer
-- [ ] #17 The members page's `FIELD_FOR_OUTCOME` (`web/src/routes/members/+page.svelte:46`) has no
-  `invalid_address` row, so that outcome sets no `aria-invalid` and moves no focus to the address field. Add the
-  row. Found by the navidrome-removal close, 2026-10-06 #web #project:prod-polish
 - [ ] #18 The rendered gate reaches the add-member username field only through `duplicate_username`
   (`web/scripts/rendered/run.ts`); the client-side pattern refusal is never exercised. Add a row. Found by the
   navidrome-removal close, 2026-10-06 #web #project:prod-polish
@@ -76,21 +68,9 @@
 - [ ] #20 No rendered row asserts the autofill-ignore attributes (`autocomplete=off`, `data-1p-ignore`,
   `data-lpignore`) on the add-member Address and Username fields. Add one assertion. Found by the
   navidrome-removal close, 2026-10-06 #web #project:prod-polish
-- [ ] #21 `web/scripts/gates/deck-coverage.ts:158-167` hardcodes three Go outcome names and an exact floor
-  (20) as its parser sanity check, so retiring any `internal/auth` outcome reddens the web leg only at the full
-  gate, with no hint on the Go side (6d Task 4 hit it: 23 to 20). Derive the floor or check only that the parse
-  is non-empty and names one known outcome. Found by the 6d segment B review, 2026-10-07 #web #project:prod-polish
-- [ ] #23 `web/src/lib/api/post.ts:65` maps every 403 to `cross_origin` before reading the body, so the roster API's
-  new 403 `refused` (a demoted admin's add, 6d `2ea9dba`) shows the cross-site copy. Read a JSON outcome on 403 first
-  and fall back to `cross_origin` only for the CSRF handler's plain-text body. Found by the 6d segment C fold,
-  2026-10-07. The `admin-api` spec closes it by retiring the roster API (see #53) #web #project:prod-polish
-  #rung:admin-api
 - [ ] #24 `auth.RunSweep` (`internal/auth/nonce.go:132`) logs a failed sweep's `err.Error()`, which can wrap a
   setting read's text; give it the `SettingError` fixed-reason treatment 6d gave the gate and handlers. Found by the
   6d segment C fold, 2026-10-07 #auth #project:prod-polish
-- [ ] #25 `internal/settings/evaluate.go:265` wraps `s.Validate(stored.Value)` with `%w` after `parse` failed; if
-  `Validate` ever returns nil there, the message reads `%!w(<nil>)`. Wrap the parse error instead. Found by the 6d
-  architecture reads, 2026-10-07 #config #project:prod-polish #rung:admin-api
 - [ ] #26 The 6d architecture reads' findings on lines 6d did not touch (unused auth and identity exports, three
   `syncDir` copies, the settings accessor's mutex across a database read, threshold bounds without Floor and
   Ceiling, doctor's file split, and more): `docs/superpowers/research/2026-10-07-6d-architecture-reads.md`, "To
@@ -165,17 +145,9 @@
   #streamer #rung:streamer
 - [ ] #50 Streamer slice 8 takes group 2 in trailers, `CAP_NET_BIND_SERVICE`, and command naming. Carried from the
   alignment pass, 2026-10-11 #streamer #rung:streamer
-- [ ] #51 The roster's admin write path: the last-admin guard and criterion 6's concurrent self-demotion clause,
-  with the removal verb (CH `:576-583`, `:732`); the removal verb bumps the address's revocation epoch as it
-  tombstones; the network actor keyed on `UserID`, since a renamed principal breaks a job's correlation; and the
-  resolving channel for an `admin` settings row that refuses `serve`'s start. The `admin-api` spec designs each one.
-  Carried from the store identity pass's routed items, 2026-10-07 #auth #rung:admin-api
 - [ ] #52 `serve`'s job runner, its instance lease, and job recovery go to the first pass whose page starts a job
   over HTTP (`admin-api` spec `:638`). `admin-api-1` is not that pass: its mount answers the three job operations
   `unavailable`. Carried from the `admin-api` spec fold, 2026-10-10 #ops #rung:admin-api
-- [ ] #53 The next `web/` pass takes R-6d17's note: the roster line's blank-username conditionals, the unreachable
-  `duplicate_principal` mapping and copy, and the comments in `web/scripts/rendered/run.ts` that name the fixture
-  roster file. With #23. Carried from the store identity pass's routed items, 2026-10-07 #web #rung:admin-api
 - [ ] #54 The bearer bypass stays on purpose, and no route registers one yet. Its first consumer (the OpenSubsonic
   API or the bearer admin mount) owes a shell-level cookie test proving a bypassed route never reads the session
   cookie. Carried from the Navidrome removal pass, 2026-10-06 #auth #rung:streamer #rung:admin-api
@@ -237,9 +209,28 @@
 - [ ] #73 Doc corrections: the `internal/serve/serve.go:66-67` typo ("is answers 404"), and the visual identity
   spec's "Copy" section, which still carries the old note about W's section 19. Found by the alignment pass, PR #2
   #project:prod-polish
+- [ ] #74 The member cap on every add channel (PS:128-151, acceptance row A1; ruling 4's default of 20): one check in
+  the roster's add path, `member add` and `add_member` both, the bootstrap never refused, an over-cap roster loaded
+  with a `doctor` row. The pass that builds it edits PS:145-147 in place: no command-line set verb exists, and
+  `admin-api-1`'s notice rule sends no notice for the seed rule or the command line. The `admin-api-1` plan moved it
+  here (its P12), 2026-10-11 #auth #rung:admin-api
 
 ## Done
 
+- [x] #12 `member add --help` now marks `--name` and `--username` "(required)": closed by the `admin-api-1` pass
+  (T7), 2026-10-11 #security
+- [x] #17 The members page maps every add refusal detail, `invalid_address` included, to its field for the invalid
+  state and the focus (`FIELD_FOR_DETAIL`): `admin-api-1` T9, 2026-10-11 #web
+- [x] #21 `deck-coverage.ts` reads its one Go outcome source and checks only that the parse is non-empty and names
+  `signed_out`, with no exact count: `admin-api-1` T11, 2026-10-11 #web
+- [x] #23 The roster API is retired and the pages read `/api/v1`'s JSON refusals first, so a 403 no longer shows the
+  cross-site copy: `admin-api-1` T9 and T11, 2026-10-11 #web
+- [x] #25 The seed rule wraps the parse error, never a nil `Validate`: `admin-api-1` T4, 2026-10-11 #config
+- [x] #51 The admin write path: the last-admin guard, removal with the epoch bump and demotion on the actor's
+  `UserID`, and `settings reset` for an admin row that refuses `serve`'s start: `admin-api-1` T3 to T8, 2026-10-11
+  #auth
+- [x] #53 The roster line's blank-username conditionals, the unreachable `duplicate_principal` mapping, and the
+  fixture-roster comments are gone with the roster API: `admin-api-1` T9 and T11, 2026-10-11 #web
 - [x] #1 Write the Go-rewrite retrospective: closed under lean ruling 8: history is git and PR bodies, 2026-10-11
   #infra #project:prod-polish
 

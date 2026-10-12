@@ -1,0 +1,468 @@
+openapi: 3.1.0
+info:
+  title: dubplate admin API
+  version: "1"
+  description: >-
+    The operations a signed-in member or an admin calls on a dubplate server,
+    each a POST of one JSON object to <prefix>/api/v1/<operation>. A session
+    cookie authenticates every call. A caller never names the actor: the
+    server reads it from the session.
+
+
+    Version policy: the API is additive within v1. These changes are additive:
+    a new operation, an optional request field, a new response field, and a
+    new value in any enumeration. The enumerations are job states, job kinds,
+    wire codes, error details, and the journey vocabulary's wire projection.
+    A client must ignore a field it does not know and treat an enumeration
+    value it does not know as opaque. Removing or renaming any of these, or
+    making an optional field required, is a v2 change.
+
+    A request a server cannot route or does not accept as a request at all
+    (a path under api that names no v1 operation, a method other than POST, a
+    body that is not one JSON object) answers the same JSON error body.
+paths:
+  /catalog:
+    post:
+      operationId: catalog
+      summary: List every operation, its privilege, and whether it is available now.
+      requestBody: { $ref: "#/components/requestBodies/Empty" }
+      responses:
+        "200":
+          description: The catalog.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CatalogResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/Internal" }
+  /start_backup:
+    post:
+      operationId: start_backup
+      summary: Start a backup job. Unavailable on a server that runs no job runner.
+      requestBody: { $ref: "#/components/requestBodies/Empty" }
+      responses:
+        "200":
+          description: The job started.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StartBackupResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /job_status:
+    post:
+      operationId: job_status
+      summary: Read a job's record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JobRequest" }
+      responses:
+        "200":
+          description: The job.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JobResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /cancel_job:
+    post:
+      operationId: cancel_job
+      summary: Ask a job to stop.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/JobRequest" }
+      responses:
+        "200":
+          description: The job's state after the request.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JobResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /list_members:
+    post:
+      operationId: list_members
+      summary: List the live members.
+      requestBody: { $ref: "#/components/requestBodies/Empty" }
+      responses:
+        "200":
+          description: The live members.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListMembersResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/Internal" }
+  /add_member:
+    post:
+      operationId: add_member
+      summary: Add a member without the admin flag, or reactivate a removed one.
+      description: >-
+        Needs a recent sign-in. The request carries no admin field: the admin
+        grant stays the command line's alone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AddMemberRequest" }
+      responses:
+        "200":
+          description: The member added.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AddMemberResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /remove_member:
+    post:
+      operationId: remove_member
+      summary: Remove a member and end their sessions.
+      description: Needs a recent sign-in.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemberRequest" }
+      responses:
+        "200":
+          description: The member removed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Empty" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /demote_member:
+    post:
+      operationId: demote_member
+      summary: Clear a member's admin flag.
+      description: Needs a recent sign-in. Demoting a member who is not an admin writes nothing and succeeds.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemberRequest" }
+      responses:
+        "200":
+          description: The member demoted.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Empty" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /list_settings:
+    post:
+      operationId: list_settings
+      summary: List every registered setting with its description, apply mode, and mark.
+      description: >-
+        Every store-homed key also carries its value and source: the default
+        when the store holds no row, and the environment's value when the
+        serving environment sets it. A key the store holds a seed for carries
+        the seed value too. A key only the server's environment sets carries
+        none of these, and its value never crosses the wire.
+      requestBody: { $ref: "#/components/requestBodies/Empty" }
+      responses:
+        "200":
+          description: Every registered setting.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ListSettingsResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/Internal" }
+  /set_setting:
+    post:
+      operationId: set_setting
+      summary: Write an admin value for a store-homed setting.
+      description: Writing a sensitive key needs a recent sign-in and mails every live admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SetSettingRequest" }
+      responses:
+        "200":
+          description: The setting written, or already in force.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SettingWriteResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /reset_setting:
+    post:
+      operationId: reset_setting
+      summary: Remove the admin value of a store-homed setting.
+      description: Resetting a sensitive key needs a recent sign-in and mails every live admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResetSettingRequest" }
+      responses:
+        "200":
+          description: The setting reset, or already unset.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SettingWriteResponse" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/Internal" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+components:
+  requestBodies:
+    Empty:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/EmptyRequest" }
+  responses:
+    InvalidRequest:
+      description: The request is malformed or a value is refused.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Unauthenticated:
+      description: The request carries no valid session.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Forbidden:
+      description: The caller's privilege does not reach the operation, or the session is too old for a gated call (reauthentication_required).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    NotFound:
+      description: The job or member does not exist.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Conflict:
+      description: The call conflicts with the current state, for example a backup already running or the last admin.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Internal:
+      description: The server failed. The body carries no reason.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Unavailable:
+      description: The operation cannot run now, or the write lock stayed held (detail busy).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+  schemas:
+    EmptyRequest:
+      type: object
+    Empty:
+      type: object
+    ErrorBody:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code]
+          properties:
+            code:
+              type: string
+              enum:
+                - unavailable
+                - not_found
+                - conflict
+                - invalid_request
+                - canceled
+                - forbidden
+                - internal
+                - unauthenticated
+                - reauthentication_required
+            reason:
+              type: string
+            detail:
+              type: string
+              enum:
+                - duplicate_address
+                - duplicate_username
+                - invalid_address
+                - invalid_display_name
+                - blank_display_name
+                - invalid_username
+                - missing_username
+                - last_admin
+                - environment_sets
+                - busy
+    Handle:
+      type: string
+      pattern: "^[0-9a-f]{32}$"
+    UserID:
+      type: string
+      pattern: "^[0-9a-f]{32}$"
+    JobRequest:
+      type: object
+      required: [job_id]
+      properties:
+        job_id: { $ref: "#/components/schemas/Handle" }
+    StartBackupResponse:
+      type: object
+      required: [job_id]
+      properties:
+        job_id: { $ref: "#/components/schemas/Handle" }
+    JobResponse:
+      type: object
+      required: [job]
+      properties:
+        job: { $ref: "#/components/schemas/JobStatus" }
+    JobStatus:
+      type: object
+      required: [id, kind, state, queued_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Handle" }
+        kind:
+          type: string
+          enum: [backup]
+        state:
+          type: string
+          enum: [queued, running, succeeded, failed, canceled, interrupted]
+        phase: { type: string }
+        failure_code: { type: string }
+        failure_message: { type: string }
+        queued_at: { type: string, format: date-time }
+        started_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time }
+    CatalogResponse:
+      type: object
+      required: [operations]
+      properties:
+        operations:
+          type: array
+          items: { $ref: "#/components/schemas/CatalogEntry" }
+    CatalogEntry:
+      type: object
+      required: [name, privilege, available]
+      properties:
+        name: { type: string }
+        privilege:
+          type: string
+          enum: [member, admin]
+        available: { type: boolean }
+        reason: { type: string }
+    Member:
+      type: object
+      required: [user_id, address, display_name, username, admin]
+      properties:
+        user_id: { $ref: "#/components/schemas/UserID" }
+        address: { type: string }
+        display_name: { type: string }
+        username: { type: string }
+        admin: { type: boolean }
+    ListMembersResponse:
+      type: object
+      required: [members]
+      properties:
+        members:
+          type: array
+          items: { $ref: "#/components/schemas/Member" }
+    AddMemberRequest:
+      type: object
+      required: [address, display_name, username]
+      properties:
+        address: { type: string }
+        display_name: { type: string }
+        username: { type: string }
+    AddMemberResponse:
+      type: object
+      required: [member]
+      properties:
+        member: { $ref: "#/components/schemas/Member" }
+    MemberRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id: { $ref: "#/components/schemas/UserID" }
+    SettingEntry:
+      type: object
+      required: [name, home, description, apply, mark]
+      properties:
+        name: { type: string }
+        home:
+          type: string
+          enum: [store, environment]
+        description: { type: string }
+        apply:
+          type: string
+          enum: [immediately, next_operation, restart]
+        mark:
+          type: string
+          enum: [sensitive, not_sensitive]
+        value: { type: string }
+        source:
+          type: string
+          enum: [admin, env-seed, environment, default]
+        seed_value: { type: string }
+    ListSettingsResponse:
+      type: object
+      required: [settings]
+      properties:
+        settings:
+          type: array
+          items: { $ref: "#/components/schemas/SettingEntry" }
+    SetSettingRequest:
+      type: object
+      required: [key, value]
+      properties:
+        key: { type: string }
+        value: { type: string }
+    ResetSettingRequest:
+      type: object
+      required: [key]
+      properties:
+        key: { type: string }
+    SettingWriteResponse:
+      type: object
+      required: [key, apply, source]
+      properties:
+        key: { type: string }
+        apply:
+          type: string
+          enum: [immediately, next_operation, restart]
+        source:
+          type: string
+          enum: [admin, env-seed, environment, default]

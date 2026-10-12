@@ -30,7 +30,7 @@ func TestRegisterAuthConfig_SelectorIsOwnedNow(t *testing.T) {
 	reg := config.NewRegistry()
 	registerAuthConfig(reg)
 
-	if !slices.Contains(reg.OwnedWall(), config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}) {
+	if !slices.ContainsFunc(reg.OwnedWall(), func(row config.WallRow) bool { return row.Name == "DUBPLATE_IDENTITY_SOURCE" }) {
 		t.Fatal("OwnedWall() has no DUBPLATE_IDENTITY_SOURCE row")
 	}
 }
@@ -66,7 +66,7 @@ func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
 		"DUBPLATE_SMTP_PASSWORD",
 		"DUBPLATE_SMTP_FROM",
 	}
-	if !slices.Equal(src.Required, wantRequired) {
+	if !slices.Equal(config.KeyNames(src.Required), wantRequired) {
 		t.Errorf("Required = %v, want %v", src.Required, wantRequired)
 	}
 
@@ -74,7 +74,7 @@ func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
 		"DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS",
 		"DUBPLATE_SESSION_SECRET_PREVIOUS",
 	}
-	if !slices.Equal(src.Optional, wantOptional) {
+	if !slices.Equal(config.KeyNames(src.Optional), wantOptional) {
 		t.Errorf("Optional = %v, want %v", src.Optional, wantOptional)
 	}
 }
@@ -398,7 +398,7 @@ func TestConfigLoad_MagicLinkValidationJoinsOtherErrors(t *testing.T) {
 const rosterSupersessionMessage = "DUBPLATE_ROSTER_FILE: superseded: members live in the store; " +
 	"add the first admin with dubplate-server member add ADDRESS --admin"
 
-// TestRosterFileKey_Superseded runs the seven verbs that load the wall
+// TestRosterFileKey_Superseded runs the ten verbs that load the wall
 // with the retired key set to a real, valid roster file, and asserts
 // each fails the load with the supersession message: a check that
 // refused only a missing file would let the fixture through. The
@@ -419,7 +419,10 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		{"doctor", []string{"doctor"}, newDoctorCmd},
 		{"serve", []string{"serve"}, newServeCmd},
 		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, newMemberCmd},
+		{"member remove", []string{"member", "remove", "a@example.test"}, newMemberCmd},
+		{"member demote", []string{"member", "demote", "a@example.test"}, newMemberCmd},
 		{"member list", []string{"member", "list"}, newMemberCmd},
+		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}, newSettingsCmd},
 		{"backup", []string{"backup"}, newBackupCmd},
 		{"restore", []string{"restore", "--snapshot", "latest"}, newRestoreCmd},
 	}
@@ -481,8 +484,8 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		walk(newRootCmd())
 		slices.Sort(leaves)
 
-		want := []string{"backup", "check", "doctor", "member add", "member list", "restore", "serve",
-			"unidecode install", "version"}
+		want := []string{"backup", "check", "doctor", "member add", "member demote", "member list", "member remove",
+			"restore", "serve", "settings reset", "unidecode install", "version"}
 		if !slices.Equal(leaves, want) {
 			t.Errorf("leaf verbs = %q, want %q: classify a new verb as a wall loader (add it to verbs) or a non-loader", leaves, want)
 		}
@@ -530,9 +533,9 @@ func TestRegisterAuthConfig_Settings(t *testing.T) {
 				}
 				s := settingsList[i]
 				if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling ||
-					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || s.Sensitive != tt.sensitive {
+					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || (s.Mark == config.Sensitive) != tt.sensitive {
 					t.Errorf("setting = kind %v default %q floor %q ceiling %q values %q apply %v sensitive %v, want %v %q %q %q %q %v %v",
-						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Sensitive,
+						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Mark == config.Sensitive,
 						tt.kind, tt.def, tt.floor, tt.ceiling, tt.values, tt.apply, tt.sensitive)
 				}
 				if slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool { return th.Key == tt.key }) {

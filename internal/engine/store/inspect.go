@@ -84,6 +84,12 @@ type InspectOptions struct {
 	// BusyTimeout bounds how long a read waits on another process's
 	// lock inside SQLite. It must be at least one millisecond.
 	BusyTimeout time.Duration
+
+	// Address, when set, names the one address whose roster standing
+	// [Report.Standing] reports. It is matched exactly against the
+	// stored address, which the roster keeps lowercase, so a caller
+	// folds case first.
+	Address string
 }
 
 // Report is what [Inspect] found.
@@ -117,7 +123,38 @@ type Report struct {
 	// the jobs table, and nil otherwise: a newer store's schema is not
 	// this binary's to read.
 	Facts *Facts
+
+	// Standing is the roster standing of the address the caller named
+	// in [InspectOptions.Address]. It stays [StandingNotRead] when the
+	// caller named none and for a store whose version holds no users
+	// table.
+	Standing Standing
 }
+
+// Standing is where one address stands in the roster. It is a report
+// field, not a fact: [Facts] carries counts only, and no address
+// enters it.
+type Standing int
+
+const (
+	// StandingNotRead is the zero value: no address was named, or the
+	// store holds no users table to look it up in.
+	StandingNotRead Standing = iota
+
+	// StandingNone is an address no users row holds.
+	StandingNone
+
+	// StandingRemoved is an address whose row is tombstoned, whatever
+	// its admin flag.
+	StandingRemoved
+
+	// StandingMember is an address held by a live member without the
+	// admin flag.
+	StandingMember
+
+	// StandingAdmin is an address held by a live admin.
+	StandingAdmin
+)
 
 // jobsVersion is the lowest store version holding the jobs table.
 const jobsVersion = 2
@@ -252,7 +289,7 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 	if c.kind != dbStore || c.version < jobsVersion || c.version > len(files) {
 		return r
 	}
-	if r.Facts, err = readFacts(ctx, l, opts.BusyTimeout, c.version); err != nil {
+	if r.Facts, r.Standing, err = readFacts(ctx, l, opts, c.version); err != nil {
 		return r.withError(err)
 	}
 	return r
@@ -261,20 +298,21 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 // readFacts reads the upkeep facts of the store in l, whose version
 // holds the jobs table, on one shared read-only connection through the
 // inspect DSN: the jobs read and, when version holds the settings
-// table, the settings read.
-func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version int) (_ *Facts, err error) {
+// table, the settings read. When version holds the users table it also
+// reads the standing of opts.Address, if one is named.
+func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_ *Facts, standing Standing, err error) {
 	f := &Facts{}
 	info, err := os.Stat(l.dbPath + "-wal")
 	switch {
 	case err == nil:
 		f.WALSize = info.Size()
 	case !errors.Is(err, fs.ErrNotExist):
-		return nil, refusal(StateRefused, "stat %s-wal: %v", l.dbPath, err)
+		return nil, StandingNotRead, refusal(StateRefused, "stat %s-wal: %v", l.dbPath, err)
 	}
 
-	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, busyTimeout))
+	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, opts.BusyTimeout))
 	if err != nil {
-		return nil, refusal(StateRefused, "open %s: %v", l.dbPath, err)
+		return nil, StandingNotRead, refusal(StateRefused, "open %s: %v", l.dbPath, err)
 	}
 	defer func() {
 		if cerr := db.Close(); cerr != nil && err == nil {
@@ -283,12 +321,12 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version i
 	}()
 
 	if f.LastSuccess, err = lastSuccesses(ctx, db, l.dbPath); err != nil {
-		return nil, err
+		return nil, StandingNotRead, err
 	}
 
 	if version >= settingsVersion {
 		if f.Settings, f.SettingsGeneration, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
-			return nil, err
+			return nil, StandingNotRead, err
 		}
 	} else {
 		f.SettingsAbsent = true
@@ -296,7 +334,12 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version i
 
 	if version >= UsersVersion {
 		if f.Members, f.Admins, err = countMembers(ctx, db, l.dbPath); err != nil {
-			return nil, err
+			return nil, StandingNotRead, err
+		}
+		if opts.Address != "" {
+			if standing, err = readStanding(ctx, db, l.dbPath, opts.Address); err != nil {
+				return nil, StandingNotRead, err
+			}
 		}
 	}
 
@@ -307,7 +350,7 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version i
 
 	entries, err := os.ReadDir(l.snapshotsDir)
 	if err != nil {
-		return nil, refusal(StateRefused, "read %s: %v", l.snapshotsDir, err)
+		return nil, StandingNotRead, refusal(StateRefused, "read %s: %v", l.snapshotsDir, err)
 	}
 	for _, e := range entries {
 		if !e.Type().IsRegular() || !isCopy(e.Name()) {
@@ -315,12 +358,12 @@ func readFacts(ctx context.Context, l leaf, busyTimeout time.Duration, version i
 		}
 		info, err := e.Info()
 		if err != nil {
-			return nil, refusal(StateRefused, "stat %s: %v", filepath.Join(l.snapshotsDir, e.Name()), err)
+			return nil, StandingNotRead, refusal(StateRefused, "stat %s: %v", filepath.Join(l.snapshotsDir, e.Name()), err)
 		}
 		f.Copies++
 		f.CopiesSize += info.Size()
 	}
-	return f, nil
+	return f, standing, nil
 }
 
 // lastSuccesses returns each job kind's newest succeeded record in the
@@ -362,6 +405,25 @@ func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admi
 		return 0, 0, refusal(StateRefused, "read users in %s: %v", dbPath, err)
 	}
 	return members, admins, nil
+}
+
+// readStanding returns where address stands in the users table db
+// reads: a tombstoned row is removed whatever its admin flag, and an
+// address no row holds is none.
+func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Standing, error) {
+	var admin, tombstoned bool
+	err := db.QueryRowContext(ctx, `SELECT admin, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, address).Scan(&admin, &tombstoned)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return StandingNone, nil
+	case err != nil:
+		return StandingNotRead, refusal(StateRefused, "read users in %s: %v", dbPath, err)
+	case tombstoned:
+		return StandingRemoved, nil
+	case admin:
+		return StandingAdmin, nil
+	}
+	return StandingMember, nil
 }
 
 // readSettingsFacts returns every settings row db reads, in key order,

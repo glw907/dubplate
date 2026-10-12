@@ -152,7 +152,7 @@ func TestIntegrationClassesCoverEveryKey(t *testing.T) {
 	if len(c.Required) != 2 {
 		t.Errorf("Required = %d, want 2", len(c.Required))
 	}
-	names := append([]string{c.Flag}, c.Required...)
+	names := KeyNames(append([]KeyDecl{c.Flag}, c.Required...))
 	for _, name := range names {
 		if got, ok := reg.integrationClassOf(name); !ok || got.Name != c.Name {
 			t.Errorf("integrationClassOf(%s) = %v, %v; want the fixture class", name, got.Name, ok)

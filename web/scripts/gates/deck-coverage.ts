@@ -1,11 +1,15 @@
 /**
  * Deck coverage: the string deck's own checks.
  *
- * 1. Every outcome value `internal/auth/handlers.go` and `admin.go`
- *    answer with has a line somewhere in the deck's outcome
- *    dictionaries, read from the Go source itself so a renamed or
+ * 1. Every outcome value `internal/auth/handlers.go`
+ *    answers with has a line in the deck's outcome
+ *    dictionary, read from the Go source itself so a renamed or
  *    added outcome constant surfaces here rather than silently
  *    shipping with no copy.
+ * 1b. Every `Detail<Name>` constant in `internal/ops/details.go` has a line
+ *    in `API_DETAILS`, and every wire `Code` in `internal/ops/errors.go` has
+ *    one in `API_REFUSALS`, so an error detail or code the server can answer
+ *    never ships with no copy.
  * 2. No deck string (nor a title) carries `<`, `>`, `&`, a straight
  *    apostrophe (U+0027), or a straight double quote (U+0022).
  * 3. No sign-out line claims "everywhere" or "revoked": this device's
@@ -18,28 +22,36 @@ import { join } from 'node:path';
 import { stripComments } from './g1.ts';
 import { fail, isMainModule, walk } from './lib.ts';
 import * as deck from '../../src/lib/copy/deck.ts';
-import { AUTH_OUTCOMES, ROSTER_OUTCOMES, SIGN_OUT_CONTROL, TITLES, unknownAddressLine } from '../../src/lib/copy/deck.ts';
+import {
+  API_DETAILS,
+  API_REFUSALS,
+  AUTH_OUTCOMES,
+  SIGN_OUT_CONTROL,
+  TITLES,
+  unknownAddressLine
+} from '../../src/lib/copy/deck.ts';
 import { pageTitle } from '../../src/lib/copy/title.ts';
 
 const SRC_ROOT = 'src';
 const HANDLERS_PATH = join('..', 'internal', 'auth', 'handlers.go');
-const ADMIN_PATH = join('..', 'internal', 'auth', 'admin.go');
+const DETAILS_PATH = join('..', 'internal', 'ops', 'details.go');
+const ERRORS_PATH = join('..', 'internal', 'ops', 'errors.go');
+
+/** `internal/ops/details.go`'s own `Detail<Name> = "value"` declaration shape. */
+const GO_DETAIL_CONST = /\bDetail[A-Za-z]+\s*=\s*"([^"]*)"/g;
+
+/** `internal/ops/errors.go`'s own `Code<Name> Code = "value"` declaration shape. */
+const GO_CODE_CONST = /\bCode[A-Za-z]+\s+Code\s*=\s*"([^"]*)"/g;
 
 /** `internal/auth`'s own `outcomeX = "value"` declaration shape. */
 const GO_OUTCOME_CONST = /\boutcome[A-Za-z]+\s*=\s*"([^"]*)"/g;
-
-/** Every outcome value declared in the Go source at `path`. */
-function parseGoOutcomes(path: string): string[] {
-  const text = readFileSync(path, 'utf8');
-  return [...text.matchAll(GO_OUTCOME_CONST)].map((m) => m[1]);
-}
 
 interface Leaf {
   key: string;
   value: string;
 }
 
-/** The nine page-state keys `deck.ts` declares on `TITLES`. */
+/** The page-state keys `deck.ts` declares on `TITLES`. */
 const REQUIRED_TITLES = [
   'login',
   'loginSent',
@@ -47,6 +59,7 @@ const REQUIRED_TITLES = [
   'loginLinkSignedIn',
   'loginLinkRefused',
   'members',
+  'serverSettings',
   'signedOut',
   'notFound',
   'error'
@@ -89,7 +102,19 @@ function checkRequiredTitles(): void {
 const FUNCTION_SAMPLES: Record<string, () => string> = {
   unknownAddressLine: () => unknownAddressLine({ displayName: 'Root Admin', address: 'admin@example.test' }),
   memberCountLine: () => deck.memberCountLine(2),
-  addedMemberLine: () => deck.addedMemberLine('New Member')
+  addedMemberLine: () => deck.addedMemberLine('New Member'),
+  environmentValueLine: () => deck.environmentValueLine('4m0s'),
+  nextStartLine: () => deck.nextStartLine('30'),
+  settingSavedLine: () => deck.settingSavedLine('DUBPLATE_KEY', deck.SETTING_APPLY.restart),
+  settingResetLine: () => deck.settingResetLine('DUBPLATE_KEY', deck.SETTING_APPLY.restart),
+  saveSettingLabel: () => deck.saveSettingLabel('DUBPLATE_KEY'),
+  resetSettingLabel: () => deck.resetSettingLabel('DUBPLATE_KEY'),
+  removedMemberLine: () => deck.removedMemberLine('New Member'),
+  demotedMemberLine: () => deck.demotedMemberLine('New Member'),
+  removeControlLabel: () => deck.removeControlLabel('New Member'),
+  demoteControlLabel: () => deck.demoteControlLabel('New Member'),
+  confirmRemoveLine: () => deck.confirmRemoveLine('New Member'),
+  confirmDemoteLine: () => deck.confirmDemoteLine('New Member')
 };
 
 /**
@@ -150,37 +175,41 @@ function checkPageTitleEmptySiteName(): void {
   }
 }
 
-/** `internal/auth`'s combined outcome set, or a failure naming the parser or the count. */
-function goOutcomes(): Set<string> {
-  const handlers = parseGoOutcomes(HANDLERS_PATH);
-  const admin = parseGoOutcomes(ADMIN_PATH);
-  const parsed = new Set([...handlers, ...admin]);
-  for (const must of ['signed_out', 'admin_not_grantable', 'duplicate_username']) {
-    if (!parsed.has(must)) {
-      fail(
-        `deck-coverage: the parsed outcome set is missing "${must}"; the constant parser's pattern may be broken.`
-      );
-    }
+/** Every auth outcome has a deck line, read from the Go source so a renamed or added constant surfaces here. */
+function checkOutcomeCoverage(): void {
+  const parsed = parseGoValues(HANDLERS_PATH, GO_OUTCOME_CONST, 'signed_out');
+  const missing = parsed.filter((v) => !Object.hasOwn(AUTH_OUTCOMES, v));
+  if (missing.length > 0) {
+    fail(`deck-coverage: ${missing.length} outcome(s) declared in ${HANDLERS_PATH} with no deck line: ${missing.join(', ')}`);
   }
-  if (parsed.size < 21) {
+}
+
+/**
+ * Every value `pattern` captures from the Go source at `path`. It fails
+ * when the source yields none or lacks `mustHave`, since a pattern that
+ * stopped matching would otherwise pass with nothing to check.
+ */
+function parseGoValues(path: string, pattern: RegExp, mustHave: string): string[] {
+  const values = [...readFileSync(path, 'utf8').matchAll(pattern)].map((m) => m[1]);
+  if (!values.includes(mustHave)) {
     fail(
-      `deck-coverage: parsed only ${parsed.size} outcome constant(s) from ${HANDLERS_PATH} and ${ADMIN_PATH}, fewer than the 21 internal/auth declares.`
+      `deck-coverage: ${path} parsed to ${JSON.stringify(values)}, want it to name "${mustHave}"; the constant parser's pattern may be broken.`
     );
   }
-  return parsed;
+  return values;
 }
 
-/** Every outcome key the deck's dictionaries cover. */
-function deckOutcomes(): Set<string> {
-  return new Set([...Object.keys(AUTH_OUTCOMES), ...Object.keys(ROSTER_OUTCOMES)]);
-}
-
-function checkOutcomeCoverage(): void {
-  const parsed = goOutcomes();
-  const covered = deckOutcomes();
-  const missing = [...parsed].filter((v) => !covered.has(v));
-  if (missing.length > 0) {
-    fail(`deck-coverage: ${missing.length} outcome(s) declared in internal/auth with no deck line: ${missing.join(', ')}`);
+/** Every error detail and wire code the server can answer has a deck line. */
+function checkAPICoverage(): void {
+  const details = parseGoValues(DETAILS_PATH, GO_DETAIL_CONST, 'last_admin');
+  const missingDetails = details.filter((v) => !Object.hasOwn(API_DETAILS, v));
+  if (missingDetails.length > 0) {
+    fail(`deck-coverage: ${missingDetails.length} error detail(s) in ${DETAILS_PATH} with no API_DETAILS line: ${missingDetails.join(', ')}`);
+  }
+  const codes = parseGoValues(ERRORS_PATH, GO_CODE_CONST, 'unauthenticated');
+  const missingCodes = codes.filter((v) => !Object.hasOwn(API_REFUSALS, v));
+  if (missingCodes.length > 0) {
+    fail(`deck-coverage: ${missingCodes.length} wire code(s) in ${ERRORS_PATH} with no API_REFUSALS line: ${missingCodes.join(', ')}`);
   }
 }
 
@@ -227,6 +256,7 @@ function main(): void {
   }
 
   checkOutcomeCoverage();
+  checkAPICoverage();
   checkRequiredTitles();
 
   const leaves = deckLeaves();

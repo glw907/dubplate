@@ -2,6 +2,7 @@ package ops
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -87,6 +88,13 @@ func TestPrivilegeOf(t *testing.T) {
 		{OpJobStatus, PrivilegeAdmin, true},
 		{OpCancelJob, PrivilegeAdmin, true},
 		{OpCatalog, PrivilegeMember, true},
+		{OpListMembers, PrivilegeAdmin, true},
+		{OpAddMember, PrivilegeAdmin, true},
+		{OpRemoveMember, PrivilegeAdmin, true},
+		{OpDemoteMember, PrivilegeAdmin, true},
+		{OpListSettings, PrivilegeAdmin, true},
+		{OpSetSetting, PrivilegeAdmin, true},
+		{OpResetSetting, PrivilegeAdmin, true},
 		{"delete_everything", 0, false},
 		{"", 0, false},
 	}
@@ -100,6 +108,47 @@ func TestPrivilegeOf(t *testing.T) {
 				t.Errorf("PrivilegeOf(%q) = %v, want %v", tt.op, got, tt.want)
 			}
 		})
+	}
+}
+
+// TestAdminOperationNames pins the seven admin operations' wire names
+// as literals: a client posts to each one.
+func TestAdminOperationNames(t *testing.T) {
+	want := map[string]string{
+		OpListMembers:  "list_members",
+		OpAddMember:    "add_member",
+		OpRemoveMember: "remove_member",
+		OpDemoteMember: "demote_member",
+		OpListSettings: "list_settings",
+		OpSetSetting:   "set_setting",
+		OpResetSetting: "reset_setting",
+	}
+	for got, literal := range want {
+		if got != literal {
+			t.Errorf("operation constant = %q, want %q", got, literal)
+		}
+	}
+}
+
+// TestAdminCatalogEntries proves the admin seam's catalog share is one
+// available admin entry for each of the seven operations, in the
+// order the admin seam declares them.
+func TestAdminCatalogEntries(t *testing.T) {
+	want := []CatalogEntry{
+		{Name: "list_members", Privilege: PrivilegeAdmin, Available: true},
+		{Name: "add_member", Privilege: PrivilegeAdmin, Available: true},
+		{Name: "remove_member", Privilege: PrivilegeAdmin, Available: true},
+		{Name: "demote_member", Privilege: PrivilegeAdmin, Available: true},
+		{Name: "list_settings", Privilege: PrivilegeAdmin, Available: true},
+		{Name: "set_setting", Privilege: PrivilegeAdmin, Available: true},
+		{Name: "reset_setting", Privilege: PrivilegeAdmin, Available: true},
+	}
+	got, err := AdminCatalogEntries()
+	if err != nil {
+		t.Fatalf("AdminCatalogEntries() = %v, want no error", err)
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("AdminCatalogEntries() = %+v, want %+v", got, want)
 	}
 }
 

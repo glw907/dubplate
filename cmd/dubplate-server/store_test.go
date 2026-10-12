@@ -621,10 +621,12 @@ var (
 	settingsDoctorRowsTestSetting = config.Setting{
 		Key: "DUBPLATE_TEST_SETTING", Kind: config.KindInt, Default: "10",
 		Doc: "an integer", Apply: config.ApplyNextOperation, Floor: "3", Ceiling: "100",
+		Description: testDescription, Mark: config.NotSensitive,
 	}
 	settingsDoctorRowsSensitive = config.Setting{
 		Key: "DUBPLATE_TEST_SECRET", Kind: config.KindInt, Default: "0",
-		Doc: "an integer", Apply: config.ApplyImmediately, Floor: "0", Ceiling: "100", Sensitive: true,
+		Doc: "an integer", Apply: config.ApplyImmediately, Floor: "0", Ceiling: "100",
+		Description: testDescription, Mark: config.Sensitive,
 	}
 )
 
@@ -728,7 +730,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			environ: []string{key + "=50"},
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}}),
 			want: []doctorRow{
-				{key, `refused: DUBPLATE_TEST_SETTING: the environment seeds "50" but an administrator set "40"; unset DUBPLATE_TEST_SETTING, or set it to "40"`},
+				{key, `refused: DUBPLATE_TEST_SETTING: the environment seeds "50" but an administrator set "40"; unset DUBPLATE_TEST_SETTING, or set it to "40", or clear the administrator's value by running dubplate-server settings reset DUBPLATE_TEST_SETTING`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,
@@ -738,7 +740,7 @@ func TestSettingsDoctorRows(t *testing.T) {
 			checked: true,
 			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "admin", SeedValue: "1"}}}),
 			want: []doctorRow{
-				{key, `refused: stored admin value refused: DUBPLATE_TEST_SETTING: value "1" is below the floor 3`},
+				{key, `refused: stored admin value refused: DUBPLATE_TEST_SETTING: value "1" is below the floor 3; clear the administrator's value with: dubplate-server settings reset DUBPLATE_TEST_SETTING`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,

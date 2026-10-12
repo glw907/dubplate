@@ -16,6 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/notify"
+	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/spf13/cobra"
@@ -30,13 +31,14 @@ const (
 	signOutRouteName     = "sign-out"
 )
 
-// rosterRouteName is the roster API's subtree name: the admin gate and
-// its POST/GET/HEAD surface.
-const rosterRouteName = "roster"
-
 // membersRouteName is the add-member document's subtree name, served
 // to verified admins only.
 const membersRouteName = "members"
+
+// serverSettingsRouteName is the admin settings document's subtree name,
+// served to verified admins only. It is not "settings", which the visual
+// identity spec reserves for the member preferences page.
+const serverSettingsRouteName = "server-settings"
 
 // The web subtree names [newWebRoutes] builds routers for: the login
 // documents, the embedded bundle's hashed assets, and the two tier
@@ -70,20 +72,24 @@ const (
 // validates it in the package that binds, keeping the address grammar
 // with the code that uses it.
 var serveBindAddrsThreshold = config.Threshold{
-	Key:     "DUBPLATE_SERVE_BIND_ADDRS",
-	Kind:    config.KindString,
-	Default: "127.0.0.1",
-	Doc:     "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
+	Key:         "DUBPLATE_SERVE_BIND_ADDRS",
+	Kind:        config.KindString,
+	Default:     "127.0.0.1",
+	Doc:         "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
+	Description: "the addresses the server listens on, comma-separated",
+	Mark:        config.Sensitive,
 }
 
 // servePortThreshold is the TCP port the serve verb binds on every
 // configured address. Its default, 8080, is the salvage configuration's
 // own default (_salvage/internal/config/config_test.go:44-45).
 var servePortThreshold = config.Threshold{
-	Key:     "DUBPLATE_SERVE_PORT",
-	Kind:    config.KindInt,
-	Default: "8080",
-	Doc:     "an integer TCP port from 1024 through 65535",
+	Key:         "DUBPLATE_SERVE_PORT",
+	Kind:        config.KindInt,
+	Default:     "8080",
+	Doc:         "an integer TCP port from 1024 through 65535",
+	Description: "the TCP port the server listens on",
+	Mark:        config.Sensitive,
 }
 
 // servePortFloor and servePortCeiling bound DUBPLATE_SERVE_PORT. The
@@ -142,10 +148,12 @@ func checkDirWritable(dir string) error {
 // 404. Its default, /dubplate, is one segment so the segment-aware
 // match has a boundary to find, and carries no estate value.
 var servePrefixThreshold = config.Threshold{
-	Key:     "DUBPLATE_SERVE_PREFIX",
-	Kind:    config.KindString,
-	Default: "/dubplate",
-	Doc:     "a single path segment beginning with a separator, for example /dubplate",
+	Key:         "DUBPLATE_SERVE_PREFIX",
+	Kind:        config.KindString,
+	Default:     "/dubplate",
+	Doc:         "a single path segment beginning with a separator, for example /dubplate",
+	Description: "the single path segment every page lives under",
+	Mark:        config.Sensitive,
 }
 
 // registerServeConfig adds the serve shell's three thresholds to reg,
@@ -283,7 +291,23 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // already cleared. Its peer rule reads bindAddrs, the resolved list
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (_ *serve.Shell, _ *store.Handle, err error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*serve.Shell, *store.Handle, error) {
+	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s })
+}
+
+// A registrar mounts a route under a subtree name. *serve.Shell is
+// one; the route inventory's test wraps it in a second that records
+// each name before forwarding.
+type registrar interface {
+	Register(name string, h http.Handler)
+}
+
+// newServeShellVia is [newServeShell] mounting every route through
+// the registrar mount makes of the new shell, so a test sees each name
+// the build registers. Every registration must go through that
+// registrar and never through the shell directly: a route registered
+// around it escapes the route inventory test unseen.
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *serve.Shell, _ *store.Handle, err error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, nil, err
@@ -307,6 +331,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
+	routes := mount(shell)
 	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
 		shell.EnableHSTS()
 	}
@@ -321,7 +346,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	}
 	epoch := auth.OpenEpochStore(authStore)
 
-	roster := auth.NewRoster(h)
+	roster := auth.NewRoster(h, epoch, time.Now)
 
 	limiter := auth.NewLimiter(limits)
 
@@ -341,29 +366,37 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 
 	// The auth handlers apply no method check of their own; mounting
 	// each behind methodOnly is what fixes the one method it accepts.
-	shell.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
-	shell.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
-	shell.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
+	routes.Register(requestLinkRouteName, methodOnly(http.MethodPost, handlers.RequestLink))
+	routes.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
+	routes.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
 
 	adminConfig := auth.AdminConfig{
 		Seam:     seam,
-		Roster:   roster,
 		ClientIP: clientIP,
 		Now:      time.Now,
 		Logger:   shell.Logger(),
-		BodyCap:  authBodyCap(acc),
 	}
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
-	shell.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
+	routes.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
 
-	shell.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
+	adminSeam := admin.New(admin.Config{
+		Store: h, Registry: reg, Environ: environ, Roster: roster,
+		Window: durationSetting(acc, reauthWindowSetting),
+		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
+	})
+	apiMount, err := newAPIMount(prefix, adminSeam, adminConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	routes.Register(apiRouteName, apiMount)
 
 	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger())
 	if err != nil {
 		return nil, nil, err
 	}
-	webRoutes.register(shell)
-	shell.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
+	webRoutes.register(routes, shell.Logger())
+	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
+	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.serverSettings)))
 
 	go sweepNonces(ctx, nonces, shell.Logger())
 	return shell, h, nil

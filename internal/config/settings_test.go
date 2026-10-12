@@ -11,13 +11,15 @@ import (
 // test can change exactly the field its case is about.
 func testSetting(key string) Setting {
 	return Setting{
-		Key:     key,
-		Kind:    KindInt,
-		Default: "14",
-		Doc:     "an integer",
-		Apply:   ApplyNextOperation,
-		Floor:   "3",
-		Ceiling: "1000",
+		Key:         key,
+		Kind:        KindInt,
+		Default:     "14",
+		Doc:         "an integer",
+		Apply:       ApplyNextOperation,
+		Floor:       "3",
+		Ceiling:     "1000",
+		Description: testDescription,
+		Mark:        NotSensitive,
 	}
 }
 
@@ -66,14 +68,16 @@ func TestAddSetting_Panics(t *testing.T) {
 		want  []string
 	}{
 		{
-			name:  "a key already a threshold",
-			setup: func(r *Registry) { r.AddThreshold(Threshold{Key: key, Default: "1"}) },
-			s:     testSetting(key),
-			want:  []string{key, familyThresholds, familySettings},
+			name: "a key already a threshold",
+			setup: func(r *Registry) {
+				r.AddThreshold(Threshold{Key: key, Description: testDescription, Mark: NotSensitive, Default: "1"})
+			},
+			s:    testSetting(key),
+			want: []string{key, familyThresholds, familySettings},
 		},
 		{
 			name:  "a key already an owned wall row",
-			setup: func(r *Registry) { r.AddWallRow(WallRow{Name: key}) },
+			setup: func(r *Registry) { r.AddWallRow(WallRow{Name: key, Description: testDescription, Mark: NotSensitive}) },
 			s:     testSetting(key),
 			want:  []string{key, familyOwnedWall, familySettings},
 		},
@@ -86,7 +90,7 @@ func TestAddSetting_Panics(t *testing.T) {
 		{
 			name: "a key already an integration class key",
 			setup: func(r *Registry) {
-				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: "DUBPLATE_TEST_FLAG", Required: []string{key}})
+				r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: testKey("DUBPLATE_TEST_FLAG", NotSensitive), Required: []KeyDecl{testKey(key, NotSensitive)}})
 			},
 			s:    testSetting(key),
 			want: []string{key, familyIntegration, familySettings},
@@ -217,7 +221,9 @@ func TestAddThreshold_RefusesASettingKey(t *testing.T) {
 	r := NewRegistry()
 	r.AddSetting(testSetting("DUBPLATE_TEST_SETTING"))
 
-	msg := panicMessage(t, func() { r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_SETTING", Default: "1"}) })
+	msg := panicMessage(t, func() {
+		r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_SETTING", Description: testDescription, Mark: NotSensitive, Default: "1"})
+	})
 	for _, want := range []string{"DUBPLATE_TEST_SETTING", familySettings, familyThresholds} {
 		if !strings.Contains(msg, want) {
 			t.Errorf("panic message %q, want it to contain %q", msg, want)
@@ -232,13 +238,13 @@ func TestAddThreshold_RefusesASettingKey(t *testing.T) {
 // bounds are the three backup settings' protective ranges (keep 3 to
 // 1000, archive retention 168h to 87600h, guard fraction 0.25 to 1).
 func TestSettingValidate(t *testing.T) {
-	keep := Setting{Key: "DUBPLATE_TEST_KEEP", Kind: KindInt, Default: "14", Doc: "an integer",
+	keep := Setting{Key: "DUBPLATE_TEST_KEEP", Description: testDescription, Mark: NotSensitive, Kind: KindInt, Default: "14", Doc: "an integer",
 		Apply: ApplyNextOperation, Floor: "3", Ceiling: "1000"}
-	retention := Setting{Key: "DUBPLATE_TEST_RETENTION", Kind: KindDuration, Default: "2160h", Doc: "a duration",
+	retention := Setting{Key: "DUBPLATE_TEST_RETENTION", Description: testDescription, Mark: NotSensitive, Kind: KindDuration, Default: "2160h", Doc: "a duration",
 		Apply: ApplyNextOperation, Floor: "168h", Ceiling: "87600h"}
-	fraction := Setting{Key: "DUBPLATE_TEST_FRACTION", Kind: KindFloat, Default: "0.5", Doc: "a number",
+	fraction := Setting{Key: "DUBPLATE_TEST_FRACTION", Description: testDescription, Mark: NotSensitive, Kind: KindFloat, Default: "0.5", Doc: "a number",
 		Apply: ApplyNextOperation, Floor: "0.25", Ceiling: "1"}
-	answer := Setting{Key: "DUBPLATE_TEST_ANSWER", Kind: KindString, Default: "kind", Doc: "one of kind or generic",
+	answer := Setting{Key: "DUBPLATE_TEST_ANSWER", Description: testDescription, Mark: NotSensitive, Kind: KindString, Default: "kind", Doc: "one of kind or generic",
 		Apply: ApplyNextOperation, Values: []string{"kind", "generic"}}
 
 	r := NewRegistry()
@@ -341,7 +347,7 @@ func TestApplyMode_String(t *testing.T) {
 // registry also carries store-homed settings: registering the new
 // family changes nothing about the wall's own tunables.
 func TestThreshold_StillResolvesFromTheEnvironment(t *testing.T) {
-	th := Threshold{Key: "DUBPLATE_TEST_WALL_WINDOW", Kind: KindDuration, Default: "15m", Doc: "a duration"}
+	th := Threshold{Key: "DUBPLATE_TEST_WALL_WINDOW", Description: testDescription, Mark: NotSensitive, Kind: KindDuration, Default: "15m", Doc: "a duration"}
 	r := NewRegistry()
 	r.AddThreshold(th)
 	r.AddSetting(testSetting("DUBPLATE_TEST_SETTING"))
@@ -359,11 +365,11 @@ func TestThreshold_StillResolvesFromTheEnvironment(t *testing.T) {
 // rule can compare, plus a threshold a rule must refuse.
 func ruleRegistry() *Registry {
 	r := NewRegistry()
-	r.AddSetting(Setting{Key: "DUBPLATE_TEST_EXPIRY", Kind: KindDuration, Default: "15m", Doc: "a duration",
+	r.AddSetting(Setting{Key: "DUBPLATE_TEST_EXPIRY", Description: testDescription, Mark: NotSensitive, Kind: KindDuration, Default: "15m", Doc: "a duration",
 		Apply: ApplyNextOperation, Floor: "1m", Ceiling: "24h"})
-	r.AddSetting(Setting{Key: "DUBPLATE_TEST_RETAIN", Kind: KindDuration, Default: "1h", Doc: "a duration",
+	r.AddSetting(Setting{Key: "DUBPLATE_TEST_RETAIN", Description: testDescription, Mark: NotSensitive, Kind: KindDuration, Default: "1h", Doc: "a duration",
 		Apply: ApplyNextOperation, Floor: "1m", Ceiling: "720h"})
-	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_WALL", Kind: KindInt, Default: "1"})
+	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_WALL", Description: testDescription, Mark: NotSensitive, Kind: KindInt, Default: "1"})
 	return r
 }
 

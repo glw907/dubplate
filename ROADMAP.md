@@ -18,38 +18,38 @@ The order of the remaining work on the greenfield ladder, derived from the depen
 lean pass process ruling that puts `intake` after `admin-api-1`. A rung is named, and a pass is `<name>-<n>`.
 
 Landed: `foundation`, `corpus`, `matcher`, `shadow` (its program was deleted on 2026-10-05), `auth`, `store`,
-`tag-io`, and `streamer-1` to `streamer-3`.
+`tag-io`, `streamer-1` to `streamer-3`, and `admin-api-1` (the versioned API's cookie mount, member removal
+and demotion, the settings write path with its re-authentication gate, the roster verbs, and the members and server
+settings pages; the roster API is retired).
 
-1. **`admin-api-1`** (14a). The first slice of the versioned API and the admin surface. Inbound: `auth` and `store`,
-   both landed; the edge from `pipeline` was discharged by Geoff's per-album lease ruling in its spec. Carried work:
-   its planning prompt. STATUS names it as the next pass.
-2. **`intake`** (rung 7). The uploader and the intake path, as `intake-1` to `intake-3`, ending in Geoff's uploader
-   sitting. Inbound: `store`, landed; it follows `admin-api-1` by ruling, so no `intake` segment runs beside it.
+1. **`intake`** (rung 7). The uploader and the intake path, as `intake-1` to `intake-3`, ending in Geoff's uploader
+   sitting. Inbound: `store`, landed; it followed `admin-api-1` by ruling.
    Carried work: the intake spec's "Owed records", plus its BACKLOG items.
-3. **`admin-api-2`** (14b). The second slice of the API, the part that writes a collection row. Inbound: `intake`,
-   which creates the default collection. Carried work: BACKLOG items tagged `#rung:admin-api`.
-4. **`pipeline`** (rung 9). The admission pipeline and the catalog, large enough to split into passes at its own
+2. **`admin-api-2`** (14b). The second slice of the API, the part that writes a collection row. Inbound: `intake`,
+   which creates the default collection. Carried work: BACKLOG items tagged `#rung:admin-api`, the member cap
+   (#74) and the collection page's work among them.
+3. **`pipeline`** (rung 9). The admission pipeline and the catalog, large enough to split into passes at its own
    planning. Inbound: `store` and `tag-io`, landed; it follows `intake` for the handoff record and the `accepted` state,
    which would otherwise cost a stub producer. It shares no files with `admin-api-2`, so the two may run together.
-5. **`streamer`** (rung 12). Slices 3 to 8 of the built-in OpenSubsonic streamer, as `streamer-4` onward (a slice may
+4. **`streamer`** (rung 12). Slices 3 to 8 of the built-in OpenSubsonic streamer, as `streamer-4` onward (a slice may
    take more than one pass). Inbound: `pipeline`'s catalog. It goes first of the rungs that open after `pipeline`
    because it is the longest and 0.8 ships on it. Slice 7 waits on `queues`. A soft edge ties it to `builtins`, which
-   names a post-scan hook event the streamer fires; items 5 to 9 open together, so the order stands.
-6. **`queues`** (rung 13). The decision queue. Inbound: `matcher`, `store`, and `pipeline`. It goes ahead of
+   names a post-scan hook event the streamer fires; items 4 to 8 open together, so the order stands.
+5. **`queues`** (rung 13). The decision queue. Inbound: `matcher`, `store`, and `pipeline`. It goes ahead of
    `migration` and `builtins` because streamer slice 7 consumes it.
-7. **`migration`** (rung 10). Migration and layout parity. Inbound: `corpus`, `store`, and `pipeline`.
-8. **`builtins`** (rung 11). The built-in plugin roster. Inbound: `store`, `tag-io`, and `pipeline`; it is
+6. **`migration`** (rung 10). Migration and layout parity. Inbound: `corpus`, `store`, and `pipeline`.
+7. **`builtins`** (rung 11). The built-in plugin roster. Inbound: `store`, `tag-io`, and `pipeline`; it is
    independent of `migration` and `queues`.
-9. **`library-web-1`**, a web pass outside the ladder. The album page, the library grid and list, filtering, and buy
+8. **`library-web-1`**, a web pass outside the ladder. The album page, the library grid and list, filtering, and buy
    links, which the intake spec moved to a web pass after `pipeline`. Inbound: `pipeline`'s catalog.
-10. **`integration`** (rung 15). The whole-system pass against the launch bar. Inbound: every component rung.
-11. **`cutover`** (rung 16). The first launch, 0.8.0, ending in Geoff's first-launch sitting. Inbound: `integration`.
-12. **`closeout`** (rung 17). Clean-up after launch. Inbound: `cutover`, and `migration` latest, because the legacy
+9. **`integration`** (rung 15). The whole-system pass against the launch bar. Inbound: every component rung.
+10. **`cutover`** (rung 16). The first launch, 0.8.0, ending in Geoff's first-launch sitting. Inbound: `integration`.
+11. **`closeout`** (rung 17). Clean-up after launch. Inbound: `cutover`, and `migration` latest, because the legacy
     ledger fixture is captured before `_salvage/` is deleted.
 
 Items whose edges are met may run at once, up to three passes (ruling 1 of the lean pass process); the numbers set the
-start order and are rewritten when the order changes. Items 5 to 9 open together once `pipeline` lands, and items 10 to
-12 are strictly serial. Carried work for each item lives in BACKLOG, under items tagged `#rung:<name>`, except where
+start order and are rewritten when the order changes. Items 4 to 8 open together once `pipeline` lands, and items 9 to
+11 are strictly serial. Carried work for each item lives in BACKLOG, under items tagged `#rung:<name>`, except where
 an item names another home.
 
 Frozen documents keep the old rung numbers, and this table bridges them to the names.
@@ -84,7 +84,7 @@ errata). The organizer spec (`docs/superpowers/specs/2026-09-01-dubplate-organiz
 purview, API shape, and the ops seam. The first launch is 0.8.0 on the built-in streamer (Geoff, 2026-10-05): the
 group listens through dubplate's own OpenSubsonic streamer from the first day. Launch bar: the complete server,
 streamer included, with the Go matcher past the two-tier conformance bar and layout parity. Old code is salvage tier,
-frozen at the `pre-greenfield` tag under `_salvage/`. Server before TUI is a hard boundary. Next: `admin-api-1`. The
+frozen at the `pre-greenfield` tag under `_salvage/`. Server before TUI is a hard boundary. Next: `intake`. The
 order of the rest is "Path to 0.8".
 
 ### The built-in streamer `streamer`

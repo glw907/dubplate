@@ -188,27 +188,15 @@ var (
 	annMember = caller{id: ann}
 )
 
-type callerKey struct{}
-
+// withCaller puts c on ctx as the mount's session middleware would:
+// a network actor anchored at annAnchor, granted admin to an admin and
+// member to anyone else.
 func withCaller(ctx context.Context, c caller) context.Context {
-	return context.WithValue(ctx, callerKey{}, c)
-}
-
-// A sessionAuthorizer admits the caller the context carries, as a
-// network actor, granting admin to an admin and member to anyone else;
-// the seam it is wired to decides what each grant reaches. A context
-// with no caller is denied.
-type sessionAuthorizer struct{}
-
-func (sessionAuthorizer) authorize(ctx context.Context, _ string) (ops.Actor, ops.Privilege, error) {
-	c, ok := ctx.Value(callerKey{}).(caller)
-	if !ok {
-		return ops.Actor{}, 0, errors.New("no verified caller")
-	}
+	granted := ops.PrivilegeMember
 	if c.admin {
-		return ops.NetworkActor(c.id), ops.PrivilegeAdmin, nil
+		granted = ops.PrivilegeAdmin
 	}
-	return ops.NetworkActor(c.id), ops.PrivilegeMember, nil
+	return withAdmitted(ctx, ops.NetworkActor(c.id, annAnchor), granted)
 }
 
 // A denyAll authorizer denies every caller.
@@ -223,8 +211,13 @@ type setup struct {
 	// backup turns backup integration on.
 	backup bool
 
-	// auth is both legs' authorizer; nil means a sessionAuthorizer.
+	// auth is both legs' authorizer; nil means the contextAuthorizer
+	// the mount uses.
 	auth authorizer
+
+	// admin is both legs' admin seam; nil means a fake that succeeds
+	// at every operation.
+	admin *fakeAdmin
 
 	// caller is the identity both legs' requests carry.
 	caller caller
@@ -359,12 +352,16 @@ func newContract(t *testing.T, dir string, s setup) *contract {
 
 	auth := s.auth
 	if auth == nil {
-		auth = sessionAuthorizer{}
+		auth = contextAuthorizer{}
 	}
-	if c.seam, err = newAuthorizingSeam(r, auth, identity.ChannelCookie); err != nil {
+	admin := s.admin
+	if admin == nil {
+		admin = &fakeAdmin{answers: adminSuccesses()}
+	}
+	if c.seam, err = newAuthorizingSeam(r, admin, auth, identity.ChannelCookie); err != nil {
 		t.Fatalf("newAuthorizingSeam: %v", err)
 	}
-	projection, err := newHandler(r, auth, identity.ChannelCookie, logger)
+	projection, err := newHandler(r, admin, auth, identity.ChannelCookie, logger)
 	if err != nil {
 		t.Fatalf("newHandler: %v", err)
 	}
@@ -561,7 +558,42 @@ func contractCases() []contractCase {
 			t.Errorf("jobs holds %d records after both legs, want 0", n)
 		}
 	}
+	listMembers := func(c *contract) legs {
+		return legs{
+			inProcess: func(ctx context.Context, _ ops.Seam) error {
+				_, err := c.seam.ListMembers(ctx, ops.Actor{}, ops.ListMembersRequest{})
+				return err
+			},
+			op: ops.OpListMembers, body: `{}`,
+		}
+	}
+	// failingAdmin is an admin seam whose list_members answers err.
+	failingAdmin := func(err error) *fakeAdmin {
+		return &fakeAdmin{answers: map[string]fakeAnswer{ops.OpListMembers: {err: err}}}
+	}
+	memberRefused := failingAdmin(errors.New("must not be reached"))
 	return []contractCase{
+		{
+			name: "unauthenticated", want: ops.CodeUnauthenticated, sentinel: ops.ErrUnauthenticated, status: http.StatusUnauthorized,
+			setup: setup{caller: annAdmin, admin: failingAdmin(ops.NewUnauthenticatedError("sign in again"))},
+			call:  listMembers,
+		},
+		{
+			name: "reauthentication_required", want: ops.CodeReauthenticationRequired, sentinel: ops.ErrReauthenticationRequired, status: http.StatusForbidden,
+			setup: setup{caller: annAdmin, admin: failingAdmin(ops.NewReauthenticationRequiredError("sign in from this browser"))},
+			call:  listMembers,
+		},
+		{
+			name: "forbidden to a member on an admin operation", want: ops.CodeForbidden, sentinel: ops.ErrForbidden, status: http.StatusForbidden,
+			setup: setup{caller: annMember, admin: memberRefused},
+			call:  listMembers,
+			check: func(t *testing.T, _ *contract, _ error, _ time.Duration, _ *httptest.ResponseRecorder, _ time.Duration) {
+				t.Helper()
+				if n := len(memberRefused.calls); n != 0 {
+					t.Errorf("a refused list_members reached the admin seam %d times, want 0", n)
+				}
+			},
+		},
 		{
 			name: "unavailable", want: ops.CodeUnavailable, sentinel: ops.ErrUnavailable, status: http.StatusServiceUnavailable,
 			setup: setup{caller: annAdmin},

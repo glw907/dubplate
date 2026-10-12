@@ -78,12 +78,13 @@ const notConfigured = "none"
 // a large file refuses startup rather than loading it into memory.
 const operatorCSSMaxBytes = 256 << 10
 
-// The build tree's three document paths, relative to the embedded
+// The build tree's four document paths, relative to the embedded
 // build root.
 const (
-	loginDocumentName     = "login.html"
-	loginLinkDocumentName = "login/link.html"
-	membersDocumentName   = "members.html"
+	loginDocumentName          = "login.html"
+	loginLinkDocumentName      = "login/link.html"
+	membersDocumentName        = "members.html"
+	serverSettingsDocumentName = "server-settings.html"
 )
 
 // webDocument is one document the web routes serve: its path inside
@@ -106,6 +107,7 @@ var webDocuments = []webDocument{
 	{name: loginDocumentName, route: "/" + loginRouteName, cacheControl: "no-cache", noIndex: true},
 	{name: loginLinkDocumentName, route: "/" + loginRouteName + "/link", cacheControl: "no-store", noIndex: true},
 	{name: membersDocumentName, route: "/" + membersRouteName, cacheControl: "no-store"},
+	{name: serverSettingsDocumentName, route: "/" + serverSettingsRouteName, cacheControl: "no-store"},
 }
 
 // privateFiles names the state the operator CSS file must never be:
@@ -120,38 +122,46 @@ type privateFiles struct {
 // which group of themes the server presents. Rung 5 ships one group,
 // so the only accepted value is acceptedThemeMatch.
 var themeMatchThreshold = config.Threshold{
-	Key:     "DUBPLATE_THEME_MATCH",
-	Kind:    config.KindString,
-	Default: acceptedThemeMatch,
-	Doc:     `exactly "dubplate"`,
+	Key:         "DUBPLATE_THEME_MATCH",
+	Kind:        config.KindString,
+	Default:     acceptedThemeMatch,
+	Doc:         `exactly "dubplate"`,
+	Description: "the theme group the server presents",
+	Mark:        config.NotSensitive,
 }
 
 // themePaletteThreshold is DUBPLATE_THEME_PALETTE: the theme a visitor
 // without a theme cookie sees. Its Doc string is the operator-facing
 // text this key's own doctor row and the config wall report.
 var themePaletteThreshold = config.Threshold{
-	Key:     "DUBPLATE_THEME_PALETTE",
-	Kind:    config.KindString,
-	Default: "system",
-	Doc:     `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
+	Key:         "DUBPLATE_THEME_PALETTE",
+	Kind:        config.KindString,
+	Default:     "system",
+	Doc:         `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
+	Description: "the theme a visitor with no saved choice sees",
+	Mark:        config.NotSensitive,
 }
 
 // brandingThreshold is DUBPLATE_BRANDING: the operator's declaration
 // list, rendered once at startup into the branding stylesheet.
 var brandingThreshold = config.Threshold{
-	Key:     "DUBPLATE_BRANDING",
-	Kind:    config.KindString,
-	Default: notConfigured,
-	Doc:     `"none", or ";"-separated name: value declarations`,
+	Key:         "DUBPLATE_BRANDING",
+	Kind:        config.KindString,
+	Default:     notConfigured,
+	Doc:         `"none", or ";"-separated name: value declarations`,
+	Description: "the operator's style declarations, applied to every page",
+	Mark:        config.NotSensitive,
 }
 
 // operatorCSSFileThreshold is DUBPLATE_OPERATOR_CSS_FILE: the
 // operator's own stylesheet, read once at startup by [readOperatorCSS].
 var operatorCSSFileThreshold = config.Threshold{
-	Key:     "DUBPLATE_OPERATOR_CSS_FILE",
-	Kind:    config.KindString,
-	Default: notConfigured,
-	Doc:     `"none", or a path to a .css file`,
+	Key:         "DUBPLATE_OPERATOR_CSS_FILE",
+	Kind:        config.KindString,
+	Default:     notConfigured,
+	Doc:         `"none", or a path to a .css file`,
+	Description: "the path to the operator's own stylesheet",
+	Mark:        config.Sensitive,
 }
 
 // registerWebConfig adds the web surface's four presentation
@@ -166,32 +176,33 @@ func registerWebConfig(reg *config.Registry) {
 
 // webRoutes are the http.Handlers newServeShell mounts under the
 // shell's owned prefix. operator is nil when no operator CSS file is
-// configured, which leaves its path to the shell's 404. members
-// is the members document with no gate of its own, so it is never
-// mounted except behind [auth.RequireAdmin].
+// configured, which leaves its path to the shell's 404. members and
+// serverSettings are documents with no gate of their own, so neither is
+// ever mounted except behind [auth.RequireAdmin].
 type webRoutes struct {
-	login    http.Handler
-	members  http.Handler
-	assets   http.Handler
-	fonts    http.Handler
-	icons    http.Handler
-	branding http.Handler
-	operator http.Handler
+	login          http.Handler
+	members        http.Handler
+	serverSettings http.Handler
+	assets         http.Handler
+	fonts          http.Handler
+	icons          http.Handler
+	branding       http.Handler
+	operator       http.Handler
 }
 
-// register mounts wr's public routes on shell under their subtree
-// names, the login documents logged through the shell's own logger.
+// register mounts wr's public routes on routes under their subtree
+// names, the login documents logged through logger.
 // It leaves members to the caller, which alone holds the admin gate.
-func (wr webRoutes) register(shell *serve.Shell) {
-	shell.Register(loginRouteName, serve.LogRequests(shell.Logger(), wr.login))
-	shell.Register(assetsRouteName, wr.assets)
-	shell.Register(fontsRouteName, wr.fonts)
-	shell.Register(faviconSVGRouteName, wr.icons)
-	shell.Register(faviconPNGRouteName, wr.icons)
-	shell.Register(markRouteName, wr.icons)
-	shell.Register(brandingRouteName, wr.branding)
+func (wr webRoutes) register(routes registrar, logger *slog.Logger) {
+	routes.Register(loginRouteName, serve.LogRequests(logger, wr.login))
+	routes.Register(assetsRouteName, wr.assets)
+	routes.Register(fontsRouteName, wr.fonts)
+	routes.Register(faviconSVGRouteName, wr.icons)
+	routes.Register(faviconPNGRouteName, wr.icons)
+	routes.Register(markRouteName, wr.icons)
+	routes.Register(brandingRouteName, wr.branding)
 	if wr.operator != nil {
-		shell.Register(operatorCSSRouteName, wr.operator)
+		routes.Register(operatorCSSRouteName, wr.operator)
 	}
 }
 
@@ -326,6 +337,9 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 	membersPath := prefix.String() + "/" + membersRouteName
 	members := newExactPathRoutes(map[string]http.Handler{membersPath: documents[membersPath]})
 	delete(documents, membersPath)
+	serverSettingsPath := prefix.String() + "/" + serverSettingsRouteName
+	serverSettings := newExactPathRoutes(map[string]http.Handler{serverSettingsPath: documents[serverSettingsPath]})
+	delete(documents, serverSettingsPath)
 	login := newExactPathRoutes(documents)
 
 	assetsFS, err := fs.Sub(buildFS, "_app")
@@ -345,12 +359,13 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 		return webRoutes{}, err
 	}
 	routes := webRoutes{
-		login:    login,
-		members:  members,
-		assets:   serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
-		fonts:    fontsRoute,
-		icons:    iconsRoute,
-		branding: stylesheetRoute(prefix, brandingRouteName, branding),
+		login:          login,
+		members:        members,
+		serverSettings: serverSettings,
+		assets:         serve.NewAssets(assetsFS, prefix.String()+"/"+assetsRouteName),
+		fonts:          fontsRoute,
+		icons:          iconsRoute,
+		branding:       stylesheetRoute(prefix, brandingRouteName, branding),
 	}
 	if hasOperatorCSS {
 		routes.operator = stylesheetRoute(prefix, operatorCSSRouteName, operatorCSS)
