@@ -309,7 +309,7 @@ func (s *Seam) status(ctx context.Context, uploader identity.UserID, id []byte) 
 			w.Subject = &name
 		}
 		return w, nil
-	}, `SELECT code, subject FROM submission_warnings WHERE submission_id = ? ORDER BY at, id`, id)
+	}, `SELECT code, subject FROM submission_warnings WHERE submission_id = ? ORDER BY at, subject IS NOT NULL, code, subject`, id)
 	if err != nil {
 		return out, fmt.Errorf("read submission warnings: %w", err)
 	}
