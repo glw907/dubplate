@@ -59,7 +59,8 @@ func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr 
 			if err != nil {
 				return err
 			}
-			return printResetResult(stdout, key, res)
+			_, envSets := lookupEnviron(environ, key)
+			return printResetResult(stdout, key, res, envSets)
 		},
 	}
 	cmd.SetErr(stderr)
@@ -67,10 +68,14 @@ func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr 
 }
 
 // printResetResult writes the one line a reset answers with: what the
-// reset did, or why it did nothing, and the value now in force.
-func printResetResult(w io.Writer, key string, res settings.Result) error {
+// reset did, or why it did nothing, and the value now in force. When
+// the environment sets the key, the default is not what the next start
+// leaves in force, so a deleted row says that instead.
+func printResetResult(w io.Writer, key string, res settings.Result, envSets bool) error {
 	var err error
-	if res.Written {
+	if res.Written && envSets {
+		_, err = fmt.Fprintf(w, "%s reset: the administrator's value %q is deleted; the environment sets %s, so serve seeds its value at the next start\n", key, res.Previous, key)
+	} else if res.Written {
 		_, err = fmt.Fprintf(w, "%s reset: %q (source %s, %s) is in force, replacing %q\n", key, res.Value, res.Source, res.Apply, res.Previous)
 	} else {
 		_, err = fmt.Fprintf(w, "%s: no administrator's value to reset; %q (source %s, %s) is in force\n", key, res.Value, res.Source, res.Apply)

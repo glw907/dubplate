@@ -183,8 +183,12 @@ func TestSettingsResetCmd_DeletesRowTheEnvironmentContradicts(t *testing.T) {
 	plantRow(t, path, retentionKey, "720h", "admin")
 	environ = append(environ, retentionKey+"=48h")
 
-	if _, err := runSettings(t, environ, "reset", retentionKey); err != nil {
+	stdout, err := runSettings(t, environ, "reset", retentionKey)
+	if err != nil {
 		t.Fatalf("reset: %v", err)
+	}
+	if want := "the environment sets " + retentionKey; !strings.Contains(stdout, want) {
+		t.Errorf("stdout = %q, want it to say %q", stdout, want)
 	}
 
 	rows, audit, _ := readSeedState(t, stateDir)
