@@ -3133,7 +3133,7 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
       id,
       fixture: alertShown && retryPresent,
       property: rosterListBeforeRetry === 0 && attempts === 2 && heading && emptyState,
-      detail: `unreachable alert shown ${alertShown}; retry control present ${retryPresent}; roster GET attempts ${attempts}; recovered heading shown ${heading}; empty-state text shown ${emptyState}`
+      detail: `unreachable alert shown ${alertShown}; retry control present ${retryPresent}; list_members attempts ${attempts}; recovered heading shown ${heading}; empty-state text shown ${emptyState}`
     });
   } finally {
     await context.close();

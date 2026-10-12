@@ -147,7 +147,6 @@ export const ROSTER_OUTCOMES: Record<string, string> = {
   added: 'Added.',
   duplicate_address: 'That email address already belongs to a member.',
   duplicate_username: 'That username is already taken. Choose a different one.',
-  duplicate_principal: 'That username is another member’s email address. Choose a different one.',
   invalid_display_name: 'That name is too long, or it has characters it can’t use, such as tabs or line breaks.',
   blank_display_name: 'Enter a name.',
   invalid_username:

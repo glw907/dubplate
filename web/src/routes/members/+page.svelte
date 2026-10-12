@@ -416,7 +416,9 @@ The signed-in header renders in every state, loading included, and
           </p>
         {/if}
         <div class="modal-action">
-          <button type="button" class="btn min-h-11" onclick={() => confirmDialog?.close()}>{CONFIRM_CANCEL}</button>
+          <!-- Cancel opens focused, the safe default for a destructive confirm. -->
+          <!-- svelte-ignore a11y_autofocus -->
+          <button type="button" class="btn min-h-11" autofocus onclick={() => confirmDialog?.close()}>{CONFIRM_CANCEL}</button>
           <button type="button" class="btn btn-error min-h-11" onclick={confirm}>
             {pending?.kind === 'demote' ? CONFIRM_DEMOTE : CONFIRM_REMOVE}
           </button>

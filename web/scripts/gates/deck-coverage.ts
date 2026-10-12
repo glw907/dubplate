@@ -239,7 +239,7 @@ function checkAPICoverage(): void {
   }
 }
 
-const FORBIDDEN_CHAR =/[<>&'"]/;
+const FORBIDDEN_CHAR = /[<>&'"]/;
 
 function checkForbiddenChars(leaves: Leaf[]): void {
   for (const { key, value } of leaves) {
