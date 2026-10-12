@@ -183,7 +183,10 @@ export const API_DETAILS: Record<string, string> = {
   missing_username: 'Enter a username.',
   last_admin: 'The group needs at least one admin, so that member can’t be removed or demoted.',
   environment_sets: 'The server’s environment file sets this, so it can’t be changed here.',
-  busy: 'That didn’t go through. Try again.'
+  busy: 'That didn’t go through. Try again.',
+  store_url: 'That link doesn’t look right. Use the full address of the page where you got the music, starting with https://.',
+  extra: 'Separate tracks take music files only. Leave out the scans and other files, or upload the whole album instead.',
+  manifest: 'The list of files has a mistake: a file is listed twice, or one has a size that can’t be right. Pick the files again.'
 };
 
 /** The sign-in control a refusal that needs a fresh sign-in offers, and the one for a signed-out page. */

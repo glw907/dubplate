@@ -11,6 +11,8 @@ import (
 	"slices"
 	"strconv"
 	"testing"
+
+	"github.com/glw907/dubplate/internal/reject"
 )
 
 // TestSentinelCodes pins R-6bi5's literal wire codes against the
@@ -171,7 +173,26 @@ func TestError_WithDetail(t *testing.T) {
 	}
 }
 
-// TestDetailConstants pins the ten wire details as literals read from
+func TestError_WithRejects(t *testing.T) {
+	base := NewInvalidRequestError("the manifest was refused")
+	rejects := Rejects{Submission: []reject.Reason{reject.Of(reject.NoAudio)}, Files: []FileReject{}}
+	got := base.WithRejects(rejects)
+	if got.Rejects == nil || len(got.Rejects.Submission) != 1 || got.Rejects.Submission[0].Code != reject.NoAudio {
+		t.Errorf("Rejects = %+v, want the no-audio submission reason", got.Rejects)
+	}
+	if got.Code != CodeInvalidRequest || got.Reason != "the manifest was refused" || !errors.Is(got, ErrInvalidRequest) {
+		t.Errorf("WithRejects changed the error: %+v", got)
+	}
+	if base.Rejects != nil {
+		t.Errorf("WithRejects wrote through to its receiver: Rejects = %+v", base.Rejects)
+	}
+	wrapped := fmt.Errorf("create: %w", got)
+	if e, ok := errors.AsType[*Error](wrapped); !ok || e.Rejects == nil {
+		t.Errorf("AsType over wrapped rejects = %+v, %v", e, ok)
+	}
+}
+
+// TestDetailConstants pins the thirteen wire details as literals read from
 // the source file the parity and deck gates parse: exactly these
 // names, each with exactly this value.
 func TestDetailConstants(t *testing.T) {
@@ -186,6 +207,9 @@ func TestDetailConstants(t *testing.T) {
 		"DetailLastAdmin":          "last_admin",
 		"DetailEnvironmentSets":    "environment_sets",
 		"DetailBusy":               "busy",
+		"DetailStoreURL":           "store_url",
+		"DetailExtra":              "extra",
+		"DetailManifest":           "manifest",
 	}
 	f, err := parser.ParseFile(token.NewFileSet(), "details.go", nil, 0)
 	if err != nil {

@@ -531,6 +531,10 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	collect(a.call("reset_setting", admin, `{"key":"DUBPLATE_REAUTH_WINDOW"}`))
 	collect(a.call("add_member", admin, `{"address":"not an address","display_name":"x","username":"x"}`))
 	collect(a.call("remove_member", admin, `{"user_id":"`+strings.Repeat("0", 32)+`"}`))
+	// The sentinel staging directory does not exist, so this create's
+	// free-space read fails with an error that names it.
+	collect(a.call("create_submission", member, `{"verdict_unit":"album","container":"files","source":"cd","files":[{"path":"01.flac","size":1}]}`))
+	collect(a.call("get_submission", member, `{"submission_id":"`+strings.Repeat("ab", 16)+`"}`))
 
 	secrets := maps.Clone(envSentinels)
 	secrets["DUBPLATE_STATE_DIR"] = environValue(a.environ, "DUBPLATE_STATE_DIR")

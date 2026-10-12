@@ -95,6 +95,11 @@ func TestPrivilegeOf(t *testing.T) {
 		{OpListSettings, PrivilegeAdmin, true},
 		{OpSetSetting, PrivilegeAdmin, true},
 		{OpResetSetting, PrivilegeAdmin, true},
+		{OpCreateSubmission, PrivilegeMember, true},
+		{OpListSubmissions, PrivilegeMember, true},
+		{OpGetSubmission, PrivilegeMember, true},
+		{OpRetrySubmission, PrivilegeMember, true},
+		{OpCancelSubmission, PrivilegeMember, true},
 		{"delete_everything", 0, false},
 		{"", 0, false},
 	}
@@ -149,6 +154,43 @@ func TestAdminCatalogEntries(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("AdminCatalogEntries() = %+v, want %+v", got, want)
+	}
+}
+
+// TestSubmissionOperationNames pins the five submission operations'
+// wire names as literals: a client posts to each one.
+func TestSubmissionOperationNames(t *testing.T) {
+	want := map[string]string{
+		OpCreateSubmission: "create_submission",
+		OpListSubmissions:  "list_submissions",
+		OpGetSubmission:    "get_submission",
+		OpRetrySubmission:  "retry_submission",
+		OpCancelSubmission: "cancel_submission",
+	}
+	for got, literal := range want {
+		if got != literal {
+			t.Errorf("operation constant = %q, want %q", got, literal)
+		}
+	}
+}
+
+// TestSubmissionCatalogEntries proves the submission seam's catalog
+// share is one available member entry for each of the five operations,
+// in the order the seam declares them.
+func TestSubmissionCatalogEntries(t *testing.T) {
+	want := []CatalogEntry{
+		{Name: "create_submission", Privilege: PrivilegeMember, Available: true},
+		{Name: "list_submissions", Privilege: PrivilegeMember, Available: true},
+		{Name: "get_submission", Privilege: PrivilegeMember, Available: true},
+		{Name: "retry_submission", Privilege: PrivilegeMember, Available: true},
+		{Name: "cancel_submission", Privilege: PrivilegeMember, Available: true},
+	}
+	got, err := SubmissionCatalogEntries()
+	if err != nil {
+		t.Fatalf("SubmissionCatalogEntries() = %v, want no error", err)
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("SubmissionCatalogEntries() = %+v, want %+v", got, want)
 	}
 }
 

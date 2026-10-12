@@ -14,6 +14,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/reject"
 )
 
 // testHandle is a well-formed job handle: 32 lowercase hex characters.
@@ -60,6 +61,12 @@ type fakeSeam struct {
 // A fakeAdmin is the admin seam's counterpart to fakeSeam, with the
 // same recording and the same refusal of an unconfigured operation.
 type fakeAdmin struct {
+	answers map[string]fakeAnswer
+	calls   []fakeCall
+}
+
+// A fakeSubmissions is the submission seam's counterpart to fakeSeam.
+type fakeSubmissions struct {
 	answers map[string]fakeAnswer
 	calls   []fakeCall
 }
@@ -125,6 +132,62 @@ func (f *fakeAdmin) ResetSetting(_ context.Context, actor ops.Actor, req ops.Res
 	return answer[ops.ResetSettingResponse](f.answers, &f.calls, ops.OpResetSetting, actor, req)
 }
 
+func (f *fakeSubmissions) CreateSubmission(_ context.Context, actor ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
+	return answer[ops.CreateSubmissionResponse](f.answers, &f.calls, ops.OpCreateSubmission, actor, req)
+}
+
+func (f *fakeSubmissions) ListSubmissions(_ context.Context, actor ops.Actor, req ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
+	return answer[ops.ListSubmissionsResponse](f.answers, &f.calls, ops.OpListSubmissions, actor, req)
+}
+
+func (f *fakeSubmissions) GetSubmission(_ context.Context, actor ops.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
+	return answer[ops.GetSubmissionResponse](f.answers, &f.calls, ops.OpGetSubmission, actor, req)
+}
+
+func (f *fakeSubmissions) RetrySubmission(_ context.Context, actor ops.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
+	return answer[ops.RetrySubmissionResponse](f.answers, &f.calls, ops.OpRetrySubmission, actor, req)
+}
+
+func (f *fakeSubmissions) CancelSubmission(_ context.Context, actor ops.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
+	return answer[ops.CancelSubmissionResponse](f.answers, &f.calls, ops.OpCancelSubmission, actor, req)
+}
+
+// testSubmission is a submission status every fixture's get, retry, and
+// cancel answers with, carrying one of each reason-bearing field.
+var testSubmission = ops.GetSubmissionResponse{
+	SubmissionID: testHandle,
+	State:        "rejected",
+	VerdictUnit:  "album",
+	Container:    "files",
+	Source:       "vinyl",
+	CreatedAt:    annAnchor,
+	UpdatedAt:    annAnchor,
+	Events: []ops.SubmissionEvent{
+		{At: annAnchor, Kind: "uploading"},
+		{At: annAnchor, Kind: "rejected", Reason: "corrupt", Reject: new(reject.Of(reject.Corrupt))},
+	},
+	Files: []ops.SubmissionFile{
+		{FileID: testHandle, Path: "a/1.flac", Size: 10, Received: true, Verdict: new(reject.Of(reject.Corrupt))},
+		{FileID: testHandle, Path: "a/2.flac", Size: 10, Received: false},
+	},
+	Warnings: []ops.SubmissionWarning{
+		{Reason: reject.Of(reject.ExtrasDropped), Subject: new("scan.jpg")},
+		{Reason: reject.Of(reject.NoCoverArt)},
+	},
+}
+
+// submissionSuccesses configures every submission operation to succeed.
+func submissionSuccesses() map[string]fakeAnswer {
+	return map[string]fakeAnswer{
+		ops.OpCreateSubmission: {resp: ops.CreateSubmissionResponse{SubmissionID: testHandle, Files: []ops.CreatedFile{{Path: "a/1.flac", FileID: testHandle}}}},
+		ops.OpListSubmissions: {resp: ops.ListSubmissionsResponse{Submissions: []ops.SubmissionSummary{
+			{SubmissionID: testHandle, State: "uploading", VerdictUnit: "album", CreatedAt: annAnchor, UpdatedAt: annAnchor}}}},
+		ops.OpGetSubmission:    {resp: testSubmission},
+		ops.OpRetrySubmission:  {resp: ops.RetrySubmissionResponse(testSubmission)},
+		ops.OpCancelSubmission: {resp: ops.CancelSubmissionResponse(testSubmission)},
+	}
+}
+
 // adminSuccesses configures every admin operation to succeed.
 func adminSuccesses() map[string]fakeAnswer {
 	return map[string]fakeAnswer{
@@ -179,6 +242,7 @@ type fixture struct {
 	h     *handler
 	seam  *fakeSeam
 	admin *fakeAdmin
+	subs  *fakeSubmissions
 	auth  *fakeAuthorizer
 	log   *bytes.Buffer
 }
@@ -187,12 +251,13 @@ func newFixture(t *testing.T, auth *fakeAuthorizer, answers map[string]fakeAnswe
 	t.Helper()
 	seam := &fakeSeam{answers: answers}
 	admin := &fakeAdmin{answers: adminSuccesses()}
+	subs := &fakeSubmissions{answers: submissionSuccesses()}
 	var buf bytes.Buffer
-	h, err := newHandler(seam, admin, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
+	h, err := newHandler(seam, admin, subs, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
 	if err != nil {
 		t.Fatalf("newHandler: %v", err)
 	}
-	return &fixture{h: h, seam: seam, admin: admin, auth: auth, log: &buf}
+	return &fixture{h: h, seam: seam, admin: admin, subs: subs, auth: auth, log: &buf}
 }
 
 // do sends one request; an empty contentType sends no Content-Type

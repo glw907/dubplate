@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/glw907/dubplate/internal/reject"
 )
 
 // A Code is one of the seam's stable wire error codes, shared by every
@@ -59,18 +61,34 @@ var codes = map[error]Code{
 	ErrReauthenticationRequired: CodeReauthenticationRequired,
 }
 
+// A FileReject is one declared file's refusal.
+type FileReject struct {
+	Path   string        `json:"path"`
+	Reason reject.Reason `json:"reason"`
+}
+
+// Rejects is every reason a refused submission carries: the
+// submission-level reasons and one per failing file. Both lists are
+// present on the wire, empty when nothing fails at that level.
+type Rejects struct {
+	Submission []reject.Reason `json:"submission"`
+	Files      []FileReject    `json:"files"`
+}
+
 // An Error wraps one of this package's sentinels with its stable
 // [Code] and the reason a caller may report as an answer. Reason is
 // required for [ErrUnavailable] (every unavailable answer names why);
 // the other sentinels may carry an empty one when the sentinel alone
 // says enough. Detail, when set, is one of the Detail constants: an
 // enumerated name finer than Code, which a client may branch on where
-// Reason is free text.
+// Reason is free text. Rejects, when set, lists the reject reasons
+// behind a refused submission.
 type Error struct {
-	Code   Code
-	Reason string
-	Detail string
-	err    error
+	Code    Code
+	Reason  string
+	Detail  string
+	Rejects *Rejects
+	err     error
 }
 
 func newError(sentinel error, reason string) *Error {
@@ -125,6 +143,13 @@ func (e *Error) WithDetail(detail string) *Error {
 	withDetail := *e
 	withDetail.Detail = detail
 	return &withDetail
+}
+
+// WithRejects returns a copy of e carrying r. e itself is unchanged.
+func (e *Error) WithRejects(r Rejects) *Error {
+	withRejects := *e
+	withRejects.Rejects = &r
+	return &withRejects
 }
 
 // Error implements the error interface, joining e's code and reason.

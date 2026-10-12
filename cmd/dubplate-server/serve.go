@@ -15,6 +15,7 @@ import (
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
@@ -384,7 +385,15 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Window: durationSetting(acc, reauthWindowSetting),
 		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
 	})
-	apiMount, err := newAPIMount(prefix, adminSeam, adminConfig)
+	allowlist, err := intakeAllowlist(environ)
+	if err != nil {
+		return nil, nil, err
+	}
+	submissionSeam := intake.NewSeam(intake.SeamConfig{
+		Store: h, Log: shell.Logger(), Staging: cfg.WallValue(stagingKey), Now: time.Now,
+		Limits: intakeLimits(acc, allowlist),
+	})
+	apiMount, err := newAPIMount(prefix, adminSeam, submissionSeam, adminConfig)
 	if err != nil {
 		return nil, nil, err
 	}
