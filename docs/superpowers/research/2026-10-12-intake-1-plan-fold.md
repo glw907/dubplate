@@ -1,8 +1,9 @@
 # intake-1 plan fold
 
-**Task-minutes: 990 after the fold (760 before). That is 210 minutes over the design's line of 780 (twice its 390),
-so the plan goes back to Geoff before launch: "Rulings for Geoff", ruling 1.** Path about 725 minutes (550 before).
-No finding changes the approved design; no design scope moved out of the pass.
+**Task-minutes: 995 after the fold and its verification fold (760 before; 990 after the first fold). That is 215
+minutes over the design's line of 780 (twice its 390), so the plan goes back to Geoff before launch: "Rulings for
+Geoff", ruling 1.** Path about 725 minutes (550 before). No fold changes the approved design, and no design scope
+moved out of the pass; the plan's two pre-fold departures from the design's file list are named under the ruling.
 
 Target: `docs/superpowers/plans/2026-10-12-intake-1.md` at `8457b10` (the reviews read `3783060`; the plan text is
 the same), and its launch prompt `docs/superpowers/plans/2026-10-12-intake-1-prompt.txt`, which needs no change: it
@@ -150,27 +151,43 @@ never an owed list. Each place the plan reads the spec past its literal wording,
    `unpack-failed` is an error the ZIP format or its decompressor raises (P19).
 4. **The stall row.** The spec's sweep row stalls `checking` or `matching`; with no probe, P5 stalls `checking` only,
    named in the PR body.
+5. **`0006`'s two additions.** The spec's "Migration `0006`" names three tables. The plan adds
+   `submission_events.seq` (an unordered "latest" under a frozen test clock and random ids, and rowids that
+   `VACUUM INTO` may renumber) and `submission_warnings` (the warnings `get_submission` returns had no storage, and
+   an extras warning names members that get no row). Both are additive and change no table's meaning.
 
 ## Rulings for Geoff
 
-1. **Approve the 990 task-minute estimate?** The design says a plan over twice its 390-minute figure (780) comes back
-   before launch. The drafted plan sat at 760; the fold adds 230: honest re-estimates where the reviews found missing
-   work (the serve-test environments and `loadConfig` in T3, the older-store undo and the warnings table in T4, the
-   tus refusal table in T9, the details and reason objects in T10) and the proofs and fixtures that keep
-   correctness-ranked majors from passing vacuously (T6, T7, T8, T11). The trims taken are the reviews' named
-   over-ceremony: T1's three extra mutations and the duplicated close security read.
-   - **Yes (recommended).** Launch at 990 (path about 725). Each task still stops at twice its own estimate, and
+1. **Approve the 995 task-minute estimate?** The design says a plan over twice its 390-minute figure (780) comes back
+   before launch. The drafted plan sat at 760; the fold adds 230 and its verification fold 5 (the whole-chain
+   metadata bound in T5): honest re-estimates where the reviews found missing work (the serve-test environments and
+   `loadConfig` in T3, the older-store undo and the warnings table in T4, the tus refusal table in T9, the details
+   and reason objects in T10) and the proofs and fixtures that keep correctness-ranked majors from passing vacuously
+   (T6, T7, T8, T11). The trims taken are the reviews' named over-ceremony: T1's three extra mutations and the
+   duplicated close security read.
+   - **Yes (recommended).** Launch at 995 (path about 725). Each task still stops at twice its own estimate, and
      `admin-api-1` ran about 68 percent of its plan (475 of 695).
-   - **No.** Name the scope to move to `intake-2`; the mechanics lens's candidate is AC 28's stall event, its admin
-     mail, and the `STALL_AFTER` key (about 25 minutes of T11), which leaves the window expiries in place. The fold
-     does not take that cut itself: the brief bars moving design scope to fit a number.
+   - **No.** No cut that keeps the design reaches 780: the fold found no over-ceremony left to trim, so a No means
+     Geoff naming about 215 minutes of design scope to move to `intake-2`. The mechanics lens's candidate, AC 28's
+     stall event, its admin mail, and the `STALL_AFTER` key (about 25 minutes of T11), is one piece of that and
+     leaves the plan about 190 over. The fold takes no cut itself: the brief bars moving design scope to fit a number.
+   - **Tokens.** The design's line also names 9.0M tokens (flag 7.2M). The plan carries no separate token estimate:
+     `admin-api-1`'s PR #4 score records minutes and gate time, not tokens, so the fold has no measured ratio to scale
+     from, and the minutes figure stands in for both halves of the line.
+   - **For the same read (informational, not a fork).** The plan builds less than the design's file list in two
+     places, each a PR-body sentence: `RequireMember` waits for its first caller, the uploader page in `intake-2`
+     (CLAUDE.md, "nothing is exported ahead of a caller"; P6); and the tus mount and its wrapper live in
+     `internal/intake`, registered through the shell, not in `internal/serve`, with no `internal/serve` production
+     change (P1, P7, P8).
 
 ## Measures
 
-- Plan length: 916 lines before, 1199 after. Prompt: 79 lines, unchanged.
-- Task-minutes: 760 before, 990 after. Per task: T0 25 (25), T1 15 (15), T2 35 (35), T3 65 (45), T4 80 (55), T5 40
-  (35), T6 100 (75), T7 70 (45), T8 95 (75), T9 90 (70), T10 85 (60), T11 145 (85), T12 35 (35), T13 25 (20), Close 85
-  (85); the figure in parentheses is the draft's. Path: 550 to about 725.
+- Plan length: 916 lines before, 1199 after the first fold (see "Verification fold" for the final count). Prompt: 79
+  lines, unchanged.
+- Task-minutes: 760 before, 990 after the first fold, 995 after the verification fold. Per task: T0 25 (25), T1 15
+  (15), T2 35 (35), T3 65 (45), T4 80 (55), T5 45 (35), T6 100 (75), T7 70 (45), T8 95 (75), T9 90 (70), T10 85 (60),
+  T11 145 (85), T12 35 (35), T13 25 (20), Close 85 (85); the figure in parentheses is the draft's. Path: 550 to about
+  725.
 - Counts: 77 findings (31 contract, 30 mechanics, 16 risk). 73 folded (R5 in full with its lighter alternative
   refused, R14 with the minimal fold and its flock refused, and the m4 owner fork taken as option a among them); 2 refused (XF14, XF15); 1 dropped (m11); 1 owner ruling (XF1, the clock). Convergent roots: 17.
 - New mechanisms folded, each with its source and the defect it answers:
@@ -181,8 +198,9 @@ never an owed list. Each place the plan reads the spec past its literal wording,
     `get_submission` returns with no storage (contract M1).
   - The olderStore undo list: probed (`DROP INDEX`, then `DROP COLUMN`); the defect is `TestOlderStore` going red
     on `0006`'s column (XM1).
-  - The recording reader of P19: `io.Reader` and `io.ReaderAt` wrapping, the pattern `checksumReader` itself uses
-    (`archive/zip/reader.go:294-325`); the defect is a server I/O fault rejecting a member's album and deleting its
+  - The recording reader of P19: a plain `io.Reader` and `io.ReaderAt` wrapper (`checksumReader`,
+    `archive/zip/reader.go:294-325`, wraps and hashes a reader the same way, though it records no error; the
+    verification read probed a recording wrapper capturing a raw `EIO` through `zip.Reader`); the defect is a server I/O fault rejecting a member's album and deleting its
     bytes (R3, M12).
   - The store-as-queue with a capacity-1 wake channel: a non-blocking send, the stdlib `select` idiom; the defect is
     an unnamed hand-off whose plausible shapes drop or block (R7).
@@ -203,3 +221,31 @@ never an owed list. Each place the plan reads the spec past its literal wording,
   `tagio.{Format,SupportedFormats,Sniff,Read}`, `context.WithoutCancel`, `strings.ToValidUTF8`, `unix.Statx`; RFC
   9639 section 8.2 and `sqlite.org/lang_vacuum.html` (fetched 2026-10-12); `sqlite3` probes of DROP COLUMN and
   `seq`; `ffmpeg` and `metaflac` on a generated track; `go list -m -versions` and `npm view`; `df`.
+
+## Verification fold
+
+The verification read (`2026-10-12-intake-1-plan-fold-verification.md`, against `d5e8f79`) found 0 blockers, 1
+major, 5 minor (correctness), and 3 minor (optional). Each was checked against the tree, or probed, before it was
+acted on.
+
+| ID | Severity | Verified against | Disposition |
+|---|---|---|---|
+| V1 | major | spec:577-582 ("no chain totalling more than four times the picture cap"); `container.go:52-64` and `:238` (every block's `Payload` kept, whatever its type) | Folded: T5 bounds the sum of every block's declared length at four times `MAX_PICTURE_BYTES` from the header, answering `ErrPictureTooLarge`; padding-chain fixture and the "count only picture blocks" mutation; Behaviors quotes `Block.Payload`; P3 names the derived figure. T5 40 to 45 |
+| V2 | minor | `doctorprobe_test.go:386-395` runs `newServeCmd` over `doctorEnviron` (`doctor_test.go:978-984`, on `authEnviron`, on `baseEnviron`'s absent `/srv/music` paths) | Folded: T11's files gain `doctorprobe_test.go`, with its sibling temporary directories |
+| V3 | minor | T8 receipt reads no free space, so the create's barrier names nothing on the receipt path | Folded: T8 names receipt's own barrier (an injected sync, its last act before the `Update`) and the mutation "read the received set outside receipt's `Update`" |
+| V4 | minor | fold record ruling 1; design:52-53; PR #4's score rows (minutes and gate time, no tokens) | Folded: ruling 1 says no design-preserving cut reaches 780, so No means naming about 215 minutes of scope; the token figure is stated with why no estimate is derived; one informational line names the two file-list departures. The plan's clock paragraph says the same |
+| V5 | minor | `Makefile:22-27` (the variables hold names; the packages are the recipe's literal list) | Folded: P10 names both edits |
+| V6 | minor | `.golangci.yml:17-25`; `check.sh:812-877` (`CHECK_EXPORTED_UNUSED` defaults to `warn`); a scratch module probed with golangci-lint 2.14.0 under `unused` and `exported-fields-are-used: false`: an exported field nothing reads, and one referenced only in a test, both "0 issues" | Folded in part. The lint half is refused as written: the probe shows `unused` does not fail on an unread exported field, so T4's gate stays green; P18 now says so and that `check.sh`'s warn-only leg lists the shapes until T6 and T7 merge. The vocabulary half is folded: T4's helper holds the state set as its own literal, and T8's closed vocabulary lives once in `submission.go`, checked against it |
+| V7 | minor, optional | P2 against the States row | Folded: free; the row names all five verbs |
+| V8 | minor, optional | design "Files and interfaces"; P6; T4 | Folded: free; "Spec readings" 5 names `seq` and `submission_warnings`, and the ruling carries the informational line (with V4). The fold record's headline now says no fold changes the design and points at the two pre-fold departures |
+| V9 | minor, optional | `details.go:3` ("The ten values"), `errors_test.go:174` | Folded: free; T10 names both comments (thirteen) |
+
+The verification read's note on the record's `checksumReader` citation is also taken: "Measures" now calls it a
+nearby wrapper, not the pattern, and cites the verification's own `EIO` probe.
+
+- Plan length after this fold: 1222 lines (1199 before it).
+- Task-minutes: 990 to 995 (T5 40 to 45); path unchanged at about 725 (T4 still sets the T4 and T5 pair's length).
+- Counts: 9 findings; 8 folded in full, 1 folded in part (V6, its lint half refused on the probe). No new owner fork;
+  ruling 1 stands with its evidence completed.
+- New mechanisms: none beyond V1's bound, which is arithmetic over the header fields the walk already decodes; the
+  receipt barrier reuses the create barrier's shape.

@@ -11,8 +11,16 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-In flight: `intake-1-plan` (session `ffa5bf00-81bc-4fe4-bbdc-4941e3e13624`) is planning `intake-1` on branch
-`worktree-intake-1-plan`.
+**A question for Geoff: launch `intake-1` at 995 task-minutes?** The plan
+(`docs/superpowers/plans/2026-10-12-intake-1.md`, on branch `worktree-intake-1-plan`) went through all three review
+lenses, a fold, and a verification read. It now re-estimates at 995 task-minutes, over the approved design's line of
+780 (twice its 390). **Recommended: yes.** The review added 235 minutes of missing work and proofs, not scope. Each
+task still stops at twice its own estimate, and `admin-api-1` ran 475 minutes against its planned 695. A no means
+naming about 215 minutes of design scope to move to `intake-2`; the stall event and its admin mail account for about
+25 of them. The ruling, its evidence, and the plan's two departures from the design's file list are in the fold
+record's "Rulings for Geoff" (`docs/superpowers/research/2026-10-12-intake-1-plan-fold.md`). On a yes, the conductor
+runs the plan's "Launch" block from the main checkout. The planning session (`intake-1-plan`,
+`ffa5bf00-81bc-4fe4-bbdc-4941e3e13624`) has ended.
 
 ## Open decisions
 - R-6d21 overrides the settings-home pass's rule that the server never reads its environment. Geoff may reopen it;
