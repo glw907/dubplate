@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/reject"
@@ -63,6 +64,34 @@ func zip64Claiming(b []byte) []byte {
 	return append(out, tail...)
 }
 
+// badZip64Probe returns an archive whose end record points the directory
+// at offset 0, where a header with a saturated size and no zip64 extra
+// sits, followed by the real directory. archive/zip refuses that header, so
+// it keeps the prefix the end record implies and reads every real header;
+// a probe that only checks the signature takes the header for a one-entry
+// directory.
+func badZip64Probe(t *testing.T, n int) []byte {
+	t.Helper()
+	b := manyEntries(t, n)
+	end := len(b) - 22
+	dirSize := int(binary.LittleEndian.Uint32(b[end+12:]))
+	dir := b[end-dirSize : end]
+
+	bad := make([]byte, directoryHeaderLen+4)
+	binary.LittleEndian.PutUint32(bad, directoryHeaderSignature)
+	binary.LittleEndian.PutUint32(bad[24:], 0xffffffff)        // uncompressed size, kept in the zip64 extra field
+	binary.LittleEndian.PutUint16(bad[30:], 4)                 // the extra field's length
+	binary.LittleEndian.PutUint16(bad[directoryHeaderLen:], 1) // zip64 extra field, whose 0 bytes cannot hold the size
+
+	tail := bytes.Clone(b[end:])
+	binary.LittleEndian.PutUint32(tail[12:], uint32(len(dir)))
+	binary.LittleEndian.PutUint32(tail[16:], 0) // the directory "starts" at the bad header
+
+	out := append(bytes.Clone(bad), bytes.Repeat([]byte{'x'}, directoryHeaderLen)...) // not a header
+	out = append(out, dir...)
+	return append(out, tail...)
+}
+
 func prefixed(b []byte) []byte {
 	return append(bytes.Repeat([]byte("#!/bin/sh\n"), 10), b...)
 }
@@ -82,6 +111,7 @@ func TestWalkZIPCountsCentralDirectoryHeaders(t *testing.T) {
 		{"a zip64 end record that claims one entry", zip64Claiming(manyEntries(t, countLimit+1)), reject.TooManyFiles},
 		{"a prefix before the archive", prefixed(manyEntries(t, countLimit+1)), reject.TooManyFiles},
 		{"a prefixed archive at the limit", prefixed(manyEntries(t, countLimit)), ""},
+		{"a probe header the standard reader refuses", badZip64Probe(t, countLimit+3), reject.TooManyFiles},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -105,10 +135,11 @@ func TestWalkZIPCountsCentralDirectoryHeaders(t *testing.T) {
 func TestExceedsHeaders(t *testing.T) {
 	data := manyEntries(t, countLimit+1)
 	r := &recordedReaderAt{r: bytes.NewReader(data)}
-	start, err := directoryStart(r, int64(len(data)))
-	if err != nil {
-		t.Fatal(err)
+	starts, err := directoryStarts(r, int64(len(data)))
+	if err != nil || len(starts) != 1 {
+		t.Fatalf("directoryStarts = %v, %v, want one offset", starts, err)
 	}
+	start := starts[0]
 	if !exceedsHeaders(r, int64(len(data)), start, countLimit) {
 		t.Error("exceedsHeaders = false, want true for one header over the limit")
 	}
@@ -120,7 +151,7 @@ func TestExceedsHeaders(t *testing.T) {
 	}
 }
 
-func TestDirectoryStart(t *testing.T) {
+func TestDirectoryStarts(t *testing.T) {
 	data := manyEntries(t, 2)
 	end := len(data) - 22
 	dirOffset := int64(binary.LittleEndian.Uint32(data[end+16:]))
@@ -128,20 +159,23 @@ func TestDirectoryStart(t *testing.T) {
 	tests := []struct {
 		name string
 		data []byte
-		want int64
+		want []int64
 		err  bool
 	}{
-		{"a plain archive", data, dirOffset, false},
-		{"a prefixed archive", prefixed(data), dirOffset + 100, false},
-		{"a zip64 end record", zip64Claiming(data), dirOffset, false},
-		{"not an archive", []byte("plainly not a zip"), 0, true},
-		{"an empty file", nil, 0, true},
+		{"a plain archive", data, []int64{dirOffset}, false},
+		{"a prefixed archive", prefixed(data), []int64{dirOffset + 100}, false},
+		{"a zip64 end record", zip64Claiming(data), []int64{dirOffset}, false},
+		// 50 bytes of header and 46 of junk put the real directory at 96;
+		// the unprefixed reading is the header at 0.
+		{"a probe header only archive/zip can refuse", badZip64Probe(t, 3), []int64{96, 0}, false},
+		{"not an archive", []byte("plainly not a zip"), nil, true},
+		{"an empty file", nil, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := directoryStart(bytes.NewReader(tt.data), int64(len(tt.data)))
-			if (err != nil) != tt.err || got != tt.want {
-				t.Errorf("directoryStart = %d, %v, want %d, error %t", got, err, tt.want, tt.err)
+			got, err := directoryStarts(bytes.NewReader(tt.data), int64(len(tt.data)))
+			if (err != nil) != tt.err || !slices.Equal(got, tt.want) {
+				t.Errorf("directoryStarts = %v, %v, want %v, error %t", got, err, tt.want, tt.err)
 			}
 		})
 	}

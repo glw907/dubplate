@@ -86,17 +86,20 @@ func skipHeader(br *bufio.Reader) error {
 	return err
 }
 
-// directoryStart returns the offset of the first central-directory header
-// in an archive of the given size, base offset included, as
-// [zip.NewReader] computes it.
-func directoryStart(r io.ReaderAt, size int64) (int64, error) {
+// directoryStarts returns the offsets where [zip.NewReader] may read the
+// first central-directory header, base offset included. There is one unless
+// the end record claims a prefix and a header-shaped record sits at the
+// unprefixed offset: archive/zip then drops the prefix only when that record
+// also passes readDirectoryHeader's checks, which the count does not repeat,
+// so both offsets are returned and the caller counts from each.
+func directoryStarts(r io.ReaderAt, size int64) ([]int64, error) {
 	var end []byte
 	var endOffset int64
 	for i, n := range []int64{1024, 65 * 1024} {
 		n = min(n, size)
 		buf := make([]byte, n)
 		if _, err := r.ReadAt(buf, size-n); err != nil && err != io.EOF {
-			return 0, err
+			return nil, err
 		}
 		if p := findEndSignature(buf); p >= 0 {
 			end = buf[p:]
@@ -104,7 +107,7 @@ func directoryStart(r io.ReaderAt, size int64) (int64, error) {
 			break
 		}
 		if i == 1 || n == size {
-			return 0, zip.ErrFormat
+			return nil, zip.ErrFormat
 		}
 	}
 
@@ -120,30 +123,30 @@ func directoryStart(r io.ReaderAt, size int64) (int64, error) {
 			dirSize, dirOffset, err = readDirectory64End(r, p, dirSize, dirOffset)
 		}
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 	}
 
 	const maxInt64 = 1<<63 - 1
 	if dirSize > maxInt64 || dirOffset > maxInt64 {
-		return 0, zip.ErrFormat
+		return nil, zip.ErrFormat
 	}
 	base := endOffset - int64(dirSize) - int64(dirOffset)
 	start := base + int64(dirOffset)
 	if start < 0 || start >= size {
-		return 0, zip.ErrFormat
+		return nil, zip.ErrFormat
 	}
 
-	// An end record that claims a prefix the directory does not carry:
-	// when a header sits at the unprefixed offset, the prefix is zero.
+	// An end record that claims a prefix the directory does not carry: when
+	// a header sits at the unprefixed offset, the prefix may be zero.
 	if base > 0 {
 		off := int64(dirOffset)
 		br := bufio.NewReader(io.NewSectionReader(r, off, size-off))
 		if skipHeader(br) == nil {
-			return off, nil
+			return []int64{start, off}, nil
 		}
 	}
-	return start, nil
+	return []int64{start}, nil
 }
 
 // findDirectory64End reads the zip64 locator just before the end record and

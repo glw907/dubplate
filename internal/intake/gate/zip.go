@@ -89,16 +89,18 @@ func WalkZIP(root *os.Root, name string, p Policy, separateTracks bool) (*ZIPWal
 
 func walkZIP(ra io.ReaderAt, size int64, p Policy, separateTracks bool) (*ZIPWalk, error) {
 	src := &recordedReaderAt{r: ra}
-	start, err := directoryStart(src, size)
+	starts, err := directoryStarts(src, size)
 	if err != nil {
 		return nil, archiveFault(src, err)
 	}
-	over := exceedsHeaders(src, size, start, p.MaxFiles)
-	if src.err != nil {
-		return nil, archiveFault(src, nil)
-	}
-	if over {
-		return nil, &ZIPRefusal{Reason: reject.Of(reject.TooManyFiles)}
+	for _, start := range starts {
+		over := exceedsHeaders(src, size, start, p.MaxFiles)
+		if src.err != nil {
+			return nil, archiveFault(src, nil)
+		}
+		if over {
+			return nil, &ZIPRefusal{Reason: reject.Of(reject.TooManyFiles)}
+		}
 	}
 
 	// The names are checked below, so the GODEBUG that makes NewReader refuse
@@ -106,6 +108,12 @@ func walkZIP(ra io.ReaderAt, size int64, p Policy, separateTracks bool) (*ZIPWal
 	zr, err := zip.NewReader(src, size)
 	if err != nil && !errors.Is(err, zip.ErrInsecurePath) {
 		return nil, archiveFault(src, err)
+	}
+
+	// The count above guards the allocation; this guards the member loop
+	// against any reading of the directory the count did not foresee.
+	if len(zr.File) > p.MaxFiles {
+		return nil, &ZIPRefusal{Reason: reject.Of(reject.TooManyFiles)}
 	}
 
 	w := &ZIPWalk{src: src}
