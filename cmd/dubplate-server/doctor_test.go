@@ -110,7 +110,7 @@ func TestDoctorCmd(t *testing.T) {
 			installTestUnidecodeTable(t, stateDir)
 			environ := replaceKey(tt.environ, "DUBPLATE_STATE_DIR", stateDir)
 
-			reg := config.NewRegistry()
+			reg := freshRegistry()
 
 			var stdout, stderr bytes.Buffer
 			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
@@ -283,7 +283,7 @@ func TestDoctorCmd(t *testing.T) {
 //
 // ruled, conductor 2026-09-07, R10
 func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	lines := doctorLines(t, reg)
 
 	ownedCount := len(reg.OwnedWall())
@@ -443,7 +443,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 	)
 
 	registry := func() *config.Registry {
-		reg := config.NewRegistry()
+		reg := freshRegistry()
 		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []config.KeyDecl{testKey(requiredA)}})
 		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []config.KeyDecl{testKey(requiredB)}})
 		reg.AddWallRow(config.WallRow{Name: selector, Description: testDescription, Mark: config.NotSensitive})
@@ -1015,7 +1015,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, config.NewRegistry(), &stdout, &stderr)
+	cmd := newDoctorCmd(environ, freshRegistry(), &stdout, &stderr)
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1028,7 +1028,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	// The pending "identity source" row this spot check used to pin
 	// retired with rung 5 (keys.go's ownedWall no longer carries it);
 	// its owned-now replacement, the selector row, is the second
-	// literal now. config.NewRegistry() alone declares no identity
+	// literal now. freshRegistry() alone declares no identity
 	// source, so this half runs against the production registry and a
 	// fully satisfied environment instead.
 	var authStdout, authStderr bytes.Buffer
@@ -1071,7 +1071,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 	useBackupStandin(t)
 	t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
 
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerBackupConfig(reg)
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
@@ -1106,7 +1106,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 // pinned "%-32s %s" form every other row uses. wantLine is a literal
 // ("0.04"), not derived by calling config.ParseFloat itself.
 func TestDoctorCmd_FloatThreshold(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	reg.AddThreshold(config.Threshold{
 		Key:     "DUBPLATE_TEST_STRONG_REC_THRESH",
 		Kind:    config.KindFloat,
@@ -1166,7 +1166,7 @@ func TestDoctorCmd_RefusedSettingPrintsOnce(t *testing.T) {
 // TestUnclaimedLoadErrors proves the list holds only DUBPLATE_ keys no
 // row owns, in sorted order.
 func TestUnclaimedLoadErrors(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	wall := reg.OwnedWall()
 	if len(wall) == 0 {
 		t.Fatal("registry has no owned wall rows to test with")
@@ -1190,7 +1190,7 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 // 15s by default and the set value when set, in the same "%-32s %s"
 // form every duration threshold uses.
 func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerStoreConfig(reg)
 
 	tests := []struct {
@@ -1225,7 +1225,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 // threshold row still shows the parsed value unchanged, and doctor
 // exits 1. 2147483647ms passes both rows.
 func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerStoreConfig(reg)
 
 	tests := []struct {
@@ -1283,7 +1283,7 @@ func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerStoreConfig(reg)
 
 	before, err := os.ReadDir(stateDir)

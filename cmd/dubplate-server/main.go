@@ -105,7 +105,24 @@ func newProductionRegistry() *config.Registry {
 	registerBackupConfig(reg)
 	registerProxyConfig(reg)
 	registerAPIConfig(reg)
+	registerIntakeConfig(reg)
 	return reg
+}
+
+// loadConfig is config.Load plus the checks no single row can express:
+// staging and the library root must not overlap (resolveStaging). Every
+// verb that loads the wall loads it here, so backup and restore, which
+// act on the library tree the rule protects, refuse an overlap as serve
+// does.
+func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) {
+	cfg, err := config.Load(environ, reg)
+	if err != nil {
+		return nil, err
+	}
+	if err := resolveStaging(cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 // newRootCmd builds the production registry once, visibly, and passes

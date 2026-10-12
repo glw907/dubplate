@@ -636,7 +636,7 @@ func TestDoctorCmd_UnidecodeRow(t *testing.T) {
 			}
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, config.NewRegistry(), &stdout, &stderr)
+			cmd := newDoctorCmd(environ, freshRegistry(), &stdout, &stderr)
 			err := cmd.Execute()
 
 			if tt.wantFail && err == nil {

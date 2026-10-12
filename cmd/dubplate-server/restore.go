@@ -149,7 +149,7 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	if err := f.check(); err != nil {
 		return err
 	}
-	cfg, err := config.Load(environ, reg)
+	cfg, err := loadConfig(environ, reg)
 	if err != nil {
 		return err
 	}

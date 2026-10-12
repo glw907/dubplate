@@ -33,7 +33,7 @@ var osUserLookupID = user.LookupId
 // newMemberCmd builds the member verb: add, remove, demote, and list,
 // the subcommands that give an operator the roster internal/auth keeps
 // in the store. None reads the environment itself; each resolves
-// configuration through config.Load against reg, the same wall serve
+// configuration through loadConfig against reg, the same wall serve
 // enforces.
 func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -55,7 +55,7 @@ func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 // both verbs. It also returns the state directory the store lives
 // under. The caller closes the handle.
 func openOperatorStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, string, error) {
-	cfg, err := config.Load(environ, reg)
+	cfg, err := loadConfig(environ, reg)
 	if err != nil {
 		return nil, "", err
 	}

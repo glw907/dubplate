@@ -21,12 +21,14 @@ func testKey(name string) config.KeyDecl {
 // sensitive in the production registry: a live change to one changes
 // how long a member stays signed in, how long a mailed link stays
 // redeemable, how fresh a sign-in a sensitive write needs, whether an
-// unknown address is told so, or how far a protective backup floor
-// reaches. A key joins it only by a ruling.
+// unknown address is told so, how far a protective backup floor
+// reaches, or how little free space staging may fall to. A key joins it
+// only by a ruling.
 var storeHomedSensitive = []string{
 	"DUBPLATE_BACKUP_ARCHIVE_RETENTION",
 	"DUBPLATE_BACKUP_GUARD_FRACTION",
 	"DUBPLATE_BACKUP_SNAPSHOT_KEEP",
+	"DUBPLATE_INTAKE_FREE_SPACE_FLOOR",
 	"DUBPLATE_MAGIC_LINK_EXPIRY",
 	"DUBPLATE_REAUTH_WINDOW",
 	"DUBPLATE_SESSION_ABSOLUTE_CAP",
@@ -63,6 +65,7 @@ func TestProductionRegistry_StoreHomedSensitiveSet(t *testing.T) {
 // a credential, or a trust boundary, a change that needs care.
 var envOnlyMarks = map[string]config.Sensitivity{
 	"DUBPLATE_LIBRARY_ROOT":               config.Sensitive,
+	"DUBPLATE_STAGING_DIR":                config.Sensitive,
 	"DUBPLATE_STATE_DIR":                  config.Sensitive,
 	"DUBPLATE_SITE_NAME":                  config.NotSensitive,
 	"DUBPLATE_ADMIN_EMAIL":                config.Sensitive,
@@ -91,6 +94,7 @@ var envOnlyMarks = map[string]config.Sensitivity{
 	"DUBPLATE_TRUSTED_PROXY_HEADER":       config.Sensitive,
 	"DUBPLATE_BACKUP_ENABLED":             config.Sensitive,
 	"DUBPLATE_BACKUP_REMOTE":              config.Sensitive,
+	"DUBPLATE_INTAKE_FORMAT_ALLOWLIST":    config.NotSensitive,
 }
 
 func TestProductionRegistry_EnvironmentOnlyKeysCarryTheirMarks(t *testing.T) {

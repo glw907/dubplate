@@ -432,6 +432,8 @@ func TestAPI_AddMemberNeverGrantsAdmin(t *testing.T) {
 // words no answer could avoid.
 var envSentinels = map[string]string{
 	"DUBPLATE_LIBRARY_ROOT":               "/srv/sentinel-library-root",
+	"DUBPLATE_STAGING_DIR":                "/srv/sentinel-staging-root",
+	"DUBPLATE_INTAKE_FORMAT_ALLOWLIST":    "flac",
 	"DUBPLATE_SITE_NAME":                  "Sentinel Site Name",
 	"DUBPLATE_ADMIN_EMAIL":                "sentinel-admin@example.test",
 	"DUBPLATE_MAGIC_LINK_SECRET":          "sentinel-magic-link-secret-0123456789abcdef",
@@ -466,6 +468,7 @@ var envSentinels = map[string]string{
 var envClosed = []string{
 	"DUBPLATE_OPERATOR_CSS_FILE", "DUBPLATE_BRANDING", "DUBPLATE_THEME_MATCH", "DUBPLATE_THEME_PALETTE",
 	"DUBPLATE_IDENTITY_SOURCE", "DUBPLATE_TRUSTED_PROXY_ENABLED", "DUBPLATE_BACKUP_ENABLED",
+	"DUBPLATE_INTAKE_FORMAT_ALLOWLIST",
 }
 
 // TestAPI_NoNonStoreValueReachesTheWire proves no value only the

@@ -15,7 +15,7 @@ import (
 )
 
 // newSettingsCmd builds the settings verb, whose one subcommand is
-// reset. Like member, it resolves configuration through config.Load
+// reset. Like member, it resolves configuration through loadConfig
 // against reg and reads the environment only through environ.
 func newSettingsCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{

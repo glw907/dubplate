@@ -201,7 +201,7 @@ Exit statuses:
 // ran under it would fail the instant a signal arrived rather than
 // letting the verb answer the signal itself.
 func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdout, stderr io.Writer) error {
-	cfg, err := config.Load(environ, reg)
+	cfg, err := loadConfig(environ, reg)
 	if err != nil {
 		return err
 	}

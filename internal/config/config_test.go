@@ -90,9 +90,9 @@ func TestLoad_ContractTable(t *testing.T) {
 		},
 		{
 			name:       "reserved key early",
-			environ:    append(baseEnviron(), "DUBPLATE_UPLOADS_DIR=x"),
+			environ:    append(baseEnviron(), "DUBPLATE_INBOX_DIR=x"),
 			wantErr:    true,
-			errContain: []string{"intake", "rung 7"},
+			errContain: []string{"pipeline", "rung 9"},
 		},
 		{
 			name:       "deleted, dubplate_navidrome_url",
@@ -737,6 +737,38 @@ func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
 			}
 			if n := strings.Count(err.Error(), tt.wantOnce); n != 1 {
 				t.Errorf("Load() error names %s %d times, want exactly 1: %v", tt.wantOnce, n, err)
+			}
+		})
+	}
+}
+
+// TestConfig_WallValue proves Load keeps every owned row's value
+// under its name, a row a rung registered included, which no named
+// Config field holds. Fixture: a registry carrying one scratch row, set
+// to a value that differs from every base row.
+func TestConfig_WallValue(t *testing.T) {
+	const scratchOwned = "DUBPLATE_TEST_SCRATCH_OWNED"
+	reg := NewRegistry()
+	reg.AddWallRow(WallRow{Name: scratchOwned, Description: testDescription, Mark: NotSensitive})
+
+	cfg, err := Load(append(baseEnviron(), scratchOwned+"=/srv/scratch"), reg)
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+
+	tests := []struct {
+		name string
+		row  string
+		want string
+	}{
+		{name: "a rung-registered row", row: scratchOwned, want: "/srv/scratch"},
+		{name: "a rung 1 row", row: "DUBPLATE_LIBRARY_ROOT", want: "/srv/music/library"},
+		{name: "a name the registry does not own", row: "DUBPLATE_NOT_A_ROW", want: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := cfg.WallValue(tt.row); got != tt.want {
+				t.Errorf("WallValue(%q) = %q, want %q", tt.row, got, tt.want)
 			}
 		})
 	}
