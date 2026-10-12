@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/url"
 	"strings"
 	"time"
@@ -14,7 +13,6 @@ import (
 	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
-	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -40,35 +38,15 @@ func (l Limits) limits() limits {
 	}
 }
 
-// SeamConfig is what [NewSeam] needs.
-type SeamConfig struct {
-	Store *store.Handle
-	Log   *slog.Logger
-	// Staging is the directory whose free space the floor guards.
-	Staging string
-	Now     func() time.Time
-	// Limits reads the intake settings in force. It runs before each
-	// create, so a changed setting reaches the next one.
-	Limits func(ctx context.Context) (Limits, error)
-}
-
 // A Seam is the member-facing submission operations over the store. It
 // implements [ops.SubmissionSeam], taking the caller only from the
-// actor.
+// actor. [Intake.Seam] builds it over the intake's one writer.
 type Seam struct {
 	subs   *submissions
 	limits func(ctx context.Context) (Limits, error)
 }
 
 var _ ops.SubmissionSeam = (*Seam)(nil)
-
-// NewSeam returns the seam over cfg.
-func NewSeam(cfg SeamConfig) *Seam {
-	return &Seam{
-		subs:   newSubmissions(cfg.Store, cfg.Log, cfg.Staging, cfg.Now, staging.FreeBytes),
-		limits: cfg.Limits,
-	}
-}
 
 // CreateSubmission implements [ops.SubmissionSeam].
 func (s *Seam) CreateSubmission(ctx context.Context, actor ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {

@@ -36,6 +36,12 @@ var states = []state{
 	stateAccepted, stateRejected, stateCancelled, stateExpired,
 }
 
+// terminal reports whether st ends a submission's journey: no
+// transition leaves it, and cleanup takes all its bytes.
+func (st state) terminal() bool {
+	return st == stateRejected || st == stateCancelled || st == stateExpired
+}
+
 // eventStalled is the one event kind that is not a state: a submission
 // past the stall threshold keeps its state, so recovery needs no extra
 // transition.

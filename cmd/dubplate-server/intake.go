@@ -1,10 +1,24 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"path/filepath"
+	"slices"
+	"strings"
+	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/engine/tagio"
+	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/intake/gate"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // stagingKey names the owned wall row holding the staging directory.
@@ -291,6 +305,124 @@ func registerIntakeConfig(reg *config.Registry) {
 		reg.AddSetting(s)
 	}
 	reg.AddThreshold(intakeFormatAllowlistThreshold)
+}
+
+// intakeAllowlist reads DUBPLATE_INTAKE_FORMAT_ALLOWLIST from environ as
+// its comma-separated format names, refusing an entry, an empty one
+// among them, that names no row of the gate's format table or a format
+// tagio does not read: serve would otherwise accept uploads it cannot
+// check, or render bad-extension's wording with no format in it.
+func intakeAllowlist(environ []string) ([]string, error) {
+	value, err := config.ParseString(environ, intakeFormatAllowlistThreshold)
+	if err != nil {
+		return nil, err
+	}
+	names := strings.Split(value, ",")
+	for i := range names {
+		names[i] = strings.TrimSpace(names[i])
+		row, ok := gate.LookupFormat(names[i])
+		if !ok || !slices.Contains(tagio.SupportedFormats(), row.Format) {
+			return nil, fmt.Errorf("%s: %q names no format this server can check", intakeFormatAllowlistThreshold.Key, names[i])
+		}
+	}
+	return names, nil
+}
+
+// tusRouteName is the tus endpoint's subtree name. It cannot live under
+// api, whose mount answers every path beneath it.
+const tusRouteName = "tus"
+
+// newIntake builds the server's intake over h for the staging directory
+// cfg names: its limits and windows read through acc at each use, its
+// sweep interval and worker count read once here, and its stall mail
+// sent through send to the live admins roster lists.
+func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *settings.Accessor, allowlist []string,
+	roster *auth.Roster, send func(ctx context.Context, to, subject, body string) error, logger *slog.Logger) (*intake.Intake, error) {
+	interval, err := acc.Duration(ctx, intakeSweepIntervalSetting)
+	if err != nil {
+		return nil, settingReadError(intakeSweepIntervalSetting, err)
+	}
+	workers, err := acc.Int(ctx, intakeCheckWorkersSetting)
+	if err != nil {
+		return nil, settingReadError(intakeCheckWorkersSetting, err)
+	}
+	return intake.New(intake.Config{
+		Store: h, Log: logger, Staging: cfg.WallValue(stagingKey), Now: time.Now,
+		Limits:        intakeLimits(acc, allowlist),
+		Windows:       intakeWindows(acc),
+		SweepInterval: interval,
+		CheckWorkers:  workers,
+		Admins:        liveAdminAddresses(roster),
+		Send:          send,
+	})
+}
+
+// intakeWindows reads the sweep's windows in force through acc at each
+// call. The first failed read fails the call naming its key.
+func intakeWindows(acc *settings.Accessor) func(context.Context) (intake.Windows, error) {
+	return func(ctx context.Context) (intake.Windows, error) {
+		var failed error
+		read := func(s config.Setting) time.Duration {
+			d, err := acc.Duration(ctx, s)
+			if err != nil && failed == nil {
+				failed = settingReadError(s, err)
+			}
+			return d
+		}
+		w := intake.Windows{
+			ResumeWindow: read(intakeResumeWindowSetting),
+			Hold:         read(intakeHoldSetting),
+			StallAfter:   read(intakeStallAfterSetting),
+		}
+		return w, failed
+	}
+}
+
+// liveAdminAddresses reads the stall mail's recipients from roster at
+// each call: every live member holding the admin flag, as the
+// sensitive-change notice reads them, so a demoted or removed admin
+// hears nothing.
+func liveAdminAddresses(roster *auth.Roster) func(context.Context) ([]string, error) {
+	return func(ctx context.Context) ([]string, error) {
+		members, err := roster.List(ctx)
+		if err != nil {
+			return nil, err
+		}
+		var admins []string
+		for _, m := range members {
+			if m.Admin {
+				admins = append(admins, m.Address)
+			}
+		}
+		return admins, nil
+	}
+}
+
+// tusVerifier admits a tus request whose session verifies as any
+// member, through the same check the API's verifier makes. A request
+// signed out wraps [intake.ErrUnauthenticated], which the mount answers
+// 401; any other failure is logged here and answers 500.
+func tusVerifier(cfg auth.AdminConfig) intake.Verifier {
+	return func(w http.ResponseWriter, r *http.Request) (identity.UserID, error) {
+		v, err := auth.CheckRequest(cfg, w, r)
+		switch {
+		case errors.Is(err, auth.ErrNotSignedIn):
+			return identity.UserID{}, fmt.Errorf("%w: %w", intake.ErrUnauthenticated, err)
+		case err != nil:
+			cfg.Logger.Error("tus request could not verify its session", "error", err)
+			return identity.UserID{}, err
+		}
+		return v.Identity.UserID, nil
+	}
+}
+
+// freeSpaceFloor reads DUBPLATE_INTAKE_FREE_SPACE_FLOOR in force through
+// acc at each call.
+func freeSpaceFloor(acc *settings.Accessor) func(context.Context) (int64, error) {
+	return func(ctx context.Context) (int64, error) {
+		n, err := acc.Int(ctx, intakeFreeSpaceFloorSetting)
+		return int64(n), settingReadError(intakeFreeSpaceFloorSetting, err)
+	}
 }
 
 // resolveStaging refuses a staging directory and a library root that

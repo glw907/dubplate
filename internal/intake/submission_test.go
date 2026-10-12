@@ -48,10 +48,14 @@ func member(t *testing.T, h *store.Handle) identity.UserID {
 func testLimits() limits {
 	return limits{
 		policy: gate.Policy{
-			MaxAlbumBytes: 1 << 40,
-			MaxFiles:      500,
-			MaxPathDepth:  8,
-			Allowlist:     []string{"flac"},
+			MaxAlbumBytes:    1 << 40,
+			MaxFiles:         500,
+			MaxPathDepth:     8,
+			MaxTagBytes:      4096,
+			MaxPictureBytes:  65536,
+			MinSampleRate:    44100,
+			MinBitsPerSample: 16,
+			Allowlist:        []string{"flac"},
 		},
 		sessionsPerMember: 100,
 	}

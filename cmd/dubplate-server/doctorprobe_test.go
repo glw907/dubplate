@@ -75,7 +75,7 @@ func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 	reg := productionRegistry()
 	wantLines := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) +
 		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff +
-		unidecodeRowLines + probeRowLines + len(reg.Settings())
+		unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
 	if lines != wantLines {
 		t.Errorf("doctor printed %d lines, want %d", lines, wantLines)
 	}
@@ -385,7 +385,9 @@ func listenerPort(t *testing.T, l net.Listener) int {
 // into the running server's strip, and every count comes back zero.
 func TestDoctorBoundaryProbe_EndToEnd(t *testing.T) {
 	port := freePort(t)
-	environ := withEnv(doctorEnviron(t), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))
+	// serve refuses a staging directory or library root that does not
+	// exist, so both are sibling directories here.
+	environ := withMusicVolume(t, withEnv(doctorEnviron(t), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port)))
 
 	ctx, cancel := context.WithCancel(t.Context())
 	served := make(chan error, 1)
@@ -739,7 +741,7 @@ var trustedLoopback = []string{
 // unproven rather than passing it, and doctor exits 0.
 func TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd(t *testing.T) {
 	port := freePort(t)
-	environ := withEnv(doctorEnviron(t), append(slices.Clone(trustedLoopback), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))...)
+	environ := withMusicVolume(t, withEnv(doctorEnviron(t), append(slices.Clone(trustedLoopback), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))...))
 
 	ctx, cancel := context.WithCancel(t.Context())
 	served := make(chan error, 1)
