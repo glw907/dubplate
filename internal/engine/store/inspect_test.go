@@ -371,7 +371,7 @@ func TestReadFacts_AbsentWAL(t *testing.T) {
 		t.Fatalf("remove the empty -wal: %v", err)
 	}
 
-	f, err := readFacts(context.Background(), l, openBusy, binaryHead)
+	f, _, err := readFacts(context.Background(), l, InspectOptions{BusyTimeout: openBusy}, binaryHead)
 	if err != nil {
 		t.Fatalf("readFacts: %v", err)
 	}
@@ -503,6 +503,48 @@ func TestInspect_MemberFacts(t *testing.T) {
 			}
 			if r.Facts.Members != tt.wantMembers || r.Facts.Admins != tt.wantAdmins {
 				t.Errorf("members, admins = %d, %d, want %d, %d", r.Facts.Members, r.Facts.Admins, tt.wantMembers, tt.wantAdmins)
+			}
+		})
+	}
+}
+
+// TestInspect_Standing: Inspect reports the roster standing of the one
+// address its caller names, and the standing is not a fact: Facts holds
+// counts only. Fixture state: the table holds a live admin, a live
+// non-admin, a tombstoned admin, and a tombstoned non-admin, so a
+// lookup that ignores tombstones reads the tombstoned admin as an
+// admin. An older store below the table's version and a call that
+// names no address read no standing.
+func TestInspect_Standing(t *testing.T) {
+	tests := []struct {
+		name    string
+		through int
+		address string
+		want    Standing
+	}{
+		{name: "a live admin", through: binaryHead, address: "boss@example.test", want: StandingAdmin},
+		{name: "a live non-admin", through: binaryHead, address: "plain@example.test", want: StandingMember},
+		{name: "a tombstoned admin", through: binaryHead, address: "gone-admin@example.test", want: StandingRemoved},
+		{name: "a tombstoned non-admin", through: binaryHead, address: "gone-plain@example.test", want: StandingRemoved},
+		{name: "an address no row holds", through: binaryHead, address: "nobody@example.test", want: StandingNone},
+		{name: "no address named", through: binaryHead, address: "", want: StandingNotRead},
+		{name: "older, below the users table", through: UsersVersion - 1, address: "boss@example.test", want: StandingNotRead},
+		{name: "older at the users table's own version", through: UsersVersion, address: "boss@example.test", want: StandingAdmin},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateDir := t.TempDir()
+			l := buildStore(t, stateDir, tt.through)
+			if tt.through >= UsersVersion {
+				rawExec(t, l.dbPath, insertMembersSQL)
+			}
+
+			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy, Address: tt.address})
+			if r.Facts == nil {
+				t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
+			}
+			if r.Standing != tt.want {
+				t.Errorf("standing of %q = %d, want %d", tt.address, r.Standing, tt.want)
 			}
 		})
 	}

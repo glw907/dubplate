@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/mail"
 	"strconv"
 	"strings"
 	"time"
@@ -284,9 +285,22 @@ func storeRow(ctx context.Context, environ []string) (status string, failed bool
 		return "not checked", true, store.Report{}, false
 	}
 
-	r := store.Inspect(ctx, store.InspectOptions{StateDir: stateDir, BusyTimeout: d})
+	r := store.Inspect(ctx, store.InspectOptions{StateDir: stateDir, BusyTimeout: d, Address: adminAddress(environ)})
 	status, failed = storeRowStatus(r)
 	return status, failed, r, true
+}
+
+// adminAddress returns DUBPLATE_ADMIN_EMAIL as the roster stores an
+// address: parsed and lowercased as [config.Load] reads it. It returns
+// "" when the variable is unset or does not parse, which names no
+// address for the inspection to look up.
+func adminAddress(environ []string) string {
+	v, _ := lookupEnviron(environ, adminEmailKey)
+	addr, err := mail.ParseAddress(v)
+	if err != nil {
+		return ""
+	}
+	return strings.ToLower(addr.Address)
 }
 
 // storeRowStatus renders r as the "store" row's status text, and
