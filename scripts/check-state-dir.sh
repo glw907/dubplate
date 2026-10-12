@@ -18,8 +18,25 @@ template_state_dir="$(sed -n 's/^DUBPLATE_STATE_DIR=//p' env/dubplate-server.env
 deploy_lib_dir="$(sed -n 's/^DUBPLATE_LIB_DIR="\(.*\)"$/\1/p' scripts/deploy.sh)"
 leaves_line="$(sed -n 's/^DUBPLATE_SERVER_LEAVES=(\(.*\))$/\1/p' scripts/deploy.sh)"
 read -r -a server_leaves <<<"$leaves_line"
+# The serve unit's one second grant class: the music volume's directory,
+# admitted only when it is the common parent of the template's staging and
+# library rows (one mount keeps rename(2) from failing with EXDEV between
+# them). An empty music_parent matches no entry, so a template whose two
+# rows do not share a parent admits no grant at all.
+template_staging="$(sed -n 's/^DUBPLATE_STAGING_DIR=//p' env/dubplate-server.env.template)"
+template_library="$(sed -n 's/^DUBPLATE_LIBRARY_ROOT=//p' env/dubplate-server.env.template)"
+music_parent=""
+if [ -n "$template_staging" ] && [ -n "$template_library" ] &&
+  [ "$(dirname "$template_staging")" = "$(dirname "$template_library")" ] &&
+  [ "$(dirname "$template_staging")" != "/" ]; then
+  music_parent="$(dirname "$template_staging")"
+fi
 echo "check-state-dir.sh: DUBPLATE_STATE_DIR=$template_state_dir DUBPLATE_LIB_DIR=$deploy_lib_dir DUBPLATE_SERVER_LEAVES=(${server_leaves[*]})"
 state_ok=true
+if [ -z "$music_parent" ]; then
+  echo "check-state-dir.sh: state-dir: the template's DUBPLATE_STAGING_DIR ($template_staging) and DUBPLATE_LIBRARY_ROOT ($template_library) are not literals under one common parent directory" >&2
+  state_ok=false
+fi
 if [ -z "$template_state_dir" ] || [ "$deploy_lib_dir" != "$template_state_dir" ]; then
   echo "check-state-dir.sh: state-dir: DUBPLATE_LIB_DIR ($deploy_lib_dir) does not equal the template's DUBPLATE_STATE_DIR ($template_state_dir)" >&2
   state_ok=false
@@ -32,6 +49,7 @@ server_units=()
 granted_leaves=()
 serve_unit=systemd/dubplate-server-serve.service
 serve_has_store=false
+serve_has_music=false
 for unit in systemd/*.service; do
   if grep -Eq '^ExecStart=/usr/local/bin/dubplate-server( |$)' "$unit"; then
     server_units+=("$unit")
@@ -52,6 +70,10 @@ for unit in "${server_units[@]}"; do
           ;;
       esac
       if [ "$entry" = "$template_state_dir" ]; then
+        continue
+      fi
+      if [ "$unit" = "$serve_unit" ] && [ "$entry" = "$music_parent" ]; then
+        serve_has_music=true
         continue
       fi
       leaf="${entry#"$template_state_dir"/}"
@@ -89,6 +111,12 @@ if ! grep -qF "run_remote \"install -d -o music -g music -m 0755 \$DUBPLATE_LIB_
   echo "check-state-dir.sh: state-dir: scripts/deploy.sh has no pre-create line for \$DUBPLATE_LIB_DIR" >&2
   state_ok=false
 fi
+for line in 'DUBPLATE_STAGING_DIR' 'DUBPLATE_LIBRARY_ROOT'; do
+  if ! grep -qF "run_remote \"install -d -o music -g music -m 0755 \$$line\"" scripts/deploy.sh; then
+    echo "check-state-dir.sh: state-dir: scripts/deploy.sh has no pre-create line for \$$line" >&2
+    state_ok=false
+  fi
+done
 # The reverse of the unit-to-array check above: a leaf the array pre-creates
 # that no dubplate-server unit is granted is a stale entry (a renamed or
 # retired leaf deploy.sh would keep creating).
@@ -108,6 +136,11 @@ done
 # that leaf; without it the first write fails with EROFS.
 if ! $serve_has_store; then
   echo "check-state-dir.sh: state-dir: $serve_unit is granted no store leaf under $template_state_dir in ReadWritePaths=" >&2
+  state_ok=false
+fi
+# The grant is what lets staging and the library root share one mount.
+if [ -n "$music_parent" ] && ! $serve_has_music; then
+  echo "check-state-dir.sh: state-dir: $serve_unit is not granted $music_parent (the common parent of staging and the library root) in ReadWritePaths=" >&2
   state_ok=false
 fi
 if ! $state_ok; then
