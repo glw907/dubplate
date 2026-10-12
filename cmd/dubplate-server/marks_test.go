@@ -20,13 +20,18 @@ func testKey(name string) config.KeyDecl {
 // storeHomedSensitive is the exact set of store-homed keys marked
 // sensitive in the production registry: a live change to one changes
 // how long a member stays signed in, how long a mailed link stays
-// redeemable, or how fresh a sign-in a sensitive write needs. A key
-// joins it only by a ruling.
+// redeemable, how fresh a sign-in a sensitive write needs, whether an
+// unknown address is told so, or how far a protective backup floor
+// reaches. A key joins it only by a ruling.
 var storeHomedSensitive = []string{
+	"DUBPLATE_BACKUP_ARCHIVE_RETENTION",
+	"DUBPLATE_BACKUP_GUARD_FRACTION",
+	"DUBPLATE_BACKUP_SNAPSHOT_KEEP",
 	"DUBPLATE_MAGIC_LINK_EXPIRY",
 	"DUBPLATE_REAUTH_WINDOW",
 	"DUBPLATE_SESSION_ABSOLUTE_CAP",
 	"DUBPLATE_SESSION_LIFETIME",
+	"DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
 }
 
 func TestProductionRegistry_StoreHomedSensitiveSet(t *testing.T) {

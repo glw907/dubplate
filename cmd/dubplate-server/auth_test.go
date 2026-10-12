@@ -518,7 +518,7 @@ func TestRegisterAuthConfig_Settings(t *testing.T) {
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", config.KindInt, "30", "1", "300", nil, config.ApplyRestart, false},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", config.KindInt, "60", "1", "600", nil, config.ApplyRestart, false},
 		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", config.KindInt, "4096", "512", "65536", nil, config.ApplyNextOperation, false},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind", "", "", []string{"kind", "generic"}, config.ApplyNextOperation, false},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind", "", "", []string{"kind", "generic"}, config.ApplyNextOperation, true},
 	}
 
 	fresh := config.NewRegistry()

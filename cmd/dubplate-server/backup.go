@@ -57,7 +57,7 @@ var backupGuardFractionSetting = config.Setting{
 	Floor:       "0.25",
 	Ceiling:     "1",
 	Description: "the share of the catalog's tracks the library tree must hold as files before a backup sync runs",
-	Mark:        config.NotSensitive,
+	Mark:        config.Sensitive,
 }
 
 // backupSnapshotKeepSetting is DUBPLATE_BACKUP_SNAPSHOT_KEEP: how many
@@ -75,7 +75,7 @@ var backupSnapshotKeepSetting = config.Setting{
 	Floor:       "3",
 	Ceiling:     "1000",
 	Description: "how many remote snapshots a backup keeps in total",
-	Mark:        config.NotSensitive,
+	Mark:        config.Sensitive,
 }
 
 // backupArchiveRetentionSetting is DUBPLATE_BACKUP_ARCHIVE_RETENTION:
@@ -93,7 +93,7 @@ var backupArchiveRetentionSetting = config.Setting{
 	Floor:       "168h",
 	Ceiling:     "87600h",
 	Description: "how long a backup keeps an archived directory after moving it aside",
-	Mark:        config.NotSensitive,
+	Mark:        config.Sensitive,
 }
 
 // registerBackupConfig adds backupIntegrationClass and the three

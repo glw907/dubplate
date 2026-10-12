@@ -1576,7 +1576,7 @@ func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env-seed, restart)`},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env-seed, restart)`},
 		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env-seed, next operation)`},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env-seed, next operation)`},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env-seed, next operation, sensitive)`},
 	}
 	environ := doctorEnviron(t)
 	for _, w := range want {

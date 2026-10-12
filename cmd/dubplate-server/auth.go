@@ -263,7 +263,7 @@ var unknownAddressAnswerSetting = config.Setting{
 	Apply:       config.ApplyNextOperation,
 	Values:      []string{"kind", "generic"},
 	Description: "whether a sign-in request for an address no member holds is told so (kind) or answered as for a member (generic)",
-	Mark:        config.NotSensitive,
+	Mark:        config.Sensitive,
 }
 
 // nonceRetentionCoversExpiry and sessionLifetimeWithinCap are the
