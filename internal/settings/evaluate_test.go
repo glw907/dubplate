@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/store"
@@ -134,4 +136,22 @@ func TestEvaluate_CorrelatedRuleRefusesBothRows(t *testing.T) {
 		}
 		wantErrText(t, o.Err, keyExpiry, keyNonce, "shorter than")
 	}
+}
+
+// TestEvaluate_UnparseableRowWrapsParseError: an admin row of an int
+// setting whose value does not parse is refused with an error that
+// wraps the parse failure, so a caller can branch on it, and whose
+// text still names the key and the accepted form.
+func TestEvaluate_UnparseableRowWrapsParseError(t *testing.T) {
+	reg := newRegistry()
+	facts := store.Facts{Settings: []store.SettingsRow{
+		{Key: keyKeep, Value: "many", Source: "admin", SeedValue: "20"},
+	}}
+
+	ev := EvaluateFacts(reg, nil, facts)
+
+	if !errors.Is(ev.Err, strconv.ErrSyntax) {
+		t.Errorf("Err = %v, want it to wrap strconv.ErrSyntax", ev.Err)
+	}
+	wantErrText(t, ev.Err, keyKeep, `invalid value "many"`, "an integer")
 }

@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"errors"
@@ -262,7 +263,7 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 	}
 	if stored != nil {
 		if _, err := parse(s.Kind, stored.Value); err != nil {
-			errs = append(errs, fmt.Errorf("stored %s value refused: %w", stored.Source, s.Validate(stored.Value)))
+			errs = append(errs, fmt.Errorf("stored %s value refused: %w", stored.Source, unparseable{text: cmp.Or(s.Validate(stored.Value), err).Error(), err: err}))
 		}
 		if stored.Source != sourceEnvSeed && stored.Source != sourceAdmin {
 			errs = append(errs, fmt.Errorf("%s: stored row has unknown source %q", s.Key, stored.Source))
@@ -311,6 +312,16 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 	}
 	return o
 }
+
+// unparseable is a stored value's refusal: the setting's own text for
+// it, with the parse failure behind it for a caller to branch on.
+type unparseable struct {
+	text string
+	err  error
+}
+
+func (u unparseable) Error() string { return u.text }
+func (u unparseable) Unwrap() error { return u.err }
 
 // refuse returns o refused for err.
 func (o Outcome) refuse(err error) Outcome {
