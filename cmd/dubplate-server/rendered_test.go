@@ -249,6 +249,7 @@ var renderedBaseManifest = []renderedRow{
 	{id: "settings/restart-value"},
 	{id: "settings/from-members"},
 	{id: "settings/environment-set"},
+	{id: "settings/invalid-value"},
 	{id: "settings/reauthenticate-write"},
 	{id: "header/sign-out/in-flight"},
 	{id: "header/sign-out/signed-out"},

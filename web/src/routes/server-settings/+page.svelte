@@ -37,6 +37,7 @@ The signed-in header renders in every state, loading included, and
     SETTINGS_ENVIRONMENT_HEADING,
     SETTINGS_INTRO,
     SETTING_APPLY,
+    SETTING_INVALID_VALUE,
     SETTING_MARKS,
     SETTING_RESET,
     SETTING_SAVE,
@@ -176,11 +177,17 @@ The signed-in header renders in every state, loading included, and
     }
     const reauthenticate = needsReauthentication(result);
     if (reauthenticate) retry = again;
+    // Only a refusal of the value itself marks the field: a network or
+    // server failure says nothing about what was typed. A value the
+    // server cannot take answers `invalid_request` with no detail, which
+    // the shared copy blames on the page, so this page words it itself.
+    const refusedValue = result.kind === 'refused' && (result.code === 'invalid_request' || result.detail === 'environment_sets');
+    const unparsedValue = result.kind === 'refused' && result.code === 'invalid_request' && result.detail === '';
     say({
-      text: failureText(result),
+      text: unparsedValue ? SETTING_INVALID_VALUE : failureText(result),
       alertClass: failureAlertClass(result),
       politeness: 'assertive',
-      key: reauthenticate ? null : key,
+      key: refusedValue ? key : null,
       reauthenticate
     });
   }
@@ -222,6 +229,16 @@ The signed-in header renders in every state, loading included, and
 
   async function reset(key: string): Promise<void> {
     await write(key, 'reset_setting', { key }, () => reset(key));
+  }
+
+  /**
+   * When a change takes effect. A restart-applied key with a stored
+   * value names it as the one the next start applies; with no stored
+   * value, only the mode is true.
+   */
+  function applyLine(e: Entry): string {
+    if (e.apply === 'restart' && e.value !== undefined && e.source !== 'default') return nextStartLine(e.value);
+    return SETTING_APPLY[e.apply] ?? '';
   }
 
   function sourceLine(e: Entry): string {
@@ -279,8 +296,7 @@ The signed-in header renders in every state, loading included, and
             </div>
             <p>{e.description}</p>
             <p class="text-sm opacity-70">
-              {sourceLine(e)} {SETTING_APPLY[e.apply] ?? ''}
-              {#if e.apply === 'restart' && e.value !== undefined}{nextStartLine(e.value)}{/if}
+              {sourceLine(e)} {applyLine(e)}
             </p>
           </div>
           <form

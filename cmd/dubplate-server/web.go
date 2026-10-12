@@ -78,7 +78,7 @@ const notConfigured = "none"
 // a large file refuses startup rather than loading it into memory.
 const operatorCSSMaxBytes = 256 << 10
 
-// The build tree's three document paths, relative to the embedded
+// The build tree's four document paths, relative to the embedded
 // build root.
 const (
 	loginDocumentName          = "login.html"

@@ -251,7 +251,15 @@ export const SETTINGS_INTRO =
 
 /** The settings page's two sections. */
 export const SETTINGS_EDITABLE_HEADING = 'Settings you can change';
-export const SETTINGS_ENVIRONMENT_HEADING = 'Set in the environment file';
+export const SETTINGS_ENVIRONMENT_HEADING = 'Changed only in the environment file';
+
+/**
+ * What a refused value says on the settings page: the server answers
+ * `invalid_request` with no detail for a value that does not parse, falls
+ * outside its bounds, or breaks a rule between settings, and reloading
+ * the page cannot help.
+ */
+export const SETTING_INVALID_VALUE = 'That value isn’t one this setting takes. Check its description and try again.';
 
 /** The settings page's per-key controls. */
 export const SETTING_SAVE = 'Save';
@@ -278,7 +286,7 @@ export const SETTING_SOURCES: Record<string, string> = {
 };
 
 /** A key only the environment file sets, with no value shown. */
-export const ENVIRONMENT_ONLY_LINE = 'Set in the server’s environment file. Change it there and restart the server.';
+export const ENVIRONMENT_ONLY_LINE = 'Only the server’s environment file sets this. Change it there and restart the server.';
 
 /** A key whose value the environment file sets, so it cannot be edited or reset here. */
 export function environmentValueLine(value: string): string {
@@ -305,7 +313,7 @@ export function saveSettingLabel(key: string): string {
 }
 
 export function resetSettingLabel(key: string): string {
-  return `Reset ${key}`;
+  return `Reset to default: ${key}`;
 }
 
 /** The roster list's empty state (no members yet). */

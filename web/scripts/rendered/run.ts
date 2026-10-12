@@ -47,6 +47,7 @@ import {
   SENT_ESCAPE_HATCH,
   SERVER_SETTINGS_LINK,
   SETTING_APPLY,
+  SETTING_INVALID_VALUE,
   SETTING_MARKS,
   SIGN_OUT_CONTROL,
   SIGNED_OUT_SIGN_IN,
@@ -4721,11 +4722,17 @@ async function settingsRestartValueRow(browser: Browser, endpoints: Endpoints, s
   const context = await browser.newContext();
   try {
     let marked: ListedSetting | undefined;
+    let other: ListedSetting | undefined;
     await context.route('**/api/v1/list_settings', async (route) => {
       const response = await route.fetch();
       const body = (await response.json()) as { settings: ListedSetting[] };
-      marked = body.settings.find((e) => e.home === 'store' && e.source !== 'environment' && e.value !== undefined);
-      if (marked !== undefined) marked.apply = 'restart';
+      const editable = body.settings.filter((e) => e.home === 'store' && e.source !== 'environment' && e.value !== undefined);
+      marked = editable[0];
+      other = editable[1];
+      if (marked !== undefined) {
+        marked.apply = 'restart';
+        marked.source = 'admin';
+      }
       await route.fulfill({ response, json: body });
     });
     const visit = await openSettings(context, endpoints, session);
@@ -4733,13 +4740,21 @@ async function settingsRestartValueRow(browser: Browser, endpoints: Endpoints, s
       await report({ id, fixture: false, property: false, detail: 'no editable key to mark restart-applied' });
       return;
     }
-    const row = visit.page.locator('#settings-editable > li').filter({ has: visit.page.getByText(marked.name, { exact: true }) });
-    const text = squash((await row.textContent()) ?? '');
+    const rowOf = (name: string) =>
+      visit.page.locator('#settings-editable > li').filter({ has: visit.page.getByText(name, { exact: true }) });
+    const text = squash((await rowOf(marked.name).textContent()) ?? '');
+    // A key that does not apply at a restart names no next-start value.
+    const otherText = other === undefined ? '' : squash((await rowOf(other.name).textContent()) ?? '');
+    const otherValue = other?.value ?? '';
     await report({
       id,
-      fixture: true,
-      property: text.includes(nextStartLine(marked.value)) && text.includes(SETTING_APPLY.restart),
-      detail: `key ${marked.name} value ${JSON.stringify(marked.value)}; row text ${JSON.stringify(text)}`
+      fixture: other !== undefined && otherText !== '',
+      property:
+        text.includes(nextStartLine(marked.value)) &&
+        !text.includes(SETTING_APPLY.restart) &&
+        otherText.includes(SETTING_APPLY[other?.apply ?? '']) &&
+        !otherText.includes(nextStartLine(otherValue)),
+      detail: `key ${marked.name} value ${JSON.stringify(marked.value)}; row text ${JSON.stringify(text)}; another key ${other?.name} row text ${JSON.stringify(otherText)}`
     });
   } finally {
     await context.close();
@@ -4796,6 +4811,45 @@ async function settingsEnvironmentSetRow(browser: Browser, endpoints: Endpoints,
       fixture: listed?.source === 'environment' && value !== undefined,
       property: inEnvironment && value !== undefined && text.includes(environmentValueLine(value)) && fields === 0 && controls === 0,
       detail: `listed ${JSON.stringify(listed)}; in the environment section ${inEnvironment}; row text ${JSON.stringify(text)}; fields ${fields}; controls ${controls}`
+    });
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * `settings/invalid-value`: a value the server cannot take, written
+ * through the real API, answers `invalid_request` with no detail; the
+ * page words that as a refused value, not as a page to reload, marks
+ * the field invalid and points its description at the alert, and
+ * stores nothing. Nothing is intercepted.
+ */
+async function settingsInvalidValueRow(browser: Browser, endpoints: Endpoints, session: Cookie): Promise<void> {
+  const id = 'settings/invalid-value';
+  const key = 'DUBPLATE_REAUTH_WINDOW';
+  const context = await browser.newContext();
+  try {
+    const visit = await openSettings(context, endpoints, session);
+    // The deliberate refusal is a 400.
+    visit.expectsAuthErrorStatus = true;
+    const field = visit.page.locator(`#setting-${key}`);
+    await field.fill('not a duration');
+    await visit.page.getByRole('button', { name: saveSettingLabel(key), exact: true }).click();
+    const shown = await visit.page
+      .locator('#settings-outcome')
+      .filter({ hasText: SETTING_INVALID_VALUE })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
+    const reloadAdvice = (await visit.page.getByText(API_REFUSALS.invalid_request).count()) > 0;
+    const invalid = await field.getAttribute('aria-invalid');
+    const describedBy = await field.getAttribute('aria-describedby');
+    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.name === key);
+    await report({
+      id,
+      fixture: shown,
+      property: !reloadAdvice && invalid === 'true' && describedBy === 'settings-outcome' && listed?.source === 'default',
+      detail: `refused-value line shown ${shown}; reload advice shown ${reloadAdvice}; aria-invalid ${JSON.stringify(invalid)} aria-describedby ${JSON.stringify(describedBy)}; stored source after ${JSON.stringify(listed?.source)} (want default)`
     });
   } finally {
     await context.close();
@@ -6094,6 +6148,7 @@ async function main(): Promise<void> {
     await settingsRestartValueRow(browser, endpoints, headerSession);
     await settingsFromMembersRow(browser, endpoints, headerSession);
     await settingsEnvironmentSetRow(browser, endpoints, headerSession);
+    await settingsInvalidValueRow(browser, endpoints, headerSession);
     await settingsReauthenticateWriteRow(browser, endpoints, headerSession);
     await signOutInFlightRow(browser, endpoints, headerSession);
     await signOutRows(browser, endpoints, headerSession);
