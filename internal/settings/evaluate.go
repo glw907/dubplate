@@ -263,7 +263,7 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 	}
 	if stored != nil {
 		if _, err := parse(s.Kind, stored.Value); err != nil {
-			errs = append(errs, fmt.Errorf("stored %s value refused: %w", stored.Source, unparseable{text: cmp.Or(s.Validate(stored.Value), err).Error(), err: err}))
+			errs = append(errs, resetHint(fmt.Errorf("stored %s value refused: %w", stored.Source, unparseable{text: cmp.Or(s.Validate(stored.Value), err).Error(), err: err}), s.Key, stored))
 		}
 		if stored.Source != sourceEnvSeed && stored.Source != sourceAdmin {
 			errs = append(errs, fmt.Errorf("%s: stored row has unknown source %q", s.Key, stored.Source))
@@ -291,8 +291,8 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 		o.Value, o.Change = o.Env, Reseed
 		o.Report = fmt.Sprintf("re-seeds from %s to %s from the environment", strconv.Quote(stored.Value), strconv.Quote(o.Env))
 	case o.EnvSet && !equal(s.Kind, o.Env, stored.Value):
-		errs = append(errs, fmt.Errorf("%s: the environment seeds %s but an administrator set %s; unset %s, or set it to %s",
-			s.Key, strconv.Quote(o.Env), strconv.Quote(stored.Value), s.Key, strconv.Quote(stored.Value)))
+		errs = append(errs, fmt.Errorf("%s: the environment seeds %s but an administrator set %s; unset %s, or set it to %s, or clear the administrator's value with %s unset by running dubplate-server settings reset %s",
+			s.Key, strconv.Quote(o.Env), strconv.Quote(stored.Value), s.Key, strconv.Quote(stored.Value), s.Key, s.Key))
 	default:
 		o.Value = stored.Value
 		o.Report = fmt.Sprintf("the administrator's value %s is in force", strconv.Quote(stored.Value))
@@ -304,13 +304,24 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 	// default at registration.
 	if stored != nil && o.Change == Unchanged {
 		if err := s.Validate(stored.Value); err != nil {
-			errs = append(errs, fmt.Errorf("stored %s value refused: %w", stored.Source, err))
+			errs = append(errs, resetHint(fmt.Errorf("stored %s value refused: %w", stored.Source, err), s.Key, stored))
 		}
 	}
 	if len(errs) > 0 {
 		return o.refuse(errors.Join(errs...))
 	}
 	return o
+}
+
+// resetHint appends to err, a refusal of stored's value, the verb that
+// clears it when stored is an administrator's row. An env-seed row
+// takes no hint: a reset leaves it in place, and the environment heals
+// it at the next seed.
+func resetHint(err error, key string, stored *Row) error {
+	if stored.Source != sourceAdmin {
+		return err
+	}
+	return fmt.Errorf("%w; clear the administrator's value with: dubplate-server settings reset %s", err, key)
 }
 
 // unparseable is a stored value's refusal: the setting's own text for

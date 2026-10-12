@@ -220,7 +220,7 @@ func localSnapshotKeep(report store.Report, environ []string, reg *config.Regist
 
 	ev := settings.EvaluateFacts(reg, environ, facts)
 	if report.State == store.StateOlder && ev.Err != nil {
-		return 0, ev.Err
+		return 0, olderStoreRefusal(ev)
 	}
 	for _, o := range ev.Outcomes {
 		if o.Key != setting.Key || o.Stored == nil {
@@ -235,6 +235,25 @@ func localSnapshotKeep(report store.Report, environ []string, reg *config.Regist
 		return strconv.Atoi(o.Value)
 	}
 	return keep, nil
+}
+
+// olderStoreRefusal is ev's refusal of an older store. This binary
+// cannot write an older store, so settings reset cannot clear an
+// administrator's row it refuses over; when any refusing key holds
+// one, the error names the recovery that can: the previous release's
+// own settings reset, then the upgrade.
+func olderStoreRefusal(ev settings.Evaluation) error {
+	var keys []string
+	for _, o := range ev.Outcomes {
+		if o.Err != nil && o.Stored != nil && o.Stored.Source == settings.SourceAdmin {
+			keys = append(keys, o.Key)
+		}
+	}
+	if len(keys) == 0 {
+		return ev.Err
+	}
+	return fmt.Errorf("%w; this store is older than this binary, which cannot write it: redeploy the previous release, run its settings reset for %s, then upgrade",
+		ev.Err, strings.Join(keys, ", "))
 }
 
 // storeRow resolves the store's state from environ and renders it as

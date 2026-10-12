@@ -130,6 +130,7 @@ func newRootCmd() *cobra.Command {
 		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		newSettingsCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newRestoreCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newUnidecodeCmd(os.Environ(), os.Stdout, os.Stderr),

@@ -398,7 +398,7 @@ func TestConfigLoad_MagicLinkValidationJoinsOtherErrors(t *testing.T) {
 const rosterSupersessionMessage = "DUBPLATE_ROSTER_FILE: superseded: members live in the store; " +
 	"add the first admin with dubplate-server member add ADDRESS --admin"
 
-// TestRosterFileKey_Superseded runs the seven verbs that load the wall
+// TestRosterFileKey_Superseded runs the ten verbs that load the wall
 // with the retired key set to a real, valid roster file, and asserts
 // each fails the load with the supersession message: a check that
 // refused only a missing file would let the fixture through. The
@@ -419,7 +419,10 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		{"doctor", []string{"doctor"}, newDoctorCmd},
 		{"serve", []string{"serve"}, newServeCmd},
 		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, newMemberCmd},
+		{"member remove", []string{"member", "remove", "a@example.test"}, newMemberCmd},
+		{"member demote", []string{"member", "demote", "a@example.test"}, newMemberCmd},
 		{"member list", []string{"member", "list"}, newMemberCmd},
+		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}, newSettingsCmd},
 		{"backup", []string{"backup"}, newBackupCmd},
 		{"restore", []string{"restore", "--snapshot", "latest"}, newRestoreCmd},
 	}
@@ -481,8 +484,8 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		walk(newRootCmd())
 		slices.Sort(leaves)
 
-		want := []string{"backup", "check", "doctor", "member add", "member list", "restore", "serve",
-			"unidecode install", "version"}
+		want := []string{"backup", "check", "doctor", "member add", "member demote", "member list", "member remove",
+			"restore", "serve", "settings reset", "unidecode install", "version"}
 		if !slices.Equal(leaves, want) {
 			t.Errorf("leaf verbs = %q, want %q: classify a new verb as a wall loader (add it to verbs) or a non-loader", leaves, want)
 		}
