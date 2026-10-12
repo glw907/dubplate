@@ -22,10 +22,12 @@ import (
 // snapshot or a migration holding the lock, short enough that a stuck
 // writer surfaces as a doctor failure rather than a hang.
 var storeBusyTimeoutThreshold = config.Threshold{
-	Key:     "DUBPLATE_STORE_BUSY_TIMEOUT",
-	Kind:    config.KindDuration,
-	Default: "15s",
-	Doc:     "a Go duration string, for example 15s",
+	Key:         "DUBPLATE_STORE_BUSY_TIMEOUT",
+	Kind:        config.KindDuration,
+	Default:     "15s",
+	Doc:         "a Go duration string, for example 15s",
+	Description: "how long a read waits on another process's write lock",
+	Mark:        config.NotSensitive,
 }
 
 // storeBusyTimeoutFloorMS and storeBusyTimeoutCeilingMS bound
@@ -58,10 +60,12 @@ var (
 // snapshot copy a group-scale store takes and is far shorter than a
 // first sync; the unit's restart policy retries a start that gave up.
 var storeMigrationWaitThreshold = config.Threshold{
-	Key:     "DUBPLATE_STORE_MIGRATION_WAIT",
-	Kind:    config.KindDuration,
-	Default: "5m",
-	Doc:     "a Go duration string, for example 5m",
+	Key:         "DUBPLATE_STORE_MIGRATION_WAIT",
+	Kind:        config.KindDuration,
+	Default:     "5m",
+	Doc:         "a Go duration string, for example 5m",
+	Description: "how long a start waits for the store lock before it gives up",
+	Mark:        config.NotSensitive,
 }
 
 // storeMigrationWaitFloor and storeMigrationWaitCeiling bound
@@ -76,13 +80,15 @@ const (
 // Its default, 2160h (90 days), carries unchanged the value
 // ops/local's retired retention constant held.
 var jobRetentionSetting = config.Setting{
-	Key:     "DUBPLATE_JOB_RETENTION",
-	Kind:    config.KindDuration,
-	Default: "2160h",
-	Doc:     "a Go duration string, for example 2160h",
-	Apply:   config.ApplyNextOperation,
-	Floor:   "24h",
-	Ceiling: "87600h",
+	Key:         "DUBPLATE_JOB_RETENTION",
+	Kind:        config.KindDuration,
+	Default:     "2160h",
+	Doc:         "a Go duration string, for example 2160h",
+	Apply:       config.ApplyNextOperation,
+	Floor:       "24h",
+	Ceiling:     "87600h",
+	Description: "how long a finished job record is kept",
+	Mark:        config.NotSensitive,
 }
 
 // storeLocalSnapshotKeepSetting is DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP:
@@ -92,13 +98,15 @@ var jobRetentionSetting = config.Setting{
 // copies cover a bad upgrade found a release late, each a full store
 // whose size doctor already shows. doctor is its first reader.
 var storeLocalSnapshotKeepSetting = config.Setting{
-	Key:     "DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP",
-	Kind:    config.KindInt,
-	Default: "3",
-	Doc:     "an integer count of local snapshot copies to keep, for example 3",
-	Apply:   config.ApplyNextOperation,
-	Floor:   "1",
-	Ceiling: "100",
+	Key:         "DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP",
+	Kind:        config.KindInt,
+	Default:     "3",
+	Doc:         "an integer count of local snapshot copies to keep, for example 3",
+	Apply:       config.ApplyNextOperation,
+	Floor:       "1",
+	Ceiling:     "100",
+	Description: "how many local pre-migration snapshot copies the server keeps",
+	Mark:        config.NotSensitive,
 }
 
 // registerStoreConfig registers the store's own thresholds and
@@ -454,7 +462,7 @@ func settingsNotCheckedStatus(environ []string, s config.Setting, state store.St
 // setting's value: the value's source, s's apply mode, and the
 // sensitive mark when s carries it.
 func settingTraits(s config.Setting, source string) string {
-	if s.Sensitive {
+	if s.Mark == config.Sensitive {
 		return fmt.Sprintf("(source %s, %s, sensitive)", source, s.Apply)
 	}
 	return fmt.Sprintf("(source %s, %s)", source, s.Apply)

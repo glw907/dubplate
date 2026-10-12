@@ -260,13 +260,13 @@ func isBidiControl(r rune) bool {
 // because a typo silently disabling an integration is the failure this
 // class exists to prevent.
 func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
-	v, ok := w.get(class.Flag)
+	v, ok := w.get(class.Flag.Name)
 	if !ok {
 		return false, nil
 	}
 	enabled, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, fmt.Errorf("%s: invalid value %q, want a boolean", class.Flag, v)
+		return false, fmt.Errorf("%s: invalid value %q, want a boolean", class.Flag.Name, v)
 	}
 	return enabled, nil
 }
@@ -294,14 +294,14 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			// itself. Load already reports an unparseable flag value;
 			// reporting it again here would emit two errors for one
 			// typo, one of them self-contradictory.
-			if name == class.Flag {
+			if name == class.Flag.Name {
 				continue
 			}
 			// An unparseable flag is set, and Load reports it on its
 			// own; only a flag that resolves false leaves the key set
 			// without it.
 			if enabled, err := w.integrationEnabled(class); err == nil && !enabled {
-				w.errs = append(w.errs, fmt.Errorf("%s: set without %s, the %s integration's enable flag", name, class.Flag, class.Name))
+				w.errs = append(w.errs, fmt.Errorf("%s: set without %s, the %s integration's enable flag", name, class.Flag.Name, class.Name))
 			}
 			continue
 		}
@@ -361,14 +361,14 @@ func (w *wall) resolveIdentitySource(sources []IdentitySource, environ []string)
 
 	src := sources[i]
 	values := make(map[string]string, len(src.Required)+len(src.Optional))
-	for _, key := range src.Required {
-		if v := w.require(key); v != "" {
-			values[key] = v
+	for _, decl := range src.Required {
+		if v := w.require(decl.Name); v != "" {
+			values[decl.Name] = v
 		}
 	}
-	for _, key := range src.Optional {
-		if v, ok := w.get(key); ok {
-			values[key] = v
+	for _, decl := range src.Optional {
+		if v, ok := w.get(decl.Name); ok {
+			values[decl.Name] = v
 		}
 	}
 	if src.Validate != nil {
@@ -427,8 +427,8 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 		resolution := integrationResolution{Enabled: enabled}
 		if enabled {
 			resolution.Required = make(map[string]string, len(class.Required))
-			for _, key := range class.Required {
-				resolution.Required[key] = w.require(key)
+			for _, decl := range class.Required {
+				resolution.Required[decl.Name] = w.require(decl.Name)
 			}
 		}
 		cfg.integrations[class.Name] = resolution

@@ -70,20 +70,24 @@ const (
 // validates it in the package that binds, keeping the address grammar
 // with the code that uses it.
 var serveBindAddrsThreshold = config.Threshold{
-	Key:     "DUBPLATE_SERVE_BIND_ADDRS",
-	Kind:    config.KindString,
-	Default: "127.0.0.1",
-	Doc:     "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
+	Key:         "DUBPLATE_SERVE_BIND_ADDRS",
+	Kind:        config.KindString,
+	Default:     "127.0.0.1",
+	Doc:         "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
+	Description: "the addresses the server listens on, comma-separated",
+	Mark:        config.Sensitive,
 }
 
 // servePortThreshold is the TCP port the serve verb binds on every
 // configured address. Its default, 8080, is the salvage configuration's
 // own default (_salvage/internal/config/config_test.go:44-45).
 var servePortThreshold = config.Threshold{
-	Key:     "DUBPLATE_SERVE_PORT",
-	Kind:    config.KindInt,
-	Default: "8080",
-	Doc:     "an integer TCP port from 1024 through 65535",
+	Key:         "DUBPLATE_SERVE_PORT",
+	Kind:        config.KindInt,
+	Default:     "8080",
+	Doc:         "an integer TCP port from 1024 through 65535",
+	Description: "the TCP port the server listens on",
+	Mark:        config.Sensitive,
 }
 
 // servePortFloor and servePortCeiling bound DUBPLATE_SERVE_PORT. The
@@ -142,10 +146,12 @@ func checkDirWritable(dir string) error {
 // 404. Its default, /dubplate, is one segment so the segment-aware
 // match has a boundary to find, and carries no estate value.
 var servePrefixThreshold = config.Threshold{
-	Key:     "DUBPLATE_SERVE_PREFIX",
-	Kind:    config.KindString,
-	Default: "/dubplate",
-	Doc:     "a single path segment beginning with a separator, for example /dubplate",
+	Key:         "DUBPLATE_SERVE_PREFIX",
+	Kind:        config.KindString,
+	Default:     "/dubplate",
+	Doc:         "a single path segment beginning with a separator, for example /dubplate",
+	Description: "the single path segment every page lives under",
+	Mark:        config.Sensitive,
 }
 
 // registerServeConfig adds the serve shell's three thresholds to reg,

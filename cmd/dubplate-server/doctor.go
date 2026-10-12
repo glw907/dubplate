@@ -187,7 +187,7 @@ func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []str
 		claimed[th.Key] = true
 	}
 	for _, src := range reg.IdentitySources() {
-		for _, key := range slices.Concat([]string{src.Selector}, src.Required, src.Optional) {
+		for _, key := range slices.Concat([]string{src.Selector}, config.KeyNames(src.Required), config.KeyNames(src.Optional)) {
 			claimed[key] = true
 		}
 	}
@@ -487,7 +487,7 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 	}
 
 	values := identitySourceValues(environ, src)
-	for _, key := range slices.Concat(src.Required, src.Optional) {
+	for _, key := range config.KeyNames(slices.Concat(src.Required, src.Optional)) {
 		if status := statuses[key]; status != "" {
 			fail(key, sourceKeyWord(status, values[key]))
 		}
@@ -544,12 +544,12 @@ func sourceKeyWord(status, value string) string {
 // map rather than recorded as an empty string.
 func identitySourceValues(environ []string, src config.IdentitySource) map[string]string {
 	values := make(map[string]string, len(src.Required)+len(src.Optional))
-	for _, key := range src.Required {
+	for _, key := range config.KeyNames(src.Required) {
 		if v, ok := lookupEnviron(environ, key); ok {
 			values[key] = v
 		}
 	}
-	for _, key := range src.Optional {
+	for _, key := range config.KeyNames(src.Optional) {
 		if v, ok := lookupEnviron(environ, key); ok {
 			values[key] = v
 		}

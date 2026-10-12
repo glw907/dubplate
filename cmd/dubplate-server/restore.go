@@ -160,7 +160,7 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	var remote string
 	if f.snapshot != "" {
 		if !cfg.IntegrationEnabled(backupIntegrationClass.Name) {
-			return fmt.Errorf("restore --snapshot: backup integration is disabled (%s): a snapshot restore reads the backup remote", backupIntegrationClass.Flag)
+			return fmt.Errorf("restore --snapshot: backup integration is disabled (%s): a snapshot restore reads the backup remote", backupIntegrationClass.Flag.Name)
 		}
 		remote = cfg.IntegrationValue(backupIntegrationClass.Name, "DUBPLATE_BACKUP_REMOTE")
 	}

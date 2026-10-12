@@ -96,7 +96,7 @@ func classifyKey(reg *config.Registry, name string) string {
 		return "superseded"
 	}
 	for _, class := range reg.IntegrationClasses() {
-		if name == class.Flag || slices.Contains(class.Required, name) {
+		if name == class.Flag.Name || slices.Contains(config.KeyNames(class.Required), name) {
 			return "integration class"
 		}
 	}
@@ -106,7 +106,7 @@ func classifyKey(reg *config.Registry, name string) string {
 		}
 	}
 	for _, src := range reg.IdentitySources() {
-		if name == src.Selector || slices.Contains(src.Required, name) || slices.Contains(src.Optional, name) {
+		if name == src.Selector || slices.Contains(config.KeyNames(src.Required), name) || slices.Contains(config.KeyNames(src.Optional), name) {
 			return "identity source"
 		}
 	}

@@ -42,11 +42,15 @@ func (k ThresholdKind) String() string {
 // default value in string form, and, in Doc, the accepted form a
 // caller reports on a parse error. Rungs register thresholds as they
 // introduce them; doctor reports each with its effective value.
+// Description says what the key controls and Mark whether a change to
+// it needs care; every registered key carries both.
 type Threshold struct {
-	Key     string
-	Kind    ThresholdKind
-	Default string
-	Doc     string
+	Key         string
+	Kind        ThresholdKind
+	Default     string
+	Doc         string
+	Description string
+	Mark        Sensitivity
 }
 
 // parseThreshold resolves t against environ through parse: t.Default's

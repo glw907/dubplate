@@ -621,10 +621,12 @@ var (
 	settingsDoctorRowsTestSetting = config.Setting{
 		Key: "DUBPLATE_TEST_SETTING", Kind: config.KindInt, Default: "10",
 		Doc: "an integer", Apply: config.ApplyNextOperation, Floor: "3", Ceiling: "100",
+		Description: testDescription, Mark: config.NotSensitive,
 	}
 	settingsDoctorRowsSensitive = config.Setting{
 		Key: "DUBPLATE_TEST_SECRET", Kind: config.KindInt, Default: "0",
-		Doc: "an integer", Apply: config.ApplyImmediately, Floor: "0", Ceiling: "100", Sensitive: true,
+		Doc: "an integer", Apply: config.ApplyImmediately, Floor: "0", Ceiling: "100",
+		Description: testDescription, Mark: config.Sensitive,
 	}
 )
 

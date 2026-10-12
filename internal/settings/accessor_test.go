@@ -132,6 +132,7 @@ func TestAccessor_MissingGeneration(t *testing.T) {
 var guard = config.Setting{
 	Key: "DUBPLATE_TEST_GUARD", Kind: config.KindFloat, Default: "0.5", Doc: "a fraction",
 	Apply: config.ApplyNextOperation, Floor: "0.25", Ceiling: "1",
+	Description: testDescription, Mark: config.NotSensitive,
 }
 
 // TestAccessor_TypedReads reads each kind through its own method and

@@ -30,7 +30,7 @@ func TestRegisterAuthConfig_SelectorIsOwnedNow(t *testing.T) {
 	reg := config.NewRegistry()
 	registerAuthConfig(reg)
 
-	if !slices.Contains(reg.OwnedWall(), config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}) {
+	if !slices.ContainsFunc(reg.OwnedWall(), func(row config.WallRow) bool { return row.Name == "DUBPLATE_IDENTITY_SOURCE" }) {
 		t.Fatal("OwnedWall() has no DUBPLATE_IDENTITY_SOURCE row")
 	}
 }
@@ -66,7 +66,7 @@ func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
 		"DUBPLATE_SMTP_PASSWORD",
 		"DUBPLATE_SMTP_FROM",
 	}
-	if !slices.Equal(src.Required, wantRequired) {
+	if !slices.Equal(config.KeyNames(src.Required), wantRequired) {
 		t.Errorf("Required = %v, want %v", src.Required, wantRequired)
 	}
 
@@ -74,7 +74,7 @@ func TestRegisterAuthConfig_MagicLinkSource(t *testing.T) {
 		"DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS",
 		"DUBPLATE_SESSION_SECRET_PREVIOUS",
 	}
-	if !slices.Equal(src.Optional, wantOptional) {
+	if !slices.Equal(config.KeyNames(src.Optional), wantOptional) {
 		t.Errorf("Optional = %v, want %v", src.Optional, wantOptional)
 	}
 }
@@ -530,9 +530,9 @@ func TestRegisterAuthConfig_Settings(t *testing.T) {
 				}
 				s := settingsList[i]
 				if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling ||
-					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || s.Sensitive != tt.sensitive {
+					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || (s.Mark == config.Sensitive) != tt.sensitive {
 					t.Errorf("setting = kind %v default %q floor %q ceiling %q values %q apply %v sensitive %v, want %v %q %q %q %q %v %v",
-						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Sensitive,
+						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Mark == config.Sensitive,
 						tt.kind, tt.def, tt.floor, tt.ceiling, tt.values, tt.apply, tt.sensitive)
 				}
 				if slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool { return th.Key == tt.key }) {

@@ -32,9 +32,13 @@ import (
 var backupIntegrationClass = config.IntegrationClass{
 	Name: "backup",
 	Rung: 6,
-	Flag: "DUBPLATE_BACKUP_ENABLED",
-	Required: []string{
-		"DUBPLATE_BACKUP_REMOTE",
+	Flag: config.KeyDecl{
+		Name:        "DUBPLATE_BACKUP_ENABLED",
+		Description: "turns on backups to the remote",
+		Mark:        config.Sensitive,
+	},
+	Required: []config.KeyDecl{
+		{Name: "DUBPLATE_BACKUP_REMOTE", Description: "the rclone destination a backup syncs to", Mark: config.Sensitive},
 	},
 }
 
@@ -45,13 +49,15 @@ var backupIntegrationClass = config.IntegrationClass{
 // floor is the protective minimum against a value that would turn the
 // short-tree guard off by accident.
 var backupGuardFractionSetting = config.Setting{
-	Key:     "DUBPLATE_BACKUP_GUARD_FRACTION",
-	Kind:    config.KindFloat,
-	Default: "0.5",
-	Doc:     "a decimal fraction from 0.25 to 1, for example 0.5",
-	Apply:   config.ApplyNextOperation,
-	Floor:   "0.25",
-	Ceiling: "1",
+	Key:         "DUBPLATE_BACKUP_GUARD_FRACTION",
+	Kind:        config.KindFloat,
+	Default:     "0.5",
+	Doc:         "a decimal fraction from 0.25 to 1, for example 0.5",
+	Apply:       config.ApplyNextOperation,
+	Floor:       "0.25",
+	Ceiling:     "1",
+	Description: "the share of the catalog's tracks the library tree must hold as files before a backup sync runs",
+	Mark:        config.NotSensitive,
 }
 
 // backupSnapshotKeepSetting is DUBPLATE_BACKUP_SNAPSHOT_KEEP: how many
@@ -61,13 +67,15 @@ var backupGuardFractionSetting = config.Setting{
 // against a keep that would let one run delete every other
 // pre-upgrade remote snapshot.
 var backupSnapshotKeepSetting = config.Setting{
-	Key:     "DUBPLATE_BACKUP_SNAPSHOT_KEEP",
-	Kind:    config.KindInt,
-	Default: "14",
-	Doc:     "an integer count of remote snapshots to keep, for example 14",
-	Apply:   config.ApplyNextOperation,
-	Floor:   "3",
-	Ceiling: "1000",
+	Key:         "DUBPLATE_BACKUP_SNAPSHOT_KEEP",
+	Kind:        config.KindInt,
+	Default:     "14",
+	Doc:         "an integer count of remote snapshots to keep, for example 14",
+	Apply:       config.ApplyNextOperation,
+	Floor:       "3",
+	Ceiling:     "1000",
+	Description: "how many remote snapshots a backup keeps in total",
+	Mark:        config.NotSensitive,
 }
 
 // backupArchiveRetentionSetting is DUBPLATE_BACKUP_ARCHIVE_RETENTION:
@@ -77,13 +85,15 @@ var backupSnapshotKeepSetting = config.Setting{
 // minimum against a retention that would purge within a day the files
 // a bad sync moved into archive/.
 var backupArchiveRetentionSetting = config.Setting{
-	Key:     "DUBPLATE_BACKUP_ARCHIVE_RETENTION",
-	Kind:    config.KindDuration,
-	Default: "2160h",
-	Doc:     "a Go duration string, for example 2160h",
-	Apply:   config.ApplyNextOperation,
-	Floor:   "168h",
-	Ceiling: "87600h",
+	Key:         "DUBPLATE_BACKUP_ARCHIVE_RETENTION",
+	Kind:        config.KindDuration,
+	Default:     "2160h",
+	Doc:         "a Go duration string, for example 2160h",
+	Apply:       config.ApplyNextOperation,
+	Floor:       "168h",
+	Ceiling:     "87600h",
+	Description: "how long a backup keeps an archived directory after moving it aside",
+	Mark:        config.NotSensitive,
 }
 
 // registerBackupConfig adds backupIntegrationClass and the three

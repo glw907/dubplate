@@ -19,7 +19,11 @@ import (
 // identitySourceSelectorRow declares DUBPLATE_IDENTITY_SOURCE as an
 // owned wall row: the selector is required, alongside
 // [magicLinkSource] itself.
-var identitySourceSelectorRow = config.WallRow{Name: "DUBPLATE_IDENTITY_SOURCE"}
+var identitySourceSelectorRow = config.WallRow{
+	Name:        "DUBPLATE_IDENTITY_SOURCE",
+	Description: "the name of the identity source that signs members in",
+	Mark:        config.Sensitive,
+}
 
 // The magic-link identity source's key names: [magicLinkSource]
 // declares them, its Validate hook checks them, and serve reads them
@@ -66,19 +70,19 @@ var secretKeys = []string{magicLinkSecretKey, sessionSecretKey, magicLinkSecretP
 var magicLinkSource = config.IdentitySource{
 	Name:     "magic-link",
 	Selector: identitySourceSelectorRow.Name,
-	Required: []string{
-		magicLinkSecretKey,
-		sessionSecretKey,
-		publicURLKey,
-		smtpHostKey,
-		smtpPortKey,
-		smtpUserKey,
-		smtpPasswordKey,
-		smtpFromKey,
+	Required: []config.KeyDecl{
+		{Name: magicLinkSecretKey, Description: "the secret that signs sign-in links, at least 32 bytes", Mark: config.Sensitive},
+		{Name: sessionSecretKey, Description: "the secret that signs session cookies, at least 32 bytes", Mark: config.Sensitive},
+		{Name: publicURLKey, Description: "the address members reach the server at, used in sign-in links", Mark: config.Sensitive},
+		{Name: smtpHostKey, Description: "the mail server the server sends sign-in links through", Mark: config.Sensitive},
+		{Name: smtpPortKey, Description: "the port of that mail server", Mark: config.Sensitive},
+		{Name: smtpUserKey, Description: "the user name the server signs in to the mail server with", Mark: config.Sensitive},
+		{Name: smtpPasswordKey, Description: "the password the server signs in to the mail server with", Mark: config.Sensitive},
+		{Name: smtpFromKey, Description: "the sender address on the mail the server sends", Mark: config.Sensitive},
 	},
-	Optional: []string{
-		magicLinkSecretPreviousKey,
-		sessionSecretPreviousKey,
+	Optional: []config.KeyDecl{
+		{Name: magicLinkSecretPreviousKey, Description: "the previous link-signing secret, kept so links minted before a rotation still verify", Mark: config.Sensitive},
+		{Name: sessionSecretPreviousKey, Description: "the previous session-signing secret, kept so sessions minted before a rotation still verify", Mark: config.Sensitive},
 	},
 	Validate: validateMagicLinkSource,
 }
@@ -124,43 +128,48 @@ const magicLinkExpiryCeiling = time.Hour
 // or how long a mailed link stays redeemable.
 var (
 	magicLinkExpirySetting = config.Setting{
-		Key:       "DUBPLATE_MAGIC_LINK_EXPIRY",
-		Kind:      config.KindDuration,
-		Default:   "15m",
-		Doc:       "a Go duration string, for example 15m",
-		Apply:     config.ApplyNextOperation,
-		Floor:     "1m",
-		Ceiling:   magicLinkExpiryCeiling.String(),
-		Sensitive: true,
+		Key:         "DUBPLATE_MAGIC_LINK_EXPIRY",
+		Kind:        config.KindDuration,
+		Default:     "15m",
+		Doc:         "a Go duration string, for example 15m",
+		Apply:       config.ApplyNextOperation,
+		Floor:       "1m",
+		Ceiling:     magicLinkExpiryCeiling.String(),
+		Description: "how long a mailed sign-in link stays redeemable",
+		Mark:        config.Sensitive,
 	}
 	sessionLifetimeSetting = config.Setting{
-		Key:       "DUBPLATE_SESSION_LIFETIME",
-		Kind:      config.KindDuration,
-		Default:   "2160h",
-		Doc:       "a Go duration string, for example 2160h (90 days)",
-		Apply:     config.ApplyNextOperation,
-		Floor:     "1s",
-		Ceiling:   "17520h",
-		Sensitive: true,
+		Key:         "DUBPLATE_SESSION_LIFETIME",
+		Kind:        config.KindDuration,
+		Default:     "2160h",
+		Doc:         "a Go duration string, for example 2160h (90 days)",
+		Apply:       config.ApplyNextOperation,
+		Floor:       "1s",
+		Ceiling:     "17520h",
+		Description: "how long a session stays valid before the member signs in again, unless it is refreshed",
+		Mark:        config.Sensitive,
 	}
 	sessionAbsoluteCapSetting = config.Setting{
-		Key:       "DUBPLATE_SESSION_ABSOLUTE_CAP",
-		Kind:      config.KindDuration,
-		Default:   "4320h",
-		Doc:       "a Go duration string, for example 4320h (180 days)",
-		Apply:     config.ApplyImmediately,
-		Floor:     "1s",
-		Ceiling:   "17520h",
-		Sensitive: true,
+		Key:         "DUBPLATE_SESSION_ABSOLUTE_CAP",
+		Kind:        config.KindDuration,
+		Default:     "4320h",
+		Doc:         "a Go duration string, for example 4320h (180 days)",
+		Apply:       config.ApplyImmediately,
+		Floor:       "1s",
+		Ceiling:     "17520h",
+		Description: "the longest a session can last from its first sign-in, however often it is refreshed",
+		Mark:        config.Sensitive,
 	}
 	nonceRetentionSetting = config.Setting{
-		Key:     "DUBPLATE_NONCE_RETENTION",
-		Kind:    config.KindDuration,
-		Default: "24h",
-		Doc:     "a Go duration string, for example 24h",
-		Apply:   config.ApplyNextOperation,
-		Floor:   "1s",
-		Ceiling: "240h",
+		Key:         "DUBPLATE_NONCE_RETENTION",
+		Kind:        config.KindDuration,
+		Default:     "24h",
+		Doc:         "a Go duration string, for example 24h",
+		Apply:       config.ApplyNextOperation,
+		Floor:       "1s",
+		Ceiling:     "240h",
+		Description: "how long the server remembers a used sign-in link so it cannot be used twice",
+		Mark:        config.NotSensitive,
 	}
 )
 
@@ -173,40 +182,48 @@ var (
 // applies at the next start.
 var (
 	linkRequestsPerAddressSetting = config.Setting{
-		Key:     "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR",
-		Kind:    config.KindInt,
-		Default: "5",
-		Doc:     "a positive integer, for example 5",
-		Apply:   config.ApplyRestart,
-		Floor:   "1",
-		Ceiling: "50",
+		Key:         "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR",
+		Kind:        config.KindInt,
+		Default:     "5",
+		Doc:         "a positive integer, for example 5",
+		Apply:       config.ApplyRestart,
+		Floor:       "1",
+		Ceiling:     "50",
+		Description: "how many sign-in links one address can request in an hour",
+		Mark:        config.NotSensitive,
 	}
 	linkRequestsPerClientSetting = config.Setting{
-		Key:     "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR",
-		Kind:    config.KindInt,
-		Default: "20",
-		Doc:     "a positive integer, for example 20",
-		Apply:   config.ApplyRestart,
-		Floor:   "1",
-		Ceiling: "200",
+		Key:         "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR",
+		Kind:        config.KindInt,
+		Default:     "20",
+		Doc:         "a positive integer, for example 20",
+		Apply:       config.ApplyRestart,
+		Floor:       "1",
+		Ceiling:     "200",
+		Description: "how many sign-in links one client can request in an hour",
+		Mark:        config.NotSensitive,
 	}
 	consumptionAttemptsPerClientSetting = config.Setting{
-		Key:     "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR",
-		Kind:    config.KindInt,
-		Default: "30",
-		Doc:     "a positive integer, for example 30",
-		Apply:   config.ApplyRestart,
-		Floor:   "1",
-		Ceiling: "300",
+		Key:         "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR",
+		Kind:        config.KindInt,
+		Default:     "30",
+		Doc:         "a positive integer, for example 30",
+		Apply:       config.ApplyRestart,
+		Floor:       "1",
+		Ceiling:     "300",
+		Description: "how many sign-in link redemptions one client can attempt in an hour",
+		Mark:        config.NotSensitive,
 	}
 	linkMailCeilingSetting = config.Setting{
-		Key:     "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR",
-		Kind:    config.KindInt,
-		Default: "60",
-		Doc:     "a positive integer, for example 60",
-		Apply:   config.ApplyRestart,
-		Floor:   "1",
-		Ceiling: "600",
+		Key:         "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR",
+		Kind:        config.KindInt,
+		Default:     "60",
+		Doc:         "a positive integer, for example 60",
+		Apply:       config.ApplyRestart,
+		Floor:       "1",
+		Ceiling:     "600",
+		Description: "how many sign-in mails the server sends in an hour, across every address",
+		Mark:        config.NotSensitive,
 	}
 )
 
@@ -224,25 +241,29 @@ const authRequestBodyCapCeiling = 65536
 // 4096-byte default fits the login form's one mailed-address field
 // with room to spare.
 var authRequestBodyCapSetting = config.Setting{
-	Key:     "DUBPLATE_AUTH_REQUEST_BODY_CAP",
-	Kind:    config.KindInt,
-	Default: "4096",
-	Doc:     "a positive integer of bytes, for example 4096",
-	Apply:   config.ApplyNextOperation,
-	Floor:   "512",
-	Ceiling: strconv.Itoa(authRequestBodyCapCeiling),
+	Key:         "DUBPLATE_AUTH_REQUEST_BODY_CAP",
+	Kind:        config.KindInt,
+	Default:     "4096",
+	Doc:         "a positive integer of bytes, for example 4096",
+	Apply:       config.ApplyNextOperation,
+	Floor:       "512",
+	Ceiling:     strconv.Itoa(authRequestBodyCapCeiling),
+	Description: "the largest sign-in request body the server reads, in bytes",
+	Mark:        config.NotSensitive,
 }
 
 // unknownAddressAnswerSetting is fork 4's answer to a login request
 // for an address no member holds (R25, R-5b22): "kind" says so, and
 // "generic" answers exactly as for a member.
 var unknownAddressAnswerSetting = config.Setting{
-	Key:     "DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
-	Kind:    config.KindString,
-	Default: "kind",
-	Doc:     "one of kind or generic",
-	Apply:   config.ApplyNextOperation,
-	Values:  []string{"kind", "generic"},
+	Key:         "DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
+	Kind:        config.KindString,
+	Default:     "kind",
+	Doc:         "one of kind or generic",
+	Apply:       config.ApplyNextOperation,
+	Values:      []string{"kind", "generic"},
+	Description: "whether a sign-in request for an address no member holds is told so (kind) or answered as for a member (generic)",
+	Mark:        config.NotSensitive,
 }
 
 // nonceRetentionCoversExpiry and sessionLifetimeWithinCap are the

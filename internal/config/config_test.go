@@ -287,7 +287,7 @@ func dropKey(environ []string, name string) []string {
 // rung's real key appears.
 func classificationRegistry() *Registry {
 	reg := NewRegistry()
-	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_OWNED"})
+	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_OWNED", Description: testDescription, Mark: NotSensitive})
 	reg.AddReservedClass(ReservedClass{
 		Name: "classification fixture",
 		Rung: 99,
@@ -297,28 +297,32 @@ func classificationRegistry() *Registry {
 	reg.AddIntegrationClass(IntegrationClass{
 		Name:     "classification integration",
 		Rung:     99,
-		Flag:     "DUBPLATE_CLASSIFY_ENABLED",
-		Required: []string{"DUBPLATE_CLASSIFY_REQUIRED"},
+		Flag:     testKey("DUBPLATE_CLASSIFY_ENABLED", NotSensitive),
+		Required: []KeyDecl{testKey("DUBPLATE_CLASSIFY_REQUIRED", NotSensitive)},
 	})
 	reg.AddThreshold(Threshold{
-		Key:     "DUBPLATE_CLASSIFY_THRESHOLD",
-		Kind:    KindInt,
-		Default: "1",
-		Doc:     "an integer",
+		Key:         "DUBPLATE_CLASSIFY_THRESHOLD",
+		Kind:        KindInt,
+		Default:     "1",
+		Doc:         "an integer",
+		Description: testDescription,
+		Mark:        NotSensitive,
 	})
 	reg.AddIdentitySource(IdentitySource{
 		Name:     "classification source",
 		Selector: "DUBPLATE_CLASSIFY_SELECTOR",
-		Required: []string{"DUBPLATE_CLASSIFY_SOURCE_KEY"},
+		Required: []KeyDecl{testKey("DUBPLATE_CLASSIFY_SOURCE_KEY", NotSensitive)},
 	})
 	reg.AddSetting(Setting{
-		Key:     "DUBPLATE_CLASSIFY_SETTING",
-		Kind:    KindInt,
-		Default: "14",
-		Doc:     "an integer",
-		Apply:   ApplyNextOperation,
-		Floor:   "3",
-		Ceiling: "1000",
+		Key:         "DUBPLATE_CLASSIFY_SETTING",
+		Kind:        KindInt,
+		Default:     "14",
+		Doc:         "an integer",
+		Apply:       ApplyNextOperation,
+		Floor:       "3",
+		Ceiling:     "1000",
+		Description: testDescription,
+		Mark:        NotSensitive,
 	})
 	return reg
 }
@@ -471,10 +475,10 @@ func TestLoad_StoreHomedSettingIsDeclaredNeverParsed(t *testing.T) {
 // resolution (Resolution R5).
 var fixtureIntegrationClass = IntegrationClass{
 	Name: "fixture",
-	Flag: "DUBPLATE_FIXTURE_ENABLED",
-	Required: []string{
-		"DUBPLATE_FIXTURE_REQUIRED_A",
-		"DUBPLATE_FIXTURE_REQUIRED_B",
+	Flag: testKey("DUBPLATE_FIXTURE_ENABLED", NotSensitive),
+	Required: []KeyDecl{
+		testKey("DUBPLATE_FIXTURE_REQUIRED_A", NotSensitive),
+		testKey("DUBPLATE_FIXTURE_REQUIRED_B", NotSensitive),
 	},
 }
 
@@ -483,7 +487,7 @@ var fixtureIntegrationClass = IntegrationClass{
 // Load resolved any key.
 var fixtureNoRequiredClass = IntegrationClass{
 	Name: "fixture-no-required",
-	Flag: "DUBPLATE_FIXTURE_NO_REQUIRED_ENABLED",
+	Flag: testKey("DUBPLATE_FIXTURE_NO_REQUIRED_ENABLED", NotSensitive),
 }
 
 // fixtureRegistry returns a registry seeded with rung 1's own
@@ -635,10 +639,12 @@ const (
 // resolves at its point of use and Load never reads one, so a hook
 // handed the resolved source values alone could not see it.
 var scratchWindow = Threshold{
-	Key:     "DUBPLATE_TEST_SCRATCH_WINDOW",
-	Kind:    KindDuration,
-	Default: "1h",
-	Doc:     "a duration",
+	Key:         "DUBPLATE_TEST_SCRATCH_WINDOW",
+	Kind:        KindDuration,
+	Default:     "1h",
+	Doc:         "a duration",
+	Description: testDescription,
+	Mark:        NotSensitive,
 }
 
 // scratchValidate is the fixture source's validation hook: it refuses
@@ -668,14 +674,14 @@ func scratchSourceRegistry() *Registry {
 	reg.AddIdentitySource(IdentitySource{
 		Name:     scratchSourceA,
 		Selector: scratchSelector,
-		Required: []string{scratchRequiredA},
-		Optional: []string{scratchOptionalA},
+		Required: []KeyDecl{testKey(scratchRequiredA, NotSensitive)},
+		Optional: []KeyDecl{testKey(scratchOptionalA, NotSensitive)},
 		Validate: scratchValidate,
 	})
 	reg.AddIdentitySource(IdentitySource{
 		Name:     scratchSourceB,
 		Selector: scratchSelector,
-		Required: []string{scratchRequiredB},
+		Required: []KeyDecl{testKey(scratchRequiredB, NotSensitive)},
 	})
 	return reg
 }
@@ -690,7 +696,7 @@ func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
 
 	registry := func() *Registry {
 		reg := NewRegistry()
-		reg.AddWallRow(WallRow{Name: scratchOwned})
+		reg.AddWallRow(WallRow{Name: scratchOwned, Description: testDescription, Mark: NotSensitive})
 		return reg
 	}
 

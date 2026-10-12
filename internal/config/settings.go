@@ -70,10 +70,14 @@ type Setting struct {
 	Floor   string
 	Ceiling string
 	Values  []string
-	// Sensitive marks a value that is dangerous to change while the
-	// server runs, though it is no secret: a write to it will require
-	// fresh re-authentication. A report prints its value and the mark.
-	Sensitive bool
+	// Description says what the setting controls, in a sentence a
+	// member of the group can read. Doc stays the accepted form a
+	// refusal prints.
+	Description string
+	// Mark is whether a live change to the value is dangerous, though
+	// it is no secret: a write to a Sensitive setting requires fresh
+	// re-authentication. A report prints its value and the mark.
+	Mark Sensitivity
 
 	// validate is the check AddSetting built from the setting's bound;
 	// nil on a Setting that never passed through registration.
