@@ -168,8 +168,10 @@ Some settings are dangerous to change live even though they are not secrets: a l
 to a year defeats rung 5's caps, a match cutoff of zero corrupts the library. The registry
 marks these `sensitive`. A sensitive write requires fresh re-authentication (a magic link
 consumed within a short window), not the cookie a shared laptop holds. Every settings write
-is audited with the actor, the channel, the key, and the old and new values, and a sensitive
-change notifies the admin address. A settings key never holds a credential. Any URL-valued
+is audited with the actor, the channel, the key, and the old and new values. A sensitive
+change committed over the web mails every live admin. The seed rule and the command line send
+no notice: both rest on an operator with box access, and the audit row records each change
+they make. A settings key never holds a credential. Any URL-valued
 setting is validated against loopback, link-local, and private ranges before it is stored.
 
 ## Profiles in the TUI

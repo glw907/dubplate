@@ -543,7 +543,7 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 		},
 		{
 			name: "lifetime above the cap",
-			env:  []string{"DUBPLATE_SESSION_LIFETIME=2h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h"},
+			env:  []string{"DUBPLATE_SESSION_LIFETIME=2h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h", "DUBPLATE_REAUTH_WINDOW=30m"},
 			want: map[string][]string{
 				"DUBPLATE_SESSION_LIFETIME":     {"refused:", "DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"},
 				"DUBPLATE_SESSION_ABSOLUTE_CAP": {"refused:", "DUBPLATE_SESSION_LIFETIME", "DUBPLATE_SESSION_ABSOLUTE_CAP"},
@@ -551,7 +551,7 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 		},
 		{
 			name: "a ten-year lifetime beside a one-hour cap",
-			env:  []string{"DUBPLATE_SESSION_LIFETIME=87600h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h"},
+			env:  []string{"DUBPLATE_SESSION_LIFETIME=87600h", "DUBPLATE_SESSION_ABSOLUTE_CAP=1h", "DUBPLATE_REAUTH_WINDOW=30m"},
 			want: map[string][]string{
 				"DUBPLATE_SESSION_LIFETIME": {"refused:", "DUBPLATE_SESSION_LIFETIME", "above the ceiling 17520h"},
 			},

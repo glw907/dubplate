@@ -62,6 +62,10 @@ type Result struct {
 	Source string
 	// Value is the value in force now, in string form.
 	Value string
+	// Previous is the value that was in force before a write that
+	// changed the store: the stored row's value, or the registry
+	// default when there was none. It is empty when Written is false.
+	Previous string
 	// Apply is when the setting's change takes effect.
 	Apply config.ApplyMode
 	// Sensitive reports whether the setting is marked sensitive.
@@ -110,11 +114,11 @@ func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []s
 			res.Source, res.Value = SourceEnvironment, envValue
 			return nil, nil
 		}
-		var seed string
+		seed, previous := "", s.Default
 		if stored != nil {
-			seed = stored.SeedValue
+			seed, previous = stored.SeedValue, stored.Value
 		}
-		res.Written = true
+		res.Written, res.Previous = true, previous
 		return &change{"set", stored, &Row{Key: key, Value: value, Source: sourceAdmin, SeedValue: seed}}, nil
 	})
 	return describe(res, s), err
@@ -148,7 +152,7 @@ func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ [
 		if _, set := lookupEnv(environ, key); set {
 			return nil, fmt.Errorf("%w: %s", ErrEnvironmentSets, key)
 		}
-		res.Written = true
+		res.Written, res.Previous = true, stored.Value
 		return &change{"reset", stored, nil}, nil
 	})
 	return describe(res, s), err

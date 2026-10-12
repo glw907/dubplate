@@ -104,6 +104,7 @@ func newProductionRegistry() *config.Registry {
 	registerWebConfig(reg)
 	registerBackupConfig(reg)
 	registerProxyConfig(reg)
+	registerAPIConfig(reg)
 	return reg
 }
 
