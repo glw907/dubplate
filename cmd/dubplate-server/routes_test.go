@@ -55,7 +55,6 @@ var routeInventory = map[string]routeRow{
 	operatorCSSRouteName: {class: routePublic, optional: true},
 
 	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/catalog"},
-	rosterRouteName:  {class: routeAdmin, method: http.MethodGet, path: "/" + rosterRouteName},
 	membersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + membersRouteName},
 
 	serverSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + serverSettingsRouteName},

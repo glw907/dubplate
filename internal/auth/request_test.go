@@ -198,11 +198,9 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 			logs := newLogCapture()
 			cfg := AdminConfig{
 				Seam:     sf.seam,
-				Roster:   sf.roster,
 				ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 				Now:      func() time.Time { return gateNow },
 				Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
-				BodyCap:  fixed[int64](4096),
 			}
 			if tt.failCap {
 				absoluteCap.set(0, errFixtureRead)

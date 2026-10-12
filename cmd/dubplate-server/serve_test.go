@@ -487,8 +487,8 @@ func TestNewServeShell_StateChangingRequestIsDenied(t *testing.T) {
 		{"consume-link", under(consumeLinkRouteName)},
 		{"sign-out", under(signOutRouteName)},
 		{"boundary probe", under(serve.ProbeRouteName)},
-		{"roster API", under(rosterRouteName)},
-		{"roster API member", under(rosterRouteName) + "/a-member"},
+		{"api operation", under(apiRouteName) + "/v1/catalog"},
+		{"api deeper path", under(apiRouteName) + "/v2/x"},
 		{"members", under(membersRouteName)},
 		{"login", under(loginRouteName)},
 		{"assets", under(assetsRouteName) + "/app.js"},
@@ -787,12 +787,22 @@ func headersEqualButDate(a, b http.Header) bool {
 // own answer and the admin gate's refusal alike.
 const wantNotFoundBody = "404 page not found\n"
 
-// TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied proves the
-// roster API sits behind the shell's own origin check like every other
+// jsonRequest builds a request to target carrying session as its
+// cookie, sfs as Sec-Fetch-Site when non-empty, and body as JSON.
+func jsonRequest(method, target, session, sfs, body string) *http.Request {
+	r := sessionRequest(method, target, session, sfs, "")
+	r.Body = io.NopCloser(strings.NewReader(body))
+	r.ContentLength = int64(len(body))
+	r.Header.Set("Content-Type", "application/json")
+	return r
+}
+
+// TestNewServeShell_APIPOSTWithoutOriginSignalIsDenied proves the
+// api mount sits behind the shell's own origin check like every other
 // state-changing route: a POST carrying neither Origin nor
-// Sec-Fetch-Site is refused before it ever reaches the admin gate, and
-// the roster is unchanged.
-func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
+// Sec-Fetch-Site is refused before it ever reaches the session check,
+// and the roster is unchanged.
+func TestNewServeShell_APIPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	environ := rosterAPIEnviron(t)
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 	shell, err := buildServeShell(t, environ)
@@ -807,7 +817,7 @@ func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 
 	before := userAddresses(t, stateDir)
 
-	req := sessionRequest(http.MethodPost, prefix.String()+"/roster", session, "", validPost)
+	req := jsonRequest(http.MethodPost, prefix.String()+"/api/v1/add_member", session, "", validAddMember)
 	rec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(rec, req)
 
@@ -820,10 +830,9 @@ func TestNewServeShell_RosterPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	}
 }
 
-// validPost is a form every field check accepts for a new member,
-// [internal/auth]'s own fixture body (admin_test.go), restated here so
-// this file's tests need no cross-package export.
-const validPost = "address=new%40example.com&display_name=New+Member&username=newmember"
+// validAddMember is an add_member body every field check accepts for a
+// new member.
+const validAddMember = `{"address":"new@example.com","display_name":"New Member","username":"newmember"}`
 
 // captureDefaultLogger swaps slog.Default() for a logger writing JSON
 // lines to the returned buffer, restoring the prior default when t
@@ -841,13 +850,13 @@ func captureDefaultLogger(t *testing.T) *bytes.Buffer {
 	return &buf
 }
 
-// TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits proves the
-// same POST, carrying Sec-Fetch-Site: same-origin, reaches the admin
-// gate, adds the member, and writes one audit record naming the actor
-// and the cookie channel: the outcome mapping and the audit record's
-// own shape are internal/auth's own proof (admin_test.go); this test
-// proves the shell's composition reaches them at all.
-func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
+// TestNewServeShell_APISameOriginPOSTAddsMemberAndAudits proves the
+// same POST, carrying Sec-Fetch-Site: same-origin, reaches the api
+// mount, adds the member, and writes one audit record naming the actor
+// and the cookie channel: the roster's own audit record's shape is
+// internal/auth's own proof (roster_test.go); this test proves the
+// shell's composition reaches it at all.
+func TestNewServeShell_APISameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	environ := rosterAPIEnviron(t)
 	// [serve.NewShell] reads slog.Default() once, at construction, into
 	// its own stored field, so the capture must be in place before the
@@ -864,12 +873,12 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	}
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
-	req := sessionRequest(http.MethodPost, prefix.String()+"/roster", session, "same-origin", validPost)
+	req := jsonRequest(http.MethodPost, prefix.String()+"/api/v1/add_member", session, "same-origin", validAddMember)
 	rec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusCreated {
-		t.Fatalf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusCreated)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusOK)
 	}
 
 	if after := userAddresses(t, environValue(environ, "DUBPLATE_STATE_DIR")); !slices.Contains(after, "new@example.com") {
@@ -897,16 +906,13 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath
-// proves that a non-admin's GET and POST to the roster route answer
-// exactly what the same requests to an unregistered owned path answer:
-// same status, same body, every header equal but Date, and no
-// Set-Cookie on either side. The POSTs carry Sec-Fetch-Site:
-// same-origin so both reach the gate and the 404 rather than the
-// origin check. It then proves the same route answers an admin's GET
-// with the roster list, so the 404s above are the non-admin's and not
-// the path's.
-func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing.T) {
+// TestNewServeShell_RosterRouteIsGone proves the retired roster API
+// answers the shell's own 404 on its old path, its trailing-slash form,
+// and a deeper path, to a verified admin's GET and same-origin POST,
+// exactly what an unregistered owned path answers. Fixture state: the
+// same session reaches the api mount's list_members in this same test,
+// so the 404s are the path's and not the session's (AC17).
+func TestNewServeShell_RosterRouteIsGone(t *testing.T) {
 	environ := rosterAPIEnviron(t)
 	shell, err := buildServeShell(t, environ)
 	if err != nil {
@@ -916,99 +922,30 @@ func TestNewServeShell_RosterNonAdminIndistinguishableFromUnknownPath(t *testing
 	if err != nil {
 		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
 	}
-	nonAdminSession := mintServeSession(t, environ, rosterMemberAddress, time.Now())
-	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
+	admin := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 	handler := shell.Handler()
 
-	rosterPath := prefix.String() + "/roster"
-	unknownPath := prefix.String() + "/no-such-subtree"
-
-	run := func(method, target, sfs, body string) *httptest.ResponseRecorder {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, sessionRequest(method, target, nonAdminSession, sfs, body))
-		return rec
+	listed := httptest.NewRecorder()
+	handler.ServeHTTP(listed, jsonRequest(http.MethodPost, prefix.String()+"/api/v1/list_members", admin, "same-origin", "{}"))
+	if listed.Code != http.StatusOK || !strings.Contains(listed.Body.String(), rosterAdminAddress) {
+		t.Fatalf("the admin's list_members = %d %.80q, want the roster", listed.Code, listed.Body)
 	}
 
-	getRoster := run(http.MethodGet, rosterPath, "", "")
-	getUnknown := run(http.MethodGet, unknownPath, "", "")
-	if getRoster.Code != getUnknown.Code {
-		t.Errorf("GET status: roster = %d, unknown = %d, want equal", getRoster.Code, getUnknown.Code)
-	}
-	if getRoster.Body.String() != getUnknown.Body.String() {
-		t.Errorf("GET body: roster = %q, unknown = %q, want equal", getRoster.Body.String(), getUnknown.Body.String())
-	}
-	if !headersEqualButDate(getRoster.Header(), getUnknown.Header()) {
-		t.Errorf("GET headers differ (Date excepted): roster = %v, unknown = %v", getRoster.Header(), getUnknown.Header())
-	}
-	if getRoster.Header().Get("Set-Cookie") != "" || getUnknown.Header().Get("Set-Cookie") != "" {
-		t.Errorf("GET carries Set-Cookie: roster = %q, unknown = %q, want neither", getRoster.Header().Get("Set-Cookie"), getUnknown.Header().Get("Set-Cookie"))
-	}
-
-	postRoster := run(http.MethodPost, rosterPath, "same-origin", validPost)
-	postUnknown := run(http.MethodPost, unknownPath, "same-origin", validPost)
-	if postRoster.Code != postUnknown.Code {
-		t.Errorf("POST status: roster = %d, unknown = %d, want equal", postRoster.Code, postUnknown.Code)
-	}
-	if postRoster.Body.String() != postUnknown.Body.String() {
-		t.Errorf("POST body: roster = %q, unknown = %q, want equal", postRoster.Body.String(), postUnknown.Body.String())
-	}
-	if !headersEqualButDate(postRoster.Header(), postUnknown.Header()) {
-		t.Errorf("POST headers differ (Date excepted): roster = %v, unknown = %v", postRoster.Header(), postUnknown.Header())
-	}
-	if postRoster.Header().Get("Set-Cookie") != "" || postUnknown.Header().Get("Set-Cookie") != "" {
-		t.Errorf("POST carries Set-Cookie: roster = %q, unknown = %q, want neither", postRoster.Header().Get("Set-Cookie"), postUnknown.Header().Get("Set-Cookie"))
-	}
-
-	adminGetRec := httptest.NewRecorder()
-	handler.ServeHTTP(adminGetRec, sessionRequest(http.MethodGet, rosterPath, adminSession, "", ""))
-	if adminGetRec.Code != http.StatusOK {
-		t.Fatalf("admin GET status = %d, body = %s, want %d", adminGetRec.Code, adminGetRec.Body.String(), http.StatusOK)
-	}
-	if !strings.Contains(adminGetRec.Body.String(), rosterAdminAddress) {
-		t.Errorf("admin GET body = %s, want it to name %q", adminGetRec.Body.String(), rosterAdminAddress)
-	}
-}
-
-// TestNewServeShell_RosterExactPathOnly proves that only the exact
-// path answers the roster API, and every deeper path,
-// trailing-slash forms included, answers the shell's 404.
-// Fixture state: the same admin's GET to the exact path answers the
-// list in this same test, so the 404s below are the path's and not the
-// session's.
-func TestNewServeShell_RosterExactPathOnly(t *testing.T) {
-	environ := rosterAPIEnviron(t)
-	shell, err := buildServeShell(t, environ)
-	if err != nil {
-		t.Fatalf("buildServeShell() error = %v, want nil", err)
-	}
-	prefix, _, _, err := resolveServeConfig(environ)
-	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
-	}
-	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
-	handler := shell.Handler()
-
-	get := func(path string) *httptest.ResponseRecorder {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, sessionRequest(http.MethodGet, path, adminSession, "", ""))
-		return rec
-	}
-
-	list := get(prefix.String() + "/roster")
-	if list.Code != http.StatusOK {
-		t.Fatalf("admin GET %s status = %d, body = %s, want %d", "/roster", list.Code, list.Body.String(), http.StatusOK)
-	}
-
-	for _, deeper := range []string{"/roster/x", "/roster/", "/roster/roster"} {
-		t.Run(deeper, func(t *testing.T) {
-			rec := get(prefix.String() + deeper)
-			if rec.Code != http.StatusNotFound {
-				t.Errorf("status = %d, body = %s, want %d", rec.Code, rec.Body.String(), http.StatusNotFound)
-			}
-			if rec.Body.String() != wantNotFoundBody {
-				t.Errorf("body = %q, want %q", rec.Body.String(), wantNotFoundBody)
-			}
-		})
+	unknown := httptest.NewRecorder()
+	handler.ServeHTTP(unknown, sessionRequest(http.MethodGet, prefix.String()+"/no-such-subtree", admin, "", ""))
+	for _, path := range []string{"/roster", "/roster/", "/roster/x"} {
+		for _, method := range []string{http.MethodGet, http.MethodPost} {
+			t.Run(method+" "+path, func(t *testing.T) {
+				rec := httptest.NewRecorder()
+				handler.ServeHTTP(rec, sessionRequest(method, prefix.String()+path, admin, "same-origin", ""))
+				if rec.Code != http.StatusNotFound || rec.Body.String() != unknown.Body.String() {
+					t.Errorf("status = %d, body = %q, want the shell's 404 %q", rec.Code, rec.Body, unknown.Body)
+				}
+				if !headersEqualButDate(rec.Header(), unknown.Header()) {
+					t.Errorf("headers = %v, want an unregistered path's %v", rec.Header(), unknown.Header())
+				}
+			})
+		}
 	}
 }
 
@@ -1031,12 +968,12 @@ func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
 	}
 	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
-	apiBody := "address=api-added%40example.com&display_name=API+Added&username=apiadded"
-	apiReq := sessionRequest(http.MethodPost, prefix.String()+"/roster", adminSession, "same-origin", apiBody)
+	apiBody := `{"address":"api-added@example.com","display_name":"API Added","username":"apiadded"}`
+	apiReq := jsonRequest(http.MethodPost, prefix.String()+"/api/v1/add_member", adminSession, "same-origin", apiBody)
 	apiRec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(apiRec, apiReq)
-	if apiRec.Code != http.StatusCreated {
-		t.Fatalf("API POST status = %d, body = %s, want %d", apiRec.Code, apiRec.Body.String(), http.StatusCreated)
+	if apiRec.Code != http.StatusOK {
+		t.Fatalf("API POST status = %d, body = %s, want %d", apiRec.Code, apiRec.Body.String(), http.StatusOK)
 	}
 
 	if _, stderr, err := runMember(t, environ, "add", "--name", "Verb Added", "--username", "verbadded", "verb-added@example.com"); err != nil {
@@ -1055,9 +992,9 @@ func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
 
 	// The API reads what the verb wrote.
 	getRec := httptest.NewRecorder()
-	shell.Handler().ServeHTTP(getRec, sessionRequest(http.MethodGet, prefix.String()+"/roster", adminSession, "", ""))
+	shell.Handler().ServeHTTP(getRec, jsonRequest(http.MethodPost, prefix.String()+"/api/v1/list_members", adminSession, "same-origin", "{}"))
 	if getRec.Code != http.StatusOK {
-		t.Fatalf("API GET status = %d, body = %s, want %d", getRec.Code, getRec.Body.String(), http.StatusOK)
+		t.Fatalf("API list status = %d, body = %s, want %d", getRec.Code, getRec.Body.String(), http.StatusOK)
 	}
 	if !strings.Contains(getRec.Body.String(), "verb-added@example.com") {
 		t.Errorf("API GET body does not name the verb's addition: %s", getRec.Body.String())
@@ -1198,7 +1135,7 @@ func firstImmutableAsset(t *testing.T) string {
 //
 // Fixture state: all three public URLs, so HSTS's presence and both
 // absences are each proved, and an admin session, so the JSON row is
-// the roster API's real answer.
+// the api mount's real answer.
 func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 	asset := firstImmutableAsset(t)
 	type row struct {
@@ -1206,6 +1143,8 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 		method   string
 		target   string
 		admin    bool
+		site     string
+		body     string
 		status   int
 		cache    string
 		document bool
@@ -1214,7 +1153,7 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 		{name: "document", method: http.MethodGet, target: "/dubplate/login", status: http.StatusOK, cache: "no-cache", document: true},
 		{name: "asset", method: http.MethodGet, target: "/dubplate/_app/" + asset, status: http.StatusOK, cache: "public, max-age=31536000, immutable"},
 		{name: "stylesheet", method: http.MethodGet, target: "/dubplate/branding.css", status: http.StatusOK, cache: "no-cache"},
-		{name: "JSON answer", method: http.MethodGet, target: "/dubplate/roster", admin: true, status: http.StatusOK, cache: "no-store"},
+		{name: "JSON answer", method: http.MethodPost, target: "/dubplate/api/v1/list_members", admin: true, site: "same-origin", body: "{}", status: http.StatusOK, cache: "no-store"},
 		{name: "normalization 400", method: http.MethodGet, target: "/dubplate/login/../login", status: http.StatusBadRequest},
 		{name: "origin 403", method: http.MethodPost, target: "/dubplate/request-link", status: http.StatusForbidden},
 		{name: "echo method 405", method: http.MethodTrace, target: "/dubplate/login", status: http.StatusMethodNotAllowed},
@@ -1247,9 +1186,13 @@ func TestNewServeShell_HeaderStepOnEveryResponse(t *testing.T) {
 					session = adminSession
 				}
 				rec := httptest.NewRecorder()
-				handler.ServeHTTP(rec, sessionRequest(rr.method, rr.target, session, "", ""))
+				req := sessionRequest(rr.method, rr.target, session, "", "")
+				if rr.body != "" {
+					req = jsonRequest(rr.method, rr.target, session, rr.site, rr.body)
+				}
+				handler.ServeHTTP(rec, req)
 				if rec.Code != rr.status {
-					t.Fatalf("status = %d, want %d", rec.Code, rr.status)
+					t.Fatalf("status = %d, want %d: %.100s", rec.Code, rr.status, rec.Body)
 				}
 				h := rec.Header()
 				if got := h.Get("X-Content-Type-Options"); got != "nosniff" {
@@ -2019,14 +1962,14 @@ func strangerLinkRequests(handler http.Handler, prefix serve.Prefix, n int) []in
 	return codes
 }
 
-// refreshedSession requests the roster as an admin over session with a
-// same-origin GET, so the seam refreshes it, and returns the status,
+// refreshedSession requests the api catalog as an admin over session with a
+// same-origin POST, so the seam refreshes it, and returns the status,
 // the refreshed cookie value the response sets, and its session,
 // verified against secret at at with absoluteCap.
 func refreshedSession(t *testing.T, handler http.Handler, prefix serve.Prefix, session, secret string, at time.Time, absoluteCap time.Duration) (int, string, auth.Session) {
 	t.Helper()
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, sessionRequest(http.MethodGet, prefix.String()+"/"+rosterRouteName, session, "same-origin", ""))
+	handler.ServeHTTP(rec, jsonRequest(http.MethodPost, prefix.String()+"/api/v1/catalog", session, "same-origin", "{}"))
 	if rec.Code != http.StatusOK {
 		return rec.Code, "", auth.Session{}
 	}
@@ -2136,8 +2079,8 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 	})
 
 	t.Run("the next request enforces B's lowered cap", func(t *testing.T) {
-		if code, _, _ := refreshedSession(t, handler, prefix, aged, secret, time.Now(), 10*time.Hour); code != http.StatusNotFound {
-			t.Errorf("the five-hour-old session answered %d after the cap fell to 3h, want the gate's 404", code)
+		if code, _, _ := refreshedSession(t, handler, prefix, aged, secret, time.Now(), 10*time.Hour); code != http.StatusUnauthorized {
+			t.Errorf("the five-hour-old session answered %d after the cap fell to 3h, want 401", code)
 		}
 	})
 
@@ -2337,9 +2280,9 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			name: "the absolute cap below its floor", key: "DUBPLATE_SESSION_ABSOLUTE_CAP", value: "1ms",
 			request: func(t *testing.T, environ []string, prefix serve.Prefix) *http.Request {
 				session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
-				return sessionRequest(http.MethodGet, prefix.String()+"/"+rosterRouteName, session, "", "")
+				return jsonRequest(http.MethodPost, prefix.String()+"/api/v1/catalog", session, "same-origin", "{}")
 			},
-			wantCode: http.StatusNotFound,
+			wantCode: http.StatusInternalServerError,
 		},
 	}
 	for _, tt := range tests {

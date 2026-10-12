@@ -893,7 +893,7 @@ function isExpectedViolation(visit: Visit, v: Violation): boolean {
  * refusal.
  */
 const AUTH_ERROR_STATUS_RE =
-  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|roster|sign-out|api\/v1\/[a-z_]+)\)$/;
+  /^Failed to load resource: (the server responded with a status of \d+|net::ERR_FAILED) \(.*\/(request-link|consume-link|sign-out|api\/v1\/[a-z_]+)\)$/;
 
 /**
  * SvelteKit's client router logs this when a client-side navigation

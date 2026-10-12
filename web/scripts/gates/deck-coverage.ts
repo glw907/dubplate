@@ -1,9 +1,9 @@
 /**
  * Deck coverage: the string deck's own checks.
  *
- * 1. Every outcome value `internal/auth/handlers.go` and `admin.go`
- *    answer with has a line somewhere in the deck's outcome
- *    dictionaries, read from the Go source itself so a renamed or
+ * 1. Every outcome value `internal/auth/handlers.go`
+ *    answers with has a line in the deck's outcome
+ *    dictionary, read from the Go source itself so a renamed or
  *    added outcome constant surfaces here rather than silently
  *    shipping with no copy.
  * 1b. Every `Detail<Name>` constant in `internal/ops/details.go` has a line
@@ -26,7 +26,6 @@ import {
   API_DETAILS,
   API_REFUSALS,
   AUTH_OUTCOMES,
-  ROSTER_OUTCOMES,
   SIGN_OUT_CONTROL,
   TITLES,
   unknownAddressLine
@@ -35,7 +34,6 @@ import { pageTitle } from '../../src/lib/copy/title.ts';
 
 const SRC_ROOT = 'src';
 const HANDLERS_PATH = join('..', 'internal', 'auth', 'handlers.go');
-const ADMIN_PATH = join('..', 'internal', 'auth', 'admin.go');
 const DETAILS_PATH = join('..', 'internal', 'ops', 'details.go');
 const ERRORS_PATH = join('..', 'internal', 'ops', 'errors.go');
 
@@ -47,12 +45,6 @@ const GO_CODE_CONST = /\bCode[A-Za-z]+\s+Code\s*=\s*"([^"]*)"/g;
 
 /** `internal/auth`'s own `outcomeX = "value"` declaration shape. */
 const GO_OUTCOME_CONST = /\boutcome[A-Za-z]+\s*=\s*"([^"]*)"/g;
-
-/** Every outcome value declared in the Go source at `path`. */
-function parseGoOutcomes(path: string): string[] {
-  const text = readFileSync(path, 'utf8');
-  return [...text.matchAll(GO_OUTCOME_CONST)].map((m) => m[1]);
-}
 
 interface Leaf {
   key: string;
@@ -183,37 +175,12 @@ function checkPageTitleEmptySiteName(): void {
   }
 }
 
-/** `internal/auth`'s combined outcome set, or a failure naming the parser or the count. */
-function goOutcomes(): Set<string> {
-  const handlers = parseGoOutcomes(HANDLERS_PATH);
-  const admin = parseGoOutcomes(ADMIN_PATH);
-  const parsed = new Set([...handlers, ...admin]);
-  for (const must of ['signed_out', 'admin_not_grantable', 'duplicate_username']) {
-    if (!parsed.has(must)) {
-      fail(
-        `deck-coverage: the parsed outcome set is missing "${must}"; the constant parser's pattern may be broken.`
-      );
-    }
-  }
-  if (parsed.size < 21) {
-    fail(
-      `deck-coverage: parsed only ${parsed.size} outcome constant(s) from ${HANDLERS_PATH} and ${ADMIN_PATH}, fewer than the 21 internal/auth declares.`
-    );
-  }
-  return parsed;
-}
-
-/** Every outcome key the deck's dictionaries cover. */
-function deckOutcomes(): Set<string> {
-  return new Set([...Object.keys(AUTH_OUTCOMES), ...Object.keys(ROSTER_OUTCOMES)]);
-}
-
+/** Every auth outcome has a deck line, read from the Go source so a renamed or added constant surfaces here. */
 function checkOutcomeCoverage(): void {
-  const parsed = goOutcomes();
-  const covered = deckOutcomes();
-  const missing = [...parsed].filter((v) => !covered.has(v));
+  const parsed = parseGoValues(HANDLERS_PATH, GO_OUTCOME_CONST, 'signed_out');
+  const missing = parsed.filter((v) => !Object.hasOwn(AUTH_OUTCOMES, v));
   if (missing.length > 0) {
-    fail(`deck-coverage: ${missing.length} outcome(s) declared in internal/auth with no deck line: ${missing.join(', ')}`);
+    fail(`deck-coverage: ${missing.length} outcome(s) declared in ${HANDLERS_PATH} with no deck line: ${missing.join(', ')}`);
   }
 }
 

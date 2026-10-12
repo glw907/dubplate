@@ -138,33 +138,7 @@ export const ADD_MEMBER_HINTS = {
     'The name the member types into a music app. Starts with a letter or number, then any mix of letters, numbers, periods, underscores, hyphens, plus signs, and @. Up to 64 characters.'
 };
 
-/**
- * Roster-outcome copy, keyed by the value
- * `internal/auth/admin.go`'s outcome constants answer with. Member-facing
- * lines never say "roster" (W8.2's leak list).
- */
-export const ROSTER_OUTCOMES: Record<string, string> = {
-  added: 'Added.',
-  duplicate_address: 'That email address already belongs to a member.',
-  duplicate_username: 'That username is already taken. Choose a different one.',
-  invalid_display_name: 'That name is too long, or it has characters it can’t use, such as tabs or line breaks.',
-  blank_display_name: 'Enter a name.',
-  invalid_username:
-    'Start the username with a letter or number, and use only letters, numbers, periods, underscores, hyphens, plus signs, or @.',
-  missing_username: 'Enter a username.',
-  admin_not_grantable: 'Admins can’t be added from this page.',
-  unknown_field: 'This page sent something the server doesn’t accept. Reload the page and try again.',
-  busy: 'That didn’t go through. Try again.',
-  write_unconfirmed:
-    'The member may have been added, but we couldn’t confirm it. Reload the page and check the list before you try again.'
-};
-
-/**
- * The roster write's own success line, naming the member the write
- * added. `ROSTER_OUTCOMES.added` stays a plain fallback line for the
- * deck's own coverage check; a page that has the member's name calls
- * this instead.
- */
+/** The add-member write's success line, naming the member it added. */
 export function addedMemberLine(displayName: string): string {
   return `Added ${displayName}.`;
 }

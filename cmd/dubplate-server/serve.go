@@ -31,10 +31,6 @@ const (
 	signOutRouteName     = "sign-out"
 )
 
-// rosterRouteName is the roster API's subtree name: the admin gate and
-// its POST/GET/HEAD surface.
-const rosterRouteName = "roster"
-
 // membersRouteName is the add-member document's subtree name, served
 // to verified admins only.
 const membersRouteName = "members"
@@ -376,16 +372,12 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	adminConfig := auth.AdminConfig{
 		Seam:     seam,
-		Roster:   roster,
 		ClientIP: clientIP,
 		Now:      time.Now,
 		Logger:   shell.Logger(),
-		BodyCap:  authBodyCap(acc),
 	}
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
 	routes.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
-
-	routes.Register(rosterRouteName, exactPath(prefix.String()+"/"+rosterRouteName, auth.NewRosterAPI(adminConfig)))
 
 	adminSeam := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
