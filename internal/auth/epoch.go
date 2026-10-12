@@ -204,6 +204,10 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 // convenience half of the seam: the authority is [EpochStore.Read],
 // which a subscriber that missed a notification, or never registered
 // at all, can still consult.
+//
+// fn must not block. A removal and a re-add bump from inside their
+// store write, so fn runs while the store's write lock is held and every
+// writer on the box waits on it, up to subscriberDeadline.
 func (e *EpochStore) Subscribe(fn func(address string, epoch time.Time)) {
 	e.mu.Lock()
 	defer e.mu.Unlock()

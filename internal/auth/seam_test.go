@@ -48,9 +48,9 @@ func newSeamFixture(t *testing.T, rows ...userRow) seamFixture {
 func newSeamFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) seamFixture {
 	t.Helper()
 	stateDir := t.TempDir()
-	roster, users := newRosterOver(t, rows...)
-
+	_, users := newRosterOver(t, rows...)
 	epoch := newEpochStore(t, stateDir)
+	roster := NewRoster(users, epoch, fixedNow(rosterNow))
 
 	seam := NewMagicLinkSeam(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
 	return seamFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
@@ -108,13 +108,13 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 		{
 			name:    "address removed from roster",
 			address: "gone@example.com",
-			wantErr: errMemberNotFound,
+			wantErr: ErrMemberNotFound,
 		},
 		{
 			name:    "address tombstoned",
 			rows:    []userRow{{address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true}},
 			address: "gone@example.com",
-			wantErr: errMemberNotFound,
+			wantErr: ErrMemberNotFound,
 		},
 	}
 
@@ -281,7 +281,7 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if err == nil {
 		t.Fatalf("VerifyIdentity: got nil error, want a denial from the unreadable epoch directory")
 	}
-	if errors.Is(err, errMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
+	if errors.Is(err, ErrMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
 		t.Fatalf("VerifyIdentity error = %v, want a non-sentinel I/O error", err)
 	}
 }
@@ -315,7 +315,7 @@ func TestMagicLinkSeam_Read(t *testing.T) {
 func TestMagicLinkSeam_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkSeam(NewRoster(h), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap))
+	seam := NewMagicLinkSeam(NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap))
 	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", seamBirth, seamLifetime, seamCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)

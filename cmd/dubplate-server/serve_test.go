@@ -880,8 +880,17 @@ func TestNewServeShell_RosterSameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	if auditCount != 1 {
 		t.Errorf("audit records for \"roster member added\" = %d, want exactly 1; log = %s", auditCount, logs.String())
 	}
-	if !strings.Contains(logs.String(), `"actor":"`+rosterAdminAddress+`"`) {
-		t.Errorf("audit record does not name the actor %q: %s", rosterAdminAddress, logs.String())
+	h, err := store.OpenWrite(t.Context(), environValue(environ, "DUBPLATE_STATE_DIR"), testBackupBusy)
+	if err != nil {
+		t.Fatalf("OpenWrite: %v", err)
+	}
+	defer func() { _ = h.Close() }()
+	var adminHex string
+	if err := h.QueryRow(t.Context(), `SELECT lower(hex(id)) FROM users WHERE address = ?`, rosterAdminAddress).Scan(&adminHex); err != nil {
+		t.Fatalf("read the admin's id: %v", err)
+	}
+	if wantActor := `"actor":"member:` + adminHex + `"`; !strings.Contains(logs.String(), wantActor) {
+		t.Errorf("audit record does not carry %s: %s", wantActor, logs.String())
 	}
 	if !strings.Contains(logs.String(), `"channel":"cookie"`) {
 		t.Errorf("audit record does not name the cookie channel: %s", logs.String())
@@ -2080,7 +2089,7 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
 		var mailed []string
-		hc := authHandlersConfig(prefix, cfg, settings.NewAccessor(h, productionRegistry()), auth.NewRoster(h), nil, nil,
+		hc := authHandlersConfig(prefix, cfg, settings.NewAccessor(h, productionRegistry()), auth.NewRoster(h, nil, nil), nil, nil,
 			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
 			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
 		hc.Send = func(_ context.Context, _, _, body string) error {

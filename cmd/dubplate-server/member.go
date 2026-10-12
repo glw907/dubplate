@@ -14,7 +14,6 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
-	"github.com/glw907/dubplate/internal/identity"
 	"github.com/spf13/cobra"
 )
 
@@ -50,17 +49,32 @@ func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 // version but the binary's, a restore in progress, and a leaf another
 // user owns, each with the store's own message. Add writes through the
 // handle, and list opens the same mode so one set of refusals covers
-// both verbs. The caller closes the handle.
-func openMemberStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, error) {
+// both verbs. It also returns the state directory the store lives
+// under. The caller closes the handle.
+func openMemberStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, string, error) {
 	cfg, err := config.Load(environ, reg)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	busyTimeout, err := storeBusyTimeout(environ)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return store.OpenWrite(ctx, cfg.StateDir, busyTimeout)
+	h, err := store.OpenWrite(ctx, cfg.StateDir, busyTimeout)
+	return h, cfg.StateDir, err
+}
+
+// writingRoster returns a roster over h that may write: it opens the
+// auth leaf under stateDir for the revocation epochs a removal and a
+// re-add bump. A leaf auth.Open refuses is reported naming verb, and
+// nothing is written. Only a writing verb calls it, so member list
+// opens no auth leaf.
+func writingRoster(h *store.Handle, stateDir, verb string) (*auth.Roster, error) {
+	leaf, err := auth.Open(stateDir)
+	if err != nil {
+		return nil, fmt.Errorf("member %s: %w", verb, err)
+	}
+	return auth.NewRoster(h, auth.OpenEpochStore(leaf), time.Now), nil
 }
 
 // newMemberAddCmd builds "member add <address>": it opens the store in
@@ -81,11 +95,15 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), memberVerbWriteWait)
 			defer cancel()
-			h, err := openMemberStore(ctx, environ, reg)
+			h, stateDir, err := openMemberStore(ctx, environ, reg)
 			if err != nil {
 				return err
 			}
 			defer func() { err = errors.Join(err, h.Close()) }()
+			roster, err := writingRoster(h, stateDir, "add")
+			if err != nil {
+				return err
+			}
 
 			candidate := auth.Member{
 				Address:     args[0],
@@ -94,7 +112,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 				Admin:       admin,
 			}
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			return auth.NewRoster(h).AddMember(ctx, candidate, resolveActor(), identity.ChannelCommandLine, "", logger)
+			return roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor()), logger)
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "the member's display name")
@@ -124,13 +142,13 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 		RunE: func(cmd *cobra.Command, _ []string) (err error) {
 			openCtx, cancel := context.WithTimeout(cmd.Context(), memberVerbWriteWait)
 			defer cancel()
-			h, err := openMemberStore(openCtx, environ, reg)
+			h, _, err := openMemberStore(openCtx, environ, reg)
 			if err != nil {
 				return err
 			}
 			defer func() { err = errors.Join(err, h.Close()) }()
 
-			members, err := auth.NewRoster(h).List(cmd.Context())
+			members, err := auth.NewRoster(h, nil, nil).List(cmd.Context())
 			if err != nil {
 				return err
 			}

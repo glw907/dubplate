@@ -570,7 +570,7 @@ func TestRosterAPI_Post(t *testing.T) {
 			if len(audits) != 1 {
 				t.Fatalf("audit records = %v, want exactly one", audits)
 			}
-			for key, want := range map[string]any{"actor": "admin@example.com", "channel": "cookie", "address": "new@example.com", "admin": false} {
+			for key, want := range map[string]any{"actor": adminWire, "channel": "cookie", "address": "new@example.com", "admin": false} {
 				if got := audits[0][key]; got != want {
 					t.Errorf("audit record[%q] = %v, want %v", key, got, want)
 				}
@@ -701,10 +701,11 @@ func TestRosterAPI_PostFailed(t *testing.T) {
 func TestRosterAPI_PostDuplicateUsernameOverUsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, liveAdmin)
-	roster := NewRoster(h)
+	epoch := newEpochStore(t, t.TempDir())
+	roster := NewRoster(h, epoch, fixedNow(gateNow))
 	logs := newLogCapture()
 	cfg := AdminConfig{
-		Seam:     NewMagicLinkSeam(roster, newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap)),
+		Seam:     NewMagicLinkSeam(roster, epoch, []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap)),
 		Roster:   roster,
 		ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 		Now:      func() time.Time { return gateNow },
@@ -748,7 +749,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", seamBirth), "")
 			},
 			wantLevel:  "INFO",
-			wantReason: errMemberNotFound.Error(),
+			wantReason: ErrMemberNotFound.Error(),
 		},
 		{
 			name: "store closed under the lookup",

@@ -145,7 +145,7 @@ var gateRefusals = []error{
 	ErrSessionCapReached,
 	ErrSessionExpired,
 	ErrSessionRevoked,
-	errMemberNotFound,
+	ErrMemberNotFound,
 }
 
 // gateRefusalReason names err by the first of gateRefusals it wraps,
@@ -195,7 +195,7 @@ func (a *rosterAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet, http.MethodHead:
 		a.list(w, r)
 	case http.MethodPost:
-		a.add(w, r, actor.Address)
+		a.add(w, r, actor.UserID)
 	default:
 		w.Header().Set("Allow", "GET, HEAD, POST")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -227,7 +227,7 @@ func (a *rosterAPI) list(w http.ResponseWriter, r *http.Request) {
 // the fields, which come from the body alone. Every refusal before
 // AddMember writes nothing, and AddMember's own refusals change no
 // byte on disk.
-func (a *rosterAPI) add(w http.ResponseWriter, r *http.Request, actor string) {
+func (a *rosterAPI) add(w http.ResponseWriter, r *http.Request, actor identity.UserID) {
 	clientIP := a.cfg.ClientIP(r)
 	log := a.cfg.Logger.With("client_ip", clientIP)
 	refuse := func(status int, outcome string) {
@@ -262,7 +262,7 @@ func (a *rosterAPI) add(w http.ResponseWriter, r *http.Request, actor string) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), a.writeWait)
 	defer cancel()
-	err = a.cfg.Roster.AddMember(ctx, candidate, actor, identity.ChannelCookie, clientIP, a.cfg.Logger)
+	err = a.cfg.Roster.AddMember(ctx, candidate, MemberActor(actor, clientIP), a.cfg.Logger)
 	status, outcome := additionOutcome(err)
 	if status >= http.StatusInternalServerError {
 		log.Error("roster addition failed", "outcome", outcome, "reason", err.Error())
@@ -303,8 +303,8 @@ func formRefusal(r *http.Request) string {
 }
 
 // additionOutcome maps AddMember's result to a status and an outcome.
-// Every validation refusal also wraps errRosterRecordInvalid, as does a
-// demoted actor, so only the specific sentinels decide a 4xx. An actor
+// Every validation refusal also wraps errRosterRecordInvalid, so only
+// the specific sentinels decide a 4xx. An actor
 // whose roster record lost the admin flag after the gate admitted it
 // is refused. A write that outwaited its deadline for the store's
 // write lock, or that the store gave up on after its busy timeout, is
@@ -315,21 +315,21 @@ func additionOutcome(err error) (int, string) {
 		return http.StatusCreated, outcomeAdded
 	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, store.ErrBusy):
 		return http.StatusServiceUnavailable, outcomeBusy
-	case errors.Is(err, errActorNotAdmin):
+	case errors.Is(err, ErrActorNotAdmin):
 		return http.StatusForbidden, outcomeRefused
-	case errors.Is(err, errDuplicateAddress):
+	case errors.Is(err, ErrDuplicateAddress):
 		return http.StatusConflict, outcomeDuplicateAddress
-	case errors.Is(err, errDuplicateUsername):
+	case errors.Is(err, ErrDuplicateUsername):
 		return http.StatusConflict, outcomeDuplicateUsername
-	case errors.Is(err, errInvalidMemberAddress):
+	case errors.Is(err, ErrInvalidMemberAddress):
 		return http.StatusBadRequest, outcomeInvalid
-	case errors.Is(err, errInvalidDisplayName):
+	case errors.Is(err, ErrInvalidDisplayName):
 		return http.StatusBadRequest, outcomeInvalidDisplayName
-	case errors.Is(err, errBlankDisplayName):
+	case errors.Is(err, ErrBlankDisplayName):
 		return http.StatusBadRequest, outcomeBlankDisplayName
-	case errors.Is(err, errInvalidUsername):
+	case errors.Is(err, ErrInvalidUsername):
 		return http.StatusBadRequest, outcomeInvalidUsername
-	case errors.Is(err, errMissingUsername):
+	case errors.Is(err, ErrMissingUsername):
 		return http.StatusBadRequest, outcomeMissingUsername
 	default:
 		return http.StatusInternalServerError, outcomeFailed
