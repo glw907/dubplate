@@ -21,8 +21,8 @@ import (
 
 // binaryHead is the embedded migration set's highest version, the
 // version every mode opens a store at: 0001_ledger, 0002_jobs,
-// 0003_catalog, 0004_settings, and 0005_routed.
-const binaryHead = 5
+// 0003_catalog, 0004_settings, 0005_routed, and 0006_intake.
+const binaryHead = 6
 
 // openBusy is the busy timeout every open-mode test passes.
 const openBusy = 2 * time.Second
@@ -68,8 +68,8 @@ func buildStore(t *testing.T, stateDir string, through int) leaf {
 
 // futureLedgerRow sets a store to one version above binaryHead and
 // records that version in the ledger, as a newer binary would.
-const futureLedgerRow = `PRAGMA user_version = 6;
-INSERT INTO migrations (version, name, sha256) VALUES (6, '0006_future.sql', '0000000000000000000000000000000000000000000000000000000000000000');`
+const futureLedgerRow = `PRAGMA user_version = 7;
+INSERT INTO migrations (version, name, sha256) VALUES (7, '0007_future.sql', '0000000000000000000000000000000000000000000000000000000000000000');`
 
 // hashFile returns the SHA-256 of path's bytes. A caller hashes a
 // database file only with every connection to it in the test process
@@ -289,7 +289,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 			name:      "older",
 			setup:     func(t *testing.T, stateDir string) { buildStore(t, stateDir, 2) },
 			wantState: StateOlder,
-			wantText:  []string{"at version 2", "binary at version 5", "start serve to migrate"},
+			wantText:  []string{"at version 2", "binary at version 6", "start serve to migrate"},
 		},
 		{
 			name: "newer",
@@ -298,7 +298,7 @@ func TestOpenWrite_RefusesAllButCurrent(t *testing.T) {
 				rawExec(t, l.dbPath, futureLedgerRow)
 			},
 			wantState: StateNewer,
-			wantText:  []string{"at version 6", "binary's version 5"},
+			wantText:  []string{"at version 7", "binary's version 6"},
 		},
 	}
 	for _, tt := range tests {
