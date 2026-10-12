@@ -3,13 +3,24 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/intake"
 )
 
 func TestRegisterIntakeConfig_StagingWallRow(t *testing.T) {
@@ -384,5 +395,165 @@ func TestIntakeSettings_SetInTheEnvironmentLoads(t *testing.T) {
 	_, err := loadConfig(append(authEnviron(t), "DUBPLATE_INTAKE_NOT_A_KEY=1"), productionRegistry())
 	if err == nil || !strings.Contains(err.Error(), "DUBPLATE_INTAKE_NOT_A_KEY: unknown configuration key") {
 		t.Errorf("an undeclared DUBPLATE_INTAKE_* name: loadConfig() error = %v, want unknown configuration key", err)
+	}
+}
+
+// TestIntakeAllowlist: the allowlist splits into format names, and a
+// name the gate's format table does not hold, an empty entry among
+// them, is refused naming it.
+func TestIntakeAllowlist(t *testing.T) {
+	const key = "DUBPLATE_INTAKE_FORMAT_ALLOWLIST"
+	tests := []struct {
+		value string
+		want  []string
+		// refusal names the entry a refusal must quote.
+		refusal string
+	}{
+		{value: "flac", want: []string{"flac"}},
+		{value: " flac ", want: []string{"flac"}},
+		{value: "flac,mp3", refusal: `"mp3"`},
+		{value: "flac,", refusal: `""`},
+		{value: ",", refusal: `""`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			got, err := intakeAllowlist([]string{key + "=" + tt.value})
+			if tt.refusal == "" {
+				if err != nil || !slices.Equal(got, tt.want) {
+					t.Errorf("intakeAllowlist = %q, %v; want %q", got, err, tt.want)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), key) || !strings.Contains(err.Error(), tt.refusal) {
+				t.Errorf("intakeAllowlist error = %v, want a refusal naming %s and %s", err, key, tt.refusal)
+			}
+		})
+	}
+}
+
+// TestServeRefusesAnAllowlistItCannotCheck: serve refuses to start over
+// an allowlist naming a format it cannot check, naming the entry.
+func TestServeRefusesAnAllowlistItCannotCheck(t *testing.T) {
+	environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_INTAKE_FORMAT_ALLOWLIST", "flac,mp3")
+	requireServeRefuses(t, environ, "DUBPLATE_INTAKE_FORMAT_ALLOWLIST", "mp3")
+}
+
+// TestServeChecksStagingBeforeTheStore is AC 2's serve half: serve over
+// staging and a library root that are sibling temporary directories
+// starts, and with staging absent it refuses naming the path before the
+// store is opened, so the state directory holds no store.
+func TestServeChecksStagingBeforeTheStore(t *testing.T) {
+	requireServeStarts(t, serveAuthEnviron(t))
+
+	environ := serveAuthEnviron(t)
+	staging := environValue(environ, "DUBPLATE_STAGING_DIR")
+	if err := os.Remove(staging); err != nil {
+		t.Fatal(err)
+	}
+	requireServeRefuses(t, environ, staging, "does not exist")
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+	r := store.Inspect(t.Context(), store.InspectOptions{StateDir: stateDir, BusyTimeout: time.Second})
+	if r.State != store.StateAbsent {
+		t.Errorf("store state = %v after a staging refusal, want absent: the check must run before the store opens", r.State)
+	}
+}
+
+// TestServeRefusedAtTheIntakeLease is AC 27's serve half: a second serve
+// on one state directory refuses at the intake lease, naming it, while
+// the first holds it, and starts once the first has closed.
+func TestServeRefusedAtTheIntakeLease(t *testing.T) {
+	environ := serveAuthEnviron(t)
+	first, _, _, err := startServeShell(t, t.Context(), environ)
+	if err != nil {
+		t.Fatalf("first serve: %v", err)
+	}
+
+	second, _, _, err := startServeShell(t, t.Context(), environ)
+	if !errors.Is(err, store.ErrLeaseBusy) || second != nil {
+		t.Fatalf("second serve = %v, %v; want a refusal at the intake lease", second, err)
+	}
+	if !strings.Contains(err.Error(), "intake") {
+		t.Errorf("refusal %q does not name the intake lease", err)
+	}
+
+	if err := first.Close(); err != nil {
+		t.Fatalf("close the first serve: %v", err)
+	}
+	third, _, _, err := startServeShell(t, t.Context(), environ)
+	if err != nil {
+		t.Fatalf("serve after the first closed: %v", err)
+	}
+	if err := third.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestTusMaxSizeIsTheAlbumCapCeiling pins tusd's MaxSize to the album
+// cap's ceiling: a creation one byte over the ceiling answers tusd's
+// 413, and one at the ceiling passes MaxSize to the create callback,
+// which refuses it for naming no file.
+func TestTusMaxSizeIsTheAlbumCapCeiling(t *testing.T) {
+	ceiling, err := strconv.ParseInt(intakeMaxAlbumBytesSetting.Ceiling, 10, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, err := store.OpenServe(t.Context(), t.TempDir(), store.ServeOptions{
+		BusyTimeout: 5 * time.Second, MigrationWait: 30 * time.Second, Keep: 1, Logger: slog.New(slog.DiscardHandler),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = h.Close() })
+	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = in.Close() })
+	mount, err := in.TusMount(intake.TusConfig{
+		Prefix: "/dubplate", PublicURL: "https://music.example",
+		Verify: func(http.ResponseWriter, *http.Request) (identity.UserID, error) { return identity.UserID{1}, nil },
+		Floor:  func(context.Context) (int64, error) { return 0, nil },
+		TusLog: io.Discard,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for length, want := range map[int64]int{ceiling + 1: http.StatusRequestEntityTooLarge, ceiling: http.StatusBadRequest} {
+		r := httptest.NewRequest(http.MethodPost, "/dubplate/tus/", http.NoBody)
+		r.Header.Set("Tus-Resumable", "1.0.0")
+		r.Header.Set("Upload-Length", strconv.FormatInt(length, 10))
+		rec := httptest.NewRecorder()
+		mount.ServeHTTP(rec, r)
+		if rec.Code != want {
+			t.Errorf("Upload-Length %d = %d %q, want %d", length, rec.Code, rec.Body, want)
+		}
+	}
+}
+
+// TestStallMailGoesToLiveAdminsOnly is AC 28's recipients: the
+// production address closure over a real roster holding two live
+// admins, a demoted admin, and a removed admin reads the two live
+// admins alone.
+func TestStallMailGoesToLiveAdminsOnly(t *testing.T) {
+	stateDir := t.TempDir()
+	seedBackupStore(t, stateDir)
+	seedMembers(t, stateDir,
+		seedMember{address: "ann@example.com", displayName: "Ann", username: "ann", admin: true},
+		seedMember{address: "demoted@example.com", displayName: "Dee", username: "dee"},
+		seedMember{address: "removed@example.com", displayName: "Rae", username: "rae", admin: true, tombstoned: true},
+		seedMember{address: "bo@example.com", displayName: "Bo", username: "bo", admin: true},
+	)
+	h, err := store.OpenWrite(t.Context(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = h.Close() })
+
+	got, err := liveAdminAddresses(auth.NewRoster(h, nil, nil))(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"ann@example.com", "bo@example.com"}; !slices.Equal(got, want) {
+		t.Errorf("stall mail recipients = %q, want %q", got, want)
 	}
 }

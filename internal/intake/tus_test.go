@@ -74,6 +74,7 @@ func (f *tusFaults) syncPath(path string) error {
 // the memberHeader header, standing in for the session cookie.
 type tusFixture struct {
 	h      *store.Handle
+	in     *Intake
 	s      *submissions
 	faults *tusFaults
 	url    string
@@ -108,11 +109,12 @@ func testVerifier(_ http.ResponseWriter, r *http.Request) (identity.UserID, erro
 
 func newTusFixture(t *testing.T) *tusFixture {
 	t.Helper()
-	h, s := newTestSubmissions(t)
+	f := newIntakeFixture(t)
+	h, s := f.h, f.s
 	faults := &tusFaults{free: plentyFree, floor: 1 << 30}
 	s.freeBytes = faults.freeBytes
 	s.sync = faults.syncPath
-	mount, err := s.tusMount(TusConfig{
+	mount, err := f.in.TusMount(TusConfig{
 		Prefix:    tusPrefix,
 		PublicURL: tusPublicURL,
 		Verify:    testVerifier,
@@ -124,7 +126,7 @@ func newTusFixture(t *testing.T) *tusFixture {
 	}
 	srv := httptest.NewServer(mount)
 	t.Cleanup(srv.Close)
-	return &tusFixture{h: h, s: s, faults: faults, url: srv.URL, client: srv.Client()}
+	return &tusFixture{h: h, in: f.in, s: s, faults: faults, url: srv.URL, client: srv.Client()}
 }
 
 // tusReply is one response, its body read.
@@ -429,6 +431,23 @@ func TestTusLostCreateRetry(t *testing.T) {
 	mustStatus(t, "HEAD", head, http.StatusOK)
 	if got := head.header.Get("Upload-Offset"); got != "0" {
 		t.Errorf("Upload-Offset = %q, want 0", got)
+	}
+}
+
+// TestTusMountRefusesAPublicURLWithoutSchemeAndHost: tusd builds a
+// Location from the base path alone only when it carries a scheme, and
+// otherwise from the request's Host, so a public URL lacking either is
+// refused when the mount is built.
+func TestTusMountRefusesAPublicURLWithoutSchemeAndHost(t *testing.T) {
+	f := newIntakeFixture(t)
+	for _, publicURL := range []string{"//localhost:8080", "music.example", "", "https://"} {
+		_, err := f.in.TusMount(TusConfig{
+			Prefix: tusPrefix, PublicURL: publicURL, Verify: testVerifier,
+			Floor: func(context.Context) (int64, error) { return 0, nil }, TusLog: io.Discard,
+		})
+		if err == nil {
+			t.Errorf("TusMount(%q) built a mount, want a refusal", publicURL)
+		}
 	}
 }
 

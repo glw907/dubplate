@@ -103,16 +103,16 @@ func newAPIHarness(t *testing.T, members []seedMember, tweak func([]string) []st
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
 	logs := &syncBuffer{}
-	shell, h, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(logs, nil)))
+	srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(logs, nil)))
 	if err != nil {
 		t.Fatalf("newServeShell: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := h.Close(); err != nil {
-			t.Errorf("close store handle: %v", err)
+		if err := srv.Close(); err != nil {
+			t.Errorf("close the serve build: %v", err)
 		}
 	})
-	return &apiHarness{t: t, environ: environ, handler: shell.Handler(), h: h, prefix: prefix, logs: logs}
+	return &apiHarness{t: t, environ: environ, handler: srv.shell.Handler(), h: srv.store, prefix: prefix, logs: logs}
 }
 
 // session mints a session for address issued at issued.
@@ -486,6 +486,16 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 		for name, value := range envSentinels {
 			environ = replaceKey(environ, name, value)
 		}
+		// serve refuses a staging directory or library root that does not
+		// exist, so these two sentinels are real sibling directories.
+		music := t.TempDir()
+		for _, key := range []string{"DUBPLATE_LIBRARY_ROOT", "DUBPLATE_STAGING_DIR"} {
+			dir := filepath.Join(music, filepath.Base(envSentinels[key]))
+			if err := os.Mkdir(dir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			environ = replaceKey(environ, key, dir)
+		}
 		return environ
 	})
 	admin := a.session("admin@example.com", time.Now())
@@ -537,7 +547,9 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	collect(a.call("get_submission", member, `{"submission_id":"`+strings.Repeat("ab", 16)+`"}`))
 
 	secrets := maps.Clone(envSentinels)
-	secrets["DUBPLATE_STATE_DIR"] = environValue(a.environ, "DUBPLATE_STATE_DIR")
+	for _, key := range []string{"DUBPLATE_STATE_DIR", "DUBPLATE_LIBRARY_ROOT", "DUBPLATE_STAGING_DIR"} {
+		secrets[key] = environValue(a.environ, key)
+	}
 	for _, name := range envClosed {
 		delete(secrets, name)
 	}

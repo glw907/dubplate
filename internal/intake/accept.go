@@ -11,6 +11,12 @@ import (
 
 // A verdict is the gate's judgment on a checking submission, as the
 // worker commits it.
+//
+// Only a final verdict, to matching, accepted, or rejected, carries
+// members: commitVerdict inserts their rows whatever the target, and a
+// check-unfinished submission's retry extracts again and mints new
+// rows, which a second insert under the same paths would refuse. A move
+// to accepted needs at least one file the gate passed.
 type verdict struct {
 	// to is matching, accepted, rejected, or check-unfinished. A move to
 	// accepted runs accept, which may turn it to rejected.

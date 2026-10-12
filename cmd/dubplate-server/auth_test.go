@@ -828,11 +828,15 @@ func TestAuthSettings_StringRowSecondStart(t *testing.T) {
 	environ := append(serveAuthEnviron(t), key+"=generic")
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 
-	ctx, cancel := context.WithCancel(t.Context())
-	if _, err := buildServeShellContext(t, ctx, environ, discardTestLogger()); err != nil {
+	// The first start closes before the second, which would otherwise
+	// meet the intake lease the first holds.
+	first, _, _, err := startServeShell(t, t.Context(), environ)
+	if err != nil {
 		t.Fatalf("first start: %v", err)
 	}
-	cancel()
+	if err := first.Close(); err != nil {
+		t.Fatalf("close the first start: %v", err)
+	}
 	rows, audit, generation := readSeedState(t, stateDir)
 	if want := map[string]settingRow{key: {"generic", "env-seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
 		t.Fatalf("settings after the first start = %v, want %v", rows, want)

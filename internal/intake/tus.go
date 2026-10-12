@@ -5,16 +5,14 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
-	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/tus/tusd/v2/pkg/filestore"
 	"github.com/tus/tusd/v2/pkg/handler"
 	"github.com/tus/tusd/v2/pkg/memorylocker"
@@ -46,13 +44,6 @@ type TusConfig struct {
 	TusLog io.Writer
 }
 
-// NewTusMount returns the handler for the shell's subtree tus, which
-// takes uploads into staging's tus directory for the submissions the
-// store holds. The shell hands it the full path, prefix included.
-func NewTusMount(h *store.Handle, stagingDir string, log *slog.Logger, cfg TusConfig) (http.Handler, error) {
-	return newSubmissions(h, log, stagingDir, time.Now, staging.FreeBytes).tusMount(cfg)
-}
-
 // tusMount authorizes every request before tusd sees it (tuswrap.go)
 // and holds tusd's two callbacks, which check a creation against the
 // store and run receipt when an upload finishes.
@@ -65,17 +56,25 @@ type tusMount struct {
 	tusd   http.Handler
 }
 
-// tusMount builds the mount over tusd configured closed: no CORS,
+// newTusMount builds the mount over tusd configured closed: no CORS,
 // downloads, termination, concatenation, deferred length, experimental
 // protocol, or forwarded headers. The composer is built by hand,
 // because FileStore.UseIn would also compose the concater, the length
-// deferrer, and the content server.
-func (s *submissions) tusMount(cfg TusConfig) (http.Handler, error) {
+// deferrer, and the content server. Uploads lock through locker, the
+// one cleanup takes before it removes an upload.
+//
+// tusd builds a Location from the base path alone only when the base
+// path carries a scheme, and otherwise from the request's Host, so a
+// public URL without a scheme and a host is refused.
+func newTusMount(s *submissions, locker *memorylocker.MemoryLocker, cfg TusConfig) (http.Handler, error) {
+	if u, err := url.Parse(cfg.PublicURL); err != nil || u.Scheme == "" || u.Host == "" {
+		return nil, fmt.Errorf("tus mount: public URL %q needs a scheme and a host, or every Location would follow the request's Host", cfg.PublicURL)
+	}
 	files := filestore.New(filepath.Join(s.staging, "tus"))
 	files.DirModePerm, files.FileModePerm = 0o750, 0o640
 	composer := handler.NewStoreComposer()
 	composer.UseCore(files)
-	memorylocker.New().UseIn(composer)
+	locker.UseIn(composer)
 
 	m := &tusMount{
 		subs:   s,

@@ -81,7 +81,12 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 
 	staging := t.TempDir()
 	logger := slog.New(slog.DiscardHandler)
-	mount, err := intake.NewTusMount(h, staging, logger, intake.TusConfig{
+	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = in.Close() })
+	mount, err := in.TusMount(intake.TusConfig{
 		Prefix:    testPrefix,
 		PublicURL: "https://music.example",
 		Verify:    func(http.ResponseWriter, *http.Request) (identity.UserID, error) { return member, nil },

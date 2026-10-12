@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
@@ -68,20 +67,6 @@ func intakeLimits(acc *settings.Accessor, allowlist []string) func(context.Conte
 		}
 		return lim, failed
 	}
-}
-
-// intakeAllowlist reads DUBPLATE_INTAKE_FORMAT_ALLOWLIST from environ as
-// its comma-separated names.
-func intakeAllowlist(environ []string) ([]string, error) {
-	value, err := config.ParseString(environ, intakeFormatAllowlistThreshold)
-	if err != nil {
-		return nil, err
-	}
-	names := strings.Split(value, ",")
-	for i := range names {
-		names[i] = strings.TrimSpace(names[i])
-	}
-	return names, nil
 }
 
 // apiVerifier admits a request whose session verifies as any member,

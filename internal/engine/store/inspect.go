@@ -206,6 +206,11 @@ type Facts struct {
 	// caller tells from an empty table by the report's StoreVersion.
 	Members int
 	Admins  int
+
+	// CollectionRoots holds every collection's root_path, relative to
+	// the library root, in root order, for a store whose version holds
+	// the collections table, which the users table's migration added.
+	CollectionRoots [][]byte
 }
 
 // A JobSuccess is a job kind's newest succeeded record.
@@ -341,6 +346,9 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 				return nil, StandingNotRead, err
 			}
 		}
+		if f.CollectionRoots, err = readCollectionRoots(ctx, db, l.dbPath); err != nil {
+			return nil, StandingNotRead, err
+		}
 	}
 
 	var st syscall.Statfs_t
@@ -405,6 +413,28 @@ func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admi
 		return 0, 0, refusal(StateRefused, "read users in %s: %v", dbPath, err)
 	}
 	return members, admins, nil
+}
+
+// readCollectionRoots returns every collection's root_path db reads, in
+// root order.
+func readCollectionRoots(ctx context.Context, db *sql.DB, dbPath string) ([][]byte, error) {
+	rows, err := db.QueryContext(ctx, `SELECT root_path FROM collections ORDER BY root_path`)
+	if err != nil {
+		return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+	}
+	defer func() { _ = rows.Close() }()
+	var roots [][]byte
+	for rows.Next() {
+		var root []byte
+		if err := rows.Scan(&root); err != nil {
+			return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+		}
+		roots = append(roots, root)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+	}
+	return roots, nil
 }
 
 // readStanding returns where address stands in the users table db

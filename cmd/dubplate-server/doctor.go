@@ -18,7 +18,9 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/spf13/cobra"
+	"golang.org/x/sys/unix"
 )
 
 // newDoctorCmd builds the doctor subcommand: it reports the config
@@ -166,6 +168,12 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			probeStatus, probeFailed := boundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
 			addChecked(boundaryProbeDoctorRow, probeStatus, probeFailed)
 
+			// The music volume row closes the fixed-count rows: serve's
+			// startup check on staging and the library root, and where
+			// each collection root the store lists sits.
+			volumeStatus, volumeFailed := musicVolumeRowStatus(cfg, storeReport, storeChecked)
+			addChecked(musicVolumeDoctorRow, volumeStatus, volumeFailed)
+
 			// The settings rows print one per registered setting, in
 			// declaration order, after the boundary rows, and one row
 			// per orphan the store holds under a key no rung still
@@ -256,6 +264,62 @@ func adminEmailRowStatus(wall string, r store.Report, checked bool) string {
 		return adminEmailNotAdmin
 	}
 	return wall
+}
+
+// musicVolumeDoctorRow is the row reporting the music volume: staging,
+// the library root, and the collection roots under it.
+const musicVolumeDoctorRow = "music volume"
+
+// musicVolumeRowStatus reports what serve's startup check finds of
+// staging and the library root, and where each collection root the
+// store lists sits, and whether the row fails. A directory not created
+// yet is named without failing doctor, as on a fresh box before
+// deploy.sh runs, and a collection root not created yet reads "not
+// created", since rung 9 creates them. Any other refusal the startup
+// check makes fails the row, as does a collection root outside the
+// library root's mount. A nil cfg reads "not checked".
+func musicVolumeRowStatus(cfg *config.Config, r store.Report, checked bool) (status string, failed bool) {
+	if cfg == nil {
+		return "not checked", false
+	}
+	stagingDir, library := staging.Read(cfg.WallValue(stagingKey)), staging.Read(cfg.LibraryRoot)
+	var absent []string
+	for _, d := range []struct {
+		role string
+		dir  staging.Dir
+	}{{"staging directory", stagingDir}, {"library root", library}} {
+		if errors.Is(d.dir.Err, fs.ErrNotExist) {
+			absent = append(absent, d.role+" "+d.dir.Path+" does not exist")
+		}
+	}
+	if len(absent) > 0 {
+		return strings.Join(absent, "; "), false
+	}
+	if err := staging.Check(stagingDir, library); err != nil {
+		return err.Error(), true
+	}
+
+	parts := []string{"ok: staging and the library root share one mount"}
+	if !checked || r.Facts == nil {
+		return parts[0], false
+	}
+	for _, root := range r.Facts.CollectionRoots {
+		path := filepath.Join(cfg.LibraryRoot, string(root))
+		d := staging.Read(path)
+		switch {
+		case errors.Is(d.Err, fs.ErrNotExist):
+			parts = append(parts, "collection root "+path+" not created")
+		case d.Err != nil:
+			parts, failed = append(parts, "collection root: "+d.Err.Error()), true
+		case d.StatxErr != nil:
+			parts, failed = append(parts, "collection root: "+d.StatxErr.Error()), true
+		case d.Dev != library.Dev || d.Mask&unix.STATX_MNT_ID == 0 || d.MountID != library.MountID:
+			parts, failed = append(parts, "collection root "+path+" sits outside the library root's mount"), true
+		default:
+			parts = append(parts, "collection root "+path+" on the library root's mount")
+		}
+	}
+	return strings.Join(parts, "; "), failed
 }
 
 // authStoreDoctorRow is the row reporting the auth leaf serve opens.
