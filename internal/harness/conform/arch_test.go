@@ -208,12 +208,15 @@ func TestTimeNowCheckDescendsIntoNestedPackages(t *testing.T) {
 }
 
 // serverUnlinkable lists the import-path prefixes the production server
-// binary must never link: the harness, the contract checker, and the
-// OpenAPI library the checker wraps.
+// binary must never link: the harness, the contract checker, the OpenAPI
+// library the checker wraps, and tusd's file locker with its lock library,
+// whose flock is Unix-only (AC 33's server clause).
 var serverUnlinkable = []string{
 	"github.com/glw907/dubplate/internal/harness",
 	"github.com/glw907/dubplate/internal/opensubsonic/conformance",
 	"github.com/getkin",
+	"github.com/tus/tusd/v2/pkg/filelocker",
+	"github.com/tus/lockfile",
 }
 
 // serverLinkViolations returns the paths in a `go list -deps` listing that
@@ -267,6 +270,8 @@ func TestServerLinkCheckFiresOnItsOwnListing(t *testing.T) {
 			[]string{prefix + "internal/harness/subsonic/grade", "github.com/getkin/kin-openapi/openapi3"},
 		},
 		{"the checker", prefix + "internal/opensubsonic/conformance\n", []string{prefix + "internal/opensubsonic/conformance"}},
+		{"tusd's file locker and its lock library", "github.com/tus/tusd/v2/pkg/filelocker\ngithub.com/tus/lockfile\n", []string{"github.com/tus/tusd/v2/pkg/filelocker", "github.com/tus/lockfile"}},
+		{"tusd's memory locker is allowed", "github.com/tus/tusd/v2/pkg/memorylocker\n", nil},
 		{"the harness root", prefix + "internal/harness\n", []string{prefix + "internal/harness"}},
 		{"a test-variant line", prefix + "internal/harness/conform [" + prefix + "internal/harness/conform.test]\n", []string{prefix + "internal/harness/conform"}},
 		{"the client is allowed", prefix + "internal/opensubsonic/client\n", nil},

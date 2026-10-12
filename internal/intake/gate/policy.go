@@ -1,6 +1,10 @@
 package gate
 
 import (
+	"path"
+	"slices"
+	"strings"
+
 	"github.com/glw907/dubplate/internal/engine/tagio"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -45,6 +49,35 @@ func LookupFormat(name string) (FormatRow, bool) {
 		}
 	}
 	return FormatRow{}, false
+}
+
+// audioExtensions are the extensions the gate takes for music, lowercase
+// with the dot. The format table names the formats the library keeps; this
+// adds the common ones it does not, so an MP3 answers bad-extension where
+// it would otherwise ride along as an extra.
+var audioExtensions = []string{".flac", ".mp3", ".m4a", ".ogg", ".opus", ".wav", ".aiff"}
+
+// isAudioExt reports whether ext names a music format, kept or not.
+func isAudioExt(ext string) bool {
+	return slices.Contains(audioExtensions, ext) || slices.ContainsFunc(formats, func(row FormatRow) bool {
+		return slices.Contains(row.Extensions, ext)
+	})
+}
+
+// admitted returns the allowlisted format row ext names, and false when no
+// row in the policy's allowlist carries it.
+func (p Policy) admitted(ext string) (FormatRow, bool) {
+	for _, name := range p.Allowlist {
+		if row, ok := LookupFormat(name); ok && slices.Contains(row.Extensions, ext) {
+			return row, true
+		}
+	}
+	return FormatRow{}, false
+}
+
+// extension is a member path's extension, lowercase with the dot.
+func extension(name string) string {
+	return strings.ToLower(path.Ext(name))
 }
 
 // FileReason is one file's refusal or warning: the path as the member sent
