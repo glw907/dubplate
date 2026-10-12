@@ -214,6 +214,25 @@
   with a `doctor` row. The pass that builds it edits PS:145-147 in place: no command-line set verb exists, and
   `admin-api-1`'s notice rule sends no notice for the seed rule or the command line. The `admin-api-1` plan moved it
   here (its P12), 2026-10-11 #auth #rung:admin-api
+- [ ] #75 Removing or demoting an admin sends no notice mail; the spec scopes the notice to sensitive settings, and
+  the security read carried it over. From PR #4, 2026-10-12 #auth #rung:admin-api
+- [ ] #76 After a restore, an epoch lost with the auth leaf revives a removed member. The runbook's "After a restore"
+  step covers it by process until a code fix. From PR #4, 2026-10-12 #auth
+- [ ] #77 `api request admitted` is logged before the method and path checks, so an unknown operation logs as
+  admitted. Take it in a log pass. From PR #4, 2026-10-12 #ops
+- [ ] #78 `doctor`'s address normalizer is a third copy beside `config` and `identity.NormalizeAddress`. From PR #4,
+  2026-10-12 #project:prod-polish
+- [ ] #79 On a long settings page a successful save shows its alert far from the field; a per-row outcome is a
+  redesign. From PR #4, 2026-10-12 #web
+- [ ] #80 The settings page's per-row Save buttons are outline until the row's field is dirty, and solid red only on a
+  row with an unsaved change (Geoff, 2026-10-11; the visual identity spec reserves solid red for the primary action).
+  From PR #4, 2026-10-12 #web
+- [ ] #81 The members list marks the signed-in admin's row "(you)" and refuses self-removal; another admin removes
+  you (Geoff, 2026-10-11). Today removing yourself signs you out mid-page. From PR #4, 2026-10-12 #auth
+  #rung:admin-api
+- [ ] #82 Accessibility suggestions the `admin-api-1` close did not take: description ids on the setting inputs, a
+  short heading naming the confirm modal, a loading indicator, empty-list lines, a new-tab warning on "Sign in again",
+  and human labels beside the environment names. From PR #4, 2026-10-12 #web
 
 ## Done
 
