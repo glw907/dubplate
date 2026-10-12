@@ -384,8 +384,9 @@ holds no settings yet`. A key the store holds that no code still declares
 reads `no longer registered; ignored`.
 
 `DUBPLATE_REAUTH_WINDOW` is a store-homed setting beside the others: how long
-after an admin signs in that a change made over the API stays allowed before
-it asks for a fresh sign-in. It defaults to `2h`, accepts `5m` to `24h`, and
+after an admin signs in that a sensitive setting change, or adding, removing,
+or demoting a member, stays allowed over the API before it asks for a fresh
+sign-in. It defaults to `2h`, accepts `5m` to `24h`, and
 must stay below `DUBPLATE_SESSION_ABSOLUTE_CAP`. A window at or above the cap
 refuses the start.
 
@@ -794,8 +795,8 @@ database snapshot after it. These prerequisites sit outside the binary, so
 ### After a restore
 
 A restore brings back the member and settings tables as they stood when the
-snapshot was taken. The backup does not hold the sign-in leaf's epochs, so
-nothing else undoes the difference. A member removed since the snapshot comes
+snapshot was taken, and nothing else undoes a removal or a demotion made after
+it. A member removed since the snapshot comes
 back, and an admin flag a demotion cleared is set again. Re-run any removal or
 demotion made since the snapshot with `member remove` or `member demote`, and
 re-run any `settings reset` the same way. Then check `member list`.
