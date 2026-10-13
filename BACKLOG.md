@@ -225,6 +225,45 @@
 - [ ] #86 The streamer spec's forward hooks gain rung 9's MusicBrainz buy-link capture (PS:762), and hook 12 (a
   portable layout) now sits at rung 9. `pipeline` builds both. Found by the `intake-1` pass, 2026-10-12
   #rung:pipeline
+- [ ] #87 `intake-2` hardening from `intake-1`'s PR #6 triage (items 1 to 4 and 12): a directory-bytes cap for the ZIP
+  walk (`zip.NewReader` allocates each header's name, extra, and comment, up to 192 KB each, after the count passes);
+  tusd's own 500 on a filestore fault carries the staging path to the member, which needs a wrapped `ResponseWriter` or
+  a datastore wrapper; a backstop that moves a submission to `check-unfinished` after N consecutive verdict-commit
+  failures (the one reachable cause, a member named like its archive, is closed); a decode-level `recover` that
+  returns `corrupt`, since no panic is known in mewkiz/flac v1.0.14; and `store_url`'s case-insensitive `LIKE`, an
+  unbounded `source_note`, manifest work under the store write lock before the `MaxFiles` check, create and cancel
+  without a rate limit (the session cap counts only `uploading`), concurrent creates of one file truncating the
+  member's own upload, and an authorize-versus-tusd-lock race that lets one PATCH write after a cancel (bounded,
+  swept). Found by the `intake-1` pass, 2026-10-12 #rung:intake #security
+- [ ] #88 `intake-2` cleanups from PR #6's triage (items 15 and 16): `TestLayering` shells out to `go list` and the
+  test cache cannot see it (add it to `UNCACHED_TESTS`); event reasons bypass `reasonReader`; `Limits` and `limits`
+  are twin structs; `doctor` re-derives the device comparison instead of calling `staging.Check`; the `collection.go`
+  package doc understates the package; dead exports (`reject.All`, `Reason.Blocking`, `Param`, `Canonical`,
+  `staging.ErrLinuxOnly`, the `Route` exports) find callers or go; the doctor boundary-probe tests hang to the package
+  timeout when `serve` refuses to start; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` failed once in a gate
+  run; `sweepNonces` is never joined at teardown. Found by the `intake-1` pass, 2026-10-12 #rung:intake #test
+- [ ] #89 The deploy pass owes, from PR #6's triage (items 9 and 14): confirm the legacy `/srv/music/staging` (the
+  musicbox estate's, 2000:2000) is empty or absent before the first deploy, since the first sweep cleans anything in
+  it as rowless; narrow `/srv/music` in the serve unit's `ReadWritePaths` with `ReadOnlyPaths` or `InaccessiblePaths`
+  for the `music` user's home and legacy directories; `install -d` re-applies owner and mode to an existing library
+  root; the state-dir leg's `deploy.sh` check is a substring `grep` (a commented-out line passes); `backup`,
+  `restore`, and `member` apply only the lexical staging-versus-library check, and staging is never checked against
+  `DUBPLATE_STATE_DIR`. Found by the `intake-1` pass, 2026-10-12 #ops #rung:cutover
+- [ ] #90 The route collections' owner is the earliest live admin at creation and is never reassigned, so a demoted
+  former admin keeps ownership of "Library" and "Unlisted music"; `admin-api-2` decides what ownership grants and
+  whether it follows the roster. Found by the `intake-1` pass, 2026-10-12 #rung:admin-api
+- [ ] #91 `pipeline` carries two from PR #6's triage: `already-in-library` can tell an uploader that an album exists in
+  a private collection (dedup scope, or a neutral wording); and an album's extras are unchecked bytes of any extension,
+  so the rung that first serves extras must set `Content-Type` and `nosniff` or allowlist them by extension. Found by
+  the `intake-1` pass, 2026-10-12 #rung:pipeline #security
+- [ ] #92 `intake-2`'s first task, three rulings Geoff left open in PR #6's triage (items 5 to 7, disposition "now"):
+  keep or drop the minimum-block-size rule in `internal/intake/gate/file.go` (it buys no security, since an attacker
+  declares a minimum of 0 or 1, and it can refuse a rare stream-copied file), then add the two missing tests, a clean
+  file whose short final frame is below STREAMINFO's minimum and a long silent track under the PCM budget; whether
+  `DUBPLATE_INTAKE_MAX_ALBUM_BYTES`, `..._MAX_PICTURE_BYTES`, `..._MAX_TAG_BYTES`, and `..._CHECK_WORKERS` become
+  Sensitive (a mark joins only by a ruling); and whether the sign-in endpoint's `DUBPLATE_UNKNOWN_ADDRESS_ANSWER`
+  default moves from `kind` to `generic`, since `kind` tells an outsider which addresses are members. Found by the
+  `intake-1` pass, 2026-10-12 #rung:intake #security
 - [ ] #72 `label.css` and `label-night.css` set no `--size-field`, though the visual identity spec's "Component
   layer" says every theme block sets it. Found by the alignment pass, PR #2 #web
 - [ ] #73 Doc corrections: the `internal/serve/serve.go:66-67` typo ("is answers 404"), and the visual identity

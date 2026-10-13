@@ -89,8 +89,10 @@ in a worktree.
 **CI watch**: None. There is no PR CI, so no watch command runs.
 
 **Risk-class path map**: `auth-data` for `internal/auth/**`, `internal/serve/**`,
-`internal/engine/store/migrations/**`, `cmd/dubplate-server/**`, `web/src/routes/{login,members}/**`,
-and `systemd/**`. `runner` for `scripts/` and `.claude/`. `ordinary` otherwise.
+`internal/engine/store/migrations/**`, `cmd/dubplate-server/**`, `internal/intake/**`,
+`web/src/routes/{login,members}/**`, and `systemd/**`. `runner` for `scripts/` and `.claude/`. `ordinary`
+otherwise. `internal/intake/**` joined on 2026-10-12: the tus wrapper, the gate over member-supplied bytes, and the
+worker are the upload path's member gate, and the `intake-1` security reads found what four task reviews had not.
 
 **Checklist globs**: The close review loads `svelte-reviewer` and `daisyui-a11y-reviewer` for
 `web/**`; `web-auth-security-reviewer` for every `auth-data` path above; and the `go-conventions`
