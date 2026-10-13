@@ -73,7 +73,13 @@ runs alone in seconds, and shellcheck covers it with the rest of
 `deploy.sh`'s `DUBPLATE_SERVER_LEAVES` name the same state directory and
 leaves; every granted leaf is in that array and every array entry is
 granted; the serve unit is granted the `store` leaf; and the leg proves
-`deploy.sh`'s pre-create loop iterates that array.
+`deploy.sh`'s pre-create loop iterates that array. A second grant class admits
+one non-leaf entry, on the serve unit alone: the music volume's directory,
+which must be the common parent of the template's `DUBPLATE_STAGING_DIR` and
+`DUBPLATE_LIBRARY_ROOT` (one mount keeps `rename(2)` from failing with `EXDEV`
+between them). The serve unit must carry it, any other non-leaf grant still
+fails, and the leg checks that `deploy.sh` has one pre-create line for each of
+the two rows.
 Two import-graph tests hold the OpenSubsonic layer's boundaries, and a green
 `go test ./...` runs both. The import-boundary test
 (`internal/opensubsonic/boundary_test.go`) fails if anything under

@@ -21,6 +21,7 @@ type mountFixture struct {
 	mount    http.Handler
 	seam     *fakeSeam
 	admin    *fakeAdmin
+	subs     *fakeSubmissions
 	verified int
 	log      *bytes.Buffer
 }
@@ -31,13 +32,14 @@ func newMountFixture(t *testing.T, decide func(w http.ResponseWriter, r *http.Re
 	f := &mountFixture{
 		seam:  &fakeSeam{answers: successes()},
 		admin: &fakeAdmin{answers: adminSuccesses()},
+		subs:  &fakeSubmissions{answers: submissionSuccesses()},
 		log:   &bytes.Buffer{},
 	}
 	verify := func(w http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error) {
 		f.verified++
 		return decide(w, r)
 	}
-	m, err := NewMount(f.seam, f.admin, mountPrefix, verify, slog.New(slog.NewTextHandler(f.log, nil)))
+	m, err := NewMount(f.seam, f.admin, f.subs, mountPrefix, verify, slog.New(slog.NewTextHandler(f.log, nil)))
 	if err != nil {
 		t.Fatalf("NewMount: %v", err)
 	}
@@ -253,17 +255,18 @@ func TestNewMount_Refusals(t *testing.T) {
 		return ops.Actor{}, 0, ErrUnauthenticated
 	}
 	log := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
-	seam, admin := &fakeSeam{}, &fakeAdmin{}
+	seam, admin, subs := &fakeSeam{}, &fakeAdmin{}, &fakeSubmissions{}
 	for _, tt := range []struct {
 		name string
 		call func() (http.Handler, error)
 	}{
-		{"nil verifier", func() (http.Handler, error) { return NewMount(seam, admin, mountPrefix, nil, log) }},
-		{"nil job seam", func() (http.Handler, error) { return NewMount(nil, admin, mountPrefix, verify, log) }},
-		{"nil admin seam", func() (http.Handler, error) { return NewMount(seam, nil, mountPrefix, verify, log) }},
-		{"nil logger", func() (http.Handler, error) { return NewMount(seam, admin, mountPrefix, verify, nil) }},
-		{"prefix without a leading separator", func() (http.Handler, error) { return NewMount(seam, admin, "dub", verify, log) }},
-		{"prefix with a trailing separator", func() (http.Handler, error) { return NewMount(seam, admin, "/dub/", verify, log) }},
+		{"nil verifier", func() (http.Handler, error) { return NewMount(seam, admin, subs, mountPrefix, nil, log) }},
+		{"nil job seam", func() (http.Handler, error) { return NewMount(nil, admin, subs, mountPrefix, verify, log) }},
+		{"nil admin seam", func() (http.Handler, error) { return NewMount(seam, nil, subs, mountPrefix, verify, log) }},
+		{"nil submission seam", func() (http.Handler, error) { return NewMount(seam, admin, nil, mountPrefix, verify, log) }},
+		{"nil logger", func() (http.Handler, error) { return NewMount(seam, admin, subs, mountPrefix, verify, nil) }},
+		{"prefix without a leading separator", func() (http.Handler, error) { return NewMount(seam, admin, subs, "dub", verify, log) }},
+		{"prefix with a trailing separator", func() (http.Handler, error) { return NewMount(seam, admin, subs, "/dub/", verify, log) }},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			if h, err := tt.call(); err == nil || h != nil {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,9 +10,12 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/opshttp"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // apiRouteName is the cookie mount's subtree name. The shell hands the
@@ -24,10 +28,45 @@ const apiRouteName = "api"
 // job over HTTP.
 const noJobRunner = "this server runs no job runner"
 
-// newAPIMount builds the /api/v1 handler over the admin seam for the
-// sessions cfg verifies. Its job operations answer unavailable.
-func newAPIMount(prefix serve.Prefix, adminSeam ops.AdminSeam, cfg auth.AdminConfig) (http.Handler, error) {
-	return opshttp.NewMount(ops.NewUnavailableJobs(noJobRunner), adminSeam, prefix.String(), apiVerifier(cfg), cfg.Logger)
+// newAPIMount builds the /api/v1 handler over the admin and submission
+// seams for the sessions cfg verifies. Its job operations answer
+// unavailable.
+func newAPIMount(prefix serve.Prefix, adminSeam ops.AdminSeam, submissionSeam ops.SubmissionSeam, cfg auth.AdminConfig) (http.Handler, error) {
+	return opshttp.NewMount(ops.NewUnavailableJobs(noJobRunner), adminSeam, submissionSeam, prefix.String(), apiVerifier(cfg), cfg.Logger)
+}
+
+// intakeLimits reads the intake settings in force through acc at each
+// call, so a raised cap reaches the next create. allowlist is the
+// environment's format bound, which no setting changes. The first
+// failed read fails the call naming its key, and no limit falls back to
+// a default.
+func intakeLimits(acc *settings.Accessor, allowlist []string) func(context.Context) (intake.Limits, error) {
+	return func(ctx context.Context) (intake.Limits, error) {
+		var failed error
+		count := func(s config.Setting) int {
+			n, err := acc.Int(ctx, s)
+			if err != nil && failed == nil {
+				failed = settingReadError(s, err)
+			}
+			return n
+		}
+		lim := intake.Limits{
+			Policy: gate.Policy{
+				MaxAlbumBytes:    int64(count(intakeMaxAlbumBytesSetting)),
+				MaxFiles:         count(intakeMaxFilesSetting),
+				MaxPathDepth:     count(intakeMaxPathDepthSetting),
+				MaxTagBytes:      int64(count(intakeMaxTagBytesSetting)),
+				MaxPictureBytes:  int64(count(intakeMaxPictureBytesSetting)),
+				MinSampleRate:    count(intakeMinSampleRateSetting),
+				MinBitsPerSample: count(intakeMinBitsPerSampleSetting),
+				Allowlist:        allowlist,
+			},
+			SessionsPerMember: count(intakeSessionsPerMemberSetting),
+			GroupQuotaBytes:   int64(count(intakeGroupQuotaBytesSetting)),
+			FreeSpaceFloor:    int64(count(intakeFreeSpaceFloorSetting)),
+		}
+		return lim, failed
+	}
 }
 
 // apiVerifier admits a request whose session verifies as any member,

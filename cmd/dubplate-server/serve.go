@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
@@ -200,7 +203,7 @@ func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
 }
 
 // newServeCmd builds the serve verb: it validates the owned
-// configuration wall through [config.Load] against reg, resolves the
+// configuration wall through [loadConfig] against reg, resolves the
 // three serve thresholds, builds the shell through newServeShell,
 // which reads the auth settings once its seed commits and mounts the
 // auth handlers, and runs it
@@ -218,7 +221,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) (err error) {
-			cfg, err := config.Load(environ, reg)
+			cfg, err := loadConfig(environ, reg)
 			if err != nil {
 				return err
 			}
@@ -226,12 +229,12 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			shell, h, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, slog.Default())
+			srv, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, slog.Default())
 			if err != nil {
 				return err
 			}
-			defer func() { err = errors.Join(err, h.Close()) }()
-			return serve.Run(cmd.Context(), shell.Logger(), shell.Handler(), addrs, port)
+			defer func() { err = errors.Join(err, srv.Close()) }()
+			return serve.Run(cmd.Context(), srv.shell.Logger(), srv.shell.Handler(), addrs, port)
 		},
 	}
 	cmd.SetOut(stdout)
@@ -239,11 +242,14 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 	return cmd
 }
 
-// newServeShell builds the shell the serve verb runs, owning prefix.
-// It first opens the dubplate store through [store.OpenServe], which
-// creates it, migrates it, or finishes a restore, and returns the
-// handle the caller closes when the shell stops serving; every refusal
-// returns no shell and no handle. It then applies the settings seed to
+// newServeShell builds the shell the serve verb runs, owning prefix,
+// and returns it as a [server] the caller closes when the shell stops
+// serving; every refusal returns no server. It first refuses an intake
+// format allowlist naming a format it cannot check and runs the startup
+// check on staging and the library root, so a missing music volume
+// refuses before the store is touched. It then opens the dubplate store
+// through [store.OpenServe], which creates it, migrates it, or finishes
+// a restore. It then applies the settings seed to
 // that store through [applySettingsSeed], so a refusal ends the start
 // before anything else is built, and reads the four rate limits the
 // seed left in force through [readAuthLimits]: they apply at the next
@@ -278,6 +284,12 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 //
 // It starts the nonce sweep bound to ctx; see [sweepNonces].
 //
+// Last, once nothing else can refuse, it starts intake: the intake
+// lease, held until Close, then the startup pass under it, then the tus
+// mount, then the checking workers and the sweep, which run on a
+// context derived from ctx. A lease another process holds refuses the
+// start naming the holder.
+//
 // The trusted proxy class, resolved through [resolveTrustedProxy],
 // governs both the strip's forwarded-address carve-out and every
 // handler's ClientIP, so the peer whose forwarded headers survive the
@@ -291,8 +303,24 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // already cleared. Its peer rule reads bindAddrs, the resolved list
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*serve.Shell, *store.Handle, error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
 	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s })
+}
+
+// A server is what newServeShell builds: the shell, the store it holds
+// open, and intake, whose work runs against that store.
+type server struct {
+	shell  *serve.Shell
+	store  *store.Handle
+	intake *intake.Intake
+}
+
+// Close tears the build down in the one safe order: intake's context is
+// cancelled and its workers and sweep waited for, then its lease is
+// released, and only then is the store closed, so no verdict or cleanup
+// runs against a closing store.
+func (s *server) Close() error {
+	return errors.Join(s.intake.Close(), s.store.Close())
 }
 
 // A registrar mounts a route under a subtree name. *serve.Shell is
@@ -307,27 +335,39 @@ type registrar interface {
 // the build registers. Every registration must go through that
 // registrar and never through the shell directly: a route registered
 // around it escapes the route inventory test unseen.
-func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *serve.Shell, _ *store.Handle, err error) {
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *server, err error) {
 	proxyConfig, err := resolveTrustedProxy(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
+	}
+	allowlist, err := intakeAllowlist(environ)
+	if err != nil {
+		return nil, err
+	}
+	if err := staging.Check(staging.Read(cfg.WallValue(stagingKey)), staging.Read(cfg.LibraryRoot)); err != nil {
+		return nil, fmt.Errorf("startup check: %w", err)
 	}
 	h, err := openServeStore(ctx, environ, reg, cfg, logger)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
+	var in *intake.Intake
 	defer func() {
-		if err != nil {
-			err = errors.Join(err, h.Close())
+		if err == nil {
+			return
 		}
+		if in != nil {
+			err = errors.Join(err, in.Close())
+		}
+		err = errors.Join(err, h.Close())
 	}()
 	if err := applySettingsSeed(ctx, h, reg, environ, logger); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	acc := settings.NewAccessor(h, reg)
 	limits, err := readAuthLimits(ctx, acc)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
@@ -338,11 +378,11 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	authStore, err := auth.Open(cfg.StateDir)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	nonces, err := openNonceStore(ctx, authStore, acc, time.Now())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	epoch := auth.OpenEpochStore(authStore)
 
@@ -352,7 +392,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	mailer, err := newMailer(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	seam := auth.NewMagicLinkSeam(roster, epoch,
@@ -384,22 +424,44 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Window: durationSetting(acc, reauthWindowSetting),
 		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
 	})
-	apiMount, err := newAPIMount(prefix, adminSeam, adminConfig)
+	in, err = newIntake(ctx, h, cfg, acc, allowlist, roster, mailer.Send, shell.Logger())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
+	}
+	apiMount, err := newAPIMount(prefix, adminSeam, in.Seam(), adminConfig)
+	if err != nil {
+		return nil, err
 	}
 	routes.Register(apiRouteName, apiMount)
+	// tusd's own warnings go to stderr as JSON, where serve's default
+	// logger writes: its logger is golang.org/x/exp/slog's, a type the
+	// shell's log/slog logger cannot fill.
+	tusMount, err := in.TusMount(intake.TusConfig{
+		Prefix:    prefix.String(),
+		PublicURL: cfg.IdentitySourceValue(publicURLKey),
+		Verify:    tusVerifier(adminConfig),
+		Floor:     freeSpaceFloor(acc),
+		TusLog:    os.Stderr,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	webRoutes.register(routes, shell.Logger())
 	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
 	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.serverSettings)))
 
+	if err := in.Start(ctx); err != nil {
+		return nil, err
+	}
+	routes.Register(tusRouteName, tusMount)
+
 	go sweepNonces(ctx, nonces, shell.Logger())
-	return shell, h, nil
+	return &server{shell: shell, store: h, intake: in}, nil
 }
 
 // openServeStore opens the dubplate store for serve: it reads the

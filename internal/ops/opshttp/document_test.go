@@ -26,6 +26,7 @@ import (
 	"github.com/getkin/kin-openapi/routers/legacy"
 
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/reject"
 )
 
 // The document and its tests are the one place kin-openapi appears: its
@@ -174,8 +175,12 @@ func operationNames(t *testing.T) []string {
 	if err != nil {
 		t.Fatalf("AdminCatalogEntries: %v", err)
 	}
+	submissions, err := ops.SubmissionCatalogEntries()
+	if err != nil {
+		t.Fatalf("SubmissionCatalogEntries: %v", err)
+	}
 	names := []string{ops.OpStartBackup, ops.OpJobStatus, ops.OpCancelJob, ops.OpCatalog}
-	for _, e := range entries {
+	for _, e := range slices.Concat(entries, submissions) {
 		names = append(names, e.Name)
 	}
 	return names
@@ -194,6 +199,12 @@ var requestSamples = map[string]string{
 	ops.OpListSettings: `{}`,
 	ops.OpSetSetting:   `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
 	ops.OpResetSetting: `{"key":"DUBPLATE_REAUTH_WINDOW"}`,
+
+	ops.OpCreateSubmission: `{"verdict_unit":"album","container":"files","files":[{"path":"a/1.flac","size":10}],"source":"vinyl","source_note":"n","store_url":"https://x.example/a"}`,
+	ops.OpListSubmissions:  `{}`,
+	ops.OpGetSubmission:    `{"submission_id":"` + testHandle + `"}`,
+	ops.OpRetrySubmission:  `{"submission_id":"` + testHandle + `"}`,
+	ops.OpCancelSubmission: `{"submission_id":"` + testHandle + `"}`,
 }
 
 // TestDocument_PathsMatchTheCatalogBothWays proves every operation the
@@ -496,9 +507,9 @@ func TestDocument_ClosedCopyClosesEveryResponseObject(t *testing.T) {
 // job schema carries a queue position or order (AC7).
 func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 	d := loadDocument(t, false)
-	for schema, goTypes := range map[string][]any{
+	parity := map[string][]any{
 		"Empty":                {ops.RemoveMemberResponse{}, ops.DemoteMemberResponse{}},
-		"EmptyRequest":         {ops.StartBackupRequest{}, ops.CatalogRequest{}, ops.ListMembersRequest{}, ops.ListSettingsRequest{}},
+		"EmptyRequest":         {ops.StartBackupRequest{}, ops.CatalogRequest{}, ops.ListMembersRequest{}, ops.ListSettingsRequest{}, ops.ListSubmissionsRequest{}},
 		"JobStatus":            {ops.JobStatus{}},
 		"JobRequest":           {ops.JobStatusRequest{}, ops.CancelJobRequest{}},
 		"JobResponse":          {ops.JobStatusResponse{}, ops.CancelJobResponse{}},
@@ -515,7 +526,31 @@ func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 		"SetSettingRequest":    {ops.SetSettingRequest{}},
 		"ResetSettingRequest":  {ops.ResetSettingRequest{}},
 		"SettingWriteResponse": {ops.SetSettingResponse{}, ops.ResetSettingResponse{}},
-	} {
+
+		"Reason":                   {reject.Reason{}},
+		"Rejects":                  {ops.Rejects{}},
+		"FileReject":               {ops.FileReject{}},
+		"ManifestFile":             {ops.ManifestFile{}},
+		"CreateSubmissionRequest":  {ops.CreateSubmissionRequest{}},
+		"CreatedFile":              {ops.CreatedFile{}},
+		"CreateSubmissionResponse": {ops.CreateSubmissionResponse{}},
+		"SubmissionSummary":        {ops.SubmissionSummary{}},
+		"ListSubmissionsResponse":  {ops.ListSubmissionsResponse{}},
+		"SubmissionRequest":        {ops.GetSubmissionRequest{}, ops.RetrySubmissionRequest{}, ops.CancelSubmissionRequest{}},
+		"SubmissionEvent":          {ops.SubmissionEvent{}},
+		"SubmissionFile":           {ops.SubmissionFile{}},
+		"SubmissionWarning":        {ops.SubmissionWarning{}},
+		"SubmissionResponse":       {ops.GetSubmissionResponse{}, ops.RetrySubmissionResponse{}, ops.CancelSubmissionResponse{}},
+	}
+	// Each of these has no struct of its own: a pattern-checked string, a
+	// nullable wrapper, or the error body the next block checks.
+	notStructs := []string{"Handle", "UserID", "SubmissionID", "NullableReason", "ErrorBody"}
+	for name := range d.doc.Components.Schemas {
+		if _, ok := parity[name]; !ok && !slices.Contains(notStructs, name) {
+			t.Errorf("document schema %s has no Go type in the parity map", name)
+		}
+	}
+	for schema, goTypes := range parity {
 		ref := d.doc.Components.Schemas[schema]
 		if ref == nil {
 			t.Errorf("document has no schema %s", schema)
@@ -605,6 +640,17 @@ var errorsByStatus = []statusCase{
 	{http.StatusConflict, ops.NewConflictError("a backup is running").WithDetail(ops.DetailLastAdmin)},
 	{http.StatusInternalServerError, ops.NewInternalError("the store failed")},
 	{http.StatusServiceUnavailable, ops.NewUnavailableError("the write lock is held").WithDetail(ops.DetailBusy)},
+	{http.StatusBadRequest, ops.NewInvalidRequestError("the manifest was refused").WithRejects(sampleRejects)},
+	{http.StatusConflict, ops.NewConflictError("uploads are paused").WithRejects(ops.Rejects{
+		Submission: []reject.Reason{reject.Of(reject.UploadsOff)}, Files: []ops.FileReject{}})},
+	{http.StatusServiceUnavailable, ops.NewUnavailableError("the check could not run").WithRejects(ops.Rejects{
+		Submission: []reject.Reason{reject.Of(reject.CouldNotCheck)}, Files: []ops.FileReject{}})},
+}
+
+// sampleRejects is a refusal carrying a submission reason and a file's.
+var sampleRejects = ops.Rejects{
+	Submission: []reject.Reason{reject.Of(reject.NoAudio)},
+	Files:      []ops.FileReject{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 }
 
 // exchange drives one request through a mount over fake seams that
@@ -614,9 +660,12 @@ func exchange(t *testing.T, op, body string, err error) *httptest.ResponseRecord
 	t.Helper()
 	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
 	if err != nil {
-		if _, isJob := f.seam.answers[op]; isJob {
+		switch _, isJob := f.seam.answers[op]; {
+		case isJob:
 			f.seam.answers[op] = fakeAnswer{err: err}
-		} else {
+		case f.subs.answers[op] != fakeAnswer{}:
+			f.subs.answers[op] = fakeAnswer{err: err}
+		default:
 			f.admin.answers[op] = fakeAnswer{err: err}
 		}
 	}

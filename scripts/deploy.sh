@@ -285,6 +285,21 @@ for leaf in "${DUBPLATE_SERVER_LEAVES[@]}"; do
   run_remote "install -d -o music -g music -m 0700 $DUBPLATE_LIB_DIR/$leaf"
 done
 
+# --- staging and the library root (the music volume) ----------------------
+# dubplate-server-serve.service is granted /srv/music, the common parent of
+# both rows, and a ReadWritePaths= entry must exist before the unit starts;
+# serve also refuses to start with staging absent. Both paths come from the
+# rendered template, so the pre-create can never disagree with the rows the
+# server reads. Each is its own checked line, outside the leaves loop, since
+# neither sits under $DUBPLATE_LIB_DIR. install -d creates a missing parent
+# (/srv/music) root-owned, which the grant needs only as a mount point.
+DUBPLATE_STAGING_DIR="$(printf '%s\n' "${server_env_lines[@]}" | sed -n 's/^DUBPLATE_STAGING_DIR=//p')"
+DUBPLATE_LIBRARY_ROOT="$(printf '%s\n' "${server_env_lines[@]}" | sed -n 's/^DUBPLATE_LIBRARY_ROOT=//p')"
+echo "== $DUBPLATE_STAGING_DIR =="
+run_remote "install -d -o music -g music -m 0755 $DUBPLATE_STAGING_DIR"
+echo "== $DUBPLATE_LIBRARY_ROOT =="
+run_remote "install -d -o music -g music -m 0755 $DUBPLATE_LIBRARY_ROOT"
+
 # --- /var/lib/dubplate/unidecode (the table install below) ---------------
 # The table install's systemd-run grants this leaf alone, so the verb can
 # write its table and nothing else under $DUBPLATE_LIB_DIR: the auth store

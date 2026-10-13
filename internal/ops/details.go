@@ -1,6 +1,6 @@
 package ops
 
-// The ten values an [Error]'s Detail takes, each finer than its Code.
+// The thirteen values an [Error]'s Detail takes, each finer than its Code.
 // A client treats a value it does not know as opaque, since the set
 // grows additively within a version.
 const (
@@ -14,4 +14,7 @@ const (
 	DetailLastAdmin          = "last_admin"
 	DetailEnvironmentSets    = "environment_sets"
 	DetailBusy               = "busy"
+	DetailStoreURL           = "store_url"
+	DetailExtra              = "extra"
+	DetailManifest           = "manifest"
 )

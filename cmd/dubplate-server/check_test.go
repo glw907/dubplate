@@ -116,12 +116,23 @@ func TestCheckCmd_SettingsRow_AdminConflict(t *testing.T) {
 	}
 }
 
+// freshRegistry returns the registry a test builds over baseEnviron
+// alone: rung 1's own rows plus the staging row baseEnviron sets, and
+// no other rung's. config.NewRegistry on its own would meet the staging
+// entry as an unknown key.
+func freshRegistry() *config.Registry {
+	reg := config.NewRegistry()
+	reg.AddWallRow(stagingRow)
+	return reg
+}
+
 // baseEnviron returns a minimal environ with every owned-now key set
 // to a valid value, mirroring internal/config's own test fixture, so a
 // case can override or add exactly the entries it needs.
 func baseEnviron() []string {
 	return []string{
 		"DUBPLATE_LIBRARY_ROOT=/srv/music/library",
+		"DUBPLATE_STAGING_DIR=/srv/music/staging",
 		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
 		"DUBPLATE_SITE_NAME=Test Family",
 		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
@@ -216,7 +227,7 @@ func TestCheckCmd(t *testing.T) {
 			}
 
 			var stdout, stderr bytes.Buffer
-			cmd := newCheckCmd(environ, config.NewRegistry(), &stdout, &stderr)
+			cmd := newCheckCmd(environ, freshRegistry(), &stdout, &stderr)
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
@@ -264,7 +275,7 @@ func TestCheckCmd(t *testing.T) {
 // main_test.go and the build-and-run probe); check's own stdout and
 // stderr stay empty.
 func TestCheckCmd_EmptyEnvironment(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	_, loadErr := config.Load(nil, reg)
 	if loadErr == nil {
 		t.Fatal("config.Load(nil) error = nil, want error; fixture assumption broken")
@@ -299,7 +310,7 @@ func TestCheckCmd_StoreRow(t *testing.T) {
 		environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
 		var stdout, stderr bytes.Buffer
-		cmd := newCheckCmd(environ, config.NewRegistry(), &stdout, &stderr)
+		cmd := newCheckCmd(environ, freshRegistry(), &stdout, &stderr)
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v, want nil", err)
 		}
@@ -315,7 +326,7 @@ func TestCheckCmd_StoreRow(t *testing.T) {
 		environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 		var stdout, stderr bytes.Buffer
-		cmd := newCheckCmd(environ, config.NewRegistry(), &stdout, &stderr)
+		cmd := newCheckCmd(environ, freshRegistry(), &stdout, &stderr)
 		err := cmd.Execute()
 		if err == nil {
 			t.Fatal("Execute() error = nil, want a refusal: the database is an unfinished create, not a store")
@@ -351,7 +362,7 @@ func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()),
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
-			reg := config.NewRegistry()
+			reg := freshRegistry()
 			registerStoreConfig(reg)
 
 			var stdout, stderr bytes.Buffer

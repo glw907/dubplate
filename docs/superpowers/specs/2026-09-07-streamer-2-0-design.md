@@ -979,7 +979,7 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     backup job uses the SQLite backup API or checkpoints before it copies. This is worth fixing regardless of 2.0.
 11. ReplayGain and R128 gain on the catalog row, rung 6 schema, computed at rung 9. Track and album gain and peak, plus
     the Opus R128 fields. Discovered at 2.0 instead, it means re-reading every file in the library.
-12. A portable layout, rung 7. Filenames avoid the FAT and exFAT forbidden set, hold every path component under 255
+12. A portable layout, rung 9 (`pipeline`). Filenames avoid the FAT and exFAT forbidden set, hold every path component under 255
     bytes, and carry no trailing dot or space and no reserved DOS name. The unsanitized title stays in the tag. The same
     rung writes a plain `cover.jpg` beside the album in addition to the blob.
 13. Sort tags written at admit, rung 8 and rung 9. `ALBUMARTISTSORT` and `ARTISTSORT` with their ID3 equivalents are

@@ -151,13 +151,9 @@
 - [ ] #54 The bearer bypass stays on purpose, and no route registers one yet. Its first consumer (the OpenSubsonic
   API or the bearer admin mount) owes a shell-level cookie test proving a bypassed route never reads the session
   cookie. Carried from the Navidrome removal pass, 2026-10-06 #auth #rung:streamer #rung:admin-api
-- [ ] #55 The first migration after `0005` (`0006`, which the intake spec assigns to `intake-1`) carries R-6d4's
-  keep limit: a pre-lock `Inspect` that sees the store busy or under an intent yields no facts, so a migrating
-  start prunes to the default. Its tables also join the older-store test helper's table map, or every helper-built
-  fixture fails "table already exists". Carried from the store identity pass's routed items, 2026-10-07 #store
-  #rung:intake
-- [ ] #56 The `id3-tags` reject copy must name a working strip method (`mid3v2 --delete-all` or a tagger), settled
-  at the intake copy read. Carried from the alignment pass, 2026-10-11 #upload #rung:intake
+- [ ] #56 The `id3-tags` reject copy must name a working strip method. The code half landed in `intake-1`
+  (`internal/reject` names `mid3v2 --delete-all`); PCF section 4's entry follows at `intake-2`'s copy read (#83).
+  Carried from the alignment pass, 2026-10-11 #upload #rung:intake
 - [ ] #57 Web carries for `intake-3`, from the `auth` string-deck pass (the intake spec's 7c section points here):
   Ruling 5's four items; W12.4's remaining rules; W4.10's 44px promotion; both palettes' placeholder opacity; the
   outline, dash, and status-ghost text fix (DaisyUI's `--btn-rest-fg` and `--btn-color`), with a text-contrast row
@@ -202,8 +198,72 @@
 - [ ] #69 `scripts/check.sh` still says "boundary gate", a retired term. Found by the alignment pass, PR #2 #gate
 - [ ] #70 `docs/standing-rules.md` "Gate legs" cites old rung ids and says two legs gate at a comment-cleanup task;
   both legs are warn-only. Found by the alignment pass, PR #2 #gate
-- [ ] #71 The rung 7 spec's 7c cites HISTORY line 898 for the 5c-iv handoff; the list is now #57. The first `intake`
-  pass repoints it. Found by the alignment pass, PR #2 #rung:intake
+- [ ] #83 `intake-2`'s copy read owes the redrafts `intake-1` recorded and did not write. PCF (`passb-copy-final.md`):
+  the retry line (`:124-126`) for owner ruling 7; the three Navidrome strings (`:105`, `:143-145`, `:160-161`);
+  every "Private Recordings" string in sections 5 and 6, renamed "Unlisted music" with "music" or "recording" where
+  "album" would be wrong; the section 1 hint "One album at a time. Albums go in whole." (`:45`); section 4's
+  `id3-tags` and extras-warning entries, with the seventeen new reasons `internal/reject` drafted (PCF section 4
+  holds only the chip labels: the adopted friendly and next-step strings live in the salvage `reject.go`). Also
+  `unsupported-flac`'s wording ("unsupported bit depth ... export it again as 16-bit, 20-bit, or 24-bit"), which
+  the gate now also answers for 176.4 kHz and for rates above 768 kHz, where a member told to re-export at a depth
+  they already have gets no help,
+  `could-not-check`'s "Try again" against the retry path, the "{n} tracks are {label}" alert template that reads
+  badly with several labels, and the three `API_DETAILS` lines `intake-1` T10 drafted in `web/src/lib/copy/deck.ts`
+  (`store_url`, `extra`, `manifest`). Found by the `intake-1` pass, 2026-10-12 #rung:intake #copy
+- [ ] #84 `intake-2`'s planner carries these `intake-1` left out by design: AC 11's two client halves (a dropped
+  response ending in the client's success, a lost 201 ending in an upload through `uploadUrl`); AC 23's two race
+  clauses through `matching` and `route_unlisted`; AC 26's `route_unlisted` column and its `pushed-back` and
+  `match-unavailable` rows; AC 27's `matching` half; the `matching` stall rule and the startup re-queue of `matching`
+  (a passing album waits in `matching` with no exit until the probe lands, so `intake-1` must not deploy before
+  `intake-2`); `RequireMember`, the page gate, which has no caller until the uploader page; the album's route at
+  create, and the separate tracks' entered artist and title (`entered_artist`, `entered_title` are NULL), which land
+  with the form. Found by the `intake-1` pass, 2026-10-12 #rung:intake
+- [ ] #85 `intake-3` carries the visual identity spec's records the intake spec moved: the catalog line's format
+  (VI:243-244), and the list view, filtering, album page, and phone layouts in "Open for rung 7" (VI:350-372), which
+  move to the web pass after rung 9; the sitting rules two items. Found by the `intake-1` pass, 2026-10-12
+  #rung:intake
+- [ ] #86 The streamer spec's forward hooks gain rung 9's MusicBrainz buy-link capture (PS:762), and hook 12 (a
+  portable layout) now sits at rung 9. `pipeline` builds both. Found by the `intake-1` pass, 2026-10-12
+  #rung:pipeline
+- [ ] #87 `intake-2` hardening from `intake-1`'s PR #6 triage (items 1 to 4 and 12): a directory-bytes cap for the ZIP
+  walk (`zip.NewReader` allocates each header's name, extra, and comment, up to 192 KB each, after the count passes);
+  tusd's own 500 on a filestore fault carries the staging path to the member, which needs a wrapped `ResponseWriter` or
+  a datastore wrapper; a backstop that moves a submission to `check-unfinished` after N consecutive verdict-commit
+  failures (the one reachable cause, a member named like its archive, is closed); a decode-level `recover` that
+  returns `corrupt`, since no panic is known in mewkiz/flac v1.0.14; and `store_url`'s case-insensitive `LIKE`, an
+  unbounded `source_note`, manifest work under the store write lock before the `MaxFiles` check, create and cancel
+  without a rate limit (the session cap counts only `uploading`), concurrent creates of one file truncating the
+  member's own upload, and an authorize-versus-tusd-lock race that lets one PATCH write after a cancel (bounded,
+  swept). Found by the `intake-1` pass, 2026-10-12 #rung:intake #security
+- [ ] #88 `intake-2` cleanups from PR #6's triage (items 15 and 16): `TestLayering` shells out to `go list` and the
+  test cache cannot see it (add it to `UNCACHED_TESTS`); event reasons bypass `reasonReader`; `Limits` and `limits`
+  are twin structs; `doctor` re-derives the device comparison instead of calling `staging.Check`; the `collection.go`
+  package doc understates the package; dead exports (`reject.All`, `Reason.Blocking`, `Param`, `Canonical`,
+  `staging.ErrLinuxOnly`, the `Route` exports) find callers or go; the doctor boundary-probe tests hang to the package
+  timeout when `serve` refuses to start; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` failed once in a gate
+  run; `sweepNonces` is never joined at teardown. Found by the `intake-1` pass, 2026-10-12 #rung:intake #test
+- [ ] #89 The deploy pass owes, from PR #6's triage (items 9 and 14): confirm the legacy `/srv/music/staging` (the
+  musicbox estate's, 2000:2000) is empty or absent before the first deploy, since the first sweep cleans anything in
+  it as rowless; narrow `/srv/music` in the serve unit's `ReadWritePaths` with `ReadOnlyPaths` or `InaccessiblePaths`
+  for the `music` user's home and legacy directories; `install -d` re-applies owner and mode to an existing library
+  root; the state-dir leg's `deploy.sh` check is a substring `grep` (a commented-out line passes); `backup`,
+  `restore`, and `member` apply only the lexical staging-versus-library check, and staging is never checked against
+  `DUBPLATE_STATE_DIR`. Found by the `intake-1` pass, 2026-10-12 #ops #rung:cutover
+- [ ] #90 The route collections' owner is the earliest live admin at creation and is never reassigned, so a demoted
+  former admin keeps ownership of "Library" and "Unlisted music"; `admin-api-2` decides what ownership grants and
+  whether it follows the roster. Found by the `intake-1` pass, 2026-10-12 #rung:admin-api
+- [ ] #91 `pipeline` carries two from PR #6's triage: `already-in-library` can tell an uploader that an album exists in
+  a private collection (dedup scope, or a neutral wording); and an album's extras are unchecked bytes of any extension,
+  so the rung that first serves extras must set `Content-Type` and `nosniff` or allowlist them by extension. Found by
+  the `intake-1` pass, 2026-10-12 #rung:pipeline #security
+- [ ] #92 `intake-2`'s first task, three rulings Geoff left open in PR #6's triage (items 5 to 7, disposition "now"):
+  keep or drop the minimum-block-size rule in `internal/intake/gate/file.go` (it buys no security, since an attacker
+  declares a minimum of 0 or 1, and it can refuse a rare stream-copied file), then add the two missing tests, a clean
+  file whose short final frame is below STREAMINFO's minimum and a long silent track under the PCM budget; whether
+  `DUBPLATE_INTAKE_MAX_ALBUM_BYTES`, `..._MAX_PICTURE_BYTES`, `..._MAX_TAG_BYTES`, and `..._CHECK_WORKERS` become
+  Sensitive (a mark joins only by a ruling); and whether the sign-in endpoint's `DUBPLATE_UNKNOWN_ADDRESS_ANSWER`
+  default moves from `kind` to `generic`, since `kind` tells an outsider which addresses are members. Found by the
+  `intake-1` pass, 2026-10-12 #rung:intake #security
 - [ ] #72 `label.css` and `label-night.css` set no `--size-field`, though the visual identity spec's "Component
   layer" says every theme block sets it. Found by the alignment pass, PR #2 #web
 - [ ] #73 Doc corrections: the `internal/serve/serve.go:66-67` typo ("is answers 404"), and the visual identity
@@ -236,6 +296,12 @@
 
 ## Done
 
+- [x] #55 The first migration after `0005` carried R-6d4's keep limit and joined the older-store table map: `0006`
+  adds its tables to `olderstore_test.go`'s map and an undo list for the column and index; R-6d4's keep limit stands as
+  6d recorded it, since no measured case asks to change `ServeOptions.Keep`, closed by `intake-1` (T4), 2026-10-12
+  #store #rung:intake
+- [x] #71 The rung 7 spec's 7c cited HISTORY line 898 for the 5c-iv handoff: repointed to #57, closed by `intake-1`
+  (T13), 2026-10-12 #rung:intake
 - [x] #12 `member add --help` now marks `--name` and `--username` "(required)": closed by the `admin-api-1` pass
   (T7), 2026-10-11 #security
 - [x] #17 The members page maps every add refusal detail, `invalid_address` included, to its field for the invalid

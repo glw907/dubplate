@@ -518,7 +518,7 @@ func TestRegisterAuthConfig_Settings(t *testing.T) {
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", config.KindInt, "30", "1", "300", nil, config.ApplyRestart, false},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", config.KindInt, "60", "1", "600", nil, config.ApplyRestart, false},
 		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", config.KindInt, "4096", "512", "65536", nil, config.ApplyNextOperation, false},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind", "", "", []string{"kind", "generic"}, config.ApplyNextOperation, false},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", config.KindString, "kind", "", "", []string{"kind", "generic"}, config.ApplyNextOperation, true},
 	}
 
 	fresh := config.NewRegistry()
@@ -828,11 +828,15 @@ func TestAuthSettings_StringRowSecondStart(t *testing.T) {
 	environ := append(serveAuthEnviron(t), key+"=generic")
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 
-	ctx, cancel := context.WithCancel(t.Context())
-	if _, err := buildServeShellContext(t, ctx, environ, discardTestLogger()); err != nil {
+	// The first start closes before the second, which would otherwise
+	// meet the intake lease the first holds.
+	first, _, _, err := startServeShell(t, t.Context(), environ)
+	if err != nil {
 		t.Fatalf("first start: %v", err)
 	}
-	cancel()
+	if err := first.Close(); err != nil {
+		t.Fatalf("close the first start: %v", err)
+	}
 	rows, audit, generation := readSeedState(t, stateDir)
 	if want := map[string]settingRow{key: {"generic", "env-seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
 		t.Fatalf("settings after the first start = %v, want %v", rows, want)

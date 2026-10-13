@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -55,6 +57,7 @@ var routeInventory = map[string]routeRow{
 	operatorCSSRouteName: {class: routePublic, optional: true},
 
 	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/catalog"},
+	tusRouteName:     {class: routeSession, method: http.MethodPost, path: "/" + tusRouteName + "/"},
 	membersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + membersRouteName},
 
 	serverSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + serverSettingsRouteName},
@@ -88,29 +91,30 @@ func TestRouteInventory(t *testing.T) {
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
 	var registered []string
-	shell, h, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
+	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
 		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} })
 	if err != nil {
 		t.Fatalf("newServeShellVia: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := h.Close(); err != nil {
-			t.Errorf("close store handle: %v", err)
+		if err := srv.Close(); err != nil {
+			t.Errorf("close the serve build: %v", err)
 		}
 	})
 
-	for _, name := range registered {
-		if _, ok := routeInventory[name]; !ok {
-			t.Errorf("the build registers %q, which the inventory does not name", name)
-		}
-	}
-	for name, row := range routeInventory {
-		if !row.optional && !slices.Contains(registered, name) {
-			t.Errorf("the inventory names %q, which the build does not register", name)
-		}
+	for _, mismatch := range inventoryMismatches(routeInventory, registered) {
+		t.Error(mismatch)
 	}
 
-	handler := shell.Handler()
+	// A fixture inventory missing the tus row must fail the comparison
+	// above, so the test cannot pass with the row gone.
+	missing := maps.Clone(routeInventory)
+	delete(missing, tusRouteName)
+	if got := inventoryMismatches(missing, registered); !slices.ContainsFunc(got, func(m string) bool { return strings.Contains(m, `"tus"`) }) {
+		t.Errorf("an inventory missing the tus row reports %q, want the tus route named", got)
+	}
+
+	handler := srv.shell.Handler()
 	member := mintServeSession(t, environ, rosterMemberAddress, time.Now())
 	for name, row := range routeInventory {
 		if row.class == routePublic || !slices.Contains(registered, name) {
@@ -141,6 +145,23 @@ func TestRouteInventory(t *testing.T) {
 			}
 		}
 	}
+}
+
+// inventoryMismatches names each route registered that inventory lacks,
+// and each route inventory requires that is not registered.
+func inventoryMismatches(inventory map[string]routeRow, registered []string) []string {
+	var out []string
+	for _, name := range registered {
+		if _, ok := inventory[name]; !ok {
+			out = append(out, fmt.Sprintf("the build registers %q, which the inventory does not name", name))
+		}
+	}
+	for name, row := range inventory {
+		if !row.optional && !slices.Contains(registered, name) {
+			out = append(out, fmt.Sprintf("the inventory names %q, which the build does not register", name))
+		}
+	}
+	return out
 }
 
 // TestServerSettingsRoute_ServesAdminsOnly proves the settings document

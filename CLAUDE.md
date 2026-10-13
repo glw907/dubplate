@@ -77,7 +77,7 @@ first-launch sitting. The design approval and the PR read are `pass-core`'s.
 `bash scripts/gate.sh` (the wrapper that runs `check.sh` through `cairn-run-gate`) before every commit: `make check` (vet, golangci-lint, test, tidy-check) over the
 whole module (`_salvage/` is invisible to the go tool), shellcheck, ruff, the photo pool check, gitleaks,
 vale over Go comments, a hard-required `systemd-analyze verify`, the state-dir agreement leg
-(`scripts/check-state-dir.sh`), and the `web/` leg (static bundle, `svelte-check`, the static web gates,
+(`scripts/check-state-dir.sh`, which also admits the serve unit's one music-volume grant, the common parent of the staging and library paths), and the `web/` leg (static bundle, `svelte-check`, the static web gates,
 and the rendered Playwright gates on the heavy lane). Each leg, the two OpenSubsonic import-graph tests,
 and the workstation prerequisites outside the gate (`npm ci --prefix web`, `make unidecode-wheel`,
 `make subsonic-xsd`, `xmllint` at libxml 2.15.4) are in `docs/standing-rules.md`. The scoped form is
@@ -169,12 +169,15 @@ Never build, and never accept a contribution that adds:
   GET to `/fail`; this was a live bug once.
 - dubplate-server's state lives under `/var/lib/dubplate/` (persistent),
   never in a RuntimeDirectory (deleted at unit stop). The server uses NO
-  runtime directory at all.
+  runtime directory at all. Upload staging is the exception by design: it
+  lives on the music volume beside the library, so a rename into the
+  library never crosses a device.
 - The album is the verdict unit: one failing track rejects the batch. Never
-  admit a partial album.
+  admit a partial album. Separate tracks are the other kind: each file gets
+  its own verdict, and the passing ones are accepted.
 - Reject wording is contract (`friendly_reason`): the uploader page and
-  emails share it verbatim; upload-check reuses it. The code waits in
-  `_salvage/internal/reject` until the `intake` rung ports it.
+  emails share it verbatim; upload-check reuses it. The set lives in
+  `internal/reject`.
 - `env/dubplate-server.env.template` is the render manifest deploy.sh
   turns into `/etc/dubplate/server.env`: a bare `NAME=` row resolves from
   the age store, so adding one requires minting it (`secret-set.sh`,

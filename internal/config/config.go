@@ -14,8 +14,8 @@
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class and rung, never "unknown". The
-//     classes are intake (rung 7), pipeline (rung 9), monitoring
-//     (rung 9), and decision and review queues (rung 13). See
+//     classes are pipeline (rung 9), monitoring (rung 9), and
+//     decision and review queues (rung 13). See
 //     [ReservedClasses] for the exact membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
@@ -111,6 +111,10 @@ type Config struct {
 	// Required and Optional values by key, with no entry for a key
 	// that resolved unset.
 	sourceValues map[string]string
+
+	// wallValues holds every owned wall row's resolved value by name,
+	// the four rung 1 rows included.
+	wallValues map[string]string
 }
 
 // integrationResolution is one integration class's resolved state:
@@ -148,6 +152,15 @@ func (c *Config) IntegrationValue(className, key string) string {
 // needs no second field.
 func (c *Config) IdentitySourceValue(key string) string {
 	return c.sourceValues[key]
+}
+
+// WallValue returns the resolved value of name, one of the owned wall
+// rows the registry [Load] read declared, as Load resolved it. A rung
+// that registers a row from its own package reads it back here rather
+// than from the environment. It returns the empty string for a name
+// that is not an owned wall row.
+func (c *Config) WallValue(name string) string {
+	return c.wallValues[name]
 }
 
 // wall indexes one environment snapshot and accumulates load errors. It
@@ -408,8 +421,9 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 	// here, whatever package declared it. require reports a name once
 	// however many times it is called for, so the four do not report
 	// twice.
+	cfg.wallValues = make(map[string]string, len(reg.ownedWall))
 	for _, row := range reg.ownedWall {
-		w.require(row.Name)
+		cfg.wallValues[row.Name] = w.require(row.Name)
 	}
 
 	// Every enabled class's Required keys resolve here, generically, by

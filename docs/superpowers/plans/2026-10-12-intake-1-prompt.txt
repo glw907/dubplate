@@ -1,0 +1,79 @@
+You are executing the `intake-1` pass, the first pass of the `intake` rung (rung 7's 7a, the intake core), an
+`auth-data`-class pass in `~/Projects/dubplate`, started from the main checkout. Your first act is one check: does the
+directory `.claude/worktrees/intake-1` exist, and does the branch `worktree-intake-1` exist (`git rev-parse --verify
+--quiet refs/heads/worktree-intake-1`, or `git ls-remote --exit-code --heads origin worktree-intake-1`, which exits 2
+when it finds none)?
+
+If the directory exists, you are resuming: enter it with EnterWorktree's `path`, skip the merge and the setup, rewrite
+the clock file's `start=` to now, follow the plan's "Resume" convention before anything else (it finishes the launch
+steps when the PR notes carry no `launch-base` line, and classifies only the last `dispatch` line's branches, never
+your own), and never re-apply a committed task. If the branch exists without the directory, stop: run `notify-send -u
+normal "intake-1: stopped"`, say which branch you found, and never create a worktree over it.
+
+If neither exists, call EnterWorktree with the name `intake-1`: it creates a worktree under `.claude/worktrees/` on a
+new branch from local `HEAD`. Then run `git merge --no-edit worktree-intake-1-plan`, which brings in the plan, its
+review, fold, and verification records, this prompt, the planning prompt, and the STATUS in-flight line; a conflict is
+a stop. Write `launch-base=<HEAD sha>` as the first line of the PR notes (`<git dir>/pr-notes.md`, where `<git dir>`
+is `git rev-parse --absolute-git-dir` in your worktree, never `$CLAUDE_JOB_DIR`). Then run `npm ci --prefix web` in
+the worktree, the adapter's setup. Replace the body of STATUS "Next action" (the planning session's in-flight line)
+with one in-flight line naming this session (`intake-1`), its id (`$CLAUDE_CODE_SESSION_ID`), and its branch, and
+commit it.
+
+Load `dubplate-pass` (it loads `pass-core`). Read `docs/superpowers/plans/2026-10-12-intake-1.md` in full, then the
+design it implements (`docs/superpowers/plans/2026-10-12-intake-1-design.md`, approved by Geoff on 2026-10-11) and the
+ratified spec behind it (`docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`, revision 2), which the plan cites
+rather than restates. The plan's "Conventions every task follows" bind every task. Where the spec names lanes,
+segments as process, budgets, or a conductor, the lean process and this plan override it. Write no auto-memory. Arm
+the API-drop wake-up (`/loop` with no interval) and the lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.
+
+Before the first task, read the plan against the shipped code: for each task, check that every file and line the plan
+cites still says what the plan claims (find it by content when a line moved). A claim that is wrong at `HEAD` is
+amended in the plan, committed, before that task starts; a wrong claim that changes the approved design is a stop.
+
+Execute in order: T0 and T1 yourself; T2 with T3 as a pair; T4 with T5 as a pair; T6 with T7 as a pair; T8 with T12 as
+a pair (T8 on `opus`); T9 with T10 as a pair (T9 on `opus`); T11 as a single dispatch on `opus`, which you wait on,
+then its security read; T13 yourself; then the Close. Every gate is `bash scripts/gate.sh` (the full gate) or `bash
+scripts/gate.sh --scope-changed --base <base>` (the fast lane), run from the worktree root with the Bash tool's
+`timeout: 600000`, re-issued on exit 75 until it prints `gate exit:`. `<base>` is the literal 40-hex id of the commit
+the task started from (yours from the clock file's `base=` line, a dispatch's from its dispatch commit); the plan's
+Conventions say why this branch needs it. Never fall back to a bare `bash scripts/check.sh` for an acceptance.
+
+Each dispatch is an Agent-tool subagent with `subagent_type: "general-purpose"`, `isolation: "worktree"`, effort
+`medium`, and the model the plan names, dispatched after your latest commit so it branches from it. Give it its task's
+full text from the plan, plus the plan's "Decisions this plan takes", "Behaviors this plan relies on, quoted",
+"States", and "Conventions every task follows" sections, all verbatim, the dispatch commit's full id, the spec's path,
+and pass-core's two over-engineering samples verbatim, and tell it eight things. First, its first act is `git
+merge-base --is-ancestor <dispatch sha> HEAD`; a failure is a stop. Second, it reads every spec section and AC its
+task cites before writing tests. Third, it runs `npm ci --prefix web` before its first gate and runs the fast lane
+with `--base <dispatch sha>`. Fourth, it writes its tests first and records each failing at the dispatch commit, then
+runs each named mutation and records the failing test. Fifth, the Clock and Stops conventions belong to you: it writes
+no clock file, and it returns its work uncommitted if its gate is not green after two attempts. Sixth, it runs every
+command from its own worktree and writes nothing outside it, and nothing in `~/.claude/`. Seventh, its final report
+carries every record the plan says goes to the PR notes, its worktree path and branch, and every defect it found
+outside its task. Eighth, it commits, never pushes, and skips agent-memory maintenance. Name `go-conventions` and
+"idiomatic, architecturally beautiful Go" as an acceptance dimension in every Go dispatch.
+
+Before each dispatch write its clock file per the plan's Clock convention and append `dispatch T<a>[+T<b>]
+sha=<40-hex>` to the PR notes; when it returns, check the overrun and remove the clock file. If a half returned
+uncommitted, apply "Stops" before merging either half. Otherwise merge with `git merge --no-edit`, append the records
+to the PR notes, run the fast lane with `--base <dispatch sha>`, run the per-task `diff-reviewer` on every task the
+plan's "Per-task review" convention names, append `review T<n>=<verdict> <sha>` (and, after T11's security read,
+`security-read=<verdict> <sha>`), and push. A `fix` gets one fix commit whose acceptance quotes each finding verbatim;
+a second `fix` or any `escalate` is a stop.
+
+You may commit on your worktree's branch and push it to `glw907/dubplate`; open the PR there. Never push `master`,
+never contact the box (`5.78.148.42`), never delete or edit any file outside your worktree except the main checkout's
+fast-forward pull the Close names, and never write any repo other than `~/Projects/dubplate`. A stop, including an
+auto-mode classifier refusal, follows the plan's "Stops" convention and is never worked around.
+
+The Close follows the plan's "Close" section and pass-core's "Close". When the PR is ready for Geoff's read, run
+`review-desk pr glw907/dubplate "<title>" <n>` as a background Bash command, and hand the PR body's "Found, not done"
+items over as one `review-desk triage` item, also a background Bash command. Notify Geoff with `notify-send -u normal`
+and the PR link, then wait for each command to exit with Geoff's decision as JSON. Geoff's approve on the desk is his
+merge authorization: merge with `gh pr merge <n> --merge --match-head-commit <head>`, taking `<head>` from the
+decision, then bring the main checkout up to date with `git -C ~/Projects/dubplate pull --ff-only` when it is on
+`master`, has no uncommitted change in a file the merge touched, and has no live session (`claude agents --json`);
+otherwise report it stale and never force it. Act on each triage row as pass-core says: a "now" item becomes a
+follow-up task or pass, a "defer" item is filed in BACKLOG or ROADMAP with its number cited back in the PR, and a
+"drop" item stays only in the PR. On a reject, fix forward from Geoff's note and hand the PR back the same way. Once
+the merge, the pull, and the triage are done, your work on this pass is finished.

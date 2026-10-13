@@ -27,7 +27,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cfg, err := config.Load(environ, reg)
+			cfg, err := loadConfig(environ, reg)
 			if err != nil {
 				return err
 			}

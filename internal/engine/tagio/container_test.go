@@ -441,3 +441,132 @@ func TestParseGolden(t *testing.T) {
 		t.Errorf("frame region = (%d, %d), want (2222, 0)", c.FrameOffset, c.FrameLength)
 	}
 }
+
+// headerOnlyContainer serializes blocks, then one more block header
+// declaring length bytes of type blockType, with the file ending right
+// after that header: a block that runs past the end of the file.
+func headerOnlyContainer(blocks []testBlock, blockType byte, length int) []byte {
+	buf := buildContainer(blocks, nil)
+	return append(buf, blockType, byte(length>>16), byte(length>>8), byte(length))
+}
+
+func TestParseBoundedRefusesBeforeAllocating(t *testing.T) {
+	bounds := Bounds{TagBytes: 4096, PictureBytes: 4096}
+	streamInfo := testBlock{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 1000)}
+
+	// Four padding blocks of 4000 bytes sum to 16034 with STREAMINFO,
+	// under four times the picture cap (16384); a fifth crosses it.
+	padded := []testBlock{streamInfo}
+	for range 4 {
+		padded = append(padded, testBlock{Type: 1, Payload: make([]byte, 4000)})
+	}
+
+	tests := []struct {
+		name string
+		data []byte
+		want error
+	}{
+		{"tag block over its cap", headerOnlyContainer([]testBlock{streamInfo}, blockVorbisComment, 4097), ErrTagsTooLarge},
+		{"picture block over its cap", headerOnlyContainer([]testBlock{streamInfo}, blockPicture, 4097), ErrPictureTooLarge},
+		{"chain over its total", headerOnlyContainer(padded, 1, 4000), ErrPictureTooLarge},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := writeFixture(t, tt.data)
+
+			_, err := ParseBounded(path, bounds)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("ParseBounded error = %v, want %v", err, tt.want)
+			}
+			if errors.Is(err, ErrMalformedContainer) {
+				t.Errorf("ParseBounded error %v also answers ErrMalformedContainer", err)
+			}
+
+			if _, err := Parse(path); !errors.Is(err, ErrMalformedContainer) {
+				t.Errorf("Parse error = %v, want ErrMalformedContainer", err)
+			}
+		})
+	}
+}
+
+// TestParseBoundedCapsTheBlockCount holds the bound a member's bytes need
+// beyond the byte caps: every block, however small, costs the walk a Block, a
+// header read, and four bytes of the chain, so a chain of empty padding
+// blocks must end at a block count, and the header bytes count toward the
+// chain total.
+func TestParseBoundedCapsTheBlockCount(t *testing.T) {
+	streamInfo := testBlock{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 1000)}
+	chainOf := func(blocks int) []byte {
+		chain := []testBlock{streamInfo}
+		for range blocks - 1 {
+			chain = append(chain, testBlock{Type: 1})
+		}
+		chain[len(chain)-1].Last = true
+		return buildContainer(chain, []byte{0xFF, 0xF8})
+	}
+	bounds := Bounds{TagBytes: 1 << 20, PictureBytes: 1 << 20}
+
+	t.Run("a chain of maxBlocks blocks is admitted", func(t *testing.T) {
+		got, err := ParseBounded(writeFixture(t, chainOf(maxBlocks)), bounds)
+		if err != nil || len(got.Blocks) != maxBlocks {
+			t.Errorf("ParseBounded = %d blocks, %v, want %d and no error", len(got.Blocks), err, maxBlocks)
+		}
+	})
+	t.Run("one block more is refused", func(t *testing.T) {
+		_, err := ParseBounded(writeFixture(t, chainOf(maxBlocks+1)), bounds)
+		if !errors.Is(err, ErrTagsTooLarge) {
+			t.Errorf("error = %v, want ErrTagsTooLarge", err)
+		}
+	})
+	t.Run("a hundred thousand empty blocks are refused at the cap", func(t *testing.T) {
+		_, err := ParseBounded(writeFixture(t, chainOf(100_000)), bounds)
+		if !errors.Is(err, ErrTagsTooLarge) {
+			t.Errorf("error = %v, want ErrTagsTooLarge", err)
+		}
+	})
+	t.Run("Parse, which carries no bounds, still reads the long chain", func(t *testing.T) {
+		got, err := Parse(writeFixture(t, chainOf(maxBlocks+1)))
+		if err != nil || len(got.Blocks) != maxBlocks+1 {
+			t.Errorf("Parse = %d blocks, %v, want %d and no error", len(got.Blocks), err, maxBlocks+1)
+		}
+	})
+	t.Run("the four header bytes of each block count toward the chain cap", func(t *testing.T) {
+		// 600 empty blocks are 2400 header bytes: over four times a 512-byte
+		// picture cap (2048), under the block count cap.
+		_, err := ParseBounded(writeFixture(t, chainOf(600)), Bounds{TagBytes: 1 << 20, PictureBytes: 512})
+		if !errors.Is(err, ErrPictureTooLarge) {
+			t.Errorf("error = %v, want ErrPictureTooLarge", err)
+		}
+	})
+}
+
+func TestParseBoundedAdmitsWithinBounds(t *testing.T) {
+	path := writeFixture(t, buildContainer(wellFormedBlocks(), []byte{0xFF, 0xF8}))
+	want, err := Parse(path)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	got, err := ParseBounded(path, Bounds{TagBytes: 1 << 20, PictureBytes: 1 << 20})
+	if err != nil {
+		t.Fatalf("ParseBounded: %v", err)
+	}
+	if got.FrameOffset != want.FrameOffset || len(got.Blocks) != len(want.Blocks) || got.StreamInfo != want.StreamInfo {
+		t.Errorf("ParseBounded = %+v, want %+v", got, want)
+	}
+}
+
+func TestParseBoundedCapIsInclusive(t *testing.T) {
+	comment := vorbisCommentPayload("v", []string{"TITLE=A"})
+	path := writeFixture(t, buildContainer([]testBlock{
+		{Type: blockStreamInfo, Payload: streamInfoPayload(44100, 2, 16, 1000)},
+		{Type: blockVorbisComment, Last: true, Payload: comment},
+	}, nil))
+
+	if _, err := ParseBounded(path, Bounds{TagBytes: int64(len(comment)), PictureBytes: 1 << 20}); err != nil {
+		t.Errorf("a block exactly at its cap: %v", err)
+	}
+	if _, err := ParseBounded(path, Bounds{TagBytes: int64(len(comment)) - 1, PictureBytes: 1 << 20}); !errors.Is(err, ErrTagsTooLarge) {
+		t.Errorf("a block one byte over its cap: error = %v, want ErrTagsTooLarge", err)
+	}
+}

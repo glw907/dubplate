@@ -318,6 +318,7 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 			template: template,
 			wantLines: []string{
 				fmt.Sprintf("%-32s %s", "DUBPLATE_IDENTITY_SOURCE", "ok"),
+				fmt.Sprintf("%-32s %s", "DUBPLATE_STAGING_DIR", "ok"),
 				fmt.Sprintf("%-32s %s", "magic-link", "active"),
 				fmt.Sprintf("%-32s %s", "store", "absent"),
 				fmt.Sprintf("%-32s %s", "members", "no store yet; start serve, then member add --admin"),
@@ -327,6 +328,8 @@ func TestRenderedTemplateDoctor(t *testing.T) {
 				fmt.Sprintf("%-32s %s", "bind addresses", "127.0.0.1 present"),
 				fmt.Sprintf("%-32s %s", "trusted proxy", "disabled"),
 				fmt.Sprintf("%-32s %s", "boundary probe", "127.0.0.1 no listener"),
+				fmt.Sprintf("%-32s %s", "music volume",
+					"staging directory /srv/music/staging does not exist; library root /srv/music/library does not exist"),
 			},
 			wantNone: []string{"roster ", "DUBPLATE_ROSTER_FILE"},
 		},

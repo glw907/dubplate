@@ -72,7 +72,7 @@ const (
 // KindBackup is the job kind a backup job's record and lease carry.
 const KindBackup = "backup"
 
-// privileges maps each of the eleven operation names to the privilege
+// privileges maps each of the sixteen operation names to the privilege
 // it requires. It is the one table a caller's required privilege is
 // read from: [PrivilegeOf] is the only reader, so the catalog and an
 // authorizing layer can never disagree about what an operation needs.
@@ -88,6 +88,12 @@ var privileges = map[string]Privilege{
 	OpListSettings: PrivilegeAdmin,
 	OpSetSetting:   PrivilegeAdmin,
 	OpResetSetting: PrivilegeAdmin,
+
+	OpCreateSubmission: PrivilegeMember,
+	OpListSubmissions:  PrivilegeMember,
+	OpGetSubmission:    PrivilegeMember,
+	OpRetrySubmission:  PrivilegeMember,
+	OpCancelSubmission: PrivilegeMember,
 }
 
 // PrivilegeOf returns the privilege op requires and reports whether op
@@ -127,3 +133,20 @@ func BuildCatalog(entries ...CatalogEntry) (Catalog, error) {
 
 // Entries returns c's validated entries.
 func (c Catalog) Entries() []CatalogEntry { return c.entries }
+
+// catalogEntries returns one available entry for each of names, its
+// privilege read from the one table [PrivilegeOf] reads. A name missing
+// from the table fails the build of the catalog, so it cannot list an
+// operation no authorizer enforces.
+func catalogEntries(names []string) ([]CatalogEntry, error) {
+	entries := make([]CatalogEntry, 0, len(names))
+	for _, name := range names {
+		priv, _ := PrivilegeOf(name)
+		entries = append(entries, CatalogEntry{Name: name, Privilege: priv, Available: true})
+	}
+	cat, err := BuildCatalog(entries...)
+	if err != nil {
+		return nil, err
+	}
+	return cat.Entries(), nil
+}

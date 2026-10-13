@@ -42,10 +42,29 @@ func discardTestLogger() *slog.Logger {
 
 // serveAuthEnviron returns authEnviron with DUBPLATE_STATE_DIR pointed
 // at a fresh t.TempDir(): authEnviron's own fixed path is not one a
-// test process may create the auth leaf's directories under.
+// test process may create the auth leaf's directories under. It points
+// the library root and staging at two directories it creates under one
+// t.TempDir(), so they share a filesystem and a mount.
 func serveAuthEnviron(t *testing.T) []string {
 	t.Helper()
-	return replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir())
+	return withMusicVolume(t, replaceKey(authEnviron(t), "DUBPLATE_STATE_DIR", t.TempDir()))
+}
+
+// withMusicVolume returns environ with the library root and staging
+// pointed at two directories it creates under one t.TempDir(), so they
+// share a filesystem and a mount, as serve's startup check requires.
+func withMusicVolume(t *testing.T, environ []string) []string {
+	t.Helper()
+	music := t.TempDir()
+	library := filepath.Join(music, "library")
+	staging := filepath.Join(music, "staging")
+	for _, dir := range []string{library, staging} {
+		if err := os.Mkdir(dir, 0o755); err != nil {
+			t.Fatalf("create %s: %v", dir, err)
+		}
+	}
+	environ = replaceKey(environ, "DUBPLATE_LIBRARY_ROOT", library)
+	return replaceKey(environ, "DUBPLATE_STAGING_DIR", staging)
 }
 
 // replaceKey returns a copy of environ with name's entry replaced by
@@ -72,8 +91,8 @@ func buildServeShellWithLogger(t *testing.T, environ []string, logger *slog.Logg
 }
 
 // buildServeShellContext is [buildServeShellWithLogger] with the
-// context [newServeShell] waits on supplied. The store handle a
-// successful build returns is closed at cleanup.
+// context [newServeShell] waits on supplied. A successful build is
+// closed at cleanup.
 func buildServeShellContext(t *testing.T, ctx context.Context, environ []string, logger *slog.Logger) (*serve.Shell, error) {
 	t.Helper()
 	cfg, err := config.Load(environ, productionRegistry())
@@ -84,16 +103,16 @@ func buildServeShellContext(t *testing.T, ctx context.Context, environ []string,
 	if err != nil {
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
-	shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
+	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
 	if err != nil {
 		return nil, err
 	}
 	t.Cleanup(func() {
-		if err := h.Close(); err != nil {
-			t.Errorf("close store handle: %v", err)
+		if err := srv.Close(); err != nil {
+			t.Errorf("close the serve build: %v", err)
 		}
 	})
-	return shell, nil
+	return srv.shell, nil
 }
 
 // productionRegistry builds a registry exactly as newRootCmd does, so
@@ -580,12 +599,13 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveServeConfig: %v", err)
 			}
-			shell, h, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
+			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
-			t.Cleanup(func() { _ = h.Close() })
-			handlersConfig := authHandlersConfig(prefix, cfg, settings.NewAccessor(h, productionRegistry()), nil, nil, nil, nil, nil, nil, nil)
+			t.Cleanup(func() { _ = srv.Close() })
+			shell := srv.shell
+			handlersConfig := authHandlersConfig(prefix, cfg, settings.NewAccessor(srv.store, productionRegistry()), nil, nil, nil, nil, nil, nil, nil)
 			if handlersConfig.Prefix != prefix.String() {
 				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
 			}
@@ -1908,9 +1928,9 @@ func TestServePortBound(t *testing.T) {
 }
 
 // startServeShell builds a serve shell from environ as the verb does
-// and returns it with its store handle, prefix, and config. The caller
-// closes the handle; the shell's background work stops with ctx.
-func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serve.Shell, *store.Handle, serve.Prefix, *config.Config, error) {
+// and returns the build with its prefix and config. The caller closes
+// the build; its background work also stops with ctx.
+func startServeShell(t *testing.T, ctx context.Context, environ []string) (*server, serve.Prefix, *config.Config, error) {
 	t.Helper()
 	cfg, err := config.Load(environ, productionRegistry())
 	if err != nil {
@@ -1920,8 +1940,8 @@ func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serv
 	if err != nil {
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
-	shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
-	return shell, h, prefix, cfg, err
+	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
+	return srv, prefix, cfg, err
 }
 
 // writeAdminRows writes each of values as an admin-sourced settings row
@@ -2016,11 +2036,12 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
-	shell, h, prefix, cfg, err := startServeShell(t, ctx, environ)
+	srv, prefix, cfg, err := startServeShell(t, ctx, environ)
 	if err != nil {
 		t.Fatalf("start under A: %v", err)
 	}
-	handler := shell.Handler()
+	h := srv.store
+	handler := srv.shell.Handler()
 
 	agedAt := time.Now().Add(-5 * time.Hour)
 	aged, _, err := auth.MintSession([]byte(secret), rosterAdminAddress, agedAt, 6*time.Hour, 10*time.Hour)
@@ -2091,8 +2112,8 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 	})
 
 	cancel()
-	if err := h.Close(); err != nil {
-		t.Fatalf("close the first start's store: %v", err)
+	if err := srv.Close(); err != nil {
+		t.Fatalf("close the first start: %v", err)
 	}
 
 	t.Run("a start with env A beside admin row B refuses naming both", func(t *testing.T) {
@@ -2100,9 +2121,9 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 		for _, key := range []string{expiryKey, lifetimeKey, capKey} {
 			envOnlyLimit = dropKey(envOnlyLimit, key)
 		}
-		_, h2, _, _, err := startServeShell(t, t.Context(), envOnlyLimit)
+		srv2, _, _, err := startServeShell(t, t.Context(), envOnlyLimit)
 		if err == nil {
-			_ = h2.Close()
+			_ = srv2.Close()
 			t.Fatal("start succeeded, want the seed's refusal")
 		}
 		for _, want := range []string{limitKey, `"2"`, `"5"`} {
@@ -2119,12 +2140,12 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 		}
 		ctx2, cancel2 := context.WithCancel(t.Context())
 		defer cancel2()
-		shell2, h2, prefix2, _, err := startServeShell(t, ctx2, unset)
+		srv2, prefix2, _, err := startServeShell(t, ctx2, unset)
 		if err != nil {
 			t.Fatalf("restart: %v", err)
 		}
-		defer func() { _ = h2.Close() }()
-		if got, want := strangerLinkRequests(shell2.Handler(), prefix2, 3), []int{200, 200, 200}; !slices.Equal(got, want) {
+		defer func() { _ = srv2.Close() }()
+		if got, want := strangerLinkRequests(srv2.shell.Handler(), prefix2, 3), []int{200, 200, 200}; !slices.Equal(got, want) {
 			t.Errorf("statuses = %v, want %v under B's limit of 5", got, want)
 		}
 	})
@@ -2142,11 +2163,12 @@ func TestNewServeShell_AdminRowRaisesTheCapThroughARefresh(t *testing.T) {
 	secret := environValue(environ, "DUBPLATE_SESSION_SECRET")
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
-	shell, h, prefix, _, err := startServeShell(t, ctx, environ)
+	srv, prefix, _, err := startServeShell(t, ctx, environ)
 	if err != nil {
 		t.Fatalf("start under A: %v", err)
 	}
-	defer func() { _ = h.Close() }()
+	defer func() { _ = srv.Close() }()
+	shell, h := srv.shell, srv.store
 
 	anchor := time.Now().Add(-90 * time.Minute).Truncate(time.Second)
 	session, minted, err := auth.MintSession([]byte(secret), rosterAdminAddress, anchor, 2*time.Hour, 3*time.Hour)
@@ -2299,11 +2321,12 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("resolveServeConfig: %v", err)
 			}
-			shell, h, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
+			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
-			defer func() { _ = h.Close() }()
+			defer func() { _ = srv.Close() }()
+			shell, h := srv.shell, srv.store
 			r := tt.request(t, environ, prefix)
 
 			writeAdminRows(t, h, map[string]string{tt.key: tt.value})

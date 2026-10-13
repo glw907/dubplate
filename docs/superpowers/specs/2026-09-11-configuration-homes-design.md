@@ -288,7 +288,7 @@ allowlist floor and a size quota.
 | which collections exist, their names | collection rows | the admin, or a member for their own |
 | layout template, tagging policy, admission overrides | the collection row | the owner or an admin |
 | new-collection defaults and admin bounds | settings table | the admin |
-| routing rules: which collection an upload lands in | settings table | the admin |
+| routing rules beyond the two fixed routes (an album to Library, separate tracks to Unlisted music), which `collections.intake_route` holds | settings table | the admin |
 | a member's default collection | member preferences | the member |
 | a per-upload collection override | the uploader, not stored | the member |
 | where a member's local collection lives on disk | machine settings | the member, per machine |
@@ -472,9 +472,10 @@ The consequences:
   what keeps it open.
 
 Sharing needs one filesystem. The tus staging directory, the library root, and every
-collection root must share a device, and `doctor` checks it. A rename that fails across
-devices falls back to a copy, and a hardlink that cannot be made across collections is a
-reported condition, never a hard failure.
+collection root must share a device and a mount, and `doctor` checks it. `serve` refuses to
+start when staging and the library root do not, so a rename between them never crosses a
+device and never falls back to a copy. A hardlink that cannot be made across collections is
+a reported condition, never a hard failure.
 
 ### The verbs
 
@@ -548,7 +549,7 @@ with no second mechanism. The owner is notified once per batch.
 ### Rules that cut across the verbs
 
 Quotas bind at three levels, all in the settings table. Per collection is the shape floor.
-Per member across everything they own is the fairness counter, and a file shared by several
+Per member across everything they uploaded is the fairness counter, and a file shared by several
 collections is charged to every one of them. The over-count is deliberate. It explains in
 one sentence, it matches what backup will cost, and it removes any incentive to game which
 collection "owns" a file. A shared file's bytes are not split across referencers, because

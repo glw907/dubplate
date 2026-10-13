@@ -63,6 +63,13 @@ A `doctor` run too early correctly reports a server that cannot start yet.
      nothing. `doctor` warns when the address no longer names a live admin.
    - `DUBPLATE_LIBRARY_ROOT` is the directory that holds the music library.
      Every verb requires it, and the backup and restore verbs read it.
+   - `DUBPLATE_STAGING_DIR` is the directory where uploads stage before
+     admission. It must sit on the same mount as `DUBPLATE_LIBRARY_ROOT`, in a
+     directory of its own beside it (the template uses `/srv/music/staging`
+     and `/srv/music/library`), never inside it. One staging directory serves
+     one store: the intake lease lives under one state directory, so two
+     stores sharing a staging directory would each clean up the other's work
+     as rowless.
    - `DUBPLATE_MAGIC_LINK_SECRET` and `DUBPLATE_SESSION_SECRET` each need at
      least 32 random bytes, and the two must differ. This command prints 48
      random bytes as 64 characters; run it once for each:
@@ -74,8 +81,14 @@ A `doctor` run too early correctly reports a server that cannot start yet.
    - The SMTP rows: see [Mail](#mail).
    - The trusted proxy rows: see step 8.
 5. **Check that the paths and the grant agree.** The unit grants write access
-   to exactly two directories, `/var/lib/dubplate/auth` and
-   `/var/lib/dubplate/store`, on its `ReadWritePaths=` line. Those are the
+   to three directories on its `ReadWritePaths=` line:
+   `/var/lib/dubplate/auth`, `/var/lib/dubplate/store`, and `/srv/music`, the
+   music volume's directory that holds both staging and the library root. It
+   is one entry over the common parent, because `rename(2)` fails with `EXDEV`
+   across mount points even when the same filesystem is mounted on both, and
+   two entries can become two mount points in the unit's namespace. If your
+   staging and library paths differ from the template's, grant their common
+   parent instead. The first two are the
    directories the server writes when `DUBPLATE_STATE_DIR` is
    `/var/lib/dubplate`, as the template sets it: the sign-in state under
    `auth` and the member and settings store under `store`. If you change that
@@ -99,7 +112,20 @@ A `doctor` run too early correctly reports a server that cannot start yet.
 
    A leaf missing from the host stops the unit at start with the namespace
    failure `226/NAMESPACE`, because systemd cannot mount a path that does not
-   exist.
+   exist. The staging directory and the library root need the same care, with
+   mode 0755:
+
+   ```sh
+   install -d -o music -g music -m 0755 /srv/music/staging
+   install -d -o music -g music -m 0755 /srv/music/library
+   ```
+
+   `serve` refuses to start when the staging directory does not exist, so a
+   start that names a missing staging directory means these commands were
+   skipped; `scripts/deploy.sh` runs them from the template's two rows. The
+   unit's `ReadWritePaths=` entry for the music volume is what lets `serve`
+   write there at all, so a refusal that names a directory it cannot write
+   points at that grant.
 7. **Install the transliteration table.** The matcher cannot score without it,
    and `doctor` fails the `unidecode` row until it exists. Create the leaf the
    install writes, owned by the service user with mode 0755 (the verb refuses

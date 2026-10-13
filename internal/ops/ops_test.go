@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -335,15 +336,20 @@ func TestAddMemberRequest_HasNoAdminField(t *testing.T) {
 	}
 }
 
-// allowedInternalImport is the one internal import internal/ops may
-// carry: the network actor's channel type (Global constraints).
-const allowedInternalImport = "github.com/glw907/dubplate/internal/identity"
+// allowedInternalImports are the internal imports internal/ops may
+// carry: the network actor's channel type (Global constraints) and the
+// reject set, a leaf that imports nothing, whose reasons the submission
+// operations carry on the wire.
+var allowedInternalImports = []string{
+	"github.com/glw907/dubplate/internal/identity",
+	"github.com/glw907/dubplate/internal/reject",
+}
 
 // TestImportsStandardLibraryOnly parses every .go file this package
 // declares and fails if any import path's first segment carries a
 // dot, the shape every non-standard-library module path takes
 // (domain-qualified) and no standard-library path ever does, unless
-// the import is exactly [allowedInternalImport].
+// the import is exactly one of [allowedInternalImports].
 func TestImportsStandardLibraryOnly(t *testing.T) {
 	files, err := filepath.Glob("*.go")
 	if err != nil {
@@ -360,7 +366,7 @@ func TestImportsStandardLibraryOnly(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: unquote import %s: %v", path, imp.Path.Value, err)
 			}
-			if importPath == allowedInternalImport {
+			if slices.Contains(allowedInternalImports, importPath) {
 				continue
 			}
 			first, _, _ := strings.Cut(importPath, "/")

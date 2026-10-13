@@ -103,16 +103,16 @@ func newAPIHarness(t *testing.T, members []seedMember, tweak func([]string) []st
 		t.Fatalf("resolveServeConfig: %v", err)
 	}
 	logs := &syncBuffer{}
-	shell, h, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(logs, nil)))
+	srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(logs, nil)))
 	if err != nil {
 		t.Fatalf("newServeShell: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := h.Close(); err != nil {
-			t.Errorf("close store handle: %v", err)
+		if err := srv.Close(); err != nil {
+			t.Errorf("close the serve build: %v", err)
 		}
 	})
-	return &apiHarness{t: t, environ: environ, handler: shell.Handler(), h: h, prefix: prefix, logs: logs}
+	return &apiHarness{t: t, environ: environ, handler: srv.shell.Handler(), h: srv.store, prefix: prefix, logs: logs}
 }
 
 // session mints a session for address issued at issued.
@@ -432,6 +432,8 @@ func TestAPI_AddMemberNeverGrantsAdmin(t *testing.T) {
 // words no answer could avoid.
 var envSentinels = map[string]string{
 	"DUBPLATE_LIBRARY_ROOT":               "/srv/sentinel-library-root",
+	"DUBPLATE_STAGING_DIR":                "/srv/sentinel-staging-root",
+	"DUBPLATE_INTAKE_FORMAT_ALLOWLIST":    "flac",
 	"DUBPLATE_SITE_NAME":                  "Sentinel Site Name",
 	"DUBPLATE_ADMIN_EMAIL":                "sentinel-admin@example.test",
 	"DUBPLATE_MAGIC_LINK_SECRET":          "sentinel-magic-link-secret-0123456789abcdef",
@@ -466,6 +468,7 @@ var envSentinels = map[string]string{
 var envClosed = []string{
 	"DUBPLATE_OPERATOR_CSS_FILE", "DUBPLATE_BRANDING", "DUBPLATE_THEME_MATCH", "DUBPLATE_THEME_PALETTE",
 	"DUBPLATE_IDENTITY_SOURCE", "DUBPLATE_TRUSTED_PROXY_ENABLED", "DUBPLATE_BACKUP_ENABLED",
+	"DUBPLATE_INTAKE_FORMAT_ALLOWLIST",
 }
 
 // TestAPI_NoNonStoreValueReachesTheWire proves no value only the
@@ -482,6 +485,16 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 		environ = replaceKey(environ, "DUBPLATE_STATE_DIR", stateDir)
 		for name, value := range envSentinels {
 			environ = replaceKey(environ, name, value)
+		}
+		// serve refuses a staging directory or library root that does not
+		// exist, so these two sentinels are real sibling directories.
+		music := t.TempDir()
+		for _, key := range []string{"DUBPLATE_LIBRARY_ROOT", "DUBPLATE_STAGING_DIR"} {
+			dir := filepath.Join(music, filepath.Base(envSentinels[key]))
+			if err := os.Mkdir(dir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			environ = replaceKey(environ, key, dir)
 		}
 		return environ
 	})
@@ -528,9 +541,15 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	collect(a.call("reset_setting", admin, `{"key":"DUBPLATE_REAUTH_WINDOW"}`))
 	collect(a.call("add_member", admin, `{"address":"not an address","display_name":"x","username":"x"}`))
 	collect(a.call("remove_member", admin, `{"user_id":"`+strings.Repeat("0", 32)+`"}`))
+	// The sentinel staging directory does not exist, so this create's
+	// free-space read fails with an error that names it.
+	collect(a.call("create_submission", member, `{"verdict_unit":"album","container":"files","source":"cd","files":[{"path":"01.flac","size":1}]}`))
+	collect(a.call("get_submission", member, `{"submission_id":"`+strings.Repeat("ab", 16)+`"}`))
 
 	secrets := maps.Clone(envSentinels)
-	secrets["DUBPLATE_STATE_DIR"] = environValue(a.environ, "DUBPLATE_STATE_DIR")
+	for _, key := range []string{"DUBPLATE_STATE_DIR", "DUBPLATE_LIBRARY_ROOT", "DUBPLATE_STAGING_DIR"} {
+		secrets[key] = environValue(a.environ, key)
+	}
 	for _, name := range envClosed {
 		delete(secrets, name)
 	}

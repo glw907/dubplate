@@ -13,6 +13,7 @@ import (
 	"strings"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
@@ -66,6 +67,10 @@ const authStoreRowLines = 1
 // dropped from doctor changes the count a test expects.
 const probeRowLines = 4
 
+// musicVolumeRowLines is the music volume row's fixed contribution to
+// doctor's line-count assertions, storeRowLines's own precedent.
+const musicVolumeRowLines = 1
+
 func TestDoctorCmd(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -110,7 +115,7 @@ func TestDoctorCmd(t *testing.T) {
 			installTestUnidecodeTable(t, stateDir)
 			environ := replaceKey(tt.environ, "DUBPLATE_STATE_DIR", stateDir)
 
-			reg := config.NewRegistry()
+			reg := freshRegistry()
 
 			var stdout, stderr bytes.Buffer
 			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
@@ -258,6 +263,15 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			// The music volume row closes the fixed-count rows.
+			if li >= len(lines) {
+				t.Fatalf("stdout ran out of lines before the music volume row")
+			}
+			if wantPrefix := fmt.Sprintf("%-32s", musicVolumeDoctorRow); !strings.HasPrefix(lines[li], wantPrefix) {
+				t.Errorf("music volume row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+			}
+			li++
+
 			if li != len(lines) {
 				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store+auth store+backup rows: %v", len(lines)-li, lines[li:])
 			}
@@ -283,7 +297,7 @@ func TestDoctorCmd(t *testing.T) {
 //
 // ruled, conductor 2026-09-07, R10
 func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	lines := doctorLines(t, reg)
 
 	ownedCount := len(reg.OwnedWall())
@@ -297,11 +311,11 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// prints unconditionally, so none is one of reg's own declared
 	// families. doctorLines's own environ
 	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + musicVolumeRowLines
 	if len(lines) != wantTotal {
-		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + members %d + auth store %d + backup %d + unidecode %d + boundary %d)",
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + members %d + auth store %d + backup %d + unidecode %d + boundary %d + music volume %d)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount,
-			storeRowLines, membersRowLines, authStoreRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines)
+			storeRowLines, membersRowLines, authStoreRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines, musicVolumeRowLines)
 	}
 
 	// Owned wall: one line per declared row.
@@ -408,7 +422,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
 	}
@@ -443,7 +457,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 	)
 
 	registry := func() *config.Registry {
-		reg := config.NewRegistry()
+		reg := freshRegistry()
 		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []config.KeyDecl{testKey(requiredA)}})
 		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []config.KeyDecl{testKey(requiredB)}})
 		reg.AddWallRow(config.WallRow{Name: selector, Description: testDescription, Mark: config.NotSensitive})
@@ -699,7 +713,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	// storeRowLines and backupDoctorRowsOff are the store row and the
 	// backup rows: doctorEnviron loads cleanly, so no unclaimed-error
 	// line prints, and it never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -1015,7 +1029,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, config.NewRegistry(), &stdout, &stderr)
+	cmd := newDoctorCmd(environ, freshRegistry(), &stdout, &stderr)
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1028,7 +1042,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	// The pending "identity source" row this spot check used to pin
 	// retired with rung 5 (keys.go's ownedWall no longer carries it);
 	// its owned-now replacement, the selector row, is the second
-	// literal now. config.NewRegistry() alone declares no identity
+	// literal now. freshRegistry() alone declares no identity
 	// source, so this half runs against the production registry and a
 	// fully satisfied environment instead.
 	var authStdout, authStderr bytes.Buffer
@@ -1071,7 +1085,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 	useBackupStandin(t)
 	t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
 
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerBackupConfig(reg)
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
@@ -1106,7 +1120,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 // pinned "%-32s %s" form every other row uses. wantLine is a literal
 // ("0.04"), not derived by calling config.ParseFloat itself.
 func TestDoctorCmd_FloatThreshold(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	reg.AddThreshold(config.Threshold{
 		Key:     "DUBPLATE_TEST_STRONG_REC_THRESH",
 		Kind:    config.KindFloat,
@@ -1166,7 +1180,7 @@ func TestDoctorCmd_RefusedSettingPrintsOnce(t *testing.T) {
 // TestUnclaimedLoadErrors proves the list holds only DUBPLATE_ keys no
 // row owns, in sorted order.
 func TestUnclaimedLoadErrors(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	wall := reg.OwnedWall()
 	if len(wall) == 0 {
 		t.Fatal("registry has no owned wall rows to test with")
@@ -1190,7 +1204,7 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 // 15s by default and the set value when set, in the same "%-32s %s"
 // form every duration threshold uses.
 func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerStoreConfig(reg)
 
 	tests := []struct {
@@ -1225,7 +1239,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 // threshold row still shows the parsed value unchanged, and doctor
 // exits 1. 2147483647ms passes both rows.
 func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerStoreConfig(reg)
 
 	tests := []struct {
@@ -1283,7 +1297,7 @@ func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
-	reg := config.NewRegistry()
+	reg := freshRegistry()
 	registerStoreConfig(reg)
 
 	before, err := os.ReadDir(stateDir)
@@ -1576,9 +1590,9 @@ func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env-seed, restart)`},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env-seed, restart)`},
 		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env-seed, next operation)`},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env-seed, next operation)`},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env-seed, next operation, sensitive)`},
 	}
-	environ := doctorEnviron(t)
+	environ := withMusicVolume(t, doctorEnviron(t))
 	for _, w := range want {
 		environ = append(environ, w.key+"="+w.value)
 	}
@@ -1702,4 +1716,63 @@ func TestDoctorCmd_AdminEmailRow(t *testing.T) {
 			t.Error("Execute() error = nil, want the wall's failure")
 		}
 	})
+}
+
+// TestDoctor_MusicVolumeRow pins the device row: on a fresh box whose
+// staging and library root do not exist yet it names both and leaves
+// doctor's exit alone; over sibling directories it reads ok, and a
+// route collection's root reads "not created" until it exists, then
+// reports its mount.
+func TestDoctor_MusicVolumeRow(t *testing.T) {
+	rows, _, err := doctorRows(t, doctorEnviron(t))
+	if err != nil {
+		t.Fatalf("doctor on a fresh box: %v", err)
+	}
+	want := "staging directory /srv/music/staging does not exist; library root /srv/music/library does not exist"
+	if got := rows[musicVolumeDoctorRow]; got != want {
+		t.Errorf("fresh box: row = %q, want %q", got, want)
+	}
+
+	environ := withMusicVolume(t, doctorEnviron(t))
+	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
+	seedBackupStore(t, stateDir)
+	seedDoctorAdmin(t, environ)
+	h, err := store.OpenWrite(t.Context(), stateDir, testBackupBusy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	defer cancel()
+	err = h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		_, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
+			SELECT ?, 'Library', ?, id, 'group', 'server', 'default' FROM users LIMIT 1`,
+			bytes.Repeat([]byte{0xab}, 16), []byte("abababababababababababababababab"))
+		return err
+	})
+	if cerr := h.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		t.Fatalf("seed a route collection: %v", err)
+	}
+	root := filepath.Join(environValue(environ, "DUBPLATE_LIBRARY_ROOT"), "abababababababababababababababab")
+
+	rows, _, err = doctorRows(t, environ)
+	if err != nil {
+		t.Fatalf("doctor over sibling directories: %v", err)
+	}
+	if want := "ok: staging and the library root share one mount; collection root " + root + " not created"; rows[musicVolumeDoctorRow] != want {
+		t.Errorf("row = %q, want %q", rows[musicVolumeDoctorRow], want)
+	}
+
+	if err := os.Mkdir(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	rows, _, err = doctorRows(t, environ)
+	if err != nil {
+		t.Fatalf("doctor with the collection root created: %v", err)
+	}
+	if want := "ok: staging and the library root share one mount; collection root " + root + " on the library root's mount"; rows[musicVolumeDoctorRow] != want {
+		t.Errorf("row = %q, want %q", rows[musicVolumeDoctorRow], want)
+	}
 }

@@ -77,7 +77,7 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 			if n := len(f.auth.calls); n != 0 {
 				t.Errorf("authorizer calls = %d, want 0", n)
 			}
-			if n := len(f.seam.calls) + len(f.admin.calls); n != 0 {
+			if n := len(f.seam.calls) + len(f.admin.calls) + len(f.subs.calls); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
@@ -356,11 +356,12 @@ func TestServeHTTPDenials(t *testing.T) {
 }
 
 // TestServeHTTPAdmitsByGrant runs each operation under an admin grant
-// and a member grant: admin reaches all eleven, member only the
-// catalog. A refused call reaches neither seam.
+// and a member grant: admin reaches all sixteen, member the catalog and
+// the five submission operations. A refused call reaches no seam.
 func TestServeHTTPAdmitsByGrant(t *testing.T) {
 	jobBody := `{"job_id":"` + testHandle + `"}`
 	userBody := `{"user_id":"` + testHandle + `"}`
+	submissionBody := `{"submission_id":"` + testHandle + `"}`
 	tests := []struct {
 		op           string
 		body         string
@@ -377,6 +378,11 @@ func TestServeHTTPAdmitsByGrant(t *testing.T) {
 		{ops.OpListSettings, `{}`, http.StatusForbidden},
 		{ops.OpSetSetting, `{"key":"K","value":"v"}`, http.StatusForbidden},
 		{ops.OpResetSetting, `{"key":"K"}`, http.StatusForbidden},
+		{ops.OpCreateSubmission, `{"verdict_unit":"album","container":"files","files":[],"source":"vinyl"}`, http.StatusOK},
+		{ops.OpListSubmissions, `{}`, http.StatusOK},
+		{ops.OpGetSubmission, submissionBody, http.StatusOK},
+		{ops.OpRetrySubmission, submissionBody, http.StatusOK},
+		{ops.OpCancelSubmission, submissionBody, http.StatusOK},
 	}
 	for _, tt := range tests {
 		for _, g := range []struct {
@@ -399,7 +405,7 @@ func TestServeHTTPAdmitsByGrant(t *testing.T) {
 				if g.status == http.StatusOK {
 					wantSeamCalls = 1
 				}
-				calls := slices.Concat(f.seam.calls, f.admin.calls)
+				calls := slices.Concat(f.seam.calls, f.admin.calls, f.subs.calls)
 				if len(calls) != wantSeamCalls {
 					t.Fatalf("seam calls = %d, want %d", len(calls), wantSeamCalls)
 				}
@@ -504,22 +510,24 @@ func TestNewHandlerRefuses(t *testing.T) {
 		name    string
 		seam    ops.Seam
 		admin   ops.AdminSeam
+		subs    ops.SubmissionSeam
 		auth    authorizer
 		channel identity.Channel
 		log     *slog.Logger
 		want    string
 	}{
-		{"nil seam", nil, &fakeAdmin{}, admitAnn(), identity.ChannelCookie, log, "job seam is nil"},
-		{"nil admin seam", &fakeSeam{}, nil, admitAnn(), identity.ChannelCookie, log, "admin seam is nil"},
-		{"nil authorizer", &fakeSeam{}, &fakeAdmin{}, nil, identity.ChannelCookie, log, "authorizer is nil"},
-		{"nil logger", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.ChannelCookie, nil, "logger is nil"},
-		{"zero channel", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.Channel(0), log, "channel 0 is not"},
-		{"unknown channel", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.Channel(99), log, "channel 99 is not"},
-		{"command-line channel", &fakeSeam{}, &fakeAdmin{}, admitAnn(), identity.ChannelCommandLine, log, "command line"},
+		{"nil seam", nil, &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, log, "job seam is nil"},
+		{"nil admin seam", &fakeSeam{}, nil, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, log, "admin seam is nil"},
+		{"nil submission seam", &fakeSeam{}, &fakeAdmin{}, nil, admitAnn(), identity.ChannelCookie, log, "submission seam is nil"},
+		{"nil authorizer", &fakeSeam{}, &fakeAdmin{}, &fakeSubmissions{}, nil, identity.ChannelCookie, log, "authorizer is nil"},
+		{"nil logger", &fakeSeam{}, &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, nil, "logger is nil"},
+		{"zero channel", &fakeSeam{}, &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.Channel(0), log, "channel 0 is not"},
+		{"unknown channel", &fakeSeam{}, &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.Channel(99), log, "channel 99 is not"},
+		{"command-line channel", &fakeSeam{}, &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.ChannelCommandLine, log, "command line"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, err := newHandler(tt.seam, tt.admin, tt.auth, tt.channel, tt.log)
+			h, err := newHandler(tt.seam, tt.admin, tt.subs, tt.auth, tt.channel, tt.log)
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("newHandler = %v, %v; want an error containing %q", h, err, tt.want)
 			}

@@ -131,6 +131,69 @@ type Container struct {
 // nothing to hand it for those inputs (ruled, conductor 2026-09-08,
 // m6).
 func Parse(path string) (Container, error) {
+	return parse(path, nil)
+}
+
+// Bounds caps the metadata a walk will allocate, in bytes. The chain's
+// total is not a field of its own: it is four times PictureBytes.
+type Bounds struct {
+	// TagBytes is the largest VORBIS_COMMENT block admitted.
+	TagBytes int64
+	// PictureBytes is the largest PICTURE block admitted, and a quarter
+	// of the largest chain of blocks of any type.
+	PictureBytes int64
+}
+
+// ErrTagsTooLarge marks a VORBIS_COMMENT block whose declared length
+// exceeds [Bounds].TagBytes.
+var ErrTagsTooLarge = errors.New("tagio: tag block too large")
+
+// ErrPictureTooLarge marks a PICTURE block whose declared length
+// exceeds [Bounds].PictureBytes, or a chain whose declared lengths
+// total more than four times that.
+var ErrPictureTooLarge = errors.New("tagio: picture block or metadata chain too large")
+
+// chainFactor is how many picture caps a whole metadata chain may
+// total, each block's four header bytes included.
+const chainFactor = 4
+
+// maxBlocks is the most blocks a bounded walk admits. RFC 9639 sets no
+// number and real files carry a handful, so the bound exists for the walk's
+// own cost: every block, however small, adds a Block and a header read, and
+// a member's bytes could otherwise declare millions of empty ones.
+const maxBlocks = 1024
+
+// admit refuses a block from its declared length alone, so the
+// refusal precedes the allocation of its payload. total includes this
+// block.
+func (b Bounds) admit(path string, blockType byte, length, total int64, blocks int) error {
+	switch {
+	case blocks > maxBlocks:
+		return fmt.Errorf("tagio: %s: %w: the chain holds more than %d blocks", path, ErrTagsTooLarge, maxBlocks)
+	case blockType == blockVorbisComment && length > b.TagBytes:
+		return fmt.Errorf("tagio: %s: %w: a tag block declares %d bytes, the cap is %d", path, ErrTagsTooLarge, length, b.TagBytes)
+	case blockType == blockPicture && length > b.PictureBytes:
+		return fmt.Errorf("tagio: %s: %w: a picture block declares %d bytes, the cap is %d", path, ErrPictureTooLarge, length, b.PictureBytes)
+	case total > chainFactor*b.PictureBytes:
+		return fmt.Errorf("tagio: %s: %w: the chain declares %d bytes, the cap is %d", path, ErrPictureTooLarge, total, chainFactor*b.PictureBytes)
+	}
+	return nil
+}
+
+// ParseBounded is [Parse] with each block's declared length checked
+// against bounds before its payload is allocated: a Vorbis comment
+// block over TagBytes answers [ErrTagsTooLarge], and a picture block
+// over PictureBytes, or a chain totalling more than four times
+// PictureBytes, answers [ErrPictureTooLarge]. A block that is both too
+// large and runs past the end of the file answers the bound's error,
+// not [ErrMalformedContainer].
+func ParseBounded(path string, bounds Bounds) (Container, error) {
+	return parse(path, &bounds)
+}
+
+// parse opens path and walks its container; a nil bounds admits any
+// block size.
+func parse(path string, bounds *Bounds) (Container, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return Container{}, fmt.Errorf("tagio: open %s: %w", path, err)
@@ -147,7 +210,7 @@ func Parse(path string) (Container, error) {
 		return Container{}, fmt.Errorf("tagio: %s: %w: signature %q", path, ErrUnsupportedContainer, sig)
 	}
 
-	return parseBlocks(f, path, stat.Size())
+	return parseBlocks(f, path, stat.Size(), bounds)
 }
 
 // parseBlocks reads the block chain starting right after the
@@ -163,7 +226,7 @@ func Parse(path string) (Container, error) {
 // the file is malformed, whether it ran out of valid blocks before
 // ever setting the flag or kept offering valid blocks after it
 // (refusal 3 and refusal 4 of C7 share this one mechanism).
-func parseBlocks(f *os.File, path string, size int64) (Container, error) {
+func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container, error) {
 	var (
 		blocks           []Block
 		streamInfo       StreamInfo
@@ -172,12 +235,13 @@ func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 		sawStreamInfo    bool
 		sawVorbisComment bool
 		sawSeekTable     bool
+		total            int64
 	)
 
 	offset := int64(len(flacSignature))
+	var header [4]byte
 	for {
-		header := make([]byte, 4)
-		n, err := f.ReadAt(header, offset)
+		n, err := f.ReadAt(header[:], offset)
 		if n < 4 {
 			if err != nil && !errors.Is(err, io.EOF) {
 				return Container{}, fmt.Errorf("tagio: %s: read block header at offset %d: %w", path, offset, err)
@@ -188,7 +252,16 @@ func parseBlocks(f *os.File, path string, size int64) (Container, error) {
 		blockType := header[0] & 0x7f
 		length := int64(header[1])<<16 | int64(header[2])<<8 | int64(header[3])
 		bodyOffset := offset + 4
-		if blockType == blockInvalidType || bodyOffset+length > size {
+		if blockType == blockInvalidType {
+			break
+		}
+		total += 4 + length
+		if bounds != nil {
+			if err := bounds.admit(path, blockType, length, total, len(blocks)+1); err != nil {
+				return Container{}, err
+			}
+		}
+		if bodyOffset+length > size {
 			break
 		}
 

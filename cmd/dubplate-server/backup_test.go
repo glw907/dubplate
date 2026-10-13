@@ -1016,6 +1016,7 @@ func verbChildEnviron(t *testing.T, standinDir string) []string {
 	return []string{
 		"PATH=" + standinDir,
 		"DUBPLATE_LIBRARY_ROOT=" + root,
+		"DUBPLATE_STAGING_DIR=" + t.TempDir(),
 		"DUBPLATE_STATE_DIR=" + stateDir,
 		"DUBPLATE_SITE_NAME=Test Family",
 		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
