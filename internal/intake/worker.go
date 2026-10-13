@@ -1,6 +1,7 @@
 package intake
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/hex"
@@ -237,6 +238,13 @@ func (in *Intake) judgeZIP(ctx context.Context, sub checked, lim Limits) (verdic
 		return zipFault(archive, err)
 	}
 	defer func() { _ = walk.Close() }()
+
+	// The archive's own row carries the manifest's path, and a member of the
+	// same name would collide with it on (submission_id, rel_path) when the
+	// verdict commits, which reads as a store fault and never settles.
+	if slices.ContainsFunc(walk.Members, func(m gate.ZIPMember) bool { return bytes.Equal(m.Path, sub.files[0].path) }) {
+		return zipFault(archive, &gate.ZIPRefusal{Reason: reject.Of(reject.UnsafePath), Path: sub.files[0].path})
+	}
 
 	refused, err := in.subs.reserveExtracted(ctx, sub.id, walk.Total, lim.limits())
 	switch {

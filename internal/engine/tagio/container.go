@@ -154,14 +154,22 @@ var ErrTagsTooLarge = errors.New("tagio: tag block too large")
 var ErrPictureTooLarge = errors.New("tagio: picture block or metadata chain too large")
 
 // chainFactor is how many picture caps a whole metadata chain may
-// total.
+// total, each block's four header bytes included.
 const chainFactor = 4
+
+// maxBlocks is the most blocks a bounded walk admits. RFC 9639 sets no
+// number and real files carry a handful, so the bound exists for the walk's
+// own cost: every block, however small, adds a Block and a header read, and
+// a member's bytes could otherwise declare millions of empty ones.
+const maxBlocks = 1024
 
 // admit refuses a block from its declared length alone, so the
 // refusal precedes the allocation of its payload. total includes this
 // block.
-func (b Bounds) admit(path string, blockType byte, length, total int64) error {
+func (b Bounds) admit(path string, blockType byte, length, total int64, blocks int) error {
 	switch {
+	case blocks > maxBlocks:
+		return fmt.Errorf("tagio: %s: %w: the chain holds more than %d blocks", path, ErrTagsTooLarge, maxBlocks)
 	case blockType == blockVorbisComment && length > b.TagBytes:
 		return fmt.Errorf("tagio: %s: %w: a tag block declares %d bytes, the cap is %d", path, ErrTagsTooLarge, length, b.TagBytes)
 	case blockType == blockPicture && length > b.PictureBytes:
@@ -231,9 +239,9 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 	)
 
 	offset := int64(len(flacSignature))
+	var header [4]byte
 	for {
-		header := make([]byte, 4)
-		n, err := f.ReadAt(header, offset)
+		n, err := f.ReadAt(header[:], offset)
 		if n < 4 {
 			if err != nil && !errors.Is(err, io.EOF) {
 				return Container{}, fmt.Errorf("tagio: %s: read block header at offset %d: %w", path, offset, err)
@@ -247,9 +255,9 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 		if blockType == blockInvalidType {
 			break
 		}
-		total += length
+		total += 4 + length
 		if bounds != nil {
-			if err := bounds.admit(path, blockType, length, total); err != nil {
+			if err := bounds.admit(path, blockType, length, total, len(blocks)+1); err != nil {
 				return Container{}, err
 			}
 		}

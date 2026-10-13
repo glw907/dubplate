@@ -204,6 +204,9 @@
   "album" would be wrong; the section 1 hint "One album at a time. Albums go in whole." (`:45`); section 4's
   `id3-tags` and extras-warning entries, with the seventeen new reasons `internal/reject` drafted (PCF section 4
   holds only the chip labels: the adopted friendly and next-step strings live in the salvage `reject.go`). Also
+  `unsupported-flac`'s wording ("unsupported bit depth ... export it again as 16-bit, 20-bit, or 24-bit"), which
+  the gate now also answers for 176.4 kHz and for rates above 768 kHz, where a member told to re-export at a depth
+  they already have gets no help,
   `could-not-check`'s "Try again" against the retry path, the "{n} tracks are {label}" alert template that reads
   badly with several labels, and the three `API_DETAILS` lines `intake-1` T10 drafted in `web/src/lib/copy/deck.ts`
   (`store_url`, `extra`, `manifest`). Found by the `intake-1` pass, 2026-10-12 #rung:intake #copy
