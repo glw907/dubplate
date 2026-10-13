@@ -226,8 +226,8 @@ type decoded struct {
 }
 
 // maxTrackSeconds bounds the audio one file may hold. No track on an album
-// runs a day, and the bound caps the decode and MD5 work a stream of
-// near-empty frames can cost at a fixed multiple of its declared format.
+// runs a day, and the bound caps the work a low-rate stream of near-empty
+// frames can cost; at higher rates the PCM budget below binds first.
 const maxTrackSeconds = 24 * 60 * 60
 
 // The rates the gate admits. mewkiz/flac logs a line on every frame whose
@@ -240,13 +240,16 @@ const (
 )
 
 // The decoded-work budget: a file may decode to pcmAllowance bytes of PCM
-// plus pcmPerByte times the bytes read so far. Music compresses to a few
-// times its size and digital silence to a few hundred, so the allowance
-// covers a long silent track and the ratio holds a hostile stream of
-// near-empty frames to minutes of MD5 work per file.
+// plus pcmPerByte times the bytes read so far. Music compresses to about a
+// quarter to two thirds of its size and digital silence to a few hundred
+// times smaller, so the allowance covers a long silent track and the ratio
+// holds a hostile stream of near-empty frames to a few times the MD5 work of
+// a legitimate file of its size: measured at 29 ns per 2-byte write, about
+// 8 minutes at the 4 GiB default album cap and about 25 at its 16 GiB
+// ceiling, plus the decode.
 const (
 	pcmAllowance = 16 << 30
-	pcmPerByte   = 16
+	pcmPerByte   = 4
 )
 
 // decodeLimits bound one decode: the samples a track may hold, and the PCM
@@ -354,9 +357,10 @@ func headerAgrees(fr *frame.Frame, si tagio.StreamInfo) error {
 }
 
 // subframesAgree reports whether every subframe of fr holds exactly the
-// frame's block size. mewkiz/flac appends a fixed or LPC subframe's warm-up
-// samples even when its order exceeds the block size, so a short block can
-// leave one channel shorter than the rest and panic Frame.Hash.
+// frame's block size. mewkiz/flac v1.0.14 already refuses a subframe whose
+// decoded length differs (decodeLPC), so this never fires on a real stream;
+// it keeps Frame.Hash from indexing past a short subframe if a later
+// release stops refusing it.
 func subframesAgree(fr *frame.Frame) error {
 	for i, sf := range fr.Subframes {
 		if len(sf.Samples) != int(fr.BlockSize) {
