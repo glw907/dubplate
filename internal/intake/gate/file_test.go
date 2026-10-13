@@ -16,6 +16,8 @@ import (
 	"testing"
 	"testing/iotest"
 
+	"github.com/mewkiz/flac/frame"
+
 	"github.com/glw907/dubplate/internal/engine/tagio"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -142,6 +144,9 @@ func TestCheckFile_Verdicts(t *testing.T) {
 		// disagree with STREAMINFO would otherwise pass the CD-quality floor.
 		{"frames deeper than STREAMINFO says", patchStreamInfo((&clip{rate: 44100, bits: 24, channels: 2, blocks: 2, seed: 30}).encode(t), new(uint64(16)), new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
 		{"frames wider than STREAMINFO says", patchStreamInfo(patchChannels(cleanBytes, 1), nil, new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
+		{"frames smaller than STREAMINFO's minimum block size", patchStreamInfo(patchMinBlockSize(cleanBytes, 2*blockSize), nil, new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
+		{"a rate above 768 kHz", patchRate(cleanBytes, 1_000_000), ".flac", p, reject.UnsupportedFLAC},
+		{"176.4 kHz, which the decoder has no test files for", patchRate(cleanBytes, 176400), ".flac", p, reject.UnsupportedFLAC},
 		{"frames larger than STREAMINFO's maximum block size", patchStreamInfo(patchMaxBlockSize(cleanBytes, blockSize/2), nil, new(uint64(0)), make([]byte, 16)), ".flac", p, reject.Corrupt},
 		{"an extension outside the allowlist", cleanBytes, ".mp3", p, reject.BadExtension},
 		{"an empty allowlist", cleanBytes, ".flac", func() Policy { q := p; q.Allowlist = nil; return q }(), reject.BadExtension},
@@ -307,12 +312,12 @@ func TestDecode_ReadErrorIsNeverAVerdict(t *testing.T) {
 		return io.MultiReader(bytes.NewReader(data[:after]), iotest.ErrReader(syscall.EIO))
 	}
 
-	if _, err := decode(t.Context(), bytes.NewReader(data), size, cdStream, noLimit); err != nil {
+	if _, err := decode(t.Context(), bytes.NewReader(data), size, cdStream, noLimits); err != nil {
 		t.Fatalf("decode without the fault: %v, want none", err)
 	}
 	for _, after := range []int{0, 30, len(data) / 2, len(data) - 1} {
 		t.Run(fmt.Sprintf("EIO after %d bytes", after), func(t *testing.T) {
-			_, err := decode(t.Context(), faulty(after), size, cdStream, noLimit)
+			_, err := decode(t.Context(), faulty(after), size, cdStream, noLimits)
 			if !errors.Is(err, ErrCouldNotRun) || !errors.Is(err, syscall.EIO) {
 				t.Errorf("error = %v, want ErrCouldNotRun wrapping EIO", err)
 			}
@@ -323,7 +328,7 @@ func TestDecode_ReadErrorIsNeverAVerdict(t *testing.T) {
 	}
 
 	t.Run("the same cut, ended cleanly, is the file's fault", func(t *testing.T) {
-		_, err := decode(t.Context(), bytes.NewReader(data[:len(data)/2]), size, cdStream, noLimit)
+		_, err := decode(t.Context(), bytes.NewReader(data[:len(data)/2]), size, cdStream, noLimits)
 		if !errors.Is(err, errUndecodable) || errors.Is(err, ErrCouldNotRun) {
 			t.Errorf("error = %v, want errUndecodable alone", err)
 		}
@@ -396,11 +401,11 @@ func BenchmarkCheckFile(b *testing.B) {
 	}
 }
 
-// cdStream is the STREAMINFO of the generated CD-quality clips, and noLimit
-// a sample bound no test file reaches.
+// cdStream is the STREAMINFO of the generated CD-quality clips.
 var cdStream = tagio.StreamInfo{SampleRate: 44100, Channels: 2, BitsPerSample: 16, MaxBlockSize: blockSize}
 
-const noLimit = 1 << 40
+// noLimits is a decode bound no test file reaches.
+var noLimits = decodeLimits{maxSamples: 1 << 40, pcmAllowance: 1 << 50, pcmPerByte: 1 << 20}
 
 // countingReader counts the bytes read through it.
 type countingReader struct {
@@ -414,32 +419,63 @@ func (c *countingReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// TestDecode_StopsAtTheLimitsOnTheFrame holds the two bounds on the work a
-// member's bytes can cost: a stream longer than its own sample count, and
-// one longer than any track can be, end the decode at the frame that crosses
-// the bound instead of running to the end of the file.
+// TestDecode_StopsAtTheLimitsOnTheFrame holds the three bounds on the work a
+// member's bytes can cost: a stream longer than its own sample count, one
+// longer than any track can be, and one that decodes to more PCM than its
+// size and the allowance explain each end the decode at the frame that
+// crosses the bound, instead of running to the end of the file.
 func TestDecode_StopsAtTheLimitsOnTheFrame(t *testing.T) {
 	data := cd(40, 40).encode(t)
-	si := cdStream
 	tests := []struct {
-		name       string
-		totalSamp  uint64
-		maxSamples uint64
+		name      string
+		totalSamp uint64
+		lim       decodeLimits
 	}{
-		{"past the declared sample count", 2 * blockSize, 40 * blockSize},
-		{"past the longest track", 0, 2 * blockSize},
+		{"past the declared sample count", 2 * blockSize, noLimits},
+		{"past the longest track", 0, decodeLimits{maxSamples: 2 * blockSize, pcmAllowance: 1 << 50, pcmPerByte: 1 << 20}},
+		{"past the decoded work its size explains", 0, decodeLimits{maxSamples: 1 << 40, pcmAllowance: 20_000, pcmPerByte: 0}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			si := si
+			si := cdStream
 			si.TotalSamples = tt.totalSamp
 			cr := &countingReader{r: bytes.NewReader(data)}
-			_, err := decode(t.Context(), cr, int64(len(data)), si, tt.maxSamples)
+			_, err := decode(t.Context(), cr, int64(len(data)), si, tt.lim)
 			if !errors.Is(err, errOverrun) {
 				t.Fatalf("decode error = %v, want errOverrun", err)
 			}
 			if cr.n > int64(len(data))/4 {
 				t.Errorf("decode read %d of %d bytes, want it to stop within the first quarter", cr.n, len(data))
+			}
+		})
+	}
+}
+
+// TestSubframesAgree holds the check that turns a decoder panic a member can
+// trigger into a verdict: mewkiz/flac appends a subframe's warm-up samples
+// even when its order exceeds the block size, and Frame.Hash then indexes
+// past the shorter subframe.
+func TestSubframesAgree(t *testing.T) {
+	sub := func(n int) *frame.Subframe { return &frame.Subframe{Samples: make([]int32, n)} }
+	frameOf := func(block uint16, subs ...*frame.Subframe) *frame.Frame {
+		fr := &frame.Frame{Subframes: subs}
+		fr.BlockSize = block
+		return fr
+	}
+	tests := []struct {
+		name string
+		fr   *frame.Frame
+		ok   bool
+	}{
+		{"every subframe holds the block", frameOf(4, sub(4), sub(4)), true},
+		{"a subframe longer than the block", frameOf(1, sub(32), sub(1)), false},
+		{"a subframe shorter than the block", frameOf(4, sub(4), sub(3)), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := subframesAgree(tt.fr)
+			if (err == nil) != tt.ok || (err != nil && !errors.Is(err, errUndecodable)) {
+				t.Errorf("subframesAgree = %v, want ok %t (an errUndecodable when not)", err, tt.ok)
 			}
 		})
 	}

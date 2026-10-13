@@ -48,8 +48,8 @@ func zip64Records(b []byte, n uint64) []byte {
 	rec := make([]byte, 56)
 	binary.LittleEndian.PutUint32(rec[0:], 0x06064b50)
 	binary.LittleEndian.PutUint64(rec[4:], 44)
-	binary.LittleEndian.PutUint64(rec[24:], n) // entries on this disk
-	binary.LittleEndian.PutUint64(rec[32:], n) // entries
+	binary.LittleEndian.PutUint64(rec[24:], n+1) // entries on this disk: unequal, so only offset 32 passes
+	binary.LittleEndian.PutUint64(rec[32:], n)   // entries
 	binary.LittleEndian.PutUint64(rec[40:], uint64(dirSize))
 	binary.LittleEndian.PutUint64(rec[48:], uint64(dirOffset))
 

@@ -118,7 +118,8 @@ func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResu
 	if res.SampleRate < p.MinSampleRate || res.BitsPerSample < p.MinBitsPerSample {
 		return refuse(reject.BelowCDQuality)
 	}
-	if !slices.Contains([]int{16, 20, 24}, res.BitsPerSample) {
+	if !slices.Contains([]int{16, 20, 24}, res.BitsPerSample) ||
+		res.SampleRate > maxSampleRate || res.SampleRate == untestedSampleRate {
 		return refuse(reject.UnsupportedFLAC)
 	}
 
@@ -126,7 +127,11 @@ func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResu
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return res, couldNotRun("rewind", err)
 	}
-	d, err := decode(ctx, file, size, si, uint64(si.SampleRate)*maxTrackSeconds)
+	d, err := decode(ctx, file, size, si, decodeLimits{
+		maxSamples:   uint64(si.SampleRate) * maxTrackSeconds,
+		pcmAllowance: pcmAllowance,
+		pcmPerByte:   pcmPerByte,
+	})
 	switch {
 	case errors.Is(err, errOverrun):
 		return refuse(reject.SourceDamaged)
@@ -225,21 +230,52 @@ type decoded struct {
 // near-empty frames can cost at a fixed multiple of its declared format.
 const maxTrackSeconds = 24 * 60 * 60
 
+// The rates the gate admits. mewkiz/flac logs a line on every frame whose
+// header names 176.4 kHz and says it has no test file at that rate, so the
+// gate refuses a stream declared there instead of decoding it unverified.
+// 768 kHz is the highest rate a real converter writes.
+const (
+	maxSampleRate      = 768000
+	untestedSampleRate = 176400
+)
+
+// The decoded-work budget: a file may decode to pcmAllowance bytes of PCM
+// plus pcmPerByte times the bytes read so far. Music compresses to a few
+// times its size and digital silence to a few hundred, so the allowance
+// covers a long silent track and the ratio holds a hostile stream of
+// near-empty frames to minutes of MD5 work per file.
+const (
+	pcmAllowance = 16 << 30
+	pcmPerByte   = 16
+)
+
+// decodeLimits bound one decode: the samples a track may hold, and the PCM
+// bytes it may decode to as pcmAllowance plus pcmPerByte times the bytes
+// read.
+type decodeLimits struct {
+	maxSamples   uint64
+	pcmAllowance int64
+	pcmPerByte   int64
+}
+
 // decode makes the one pass over r: a SHA-256 over every byte and a decode
 // of every frame into the audio key, checking ctx between frames.
 //
-// mewkiz/flac checks no frame against STREAMINFO, so decode does: a frame
-// whose depth, channel count, rate, or block size disagrees with it is
-// undecodable, which keeps Frame.Hash on the depths it implements. The
-// pass ends with [errOverrun] at the frame that takes the samples past
-// STREAMINFO's own count, when it states one, or past maxSamples.
+// mewkiz/flac checks no frame against STREAMINFO, so decode does, header
+// first: a frame whose depth, channel count, rate, or block size disagrees
+// is undecodable before its subframes are parsed, which keeps Frame.Hash on
+// the depths it implements, and a parsed frame whose subframes do not hold
+// its block size is undecodable before Hash indexes them. The pass ends with
+// [errOverrun] at the frame that takes the samples past STREAMINFO's own
+// count, when it states one, past lim.maxSamples, or the decoded PCM past
+// the budget.
 //
 // Neither decoder's error says whose fault it was (mewkiz/flac returns its
 // bit reader's error raw), so decode classifies by its own I/O: a read that
 // failed with anything but io.EOF is [ErrCouldNotRun] whatever the decoder
 // then said, and any other failure, or a stream whose bytes do not add up
 // to size, is [errUndecodable].
-func decode(ctx context.Context, r io.Reader, size int64, si tagio.StreamInfo, maxSamples uint64) (decoded, error) {
+func decode(ctx context.Context, r io.Reader, size int64, si tagio.StreamInfo, lim decodeLimits) (decoded, error) {
 	rec := &recorder{r: r}
 	sum := sha256.New()
 	stream, err := flac.New(io.TeeReader(rec, sum))
@@ -248,23 +284,42 @@ func decode(ctx context.Context, r io.Reader, size int64, si tagio.StreamInfo, m
 	}
 	key := md5.New()
 	var samples uint64
+	var pcm int64
+	var prevBlock uint16 // the block size of the frame before this one
+	pcmPerSample := int64(si.Channels) * int64((si.BitsPerSample+7)/8)
 	for {
 		if err := ctx.Err(); err != nil {
 			return decoded{}, err
 		}
-		fr, err := stream.ParseNext()
+		fr, err := stream.Next()
 		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
 			return decoded{}, rec.fault(err)
 		}
-		if err := disagrees(fr, si); err != nil {
+		if err := headerAgrees(fr, si); err != nil {
 			return decoded{}, err
 		}
+		// Only the last frame may be shorter than STREAMINFO's minimum, and
+		// this frame is the proof the one before it was not the last.
+		if prevBlock != 0 && si.MinBlockSize != 0 && prevBlock < si.MinBlockSize {
+			return decoded{}, fmt.Errorf("%w: a frame of %d samples before the last, STREAMINFO's minimum is %d", errUndecodable, prevBlock, si.MinBlockSize)
+		}
+		prevBlock = fr.BlockSize
 		samples += uint64(fr.BlockSize)
-		if samples > maxSamples || (si.TotalSamples != 0 && samples > si.TotalSamples) {
+		pcm += int64(fr.BlockSize) * pcmPerSample
+		switch {
+		case samples > lim.maxSamples, si.TotalSamples != 0 && samples > si.TotalSamples:
 			return decoded{}, fmt.Errorf("%w: %d samples", errOverrun, samples)
+		case pcm > lim.pcmAllowance+lim.pcmPerByte*rec.n:
+			return decoded{}, fmt.Errorf("%w: %d bytes of PCM from %d bytes read", errOverrun, pcm, rec.n)
+		}
+		if err := fr.Parse(); err != nil {
+			return decoded{}, rec.fault(err)
+		}
+		if err := subframesAgree(fr); err != nil {
+			return decoded{}, err
 		}
 		fr.Hash(key)
 	}
@@ -277,19 +332,36 @@ func decode(ctx context.Context, r io.Reader, size int64, si tagio.StreamInfo, m
 	return decoded{samples: samples, audioKey: key.Sum(nil), fileHash: sum.Sum(nil)}, nil
 }
 
-// disagrees reports how fr contradicts STREAMINFO, as an [errUndecodable]
-// error, or nil when it does not. A frame rate of 0 is the header's "take it
-// from STREAMINFO".
-func disagrees(fr *frame.Frame, si tagio.StreamInfo) error {
+// headerAgrees reports how fr's header contradicts STREAMINFO, as an
+// [errUndecodable] error, or nil when it does not. A frame rate of 0 is the
+// header's "take it from STREAMINFO"; a depth of 0 is too, but mewkiz/flac
+// decodes such a frame's subframes at 0 bits, so it reads as a
+// disagreement. No libFLAC or ffmpeg encoder writes that code.
+func headerAgrees(fr *frame.Frame, si tagio.StreamInfo) error {
 	switch {
 	case fr.BitsPerSample != si.BitsPerSample:
 		return fmt.Errorf("%w: frame has %d bits per sample, STREAMINFO %d", errUndecodable, fr.BitsPerSample, si.BitsPerSample)
-	case len(fr.Subframes) != int(si.Channels):
-		return fmt.Errorf("%w: frame has %d channels, STREAMINFO %d", errUndecodable, len(fr.Subframes), si.Channels)
+	case fr.Channels.Count() != int(si.Channels):
+		return fmt.Errorf("%w: frame has %d channels, STREAMINFO %d", errUndecodable, fr.Channels.Count(), si.Channels)
 	case fr.SampleRate != 0 && fr.SampleRate != si.SampleRate:
 		return fmt.Errorf("%w: frame has rate %d, STREAMINFO %d", errUndecodable, fr.SampleRate, si.SampleRate)
+	case fr.BlockSize == 0:
+		return fmt.Errorf("%w: frame of no samples", errUndecodable)
 	case si.MaxBlockSize != 0 && fr.BlockSize > si.MaxBlockSize:
 		return fmt.Errorf("%w: frame has %d samples, STREAMINFO's maximum is %d", errUndecodable, fr.BlockSize, si.MaxBlockSize)
+	}
+	return nil
+}
+
+// subframesAgree reports whether every subframe of fr holds exactly the
+// frame's block size. mewkiz/flac appends a fixed or LPC subframe's warm-up
+// samples even when its order exceeds the block size, so a short block can
+// leave one channel shorter than the rest and panic Frame.Hash.
+func subframesAgree(fr *frame.Frame) error {
+	for i, sf := range fr.Subframes {
+		if len(sf.Samples) != int(fr.BlockSize) {
+			return fmt.Errorf("%w: subframe %d holds %d samples, the frame %d", errUndecodable, i, len(sf.Samples), fr.BlockSize)
+		}
 	}
 	return nil
 }

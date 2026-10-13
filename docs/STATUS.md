@@ -11,25 +11,9 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`intake-1` is stopped at T11's security read: session `intake-1`, id `930921a1-a634-461c-91be-416fd394c230`, branch
-`worktree-intake-1` (head `a58ed88`, T0 to T13 committed, gate green, nothing left but the Close). The read's re-read
-of the one fix commit returned `fix` again, and a second `fix` is a stop under the plan.
-
-What is closed: the zip64 preallocation (M2) and panic containment (m1). What is open, all in the FLAC gate
-(`internal/intake/gate/file.go`): (1) the CPU bound grows with the declared format, since nothing caps the sample
-rate (a 20-bit field reaches 1,048,575 Hz), so a hostile file can cost hours of MD5 work and stall the single check
-worker; (2) mewkiz logs one stderr line per frame for a 176.4 kHz or 88.2 kHz stream inside `ParseNext`, before any
-check; (3) a frame whose block size is 0 or smaller than a subframe's order panics the decoder, which is contained now
-but records `could-not-check`, so the member is told to retry and every retry panics again.
-
-Question: take one more fix commit that (a) adds fixed constants, not settings, `maxSampleRate` 768 kHz refused at
-step 3, plus a decoded-work-per-input-byte bound with a fixed allowance for silence, (b) parses each frame header first
-(`frame.New` over the gate's own buffered reader, check, then `fr.Parse()`) so the log line and the `Correlate` panic
-never run on a refused frame, and refuses a block size of 0 or below STREAMINFO's minimum on any frame but the last,
-and (c) refuses `corrupt` when a subframe's sample count differs from the block size? Recommendation: yes. The
-constants add no setting and change no approved design line, the re-read then reads that commit once, and the close
-runs as planned. The alternative is to ship `intake-1` as is and file the three items as the first work of `intake-2`,
-which does not deploy before the probe lands either way.
+`intake-1` is in flight: session `intake-1`, id `930921a1-a634-461c-91be-416fd394c230`, branch `worktree-intake-1`,
+executing `docs/superpowers/plans/2026-10-12-intake-1.md` (995 task-minute estimate approved by Geoff on 2026-10-12).
+T0 to T13 are committed; Geoff approved the second fix to T11's FLAC work bound, and the Close is next.
 
 ## Open decisions
 - R-6d21 overrides the settings-home pass's rule that the server never reads its environment. Geoff may reopen it;

@@ -53,8 +53,10 @@ const (
 // exceedsHeaders reports whether the central directory at start holds more
 // than limit headers, reading them in constant memory. It stops where
 // [zip.NewReader] stops: at the first record that is not a complete header.
-// The end record's entry count plays no part, because archive/zip compares
-// it only modulo 65536 and a zip64 record can claim any number.
+// The end record's entry count is no measure of the directory, because
+// archive/zip compares it only modulo 65536 and a zip64 record can claim any
+// number; [directoryStarts] returns it for the other bound, the allocation
+// archive/zip makes from it.
 //
 // A read error ends the count early like a short directory; the caller
 // consults its recorded reader to tell the two apart.

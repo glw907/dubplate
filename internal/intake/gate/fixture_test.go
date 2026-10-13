@@ -191,6 +191,25 @@ func patchMaxBlockSize(data []byte, size uint16) []byte {
 	return out
 }
 
+// patchMinBlockSize returns a copy of data with STREAMINFO's minimum block
+// size (payload [0:2]) rewritten.
+func patchMinBlockSize(data []byte, size uint16) []byte {
+	out := append([]byte(nil), data...)
+	binary.BigEndian.PutUint16(out[streamInfoPayload:], size)
+	return out
+}
+
+// patchRate returns a copy of data with STREAMINFO's sample rate (the top 20
+// bits of the pack) rewritten.
+func patchRate(data []byte, rate uint64) []byte {
+	out := append([]byte(nil), data...)
+	pack := out[streamInfoPayload+10 : streamInfoPayload+18]
+	v := binary.BigEndian.Uint64(pack)
+	v = v&^(0xfffff<<44) | rate<<44
+	binary.BigEndian.PutUint64(pack, v)
+	return out
+}
+
 // withID3v2Prefix puts a minimal ID3v2.3 header (an empty tag) before data.
 func withID3v2Prefix(data []byte) []byte {
 	return append([]byte{'I', 'D', '3', 3, 0, 0, 0, 0, 0, 0}, data...)
