@@ -23,8 +23,11 @@ and demotion, the settings write path with its re-authentication gate, the roste
 settings pages; the roster API is retired).
 
 1. **`intake`** (rung 7). The uploader and the intake path, as `intake-1` to `intake-3`, ending in Geoff's uploader
-   sitting. Inbound: `store`, landed; it followed `admin-api-1` by ruling.
-   Carried work: the intake spec's "Owed records", plus its BACKLOG items.
+   sitting. Inbound: `store`, landed; it followed `admin-api-1` by ruling. `intake-1` (the intake core: the tus
+   upload, the gate, the verdicts, and the `/api/v1` submission operations) has landed; `intake-2` is next (the match
+   probe, the uploader page, and resume), and it must land before anything deploys, since a passing album waits in
+   `matching` with no exit until the probe exists. Carried work: BACKLOG #83 to #85, plus the rest of the items
+   tagged `#rung:intake`.
 2. **`admin-api-2`** (14b). The second slice of the API, the part that writes a collection row. Inbound: `intake`,
    which creates the default collection. Carried work: BACKLOG items tagged `#rung:admin-api`, the member cap
    (#74) and the collection page's work among them.
