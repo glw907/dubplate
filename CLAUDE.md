@@ -9,7 +9,7 @@ outside `internal/config`.
 
 **The active initiative (2026-09-02) is the greenfield dubplate-server
 build**: a fresh, universal, foundation-first build on a 17-rung ladder
-(each rung has a name, and the run order is ROADMAP's "Path to 0.8")
+(each rung has a name, and the run order is BACKLOG's "Path to 0.8")
 per `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), governed by the rulings in
 `docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`. The
@@ -59,15 +59,16 @@ then upgrade the eight held dependents. Full text and the last sweep: `docs/stan
 
 - `docs/STATUS.md`: read in full at session start; present tense only.
 - `docs/HISTORY.md`: a frozen archive (2026-10-10); git and PR bodies are the record.
-- `BACKLOG.md`: open items, tagged `#rung:<name>` for the rung that takes each.
+- `BACKLOG.md`: open items, tagged `#rung:<name>` for the rung that takes each, and the ladder's run order
+  under "Path to 0.8".
 - `IDEAS.md`: future consideration: uncommitted features and member requests,
   read on demand. An idea moves to Promoted when an owner ruling targets it.
-- `ROADMAP.md`: initiative queue, and the ladder's run order under "Path to 0.8". Current: the greenfield
-  dubplate-server build (17-rung ladder) → packaging. Specs and plans live in `docs/superpowers/`.
+- Initiatives live in `~/Projects/initiatives`; this repo's is `dubplate-server`, the greenfield build
+  (17-rung ladder) followed by packaging. Specs and plans live in `docs/superpowers/`.
 
 ## Build process
 
-The build's milestones, in order, are foundation, evidence, spine, surfaces, and launch; ROADMAP's "Path to 0.8"
+The build's milestones, in order, are foundation, evidence, spine, surfaces, and launch; BACKLOG's "Path to 0.8"
 holds the run order. Process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
 Product touchpoints, and only these: corpus adjudication batches, the `intake` uploader sitting, and the
 first-launch sitting. The design approval and the PR read are `pass-core`'s.

@@ -37,8 +37,8 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
   header pointer. A living reference (the streamer spec's forward hooks, PCF, the visual identity
   spec, CH, W, PS, `docs/roster-walk.md`) is edited in place by the pass that changes what it says,
   as a task in that pass. There is never an owed list.
-- **Carried items.** A pass's design reads BACKLOG's items tagged `#rung:<its rung>` and the ROADMAP
-  "Path to 0.8" entry for its rung.
+- **Carried items.** A pass's design reads BACKLOG's items tagged `#rung:<its rung>` and the
+  "Path to 0.8" section of BACKLOG for its rung.
 - **Planning-miss prevention.** Every plan closes four gaps before approval. Each stdlib or library
   behavior a task relies on is quoted from `go doc` or the source, never recalled. Each state a
   check can meet (absent, empty, malformed, many-bad) names its report. Each privileged field names
@@ -106,7 +106,7 @@ skill for `*.go`.
   plus one gitleaks pass over `master..HEAD` with git history, the only leg that sees a secret one
   task committed and a later one rewrote.
 - `docs/STATUS.md` in present tense, 60 lines or fewer. A STATUS rewrite moves each item to BACKLOG
-  or ROADMAP and never drops an open decision.
+  and never drops an open decision.
 - Archive the plan with `git mv docs/superpowers/plans/<this-pass>.md docs/superpowers/archive/plans/`.
 - The PR body carries the score.
 - Commit specific files only, one commit per task with the task id first in the subject.

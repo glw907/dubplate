@@ -2,7 +2,7 @@
 
 ## Current state
 Master's head is the `admin-api-1` merge (`8477287`, PR #4) until the `intake-1` PR merges. Nothing deploys. The
-landed rungs, the run order, and the next pass are in ROADMAP, "Path to 0.8". Work a later pass carries sits in BACKLOG
+landed rungs, the run order, and the next pass are in BACKLOG, "Path to 0.8". Work a later pass carries sits in BACKLOG
 under the `#rung:<name>` tag of the rung that takes it. PR #4's "Found, not done" list is triaged: items 2, 3, and 6 to
 11 are BACKLOG #75 to #82, and items 4 and 5 are dropped; item 1 landed in `intake-1`.
 
