@@ -1,0 +1,1425 @@
+{
+ "findings": [
+  {
+   "artifact": "musicbox/scripts/check.sh",
+   "claim": "check.sh's own comment claims it is \"written to be wired into CI or a pre-push hook unmodified,\" but nothing in either repo actually invokes it \u2014 it is a purely manual gate.",
+   "evidence": "musicbox/scripts/check.sh:3-5: \"Exits nonzero on any failure so it can be wired into CI or a pre-push hook unmodified.\" Neither musicbox nor pings has a .github/ directory (confirmed via find). `ls -la .git/hooks/` in both repos shows only the stock *.sample files \u2014 none installed as an active hook. Neither repo has a Makefile or .pre-commit-config.yaml. The only references to check.sh outside scripts/ are narrative lines in docs/HISTORY.md and docs/STATUS.md (\"bash scripts/check.sh exits 0\", \"Gate, all green as of 2026-08-31\") documenting a one-off manual run, not a wiring mechanism. pings/scripts/check.sh carries the identical unwired pattern (its own header calls itself \"the full pings gate\" with no CI/hook reference either).",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Either add a lightweight .github/workflows/check.yml (or GitLab/other CI equivalent) that runs `bash scripts/check.sh` on push/PR, or install a real pre-push hook (e.g. via a committed `.githooks/` dir plus `git config core.hooksPath`) and document the one-time setup step in README. Until then, drop the \"wired into CI\" framing from the comment so it doesn't overstate what actually runs.",
+   "confidence": "high",
+   "id": "systems-setup-1",
+   "dimension": "systems-setup"
+  },
+  {
+   "artifact": "musicbox/systemd/music-import.service",
+   "claim": "The systemd service units carry zero process-sandboxing directives (no ProtectSystem=, NoNewPrivileges=, PrivateTmp=, ProtectHome=, RestrictAddressFamilies=, etc.), even though music-import runs flac/ffmpeg/bsdtar over untrusted contributor-uploaded files \u2014 the same attack surface the cloud-init comments explicitly call out as needing careful handling.",
+   "evidence": "systemd/music-import.service, music-backup.service, and musicbox-ping-failure@.service each contain only [Unit]/[Service] boilerplate (Type=oneshot, User=music, EnvironmentFile, ExecStart) \u2014 no [Service] hardening keys at all (grep for ProtectSystem/NoNewPrivileges/PrivateTmp across systemd/ returns nothing). cloud-init/user-data.yaml's own comment (lines 206-212) explicitly frames flac/ffmpeg as parsing \"untrusted contributor uploads\" and a \"codec-parsing attack surface.\" The gap is already named, unfixed, in the estate's own charter: specs/2026-08-30-architecture-refinement-charter.md:26-28 lists \"systemd hardening directives not yet applied (ProtectSystem, NoNewPrivileges)\" as an open item.",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Add a baseline hardening block to all three units: NoNewPrivileges=yes, ProtectSystem=strict (with ReadWritePaths= for /srv/music and /run/musicbox), ProtectHome=yes, PrivateTmp=yes, ProtectKernelTunables=yes, ProtectControlGroups=yes, RestrictSUIDSGID=yes. Since this is already a named charter item, folding it into the next pass is fine \u2014 flagging here so it isn't lost.",
+   "confidence": "high",
+   "id": "systems-setup-2",
+   "dimension": "systems-setup"
+  },
+  {
+   "artifact": "musicbox/compose.yaml",
+   "claim": "None of the three services (navidrome, filebrowser, cloudflared) define a healthcheck:, so `restart: unless-stopped` can only recover from a process exit \u2014 a hung-but-alive process (most plausibly cloudflared's tunnel silently dropping while the container itself keeps running) never triggers a restart.",
+   "evidence": "grep for \"healthcheck\" across compose.yaml returns no matches. The tunnel is the sole ingress path for both public hostnames (compose.yaml's own header comment: \"the only way either is reachable from the internet\"), making cloudflared the single highest-value target for a liveness probe, yet it has none.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Add healthcheck: blocks \u2014 for navidrome, curl against the loopback-bound /ping or /rest/ping endpoint already exposed at 127.0.0.1:4533; for filebrowser, curl its root over the internal network; for cloudflared, `cloudflared tunnel ready` or a metrics-port check \u2014 each with restart-triggering failure thresholds.",
+   "confidence": "high",
+   "id": "systems-setup-3",
+   "dimension": "systems-setup"
+  },
+  {
+   "artifact": "musicbox/compose.yaml",
+   "claim": "No service sets cap_drop, security_opt: no-new-privileges:true, or read_only \u2014 filebrowser (the direct entry point for untrusted contributor uploads) and cloudflared (terminates all external traffic) run with Docker's full default capability set on a box whose stated global constraint is enforcing SELinux.",
+   "evidence": "grep for cap_drop/no-new-privileges/read_only across compose.yaml returns no matches. The volumes already carry the :Z SELinux relabel (per the file's own header comment), which governs file-label access only \u2014 it does not restrict process capabilities, and nothing else in the file does either.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Add `security_opt: [no-new-privileges:true]` and an explicit `cap_drop: [ALL]` (re-adding only what each image genuinely needs, e.g. NET_BIND_SERVICE if any service binds <1024) to filebrowser and cloudflared at minimum; consider read_only: true plus a tmpfs mount for any service that doesn't need to write outside its declared volumes.",
+   "confidence": "medium",
+   "id": "systems-setup-4",
+   "dimension": "systems-setup"
+  },
+  {
+   "artifact": "musicbox/systemd/music-import.timer",
+   "claim": "Neither timer sets RandomizedDelaySec, an idiomatic systemd-timer directive that both softens the fixed-instant OnCalendar= drift into a healthchecks-monitored job and reduces predictability of a job that runs every 15 minutes.",
+   "evidence": "systemd/music-import.timer and systemd/music-backup.timer each define only OnCalendar=/Persistent=true/Unit= in [Timer] \u2014 no RandomizedDelaySec anywhere in systemd/ (grep confirms zero hits).",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Low value on a single box with no fleet thundering-herd concern; add RandomizedDelaySec=60 (import) / RandomizedDelaySec=300 (backup) only if it's cheap to bundle with other timer edits, not worth a dedicated pass.",
+   "confidence": "medium",
+   "id": "systems-setup-5",
+   "dimension": "systems-setup"
+  },
+  {
+   "artifact": "musicbox/scripts/firewall-rules.json",
+   "claim": "The only firewall rule opens tcp/22 to 0.0.0.0/0 and ::/0 unconditionally, and nothing in the estate (cloud-init, compose, or a systemd unit) configures fail2ban, sshguard, or sshd's own rate-limiting (MaxAuthTries/PerSourcePenalties) to blunt internet-wide SSH scanning against that fully open port.",
+   "evidence": "scripts/firewall-rules.json's single rule has source_ips [\"0.0.0.0/0\", \"::/0\"] with no narrower CIDR option offered anywhere in provision.sh. Grep across the musicbox tree for fail2ban/sshguard/MaxAuthTries/rate-limit returns zero hits. Key-only auth (ssh_pwauth: false, PasswordAuthentication no) mitigates credential compromise but doesn't reduce the scan/CVE surface the open port presents.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Add dnf-automatic-covered fail2ban (or Alma's built-in sshd rate-limiting via PerSourcePenalties in sshd_config) as a cloud-init write_files/runcmd addition; low urgency given key-only auth already closes the highest-value attack path.",
+   "confidence": "medium",
+   "id": "systems-setup-6",
+   "dimension": "systems-setup"
+  },
+  {
+   "artifact": "dotfiles/bin/.local/bin/music-sync",
+   "claim": "The music-vps-build design spec states as accomplished fact that music-sync is replaced by music-pull, but music-sync is unchanged on disk and music-pull does not exist anywhere.",
+   "evidence": "specs/2026-08-30-music-vps-build-design.md line 152: \"`music-sync` (committed 2026-08-30, laptop-pushes-to-replicas) is replaced by `music-pull`: `rclone copy` (never sync) of `library/` to `~/Music`...\". But `/var/home/glw907/.dotfiles/bin/.local/bin/music-sync` still has its original header (lines 2-4): \"Push the master music library (~/Music) to its two replicas: the R2 backup bucket and the Navidrome pod on PikaPods... laptop is master.\" No `music-pull` file exists under `~/.dotfiles/bin` (`find` returns only `music-sync`). The plan itself (plans/2026-08-30-music-vps-build.md, Task 8, lines 206-213) has this as an unchecked `- [ ]` deliverable (\"Files: modify ~/.dotfiles/bin/.local/bin/ (delete music-sync, add music-pull)\"). STATUS.md's own Task 8 open-item bullet (lines 51-52) lists \"per-contributor FileBrowser accounts, Navidrome family accounts, seed content, out-of-band credential delivery to Geoff\" as what's left in Task 8 but never mentions the music-sync/music-pull swap at all, even though the plan names it as a Task 8 file change.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Change the spec's \"is replaced by\" to \"will be replaced by (Task 8, not started)\", and add the music-sync-to-music-pull swap explicitly to STATUS.md's Task 8 open-item bullet so it isn't silently dropped from the visible remaining-work list.",
+   "confidence": "high",
+   "id": "drift-1",
+   "dimension": "drift"
+  },
+  {
+   "artifact": "musicbox/docs/bringup-runbook.md",
+   "claim": "The runbook calls musicbox-navidrome a \"pull check\" verified via the pings Worker's cron probe, but it was actually registered as a push check with no wired pinger yet.",
+   "evidence": "bringup-runbook.md line 33-36 (step 7): \"musicbox-navidrome pull check now has a live endpoint \u2014 verify the pings Worker's next cron ticks record probe success\". But musicbox/docs/HISTORY.md's 2026-08-31 Task 4/6 entry shows it was minted via `add-check musicbox-navidrome --period 60 --grace 15` \u2014 pings/scripts/add-check (lines 70-85) sets `KIND=\"pull\"` only when `--pull`/`--expect-body` are given and dies with \"--period/--grace/--arming apply to push checks only\" otherwise; `--period`/`--grace` mean `KIND=\"push\"`. pings/src/check-do.ts line 141 confirms: \"Only push checks arm alarms; pull checks are driven entirely by the cron's probe-result calls.\" A push check is pinged by a client, never cron-probed. STATUS.md's own Open Items (line 42-44) confirms nothing pings it yet: \"MUSICBOX_HC_DISK_URL/MUSICBOX_HC_NAVIDROME_URL are minted but unwired... Task 6 needs... Navidrome-heartbeat scripts + timers too.\"",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Rewrite bringup-runbook step 7 to describe musicbox-navidrome as an unwired push check with no heartbeat script yet (Task 6 work), not something verifiable via a cron probe.",
+   "confidence": "high",
+   "id": "drift-2",
+   "dimension": "drift"
+  },
+  {
+   "artifact": "pings/README.md",
+   "claim": "The README says provision.sh/add-check/remove-check are 'Task P2a, not yet built in this pass,' but all three scripts exist, are committed, and add-check is already used against production.",
+   "evidence": "README.md lines 79-85: \"Provisioning (`scripts/provision.sh`) and the check-management scripts (`scripts/add-check`, `scripts/remove-check`) are Task P2a, not yet built in this pass.\" But `ls /var/home/glw907/Projects/pings/scripts/` shows all three present and executable; `git log` on those paths shows 8 commits (22dbfff through 84758f7, latest 2026-08-30 19:42) building and hardening them. musicbox/docs/HISTORY.md's 2026-08-31 Task 4/6 entry already ran `~/Projects/pings/scripts/add-check musicbox-navidrome --period 60 --grace 15` against the live pings Worker.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Delete or rewrite the stale \"not yet built\" paragraph now that P2a has shipped and is in active use.",
+   "confidence": "high",
+   "id": "drift-3",
+   "dimension": "drift"
+  },
+  {
+   "artifact": "dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md",
+   "claim": "The design spec's Monitoring section and the plan's Task 6 checklist still describe healthchecks.io as the monitoring backend, but the estate replaced it with the custom pings Cloudflare Worker before this pass.",
+   "evidence": "design-spec Monitoring section, line 130: \"Four healthchecks.io checks (free tier): backup success, import-timer success, volume free space, and a Navidrome HTTP heartbeat.\" plans/2026-08-30-music-vps-build.md line 177 and 192 still instruct: \"Create the four healthchecks.io checks via API\" and \"all four checks green on the healthchecks dashboard.\" But pings/README.md line 3 states plainly: \"A small Cloudflare Worker that replaces healthchecks.io for the 907.life estate,\" and every actual musicbox check-minting call in HISTORY.md goes through `~/Projects/pings/scripts/add-check` against pings.907.life, not healthchecks.io. musicbox/scripts/lib.sh's own `ping_hc` function comments (lines 87-96) still say \"healthchecks.io\" throughout even though the URLs it curls now point at the pings Worker.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Update the design spec's Monitoring section, the plan's Task 6 checklist/acceptance line, and lib.sh's ping_hc comments to name the pings Worker instead of healthchecks.io.",
+   "confidence": "high",
+   "id": "drift-4",
+   "dimension": "drift"
+  },
+  {
+   "artifact": "musicbox/README.md",
+   "claim": "README states as settled fact that the box is \"restorable from R2 alone,\" but the project's own spec says that claim is unproven until a restore drill that has not run yet.",
+   "evidence": "README.md line 5-7: \"...Everything runs on one Hetzner CPX21 server, provisioned from this repo and restorable from R2 alone.\" But specs/2026-08-30-music-vps-build-design.md line 58-59 explicitly hedges this: \"The box is cattle; the claim is proven by a restore drill (below), not asserted,\" and defines that drill as Task 7, \"the acceptance gate for 'the box is cattle'\" (plan line 195). plans/2026-08-30-music-vps-build.md's Task 7 checkboxes (lines 197-202) are all unchecked, and STATUS.md's current-state and Open Items sections make no mention of a completed restore drill.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Soften README wording to \"designed to be restorable from R2 alone; restore drill (Task 7) not yet run\" until the drill lands, or drop the claim until then.",
+   "confidence": "medium",
+   "id": "drift-5",
+   "dimension": "drift"
+  },
+  {
+   "artifact": "musicbox/scripts/music-beet",
+   "line": 8,
+   "claim": "music-beet's lock-file default was never updated in the Task 4 live-deploy fix round that changed music-import's, so the two scripts now lock different files and no longer exclude each other.",
+   "evidence": "musicbox/scripts/music-import:32 defaults LOCK_FILE to `${MUSICBOX_IMPORT_LOCK_FILE:-/run/musicbox/musicbox-import.lock}` (changed in the 2026-08-31 'Task 4/6: first live deploy' fix round per docs/HISTORY.md item 3, because /run/lock is root:root 0755 on Alma and the `music` user can't create a file there; the unit gained `RuntimeDirectory=musicbox`). musicbox/scripts/music-beet:8 still defaults to the pre-fix path `${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}`. music-beet's own header comment claims it 'Blocks on the same lock music-import uses' -- that guarantee is now false: the two scripts flock two different files, so an interactive `music-beet` session and a scheduled `music-import` run can execute concurrently against the same beets database, the exact race the lock exists to prevent. `grep -rn MUSICBOX_IMPORT_LOCK_FILE musicbox/scripts` shows the two literal defaults side by side. There is no music-beet.bats or any test coverage that exercises music-beet's actual lock path (tests/ contains only lib.bats and music-import.bats), which is why the drift was never caught.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Update music-beet's LOCK_FILE default to /run/musicbox/musicbox-import.lock, and better, stop defining the default twice: derive it once (e.g. a shared constant in lib.sh, or have music-beet source the same MUSICBOX_ROOT-relative logic music-import uses) so the two scripts cannot diverge again. Add a bats case that runs music-beet against a held music-import lock and asserts it actually blocks.",
+   "confidence": "high",
+   "id": "simplification-1",
+   "dimension": "simplification"
+  },
+  {
+   "artifact": ".dotfiles/bin/.local/bin/music-sync",
+   "claim": "music-sync is dead code left over from the superseded workstation-master architecture: the current spec says it 'is replaced by music-pull', but music-pull was never built and music-sync is still live and stowed, contradicting the new single-master (musicbox VPS) design.",
+   "evidence": "docs/superpowers/specs/2026-08-30-music-vps-build-design.md:150-158 ('Workstation changes'): '`music-sync` (committed 2026-08-30, laptop-pushes-to-replicas) is replaced by `music-pull`... the workstation beets no longer masters anything.' `find ~/.dotfiles -iname '*music-pull*'` returns nothing -- music-pull was never created. `.dotfiles/bin/.local/bin/music-sync` still exists (mtime Aug 30, unchanged since the old spec) and still does exactly what the new spec says to stop doing: `rclone sync \"$LIBRARY\" \"musicr2:$R2_BUCKET\"` writes ~/Music straight into the R2 bucket root (no prefix), using MUSIC_R2_ACCESS_KEY_ID/SECRET -- a *different* credential pair, remote name, and path layout than musicbox/scripts/music-backup's `rclone sync $LIBRARY_DIR $R2_REMOTE:$R2_BUCKET/library` (MUSICBOX_R2_*, prefixed 'library/', with --backup-dir archiving). Two scripts now write to the same bucket under different layouts with the master-ownership question unresolved for music-sync's half.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Either delete/unstow music-sync now that the VPS is the canonical master (nothing in ~/Music needs pushing since 'the workstation beets no longer masters anything'), or, if Geoff still wants a workstation contributor/mirror script, build the documented music-pull (read-only rclone copy of library/ down to ~/Music) and retire music-sync in the same pass rather than leaving both the stale script and the promised replacement absent.",
+   "confidence": "high",
+   "id": "simplification-2",
+   "dimension": "simplification"
+  },
+  {
+   "artifact": "musicbox/scripts/deploy.sh",
+   "line": 151,
+   "claim": "deploy.sh's /etc/msmtprc and /etc/musicbox/contributors.yaml install steps are near-identical ~20-line check/diff/install blocks that differ only in path, mode, and owner -- exactly the kind of block a designed-whole deploy.sh would factor into one function.",
+   "evidence": "Lines 151-173 (msmtprc) and 175-198 (contributors.yaml) both: check `ssh -o BatchMode=yes ... true` reachability, `diff -q` the local file against a `cat` of the remote path inside `--check`, print 'no changes' / 'would install ...' / \"can't reach ... to diff\", and otherwise rsync to a /tmp scratch path then `install -m <mode> -o <owner> -g <group> ... && rm -f`. The env-file block just above (lines 129-149) follows the same check/diff/install shape a third time, rendered in-memory instead of via rsync-to-tmp. None of the three share a helper.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Extract a `deploy_file <local_path> <remote_path> <mode> <owner:group>` (or similar) function that runs the check-only diff-and-report branch or the rsync-to-tmp-then-install branch, and call it for msmtprc and contributors.yaml; evaluate folding the env-file block into the same shape.",
+   "confidence": "high",
+   "id": "simplification-3",
+   "dimension": "simplification"
+  },
+  {
+   "artifact": "pings/scripts/provision.sh",
+   "claim": "musicbox's and pings' provision.sh scripts are architecturally the same role (the one script in each repo that talks to its cloud provider) but have inconsistent idempotency/dry-run contracts: musicbox's is check-before-create with a --check dry-run mode and never mutates an existing resource, while pings' has no --check flag at all and unconditionally rotates ADMIN_TOKEN on every invocation, including a 're-run'.",
+   "evidence": "musicbox/scripts/provision.sh:24-35 parses --check and every create step (ssh-key, firewall, volume, server) is guarded by an `_exists` check that skips creation entirely when the resource is already there (lines 162-213); --check prints a full plan with no side effects (lines 132-160). pings/scripts/provision.sh has no `--check`/`check_only` anywhere in the file, and its own header comment (lines 8-10) admits the asymmetry: 'Safe to re-run... Note that a re-run still rotates ADMIN_TOKEN, invalidating any copy another session or a running Worker instance holds' (confirmed at lines 101-106: `openssl rand -hex 32 >\"$token_file\"; wrangler secret put ADMIN_TOKEN <\"$token_file\"` runs unconditionally, no exists-check). An operator who has internalized musicbox's provision.sh convention (idempotent, safe to preview) and reruns pings' provision.sh expecting the same contract will silently invalidate ADMIN_TOKEN.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Either add a --check dry-run to pings' provision.sh matching musicbox's contract, or split the always-mutating ADMIN_TOKEN rotation into its own explicitly-named script (e.g. rotate-admin-token) so 'provision.sh' means the same thing (safe, idempotent, previewable) in both repos of the estate.",
+   "confidence": "medium",
+   "id": "simplification-4",
+   "dimension": "simplification"
+  },
+  {
+   "artifact": "musicbox/scripts/music-import",
+   "line": 86,
+   "claim": "uploader_email() and uploader_name() each independently re-parse contributors.yaml through a fresh yq|jq subprocess pipeline per call instead of sharing one lookup, duplicating the same 'load contributors.yaml as JSON' idiom twice in one file.",
+   "evidence": "Lines 86-92 (uploader_email): `yq -o=json \"$CONTRIBUTORS_FILE\" | jq -r --arg n \"$user\" '.contributors[]? | select(.name == $n) | .email' | head -n1`. Lines 102-108 (uploader_name): `yq -o=json \"$CONTRIBUTORS_FILE\" | jq -e --arg n \"$user\" 'any(.contributors[]?; .name == $n)' >/dev/null || return 0`. Both are called per uploader inside quarantine_quality_failures's loop (lines 295-296) and move_skips_and_notify's loop (line 164), so a run with N quarantined uploaders shells out to yq+jq up to 2N times to re-read the same static file.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Parse contributors.yaml to JSON once per script invocation (cache in a variable) and have both functions query the cached JSON via jq, or add one `_contributor_field <user> <field>` helper both call.",
+   "confidence": "medium",
+   "id": "simplification-5",
+   "dimension": "simplification"
+  },
+  {
+   "artifact": "musicbox/scripts/check.sh",
+   "line": 24,
+   "claim": "check.sh's shebang/directive-sniffing loop to classify scripts/* as bash is speculative generality: every file currently under scripts/ already self-declares via shebang or the `# shellcheck shell=bash` directive, so the heuristic (including its 'no shebang, guess by .sh suffix' fallback) buys no coverage a flat file list wouldn't give, and the sibling pings repo's check.sh does the equivalent job with one hardcoded line.",
+   "evidence": "musicbox/scripts/check.sh:24-43 loops over `scripts/*`, reads the first line, and branches on shebang pattern vs a `# shellcheck shell=bash` directive vs a bare `.sh`-suffix fallback vs 'some other interpreter, not ours'. The manifest's scripts/ directory (check.sh, deploy.sh, lib.sh, music-backup, music-beet, music-import, musicbox-ping-failure, provision.sh) is 8 files, all bash, all already carrying an explicit bash shebang or the lib.sh directive -- the fallback branches are unexercised dead paths for the repo's actual contents. pings/scripts/check.sh:10-11 achieves the same gate with a flat explicit list: `shellcheck scripts/provision.sh scripts/add-check scripts/remove-check scripts/check.sh tests/stubs/curl tests/stubs/wrangler tests/stubs/secret-set-sh`.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Replace the detection loop with an explicit file list matching pings' pattern, or keep the loop only if new non-bash scripts are actually expected under scripts/ soon -- otherwise the heuristic is complexity paid for a problem the repo doesn't have.",
+   "confidence": "medium",
+   "id": "simplification-6",
+   "dimension": "simplification"
+  },
+  {
+   "artifact": "musicbox/tests/music-import.bats",
+   "claim": "The shared curl stub always exits 0 for a plain (non --config) call, so the exact failure mode music-import's own HISTORY.md claims was hardened against \u2014 'a slow or flaky healthchecks.io can never be the reason an otherwise-successful run hangs or gets misreported as failed' \u2014 is completely invisible to the suite, and the production code does not actually guarantee it.",
+   "evidence": "scripts/lib.sh's ping_hc() ends with a bare `curl -fsS --retry 3 --max-time 10 -o /dev/null \"$url\"` (line 107), no `|| true`. scripts/music-import calls it unguarded three times: `ping_hc import` at line 64 (lock-held path), `ping_hc import fail` at line 394, and the terminal `ping_hc import` at line 406 with nothing after it. Under `set -euo pipefail`, if that curl ultimately fails (healthchecks.io down/unreachable after all 3 retries), ping_hc returns nonzero and the whole script \u2014 and, at line 406, an otherwise fully-successful import \u2014 exits nonzero, exactly the misreport the retry/max-time hardening (HISTORY.md 'Task 2 follow-up') was supposed to prevent. tests/music-import.bats's stub `curl` (lines 66-84) unconditionally prints '' and exits 0 for every call except the CURL_FAIL_STARTSCAN-gated --config path, so no test in the suite ever exercises a failing plain curl call, and this gap between documented intent and actual guarantee is undetectable by the current suite.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Add a stub-curl failure mode for the plain (no --config) ping_hc shape (e.g. a marker file forcing a nonzero exit), and a bats case asserting that a healthchecks.io failure on the final success ping does not mask/override the fact the import itself succeeded (or, if the intended behavior really is 'fail the whole run', document that explicitly and drop the 'never misreported' language) \u2014 then decide, in code, whether the terminal ping_hc calls need `|| true` to match the stated contract.",
+   "confidence": "high",
+   "id": "test-quality-1",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "pings/src/index.ts",
+   "claim": "The admin API's createCheck validates periodMin/graceMin only by `typeof`, not range, so a periodMin of 0 or negative sent directly to POST /admin/checks is silently accepted \u2014 unlike scripts/add-check's client-side check, which rejects periodMin < 1 before the request is ever sent \u2014 and no test at the Worker layer exercises this boundary.",
+   "evidence": "src/index.ts lines 56-64 check only `typeof body.periodMin !== \"number\"` (and same for graceMin); there is no `>= 1` or `>= 0` guard, so `{periodMin: 0}` or `{periodMin: -5}` both pass validation and get persisted as a check's alarm period. test/integration.test.ts's only admin-create-validation case (lines 145-157, 'accepts graceMin: 0') exercises the falsy-zero fix but never a periodMin boundary; scripts.bats's periodMin-rejection tests (tests/scripts.bats lines 61-76) only prove the client-side script rejects it before the request is sent, leaving the server-side contract itself unverified and effectively untested for an out-of-range value.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Add a Worker-level test posting periodMin: 0 (and a negative value) directly to /admin/checks and assert either a 400 or, if 0/negative really is meant to be accepted server-side, document why the client and server disagree on the boundary.",
+   "confidence": "high",
+   "id": "test-quality-2",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "pings/src/logic.ts",
+   "claim": "The falsy-zero bug class (fixed twice in this repo's history: admin-validation truthiness, and armingMin defaulting) is patched only at the input-validation boundary, never proven at the arithmetic layer that actually consumes graceMin/armingMin \u2014 test/logic.test.ts never exercises transition() with graceMin: 0 or armingMin: 0, so a future `??` \u2192 `||` regression in either src/index.ts's `body.armingMin ?? body.periodMin` or the DO's arithmetic would not turn any test red.",
+   "evidence": "test/logic.test.ts's pushState() helper (lines 6-19) defaults graceMin: 15, armingMin: 60 and no describe block overrides either to 0; overdueAt()/handleAlarm() (src/logic.ts lines 83-86, 149-160) both multiply armingMin/graceMin directly into deadline math. The only graceMin:0/armingMin:0 coverage anywhere in the suite is the acceptance-only check in test/integration.test.ts (POST returns 201) and tests/scripts.bats's 'accepts graceMin of 0' (also acceptance-only) \u2014 neither asserts the resulting deadline is actually computed correctly with the zero value.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Add logic.test.ts cases for graceMin: 0 (overdue fires exactly at periodMin, not periodMin+something) and armingMin: 0 (never-armed alert fires immediately), closing the falsy-zero class at the layer where the arithmetic actually lives, not just at the API-acceptance boundary.",
+   "confidence": "medium",
+   "id": "test-quality-3",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "pings/tests/scripts.bats",
+   "claim": "Every remove-check test case registers and removes a push check; no test ever removes a pull check, which masks that remove-check's belt-and-suspenders KV cleanup omits `pull:<name>` even though the Worker's own deleteCheck deletes it server-side \u2014 the one KV record with no client-side fallback if the admin DELETE itself fails is exactly the one type of check the suite never exercises through remove-check.",
+   "evidence": "tests/scripts.bats's three remove-check tests (lines 163-191) all use `--period 60 --grace 10`, i.e. push checks. scripts/remove-check's delete_kv_key calls (lines 70-71) cover only `check:$NAME` and `route:$NAME`; src/index.ts's deleteCheck (lines 106-118) additionally deletes `pull:${name}`. A pull check's `pull:<name>` KV record therefore has no belt-and-suspenders coverage if the admin DELETE 404s, and no bats case can catch it because a pull check is never added-then-removed anywhere in the file.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Add a remove-check bats case using a pull check (--pull/--expect-body), asserting pull:<name> is gone after removal, and add a `delete_kv_key \"pull:$NAME\"` call to scripts/remove-check to close the actual asymmetry the missing test would have caught.",
+   "confidence": "high",
+   "id": "test-quality-4",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "musicbox/tests/music-import.bats",
+   "claim": "The 'uploader unknown to contributors.yaml' branches are entirely untested: music-import has four distinct code paths that fire when an inbox directory name matches no contributors.yaml entry (two in move_skips_and_notify, two in quarantine_quality_failures), and the fixture's two hardcoded contributors (alice, bob) mean this realistic scenario \u2014 a stale FileBrowser account, a typo'd directory \u2014 can never be reached by any existing test.",
+   "evidence": "scripts/music-import lines 169 ('no email on file for uploader'), 298 (same, quality-gate path), and 300 ('no contributor name on file for uploader') have no corresponding bats case; only line 306 (missing reject-email template) is covered ('quality gate: a missing reject-email template...' test). Every stage_good_album/stage_bad_album helper in tests/music-import.bats hardcodes `inbox/alice/...`, and setup()'s contributors.yaml only ever defines alice and bob, so no test ever stages an inbox dir under an unregistered name.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Add a bats case staging an upload under an inbox directory name absent from contributors.yaml, through both the beets-skip path and the quality-gate path, asserting the item still lands in review/quarantine (never silently dropped) and that Geoff's summary still fires even though the uploader-specific email is skipped.",
+   "confidence": "high",
+   "id": "test-quality-5",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "musicbox/scripts/music-import",
+   "claim": "The 'COULD NOT MOVE BY ANY MEANS' fallback branch (both safe_mv_to_review attempts fail) remains self-acknowledged as untested since it was introduced, and stays that way \u2014 it is the deepest tier of the same set-e-in-pipeline/mv-collision class two prior fix rounds already patched twice, so leaving its last tier permanently unverified is a live gap in exactly the class this repo has been bitten by repeatedly, not a new one.",
+   "evidence": "scripts/music-import lines 275-279's else branch (`geoff_summary+=\"$album_key: COULD NOT MOVE BY ANY MEANS...\"`) has no bats case; HISTORY.md's 'Task 2 follow-up, fix round' entry says outright '...a distinct all-caps marker for the (untested, believed-unreachable without a fully read-only filesystem) case where even the fallback fails.' Only the single-failure case (chmod 0555 on review only) is exercised by 'quality gate: an album that can't be moved to review...'.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Force both safe_mv_to_review destinations to be unwritable in one test (chmod 0555 on both review/ and quarantine-failed/'s parent) and assert the all-caps Geoff marker fires and the run still completes to the closing ping.",
+   "confidence": "medium",
+   "id": "test-quality-6",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "pings/tests/scripts.bats",
+   "claim": "The 'provision.sh fails when the deployed worker doesn't answer live' test sets PROBE_RETRIES=1 but never proves the override actually took effect \u2014 with PROBE_SLEEP=0 the same assertions would pass identically at the script's default PROBE_RETRIES=6, so the test pins the failure message, not the retry-count contract its own env vars advertise.",
+   "evidence": "tests/scripts.bats lines 243-251: `run env PROBE_RETRIES=1 PROBE_SLEEP=0 \"$PROVISION\"` then only checks status and the 'expected 404' message; the stub always answers probe-not-live regardless of attempt count (tests/stubs/curl lines 31-34), so nothing distinguishes 1 retry from 6, and a regression that stopped honoring PROBE_RETRIES entirely would not be caught here.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Have the stub log a call count for the probe path and assert it equals PROBE_RETRIES, or drop the PROBE_RETRIES=1 override from this test's framing since it is not actually being tested.",
+   "confidence": "medium",
+   "id": "test-quality-7",
+   "dimension": "test-quality"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/music-beet",
+   "line": 7,
+   "claim": "The import lock path is a three-way shared invariant with three independent copies, and music-beet still holds the pre-fix path \u2014 so the interactive wrapper and the timer take different locks and no longer exclude each other.",
+   "evidence": "music-beet:7 `LOCK_FILE=\"${MUSICBOX_IMPORT_LOCK_FILE:-/run/lock/musicbox-import.lock}\"` vs music-import:32 `LOCK_FILE=\"${MUSICBOX_IMPORT_LOCK_FILE:-/run/musicbox/musicbox-import.lock}\"`. The path moved in fix round 3 (docs/HISTORY.md, \"Task 4/6: first live deploy\", item 3: `/run/lock` is root:root 0755 on Alma, so `RuntimeDirectory=musicbox` was added to systemd/music-import.service and the script default repointed) and music-beet was not updated. deploy.sh:25 installs both scripts, so both ship. Geoff runs music-beet over SSH as root, where creating /run/lock/musicbox-import.lock succeeds \u2014 a different file, so flock grants it while music-import holds its own.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Move the lock path to scripts/lib.sh as a single exported default (e.g. `MUSICBOX_LOCK_FILE`), source it in music-import and music-beet, and reference the same name in the unit's RuntimeDirectory comment. A bats test asserting both scripts resolve the identical path pins it.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-1",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/lib.sh",
+   "line": 107,
+   "claim": "ping_hc's failure path sends GET to `<url>/fail`, but the pings Worker that now backs these URLs routes `/ping/<slug>/fail` on POST only \u2014 so every OnFailure signal from musicbox 404s and is lost.",
+   "evidence": "lib.sh:104-107 appends `/fail` then `curl -fsS --retry 3 --max-time 10 -o /dev/null \"$url\"` (no -X POST, no -d). pings/src/index.ts:248 `parts[2] === \"fail\" && request.method === \"POST\"`; a GET falls through to line 260 `return new Response(\"not found\", { status: 404 })`. pings/src/check-do.ts:66 is likewise `pathname === \"/fail\" && request.method === \"POST\"`. pings/README.md:18 states POST-only is deliberate. pings/docs/STATUS.md:11-14 confirms MUSICBOX_HC_BACKUP_URL/IMPORT_URL/DISK_URL are pings URLs, not healthchecks.io. Consequence: `curl -fsS` exits 22 on the 404, so musicbox-ping-failure@.service itself fails under `set -euo pipefail` and no failure is recorded; the check only alerts later, on silence, after period+grace.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Add `-X POST` (or `--data ''`) to ping_hc's fail branch, and add a cross-repo contract test \u2014 either a bats case in musicbox asserting the fail call is a POST, or a pings vitest case asserting GET /ping/<slug>/fail 404s, referenced from musicbox's gate.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-2",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": ".dotfiles/bin/.local/bin/music-sync",
+   "line": 41,
+   "claim": "music-sync survives on the workstation after the architecture that justified it was superseded, and it is a bucket-root `rclone sync` into the same R2 bucket musicbox backs up to \u2014 one secret name away from deleting library/, state/, and _archive/.",
+   "evidence": "music-sync:41 `rclone sync \"$LIBRARY\" \"musicr2:$R2_BUCKET\"` with R2_BUCKET=music-library (line 18) and no --exclude; music-backup:34-36 writes to `$R2_BUCKET/library`, `$R2_BUCKET/state`, `_archive/<tree>/<date>`. The spec explicitly retires it: 2026-08-30-music-vps-build-design.md:152 \"`music-sync` (committed 2026-08-30, laptop-pushes-to-replicas) is replaced by `music-pull`: `rclone copy` (never sync)\", and plan Task 8 (2026-08-30-music-vps-build.md:208) says \"delete `music-sync`, add `music-pull`\". The file is still present and stowed (`ls ~/.dotfiles/bin/.local/bin/` shows music-sync, no music-pull), still documents PikaPods SFTP and \"laptop is master\". Currently inert only because MUSIC_R2_ACCESS_KEY_ID/MUSIC_R2_SECRET_ACCESS_KEY are absent from ~/.local/secrets (name-only check) \u2014 but MUSIC_R2_RO_ACCESS_KEY_ID/MUSIC_R2_RO_SECRET_ACCESS_KEY exist, so the read-only token minted for music-pull sits unused while the delete-capable script sits armed for the wrong variable names.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Delete music-sync and restow; land music-pull (`rclone copy` of `library/` with MUSIC_R2_RO_*). If the delete is deferred, at minimum make music-sync exit 1 unconditionally with a pointer to music-pull rather than leaving a live sync path.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-3",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "Each musicbox check's period and grace live only as prose in the pings repo's STATUS, while the timer intervals they are derived from live in musicbox/systemd \u2014 two repos, no link, and they have already drifted.",
+   "evidence": "pings/docs/STATUS.md:13-15 \"Registered checks: `musicbox-backup` (period 1560, grace 60), `musicbox-import` (60/15), `musicbox-disk` (60/15)\". musicbox/systemd/music-import.timer `OnCalendar=*:0/15` (15 min) against a 60/15 check; musicbox/systemd/music-backup.timer `OnCalendar=*-*-* 11:30:00 UTC` (1440 min) against 1560/60. Nothing in musicbox declares its own check parameters \u2014 musicbox/env/musicbox.env.template:30-39 names only URLs \u2014 so editing an OnCalendar in musicbox silently invalidates a check nobody in that repo can see. musicbox's plan Task 6 still assigns check creation to musicbox (\"Create the four healthchecks.io checks via API\"), but the work was done from pings (musicbox/docs/HISTORY.md:44 invokes `~/Projects/pings/scripts/add-check`).",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Make musicbox own its check declarations: a `config/checks.yaml` (name, period, grace, kind) committed beside the timers, with a small applier that shells out to pings' add-check. musicbox's gate then diffs the declared periods against the timers' OnCalendar; pings stops holding musicbox facts in prose.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-4",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "`musicbox-disk` is a live registered push check in pings with no pinger anywhere in musicbox \u2014 the check was built in the monitoring repo for a musicbox script that was never written.",
+   "evidence": "pings/docs/STATUS.md:13-14 registers `musicbox-disk` (60/15). musicbox has no disk-space script or timer: scripts/ contains only check.sh, deploy.sh, lib.sh, music-backup, music-beet, music-import, musicbox-ping-failure, provision.sh; systemd/ contains only music-import.{service,timer}, music-backup.{service,timer}, musicbox-ping-failure@.service; the only ping_hc call sites are `ping_hc import` / `ping_hc backup`. musicbox/docs/STATUS.md:42-44 concedes \"MUSICBOX_HC_DISK_URL/MUSICBOX_HC_NAVIDROME_URL are minted but unwired\". Per pings/src/check-do.ts:145-147, a push check with no first ping alerts once at createdAt + armingMin (default = period = 60 min) and then stays `alerted` \u2014 so this has been reading as a firing check since registration on 2026-08-31, training the reader to ignore it.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Either build the disk-space and Navidrome-heartbeat pingers in musicbox (Task 6's remaining half) or `remove-check musicbox-disk` until they exist. Registering a check before its pinger should not be an accepted state \u2014 it manufactures a permanently-red monitor.",
+   "confidence": "high",
+   "needsBox": true,
+   "pass2": false,
+   "id": "altitude-5",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "The two repos' `scripts/provision.sh` occupy the same slot and name but carry opposite safety contracts: musicbox's is check-before-create with a `--check` dry run, pings' rotates a live secret on every invocation and has no dry-run.",
+   "evidence": "musicbox/scripts/provision.sh:4-7 \"Every resource is check-before-create via `hcloud ... list`, so re-running after a partial failure only creates what is still missing\", plus `--check` handling at lines 24-35 and 132-160. pings/scripts/provision.sh:8-10 \"Note that a re-run still rotates ADMIN_TOKEN, invalidating any copy another session or a running Worker instance holds\"; lines 101-105 unconditionally `openssl rand -hex 32` \u2192 `wrangler secret put ADMIN_TOKEN` \u2192 secret-set.sh, with no argument parsing and no dry-run path at all. pings/docs/STATUS.md:26-28 records this firing for real: an ADMIN_TOKEN was rotated by re-running provision.sh.",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Give pings' provision.sh the same contract: a `--check` mode, and rotation behind an explicit `--rotate-token` flag rather than as a side effect of provisioning. The estate's convention should be one sentence in both headers: `provision.sh` is idempotent and safe to re-run.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-6",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "`contributors.yaml` is declared the source of truth for four consumers but only one reads it; the Cloudflare Access allow-list, Navidrome accounts, and FileBrowser accounts are hand-applied estate state with no applier and no drift check.",
+   "evidence": "musicbox/config/contributors.yaml header: \"Drives FileBrowser accounts (pass 1), the Access allow-list, Navidrome accounts, and the quality-gate notification map.\" The only code reading it is music-import's `uploader_email()`/`uploader_name()` (music-import.py lines 86-108) via CONTRIBUTORS_FILE; deploy.sh:175-198 installs it to /etc/musicbox/contributors.yaml and does nothing else with it. Plan Task 5 (line 164) creates the Access policy by hand from the file, Task 8 (line 214) creates accounts by hand. Adding a family member therefore means four manual edits in three systems, with only the email map mechanically enforced.",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Make contributors.yaml executable config: a `scripts/apply-contributors` that PUTs the Access policy's email list from the file and reconciles Navidrome/FileBrowser accounts, plus a `--check` diff mode wired into scripts/check.sh. Access-policy application is the half that survives the upload-check pass.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-7",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "Projects/musicbox/config/cloudflared-tunnel-config.json",
+   "line": 2,
+   "claim": "Estate-level Cloudflare state (the tunnel's remote ingress) is parked in musicbox as an inert JSON blob with a curl recipe in a `_comment`, while a working Cloudflare API applier already exists in the pings repo \u2014 the applier pattern sits in the repo that needs it less.",
+   "evidence": "cloudflared-tunnel-config.json's `_comment` field carries a prose curl recipe (\"PUT https://api.cloudflare.com/client/v4/accounts/.../cfd_tunnel/<tunnel_id>/configurations, header 'Authorization: Bearer $CLOUDFLARE_API_TOKEN', this object as the JSON body\"), and musicbox/docs/STATUS.md:45-48 confirms nothing reads it: \"the record of what's PUT to the tunnel's remote config, not something compose.yaml or deploy.sh reads.\" Meanwhile pings/scripts/provision.sh:47-63 implements `cf_api()` (token off argv via a curl config file) and uses it for DNS, custom-domain, cron and Email Routing reconciliation. Nothing verifies the musicbox file still matches the live tunnel config, and an embedded `_comment` is not a runnable procedure.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Lift `cf_api()` into a shared shell library both repos source (dotfiles scripts/ or a small estate lib vendored into each repo), and add `scripts/apply-tunnel-config.sh --check` to musicbox that GETs the live configuration and diffs it against the committed JSON. Then delete the `_comment` recipe.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-8",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "Projects/musicbox/docs/STATUS.md",
+   "line": 51,
+   "claim": "The workstation half of Task 8 has fallen out of the ledger because it lands in a different repo: musicbox's STATUS enumerates Task 8's box-side items and silently drops the `music-sync` deletion and `music-pull` creation the plan assigns to .dotfiles.",
+   "evidence": "musicbox/docs/STATUS.md:51-52 \"Task 8 (per-contributor FileBrowser accounts, Navidrome family accounts, seed content, out-of-band credential delivery to Geoff) has not started\" \u2014 four items. Plan Task 8 (2026-08-30-music-vps-build.md:206-224) lists six, the first being \"**Files:** modify `~/.dotfiles/bin/.local/bin/` (delete `music-sync`, add `music-pull`)\" plus the spec cross-reference note and the memory update. The dropped items are exactly the ones outside ~/Projects/musicbox, and no dotfiles-side ledger picks them up \u2014 which is why finding 3's live music-sync is still stowed.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "State the rule in the plan header and in musicbox STATUS: a task with deliverables in another repo carries them in the owning repo's ledger with an explicit repo tag (`[dotfiles]`), and the pass close checks that every plan-task file path appears in some ledger.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-9",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": ".dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md",
+   "line": 130,
+   "claim": "The spec chain still assigns monitoring to healthchecks.io while it is implemented as the pings Worker in a separate repo, and musicbox's code and units carry healthchecks.io naming throughout \u2014 the substitution happened without the design or the interface names following.",
+   "evidence": "Spec line 130-131: \"Four healthchecks.io checks (free tier): backup success, import-timer success, volume free space, and a Navidrome HTTP heartbeat\"; line 148 lists \"healthchecks ping URLs\" among the secrets. Plan Task 6 line 176-179 likewise says \"Create the four healthchecks.io checks via API\". Reality: pings/README.md:3 \"A small Cloudflare Worker that replaces healthchecks.io for the 907.life estate\", and pings/docs/STATUS.md:11-14 holds the registrations. Neither spec nor plan mentions pings at all. The naming persists in code: `MUSICBOX_HC_*` env vars (env/musicbox.env.template:30-39), lib.sh:89/94 \"Curls the healthchecks.io URL\", music-import:56 \"healthchecks.io has no 'this run did nothing' state\", both service units' comments, and musicbox-ping-failure:6/15. Finding 2 is the concrete cost: the client was never re-derived against the new server's contract.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Add a superseding note to the spec's Monitoring section pointing at the pings spec, and rename the interface to match reality (`MUSICBOX_PING_*_URL`, `ping_url`/`ping_check` rather than `ping_hc`) in one sweep across lib.sh, the env template, the units, and musicbox-ping-failure. Keep pings' README \"Exit path\" promise intact \u2014 the variable stays a plain URL.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-10",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "The pings client contract \u2014 env-var naming, the no-op-when-unset rule, retry/timeout budget, success-vs-fail semantics \u2014 lives in musicbox/scripts/lib.sh, so the second service to adopt pings will reimplement it and drift.",
+   "evidence": "lib.sh:87-108 `ping_hc` encodes the whole client side: slug\u2192`MUSICBOX_HC_<SLUG>_URL` name derivation (`tr '[:lower:]-' '[:upper:]_'`), \"a missing or empty env var is a no-op ... monitoring must never take down the pipeline it monitors\", and `--retry 3 --max-time 10`. The pings repo ships the server, the admin scripts (add-check, remove-check) and the exit-path doc, but nothing a consumer can source or copy: pings/README.md:79-85 documents only registration. The naming prefix is hardcoded to MUSICBOX, so the helper cannot even be reused as-is. musicbox's ROADMAP \"oss-pair\" entry plans to publish pings publicly, which makes the missing client contract an external-facing gap too.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Ship a `client/ping.sh` (or a documented three-line curl snippet plus the naming rule) in the pings repo as the canonical consumer contract, with the fail call's POST spelled out; musicbox's lib.sh sources or vendors it and drops the MUSICBOX prefix assumption.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-11",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "The two repo gates named scripts/check.sh have diverged in both coverage and failure semantics, so \"the gate is green\" means something different in each repo.",
+   "evidence": "musicbox/scripts/check.sh:24-51 discovers bash scripts by shebang/directive/extension and shellchecks whatever is in scripts/; it accumulates `status=1` across shellcheck, bats, docker compose config, and systemd-analyze so every stage runs and all failures are reported (lines 10, 46, 55, 61, 83, 92-97). pings/scripts/check.sh:4 sets `set -euo pipefail` and line 10-11 hardcodes the file list `scripts/provision.sh scripts/add-check scripts/remove-check scripts/check.sh tests/stubs/*` \u2014 a newly added script in pings escapes shellcheck silently, and the first failing stage aborts the rest.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Adopt musicbox's discovery loop and status accumulation in pings' check.sh (or extract both to one shared gate helper). At minimum, replace pings' hardcoded list with a glob over scripts/ so a new script cannot escape the linter.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-12",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "The Cloudflare account ID and the credentials-off-argv curl idiom are estate constants reimplemented independently in both repos, with no shared definition.",
+   "evidence": "Account ID `120c269ad6d3dfbe6d63a0bb53758ca0` is hardcoded in musicbox/scripts/music-backup:19, .dotfiles/bin/.local/bin/music-sync:17, pings/scripts/provision.sh:17, and inside musicbox/config/cloudflared-tunnel-config.json's `_comment`. The curl-config idiom (write headers/url to a mode-0600 file so the token never reaches argv) is written out four separate times: pings/scripts/provision.sh:47-63, pings/scripts/add-check:174-183, pings/scripts/remove-check (the CONFIG_FILE block), and musicbox/scripts/music-import:342-368. Only the last carries the reasoning comment in full; a fifth writer copying from the shortest version loses the mode-0600 and trap parts.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Put `CF_ACCOUNT_ID` and a `cf_curl`/`curl_with_config` helper in one place both repos read \u2014 the dotfiles shell library is the natural home given ~/.local/secrets is already the shared entry point \u2014 and reference it rather than recopying.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-13",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": ".dotfiles/docs/superpowers/specs/2026-08-30-music-library-design.md",
+   "line": 1,
+   "claim": "The superseded PikaPods design carries no forward pointer, so the older spec still reads as current and is the document that keeps music-sync alive.",
+   "evidence": "2026-08-30-music-library-design.md opens \"The music system masters a FLAC library on the workstation, streams it to family through a Navidrome pod on PikaPods\" (line 3) and line 21-23 describes music-sync as the live push tool; nothing in the file marks it superseded. The supersession exists only in the newer file: 2026-08-30-music-vps-build-design.md:6-8 \"This supersedes the PikaPods-pod half of `2026-08-30-music-library-design.md`\". Both sit in the same specs/ directory with the same date prefix, so a fresh reader has a 50% chance of acting on the retired one \u2014 and the plan's Task 8 line 209 explicitly owed this file a \"cross-reference note\" that was never written.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Add a one-line status banner at the top of the older spec: superseded for the streaming/sync half by the VPS build design, with what still carries over (beets conventions, R2 bucket, clients, one-gatekeeper rule).",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-14",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "estate",
+   "claim": "pings is framed as an estate-level, eventually open-sourceable monitor but is coupled to musicbox in its tests, its ledger, and its remaining plan tasks \u2014 it is a musicbox subsystem wearing an estate-level name.",
+   "evidence": "pings/test/logic.test.ts:8/156-157 and test/integration.test.ts:294-323 seed fixtures named `musicbox-backup`, `musicbox-navidrome`, `musicbox-disk`; tests/scripts.bats uses `musicbox-x` throughout. pings/docs/STATUS.md:41-43 makes pings' own next task blocked on musicbox Task 6 and assigns \"the musicbox script hardening and ledger updates\" to pings' plan Task P3 \u2014 work in musicbox's tree owned by pings' plan, the mirror of finding 9. musicbox/ROADMAP.md's `oss-pair` entry proposes publishing pings publicly, which makes the coupling a release blocker rather than a cosmetic one.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Rename the fixtures to neutral names (`svc-a`, `nightly-backup`) so the suite stops asserting a single consumer; move P3's musicbox script-hardening item into musicbox's own ledger and leave pings blocked on nothing but its own drill.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "altitude-15",
+   "dimension": "altitude"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/lib.sh",
+   "line": 107,
+   "claim": "Every failure ping is dead: ping_hc sends a GET to /ping/<slug>/fail, but the pings Worker accepts that route only on POST, so the whole OnFailure= chain 404s and no explicit failure ever reaches the monitor.",
+   "evidence": "lib.sh:105-107 builds `url=\"${url%/}/fail\"` and issues `curl -fsS --retry 3 --max-time 10 -o /dev/null \"$url\"` with no -X, i.e. a GET. pings/src/index.ts:248 routes fail only when `parts.length === 3 && parts[2] === \"fail\" && request.method === \"POST\"`; a GET falls through to `return new Response(\"not found\", { status: 404 })` at index.ts:260, and pings/README.md states the fail route is \"POST-only, so a link-scanning mail gateway can never trigger it\". `curl -f` therefore exits 22. Consequences: music-backup:41,62,68 and music-import:394 call `ping_hc ... fail` as a bare command under `set -euo pipefail`, so the script aborts on the curl failure before its own `exit 1`; musicbox-ping-failure (the OnFailure= target of both units, systemd/music-import.service:6 and music-backup.service:5) does nothing but `ping_hc \"$1\" fail`, so that unit fails too and nothing further fires. tests/lib.bats:135-141 asserts the exact broken invocation (`-fsS --retry 3 --max-time 10 -o /dev/null https://hc.example/ping/def456/fail`), so the gate locks the defect in. musicbox env/musicbox.env.template:30-39 still calls these \"healthchecks.io ping URLs\" while pings/docs/STATUS.md confirms the three MUSICBOX_HC_* values are pings.907.life slugs.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Give ping_hc an explicit method: `curl -fsS -X POST --retry 3 --max-time 10` on the /fail path (leave the success path a GET, which index.ts:245 accepts). Update tests/lib.bats:135-141 to assert the POST form, and correct env/musicbox.env.template's healthchecks.io wording to name the pings Worker.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-1",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/systemd/music-import.service",
+   "line": 16,
+   "claim": "Every systemd unit runs with zero hardening and with the entire /etc/musicbox/env injected, so the process that parses untrusted contributor uploads holds the Cloudflare Tunnel token and the delete-capable R2 keys it never uses.",
+   "evidence": "music-import.service, music-backup.service and musicbox-ping-failure@.service each contain only Description/Type/User/EnvironmentFile/ExecStart (plus RuntimeDirectory on import). None carries NoNewPrivileges, ProtectSystem, ProtectHome, PrivateTmp, PrivateDevices, RestrictAddressFamilies, MemoryDenyWriteExecute, SystemCallFilter, ReadWritePaths, or CapabilityBoundingSet. All three use `EnvironmentFile=/etc/musicbox/env`, which env/musicbox.env.template:13-54 shows carries MUSICBOX_TUNNEL_TOKEN, MUSICBOX_R2_ACCESS_KEY_ID/SECRET, ND_PASSWORDENCRYPTIONKEY, FILEBROWSER_ADMIN_PASSWORD, NAVIDROME_ADMIN_PASSWORD and MUSICBOX_SMTP_PASSWORD. music-import needs only the SMTP password, the Navidrome admin pair, the contributors file and one ping URL, yet it runs bsdtar (lib.sh:61), flac/metaflac (lib.sh:138,151) and beets (music-import:400) over attacker-supplied bytes with the tunnel token and R2 write keys in its environment. musicbox-ping-failure needs exactly one MUSICBOX_HC_*_URL and gets all of it. config/msmtprc:8-17 explicitly reasons about not widening the file's 0600 mode, while the same secrets are handed wholesale to the process anyway.",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Split /etc/musicbox/env into per-unit files (env.import, env.backup, env.ping) so each unit gets only what it uses, and add the standard hardening block to all three units: NoNewPrivileges=yes, ProtectSystem=strict with ReadWritePaths=/srv/music, ProtectHome=yes, PrivateTmp=yes, PrivateDevices=yes, RestrictSUIDSGID=yes, RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX, LockPersonality=yes. Verify with `systemd-analyze security` and add that to scripts/check.sh.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-2",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/music-backup",
+   "line": 34,
+   "claim": "The spec's \"a compromised box can corrupt tomorrow's backup but not erase yesterday's\" property is unimplemented: nothing creates the R2 lifecycle rule or the _archive/ object lock, while the box holds a delete-capable key running `rclone sync`.",
+   "evidence": "The VPS design spec (2026-08-30-music-vps-build-design.md, Backup step 3) requires an R2 object lifecycle rule expiring `_archive/` after 90 days and \"an R2 bucket lock on `_archive/` [that] prevents the box's own credentials from shortening or deleting the archive\". A repo-wide grep for lifecycle/bucket lock/object lock/versioning across musicbox (excluding docs) returns only music-backup:35-36's `--backup-dir`/`--exclude` flags; docs/ and ROADMAP.md contain no mention at all, so it is neither built nor tracked. music-backup:27-37 runs `rclone sync` (delete-capable) against `music-library/library` and `music-library/state` using MUSICBOX_R2_ACCESS_KEY_ID/SECRET from the box's env file, and lib.sh's own comment chain acknowledges the box is the compromise scenario the archive exists for. Anyone with root or the music user on the box can `rclone delete`/`purge` the whole bucket, including `_archive/`.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Apply the R2 lifecycle rule and object-lock (or bucket-lock) configuration through a committed provisioning step in this repo the way pings/scripts/provision.sh does its Cloudflare wiring, then verify against the live bucket. Until the lock exists, state the residual honestly in docs/STATUS.md rather than leaving the spec's claim standing.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-3",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/deploy.sh",
+   "line": 251,
+   "claim": "deploy.sh pipes a third-party installer straight into a root shell on the box with no version pin and no checksum, in a repo that already demonstrates the verified pattern for exactly this problem.",
+   "evidence": "deploy.sh:243-257 runs a heredoc `ssh ... bash -s` as root@HOST containing `command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh`. No version is pinned and no signature or sha256 is checked, so whatever astral.sh serves at that moment executes as root and lands a binary in /usr/local/bin, which then installs beets for the music user (deploy.sh:255). Contrast cloud-init/user-data.yaml:188-195, which pins yq to v4.53.6 and verifies `sha256sum -c` before `install`, with the comment \"pinned to a specific release and checksum-verified against it rather than trusted from a third-party repo\". docs/STATUS.md:49-50 exempts uv from the pinning ruling, but that ruling is about version drift and does not address integrity of a root-shell pipe.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Pin the uv version and verify its release checksum before running it, mirroring the yq block in cloud-init; or install uv from a signed repo package. Keep the `command -v` fast path.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-4",
+   "dimension": "security"
+  },
+  {
+   "artifact": ".dotfiles/bin/.local/bin/music-sync",
+   "line": 41,
+   "claim": "The superseded workstation script is still installed and would `rclone sync` ~/Music onto the bucket ROOT, deleting the box's library/, state/ and _archive/ prefixes; its replacement was never written.",
+   "evidence": "music-sync:41 runs `rclone sync \"$LIBRARY\" \"musicr2:$R2_BUCKET\"` with R2_BUCKET=\"music-library\" (line 19) and no prefix, while music-backup:34-35 writes into `music-library/library`, `music-library/state` and `music-library/_archive`. `rclone sync` deletes destination objects absent from the source, so one run from a workstation whose ~/Music no longer masters anything wipes the box's backups and its archive. The VPS design spec's \"Workstation changes\" section states music-sync \"is replaced by music-pull: rclone copy (never sync) ... with the read-only token\", yet /var/home/glw907/.local/bin/music-sync is still a live symlink into the dotfiles bin package and /var/home/glw907/.local/bin/music-pull does not exist. Currently defused only by absent credentials: a name-only check of ~/.local/secrets finds MUSIC_R2_ACCESS_KEY_ID and MUSIC_R2_SECRET_ACCESS_KEY absent (MUSICBOX_R2_ACCESS_KEY_ID present), so today the script skips and exits 1.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Delete music-sync from the dotfiles bin package and restow, and write music-pull as `rclone copy music-library/library -> ~/Music` using a read-only, bucket-scoped token. Do it before any MUSIC_R2_* value is ever minted, since minting one arms the script.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-5",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/config/contributors.yaml",
+   "line": 5,
+   "claim": "Nothing reconciles contributors.yaml with the live Cloudflare Access policy, so the inbox allow-list drifts silently in both directions; today it grants one of the three listed contributors and there is no revocation path.",
+   "evidence": "config/contributors.yaml:5-13 lists geoff-login@907.life, oliver@907.life and duncan@907.life, all role: contributor, and its header claims the file \"drives FileBrowser accounts (pass 1), the Access allow-list, Navidrome accounts, and the quality-gate notification map\". The live probe shows the inbox.907.life Access app has one policy whose include list is the single email geoff-login@907.life, despite a policy name suggesting family membership. No script in the repo reads contributors.yaml for Access purposes: deploy.sh:194-197 only installs it to /etc/musicbox/contributors.yaml for music-import's uploader_email() (music-import:86-92), and no repo file calls the Access API at all. Removing a family member from the yaml therefore revokes nothing, and adding one grants nothing; music-import will happily email an uploader who no longer has access, and an Access include entry survives any repo change.",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Make contributors.yaml the single source and drive the Access policy include list from it in a committed script (the same shape as pings/scripts/provision.sh), run from deploy.sh or a dedicated `musicbox-access-sync`, with a --check mode that reports drift. Until then, drop the \"drives the Access allow-list\" claim from the file header.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-6",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/lib.sh",
+   "line": 48,
+   "claim": "safe_extract caps the compressed archive but never the extracted size, and the free-space guard runs only after staging, so one 2 GiB upload can fill the 50 GB volume before any check fires.",
+   "evidence": "lib.sh:47-51 checks `stat -c%s \"$archive\"` against max_bytes (default MUSICBOX_MAX_ARCHIVE_BYTES=2147483648, music-import:41) and then lib.sh:61 runs `bsdtar -xf \"$archive\" -C \"$destdir\"` with no size, member-count, or per-member cap and no `df` re-check between members. music-import:378-389 loops every contributor inbox calling stage_user_uploads (which extracts) and only reaches `free_space_ok \"$MUSICBOX_ROOT\" \"$MIN_FREE_GB\"` at line 392, after all extraction is done. A deflate archive of highly compressible content expands orders of magnitude beyond 2 GiB; the spec sizes the Hetzner volume at 50 GB. A full volume then breaks Navidrome's and FileBrowser's state writes (both bind-mounted under /srv/music) and the next backup, and the spec itself names a full disk during import as the truncation hazard it is trying to avoid.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Sum the member sizes reported by `bsdtar -tvf` (or `--totals`) before extraction and reject anything over an uncompressed cap, and re-check free_space_ok between contributors inside the staging loop rather than only after it.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": true,
+   "id": "security-7",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/lib.sh",
+   "line": 107,
+   "claim": "The healthcheck ping URL is a capability token and ping_hc puts it on curl's argv, where any local user can read it from /proc, in the same file that goes to elaborate lengths to keep the Navidrome credential off argv.",
+   "evidence": "lib.sh:107 is `curl -fsS --retry 3 --max-time 10 -o /dev/null \"$url\"`, where $url is the full https://pings.907.life/ping/<slug> value. pings/README.md states \"A push check's ping URL is as sensitive as the service's own secrets: anyone holding it can keep a dead check green forever.\" music-import:336-365 already solves this problem for the Navidrome Subsonic credential, writing the URL into a mode-0600 curl --config file with the comment \"an argument lands in argv, which every local user can read from /proc or `ps`, but a --config file's contents do not\", and pings/scripts/add-check:174-186 and provision.sh:47-63 use the same --config discipline for the admin token. ping_hc is the one place the pattern is not applied, and it runs every 15 minutes.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Reuse music-import's pattern in ping_hc: write `url = \"...\"` into a mode-0600 mktemp config under the runtime dir and call `curl -fsS -o /dev/null --config <file>`, adding `request = \"POST\"` for the fail path (see the /fail finding).",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-8",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/lib.sh",
+   "line": 156,
+   "claim": "quality_gate inspects only `-type f`, so any symlink in an upload skips the only-FLAC gate entirely and is handed to `beet import`, and safe_extract's traversal guard checks member names without ever checking symlink targets.",
+   "evidence": "lib.sh:156 drives the gate from `find \"$dir\" -type f -print0`, which excludes symlinks; a symlink named track.flac is therefore never decode-tested by flac -t (lib.sh:138) nor rate/bps-checked (lib.sh:151), and quarantine_quality_failures (music-import:238-324) sees nothing to quarantine, so the containing album goes straight to `beet import -q ... \"$STAGING_DIR\"` at music-import:400 with beets configured `move: yes` (config/beets-config.yaml:14). Symlinks reach staging either directly (music-import:126 `mv \"$entry\" \"$dest/\"` moves whatever the contributor uploaded) or from an archive: lib.sh:53-58 validates only the member path strings via _no_traversal_member (lib.sh:25-35), never a symlink member's target, so containment rests entirely on libarchive's undocumented-here SECURE_SYMLINKS default rather than on this repo's own guard.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Reject symlinks at intake: make stage_user_uploads skip or quarantine `-type l` entries, extend quality_gate's find to `\\( -type f -o -type l \\)` and fail any symlink, and have safe_extract reject archives whose `bsdtar -tvf` listing contains link members. State the bsdtar security-flag reliance in safe_extract's comment.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": true,
+   "id": "security-9",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/music-backup",
+   "line": 66,
+   "claim": "The nightly backup pushes navidrome.db, which by design holds reversibly-encrypted family passwords, into the same bucket the workstation's intended read-only mirror token can read, because R2 tokens scope per bucket and not per prefix.",
+   "evidence": "music-backup:54-58 snapshots $NAVIDROME_DB into staging and line 66 syncs that staging dir to `music-library/state`. compose.yaml:28-31 and the VPS design spec both record that ND_PASSWORDENCRYPTIONKEY exists precisely \"because Subsonic token auth forces the server to keep passwords recoverable\", so navidrome.db contains decryptable user credentials. The spec's Secrets section provisions \"a separate read-only token for the workstation (mirror pull)\" bucket-scoped to music-library; R2 API tokens are scoped per bucket, so that token reads state/ as well as library/. Any copy of the mirror token, on any machine, therefore reaches the family's password store; only the separately-held encryption key (which lives in /etc/musicbox/env and is not backed up) stands between it and plaintext.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Split the state backup into its own bucket (say music-library-state) so the workstation mirror token cannot reach it, or encrypt the sqlite snapshots client-side (age, with the key in the workstation store) before the rclone sync. Record whichever is chosen in the spec's Secrets section.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-10",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/compose.yaml",
+   "line": 53,
+   "claim": "The inbox runs on a single shared FileBrowser admin account whose password sits in the compose environment, so per-contributor isolation currently exists only in config comments and Cloudflare Access is the sole per-person boundary.",
+   "evidence": "compose.yaml:48-53 passes FILEBROWSER_ADMIN_PASSWORD to the container, and config/filebrowser.yaml:59-63 states \"No admin account is minted here. FileBrowser Quantum creates a first-run default on an empty database ... Task 8 immediately replaces it with a real admin account and rotates the password out of band.\" docs/STATUS.md:51-52 confirms \"Task 8 (per-contributor FileBrowser accounts ...) has not started\", so the createUserDir/defaultUserScope isolation described at filebrowser.yaml:9-18 is unexercised: whoever gets past Access lands on an admin account with full scope over /srv/music/inbox (compose.yaml:55) and, per userDefaults at filebrowser.yaml:47-56, delete rights. The live Access policy currently includes one email, which is what is actually containing this.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Belongs to the upload-check pass, which replaces this path entirely. Until it lands, treat the admin password as a live shared credential in the registry, and do not widen the Access include list beyond Geoff while one shared account is the only identity.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": true,
+   "id": "security-11",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/deploy.sh",
+   "line": 72,
+   "claim": "The whole deploy path is root-over-SSH with no unprivileged deploy account, so every routine config push runs with full box authority and any compromise of the workstation key is total.",
+   "evidence": "cloud-init/user-data.yaml:10-16 sets `disable_root: false` and installs Geoff's key as root's only authorized key; no other login account is created (the music user is `-s /usr/sbin/nologin`, line 126). deploy.sh:72 sets `SSH_TARGET=\"root@$HOST\"` and every step (rsync into /usr/local/bin and /etc/systemd/system, `install` of /etc/musicbox/env, docker compose up, systemctl enable, the uv root-shell pipe at line 251) runs as root. deploy.sh:32-33 additionally leaves a ControlPersist=60s master socket at $HOME/.ssh/musicbox-deploy-*, so a 60-second window of key-free root access to the box follows every run on the workstation.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Create an unprivileged deploy user with a targeted sudoers entry for the handful of privileged actions, set PermitRootLogin no in the sshd drop-in alongside PasswordAuthentication no, and shorten or drop ControlPersist for the deploy path.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-12",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/deploy.sh",
+   "line": 169,
+   "claim": "Three deploy steps stage config through fixed, predictable /tmp paths on a box with an unprivileged local user, briefly exposing contributor PII and inviting a pre-created-path race.",
+   "evidence": "deploy.sh:169 rsyncs config/msmtprc to $SSH_TARGET:/tmp/musicbox-msmtprc, :194 contributors.yaml to /tmp/musicbox-contributors.yaml, and :241 beets-config.yaml to /tmp/musicbox-beets-config.yaml, each then `install`ed and removed. The names are constant across every run, and the files land with rsync's source permissions in world-readable /tmp before the install fixes the mode: contributors.yaml carries every family member's email, which deploy.sh:175-179's own comment says must not be world-readable (it installs it 0640 root:music). The `music` user exists on the box and can watch for or pre-create those paths.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Pipe these files the way /etc/musicbox/env is already handled at deploy.sh:147-148 (`printf ... | ssh ... install -D -m ... /dev/stdin <dest>`), removing the /tmp hop entirely; or stage under a `mktemp -d` created on the remote per run.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-13",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/scripts/firewall-rules.json",
+   "line": 6,
+   "claim": "The Hetzner firewall admits SSH from the entire internet even though a Cloudflare tunnel already terminates on the box and the only legitimate client is one workstation.",
+   "evidence": "firewall-rules.json:1-8 is a single inbound tcp/22 rule with source_ips [\"0.0.0.0/0\", \"::/0\"], and provision.sh:101-116 treats exactly that pair as the correct state, refusing to proceed if a narrower rule is found (\"exists but is missing the tcp/22 rule ... Fix by hand\"). Key-only auth (cloud-init:39-43) makes brute force a non-issue, but the box still answers every internet scanner on 22, and any future sshd CVE is reachable pre-auth. The design spec explicitly considered and rejected routing SSH through the tunnel on ergonomics grounds; no middle option (Access-brokered SSH, or a narrowed source list) was weighed.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Either narrow source_ips to the workstation's egress ranges with a documented recovery path via the Hetzner console, or put SSH behind cloudflared's Access-brokered `ssh` ingress and keep tcp/22 closed. Relax provision.sh's firewall_rule_present check so a narrower rule is not reported as broken.",
+   "confidence": "medium",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-14",
+   "dimension": "security"
+  },
+  {
+   "artifact": "Projects/musicbox/cloud-init/user-data.yaml",
+   "line": 116,
+   "claim": "/srv/music/state is world-readable and holds the beets library, the msmtp log and every import log, and /etc/msmtprc is installed 0644, so a future non-root account on the box reads operational data and family email addresses for free.",
+   "evidence": "cloud-init/user-data.yaml:116 runs `chmod 0755 /srv/music/library /srv/music/review /srv/music/state /srv/music/staging`. That state directory holds library.db (config/beets-config.yaml:11), the Navidrome data volume (compose.yaml:34), msmtp.log (config/msmtprc:22) and music-import's per-run logs (music-import:71). deploy.sh:171-172 installs msmtprc `-m 0644`, which msmtprc:1-2 justifies as \"world-readable; see below for why that is safe\" on the grounds that it carries no password; the mode is defensible for the credential but the reasoning never covers the log path or recipient addresses it points at. Exposure is limited today because root and music are the only accounts, which is exactly the assumption worth writing down rather than relying on.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "chmod 0750 the state directory (root:music or music:music) in cloud-init, install /etc/msmtprc 0640 root:music, and create the msmtp log 0640 under the music group. Note the single-account assumption in the runbook so the next added account does not silently inherit read access.",
+   "confidence": "high",
+   "needsBox": false,
+   "pass2": false,
+   "id": "security-15",
+   "dimension": "security"
+  },
+  {
+   "artifact": "musicbox/scripts/music-beet",
+   "line": 8,
+   "claim": "music-beet's mutual-exclusion guarantee with music-import is currently broken: the two scripts default to two different lock files, so an interactive music-beet session and a scheduled music-import run can touch the beets database at the same time despite the header comment's explicit promise that they can't.",
+   "evidence": "scripts/music-import (line 32) sets LOCK_FILE default to /run/musicbox/musicbox-import.lock -- changed in the 2026-08-31 'Task 4/6' fix round (docs/HISTORY.md, finding #3) specifically because /run/lock is root:root 0755 on AlmaLinux and the music user can't create a file there. scripts/music-beet (line 8) still defaults LOCK_FILE to the old /run/lock/musicbox-import.lock and was never touched by that fix round (grep for 'music-beet' in HISTORY.md shows no entry after the Task 2 landing). Neither env/musicbox.env.template nor any systemd unit sets MUSICBOX_IMPORT_LOCK_FILE, so both defaults apply unmodified on the box and diverge. No test exercises this: tests/music-import.bats always exports MUSICBOX_IMPORT_LOCK_FILE to a shared fixture path (line 17), which masks the mismatch. music-beet is deployed (deploy.sh's SCRIPT_FILES array includes it) and is the tool the runbook and 'music-import doesn't queue up, it skips' design assumes an operator uses for manual/admin beet work.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Point music-beet's LOCK_FILE default at /run/musicbox/musicbox-import.lock (matching music-import), or better, hoist the single lock-path default into lib.sh as one constant both scripts source, so a future path change can't silently drift between them again. Add a bats case that runs both scripts' actual (non-overridden) defaults against each other.",
+   "confidence": "high",
+   "needsBox": false,
+   "id": "operational-truth-1",
+   "dimension": "operational-truth"
+  },
+  {
+   "artifact": "musicbox/docs/bringup-runbook.md",
+   "line": 38,
+   "claim": "The estate's entire disaster-recovery story is currently unproven end to end: R2 has never received a successful backup (confirmed empty), and Task 7's restore drill -- the plan's own acceptance gate for 'the box is cattle' -- has never run once. No restore script exists anywhere in the repo.",
+   "evidence": "docs/HISTORY.md's 2026-08-31 'Task 4/6' entry: acceptance check 3e is 'Blocked -- sqlite3/rclone missing on box... R2 confirmed empty via read-only lsjson'; music-backup.service cannot run at all per the same entry. docs/bringup-runbook.md step 8 lists 'Task 7 restore drill' as still a future next action, not something completed. `grep -rn restore` across the whole musicbox tree finds zero restore script or procedure (scripts/ has music-backup but no music-restore); README.md's headline claim 'provisioned from this repo and restorable from R2 alone' is therefore currently untested in both directions -- nothing has ever been backed up, and nothing has ever been restored.",
+   "severity": "high",
+   "kind": "judgment",
+   "fix": "Treat Task 7 (restore drill against a scratch server) as blocking, not just next-in-line: run it as soon as the pending package remediation lands and a real backup succeeds, before onboarding any family member's irreplaceable purchases (Task 8). Until then, STATUS.md's framing should say plainly that R2 currently holds zero recoverable data, not just that the backup script is blocked.",
+   "confidence": "high",
+   "needsBox": false,
+   "id": "operational-truth-2",
+   "dimension": "operational-truth"
+  },
+  {
+   "artifact": "pings/src/logic.ts",
+   "line": 149,
+   "claim": "musicbox-disk is registered as an armed push check with nothing in the estate ever pinging it, and pings' own alerting model means this isn't a quiet no-op: it will fire exactly one 'never-armed' email and then go permanently silent, with no further signal short of someone manually reading the weekly digest -- a materially worse state than STATUS.md's 'minted but unwired' framing suggests.",
+   "evidence": "grep across musicbox for 'ping_hc' shows only music-import and music-backup ever call it (with slugs 'import'/'backup'); nothing calls 'ping_hc disk'. pings/docs/HISTORY.md's P2b entry confirms musicbox-disk was registered live 2026-08-31 with period 60/grace 15 (armingMin defaults to periodMin per src/index.ts line 65, so 60 min). src/logic.ts's handleAlarm (lines 149-155): once a check with lastPing===undefined has alerted once, every later alarm event returns {state, emails: []} unchanged -- there is no code path back to alerted=false except a real ping event (handlePing/handleProbeResult), which this check will never receive until Task 6's disk-space script exists. musicbox/docs/STATUS.md's Open items (lines 42-44) describes this only as 'minted but unwired,' not as an alert that has already fired once and then muted itself.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Either don't register a push check via add-check until its pinging script exists, or (better) change P2c's live drill to explicitly cover and document the never-armed-then-silent behavior so it's a known property, not a surprise. Short term: check whether musicbox-disk's one-time alert already landed and consider deleting/re-registering it once the disk-check script ships, so its arming window restarts cleanly.",
+   "confidence": "high",
+   "needsBox": false,
+   "id": "operational-truth-3",
+   "dimension": "operational-truth"
+  },
+  {
+   "artifact": "musicbox/docs/STATUS.md",
+   "line": 33,
+   "claim": "STATUS.md's single 'Reprovision pending' Open item conflates two remediations of very different cost and blocking status -- the genuinely dnf-blocked package installs (ffmpeg/flac/sqlite3/rclone/msmtp) and the already-fixed Navidrome scan-trigger script, which needs only an unblocked `deploy.sh` re-run -- making the ongoing 'cron-only, up-to-24h-stale library' state look more blocked than it is.",
+   "evidence": "docs/HISTORY.md's 2026-08-31 'Spec gaps closed' entry says the Subsonic startScan rewrite is committed but 'Neither fix has reached the already-provisioned live box yet (cloud-init is first-boot-only); see STATUS's reprovision pending open item.' But scripts/deploy.sh's SCRIPT_FILES array (line 25) already includes music-import and lib.sh and rsyncs them to /usr/local/bin on every run -- no dnf install, no reprovision, and none of the Claude Code auto-mode classifier refusals documented for on-box `dnf install` (HISTORY.md lines 86-89) apply to a plain `bash scripts/deploy.sh`. Meanwhile compose.yaml (lines 21-27) confirms ND_SCANNER_SCHEDULE is the only other path music actually becomes visible, once daily at 3am UTC, so every album imported today sits invisible in Navidrome for up to ~24h.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Split the Open items entry in two: one for the cheap, unblocked deploy.sh re-run that lands the scan-trigger fix today, and one for the genuinely dnf-blocked package remediation that needs Geoff present. Running the former immediately shrinks the cron-only staleness window from indefinite to whenever the next deploy.sh runs.",
+   "confidence": "medium",
+   "needsBox": false,
+   "id": "operational-truth-4",
+   "dimension": "operational-truth"
+  },
+  {
+   "artifact": "musicbox/scripts/music-backup",
+   "claim": "music-backup has no flock (or any) overlap protection, unlike music-import and music-beet, which both serialize against the same lock file; a manual `systemctl start music-backup` run overlapping the daily timer (exactly what the bringup runbook itself instructs at step 4) can race on `$BACKUP_STAGING` (line 45's `rm -rf` deletes the other run's in-flight sqlite .backup output) or on the concurrent rclone syncs to the same R2 destination paths.",
+   "evidence": "Full read of scripts/music-backup: no `flock`, `exec 200>`, or any lock-file reference anywhere in the file, contrasted with music-import's explicit flock section (lines 61-66) and music-beet's matching flock wait (lines 10-14). The script's own header comment explains why sqlite3 .backup exists (avoiding a torn snapshot of a live DB) but that protection only covers the DB-vs-live-write race, not a second music-backup instance racing the first's staging directory and rclone sync.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Add the same flock pattern used in music-import (a dedicated lock file, non-blocking with a clean skip-and-ping-success exit) to music-backup, so an overlapping manual run during a fix session or drill can't race the scheduled one.",
+   "confidence": "high",
+   "needsBox": false,
+   "id": "operational-truth-5",
+   "dimension": "operational-truth"
+  },
+  {
+   "artifact": "musicbox/scripts/music-import",
+   "line": 374,
+   "claim": "sweep_review() only prunes REVIEW_DIR on a 60-day retention; QUARANTINE_FAILED_DIR (the emergency fallback used when a quality-gate quarantine can't even be filed to review) has no retention sweep at all, so anything that ever lands there accumulates on disk forever with only the one-time creation email as a signal.",
+   "evidence": "scripts/music-import lines 373-376 (sweep_review) walks only $REVIEW_DIR. QUARANTINE_FAILED_DIR is defined at line 27 with the comment 'Not created up front... a healthy box never has one,' and is only ever written to inside quarantine_quality_failures's fallback branch (lines 267-279), which is deliberately the rare, unverified-in-practice path (the whole quality-gate pipeline has only ever run against an empty inbox so far per the 2026-08-31 acceptance sweep). No later code path reads or cleans this directory.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Extend sweep_review (or add a parallel sweep) to also age out QUARANTINE_FAILED_DIR entries, or at minimum have it surface in the weekly/periodic operational summary so accumulation there isn't purely dependent on someone remembering the one-time email months later.",
+   "confidence": "medium",
+   "needsBox": false,
+   "id": "operational-truth-6",
+   "dimension": "operational-truth"
+  },
+  {
+   "artifact": "src/index.ts",
+   "line": 88,
+   "claim": "createCheck() calls PUT /init on the CheckDO stub, then writes the KV records that are the only way to address/find/delete that DO, as two sequential un-batched writes with no rollback; if either KV write fails after DO init succeeds, the DO is left permanently armed and completely unreachable (no name, no route key), so it will alert ALERT_EMAIL hourly forever with no way to delete it via remove-check.",
+   "evidence": "index.ts:88-103: `const initResponse = await checkStub(env, address).fetch(\"http://check-do/init\", ...); if (!initResponse.ok) return new Response(...500); await env.PINGS_KV.put(`check:${body.name}`, ...); if (push) await env.PINGS_KV.put(`route:${body.name}`, address); ...`. There is no try/catch around the KV puts and no compensating DELETE to the stub on failure. deleteCheck() (index.ts:106-118) can only find a push check's DO via `route:<name>` in KV, so a DO created this way is orphaned. check-do.ts's alarm() (line 80-86) will keep firing 'never-armed' alerts (logic.ts handleAlarm) since lastPing is undefined forever.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Write route:<name>/pull:<name> (the only key that lets deleteCheck find the DO) before or atomically with check:<name>, and wrap the KV writes in try/catch that issues a compensating DELETE to the stub on failure so a partial create never leaves an unreachable armed DO. Alternatively store the slug inside the check:<name> value itself so a single KV write is sufficient and deleteCheck never depends on a second key.",
+   "confidence": "medium",
+   "id": "workers-1",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "src/check-do.ts",
+   "line": 113,
+   "claim": "applyTransition() awaits network I/O (the KV-backed daily-cap check and the send_email fetch, via trySend) before persisting the new state with ctx.storage.put \u2014 outside the scope of Durable Objects' automatic input/output gates, which only protect ctx.storage operations, not arbitrary fetch()/KV calls, so a second event delivered to the same DO instance during that window can read stale pre-transition state and its later write can clobber the first event's persisted state.",
+   "evidence": "check-do.ts: fetch() reads state once (line 49) before dispatch; applyTransition (113-124) computes the transition, then `for (const email of result.emails) { const sent = await this.trySend(state, email); ... }` before `await this.ctx.storage.put(STATE_KEY, persisted)` (line 122). trySend (127-139) awaits env.PINGS_KV.get/put and env.EMAIL.send \u2014 none of which hold a Durable Object input gate (per Cloudflare's docs, gates wrap ctx.storage.* calls: https://developers.cloudflare.com/durable-objects/api/storage-api/#input-gates-in-durable-objects). An alarm firing at the same instant as an in-flight /ping or /fail POST (or an HTTP client retry sending a duplicate /ping) can interleave and lose a pingCount/failCount increment or bypass the alert cooldown gate since both read the same stale lastAlertAt.",
+   "severity": "medium",
+   "kind": "judgment",
+   "fix": "Persist the state transition (ctx.storage.put) before attempting the email send, and treat the send as a best-effort follow-up (retry via the existing past-due alarm fallback) rather than gating persistence on it \u2014 this removes the un-gated network await from the read-modify-write window. If the current rollback-on-failure semantics for alerted/lastAlertAt must be kept, consider explicitly serializing with an in-memory in-flight flag checked at the top of fetch()/alarm().",
+   "confidence": "medium",
+   "id": "workers-2",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "src/index.ts",
+   "line": 106,
+   "claim": "deleteCheck() silently no-ops the Durable Object teardown when the route:<name> KV lookup returns nothing (for a push check), reporting success (200) while leaving the DO's alarm armed indefinitely.",
+   "evidence": "index.ts:106-118: `const address = meta.kind === \"push\" ? await env.PINGS_KV.get(`route:${name}`) : name; if (address) await checkStub(env, address).fetch(...DELETE...);` \u2014 the DELETE call is entirely skipped, with no error/log, when address is falsy, yet the function proceeds to delete the KV check/route/pull records and return 200 regardless.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Log/return a non-200 (or at least a warning field in the response) when a push check's route key is missing so an operator running remove-check learns the DO teardown did not happen, instead of a clean-looking 200.",
+   "confidence": "medium",
+   "id": "workers-3",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "src/index.ts",
+   "line": 151,
+   "claim": "probePullChecks() and maybeSendDigest() iterate their KV key lists and DO calls sequentially with `for (const key of list.keys) { await ... }`, so the cron tick's wall time scales linearly with the number of pull/registered checks (up to PROBE_TIMEOUT_MS=10s per pull check); this does not scale and a single slow pull target delays every other check's probe in the same tick.",
+   "evidence": "index.ts:153-180 (probePullChecks) and 197-212 (maybeSendDigest) both use a plain `for...of` loop with `await` per iteration rather than Promise.all/allSettled.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Parallelize per-check work with Promise.allSettled (bounded by KV/DO subrequest limits), or accept the current sequential design explicitly given the small check count (3-4 musicbox checks today) and note the scaling ceiling in HISTORY/STATUS.",
+   "confidence": "medium",
+   "id": "workers-4",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "src/check-do.ts",
+   "line": 33,
+   "claim": "reserveDailyAlertSlot() is a non-atomic KV read-then-write (get count, then put count+1); the code comment characterizes the risk as an 'undercount', but the actual race lets concurrent DOs both read the same sub-cap count and both proceed to send, meaning the effective cap can be exceeded, not just undercounted in the stored value.",
+   "evidence": "check-do.ts:26-30 comment: 'A concurrent-write undercount is accepted \u2014 this is a reputation/quota backstop, not a security control.' Lines 33-41: `const raw = await kv.get(key); const count = ...; if (count >= DAILY_ALERT_CAP) return false; await kv.put(key, String(count + 1), ...); return true;` \u2014 two concurrent calls reading count=49 both return true and both send, so more than DAILY_ALERT_CAP emails can be sent even though the stored counter itself ends up undercounting the true send total.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "If the cap must be a hard ceiling, use a KV/DO-backed atomic counter (e.g. route the cap through one dedicated DO, or accept and document that the cap is a soft best-effort limit that can be exceeded under concurrency, not just undercounted in its own bookkeeping \u2014 current comment undersells the actual failure mode.",
+   "confidence": "low",
+   "id": "workers-5",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "src/check-do.ts",
+   "line": 142,
+   "claim": "scheduleNextAlarm's past-due fallback (dueAt > now ? dueAt : now + RETRY_DELAY_MS) means an --arming 0 push check does not actually arm 'immediately': by the time the comparison runs a few milliseconds have elapsed past createdAt, so dueAt <= now and the check instead waits a full RETRY_DELAY_MS (5 minutes) before its first never-armed alarm evaluation.",
+   "evidence": "check-do.ts:142-155, specifically line 147 `dueAt = state.createdAt + state.armingMin * MIN_MS;` combined with line 154's `dueAt > now ? dueAt : now + RETRY_DELAY_MS` fallback intended for failed-send retries, which also silently swallows the armingMin:0 immediate-arm case.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Distinguish the 'send failed, retry' case from the 'legitimately due in the past at schedule time' case (e.g. pass an explicit isRetry flag into scheduleNextAlarm) rather than overloading the same now-vs-dueAt comparison for both.",
+   "confidence": "low",
+   "id": "workers-6",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "scripts/provision.sh",
+   "line": 131,
+   "claim": "probe_http_status() calls curl with no --max-time/--connect-timeout, so a hung TLS handshake against the not-yet-live custom domain during the post-deploy probe loop can stall provision.sh well beyond the intended PROBE_RETRIES * PROBE_SLEEP budget (default 6*5=30s).",
+   "evidence": "provision.sh:131-135: `probe_http_status() { local url=\"$1\"; shift; curl -s -o /dev/null -w '%{http_code}' \"$@\" \"$url\"; }` \u2014 no timeout flags passed by either call site (lines 140-141).",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Add `--max-time 10` (or similar) to the curl invocation so each probe attempt is bounded independently of the retry loop's sleep budget.",
+   "confidence": "medium",
+   "id": "workers-7",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "scripts/add-check",
+   "line": 128,
+   "claim": "check_exists() classifies a missing key purely by grepping wrangler's stderr for a bare '404' (with digit guards); this couples correctness to wrangler's current unstructured error text rather than a structured signal, and a future wrangler version or an unrelated 404 substring in an error message (e.g. a request id) could silently misclassify a real outage as 'absent' or vice versa.",
+   "evidence": "add-check:123-140, specifically `if grep -qE '(^|[^0-9])404([^0-9]|$)' \"$KV_ERR_FILE\"; then return 1; fi` \u2014 matched against whatever text `wrangler kv key get --remote` happens to print to stderr on a 404, which is not a documented stable contract.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Prefer a structured signal if wrangler exposes one (e.g. `--output json` if/when the KV command supports it) over parsing free-text stderr; failing that, add a comment pinning the wrangler version this was verified against so a version bump is a deliberate re-check, similar to the compatibility_date discipline already used for wrangler.jsonc.",
+   "confidence": "low",
+   "id": "workers-8",
+   "dimension": "workers"
+  },
+  {
+   "artifact": "musicbox/scripts/lib.sh",
+   "line": 78,
+   "claim": "notify() (msmtp) is called as a bare, unguarded statement at every call site inside music-import; a single mail-delivery failure for one contributor aborts the entire import run under set -e, skipping beet import, Geoff's own summary email, the Navidrome scan trigger, sweep_review, and the final healthcheck ping.",
+   "evidence": "lib.sh:78-85 notify() has no internal error handling and returns msmtp's own exit status. Every call site in music-import is a bare statement, not wrapped in `if`/`||`: lines 166-167 and 172-173 inside move_skips_and_notify, and lines 308-309 and 320-323 inside quarantine_quality_failures. music-import runs under `set -euo pipefail` (line 2), so if msmtp fails for any one recipient (bad/expired address in contributors.yaml, relay outage, malformed From in /etc/msmtprc) the script terminates at that exact statement. Because quarantine_quality_failures already moved the failing album out of staging via safe_mv_to_review before calling notify (lines 267-281), a failure here leaves some albums quarantined and the rest of the pipeline -- including `beet import` at line 400 and the final `ping_hc import` at line 406 -- never run that day.",
+   "severity": "high",
+   "kind": "factual",
+   "fix": "Wrap every notify() call in `notify ... || echo \"...notify failed for $user...\" >&2` (mirroring the pattern already used for ping_hc/curl failures), or give notify() itself a best-effort contract (log-and-return-0) so one bad address can never take the run down.",
+   "confidence": "high",
+   "id": "failure-modes-1",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/lib.sh",
+   "line": 61,
+   "claim": "safe_extract has no per-archive isolation: every archive a contributor uploads in one batch is extracted into the same shared per-user staging directory, so two archives (or a loose file and prior staging residue) with a same-named entry at the same relative path silently overwrite each other via bsdtar's default overwrite behavior, or make the subsequent plain `mv` fail outright and abort the run.",
+   "evidence": "lib.sh:43-62 safe_extract runs `bsdtar -xf \"$archive\" -C \"$destdir\"` where destdir is whatever caller passes; music-import's stage_user_uploads (lines 113-130) computes dest once per user (`STAGING_DIR/$user`, set at the call site line 388) and reuses it for every entry in the loop, so a second archive (e.g. a flat Bandcamp zip with `01.flac`/`cover.jpg` at its root, uploaded alongside another flat album in the same batch) extracts on top of the first with no collision check, unlike unique_dest_path/safe_mv_to_review elsewhere in this same file (lines 160-208) which explicitly exist to prevent exactly this overwrite. The non-archive branch (line 126, `mv \"$entry\" \"$dest/\"`) has the same gap: colliding with an existing same-named directory makes `mv` fail, which as a bare statement under set -e aborts the whole script.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Extract each archive into its own subdirectory of dest (e.g. named from the archive's basename) before beets sees it, and route the non-archive mv through safe_mv_to_review/unique_dest_path instead of a plain `mv`.",
+   "confidence": "high",
+   "id": "failure-modes-2",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/lib.sh",
+   "line": 342,
+   "claim": "trigger_navidrome_scan's documented \"best-effort, never fails the import\" contract is only actually implemented for the final curl call; every earlier step is an unguarded bare statement that will abort the whole script under set -e if it fails, contradicting the function's own header comment.",
+   "evidence": "lib.sh:326-329 states the function is \"Best-effort: a failed scan trigger does not fail the import\", but only the final `curl -fsS -o /dev/null --config \"$config_file\" || echo ...; return 0` (lines 367-368) is guarded. The preceding jq call (line 352), the od call for the salt (line 356), `mktemp \"$RUNTIME_DIR/navidrome-scan.XXXXXX\"` (line 360), and `chmod 0600 \"$config_file\"` (line 364) are all bare statements. music-import calls the function bare at line 404 (no `|| true`). If /run/musicbox runs low on space or inodes so mktemp fails, or jq is missing/broken, the script aborts there -- after `beet import` already succeeded -- skipping sweep_review (line 405) and the final success `ping_hc import` (line 406), misreporting a fully successful import as a hung/failed run.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Guard the whole function body (e.g. run it in a subshell called as `trigger_navidrome_scan || echo \"...scan trigger failed...\" >&2` at the call site, or wrap each fallible step) so any failure inside it, not just curl's, is swallowed per the documented contract.",
+   "confidence": "high",
+   "id": "failure-modes-3",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/music-backup",
+   "line": 60,
+   "claim": "music-backup has no existence/non-empty guard on LIBRARY_DIR before rclone-syncing it to R2, unlike the two database files which are explicitly existence-checked; an unmounted or empty library mount causes the nightly backup to silently archive-away (not literally delete, but remove from the live prefix) the entire off-site library copy while still reporting success.",
+   "evidence": "Compare music-backup:48-58, which guard BEETS_DB and NAVIDROME_DB with `if [ -f \"$BEETS_DB\" ]; then ... else echo ...skipping... fi`, against line 60, `if ! rclone_backup_sync \"$LIBRARY_DIR\" \"library\"; then`, which has no preceding existence or non-emptiness check on LIBRARY_DIR at all. rclone_backup_sync (lines 27-37) runs `rclone sync \"$src\" \"$R2_REMOTE:$R2_BUCKET/$tree\" --backup-dir ...` -- syncing FROM an empty (but present) directory is not an rclone error, it just makes the destination match: every object currently under the R2 \"library\" prefix gets moved into `_archive/library/$DATE_STR`. If /srv/music/library is an empty mount point because the Hetzner data volume failed to (re)attach on boot, this run exits 0 and calls `ping_hc backup` (line 72) as a success, even though the live off-site copy of the whole library was just emptied.",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Add a `[ -d \"$LIBRARY_DIR\" ] && [ -n \"$(find \"$LIBRARY_DIR\" -mindepth 1 -print -quit)\" ]` guard before the library rclone sync, matching the pattern already used for the two DB files, and ping_hc backup fail + exit 1 when it's empty.",
+   "confidence": "high",
+   "id": "failure-modes-4",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/music-import",
+   "line": 64,
+   "claim": "ping_hc is called bare at both the lock-contention success path and the final success path; a transient healthchecks.io failure (not a missing URL, which is the only case ping_hc's own doc comment protects against) makes set -e abort the script at that exact point, defeating the explicit design decision quoted in the surrounding comment.",
+   "evidence": "music-import:51-60's comment states the spec decision is to \"treat it as success rather than let a merely-overlapping run page Geoff at 3am\", but line 64 (`ping_hc import`) is a bare statement before `exit 0` at line 65; if the MUSICBOX_HC_IMPORT_URL curl call itself fails (network blip, healthchecks.io outage, DNS failure -- distinct from the empty-var no-op case lib.sh:100-103 handles), ping_hc returns curl's nonzero status and set -e terminates the script before reaching `exit 0`, so the lock-contention run reports failure instead of the intended success. The same bare pattern repeats at the final line 406 (`ping_hc import`, after a fully successful pipeline) and in music-backup's final line 72 (`ping_hc backup`).",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Guard every terminal ping_hc call with `|| true` (or `|| echo \"...hc ping failed...\" >&2`) so a monitoring-endpoint hiccup can never change the script's own exit status.",
+   "confidence": "high",
+   "id": "failure-modes-5",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/lib.sh",
+   "line": 128,
+   "claim": "quality_gate dispatches purely on filename extension; a file with no extension or the wrong extension for its actual format is never inspected at all and proceeds straight to beet import, bypassing the FLAC-only/quality invariant the function exists to enforce.",
+   "evidence": "lib.sh:123-136: the case statement matches only `flac` (pass) and a fixed list of known-bad extensions (fail), with `*) continue ;;` for everything else -- a file whose extension is missing or mismatched from its true codec (e.g. a browser upload that drops the suffix, or a mislabeled MP3) falls into the `*)` branch and is silently skipped, never decode-tested and never sample-rate-checked, then reaches `beet import -q` (music-import:400) unfiltered. The function's own header comment (lines 112-113) states the whole point is \"only high-quality FLAC enters the library.\"",
+   "severity": "medium",
+   "kind": "factual",
+   "fix": "Sniff file type by content (e.g. `file --mime-type` or attempt the flac decode test regardless of extension) rather than trusting the filename suffix, at least as a fallback for files with no recognized extension.",
+   "severity_note": "may overlap with the planned upload-check/validated-intake pass",
+   "confidence": "medium",
+   "id": "failure-modes-6",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/lib.sh",
+   "line": 363,
+   "claim": "trigger_navidrome_scan's temp credential file is cleaned up only via a function-scoped RETURN trap; a SIGTERM/SIGKILL delivered to music-import while this function is executing (e.g. systemd stopping the unit, an operator killing a hung run) never fires that trap, leaving the token-bearing file behind in /run/musicbox until reboot.",
+   "evidence": "lib.sh:360-365: `config_file=\"$(mktemp \"$RUNTIME_DIR/navidrome-scan.XXXXXX\")\"` then `trap 'rm -f \"$config_file\"' RETURN`. A RETURN trap fires only on normal function return, not on a signal that kills the process; there is no corresponding EXIT/TERM trap anywhere in music-import.",
+   "severity": "low",
+   "kind": "factual",
+   "fix": "Also register the cleanup on `trap ... EXIT` at the top of the script (or at minimum inside this function) so a killed run doesn't strand the credential-derived token file.",
+   "confidence": "medium",
+   "id": "failure-modes-7",
+   "dimension": "failure-modes"
+  },
+  {
+   "artifact": "musicbox/scripts/music-import",
+   "line": 392,
+   "claim": "free_space_ok is checked only after every pending contributor archive has already been extracted into staging, so the extraction step itself is unbounded by the disk-space guard meant to catch exactly this condition.",
+   "evidence": "music-import:378-389 runs stage_user_uploads (which calls safe_extract, decompressing every archive in every contributor's inbox) inside the `for user_dir in \"$INBOX_DIR\"/*/` loop; only afterward, at line 392, does `if ! free_space_ok \"$MUSICBOX_ROOT\" \"$MIN_FREE_GB\"; then` run. safe_extract (lib.sh:37-62) caps only the archive's *compressed* size (MAX_ARCHIVE_BYTES, default 2GiB) with no cap on decompressed size, so a run can already fill the disk during staging before the guard that exists to prevent low-space conditions ever executes.",
+   "severity": "low",
+   "kind": "judgment",
+   "fix": "Check free_space_ok before stage_user_uploads too (or re-check after each user's extraction), and/or cap extracted size in safe_extract, not just archive size on disk.",
+   "confidence": "medium",
+   "id": "failure-modes-8",
+   "dimension": "failure-modes"
+  },
+  {
+   "id": "seed-1",
+   "dimension": "drift",
+   "artifact": "bin/.local/bin/music-sync",
+   "kind": "factual",
+   "claim": "music-sync header documents PikaPods+R2 topology, not the Hetzner box",
+   "severity": "high",
+   "fix": "Rewrite header.",
+   "confidence": "high",
+   "evidence": "plan review"
+  }
+ ],
+ "verdicts": {
+  "altitude-3": {
+   "id": "altitude-3",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Every element checks out: music-sync:41 is `rclone sync \"$LIBRARY\" \"musicr2:$R2_BUCKET\"` with R2_BUCKET=\"music-library\" on line 18 and no prefix; music-backup:34-36 writes library/, state/, and _archive/<tree>/<date>; the spec (music-vps-build-design.md:152-153) and plan Task 8 (music-vps-build.md:208) both retire it for music-pull; ~/.dotfiles/bin/.local/bin/ holds music-sync and no music-pull, and ~/.local/bin/music-sync is a live symlink into the bin package; a name-only listing of ~/.local/secrets shows MUSIC_R2_ACCESS_KEY_ID/MUSIC_R2_SECRET_ACCESS_KEY absent while MUSIC_R2_RO_ACCESS_KEY_ID/MUSIC_R2_RO_SECRET_ACCESS_KEY are present. Severity corrected high->medium: the script is inert on two counts today (both R2 and SFTP credential sets absent, so it exits 1 at line 64), and the token that actually exists uses the RO names the script never reads, so arming it requires deliberately minting a *different*, delete-capable pair under the retired names."
+  },
+  "security-5": {
+   "id": "security-5",
+   "verdict": "duplicate",
+   "dupOf": "altitude-3",
+   "note": "Same defect as altitude-3 (retired bucket-root `rclone sync` still stowed, music-pull never built); altitude-3 is the stronger writeup - it cites the correct line for R2_BUCKET (18, not 19), the plan's Task 8 delete-and-replace line, and the unused MUSIC_R2_RO_* token."
+  },
+  "simplification-2": {
+   "id": "simplification-2",
+   "verdict": "duplicate",
+   "dupOf": "altitude-3",
+   "note": "Same defect as altitude-3, argued from the simplification lens; its file evidence is correct but it adds nothing altitude-3 does not already carry, and altitude-3 additionally names the plan task and the idle read-only token."
+  },
+  "drift-2": {
+   "id": "drift-2",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "bringup-runbook.md:33-37 calls musicbox-navidrome a 'pull check' verifiable via 'the pings Worker's next cron ticks', but HISTORY.md:44 records it minted with `add-check musicbox-navidrome --period 60 --grace 15`, and add-check sets KIND=pull only when --pull/--expect-body are given (and dies on --period/--grace in that branch), so this is a push check; check-do.ts:141 confirms only push checks arm alarms and pull checks are cron-driven, and STATUS.md:42-44 confirms MUSICBOX_HC_NAVIDROME_URL is minted but unwired. Severity corrected high->medium: it is a documentation error in a handoff runbook with a bounded blast radius (a wasted verification step), not a defect in running code - though the armed-and-unpinged push check will also eventually fire a false alert, which the runbook step gives no one a reason to expect."
+  },
+  "operational-truth-2": {
+   "id": "operational-truth-2",
+   "verdict": "endorsed",
+   "severity": "high",
+   "note": "Survives counter-argument and the evidence is exact: STATUS.md:28 records acceptance 3e as 'Blocked - sqlite3/rclone missing on box... R2 confirmed empty via read-only lsjson'; a repo-wide grep for 'restore' returns only prose (music-backup:6, HISTORY:513, cloud-init:118-120) and the runbook's own forward reference at line 39 - no restore script exists in scripts/; README.md:5-6 nevertheless claims the box is 'provisioned from this repo and restorable from R2 alone'. The strongest counter I could raise is that Task 7 is already the next tracked action, so nothing is *forgotten* - but the finding's point is about framing, and it holds: STATUS's 'Current state' opens with 'musicbox is deployed and live' while the DR story is zero-for-zero in both directions, and the README states the untested property as fact."
+  },
+  "security-3": {
+   "id": "security-3",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "The spec does require both (music-vps-build-design.md:114-116: an object lifecycle rule expiring _archive/ after 90 days, and a bucket lock on _archive/ that 'prevents the box's own credentials from shortening or deleting the archive'; line 121 further asks for a build-time check on R2 object versioning). A repo-wide grep of musicbox for lifecycle/object lock/bucket lock/versioning returns nothing outside those flags at music-backup:35-36, and ROADMAP.md tracks only upload-check, arch-refinement, and oss-pair - so it is neither built nor tracked, and the spec's claim stands unqualified. music-backup:32-33 does use the read-write MUSICBOX_R2_* pair from the box's env file. Severity corrected high->medium: this is a defense-in-depth layer over a bucket that is currently empty (STATUS 3e), and the fix is one-time bucket configuration, not code."
+  },
+  "security-6": {
+   "id": "security-6",
+   "verdict": "endorsed",
+   "severity": "medium",
+   "note": "Argument survives. contributors.yaml:1-2 claims the file drives 'FileBrowser accounts (pass 1), the Access allow-list, Navidrome accounts, and the quality-gate notification map', but the only consumer in the repo is music-import's uploader_email()/first-name lookup (music-import:43, 83-92) via deploy.sh:194-197, and no repo file calls the Access API at all - HISTORY.md:314-323 shows the inbox.907.life app and its single-email allow policy created by hand with CF_ZT_TOKEN, with 'family emails join this policy at Task 8'. Best counter-argument, which does not kill it: three of the four claims are honestly forward-looking to Task 8, so this reads as a header written ahead of its implementation rather than drift. It still leaves a file that grants and revokes nothing while looking authoritative, and the missing revocation path is the half that does not arrive with Task 8 either - Task 8 creates accounts, nothing reconciles removals."
+  },
+  "security-10": {
+   "id": "security-10",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Evidence is accurate (music-backup:54-58 snapshots navidrome.db into staging, line 66 syncs it to music-library/state; compose.yaml:28-31 records that Subsonic token auth forces recoverable passwords; the spec's Secrets section scopes both R2 tokens to the whole music-library bucket). The strongest counter-argument: the separately-held ND_PASSWORDENCRYPTIONKEY is not actually held separately from the mirror token - both are in the workstation's age-backed ~/.local/secrets (name-only check confirms ND_PASSWORDENCRYPTIONKEY and MUSIC_R2_RO_* side by side), so the proposed bucket split buys nothing against the machine that holds the mirror token, which is the only machine that holds it. The residual exposure is real but narrow: a leaked or copied RO token reaching ciphertext it has no business seeing. HISTORY.md:328-331 also records the RO token as Object Read only, so it cannot alter the store."
+  },
+  "security-11": {
+   "id": "security-11",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Every cited line checks out (compose.yaml:48-53, filebrowser.yaml:44-63 with delete:true in userDefaults, STATUS.md:51-52 'Task 8 ... has not started', HISTORY.md:317-323 for the single-email Access policy). Strongest counter-argument: this is documented, deliberate, and doubly bounded - Task 8 is the tracked remediation for the shared admin account, the upload-check pass replaces the FileBrowser path outright (ROADMAP 'Planned'), and the finding's own fix section asks for no change now beyond registry hygiene and not widening the Access include list, which is already the plan's sequencing. A finding whose remedy is 'keep doing what the plan says' is scar-tissue observation rather than a defect; it survives only as a standing constraint on Task 8 ordering (accounts before emails), which is worth stating."
+  },
+  "security-2": {
+   "id": "security-2",
+   "verdict": "endorsed",
+   "severity": "medium",
+   "note": "Facts hold exactly (all three units carry only Description/Type/User/EnvironmentFile/ExecStart with no hardening directives, and all three read the full /etc/musicbox/env carrying the tunnel token, R2 keys, and both admin passwords), and the argument survives its best counter: config/msmtprc's own comment defends handing the whole env to the music process on the grounds that the alternative (group-readable /etc/musicbox/env) is no smaller a blast radius, but a per-unit env split is a third option that comment never considers, so the accepted tradeoff rests on a false dichotomy; severity trimmed to medium because exploitation still requires code execution as `music` via bsdtar/flac/beets on family-uploaded bytes."
+  },
+  "test-quality-1": {
+   "id": "test-quality-1",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified: music-import runs `set -euo pipefail` (line 2), lib.sh:107 ends ping_hc with a bare unguarded curl, the terminal `ping_hc import` at music-import:406 is the script's last statement, and the bats curl stub (tests/music-import.bats:66-84) has no exit path for a non---config call, so a real healthchecks outage turns a fully successful import into a nonzero exit that fires OnFailure=musicbox-ping-failure@import \u2014 contradicting HISTORY.md:184-186's \"can never ... be misreported\" \u2014 and no test can see it; severity lowered to medium since the impact is a false failure alert, not data loss or a silent success."
+  },
+  "security-4": {
+   "id": "security-4",
+   "verdict": "confirmed",
+   "note": "deploy.sh:251 is verbatim `command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh` inside an `ssh root@HOST bash -s` heredoc with no pin or checksum, while cloud-init/user-data.yaml:188-195 pins yq to v4.53.6 and runs `sha256sum -c -` before install with a comment endorsing exactly that pattern, and STATUS.md:49-50's uv exemption is written as a version-pinning ruling that says nothing about artifact integrity."
+  },
+  "systems-setup-3": {
+   "id": "systems-setup-3",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "The evidence is literally true (grep for healthcheck across compose.yaml returns nothing, and no depends_on condition either), but two things cut the severity hard: plain docker-compose `restart: unless-stopped` does NOT restart a container on healthcheck failure (only Swarm acts on health), so the proposed fix would mark cloudflared unhealthy without recovering it, and the estate's chosen detector for exactly this failure is already designed \u2014 the pings Worker's `*/5` cron pull checks plus the reserved MUSICBOX_HC_NAVIDROME_URL that STATUS.md:43 flags as unwired Task 6 work, which an external probe covers strictly better than an in-box liveness check."
+  },
+  "systems-setup-4": {
+   "id": "systems-setup-4",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "grep confirms no cap_drop/no-new-privileges/read_only anywhere in compose.yaml, but the claim that filebrowser \"runs with Docker's full default capability set\" is misleading: compose.yaml:18 and :47 set `user: \"2000:2000\"` on both navidrome and filebrowser, so those processes start with an empty effective capability set regardless of the bounding set \u2014 the finding survives mainly for cloudflared, which is the one service with no `user:` line, and for no-new-privileges as cheap setuid-escalation insurance."
+  },
+  "test-quality-5": {
+   "id": "test-quality-5",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Verified: music-import:169, :298 and :300 log-and-skip on an uploader absent from contributors.yaml with no bats case reaching them, the fixture at tests/music-import.bats:31-37 defines only alice and bob, and every stage/mkdir in the suite writes under inbox/alice; severity reduced to low because all three uncovered branches only skip a courtesy email while the item still reaches review/quarantine and Geoff's summary still fires, and the :300 branch additionally needs a contributors entry with an email but no name, which the file format makes unlikely."
+  },
+  "security-13": {
+   "id": "security-13",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "deploy.sh:169, :194 and :241 do stage through constant world-readable /tmp names with `rsync -avz` preserving the repo's 0644 before `install` fixes the mode to 0640 root:music, so the brief-exposure half is real; the pre-created-path race half is weaker than stated, since rsync writes a randomly-named temp file in the destination directory and renames over the target, which defeats a pre-planted symlink, and config/contributors.yaml's own header calls names and emails \"config, not secrets\"."
+  },
+  "security-12": {
+   "id": "security-12",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Every fact checks out (cloud-init disable_root: false with root as the sole key-holding account, music at nologin, deploy.sh:72 SSH_TARGET=root@HOST, and the ControlPersist=60s socket at deploy.sh:32-33), but the strongest counter is that the deploy's own actions are irreducibly privileged \u2014 rsync into /etc/systemd/system, install of /etc/musicbox/env as root:root 0600, docker compose, systemctl enable \u2014 so any sudoers entry covering them is root-equivalent in practice and buys audit trail rather than containment; the ControlPersist observation is the sharper, cheaper half of this finding."
+  },
+  "security-14": {
+   "id": "security-14",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "firewall-rules.json is exactly the single 0.0.0.0/0 + ::/0 tcp/22 rule described and provision.sh:101-116's jq predicate does require both CIDRs to consider the firewall correct, but both proposed narrowings carry real costs the finding does not weigh: a workstation egress range is not stable enough to lock a firewall to without regular console recovery, and Access-brokered SSH makes the recovery path depend on the tunnel running on the box being recovered, while key-only auth plus the dnf-automatic security-update timer (cloud-init /etc/dnf/automatic.conf) already blunts the pre-auth-CVE window this rests on."
+  },
+  "operational-truth-1": {
+   "id": "operational-truth-1",
+   "verdict": "confirmed",
+   "severity": "high",
+   "note": "Verified: music-beet:8 defaults LOCK_FILE to /run/lock/musicbox-import.lock while music-import:32 defaults to /run/musicbox/musicbox-import.lock; grep across scripts/, systemd/, env/, config/ shows MUSICBOX_IMPORT_LOCK_FILE is set nowhere on the box (only tests/music-import.bats:17 overrides it, which is exactly what masks the drift), deploy.sh:25 ships both scripts, and HISTORY.md:188-193 explicitly reasons about 'another scheduled run, or an interactive music-beet session' holding the same lock \u2014 so music-import's flock-held early-exit-with-success path is designed around a guarantee that no longer holds and two beets processes can now write library.db concurrently."
+  },
+  "simplification-1": {
+   "id": "simplification-1",
+   "verdict": "duplicate",
+   "dupOf": "operational-truth-1",
+   "note": "Same defect as operational-truth-1 (music-beet's stale lock-file default); operational-truth-1 is kept because it additionally rules out an env-template or systemd override as the escape hatch."
+  },
+  "altitude-1": {
+   "id": "altitude-1",
+   "verdict": "duplicate",
+   "dupOf": "operational-truth-1",
+   "note": "Same defect as operational-truth-1, and its line citation is off by one (LOCK_FILE is music-beet:8, not :7); its root-over-SSH failure scenario is worth folding into the kept finding's fix note."
+  },
+  "seed-1": {
+   "id": "seed-1",
+   "verdict": "confirmed",
+   "severity": "high",
+   "note": "Header at music-sync:1-12 does describe a PikaPods pod plus laptop-as-master topology that 2026-08-30-music-vps-build-design.md:5-13 supersedes, but the finding understates it: line 40 runs `rclone sync \"$LIBRARY\" \"musicr2:music-library\"` against the bucket ROOT with no --exclude, the same bucket music-backup:20,34-36 writes its library/, state/, and _archive/ trees into, so one run with MUSIC_R2_* still present in ~/.local/secrets would sync-delete the VPS backup \u2014 the fix is deleting or repointing the script, not rewriting the header."
+  },
+  "drift-4": {
+   "id": "drift-4",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "All three citations check out verbatim: design spec lines 119/130/148/164, plan lines 56/101/136/177/192, and lib.sh:89,94 all still name healthchecks.io, while pings/README.md:3 states the Worker replaced it; the one mitigating detail is pings/README.md:90, which documents that a MUSICBOX_HC_*_URL may legitimately point at healthchecks.io, so lib.sh's comments are stale-by-implication rather than false, and the completed plan is arguably a historical record \u2014 the design spec's Monitoring section is the piece a fresh reader would actually act on wrongly."
+  },
+  "test-quality-4": {
+   "id": "test-quality-4",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified: remove-check:70-71 deletes only check:$NAME and route:$NAME while src/index.ts:113-117 also deletes pull:${name}, and all three remove-check bats cases (tests/scripts.bats:163-191) use --period/--grace push checks with no pull check ever added-then-removed; the consequence is worse than stated because remove-check deletes check:$NAME unconditionally and deleteCheck 404s without it (src/index.ts:107), so a failed admin DELETE on a pull check orphans pull:<name> permanently with no path left to reach it."
+  },
+  "workers-2": {
+   "id": "workers-2",
+   "verdict": "endorsed",
+   "severity": "medium",
+   "note": "Survives: applyTransition (check-do.ts:113-124) awaits trySend \u2014 which awaits PINGS_KV.get/put and EMAIL.send (127-139), none of them ctx.storage calls \u2014 between the getState at line 49 and the storage.put at 122, and DO input gates only close around storage operations, so the read-modify-write window is genuinely unprotected; the strongest narrowing is that transition() returns a non-empty emails array only on the raiseAlert and recovery paths (logic.ts:79-80,140,166,171), so an emails-free ping or alarm never opens the window at all, but the alarm-fires-during-in-flight-ping interleave still clobbers lastPing/pingCount and resurrects `alerted`, which in a dead-man's-switch is a false alert."
+  },
+  "workers-5": {
+   "id": "workers-5",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The mechanism is real (check-do.ts:35-40 is a plain get-then-put, and KV's eventual consistency makes the divergence window far wider than a single request \u2014 two DOs in different colos can read the same stale count for up to a minute), but the counter-argument is that an 'undercount' of a counter that gates sends is logically the same phenomenon as overshooting the cap, and the comment at 26-29 already declares the value a soft reputation backstop and explicitly not a security control, so this is a comment-precision nit rather than a defect the code is unaware of."
+  },
+  "workers-6": {
+   "id": "workers-6",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The mechanism is confirmed and even sharper than claimed \u2014 handleInit calls scheduleNextAlarm(state, state.createdAt) at check-do.ts:101, so with armingMin:0 dueAt equals now exactly, not by millisecond drift, and line 154 schedules now+5min \u2014 and add-check:93-94 accepts --arming 0. The counter-argument that lowers it: an armingMin of 0 asks for a never-armed alert at the instant of creation, which is degenerate, and handleAlarm (logic.ts:150-154) then fires the alert correctly five minutes later, so the only harm is a five-minute delay on an alert nobody wants sooner; what survives is the clarity point that one comparison silently serves two unrelated cases."
+  },
+  "test-quality-7": {
+   "id": "test-quality-7",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Factually accurate \u2014 tests/stubs/curl:31-34 returns 000 on every probe attempt regardless of count, and grep shows PROBE_RETRIES has no assertion anywhere, so the retry contract at provision.sh:139 is untested. The counter-argument: provision.sh:129-131 and the test's own comment at tests/scripts.bats:244-246 both state plainly that these env vars exist only to collapse the wait, so the test never claims to cover retries and its framing is not misleading; the residual finding is a genuine but minor coverage gap, not a test that lies about what it pins."
+  },
+  "drift-1": {
+   "id": "drift-1",
+   "verdict": "confirmed",
+   "severity": "high",
+   "note": "All three checks hold: music-vps-build-design.md:152 states \"`music-sync` ... is replaced by `music-pull`\" in the present tense; /var/home/glw907/.dotfiles/bin/.local/bin/music-sync is unchanged (header still \"Push the master music library (~/Music) to its two replicas ... the Navidrome pod on PikaPods\") and still listed in bin/.local/bin/; no music-pull exists anywhere under ~/.dotfiles; plan Task 8 is unchecked; STATUS.md:51-52 names only four Task 8 items. The finding actually understates the risk: music-sync:41 runs `rclone sync \"$HOME/Music\" \"musicr2:music-library\"` against the same account (120c269ad6d3dfbe6d63a0bb53758ca0) and the same bucket music-backup now writes to, but at the bucket ROOT, so one run with the old MUSIC_R2_* credentials present would delete the box's library/, state/, and _archive/ prefixes. This is a live destructive path, not only doc drift, so high is right or understated."
+  },
+  "systems-setup-2": {
+   "id": "systems-setup-2",
+   "verdict": "endorsed",
+   "severity": "medium",
+   "note": "Factually exact: music-import.service, music-backup.service, and musicbox-ping-failure@.service carry only Type/User/RuntimeDirectory/EnvironmentFile/ExecStart, and cloud-init/user-data.yaml:206-212 does frame flac/ffmpeg as a codec-parsing attack surface over untrusted uploads. The argument survives, but severity drops to medium on the counter that hardening is defense in depth only here: the unit must keep write access to /srv/music and systemd injects the R2 write keys and Navidrome admin password into the process environment from /etc/musicbox/env, so ProtectSystem/NoNewPrivileges would not protect the two assets a flac/ffmpeg RCE actually wants, and the charter already carries it as a named open item rather than an undiscovered gap."
+  },
+  "failure-modes-5": {
+   "id": "failure-modes-5",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified: music-import:64 and :406 and music-backup:72 are bare `ping_hc` statements under `set -euo pipefail`, and lib.sh:107 ends with an unguarded `curl -fsS --retry 3 --max-time 10`, so a curl failure (not the empty-var case guarded at lib.sh:100-103) propagates and aborts. The if-body at line 64 is not exempt from set -e. The contradiction with lib.sh:92-95's stated principle (\"monitoring must never take down the pipeline it monitors\") is real; the concrete harm is that systemd marks the unit failed and OnFailure fires musicbox-ping-failure@import, actively flipping the check down over a monitoring hiccup rather than merely missing one ping."
+  },
+  "simplification-4": {
+   "id": "simplification-4",
+   "verdict": "endorsed",
+   "severity": "low",
+   "note": "Both halves check out: musicbox/scripts/provision.sh parses --check (lines 24-35), prints a plan and exits 0 with no side effects, and guards every create with an _exists check; pings/scripts/provision.sh has no --check anywhere and lines 101-106 unconditionally `openssl rand -hex 32` then push to both wrangler and the age store. Severity corrected down to low: the rotation writes both stores in the same run, so the only invalidated copy is one another shell or a warm Worker instance holds, and the header comment (lines 7-10) documents it. The estate-level naming point (one `provision.sh` contract across repos) survives, and the divergence-if-secret-set.sh-fails window at line 105 is the sharper edge."
+  },
+  "altitude-9": {
+   "id": "altitude-9",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The evidence is accurate (STATUS.md:51-52 lists four items against plan Task 8's six, and the two dropped ones are exactly the ~/.dotfiles-side deliverables), but it shares its only concrete instance with drift-1, and one instance is thin support for a new estate-wide cross-repo ledger convention. Counter-argument: the plan file itself is the cross-repo artifact and it does carry the item as an unchecked deliverable, so the information is not actually lost from the pass's execution ledger, only from the per-repo STATUS summary \u2014 which STATUS is explicitly allowed to be, being capped at 60 lines and scoped to its own repo."
+  },
+  "operational-truth-6": {
+   "id": "operational-truth-6",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Verified by grep across scripts/, systemd/, config/ and docs/: QUARANTINE_FAILED_DIR appears only at music-import:27 (definition) and :266 (write), and sweep_review at :374-376 walks only $REVIEW_DIR. Nothing else in the repo ever reads, sweeps, or reports on that directory, so anything landing there persists indefinitely with only the one-time Geoff email as a signal."
+  },
+  "failure-modes-8": {
+   "id": "failure-modes-8",
+   "verdict": "endorsed",
+   "severity": "low",
+   "note": "Confirmed as stated: the stage_user_uploads loop runs at music-import:378-389 and free_space_ok is not called until :392, and safe_extract (lib.sh:43-62) caps only the on-disk archive size, never the expanded size. The argument survives adversarially \u2014 a pre-staging check is one line and would catch the already-low case \u2014 though its practical weight is limited by two things: FLAC in a ZIP barely compresses, so extraction roughly doubles a bounded 2GiB-per-archive footprint rather than expanding without bound, and the genuinely unguarded surface is the FileBrowser upload itself, which belongs to the upload-check pass."
+  },
+  "workers-7": {
+   "id": "workers-7",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Exact: pings/scripts/provision.sh:131-135 is `curl -s -o /dev/null -w '%{http_code}' \"$@\" \"$url\"` with no --max-time or --connect-timeout, and neither call site (lines 140-141) supplies one \u2014 line 141 passes only -X POST. curl's default has no total-time cap and a ~300s connect timeout, so a hung TLS handshake against a not-yet-live custom domain can far exceed the PROBE_RETRIES*PROBE_SLEEP budget the comment at 128-130 describes."
+  },
+  "simplification-5": {
+   "id": "simplification-5",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Verified verbatim: uploader_email (music-import:86-92) and uploader_name (:102-108) each open with the same `[ -f \"$CONTRIBUTORS_FILE\" ] || return 0` guard and their own `yq -o=json ... | jq` pipeline over the same static file, and both are called per uploader at :295-296 inside quarantine_quality_failures's loop, with uploader_email called again at :164 in move_skips_and_notify. Cost is trivial at family scale, so low is correct; the duplicated idiom is the real finding."
+  },
+  "test-quality-6": {
+   "id": "test-quality-6",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The facts hold: HISTORY.md:273 does call the branch \"(untested, believed-unreachable without a fully read-only filesystem)\", grep for \"COULD NOT MOVE\" returns nothing under tests/, and music-import.bats:408-440 exercises only the single-failure case via chmod 0555 on review/. Counter-argument that lowers confidence: this branch is not actually in the set-e-in-pipeline/mv-collision class the two prior fix rounds patched \u2014 it contains no pipeline and no collision handling, just a string append and `continue` \u2014 and reaching it requires $MUSICBOX_ROOT itself to be unwritable, a state in which the logfile and beets database writes would already be failing, so the run under test would not resemble the real failure anyway."
+  },
+  "workers-1": {
+   "id": "workers-1",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Mechanism confirmed \u2014 index.ts:88-103 has no try/catch and no compensating DELETE, and deleteCheck's push path (index.ts:110) can only reach the DO via route:<name>, so a KV failure after a successful /init orphans an addressable-by-nobody DO; but the stated consequence is wrong and the severity with it: logic.ts:151 and check-do.ts:146 stop a never-armed check after its single alert (no alarm is rearmed once alerted with lastPing undefined), so the orphan sends at most one email and then goes permanently quiet rather than alerting hourly forever."
+  },
+  "workers-3": {
+   "id": "workers-3",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "index.ts:110-117 verified exactly as claimed \u2014 a falsy address skips the DO DELETE with no log and still deletes the KV records and returns 200 \u2014 and the 'alarm armed indefinitely' consequence holds for any check that had pinged, since check-do.ts:154 keeps rescheduling now+RETRY_DELAY_MS every 5 minutes once the deadline is in the past."
+  },
+  "operational-truth-3": {
+   "id": "operational-truth-3",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Every leg checks out: pings/docs/HISTORY.md:12 records musicbox-disk registered live at 60/15 (armingMin defaults to periodMin at index.ts:65), musicbox greps show ping_hc only ever called with 'import'/'backup' (music-import:64,394,406; music-backup:41,62,68,72), and logic.ts:150-154 plus check-do.ts:145-147 together give exactly one never-armed email followed by no rearmed alarm at all \u2014 permanently silent, and permanently [ALERTED] in the digest (logic.ts:204) until a real ping arrives; severity trimmed to medium because the blast radius is one spurious email plus a stuck flag on a check nothing yet depends on."
+  },
+  "drift-5": {
+   "id": "drift-5",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "README.md:6-7 does assert 'restorable from R2 alone' flatly while the design spec line 58 explicitly refuses to assert it ('proven by a restore drill, not asserted') and plan Task 7's two checkboxes (lines 197-202) are both unchecked; the drift is worse than the finding says, since STATUS.md's acceptance row 3e records the first music-backup run as Blocked with R2 'confirmed empty', making the README claim not merely unproven but false as of today."
+  },
+  "security-15": {
+   "id": "security-15",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Every cited fact verified \u2014 cloud-init/user-data.yaml:116 chmods /srv/music/state 0755, deploy.sh:172 installs /etc/msmtprc 0644, and that state dir holds library.db (beets-config.yaml:11), the Navidrome data volume (compose.yaml:34), msmtp.log (msmtprc:22) and per-run import logs (music-import:71) \u2014 and the finding is honest that root plus the nologin music user (uid 2000) are the only accounts today, which is what keeps this correctly at low."
+  },
+  "test-quality-3": {
+   "id": "test-quality-3",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The evidence overstates the gap: integration.test.ts:162, :199 and :243 all seed push checks with graceMin: 0 and drive real alarms through overdueAt(), so the arithmetic layer is not untested with a zero \u2014 what actually survives is the narrower point that none of those cases discriminates the zero (lastPing is ~11.5 days stale, so they stay green under a `graceMin || 15` regression) and armingMin: 0 appears nowhere in any suite (:183 and :222 use 1), which is a real but low-severity boundary-coverage gap rather than a falsy-zero class left unproven."
+  },
+  "simplification-6": {
+   "id": "simplification-6",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The strongest counter is that the loop is a fail-open-to-coverage mechanism, not speculative generality: it auto-enrolls any script added to scripts/ later, which is precisely the failure mode pings' hardcoded list carries (that list already had to be hand-extended to tests/stubs/*), and three of the four arms are live today \u2014 the bash-shebang arm (7 files), the `# shellcheck shell=bash` arm (lib.sh, which a naive glob would break on), and the fall-through arm that correctly excludes firewall-rules.json; only the non-bash-shebang arm is unexercised."
+  },
+  "workers-4": {
+   "id": "workers-4",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The sequential shape is real (index.ts:153, :197) but the ceiling is far away and the counter-argument is strong: each probe is hard-capped at PROBE_TIMEOUT_MS=10s by a race that bounds the body read too (index.ts:138-149), the cron tick is 5 minutes, and per-check errors are already caught so one bad target cannot abort the rest \u2014 dozens of checks would fit before wall time bites, while Promise.allSettled would add subrequest-concurrency pressure and muddy per-check error attribution for no benefit at N=3."
+  },
+  "systems-setup-1": {
+   "id": "systems-setup-1",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "The observable half is confirmed \u2014 neither repo has .github/, an installed hook, core.hooksPath, a Makefile, or (checked) any git remote at all, so check.sh runs only when a human types it \u2014 but the headline misreads the comment, which says the script exits nonzero 'so it can be wired into CI or a pre-push hook unmodified' (a true capability statement about its exit contract) rather than claiming it is wired, and with no forge behind either repo the proposed workflow file has nothing to run on, which is why this drops from high to low."
+  },
+  "failure-modes-1": {
+   "id": "failure-modes-1",
+   "verdict": "confirmed",
+   "severity": "high",
+   "note": "Verified: lib.sh:78-85 notify() ends in `... | msmtp \"$email\"` with no guard, and all four call sites (music-import:166, 172, 308, 320) are bare simple commands; being inside an if/else body does not exempt them from errexit, and music-import runs `set -euo pipefail` (line 2) with quarantine_quality_failures called bare at line 398 \u2014 before `beet import` at line 400 \u2014 so one msmtp failure aborts the run with albums already moved out of staging by safe_mv_to_review. Only mitigation the finding omits: music-import.service carries OnFailure=musicbox-ping-failure@import.service, so the abort pages rather than going silent; severity stays high because the run still dies before import."
+  },
+  "failure-modes-2": {
+   "id": "failure-modes-2",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified: stage_user_uploads (music-import:113-130) passes the same per-user `$dest` to safe_extract for every entry in the loop (call site line 388), and safe_extract (lib.sh:60-61) does `mkdir -p; bsdtar -xf ... -C \"$destdir\"` with bsdtar's default overwrite, while unique_dest_path/safe_mv_to_review (lib.sh:167-208) exist in the same file precisely to prevent this; the non-archive `mv \"$entry\" \"$dest/\"` at line 126 is bare and does fail (\"Directory not empty\") when a same-named non-empty directory is already there. Severity trimmed to medium: the realistic collisions are cover.jpg/folder.jpg or a re-upload of the same album (benign overwrite), the aborting mv case is alerted by the unit's OnFailure ping, and losing a distinct track needs two flat archives sharing a track filename in one batch."
+  },
+  "failure-modes-4": {
+   "id": "failure-modes-4",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Mechanism verified: music-backup:48-58 guards BEETS_DB and NAVIDROME_DB with `[ -f ]`, line 60 syncs LIBRARY_DIR with no existence or non-emptiness check, rclone_backup_sync (lines 27-37) does a plain `rclone sync` with --backup-dir, and line 72 pings success \u2014 an empty-but-present library therefore moves the whole R2 `library/` prefix into `_archive/library/$DATE_STR` and reports green. The specific trigger named is refuted, which is why severity drops: cloud-init/user-data.yaml:100-118 creates /srv/music as root:root *before* the volume mounts and only chowns to 2000:2000 after, so on an unattached-volume boot /srv/music/library does not exist and rclone sync errors on a missing local source (caught by the guard at line 60, fail ping at 62); and no R2 lifecycle rule exists anywhere in the repo, so the archived copy is recoverable. The guard asymmetry and the green ping on an emptied live prefix stand."
+  },
+  "failure-modes-3": {
+   "id": "failure-modes-3",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified: the header at lib.sh:326-329 promises best-effort, but only the curl at 367-368 is guarded; the jq assignment (352), od assignment (356), mktemp assignment (360) and bare chmod (364) all abort under errexit, and music-import:404 calls the function bare, so sweep_review (405) and the success `ping_hc import` (406) are skipped after a successful `beet import`. Severity trimmed to medium: the OnFailure unit turns this into a false alarm rather than a silent hang, Navidrome's daily Scanner.Schedule backstop covers the missed scan, and mktemp/jq failing on a tmpfs RuntimeDirectory is remote. The documented-contract-vs-implementation mismatch is the real finding and it holds."
+  },
+  "failure-modes-6": {
+   "id": "failure-modes-6",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified at lib.sh:123-136: the case is an allowlist of one (flac) plus a *denylist* of six (mp3|m4a|ogg|opus|wav|aiff), with `*) continue ;;` for everything else. The strongest instance is stronger than the one claimed: .wma, .mpc, .ape, .wv and .dsf are all formats beets/mediafile does import, so a lossy .wma or .mpc passes the gate untouched and lands in the library, defeating the FLAC-only rule at lines 112-113. The extension-less case the finding leads with is weaker (beets keys on extension too, so such a file is more likely to sit in staging than to be imported), and lib.sh:114-116 documents the extension scoping as deliberate \u2014 but a denylist where the invariant demands an allowlist is a defect regardless of intent."
+  },
+  "drift-3": {
+   "id": "drift-3",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified: pings/README.md still reads \"Provisioning (`scripts/provision.sh`) and the check-management scripts (`scripts/add-check`, `scripts/remove-check`) are Task P2a, not yet built in this pass. Once they exist: ...\" while all three files exist executable in scripts/ across 9 commits (22dbfff..84758f7), and musicbox/docs/HISTORY.md:44 records add-check already run against the live Worker for musicbox-navidrome. Severity corrected to medium: the paragraph misleads a reader and buries the real usage recipe in future tense, but nothing executable depends on it."
+  },
+  "operational-truth-5": {
+   "id": "operational-truth-5",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "The factual core holds: full read of scripts/music-backup shows no flock/`exec 200>`/lock reference anywhere, against music-import:61-66 and music-beet:10-14. The named trigger is wrong, which is why severity drops to low: systemd/music-backup.service is a plain non-templated Type=oneshot unit, so the runbook's `systemctl start music-backup` (bringup-runbook.md:22) cannot produce a second concurrent instance \u2014 systemd merges the start job into the running one. Concurrency needs a direct shell invocation of /usr/local/bin/music-backup while the 11:30 UTC timer fires, a narrow window. Worth noting separately: music-beet:8 defaults LOCK_FILE to /run/lock/musicbox-import.lock while music-import:32 defaults to /run/musicbox/musicbox-import.lock, so the mutual exclusion those two claim only exists when the env var is set."
+  },
+  "altitude-8": {
+   "id": "altitude-8",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Evidence checks out exactly as quoted (the `_comment` carries the PUT recipe in prose; STATUS.md:45-48 confirms nothing reads the file; pings/scripts/provision.sh:47-63 implements cf_api() with the token off argv), and the drift half of the argument survives: nothing can tell whether the committed JSON still matches the live tunnel ingress. The strongest counter is against the fix, not the observation. This is a one-shot bringup PUT for a single VPS with three ingress rules, applied once at Task 5 and re-applied only if a hostname changes; lifting cf_api() into a shared cross-repo shell library to serve it creates a new coupling (two repos versioned against a dotfiles lib) that is itself an altitude cost, and the `_comment` is doing real work \u2014 it documents *why* a local ingress file is ignored for a token-run tunnel, with upstream issue references. A `scripts/apply-tunnel-config.sh --check` local to musicbox, duplicating a dozen lines of curl, would capture the value without the shared-library trade."
+  },
+  "workers-8": {
+   "id": "workers-8",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The coupling is real and quoted accurately (add-check:123-140 greps stderr for a digit-guarded 404). Counter-argument: the design already fails closed in the direction that matters \u2014 every non-404 non-zero exit hits `die`, so an outage cannot read as \"absent\"; only a stray literal 404 in some future wrangler error text could, and the residual risk is then bounded by the `--force`-less overwrite path plus the exit-0 branch's JSON-parse check. The comment above the function already documents the wrangler internal it depends on (fetchKVGetValueBase throwing rather than returning a not-found sentinel), so this is a documented dependency rather than an unexamined one, and no structured alternative exists in `wrangler kv key get` today. The residual ask \u2014 pin the verified wrangler version in that comment so a bump is a deliberate re-check \u2014 is worth doing and is what survives."
+  },
+  "failure-modes-7": {
+   "id": "failure-modes-7",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Verified: lib.sh:360-365 registers only `trap 'rm -f \"$config_file\"' RETURN`, and neither music-import nor lib.sh registers any EXIT or signal trap; a RETURN trap does not fire on SIGTERM/SIGKILL, so a killed run strands the 0600 file containing the Subsonic query string (md5(admin_password+salt) plus the salt) in /run/musicbox. Severity low is right: /run is tmpfs so it clears at reboot, the mode is 0600 owned by music, and the exposure is an offline crack target for one salt rather than a reusable credential."
+  },
+  "security-1": {
+   "id": "security-1",
+   "verdict": "confirmed",
+   "severity": "high",
+   "note": "Every cited line checks out: lib.sh:105-107 appends /fail and issues a plain GET (`curl -fsS --retry 3 --max-time 10 -o /dev/null \"$url\"`, no -X), index.ts:248 gates the fail route on `request.method === \"POST\"` and index.ts:260 returns 404 otherwise, check-do.ts:66 is POST-only too, music-import:394 and music-backup:41/62/68 call it as bare commands under `set -euo pipefail`, musicbox-ping-failure:19 does nothing else, and tests/lib.bats asserts the exact GET form \u2014 so the explicit-failure path is entirely dead estate-wide; the only mitigant is that silence detection still alerts after period+grace (75 min for import, ~27h for backup), which delays rather than removes the alert."
+  },
+  "altitude-2": {
+   "id": "altitude-2",
+   "verdict": "duplicate",
+   "dupOf": "security-1",
+   "note": "Same defect (GET vs POST on /ping/<slug>/fail) with the same evidence; security-1 is the stronger writeup because it also names the tests/lib.bats lock-in and the env-template wording."
+  },
+  "security-7": {
+   "id": "security-7",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "lib.sh:47-51 caps only `stat -c%s` of the archive and lib.sh:61 runs `bsdtar -xf` with no uncompressed-size, member-count, or per-member limit, and music-import's staging loop (379-389) runs every contributor before `free_space_ok` at line 392, so nothing bounds extracted bytes; the threat model softens it (contributors are authenticated family behind Cloudflare Access, so a deliberate bomb is unlikely) but the accidental multi-contributor case on a 50 GB volume with MIN_FREE_GB=5 is enough to keep this at medium."
+  },
+  "security-8": {
+   "id": "security-8",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Factually exact \u2014 lib.sh:107 is the one curl in the estate that puts a credential-equivalent URL on argv, while music-import's trigger_navidrome_scan (comment at 338-341, config file at 360-367), pings/scripts/add-check's config block, and pings/scripts/provision.sh's cf_api all use mode-0600 `--config` files for the same reason; severity corrected to low because the box today has no untrusted local users (root plus the `music` service user, with the three containers in their own PID namespaces), so the exposure is an internal-consistency defect rather than a live leak."
+  },
+  "security-9": {
+   "id": "security-9",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Confirmed: quality_gate's `find \"$dir\" -type f -print0` (lib.sh:156) tests the link itself and so never decode-tests or rate-checks a symlink, safe_extract validates only member path strings via _no_traversal_member (lib.sh:25-35, 53-58) and never a link member's target, and music-import:126 `mv \"$entry\" \"$dest/\"` moves whatever was uploaded; one nit \u2014 beets' `move: yes` is at config/beets-config.yaml:15, not :14 \u2014 and the practical blast radius is bounded (beets moves the link rather than dereferencing into the library), but the only-FLAC gate is genuinely bypassable by a symlink named *.flac."
+  },
+  "altitude-10": {
+   "id": "altitude-10",
+   "verdict": "confirmed",
+   "severity": "medium",
+   "note": "Verified verbatim: the spec's Monitoring section still reads \"Four healthchecks.io checks (free tier)\" and lists \"healthchecks ping URLs\" under Secrets, plan Task 6 says \"Create the four healthchecks.io checks via API\", `grep -n pings` over the whole spec chain returns only two incidental verb uses and never the Worker, while pings/README.md:3 and pings/docs/STATUS.md:11-14 hold the real implementation and the MUSICBOX_HC_* registrations \u2014 and the naming persists through env/musicbox.env.template:30, lib.sh:89/94, music-import:56, both unit comments, and musicbox-ping-failure:6."
+  },
+  "simplification-3": {
+   "id": "simplification-3",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "The duplication is exactly as described \u2014 deploy.sh:151-173 and 175-198 are the same reachability-check / `diff -q` against a remote `cat` / rsync-to-/tmp-then-`install` shape differing only in path, mode, and owner, with the env-file block at 129-149 a third instance \u2014 but severity corrected to low: it is two ~20-line blocks in a deploy script, and the parameter list a shared helper would need (mode, owner:group, `-D` or not, in-memory vs rsync source, distinct 'diff not shown, it's secrets' messaging) eats much of the saving."
+  },
+  "operational-truth-4": {
+   "id": "operational-truth-4",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The mechanical core holds \u2014 deploy.sh's SCRIPT_FILES (line 25) includes music-import and lib.sh and rsyncs them at line 122 with no dnf involved, so the Subsonic scan-trigger fix needs only a deploy.sh re-run \u2014 but two counters: the conflation actually lives in HISTORY.md:35-36 (\"Neither fix has reached the already-provisioned live box yet (cloud-init is first-boot-only)\"), not in STATUS.md:33, whose Open item is scoped to the five packages by name; and the up-to-24h staleness has no victim yet, since seed content is still pending and the last live import ran against an empty inbox."
+  },
+  "systems-setup-5": {
+   "id": "systems-setup-5",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Factually right (both timers carry only OnCalendar/Persistent/Unit, zero RandomizedDelaySec in systemd/), but the argument barely survives its own fix text: on a single box there is no herd to spread, music-import's 10-minute quiescence window already decouples upload arrival from processing time, and the 'reduces predictability' benefit is nil for a job reachable only through Cloudflare tunnels."
+  },
+  "systems-setup-6": {
+   "id": "systems-setup-6",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "The facts hold \u2014 firewall-rules.json's single rule is tcp/22 from 0.0.0.0/0 and ::/0, and a case-insensitive grep for fail2ban/sshguard/MaxAuthTries/PerSourcePenalties across the musicbox tree returns nothing \u2014 but the counter is strong: with ssh_pwauth false plus the PasswordAuthentication no drop-in (cloud-init/user-data.yaml:11, 39-43), brute force is already impossible, fail2ban introduces a lockout path on a box whose only management channel is SSH, and it does nothing at all for the pre-auth CVE surface the finding cites as its remaining justification."
+  },
+  "altitude-4": {
+   "id": "altitude-4",
+   "verdict": "endorsed",
+   "severity": "medium",
+   "note": "The cross-repo split is real (pings/docs/STATUS.md:13-15 holds the only period/grace record; musicbox declares nothing \u2014 env/musicbox.env.template:30-39 names URLs only), but the cited drift evidence is wrong: period 60/grace 15 against a 15-min OnCalendar and 1560/60 against a daily timer are deliberate slack, the correct healthchecks pattern, not drift. The argument survives on stronger evidence I found instead \u2014 musicbox/docs/HISTORY.md:44-46 records `musicbox-navidrome` registered via pings' add-check on 2026-08-31, while pings/docs/STATUS.md:14-15 still lists three checks and says navidrome 'waits for musicbox Task 6'; the prose ledger has already gone stale exactly as predicted. Severity trimmed to medium: worst case is a missed backup or import going unnoticed, and the workstation ~/Music remains the master copy."
+  },
+  "altitude-5": {
+   "id": "altitude-5",
+   "verdict": "confirmed",
+   "note": "Verified from files alone, no live box needed: musicbox/scripts contains no disk-space script and systemd/ no disk timer (only music-import.{service,timer}, music-backup.{service,timer}, musicbox-ping-failure@.service); the only ping_hc call sites are `ping_hc import` (music-import:64,394,406) and `ping_hc backup` (music-backup:41,62,68,72). musicbox/docs/STATUS.md:42-44 concedes both URLs are minted but unwired. The alerting consequence checks out in src/index.ts:65 (`armingMin = body.armingMin ?? body.periodMin`) plus check-do.ts:143-148 (never-pinged push check alarms at createdAt+armingMin, then `if (state.alerted) return`). Stronger than reported: musicbox/docs/HISTORY.md:44-46 records `musicbox-navidrome` registered the same way ('mirroring musicbox-disk's already-accepted pre-minted-but-unwired state'), so there are two armed pingerless checks, not one."
+  },
+  "altitude-6": {
+   "id": "altitude-6",
+   "verdict": "endorsed",
+   "note": "Both halves verified. musicbox/scripts/provision.sh:4-6 states the check-before-create contract, parses `--check` at lines 24-35 and branches at 132-160. pings/scripts/provision.sh has no CLI argument parsing at all (the only `shift` is inside probe_http_status at line 133) and unconditionally runs `openssl rand -hex 32` -> `wrangler secret put ADMIN_TOKEN` -> secret-set.sh at lines 101-105, with the hazard documented in its own header at lines 8-10 and recorded as having fired in pings/docs/STATUS.md:26-28. Counter-argument considered and rejected as insufficient: the two scripts provision different substrates, and a secret-establishing script rotating on first run is defensible \u2014 but that does not justify same-name, same-slot scripts whose re-run safety is opposite, nor the absence of any dry-run."
+  },
+  "altitude-7": {
+   "id": "altitude-7",
+   "verdict": "endorsed",
+   "note": "Verified: config/contributors.yaml's header claims four consumers; the only reader is music-import's uploader_email()/uploader_name() (lines 86-108, via CONTRIBUTORS_FILE:43), deploy.sh:175-198 only rsyncs it to /etc/musicbox/, and config/filebrowser.yaml:14 merely mentions it in a comment. Plan lines 163-164 create the Access policy by hand from the file and lines 213-215 create Navidrome/FileBrowser accounts by hand. Strongest counter \u2014 three contributors, changes are rare, and the FileBrowser half is pass-2 work anyway \u2014 does not dissolve it: a stale Access allow-list entry for a removed member fails silently and is a security fact, and a file that names itself the source of truth for three systems that never read it is a false altitude claim regardless of scale."
+  },
+  "altitude-11": {
+   "id": "altitude-11",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Facts hold: lib.sh:87-108 encodes the whole client side (MUSICBOX_HC_<SLUG>_URL derivation, no-op-when-unset, --retry 3 --max-time 10) and the prefix is hardcoded, while pings ships nothing consumable. But the strongest counter is in pings' own README: the exit-path section (lines ~88-92) states that retiring the Worker means pointing the env var at a healthchecks.io URL with no code change anywhere \u2014 the wire contract is deliberately healthchecks.io's published protocol (URL, /fail suffix), an external standard pings does not need to redefine. What is left unshared is consumer-side policy (retry budget, fail-open on unset), which is legitimately the consumer's choice, not the monitor's contract. The finding survives as a documentation gap, not a missing contract."
+  },
+  "altitude-12": {
+   "id": "altitude-12",
+   "verdict": "endorsed",
+   "severity": "low",
+   "note": "Verified exactly: musicbox/scripts/check.sh:24-51 discovers bash files by shebang/directive/extension and accumulates `status=1` across shellcheck, bats, docker compose config and systemd-analyze (lines 10, 46, 55, 61, 83, 92-97) so every stage runs; pings/scripts/check.sh:4 is `set -euo pipefail` with a hardcoded list at lines 10-11 (`scripts/provision.sh scripts/add-check scripts/remove-check scripts/check.sh tests/stubs/*`), so a new script escapes shellcheck silently and the first failing stage aborts the rest. Low severity is right \u2014 this is convergence hygiene, and pings' list currently covers every script that exists."
+  },
+  "altitude-13": {
+   "id": "altitude-13",
+   "verdict": "downgraded",
+   "severity": "low",
+   "note": "Both duplication claims verified (account ID at musicbox/scripts/music-backup:19, .dotfiles/bin/.local/bin/music-sync:17, pings/scripts/provision.sh:17, and inside config/cloudflared-tunnel-config.json's _comment; curl-config blocks at pings provision.sh:47-63, add-check:109/183-186, remove-check:40-53, musicbox/scripts/music-import:342-368). Two counter-arguments blunt it. The proposed shared dotfiles helper is unreachable from three of the call sites: music-import and music-backup run ON the VPS, which has no ~/.dotfiles. And music-import's block is not a Cloudflare call at all \u2014 it is a Navidrome Subsonic URL \u2014 so it is the same idiom, not the same helper; the real de-duplication opportunity is the three sites inside pings alone, where it is trivial. The account ID is also a non-secret identifier already canonicalized in cloudflare-estate-inventory.md."
+  },
+  "altitude-15": {
+   "id": "altitude-15",
+   "verdict": "endorsed",
+   "severity": "low",
+   "note": "Verified: musicbox-named fixtures at test/logic.test.ts:8,156-157, test/integration.test.ts:294-323, and throughout tests/scripts.bats (lines 50-128); pings/docs/STATUS.md:41-43 blocks pings' own Task P3 on musicbox Task 6 and assigns 'the musicbox script hardening and ledger updates' to pings' plan; musicbox/ROADMAP.md:24-30 ('oss-pair') proposes publishing pings publicly. Counter \u2014 fixture names are cosmetic and realistic names aid readability \u2014 is fair for the tests but does not touch the load-bearing half, which is pings' plan owning work in musicbox's tree. Low severity given the oss-pair preconditions are months out."
+  },
+  "altitude-14": {
+   "id": "altitude-14",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Verified: 2026-08-30-music-library-design.md:3 still reads 'streams it to family through a Navidrome pod on PikaPods' and lines 21-23 describe music-sync as the live push tool, with no supersession banner anywhere in the file (grep for 'supersed' matches only the newer spec). 2026-08-30-music-vps-build-design.md:5 carries the one-directional pointer. The plan's Task 8 'Files' block (line 208-209) explicitly owes '~/.dotfiles/docs/superpowers/specs/ cross-reference note', and musicbox/docs/STATUS.md confirms Task 8 has not started, so the note is genuinely outstanding rather than done elsewhere."
+  },
+  "test-quality-2": {
+   "id": "test-quality-2",
+   "verdict": "confirmed",
+   "severity": "low",
+   "note": "Verified: src/index.ts:56-64 validates periodMin/graceMin by `typeof` only, with no range guard, and armingMin defaults to periodMin at line 65, so `{periodMin: 0}` or a negative value persists and drives scheduleNextAlarm (check-do.ts:143-148) to a permanently-past deadline that re-arms every RETRY_DELAY_MS. The asymmetry with the client is real (scripts/add-check:21,88 rejects period < 1; tests/scripts.bats:67-76 covers 0 and -5 client-side only) and the sole Worker-level create-validation test (test/integration.test.ts:145-157) exercises graceMin: 0 only \u2014 grep for periodMin: 0 / negative across test/ and tests/ returns nothing. Severity trimmed to low: reaching this needs the ADMIN_TOKEN and a hand-rolled POST bypassing the only client, on an internal-only admin surface with a single operator."
+  }
+ }
+}
