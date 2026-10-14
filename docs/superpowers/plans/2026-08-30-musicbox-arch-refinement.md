@@ -3,7 +3,7 @@
 **Goal:** Adversarial review of the musicbox estate as built, producing verified,
 ranked findings, then a fix wave sized by triage.
 
-**Charter:** `~/.dotfiles/docs/superpowers/specs/2026-08-30-architecture-refinement-charter.md`
+**Charter:** `~/Projects/dubplate/docs/superpowers/specs/2026-08-30-architecture-refinement-charter.md`
 (frame ratified 2026-08-30). Geoff's kickoff steers, same day: start with a
 considered adversarial review; general systems setup is in scope alongside code;
 workflow mode approved. Plan adversarially reviewed at kickoff (opus agent, 8
@@ -34,9 +34,9 @@ paths are excluded from finder scope.
   env.d.ts), `scripts/` (add-check, remove-check, check.sh, provision.sh),
   `test/` (3 vitest suites), `tests/scripts.bats`, `wrangler.jsonc`, `README.md`.
 - Workstation: `~/.dotfiles/bin/.local/bin/music-sync`.
-- Spec chain: `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-library-design.md`,
+- Spec chain: `~/Projects/dubplate/docs/superpowers/specs/2026-08-30-music-library-design.md`,
   `.../2026-08-30-music-vps-build-design.md`,
-  `~/.dotfiles/docs/superpowers/plans/2026-08-30-music-vps-build.md`, and the
+  `~/Projects/dubplate/docs/superpowers/plans/2026-08-30-music-vps-build.md`, and the
   charter above.
 - Excluded: `~/.dotfiles/secrets/*` (dirty), the live box (Phase B), node_modules,
   lockfiles, `worker-configuration.d.ts`.

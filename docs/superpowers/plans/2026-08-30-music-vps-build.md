@@ -15,7 +15,7 @@ publishes both hostnames; Access guards the inbox. Everything reproducible from 
 **Tech Stack:** AlmaLinux 10, cloud-init, hcloud CLI, Docker Compose, Navidrome, FileBrowser
 Quantum, cloudflared, beets (uv), rclone, msmtp, bats-core for script tests.
 
-**Spec:** `~/.dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
+**Spec:** `~/Projects/dubplate/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
 
 **Token ceiling:** 900k. **Checkpoint interval:** 3 tasks (STATUS in the musicbox repo).
 Model per dispatch: sonnet implementers, claude-opus-5 diff review, per convention.
