@@ -5,7 +5,7 @@ design spec, migrated per-subcommand with rollback intact, and rename the
 estate from musicbox to dubplate throughout (project, repo, paths, binary,
 env, checks) — ratified by Geoff 2026-08-31 after a vetted naming brainstorm.
 
-**Spec:** `~/.dotfiles/docs/superpowers/specs/2026-08-30-dubplate-go-rewrite-design.md`
+**Spec:** `~/Projects/dubplate/docs/superpowers/specs/2026-08-30-dubplate-go-rewrite-design.md`
 (approved by Geoff 2026-08-30 after four adversarial reviews). The plan argues
 from the spec; executors read both.
 

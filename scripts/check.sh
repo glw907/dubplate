@@ -392,7 +392,7 @@ classify_path() {
     echo ops
     ;;
   tools/unidecode-table/*) echo pytool ;;
-  docs/* | .claude/* | _salvage/* | tools/venv/* | README.md | ROADMAP.md | \
+  docs/* | .claude/* | _salvage/* | tools/venv/* | README.md | \
     IDEAS.md | BACKLOG.md | CLAUDE.md | LICENSE)
     echo noeffect
     ;;

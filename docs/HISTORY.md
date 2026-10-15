@@ -11437,7 +11437,7 @@ What a later pass would be wrong to rediscover:
 Adversarial review of the estate as built, then a fix wave. Phase A: nine
 finder lenses plus an opus verify wave over both repos, the spec chain, and
 live Cloudflare state — 72 findings, 40 confirmed, 12 endorsed, 0 refuted
-(ledger: ~/.dotfiles/docs/superpowers/plans/2026-08-30-musicbox-arch-refinement-findings.json).
+(ledger: ~/Projects/dubplate/docs/superpowers/plans/2026-08-30-musicbox-arch-refinement-findings.json).
 Fix wave: 11 tasks + lock follow-ups through implementer/diff-reviewer/gate
 chains, all accepted (commit 087df6c); pings hardened in its own repo
 (40fdfa7). Spend ~6.2M tokens against a 6M ceiling (3% over, driven by an

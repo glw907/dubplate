@@ -1,7 +1,7 @@
 # IDEAS
 
 > Future consideration: features and requests nobody has committed to. Committed work lives
-> in `ROADMAP.md` (initiatives) and `BACKLOG.md` (work items); the 0.8 spec keeps its own
+> in `~/Projects/initiatives` (initiatives) and `BACKLOG.md` (work items); the 0.8 spec keeps its own
 > 2.1 list. An idea leaves this file when an owner ruling targets it. Record the target and
 > date in the entry and move it to Promoted, so the idea's origin survives. Read on demand,
 > never at session start.

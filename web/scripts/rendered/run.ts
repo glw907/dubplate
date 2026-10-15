@@ -3147,7 +3147,11 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
       .then(() => true)
       .catch(() => false);
-    const emptyState = (await visit.page.getByText(ROSTER_EMPTY_STATE, { exact: true }).count()) > 0;
+    const emptyState = await visit.page
+      .getByText(ROSTER_EMPTY_STATE, { exact: true })
+      .waitFor({ timeout: BOOT_TIMEOUT_MS })
+      .then(() => true)
+      .catch(() => false);
     await report({
       id,
       fixture: alertShown && retryPresent,

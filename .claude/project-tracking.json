@@ -1,6 +1,5 @@
 {
   "backlog_path": "BACKLOG.md",
-  "roadmap_path": "ROADMAP.md",
   "domains": ["pipeline", "upload", "infra", "onboarding"],
   "default_priority": "medium"
 }
