@@ -74,6 +74,10 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
 
 ## Open
 
+- [ ] #102 Fix the three errcheck findings golangci-lint 2.15.0 raises on a bare `<-exited` receive:
+  `cmd/dubplate-server/backup_test.go:904`, `internal/ops/local/process_test.go:149`, and
+  `internal/ops/opshttp/contract_test.go:949`. They fail `make lint` in `scripts/gate.sh` on a
+  branch that touches no Go file (found 2026-10-17). #infra #initiative:approval-packets
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
   (`systemctl reset-failed`; cosmetic, pre-fix 404 era; box write needs
   sanction) #infra
