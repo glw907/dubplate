@@ -71,7 +71,7 @@ then upgrade the eight held dependents. Full text and the last sweep: `docs/stan
 The build's milestones, in order, are foundation, evidence, spine, surfaces, and launch; BACKLOG's "Path to 0.8"
 holds the run order. Process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
 Product touchpoints, and only these: corpus adjudication batches, the `intake` uploader sitting, and the
-first-launch sitting. The design approval and the PR read are `pass-core`'s.
+first-launch sitting. The design approval and the packet read are `pass-core`'s.
 
 ## Gate
 

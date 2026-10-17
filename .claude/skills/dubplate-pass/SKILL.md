@@ -49,7 +49,7 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
   correctness gaps ranked by consequence, not polish. A fold may refuse a finding whose fix costs
   more than the risk it removes, with a one-line reason in the fold record.
 - **Product touchpoints, and only these:** corpus adjudication batches, the `intake` uploader
-  sitting, and the first-launch sitting. The design approval and the PR read are `pass-core`'s.
+  sitting, and the first-launch sitting. The design approval and the packet read are `pass-core`'s.
 - **Dependency sweep.** Every pass opens with a `dependency-upgrade` sweep over `go.mod`,
   `web/package.json`, `tools/venv/requirements.txt`, and the pinned binaries (rclone,
   golangci-lint, Playwright, libxml2). A sweep with nothing to move is one line in the PR body.

@@ -518,6 +518,10 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
 
 ## Done
 
+- [x] #102 Fix the three errcheck findings golangci-lint 2.15.0 raises on a bare `<-exited` receive:
+  `cmd/dubplate-server/backup_test.go:904`, `internal/ops/local/process_test.go:149`, and
+  `internal/ops/opshttp/contract_test.go:949`. They fail `make lint` in `scripts/gate.sh` on a
+  branch that touches no Go file (found 2026-10-17): each receive now logs the killed child's expected exit error instead of dropping it, 2026-10-17 #infra #initiative:approval-packets
 - [x] #55 The first migration after `0005` carried R-6d4's keep limit and joined the older-store table map: `0006`
   adds its tables to `olderstore_test.go`'s map and an undo list for the column and index; R-6d4's keep limit stands as
   6d recorded it, since no measured case asks to change `ServeOptions.Keep`, closed by `intake-1` (T4), 2026-10-12
