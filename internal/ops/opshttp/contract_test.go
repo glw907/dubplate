@@ -946,7 +946,10 @@ func TestContractCancelsAnotherProcessesJob(t *testing.T) {
 	go func() { exited <- child.Wait() }()
 	t.Cleanup(func() {
 		_ = syscall.Kill(-child.Process.Pid, syscall.SIGKILL)
-		<-exited
+		// SIGKILL makes a nonzero exit expected; log it, never fail on it.
+		if err := <-exited; err != nil {
+			t.Logf("child exit: %v", err)
+		}
 	})
 
 	line := make(chan string, 1)
