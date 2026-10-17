@@ -901,7 +901,10 @@ func TestBackupVerb_SignalHandling(t *testing.T) {
 			t.Cleanup(func() {
 				_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 				if !received {
-					<-exited
+					// SIGKILL makes a nonzero exit expected; log it, never fail on it.
+					if err := <-exited; err != nil {
+						t.Logf("child exit: %v", err)
+					}
 				}
 			})
 

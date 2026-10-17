@@ -146,7 +146,10 @@ func startChild(t *testing.T, dir, mode string) *child {
 	t.Cleanup(func() {
 		_ = stdinW.Close()
 		_ = syscall.Kill(-c.cmd.Process.Pid, syscall.SIGKILL)
-		<-c.exited
+		// SIGKILL makes a nonzero exit expected; log it, never fail on it.
+		if err := <-c.exited; err != nil {
+			t.Logf("child exit: %v", err)
+		}
 	})
 
 	line := make(chan string, 1)
