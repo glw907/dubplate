@@ -57,4 +57,5 @@ __pycache__/
 
 # The visual-collaborator outreach note holds personal email addresses and
 # stays uncommitted (Geoff's ruling).
-/docs/research/2026-09-04-visual-collaborator-outreach.md
+# Matched by name at any depth, so it stays ignored wherever a host keeps it.
+**/2026-09-04-visual-collaborator-outreach.md
