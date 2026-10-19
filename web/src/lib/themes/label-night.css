@@ -1,9 +1,9 @@
 /*
  * The `label-night` palette (dark): the 21 palette declarations a
  * composed theme carries alongside its match axis, pinned in
- * docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md,
+ * docs/research/2026-09-24-visual-identity-draft-tokens.md,
  * overridden where
- * docs/superpowers/specs/2026-09-24-visual-identity-design.md differs.
+ * docs/specs/2026-09-24-visual-identity-design.md differs.
  * Composed with `dubplate.css`'s match block into
  * `dubplate-label-night`. Replaceable data: a later token change lands
  * here, re-checked by G2 and G9, with no markup change.

@@ -1,8 +1,8 @@
 # Bounded shares: what the evidence supports
 
 Research note, 2026-09-25. Input to the next revision of
-`docs/superpowers/specs/2026-09-25-group-scale-principles-design.md` ("Bounded shares") and
-to the erratum on the "Shares" section of `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`.
+`docs/specs/2026-09-25-group-scale-principles-design.md` ("Bounded shares") and
+to the erratum on the "Shares" section of `docs/specs/2026-09-07-streamer-2-0-design.md`.
 Every external claim carries its source URL. Claims marked **analysis** are this note's
 reasoning from the cited facts, not facts found in a source.
 

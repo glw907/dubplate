@@ -50,7 +50,7 @@ a launch blocker (plan's own Task 0 item 4, and review 2's M-d as
 written).** Downgraded rather than rejected outright, on review 1's m10.
 The phase-1 lane table already awards lane E2 the territory
 `internal/engine/matcher`, `musicbrainz`, `shadow`
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:80`), so
+(`docs/specs/2026-09-03-parallel-build-approach.md:80`), so
 the missing entry is a restatement in the contested-surface table rather
 than an unowned surface, and 3b is the only live code lane. The row is
 still owed; it stops no launch. See M-j.

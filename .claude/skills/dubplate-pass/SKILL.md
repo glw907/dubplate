@@ -11,7 +11,7 @@ description: >
 
 Load `pass-core` first; it holds the lifecycle and the rules this adapter fills in. Paths are
 relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans live under
-`docs/superpowers/plans/`. The repo's standing rules are in `docs/standing-rules.md`.
+`docs/plans/`. The repo's standing rules are in `docs/standing-rules.md`.
 
 ## Rules the pass carries
 
@@ -56,7 +56,7 @@ relative to the repo root. The resume prompt is in `docs/STATUS.md` and plans li
   Minors and patches land without asking; a major waits for Geoff. Full text and the libxml2 bump
   steps: `docs/standing-rules.md`.
 - **Web review passes the visual identity spec.** Dispatches to the `web/` reviewers carry
-  `docs/superpowers/specs/2026-09-24-visual-identity-design.md` and ask for conformance to it
+  `docs/specs/2026-09-24-visual-identity-design.md` and ask for conformance to it
   (tokens, inks, the component layer, the copy register) graded beside correctness.
 - **Pair subagents** are `general-purpose`. The dispatch gives the adapter's worktree setup and fast
   lane (`bash scripts/gate.sh --scope-changed`). For Go it names the `go-conventions` skill and
@@ -107,6 +107,6 @@ skill for `*.go`.
   task committed and a later one rewrote.
 - `docs/STATUS.md` in present tense, 60 lines or fewer. A STATUS rewrite moves each item to BACKLOG
   and never drops an open decision.
-- Archive the plan with `git mv docs/superpowers/plans/<this-pass>.md docs/superpowers/archive/plans/`.
+- Archive the plan with `git mv docs/plans/<this-pass>.md docs/archive/plans/`.
 - The PR body carries the score.
 - Commit specific files only, one commit per task with the task id first in the subject.

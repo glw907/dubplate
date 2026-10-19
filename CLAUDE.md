@@ -10,9 +10,9 @@ outside `internal/config`.
 **The active initiative (2026-09-02) is the greenfield dubplate-server
 build**: a fresh, universal, foundation-first build on a 17-rung ladder
 (each rung has a name, and the run order is BACKLOG's "Path to 0.8")
-per `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+per `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), governed by the rulings in
-`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`. The
+`docs/research/2026-09-02-greenfield-server-rulings.md`. The
 pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees are frozen under
 `_salvage/` (git tag `pre-greenfield`) as SALVAGE TIER: read-only
 adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte
@@ -43,7 +43,7 @@ remaining features, the format ladder among them. A version names what a
 member can do with it. A document older than a ruling keeps its numbers
 and stays as written.
 
-**Build for 0.8.** The `streamer` rung is the built-in OpenSubsonic streamer (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).
+**Build for 0.8.** The `streamer` rung is the built-in OpenSubsonic streamer (`docs/specs/2026-09-07-streamer-2-0-design.md`).
 Rung plans weigh their surface against that spec's forward-hooks list and its prior-art list; a hook is
 named in the plan and built by the rung that first consumes it, and nothing is exported ahead of a caller.
 Never build 0.8 features early. Full text: `docs/standing-rules.md`.
@@ -53,7 +53,7 @@ library, tool, and pinned binary; pins stay exact. Minors and patches land witho
 for Geoff. libxml2 (`/home/linuxbrew/.linuxbrew/bin/xmllint`, 2.15.4) is held by `brew pin libxml2`: a
 bump is `brew unpin libxml2 && brew upgrade libxml2`, regenerate the XML goldens, `brew pin libxml2`,
 then upgrade the eight held dependents. Full text and the last sweep: `docs/standing-rules.md`,
-`docs/superpowers/research/2026-10-04-dependency-sweep.md`.
+`docs/research/2026-10-04-dependency-sweep.md`.
 
 ## Ledgers
 
@@ -64,7 +64,7 @@ then upgrade the eight held dependents. Full text and the last sweep: `docs/stan
 - `IDEAS.md`: future consideration: uncommitted features and member requests,
   read on demand. An idea moves to Promoted when an owner ruling targets it.
 - Initiatives live in `~/Projects/initiatives`; this repo's is `dubplate-server`, the greenfield build
-  (17-rung ladder) followed by packaging. Specs and plans live in `docs/superpowers/`.
+  (17-rung ladder) followed by packaging. Specs and plans live in `docs/`.
 
 ## Build process
 
@@ -117,7 +117,7 @@ never guard one with `command -v || skip`. Never commit red.
   wins over a finding's literal fix text, un-idiomatic code adjacent to a change is
   in scope for it, and the exemplar is `~/Projects/cairn-cms/src/lib/admin-toolkit/`:
   imitating it beats interpreting the rule. The look is the visual identity
-  spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
+  spec (`docs/specs/2026-09-24-visual-identity-design.md`,
   Geoff, 2026-09-25): every `web/` task reads it, and it outranks any
   styling habit.
 - **systemd / cloud-init**: invoke the `vps-conventions` skill BEFORE
@@ -154,7 +154,7 @@ pass end fans out by surface and passes the visual identity spec's path to the `
 ## Refused features
 
 dubplate is for a group sharing music its members hold, and is built to be easy for that and
-hard to turn into a distribution hub (ratified: `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`).
+hard to turn into a distribution hub (ratified: `docs/specs/2026-09-25-group-scale-principles-design.md`).
 Never build, and never accept a contribution that adds:
 - anything that fetches music: search-and-download, torrent, Usenet, or Soulseek integrations,
   or "fetch missing albums" automation (metadata sources are a separate question);
@@ -185,7 +185,7 @@ Never build, and never accept a contribution that adds:
   registry); a `NAME=value` row is a literal.
 - A collection is a store row whose root the server allocates from its
   id, with no two roots nested, per
-  `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
+  `docs/specs/2026-09-11-configuration-homes-design.md`.
 - Config keys are declared through the registry in each rung's own file,
   never by editing `internal/config/keys.go` (the config registry pass).
 

@@ -1,7 +1,7 @@
 # Rung 4, Pass 4b (The Deployment) Implementation Plan
 
 **Revision 1, 2026-09-07.** Drafted against the rung 4 spec at revision 2
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md`), whose six owner
+(`docs/specs/2026-09-05-rung-4-shadow.md`), whose six owner
 rulings Geoff ratified as recommended on 2026-09-07, so nothing in this
 plan waits on a ruling. Band **S**. The pass runs unattended to the
 sitting boundary and then **stays open**: ruling 6 makes the first deploy
@@ -9,7 +9,7 @@ an owner sitting, and that sitting is a later attended session.
 
 **Revision 2, 2026-09-07.** Folded from two fresh-context adversarial
 reviews, recorded at
-`docs/superpowers/research/2026-09-07-rung-4b-plan-review.md` with the
+`docs/research/2026-09-07-rung-4b-plan-review.md` with the
 merged do-not-re-litigate list. One blocker, eight majors, thirteen
 minors; none rejected. The load-bearing corrections, in the order they
 change what an executor does. **Revision 1 told the implementer that
@@ -49,12 +49,12 @@ declined), the ceiling branch (the 3M ceiling stands, and a second `fix`
 verdict on any task is the conductor's decision at the 2.4M flag), and
 R13 (the `Makefile` rides the `systemd/`, `scripts/deploy.sh`, `env/`
 ownership row, now written into
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s section
+`docs/specs/2026-09-03-parallel-build-approach.md`'s section
 3 table). R2, R3, R4, R6, R7, R8, R10, R11, R12 and R14 retired at the
 4b close (`docs/HISTORY.md`'s "The ten retired resolutions"), R12
 declined with no file change. Task 0 ran on 2026-09-07 with no blockers;
 its one finding, the gitleaks red in
-`docs/superpowers/research/2026-09-07-rung-1b-plan-review.md`, is fixed
+`docs/research/2026-09-07-rung-1b-plan-review.md`, is fixed
 in this commit.
 
 > **For agentic workers:** workflow mode per CLAUDE.md's Build process
@@ -83,14 +83,14 @@ authority on it.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/research/2026-09-07-rung-4b-planning-inventory.md`,
+1. **`docs/research/2026-09-07-rung-4b-planning-inventory.md`,
    in full.** It is this plan's argument, read off the tree at HEAD
    `c98a9166b38c6ec1c6bdc23ca280d1bb1c58526a`. Its thirteen-item
    **surprises list is binding**: where the tree contradicts the spec,
    this plan follows the tree, and Task 8 drafts the spec correction. Do
    not re-derive what it settles; cite it, and verify the line if you
    carry one forward.
-2. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md`, revision 2.**
+2. **`docs/specs/2026-09-05-rung-4-shadow.md`, revision 2.**
    The sections this pass implements: "The deployment" (`:1147-1435`),
    "Config keys" (`:1436-1484`), the pass-split table's 4b row
    (`:1632`), the contested-surface rows (`:1639-1661`), and Process
@@ -322,7 +322,7 @@ report, never a workaround.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-05-rung-4-shadow.md` (revision 2), and
+`docs/specs/2026-09-05-rung-4-shadow.md` (revision 2), and
 behind it `specs/2026-09-02-greenfield-server-build.md` (revision 2.1,
 ratified), ladder entry 4. 4b builds deliverable 6 of the spec's six, the
 deployment. Deliverables 1 through 5 landed in 4a.
@@ -485,7 +485,7 @@ where the fix-round allowance either fired or did not.
 
 Lane-launch checklist item 2 requires a written owner for every surface a
 lane touches. The rows 4b touches, verified against
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`:
+`docs/specs/2026-09-03-parallel-build-approach.md`:
 
 **The line numbers are HEAD `c98a916`, and the row names are what to
 search on.** That spec carries an uncommitted fifteen-line addition in
@@ -510,7 +510,7 @@ contention, and Task 0 re-verifies that before the first dispatch.
 
 CLAUDE.md's build-for-2.0 rule requires each task to state whether it
 lands a forward hook from
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md:354-391` or is
+`docs/specs/2026-09-07-streamer-2-0-design.md:354-391` or is
 neutral. **All fourteen hooks were read in full, plus a grep of that spec
 for `systemd`, `deploy`, `/var/lib`, `state directory`, `ldflags`,
 `stamp`, and `environment`. No hook names deploy, systemd, a build stamp,
@@ -850,7 +850,7 @@ touches three files, and no ownership row names `Makefile`.
 `scripts/deploy.sh`, `env/` surface (`PA:184`), because the edit exists
 only to let `deploy.sh` pass values through `build-linux` and has no
 independent purpose. **The conductor has written the row** in
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s section 3
+`docs/specs/2026-09-03-parallel-build-approach.md`'s section 3
 ownership table.
 
 ### R14: the spec's stale citations are corrected at the close, never in flight
@@ -944,8 +944,8 @@ exposure.** The first four are blockers; a "no" stops the launch.
    wall's shape and re-expresses ruling 1's option (a) in its registry's
    own terms. **The exposure is live rather than theoretical.** At this
    plan's writing the tree carries an untracked
-   `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md` and an
-   untracked `docs/superpowers/research/2026-09-07-rung-1b-planning-inventory.md`,
+   `docs/plans/2026-09-07-rung-1b-config-registry.md` and an
+   untracked `docs/research/2026-09-07-rung-1b-planning-inventory.md`,
    so 1b is being planned in parallel. A "yes" means Task 2's ten-row
    template and Task 0's check 9 are both written against a shape that
    has moved, and the conductor rules before Task 1. Check 9 corroborates

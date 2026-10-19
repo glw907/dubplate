@@ -1,7 +1,7 @@
 # Rung 6b-ii plan fold record (fold 1)
 
 This record folds the three lens reviews of the 6b-ii plan's revision 1 into revision 2
-(`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`). Each finding ID has exactly one
+(`docs/plans/2026-09-25-rung-6b-ii-restore-http.md`). Each finding ID has exactly one
 disposition: folded (with where it landed), refused (with a one-line reason), or owner fork (with
 the ruling it became). A convergent finding is folded once, and its row lists every ID. Before
 folding, the fold checked each finding against the lane 2 worktree at `6f2c3e0` (6b-i's close

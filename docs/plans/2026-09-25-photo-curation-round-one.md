@@ -17,10 +17,10 @@ edit in this plan.
 1.6.0, `curl`, `flock`, the Artifact tool with its database and asset capabilities, the
 `ArtifactData` tool.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-photo-curation-design.md`, revision 2.3 (revision
+**Spec:** `docs/specs/2026-09-25-photo-curation-design.md`, revision 2.3 (revision
 2.2 at `90a9ad1`, approved by Geoff 2026-09-25, plus his two plan-review rulings of the same
 day). Every task reads the spec sections it names; the spec wins on any conflict with this plan.
-Fold record: `docs/superpowers/research/2026-09-25-photo-curation-plan-fold.md`.
+Fold record: `docs/research/2026-09-25-photo-curation-plan-fold.md`.
 
 **Lane:** the photo document lane, in the main tree beside lane 1 (5c-iii, a code lane). Token
 ceiling 7.5M (3.5M at drafting, 4.5M at the fold, 5.5M by Geoff on 2026-09-25 after Task 1's
@@ -36,7 +36,7 @@ dispatches (below six sequential tasks; Task 3 is already drafted).
 
 ## Global constraints
 
-- Research inputs live in `docs/superpowers/research/2026-09-24-identity-photos/`; every bare
+- Research inputs live in `docs/research/2026-09-24-identity-photos/`; every bare
   report or `outreach/` name in this plan is relative to it. An archive key's spaces and slashes
   become `_` in its `source_id` (PV16).
 - Never touch `web/`, `cmd/`, `internal/`, `Makefile`, `scripts/`, or the 5c-iii plan. Lane 1
@@ -191,7 +191,7 @@ refinements with the Global constraints' form.
   3166-1 country codes, all from the spec's Categories section.
 - The license list: ID, display name, legal code URL, and class (`shipped` or `pack`). It holds
   the spec's shipped classes plus every license the research files cite (found by grep over
-  `docs/superpowers/research/2026-09-24-identity-photos/`, the grep and its hits in the report),
+  `docs/research/2026-09-24-identity-photos/`, the grep and its hits in the report),
   ported versions such as `LicenseRef-CC-BY-SA-3.0-NL` included.
 - A Flickr license-number table mapping `"license":<n>` to a license ID, with the URL of the
   Flickr page it was taken from recorded beside it. A number no raw source confirms stays out.
@@ -360,7 +360,7 @@ Waiver keys for the one-image rules use the check script's spelling: `mbid:<id>`
 - The agent reports: kept, dropped by reason, pack count, flagged count, counts by family and
   subject, proposed vocabulary terms, and its own token spend.
 - The conductor ends Task 4 with a checkpoint in the round log
-  (`docs/superpowers/research/photo-curation-rounds/round-1.md`): the agents' counts and the spend
+  (`docs/research/photo-curation-rounds/round-1.md`): the agents' counts and the spend
   so far.
 
 ### Task 5: License spot-check (after Task 4)

@@ -1,7 +1,7 @@
 # Matcher word-boundary plan review: mechanics and feasibility
 
 Lens: mechanics and feasibility only. Subject:
-`docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`, revision 1
+`docs/plans/2026-09-25-matcher-word-boundary.md`, revision 1
 (uncommitted). Tree read at `1306ae3`. Probes live in this session's scratch
 directory (`/tmp/claude-1000/-var-home-glw907-Projects-dubplate/bc83700f-945c-4755-8eac-4c458ffb90b6/scratchpad/wb/`),
 run with Go 1.27.1 (`unicode.Version` 17.0.0) and the pinned venv read-only

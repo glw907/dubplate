@@ -1,6 +1,6 @@
 # Translit-table plan review: domain risk
 
-Target: `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md` at
+Target: `docs/plans/2026-09-25-translit-table-at-setup.md` at
 `b841954` (revision 1). Lens: what can go wrong in the domain. Findings are
 correctness gaps ranked by consequence; polish is left out.
 

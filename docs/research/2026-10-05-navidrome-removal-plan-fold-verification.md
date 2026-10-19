@@ -1,7 +1,7 @@
 # Navidrome removal plan: fold verification
 
 Target: `docs/superpowers/plans/2026-10-05-navidrome-removal.md`, revision 2 at `13bb9db`.
-Fold record: `docs/superpowers/research/2026-10-05-navidrome-removal-plan-fold.md`.
+Fold record: `docs/research/2026-10-05-navidrome-removal-plan-fold.md`.
 Method: a fresh-context read of the plan, the fold diff (`git diff HEAD~1`), the three reviews, the spec (rev 2.1),
 and `~/.claude/workflows/pass-execute.js`. Each claim below was checked against the tree or by running it. The
 reviewer brief's warning applies: only gaps that affect correctness or the stated requirements are ranked above
@@ -109,7 +109,7 @@ Each spot check holds.
 
 - **Where:** plan `:5-6` ("carries no ruling for Geoff"), `:114-125`, `:636-637`.
 - **Defect:** The spec's sentence ends "Otherwise they are pruned". No rung 9 spec exists (`ls
-  docs/superpowers/specs/`), so on the natural reading the condition fails and the symbols go. The fold keeps
+  docs/specs/`), so on the natural reading the condition fails and the symbols go. The fold keeps
   both. Its architectural case is sound. `ErrUnavailable` is the client's own wrapped sentinel, so "prune" cannot
   sensibly mean deleting it, and the limiter's rotation is three-class. The no-ceremony ruling covers taking the
   decision. Still, an approved spec's stated default is reversed, and Geoff would see that only in HISTORY.

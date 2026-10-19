@@ -2,7 +2,7 @@
 
 Status: revision 2.1, 2026-09-12. **Ratified by Geoff, 2026-09-23**: section 16's five items as written. Companion to the
 design-language standard
-(`docs/superpowers/specs/2026-09-07-design-language-standard.md`, DL
+(`docs/specs/2026-09-07-design-language-standard.md`, DL
 below). DL fixes the theme-variable contract, the two-axis composition,
 the three theming tiers, embedded fonts, and the served CSP, and its
 section 7 leaves every surface's composition, typography, spacing,
@@ -11,10 +11,10 @@ responsive behavior, and code idioms undecided. This standard decides
 those, at the level of structure and mechanism.
 
 **Revision 2.** Seven adversarial lenses read revision 1; the fold record
-is `docs/superpowers/research/2026-09-12-web-surface-standard-review.md`.
+is `docs/research/2026-09-12-web-surface-standard-review.md`.
 The harvest evidence, the per-clause citations, the reversals list, the
 declined table, and the longer arguments behind revision 2's rulings sit
-in `docs/superpowers/research/2026-09-12-cairn-harvest-reference.md` (the
+in `docs/research/2026-09-12-cairn-harvest-reference.md` (the
 reference). Sections 17 and 18 left with them and those numbers are
 retired. The five largest folds: the control-edge fix could not win the
 cascade as specified and now ships unlayered and quarantined; the
@@ -1460,7 +1460,7 @@ which is not in the published package's `files` list.
 | element-id, em-dash-in-markup, aria-sort-placement | W5.19, W8.6, W5.15, each a regex over markup | dubplate |
 | ai-tells | Every string extracted from `web/src` markup and literals passes the mechanical AI and marketing tells, with a `--list` mode for a release-time human read. **It enforces no register** | dubplate, ported |
 | quote-grounding | Every reject reason shipped in source, a doc, an email template, or `upload-check` is grounded in the ratified copy deck, checked deck-first, each literal segment appearing in order with a minimum length so a wildcard cannot vacuously match | dubplate, ported |
-| no-process-citation | No `Task N`, `Phase N`, `this pass`, or `docs/superpowers/` path in shipped source | dubplate, ported |
+| no-process-citation | No `Task N`, `Phase N`, `this pass`, or `docs/` path in shipped source | dubplate, ported |
 | contrast-extension | Extends DL G9's subject to every text-bearing pair, W2.7's measured inks included, measured in sRGB per DL R2.6 | dubplate, ported |
 | version-stamp, pin-exactness | W13.2 and W13.7 | dubplate |
 
@@ -1781,13 +1781,13 @@ the served header set, the `member` verb group, and the gate leg with
 DL's G1 through G10.
 
 > Erratum, 2026-09-24 (pass 5c-i close): **the 4.5M ceiling is stale.**
-> Rung 5c split at the `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+> Rung 5c split at the `docs/plans/2026-09-23-rung-5c-pages-member-verb.md`
 > Task 7 / Task 8 boundary into 5c-i and 5c-ii, and Ruling 6 (2026-09-23,
 > that plan) moved rung 5's own reservation from 15.75M to about 37M,
 > with 5c's share at about 18M split across the two passes rather than
 > one 4.5M pass. 5c-i closed under a 6.5M ceiling; 5c-ii's ceiling is
 > its own plan's. See the matching erratum in
-> `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`'s "Errata
+> `docs/specs/2026-09-08-rung-5-identity-auth.md`'s "Errata
 > the close applies" section.
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **the second split.** 5c-ii

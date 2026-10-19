@@ -40,7 +40,7 @@ written.
 ## Corrections to the reviews' own evidence
 
 **1. Both reviews' `PA:` spans are stale, and so are the plan's.**
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md` carries
+`docs/specs/2026-09-03-parallel-build-approach.md` carries
 an uncommitted fifteen-line addition in this worktree, so its rows sit
 at different numbers depending on which copy is read. Measured at HEAD
 `c98a916`: `docs/` ledgers `:177`, the state directory layout `:178`,
@@ -285,8 +285,8 @@ registry, a clean green tree, and `.gitleaksignore`. The 1b question
 appears in none of the eleven checks and no line records declining it.
 
 **What the tree says.** The exposure is live. `git status` at HEAD shows
-untracked `docs/superpowers/research/2026-09-07-rung-1b-planning-inventory.md`
-**and** `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`,
+untracked `docs/research/2026-09-07-rung-1b-planning-inventory.md`
+**and** `docs/plans/2026-09-07-rung-1b-config-registry.md`,
 so rung 1b is being planned in parallel right now. Task 2's whole
 ten-row template rests on `internal/config/keys.go:214-228` keeping its
 present shape.

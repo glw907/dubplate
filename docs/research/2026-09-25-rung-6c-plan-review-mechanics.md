@@ -1,6 +1,6 @@
 # Rung 6c plan review: mechanics and feasibility
 
-Plan under review: `docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md` at
+Plan under review: `docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md` at
 `8d0eed8`, revision 1. Lens: does every mechanism behave as the plan states, and can each task
 build in the stated order against master at `8d0eed8` and `lane-2-6b-ii-b` at `30a66ac`? Every
 claim below was checked with a scratch probe against `modernc.org/sqlite v1.59.0` from the module

@@ -123,7 +123,7 @@ delete at the next registry sweep).
     verify endpoint for adopters with their own proxy, cookie scoping
     for split-host deployments, and the enable-flag discipline.
   Full review texts:
-  docs/superpowers/research/2026-09-02-login-spec-reviews/
+  docs/research/2026-09-02-login-spec-reviews/
   (security.md, universality.md).
 - Navidrome integration research
   (conversation, 2026-09-02; key facts recorded in the login spec):

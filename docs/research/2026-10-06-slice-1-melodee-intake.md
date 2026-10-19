@@ -1,7 +1,7 @@
 # Slice 1, Task 5: Melodee's intake pipeline
 
 Date read: 2026-10-07. Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-melodee-intake.md`.
+`docs/research/2026-10-06-slice-1-melodee-intake.md`.
 
 **Pin read (Task 0 record).** Melodee release `v2.2.0` (2026-07-11) = commit
 `d91342e5d07632b7a1707b62acd595c080806f64`, `prerelease: false`, MIT

@@ -9,7 +9,7 @@ owns `scripts/deploy.sh`, `systemd/`, `env/`, the `Makefile`,
 load-bearing, and no gate was run.
 
 Scope, quoted from the build spec's ladder entry
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:694-701`):
+(`docs/specs/2026-09-02-greenfield-server-build.md:694-701`):
 
 > **Tag I/O** (M). Pure-Go FLAC tag writing for the server scope,
 > proven against the corpus's expected applied tag sets from rung 2,
@@ -23,7 +23,7 @@ Scope, quoted from the build spec's ladder entry
 Two of that entry's clauses are already superseded by owner rulings
 taken on 2026-09-07 and are treated as such throughout. The
 wazero-taglib spike is retired, and F1 (the 2.0 spec's ruling at
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md:445-449`) is
+`docs/specs/2026-09-07-streamer-2-0-design.md:445-449`) is
 the recorded decision the post-launch organizer consumes. Rung 8 is
 FLAC only, behind a per-format seam shaped so MP3 and MP4 writers land
 as their own later passes. The build spec gets a dated erratum at the
@@ -31,7 +31,7 @@ rung's close.
 
 One sibling document was written in parallel and is a standing input
 rather than a gap this one fills:
-`docs/superpowers/research/2026-09-07-rung-8-container-needs.md`
+`docs/research/2026-09-07-rung-8-container-needs.md`
 answers the container-ordering question owner ruling 1 hands to
 research. Its recommendations are carried into the candidate rulings
 below rather than restated here.
@@ -596,7 +596,7 @@ it is the natural nucleus.
 `internal/engine/shadow/flac.go` is 313 lines, unexported, and named
 provisional in its own doc comment (`:62-70`). The rung 4 spec records
 the decision that put it there and its cost
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1002-1033`): option
+(`docs/specs/2026-09-05-rung-4-shadow.md:1002-1033`): option
 (a), a minimal read-only reader inside `shadow`, chosen over depending
 on rung 8 because waiting on lane T spends calendar on the one rung
 whose calendar is the launch date.
@@ -655,7 +655,7 @@ fields needs them.
 ### 4.3 The nineteen-field mapping
 
 The table with a citation per row lives in the pass 4a plan
-(`docs/superpowers/plans/2026-09-05-rung-4a-shadow-runner.md:2453-2478`),
+(`docs/plans/2026-09-05-rung-4a-shadow-runner.md:2453-2478`),
 and the same citations are inline in `flac.go:210-228`. Eighteen rows
 map to Vorbis keys; `Length` comes from STREAMINFO; `DataSource` has no
 row at all, because a grep of pinned mediafile for `data_source`
@@ -975,7 +975,7 @@ decision rather than an oversight.
 
 ### 8.2 Territory
 
-From `docs/superpowers/research/2026-09-04-reverse-edge-completion.md`,
+From `docs/research/2026-09-04-reverse-edge-completion.md`,
 cell (8,3) at `:161-190`:
 
 | Surface | Owner | Consumers |
@@ -1025,7 +1025,7 @@ template, both already tracked, so neither is needed.
 
 ### 8.4 The 2.0 forward hooks that touch `tagio`
 
-Named in `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`
+Named in `docs/specs/2026-09-07-streamer-2-0-design.md`
 from `:359` onward:
 
 - **Hook 13** (`:388-389`), sort tags written at admit, rungs 8 and 9.

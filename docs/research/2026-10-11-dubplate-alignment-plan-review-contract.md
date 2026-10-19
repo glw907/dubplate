@@ -3,7 +3,7 @@
 Target: `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` at `61e6af5` (branch `worktree-alignment-plan`).
 Read in full: the plan, the design (`specs/2026-10-11-dubplate-alignment-design.md`), the audit
 (`research/2026-10-11-dubplate-alignment-audit.md`), `pass-core`, the `dubplate-pass` adapter, the format model
-(`~/.dotfiles/docs/superpowers/plans/2026-10-11-infra-sweep-1-guard.md`), and the planning prompt. Every cited repo
+(`~/.dotfiles/docs/plans/2026-10-11-infra-sweep-1-guard.md`), and the planning prompt. Every cited repo
 line was read at the cited location; the Path to 0.8 was checked against the dependency matrix, the reverse-edge note,
 the re-plan's "The ladder after this spec", the 14a spec, the rung 7 spec, and the streamer spec's hooks. Paths below
 are relative to the repo unless they start with `~`. The design's five rulings were not reviewed.

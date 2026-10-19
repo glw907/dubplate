@@ -3,7 +3,7 @@
 Status: revision 2.1, ratified 2026-09-02, with seven dated errata.
 
 **Erratum 2026-09-07 (Geoff, from the 2.0 streamer brainstorm;
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`).** Two
+`docs/specs/2026-09-07-streamer-2-0-design.md`).** Two
 passages below are superseded and stand only as history. (1) Ladder
 entry 7's theming no longer matches any streamer: the "system MATCH"
 axis targets dubplate's own design only, the matching themes for
@@ -26,7 +26,7 @@ visual-fidelity mandate" now mean Geoff's design review of dubplate's own
 design, rendered and read first, with no reference screenshots.
 
 **Erratum 2026-09-08 (rung 1b close, source
-`docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`).** The
+`docs/plans/2026-09-07-rung-1b-config-registry.md`).** The
 config-wall section's `:182-183` sentence is superseded: the wall is no
 longer a complete, closed table rung 1 alone derives. The classification
 stays the contract, but the wall is now registry contents each rung
@@ -34,7 +34,7 @@ declares in its own file; rung 1b's own contract-change paragraph
 follows this erratum block.
 
 **Erratum 2026-09-12 (Geoff, from the configuration homes brainstorm;
-`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`).** Three
+`docs/specs/2026-09-11-configuration-homes-design.md`).** Three
 passages below are superseded and stand only as history. (1) In the
 config-wall section, the tunables ("every tunable is a threshold with a
 sane default": match thresholds, lifetimes, link expiry, rate limits,
@@ -49,7 +49,7 @@ and its apply mode (immediately, next operation, restart). (3) The
 out-of-scope entry for the web admin page is superseded: the 2.0 web
 surface gains an admin settings surface (2.0 spec, revision 2.2).
 
-**Erratum 2026-09-23 (rung 6 spec, `docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`,
+**Erratum 2026-09-23 (rung 6 spec, `docs/specs/2026-09-23-rung-6-ops-seam-store.md`,
 ratified; errata 1, 2, 3, 13, 14).** Five passages below are corrected. (1) Ladder entry 6's
 band is L, not M: the ops seam and store is five passes. (2) The box-safety section's claim
 that "rungs 1 through 3, 5 through 9, and 11 through 15 touch the box not at all" is false for
@@ -66,7 +66,7 @@ renders the `RCLONE_CONFIG_*` template rows, superseding the R2-only backup lang
 entries.
 
 **Erratum 2026-09-25 (group-scale principles spec,
-`docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`, ratified; conflicts 8 and
+`docs/specs/2026-09-25-group-scale-principles-design.md`, ratified; conflicts 8 and
 9).** Two passages below gain a dated note. (1) The trust-boundary section's `/share/*` bypass
 is live until 0.8. Navidrome 0.63.2 defaults `EnableSharing` to on, the repo doesn't set it,
 and the tunnel forwards `/share/*` to Navidrome, so a member can create a public share link.
@@ -113,7 +113,7 @@ its own package.
 
 Revision 1 was drafted
 from the ratified rulings
-(`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`),
+(`docs/research/2026-09-02-greenfield-server-rulings.md`),
 read by Geoff, and then put through two adversarial reviews
 (`research/2026-09-02-greenfield-spec-reviews/architecture.md` and
 `universality.md`). Revision 2 folded both reviews, the session fold

@@ -94,7 +94,7 @@ cannot exist.
 ## Owed errata to ratified documents
 
 The fold edits no ratified document. Task 9 applies these, with 6d-E1 from revision 1, to the rung 6
-spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`):
+spec (`docs/specs/2026-09-23-rung-6-ops-seam-store.md`):
 
 - **E-a (6d-R9), criterion 9.** "With the env holding A and an in-package admin row holding B ... a
   limiter built at the next start uses B" cannot hold under the spec's own seed rule (`:759`): env A

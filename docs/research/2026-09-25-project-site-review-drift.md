@@ -15,7 +15,7 @@ Facts checked in the tree: `web/src/lib/themes/` holds `dubplate.css`, `fonts.cs
 `label.css`, `label-night.css`, `surface.css`, `system.css`. The font files are not in that
 directory; they live in `web/static/fonts/` with `FONTS.md` and a `licenses/` directory, and
 `fonts.css` references them by absolute URL (`url('/fonts/...')`). The theme files' comments cite
-internal paths (`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`, spec
+internal paths (`docs/research/2026-09-24-visual-identity-draft-tokens.md`, spec
 line ranges), gate names (G2, G9), and depend on `daisyui@5.7.46` and a Tailwind 4 parsing
 behavior. `docs/guide/` does not exist yet.
 
@@ -162,14 +162,14 @@ or a route that renders from the vendor directory).
 Location: lines 90-100.
 
 The source repo is private, and its writing habits reflect that. The token files' comments today
-cite `docs/superpowers/...` paths, spec line ranges, and gate names. The guides will be new, but
+cite `docs/...` paths, spec line ranges, and gate names. The guides will be new, but
 written by agents that work in a repo whose CLAUDE.md names the production box
 (`5.78.148.42`), the group's hostnames, Fastmail, and members. A setup guide drafted from the
 live estate can pick up any of those. Whether the site repo itself is public is also unstated; if
 it is, the vendored files' comments publish even when minified CSS drops them.
 
 Proposed fold: the sync runs a deny-list scan over the staged files and refuses to write on a
-hit: the box IP and any internal hostname, `docs/superpowers`, `_salvage`, `/var/home`, `~/`,
+hit: the box IP and any internal hostname, `docs/{archive,plans,research,specs}`, `_salvage`, `/var/home`, `~/`,
 email addresses outside an allow-list, and gitleaks. The same scan runs as a dubplate gate leg
 over `docs/guide/`, so the leak is caught at authoring time, not at sync. State whether the site
 repo is public.

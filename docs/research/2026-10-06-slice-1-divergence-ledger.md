@@ -1,7 +1,7 @@
 # Slice 1, Task 7: the pre-seeded divergence ledger
 
 Date: 2026-10-07. Staged outside the repo; lands at B-land as
-`docs/superpowers/research/2026-10-06-slice-1-divergence-ledger.md`. Its decisions are argued in the study record,
+`docs/research/2026-10-06-slice-1-divergence-ledger.md`. Its decisions are argued in the study record,
 `2026-10-06-slice-1-study-record.md` (cited as `[record]`), which also defines the citation aliases used below
 (`[pins]`, `[contract]`, `[clients]`, `[base-url]`, `[servers]`, `[melodee]`, `[cells]`).
 

@@ -15,7 +15,7 @@ publishes both hostnames; Access guards the inbox. Everything reproducible from 
 **Tech Stack:** AlmaLinux 10, cloud-init, hcloud CLI, Docker Compose, Navidrome, FileBrowser
 Quantum, cloudflared, beets (uv), rclone, msmtp, bats-core for script tests.
 
-**Spec:** `~/Projects/dubplate/docs/superpowers/specs/2026-08-30-music-vps-build-design.md`
+**Spec:** `~/Projects/dubplate/docs/specs/2026-08-30-music-vps-build-design.md`
 
 **Token ceiling:** 900k. **Checkpoint interval:** 3 tasks (STATUS in the musicbox repo).
 Model per dispatch: sonnet implementers, claude-opus-5 diff review, per convention.
@@ -206,7 +206,7 @@ streams in Navidrome's web player; R2 layout matches the pinned prefixes exactly
 ### Task 8: Workstation repoint, accounts, onboarding
 
 **Files:** modify `~/.dotfiles/bin/.local/bin/` (delete `music-sync`, add `music-pull`),
-`~/.dotfiles/docs/superpowers/specs/` cross-reference note; create
+`~/.dotfiles/docs/specs/` cross-reference note; create
 `musicbox/docs/onboarding.md`; update the `music-library-setup` memory.
 
 - [ ] `music-pull`: `rclone copy` (never sync) of `library/` → `~/Music` using the RO

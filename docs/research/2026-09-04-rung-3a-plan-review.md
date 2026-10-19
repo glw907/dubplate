@@ -12,7 +12,7 @@ I've completed the review. Verified every arithmetic claim against pinned beets 
 
 ---
 
-# Adversarial review: `docs/superpowers/plans/2026-09-04-rung-3a-scoring-core.md` (rev 1)
+# Adversarial review: `docs/plans/2026-09-04-rung-3a-scoring-core.md` (rev 1)
 
 ## BLOCKERS
 

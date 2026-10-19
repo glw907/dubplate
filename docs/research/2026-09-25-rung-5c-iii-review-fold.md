@@ -6,7 +6,7 @@ task or rung). A finding raised by two reviews folds once, under the first ID li
 is the visual identity spec (VI), revision 1.3. The fold ran on master from `8da75b8`, resumed after
 a power loss stopped the first fold agent before it committed anything.
 
-Reviews, all in `docs/superpowers/research/`:
+Reviews, all in `docs/research/`:
 
 - `2026-09-25-rung-5c-iii-review-svelte.md` (svelte): 1 blocker, 6 warnings, 13 suggestions.
 - `2026-09-25-rung-5c-iii-review-a11y.md` (a11y): 1 blocker, 8 warnings, 9 suggestions.

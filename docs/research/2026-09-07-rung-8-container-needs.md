@@ -182,7 +182,7 @@ The conformance target for rung 8 is `corpus/analysis/file_tags.json`, twelve su
 against the vendored `template.flac`. A container the corpus has never derived has no conformance
 target. Producing one is a `make derive` run under the pinned venv, which by the standing policy is
 main-tree work rather than worktree work (reverse-edge cell (8,3),
-`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`). Each follow-on container pass
+`docs/research/2026-09-04-reverse-edge-completion.md`). Each follow-on container pass
 therefore carries a corpus derivation task and a scheduling constraint, not only a Go task.
 
 Two facts bound that cost, and both are favorable.
@@ -347,9 +347,9 @@ Retrieved or published on the dates given. Primary sources are listed first with
 
 **In-repo, read-only**
 - `corpus/README.md`, "Handoff to rung 8", from line 2354.
-- `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`, ladder entries 7 and 8.
-- `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, forward hooks 13 and 14, ruling F1, prior-art table.
-- `docs/superpowers/research/2026-09-04-reverse-edge-completion.md`, cells (8,3) and (8,4).
+- `docs/specs/2026-09-02-greenfield-server-build.md`, ladder entries 7 and 8.
+- `docs/specs/2026-09-07-streamer-2-0-design.md`, forward hooks 13 and 14, ruling F1, prior-art table.
+- `docs/research/2026-09-04-reverse-edge-completion.md`, cells (8,3) and (8,4).
 - `internal/engine/shadow/flac.go`, the provisional FLAC reader rung 8 absorbs.
 - `tools/venv/.venv/.../mediafile/constants.py:4`, `mediafile/__init__.py:154`, `:189`, `:191`, `mediafile/storage/`, mediafile 0.17.0.
 - `tools/venv/.venv/.../beets/config_default.yaml:105`.

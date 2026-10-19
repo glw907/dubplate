@@ -1,7 +1,7 @@
 # Navidrome removal plan review: domain risk lens
 
 Target: `docs/superpowers/plans/2026-10-05-navidrome-removal.md` at `7036ebc` (revision 1).
-Spec: `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1).
+Spec: `docs/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1).
 Sibling: `docs/superpowers/plans/2026-10-05-replan-document-pass.md` (revision 2, `1c37e40`).
 Lens: security of the serve/auth surface, data integrity, operations and lanes, install ease.
 Reviewer: Opus 5.5, read-only against the tree at `7036ebc`. No ssh was run.

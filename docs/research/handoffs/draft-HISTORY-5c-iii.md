@@ -6,7 +6,7 @@ standalone file.
 ## Rung 5, pass 5c-iii (the fonts, the theme data, the rendered gates, the document head, and the component layer): closed 2026-09-25, lane 1
 
 Executed against
-`docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
+`docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
 ratified by Geoff 2026-09-25, Rulings 1-10 all yes/as stated), in the main tree, from `fc52232`
 (the plan's own drafting commit; code work starts at `83d5ae9`, which raised window 2's cap to
 run 5c-iii through this close). `git log --oneline --grep="5c-iii" -i HEAD~1 | wc -l` (counted before this close's own docs
@@ -48,7 +48,7 @@ canvas-paint logic inline. No behavior change; every assertion, row, and manifes
 ### The pass-end reviews and their fold
 
 Three reviewers ran and are recorded at `944e235`:
-`docs/superpowers/research/2026-09-25-rung-5c-iii-review-svelte.md` (1 blocker, 6 warnings, 13
+`docs/research/2026-09-25-rung-5c-iii-review-svelte.md` (1 blocker, 6 warnings, 13
 suggestions), `-review-a11y.md` (1 blocker, 8 warnings, 9 suggestions), and
 `-review-security.md` (2 medium, 5 low, 4 informational). The fold record
 (`docs/superpowers/research/2026-09-25-rung-5c-iii-review-fold.md`, `7ca3d53`) counts 49 raw
@@ -87,7 +87,7 @@ Simplifier round 2 (`3fd6c0b`) extracted `paintedProperty` from three repeated c
 `run.ts`; no behavior change.
 
 Three merge-side `go-architecture-reader` reads ran at HEAD `db1e111`, all "workmanlike":
-`docs/superpowers/research/2026-09-25-rung-5c-iii-architecture-internal-serve.md`,
+`docs/research/2026-09-25-rung-5c-iii-architecture-internal-serve.md`,
 `-internal-config.md`, `-cmd-dubplate-server.md`. Each names every finding with its `file:line`
 and a routing line; the headline findings and their routes are in "What stayed open" below.
 
@@ -145,13 +145,13 @@ number at VI `:141`/`:152` (R5.4 corrected to R5.5), Permanent Marker's license 
 No further edit to VI is needed for these three.
 
 **1. The rung 5 spec's 5c row: the third split.** Append after the existing 2026-09-25 erratum
-block at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (which records
+block at `docs/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (which records
 5c-ii's own split into 5c-ii and 5c-iii):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the 5c-iii row splits again, into 5c-iii and
 > 5c-iv.** The erratum above described 5c-iii as carrying "the fonts, the three pages with
 > their string deck, the rendered gates, and the render-and-read" under its own plan's ceiling.
-> `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`'s Ruling 1
+> `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`'s Ruling 1
 > splits that scope again at the served-header-versus-pages boundary: 5c-iii carries the fonts,
 > the theme data, the rendered harness and its reproducibility and first-paint gates, the
 > document head, and the component layer, and closed under a 10.8M ceiling at about
@@ -164,7 +164,7 @@ block at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (
 > rung 5's own reservation moves from about 41M to about 51M (this plan's Ruling 6).
 
 **2. The web surface standard's section 15 line.** Append to the existing 2026-09-25 erratum
-block at `docs/superpowers/specs/2026-09-12-web-surface-standard.md:1790-1794` (the "second
+block at `docs/specs/2026-09-12-web-surface-standard.md:1790-1794` (the "second
 split" erratum):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the third split.** 5c-iii itself split into
@@ -172,7 +172,7 @@ split" erratum):
 > above). "5c-iii carries its own re-derived ceiling" now names two plans' remaining scope, not
 > one: 5c-iii closed under 10.8M, and 5c-iv carries the same plan's Tasks 7-11 under 8.5M.
 
-**3. `docs/superpowers/specs/2026-09-07-design-language-standard.md`'s R5.5.** Append after
+**3. `docs/specs/2026-09-07-design-language-standard.md`'s R5.5.** Append after
 `R5.5` (`:475-479`):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **R5.5 carries no family count.** The visual identity
@@ -190,7 +190,7 @@ split" erratum):
 > render-and-read (5c-iv Task 10) covers both schemes at rung 5, not rung 7.
 
 **5. The rung 5 spec's add-member "admin checkbox".** Append after the add-member page
-description at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1436-1445`:
+description at `docs/specs/2026-09-08-rung-5-identity-auth.md:1436-1445`:
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the add-member page ships no admin checkbox.**
 > R-5c13 (5c-i) already refuses an `admin` field on the web channel, and the API enforces it
@@ -200,7 +200,7 @@ description at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1436-1
 > admin control.
 
 **6. The 5c-ii plan's R-5cii8.** Append after R-5cii8's cache-directive section
-(`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:856-873`):
+(`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:856-873`):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the members document row is `no-store`, not
 > `private, no-cache`.** This plan's cache table named `private, no-cache` for the members
@@ -209,7 +209,7 @@ description at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1436-1
 > superseded.
 
 **7. The 5c-ii plan's R-5cii22.** Append after R-5cii22's cookie-attribute description
-(`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:544` and its
+(`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:544` and its
 neighboring rows):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the theme cookie carries a one-year `Max-Age`.**
@@ -219,7 +219,7 @@ neighboring rows):
 > `Max-Age=31536000` as well. The server's reading of the cookie is unchanged.
 
 **8. VI's `:128-131` under a functional-color branding neutral.** Append after the
-`theme-color` paragraph at `docs/superpowers/specs/2026-09-24-visual-identity-design.md:138-140`:
+`theme-color` paragraph at `docs/specs/2026-09-24-visual-identity-design.md:138-140`:
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the hex pair describes the unbranded bundle only.**
 > Under `DUBPLATE_BRANDING` setting `--color-neutral` to a functional color (`oklch()`, `rgb()`,

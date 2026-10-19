@@ -2,18 +2,18 @@
 
 Status: **approved (Geoff, 2026-09-25); rulings recorded.** Revision 3,
 2026-09-25. Three lens reviews ran (contract, mechanics, risk:
-`docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-review-*.md`),
+`docs/research/2026-09-25-matcher-word-boundary-plan-review-*.md`),
 and fold 1 applied them. A verification read
 (`2026-09-25-matcher-word-boundary-plan-fold-verification.md`) and a prose
 review (`2026-09-25-matcher-word-boundary-plan-prose-review.md`) followed,
 and fold 2 applied both. The fold record
-(`docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-fold.md`)
+(`docs/research/2026-09-25-matcher-word-boundary-plan-fold.md`)
 gives one disposition per finding for both folds. Three rulings for Geoff
 are open ("Rulings awaiting owner"), and the plan executes under either
 answer to each.
 
 Source: the research brief
-`docs/superpowers/research/2026-09-24-matcher-unicode-word-boundary.md`,
+`docs/research/2026-09-24-matcher-unicode-word-boundary.md`,
 which Geoff ruled yes on 2026-09-24 (`docs/STATUS.md`, "Next action", item
 3). The ruling builds five things: a documented Go translation of beets'
 featuring row, a translation-map test, a parity golden with its ruff-gated
@@ -897,8 +897,8 @@ Model: `sonnet`. Depends on Tasks 0 to 3 and the simplifier round.
 
 **Files (drafts only; the conductor folds and commits):**
 
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-matcher-word-boundary.md`
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-matcher-word-boundary.md`
+- Create: `docs/research/handoffs/draft-HISTORY-matcher-word-boundary.md`
+- Create: `docs/research/handoffs/draft-STATUS-matcher-word-boundary.md`
 
 **Outcomes:**
 
@@ -1010,7 +1010,7 @@ against the ceiling and against zero attended interactions after approval.
 ## Prior art consulted
 
 Scored on CLAUDE.md's four criteria where a dependency is in question. The
-2.0 spec's prior-art list (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`,
+2.0 spec's prior-art list (`docs/specs/2026-09-07-streamer-2-0-design.md`,
 "Prior art") and forward-hooks list were both read; no hook is landed, and
 every task is neutral.
 

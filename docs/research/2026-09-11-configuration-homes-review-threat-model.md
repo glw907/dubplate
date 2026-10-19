@@ -1,12 +1,12 @@
 # Configuration homes spec: threat model review
 
 Adversarial review record, 2026-09-11, fresh-context `claude-opus-5` reviewer against
-`docs/superpowers/specs/2026-09-11-configuration-homes-design.md` revision 2. Findings are folded
+`docs/specs/2026-09-11-configuration-homes-design.md` revision 2. Findings are folded
 into revision 3 of the spec; this file is the citation record. Reviewer output verbatim below.
 
 ---
 
-Read the design spec, the rung 5 threat model and token sections, and the 2.0 forward hooks. No implementation exists yet for templates or collections, so every finding below is a design-time change. Citations are `docs/superpowers/specs/2026-09-11-configuration-homes-design.md:line` unless noted.
+Read the design spec, the rung 5 threat model and token sections, and the 2.0 forward hooks. No implementation exists yet for templates or collections, so every finding below is a design-time change. Citations are `docs/specs/2026-09-11-configuration-homes-design.md:line` unless noted.
 
 # (a) Spec changes
 

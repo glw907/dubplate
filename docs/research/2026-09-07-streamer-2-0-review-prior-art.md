@@ -1,7 +1,7 @@
 # Adversarial review: the 2.0 spec's prior art, scored for adoption
 
 Fresh-context review of
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` revision 1,
+`docs/specs/2026-09-07-streamer-2-0-design.md` revision 1,
 against CLAUDE.md's "Build for 2.0" four criteria (license, code quality
 against the house bar, maintenance, adoption). Everything below was
 observed 2026-09-07 and is cited. Line numbers are that spec's.

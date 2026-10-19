@@ -1,6 +1,6 @@
 # Matcher word-boundary plan: fold 1 verification
 
-Subject: `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`,
+Subject: `docs/plans/2026-09-25-matcher-word-boundary.md`,
 revision 2 at `a3773d1`, against the fold record
 (`2026-09-25-matcher-word-boundary-plan-fold.md`) and the three lens reviews.
 This reader had no part in the fold. Revision 1 was never committed, so each

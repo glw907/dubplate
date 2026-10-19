@@ -2,7 +2,7 @@
 
 Run on 2026-10-10, 08:35 to 08:55 UTC, on the workstation. The method, the flow list (F1 to F11), and the scripts are
 `docs/roster-walk.md`; this record gives each step's outcome. Captures are under
-`docs/superpowers/research/2026-10-10-slice-2b-roster-walk/`: `shots/` holds screenshots, `dom/` holds Feishin's DOM
+`docs/research/2026-10-10-slice-2b-roster-walk/`: `shots/` holds screenshots, `dom/` holds Feishin's DOM
 text and one audio-element capture. A capture name below is a file in one of those two directories.
 
 ## Verdict
@@ -151,7 +151,7 @@ None of these is a failed step. Each is evidence about an oracle.
   build; then run the script.
   **Update, 2026-10-10 (afternoon): walked.** The emulator boots with `-gpu host` and the walk ran; results are in "Tempus 4.29.0 against Navidrome" below. The crash, found by trial: the host `qemu-system-x86_64-headless` segfaulted only with KVM on (the same AVD under `-accel off` ran past the crash point), and only with a software GPU path (`-gpu swiftshader_indirect`, `-gpu guest`, and `-gpu off` all failed: swiftshader and `off` killed qemu, and under `guest` and `off` the guest's surfaceflinger aborted in a restart loop). `eu-stack` on the systemd core showed the faulting thread jumping into an address inside the heap, with the vCPU threads idle in `KVM_RUN`; no debugger is installed, so the frame is unnamed. Neither an `android-34;google_apis;x86_64` image (in new AVD `dubplate-walk34`, installed under `~/Android/`), `-feature -Vulkan`, `-wipe-data`, CET switched off through `GLIBC_TUNABLES`, `-cores 1`, nor `-qemu -cpu host` changed the crash; the emulator build 37.2.12 is the only one the SDK offers on every channel, so no stable-channel swap existed. The fix was `-gpu host` (host Mesa through the emulator's own GL path, still headless under `-no-window`): "Boot completed in 73590 ms" on the first try. The walk used `dubplate-walk34` (API 34) because that is where the passing boot was found; `dubplate-walk` (API 36) was not retried under `-gpu host`.
 
-- **Amperfy 2.1.1.** Listed for rung 16's attended gate (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`:
+- **Amperfy 2.1.1.** Listed for rung 16's attended gate (`docs/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`:
   "A client the conductor cannot drive is walked at rung 16's attended gate."). Its script, from [clients] 2c and the
   sub-path precondition in [base-url], is in `docs/roster-walk.md`, unproven.
 

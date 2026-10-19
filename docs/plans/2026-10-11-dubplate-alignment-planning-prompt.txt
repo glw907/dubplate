@@ -5,19 +5,19 @@ any other act, call EnterWorktree with the name `alignment-plan`, then run
 prompt; a conflict is a stop.
 
 Load `dubplate-pass` (it loads `pass-core`). Read in full the approved design
-`docs/superpowers/specs/2026-10-11-dubplate-alignment-design.md` and its evidence
-`docs/superpowers/research/2026-10-11-dubplate-alignment-audit.md`. The design's five rulings are
+`docs/specs/2026-10-11-dubplate-alignment-design.md` and its evidence
+`docs/research/2026-10-11-dubplate-alignment-audit.md`. The design's five rulings are
 Geoff's and binding. Where this repo's CLAUDE.md, adapter, or STATUS still prescribe lanes, a lane
 registry, conductor rules, errata ledgers, workflow mode, or phase post-mortems, the design
 overrides them: that is the misalignment this pass removes. Arm the API-drop wake-up and the
 lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.
 
 The design is short enough to need no separate spec. Write the plan
-`docs/superpowers/plans/2026-10-11-dubplate-alignment.md` in the lean format (see
-`~/.dotfiles/docs/superpowers/plans/2026-10-11-infra-sweep-1-guard.md` for the shape: Conventions,
+`docs/plans/2026-10-11-dubplate-alignment.md` in the lean format (see
+`~/.dotfiles/docs/plans/2026-10-11-infra-sweep-1-guard.md` for the shape: Conventions,
 tasks with outcome, files, risk class, acceptance, test or check, clock estimate, pairs, Close).
 The pass class is `runner`. Derive the "Path to 0.8" run order from
-`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md` and the current state, with rung
+`docs/research/2026-09-03-rung-dependency-analysis.md` and the current state, with rung
 7 after rung 14a; write the order you derived and its reasoning into the plan. The auto-memory
 prune touches files outside the repo (`~/.claude/projects/-var-home-glw907-Projects-dubplate/memory/`):
 the plan's task writes a dry-run list into the PR body, and the deletion runs only after Geoff
@@ -26,7 +26,7 @@ worktree, and never touches the main checkout's untracked files. Run `spec-plan-
 with all three lenses, the fold, and the verification read.
 
 Write the executor's launch prompt as a committed file beside the plan, in the shape of
-`~/.dotfiles/docs/superpowers/plans/2026-10-11-infra-sweep-1-guard-prompt.txt`, continuing your
+`~/.dotfiles/docs/plans/2026-10-11-infra-sweep-1-guard-prompt.txt`, continuing your
 branch, with the push target `glw907/dubplate` and the gate `bash scripts/check.sh` run through
 `cairn-run-gate` as CLAUDE.md names it.
 

@@ -40,7 +40,7 @@ tooling, and analyses on top of that substrate; it re-opens the schema
 exactly once, additively, and says so below.
 
 **Primary input:** the case catalogue
-(`docs/superpowers/research/2026-09-02-beets-structural-stratum-inventory.md`,
+(`docs/research/2026-09-02-beets-structural-stratum-inventory.md`,
 2026-09-02), which enumerates every shape in beets' own
 `test/autotag/test_distance.py`, `test_match.py`, and `test_hooks.py`
 at the pinned `v2.13.1` commit, sorts them into three tiers, and
@@ -66,7 +66,7 @@ arrive; nothing in this pass produces an item for Geoff to adjudicate.
 If a task believes it has found one, that is a finding to report, not
 a question to ask mid-pass.
 
-**Spec:** `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+**Spec:** `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), ladder entry 2 (the structural stratum, the
 assignment-tie detector, the threshold-proximity flag, and the
 component-test derivation tooling are four of its named deliverables)

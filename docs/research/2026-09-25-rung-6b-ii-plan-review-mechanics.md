@@ -1,6 +1,6 @@
 # Rung 6b-ii plan review: mechanics and feasibility
 
-Reviewed: `docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`, revision 1 (uncommitted).
+Reviewed: `docs/plans/2026-09-25-rung-6b-ii-restore-http.md`, revision 1 (uncommitted).
 Lens: mechanics and feasibility only. Does each mechanism behave as the plan states?
 6b-i code was read in the lane 2 worktree at `33ceff5`. Toolchain: go1.27.1 linux/amd64, modernc.org/sqlite
 v1.59.0 (embeds SQLite 3.53.4), rclone v1.74.3. Probes live in the reviewer's scratch directory

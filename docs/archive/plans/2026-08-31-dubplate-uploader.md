@@ -12,7 +12,7 @@ picker, and kind rejection copy, per the approved design spec.
 **Engine consultation:** no engine asks (dubplate builds no cairn-cms
 surface; enumeration run 2026-09-01 at Pass B start).
 
-**Spec:** `~/Projects/dubplate/docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md`
+**Spec:** `~/Projects/dubplate/docs/specs/2026-08-31-dubplate-uploader-design.md`
 (approved by Geoff 2026-08-31 after three adversarial reviews). The plan
 argues from the spec; executors read both.
 
@@ -58,7 +58,7 @@ Pass-end fan-out: `svelte-reviewer`, `daisyui-a11y-reviewer`,
   place. Each pinned web dependency carries a one-line upgrade note
   (tus-js-client 5.0-pre is a named watch item).
 - Research constraints bind the web tasks:
-  `~/Projects/dubplate/docs/superpowers/research/2026-08-31-uploader-prior-art.md`
+  `~/Projects/dubplate/docs/research/2026-08-31-uploader-prior-art.md`
   and `2026-08-31-uploader-ux-practices.md` (same dir). Hard rules: never
   pre-read a whole file client-side (iOS Safari memory ceiling
   ~100–200MB); ZIP is the primary path on every platform, folder-select a
@@ -673,7 +673,7 @@ flag, M16), ingress PUT back, tmpfiles fragment removal optional.
 ## Pass B — web (starts only after gates + ratification recorded)
 
 **Pass B conductor rulings (2026-09-01), argued in
-`docs/superpowers/research/passb-copy-final.md` (the string authority for
+`docs/research/passb-copy-final.md` (the string authority for
 U10/U11; drafted via content-draft, critic-passed, content-review-gated):**
 
 1. `Serve.SiteName` joins config and the `/api/config` payload (U1's

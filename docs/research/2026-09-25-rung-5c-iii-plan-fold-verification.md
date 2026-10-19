@@ -1,6 +1,6 @@
 # Rung 5c-iii plan fold 1: verification read
 
-Subject: `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, revision
+Subject: `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, revision
 2 (`0aeb644`), against revision 1 (`fc52232`), the fold record
 (`2026-09-25-rung-5c-iii-plan-fold.md`), and the three lens reviews (`-contract`, `-mechanics`,
 `-risk`). The reader had no part in the fold. Findings are correctness gaps ranked by

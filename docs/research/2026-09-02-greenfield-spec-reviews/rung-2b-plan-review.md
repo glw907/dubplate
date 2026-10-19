@@ -1,7 +1,7 @@
 # Adversarial review: the pass 2b plan (structural stratum)
 
 Fresh-context hostile review of
-`docs/superpowers/plans/2026-09-02-rung-2b-structural-stratum.md`
+`docs/plans/2026-09-02-rung-2b-structural-stratum.md`
 (revision 1, 2026-09-02), read against pass 2a's plan, the structural
 stratum inventory, the matcher mechanics study, the ratified build
 spec's ladder entry 2, and the code as shipped at commit `3112877`:
@@ -374,7 +374,7 @@ that exists only in a report is an unadjudicated divergence nobody can
 find.
 
 **Fix.** Create `corpus/analysis/divergences.md` (or
-`docs/superpowers/research/2026-09-02-corpus-divergences.md`) in Task
+`docs/research/2026-09-02-corpus-divergences.md`) in Task
 1, with a stated four-field row shape: case id, the beets test or
 source line the case was modeled on, the derived value, and the
 author's reading. Task 6 carries the file forward to 2c's ledger and

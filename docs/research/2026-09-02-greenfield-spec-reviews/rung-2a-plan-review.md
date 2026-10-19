@@ -1,8 +1,8 @@
 # Rung 2a plan adversarial review, 2026-09-02
 
-Plan: `docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`
+Plan: `docs/plans/2026-09-02-rung-2a-cassette-substrate.md`
 (committed at `fe53a1e`)
-Spec: `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+Spec: `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified, not under review), ladder entry 2 and
 rulings 1-3
 Governing research: the matcher mechanics study

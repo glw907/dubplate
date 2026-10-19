@@ -412,7 +412,7 @@ merge is trivially additive.
 **(b) Disjoint-package lanes sharing one tree, interleaved commits.**
 Cheapest, and the mode this session already proved: the corpus workflow
 writes `corpus/` and `internal/harness`, the 2d planning workflow writes
-`docs/superpowers/plans` and `research`, and this analysis writes one
+`docs/plans` and `research`, and this analysis writes one
 research file, with no overlap and no incident. **The proof covers
 document lanes only.** Document lanes do not compile, and that is the
 whole difference. `scripts/check.sh` runs the module gate over `./...`, so

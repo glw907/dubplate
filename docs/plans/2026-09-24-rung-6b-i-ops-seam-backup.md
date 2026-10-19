@@ -4,28 +4,28 @@ Status: **revision 2.2, 2026-09-24; approved by Geoff 2026-09-24: all four rulin
 Revision 1 (`b36871c`) took three lens reviews (contract C1 to C29,
 mechanics M1 to M14 and F1, risk R1 to R16), folded into revision 2
 (`5782d15`). Revision 2.1 folds the fresh-context verification read (V1 to
-V10, `docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-verification.md`)
+V10, `docs/research/2026-09-24-rung-6b-i-plan-fold-verification.md`)
 and the store findings of the 6a architecture read that shape a signature
-6b-i exports or binds to (`docs/superpowers/research/2026-09-24-rung-6a-architecture-reads.md`,
+6b-i exports or binds to (`docs/research/2026-09-24-rung-6a-architecture-reads.md`,
 items 1 to 4). The fold record
-(`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md`)
+(`docs/research/2026-09-24-rung-6b-i-plan-fold-record.md`)
 carries one disposition per finding in every fold. Revision 2.2 folds the
 prose review (P1 to P20,
-`docs/superpowers/research/2026-09-24-rung-6b-i-plan-prose-review.md`),
+`docs/research/2026-09-24-rung-6b-i-plan-prose-review.md`),
 which re-based the ceiling on 6a's recorded actuals. Four rulings for Geoff
 are open ("Rulings for Geoff").
 
 Sources: the ratified rung 6 spec
-(`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
+(`docs/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
 2.2, with the 2026-09-24 errata E1 to E11) and its fold record
-(`docs/superpowers/research/2026-09-23-rung-6-spec-fold-record.md`); the
-approved 6a plan (`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`,
+(`docs/research/2026-09-23-rung-6-spec-fold-record.md`); the
+approved 6a plan (`docs/plans/2026-09-23-rung-6a-store-foundation.md`,
 revision 2.2), its "What this pass is not", Task 8's handoff, and conductor
 action 6; the 2.0 streamer spec
-(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, "Forward hooks"
+(`docs/specs/2026-09-07-streamer-2-0-design.md`, "Forward hooks"
 and "Prior art"); the parallel-build approach's ownership table
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`); and the
-approved 5c-ii plan (`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`),
+(`docs/specs/2026-09-03-parallel-build-approach.md`); and the
+approved 5c-ii plan (`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`),
 which runs in lane 1 beside this pass.
 
 **Code pointers are resolved at `0b6da0f` on master.** 6a merged at
@@ -979,7 +979,7 @@ site, and a pointer whose content is gone is a blocker.
 ## Task 1S: The store's signatures, reshaped before 6b-i binds to them
 
 Model: `sonnet`. Depends on Task 0. **Neutral on 2.0 hooks.** The 6a
-architecture read (`docs/superpowers/research/2026-09-24-rung-6a-architecture-reads.md`,
+architecture read (`docs/research/2026-09-24-rung-6a-architecture-reads.md`,
 `internal/engine/store`, items 1 to 3) found three test-only seams in the
 signatures 6b-i is about to export or bind to. This task removes them while
 the store has no caller outside its package, so no later pass reshapes an
@@ -1987,8 +1987,8 @@ goldens and line count).
 Model: `sonnet`. Depends on Tasks 0 to 7 and the simplifier round.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-6b-i.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-6b-i.md`
+- Create: `docs/research/handoffs/draft-STATUS-6b-i.md`
+- Create: `docs/research/handoffs/draft-HISTORY-6b-i.md`
 
 **Outcomes:**
 

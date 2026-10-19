@@ -50,11 +50,11 @@ __pycache__/
 /.superpowers/
 
 # photos/.candidates/ is the photo curation pass's candidate home (see
-# docs/superpowers/specs/2026-09-25-photo-curation-design.md): downloaded
+# docs/specs/2026-09-25-photo-curation-design.md): downloaded
 # candidates wait here until Geoff picks them, and only picked images are
 # ever committed.
 /photos/.candidates/
 
 # The visual-collaborator outreach note holds personal email addresses and
 # stays uncommitted (Geoff's ruling).
-/docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md
+/docs/research/2026-09-04-visual-collaborator-outreach.md

@@ -1,6 +1,6 @@
 # Rung 6c plan fold record: revision 1 to revision 2
 
-The plan is `docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`. Revision 1
+The plan is `docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`. Revision 1
 was `8d0eed8`, and revision 2 is the working-tree draft this record accompanies. The fold covers
 three lens reviews, committed at `098f8e5`:
 

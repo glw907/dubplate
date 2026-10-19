@@ -12,9 +12,9 @@ brings in the approved design, the audit, the plan, and the plan's review, fold,
 conflict is a stop. Write `launch-base=<HEAD sha>` as the first line of the PR notes (`<git dir>/pr-notes.md`, below).
 Then run `npm ci --prefix web` in the worktree, the adapter's setup.
 
-Load `dubplate-pass` (it loads `pass-core`). Read `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` in full,
-then the design it implements (`docs/superpowers/specs/2026-10-11-dubplate-alignment-design.md`) and its evidence
-(`docs/superpowers/research/2026-10-11-dubplate-alignment-audit.md`). Geoff approved the design on 2026-10-11 and its
+Load `dubplate-pass` (it loads `pass-core`). Read `docs/plans/2026-10-11-dubplate-alignment.md` in full,
+then the design it implements (`docs/specs/2026-10-11-dubplate-alignment-design.md`) and its evidence
+(`docs/research/2026-10-11-dubplate-alignment-audit.md`). Geoff approved the design on 2026-10-11 and its
 five rulings are binding. Where the repo's CLAUDE.md, the adapter, STATUS, or the project auto-memory still prescribe
 lanes, a lane registry, conductor rules, errata ledgers, workflow mode, or phase post-mortems, the design overrides
 them: that is what this pass removes. Write no auto-memory. Arm the API-drop wake-up (`/loop` with no interval) and

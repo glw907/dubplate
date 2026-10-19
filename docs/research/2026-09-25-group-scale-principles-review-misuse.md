@@ -1,6 +1,6 @@
 # Group-scale principles spec: misuse and friction review
 
-Target: `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md` at commit
+Target: `docs/specs/2026-09-25-group-scale-principles-design.md` at commit
 `1d6bc6a` (revision 1, pre-review). Lens: misuse and friction, in place of data integrity.
 Each finding is judged against the owner's framing (Geoff, 2026-09-25): dubplate should be easy
 to use for its intended purpose and hard to use for nefarious ones, and helping people buy

@@ -1,6 +1,6 @@
 # Greenfield build-spec adversarial review (universality and adoption), 2026-09-02
 
-Spec: `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+Spec: `docs/specs/2026-09-02-greenfield-server-build.md`
 
 Read in full: the spec under review, the ratified rulings
 (`research/2026-09-02-greenfield-server-rulings.md`), the login spec

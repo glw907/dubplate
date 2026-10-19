@@ -68,7 +68,7 @@ rather than re-derived. An implementer who believes one of them is wrong
 reports a finding and implements the record anyway.
 
 **Revision 1, 2026-09-04.** Drafted against the rung 3 spec at **revision
-2** (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`), which is
+2** (`docs/specs/2026-09-03-rung-3-go-matcher.md`), which is
 ratified on its six rulings and review-folded on all nineteen findings of
 `research/2026-09-04-rung-3-spec-review.md`. That review's "Verified
 sound" list is the do-not-re-litigate record: its twenty items are cited
@@ -78,7 +78,7 @@ standing applies to `docs/HISTORY.md`'s 3a and 3b entries, whose ten and
 seventeen rediscover-guards are cited below rather than re-measured.
 
 This plan's primary input is
-`docs/superpowers/research/2026-09-04-rung-3c-planning-inventory.md`, a
+`docs/research/2026-09-04-rung-3c-planning-inventory.md`, a
 research report that read pinned beets 2.13.1 in `tools/venv/.venv`, the
 harness and corpus as landed at `d518e57`, and the engine as 3a and 3b
 left it. Every mechanic below is cited to the tree, and the inventory's
@@ -112,10 +112,10 @@ entries, not six plus two specials
 > pass runs in the MAIN TREE**, and nothing here may be executed from a
 > worktree: the spec's tree column for 3c is "Main tree: writes
 > `internal/harness/conform` and `internal/harness/stub`"
-> (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md:330`), and the
+> (`docs/specs/2026-09-03-rung-3-go-matcher.md:330`), and the
 > standing policy is that corpus and harness work never moves to a
 > worktree
-> (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
+> (`docs/specs/2026-09-03-parallel-build-approach.md`,
 > lane-launch checklist item 5).
 
 **Revision 2.2, 2026-09-05 (conductor ruling on Task 5's escalation):**
@@ -147,7 +147,7 @@ CLAUDE.md's rule that it routes to Geoff stands otherwise. Every
 
 Read these before Task 1, in this order:
 
-1. **`docs/superpowers/research/2026-09-04-rung-3c-planning-inventory.md`,
+1. **`docs/research/2026-09-04-rung-3c-planning-inventory.md`,
    in full.** It is this plan's argument. Section (a) is the beets client
    and query mechanics with line citations against `tools/venv/.venv`;
    (b) is the harness, stub, cassette, and request logs as landed; (c) is
@@ -155,7 +155,7 @@ Read these before Task 1, in this order:
    three and lists the fourteen open questions. Do not re-derive what it
    settles; cite it and verify the line if you carry one forward. Its two
    corrected figures are named in this plan's header.
-2. **`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, revision
+2. **`docs/specs/2026-09-03-rung-3-go-matcher.md`, revision
    2**, in full. The pass-split table's 3c row (`:330`) is this plan's
    scope statement. The conductor rulings in its header (`:45-50`), "The
    rate limiter" (`:238-242`), "`Case.Extra` and the replay channel it
@@ -169,7 +169,7 @@ Read these before Task 1, in this order:
    divergence), 14 (the browse fallback and its guard) and 16 (the
    wire-type census) are load-bearing here, as is 3a's guard 2 (the
    deferred four-knob registration) and its case-mapping sweep.
-4. **`docs/superpowers/plans/2026-09-04-rung-3b-translation.md`**, for its
+4. **`docs/plans/2026-09-04-rung-3b-translation.md`**, for its
    sixteen translation contracts and its Global Constraints. This plan
    does not restate them; it adds the client and query contracts below.
 5. The tree, read-only: `internal/engine/musicbrainz/{doc,release,
@@ -254,7 +254,7 @@ with an inline marker, listed in the revision note above.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md` (revision 2),
+`docs/specs/2026-09-03-rung-3-go-matcher.md` (revision 2),
 and behind it `specs/2026-09-02-greenfield-server-build.md` (revision
 2.1, ratified), ladder entry 3. This pass ships deliverable 5, quoted in
 full: "the shared MusicBrainz rate limiter, shipping the per-caller
@@ -755,7 +755,7 @@ own configured rate limit". `musicbrainz.DefaultInterval` is
 ## Resolutions this plan takes rather than discovers
 
 The planning inventory returned fourteen deduplicated open questions
-(`docs/superpowers/research/2026-09-04-rung-3c-planning-inventory.md:1067-1142`).
+(`docs/research/2026-09-04-rung-3c-planning-inventory.md:1067-1142`).
 Each is resolved here, with its evidence and its rejected alternative. A
 task that believes a resolution is wrong reports a finding and implements
 the record anyway.
@@ -1412,7 +1412,7 @@ are blockers: a "no" stops the launch rather than producing a note.
    than `wf_ede6e00d-bee`, or any live pid in this tree, as a blocker.)*
 4. **Have the contested-surface rows been written for every surface this
    pass touches?** *(Expected: six of eight present at
-   `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s
+   `docs/specs/2026-09-03-parallel-build-approach.md`'s
    contested-surface table, with **`corpus/manifest.json` and
    `corpus/README.md` missing** (fold m22). Report both; the conductor
    writes them; neither is a launch blocker for the reason this plan's

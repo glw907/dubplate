@@ -1,7 +1,7 @@
 # Rung 6c plan: prose-and-facts review
 
 Graded commit `cebff05` (revision 2.1, plus its approval block). Folded into revision 2.2 of
-`docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`. Line citations below are
+`docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`. Line citations below are
 `cebff05`'s own; on the plan's current HEAD, lines 13-75 sit one line earlier and lines from 76 on sit
 15 lines later.
 

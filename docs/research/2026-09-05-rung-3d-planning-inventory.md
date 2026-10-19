@@ -3,7 +3,7 @@
 Research report, 2026-09-05, prepared for pass 3d's plan authoring,
 against HEAD `c7a85fde96d83d6410de165d89ba4517f9c5e541`. Scope, quoted
 from the rung 3 spec's pass-split table
-(`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md:331`):
+(`docs/specs/2026-09-03-rung-3-go-matcher.md:331`):
 
 > **3d** Verdicts and the gate | The assignment solve with tie
 > mirroring; extras and their sort orders; admission filters, insertion
@@ -34,7 +34,7 @@ scripts read them; I did not). The probes live in
 and are reproducible; the plan should re-run rather than trust them.
 
 Everything the port map
-(`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`)
+(`docs/research/2026-09-02-beets-matcher-mechanics.md`)
 says about assignment, extras, admission, recommendation, and flow is
 confirmed against source. The extensions below are what it does not
 say.

@@ -1,7 +1,7 @@
 # Slice 1, Task 7: the study record
 
 Date: 2026-10-07. Staged outside the repo; lands at B-land as
-`docs/superpowers/research/2026-10-06-slice-1-study-record.md`, beside its ledger,
+`docs/research/2026-10-06-slice-1-study-record.md`, beside its ledger,
 `2026-10-06-slice-1-divergence-ledger.md`. This is the file the spec, slice 2, and each slice plan cite. It holds the
 index and the decisions; the evidence lives in the seven segment A records it points into.
 
@@ -14,9 +14,9 @@ read for quotations: RFC 9110 §14.2, SQLite's `VACUUM` page, and `go doc` for `
 workstation).
 
 **Spec lines** are revision 3 of `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` ("the spec") at `0cb33ae`
-and later master, unchanged by this lane. The re-plan is `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`.
+and later master, unchanged by this lane. The re-plan is `docs/specs/2026-10-05-rungs-12-16-replan-design.md`.
 
-**Citation aliases.** Each names a segment A record under `docs/superpowers/research/`:
+**Citation aliases.** Each names a segment A record under `docs/research/`:
 
 | Alias | File | Owner |
 |---|---|---|

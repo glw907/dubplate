@@ -1,6 +1,6 @@
 # Rung 7 intake spec, revision 1: consistency review
 
-Lens: consistency with ratified documents. Target: `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md` at
+Lens: consistency with ratified documents. Target: `docs/specs/2026-10-10-rung-7-intake-design.md` at
 `9fc7c53` (cited below as `spec:N`). Read against CLAUDE.md, BS, the rulings ledger, SS's forward hooks (1 to 24), CH,
 PS, UD, VI, W, 14A, PCF, the Melodee study, and the brief, with every code citation the spec makes spot-checked on the
 tree at `9fc7c53`. Settled rulings (the renamed unmatched route, the post-rung-9 web pass, no default quota plus the

@@ -2,7 +2,7 @@
 
 This is a fresh-context verification of the review fold of the rung 6a plan. The target is
 `docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md` at revision 2 (`1d69ab8`). The
-fold record is `docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`. The three
+fold record is `docs/research/2026-09-23-rung-6a-plan-fold-record.md`. The three
 reviews and the ratified rung 6 spec (revision 2.2) were read as sources. The verifier had no part
 in the fold. Line numbers are revision 2 plan lines unless marked otherwise.
 

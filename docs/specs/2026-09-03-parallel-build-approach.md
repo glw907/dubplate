@@ -6,7 +6,7 @@ Superseded 2026-10-11: execution follows the lean pass process (`dubplate-pass`)
 
 Erratum, 2026-09-07 (Geoff): the build carries no calendar schedule; the shadow floor is an evidence minimum, never a launch date, and the date arithmetic below was removed.
 
-Erratum, 2026-09-08 (rung 1b close): the 0b paragraph below is corrected on three points, source `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`. The registry's landed scope covers all four declaration families, not two; the gitleaks fingerprint's blast radius is `internal/config/keys_test.go` alone, not every lane's own files; and the re-fingerprint rider is moot, because rung 1b retired `.gitleaksignore` outright rather than re-pinning it.
+Erratum, 2026-09-08 (rung 1b close): the 0b paragraph below is corrected on three points, source `docs/plans/2026-09-07-rung-1b-config-registry.md`. The registry's landed scope covers all four declaration families, not two; the gitleaks fingerprint's blast radius is `internal/config/keys_test.go` alone, not every lane's own files; and the re-fingerprint rider is moot, because rung 1b retired `.gitleaksignore` outright rather than re-pinning it.
 
 ## Fold note (revision 2, 2026-09-03)
 
@@ -313,7 +313,7 @@ The trigger for a merge agent is mechanical, so no judgment is required and the 
 > STATUS handoff. A phase whose lanes outrun one session may span
 > more than one, each intermediate close carrying a written per-lane
 > handoff. Canonical record: the build spec's Process section and
-> `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`.
+> `docs/specs/2026-09-03-parallel-build-approach.md`.
 >
 > **Standing grants (Geoff, 2026-09-02, extended 2026-09-03):**
 > workflow mode for the whole build, execution and prep both; batch

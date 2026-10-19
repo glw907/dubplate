@@ -14,7 +14,7 @@ Two plans are approved (Geoff, 2026-09-25), their rulings recorded in each plan:
   split into 5c-iii (10.8M) then 5c-iv (8.5M); lane 1, next. From its Task 3 on, every full gate
   launches Chromium (heavy lane).
 
-**Resume prompt:** execute `docs/superpowers/plans/2026-09-25-unattended-window-2.md` (Geoff's grants
+**Resume prompt:** execute `docs/plans/2026-09-25-unattended-window-2.md` (Geoff's grants
 inside: 6b-ii-a continues in lane 2; 5c-iii segments start in lane 1; 11M cap; read-only box).
 Read memory `session-2026-09-25-handoff`. Rung 12 owns the roster API's shared origin
 with the Navidrome fallthrough (5c-ii security M2) as a threat-model entry (Geoff, 2026-09-25).

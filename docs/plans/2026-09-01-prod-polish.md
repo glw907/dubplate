@@ -200,7 +200,7 @@ Geoff's step; the pass itself deletes nothing).
       brainstorm), HISTORY gains PROD-POLISH'S OWN entry (P6's rewrite
       entry is separate), BACKLOG items closed with verdict lines,
       ROADMAP: prod-polish → Done.
-- [ ] Archive this plan to `docs/superpowers/archive/plans/`.
+- [ ] Archive this plan to `docs/archive/plans/`.
 - [ ] Commit, push, score both budgets, prep the context clear.
 
 ## Review provenance

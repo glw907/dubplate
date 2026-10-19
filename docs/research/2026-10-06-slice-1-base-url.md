@@ -1,7 +1,7 @@
 # Slice 1, Task 3: the API base URL against a sub-path
 
 Date read: 2026-10-07 (UTC, 04:50 to 05:12). Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-base-url.md`.
+`docs/research/2026-10-06-slice-1-base-url.md`.
 
 **Pins read** (from `2026-10-06-slice-1-evidence-pins.md`): Feishin v1.17.0 `5c169ac`, Rufin v0.16.6 `aad2f44`, Amperfy
 v2.1.1 `c165a7a`, Tempus v4.28.0 `687d97f` (each clone's `HEAD` was checked against its pin after cloning); Navidrome

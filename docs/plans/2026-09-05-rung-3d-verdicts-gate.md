@@ -81,7 +81,7 @@ extension model, the fourth pattern table's byte identity, B3's
 fires-on-nothing premise, and every one of contracts V1 through V20.
 
 **Revision 1, 2026-09-05.** Drafted against the rung 3 spec at **revision
-2** (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`), ratified
+2** (`docs/specs/2026-09-03-rung-3-go-matcher.md`), ratified
 on its six rulings and review-folded on all nineteen findings of
 `research/2026-09-04-rung-3-spec-review.md`. That review's "Verified
 sound" list is the do-not-re-litigate record: its twenty items are cited
@@ -93,7 +93,7 @@ re-measured, and to `research/2026-09-04-rung-3c-plan-review.md`'s
 41-item "Verified sound" list.
 
 This plan's primary input is
-`docs/superpowers/research/2026-09-05-rung-3d-planning-inventory.md`, a
+`docs/research/2026-09-05-rung-3d-planning-inventory.md`, a
 research report that read pinned beets 2.13.1 in `tools/venv/.venv`, the
 harness and corpus as landed at `c7a85fd`, and the engine as 3a, 3b and
 3c left it. Every mechanic below is cited to the tree, and the
@@ -201,14 +201,14 @@ spec edits, and Task 0 re-confirms them at dispatch.
 > "Main tree: writes `internal/harness/conform` and
 > `internal/harness/analysis`" (spec `:331`), and the standing policy is
 > that corpus and harness work never moves to a worktree
-> (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
+> (`docs/specs/2026-09-03-parallel-build-approach.md`,
 > lane-launch checklist item 5).
 
 ## Primary inputs
 
 Read these before Task 1, in this order:
 
-1. **`docs/superpowers/research/2026-09-05-rung-3d-planning-inventory.md`,
+1. **`docs/research/2026-09-05-rung-3d-planning-inventory.md`,
    in full.** It is this plan's argument. Section (a) is beets' verdict
    mechanics and the assignment solver with line citations against
    `tools/venv/.venv`; (b) is the harness ledgers and tiers as landed;
@@ -217,7 +217,7 @@ Read these before Task 1, in this order:
    re-derive what it settles; cite it and verify the line if you carry
    one forward. Its five corrected or confirmed figures are named in
    this plan's header, and its `max_rec` count of 21 is superseded by 6.
-2. **`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, revision
+2. **`docs/specs/2026-09-03-rung-3-go-matcher.md`, revision
    2**, in full. The pass-split table's 3d row (`:331`) is this plan's
    scope statement. Rulings A (`:71-87`), B (`:89-95`), E (`:115-124`)
    and F (`:125-133`), the M4 mechanism (`:131-133`), the B3 probe-case
@@ -236,7 +236,7 @@ Read these before Task 1, in this order:
    and 3a's guards 2 (the deferred four-knob registration), 3 (the
    `SD_PATTERNS`-as-a-value seam) and 7 (the two `inclArtist` call
    shapes).
-4. **`docs/superpowers/plans/2026-09-04-rung-3c-client-limiter.md`**,
+4. **`docs/plans/2026-09-04-rung-3c-client-limiter.md`**,
    for its twenty client and query contracts and its Global Constraints.
    This plan does not restate them; it adds the verdict contracts below.
 5. The tree, read-only: `internal/engine/matcher/{info,likelies,penalty,
@@ -304,7 +304,7 @@ pass**.
 1. **Ruling F's escalation** (spec `:125-133`, Resolution R3). Two
    failed tie-mirroring attempts stop **Task 2 and only Task 2**. The
    implementer writes the finding to
-   `docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md`,
+   `docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md`,
    the two pinned rows are marked awaiting Geoff, the pass continues
    through every other task, and **the conductor never rules the
    disposition**. `disposition` is owner-only, enforced by the sentinel
@@ -313,7 +313,7 @@ pass**.
    `adjudications.json` carries zero pending rows. If the Go matcher
    diverges on a verdict whose resolution is an owner question, the
    runner reports it, Task 9 records it in the pass report and writes it
-   to `docs/superpowers/research/2026-09-05-rung-3d-pending-divergences.md`,
+   to `docs/research/2026-09-05-rung-3d-pending-divergences.md`,
    and the launch gate refuses it. The runner never writes a
    disposition and never edits `corpus/analysis/*` (Resolution R15).
 
@@ -338,7 +338,7 @@ conductor writes them, and none is a launch blocker.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md` (revision 2),
+`docs/specs/2026-09-03-rung-3-go-matcher.md` (revision 2),
 and behind it `specs/2026-09-02-greenfield-server-build.md` (revision
 2.1, ratified), ladder entry 3. This pass completes deliverable 3, quoted
 in full: "**Album-level matching**, with track assignment pinned to the
@@ -868,7 +868,7 @@ correctness requirement rather than a cosmetic one.
 ## Resolutions this plan takes rather than discovers
 
 The planning inventory returned twenty deduplicated open questions
-(`docs/superpowers/research/2026-09-05-rung-3d-planning-inventory.md`,
+(`docs/research/2026-09-05-rung-3d-planning-inventory.md`,
 section (d), "Combined open questions"). Each is resolved here, with its
 evidence and its rejected alternative. A task that believes a resolution
 is wrong reports a finding and implements the record anyway.
@@ -1045,7 +1045,7 @@ are matched.
 failed attempts stop **Task 2 and only Task 2**. The implementer then:
 
 1. writes the finding to
-   `docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md`,
+   `docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md`,
    carrying **both cost matrices at full float64 precision** (12x12 for
    `should-ask`, 14x14 for `should-reject`), **both solvers' optima and
    their costs** (`lapjv`'s and the Go solver's, with `ties.json`'s own
@@ -1071,7 +1071,7 @@ They grade as **pending, never as passing**. `CaseGradeSummary` carries
 `TiesAwaitingRuling []string`, tier 1 skips the assignment comparison for
 those two case ids alone, still grades their distances, candidates,
 per-track vectors and verdicts, and the gate test **fails if that slice
-is non-empty and no `docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
+is non-empty and no `docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
 exists**, so the escape cannot be taken silently. When the finding
 exists the gate is green, the count is reported at every run, and the
 launch gate inherits the open ruling.
@@ -1277,7 +1277,7 @@ and comparing that verdict against the case's own `ModeCompat` verdict
 the case actually fetched and never a full counterfactual import; a case
 that lost its early return would have searched, and no such search is
 issued. Task 9 records that limit beside the list. Task 9 writes them
-to `docs/superpowers/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`
+to `docs/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`
 with each case's compat and default verdicts, and the conductor batches
 that document into the adjudication stream, which is a touchpoint the
 process already expects (CLAUDE.md, "Expected owner touchpoints").
@@ -2212,7 +2212,7 @@ Model: **`opus`**. Depends on Task 1.
 An attempt is one design of the pivot order plus its run against the two
 pinned cases and the frozen table. On the **second** failure the
 implementer stops, writes
-`docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
+`docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
 with the contents R3 enumerates, marks `should-ask` and `should-reject`
 as awaiting Geoff in its return, and **does not attempt a third design**.
 The pass continues with Task 3. **The conductor never rules the
@@ -2226,7 +2226,7 @@ disposition.**
 - Create: `internal/engine/matcher/testdata/assign/should-ask-costs.json`
 - Create: `internal/engine/matcher/testdata/assign/should-reject-costs.json`
 - Create, only on the second failure:
-  `docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
+  `docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
 
 **Interfaces:**
 
@@ -2345,7 +2345,7 @@ Attempt two revisits the pivot order against the frozen table's failing
 rows, which name the shape and `n` that diverge. **If attempt two also
 fails, the task stops.** The implementer then:
 
-- writes `docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
+- writes `docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md`
   carrying, per ruling F and Resolution R3: both cost matrices at
   `%.17g`; both solvers' optima and their costs for both cases; the
   committed `Expected.Assignment` for both; `ties.json`'s own
@@ -4761,7 +4761,7 @@ func CheckDefaultCompatMatchesTheLedger(root string) error
   would have searched and no such search is issued (fold B2); Task 9
   records that limit beside the list. `VerdictMoves`
   **fails nothing**; Task 9 writes the list to
-  `docs/superpowers/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`
+  `docs/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`
   and the conductor batches it into the adjudication stream.
 - **The eight ungraded probe cases.** The six `adv-assign-*` rows and the
   two alias rows whose own disposition is `oracle-wrong` have no
@@ -4941,9 +4941,9 @@ Model: `sonnet`. Depends on Tasks 0 through 8.
 **Files:**
 - Modify: `docs/STATUS.md`, `docs/HISTORY.md` (drafted for the
   conductor's batch commit)
-- Create: `docs/superpowers/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`
+- Create: `docs/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`
 - Create, only if any exists:
-  `docs/superpowers/research/2026-09-05-rung-3d-pending-divergences.md`
+  `docs/research/2026-09-05-rung-3d-pending-divergences.md`
 - Draft, handed to the conductor in the task return: one rung 3 spec
   tree-column correction; three contested-surface rows; two
   `corpus/README.md` corrections; two filed notes; one owner ask

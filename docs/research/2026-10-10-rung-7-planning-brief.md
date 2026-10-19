@@ -16,7 +16,7 @@ CH the configuration homes spec (`specs/2026-09-11-configuration-homes-design.md
 UD the salvage-era uploader design (`specs/2026-08-31-dubplate-uploader-design.md`), OD the organizer spec
 (`specs/2026-09-01-dubplate-organizer-design.md`), PCF the reject and uploader string authority
 (`research/passb-copy-final.md`), and the 14 brief the rung 14 planning brief
-(`research/2026-10-10-next-pass-planning-brief.md`). Paths sit under `docs/superpowers/` unless they start at the
+(`research/2026-10-10-next-pass-planning-brief.md`). Paths sit under `docs/` unless they start at the
 repo root.
 
 Rung 9's concurrency model was ruled on 2026-10-10: a per-album lease. The ruling is not yet in the tree at

@@ -20,7 +20,7 @@ darkroom prints), and never from wordplay about it.
 
 The session's mockups live in `.superpowers/brainstorm/` (gitignored). The figures committed
 beside this spec contain no third-party album art. The research behind the photography section
-is in `docs/superpowers/research/2026-09-24-identity-photos/`.
+is in `docs/research/2026-09-24-identity-photos/`.
 
 ## Owner rulings
 
@@ -51,7 +51,7 @@ Geoff made every ruling below on 2026-09-24, in order.
 The two-axis model in DL stays. One structural match block, `dubplate`, composes with two
 palettes, `label` and `label-night`, giving the composed identities `dubplate-label` and
 `dubplate-label-night` (DL R3.6). Pass 5c-ii's Task 4 lands these values as data files. The
-build conductor committed the draft at `docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`,
+build conductor committed the draft at `docs/research/2026-09-24-visual-identity-draft-tokens.md`,
 and this section supersedes it.
 
 The `dubplate` match block sets every corner square, including selectors (the 2rem selector
@@ -348,7 +348,7 @@ three read-only lenses (typography and rhythm; color, surface, and depth; intera
 states). Most knobs came back already right: the slab ladder, the 4px spacing grid, the line
 weights (1, 2, 3, and 4px, each with one role), the mark's optical centering on the wordmark,
 and the depth system. The ledgers and the refined specimen are in
-`docs/superpowers/research/2026-09-24-identity-refinement/`. These fixes are part of the spec:
+`docs/research/2026-09-24-identity-refinement/`. These fixes are part of the spec:
 
 | Area | Rule |
 |---|---|
@@ -378,7 +378,7 @@ round but not ruled, so rung 7 presents them for a verdict rather than building 
 - A library list view beside the grid: a Grid and List switch, and a catalog-index list with
   mono column heads and a catalog-number column.
 - Library filtering, designed from the prior-art study at
-  `docs/superpowers/research/2026-09-24-library-filtering-prior-art.md`: facets with live counts
+  `docs/research/2026-09-24-library-filtering-prior-art.md`: facets with live counts
   and include and exclude, OR within a facet and AND across facets, a beets-style query line kept
   in sync with the controls, URL state, and saved views. The mocked row of dropdowns is a
   placeholder, not the design. The study maps each facet to the rung 9 column that supplies it.

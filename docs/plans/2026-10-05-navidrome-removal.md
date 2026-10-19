@@ -1,14 +1,14 @@
 # Navidrome removal pass Implementation Plan
 
 Status: **revision 2, 2026-10-05, reviewed and folded; approved by Geoff 2026-10-05.** Three review lenses (contract, mechanics, risk) under
-`docs/superpowers/research/2026-10-05-navidrome-removal-plan-review-*.md`; the fold record is
-`docs/superpowers/research/2026-10-05-navidrome-removal-plan-fold.md`. It carries no ruling for Geoff: every fork it
+`docs/research/2026-10-05-navidrome-removal-plan-review-*.md`; the fold record is
+`docs/research/2026-10-05-navidrome-removal-plan-fold.md`. It carries no ruling for Geoff: every fork it
 touches was ruled in the spec. It takes eight readings of its own ("Readings this plan takes").
 
 **Spec:** `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`, approved by
 Geoff 2026-10-05 with all three owner rulings ruled yes ("the spec"). Its "The removal pass" section and its four
 subsections are this plan's scope.
-**Fold record:** `docs/superpowers/research/2026-10-05-rungs-12-16-replan-fold.md`.
+**Fold record:** `docs/research/2026-10-05-rungs-12-16-replan-fold.md`.
 **Parallel document pass:** `docs/superpowers/plans/2026-10-05-replan-document-pass.md` (revision 2, `1c37e40`),
 which shares the main tree. Its "Coordination with `navidrome-removal`" section binds this plan too (below).
 **Out of this pass, by the spec:** the archive-preservation chore is the document pass's Task 0 ("Preserving the
@@ -40,7 +40,7 @@ Svelte, pasting `.claude/instructions/simplifier-brief.md` verbatim, with one `d
 `go-architecture-reader` per touched Go package (list in Task 5); `web-auth-security-reviewer` over the
 `internal/serve`, `cmd/dubplate-server/serve*.go`, and Task 4b `internal/auth` roster and admin diff, asking for correctness gaps ranked by consequence,
 vacuous re-pointed tests first; `svelte-reviewer` and `daisyui-a11y-reviewer` on one shared brief scoped to the
-rename's `web/` diff, passing `docs/superpowers/specs/2026-09-24-visual-identity-design.md` and asking for
+rename's `web/` diff, passing `docs/specs/2026-09-24-visual-identity-design.md` and asking for
 conformance to it (the copy register above all) graded beside correctness. Every reviewer dispatch asks for
 correctness gaps ranked by consequence, not polish; a fold may refuse a finding with a one-line reason.
 **Ceiling:** 8.0M execution tokens, flag 6.4M (80%). Planning and plan review are recorded outside it.
@@ -77,7 +77,7 @@ The document pass's "Sharing the main tree" rules hold for this pass in reverse:
 - A segment here does not launch while a document segment is in flight. At each launch, the last document task
   is committed and `git status` shows no warm change outside this pass's files, except the files below.
 - The tree carries warm files this pass did not author (at plan time: `.claude/agent-memory/dubplate-implementer/*`
-  and two untracked `docs/superpowers/research/2026-09-04-*.md` files). No task stages, edits, or deletes them.
+  and two untracked `docs/research/2026-09-04-*.md` files). No task stages, edits, or deletes them.
   Each task stages only its named files, never `git add -A`.
 - A red gate whose failing leg sits in a document-lane file is not a task failure here: the implementer reports
   it and stops without committing.
@@ -210,7 +210,7 @@ Conductor. Before segment A. **0.8 hooks:** neutral.
   the pinned binaries (rclone, golangci-lint, Playwright), per `CLAUDE.md` "Current dependencies". Minors and
   patches land as their own gate-green commits on master; a major waits for Geoff and is recorded with its unblock
   condition. A sweep with nothing to move is one line in the pass record. The last sweep was
-  `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
+  `docs/research/2026-10-04-dependency-sweep.md`.
 - Task 0 runs only when no document segment is in flight (see "Where it runs"), and tells slice 2's conductor
   before bumping `golangci-lint` or `rclone`.
 - The spec's baseline (rung 12, "The streamer's configuration"): the set of values a default install's operator

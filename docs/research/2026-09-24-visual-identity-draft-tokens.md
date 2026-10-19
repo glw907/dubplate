@@ -2,7 +2,7 @@
 
 Draft token values from Geoff's visual identity brainstorm (session dubplate-04,
 2026-09-24), sent to the 5c-ii conductor ahead of the spec
-`docs/superpowers/specs/2026-09-24-visual-identity-design.md`. The spec is the source of
+`docs/specs/2026-09-24-visual-identity-design.md`. The spec is the source of
 truth once it lands; these values let Task 4 land replaceable theme data now. Geoff ruled
 the look in that session: a light `label` theme and a dark `label-night` theme (cream,
 black, and red), Alfa Slab One for display, Work Sans for body, IBM Plex Mono for captions,
@@ -121,7 +121,7 @@ metadata), all OFL, embedded as woff2 through go:embed.
 
 ## Superseded by the visual identity spec (2026-09-24, `ecba52a`)
 
-The spec `docs/superpowers/specs/2026-09-24-visual-identity-design.md` has landed and
+The spec `docs/specs/2026-09-24-visual-identity-design.md` has landed and
 supersedes this file. Where the two differ, the spec wins. One value changed for 5c-ii
 Task 4: `--radius-selector` is `.25rem`, not `2rem`, because Geoff ruled squared badges, so
 every corner is square. The rest of Task 4's values stand as settled above:

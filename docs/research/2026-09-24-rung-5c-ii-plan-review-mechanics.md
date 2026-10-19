@@ -1,6 +1,6 @@
 # Rung 5c-ii plan review: mechanics and feasibility
 
-Target: `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
+Target: `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
 at `3ebfe3c` (revision 1, draft). Lens: does every mechanism behave as
 the plan states, and can each task's gate go green on its own commit?
 Reviewed 2026-09-24 on `go1.27.1 linux/amd64`, Node v24.20.0, npm

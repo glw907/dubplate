@@ -3,8 +3,8 @@
 Design spec. Revision 2.5, 2026-09-25, drafted from a brainstorm with Geoff. Status: **approved
 (Geoff, 2026-09-25).** One ruling stays open, the domain (see "Open rulings"). Revision 1 (`e91f528`) went
 through five review lenses (contract, drift, consistency, mechanics, prior art) under
-`docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold record is
-`docs/superpowers/research/2026-09-25-project-site-fold.md`.
+`docs/research/2026-09-25-project-site-review-*.md`. The fold record is
+`docs/research/2026-09-25-project-site-fold.md`.
 
 Revision 2 changelog: folds the five reviews, defines what the sync reads and what each gate
 proves, and adds the Credits, Get help, and Bring your library pages (owner rulings 8 and 9).

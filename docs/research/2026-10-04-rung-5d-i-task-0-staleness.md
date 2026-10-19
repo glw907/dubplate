@@ -1,6 +1,6 @@
 # Rung 5d-i Task 0: the staleness pre-task
 
-Plan: `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md` (revision 2.2).
+Plan: `docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md` (revision 2.2).
 Read against master at `311b74c` on 2026-10-04, 194 commits after the plan's pointer base
 `4c766c3`. Box reads were read-only (`ssh -o BatchMode=yes`), names only. No tracked file was edited.
 

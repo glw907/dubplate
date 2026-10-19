@@ -3,7 +3,7 @@
 Target: `docs/superpowers/specs/2026-09-25-project-site-design.md`, revision 1 (`e91f528`) to
 revision 2. Reviews folded: contract (C1 to C8), drift (D1 to D10), consistency (K1 to K9),
 mechanics (M1 to M10), and prior art (P1 to P10), all under
-`docs/superpowers/research/2026-09-25-project-site-review-*.md`. The fold also takes Geoff's two
+`docs/research/2026-09-25-project-site-review-*.md`. The fold also takes Geoff's two
 additions of 2026-09-25 as owner rulings 8 and 9 (the Credits page).
 
 Totals: 47 findings. 44 folded, 4 of them with a part refused (C2, D4, D6, P4). 0 refused whole. 3 became owner
@@ -60,7 +60,7 @@ same section folds.
 | C8, D9 | Folded. Comparison dates must be under six months old at Phase B, and the site's gate checks them before each later site release. | Sequence |
 | D1, M7 | Folded. Every vendored page shows the ref from the lock; the sync accepts any commit in Phase A and records whether it is a release; Phase B refuses a non-release lock; the pin bump belongs in the release tool, with a checklist step until it exists. | What each check proves; Sequence |
 | D4 | Folded in part. The font location and travel list are corrected (with C7), and Phase A acceptance adds a WCAG AA contrast check over the site's built CSS in both themes. Refused: locking the DaisyUI and Tailwind versions to dubplate's, because the site builds on cairn's chassis and its own contrast check covers the rendered result directly. | Keeping the site in step; Sequence |
-| D6 | Folded in part. dubplate's guide leg fails on the box address, group hostnames, email addresses outside an allow-list, and home paths in any exported file. Refused: denying `docs/superpowers` and `_salvage` path citations, which leak nothing sensitive and would fail the token files' existing comments for no risk removed. | What each check proves |
+| D6 | Folded in part. dubplate's guide leg fails on the box address, group hostnames, email addresses outside an allow-list, and home paths in any exported file. Refused: denying `docs/{archive,plans,research,specs}` and `_salvage` path citations, which leak nothing sensitive and would fail the token files' existing comments for no risk removed. | What each check proves |
 | D8, P7 | Folded as the spec's own call, not a fork: dubplate owns a changelog with upgrade notes, vendored through the manifest, and each site post links to it. Rulings 2 and 3 already make dubplate the owner of product facts. Home's one paragraph stays site-owned and links to the is/isn't page for the fit facts, in place of rendering the vendored lines. | Pages |
 | D10 | Folded as the spec's call, not a fork: latest version only, with the ref banner; the changelog's upgrade notes cover older versions; earlier guides are linked once the source is public (ruling 11). | What each check proves |
 | K1 | Folded as a Phase B precondition citing ROADMAP `give-back`. | Sequence |
@@ -117,7 +117,7 @@ the comparison page's Navidrome entry keeps one sentence of lineage and links th
 ## Second fold
 
 Target: revision 2 (`73b429f`) to revision 2.1. Input: the fold verification,
-`docs/superpowers/research/2026-09-25-project-site-fold-verification.md` (V1 to V11). Each
+`docs/research/2026-09-25-project-site-fold-verification.md` (V1 to V11). Each
 finding was checked against the spec and its sources before folding. Totals: 11 findings, 11
 folded, 0 refused, and no new owner fork.
 
@@ -156,7 +156,7 @@ merge-triggered generator lanes.
 ## Prose fold
 
 Target: revision 2.1 (`44f94c9`) to revision 2.2. Input: the prose and facts review,
-`docs/superpowers/research/2026-09-25-project-site-prose-review.md` (B1, W1 to W8, S1 to S11).
+`docs/research/2026-09-25-project-site-prose-review.md` (B1, W1 to W8, S1 to S11).
 Each finding was checked against the spec and its sources before folding. Totals: 20 findings,
 20 folded, 0 refused, and no new owner fork. No open ruling's options or recommendation changed.
 

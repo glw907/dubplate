@@ -23,7 +23,7 @@ CH the configuration homes spec (`specs/2026-09-11-configuration-homes-design.md
 UD the salvage-era uploader design (`specs/2026-08-31-dubplate-uploader-design.md`), OD the organizer spec
 (`specs/2026-09-01-dubplate-organizer-design.md`), PCF the reject and uploader string authority
 (`research/passb-copy-final.md`), 14A the rung 14a spec (`specs/2026-10-10-rung-14a-admin-api-design.md`), and B the
-planning brief. Paths sit under `docs/superpowers/` unless they start at the repo root. Code citations were read on
+planning brief. Paths sit under `docs/` unless they start at the repo root. Code citations were read on
 master at `80f91ca` and re-checked at `01a1b99`; tusd at v2.10.1 from the module cache.
 
 ## Owner rulings (Geoff, 2026-10-10)

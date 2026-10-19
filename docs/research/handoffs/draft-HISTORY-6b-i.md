@@ -10,13 +10,13 @@ ids; everything else is final. Model: the top entry of `docs/HISTORY.md`
 ## Rung 6, pass 6b-i (the ops seam and backup): closed 2026-09-25, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`
+`docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`
 (revision 2.2, approved by Geoff 2026-09-24, all four rulings yes, no
 split) in the lane 2 worktree (`.claude/worktrees/lane-2-6b-i`, branch
 `lane-2-6b-i`), from `dfe6c4c`. Task 0's staleness read found no
 blockers. The plan's full review history, fold rulings, and finding
 dispositions live in
-`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md`.
+`docs/research/2026-09-24-rung-6b-i-plan-fold-record.md`.
 
 Nineteen commits ran across three segments and a simplifier round
 (`git log --oneline dfe6c4c..25e5a3e | wc -l` reports 19):
@@ -247,7 +247,7 @@ architecture reads', filled at the fold>`.
 
 Drafted paste-ready for the conductor from the plan fold record's "Owed
 errata" table
-(`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md:166-213`),
+(`docs/research/2026-09-24-rung-6b-i-plan-fold-record.md:166-213`),
 numbered 6bi-E1 to 6bi-E13. All four rulings are yes, so no erratum text
 changes on a "no" branch.
 

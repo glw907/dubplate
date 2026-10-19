@@ -506,4 +506,4 @@ Practitioner:
 Local:
 - `~/Projects/dubplate/docs/HISTORY.md` (line references inline above)
 - `~/.claude/CLAUDE.md`, `~/.claude/docs/model-economy.md`
-- `~/Projects/dubplate/docs/superpowers/research/2026-09-04-agentic-coding-public-evidence.md`
+- `~/Projects/dubplate/docs/research/2026-09-04-agentic-coding-public-evidence.md`

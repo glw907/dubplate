@@ -1,9 +1,9 @@
 # Rung 5c plan fold record (revision 1 to revision 2), 2026-09-23
 
-Target: `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`,
+Target: `docs/plans/2026-09-23-rung-5c-pages-member-verb.md`,
 revision 1 at `dba1679`, folded to revision 2 in the working tree. Inputs:
 the three fresh-context lens reviews,
-`docs/superpowers/research/2026-09-23-rung-5c-plan-review-contract.md`
+`docs/research/2026-09-23-rung-5c-plan-review-contract.md`
 (C1-C18), `-mechanics.md` (M1-M14), and `-risk.md` (R1-R12). Together
 they report 0 blockers, 12 majors, and 32 minors: 44 findings.
 
@@ -196,7 +196,7 @@ erratum is owed there.
 
 ## Revision 2.1: the verification read folded (revision 2 to 2.1)
 
-Input: `docs/superpowers/research/2026-09-23-rung-5c-plan-fold-verification.md`
+Input: `docs/research/2026-09-23-rung-5c-plan-fold-verification.md`
 (V1-V12: 0 blockers, 3 majors, 9 minors), read against revision 2 at
 `562b9b2`. The coordinator's direction for this round: fold the three
 majors, with the Task 7 / Task 8 cut as the default rather than a
@@ -290,7 +290,7 @@ different form than proposed, each with a one-line reason:
 
 ## Revision 2.2: the prose review folded, and the plan shortened (revision 2.1 to 2.2)
 
-Input: `docs/superpowers/research/2026-09-23-rung-5c-plan-prose-review.md`
+Input: `docs/research/2026-09-23-rung-5c-plan-prose-review.md`
 (P1-P23: 4 blockers, 10 warnings, 9 suggestions), read against the plan at
 `675a1a0`. Between that read and this fold, `c73965b` recorded Geoff's
 approval (all six rulings yes) and widened R-5c6's write-path shape to

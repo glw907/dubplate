@@ -57,7 +57,7 @@ strong-scoring bodies had no recipe and no reference (M-f); and an
 `go-applies-different-release` (M-g).
 
 **Revision 1, 2026-09-05.** Drafted against the rung 4 spec at **revision
-2** (`docs/superpowers/specs/2026-09-05-rung-4-shadow.md`), whose six
+2** (`docs/specs/2026-09-05-rung-4-shadow.md`), whose six
 owner rulings are **OPEN**. Under the 2026-09-05 unattended grant this
 plan applies each recommendation **provisionally**, marks every
 application inline as "provisional, owner ruling N open", and states in
@@ -79,7 +79,7 @@ waits for the owner sitting ruling 6 recommends, and nothing in this
 plan blocks on it.
 
 This plan's primary input is
-`docs/superpowers/research/2026-09-05-rung-4a-planning-inventory.md`, a
+`docs/research/2026-09-05-rung-4a-planning-inventory.md`, a
 research report read against the tree at HEAD
 `54e534b0e83a305fe02c58cc41dd05ec7ee573a0`. Section (a) is the spec as
 this plan's contract, (b) the engine, harness and config seams as
@@ -130,16 +130,16 @@ carried into Task 15's drafted corrections:
 > **This pass runs in the MAIN TREE**, and nothing here may be executed
 > from a worktree: rung 4 writes `internal/harness/analysis`, and the
 > standing policy is that corpus and harness work never moves to a
-> worktree (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
+> worktree (`docs/specs/2026-09-03-parallel-build-approach.md`,
 > lane-launch checklist item 5; spec `:1619-1622`).
 
 ## Primary inputs
 
 Read these before Task 1, in this order:
 
-1. **`docs/superpowers/research/2026-09-05-rung-4a-planning-inventory.md`,
+1. **`docs/research/2026-09-05-rung-4a-planning-inventory.md`,
    in full.** It is this plan's argument.
-2. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md`, revision 2**,
+2. **`docs/specs/2026-09-05-rung-4-shadow.md`, revision 2**,
    in full. The pass-split table's 4a row (`:1616`) is this plan's scope
    statement. The six rulings (`:125-368`), "The observation mechanism"
    (`:370-631`), "The divergence log and the adjudication artifact"
@@ -152,7 +152,7 @@ Read these before Task 1, in this order:
    carries (`:304-394`). The handoff's item 3 records the wire pace as
    `DefaultInterval`; the conductor's ruling (`spec:59`) amends it to
    `2 * DefaultInterval`, and Task 15 drafts the HISTORY correction.
-4. **`docs/superpowers/plans/2026-09-05-rung-3d-verdicts-gate.md`**, for
+4. **`docs/plans/2026-09-05-rung-3d-verdicts-gate.md`**, for
    its Global Constraints and its execution model. This plan does not
    restate them; it adds the shadow contracts below.
 5. The tree, read-only: `internal/engine/tag/{tag,doc}.go`;
@@ -212,7 +212,7 @@ conductor's batch, none of them blocking.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-05-rung-4-shadow.md` (revision 2), and
+`docs/specs/2026-09-05-rung-4-shadow.md` (revision 2), and
 behind it `specs/2026-09-02-greenfield-server-build.md` (revision 2.1,
 ratified), ladder entry 4, quoted in full at `spec:65-72`. 4a builds
 deliverables 1 through 5 of the spec's six (`spec:76-97`); deliverable
@@ -364,7 +364,7 @@ exists to sum today.
 - **`internal/config` is rung 4's for the length of this pass.** Rung 1b
   has not landed (`docs/STATUS.md:29`), rung 4 is the only live code
   lane, and the contested-surface row says so
-  (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:183`).
+  (`docs/specs/2026-09-03-parallel-build-approach.md:183`).
   **The `.gitleaksignore` rider:** its single line pins a finding to
   `internal/config/keys_test.go` at **line 66**, by line number, so any
   insertion above line 66 in that file moves the finding and reds the
@@ -1402,7 +1402,7 @@ a note.**
    flag the quotation. A moved pin is a blocker for Task 3.
 4. **Have the contested-surface rows been written for every surface this
    pass touches?** *(Expected: all nine present in
-   `docs/superpowers/specs/2026-09-03-parallel-build-approach.md:168-184`,
+   `docs/specs/2026-09-03-parallel-build-approach.md:168-184`,
    at rows `:169`, `:171`, `:177`, `:178`, `:179`, `:180`, `:181`,
    `:182`, `:183`, plus 4b's at `:184`.)* **Check the row paths, not the
    stamp count**: a grep for `conductor ruling, 2026-09-05` returns

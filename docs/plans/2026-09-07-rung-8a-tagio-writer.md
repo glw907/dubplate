@@ -19,7 +19,7 @@ arithmetic shown. The task count is unchanged at Task 0 plus nine. Fork B stays 
 owed to Geoff.
 
 **Revision 1, 2026-09-07.** Drafted against the rung 8 spec at
-**revision 2** (`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`,
+**revision 2** (`docs/specs/2026-09-07-rung-8-tag-io.md`,
 landed at `a7e10c4`), whose fourteen conductor rulings are applied and
 whose four owner rulings are ruled. One product fork stays open, fork B,
 a FLAC-only 1.0 with the MP3 pass immediately after cutover. Fork B is
@@ -73,7 +73,7 @@ bytes has already passed the pass that was supposed to catch it.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`, revision 2,
+1. **`docs/specs/2026-09-07-rung-8-tag-io.md`, revision 2,
    in full.** The pass-split table's 8a row (`:1097-1102`) is this plan's
    scope statement. The sections this pass implements are "Conductor
    rulings, applied" (`:192-289`), "The write side of beets, as a
@@ -83,7 +83,7 @@ Read these before Task 1, in this order.
    write path" (`:753-785`), "Config keys" (`:850-866`), "What rung 8
    does not build" (`:868-890`), and the staleness pre-task
    (`:1166-1212`).
-2. **`docs/superpowers/research/2026-09-07-rung-8-spec-inventory.md`
+2. **`docs/research/2026-09-07-rung-8-spec-inventory.md`
    (INV), sections 1, 2, 5 and 7, plus its twelve surprises.** Section
    2's 69-key table (`INV:315-385`) is the row-by-row source for the
    mapping. Section 2.1 (`INV:219-308`) is the mechanism behind every
@@ -91,12 +91,12 @@ Read these before Task 1, in this order.
    (`INV:884-956`) is the atomic write path as landed. **Do not
    re-derive what INV settles; cite it, and verify a line you carry
    forward.**
-3. **`docs/superpowers/research/2026-09-07-rung-8-container-needs.md`
+3. **`docs/research/2026-09-07-rung-8-container-needs.md`
    (CN)**, its library table and its "Forward hooks 13 and 14" section.
    CN's per-format recommendations belong to 8b and to the follow-on
    passes; 8a reads it for the FLAC-only launch argument and the hook 13
    tag names.
-4. **`docs/superpowers/plans/2026-09-05-rung-4a-shadow-runner.md`**, its
+4. **`docs/plans/2026-09-05-rung-4a-shadow-runner.md`**, its
    Task 4 (`:2338-2775`), which is the closest shape in the repo to Tasks
    3 and 6 below, and whose corrected STREAMINFO offset table is the
    layout this pass reuses. **Read it for that shape alone.** This plan's
@@ -173,7 +173,7 @@ conductor rather than to Geoff.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` (revision 2), and
+`docs/specs/2026-09-07-rung-8-tag-io.md` (revision 2), and
 behind it `specs/2026-09-02-greenfield-server-build.md` (revision 2.1,
 ratified), ladder entry 8, quoted in full at `spec:58-70`. 8a builds
 deliverables 1, 2 and 6 of the spec's seven (`spec:72-112`), plus the

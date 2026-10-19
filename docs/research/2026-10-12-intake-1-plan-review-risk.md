@@ -1,6 +1,6 @@
 # intake-1 plan review: data integrity and failure risk
 
-Reviewer: fresh context, risk lens. Read `docs/superpowers/plans/2026-10-12-intake-1.md` at `3783060` against the design,
+Reviewer: fresh context, risk lens. Read `docs/plans/2026-10-12-intake-1.md` at `3783060` against the design,
 the spec (revision 2), the shipped code at HEAD, and the module cache (tusd v2.10.1, mewkiz/flac v1.0.14,
 mewkiz/pkg errutil). No finding would change the approved design. Every fold is plan text, a fixture, or a mutation,
 and finding 5 adds one column to `0006` before its hash pin.

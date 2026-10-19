@@ -72,7 +72,7 @@ believes one of them is wrong reports a finding and implements the record
 anyway.
 
 **Revision 1, 2026-09-04.** Drafted against the rung 3 spec at **revision
-2** (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`), which is
+2** (`docs/specs/2026-09-03-rung-3-go-matcher.md`), which is
 ratified on its six rulings and review-folded on all nineteen findings of
 `research/2026-09-04-rung-3-spec-review.md`. That review's **"Verified
 sound" list is the do-not-re-litigate record**: its twenty items are cited
@@ -82,7 +82,7 @@ applies to 3a's own review record and to `docs/HISTORY.md`'s 3a entry,
 whose ten rediscover-guards are cited below rather than re-measured.
 
 This plan's primary input is
-`docs/superpowers/research/2026-09-04-rung-3b-planning-inventory.md`, a
+`docs/research/2026-09-04-rung-3b-planning-inventory.md`, a
 research report that read pinned beets 2.13.1 in `tools/venv/.venv`, the
 harness and corpus as landed at `f40a669`, and the engine as 3a left it.
 Every mechanic below is cited to the tree, and the inventory's twenty-one
@@ -103,22 +103,22 @@ rather than discovers" section.
 > pass-end gate. **This pass runs in the MAIN TREE**, and nothing here may
 > be executed from a worktree: the spec's tree column for 3b is "Main tree:
 > writes `corpus/` and `internal/harness/oracle`"
-> (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md:329`), and the
+> (`docs/specs/2026-09-03-rung-3-go-matcher.md:329`), and the
 > standing policy is that corpus and harness work never moves to a
-> worktree (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
+> worktree (`docs/specs/2026-09-03-parallel-build-approach.md`,
 > lane-launch checklist item 5).
 
 ## Primary inputs
 
 Read these before Task 1, in this order:
 
-1. **`docs/superpowers/research/2026-09-04-rung-3b-planning-inventory.md`,
+1. **`docs/research/2026-09-04-rung-3b-planning-inventory.md`,
    in full.** It is this plan's argument. Sections (a) 1–14 are the beets
    mechanics with line citations against `tools/venv/.venv`; (b) 1–11 is
    the harness and corpus as landed; (c) 1–3 is the engine as landed and
    the proposed Go surface; (d) reconciles all three. Do not re-derive what
    it settles; cite it and verify the line if you carry one forward.
-2. **`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, revision
+2. **`docs/specs/2026-09-03-rung-3-go-matcher.md`, revision
    2**, in full. The pass-split table's 3b row (`:329`) is this plan's
    scope statement; ruling A (`:71-88`), ruling D (`:109-113`), ruling E
    (`:115-124`), "The translation layer" (`:210-220`), and "Assertion
@@ -127,7 +127,7 @@ Read these before Task 1, in this order:
    coverage table, the ten rediscover-guards, and the two items its
    "Carried" list addresses to 3b. Guard 3 (the `SD_PATTERNS`-as-a-value
    seam and its two measured figures) is load-bearing for Task 2.
-4. **`docs/superpowers/plans/2026-09-04-rung-3a-scoring-core.md`**, for its
+4. **`docs/plans/2026-09-04-rung-3a-scoring-core.md`**, for its
    twelve arithmetic contracts and its Global Constraints. This plan does
    not restate them; it adds the translation contracts below.
 5. The tree, read-only: `internal/engine/matcher/info.go`,
@@ -214,7 +214,7 @@ this plan expects to spend.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md` (revision 2), and
+`docs/specs/2026-09-03-rung-3-go-matcher.md` (revision 2), and
 behind it `specs/2026-09-02-greenfield-server-build.md` (revision 2.1,
 ratified), ladder entry 3. This pass ships deliverable 2, quoted in full:
 "the WS-response-to-matcher-input translation layer, a first-class
@@ -441,7 +441,7 @@ M-j), in the same shape as 3a's B4 ruling on `tools/unidecode-table/`.
 | `docs/` ledgers | conductor-owned by standing rule | written |
 | **`internal/harness/analysis`** | the same row's Owner column carves out exactly one rung-3 exception and it is **3c's** `Case.Extra` change | **conductor-owed**: 3b's `analysis/album_info.go` and its `AdjudicationEntry` change are not covered |
 | **`internal/harness/corpus_test.go`** | **none**; it sits in the parent `internal/harness` package, outside `{cassette,stub,analysis}`, and a Consumers column is not an ownership grant | **conductor-owed**: 3b writes it twice (Tasks 1 and 2) |
-| **`internal/engine/{matcher,musicbrainz}`** | **none in the contested-surface table**, though the phase-1 lane table already awards lane E2 "`internal/engine/matcher`, `musicbrainz`, `shadow`" (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:80`) | **conductor-owed restatement, not a launch stop** |
+| **`internal/engine/{matcher,musicbrainz}`** | **none in the contested-surface table**, though the phase-1 lane table already awards lane E2 "`internal/engine/matcher`, `musicbrainz`, `shadow`" (`docs/specs/2026-09-03-parallel-build-approach.md:80`) | **conductor-owed restatement, not a launch stop** |
 
 **The three edits this plan asks the conductor to make** (**Conductor ruling, 2026-09-04: taken as recommended**; all three
 landed in the parallel spec's table before launch):
@@ -768,7 +768,7 @@ work**, and 3b's obligation is a guard rather than a port (Resolution R9).
 ## Resolutions this plan takes rather than discovers
 
 The planning inventory returned twenty-one deduplicated open questions
-(`docs/superpowers/research/2026-09-04-rung-3b-planning-inventory.md:1932-2090`).
+(`docs/research/2026-09-04-rung-3b-planning-inventory.md:1932-2090`).
 Each is resolved here, with its evidence and its rejected alternative. A
 task that believes a resolution is wrong reports a finding and implements
 the record anyway.
@@ -1445,7 +1445,7 @@ are blockers: a "no" stops the launch rather than producing a note.
 4. **Have the contested-surface rows been written into the parallel
    spec's table for every surface this pass touches?** *(Expected, fold
    M-j: **five rows present** and **three missing** at
-   `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s
+   `docs/specs/2026-09-03-parallel-build-approach.md`'s
    contested-surface table. Missing: `internal/engine/{matcher,musicbrainz}`;
    `internal/harness/corpus_test.go`, which sits outside the
    `{cassette,stub,analysis}` row; and 3b's `analysis` additions, which

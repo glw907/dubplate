@@ -1,7 +1,7 @@
 # Navidrome removal plan review: mechanics and feasibility
 
 Target: `docs/superpowers/plans/2026-10-05-navidrome-removal.md` at `7036ebc` (revision 1). Spec:
-`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1. Lens: does every task build in the
+`docs/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1. Lens: does every task build in the
 stated order and leave master green; are the orphan lists, test dispositions, migration re-pin, and rename reach
 complete; is the end state idiomatic; is the ceiling plausible.
 

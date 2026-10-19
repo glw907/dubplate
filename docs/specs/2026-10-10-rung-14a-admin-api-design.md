@@ -11,7 +11,7 @@ Abbreviations follow the brief: BS is the build spec (`specs/2026-09-02-greenfie
 (`specs/2026-10-05-rungs-12-16-replan-design.md`), SS the streamer spec (`specs/2026-09-07-streamer-2-0-design.md`),
 CH the configuration homes spec (`specs/2026-09-11-configuration-homes-design.md`), R6 the rung 6 spec
 (`specs/2026-09-23-rung-6-ops-seam-store.md`), and PA the parallel build approach
-(`specs/2026-09-03-parallel-build-approach.md`). Paths sit under `docs/superpowers/` unless they start at the repo
+(`specs/2026-09-03-parallel-build-approach.md`). Paths sit under `docs/` unless they start at the repo
 root. Code citations were read at `e6fdf2b`; no code changed through `045aadc`.
 
 ## Owner rulings (Geoff, 2026-10-10)

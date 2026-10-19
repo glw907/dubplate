@@ -232,7 +232,7 @@
 ### F15. The launch prompt is untracked at this commit
 - **Severity / tag:** minor, `correctness`.
 - **Where:** plan:61-64 and 81-82.
-- **Defect:** `docs/superpowers/plans/2026-10-12-intake-1-prompt.txt` exists in the worktree but is not in `git ls-files` at `3783060`. The launch reads it with `git show worktree-intake-1-plan:...`, which would fail.
+- **Defect:** `docs/plans/2026-10-12-intake-1-prompt.txt` exists in the worktree but is not in `git ls-files` at `3783060`. The launch reads it with `git show worktree-intake-1-plan:...`, which would fail.
 - **Fold:** commit and push it before the "plan ready to launch" notification.
 
 ### F16. Wrong precedent cited for the cross-compile test

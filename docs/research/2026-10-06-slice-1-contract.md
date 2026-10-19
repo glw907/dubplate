@@ -1,7 +1,7 @@
 # Slice 1, Task 1: the contract, the encoding quirks, and the XML rule
 
 Date read: 2026-10-07 (UTC, 04:50 to 05:20). Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-contract.md`.
+`docs/research/2026-10-06-slice-1-contract.md`.
 
 **Pins read** (all from `2026-10-06-slice-1-evidence-pins.md`, Task 0):
 

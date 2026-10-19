@@ -1,15 +1,15 @@
 # Rung 14a (the Admin API's First Half) Implementation Plan
 
 Status: **revision 2.1, 2026-10-10: the three `spec-plan-review` lenses folded, then the verification read's V1 to
-V10** (`docs/superpowers/research/2026-10-10-rung-14a-plan-fold.md`, "the plan fold", and its "Second fold"). Amended
+V10** (`docs/research/2026-10-10-rung-14a-plan-fold.md`, "the plan fold", and its "Second fold"). Amended
 2026-10-10 for the gate scope pass: the per-task gate, its clock, the worktree cut, and lane launch step 8.
 
 **Spec:** `docs/superpowers/specs/2026-10-10-rung-14a-admin-api-design.md`, revision 2.1 at `c7c3fbb` ("the spec").
-Its fold record is `docs/superpowers/research/2026-10-10-rung-14a-spec-fold.md` ("the fold"); this plan places the
+Its fold record is `docs/research/2026-10-10-rung-14a-spec-fold.md` ("the fold"); this plan places the
 fold's owed items V4 to V7, doctor's warning split, errata 1 to 8, and the conductor-owed list. Task sketch, ceiling,
-and clock come from `docs/superpowers/research/2026-10-10-next-pass-planning-brief.md` section 6 ("the brief").
+and clock come from `docs/research/2026-10-10-next-pass-planning-brief.md` section 6 ("the brief").
 The plan cites the spec and never restates it. Spec abbreviations (BS, RP, SS, CH, R6, PA) carry over; PS is the
-group-scale principles spec (`docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`). Code pointers are
+group-scale principles spec (`docs/specs/2026-09-25-group-scale-principles-design.md`). Code pointers are
 at `dd161b3`; the pre-flight before each segment re-resolves them.
 
 **Goal.** Land the `/api/v1` cookie mount with its contract document, the admin settings write path behind the
@@ -164,7 +164,7 @@ the seed rule nor the command line sends a notice". Nothing deploys, and the box
   `newProductionRegistry` line (`main.go:99-108`), never by editing `internal/config/keys.go`'s rows beyond hook 18's
   descriptions (CLAUDE.md, "Facts agents get wrong").
 - **Go** under `go-conventions`; **web** under `svelte-conventions`, `ts-conventions`, the `daisyui` skill, and the
-  visual identity spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`); copy in plain terms.
+  visual identity spec (`docs/specs/2026-09-24-visual-identity-design.md`); copy in plain terms.
 - **Every proof names its fixture state**, and every `auth-data` task names its mutations; the implementer reports
   each failing. `web/` has no component test runner (no vitest in `web/package.json`), so every page proof is a named
   rendered manifest row that says what it intercepts and what it reaches for real.
@@ -383,7 +383,7 @@ for `go.mod` and `web/package.json`).
 - Pinned binaries: rclone, golangci-lint, and Playwright each checked for a newer release; libxml2 read under
   `brew pin` and bumped only by CLAUDE.md's deliberate sequence, with the XML goldens regenerated.
 - A survey line per capability a bump adds: take now, file, or none.
-- The record lands at `docs/superpowers/research/2026-10-1x-dependency-sweep.md`.
+- The record lands at `docs/research/2026-10-1x-dependency-sweep.md`.
 
 **Acceptance.** The sweep commit passes `check.sh` (full, heavy) on master, timed for the baseline; the record lists
 each version with its evidence and each held item with its unblock condition.

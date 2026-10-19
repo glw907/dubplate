@@ -1,25 +1,25 @@
 # Rung 6, Pass 6b-ii (The Projection and Restore) Implementation Plan
 
 Status: **approved (Geoff, 2026-09-25); rulings recorded.** Revision 4, 2026-09-25. Three lenses
-reviewed revision 1 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-review-contract.md`,
+reviewed revision 1 (`docs/research/2026-09-25-rung-6b-ii-plan-review-contract.md`,
 `-mechanics.md`, and `-risk.md`), and an independent read verified revision 2's fold
-(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold-verification.md`). A prose review read
-revision 3 (`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-prose-review.md`). The fold record
-(`docs/superpowers/research/2026-09-25-rung-6b-ii-plan-fold.md`) carries one disposition per finding
+(`docs/research/2026-09-25-rung-6b-ii-plan-fold-verification.md`). A prose review read
+revision 3 (`docs/research/2026-09-25-rung-6b-ii-plan-prose-review.md`). The fold record
+(`docs/research/2026-09-25-rung-6b-ii-plan-fold.md`) carries one disposition per finding
 of all three rounds; its "Fold 2" section covers the verification read, and its "Prose fold" section
 covers the prose review. Fold 2 splits Task 5 into 5A and 5B. Nine rulings for Geoff are open
 ("Rulings awaiting owner"). Ruling 1 recommends splitting the pass, and both answers are executable
 as written.
 
-Sources: the ratified rung 6 spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`,
+Sources: the ratified rung 6 spec (`docs/specs/2026-09-23-rung-6-ops-seam-store.md`,
 revision 2.2 with errata E1 to E11); its fold record
-(`docs/superpowers/research/2026-09-23-rung-6-spec-fold-record.md`); the approved 6b-i plan
-(`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`, revision 2.2) and 6b-i's entry in
+(`docs/research/2026-09-23-rung-6-spec-fold-record.md`); the approved 6b-i plan
+(`docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`, revision 2.2) and 6b-i's entry in
 `docs/HISTORY.md` (closed 2026-09-25, recorded at `f24c77b`); the approved 6a plan's R-6a7 and its
-handoff (`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`, `docs/HISTORY.md`'s 6a
-entry); the 2.0 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, "Forward
+handoff (`docs/plans/2026-09-23-rung-6a-store-foundation.md`, `docs/HISTORY.md`'s 6a
+entry); the 2.0 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, "Forward
 hooks" and "Prior art"); the configuration homes spec
-(`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`); and rung 5's admin gate as
+(`docs/specs/2026-09-11-configuration-homes-design.md`); and rung 5's admin gate as
 shipped on master (`internal/auth/admin.go`, `internal/identity/identity.go`,
 `internal/serve/origin.go`).
 
@@ -1836,9 +1836,9 @@ Each half writes drafts suffixed with its own name, so the second half never ove
 first's.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-6b-ii.md` (on a split,
+- Create: `docs/research/handoffs/draft-STATUS-6b-ii.md` (on a split,
   `draft-STATUS-6b-ii-a.md` or `draft-STATUS-6b-ii-b.md`)
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-6b-ii.md` (on a split,
+- Create: `docs/research/handoffs/draft-HISTORY-6b-ii.md` (on a split,
   `draft-HISTORY-6b-ii-a.md` or `draft-HISTORY-6b-ii-b.md`)
 
 **Outcomes:**

@@ -1,7 +1,7 @@
 # Configuration homes spec: collection interaction permutations review
 
 Adversarial review record, 2026-09-11, fresh-context `claude-opus-5` reviewer against
-`docs/superpowers/specs/2026-09-11-configuration-homes-design.md` revision 2. Findings are folded
+`docs/specs/2026-09-11-configuration-homes-design.md` revision 2. Findings are folded
 into revision 3 of the spec; this file is the citation record. Reviewer output verbatim below.
 
 ---

@@ -3,7 +3,7 @@
 Research report, 2026-09-04, prepared for pass 3c's plan authoring,
 against HEAD `d518e572d0bbd2409bc1e20b037ba0e3f8aa2e74`. Scope, quoted
 from the rung 3 spec's pass-split table
-(`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md:330`):
+(`docs/specs/2026-09-03-rung-3-go-matcher.md:330`):
 
 > **3c** Client and limiter | The WS/2 client with its retry, timeout,
 > and User-Agent behavior; the Lucene query construction and the
@@ -38,7 +38,7 @@ Three claims the plan should not inherit unchanged.
    is beets' own in-tree `MusicBrainzAPI` over `requests` (`SP/beetsplug/_utils/musicbrainz.py:564-783`).
    There is no `set_useragent` call anywhere; the User-Agent is set once on the session at
    `SP/beetsplug/_utils/requests.py:76`. The mechanics study already says this
-   (`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md:477-481`); the task brief's framing
+   (`docs/research/2026-09-02-beets-matcher-mechanics.md:477-481`); the task brief's framing
    does not, so the plan should state it so no task goes hunting for a wrapper.
 
 2. **The legacy `search_limit` spelling is `musicbrainz.match.searchlimit`, not `match.searchlimit`
@@ -48,7 +48,7 @@ Three claims the plan should not inherit unchanged.
    against the live confuse view: setting `musicbrainz.match.searchlimit: 9` resolves, a top-level
    `match.searchlimit: 9` does not resolve at all, and `musicbrainz.searchlimit` is a different key this
    shim never reads. This contradicts the rung 3 spec's tunable enumeration
-   (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, "the tunable surface, enumerated"), 3a's
+   (`docs/specs/2026-09-03-rung-3-go-matcher.md`, "the tunable surface, enumerated"), 3a's
    HISTORY correction #5 (`docs/HISTORY.md:597-599`), and the shipped doc comment at
    `internal/engine/matcher/tunables.go:119-124`. 3c owns the fix because 3c owns the search surface; the
    losing documents should be corrected in the same pass, on 3a's own M2 precedent.
@@ -318,7 +318,7 @@ them: the **explicit `search_ids`** branch is unreached, the **no-id and no-cons
 
 **A scope seam the pass split does not name.** Tier 1's request-*set* expectation is a function of the
 ID-match early return, and the ID-match early return, `_recommendation`, and `_add_candidate` are all 3d
-scope (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, the pass-split table). 3c can grade
+scope (`docs/specs/2026-09-03-rung-3-go-matcher.md`, the pass-split table). 3c can grade
 request *construction* (given inputs, is the path plus query byte-identical to the committed row) but
 cannot grade the request *set* without 3d's flow. The plan should say which of the two 3c actually
 delivers and hand the other forward explicitly.
@@ -723,7 +723,7 @@ The data-source components are two two-line files that both delegate the fire co
 
 `cassette.Case.Extra` is `[]string`, a bare filename list (`internal/harness/cassette/cassette.go:47`), and `validate` rejects an `Extra` entry naming a file a `Request` already consumes (`:169-176`). Verified against the tree: **zero of 215 committed cases carry an `extra` key**, so the migration is empty, exactly as the spec assumed.
 
-`wantManifestSchemaVersion = "3"` lives once, at `internal/harness/corpus_test.go:160`, read once at `:171`. The 2b and 2d precedent is to change that constant's value alongside `corpus/manifest.json` rather than relocate the symbol (`docs/superpowers/plans/2026-09-03-rung-2d-file-level.md:400-401`).
+`wantManifestSchemaVersion = "3"` lives once, at `internal/harness/corpus_test.go:160`, read once at `:171`. The 2b and 2d precedent is to change that constant's value alongside `corpus/manifest.json` rather than relocate the symbol (`docs/plans/2026-09-03-rung-2d-file-level.md:400-401`).
 
 `internal/harness/conform` already imports `internal/engine/musicbrainz` (`internal/harness/conform/translate.go:12`), so the new engine files are reachable with no new import direction. `gradeLedger`'s compared-row discipline (`internal/harness/conform/translate.go:318-380`) is the house pattern the request grader should copy.
 
@@ -866,10 +866,10 @@ HISTORY guard 8 warns that the merge is a shallow copy, so `merged.Tracks` alias
 
 Four written requirements, two of which pull against each other.
 
-- A user-present probe outranks a batch import, because the uploader journey holds a contributor on the page through those lookups (`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md:529-537`).
-- Shadow lookups spend deferred background budget through the same limiter and never inline with the probe (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:262-264`, organizer spec `:571-575`).
-- Interactive work must not starve timer imports (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:693-694`).
-- Rung 9 re-verifies the policy against its real callers (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:565-567`, `:694-696`).
+- A user-present probe outranks a batch import, because the uploader journey holds a contributor on the page through those lookups (`docs/specs/2026-09-01-dubplate-organizer-design.md:529-537`).
+- Shadow lookups spend deferred background budget through the same limiter and never inline with the probe (`docs/specs/2026-09-02-greenfield-server-build.md:262-264`, organizer spec `:571-575`).
+- Interactive work must not starve timer imports (`docs/specs/2026-09-02-greenfield-server-build.md:693-694`).
+- Rung 9 re-verifies the policy against its real callers (`docs/specs/2026-09-02-greenfield-server-build.md:565-567`, `:694-696`).
 
 Read together, the first and third forbid both pure fairness and pure precedence. Three classes suffice: user-present, batch, background.
 

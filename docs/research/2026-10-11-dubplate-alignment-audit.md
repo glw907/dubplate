@@ -3,10 +3,10 @@
 A read-only audit of dubplate at `8269d27` (master, after the lean cutover's step-3 PR #1) against
 the lean pass process. An Opus reviewer ran it for the dotfiles conducting session. Paths are
 relative to the repo unless they start with `~`. Abbreviations: BS is
-`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`; PA is
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`; rung7 is
-`docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`; the 14a plan is
-`docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md`; the adapter is
+`docs/specs/2026-09-02-greenfield-server-build.md`; PA is
+`docs/specs/2026-09-03-parallel-build-approach.md`; rung7 is
+`docs/specs/2026-10-10-rung-7-intake-design.md`; the 14a plan is
+`docs/plans/2026-10-10-rung-14a-admin-api.md`; the adapter is
 `.claude/skills/dubplate-pass/SKILL.md`.
 
 **Short answer.** The ladder as product sequencing is still sound and should stay. Almost all of

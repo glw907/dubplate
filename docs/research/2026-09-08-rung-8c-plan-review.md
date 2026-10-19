@@ -102,7 +102,7 @@ caller." All three records name rung 9. The spec's erratum reads "the
 combined shape is handed to rung 9, the first caller in a position to
 pick between a second exported read entry point and an exported
 projection over a parsed `Container`"
-(`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md:766-774`). 8b's
+(`docs/specs/2026-09-07-rung-8-tag-io.md:766-774`). 8b's
 coverage gap 4 reads "A stated deviation from `spec:729-733`, handed to
 rung 9 as the first caller" (`docs/HISTORY.md:830-833`). 8b's "what a
 later pass would be wrong to rediscover" reads "`Read` staying tag-only

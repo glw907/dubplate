@@ -1,8 +1,8 @@
 # Photo curation round one: plan fold verification
 
 Fresh verification read of the plan fold at `a2aeb1b`. Plan:
-`docs/superpowers/plans/2026-09-25-photo-curation-round-one.md` (cited as P). Fold record:
-`docs/superpowers/research/2026-09-25-photo-curation-plan-fold.md` (cited as F). Spec revision
+`docs/plans/2026-09-25-photo-curation-round-one.md` (cited as P). Fold record:
+`docs/research/2026-09-25-photo-curation-plan-fold.md` (cited as F). Spec revision
 2.3 (cited as S). Reviewer: Opus 5.5, 2026-09-25, no part in the fold.
 
 **Verdict:** the fold is sound. The blocker and every major close where the record says, with one
@@ -241,7 +241,7 @@ ends with `sleep 0.25` inside the lock.
 
 **PV16 (minor), P:271-276, P:284-291.** Task 3 says `outreach/README.md`, and Task 4 lists
 research files by bare name. Neither gives the directory,
-`docs/superpowers/research/2026-09-24-identity-photos/`. An archive inventory number with a
+`docs/research/2026-09-24-identity-photos/`. An archive inventory number with a
 space has no stated normalization into the `source_id` pattern. Fold: name the directory in
 both tasks, and say that spaces and slashes in an archive key become `_`.
 

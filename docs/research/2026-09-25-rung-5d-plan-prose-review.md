@@ -1,9 +1,9 @@
 # Rung 5d plan: prose-and-facts review
 
 Graded commit `593d7fd` (revision 2.1). Folded into revision 2.2 of
-`docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`. Line citations below are
+`docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md`. Line citations below are
 `593d7fd`'s own. The same fold makes citation-only fixes in the approved 6c plan
-(`docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`, revision 2.2 at
+(`docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`, revision 2.2 at
 `50a1cf8`), with a one-line citation note and no revision bump.
 
 ## Findings

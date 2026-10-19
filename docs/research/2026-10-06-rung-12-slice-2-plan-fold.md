@@ -139,7 +139,7 @@ the pinned OpenAPI schema (M3), so the spec's contract tier will carry oracle-si
 
 ## Second fold (revision 1.1 to 1.2)
 
-Source: `docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-fold-verification.md` (V1 to V3 major, V4 to V12
+Source: `docs/research/2026-10-06-rung-12-slice-2-plan-fold-verification.md` (V1 to V3 major, V4 to V12
 minor), verdict "needs second fold". Scope was the verification findings only. Checked directly for this fold:
 kin-openapi v0.149.0 in the module cache (`openapi3/schema.go:2284`, `:2294`, `:2304`, `:2326`;
 `openapi3/errors.go:57-58`; `openapi3filter/validate_response.go:23-36`); the 6d plan at revision 2.5 (`:432-435`,

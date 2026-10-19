@@ -1,8 +1,8 @@
 # Rung 6b-i plan fold verification
 
-Target: `docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`,
+Target: `docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`,
 revision 2 (working tree), against revision 1 (`b36871c`) and the fold
-record `docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md`.
+record `docs/research/2026-09-24-rung-6b-i-plan-fold-record.md`.
 This is a fresh-context read by an agent that took no part in the fold. 6a's
 code was read at `lane-2-6a`, which now equals master at `8736528` after the
 6a rebase. The store tree there is identical to the plan's `aa3b13e` pointer

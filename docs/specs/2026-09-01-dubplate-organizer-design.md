@@ -3,7 +3,7 @@
 Status: high-level design, ratified in brainstorm 2026-09-01 (Geoff +
 Claude), revised twice the same day. The first revision folded two
 adversarial reviews
-(`docs/superpowers/research/2026-09-01-organizer-spec-reviews/`) and the
+(`docs/research/2026-09-01-organizer-spec-reviews/`) and the
 owner rulings they forced; the second folded a structural review and a
 register review. This spec sets the initiative's success bar,
 architecture, and build order. Each ladder rung gets its own spec and
@@ -218,7 +218,7 @@ scheduled, so this spec adds no column for it. True two-way sync is out.
 (Erratum 2026-09-12: the read-only server-to-local copy is scheduled
 with the TUI as the checkout verb, and the laptop-to-server publish of a
 whole collection is the mirror verb, one writer per collection; the
-columns land at rung 6. Two-way sync stays out. Source: `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.)
+columns land at rung 6. Two-way sync stays out. Source: `docs/specs/2026-09-11-configuration-homes-design.md`.)
 
 ## Shared code: the ops seam
 
@@ -297,7 +297,7 @@ bites.
 Who resolves an upload the matcher is not confident about is a policy
 question. The engine carries the spectrum; config picks the point on it.
 The survey of comparable tools (full findings:
-`docs/superpowers/research/2026-09-01-uncertain-match-ux.md`) found
+`docs/research/2026-09-01-uncertain-match-ux.md`) found
 that no multi-user system grants non-admin contributors match-correction
 rights: Plex locks Fix Match to the server admin by explicit policy,
 Jellyfin has no metadata-edit permission below admin, and the tools
@@ -355,7 +355,7 @@ deferring costs nothing structural.
 ### Selecting the built-ins
 
 The set derives from the beets plugin adoption survey
-(`docs/superpowers/research/2026-08-31-beets-plugin-usage.md`, n=87
+(`docs/research/2026-08-31-beets-plugin-usage.md`, n=87
 published configs). The survey's ranking is the signal, and its
 sampling caveat travels with it: dotfiles publishers are power users,
 so absolute counts overstate the casual user. The exact list is
@@ -478,7 +478,7 @@ than merely writing it down.
 The harness proves the Go matcher reproduces beets' behavior before the
 seam swaps, using a frozen JSON fixture corpus (full findings and
 sources:
-`docs/superpowers/research/2026-09-01-beets-conformance-corpus.md`).
+`docs/research/2026-09-01-beets-conformance-corpus.md`).
 
 A case is a quadruple of matcher input, frozen MusicBrainz responses,
 beets config, and expected verdict. Config is part of the case because a
@@ -680,7 +680,7 @@ in-flight edits right now):
   in-box, the exact roster is re-derived at the built-ins rung, and the
   adoption band is the survey's evidence rather than the ship criterion.
   The survey now lives repo-relative at
-  `docs/superpowers/research/2026-08-31-beets-plugin-usage.md`; update
+  `docs/research/2026-08-31-beets-plugin-usage.md`; update
   ROADMAP's dotfiles path in the same edit.
 - The API carries no client assumptions by requirement; the audience is
   one group's estate plus its own clients.

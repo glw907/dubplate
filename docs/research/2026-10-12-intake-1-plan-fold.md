@@ -6,7 +6,7 @@ Geoff", ruling 1.** Path about 725 minutes (550 before). No fold changes the app
 moved out of the pass; the plan's two pre-fold departures from the design's file list are named under the ruling.
 
 Target: `docs/superpowers/plans/2026-10-12-intake-1.md` at `8457b10` (the reviews read `3783060`; the plan text is
-the same), and its launch prompt `docs/superpowers/plans/2026-10-12-intake-1-prompt.txt`, which needs no change: it
+the same), and its launch prompt `docs/plans/2026-10-12-intake-1-prompt.txt`, which needs no change: it
 defers to the plan's conventions for every rule the fold touched. Reviews folded:
 `2026-10-12-intake-1-plan-review-contract.md` (B1, M1 to M15, m1 to m13, o1 and o2), `-review-mechanics.md` (B1, M1
 to M10, F1 to F19; its IDs appear here prefixed `X`), and `-review-risk.md` (findings 1 to 16, here R1 to R16). Fold

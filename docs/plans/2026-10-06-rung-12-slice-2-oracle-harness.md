@@ -7,7 +7,7 @@ History:
 
 - Revision 1 (`f62a151`): drafted.
 - Revision 1.1: folds the three lens reviews (contract, mechanics, and risk) per
-  `docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-fold.md`. The 2a proof no longer grades Navidrome
+  `docs/research/2026-10-06-rung-12-slice-2-plan-fold.md`. The 2a proof no longer grades Navidrome
   against gonic under the committed ledger: the differ is proven on a same-source perturbation table, and the
   real oracle pair is graded against a test-only ledger and pinned as a golden report. Ids pair by fixture
   identity, never by position. The checker classifies status, content, and schema itself before kin-openapi runs,
@@ -17,15 +17,15 @@ History:
   paths and multi-value settings, Navidrome's first admin, token auth) is now stated. The Markdown transcription
   proof moves to 2b and the search comparison to slice 4. The ceiling is re-derived from actual spend: 8.5M.
 - Revision 1.2: folds the fold verification read
-  (`docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-fold-verification.md`, V1 to V12) per the fold
+  (`docs/research/2026-10-06-rung-12-slice-2-plan-fold-verification.md`, V1 to V12) per the fold
   record's "Second fold". The library digest is recorded per source, and a later source joins a session through
   Task 4's writer. A `contract` finding and a `contract` row each name one source. The perturbation table drives
   the differ alone, and a named grader test kills the skip-contract mutation. The ceiling prices seven Sonnet build
   tasks: 9.0M.
 
-**Spec:** the 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision 3, "the
+**Spec:** the 0.8 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, revision 3, "the
 spec"; it still says 2.0), slice 2 at `:732-736`, under the re-plan spec
-(`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1, "the re-plan"), ruling 5 at
+(`docs/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1, "the re-plan"), ruling 5 at
 `:48-54`.
 
 **What this pass is.** It builds the evidence machinery every later rung 12 slice is graded by. The protocol
@@ -133,20 +133,20 @@ touched only `docs/`, so the code pointers hold. Library behavior is quoted at t
   (`:856-891`), and "Open items" (`:917-955`).
 - The re-plan: ruling 5 (`:48-54`), the rung 12 ladder text (`:113-141`), the roster walk (`:140-141`), and
   "Where the carried items land" (`:410-447`; the API base URL row is `:427`).
-- `docs/superpowers/research/2026-09-25-streamer-prior-art-survey.md` ("the survey"): the brief (`:9-25`), finding
+- `docs/research/2026-09-25-streamer-prior-art-survey.md` ("the survey"): the brief (`:9-25`), finding
   1 (`:54-59`), the OpenAPI rows (`:101-103`), section 3, "Conformance suites and test drivers" (`:155-175`), and
   "Not verified" (`:262-276`).
-- `docs/superpowers/research/2026-10-05-client-roster-audit.md` ("the roster audit"), "The roster" (`:8-22`).
-- `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`: the lane-launch checklist (`:249-258`).
+- `docs/research/2026-10-05-client-roster-audit.md` ("the roster audit"), "The roster" (`:8-22`).
+- `docs/specs/2026-09-03-parallel-build-approach.md`: the lane-launch checklist (`:249-258`).
 - The repo `CLAUDE.md`: "Lanes" (`:99-110`), "Planning-miss prevention" (`:127-134`), "Findings are ranked"
   (`:136-144`), "Current dependencies" (`:55-68`), and the build-for-0.8 paragraph.
-- The 6d plan, revision 2.5 (`docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md`): "Where it
+- The 6d plan, revision 2.5 (`docs/plans/2026-09-26-rung-6d-identity-serve-store.md`): "Where it
   runs" (`:432-435`), Task 0's sweep (`:951-957`), and "Contested surfaces" (`:1694-1708`), whose last sentence
   (`:1707-1708`) names this slice's `go.mod` addition as the one expected concurrent edit and sets when it may
   land.
-- The navidrome-removal plan (`docs/superpowers/plans/2026-10-05-navidrome-removal.md`) for the gate and
+- The navidrome-removal plan (`docs/plans/2026-10-05-navidrome-removal.md`) for the gate and
   execution header lines.
-- The three lens reviews of revision 1 and their probes (`docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-review-contract.md`,
+- The three lens reviews of revision 1 and their probes (`docs/research/2026-10-06-rung-12-slice-2-plan-review-contract.md`,
   `-mechanics.md`, `-risk.md`). The mechanics lens ran both pinned oracles live under podman; its measurements
   are cited as "the probe" below.
 
@@ -393,7 +393,7 @@ The conductor runs it through the `dependency-upgrade` skill, since implementers
   the day, this pass records that sweep as its own in one line and runs none. Otherwise the conductor runs the
   sweep over `go.mod`, `web/package.json`, `tools/venv/requirements.txt`, and the pinned binaries in the main tree
   and lands it on master before cutting the worktree, or records one line when nothing moves. The last sweep is
-  `docs/superpowers/research/2026-10-05-dependency-sweep.md`. Either way, the merge ritual (Task 9) re-reads the
+  `docs/research/2026-10-05-dependency-sweep.md`. Either way, the merge ritual (Task 9) re-reads the
   newest versions of kin-openapi and its indirects before the rebase.
 - The worktree is cut from master's tip and the launch checklist is complete.
 - Pins resolved and recorded in the task's report: kin-openapi's newest version (v0.149.0 on 2026-10-06; a newer
@@ -834,7 +834,7 @@ nothing. Every committed session loads through Task 4's loader, which refuses an
 
 ## Pass 2b
 
-Authored in full as `docs/superpowers/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md`, which replaces this section's sketch.
+Authored in full as `docs/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md`, which replaces this section's sketch.
 Its scope table maps each sketch task to the 2b tasks that carry it.
 
 ## Not verified at planning

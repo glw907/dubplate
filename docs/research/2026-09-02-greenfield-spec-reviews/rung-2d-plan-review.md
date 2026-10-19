@@ -1,13 +1,13 @@
 # Rung 2, Pass 2d Plan: Adversarial Review
 
 Fresh-context adversarial review of
-`docs/superpowers/plans/2026-09-03-rung-2d-file-level.md` (revision 1,
+`docs/plans/2026-09-03-rung-2d-file-level.md` (revision 1,
 2026-09-03), read against the 2d planning inventory
-(`docs/superpowers/research/2026-09-03-rung-2d-planning-inventory.md`),
+(`docs/research/2026-09-03-rung-2d-planning-inventory.md`),
 the pre-ruled findings M3, M4, M5, m2 and M8 in
 `rung-2c-plan-review.md`, the oracle package as shipped
 (`internal/harness/oracle/`), and ladder entry 8 of the build spec
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:666-673`).
+(`docs/specs/2026-09-02-greenfield-server-build.md:666-673`).
 
 **Counts: 1 BLOCKER, 5 MAJOR, 7 MINOR.**
 
@@ -332,7 +332,7 @@ Task 2 must read "2c's Task 3 selection dossier via its
 file-tag-subject flag" and stop if the flagged set is not exactly
 seven. Every other source in the plan carries a `path:line` citation.
 A zero-context subagent has to hunt for this one. The dossier is
-`docs/superpowers/research/2026-09-03-real-catalog-selection.md`; the
+`docs/research/2026-09-03-real-catalog-selection.md`; the
 row format is declared at its lines 84-88 and the flag is column 6,
 "File-tag subject". Counted directly, it carries exactly seven `yes`
 rows: `real-classical-karajan-beethoven-89`,

@@ -1,7 +1,7 @@
 # Rung 5c-ii plan revision 2.3: amendment verification
 
 A fresh-context read of the visual identity amendment to
-`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
+`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
 (revision 2.3 at `30f2d5b`, compared with revision 2.2 at `HEAD~1`). The
 amendment record is the "Amendment for the visual identity ruling" section
 of `2026-09-24-rung-5c-ii-plan-fold-record.md`. The mechanism holds: a

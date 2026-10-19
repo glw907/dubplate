@@ -1,9 +1,9 @@
 # Dubplate alignment with the lean pass process: implementation plan
 
-**Design:** `docs/superpowers/specs/2026-10-11-dubplate-alignment-design.md` (approved by Geoff, 2026-10-11, with
-five binding rulings). **Evidence:** `docs/superpowers/research/2026-10-11-dubplate-alignment-audit.md` (cited below
+**Design:** `docs/specs/2026-10-11-dubplate-alignment-design.md` (approved by Geoff, 2026-10-11, with
+five binding rulings). **Evidence:** `docs/research/2026-10-11-dubplate-alignment-audit.md` (cited below
 as "audit"). **Review:** the three lenses and the fold record,
-`docs/superpowers/research/2026-10-11-dubplate-alignment-plan-{review-contract,review-mechanics,review-risk,fold}.md`.
+`docs/research/2026-10-11-dubplate-alignment-plan-{review-contract,review-mechanics,review-risk,fold}.md`.
 The design is short enough that no separate spec exists. The lean process: `~/.claude/skills/pass-core/SKILL.md` and
 the `dubplate-pass` adapter.
 
@@ -49,9 +49,9 @@ minutes, plus up to 11 minutes of heavy-lane lock wait.
 ## Path to 0.8: the derived run order
 
 T2 writes this list into ROADMAP. It comes from the hard and soft edges in
-`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md` ("The matrix", "The hard edges", "The soft
-edges"), the reverse-edge note `docs/superpowers/research/2026-09-04-reverse-edge-completion.md`, the re-plan
-(`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, "The ladder after this spec"), the rung 7 and 14a
+`docs/research/2026-09-03-rung-dependency-analysis.md` ("The matrix", "The hard edges", "The soft
+edges"), the reverse-edge note `docs/research/2026-09-04-reverse-edge-completion.md`, the re-plan
+(`docs/specs/2026-10-05-rungs-12-16-replan-design.md`, "The ladder after this spec"), the rung 7 and 14a
 specs, and ruling 2.
 
 Landed: `foundation` (rungs 1 and 1b), `corpus` (2a to 2d), `matcher` (3a to 3d), `shadow` (4a and 4b; its program was
@@ -92,7 +92,7 @@ order in which they start. Items 10 to 12 are strictly serial (dependency analys
 
 ## Launch
 
-Prompt file: `docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt`. The plan lives on branch
+Prompt file: `docs/plans/2026-10-11-dubplate-alignment-prompt.txt`. The plan lives on branch
 `worktree-alignment-plan` (the approved design, the audit, the planning commits, and the review and fold records).
 The executing session continues that branch: its first act after `EnterWorktree` is `git merge --no-edit
 worktree-alignment-plan`, so its PR carries the design, the plan, and the work together.
@@ -111,7 +111,7 @@ git -C ~/Projects/dubplate/.claude/worktrees/alignment-plan status --porcelain  
 git -C ~/Projects/dubplate rev-parse worktree-alignment-plan origin/worktree-alignment-plan   # two equal lines
 claude agents --json | jq -r '.[] | select((.cwd | startswith("/var/home/glw907/Projects/dubplate/.claude/worktrees/dubplate-alignment")) or .name == "dubplate-alignment") | .name'   # must print nothing
 cd ~/Projects/dubplate && claude --bg --model sonnet --effort medium --name dubplate-alignment \
-  "$(git -C ~/Projects/dubplate show worktree-alignment-plan:docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt)"
+  "$(git -C ~/Projects/dubplate show worktree-alignment-plan:docs/plans/2026-10-11-dubplate-alignment-prompt.txt)"
 ```
 
 The prompt is read with `git show` because the plan is not on `master` until this pass's PR merges. The ahead check
@@ -264,14 +264,14 @@ into the PR.
     scripts/gate.sh --scope-changed`; it keeps "Pass no `--base`"), the Full-suite home line (`:66-69`), and the Close
     checklist's `--merge` item (`:92-95`). CLAUDE.md's Gate section opens with `bash scripts/gate.sh` (`CLAUDE.md:70`)
     and its Shell bullet (`:89-92`) lists `gate.sh`. T6 rewrites the rest of the adapter; T0 edits only these lines.
-  - `.gitignore` gains `docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md`, with a one-line comment:
+  - `.gitignore` gains `docs/research/2026-09-04-visual-collaborator-outreach.md`, with a one-line comment:
     the file holds personal email addresses and stays uncommitted (Geoff's ruling, recorded only in the auto-memory
     file `unattended-window-2026-09-07.md`, which T4 classes for deletion). Today only the main checkout's local
     `.git/info/exclude:18` keeps it out. It lands here rather than in T4 because `.gitignore` is gate machinery
     (`check.sh:367`), and T0's gate is already the full form.
   - Geoff's direction (2026-10-11, relayed by the conducting session, to which the design's Out of scope gives
     `reports/`): the three Pi 5 stereo client reports written 2026-10-10 are committed, byte for
-    byte, as live input to the 0.9 local client, in `docs/superpowers/research/2026-10-10-pi5-client/`:
+    byte, as live input to the 0.9 local client, in `docs/research/2026-10-10-pi5-client/`:
     `proven-build.md` (from "Pi 5 stereo client proven build.md", the current decision), `verified-parts.md` (from "Pi
     5 stereo client verified parts.md"), and `hardware.md` (from "Pi 5 stereo client hardware.md"). The planning
     session read the lines a personal-data scan flagged: "EEPROM address" (`verified parts.md:49`) and "street
@@ -293,7 +293,7 @@ into the PR.
   - `bash scripts/gate.sh --merge --dry-run` prints `check.sh: scope=full+history` (`check.sh:537`) and `gate exit:
     0`.
   - `bash scripts/gate.sh` (the full form, which also runs shellcheck over the wrapper) prints `gate exit: 0`.
-  - `test -x scripts/gate.sh`; `git check-ignore -v docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md`
+  - `test -x scripts/gate.sh`; `git check-ignore -v docs/research/2026-09-04-visual-collaborator-outreach.md`
     prints a line starting `.gitignore:` (a plain `-q` would pass vacuously: the worktree shares the main repo's
     `info/exclude`, which already matches it); `cmp` of each Pi 5 copy against its original under
     `/var/home/glw907/Projects/dubplate/reports/` (absolute paths, quoted) exits 0; and `stat -c %Y` on the three
@@ -370,7 +370,7 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
       4. Launch the `admin-api-1` re-plan, an unattended Opus planning session from the 14a spec (revision 2.1,
          approved by Geoff 2026-10-10, its "Rulings for Geoff" section "None"): `cd ~/Projects/dubplate && claude --bg
          --model opus --effort high --name admin-api-1-plan "$(cat
-         docs/superpowers/plans/2026-10-11-admin-api-1-planning-prompt.txt)"`. Its first STATUS edit replaces this
+         docs/plans/2026-10-11-admin-api-1-planning-prompt.txt)"`. Its first STATUS edit replaces this
          list with its own in-flight line.
     - Open decisions: R-6d21 (`STATUS.md:22`), the group non-FLAC question (`:23`), the stale `DUBPLATE_*` exports in
       `~/.local/secrets` (`:24`), and the one Run-D.M.C. frame (`commons:139197098`) with the five maybes in
@@ -389,7 +389,7 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
     survive. T3 runs on `opus`.
 
     Files: `B` is `BACKLOG.md`, `S` is `docs/STATUS.md`, `R` is `ROADMAP.md`, `I` is `IDEAS.md`, `7` is
-    `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`.
+    `docs/specs/2026-10-10-rung-7-intake-design.md`.
 
     | Row | Token | File | Item (source) |
     |---|---|---|---|
@@ -483,11 +483,11 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
       `make derive`: row I10.
     - The 14a fold's open question on rung 7 and a streamer slice both writing `internal/serve`: moot; each design
       names its files, and with two PRs open the second merges master and reruns its close gate.
-  - `docs/superpowers/plans/2026-10-11-admin-api-1-planning-prompt.txt`, shaped like this pass's planning prompt
-    (`docs/superpowers/plans/2026-10-11-dubplate-alignment-planning-prompt.txt`): EnterWorktree name
+  - `docs/plans/2026-10-11-admin-api-1-planning-prompt.txt`, shaped like this pass's planning prompt
+    (`docs/plans/2026-10-11-dubplate-alignment-planning-prompt.txt`): EnterWorktree name
     `admin-api-1-plan`; load `dubplate-pass`; read the 14a spec in full as the approved design, the old plan
-    `docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` as evidence only, and BACKLOG's `#rung:admin-api` items;
-    write `docs/superpowers/plans/<date>-admin-api-1.md` in the lean format (this plan is the model, archived by its Close at `docs/superpowers/archive/plans/2026-10-11-dubplate-alignment.md`), class
+    `docs/plans/2026-10-10-rung-14a-admin-api.md` as evidence only, and BACKLOG's `#rung:admin-api` items;
+    write `docs/plans/<date>-admin-api-1.md` in the lean format (this plan is the model, archived by its Close at `docs/archive/plans/2026-10-11-dubplate-alignment.md`), class
     `auth-data`, with two living-reference edits as tasks: CH:171-172 (14a fold, "Owed errata" item 5) and the PS
     member-cap note with its erratum to PS:145-147, whose source is the old plan
     (`2026-10-10-rung-14a-admin-api.md:829-833`); the re-plan decides whether the member cap stays in scope. Run
@@ -495,15 +495,15 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
     beside it; a finding that changes the approved design is the one stop (STATUS question, `notify-send -u normal`);
     record the session's name and id in STATUS, replacing the post-merge list; commit and push to `glw907/dubplate`,
     never `master`, never merge, never open a PR; notify `"admin-api-1: plan ready to launch"` and end.
-- **Files.** `docs/STATUS.md`, `BACKLOG.md`, `docs/superpowers/plans/2026-10-11-admin-api-1-planning-prompt.txt`
+- **Files.** `docs/STATUS.md`, `BACKLOG.md`, `docs/plans/2026-10-11-admin-api-1-planning-prompt.txt`
   (new).
 - **Risk class.** `ordinary`.
 - **Acceptance.**
   - The inventory check prints nothing, and its row count is 70:
 
     ```bash
-    awk -F' \\| ' '/^ *\| I[0-9]+ \| /{ sub(/^ +/, ""); t = $2; gsub(/`/, "", t); print $3 "\t" t }' docs/superpowers/plans/2026-10-11-dubplate-alignment.md | while IFS="	" read -r k t; do case "$k" in B) p=BACKLOG.md ;; S) p=docs/STATUS.md ;; R) p=ROADMAP.md ;; I) p=IDEAS.md ;; 7) p=docs/superpowers/specs/2026-10-10-rung-7-intake-design.md ;; *) p=/nonexistent ;; esac; grep -q -F -- "$t" "$p" || echo "MISSING $k $t"; done
-    grep -c -E '^ *\| I[0-9]+ \| ' docs/superpowers/plans/2026-10-11-dubplate-alignment.md
+    awk -F' \\| ' '/^ *\| I[0-9]+ \| /{ sub(/^ +/, ""); t = $2; gsub(/`/, "", t); print $3 "\t" t }' docs/plans/2026-10-11-dubplate-alignment.md | while IFS="	" read -r k t; do case "$k" in B) p=BACKLOG.md ;; S) p=docs/STATUS.md ;; R) p=ROADMAP.md ;; I) p=IDEAS.md ;; 7) p=docs/specs/2026-10-10-rung-7-intake-design.md ;; *) p=/nonexistent ;; esac; grep -q -F -- "$t" "$p" || echo "MISSING $k $t"; done
+    grep -c -E '^ *\| I[0-9]+ \| ' docs/plans/2026-10-11-dubplate-alignment.md
     ```
 
     (The `IFS` value is one literal tab; the table is indented, hence `^ *`.) Probed on the planning head: the count
@@ -625,7 +625,7 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
   - The six DaisyUI lessons (`daisyui-*.md`): a lesson about a theme token becomes a one-line `/* */` comment beside
     that token in `web/src/lib/themes/*.css` (`daisyui-semantic-theme-tokens`, `daisyui-soft-pastel-vs-saturated`,
     `daisyui-soft-reads-color-token-as-text`); a lesson about a component's markup becomes a sentence in the visual
-    identity spec's "Component layer" section (`docs/superpowers/specs/2026-09-24-visual-identity-design.md:226`), a
+    identity spec's "Component layer" section (`docs/specs/2026-09-24-visual-identity-design.md:226`), a
     living reference (`daisyui-size-field-touch-targets`, `daisyui-alert-grid-single-wrapper`,
     `daisyui-horizontal-steps-baseline`). Where the theme files have no such token, the lesson goes to the spec.
   - `admin-identity-in-copy`: a sentence in the visual identity spec's "Copy" section (`:314`) if the display-name
@@ -636,7 +636,7 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
     runs no beets), `beets-dry-run` (if the oracle shims under `internal/harness/oracle/*.py` already document their
     beets invocation; otherwise a `#` comment above that invocation, under `python-conventions`).
 - **Files.** `.claude/agent-memory/site-implementer/*` (removed), `web/src/lib/themes/*.css` (comments only),
-  `docs/superpowers/specs/2026-09-24-visual-identity-design.md`, and possibly one `internal/harness/oracle/*.py`
+  `docs/specs/2026-09-24-visual-identity-design.md`, and possibly one `internal/harness/oracle/*.py`
   comment.
 - **Risk class.** `runner` (`.claude/`).
 - **Acceptance.** `git ls-files .claude/agent-memory/site-implementer` prints nothing. If any CSS or Python file
@@ -676,12 +676,12 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
   - `.claude/settings.json`: the `docker compose config*` rule and the two box rules for `docker compose ... restart`
     and `systemctl restart` go (ruling 4). The `systemctl reset-failed` rule stays.
   - One-line superseded headers. Under the build spec's "## Process" heading
-    (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:1143`): "Superseded 2026-10-11 by the lean pass
+    (`docs/specs/2026-09-02-greenfield-server-build.md:1143`): "Superseded 2026-10-11 by the lean pass
     process (`dubplate-pass`, `pass-core`); the ladder above still governs product order." Directly under the
-    parallel-build spec's status line (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:3`), after a
+    parallel-build spec's status line (`docs/specs/2026-09-03-parallel-build-approach.md:3`), after a
     blank line: "Superseded 2026-10-11: execution follows the lean pass process (`dubplate-pass`); the run order is
     ROADMAP's Path to 0.8."
-  - The rung 7 spec (`docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`): the sentence ending on line 8, "It
+  - The rung 7 spec (`docs/specs/2026-10-10-rung-7-intake-design.md`): the sentence ending on line 8, "It
     goes to Geoff before any plan is written", becomes "It is agent input: when `intake`'s turn comes, a one-page
     design goes to Geoff, and this spec carries the detail behind it." The "Owed records" heading (`:1233`) keeps its
     title, since `:165` and `:877` cite it by name; one line under it says these are living-reference edits the
@@ -689,9 +689,9 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
     (frozen; lean ruling 8)". "Other records" (`:1257-1262`): BACKLOG #8's fix is T3's (row I67), and the discharged
     note stays. No other line changes.
 - **Files.** `.claude/skills/dubplate-pass/SKILL.md`, `.claude/settings.json`,
-  `docs/superpowers/specs/2026-09-02-greenfield-server-build.md` (one line),
-  `docs/superpowers/specs/2026-09-03-parallel-build-approach.md` (one line),
-  `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`.
+  `docs/specs/2026-09-02-greenfield-server-build.md` (one line),
+  `docs/specs/2026-09-03-parallel-build-approach.md` (one line),
+  `docs/specs/2026-10-10-rung-7-intake-design.md`.
 - **Risk class.** `runner`.
 - **Acceptance.**
   - The retired-phrase and lane checks print nothing for the adapter (today the retired-phrase check prints "lane
@@ -704,7 +704,7 @@ major (inventory row I66) as its own BACKLOG item, with the text "TypeScript 7" 
     [r for r in a if "docker compose" in r or "systemctl restart" in r], "Bash(ssh root@5.78.148.42 systemctl
     reset-failed *)" in a)'` prints `14 [] True` (today `17`, three entries, `True`).
   - `git diff --numstat <base>..HEAD --` on each frozen spec prints `1 0` or `2 0` (one line, plus at most one blank).
-  - Every `@@` header in `git diff -U0 <base>..HEAD -- docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`
+  - Every `@@` header in `git diff -U0 <base>..HEAD -- docs/specs/2026-10-10-rung-7-intake-design.md`
     starts its old range between 7 and 9 or between 1233 and 1262.
   - No gate in the half (docs only).
 - **Test.** The JSON assertion, the eight adapter slots, and the hunk ranges.
@@ -783,7 +783,7 @@ Per pass-core "Close" and the adapter's close checklist, in order:
    says the diff on its paths is comment-only, asks it to confirm that from the comment-only filter, and to read the
    comments for any false security claim. One batched fix chain follows if any returns `fix`, each finding quoted
    verbatim as the fix's acceptance, then the gate again.
-4. `git mv docs/superpowers/plans/2026-10-11-dubplate-alignment.md docs/superpowers/archive/plans/`. The two prompt
+4. `git mv docs/plans/2026-10-11-dubplate-alignment.md docs/archive/plans/`. The two prompt
    files stay. STATUS's in-flight line becomes "The alignment PR is open for Geoff's read; the next action starts when
    it merges." STATUS stays 60 lines or fewer.
 5. Push `glw907/dubplate`, open the PR, and write its body from the PR notes:

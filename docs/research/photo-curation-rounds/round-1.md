@@ -1,6 +1,6 @@
 # Photo curation round 1
 
-Plan: `docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`. Spec: revision 2.3.
+Plan: `docs/plans/2026-09-25-photo-curation-round-one.md`. Spec: revision 2.3.
 
 ## Task 4 checkpoint (search closed, 2026-09-25)
 

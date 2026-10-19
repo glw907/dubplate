@@ -1,7 +1,7 @@
 # Review: is Navidrome the right comparison point for dubplate-server 2.0?
 
 Fresh-context adversarial review of
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (revision 1).
+`docs/specs/2026-09-07-streamer-2-0-design.md` (revision 1).
 Lens: the choice of Navidrome as reference, oracle, and subsumed product.
 All observations dated 2026-09-07 unless noted.
 

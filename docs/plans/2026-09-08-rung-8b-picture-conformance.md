@@ -21,7 +21,7 @@ at 3.25M and the 80% flag at 2.6M unchanged by the rulings.
 
 **Revision 1, 2026-09-08.** Drafted against the rung 8 spec at revision
 2 with the 8a-close erratum in its header
-(`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`, landed at
+(`docs/specs/2026-09-07-rung-8-tag-io.md`, landed at
 `be27434`), whose fourteen conductor rulings are applied and whose four
 owner rulings are ruled. The pass-split table's 8b row (`spec:1134`) is
 this plan's scope statement. Fork B stays open and owed to Geoff; 8b's
@@ -81,7 +81,7 @@ and Tasks 4 and 5 are the pass the spec split off to catch it.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`, revision 2,
+1. **`docs/specs/2026-09-07-rung-8-tag-io.md`, revision 2,
    its header erratum included.** The 8b row of the pass-split table
    (`spec:1134`) is the scope statement. The sections this pass
    implements are "PICTURE" (`spec:639-682`), "The per-format seam"
@@ -96,7 +96,7 @@ Read these before Task 1, in this order.
    handoff names what 8b inherits; the carries name what 8b decides. The
    declared coverage gaps (`:263-301`) are the running list this pass
    adds to rather than restarts.
-3. **`docs/superpowers/research/2026-09-07-rung-8-spec-inventory.md`
+3. **`docs/research/2026-09-07-rung-8-spec-inventory.md`
    (INV), sections 2.4, 3.4 and 5.** Section 2.4 (`INV:432-478`) is the
    read of mediafile's FLAC image layer, key by key. Section 3.4
    (`INV:563-591`) is the five-step procedure the instrument reproduces.
@@ -122,7 +122,7 @@ Read these before Task 1, in this order.
    `internal/harness/analysis/file_tags.go`;
    `internal/harness/conform/arch_test.go`; `scripts/check.sh`;
    `.gitleaksignore`.
-7. **`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`**,
+7. **`docs/research/2026-09-04-reverse-edge-completion.md`**,
    cells (8,3) and (8,4) (`:161-199`) and the ownership rows at
    `:177-182`. Those rows are why the instrument is read-only against
    `corpus/` and `internal/harness`, and why the divergence record has a
@@ -195,7 +195,7 @@ flag routes to the conductor rather than to Geoff (Geoff, 2026-09-08).
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` (revision 2, with
+`docs/specs/2026-09-07-rung-8-tag-io.md` (revision 2, with
 the 2026-09-08 erratum), and behind it
 `specs/2026-09-02-greenfield-server-build.md` (revision 2.1, ratified),
 ladder entry 8. 8b builds deliverables 3, 4 and 5 of the spec's seven

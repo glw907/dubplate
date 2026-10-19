@@ -12,7 +12,7 @@ The corpus's frozen `responses/*.json` files are not a museum piece to
 preserve untouched forever. The highest-leverage open deficiencies in beets
 today widen candidate retrieval rather than change scoring: seeding
 candidates from embedded MBIDs, release-group lookup, better search queries
-(finding U8, `docs/superpowers/research/2026-09-02-beets-evolution-lessons.md:413-430`).
+(finding U8, `docs/research/2026-09-02-beets-evolution-lessons.md:413-430`).
 An improvement of that shape adds candidates and leaves the beets-equivalent
 subset's scores untouched, which is exactly why the fixture format admits
 recall-extension cases from day one (`Case.Extra`, `corpus/README.md`'s own
@@ -76,7 +76,7 @@ derive to zero misses.
 
 **Any disagreement `Reconcile` reports is the corpus-revalidation event the
 matcher mechanics study already names as the standing plan**
-(`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md:602-606`:
+(`docs/research/2026-09-02-beets-matcher-mechanics.md:602-606`:
 "Library-version pins are corpus metadata... a beets bump is a
 corpus-revalidation event (already the standing plan)"). A version
 disagreement is not a chore to defer; it is the chore already having started,

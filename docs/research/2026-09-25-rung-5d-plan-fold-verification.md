@@ -1,6 +1,6 @@
 # Rung 5d plan fold: verification read
 
-Target: `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`, revision 2 (`9177429`),
+Target: `docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md`, revision 2 (`9177429`),
 against revision 1 (`af7d941`), the fold record `2026-09-25-rung-5d-plan-fold.md`, and the three lens
 reviews. The reader had no part in the fold. The plan file is unchanged at HEAD `ca41952`. No box
 command was run; the box facts below come from the fold's own read and the tree.

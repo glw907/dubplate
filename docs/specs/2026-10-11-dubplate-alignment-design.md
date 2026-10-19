@@ -2,8 +2,8 @@
 
 **Status:** approved by Geoff, 2026-10-11, in the dotfiles conducting session (`c747c352`), with his
 rulings below. It runs before the rung 14a re-plan (lean pass process ruling 12). Evidence: the
-read-only audit `docs/superpowers/research/2026-10-11-dubplate-alignment-audit.md`, which cites
-file and line for every item. The lean process: `~/.dotfiles/docs/superpowers/specs/2026-10-10-lean-pass-process-design.md`
+read-only audit `docs/research/2026-10-11-dubplate-alignment-audit.md`, which cites
+file and line for every item. The lean process: `~/.dotfiles/docs/specs/2026-10-10-lean-pass-process-design.md`
 and `~/.claude/skills/pass-core/SKILL.md`.
 
 ## Outcome
@@ -28,7 +28,7 @@ rung 14a re-plan can then start on aligned ground.
    replaces 14a, and `streamer-1` to `streamer-3` replace slices 1, 2a, and 2b. The ROADMAP carries
    one numbered list, "Path to 0.8", in run order. It is the only place a number means order, and
    it is rewritten when the order changes. The run order is derived from
-   `docs/superpowers/research/2026-09-03-rung-dependency-analysis.md` and the current state, with
+   `docs/research/2026-09-03-rung-dependency-analysis.md` and the current state, with
    rung 7 after 14a per ruling 2. Frozen specs keep their old numbers; one old-to-new mapping table
    in the ROADMAP bridges them, and no errata sweep follows.
 

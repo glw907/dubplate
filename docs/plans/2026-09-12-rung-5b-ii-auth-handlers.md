@@ -2,7 +2,7 @@
 
 Status: **revision 2.1, 2026-09-12.** Revision 2.1 applies the process
 improvement plan's tier C to this plan
-(`docs/superpowers/research/2026-09-12-process-improvement-plan.md`): the
+(`docs/research/2026-09-12-process-improvement-plan.md`): the
 four per-segment `code-simplifier` rounds become two, one at the segment C
 boundary and one at D2, each round's review chunked one `diff-reviewer`
 per package (Item 8's half-step), and the segment table records that its
@@ -10,14 +10,14 @@ five segments satisfy Item 16's ruled three-to-four-task sizing on green
 commits. Nothing else changed. Drafted just in time from pass
 5b-i's own handoff (`docs/HISTORY.md:496-530`), against the rung 5
 identity-and-auth spec at revision 2.1
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`), whose
+(`docs/specs/2026-09-08-rung-5-identity-auth.md`), whose
 eighteen 5b-i errata landed at `b91bae1` and whose six product forks
 Geoff ruled on 2026-09-08 (`spec:172-271`).
 
 **Revision 2 folds three adversarial plan reviews** (contract and code
 fidelity, security and threat model, execution mechanics and budget),
 merged at
-`docs/superpowers/research/2026-09-12-rung-5b-ii-plan-review.md`. Two
+`docs/research/2026-09-12-rung-5b-ii-plan-review.md`. Two
 blockers, thirteen majors and eight minors were raised against revision
 1; every one is folded. The task count is unchanged at twelve plus Task
 0. The ceiling moved from 5.5M to **7.5M** because revision 1's
@@ -95,7 +95,7 @@ the half 5b-i shipped, corrected by the errata at `spec:1982` onward.
 **One thing changed between the split and this plan, and it reshapes the
 front of the pass.** The fresh-context `web-auth-security-reviewer` read
 R-5b16 owes ran on 2026-09-12 against `1d4ed29` and is recorded at
-`docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`. It
+`docs/research/2026-09-12-rung-5b-i-security-review.md`. It
 returned **one blocker, five majors, and fourteen minors**, every
 CONFIRMED finding reproduced by running the landed code rather than by
 reading it. Its own verdict is that "5b-ii should not be dispatched until
@@ -157,7 +157,7 @@ verb, a unit, a deploy, or a probe row stops and reports.**
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`,
+1. **`docs/research/2026-09-12-rung-5b-i-security-review.md`,
    in full.** The read R-5b16 owes for the 5b-i half, run fresh-context
    against `1d4ed29`. Its blocker B1, its majors M1 through M5, and its
    fourteen minors are **Task 1's and Task 2's whole content**, and its
@@ -172,7 +172,7 @@ Read these before Task 1, in this order.
    before Task 1 dispatches, because this plan cites it as a primary
    input and an untracked input is a citation a later reader cannot
    resolve.
-2. **`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`,
+2. **`docs/specs/2026-09-08-rung-5-identity-auth.md`,
    revision 2.1.** The sections 5b-ii implements: "What rung 5 builds"
    (`:93-148`), the ruled product forks (`:172-271`), the rulings
    (`:273-770`), "Consumption" (`:1036-1068`), "The roster"
@@ -201,21 +201,21 @@ Read these before Task 1, in this order.
    and **"The 5b-i to 5b-ii handoff" (`:496-530`), which is binding on
    this plan**. The Inheritance section below states what each clause
    costs a task.
-4. **`docs/superpowers/plans/2026-09-08-rung-5b-auth-core.md` (5b-i's
+4. **`docs/plans/2026-09-08-rung-5b-auth-core.md` (5b-i's
    plan), its 5b-ii cells and clauses.** Grep `5b-ii` returns the scope
    cell, the exit-gate cell, and the provisional 4.5M ceiling in the
    split table, the handoff enumeration in Task 10, and the eleven
    clauses routing a rule forward. **The exit-gate cell is this pass's
    exit gate**, extended by the two assertions the errata moved and by
    the security fold's own.
-5. **`docs/superpowers/research/2026-09-08-rung-5b-plan-review.md`**, for
+5. **`docs/research/2026-09-08-rung-5b-plan-review.md`**, for
    the folds it routed here rather than to 5b-i: the same-origin refresh
    clause (M-e), the `MaxBytesReader` and 30-second read timeout carry
    (M-g's R-V half), the roster-removal exit-gate assertion (m9), and the
    normalizer's universal-caller rule (M-a). **Its merged "Verified
    sound" list is a do-not-re-litigate record for the plan's shape**, not
    for this pass's code.
-6. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`
+6. **`docs/specs/2026-09-03-parallel-build-approach.md`
    (PA), its lane table (`PA:96-101`), its scheduling rule (`PA:80`), and
    its contested-surface ownership table (`PA:175-203`).** `PA:100` gives
    lane A `internal/auth`, the `internal/serve` shell, and
@@ -223,7 +223,7 @@ Read these before Task 1, in this order.
    `internal/identity`, `internal/notify`, the roster store, and
    `internal/serve` were all written at the 2026-09-12 pre-flight and are
    the rows this pass edits against.
-7. **`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (S20),
+7. **`docs/specs/2026-09-07-streamer-2-0-design.md` (S20),
    the forward-hooks section (`:354-383`) and the identity and
    app-passwords section (`:234-252`).** Hook 5 (`S20:367-373`) is the
    hook this pass's roster and seam land; `S20:284-285` puts 2.0's whole
@@ -511,12 +511,12 @@ about 3.4M across three segments" has no source: the only 3.4M in the
 repo is 5a's 80% flag against a 4.25M ceiling
 (`docs/HISTORY.md:1692`). The 0.19M per task it quoted is the
 workstation-wide chain rate at
-`docs/superpowers/plans/2026-09-12-overnight-window.md:126-130`, measured
+`docs/plans/2026-09-12-overnight-window.md:126-130`, measured
 across four passes and 74 agents, and that line states plainly that
 "Close cost is a separate line at 0.9M-1.4M per pass", so it is not an
 all-in rate and the 0.309M derived from it is not one either. 5b-i was
 budgeted "2.1M chain + 1.4M close" at
-`docs/superpowers/plans/2026-09-12-overnight-window.md:331` and landed at
+`docs/plans/2026-09-12-overnight-window.md:331` and landed at
 5.5M for the chain half alone, which is the measurement this ceiling is
 built on.
 
@@ -742,7 +742,7 @@ launches, per lane-launch checklist item 2.
 | `config/` | rung 1, as the repo's delivered configuration directory; `scripts/deploy.sh` names each file it delivers rather than syncing the directory (`deploy.sh:284`, `:426`, `:537`) | every rung that ships a config file | **One new file, Task 4**: `config/roster.example.json`, a reference for the shape that `deploy.sh` does not deliver and never will (`spec:751-752`). The incumbent `config/contributors.yaml` beside it is untouched and stays until **rung 16** retires the incumbent importer (`spec:752-754`), not 5d. **This row is new at revision 2**: `config/` had no row here and none in `PA:175-210`, and the conductor writes it into PA's table with the others. |
 | `go.mod` | shared | every lane | **Two budgeted additions**, Tasks 6 and 7, each in its importing commit. |
 | `.gitleaksignore` | rung 1b retired its one fingerprint; the lane that needs an allowed finding appends and names it in its pass report | every lane | **5b-ii expects to append nothing** and reports it if it must. |
-| `docs/` ledgers | conductor-owned | every rung | A pass drafts and never commits. Task 12 drafts under `docs/superpowers/research/handoffs/`. |
+| `docs/` ledgers | conductor-owned | every rung | A pass drafts and never commits. Task 12 drafts under `docs/research/handoffs/`. |
 
 **No concurrent code lane is scheduled against this pass.** If one is
 launched, the two lanes share the tree through `go.mod`,
@@ -974,7 +974,7 @@ answer, the handlers are written twice.
 ### R-5b18: the 5b-i security read is discharged, and this pass's own read covers both halves at its end
 
 **Decided:** the read at
-`docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md` is
+`docs/research/2026-09-12-rung-5b-i-security-review.md` is
 R-5b16's 5b-i half, delivered. `docs/HISTORY.md:411-416` and the R24
 erratum both say the read was "not run this window" and is "owed to
 5b-ii's window as its first item"; both were written before it ran, and
@@ -1259,7 +1259,7 @@ stops the launch.**
    `PA:80` forbids it until rung 5 closes. *(Expected: no commit touching
    it since `1d4ed29`.)* **Report the commit list.**
 3. **Is the security review present and unchanged?**
-   `docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`,
+   `docs/research/2026-09-12-rung-5b-i-security-review.md`,
    493 lines at drafting time, untracked. **Report its line count, its
    tracked status, and whether the conductor has committed it.** This
    plan cites it as a primary input; an absent or altered file is a
@@ -1397,7 +1397,7 @@ stops the launch.**
     handoff at `:496-530`.)* **Report each range.**
 19. **Did the eighteen spec errata land, and does any of them contradict
     this plan?** *(Expected: `b91bae1` adds 162 lines to
-    `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`, all
+    `docs/specs/2026-09-08-rung-5-identity-auth.md`, all
     under "Errata the close applies".)* **Report the count of dated
     erratum blocks and name any whose content this plan's text
     contradicts**, item 10's R33 claim included.
@@ -2426,7 +2426,7 @@ Model: **`opus`**. Depends on Tasks 0 and 7.
 > Tasks 7 and 8 share segment C, a `pass-execute` launch fixes each task's
 > model in its args at dispatch, and the conductor sees nothing until the
 > launch returns
-> (`docs/superpowers/plans/2026-09-12-overnight-window.md:134-139`). The
+> (`docs/plans/2026-09-12-overnight-window.md:134-139`). The
 > unconditional upshift is taken over the extra boundary because this
 > task's own argument for it does not depend on Task 7's verdict: its
 > correctness rests on a placement argument rather than on code volume,
@@ -2876,7 +2876,7 @@ constructor and its dependency struct).
 > not accepted, and after Task 12 had drawn the close's mutation table and
 > coverage-gap list from them. `pass-execute` cannot honor "a decision on
 > a second `fix` verdict before every later task has already run"
-> (`docs/superpowers/plans/2026-09-12-overnight-window.md:134-139`), so
+> (`docs/plans/2026-09-12-overnight-window.md:134-139`), so
 > the decision needs a boundary or it does not exist.
 
 ---
@@ -2980,8 +2980,8 @@ driver, the mounts).
 Model: `sonnet`. Depends on Tasks 0 through 11.
 
 **Files:**
-- Draft: `docs/superpowers/research/handoffs/draft-STATUS-5b-ii.md` and
-  `docs/superpowers/research/handoffs/draft-HISTORY-5b-ii.md`
+- Draft: `docs/research/handoffs/draft-STATUS-5b-ii.md` and
+  `docs/research/handoffs/draft-HISTORY-5b-ii.md`
 - Draft, handed to the conductor in the task return: the spec
   corrections, the coverage-gap list, and the 5c handoff
 
@@ -3053,7 +3053,7 @@ acceptance criteria below are written against those seven.
     erratum both say the 5b-i security read was not run and is owed to
     5b-ii's window as its first item. It ran on 2026-09-12 and is
     recorded at
-    `docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`.
+    `docs/research/2026-09-12-rung-5b-i-security-review.md`.
   - **R-5b26's**: the erratum landed at `b91bae1` states that R33's
     redirect validation "landed in `internal/auth` at 5b-i". No such
     function exists, and Task 0 item 10 proves it by grep. The validator
@@ -3219,7 +3219,7 @@ Stated here because they are not tasks and no implementer performs them.
    grows. 5b-i ran three batched per-segment rounds rather than one per
    task and **recorded the deviation**; this plan schedules the two-round
    form deliberately, per the process improvement plan's Item 8 half-step
-   (`docs/superpowers/research/2026-09-12-process-improvement-plan.md`),
+   (`docs/research/2026-09-12-process-improvement-plan.md`),
    and the close records it as scheduled rather than as a deviation.
 3. **One fresh-context `web-auth-security-reviewer` over this pass's
    surface and Tasks 1 and 2's corrections** (R-5b16, R-5b18), dispatched

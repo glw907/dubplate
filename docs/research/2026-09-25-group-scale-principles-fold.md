@@ -1,6 +1,6 @@
 # Group-scale principles spec: fold record
 
-Target: `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`, revision 1
+Target: `docs/specs/2026-09-25-group-scale-principles-design.md`, revision 1
 (`1d6bc6a`) to revision 2. Inputs, all under `docs/superpowers/research/`:
 
 - `2026-09-25-group-scale-principles-review-contract.md` (prefix C)

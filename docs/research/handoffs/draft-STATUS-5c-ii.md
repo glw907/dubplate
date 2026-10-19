@@ -29,7 +29,7 @@ word-boundary plan continue in parallel as document lanes.
 
 ## 5c-iii handoff
 
-Full detail: `docs/superpowers/research/handoffs/draft-HISTORY-5c-ii.md`, "The 5c-iii handoff"
+Full detail: `docs/research/handoffs/draft-HISTORY-5c-ii.md`, "The 5c-iii handoff"
 and "What stayed open" sections. In brief: 5c-iii builds on 5c-ii's routes, gate, roster API
 outcome values, header step, and CSP builder; reads the visual identity spec 1.2 as standing
 input; and carries the theme toggle, the `theme-color` metas, the mark and favicon, the ink

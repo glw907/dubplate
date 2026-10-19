@@ -2,7 +2,7 @@
 
 Status: **approved (Geoff, 2026-09-25); rulings recorded.** The
 three `spec-plan-review` lenses (contract, mechanics, risk; `f0e3c00`) are folded, one
-disposition per finding, in `docs/superpowers/research/2026-09-25-rung-5c-iii-plan-fold.md`.
+disposition per finding, in `docs/research/2026-09-25-rung-5c-iii-plan-fold.md`.
 The verification read (`2026-09-25-rung-5c-iii-plan-fold-verification.md`, `bbba7a8`) is
 folded in the same record's "Fold 2" section. The prose review
 (`2026-09-25-rung-5c-iii-plan-prose-review.md`) is folded in its "Prose fold" section. No
@@ -11,27 +11,27 @@ ruling below is answered.
 Sources. Code pointers were resolved at `b9e281b`.
 
 - The 5c-ii close (`docs/HISTORY.md`, top entry, drafted in
-  `docs/superpowers/research/handoffs/draft-HISTORY-5c-ii.md`). Its "What stayed open",
+  `docs/research/handoffs/draft-HISTORY-5c-ii.md`). Its "What stayed open",
   "Declared coverage gaps", and "The 5c-iii handoff" sections are this pass's scope.
-- The 5c-ii plan (`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
+- The 5c-ii plan (`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
   revision 2.4). This pass builds on its R-5cii2 (the relative base), R-5cii7 (the CSP
   builder), R-5cii8 (cache directives), R-5cii15 (where each DL gate lands), R-5cii19 (the
   members route is public, the API is the boundary), R-5cii21 (exact paths), and R-5cii22 (the
   theme stamp and cookie).
 - The three 5c-ii reviews
-  (`docs/superpowers/research/2026-09-24-rung-5c-ii-review-{svelte,security,a11y}.md`).
-- The visual identity spec (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`,
+  (`docs/research/2026-09-24-rung-5c-ii-review-{svelte,security,a11y}.md`).
+- The visual identity spec (`docs/specs/2026-09-24-visual-identity-design.md`,
   revision 1.2, `782d864`, VI below), the look every page builds to.
-- The design-language standard (`docs/superpowers/specs/2026-09-07-design-language-standard.md`,
+- The design-language standard (`docs/specs/2026-09-07-design-language-standard.md`,
   DL below).
-- The web surface standard (`docs/superpowers/specs/2026-09-12-web-surface-standard.md`,
+- The web surface standard (`docs/specs/2026-09-12-web-surface-standard.md`,
   revision 2.1, W below).
-- The rung 5 spec (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`): "The pages"
+- The rung 5 spec (`docs/specs/2026-09-08-rung-5-identity-auth.md`): "The pages"
   (`:1413-1466`), "Consumption" (`:1051-1080`), and "The post-login destination"
   (`:1268-1273`).
 - The 5c-i plan's page outline
-  (`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md:2494-2511`).
-- The 2.0 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`): "Forward
+  (`docs/plans/2026-09-23-rung-5c-pages-member-verb.md:2494-2511`).
+- The 2.0 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`): "Forward
   hooks" (`:450`) and "Prior art" (`:522`).
 
 **Owner rulings in force.** dubplate carries its own visual identity and matches no streamer
@@ -79,7 +79,7 @@ kind.** A task that believes it needs any of these stops and reports.
 
 Ten yes/no questions, each with a recommendation and what each answer builds. Rulings 1
 through 6 are revision 1's; Rulings 7 through 10 are forks the three plan-review lenses raised
-(fold record, `docs/superpowers/research/2026-09-25-rung-5c-iii-plan-fold.md`). The rung 5
+(fold record, `docs/research/2026-09-25-rung-5c-iii-plan-fold.md`). The rung 5
 spec's rulings, the 5c-i and 5c-ii plans' rulings, VI's owner rulings, and W's section 16 stand
 and are not reopened.
 
@@ -383,7 +383,7 @@ Read these before Task 1, in this order.
    under
    `/tmp/claude-1000/-var-home-glw907-Projects-dubplate/bc83700f-945c-4755-8eac-4c458ffb90b6/scratchpad/`
    (`pw/`, `webp/`, `fonts/`, and the mechanics lens's `mech/`) and may be gone; the lens
-   reports at `docs/superpowers/research/2026-09-25-rung-5c-iii-plan-review-*.md` carry their
+   reports at `docs/research/2026-09-25-rung-5c-iii-plan-review-*.md` carry their
    outputs. Each task re-proves what it relies on through its own gate-resident test, and a
    task that relies on a behavior this plan does not quote confirms it the same way and
    reports what it read.
@@ -479,7 +479,7 @@ two, every other task four), plus each Task 0's report. None passes four.
 
 - **Lane 1, the main tree, on master.** No task reads, writes, or runs a command inside
   `.claude/worktrees/`. The matcher word-boundary plan
-  (`docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`, "Global constraints") also
+  (`docs/plans/2026-09-25-matcher-word-boundary.md`, "Global constraints") also
   claims lane 1, and CLAUDE.md keeps corpus and harness work in the main tree. This pass
   launches only when the lane registry shows lane 1 free and names the order; the conductor
   writes that order before either launches (recommended: the matcher pass first, since it is
@@ -1248,7 +1248,7 @@ values enter markup (R-5ciii5), the class Task 6 of 5c-ii upshifted for.
 **Files:**
 - Create: `web/static/favicon.svg`, `web/static/favicon.png` (32px),
   `web/static/mark/mark-{large,medium,small}.svg` (copied from
-  `docs/superpowers/specs/2026-09-24-visual-identity/`, unmodified),
+  `docs/specs/2026-09-24-visual-identity/`, unmodified),
   `web/scripts/gates/root-absolute.ts`
 - Modify: `internal/serve/document.go` and its test (the head insertions ride
   `BuildDocumentVariants`; today its only insertion is `insertTierLinks`, applied once before
@@ -1403,7 +1403,7 @@ without being unlayered (tier 3's operator file must keep the last word, DL R4.4
 4. Drop the reduced-motion rule → the reduced-motion row fails.
 
 **2.0 hook: neutral.** **Prior art:** VI's refinement specimen CSS
-(`docs/superpowers/research/2026-09-24-identity-refinement/specimen-refined.css`) read as the
+(`docs/research/2026-09-24-identity-refinement/specimen-refined.css`) read as the
 worked form of each rule, adopted where it uses DaisyUI's own classes, declined where it styles
 a surface rung 7 owns.
 
@@ -1421,8 +1421,8 @@ Model: `sonnet`. Depends on Tasks 0 through 5 (3a and 3b included), the simplifi
 and the pass-end reviews with their fold.
 
 **Files (drafts only; the conductor folds and commits):**
-`docs/superpowers/research/handoffs/draft-HISTORY-5c-iii.md`,
-`docs/superpowers/research/handoffs/draft-STATUS-5c-iii.md`
+`docs/research/handoffs/draft-HISTORY-5c-iii.md`,
+`docs/research/handoffs/draft-STATUS-5c-iii.md`
 
 **Outcomes:**
 - **The HISTORY draft:** per task with commit ids; the gate evidence, including the rendered
@@ -2003,7 +2003,7 @@ Model: `sonnet` for the capture; the read is the conductor's dispatch.
   `renderedScriptTimeout`, and the fixture limits if the spend needs them),
   `web/scripts/rendered/run.ts` (the capture matrix and the two floors), `Makefile`
   (`RENDERED_TIMEOUT`), `.gitignore` (the capture directory)
-- Create: `docs/superpowers/research/2026-09-25-rung-5c-iv-render-and-read.md` (the reader's
+- Create: `docs/research/2026-09-25-rung-5c-iv-render-and-read.md` (the reader's
   findings, committed by the conductor)
 
 **Refresh read (2026-09-25).**

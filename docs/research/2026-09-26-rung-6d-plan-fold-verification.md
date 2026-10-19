@@ -1,6 +1,6 @@
 # Rung 6d plan fold: verification read
 
-Target: `docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md`, revision 2, against the
+Target: `docs/plans/2026-09-26-rung-6d-identity-serve-store.md`, revision 2, against the
 fold record `2026-09-26-rung-6d-plan-fold.md`, the three lens reviews, revision 1 at `5afe46b`, and
 the approved 5d plan. The reader took no part in the drafting or the fold. Code was read at committed
 `HEAD` (`adb9644`); the working tree's warm `web/` and `rendered_test.go` edits belong to another lane

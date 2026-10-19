@@ -1,6 +1,6 @@
 # Rung 5c-ii plan review: contract and criteria lens
 
-Target: `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
+Target: `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
 at `3ebfe3c` (revision 1, draft). Sources read: the repo `CLAUDE.md`, the
 rung 5 spec (5c row, "The pages", "The gate leg"), the web surface
 standard (section 15, W3.7, W5.9, W5.10), the 5c-i plan (R-5c12 through

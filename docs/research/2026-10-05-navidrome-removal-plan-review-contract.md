@@ -1,7 +1,7 @@
 # Navidrome removal plan review: contract and criteria lens
 
 Target: `docs/superpowers/plans/2026-10-05-navidrome-removal.md` at `7036ebc` (revision 1).
-Spec: `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md` rev 2.1.
+Spec: `docs/specs/2026-10-05-rungs-12-16-replan-design.md` rev 2.1.
 Lens: is each acceptance testable and non-vacuous; does each spec requirement map to a task; the four
 planning-miss items; whether the pass class fits each task. Every claim was checked against the tree at `7036ebc`
 (working tree clean apart from the warm files the plan names).
@@ -21,7 +21,7 @@ The eight readings:
 | Reading | Verdict |
 | --- | --- |
 | 1 Exported-unused, "no hit of its own" | Sound. Confirmed at `7036ebc`: the leg's `internal/serve` rows are exactly the nine names listed. Its method needs naming (PC6) |
-| 2 Prune `ClassBackground`, `ErrUnavailable` | Sound. The spec's condition triggers it: `docs/superpowers/specs/` holds no rung 9 spec, and no non-shadow production code branches on either name |
+| 2 Prune `ClassBackground`, `ErrUnavailable` | Sound. The spec's condition triggers it: `docs/specs/` holds no rung 9 spec, and no non-shadow production code branches on either name |
 | 3 Remove `IntegrationClass.Optional` | Sound. Its escape clause has a false trigger, and its line ranges are short (PC8) |
 | 4 Runbook flag lines here | Sound. The sibling plan's coordination section agrees ("two bootstrap commands"). Line 138 is prose rather than a command, so this is not a collision, since sibling Task 6 only verifies |
 | 5 IDEAS entry is the document pass's | Sound |
@@ -35,7 +35,7 @@ No reading needs the owner.
 
 ### PC1 (major): three re-pointed `internal/serve` tests cannot fail on the variant they exist to catch
 
-`docs/superpowers/plans/2026-10-05-navidrome-removal.md:224`, `:227`, `:229`
+`docs/plans/2026-10-05-navidrome-removal.md:224`, `:227`, `:229`
 
 Once `next` is `http.NotFoundHandler()`, the fallthrough's distinguishing signal is gone. The remaining 404 is
 indistinguishable from `Terminator`'s 404, and from the mux's own 404.

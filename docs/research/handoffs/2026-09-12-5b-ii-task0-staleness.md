@@ -36,8 +36,8 @@ origin refs; lane 2's branch is deleted.
 `git status --porcelain internal/auth internal/identity internal/serve
 cmd/dubplate-server go.mod go.sum` returns nothing. The only untracked
 files in the repo are two 2026-09-04 research documents
-(`docs/superpowers/research/2026-09-04-agentic-coding-public-evidence.md`,
-`docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md`),
+(`docs/research/2026-09-04-agentic-coding-public-evidence.md`,
+`docs/research/2026-09-04-visual-collaborator-outreach.md`),
 neither under a contested surface. No uncommitted change I did not
 author exists in the pass's territory.
 
@@ -50,7 +50,7 @@ silences".
 
 ## 3. Security review present and unchanged — OK
 
-`docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`,
+`docs/research/2026-09-12-rung-5b-i-security-review.md`,
 **493 lines** (25908 bytes), matching the drafting-time count exactly.
 
 It is now **tracked**, not untracked as the plan recorded: the
@@ -386,7 +386,7 @@ re-key them before Task 1 dispatches.
 
 `b91bae1` ("Apply the eighteen rung 5 spec errata rung 5b-i's close
 owes") adds **162 lines** to
-`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`, exactly
+`docs/specs/2026-09-08-rung-5-identity-auth.md`, exactly
 as the plan records, all under `## Errata the close applies` at
 `:1982`. The 5b-i section is headed at `:2157`, "Pass 5b-i's close,
 2026-09-12, adds the corrections below."

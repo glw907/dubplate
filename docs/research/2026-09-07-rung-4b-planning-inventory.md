@@ -3,7 +3,7 @@
 Research report, 2026-09-07, prepared for pass 4b's plan authoring,
 against HEAD `c98a9166b38c6ec1c6bdc23ca280d1bb1c58526a`. Scope, quoted
 from the rung 4 spec's pass-split table
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1632`):
+(`docs/specs/2026-09-05-rung-4-shadow.md:1632`):
 
 > **4b** The deployment | `systemd/dubplate-shadow.{service,timer}`;
 > `env/dubplate-server.env.template` with its literal rows and the
@@ -862,7 +862,7 @@ do.
 
 ## 8. The 2.0 forward hooks
 
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md:354-388`
+`docs/specs/2026-09-07-streamer-2-0-design.md:354-388`
 carries fourteen hooks. Read in full, plus a grep of the whole spec for
 `systemd`, `deploy`, `/var/lib`, `state directory`, `ldflags`, `stamp`,
 and `environment`.
@@ -924,7 +924,7 @@ environment, and deploy pass, declined for that reason and recorded.
 
 ### The parallel-approach spec's ownership table
 
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`, section
+`docs/specs/2026-09-03-parallel-build-approach.md`, section
 3's table. The row 4b lives on is `:184`:
 
 > `systemd/`, `scripts/deploy.sh`, `env/` (conductor ruling, 2026-09-05)

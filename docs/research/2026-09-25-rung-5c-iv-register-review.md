@@ -90,7 +90,7 @@ citations already recorded in "What this review verified before acting."
    `errMissingStreamerUsername`, so the field is required on every add, not optional. The plan's
    outcome bullet and its "2.0 hook" line (which cited R-5c13 for the optionality) are both
    corrected: R-5c13 governs only the admin field's absence from the form
-   (`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md:731`), not the streamer
+   (`docs/plans/2026-09-23-rung-5c-pages-member-verb.md:731`), not the streamer
    username.
 16-22. **`too_large`, `malformed`, `unknown_field`, `admin_not_grantable`, `invalid_address`,
    `duplicate_streamer_username`, `INTERSTITIAL_STATEMENT`, `ERROR_PAGE.genericHeading`.**
@@ -145,7 +145,7 @@ citations already recorded in "What this review verified before acting."
 - `internal/auth/limit.go:19-22` (`limitInterval = time.Hour`) and
   `cmd/dubplate-server/auth.go:139-156` (`rateFloor = 1`, the four rate ceilings), confirming a
   floor-configured limit refills hourly, not "in a few minutes."
-- `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md:731` (R-5c13's actual scope:
+- `docs/plans/2026-09-23-rung-5c-pages-member-verb.md:731` (R-5c13's actual scope:
   the admin field's absence from the form).
 - `web/src/routes/+error.svelte`, `login/+page.svelte`, `login/link/+page.svelte`,
   `members/+page.svelte`: confirmed by `grep` that none of these pages import `$lib/copy/deck`

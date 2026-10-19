@@ -1,6 +1,6 @@
 # Plan review: contract and criteria lens
 
-Target: `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md` at
+Target: `docs/plans/2026-09-25-translit-table-at-setup.md` at
 `b841954` (revision 1). Lens: is every task's promise testable, does each
 acceptance criterion name its fixture and why it would fail, and can any
 criterion pass vacuously. The four planning-miss items (quoted behavior,

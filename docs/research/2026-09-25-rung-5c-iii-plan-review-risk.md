@@ -1,6 +1,6 @@
 # Rung 5c-iii plan review: domain risk lens
 
-Subject: `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, revision 1
+Subject: `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, revision 1
 (`fc52232`). Lens: domain risk (security, accessibility, identity conformance, delivery). Read
 against VI revision 1.2, the rung 5 spec, W revision 2.1, DL, CLAUDE.md, the 5c-ii plan's
 R-5cii14/19/21/22, the tree at HEAD, and the queued 6b-ii and matcher plans.
@@ -136,7 +136,7 @@ regression, lane contention, and three gate-shape gaps.
 
 - **Location:** plan `:58-59` and `:289` ("This pass runs in lane 1, the main tree"), `:1195-1203`
   (contested surfaces), and the matcher plan
-  `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md:306-310`.
+  `docs/plans/2026-09-25-matcher-word-boundary.md:306-310`.
 - **Defect:** The matcher pass also runs "The main tree, as lane 1, after 5c-ii closes", and
   CLAUDE.md pins it there ("Corpus and harness work never moves to a worktree"). Neither plan
   names the other or an order. One tree runs one executor, so the second pass to launch is

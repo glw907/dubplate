@@ -1,7 +1,7 @@
 # Process improvement plan, revision 1: merged three-lens review and fold record
 
 Three fresh-context adversarial reviews of
-`docs/superpowers/research/2026-09-12-process-improvement-plan.md` revision 1, merged
+`docs/research/2026-09-12-process-improvement-plan.md` revision 1, merged
 2026-09-12, with the disposition of every finding in revision 2. The three per-lens files
 this replaces were `-review-evidence.md`, `-review-quality.md` and `-review-mechanics.md`.
 
@@ -20,7 +20,7 @@ this replaces were `-review-evidence.md`, `-review-quality.md` and `-review-mech
 **Citation keys**, as revision 2 now keys them: `measure:N`, `harvest:N` and `research:N`
 are lines in `2026-09-12-dubplate-economy-measure.md`,
 `2026-09-12-cairn-economy-harvest.md` and `2026-09-12-pattern-soundness-research.md`, all
-under `docs/superpowers/research/`.
+under `docs/research/`.
 
 ## Totals
 
@@ -260,7 +260,7 @@ alternative is named as the better form if Item 3's runner edit is being made an
 The three evidence files and the measurement scripts are keyed to this session's UUID;
 `gtime.py:2` and `gates.py:2` hardcode the transcript path and `spend-ledger.sh` is a live
 heartbeat rather than a per-pass emitter. **Adapted.** The three evidence files are copied
-into `docs/superpowers/research/` under dated names at revision 2 and the citation block is
+into `docs/research/` under dated names at revision 2 and the citation block is
 re-keyed to them, so every pointer resolves; the generalized `tools/` emitter is folded as
 Item 4's stated precondition and as section 6's named source rather than built here.
 
@@ -387,7 +387,7 @@ finding, so neither changes a disposition above; both are recorded here so the p
 revision history stays readable from one file.
 
 **Input 1: fresh cairn evidence and its dubplate counterpart.**
-`docs/superpowers/research/2026-09-12-cairn-fresh-evidence.md`, keyed `fresh:N` in the plan.
+`docs/research/2026-09-12-cairn-fresh-evidence.md`, keyed `fresh:N` in the plan.
 Its first half is Geoff's verbatim relay of the cairn session's own report on the run after
 its runner change: a pre-runner task at 381 shell calls with up to 427K tokens of context per
 call and another spending 263 of 562 calls polling a log, against a post-runner task at four
@@ -415,7 +415,7 @@ Where it landed in the plan:
   and lands on the same three lines Item 1 already rewrites.
 
 **Input 2: the segment-sizing read.**
-`docs/superpowers/research/2026-09-12-segment-sizing-research.md`, keyed `sizing:N`. Geoff
+`docs/research/2026-09-12-segment-sizing-research.md`, keyed `sizing:N`. Geoff
 ruled its recommended rule on 2026-09-12 ("That works"): segments of three to four tasks,
 every boundary on a green commit, the count overridden only for an irreversible task, a
 second `fix` verdict, or a disjoint Files seam, with the handoff carried as structured repo

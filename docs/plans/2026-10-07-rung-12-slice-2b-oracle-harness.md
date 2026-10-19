@@ -9,25 +9,25 @@ History:
 - Revision 1: drafted from slice 1's records and 2a's merged code. It replaces the "Pass 2b (sketch; authored in full
   at its Task 0)" section of the 2a plan, which now points here.
 - Revision 1.1: folds the three lens reviews (contract C1 to C15 and O1, mechanics M1 to M18, risk DR1 to DR14) per
-  `docs/superpowers/research/2026-10-07-rung-12-slice-2b-plan-fold.md`. The assignment's values and every ledger
+  `docs/research/2026-10-07-rung-12-slice-2b-plan-fold.md`. The assignment's values and every ledger
   row's slice are fixed here; the XML tier binds each body to its endpoint; the projection locates errors from the
   bytes it writes and drops residuals before xmllint runs; Navidrome's library request is the conductor's observation;
   Task 11 walks gonic only for the folder view; libxml2 is pinned in Homebrew.
 - Revision 1.2: a second, narrow fold of the verification read
-  (`docs/superpowers/research/2026-10-07-rung-12-slice-2b-plan-fold-verification.md`, V1 to V9), recorded in the fold
+  (`docs/research/2026-10-07-rung-12-slice-2b-plan-fold-verification.md`, V1 to V9), recorded in the fold
   record's "Second fold". The conductor replays Navidrome's library request before segment C, and Task 9 gains a
   degraded form, so a failure before or during Task 9 never stops the run (V1). Task 5's three-source session carries
   one `serverVersion` per source (V2). Ruling 1's split delta and fallback claim are corrected (V5). Task 6's Files
   name the assignment loader (V7), and the conductor's step states its real trade-off (V6).
 - Revision 1.3: lands the second fold's four owed items (V3, V4, V8, V9) before execution.
 
-**Parent plan:** `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2, "the 2a plan").
+**Parent plan:** `docs/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2, "the 2a plan").
 Its readings R1 to R12, its global constraints, and its clean-room rule stay in force for this pass; this plan adds
 readings R13 to R28. Task numbers here are 2b's own, and commits name them as "rung 12 slice 2b Task N".
 
-**Spec:** the 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision 3.1, "the
+**Spec:** the 0.8 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, revision 3.1, "the
 spec"; it still says 2.0), ladder entry 2 at `:880-887`, "Evidence" at `:314-362`, under the re-plan
-(`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1, "the re-plan"). The sketch cited
+(`docs/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1, "the re-plan"). The sketch cited
 revision 3's line numbers; revision 3.1 moved them, and every spec pointer below is revision 3.1's.
 
 **What this pass is.** It finishes the evidence machinery 2a started, consuming slice 1's study record. It adds the
@@ -65,7 +65,7 @@ the close. As in 2a, every task names its mutations and the implementer reports 
 ## Rulings taken (Geoff, 2026-10-07)
 
 Geoff accepted slice 1's three study forks with the study's recommendation on each (study record
-`docs/superpowers/research/2026-10-06-slice-1-study-record.md`, section 19), relayed by the conductor on 2026-10-07.
+`docs/research/2026-10-06-slice-1-study-record.md`, section 19), relayed by the conductor on 2026-10-07.
 
 - **A. No `transcoding` extension at 0.8** (study record section 6). `getTranscodeDecision` and `getTranscodeStream`
   are not served at 0.8 and answer error 0. Effect here: the assignment marks both contract only and not served
@@ -215,7 +215,7 @@ and any finding that would reopen fork A, B, or C. Nothing deploys, and the box 
 Code and spec lines are cited at `c4b7afd` on master, where this worktree is level. Library and tool behavior is
 quoted at the version this plan uses, and the commands below were run on the workstation on 2026-10-07.
 
-- Slice 1's records under `docs/superpowers/research/`, cited by the study record's aliases: the study record
+- Slice 1's records under `docs/research/`, cited by the study record's aliases: the study record
   (`2026-10-06-slice-1-study-record.md`, "[record]"), the divergence ledger ("[ledger]"), and the contract
   ("[contract]"), client-demands ("[clients]"), base-URL ("[base-url]"), server-behavior ("[servers]"), evidence-pins
   ("[pins]"), and prior-art-cells ("[cells]") records. Also `2026-10-05-client-roster-audit.md`.
@@ -224,7 +224,7 @@ quoted at the version this plan uses, and the commands below were run on the wor
 - The re-plan: the rung 12 ladder text and the roster walk (`:113-141`); the operator delta (`:137-138`).
 - 2a's merged code under `internal/harness/subsonic/`, `internal/opensubsonic/`, and `cmd/harness/`; HISTORY's 2a
   entry (`docs/HISTORY.md:5-142`); BACKLOG #22 and #27 (`BACKLOG.md:85-89`, `:104-107`).
-- The dependency sweep of 2026-10-07 (`docs/superpowers/research/2026-10-07-dependency-sweep.md`).
+- The dependency sweep of 2026-10-07 (`docs/research/2026-10-07-dependency-sweep.md`).
 
 ### What 2a built that this pass extends
 
@@ -750,7 +750,7 @@ empty `test`, an `owed` row carrying a `class`, an `active` row without one, an 
 sources or none of them `dubplate`, and an agreement with an empty field: every one named in one error.
 
 **Test mandate and fixture state.** The transcription test reads both Markdown tables from
-`docs/superpowers/research/2026-10-06-slice-1-divergence-ledger.md`:
+`docs/research/2026-10-06-slice-1-divergence-ledger.md`:
 - **Round trip.** Parsing each table into rows and rendering the rows back yields the record's table bytes exactly,
   for the 54-row table and the 12-row agreement table. The proof needs the real tables, so an empty parse cannot pass:
   it asserts 54 and 12 rows.
@@ -878,7 +878,7 @@ login and creation with the credentials that run prints, and the conductor quote
 `getMusicFolders` and `getScanStatus` once the new library's scan finishes (`:62`), passwords redacted. The second
 path holds no tracks (the container mounts only `/music`), so the quote settles the request and the folder listing,
 not how `count` sums over two libraries that both hold tracks; that is Task 9's live evidence. The record of both runs
-lands in `docs/superpowers/research/2026-10-07-navidrome-library-request.md`, committed before segment C launches; the
+lands in `docs/research/2026-10-07-navidrome-library-request.md`, committed before segment C launches; the
 step needs nothing from Tasks 7 or 8. No one opens Navidrome's source. If the observation cannot be made or the replay
 fails, Navidrome's second library is ruled unmeasured (the conductor's ruling), and Tasks 9 and 10 are dispatched in
 their degraded forms.
@@ -975,7 +975,7 @@ resolves twice).
 ### Task 11: The roster walk
 
 **Files:** `docs/roster-walk.md` (new: the method and one script per client), the run record
-`docs/superpowers/research/2026-10-07-slice-2b-roster-walk.md` (dated the day it runs), and the screenshots or DOM
+`docs/research/2026-10-07-slice-2b-roster-walk.md` (dated the day it runs), and the screenshots or DOM
 captures it cites, under the record's own directory. **Hook:** neutral. **Class:** `docs`, whose in-chain bar is facts
 and outcomes; `pass-execute`'s `docs` bar says "Prose register belongs to the register chain, not this review", and
 no register chain runs on an evidence record. **Gate:** `check.sh --reduced`.
@@ -1099,7 +1099,7 @@ and Task 10's degraded forms if they are taken.
   Task 6's inline-literal change is `grade/ledger_test.go`'s `owedRow` helper alone. Task 6's agreement round trip
   renders the record's five agreement columns (id, Area, Behavior shared, Evidence, Test owed), with the slice derived.
 - **E5 (segment C pre-flight, at `5d00313`).** Thirteen amendments, passed to the implementers in segment C's
-  criteria. The conductor's Navidrome observation (`docs/superpowers/research/2026-10-07-navidrome-library-request.md`)
+  criteria. The conductor's Navidrome observation (`docs/research/2026-10-07-navidrome-library-request.md`)
   succeeded in both runs, so Task 9 runs in its normal form; the record drove the UI with the repo's Playwright 1.63.0
   because the Playwright MCP server found no Chrome, and the replay needed only the bearer header.
   Task 7: `TestGradeNamedSessionsReportsAStaleRow`'s live row sits at `grade/grade_test.go:741-748` and moves to

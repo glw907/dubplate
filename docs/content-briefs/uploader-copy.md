@@ -1,7 +1,7 @@
 # Brief: uploader UI copy (Pass B, U10/U11)
 
-Finalizes `docs/superpowers/research/passb-copy-deck.md` into the copy contract at
-`docs/superpowers/research/passb-copy-final.md`. The deck's 7 revision items get folded;
+Finalizes `docs/research/passb-copy-deck.md` into the copy contract at
+`docs/research/passb-copy-final.md`. The deck's 7 revision items get folded;
 `queued`, `stalled`, the "What can I upload?" destination, the 401 state, and the
 client-side pre-flight get first drafts.
 

@@ -1,6 +1,6 @@
 # Photo curation round one plan review: contract and criteria
 
-Lens: contract and criteria. Plan: `docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`
+Lens: contract and criteria. Plan: `docs/plans/2026-09-25-photo-curation-round-one.md`
 at `1240bfa`. Spec: `docs/superpowers/specs/2026-09-25-photo-curation-design.md` rev 2.2.
 Reviewer: Opus 5.5, 2026-09-25.
 

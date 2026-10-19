@@ -6,9 +6,9 @@
 ## Path to 0.8
 
 The order of the remaining work on the greenfield ladder, derived from the dependency analysis
-(`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md`), the reverse-edge note
-(`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`), the re-plan
-(`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`), the intake and `admin-api-1` specs, and the
+(`docs/research/2026-09-03-rung-dependency-analysis.md`), the reverse-edge note
+(`docs/research/2026-09-04-reverse-edge-completion.md`), the re-plan
+(`docs/specs/2026-10-05-rungs-12-16-replan-design.md`), the intake and `admin-api-1` specs, and the
 lean pass process ruling that puts `intake` after `admin-api-1`. A rung is named, and a pass is `<name>-<n>`.
 
 Landed: `foundation`, `corpus`, `matcher`, `shadow` (its program was deleted on 2026-10-05), `auth`, `store`,
@@ -140,7 +140,7 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
   6d segment C fold, 2026-10-07 #auth
 - [ ] #26 The 6d architecture reads' findings on lines 6d did not touch (unused auth and identity exports, three
   `syncDir` copies, the settings accessor's mutex across a database read, threshold bounds without Floor and
-  Ceiling, doctor's file split, and more): `docs/superpowers/research/2026-10-07-6d-architecture-reads.md`, "To
+  Ceiling, doctor's file split, and more): `docs/research/2026-10-07-6d-architecture-reads.md`, "To
   file". Route to the architecture-cleanup task. 2026-10-07 #arch
 - [ ] #28 xmllint 21504 reports a validity error one line too high once the projected document passes line 65535
   (checked with 65536- and 65540-element stdin documents), so `internal/harness/subsonic/xmlrule/check.go`'s
@@ -250,7 +250,7 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
   leg. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server
 - [ ] #65 Photo licensing follow-ups: a source-URL recheck of the pool, and a blob-retention call for withdrawn
   images. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server
-- [ ] #66 The architecture cleanup: the routed findings in `docs/superpowers/research/*-architecture-reads.md`
+- [ ] #66 The architecture cleanup: the routed findings in `docs/research/*-architecture-reads.md`
   (5d-ii's doctor twelve-flag OR chain first); the ROUTE items in
   `research/2026-09-27-translit-architecture-reads.md` (the four `TestMain` shim copies, the four copies of the
   owner and leaf checks); #24 to #26; the string-deck pass's five stale-comment nits; the roster outcome classes,
@@ -366,7 +366,7 @@ Initiatives that were ROADMAP entries, deferred by Geoff's triage of 2026-10-14.
 before it lands. The entry text below is carried over verbatim from ROADMAP.md as of that triage.
 
 - [ ] #93 The built-in streamer (`streamer`). Subsume Navidrome so the estate is one clean integrated system (Geoff, 2026-09-07): one binary a stranger can set up.
-  The spec is `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (revision 3.1, 2026-10-07; the file still says
+  The spec is `docs/specs/2026-09-07-streamer-2-0-design.md` (revision 3.1, 2026-10-07; the file still says
   2.0), and it carries the forward hooks and the prior-art list that every rung plan weighs its surface against.
   Navidrome is GPLv3: study it for behavior, never copy. Slices 1 to 2b have landed; next: slice 3, which waits on
   `pipeline`'s catalog. The web player needs a strong play-queue interface (Geoff, 2026-09-24): now playing, up next,
@@ -398,7 +398,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
   transport, and how an app picks the home copy or the server, is settled when 0.9 is
   planned.
   The Pi 5 stereo client research (2026-10-10) is the live input for that plan; its current decision is
-  `docs/superpowers/research/2026-10-10-pi5-client/proven-build.md`. #initiative:dubplate-server
+  `docs/research/2026-10-10-pi5-client/proven-build.md`. #initiative:dubplate-server
 - [ ] #95 dubplate-server 1.0: the format ladder (`formats-1-0`). (Re-keyed from "1.1"/`formats-1-1`, Geoff, 2026-09-25: the format ladder is 1.0's
   feature; 0.8 and 0.9 stay FLAC-only.)
   Ruled by Geoff, 2026-09-08 (the `tag-io` spec, owner ruling 5, closing fork
@@ -420,7 +420,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
   authored so it can ship as its own permissively licensed module. Each candidate keeps a
   gate-enforced import boundary now (`go list -deps` shows no `github.com/glw907/dubplate/` path)
   and publishes only after a release has proven it. The evidence is in
-  `docs/superpowers/research/2026-09-25-give-back-survey.md` and
+  `docs/research/2026-09-25-give-back-survey.md` and
   `2026-09-25-streamer-prior-art-survey.md`.
   - **OpenSubsonic protocol layer** (decided): hand-written wire types, validated against the
     Apache-2.0 OpenAPI file (reading, 2026-09-25, reversible: the prior-art survey found
@@ -481,18 +481,18 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
   Configuration brief for the TUI (connection profiles, the machine
   settings and credential files, the attach overlap report and its four
   verbs) and for every settings surface:
-  `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
+  `docs/specs/2026-09-11-configuration-homes-design.md`
   (revision 3, 2026-09-12). #initiative:dubplate-server
 - [ ] #99 Photo curation for the web surface (`photo-curation`). Curate about 300 openly licensed photographs of music scenes, show flyers, and zine covers for
   the login rotation, the credits gallery, the empty library, and the error pages. The design is
-  `docs/superpowers/specs/2026-09-25-photo-curation-design.md` (revision 2.2, approved 2026-09-25),
+  `docs/specs/2026-09-25-photo-curation-design.md` (revision 2.2, approved 2026-09-25),
   which supersedes the visual identity spec's curation rules where they differ; the active plan is
-  `docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`. Inputs:
-  `docs/superpowers/research/2026-09-24-identity-photos/`. Owner touchpoints: the sorting sittings
+  `docs/plans/2026-09-25-photo-curation-round-one.md`. Inputs:
+  `docs/research/2026-09-24-identity-photos/`. Owner touchpoints: the sorting sittings
   and sending the outreach letters. Separate from the ladder; `intake` consumes it.
   Round one closed on 2026-09-26 with 116 photos committed to `photos/`, and Geoff ruled the pool
   enough for 0.8.0, so later rounds are continuing work that never blocks a release. Each later
-  round starts from the targets in `docs/superpowers/research/photo-curation-rounds/round-1.md`
+  round starts from the targets in `docs/research/photo-curation-rounds/round-1.md`
   (Round close) and the artist list beside it, ranks period photos first, and budgets the sorting
   page as its own task. The outreach letters (drafted under the identity-photos research) wait
   until dubplate has a public product to point to (Geoff, 2026-09-26); most of the outreach list's
@@ -500,7 +500,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
 - [ ] #100 The project site (`project-site`). dubplate's public project home for strangers: a standard cairn site in its own repo
   (`~/Projects/dubplate-site`) that vendors the theme tokens, the guides, and the generated
   references from a pinned dubplate release, checked against a lock file. Spec:
-  `docs/superpowers/specs/2026-09-25-project-site-design.md` (revision 2.5, approved 2026-09-25).
+  `docs/specs/2026-09-25-project-site-design.md` (revision 2.5, approved 2026-09-25).
   **Trigger:** cairn's docs reset has closed and `create-cairn-site` is published on npm; the
   build doubles as a stranger's trial of cairn's docs. Phase A builds to a `noindex` preview and
   moves the principles spec's is/isn't lines and legal note into `docs/guide/` (its erratum then

@@ -100,7 +100,7 @@ hash recomputed.
 **Ruling: deferred to rung 7.** A bare 404 on an unknown URL is cosmetic, and today it is
 indistinguishable by design. Rung 7 already owns the error pages' visuals (Ruling 3's
 error-page photos). The unlanded work is kept at
-`docs/superpowers/research/patches/2026-09-26-styled-404-fallback.patch`, and the rung 7 task
+`docs/research/patches/2026-09-26-styled-404-fallback.patch`, and the rung 7 task
 starts from it. That task adds an `AdminConfig.NotFound` (or equivalent) so the gate's refusal
 and an unmatched path answer the same styled document. It runs under a
 `web-auth-security-reviewer` read. For 5c-iv, the error-not-found capture asserts the bare

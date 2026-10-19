@@ -1,7 +1,7 @@
 # Rung 1 plan adversarial review, 2026-09-02
 
-Plan: `docs/superpowers/plans/2026-09-02-rung-1-foundation.md`
-Spec: `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+Plan: `docs/plans/2026-09-02-rung-1-foundation.md`
+Spec: `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified, not under review)
 Lens: mechanical completeness of the pivot against the tree as it sits
 on disk at `2df8e45`, gate semantics after the rewiring, the config
@@ -327,7 +327,7 @@ Spec:481-486 names it in rung 1's ladder entry; Spec:316-318 specifies
 the method: "re-derived at rung 1 from the organizer spec's subcommand
 list, minus `beet` passthrough, which never exists on the new server."
 The source list is
-`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md:181-185`:
+`docs/specs/2026-09-01-dubplate-organizer-design.md:181-185`:
 `serve`, `import` (poll mode and `--session`), `nudge-consume`,
 `backup`, `restore`, `check`, `doctor`, `ping-fail`, `version`, `beet`.
 

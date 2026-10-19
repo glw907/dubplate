@@ -1,7 +1,7 @@
 # Slice 1, Task 6: the prior-art table's open cells
 
 Date read: 2026-10-07 (UTC, about 04:50 to 05:40). Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-prior-art-cells.md`.
+`docs/research/2026-10-06-slice-1-prior-art-cells.md`.
 
 **Pins read** (from `2026-10-06-slice-1-evidence-pins.md`): Navidrome v0.64.2 (`1011457`), gonic v0.22.0 (`5ae99e8`),
 the OpenSubsonic specification at `bed1688` (still `main` HEAD on 2026-10-07), Melodee v2.2.0 (`d91342e`). Task 0's

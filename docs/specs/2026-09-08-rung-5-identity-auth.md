@@ -27,7 +27,7 @@ to fifteen, and its ceiling moves from 4M to 4.5M.
 Revision 2 folds two fresh-context adversarial reviews, one through the
 web-authentication-security lens and one through the
 spec-integrity-and-scope lens, merged and re-verified at
-`docs/superpowers/research/2026-09-08-rung-5-spec-review.md`. Three
+`docs/research/2026-09-08-rung-5-spec-review.md`. Three
 blockers, twelve majors, and fourteen minors are folded; the merged
 review's "Verified sound" list is the do-not-re-litigate record for
 every rung 5 pass plan. The three blockers were a rate-limit key that no
@@ -57,26 +57,26 @@ shape is stated in the process section, and the threat model the
 reviewers grade against is its own section.
 
 Written against the ratified build spec
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`,
+(`docs/specs/2026-09-02-greenfield-server-build.md`,
 revision 2.1, BS) and its auth birth requirements (BS:393-523), the
 magic-link login design
-(`docs/superpowers/specs/2026-09-02-magic-link-login-design.md`, MD,
+(`docs/specs/2026-09-02-magic-link-login-design.md`, MD,
 superseded as design and read for intent), the parallel-build approach
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
+(`docs/specs/2026-09-03-parallel-build-approach.md`,
 revision 2, PA), the reverse-edge completion
-(`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`, RE),
+(`docs/research/2026-09-04-reverse-edge-completion.md`, RE),
 the design-language standard
-(`docs/superpowers/specs/2026-09-07-design-language-standard.md`,
+(`docs/specs/2026-09-07-design-language-standard.md`,
 revision 2, DL), the 2.0 streamer design
-(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, S20), the
+(`docs/specs/2026-09-07-streamer-2-0-design.md`, S20), the
 two login-spec adversarial reviews
-(`docs/superpowers/research/2026-09-02-login-spec-reviews/security.md`,
+(`docs/research/2026-09-02-login-spec-reviews/security.md`,
 SEC, and `universality.md`, UNI), the rung 5 spec inventory
-(`docs/superpowers/research/2026-09-08-rung-5-spec-inventory.md`, INV),
+(`docs/research/2026-09-08-rung-5-spec-inventory.md`, INV),
 the rung 5 prior-art study
-(`docs/superpowers/research/2026-09-08-rung-5-auth-prior-art.md`, PRA),
+(`docs/research/2026-09-08-rung-5-auth-prior-art.md`, PRA),
 and the merged revision 1 review
-(`docs/superpowers/research/2026-09-08-rung-5-spec-review.md`, REV).
+(`docs/research/2026-09-08-rung-5-spec-review.md`, REV).
 
 Tree citations are read at `be274346add7abc339bd6ca0cf4c3b3071dd1fdf`.
 Citations carried from INV and PRA were read at
@@ -2068,7 +2068,7 @@ names only the first two.
 `web-auth-security-reviewer` read against this spec's own threat model
 (`spec:1903-1975`); its findings and their dispositions are the
 do-not-re-litigate record at
-`docs/superpowers/research/2026-09-08-rung-5a-security-review.md`.
+`docs/research/2026-09-08-rung-5a-security-review.md`.
 
 > Erratum, 2026-09-08 (pass 5a's close): **R23's ceiling table**
 > (`spec:563-567`) is corrected. 5a's ceiling was re-derived from rung
@@ -2352,14 +2352,14 @@ is `docs/HISTORY.md`'s pass entry, not repeated here.
 and the auth handlers, in the main tree from `1d4ed29`) closed with a
 fresh-context `web-auth-security-reviewer` read over both halves of 5b;
 its findings and their dispositions are the do-not-re-litigate record at
-`docs/superpowers/research/2026-09-23-rung-5b-ii-security-review.md`.
+`docs/research/2026-09-23-rung-5b-ii-security-review.md`.
 
 > Erratum, 2026-09-23 (5b-ii close): **the 5b-i security read ran.**
 > The R24 erratum above (`spec:2174-2181`) says 5b-i's own read "was not
 > run this window for budget and is owed to 5b-ii's window as its first
 > item." It was written before the read ran. The read ran on 2026-09-12
 > at `1d4ed29` and is recorded at
-> `docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`
+> `docs/research/2026-09-12-rung-5b-i-security-review.md`
 > (R-5b18). 5b-ii's own pass-end read, scoped to `1d4ed29..08befea`,
 > re-checked all twenty of its findings alongside 5b-ii's own surface.
 
@@ -2402,8 +2402,8 @@ its findings and their dispositions are the do-not-re-litigate record at
 main tree from `cb9ecc3`) closed with a fresh-context
 `web-auth-security-reviewer` read scoped to `cb9ecc3..657f9ec`; its
 findings and their dispositions are the do-not-re-litigate record at
-`docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`. The
-plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+`docs/research/2026-09-24-rung-5c-i-security-review.md`. The
+plan is `docs/plans/2026-09-23-rung-5c-pages-member-verb.md`
 (revision 2.2), and all six of its rulings were ruled yes by Geoff on
 2026-09-23.
 
@@ -2450,7 +2450,7 @@ plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
 > with 5c's own share at about 18M split across 5c-i and 5c-ii. The web
 > surface standard's section 15 carries the same "5c ceiling
 > unchanged" line and needs the matching update
-> (`docs/superpowers/specs/2026-09-12-web-surface-standard.md`).
+> (`docs/specs/2026-09-12-web-surface-standard.md`).
 
 > Erratum, 2026-09-24 (pass 5c-i close): **R24's review shape across
 > the split.** R24 (`spec:587-593`) and the erratum above naming a
@@ -2471,7 +2471,7 @@ plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
 > into 5c-ii and 5c-iii.** The erratum above described 5c-ii as
 > carrying "the pages, the theme, the embed path, and the gate's
 > `web/` leg rejoin" under its own plan's ceiling.
-> `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`'s
+> `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`'s
 > Ruling 1 splits that scope again at the served-header task's
 > boundary: 5c-ii carries the Go-side and delivery work (the admin
 > gate, the roster API, the `web/` tree's birth and gate leg, the
@@ -2505,8 +2505,8 @@ plan is `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
 
 **Pass 5d's close, 2026-10-05, adds the corrections below.** Pass 5d ran as 5d-i (the build) and
 5d-ii (the review, the sitting, and this close), both in lane 1 (the main tree, not a worktree). The
-plan is `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md` (revision 2.2); the
-fold record is `docs/superpowers/research/2026-09-25-rung-5d-review-fold.md`.
+plan is `docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md` (revision 2.2); the
+fold record is `docs/research/2026-09-25-rung-5d-review-fold.md`.
 
 > Erratum, 2026-10-05 (pass 5d close): **the pass-split table's 5d row, as executed.** The tree
 > column ("Worktree, released at the close") is superseded: 5d ran as two passes in lane 1, the main

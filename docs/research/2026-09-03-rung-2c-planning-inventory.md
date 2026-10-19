@@ -7,7 +7,7 @@ file-level applied-tag derivation, the version-bump differential job
 as a documented job, the quarterly re-capture chore doc, and the
 known-oracle-bug ledger and adjudication artifact formats with the
 first adjudication batch to Geoff. Scope is exactly the 2c paragraph
-in `docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`
+in `docs/plans/2026-09-02-rung-2a-cassette-substrate.md`
 (lines 31-41). Findings below are organized (a) through (f) per the
 dispatch; every claim cites a file path, and code claims were checked
 against the shipped source, not assumed from prose.
@@ -15,14 +15,14 @@ against the shipped source, not assumed from prose.
 ## (a) Known-oracle-bug classes to seed the adversarial stratum
 
 Primary sources:
-`docs/superpowers/research/2026-09-02-beets-evolution-lessons.md`
+`docs/research/2026-09-02-beets-evolution-lessons.md`
 ("U1, oracle-bug policy," section 5, and section 7's disposition
 survey) and
-`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`
+`docs/research/2026-09-02-beets-matcher-mechanics.md`
 (Q4's verdict-moving-key table, lines 444-451). Ruling 2
-(`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`,
+(`docs/research/2026-09-02-greenfield-server-rulings.md`,
 item 2; restated in the build spec at
-`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:712-717`)
+`docs/specs/2026-09-02-greenfield-server-build.md:712-717`)
 is what makes these cases legal to author at all: tier one is
 measured against release truth, and a case whose pinned-beets verdict
 is demonstrably wrong gets its expected verdict set by adjudication
@@ -115,7 +115,7 @@ importer's own matching also calls.
 
 **The mechanism it plausibly breaks:** `_preferred_alias`
 (`beetsplug/musicbrainz.py:128-155` per
-`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`
+`docs/research/2026-09-02-beets-matcher-mechanics.md`
 lines 446-451), gated by `import.languages` and
 `import.ignored_alias_types` (`config_default.yaml:32,58`), rewrites
 candidate titles, artist names, and release titles from the release's
@@ -159,7 +159,7 @@ non-Latin material").
 ## (b) Real-catalog selection method
 
 Target: ~80-150 cases (2a plan line 32; corpus report recommendation
-section, `docs/superpowers/research/2026-09-01-beets-conformance-corpus.md`
+section, `docs/research/2026-09-01-beets-conformance-corpus.md`
 lines 23-28), live-capturable at 1 req/s, stressing the confident
 band with genre/era/edition diversity, VA, box sets, non-Latin,
 reissues.
@@ -172,7 +172,7 @@ which name where beets' own record argues for stratum weight):
   whatever genre the smoke corpus (rock/pop, 1970s-2010s) already
   covers. Classical and compilation material get explicit
   weight per the uncertain-match-ux report's strongest finding
-  (`docs/superpowers/research/2026-09-01-uncertain-match-ux.md` line
+  (`docs/research/2026-09-01-uncertain-match-ux.md` line
   37): MB's classical coverage gaps are structural, not a
   tagging-quality problem, evidenced independently by beets issues
   #1665, #6244, #4882, #6598 (false negatives even with explicit
@@ -464,7 +464,7 @@ corpus.
 section**: this format is not single-use. The build spec's rung 4
 (Shadow) names "the divergence log ... and the adjudication artifact"
 as future infrastructure
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:550-551`)
+(`docs/specs/2026-09-02-greenfield-server-build.md:550-551`)
 that will record live shadow-run divergences once the Go matcher
 exists. Pass 2c is originating the schema rung 4 will reuse for a
 structurally identical problem (a human adjudicating a matcher
@@ -480,7 +480,7 @@ existing disposition-ledger idiom (`ties.json`'s `disposition` +
 requirement, both in `corpus/README.md`'s "The analyses" section,
 lines 704-767); the uncertain-match-ux report's Option C precedent
 (an owner decision queue is the only validated multi-user pattern for
-this exact judgment call, `docs/superpowers/research/2026-09-01-uncertain-match-ux.md`
+this exact judgment call, `docs/research/2026-09-01-uncertain-match-ux.md`
 line 15); and that report's own strongest finding about what makes a
 divergence genuinely hard to adjudicate (structural MB coverage gaps
 versus tagging-quality problems look identical from a bare verdict,
@@ -590,25 +590,25 @@ so it stays a non-factor in this arithmetic even at 230 cases.
 
 ## Sources
 
-- `docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`
+- `docs/plans/2026-09-02-rung-2a-cassette-substrate.md`
   (the 2c scope paragraph, lines 31-41; the frozen `cassette`
   interface block, lines 135-238; the determinism proof, lines
   361-369).
-- `docs/superpowers/research/2026-09-01-beets-conformance-corpus.md`
+- `docs/research/2026-09-01-beets-conformance-corpus.md`
   (stratum design and sizing, lines 9-32).
-- `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+- `docs/specs/2026-09-02-greenfield-server-build.md`
   (the launch bar's two-tier gate, lines 51-111; ladder entry 2, lines
   489-526; ladder entry 4's divergence-log/adjudication-artifact
   mention, lines 548-556; the rulings, lines 696-722).
-- `docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`
+- `docs/research/2026-09-02-greenfield-server-rulings.md`
   (rulings 1-3 in full).
-- `docs/superpowers/research/2026-09-02-beets-evolution-lessons.md`
+- `docs/research/2026-09-02-beets-evolution-lessons.md`
   (section 1's featuring-pattern and non-Latin history; section 5's
   U1/U6/U7/U8; section 7's disposition survey and #6358 entry).
-- `docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`
+- `docs/research/2026-09-02-beets-matcher-mechanics.md`
   (Q4's verdict-moving-key table, lines 415-474; Q5's HTTP seam and
   `inc=` includes, lines 476-519).
-- `docs/superpowers/research/2026-09-01-uncertain-match-ux.md` (the
+- `docs/research/2026-09-01-uncertain-match-ux.md` (the
   four-option spectrum and the classical/compilation structural gap
   finding).
 - `docs/HISTORY.md` (pass 2a and 2b entries, including the derive-time

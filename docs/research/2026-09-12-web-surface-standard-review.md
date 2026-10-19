@@ -1,6 +1,6 @@
 # Web surface standard, revision 1: adversarial review and fold record
 
-The document: `docs/superpowers/specs/2026-09-12-web-surface-standard.md`.
+The document: `docs/specs/2026-09-12-web-surface-standard.md`.
 Seven lenses read revision 1 against the brief in the session scratchpad:
 A citations, B contradictions with dubplate's ratified documents, C stack
 correctness with web research, D upgrade resilience, E gate integrity and
@@ -9,7 +9,7 @@ proportionality, F accessibility standards, G product fit and scope.
 This file lists every finding by id with its disposition. Revision 2 of
 the standard is the fold. The harvest evidence, the per-clause citations,
 the reversals list, and the declined table moved to
-`docs/superpowers/research/2026-09-12-cairn-harvest-reference.md`.
+`docs/research/2026-09-12-cairn-harvest-reference.md`.
 
 ## Totals
 

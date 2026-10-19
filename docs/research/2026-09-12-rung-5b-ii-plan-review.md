@@ -1,7 +1,7 @@
 # Rung 5b-ii plan review: the merged record
 
 Three fresh-context adversarial reviews of
-`docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md` revision
+`docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md` revision
 1 (2712 lines), each read in full against HEAD `b91bae1` on 2026-09-12,
 merged here with every finding's disposition. The three lenses:
 
@@ -22,7 +22,7 @@ The plan is at **revision 2** with every finding folded. The three
 per-lens files are superseded by this record and deleted.
 
 `plan:` line numbers below are revision 1's, as each reviewer cited them;
-`spec:` is `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`.
+`spec:` is `docs/specs/2026-09-08-rung-5-identity-auth.md`.
 
 ---
 
@@ -208,7 +208,7 @@ revision 1 read it as. The "3.4M chain" has no source: the only 3.4M in
 the repo is 5a's 80% flag against a 4.25M ceiling
 (`docs/HISTORY.md:1692`), and 5a's own chain was "1.68M across 18 agents"
 (`docs/HISTORY.md:1689`). The 0.19M per task is the workstation-wide rate
-at `docs/superpowers/plans/2026-09-12-overnight-window.md:126-130`, whose
+at `docs/plans/2026-09-12-overnight-window.md:126-130`, whose
 own next sentence reads "Close cost is a separate line at 0.9M-1.4M per
 pass", so the 0.309M derived from it is not an all-in rate either. 5b-i
 was budgeted "2.1M chain + 1.4M close" at that plan's `:331` and landed
@@ -488,7 +488,7 @@ expensive, and Tasks 11 and 12 sit behind it: Task 11 mounts Task 10's
 handlers and Task 12 drafts the close from Task 10's outcome.
 
 **Evidence, re-verified.**
-`docs/superpowers/plans/2026-09-12-overnight-window.md:134-139`: pass-execute
+`docs/plans/2026-09-12-overnight-window.md:134-139`: pass-execute
 "cannot honor either plan's mid-pass conductor steps, nor the window's own
 checkpoint cadence, **nor a decision on a second `fix` verdict before
 every later task has already run**". Segment C's boundary guarded Task

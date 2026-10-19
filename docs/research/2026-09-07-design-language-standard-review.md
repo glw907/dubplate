@@ -364,7 +364,7 @@ which covers G3's "and in the built bundle" clause and G4 as well.
 **Evidence.** The standard (`:406-408`) states "An external streamer
 keeps its own look under its own theme config, which is 2.0's business
 (S20:441-444)."
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md:441-444` is
+`docs/specs/2026-09-07-streamer-2-0-design.md:441-444` is
 ruling 1 of the review round, and it rules the opposite half: no theme
 matches Navidrome's or Jellyfin's any longer, the build spec carries a
 dated erratum, and ladder entry 12 is trimmed. A case-insensitive grep

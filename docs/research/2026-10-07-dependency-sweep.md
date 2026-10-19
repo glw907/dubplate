@@ -1,6 +1,6 @@
 # Dependency sweep, 2026-10-07
 
-Task 0 of rung 6d (`docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md`), run at
+Task 0 of rung 6d (`docs/plans/2026-09-26-rung-6d-identity-serve-store.md`), run at
 `7cb9722` on master. Scope as in the 2026-10-05 sweep (`2026-10-05-dependency-sweep.md`): the Go
 module, `web/`, the Python oracle venv, and the pinned binaries. `_salvage/` is out of scope. The next
 sweep starts from the "after" column.

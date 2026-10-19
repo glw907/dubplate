@@ -2,7 +2,7 @@
 
 Reviewed: `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md` at `af7d941`
 (revision 1). Lens: domain risk only. Weighed against the rung 5 spec
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`), the build spec, and the repo
+(`docs/specs/2026-09-08-rung-5-identity-auth.md`), the build spec, and the repo
 CLAUDE.md safety rails. Box read 2026-09-26 03:02 UTC, read-only (`ssh -o BatchMode=yes`).
 
 **Counts: 1 blocker, 4 major, 12 minor.** Every blocker and major sits in Task 3 (the probe) or

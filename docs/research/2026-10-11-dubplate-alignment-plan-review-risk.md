@@ -4,7 +4,7 @@ Reviewer lens: data integrity and failure risk (what a crash, a concurrent proce
 session, or a merge can lose or corrupt). For this pass, "data" is mostly knowledge: rulings, open items, owed work,
 lessons, and memory. Target: `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` at `61e6af5` (cited as
 "plan"). Also read in full: the design, the audit, the launch prompt
-(`docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt`), `docs/STATUS.md`, `ROADMAP.md`, `BACKLOG.md`,
+(`docs/plans/2026-10-11-dubplate-alignment-prompt.txt`), `docs/STATUS.md`, `ROADMAP.md`, `BACKLOG.md`,
 `docs/standing-rules.md`, `.claude/settings.json`, the adapter, every file under `.claude/agent-memory/`, all 42
 files of the project auto-memory (read only), the HISTORY sections STATUS points into (`HISTORY.md:291, 316, 443,
 511, 588, 697-701, 802`), the rung 7 spec's head and "Owed records", and `pass-core`.
@@ -14,7 +14,7 @@ Two facts observed on disk change the plan's premises:
 - The main checkout's `.claude/agent-memory/dubplate-implementer/` was settled at 10:40 today: `MEMORY.md` is
   byte-identical to `master` (`cmp` against `git show master:...` passes) and the four untracked siblings are gone.
   The plan still assumes the modified file (plan:22-24, :95, :498-500).
-- `docs/superpowers/research/2026-09-04-visual-collaborator-outreach.md` sits untracked in the main checkout and is
+- `docs/research/2026-09-04-visual-collaborator-outreach.md` sits untracked in the main checkout and is
   not ignored. The only record that it must stay uncommitted is a memory file the plan deletes (finding 1).
 
 ## Findings, ranked by consequence
@@ -89,7 +89,7 @@ Two facts observed on disk change the plan's premises:
   merges. They live only in the PR body. STATUS's next action names only the admin-api-1 launch, so a fresh session
   following STATUS skips the auto-memory pruning, and the retired-process memories (`greenfield-arc-sessions`: "Workflow
   mode is a STANDING grant") load into the admin-api-1 planning session. No step pulls the main checkout, yet (e)'s
-  launch line runs `cat docs/superpowers/plans/2026-10-11-admin-api-1-planning-prompt.txt` there, and
+  launch line runs `cat docs/plans/2026-10-11-admin-api-1-planning-prompt.txt` there, and
   `worktree.baseRef: "head"` would branch the planning session from the pre-alignment `master`, which is pass-core's
   recorded failure ("six repos still ran the pre-cutover process a day after their lean PRs merged").
 - **Fold:** STATUS's next action is the ordered post-merge list: `git -C ~/Projects/dubplate pull --ff-only` under

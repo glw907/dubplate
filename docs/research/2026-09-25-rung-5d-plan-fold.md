@@ -1,6 +1,6 @@
 # Rung 5d plan fold: revision 1 to revision 2
 
-Folded: `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`, revision 1
+Folded: `docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md`, revision 1
 (`af7d941`) to revision 2, against the three lens reviews committed at `70ce7be`:
 `2026-09-25-rung-5d-plan-review-contract.md` (C: 0 blockers, 7 majors, 16 minors),
 `-mechanics.md` (K: 0 blockers, 6 majors, 12 minors), and `-risk.md` (R: 1 blocker, 4 majors, 12

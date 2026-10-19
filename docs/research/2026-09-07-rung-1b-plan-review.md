@@ -40,7 +40,7 @@ carried from the inventory without re-measurement.
 wrong.** It reports the config-wall ownership row at `PA:173` rather
 than `PA:158`, and the contested-surface table at `PA:171-199` rather
 than `PA:150-186`. Re-measured against committed HEAD, the plan is
-right: `git show HEAD:docs/superpowers/specs/2026-09-03-parallel-build-approach.md | sed -n '158p'`
+right: `git show HEAD:docs/specs/2026-09-03-parallel-build-approach.md | sed -n '158p'`
 returns the config-wall row, and the table header sits at `:156`. The
 working tree carries an uncommitted fifteen-line Phase 0c completion
 note inserted after `:54`, which shifts every line below it down by

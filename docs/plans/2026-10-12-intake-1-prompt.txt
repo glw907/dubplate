@@ -19,9 +19,9 @@ the worktree, the adapter's setup. Replace the body of STATUS "Next action" (the
 with one in-flight line naming this session (`intake-1`), its id (`$CLAUDE_CODE_SESSION_ID`), and its branch, and
 commit it.
 
-Load `dubplate-pass` (it loads `pass-core`). Read `docs/superpowers/plans/2026-10-12-intake-1.md` in full, then the
-design it implements (`docs/superpowers/plans/2026-10-12-intake-1-design.md`, approved by Geoff on 2026-10-11) and the
-ratified spec behind it (`docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`, revision 2), which the plan cites
+Load `dubplate-pass` (it loads `pass-core`). Read `docs/plans/2026-10-12-intake-1.md` in full, then the
+design it implements (`docs/plans/2026-10-12-intake-1-design.md`, approved by Geoff on 2026-10-11) and the
+ratified spec behind it (`docs/specs/2026-10-10-rung-7-intake-design.md`, revision 2), which the plan cites
 rather than restates. The plan's "Conventions every task follows" bind every task. Where the spec names lanes,
 segments as process, budgets, or a conductor, the lean process and this plan override it. Write no auto-memory. Arm
 the API-drop wake-up (`/loop` with no interval) and the lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.

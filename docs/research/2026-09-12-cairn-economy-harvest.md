@@ -25,7 +25,7 @@ polish pass at **"$130 to $150 at list"** (`docs/STATUS.md`, the 2026-09-09 meas
 each dependent check at its `node scripts/checks/*.mjs` entry point after one packaging at the head.
 Every check still runs, in the same order, against the same artifact.
 
-**Encoded at.** `cairn-cms/docs/superpowers/plans/2026-09-08-polish-11a-pass.md:1558` (the gate
+**Encoded at.** `cairn-cms/docs/plans/2026-09-08-polish-11a-pass.md:1558` (the gate
 string), with the rationale at `:1574-1595`. Proposal and measurement at
 `cairn-cms/docs/internal/record/2026-09-08-polish-inputs/plan-11a-review-executor.md:243-262`.
 
@@ -56,8 +56,8 @@ paint. Paint-neutral tasks run the check suite and unit tests; the pass-end gate
 push run the full suite.
 
 **Encoded at.** Workstation `~/.claude/CLAUDE.md`, "Gate economy on a pass", first bullet.
-`cairn-cms/docs/superpowers/specs/2026-09-08-polish-passes-design.md:597-600` (the 2026-09-09
-amendment). `cairn-cms/docs/superpowers/plans/2026-09-08-polish-11a-pass.md:1569-1572`: "the
+`cairn-cms/docs/specs/2026-09-08-polish-passes-design.md:597-600` (the 2026-09-09
+amendment). `cairn-cms/docs/plans/2026-09-08-polish-11a-pass.md:1569-1572`: "the
 per-task gate for a paint-neutral task is the fence's string with the trailing
 `&& CI=1 npm --prefix examples/showcase run test:e2e` removed ... Every other task (1-6, 8-13) is
 paint-neutral and drops the e2e clause." Mechanism: the per-task `gate` override field, see §5.
@@ -359,7 +359,7 @@ the spec's 4.5M ... fourteen gate-bearing units ... at the measured band's middl
 6.3M, plus about 0.2M for the two conductor CI regen waits. The band is the risk lens's measurement
 for this repo, **370K to 530K per task over four comparable passes (conventions 4a about 530K,
 conformance 4b about 430K, chassis-A about 367K...)**". Checkpoints at `:47-51`.
-`docs/superpowers/specs/2026-09-08-polish-passes-design.md:234`, `:329-331`, `:479-480`, `:561`.
+`docs/specs/2026-09-08-polish-passes-design.md:234`, `:329-331`, `:479-480`, `:561`.
 Workstation `CLAUDE.md`, "Conducting a pass" (ceiling + checkpoint interval, default four tasks).
 
 **Measured.** The band above, and the honesty note that makes it usable: "**The repo's recorded

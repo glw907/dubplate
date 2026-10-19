@@ -6,13 +6,13 @@
 
 ## Rung 5, pass 5c-i (the security fold, the CLI admin grant, the `member` verb): closed 2026-09-24, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+Executed against `docs/plans/2026-09-23-rung-5c-pages-member-verb.md`
 (revision 2.2, ratified by Geoff 2026-09-23 with all six rulings yes) in
 the main tree, from `cb9ecc3` (5b-ii's merge). Task 0 (LAUNCH) is
-`docs/superpowers/research/2026-09-23-rung-5c-i-task-0-report.md`,
+`docs/research/2026-09-23-rung-5c-i-task-0-report.md`,
 committed `978ef43`. The plan's full review history, fold rulings, and
 finding dispositions live in
-`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-record.md`.
+`docs/research/2026-09-23-rung-5c-plan-fold-record.md`.
 
 Tasks 1 through 7 ran across two segments: A (Tasks 1-3, closed
 `a8be067`) and B (Tasks 4-7, closed `f92ac3b`), followed by one
@@ -123,7 +123,7 @@ refusal's error string never contains the submitted duration.
 
 ### The pass-end security review
 
-`docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`
+`docs/research/2026-09-24-rung-5c-i-security-review.md`
 (`ce8c0be`): scope `git diff cb9ecc3..HEAD -- internal cmd config` at
 `657f9ec`. **No critical, no major.** Majors 1-4 from 5b-ii's own review
 are fixed and independently reproduced, the strongest check six real OS
@@ -207,7 +207,7 @@ through `cairn-run-gate` (see "The gate evidence" above).
 ### The twenty resolutions (R-5c1 through R-5c20)
 
 Each is stated in full in the plan
-(`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`) at
+(`docs/plans/2026-09-23-rung-5c-pages-member-verb.md`) at
 its own `### R-5cN` heading; this table names where each landed at
 HEAD. R-5c12, R-5c13, R-5c16, and R-5c19's admin-gate/roster-API half
 apply in 5c-ii and are recorded there rather than as gaps here.

@@ -1,7 +1,7 @@
 # Slice 1, Task 0: evidence pins and probe oracles
 
 Date read: 2026-10-07 (UTC, 04:40 to 04:50). Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-evidence-pins.md`.
+`docs/research/2026-10-06-slice-1-evidence-pins.md`.
 
 **Questions this record owns.** (1) Which release and commit is each study subject pinned at. (2) Do the two
 oracles run locally from a recorded recipe and answer `ping` and a library listing, at the root and under a

@@ -1,7 +1,7 @@
 # Streamer 2.0 review: digital audio players, local and server
 
 Fresh-context review of
-`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (revision 1)
+`docs/specs/2026-09-07-streamer-2-0-design.md` (revision 1)
 through one lens: how dubplate works cleanly with the digital audio
 players (DAPs) a family actually owns, at the workstation level (the
 future local `dubplate` binary, organizer spec rung 10) and at the

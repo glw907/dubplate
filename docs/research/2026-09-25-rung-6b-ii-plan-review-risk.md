@@ -1,6 +1,6 @@
 # Rung 6b-ii plan review: domain risk (data integrity and security)
 
-Reviewed: `docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`, revision 1 (uncommitted).
+Reviewed: `docs/plans/2026-09-25-rung-6b-ii-restore-http.md`, revision 1 (uncommitted).
 The lens covers domain risk only: data integrity on the restore path and security on the HTTP
 projection. I checked the plan against the rung 6 spec (revision 2.2), the configuration homes spec,
 the 2.0 spec's hooks, and CLAUDE.md. I read the 6b-i code in the lane 2 worktree at `33ceff5` and

@@ -1,8 +1,8 @@
 # Rung 5, Pass 5d (The Boundary, the Deployment, and the Close) Implementation Plan
 
 Status: **revision 2.2, 2026-09-25; approved (Geoff, 2026-09-26): Ruling 1 yes (5d-i 7.0M, 5d-ii 3.5M), Ruling 2 yes (the attended deploy sitting).** Revision 2.2 folds a prose-and-facts review
-(`docs/superpowers/research/2026-09-25-rung-5d-plan-prose-review.md`). The review history, one
-disposition per finding for the earlier folds, is `docs/superpowers/research/2026-09-25-rung-5d-plan-fold.md`.
+(`docs/research/2026-09-25-rung-5d-plan-prose-review.md`). The review history, one
+disposition per finding for the earlier folds, is `docs/research/2026-09-25-rung-5d-plan-fold.md`.
 Geoff reviews this revision at the plan-approval gate. 5d-i launches in lane 1 (the main tree) only
 after 5c-iv closes and 6c merges to master (conductor decision, revision 2.1); Task 0 re-verifies every
 pointer against the tree they leave.
@@ -24,32 +24,32 @@ with warm uncommitted edits from other lanes under `cmd/dubplate-server/web.go`,
 `internal/serve/document.go`; nothing this plan cites was among the lines they touch. Box facts were
 read read-only on 2026-09-25, once by the drafter and once by the fold (below, "Box facts").
 
-- The rung 5 spec (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`, "the spec" below): the
+- The rung 5 spec (`docs/specs/2026-09-08-rung-5-identity-auth.md`, "the spec" below): the
   pass-split table's 5d row (`:2519`), R6 (`:363-392`), R12 (`:454-462`), R21 and R22 (`:566-577`),
   R27 (`:612-624`), "The trust boundary" (`:795-903`), the owned-prefix route list (`:915-918`),
   "Integration classes" and "The environment template" (`:1635-1686`), "The state directory"
   (`:1690-1733`), "Deployment" (`:1737-1779`), the threat model (`:1950-2009`), "Errata the close
   applies" (`:2013-2463`), the staleness pre-task (`:2626-2700`), risks 10 and 11 (`:2751-2762`), and
   "Process" (`:2799-2837`).
-- The build spec (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`, BS): ladder entry 5
+- The build spec (`docs/specs/2026-09-02-greenfield-server-build.md`, BS): ladder entry 5
   (`:707-714`) and the forward-auth requirements (`:504-514`).
 - `docs/STATUS.md`'s carried "No deploy until 5d" item, and its "To rung 12" and "To rung 14" items.
 - `docs/HISTORY.md`: 5a's forward carries (findings 22 and 23, R-G, R-I; `:3857-3885`, `:4045-4056`),
   5b-ii's disposition (major 5, minors 9 and 14; `:2244-2253`, `:2405-2413`), 5c-i's runbook carries
   (`:1489`, `:1729-1731`), and 5c-ii's declared gaps (`:555-608`).
-- The 5c-iii plan (`docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`): its
+- The 5c-iii plan (`docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`): its
   scope wall (`:60-65`) and Task 11's handoff to 5d (`:1768-1777`).
-- The rung 6 spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`): the 6c lane
+- The rung 6 spec (`docs/specs/2026-09-23-rung-6-ops-seam-store.md`): the 6c lane
   condition (`:1062`, `:1173-1176`), 6d's criteria 13 and 14 (`:1115-1117`), the settings metadata
   (`:729-736`), and "Not verified" (`:1263-1265`).
-- The streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, which still says 2.0
+- The streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, which still says 2.0
   for the 0.8 streamer): "Forward hooks" (`:683-768`) and "Prior art" (`:770-806`).
-- The two login-spec reviews (`docs/superpowers/research/2026-09-02-login-spec-reviews/security.md`,
+- The two login-spec reviews (`docs/research/2026-09-02-login-spec-reviews/security.md`,
   SEC, and `universality.md`, UNI), and the rung 5 security review records under
-  `docs/superpowers/research/` (5a, 5b-i, 5b-ii, 5c-i, 5c-ii, 5c-iii), the do-not-re-litigate list.
-- The three plan lens reviews, `docs/superpowers/research/2026-09-25-rung-5d-plan-review-{contract,
+  `docs/research/` (5a, 5b-i, 5b-ii, 5c-i, 5c-ii, 5c-iii), the do-not-re-litigate list.
+- The three plan lens reviews, `docs/research/2026-09-25-rung-5d-plan-review-{contract,
   mechanics,risk}.md`, and their "Verified sound" sections, which join the do-not-re-litigate list.
-- The translit plan (`docs/superpowers/plans/2026-09-25-translit-table-at-setup.md`, approved), which
+- The translit plan (`docs/plans/2026-09-25-translit-table-at-setup.md`, approved), which
   also edits `scripts/deploy.sh` and `cmd/dubplate-server/doctor.go` from lane 2.
 
 Box facts (read-only, 2026-09-25). systemd 257; SELinux enforcing; `music` is uid 2000;
@@ -282,7 +282,7 @@ Deliverable count: Tasks 1, 2, 3, 5 carry four each; Tasks 4D and 6 carry three;
   `templatekeys_test.go` and the shared test fixtures in `check_test.go`); `systemd/` (one new unit);
   `scripts/deploy.sh`; `scripts/check.sh`; `docs/bringup-runbook.md` (the `--apply` invocations only);
   `env/dubplate-server.env.template`; `docs/server-runbook.md` (new); the disposition table and review
-  records under `docs/superpowers/research/`; the close drafts; and, at the 5d-ii close only, the errata
+  records under `docs/research/`; the close drafts; and, at the 5d-ii close only, the errata
   targets. A task that believes it needs anything else stops and reports.
 - **No Go module or web dependency.** `go.mod`, `go.sum`, `web/package.json`, and
   `web/package-lock.json` stay byte-identical. `golang.org/x/net/http/httpguts` is declined for header-
@@ -693,7 +693,7 @@ pointer whose content survives is a note; a pointer whose content is gone is a b
    the staged `.new` binary rsync, the smoke test on the staged path, the `systemd-run` table install
    (a PyPI download from the box), the `mv` swap, and the `/var/lib/dubplate/unidecode` leaf's
    pre-create. That report fills Task 10 step 6's "if translit merged" block.
-5. 6c as merged (`docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`,
+5. 6c as merged (`docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`,
    revision 2.2), and whether `internal/config` has changed since `4c766c3`. 6c's value validator,
    built for store-homed settings, changes nothing here (see "Global constraints"); report its shape. 6c's Task 5 edits `doctor.go`,
    `check.go`, and their tests, so **re-read, as 6c left them:** `doctor.go`'s row order (the backup
@@ -1209,7 +1209,7 @@ adversarial cycle. If the conductor drafts it earlier as a document lane, it re-
 at the 5d-ii base before the cycle and the report says so.
 
 Files:
-- Create: `docs/superpowers/research/2026-09-25-rung-5-sec-uni-disposition.md`
+- Create: `docs/research/2026-09-25-rung-5-sec-uni-disposition.md`
 
 Outcomes: one row per finding, all 50 (SEC's 6 blockers, 13 majors, and 12 minors; UNI's 3
 criticals, 6 highs, 7 mediums, and 3 lows, per the spec's count at `:2003-2006`): the finding's own id
@@ -1252,7 +1252,7 @@ pointer cites the spec clause or ruling that ratified the design**.
    returns correctness gaps ranked by consequence, with `file:line` and a reproduction where one is
    possible.
 2. Both reports are committed as
-   `docs/superpowers/research/2026-09-25-rung-5d-review-{security,universality}.md`.
+   `docs/research/2026-09-25-rung-5d-review-{security,universality}.md`.
 
 ## Task 9: The adversarial fold
 
@@ -1260,7 +1260,7 @@ Model: `opus` (the fold rules on security findings; CLAUDE.md lets a fold refuse
 costs more than the risk it removes).
 
 Files: whatever each accepted finding's fix touches, inside this pass's territory wall; the merged
-disposition record `docs/superpowers/research/2026-09-25-rung-5d-review-fold.md`.
+disposition record `docs/research/2026-09-25-rung-5d-review-fold.md`.
 
 Outcomes: every finding from both lenses gets exactly one disposition, folded (with the commit and
 the test that fails without it) or refused (with a one-line reason), in the merged record, which
@@ -1450,7 +1450,7 @@ moves alone. The failure, and the step it stopped at, becomes a finding for a fo
 
 Model: `sonnet`.
 
-Files: the close drafts under `docs/superpowers/research/handoffs/`; the errata targets named below.
+Files: the close drafts under `docs/research/handoffs/`; the errata targets named below.
 
 Outcomes:
 - **The 5d-ii HISTORY entry and the rung 5 summary**: what landed per task across both halves, the gate
@@ -1600,7 +1600,7 @@ but run sequentially because one tree runs one executor.
 ## Prior art consulted
 
 Per CLAUDE.md, from the streamer spec's list (`:770-806`) and the rung 5 prior-art study
-(`docs/superpowers/research/2026-09-08-rung-5-auth-prior-art.md`).
+(`docs/research/2026-09-08-rung-5-auth-prior-art.md`).
 
 | Entry | Verdict for 5d, with reason |
 | --- | --- |

@@ -2,7 +2,7 @@
 
 Status: **approved (Geoff, 2026-09-25), revision 2.1; rulings recorded (3.3M ceiling; `unidecode install`).**
 Revision 2 folds the three `spec-plan-review` lenses (contract, mechanics,
-risk) per `docs/superpowers/research/2026-09-25-translit-table-plan-fold.md`.
+risk) per `docs/research/2026-09-25-translit-table-plan-fold.md`.
 The largest change is Task 4's deploy transition: the new binary is staged
 and installs its table before it replaces the live one. Revision 2.1 folds
 the fold verification (same record, "Second fold"): the staged install now
@@ -13,7 +13,7 @@ plan executes under either answer to each ruling.
 Source: Geoff's decision of 2026-09-25, recorded in `ROADMAP.md`'s
 `give-back` entry ("dubplate stays MIT (Geoff, 2026-09-25; path 1)",
 `ROADMAP.md:159-166`) and argued in
-`docs/superpowers/research/2026-09-25-give-back-survey.md` ("The Unidecode
+`docs/research/2026-09-25-give-back-survey.md` ("The Unidecode
 transliteration table", "A path that keeps conformance"). The decision, as
 recorded: the binary stops embedding the Unidecode-derived table and carries
 a pinned checksum of the Unidecode 1.4.0 package instead. At setup it
@@ -231,7 +231,7 @@ Read these before Task 1, in this order.
    reason: identity state is sensitive), and
    `internal/engine/shadow/store.go:39-60` (`shadow`, `0o755`/`0o644`, the
    rung 4 evidence tier). The configuration homes spec
-   (`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`, "The
+   (`docs/specs/2026-09-11-configuration-homes-design.md`, "The
    rule" and "The server's own knobs") places the state directory on the env
    wall; derived files under it are not knobs and have no other home.
 7. **`cmd/dubplate-server`**: `main.go:127-151` (`newRootCmd`),
@@ -430,7 +430,7 @@ tree):
   identical to `sha256sum internal/engine/matcher/unidecode-1.4.0.tbl` at
   `1c012a8`: 190 blocks and 48,597 entries.
 - **The Go port's feasibility, proved in Go.** The mechanics review
-  (`docs/superpowers/research/2026-09-25-translit-table-plan-review-mechanics.md`)
+  (`docs/research/2026-09-25-translit-table-plan-review-mechanics.md`)
   wrote a stdlib-only prototype outside the tree: `zip.NewReader` over the
   verified bytes, every entry read to EOF, a strict token lexer, the sweep,
   and `generate.py`'s format. Its output had sha256
@@ -1323,8 +1323,8 @@ Model: `sonnet`. Depends on Tasks 0 to 4 and the simplifier round.
 
 **Files (drafts only; the conductor folds and commits):**
 
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-translit-table.md`
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-translit-table.md`
+- Create: `docs/research/handoffs/draft-HISTORY-translit-table.md`
+- Create: `docs/research/handoffs/draft-STATUS-translit-table.md`
 
 **Outcomes:**
 
@@ -1452,7 +1452,7 @@ against the ceiling and against zero attended interactions after approval.
 
 Scored on CLAUDE.md's four criteria where a dependency is in question. The
 2.0 spec's prior-art list and forward-hooks list
-(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, "Forward hooks
+(`docs/specs/2026-09-07-streamer-2-0-design.md`, "Forward hooks
 the current build owes" and "Prior art") were read: hook 2 reuses the table
 through this seam at rung 9, hook 18's `init` composes the verb, and every
 task is neutral.

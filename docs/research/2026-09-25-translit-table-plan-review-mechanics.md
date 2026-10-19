@@ -1,6 +1,6 @@
 # Transliteration table plan review: mechanics and feasibility
 
-Target: `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md` at
+Target: `docs/plans/2026-09-25-translit-table-at-setup.md` at
 `b841954` (revision 1). Lens: does every mechanism behave as the plan says?
 Each claim below was checked by running it, by quoting `go doc`, or by
 reading the source.

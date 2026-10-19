@@ -3,7 +3,7 @@
 **Revision 2, 2026-09-08.** Revision 1 went through a two-lens fresh
 context adversarial review, ingress security and plan integrity, folded
 here. The record is
-`docs/superpowers/research/2026-09-08-rung-5a-plan-review.md`, whose
+`docs/research/2026-09-08-rung-5a-plan-review.md`, whose
 thirty-item "Verified sound" list is the do-not-re-litigate record for
 this pass and whose five corrections to the reviews' own evidence carry
 the measurements. Twenty-three findings folded: three blockers (the
@@ -26,7 +26,7 @@ ceiling stands with its 3.4M flag routed to the conductor, and the
 1.25M overage is recorded against R23's reservation.**
 
 Drafted against the rung 5 identity-and-auth spec at **revision 2.1**
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`, landed at
+(`docs/specs/2026-09-08-rung-5-identity-auth.md`, landed at
 `c5021ce`), whose six product forks Geoff ruled on 2026-09-08 and whose
 thirty-eight rulings are applied. **No fork touches 5a's surface.** Fork
 1 moves the roster, fork 2 the mail transport, fork 3 the thresholds,
@@ -92,7 +92,7 @@ same pass as the token and session mechanics would bury it.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`,
+1. **`docs/specs/2026-09-08-rung-5-identity-auth.md`,
    revision 2.1.** The pass-split table's 5a row (`spec:2035`) is this
    plan's scope statement. The sections this pass implements are "What
    rung 5 builds" (`:87-141`), "The trust boundary" in full (`:765-904`,
@@ -107,7 +107,7 @@ Read these before Task 1, in this order.
    staleness pre-task (`:2153-2218`), the risks (`:2219-2313`), and the
    process section (`:2314-2363`). Rulings R6, R15, R20, R22, R26, R27,
    R32, and R33 are the ones 5a reads; the rest belong to later passes.
-2. **`docs/superpowers/research/2026-09-08-rung-5-spec-inventory.md`
+2. **`docs/research/2026-09-08-rung-5-spec-inventory.md`
    (INV), section 2 in full (`:229-387`), section 3 (`:388-522`), section
    9 (`:1050-1094`), and its thirteen surprises (`:1187-1256`).** Section
    2 is the serve shell as it exists in salvage beside what PA requires,
@@ -115,12 +115,12 @@ Read these before Task 1, in this order.
    set, 2.3 normalization, 2.4 the write timeouts, 2.5 the verb wiring,
    2.6 the unit this pass does not write. **Do not re-derive what INV
    settles; cite it, and verify a line you carry forward.**
-3. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md` (PA),
+3. **`docs/specs/2026-09-03-parallel-build-approach.md` (PA),
    its serve-seam paragraph (`PA:77-80`).** PA:79 is the requirement the
    spec discharges and this plan builds: the root-level composition
    order, the declared extension point, and which point the driver's
    proxy occupies. PA:80 is the scheduling rule Task 0 checks.
-4. **`docs/superpowers/specs/2026-09-02-greenfield-server-build.md` (BS),
+4. **`docs/specs/2026-09-02-greenfield-server-build.md` (BS),
    the auth birth requirements (`BS:393-523`).** Four clauses reach 5a:
    **B2** the forward-auth boundary and its `doctor` proof (`:409-425`),
    **B3** one owned prefix (`:427-432`), **B8** rate limits and abuse for
@@ -128,7 +128,7 @@ Read these before Task 1, in this order.
    (`:512-523`), whose strip, normalization, and per-route write-timeout
    clauses are shell-level and therefore rung 5's, which is INV's
    surprise 5.
-5. **`docs/superpowers/research/2026-09-08-rung-5-auth-prior-art.md`
+5. **`docs/research/2026-09-08-rung-5-auth-prior-art.md`
    (PRA)**, its lessons section (`:525-604`) for Authelia's
    forwarded-header rule and Miniflux's header-plus-trusted-network
    pairing. Its library table is 5b's; 5a adds no dependency.
@@ -219,7 +219,7 @@ Every stop condition below resolves to the conductor, and the
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md` (revision
+`docs/specs/2026-09-08-rung-5-identity-auth.md` (revision
 2.1), and behind it `specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), whose auth birth requirements are quoted at
 `BS:393-523`. 5a builds the third bullet of the spec's seven-part "What

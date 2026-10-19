@@ -10,13 +10,13 @@ dispatch's "say which"; they are not separate files.
 ## Rung 6, pass 6a (the store foundation): closed 2026-09-24, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`
+`docs/plans/2026-09-23-rung-6a-store-foundation.md`
 (revision 2.2, ratified by Geoff 2026-09-24 with all four rulings yes)
 in the lane 2 worktree (`.claude/worktrees/lane-2-6a`, branch
 `lane-2-6a`), from `08befea` (the Go tree unchanged since). Task 0's
 staleness read found no blockers. The plan's full review history, fold
 rulings, and finding dispositions live in
-`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`.
+`docs/research/2026-09-23-rung-6a-plan-fold-record.md`.
 
 Tasks 1 through 7 ran across two segments: A (Tasks 1-3, closed
 `2d863cb`) and B (Tasks 4-7, closed `dedc1b7`), followed by one tidy fix
@@ -246,7 +246,7 @@ the simplifier round one, comment-only.
 ## The errata this pass owes
 
 Drafted paste-ready for the conductor from the plan fold record's
-"Owed errata" table (`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`,
+"Owed errata" table (`docs/research/2026-09-23-rung-6a-plan-fold-record.md`,
 E1-E11), with each ruling's outcome applied. All four rulings are yes,
 so E4, E10, and E11 take their "yes" text.
 

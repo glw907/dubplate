@@ -1,7 +1,7 @@
 # Rung 5c-iii plan fold 1
 
 This record folds the three `spec-plan-review` lenses into the 5c-iii plan
-(`docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`), taking it from
+(`docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`), taking it from
 revision 1 (`fc52232`) to revision 2. The lens reports are at `f0e3c00`:
 `2026-09-25-rung-5c-iii-plan-review-contract.md` (1 blocker, 10 majors, 15 minors),
 `-mechanics.md` (5 majors, 9 minors, 2 owner forks), and `-risk.md` (8 majors, 16 minors, 2
@@ -294,7 +294,7 @@ recorded as a count that holds, not as a defect.
 
 ## Prose fold
 
-Input: the prose review (`docs/superpowers/research/2026-09-25-rung-5c-iii-plan-prose-review.md`;
+Input: the prose review (`docs/research/2026-09-25-rung-5c-iii-plan-prose-review.md`;
 3 blockers, 5 warnings, 9 suggestions) against revision 3 (`28c983e`). The fold produces
 revision 4, status "reviewed; awaiting owner approval (Rulings 1-10)". It changes no ruling's
 substance, no ceiling, and no task's scope beyond W1.

@@ -55,7 +55,7 @@ recorded in memory as `unattended-window-2026-09-07`.
 **1.0 — Already landed; verify, do not re-plan.**
 
 - **M1 is fixed.** The two `generic-api-key` hits in
-  `docs/superpowers/research/2026-09-08-rung-5b-plan-review.md` were
+  `docs/research/2026-09-08-rung-5b-plan-review.md` were
   quoted example literals; they were rewritten at `5309c74` ("Rewrite two
   quoted example literals in the 5b plan review so gitleaks no longer
   fires on master"), by the rename remedy the house rule prescribes
@@ -98,7 +98,7 @@ conditions halts both lanes.
 
 **1.3 — Write the contested-surface rows into the ownership table.** The
 rung 5 spec's rows and 8c's `internal/engine/shadow` amendment go into
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s
+`docs/specs/2026-09-03-parallel-build-approach.md`'s
 ownership table, as STATUS's resume prompt requires. Include the M17
 amendment verbatim (see the fold table, id 13).
 
@@ -225,8 +225,8 @@ blocks 5b-i's merge rather than merging with findings outstanding.
 The web surface standard's fold runs in the main tree beside lane 1,
 under three constraints that make the shared tree safe:
 
-- **It writes only under `docs/superpowers/specs/` and
-  `docs/superpowers/research/`, and it never commits.** The conductor
+- **It writes only under `docs/specs/` and
+  `docs/research/`, and it never commits.** The conductor
   commits its files at a segment boundary, path-limited. Both pass plans
   state "no second executor enters this tree"; a non-committing lane
   confined to two doc directories does not contend for the index, and the
@@ -235,10 +235,10 @@ under three constraints that make the shared tree safe:
 - **Its inputs are harvested to disk before anything else (M15).** The
   seven adversarial reviews of the standard are in-session agent returns;
   a compaction or harness restart loses them. Its first action is writing
-  each review's output to a file under `docs/superpowers/research/`
+  each review's output to a file under `docs/research/`
   named for the standard, so the fold survives a restart. The harvest
   inputs are already on disk at
-  `docs/superpowers/research/2026-09-12-cairn-harvest-reference.md` and
+  `docs/research/2026-09-12-cairn-harvest-reference.md` and
   in the session scratchpad.
 - **It is interruptible at a stage boundary.** Stages: harvest → fold →
   prose pass → second fold → hand to the conductor for commit. The
@@ -477,8 +477,8 @@ exactly the moment the merge ritual rebases it, and `git rebase` and
 implementers, in the task `notes`:
 
 - **Write the ledger text as drafts, never edit the ledgers.** 5b-i Task
-  10 writes `docs/superpowers/research/handoffs/draft-STATUS-5b-i.md` and
-  `docs/superpowers/research/handoffs/draft-HISTORY-5b-i.md`. 8c Task 4
+  10 writes `docs/research/handoffs/draft-STATUS-5b-i.md` and
+  `docs/research/handoffs/draft-HISTORY-5b-i.md`. 8c Task 4
   writes `draft-STATUS-8c.md` and `draft-HISTORY-8c.md` in the same
   directory, in the main tree, plus its `ROADMAP.md` text in the same
   draft.

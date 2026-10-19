@@ -1,7 +1,7 @@
 # Rung 12 slice 2a plan fold verification (revision 1.1)
 
 Target: `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md`, revision 1.1 at `1d6e40d`. Fold
-record: `docs/superpowers/research/2026-10-06-rung-12-slice-2-plan-fold.md`. I had no part in the fold. Findings are
+record: `docs/research/2026-10-06-rung-12-slice-2-plan-fold.md`. I had no part in the fold. Findings are
 correctness gaps ranked by consequence. Polish is out of scope.
 
 Checked directly for this read:

@@ -1,9 +1,9 @@
 # Photo curation design
 
 Status: revision 2.3. Revision 2.2 was folded from four lens reviews, a fold verification, and a
-prose review (fold record: `docs/superpowers/research/2026-09-25-photo-curation-fold.md`) and
+prose review (fold record: `docs/research/2026-09-25-photo-curation-fold.md`) and
 approved by Geoff 2026-09-25. Revision 2.3 adds his two rulings from the round-one plan review
-(fold record: `docs/superpowers/research/2026-09-25-photo-curation-plan-fold.md`): people and
+(fold record: `docs/research/2026-09-25-photo-curation-plan-fold.md`): people and
 minors are flagged for his decision, and passed images are no longer pruned from the sorting
 page's file store. Initiative: ROADMAP `photo-curation`.
 
@@ -301,7 +301,7 @@ gap, briefed with the vocabulary, the current counts, and the rejected ledger. A
 candidates, checks each against existing `source_id` and `origin_id` keys, fetches its license
 evidence raw, downloads the file to its candidate subdirectory, and writes the candidate record.
 It sets `pack` itself for an NC or permission-only license. The first round re-verifies the
-candidates in `docs/superpowers/research/2026-09-24-identity-photos/`. The flyer search starts
+candidates in `docs/research/2026-09-24-identity-photos/`. The flyer search starts
 with DC hardcore flyers, as the identity spec asks. Later rounds target the gaps the counts show,
 and each runs a landmark sweep: the studios, clubs, label houses, and shops that mattered to each
 family, searched by name. Hip-hop starts close to empty, because the earlier research barely
@@ -319,7 +319,7 @@ A fresh Opus reader then checks a sample of the round's license evidence through
 channel, against `archive_url` where one exists. The sample is every public-domain and every
 flyer or zine cover record, plus 20% of the rest, and at least five. Each result, a slug or
 source ID with match or mismatch and the date, goes into the round's log under
-`docs/superpowers/research/photo-curation-rounds/`. A round with a wrong quote is re-verified
+`docs/research/photo-curation-rounds/`. A round with a wrong quote is re-verified
 whole before Geoff sees it.
 
 Geoff sorts on a private claude.ai artifact: a web page only he can open, with its own file store
@@ -385,7 +385,7 @@ optional photo pack, where NC or a dubplate-only permission is acceptable.
 The conductor drafts each letter in Geoff's voice: a person building a free music server for a
 group of friends, free and open-source under the MIT license. Letters never call the use
 non-commercial, as the research template does, because a grant on those terms can only reach the
-pack. Drafts live in `docs/superpowers/research/2026-09-24-identity-photos/outreach/`, one file
+pack. Drafts live in `docs/research/2026-09-24-identity-photos/outreach/`, one file
 per recipient. Geoff reads and sends every letter from his own address, and the conductor never
 sends one.
 

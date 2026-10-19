@@ -1,7 +1,7 @@
 # Re-plan document pass: plan review and fold
 
 Target: `docs/superpowers/plans/2026-10-05-replan-document-pass.md`, revision 1 at `15be3fd` (365 lines), folded in
-place to revision 2 (404 lines). Spec: `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision
+place to revision 2 (404 lines). Spec: `docs/specs/2026-10-05-rungs-12-16-replan-design.md`, revision
 2.1 at `33b465c`, owner rulings 1 to 3 ruled yes.
 
 One self-folding lens, `docs` class, combining contract and criteria, mechanics and feasibility, and domain risk.
@@ -48,7 +48,7 @@ search or a fix round but not a wrong result.
 | R8 | minor | Task 0 assumed one `navidrome.db` in the tar. The old stack staged a backup snapshot beside the live database, so the archive may hold more than one copy. | Folded: step 1 records every match, step 4 checks each, and none present is a stop. |
 | R9 | minor | Task 0 named the box access vaguely and did not size the pull against the scratchpad. | Folded: `root@5.78.148.42` with key auth, per `api-access.md`. The scratchpad is tmpfs (`/tmp`, about 7 GB free), so plaintext never reaches disk; the chore stops if the archive does not fit twice over. |
 | R10 | minor | The plan did not say whether the `.age` copy is backed up. The workstation runs no backup job, so until rung 16 the copies are the box's plaintext tar and the workstation `.age` file. The spec gives the second copy to rung 16's backup remote, but no task carried that. | Folded: Task 0 states the posture, and Task 10's STATUS step adds the rung 16 carry. |
-| R11 | minor | Task 6 required a repo-wide `grep` for `forward-auth-topology` to return nothing. The plan itself and the research records contain the string. | Folded: the grep is scoped outside `docs/superpowers/` and `docs/HISTORY.md`. |
+| R11 | minor | Task 6 required a repo-wide `grep` for `forward-auth-topology` to return nothing. The plan itself and the research records contain the string. | Folded: the grep is scoped outside `docs/` and `docs/HISTORY.md`. |
 | R12 | minor | Task 8 kept all of `streamer-0-8`'s text in ROADMAP ("nothing is deleted") while its grep required no `escape hatch` outside Done entries. The entry's "Sequenced after launch (rung 17); the driver seam stays and Navidrome remains the escape hatch" sentence is superseded. | Folded: superseded passages leave ROADMAP, quoted in the report, and Task 10 moves them into HISTORY's re-plan entry. |
 | R13 | minor | Task 1's "`--numstat` shows deletions only on that line" is not something numstat shows. Task 3's errata count sits in a wrapped status paragraph, so updating it may reflow more than one line. | Folded: Task 1 checks one deletion and names it from `git diff`; Task 3 allows the status paragraph's reflow. |
 | R14 | over-ceremony | The full heavy gate (about 106 s, Chromium) runs on every docs commit, eight or more times. | Refused: `CLAUDE.md` requires `bash scripts/check.sh` "before every commit", and the script's own contract bars `--reduced` as the final gate on master. Moving the lane off master would break `CLAUDE.md`'s rule that document lanes share the main tree. The cost is priced into the ceiling. |

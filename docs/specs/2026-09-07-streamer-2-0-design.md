@@ -3,7 +3,7 @@
 **Re-keyed to the 0.8 release (Geoff, 2026-09-25 ruling on version numbering).** Everywhere
 this document says "2.0" it means 0.8. The title and body are left as written.
 
-Status: **Ratified 2026-09-07.** Revision 3.1, 2026-10-07 (the study rung's answers: slice 1 of rung 12 closed, so each open item it owned is answered, answered pending ruling, or routed, the prior-art cells are filled, and hook 22 is added; listed under "Revision 3.1, 2026-10-07"). Revision 3, 2026-10-05 (the built-in streamer is the group's first launch, so every passage that assumed an incumbent, a shadow, or a flip is removed or rewritten; listed under "Revision 3, 2026-10-05", with the rulings recorded under "Rulings of revision 3"). Revision 2.5, 2026-09-25 (errata from the ratified group-scale principles spec, the streamer prior-art survey, and the give-back decision; listed under "Revision 2.5, 2026-09-25"). Revision 2.4, 2026-09-24 (Geoff's ruling: five hosting and setup features join the 2.0 target, recorded under "Hosting and setup at launch", "Hosting and setup", the widened Navidrome import, forward hooks 18 and 19, and slice 8). Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
+Status: **Ratified 2026-09-07.** Revision 3.1, 2026-10-07 (the study rung's answers: slice 1 of rung 12 closed, so each open item it owned is answered, answered pending ruling, or routed, the prior-art cells are filled, and hook 22 is added; listed under "Revision 3.1, 2026-10-07"). Revision 3, 2026-10-05 (the built-in streamer is the group's first launch, so every passage that assumed an incumbent, a shadow, or a flip is removed or rewritten; listed under "Revision 3, 2026-10-05", with the rulings recorded under "Rulings of revision 3"). Revision 2.5, 2026-09-25 (errata from the ratified group-scale principles spec, the streamer prior-art survey, and the give-back decision; listed under "Revision 2.5, 2026-09-25"). Revision 2.4, 2026-09-24 (Geoff's ruling: five hosting and setup features join the 2.0 target, recorded under "Hosting and setup at launch", "Hosting and setup", the widened Navidrome import, forward hooks 18 and 19, and slice 8). Revision 2.3, 2026-09-24 (Geoff's ruling: four group features join the 2.0 target, recorded under "Group features at launch", "Group features", forward hooks 16 and 17, slice 7, and three open items). Revision 2.2, 2026-09-12 (forward hooks 1 and 15 and the web surface amended from the configuration homes spec, `docs/specs/2026-09-11-configuration-homes-design.md`). Revision 2.1, 2026-09-07 (the three owner rulings recorded in "Rulings on the review round"). Revision 2, 2026-09-07. Every decision below was taken with
 Geoff in the 2026-09-07 brainstorm and none is reopened here. ROADMAP entry: `streamer-2-0`. It is rung 12 of the ladder: its eight slices are rung 12's
 passes, and the group's first launch (0.8.0) runs on it.
 
@@ -29,9 +29,9 @@ recommendation (study record section 19):
 ## Revision 3.1, 2026-10-07
 
 Revision 3.1 writes the study rung's answers into the spec. Slice 1 of rung 12 ran as a document lane and closed with a
-study record, `docs/superpowers/research/2026-10-06-slice-1-study-record.md` ("the study record"), and a pre-seeded
-divergence ledger, `docs/superpowers/research/2026-10-06-slice-1-divergence-ledger.md` ("the ledger"). Seven segment
-records sit beside them, each named `docs/superpowers/research/2026-10-06-slice-1-<name>.md`: `evidence-pins`,
+study record, `docs/research/2026-10-06-slice-1-study-record.md` ("the study record"), and a pre-seeded
+divergence ledger, `docs/research/2026-10-06-slice-1-divergence-ledger.md` ("the ledger"). Seven segment
+records sit beside them, each named `docs/research/2026-10-06-slice-1-<name>.md`: `evidence-pins`,
 `contract`, `client-demands`, `base-url`, `server-behavior`, `melodee-intake`, and `prior-art-cells`. Section numbers
 below are the study record's and row ids are the ledger's. This revision edits in place, and the earlier revision
 sections stay as written. Three items are owner forks. The spec marks each "answered pending ruling", states the
@@ -82,7 +82,7 @@ record's recommendation, and does not act on it until Geoff rules.
 
 ## Revision 3, 2026-10-05
 
-Revision 3 follows the re-plan in `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1).
+Revision 3 follows the re-plan in `docs/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1).
 On 2026-10-05 Geoff retired the incumbent stack, so the group listens through dubplate's own streamer from the first
 day and nothing remains to shadow, flip to, or fall back on. This revision edits in place, and the earlier revision
 sections stay as written. Each item names the reason and the section that carries the change.
@@ -145,10 +145,10 @@ Owner rulings, all yes:
 Revision 2.5 lands errata from three sources. Each item names its source, and the sections below carry the change.
 
 - P is `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md` (ratified at `1aa40f4`, rulings 1 to 12
-  decided), through the owed-errata list in `docs/superpowers/research/2026-09-25-group-scale-principles-fold.md` as
+  decided), through the owed-errata list in `docs/research/2026-09-25-group-scale-principles-fold.md` as
   revised by its "Second fold" and "Bounded shares" sections. Conflict numbers below are that spec's "Conflicts with
   existing specs".
-- S is `docs/superpowers/research/2026-09-25-streamer-prior-art-survey.md`, "Findings that change the spec".
+- S is `docs/research/2026-09-25-streamer-prior-art-survey.md`, "Findings that change the spec".
 - G is the give-back decision, ROADMAP `give-back` (Geoff, 2026-09-25).
 
 1. Shares keep their four endpoints under six bounds: one item, a lossy stream, clamped expiry, a listener pause, an
@@ -403,7 +403,7 @@ meter, and every other dubplate concern sit behind it.
 - **Extracted after 0.8.** The layer moves to its own module after 0.8 ships, and no earlier.
 - **A clean-room record.** Every behavior the layer implements cites the OpenSubsonic specification, its Apache-2.0
   documentation, or an observation recorded by the harness, never GPL source. The study rung's record
-  (`docs/superpowers/research/2026-10-06-slice-1-study-record.md`, with the segment records it indexes) is the citation
+  (`docs/research/2026-10-06-slice-1-study-record.md`, with the segment records it indexes) is the citation
   source, and "License" below still governs.
 
 Whether the wire types are generated from the OpenAPI file or written by hand is no longer open. Conductor reading
@@ -890,7 +890,7 @@ interval are set in its own plan, never here.
    read. Ships the pre-seeded divergence
    ledger, the empty-success endpoint set, the launch extension subset, the per-endpoint oracle assignment, and the
    prior-art table's open cells. Revision 2.5 adds the answers to the items "Open items" marks as owed to the study
-   rung. Revision 3.1: done; the record is `docs/superpowers/research/2026-10-06-slice-1-study-record.md`, and every
+   rung. Revision 3.1: done; the record is `docs/research/2026-10-06-slice-1-study-record.md`, and every
    item it owned is answered, answered pending ruling, or routed.
 2. Harness (M). The fixture library, the pinned Navidrome and gonic containers, the JSON schema validator and the XML
    rule the study rung sets, the recorded session, the differ, the divergence ledger, and the client roster's scripted
@@ -1002,7 +1002,7 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
     Retired in revision 3: hook 6's capability report, which also declared a driver's shape constraints (subtree collections, art filenames read,
     tags read) and per-user folder access, is retired with hook 6, and private stays unsettable until slice 3's
     projector enforces visibility on every endpoint. Capability reporting is dropped unless a slice names a consumer. Design:
-    `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`. Amended 2026-09-25 (P conflict 1): the share
+    `docs/specs/2026-09-11-configuration-homes-design.md`. Amended 2026-09-25 (P conflict 1): the share
     rows stay reserved, with no table or column before slice 6 builds them, and they carry the fields the share bounds
     need: the item (or a playlist share's track snapshot), creation and expiry times, the listener count and threshold,
     the paused and resumed state, and the listener keys.
@@ -1054,7 +1054,7 @@ Each hook names the rung whose plan weighs it. That plan states per task whether
 
 Every row needs a license cell citing the repository's LICENSE file by URL, because revision 1's strings were filled
 from memory and two were wrong. Cells the reviews established were filled first; revision 3.1 fills the rest from the
-study's cell record (`docs/superpowers/research/2026-10-06-slice-1-prior-art-cells.md`), scored on CLAUDE.md's four
+study's cell record (`docs/research/2026-10-06-slice-1-prior-art-cells.md`), scored on CLAUDE.md's four
 criteria with evidence per cell. Every license URL below was fetched with status 200 on 2026-10-07, and every figure is
 dated 2026-10-07 unless the cell says otherwise. Maintenance keeps its criterion but loses its bus-factor weight: bus
 factor is 1 across this entire field, Navidrome, gonic, LMS, Koel, Black Candy, and Melodee alike, so that signal
@@ -1079,7 +1079,7 @@ discriminates nothing and adoption evidence does the real work.
 | Schema migrations | Rung 6's mechanism | stdlib | n/a | n/a | n/a | Hand-roll with `embed.FS` and `PRAGMA user_version`. `pressly/goose` is declined: it direct-requires ten database drivers for a Go-function migration mechanism no hook asks for, and its decline rests chiefly on its silent-ahead `Up`, which applies every migration newer than the tracked version with no confirmation step (erratum 2026-09-23, rung 6 spec, erratum 12). |
 | Stream-through transcode cache | 2.0 rung 5 | stdlib; `djherbis/stream` MIT if adopted ([LICENSE](https://github.com/djherbis/stream/blob/master/LICENSE)) | n/a | n/a | n/a | Hand-roll the size cap and eviction. `djherbis/fscache` is declined: 7 importers, its last tag is v0.10.1 (2020-04-15), and Navidrome pins an untagged pseudo-version. The fill-while-read primitive under it, `djherbis/stream` (MIT), has a tagged v1.5.1 (2026-08-29, still the newest on 2026-10-07; 7 importers); the streaming slice adopts or ports it, decided by a race test (revision 2.5, S finding 7). |
 | `internal/atomicfile` | Streaming atomic writes for blobs and cache entries | in-repo | n/a | n/a | n/a | Extend it with a streaming write rather than inventing a second temp-file convention. |
-| M3U read and write; Subsonic XML and JSON dual encoding | First-launch import and the response layer | stdlib | n/a | n/a | n/a | Hand-roll both. The study rung enumerated the encoding quirks as rules E1 to E12 in its contract record (`docs/superpowers/research/2026-10-06-slice-1-contract.md`: attribute-heavy XML, the wrapper, singleton-versus-array in JSON, JSONP, and the rest) so the harness tests them. JSONP is declined (revision 3.1; ledger L-01). |
+| M3U read and write; Subsonic XML and JSON dual encoding | First-launch import and the response layer | stdlib | n/a | n/a | n/a | Hand-roll both. The study rung enumerated the encoding quirks as rules E1 to E12 in its contract record (`docs/research/2026-10-06-slice-1-contract.md`: attribute-heavy XML, the wrapper, singleton-versus-array in JSON, JSONP, and the rest) so the harness tests them. JSONP is declined (revision 3.1; ledger L-01). |
 | Chromaprint via `fpcalc` | Acoustic fingerprinting for untagged uploads | MIT source, but the distributed library is LGPL-2.1+ | n/a | Stable upstream | The AcoustID standard | Adopt for 2.1 as a subprocess only. Never link the library, and pin the FFT backend so a GPL build never lands. |
 | Symfonium compatibility notes | Where servers diverge in practice | Documentation | n/a | Live wiki and forum | The best public record of client-side divergence | Adopt as a study input. |
 | beets `convert`; MusicBee device sync | The export-profile shape for the local binary | Documentation | n/a | Current | Behavior references | Adopt as prior art for the future local binary, never for the server. |
@@ -1120,7 +1120,7 @@ These did not block the study rung. Revision 3.1 marks each item the study owned
 - The client roster's exact membership. Geoff ruled it on 2026-10-05: Feishin and Rufin on the Linux desktop, Amperfy on
   iOS and iPadOS, and Tempus on Android with Navic as the alternate. Open source is favored, and a closed client joins
   only if a member uses it daily. The record is
-  `docs/superpowers/research/2026-10-05-client-roster-audit.md`.
+  `docs/research/2026-10-05-client-roster-audit.md`.
 - Whether folder browsing ships at launch at all. It doubles the browse surface and the id space, modern clients use
   ID3, and only gonic can grade it. Answered pending ruling (revision 3.1; owner fork C; study record, section 12). All
   four roster clients offer a folder view beside the ID3 view and browse ID3 first, and none needs the folder view for

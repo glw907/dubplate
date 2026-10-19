@@ -491,7 +491,7 @@ func TestEverySessionAnActiveRowNamesIsStaleChecked(t *testing.T) {
 
 // recordPath is the dated record of divergences that the committed ledger
 // and the assignment's agreements transcribe.
-const recordPath = "../../../../docs/superpowers/research/2026-10-06-slice-1-divergence-ledger.md"
+const recordPath = "../../../../docs/research/2026-10-06-slice-1-divergence-ledger.md"
 
 // recordOracles maps the record's Oracle column to the oracle sources it
 // names; dubplate heads every list.

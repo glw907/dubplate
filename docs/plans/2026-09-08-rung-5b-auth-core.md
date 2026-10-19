@@ -7,13 +7,13 @@ see the ratify-or-reverse table in
 **Revision 1, 2026-09-08.** Drafted just in time from pass 5a's own
 handoff (`docs/HISTORY.md:379-408`), against the rung 5 identity-and-auth
 spec at revision 2.1
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`), whose
+(`docs/specs/2026-09-08-rung-5-identity-auth.md`), whose
 errata now carry 5a's nine corrections (`spec:2050-2157`) and whose six
 product forks Geoff ruled on 2026-09-08 (`spec:172-271`).
 
 **Revision 2, 2026-09-08.** Folded from the two-lens fresh-context plan
 review at
-`docs/superpowers/research/2026-09-08-rung-5b-plan-review.md`, whose
+`docs/research/2026-09-08-rung-5b-plan-review.md`, whose
 merged 31-item "Verified sound" list is this pass's
 do-not-re-litigate record. Thirty-seven raised findings merged to
 twenty-eight, all folded, none rejected. Three blockers folded: the
@@ -125,7 +125,7 @@ unit, or a probe row stops and reports.**
 ## Primary inputs
 
 **Added 2026-09-12, from the configuration homes spec's threat model
-(`docs/superpowers/research/2026-09-11-configuration-homes-review-threat-model.md`,
+(`docs/research/2026-09-11-configuration-homes-review-threat-model.md`,
 section b, rung 5).** Two items for the conductor to fold into 5b-i or
 5b-ii at dispatch, neither changing 5b-i's contract as written: (1) the
 revocation seam's read (A8) is the one a later device-credential store
@@ -138,7 +138,7 @@ streamer deprovision) files at rung 14, not here.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`,
+1. **`docs/specs/2026-09-08-rung-5-identity-auth.md`,
    revision 2.1.** The pass-split table's 5b row (`spec:2168`) is this
    plan's scope statement, less the half this plan hands 5b-ii. The
    sections 5b-i implements are "What rung 5 builds" (`:93-148`), the
@@ -179,7 +179,7 @@ Read these before Task 1, in this order.
    once, for the `serve` class. **5b-i exercises it for the `auth and
    identity` class and, for the first time anywhere, for a pending wall
    row.**
-4. **`docs/superpowers/research/2026-09-08-rung-5-spec-inventory.md`
+4. **`docs/research/2026-09-08-rung-5-spec-inventory.md`
    (INV), sections 1 (`:60-228`), 3 (`:388-522`), 4 (`:523-611`), 5
    (`:612-718`), 6 (`:719-825`), and its thirteen surprises
    (`:1187-1256`).** Section 3 is the config surface as it exists beside
@@ -188,14 +188,14 @@ Read these before Task 1, in this order.
    settles. Cite it, and verify any line carried forward**, because
    several of INV's `keys.go` pointers moved when 5a deleted the `serve`
    class.
-5. **`docs/superpowers/research/2026-09-08-rung-5-auth-prior-art.md`
+5. **`docs/research/2026-09-08-rung-5-auth-prior-art.md`
    (PRA), in full.** Its sessions and token sections (`:46-183`) are the
    adopt-or-decline evidence this pass records; its verdict table
    (`:23-44`) is the summary; its "Provisional rulings" (`:655-677`) and
    "Evidence notes and unverified items" (`:678-717`) are what a task
    cites rather than re-researches. The Prior art section below carries
    the verdict per entry with the criterion that decided it.
-6. **`docs/superpowers/research/2026-09-08-rung-5a-security-review.md`**,
+6. **`docs/research/2026-09-08-rung-5a-security-review.md`**,
    the twenty-four findings and their dispositions. **This is the
    do-not-re-litigate record.** One residual is routed to this pass:
    finding 7, an absolute-form request target sets `r.Host` to the
@@ -203,7 +203,7 @@ Read these before Task 1, in this order.
    configured public origin and never from `r.Host`**. Findings 16, 22,
    23 and 24 are 5c's, 5d's, and the wall contract's, and this pass
    reopens none of them.
-7. **`docs/superpowers/research/2026-09-08-rung-5a-plan-review.md`'s
+7. **`docs/research/2026-09-08-rung-5a-plan-review.md`'s
    "Verified sound" list (`:705-860`), thirty items.** A pass plan does
    not reopen an item on it without new evidence. Items 6, 11, 12, 13,
    16, 23, 24, 29 and 30 bear directly on this pass: R27's two-address
@@ -216,13 +216,13 @@ Read these before Task 1, in this order.
    counts are stated per task, and the review shape is the in-chain
    `diff-reviewer` plus one fresh-context reviewer with the threat model
    as its rubric.
-8. **`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (S20),
+8. **`docs/specs/2026-09-07-streamer-2-0-design.md` (S20),
    the forward-hooks section (`:354-383`) and the identity-and-app-passwords
    section (`:234-252`).** Hook 5 (`S20:367-369`) is the hook this pass
    lands, and `S20:245-246` is the requirement behind R35: every app
    password carries the user's valid-after epoch, so a credential store
    must be able to **read** the epoch. Being told it changed is not enough.
-9. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md` (PA),
+9. **`docs/specs/2026-09-03-parallel-build-approach.md` (PA),
    its lane table (`PA:96-101`), its scheduling rule (`PA:80`), and its
    contested-surface ownership table (`PA:175-203`).** `PA:100` gives
    lane A `internal/auth`, the `internal/serve` shell, and
@@ -2620,16 +2620,16 @@ Gate green; commit.
 Model: `sonnet`. Depends on Tasks 0 through 9.
 
 **Files:**
-- Draft: `docs/superpowers/research/handoffs/draft-STATUS-5b-i.md` and
-  `docs/superpowers/research/handoffs/draft-HISTORY-5b-i.md` (the ledger
+- Draft: `docs/research/handoffs/draft-STATUS-5b-i.md` and
+  `docs/research/handoffs/draft-HISTORY-5b-i.md` (the ledger
   text as drafts; **the implementer never edits or commits a ledger**)
 - Draft, handed to the conductor in the task return: the spec
   corrections, the coverage-gap list, and the 5b-ii handoff
 
 **Ruled, conductor 2026-09-12 (M11,
 `plans/2026-09-12-overnight-window.md`):** The ledger text is written as
-drafts at `docs/superpowers/research/handoffs/draft-STATUS-5b-i.md` and
-`docs/superpowers/research/handoffs/draft-HISTORY-5b-i.md`, never to
+drafts at `docs/research/handoffs/draft-STATUS-5b-i.md` and
+`docs/research/handoffs/draft-HISTORY-5b-i.md`, never to
 `docs/STATUS.md` or `docs/HISTORY.md` themselves. The conductor folds
 the drafts into the real ledgers at the merge and commits them
 path-limited. The drafts are committed artifacts, so they survive a

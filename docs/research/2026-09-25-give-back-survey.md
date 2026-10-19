@@ -326,5 +326,5 @@ The gate check for the new module is the same as the matcher's: no `github.com/g
 - Coverage and pacing for `mgdigital/go-musicbrainz`, `rustedshader/musicbrainz-go`, and `gcottom/audiometa`.
 - Whether `go.senan.xyz/taglib`'s writes are crash-safe.
 - The Picard tag tables' CC0 license was taken from the rung 8 spec
-  (`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`), not re-read today.
+  (`docs/specs/2026-09-07-rung-8-tag-io.md`), not re-read today.
 - Go's module download size limits for a module carrying the 106 MB corpus.

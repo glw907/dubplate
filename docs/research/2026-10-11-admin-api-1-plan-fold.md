@@ -1,7 +1,7 @@
 # admin-api-1 plan fold
 
 Target: `docs/superpowers/plans/2026-10-11-admin-api-1.md` at `6b4cd97`, and its launch prompt
-`docs/superpowers/plans/2026-10-11-admin-api-1-prompt.txt`. Reviews folded:
+`docs/plans/2026-10-11-admin-api-1-prompt.txt`. Reviews folded:
 `2026-10-11-admin-api-1-plan-review-contract.md` (F1 to F19), `-review-mechanics.md` (M1 to M26), and
 `-review-risk.md` (its majors M1 to M7 appear here as RM1 to RM7, its minors m1 to m12 as Rm1 to Rm12). Fold agent:
 Opus 5.5, under `superpowers:receiving-code-review` and `spec-plan-review`'s "The fold". Every finding was checked

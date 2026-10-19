@@ -1,7 +1,7 @@
 # Rung 5d plan review: contract and criteria lens
 
 Reviewed: `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md` at `af7d941`
-(revision 1), against the rung 5 spec (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`),
+(revision 1), against the rung 5 spec (`docs/specs/2026-09-08-rung-5-identity-auth.md`),
 `docs/STATUS.md`'s carried "No deploy until 5d" item, and the tree at `af7d941`. One lens: are the
 outcomes testable, does each criterion name its fixture and its failure, can any criterion or named
 mutation pass vacuously, is the spec's 5d row covered, and do the four planning-miss items hold on

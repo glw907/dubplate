@@ -3,7 +3,7 @@
 Read on 2026-09-25 in the lane 2 worktree `.claude/worktrees/lane-2-6c` (branch `lane-2-6c`, HEAD
 `392d1cd`, the same commit as master). Every item below was produced by a command in that tree; the
 matched line is quoted beside its site. Plan:
-`docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`, revision 2.2.
+`docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`, revision 2.2.
 
 **Verdict: 0 blockers.** Seven blocker questions answered yes. Two items are conductor bookkeeping
 (the lane registry row and the leftover 6b-ii-b worktree), and eleven citations moved without
@@ -16,7 +16,7 @@ changing content. Four notes route to a build task.
    package doc's restore paragraph to the code"), above the 6b-ii-b Task 8 draft `05b5f55` and the
    post-review commits `bd34f9a` and `9870678`. `git status --short` is empty in `lane-2-6c` and in
    `lane-2-6b-ii-b`. In the main tree it shows only agent-memory files and two untracked
-   `docs/superpowers/research/2026-09-04-*.md` files, none under `internal/` or `cmd/`.
+   `docs/research/2026-09-04-*.md` files, none under `internal/` or `cmd/`.
    - **Conductor bookkeeping, not a blocker.** The main tree's `docs/STATUS.md` lane registry
      (`## Lane registry`) still lists lane 2 as "worktree `lane-2-6b-ii-b` ... OPEN: 6b-ii-b ...
      then 6c (approved, `50a1cf8`) in a fresh worktree". No row names `lane-2-6c`. The plan's
@@ -91,7 +91,7 @@ changing content. Four notes route to a build task.
 ## Notes
 
 8. **6b-ii-b's Task 8 handoff names nothing for 6c.** The draft
-   (`docs/superpowers/research/handoffs/draft-HISTORY-6b-ii-b.md`) is headed "The 6b-ii-b to 6c and
+   (`docs/research/handoffs/draft-HISTORY-6b-ii-b.md`) is headed "The 6b-ii-b to 6c and
    6d handoff" (`:262`), but its lists are "To 6d", "To rung 14", and "To rung 12" only. The draft
    is now stale in one place: it says "`ServeOptions.Reconcile` and `backup.Reconcile` are `serve`'s
    own wiring". `bd34f9a` unexported that function, which is now `reconcile` at

@@ -13,7 +13,7 @@ folded (`docs/HISTORY.md`'s 6b-ii-a entry).
 ## Rung 6, pass 6b-ii-b (the offline `restore` verb): closed 2026-09-25, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md` (Ruling 1
+`docs/plans/2026-09-25-rung-6b-ii-restore-http.md` (Ruling 1
 split the pass into 6b-ii-a, folded earlier at `6e6fd12`, and 6b-ii-b,
 this entry) in the lane 2 worktree
 (`.claude/worktrees/lane-2-6b-ii-b`, branch `lane-2-6b-ii-b`).
@@ -234,7 +234,7 @@ data-loss read.
 
 ## The errata this pass owes
 
-- **Spec criterion 16** (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md:1018`,
+- **Spec criterion 16** (`docs/specs/2026-09-23-rung-6-ops-seam-store.md:1018`,
   "every local pre-migration and pre-restore snapshot older than its
   snapshot is deleted") and **line 712** ("A pre-restore copy follows
   ruling 7's retention") are both corrected by M1's fix: a pre-restore
@@ -242,7 +242,7 @@ data-loss read.
   snapshots only; a pre-restore copy is kept, like a `discarded-*` file,
   until an operator removes it by hand.
 - **The plan's privileged-fields row for a pre-restore copy**
-  (`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md:459`,
+  (`docs/plans/2026-09-25-rung-6b-ii-restore-http.md:459`,
   "deletion by 6b-i's post-backup local prune and spec ruling 7") is
   corrected the same way: `isLocalCopyName` no longer matches the
   pre-restore prefix (`cba822c`).

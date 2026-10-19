@@ -1,6 +1,6 @@
 # Greenfield-spec adversarial review (architecture and evidence), 2026-09-02
 
-Spec: `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+Spec: `docs/specs/2026-09-02-greenfield-server-build.md`
 Lens: ladder dependency order, launch-bar completeness, rung scoping,
 the evidence track against the fresh matcher-mechanics study, shadow
 design, cutover and rollback, the repo pivot, process realism.

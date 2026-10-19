@@ -1,6 +1,6 @@
 # Rung 6b-ii plan review: contract and criteria lens
 
-Reviewed: `docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`, revision 1 (uncommitted).
+Reviewed: `docs/plans/2026-09-25-rung-6b-ii-restore-http.md`, revision 1 (uncommitted).
 Lens: are the promises testable? Does each criterion name its fixture and its failure reason? Can a
 criterion or a named mutation pass vacuously? Checked against spec
 `2026-09-23-rung-6-ops-seam-store.md` (6b-ii criteria `:1035-1060`, restore flow `:674-714`,

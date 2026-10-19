@@ -5,11 +5,11 @@ three-lens `spec-plan-review` round (contract, mechanics, and risk; the reviews 
 `098f8e5` under `docs/superpowers/research/2026-09-25-rung-6c-plan-review-*.md`). Revision 2
 (`ffde470`) folds them; a fresh-context verification read (`2026-09-25-rung-6c-plan-fold-verification.md`)
 found 0 blockers, 2 majors, and 7 minors, and revision 2.1 folds those. Revision 2.2 folds a
-prose-and-facts review (`docs/superpowers/research/2026-09-25-rung-6c-plan-prose-review.md`), the
+prose-and-facts review (`docs/research/2026-09-25-rung-6c-plan-prose-review.md`), the
 5d lane condition's staleness fix included: 5d's plan is now revision 2.1 (`593d7fd`), split into 5d-i
 and 5d-ii, and its own text (`593d7fd:10`, a revision 2.1 decision) rules that 5d-i's executor launches only after 6c merges.
 The fold record, one disposition per finding for the earlier two folds, is
-`docs/superpowers/research/2026-09-25-rung-6c-plan-fold.md`, and it is this plan's review history.
+`docs/research/2026-09-25-rung-6c-plan-fold.md`, and it is this plan's review history.
 Rulings (see "Rulings"): Geoff ruled 1 yes; asked for the best and most idiomatic design on 2 and 3,
 the conductor took yes on both as design decisions, reasons recorded there. This revision does not
 re-open the Rulings. Citation note (2026-09-25, no revision bump): citations of the 5d plan now point
@@ -26,16 +26,16 @@ no lane 1 edit under `internal/config` is uncommitted or in flight when the work
 5d-i's executor does not launch until 6c merges. "Lane condition, answered" below carries the evidence.
 
 Sources, in order of authority: the ratified rung 6 spec
-(`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision 2.2 with errata E1 to E11),
+(`docs/specs/2026-09-23-rung-6-ops-seam-store.md`, revision 2.2 with errata E1 to E11),
 above all its 6c pass section (`:1062-1084`), "The settings home" (`:718-800`), "Schema invariants"
 (`:433-464`), "The schema rung 6 lands" (`:466-508`), "Package territory" (`:193-215`), "The 2.0
 forward hooks" (`:877-893`), "Prior art" (`:895-917`), "Planning-miss prevention" (`:919-939`),
 "Band and ceilings" (`:1121-1150`), and "Contested surfaces" (`:1152-1161`); the configuration homes
-spec (`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`, CH), its routed list
+spec (`docs/specs/2026-09-11-configuration-homes-design.md`, CH), its routed list
 ("What this spec routes elsewhere"), "The server's own knobs," and its seed paragraph (CH `:95-101`);
-the 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, which still says
+the 0.8 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, which still says
 2.0), "Forward hooks the current build owes" (`:683-768`) and "Prior art" (`:770-806`); the repo
-`CLAUDE.md`; the 6b-i plan's R-6bi8 (`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md:604-623`);
+`CLAUDE.md`; the 6b-i plan's R-6bi8 (`docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md:604-623`);
 and `docs/HISTORY.md`'s 6a, 6b-i, and 6b-ii-a entries.
 
 **Code pointers were resolved on master at `5b8f05e` and on branch `lane-2-6b-ii-b` at `30a66ac`**
@@ -658,7 +658,7 @@ is irreversible. The only new default is the local keep's, which R-6bi8 never se
 | `DUBPLATE_BACKUP_ARCHIVE_RETENTION` | duration | `2160h` | yes: 168h to 87600h; no: 24h to 87600h | next operation | each run's prune (replacing `archiveRetention`) |
 | `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP` | int | `3` | 1 to 100 (`ServeOptions.Keep` "must be at least 1," `open.go:92-94`) | next operation (the next migration) | `doctor`'s row, through the facts entry point; 6d's `serve` passes it as `ServeOptions.Keep` |
 
-The 6b-i plan's R-6bi8 section (`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md:178-180`)
+The 6b-i plan's R-6bi8 section (`docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md:178-180`)
 said 6d declares `DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP` "and 6c re-homes it after," written when 6c was
 expected after 6d. 6c now runs first, so 6c declares it as a store-homed key
 whose first production reader is `doctor`, which answers R-6bi8's `unused` concern; 6d wires it into
@@ -1236,8 +1236,8 @@ point).
 Model: `sonnet`. Depends on Tasks 0 to 5 and the simplifier round.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-6c.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-6c.md`
+- Create: `docs/research/handoffs/draft-STATUS-6c.md`
+- Create: `docs/research/handoffs/draft-HISTORY-6c.md`
 
 **Outcomes:**
 

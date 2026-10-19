@@ -1,8 +1,8 @@
 # Photo curation round one: plan fold record
 
 Fold of the three round-one plan reviews (contract `PC`, mechanics `PM`, domain risk `PD`) into
-`docs/superpowers/plans/2026-09-25-photo-curation-round-one.md`, against the spec
-`docs/superpowers/specs/2026-09-25-photo-curation-design.md`, now revision 2.3. Folder: Opus 5.5,
+`docs/plans/2026-09-25-photo-curation-round-one.md`, against the spec
+`docs/specs/2026-09-25-photo-curation-design.md`, now revision 2.3. Folder: Opus 5.5,
 2026-09-25, from commit `b843519`. Each finding was checked against the tree, the tools, or the
 review's own probe before it was folded. A finding is folded when it prevents real harm: a wrong
 license reaching the repo, a pick landing on the wrong image, a broken command, a blown ceiling,
@@ -123,7 +123,7 @@ PM4's `files` alternative. PM9's prune button is moot under the ruling.
 ## Second fold
 
 Narrow fold of the verification read
-(`docs/superpowers/research/2026-09-25-photo-curation-plan-fold-verification.md`, findings PV1 to
+(`docs/research/2026-09-25-photo-curation-plan-fold-verification.md`, findings PV1 to
 PV16) into the plan. Folder: Opus 5.5, 2026-09-25, from `a2aeb1b`. PV1 to PV6 and PV7 to PV14
 are folded as the verification proposes, except PV2, which follows the conductor's ruling. PV15
 and PV16 were outside this fold's scope and stand open for the conductor. Mechanisms rest on the
@@ -147,7 +147,7 @@ re-read for this fold.
 | PV13 | Folded (Task 2 outcome); the PC4 row above is corrected to say so. |
 | PV14 | Folded (Task 6 close step 2): close copies the keep's `_open/<id>.preview.webp`, the file Geoff judged, to the slug's `.webp` and hashes the copy. |
 | PV15 | Not folded; outside this fold's scope. Open for the conductor: `sleep 0.25` inside the Commons lock. |
-| PV16 | Not folded; outside this fold's scope. Open for the conductor: name `docs/superpowers/research/2026-09-24-identity-photos/` in Tasks 3 and 4, and map spaces and slashes in an archive key to `_`. |
+| PV16 | Not folded; outside this fold's scope. Open for the conductor: name `docs/research/2026-09-24-identity-photos/` in Tasks 3 and 4, and map spaces and slashes in an archive key to `_`. |
 
 Counts: 16 findings. 14 folded (PV2 per the conductor's ruling, with its closed-state press not
 taken). 2 left open for the conductor (PV15, PV16). The spec erratum from PV4 joins "Left for the

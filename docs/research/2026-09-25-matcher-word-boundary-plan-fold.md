@@ -1,9 +1,9 @@
 # Matcher word-boundary plan: fold 1 record
 
-Subject: `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`,
+Subject: `docs/plans/2026-09-25-matcher-word-boundary.md`,
 revision 1 folded to revision 2 (status "reviewed, fold 1; awaiting
 verification"). Inputs: the contract, mechanics, and risk lens reviews at
-`docs/superpowers/research/2026-09-25-matcher-word-boundary-plan-review-{contract,mechanics,risk}.md`.
+`docs/research/2026-09-25-matcher-word-boundary-plan-review-{contract,mechanics,risk}.md`.
 Every finding was checked against the tree at `1306ae3` or against a
 reviewer's recorded probe before it was folded. The fold wrote only the plan
 and this record; it committed nothing and ran no gate.

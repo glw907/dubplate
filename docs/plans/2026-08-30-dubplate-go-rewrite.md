@@ -5,7 +5,7 @@ design spec, migrated per-subcommand with rollback intact, and rename the
 estate from musicbox to dubplate throughout (project, repo, paths, binary,
 env, checks) — ratified by Geoff 2026-08-31 after a vetted naming brainstorm.
 
-**Spec:** `~/Projects/dubplate/docs/superpowers/specs/2026-08-30-dubplate-go-rewrite-design.md`
+**Spec:** `~/Projects/dubplate/docs/specs/2026-08-30-dubplate-go-rewrite-design.md`
 (approved by Geoff 2026-08-30 after four adversarial reviews). The plan argues
 from the spec; executors read both.
 
@@ -443,9 +443,9 @@ via `remove-check` inside one grace window so no false alert fires; rename
 them — `/srv/music` stays (it names the content, not the project).
 
 **Criteria:** the spec and plan chain migrates into the repo
-(`docs/superpowers/specs/` and `plans/`, following the cairn-family
+(`docs/specs/` and `plans/`, following the cairn-family
 convention) — the dubplate rewrite and uploader designs move from
-`~/.dotfiles/docs/superpowers/` with dotfiles-side pointers left behind, so
+`~/.dotfiles/docs/` with dotfiles-side pointers left behind, so
 the repo owns its documents as an adopter-facing project should; after this
 task, `grep -ri musicbox` across the repo returns
 only HISTORY entries and dated archive docs (the historical record keeps its

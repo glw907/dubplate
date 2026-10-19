@@ -1,7 +1,7 @@
 # Slice 1, Task 2: the client roster's demands
 
 Date read: 2026-10-07. Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-client-demands.md`.
+`docs/research/2026-10-06-slice-1-client-demands.md`.
 
 ## Pins read
 

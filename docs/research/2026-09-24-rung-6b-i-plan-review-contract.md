@@ -1,6 +1,6 @@
 # Rung 6b-i plan review: contract and criteria lens
 
-Target: `docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md` at
+Target: `docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md` at
 `b36871c` (revision 1, draft). Lens: is every promise testable, does each
 criterion name its fixture and why it would fail, can any pass vacuously,
 and the four planning-miss items (behaviors quoted, states named, privileged

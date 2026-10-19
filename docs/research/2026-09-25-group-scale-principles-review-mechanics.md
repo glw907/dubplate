@@ -1,6 +1,6 @@
 # Group-scale principles spec: mechanics and feasibility review
 
-Target: `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md` at commit
+Target: `docs/specs/2026-09-25-group-scale-principles-design.md` at commit
 `1d6bc6a` (revision 1, pre-review). Lens: does every mechanism behave as the spec states?
 Reviewer: Opus 5.5, 2026-09-25. Findings are ranked by consequence. Each carries a severity, a
 location in the target spec, the evidence, and a proposed fold. Product choices are marked

@@ -1,6 +1,6 @@
 # intake-1 plan fold verification
 
-Reader: fresh context (Opus 5.5), no part in the fold. Target: `docs/superpowers/plans/2026-10-12-intake-1.md` at
+Reader: fresh context (Opus 5.5), no part in the fold. Target: `docs/plans/2026-10-12-intake-1.md` at
 `d5e8f79`, read against the fold record `2026-10-12-intake-1-plan-fold.md`, the three reviews, the design, and the
 spec (revision 2). Pass class `auth-data`. Every cited code pointer named below was re-read at `d5e8f79` or in the
 module cache (tusd v2.10.1, mewkiz/flac v1.0.14, x/exp, x/sys v0.49.0, Go 1.27.2).

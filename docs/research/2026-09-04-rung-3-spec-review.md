@@ -11,7 +11,7 @@ I've completed the review. Findings below.
 
 ---
 
-# Adversarial review: `docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`
+# Adversarial review: `docs/specs/2026-09-03-rung-3-go-matcher.md`
 
 Reviewed against the ratified build spec (rev 2.1), the rulings, the mechanics study, the dependency analysis, parallel-approach rev 2, and the tree as committed at `a878db8` (215 cases, `internal/harness/{cassette,stub,analysis,oracle}`, `corpus/analysis/*.json`). Rulings A–F are treated as settled; every finding below is about operationalization, tree fidelity, or internal consistency.
 

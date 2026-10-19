@@ -2,7 +2,7 @@
 
 Reviewed: `docs/superpowers/plans/2026-09-25-photo-curation-round-one.md` at `1240bfa`, against the
 spec (revision 2.2), `docs/STATUS.md`, `scripts/check.sh`, `.gitleaks.toml`, and the research under
-`docs/superpowers/research/2026-09-24-identity-photos/`. Reviewer: Opus 5.5, domain risk lens,
+`docs/research/2026-09-24-identity-photos/`. Reviewer: Opus 5.5, domain risk lens,
 2026-09-25.
 
 **Verdict:** approve after six Major folds. Nothing is a blocker. Every image reaches the repo only

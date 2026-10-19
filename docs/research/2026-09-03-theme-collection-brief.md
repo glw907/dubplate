@@ -2,7 +2,7 @@
 
 Research brief, 2026-09-03. Firms up the theme roster named in the
 greenfield build spec's ladder entry 7 theming ruling
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:602-613`)
+(`docs/specs/2026-09-02-greenfield-server-build.md:602-613`)
 and entry 12's estate note (same file, lines 675-680): the roster
 grows a matching DaisyUI theme for each streamer a driver ships,
 authored as a CSS variable block from a published palette standard,

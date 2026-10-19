@@ -100,7 +100,7 @@
    "dimension": "drift"
   },
   {
-   "artifact": "dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md",
+   "artifact": "dotfiles/docs/specs/2026-08-30-music-vps-build-design.md",
    "claim": "The design spec's Monitoring section and the plan's Task 6 checklist still describe healthchecks.io as the monitoring backend, but the estate replaced it with the custom pings Cloudflare Worker before this pass.",
    "evidence": "design-spec Monitoring section, line 130: \"Four healthchecks.io checks (free tier): backup success, import-timer success, volume free space, and a Navidrome HTTP heartbeat.\" plans/2026-08-30-music-vps-build.md line 177 and 192 still instruct: \"Create the four healthchecks.io checks via API\" and \"all four checks green on the healthchecks dashboard.\" But pings/README.md line 3 states plainly: \"A small Cloudflare Worker that replaces healthchecks.io for the 907.life estate,\" and every actual musicbox check-minting call in HISTORY.md goes through `~/Projects/pings/scripts/add-check` against pings.907.life, not healthchecks.io. musicbox/scripts/lib.sh's own `ping_hc` function comments (lines 87-96) still say \"healthchecks.io\" throughout even though the URLs it curls now point at the pings Worker.",
    "severity": "medium",
@@ -136,7 +136,7 @@
   {
    "artifact": ".dotfiles/bin/.local/bin/music-sync",
    "claim": "music-sync is dead code left over from the superseded workstation-master architecture: the current spec says it 'is replaced by music-pull', but music-pull was never built and music-sync is still live and stowed, contradicting the new single-master (musicbox VPS) design.",
-   "evidence": "docs/superpowers/specs/2026-08-30-music-vps-build-design.md:150-158 ('Workstation changes'): '`music-sync` (committed 2026-08-30, laptop-pushes-to-replicas) is replaced by `music-pull`... the workstation beets no longer masters anything.' `find ~/.dotfiles -iname '*music-pull*'` returns nothing -- music-pull was never created. `.dotfiles/bin/.local/bin/music-sync` still exists (mtime Aug 30, unchanged since the old spec) and still does exactly what the new spec says to stop doing: `rclone sync \"$LIBRARY\" \"musicr2:$R2_BUCKET\"` writes ~/Music straight into the R2 bucket root (no prefix), using MUSIC_R2_ACCESS_KEY_ID/SECRET -- a *different* credential pair, remote name, and path layout than musicbox/scripts/music-backup's `rclone sync $LIBRARY_DIR $R2_REMOTE:$R2_BUCKET/library` (MUSICBOX_R2_*, prefixed 'library/', with --backup-dir archiving). Two scripts now write to the same bucket under different layouts with the master-ownership question unresolved for music-sync's half.",
+   "evidence": "docs/specs/2026-08-30-music-vps-build-design.md:150-158 ('Workstation changes'): '`music-sync` (committed 2026-08-30, laptop-pushes-to-replicas) is replaced by `music-pull`... the workstation beets no longer masters anything.' `find ~/.dotfiles -iname '*music-pull*'` returns nothing -- music-pull was never created. `.dotfiles/bin/.local/bin/music-sync` still exists (mtime Aug 30, unchanged since the old spec) and still does exactly what the new spec says to stop doing: `rclone sync \"$LIBRARY\" \"musicr2:$R2_BUCKET\"` writes ~/Music straight into the R2 bucket root (no prefix), using MUSIC_R2_ACCESS_KEY_ID/SECRET -- a *different* credential pair, remote name, and path layout than musicbox/scripts/music-backup's `rclone sync $LIBRARY_DIR $R2_REMOTE:$R2_BUCKET/library` (MUSICBOX_R2_*, prefixed 'library/', with --backup-dir archiving). Two scripts now write to the same bucket under different layouts with the master-ownership question unresolved for music-sync's half.",
    "severity": "medium",
    "kind": "factual",
    "fix": "Either delete/unstow music-sync now that the VPS is the canonical master (nothing in ~/Music needs pushing since 'the workstation beets no longer masters anything'), or, if Geoff still wants a workstation contributor/mirror script, build the documented music-pull (read-only rclone copy of library/ down to ~/Music) and retire music-sync in the same pass rather than leaving both the stale script and the promised replacement absent.",
@@ -391,7 +391,7 @@
    "dimension": "altitude"
   },
   {
-   "artifact": ".dotfiles/docs/superpowers/specs/2026-08-30-music-vps-build-design.md",
+   "artifact": ".dotfiles/docs/specs/2026-08-30-music-vps-build-design.md",
    "line": 130,
    "claim": "The spec chain still assigns monitoring to healthchecks.io while it is implemented as the pings Worker in a separate repo, and musicbox's code and units carry healthchecks.io naming throughout \u2014 the substitution happened without the design or the interface names following.",
    "evidence": "Spec line 130-131: \"Four healthchecks.io checks (free tier): backup success, import-timer success, volume free space, and a Navidrome HTTP heartbeat\"; line 148 lists \"healthchecks ping URLs\" among the secrets. Plan Task 6 line 176-179 likewise says \"Create the four healthchecks.io checks via API\". Reality: pings/README.md:3 \"A small Cloudflare Worker that replaces healthchecks.io for the 907.life estate\", and pings/docs/STATUS.md:11-14 holds the registrations. Neither spec nor plan mentions pings at all. The naming persists in code: `MUSICBOX_HC_*` env vars (env/musicbox.env.template:30-39), lib.sh:89/94 \"Curls the healthchecks.io URL\", music-import:56 \"healthchecks.io has no 'this run did nothing' state\", both service units' comments, and musicbox-ping-failure:6/15. Finding 2 is the concrete cost: the client was never re-derived against the new server's contract.",
@@ -444,7 +444,7 @@
    "dimension": "altitude"
   },
   {
-   "artifact": ".dotfiles/docs/superpowers/specs/2026-08-30-music-library-design.md",
+   "artifact": ".dotfiles/docs/specs/2026-08-30-music-library-design.md",
    "line": 1,
    "claim": "The superseded PikaPods design carries no forward pointer, so the older spec still reads as current and is the document that keeps music-sync alive.",
    "evidence": "2026-08-30-music-library-design.md opens \"The music system masters a FLAC library on the workstation, streams it to family through a Navidrome pod on PikaPods\" (line 3) and line 21-23 describes music-sync as the live push tool; nothing in the file marks it superseded. The supersession exists only in the newer file: 2026-08-30-music-vps-build-design.md:6-8 \"This supersedes the PikaPods-pod half of `2026-08-30-music-library-design.md`\". Both sit in the same specs/ directory with the same date prefix, so a fresh reader has a 50% chance of acting on the retired one \u2014 and the plan's Task 8 line 209 explicitly owed this file a \"cross-reference note\" that was never written.",
@@ -1413,7 +1413,7 @@
    "id": "altitude-14",
    "verdict": "confirmed",
    "severity": "low",
-   "note": "Verified: 2026-08-30-music-library-design.md:3 still reads 'streams it to family through a Navidrome pod on PikaPods' and lines 21-23 describe music-sync as the live push tool, with no supersession banner anywhere in the file (grep for 'supersed' matches only the newer spec). 2026-08-30-music-vps-build-design.md:5 carries the one-directional pointer. The plan's Task 8 'Files' block (line 208-209) explicitly owes '~/.dotfiles/docs/superpowers/specs/ cross-reference note', and musicbox/docs/STATUS.md confirms Task 8 has not started, so the note is genuinely outstanding rather than done elsewhere."
+   "note": "Verified: 2026-08-30-music-library-design.md:3 still reads 'streams it to family through a Navidrome pod on PikaPods' and lines 21-23 describe music-sync as the live push tool, with no supersession banner anywhere in the file (grep for 'supersed' matches only the newer spec). 2026-08-30-music-vps-build-design.md:5 carries the one-directional pointer. The plan's Task 8 'Files' block (line 208-209) explicitly owes '~/.dotfiles/docs/specs/ cross-reference note', and musicbox/docs/STATUS.md confirms Task 8 has not started, so the note is genuinely outstanding rather than done elsewhere."
   },
   "test-quality-2": {
    "id": "test-quality-2",

@@ -2,7 +2,7 @@
 
 Target: `docs/superpowers/specs/2026-09-25-project-site-design.md` at `73b429f` (revision 2),
 against revision 1 (`e91f528`), the fold record
-`docs/superpowers/research/2026-09-25-project-site-fold.md`, and the five review files. Line
+`docs/research/2026-09-25-project-site-fold.md`, and the five review files. Line
 numbers below are revision 2's.
 
 ## Verdict

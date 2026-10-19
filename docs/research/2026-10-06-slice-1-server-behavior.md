@@ -1,7 +1,7 @@
 # Slice 1, Task 4: where the specification is silent, what Navidrome and gonic do
 
 Date read: 2026-10-07 (UTC, 04:50 to 05:20). Staged outside the repo; lands at A-land as
-`docs/superpowers/research/2026-10-06-slice-1-server-behavior.md`. This is the spec's "written record"
+`docs/research/2026-10-06-slice-1-server-behavior.md`. This is the spec's "written record"
 (`2026-09-07-streamer-2-0-design.md:724-726`) in its server half, and the citation source for the protocol layer's
 clean-room clause (`:316-318`).
 

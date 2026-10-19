@@ -1,6 +1,6 @@
 # Rung 6d plan rebase: revision 2.2 to 2.3
 
-The fold record for `docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md` revision 2.3,
+The fold record for `docs/plans/2026-09-26-rung-6d-identity-serve-store.md` revision 2.3,
 2026-10-06. Revision 2.2 (`5ed193f`) was cited at `20f4a7c`, with some lines at `314c0c8` and
 `985ff3a`. Revision 2.3 cites everything at `0cb33ae`. Every pointer below was re-resolved there with
 `git show`, `grep -n`, `go doc`, and `man`; no line was carried from revision 2.2 unread.

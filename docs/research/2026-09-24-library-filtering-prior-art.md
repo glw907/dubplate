@@ -18,7 +18,7 @@ OR inside a facet and AND across facets, show a live count beside every value, l
 excluded as well as included, put the whole state in the URL, and keep a query language beside
 the controls for people who type faster than they click.
 
-Paths below are relative to `docs/superpowers/` unless they start with `corpus/`.
+Paths below are relative to `docs/` unless they start with `corpus/`.
 
 ## Part 1: what dubplate can filter on
 

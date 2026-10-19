@@ -4,7 +4,7 @@ Status: **DRAFT, rulings ratified.** Revision 2, 2026-09-05. All six open ruling
 
 Erratum, 2026-09-07 (Geoff): the build carries no calendar schedule; the shadow floor is an evidence minimum, never a launch date, and the date arithmetic below was removed.
 
-Erratum, 2026-09-08 (rung 1b close): four passages below are corrected, source `docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`. The `.gitleaksignore` fragility this spec restates twice (`:1476-1485`, `:1787-1788`) is retired: rung 1b renamed the field the finding keyed on rather than re-pinning the file, and the repo carries no suppression. The staleness pre-task's "Has rung 1b landed?" ordering assumption (`:1689-1692`) never fires, because this window ran 1b after pass 4b; the re-expression of ruling 1's option (a) into registry terms is rung 1b's own migration work (its Task 4), already landed. Its `.gitleaksignore` staleness question (`:1697-1699`) is answered permanently rather than restated: there is no pin left to go stale.
+Erratum, 2026-09-08 (rung 1b close): four passages below are corrected, source `docs/plans/2026-09-07-rung-1b-config-registry.md`. The `.gitleaksignore` fragility this spec restates twice (`:1476-1485`, `:1787-1788`) is retired: rung 1b renamed the field the finding keyed on rather than re-pinning the file, and the repo carries no suppression. The staleness pre-task's "Has rung 1b landed?" ordering assumption (`:1689-1692`) never fires, because this window ran 1b after pass 4b; the re-expression of ruling 1's option (a) into registry terms is rung 1b's own migration work (its Task 4), already landed. Its `.gitleaksignore` staleness question (`:1697-1699`) is answered permanently rather than restated: there is no pin left to go stale.
 
 The six open rulings in the next section go to Geoff. Under the
 2026-09-05 unattended grant, the plan that follows this spec applies
@@ -17,19 +17,19 @@ code, it is named here as an owner touchpoint rather than assumed
 (ruling 6).
 
 Written against the ratified build spec
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`,
+(`docs/specs/2026-09-02-greenfield-server-build.md`,
 revision 2.1, hereafter BS), the rulings
-(`docs/superpowers/research/2026-09-02-greenfield-server-rulings.md`),
+(`docs/research/2026-09-02-greenfield-server-rulings.md`),
 the dependency analysis
-(`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md`,
+(`docs/research/2026-09-03-rung-dependency-analysis.md`,
 DA), the execution model
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`,
+(`docs/specs/2026-09-03-parallel-build-approach.md`,
 revision 2, PA), the rung 3 spec
-(`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, R3), the
+(`docs/specs/2026-09-03-rung-3-go-matcher.md`, R3), the
 reverse-edge completion
-(`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`,
+(`docs/research/2026-09-04-reverse-edge-completion.md`,
 RE), and the rung 4 spec inventory
-(`docs/superpowers/research/2026-09-05-rung-4-spec-inventory.md`,
+(`docs/research/2026-09-05-rung-4-spec-inventory.md`,
 INV), which is this rung's survey of the estate and the seam. A
 reference to "the build spec's ruling 1" means the shadow-floor ruling
 at `BS:804-815`; a bare "ruling N" is always one of this document's
@@ -41,7 +41,7 @@ factual claim cites `path:line` against the tree at
 findings are cited rather than re-derived.
 
 Revision 2, 2026-09-05: folds two fresh-context adversarial reviews,
-merged at `docs/superpowers/research/2026-09-05-rung-4-spec-review.md`,
+merged at `docs/research/2026-09-05-rung-4-spec-review.md`,
 blockers B1-B6, majors M1-M11, minors m1-m15. All thirty-two findings
 are folded; three take an adaptation rather than the literal fix, each
 named inline where it lands, and one half of one finding is rejected

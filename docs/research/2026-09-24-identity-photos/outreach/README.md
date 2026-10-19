@@ -1,7 +1,7 @@
 # Outreach drafts
 
 One letter per recipient, drafted under the photo curation spec's Outreach section
-(`docs/superpowers/specs/2026-09-25-photo-curation-design.md`). Geoff reads and sends each
+(`docs/specs/2026-09-25-photo-curation-design.md`). Geoff reads and sends each
 letter from his own account. Status moves through drafted, approved, sent, and answered. A draft
 whose contact route fails verification is `blocked`, with the reason.
 

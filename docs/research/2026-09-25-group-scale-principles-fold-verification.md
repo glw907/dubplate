@@ -1,6 +1,6 @@
 # Group-scale principles spec: fold verification
 
-Target: `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`, revision 2 at
+Target: `docs/specs/2026-09-25-group-scale-principles-design.md`, revision 2 at
 `08c812f`. Fold record: `2026-09-25-group-scale-principles-fold.md`. Reviews: the contract,
 mechanics, misuse, consistency, and early prose files under this directory. The reader took no
 part in the fold. Line numbers below are the spec's at `08c812f` unless another file is named.

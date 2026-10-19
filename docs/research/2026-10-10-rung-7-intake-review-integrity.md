@@ -1,6 +1,6 @@
 # Rung 7 intake spec, revision 1: data integrity and failure review
 
-Lens: data integrity and failure risk. Target: `docs/superpowers/specs/2026-10-10-rung-7-intake-design.md` at
+Lens: data integrity and failure risk. Target: `docs/specs/2026-10-10-rung-7-intake-design.md` at
 `9fc7c53` (cited below as `spec:<line>`). Code read on master at `9fc7c53`; tusd read from the module cache at
 v2.10.1; `tus-js-client` read from the published 4.3.1 tarball (`npm pack tus-js-client@4.3.1`, `lib/upload.js`).
 

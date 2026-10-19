@@ -6,23 +6,23 @@ History:
 
 - Revision 1 at `5afe46b`.
 - Revision 2 folds the three lens reviews (contract, mechanics, and risk) per
-  `docs/superpowers/research/2026-09-26-rung-6d-plan-fold.md`.
+  `docs/research/2026-09-26-rung-6d-plan-fold.md`.
 - Revision 2.1 folds the verification read (`2026-09-26-rung-6d-plan-fold-verification.md`) per that
   record's "Second fold" section.
 - Revision 2.2 (`5ed193f`) folds the prose review (`2026-09-26-rung-6d-plan-prose-review.md`) per the
   fold record's "Prose fold" section.
 - Revision 2.3 rebases the plan onto master at `0cb33ae`, after rung 5's close, the navidrome-removal
   pass, and the rungs 12 to 16 re-plan. The fold record is
-  `docs/superpowers/research/2026-10-06-rung-6d-plan-rebase.md`. Revision 2.2's rulings were never
+  `docs/research/2026-10-06-rung-6d-plan-rebase.md`. Revision 2.2's rulings were never
   answered, and its approval gate is superseded by this revision's.
 - Revision 2.4 folds the three lens reviews of revision 2.3 (contract, mechanics, and risk) per
-  `docs/superpowers/research/2026-10-06-rung-6d-plan-fold.md`: Task 1 proves only what `serve`
+  `docs/research/2026-10-06-rung-6d-plan-fold.md`: Task 1 proves only what `serve`
   decides, over a cmd-level older-store helper; `doctor` names an unclaimed load error; the reset
   baseline gets its own test; the runbook's rollback, upgrade, and settings text are corrected; the
   reconciler's report names `member add --admin`; member removal is cited to rung 14 (CH). No
   ruling changes, and the ceiling and task count stand.
 - Revision 2.5 folds the verification read of revision 2.4
-  (`docs/superpowers/research/2026-10-06-rung-6d-plan-fold-verification.md`) per the fold record's
+  (`docs/research/2026-10-06-rung-6d-plan-fold-verification.md`) per the fold record's
   "Second fold" section: the foreign-owner rows in Tasks 1 and 4 are replaced by a citation of
   `TestOpenModes_OwnerAndFilesystemRefused`, `Report.StoreVersion` reads `Report.StoreVersion`, R-6d2,
   R-6d4, and R-6d21 agree on the pre-open check, Ruling 4's no names Task 1, and the state-dir script
@@ -46,18 +46,18 @@ on Ruling 4 keeps ten tasks and raises the ceiling.
 
 Sources, in order of authority:
 
-- The ratified rung 6 spec (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
+- The ratified rung 6 spec (`docs/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
   2.2 with errata E1 to E11 and the 2026-10-06 `0003` erratum, "the spec"): owner ruling 1
   (`:52-59`), the 6d pass section and criteria 1 to 14 (`:1105-1138`), "The settings home" and "The
   seed handoff" (`:737-819`), "Identity in the store" (`:821-893`), "Three open modes" and
   "Migrations" (`:287-451`), "Package territory" (`:194-225`), "The 2.0 forward hooks" (`:896-912`),
   "Prior art" (`:914-936`), "Planning-miss prevention" (`:938-958`), "Band and ceilings"
   (`:1140-1169`), "Contested surfaces" (`:1171-1180`), and "Not verified" (`:1273-1284`).
-- The rungs 12 to 16 re-plan spec (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+- The rungs 12 to 16 re-plan spec (`docs/specs/2026-10-05-rungs-12-16-replan-design.md`,
   revision 2.1, approved, "the re-plan"): rulings 1 to 7 (`:36-70`), the four things revision 2.3
   carries (`:202-209`), "The username rename" and its roster step (`:293-331`), and "Where the carried
   items land" (`:410-445`).
-- The configuration homes spec (`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`,
+- The configuration homes spec (`docs/specs/2026-09-11-configuration-homes-design.md`,
   CH), above all the `sensitive` paragraph (CH `:167-173`) and its 2026-10-05 erratum (CH `:12-29`),
   which touches no 6d surface.
 - What earlier passes handed 6d: `docs/STATUS.md`'s "To 6d" line; `docs/HISTORY.md`'s 6c entry ("The
@@ -66,13 +66,13 @@ Sources, in order of authority:
   identity, R9 option b); 6a's open items (serve's settle loop, the logger guard; the migration wait
   registering at 6d, E1); 5c-iv's "To 6d Task 4" (`rosterResetServer`'s baseline); 5c-ii's
   re-validation item (every existing row's username, routed to 6d by the re-plan `:432`).
-- The 6c architecture reads (`docs/superpowers/research/2026-09-26-rung-6c-architecture-reads.md`):
+- The 6c architecture reads (`docs/research/2026-09-26-rung-6c-architecture-reads.md`):
   `internal/engine/store` finding 1 (`OpenServe` has no production caller; `OpenWrite`'s "start serve
   first" cannot be satisfied on a fresh box) and `internal/settings` finding 1 (the apply is unexported
   and uncalled while `cmd/dubplate-server/backup.go:274` and `store.go:286-307` promise serve applies
   settings at its next start). The removal pass's reads repeat the store finding (HISTORY, "Navidrome
   removal", reviewer dispositions). 6d wires both.
-- The 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision 3,
+- The 0.8 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, revision 3,
   "S20"): "Forward hooks the current build owes" (`:767-854`), "Prior art" (`:856-891`), and
   "Identity and app passwords" (`:478-511`).
 - `docs/server-runbook.md` at `0cb33ae`: "Install order" (`:14-214`), "Re-create a roster written
@@ -950,7 +950,7 @@ Model: `opus`, fresh context. Depends on approval. **0.8 hooks:** neutral.
 
 **Part 1, the sweep.** Run the `dependency-upgrade` skill over `go.mod`, `web/package.json`,
 `tools/venv/requirements.txt`, and the pinned binaries (rclone, golangci-lint, Playwright), starting
-from the "after" column of `docs/superpowers/research/2026-10-05-dependency-sweep.md`. Every minor and
+from the "after" column of `docs/research/2026-10-05-dependency-sweep.md`. Every minor and
 patch lands in its own commit with the full gate green; a major is held with its unblock condition and
 does not block 6d. A sweep that moves something writes its record beside the 2026-10-05 one; a sweep
 with nothing to move is one line in this task's report. The survey's take-now decisions follow the

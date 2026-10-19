@@ -2,7 +2,7 @@
 
 # Adversarial spec review: magic-link login + streamer SSO
 
-Spec: `/var/home/glw907/Projects/dubplate/docs/superpowers/specs/2026-09-02-magic-link-login-design.md`
+Spec: `/var/home/glw907/Projects/dubplate/docs/specs/2026-09-02-magic-link-login-design.md`
 
 ---
 

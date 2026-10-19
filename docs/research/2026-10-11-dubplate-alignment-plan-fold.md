@@ -1,13 +1,13 @@
 # Dubplate alignment plan: fold record
 
 **Design change: none.** No finding changes the approved design
-(`docs/superpowers/specs/2026-10-11-dubplate-alignment-design.md`) or any of Geoff's five rulings. The dependency
+(`docs/specs/2026-10-11-dubplate-alignment-design.md`) or any of Geoff's five rulings. The dependency
 sweep (C7, m7) applies the adapter's standing 2026-10-04 rule rather than adding scope to the design, and the class
 raise to `auth-data` follows pass-core's "the design's class is a floor".
 
-Target: `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` and its launch prompt
+Target: `docs/plans/2026-10-11-dubplate-alignment.md` and its launch prompt
 `docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt`, as of `c58caf2`. Reviews:
-`docs/superpowers/research/2026-10-11-dubplate-alignment-plan-review-{contract,mechanics,risk}.md` (ids below: C for
+`docs/research/2026-10-11-dubplate-alignment-plan-review-{contract,mechanics,risk}.md` (ids below: C for
 contract, CO for its over-ceremony list, B, M, and m for mechanics, R for risk). The fold followed
 `superpowers:receiving-code-review` and the `spec-plan-review` fold rules. The planning session settled ten points
 before the fold (cited "PS-1" to "PS-11" below, in the order the fold brief gives them); this record carries them as
@@ -157,7 +157,7 @@ dispositions.
 
 ## Verification fold
 
-The verification read (`docs/superpowers/research/2026-10-11-dubplate-alignment-plan-fold-verification.md`, at
+The verification read (`docs/research/2026-10-11-dubplate-alignment-plan-fold-verification.md`, at
 `582d47e`) found no blocker, one major, and ten minors, and no design change or owner fork. Each is folded; none
 needed a new verification read by the verifier's own judgment.
 

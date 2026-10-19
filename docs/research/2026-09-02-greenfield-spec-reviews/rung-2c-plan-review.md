@@ -1,7 +1,7 @@
 # Adversarial review: the rung 2, pass 2c plan (revision 1)
 
 Fresh-context adversarial review of
-`docs/superpowers/plans/2026-09-03-rung-2c-catalog-adversarial.md`
+`docs/plans/2026-09-03-rung-2c-catalog-adversarial.md`
 (revision 1, 2026-09-03), 2026-09-03. Hostile by default. Every cited
 interface was checked against the shipped source at `c126d84`, not
 against the plan's or the inventory's prose.
@@ -10,7 +10,7 @@ Counts: **2 BLOCKER, 12 MAJOR, 9 MINOR.**
 
 Read alongside `2026-09-02-rung-2b-staleness-corrections.md`, the
 proven method this plan must not regress, and
-`docs/superpowers/research/2026-09-03-rung-2c-planning-inventory.md`,
+`docs/research/2026-09-03-rung-2c-planning-inventory.md`,
 whose findings the plan declares non-litigable.
 
 ---

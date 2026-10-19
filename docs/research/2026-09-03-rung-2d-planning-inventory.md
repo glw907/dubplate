@@ -24,7 +24,7 @@ authoring time, and 2c's blocker M5 and the 2c-plan-review's
 "Verified sound" section both re-confirm it: `AppliedFields` is the
 field-level record of beets' in-memory `apply_metadata()` step, proven
 to need no files, no importer, no library
-(`docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md:205-211`).
+(`docs/plans/2026-09-02-rung-2a-cassette-substrate.md:205-211`).
 `derive_oracle.py`'s own docstring on `applied_fields()` states the
 boundary explicitly: "This is the field-level record only. What
 `item.write()` would put in a file is pass 2c's deliverable"
@@ -40,7 +40,7 @@ byte-identically after 2d's change.
 **The artifact is a second, independent derivation entry point in the
 shape of `derive_component.py`** (M5's concrete fix, restated in the
 2c plan's Task 20 carry-forward note,
-`docs/superpowers/plans/2026-09-03-rung-2c-catalog-adversarial.md:1034-1042`):
+`docs/plans/2026-09-03-rung-2c-catalog-adversarial.md:1034-1042`):
 a script that reads a *committed record's* `AppliedFields`, builds
 beets `Item` objects from those fields (the same `build_items` shape
 already in `derive_oracle.py:156-165`), writes each item to a fresh
@@ -271,13 +271,13 @@ above; `MediaFile` class at
 
 **Both are unwritten**, confirmed absent: no file matching
 `*differential*` or `*re-capture*` or `*revalidat*` exists under
-`docs/superpowers/` today (the 2c plan's Task 20 carry-forward note
+`docs/` today (the 2c plan's Task 20 carry-forward note
 states this plainly: "The version-bump differential and quarterly
 re-capture chore docs are unwritten, deferred with Task 13",
 `2026-09-03-rung-2c-catalog-adversarial.md:1059-1063`).
 
 **What the differential doc must contain, per U7**
-(`docs/superpowers/research/2026-09-02-beets-evolution-lessons.md:396-412`,
+(`docs/research/2026-09-02-beets-evolution-lessons.md:396-412`,
 confirmed by direct read):
 
 - The standing job drives pinned beets as a subprocess with an estate
@@ -302,7 +302,7 @@ confirmed by direct read):
   figure"). The build spec independently requires this: ladder entry
   2 names "the client's hard 0.25s inter-request floor in
   differential wall-time budgets" as an explicit deliverable
-  (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:508-511`).
+  (`docs/specs/2026-09-02-greenfield-server-build.md:508-511`).
   2d's plan must pull the corpus's actual committed case count and
   request-count distribution (from 2c's close, not from this
   report's stale arithmetic) to compute the real figure — this

@@ -1,6 +1,6 @@
 # Dubplate alignment plan: fold verification
 
-**Target:** `docs/superpowers/plans/2026-10-11-dubplate-alignment.md` and
+**Target:** `docs/plans/2026-10-11-dubplate-alignment.md` and
 `docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt` at `582d47e`, against the fold record
 (`research/2026-10-11-dubplate-alignment-plan-fold.md`), the three reviews, the approved design, `pass-core`, the
 `dubplate-pass` adapter, and `spec-plan-review` ("The verification read"). This reader had no part in the fold.
@@ -163,7 +163,7 @@ printed 43.
 - plan:278-279: "the originals' `stat -c %Y` is unchanged" has no baseline. Record the three values before the copy.
   Today they are the Oct 10 mtimes shown by `ls -la reports/`.
 - plan:481 and :769: the planning prompt tells the `admin-api-1` planner "this plan is the model", but the Close
-  archives the plan to `docs/superpowers/archive/plans/`. The prompt should cite the archive path.
+  archives the plan to `docs/archive/plans/`. The prompt should cite the archive path.
 - plan:109: the launch check matches on `cwd` only. Add `or .name == "dubplate-alignment"`, so that a session still
   in the main checkout, or one that died before EnterWorktree, is also caught.
 - plan:253: the fold dropped the pre-fold provenance "relayed by the conducting session" from Geoff's Pi 5

@@ -2,7 +2,7 @@
 
 The read R-5b16 requires at the end of the 5b-i half (R24 as corrected).
 Graded against the rung 5 spec's threat model
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`, "## The
+(`docs/specs/2026-09-08-rung-5-identity-auth.md`, "## The
 threat model") and its auth-core sections ("## The auth core" through
 "### The verify-identity seam"). Scope: `internal/identity/*.go`,
 `internal/auth/*.go`, `cmd/dubplate-server/auth.go`, and the 5b-i

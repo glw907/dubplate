@@ -1,8 +1,8 @@
 # Navidrome removal plan: fold record
 
 Target: `docs/superpowers/plans/2026-10-05-navidrome-removal.md`, revision 1 at `5ec8a4a`, now revision 2.
-Reviews: `docs/superpowers/research/2026-10-05-navidrome-removal-plan-review-{contract,mechanics,risk}.md`.
-Spec: `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1.
+Reviews: `docs/research/2026-10-05-navidrome-removal-plan-review-{contract,mechanics,risk}.md`.
+Spec: `docs/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1.
 Method: each finding was checked against the tree at `5ec8a4a` before it was folded. A finding id appears once below.
 Convergent findings were fixed once, and each gets its own row pointing at the shared fold.
 

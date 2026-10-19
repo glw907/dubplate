@@ -7,7 +7,7 @@ see the ratify-or-reverse table in
 **Revision 2, 2026-09-08.** Revision 1 went through a fresh-context
 adversarial review, one lens covering absorption correctness and plan
 integrity, folded here. The record is
-`docs/superpowers/research/2026-09-08-rung-8c-plan-review.md`, whose
+`docs/research/2026-09-08-rung-8c-plan-review.md`, whose
 21-item "Verified sound" list is the do-not-re-litigate record for this
 pass and whose three corrections to the review's own evidence carry the
 measurements. Thirteen findings folded and none was rejected. Three
@@ -36,7 +36,7 @@ argued in the record.
 
 Drafted against the rung 8 spec at revision 2 with both close errata in
 its header
-(`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`, last landed at
+(`docs/specs/2026-09-07-rung-8-tag-io.md`, last landed at
 `3604294`), whose fourteen conductor rulings are applied and whose four
 owner rulings are ruled. The pass-split table's 8c row (`spec:1168`) is
 this plan's scope statement. Every `spec:`, `docs/HISTORY.md:` and
@@ -122,7 +122,7 @@ that could break it rather than a hope at the close.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md`, revision 2,
+1. **`docs/specs/2026-09-07-rung-8-tag-io.md`, revision 2,
    both header errata included.** The 8c row of the pass-split table
    (`spec:1168`) is the scope statement. The sections this pass
    implements are "What the absorption costs" (`spec:978-1011`), "The
@@ -147,7 +147,7 @@ Read these before Task 1, in this order.
    a later pass would be wrong to rediscover (`:1331-1352`). 8a's refusal
    set and the reader's shape are the rules this pass tightens the
    capture path to.
-4. **`docs/superpowers/research/2026-09-08-rung-8b-plan-review.md`**, and
+4. **`docs/research/2026-09-08-rung-8b-plan-review.md`**, and
    inside it the merged 42-item "Verified sound" list (`:683` onward).
    That list is the do-not-re-litigate record for rung 8's plan shape,
    and it covers the assertion-discipline bar, the mutation-reporting
@@ -163,11 +163,11 @@ Read these before Task 1, in this order.
    `container_test.go:1-120`. **Count the `buildFLAC` call sites
    yourself** rather than trusting this plan's count, and report what you
    find (Task 0, item 3).
-6. **`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`'s forward
+6. **`docs/specs/2026-09-07-streamer-2-0-design.md`'s forward
    hooks** (`S2:354-391`). Rung 8's own hook positions are the spec's
    table (`spec:1065-1080`): hooks 13 and 14 are recorded, hook 3 landed
    at 8b, and 8c lands none. Every task below states its position anyway.
-7. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`'s
+7. **`docs/specs/2026-09-03-parallel-build-approach.md`'s
    ownership table** (`:175-220`), whose `internal/engine/shadow` row
    (`:199`) says no lane but rung 4 writes that package. Rung 8's own
    contested-surfaces table amends it (`spec:1197`), and **the conductor
@@ -243,7 +243,7 @@ flag routes to the conductor rather than to Geoff (Geoff, 2026-09-08).
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` (revision 2, with
+`docs/specs/2026-09-07-rung-8-tag-io.md` (revision 2, with
 the 2026-09-08 errata), and behind it
 `specs/2026-09-02-greenfield-server-build.md` (revision 2.1, ratified),
 ladder entry 8. 8c builds deliverable 7 of the spec's seven
@@ -1435,8 +1435,8 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
 
 **Files:**
 - Draft, in the main tree:
-  `docs/superpowers/research/handoffs/draft-STATUS-8c.md` and
-  `docs/superpowers/research/handoffs/draft-HISTORY-8c.md`, the second
+  `docs/research/handoffs/draft-STATUS-8c.md` and
+  `docs/research/handoffs/draft-HISTORY-8c.md`, the second
   carrying this pass's `ROADMAP.md` text (the ledger text as drafts;
   **the implementer never edits or commits a ledger**)
 - Draft, handed to the conductor in the task return: the spec
@@ -1444,8 +1444,8 @@ Model: `sonnet`. Depends on Tasks 0 through 3 and on the batched
 
 **Ruled, conductor 2026-09-12 (M11,
 `plans/2026-09-12-overnight-window.md`):** The ledger text is written as
-drafts at `docs/superpowers/research/handoffs/draft-STATUS-8c.md` and
-`docs/superpowers/research/handoffs/draft-HISTORY-8c.md` in the main
+drafts at `docs/research/handoffs/draft-STATUS-8c.md` and
+`docs/research/handoffs/draft-HISTORY-8c.md` in the main
 tree, the second carrying this pass's `ROADMAP.md` text, never to
 `docs/STATUS.md`, `docs/HISTORY.md` or `ROADMAP.md` themselves. The
 conductor folds the drafts into the real ledgers at the merge and

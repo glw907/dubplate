@@ -451,7 +451,7 @@ The runner's other rules:
 - Files are append-only once merged. A lane that rebases onto another lane's migration renumbers its
   own, and the rebase is non-fast-forward, so merge ritual step 5 runs.
 
-> Erratum, 2026-10-06 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+> Erratum, 2026-10-06 (rungs 12 to 16 re-plan spec, `docs/specs/2026-10-05-rungs-12-16-replan-design.md`,
 > revision 2.1, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): a one-time exception to the append-only
 > rule above. `0003_catalog.sql` and its fixtures `0003_catalog.sql`, `0004_settings.sql`, and
 > `0005_routed.sql` under `internal/engine/store/testdata/fixtures/` were edited in place to rename the

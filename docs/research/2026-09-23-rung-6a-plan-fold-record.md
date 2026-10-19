@@ -1,7 +1,7 @@
 # Rung 6a plan fold record
 
 This record folds three lens reviews of the rung 6a plan
-(`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`, revision
+(`docs/plans/2026-09-23-rung-6a-store-foundation.md`, revision
 1 at `11f11c2`) into revision 2 of the same file. It gives one
 disposition per finding, the owner forks as numbered rulings, the owed
 errata against the ratified rung 6 spec (revision 2.2), and the ceiling
@@ -202,7 +202,7 @@ about 0.53M, which the flag's headroom covers.
 ## Second fold
 
 The fresh-context verification read of revision 2
-(`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-verification.md`)
+(`docs/research/2026-09-23-rung-6a-plan-fold-verification.md`)
 found 0 blockers, 2 majors, and 7 minors. Each was checked against the
 plan text and its evidence before folding. The plan moves to revision 2.1.
 The fold adds no task, no deliverable, and no ceiling change.
@@ -233,7 +233,7 @@ empty.
 ## Prose review fold
 
 The `prose-voice-reviewer` (Opus) read of revision 2.1
-(`docs/superpowers/research/2026-09-23-rung-6a-plan-prose-review.md`)
+(`docs/research/2026-09-23-rung-6a-plan-prose-review.md`)
 found 2 blockers, 10 fact warnings, 3 register warnings, and 11
 suggestions. `tellgrader --register docs` returned 0 findings, and the
 reviewer confirmed the ceiling arithmetic, the commit ids, the spec line

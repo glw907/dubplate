@@ -2,14 +2,14 @@
 
 Status: revision 2, 2026-09-07. This is the Phase 0c deliverable of the
 parallel-build approach
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:56`), a
+(`docs/specs/2026-09-03-parallel-build-approach.md:56`), a
 promotion of the theme-variable contract, the two-axis composition
 model, and the font delivery mechanism out of rung 7 and into a standard
 every web surface is measured against.
 
 **Revision 2, 2026-09-07.** Revision 1 went through two independent
 adversarial reviews, merged and folded here
-(`docs/superpowers/research/2026-09-07-design-language-standard-review.md`).
+(`docs/research/2026-09-07-design-language-standard-review.md`).
 Both lenses filed the same blocker: revision 1's CSP was adopted
 verbatim from the pre-pivot Vite stack and blocks the inline scripts
 SvelteKit generates, so rung 5's login page would have loaded and never
@@ -39,10 +39,10 @@ Sources, cited below by these short names:
 
 | Short name | File |
 |---|---|
-| BS | `docs/superpowers/specs/2026-09-02-greenfield-server-build.md` |
-| PA | `docs/superpowers/specs/2026-09-03-parallel-build-approach.md` |
-| S20 | `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` |
-| TB | `docs/superpowers/research/2026-09-03-theme-collection-brief.md` |
+| BS | `docs/specs/2026-09-02-greenfield-server-build.md` |
+| PA | `docs/specs/2026-09-03-parallel-build-approach.md` |
+| S20 | `docs/specs/2026-09-07-streamer-2-0-design.md` |
+| TB | `docs/research/2026-09-03-theme-collection-brief.md` |
 | CM | `CLAUDE.md` |
 
 The DaisyUI variable names in section 2 were read from the published
@@ -328,7 +328,7 @@ own `min-h-11` at each call site. Source: `_salvage/web/src/app.css:58-63`
 > Erratum, 2026-09-25 (pass 5c-ii close): **the estate's composed
 > identities are `dubplate-label` and `dubplate-label-night`, not
 > `dubplate-gruvbox`.** Geoff's visual identity ruling
-> (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`)
+> (`docs/specs/2026-09-24-visual-identity-design.md`)
 > replaced the `gruvbox` palette with `label` (light) and
 > `label-night` (dark) before Task 4 of pass 5c-ii dispatched. Every
 > place this document names `dubplate-gruvbox` or `palette gruvbox`

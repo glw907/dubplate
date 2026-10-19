@@ -1,7 +1,7 @@
 # Matcher word-boundary plan review: domain risk
 
 Lens: domain risk, one of three. Subject:
-`docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`, revision 1
+`docs/plans/2026-09-25-matcher-word-boundary.md`, revision 1
 (uncommitted). Read against master at `1306ae3`, the pinned venv (beets
 2.14.1, CPython 3.13.15, `unicodedata` 15.1.0), and Go 1.27.1. Findings are
 correctness gaps ranked by consequence. A fold may refuse any of them with a

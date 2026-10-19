@@ -724,7 +724,7 @@ Web:
 
 Dubplate documents graded against:
 
-- docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md
-- docs/superpowers/specs/2026-09-02-greenfield-server-build.md
-- docs/superpowers/research/2026-09-01-beets-conformance-corpus.md
+- docs/specs/2026-09-01-dubplate-organizer-design.md
+- docs/specs/2026-09-02-greenfield-server-build.md
+- docs/research/2026-09-01-beets-conformance-corpus.md
   (house shape and corpus strata)

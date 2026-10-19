@@ -5,10 +5,10 @@ Revision 1 (`1d6bc6a`) went through four review lenses (contract, mechanics, mis
 consistency) and an early prose read. Revision 2 (`08c812f`) went through a fold verification
 read, and revision 3 folds that read and Geoff's rulings of 2026-09-25. The fold record,
 including its "Second fold" section, is
-`docs/superpowers/research/2026-09-25-group-scale-principles-fold.md`.
+`docs/research/2026-09-25-group-scale-principles-fold.md`.
 
 Revision 3 changelog: bounded shares filled in from research
-(`docs/superpowers/research/2026-09-25-bounded-shares-research.md`), adding rulings 8 to 12.
+(`docs/research/2026-09-25-bounded-shares-research.md`), adding rulings 8 to 12.
 
 Owner intent (Geoff, 2026-09-25): "I would like dubplate to be a tool for groups of family and
 friends to share purchased music. I don't want it to be an easy way for stolen music to be
@@ -30,7 +30,7 @@ sends. dubplate can't get music from the internet, so the library holds only wha
 bring. These choices shape the product the project ships. dubplate is self-hosted, so they
 aren't an enforcement system. The operator of a server can change the code.
 
-> Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+> Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/specs/2026-10-05-rungs-12-16-replan-design.md`,
 > revision 2.1, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): Geoff retired the incumbent
 > stack, so three passages of this spec change. The rest of the text stays as written.
 >
@@ -208,7 +208,7 @@ permissive as I can without making dubplate attractive to pirates." A member who
 a link to one album is using dubplate as intended. A permanent public link to the library
 isn't. So 0.8 keeps OpenSubsonic shares, with six bounds.
 
-The bounds follow `docs/superpowers/research/2026-09-25-bounded-shares-research.md` (cited
+The bounds follow `docs/research/2026-09-25-bounded-shares-research.md` (cited
 below as "the research"). A share link fails as a piracy tool when it offers nothing a pirate
 can't get more easily elsewhere. Released music is already free to stream as lossy audio, and
 stream ripping is the most common form of consumer piracy (the research, "How share links get

@@ -72,7 +72,7 @@ Both lenses found this independently and converged on the same fix.
 The plan's `Class` doc comment states the requirement it designs against:
 "interactive work must not starve timer imports (build spec, the same
 section)", a faithful quotation of
-`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:693-694`.
+`docs/specs/2026-09-02-greenfield-server-build.md:693-694`.
 `ClassBatch` is the plan's own name for "an operator- or timer-triggered
 import".
 
@@ -302,7 +302,7 @@ float (`ratelimit / ratelimit_interval`,
 `$SP/beetsplug/_utils/musicbrainz.py:600-606`), nor a deliberately
 conservative sub-1/s setting; the organizer spec records the anonymous
 limit as one request per second with more for identified clients
-(`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md:531-533`).
+(`docs/specs/2026-09-01-dubplate-organizer-design.md:531-533`).
 
 **Fix.** State the pace as a contract citing `_utils/musicbrainz.py:597-599`
 and `:612-613` and the `requests_ratelimiter` burst; reword C12 so the
@@ -995,7 +995,7 @@ these.
     true`. `FIELDS_TO_MB_KEYS` is eight entries.
 39. **The six contested-surface rows the plan calls "written" exist
     verbatim** in
-    `docs/superpowers/specs/2026-09-03-parallel-build-approach.md:160-175`,
+    `docs/specs/2026-09-03-parallel-build-approach.md:160-175`,
     including the `{cassette,stub,analysis}` row that names 3c's change
     by name, and `corpus/manifest.json` genuinely has no row. (m22 adds
     only `corpus/README.md` to the same owed list.)

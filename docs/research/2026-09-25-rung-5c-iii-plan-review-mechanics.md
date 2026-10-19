@@ -1,6 +1,6 @@
 # Rung 5c-iii plan review: mechanics and feasibility
 
-Reviewed: `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
+Reviewed: `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
 revision 1 (`fc52232`). Lens: does each mechanism behave as the plan states? Every claim
 below comes from a probe run on 2026-09-25 or a quoted source. The probes ran under
 `/tmp/claude-1000/.../scratchpad/mech/` and `.../scratchpad/pw/`, against go1.27.1,

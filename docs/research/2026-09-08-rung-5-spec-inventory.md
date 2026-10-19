@@ -4,15 +4,15 @@ Research report, 2026-09-08, prepared for the rung 5 spec's authoring,
 against HEAD `8ff65bd99f982bda940db19420ee80f834fcf9d1`. Lane-1 was
 running the pass 8a chain in this same tree while this was written, and
 8a closed before it was finished, so `internal/engine/tagio`,
-`docs/superpowers/plans/2026-09-07-rung-8a-tagio-writer.md`, and
-`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` were moving
+`docs/plans/2026-09-07-rung-8a-tagio-writer.md`, and
+`docs/specs/2026-09-07-rung-8-tag-io.md` were moving
 underneath it. Nothing below reads any of them, and no gate was run.
 The `docs/HISTORY.md` citations are against the file as it stands after
 8a's close entry landed, which shifted every earlier entry by 408 lines.
 Every other citation is a line read at the HEAD above.
 
 Scope, quoted from the build spec's ladder entry
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:619-627`):
+(`docs/specs/2026-09-02-greenfield-server-build.md:619-627`):
 
 > **Identity and auth** (L). `internal/auth` built to the birth
 > requirements: tokens, sessions with epoch and absolute cap, durable
@@ -25,7 +25,7 @@ Scope, quoted from the build spec's ladder entry
 
 One clause of that entry is already superseded. "Go-templated, no
 JavaScript" is overturned by the Phase 0c standard's R1.6
-(`docs/superpowers/specs/2026-09-07-design-language-standard.md:88-100`),
+(`docs/specs/2026-09-07-design-language-standard.md:88-100`),
 which rules the login and consumption pages as SvelteKit static pages
 rendered client-side and served by the Go binary, on CLAUDE.md's later
 web rule (`CLAUDE.md:135-143`). The close of rung 5 records the
@@ -36,14 +36,14 @@ table so citations read the same across both documents:
 
 | Short name | File |
 |---|---|
-| BS | `docs/superpowers/specs/2026-09-02-greenfield-server-build.md` |
-| MD | `docs/superpowers/specs/2026-09-02-magic-link-login-design.md` |
-| PA | `docs/superpowers/specs/2026-09-03-parallel-build-approach.md` |
-| RE | `docs/superpowers/research/2026-09-04-reverse-edge-completion.md` |
-| DL | `docs/superpowers/specs/2026-09-07-design-language-standard.md` |
-| S20 | `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` |
-| SEC | `docs/superpowers/research/2026-09-02-login-spec-reviews/security.md` |
-| UNI | `docs/superpowers/research/2026-09-02-login-spec-reviews/universality.md` |
+| BS | `docs/specs/2026-09-02-greenfield-server-build.md` |
+| MD | `docs/specs/2026-09-02-magic-link-login-design.md` |
+| PA | `docs/specs/2026-09-03-parallel-build-approach.md` |
+| RE | `docs/research/2026-09-04-reverse-edge-completion.md` |
+| DL | `docs/specs/2026-09-07-design-language-standard.md` |
+| S20 | `docs/specs/2026-09-07-streamer-2-0-design.md` |
+| SEC | `docs/research/2026-09-02-login-spec-reviews/security.md` |
+| UNI | `docs/research/2026-09-02-login-spec-reviews/universality.md` |
 
 Sections 1 through 8 are the as-landed state of everything the spec
 touches, measured against the tree. Section 9 is the review shape.
@@ -424,7 +424,7 @@ no key.
 
 **The three flag-enabled classes the build spec names and
 `internal/config` lacks.** Rung 1b's Resolution R13
-(`docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md:818-830`)
+(`docs/plans/2026-09-07-rung-1b-config-registry.md:818-830`)
 recorded them without declaring them: an SSO proxy capability, a
 trusted-proxy mode, and a forward-auth front, all named at BS:167-175
 as flag-enabled integrations. The forward-auth front appears in the tree

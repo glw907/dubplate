@@ -4,26 +4,26 @@ Status: **revision 2.2, 2026-09-23; approved by Geoff 2026-09-24 with
 all four rulings yes.**
 Revision 1 (`11f11c2`) took three lens reviews (contract, mechanics, and
 risk). Their folds, refusals, and owner forks are recorded in
-`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`.
+`docs/research/2026-09-23-rung-6a-plan-fold-record.md`.
 Revision 2 (`1d69ab8`) took a fresh-context verification read
-(`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-verification.md`,
+(`docs/research/2026-09-23-rung-6a-plan-fold-verification.md`,
 V1 to V9); revision 2.1 folds it, and the fold record's "Second fold"
 section gives one disposition per finding. Revision 2.2 folds a prose and
-fact review (`docs/superpowers/research/2026-09-23-rung-6a-plan-prose-review.md`,
+fact review (`docs/research/2026-09-23-rung-6a-plan-prose-review.md`,
 B1 to B2, W1 to W10, S1 to S11); the fold record's "Prose review fold"
 section gives one disposition per finding. Four rulings for Geoff are
 open ("Rulings for Geoff").
 
 Sources: the ratified rung 6 spec
-(`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
+(`docs/specs/2026-09-23-rung-6-ops-seam-store.md`, revision
 2.2, all fourteen rulings yes, last touched at `b406f93`) and its fold
-record (`docs/superpowers/research/2026-09-23-rung-6-spec-fold-record.md`,
+record (`docs/research/2026-09-23-rung-6-spec-fold-record.md`,
 whose "Revision 2.2" section carries the contested-surface rows and the
 ceiling arithmetic); the 2.0 streamer spec
-(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, "Forward
+(`docs/specs/2026-09-07-streamer-2-0-design.md`, "Forward
 hooks" and "Prior art"); the configuration homes spec, revision 3
-(`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`); the
-approved 5c-i plan (`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`),
+(`docs/specs/2026-09-11-configuration-homes-design.md`); the
+approved 5c-i plan (`docs/plans/2026-09-23-rung-5c-pages-member-verb.md`),
 which runs in lane 1 beside this pass; and `docs/HISTORY.md`'s top entry
 (pass 5b-ii) for the spend basis. Code pointers were resolved at
 `cb9ecc3`; the Go tree is unchanged since `08befea`.
@@ -2041,8 +2041,8 @@ plus:
 Model: `sonnet`. Depends on Tasks 0 through 7 and the simplifier round.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-6a.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-6a.md`
+- Create: `docs/research/handoffs/draft-STATUS-6a.md`
+- Create: `docs/research/handoffs/draft-HISTORY-6a.md`
 
 **Outcomes:**
 

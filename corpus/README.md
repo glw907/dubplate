@@ -86,7 +86,7 @@ scope creep, and the same mechanism a future case can hit again.
 ## The structural stratum
 
 Pass 2b's own cases: 61 of them across 15 shape families
-(`docs/superpowers/research/2026-09-02-beets-structural-stratum-inventory.md`,
+(`docs/research/2026-09-02-beets-structural-stratum-inventory.md`,
 section (b)), each a synthetic release built through `harness synth`
 rather than a live capture: matcher-behavior coverage, where the smoke
 corpus above is machinery coverage. Together with the smoke corpus's
@@ -624,7 +624,7 @@ candidate its branch needs.
 Pass 2c's own cases (Tasks 4 through 15): 96 primary real MusicBrainz
 releases plus 12 reserve rows, selected against explicit per-axis
 quotas and recorded in
-`docs/superpowers/research/2026-09-03-real-catalog-selection.md` (the
+`docs/research/2026-09-03-real-catalog-selection.md` (the
 selection dossier), which a capture batch task never re-decides. Where
 the smoke corpus proves the capture-derive loop's own machinery and
 the structural stratum proves the matcher's code paths against
@@ -1392,7 +1392,7 @@ that record.
 **Membership is Task 3's 28 mandatory rows, exactly.** Every
 real-catalog reissue/remaster and VA/box-set primary row is flagged
 mandatory in the selection dossier
-(`docs/superpowers/research/2026-09-03-real-catalog-selection.md`):
+(`docs/research/2026-09-03-real-catalog-selection.md`):
 14 + 14 = 28. All 28 landed as committed primary-row cases with no
 reserve substitution (see the real-catalog stratum's own tables
 above), so every mandatory row has an exact same-id twin. No dossier

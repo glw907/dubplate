@@ -2,7 +2,7 @@
 
 Reviewer: fresh context, contract-and-criteria lens. Read: the plan at `3783060`, the design, the spec (revision 2), both
 fold records, the `dubplate-pass` adapter's planning-miss rule, and the code each finding cites. Plan line numbers are
-`docs/superpowers/plans/2026-10-12-intake-1.md` at `3783060`.
+`docs/plans/2026-10-12-intake-1.md` at `3783060`.
 
 Counts: 1 blocker, 14 major, 13 minor, and 2 over-ceremony items (both minor). One finding is an OWNER FORK (m4).
 

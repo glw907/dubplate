@@ -55,7 +55,7 @@ the strip's only construction input is the trusted-proxy config.
 ### M2 (major): `addBearerBypass` is generic hardening with a named consumer in an unchanged rung
 
 Location: spec:104-105; `internal/serve/origin.go:194-248`;
-`docs/superpowers/specs/2026-09-11-configuration-homes-design.md:123-126`.
+`docs/specs/2026-09-11-configuration-homes-design.md:123-126`.
 
 Defect: the spec counts the bypass among the "Navidrome-facing" pieces and assigns its rebuild to
 slice 6. The configuration homes spec, which governs rung 14, depends on it: "The admin API is served

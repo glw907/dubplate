@@ -8,11 +8,11 @@ and section 5's tiers A, B and C are applied; tier D is deferred to its own repo
 
 **What changed in revision 2.1.** Two inputs, neither of which existed when revision 2 was
 written. First, fresh cairn numbers from the run after its runner change, relayed by Geoff
-and now at `docs/superpowers/research/2026-09-12-cairn-fresh-evidence.md`, with dubplate's
+and now at `docs/research/2026-09-12-cairn-fresh-evidence.md`, with dubplate's
 own counterpart measured the same night appended to that file. They are cited where this
 document discusses the blocking runner, the reduced gate, and blast-radius scoping, and they
 produce one new item, Item 15. Second, the segment-sizing read at
-`docs/superpowers/research/2026-09-12-segment-sizing-research.md`, whose recommended rule
+`docs/research/2026-09-12-segment-sizing-research.md`, whose recommended rule
 Geoff ruled on 2026-09-12 ("That works"); it lands as Item 16, the document's only ruled
 item. Nothing in revision 2 was withdrawn or re-derived, and no owner-owed question was
 answered or added.
@@ -21,7 +21,7 @@ answered or added.
 evidence fidelity, quality risk, and implementability. They returned 29 findings: 5
 blockers, 18 majors, 6 minors. All 29 are folded here, 20 as the reviewer proposed and 9
 adapted; none was rejected. The merged review, finding by finding with its disposition, is
-`docs/superpowers/research/2026-09-12-process-improvement-plan-review.md`. Nine of revision
+`docs/research/2026-09-12-process-improvement-plan-review.md`. Nine of revision
 1's arithmetic derivations did not follow from the figures they cited and are re-derived
 below, so most expected-effect ranges in section 3 have changed.
 
@@ -58,7 +58,7 @@ of evidence, it says so and is marked reversible.
 
 Five evidence files, copied into the repo at revision 2 and 2.1 so every pointer below still
 resolves after the session that produced them ends. All five are under
-`docs/superpowers/research/`:
+`docs/research/`:
 
 - `measure:N` is `2026-09-12-dubplate-economy-measure.md` line N.
 - `harvest:N` is `2026-09-12-cairn-economy-harvest.md` line N.
@@ -243,7 +243,7 @@ string at dispatch time, before the implementer has written anything
 author's prediction of the diff rather than the diff itself. The two differ in practice.
 `.claude/agents/dubplate-implementer.md:71-77` instructs the implementer to verify plan
 assumptions against the real code, and
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:215-219` names contested
+`docs/specs/2026-09-03-parallel-build-approach.md:215-219` names contested
 surfaces a rung-5 task amends without declaring them, `env/dubplate-server.env.template`
 among them, which the repo `CLAUDE.md` records as a secrets manifest. A task declaring
 `Files: internal/auth/*.go` that also appends a commented pending row to that template
@@ -313,7 +313,7 @@ PR's own CI run is the gate that clears them. Nothing merges on a red CI"
 Prettier reformat that reflowed a pinned literal neither the plan's gate nor the dispatched
 gate covered, "the reason the CLI suite is now a per-task exception" (`harvest:186-188`).
 dubplate has no CI. `ls .github` returns no such directory, and
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:165` states the consequence:
+`docs/specs/2026-09-03-parallel-build-approach.md:165` states the consequence:
 "nothing in this repo is CI-enforced, so 'master is never left red' is otherwise
 aspirational." In cairn the omitted runs are recovered on every push. In dubplate they are
 recovered at a boundary that may sit several committed tasks later, which is why the
@@ -355,7 +355,7 @@ a silent disappearance.
 **Precondition.** `scripts/check.sh` has no scope flag, and the 2026-09-12 window recorded
 that it was deliberately not built ("`check.sh` has no fast/full scope flag ... the scope
 flag is **not built this window** and every task pays the full three legs,"
-`docs/superpowers/plans/2026-09-12-overnight-window.md:72-77`). The mode must exist, must
+`docs/plans/2026-09-12-overnight-window.md:72-77`). The mode must exist, must
 default to full, must derive its own paths, must pass `-c`, and must name the scoped paths
 in its own output so the reviewer can see which form ran. It also needs three edits to
 `.claude/agents/dubplate-implementer.md`, whose frontmatter at `:3`, step 5 at `:65` and
@@ -408,7 +408,7 @@ comment-only edit can red (`check.sh:3-4`). The reduced gate is therefore
 `scripts/vale-comments.sh`, and `go test` over the named packages. It is a mode of the same
 script for the same reason the scope mode is, so it cannot drift from the full gate's
 internals, and it is passed as an absolute string per
-`docs/superpowers/plans/2026-09-12-overnight-window.md:170-177`. Revision 1 named the
+`docs/plans/2026-09-12-overnight-window.md:170-177`. Revision 1 named the
 reduced gate's encoding site without ever stating the string, and the string it would have
 mirrored is cairn's, `npm run check:comments && npm run check:symbols && npm run
 check:docs` (`~/.claude/workflows/pass-execute-chains.js:90-92`), of which dubplate has
@@ -578,7 +578,7 @@ dispatches one `diff-reviewer` over the fold's diff, at Item 2's reduced gate ra
 the full string.
 
 The committed draft stays for the reason Item 11 depends on it.
-`docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md:2953-2957` keeps the ledger
+`docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md:2953-2957` keeps the ledger
 text as committed drafts because "they survive a restart and a fresh session can read
 them," and Item 11 makes restarts more frequent rather than less. A single fold with no
 committed draft would leave the pass's ledger text inside one agent's turn until it
@@ -639,7 +639,7 @@ script is ruff-clean under `check.sh:101-108`, which lints every tracked `*.py`.
 
 **Where it is encoded.** A `tools/` script, since the repo `CLAUDE.md` confines `scripts/`
 to ops tooling. The plan template's close-task section, replacing the draft-then-fold shape
-recorded at `docs/superpowers/plans/2026-09-12-overnight-window.md:470-495`. The repo
+recorded at `docs/plans/2026-09-12-overnight-window.md:470-495`. The repo
 `CLAUDE.md` build-process section, which currently says nothing about how a close produces
 its numbers.
 
@@ -648,7 +648,7 @@ its numbers.
 **Priority: now for the grep half; next pass for the script and the single fold.** The grep
 rule costs nothing and removes the largest named fix-round sub-class. The script is a task
 of its own. The single fold changes 5b-ii's Task 12 as ratified
-(`docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md:2944-2960`), so it needs
+(`docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md:2944-2960`), so it needs
 a plan edit rather than a launch-time decision.
 
 ---
@@ -897,8 +897,8 @@ so tokens per reviewed line hold at today's level.
 63,160 each with a mean of 52,960 (`measure:200-201`). Those rounds are already the
 correct economy relative to the per-task alternative; the 2026-09-12 window recorded the
 deviation explicitly, replacing eleven interleaved dispatches with three batched rounds
-(`docs/superpowers/plans/2026-09-12-overnight-window.md:163-166`), and 5b-ii's plan carries
-four (`docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md:3179-3182, :3236-3242`).
+(`docs/plans/2026-09-12-overnight-window.md:163-166`), and 5b-ii's plan carries
+four (`docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md:3179-3182, :3236-3242`).
 The research brief judges the simplifier the least-supported element of the whole pattern:
 unguarded LLM refactoring changes behavior at 6.6% to 7.4% of attempts across 180 real
 refactorings (https://arxiv.org/abs/2411.04444) and at about 11.5% across 8,096 segments in
@@ -967,7 +967,7 @@ cadence.
 item is ruled: it widens the standing deviation from `~/.claude/CLAUDE.md`'s
 run-the-simplifier-before-committing rule, which the chain already deviates from on every
 task because its implementer commits its own files
-(`docs/superpowers/plans/2026-09-12-overnight-window.md:167-173`).
+(`docs/plans/2026-09-12-overnight-window.md:167-173`).
 
 **Priority: now, in its half-step form.** Cutting 5b-ii's four rounds to one at D2 is a
 larger change than a launch decision should make, because segment A's boundary exists
@@ -1057,7 +1057,7 @@ gate share on a read-only probe, in 10.6m for 41,976 (`measure:49`). The measure
 this out directly: 5b-i Task 0 "spent 205s more running the gate plus `go test ./...`
 purely to record a baseline" (`measure:143-144`). The window's own plan already caps a
 Task 0 at 0.3M and stops its lane if it exceeds that
-(`docs/superpowers/plans/2026-09-12-overnight-window.md:121-124`), so the scope discipline
+(`docs/plans/2026-09-12-overnight-window.md:121-124`), so the scope discipline
 exists; the gate exemption does not.
 
 **Expected token effect: 0 to 5,000 per lane.** Derivation: the difference between the two
@@ -1076,7 +1076,7 @@ itself is unchanged. The conductor reading that result does read a gate tail, be
 `cairn-run-gate` "blocks to completion and prints the tail" (repo `CLAUDE.md`), while the
 thin-conductor rule says the conductor reads "no source file, no diff, no gate transcript"
 during execution (`~/.claude/CLAUDE.md`, "Conducting a pass";
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:234`). The exemption is
+`docs/specs/2026-09-03-parallel-build-approach.md:234`). The exemption is
 stated rather than left implicit: the conductor reads the gate's pass or fail line at lane
 launch only, never during execution, and a red baseline stops the lane launch rather than
 opening a diagnosis in the main loop. That boundary is what keeps the measured 6.4%
@@ -1084,10 +1084,10 @@ conductor share at 1,475 tokens per turn (`measure:216-219`) from drifting.
 
 **Precondition.** A green master or a green worktree at lane launch, which the lane-launch
 checklist already requires
-(`docs/superpowers/plans/2026-09-12-overnight-window.md:76-78, :116-120`).
+(`docs/plans/2026-09-12-overnight-window.md:76-78, :116-120`).
 
 **Where it is encoded.** The plan template's Task 0 section, and the lane-launch checklist
-in `docs/superpowers/specs/2026-09-03-parallel-build-approach.md` section 4.
+in `docs/specs/2026-09-03-parallel-build-approach.md` section 4.
 
 **Owner.** Plan template plus a conductor rule.
 
@@ -1131,7 +1131,7 @@ resume prompt is written to STATUS at every segment boundary, at every split, an
 stop, and carries per-lane state, the workflow `runId` and its transcript directory,
 committed tasks, the task in flight, the last reviewer verdict, any task committed whose
 review has not returned, and the spend ledger reading
-(`docs/superpowers/plans/2026-09-12-overnight-window.md:505-528`). Nothing is lost that
+(`docs/plans/2026-09-12-overnight-window.md:505-528`). Nothing is lost that
 was not already written down; the window's own design assumed a fresh session might
 resume, and recorded that `resumeFromRunId` is same-session only while the journal is the
 cross-session path (`:530-539`).
@@ -1163,8 +1163,8 @@ and the marginal cost of segmenting into five runs instead of two was about 100,
 relaunch turns (`measure:200-209`). Against that, the boundaries are not decoration.
 `pass-execute` loops over `args.tasks` with no pause point and no conductor hook, so a
 segment runs to its end or not at all and every conductor action lands at a boundary and
-nowhere else (`docs/superpowers/plans/2026-09-12-overnight-window.md:132-140`;
-`docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md:3226-3235`). 5b-ii's segment
+nowhere else (`docs/plans/2026-09-12-overnight-window.md:132-140`;
+`docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md:3226-3235`). 5b-ii's segment
 D splits at the Task 10 and Task 11 boundary precisely so that the rule that a second `fix`
 is the conductor's decision has a place to be taken, without which Tasks 11 and 12 would
 already be implemented, reviewed, gated and committed against a handler set the conductor
@@ -1226,7 +1226,7 @@ ceiling can be cut at a boundary instead of discovered over at its close.
 answer is still possible.
 
 **Precondition.** A spend ledger the conductor can read mid-run, which the 2026-09-12
-window built (`docs/superpowers/plans/2026-09-12-overnight-window.md:45-46`). Its one
+window built (`docs/plans/2026-09-12-overnight-window.md:45-46`). Its one
 artifact is session-keyed, so Item 4's `tools/` script is what makes the reading
 reproducible on the next pass.
 
@@ -1251,7 +1251,7 @@ shared contested surface. The trigger becomes a disjunction; nothing is removed 
 **Why an addition rather than a swap.** Revision 1 replaced the rebase trigger with the
 overlap trigger and claimed the swap was two-sided, adding "one review where a fast-forward
 hid a shared-package overlap." That case cannot occur.
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:166` states the current rule
+`docs/specs/2026-09-03-parallel-build-approach.md:166` states the current rule
 and its reason: "A fast-forward rebase means the other lane landed nothing, so this step
 skips mechanically and costs nothing." A fast-forward carries no other-lane commits, so
 there is no overlap for it to hide. The swap's added half was empty and its removal half
@@ -1284,7 +1284,7 @@ there.
 lanes shared a package or a contested surface and the rebase was a fast-forward, at the
 measured 41,936 (`measure:89`). It removes none. On a two-lane window of the 2026-09-12
 shape, where 8c and 5b-i were disjoint by package and the one shared directory was excluded
-(`docs/superpowers/plans/2026-09-12-overnight-window.md:208-212`), it costs nothing.
+(`docs/plans/2026-09-12-overnight-window.md:208-212`), it costs nothing.
 
 **Expected clock effect: 0 to plus 10 minutes per lane close.**
 
@@ -1292,13 +1292,13 @@ shape, where 8c and 5b-i were disjoint by package and the one shared directory w
 spec already records why the review is owed at all: a lane's reviewer is structurally blind
 to the other lane's landed work, so isolation is the mechanism that hides a cross-lane
 defect rather than a safeguard
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:231`). Package overlap and
+(`docs/specs/2026-09-03-parallel-build-approach.md:231`). Package overlap and
 merge-base arithmetic are each a partial proxy for that blindness, and the disjunction is
 both.
 
 **Precondition.** The lane ownership table names each lane's package territory and its
 contested surfaces, which it already does
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:215` and its table).
+(`docs/specs/2026-09-03-parallel-build-approach.md:215` and its table).
 
 **Where it is encoded.** The repo `CLAUDE.md` build-process section's merge-ritual
 sentence, and `2026-09-03-parallel-build-approach.md` section 3's step 5.
@@ -1374,7 +1374,7 @@ effect is small by construction.
 **Ruled by Geoff, 2026-09-12 ("That works").** This is the document's only ruled item; every
 other item remains a proposal.
 
-**The measure.** The rule as `docs/superpowers/research/2026-09-12-segment-sizing-research.md`
+**The measure.** The rule as `docs/research/2026-09-12-segment-sizing-research.md`
 states it (`sizing:488-499`): segment a pass at three to four tasks, and place every boundary
 on a commit the gate has already proved green. The count, never the placement, is overridden
 on an irreversible or production-touching task (boundary immediately before it), a second
@@ -1435,7 +1435,7 @@ an irreversible task and immediately on a second `fix` verdict, and removes none
 green-commit placement is what makes a boundary a resume point at all, and it agrees with
 5b-ii's segment D split, which exists precisely so the second-`fix` decision has a place to
 be taken (Item 12's evidence paragraph;
-`docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md:3230-3235`).
+`docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md:3230-3235`).
 
 **Interaction with Item 12.** Item 12 cuts a boundary whose only work is a simplifier round.
 This item sets the count those cuts are measured against. They agree: Item 12's test is that
@@ -1527,7 +1527,7 @@ defects and two escalations corrected the plan rather than the code
 **The merge ritual.** Merge token, rebase, full gate in-tree, `--ff-only`, full gate on
 master. The on-master gate exists because nothing in this repo is CI-enforced, so "master
 is never left red" is otherwise aspirational
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:163-165`). cairn's
+(`docs/specs/2026-09-03-parallel-build-approach.md:163-165`). cairn's
 counter-evidence on parallel lanes is what makes the ritual load-bearing rather than
 ceremonial: two concurrent worktree gates produce one-off flaky failures from shared-machine
 contention, and a sweep could not build at all at load 7.4 (`harvest:264-274`). Item 14

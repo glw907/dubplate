@@ -12,7 +12,7 @@ methodology study of the same date.
 
 ## (a) Method and n
 
-Replayed the 2026-08-31 plugin-adoption survey's method (`docs/superpowers/research/2026-08-31-beets-plugin-usage.md`) against the organization surface instead of plugins.
+Replayed the 2026-08-31 plugin-adoption survey's method (`docs/research/2026-08-31-beets-plugin-usage.md`) against the organization surface instead of plugins.
 
 - **Search**: `gh api search/code` (GitHub code search, authenticated) with 10 query variants targeting beets-config markers (`"paths:" "default:"`, `"asciify_paths"`, `"item_fields:"`, `"directory:" "plugins:"`, `"%aunique"`, `"replace:" "paths:"`, `"art_filename"`, `"max_filename_length"`, all `filename:config.yaml`). 900 raw hits, 714 unique file hits across 393 unique repos.
 - **Dedup**: one file per repo (first hit). Downloaded 393 raw files via `raw.githubusercontent.com`.

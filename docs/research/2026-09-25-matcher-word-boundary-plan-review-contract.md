@@ -2,9 +2,9 @@
 
 Lens: contract and criteria. The question is whether every promise is testable, whether each
 acceptance criterion names its fixture and why it would fail, and whether any criterion or named
-mutation can pass vacuously. Reviewed: `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`,
+mutation can pass vacuously. Reviewed: `docs/plans/2026-09-25-matcher-word-boundary.md`,
 revision 1 (uncommitted), against the research brief
-`docs/superpowers/research/2026-09-24-matcher-unicode-word-boundary.md`. Code pointers were read at
+`docs/research/2026-09-24-matcher-unicode-word-boundary.md`. Code pointers were read at
 the working tree: `tunables.go:334-403`, `strdist.go:25-193`, `compat.go:27-53`,
 `strdist_test.go:103-290`, `conform/case.go:40-45,150-172,520-682`, `request.go:28-30`,
 `analysis/ties.go:95-135`, and the corpus README's ledger section. The scratch generator

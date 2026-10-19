@@ -33,7 +33,7 @@ about 3-4 minutes at about 560 MiB peak.
 
 ## 5c-iv handoff
 
-Full detail: `docs/superpowers/research/handoffs/draft-HISTORY-5c-iii.md`, "What stayed open"
+Full detail: `docs/research/handoffs/draft-HISTORY-5c-iii.md`, "What stayed open"
 and "5c-iv handoff" sections. In brief: 5c-iv builds on 5c-iii's rendered harness
 (`cmd/dubplate-server/rendered_test.go`, `web/scripts/rendered/run.ts`), the `Makefile`'s `web`
 target, and the component layer (`web/src/lib/styles/components.css`) — the four files crossing

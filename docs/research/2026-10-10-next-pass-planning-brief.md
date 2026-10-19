@@ -7,7 +7,7 @@ any fact it builds on (CLAUDE.md, "Planning-miss prevention"). Abbreviations use
 SS is the streamer spec (`specs/2026-09-07-streamer-2-0-design.md`), CH is the configuration homes spec
 (`specs/2026-09-11-configuration-homes-design.md`), R6 is the rung 6 spec (`specs/2026-09-23-rung-6-ops-seam-store.md`),
 and PA is the parallel build approach (`specs/2026-09-03-parallel-build-approach.md`). All paths sit under
-`docs/superpowers/` unless they start at the repo root.
+`docs/` unless they start at the repo root.
 
 ## 1. Which pass first
 

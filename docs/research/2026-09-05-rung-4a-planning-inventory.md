@@ -3,7 +3,7 @@
 Research report, 2026-09-05, prepared for pass 4a's plan authoring,
 against HEAD `54e534b0e83a305fe02c58cc41dd05ec7ee573a0`. Scope, quoted
 from the rung 4 spec's pass-split table
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1616`):
+(`docs/specs/2026-09-05-rung-4-shadow.md:1616`):
 
 > **4a** The runner | `internal/atomicfile` re-landed;
 > `matcher.QuietImportTunables`; the config integration class, the
@@ -46,7 +46,7 @@ and checked, not carried over from another document's paraphrase.
 | Package born at `internal/atomicfile`, re-landed from salvage on the merit-admission rule, never imported | `spec:759-765` | Absent today: `internal/` holds `config`, `engine`, `harness` only |
 | Source material: `WriteFile(path string, data []byte, perm os.FileMode) error`, temp-in-target-directory, write, sync, close, chmod, rename | — | `_salvage/internal/atomicfile/atomicfile.go:15-41`, 42 lines total, package doc at `:1-3` |
 | Every store file is written through it | `spec:759-760` | — |
-| Consumers named: rungs 6, 9, 13 | `spec:764-765` | Contested-surface row written at `docs/superpowers/specs/2026-09-03-parallel-build-approach.md:181` |
+| Consumers named: rungs 6, 9, 13 | `spec:764-765` | Contested-surface row written at `docs/specs/2026-09-03-parallel-build-approach.md:181` |
 
 The salvage version is compatible with a single-directory `ReadWritePaths` grant because the temp file is created in the target's own directory (`atomicfile.go:16-17`).
 
@@ -595,14 +595,14 @@ deploy date (`spec:1617`).
 | Env-file collision | Why a second template is needed | `env/dubplate.env.template` carries exactly 39 `DUBPLATE_*` names; the two owned rows are `DUBPLATE_ADMIN_EMAIL` at `:25` and `DUBPLATE_STATE_DIR` at `:74`; `DUBPLATE_LIBRARY_DIR` at `:71` and `DUBPLATE_SERVE_SITE_NAME` at `:105` are the pre-rename names (superseded at `internal/config/keys.go:165-166`); the header anticipating rung 4 is at `:1-3` |
 | `ping-fail` no-op | The `OnFailure=` line is wired and inert | `_salvage/cmd/dubplate/pingfail.go:36-42`; helper reads `/etc/dubplate/env` at `systemd/dubplate-ping-fail@.service:11`; the wire-ahead-of-mint precedent at `systemd/dubplate-serve.service:29-35` |
 | Root-filesystem sizing | Risk 5 | `VOLUME_NAME="musicbox-data"` / `VOLUME_SIZE_GB=50` at `scripts/provision.sh:16-17` |
-| The contested-surface rows | The lane-launch checklist item the conductor owed | All nine written at `docs/superpowers/specs/2026-09-03-parallel-build-approach.md:168-184`, each carrying "conductor ruling, 2026-09-05" |
+| The contested-surface rows | The lane-launch checklist item the conductor owed | All nine written at `docs/specs/2026-09-03-parallel-build-approach.md:168-184`, each carrying "conductor ruling, 2026-09-05" |
 
 ---
 
 ### A.3 The do-not-re-litigate record
 
 The spec review's "Verified sound" list has 28 items
-(`docs/superpowers/research/2026-09-05-rung-4-spec-review.md:487-676`).
+(`docs/research/2026-09-05-rung-4-spec-review.md:487-676`).
 The plan must not reopen any of them. In brief: the ladder-entry and
 build-spec quotations (1); the move-and-write hazard that decides the
 mechanism (2); the oracle's binary signal (3); declining the beets
@@ -1827,7 +1827,7 @@ so binary testdata adds no new gate exposure.
 
 ### 7. The process record
 
-#### 7a. The lane-launch checklist (`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:196-204`)
+#### 7a. The lane-launch checklist (`docs/specs/2026-09-03-parallel-build-approach.md:196-204`)
 
 Eight items, each present because something went wrong without it
 (`:196`):
@@ -1897,7 +1897,7 @@ shape the integration class sits beside (`keys.go:44-142`).
 #### 7c. The 3d plan as the process exemplar
 
 **Execution model**
-(`docs/superpowers/plans/2026-09-05-rung-3d-verdicts-gate.md:5197-5273`).
+(`docs/plans/2026-09-05-rung-3d-verdicts-gate.md:5197-5273`).
 Workflow mode per the standing grant, the pass-execute chain per task,
 **strictly sequential**, one code lane in this tree. Each task runs
 `cairn-implementer` (which commits its own task's specific files once

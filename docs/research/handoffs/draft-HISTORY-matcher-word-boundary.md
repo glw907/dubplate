@@ -1,6 +1,6 @@
 ## Matcher word-boundary translation (the featuring row's ASCII RE2 rewrite): closed 2026-09-25, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`
+Executed against `docs/plans/2026-09-25-matcher-word-boundary.md`
 (ratified 2026-09-25, three rulings all yes), in the main tree, from
 `a12dff9` (Task 0: no drift, pre-fix figures confirmed).
 

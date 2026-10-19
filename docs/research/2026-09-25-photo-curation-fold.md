@@ -1,6 +1,6 @@
 # Photo curation spec: fold record
 
-Target: `docs/superpowers/specs/2026-09-25-photo-curation-design.md`, revision 1 at `8843790`,
+Target: `docs/specs/2026-09-25-photo-curation-design.md`, revision 1 at `8843790`,
 folded to revision 2. Reviews: `2026-09-25-photo-curation-review-contract.md` (C),
 `-mechanics.md` (M), `-integrity.md` (D), `-consistency.md` (K).
 

@@ -1,8 +1,8 @@
 # Translit-table plan: review fold record (revision 1 to 2)
 
-Target: `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md`,
+Target: `docs/plans/2026-09-25-translit-table-at-setup.md`,
 revision 1 at `b841954`, folded to revision 2 (committed at `78f109a`), then
-to revision 2.1 by the second fold at the end of this record. Reviews folded, all in `docs/superpowers/research/`:
+to revision 2.1 by the second fold at the end of this record. Reviews folded, all in `docs/research/`:
 
 - `2026-09-25-translit-table-plan-review-contract.md` (C): 4 major, 9 minor.
 - `2026-09-25-translit-table-plan-review-mechanics.md` (K): 2 major, 5 minor.
@@ -143,7 +143,7 @@ No review raised a new owner fork.
 
 ## Second fold (revision 2 to 2.1)
 
-Input: `docs/superpowers/research/2026-09-25-translit-table-plan-fold-verification.md`
+Input: `docs/research/2026-09-25-translit-table-plan-fold-verification.md`
 (1 major, 9 minor, 1 trivial), against revision 2 at `78f109a`. Every
 finding was checked against the tree before it was acted on. The check read
 `scripts/deploy.sh` (`:133-141`, `:304-366`, `:392-414`, `:489-505`),

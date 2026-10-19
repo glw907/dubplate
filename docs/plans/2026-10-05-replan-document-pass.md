@@ -2,14 +2,14 @@
 
 Status: **revision 2, 2026-10-05; approved by Geoff 2026-10-05.** Revision 1 (`15be3fd`) went through one self-folding `spec-plan-review` lens
 (`docs` class); its findings and their dispositions are in
-`docs/superpowers/research/2026-10-05-replan-document-pass-review.md`. It carries no ruling for Geoff: every fork it
+`docs/research/2026-10-05-replan-document-pass-review.md`. It carries no ruling for Geoff: every fork it
 touches was ruled in the spec.
 
 **Spec:** `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1 at `33b465c`, approved
 by Geoff 2026-10-05 with all three owner rulings ruled yes ("the spec"). Its "Document changes" section (items 1
 to 9) is this plan's scope list, and "Preserving the archive (now)" is Task 0.
-**Fold record:** `docs/superpowers/research/2026-10-05-rungs-12-16-replan-fold.md`, "Errata owed" (items 1 to 7).
-**Parallel code pass:** `navidrome-removal` (`docs/superpowers/plans/2026-10-05-navidrome-removal.md`, being
+**Fold record:** `docs/research/2026-10-05-rungs-12-16-replan-fold.md`, "Errata owed" (items 1 to 7).
+**Parallel code pass:** `navidrome-removal` (`docs/plans/2026-10-05-navidrome-removal.md`, being
 drafted beside this one), lane 1, main tree.
 
 **Pass class:** `docs`. Task 0 is a conductor ops chore with no repo diff and no class.
@@ -56,13 +56,13 @@ The removal pass owns, per the spec's "The removal pass": `cmd/`, `internal/`, `
 bootstrap commands (the rename's grep acceptance covers the runbook), and its own close's writes to
 `docs/STATUS.md` and `docs/HISTORY.md`.
 
-This pass owns: the five specs under `docs/superpowers/specs/` named below, `CLAUDE.md`, `ROADMAP.md`, `IDEAS.md`,
+This pass owns: the five specs under `docs/specs/` named below, `CLAUDE.md`, `ROADMAP.md`, `IDEAS.md`,
 `docs/server-runbook.md` (after the merge), `docs/STATUS.md` and `docs/HISTORY.md` (after the merge), and the two
 memory files.
 
 **Pre-flight (before segment A's first dispatch):** once the removal plan is committed, the conductor's pre-flight
 agent diffs that plan's per-task Files lists against Tasks 1 to 4's files. Any overlap moves the overlapping task
-to segment B. A removal plan that edits any `docs/superpowers/specs/` file is the likeliest hit. The same agent
+to segment B. A removal plan that edits any `docs/specs/` file is the likeliest hit. The same agent
 reports whether the removal plan commits on master in the main tree, as the lane registry's lane 1 row ("main tree
 (master)") says, or on a branch. If it uses a branch, segment A finishes before that branch is created, so no
 document commit lands on it.
@@ -171,7 +171,7 @@ scratchpad (a `find` over it shows none). STATUS carries the record.
 
 ### Task 1: Build spec errata
 
-**Files:** `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`.
+**Files:** `docs/specs/2026-09-02-greenfield-server-build.md`.
 
 **Outcome.** The build spec reads correctly under the spec's rulings without losing its history (doc change 1).
 
@@ -195,7 +195,7 @@ scratchpad (a `find` over it shows none). STATUS carries the record.
 
 ### Task 2: Streamer spec revision 3
 
-**Files:** `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`.
+**Files:** `docs/specs/2026-09-07-streamer-2-0-design.md`.
 
 **Outcome.** The streamer spec is the governing document for rung 12, with every passage that assumed an
 incumbent, a shadow, or a flip removed or rewritten (doc change 2).
@@ -242,7 +242,7 @@ incumbent, a shadow, or a flip removed or rewritten (doc change 2).
 
 ### Task 3: Configuration homes spec erratum
 
-**Files:** `docs/superpowers/specs/2026-09-11-configuration-homes-design.md`.
+**Files:** `docs/specs/2026-09-11-configuration-homes-design.md`.
 
 **Acceptance.**
 
@@ -256,7 +256,7 @@ incumbent, a shadow, or a flip removed or rewritten (doc change 2).
 
 ### Task 4: Group-scale principles spec erratum
 
-**Files:** `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`.
+**Files:** `docs/specs/2026-09-25-group-scale-principles-design.md`.
 
 **Acceptance.**
 
@@ -270,7 +270,7 @@ incumbent, a shadow, or a flip removed or rewritten (doc change 2).
 
 ### Task 5: Rung 6 spec erratum (after the merge)
 
-**Files:** `docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`.
+**Files:** `docs/specs/2026-09-23-rung-6-ops-seam-store.md`.
 
 **Precondition.** The removal pass merged. If it edited `0003_catalog.sql` in place, this task runs. If its
 precondition check failed and it amended with a new migration, this task makes no edit, and Task 10 records in
@@ -302,7 +302,7 @@ HISTORY that the exception went unused.
   `systemd-run`, which takes the bootstrap path; check that `member list` shows the one admin and doctor prints no
   `roster` row. It carries no estate value: no address, hostname, or path outside the documented leaf.
 - "The forward-auth topology" section is deleted, and every link to its anchor is removed or re-pointed (a `grep`
-  for `forward-auth-topology` outside `docs/superpowers/` and `docs/HISTORY.md` returns nothing; plans, specs, and
+  for `forward-auth-topology` outside `docs/` and `docs/HISTORY.md` returns nothing; plans, specs, and
   research records keep their history).
 - `grep -niE 'forward-auth|navidrome|streamer[_ -]?username|driver'` over the runbook returns nothing, or only
   generic hits the report lists (a database driver, for example). The trusted-proxy sections and the example

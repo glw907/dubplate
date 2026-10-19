@@ -1,9 +1,9 @@
 # Rung 6b-i plan fold record
 
-Target: `docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`,
+Target: `docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`,
 revision 1 (`b36871c`) to revision 2 (folded, awaiting verification).
 Inputs: the three lens reviews at
-`docs/superpowers/research/2026-09-24-rung-6b-i-plan-review-{contract,mechanics,risk}.md`.
+`docs/research/2026-09-24-rung-6b-i-plan-review-{contract,mechanics,risk}.md`.
 Code read at `lane-2-6a` (`aa3b13e`; the branch head `3b962aa` adds only
 the 6a close drafts).
 
@@ -215,9 +215,9 @@ of `--backup-dir` moves (on `local`), the feature table, `os/exec`'s
 ## Second fold (revision 2.1)
 
 Inputs: the fresh-context verification read
-(`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-verification.md`,
+(`docs/research/2026-09-24-rung-6b-i-plan-fold-verification.md`,
 V1 to V10) and the `internal/engine/store` section of the 6a architecture
-read (`docs/superpowers/research/2026-09-24-rung-6a-architecture-reads.md`),
+read (`docs/research/2026-09-24-rung-6a-architecture-reads.md`),
 taking only the items that shape a signature 6b-i exports or binds to.
 Base: master `0b6da0f` (6a merged at `8736528`; the store tree equals
 revision 2's `aa3b13e`).
@@ -290,7 +290,7 @@ segment B's end is the pre-named pass split point.
 
 ## Prose review fold (revision 2.2)
 
-Input: `docs/superpowers/research/2026-09-24-rung-6b-i-plan-prose-review.md`
+Input: `docs/research/2026-09-24-rung-6b-i-plan-prose-review.md`
 (P1 to P20, `prose-voice-reviewer` on revision 2.1 at `e122e72`). Verified
 before acting: 6a's recorded actuals in `docs/HISTORY.md` ("Both budgets":
 about 4.0M total, close side about 0.92M); rclone v1.74.3's manual lists "2

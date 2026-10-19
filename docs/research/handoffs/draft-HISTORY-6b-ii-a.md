@@ -13,7 +13,7 @@ repeated here.
 ## Rung 6, pass 6b-ii-a (the ops seam's HTTP projection): closed 2026-09-25, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md` (revision 4,
+`docs/plans/2026-09-25-rung-6b-ii-restore-http.md` (revision 4,
 approved by Geoff 2026-09-25; Ruling 1 split the pass into 6b-ii-a, this
 entry, and 6b-ii-b) in the lane 2 worktree
 (`.claude/worktrees/lane-2-6b-ii-a`, branch `lane-2-6b-ii-a`), from

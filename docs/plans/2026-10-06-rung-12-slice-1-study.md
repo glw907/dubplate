@@ -12,16 +12,16 @@ History:
   profiles are proven untouched by a before-and-after hash; each observing task runs its own oracle instances; the
   close's spec check names its sites; reviewers take the seat table's model.
 
-**Spec:** the 0.8 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision 3, "the
+**Spec:** the 0.8 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`, revision 3, "the
 spec"; it still says "2.0"). Its ladder entry 1 (`:724-731`) is this pass's scope list, and its "Open items"
 (`:917-955`) name the questions owed to it.
-**Re-plan:** `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1, approved by Geoff
+**Re-plan:** `docs/specs/2026-10-05-rungs-12-16-replan-design.md`, revision 2.1, approved by Geoff
 2026-10-05 ("the re-plan"). Ruling 5 (`:48-54`) opens this slice now as a document lane, ahead of rung 12's place on
 the ladder.
 **Parallel lanes:** lane 1 (main tree, master; next is 6d revision 2.3) and slice 2 (the harness, a code lane in its
 own worktree, plan authored just in time beside this one). This lane shares the main tree with lane 1.
 
-**Pass class:** `docs`. The pass writes research records under `docs/superpowers/research/` and one spec revision.
+**Pass class:** `docs`. The pass writes research records under `docs/research/` and one spec revision.
 It writes no Go, TypeScript, Svelte, Python, shell, unit, or configuration, so no code class fits. The class table
 (`pass-core`) gives `docs` "the docs tier" as its gate and "the register chain" as its review; this repo's docs tier
 is the full gate (see "Per-task gate"), and the register chain here is narrowed as "Review" says.
@@ -220,7 +220,7 @@ The repo's four checks (`CLAUDE.md`, "Planning-miss prevention") apply in this f
 
 Every evidence task (1 to 6) writes its draft to the lane's staging directory, `<conductor scratchpad>/slice-1/`,
 which the conductor names in each dispatch, and commits nothing. A-land moves the drafts into
-`docs/superpowers/research/` and commits them. Nothing warm sits in the shared tree during a segment, so lane 1's
+`docs/research/` and commits them. Nothing warm sits in the shared tree during a segment, so lane 1's
 live-executor check never meets this lane's files.
 
 Every record opens with its date, the pins it read (from Task 0's file), and the question list it owns, and ends
@@ -228,7 +228,7 @@ with a "Routed" section listing anything it hands to another slice.
 
 ### Task 0: Pin the evidence base and stand up the probe oracles
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-evidence-pins.md`.
+**Deliverable:** `docs/research/2026-10-06-slice-1-evidence-pins.md`.
 **Settles for:** every later task (the pins they cite and the oracle recipe they run); slice 2 (the oracle image
 pins and the specification commit, under settled item 5).
 
@@ -267,7 +267,7 @@ parallel tasks would make every fixture state unprovable.
 
 ### Task 1: The contract, the encoding quirks, and the XML rule
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-contract.md`.
+**Deliverable:** `docs/research/2026-10-06-slice-1-contract.md`.
 **Settles for:** slice 2 (the XML validation rule its harness implements; the quirk list its tests cover); slice 3
 (the response layer's encoding); the protocol module (the wire types it hand-writes).
 
@@ -293,7 +293,7 @@ method only, survey `:137`, `:161`). Neutral on hooks.
 
 ### Task 2: The client roster's demands
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-client-demands.md`.
+**Deliverable:** `docs/research/2026-10-06-slice-1-client-demands.md`.
 **Settles for:** Task 7's empty-success set and launch extension subset; slice 3 (browse views, `musicFolderId`);
 slice 4 (whether any client sends `Accept: image/webp` on `getCoverArt`, survey "Not verified" `:267-268`); slice 5
 (the AAC container and the `transcoding` extension).
@@ -325,7 +325,7 @@ not used as probes. Neutral on hooks.
 
 ### Task 3: The API base URL against a sub-path
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-base-url.md`.
+**Deliverable:** `docs/research/2026-10-06-slice-1-base-url.md`.
 **Settles for:** slice 3, which decides between the sub-prefix mount and `/rest` at the root and writes the build-spec
 erratum (re-plan `:427`). This task measures and recommends nothing binding.
 
@@ -353,7 +353,7 @@ Navidrome documentation (Apache-2.0, quotable). Neutral on hooks.
 
 ### Task 4: Where the specification is silent, what Navidrome and gonic do
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-server-behavior.md`. This is the spec's "written
+**Deliverable:** `docs/research/2026-10-06-slice-1-server-behavior.md`. This is the spec's "written
 record" (`:724-726`) in its server half.
 **Settles for:** Task 7's per-endpoint oracle assignment and divergence ledger; slices 3, 5, 6, and 7 (each section
 names its slice); the protocol module's clean-room citations (`:316-318`).
@@ -389,7 +389,7 @@ behavior rests on it, and its adoption stays slice 5's race test (`:445-447`). N
 
 ### Task 5: Melodee's intake pipeline
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-melodee-intake.md`.
+**Deliverable:** `docs/research/2026-10-06-slice-1-melodee-intake.md`.
 **Settles for:** the spec's one study question (`:725-728`); its ideas feed rung 7 (intake), rung 9 (admission),
 and rung 13 (the decision queue), each named per idea.
 
@@ -407,7 +407,7 @@ idea that implies a hook is listed under "Routed" for Task 9.
 
 ### Task 6: The prior-art table's open cells
 
-**Deliverable:** `docs/superpowers/research/2026-10-06-slice-1-prior-art-cells.md`.
+**Deliverable:** `docs/research/2026-10-06-slice-1-prior-art-cells.md`.
 **Settles for:** the spec's "Prior art" table (`:856-891`), whose open cells "are the study rung's deliverable,
 scored on CLAUDE.md's four criteria with evidence per cell" (`:858-860`).
 
@@ -424,7 +424,7 @@ Neutral on hooks.
 
 ### A-land: Land segment A
 
-**Outcome.** The seven drafts move from the staging directory into `docs/superpowers/research/`, one
+**Outcome.** The seven drafts move from the staging directory into `docs/research/`, one
 `diff-reviewer` per file reads it against its task's acceptance, any `fix` is folded once by the task's own agent,
 and one commit lands them on master after the full gate is green.
 
@@ -435,8 +435,8 @@ the agent reports and stops without committing. STATUS is written at the checkpo
 
 ### Task 7: The synthesis
 
-**Deliverables:** `docs/superpowers/research/2026-10-06-slice-1-study-record.md` (the study record) and
-`docs/superpowers/research/2026-10-06-slice-1-divergence-ledger.md` (the pre-seeded ledger).
+**Deliverables:** `docs/research/2026-10-06-slice-1-study-record.md` (the study record) and
+`docs/research/2026-10-06-slice-1-divergence-ledger.md` (the pre-seeded ledger).
 **Model:** `claude-opus-5-5`, effort `high`.
 **Settles for:** every later slice. This is the file the spec, slice 2, and each slice plan cite.
 

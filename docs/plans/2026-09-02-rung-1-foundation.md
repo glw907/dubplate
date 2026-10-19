@@ -7,7 +7,7 @@
 > consumes reports and never reads diffs inline.
 
 Revision 2, 2026-09-02: folds the adversarial plan review
-(`docs/superpowers/research/2026-09-02-greenfield-spec-reviews/rung-1-plan-review.md`),
+(`docs/research/2026-09-02-greenfield-spec-reviews/rung-1-plan-review.md`),
 all four blockers, eight majors, and ten minors. The review verified
 the pivot's toolchain mechanics (underscore exclusion, tidy prune,
 vale gap, systemd filter); implementers should not re-litigate those.
@@ -29,7 +29,7 @@ the wall observable.
 **Tech Stack:** Go 1.27, cobra, module `github.com/glw907/dubplate`.
 No new dependencies.
 
-**Spec:** `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+**Spec:** `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified). Rung 1's ladder entry and the sections
 "Repo pivot and tree shape", "The config wall, derived", "The Go
 bar", and "Box safety" govern this plan.

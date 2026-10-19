@@ -603,7 +603,7 @@ Add `"optimal_cost"` to the schema; the two values are already named.
 **m15.** The contested-surface audit counts one row that does not exist.
 The plan says "Six already carry a row in the parallel spec's
 contested-surface table" and lists `docs/` ledgers as written.
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:156-175`
+`docs/specs/2026-09-03-parallel-build-approach.md:156-175`
 has no `docs/` row; `:175`'s `corpus/README.md` row merely refers to
 "the same standing rule the `docs/` ledgers row states". Five rows
 exist, `docs/` ownership rests on CLAUDE.md's standing rule, and Task 0
@@ -611,7 +611,7 @@ item 4's expected answer ("six of nine present") is wrong.
 
 **m16.** `internal/engine/tag` collides in reading with the build spec's
 planned `internal/engine/tagio`, rung 8's FLAC read and write
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:312`).
+(`docs/specs/2026-09-02-greenfield-server-build.md:312`).
 R18's rejected alternatives consider `musicbrainz` and a
 `matcher.Source` interface and never the name, and Task 9's drafted
 corrections name only the rung 3 spec. Either pick a name that does not

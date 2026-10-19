@@ -1,6 +1,6 @@
 # Pass 5c-ii plan review: domain risk lens (security and failure)
 
-Target: `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
+Target: `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
 at `3ebfe3c` (revision 1, draft). Read against the rung 5 spec, DL R5.6
 and G6 through G8, the 5c-i plan's R-5c12, R-5c13, R-5c19, and its 5c-ii
 outline, the 5c-i security review's found-sound list, and the Go tree on

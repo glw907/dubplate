@@ -3,7 +3,7 @@
 Research report, 2026-09-07, prepared for rung 1b's plan authoring,
 against HEAD `c98a916`. Scope, quoted from the parallel-approach spec's
 Phase 0b paragraph
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:54`):
+(`docs/specs/2026-09-03-parallel-build-approach.md:54`):
 
 > **0b. Rung 1b: the config wall-row registry** (S band, its own plan,
 > the standard implementer/`diff-reviewer`/gate chain). Extend rung 1's
@@ -20,7 +20,7 @@ Phase 0b paragraph
 > that fragility in the file.
 
 The ownership row that governs the surface
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:158`):
+(`docs/specs/2026-09-03-parallel-build-approach.md:158`):
 
 > | The config wall | the registry (rung 1b); no lane edits `keys.go` |
 > every rung declares in its own file |
@@ -286,7 +286,7 @@ seventeen call sites, all of them in `cmd/dubplate-server`. One
 Exactly one: `cmd/dubplate-server/shadow.go:46-52`, registering two
 thresholds. Rung 4 declared the shadow *class* the other way, by
 editing `keys.go:214-229` directly, under the grant recorded at
-`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1650`.
+`docs/specs/2026-09-05-rung-4-shadow.md:1650`.
 
 ### 2.2 The doctor rows
 
@@ -361,7 +361,7 @@ opens `../../env/dubplate.env.template` via `templateKeys`
 classifies as unknown. `internal/config`'s test binary therefore reads
 `env/`. Any registry that changes how a name is classified changes what
 that test accepts, and rung 4b's planned second template
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1632` names
+(`docs/specs/2026-09-05-rung-4-shadow.md:1632` names
 `env/dubplate-server.env.template`) forces a decision about which file
 the test reads.
 
@@ -563,7 +563,7 @@ Rung 4's staleness pre-task already treats this as a standing check:
 "Is `.gitleaksignore:1` still
 `internal/config/keys_test.go:generic-api-key:66`, and is line 66 still
 the row it names?"
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1693-1695`).
+(`docs/specs/2026-09-05-rung-4-shadow.md:1693-1695`).
 Whatever 1b lands should retire that question rather than restate it.
 
 ### What 1b inherits, concretely
@@ -696,7 +696,7 @@ registration as a single item.
 
 ### 5.1 The bar as written
 
-`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:200-207`:
+`docs/specs/2026-09-02-greenfield-server-build.md:200-207`:
 
 > The bar is exemplary, not conforming. Stdlib idiom is the default
 > vocabulary, exported surfaces read like stdlib APIs, and the ops seam
@@ -770,7 +770,7 @@ much smaller and much less conflict-prone one than `keys.go`. A single
 `AddCommand`-style block is already the precedent: `main.go:63-68`, and
 the rung 4 spec's contested-surface table blesses it as "rung 1's
 skeleton; each rung adds its own file and registers through it"
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1647`).
+(`docs/specs/2026-09-05-rung-4-shadow.md:1647`).
 
 **The half-way point the repo actually built.** `registerShadowThresholds`
 (`shadow.go:46-52`) is a package-level `sync.OnceFunc` called from
@@ -792,7 +792,7 @@ and `Load`'s current signature already takes its other input
 
 CLAUDE.md requires naming which prior-art entries were consulted, with
 adopt or decline and a reason. The 2.0 spec's prior-art table
-(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md:394` onward)
+(`docs/specs/2026-09-07-streamer-2-0-design.md:394` onward)
 is almost entirely about streaming, tagging, and storage. Per entry:
 
 - **`pressly/goose`.** Declined already, by the 2.0 spec itself, for
@@ -831,7 +831,7 @@ config library is worth declining on the record.
 
 ## 6. The 2.0 forward hooks that touch config
 
-Read from `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md:354`
+Read from `docs/specs/2026-09-07-streamer-2-0-design.md:354`
 onward. Fourteen hooks. CLAUDE.md requires each rung plan to state per
 task whether it lands a hook or is neutral.
 
@@ -870,10 +870,10 @@ third value and that a class wants more than a boolean flag.
 
 ### 7.1 The standing ownership rows
 
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:158` gives
+`docs/specs/2026-09-03-parallel-build-approach.md:158` gives
 the config wall to 1b: "the registry (rung 1b); no lane edits
 `keys.go`". The rung 4 spec amends it for the interim
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1650`):
+(`docs/specs/2026-09-05-rung-4-shadow.md:1650`):
 
 > | `internal/config` (`keys.go`, `thresholds.go`) | rung 1b's registry
 > when it lands; **until then rung 4 as the only live code lane**, by
@@ -885,14 +885,14 @@ are both rung 4's edits to the file 1b exists to close.
 
 ### 7.2 Does pass 4b write `internal/config`?
 
-`docs/superpowers/plans/2026-09-07-rung-4b-deploy.md` does not exist.
+`docs/plans/2026-09-07-rung-4b-deploy.md` does not exist.
 The plans directory ends at
 `2026-09-05-rung-4a-shadow-runner.md`, and `docs/STATUS.md:25-27`
 confirms: "Pass 4b, the rung 4 deploy, in the main tree. Its plan is
 owed just-in-time and does not exist yet."
 
 The rung 4 spec's pass table
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1632`) enumerates
+(`docs/specs/2026-09-05-rung-4-shadow.md:1632`) enumerates
 4b's deliverables:
 
 > `systemd/dubplate-shadow.{service,timer}`;
@@ -932,7 +932,7 @@ registers through it".
 ### 7.3 The ordering inversion
 
 Rung 4's staleness pre-task
-(`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1687-1690`) opens
+(`docs/specs/2026-09-05-rung-4-shadow.md:1687-1690`) opens
 with a blocker question:
 
 > **Has rung 1b landed?** If yes, the integration class and the
@@ -994,7 +994,7 @@ had landed, and nothing was cut.
 
 ### 8.2 The S-band precedent
 
-`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1663-1671` bands 4a
+`docs/specs/2026-09-05-rung-4-shadow.md:1663-1671` bands 4a
 as M and 4b as S, and proposes 5M for 4a and 1.5M for 4b, "each
 re-derived from 4a's actual report before 4b's plan is drafted, on the
 2c precedent of refining a ceiling from a measurement rather than
@@ -1002,7 +1002,7 @@ asserting one for the whole rung". 4a's actual was 4.99M for 4a-i plus
 2.7M for 4a-ii, so the M-band estimate ran roughly 50% over.
 
 The parallel spec bands 1b as S
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md:54`).
+(`docs/specs/2026-09-03-parallel-build-approach.md:54`).
 
 ### 8.3 A task-count-based proposal
 

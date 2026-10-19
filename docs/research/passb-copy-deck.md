@@ -1,7 +1,7 @@
 # Dubplate uploader copy deck
 
 Source: `uploader-mockups.html` (ratified layout reference) cross-checked against
-`docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md`, including the
+`docs/specs/2026-08-31-dubplate-uploader-design.md`, including the
 2026-09-01 journey addendum, which supersedes the spec's original journey states
 and review path.
 

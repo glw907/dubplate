@@ -6,7 +6,7 @@
 
 ## Rung 5, pass 5b-ii (the roster, the mail seam, the rate limiters, the origin check, the auth handlers, the security fold): closed 2026-09-23, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md`
+Executed against `docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md`
 (revision 2.1, launch-ruled 2026-09-23) in the main tree, from `1d4ed29`
 (5b-i's merge). Task 0 (`opus`, fresh context) ran at `f75b0d9`
 (`research/handoffs/2026-09-12-5b-ii-task0-staleness.md`); the Go tree
@@ -431,7 +431,7 @@ Ruled at dispatch (plan `:22-56`); execution's own evidence for each:
 
 ### The pass-end security review
 
-`docs/superpowers/research/2026-09-23-rung-5b-ii-security-review.md`:
+`docs/research/2026-09-23-rung-5b-ii-security-review.md`:
 scope `git diff 1d4ed29..HEAD -- '*.go' go.mod go.sum config/'` at
 `08befea`. **No blocker.** Five majors (cross-process roster writes,
 mailed links landing outside the owned prefix, a refused client
@@ -538,9 +538,9 @@ fallback, so no gap is recorded for it.
   erratum both say the 5b-i security read was not run and is owed to
   5b-ii's window as its first item. It ran on 2026-09-12 and is
   recorded at
-  `docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`.
+  `docs/research/2026-09-12-rung-5b-i-security-review.md`.
 - **R-5b26's.** The erratum landed at `b91bae1`
-  (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2287-2296`)
+  (`docs/specs/2026-09-08-rung-5-identity-auth.md:2287-2296`)
   states that R33's redirect validation "landed in `internal/auth` at
   5b-i". No such function exists; Task 0 item 10 and this close both
   prove it by grep. The validator lands with rung 12's parameter or not

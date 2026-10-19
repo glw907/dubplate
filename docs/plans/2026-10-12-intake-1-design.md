@@ -1,7 +1,7 @@
 # intake-1 design: the intake core (7a)
 
 Approved by Geoff, 2026-10-11, with unattended planning and launch. The detail behind every line is the ratified rung 7 spec
-(`docs/superpowers/specs/2026-10-10-rung-7-intake-design.md`, revision 2), sections "The split" through
+(`docs/specs/2026-10-10-rung-7-intake-design.md`, revision 2), sections "The split" through
 "Acceptance criteria". This page adds no new decision to it.
 
 ## Outcome

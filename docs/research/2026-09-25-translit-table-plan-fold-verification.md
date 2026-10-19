@@ -1,8 +1,8 @@
 # Translit-table plan: fold verification (revision 2)
 
-Target: `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md` at
+Target: `docs/plans/2026-09-25-translit-table-at-setup.md` at
 `78f109a` (revision 2, committed). Fold record:
-`docs/superpowers/research/2026-09-25-translit-table-plan-fold.md`. The
+`docs/research/2026-09-25-translit-table-plan-fold.md`. The
 verifier took no part in the fold. It read the plan, the fold record, and
 the tree at HEAD (`scripts/deploy.sh`, `scripts/check.sh`,
 `systemd/dubplate-shadow.service`, `env/dubplate-server.env.template`,

@@ -9,7 +9,7 @@ group-scale principles spec (the bounded-share exception to the sharing decline,
 scope under the served-volume meter), and one erratum of 2026-10-05 from the rungs 12 to 16
 re-plan (the Navidrome verifications retire, and the private gate re-keys): ten errata in all.
 
-> Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md`,
+> Erratum, 2026-10-05 (rungs 12 to 16 re-plan spec, `docs/specs/2026-10-05-rungs-12-16-replan-design.md`,
 > revision 2.1 at `33b465c`, Geoff, 2026-10-05, owner rulings 1 to 3 all yes): Geoff retired
 > the incumbent stack, so three passages of this spec change.
 >
@@ -34,7 +34,7 @@ re-plan (the Navidrome verifications retire, and the private gate re-keys): ten 
 Revision 1 is dated 2026-09-11, revisions 2 and 3 fold five adversarial reviews
 (competitors and demand; collection interactions; technical design; threat model;
 consistency against the ratified documents), and the review records live under
-`docs/superpowers/research/2026-09-11-configuration-homes-review-*.md`. Every ruling in this
+`docs/research/2026-09-11-configuration-homes-review-*.md`. Every ruling in this
 file is dated, and the rulings dated 2026-09-11 and 2026-09-12 are Geoff's.
 
 The spec settles where a configuration value lives across the three surfaces dubplate will
@@ -600,7 +600,7 @@ an expiry are filed as a schema hook beside visibility, so the two models are de
 together if sharing ever ships.
 
 > Erratum, 2026-09-25 (group-scale principles spec,
-> `docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`, ratified, conflict 1):
+> `docs/specs/2026-09-25-group-scale-principles-design.md`, ratified, conflict 1):
 > the decline gains one exception, the bounded share. From 0.8 a member may send a link to one
 > song, one album, or a playlist of up to 20 tracks. The link plays a lossy stream in the
 > browser for a clamped time and pauses when it draws a crowd, as that spec's "Bounded

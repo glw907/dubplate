@@ -3,7 +3,7 @@
 Research report, 2026-09-05, prepared for the rung 4 spec's authoring,
 against HEAD `440131e3569dd5237432c60c6708d1cf29b59056`. Scope, quoted
 from the build spec's ladder entry
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:572-580`):
+(`docs/specs/2026-09-02-greenfield-server-build.md:572-580`):
 
 > Rung 4 | Shadow matching | The shadow runner under `engine/shadow` and
 > its subcommand; the divergence log; the adjudication artifact; a
@@ -376,7 +376,7 @@ It is not. There is no mechanism anywhere in the repo. The rule is
 stated as doctrine in `CLAUDE.md:176-177` ("no writes without a
 quiet-box check; read-only ssh only during reviews") and assigned to
 specific rungs in the build spec
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:864-874`)
+(`docs/specs/2026-09-02-greenfield-server-build.md:864-874`)
 and the parallel-approach spec (`:105`, `:123`). `scripts/deploy.sh`
 has no timer-quiescence probe, and `scripts/check.sh` has no box leg
 at all. The closest thing to a mechanical quiet check is `--check`
@@ -389,7 +389,7 @@ file as a pending change (`:113-121`).
 For rung 4 specifically, the build spec says rung 4 deploys the
 additive shadow runner under its own unit and that rung 4's additive
 unit is compatible with rung 10's read-only listing (`:869-870`,
-`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md:396-397`).
+`docs/research/2026-09-03-rung-dependency-analysis.md:396-397`).
 The write is additive, so a full quiet-box ritual is arguably not owed
 here, but the discipline is currently a human procedure rather than a
 check, and the spec should say which it is invoking.
@@ -814,7 +814,7 @@ ladder puts the durable divergence log.
 1. **`AdjudicationEntry` carries no matcher-commit field and no
    config hash.** Ruling B makes the commit stamp "a hard requirement
    of rung 4's divergence row"
-   (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md:93-95`),
+   (`docs/specs/2026-09-03-rung-3-go-matcher.md:93-95`),
    and the 3d handoff says it "joins `analysis.AdjudicationEntry`
    beside the existing fields" (`docs/HISTORY.md:283-286`). Nothing in
    `adjudication.go` has it today. Adding it touches
@@ -964,7 +964,7 @@ oracle counterpart at all for a skipped album; they may be logged as
 evidence, never graded. That is the build spec's "the shadow log
 records what the oracle can actually attest, tier-one evidence rides
 the applied subset, owner adjudication covers the skips"
-(`docs/superpowers/specs/2026-09-02-greenfield-server-build.md:255-260`),
+(`docs/specs/2026-09-02-greenfield-server-build.md:255-260`),
 read against the landed types.
 
 The two divergence classes are therefore asymmetric, and rung 4's spec
@@ -1000,7 +1000,7 @@ the shadow subject shape so the 21 committed corpus rows stay valid.
 makes only the third a gate:
 
 1. **Observed album count**, reported and never gated (ruling 1, via
-   `docs/superpowers/research/2026-09-02-greenfield-server-rulings.md:53-56`
+   `docs/research/2026-09-02-greenfield-server-rulings.md:53-56`
    and the build spec at `:249-253`). The count should be split
    applied/skipped, since only the applied subset carries tier-one
    weight.
@@ -1009,7 +1009,7 @@ makes only the third a gate:
 3. **The floor duration**, configurable with a 30-day default, against
    the elapsed observation window. The estate's own setting is the
    launch date's dominant term and is an open owner question
-   (`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md:511-520`).
+   (`docs/research/2026-09-03-rung-dependency-analysis.md:511-520`).
 
 The gating clause is that any row still at `pending-adjudication`
 blocks the launch gate (`adjudication.go:10-12`; build spec
@@ -1024,14 +1024,14 @@ shape to copy: report what was compared, not what was visited.
 
 All citations are `path:line` against the tree at HEAD `440131e`. Line
 numbers for the build spec are
-`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`,
+`docs/specs/2026-09-02-greenfield-server-build.md`,
 abbreviated BS; the dependency analysis
-`docs/superpowers/research/2026-09-03-rung-dependency-analysis.md`,
+`docs/research/2026-09-03-rung-dependency-analysis.md`,
 DA; the parallel-approach spec
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`, PA; the
-rung 3 spec `docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`,
+`docs/specs/2026-09-03-parallel-build-approach.md`, PA; the
+rung 3 spec `docs/specs/2026-09-03-rung-3-go-matcher.md`,
 R3; the reverse-edge completion
-`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`, RE.
+`docs/research/2026-09-04-reverse-edge-completion.md`, RE.
 
 ### 1. What the record settles
 
@@ -1189,7 +1189,7 @@ written reasoning in the same artifacts the corpus uses. `BS:100-110`.
 **S22. The deployment is additive and read-only with respect to the
 library.** `BS:262-263`. The organizer spec's rung 4 says the same:
 "nothing it does is irreversible", at
-`docs/superpowers/specs/2026-09-01-dubplate-organizer-design.md:572`,
+`docs/specs/2026-09-01-dubplate-organizer-design.md:572`,
 and "Everything here is reversible, and nothing here changes what the
 box decides" for the neighbouring rung at `:590-591`.
 

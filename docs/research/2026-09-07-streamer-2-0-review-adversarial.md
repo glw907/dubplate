@@ -1,6 +1,6 @@
 # Adversarial review: dubplate-server 2.0 design (revision 1)
 
-Fresh-context review of `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (revision 1,
+Fresh-context review of `docs/specs/2026-09-07-streamer-2-0-design.md` (revision 1,
 2026-09-07) against the greenfield build spec, CLAUDE.md, and ROADMAP. Protocol claims checked
 against opensubsonic.netlify.app. Line citations are to the spec under review unless prefixed `BS:`
 (greenfield build spec).

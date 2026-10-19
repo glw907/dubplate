@@ -3,17 +3,17 @@
 Status: **revision 2.2, 2026-09-23, approved by Geoff with all six
 rulings yes.** The review history, the full ruling questions with their
 branches, and every finding's disposition live in
-`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-record.md`.
+`docs/research/2026-09-23-rung-5c-plan-fold-record.md`.
 
 Sources: pass 5b-ii's close (`docs/HISTORY.md`, top entry), the 5b-ii
 pass-end security review
-(`docs/superpowers/research/2026-09-23-rung-5b-ii-security-review.md`)
+(`docs/research/2026-09-23-rung-5b-ii-security-review.md`)
 and Geoff's 2026-09-23 routing of it, the rung 5 identity-and-auth spec
-at revision 2.1 (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`),
+at revision 2.1 (`docs/specs/2026-09-08-rung-5-identity-auth.md`),
 the ratified rung 6 spec
-(`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md`), and the
+(`docs/specs/2026-09-23-rung-6-ops-seam-store.md`), and the
 ratified web surface standard
-(`docs/superpowers/specs/2026-09-12-web-surface-standard.md`).
+(`docs/specs/2026-09-12-web-surface-standard.md`).
 
 This plan splits 5c into two passes. It is 5c-i in full, with 5c-ii as
 a scoped outline whose first two tasks are specified in full. The spec's
@@ -141,7 +141,7 @@ Geoff's routing.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/research/2026-09-23-rung-5b-ii-security-review.md`,
+1. **`docs/research/2026-09-23-rung-5b-ii-security-review.md`,
    in full.** Majors 1 through 4 and minors 7, 8, 10, 11, 12, 13, 15, 17,
    and 19 are Tasks 1 through 5's whole content. **Its line numbers are
    unreliable** (it cites `internal/auth/epoch.go:416-441`, and that file
@@ -174,7 +174,7 @@ Read these before Task 1, in this order.
    expects 5c to have built: the CLI admin grant, the last-admin guard
    inside the write path, and a roster whose `streamer_username` rung 6's
    import will require.
-5. **`docs/superpowers/specs/2026-09-11-configuration-homes-design.md:668-669`**,
+5. **`docs/specs/2026-09-11-configuration-homes-design.md:668-669`**,
    which routes the last-admin guard to rung 5's plan.
 
 **Every relied-on library or stdlib behavior below is quoted from `go
@@ -1967,8 +1967,8 @@ Model: `sonnet`. Depends on Tasks 0 through 7, the simplifier round,
 and the pass-end security read with its fold.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-5c-i.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-5c-i.md`
+- Create: `docs/research/handoffs/draft-STATUS-5c-i.md`
+- Create: `docs/research/handoffs/draft-HISTORY-5c-i.md`
 
 **Outcomes:**
 

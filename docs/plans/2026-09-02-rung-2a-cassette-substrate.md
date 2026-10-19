@@ -72,7 +72,7 @@ uv-pinned venv (beets==2.13.1 with unidecode, jellyfish, lap, and
 numpy versions recorded into the manifest; the shim only; never in
 the repo gate); ruff as the Python lint leg; MusicBrainz WS/2 JSON.
 
-**Spec:** `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+**Spec:** `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), ladder entry 2 and rulings 1-3. Primary
 research, read before implementing: the mechanics study
 (`research/2026-09-02-beets-matcher-mechanics.md`; Q1 purity, Q5

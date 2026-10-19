@@ -1,7 +1,7 @@
 /**
  * Feature detection the selection UI (U10) needs to decide which
  * controls to show, plus the one iOS-Safari check the copy switch
- * needs (gate 3's rulings, docs/superpowers/plans/2026-08-31-dubplate-uploader.md).
+ * needs (gate 3's rulings, docs/plans/2026-08-31-dubplate-uploader.md).
  * Nothing here reads a file or its bytes -- both checks are static
  * environment probes.
  */

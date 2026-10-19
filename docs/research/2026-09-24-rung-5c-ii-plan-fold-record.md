@@ -1,10 +1,10 @@
 # Rung 5c-ii plan fold record
 
-Target: `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
+Target: `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
 revision 1 (`3ebfe3c`) to revision 2 (folded, awaiting verification).
 Reviews folded (`140e3cd`): the contract lens (C1 through C19), the
 mechanics lens (M1 through M4, m1 through m11), and the risk lens (R1
-through R13), all under `docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-*.md`.
+through R13), all under `docs/research/2026-09-24-rung-5c-ii-plan-review-*.md`.
 
 Each finding was checked against the tree at `140e3cd` before it was
 folded. The checks that decided a disposition:
@@ -161,7 +161,7 @@ erratum (Task 8).
 
 Revision 2 (`74066b1`) to revision 2.1 (second fold, awaiting prose
 review). Input: the verification read at `cebcda2`
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`),
+(`docs/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`),
 V1 through V9. Scope was limited to those nine. Each finding's evidence
 was checked against the tree, `go doc`, or the kit 2.70.3 source in the
 verifier's probe app before it was folded.
@@ -187,7 +187,7 @@ and the flag. The task count and deliverable count (31) are unchanged.
 
 Revision 2.1 (`0bb3722`) to revision 2.2 (prose folded, awaiting owner
 approval). Input: the prose review
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-prose-review.md`),
+(`docs/research/2026-09-24-rung-5c-ii-plan-prose-review.md`),
 P1 through P15. Every changed pointer was checked against the tree
 before it was written.
 
@@ -216,9 +216,9 @@ count and deliverable count (31) are unchanged.
 
 Revision 2.2 (approved 2026-09-24) to revision 2.3. Input: Geoff's
 visual identity ruling from the brainstorm session dubplate-04, sent as
-`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`
+`docs/research/2026-09-24-visual-identity-draft-tokens.md`
 (`b36871c`, with the toggle and default-binding notes at `525b6b6`). The
-pending spec `docs/superpowers/specs/2026-09-24-visual-identity-design.md`
+pending spec `docs/specs/2026-09-24-visual-identity-design.md`
 becomes the source of truth when it lands. Task 4's files are
 replaceable data. The amendment changes the theme surface only. No
 ruling is reopened, and Ruling 3's answer (author the theme now) stands.
@@ -308,9 +308,9 @@ Task 0.
 
 Revision 2.3 (`30f2d5b`) to revision 2.4. Inputs: the amendment
 verification read
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-amendment-verification.md`,
+(`docs/research/2026-09-24-rung-5c-ii-amendment-verification.md`,
 A1 through A11), and the settled tokens in the last section of
-`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`.
+`docs/research/2026-09-24-visual-identity-draft-tokens.md`.
 
 | ID | Severity | Disposition | Where |
 | --- | --- | --- | --- |

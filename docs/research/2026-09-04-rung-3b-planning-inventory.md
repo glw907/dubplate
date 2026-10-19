@@ -3,7 +3,7 @@
 Research report, 2026-09-04, prepared for pass 3b's plan authoring,
 against HEAD `f40a6694122c7077202caaff5a3598b2eca5afa8`. Scope, quoted
 from the rung 3 spec's pass-split table
-(`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md:329`):
+(`docs/specs/2026-09-03-rung-3-go-matcher.md:329`):
 
 > **3b** Translation | The translation layer and the pseudo-release
 > merge; the derived `AlbumInfo` ledger, its Python entry point, its
@@ -594,7 +594,7 @@ scratchpad at
 ### 14. Where this section corrects or extends the port map
 
 The port map
-(`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`,
+(`docs/research/2026-09-02-beets-matcher-mechanics.md`,
 Q5) is accurate on every line number checked. Three things to fix or
 add.
 

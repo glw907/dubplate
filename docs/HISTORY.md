@@ -5,7 +5,7 @@ Per-pass ledger, newest first.
 
 ## Gate scope pass (2026-10-10): closed, lane 1
 
-Executed against `docs/superpowers/plans/2026-10-10-gate-scope-pass.md` (`tool` class, 2.5M ceiling, flag 2.0M) in the
+Executed against `docs/plans/2026-10-10-gate-scope-pass.md` (`tool` class, 2.5M ceiling, flag 2.0M) in the
 main tree, Tasks 0 to 4 and a close. The plan's Record holds every proof and red.
 
 ### What landed
@@ -60,7 +60,7 @@ main tree, Tasks 0 to 4 and a close. The plan's Record holds every proof and red
 
 ## Rung 12 slice 2b, the oracle harness (second pass): closed 2026-10-10, lane 3
 
-Executed against `docs/superpowers/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md` (revision 1.3, errata E1 to
+Executed against `docs/plans/2026-10-07-rung-12-slice-2b-oracle-harness.md` (revision 1.3, errata E1 to
 E7), in the worktree `.claude/worktrees/lane-3-slice-2` on branch `lane-3-slice-2`, as four segments (A: Tasks 1 to 3,
 B: 4 to 6, C: 7 to 9, D: 10 and 11) and a close. Segments A and B and Tasks 7 and 8 ran on 2026-10-07, when Geoff
 paused the run; Task 9 onward ran in the unattended window of 2026-10-10. The branch rebased onto master and
@@ -125,7 +125,7 @@ Task 3 ran on opus; every other task ran on sonnet. Tasks 7 to 11 had no fix rou
 ### The fold-rule trial
 
 The plan's fold refused four new-mechanism findings (C3's `maxOccurs` path rule, C10's raw-token fallback, DR8's
-`--nonet`, M5's own writer) and the sub-proposals in `docs/superpowers/research/2026-10-07-rung-12-slice-2b-plan-fold.md`
+`--nonet`, M5's own writer) and the sub-proposals in `docs/research/2026-10-07-rung-12-slice-2b-plan-fold.md`
 and `-verification.md`. One refusal proved a real defect in part: C10. The plan kept `ParseQuery`'s partial map and a
 fail-closed rule on any parse error, and execution met both costs: E5 recorded that `ParseQuery` drops a
 `t=x;s=y` pair whole, E6 and BACKLOG #29 recorded the false positive on prose, and the architecture read found a false
@@ -157,7 +157,7 @@ Library".
   gonic answers ok and empty. A-04 held.
 - **Task 11.** Feishin 1.17.0 and Rufin 0.16.6 passed all 11 flows against Navidrome and ran the folder view against
   gonic; the real-profile and keyring hashes were unchanged. Tempus is deferred (no `/dev/kvm`) and Amperfy goes to
-  rung 16. The record is `docs/superpowers/research/2026-10-10-slice-2b-roster-walk.md`.
+  rung 16. The record is `docs/research/2026-10-10-slice-2b-roster-walk.md`.
 
 ### Merge facts
 
@@ -194,11 +194,11 @@ owner pause (2026-10-07) is recorded in E6.
 
 ## Rung 12 slice 2a, the oracle harness: closed 2026-10-07, lane 3
 
-Executed against `docs/superpowers/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2), in the worktree
+Executed against `docs/plans/2026-10-06-rung-12-slice-2-oracle-harness.md` (revision 1.2), in the worktree
 `.claude/worktrees/lane-3-slice-2` on branch `lane-3-slice-2`, as three segments (A: Tasks 1 to 3, B: 4 to 6, C: 7 and
 8) under the 2026-10-07 unattended window, then a close that waited for 6d's merge. The slice rebased onto master
 (`d87ecc5`) and fast-forwarded as `d87ecc5..70bcc30`; the hashes below are the rebased ones. The conductor's running
-ledger is `docs/superpowers/research/2026-10-07-overnight-conductor-notes.md`. Task 0 recorded lane 1's dependency
+ledger is `docs/research/2026-10-07-overnight-conductor-notes.md`. Task 0 recorded lane 1's dependency
 sweep as its own.
 
 ### What landed
@@ -333,11 +333,11 @@ behaviors the plan could not know before a live recording.
 
 ## Rung 6, pass 6d (identity in the store, the auth settings, and `serve`'s store): closed 2026-10-07, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-26-rung-6d-identity-serve-store.md` (revision 2.5), pass class
+Executed against `docs/plans/2026-09-26-rung-6d-identity-serve-store.md` (revision 2.5), pass class
 `auth-data`, in the main tree on master, as three segments (A: Tasks 0 to 2, B: 3 to 5, C: 6 to 8) under the
 2026-10-07 unattended window. Geoff ruled Rulings 1, 3, and 4 yes at approval: one pass under a 10.5M ceiling with an
 8.4M flag, the store identity routed to rung 16, and `member import` dropped. The build ran from Task 0 (`f58a559`) through `4de73e7`; the
-conductor's running ledger is `docs/superpowers/research/2026-10-07-overnight-conductor-notes.md`.
+conductor's running ledger is `docs/research/2026-10-07-overnight-conductor-notes.md`.
 
 ### What landed
 
@@ -544,7 +544,7 @@ One planning miss: Task 6's States row, a plan defect found at execution.
 
 ## Rung 12 slice 1, the study: closed 2026-10-07, document lane
 
-Executed against `docs/superpowers/plans/2026-10-06-rung-12-slice-1-study.md` (revision 1.1), pass class `docs`,
+Executed against `docs/plans/2026-10-06-rung-12-slice-1-study.md` (revision 1.1), pass class `docs`,
 as a document lane: every task staged its drafts outside the tree, and two landing steps moved them onto master in
 the main tree at lane 1's segment A boundary (`beda726` through `acad661`).
 
@@ -633,16 +633,16 @@ sittings.
 
 ## Rungs 12 and 16 re-plan, document pass: closed 2026-10-06, lane 1
 
-Executed against `docs/superpowers/plans/2026-10-05-replan-document-pass.md` (revision 2), pass class `docs`, in
+Executed against `docs/plans/2026-10-05-replan-document-pass.md` (revision 2), pass class `docs`, in
 the main tree on master, beside the removal pass (segment A) and after its merge (segment B). The spec is
-`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1); its rulings, reviews, and folds
-are `docs/superpowers/research/2026-10-05-rungs-12-16-replan-*.md`. Geoff ruled all three owner rulings yes.
+`docs/specs/2026-10-05-rungs-12-16-replan-design.md` (revision 2.1); its rulings, reviews, and folds
+are `docs/research/2026-10-05-rungs-12-16-replan-*.md`. Geoff ruled all three owner rulings yes.
 
 ### What landed
 
 - Task 0 (no commit; STATUS recorded it, committed at `d039f3b`): the archive chore, recorded below.
 - Task 1 `f1ceb9a`. Task 2 `bdd1472`: streamer spec revision 3 and
-  `docs/superpowers/research/2026-10-05-client-roster-audit.md`. The audit carries two Q&A-session handoffs from
+  `docs/research/2026-10-05-client-roster-audit.md`. The audit carries two Q&A-session handoffs from
   Geoff (2026-10-05): the ruled client roster (Feishin, Rufin, Amperfy, Tempus, with Navic as alternate), and
   Melodee's intake comparison as a slice 1 study question.
 - Task 3 `27eae30` and `246bfaf` (one fix round, the errata count). Task 4 `54c909e`. Task 5 `93ef26b`: the
@@ -714,7 +714,7 @@ an Opus `diff-reviewer`, and every gate was the full heavy lane, green.
 
 ## Navidrome removal: closed 2026-10-06, lane 1
 
-Executed against `docs/superpowers/plans/2026-10-05-navidrome-removal.md` (revision 2), in the main tree on
+Executed against `docs/plans/2026-10-05-navidrome-removal.md` (revision 2), in the main tree on
 master, from `7d6dee4` (the dependency sweep record) to this entry's commit. Pass class `auth-data` for the code
 tasks and `docs` for the close. Segment A ran Tasks 1, 2a, and 2b; segment B ran Tasks 3, 4a, and 4b under run
 `wf_b30c2938-54e`, which Geoff paused once mid Task 4b and resumed with a keep-or-revert note on the partial work.
@@ -823,7 +823,7 @@ one sitting, ruled "proceed on battery", and paused twice (one pause mid Task 4b
 
 ## Rung 5d-ii (the review, the sitting, and the rung 5 close): closed 2026-10-05, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
+Executed against `docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
 (revision 2.2 with amendments A1 to A6), in the main tree on master, from `03e1518` (5d-i's close)
 to this entry's commit. Segment C ran in the overnight window of 2026-10-04 (runs
 `wf_c7243d16-e90`, `wf_e638c15e-7f4`, `wf_4cf6053e-e09`, `wf_9aaaa54f-9d5`), the Task 10 sitting
@@ -978,7 +978,7 @@ a box read that stayed true at the sitting.
 
 ## Rung 5d-i (the boundary and the deployment build): closed 2026-10-05, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
+Executed against `docs/plans/2026-09-25-rung-5d-boundary-deployment-close.md`
 (revision 2.2, approved 2026-09-26), in the main tree on master from base `311b74c`, in the
 overnight window of 2026-10-04. The plan predates pass classes; the pass ran as `auth-data`
 (full heavy gate per task, Opus review, coverage gaps blocking, mutation proofs). The baseline gate
@@ -1044,7 +1044,7 @@ trial: no finding the plan review's folds refused turned out to be a real defect
 
 ## Rung translit (the Unidecode table leaves the binary and is built at setup): closed 2026-10-03, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-25-translit-table-at-setup.md`
+Executed against `docs/plans/2026-09-25-translit-table-at-setup.md`
 (approved 2026-09-25, revision 2.1, both rulings yes), in the main tree, from
 base `1c012a8`. Task 0 read the tree at `4f4930b` and said launch
 (`62ad346`, `research/2026-09-26-translit-task-0-report.md`). The pass ran in
@@ -1337,7 +1337,7 @@ exist in four copies with two refusal wordings, and the `TestMain` shim
 ## Rung 5, pass 5c-iv (the string deck, the three real pages, the signed-in header, and the render-and-read): closed 2026-09-26, lane 1
 
 Executed against Tasks 7 through 11 of
-`docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
+`docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
 ratified 2026-09-25 under Ruling 1's yes; refreshed at `131283c` against 5c-iii's close), in the
 main tree. Segments D-i and D-ii (Task 0, Task 7, the register fold, Tasks 8, 9a, 9b) ran in the
 2026-09-25 overnight window and ended at `1fc7260`. Segment E (Task 10, its folds, the review
@@ -1510,7 +1510,7 @@ a file line, so these are owed as paste-ready blocks, not applied. 5c-iii's erra
 (below, in its entry) are also still unapplied; apply them first, then these after them.
 
 **5c-iv-E1. The rung 5 spec's 5c row closes.** Append after the last erratum block before "The
-pass split" (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2497-2504`), after
+pass split" (`docs/specs/2026-09-08-rung-5-identity-auth.md:2497-2504`), after
 5c-iii's erratum 1:
 
 > Erratum, 2026-09-26 (pass 5c-iv close): **the 5c row is closed.** 5c ran as four passes,
@@ -1521,7 +1521,7 @@ pass split" (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2497-250
 > gate's refusal through it is auth surface. Rung 5 continues at 5d.
 
 **5c-iv-E2. The web surface standard's section 15, as landed.** Append after the AI-tells
-paragraph (`docs/superpowers/specs/2026-09-12-web-surface-standard.md:1825-1829`), after
+paragraph (`docs/specs/2026-09-12-web-surface-standard.md:1825-1829`), after
 5c-iii's erratum 2:
 
 > Erratum, 2026-09-26 (pass 5c-iv close): **the render and the AI-tells rule, as landed.**
@@ -1630,7 +1630,7 @@ unknown paths crosses the admin gate's indistinguishability contract. The conduc
 ## Rung 6, pass 6c (the routed schema and settings home): closed 2026-09-26, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`
+`docs/plans/2026-09-25-rung-6c-routed-schema-settings-home.md`
 (revision 2.2) in the lane 2 worktree (`.claude/worktrees/lane-2-6c`, branch `lane-2-6c`), cut from
 master at `392d1cd`. Task 0's staleness read (`a932920`) found no blockers: five `local.New`
 callers, a stale `internal/config` package doc it noted for cleanup, and eleven moved plan
@@ -1684,7 +1684,7 @@ not a fast-forward, one `diff-reviewer` read the merged result: accept, no seman
 
 Six `go-architecture-reader` grades ran over the committed tree at `e90998a`, each with no plan
 in context. Findings, file:line, and the conductor's rulings are in
-`docs/superpowers/research/2026-09-26-rung-6c-architecture-reads.md`. The verdicts:
+`docs/research/2026-09-26-rung-6c-architecture-reads.md`. The verdicts:
 
 | Package | Verdict |
 | --- | --- |
@@ -1932,7 +1932,7 @@ sort order, notification choices, default collection).
 ## Rung 6, pass 6b-ii-b (the offline `restore` verb): closed 2026-09-25, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md` (Ruling 1
+`docs/plans/2026-09-25-rung-6b-ii-restore-http.md` (Ruling 1
 split the pass into 6b-ii-a, folded earlier at `6e6fd12`, and 6b-ii-b,
 this entry) in the lane 2 worktree (`.claude/worktrees/lane-2-6b-ii-b`,
 branch `lane-2-6b-ii-b`). Scope: Task 0 and Tasks 4A-7. The
@@ -2003,7 +2003,7 @@ against `os/exec` 0.670 and `archive/zip` 0.258), `internal/engine/store`
 (workmanlike, density 0.381 against `database/sql` 0.424), and
 `cmd/dubplate-server`'s restore surface (sound with nits, `restore.go`
 density 0.184). The records are
-`docs/superpowers/research/2026-09-25-rung-6b-ii-b-architecture-internal-backup.md`,
+`docs/research/2026-09-25-rung-6b-ii-b-architecture-internal-backup.md`,
 `-internal-engine-store.md`, and `-cmd-restore.md`. Each named items to
 take before the merge; the conductor took nine as the pre-merge batch
 (`00739d3`, `418a8aa`, `bd34f9a`, `9870678`, `a66b7d1`, and `dcb1f47`,
@@ -2237,7 +2237,7 @@ a stop-don't-ask flag at 13.4M.
 
 ### The errata this pass owes
 
-- **Spec criterion 16** (`docs/superpowers/specs/2026-09-23-rung-6-ops-seam-store.md:1018`,
+- **Spec criterion 16** (`docs/specs/2026-09-23-rung-6-ops-seam-store.md:1018`,
   "every local pre-migration and pre-restore snapshot older than its
   snapshot is deleted") and **line 712** ("A pre-restore copy follows
   ruling 7's retention") are both corrected by M1's fix: a pre-restore
@@ -2245,7 +2245,7 @@ a stop-don't-ask flag at 13.4M.
   snapshots only; a pre-restore copy is kept, like a `discarded-*` file,
   until an operator removes it by hand.
 - **The plan's privileged-fields row for a pre-restore copy**
-  (`docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md:458`,
+  (`docs/plans/2026-09-25-rung-6b-ii-restore-http.md:458`,
   "deletion by 6b-i's post-backup local prune and spec ruling 7") is
   corrected the same way: `isLocalCopyName` no longer matches the
   pre-restore prefix (`15d7955`).
@@ -2402,7 +2402,7 @@ three architecture reads:
 ## Rung 5, pass 5c-iii (the fonts, the theme data, the rendered gates, the document head, and the component layer): closed 2026-09-25, lane 1
 
 Executed against
-`docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
+`docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md` (revision 4,
 ratified by Geoff 2026-09-25, Rulings 1-10 all yes/as stated), in the main tree, from `fc52232`
 (the plan's own drafting commit; code work starts at `83d5ae9`, which raised window 2's cap to
 run 5c-iii through this close). `git log --oneline --grep="5c-iii" -i HEAD~1 | wc -l` (counted before this close's own docs
@@ -2448,7 +2448,7 @@ canvas-paint logic inline. No behavior change; every assertion, row, and manifes
 ### The pass-end reviews and their fold
 
 Three reviewers ran and are recorded at `944e235`:
-`docs/superpowers/research/2026-09-25-rung-5c-iii-review-svelte.md` (1 blocker, 6 warnings, 13
+`docs/research/2026-09-25-rung-5c-iii-review-svelte.md` (1 blocker, 6 warnings, 13
 suggestions), `-review-a11y.md` (1 blocker, 8 warnings, 9 suggestions), and
 `-review-security.md` (2 medium, 5 low, 4 informational). The fold record
 (`docs/superpowers/research/2026-09-25-rung-5c-iii-review-fold.md`, `7ca3d53`) counts 49 raw
@@ -2487,7 +2487,7 @@ Simplifier round 2 (`3fd6c0b`) extracted `paintedProperty` from three repeated c
 `run.ts`; no behavior change.
 
 Three merge-side `go-architecture-reader` reads ran at HEAD `db1e111`, all "workmanlike":
-`docs/superpowers/research/2026-09-25-rung-5c-iii-architecture-internal-serve.md`,
+`docs/research/2026-09-25-rung-5c-iii-architecture-internal-serve.md`,
 `-internal-config.md`, `-cmd-dubplate-server.md`. Each names every finding with its `file:line`
 and a routing line; the headline findings and their routes are in "What stayed open" below.
 
@@ -2545,13 +2545,13 @@ number at VI `:141`/`:152` (R5.4 corrected to R5.5), Permanent Marker's license 
 No further edit to VI is needed for these three.
 
 **1. The rung 5 spec's 5c row: the third split.** Append after the existing 2026-09-25 erratum
-block at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (which records
+block at `docs/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (which records
 5c-ii's own split into 5c-ii and 5c-iii):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the 5c-iii row splits again, into 5c-iii and
 > 5c-iv.** The erratum above described 5c-iii as carrying "the fonts, the three pages with
 > their string deck, the rendered gates, and the render-and-read" under its own plan's ceiling.
-> `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`'s Ruling 1
+> `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`'s Ruling 1
 > splits that scope again at the served-header-versus-pages boundary: 5c-iii carries the fonts,
 > the theme data, the rendered harness and its reproducibility and first-paint gates, the
 > document head, and the component layer, and closed under a 10.8M ceiling. Segments A to C
@@ -2567,7 +2567,7 @@ block at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2470-2486` (
 > rung 5's own reservation moves from about 41M to about 51M (this plan's Ruling 6).
 
 **2. The web surface standard's section 15 line.** Append to the existing 2026-09-25 erratum
-block at `docs/superpowers/specs/2026-09-12-web-surface-standard.md:1790-1794` (the "second
+block at `docs/specs/2026-09-12-web-surface-standard.md:1790-1794` (the "second
 split" erratum):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the third split.** 5c-iii itself split into
@@ -2575,7 +2575,7 @@ split" erratum):
 > above). "5c-iii carries its own re-derived ceiling" now names two plans' remaining scope, not
 > one: 5c-iii closed under 10.8M, and 5c-iv carries the same plan's Tasks 7-11 under 8.5M.
 
-**3. `docs/superpowers/specs/2026-09-07-design-language-standard.md`'s R5.5.** Append after
+**3. `docs/specs/2026-09-07-design-language-standard.md`'s R5.5.** Append after
 `R5.5` (`:475-479`):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **R5.5 carries no family count.** The visual identity
@@ -2593,7 +2593,7 @@ split" erratum):
 > render-and-read (5c-iv Task 10) covers both schemes at rung 5, not rung 7.
 
 **5. The rung 5 spec's add-member "admin checkbox".** Append after the add-member page
-description at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1436-1445`:
+description at `docs/specs/2026-09-08-rung-5-identity-auth.md:1436-1445`:
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the add-member page ships no admin checkbox.**
 > R-5c13 (5c-i) already refuses an `admin` field on the web channel, and the API enforces it
@@ -2603,7 +2603,7 @@ description at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1436-1
 > admin control.
 
 **6. The 5c-ii plan's R-5cii8.** Append after R-5cii8's cache-directive section
-(`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:856-873`):
+(`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:856-873`):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the members document row is `no-store`, not
 > `private, no-cache`.** This plan's cache table named `private, no-cache` for the members
@@ -2612,7 +2612,7 @@ description at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1436-1
 > superseded.
 
 **7. The 5c-ii plan's R-5cii22.** Append after R-5cii22's cookie-attribute description
-(`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:544` and its
+(`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md:544` and its
 neighboring rows):
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the theme cookie carries a one-year `Max-Age`.**
@@ -2622,7 +2622,7 @@ neighboring rows):
 > `Max-Age=31536000` as well. The server's reading of the cookie is unchanged.
 
 **8. VI's `:128-131` under a functional-color branding neutral.** Append after the
-`theme-color` paragraph at `docs/superpowers/specs/2026-09-24-visual-identity-design.md:138-140`:
+`theme-color` paragraph at `docs/specs/2026-09-24-visual-identity-design.md:138-140`:
 
 > Erratum, 2026-09-25 (pass 5c-iii close): **the hex pair describes the unbranded bundle only.**
 > Under `DUBPLATE_BRANDING` setting `--color-neutral` to a functional color (`oklch()`, `rgb()`,
@@ -2716,7 +2716,7 @@ through 11 build on, for conductor action 5's refresh read.
 
 ## Rung 6, pass 6b-ii-a (the ops seam's HTTP projection): closed 2026-09-25, lane 2
 
-Executed against `docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`
+Executed against `docs/plans/2026-09-25-rung-6b-ii-restore-http.md`
 (revision 4, approved by Geoff 2026-09-25; Ruling 1 split the pass into
 6b-ii-a, this entry, and 6b-ii-b) in the lane 2 worktree
 (`.claude/worktrees/lane-2-6b-ii-a`, branch `lane-2-6b-ii-a`), from
@@ -2775,7 +2775,7 @@ after the merge. Master gate green through `6e6fd12`.
 
 Three `go-architecture-reader` grades ran at master `6e6fd12`, each
 with no plan in context, recorded in
-`docs/superpowers/research/2026-09-25-window-2-architecture-reads.md`:
+`docs/research/2026-09-25-window-2-architecture-reads.md`:
 `internal/ops` (sound with nits, density 0.60 against `io/fs` 0.57),
 `internal/ops/local` (sound with nits, density 0.26 against
 `database/sql` 0.42), and `internal/ops/opshttp` (sound with nits,
@@ -2920,7 +2920,7 @@ a 0.8 forward-hook reference).
 
 ## Matcher word-boundary translation (the featuring row's ASCII RE2 rewrite): closed 2026-09-25, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`
+Executed against `docs/plans/2026-09-25-matcher-word-boundary.md`
 (ratified 2026-09-25, three rulings all yes), in the main tree, from
 `a12dff9` (Task 0: no drift, pre-fix figures confirmed).
 
@@ -3005,7 +3005,7 @@ either pass.)
 
 Two `go-architecture-reader` grades ran at master `6e6fd12`, no plan in
 context, recorded in
-`docs/superpowers/research/2026-09-25-window-2-architecture-reads.md`:
+`docs/research/2026-09-25-window-2-architecture-reads.md`:
 `internal/engine/matcher` (workmanlike, density 0.760 against `regexp`
 0.291; the pass added one exported field,
 `SDPattern.Replacement`, as its exit gate allowed, the rest standing
@@ -3075,7 +3075,7 @@ legality checks between `tunables.go` and `verdict.go`.
 ## Rung 5, pass 5c-ii (the admin gate, the roster API, and the `web/` tree born gated): closed 2026-09-25, lane 1
 
 Executed against
-`docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
+`docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
 (revision 2.4, ratified by Geoff 2026-09-24, revision 2.2's seven
 rulings all yes, with revisions 2.3 and 2.4 amending the theme surface
 for Geoff's visual identity ruling), in the main tree, from `6de96a7`
@@ -3124,7 +3124,7 @@ directives, and the members document route.
 
 Three reviewers ran over `0c2745f..2424b9a` and committed at `71de914`:
 `svelte-reviewer`
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-review-svelte.md`),
+(`docs/research/2026-09-24-rung-5c-ii-review-svelte.md`),
 `web-auth-security-reviewer` (`-review-security.md`), and
 `daisyui-a11y-reviewer` (`-review-a11y.md`).
 
@@ -3430,13 +3430,13 @@ task-level check-in.
 ## Rung 6, pass 6b-i (the ops seam and backup): closed 2026-09-25, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`
+`docs/plans/2026-09-24-rung-6b-i-ops-seam-backup.md`
 (revision 2.2, approved by Geoff 2026-09-24, all four rulings yes, no
 split) in the lane 2 worktree (`.claude/worktrees/lane-2-6b-i`, branch
 `lane-2-6b-i`), from `dfe6c4c`. Task 0's staleness read found no
 blockers. The plan's full review history, fold rulings, and finding
 dispositions live in
-`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md`.
+`docs/research/2026-09-24-rung-6b-i-plan-fold-record.md`.
 
 Nineteen commits ran across three segments and a simplifier round
 (`git log --oneline dfe6c4c..25e5a3e | wc -l` reports 19).
@@ -3508,7 +3508,7 @@ identical by range-diff.
 
 Three `go-architecture-reader` grades ran at the merge, each with no
 plan in context
-(`docs/superpowers/research/2026-09-25-rung-6b-i-architecture-reads.md`).
+(`docs/research/2026-09-25-rung-6b-i-architecture-reads.md`).
 `internal/ops` graded workmanlike (density 0.59 against `io/fs`'s
 0.57): the `Seam` interface and the catalog chain have no non-test
 consumer yet, several error-code paths (`ErrCanceled`, `CodeCanceled`)
@@ -3704,7 +3704,7 @@ Tasks 1A, 1B, 3, 5, 7 none.
 ### The errata this pass owes
 
 Folded from the plan fold record's "Owed errata" table
-(`docs/superpowers/research/2026-09-24-rung-6b-i-plan-fold-record.md:166-213`),
+(`docs/research/2026-09-24-rung-6b-i-plan-fold-record.md:166-213`),
 numbered 6bi-E1 to 6bi-E13. All four rulings are yes, so no erratum text
 changes on a "no" branch.
 
@@ -3805,13 +3805,13 @@ listing).
 ## Rung 6, pass 6a (the store foundation): closed 2026-09-24, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`
+`docs/plans/2026-09-23-rung-6a-store-foundation.md`
 (revision 2.2, ratified by Geoff 2026-09-24 with all four rulings yes)
 in the lane 2 worktree (`.claude/worktrees/lane-2-6a`, branch
 `lane-2-6a`), from `08befea` (the Go tree unchanged since). Task 0's
 staleness read found no blockers. The plan's full review history, fold
 rulings, and finding dispositions live in
-`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`.
+`docs/research/2026-09-23-rung-6a-plan-fold-record.md`.
 
 Tasks 1 through 7 ran across two segments: A (Tasks 1-3, closed
 `2d863cb`) and B (Tasks 4-7, closed `dedc1b7`), followed by one tidy fix
@@ -3838,7 +3838,7 @@ refuse before `newServeShell`, not because the path is unused.
 ### The architecture reads
 
 Two `go-architecture-reader` grades ran at the merge, each with no plan
-in context (`docs/superpowers/research/2026-09-24-rung-6a-architecture-reads.md`).
+in context (`docs/research/2026-09-24-rung-6a-architecture-reads.md`).
 Both `internal/engine/store` and `cmd/dubplate-server` graded
 **workmanlike**. The store findings (test-only seams on `euid` and
 `migrateOptions.backup`, unused production surface on `openWrite`/
@@ -4035,7 +4035,7 @@ errors with nothing committed.
 ### The errata this pass owes
 
 Drafted paste-ready for the conductor from the plan fold record's
-"Owed errata" table (`docs/superpowers/research/2026-09-23-rung-6a-plan-fold-record.md`,
+"Owed errata" table (`docs/research/2026-09-23-rung-6a-plan-fold-record.md`,
 E1-E11), with each ruling's outcome applied. All four rulings are yes,
 so E4, E10, and E11 take their "yes" text.
 
@@ -4127,13 +4127,13 @@ so E4, E10, and E11 take their "yes" text.
 
 ## Rung 5, pass 5c-i (the security fold, the CLI admin grant, the `member` verb): closed 2026-09-24, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+Executed against `docs/plans/2026-09-23-rung-5c-pages-member-verb.md`
 (revision 2.2, ratified by Geoff 2026-09-23 with all six rulings yes) in
 the main tree, from `cb9ecc3` (5b-ii's merge). Task 0 (LAUNCH) is
-`docs/superpowers/research/2026-09-23-rung-5c-i-task-0-report.md`,
+`docs/research/2026-09-23-rung-5c-i-task-0-report.md`,
 committed `978ef43`. The plan's full review history, fold rulings, and
 finding dispositions live in
-`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-record.md`.
+`docs/research/2026-09-23-rung-5c-plan-fold-record.md`.
 
 Tasks 1 through 7 ran across two segments: A (Tasks 1-3, closed
 `a8be067`) and B (Tasks 4-7, closed `f92ac3b`), followed by one
@@ -4244,7 +4244,7 @@ refusal's error string never contains the submitted duration.
 
 ### The pass-end security review
 
-`docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`
+`docs/research/2026-09-24-rung-5c-i-security-review.md`
 (`ce8c0be`): scope `git diff cb9ecc3..HEAD -- internal cmd config` at
 `657f9ec`. **No critical, no major.** Majors 1-4 from 5b-ii's own review
 are fixed and independently reproduced, the strongest check six real OS
@@ -4331,7 +4331,7 @@ through `cairn-run-gate` (see "The gate evidence" above).
 ### The twenty resolutions (R-5c1 through R-5c20)
 
 Each is stated in full in the plan
-(`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`) at
+(`docs/plans/2026-09-23-rung-5c-pages-member-verb.md`) at
 its own `### R-5cN` heading; this table names where each landed at
 HEAD. R-5c12, R-5c13, R-5c16, and R-5c19's admin-gate/roster-API half
 apply in 5c-ii and are recorded there rather than as gaps here.
@@ -4524,7 +4524,7 @@ spec.*
 
 ## Rung 5, pass 5b-ii (the roster, the mail seam, the rate limiters, the origin check, the auth handlers, the security fold): closed 2026-09-23, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-12-rung-5b-ii-auth-handlers.md`
+Executed against `docs/plans/2026-09-12-rung-5b-ii-auth-handlers.md`
 (revision 2.1, launch-ruled 2026-09-23) in the main tree, from `1d4ed29`
 (5b-i's merge). Task 0 (`opus`, fresh context) ran at `f75b0d9`
 (`research/handoffs/2026-09-12-5b-ii-task0-staleness.md`); the Go tree
@@ -4959,7 +4959,7 @@ Ruled at dispatch (plan `:22-56`); execution's own evidence for each:
 
 ### The pass-end security review
 
-`docs/superpowers/research/2026-09-23-rung-5b-ii-security-review.md`:
+`docs/research/2026-09-23-rung-5b-ii-security-review.md`:
 scope `git diff 1d4ed29..HEAD -- '*.go' go.mod go.sum config/'` at
 `08befea`. **No blocker.** Five majors (cross-process roster writes,
 mailed links landing outside the owned prefix, a refused client
@@ -5031,7 +5031,7 @@ security-fold Task 1 for a first proposal. 5c-i's disposition is a
 refusal of the code fix (R-5c18); the fix costs more than the risk it
 removes, since only a trusted admin can trigger the kind-mode oracle
 today. A runbook sentence about the mail-ceiling lockout lever carries
-to 5d instead. See `docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`.
+to 5d instead. See `docs/research/2026-09-24-rung-5c-i-security-review.md`.
 
 ### The declared coverage gaps
 
@@ -5079,10 +5079,10 @@ dated note in the plan's header.
   erratum both say the 5b-i security read was not run and is owed to
   5b-ii's window as its first item. It ran on 2026-09-12 and is
   recorded at
-  `docs/superpowers/research/2026-09-12-rung-5b-i-security-review.md`.
+  `docs/research/2026-09-12-rung-5b-i-security-review.md`.
   The 5b-i entry stays as written; this entry is its correction.
 - **R-5b26's.** The erratum landed at `b91bae1`
-  (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2287-2296`)
+  (`docs/specs/2026-09-08-rung-5-identity-auth.md:2287-2296`)
   states that R33's redirect validation "landed in `internal/auth` at
   5b-i". No such function exists; Task 0 item 10 and this close both
   prove it by grep. The validator lands with rung 12's parameter or not
@@ -5241,7 +5241,7 @@ recommendation on "then start" (2026-09-12 00:44); the ratify-or-reverse
 table is in `plans/2026-09-12-overnight-window.md`.
 
 Executed against
-`docs/superpowers/plans/2026-09-08-rung-5b-auth-core.md` (revision 2.1)
+`docs/plans/2026-09-08-rung-5b-auth-core.md` (revision 2.1)
 in the worktree at `.claude/worktrees/lane-2-5b`, branch `lane-2-5b`
 from `7ba3cc1`, merged to master at `1d4ed29`. Task 0 (`opus`, fresh
 context) found no blockers beyond the pointer drift the dispatch notes
@@ -5668,7 +5668,7 @@ bringing the total to seventy-three.**
 ### The spec errata this close owes
 
 Drafted for the conductor to apply to
-`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md` as dated
+`docs/specs/2026-09-08-rung-5-identity-auth.md` as dated
 errata. None is applied yet; 5b-ii's plan prep is where they land.
 
 1. **R23's ceiling table and the pass split** (R-5b1): 5b becomes 5b-i
@@ -5781,7 +5781,7 @@ is why they appear above as owed rather than as a sitting.
 ## Rung 8, pass 8c (absorb and repoint): closed 2026-09-12, lane 1
 
 Tasks 0 through 4 executed against
-`docs/superpowers/plans/2026-09-08-rung-8c-absorb-repoint.md` (revision
+`docs/plans/2026-09-08-rung-8c-absorb-repoint.md` (revision
 2) in the main tree, run `wf_c808ec5e-1ba`, with the close's own fix
 rounds under `wf_5d503f3a-ebd`. Task 0 (`opus`, fresh context) found
 no blockers against HEAD `6a9570d`: the lane registry, `flac.go`'s
@@ -6179,7 +6179,7 @@ pass's merge changes no running process.
 ### The spec corrections
 
 Applied directly to
-`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` as a dated
+`docs/specs/2026-09-07-rung-8-tag-io.md` as a dated
 erratum, in the shape the 8a-close and 8b-close errata used. See the
 diff for the exact inserted text; summarized here:
 
@@ -6375,7 +6375,7 @@ happened."
 ## Configuration homes spec: design sitting, 2026-09-11 to 2026-09-12
 
 Not a pass. One brainstorm sitting with Geoff produced
-`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`
+`docs/specs/2026-09-11-configuration-homes-design.md`
 (revision 1 at `5e4feef`, revision 3 at `07f4e01`), settling the four
 homes (env wall, store settings, member preferences, machine file),
 collections carrying writer, owner, and visibility, and the four attach
@@ -6408,7 +6408,7 @@ routes elsewhere" section is the authoritative list.
 ## Rung 5, pass 5a (the serve shell and ingress): closed 2026-09-08, lane 2
 
 Executed against
-`docs/superpowers/plans/2026-09-08-rung-5a-serve-shell.md` (revision 2)
+`docs/plans/2026-09-08-rung-5a-serve-shell.md` (revision 2)
 in the worktree at `.claude/worktrees/lane-2-5a`, branch `lane-2-5a`
 from `8ac38d7`. Tasks 1 through 7 ran through the pass-execute chain
 (`wf_115f4cec-9c0`, 18 agents, 1.68M); this entry is Task 8, the close.
@@ -6572,7 +6572,7 @@ from the dropped list and cited, four candidates confirmed still
 uncitable). Every one of twelve named mutations in the fold's own
 review fired. The full findings list, its dispositions, and the
 verified-sound table are recorded at
-`docs/superpowers/research/2026-09-08-rung-5a-security-review.md`, the
+`docs/research/2026-09-08-rung-5a-security-review.md`, the
 do-not-re-litigate record for 5b, 5c, and 5d.
 
 ### The exported surface
@@ -6830,7 +6830,7 @@ than re-derive.
 ### The spec corrections
 
 Applied directly to
-`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md` as dated
+`docs/specs/2026-09-08-rung-5-identity-auth.md` as dated
 errata under "Errata the close applies":
 
 1. **R23's ceiling table**: 5a's ceiling re-derived from rung 8a's
@@ -6947,7 +6947,7 @@ by design. The second code slot released; the worktree torn down.
 ## Rung 8, pass 8b (PICTURE and the conformance instrument): closed 2026-09-08
 
 Tasks 0 through 6 executed against
-`docs/superpowers/plans/2026-09-08-rung-8b-picture-conformance.md`
+`docs/plans/2026-09-08-rung-8b-picture-conformance.md`
 (revision 2) in the main tree. This entry is Task 7, the pass close.
 Task 0 found no blockers: 8a's simplifier round at `0f2b61d` moved no
 citation, `.gitleaksignore` stayed tracked and empty, and
@@ -7303,7 +7303,7 @@ rules, not against anything 8b added.
 ### The spec corrections
 
 Drafted by Task 7 and applied directly to
-`docs/superpowers/specs/2026-09-07-rung-8-tag-io.md` as dated errata,
+`docs/specs/2026-09-07-rung-8-tag-io.md` as dated errata,
 in the same shape the 8a-close erratum used:
 
 1. **The `spec:1103` pointer is stale.** The 8a-close erratum's own
@@ -7416,7 +7416,7 @@ zero execution sittings.
 ## Rung 8, pass 8a (the tagio writer core and reader): closed 2026-09-08
 
 Tasks 0 through 9 executed against
-`docs/superpowers/plans/2026-09-07-rung-8a-tagio-writer.md` (revision 2)
+`docs/plans/2026-09-07-rung-8a-tagio-writer.md` (revision 2)
 in the main tree. This entry is Task 9, the pass close. Task 0 found no
 blockers: `.gitleaksignore` is unchanged and empty of new pins, and
 `gen_template_flac.py`'s path sat one directory level deeper than the
@@ -7824,7 +7824,7 @@ sittings.
 ## Rung 1b (Phase 0b, the config wall-row registry): closed 2026-09-08
 
 Tasks 1 through 6 executed against
-`docs/superpowers/plans/2026-09-07-rung-1b-config-registry.md`
+`docs/plans/2026-09-07-rung-1b-config-registry.md`
 (revision 2.1) in the main tree. This entry is Task 7, the pass close.
 
 ### What landed
@@ -8160,7 +8160,7 @@ catching it in review), zero execution sittings.
 ## Rung 4, pass 4b (closed 2026-09-08 at the sitting)
 
 Tasks 0 through 7 executed in the main tree against
-`docs/superpowers/plans/2026-09-07-rung-4b-deploy.md` (revision 2) on
+`docs/plans/2026-09-07-rung-4b-deploy.md` (revision 2) on
 2026-09-07. Task 8 handed off to Task 9, Geoff's attended deploy sitting,
 which ran 2026-09-08 and closes the pass below.
 
@@ -8255,7 +8255,7 @@ application sits at HEAD.
   filed as a note for whichever rung next touches `cmd/dubplate-server/doctor.go`.
 - **R14** (the spec's stale citations are corrected at the close): the
   eight corrections are queued for the conductor's next spec-touching
-  batch; `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+  batch; `docs/specs/2026-09-02-greenfield-server-build.md`
   is not edited by this pass.
 
 ### The sitting checklist (Task 9, Geoff's attended session)
@@ -8388,7 +8388,7 @@ toward the launch gate's floor.
 ## Rung 4, pass 4a-ii (pass close, 2026-09-07)
 
 Tasks 10 through 15 executed sequentially in the main tree against
-`docs/superpowers/plans/2026-09-05-rung-4a-shadow-runner.md` (revision
+`docs/plans/2026-09-05-rung-4a-shadow-runner.md` (revision
 2.1), closing the fifteen-task 4a plan that pass 4a-i split at the Task
 9 / Task 10 boundary. Rung 4a is now closed. The chain was
 `wf_c97fd506-dda`: 16 agents, sonnet implementers and opus
@@ -8435,7 +8435,7 @@ assertions now read from disk rather than the mutated pointer.
 
 Also landed this session, outside the pass but inside this ledger's
 window: the streamer 2.0 initiative. Its design spec
-(`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`, revision
+(`docs/specs/2026-09-07-streamer-2-0-design.md`, revision
 2.1) is ratified after four reviews, `ROADMAP.md` carries the
 `streamer-2-0` initiative, and CLAUDE.md carries the build-for-2.0 and
 prior-art rules, the build spec's 2026-09-07 erratum, and the SvelteKit
@@ -8867,7 +8867,7 @@ conductor asked Geoff nothing during execution.
 ## Rung 4, pass 4a-i (intermediate close, 2026-09-05)
 
 Nine plan tasks executed sequentially in the main tree against
-`docs/superpowers/plans/2026-09-05-rung-4a-shadow-runner.md` (revision
+`docs/plans/2026-09-05-rung-4a-shadow-runner.md` (revision
 2.1), which splits the fifteen-task 4a plan at the Task 9 / Task 10
 boundary on CLAUDE.md's pass-sizing rule. This entry is that
 intermediate close, not the pass's own close: Tasks 10 through 15 land
@@ -9141,7 +9141,7 @@ execution sittings 0.
 ## Rung 3, pass 3d (Verdicts, the assignment solve, admission, recommendation, and the whole-corpus conformance gate): `internal/engine/tag` born, tier 1 and tier 2 grade the whole 215-case corpus (2026-09-05)
 
 Nine plan tasks executed sequentially in the main tree against
-`docs/superpowers/plans/2026-09-05-rung-3d-verdicts-gate.md` (revision
+`docs/plans/2026-09-05-rung-3d-verdicts-gate.md` (revision
 2.1). Commits in order: `e7ff0bc` (Task 1), `e552d0a` (Task 2),
 `1101a6c` plus `73af4d4` and `a78d6be` (Task 3, two fix rounds),
 `19e03f7` plus `bbb65ac` (Task 4, an escalation ruled), `d89cb6f` (Task
@@ -9386,7 +9386,7 @@ distances, 294 track vectors, 214 assignments compared, 55 near misses
 (1-4 ULP, max relative drift `4.61e-16`), zero failing. Tier 2:
 `VerdictFloor` 215; `ModeDefault`'s ten `defect_free` rows reproduce
 bit-identically; `ModeDefault` moved zero non-probe verdicts (see
-`docs/superpowers/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`);
+`docs/research/2026-09-05-rung-3d-default-mode-verdict-moves.md`);
 eight probe cases `Ungraded` (`ProbeCaseFloor` 20, minus the ten
 `defect_free` rows, minus the two `ProbeCaseOracleCorrectRows`);
 `TiesExcluded` 0 against its ceiling. The corpus totals were
@@ -9625,7 +9625,7 @@ firing.
 ## Rung 3, pass 3c (The client, the limiter, and request-construction grading): `internal/engine/musicbrainz`'s `query.go`, `client.go` and `limiter.go` born, 351 requests graded byte for byte (2026-09-05)
 
 Eight plan tasks executed sequentially in the main tree against
-`docs/superpowers/plans/2026-09-04-rung-3c-client-limiter.md`
+`docs/plans/2026-09-04-rung-3c-client-limiter.md`
 (revision 2.2). Commits in order: `e9364ff` plus `e90bdad` (Task 1),
 `8e7dc21` (Task 2), `f3c3edf` plus `208c5af` (Task 3), `4e7bb04`
 (Task 4), `807dc45` (Task 5, escalated), `f088b1a` (the conductor's
@@ -10034,7 +10034,7 @@ window rather than any 3c content decision.
 
 Nine plan tasks plus a staleness pre-task, executed sequentially in the
 main tree against
-`docs/superpowers/plans/2026-09-04-rung-3b-translation.md` (revision
+`docs/plans/2026-09-04-rung-3b-translation.md` (revision
 2.1). Commits in order: `946cc21` (Task 1), `a67d5a0` plus `ae2b56e`
 (Task 2), `7fcb5b4` plus `7092090` (Task 3), `b8460e0` (Task 4),
 `340a983` (the conductor's Task 4 checkpoint), `251ab14` (Task 5),
@@ -10418,7 +10418,7 @@ attended time.
 ## Rung 3, pass 3a (The scoring core, `string_dist`, and tier 0): 21 distance components, `internal/harness/conform` born (2026-09-04)
 
 Nine plan tasks executed sequentially against
-`docs/superpowers/plans/2026-09-04-rung-3a-scoring-core.md` (revision
+`docs/plans/2026-09-04-rung-3a-scoring-core.md` (revision
 2.1). Commits in order: `28396a7` (Task 1), `73d5321` (Task 2), a
 same-session model restart pause at `7a21dcf`, `b5de09e` (Task 3),
 `0592a32` (Task 4), `46c2eb6` (Task 5), `c5230ae` (Task 6), `f5b3243`
@@ -10722,7 +10722,7 @@ change mid-close, unrelated to the pass.
 ## Rung 2, pass 2d (File-level applied tags, the version-bump differential, and the whole-corpus README close): file_tags.json over 12 subjects, rung 8 unblocked (2026-09-04)
 
 Four plan tasks executed sequentially against
-`docs/superpowers/plans/2026-09-03-rung-2d-file-level.md` (revision 2).
+`docs/plans/2026-09-03-rung-2d-file-level.md` (revision 2).
 Commits in order: `8d181fe` (Task 3, which ran first per the plan's
 sequencing), then `4d38717` (Task 1), then `f5abba0` (Task 2), then
 `412471f` plus `cc400ad` (Task 4's close and its same-session
@@ -10864,7 +10864,7 @@ What a later pass would be wrong to rediscover:
   item**, unchanged by this pass: nineteen rows across five hypotheses
   sit at `disposition: "pending-adjudication"` in
   `corpus/analysis/adjudications.json`
-  (`docs/superpowers/research/2026-09-03-adjudication-batch-1.md`).
+  (`docs/research/2026-09-03-adjudication-batch-1.md`).
   2d's own gate accepts them indefinitely, per its own "Owner
   touchpoints: none" scoping; it is the launch gate, later, that
   refuses an unadjudicated divergence. 2d produced no new
@@ -10882,7 +10882,7 @@ Carried:
   file-level applied-tag ledger, and the two standing chore docs are
   all shipped. Rung 3 (the Go matcher) is what rung 2's completion
   unblocks, gated on Geoff reading its revision-2 spec before
-  execution starts (`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`).
+  execution starts (`docs/specs/2026-09-03-rung-3-go-matcher.md`).
 - Every item 2c's own carry-forward left open (`profile_hashes`, the
   response-status extension, Tier C exclusions, the pending
   adjudication batch) stays open into rung 3 and beyond, restated
@@ -10898,7 +10898,7 @@ conductor, exactly as the plan's owner-touchpoints section required.
 
 Twenty plan tasks executed across a single sequential pass-execute
 chain against
-`docs/superpowers/plans/2026-09-03-rung-2c-catalog-adversarial.md`
+`docs/plans/2026-09-03-rung-2c-catalog-adversarial.md`
 (revision 2). Commits `3bbdfbd` → `890bb70` (Task 20 close at `f5bb1bd`; the
 locale re-base and 19b prose fix at `890bb70`).
 
@@ -11075,7 +11075,7 @@ Carried:
   Nineteen rows across five hypotheses sit at
   `disposition: "pending-adjudication"` in
   `corpus/analysis/adjudications.json`
-  (`docs/superpowers/research/2026-09-03-adjudication-batch-1.md` is
+  (`docs/research/2026-09-03-adjudication-batch-1.md` is
   the artifact prepared for Geoff's ruling). This pass's own gate
   accepts them indefinitely; it is the **launch gate**, a different
   gate at a later time, that refuses an unadjudicated divergence.
@@ -11108,7 +11108,7 @@ yet spent.
 
 Fourteen plan tasks plus one staleness pre-task, executed overnight
 across seven pass-execute workflows against
-`docs/superpowers/plans/2026-09-02-rung-2b-structural-stratum.md`
+`docs/plans/2026-09-02-rung-2b-structural-stratum.md`
 (revision 2). Commits cec3c12 → 2219b19. All tasks accepted; five
 needed one fix round; four escalations, each ruled by the conductor
 and recorded in
@@ -11154,7 +11154,7 @@ questions (ceiling, 2c scope), zero mid-execution.
 
 Executed under two pass-execute workflows (wf_5ed5b773, wf_fe30d704)
 plus one escalation follow-up, against
-`docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`
+`docs/plans/2026-09-02-rung-2a-cassette-substrate.md`
 (revision 2). Commits 79420d3 → 69a1804. Five plan tasks, all accepted;
 one fix round (task 5); one escalation, ruled in-scope and closed by
 follow-up commit 6d45c28.
@@ -11204,8 +11204,8 @@ minted as `DUBPLATE_HARNESS_CONTACT` in `~/.bashrc` via dotfiles
 
 The greenfield build's first rung, run under the pass-execute workflow
 (implementer/diff-reviewer/gate chain per task, owner opt-in). Landed
-against `docs/superpowers/plans/2026-09-02-rung-1-foundation.md` and the
-ratified build spec (`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`,
+against `docs/plans/2026-09-02-rung-1-foundation.md` and the
+ratified build spec (`docs/specs/2026-09-02-greenfield-server-build.md`,
 revision 2.1): the three Open rulings that spec's review round raised
 (shadow floor, oracle-bug policy, stock-config gating) were all resolved
 by Geoff the same day, closing the item STATUS carried as "Open rulings
@@ -11286,15 +11286,15 @@ on the login page (a page never rendered before asking him -- now the
 see-it-before-geoff-tests-it memory). The fix path escalated by
 ruling into: magic-link login + Navidrome SSO (spec
 2026-09-02-magic-link-login-design.md; two adversarial reviews in
-docs/superpowers/research/2026-09-02-login-spec-reviews/ found 6
+docs/research/2026-09-02-login-spec-reviews/ found 6
 security blockers + 3 universality criticals -- all now birth
 requirements), then the full greenfield ruling set
-(docs/superpowers/research/2026-09-02-greenfield-server-rulings.md).
+(docs/research/2026-09-02-greenfield-server-rulings.md).
 Interim estate wound down 2026-09-02: FileBrowser gone (container,
 compose, env, DNS, Access app), uploader serve + nudge units disabled,
 uploader tunnel rule + both Access apps deleted; box runs Navidrome +
 cloudflared + guardian timers only. The 37 deferred U13 minors live in
-docs/superpowers/research/2026-09-01-u13-findings.json and matter only
+docs/research/2026-09-01-u13-findings.json and matter only
 to salvaged components. The dubplate-organizer initiative spec was
 brainstormed and four-review hardened the same nights (80f0f5f + later
 amendments); the organizer spec + rulings doc are the greenfield
@@ -11325,7 +11325,7 @@ pass Access but die at serve's roster-gated JWT check by design, so
 machine verification goes through the email-code flow; the Access login
 page wears the ASC org's default branding (Pass B fixes the app's own
 name/logo). Pass B standing inputs live in
-docs/superpowers/research/passb-{stack-brief,copy-deck}.md; the copy
+docs/research/passb-{stack-brief,copy-deck}.md; the copy
 deck carries seven pre-U9 revision items.
 
 ## Go rewrite close: box cutover and estate rename, T12–T14 (2026-08-31)
@@ -11437,7 +11437,7 @@ What a later pass would be wrong to rediscover:
 Adversarial review of the estate as built, then a fix wave. Phase A: nine
 finder lenses plus an opus verify wave over both repos, the spec chain, and
 live Cloudflare state — 72 findings, 40 confirmed, 12 endorsed, 0 refuted
-(ledger: ~/Projects/dubplate/docs/superpowers/plans/2026-08-30-musicbox-arch-refinement-findings.json).
+(ledger: ~/Projects/dubplate/docs/plans/2026-08-30-musicbox-arch-refinement-findings.json).
 Fix wave: 11 tasks + lock follow-ups through implementer/diff-reviewer/gate
 chains, all accepted (commit 087df6c); pings hardened in its own repo
 (40fdfa7). Spend ~6.2M tokens against a 6M ceiling (3% over, driven by an

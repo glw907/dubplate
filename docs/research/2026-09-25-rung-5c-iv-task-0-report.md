@@ -106,7 +106,7 @@ also covers `login` and `login/link` hydration under the `/rendered` prefix on t
 
 ## Item 6: VI revision
 
-The status line at `docs/superpowers/specs/2026-09-24-visual-identity-design.md:3` reads "Status: revision 1.3".
+The status line at `docs/specs/2026-09-24-visual-identity-design.md:3` reads "Status: revision 1.3".
 The file's last commit is `45b80cb` ("land the visual identity spec's three errata (revision 1.3)"), so no later
 revision exists. Each re-pointed citation reads as the refresh note says:
 

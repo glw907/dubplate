@@ -1,11 +1,11 @@
 # Rung 5c-iii plan review: contract and criteria lens
 
-Reviewed: `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
+Reviewed: `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`,
 revision 1 (`fc52232`). One lens only: is every promise testable, does each acceptance
 criterion name its fixture state and the reason it would fail, and can any criterion, gate, or
 named mutation pass vacuously. Checked against the visual identity spec revision 1.2 (VI), the
 5c-ii HISTORY entry and its handoff draft
-(`docs/superpowers/research/handoffs/draft-HISTORY-5c-ii.md`, "The 5c-iii handoff"), DL
+(`docs/research/handoffs/draft-HISTORY-5c-ii.md`, "The 5c-iii handoff"), DL
 section 6, and CLAUDE.md's planning-miss rules and its "a check either gates or does not
 exist" rule. Code facts were read at the working tree's HEAD.
 

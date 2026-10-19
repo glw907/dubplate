@@ -13,7 +13,7 @@
 > model.**
 
 Revision 2, 2026-09-03: folds the adversarial plan review
-(`docs/superpowers/research/2026-09-02-greenfield-spec-reviews/rung-2d-plan-review.md`),
+(`docs/research/2026-09-02-greenfield-spec-reviews/rung-2d-plan-review.md`),
 the BLOCKER and all five MAJORs as specified, and minors m1 through m7
 where cheap (all of them). One adaptation on MAJOR 4: the review
 offers two fixes — drop Task 3's independence and run it first,
@@ -38,7 +38,7 @@ standing chore docs, and the whole-corpus README rewrite. The scope
 is unchanged from 2c's Task 13 and Task 14 as originally written, and
 the decisions those tasks would have made inline were pre-ruled at
 2c's fold and recorded in its Task 20 carry-forward note
-(`docs/superpowers/plans/2026-09-03-rung-2c-catalog-adversarial.md:1023-1072`).
+(`docs/plans/2026-09-03-rung-2c-catalog-adversarial.md:1023-1072`).
 
 **The pre-rulings are binding, not open questions.** M3, M4, M5, m2,
 and M8 were ruled by the conductor at the 2c fold precisely so 2d
@@ -78,7 +78,7 @@ artifacts on top of that corpus. **It authors no case, captures
 nothing, and edits no committed record.**
 
 **Primary input:** the planning inventory
-(`docs/superpowers/research/2026-09-03-rung-2d-planning-inventory.md`,
+(`docs/research/2026-09-03-rung-2d-planning-inventory.md`,
 2026-09-03), which checks every pre-ruling against the pinned venv's
 own beets source, names the exact intersection the written tag set is
 drawn from (`Item._media_fields`,
@@ -114,7 +114,7 @@ stops — resolves to the conductor, never to Geoff directly; only a
 conductor decision to escalate reaches Geoff, and that is what would
 spend the touchpoint above.
 
-**Spec:** `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+**Spec:** `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified). Ladder entry 2 names the version-bump
 differential job and the client's hard 0.25s inter-request floor in
 differential wall-time budgets as deliverables, and both land here.
@@ -457,7 +457,7 @@ Model: `sonnet`. Depends on Task 1.
   named in 2c's plan review: `clean-match`, `media-uneven-split`,
   `va-exact`, `non-latin-pseudo-release`, `year-reissue-ratio-penalty`.
   The other seven, pre-extracted from 2c's Task 3 selection dossier
-  (`docs/superpowers/research/2026-09-03-real-catalog-selection.md`,
+  (`docs/research/2026-09-03-real-catalog-selection.md`,
   File-tag subject column, lines 84-88 for the row format), are:
   `real-classical-karajan-beethoven-89`, `real-reissue-nevermind-2011`,
   `real-boxset-james-brown-star-time`,
@@ -558,7 +558,7 @@ in the machinery track blocks it.
 **Behavior contract:**
 
 - **Both are standing operational docs**, so they sit beside
-  `docs/bringup-runbook.md` rather than under `docs/superpowers/`,
+  `docs/bringup-runbook.md` rather than under `docs/`,
   which holds specs, plans, and pass research. They are written for
   whoever runs this job in a year, who may be neither Geoff nor an
   agent that has read this plan.
@@ -571,7 +571,7 @@ in the machinery track blocks it.
   compatibility-shedding plan, with the legacy plugin layer
   TODO-marked for removal and `docs/dev/plugins/autotagger.rst`
   promising removal in v3.0.0 (U7,
-  `docs/superpowers/research/2026-09-02-beets-evolution-lessons.md:396-412`).
+  `docs/research/2026-09-02-beets-evolution-lessons.md:396-412`).
 - **The differential doc states its own falsifiable success
   condition**, in U7's words: when the differential is pointed at a
   beets 3.x, only the adapter package should need edits. Name the

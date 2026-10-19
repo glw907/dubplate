@@ -1,44 +1,44 @@
 You are the unattended planning session for `admin-api-1`, the first pass of the `admin-api` rung, in
-`~/Projects/dubplate`. Geoff approved its design, `docs/superpowers/specs/2026-10-10-rung-14a-admin-api-design.md`
+`~/Projects/dubplate`. Geoff approved its design, `docs/specs/2026-10-10-rung-14a-admin-api-design.md`
 (revision 2.1), on 2026-10-10, and its "Rulings for Geoff" section reads "None", so this session does not ask him to
 approve it again. Before any other act, call EnterWorktree with the name `admin-api-1-plan`. Its first STATUS edit
 replaces the post-merge list under "Next action" with one in-flight line naming this session (`admin-api-1-plan`) and
 its id (`$CLAUDE_CODE_SESSION_ID`); commit that line on your branch.
 
 Load `dubplate-pass` (it loads `pass-core`). Read in full the approved design
-`docs/superpowers/specs/2026-10-10-rung-14a-admin-api-design.md` and its fold records
-`docs/superpowers/research/2026-10-10-rung-14a-spec-fold.md` and
-`docs/superpowers/research/2026-10-10-rung-14a-spec-fold-verification.md`. Read the old plan
-`docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md` and its fold
-`docs/superpowers/research/2026-10-10-rung-14a-plan-fold.md` as evidence only: they were written for the retired
+`docs/specs/2026-10-10-rung-14a-admin-api-design.md` and its fold records
+`docs/research/2026-10-10-rung-14a-spec-fold.md` and
+`docs/research/2026-10-10-rung-14a-spec-fold-verification.md`. Read the old plan
+`docs/plans/2026-10-10-rung-14a-admin-api.md` and its fold
+`docs/research/2026-10-10-rung-14a-plan-fold.md` as evidence only: they were written for the retired
 process (lanes, segments, budgets, a conductor), so take their code findings and leave their process. Read every
 BACKLOG item tagged `#rung:admin-api`, and ROADMAP's "Path to 0.8" for where this pass sits. Arm the API-drop
 wake-up and the lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.
 
-Write the plan `docs/superpowers/plans/<date>-admin-api-1.md`, with today's date, in the lean format. The model is
+Write the plan `docs/plans/<date>-admin-api-1.md`, with today's date, in the lean format. The model is
 the alignment pass's plan, archived by its Close at
-`docs/superpowers/archive/plans/2026-10-11-dubplate-alignment.md`: Conventions, then tasks with outcome, files, risk
+`docs/archive/plans/2026-10-11-dubplate-alignment.md`: Conventions, then tasks with outcome, files, risk
 class, acceptance, test or check, clock estimate, and pairs, then the Close. The pass class is `auth-data`. Its first
 task is the adapter's dependency sweep, which the alignment pass waived and this pass owes. The gate is
 `bash scripts/gate.sh`, as the adapter names it.
 
 Two living-reference edits are tasks of this plan, each made in place by the task that changes the meaning:
 
-1. CH:171-172, the configuration homes spec (`docs/superpowers/specs/2026-09-11-configuration-homes-design.md`):
+1. CH:171-172, the configuration homes spec (`docs/specs/2026-09-11-configuration-homes-design.md`):
    "a sensitive change notifies the admin address" reads as notifying every live admin, for a cookie-mount change
    only; the seed rule and the command line send none. Source: the spec fold, "Owed errata" item 5.
 2. The member-cap note in PS, the group-scale principles spec
-   (`docs/superpowers/specs/2026-09-25-group-scale-principles-design.md`), with its erratum to PS:145-147: this
+   (`docs/specs/2026-09-25-group-scale-principles-design.md`), with its erratum to PS:145-147: this
    pass has no command-line set verb, and the seed rule, the command-line route to the cap, sends no notice. Source:
-   the old plan, `docs/superpowers/plans/2026-10-10-rung-14a-admin-api.md:829-833`. The re-plan decides whether the
+   the old plan, `docs/plans/2026-10-10-rung-14a-admin-api.md:829-833`. The re-plan decides whether the
    member cap stays in this pass's scope; if it leaves, the plan says where it goes and drops the note.
 
 The spec fold's other owed errata are moot: they fall on frozen documents, which get no errata. Do not plan them.
 
 Run `spec-plan-review` on the plan with all three lenses (contract, mechanics, risk), the fold, and the
 verification read. Write the executor's launch prompt as a committed file beside the plan, named
-`docs/superpowers/plans/<date>-admin-api-1-prompt.txt`, in the shape of
-`docs/superpowers/plans/2026-10-11-dubplate-alignment-prompt.txt`, continuing your branch, with the push target
+`docs/plans/<date>-admin-api-1-prompt.txt`, in the shape of
+`docs/plans/2026-10-11-dubplate-alignment-prompt.txt`, continuing your branch, with the push target
 `glw907/dubplate` and the gate `bash scripts/gate.sh`.
 
 A finding that changes the approved design is the one stop: write it into `docs/STATUS.md` on your branch as one

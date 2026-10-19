@@ -1,7 +1,7 @@
 # Real-catalog selection dossier
 
 Research report, 2026-09-03 (Sonnet implementer, pass 2c Task 3), produced
-per `docs/superpowers/plans/2026-09-03-rung-2c-catalog-adversarial.md`
+per `docs/plans/2026-09-03-rung-2c-catalog-adversarial.md`
 (revision 2), Task 3's section, the "How a real-catalog case gets made"
 section, and the Global Constraints network-door bullet. This document is
 the selection record Tasks 4 through 15's twelve capture batches consume

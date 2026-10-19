@@ -1,6 +1,6 @@
 # Rung 5c plan fold verification (revision 2), 2026-09-23
 
-Target: `docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
+Target: `docs/plans/2026-09-23-rung-5c-pages-member-verb.md`
 at `562b9b2` (revision 2), read against the fold record
 (`2026-09-23-rung-5c-plan-fold-record.md`), the three lens reviews, and
 the tree at HEAD. Fresh context; no part in the fold.

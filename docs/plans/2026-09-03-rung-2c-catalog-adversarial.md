@@ -54,7 +54,7 @@ originally scoped here (`Manifest.MediaFile`) moves to pass 2d with
 Task 13.
 
 **Primary input:** the planning inventory
-(`docs/superpowers/research/2026-09-03-rung-2c-planning-inventory.md`,
+(`docs/research/2026-09-03-rung-2c-planning-inventory.md`,
 2026-09-03), which enumerates the four seedable known-oracle-bug
 classes with their citations, the real-catalog selection axes, the
 estate-versus-stock divergence table checked against pinned beets'
@@ -94,7 +94,7 @@ ceiling is actually approached. Nothing else in this pass asks Geoff
 anything. If a task believes it has found a second question, that is
 a finding to report and a row to write, never a mid-pass ask.
 
-**Spec:** `docs/superpowers/specs/2026-09-02-greenfield-server-build.md`
+**Spec:** `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), ladder entry 2 and the launch bar's two-tier
 gate. Ruling 2 (tier one is measured against release truth where the
 oracle is known-defective) is what makes the adversarial stratum legal
@@ -522,7 +522,7 @@ for the four fact-verified axes (M11). No direct `/ws/2` read by any
 other route.
 
 **Files:**
-- Create: `docs/superpowers/research/2026-09-03-real-catalog-selection.md`
+- Create: `docs/research/2026-09-03-real-catalog-selection.md`
   (the dossier)
 - Create (via `corpus/staging/`, kept only for confirmed rows; a
   rejected candidate's staging directory is deleted before this task
@@ -973,7 +973,7 @@ Model: `sonnet`. Network: no.
   this pass ships — real-catalog, adversarial, and stock-config —
   rewritten whole; the file-tags section stays absent, since Task 13
   has not run)
-- Create: `docs/superpowers/research/2026-09-03-adjudication-batch-1.md`
+- Create: `docs/research/2026-09-03-adjudication-batch-1.md`
   (the batch prepared for Geoff)
 - Modify: `corpus/analysis/divergences.md` (reviewed and carried
   forward, populated or empty)

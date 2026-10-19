@@ -51,7 +51,7 @@ and calls `Add`.
 > be executed from a worktree.
 
 Drafted 2026-09-04 against the rung 3 spec at **revision 2**
-(`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`), which is
+(`docs/specs/2026-09-03-rung-3-go-matcher.md`), which is
 ratified on its six rulings and review-folded on all nineteen findings of
 `research/2026-09-04-rung-3-spec-review.md`. That review's **"Verified
 sound" list is the do-not-re-litigate record**: its twenty items — the five
@@ -101,9 +101,9 @@ records, the three profiles, and `corpus/manifest.json`'s six version pins.
 
 Read these before Task 1, in this order:
 
-1. **`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md`, revision 2**,
+1. **`docs/specs/2026-09-03-rung-3-go-matcher.md`, revision 2**,
    in full. The pass-split table's 3a row is this plan's scope statement.
-2. **`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`** —
+2. **`docs/research/2026-09-02-beets-matcher-mechanics.md`** —
    the port map. Every arithmetic contract below comes from it, cited by
    heading (Q2's "String distance", "The Distance object", "Track
    distance", "Album distance"; Q4's tunable enumeration; the float-regime
@@ -112,9 +112,9 @@ Read these before Task 1, in this order:
    plan's own citations were re-verified against the pinned venv at
    drafting time (see the two resolutions below). Verify any line citation
    you carry forward.
-3. **`docs/superpowers/research/2026-09-04-rung-3-spec-review.md`** — the
+3. **`docs/research/2026-09-04-rung-3-spec-review.md`** — the
    Verified sound list, cited and not re-derived.
-4. **`docs/superpowers/research/2026-09-04-reverse-edge-completion.md`**,
+4. **`docs/research/2026-09-04-reverse-edge-completion.md`**,
    the "What the results permit and forbid in phase 1" section.
 5. The tree: `internal/harness/analysis/component.go`,
    `corpus/analysis/components.json`, `internal/harness/cassette/cassette.go`,
@@ -173,7 +173,7 @@ a touchpoint this plan expects to spend.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-03-rung-3-go-matcher.md` (revision 2), and
+`docs/specs/2026-09-03-rung-3-go-matcher.md` (revision 2), and
 behind it `specs/2026-09-02-greenfield-server-build.md` (revision 2.1,
 ratified), ladder entry 3. Deliverable 1 ("the penalty components and the
 scoring core, structured per the evolvability ruling so that changing a

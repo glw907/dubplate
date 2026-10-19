@@ -89,13 +89,13 @@ nine.
 
 Read these before Task 1, in this order.
 
-1. **`docs/superpowers/research/2026-09-07-rung-1b-planning-inventory.md`,
+1. **`docs/research/2026-09-07-rung-1b-planning-inventory.md`,
    in full.** It is this plan's argument, read off the tree at `c98a916`.
    Its eight sections and its fourteen surprises are binding. **Do not
    re-derive what it settles; cite it, and verify the line if you carry
    one forward.** Where it contradicts a spec, the tree wins and Task 7
    drafts the correction.
-2. **`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`**,
+2. **`docs/specs/2026-09-03-parallel-build-approach.md`**,
    the Phase 0b paragraph (`:56`) and the contested-surface table, whose
    config-wall row is this pass's mandate. **Every `PA:` line number in
    this plan is re-pointed to revision 2.1's tree**, HEAD `2204947`,
@@ -108,7 +108,7 @@ Read these before Task 1, in this order.
    at `b77e159`) landed after the Phase 0b paragraph, whose own
    position shifted two lines from earlier 4b edits. **Task 0 item 13
    is where this was measured.**
-3. **`docs/superpowers/specs/2026-09-02-greenfield-server-build.md`**,
+3. **`docs/specs/2026-09-02-greenfield-server-build.md`**,
    "The config wall, derived" (`:148-199`) and "The Go bar" (`:200-207`).
 4. **`docs/HISTORY.md`'s 4a-ii forward carries** (`:429-468`), especially
    carries 3 and 4, and rung 3's statements of the same carries
@@ -116,7 +116,7 @@ Read these before Task 1, in this order.
    two; Resolution R6 splits it.
 5. **`CLAUDE.md`** at the repo root: Build process, Gate, Stack rules,
    Facts agents get wrong, Safety rails.
-6. **`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`**, the
+6. **`docs/specs/2026-09-07-streamer-2-0-design.md`**, the
    "Forward hooks the current build owes" section (`:354` onward). Hook 6
    is binding on this pass's shape; hooks 5, 12 and 14 are advisory.
 7. The tree, read-only: `internal/config/{config,keys,thresholds}.go` and
@@ -169,10 +169,10 @@ one if a task reaches it:
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`, Phase 0b
+`docs/specs/2026-09-03-parallel-build-approach.md`, Phase 0b
 (`:56`), quoted in full at inventory `:6-21`, with the ownership row at
 `:175`. Behind it,
-`docs/superpowers/specs/2026-09-02-greenfield-server-build.md` (revision
+`docs/specs/2026-09-02-greenfield-server-build.md` (revision
 2.1, ratified), "The config wall, derived" (`:148-199`), which is the
 classification rung 1 implemented and rung 1b re-homes without changing.
 
@@ -317,16 +317,16 @@ three more sites stale than revision 1 counted.
    insertion above line 66 **of `internal/config/keys_test.go`** breaks
    the ignore. Every lane feels it because `scripts/check.sh` is the
    whole build's one gate (inventory surprise 6).
-4. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1689-1692`**,
+4. **`docs/specs/2026-09-05-rung-4-shadow.md:1689-1692`**,
    the rung 4 staleness question "Has rung 1b landed?". This window runs
    1b after 4b, so the branch never fires for 4b and the re-expression of
    ruling 1's option (a) into registry terms becomes 1b's own migration
    work (Resolution R14, inventory surprise 13).
-5. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1697-1699`**,
+5. **`docs/specs/2026-09-05-rung-4-shadow.md:1697-1699`**,
    the standing staleness question about `.gitleaksignore`'s pinned line.
    Task 1 retires the pin, so the question is answered permanently rather
    than restated in every later plan.
-6. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1476-1485`**,
+6. **`docs/specs/2026-09-05-rung-4-shadow.md:1476-1485`**,
    which restates the fragility in full, names `.gitleaksignore:1` and
    line 66 by value, and states the standing rule (`:1483-1484`) "add
    below line 66, or re-fingerprint `.gitleaksignore` in the same
@@ -334,7 +334,7 @@ three more sites stale than revision 1 counted.
    such rule. The replacement states the discipline that succeeds it: a
    declaration file that writes a key literal beside a `Key:` field
    applies the field-name rename, and the repo carries no suppression.
-7. **`docs/superpowers/specs/2026-09-05-rung-4-shadow.md:1787-1788`**,
+7. **`docs/specs/2026-09-05-rung-4-shadow.md:1787-1788`**,
    risk 7 and its mitigation, which point at the same retired rule.
 8. **`PA:56`**, the 0b rider's first clause, "the work must
    re-fingerprint `.gitleaksignore`". The work retired the file instead,
@@ -1175,7 +1175,7 @@ launch rather than producing a note.**
    tree, or a lane-1 entry naming another workflow, as a blocker. Report
    any warm uncommitted change the task did not author as a blocker,
    **with one pre-ruled exception: the Phase 0c completion note in
-   `docs/superpowers/specs/2026-09-03-parallel-build-approach.md`**, a
+   `docs/specs/2026-09-03-parallel-build-approach.md`**, a
    fifteen-line insertion after `:54` from the document lane. It is a
    known landing rather than an unauthored edit, it is not a blocker,
    and Task 7 outcome 8 already expects to report 0c's state. Report it
@@ -1888,7 +1888,7 @@ touched.
 
 **`KindString` joins this task by conductor ruling, 2026-09-07.** The
 Phase 0c design-language standard
-(`docs/superpowers/specs/2026-09-07-design-language-standard.md`, its
+(`docs/specs/2026-09-07-design-language-standard.md`, its
 R3.3 ruling) needs two string-valued theme keys, and the conductor ruled
 that the kind those keys will need is 1b's work, on the same rule that
 put `KindFloat` here: a threshold kind is cheap and safe to add once,

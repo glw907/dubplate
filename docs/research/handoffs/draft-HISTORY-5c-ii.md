@@ -5,7 +5,7 @@ standalone file.
 
 ## Rung 5, pass 5c-ii (the admin gate, the roster API, and the `web/` tree born gated): closed 2026-09-25, lane 1
 
-Executed against `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
+Executed against `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`
 (revision 2.4, ratified by Geoff 2026-09-24, revision 2.2's seven rulings all yes, with revisions
 2.3 and 2.4 amending the theme surface for Geoff's visual identity ruling), in the main tree, from
 `6de96a7` (code pointers resolved). Task 0's report is not separately filed; no blocker surfaced.
@@ -43,7 +43,7 @@ from SvelteKit's own hashes, the cache directives, and the members document rout
 ### The pass-end reviews and their fold
 
 Three reviewers ran over `0c2745f..2424b9a` and committed at `71de914`:
-`svelte-reviewer` (`docs/superpowers/research/2026-09-24-rung-5c-ii-review-svelte.md`),
+`svelte-reviewer` (`docs/research/2026-09-24-rung-5c-ii-review-svelte.md`),
 `web-auth-security-reviewer` (`-review-security.md`), and `daisyui-a11y-reviewer`
 (`-review-a11y.md`).
 
@@ -258,11 +258,11 @@ Draft text, paste-ready into each named document. The conductor applies these as
 not as edits to the ratified prose above them.
 
 **1. The rung 5 spec's 5c row and pass split (the second split).** Append after the existing
-2026-09-24 erratum block at `docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2438-2472`:
+2026-09-24 erratum block at `docs/specs/2026-09-08-rung-5-identity-auth.md:2438-2472`:
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **the 5c-ii row splits again, into 5c-ii and 5c-iii.**
 > The erratum above described 5c-ii as carrying "the pages, the theme, the embed path, and the
-> gate's `web/` leg rejoin" under its own plan's ceiling. `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`'s
+> gate's `web/` leg rejoin" under its own plan's ceiling. `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`'s
 > Ruling 1 splits that scope again at the served-header task's boundary: 5c-ii carries the
 > Go-side and delivery work (the admin gate, the roster API, the `web/` tree's birth and gate leg,
 > the theme as data, the embed path, the branding and operator stylesheets, the served header
@@ -273,7 +273,7 @@ not as edits to the ratified prose above them.
 > from about 37M to about 41M.
 
 **2. The web surface standard's section 15 line.** Append to the existing 2026-09-24 erratum
-block at `docs/superpowers/specs/2026-09-12-web-surface-standard.md:1748` (the "5c ceiling
+block at `docs/specs/2026-09-12-web-surface-standard.md:1748` (the "5c ceiling
 unchanged" erratum):
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **the second split.** 5c-ii itself split into 5c-ii and
@@ -282,7 +282,7 @@ unchanged" erratum):
 > own re-derived ceiling.
 
 **3. The rung 5 spec's "failing config load" row (R-5cii12).** In the 5c pass-split table's 5c row
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`, "The pages, the `member` verb, and
+(`docs/specs/2026-09-08-rung-5-identity-auth.md`, "The pages, the `member` verb, and
 the gate leg" row), the exit-gate clause "a rejected theme match value failing config load with
 the accepted set named" reads as an erratum:
 
@@ -294,7 +294,7 @@ the accepted set named" reads as an erratum:
 > configured value without judging it; that gap is carried to 5d.
 
 **4. The rung 5 spec's embed-path sentence on the CSP (R-5cii20).** At
-`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:1393-1394`:
+`docs/specs/2026-09-08-rung-5-identity-auth.md:1393-1394`:
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **"Every served response carries `X-Content-Type-Options:
 > nosniff` and `Referrer-Policy: no-referrer` beside the CSP" reads as two clauses, not one.**
@@ -308,18 +308,18 @@ gives every owned-path 404 to the Go mux, and no served 404 document exists for 
 (No separate document carries this line to correct; recorded here as the disposition.)
 
 **6. DL R3.6's "The estate's is `dubplate-gruvbox`" and DL section 3's `palette gruvbox`
-(R-5cii22).** At `docs/superpowers/specs/2026-09-07-design-language-standard.md` (the "two-axis
+(R-5cii22).** At `docs/specs/2026-09-07-design-language-standard.md` (the "two-axis
 composition model" heading, and R3.6):
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **the estate's composed identities are `dubplate-label`
 > and `dubplate-label-night`, not `dubplate-gruvbox`.** Geoff's visual identity ruling
-> (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`) replaced the `gruvbox` palette
+> (`docs/specs/2026-09-24-visual-identity-design.md`) replaced the `gruvbox` palette
 > with `label` (light) and `label-night` (dark) before Task 4 of pass 5c-ii dispatched. Every
 > place this document names `dubplate-gruvbox` or `palette gruvbox` as the estate's configuration
 > reads as the two composed identities above; the config keys and their grammar are unchanged.
 
 **7. W5.10's "this clause lands at rung 7" (R-5cii22).** At
-`docs/superpowers/specs/2026-09-12-web-surface-standard.md` (W5.10):
+`docs/specs/2026-09-12-web-surface-standard.md` (W5.10):
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **the cookie reader and the toggle split across two
 > passes.** W5.10 as ratified describes the theme cookie mechanism as one piece of rung 7's work.
@@ -328,7 +328,7 @@ composition model" heading, and R3.6):
 > the accessible name "Dark theme") lands in 5c-iii.
 
 **8. A clarifying erratum to W5.9 (identity spec amendment A11).** At
-`docs/superpowers/specs/2026-09-12-web-surface-standard.md` (W5.9, the sentence "A system-following
+`docs/specs/2026-09-12-web-surface-standard.md` (W5.9, the sentence "A system-following
 pick is a third value the Go layer resolves and stamps"):
 
 > Erratum, 2026-09-25 (pass 5c-ii close): **the system-following pick is stamped by the Go layer
@@ -344,7 +344,7 @@ pick is a third value the Go layer resolves and stamps"):
 
 **9. The rung 5 spec's staleness item citing `CLAUDE.md:118`.** No new erratum text is owed here
 beyond confirming the existing staleness pre-task rows
-(`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md:2626`, `CLAUDE.md:118`,
+(`docs/specs/2026-09-08-rung-5-identity-auth.md:2626`, `CLAUDE.md:118`,
 `scripts/check.sh:5`, `Makefile:33-34`) still describe the gate leg correctly after Task 3's rejoin;
 Task 3's own commit rewrote all three, so this item is closed, not carried.
 
@@ -359,7 +359,7 @@ from them, matching `DerivedCoreProperties.txt` (Unicode 17.0.0) exactly. The co
 ratified spec.
 
 **11. Web surface standard section 19 entry: the identity spec withdraws W1.3's illustrations.**
-Add a row to `docs/superpowers/specs/2026-09-12-web-surface-standard.md`'s section 19 table:
+Add a row to `docs/specs/2026-09-12-web-surface-standard.md`'s section 19 table:
 
 > | W1.3's vocabulary illustrations ("Nothing cut yet", "Pressed and filed") | Geoff's visual
 > identity ruling 4 withdraws them: the identity lives in the visuals and the photographs, and

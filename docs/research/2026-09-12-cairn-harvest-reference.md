@@ -1,6 +1,6 @@
 # cairn harvest reference for the web surface standard
 
-Companion to `docs/superpowers/specs/2026-09-12-web-surface-standard.md`
+Companion to `docs/specs/2026-09-12-web-surface-standard.md`
 (the standard). The standard carries the requirements. This file carries
 the evidence: where each clause came from, what cairn measured, which
 cairn rulings were reversed before adoption, and what was read and
@@ -52,7 +52,7 @@ names (DL, R5, S20) and are not cairn sources.
 | W1.1 | owner ruling 1 |
 | W1.2 | owner ruling 2; ADS:56-57 (cairn's own register line, as the shape) |
 | W1.3 | owner ruling 3 |
-| W1.4 | `docs/superpowers/research/passb-copy-final.md` (the ratified reject-copy deck); CLAUDE.md, "Reject wording is contract", for verbatim sharing |
+| W1.4 | `docs/research/passb-copy-final.md` (the ratified reject-copy deck); CLAUDE.md, "Reject wording is contract", for verbatim sharing |
 | W2.1 | ADS:296-323; WM `theme.css:203-212` |
 | W2.2 | FORM:45-73 |
 | W2.3 | `scripts/build/admin-css.input.css:186-210` |
@@ -137,7 +137,7 @@ names (DL, R5, S20) and are not cairn sources.
 | W7.16 | ADS:809-815 |
 | W7.17 | ADS:990-997; ARIA in HTML for `progress` |
 | W7.18 | WCAG 2.2 SC 3.3.8 and technique G218; R5:1401-1410 |
-| W7.19 | `docs/superpowers/specs/2026-08-31-dubplate-uploader-design.md:32-53`, `:222-255` |
+| W7.19 | `docs/specs/2026-08-31-dubplate-uploader-design.md:32-53`, `:222-255` |
 | W8.1 | ADS:1148-1164 |
 | W8.2 | `docs/internal/record/2026-07-15-admin-ux-audit.md:158-171` (cairn's three leaks, replaced by dubplate's own list) |
 | W8.3 | ADS:1148-1164 |

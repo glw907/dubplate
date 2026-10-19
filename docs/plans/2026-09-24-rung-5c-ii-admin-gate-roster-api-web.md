@@ -8,40 +8,40 @@ R-5cii15, R-5cii22 (new), Tasks 4, 5, and 8, the exit gate, and the
 ceiling arithmetic. The fold record's "Amendment for the visual identity
 ruling" section lists each change and its reason. Revision 2.4 folds
 the amendment's verification read
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-amendment-verification.md`,
+(`docs/research/2026-09-24-rung-5c-ii-amendment-verification.md`,
 A1 through A11) and the brainstorm session's settled tokens. The fold
 record's "Second amendment fold" section gives one disposition per
 finding.
 Revision 1 (`3ebfe3c`) took three lens reviews (`140e3cd`:
-`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
+`docs/research/2026-09-24-rung-5c-ii-plan-review-contract.md`,
 `-mechanics.md`, `-risk.md`); revision 2 (`74066b1`) folded them and
 took a fresh-context verification read (`cebcda2`:
-`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`,
+`docs/research/2026-09-24-rung-5c-ii-plan-fold-verification.md`,
 V1 through V9), which revision 2.1 (`0bb3722`) folded. Revision 2.2
 folds the prose review
-(`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-prose-review.md`,
+(`docs/research/2026-09-24-rung-5c-ii-plan-prose-review.md`,
 P1 through P15). The fold record, one disposition per finding in all
 three folds, is
-`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`.
+`docs/research/2026-09-24-rung-5c-ii-plan-fold-record.md`.
 The seven rulings are answered ("Rulings for Geoff").
 
 Sources: the approved 5c-i plan
-(`docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`,
+(`docs/plans/2026-09-23-rung-5c-pages-member-verb.md`,
 revision 2.2), whose "Pass 5c-ii" section specifies this pass's first two
 tasks and whose resolutions R-5c12, R-5c13, R-5c16, and R-5c19 govern
 them; pass 5c-i's close (`docs/HISTORY.md`, top entry) with its security
 minors, its refusal of n5, and its carried items; the 5c-i security
-review (`docs/superpowers/research/2026-09-24-rung-5c-i-security-review.md`);
-the rung 5 spec (`docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`,
+review (`docs/research/2026-09-24-rung-5c-i-security-review.md`);
+the rung 5 spec (`docs/specs/2026-09-08-rung-5-identity-auth.md`,
 revision 2.1 plus the 5c-i close's errata); the design-language
-standard (`docs/superpowers/specs/2026-09-07-design-language-standard.md`,
+standard (`docs/specs/2026-09-07-design-language-standard.md`,
 DL below); the web surface standard
-(`docs/superpowers/specs/2026-09-12-web-surface-standard.md`, revision
+(`docs/specs/2026-09-12-web-surface-standard.md`, revision
 2.1, ratified 2026-09-23); the parallel-build approach's ownership table
-(`docs/superpowers/specs/2026-09-03-parallel-build-approach.md`); and the
-2.0 streamer spec (`docs/superpowers/specs/2026-09-07-streamer-2-0-design.md`),
+(`docs/specs/2026-09-03-parallel-build-approach.md`); and the
+2.0 streamer spec (`docs/specs/2026-09-07-streamer-2-0-design.md`),
 "Forward hooks" and "Prior art". The approved 6a plan
-(`docs/superpowers/plans/2026-09-23-rung-6a-store-foundation.md`) is the
+(`docs/plans/2026-09-23-rung-6a-store-foundation.md`) is the
 structural exemplar and the concurrent lane. Code pointers were resolved
 at `6de96a7`.
 
@@ -99,7 +99,7 @@ believes it needs any of these stops and reports.
 Seven questions, each with a recommendation. The rung 5 spec's rulings,
 the 5c-i plan's six rulings, and the web surface standard's section 16
 stand and are not reopened. The fold record gives each question's
-history (`docs/superpowers/research/2026-09-24-rung-5c-ii-plan-fold-record.md`).
+history (`docs/research/2026-09-24-rung-5c-ii-plan-fold-record.md`).
 
 **1. Does the remaining 5c scope split into 5c-ii and 5c-iii, with 5c-ii
 under a 9.4M execution ceiling?** Recommendation: yes.
@@ -167,9 +167,9 @@ takes ruled values. The default follows the system preference, a
 member's toggle overrides it through W5.10's cookie, and `dubplate-label`
 is the fallback when the browser signals no preference. Ruling 3's
 answer stands: Task 4 authors the theme now, without waiting. The values
-come from `docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`
+come from `docs/research/2026-09-24-visual-identity-draft-tokens.md`
 (committed at `b36871c`). The visual identity spec
-(`docs/superpowers/specs/2026-09-24-visual-identity-design.md`) is
+(`docs/specs/2026-09-24-visual-identity-design.md`) is
 pending and becomes the source of truth when it lands. Task 4's files
 are replaceable data: a changed value from the spec is a data edit that
 G2 and G9 re-check, never a markup change.
@@ -319,7 +319,7 @@ Read these before Task 1, in this order.
    W3.7 (404s), W5.9 and W5.10 (theme mechanics), W12.6 (where the
    rendered leg runs), and section 19.
 6. **The visual identity draft tokens**
-   (`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`),
+   (`docs/research/2026-09-24-visual-identity-draft-tokens.md`),
    in full, before Task 4. The pending visual identity spec supersedes
    it when it lands; a value that differs is a data edit to Task 4's
    files (Ruling 3's amendment).
@@ -428,7 +428,7 @@ deck's register gate (+0.15M), and the render-and-read (+0.20M), with
 about 0.8M of planning. 5c's three passes then project about 17.6M of
 execution (5.8M, 6.75M, and 5.0M). Planning adds about 4.3M: 5c-i's
 1.5M estimate, since no actual is recorded
-(`docs/superpowers/research/2026-09-23-rung-5c-plan-fold-record.md:511`);
+(`docs/research/2026-09-23-rung-5c-plan-fold-record.md:511`);
 5c-ii's 1.0M plus 1.0M for proposing this split (`:503-505`); and
 5c-iii's 0.8M. That is about 22M against Ruling 6's 18M, which counted
 5c-i's planning the same way (Ruling 1).
@@ -2062,7 +2062,7 @@ the repo plumbing).
 Model: `sonnet`. Depends on Task 3. Skills: `daisyui`, `ts-conventions`.
 Ruling 3, as amended, governs the palettes. R-5cii22 governs the system
 value and the inks. The values come from
-`docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md`,
+`docs/research/2026-09-24-visual-identity-draft-tokens.md`,
 and each data file's header comment cites that file and the pending
 spec. **These files are replaceable data.** When the visual identity
 spec lands with a different value, the change is an edit to these files
@@ -2696,8 +2696,8 @@ Model: `sonnet`. Depends on Tasks 0 through 7, the simplifier round, and
 the pass-end reviews with their folds.
 
 **Files (drafts only; the conductor folds and commits):**
-- Create: `docs/superpowers/research/handoffs/draft-STATUS-5c-ii.md`
-- Create: `docs/superpowers/research/handoffs/draft-HISTORY-5c-ii.md`
+- Create: `docs/research/handoffs/draft-STATUS-5c-ii.md`
+- Create: `docs/research/handoffs/draft-HISTORY-5c-ii.md`
 
 **Outcomes:**
 
@@ -2746,7 +2746,7 @@ the pass-end reviews with their folds.
 - **The 5c-iii handoff:** the surface it builds on (the routes, the
   gate, the API's outcome values, the header step, the CSP builder that
   hashes whatever the pages add); the visual identity spec
-  (`docs/superpowers/specs/2026-09-24-visual-identity-design.md`) as the
+  (`docs/specs/2026-09-24-visual-identity-design.md`) as the
   standing input, with the draft tokens file as its predecessor, and any
   value the spec changes applied as a data edit to Task 4's files. The
   handoff also carries the theme work R-5cii22 routes to 5c-iii:

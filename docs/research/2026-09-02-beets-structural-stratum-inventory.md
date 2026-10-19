@@ -11,9 +11,9 @@ pins). Files cited: `test/autotag/test_distance.py`,
 `internal/harness/cassette/cassette.go` and
 `internal/harness/oracle/derive_oracle.py` as shipped by pass 2a
 (commit `3112877` and prior). Grounding for the corpus's own design:
-`docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`,
-`docs/superpowers/research/2026-09-01-beets-conformance-corpus.md`,
-`docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`.
+`docs/plans/2026-09-02-rung-2a-cassette-substrate.md`,
+`docs/research/2026-09-01-beets-conformance-corpus.md`,
+`docs/research/2026-09-02-beets-matcher-mechanics.md`.
 
 ## Zero: three tiers, not one
 
@@ -344,9 +344,9 @@ needs a tool, not a bigger record.
   `test/autotag/test_hooks.py`, `beets/autotag/distance.py`,
   `beets/autotag/match.py`, `beets/config_default.yaml`,
   `beets/ui/commands/import_/session.py`.
-- This repo: `docs/superpowers/plans/2026-09-02-rung-2a-cassette-substrate.md`,
-  `docs/superpowers/research/2026-09-01-beets-conformance-corpus.md`,
-  `docs/superpowers/research/2026-09-02-beets-matcher-mechanics.md`,
+- This repo: `docs/plans/2026-09-02-rung-2a-cassette-substrate.md`,
+  `docs/research/2026-09-01-beets-conformance-corpus.md`,
+  `docs/research/2026-09-02-beets-matcher-mechanics.md`,
   `internal/harness/cassette/cassette.go`,
   `internal/harness/oracle/oracle.go`,
   `internal/harness/oracle/derive_oracle.py`,

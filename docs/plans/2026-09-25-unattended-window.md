@@ -72,7 +72,7 @@ in one tree.
    `git merge --ff-only lane-2-6b-i` on master, the full gate on master, and one
    `diff-reviewer` over the merged range. Then one `go-architecture-reader` each for
    `internal/ops`, `internal/ops/local`, and `internal/backup`, reading the worktree at the
-   merged commit. Fold the drafts in `docs/superpowers/research/handoffs/draft-*-6b-i.md` into
+   merged commit. Fold the drafts in `docs/research/handoffs/draft-*-6b-i.md` into
    HISTORY and STATUS (STATUS 60 lines or fewer), land the drafted CLAUDE.md rclone Gate
    line, and remove the worktree and branch after the reads.
 3. **5c-ii's close**, in the main tree: Task 8's close drafts (the plan's Task 8 section,
@@ -92,7 +92,7 @@ in one tree.
    - **6b-ii:** restore and the HTTP projection, from the rung 6 spec's pass table and 6b-i's
      handoff in its HISTORY entry.
    - **The matcher word-boundary pass:** from
-     `docs/superpowers/research/2026-09-24-matcher-unicode-word-boundary.md` (Geoff ruled yes on
+     `docs/research/2026-09-24-matcher-unicode-word-boundary.md` (Geoff ruled yes on
      2026-09-24): a documented Go translation of beets' featuring row, the translation-map test,
      the parity golden and its ruff-gated generator, the corpus case, and three unit rows.
    Each plan runs the full `spec-plan-review` cycle: three lenses, one fold, one verification

@@ -125,8 +125,8 @@ The 5c-ii head (l.2394-2633) is 5c-ii's starting material, not fold history. It 
 **Final verdict:** Yes, it reads as written by the register's plausible human author: precise, verified and mechanism-first. The seams from the two fold rounds and the length give away that it was machine-assembled; the individual sentences do not.
 
 Files:
-- `/var/home/glw907/Projects/dubplate/docs/superpowers/plans/2026-09-23-rung-5c-pages-member-verb.md`
-- `/var/home/glw907/Projects/dubplate/docs/superpowers/research/2026-09-23-rung-5c-plan-fold-record.md`
-- `/var/home/glw907/Projects/dubplate/docs/superpowers/specs/2026-09-08-rung-5-identity-auth.md`
+- `/var/home/glw907/Projects/dubplate/docs/plans/2026-09-23-rung-5c-pages-member-verb.md`
+- `/var/home/glw907/Projects/dubplate/docs/research/2026-09-23-rung-5c-plan-fold-record.md`
+- `/var/home/glw907/Projects/dubplate/docs/specs/2026-09-08-rung-5-identity-auth.md`
 - `/var/home/glw907/Projects/dubplate/internal/auth/limit.go`
 - `/var/home/glw907/Projects/dubplate/internal/auth/handlers.go`

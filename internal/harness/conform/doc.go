@@ -16,7 +16,7 @@
 //
 // This package births internal/harness/conform: rung 3, pass 3a's own
 // new territory
-// (docs/superpowers/plans/2026-09-04-rung-3a-scoring-core.md, Task 6).
+// (docs/plans/2026-09-04-rung-3a-scoring-core.md, Task 6).
 // Nothing here writes corpus/ or any other harness package; it only
 // reads corpus/analysis/components.json, corpus/manifest.json, and
 // corpus/cases, all read-only.

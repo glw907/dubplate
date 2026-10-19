@@ -1,7 +1,7 @@
 # Rung 5a security review: findings and dispositions
 
 Fresh-context `web-auth-security-reviewer` (`claude-opus-5`) read the
-whole serve shell against `docs/superpowers/plans/2026-09-08-rung-5a-serve-shell.md`'s
+whole serve shell against `docs/plans/2026-09-08-rung-5a-serve-shell.md`'s
 threat-model section and the rung 5 spec's own threat model
 (`spec:1903-1975`). Its input was the threat model and the diff, not the
 plan's task decomposition. Verdict: do not merge as-is; fold six, then

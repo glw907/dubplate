@@ -25,13 +25,13 @@ word-boundary pass and lane 2 runs 6b-ii-a, the HTTP projection. Once the matche
 Read `docs/STATUS.md` first. All three plans are approved, with their rulings recorded in each
 plan (Geoff, 2026-09-25). No code lane is open, and master is the only worktree.
 
-- Matcher: `docs/superpowers/plans/2026-09-25-matcher-word-boundary.md`. Per-task Agent dispatch,
+- Matcher: `docs/plans/2026-09-25-matcher-word-boundary.md`. Per-task Agent dispatch,
   sequential, in the main tree (corpus and harness work never moves to a worktree). Ceiling 2.75M,
   flag 2.2M.
-- 6b-ii-a: `docs/superpowers/plans/2026-09-25-rung-6b-ii-restore-http.md`, split per Ruling 1:
+- 6b-ii-a: `docs/plans/2026-09-25-rung-6b-ii-restore-http.md`, split per Ruling 1:
   Task 0, Tasks 1 to 3, then the 6b-ii-a close. pass-execute in a new worktree
   `.claude/worktrees/lane-2-6b-ii-a` on branch `lane-2-6b-ii-a`. Ceiling 3.90M, flag 3.12M.
-- 5c-iii: `docs/superpowers/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, split per
+- 5c-iii: `docs/plans/2026-09-25-rung-5c-iii-pages-fonts-rendered-gates.md`, split per
   Ruling 1. pass-execute, one invocation per segment (A: Tasks 1, 2; B: 3a, 3b; C: 4, 5, then its
   simplifier, reviewers, and fold). Task 0 runs first in fresh context at `opus`. Ceiling 10.8M,
   flag 8.64M; this window funds part of it.

@@ -1,6 +1,6 @@
 # Rung 5c-ii plan fold verification
 
-Target: `docs/superpowers/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
+Target: `docs/plans/2026-09-24-rung-5c-ii-admin-gate-roster-api-web.md`,
 revision 2 at `74066b1`, read against revision 1 (`3ebfe3c`), the fold
 record, and the three lens reviews. Fresh context: this reader had no
 part in the fold. Every claim below was checked against `go doc`
