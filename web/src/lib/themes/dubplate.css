@@ -2,8 +2,8 @@
  * The `dubplate` match axis: the eleven structural declarations
  * (radius, size, border, depth, noise, and the three font stacks) a
  * composed theme carries alongside its palette. Values are pinned in
- * docs/superpowers/research/2026-09-24-visual-identity-draft-tokens.md,
- * overridden where docs/superpowers/specs/2026-09-24-visual-identity-design.md
+ * docs/research/2026-09-24-visual-identity-draft-tokens.md,
+ * overridden where docs/specs/2026-09-24-visual-identity-design.md
  * differs. This file is replaceable data: a later token change lands
  * here, re-checked by G2 and G9, with no markup change.
  *

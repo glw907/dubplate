@@ -1,7 +1,7 @@
 # dubplate uploader web
 
 The Svelte 5 / DaisyUI single-page app `dubplate serve` embeds and serves
-under `/upload/`. See `docs/superpowers/plans/2026-08-31-dubplate-uploader.md`
+under `/upload/`. See `docs/plans/2026-08-31-dubplate-uploader.md`
 (task U9 and later) for the design this implements.
 
 ## Dev loop
@@ -46,7 +46,7 @@ before anyone has run `npm run build` once.
 ## Pinned dependencies
 
 Versions verified against the npm registry 2026-09-01
-(`docs/superpowers/research/passb-stack-brief.md`); each pin's own note:
+(`docs/research/passb-stack-brief.md`); each pin's own note:
 
 - `svelte` `5.57.0`—runes mode; no peer deps of its own.
 - `vite` `8.2.2`—current major, Rolldown-backed bundler.

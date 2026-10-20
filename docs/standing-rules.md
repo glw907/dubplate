@@ -6,7 +6,7 @@ Detail that CLAUDE.md summarizes.
 
 **Build for 0.8 (Geoff, 2026-09-07, re-keyed 2026-09-25, re-planned
 2026-10-05).** Rung 12 is the built-in OpenSubsonic streamer, slices 1 to 8
-of `docs/superpowers/specs/2026-09-07-streamer-2-0-design.md` (the spec
+of `docs/specs/2026-09-07-streamer-2-0-design.md` (the spec
 still says 2.0). Every other rung plan weighs its surface against that
 spec's forward-hooks list and states per task whether it lands a hook or is
 neutral; a rung 6 schema built without 0.8 in view is rework. Hook 6
@@ -45,7 +45,7 @@ libxml2 (`/home/linuxbrew/.linuxbrew/bin/xmllint`, 2.15.4) is held
 by `brew pin libxml2`, so a bump is deliberate: `brew unpin libxml2 &&
 brew upgrade libxml2`, regenerate the XML goldens, `brew pin libxml2`,
 then upgrade the eight held dependents.
-The last sweep: `docs/superpowers/research/2026-10-04-dependency-sweep.md`.
+The last sweep: `docs/research/2026-10-04-dependency-sweep.md`.
 
 ## Gate legs
 

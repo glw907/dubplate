@@ -22,7 +22,7 @@ gate alone cannot tell the two apart.
 beets 3.0.0 is the concrete instance this job exists for. It is beets' one
 active compatibility-shedding plan: the legacy plugin layer is TODO-marked for
 removal, and `docs/dev/plugins/autotagger.rst` promises removal in v3.0.0
-(finding U7, `docs/superpowers/research/2026-09-02-beets-evolution-lessons.md:396-412`).
+(finding U7, `docs/research/2026-09-02-beets-evolution-lessons.md:396-412`).
 When that release lands, or any beets major version after it, this is the job
 that finds out whether dubplate's harness still knows how to invoke beets
 before anything downstream (a corpus re-derivation, an adjudication pass)

@@ -3,7 +3,7 @@
  * as pure, store-testable functions, a thin {@link TusDriver} interface
  * the upload store depends on instead of `tus-js-client` directly, and
  * the real driver built on top of it. The store's unit tests inject a
- * fake driver (docs/superpowers/plans/2026-08-31-dubplate-uploader.md's
+ * fake driver (docs/plans/2026-08-31-dubplate-uploader.md's
  * "stubbed endpoint") that never touches the network; only this file's
  * {@link createTusDriver} talks to `tus-js-client` for real.
  */

@@ -88,7 +88,7 @@ const nearMissTolerance = 1e-12
 
 // tieMirroringFinding is the escalation document ruling F requires
 // before a tie row may go ungraded, relative to the repo root.
-const tieMirroringFinding = "docs/superpowers/research/2026-09-05-rung-3d-tie-mirroring-finding.md"
+const tieMirroringFinding = "docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md"
 
 // tiesAwaitingRuling names the pinned ties.json cases whose assignment
 // this engine does not reproduce, and which therefore grade as pending

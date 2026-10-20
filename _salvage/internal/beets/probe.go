@@ -49,7 +49,7 @@ type ProbeResult struct {
 
 // detailNoMatch and detailManyAlbums are the notes a not-confident probe
 // carries back. The uploader page's own no-match copy is the contract
-// (docs/superpowers/research/passb-copy-final.md, section 5); these
+// (docs/research/passb-copy-final.md, section 5); these
 // explain the verdict to whoever reads the log, and never replace it.
 const (
 	detailNoMatch    = "MusicBrainz didn't have a confident match for these tracks."

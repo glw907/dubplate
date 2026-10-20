@@ -1,0 +1,62 @@
+You are executing the dubplate alignment pass, an `auth-data`-class pass (the design's `runner` class, raised by
+T7's comment-only edit in `cmd/dubplate-server/main_test.go`) with the `live-account` flag, in `~/Projects/dubplate`,
+started from the main checkout. Your first act is one check: does `.claude/worktrees/dubplate-alignment` exist?
+
+If it exists, you are resuming: enter it with EnterWorktree's `path`, skip the merge and the setup, rewrite the clock
+file's `start=` to now, follow the plan's "Resume" convention before anything else, and never re-apply a committed
+task.
+
+If it does not exist, call EnterWorktree with the name `dubplate-alignment`: it creates a worktree under
+`.claude/worktrees/` on a new branch from local `HEAD`. Then run `git merge --no-edit worktree-alignment-plan`, which
+brings in the approved design, the audit, the plan, and the plan's review, fold, and verification records; a
+conflict is a stop. Write `launch-base=<HEAD sha>` as the first line of the PR notes (`<git dir>/pr-notes.md`, below).
+Then run `npm ci --prefix web` in the worktree, the adapter's setup.
+
+Load `dubplate-pass` (it loads `pass-core`). Read `docs/plans/2026-10-11-dubplate-alignment.md` in full,
+then the design it implements (`docs/specs/2026-10-11-dubplate-alignment-design.md`) and its evidence
+(`docs/research/2026-10-11-dubplate-alignment-audit.md`). Geoff approved the design on 2026-10-11 and its
+five rulings are binding. Where the repo's CLAUDE.md, the adapter, STATUS, or the project auto-memory still prescribe
+lanes, a lane registry, conductor rules, errata ledgers, workflow mode, or phase post-mortems, the design overrides
+them: that is what this pass removes. Write no auto-memory. Arm the API-drop wake-up (`/loop` with no interval) and
+the lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.
+
+Execute T0 and then T1 yourself, in order, committing each. T0 adds `scripts/gate.sh`, commits the Pi 5 research,
+adds the outreach doc to `.gitignore`, and records this session's name (`dubplate-alignment`) and id
+(`$CLAUDE_CODE_SESSION_ID`) in `docs/STATUS.md`. T1 is the dependency sweep the adapter requires, under the
+`dependency-upgrade` skill, bounded as T1 states: minors and patches land; every take-now item and every held major
+is filed as a BACKLOG item with a `#rung:` tag, not taken; schedule nothing, write no ROADMAP line, and write
+nothing outside the worktree; a newer workstation binary is recorded, not installed; gate locally. From T0 on, every gate is `bash scripts/gate.sh` (the full gate) or
+`bash scripts/gate.sh --scope-changed --base <base>` (the fast lane), run from the worktree root with the Bash tool's
+`timeout: 600000`, re-issued on exit 75 until it prints `gate exit:`. `<base>` is the literal 40-hex id of the commit
+the task started from (yours from the clock file's `base=` line, a pair's from its dispatch commit); the plan's
+Conventions say why this branch needs it. The wrapper exists because a worktree-isolated session's Bash guard refuses
+the quoted `cairn-run-gate '<string>'` form. Never fall back to a bare `bash scripts/check.sh` for an acceptance.
+
+Then execute three pairs in order: T2 with T3, T4 with T6, and T5 with T7. Each pair is two Agent-tool subagents with
+`subagent_type: "general-purpose"`, `isolation: "worktree"`, model `sonnet` (T3 on `opus`), effort `medium`,
+dispatched after your latest commit so they branch from it. Give each its task's full text from the plan plus the
+plan's "Conventions every task follows" section, both verbatim, the dispatch commit's full id, and tell it six things.
+First, its first act is `git merge-base --is-ancestor <dispatch sha> HEAD`; a failure is a stop. Second, the Clock and
+Stops conventions belong to you: it writes no clock file, and it returns its work uncommitted if its gate is not
+green after two attempts. Third, a docs-only half (T2, T3, T4, T6) skips `npm ci` and its own gate; T5 and T7 run
+`npm ci --prefix web` and the fast lane with `--base <dispatch sha>`. Fourth, it runs every command from its own
+worktree and writes nothing outside it: no file in the main checkout, none in `~/.claude/`, and none in
+`~/Projects/dubplate/reports/`. Fifth, its final report carries every record the plan says goes to the PR notes, its
+worktree path and branch, and every defect it found outside its task. Sixth, it commits, never pushes, and skips
+agent-memory maintenance. Name `go-conventions`, `ts-conventions`, and `vps-conventions` in T7's dispatch, and the
+visual identity spec and `python-conventions` in T5's.
+
+Before each dispatch write the pair's clock file per the plan's Clock convention; when both return, check the
+overrun and remove it. If either returned uncommitted, apply "Stops" before merging either half. Otherwise merge both
+with `git merge --no-edit`, append their records to the PR notes at `<git dir>/pr-notes.md` (`git rev-parse
+--absolute-git-dir` in your worktree, never `$CLAUDE_JOB_DIR`), run the checks the plan gives the session for that
+pair (the inventory check after T2 and T3; T4's index, row-count, and `find -newermt` checks after T4 and T6), run the
+fast lane with `--base <dispatch sha>`, and push. After the T5 and T7 merge, run `diff-reviewer` at task scope on the
+T7 commit; a `fix` or `escalate` verdict stops the line like a red. Then run the Close.
+
+You may commit on your worktree's branch and push it to `glw907/dubplate`; open the PR there. Never push `master`,
+never merge the PR, never delete or edit any file outside your worktree (the auto-memory prune and the Pi 5 originals
+are the post-merge list's, after Geoff merges), and never write any repo other than `~/Projects/dubplate`. A stop,
+including an auto-mode classifier refusal, follows the plan's "Stops" convention and is never worked around. At the
+Close's end, open the PR in Geoff's browser with `gh pr view <n> -R glw907/dubplate --web`, notify him with
+`notify-send -u normal` and the PR link, and end.

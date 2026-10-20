@@ -2,7 +2,7 @@
    "Design-language ruling"): near-black dark ground, Material blue
    service accent, flat cards. Colors are close reads of Navidrome's own
    MUI theme files (ui/src/themes/{light,dark}.js), not a pixel-exact
-   port -- see docs/superpowers/research/passb-stack-brief.md section 5
+   port -- see docs/research/passb-stack-brief.md section 5
    for the provenance and the two fields still unconfirmed against a
    live screenshot. Upgrade-resilient display code (plan's global
    constraints): only DaisyUI's own theme tokens are set here, never a

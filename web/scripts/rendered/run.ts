@@ -145,7 +145,7 @@ const PAGES: ServedPage[] = [
 /**
  * First paint per theme cookie and emulated preference. Every expected
  * pixel is base-100 of the palette the stamp should select, quoted from
- * docs/superpowers/specs/2026-09-24-visual-identity-design.md: `label`
+ * docs/specs/2026-09-24-visual-identity-design.md: `label`
  * `#f4ead3` and `label-night` `#1c1916` ("Themes"). With no cookie the
  * `system` stamp follows the preference; a cookie pins its palette
  * under either preference.
@@ -978,7 +978,7 @@ async function themeColorMetas(page: Page): Promise<ThemeColorMeta[]> {
 /**
  * The theme-color metas. The expected colors are the visual
  * identity spec's neutrals, quoted from
- * docs/superpowers/specs/2026-09-24-visual-identity-design.md ("Themes"):
+ * docs/specs/2026-09-24-visual-identity-design.md ("Themes"):
  * "`#1f1b16` for light and `#110f0d` for dark, as a `media` pair when
  * following the system, and as one value matching the stamped palette
  * when the cookie overrides it."

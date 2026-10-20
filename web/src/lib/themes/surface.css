@@ -6,7 +6,7 @@
  * three bases and base-content on `--selection-ground`, the two values
  * a reader must tell apart from their ground). Values are pinned in
  * the visual identity spec
- * (docs/superpowers/specs/2026-09-24-visual-identity-design.md, "Depth
+ * (docs/specs/2026-09-24-visual-identity-design.md, "Depth
  * and surface" and "Refinement"). Literal colors live here because G1
  * exempts `lib/themes/` alone (`web/scripts/gates/g1.ts`,
  * `EXEMPT_PREFIX`).

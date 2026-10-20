@@ -7,8 +7,8 @@ Everything runs on one Hetzner CPX21 server as the `dubplate-server` binary unde
 provisioned from this repo and restorable from R2 alone.
 
 For setup, deploys, and operations, see `docs/server-runbook.md`. The binary's design:
-`docs/superpowers/specs/2026-08-30-dubplate-go-rewrite-design.md`. The original estate build
-design stays with the estate history in `~/.dotfiles/docs/superpowers/specs/` (live
+`docs/specs/2026-08-30-dubplate-go-rewrite-design.md`. The original estate build
+design stays with the estate history in `~/.dotfiles/docs/specs/` (live
 initiatives migrate into this repo, history stays put).
 
 See `docs/STATUS.md` for the current state of the build.

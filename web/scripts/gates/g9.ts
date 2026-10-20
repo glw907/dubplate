@@ -123,7 +123,7 @@ function isFillOnly(composed: string, name: string): boolean {
 
 /**
  * The visual identity spec's ink table, quoted verbatim
- * (docs/superpowers/specs/2026-09-24-visual-identity-design.md, "Themes"),
+ * (docs/specs/2026-09-24-visual-identity-design.md, "Themes"),
  * `label` then `label-night`. An ink whose resolved value drifts from
  * this table fails the pinned-value row even when it still clears the
  * contrast floor.

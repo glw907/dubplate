@@ -1,6 +1,6 @@
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-// No SvelteKit: this is a standalone Vite SPA (docs/superpowers/research/
+// No SvelteKit: this is a standalone Vite SPA (docs/research/
 // passb-stack-brief.md section 1). vitePreprocess is the one thing a
 // plain Vite + Svelte 5 + TypeScript setup still needs from the
 // SvelteKit toolchain -- it lets <script lang="ts"> and any future

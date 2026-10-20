@@ -590,7 +590,7 @@ func TestGradeOfDubplateFollowsTheAssignment(t *testing.T) {
 // quote must appear in the record and in the reason, so a paraphrase on
 // either side fails.
 func TestSplitVerdictsQuoteTheStudyRecord(t *testing.T) {
-	const record = "../../../../docs/superpowers/research/2026-10-06-slice-1-study-record.md"
+	const record = "../../../../docs/research/2026-10-06-slice-1-study-record.md"
 	table := string(mustRead(t, record))
 	section3 := table[strings.Index(table, "## 3. The per-endpoint oracle assignment"):]
 	section3 = section3[:strings.Index(section3, "## 4.")]

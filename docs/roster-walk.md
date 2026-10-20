@@ -3,13 +3,13 @@
 The roster walk drives each client in the roster through the same list of flows against a live server and records what
 the client shows. Each slice from 3 to 8 walks the scripts below against dubplate-server; slice 2b walked them once
 against the Navidrome and gonic oracles, and the run record is
-`docs/superpowers/research/2026-10-10-slice-2b-roster-walk.md`.
+`docs/research/2026-10-10-slice-2b-roster-walk.md`.
 
 The roster is Feishin 1.17.0 and Rufin 0.16.6 (Linux desktop, driven on the workstation), Tempus 4.28.0 (Android, needs
 the emulator), and Amperfy 2.1.1 (iOS, walked at rung 16's attended gate). The pins and the clean-room rule come from
 `2026-10-06-slice-1-evidence-pins.md`. Nothing here quotes a client's or an oracle's source.
 
-References: [clients] is `docs/superpowers/research/2026-10-06-slice-1-client-demands.md`, [base-url] is
+References: [clients] is `docs/research/2026-10-06-slice-1-client-demands.md`, [base-url] is
 `2026-10-06-slice-1-base-url.md`, and [pins] is `2026-10-06-slice-1-evidence-pins.md`, all in the same directory.
 
 ## Method
@@ -160,7 +160,7 @@ emulator, and a system image under `~/Android/`, and Tempus 4.28.0 (sideloaded f
 
 ## Script: Amperfy 2.1.1 (rung 16's attended gate)
 
-Amperfy cannot run on Linux. The re-plan (`docs/superpowers/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`: a
+Amperfy cannot run on Linux. The re-plan (`docs/specs/2026-10-05-rungs-12-16-replan-design.md:140-141`: a
 client the session cannot drive is walked at rung 16's attended gate) puts its walk at that gate. The script comes
 from [clients] 2c and the sub-path precondition in [base-url]; every expectation is unproven.
 

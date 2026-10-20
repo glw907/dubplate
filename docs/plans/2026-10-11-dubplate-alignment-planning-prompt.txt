@@ -1,0 +1,40 @@
+You are the unattended planning session for the dubplate alignment pass, in `~/Projects/dubplate`.
+Geoff approved its design on 2026-10-11; this session does not ask him to approve it again. Before
+any other act, call EnterWorktree with the name `alignment-plan`, then run
+`git merge --no-edit alignment-design`, which brings in the approved design, the audit, and this
+prompt; a conflict is a stop.
+
+Load `dubplate-pass` (it loads `pass-core`). Read in full the approved design
+`docs/specs/2026-10-11-dubplate-alignment-design.md` and its evidence
+`docs/research/2026-10-11-dubplate-alignment-audit.md`. The design's five rulings are
+Geoff's and binding. Where this repo's CLAUDE.md, adapter, or STATUS still prescribe lanes, a lane
+registry, conductor rules, errata ledgers, workflow mode, or phase post-mortems, the design
+overrides them: that is the misalignment this pass removes. Arm the API-drop wake-up and the
+lid-switch hold per `~/.claude/docs/unattended-work-guards.md`.
+
+The design is short enough to need no separate spec. Write the plan
+`docs/plans/2026-10-11-dubplate-alignment.md` in the lean format (see
+`~/.dotfiles/docs/plans/2026-10-11-infra-sweep-1-guard.md` for the shape: Conventions,
+tasks with outcome, files, risk class, acceptance, test or check, clock estimate, pairs, Close).
+The pass class is `runner`. Derive the "Path to 0.8" run order from
+`docs/research/2026-09-03-rung-dependency-analysis.md` and the current state, with rung
+7 after rung 14a; write the order you derived and its reasoning into the plan. The auto-memory
+prune touches files outside the repo (`~/.claude/projects/-var-home-glw907-Projects-dubplate/memory/`):
+the plan's task writes a dry-run list into the PR body, and the deletion runs only after Geoff
+merges, as a step the conducting session performs. The pass session never deletes outside its
+worktree, and never touches the main checkout's untracked files. Run `spec-plan-review` on the plan
+with all three lenses, the fold, and the verification read.
+
+Write the executor's launch prompt as a committed file beside the plan, in the shape of
+`~/.dotfiles/docs/plans/2026-10-11-infra-sweep-1-guard-prompt.txt`, continuing your
+branch, with the push target `glw907/dubplate` and the gate `bash scripts/check.sh` run through
+`cairn-run-gate` as CLAUDE.md names it.
+
+A finding that changes the approved design is the one stop: write it into `docs/STATUS.md` on your
+branch as one question with a recommendation, run `notify-send -u normal "dubplate alignment: a
+question for Geoff"`, and wait. Every other finding is folded without him.
+
+Commit each stage on your branch (specific files, never `git add -A`) and push it to
+`glw907/dubplate`. Never push `master`, never merge, never open a PR, and never write any repo other
+than `~/Projects/dubplate`. When the plan and its launch prompt are committed and pushed, run
+`notify-send -u normal "dubplate alignment: plan ready to launch"` and end.
