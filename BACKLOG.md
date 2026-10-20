@@ -359,6 +359,12 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
 - [ ] #82 Accessibility suggestions the `admin-api-1` close did not take: description ids on the setting inputs, a
   short heading naming the confirm modal, a loading indicator, empty-list lines, a new-tab warning on "Sign in again",
   and human labels beside the environment names. From PR #4, 2026-10-12 #web
+- [ ] #103 Offer a local snapshot command for host backups (`dubplate-server snapshot --to DIR`)
+  The media server backs up `/var/lib/dubplate` nightly with restic. Today it stops dubplate for a few
+  seconds, copies `auth` and `store` with rsync, and restarts it, because the store cannot be copied while
+  open. A command that writes a consistent copy of the state directory while the server runs, exiting
+  non-zero on failure, lets the host drop the stop and restart. Source: glw907/servers#5 (pass 2, task M6)
+  and the self-hosting design's "Media, at 03:00". 2026-10-20 #infra #initiative:self-hosting
 
 ## Later
 
