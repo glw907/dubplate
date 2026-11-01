@@ -94,8 +94,8 @@ in a worktree.
 otherwise. `internal/intake/**` joined on 2026-10-12: the tus wrapper, the gate over member-supplied bytes, and the
 worker are the upload path's member gate, and the `intake-1` security reads found what four task reviews had not.
 
-**Checklist globs**: The close review loads `svelte-reviewer` and `daisyui-a11y-reviewer` for
-`web/**`; `web-auth-security-reviewer` for every `auth-data` path above; and the `go-conventions`
+**Checklist globs**: The close review loads `standards:svelte-reviewer` and `standards:daisyui-a11y-reviewer` for
+`web/**`; `standards:web-auth-security-reviewer` for every `auth-data` path above; and the `go-conventions`
 skill for `*.go`.
 
 **Close checklist**: Beyond `pass-core` "Close":
