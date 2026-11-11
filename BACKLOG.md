@@ -16,6 +16,12 @@ Landed: `foundation`, `corpus`, `matcher`, `shadow` (its program was deleted on 
 and demotion, the settings write path with its re-authentication gate, the roster verbs, and the members and server
 settings pages; the roster API is retired).
 
+**Before `intake-2` (Geoff, 2026-11-10).** A whole-repo review (`docs/research/2026-11-10-whole-repo-review.md`) set a
+series of passes ahead of the ladder's next rung. `gate-1` runs alone. Then `cleanup-engine`, `cleanup-store`, and
+`web-shell-1` run at once on disjoint files. `cleanup-ops` follows `cleanup-store`, and `intake-2` follows
+`cleanup-ops`. The re-plan sitting (#127) runs beside the cleanup passes and is due before `pipeline` is planned. Each
+pass's items carry its `#pass:<name>` tag.
+
 1. **`intake`** (rung 7). The uploader and the intake path, as `intake-1` to `intake-3`, ending in Geoff's uploader
    sitting. Inbound: `store`, landed; it followed `admin-api-1` by ruling. `intake-1` (the intake core: the tus
    upload, the gate, the verdicts, and the `/api/v1` submission operations) has landed; `intake-2` is next (the match
@@ -77,9 +83,6 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
   (`systemctl reset-failed`; cosmetic, pre-fix 404 era; box write needs
   sanction) #infra
-- [ ] #3 Fix STATUS/runbook wording: musicbox-navidrome was called a "pull"
-  check; KV shows all four checks are push (the box's navidrome-check timer
-  drives it) #infra
 - [ ] #4 pings: `remove-check` has no `--force` escape for a check whose
   route record is permanently missing (undeletable record; lives in the
   pings repo) #infra
@@ -89,8 +92,6 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
 - [ ] #6 Verify and close the carried SELinux one-time check on the state
   dir at first deploy (carried from bring-up 2026-08-31; likely moot on the
   running box, needs a stated verdict) #infra
-- [ ] #7 Create the Navidrome group accounts (owed; per-contributor intake
-  is the uploader's job, but listeners still need logins) #onboarding
 - [ ] #8 tus-js-client 5.0 watch item: 5.0.0-pre3 (2026-09-30) exists under the
   `next` dist-tag; re-check at the prod-polish pass and record the upgrade verdict
   #upload
@@ -365,6 +366,71 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
   open. A command that writes a consistent copy of the state directory while the server runs, exiting
   non-zero on failure, lets the host drop the stop and restart. Source: glw907/servers#5 (pass 2, task M6)
   and the self-hosting design's "Media, at 03:00". 2026-10-20 #infra #initiative:self-hosting
+- [ ] #104 Cut the gate's run time: per-leg timing first, then the rendered matrix, gitleaks over ignored trees, the
+  web build on a scoped run, the lane choice (with #34), and Vale under scope. Findings G1 to G6,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate #pass:gate-1
+- [ ] #105 Fix `gate.sh`'s refusal of `--reduced`, and take `check.sh`'s and the Makefile's duplicate work and the
+  exported-unused leg. Findings G8, G11, and G12, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate
+  #pass:gate-1
+- [ ] #106 `deploy.sh` leaves the unit and the binary owned by the sender's uid, and its check-mode rsync compares
+  size and mtime; `provision.sh` falls back to an image the cloud-init cannot boot. Findings G9 and G10,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #infra #pass:gate-1
+- [ ] #107 Move `deploy.sh`'s hand-copied hardening to a unit the gate verifies, add a `systemd-analyze security` leg,
+  and close the serve unit's hardening gaps. Finding G13, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10
+  #infra #pass:gate-1
+- [ ] #108 Adapter and process changes: the dependency sweep leaves the pass branch, plan conventions move into
+  `dubplate-pass`, STATUS carries no fact git knows, Close removes the worktree and branch, the settings allow the
+  mandated commands, and the stale `review-desk` prompts go. Findings G14 to G19,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #process #pass:gate-1
+- [ ] #109 Workstation process changes, in `~/.dotfiles` and the standards plugin through `dotfiles-pass`: the
+  nested-gate guard, the estimate rule, fewer re-plan review rounds, a split `pass-core`, one copy of each rule, and
+  tokens in the score. Findings X1 to X6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #process
+- [ ] #110 Delete the MusicBrainz limiter, which has no caller and a spacing bug, until a rung meters. Finding E2,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-engine
+- [ ] #111 tagio: state the 69 fields once, and drop the registry that dispatches over one format. Findings E1 and E5,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-engine
+- [ ] #112 matcher: straight-line distance functions in place of one component per file, typed tunables, the
+  unexported surface, and strdist's regex cache. Findings E3, E4, E6, and E7,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-engine
+- [ ] #113 musicbrainz and unidecode leftovers, with the retried cancelled context and the uncapped response body.
+  Findings E8 and E9, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-engine
+- [ ] #114 Harness trims and the latent pattern-table grading bug; takes #30, #33, and #35 with it. Findings E10 and
+  E11, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #harness #arch #pass:cleanup-engine
+- [ ] #115 Engine and harness tests that restate or cannot fail, and comments that cite passes and rulings. Findings
+  E12 and E13, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #pass:cleanup-engine
+- [ ] #116 A `--from-file` restore never fsyncs `staging/`, so a power cut can leave a store that refuses every open;
+  give the restore session one seal step. Findings S1 and S3, `docs/research/2026-11-10-whole-repo-review.md`,
+  2026-11-10 #bug #store #pass:cleanup-store
+- [ ] #117 Store, backup, and settings seams: one pruner, one restore intent, a narrower `Inspect`, two lock entry
+  points, one atomic write, the unused exports, and `%w` in refusals. Findings S2, S4 to S7, S11, and S12,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-store
+- [ ] #118 config: one per-kind parser and one exported lookup, `Floor` and `Ceiling` on `Threshold`, and a typed
+  `KeyError`. Takes #78's normalizer copies. Findings S8 to S10, `docs/research/2026-11-10-whole-repo-review.md`,
+  2026-11-10 #config #arch #pass:cleanup-store
+- [ ] #119 Store and config tests that cannot fail, and `config`'s process comments. Findings S13 and S14,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #pass:cleanup-store
+- [ ] #120 The admin page shell, one transport core in `lib/api`, the button size model, page scaffolding, unused
+  component-layer rules, and the state and token nits; takes #19. Findings W1 to W8,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #web #pass:web-shell-1
+- [ ] #121 The ops seam: one admit handler in `opshttp`, the uncalled job operations and catalog removed (with #52's
+  first consumer in view), `Code` as the `errors.Is` target, and one `Actor`. Findings O1, O2, O4, and O5,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #ops #arch #pass:cleanup-ops
+- [ ] #122 `AddMember` re-reads the member after the commit, so a failed read answers 500 for a committed add. Finding
+  O6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #auth #pass:cleanup-ops
+- [ ] #123 `auth` and `serve` trims: surface ahead of a caller, `statusCapture`, the doubled request check,
+  hand-rolled stdlib, and the smaller items. Findings O3, O7 to O9, and O14,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-ops
+- [ ] #124 Move library code out of `cmd/dubplate-server`: the web surface, the probes, and the table install; one
+  cobra wiring shape; and the config consumers of #118. Takes #26 and #66's doctor items. Findings O10 to O13,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-ops
+- [ ] #125 `cmd` and ops test bloat and process comments; this pass flips the process-citation leg to gating (with
+  #67). Findings O15 and O16, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #gate
+  #pass:cleanup-ops
+- [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
+  I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #rung:intake
+- [ ] #127 The re-plan sitting, for Geoff's rulings before `pipeline` is planned: replace rung 10's beets migrator
+  with a folder-admit verb, run streamer slices 3 and 5 first with a private deploy, and the three scope candidates
+  for after 0.8. Findings P1 to P3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #plan
 
 ## Later
 
@@ -465,7 +531,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
     - The transliterator holder is process-wide, installed once by the main package. A published
       matcher library should weigh passing the seam explicitly instead. #initiative:dubplate-server
 - [ ] #97 PR test CI (`pr-test-ci`). Add a workflow that runs `bash scripts/check.sh` on `pull_request`. Until it lands, the full-suite home is the
-  local close gate (ruling 11, lean pass process spec). It lands after `admin-api-1` (ruling 3, alignment design). #initiative:dubplate-server
+  local close gate (ruling 11, lean pass process spec). It lands after `admin-api-1` (ruling 3, alignment design). #pass:gate-1 #initiative:dubplate-server
 - [ ] #98 Packaging (`packaging`). Make the estate easy for a stranger to set up from its ingredients (beets
   or its harvested successor, the binaries, their Cloudflare account, any
   VPS). Opens with a brainstorm; context staged in agent memory (distribution
@@ -523,6 +589,12 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
   which costs no maintainership and doubles as the packaging demand test. #initiative:dubplate-server
 
 ## Done
+
+- [x] #7 Create the Navidrome group accounts (owed; per-contributor intake is the uploader's job, but listeners still
+  need logins) #onboarding: closed 2026-11-10: Navidrome is retired, and members sign in through dubplate
+
+- [x] #3 Fix STATUS/runbook wording: musicbox-navidrome was called a "pull" check; KV shows all four checks are push
+  (the box's navidrome-check timer drives it) #infra: closed 2026-11-10: the musicbox checks and Navidrome are retired
 
 - [x] #102 Fix the three errcheck findings golangci-lint 2.15.0 raises on a bare `<-exited` receive:
   `cmd/dubplate-server/backup_test.go:904`, `internal/ops/local/process_test.go:149`, and
