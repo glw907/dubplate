@@ -18,9 +18,27 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 > Run the `gate-1` pass in dubplate through the `dubplate-pass` skill. It is runner class. Its scope is BACKLOG's
 > items tagged `#pass:gate-1` (#34, #97, #104 to #108) and the "gate-1" section of
 > `docs/research/2026-11-10-whole-repo-review.md`. Start with finding G1, per-leg timing, and order the other cuts
-> by what it measures. Bring the design for one approval.
+> by what it measures. Before the design, read "Coordination" in `docs/STATUS.md` and the status line of
+> `~/Projects/initiatives/workstation-refinement/`. Bring the design for one approval.
 
-The workstation half (#109) goes through `dotfiles-pass` in `~/.dotfiles` and can run beside it.
+## Coordination
+The workstation's Claude infrastructure is under its own plan: the `workstation-refinement` initiative
+(`~/Projects/initiatives/workstation-refinement/`, plan under `plans/`). Its status line governs: `proposed` means
+nothing in it is settled, and `active` means Geoff approved it. dubplate edits nothing in `~/.dotfiles`, the standards
+plugin, the global `CLAUDE.md`, or `pass-core`; a finding that needs one goes to that initiative. The seam, as agreed
+with its planning session on 2026-11-10:
+
+- `gate-1` goes ahead on G1 to G15 and G18. G14 and G15 change the `dubplate-pass` adapter only. Under G15, each
+  dispatch keeps one sentence telling the subagent to read the cited range first.
+- G16 (STATUS carries no fact git knows) holds until that plan is `active`, because it proposes one home for the
+  one-executor check that reads STATUS's session ids. A pass that reaches G16 first leaves it in BACKLOG #108.
+- G17 (Close removes the worktree and branch) belongs to that plan as a `pass-core` step. dubplate adds nothing.
+- BACKLOG #109 (findings X1 to X6) is proposed in that plan.
+- `cairn-run-gate` keeps its lanes and flags. That plan proposes additions only: a nesting marker, a preflight that
+  names `npm ci --prefix web`, and shorter default output. A pass that depends on one checks that it has landed.
+
+Every pass in the series reads that status line at its design, and reports a workstation-layer finding to the
+initiative instead of fixing it here.
 
 ## Open decisions
 - The re-plan sitting (#127) is due before `pipeline` is planned: rung 10's migrator against a folder-admit verb,

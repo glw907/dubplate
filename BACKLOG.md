@@ -370,8 +370,9 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
   web build on a scoped run, the lane choice (with #34), and Vale under scope. Findings G1 to G6,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate #pass:gate-1
 - [ ] #105 Fix `gate.sh`'s refusal of `--reduced`, and take `check.sh`'s and the Makefile's duplicate work and the
-  exported-unused leg. Findings G8, G11, and G12, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate
-  #pass:gate-1
+  exported-unused leg. Also forward `--fresh` through `gate.sh`, and weigh `run: allow-serial-runners: true` in
+  `.golangci.yml`, so a second lint waits for the lock where today it fails (both from the workstation plan's audit).
+  Findings G8, G11, and G12, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate #pass:gate-1
 - [ ] #106 `deploy.sh` leaves the unit and the binary owned by the sender's uid, and its check-mode rsync compares
   size and mtime; `provision.sh` falls back to an image the cloud-init cannot boot. Findings G9 and G10,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #infra #pass:gate-1
@@ -380,8 +381,9 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
   #infra #pass:gate-1
 - [ ] #108 Adapter and process changes: the dependency sweep leaves the pass branch, plan conventions move into
   `dubplate-pass`, STATUS carries no fact git knows, Close removes the worktree and branch, the settings allow the
-  mandated commands, and the stale `review-desk` prompts go. Findings G14 to G19,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #process #pass:gate-1
+  mandated commands, and the stale `review-desk` prompts go. G16 holds for the `workstation-refinement` plan and G17
+  is that plan's (STATUS, "Coordination"). Findings G14 to G19, `docs/research/2026-11-10-whole-repo-review.md`,
+  2026-11-10 #process #pass:gate-1
 - [ ] #109 Workstation process changes, in `~/.dotfiles` and the standards plugin through `dotfiles-pass`: the
   nested-gate guard, the estimate rule, fewer re-plan review rounds, a split `pass-core`, one copy of each rule, and
   tokens in the score. Findings X1 to X6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10. Proposed in
