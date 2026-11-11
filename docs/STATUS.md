@@ -23,8 +23,11 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 
 ## Coordination
 The workstation's Claude infrastructure is under its own plan: the `workstation-refinement` initiative
-(`~/Projects/initiatives/workstation-refinement/`, plan under `plans/`). Its status line governs: `proposed` means
-nothing in it is settled, and `active` means Geoff approved it. dubplate edits nothing in `~/.dotfiles`, the standards
+(`~/Projects/initiatives/workstation-refinement/`, plan under `plans/`). Until Geoff approves it, the record sits
+only on the local branch `workstation-refinement`, in the worktree
+`~/Projects/initiatives/.claude/worktrees/workstation-refinement/`; read the copy on main when it exists there. Its
+status line governs: `proposed` means nothing in it is settled, and `active` means Geoff approved it. In the plan,
+G16 and G17 sit in "Pass 3: process", and the `cairn-run-gate` changes in "Pass 1: fixes and settings". dubplate edits nothing in `~/.dotfiles`, the standards
 plugin, the global `CLAUDE.md`, or `pass-core`; a finding that needs one goes to that initiative. The seam, as agreed
 with its planning session on 2026-11-10:
 
