@@ -384,7 +384,9 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #process #pass:gate-1
 - [ ] #109 Workstation process changes, in `~/.dotfiles` and the standards plugin through `dotfiles-pass`: the
   nested-gate guard, the estimate rule, fewer re-plan review rounds, a split `pass-core`, one copy of each rule, and
-  tokens in the score. Findings X1 to X6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #process
+  tokens in the score. Findings X1 to X6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10. Proposed in
+  the workstation infra plan (initiatives session, 2026-11-10), pending Geoff's approval; that plan also takes a
+  worktree cleanup step at Close and the runner-path bar in "Direct changes" #process
 - [ ] #110 Delete the MusicBrainz limiter, which has no caller and a spacing bug, until a rung meters. Finding E2,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-engine
 - [ ] #111 tagio: state the 69 fields once, and drop the registry that dispatches over one format. Findings E1 and E5,
