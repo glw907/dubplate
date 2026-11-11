@@ -80,6 +80,8 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
 
 ## Open
 
+- [ ] #128 Trim `CLAUDE.md` (13,705 bytes): every session loads the whole file, and the workstation pilots set a size budget for it #improvement #infra #initiative:workstation-refinement (2026-11-11)
+
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
   (`systemctl reset-failed`; cosmetic, pre-fix 404 era; box write needs
   sanction) #infra
