@@ -206,25 +206,25 @@ func (l leaf) checkOutsideStaging(src string) error {
 	}
 	abs, err := filepath.Abs(src)
 	if err != nil {
-		return refusal(StateRefused, "restore from %s: %v", src, err)
+		return refusal(StateRefused, "restore from %s: %w", src, err)
 	}
 	dir, err := filepath.EvalSymlinks(filepath.Dir(abs))
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
-		return refusal(StateRefused, "restore from %s: %v", src, err)
+		return refusal(StateRefused, "restore from %s: %w", src, err)
 	}
 	staging, err := filepath.EvalSymlinks(l.stagingDir)
 	if err != nil {
-		return refusal(StateRefused, "resolve %s: %v", l.stagingDir, err)
+		return refusal(StateRefused, "resolve %s: %w", l.stagingDir, err)
 	}
 	paths := []string{filepath.Join(dir, filepath.Base(abs))}
 	switch resolved, err := filepath.EvalSymlinks(abs); {
 	case err == nil:
 		paths = append(paths, resolved)
 	case !errors.Is(err, fs.ErrNotExist):
-		return refusal(StateRefused, "restore from %s: %v", src, err)
+		return refusal(StateRefused, "restore from %s: %w", src, err)
 	}
 	for _, p := range paths {
 		if rel, err := filepath.Rel(staging, p); err == nil && filepath.IsLocal(rel) {
@@ -249,11 +249,11 @@ func (l leaf) checkDevices() error {
 	for _, dir := range []string{l.dbDir, l.stagingDir, l.snapshotsDir} {
 		resolved, err := filepath.EvalSymlinks(dir)
 		if err != nil {
-			return refusal(StateRefused, "resolve %s: %v", dir, err)
+			return refusal(StateRefused, "resolve %s: %w", dir, err)
 		}
 		info, err := os.Stat(resolved)
 		if err != nil {
-			return refusal(StateRefused, "stat %s: %v", resolved, err)
+			return refusal(StateRefused, "stat %s: %w", resolved, err)
 		}
 		st, ok := info.Sys().(*syscall.Stat_t)
 		if !ok {

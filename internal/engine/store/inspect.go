@@ -315,16 +315,16 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 	case err == nil:
 		f.WALSize = info.Size()
 	case !errors.Is(err, fs.ErrNotExist):
-		return nil, StandingNotRead, refusal(StateRefused, "stat %s-wal: %v", l.dbPath, err)
+		return nil, StandingNotRead, refusal(StateRefused, "stat %s-wal: %w", l.dbPath, err)
 	}
 
 	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, opts.BusyTimeout))
 	if err != nil {
-		return nil, StandingNotRead, refusal(StateRefused, "open %s: %v", l.dbPath, err)
+		return nil, StandingNotRead, refusal(StateRefused, "open %s: %w", l.dbPath, err)
 	}
 	defer func() {
 		if cerr := db.Close(); cerr != nil && err == nil {
-			err = refusal(StateRefused, "close %s: %v", l.dbPath, cerr)
+			err = refusal(StateRefused, "close %s: %w", l.dbPath, cerr)
 		}
 	}()
 
@@ -361,7 +361,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 
 	entries, err := os.ReadDir(l.snapshotsDir)
 	if err != nil {
-		return nil, StandingNotRead, refusal(StateRefused, "read %s: %v", l.snapshotsDir, err)
+		return nil, StandingNotRead, refusal(StateRefused, "read %s: %w", l.snapshotsDir, err)
 	}
 	for _, e := range entries {
 		if !e.Type().IsRegular() || !isCopy(e.Name()) {
@@ -369,7 +369,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 		}
 		info, err := e.Info()
 		if err != nil {
-			return nil, StandingNotRead, refusal(StateRefused, "stat %s: %v", filepath.Join(l.snapshotsDir, e.Name()), err)
+			return nil, StandingNotRead, refusal(StateRefused, "stat %s: %w", filepath.Join(l.snapshotsDir, e.Name()), err)
 		}
 		f.Copies++
 		f.CopiesSize += info.Size()
@@ -386,7 +386,7 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 	FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
 ) WHERE rank = 1`)
 	if err != nil {
-		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -398,12 +398,12 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 			progress sql.NullString
 		)
 		if err := rows.Scan(&kind, &finished, &progress); err != nil {
-			return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 		}
 		last[kind] = JobSuccess{Finished: time.UnixMicro(finished).UTC(), Progress: progress.String}
 	}
 	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 	}
 	return last, nil
 }
@@ -413,7 +413,7 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admins int, err error) {
 	err = db.QueryRowContext(ctx, `SELECT count(*), coalesce(sum(admin), 0) FROM users WHERE tombstoned_at IS NULL`).Scan(&members, &admins)
 	if err != nil {
-		return 0, 0, refusal(StateRefused, "read users in %s: %v", dbPath, err)
+		return 0, 0, refusal(StateRefused, "read users in %s: %w", dbPath, err)
 	}
 	return members, admins, nil
 }
@@ -423,19 +423,19 @@ func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admi
 func readCollectionRoots(ctx context.Context, db *sql.DB, dbPath string) ([][]byte, error) {
 	rows, err := db.QueryContext(ctx, `SELECT root_path FROM collections ORDER BY root_path`)
 	if err != nil {
-		return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 	var roots [][]byte
 	for rows.Next() {
 		var root []byte
 		if err := rows.Scan(&root); err != nil {
-			return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
 		}
 		roots = append(roots, root)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
 	}
 	return roots, nil
 }
@@ -450,7 +450,7 @@ func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Stan
 	case errors.Is(err, sql.ErrNoRows):
 		return StandingNone, nil
 	case err != nil:
-		return StandingNotRead, refusal(StateRefused, "read users in %s: %v", dbPath, err)
+		return StandingNotRead, refusal(StateRefused, "read users in %s: %w", dbPath, err)
 	case tombstoned:
 		return StandingRemoved, nil
 	case admin:
@@ -463,7 +463,7 @@ func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Stan
 func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, error) {
 	rows, err := db.QueryContext(ctx, `SELECT key, value, source, seed_value, actor, updated_at FROM settings ORDER BY key`)
 	if err != nil {
-		return nil, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -475,14 +475,14 @@ func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]Settin
 			at   int64
 		)
 		if err := rows.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
-			return nil, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 		}
 		r.SeedValue = seed.String
 		r.UpdatedAt = time.UnixMicro(at).UTC()
 		settings = append(settings, r)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 	}
 
 	return settings, nil

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"os"
 	"os/exec"
@@ -544,5 +545,18 @@ func TestInspect_Standing(t *testing.T) {
 				t.Errorf("standing of %q = %d, want %d", tt.address, r.Standing, tt.want)
 			}
 		})
+	}
+}
+
+func TestRefusal_KeepsCause(t *testing.T) {
+	cause := errors.New("disk read failed")
+	inner := refusal(StateNotAStore, "inner")
+	err := refusal(StateRefused, "read store: %w: %w", cause, inner)
+
+	if !errors.Is(err, cause) {
+		t.Errorf("errors.Is(refusal, cause) = false; the cause left the chain")
+	}
+	if got := (Report{}).withError(err).State; got != StateRefused {
+		t.Errorf("withError state = %v, want %v: the outer refusal must win", got, StateRefused)
 	}
 }
