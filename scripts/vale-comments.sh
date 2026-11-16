@@ -18,13 +18,28 @@
 # The file list unions tracked and untracked-but-not-ignored .go files: a
 # brand-new file is invisible to `git ls-files` alone until it is staged, so
 # a gate run before `git add` silently skips it and reports a false clean.
+#
+# Pass --only followed by Go file paths to read just those, as the scoped
+# gate does. The paths pass the same _salvage/ filter, and a path that no
+# longer exists is dropped. An empty list after --only reads nothing and
+# exits 0; with no --only every Go file is read.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 check_vendor=0
+only=0
+paths=()
 for arg in "$@"; do
   case "$arg" in
     --check-vendor) check_vendor=1 ;;
+    --only) only=1 ;;
+    *.go)
+      if [ "$only" -eq 0 ]; then
+        echo "vale-comments: a path needs --only before it: $arg" >&2
+        exit 2
+      fi
+      paths+=("$arg")
+      ;;
     *)
       echo "vale-comments: unknown argument: $arg" >&2
       exit 2
@@ -50,11 +65,20 @@ fi
 # pre-greenfield tag and excluded from every gate leg that walks files,
 # this one included, or all 76 salvage Go files re-enter the scan (git's
 # '*.go' pathspec matches at any depth).
-mapfile -t files < <(
-  { git ls-files '*.go'; git ls-files --others --exclude-standard '*.go'; } |
-    grep -v '^_salvage/' | sort -u
-)
-[ "${#files[@]}" -gt 0 ] || { echo "vale-comments: no Go files"; exit 0; }
+if [ "$only" -eq 1 ]; then
+  files=()
+  for f in "${paths[@]}"; do
+    case "$f" in _salvage/*) continue ;; esac
+    [ -f "$f" ] && files+=("$f")
+  done
+else
+  mapfile -t files < <(
+    { git ls-files '*.go'; git ls-files --others --exclude-standard '*.go'; } |
+      grep -v '^_salvage/' | sort -u
+  )
+fi
+echo "vale-comments: ${#files[@]} files"
+[ "${#files[@]}" -gt 0 ] || exit 0
 
 if vale --minAlertLevel=error --output=line "${files[@]}"; then
   echo "vale-comments: clean"

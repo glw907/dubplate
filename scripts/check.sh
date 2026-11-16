@@ -779,7 +779,14 @@ elif ! node tools/photos/check.mjs integrity; then
 fi
 
 leg "vale (Go comment prose)"
-if ! scripts/vale-comments.sh; then
+vale_args=()
+if [ "$mode" = "scope-changed" ]; then
+  vale_args=(--only)
+  for f in "${changed_files[@]}"; do
+    case "$f" in *.go) vale_args+=("$f") ;; esac
+  done
+fi
+if ! scripts/vale-comments.sh "${vale_args[@]}"; then
   status=1
 fi
 
