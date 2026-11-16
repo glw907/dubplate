@@ -91,8 +91,8 @@ func TestKindLease_TwoHandles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("try first instance: %v", err)
 	}
-	if got != LeaseHeld {
-		t.Errorf("try first instance = %v, want held", got)
+	if !got {
+		t.Errorf("try first instance held = %v, want true", got)
 	}
 	if _, err := os.Stat(filepath.Join(newLeaf(stateDir).leasesDir, i1.Instance())); err != nil {
 		t.Errorf("a held lease's file is gone after a try: %v", err)
@@ -152,8 +152,8 @@ func TestTakeKindLease_Refusals(t *testing.T) {
 }
 
 // TestTryLease_DeadOwner: an owner that closed its lease without
-// removing it (a process that died) reads free once, which removes the
-// file, and absent after that.
+// removing it (a process that died) reads not held, which removes the
+// file, and reads not held again once the file is absent.
 func TestTryLease_DeadOwner(t *testing.T) {
 	stateDir := currentStore(t)
 	h := writeHandle(t, stateDir)
@@ -166,16 +166,19 @@ func TestTryLease_DeadOwner(t *testing.T) {
 	}
 	path := filepath.Join(newLeaf(stateDir).leasesDir, l.Instance())
 
-	for _, want := range []LeaseState{LeaseFree, LeaseAbsent} {
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("the dead owner's lease file is gone before the first try: %v", err)
+	}
+	for i := range 2 {
 		got, err := h.TryLease(l.Instance())
 		if err != nil {
-			t.Fatalf("try: %v", err)
+			t.Fatalf("try %d: %v", i+1, err)
 		}
-		if got != want {
-			t.Fatalf("try = %v, want %v", got, want)
+		if got {
+			t.Fatalf("try %d held = true, want false", i+1)
 		}
 		if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
-			t.Errorf("after a %v try, stat %s = %v, want not exist", want, path, err)
+			t.Errorf("after try %d, stat %s = %v, want not exist", i+1, path, err)
 		}
 	}
 }
@@ -183,7 +186,7 @@ func TestTryLease_DeadOwner(t *testing.T) {
 // TestTryLease_RemovalRace: two recoveries open the same dead lease
 // file; the first locks and removes it, and the second then wins the
 // lock on the unlinked inode, whose removal answers not-exist. That
-// answer still proves the owner dead, so both read free.
+// answer still proves the owner dead, so both read not held.
 func TestTryLease_RemovalRace(t *testing.T) {
 	stateDir := currentStore(t)
 	h := writeHandle(t, stateDir)
@@ -209,8 +212,8 @@ func TestTryLease_RemovalRace(t *testing.T) {
 		if err != nil {
 			t.Fatalf("try %d: %v", i+1, err)
 		}
-		if got != LeaseFree {
-			t.Errorf("try %d = %v, want free", i+1, got)
+		if got {
+			t.Errorf("try %d held = true, want false", i+1)
 		}
 	}
 }

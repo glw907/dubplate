@@ -30,11 +30,11 @@ func (r *Runner) recoverJobs(ctx context.Context) error {
 				}
 				continue
 			}
-			state, err := r.store.TryLease(owner)
+			held, err := r.store.TryLease(owner)
 			if err != nil {
 				return fmt.Errorf("recover jobs: %w", err)
 			}
-			if state == store.LeaseHeld {
+			if held {
 				continue
 			}
 			t := now()

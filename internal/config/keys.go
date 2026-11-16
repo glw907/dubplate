@@ -90,11 +90,6 @@ var ownedWall = []WallRow{
 	},
 }
 
-// OwnedWall returns the owned wall's rows in table order.
-func OwnedWall() []WallRow {
-	return slices.Clone(ownedWall)
-}
-
 // ownedNow reports whether name is an owned row in r, one [Load]
 // requires.
 //
@@ -145,11 +140,6 @@ var reservedClasses = []ReservedClass{
 			"DUBPLATE_REVIEW_DIR",
 		},
 	},
-}
-
-// ReservedClasses returns the reserved classes in table order.
-func ReservedClasses() []ReservedClass {
-	return slices.Clone(reservedClasses)
 }
 
 // reservedClassOf reports the class name belongs to in r, if any.

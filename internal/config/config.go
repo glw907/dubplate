@@ -16,7 +16,7 @@
 //     load error naming its class and rung, never "unknown". The
 //     classes are pipeline (rung 9), monitoring (rung 9), and
 //     decision and review queues (rung 13). See
-//     [ReservedClasses] for the exact membership.
+//     [Registry.ReservedClasses] for the exact membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
 //     required at Load once the flag is set. Setting a Required row

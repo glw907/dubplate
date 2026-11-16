@@ -29,27 +29,10 @@ const kindLeasePrefix = "kind-"
 // arbitrarily long string into leases/.
 const maxKindLen = 64
 
-// LeaseState is what [Handle.TryLease] found for another instance's
-// lease.
-type LeaseState int
-
-const (
-	// LeaseHeld is a lease file another open file description holds
-	// locked: its owner is alive. TryLease removes nothing.
-	LeaseHeld LeaseState = iota + 1
-
-	// LeaseFree is a lease file nobody held: its owner is dead, and
-	// TryLease has removed the file.
-	LeaseFree
-
-	// LeaseAbsent is no lease file at all.
-	LeaseAbsent
-)
-
 // An InstanceLease is an exclusive flock(2) on a file in leases/ named
 // by its instance, held from [Handle.TakeInstanceLease] until
 // [InstanceLease.Release]. While it is held, every [Handle.TryLease] of
-// its instance, from any process, reads [LeaseHeld]. A process that
+// its instance, from any process, reports it held. A process that
 // runs jobs takes one and names its instance as the owner of every job
 // record it inserts; the store handle takes none.
 type InstanceLease struct {
@@ -97,45 +80,46 @@ func (l *InstanceLease) Release() error {
 // TryLease reports whether instance's lease is held, and removes the
 // file of a lease nobody holds. It locks the file before it removes
 // it, so it never removes a live owner's lease, and it reads a file
-// that vanished after it locked it as [LeaseFree]: another process
+// that vanished after it locked it as not held: another process
 // locked and removed it first, which already proved the owner dead.
+// An instance with no lease file is not held either.
 //
 // A caller tries only instances that a job record names as its owner.
 // Such a record is inserted only after its owner holds its lease, so
 // a lease file created but not yet locked is never tried.
-func (h *Handle) TryLease(instance string) (LeaseState, error) {
+func (h *Handle) TryLease(instance string) (bool, error) {
 	if !validInstance(instance) {
-		return 0, fmt.Errorf("try lease: instance %q is not 32 lowercase hex characters", instance)
+		return false, fmt.Errorf("try lease: instance %q is not 32 lowercase hex characters", instance)
 	}
 	path := filepath.Join(h.leaf.leasesDir, instance)
 	f, err := os.OpenFile(path, os.O_RDWR, 0)
 	if errors.Is(err, fs.ErrNotExist) {
-		return LeaseAbsent, nil
+		return false, nil
 	}
 	if err != nil {
-		return 0, fmt.Errorf("try lease: %w", err)
+		return false, fmt.Errorf("try lease: %w", err)
 	}
 	return tryOpenLease(f)
 }
 
 // tryOpenLease is TryLease once the lease file is open as f. It closes
 // f before it returns.
-func tryOpenLease(f *os.File) (LeaseState, error) {
+func tryOpenLease(f *os.File) (bool, error) {
 	path := f.Name()
 	err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
 	if errors.Is(err, syscall.EWOULDBLOCK) {
-		return LeaseHeld, f.Close()
+		return true, f.Close()
 	}
 	if err != nil {
-		return 0, errors.Join(fmt.Errorf("lock lease %s: %w", path, err), f.Close())
+		return false, errors.Join(fmt.Errorf("lock lease %s: %w", path, err), f.Close())
 	}
 	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return 0, errors.Join(fmt.Errorf("remove dead lease: %w", err), f.Close())
+		return false, errors.Join(fmt.Errorf("remove dead lease: %w", err), f.Close())
 	}
 	if err := f.Close(); err != nil {
-		return 0, fmt.Errorf("close dead lease %s: %w", path, err)
+		return false, fmt.Errorf("close dead lease %s: %w", path, err)
 	}
-	return LeaseFree, nil
+	return false, nil
 }
 
 // validInstance reports whether s has the shape TakeInstanceLease

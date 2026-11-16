@@ -11,7 +11,7 @@ func TestOwnedWall_RequiredNowRows(t *testing.T) {
 	}
 
 	got := make(map[string]bool)
-	for _, row := range OwnedWall() {
+	for _, row := range ownedWall {
 		got[row.Name] = true
 	}
 
@@ -24,15 +24,6 @@ func TestOwnedWall_RequiredNowRows(t *testing.T) {
 		if !want[name] {
 			t.Errorf("OwnedWall() has unexpected required-now row %s", name)
 		}
-	}
-}
-
-func TestOwnedWall_ReturnsCopy(t *testing.T) {
-	rows := OwnedWall()
-	rows[0].Name = "mutated"
-
-	if ownedWall[0].Name == "mutated" {
-		t.Fatal("OwnedWall() leaked the backing array; a caller can corrupt the package table")
 	}
 }
 
@@ -91,15 +82,6 @@ func TestReservedClassOf(t *testing.T) {
 				t.Errorf("reservedClassOf(%q) rung = %d, want %d", tt.input, class.Rung, tt.wantRung)
 			}
 		})
-	}
-}
-
-func TestReservedClasses_ReturnsCopy(t *testing.T) {
-	classes := ReservedClasses()
-	classes[0].Name = "mutated"
-
-	if reservedClasses[0].Name == "mutated" {
-		t.Fatal("ReservedClasses() leaked the backing array; a caller can corrupt the package table")
 	}
 }
 
