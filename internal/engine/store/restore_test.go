@@ -352,7 +352,7 @@ func TestRestoreChildHold(t *testing.T) {
 			startOrphan(t, h)
 		}
 	case "inspect":
-		if _, err := acquireSharedNonblocking(l.lockPath); err != nil {
+		if _, err := tryLock(l.lockPath, syscall.LOCK_SH); err != nil {
 			t.Fatalf("child lock: %v", err)
 		}
 		db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, openBusy))
