@@ -607,8 +607,8 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 // never surfaces (mutation 1).
 func TestRowStatuses_FlattensNestedJoin(t *testing.T) {
 	err := errors.Join(errors.Join(
-		fmt.Errorf("A_KEY: %w", config.ErrMissing),
-		errors.New("B_KEY: bad"),
+		&config.KeyError{Key: "A_KEY", Reason: config.ErrMissing.Error(), Err: config.ErrMissing},
+		&config.KeyError{Key: "B_KEY", Reason: "bad"},
 	))
 
 	statuses := rowStatuses(err)
@@ -814,8 +814,8 @@ func TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce(t *testing.T) {
 
 // TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix proves
 // R-5c10's mechanism: doctor reads a Validate refusal's failing key from
-// [sourceKeyError]'s own field via errors.As, never by parsing the
-// rendered message's prefix. The fixture wraps [sourceKeyError] behind
+// [config.KeyError]'s own field via errors.AsType, never by parsing the
+// rendered message's prefix. The fixture wraps [config.KeyError] behind
 // an outer fmt.Errorf, so the leaf error's rendered text carries a
 // colon-bearing prefix before the real key's own colon: a doctor that
 // cut the message at its first or its last ": " would read that outer
@@ -829,7 +829,7 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 		Name:     "scratch",
 		Selector: selector,
 		Validate: func(map[string]string, []string) error {
-			return fmt.Errorf("scratch refusal: %w", &sourceKeyError{key: key, reason: "not really used"})
+			return fmt.Errorf("scratch refusal: %w", &config.KeyError{Key: key, Reason: "not really used"})
 		},
 	}
 	environ := []string{selector + "=scratch"}
@@ -1568,6 +1568,39 @@ func TestDoctorCmd_SourceLinePrintsReasonCarryingNoValue(t *testing.T) {
 			}
 			if tt.wantNone != "" && strings.Contains(got, tt.wantNone) {
 				t.Errorf("magic-link row = %q, want it to never quote %q", got, tt.wantNone)
+			}
+		})
+	}
+}
+
+// TestDoctorCmd_SMTPRefusalNamedOnce proves an SMTP key the Validate
+// rerun also reads as keyed is named once on the source line: the
+// per-key sweep reports it first, and the rerun adds no second entry.
+func TestDoctorCmd_SMTPRefusalNamedOnce(t *testing.T) {
+	tests := []struct {
+		name  string
+		entry string
+		want  string
+	}{
+		{
+			name:  "an SMTP from that is no address",
+			entry: "DUBPLATE_SMTP_FROM=not an address",
+			want:  "unsatisfied: DUBPLATE_SMTP_FROM invalid (invalid email address)",
+		},
+		{
+			name:  "an SMTP port that is no integer",
+			entry: "DUBPLATE_SMTP_PORT=many",
+			want:  "unsatisfied: DUBPLATE_SMTP_PORT invalid (not an integer)",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rows, _, err := doctorRows(t, withEnv(doctorEnviron(t), tt.entry))
+			if err == nil {
+				t.Error("Execute() error = nil, want a refusal")
+			}
+			if got := rows["magic-link"]; got != tt.want {
+				t.Errorf("magic-link row = %q, want %q", got, tt.want)
 			}
 		})
 	}

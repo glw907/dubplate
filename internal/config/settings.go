@@ -134,11 +134,11 @@ func buildValidator(s Setting) func(string) error {
 	}
 	switch s.Kind {
 	case KindInt:
-		return boundedValidator(s, strconv.Atoi)
+		return boundedValidator[int](s)
 	case KindDuration:
-		return boundedValidator(s, time.ParseDuration)
+		return boundedValidator[time.Duration](s)
 	case KindFloat:
-		return boundedValidator(s, parseFiniteFloat)
+		return boundedValidator[float64](s)
 	case KindString:
 		return setValidator(s)
 	default:
@@ -166,10 +166,12 @@ func setValidator(s Setting) func(string) error {
 	}
 }
 
-// boundedValidator parses s's bounds through parse once and returns a
-// check of a value against them. The value is parsed through the same
-// function, so a bound and a value compare as one type.
-func boundedValidator[T cmp.Ordered](s Setting, parse func(string) (T, error)) func(string) error {
+// boundedValidator parses s's bounds under s.Kind once and returns a
+// check of a value against them. T is the type s.Kind parses to, and
+// the value is parsed under the same kind, so a bound and a value
+// compare as one type.
+func boundedValidator[T cmp.Ordered](s Setting) func(string) error {
+	parse := func(v string) (T, error) { return parseAs[T](s.Kind, v) }
 	floor, err := parse(s.Floor)
 	if err != nil {
 		panic(fmt.Sprintf("%s: invalid floor %q", s.Key, s.Floor))

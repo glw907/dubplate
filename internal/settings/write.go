@@ -108,7 +108,7 @@ func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []s
 	}
 	res := Result{Source: SourceAdmin, Value: value}
 	err = write(ctx, h, reg, environ, by, guard, key, now, func(stored *Row) (*change, error) {
-		if envValue, set := lookupEnv(environ, key); set {
+		if envValue, set := config.Lookup(environ, key); set {
 			if !equal(s.Kind, envValue, value) {
 				return nil, fmt.Errorf("%w: %s", ErrEnvironmentSets, key)
 			}
@@ -156,7 +156,7 @@ func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ [
 		case stored.Source != sourceAdmin:
 			return nil, fmt.Errorf("%s: stored row has unknown source %q", key, stored.Source)
 		}
-		if _, set := lookupEnv(environ, key); set && by.Channel != identity.ChannelCommandLine.String() {
+		if _, set := config.Lookup(environ, key); set && by.Channel != identity.ChannelCommandLine.String() {
 			return nil, fmt.Errorf("%w: %s", ErrEnvironmentSets, key)
 		}
 		res.Written, res.Previous = true, stored.Value

@@ -1,12 +1,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
-	"time"
 )
 
 // Registry holds every declaration a rung contributes to the config
@@ -280,30 +279,17 @@ func (r *Registry) AddThreshold(t Threshold) {
 // test alone; only parsing Default under the declared Kind catches it.
 //
 // KindString's own invalid Default is the empty string, checked here
-// rather than by a parse attempt, since every string parses; the
-// reason is [ParseString]'s own doc.
+// beside the parse, since every string parses; the reason is
+// [ParseString]'s own doc.
 //
 // ruled, conductor 2026-09-07, R11
 func validateThresholdDefault(t Threshold) {
-	switch t.Kind {
-	case KindInt:
-		if _, err := strconv.Atoi(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
-	case KindDuration:
-		if _, err := time.ParseDuration(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
-	case KindFloat:
-		if _, err := parseFiniteFloat(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
-	case KindString:
-		if t.Default == "" {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
-	default:
+	_, err := t.Kind.Parse(t.Default)
+	switch {
+	case errors.Is(err, errUnnamedKind):
 		panic(fmt.Sprintf("%s: unnamed threshold kind %v", t.Key, t.Kind))
+	case err != nil, t.Kind == KindString && t.Default == "":
+		panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
 	}
 }
 
