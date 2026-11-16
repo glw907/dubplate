@@ -190,15 +190,13 @@ type Facts struct {
 	Copies     int
 	CopiesSize int64
 
-	// Settings holds every settings row as stored, in key order, and
-	// SettingsGeneration the store's settings generation, for a store
-	// whose version holds the settings table. SettingsAbsent marks a
-	// store whose version predates it (through 0003), so a table
-	// absent is never confused with a table holding no rows; Settings
-	// and SettingsGeneration are unset in that case.
-	Settings           []SettingsRow
-	SettingsGeneration int64
-	SettingsAbsent     bool
+	// Settings holds every settings row as stored, in key order, for a
+	// store whose version holds the settings table. SettingsAbsent
+	// marks a store whose version predates it (through 0003), so a
+	// table absent is never confused with a table holding no rows;
+	// Settings is unset in that case.
+	Settings       []SettingsRow
+	SettingsAbsent bool
 
 	// Members counts the live users rows and Admins those holding the
 	// admin flag, for a store whose version holds the users table. A
@@ -223,12 +221,17 @@ type JobSuccess struct {
 	Progress string
 }
 
-// A SettingsRow is one settings row as [Facts] reads it, before
-// internal/settings interprets it.
+// A SettingsRow is one settings row as the store holds it.
 type SettingsRow struct {
-	Key       string
-	Value     string
-	Source    string
+	Key   string
+	Value string
+	// Source is "env-seed" for a value the environment seeded and
+	// "admin" for one an administrator set.
+	Source string
+	// SeedValue is the environment seed the row's value came from or,
+	// on an admin row, replaced. It is empty when the row records
+	// none; an environment seed is never empty, since an empty
+	// environment value counts as unset.
 	SeedValue string
 	Actor     string
 	UpdatedAt time.Time
@@ -330,7 +333,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 	}
 
 	if version >= settingsVersion {
-		if f.Settings, f.SettingsGeneration, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
+		if f.Settings, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
 			return nil, StandingNotRead, err
 		}
 	} else {
@@ -456,12 +459,11 @@ func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Stan
 	return StandingMember, nil
 }
 
-// readSettingsFacts returns every settings row db reads, in key order,
-// and the settings generation.
-func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, int64, error) {
+// readSettingsFacts returns every settings row db reads, in key order.
+func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, error) {
 	rows, err := db.QueryContext(ctx, `SELECT key, value, source, seed_value, actor, updated_at FROM settings ORDER BY key`)
 	if err != nil {
-		return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -473,21 +475,17 @@ func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]Settin
 			at   int64
 		)
 		if err := rows.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
-			return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
 		}
 		r.SeedValue = seed.String
 		r.UpdatedAt = time.UnixMicro(at).UTC()
 		settings = append(settings, r)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
 	}
 
-	var generation int64
-	if err := db.QueryRowContext(ctx, `SELECT generation FROM settings_generation WHERE singleton = 1`).Scan(&generation); err != nil {
-		return nil, 0, refusal(StateRefused, "read settings_generation in %s: %v", dbPath, err)
-	}
-	return settings, generation, nil
+	return settings, nil
 }
 
 // withError returns r carrying err's state and text: a refusal

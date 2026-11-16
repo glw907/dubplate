@@ -437,9 +437,6 @@ func TestInspect_SettingsFacts(t *testing.T) {
 			if !slices.Equal(f.Settings, want) {
 				t.Errorf("settings = %+v, want %+v", f.Settings, want)
 			}
-			if f.SettingsGeneration != 3 {
-				t.Errorf("settings generation = %d, want 3", f.SettingsGeneration)
-			}
 		})
 	}
 }
@@ -459,8 +456,8 @@ func TestInspect_SettingsAbsent(t *testing.T) {
 	if !f.SettingsAbsent {
 		t.Errorf("SettingsAbsent = false, want true for a store below the settings table's version")
 	}
-	if len(f.Settings) != 0 || f.SettingsGeneration != 0 {
-		t.Errorf("settings = %+v at generation %d, want none for a store predating the table", f.Settings, f.SettingsGeneration)
+	if len(f.Settings) != 0 {
+		t.Errorf("settings = %+v, want none for a store predating the table", f.Settings)
 	}
 }
 

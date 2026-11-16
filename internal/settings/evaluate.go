@@ -28,20 +28,7 @@ const selectRows = `SELECT key, value, source, seed_value, actor, updated_at
 	FROM settings ORDER BY key`
 
 // A Row is one settings row as the store holds it.
-type Row struct {
-	Key   string
-	Value string
-	// Source is "env-seed" for a value the environment seeded and
-	// "admin" for one an administrator set.
-	Source string
-	// SeedValue is the environment seed the row's value came from or,
-	// on an admin row, replaced. It is empty when the row records
-	// none; an environment seed is never empty, since an empty
-	// environment value counts as unset.
-	SeedValue string
-	Actor     string
-	UpdatedAt time.Time
-}
+type Row = store.SettingsRow
 
 // A Change is what the seed rule does to one setting's row.
 type Change int
@@ -133,11 +120,7 @@ func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Ev
 	if facts.SettingsAbsent {
 		return evaluate(reg, environ, nil)
 	}
-	rows := make([]Row, len(facts.Settings))
-	for i, r := range facts.Settings {
-		rows[i] = Row{Key: r.Key, Value: r.Value, Source: r.Source, SeedValue: r.SeedValue, Actor: r.Actor, UpdatedAt: r.UpdatedAt}
-	}
-	return evaluate(reg, environ, rows)
+	return evaluate(reg, environ, facts.Settings)
 }
 
 // readRows reads every settings row through h's read pool.
