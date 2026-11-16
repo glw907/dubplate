@@ -1,0 +1,130 @@
+name: check
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # The gate's tool pins. Each matches the version the local gate runs;
+      # a bump edits the version and its SHA-256 together.
+      GOLANGCI_LINT_VERSION: 2.15.0
+      GOLANGCI_LINT_SHA256: 9b7fe6a6bf6334b98decf8d86b11415ea7889afdabdd1959fdce23af2a9ebcea
+      SHELLCHECK_VERSION: 0.11.0
+      SHELLCHECK_SHA256: b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6
+      RUFF_VERSION: 0.17.5
+      RUFF_SHA256: 7d261fc981a784668e19e9fa6ad437bfd95b67f2dc263fc1eab87d54d72fcc90
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+      VALE_VERSION: 3.27.0
+      VALE_SHA256: c80d62f6bce87b81843ac5b512a26e63213927b957adba0a64fc594570da2000
+      RCLONE_VERSION: 1.75.2
+      RCLONE_SHA256: 349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702
+      LIBXML2_VERSION: 2.15.4
+      LIBXML2_SHA256: 98087fd181d9070724f3fbc65c7377db03038eb92bd882374daff44940138821
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.27.4
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.13.1
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install the pinned tools
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/tools/bin"
+          dl="$RUNNER_TEMP/tools/download"
+          mkdir -p "$bin" "$dl"
+          # fetch <url> <sha256> <archive name>
+          fetch() {
+            curl -fsSL --retry 3 -o "$dl/$3" "$1"
+            echo "$2  $dl/$3" | sha256sum -c -
+          }
+          # unpack <name> <binary> : extract the archive and install its binary
+          unpack() {
+            local dir="$dl/${1}.d"
+            mkdir -p "$dir"
+            case "$1" in
+              *.zip) unzip -q "$dl/$1" -d "$dir" ;;
+              *) tar -xf "$dl/$1" -C "$dir" ;;
+            esac
+            find "$dir" -type f -name "$2" -exec install -m 0755 {} "$bin/$2" \;
+          }
+          gh_release=https://github.com
+          a=golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64.tar.gz
+          fetch "$gh_release/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/$a" "$GOLANGCI_LINT_SHA256" "$a"
+          unpack "$a" golangci-lint
+          a=shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.gz
+          fetch "$gh_release/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/$a" "$SHELLCHECK_SHA256" "$a"
+          unpack "$a" shellcheck
+          a=ruff-x86_64-unknown-linux-gnu.tar.gz
+          fetch "$gh_release/astral-sh/ruff/releases/download/${RUFF_VERSION}/$a" "$RUFF_SHA256" "$a"
+          unpack "$a" ruff
+          a=gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz
+          fetch "$gh_release/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$a" "$GITLEAKS_SHA256" "$a"
+          unpack "$a" gitleaks
+          a=vale_${VALE_VERSION}_Linux_64-bit.tar.gz
+          fetch "$gh_release/errata-ai/vale/releases/download/v${VALE_VERSION}/$a" "$VALE_SHA256" "$a"
+          unpack "$a" vale
+          a=rclone-v${RCLONE_VERSION}-linux-amd64.zip
+          fetch "$gh_release/rclone/rclone/releases/download/v${RCLONE_VERSION}/$a" "$RCLONE_SHA256" "$a"
+          unpack "$a" rclone
+          echo "$bin" >> "$GITHUB_PATH"
+
+      - name: Build libxml2
+        run: |
+          set -euo pipefail
+          src="$RUNNER_TEMP/libxml2-src"
+          prefix="$RUNNER_TEMP/libxml2"
+          mkdir -p "$src"
+          curl -fsSL --retry 3 -o "$src/libxml2.tar.xz" \
+            "https://download.gnome.org/sources/libxml2/2.15/libxml2-${LIBXML2_VERSION}.tar.xz"
+          echo "$LIBXML2_SHA256  $src/libxml2.tar.xz" | sha256sum -c -
+          tar -xf "$src/libxml2.tar.xz" -C "$src"
+          cd "$src/libxml2-${LIBXML2_VERSION}"
+          ls
+          ./configure --prefix="$prefix" --without-python
+          make -j"$(nproc)"
+          make install
+          find "$prefix" -name 'libxml2.so*'
+          echo "$prefix/bin" >> "$GITHUB_PATH"
+          echo "LD_LIBRARY_PATH=$prefix/lib" >> "$GITHUB_ENV"
+
+      - name: Confirm the pinned tools
+        run: |
+          set -euo pipefail
+          xmllint --version 2>&1 | grep -x '.*21504.*'
+          golangci-lint version
+          shellcheck --version
+          ruff --version
+          gitleaks version
+          vale --version
+          rclone version
+
+      - name: Install web dependencies
+        run: npm ci --prefix web
+
+      - name: Install Chromium
+        timeout-minutes: 10
+        run: npx --prefix web playwright install --with-deps chromium
+
+      - name: Fetch the unidecode wheel
+        run: make unidecode-wheel
+
+      - name: Fetch the Subsonic XSD
+        run: make subsonic-xsd
+
+      - name: Run the gate
+        run: bash scripts/check.sh
