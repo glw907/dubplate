@@ -78,7 +78,7 @@ The 130 s line fails on time too. The whole target with the extra shot ran 155 s
 Geoff answered the stop above through decide document `20261116-080113-a56d02` on 2026-11-16 (approve):
 
 1. The rule for the rendered test file: "The adapter's list wins." Task T2, which edits `cmd/dubplate-server/rendered_test.go`, is `auth-data`: the plan follows the adapter's path map (test first, an `opus` pair, a task-scope review, the security read at the close). The pass is class `auth-data`, so it waits for the close packet with passes 3 to 5.
-2. The rendered-leg item: "Spend 30 minutes first" on Chromium launch flags that make a resized page paint like a fresh one, then pick between rewording item 3 (keep the 38 contexts, differences only on the alert-edge columns, leg under 160 s) and keeping the pixel clause with no change to contexts. Geoff named no fallback. The executor takes the advisor's choice if the probe finds nothing, as `advisor.md` "What the answer allows" says, and raises it under `## Calls for Geoff` as an `[advisor]` line.
+2. The rendered-leg item: "Spend 30 minutes first" on Chromium launch flags that make a resized page paint like a fresh one, then pick between rewording item 3 (keep the 38 contexts, differences only on the alert-edge columns, leg under 160 s) and keeping the pixel clause with no change to contexts. The approved option text reads "If it finds nothing, the pass takes one of the first two and loses those 30 minutes", which names no one to choose. T2 is `auth-data`, and `advisor.md` "What always stops" lists "Any question in an `auth-data` task", so the run can't ask its advisor. The planner fixes the rule now, before launch: B1 when every 38-context difference from the base set sits on the alert-rule columns, B2 otherwise (T2b). The PR raises the rule and its result under `## Calls for Geoff`.
 
 The conductor applies the pick on item 2 to pass 4's first acceptance item, which uses the same no-tolerance comparison, unless Geoff says otherwise.
 
@@ -135,7 +135,8 @@ pattern, #69's wording), with #134's header rewording.
    `docs/STATUS.md` (the conductor's; wanted text goes in the PR body under `## STATUS text`) or `.claude/settings*`
    ("`.claude/settings*` is never an executor's file: record the rule the pass wants for the close packet and go
    on"). Never touch `.golangci.yml`, `tools/`, `systemd/`, `docs/standing-rules.md`, the adapter, or anything under
-   the design's "Out" list.
+   the design's "Out" list. One exception: a proof edit or a plant (T4's, T5's, and T6's) may touch a file outside
+   the row, uncommitted, and is reverted the same step, with `git status` read after.
 2. **The box.** The round adds no feature, no migration, and no config key, and it deploys nothing. No task reaches
    the box (`5.78.148.42`), by ssh or otherwise.
 3. **Gates.** The fast lane is `bash scripts/gate.sh --scope-changed`, no `--base`. The close is `bash scripts/gate.sh
@@ -143,7 +144,7 @@ pattern, #69's wording), with #134's header rewording.
    it prints `gate exit:`. Never pipe a gate. Never edit a file under `scripts/` while a gate runs it (`check.sh:21-23`).
    Never commit red. A task whose change set holds machinery (`scripts/*`, `Makefile`, `go.mod`, `web/scripts/rendered`)
    runs the full form under the fast lane; that is expected.
-4. **Commits.** One commit per task, the task id first in the subject, imperative mood, specific files only (never
+4. **Commits.** One commit per task (T2 may add a second, the flag fix under A or the restore under B2), the task id first in the subject, imperative mood, specific files only (never
    `-A`), ending with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never commit a secret or a `.env`
    value; read each diff by eye before staging. T6's plants are never committed.
 5. **Pushes.** Only `git push origin cleanup-gate`. The draft PR opens on T1's push (`gh pr create --draft --base
@@ -187,11 +188,14 @@ pattern, #69's wording), with #134's header rewording.
 | 19 | #69's retired term | `grep -n boundary scripts/check.sh` | 6 hits (`:31`, `:60`, `:86`, `:253`, `:622`, `:745`); the design names `:60` and `:622` ("boundary gate"); the other four say "every boundary" and are reworded with them |
 | 20 | #134's stale header | `check.sh:127-134`, not `:113-122` as BACKLOG #134 says | "flips to fail at the comment-cleanup task"; "flips to fail once the dead surfaces it names are either consumed or deleted" |
 | 21 | #64's header line | `check.sh:3-19` names no photo leg; the leg runs at `:757-767` | one header line names it |
-| 22 | Capture contexts | `run.ts:1382` `browser.newContext({ colorScheme: state.scheme, viewport: FIXTURE_VIEWPORT, ...options })`, one per cell from `captureRows` (`:6091-6147`) | 190 contexts: 19 states (`rendered_test.go:271-300`) x 5 widths x 2 schemes |
+| 22 | Capture contexts | `run.ts:6103` `browser.newContext({ viewport: { width, height: CAPTURE_HEIGHT }, colorScheme: scheme })` inside `captureRows` (`:6091-6147`), one per cell, after `resetCaptureRoster` (`:6102`) and before `state.arrange(context, endpoints, rosterBaseline)` (`:6105`). `run.ts:1382` is `openThemedFixture`, used by non-capture rows, and stays | 190 contexts: 19 states (`rendered_test.go:271-300`) x 5 widths x 2 schemes |
 | 23 | 190 captures, 95 files | `run.ts:6087-6089` "The two native widths (390, 1440) each write their own PNG; the other three compose into one contact sheet per state" | 19 state directories x (4 native PNGs + 1 sheet) = 95 files on disk for 190 cells |
 | 24 | The settle is a bound | `run.ts:5968` `CAPTURE_SETTLE_MS = 2_000`; `settleCapture` (`:5981`) waits for no disabled button, finished animations, and the primary fill | probe 2: in-page double shots matched in 189 and 190 of 190 cells |
 | 25 | Spend reconciliation | `rendered_test.go:708-731` `checkSpendReconciliation` fatals on mismatch; `renderedCaptureRows` (`:302-318`) declares spend per row | probe 1 failed "manifest declares 23 request-link POSTs, the log shows 7"; moving spend to first-width rows passed |
 | 26 | Stale counts | `run.ts:5317` "fifteen", `:5536` "fifteen", `:6080-6082` "fifteen ... 150 captures"; `rendered_test.go:39` "150 fresh browser contexts", `:267`; `mintServer` doc (`:652-656`) "sixty links its six signed-in states" | each corrected in T2 |
+| 28 | The script's stderr reaches the test | `rendered_test.go:786-794` runs `node scripts/rendered/run.ts` under `exec.CommandContext` and returns stdout and stderr; `parseRows` (`:797-831`) fails on any stdout line that is not a JSON row ("the script wrote a line that is not a row") | the `capture contexts:` line goes to stderr |
+| 29 | The heavy lane's lock and scope | `cairn-run-gate:278` `gatedir="${TMPDIR:-/tmp}/cairn-gate-$(id -u)"`, `:345` `flock "$gatedir/machine.lock"`, `:321-324` heavy cap from RAM (31 GiB here: 14G high, 15G max, 4G swap) | a direct `make web-rendered` holds neither, so T2's runs take both by hand |
+| 30 | A pair can be resumed | the `intake-1` plan (`docs/archive/plans/2026-10-12-intake-1.md:201`) and `admin-api-1` (`:180`) resume a pair with `SendMessage` | fallback: a fresh pair dispatch with the T2 sha and the probe report |
 | 27 | The rendered time bound | `rendered_test.go:36-41` "378s; about 257s uncontended"; `Makefile:120-126` `RENDERED_TIMEOUT := 18m` | the comment is updated with T2's measured figure; the timeout values stay |
 
 ## Recorded searches
@@ -205,7 +209,7 @@ pattern, #69's wording), with #134's header rewording.
 | `grep -n 'make check' .claude/settings.json CLAUDE.md docs/standing-rules.md` | `settings.json:10` allows `Bash(make check)`; `CLAUDE.md:77`; standing-rules `:55`, `:105`, `:122-127`; all outside the row, and `make check` keeps working |
 | `grep -c awk scripts/check.sh` | 5 |
 | `grep -n -iE 'node_modules\|rendered-captures\|venv' .gitleaks.toml` | nothing |
-| `grep -c newContext web/scripts/rendered/run.ts` | the capture context is one call (`:1382`); the other contexts belong to non-capture rows and stay |
+| `grep -n newContext web/scripts/rendered/run.ts` | the capture context is one call (`:6103`); the others, `:1382` among them, belong to non-capture rows and stay |
 
 ## Tasks
 
@@ -224,8 +228,9 @@ the close, so item 2 can compare them.
 
 Files: `scripts/check.sh`.
 
-Time with bash `SECONDS` (integer seconds is enough at this scale), set once at the top and per leg. A failing leg
-still prints its elapsed line before the script exits, so a red run shows where it stopped. Then run `bash
+Time with bash `SECONDS` (integer seconds is enough at this scale), set once after the tree lock (`check.sh:21-23`)
+so the total counts no lock wait, and per leg. A failing leg still prints its elapsed line, then the script exits
+as `make check` did at its first red target, so no later leg runs against a stale bundle. Then run `bash
 scripts/gate.sh` (the full form) on the T1 commit. That run is the base run of item 2: it is `7db541b` plus timing
 lines and nothing else, and the PR's `## Decisions` says so. Save its log's elapsed lines to the PR notes. Copy
 `web/rendered-captures/` to `<git dir>/base-captures/` for T2's compare.
@@ -246,16 +251,29 @@ Files: `web/scripts/rendered/run.ts` (and any file under `web/scripts/rendered/`
 
 `RUN_GATE_IF_BUSY=defer` is barred on this task (the adapter bars it on `auth-data`).
 
+Every rendered run the pair makes (`make web-rendered` or `go test -tags rendered`) runs bare under the heavy lane's
+lock and scope (mechanism 29), so it never shares the host with a session gate's Chromium:
+`flock /tmp/cairn-gate-1000/machine.lock systemd-run --user --scope -q -p MemoryHigh=14G -p MemoryMax=15G -p MemorySwapMax=4G <the command>`.
+The pair's scratch (probe capture copies and the throwaway decoder) lives in `web/rendered-captures/.probe/`, which
+`/web/rendered-captures/` in `.gitignore` already ignores and which nothing reads or clears (`run.ts:6092` only
+`mkdir`s the parent). The decoder imports `web/scripts/rendered/png.ts`'s `decodePNG` and runs by a literal path.
+The pair runs git as plain separate calls from its worktree path (`executor.md` "Pairs").
+
 #### T2a: Build, then probe (pair, 30 min of build and a 30-minute probe)
 
-Load `standards:ts-conventions` and `standards:go-conventions` first.
+Load `standards:ts-conventions` and `standards:go-conventions` first. Run `npm ci --prefix web`, then `make web`,
+bare. T2 touches no bundle source, so the build holds across the probe's `git switch`.
 
-1. Test first. Add the Go-side check that the script's `capture contexts:` line reads 38, with 38 written as a
-   literal, and run `make web-rendered` on the unchanged matrix. Record the failure (it reads 190) in the report.
+1. Test first. Add a counter beside the capture `newContext` (`run.ts:6103`) that the script prints once to stderr
+   as `capture contexts: <n>` at the end of the matrix, and the Go-side check that parses it from the stderr
+   `runRenderedScript` returns (mechanism 28), with 38 written as a literal. The check names each state: the line
+   absent, malformed, printed twice, or a count other than 38. Run `make web-rendered` on the unchanged matrix and
+   record the failure, which reads 190.
 2. Change `captureRows`:
    - One context per (state, scheme), sized at the state's first width, then for each width in `CAPTURE_WIDTHS` order:
      `setViewportSize`, `settleCapture`, the secondary-control guard, the overflow floor at 320 and 390, the
-     touch-target floor, and the screenshot. The state is stood up once per context, after the fixture roster resets.
+     touch-target floor, and the screenshot. `resetCaptureRoster` and `state.arrange` (`:6102-6105`) move from once
+     per cell to once per (state, scheme).
    - In `renderedCaptureRows`, the link spend each state declares moves to its first-width rows, so
      `checkSpendReconciliation` (mechanism 25) still passes with no change to the check itself.
    - Correct the stale counts in mechanism 26.
@@ -271,24 +289,33 @@ Load `standards:ts-conventions` and `standards:go-conventions` first.
    1. `--disable-lcd-text`, `--force-device-scale-factor=1`
    2. set 1 plus `--disable-gpu`
 
-   For each set F: run `go test -tags rendered -count=1 -run '^TestRendered$' ./cmd/dubplate-server` once at the
-   dispatch sha with F (`git switch --detach <dispatch sha>`, apply F, run, copy `web/rendered-captures/` to the
-   pair's `$CLAUDE_JOB_DIR/tmp/base-F<n>/`, `git checkout -- web/scripts/rendered/run.ts`, `git switch -`), then twice
-   on the T2 commit with F. F passes when both 38-context runs match the 190-context run under F in all 95 files with
-   no pixel tolerance. Compare with the throwaway decoder over `web/scripts/rendered/png.ts`'s `decodePNG`, run from
-   the job's tmp directory and never committed. Each run takes about 2.5 to 3.3 minutes, so the budget holds about two
-   sets. No flag touches the roughly 78 s that come before the matrix, so the 130 s clause of item 3 is unmet on every
-   outcome.
+   For each set F: run `go test -tags rendered -count=1 -run '^TestRendered$' ./cmd/dubplate-server` (wrapped as
+   above) twice at the dispatch sha with F (`git switch --detach <dispatch sha>`, apply F, run, copy the 19
+   state directories of `web/rendered-captures/` to `web/rendered-captures/.probe/base-F<n>-<run>/`, run and copy
+   again, `git checkout -- web/scripts/rendered/run.ts`, `git switch <the pair's branch, by name>`),
+   then twice on the T2 commit with F, copied the same way. F passes only when all four runs match each other in all
+   95 files with no pixel tolerance. If the two 190-context runs under F disagree, F fails as "nondeterministic under
+   F" and the report says so, since that noise alone would sink A. Each run takes about 2.5 to 3.3 minutes, so four
+   runs and the switching take about 14 minutes and the budget holds two sets. No flag touches the roughly 78 s that
+   come before the matrix, so the 130 s clause of item 3 is unmet on every outcome.
 6. Revert the flag edit (`git status` clean) and return the report: the test-first failure, both mutation failures,
-   the T2 sha, and per flag set its runs' file-difference counts and boxes. Then wait for the session's message.
+   the T2 sha, and per flag set its runs' file-difference counts and boxes. Also report the unflagged 38-context
+   run's differences against the session's base set at the literal path
+   `/var/home/glw907/Projects/dubplate/.git/worktrees/cleanup-gate/base-captures/` (read, never written), which T2b's
+   rule needs. Then wait for the session's message. If the `SendMessage` resume fails, the session dispatches a fresh
+   `opus` pair with the T2 sha, the report, and T2c's text (mechanism 30).
 
 #### T2b: The pick (session, 5 min)
 
-- A flag set passed: outcome A. No advisor pick is needed; the session records the probe table and goes on.
-- None passed: the session asks its advisor to choose B1 (keep the 38 contexts and read item 3 as option 1 says) or
-  B2 (keep the pixel clause and drop the context change). It takes the choice and raises it under `## Calls for
-  Geoff` as an `[advisor]` line: the option taken, the option passed over, and what reversing it would undo
-  (`advisor.md` "What the answer allows").
+The pick follows a fixed rule, so nothing in this `auth-data` task asks a question (see "Rulings", 2):
+
+- A flag set passed: outcome A.
+- None passed, and every differing pixel of the unflagged 38-context run against the base set sits on the alert-rule
+  columns (mechanism table's probe: x 32-34 at 390, x 432-434 at 1440, x 113-115 or 49-51 on a sheet): outcome B1.
+- None passed, and a pixel differs anywhere else: outcome B2.
+
+The PR raises the pick under `## Calls for Geoff`: the outcome taken, the one passed over, and what reversing it
+would undo (a revert of T2's commits, or a later pass redoing the context change).
 
 Either way, the PR's `## Decisions` gets the line `Item 3 pick: <A|B1|B2>`, which the conductor reads for pass 4.
 The session sends the pick to the pair with `SendMessage`.
@@ -296,21 +323,20 @@ The session sends the pick to the pair with `SendMessage`.
 #### T2c: Finish the pick (pair, 15 min)
 
 - A: add the passing F to `launch()` with a TSDoc-register comment naming why, and commit as `T2: Fix the capture
-  launch flags`. The flagged base set is the probe's `$CLAUDE_JOB_DIR/tmp/base-F<n>/`, taken at the dispatch sha
+  launch flags`. The flagged base set is the probe's `web/rendered-captures/.probe/base-F<n>-1/`, taken at the dispatch sha
   (T1's commit) with F, and every later compare reads it. The launch flag is a second change beside how contexts
   open, and the PR's `## Decisions` says so.
 - B1: no code change.
 - B2: in one commit, restore the capture matrix, the spend declarations, and the 38 check to their dispatch-sha
   form, keeping the stale-count corrections, which then say 190 contexts. Mutation proofs (a) and (b) lapse; the
   report says so.
-- Every outcome: update the time comment at `rendered_test.go:36-41` with the figure this task measured, then run
-  `make web-rendered` twice on the final head.
+- Every outcome: update the time comment at `rendered_test.go:36-41` with the figure this task measured under the
+  lock, then run `make web-rendered` twice on the final head, wrapped as above.
 
 Check: the two final runs pass, and their capture sets compare as item 3's reading for the pick says (see
-"Acceptance"), against `base-F<n>/` under A and the session's `<git dir>/base-captures/` (read, never written)
-under B1 and B2. The pair returns the pixel table (file, differing pixel count, box) in its report, and the session
-copies it to the PR notes. The pair's scratch goes in the job's `$CLAUDE_JOB_DIR/tmp`, never outside its worktree
-otherwise. Test: `make web-rendered`, then the fast lane on the session's merge. Review: `standards:diff-reviewer` at task
+"Acceptance"), against `base-F<n>-1/` under A and the session's base set at the literal path above under B1 and B2.
+The pair returns the pixel table (file, differing pixel count, box) in its report, and the session copies it to the
+PR notes. Test: `make web-rendered`, then the fast lane on the session's merge. Review: `standards:diff-reviewer` at task
 scope on the pair's merged range (the adapter's per-task review for `auth-data`).
 
 ### T3: The scoped build and the shell cleanups (30 min, `runner`)
@@ -323,8 +349,10 @@ Files: `Makefile`, `scripts/check.sh`.
 - `Makefile`: split `web` into `web-build` (the Node, npm, and install checks, then one `npm run build`) and `web`
   (which runs `web-build`, then the second build, the compare, `npm run check`, and the static gates, as today). Add
   `web-build` to `.PHONY`. `check:` still names `web`.
-- `check.sh` scoped form (`:584-588`): `make web` when a web path changed, `make web-build` otherwise. The reduced form
-  keeps its own build.
+- `check.sh` scoped form (`:584-588`): `make web` when a web path changed or the rendered leg is selected, and
+  `make web-build` otherwise. The static gates read Go files too (`web/scripts/gates/deck-coverage.ts` reads
+  `internal/auth/handlers.go`, `internal/ops/details.go`, and `internal/ops/errors.go`), and those packages are in the
+  rendered set, so the rendered selection keeps them covered. The reduced form keeps its own build.
 - `check.sh:218-241`: one loop over the six names that prints every missing one and exits 1 if any is missing.
 - `classify_path` (`:378-386`) calls `nearest_go_pkg_dir` (`:422-433`) in place of its own walk; drop the dead
   `scripts/checks/*` row (`:366`).
@@ -349,15 +377,19 @@ Files: `scripts/gate.sh`.
 `--fresh` goes to `cairn-run-gate` ahead of the gate string (mechanism 6), never to `check.sh`. A dry run keeps the
 light lane. Before the light lane goes in, measure one scoped run's whole command under the light cap with mechanism
 8's wrapper and record `memory.peak` and `memory.events`. If it OOMs or its `high` events throttle it past twice its
-heavy-lane time, the scoped form keeps the heavy lane, and the PR says so (the prompt's rule).
+heavy-lane time, the scoped form keeps the heavy lane, and the PR says so (the prompt's rule). T6 repeats this
+measurement once `deadcode` joins the scoped form, since `deadcode` alone peaked at 2,148,667,392 B (mechanism 8); S3
+applies to the later figure. The classification names its states: a dry run that exits nonzero or prints no scope
+line takes the heavy lane and prints the dry run's output; a tree that changes between the dry run and the run is a
+known race, named in a comment, and costs at most a heavier lane.
 
 Check: `bash scripts/gate.sh --reduced --dry-run` exits 0 and prints the reduced scope (item 4); `bash scripts/gate.sh
 --bogus` exits 2 with the usage line; a `--scope-changed` run whose change set holds one Go file in a package outside
 the rendered binary prints `gate.sh: lane=light` and the scope line `rendered=skipped`, and its log shows `make vet`,
 `make lint`, `make test`, no `npm run check`, and no static gate (item 6). Run that proof after T4's commit, with an uncommitted
-comment edit in `internal/reject` (outside the rendered binary's `go list -deps` set; confirm with `go list -deps -test
--tags rendered ./cmd/dubplate-server | grep -c internal/reject`, which must print 0), and pass `--base <the 40-hex
-HEAD>`. Without `--base` the change set runs from the merge base with master, and by T4 it holds `scripts/check.sh` and
+comment edit in `cmd/harness/main.go` (outside the rendered binary's set: `go list -deps -test -tags rendered
+./cmd/dubplate-server | grep -c 'dubplate/cmd/harness'` prints 0 on `c114e86`, where `internal/reject` prints 1; rule
+1's proof-edit exception covers it), and pass `--base <the 40-hex HEAD>`. Without `--base` the change set runs from the merge base with master, and by T4 it holds `scripts/check.sh` and
 `Makefile`, which are gate machinery (`check.sh:458-461`) and promote the run to the full form. With `--base HEAD` the
 set is the one uncommitted file (`check.sh:319` runs `git diff --name-only <base>`, which reads the working tree).
 Revert the edit after. Test: the fast lane.
@@ -369,12 +401,16 @@ Go file as today. `check.sh`'s scoped form passes the changed Go files, and the 
 
 Files: `scripts/vale-comments.sh`, `scripts/check.sh`.
 
-A scoped change set with no Go file runs Vale over nothing and says so in one line; it never falls back to a skip of
-the leg in the full form. `--check-vendor` keeps working.
+The script prints `vale-comments: <n> files` before Vale runs. Arguments pass the same filter as the full list
+(`vale-comments.sh:53-56`: no `_salvage/` path) and drop a path that no longer exists, so a deleted Go file never
+reads as clean; an empty list prints one line and exits 0. The full form and the reduced form pass no arguments and
+read every file. `--check-vendor` keeps working.
 
 Check: after T5's commit, a `bash scripts/gate.sh --scope-changed --base <the 40-hex HEAD>` run with one uncommitted
 Go comment edit shows Vale reading one file (the `--base` keeps the branch's machinery out of the change set, as in T4),
-then the edit is reverted; the full form reads `git ls-files '*.go' | wc -l` files. Item 7's planted fault is T6's. Test: the fast lane.
+then the edit is reverted; the full form prints the count that the script's own list expression gives when run by
+hand (`{ git ls-files '*.go'; git ls-files --others --exclude-standard '*.go'; } | grep -v '^_salvage/' | sort -u |
+wc -l`, 533 on `c114e86`). Item 7's planted fault is T6's. Test: the fast lane.
 
 ### T6: Gitleaks paths, the citation pattern, and `deadcode` (20 min, `runner`)
 
@@ -386,36 +422,54 @@ Files: `.gitleaks.toml`, `scripts/check.sh`, `go.mod`, `go.sum`.
 
 - `.gitleaks.toml`: a path allowlist for the three trees (item 5).
 - `check.sh:781`: add `\bR-[0-9]+[a-z]+[0-9]*` to `citation_patterns` (#67). The leg stays `warn` by default.
-- `go get -tool golang.org/x/tools/cmd/deadcode`, `go mod tidy`, stage both files before the gate (pass 1 mechanism
-  27). Replace `:812-879` with a leg that runs `go tool deadcode ./...`, prints its whole output, and exits nonzero
-  only under `CHECK_EXPORTED_UNUSED=fail`. Keep the leg name.
+- `go get -tool golang.org/x/tools/cmd/deadcode@v0.52.0` (the newest at planning; a newer release at T6's start is
+  taken, exact), `go mod tidy`, stage both files before the gate (pass 1 mechanism 27). The tool line adds
+  `golang.org/x/mod`, `x/sync`, `x/telemetry`, and `x/net` requirements and moves none the binary uses; `## Decisions`
+  lists them as a dependency add. Replace `:812-879` with a leg that runs `go tool deadcode ./...` with its default
+  filter (the module) and prints its whole output with no grep after it. `deadcode` exits 1 through `log.Fatal` on a
+  load error and 0 with findings, so a tool exit other than 0 fails the leg in every mode; findings warn, or fail
+  under `CHECK_EXPORTED_UNUSED=fail`; no findings prints one clean line. Keep the leg name.
+- Repeat T4's light-cap measurement of one scoped run now that `deadcode` is in it.
 - Plants, never committed: a fake token in a tracked file and a Vale comment fault in a Go file the branch doesn't
   change. Run `bash scripts/gate.sh --merge` once with both present; it must exit nonzero with the gitleaks leg and
   the Vale leg both red. Record both lines in the PR notes, then remove both and confirm `git status` shows neither.
   If the plant write is refused, that is standing answer S4.
 
-Check: `grep -n -iE 'node_modules|rendered-captures|venv' .gitleaks.toml` prints three lines; `grep -n '^tool
+Check: `grep -n -iE 'node_modules|rendered-captures|venv' .gitleaks.toml` prints three lines (the allowlist writes
+one path per line); `grep -n '^tool
 golang.org/x/tools/cmd/deadcode' go.mod` prints one line; `grep -c awk scripts/check.sh` prints 1; the citation count
 the leg prints rises from 192 (mechanism 18). Test: the fast lane, then the plant run.
 
-### T7: The close (30 min, `runner`)
+### T7: The close (35 min, `runner`)
 
 Outcome: the close head's full timed run, the `--merge` run, the BACKLOG closes, the review, and a ready PR.
 
 Files: `BACKLOG.md`, this plan and its prompt (`git mv` to `docs/archive/plans/`).
 
 1. Merge T2 if not merged; run the fast lane.
-2. Run `bash scripts/gate.sh --merge` on the close head. Its elapsed lines are item 2's second run: the total is
-   lower than T1's, and every leg T1 named is named again except "exported identifiers", which T6 replaced (keep its
-   name, and the comparison is by name). Copy both runs' per-leg tables into the PR body. This run's rendered leg
-   elapsed line is item 3's time evidence: it runs with nothing else on the host, where T2's runs shared it.
-3. Close #34, #64's header clause (leave the rest of #64 open), #67, #69, #104, #105's gate clauses (the
+2. Close #34, #64's header clause (leave the rest of #64 open), #67, #69, #104, #105's gate clauses (the
    `.golangci.yml` clause stays open, reworded), and #134. File: the `.golangci.yml` comment, the standing-rules
-   wording that names `make check`, the adapter's `scripts/checks/` line, and `ai-tells.ts:3`.
-4. Whole-branch `standards:diff-reviewer`, plus `standards:web-auth-security-reviewer` on the `rendered_test.go`
-   diff (the class is `auth-data`). One fold on `fix`, then one fresh read.
-5. PR body: `Round: cleanup`, `Pass: cleanup-gate`, `Review:`, `Calls:`, each acceptance item's evidence, `##
-   Decisions`, `## Planning misses`, the score, and the attribution line. Mark ready once CI is green on the head.
+   wording that names `make check`, the adapter's `scripts/checks/` line, and `ai-tells.ts:3`. `git mv` the plan and
+   its prompt to `docs/archive/plans/`.
+3. Whole-branch `standards:diff-reviewer`, plus `standards:web-auth-security-reviewer` on the `rendered_test.go`
+   diff (the class is `auth-data`). One fold on `fix`, then one fresh read. A security read short of `accept` after
+   the fold is a stop (`advisor.md`: "A closing review that ends short of `accept` on an `auth-data` finding"). The
+   second read's low findings are folded once, checked by the session's own diff read and CI, or filed; they never
+   start another round.
+4. Run `bash scripts/gate.sh --merge` last, on the final head. It is item 11's run and item 2's second run: the total
+   is lower than T1's, and every leg T1 named is named again except "exported identifiers", which T6 replaced (keep
+   its name; the comparison is by name). The `--merge` form adds the branch-history gitleaks leg the base run lacked,
+   which the table notes. Its rendered leg's elapsed line is item 3's time evidence. Any edit after it reruns it.
+5. Host load, for T1's base run and this one: read `~/.local/state/cairn-run-gate/runs.jsonl` for a gate whose window
+   overlapped the run and `claude agents --json` for another busy session. If anything overlapped, rerun once with
+   `bash scripts/gate.sh --merge --fresh` (or the full form with `--fresh` for the base) and record both runs.
+6. PR body: `Round: cleanup`, `Pass: cleanup-gate`, `Review:`, `Calls:`, each acceptance item's evidence, `##
+   Decisions`, `## Calls for Geoff`, `## Planning misses`, `## STATUS text`, the score, and the attribution line.
+   Planning misses this plan already knows: `[design-gap]` the design classed the pass `runner` (D1); `[design-gap]`
+   item 3's 130 s is out of reach, with about 78 s before the matrix; `[mechanism]` BACKLOG #134 cites `:113-122`
+   where the text is at `:127-134`; `[mechanism]` "190 captures" are 95 files (D3). `## STATUS text` tells the
+   conductor that pass 3 is cut from this branch, since this PR waits for the close packet. Mark ready once CI is
+   green on the head.
 
 ## Standing answers
 
@@ -471,14 +525,29 @@ matrix, and the ruling allows no cut there. Each reading is raised under `## Cal
 
 - A (a flag set passed): 190 captures, each matching the 190-context set taken under the same flags at T1's commit
   with no pixel tolerance, in both final runs; 38 contexts; the close run's rendered elapsed line under 160 s.
-- B1 (the advisor's reword): "The rendered leg writes 190 captures. Against the base commit's set, and between two
+- B1 (the reword, when every difference sits on the alert-rule columns): "The rendered leg writes 190 captures. Against the base commit's set, and between two
   runs on the close head, each file matches with no pixel tolerance or differs only on the antialiased alert-rule
   columns the PR lists. The leg opens 38 browser contexts where it opened 190, and its elapsed line on pavilion reads
   under 160 s." (Geoff's choice 1, quoted from the stop.)
-- B2 (the advisor keeps the pixel clause): the matrix keeps 190 contexts, so the 38-context and time clauses are
+- B2 (the pixel clause kept, when a difference sits elsewhere): the matrix keeps 190 contexts, so the 38-context and time clauses are
   unmet and move to a later pass; the PR files them through `standards:log-issue`. The captures match T1's base set or
   differ only on the alert-rule columns, which the one measured pair of base runs already showed (6 of 95 files).
 
 ## Review record
 
-Pending: one `standards:plan-reviewer` read after Geoff's answer.
+One `standards:plan-reviewer` read (`opus`, high effort) on `d4a3528`, 2026-11-16: not ready, 2 blockers, 13 majors,
+9 minors. All folded in the next commit:
+
+- Blockers: the pair's rendered runs now take the heavy lock and scope (T2, mechanism 29); item 6's proof file is
+  `cmd/harness/main.go`, since `internal/reject` is in the rendered set (checked: it prints 1), with a rule-1
+  exception for uncommitted proof edits and plants.
+- Majors: T7 runs `--merge` last on the final head; the `capture contexts:` line goes to stderr with a counter, so
+  the test-first run reads 190 (mechanism 28); the pair runs `npm ci` and `make web`; the capture context is
+  `run.ts:6103` (mechanism 22); the probe takes two base-F runs; T2b is a fixed rule, since any question in an
+  `auth-data` task stops (checked in `advisor.md`) and the approved text names no chooser; a security read short of
+  `accept` after the fold stops; the light-cap measure repeats after T6; `deadcode`'s tool failure fails the leg; T3
+  builds `make web` when the rendered leg is selected; T7 checks host load; T5 prints a count and filters deleted
+  paths; the pair's scratch is inside its worktree under an ignored path.
+- Minors: the resume fallback (mechanism 30), T1's stop-at-first-red and lock-free timing, `deadcode@v0.52.0`, the
+  dry-run states, one path per allowlist line, the `--merge` table note, the known planning misses, the pass-3 cut
+  note, and T2's extra commits under rule 4.
