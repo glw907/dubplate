@@ -34,12 +34,12 @@ import (
 // bundle resolves its URLs from the runtime prefix.
 const renderedPrefix = "/rendered"
 
-// renderedScriptTimeout bounds one run of the browser script, at more
-// than twice its measured wall time (about 137s on an idle machine,
-// the capture matrix dominating it, with 38 browser contexts for its
-// 190 captures) and under renderedMagicLinkExpiry, so a late capture
-// never meets an expired link. The Makefile's RENDERED_TIMEOUT sits above it plus the
-// missing-browser run, and below the expiry too.
+// renderedScriptTimeout bounds the whole TestRendered run, at more than
+// twice its measured wall time (about 137s on an idle machine, the
+// capture matrix dominating it, with 38 browser contexts for its 190
+// manifest rows) and under renderedMagicLinkExpiry, so a late capture
+// never meets an expired link. The Makefile's RENDERED_TIMEOUT sits
+// above it plus the missing-browser run, and below the expiry too.
 const renderedScriptTimeout = 13 * time.Minute
 
 // renderedInstallHint is the command the script names when
