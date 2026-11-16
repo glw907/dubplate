@@ -8,8 +8,8 @@ primary product goal: no site-specific value, path, or identity default
 outside `internal/config`.
 
 **The active initiative (2026-09-02) is the greenfield dubplate-server
-build**: a fresh, universal, foundation-first build on a 17-rung ladder
-(each rung has a name, and the run order is BACKLOG's "Path to 0.8")
+build**: a fresh, universal, foundation-first build, run as rounds
+(BACKLOG's "Rounds to 0.8" holds the order)
 per `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), governed by the rulings in
 `docs/research/2026-09-02-greenfield-server-rulings.md`. The
@@ -43,9 +43,9 @@ remaining features, the format ladder among them. A version names what a
 member can do with it. A document older than a ruling keeps its numbers
 and stays as written.
 
-**Build for 0.8.** The `streamer` rung is the built-in OpenSubsonic streamer (`docs/specs/2026-09-07-streamer-2-0-design.md`).
-Rung plans weigh their surface against that spec's forward-hooks list and its prior-art list; a hook is
-named in the plan and built by the rung that first consumes it, and nothing is exported ahead of a caller.
+**Build for 0.8.** The streamer is the built-in OpenSubsonic streamer (`docs/specs/2026-09-07-streamer-2-0-design.md`).
+Plans weigh their surface against that spec's forward-hooks list and its prior-art list; a hook is
+named in the plan and built by the pass that first consumes it, and nothing is exported ahead of a caller.
 Never build 0.8 features early. Full text: `docs/standing-rules.md`.
 
 **Current dependencies (Geoff, 2026-10-04).** Development runs on the newest production version of every
@@ -59,17 +59,16 @@ then upgrade the eight held dependents. Full text and the last sweep: `docs/stan
 
 - `docs/STATUS.md`: read in full at session start; present tense only.
 - `docs/HISTORY.md`: a frozen archive (2026-10-10); git and PR bodies are the record.
-- `BACKLOG.md`: open items, tagged `#rung:<name>` for the rung that takes each, and the ladder's run order
-  under "Path to 0.8".
+- `BACKLOG.md`: open items, tagged `#round:<name>` or `#pass:<name>` for the round or pass that takes each, with the
+  round order under "Rounds to 0.8".
 - `IDEAS.md`: future consideration: uncommitted features and member requests,
   read on demand. An idea moves to Promoted when an owner ruling targets it.
-- Initiatives live in `~/Projects/initiatives`; this repo's is `dubplate-server`, the greenfield build
-  (17-rung ladder) followed by packaging. Specs and plans live in `docs/`.
+- Initiatives live in `~/Projects/initiatives`; this repo's is `dubplate-server`, the greenfield build,
+  in rounds, followed by packaging. Specs and plans live in `docs/`.
 
 ## Build process
 
-The build's milestones, in order, are foundation, evidence, spine, surfaces, and launch; BACKLOG's "Path to 0.8"
-holds the run order. Process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
+BACKLOG's "Rounds to 0.8" holds the run order. Process: the `dubplate-pass` skill (`.claude/skills/dubplate-pass`), loading `pass-core`.
 Product touchpoints, and only these: corpus adjudication batches, the `intake` uploader sitting, and the
 first-launch sitting. The design approval and the packet read are `pass-core`'s.
 
@@ -108,7 +107,7 @@ never guard one with `command -v || skip`. Never commit red.
   `hooks.server.*`, form actions) are forbidden and the gate checks that
   none exists. Clean, idiomatic SvelteKit is the bar, as in the cairn
   family. Invoke `svelte-conventions` and `ts-conventions` before writing components or TS. `tus-js-client` pinned 4.3.x, from `intake`. Node is workstation
-  build-time only; nothing Node ships to the box. The `auth` rung's login page is
+  build-time only; nothing Node ships to the box. The login page was
   the first page built under this rule. Push hard toward the stack's own idiom
   (Geoff, 2026-09-01): reach for the DaisyUI component class and its documented
   modifiers before a hand-rolled utility stack, never fight a component's layout
@@ -186,7 +185,7 @@ Never build, and never accept a contribution that adds:
 - A collection is a store row whose root the server allocates from its
   id, with no two roots nested, per
   `docs/specs/2026-09-11-configuration-homes-design.md`.
-- Config keys are declared through the registry in each rung's own file,
+- Config keys are declared through the registry in each pass's own file,
   never by editing `internal/config/keys.go` (the config registry pass).
 
 ## Safety rails
