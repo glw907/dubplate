@@ -13,7 +13,7 @@
 //     registers it as an owned wall row alongside the source itself).
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
-//     load error naming its class and rung, never "unknown". The
+//     load error naming its class, never "unknown". The
 //     classes are pipeline (rung 9), monitoring (rung 9), and
 //     decision and review queues (rung 13). See
 //     [Registry.ReservedClasses] for the exact membership.
@@ -94,6 +94,7 @@ func (e *KeyError) Error() string {
 	return e.Key + ": " + e.Reason
 }
 
+// Unwrap returns the sentinel behind the refusal, or nil.
 func (e *KeyError) Unwrap() error { return e.Err }
 
 // Lookup returns key's value in environ (os.Environ() form) and
