@@ -1,16 +1,17 @@
 # dubplate status
 
 <!-- round-report cleanup -->
-**Round cleanup has started: pass 1 is planning.** Geoff approved the start on 2026-11-16 (document
-`20261116-042624-28c2c2`). Pass 1 (`cleanup-ci`) plans from `origin/master`; nothing waits for Geoff yet, nothing has
-deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
+**Round cleanup: pass 1 has landed, pass 2 is planning.** `cleanup-ci` merged as `73bae3b`: every pull request now runs
+`scripts/check.sh` as a check on GitHub, dependencies moved to their newest minors, and BACKLOG, `CLAUDE.md`, the
+standing rules, and the adapter describe rounds. Pass 2 (`cleanup-gate`) plans from `origin/master`. Nothing waits for
+Geoff yet, nothing has deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
 Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
 <!-- /round-report -->
 
 ## Current state
 `intake-1` is the last product pass on master. Nothing deploys: a passing album waits in `matching` with no exit
-until `intake-2`'s match probe lands. The landed rungs and the run order are in BACKLOG, "Path to 0.8". Work a later
-pass carries sits in BACKLOG under its `#rung:<name>` or `#pass:<name>` tag.
+until `intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work a later
+pass carries sits in BACKLOG under its `#round:<name>` or `#pass:<name>` tag.
 
 A whole-repo review on 2026-11-10 (`docs/research/2026-11-10-whole-repo-review.md`) set cleanup work ahead of
 `intake-2`; BACKLOG #104 to #127 hold its findings. On 2026-11-15 Geoff approved the round design that replaces
