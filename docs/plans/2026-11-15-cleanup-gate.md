@@ -29,39 +29,45 @@ open. Which of these should item 3 say?
 **What was tried.** Two probes on pavilion against `7db541b` built the design's mechanism: one context per state and
 scheme (38), with each width taken by `page.setViewportSize` and the existing `settleCapture`, and the manifest's
 link spend moved to each state's first width. Probe 2 also took two screenshots per cell inside the page to test
-whether paint was still moving. The probe edits were reverted and the tree is clean.
+whether paint was still moving. Probe 2 ran four times: twice as `go test` alone (2a, 2b) and twice as the whole
+`make web-rendered` target, tagged vet and lint included (2c, 2d). The probe edits were reverted and the tree is
+clean. The sample is small: two base runs and four 38-context runs.
 
 | Measure | Base (190 contexts) | 38 contexts |
 | --- | --- | --- |
-| `go test -tags rendered` wall time | 194.2 s, 193.8 s | 136.5 s (probe 1); 154.1 s, 153.4 s with the extra in-page shot (probe 2) |
+| `go test -tags rendered` wall time | 194.2 s, 193.8 s | 136.5 s (probe 1); 154.1 s, 153.4 s with the extra in-page shot (2a, 2b) |
+| Whole `make web-rendered` wall time | not timed | 155.1 s, 154.5 s with the extra in-page shot (2c, 2d); the shot adds about 17-19 s |
 | Capture matrix | about 117 s, 115 s | 58.7 s; about 76 s with the extra shot |
 | Before the matrix (build, fixture, non-capture rows) | about 77 s | about 78 s, untouched |
-| Two runs of the same code, files that differ | 6 of 95 (base1 vs base2) | 0 of 95 (probe 2a vs 2b) |
-| Files that differ from either base run | n/a | 21 of 95 (probe 2a and 2b vs base1 and base2) |
+| Distinct capture sets among the runs | 2 sets from 2 runs, 6 of 95 files apart | 2 sets from 4 runs (2a = 2b, 2c = 2d), 2 of 95 files apart (`login-empty/390-dark`, `390-light`) |
+| Files that differ from either base run | n/a | 21 of 95, in every 38-context run |
 | Pixels per differing file | 2 to 3 | 2 to 6 |
-| In-page double shots that differ | n/a | 1 of 190 (a sheet-only width), then 0 of 190 |
+| In-page double shots that differ | n/a | 1 of 190 in 2a (a sheet-only width), 0 of 190 in 2b |
 | Spend reconciliation | passes | fails until the manifest moves spend to first-width rows; then passes |
 
-Every differing pixel sits in a three-pixel column on an alert's left rule (x 32-34 at 390, x 432-434 at 1440, and
-x 113-115 or 49-51 on the contact sheet), in the login error states and `interstitial/ready`. Paint is settled
-within a page, so standing answer 18 ("fixed at its cause") has no settle fix to make. The antialiasing of that
-edge depends on whether the page was laid out fresh at its width or resized to it, and the base set doesn't
-reproduce itself on those pixels either. The new set does.
+Run 2d exited 2 on one console error, `net::ERR_NETWORK_CHANGED` loading `branding.css`. NetworkManager logged a
+DHCPv6 lease renewal on `wlp4s0` at the same moment, so the host's network changed under Chromium. Its captures
+match 2c's exactly.
 
-The 130 s line fails on time too. The rendered test reaches about 136 s at 38 contexts, before the tagged `go vet`
-and `golangci-lint` the leg also runs. About 78 s of it comes before the matrix, and the plan has no cut there:
-"Only the way contexts open changes."
+Every differing pixel sits in a three-pixel column on an alert's left rule (x 32-34 at 390, x 432-434 at 1440, and
+x 113-115 or 49-51 on the contact sheet), in the login error states and `interstitial/ready`. That holds for the
+base-to-38 differences and for both run-to-run differences. Paint is settled within a page, so standing answer 18
+("fixed at its cause") has no settle fix to make. The antialiasing of that edge varies with layout history (fresh
+at a width or resized to it) and, more rarely, between runs of the same code.
+
+The 130 s line fails on time too. The whole target with the extra shot ran 155 s; without it, about 137 s. About
+78 s of the test comes before the matrix, and the plan has no cut there: "Only the way contexts open changes."
 
 **Choices.**
 
-1. *(Recommended.)* Keep the 38-context change and reword item 3: "The rendered leg writes 190 captures. Two runs
-   on the close head match file for file with no pixel tolerance. Against the base commit's set, each file matches,
-   or differs only on the antialiased alert-rule columns the PR lists. The leg opens 38 browser contexts where it
+1. *(Recommended.)* Keep the 38-context change and reword item 3: "The rendered leg writes 190 captures. Against
+   the base commit's set, and between two runs on the close head, each file matches with no pixel tolerance or
+   differs only on the antialiased alert-rule columns the PR lists. The leg opens 38 browser contexts where it
    opened 190, and its elapsed line on pavilion reads under 160 s." This keeps every assertion and halves the
-   matrix. It gives up a byte-for-byte match the base never had.
+   matrix. It gives up a byte-for-byte match that neither the base nor the new mechanism reproduces run to run.
 2. Keep item 3's pixel clause and drop the context change from this pass. The rendered leg stays at about 194 s,
-   item 3 moves to a later pass, and the rest of this pass lands. Even unchanged, a zero-tolerance base compare
-   fails about one run in three on these same columns.
+   item 3 moves to a later pass, and the rest of this pass lands. Even unchanged, a zero-tolerance base compare can
+   fail: the one pair of base runs measured differed in 6 of 95 files on these same columns.
 3. Add a probe task first, about 30 min: try Chromium launch flags that make a resized page paint the way a fresh
    one does, then choose between 1 and 2 on the result. It may find nothing.
 
@@ -281,9 +287,13 @@ heavy-lane time, the scoped form keeps the heavy lane, and the PR says so (the p
 Check: `bash scripts/gate.sh --reduced --dry-run` exits 0 and prints the reduced scope (item 4); `bash scripts/gate.sh
 --bogus` exits 2 with the usage line; a `--scope-changed` run whose change set holds one Go file in a package outside
 the rendered binary prints `gate.sh: lane=light` and the scope line `rendered=skipped`, and its log shows `make vet`,
-`make lint`, `make test`, no `npm run check`, and no static gate (item 6). Use an uncommitted comment edit in
-`internal/reject` (outside the rendered binary's `go list -deps` set; confirm with `go list -deps -test -tags rendered
-./cmd/dubplate-server | grep -c internal/reject`, which must print 0), then revert it. Test: the fast lane.
+`make lint`, `make test`, no `npm run check`, and no static gate (item 6). Run that proof after T4's commit, with an uncommitted
+comment edit in `internal/reject` (outside the rendered binary's `go list -deps` set; confirm with `go list -deps -test
+-tags rendered ./cmd/dubplate-server | grep -c internal/reject`, which must print 0), and pass `--base <the 40-hex
+HEAD>`. Without `--base` the change set runs from the merge base with master, and by T4 it holds `scripts/check.sh` and
+`Makefile`, which are gate machinery (`check.sh:458-461`) and promote the run to the full form. With `--base HEAD` the
+set is the one uncommitted file (`check.sh:319` runs `git diff --name-only <base>`, which reads the working tree).
+Revert the edit after. Test: the fast lane.
 
 ### T5: Vale under scope (15 min, `runner`)
 
@@ -295,8 +305,9 @@ Files: `scripts/vale-comments.sh`, `scripts/check.sh`.
 A scoped change set with no Go file runs Vale over nothing and says so in one line; it never falls back to a skip of
 the leg in the full form. `--check-vendor` keeps working.
 
-Check: a scoped dry-run-free run on a change set with one Go file shows Vale reading one file; the full form reads
-`git ls-files '*.go' | wc -l` files. Item 7's planted fault is T6's. Test: the fast lane.
+Check: after T5's commit, a `bash scripts/gate.sh --scope-changed --base <the 40-hex HEAD>` run with one uncommitted
+Go comment edit shows Vale reading one file (the `--base` keeps the branch's machinery out of the change set, as in T4),
+then the edit is reverted; the full form reads `git ls-files '*.go' | wc -l` files. Item 7's planted fault is T6's. Test: the fast lane.
 
 ### T6: Gitleaks paths, the citation pattern, and `deadcode` (20 min, `runner`)
 
