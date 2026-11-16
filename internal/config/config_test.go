@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -1020,5 +1021,104 @@ func TestLoad_RefusalOrderIsSorted(t *testing.T) {
 		if err.Error() != want {
 			t.Fatalf("run %d: Load error =\n%s\nwant\n%s", run, err, want)
 		}
+	}
+}
+
+func TestLookup(t *testing.T) {
+	tests := []struct {
+		name      string
+		environ   []string
+		wantValue string
+		wantSet   bool
+	}{
+		{"set once", []string{"DUBPLATE_X=one"}, "one", true},
+		{"a later entry wins", []string{"DUBPLATE_X=one", "OTHER=y", "DUBPLATE_X=two"}, "two", true},
+		{"an empty value is unset", []string{"DUBPLATE_X="}, "", false},
+		{"a later empty entry unsets an earlier value", []string{"DUBPLATE_X=one", "DUBPLATE_X="}, "", false},
+		{"a value keeps its own equals sign", []string{"DUBPLATE_X=a=b"}, "a=b", true},
+		{"absent", []string{"DUBPLATE_XY=one", "OTHER=y"}, "", false},
+		{"an entry with no equals sign is skipped", []string{"DUBPLATE_X"}, "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, set := Lookup(tt.environ, "DUBPLATE_X")
+			if got != tt.wantValue || set != tt.wantSet {
+				t.Errorf("Lookup() = (%q, %t), want (%q, %t)", got, set, tt.wantValue, tt.wantSet)
+			}
+		})
+	}
+}
+
+func TestKeyError(t *testing.T) {
+	missing := &KeyError{Key: "DUBPLATE_X", Reason: "required setting unset", Err: ErrMissing}
+	if got, want := missing.Error(), "DUBPLATE_X: required setting unset"; got != want {
+		t.Errorf("Error() = %q, want %q", got, want)
+	}
+	if !errors.Is(missing, ErrMissing) {
+		t.Error("errors.Is(missing, ErrMissing) = false, want true")
+	}
+
+	invalid := &KeyError{Key: "DUBPLATE_Y", Reason: "carries a colon: here"}
+	if got, want := invalid.Error(), "DUBPLATE_Y: carries a colon: here"; got != want {
+		t.Errorf("Error() = %q, want %q", got, want)
+	}
+	if errors.Is(invalid, ErrMissing) {
+		t.Error("errors.Is(invalid, ErrMissing) = true, want false")
+	}
+
+	wrapped := errors.Join(errors.New("other"), fmt.Errorf("context: %w", invalid))
+	got, ok := errors.AsType[*KeyError](wrapped)
+	if !ok {
+		t.Fatal("errors.AsType[*KeyError]() ok = false, want true")
+	}
+	if got.Key != "DUBPLATE_Y" || got.Reason != "carries a colon: here" {
+		t.Errorf("AsType = {Key: %q, Reason: %q}, want {Key: %q, Reason: %q}", got.Key, got.Reason, "DUBPLATE_Y", "carries a colon: here")
+	}
+}
+
+// TestLoad_LeavesAreKeyErrors proves Load's refusals carry their key
+// and reason as fields, so a reader such as doctor never parses the
+// rendered text.
+func TestLoad_LeavesAreKeyErrors(t *testing.T) {
+	environ := []string{
+		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
+		"DUBPLATE_SITE_NAME=Test Family",
+		"DUBPLATE_ADMIN_EMAIL=not an address",
+		"DUBPLATE_NOPE=1",
+	}
+	_, err := Load(environ, NewRegistry())
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		t.Fatalf("Load() error = %v, want a joined refusal", err)
+	}
+	want := map[string]string{
+		"DUBPLATE_LIBRARY_ROOT": "required setting unset",
+		"DUBPLATE_ADMIN_EMAIL":  `invalid email address "not an address"`,
+		"DUBPLATE_NOPE":         "unknown configuration key",
+	}
+	got := make(map[string]string)
+	for _, leaf := range joined.Unwrap() {
+		keyed, ok := errors.AsType[*KeyError](leaf)
+		if !ok {
+			t.Errorf("leaf %q is not a *KeyError", leaf)
+			continue
+		}
+		got[keyed.Key] = keyed.Reason
+	}
+	if !maps.Equal(got, want) {
+		t.Errorf("Load() keyed leaves = %v, want %v", got, want)
+	}
+}
+
+func TestParseInt_ErrorIsKeyError(t *testing.T) {
+	th := Threshold{Key: "DUBPLATE_TEST_N", Default: "3", Doc: "an integer"}
+	_, err := ParseInt([]string{"DUBPLATE_TEST_N=x"}, th)
+	keyed, ok := errors.AsType[*KeyError](err)
+	if !ok {
+		t.Fatalf("ParseInt() error = %v, want a *KeyError", err)
+	}
+	if keyed.Key != "DUBPLATE_TEST_N" || keyed.Reason != `invalid value "x", want an integer` {
+		t.Errorf("ParseInt() error = {Key: %q, Reason: %q}, want {Key: %q, Reason: %q}",
+			keyed.Key, keyed.Reason, "DUBPLATE_TEST_N", `invalid value "x", want an integer`)
 	}
 }

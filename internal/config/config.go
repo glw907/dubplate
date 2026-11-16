@@ -76,6 +76,40 @@ import (
 // rather than stopping at the first miss.
 var ErrMissing = errors.New("required setting unset")
 
+// KeyError is a refusal of one configuration key. [Load] and the
+// Parse functions report every refusal they raise as a *KeyError, and
+// an identity source's Validate hook should return its own the same
+// way, so a reader such as the doctor subcommand takes the key and the
+// reason from the fields rather than parsing the text, and a reason
+// that itself carries a colon cannot be mistaken for a key. Err, when
+// set, is the sentinel behind the refusal, such as [ErrMissing].
+type KeyError struct {
+	Key    string
+	Reason string
+	Err    error
+}
+
+// Error returns the key and the reason, separated by ": ".
+func (e *KeyError) Error() string {
+	return e.Key + ": " + e.Reason
+}
+
+func (e *KeyError) Unwrap() error { return e.Err }
+
+// Lookup returns key's value in environ (os.Environ() form) and
+// reports whether it is set, by the wall's own rule: a later entry
+// wins over an earlier one for the same key, and an empty value is
+// unset.
+func Lookup(environ []string, key string) (string, bool) {
+	var value string
+	for _, kv := range environ {
+		if k, v, ok := strings.Cut(kv, "="); ok && k == key {
+			value = v
+		}
+	}
+	return value, value != ""
+}
+
 // Config is the resolved configuration of one dubplate-server process.
 // Rung 1 carries the owned wall only; the active identity source joins
 // its fields as IdentitySource once a rung declares one, and that
@@ -192,7 +226,10 @@ func newWall(environ []string) *wall {
 	return &wall{env: env, missing: make(map[string]bool)}
 }
 
-// get returns name's value, treating an empty value as unset.
+// get returns name's value, treating an empty value as unset. The map
+// newWall builds keeps the later of two entries, so get answers by
+// [Lookup]'s rule; the map stays because rejectNamespace walks every
+// name in it.
 func (w *wall) get(name string) (string, bool) {
 	v, ok := w.env[name]
 	if !ok || v == "" {
@@ -207,7 +244,7 @@ func (w *wall) require(name string) string {
 	v, ok := w.get(name)
 	if !ok && !w.missing[name] {
 		w.missing[name] = true
-		w.errs = append(w.errs, fmt.Errorf("%s: %w", name, ErrMissing))
+		w.errs = append(w.errs, &KeyError{Key: name, Reason: ErrMissing.Error(), Err: ErrMissing})
 	}
 	return v
 }
@@ -223,7 +260,7 @@ func (w *wall) requireEmail(name string) string {
 	}
 	addr, err := mail.ParseAddress(v)
 	if err != nil {
-		w.errs = append(w.errs, fmt.Errorf("%s: invalid email address %q", name, v))
+		w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("invalid email address %q", v)})
 		return ""
 	}
 	return strings.ToLower(addr.Address)
@@ -257,7 +294,7 @@ func (w *wall) requireSiteName(name string) string {
 	default:
 		return v
 	}
-	w.errs = append(w.errs, fmt.Errorf("%s: the site name %s", name, problem))
+	w.errs = append(w.errs, &KeyError{Key: name, Reason: "the site name " + problem})
 	return ""
 }
 
@@ -279,7 +316,7 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 	}
 	enabled, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, fmt.Errorf("%s: invalid value %q, want a boolean", class.Flag.Name, v)
+		return false, &KeyError{Key: class.Flag.Name, Reason: fmt.Sprintf("invalid value %q, want a boolean", v)}
 	}
 	return enabled, nil
 }
@@ -314,16 +351,16 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			// own; only a flag that resolves false leaves the key set
 			// without it.
 			if enabled, err := w.integrationEnabled(class); err == nil && !enabled {
-				w.errs = append(w.errs, fmt.Errorf("%s: set without %s, the %s integration's enable flag", name, class.Flag.Name, class.Name))
+				w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("set without %s, the %s integration's enable flag", class.Flag.Name, class.Name)})
 			}
 			continue
 		}
 		if class, ok := reg.reservedClassOf(name); ok {
-			w.errs = append(w.errs, fmt.Errorf("%s: reserved for %s, arrives at rung %d", name, class.Name, class.Rung))
+			w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("reserved for %s, arrives at rung %d", class.Name, class.Rung)})
 			continue
 		}
 		if msg, ok := reg.supersessionOf(name); ok {
-			w.errs = append(w.errs, fmt.Errorf("%s: %s", name, msg))
+			w.errs = append(w.errs, &KeyError{Key: name, Reason: msg})
 			continue
 		}
 		if reg.identitySourceKey(name) {
@@ -346,7 +383,7 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			// reports what it refuses, so Load must not parse it.
 			continue
 		}
-		w.errs = append(w.errs, fmt.Errorf("%s: unknown configuration key", name))
+		w.errs = append(w.errs, &KeyError{Key: name, Reason: "unknown configuration key"})
 	}
 }
 
@@ -368,7 +405,7 @@ func (w *wall) resolveIdentitySource(sources []IdentitySource, environ []string)
 		for j, s := range sources {
 			declared[j] = s.Name
 		}
-		w.errs = append(w.errs, fmt.Errorf("%s: unknown identity source %q, want one of %s", selector, name, strings.Join(declared, ", ")))
+		w.errs = append(w.errs, &KeyError{Key: selector, Reason: fmt.Sprintf("unknown identity source %q, want one of %s", name, strings.Join(declared, ", "))})
 		return "", nil
 	}
 

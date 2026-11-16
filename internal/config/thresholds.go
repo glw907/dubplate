@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -38,6 +39,42 @@ func (k ThresholdKind) String() string {
 	}
 }
 
+// errUnnamedKind marks a parse under a kind no rung has named.
+var errUnnamedKind = errors.New("kind has no parser")
+
+// Parse reads s under k, returning an int, a time.Duration, a finite
+// float64, or s itself for KindString, so two values parsed under one
+// kind compare with ==. A float refuses NaN and both infinities, which
+// strconv.ParseFloat accepts by name.
+func (k ThresholdKind) Parse(s string) (any, error) {
+	switch k {
+	case KindInt:
+		return strconv.Atoi(s)
+	case KindDuration:
+		return time.ParseDuration(s)
+	case KindFloat:
+		return parseFiniteFloat(s)
+	case KindString:
+		return s, nil
+	default:
+		return nil, fmt.Errorf("%v: %w", k, errUnnamedKind)
+	}
+}
+
+// parseAs is [ThresholdKind.Parse] typed as T, the type k parses to.
+func parseAs[T any](k ThresholdKind, s string) (T, error) {
+	var zero T
+	v, err := k.Parse(s)
+	if err != nil {
+		return zero, err
+	}
+	typed, ok := v.(T)
+	if !ok {
+		return zero, fmt.Errorf("%v parses to %T, not %T", k, v, zero)
+	}
+	return typed, nil
+}
+
 // Threshold describes one behavior tunable: its environment key, its
 // default value in string form, and, in Doc, the accepted form a
 // caller reports on a parse error. Rungs register thresholds as they
@@ -53,31 +90,29 @@ type Threshold struct {
 	Mark        Sensitivity
 }
 
-// parseThreshold resolves t against environ through parse: t.Default's
+// parseThreshold resolves t against environ under kind: t.Default's
 // own parse when t.Key is unset or empty, or environ's value when set.
-// It records an error naming t.Key and t.Doc when a set value fails to
-// parse, and an error naming t.Key alone when Default itself fails to
+// It returns a [KeyError] naming t.Doc when a set value fails to
+// parse, and one naming the default alone when Default itself fails to
 // parse, which is a registration bug rather than an environment one.
 // ParseInt, ParseDuration, and ParseFloat each call it with their own
-// parse function, so the unset/set-value/bad-default shape lives once
-// for every numeric kind.
-func parseThreshold[T any](environ []string, t Threshold, parse func(string) (T, error)) (T, error) {
+// kind, so the unset/set-value/bad-default shape lives once for every
+// numeric kind.
+func parseThreshold[T any](environ []string, t Threshold, kind ThresholdKind) (T, error) {
 	w := newWall(environ)
 
 	v, ok := w.get(t.Key)
 	if !ok {
-		def, err := parse(t.Default)
+		def, err := parseAs[T](kind, t.Default)
 		if err != nil {
-			var zero T
-			return zero, fmt.Errorf("%s: invalid default %q", t.Key, t.Default)
+			return def, &KeyError{Key: t.Key, Reason: fmt.Sprintf("invalid default %q", t.Default)}
 		}
 		return def, nil
 	}
 
-	n, err := parse(v)
+	n, err := parseAs[T](kind, v)
 	if err != nil {
-		var zero T
-		return zero, fmt.Errorf("%s: invalid value %q, want %s", t.Key, v, t.Doc)
+		return n, &KeyError{Key: t.Key, Reason: fmt.Sprintf("invalid value %q, want %s", v, t.Doc)}
 	}
 	return n, nil
 }
@@ -86,14 +121,14 @@ func parseThreshold[T any](environ []string, t Threshold, parse func(string) (T,
 // [parseThreshold] for the unset/set-value/bad-default shape it
 // shares with ParseDuration and ParseFloat.
 func ParseInt(environ []string, t Threshold) (int, error) {
-	return parseThreshold(environ, t, strconv.Atoi)
+	return parseThreshold[int](environ, t, KindInt)
 }
 
 // ParseDuration resolves t as a duration against environ; see
 // [parseThreshold] for the unset/set-value/bad-default shape it
 // shares with ParseInt and ParseFloat.
 func ParseDuration(environ []string, t Threshold) (time.Duration, error) {
-	return parseThreshold(environ, t, time.ParseDuration)
+	return parseThreshold[time.Duration](environ, t, KindDuration)
 }
 
 // ParseFloat resolves t as a finite float64 against environ, refusing
@@ -101,7 +136,7 @@ func ParseDuration(environ []string, t Threshold) (time.Duration, error) {
 // unset/set-value/bad-default shape it shares with ParseInt and
 // ParseDuration.
 func ParseFloat(environ []string, t Threshold) (float64, error) {
-	return parseThreshold(environ, t, parseFiniteFloat)
+	return parseThreshold[float64](environ, t, KindFloat)
 }
 
 // hasThreshold reports whether name is a threshold registered on r.
@@ -127,7 +162,7 @@ func ParseString(environ []string, t Threshold) (string, error) {
 	v, ok := w.get(t.Key)
 	if !ok {
 		if t.Default == "" {
-			return "", fmt.Errorf("%s: invalid default %q", t.Key, t.Default)
+			return "", &KeyError{Key: t.Key, Reason: fmt.Sprintf("invalid default %q", t.Default)}
 		}
 		return t.Default, nil
 	}

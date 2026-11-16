@@ -458,20 +458,20 @@ func printRow(w io.Writer, key, status string) error {
 	return err
 }
 
-// rowStatuses parses the joined error [config.Load] returns into
-// per-key status text: "missing" for a row [config.ErrMissing] flags,
-// or "invalid: " plus the row's own reason for anything else. A key
-// with no entry is unmentioned in err and therefore satisfied.
+// rowStatuses maps the joined error [config.Load] returns, and the
+// staging check's, to per-key status text: "missing" for a row
+// [config.ErrMissing] flags, or "invalid: " plus the row's own reason
+// for anything else. Each leaf's key and reason are read from its
+// [config.KeyError], never parsed out of the text. A leaf that carries
+// no KeyError names no row and gets no entry; doctor still fails on
+// it, since the failure follows the load error itself. A key with no
+// entry is unmentioned in err and therefore satisfied.
 //
 // It flattens nested joins to any depth (review M4): an identity
 // source's own Validate hook joins its own failures into one error
 // before [config.Load] joins that alongside every other row's, so a
 // hook that names two bad keys at once must not collapse into one
-// entry naming the first key and swallowing the second. flattenErrors
-// does the recursion; a leaf whose own message still carries an
-// embedded newline, which no hook in this codebase produces but a
-// future one could by joining strings without errors.Join, is split
-// per line as a second, cheaper net.
+// entry naming the first key and swallowing the second.
 func rowStatuses(err error) map[string]string {
 	statuses := make(map[string]string)
 	if err == nil {
@@ -479,18 +479,15 @@ func rowStatuses(err error) map[string]string {
 	}
 
 	for _, leaf := range flattenErrors(err) {
-		missing := errors.Is(leaf, config.ErrMissing)
-		for line := range strings.SplitSeq(leaf.Error(), "\n") {
-			key, reason, ok := strings.Cut(line, ": ")
-			if !ok || key == "" {
-				continue
-			}
-			if missing {
-				statuses[key] = "missing"
-				continue
-			}
-			statuses[key] = "invalid: " + reason
+		keyed, ok := errors.AsType[*config.KeyError](leaf)
+		if !ok {
+			continue
 		}
+		if errors.Is(keyed, config.ErrMissing) {
+			statuses[keyed.Key] = "missing"
+			continue
+		}
+		statuses[keyed.Key] = "invalid: " + keyed.Reason
 	}
 	return statuses
 }
@@ -532,41 +529,38 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 	if status, ok := statuses[t.Key]; ok {
 		return status
 	}
+	var (
+		value string
+		err   error
+	)
 	switch t.Kind {
 	case config.KindInt:
-		v, err := config.ParseInt(environ, t)
-		if err != nil {
-			reason := splitKeyReason(err)
-			return "invalid: " + reason
-		}
-		return strconv.Itoa(v)
+		var v int
+		v, err = config.ParseInt(environ, t)
+		value = strconv.Itoa(v)
 	case config.KindDuration:
-		d, err := config.ParseDuration(environ, t)
-		if err != nil {
-			reason := splitKeyReason(err)
-			return "invalid: " + reason
-		}
-		return d.String()
+		var d time.Duration
+		d, err = config.ParseDuration(environ, t)
+		value = d.String()
 	case config.KindFloat:
-		f, err := config.ParseFloat(environ, t)
-		if err != nil {
-			reason := splitKeyReason(err)
-			return "invalid: " + reason
-		}
+		var f float64
+		f, err = config.ParseFloat(environ, t)
 		// 'g' with precision -1 prints the shortest decimal that
 		// round-trips back to f through strconv.ParseFloat, which is
 		// the same parser config.ParseFloat reads a set value through.
-		return strconv.FormatFloat(f, 'g', -1, 64)
+		value = strconv.FormatFloat(f, 'g', -1, 64)
 	case config.KindString:
-		v, err := config.ParseString(environ, t)
-		if err != nil {
-			reason := splitKeyReason(err)
-			return "invalid: " + reason
-		}
-		return v
+		value, err = config.ParseString(environ, t)
 	default:
 		return "invalid: registered with an unnamed threshold kind, a registration bug"
 	}
+	if err != nil {
+		if keyed, ok := errors.AsType[*config.KeyError](err); ok {
+			return "invalid: " + keyed.Reason
+		}
+		return "invalid: " + err.Error()
+	}
+	return value
 }
 
 // identitySourceStatus reports how src stands against environ:
@@ -582,8 +576,8 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 // because a relational refusal, such as R31's retention-vs-expiry
 // comparison, is keyed against a threshold's own name rather than one
 // of src's Required or Optional keys, so the per-key sweep above cannot
-// see it; its failing keys are read through [sourceKeyError] via
-// errors.As, never by parsing the rendered message, so a reason that
+// see it; its failing keys are read through [config.KeyError] via
+// errors.AsType, never by parsing the rendered message, so a reason that
 // itself carries a colon cannot be mistaken for a key. It names no
 // value, because a source's required set carries secrets and doctor's
 // table is read on a terminal: a Required or Optional key's reason is
@@ -619,19 +613,18 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 		if err := src.Validate(values, environ); err != nil {
 			validateFailed = true
 			for _, leaf := range flattenErrors(err) {
-				if keyed, ok := errors.AsType[*sourceKeyError](leaf); ok {
-					fail(keyed.key, "invalid")
+				if keyed, ok := errors.AsType[*config.KeyError](leaf); ok {
+					fail(keyed.Key, "invalid")
 				}
 			}
 		}
 	}
 
 	if len(failing) == 0 {
-		// A Validate refusal that named no key through
-		// [sourceKeyError] must still read unsatisfied: every
-		// refusal validateMagicLinkSource can return is keyed today,
-		// but a future hook's unkeyed error must never fall through
-		// to "active" and hide a real refusal from the table.
+		// A Validate refusal whose leaves carry no [config.KeyError]
+		// names no key, and still reads unsatisfied rather than
+		// falling through to "active" and hiding a real refusal from
+		// the table.
 		if validateFailed {
 			return "unsatisfied"
 		}
@@ -678,29 +671,7 @@ func identitySourceValues(environ []string, src config.IdentitySource) map[strin
 	return values
 }
 
-// lookupEnviron returns name's value out of environ (os.Environ()
-// form), a later entry winning over an earlier one for the same name,
-// and treats an empty value as unset, [config]'s own wall.get rule.
+// lookupEnviron is [config.Lookup].
 func lookupEnviron(environ []string, name string) (string, bool) {
-	value, ok := "", false
-	for _, kv := range environ {
-		if key, v, found := strings.Cut(kv, "="); found && key == name {
-			value, ok = v, true
-		}
-	}
-	if !ok || value == "" {
-		return "", false
-	}
-	return value, true
-}
-
-// splitKeyReason strips err's leading "key: " prefix, the shape every
-// [config] load and parse error uses, and returns the reason that
-// follows it. A message with no such separator is returned whole.
-func splitKeyReason(err error) (reason string) {
-	_, reason, ok := strings.Cut(err.Error(), ": ")
-	if !ok {
-		return err.Error()
-	}
-	return reason
+	return config.Lookup(environ, name)
 }
