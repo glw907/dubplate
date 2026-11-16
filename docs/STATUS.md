@@ -1,10 +1,10 @@
 # dubplate status
 
 <!-- round-report cleanup -->
-**Round cleanup: pass 1 has landed, pass 2 is planning.** `cleanup-ci` merged as `73bae3b`: every pull request now runs
-`scripts/check.sh` as a check on GitHub, dependencies moved to their newest minors, and BACKLOG, `CLAUDE.md`, the
-standing rules, and the adapter describe rounds. Pass 2 (`cleanup-gate`) plans from `origin/master`. Nothing waits for
-Geoff yet, nothing has deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
+**Round cleanup: pass 1 has landed, pass 2 waits on Geoff's ruling.** `cleanup-ci` merged as `73bae3b`. Pass 2
+(`cleanup-gate`, draft PR #13) is parked at planning: acceptance item 3 (the rendered leg) can't be met as written, and
+the rendered test file's class is in question. Open document: `20261116-080113-a56d02` (decide). Passes 3 to 5 wait
+behind it. Nothing has deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
 Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
 <!-- /round-report -->
 
