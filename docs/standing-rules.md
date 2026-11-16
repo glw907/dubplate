@@ -37,7 +37,7 @@ offer. Pins stay exact, at the newest version, and live in `go.mod`,
 `.github/workflows/check.yml` (the gate's binaries and their SHA-256
 values). The sweep runs once a round, as the first task of the round's first
 pass, over those files and the pinned binaries (rclone, golangci-lint,
-Playwright, libxml2); a sweep with nothing to move
+shellcheck, ruff, gitleaks, vale, Playwright, libxml2); a sweep with nothing to move
 is one line in the PR body. The skill's survey is the point: a new
 capability that replaces hand-rolled code is ruled take-now or filed to
 the round that first leans on it, and a workaround for an old version
@@ -108,7 +108,7 @@ Node and npm required and named on failure, a stale or drifted
 `svelte-check` under strict TypeScript and the static web gates (no
 server-only file, no hardcoded color, no external origin, theme
 variable completeness, theme contrast, and the built bundle's stamped
-theme values). Since 2026-09-26, the leg also runs the rendered
+theme values). Since 2026-09-25, the leg also runs the rendered
 (browser) gates: a Playwright 1.65.1 script under a `rendered`-tagged Go
 test, two builds compared byte for byte, and first paint per theme, so
 every full gate launches Chromium and runs on the heavy lane (about 106s,

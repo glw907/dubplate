@@ -94,11 +94,9 @@ jobs:
           echo "$PIN_LIBXML2_SHA256  $src/libxml2.tar.xz" | sha256sum -c -
           tar -xf "$src/libxml2.tar.xz" -C "$src"
           cd "$src/libxml2-${PIN_LIBXML2_VERSION}"
-          ls
           ./configure --prefix="$prefix" --without-python
           make -j"$(nproc)"
           make install
-          find "$prefix" -name 'libxml2.so*'
           echo "$prefix/bin" >> "$GITHUB_PATH"
           echo "LD_LIBRARY_PATH=$prefix/lib" >> "$GITHUB_ENV"
 
