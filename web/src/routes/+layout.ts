@@ -3,4 +3,3 @@
 // the Go server never runs SvelteKit's Node renderer.
 export const prerender = true;
 export const ssr = false;
-export const ciBreakProbe: string = 42;
