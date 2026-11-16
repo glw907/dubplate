@@ -5,6 +5,7 @@
  * a deployment under any prefix reaches its own server.
  */
 import { resolve } from '$app/paths';
+import { send } from './request.js';
 
 const LOGIN_PAGE = 'login';
 
@@ -50,16 +51,12 @@ function synthetic(outcome: string): PostResult {
 
 /** Posts `fields` form-encoded to the endpoint `name` under the runtime base. */
 export async function postForm(name: string, fields: Record<string, string>): Promise<PostResult> {
-  let response: Response;
-  try {
-    response = await fetch(endpointPath(name), {
-      method: 'POST',
-      body: new URLSearchParams(fields),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
-  } catch {
-    return synthetic('network_failure');
-  }
+  const response = await send(endpointPath(name), {
+    method: 'POST',
+    body: new URLSearchParams(fields),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+  if (response === null) return synthetic('network_failure');
   // The CSRF defense's deny handler answers 403 with a plain-text
   // body, never JSON, so its status is read before any JSON parse.
   if (response.status === 403) return synthetic('cross_origin');

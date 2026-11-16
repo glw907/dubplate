@@ -27,7 +27,7 @@ const OUTCOME_CLASS: Record<string, OutcomeClass> = {
   network_failure: 'warning'
 };
 
-export function outcomeClass(outcome: string): OutcomeClass {
+function outcomeClass(outcome: string): OutcomeClass {
   return Object.hasOwn(OUTCOME_CLASS, outcome) ? OUTCOME_CLASS[outcome] : 'error';
 }
 
