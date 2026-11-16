@@ -318,7 +318,7 @@ func (s *RestoreSession) CheckSpace(size int64) error {
 }
 
 // StageFile copies the local file [RestoreOptions.FromFile] names,
-// src here, into the session's stage at mode 0600 and syncs it,
+// src here, into the session's stage at mode 0600 and seals it ([RestoreSession.SealStage]),
 // leaving src untouched. [OpenRestore] has already refused a src
 // inside staging/. StageFile refuses, staging nothing, when the session
 // has no src; when src is absent, not a regular file, or unreadable;
@@ -352,7 +352,32 @@ func (s *RestoreSession) StageFile() error {
 	if err := copyFile(s.stage, in); err != nil {
 		return errors.Join(fmt.Errorf("stage %s: %w", src, err), os.Remove(s.stage))
 	}
+	if err := s.SealStage(); err != nil {
+		return errors.Join(fmt.Errorf("stage %s: %w", src, err), os.Remove(s.stage))
+	}
 	return nil
+}
+
+// SealStage sets the stage to mode 0600 and flushes it, and then
+// staging/, to disk, so that a power cut after the swap cannot leave db/
+// naming a file whose blocks were never written. [RestoreSession.StageFile]
+// calls it after its copy, and a fetch calls it after the download; both
+// run it before [RestoreSession.Record] names the stage. The caller
+// removes the stage when SealStage fails.
+func (s *RestoreSession) SealStage() error {
+	if err := os.Chmod(s.stage, 0o600); err != nil {
+		return fmt.Errorf("seal the stage: %w", err)
+	}
+	// O_RDWR, since a read-only open of a FIFO planted at the stage
+	// path would block until a writer came.
+	f, err := os.OpenFile(s.stage, os.O_RDWR, 0)
+	if err != nil {
+		return fmt.Errorf("seal the stage: %w", err)
+	}
+	if err := errors.Join(f.Sync(), f.Close()); err != nil {
+		return fmt.Errorf("seal the stage: %w", err)
+	}
+	return syncDir(s.leaf.stagingDir)
 }
 
 // checkSource refuses src as StageFile does and returns it resolved
@@ -390,17 +415,13 @@ func (s *RestoreSession) checkSource(src string) (string, error) {
 	return resolved, nil
 }
 
-// copyFile copies src into the existing empty file at path and syncs
-// it.
+// copyFile copies src into the existing empty file at path.
 func copyFile(path string, src io.Reader) error {
 	out, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
 		return err
 	}
 	if _, err := io.Copy(out, src); err != nil {
-		return errors.Join(err, out.Close())
-	}
-	if err := out.Sync(); err != nil {
 		return errors.Join(err, out.Close())
 	}
 	return out.Close()
