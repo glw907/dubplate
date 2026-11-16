@@ -66,6 +66,15 @@ now round `engine`.
 
 ## Open
 
+- [ ] #138 `doctor.lookupEnviron` is a one-line delegate to `config.Lookup`: inline it at its callers. Found by `cleanup-store` (PR #14) #arch #pass:cleanup-ops
+- [ ] #139 `Registry.Superseded` has no production caller, only three tests (`cmd/dubplate-server/intake_test.go:67`, `templatekeys_test.go:95`, `internal/config/registry_test.go:70`): remove it or name the caller that needs it. Found by `cleanup-store` (PR #14) #arch #config #pass:cleanup-ops
+- [ ] #140 Doctor still prints "disabled (arrives at rung %d)" for a reserved class (`cmd/dubplate-server/doctor.go:88`, asserted at `doctor_test.go:163`), the phrase `cleanup-store` took out of the config refusal text. Reword both. Found by `cleanup-store` (PR #14) #improvement #pass:cleanup-ops
+- [ ] #141 Three restore-intent notes from `cleanup-store`'s T3 review: `into_nonempty` now validates without `library_root` (harmless today), no fixture refuses an old nested `source` record, and `swappedLeaf` copies only the library half. Add the fixture and decide the other two. Found by `cleanup-store` (PR #14) #test #store
+- [ ] #142 `internal/engine/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store
+- [ ] #143 `TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd` failed once in CI and passed on rerun: `freePort` (`cmd/dubplate-server/doctorprobe_test.go:359`) reserves a port then releases it, so the route answered 200 before the store existed and `denyUnidecodeNetwork` fired. Hold the listener or retry on bind. Found by `cleanup-store` (PR #14) #bug #test #pass:cleanup-ops
+- [ ] #144 `TestDoctorBoundaryProbe_EndToEnd` hangs in cleanup after `Fatalf` when the web build is missing (`cmd/dubplate-server/doctorprobe_test.go:423`). Make it fail fast. Found by `cleanup-store`'s T7 (PR #14) #bug #test #pass:cleanup-ops
+- [ ] #145 No test pins that `settings.parse` heals a stored non-finite float row (`internal/settings/evaluate.go:330` keeps `strconv.ParseFloat` on purpose): swapping it for `ThresholdKind.Parse` would refuse the row and nothing fails. Add a test that re-seeds a stored "Inf" row. Found by `cleanup-store`'s T7 review (PR #14) #test #settings
+- [ ] #146 Two `StateRestoreInProgress` "unreadable" refusals still format their cause with `%v` (`internal/engine/store/intent.go:174`, `restore.go:189`); `cleanup-store` covered `StateRefused` only. Move them to `%w` after reading the same three handlers. Found by `cleanup-store`'s T10 (PR #14) #improvement #store
 - [ ] #137 The rendered fixture leaks credentials to local processes and test output (all pre-existing, loopback and run-length only). `cmd/dubplate-server/rendered_test.go:352-375` logs every request's query and headers, so `?t=<link token>` and the admin `Cookie` sit in a log that `logSrv` (`:881`) serves unauthenticated on 127.0.0.1; the mint and roster-reset servers (`:661-691`, `:915-918`) are unauthenticated too; a Playwright navigation error quotes the `?t=` URL into `t.Errorf` and the `go test` JSON events file (`:942`, `Makefile:150`); and `internal/auth/token.go:143-183` verifies a link by MAC and expiry only, so a server configured with the fixture secret literal (`check_test.go:174`) accepts fixture links. Redact `Cookie` and `t` from logged records, and have `check` or `serve` refuse the fixture secret. Found by `cleanup-gate`'s security read (PR #13) #improvement #infra #pass:cleanup-gate (2026-11-16)
 - [ ] #136 Three gate texts outside `cleanup-gate`'s files still describe the old gate: `docs/standing-rules.md:55` and `:105` name `make check` (the gate now splits `make web-build` and `make web`), the adapter's fast-lane paragraph (`.claude/skills/dubplate-pass/SKILL.md:194`) sends a path under `scripts/checks/` to the full form though `check.sh` no longer has that row, and `web/scripts/gates/ai-tells.ts:3` cites cairn's `scripts/checks/` path without saying it is another repo's. Reword each. Found by `cleanup-gate` (PR #13) #improvement #gate #pass:cleanup-gate (2026-11-16)
 - [ ] #135 The Vale leg reads no Go comment. `.vale.ini` has no `Grammars = go` and nothing runs `vale sync`, so `scripts/vale-comments.sh` prints `W101 grammar "go" is not installed` and then `vale-comments: clean` over an em dash in a Go comment (Vale 3.27.0, the CI pin too). With `Grammars = go` and a sync, a scratch config flags `Survey.EmDash` on `//` and `/* */` comments. Add the grammar to `.vale.ini`, sync it in `check.yml` and the gate, ignore `.vale/styles/config/`, and fail `vale-comments.sh` on W101; weigh pinning the downloaded wasm. Found by `cleanup-gate`'s T6 plant (PR #13) #bug #infra #pass:cleanup-gate (2026-11-16)
@@ -136,12 +145,6 @@ now round `engine`.
 - [ ] #24 `auth.RunSweep` (`internal/auth/nonce.go:132`) logs a failed sweep's `err.Error()`, which can wrap a
   setting read's text; give it the `SettingError` fixed-reason treatment 6d gave the gate and handlers. Found by the
   6d segment C fold, 2026-10-07 #auth *(swept 2026-11-15)*
-- [ ] #26 The 6d architecture reads' findings on lines 6d did not touch: its store parts are #117 and #118, and #124
-  takes its `cmd` parts. The settings accessor holding its mutex across a database read
-  (`internal/settings/accessor.go:88-112`) goes to `cleanup-store`. One comment item stays: doctor's comment at
-  `cmd/dubplate-server/doctor.go:630-634` says every refusal `validateMagicLinkSource` returns is keyed, but
-  `validateSMTPPort` returns plain errors (`auth.go:418,421`). Source:
-  `docs/research/2026-10-07-6d-architecture-reads.md`, "To file". 2026-10-07 #arch #pass:cleanup-store
 - [ ] #28 xmllint 21504 reports a validity error one line too high once the projected document passes line 65535
   (checked with 65536- and 65540-element stdin documents), so `internal/harness/subsonic/xmlrule/check.go`'s
   line-to-ordinal lookup can name the wrong element on a very large body. Guard the size or correct the offset before
@@ -372,17 +375,6 @@ now round `engine`.
   E11, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #harness #arch #round:engine
 - [ ] #115 Engine and harness tests that restate or cannot fail, and comments that cite passes and rulings. Findings
   E12 and E13, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #round:engine
-- [ ] #116 A `--from-file` restore never fsyncs `staging/`, so a power cut can leave a store that refuses every open;
-  give the restore session one seal step. Findings S1 and S3, `docs/research/2026-11-10-whole-repo-review.md`,
-  2026-11-10 #bug #store #pass:cleanup-store
-- [ ] #117 Store, backup, and settings seams: one pruner, one restore intent, a narrower `Inspect`, two lock entry
-  points, one atomic write, the unused exports, and `%w` in refusals. Findings S2, S4 to S7, S11, and S12,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-store
-- [ ] #118 config: one per-kind parser and one exported lookup, `Floor` and `Ceiling` on `Threshold`, and a typed
-  `KeyError`. Takes #78's normalizer copies. Findings S8 to S10, `docs/research/2026-11-10-whole-repo-review.md`,
-  2026-11-10 #config #arch #pass:cleanup-store
-- [ ] #119 Store and config tests that cannot fail, and `config`'s process comments. Findings S13 and S14,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #pass:cleanup-store
 - [ ] #120 The admin page shell, one transport core in `lib/api`, the button size model, page scaffolding, unused
   component-layer rules, and the state and token nits; takes #19. Findings W1 to W8,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #web #pass:cleanup-web
@@ -395,7 +387,7 @@ now round `engine`.
   hand-rolled stdlib, and the smaller items. Findings O3, O7 to O9, and O14,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-ops
 - [ ] #124 Move library code out of `cmd/dubplate-server`: the web surface, the probes, and the table install; one
-  cobra wiring shape; and the config consumers of #118. Takes #26 and #66's doctor items. Findings O10 to O13,
+  cobra wiring shape; and the config consumers of #118. Takes #66's doctor items. Findings O10 to O13,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-ops
 - [ ] #125 `cmd` and ops test bloat and process comments: the test cuts stay with `cleanup-ops`. Making the
   process-citation leg gate (with #67) moves to round `engine`, since about 125 of the 189 lines it would fail on are
@@ -559,6 +551,18 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
 
 ## Done
 
+- [x] #119 Store and config tests that cannot fail, and `config`'s process comments. Findings S13 and S14,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #pass:cleanup-store *(2026-11-16, PR #14)*
+- [x] #118 config: one per-kind parser and one exported lookup, `Floor` and `Ceiling` on `Threshold`, and a typed
+  `KeyError`. Takes #78's normalizer copies. Findings S8 to S10, `docs/research/2026-11-10-whole-repo-review.md`,
+  2026-11-10 #config #arch #pass:cleanup-store *(2026-11-16, PR #14)*
+- [x] #117 Store, backup, and settings seams: one pruner, one restore intent, a narrower `Inspect`, two lock entry
+  points, one atomic write, the unused exports, and `%w` in refusals. Findings S2, S4 to S7, S11, and S12,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-store *(2026-11-16, PR #14)*
+- [x] #116 A `--from-file` restore never fsyncs `staging/`, so a power cut can leave a store that refuses every open;
+  give the restore session one seal step. Findings S1 and S3, `docs/research/2026-11-10-whole-repo-review.md`,
+  2026-11-10 #bug #store #pass:cleanup-store *(2026-11-16, PR #14)*
+- [x] #26 The 6d architecture reads' settings accessor held its mutex across a database read (`internal/settings/accessor.go`), and doctor's comment said every refusal `validateMagicLinkSource` returns is keyed while `validateSMTPPort` returned plain errors. The accessor reads the row outside the lock, and every refusal is a `config.KeyError` with the comment gone, so the rest of #26 is closed by #117 and #118. Source: `docs/research/2026-10-07-6d-architecture-reads.md`, "To file". 2026-10-07 #arch #pass:cleanup-store *(2026-11-16, PR #14)*
 - [x] #134 `scripts/check.sh` lines 113-122 still say `CHECK_CITATIONS` flips to fail "at the comment-cleanup task" and `CHECK_EXPORTED_UNUSED` flips once dead surfaces clear. `docs/standing-rules.md` now says the citation leg gates in round `engine` and the exported-unused leg stays a warning. Reword the header to match. Found by `cleanup-ci`'s review (PR #12) #improvement #gate #pass:cleanup-gate (2026-11-16) *(2026-11-16, PR #13)*
 - [x] #34 A scoped run that skips the rendered leg launches no browser and could take the light lane, but the lane
   is chosen before `check.sh` classifies the change, so it queues on the heavy lane. Found by the gate scope pass,
