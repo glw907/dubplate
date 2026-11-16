@@ -104,9 +104,11 @@ to `docs/archive/plans/` unedited.
    names. A pair half merges with `git merge --no-edit <branch>`. Never commit a secret or an `.env` value; read each
    diff by eye before staging.
 4. **Pushes.** Only `git push origin cleanup-ci`. The draft PR opens on T2's push (`gh pr create --draft --base
-   master`). After each push, read `gh pr view <n> --json mergeable`: on `CONFLICTING`, run `git fetch origin` and
+   master`). After each push, read `gh pr view <n> --json mergeable`, re-reading every 30 seconds while it prints `UNKNOWN`
+   (ten reads at most): on `CONFLICTING`, run `git fetch origin` and
    `git merge --no-edit origin/master`, resolve only in this pass's files (a conflict elsewhere is a stop), gate, and
-   push again. Then wait until `gh run list --branch cleanup-ci --limit 1 --json headSha` shows the pushed head, and
+   push again. Then wait until `gh run list --branch cleanup-ci --limit 1 --json headSha` shows the pushed head (if none does
+   after five minutes, read `mergeable` once more; still no run is a stop), and
    start the CI watch as a background Bash task (`run_in_background`): `gh pr checks <n> --watch --fail-fast`, bare,
    with `gh run watch <run id> --exit-status` as the fallback. No task waits for CI before the next; a red stops the
    line when it arrives, except a T6 break run, which is meant to go red. A runner-side fetch failure (the
@@ -194,7 +196,8 @@ Files: `go.mod`, `go.sum`, `web/package.json`, `web/package-lock.json`.
 
 Load `standards:dependency-upgrade` and follow it, with one change (mechanism 29): the PR body is this sweep's
 record, in place of the dated file and the CHANGELOG entry, and each held major goes in the PR body and BACKLOG (via
-`standards:log-issue`) with its unblock condition. Run `go list -m -u all` and `npm outdated --prefix web` and save
+`standards:log-issue`) with its unblock condition. A BACKLOG item T1 files carries `#pass:cleanup-ci` or the
+`#round:` tag of the round that takes it, never `#rung:`, so T3's retag table and acceptance 4 still hold. Run `go list -m -u all` and `npm outdated --prefix web` and save
 both outputs for the PR body. Survey the pinned binaries too: the newest releases of rclone, golangci-lint, shellcheck,
 ruff, gitleaks, vale, Playwright, and libxml2, and the skill's outdated command against `tools/venv/requirements.txt`.
 
@@ -258,7 +261,7 @@ Before the push, `git add .github/workflows/check.yml` and run the fast lane (th
 push, open the draft PR, and start the CI watch per rule 4. Then go straight to the pair. A red run is fixed in the
 workflow (standing answer 19 if the cause is the runner image), one commit per fix with subject `T2: ...`, each gated
 by the fast lane (the full form again), committed between the session's T5 commits, never inside one (rule 2's base
-rule); each fix and its run link go in the PR notes. Two fix cycles are priced.
+rule); each fix and its run link go in the PR notes. One fix cycle is priced (see "Path").
 
 Standing answer 13, if a leg can't run: first try installing its tool. If that fails, `check.sh` gains one input, the
 environment variable `DUBPLATE_CHECK_OMIT`, holding a comma-separated list of leg names from a fixed set the script
@@ -280,7 +283,8 @@ T3 and T4 have disjoint files, and T5's files are disjoint from both. The sessio
 rev-parse HEAD)`, appends `dispatch T3+T4 sha=<40-hex>` to the PR notes, and dispatches both as `general-purpose`
 subagents with `isolation: "worktree"` on `sonnet` at `medium`. Each gets its task's full text, "Rules that bind every
 task", the "Conventions table" below, and the design's path. Each subagent's first act is `git merge-base
---is-ancestor <dispatch sha> HEAD`, a failure being a stop; then `npm ci --prefix web`, the edits, the fast lane with
+--is-ancestor <dispatch sha> HEAD`; on a failure it runs `git merge --ff-only <dispatch sha>` and checks again, and
+a second failure is a stop; then `npm ci --prefix web`, the edits, the fast lane with
 `--base <dispatch sha>` (a docs-only change set, about a minute), a commit, and no push. While they run, the session
 does T5 in its own worktree, then any T2 fix. When both report, the session merges each with `git merge --no-edit
 <branch>`, runs the fast lane with `--base <its head before the first merge>`, and pushes.
