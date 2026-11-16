@@ -5314,7 +5314,7 @@ async function themeToggleRows(browser: Browser, endpoints: Endpoints, session: 
 
 /**
  * The capture matrix's own five CSS-pixel widths (W4.1) and two
- * emulated color-scheme preferences: every one of the fifteen
+ * emulated color-scheme preferences: every one of the nineteen
  * {@link CAPTURE_STATES} is rendered at all ten combinations.
  */
 const CAPTURE_WIDTHS = [320, 390, 768, 1440, 2560] as const;
@@ -5477,16 +5477,16 @@ async function mintCaptureLink(endpoints: Endpoints, kind: 'admin' | 'member'): 
 }
 
 /**
- * One capture state's roster address. Every cell writes the same one,
- * so every cell of a state renders the same list: the roster is reset
- * to its baseline before each cell ({@link resetCaptureRoster}), so no
- * cell meets another's write.
+ * One capture state's roster address. Each scheme's arrangement writes
+ * the same one, so both render the same list: the roster is reset to
+ * its baseline before each arrangement ({@link resetCaptureRoster}), so
+ * no arrangement meets another's write.
  */
 function captureAddress(kind: string): string {
   return `capture-${kind}@example.test`;
 }
 
-/** One capture state's username, shared by its cells as {@link captureAddress} is. */
+/** One capture state's username, shared by its arrangements as {@link captureAddress} is. */
 function captureUsername(kind: string): string {
   return `capture-${kind}`;
 }
@@ -5506,7 +5506,7 @@ async function resetCaptureRoster(endpoints: Endpoints): Promise<number> {
 /**
  * Waits until the roster list shows exactly `want` rows, bounded by
  * {@link BOOT_TIMEOUT_MS}, and returns the count it last read: a list
- * still loading after an add, or one another cell's write had grown,
+ * still loading after an add, or one another arrangement's write had grown,
  * reads as a count other than `want`.
  */
 async function rosterRowsSettle(page: Page, want: number): Promise<number> {
@@ -5520,8 +5520,8 @@ async function rosterRowsSettle(page: Page, want: number): Promise<number> {
 }
 
 /**
- * One capture cell's arrangement result: the booted page to
- * screenshot, whether its fixture state stood up, and why. An
+ * One capture arrangement's result: the booted page each width
+ * screenshots, whether its fixture state stood up, and why. An
  * arrangement that performs a request-link, consume-link, or roster
  * POST that can answer outside 2xx sets `visit.expectsAuthErrorStatus`
  * on its own [Visit] directly, the same way every other row does.
@@ -5533,9 +5533,9 @@ interface CaptureArrangement {
 }
 
 /**
- * One of the capture matrix's fifteen page states: an ID matching
+ * One of the capture matrix's nineteen page states: an ID matching
  * `renderedCaptureStates` (`rendered_test.go`), and how to reach it in a
- * fresh, sized, schemed context. `rosterBaseline` is the member count
+ * fresh, schemed context, once for all five widths. `rosterBaseline` is the member count
  * the roster was just reset to.
  */
 interface CaptureState {
@@ -5554,7 +5554,7 @@ interface CaptureState {
 }
 
 /**
- * One capture cell that fills the login address field, submits, and
+ * One capture arrangement that fills the login address field, submits, and
  * waits for `#outcome` to read `want`: the shape shared by every
  * login-page outcome state below except `sent` (its own moment
  * `<section>` needs `#outcome h2`, not `#outcome` itself). Always sets
@@ -6077,36 +6077,40 @@ async function composeContactSheet(browser: Browser, cells: { width: number; sch
 }
 
 /**
- * The capture matrix: every one of {@link CAPTURE_STATES}' fifteen
+ * The capture matrix: every one of {@link CAPTURE_STATES}' nineteen
  * page states, at every {@link CAPTURE_WIDTHS} width in both
- * {@link CAPTURE_SCHEMES}, 150 captures. Each cell resets the fixture
- * roster to its baseline, opens its own sized, schemed browser context,
- * stands up the state, asserts it, and settles the page
- * ({@link settleCapture}) before screenshotting: the settle, the
- * secondary-control guard, the viewport-overflow floor (at 320 and
- * 390), and the touch-target floor all gate the cell's own `property`
- * result. The two native widths (390, 1440) each write their own PNG;
- * the other three compose into one contact sheet per state.
+ * {@link CAPTURE_SCHEMES}, 190 captures from 38 browser contexts. Each
+ * state and scheme resets the fixture roster to its baseline, opens one
+ * schemed context, and stands up and asserts the state once; each width
+ * then resizes that page and settles it ({@link settleCapture}) before
+ * screenshotting: the settle, the secondary-control guard, the
+ * viewport-overflow floor (at 320 and 390), and the touch-target floor
+ * all gate the cell's own `property` result. The two native widths (390,
+ * 1440) each write their own PNG; the other three compose into one
+ * contact sheet per state.
  */
 async function captureRows(browser: Browser, endpoints: Endpoints): Promise<void> {
   await mkdir(CAPTURE_DIR, { recursive: true });
+  let contexts = 0;
   for (const state of CAPTURE_STATES) {
     const slug = state.id.replace(/\//g, '-');
     const dir = path.join(CAPTURE_DIR, slug);
     await mkdir(dir, { recursive: true });
+    const reportOptions = { faviconProbeExpected: state.faviconProbeExpected ?? false };
     const sheetCells: { width: number; scheme: CaptureScheme; png: Buffer }[] = [];
-    for (const width of CAPTURE_WIDTHS) {
-      for (const scheme of CAPTURE_SCHEMES) {
-        const id = `capture/${state.id}/${width}/${scheme}`;
-        const reportOptions = { faviconProbeExpected: state.faviconProbeExpected ?? false };
-        const rosterBaseline = await resetCaptureRoster(endpoints);
-        const context = await browser.newContext({ viewport: { width, height: CAPTURE_HEIGHT }, colorScheme: scheme });
-        try {
-          const arranged = await state.arrange(context, endpoints, rosterBaseline);
+    for (const scheme of CAPTURE_SCHEMES) {
+      const rosterBaseline = await resetCaptureRoster(endpoints);
+      const context = await browser.newContext({ viewport: { width: CAPTURE_WIDTHS[0], height: CAPTURE_HEIGHT }, colorScheme: scheme });
+      contexts += 1;
+      try {
+        const arranged = await state.arrange(context, endpoints, rosterBaseline);
+        for (const width of CAPTURE_WIDTHS) {
+          const id = `capture/${state.id}/${width}/${scheme}`;
           if (!arranged.ok) {
             await report({ id, fixture: false, property: false, detail: arranged.detail }, reportOptions);
             continue;
           }
+          await arranged.page.setViewportSize({ width, height: CAPTURE_HEIGHT });
           const unsettled = await settleCapture(arranged.page);
           const png = await arranged.page.screenshot({ fullPage: true });
           if (CAPTURE_NATIVE_WIDTHS.has(width)) {
@@ -6136,14 +6140,20 @@ async function captureRows(browser: Browser, endpoints: Endpoints): Promise<void
               reportOptions
             );
           }
-        } finally {
-          await context.close();
         }
+      } finally {
+        await context.close();
       }
     }
+    // The sheet keeps its width-major order, each width's light cell
+    // before its dark one, though the cells arrive scheme by scheme.
+    sheetCells.sort((a, b) => a.width - b.width || CAPTURE_SCHEMES.indexOf(a.scheme) - CAPTURE_SCHEMES.indexOf(b.scheme));
     const sheet = await composeContactSheet(browser, sheetCells);
     await writeFile(path.join(dir, 'contact-sheet.png'), sheet);
   }
+  // stderr, since every stdout line must parse as a row (`parseRows`,
+  // `rendered_test.go`).
+  process.stderr.write(`capture contexts: ${contexts}\n`);
 }
 
 async function main(): Promise<void> {
