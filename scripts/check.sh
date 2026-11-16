@@ -131,9 +131,9 @@ set -euo pipefail
 #       Go comments under cmd/ and internal/. The backlog is the tree's
 #       existing citation lines; the leg gates in round `engine`, which
 #       clears them.
-#   CHECK_EXPORTED_UNUSED=warn|fail (default warn) exported identifiers
-#       under internal/ whose only references are their own file and
-#       _test.go files. The leg stays a warning.
+#   CHECK_EXPORTED_UNUSED=warn|fail (default warn) functions that
+#       `go tool deadcode` finds unreachable from any main. The leg
+#       stays a warning; a tool failure fails it in every mode.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -797,7 +797,7 @@ if [ "$mode" != "reduced" ]; then
   # to the pass that wrote it and is noise to every later reader. The em
   # dash ban is the proof that a mechanical rule holds here where an
   # instruction does not.
-  citation_patterns='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, '
+  citation_patterns='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, |\bR-[0-9]+[a-z]+[0-9]*'
   {
     git ls-files -- cmd internal
     git ls-files --others --exclude-standard -- cmd internal
@@ -829,72 +829,28 @@ if [ "$mode" != "reduced" ]; then
   fi
 
   leg "exported identifiers with no consumer (internal/)"
-  # A forward hook exported ahead of its consumer reads as justified in
-  # the diff that introduced it and as dead weight in the package. The
-  # rule: an exported identifier under internal/ whose only references
-  # are its own file and _test.go files has no consumer.
-  # golangci-lint cannot express it, because
-  # unused's exported-is-used setting is gone in the pinned 2.13.2 and
-  # the linter treats every exported identifier as used, so the leg lives
-  # here. It reads names rather than types, so a name declared in two
-  # packages reads as consumed in both; the error runs toward reporting
-  # too little, never toward a false accusation.
-  {
-    git ls-files -- cmd internal
-    git ls-files --others --exclude-standard -- cmd internal
-  } | grep -E '\.go$' | grep -v '_test\.go$' | sort -u >"$work_dir/go-src.txt"
-  grep '^internal/' "$work_dir/go-src.txt" >"$work_dir/internal-src.txt" || true
-  : >"$work_dir/exported.txt"
-  if [ -s "$work_dir/internal-src.txt" ] && [ -s "$work_dir/go-src.txt" ]; then
-    # The awk program is single-quoted on purpose: $1 and $2 are awk's
-    # own fields, not shell variables.
-    # shellcheck disable=SC2016
-    xargs -r -a "$work_dir/internal-src.txt" awk '
-      /^func \(/ {
-        if (match($0, /^func \([^)]*\) [A-Z][A-Za-z0-9_]*/)) {
-          n = substr($0, RSTART, RLENGTH)
-          sub(/^func \([^)]*\) /, "", n)
-          print FILENAME "\t" n
-        }
-        next
-      }
-      /^func [A-Z]/ { n = $2; sub(/\(.*/, "", n); print FILENAME "\t" n; next }
-      /^type [A-Z]/ { print FILENAME "\t" $2; next }
-      /^(var|const) [A-Z]/ { n = $2; sub(/[,=].*/, "", n); print FILENAME "\t" n; next }
-      inblock && /^\t[A-Z][A-Za-z0-9_]*[ ,=\t]/ { n = $1; sub(/[,=].*/, "", n); print FILENAME "\t" n; next }
-      /^(var|const|type) \(/ { inblock = 1; next }
-      /^\)/ { inblock = 0 }
-    ' | sort -u >"$work_dir/decls.txt"
-    cut -f2 "$work_dir/decls.txt" | sort -u >"$work_dir/names.txt"
-    : >"$work_dir/refs.txt"
-    if [ -s "$work_dir/names.txt" ]; then
-      xargs -r -a "$work_dir/go-src.txt" grep -o -w -H -F -f "$work_dir/names.txt" |
-        awk -F: '{ print $1 "\t" $NF }' | sort -u >"$work_dir/refs.txt" || true
-    fi
-    # shellcheck disable=SC2016
-    awk -F'\t' '
-      NR == FNR { seen[$2 SUBSEP $1] = 1; files[$2] = files[$2] "\n" $1; next }
-      {
-        alive = 0
-        n = split(files[$2], a, "\n")
-        for (i = 1; i <= n; i++) {
-          if (a[i] != "" && a[i] != $1) alive = 1
-        }
-        if (!alive) print $1 "\t" $2
-      }
-    ' "$work_dir/refs.txt" "$work_dir/decls.txt" | sort >"$work_dir/exported.txt"
-  fi
-  exported_count="$(wc -l <"$work_dir/exported.txt")"
-  if [ "$exported_count" -eq 0 ]; then
-    echo "check.sh: every exported identifier under internal/ has a non-test consumer."
-  else
-    echo "check.sh: $exported_count exported identifier(s) under internal/ with no non-test consumer; first twenty:" >&2
-    head -n 20 "$work_dir/exported.txt" >&2
+  # deadcode, pinned by the tool line in go.mod, reports each function
+  # the program can never reach from a main. A forward hook exported
+  # ahead of its consumer reads as justified in the diff that added it
+  # and as dead weight in the package. It exits 1 on a load error and 0
+  # with findings, so a tool failure fails the leg in every mode, while
+  # findings warn unless CHECK_EXPORTED_UNUSED=fail. Its output prints
+  # whole, with no filter after it.
+  deadcode_rc=0
+  go tool deadcode ./... >"$work_dir/deadcode.txt" 2>"$work_dir/deadcode.err" || deadcode_rc=$?
+  if [ "$deadcode_rc" -ne 0 ]; then
+    cat "$work_dir/deadcode.err" >&2
+    echo "check.sh: go tool deadcode failed with exit $deadcode_rc." >&2
+    status=1
+  elif [ -s "$work_dir/deadcode.txt" ]; then
+    cat "$work_dir/deadcode.txt" >&2
     if [ "${CHECK_EXPORTED_UNUSED:-warn}" = "fail" ]; then
       status=1
     else
       echo "check.sh: CHECK_EXPORTED_UNUSED=warn, so this is a warning; set CHECK_EXPORTED_UNUSED=fail to gate on it." >&2
     fi
+  else
+    echo "check.sh: deadcode found no unreachable function."
   fi
 fi
 
