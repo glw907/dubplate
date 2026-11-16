@@ -1,10 +1,12 @@
 # dubplate status
 
 <!-- round-report cleanup -->
-**Round cleanup: pass 1 has landed, pass 2 waits on Geoff's ruling.** `cleanup-ci` merged as `73bae3b`. Pass 2
-(`cleanup-gate`, draft PR #13) is parked at planning: acceptance item 3 (the rendered leg) can't be met as written, and
-the rendered test file's class is in question. Open document: `20261116-080113-a56d02` (decide). Passes 3 to 5 wait
-behind it. Nothing has deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
+**Round cleanup: pass 1 has landed, passes 2 and 3 wait for the close packet, pass 4 is planning.** `cleanup-ci`
+merged as `73bae3b`. `cleanup-gate` (PR #13) and `cleanup-store` (PR #14, stacked on #13) are PR-ready with checks
+green, class `auth-data`. Pass 4 `cleanup-web` is planning in a worktree cut from `cleanup-store`; pass 5 follows.
+Geoff ruled on the gate stop in document `20261116-080113-a56d02`, and on parking order in `20261116-163931-082d9d`:
+if a pass parks, the next pass that doesn't build on it launches. Nothing has deployed, and the box is unchanged.
+Conductor session: `conductor-dubplate`.
 Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
 <!-- /round-report -->
 
