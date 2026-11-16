@@ -215,6 +215,25 @@ trap 'rm -rf "$work_dir"' EXIT
 
 status=0
 
+# Per-leg timing. The clock starts here, after the tree lock, so the total
+# counts no lock wait. `leg` prints a leg's header and closes the previous
+# leg with its elapsed line; `leg_end` closes the last one.
+SECONDS=0
+leg_name=""
+leg_start=0
+leg_end() {
+  if [ -n "$leg_name" ]; then
+    echo "== $leg_name elapsed $((SECONDS - leg_start))s =="
+    leg_name=""
+  fi
+}
+leg() {
+  leg_end
+  leg_name="$1"
+  leg_start="$SECONDS"
+  echo "== $1 =="
+}
+
 if ! command -v go >/dev/null 2>&1; then
   echo "check.sh: go not found; install it." >&2
   exit 1
@@ -582,18 +601,14 @@ if [ "$mode" = "scope-changed" ]; then
   # `web` builds the bundle the Go tests read, so it runs ahead of
   # every narrowed Go target here too, not only inside `make check`'s
   # own prerequisite.
-  echo "== make web =="
+  leg "make web"
   if ! make web; then
     status=1
   fi
 fi
 
 if [ "$mode" = "scope-changed" ]; then
-  echo "== make vet lint test tidy-check (Go) =="
-elif [ "$mode" != "reduced" ]; then
-  echo "== make check (Go) =="
-fi
-if [ "$mode" = "scope-changed" ]; then
+  leg "make vet lint test tidy-check (Go)"
   # The scoped form is `make check` minus the rendered leg's
   # unconditional run: vet, lint, the whole test leg (Go's test cache
   # sizes it) and tidy-check, then the rendered leg only when selected.
@@ -612,9 +627,16 @@ if [ "$mode" = "scope-changed" ]; then
     fi
   fi
 elif [ "$mode" != "reduced" ]; then
-  if ! make check; then
-    status=1
-  fi
+  # The six targets of `make check`, in its order, each timed as its own
+  # leg. The first red stops the run of targets, as make would, so no
+  # later target reads a stale bundle.
+  for target in web vet lint test web-rendered tidy-check; do
+    leg "make $target"
+    if ! make "$target"; then
+      status=1
+      break
+    fi
+  done
 fi
 
 if [ "$mode" = "reduced" ]; then
@@ -623,18 +645,18 @@ if [ "$mode" = "reduced" ]; then
   # path changed. It still rebuilds the bundle, since a stale build is
   # the one state every form refuses to read from.
   echo "check.sh: the reduced form skips the rendered leg."
-  echo "== npm run build --prefix web =="
+  leg "npm run build --prefix web"
   if ! npm run build --prefix web; then
     status=1
   fi
   if [ "$web_changed" -eq 1 ]; then
-    echo "== npm run check --prefix web (svelte-check) =="
+    leg "npm run check --prefix web (svelte-check)"
     if ! npm run check --prefix web; then
       status=1
     fi
   fi
 
-  echo "== gofmt, go vet, go test (changed packages) =="
+  leg "gofmt, go vet, go test (changed packages)"
   if [ "${#changed_packages[@]}" -eq 0 ]; then
     echo "check.sh: the change set holds no Go package; the Go legs have nothing to run."
   else
@@ -655,7 +677,7 @@ if [ "$mode" = "reduced" ]; then
   fi
 fi
 
-echo "== shellcheck =="
+leg "shellcheck"
 # -P scripts resolves any script's relative `source=` directive against the
 # scripts/ directory regardless of the caller's own working directory (no
 # remaining script sources another one, now that lib.sh is gone, but the
@@ -690,7 +712,7 @@ else
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== ruff (Python) =="
+  leg "ruff (Python)"
   # The repo's only Python is the beets oracle shim
   # (internal/harness/oracle/derive_oracle.py), which the gate lints but
   # never runs: running it would need the venv, and the gate never
@@ -710,7 +732,7 @@ if [ "$mode" != "reduced" ]; then
   fi
 fi
 
-echo "== gitleaks (secret scan) =="
+leg "gitleaks (secret scan)"
 # --no-git scans the tracked worktree as it sits, not the full git
 # history (the --merge form's own leg covers the branch's history): the
 # corpus under corpus/cases/ is the repo's first large data directory,
@@ -738,7 +760,7 @@ else
 fi
 
 if [ "$mode" = "merge" ]; then
-  echo "== gitleaks (branch history, master..HEAD) =="
+  leg "gitleaks (branch history, master..HEAD)"
   # Without --no-git gitleaks reads commits rather than the worktree, so
   # this is the leg that sees a secret a later commit on the same branch
   # removed. The worktree is clean of it by then and every --no-git scan,
@@ -754,7 +776,7 @@ if [ "$mode" = "merge" ]; then
   fi
 fi
 
-echo "== photo pool integrity =="
+leg "photo pool integrity"
 # tools/photos/check.mjs integrity verifies the committed pool under
 # photos/ (records, files, vocabulary, dedupe keys). Node is already
 # required by the web leg, so a missing node fails here rather than
@@ -766,13 +788,13 @@ elif ! node tools/photos/check.mjs integrity; then
   status=1
 fi
 
-echo "== vale (Go comment prose) =="
+leg "vale (Go comment prose)"
 if ! scripts/vale-comments.sh; then
   status=1
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== process citations in Go comments =="
+  leg "process citations in Go comments"
   # A comment that cites the process which produced the code (a rung, a
   # task, a ruling id, a plan path, a salvage line number) is addressed
   # to the pass that wrote it and is noise to every later reader. The em
@@ -809,7 +831,7 @@ if [ "$mode" != "reduced" ]; then
     fi
   fi
 
-  echo "== exported identifiers with no consumer (internal/) =="
+  leg "exported identifiers with no consumer (internal/)"
   # A forward hook exported ahead of its consumer reads as justified in
   # the diff that introduced it and as dead weight in the package. The
   # rule: an exported identifier under internal/ whose only references
@@ -880,7 +902,7 @@ if [ "$mode" != "reduced" ]; then
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== systemd unit verification =="
+  leg "systemd unit verification"
   # systemd-analyze verify insists every ExecStart= binary already exists on
   # THIS machine, which is never true here: the paths are box-only
   # (/usr/local/bin/dubplate-server, installed by deploy.sh, never present
@@ -910,12 +932,14 @@ if [ "$mode" != "reduced" ]; then
     echo "check.sh: systemd-analyze verify clean, modulo the expected box-only ExecStart paths."
   fi
 
-  echo "== state-dir agreement (env template, every dubplate-server unit, deploy.sh) =="
+  leg "state-dir agreement (env template, every dubplate-server unit, deploy.sh)"
   if ! bash scripts/check-state-dir.sh; then
     status=1
   fi
 fi
 
+leg_end
+echo "== total elapsed ${SECONDS}s =="
 if [ "$status" -eq 0 ]; then
   echo "check.sh: all checks passed."
 else
