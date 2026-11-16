@@ -678,10 +678,13 @@ func contractCases() []contractCase {
 				t.Helper()
 				// Each leg waited for the held connection until its
 				// context was canceled, and no longer: the wait honors
-				// the context, and writeWait is 30s.
+				// the context, and writeWait is 30s. The cancel timer
+				// starts before the measured interval, so the floor is
+				// half of cancelAfter: far above an immediate answer,
+				// clear of the timer's head start.
 				for leg, d := range map[string]time.Duration{"in-process": inElapsed, "HTTP": outElapsed} {
-					if d < 200*time.Millisecond || d >= 2*time.Second {
-						t.Errorf("%s leg answered after %v, want between 200ms and 2s", leg, d)
+					if d < 100*time.Millisecond || d >= 2*time.Second {
+						t.Errorf("%s leg answered after %v, want between 100ms and 2s", leg, d)
 					}
 				}
 			},
