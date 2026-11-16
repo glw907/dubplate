@@ -30,7 +30,7 @@ the layout's live regions. `main` is the root layout's skip-link target
   // the heading only: `pageTitle` gets the meta value as-is, since an
   // empty site name is its own documented case (the state alone, no
   // separator).
-  const siteName = $derived(siteNameFromMeta || TITLES.login);
+  const siteName = siteNameFromMeta || TITLES.login;
 
   let address = $state('');
   let submitting = $state(false);
@@ -50,13 +50,6 @@ the layout's live regions. `main` is the root layout's skip-link target
   const moment = $derived(result && (result.outcome === 'sent' || result.outcome === 'requested') ? result : null);
   const titleState = $derived(moment ? TITLES.loginSent : result?.outcome === 'signed_out' ? TITLES.signedOut : TITLES.login);
 
-  // W7.16: an async transition that unmounts the focused control
-  // moves focus deliberately, in an effect keyed on the discriminant
-  // plus tick(), rather than leaving it to drop to <body>.
-  $effect(() => {
-    if (moment !== null) tick().then(() => momentHeading?.focus());
-  });
-
   function clearAddressError(): void {
     addressInvalid = false;
   }
@@ -75,6 +68,11 @@ the layout's live regions. `main` is the root layout's skip-link target
       result = answer;
       if (answer.outcome !== 'sent' && answer.outcome !== 'requested') {
         announce(outcomeText(answer.outcome, answer.adminContact), outcomePoliteness(answer.outcome));
+      } else {
+        // W7.16: the form that held focus just unmounted, so focus moves
+        // deliberately to the moment's heading rather than dropping to <body>.
+        await tick();
+        momentHeading?.focus();
       }
       if (answer.outcome === 'invalid_address') {
         addressInvalid = true;
