@@ -11,17 +11,19 @@ Geoff in the Approval Queue on 2026-11-16 (document `20261116-000308-88f4d3`). R
 difference is a stop.
 
 Worktree: `/var/home/glw907/Projects/dubplate/.claude/worktrees/cleanup-gate`, branch `cleanup-gate`, cut from
-`origin/master` at `7db541b`. PR base: `master`. Class: `auth-data` by the adapter's path map, since T2 edits
-`cmd/dubplate-server/rendered_test.go` (the design says `runner`; see "Decisions for the executor", D1). Executor:
-`dubplate-cleanup-gate`, `sonnet` at `medium` with the Fable advisor; T2 goes to an `opus` pair subagent. Design path
-minutes: 130. This plan's path: 150 (see "Path"), under the 260-minute park line.
+`origin/master` at `7db541b` (master has since gained one `docs/STATUS.md` commit, `c114e86`, and nothing else).
+PR base: `master`. Class: `auth-data`, by Geoff's ruling 1 below: the adapter's path map wins for
+`cmd/dubplate-server/rendered_test.go` (the design said `runner`). The PR does not land on its own. It waits for the
+round's close packet with passes 3 to 5, and the land test falls that way. Review lens: one `standards:plan-reviewer`
+read of this plan; a task-scope `standards:diff-reviewer` read on T2 (the adapter's per-task review for `auth-data`);
+and at the close, the whole-branch `standards:diff-reviewer` with `standards:web-auth-security-reviewer` on the
+`rendered_test.go` diff. Executor: `dubplate-cleanup-gate`, `sonnet` at `medium` with the Fable advisor; T2 goes to an
+`opus` pair subagent. Design path minutes: 130. This plan's path: 160 (see "Path"), under the 260-minute park line.
 
-**This plan is parked at planning.** Acceptance item 3 cannot be met by the mechanism the design names, and changing
-it is Geoff's call ("Stop at planning", below). Every other task is ready. When Geoff answers, the planner edits item
-3 in the design per his choice, copies the new text into "Acceptance" and T2's check, runs the plan-reviewer read,
-and launches.
+## The stop at planning, as asked
 
-## Stop at planning
+The plan parked on the question below and Geoff answered it (see "Rulings"). The evidence stays because T2's probe
+and the item 3 readings build on it.
 
 **Question for Geoff.** Item 3's pixel clause and its 130 s line can't both be met by changing how browser contexts
 open. Which of these should item 3 say?
@@ -80,13 +82,18 @@ Geoff answered the stop above through decide document `20261116-080113-a56d02` o
 
 The conductor applies the pick on item 2 to pass 4's first acceptance item, which uses the same no-tolerance comparison, unless Geoff says otherwise.
 
+How the plan carries them: the header's class and review lens (ruling 1); T2's probe step, its stop condition, and its
+three outcomes (ruling 2); and item 3's readings under "Acceptance". The design file is not edited: the pick happens
+in the run, and the PR records it on one line the conductor reads for pass 4, `Item 3 pick: <A|B1|B2>` under
+`## Decisions`.
+
 ## Pre-flight
 
-No step needs Geoff before the launch, apart from the answer above. The pass needs no secret, sign-in, setting,
-hook, or permission rule, and it never reaches the box.
+No step needs Geoff before the launch. The pass needs no secret, sign-in, setting, hook, or permission rule, and it
+never reaches the box.
 
-Permissions checked: read `~/.local/state/claude-denials.jsonl` on 2026-11-16 against every command in the tasks.
-It holds 110 rows, 2026-11-01T00:55 to 2026-11-16T07:43. The last 27 are "Classifier unavailable" rows from
+Permissions checked: read `~/.local/state/claude-denials.jsonl` on 2026-11-16 against every command in the tasks,
+and again at the relaunch the same day: still 110 rows, 2026-11-01T00:55 to 2026-11-16T07:43, none new. The last 27 are "Classifier unavailable" rows from
 2026-11-16 (this session and an ecxc-ski one): the auto-mode classifier returned no verdict, which is no rule, and
 the answer is to re-issue once and do read-only work between tries. The earlier 83 are as pass 1's plan lists them
 (`docs/archive/plans/2026-11-15-cleanup-ci.md`, "Pre-flight"), and seven touch this pass, each with its answer. `claude
@@ -97,10 +104,9 @@ stop` and `pkill` (Interfere With Workloads): the executor never types either an
 `@latest` at run time. A python heredoc edit of a `.claude/skills` file: this pass edits no skill. `gh workflow run`
 (Auto-Mode Bypass): never; the check runs on `pull_request`. A push to the default branch (Modify Shared Resources):
 every push is `git push origin cleanup-gate`. No row names `systemd-run --user --scope`, `go get -tool`, `go tool`,
-`go mod tidy`, `git diff`, `node`, `npx playwright`, or `gh pr create --draft`.
+`go mod tidy`, `git diff`, `node`, `npx playwright`, `git switch --detach`, `SendMessage`, or `gh pr create --draft`.
 
-Reviewed: pending. The `standards:plan-reviewer` read runs once Geoff answers, since the answer rewrites T2's
-acceptance; its record goes under "Review record".
+Reviewed: one `standards:plan-reviewer` read after the rulings; its record and fold are under "Review record".
 
 Evidence: the mechanism table, the recorded searches, and the probe table above. Each row is a probe this planner
 ran on pavilion on 2026-11-15 or 2026-11-16 in this worktree at `7db541b`, or a quoted source line.
@@ -110,8 +116,9 @@ top of pass 1's gated merge). The rendered test alone takes about 194 s here.
 
 ## What the pass changes
 
-A full gate prints how long each leg took and a total, and the PR body compares a base run with a close run. The
-rendered leg opens 38 browser contexts where it opened 190 and keeps all 190 captures and every assertion. Gitleaks
+A full gate prints how long each leg took and a total, and the PR body compares a base run with a close run. Under
+outcomes A and B1 of T2's probe, the rendered leg opens 38 browser contexts where it opened 190 and keeps all 190
+captures and every assertion; under B2 it keeps its 190 contexts and only its stale counts change. Gitleaks
 stops reading the installed and generated trees. A scoped run whose change set holds only Go outside the rendered
 binary builds the bundle once, skips `svelte-check` and the static web gates, and takes the light lane. Vale reads
 only the changed Go files on a scoped run. `gate.sh` accepts every flag `check.sh` accepts. The exported-unused leg
@@ -203,7 +210,10 @@ pattern, #69's wording), with #134's header rewording.
 ## Tasks
 
 The path is T1, then T2 (an `opus` pair subagent) beside the session's T3, T4, T5, and T6, then the merge and T7.
-T2's files (`web/scripts/rendered/**`, `cmd/dubplate-server/rendered_test.go`) are disjoint from the others'.
+T2's files (`web/scripts/rendered/**`, `cmd/dubplate-server/rendered_test.go`) are disjoint from the others'. T2 runs
+in three steps: the pair builds and probes (T2a), the session picks (T2b), and the pair finishes the pick (T2c). While
+T2a's probe runs, the session writes T3's edits and runs no gate of its own, so the probe's rendered runs share the
+host with nothing heavier than an editor.
 
 ### T1: Per-leg times and the base run (20 min, `runner`)
 
@@ -224,36 +234,84 @@ Check: `grep -n -iE 'elapsed|SECONDS' scripts/check.sh` prints the new lines; th
 line per `== <leg> ==` header (count both with `grep -c`) and one total line; the gate exits 0; `ls <git
 dir>/base-captures | wc -l` prints 19. Test: the gate.
 
-### T2: Rendered contexts (40 min, `auth-data`, pair, `opus`)
+### T2: Rendered contexts, with the launch-flag probe (75 min, `auth-data`, pair, `opus`)
 
-Outcome: the capture matrix opens one browser context per state and scheme (38) and takes each width inside it with
-`page.setViewportSize` and `settleCapture`. All 190 cells and every assertion stay. The script prints `capture
-contexts: <n>`, and the Go test fails unless `n` is 38. The stale counts in mechanism 26 are corrected.
+Outcome: under outcome A or B1 below, the capture matrix opens one browser context per state and scheme (38) and
+takes each width inside it with `page.setViewportSize` and `settleCapture`. All 190 cells and every assertion stay.
+The script prints `capture contexts: <n>`, and the Go test fails unless `n` is 38. Under B2 the matrix keeps its 190
+contexts. Under every outcome, the stale counts in mechanism 26 are corrected.
 
 Files: `web/scripts/rendered/run.ts` (and any file under `web/scripts/rendered/` the change needs),
 `cmd/dubplate-server/rendered_test.go`.
 
-Load `standards:ts-conventions` and `standards:go-conventions` first. Test first (the class is `auth-data`): add the
-Go-side check that the script's `capture contexts:` line reads 38, with 38 written as a literal, and run it on the
-unchanged matrix. Record the failure (it reads 190) in the PR notes. Then change `captureRows`:
+`RUN_GATE_IF_BUSY=defer` is barred on this task (the adapter bars it on `auth-data`).
 
-- One context per (state, scheme), sized at the state's first width, then for each width in `CAPTURE_WIDTHS` order:
-  `setViewportSize`, `settleCapture`, the secondary-control guard, the overflow floor at 320 and 390, the
-  touch-target floor, and the screenshot. The state is stood up once per context, after the fixture roster resets.
-- In `renderedCaptureRows`, the link spend each state declares moves to its first-width rows, so
-  `checkSpendReconciliation` (mechanism 25) still passes with no change to the check itself.
-- Correct the stale counts in mechanism 26 and the time comment at `rendered_test.go:36-41`, with this task's
-  measured figure.
+#### T2a: Build, then probe (pair, 30 min of build and a 30-minute probe)
 
-Mutation proofs: (a) open a context per cell again and the 38 check fails; (b) drop the spend move and
-`checkSpendReconciliation` fails. Record both.
+Load `standards:ts-conventions` and `standards:go-conventions` first.
 
-Check: two runs of `make web-rendered` on the T2 commit pass, and their capture sets compare as item 3 says (see
-"Acceptance"; the comparison is per Geoff's answer to the stop). The PR notes carry the pixel table against `<git
-dir>/base-captures/` (file, differing pixel count, box), produced by a throwaway decoder over
-`web/scripts/rendered/png.ts`'s `decodePNG` run from the job's tmp directory, never committed. Test: `make
-web-rendered`, then the fast lane. Review: `standards:diff-reviewer` at task scope on the pair's merge (the adapter's
-per-task review for `auth-data`).
+1. Test first. Add the Go-side check that the script's `capture contexts:` line reads 38, with 38 written as a
+   literal, and run `make web-rendered` on the unchanged matrix. Record the failure (it reads 190) in the report.
+2. Change `captureRows`:
+   - One context per (state, scheme), sized at the state's first width, then for each width in `CAPTURE_WIDTHS` order:
+     `setViewportSize`, `settleCapture`, the secondary-control guard, the overflow floor at 320 and 390, the
+     touch-target floor, and the screenshot. The state is stood up once per context, after the fixture roster resets.
+   - In `renderedCaptureRows`, the link spend each state declares moves to its first-width rows, so
+     `checkSpendReconciliation` (mechanism 25) still passes with no change to the check itself.
+   - Correct the stale counts in mechanism 26.
+3. Mutation proofs: (a) open a context per cell again and the 38 check fails; (b) drop the spend move and
+   `checkSpendReconciliation` fails. Record both.
+4. Commit as `T2:` once `make web-rendered` passes. This commit carries no launch flag.
+5. The probe. Its clock starts at the T2 commit and stops at 30 minutes, at the first flag set that passes, or when
+   the list below runs out, whichever comes first. The flags go in `launch()` (`run.ts:302-307`, today
+   `chromium.launch({ channel: 'chromium' })`) as an `args` array, uncommitted. The candidates, in order, come from
+   one search on the symptom (the Argos CI guide "stabilize text rendering" names `--disable-lcd-text`; Puppeteer
+   issues #661 and #1751 report that screenshots after a viewport resize differ from fresh ones, and that GPU state
+   changes antialiasing):
+   1. `--disable-lcd-text`, `--force-device-scale-factor=1`
+   2. set 1 plus `--disable-gpu`
+
+   For each set F: run `go test -tags rendered -count=1 -run '^TestRendered$' ./cmd/dubplate-server` once at the
+   dispatch sha with F (`git switch --detach <dispatch sha>`, apply F, run, copy `web/rendered-captures/` to the
+   pair's `$CLAUDE_JOB_DIR/tmp/base-F<n>/`, `git checkout -- web/scripts/rendered/run.ts`, `git switch -`), then twice
+   on the T2 commit with F. F passes when both 38-context runs match the 190-context run under F in all 95 files with
+   no pixel tolerance. Compare with the throwaway decoder over `web/scripts/rendered/png.ts`'s `decodePNG`, run from
+   the job's tmp directory and never committed. Each run takes about 2.5 to 3.3 minutes, so the budget holds about two
+   sets. No flag touches the roughly 78 s that come before the matrix, so the 130 s clause of item 3 is unmet on every
+   outcome.
+6. Revert the flag edit (`git status` clean) and return the report: the test-first failure, both mutation failures,
+   the T2 sha, and per flag set its runs' file-difference counts and boxes. Then wait for the session's message.
+
+#### T2b: The pick (session, 5 min)
+
+- A flag set passed: outcome A. No advisor pick is needed; the session records the probe table and goes on.
+- None passed: the session asks its advisor to choose B1 (keep the 38 contexts and read item 3 as option 1 says) or
+  B2 (keep the pixel clause and drop the context change). It takes the choice and raises it under `## Calls for
+  Geoff` as an `[advisor]` line: the option taken, the option passed over, and what reversing it would undo
+  (`advisor.md` "What the answer allows").
+
+Either way, the PR's `## Decisions` gets the line `Item 3 pick: <A|B1|B2>`, which the conductor reads for pass 4.
+The session sends the pick to the pair with `SendMessage`.
+
+#### T2c: Finish the pick (pair, 15 min)
+
+- A: add the passing F to `launch()` with a TSDoc-register comment naming why, and commit as `T2: Fix the capture
+  launch flags`. The flagged base set is the probe's `$CLAUDE_JOB_DIR/tmp/base-F<n>/`, taken at the dispatch sha
+  (T1's commit) with F, and every later compare reads it. The launch flag is a second change beside how contexts
+  open, and the PR's `## Decisions` says so.
+- B1: no code change.
+- B2: in one commit, restore the capture matrix, the spend declarations, and the 38 check to their dispatch-sha
+  form, keeping the stale-count corrections, which then say 190 contexts. Mutation proofs (a) and (b) lapse; the
+  report says so.
+- Every outcome: update the time comment at `rendered_test.go:36-41` with the figure this task measured, then run
+  `make web-rendered` twice on the final head.
+
+Check: the two final runs pass, and their capture sets compare as item 3's reading for the pick says (see
+"Acceptance"), against `base-F<n>/` under A and the session's `<git dir>/base-captures/` (read, never written)
+under B1 and B2. The pair returns the pixel table (file, differing pixel count, box) in its report, and the session
+copies it to the PR notes. The pair's scratch goes in the job's `$CLAUDE_JOB_DIR/tmp`, never outside its worktree
+otherwise. Test: `make web-rendered`, then the fast lane on the session's merge. Review: `standards:diff-reviewer` at task
+scope on the pair's merged range (the adapter's per-task review for `auth-data`).
 
 ### T3: The scoped build and the shell cleanups (30 min, `runner`)
 
@@ -349,7 +407,8 @@ Files: `BACKLOG.md`, this plan and its prompt (`git mv` to `docs/archive/plans/`
 1. Merge T2 if not merged; run the fast lane.
 2. Run `bash scripts/gate.sh --merge` on the close head. Its elapsed lines are item 2's second run: the total is
    lower than T1's, and every leg T1 named is named again except "exported identifiers", which T6 replaced (keep its
-   name, and the comparison is by name). Copy both runs' per-leg tables into the PR body.
+   name, and the comparison is by name). Copy both runs' per-leg tables into the PR body. This run's rendered leg
+   elapsed line is item 3's time evidence: it runs with nothing else on the host, where T2's runs shared it.
 3. Close #34, #64's header clause (leave the rest of #64 open), #67, #69, #104, #105's gate clauses (the
    `.golangci.yml` clause stays open, reworded), and #134. File: the `.golangci.yml` comment, the standing-rules
    wording that names `make check`, the adapter's `scripts/checks/` line, and `ai-tells.ts:3`.
@@ -362,8 +421,9 @@ Files: `BACKLOG.md`, this plan and its prompt (`git mv` to `docs/archive/plans/`
 
 | # | Stop | Answer |
 | --- | --- | --- |
-| S1 | The rendered leg's elapsed line is over item 3's bound after T2 | Record the per-cell split from one instrumented run in the PR notes. Cut nothing outside how contexts open. The PR carries a call and doesn't land. |
-| S2 | A capture still differs from the base outside item 3's allowance after two cause fixes | Stop; the question names the files and the boxes. Never accept it as the new baseline (standing answer 18). |
+| S1 | Under A or B1, the close run's rendered elapsed line reads 160 s or more | Record the per-cell split from one instrumented run in the PR notes. Cut nothing outside how contexts open. Mark that clause of item 3 unmet and raise it under `## Calls for Geoff`. |
+| S2 | A capture differs from its base set outside the pick's reading (any file under A; a pixel off the alert-rule columns under B1 or B2) after two cause fixes | Under A, fall back to B1's reading for that file, name it under `## Calls for Geoff`, and go on. Under B1 or B2, stop; the question names the files and the boxes. Never accept a difference as the new baseline (standing answer 18). |
+| S6 | A rendered run exits on `net::ERR_NETWORK_CHANGED` | Read `journalctl --since` the run's start for a NetworkManager lease event on the host; if one sits at the same moment, rerun once and record both lines. A second occurrence, or one with no host event, is a real failure. |
 | S3 | The scoped form OOMs or throttles under the light cap | Keep the heavy lane for it, say so in the PR, and go on (T4). |
 | S4 | A plant write or the red `--merge` is refused | Record the refusal, run the two plants as separate uncommitted leg runs (`gitleaks dir` and `vale-comments.sh <file>`), and list it under `## Decisions`. |
 | S5 | CI red outside the pass's files | Fix in the branch, list under `## Decisions` (standing answer 19). |
@@ -381,21 +441,22 @@ Files: `BACKLOG.md`, this plan and its prompt (`git mv` to `docs/archive/plans/`
 | Step | Minutes |
 | --- | --- |
 | T1 (with the base full run) | 20 |
-| T3 + T4 + T5 + T6 in the session, beside T2 (40) | 85 |
+| T3 + T4 + T5 + T6 in the session (85, plus about 10 held while T2a's probe runs), beside T2a, T2b, and T2c (80) | 95 |
 | Merge T2, fast lane, per-task review | 10 |
 | T7 | 35 |
-| Total | 150 `[estimate]` |
+| Total | 160 `[estimate]` |
 
 ## Acceptance
 
-Copied verbatim from the design, lines 208-234, plus the two every-pass items. Item 3 is tagged `[design-gap]`
-until Geoff answers the stop.
+Copied verbatim from the design, lines 208-234, plus the two every-pass items. Item 3 stays verbatim; Geoff's ruling 2
+sets its readings, under the table, and the PR's flag line quotes the item as the text it departs from (`advisor.md`
+"Acceptance items").
 
 | # | Item | Task | Evidence |
 | --- | --- | --- | --- |
 | 1 | A full gate run prints one elapsed-time line per leg and a total. Today: `grep -n -iE 'elapsed\|SECONDS\|date \+%s' scripts/check.sh` prints nothing. | T1 | the grep's lines; a log's elapsed count against its header count |
 | 2 | The PR body carries the per-leg times of a full run on the pass's base and of a full run on the close head, both on pavilion. The total is lower, and every leg named in the first run is named in the second, apart from the awk leg that item 8 replaces. Today: no per-leg figure exists; the review measured 10,224 s over 20 runs in `admin-api-1`. | T1, T7 | both tables in the body |
-| 3 | `[design-gap]` The rendered leg writes 190 captures that match the base commit's 190 with no pixel tolerance, opens 38 browser contexts where it opened 190, and its elapsed line on pavilion reads under 130 s. Today: about 257 s by the test's own comment, and `web/scripts/rendered/run.ts:6082` still says "150 captures". | T2 | the 38 check; the pixel table; the elapsed line |
+| 3 | The rendered leg writes 190 captures that match the base commit's 190 with no pixel tolerance, opens 38 browser contexts where it opened 190, and its elapsed line on pavilion reads under 130 s. Today: about 257 s by the test's own comment, and `web/scripts/rendered/run.ts:6082` still says "150 captures". | T2, T7 | the probe table; the 38 check (A, B1); the pixel table; the close run's rendered elapsed line |
 | 4 | `bash scripts/gate.sh --reduced --dry-run` exits 0 and prints the reduced scope. Today: exit 2 and the usage line. | T4 | the command's output and exit |
 | 5 | `.gitleaks.toml` excludes `web/node_modules`, `web/rendered-captures`, and `tools/venv/.venv`, and a planted fake secret in a tracked file still fails the leg (run once, recorded, removed). Today: `grep -n -iE 'node_modules\|rendered-captures\|venv' .gitleaks.toml` prints nothing. | T6 | the grep; the plant run's gitleaks line |
 | 6 | A scoped run whose change set holds one Go file runs vet, golangci-lint, and the Go tests, runs no `svelte-check` and no static web gate, and reports the light lane. Today: it builds the web app twice and queues on the heavy lane (BACKLOG #34). | T3, T4 | the run's log and `gate.sh: lane=light` |
@@ -404,6 +465,19 @@ until Geoff answers the stop.
 | 9 | The check from pass 1 is green on this PR with no change to which legs it runs. | T7 | the CI run link |
 | 10 | The PR's check is green on its head. | T7 | `gh pr checks <n>` |
 | 11 | `bash scripts/gate.sh --merge` exits 0 on the close head. | T7 | the `gate exit: 0` line |
+
+Item 3 readings, by T2b's pick. On every pick, the 130 s clause is unmet: about 78 s of the test comes before the
+matrix, and the ruling allows no cut there. Each reading is raised under `## Calls for Geoff`.
+
+- A (a flag set passed): 190 captures, each matching the 190-context set taken under the same flags at T1's commit
+  with no pixel tolerance, in both final runs; 38 contexts; the close run's rendered elapsed line under 160 s.
+- B1 (the advisor's reword): "The rendered leg writes 190 captures. Against the base commit's set, and between two
+  runs on the close head, each file matches with no pixel tolerance or differs only on the antialiased alert-rule
+  columns the PR lists. The leg opens 38 browser contexts where it opened 190, and its elapsed line on pavilion reads
+  under 160 s." (Geoff's choice 1, quoted from the stop.)
+- B2 (the advisor keeps the pixel clause): the matrix keeps 190 contexts, so the 38-context and time clauses are
+  unmet and move to a later pass; the PR files them through `standards:log-issue`. The captures match T1's base set or
+  differ only on the alert-rule columns, which the one measured pair of base runs already showed (6 of 95 files).
 
 ## Review record
 
