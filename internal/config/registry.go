@@ -278,6 +278,8 @@ func (r *Registry) AddThreshold(t Threshold) {
 // explicit Kind carries a named kind and would pass an enum-membership
 // test alone; only parsing Default under the declared Kind catches it.
 //
+// A numeric Default outside t's Floor and Ceiling panics the same way.
+//
 // KindString's own invalid Default is the empty string, checked here
 // beside the parse, since every string parses; the reason is
 // [ParseString]'s own doc.
@@ -290,6 +292,19 @@ func validateThresholdDefault(t Threshold) {
 		panic(fmt.Sprintf("%s: unnamed threshold kind %v", t.Key, t.Kind))
 	case err != nil, t.Kind == KindString && t.Default == "":
 		panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
+	}
+
+	var outside error
+	switch t.Kind {
+	case KindInt:
+		_, outside = ParseInt(nil, t)
+	case KindDuration:
+		_, outside = ParseDuration(nil, t)
+	case KindFloat:
+		_, outside = ParseFloat(nil, t)
+	}
+	if outside != nil {
+		panic(outside.Error())
 	}
 }
 
