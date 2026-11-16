@@ -421,7 +421,7 @@ func addLibraryHalf(t *testing.T, path, root string) {
 	if err := json.Unmarshal(raw, &rec); err != nil {
 		t.Fatalf("parse the record: %v", err)
 	}
-	rec["library"] = map[string]any{"root": root, "into_nonempty": false}
+	rec["library_root"], rec["into_nonempty"] = root, false
 	out, err := json.Marshal(rec)
 	if err != nil {
 		t.Fatal(err)

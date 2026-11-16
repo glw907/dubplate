@@ -600,17 +600,17 @@ func (s *RestoreSession) Quiesce(ctx context.Context, discard bool) error {
 // source of the incoming store, and the library half when one is owed.
 type RestoreIntent struct {
 	// Remote and Snapshot name a snapshot fetched from a remote.
-	Remote   string
-	Snapshot string
+	Remote   string `json:"remote,omitempty"`
+	Snapshot string `json:"snapshot,omitempty"`
 
 	// File names the local file a restore from a file staged.
-	File string
+	File string `json:"file,omitempty"`
 
 	// LibraryRoot is the library root, resolved to an absolute path,
 	// when the restore owes the library half, and empty when it does
 	// not.
-	LibraryRoot  string
-	IntoNonempty bool
+	LibraryRoot  string `json:"library_root,omitempty"`
+	IntoNonempty bool   `json:"into_nonempty,omitempty"`
 }
 
 // Record writes the restore-intent record that opens the swap. It
@@ -633,16 +633,13 @@ func (s *RestoreSession) Record(in RestoreIntent) error {
 		Format:         intentFormat,
 		State:          intentSwap,
 		Stamp:          s.stamp,
-		Source:         intentSource{Remote: in.Remote, Snapshot: in.Snapshot, File: in.File},
+		RestoreIntent:  in,
 		Incoming:       filepath.Base(s.stage),
 		DiscardCurrent: s.current == currentDiscard,
 		Version:        s.version,
 	}
 	if s.current == currentQuiesced {
 		r.PreRestore = preRestorePrefix + s.stamp + dbSuffix
-	}
-	if in.LibraryRoot != "" {
-		r.Library = &libraryOwed{Root: in.LibraryRoot, IntoNonempty: in.IntoNonempty}
 	}
 	if err := s.leaf.writeIntent(r); err != nil {
 		return err
@@ -783,15 +780,10 @@ func (s *RestoreSession) Owed() RestoreStep {
 // restore-intent record names, and the zero RestoreIntent before there
 // is one.
 func (s *RestoreSession) Intent() RestoreIntent {
-	r := s.intent
-	if r == nil {
+	if s.intent == nil {
 		return RestoreIntent{}
 	}
-	in := RestoreIntent{Remote: r.Source.Remote, Snapshot: r.Source.Snapshot, File: r.Source.File}
-	if r.Library != nil {
-		in.LibraryRoot, in.IntoNonempty = r.Library.Root, r.Library.IntoNonempty
-	}
-	return in
+	return s.intent.RestoreIntent
 }
 
 // PreRestorePath returns the path of the pre-restore copy the session's
@@ -838,7 +830,7 @@ func (s *RestoreSession) Advance(ctx context.Context) (RestoreStep, error) {
 		if len(moves) > 0 || in {
 			return 0, errors.New("advance the restore: the swap has not finished")
 		}
-		if r.Library != nil {
+		if r.LibraryRoot != "" {
 			next = intentLibrary
 		}
 	}

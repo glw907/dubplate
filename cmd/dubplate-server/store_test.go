@@ -157,19 +157,19 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 func TestStoreRow_RestoreIntent(t *testing.T) {
 	record := func(state, library string) string {
 		return `{"format": 1, "state": "` + state + `", "stamp": "20260925T120000.000000Z",
-"source": {"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z"},
+"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z",
 "incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
-"discard_current": false, "library": ` + library + `, "version": 2}`
+"discard_current": false, ` + library + `"version": 2}`
 	}
 	tests := []struct {
 		name   string
 		body   string
 		detail string
 	}{
-		{name: "swap", body: record("swap", "null"), detail: "(state swap): finish the restore with restore --resume"},
-		{name: "library", body: record("library", `{"root": "/srv/music", "into_nonempty": false}`), detail: "(state library): finish the restore with restore --resume"},
-		{name: "reconcile", body: record("reconcile", "null"), detail: "(state reconcile): finish the restore with restore --resume"},
-		{name: "reconcile-pending", body: record("reconcile-pending", "null"), detail: "(state reconcile-pending): start serve to finish the restore"},
+		{name: "swap", body: record("swap", ""), detail: "(state swap): finish the restore with restore --resume"},
+		{name: "library", body: record("library", `"library_root": "/srv/music", "into_nonempty": false, `), detail: "(state library): finish the restore with restore --resume"},
+		{name: "reconcile", body: record("reconcile", ""), detail: "(state reconcile): finish the restore with restore --resume"},
+		{name: "reconcile-pending", body: record("reconcile-pending", ""), detail: "(state reconcile-pending): start serve to finish the restore"},
 		{name: "unreadable", body: "", detail: "is unreadable: the record is empty: finish the restore with restore --resume"},
 	}
 	for _, tt := range tests {

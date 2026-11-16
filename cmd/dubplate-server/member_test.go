@@ -139,9 +139,9 @@ func TestMemberListCmd_OmitsTombstonedMembers(t *testing.T) {
 func TestMemberCmd_StoreStates(t *testing.T) {
 	head := store.Inspect(t.Context(), store.InspectOptions{StateDir: t.TempDir(), BusyTimeout: testBackupBusy}).BinaryVersion
 	reconcilePending := `{"format": 1, "state": "reconcile-pending", "stamp": "20260925T120000.000000Z",
-"source": {"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z"},
+"remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z",
 "incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
-"discard_current": false, "library": null, "version": 2}`
+"discard_current": false, "version": 2}`
 	tests := []struct {
 		name    string
 		setup   func(t *testing.T, stateDir string)

@@ -368,7 +368,7 @@ func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (
 // leaf, and only then removes the record, so a failure at any step
 // leaves the record for the next start to retry.
 func finishRestore(ctx context.Context, l leaf, h *Handle, rec intentRecord, reconcile func(context.Context, *Handle, string, RestoreIntent) ([]byte, error)) error {
-	report, err := reconcile(ctx, h, rec.Stamp, rec.restoreIntent())
+	report, err := reconcile(ctx, h, rec.Stamp, rec.RestoreIntent)
 	if err != nil {
 		return fmt.Errorf("reconcile the restored store %s: %w", l.dbPath, err)
 	}

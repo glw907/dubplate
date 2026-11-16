@@ -32,13 +32,13 @@ const testIncoming = "restore-20260925T120000.000000Z.db"
 // copy, as a restore of a remote snapshot writes it.
 func testIntent(state intentState) intentRecord {
 	return intentRecord{
-		Format:     intentFormat,
-		State:      state,
-		Stamp:      testStamp,
-		Source:     intentSource{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z"},
-		Incoming:   testIncoming,
-		PreRestore: "pre-restore-20260925T120000.000000Z.db",
-		Version:    2,
+		Format:        intentFormat,
+		State:         state,
+		Stamp:         testStamp,
+		RestoreIntent: RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z"},
+		Incoming:      testIncoming,
+		PreRestore:    "pre-restore-20260925T120000.000000Z.db",
+		Version:       2,
 	}
 }
 
@@ -67,10 +67,10 @@ func plantIntentFile(t *testing.T, l leaf, name string) {
 // the four well-formed states read back field for field, and each
 // malformed record is refused naming what is wrong with it.
 func TestDecodeIntent_Fixtures(t *testing.T) {
-	remote := intentSource{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z"}
+	remote := RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z"}
 	valid := func(state intentState) intentRecord {
 		return intentRecord{
-			Format: 1, State: state, Stamp: "20260925T120000.000000Z", Source: remote,
+			Format: 1, State: state, Stamp: "20260925T120000.000000Z", RestoreIntent: remote,
 			Incoming: "restore-20260925T120000.000000Z.db", PreRestore: "pre-restore-20260925T120000.000000Z.db", Version: 2,
 		}
 	}
@@ -84,9 +84,8 @@ func TestDecodeIntent_Fixtures(t *testing.T) {
 		{file: "valid-reconcile-pending.json", want: valid("reconcile-pending")},
 		{file: "valid-library.json", want: intentRecord{
 			Format: 1, State: "library", Stamp: "20260925T120000.000000Z",
-			Source:   intentSource{File: "/var/lib/dubplate/store/snapshots/pre-migrate-v2.db"},
-			Incoming: "restore-20260925T120000.000000Z.db", DiscardCurrent: true,
-			Library: &libraryOwed{Root: "/srv/music", IntoNonempty: true}, Version: 3,
+			RestoreIntent: RestoreIntent{File: "/var/lib/dubplate/store/snapshots/pre-migrate-v2.db", LibraryRoot: "/srv/music", IntoNonempty: true},
+			Incoming:      "restore-20260925T120000.000000Z.db", DiscardCurrent: true, Version: 3,
 		}},
 		{file: "empty.json", wantErr: "the record is empty"},
 		{file: "malformed.json", wantErr: "parse: unexpected EOF"},
@@ -97,8 +96,8 @@ func TestDecodeIntent_Fixtures(t *testing.T) {
 		{file: "dotdot-name.json", wantErr: `field pre_restore ".." is not a file name`},
 		{file: "empty-name.json", wantErr: "field incoming is empty"},
 		{file: "bad-stamp.json", wantErr: `field stamp: stamp "2026-09-25"`},
-		{file: "library-without-root.json", wantErr: "field library is empty in state library"},
-		{file: "library-relative-root.json", wantErr: `field library.root "music" is not an absolute path`},
+		{file: "library-without-root.json", wantErr: "field library_root is empty in state library"},
+		{file: "library-relative-root.json", wantErr: `field library_root "music" is not an absolute path`},
 		{file: "discard-and-copy.json", wantErr: "field pre_restore names pre-restore-20260925T120000.000000Z.db beside discard_current"},
 		{file: "trailing-data.json", wantErr: "data after the record's object"},
 	}
@@ -119,7 +118,7 @@ func TestDecodeIntent_Fixtures(t *testing.T) {
 				t.Fatalf("decode: %v", err)
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("decode = %+v (library %+v), want %+v (library %+v)", got, got.Library, tt.want, tt.want.Library)
+				t.Errorf("decode = %+v, want %+v", got, tt.want)
 			}
 		})
 	}
@@ -351,7 +350,7 @@ func TestOpenModes_IntentStates(t *testing.T) {
 			l := buildStore(t, stateDir, binaryHead)
 			r := testIntent(tt.state)
 			if tt.state == intentLibrary {
-				r.Library = &libraryOwed{Root: "/srv/music"}
+				r.LibraryRoot = "/srv/music"
 			}
 			plantIntent(t, l, r)
 			staged := filepath.Join(l.stagingDir, testIncoming)
@@ -482,9 +481,9 @@ func TestOpenServe_ReconcilePendingCurrent(t *testing.T) {
 // record, one row per record shape.
 func TestOpenServe_ReconcilerReceivesRecord(t *testing.T) {
 	library := testIntent(intentReconcilePending)
-	library.Library = &libraryOwed{Root: "/srv/music/library", IntoNonempty: true}
+	library.LibraryRoot, library.IntoNonempty = "/srv/music/library", true
 	fromFile := testIntent(intentReconcilePending)
-	fromFile.Source = intentSource{File: "/var/tmp/dubplate.db"}
+	fromFile.RestoreIntent = RestoreIntent{File: "/var/tmp/dubplate.db"}
 
 	tests := []struct {
 		name   string

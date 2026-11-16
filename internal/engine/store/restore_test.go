@@ -1089,7 +1089,7 @@ func TestOpenRestore_NilLogger(t *testing.T) {
 // restore with no current store leaves it: db/ holds a store through
 // version through, after stmts, staging/ is empty, and the leaf's
 // record, in state, names no pre-restore copy and carries library.
-func swappedLeaf(t *testing.T, through int, stmts string, state intentState, library *libraryOwed) (string, leaf) {
+func swappedLeaf(t *testing.T, through int, stmts string, state intentState, library RestoreIntent) (string, leaf) {
 	t.Helper()
 	stateDir, l := newLeafDir(t)
 	if err := os.WriteFile(l.dbPath, storeBytes(t, through, stmts), 0o600); err != nil {
@@ -1097,7 +1097,7 @@ func swappedLeaf(t *testing.T, through int, stmts string, state intentState, lib
 	}
 	r := testIntent(state)
 	r.PreRestore = ""
-	r.Library = library
+	r.LibraryRoot, r.IntoNonempty = library.LibraryRoot, library.IntoNonempty
 	plantIntent(t, l, r)
 	return stateDir, l
 }
@@ -1108,13 +1108,13 @@ func swappedLeaf(t *testing.T, through int, stmts string, state intentState, lib
 // swap is the no-copy one with its incoming store still in staging/. Every fixture's
 // record says version 2, so a verdict read from it would owe serve.
 func TestRestoreSession_Advance(t *testing.T) {
-	lib := &libraryOwed{Root: "/srv/library"}
+	lib := RestoreIntent{LibraryRoot: "/srv/library"}
 	tests := []struct {
 		name      string
 		through   int
 		stmts     string
 		state     intentState
-		library   *libraryOwed
+		library   RestoreIntent
 		stage     bool
 		want      RestoreStep
 		wantState intentState
@@ -1176,7 +1176,7 @@ func TestRestoreSession_AdvanceNoRecord(t *testing.T) {
 // TestRestoreSession_Intent: a resume reads back the source and library
 // half the record carries, and a new restore reads the zero value.
 func TestRestoreSession_Intent(t *testing.T) {
-	stateDir, _ := swappedLeaf(t, binaryHead, "", intentLibrary, &libraryOwed{Root: "/srv/library", IntoNonempty: true})
+	stateDir, _ := swappedLeaf(t, binaryHead, "", intentLibrary, RestoreIntent{LibraryRoot: "/srv/library", IntoNonempty: true})
 	s := openSession(t, stateDir, true)
 	want := RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z", LibraryRoot: "/srv/library", IntoNonempty: true}
 	if got := s.Intent(); got != want {
@@ -1195,7 +1195,7 @@ func TestRestoreSession_Intent(t *testing.T) {
 // record goes only once this session has written it.
 func TestRestoreSession_ReportAndComplete(t *testing.T) {
 	t.Run("reconcile", func(t *testing.T) {
-		stateDir, l := swappedLeaf(t, binaryHead, "", intentReconcile, nil)
+		stateDir, l := swappedLeaf(t, binaryHead, "", intentReconcile, RestoreIntent{})
 		p := filepath.Join(l.root, "restore-report-"+testStamp+".txt")
 		if err := os.WriteFile(p, []byte("an interrupted attempt's report\n"), 0o644); err != nil {
 			t.Fatal(err)
@@ -1220,7 +1220,7 @@ func TestRestoreSession_ReportAndComplete(t *testing.T) {
 	})
 	for _, state := range []intentState{intentSwap, intentLibrary, intentReconcilePending} {
 		t.Run(string(state), func(t *testing.T) {
-			stateDir, l := swappedLeaf(t, binaryHead, "", state, &libraryOwed{Root: "/srv/library"})
+			stateDir, l := swappedLeaf(t, binaryHead, "", state, RestoreIntent{LibraryRoot: "/srv/library"})
 			s := openSession(t, stateDir, true)
 			_, err := s.WriteReport([]byte("the report\n"))
 			assertErrNames(t, err, "does not owe one")
