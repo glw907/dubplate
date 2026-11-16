@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"strconv"
@@ -81,6 +82,10 @@ func parseAs[T any](k ThresholdKind, s string) (T, error) {
 // introduce them; doctor reports each with its effective value.
 // Description says what the key controls and Mark whether a change to
 // it needs care; every registered key carries both.
+//
+// Floor and Ceiling are the inclusive bounds of a KindInt,
+// KindDuration, or KindFloat threshold, in string form, parsed under
+// Kind; an empty one leaves that side open.
 type Threshold struct {
 	Key         string
 	Kind        ThresholdKind
@@ -88,6 +93,34 @@ type Threshold struct {
 	Doc         string
 	Description string
 	Mark        Sensitivity
+	Floor       string
+	Ceiling     string
+}
+
+// checkBounds returns the phrase, completing "is ...", for the bound
+// of t that v lies outside, or nil when v is within both. A bound that
+// does not parse under t.Kind panics: it is a registration bug, as
+// [Registry.AddSetting] treats one.
+func checkBounds[T cmp.Ordered](t Threshold, v T) error {
+	if t.Floor != "" {
+		floor, err := parseAs[T](t.Kind, t.Floor)
+		if err != nil {
+			panic(fmt.Sprintf("%s: invalid floor %q", t.Key, t.Floor))
+		}
+		if v < floor {
+			return fmt.Errorf("below the floor %s", t.Floor)
+		}
+	}
+	if t.Ceiling != "" {
+		ceiling, err := parseAs[T](t.Kind, t.Ceiling)
+		if err != nil {
+			panic(fmt.Sprintf("%s: invalid ceiling %q", t.Key, t.Ceiling))
+		}
+		if v > ceiling {
+			return fmt.Errorf("above the ceiling %s", t.Ceiling)
+		}
+	}
+	return nil
 }
 
 // parseThreshold resolves t against environ under kind: t.Default's
@@ -97,8 +130,9 @@ type Threshold struct {
 // parse, which is a registration bug rather than an environment one.
 // ParseInt, ParseDuration, and ParseFloat each call it with their own
 // kind, so the unset/set-value/bad-default shape lives once for every
-// numeric kind.
-func parseThreshold[T any](environ []string, t Threshold, kind ThresholdKind) (T, error) {
+// numeric kind. A value or default outside t's bounds returns a
+// [KeyError] naming the bound.
+func parseThreshold[T cmp.Ordered](environ []string, t Threshold, kind ThresholdKind) (T, error) {
 	w := newWall(environ)
 
 	v, ok := w.get(t.Key)
@@ -107,12 +141,18 @@ func parseThreshold[T any](environ []string, t Threshold, kind ThresholdKind) (T
 		if err != nil {
 			return def, &KeyError{Key: t.Key, Reason: fmt.Sprintf("invalid default %q", t.Default)}
 		}
+		if err := checkBounds(t, def); err != nil {
+			return def, &KeyError{Key: t.Key, Reason: fmt.Sprintf("default %q is %v", t.Default, err)}
+		}
 		return def, nil
 	}
 
 	n, err := parseAs[T](kind, v)
 	if err != nil {
 		return n, &KeyError{Key: t.Key, Reason: fmt.Sprintf("invalid value %q, want %s", v, t.Doc)}
+	}
+	if err := checkBounds(t, n); err != nil {
+		return n, &KeyError{Key: t.Key, Reason: fmt.Sprintf("value %q is %v", v, err)}
 	}
 	return n, nil
 }
