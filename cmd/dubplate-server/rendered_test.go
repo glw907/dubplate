@@ -34,10 +34,10 @@ import (
 // bundle resolves its URLs from the runtime prefix.
 const renderedPrefix = "/rendered"
 
-// renderedScriptTimeout bounds the whole TestRendered run, at more than
-// twice its measured wall time (about 137s on an idle machine, the
-// capture matrix dominating it, with 38 browser contexts for its 190
-// manifest rows) and under renderedMagicLinkExpiry, so a late capture
+// renderedScriptTimeout bounds one run of the browser script, at more
+// than twice its measured wall time (TestRendered takes about 137s on an
+// idle machine, the capture matrix dominating it, with 38 browser
+// contexts for its 190 manifest rows) and under renderedMagicLinkExpiry, so a late capture
 // never meets an expired link. The Makefile's RENDERED_TIMEOUT sits
 // above it plus the missing-browser run, and below the expiry too.
 const renderedScriptTimeout = 13 * time.Minute
@@ -54,7 +54,7 @@ const renderedInstallHint = "npx --prefix web playwright install chromium"
 const renderedMagicLinkExpiry = 25 * time.Minute
 
 // The fixture's four rate limits, set through their configuration keys.
-// A full run's spend (renderedSpend) must stay below each, so no row
+// A full run's spend (checkRateBudget) must stay below each, so no row
 // meets a rate_limited answer it did not ask for.
 const (
 	renderedLinkRequestsPerAddress       = 50
@@ -812,11 +812,10 @@ func parseCaptureContexts(stderr []byte) (int, error) {
 			values = append(values, value)
 		}
 	}
-	switch len(values) {
-	case 0:
+	if len(values) == 0 {
 		return 0, fmt.Errorf("the script printed no %q line", captureContextsPrefix)
-	case 1:
-	default:
+	}
+	if len(values) > 1 {
 		return 0, fmt.Errorf("the script printed its %q line %d times", captureContextsPrefix, len(values))
 	}
 	digits, ok := strings.CutPrefix(values[0], " ")
@@ -825,6 +824,35 @@ func parseCaptureContexts(stderr []byte) (int, error) {
 		return 0, fmt.Errorf("malformed line %q", captureContextsPrefix+values[0])
 	}
 	return n, nil
+}
+
+func TestParseCaptureContexts(t *testing.T) {
+	tests := []struct {
+		name    string
+		stderr  string
+		want    int
+		wantErr string
+	}{
+		{"one line among others", "launch\ncapture contexts: 38\nrows: 95\n", 38, ""},
+		{"absent", "launch\nrows: 95\n", 0, "no \"capture contexts:\" line"},
+		{"twice", "capture contexts: 38\ncapture contexts: 38\n", 0, "2 times"},
+		{"not a number", "capture contexts: many\n", 0, "malformed line"},
+		{"no space after the colon", "capture contexts:38\n", 0, "malformed line"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseCaptureContexts([]byte(tt.stderr))
+			if tt.wantErr == "" {
+				if err != nil || got != tt.want {
+					t.Errorf("parseCaptureContexts = %d, %v; want %d, nil", got, err, tt.want)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("parseCaptureContexts error = %v, want one containing %q", err, tt.wantErr)
+			}
+		})
+	}
 }
 
 // parseRows decodes the script's stdout, one row per line. A line that
@@ -908,8 +936,8 @@ func TestRendered(t *testing.T) {
 	membersHeaderLink := mintRenderedLink(t, environ, renderedAdminAddress)
 
 	// The capture matrix's own "ready" state is never consumed (its
-	// screenshot shows the interstitial before the click), so its ten
-	// cells share one minted link.
+	// screenshot shows the interstitial before the click), so its two
+	// contexts (light and dark) share one minted link.
 	captureInterstitialReadyLink := mintRenderedLink(t, environ, renderedAdminAddress)
 
 	mintSrv := httptest.NewServer(&mintServer{environ: environ})
