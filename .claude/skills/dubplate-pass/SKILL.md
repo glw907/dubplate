@@ -196,11 +196,10 @@ back to the full form. `--dry-run` prints the scope and runs nothing.
 
 **Full-suite home**: CI. The PR check (`.github/workflows/check.yml`) runs `bash scripts/check.sh`
 on every push to a PR. The close still runs `bash scripts/gate.sh --merge` locally, for the
-branch-history gitleaks scan and any leg the check leaves out under `DUBPLATE_CHECK_OMIT`. When the
+branch-history gitleaks scan, the one leg CI cannot run. When the
 pass touched `cmd/harness` or `internal/harness`, also run
 `go vet -tags oracle ./cmd/harness/... ./internal/harness/...`, since the gate never builds the
-`//go:build oracle` files. `RUN_GATE_IF_BUSY=defer` is allowed except on a leg the check leaves out
-and on an `auth-data` task.
+`//go:build oracle` files. `RUN_GATE_IF_BUSY=defer` is allowed except on an `auth-data` task.
 
 **Worktree setup**: `npm ci --prefix web` in the new worktree; the gate refuses a worktree without
 `web/node_modules` (`make web: web/node_modules absent`). The beets venv (`tools/venv/`) is
