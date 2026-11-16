@@ -325,7 +325,7 @@ The signed-in header renders in every state, loading included, and
                 <span class="font-medium">{member.display_name}</span>
                 {#if member.admin}<span class="badge">{ADMIN_BADGE_LABEL}</span>{/if}
               </div>
-              <div class="font-mono flex flex-wrap gap-x-1 text-xs opacity-70">
+              <div class="font-mono flex flex-wrap gap-x-1 text-xs">
                 <!-- The separator trails the address, glued on with a non-breaking
                      space, and each part is its own nowrap span: a wrap can only
                      land between the parts, so a wrapped line never starts with a
@@ -337,14 +337,14 @@ The signed-in header renders in every state, loading included, and
               {#if member.admin}
                 <button
                   type="button"
-                  class="btn btn-sm min-h-11"
+                  class="btn"
                   aria-label={demoteControlLabel(member.display_name)}
                   onclick={(event) => ask('demote', member, event)}
                 >{DEMOTE_CONTROL}</button>
               {/if}
               <button
                 type="button"
-                class="btn btn-sm min-h-11"
+                class="btn"
                 aria-label={removeControlLabel(member.display_name)}
                 onclick={(event) => ask('remove', member, event)}
               >{REMOVE_CONTROL}</button>
@@ -411,7 +411,7 @@ The signed-in header renders in every state, loading included, and
           bind:value={username}
           bind:this={usernameInput}
         />
-        <p id="username-hint" class="text-sm opacity-70">{ADD_MEMBER_HINTS.username}</p>
+        <p id="username-hint" class="text-sm">{ADD_MEMBER_HINTS.username}</p>
       </fieldset>
       <button type="submit" class="btn btn-primary" aria-disabled={submitting || undefined}>{ADD_MEMBER_SUBMIT}</button>
     </form>
@@ -421,8 +421,8 @@ The signed-in header renders in every state, loading included, and
           <span id="roster-outcome-text" tabindex="-1">{notice.text}</span>
           {#if notice.reauthenticate}
             <div class="flex flex-wrap gap-2">
-              <a href={resolve('login')} target="_blank" rel="noopener" class="btn btn-sm min-h-11">{REAUTH_SIGN_IN}</a>
-              <button type="button" class="btn btn-sm btn-primary min-h-11" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
+              <a href={resolve('login')} target="_blank" rel="noopener" class="btn">{REAUTH_SIGN_IN}</a>
+              <button type="button" class="btn btn-primary" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
             </div>
           {/if}
         </div>
@@ -439,8 +439,8 @@ The signed-in header renders in every state, loading included, and
         <div class="modal-action">
           <!-- Cancel opens focused, the safe default for a destructive confirm. -->
           <!-- svelte-ignore a11y_autofocus -->
-          <button type="button" class="btn min-h-11" autofocus onclick={() => confirmDialog?.close()}>{CONFIRM_CANCEL}</button>
-          <button type="button" class="btn btn-error min-h-11" onclick={confirm}>
+          <button type="button" class="btn" autofocus onclick={() => confirmDialog?.close()}>{CONFIRM_CANCEL}</button>
+          <button type="button" class="btn btn-error" onclick={confirm}>
             {pending?.kind === 'demote' ? CONFIRM_DEMOTE : CONFIRM_REMOVE}
           </button>
         </div>

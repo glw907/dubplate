@@ -138,10 +138,10 @@ now round `engine`.
 - [ ] #18 The rendered gate reaches the add-member username field only through `duplicate_username`
   (`web/scripts/rendered/run.ts`); the client-side pattern refusal is never exercised. Add a row. Found by the
   navidrome-removal close, 2026-10-06 #web *(swept 2026-11-15)*
-- [ ] #19 The add-member hint text uses `opacity-70` on `base-content`
+- [x] #19 The add-member hint text uses `opacity-70` on `base-content`
   (`web/src/routes/members/+page.svelte:323`, and the roster line at `:252`), a contrast the theme gate does not
   measure. Measure it or use a token with a gated pair. Found by the navidrome-removal close, 2026-10-06
-  #web #pass:cleanup-web
+  #web *(closed by pass cleanup-web, 2026-11-16: the class is gone, the text takes `base-content`)*
 - [ ] #20 No rendered row asserts the autofill-ignore attributes (`autocomplete=off`, `data-1p-ignore`,
   `data-lpignore`) on the add-member Address and Username fields. Add one assertion. Found by the
   navidrome-removal close, 2026-10-06 #web *(swept 2026-11-15)*

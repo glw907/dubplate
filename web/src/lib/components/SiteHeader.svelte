@@ -107,7 +107,7 @@ live region.
       </a>
     </nav>
     <div class="navbar-end gap-2">
-      <button type="button" class="btn btn-ghost min-h-11 text-neutral-content" onclick={signOut}>{SIGN_OUT_CONTROL}</button
+      <button type="button" class="btn btn-ghost text-neutral-content" onclick={signOut}>{SIGN_OUT_CONTROL}</button
       >
       <label class="swap h-11 w-11">
         <input type="checkbox" aria-label={THEME_TOGGLE_LABEL} checked={dark} onchange={onToggleChange} />

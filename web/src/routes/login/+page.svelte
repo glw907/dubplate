@@ -117,7 +117,7 @@ the layout's live regions. `main` is the root layout's skip-link target
     <section id="outcome">
       <h2 tabindex="-1" bind:this={momentHeading} class="display text-xl">{titleState}</h2>
       <p>{outcomeText(moment.outcome, moment.adminContact)}</p>
-      <button type="button" class="link link-primary" onclick={useDifferentAddress}>{SENT_ESCAPE_HATCH}</button>
+      <button type="button" class="link link-primary inline-flex min-h-11 items-center" onclick={useDifferentAddress}>{SENT_ESCAPE_HATCH}</button>
     </section>
   {:else}
     <form onsubmit={submit} class="flow">

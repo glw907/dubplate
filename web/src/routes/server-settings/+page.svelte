@@ -296,8 +296,8 @@ The signed-in header renders in every state, loading included, and
           <span>{notice.text}</span>
           {#if notice.reauthenticate}
             <div class="flex flex-wrap gap-2">
-              <a href={resolve('login')} target="_blank" rel="noopener" class="btn btn-sm min-h-11">{REAUTH_SIGN_IN}</a>
-              <button type="button" class="btn btn-sm btn-primary min-h-11" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
+              <a href={resolve('login')} target="_blank" rel="noopener" class="btn">{REAUTH_SIGN_IN}</a>
+              <button type="button" class="btn btn-primary" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
             </div>
           {/if}
         </div>
@@ -310,11 +310,11 @@ The signed-in header renders in every state, loading included, and
         <li class="list-row">
           <div class="list-col-grow flow">
             <div class="flex flex-wrap items-center gap-2">
-              <label class="font-mono text-[13px] font-medium" for={fieldId(e.name)}>{e.name}</label>
+              <label class="font-mono text-xs font-medium" for={fieldId(e.name)}>{e.name}</label>
               <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
             </div>
             <p class="first-letter:uppercase">{e.description}</p>
-            <p class="text-sm opacity-70">
+            <p class="text-sm">
               {sourceLine(e)} {applyLine(e)}
             </p>
           </div>
@@ -337,11 +337,11 @@ The signed-in header renders in every state, loading included, and
               aria-describedby={notice?.key === e.name ? 'settings-outcome' : undefined}
               bind:value={drafts[e.name]}
             />
-            <button type="submit" class="btn btn-primary btn-sm min-h-11" aria-label={saveSettingLabel(e.name)} aria-disabled={busy || undefined}>{SETTING_SAVE}</button>
+            <button type="submit" class="btn btn-primary" aria-label={saveSettingLabel(e.name)} aria-disabled={busy || undefined}>{SETTING_SAVE}</button>
             {#if e.source === 'admin'}
               <button
                 type="button"
-                class="btn btn-sm min-h-11"
+                class="btn"
                 aria-label={resetSettingLabel(e.name)}
                 aria-disabled={busy || undefined}
                 onclick={() => void reset(e.name)}
@@ -358,11 +358,11 @@ The signed-in header renders in every state, loading included, and
         <li class="list-row">
           <div class="list-col-grow flow">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono text-[13px] font-medium">{e.name}</span>
+              <span class="font-mono text-xs font-medium">{e.name}</span>
               <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
             </div>
             <p class="first-letter:uppercase">{e.description}</p>
-            <p class="text-sm opacity-70">{e.value !== undefined ? environmentValueLine(e.value) : ENVIRONMENT_ONLY_LINE}</p>
+            <p class="text-sm">{e.value !== undefined ? environmentValueLine(e.value) : ENVIRONMENT_ONLY_LINE}</p>
           </div>
         </li>
       {/each}

@@ -11,8 +11,8 @@ export type OutcomeClass = 'status' | 'warning' | 'error';
 
 /**
  * The state table's own "Class" column: a status announces politely
- * and carries no alert modifier, a warning is something that failed on
- * the server's own end rather than a refusal. Every outcome missing
+ * and carries no alert modifier, a warning is a failure on the way to
+ * the server or on its end rather than a refusal. Every outcome missing
  * from this table is an error, the default that covers every refusal
  * the dictionary names.
  */
@@ -23,7 +23,8 @@ const OUTCOME_CLASS: Record<string, OutcomeClass> = {
   rate_limited: 'status',
   signed_in: 'status',
   signed_out: 'status',
-  failed: 'warning'
+  failed: 'warning',
+  network_failure: 'warning'
 };
 
 export function outcomeClass(outcome: string): OutcomeClass {

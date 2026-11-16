@@ -6,7 +6,8 @@ that passes on every surface, one focus-ring color, and the toggle's mechanism. 
 in the craft fixes from a three-lens refinement audit ("Refinement" below). Geoff closed the
 identity work on 2026-09-25; the items under "Open for rung 7" were shown but not ruled. Revision
 1.3 lands three owed errata (2026-09-25): Permanent Marker's license, a mistyped design-language
-rule citation, and the header focus ring's halo. This spec authors the look that the web surface standard
+rule citation, and the header focus ring's halo. Revision 1.4 (2026-11-16, the `cleanup-web` pass) rewrites the touch-target rule: a plain
+`.btn` carries the 44px target, and `.btn-sm` is not paired with `min-h-11`. This spec authors the look that the web surface standard
 (`2026-09-12-web-surface-standard.md`, W below) leaves open in W1.1 ("Rung 7 authors the look"),
 and it lands inside the mechanisms the design-language standard
 (`2026-09-07-design-language-standard.md`, DL below) already fixes. It decides the palette, the
@@ -249,8 +250,8 @@ contracts are unchanged):
 - Touch targets come from `--size-field`, which sizes buttons, inputs, and selects alike. At
   `0.28125rem` and the default 16px root, a plain `.btn` measures 45px, over the 44px comfort
   floor (WCAG 2.5.5, the AAA target; the AA floor in 2.5.8 is 24px), for every plain button at
-  once. `.btn-sm` still computes to eight times the token (36px), so each small button carries
-  `min-h-11` itself. Set the token in every theme block.
+  once. `.btn-sm` computes to eight times the token (36px), so it is not used where a touch
+  target is wanted, and no control pairs it with `min-h-11`. Set the token in every theme block.
 - An alert holds at most an icon and one content wrapper. DaisyUI 5's `.alert` is a grid with one
   column per direct child, so a heading, paragraphs, and buttons placed directly in it render as
   side-by-side columns, and `flex-col` on it does nothing. Put the heading, paragraphs, and

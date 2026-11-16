@@ -2524,7 +2524,7 @@ async function killSwitchRow(browser: Browser, endpoints: Endpoints): Promise<vo
  */
 type OutcomeClass = 'status' | 'warning' | 'error';
 function outcomeClass(outcome: string): OutcomeClass {
-  if (outcome === 'failed') return 'warning';
+  if (outcome === 'failed' || outcome === 'network_failure') return 'warning';
   if (
     outcome === 'sent' ||
     outcome === 'requested' ||
@@ -2693,7 +2693,7 @@ const LOGIN_CASES: LoginCase[] = [
   },
   { id: 'auth/login/failed', address: MEMBER_ADDRESS, mode: 'real', outcome: 'failed', linkRequests: 1 },
   { id: 'auth/login/cross-origin', address: ADMIN_ADDRESS, mode: { status: 403, body: {} }, outcome: 'error', linkRequests: 0 },
-  { id: 'auth/login/network-failure', address: ADMIN_ADDRESS, mode: 'abort', outcome: 'error', linkRequests: 0 }
+  { id: 'auth/login/network-failure', address: ADMIN_ADDRESS, mode: 'abort', outcome: 'network_failure', linkRequests: 0 }
 ];
 
 /**
@@ -5314,7 +5314,7 @@ async function themeToggleRows(browser: Browser, endpoints: Endpoints, session: 
 
 /**
  * The capture matrix's own five CSS-pixel widths (W4.1) and two
- * emulated color-scheme preferences: every one of the nineteen
+ * emulated color-scheme preferences: every one of the twenty-one
  * {@link CAPTURE_STATES} is rendered at all ten combinations.
  */
 const CAPTURE_WIDTHS = [320, 390, 768, 1440, 2560] as const;
@@ -5333,6 +5333,9 @@ const CAPTURE_DIR = 'rendered-captures';
 /** The square-test floor and advisory sizes (Ruling 8, W4.10). */
 const TOUCH_FLOOR_PX = 24;
 const TOUCH_ADVISORY_PX = 44;
+
+/** The height every visible button must reach at the two narrow widths: a plain `.btn` is 45px, `.btn-sm` 36px. */
+const BUTTON_MIN_HEIGHT_PX = 44;
 
 /** Every element a touch-target row measures: the same activation shapes {@link TABBABLE_SELECTOR} enumerates, minus the catch-all `[tabindex]`, which also matches non-interactive landmarks. */
 const ACTIVATION_SELECTOR =
@@ -5431,6 +5434,28 @@ async function touchTargetReport(page: Page): Promise<TouchReport> {
       controlSelector: `${ACTIVATION_SELECTOR}, label`
     }
   );
+}
+
+/**
+ * Every visible `button` and `.btn`, measured against
+ * {@link BUTTON_MIN_HEIGHT_PX}; the visibility test is
+ * {@link touchTargetReport}'s, so a closed modal's buttons are skipped.
+ */
+async function buttonHeightFailures(page: Page): Promise<TouchViolation[]> {
+  return page.evaluate((min) => {
+    const failures: { label: string; width: number; height: number }[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('button, .btn'))) {
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) continue;
+      if (rect.height < min) {
+        const label = el.id || `${el.tagName.toLowerCase()}:${(el.textContent ?? '').trim().slice(0, 24)}`;
+        failures.push({ label, width: rect.width, height: rect.height });
+      }
+    }
+    return failures;
+  }, BUTTON_MIN_HEIGHT_PX);
 }
 
 /**
@@ -5533,7 +5558,7 @@ interface CaptureArrangement {
 }
 
 /**
- * One of the capture matrix's nineteen page states: an ID matching
+ * One of the capture matrix's twenty-one page states: an ID matching
  * `renderedCaptureStates` (`rendered_test.go`), and how to reach it in a
  * fresh, schemed context, once for all five widths. `rosterBaseline` is the member count
  * the roster was just reset to.
@@ -5652,6 +5677,16 @@ const CAPTURE_STATES: CaptureState[] = [
     }
   },
   {
+    id: 'login/network-failure',
+    async arrange(context, endpoints) {
+      await context.route('**/request-link', (route) => route.abort('failed'));
+      const arranged = await loginAddressOutcomeArrange(context, endpoints, ADMIN_ADDRESS, NETWORK_FAILURE, 'network-failure');
+      const cls = (await arranged.page.locator('#outcome').getAttribute('class')) ?? '';
+      const warning = cls.split(/\s+/).includes('alert-warning');
+      return { ...arranged, ok: arranged.ok && warning, detail: `${arranged.detail}; #outcome class ${JSON.stringify(cls)} (want alert-warning)` };
+    }
+  },
+  {
     id: 'interstitial/ready',
     async arrange(context, endpoints) {
       const { visit } = await open(context, endpoints.captureInterstitialReadyLink, 'load');
@@ -5744,6 +5779,25 @@ const CAPTURE_STATES: CaptureState[] = [
       }
       const text = ok ? ((await visit.page.getByText(ROSTER_EMPTY_STATE, { exact: true }).textContent()) ?? '').trim() : '';
       return { page: visit.page, ok: ok && text === ROSTER_EMPTY_STATE, detail: `empty-roster text ${JSON.stringify(text)}` };
+    }
+  },
+  {
+    id: 'members/network-failure',
+    async arrange(context, endpoints) {
+      const link = await mintCaptureLink(endpoints, 'admin');
+      const visit = await signIn(context, link);
+      visit.expectsAuthErrorStatus = true;
+      await context.route('**/api/v1/list_members', (route) => route.abort('failed'));
+      await visit.page.goto(new URL('members', endpoints.base).href);
+      const alert = visit.page.locator('.alert.alert-warning').filter({ hasText: NETWORK_FAILURE });
+      let ok = true;
+      try {
+        await alert.waitFor({ timeout: BOOT_TIMEOUT_MS });
+      } catch {
+        ok = false;
+      }
+      const count = ok ? await alert.count() : 0;
+      return { page: visit.page, ok: ok && count === 1, detail: `network-failure alert-warning count ${count} (want 1)` };
     }
   },
   {
@@ -6077,9 +6131,9 @@ async function composeContactSheet(browser: Browser, cells: { width: number; sch
 }
 
 /**
- * The capture matrix: every one of {@link CAPTURE_STATES}' nineteen
+ * The capture matrix: every one of {@link CAPTURE_STATES}' twenty-one
  * page states, at every {@link CAPTURE_WIDTHS} width in both
- * {@link CAPTURE_SCHEMES}, 190 captures from 38 browser contexts. Each
+ * {@link CAPTURE_SCHEMES}, 210 captures from 42 browser contexts. Each
  * state and scheme resets the fixture roster to its baseline, opens one
  * schemed context, and stands up and asserts the state once; each width
  * then resizes that page and settles it ({@link settleCapture}) before
@@ -6128,14 +6182,20 @@ async function captureRows(browser: Browser, endpoints: Endpoints): Promise<void
             const secondary = await secondaryControlViolations(arranged.page);
             const overflow = width === 320 || width === 390 ? await overflowReport(arranged.page) : null;
             const touch = await touchTargetReport(arranged.page);
+            const shortButtons = width === 320 || width === 390 ? await buttonHeightFailures(arranged.page) : [];
             const property =
-              unsettled === null && secondary.length === 0 && overflow === null && touch.count > 0 && touch.failures.length === 0;
+              unsettled === null &&
+              secondary.length === 0 &&
+              overflow === null &&
+              touch.count > 0 &&
+              touch.failures.length === 0 &&
+              shortButtons.length === 0;
             await report(
               {
                 id,
                 fixture: true,
                 property,
-                detail: `${arranged.detail}; ${settled}; secondary-control violations ${JSON.stringify(secondary)}; overflow ${overflow ? JSON.stringify(overflow) : 'none'}; touch targets ${touch.count} controls, failures ${JSON.stringify(touch.failures)}, advisory (<${TOUCH_ADVISORY_PX}px) ${JSON.stringify(touch.advisories)}, excepted ${JSON.stringify(touch.excepted)}`
+                detail: `${arranged.detail}; ${settled}; secondary-control violations ${JSON.stringify(secondary)}; overflow ${overflow ? JSON.stringify(overflow) : 'none'}; touch targets ${touch.count} controls, failures ${JSON.stringify(touch.failures)}, advisory (<${TOUCH_ADVISORY_PX}px) ${JSON.stringify(touch.advisories)}, excepted ${JSON.stringify(touch.excepted)}; buttons under ${BUTTON_MIN_HEIGHT_PX}px ${JSON.stringify(shortButtons)}`
               },
               reportOptions
             );
