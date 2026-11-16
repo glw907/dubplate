@@ -92,8 +92,6 @@ var ownedWall = []WallRow{
 
 // ownedNow reports whether name is an owned row in r, one [Load]
 // requires.
-//
-// ruled, conductor 2026-09-07, R1
 func (r *Registry) ownedNow(name string) bool {
 	return slices.ContainsFunc(r.ownedWall, func(row WallRow) bool { return row.Name == name })
 }
@@ -143,8 +141,6 @@ var reservedClasses = []ReservedClass{
 }
 
 // reservedClassOf reports the class name belongs to in r, if any.
-//
-// ruled, conductor 2026-09-07, R1
 func (r *Registry) reservedClassOf(name string) (ReservedClass, bool) {
 	for _, class := range r.reservedClasses {
 		if slices.Contains(class.Keys, name) {
@@ -190,8 +186,6 @@ var supersededKeys = map[string]string{
 
 // supersessionOf reports the disposition message r carries for a
 // superseded name, if any.
-//
-// ruled, conductor 2026-09-07, R1
 func (r *Registry) supersessionOf(name string) (string, bool) {
 	msg, ok := r.superseded[name]
 	return msg, ok
@@ -215,8 +209,6 @@ type IntegrationClass struct {
 // r, by its Flag or a Required key, if any. It walks r's own
 // declared classes rather than a package-level table, so a second
 // integration class needs no second lookup site.
-//
-// ruled, conductor 2026-09-07, R5
 func (r *Registry) integrationClassOf(name string) (IntegrationClass, bool) {
 	for _, class := range r.integrationClasses {
 		if name == class.Flag.Name || slices.ContainsFunc(class.Required, func(k KeyDecl) bool { return k.Name == name }) {

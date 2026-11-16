@@ -43,10 +43,6 @@ func TestOwnedWall_RequiredNowRows(t *testing.T) {
 // classification as "identity source" is proved against the production
 // registry instead, in cmd/dubplate-server/templatekeys_test.go's
 // TestClassifyKey_SMTPHostMovedToIdentitySource.
-//
-// DUBPLATE_R2_BUCKET no longer has a found row here either: rung 6
-// retired the "backup targets" reserved class it belonged to, and the
-// name now classifies as superseded instead (TestSupersessionOf).
 func TestReservedClassOf(t *testing.T) {
 	tests := []struct {
 		input     string

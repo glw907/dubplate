@@ -30,8 +30,6 @@ import (
 // gate-resident test constructs the production registry exactly as the
 // binary does, so a collision fails the gate on the lane that
 // introduced it rather than surfacing only when the binary runs.
-//
-// ruled, conductor 2026-09-07, R1
 type Registry struct {
 	ownedWall          []WallRow
 	reservedClasses    []ReservedClass
@@ -63,8 +61,6 @@ type Registry struct {
 // registering into one never changes another, and the same
 // declaration registered into two separately-constructed registries
 // panics in neither.
-//
-// ruled, conductor 2026-09-07, R4
 func NewRegistry() *Registry {
 	r := &Registry{
 		claims:     make(map[string]string),
@@ -192,8 +188,6 @@ func (r *Registry) AddReservedClass(class ReservedClass) {
 // ReservedClasses returns the reserved classes in declaration order,
 // never sorted: doctor prints them in table order, which is not rung
 // order, and that order is the contract (Resolution R15).
-//
-// ruled, conductor 2026-09-07, R15
 func (r *Registry) ReservedClasses() []ReservedClass {
 	return slices.Clone(r.reservedClasses)
 }
@@ -210,8 +204,6 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // with an owned-wall, reserved, or superseded name is refused rather
 // than registering silently. Each carries a description and a
 // sensitive mark, and one without either panics naming the key.
-//
-// ruled, conductor 2026-09-07, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	if class.Flag.Name == "" {
 		panic(fmt.Sprintf("%s: integration class declared with an empty Flag", class.Name))
@@ -257,8 +249,6 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // without a description or a sensitive mark panics naming it. This task builds
 // the check's seat only: rung 1 registers no thresholds, and the kind
 // that motivates the check's own test lands with Task 5.
-//
-// ruled, conductor 2026-09-07, R11
 func (r *Registry) AddThreshold(t Threshold) {
 	requirePrefix(familyThresholds, t.Key)
 	requireDescribed(familyThresholds, t.Key, t.Description, t.Mark)
@@ -283,8 +273,6 @@ func (r *Registry) AddThreshold(t Threshold) {
 // KindString's own invalid Default is the empty string, checked here
 // beside the parse, since every string parses; the reason is
 // [ParseString]'s own doc.
-//
-// ruled, conductor 2026-09-07, R11
 func validateThresholdDefault(t Threshold) {
 	_, err := t.Kind.Parse(t.Default)
 	switch {
@@ -351,8 +339,6 @@ type IdentitySource struct {
 	// therefore checks a value only when values carries it. Its error
 	// joins Load's others. A nil Validate is a source with no value
 	// rules of its own.
-	//
-	// ruled, conductor 2026-09-12, B2
 	Validate func(values map[string]string, environ []string) error
 }
 
@@ -512,8 +498,6 @@ func (r *Registry) CorrelatedRules() []CorrelatedRule {
 // for it. The superseded family stays a map rather than a slice
 // because no caller enumerates it: supersessionOf is a single lookup,
 // and order is meaningless for one (Resolution R8).
-//
-// ruled, conductor 2026-09-07, R8
 func (r *Registry) AddSuperseded(name, reason string) {
 	requirePrefix(familySuperseded, name)
 	if _, ok := r.superseded[name]; ok {

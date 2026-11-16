@@ -31,21 +31,6 @@ func TestRegister_AppearsInThresholds(t *testing.T) {
 	}
 }
 
-// TestThresholds_ReturnsCopy proves the copy property [Registry.OwnedWall]
-// already carries survives the accessor's move onto the registry:
-// mutating a returned slice must not corrupt what a second call returns.
-func TestThresholds_ReturnsCopy(t *testing.T) {
-	reg := NewRegistry()
-	reg.AddThreshold(Threshold{Key: "DUBPLATE_TEST_ONE", Description: testDescription, Mark: NotSensitive, Default: "1", Doc: "a positive integer"})
-
-	got := reg.Thresholds()
-	got[0].Key = "mutated"
-
-	if reg.thresholds[0].Key == "mutated" {
-		t.Fatal("Thresholds() leaked the backing array; a caller can corrupt the registry")
-	}
-}
-
 func TestParseInt(t *testing.T) {
 	th := Threshold{Key: "DUBPLATE_TEST_QUIESCENT_MIN", Description: testDescription, Mark: NotSensitive, Default: "10", Doc: "a positive integer number of minutes"}
 

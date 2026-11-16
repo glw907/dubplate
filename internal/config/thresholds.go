@@ -11,8 +11,6 @@ import (
 // ThresholdKind names the parser a threshold's value is read through.
 // KindInt is the zero value, so a Threshold declared before this field
 // existed keeps its meaning.
-//
-// ruled, conductor 2026-09-07, R11
 type ThresholdKind int
 
 const (

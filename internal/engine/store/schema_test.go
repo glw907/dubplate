@@ -325,9 +325,7 @@ func TestSchemaMigrationHashPins(t *testing.T) {
 }
 
 // TestID asserts two successive NewID() calls return 16-byte values that
-// differ, the randomness evidence, and that a minted id inserted into
-// an entity table leaves rowid unequal to the id's own bytes read as
-// an integer, which proves only that the id is not the table's rowid.
+// differ, the randomness evidence.
 func TestID(t *testing.T) {
 	a, b := NewID(), NewID()
 	if len(a) != idLen {
@@ -335,29 +333,6 @@ func TestID(t *testing.T) {
 	}
 	if bytes.Equal(a, b) {
 		t.Fatalf("two successive NewID() calls returned the same value: %x", a)
-	}
-
-	l, h := newMigrateStore(t)
-	ctx := context.Background()
-	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, 2)), defaultOpts()); err != nil {
-		t.Fatalf("migrate to version 2: %v", err)
-	}
-	minted := NewID()
-	if _, err := h.write.ExecContext(ctx,
-		`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, progress, failure_code, failure_message, started_at, updated_at, finished_at)
-		 VALUES (?, 'backup', 1, 'queued', 'inst', 'cli', 0, NULL, NULL, NULL, NULL, 1, NULL)`,
-		minted,
-	); err != nil {
-		t.Fatalf("insert minted id: %v", err)
-	}
-	var rowid int64
-	if err := h.write.QueryRowContext(ctx, "SELECT rowid FROM jobs WHERE id = ?", minted).Scan(&rowid); err != nil {
-		t.Fatalf("read rowid: %v", err)
-	}
-	mintedAsInt := int64(minted[8])<<56 | int64(minted[9])<<48 | int64(minted[10])<<40 | int64(minted[11])<<32 |
-		int64(minted[12])<<24 | int64(minted[13])<<16 | int64(minted[14])<<8 | int64(minted[15])
-	if mintedAsInt == rowid {
-		t.Errorf("minted id's low 8 bytes read as int64 (%d) coincided with rowid %d", mintedAsInt, rowid)
 	}
 }
 

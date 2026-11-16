@@ -328,8 +328,6 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 // unknown. Owned rows are validated by their own require calls, not
 // here, so a valid owned value is never flagged. Names are walked in
 // sorted order so the joined refusal reads the same on every run.
-//
-// ruled, conductor 2026-09-07, R1
 func (w *wall) rejectNamespace(reg *Registry) {
 	for _, name := range slices.Sorted(maps.Keys(w.env)) {
 		if !strings.HasPrefix(name, "DUBPLATE_") || reg.ownedNow(name) {
@@ -356,7 +354,7 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			continue
 		}
 		if class, ok := reg.reservedClassOf(name); ok {
-			w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("reserved for %s, arrives at rung %d", class.Name, class.Rung)})
+			w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("reserved for %s", class.Name)})
 			continue
 		}
 		if msg, ok := reg.supersessionOf(name); ok {
@@ -440,8 +438,6 @@ func (w *wall) resolveIdentitySource(sources []IdentitySource, environ []string)
 // rung that registers an owned-now wall row or an identity source from
 // its own file gets the requirement from the registration
 // (Resolution R-5b4).
-//
-// ruled, conductor 2026-09-07, R1
 func Load(environ []string, reg *Registry) (*Config, error) {
 	w := newWall(environ)
 

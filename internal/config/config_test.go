@@ -93,7 +93,7 @@ func TestLoad_ContractTable(t *testing.T) {
 			name:       "reserved key early",
 			environ:    append(baseEnviron(), "DUBPLATE_INBOX_DIR=x"),
 			wantErr:    true,
-			errContain: []string{"pipeline", "rung 9"},
+			errContain: []string{"pipeline"},
 		},
 		{
 			name:       "deleted, dubplate_navidrome_url",
