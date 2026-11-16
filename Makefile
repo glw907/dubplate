@@ -44,9 +44,11 @@ tidy-check:
 	go mod tidy
 	git diff --exit-code -- go.mod go.sum
 
-# The web legs run today: `web` requires Node and npm, refuses a stale
-# or drifted `npm ci --prefix web`, builds the SvelteKit static bundle,
-# then runs svelte-check and the static web gates (no server-only file,
+# The web legs run today: `web-build` requires Node and npm, refuses a
+# stale or drifted `npm ci --prefix web`, and builds the SvelteKit static
+# bundle once. A scoped run with no web change stops there, since the Go
+# tests only need a current bundle. `web` runs `web-build`, then
+# svelte-check and the static web gates (no server-only file,
 # no hardcoded color, no external origin, font delivery, theme
 # variable completeness, theme contrast, the built bundle's stamped
 # theme values, no root-absolute URL, no AI-writing tell in a
@@ -56,7 +58,7 @@ tidy-check:
 # reproducible. `check` runs it first because the Go tests that read
 # the embedded bundle need it current before `go test` runs; the
 # rendered (browser) gates are the separate web-rendered target.
-web:
+web-build:
 	set -e; \
 	if ! command -v node >/dev/null 2>&1; then \
 		echo "make web: node not found on PATH; install it via mise (mise use -g node@lts)." >&2; \
@@ -92,7 +94,10 @@ web:
 	fi; \
 	rm -f "$$npm_ls_log"; \
 	(cd web && node scripts/gates/install-state.ts); \
-	npm run build --prefix web; \
+	npm run build --prefix web
+
+web: web-build
+	set -e; \
 	build_first="$$(mktemp)"; \
 	build_second="$$(mktemp)"; \
 	trap 'rm -f "$$build_first" "$$build_second"' EXIT; \
@@ -182,4 +187,4 @@ subsonic-xsd:
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check web web-rendered derive unidecode-wheel subsonic-xsd clean
+.PHONY: build build-linux test vet lint install tidy-check check web web-build web-rendered derive unidecode-wheel subsonic-xsd clean

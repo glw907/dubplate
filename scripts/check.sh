@@ -13,7 +13,7 @@ set -euo pipefail
 # Playwright's own Chromium, so every full gate launches a browser.
 # Shellcheck still covers the scripts that remain (deploy.sh, check.sh
 # itself, vale-comments.sh, provision.sh), ruff covers the oracle shim's
-# Python, and gitleaks scans the whole tree in the full form (the corpus
+# Python, the photo pool leg checks the committed photo records, and gitleaks scans the whole tree in the full form (the corpus
 # under corpus/cases/ is the repo's first large data directory, and a
 # check either gates or does not exist). Exits nonzero on any failure so
 # it can be wired into CI or a pre-push hook unmodified.
@@ -28,8 +28,8 @@ set -euo pipefail
 # internals in a hand-composed command line:
 #
 #   check.sh                  the full gate over the whole tree. The form
-#                             every boundary, every merge gate, and every
-#                             pass end runs. Nothing is scoped away.
+#                             every merge gate and every pass end runs.
+#                             Nothing is scoped away.
 #   check.sh --scope-changed  the full leg list, with two legs narrowed to
 #                             what the tree actually changed: gitleaks
 #                             scans the derived change set, and the
@@ -47,18 +47,21 @@ set -euo pipefail
 #                             tests that read source through a go list
 #                             subprocess, which the cache cannot see,
 #                             run uncached inside `make test`. The
-#                             bundle is built once, and `make check` is
-#                             not called. Every other leg runs exactly
-#                             as in the full form.
+#                             bundle is built once, with no svelte-check
+#                             or static web gate, unless the rendered
+#                             leg is selected; then `make web` runs as
+#                             in the full form. `make check` is not
+#                             called. Every other leg runs exactly as in
+#                             the full form.
 #   check.sh --reduced        the comment-only and docs-only form: vale
 #                             over Go comments, shellcheck, gitleaks over
 #                             the change set, and gofmt, go vet and go
 #                             test over the changed packages only, plus
 #                             svelte-check when a web/ path changed; the
-#                             rendered leg does not run. Never
-#                             the final gate on master and never a
-#                             boundary gate; a change that reaches master
-#                             has had the full form run over it.
+#                             rendered leg does not run. Never the
+#                             final gate on master: a change that
+#                             reaches master has had the full form run
+#                             over it.
 #   check.sh --merge          the close run's in-tree gate: the full
 #                             gate plus one gitleaks pass over the
 #                             branch's own commit range, master..HEAD,
@@ -83,7 +86,7 @@ set -euo pipefail
 # with master on a branch and HEAD~1 on master. Git still derives every
 # file: the tracked diff against the base plus the untracked files.
 # The validation catches a malformed or unrelated base; a later commit
-# passed by mistake would narrow the scope, but every boundary, merge,
+# passed by mistake would narrow the scope, but every merge,
 # and close runs the full form.
 #
 # Each changed path takes one class, rows matched in this order:
@@ -126,12 +129,11 @@ set -euo pipefail
 #
 #   CHECK_CITATIONS=warn|fail       (default warn) process citations in
 #       Go comments under cmd/ and internal/. The backlog is the tree's
-#       existing citation lines; the default flips to fail at the
-#       comment-cleanup task that clears them.
+#       existing citation lines; the leg gates in round `engine`, which
+#       clears them.
 #   CHECK_EXPORTED_UNUSED=warn|fail (default warn) exported identifiers
 #       under internal/ whose only references are their own file and
-#       _test.go files. The default flips to fail once the dead surfaces
-#       it names are either consumed or deleted.
+#       _test.go files. The leg stays a warning.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -234,28 +236,14 @@ leg() {
   echo "== $1 =="
 }
 
-if ! command -v go >/dev/null 2>&1; then
-  echo "check.sh: go not found; install it." >&2
-  exit 1
-fi
-if ! command -v golangci-lint >/dev/null 2>&1; then
-  echo "check.sh: golangci-lint not found; install it." >&2
-  exit 1
-fi
-if ! command -v shellcheck >/dev/null 2>&1; then
-  echo "check.sh: shellcheck not found; install it (brew install shellcheck)." >&2
-  exit 1
-fi
-if ! command -v ruff >/dev/null 2>&1; then
-  echo "check.sh: ruff not found; install it (uv tool install ruff)." >&2
-  exit 1
-fi
-if ! command -v gitleaks >/dev/null 2>&1; then
-  echo "check.sh: gitleaks not found; install it (brew install gitleaks)." >&2
-  exit 1
-fi
-if ! command -v systemd-analyze >/dev/null 2>&1; then
-  echo "check.sh: systemd-analyze not found; install systemd (it verifies every unit under systemd/)." >&2
+missing_tools=0
+for tool in go golangci-lint shellcheck ruff gitleaks systemd-analyze; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "check.sh: $tool not found; install it." >&2
+    missing_tools=1
+  fi
+done
+if [ "$missing_tools" -eq 1 ]; then
   exit 1
 fi
 
@@ -269,7 +257,7 @@ fi
 # string, and it is an ancestor of HEAD. Anything else (an abbreviation,
 # a ref name, a missing object, a non-ancestor, shell metacharacters)
 # promotes the run to the full form. A later commit passed by mistake
-# would narrow the scope, but every boundary, merge, and close runs the
+# would narrow the scope, but every merge and close runs the
 # full form. Without --base the base is the merge base with master on a
 # branch, and HEAD~1 on master itself, so a run on master still has a
 # change set rather than an empty one. `git diff --name-only <base>`
@@ -382,7 +370,7 @@ classify_path() {
   local p="$1" dir
   case "$p" in
   scripts/check.sh | scripts/check-state-dir.sh | scripts/vale-comments.sh | \
-    scripts/checks/* | Makefile | .golangci.yml | .gitleaks.toml | \
+    Makefile | .golangci.yml | .gitleaks.toml | \
     .gitleaksignore | .gitignore | .vale.ini | .vale/* | ruff.toml | \
     go.mod | go.sum | web/package.json | web/package-lock.json | \
     web/scripts/gates/* | web/scripts/rendered/* | tools/photos/*)
@@ -394,15 +382,11 @@ classify_path() {
     return
     ;;
   esac
-  dir="$(dirname "$p")"
-  while :; do
-    if [ -n "${go_pkg_dirs[$dir]+x}" ]; then
-      echo gopkg
-      return
-    fi
-    [ "$dir" = "." ] && break
-    dir="$(dirname "$dir")"
-  done
+  dir="$(nearest_go_pkg_dir "$p")"
+  if [ -n "$dir" ]; then
+    echo gopkg
+    return
+  fi
   case "$p" in
   corpus/*) echo corpus ;;
   photos/*) echo photos ;;
@@ -598,11 +582,17 @@ run_gitleaks_scoped() {
 }
 
 if [ "$mode" = "scope-changed" ]; then
-  # `web` builds the bundle the Go tests read, so it runs ahead of
-  # every narrowed Go target here too, not only inside `make check`'s
-  # own prerequisite.
-  leg "make web"
-  if ! make web; then
+  # The Go tests read the embedded bundle, so one build runs ahead of
+  # every narrowed Go target. The whole `web` target, with its second
+  # build, svelte-check and the static gates, runs only when the change
+  # set selected the rendered leg: a web path changed, or a package the
+  # gates read (internal/auth, internal/ops) is in the rendered set.
+  web_target=web-build
+  if [ "$scope_rendered" = "run" ]; then
+    web_target=web
+  fi
+  leg "make $web_target"
+  if ! make "$web_target"; then
     status=1
   fi
 fi
@@ -641,7 +631,7 @@ fi
 
 if [ "$mode" = "reduced" ]; then
   # The comment-only form skips the static web gates and the rendered
-  # leg (never a boundary gate), and runs svelte-check only when a web/
+  # leg (never a full gate), and runs svelte-check only when a web/
   # path changed. It still rebuilds the bundle, since a stale build is
   # the one state every form refuses to read from.
   echo "check.sh: the reduced form skips the rendered leg."
@@ -764,7 +754,7 @@ if [ "$mode" = "merge" ]; then
   # Without --no-git gitleaks reads commits rather than the worktree, so
   # this is the leg that sees a secret a later commit on the same branch
   # removed. The worktree is clean of it by then and every --no-git scan,
-  # boundary scans included, reports no leaks while the blob stays in the
+  # full-form scans included, reports no leaks while the blob stays in the
   # branch forever.
   if ! git rev-parse --verify --quiet master >/dev/null; then
     echo "check.sh: no master ref in this tree, so the branch-history scan cannot run." >&2
