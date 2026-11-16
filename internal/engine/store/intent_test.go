@@ -32,13 +32,13 @@ const testIncoming = "restore-20260925T120000.000000Z.db"
 // copy, as a restore of a remote snapshot writes it.
 func testIntent(state intentState) intentRecord {
 	return intentRecord{
-		Format:        intentFormat,
-		State:         state,
-		Stamp:         testStamp,
-		RestoreIntent: RestoreIntent{Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z"},
-		Incoming:      testIncoming,
-		PreRestore:    "pre-restore-20260925T120000.000000Z.db",
-		Version:       2,
+		Format: intentFormat,
+		State:  state,
+		Stamp:  testStamp,
+		Remote: "remote:dubplate", Snapshot: "20260924T030000.000000Z",
+		Incoming:   testIncoming,
+		PreRestore: "pre-restore-20260925T120000.000000Z.db",
+		Version:    2,
 	}
 }
 
