@@ -1,5 +1,12 @@
 # dubplate status
 
+<!-- round-report cleanup -->
+**Round cleanup has started: pass 1 is planning.** Geoff approved the start on 2026-11-16 (document
+`20261116-042624-28c2c2`). Pass 1 (`cleanup-ci`) plans from `origin/master`; nothing waits for Geoff yet, nothing has
+deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
+Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
+<!-- /round-report -->
+
 ## Current state
 `intake-1` is the last product pass on master. Nothing deploys: a passing album waits in `matching` with no exit
 until `intake-2`'s match probe lands. The landed rungs and the run order are in BACKLOG, "Path to 0.8". Work a later
@@ -14,11 +21,8 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Round `cleanup` is approved and held. Geoff is changing the round-based development pattern and said on
-2026-11-15 to hold the round until that work is complete. No session launches it until he says to. Nothing of the
-round has run: no worktree, branch, or pull request exists. On his word, read the design and the prompts beside it
-under `plans/` (`2026-11-15-cleanup-conductor-prompt.txt` and five planner prompts) against the changed pattern,
-revise them where it differs, then launch as the pattern then says.
+Round `cleanup` is running under `conductor-dubplate`, per the round block at the top. Resume a dead conductor from
+the prompt named there.
 
 ## Coordination
 The workstation's Claude infrastructure is under its own plan: the `workstation-refinement` initiative
