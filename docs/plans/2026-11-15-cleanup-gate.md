@@ -71,6 +71,15 @@ The 130 s line fails on time too. The whole target with the extra shot ran 155 s
 3. Add a probe task first, about 30 min: try Chromium launch flags that make a resized page paint the way a fresh
    one does, then choose between 1 and 2 on the result. It may find nothing.
 
+## Rulings
+
+Geoff answered the stop above through decide document `20261116-080113-a56d02` on 2026-11-16 (approve):
+
+1. The rule for the rendered test file: "The adapter's list wins." Task T2, which edits `cmd/dubplate-server/rendered_test.go`, is `auth-data`: the plan follows the adapter's path map (test first, an `opus` pair, a task-scope review, the security read at the close). The pass is class `auth-data`, so it waits for the close packet with passes 3 to 5.
+2. The rendered-leg item: "Spend 30 minutes first" on Chromium launch flags that make a resized page paint like a fresh one, then pick between rewording item 3 (keep the 38 contexts, differences only on the alert-edge columns, leg under 160 s) and keeping the pixel clause with no change to contexts. Geoff named no fallback. The executor takes the advisor's choice if the probe finds nothing, as `advisor.md` "What the answer allows" says, and raises it under `## Calls for Geoff` as an `[advisor]` line.
+
+The conductor applies the pick on item 2 to pass 4's first acceptance item, which uses the same no-tolerance comparison, unless Geoff says otherwise.
+
 ## Pre-flight
 
 No step needs Geoff before the launch, apart from the answer above. The pass needs no secret, sign-in, setting,
