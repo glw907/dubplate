@@ -351,7 +351,7 @@ func TestOpenWrite_Current(t *testing.T) {
 	if h.lock == nil {
 		t.Fatal("handle holds no lock")
 	}
-	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, ErrLockBusy) {
+	if _, err := waitLock(deadline(t, 100*time.Millisecond), l.lockPath, syscall.LOCK_EX, 0, nil); !errors.Is(err, ErrLockBusy) {
 		t.Errorf("exclusive lock while the write handle is open = %v, want busy", err)
 	}
 	if got, err := os.ReadFile(planted); err != nil || string(got) != "staged" {
@@ -1095,7 +1095,7 @@ func TestOpenServe_CurrentKeepsSharedLock(t *testing.T) {
 	if err := a.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := acquireExclusive(deadline(t, 100*time.Millisecond), l.lockPath); !errors.Is(err, ErrLockBusy) {
+	if _, err := waitLock(deadline(t, 100*time.Millisecond), l.lockPath, syscall.LOCK_EX, 0, nil); !errors.Is(err, ErrLockBusy) {
 		t.Errorf("exclusive lock while the serve handle is open = %v, want busy", err)
 	}
 }

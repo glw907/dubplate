@@ -154,7 +154,7 @@ func OpenWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 		return nil, writeRefusal(l, c, len(files))
 	}
 
-	lock, err := acquireShared(ctx, l.lockPath)
+	lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, 0, nil)
 	if err != nil {
 		return nil, fmt.Errorf("open store for writing: %w", err)
 	}
@@ -247,7 +247,7 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 
 	settled := 0
 	for {
-		lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, opts)
+		lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, opts.MigrationWait, opts.Logger)
 		if err != nil {
 			return nil, err
 		}
@@ -260,7 +260,7 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 			return nil, err
 		}
 
-		lock, err = waitLock(ctx, l.lockPath, syscall.LOCK_EX, opts)
+		lock, err = waitLock(ctx, l.lockPath, syscall.LOCK_EX, opts.MigrationWait, opts.Logger)
 		if err != nil {
 			return nil, err
 		}
@@ -376,45 +376,6 @@ func finishRestore(ctx context.Context, l leaf, h *Handle, rec intentRecord, rec
 		return fmt.Errorf("write the reconciliation report: %w", err)
 	}
 	return l.removeIntent()
-}
-
-// waitLock polls for path's lock in mode how (syscall.LOCK_SH or
-// syscall.LOCK_EX) until it wins or opts.MigrationWait passes. While
-// another process holds the lock, it logs the holders on the first
-// failed poll and every holdersLogInterval after. On expiry its error
-// names the holders.
-func waitLock(ctx context.Context, path string, how int, opts ServeOptions) (*storeLock, error) {
-	ctx, cancel := context.WithTimeout(ctx, opts.MigrationWait)
-	defer cancel()
-	want := "shared"
-	if how == syscall.LOCK_EX {
-		want = "exclusive"
-	}
-	logTick := time.NewTicker(holdersLogInterval)
-	defer logTick.Stop()
-
-	logged := false
-	for {
-		lock, err := tryLock(path, how)
-		if err == nil {
-			return lock, nil
-		}
-		if !errors.Is(err, ErrLockBusy) {
-			return nil, err
-		}
-		if !logged {
-			opts.Logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
-			logTick.Reset(holdersLogInterval)
-			logged = true
-		}
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("wait %s for the store lock %s: %w", opts.MigrationWait, want, err)
-		case <-logTick.C:
-			opts.Logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
-		case <-time.After(lockPollInterval):
-		}
-	}
 }
 
 // stat runs the steps every mode takes before the filesystem

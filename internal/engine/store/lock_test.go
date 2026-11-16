@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
@@ -15,7 +16,7 @@ import (
 )
 
 // blockedSignalingCtx wraps a context.Context and closes blocked the
-// first time Done is called. acquireBounded's loop reaches ctx.Done()
+// first time Done is called. waitLock's loop reaches ctx.Done()
 // only after a busy tryLock attempt, never before, so closing blocked
 // proves the waiter made at least one attempt and found the lock held.
 // A caller that waits on blocked before releasing the holder therefore
@@ -58,7 +59,7 @@ func shmLockFile(t *testing.T) string {
 }
 
 // takeRawExclusive holds path's flock exclusively on a fresh
-// descriptor, independent of this package's own acquire functions, so
+// descriptor, independent of this package's own lock functions, so
 // the test proves those functions see a real external holder rather
 // than agreeing with themselves.
 func takeRawExclusive(t *testing.T, path string) {
@@ -77,12 +78,12 @@ func TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid(t *testing.T) {
 	path := shmLockFile(t)
 	takeRawExclusive(t, path)
 
-	_, err := acquireSharedNonblocking(path)
+	_, err := tryLock(path, syscall.LOCK_SH)
 	if err == nil {
-		t.Fatal("acquireSharedNonblocking: want busy error, got nil")
+		t.Fatal("tryLock: want busy error, got nil")
 	}
 	if !errors.Is(err, ErrLockBusy) {
-		t.Errorf("acquireSharedNonblocking error %v does not wrap ErrLockBusy", err)
+		t.Errorf("tryLock error %v does not wrap ErrLockBusy", err)
 	}
 	wantPid := strconv.Itoa(os.Getpid())
 	if !strings.Contains(err.Error(), wantPid) {
@@ -97,15 +98,15 @@ func TestAcquireShared_BoundedByCtx_HeldExclusive(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
 	defer cancel()
 
-	_, err := acquireShared(ctx, path)
+	_, err := waitLock(ctx, path, syscall.LOCK_SH, 0, nil)
 	if err == nil {
-		t.Fatal("acquireShared: want busy error after ctx ends, got nil")
+		t.Fatal("waitLock: want busy error after ctx ends, got nil")
 	}
 	if !errors.Is(err, ErrLockBusy) {
-		t.Errorf("acquireShared error %v does not wrap ErrLockBusy", err)
+		t.Errorf("waitLock error %v does not wrap ErrLockBusy", err)
 	}
 	if ctx.Err() == nil {
-		t.Error("acquireShared returned before its ctx ended")
+		t.Error("waitLock returned before its ctx ended")
 	}
 }
 
@@ -120,7 +121,7 @@ func TestAcquireExclusive_WaitsForSharedRelease(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	holder, err := acquireSharedNonblocking(path)
+	holder, err := tryLock(path, syscall.LOCK_SH)
 	if err != nil {
 		t.Fatalf("acquire shared holder: %v", err)
 	}
@@ -130,8 +131,8 @@ func TestAcquireExclusive_WaitsForSharedRelease(t *testing.T) {
 	// than trivially succeeding regardless of the holder.
 	shortCtx, shortCancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer shortCancel()
-	if _, err := acquireExclusive(shortCtx, path); err == nil {
-		t.Fatal("acquireExclusive: want busy while the shared holder is up, got nil")
+	if _, err := waitLock(shortCtx, path, syscall.LOCK_EX, 0, nil); err == nil {
+		t.Fatal("waitLock: want busy while the shared holder is up, got nil")
 	}
 
 	waiterBlocked := make(chan struct{})
@@ -139,7 +140,7 @@ func TestAcquireExclusive_WaitsForSharedRelease(t *testing.T) {
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		l, err := acquireExclusive(&blockedSignalingCtx{Context: ctx, blocked: waiterBlocked}, path)
+		l, err := waitLock(&blockedSignalingCtx{Context: ctx, blocked: waiterBlocked}, path, syscall.LOCK_EX, 0, nil)
 		if err == nil {
 			err = l.release()
 		}
@@ -154,10 +155,29 @@ func TestAcquireExclusive_WaitsForSharedRelease(t *testing.T) {
 	select {
 	case err := <-acquired:
 		if err != nil {
-			t.Fatalf("acquireExclusive after the shared holder released: %v", err)
+			t.Fatalf("waitLock after the shared holder released: %v", err)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("acquireExclusive did not complete after the shared holder released")
+		t.Fatal("waitLock did not complete after the shared holder released")
+	}
+}
+
+func TestWaitLock_ParentCancelIsNotATimeout(t *testing.T) {
+	path := shmLockFile(t)
+	takeRawExclusive(t, path)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(100*time.Millisecond, cancel)
+
+	_, err := waitLock(ctx, path, syscall.LOCK_SH, 30*time.Second, slog.New(slog.DiscardHandler))
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("error %v does not wrap context.Canceled", err)
+	}
+	if !errors.Is(err, ErrLockBusy) {
+		t.Errorf("error %v does not wrap ErrLockBusy", err)
+	}
+	if err != nil && strings.Contains(err.Error(), "wait ") {
+		t.Errorf("error %q reports a timeout for a parent cancel", err)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"syscall"
@@ -21,8 +22,7 @@ const lockPollInterval = 50 * time.Millisecond
 var ErrLockBusy = errors.New("lock busy")
 
 // storeLock is a held flock(2) lock on store.lock. The zero value is
-// not usable; obtain one from [acquireSharedNonblocking],
-// [acquireShared], or [acquireExclusive].
+// not usable; obtain one from [tryLock] or [waitLock].
 type storeLock struct {
 	file *os.File
 }
@@ -37,51 +37,65 @@ func (l *storeLock) release() error {
 	return nil
 }
 
-// acquireSharedNonblocking makes one attempt at a shared flock on path
-// and returns [ErrLockBusy] immediately if another holder has it
-// exclusively. It never creates path: a missing lock file is a state
-// inspect and write report, not a file they make.
-func acquireSharedNonblocking(path string) (*storeLock, error) {
-	return tryLock(path, syscall.LOCK_SH)
-}
+// waitLock polls for path's lock in mode how (syscall.LOCK_SH or
+// syscall.LOCK_EX) until it wins or ctx ends. A positive bound also
+// ends the wait after that long, and a non-nil log gets the holders on
+// the first failed poll and every holdersLogInterval after. The wait's
+// own timeout reports the bound and the holders; a ctx that ends first
+// reports its cause and wraps [ErrLockBusy], so a cancel never reads
+// as a timeout.
+func waitLock(ctx context.Context, path string, how int, bound time.Duration, log *slog.Logger) (*storeLock, error) {
+	parent := ctx
+	if bound > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, bound)
+		defer cancel()
+	}
+	want := "shared"
+	if how == syscall.LOCK_EX {
+		want = "exclusive"
+	}
+	logHolders := func() {
+		if log != nil {
+			log.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
+		}
+	}
+	logTick := time.NewTicker(holdersLogInterval)
+	defer logTick.Stop()
 
-// acquireShared polls for a shared flock on path at lockPollInterval
-// until it succeeds or ctx ends, whichever comes first.
-func acquireShared(ctx context.Context, path string) (*storeLock, error) {
-	return acquireBounded(ctx, path, syscall.LOCK_SH)
-}
-
-// acquireExclusive polls for an exclusive flock on path at
-// lockPollInterval until it succeeds or ctx ends, whichever comes
-// first.
-func acquireExclusive(ctx context.Context, path string) (*storeLock, error) {
-	return acquireBounded(ctx, path, syscall.LOCK_EX)
-}
-
-// acquireBounded is acquireShared and acquireExclusive's shared poll
-// loop. It returns the last attempt's busy error, naming the lock's
-// holders, when ctx ends before a lock is won.
-func acquireBounded(ctx context.Context, path string, how int) (*storeLock, error) {
+	logged := false
 	for {
-		l, err := tryLock(path, how)
+		lock, err := tryLock(path, how)
 		if err == nil {
-			return l, nil
+			return lock, nil
 		}
 		if !errors.Is(err, ErrLockBusy) {
 			return nil, err
 		}
+		if !logged {
+			logHolders()
+			logTick.Reset(holdersLogInterval)
+			logged = true
+		}
 		select {
 		case <-ctx.Done():
-			return nil, err
+			if cause := parent.Err(); cause != nil {
+				return nil, fmt.Errorf("%w: %w", cause, err)
+			}
+			return nil, fmt.Errorf("wait %s for the store lock %s: %w", bound, want, err)
+		case <-logTick.C:
+			logHolders()
 		case <-time.After(lockPollInterval):
 		}
 	}
 }
 
 // tryLock makes one non-blocking flock attempt on path in mode how
-// (syscall.LOCK_SH or syscall.LOCK_EX). path must already exist: the
+// (syscall.LOCK_SH or syscall.LOCK_EX) and returns [ErrLockBusy]
+// immediately if another holder has it. path must already exist: the
 // lock file is created only by the leaf's create, never by an open
-// that merely wants to lock it.
+// that merely wants to lock it, and inspect and write report a
+// missing one rather than make it.
 func tryLock(path string, how int) (*storeLock, error) {
 	f, err := os.OpenFile(path, os.O_RDWR, 0)
 	if err != nil {
