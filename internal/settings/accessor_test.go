@@ -2,6 +2,7 @@ package settings
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -40,6 +41,56 @@ func TestAccessor_SeesAnotherHandlesWrite(t *testing.T) {
 	}
 	if got != 30 {
 		t.Errorf("read after another handle's write = %d, want 30", got)
+	}
+}
+
+// TestAccessor_ConcurrentReadsDuringWrite reads from several goroutines
+// while another handle rewrites the value, and each read must return
+// the old or the new value, never a torn or default one.
+func TestAccessor_ConcurrentReadsDuringWrite(t *testing.T) {
+	dir := newStateDir(t)
+	a, b := openWrite(t, dir), openWrite(t, dir)
+	reg := newRegistry()
+	keep := keepSetting("14")
+	if err := Apply(ctxFor(t), b, reg, []string{keyKeep + "=20"}, testNow, discardLog); err != nil {
+		t.Fatalf("seed apply: %v", err)
+	}
+	acc := NewAccessor(a, reg)
+
+	const readers, reads = 4, 50
+	results := make(chan int, readers*reads)
+	errs := make(chan error, readers)
+	var wg sync.WaitGroup
+	for range readers {
+		wg.Go(func() {
+			for range reads {
+				got, err := acc.Int(context.Background(), keep)
+				if err != nil {
+					errs <- err
+					return
+				}
+				results <- got
+			}
+		})
+	}
+	if err := Apply(ctxFor(t), b, reg, []string{keyKeep + "=30"}, testNow, discardLog); err != nil {
+		t.Fatalf("concurrent apply: %v", err)
+	}
+	wg.Wait()
+	close(results)
+	close(errs)
+
+	for err := range errs {
+		t.Errorf("concurrent read: %v", err)
+	}
+	for got := range results {
+		if got != 20 && got != 30 {
+			t.Errorf("concurrent read = %d, want 20 or 30", got)
+		}
+	}
+	got, err := acc.Int(context.Background(), keep)
+	if err != nil || got != 30 {
+		t.Errorf("read after the write = %d, %v, want 30, nil", got, err)
 	}
 }
 
