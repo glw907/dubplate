@@ -80,6 +80,10 @@ Frozen documents keep the old rung numbers, and this table bridges them to the n
 
 ## Open
 
+- [ ] #131 Take `@types/node` 26.6.6 (held at 24.19.2: a major, so it waits for Geoff). Unblock: Geoff rules it, or `engines` in `web/package.json` moves past Node 24 #improvement #infra #pass:cleanup-ci (2026-11-16)
+- [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3: a major, so it waits for Geoff). Unblock: Geoff rules it, and `svelte-check` 4.7.8 and `typescript-eslint` support it #improvement #infra #pass:cleanup-ci (2026-11-16)
+- [ ] #129 Take `modernc.org/sqlite` v1.62.0 (held at v1.60.1 with `modernc.org/libc` v1.77.1). `TestUpdateDeadline/shorter_than_the_busy_timeout_waits_the_busy_timeout` fails on every run at `internal/engine/store/write_test.go:601,605` ("operation returned before the 400ms deadline"; "update: begin write: context deadline exceeded, want ErrBusy"): the new driver returns the context error at 100ms instead of waiting out the busy timeout. Found by the `cleanup-ci` dependency sweep; the store's busy-timeout path needs a read before the bump #bug #infra #pass:cleanup-ci (2026-11-16)
+
 - [ ] #128 Trim `CLAUDE.md` (13,705 bytes): every session loads the whole file, and the workstation pilots set a size budget for it #improvement #infra #initiative:workstation-refinement (2026-11-11)
 
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
