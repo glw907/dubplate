@@ -245,8 +245,6 @@ now round `engine`.
   `FIREWALL_SSH_CIDRS` falls through to jq's failure, and `hcloud firewall create` may get an empty rules file. A
   behavior change; pairs with #5. Found by the alignment pass, PR #2 #onboarding
 - [ ] #69 `scripts/check.sh` still says "boundary gate", a retired term. Found by the alignment pass, PR #2 #gate #pass:cleanup-gate
-- [ ] #70 `docs/standing-rules.md` "Gate legs" cites old rung ids and says two legs gate at a comment-cleanup task;
-  both legs are warn-only. Found by the alignment pass, PR #2 #gate #pass:cleanup-ci
 - [ ] #83 `intake-2`'s copy read owes the redrafts `intake-1` recorded and did not write. PCF (`passb-copy-final.md`):
   the retry line (`:124-126`) for owner ruling 7; the three Navidrome strings (`:105`, `:143-145`, `:160-161`);
   every "Private Recordings" string in sections 5 and 6, renamed "Unlisted music" with "music" or "recording" where
@@ -422,7 +420,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
   Navidrome is GPLv3: study it for behavior, never copy. Slices 1 to 2b have landed; next: slice 3, which waits on
   `pipeline`'s catalog. The web player needs a strong play-queue interface (Geoff, 2026-09-24): now playing, up next,
   reorder, and add from album, track, or filter results, designed from a prior-art study in the visual identity spec's
-  language, and building on 0.8's saved per-member play queue. The order of the work is "Path to 0.8". #initiative:dubplate-server
+  language, and building on 0.8's saved per-member play queue. The order of the work is "Rounds to 0.8". #initiative:dubplate-server
 - [ ] #94 dubplate-server 0.9: the paired local client (`local-client-0-9`). The 0.9 feature (Geoff, 2026-09-25 ruling on version numbering): a local client
   paired with dubplate-server. It ships the home install, in two modes (Geoff,
   2026-10-10). Standalone: dubplate runs at home on the LAN with no VPS, which Geoff
@@ -509,8 +507,6 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
       repo planned at 0.8 may answer it).
     - The transliterator holder is process-wide, installed once by the main package. A published
       matcher library should weigh passing the seam explicitly instead. #initiative:dubplate-server *(swept 2026-11-15)*
-- [ ] #97 PR test CI (`pr-test-ci`). Add a workflow that runs `bash scripts/check.sh` on `pull_request`. Until it lands, the full-suite home is the
-  local close gate (ruling 11, lean pass process spec). It lands after `admin-api-1` (ruling 3, alignment design). #pass:cleanup-ci #initiative:dubplate-server
 - [ ] #98 Packaging (`packaging`). Make the estate easy for a stranger to set up from its ingredients (beets
   or its harvested successor, the binaries, their Cloudflare account, any
   VPS). Opens with a brainstorm; context staged in agent memory (distribution
@@ -569,6 +565,10 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
 
 ## Done
 
+- [x] #97 PR test CI. A workflow runs `bash scripts/check.sh` on every `pull_request`
+  (`.github/workflows/check.yml`) #gate #initiative:dubplate-server *(2026-11-15, PR #12)*
+- [x] #70 `docs/standing-rules.md` "Gate legs" named old rung ids and said two legs gate at a comment-cleanup task;
+  it now names who holds each duty #gate *(2026-11-15, PR #12)*
 - [x] #127 The re-plan sitting, for Geoff's rulings before `pipeline` is planned: replace rung 10's beets migrator
   with a folder-admit verb, run streamer slices 3 and 5 first with a private deploy, and the three scope candidates
   for after 0.8. Findings P1 to P3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #plan: closed
