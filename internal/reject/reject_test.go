@@ -16,7 +16,7 @@ var adopted = []struct {
 	nextStep string
 }{
 	{"bad-extension", "not FLAC", "This isn't a FLAC file, and the library keeps lossless FLAC.", "Download this album as FLAC and upload that instead."},
-	{"symlink", "shortcut file", "This is a shortcut, not the music file itself.", "Replace it with the real file and upload it again."},
+	{"symlink", "shortcut fil3","This is a shortcut, not the music file itself.", "Replace it with the real file and upload it again."},
 	{"corrupt", "damaged in transit", "This file didn't survive the upload intact. Uploading it again usually fixes this.", "Upload it again from the original file."},
 	{"below-cd-quality", "below CD quality", "This FLAC is below CD quality.", "Get a CD-quality or better FLAC and upload that instead."},
 	{"too-large", "too big", "This upload is larger than the library allows.", "Ask the admin to add this one by hand."},
