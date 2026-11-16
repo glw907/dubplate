@@ -34,7 +34,7 @@ func preMigrateCopies(t *testing.T, stateDir string) []string {
 	}
 	var names []string
 	for _, e := range entries {
-		if store.IsPreMigrateCopy(e.Name()) {
+		if strings.HasPrefix(e.Name(), "pre-migrate-v") && strings.HasSuffix(e.Name(), ".db") {
 			names = append(names, e.Name())
 		}
 	}
