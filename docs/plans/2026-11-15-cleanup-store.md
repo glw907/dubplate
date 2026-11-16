@@ -18,10 +18,10 @@ Worktree: `/var/home/glw907/Projects/dubplate/.claude/worktrees/cleanup-store`, 
 is stacked on it: **the PR's base is `cleanup-gate`, not `master`**, and the round's close packet merges #13 first.
 Class: `auth-data` (design call 11). The PR never lands unattended; it waits for the round's close packet with passes
 4 and 5. Review lens: one `standards:plan-reviewer` read of this plan (record under "Review record"); a task-scope
-`standards:diff-reviewer` read on each `auth-data` task (T2, T7); and at the close, the whole-branch
+`standards:diff-reviewer` read on each `auth-data` task (T2, T7, and the merged T3+T6 range); and at the close, the whole-branch
 `standards:diff-reviewer` and one `standards:web-auth-security-reviewer` read. Executor: `dubplate-cleanup-store`,
 `sonnet` at `medium` with the Fable advisor; T7 goes to one `opus` subagent. Design path minutes: 130. This plan's
-path: 240 (see "Path"), under the 260-minute park line (standing answer 14).
+path: 245 (see "Path"), under the 260-minute park line (standing answer 14).
 
 ## Pre-flight
 
@@ -71,7 +71,7 @@ conductor trailers leave `config`. BACKLOG #26's residue (the accessor's mutex) 
 4. **Gates.** The fast lane is `bash scripts/gate.sh --scope-changed --base 209821fd12752f4a5a44e783a0fe490df3d566dd`
    (see D2). The close is `bash scripts/gate.sh --merge`. Each runs bare from the worktree root with the Bash tool's
    `timeout: 600000`, re-issued on exit 75 until it prints `gate exit:`. Never pipe a gate. Never commit red.
-   `RUN_GATE_IF_BUSY=defer` is never used on T2 or T7 (`auth-data`).
+   `RUN_GATE_IF_BUSY=defer` is never used on T2, T3, or T7 (`auth-data`).
 5. **Commits.** One commit per task (a review fix may add one), the task id first in the subject, imperative mood,
    specific files only (never `-A`), ending with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never
    commit a secret or a `.env` value; read each diff by eye before staging.
@@ -124,7 +124,7 @@ Each row was read at `209821f`.
 | 17 | `doctor.rowStatuses` flattens `loadErr`, tests each leaf with `errors.Is(leaf, config.ErrMissing)`, and splits every line with `strings.Cut(line, ": ")`; `splitKeyReason` does the same at 539, 546, 553, 563 and `serve.go:116`; 622 uses `errors.AsType[*sourceKeyError]`. The comment at 630-634 claims every refusal `validateMagicLinkSource` returns is keyed, which is false | `cmd/dubplate-server/doctor.go:58,475-500,539-563,622-634,697-707` | T7 |
 | 18 | The leaves that reach `rowStatuses`: `config.Load`'s wall errors (`config.go:210` `require`, 260, 282, 317, 322, 326, 349, 371, 438) and the source `Validate` errors it appends (388-389), which are `auth.go`'s `sourceKeyError` (349-362, used at 378, 475-498) and its keyed errors (418, 421, 436, 439), `config.go:226` `requireEmail`, `serve.go`'s `validateServePort` (114-126), and `intake.go`'s `resolveStaging` (445, 449) via `doctor.go:58`. `auth.go:297,301` sit in `durationAtLeast`, a correlated rule, and never reach it | as cited | T7: a start list; T7 rebuilds it from `rowStatuses`'s inputs and converts every leaf |
 | 19 | `Threshold` has no bounds; `Setting` has `Floor` and `Ceiling` strings enforced by `boundedValidator` and checked at registration | `config/thresholds.go`, `config/settings.go:70-71,131-147` | T8 |
-| 20 | `config.OwnedWall()` (`keys.go:94`) and `config.ReservedClasses()` (`keys.go:151`) are package functions with no production caller (doctor uses the `Registry` methods, `doctor.go:79,87,207`); `Registry.Superseded()` (`registry.go:527`) has none | as cited | T9 |
+| 20 | `config.OwnedWall()` (`keys.go:94`) and `config.ReservedClasses()` (`keys.go:151`) are package functions with no production caller (doctor uses the `Registry` methods, `doctor.go:79,87,207`); `Registry.Superseded()` (`registry.go:527`) has none in production, but two pass-5 cmd tests read it | as cited | T9 deletes the two functions; `Superseded` stays (D11) |
 | 21 | `LeaseState` has `LeaseHeld`, `LeaseFree`, `LeaseAbsent`; `TryLease` returns one; the one production caller tests only `state == store.LeaseHeld` | `store/lease.go:34-130`; `internal/ops/local/recovery.go:33-37` | T9 |
 | 22 | `stateError{state, msg}` has no `Unwrap`; `refusal` formats with `fmt.Sprintf`; `Inspect` reads the state with `errors.AsType[*stateError]`. `go doc errors.AsType`: "finds the first error in err's tree that matches the type E", the tree being err "followed by the errors obtained by repeatedly calling its Unwrap() error or Unwrap() []error method" | `store/open.go:35-46`, `store/inspect.go:497-498` | T10 |
 | 23 | The accessor's `value` locks `a.mu` and holds it across the `settings_generation` query and `readRows` | `settings/accessor.go:87-121` | T12 |
@@ -197,9 +197,13 @@ make the method keep every file; `TestPrune_LocalCopyNames` and the store test m
 Check: `grep -rn IsPreMigrateCopy internal cmd --include='*.go'` prints nothing; `grep -rn 'PrunePreMigrateCopies'
 internal/backup --include='*.go' | grep -v _test` prints one call; the per-task `diff-reviewer` reads the commit.
 
-### T3 and T6: a pair (25 min + 5 merge)
+### T3 and T6: a pair (25 min + 5 merge + 5 review)
 
-#### T3: One model of a restore's intent (25 min, `ordinary`, pair half)
+#### T3: One model of a restore's intent (25 min, `auth-data`, pair half)
+
+T3 is `auth-data` because D8 forces edits in four `cmd/dubplate-server` test files. It writes its new-key
+fixtures first and records the strict decoder refusing them at the start commit, and the merged T3+T6 range gets the
+task-scope `standards:diff-reviewer` read.
 
 Finding S4 (#117). Outcome: `RestoreIntent` becomes a field of `intentRecord`, with json tags; `intentSource`,
 `libraryOwed`, and `restoreIntent()` go, and `Record` stores the caller's `RestoreIntent` as given. The library half
@@ -447,7 +451,7 @@ in the PR.
 | A1 | A cut would change a test's assertion, not only its call | Keep the assertion. If the cut cannot keep it, leave that cut, file it, and say so in the PR. |
 | A2 | T10's read finds a branch that flips on a newly reachable cause | Fix it at the cause in T10 if the fix stays in the row; a fix outside the row is a stop. |
 | A3 | T7 finds a leaf reaching `rowStatuses` outside mechanism 18 | Convert it as a forced site and list it under `## Decisions`. |
-| A4 | T1's stage test fails at the start commit because `StageFile` leaves another mode today | Record it as test-first evidence; the seal fixes it. |
+| A4 | `TestRestoreSession_StageFile` (`restore_test.go:509-531`) fails after T1's seal, as a mode or content change | The seal changed the stage file's bytes or mode; fix T1 until the existing test passes unchanged. |
 | A5 | CI red outside the pass's files | Fix in the branch, list under `## Decisions` (standing answer 19). |
 | A6 | `--base 209821f…` falls back to the full form | Expected only when the change set holds machinery, which no task touches. Record the line and go on. |
 
@@ -488,7 +492,7 @@ in the PR.
 | --- | --- |
 | T1 | 20 |
 | T2, with its review | 20 |
-| T3 and T6, merged | 30 |
+| T3 and T6, merged, with its review | 35 |
 | T4 and T12, merged | 25 |
 | T5 | 10 |
 | T7, with its review | 50 |
@@ -496,7 +500,7 @@ in the PR.
 | T9 | 10 |
 | T11 | 15 |
 | T13 | 35 |
-| Total | 240 `[estimate]` |
+| Total | 245 `[estimate]` |
 
 The design's figure is 130. This path is under the 260-minute park line, so the pass runs; the PR records the
 difference under `## Decisions` with the actual.
@@ -550,4 +554,8 @@ blockers, all from incomplete call-site and test-site lists. Each blocker was ch
 | Minor 5: `config.get` over `Lookup` re-scans | Taken: `get` stays on its map |
 | Notes 6 to 8 (web.go sites stay, doctor rung text, T6 importers) | Taken: T7 text, T13 step 5 filing; T6 unchanged |
 
-Path after the fold: 240 minutes, under the 260 park line.
+A launch-time advisor read then found T3 still classed `ordinary` although D8 sends it into `cmd/dubplate-server`; it is
+reclassed `auth-data` with a review on the merged range (+5). A grep for `splitKeyReason(` and `sourceKeyError`
+across `cmd` found no caller outside `doctor.go`, `serve.go`, `auth.go`, and the forced `doctor_test.go:832`, and no
+spec under `docs/specs` fixes the intent record's wire shape, so D8 conflicts with no frozen text. Path after both
+folds: 245 minutes, under the 260 park line.
