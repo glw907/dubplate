@@ -27,12 +27,9 @@ import (
 // corpus doing its job.
 //
 // AssignmentFloor is the 215 candidate-bearing cases, and it is never
-// compared bare: ruling F's escalation moves the two pinned cases into
-// TiesAwaitingRuling and an owner ruling can move a case into ties
-// excluded, both of which legally shrink the population. The sweep is
-// compared against AssignmentFloor - len(TiesAwaitingRuling) -
-// TiesExcluded. Comparing bare would red the gate on the one path
-// ruling F pre-authorizes.
+// compared bare: an owner ruling can move a case into ties excluded,
+// which legally shrinks the population. The sweep is compared against
+// AssignmentFloor - TiesExcluded.
 const (
 	CaseFloor        = 216
 	CandidateFloor   = 295
@@ -83,24 +80,6 @@ const TiesExcludedCeiling = 0
 // arithmetic drift stays visible (rung 3 spec, :141).
 const nearMissTolerance = 1e-12
 
-// tieMirroringFinding is the escalation document ruling F requires
-// before a tie row may go ungraded, relative to the repo root.
-const tieMirroringFinding = "docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md"
-
-// tiesAwaitingRuling names the pinned ties.json cases whose assignment
-// this engine does not reproduce, and which therefore grade as pending
-// rather than as passing until Geoff rules their disposition (rung 3
-// spec, ruling F).
-//
-// It is EMPTY, and that is a measurement rather than a placeholder: the
-// tie-mirroring attempt reproduced lap 0.5.13's choice among equal
-// optima on both pinned cases, so no ruling is owed and no finding
-// document exists. The mechanism stays because the ruling can be
-// reopened by any future lap or corpus movement, and
-// checkTiesAwaitingRuling is what keeps a non-empty list from being a
-// silent escape.
-var tiesAwaitingRuling []string
-
 // A NearMiss is a comparison that matched within nearMissTolerance
 // relative without being bit-identical.
 type NearMiss struct {
@@ -113,19 +92,18 @@ type NearMiss struct {
 // CaseGradeSummary reports what one sweep actually compared, never what
 // it visited.
 type CaseGradeSummary struct {
-	Mode               GradeMode
-	Cases              int
-	Candidates         int
-	Distances          int
-	TrackVectors       int
-	Assignments        int
-	Verdicts           int
-	TiesExcluded       int
-	TiesAwaitingRuling []string // ruling F is owed on these; graded as pending, never as passing
-	Pending            []string // case ids whose adjudication row leaves the verdict ungraded
-	Ungraded           []string // cases with no gradable corrected verdict: an oracle-wrong class with no expressible rung-3 fix, or a no-correct-answer disposition
-	NearMisses         []NearMiss
-	VerdictMoves       []string // ModeDefault only
+	Mode         GradeMode
+	Cases        int
+	Candidates   int
+	Distances    int
+	TrackVectors int
+	Assignments  int
+	Verdicts     int
+	TiesExcluded int
+	Pending      []string // case ids whose adjudication row leaves the verdict ungraded
+	Ungraded     []string // cases with no gradable corrected verdict: an oracle-wrong class with no expressible rung-3 fix, or a no-correct-answer disposition
+	NearMisses   []NearMiss
+	VerdictMoves []string // ModeDefault only
 }
 
 // GradeMode selects which of ruling A's two runs a sweep is.
@@ -242,9 +220,6 @@ func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 		if res.excluded {
 			summary.TiesExcluded++
 		}
-		if res.awaitingRuling {
-			summary.TiesAwaitingRuling = append(summary.TiesAwaitingRuling, res.caseID)
-		}
 	}
 
 	return summary, errors.Join(errs...)
@@ -286,16 +261,15 @@ func loadLedgers(root string) (ledgers, error) {
 // silently skipped case show up as a floor shortfall rather than as a
 // clean run over fewer cases.
 type caseGradeResult struct {
-	caseID         string
-	graded         bool
-	candidates     int
-	distances      int
-	trackVectors   int
-	assignments    int
-	excluded       bool
-	pending        bool
-	awaitingRuling bool
-	nearMisses     []NearMiss
+	caseID       string
+	graded       bool
+	candidates   int
+	distances    int
+	trackVectors int
+	assignments  int
+	excluded     bool
+	pending      bool
+	nearMisses   []NearMiss
 
 	// verdicts, ungraded, ungradedReason and verdictMoved are the tier-2
 	// contribution both modes report (Task 8): 1 when this case's
@@ -369,7 +343,6 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 	policy := policyFor(c.ID, led.ties, led.prox, led.adj, led.bugs)
 	res.excluded = policy.Excluded
 	res.pending = policy.Pending
-	res.awaitingRuling = slices.Contains(tiesAwaitingRuling, c.ID)
 
 	evalDate, tun, items, inputErr := caseInputs(c)
 	if inputErr != nil {
@@ -811,7 +784,7 @@ func gradeAssignment(caseID string, policy casePolicy, exp *cassette.Expected, g
 		}
 		return errs
 	}
-	if !policy.GradeAssignment || res.awaitingRuling {
+	if !policy.GradeAssignment {
 		return errs
 	}
 
@@ -995,21 +968,4 @@ func widenCompat(c matcher.Compat, hypothesisID string) matcher.Compat {
 		c.RemixParenthetical = true
 	}
 	return c
-}
-
-// checkTiesAwaitingRuling enforces ruling F's escape: a tie row may go
-// ungraded only while the escalation finding it rests on exists. root
-// is the repo root the finding is resolved against.
-//
-// It is the whole reason an empty awaiting list is safe to ship. A list
-// that grows without the finding fails the gate rather than quietly
-// shrinking the graded population.
-func checkTiesAwaitingRuling(root string, awaiting []string) error {
-	if len(awaiting) == 0 {
-		return nil
-	}
-	if _, err := os.Stat(filepath.Join(root, tieMirroringFinding)); err != nil {
-		return fmt.Errorf("%d tie rows await a ruling (%v) but the ruling F finding is missing: %w", len(awaiting), awaiting, err)
-	}
-	return nil
 }

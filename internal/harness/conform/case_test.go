@@ -187,46 +187,6 @@ func TestPolicyForHonorsEveryDispositionRow(t *testing.T) {
 	}
 }
 
-// TestCheckTiesAwaitingRulingRefusesASilentEscape proves ruling F's
-// escape cannot be taken without its finding document: a non-empty
-// awaiting list fails while the document is missing and passes once it
-// exists. Both roots are hand-built here, so the assertion does not
-// turn on whether the real repo carries the document today (it does
-// not, because the mirroring attempt succeeded).
-func TestCheckTiesAwaitingRulingRefusesASilentEscape(t *testing.T) {
-	bare := t.TempDir()
-	withFinding := t.TempDir()
-	path := filepath.Join(withFinding, tieMirroringFinding)
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatalf("mkdir: %v", err)
-	}
-	if err := os.WriteFile(path, []byte("# fixture finding\n"), 0o644); err != nil {
-		t.Fatalf("write finding: %v", err)
-	}
-
-	tests := []struct {
-		name     string
-		root     string
-		awaiting []string
-		wantErr  bool
-	}{
-		{"nothing awaiting, no finding", bare, nil, false},
-		{"awaiting with no finding", bare, []string{"should-ask", "should-reject"}, true},
-		{"awaiting with the finding", withFinding, []string{"should-ask", "should-reject"}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := checkTiesAwaitingRuling(tt.root, tt.awaiting)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("checkTiesAwaitingRuling = %v, wantErr %v", err, tt.wantErr)
-			}
-			if tt.wantErr && !strings.Contains(err.Error(), "should-ask") {
-				t.Errorf("error does not name the awaiting rows: %v", err)
-			}
-		})
-	}
-}
-
 // gradeFixtureCase loads a single hand-authored case directory under
 // testdata/case/verdict/name (case.json, its responses/, and any of
 // the four analysis ledgers a row has something to say about) and
@@ -271,18 +231,14 @@ var compatSummary = sync.OnceValues(func() (CaseGradeSummary, error) {
 })
 
 func TestWholeCorpusGradesCleanlyInCompatMode(t *testing.T) {
-	root := repoRoot(t)
 	summary, err := compatSummary()
 	if err != nil {
 		t.Fatalf("GradeCases: %v", err)
 	}
-	// The assignment floor is the only one that moves, and it moves for
-	// exactly two owner-owned reasons: ruling F's escalation parks the
-	// pinned cases in TiesAwaitingRuling, and an owner ruling can
-	// exclude a case. Subtracting both keeps the gate green on ruling
-	// F's pre-authorized path and still fires on a shrink from any other
-	// cause.
-	assignmentFloor := AssignmentFloor - len(summary.TiesAwaitingRuling) - summary.TiesExcluded
+	// The assignment floor is the only one that moves, and only when an
+	// owner ruling excludes a case. Subtracting those keeps the gate
+	// green on that path and still fires on a shrink from any other cause.
+	assignmentFloor := AssignmentFloor - summary.TiesExcluded
 	for _, f := range []struct {
 		name  string
 		got   int
@@ -295,18 +251,12 @@ func TestWholeCorpusGradesCleanlyInCompatMode(t *testing.T) {
 		{"assignments", summary.Assignments, assignmentFloor},
 	} {
 		if f.got < f.floor {
-			t.Errorf("compared %d %s, floor is %d (assignments: %d candidate-bearing cases less %d awaiting ruling F and %d excluded): a comparison went missing",
-				f.got, f.name, f.floor, AssignmentFloor, len(summary.TiesAwaitingRuling), summary.TiesExcluded)
+			t.Errorf("compared %d %s, floor is %d (assignments: %d candidate-bearing cases less %d excluded): a comparison went missing",
+				f.got, f.name, f.floor, AssignmentFloor, summary.TiesExcluded)
 		}
 	}
 	if summary.TiesExcluded > TiesExcludedCeiling {
 		t.Errorf("ties.json carries %d excluded rows, ceiling is %d; excluding a case stops grading it and disposition is owner-only (spec :292)", summary.TiesExcluded, TiesExcludedCeiling)
-	}
-	if err := checkTiesAwaitingRuling(root, summary.TiesAwaitingRuling); err != nil {
-		t.Error(err)
-	}
-	if len(summary.TiesAwaitingRuling) > 0 {
-		t.Logf("awaiting Geoff's ruling F disposition, graded as pending rather than passing: %v", summary.TiesAwaitingRuling)
 	}
 	for _, nm := range summary.NearMisses {
 		t.Logf("near miss: %s %s want %.17g got %.17g", nm.CaseID, nm.Field, nm.Want, nm.Got)
