@@ -166,7 +166,7 @@ type Tunables struct {
 	// (penalty.go): each loaded plugin's own data_source name
 	// (metadata_plugins.py:184-190, cls.__name__ with "Plugin"
 	// stripped) mapped to that plugin's own mismatch penalty
-	// (metadata_plugins.py:160-170). At launch beets loads one plugin,
+	// (metadata_plugins.py:162-171). At launch beets loads one plugin,
 	// plugins: [musicbrainz] (config_default.yaml:11), whose class is
 	// MusicBrainzPlugin (beetsplug/musicbrainz.py:243) and so whose
 	// data_source name is "MusicBrainz", carrying the plugin base
@@ -315,7 +315,7 @@ func DefaultTunables() Tunables {
 		StringDistPatterns:        beetsSDPatterns,
 	}
 	// The MusicBrainz entry is the plugin's resolved penalty
-	// (metadata_plugins.py:184-197), read from the field above rather
+	// (metadata_plugins.py:192-197), read from the field above rather
 	// than written as a second literal, so the two cannot disagree.
 	tun.DataSourcePenalties = map[string]float64{"MusicBrainz": tun.DataSourceMismatchPenalty}
 	return tun

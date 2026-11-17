@@ -320,7 +320,7 @@ func (d *Distance) AddRatio(key string, n1, n2 float64) {
 // An unset source is the empty string on either side. The penalty is
 // the loaded source's own, taken from Tunables.DataSourcePenalties, and
 // defaultDataSourceMismatchPenalty when no loaded source is named
-// after, which is beets' get_penalty (metadata_plugins.py:160-169).
+// after, which is beets' get_penalty (metadata_plugins.py:162-171).
 func (d *Distance) AddDataSource(before, after string) {
 	if before == after {
 		return
@@ -385,11 +385,11 @@ func (d *Distance) keyDistance(key string) float64 {
 // defaultDataSourceMismatchPenalty is the class-level fallback
 // get_penalty resolves to when no loaded metadata source is named after,
 // MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_PENALTY
-// (beets/metadata_plugins.py:180, returned at :160-169). It is a
+// (beets/metadata_plugins.py:182, returned at :162-171). It is a
 // constant rather than Tunables.DataSourceMismatchPenalty because the
 // two are different values in beets: the tunable is the PLUGIN's own
-// penalty, resolved source_weight-first (:190-195) and wired into the
-// plugin's config at init (:201-202), and it is what populates
+// penalty, resolved source_weight-first (:192-197) and wired into the
+// plugin's config at init (:203-204), and it is what populates
 // DataSourcePenalties. Reading the tunable here made the two identical,
 // which is correct under shipped config and wrong the moment
 // source_weight is set.
