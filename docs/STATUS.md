@@ -6,6 +6,8 @@ approved allow rules landed in `.claude/settings.json` (`7151edb`). Nothing has 
 `~/Projects/initiatives/dubplate-server/reports/cleanup-report.md`.
 <!-- /round-report -->
 
+Running pass `engine`: session `dubplate-engine`, id `69008b16`, worktree `.claude/worktrees/engine`, host `pavilion`.
+
 ## Current state
 `intake-1` is the last product pass on master. Nothing deploys: a passing album waits in `matching` with no exit
 until `intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work a later
