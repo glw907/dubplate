@@ -10,8 +10,8 @@ import (
 // the 69 writable_fields names reproduced verbatim from :2381 in the
 // order the ledger's own header lists them. C1 names this section the
 // single source of record for the 69 names; this list is copied by
-// hand from the doc rather than derived from Mapping, so a dropped or
-// renamed row in Mapping has something independent to fail against.
+// hand from the doc rather than derived from the field table, so a
+// dropped or renamed row has something independent to fail against.
 var handoffNames = []string{
 	"acoustid_fingerprint", "acoustid_id", "album", "albumartist",
 	"albumartist_credit", "albumartist_sort", "albumartists",
@@ -32,21 +32,21 @@ var handoffNames = []string{
 }
 
 // TestFieldCountAndNames grades C1's field count and its single source
-// of record. It compares Mapping's field names, as a set, against
+// of record. It compares the field table's names, as a set, against
 // handoffNames, and reports the count and any name only one side
-// carries, so a dropped field (mutation 1) names itself in the
-// failure rather than surfacing as a bare count mismatch.
+// carries, so a dropped field names itself in the failure rather than
+// surfacing as a bare count mismatch.
 func TestFieldCountAndNames(t *testing.T) {
 	if len(handoffNames) != 69 {
 		t.Fatalf("handoffNames has %d entries, want 69", len(handoffNames))
 	}
-	if len(mapping) != 69 {
-		t.Errorf("mapping has %d rows, want 69", len(mapping))
+	if len(fields) != 69 {
+		t.Errorf("fields has %d rows, want 69", len(fields))
 	}
 
-	got := make(map[string]bool, len(mapping))
-	for _, row := range mapping {
-		got[string(row.Field)] = true
+	got := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		got[string(f.name)] = true
 	}
 	want := make(map[string]bool, len(handoffNames))
 	for _, n := range handoffNames {
@@ -55,43 +55,116 @@ func TestFieldCountAndNames(t *testing.T) {
 
 	for n := range want {
 		if !got[n] {
-			t.Errorf("handoff names %q, Mapping does not", n)
+			t.Errorf("handoff names %q, the field table does not", n)
 		}
 	}
 	for n := range got {
 		if !want[n] {
-			t.Errorf("Mapping names %q, the handoff does not", n)
+			t.Errorf("the field table names %q, the handoff does not", n)
 		}
 	}
 }
 
-// TestMappingCitations walks Mapping and grades C16: every row carries
-// at least one Vorbis key and a non-empty mediafile citation.
-func TestMappingCitations(t *testing.T) {
-	for _, row := range mapping {
-		if len(row.Styles) == 0 {
-			t.Errorf("field %q has no Vorbis keys", row.Field)
+// TestFieldTableCitations grades every row of the field table: each
+// carries at least one Vorbis key and a non-empty mediafile citation.
+func TestFieldTableCitations(t *testing.T) {
+	for _, f := range fields {
+		if len(f.styles) == 0 {
+			t.Errorf("field %q has no Vorbis keys", f.name)
 		}
-		for _, s := range row.Styles {
-			if s.Key == "" {
-				t.Errorf("field %q has a style with an empty key", row.Field)
+		for _, s := range f.styles {
+			if s.key == "" {
+				t.Errorf("field %q has a style with an empty key", f.name)
 			}
 		}
-		if row.Citation == "" {
-			t.Errorf("field %q has no mediafile citation", row.Field)
+		if f.cite == "" {
+			t.Errorf("field %q has no mediafile citation", f.name)
 		}
+	}
+}
+
+// TestFieldAccessorsTieToMembers grades the one fact the field table's
+// literal cannot show by eye: each row's codec reads and writes the
+// TagSet member whose JSON tag is the row's name. For every member in
+// turn it sets that member alone, by reflection, and requires that
+// Serialize writes comments for exactly the row of the same name, then
+// that projecting those comments sets that member alone again. A
+// month or day member writes nothing by itself, because the date
+// comment is keyed on the year, so those four rows expect no write.
+func TestFieldAccessorsTieToMembers(t *testing.T) {
+	typ := reflect.TypeFor[TagSet]()
+	for i := range typ.NumField() {
+		member := typ.Field(i)
+		name := member.Tag.Get("json")
+		t.Run(name, func(t *testing.T) {
+			var ts TagSet
+			v := reflect.ValueOf(&ts).Elem().Field(i)
+			switch member.Type.Kind() {
+			case reflect.Slice:
+				v.Set(reflect.ValueOf([]string{"7"}))
+			case reflect.Pointer:
+				p := reflect.New(member.Type.Elem())
+				switch member.Type.Elem().Kind() {
+				case reflect.String:
+					p.Elem().SetString("7")
+				case reflect.Int:
+					p.Elem().SetInt(7)
+				case reflect.Float64:
+					p.Elem().SetFloat(0.5)
+				case reflect.Bool:
+					p.Elem().SetBool(true)
+				}
+				v.Set(p)
+			default:
+				t.Fatalf("TagSet.%s has kind %v, want a slice or a pointer", member.Name, member.Type.Kind())
+			}
+
+			var written []Comment
+			var writers []Field
+			for _, kw := range Serialize(ts) {
+				if len(kw.Writes) > 0 {
+					writers = append(writers, kw.Field)
+					written = append(written, kw.Writes...)
+				}
+			}
+			dateOnly := map[string]bool{"month": true, "day": true, "original_month": true, "original_day": true}
+			if dateOnly[name] {
+				if len(writers) != 0 {
+					t.Fatalf("setting %s alone wrote fields %v, want none", name, writers)
+				}
+				return
+			}
+			if len(writers) != 1 || string(writers[0]) != name {
+				t.Fatalf("setting %s alone wrote fields %v, want [%s]", name, writers, name)
+			}
+
+			// The three colliding pairs share their keys, so reading
+			// either member's comments back sets its partner too.
+			partner := map[string]string{
+				"albumtype": "albumtypes", "albumtypes": "albumtype",
+				"mb_artistid": "mb_artistids", "mb_artistids": "mb_artistid",
+				"mb_albumartistid": "mb_albumartistids", "mb_albumartistids": "mb_albumartistid",
+			}
+			got := reflect.ValueOf(project(Container{VorbisComment: VorbisComment{Comments: written}}))
+			for j := range typ.NumField() {
+				other := typ.Field(j).Tag.Get("json")
+				want := j == i || other == partner[name]
+				if set := !got.Field(j).IsNil(); set != want {
+					t.Errorf("reading %s's comments back: TagSet.%s set = %v, want %v", name, typ.Field(j).Name, set, want)
+				}
+			}
+		})
 	}
 }
 
 // fieldStructName pairs each Field constant with the TagSet struct
 // field it names, hand-authored independent of both tagset.go's
-// struct literal and mapping: naming a removed Field constant here
-// fails to compile, which is the mechanical tie a dropped constant
-// needs. TestTagSetMembersTieToMapping compares this map's keys
-// against mapping's Field set and its values against TagSet's own
+// struct literal and the field table: naming a removed Field constant
+// here fails to compile, which is the mechanical tie a dropped
+// constant needs. TestTagSetMembersTieToFieldTable compares this map's
+// keys against the table's names and its values against TagSet's own
 // field names by reflection, so a dropped struct member or a dropped
-// mapping row each fail a named assertion below, not just a bare
-// count.
+// row each fail a named assertion below, not just a bare count.
 var fieldStructName = map[Field]string{
 	FieldAcoustIDFingerprint: "AcoustIDFingerprint",
 	FieldAcoustIDID:          "AcoustIDID",
@@ -164,13 +237,14 @@ var fieldStructName = map[Field]string{
 	FieldTracktotal:          "Tracktotal",
 }
 
-// TestTagSetMembersTieToMapping grades finding 1: removing a TagSet
-// member, a mapping row or a Field constant each fail a named
-// assertion here. A removed Field constant fails fieldStructName's
-// own compilation, before the test ever runs; the two loops below
-// catch a removed struct member (against reflect.TypeOf(TagSet{}))
-// and a removed mapping row (against mapping's own Field set).
-func TestTagSetMembersTieToMapping(t *testing.T) {
+// TestTagSetMembersTieToFieldTable grades the three lists that must
+// agree: removing a TagSet member, a table row or a Field constant
+// each fail a named assertion here. A removed Field constant fails
+// fieldStructName's own compilation, before the test ever runs; the
+// two loops below catch a removed struct member (against
+// reflect.TypeOf(TagSet{})) and a removed row (against the table's
+// own names).
+func TestTagSetMembersTieToFieldTable(t *testing.T) {
 	if len(fieldStructName) != 69 {
 		t.Fatalf("fieldStructName has %d entries, want 69", len(fieldStructName))
 	}
@@ -198,18 +272,18 @@ func TestTagSetMembersTieToMapping(t *testing.T) {
 		}
 	}
 
-	gotMapping := make(map[Field]bool, len(mapping))
-	for _, row := range mapping {
-		gotMapping[row.Field] = true
+	gotTable := make(map[Field]bool, len(fields))
+	for _, f := range fields {
+		gotTable[f.name] = true
 	}
 	for f := range fieldStructName {
-		if !gotMapping[f] {
-			t.Errorf("fieldStructName names %q, mapping does not", f)
+		if !gotTable[f] {
+			t.Errorf("fieldStructName names %q, the field table does not", f)
 		}
 	}
-	for f := range gotMapping {
+	for f := range gotTable {
 		if _, ok := fieldStructName[f]; !ok {
-			t.Errorf("mapping names %q, fieldStructName does not", f)
+			t.Errorf("the field table names %q, fieldStructName does not", f)
 		}
 	}
 }
@@ -224,13 +298,14 @@ func TestTagSetMembersTieToMapping(t *testing.T) {
 // By name: for each entry in fieldStructName, the named TagSet
 // member's JSON tag, read through reflection, equals the Field
 // constant that names it. This ties the tag, the member and the
-// mapping row together by fieldStructName's one literal rather than
-// by struct declaration order.
+// table row together by fieldStructName's one literal rather than by
+// struct declaration order.
 //
 // By position: for each index, the struct field at that index's JSON
-// tag equals Mapping()'s row at the same index, and the member count
-// equals 69. This is the cheaper, position-based check that fails
-// loudly if TagSet's declaration order ever drifts from mapping's.
+// tag equals the name of the table's row at the same index, and the
+// member count equals 69. This is the cheaper, position-based check
+// that fails loudly if TagSet's declaration order ever drifts from
+// the table's.
 func TestTagSetJSONTagsTieToFieldConstants(t *testing.T) {
 	typ := reflect.TypeFor[TagSet]()
 
@@ -256,18 +331,18 @@ func TestTagSetJSONTagsTieToFieldConstants(t *testing.T) {
 		if typ.NumField() != 69 {
 			t.Fatalf("TagSet has %d fields, want 69", typ.NumField())
 		}
-		if len(mapping) != 69 {
-			t.Fatalf("mapping has %d rows, want 69", len(mapping))
+		if len(fields) != 69 {
+			t.Fatalf("fields has %d rows, want 69", len(fields))
 		}
-		for i, row := range mapping {
+		for i, f := range fields {
 			structField := typ.Field(i)
 			tag, ok := structField.Tag.Lookup("json")
 			if !ok {
-				t.Errorf("TagSet field %d (%s) carries no json tag, want %q", i, structField.Name, row.Field)
+				t.Errorf("TagSet field %d (%s) carries no json tag, want %q", i, structField.Name, f.name)
 				continue
 			}
-			if tag != string(row.Field) {
-				t.Errorf("TagSet field %d (%s) json tag = %q, want %q (Mapping()[%d].Field)", i, structField.Name, tag, row.Field, i)
+			if tag != string(f.name) {
+				t.Errorf("TagSet field %d (%s) json tag = %q, want %q (fields[%d].name)", i, structField.Name, tag, f.name, i)
 			}
 		}
 	})
@@ -315,10 +390,10 @@ func TestReadOnlyMarks(t *testing.T) {
 		for _, k := range c.readOnlyKeys {
 			readOnly[k] = true
 		}
-		for _, s := range row.Styles {
-			want := !readOnly[s.Key]
-			if s.Writable != want {
-				t.Errorf("field %q key %q: Writable = %v, want %v", c.field, s.Key, s.Writable, want)
+		for _, s := range row.styles {
+			want := !readOnly[s.key]
+			if s.writable != want {
+				t.Errorf("field %q key %q: writable = %v, want %v", c.field, s.key, s.writable, want)
 			}
 		}
 	}
@@ -416,15 +491,15 @@ func TestFourStates(t *testing.T) {
 	})
 }
 
-// mustRow returns Mapping's row for f, failing the test if none
-// exists.
-func mustRow(t *testing.T, f Field) FieldMapping {
+// mustRow returns the field table's row for name, failing the test if
+// none exists.
+func mustRow(t *testing.T, name Field) field {
 	t.Helper()
-	for _, row := range mapping {
-		if row.Field == f {
-			return row
+	for _, f := range fields {
+		if f.name == name {
+			return f
 		}
 	}
-	t.Fatalf("no Mapping row for field %q", f)
-	return FieldMapping{}
+	t.Fatalf("no field table row for %q", name)
+	return field{}
 }

@@ -8,8 +8,8 @@ import (
 // TestSerializeFloatPlaces grades float_places (2 by default, 6 on
 // both ReplayGain peaks) and the " dB" suffix that appears on the two
 // gain fields and nowhere else (mediafile:836, :846, :856, :864).
-// Every want string is hard-coded, not computed from rgGainField or
-// rgPeakField.
+// Every want string is hard-coded, not computed from formatGain or
+// formatPeak.
 func TestSerializeFloatPlaces(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -287,19 +287,19 @@ func mustKeyWrite(t *testing.T, kws []KeyWrite, field Field) KeyWrite {
 	return KeyWrite{}
 }
 
-// fieldFor maps a Vorbis key back to the one field in Mapping that
+// fieldFor maps a Vorbis key back to the first field table row that
 // owns it, for tests that key their case table on the Vorbis key
 // rather than the field name.
 func fieldFor(t *testing.T, vorbisKey string) Field {
 	t.Helper()
-	for _, row := range mapping {
-		for _, s := range row.Styles {
-			if s.Key == vorbisKey {
-				return row.Field
+	for _, f := range fields {
+		for _, s := range f.styles {
+			if s.key == vorbisKey {
+				return f.name
 			}
 		}
 	}
-	t.Fatalf("no Mapping row carries Vorbis key %q", vorbisKey)
+	t.Fatalf("no field table row carries Vorbis key %q", vorbisKey)
 	return ""
 }
 

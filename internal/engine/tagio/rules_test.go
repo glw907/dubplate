@@ -47,7 +47,7 @@ func writeAndRead(t *testing.T, ts TagSet) ([]Comment, TagSet) {
 // keeps a row because it is the integer 0 on all twelve corpus rows
 // and a zero that must survive a write is worth pinning. Every
 // wantComments value is hard-coded and cites the mediafile line it
-// reproduces, never derived from Serialize, rgGainField, r128Field or
+// reproduces, never derived from Serialize, formatGain, formatQ8 or
 // any other code under test. Each case writes onto an otherwise empty
 // TagSet, so the comment set it reads back on disk carries only the
 // comments its own field produced.
@@ -288,7 +288,7 @@ func TestRulesLedgerSilentKeys(t *testing.T) {
 // four-digit zero-padded year with no month or day component, since
 // both are absent), and a read-back finds year 0 with month and day
 // absent, because a nil month or day parses to nil rather than 0
-// (mediafile/fields.py:156-172, serializeDate's compose-as-a-unit
+// (mediafile/fields.py:156-172, and the date codec's compose-as-a-unit
 // rule).
 func TestRulesZeroYearRoundTrip(t *testing.T) {
 	ts := TagSet{Year: new(0), OriginalYear: new(0)}

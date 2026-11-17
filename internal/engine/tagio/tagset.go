@@ -1,11 +1,9 @@
 package tagio
 
-import "slices"
-
 // Field names one of TagSet's 69 writable members, spelled the way
 // corpus/README.md's handoff section and INV:315-385 both spell it
 // (mediafile's own field name, snake_case). It is the identifier
-// mapping's rows key on and the value WriteOrder yields.
+// the field table's rows key on and the value WriteOrder yields.
 type Field string
 
 // The 69 writable fields, one constant per TagSet member. Names come
@@ -214,134 +212,12 @@ func EmptyList() []string {
 	return []string{}
 }
 
-// Style is one Vorbis comment key a field's value writes to (or, for
-// a read-only style, only reads from).
-type Style struct {
-	// Key is the Vorbis comment field name, uppercase per RFC 9639
-	// section 8.6 convention.
-	Key string
-	// Writable reports whether a write emits this style. A read-only
-	// style is read by mediafile and deleted when the field is
-	// deleted, but a writer never emits it (INV:312-313).
-	Writable bool
-}
-
-// FieldMapping is one row of Mapping: a field's Vorbis keys in
-// mediafile declaration order, each marked writable or read-only, and
-// the mediafile line the row was read from (C16).
-type FieldMapping struct {
-	Field    Field
-	Styles   []Style
-	Citation string
-}
-
-// mapping is the 69-key table, one row per TagSet member, in the
-// fixed order MediaFile.sorted_fields() writes them (C3): lexicographic
-// by field name, except year, month and day (and their original_
-// counterparts) sort as if named date0, date1 and date2, so a date
-// triple writes in year-month-day order rather than alphabetical
-// day-month-year order (mediafile:322-330, the pinned venv's own
-// _field_sort_name). That substitution is also what resolves the
-// three colliding pairs: sorted_fields()'s plain lexicographic order
-// already places albumtype before albumtypes, mb_artistid before
-// mb_artistids, and mb_albumartistid before mb_albumartistids, because
-// each singular name is a strict prefix of its plural and a prefix
-// sorts first, so the plural writes last and wins the shared key
-// (spec:401-410, INV surprise 4).
-//
-// mapping is unexported so that no caller outside this file can
-// reorder or mutate the table WriteOrder and Serialize both walk; a
-// caller that needs the rows reads them from Mapping, which hands
-// back a copy.
-var mapping = []FieldMapping{
-	{FieldAcoustIDFingerprint, []Style{{"ACOUSTID_FINGERPRINT", true}}, "mediafile:817"},
-	{FieldAcoustIDID, []Style{{"ACOUSTID_ID", true}}, "mediafile:823"},
-	{FieldAlbum, []Style{{"ALBUM", true}}, "mediafile:410"},
-	{FieldAlbumartist, []Style{{"ALBUM ARTIST", true}, {"ALBUM_ARTIST", true}, {"ALBUMARTIST", true}}, "mediafile:542,543,544"},
-	{FieldAlbumartistCredit, []Style{{"ALBUMARTIST_CREDIT", true}}, "mediafile:732"},
-	{FieldAlbumartistSort, []Style{{"ALBUMARTISTSORT", true}}, "mediafile:588"},
-	{FieldAlbumartists, []Style{{"ALBUMARTISTS", true}, {"ALBUM_ARTISTS", true}, {"ALBUM ARTISTS", false}}, "mediafile:554,555,556"},
-	{FieldAlbumartistsCredit, []Style{{"ALBUMARTISTS_CREDIT", true}}, "mediafile:738"},
-	{FieldAlbumartistsSort, []Style{{"ALBUMARTISTS_SORT", true}}, "mediafile:744"},
-	{FieldAlbumdisambig, []Style{{"MUSICBRAINZ_ALBUMCOMMENT", true}}, "mediafile:680"},
-	{FieldAlbumstatus, []Style{{"RELEASESTATUS", true}, {"MUSICBRAINZ_ALBUMSTATUS", true}}, "mediafile:665,666"},
-	{FieldAlbumtype, []Style{{"RELEASETYPE", true}, {"MUSICBRAINZ_ALBUMTYPE", true}}, "mediafile:562,563"},
-	{FieldAlbumtypes, []Style{{"RELEASETYPE", true}, {"MUSICBRAINZ_ALBUMTYPE", true}}, "mediafile:562,563"},
-	{FieldArrangers, []Style{{"ARRANGER", true}}, "mediafile:444"},
-	{FieldArtist, []Style{{"ARTIST", true}}, "mediafile:398"},
-	{FieldArtistCredit, []Style{{"ARTIST_CREDIT", true}}, "mediafile:714"},
-	{FieldArtistSort, []Style{{"ARTISTSORT", true}}, "mediafile:581"},
-	{FieldArtists, []Style{{"ARTISTS", true}}, "mediafile:404"},
-	{FieldArtistsCredit, []Style{{"ARTISTS_CREDIT", true}}, "mediafile:720"},
-	{FieldArtistsSort, []Style{{"ARTISTS_SORT", true}}, "mediafile:726"},
-	{FieldAsin, []Style{{"ASIN", true}}, "mediafile:594"},
-	{FieldBarcode, []Style{{"BARCODE", true}, {"UPC", false}, {"EAN/UPN", false}, {"EAN", false}, {"UPN", false}}, "mediafile:616,617,618,619,620"},
-	{FieldBpm, []Style{{"BPM", true}}, "mediafile:528"},
-	{FieldCatalognum, []Style{{"CATALOGNUMBER", true}, {"CATALOGID", false}, {"DISCOGS_CATALOG", false}}, "mediafile:604,605,606"},
-	{FieldComments, []Style{{"DESCRIPTION", true}, {"COMMENT", true}}, "mediafile:514,515"},
-	{FieldComp, []Style{{"COMPILATION", true}}, "mediafile:535"},
-	{FieldComposerSort, []Style{{"COMPOSERSORT", true}}, "mediafile:438"},
-	{FieldComposers, []Style{{"COMPOSER", true}}, "mediafile:431"},
-	{FieldCountry, []Style{{"RELEASECOUNTRY", true}}, "mediafile:659"},
-	{FieldYear, []Style{{"DATE", true}, {"YEAR", true}}, "mediafile:693,688,690"},
-	{FieldMonth, []Style{{"DATE", true}, {"YEAR", true}}, "mediafile:694,688,690"},
-	{FieldDay, []Style{{"DATE", true}, {"YEAR", true}}, "mediafile:695,688,690"},
-	{FieldDisc, []Style{{"DISC", true}, {"DISCNUMBER", true}}, "mediafile:480,481"},
-	{FieldDisctitle, []Style{{"DISCSUBTITLE", true}}, "mediafile:632"},
-	{FieldDisctotal, []Style{{"DISCTOTAL", true}, {"DISCC", true}, {"TOTALDISCS", true}}, "mediafile:488,489,490"},
-	{FieldEncoder, []Style{{"ENCODEDBY", true}, {"ENCODER", true}}, "mediafile:638,639"},
-	{FieldGenres, []Style{{"GENRE", true}}, "mediafile:416"},
-	{FieldGrouping, []Style{{"GROUPING", true}}, "mediafile:452"},
-	{FieldInitialKey, []Style{{"INITIALKEY", true}}, "mediafile:888"},
-	{FieldIsrc, []Style{{"ISRC", true}}, "mediafile:626"},
-	{FieldLabel, []Style{{"LABEL", true}, {"PUBLISHER", true}}, "mediafile:574,575"},
-	{FieldLanguage, []Style{{"LANGUAGE", true}}, "mediafile:651"},
-	{FieldLyricists, []Style{{"LYRICIST", true}}, "mediafile:424"},
-	{FieldLyrics, []Style{{"LYRICS", true}}, "mediafile:504"},
-	{FieldMBAlbumartistid, []Style{{"MUSICBRAINZ_ALBUMARTISTID", true}}, "mediafile:801"},
-	{FieldMBAlbumartistids, []Style{{"MUSICBRAINZ_ALBUMARTISTID", true}}, "mediafile:801"},
-	{FieldMBAlbumid, []Style{{"MUSICBRAINZ_ALBUMID", true}}, "mediafile:782"},
-	{FieldMBArtistid, []Style{{"MUSICBRAINZ_ARTISTID", true}}, "mediafile:788"},
-	{FieldMBArtistids, []Style{{"MUSICBRAINZ_ARTISTID", true}}, "mediafile:788"},
-	{FieldMBReleasegroupid, []Style{{"MUSICBRAINZ_RELEASEGROUPID", true}}, "mediafile:809"},
-	{FieldMBReleasetrackid, []Style{{"MUSICBRAINZ_RELEASETRACKID", true}}, "mediafile:770"},
-	{FieldMBTrackid, []Style{{"MUSICBRAINZ_TRACKID", true}}, "mediafile:764"},
-	{FieldMBWorkid, []Style{{"MUSICBRAINZ_WORKID", true}}, "mediafile:776"},
-	{FieldMedia, []Style{{"MEDIA", true}}, "mediafile:673"},
-	{FieldOriginalYear, []Style{{"ORIGINALDATE", true}}, "mediafile:706,702"},
-	{FieldOriginalMonth, []Style{{"ORIGINALDATE", true}}, "mediafile:707,702"},
-	{FieldOriginalDay, []Style{{"ORIGINALDATE", true}}, "mediafile:708,702"},
-	{FieldR128AlbumGain, []Style{{"R128_ALBUM_GAIN", true}}, "mediafile:881"},
-	{FieldR128TrackGain, []Style{{"R128_TRACK_GAIN", true}}, "mediafile:874"},
-	{FieldRemixers, []Style{{"REMIXER", true}}, "mediafile:750"},
-	{FieldRgAlbumGain, []Style{{"REPLAYGAIN_ALBUM_GAIN", true}}, "mediafile:846"},
-	{FieldRgAlbumPeak, []Style{{"REPLAYGAIN_ALBUM_PEAK", true}}, "mediafile:864"},
-	{FieldRgTrackGain, []Style{{"REPLAYGAIN_TRACK_GAIN", true}}, "mediafile:836"},
-	{FieldRgTrackPeak, []Style{{"REPLAYGAIN_TRACK_PEAK", true}}, "mediafile:856"},
-	{FieldScript, []Style{{"SCRIPT", true}}, "mediafile:645"},
-	{FieldSubtitle, []Style{{"SUBTITLE", true}}, "mediafile:457"},
-	{FieldTitle, []Style{{"TITLE", true}}, "mediafile:392"},
-	{FieldTrack, []Style{{"TRACK", true}, {"TRACKNUMBER", true}}, "mediafile:463,464"},
-	{FieldTracktotal, []Style{{"TRACKTOTAL", true}, {"TRACKC", true}, {"TOTALTRACKS", true}}, "mediafile:471,472,473"},
-}
-
-// WriteOrder returns the 69 field identifiers in mapping's fixed
-// write order (C3). It walks mapping rather than a map, so calling it
-// repeatedly always yields the same sequence; a Go map's range order
-// is randomized per range statement and would make this
-// non-deterministic across calls.
+// WriteOrder returns the 69 field identifiers in the field table's
+// fixed write order.
 func WriteOrder() []Field {
-	order := make([]Field, len(mapping))
-	for i, row := range mapping {
-		order[i] = row.Field
+	order := make([]Field, len(fields))
+	for i, f := range fields {
+		order[i] = f.name
 	}
 	return order
-}
-
-// Mapping returns a copy of the 69-row field-to-Vorbis-key table, in
-// MediaFile.sorted_fields() write order (C3). Each call clones the
-// underlying rows, so mutating the returned slice never reorders or
-// changes what WriteOrder and Serialize see.
-func Mapping() []FieldMapping {
-	return slices.Clone(mapping)
 }
