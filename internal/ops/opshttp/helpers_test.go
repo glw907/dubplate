@@ -226,7 +226,7 @@ func (a *fakeAuthorizer) authorize(_ context.Context, op string) (ops.Actor, ops
 // grant admits every call as the actor id's network actor, granted p.
 func grant(id identity.Identity, p ops.Privilege) *fakeAuthorizer {
 	return &fakeAuthorizer{decide: func(string) (ops.Actor, ops.Privilege, error) {
-		return ops.NetworkActor(id, annAnchor), p, nil
+		return ops.NetworkActor(id, annAnchor, "192.0.2.1"), p, nil
 	}}
 }
 

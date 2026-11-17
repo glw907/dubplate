@@ -506,7 +506,7 @@ func TestNewServeShell_StateChangingRequestIsDenied(t *testing.T) {
 		{"consume-link", under(consumeLinkRouteName)},
 		{"sign-out", under(signOutRouteName)},
 		{"boundary probe", under(serve.ProbeRouteName)},
-		{"api operation", under(apiRouteName) + "/v1/catalog"},
+		{"api operation", under(apiRouteName) + "/v1/list_submissions"},
 		{"api deeper path", under(apiRouteName) + "/v2/x"},
 		{"members", under(membersRouteName)},
 		{"login", under(loginRouteName)},
@@ -1982,14 +1982,14 @@ func strangerLinkRequests(handler http.Handler, prefix serve.Prefix, n int) []in
 	return codes
 }
 
-// refreshedSession requests the api catalog as an admin over session with a
+// refreshedSession requests the api's list_members as an admin over session with a
 // same-origin POST, so the seam refreshes it, and returns the status,
 // the refreshed cookie value the response sets, and its session,
 // verified against secret at at with absoluteCap.
 func refreshedSession(t *testing.T, handler http.Handler, prefix serve.Prefix, session, secret string, at time.Time, absoluteCap time.Duration) (int, string, auth.Session) {
 	t.Helper()
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, jsonRequest(http.MethodPost, prefix.String()+"/api/v1/catalog", session, "same-origin", "{}"))
+	handler.ServeHTTP(rec, jsonRequest(http.MethodPost, prefix.String()+"/api/v1/list_members", session, "same-origin", "{}"))
 	if rec.Code != http.StatusOK {
 		return rec.Code, "", auth.Session{}
 	}
@@ -2302,7 +2302,7 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			name: "the absolute cap below its floor", key: "DUBPLATE_SESSION_ABSOLUTE_CAP", value: "1ms",
 			request: func(t *testing.T, environ []string, prefix serve.Prefix) *http.Request {
 				session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
-				return jsonRequest(http.MethodPost, prefix.String()+"/api/v1/catalog", session, "same-origin", "{}")
+				return jsonRequest(http.MethodPost, prefix.String()+"/api/v1/list_members", session, "same-origin", "{}")
 			},
 			wantCode: http.StatusInternalServerError,
 		},

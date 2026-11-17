@@ -196,7 +196,7 @@ func withCaller(ctx context.Context, c caller) context.Context {
 	if c.admin {
 		granted = ops.PrivilegeAdmin
 	}
-	return withAdmitted(ctx, ops.NetworkActor(c.id, annAnchor), granted)
+	return withAdmitted(ctx, ops.NetworkActor(c.id, annAnchor, "192.0.2.1"), granted)
 }
 
 // A denyAll authorizer denies every caller.

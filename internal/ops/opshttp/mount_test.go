@@ -50,7 +50,7 @@ func newMountFixture(t *testing.T, decide func(w http.ResponseWriter, r *http.Re
 // admitAs is a verifier admitting every request as ann with p.
 func admitAs(p ops.Privilege) func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
 	return func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-		return ops.NetworkActor(ann, annAnchor), p, nil
+		return ops.NetworkActor(ann, annAnchor, "192.0.2.1"), p, nil
 	}
 }
 
@@ -241,7 +241,7 @@ func TestMount_UnknownOperationAnswers404AfterVerification(t *testing.T) {
 func TestMount_VerifierCanSetCookies(t *testing.T) {
 	f := newMountFixture(t, func(w http.ResponseWriter, _ *http.Request) (ops.Actor, ops.Privilege, error) {
 		http.SetCookie(w, &http.Cookie{Name: "session", Value: "refreshed"})
-		return ops.NetworkActor(ann, annAnchor), ops.PrivilegeAdmin, nil
+		return ops.NetworkActor(ann, annAnchor, "192.0.2.1"), ops.PrivilegeAdmin, nil
 	})
 	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/catalog", `{}`)
 	if got := rec.Header().Get("Set-Cookie"); !strings.HasPrefix(got, "session=refreshed") {

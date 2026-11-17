@@ -40,7 +40,7 @@ func actorOf(uploader identity.UserID) ops.Actor {
 	return ops.NetworkActor(identity.Identity{
 		Address: "member@example.invalid", UserID: uploader, Principal: "member",
 		Source: "magic-link", Channel: identity.ChannelCookie,
-	}, time.UnixMicro(testNow))
+	}, time.UnixMicro(testNow), "192.0.2.1")
 }
 
 // albumRequest is a create request for a loose-files album of n tracks.

@@ -84,14 +84,15 @@ func apiVerifier(cfg auth.AdminConfig) opshttp.Verifier {
 		case err != nil:
 			return ops.Actor{}, 0, err
 		}
-		actor := ops.NetworkActor(v.Identity, v.Session.AnchoredAt)
+		clientIP := cfg.ClientIP(r)
+		actor := ops.NetworkActor(v.Identity, v.Session.AnchoredAt, clientIP)
 		privilege := ops.PrivilegeMember
 		if v.Admin {
 			privilege = ops.PrivilegeAdmin
 		}
 		cfg.Logger.Info("api request admitted",
 			"op", path.Base(r.URL.Path), "actor", actor.String(), "principal", v.Identity.Principal,
-			"channel", v.Identity.Channel.String(), "client_ip", cfg.ClientIP(r))
+			"channel", v.Identity.Channel.String(), "client_ip", clientIP)
 		return actor, privilege, nil
 	}
 }

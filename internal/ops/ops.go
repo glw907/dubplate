@@ -27,6 +27,7 @@ type Actor struct {
 	channel identity.Channel
 	userID  identity.UserID
 	anchor  time.Time
+	client  string
 }
 
 // LocalActor builds the local kind of [Actor] from username, the
@@ -48,8 +49,10 @@ func LocalActor(username string) Actor {
 // signed session (a command-line identity above all) can never become
 // a network actor. It renders as "member:<hex UserID>" on the wire and
 // in every audit row: the durable key, never the principal, so a
-// renamed member keeps one actor. Its channel is id's own.
-func NetworkActor(id identity.Identity, anchor time.Time) Actor {
+// renamed member keeps one actor. Its channel is id's own, and
+// clientAddr is the address the request came from, which a write's own
+// audit record names.
+func NetworkActor(id identity.Identity, anchor time.Time, clientAddr string) Actor {
 	if !id.Valid() {
 		panic("ops: NetworkActor called with an invalid identity")
 	}
@@ -58,6 +61,7 @@ func NetworkActor(id identity.Identity, anchor time.Time) Actor {
 		channel: id.Channel,
 		userID:  id.UserID,
 		anchor:  anchor,
+		client:  clientAddr,
 	}
 }
 
@@ -78,6 +82,11 @@ func (a Actor) UserID() identity.UserID { return a.userID }
 // issued, the instant the re-authentication window counts from. A
 // local actor has no session and returns the zero time.
 func (a Actor) Anchor() time.Time { return a.anchor }
+
+// ClientAddress returns the address the request behind a network actor
+// came from, as the verifier that built it resolved it. A local actor
+// has none and returns the empty string.
+func (a Actor) ClientAddress() string { return a.client }
 
 // handleLen is a job [Handle]'s wire length: 32 lowercase hex
 // characters, the hex encoding of 16 random bytes. internal/ops

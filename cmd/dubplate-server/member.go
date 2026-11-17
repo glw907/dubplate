@@ -238,7 +238,7 @@ func printMemberList(w io.Writer, members []auth.Member) error {
 }
 
 // resolveActor returns the operating-system user of the effective uid
-// as the verb's audit actor (R-5c14): user.LookupId(effective uid),
+// as the verb's audit actor: user.LookupId(effective uid),
 // falling back to uid:<n> when the lookup fails, never $USER, which
 // anyone who controls the environment a verb runs under can forge.
 func resolveActor() string {
