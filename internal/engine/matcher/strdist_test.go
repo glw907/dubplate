@@ -3,6 +3,7 @@ package matcher
 import (
 	"encoding/json"
 	"os"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -121,13 +122,22 @@ func TestStringDistPatternLoopAdoptsOnlyOnPositiveDelta(t *testing.T) {
 // check: the featuring pattern's word boundaries change none of the 72
 // committed rows, so tier 0 is blind to exactly the edit most likely to
 // be made.
-var beetsSDPatternLiterals = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
-	{Pattern: `\(.*?\)`, Weight: 0.3},
-	{Pattern: `\[.*?\]`, Weight: 0.3},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+var beetsSDPatternLiterals = []sdLiteral{
+	{pattern: `^the `, weight: 0.1},
+	{pattern: `[\[\(]?(ep|single)[\]\)]?`, weight: 0.0},
+	{pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, weight: 0.1},
+	{pattern: `\(.*?\)`, weight: 0.3},
+	{pattern: `\[.*?\]`, weight: 0.3},
+	{pattern: `(, )?(pt\.|part) .+`, weight: 0.2},
+}
+
+// sdLiteral is one SDPattern row written as source text, so a shipped
+// table compares against literals rather than against compiled values
+// built by the code under test.
+type sdLiteral struct {
+	pattern     string
+	weight      float64
+	replacement string
 }
 
 // sdGoForm is the Go pattern and Expand template a shipped row carries
@@ -160,18 +170,18 @@ const beetsFeaturingRowIndex = 2
 // translation used, so a shipped table is checked against what it
 // should actually carry: the literal untouched, or the Go form on the
 // one row this package departs from.
-func wantSDPattern(literal SDPattern, used map[string]bool) SDPattern {
-	translation, translated := sdTranslations[literal.Pattern]
+func wantSDPattern(literal sdLiteral, used map[string]bool) sdLiteral {
+	translation, translated := sdTranslations[literal.pattern]
 	if !translated {
 		return literal
 	}
-	used[literal.Pattern] = true
-	return SDPattern{Pattern: translation.pattern, Weight: literal.Weight, Replacement: translation.replacement}
+	used[literal.pattern] = true
+	return sdLiteral{pattern: translation.pattern, weight: literal.weight, replacement: translation.replacement}
 }
 
 // assertMatchesTranslatedLiterals checks got against literals through
 // sdTranslations and fails on any map entry no row in literals uses.
-func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []SDPattern) {
+func assertMatchesTranslatedLiterals(t *testing.T, name string, got []SDPattern, literals []sdLiteral) {
 	t.Helper()
 	if len(got) != len(literals) {
 		t.Fatalf("%s has %d entries, beets ships %d", name, len(got), len(literals))
@@ -179,8 +189,9 @@ func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []
 	used := make(map[string]bool, len(sdTranslations))
 	for i, literal := range literals {
 		want := wantSDPattern(literal, used)
-		if got[i] != want {
-			t.Errorf("%s[%d] = {%q, %v, %q}, want {%q, %v, %q}", name, i, got[i].Pattern, got[i].Weight, got[i].Replacement, want.Pattern, want.Weight, want.Replacement)
+		gotRow := sdLiteral{pattern: got[i].Pattern.String(), weight: got[i].Weight, replacement: got[i].Replacement}
+		if gotRow != want {
+			t.Errorf("%s[%d] = %+v, want %+v", name, i, gotRow, want)
 		}
 	}
 	for literal := range sdTranslations {
@@ -197,7 +208,7 @@ func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
 	assertMatchesTranslatedLiterals(t, "BeetsSDPatterns", BeetsSDPatterns, beetsSDPatternLiterals)
 
 	wantFeaturing := wantSDPattern(beetsSDPatternLiterals[beetsFeaturingRowIndex], map[string]bool{})
-	if DefaultTunables().StringDistPatterns[beetsFeaturingRowIndex].Pattern != wantFeaturing.Pattern {
+	if DefaultTunables().StringDistPatterns[beetsFeaturingRowIndex].Pattern.String() != wantFeaturing.pattern {
 		t.Error("DefaultTunables does not select the shipped table")
 	}
 }
@@ -355,8 +366,8 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 	if golden.Header.UnicodedataVersion != "15.1.0" {
 		t.Fatalf("header.unicodedata_version = %q, want %q", golden.Header.UnicodedataVersion, "15.1.0")
 	}
-	if golden.Header.Literal != beetsSDPatternLiterals[beetsFeaturingRowIndex].Pattern {
-		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[beetsFeaturingRowIndex].Pattern)
+	if golden.Header.Literal != beetsSDPatternLiterals[beetsFeaturingRowIndex].pattern {
+		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[beetsFeaturingRowIndex].pattern)
 	}
 
 	const wantCuratedRows = 33
@@ -392,9 +403,9 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 		t.Errorf("golden's drawn rows fired %d times, want %d", fired, wantFired)
 	}
 
-	asciiLiteral := sdRegexp(golden.Header.Literal)
+	asciiLiteral := regexp.MustCompile(golden.Header.Literal)
 	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
-	shipped := sdRegexp(featuring.Pattern)
+	shipped := featuring.Pattern
 
 	type divergence struct {
 		label, input, want, got string
@@ -523,7 +534,7 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 	}
 
 	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
-	shipped := sdRegexp(featuring.Pattern)
+	shipped := featuring.Pattern
 	var pythonOnly []rune
 	goOnly := 0
 	for r := rune(0); r <= 0x10FFFF; r++ {

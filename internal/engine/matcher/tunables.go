@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"regexp"
 	"slices"
 )
 
@@ -331,11 +332,13 @@ func DefaultTunables() Tunables {
 	return tun
 }
 
-// SDPattern is one entry in string_dist's pattern-discount table: pat
-// is a regular expression deleted from both inputs wherever it matches,
-// unanchored, over the whole string (contract 7: SD_PATTERNS never
-// anchor), and weight is the penalty added to the base distance for
-// each side the deletion changed.
+// SDPattern is one entry in string_dist's pattern-discount table:
+// Pattern is deleted from both inputs wherever it matches, unanchored,
+// over the whole string, because SD_PATTERNS are re.sub arguments and
+// re.sub never anchors; the only "^" in beets' table is its own in
+// "^the ". The anchoring [CompilePatternOption] applies belongs to
+// Distance._eq's options and to nothing here. Weight is the penalty
+// added to the base distance for each side the deletion changed.
 //
 // Replacement is a [regexp.Regexp.Expand] template substituted for the
 // match instead of Python's empty string. Every row carries the zero
@@ -343,7 +346,7 @@ func DefaultTunables() Tunables {
 // character its Unicode-aware boundary consumed; see BeetsSDPatterns'
 // doc comment.
 type SDPattern struct {
-	Pattern     string
+	Pattern     *regexp.Regexp
 	Weight      float64
 	Replacement string
 }
@@ -354,22 +357,17 @@ type SDPattern struct {
 // something".
 var SDEndWords = []string{"the", "a", "an"}
 
-// SDReplacement is one substitution string_dist performs, in order,
-// before the pattern loop.
-type SDReplacement struct {
-	Pattern     string
-	Replacement string
-}
+// The rows BeetsSDPatterns and SDPatternsNoBracketDiscount share are
+// compiled once and held here, so the two tables cannot drift apart on
+// them.
+var (
+	sdArticle   = SDPattern{Pattern: regexp.MustCompile(`^the `), Weight: 0.1}
+	sdEPSingle  = SDPattern{Pattern: regexp.MustCompile(`[\[\(]?(ep|single)[\]\)]?`), Weight: 0.0}
+	sdFeaturing = SDPattern{Pattern: regexp.MustCompile(sdFeaturingPattern), Weight: 0.1, Replacement: `${1}`}
+	sdPart      = SDPattern{Pattern: regexp.MustCompile(`(, )?(pt\.|part) .+`), Weight: 0.2}
+)
 
-// SDReplace is SD_REPLACE (autotag/distance.py:45): applied once to
-// each input, in order, before the pattern loop.
-var SDReplace = []SDReplacement{
-	{Pattern: "&", Replacement: "and"},
-}
-
-// sdFeaturingPattern and sdFeaturingReplacement are the one row
-// BeetsSDPatterns and SDPatternsNoBracketDiscount share, kept in one
-// place so the two tables cannot drift apart on it.
+// sdFeaturingPattern is the featuring row's Go form.
 //
 // Beets' own featuring pattern is
 // [\[\(]?\b(featuring|feat|ft)\b[\. :].+ (autotag/distance.py:39).
@@ -383,23 +381,20 @@ var SDReplace = []SDReplacement{
 // character, so the boundary there is already satisfied); every other
 // case reads the leading boundary as the start of the string or a rune
 // outside letters, digits, and underscore. That second branch keeps
-// the boundary rune in its own group, and sdFeaturingReplacement
+// the boundary rune in its own group, and the row's `${1}` Replacement
 // reinserts it, because beets' Unicode-aware \b consumes no character
 // while the translated branch's [^\pL\pN_] does; without the
 // replacement the rewrite would delete the non-word rune before the
 // trigger, which matters because unidecode maps some of those runes to
 // ASCII letters ("©" to "(c)", "™" to "(tm)").
-const (
-	sdFeaturingPattern     = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
-	sdFeaturingReplacement = `${1}`
-)
+const sdFeaturingPattern = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
 
 // BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
 // six shipped discounts in their fixed order. It is the default of
 // [Tunables.StringDistPatterns], held to beets' literals one for one
 // (TestBeetsSDPatternsMatchBeetsLiterals), with one named departure:
-// the featuring row carries sdFeaturingPattern and
-// sdFeaturingReplacement, two ASCII-boundary branches sharing a
+// the featuring row carries sdFeaturingPattern and a `${1}`
+// Replacement, two ASCII-boundary branches sharing a
 // kept-character group, in place of beets' own literal and its empty
 // substitution, because Go RE2's \b is ASCII-only where Python re's is
 // Unicode-aware; see sdFeaturingPattern's doc comment above for the
@@ -407,12 +402,12 @@ const (
 // upstream shipped in beets 2.14.0 (19d091440), so "ft" inside an
 // ordinary word such as "Draft" no longer reads as a featuring credit.
 var BeetsSDPatterns = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: sdFeaturingPattern, Weight: 0.1, Replacement: sdFeaturingReplacement},
-	{Pattern: `\(.*?\)`, Weight: 0.3},
-	{Pattern: `\[.*?\]`, Weight: 0.3},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+	sdArticle,
+	sdEPSingle,
+	sdFeaturing,
+	{Pattern: regexp.MustCompile(`\(.*?\)`), Weight: 0.3},
+	{Pattern: regexp.MustCompile(`\[.*?\]`), Weight: 0.3},
+	sdPart,
 }
 
 // SDPatternsNoBracketDiscount carries BeetsSDPatterns' six discounts
@@ -430,10 +425,10 @@ var BeetsSDPatterns = []SDPattern{
 // selects it; [Compat.Apply] assigns it to
 // Tunables.StringDistPatterns.
 var SDPatternsNoBracketDiscount = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: sdFeaturingPattern, Weight: 0.1, Replacement: sdFeaturingReplacement},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+	sdArticle,
+	sdEPSingle,
+	sdFeaturing,
+	sdPart,
 }
 
 // Validate resolves every name-typed and pattern-typed field once, so a

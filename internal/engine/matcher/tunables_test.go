@@ -187,9 +187,9 @@ func TestDefaultTunables_StringDistPatternsDefaultsToBeets(t *testing.T) {
 // map ever writes the featuring row's Go form), and drops exactly the
 // two bracket patterns.
 func TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved(t *testing.T) {
-	var literalsLessBrackets []SDPattern
+	var literalsLessBrackets []sdLiteral
 	for _, literal := range beetsSDPatternLiterals {
-		if literal.Weight == 0.3 {
+		if literal.weight == 0.3 {
 			continue
 		}
 		literalsLessBrackets = append(literalsLessBrackets, literal)
@@ -232,11 +232,6 @@ func TestSDEndWordsAndReplace(t *testing.T) {
 	wantEndWords := []string{"the", "a", "an"}
 	if !reflect.DeepEqual(SDEndWords, wantEndWords) {
 		t.Errorf("SDEndWords = %v, want %v", SDEndWords, wantEndWords)
-	}
-
-	wantReplace := []SDReplacement{{Pattern: "&", Replacement: "and"}}
-	if !reflect.DeepEqual(SDReplace, wantReplace) {
-		t.Errorf("SDReplace = %v, want %v", SDReplace, wantReplace)
 	}
 }
 func TestValidateRejectsAnUnknownRequiredFieldAndABadPattern(t *testing.T) {
