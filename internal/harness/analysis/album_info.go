@@ -77,7 +77,7 @@ var AlbumInfoSubjects = []AlbumInfoSubject{
 // AlbumInfo every candidate the matcher scores is built from, dumped
 // through pinned beets so the Go translation layer is graded against
 // beets' own answer field by field rather than only through whole-case
-// agreement (ruling E).
+// agreement.
 type AlbumInfoLedger struct {
 	ShimVersion  string               `json:"shim_version"`
 	BeetsVersion string               `json:"beets_version"`

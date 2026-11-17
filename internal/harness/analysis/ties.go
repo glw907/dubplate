@@ -71,8 +71,7 @@ type TieEntry struct {
 	// while excluded stops grading it, so only the second can hide a
 	// defect behind a disposition an agent chose. Requiring a human name
 	// on pinned too would force an owner sitting immediately, because
-	// the two committed pinned rows were authored by an agent (rung 3
-	// spec, ruling F's M4 fold).
+	// the two committed pinned rows were authored by an agent.
 	Adjudicator string `json:"adjudicator,omitempty"`
 }
 

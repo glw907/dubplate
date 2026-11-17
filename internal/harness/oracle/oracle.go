@@ -227,7 +227,7 @@ func writeMissFile(dir string, misses []stub.Miss) error {
 
 // renderProfile loads the named profile, substitutes its box-path
 // placeholders with libDir/libDB and appends a musicbrainz: block
-// pointed at host (the Q5 seam: {host, https: no, ratelimit: 100}),
+// pointed at host ({host, https: no, ratelimit: 100}),
 // after checking the profile resolves to exactly one metadata source.
 func renderProfile(name, libDir, libDB, host string) ([]byte, error) {
 	raw, err := loadProfile(name)

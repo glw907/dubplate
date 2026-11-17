@@ -13,12 +13,12 @@ import (
 
 // CheckCaseWeights asserts that got, a committed case's echoed
 // match.distance_weights, equals want key by key, naming the key and
-// both values on any disagreement. This is the M1 defaults
+// both values on any disagreement. This is the defaults
 // cross-check's own half that can fire before tier 1 exists: no
 // committed profile sets a match: key, so every one of the 216
 // committed cases echoes the same twenty shipped defaults, and a
 // transcription error in Tunables' own defaults shows up here
-// immediately rather than waiting on 3d's profile-merge runner.
+// immediately rather than waiting on the profile-merge runner.
 func CheckCaseWeights(caseID string, want, got map[string]float64) error {
 	var errs []error
 	for _, key := range sortedKeys(want) {
@@ -60,7 +60,7 @@ func CheckCaseThresholds(caseID string, want matcher.Tunables, got cassette.Thre
 
 // gradeTunables is the configuration every conformance sweep runs
 // under: Tunables' beets defaults merged with the case's profile, in
-// that order (rung 3 spec, the M1 fold), with import.quiet forced true.
+// that order, with import.quiet forced true.
 //
 // The quiet overlay lives here and outside mergeProfile, because
 // mergeProfile models the three committed profile FILES and

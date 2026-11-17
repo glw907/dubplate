@@ -22,8 +22,8 @@ const (
 )
 
 // AgentAdjudicator is the reserved, non-human adjudicator value an
-// agent-authored row must carry. disposition is owner-only (Geoff's
-// alone to set to anything but Pending); a row's adjudicator being
+// agent-authored row must carry. disposition is owner-only (only
+// the owner sets it to anything but Pending); a row's adjudicator being
 // this literal sentinel is how the checker tells an agent-authored row
 // from a human-ruled one, since Go has no other way to recognize "a
 // human name."
@@ -59,24 +59,24 @@ type AdjudicationEntry struct {
 	// owner's own corrected_verdict prose, never a disposition and
 	// never a verdict about who is right: it is the expectation an
 	// oracle-wrong case is graded against once its hypothesis's compat
-	// switch defaults off (ruling A / M6). A pointer because absence is
+	// switch defaults off. A pointer because absence is
 	// meaningful and omitempty does not omit a struct value.
 	DefectFree *DefectFree `json:"defect_free,omitempty"`
 
-	// AppliedField is R7's schema addition: a writer-conformance
-	// divergence rung 8's conformance instrument stages, never
-	// hand-authored. Its route is staged by the instrument (a go test
+	// AppliedField is a writer-conformance divergence that the tag
+	// writer's conformance test stages, never hand-authored. Its route
+	// is staged by that test (a go test
 	// under internal/engine/tagio, which may not import this package
-	// and so builds the same shape over a local struct), folded by the
-	// conductor into corpus/analysis/adjudications.json by hand, then
-	// adjudicated by the owner like any other row, and it blocks rung
-	// 15's launch gate for as long as its disposition stays Pending. A
+	// and so builds the same shape over a local struct), copied by
+	// hand into corpus/analysis/adjudications.json, then
+	// adjudicated by the owner like any other row, and it blocks the
+	// launch gate for as long as its disposition stays Pending. A
 	// pointer for the same reason DefectFree is one: omitempty does
 	// not omit a struct value, and absence is meaningful.
 	AppliedField *AppliedField `json:"applied_field,omitempty"`
 }
 
-// DefectFree is the derived-distance block ruling A / M6 attaches to an
+// DefectFree is the derived-distance block attached to an
 // oracle-wrong adjudication row. See [AdjudicationEntry.DefectFree].
 type DefectFree struct {
 	Distance       float64 `json:"distance"`
@@ -85,7 +85,7 @@ type DefectFree struct {
 	PatternTable   string  `json:"pattern_table"`
 }
 
-// AppliedField is R7's writer-conformance divergence block: one item's
+// AppliedField is the writer-conformance divergence block: one item's
 // one field, disagreeing between corpus/analysis/file_tags.json's
 // ledger row and tagio's own write-then-read-back projection at the
 // named commit. LedgerValue and ReadBackValue are already rendered
@@ -110,10 +110,10 @@ type AppliedField struct {
 // oracle-correct, the other two are excluded on purpose:
 // bug-nonlatin-alias-selection (oracle-wrong) is a translation defect
 // with no SD_PATTERNS counterfactual, and
-// bug-assignment-rejection-gap (no-correct-answer, owner ruling
-// 2026-09-07: pinned beets has no per-pair rejection mechanism at all,
-// so no correct answer exists for the oracle to have produced) is the
-// class ruling A names as having no beets counterfactual at all, so its
+// bug-assignment-rejection-gap (no-correct-answer, as the owner
+// decided on 2026-09-07: pinned beets has no per-pair rejection mechanism
+// at all, so no correct answer exists for the oracle to have produced) is the
+// class with no beets counterfactual at all, so its
 // six adv-assign-* probe cases owe no block.
 var StringHeuristicHypotheses = []string{"bug-remix-parenthetical"}
 

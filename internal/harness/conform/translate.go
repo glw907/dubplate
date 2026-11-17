@@ -17,7 +17,7 @@ import (
 // browseMaxTracks is BROWSE_MAXTRACKS (beetsplug/musicbrainz.py:67),
 // the track count beyond which album_for_id switches from a direct
 // release fetch to the paged browse endpoint (:609-613). Issuing that
-// alternate request is 3c's client work; this guard exists so a corpus
+// alternate request is the client's work; this guard exists so a corpus
 // case crossing the line is noticed the moment it lands, since nothing
 // else in the pipeline would otherwise notice a lookup silently taking
 // the untested path.
@@ -139,10 +139,9 @@ func checkTranslatedTrack(caseID, mbid string, i int, want analysis.LedgerTrackI
 }
 
 // mergeProfile applies profile's overlay atop base, in Tunables'
-// defaults-then-profile order (fold, B4, the same rule the spec's M1
-// fold states for tier 1). It is a profile-name-to-overlay table, never
-// a YAML parse: go.mod carries no YAML dependency and this plan's
-// Global Constraints forbid adding one. An unrecognized profile name is
+// defaults-then-profile order, the same rule tier 1 follows. It is a
+// profile-name-to-overlay table, never a YAML parse: go.mod carries no
+// YAML dependency and none may be added. An unrecognized profile name is
 // the failure.
 //
 // stock overlays nothing: corpus/profiles/stock.yaml sets only the
@@ -152,7 +151,7 @@ func checkTranslatedTrack(caseID, mbid string, i int, want analysis.LedgerTrackI
 // beets' shipped default (config_default.yaml:34 is "ask", both
 // profiles say "skip"), so a merge that stopped at the two locale keys
 // left a value the profile sets reading beets' own. It is unreachable
-// under the conformance sweep's quiet overlay (contract V16), which is
+// under the conformance sweep's quiet overlay, which is
 // why translate_test.go asserts each merged value against the profile
 // file directly rather than through a sweep.
 func mergeProfile(base matcher.Tunables, profile string) (matcher.Tunables, error) {
@@ -182,8 +181,7 @@ func withImportKeys(t matcher.Tunables) matcher.Tunables {
 
 // profileKeyAllowlist names every top-level and import: key the three
 // committed profiles (corpus/profiles/*.yaml) use today, each with
-// either its Tunables field or the reason it has none (fold, B4's
-// second adaptation): dropping the unknown-key rule with the YAML
+// either its Tunables field or the reason it has none. Dropping the unknown-key rule with the YAML
 // parse would let a future match: key land in a profile without ever
 // reaching the translation, which is the silent-stop the rule existed
 // to catch.
@@ -275,7 +273,7 @@ func findReleaseRequest(c *cassette.Case, mbid string) (*cassette.Request, error
 
 // loadRelease decodes the committed response body a release-lookup
 // request for mbid names within c, read from caseDir. No stub, no
-// client, no network: the stub is 3c's business, and reading a
+// client, no network: the stub belongs to request grading, and reading a
 // committed response file from the harness is exactly the permitted
 // direction.
 func loadRelease(caseDir string, c *cassette.Case, mbid string) (*musicbrainz.Release, error) {

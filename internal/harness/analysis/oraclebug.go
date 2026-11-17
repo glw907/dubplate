@@ -54,7 +54,7 @@ func LoadOracleBugs(path string) (*OracleBugLedger, error) {
 // enforces, and that EVERY probe case of a hypothesis at OracleWrong
 // resolves to an adjudication row by subject.case_id.
 //
-// That last rule is the B3 fold. Oracle-bug rows are per hypothesis and
+// The last rule exists because oracle-bug rows are per hypothesis and
 // adjudication rows are per case, so a hypothesis ruled oracle-wrong
 // whose probe case carries no row would have no corrected verdict to
 // produce and would be silently ungraded at the conformance gate. It

@@ -16,7 +16,6 @@ import (
 // one with "<=" (beets/autotag/match.py, _recommendation), so a case
 // this close to a boundary can change verdict under a
 // comparison-direction disagreement that no float tolerance absorbs.
-// The mechanics study's epsilon-regime finding is the source.
 const ProximityEpsilon = 1e-6
 
 // Proximity statuses, one per case.

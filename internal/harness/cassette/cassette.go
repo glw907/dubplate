@@ -41,7 +41,7 @@ const caseFileName = "case.json"
 // Case is one corpus case, loaded from its directory.
 type Case struct {
 	ID       string    `json:"id"`
-	Input    Input     `json:"input"`   // items in pinned order; no file references at 2a
+	Input    Input     `json:"input"`   // items in pinned order; no file references yet
 	Profile  string    `json:"profile"` // profile name under corpus/profiles ("estate", "stock")
 	EvalDate string    `json:"eval_date"`
 	Requests []Request `json:"requests"`           // the committed request log: an expectation, not scaffolding
@@ -95,7 +95,7 @@ type Thresholds struct {
 // Candidate is one scored release candidate.
 type Candidate struct {
 	Source    string             `json:"source"`   // metadata source name ("MusicBrainz")
-	AlbumID   string             `json:"album_id"` // the U8 shared-subset key with Source
+	AlbumID   string             `json:"album_id"` // the shared-subset key with Source
 	Distance  float64            `json:"distance"`
 	Penalties map[string]float64 `json:"penalties"` // per-key weighted distances
 	Tracks    []float64          `json:"tracks"`    // per-track distances, assignment order
@@ -109,7 +109,7 @@ type Manifest struct {
 	Jellyfish     string            `json:"jellyfish"`
 	Lap           string            `json:"lap"`
 	Numpy         string            `json:"numpy"`
-	MediaFile     string            `json:"mediafile"` // pass 2d's sixth pin: the file-tags ledger's write/read-back layer
+	MediaFile     string            `json:"mediafile"` // the file-tags ledger's write/read-back layer
 	ShimVersion   string            `json:"shim_version"`
 	ProfileHashes map[string]string `json:"profile_hashes"` // profile name -> content hash
 }

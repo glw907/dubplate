@@ -1,6 +1,6 @@
 //go:build oracle
 
-// album_info.go is the Go half of ruling E's derived AlbumInfo ledger:
+// album_info.go is the Go half of the derived AlbumInfo ledger:
 // it sets up the same replay stub and rendered profile a derivation runs
 // under, then hands derive_album_info.py the release ids the case's own
 // request log fetches by id. It carries the oracle tag because it

@@ -27,15 +27,14 @@ type FileTagSubject struct {
 
 // FileTagSubjects is the fixed twelve-subject set
 // corpus/analysis/file_tags.json is derived over: five smoke/structural
-// cases plus seven real-catalog cases, per rung 2 pass 2d's Task 2. The
+// cases plus seven real-catalog cases. The
 // twelfth entry, `real-decoy-mozart-requiem`, replaces the dossier's
 // original `real-decoy-beethoven-symphony-5`: that id never resolved to
-// a committed case (pass 2c's Task 4 found the decoy never surfaced in
+// a committed case (the decoy never surfaced in
 // beets' own 5-result search window and the axis's reserve was already
 // spent, corpus/README.md's "The two-release sub-axis finding"
 // section), so it can never be a file-tags subject. The replacement is
-// a conductor ruling recorded in corpus/README.md's file-tags section,
-// not an implementer's own substitution.
+// recorded in corpus/README.md's file-tags section.
 var FileTagSubjects = []FileTagSubject{
 	{CaseID: "clean-match"},
 	{CaseID: "media-uneven-split"},
@@ -56,11 +55,11 @@ var FileTagSubjects = []FileTagSubject{
 // emits by writing each subject's recorded fields into a fresh copy of
 // the vendored template FLAC and reading the result back independently.
 //
-// Its consumer is rung 8, pure-Go FLAC tag writing: WritableFields is
+// Its consumer is the pure-Go FLAC tag writer in internal/engine/tagio: WritableFields is
 // the conformance target, and Template holds the read-only remainder
 // every read-back reports from the container itself, never from a
-// subject. Nothing at rung 2 can compare against a Go writer, so the
-// checks in this file are schema, coverage, and key-membership only.
+// subject. The checks in this file never run a Go writer: they
+// are schema, coverage, and key-membership only.
 type FileTagLedger struct {
 	ShimVersion    string             `json:"shim_version"`
 	BeetsVersion   string             `json:"beets_version"`

@@ -15,9 +15,9 @@ import (
 // versionProbe prints the installed version of every component a
 // derived record's meaning depends on. unidecode's transliteration
 // tables, jellyfish's edit distance, and lap's assignment solver all
-// sit directly in the distance path (the mechanics study, Q1.4), so a
+// sit directly in the distance path, so a
 // silent bump there would change verdicts with nothing in the corpus
-// to show for it. mediafile is pass 2d's sixth pin: it is the
+// to show for it. mediafile is a pinned component too: it is the
 // write/read-back layer the file-tags ledger depends on, so a bump
 // there can move what a real FLAC container ends up holding with
 // nothing in the corpus to show for it either.
