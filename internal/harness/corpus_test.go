@@ -120,20 +120,15 @@ func TestEveryLoggedRequestResolvesToExactlyOneResponse(t *testing.T) {
 }
 
 // TestEveryResponseFileIsConsumed proves every file under a case's
-// responses/ directory is either referenced by a logged request or
-// listed in Extra. LoadCase only validates the reverse direction (a
-// referenced file must exist); an orphaned response file would sit in
-// the corpus unexplained, silently growing the fixture set without
-// U8's recall-extension bookkeeping.
+// responses/ directory is referenced by a logged request. LoadCase only
+// validates the reverse direction (a referenced file must exist); an
+// orphaned response file would sit in the corpus unexplained.
 func TestEveryResponseFileIsConsumed(t *testing.T) {
 	root := repoRoot(t)
 	forEachCase(t, root, func(t *testing.T, id, dir string, c *cassette.Case) {
-		consumed := make(map[string]bool, len(c.Requests)+len(c.Extra))
+		consumed := make(map[string]bool, len(c.Requests))
 		for _, req := range c.Requests {
 			consumed[req.Response] = true
-		}
-		for _, extra := range c.Extra {
-			consumed[extra.Response] = true
 		}
 
 		entries, err := os.ReadDir(filepath.Join(dir, "responses"))
@@ -146,7 +141,7 @@ func TestEveryResponseFileIsConsumed(t *testing.T) {
 			}
 			name := filepath.Join("responses", e.Name())
 			if !consumed[name] {
-				t.Errorf("case %s: response file %s is neither a logged request's response nor listed in Extra", id, name)
+				t.Errorf("case %s: response file %s is not a logged request's response", id, name)
 			}
 		}
 	})
@@ -157,9 +152,7 @@ func TestEveryResponseFileIsConsumed(t *testing.T) {
 // corpus-revalidation event like any other pin change (corpus/README.md);
 // this constant is what makes an un-updated manifest fail loudly here
 // instead of silently loading under an assumption the corpus no
-// longer meets. Version 4 is pass 3c's cassette.Case.Extra reshape
-// (bare filename to Request-shaped entry), an empty migration because
-// every committed case's Extra value is nil.
+// longer meets.
 const wantManifestSchemaVersion = "4"
 
 // TestManifestParsesAndMatchesSchemaVersion proves corpus/manifest.json
@@ -177,13 +170,11 @@ func TestManifestParsesAndMatchesSchemaVersion(t *testing.T) {
 }
 
 // TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema proves the
-// Case.Extra reshape moved no committed byte: every case.json decodes
-// through the current Case type and re-encodes, through the same
-// Case.Write every `harness freeze` uses, to bytes identical to the file
-// on disk. This is the schema bump's migration proof, offline and in
-// seconds, in place of the full re-derivation pass 2b's bump needed
-// (corpus/README.md:1959-1980). It keeps proving it for every later
-// schema change rather than for this one only.
+// schema moves no committed byte: every case.json decodes through the
+// current Case type and re-encodes, through the same Case.Write every
+// `harness freeze` uses, to bytes identical to the file on disk. It is
+// the offline, seconds-long migration proof for any schema change, in
+// place of a full re-derivation.
 func TestEveryCommittedCaseRoundTripsThroughTheCurrentSchema(t *testing.T) {
 	root := repoRoot(t)
 	forEachCase(t, root, func(t *testing.T, id, dir string, c *cassette.Case) {

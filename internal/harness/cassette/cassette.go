@@ -4,11 +4,11 @@
 //
 // A case directory holds case.json (this package's own metadata,
 // encoded through [Case]'s json tags) plus a responses/ directory of
-// verbatim MusicBrainz response bodies. [Request.Response] and each
-// [Case.Extra] entry's own Response field name those files; nothing in
-// this package embeds a response body inside case.json, so there is no
-// re-encoding step that could corrupt one (encoding/json compacts and
-// HTML-escapes json.RawMessage, which would break byte identity).
+// verbatim MusicBrainz response bodies. [Request.Response] names those
+// files; nothing in this package embeds a response body inside
+// case.json, so there is no re-encoding step that could corrupt one
+// (encoding/json compacts and HTML-escapes json.RawMessage, which would
+// break byte identity).
 // [LoadCase] reads a referenced response file with os.ReadFile only to
 // prove it exists and is readable; it never decodes the body.
 //
@@ -43,15 +43,7 @@ type Case struct {
 	Input    Input     `json:"input"`   // items in pinned order; no file references at 2a
 	Profile  string    `json:"profile"` // profile name under corpus/profiles ("estate", "stock")
 	EvalDate string    `json:"eval_date"`
-	Requests []Request `json:"requests"` // the committed request log: an expectation, not scaffolding
-	// Extra names responses a case captured that no logged request
-	// consumes: recall-extension fixtures for a future
-	// candidate-widening improvement (U8). It carries the full request
-	// shape rather than a bare filename because the replay stub keys on
-	// (method, path_query) and a second response map cannot be keyed
-	// against nothing (rung 3 spec, the B2 fold). Every committed case's
-	// value is nil at schema version 4, so the reshape moved no bytes.
-	Extra    []Request `json:"extra,omitempty"`
+	Requests []Request `json:"requests"`           // the committed request log: an expectation, not scaffolding
 	Expected *Expected `json:"expected,omitempty"` // nil until derived
 }
 
@@ -124,11 +116,7 @@ type Manifest struct {
 // LoadCase reads and validates the case directory at dir: case.json
 // must parse into a [Case] with a non-empty ID, Profile, and EvalDate;
 // every Request's PathQuery must already be in canonical form and name
-// a readable response file under dir; and every Extra entry applies the
-// same rules, plus three exclusivity checks: no Extra entry may name a
-// response file a Request already consumes, no Extra entry's
-// (Method, PathQuery) pair may repeat a Request's, and no two Extra
-// entries may share a (Method, PathQuery) pair.
+// a readable response file under dir.
 func LoadCase(dir string) (*Case, error) {
 	data, err := os.ReadFile(filepath.Join(dir, caseFileName))
 	if err != nil {
@@ -159,8 +147,6 @@ func (c *Case) validate(dir string) error {
 		return errors.New("case.json: eval_date: missing")
 	}
 
-	consumed := make(map[string]bool, len(c.Requests))
-	requestKeys := make(map[requestKey]bool, len(c.Requests))
 	for i, req := range c.Requests {
 		if req.Method == "" {
 			return fmt.Errorf("case.json: requests[%d]: method: missing", i)
@@ -174,49 +160,10 @@ func (c *Case) validate(dir string) error {
 		if err := checkResponseReadable(dir, req.Response); err != nil {
 			return fmt.Errorf("case.json: requests[%d]: %w", i, err)
 		}
-		consumed[req.Response] = true
-		requestKeys[requestKey{req.Method, req.PathQuery}] = true
-	}
-
-	// extraKeys tracks each Extra entry's own (Method, PathQuery) pair
-	// back to the index that first claimed it, so a later duplicate can
-	// name which entry it collides with.
-	extraKeys := make(map[requestKey]int, len(c.Extra))
-	for i, extra := range c.Extra {
-		if extra.Method == "" {
-			return fmt.Errorf("case.json: extra[%d]: method: missing", i)
-		}
-		if canon := canonicalizePathQuery(extra.PathQuery); canon != extra.PathQuery {
-			return fmt.Errorf("case.json: extra[%d]: path_query %q is not canonical, want %q", i, extra.PathQuery, canon)
-		}
-		if extra.Response == "" {
-			return fmt.Errorf("case.json: extra[%d]: response: missing", i)
-		}
-		if err := checkResponseReadable(dir, extra.Response); err != nil {
-			return fmt.Errorf("case.json: extra[%d]: %w", i, err)
-		}
-		if consumed[extra.Response] {
-			return fmt.Errorf("case.json: extra[%d]: %s already consumed by a request", i, extra.Response)
-		}
-		k := requestKey{extra.Method, extra.PathQuery}
-		if requestKeys[k] {
-			return fmt.Errorf("case.json: extra[%d]: %s %s is already a logged request", i, extra.Method, extra.PathQuery)
-		}
-		if prior, dup := extraKeys[k]; dup {
-			return fmt.Errorf("case.json: extra[%d]: %s %s duplicates extra[%d]", i, extra.Method, extra.PathQuery, prior)
-		}
-		extraKeys[k] = i
 	}
 
 	return nil
 }
-
-// requestKey is the (Method, PathQuery) pair the replay stub in
-// internal/harness/stub keys its response maps on: two Requests, or a
-// Request and an Extra, sharing one silently shadow each other, which
-// is exactly what the exclusivity checks above exist to catch before it
-// reaches the stub.
-type requestKey struct{ method, pathQuery string }
 
 // checkResponseReadable proves name resolves to a readable file under
 // dir; it discards the bytes, since neither [Case] nor its callers keep

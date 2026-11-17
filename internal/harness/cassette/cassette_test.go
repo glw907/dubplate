@@ -64,9 +64,6 @@ func baseCase() *Case {
 		Requests: []Request{
 			{Method: "GET", PathQuery: "release/00000000-0000-0000-0000-000000000000?fmt=json&inc=artists+media", Response: "responses/001.json"},
 		},
-		Extra: []Request{
-			{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: "responses/002.json"},
-		},
 		Expected: &Expected{
 			Recommendation: "strong",
 			Action:         "apply",
@@ -180,7 +177,6 @@ func TestLoadCaseRejectsAbsentEvalDate(t *testing.T) {
 	dir := t.TempDir()
 	c := baseCase()
 	c.EvalDate = ""
-	c.Extra = nil
 	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
 	if err := c.Write(dir); err != nil {
 		t.Fatalf("Write: %v", err)
@@ -197,7 +193,6 @@ func TestLoadCaseRejectsAbsentEvalDate(t *testing.T) {
 func TestLoadCaseRejectsNonexistentResponseFile(t *testing.T) {
 	dir := t.TempDir()
 	c := baseCase()
-	c.Extra = nil
 	// Deliberately do not write responses/001.json.
 	if err := c.Write(dir); err != nil {
 		t.Fatalf("Write: %v", err)
@@ -217,7 +212,6 @@ func TestLoadCaseRejectsUnreadableResponseFile(t *testing.T) {
 	}
 	dir := t.TempDir()
 	c := baseCase()
-	c.Extra = nil
 	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
 	if err := c.Write(dir); err != nil {
 		t.Fatalf("Write: %v", err)
@@ -234,206 +228,9 @@ func TestLoadCaseRejectsUnreadableResponseFile(t *testing.T) {
 	}
 }
 
-func TestLoadCaseRejectsExtraNamingConsumedResponse(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	// A different (method, path_query) from the sole Request, but the
-	// same response filename it already consumes: this isolates the
-	// filename-exclusivity rule from the key-exclusivity rule below.
-	c.Extra = []Request{
-		{Method: "GET", PathQuery: "release/22222222-2222-2222-2222-222222222222?fmt=json", Response: "responses/001.json"},
-	}
-	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with an Extra entry naming a consumed response: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "already consumed") {
-		t.Errorf("error %q does not explain the consumed-response conflict", err)
-	}
-}
-
-// TestLoadCaseRejectsExtraWithMissingMethod proves the Extra loop
-// applies the same non-empty-Method rule the Requests loop applies.
-func TestLoadCaseRejectsExtraWithMissingMethod(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	c.Extra = []Request{
-		{Method: "", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: "responses/002.json"},
-	}
-	writeResponseFiles(t, dir, map[string][]byte{
-		"responses/001.json": []byte(`{}`),
-		"responses/002.json": []byte(`{}`),
-	})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with an Extra entry missing Method: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "extra[0]") || !strings.Contains(err.Error(), "method") {
-		t.Errorf("error %q does not name extra[0]'s missing method", err)
-	}
-}
-
-// TestLoadCaseRejectsExtraWithMissingResponse proves the Extra loop
-// applies the same non-empty-Response rule the Requests loop applies.
-func TestLoadCaseRejectsExtraWithMissingResponse(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	c.Extra = []Request{
-		{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: ""},
-	}
-	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with an Extra entry missing Response: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "extra[0]") || !strings.Contains(err.Error(), "response: missing") {
-		t.Errorf("error %q does not name extra[0]'s missing response", err)
-	}
-}
-
-// TestLoadCaseRejectsExtraWithNonCanonicalPathQuery proves the Extra
-// loop applies the same canonical-form rule the Requests loop applies,
-// naming both the stored and the canonical form.
-func TestLoadCaseRejectsExtraWithNonCanonicalPathQuery(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	c.Extra = []Request{
-		{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?inc=x&fmt=json", Response: "responses/002.json"}, // unsorted
-	}
-	writeResponseFiles(t, dir, map[string][]byte{
-		"responses/001.json": []byte(`{}`),
-		"responses/002.json": []byte(`{}`),
-	})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with a non-canonical Extra path_query: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "not canonical") {
-		t.Errorf("error %q does not explain the canonicalization failure", err)
-	}
-}
-
-// TestLoadCaseRejectsExtraNamingNonexistentResponseFile proves the
-// Extra loop applies the same readability rule the Requests loop
-// applies.
-func TestLoadCaseRejectsExtraNamingNonexistentResponseFile(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	c.Extra = []Request{
-		{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: "responses/999.json"},
-	}
-	// Deliberately do not write responses/999.json.
-	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with an Extra entry naming a nonexistent response file: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "responses/999.json") {
-		t.Errorf("error %q does not name the missing response file", err)
-	}
-}
-
-// TestLoadCaseRejectsExtraRepeatingRequestKey proves an Extra entry may
-// not repeat a Request's own (Method, PathQuery) pair even when it
-// names a different response file: the stub keys its replay map on
-// that pair, and a Request entry would silently shadow the Extra one.
-func TestLoadCaseRejectsExtraRepeatingRequestKey(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	c.Extra = []Request{
-		{Method: c.Requests[0].Method, PathQuery: c.Requests[0].PathQuery, Response: "responses/002.json"},
-	}
-	writeResponseFiles(t, dir, map[string][]byte{
-		"responses/001.json": []byte(`{}`),
-		"responses/002.json": []byte(`{}`),
-	})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with an Extra entry repeating a Request's key: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "is already a logged request") {
-		t.Errorf("error %q does not explain the request-key conflict", err)
-	}
-}
-
-// TestLoadCaseRejectsDuplicateExtraKeys proves two Extra entries may
-// not share a (Method, PathQuery) pair even when they name different
-// response files, and that the error names both indices.
-func TestLoadCaseRejectsDuplicateExtraKeys(t *testing.T) {
-	dir := t.TempDir()
-	c := baseCase()
-	c.Extra = []Request{
-		{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: "responses/002.json"},
-		{Method: "GET", PathQuery: "release/11111111-1111-1111-1111-111111111111?fmt=json", Response: "responses/003.json"},
-	}
-	writeResponseFiles(t, dir, map[string][]byte{
-		"responses/001.json": []byte(`{}`),
-		"responses/002.json": []byte(`{}`),
-		"responses/003.json": []byte(`{}`),
-	})
-	if err := c.Write(dir); err != nil {
-		t.Fatalf("Write: %v", err)
-	}
-	_, err := LoadCase(dir)
-	if err == nil {
-		t.Fatal("LoadCase with two Extra entries sharing a key: got nil error, want one")
-	}
-	if !strings.Contains(err.Error(), "extra[1]") || !strings.Contains(err.Error(), "duplicates extra[0]") {
-		t.Errorf("error %q does not name both colliding indices", err)
-	}
-}
-
-// TestLoadCaseLoadsExtraRequestShapeFixture loads the committed
-// hand-authored fixture whose single Extra entry uses the
-// Request-shaped schema, and asserts the decoded method, canonical
-// path_query, and response name survive unchanged.
-func TestLoadCaseLoadsExtraRequestShapeFixture(t *testing.T) {
-	c, err := LoadCase(filepath.Join("testdata", "extra-request-shape"))
-	if err != nil {
-		t.Fatalf("LoadCase(testdata/extra-request-shape): %v", err)
-	}
-	if len(c.Extra) != 1 {
-		t.Fatalf("Extra has %d entries, want 1", len(c.Extra))
-	}
-	extra := c.Extra[0]
-	if extra.Method != "GET" {
-		t.Errorf("Extra[0].Method = %q, want GET", extra.Method)
-	}
-	wantPathQuery := "release/00000000-0000-0000-0000-000000000002?fmt=json"
-	if extra.PathQuery != canonicalizePathQuery(extra.PathQuery) {
-		t.Errorf("Extra[0].PathQuery %q is not canonical", extra.PathQuery)
-	}
-	if extra.PathQuery != wantPathQuery {
-		t.Errorf("Extra[0].PathQuery = %q, want %q", extra.PathQuery, wantPathQuery)
-	}
-	if extra.Response != "responses/002.json" {
-		t.Errorf("Extra[0].Response = %q, want responses/002.json", extra.Response)
-	}
-}
-
 func TestLoadCaseRejectsNonCanonicalPathQuery(t *testing.T) {
 	dir := t.TempDir()
 	c := baseCase()
-	c.Extra = nil
 	c.Requests[0].PathQuery = "release/00000000-0000-0000-0000-000000000000?inc=artists+media&fmt=json" // unsorted
 	writeResponseFiles(t, dir, map[string][]byte{"responses/001.json": []byte(`{}`)})
 	if err := c.Write(dir); err != nil {
