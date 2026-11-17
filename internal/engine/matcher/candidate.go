@@ -128,9 +128,9 @@ func (c *Candidates) Add(tun Tunables, items []ItemFields, info *AlbumInfo, eval
 		}
 	}
 
-	assignment := AssignItems(tun, items, info.Tracks)
-	pairs := AlbumPairsFor(assignment, items, info)
-	dist, err := DistanceForAlbum(items, info, pairs, tun, evalDate) // gate 4: score
+	assignment := assignItems(tun, items, info.Tracks)
+	pairs := albumPairsFor(assignment, items, info)
+	dist, err := distanceForAlbum(items, info, pairs, tun, evalDate) // gate 4: score
 	if err != nil {
 		return false, err
 	}
@@ -140,7 +140,7 @@ func (c *Candidates) Add(tun Tunables, items []ItemFields, info *AlbumInfo, eval
 	// (distance.py:190-205, 240-241); AddedKeys and PerKey are the
 	// other view, and tier 1 cannot catch a wrong choice here because
 	// match.ignored is corpus-unreachable.
-	nonzero := dist.NonzeroKeys()
+	nonzero := dist.nonzeroKeys()
 	for _, name := range tun.Ignored {
 		if slices.Contains(nonzero, name) {
 			return false, nil

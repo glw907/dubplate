@@ -118,7 +118,7 @@ func (d *Distance) Penalties(key string) []float64 {
 //
 // This is the _penalties view, the one derive_oracle.py emits and
 // cassette.Candidate.Penalties grades, so key presence at 0.0 is part
-// of what it reports. NonzeroKeys is the other view and drops those
+// of what it reports. NonzeroItems is the other view and drops those
 // keys; the two are different objects and a consumer that picks the
 // wrong one is port hazard 4.
 func (d *Distance) AddedKeys() []string {
@@ -160,10 +160,10 @@ func (d *Distance) NonzeroItems() []PenaltyItem {
 	return items
 }
 
-// NonzeroKeys returns the keys of NonzeroItems, in the same order.
+// nonzeroKeys returns the keys of NonzeroItems, in the same order.
 //
 // This is the items view; see NonzeroItems.
-func (d *Distance) NonzeroKeys() []string {
+func (d *Distance) nonzeroKeys() []string {
 	items := d.NonzeroItems()
 	keys := make([]string, len(items))
 	for i, item := range items {
@@ -192,19 +192,6 @@ func (d *Distance) GenericPenaltyKeys() []string {
 		names = append(names, strings.ReplaceAll(name, "_", " "))
 	}
 	return names
-}
-
-// Update appends every penalty accumulated in other under other's own
-// keys, in other's insertion order, which is how the album-level
-// components fold a track distance into the album distance
-// (distance.py:249-256). Keys already present keep their position;
-// new ones are appended.
-func (d *Distance) Update(other *Distance) {
-	for _, key := range other.order {
-		for _, penalty := range other.penalties[key] {
-			d.Add(key, penalty)
-		}
-	}
 }
 
 // Add appends one penalty under key.

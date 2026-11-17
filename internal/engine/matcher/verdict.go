@@ -35,10 +35,10 @@ func (r Recommendation) String() string {
 	}
 }
 
-// ParseRecommendation resolves one of the four names beets' as_choice
+// parseRecommendation resolves one of the four names beets' as_choice
 // accepts (match.py:313-320), returning an error wrapping
 // ErrInvalidTunable for anything else.
-func ParseRecommendation(s string) (Recommendation, error) {
+func parseRecommendation(s string) (Recommendation, error) {
 	switch s {
 	case "none":
 		return RecNone, nil
@@ -137,11 +137,11 @@ func Recommend(tun Tunables, cands []Candidate) (Recommendation, error) {
 // failure is reproducible even though map iteration order is not.
 func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation, error) {
 	keys := make(map[string]struct{})
-	for _, key := range dist.NonzeroKeys() {
+	for _, key := range dist.nonzeroKeys() {
 		keys[key] = struct{}{}
 	}
 	for _, track := range dist.Tracks {
-		for _, key := range track.Dist.NonzeroKeys() {
+		for _, key := range track.Dist.nonzeroKeys() {
 			keys[key] = struct{}{}
 		}
 	}
@@ -151,7 +151,7 @@ func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation
 		if !present {
 			continue
 		}
-		capped, err := ParseRecommendation(level)
+		capped, err := parseRecommendation(level)
 		if err != nil {
 			return 0, fmt.Errorf("max_rec[%q]: %w", key, err)
 		}

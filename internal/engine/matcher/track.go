@@ -11,7 +11,7 @@ import (
 // track's metadata against the item proposed to match it. It is named
 // DistanceForTrack rather than TrackDistance because that identifier is
 // already the pairing type Distance.Tracks holds. The calls run in
-// beets' own order, load-bearing for the reason DistanceForAlbum gives.
+// beets' own order, load-bearing for the reason distanceForAlbum gives.
 //
 // inclArtist is a parameter, not a config read, because beets' two call
 // sites disagree on it: the assignment solve calls track_distance with

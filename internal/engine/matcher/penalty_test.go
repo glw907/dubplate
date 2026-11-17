@@ -77,8 +77,8 @@ func TestDistanceAggregatesAndViews(t *testing.T) {
 			if got := d.NonzeroItems(); !slices.Equal(got, fixture.Want.NonzeroItems) {
 				t.Errorf("NonzeroItems() = %v, want %v", got, fixture.Want.NonzeroItems)
 			}
-			if got := d.NonzeroKeys(); !slices.Equal(got, fixture.Want.NonzeroKeys) {
-				t.Errorf("NonzeroKeys() = %v, want %v", got, fixture.Want.NonzeroKeys)
+			if got := d.nonzeroKeys(); !slices.Equal(got, fixture.Want.NonzeroKeys) {
+				t.Errorf("nonzeroKeys() = %v, want %v", got, fixture.Want.NonzeroKeys)
 			}
 			if got := d.GenericPenaltyKeys(); !slices.Equal(got, fixture.Want.GenericPenaltyKeys) {
 				t.Errorf("GenericPenaltyKeys() = %v, want %v", got, fixture.Want.GenericPenaltyKeys)
@@ -408,36 +408,6 @@ func TestGenericPenaltyKeys(t *testing.T) {
 	want := []string{"id", "title", "missing tracks", "album"}
 	if got := d.GenericPenaltyKeys(); !slices.Equal(got, want) {
 		t.Errorf("GenericPenaltyKeys() = %v, want %v", got, want)
-	}
-}
-
-// TestUpdate folds one accumulator into another, which is how the
-// album-level tracks component consumes a track distance. A shared key
-// keeps the position it already had and collects both penalties, so the
-// denominator counts three penalties rather than two keys.
-func TestUpdate(t *testing.T) {
-	album := NewDistance(DefaultTunables())
-	album.Add("album", 1)
-
-	track := NewDistance(DefaultTunables())
-	track.Add("track_title", 0.5)
-	track.Add("album", 0.25)
-
-	album.Update(track)
-
-	wantKeys := []string{"album", "track_title"}
-	if got := album.AddedKeys(); !slices.Equal(got, wantKeys) {
-		t.Errorf("AddedKeys() = %v, want %v", got, wantKeys)
-	}
-	if got := album.penalties["album"]; !slices.Equal(got, []float64{1, 0.25}) {
-		t.Errorf("penalties[album] = %v, want [1 0.25]", got)
-	}
-	if got := album.penalties["track_title"]; !slices.Equal(got, []float64{0.5}) {
-		t.Errorf("penalties[track_title] = %v, want [0.5]", got)
-	}
-	// album and track_title both weigh 3.0, over three penalties.
-	if got := album.MaxDistance(); got != 9 {
-		t.Errorf("MaxDistance() = %v, want 9", got)
 	}
 }
 

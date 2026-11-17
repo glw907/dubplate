@@ -46,7 +46,7 @@ func DefaultCompat() Compat {
 // StringDistPatterns.
 func (c Compat) Apply(tun Tunables) Tunables {
 	if c.RemixParenthetical {
-		tun.StringDistPatterns = BeetsSDPatterns
+		tun.StringDistPatterns = beetsSDPatterns
 		return tun
 	}
 	tun.StringDistPatterns = SDPatternsNoBracketDiscount

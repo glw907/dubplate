@@ -11,7 +11,7 @@ func TestApplySelectsATableForEveryCombination(t *testing.T) {
 		c    Compat
 		want []SDPattern
 	}{
-		{"on reproduces beets", Compat{RemixParenthetical: true}, BeetsSDPatterns},
+		{"on reproduces beets", Compat{RemixParenthetical: true}, beetsSDPatterns},
 		{"remix fixed", Compat{RemixParenthetical: false}, SDPatternsNoBracketDiscount},
 	}
 	for _, tt := range tests {

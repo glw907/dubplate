@@ -25,7 +25,7 @@ func TestSDPatternsNoBracketDiscount_OnlyBracketPatternsRemoved(t *testing.T) {
 }
 
 // TestStringDistSeparatesNoBracketDiscount is the fixture that tells
-// [SDPatternsNoBracketDiscount] apart from [BeetsSDPatterns], on
+// [SDPatternsNoBracketDiscount] apart from beetsSDPatterns, on
 // adv-remix-both-sides's own pair (corpus/README.md:1186-1189): the
 // bracket discount collapses "Glass Harbor (Nocturne Rework)" and
 // "Glass Harbor (Original Mix)" to the same residual string and charges
@@ -40,7 +40,7 @@ func TestStringDistSeparatesNoBracketDiscount(t *testing.T) {
 		patterns []SDPattern
 		want     float64
 	}{
-		{"beets shipped table (bracket discount)", BeetsSDPatterns, 0.144},
+		{"beets shipped table (bracket discount)", beetsSDPatterns, 0.144},
 		{"no-bracket-discount table", SDPatternsNoBracketDiscount, 0.48},
 	}
 	for _, tt := range tests {

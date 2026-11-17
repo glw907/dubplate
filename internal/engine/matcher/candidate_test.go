@@ -137,7 +137,7 @@ func TestAddAppliesIgnoredAgainstTheNonzeroView(t *testing.T) {
 	// "album" nonzero. ignored = ["media"] must NOT drop it, because
 	// beets iterates Distance.items(), which omits zero-weighted
 	// penalties (distance.py:190-205, 240-241). The mutation that proves
-	// this test fires: read AddedKeys() instead of NonzeroKeys().
+	// this test fires: read AddedKeys() instead of nonzeroKeys().
 	tun := DefaultTunables()
 	tun.Ignored = []string{"media"}
 	items, info := ignoredFixture(t) // testdata/candidate/ignored-zero-media.json
@@ -152,7 +152,7 @@ func TestAddAppliesIgnoredAgainstTheNonzeroView(t *testing.T) {
 	if !slices.Contains(c.All()[0].Dist.AddedKeys(), "media") {
 		t.Fatal("the fixture no longer adds media at 0.0, so this test can no longer discriminate the two views")
 	}
-	if slices.Contains(c.All()[0].Dist.NonzeroKeys(), "media") {
+	if slices.Contains(c.All()[0].Dist.nonzeroKeys(), "media") {
 		t.Fatal("the fixture's media penalty is nonzero, so this test can no longer discriminate the two views")
 	}
 }
@@ -225,7 +225,7 @@ type candidateFixture struct {
 // ignoredFixture reads testdata/candidate/ignored-zero-media.json: one
 // item and one candidate built so the candidate's media penalty is
 // exactly 0.0 while its album penalty is nonzero, discriminating
-// NonzeroKeys from AddedKeys.
+// nonzeroKeys from AddedKeys.
 func ignoredFixture(t *testing.T) ([]ItemFields, *AlbumInfo) {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join("testdata", "candidate", "ignored-zero-media.json"))

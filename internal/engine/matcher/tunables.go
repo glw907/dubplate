@@ -240,7 +240,7 @@ type Tunables struct {
 	VAName string
 
 	// StringDistPatterns is the SD_PATTERNS table string_dist's
-	// pattern loop runs, defaulting to [BeetsSDPatterns]. It exists as
+	// pattern loop runs, defaulting to beets' own six. It exists as
 	// a field, not a package-level constant a component reads
 	// directly, so the compat switch for the adjudicated
 	// bug-remix-parenthetical defect swaps in
@@ -322,7 +322,7 @@ func DefaultTunables() Tunables {
 		QuietFallback:             "skip",
 		NoneRecAction:             "ask",
 		VAName:                    "Various Artists",
-		StringDistPatterns:        BeetsSDPatterns,
+		StringDistPatterns:        beetsSDPatterns,
 	}
 	// The per-source entry for MusicBrainz IS the plugin's own resolved
 	// penalty (metadata_plugins.py:184-197, Resolution R15): read back
@@ -343,7 +343,7 @@ func DefaultTunables() Tunables {
 // Replacement is a [regexp.Regexp.Expand] template substituted for the
 // match instead of Python's empty string. Every row carries the zero
 // value except the featuring row, whose rewrite must keep the
-// character its Unicode-aware boundary consumed; see BeetsSDPatterns'
+// character its Unicode-aware boundary consumed; see beetsSDPatterns'
 // doc comment.
 type SDPattern struct {
 	Pattern     *regexp.Regexp
@@ -351,13 +351,13 @@ type SDPattern struct {
 	Replacement string
 }
 
-// SDEndWords is SD_END_WORDS (autotag/distance.py:34): words moved
+// sdEndWords is SD_END_WORDS (autotag/distance.py:34): words moved
 // from a trailing ", <word>" to the front of the string before the
 // pattern loop runs, so "something, the" scores equal to "the
 // something".
-var SDEndWords = []string{"the", "a", "an"}
+var sdEndWords = []string{"the", "a", "an"}
 
-// The rows BeetsSDPatterns and SDPatternsNoBracketDiscount share are
+// The rows beetsSDPatterns and SDPatternsNoBracketDiscount share are
 // compiled once and held here, so the two tables cannot drift apart on
 // them.
 var (
@@ -389,7 +389,7 @@ var (
 // ASCII letters ("©" to "(c)", "™" to "(tm)").
 const sdFeaturingPattern = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
 
-// BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
+// beetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
 // six shipped discounts in their fixed order. It is the default of
 // [Tunables.StringDistPatterns], held to beets' literals one for one
 // (TestBeetsSDPatternsMatchBeetsLiterals), with one named departure:
@@ -401,7 +401,7 @@ const sdFeaturingPattern = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?
 // full translation. The featuring pattern carries the word boundaries
 // upstream shipped in beets 2.14.0 (19d091440), so "ft" inside an
 // ordinary word such as "Draft" no longer reads as a featuring credit.
-var BeetsSDPatterns = []SDPattern{
+var beetsSDPatterns = []SDPattern{
 	sdArticle,
 	sdEPSingle,
 	sdFeaturing,
@@ -410,7 +410,7 @@ var BeetsSDPatterns = []SDPattern{
 	sdPart,
 }
 
-// SDPatternsNoBracketDiscount carries BeetsSDPatterns' six discounts
+// SDPatternsNoBracketDiscount carries beetsSDPatterns' six discounts
 // with the two 0.3-weight bracket patterns removed. The corpus README
 // calls that "arithmetically the same as charging a parenthetical at
 // full weight", which holds only while no later pattern fires: a
@@ -461,7 +461,7 @@ func (t Tunables) Validate() error {
 	// otherwise decide it (the determinism constraint applies to
 	// Validate's output too).
 	for _, key := range slices.Sorted(maps.Keys(t.MaxRec)) {
-		if _, err := ParseRecommendation(t.MaxRec[key]); err != nil {
+		if _, err := parseRecommendation(t.MaxRec[key]); err != nil {
 			errs = append(errs, fmt.Errorf("max_rec[%q]: %w", key, err))
 		}
 	}

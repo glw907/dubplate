@@ -18,7 +18,7 @@ import "strings"
 // sdStrip after transliteration, and both are needed: see
 // TestStringDistLowercasesBeforeTransliterating.
 //
-// The pattern table comes from tun rather than from [BeetsSDPatterns]
+// The pattern table comes from tun rather than from beetsSDPatterns
 // directly, so [Compat.Apply] selects a table by assignment instead of
 // editing this function.
 func StringDist(tun Tunables, str1, str2 *string) float64 {
@@ -81,7 +81,7 @@ func stringDistBasic(str1, str2 string) float64 {
 	if a == "" && b == "" {
 		return 0
 	}
-	return float64(Levenshtein(a, b)) / float64(max(len(a), len(b)))
+	return float64(levenshtein(a, b)) / float64(max(len(a), len(b)))
 }
 
 // sdStrip transliterates s, lowercases it, and drops every character
@@ -95,7 +95,7 @@ func stringDistBasic(str1, str2 string) float64 {
 func sdStrip(s string) string {
 	var stripped strings.Builder
 	stripped.Grow(len(s))
-	for _, r := range strings.ToLower(Transliterate(s)) {
+	for _, r := range strings.ToLower(transliterate(s)) {
 		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
 			stripped.WriteByte(byte(r))
 		}
@@ -107,10 +107,10 @@ func sdStrip(s string) string {
 // front of s, so that "something, the" scores equal to "the something"
 // (distance.py:80-84).
 //
-// The three words are tried in [SDEndWords] order and each rotation
+// The three words are tried in sdEndWords order and each rotation
 // feeds the next, so "harbour, a, the" rotates twice.
 func rotateEndWords(s string) string {
-	for _, word := range SDEndWords {
+	for _, word := range sdEndWords {
 		if prefix, found := strings.CutSuffix(s, ", "+word); found {
 			s = word + " " + prefix
 		}

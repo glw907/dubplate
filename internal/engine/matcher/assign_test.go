@@ -136,7 +136,7 @@ func TestAssignItemsOrdersPairsByTrackIndex(t *testing.T) {
 		{Title: "charlie", Index: 3, Length: 100},
 		{Title: "delta", Index: 4, Length: 100},
 	}
-	got := AssignItems(DefaultTunables(), items, tracks)
+	got := assignItems(DefaultTunables(), items, tracks)
 	want := []Pair{{Item: 1, Track: 0}, {Item: 2, Track: 1}, {Item: 0, Track: 3}}
 	if !slices.Equal(got.Pairs, want) {
 		t.Errorf("Pairs = %v, want %v (ascending track index, match.py:72-76)", got.Pairs, want)
@@ -160,7 +160,7 @@ func TestAssignItemsSortsExtraItemsByDiscTrackTitle(t *testing.T) {
 		{Title: "match", Disc: 1, Track: 1, Length: 100},
 	}
 	tracks := []TrackInfo{{Title: "match", Index: 1, Length: 100}}
-	got := AssignItems(DefaultTunables(), items, tracks)
+	got := assignItems(DefaultTunables(), items, tracks)
 	if !slices.Equal(got.ExtraItems, []int{2, 1, 0}) {
 		t.Errorf("ExtraItems = %v, want [2 1 0]: (1,2,bravo) < (1,9,alpha) < (2,1,zulu)", got.ExtraItems)
 	}
@@ -177,7 +177,7 @@ func TestAssignItemsSortsExtraTracksByIndexTitle(t *testing.T) {
 		{Title: "alpha", Index: 4, Length: 100},
 		{Title: "bravo", Index: 2, Length: 100},
 	}
-	got := AssignItems(DefaultTunables(), items, tracks)
+	got := assignItems(DefaultTunables(), items, tracks)
 	if !slices.Equal(got.ExtraTracks, []int{3, 2, 1}) {
 		t.Errorf("ExtraTracks = %v, want [3 2 1]: index 2 < 4 < 9", got.ExtraTracks)
 	}
@@ -194,7 +194,7 @@ func TestAssignItemsUsesInclArtistFalseOnAVariousArtistsRelease(t *testing.T) {
 	// against the identity's 0.4444. So the fixture discriminates the
 	// two objectives outright and depends on lapjv's tie rule nowhere.
 	// Measured against pinned beets on these four objects. The mutation
-	// that proves this test fires: pass true in AssignItems'
+	// that proves this test fires: pass true in assignItems'
 	// DistanceForTrack call.
 	tun := DefaultTunables()
 	items := []ItemFields{
@@ -205,7 +205,7 @@ func TestAssignItemsUsesInclArtistFalseOnAVariousArtistsRelease(t *testing.T) {
 		{Title: "same", Artist: "Cole Vance", Index: 1, Length: 200},
 		{Title: "same", Artist: "Ana Reed", Index: 2, Length: 200},
 	}
-	withArtist := AssignItems(tun, items, tracks)
+	withArtist := assignItems(tun, items, tracks)
 	for _, p := range withArtist.Pairs {
 		if cost := DistanceForTrack(tun, items[p.Item], &tracks[p.Track], true).Distance(); cost == 0 {
 			t.Fatalf("pair %v scores 0 with the artist included; the fixture no longer discriminates the two objectives", p)
@@ -239,7 +239,7 @@ func TestAssignItemsMatchesEveryShapeOneSidedly(t *testing.T) {
 	for nItems := range len(all) + 1 {
 		for nTracks := range len(every) + 1 {
 			items, tracks := all[:nItems], every[:nTracks]
-			got := AssignItems(DefaultTunables(), items, tracks)
+			got := assignItems(DefaultTunables(), items, tracks)
 			if want := min(nItems, nTracks); len(got.Pairs) != want {
 				t.Errorf("%dx%d: %d pairs, want %d", nItems, nTracks, len(got.Pairs), want)
 			}
@@ -263,7 +263,7 @@ func TestAssignItemsMatchesEveryShapeOneSidedly(t *testing.T) {
 }
 
 func TestAlbumPairsForKeepsTrackOrder(t *testing.T) {
-	// AlbumPairsFor hands DistanceForAlbum its pairing in the
+	// albumPairsFor hands distanceForAlbum its pairing in the
 	// assignment's own track order, and points each pair at the
 	// candidate's track rather than a copy of it (contract V3).
 	items := []ItemFields{
@@ -275,10 +275,10 @@ func TestAlbumPairsForKeepsTrackOrder(t *testing.T) {
 		{Title: "bravo", Index: 2, Length: 100},
 		{Title: "delta", Index: 3, Length: 100},
 	}}
-	a := AssignItems(DefaultTunables(), items, info.Tracks)
-	pairs := AlbumPairsFor(a, items, info)
+	a := assignItems(DefaultTunables(), items, info.Tracks)
+	pairs := albumPairsFor(a, items, info)
 	if len(pairs) != len(a.Pairs) {
-		t.Fatalf("AlbumPairsFor returned %d pairs, want %d", len(pairs), len(a.Pairs))
+		t.Fatalf("albumPairsFor returned %d pairs, want %d", len(pairs), len(a.Pairs))
 	}
 	for k, p := range a.Pairs {
 		if pairs[k].Item != items[p.Item] {

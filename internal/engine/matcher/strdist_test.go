@@ -162,7 +162,7 @@ var sdTranslations = map[string]sdGoForm{
 }
 
 // beetsFeaturingRowIndex is the featuring row's position in
-// BeetsSDPatterns and beetsSDPatternLiterals: its weight (0.1) is not
+// beetsSDPatterns and beetsSDPatternLiterals: its weight (0.1) is not
 // unique in the table, so index is how this file locates it.
 const beetsFeaturingRowIndex = 2
 
@@ -201,11 +201,11 @@ func assertMatchesTranslatedLiterals(t *testing.T, name string, got []SDPattern,
 	}
 }
 
-// TestBeetsSDPatternsMatchBeetsLiterals holds BeetsSDPatterns to
+// TestBeetsSDPatternsMatchBeetsLiterals holds beetsSDPatterns to
 // beetsSDPatternLiterals through sdTranslations: byte-identical except
 // for the featuring row, which carries its Go translation.
 func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
-	assertMatchesTranslatedLiterals(t, "BeetsSDPatterns", BeetsSDPatterns, beetsSDPatternLiterals)
+	assertMatchesTranslatedLiterals(t, "beetsSDPatterns", beetsSDPatterns, beetsSDPatternLiterals)
 
 	wantFeaturing := wantSDPattern(beetsSDPatternLiterals[beetsFeaturingRowIndex], map[string]bool{})
 	if DefaultTunables().StringDistPatterns[beetsFeaturingRowIndex].Pattern.String() != wantFeaturing.pattern {
@@ -220,7 +220,7 @@ func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
 // pre-2.14 defect never checked the boundary before the trigger, and
 // scored the "Draft:" and "Gift " rows at 0.061111 and 0.064706; beets
 // 2.14.0 added the check and this row's rewrite carries it in two
-// branches instead of \b (BeetsSDPatterns' doc comment). The trailing
+// branches instead of \b (beetsSDPatterns' doc comment). The trailing
 // boundary is always satisfied, since the separator class that must
 // follow the trigger holds no word character, so no row here can tell
 // it apart.
@@ -249,7 +249,7 @@ func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 		name     string
 		patterns []SDPattern
 	}{
-		{"beets shipped table", BeetsSDPatterns},
+		{"beets shipped table", beetsSDPatterns},
 		{"no-bracket-discount table", SDPatternsNoBracketDiscount},
 	}
 	for _, table := range tables {
@@ -286,7 +286,7 @@ func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
 		name     string
 		patterns []SDPattern
 	}{
-		{"beets shipped table", BeetsSDPatterns},
+		{"beets shipped table", beetsSDPatterns},
 		{"no-bracket-discount table", SDPatternsNoBracketDiscount},
 	}
 	for _, table := range tables {
@@ -404,7 +404,7 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 	}
 
 	asciiLiteral := regexp.MustCompile(golden.Header.Literal)
-	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
+	featuring := beetsSDPatterns[beetsFeaturingRowIndex]
 	shipped := featuring.Pattern
 
 	type divergence struct {
@@ -533,7 +533,7 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 		return found
 	}
 
-	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
+	featuring := beetsSDPatterns[beetsFeaturingRowIndex]
 	shipped := featuring.Pattern
 	var pythonOnly []rune
 	goOnly := 0
@@ -748,8 +748,8 @@ func TestAddString(t *testing.T) {
 	if got := dist.AddedKeys(); len(got) != 2 || got[0] != "album" || got[1] != "artist" {
 		t.Errorf("AddedKeys() = %v, want [album artist]", got)
 	}
-	if got := dist.NonzeroKeys(); len(got) != 1 || got[0] != "album" {
-		t.Errorf("NonzeroKeys() = %v, want [album]: an identical pair adds 0.0 and stays out", got)
+	if got := dist.nonzeroKeys(); len(got) != 1 || got[0] != "album" {
+		t.Errorf("nonzeroKeys() = %v, want [album]: an identical pair adds 0.0 and stays out", got)
 	}
 }
 

@@ -49,7 +49,7 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 			Length: 180, Title: "Quiet Season", Track: 2, MBTrackID: "mbid-track-2", Disc: 1,
 		}
 		items := []ItemFields{itemA, itemB}
-		pairs := []AlbumPair{{Item: itemA, Info: &trackA}, {Item: itemB, Info: &trackB}}
+		pairs := []albumPair{{Item: itemA, Info: &trackA}, {Item: itemB, Info: &trackB}}
 
 		dist := mustDistanceForAlbum(t, items, info, pairs, evalDate)
 
@@ -94,7 +94,7 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 			Length: 999, Title: "Unrelated Bonus Track", Track: 9, MBTrackID: "mbid-track-unmatched", Disc: 1,
 		}
 		items := []ItemFields{itemA, itemC}
-		pairs := []AlbumPair{{Item: itemA, Info: &trackA}}
+		pairs := []albumPair{{Item: itemA, Info: &trackA}}
 
 		dist := mustDistanceForAlbum(t, items, info, pairs, evalDate)
 
@@ -150,7 +150,7 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 			Length: 180, Title: "Quiet Season", Track: 2, MBTrackID: "mbid-track-2", Disc: 1,
 		}
 		items := []ItemFields{itemA, itemB}
-		pairs := []AlbumPair{{Item: itemA, Info: &trackA}, {Item: itemB, Info: &trackB}}
+		pairs := []albumPair{{Item: itemA, Info: &trackA}, {Item: itemB, Info: &trackB}}
 
 		dist := mustDistanceForAlbum(t, items, info, pairs, evalDate)
 
@@ -173,11 +173,11 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 	})
 }
 
-func mustDistanceForAlbum(t *testing.T, items []ItemFields, info *AlbumInfo, pairs []AlbumPair, evalDate time.Time) *Distance {
+func mustDistanceForAlbum(t *testing.T, items []ItemFields, info *AlbumInfo, pairs []albumPair, evalDate time.Time) *Distance {
 	t.Helper()
-	dist, err := DistanceForAlbum(items, info, pairs, DefaultTunables(), evalDate)
+	dist, err := distanceForAlbum(items, info, pairs, DefaultTunables(), evalDate)
 	if err != nil {
-		t.Fatalf("DistanceForAlbum: %v", err)
+		t.Fatalf("distanceForAlbum: %v", err)
 	}
 	return dist
 }
@@ -588,7 +588,7 @@ func TestAddAlbumTracks(t *testing.T) {
 
 	t.Run("adds one normalized track distance per pair and records the sub-distance", func(t *testing.T) {
 		dist := NewDistance(tun)
-		pairs := []AlbumPair{
+		pairs := []albumPair{
 			{
 				Item: ItemFields{Title: "Ember Wharf"},
 				Info: &TrackInfo{Title: "Ember Wharf"},
@@ -626,7 +626,7 @@ func TestAddAlbumTracks(t *testing.T) {
 	// release there is no single album artist to grade, so the
 	// per-track fold is where a mismatched track artist gets caught.
 	t.Run("inclArtist follows album_info.VA unnegated", func(t *testing.T) {
-		pairs := []AlbumPair{
+		pairs := []albumPair{
 			{
 				Item: ItemFields{Title: "Ember Wharf", Artist: "Quiet Season"},
 				Info: &TrackInfo{Title: "Ember Wharf", Artist: "Northern Lines"},
@@ -665,7 +665,7 @@ func TestAddAlbumMissingTracks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dist := NewDistance(tun)
 			info := &AlbumInfo{Tracks: make([]TrackInfo, tt.infoTracks)}
-			pairs := make([]AlbumPair, tt.pairs)
+			pairs := make([]albumPair, tt.pairs)
 			addAlbumMissingTracks(dist, info, pairs)
 
 			got := dist.penalties["missing_tracks"]
@@ -694,7 +694,7 @@ func TestAddAlbumUnmatchedTracks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dist := NewDistance(tun)
 			items := make([]ItemFields, tt.items)
-			pairs := make([]AlbumPair, tt.pairs)
+			pairs := make([]albumPair, tt.pairs)
 			addAlbumUnmatchedTracks(dist, items, pairs)
 
 			got := dist.penalties["unmatched_tracks"]

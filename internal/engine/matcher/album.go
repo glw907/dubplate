@@ -5,17 +5,17 @@ import (
 	"time"
 )
 
-// AlbumPair is one item matched to one candidate track: the input the
+// albumPair is one item matched to one candidate track: the input the
 // album-level tracks, missing_tracks, and unmatched_tracks components
 // read, never produce. Beets' own distance() takes this pairing as
 // item_info_pairs, a caller-supplied list (distance.py:429-432,
 // 528-530); the assignment solve computes it, not the distance.
-type AlbumPair struct {
+type albumPair struct {
 	Item ItemFields
 	Info *TrackInfo
 }
 
-// DistanceForAlbum is the Go port of beets' distance
+// distanceForAlbum is the Go port of beets' distance
 // (autotag/distance.py:429-541): the significance of one candidate
 // release's metadata, and its item-to-track pairing, against a user's
 // existing items.
@@ -36,7 +36,7 @@ type AlbumPair struct {
 //
 // The only error is an uncompilable preferred pattern, wrapped exactly
 // as [Tunables.Validate] wraps it at config load.
-func DistanceForAlbum(items []ItemFields, info *AlbumInfo, pairs []AlbumPair, tun Tunables, evalDate time.Time) (*Distance, error) {
+func distanceForAlbum(items []ItemFields, info *AlbumInfo, pairs []albumPair, tun Tunables, evalDate time.Time) (*Distance, error) {
 	media, err := compileMediaPatterns(tun.Preferred.Media)
 	if err != nil {
 		return nil, fmt.Errorf("preferred.media: %w: %w", ErrInvalidTunable, err)
@@ -262,7 +262,7 @@ func addAlbumID(dist *Distance, likelies Likelies, info *AlbumInfo) {
 // its normalized Distance() is added as one penalty under "tracks", and
 // the full sub-distance is recorded in dist.Tracks so a caller can
 // inspect why a given pair scored what it did.
-func addAlbumTracks(dist *Distance, tun Tunables, va bool, pairs []AlbumPair) {
+func addAlbumTracks(dist *Distance, tun Tunables, va bool, pairs []albumPair) {
 	for _, pair := range pairs {
 		trackDist := DistanceForTrack(tun, pair.Item, pair.Info, va)
 		dist.Add("tracks", trackDist.Distance())
@@ -274,7 +274,7 @@ func addAlbumTracks(dist *Distance, tun Tunables, va bool, pairs []AlbumPair) {
 // (autotag/distance.py:532-534): one 1.0 penalty for every candidate
 // track beyond the matched pairs. It and addAlbumUnmatchedTracks count
 // only, and never contribute contents or an order.
-func addAlbumMissingTracks(dist *Distance, info *AlbumInfo, pairs []AlbumPair) {
+func addAlbumMissingTracks(dist *Distance, info *AlbumInfo, pairs []albumPair) {
 	for range max(0, len(info.Tracks)-len(pairs)) {
 		dist.Add("missing_tracks", 1)
 	}
@@ -283,7 +283,7 @@ func addAlbumMissingTracks(dist *Distance, info *AlbumInfo, pairs []AlbumPair) {
 // addAlbumUnmatchedTracks is distance()'s unmatched_tracks component
 // (autotag/distance.py:536-538): one 1.0 penalty for every item beyond
 // the matched pairs.
-func addAlbumUnmatchedTracks(dist *Distance, items []ItemFields, pairs []AlbumPair) {
+func addAlbumUnmatchedTracks(dist *Distance, items []ItemFields, pairs []albumPair) {
 	for range max(0, len(items)-len(pairs)) {
 		dist.Add("unmatched_tracks", 1)
 	}
