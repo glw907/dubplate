@@ -1,7 +1,8 @@
 // Package matcher is the Go port of beets' scoring core: the tunable
 // surface, the vocabulary a candidate release and a user's item are
-// expressed in, and (in later files) the [Distance] accumulator and the
-// penalty components that compose it. It never imports
+// expressed in, the [Distance] accumulator and the penalty components
+// that compose it, and the candidate set and recommendation built on
+// them. It never imports
 // internal/harness and never reads a clock; every citation below is
 // checked against pinned beets 2.14.1 (tools/venv/.venv).
 package matcher
@@ -10,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"regexp"
 	"slices"
 )
 
@@ -29,17 +31,14 @@ var ErrInvalidTunable = errors.New("invalid tunable")
 // match-time configuration: every field the distance and
 // recommendation path reads, each carrying pinned beets' shipped
 // default and the config_default.yaml or plugin-source line that
-// proves it (Ruling D: every default equals pinned beets' shipped
-// value at launch).
+// proves it. Every default equals pinned beets' shipped value.
 //
 // Two config keys beets ships under match: are deliberately absent:
 // original_date and per_disc_numbering are read only in
 // [beets/autotag/hooks.py]'s AlbumInfo.item_data and TrackInfo.raw_data
 // respectively, never on the distance path (autotag/distance.py,
 // autotag/match.py), so they move applied_fields after a verdict and
-// never the verdict itself (corpus/README.md's config-profile transform
-// table; the two "verdict-moving" cells there are corrected by this
-// task's draft, not by an edit to Tunables).
+// never the verdict itself.
 //
 // Two more are deliberately absent for a different reason:
 // album_disambig_fields and singleton_disambig_fields
@@ -47,33 +46,30 @@ var ErrInvalidTunable = errors.New("invalid tunable")
 // Match.disambig_fields (match.py:113-139) and never on the distance
 // path either.
 //
-// Four fields are the operator-facing subset a later rung 3 pass
-// registers on internal/config's wall once rung 1b's registry lands:
-// StrongRecThresh, MediumRecThresh, RecGapThresh, and SearchLimit. This
-// pass names them and defers registration; it imports nothing from
-// internal/config.
+// Four fields are operator-facing: StrongRecThresh, MediumRecThresh,
+// RecGapThresh, and SearchLimit. None is registered as a config key
+// yet, and this package imports nothing from internal/config.
 //
 // Three surfaces below have no corpus fixture: Required, Ignored, and
-// Preferred.OriginalYear. Their doc comments say so; coverage is a
-// declared gap here, closed only by the table-driven unit tests of the
-// component that reads each (Preferred.OriginalYear in the year
-// component; Required and Ignored in 3d).
+// Preferred.OriginalYear. Their coverage is the unit tests of the code
+// that reads each: the year component for Preferred.OriginalYear, and
+// [Candidates.Add] for Required and Ignored.
 type Tunables struct {
 	// StrongRecThresh is the distance below which a match earns a
-	// "strong" recommendation. The comparison is strict "<", the
-	// asymmetry that makes the proximity flag possible (contract 3).
-	// Default 0.04 (config_default.yaml:168). Operator-facing.
+	// "strong" recommendation. The comparison is strict "<"
+	// (match.py:285), the asymmetry that makes the proximity flag
+	// possible. Default 0.04 (config_default.yaml:168). Operator-facing.
 	StrongRecThresh float64
 
 	// MediumRecThresh is the distance at or below which a match earns
-	// at least a "medium" recommendation. The comparison is "<=",
-	// unlike StrongRecThresh's strict form (contract 3). Default 0.25
+	// at least a "medium" recommendation. The comparison is "<="
+	// (match.py:288), unlike StrongRecThresh's strict form. Default 0.25
 	// (config_default.yaml:169). Operator-facing.
 	MediumRecThresh float64
 
 	// RecGapThresh is the minimum distance gap between the best and
 	// second-best candidate below which the recommendation degrades,
-	// the other half of the proximity flag (contract 3). Default 0.25
+	// the other half of the proximity flag (match.py:294-299). Default 0.25
 	// (config_default.yaml:170). Operator-facing.
 	RecGapThresh float64
 
@@ -87,9 +83,8 @@ type Tunables struct {
 
 	// DistanceWeights is match.distance_weights: twenty keys
 	// (config_default.yaml:175-194; :174 is the distance_weights:
-	// header). The mechanics study's Q4 says nineteen; the venv and
-	// every committed corpus case's echoed weight set agree on twenty
-	// (m2), so twenty is what this field ships.
+	// header), the count every committed corpus case's echoed weight
+	// set agrees on.
 	DistanceWeights map[string]float64
 
 	// Preferred holds match.preferred's three sub-keys
@@ -99,15 +94,13 @@ type Tunables struct {
 	// Ignored is match.ignored: source identifiers a candidate is
 	// dropped for regardless of distance. Default [] (empty)
 	// (config_default.yaml:199). No committed corpus case exercises a
-	// nonempty value; coverage is 3d's table-driven unit tests, not a
-	// corpus fixture.
+	// nonempty value.
 	Ignored []string
 
 	// Required is match.required: metadata fields a candidate must
 	// carry to be considered. Default [] (empty)
 	// (config_default.yaml:200). No committed corpus case exercises a
-	// nonempty value; coverage is 3d's table-driven unit tests, not a
-	// corpus fixture.
+	// nonempty value.
 	Required []string
 
 	// IgnoredMedia is match.ignored_media: media type strings excluded
@@ -163,8 +156,8 @@ type Tunables struct {
 	// is the unexported defaultDataSourceMismatchPenalty constant
 	// (penalty.go), MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_
 	// PENALTY (metadata_plugins.py:182). The two are the same value at
-	// launch (0.5) and diverge the moment source_weight is configured
-	// (3a's carry to 3c, closed here). Default 0.5.
+	// launch (0.5) and diverge the moment source_weight is configured.
+	// Default 0.5.
 	DataSourceMismatchPenalty float64
 
 	// DataSourcePenalties is the loaded metadata source set
@@ -173,7 +166,7 @@ type Tunables struct {
 	// (penalty.go): each loaded plugin's own data_source name
 	// (metadata_plugins.py:184-190, cls.__name__ with "Plugin"
 	// stripped) mapped to that plugin's own mismatch penalty
-	// (metadata_plugins.py:160-170). At launch beets loads one plugin,
+	// (metadata_plugins.py:162-171). At launch beets loads one plugin,
 	// plugins: [musicbrainz] (config_default.yaml:11), whose class is
 	// MusicBrainzPlugin (beetsplug/musicbrainz.py:243) and so whose
 	// data_source name is "MusicBrainz", carrying the plugin base
@@ -194,9 +187,9 @@ type Tunables struct {
 	// Languages is import.languages: locale preference order for a
 	// candidate's preferred-alias selection. Default [] (empty)
 	// (config_default.yaml:33), which makes _preferred_alias
-	// structurally unreachable at launch. Shipping a nonempty default
-	// would be an improvement riding the port, forbidden by Ruling D;
-	// closing this reachability gap is a post-launch candidate.
+	// structurally unreachable at launch. A nonempty default would be an
+	// improvement riding the port, and every default here is beets'
+	// shipped value.
 	Languages []string
 
 	// IgnoredAliasTypes is import.ignored_alias_types: alias type
@@ -224,12 +217,11 @@ type Tunables struct {
 	// (beetsplug/musicbrainz.py:673-681). Default "Various Artists"
 	// (config_default.yaml:107). It moves no distance, because the
 	// album artist component is skipped entirely when AlbumInfo.VA
-	// (album_artist.go:13-15). It does move AlbumInfo.Artist, which
-	// the ruling-E ledger grades field by field, so it is a tunable
+	// (addAlbumArtist). It does move AlbumInfo.Artist, which the
+	// adjudication ledger grades field by field, so it is a tunable
 	// here rather than a literal in the translation layer. No
-	// committed case echoes it, so the M1 defaults cross-check cannot
-	// cover it; its coverage is this package's own unit test and the
-	// translation layer's VA test.
+	// committed case echoes it, so the conform defaults cross-check
+	// cannot cover it; the translation layer's VA test does.
 	//
 	// musicbrainz.aliases_as_credits is deliberately NOT here: it
 	// selects only which object supplies artist_credit
@@ -239,7 +231,7 @@ type Tunables struct {
 	VAName string
 
 	// StringDistPatterns is the SD_PATTERNS table string_dist's
-	// pattern loop runs, defaulting to [BeetsSDPatterns]. It exists as
+	// pattern loop runs, defaulting to beets' own six. It exists as
 	// a field, not a package-level constant a component reads
 	// directly, so the compat switch for the adjudicated
 	// bug-remix-parenthetical defect swaps in
@@ -261,8 +253,7 @@ type Preferred struct {
 	// OriginalYear is preferred.original_year: whether the year
 	// component prefers a candidate's original release year over its
 	// reissue year. Default false. No committed corpus case exercises
-	// this key; coverage is the year component's own table-driven unit
-	// test (Task 7), not a corpus fixture.
+	// this key.
 	OriginalYear bool
 }
 
@@ -321,55 +312,72 @@ func DefaultTunables() Tunables {
 		QuietFallback:             "skip",
 		NoneRecAction:             "ask",
 		VAName:                    "Various Artists",
-		StringDistPatterns:        BeetsSDPatterns,
+		StringDistPatterns:        beetsSDPatterns,
 	}
-	// The per-source entry for MusicBrainz IS the plugin's own resolved
-	// penalty (metadata_plugins.py:184-197, Resolution R15): read back
-	// from the field just set above, not a second literal, so the field
-	// has a real production reader.
+	// The MusicBrainz entry is the plugin's resolved penalty
+	// (metadata_plugins.py:192-197), read from the field above rather
+	// than written as a second literal, so the two cannot disagree.
 	tun.DataSourcePenalties = map[string]float64{"MusicBrainz": tun.DataSourceMismatchPenalty}
 	return tun
 }
 
-// SDPattern is one entry in string_dist's pattern-discount table: pat
-// is a regular expression deleted from both inputs wherever it matches,
-// unanchored, over the whole string (contract 7: SD_PATTERNS never
-// anchor), and weight is the penalty added to the base distance for
-// each side the deletion changed.
+// QuietImportTunables returns DefaultTunables with the four assignments
+// an unattended quiet import makes, the settings
+// corpus/profiles/estate.yaml records. No import pipeline calls it yet.
+//
+// It lives here rather than in the harness because internal/engine may
+// import no harness package (TestEngineNeverImportsHarness in
+// internal/harness/conform) and conform's gradeTunables is on the wrong
+// side of that wall.
+//
+// Timid and QuietFallback already ship at these values and are assigned
+// anyway, so the set reads as one configuration rather than as a diff a
+// reader has to compute.
+func QuietImportTunables() Tunables {
+	tun := DefaultTunables()
+	tun.Quiet = true           // beet import's -q flag
+	tun.QuietFallback = "skip" // corpus/profiles/estate.yaml import.quiet_fallback
+	tun.NoneRecAction = "skip" // corpus/profiles/estate.yaml import.none_rec_action
+	tun.Timid = false          // corpus/profiles/estate.yaml import.timid
+	return tun
+}
+
+// SDPattern is one entry in string_dist's pattern-discount table:
+// Pattern is deleted from both inputs wherever it matches, unanchored,
+// over the whole string, because SD_PATTERNS are re.sub arguments and
+// re.sub never anchors; the only "^" in beets' table is its own in
+// "^the ". The anchoring [CompilePatternOption] applies belongs to
+// Distance._eq's options and to nothing here. Weight is the penalty
+// added to the base distance for each side the deletion changed.
 //
 // Replacement is a [regexp.Regexp.Expand] template substituted for the
 // match instead of Python's empty string. Every row carries the zero
 // value except the featuring row, whose rewrite must keep the
-// character its Unicode-aware boundary consumed; see BeetsSDPatterns'
+// character its Unicode-aware boundary consumed; see beetsSDPatterns'
 // doc comment.
 type SDPattern struct {
-	Pattern     string
+	Pattern     *regexp.Regexp
 	Weight      float64
 	Replacement string
 }
 
-// SDEndWords is SD_END_WORDS (autotag/distance.py:34): words moved
+// sdEndWords is SD_END_WORDS (autotag/distance.py:34): words moved
 // from a trailing ", <word>" to the front of the string before the
 // pattern loop runs, so "something, the" scores equal to "the
 // something".
-var SDEndWords = []string{"the", "a", "an"}
+var sdEndWords = []string{"the", "a", "an"}
 
-// SDReplacement is one substitution string_dist performs, in order,
-// before the pattern loop.
-type SDReplacement struct {
-	Pattern     string
-	Replacement string
-}
+// The rows beetsSDPatterns and SDPatternsNoBracketDiscount share are
+// compiled once and held here, so the two tables cannot drift apart on
+// them.
+var (
+	sdArticle   = SDPattern{Pattern: regexp.MustCompile(`^the `), Weight: 0.1}
+	sdEPSingle  = SDPattern{Pattern: regexp.MustCompile(`[\[\(]?(ep|single)[\]\)]?`), Weight: 0.0}
+	sdFeaturing = SDPattern{Pattern: regexp.MustCompile(sdFeaturingPattern), Weight: 0.1, Replacement: `${1}`}
+	sdPart      = SDPattern{Pattern: regexp.MustCompile(`(, )?(pt\.|part) .+`), Weight: 0.2}
+)
 
-// SDReplace is SD_REPLACE (autotag/distance.py:45): applied once to
-// each input, in order, before the pattern loop.
-var SDReplace = []SDReplacement{
-	{Pattern: "&", Replacement: "and"},
-}
-
-// sdFeaturingPattern and sdFeaturingReplacement are the one row
-// BeetsSDPatterns and SDPatternsNoBracketDiscount share, kept in one
-// place so the two tables cannot drift apart on it.
+// sdFeaturingPattern is the featuring row's Go form.
 //
 // Beets' own featuring pattern is
 // [\[\(]?\b(featuring|feat|ft)\b[\. :].+ (autotag/distance.py:39).
@@ -383,39 +391,36 @@ var SDReplace = []SDReplacement{
 // character, so the boundary there is already satisfied); every other
 // case reads the leading boundary as the start of the string or a rune
 // outside letters, digits, and underscore. That second branch keeps
-// the boundary rune in its own group, and sdFeaturingReplacement
+// the boundary rune in its own group, and the row's `${1}` Replacement
 // reinserts it, because beets' Unicode-aware \b consumes no character
 // while the translated branch's [^\pL\pN_] does; without the
 // replacement the rewrite would delete the non-word rune before the
 // trigger, which matters because unidecode maps some of those runes to
 // ASCII letters ("©" to "(c)", "™" to "(tm)").
-const (
-	sdFeaturingPattern     = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
-	sdFeaturingReplacement = `${1}`
-)
+const sdFeaturingPattern = `[\[\(](?:featuring|feat|ft)[\. :].+|(^|[^\pL\pN_])(?:featuring|feat|ft)[\. :].+`
 
-// BeetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
+// beetsSDPatterns is SD_PATTERNS (autotag/distance.py:36-42), beets'
 // six shipped discounts in their fixed order. It is the default of
 // [Tunables.StringDistPatterns], held to beets' literals one for one
 // (TestBeetsSDPatternsMatchBeetsLiterals), with one named departure:
-// the featuring row carries sdFeaturingPattern and
-// sdFeaturingReplacement, two ASCII-boundary branches sharing a
+// the featuring row carries sdFeaturingPattern and a `${1}`
+// Replacement, two ASCII-boundary branches sharing a
 // kept-character group, in place of beets' own literal and its empty
 // substitution, because Go RE2's \b is ASCII-only where Python re's is
 // Unicode-aware; see sdFeaturingPattern's doc comment above for the
 // full translation. The featuring pattern carries the word boundaries
 // upstream shipped in beets 2.14.0 (19d091440), so "ft" inside an
 // ordinary word such as "Draft" no longer reads as a featuring credit.
-var BeetsSDPatterns = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: sdFeaturingPattern, Weight: 0.1, Replacement: sdFeaturingReplacement},
-	{Pattern: `\(.*?\)`, Weight: 0.3},
-	{Pattern: `\[.*?\]`, Weight: 0.3},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+var beetsSDPatterns = []SDPattern{
+	sdArticle,
+	sdEPSingle,
+	sdFeaturing,
+	{Pattern: regexp.MustCompile(`\(.*?\)`), Weight: 0.3},
+	{Pattern: regexp.MustCompile(`\[.*?\]`), Weight: 0.3},
+	sdPart,
 }
 
-// SDPatternsNoBracketDiscount carries BeetsSDPatterns' six discounts
+// SDPatternsNoBracketDiscount carries beetsSDPatterns' six discounts
 // with the two 0.3-weight bracket patterns removed. The corpus README
 // calls that "arithmetically the same as charging a parenthetical at
 // full weight", which holds only while no later pattern fires: a
@@ -430,10 +435,10 @@ var BeetsSDPatterns = []SDPattern{
 // selects it; [Compat.Apply] assigns it to
 // Tunables.StringDistPatterns.
 var SDPatternsNoBracketDiscount = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: sdFeaturingPattern, Weight: 0.1, Replacement: sdFeaturingReplacement},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+	sdArticle,
+	sdEPSingle,
+	sdFeaturing,
+	sdPart,
 }
 
 // Validate resolves every name-typed and pattern-typed field once, so a
@@ -454,10 +459,10 @@ func (t Tunables) Validate() error {
 		}
 	}
 
-	if err := compilePanicAsError(func() { compileMediaPatterns(t.Preferred.Media) }); err != nil {
+	if _, err := compileMediaPatterns(t.Preferred.Media); err != nil {
 		errs = append(errs, fmt.Errorf("preferred.media: %w: %w", ErrInvalidTunable, err))
 	}
-	if err := compilePanicAsError(func() { compileCountryPatterns(t.Preferred.Countries) }); err != nil {
+	if _, err := compileCountryPatterns(t.Preferred.Countries); err != nil {
 		errs = append(errs, fmt.Errorf("preferred.countries: %w: %w", ErrInvalidTunable, err))
 	}
 
@@ -466,47 +471,17 @@ func (t Tunables) Validate() error {
 	// otherwise decide it (the determinism constraint applies to
 	// Validate's output too).
 	for _, key := range slices.Sorted(maps.Keys(t.MaxRec)) {
-		if _, err := ParseRecommendation(t.MaxRec[key]); err != nil {
+		if _, err := parseRecommendation(t.MaxRec[key]); err != nil {
 			errs = append(errs, fmt.Errorf("max_rec[%q]: %w", key, err))
 		}
 	}
 
-	// import.quiet_fallback and import.none_rec_action share a lexer
-	// but carry different legal sets (fold M-d): as_choice({"skip":
-	// SKIP, "asis": ASIS}) for the former
-	// (ui/commands/import_/session.py:377-379) and as_choice({"skip":
-	// SKIP, "asis": ASIS, "ask": None}) for the latter
-	// (ui/commands/import_/session.py:383-388). ActionFor tests the same
-	// two sets.
-	if fallback, err := ParseAction(t.QuietFallback); err != nil {
-		errs = append(errs, fmt.Errorf("import.quiet_fallback: %w", err))
-	} else if !slices.Contains(LegalQuietFallbacks, fallback) {
-		errs = append(errs, fmt.Errorf("import.quiet_fallback: %q: %w (ui/commands/import_/session.py:377-379)", t.QuietFallback, ErrInvalidTunable))
+	if _, err := resolveAction("import.quiet_fallback", t.QuietFallback, quietFallbacks); err != nil {
+		errs = append(errs, err)
 	}
-	if noneRecAction, err := ParseAction(t.NoneRecAction); err != nil {
-		errs = append(errs, fmt.Errorf("import.none_rec_action: %w", err))
-	} else if !slices.Contains(LegalNoneRecActions, noneRecAction) {
-		errs = append(errs, fmt.Errorf("import.none_rec_action: %q: %w (ui/commands/import_/session.py:383-388)", t.NoneRecAction, ErrInvalidTunable))
+	if _, err := resolveAction("import.none_rec_action", t.NoneRecAction, noneRecActions); err != nil {
+		errs = append(errs, err)
 	}
 
 	return errors.Join(errs...)
-}
-
-// compilePanicAsError runs compile and turns its panic, if any, into an
-// error. compileMediaPatterns and compileCountryPatterns panic because
-// their only caller, the corresponding album component, has no error
-// path to return one on (album_media.go:39-46, album_country.go:34-41);
-// Validate reuses those same two functions rather than reimplementing
-// CompilePatternOption's two different wrapping rules, so recovering
-// here is the narrow price of checking the exact compilation the
-// runtime call site panics on, instead of a parallel check that could
-// drift from it.
-func compilePanicAsError(compile func()) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("%v", r)
-		}
-	}()
-	compile()
-	return nil
 }

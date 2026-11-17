@@ -15,8 +15,7 @@ import (
 // Penalty keys are held in insertion order beside the map, because
 // RawDistance and MaxDistance sum over that order and Go's map iteration
 // is randomized: beets' dict preserves insertion order for free and the
-// port must not lose it (contract 5, and the pass's determinism rule).
-// Float addition is not associative, so a different summation order is a
+// port must not lose it. Float addition is not associative, so a different summation order is a
 // different number.
 //
 // A Distance is not safe for concurrent use, and every scoring path in
@@ -64,7 +63,7 @@ func NewDistance(tun Tunables) *Distance {
 }
 
 // RawDistance returns the denormalized distance: for every added key,
-// the sum of its penalties times the key's weight (contract 5).
+// the sum of its penalties times the key's weight (distance.py:172-177).
 func (d *Distance) RawDistance() float64 {
 	var raw float64
 	for _, key := range d.order {
@@ -75,7 +74,7 @@ func (d *Distance) RawDistance() float64 {
 
 // MaxDistance returns the normalization factor: for every added key,
 // the number of penalties added under it times the key's weight
-// (contract 5). The count is of penalties actually added, not of
+// (distance.py:164-169). The count is of penalties actually added, not of
 // configured weights, so a key added at 0.0 still enlarges the result
 // and a key never added contributes nothing. AddNumber appends one
 // penalty per unit of difference, so one key can enlarge this by its
@@ -89,8 +88,8 @@ func (d *Distance) MaxDistance() float64 {
 }
 
 // Distance returns the weighted, normalized distance across every added
-// penalty, and 0.0 when MaxDistance is zero (contract 5). The zero-max
-// case is beets' own guard (distance.py:157-160) and is reachable: an
+// penalty, and 0.0 when MaxDistance is zero. The zero-max case is
+// beets' own guard (distance.py:157-160) and is reachable: an
 // accumulator with no penalties has one, and so does one whose every
 // added key carries weight 0.0.
 func (d *Distance) Distance() float64 {
@@ -118,7 +117,7 @@ func (d *Distance) Penalties(key string) []float64 {
 //
 // This is the _penalties view, the one derive_oracle.py emits and
 // cassette.Candidate.Penalties grades, so key presence at 0.0 is part
-// of what it reports. NonzeroKeys is the other view and drops those
+// of what it reports. NonzeroItems is the other view and drops those
 // keys; the two are different objects and a consumer that picks the
 // wrong one is port hazard 4.
 func (d *Distance) AddedKeys() []string {
@@ -160,10 +159,10 @@ func (d *Distance) NonzeroItems() []PenaltyItem {
 	return items
 }
 
-// NonzeroKeys returns the keys of NonzeroItems, in the same order.
+// nonzeroKeys returns the keys of NonzeroItems, in the same order.
 //
 // This is the items view; see NonzeroItems.
-func (d *Distance) NonzeroKeys() []string {
+func (d *Distance) nonzeroKeys() []string {
 	items := d.NonzeroItems()
 	keys := make([]string, len(items))
 	for i, item := range items {
@@ -192,19 +191,6 @@ func (d *Distance) GenericPenaltyKeys() []string {
 		names = append(names, strings.ReplaceAll(name, "_", " "))
 	}
 	return names
-}
-
-// Update appends every penalty accumulated in other under other's own
-// keys, in other's insertion order, which is how the album-level
-// components fold a track distance into the album distance
-// (distance.py:249-256). Keys already present keep their position;
-// new ones are appended.
-func (d *Distance) Update(other *Distance) {
-	for _, key := range other.order {
-		for _, penalty := range other.penalties[key] {
-			d.Add(key, penalty)
-		}
-	}
 }
 
 // Add appends one penalty under key.
@@ -334,7 +320,7 @@ func (d *Distance) AddRatio(key string, n1, n2 float64) {
 // An unset source is the empty string on either side. The penalty is
 // the loaded source's own, taken from Tunables.DataSourcePenalties, and
 // defaultDataSourceMismatchPenalty when no loaded source is named
-// after, which is beets' get_penalty (metadata_plugins.py:160-169).
+// after, which is beets' get_penalty (metadata_plugins.py:162-171).
 func (d *Distance) AddDataSource(before, after string) {
 	if before == after {
 		return
@@ -345,18 +331,13 @@ func (d *Distance) AddDataSource(before, after string) {
 	d.Add("data_source", d.dataSourcePenalty(after))
 }
 
-// AddString, the eighth adder, lands beside StringDist in strdist.go.
-// Its whole body is one call into that function, Go has no forward
-// declaration, and a placeholder standing in for string_dist would be
-// the silent-success fake the assertion-discipline rule forbids.
-
 // A PatternOption is an AddEquality or AddPriority option that matches
 // its candidate value rather than comparing equal to it, the Go form of
 // beets' compiled-pattern option (distance.py:260-267).
 //
 // The match is anchored at position 0, because Python's
-// re.Pattern.match is. Options anchor and SD_PATTERNS never do
-// (contract 7), so this type exists rather than a bare *regexp.Regexp:
+// re.Pattern.match is. Options anchor and SD_PATTERNS never do, so
+// this type exists rather than a bare *regexp.Regexp:
 // an unanchored MatchString on a pattern meant for .match accepts
 // values beets rejects. A value that is not a string never matches.
 type PatternOption struct {
@@ -404,14 +385,14 @@ func (d *Distance) keyDistance(key string) float64 {
 // defaultDataSourceMismatchPenalty is the class-level fallback
 // get_penalty resolves to when no loaded metadata source is named after,
 // MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_PENALTY
-// (beets/metadata_plugins.py:180, returned at :160-169). It is a
+// (beets/metadata_plugins.py:182, returned at :162-171). It is a
 // constant rather than Tunables.DataSourceMismatchPenalty because the
 // two are different values in beets: the tunable is the PLUGIN's own
-// penalty, resolved source_weight-first (:190-195) and wired into the
-// plugin's config at init (:201-202), and it is what populates
+// penalty, resolved source_weight-first (:192-197) and wired into the
+// plugin's config at init (:203-204), and it is what populates
 // DataSourcePenalties. Reading the tunable here made the two identical,
 // which is correct under shipped config and wrong the moment
-// source_weight is set (3a's carry to 3c).
+// source_weight is set.
 const defaultDataSourceMismatchPenalty = 0.5
 
 func (d *Distance) dataSourcePenalty(source string) float64 {

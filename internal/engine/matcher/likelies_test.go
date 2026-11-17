@@ -104,7 +104,7 @@ func TestMostCommonTagsNoOverrideWithoutAlbumartistConsensus(t *testing.T) {
 	})
 }
 
-// TestPluralityBreaksTiesByFirstSeen is contract 11's own test: a
+// TestPluralityBreaksTiesByFirstSeen holds plurality's tie rule: a
 // deliberately tied item set, where two values each occur exactly
 // once and the winner must be the one item order saw first, not the
 // one a randomized map iteration would happen to produce.

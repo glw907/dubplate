@@ -2,9 +2,7 @@ package unidecode
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"maps"
 	"slices"
@@ -27,10 +25,8 @@ type Table struct {
 // not produce, whether truncated, hand-edited, or from a different
 // Unidecode release.
 func Parse(data []byte) (*Table, error) {
-	sum := sha256.Sum256(data)
-	got := hex.EncodeToString(sum[:])
-	if got != tableSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", errTableChecksum, got, tableSHA256)
+	if err := checkTable(data); err != nil {
+		return nil, err
 	}
 	return decode(data)
 }

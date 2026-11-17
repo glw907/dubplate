@@ -34,7 +34,7 @@ type Assignment struct {
 	ExtraTracks []int // track indexes, sorted by (index, title)
 }
 
-// AssignItems solves beets' track assignment (autotag/match.py:53-81):
+// assignItems solves beets' track assignment (autotag/match.py:53-81):
 // the minimum-cost matching between items and a candidate's tracks,
 // where cell (i, t) is the normalized track distance between them.
 //
@@ -72,7 +72,7 @@ type Assignment struct {
 // with no items is not an import. The behavior is defined anyway so a
 // later caller outside that gate finds an answer rather than an index
 // out of range.
-func AssignItems(tun Tunables, items []ItemFields, tracks []TrackInfo) Assignment {
+func assignItems(tun Tunables, items []ItemFields, tracks []TrackInfo) Assignment {
 	var a Assignment
 	if len(items) > 0 && len(tracks) > 0 {
 		costs := make([][]float64, len(items))
@@ -121,12 +121,12 @@ func AssignItems(tun Tunables, items []ItemFields, tracks []TrackInfo) Assignmen
 	return a
 }
 
-// AlbumPairsFor projects an assignment onto the pairing DistanceForAlbum
-// consumes, preserving track order (contract V3).
-func AlbumPairsFor(a Assignment, items []ItemFields, info *AlbumInfo) []AlbumPair {
-	pairs := make([]AlbumPair, len(a.Pairs))
+// albumPairsFor projects an assignment onto the pairing distanceForAlbum
+// consumes, preserving track order.
+func albumPairsFor(a Assignment, items []ItemFields, info *AlbumInfo) []albumPair {
+	pairs := make([]albumPair, len(a.Pairs))
 	for k, p := range a.Pairs {
-		pairs[k] = AlbumPair{Item: items[p.Item], Info: &info.Tracks[p.Track]}
+		pairs[k] = albumPair{Item: items[p.Item], Info: &info.Tracks[p.Track]}
 	}
 	return pairs
 }
@@ -135,7 +135,7 @@ func AlbumPairsFor(a Assignment, items []ItemFields, info *AlbumInfo) []AlbumPai
 // It reproduces lap.lapjv(costs, extend_cost=True) (match.py:66):
 // a dense Jonker-Volgenant solve over the matrix padded to
 // n = max(rows, cols) with ZERO, which is the extension model measured
-// against the pinned solver (contract V5) rather than the
+// against the pinned solver rather than the
 // (rows+cols, max+1) recipe derive_ties.py's docstring assumes, which
 // disagrees with this lap build on 30% of rectangular ties.
 //

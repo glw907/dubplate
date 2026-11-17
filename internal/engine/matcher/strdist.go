@@ -1,10 +1,6 @@
 package matcher
 
-import (
-	"regexp"
-	"strings"
-	"sync"
-)
+import "strings"
 
 // StringDist is beets' string_dist (autotag/distance.py:64-119): an edit
 // distance normalized by string length, discounted for the parts of a
@@ -17,12 +13,12 @@ import (
 // from a caller modeling an unset source field.
 //
 // The pipeline runs lowercase, article rotation, SD_REPLACE, then the
-// pattern loop, in that order, and the order is load-bearing at every
-// step (contract 1). The lowercase happens here and again inside
+// pattern loop, in that order (distance.py:75-119), and the order is
+// load-bearing at every step. The lowercase happens here and again inside
 // sdStrip after transliteration, and both are needed: see
 // TestStringDistLowercasesBeforeTransliterating.
 //
-// The pattern table comes from tun rather than from [BeetsSDPatterns]
+// The pattern table comes from tun rather than from beetsSDPatterns
 // directly, so [Compat.Apply] selects a table by assignment instead of
 // editing this function.
 func StringDist(tun Tunables, str1, str2 *string) float64 {
@@ -39,9 +35,8 @@ func StringDist(tun Tunables, str1, str2 *string) float64 {
 	baseDist := stringDistBasic(a, b)
 	var penalty float64
 	for _, pattern := range tun.StringDistPatterns {
-		re := sdRegexp(pattern.Pattern)
-		caseA := re.ReplaceAllString(a, pattern.Replacement)
-		caseB := re.ReplaceAllString(b, pattern.Replacement)
+		caseA := pattern.Pattern.ReplaceAllString(a, pattern.Replacement)
+		caseB := pattern.Pattern.ReplaceAllString(b, pattern.Replacement)
 		if caseA == a && caseB == b {
 			continue
 		}
@@ -86,7 +81,38 @@ func stringDistBasic(str1, str2 string) float64 {
 	if a == "" && b == "" {
 		return 0
 	}
-	return float64(Levenshtein(a, b)) / float64(max(len(a), len(b)))
+	return float64(levenshtein(a, b)) / float64(max(len(a), len(b)))
+}
+
+// levenshtein is jellyfish.levenshtein_distance's plain-unit-cost edit
+// distance over Unicode code points: the minimum number of single-rune
+// insertions, deletions, and substitutions turning a into b.
+func levenshtein(a, b string) int {
+	ra, rb := []rune(a), []rune(b)
+	if len(ra) == 0 {
+		return len(rb)
+	}
+	if len(rb) == 0 {
+		return len(ra)
+	}
+
+	prev := make([]int, len(rb)+1)
+	for j := range prev {
+		prev[j] = j
+	}
+	curr := make([]int, len(rb)+1)
+	for i := 1; i <= len(ra); i++ {
+		curr[0] = i
+		for j := 1; j <= len(rb); j++ {
+			cost := 1
+			if ra[i-1] == rb[j-1] {
+				cost = 0
+			}
+			curr[j] = min(prev[j]+1, curr[j-1]+1, prev[j-1]+cost)
+		}
+		prev, curr = curr, prev
+	}
+	return prev[len(rb)]
 }
 
 // sdStrip transliterates s, lowercases it, and drops every character
@@ -100,7 +126,7 @@ func stringDistBasic(str1, str2 string) float64 {
 func sdStrip(s string) string {
 	var stripped strings.Builder
 	stripped.Grow(len(s))
-	for _, r := range strings.ToLower(Transliterate(s)) {
+	for _, r := range strings.ToLower(transliterate(s)) {
 		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
 			stripped.WriteByte(byte(r))
 		}
@@ -112,10 +138,10 @@ func sdStrip(s string) string {
 // front of s, so that "something, the" scores equal to "the something"
 // (distance.py:80-84).
 //
-// The three words are tried in [SDEndWords] order and each rotation
+// The three words are tried in sdEndWords order and each rotation
 // feeds the next, so "harbour, a, the" rotates twice.
 func rotateEndWords(s string) string {
-	for _, word := range SDEndWords {
+	for _, word := range sdEndWords {
 		if prefix, found := strings.CutSuffix(s, ", "+word); found {
 			s = word + " " + prefix
 		}
@@ -123,71 +149,9 @@ func rotateEndWords(s string) string {
 	return s
 }
 
-// applySDReplace applies [SDReplace] to s (distance.py:87-89).
-//
-// The substitution is literal on the replacement side. Python's re.sub
-// expands backslash group references there and Go's ReplaceAllString
-// expands dollar ones, so neither language's default is a faithful port
-// of the other; beets' shipped table carries no group reference, and
-// the literal form is the one that cannot silently reinterpret a Go
-// dollar sign in a later entry.
+// applySDReplace applies SD_REPLACE (distance.py:45, 87-89), whose one
+// entry substitutes "and" for every "&". The pattern holds no regular
+// expression metacharacter, so a literal replacement is exact.
 func applySDReplace(s string) string {
-	for _, replacement := range SDReplace {
-		s = sdRegexp(replacement.Pattern).ReplaceAllLiteralString(s, replacement.Replacement)
-	}
-	return s
-}
-
-// sdShippedRegexps holds every pattern this package ships compiled:
-// both SD_PATTERNS tables and SD_REPLACE. A package-level initializer
-// makes a malformed literal a startup panic rather than a per-call
-// error, and nothing writes the map afterward, so the eight lookups a
-// StringDist call makes take no lock.
-var sdShippedRegexps = compileSDPatterns(BeetsSDPatterns, SDPatternsNoBracketDiscount)
-
-func compileSDPatterns(tables ...[]SDPattern) map[string]*regexp.Regexp {
-	compiled := make(map[string]*regexp.Regexp)
-	for _, table := range tables {
-		for _, pattern := range table {
-			compiled[pattern.Pattern] = regexp.MustCompile(pattern.Pattern)
-		}
-	}
-	for _, replacement := range SDReplace {
-		compiled[replacement.Pattern] = regexp.MustCompile(replacement.Pattern)
-	}
-	return compiled
-}
-
-// sdForeignRegexps caches the patterns of a table assigned into
-// [Tunables.StringDistPatterns] from outside this package, which the
-// shipped map cannot hold because they are not known at initialization.
-// The lock guards package state that outlives any one scoring path: no
-// scoring path in this package is concurrent, a test binary running two
-// of them is.
-var sdForeignRegexps = struct {
-	mu       sync.Mutex
-	compiled map[string]*regexp.Regexp
-}{compiled: make(map[string]*regexp.Regexp)}
-
-// sdRegexp returns pattern compiled unanchored, exactly as beets writes
-// it. SD_PATTERNS are re.sub arguments and re.sub never anchors, so the
-// only "^" in the table is beets' own in "^the " (contract 7). The
-// anchoring [CompilePatternOption] applies belongs to Distance._eq's
-// options and to nothing here.
-//
-// A pattern outside the shipped tables compiles on first use and panics
-// on a malformed literal the same way, because a pattern table is code
-// and a broken one is a programming error rather than an input.
-func sdRegexp(pattern string) *regexp.Regexp {
-	if re, shipped := sdShippedRegexps[pattern]; shipped {
-		return re
-	}
-	sdForeignRegexps.mu.Lock()
-	defer sdForeignRegexps.mu.Unlock()
-	if re, cached := sdForeignRegexps.compiled[pattern]; cached {
-		return re
-	}
-	re := regexp.MustCompile(pattern)
-	sdForeignRegexps.compiled[pattern] = re
-	return re
+	return strings.ReplaceAll(s, "&", "and")
 }

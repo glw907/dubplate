@@ -102,13 +102,42 @@ func TestAddRejectsAnUnknownRequiredFieldName(t *testing.T) {
 	}
 }
 
+// TestAddReportsABadPatternAsValidateDoes proves a Tunables value that
+// skipped Validate fails Add with the error Validate would have given,
+// rather than scoring with the pattern dropped.
+func TestAddReportsABadPatternAsValidateDoes(t *testing.T) {
+	tests := []struct {
+		name string
+		mut  func(*Tunables)
+	}{
+		{"preferred media", func(t *Tunables) { t.Preferred.Media = []string{"("} }},
+		{"preferred countries", func(t *Tunables) { t.Preferred.Countries = []string{"("} }},
+	}
+	items := []ItemFields{{Title: "one", Track: 1, Length: 100}}
+	info := &AlbumInfo{Album: "a", AlbumID: "id-1", DataSource: "MusicBrainz", Media: "CD", Country: "US",
+		Tracks: []TrackInfo{{Title: "one", Index: 1, Length: 100}}}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tun := DefaultTunables()
+			tt.mut(&tun)
+			ok, err := NewCandidates().Add(tun, items, info, evalDate)
+			if ok || !errors.Is(err, ErrInvalidTunable) {
+				t.Fatalf("Add = %t, %v; want false and an error wrapping ErrInvalidTunable", ok, err)
+			}
+			if want := tun.Validate().Error(); err.Error() != want {
+				t.Errorf("Add error = %q, want Validate's %q", err, want)
+			}
+		})
+	}
+}
+
 func TestAddAppliesIgnoredAgainstTheNonzeroView(t *testing.T) {
 	// The m5 hazard's second site. The fixture is built so the candidate
 	// carries "media" in the ADDED-key view at exactly 0.0 and carries
 	// "album" nonzero. ignored = ["media"] must NOT drop it, because
 	// beets iterates Distance.items(), which omits zero-weighted
 	// penalties (distance.py:190-205, 240-241). The mutation that proves
-	// this test fires: read AddedKeys() instead of NonzeroKeys().
+	// this test fires: read AddedKeys() instead of nonzeroKeys().
 	tun := DefaultTunables()
 	tun.Ignored = []string{"media"}
 	items, info := ignoredFixture(t) // testdata/candidate/ignored-zero-media.json
@@ -123,7 +152,7 @@ func TestAddAppliesIgnoredAgainstTheNonzeroView(t *testing.T) {
 	if !slices.Contains(c.All()[0].Dist.AddedKeys(), "media") {
 		t.Fatal("the fixture no longer adds media at 0.0, so this test can no longer discriminate the two views")
 	}
-	if slices.Contains(c.All()[0].Dist.NonzeroKeys(), "media") {
+	if slices.Contains(c.All()[0].Dist.nonzeroKeys(), "media") {
 		t.Fatal("the fixture's media penalty is nonzero, so this test can no longer discriminate the two views")
 	}
 }
@@ -196,7 +225,7 @@ type candidateFixture struct {
 // ignoredFixture reads testdata/candidate/ignored-zero-media.json: one
 // item and one candidate built so the candidate's media penalty is
 // exactly 0.0 while its album penalty is nonzero, discriminating
-// NonzeroKeys from AddedKeys.
+// nonzeroKeys from AddedKeys.
 func ignoredFixture(t *testing.T) ([]ItemFields, *AlbumInfo) {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join("testdata", "candidate", "ignored-zero-media.json"))

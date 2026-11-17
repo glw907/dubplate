@@ -2,12 +2,13 @@ package matcher
 
 import "testing"
 
-// TestProjectItemFields_TypedDefaults proves contract 10's typed-default
+// TestProjectItemFields_TypedDefaults proves the typed-default
 // projection: a field the raw bag omits reads beets' own type default
 // ("" for a string field, 0 for an int or float field), not some
 // "absent" sentinel. The fixture is hand-authored here, not read from
-// any corpus case (M-d), and deliberately does not use data_source as
-// its omitted-string example (fold, m6): year is used instead.
+// any corpus case, and deliberately does not use data_source as its
+// omitted-string example, because beets' true default for that one
+// field is None (see [ItemFields]): year is used instead.
 //
 // A mutation that returns a sentinel for a missing field, for example
 // intField returning -1 instead of 0, or stringField returning "unset"

@@ -1,6 +1,11 @@
 package unidecode
 
-import "errors"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+)
 
 // Version is the Unidecode release this package's table format and
 // extraction logic are pinned to.
@@ -57,6 +62,26 @@ var errWheelChecksum = errors.New("unidecode: wheel checksum mismatch")
 // errTableChecksum reports that a table's sha256 disagreed with the
 // pinned table checksum, whether just built or read from a file.
 var errTableChecksum = errors.New("unidecode: table checksum mismatch")
+
+// checkWheel refuses wheel bytes whose sha256 disagrees with
+// WheelSHA256.
+func checkWheel(wheel []byte) error {
+	return checkSHA256(wheel, WheelSHA256, errWheelChecksum)
+}
+
+// checkTable refuses table bytes whose sha256 disagrees with
+// tableSHA256.
+func checkTable(table []byte) error {
+	return checkSHA256(table, tableSHA256, errTableChecksum)
+}
+
+func checkSHA256(data []byte, want string, errMismatch error) error {
+	sum := sha256.Sum256(data)
+	if got := hex.EncodeToString(sum[:]); got != want {
+		return fmt.Errorf("%w: got %s, want %s", errMismatch, got, want)
+	}
+	return nil
+}
 
 // errWheelTooLarge reports that a wheel download or file exceeded
 // maxWheelSize.

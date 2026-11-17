@@ -22,8 +22,8 @@ func TestTransliterate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Transliterate(tt.input); got != tt.want {
-				t.Errorf("Transliterate(%q) = %q, want %q", tt.input, got, tt.want)
+			if got := transliterate(tt.input); got != tt.want {
+				t.Errorf("transliterate(%q) = %q, want %q", tt.input, got, tt.want)
 			}
 		})
 	}
@@ -43,35 +43,12 @@ func TestTransliterateUninstalledPanics(t *testing.T) {
 	defer func() {
 		r := recover()
 		if r == nil {
-			t.Fatal("expected Transliterate to panic with nothing installed")
+			t.Fatal("expected transliterate to panic with nothing installed")
 		}
 		msg, ok := r.(string)
 		if !ok || !strings.Contains(msg, "SetTransliterator") {
 			t.Errorf("panic value %v does not name SetTransliterator", r)
 		}
 	}()
-	Transliterate("abc")
-}
-
-func TestLevenshtein(t *testing.T) {
-	tests := []struct {
-		name string
-		a, b string
-		want int
-	}{
-		{name: "both empty", a: "", b: "", want: 0},
-		{name: "empty vs non-empty", a: "", b: "abc", want: 3},
-		{name: "non-empty vs empty", a: "abc", b: "", want: 3},
-		{name: "equal-length identical", a: "kitten", b: "kitten", want: 0},
-		{name: "equal-length one substitution", a: "abc", b: "abd", want: 1},
-		{name: "equal-length every position differs", a: "abc", b: "xyz", want: 3},
-		{name: "classic kitten/sitting", a: "kitten", b: "sitting", want: 3},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := Levenshtein(tt.a, tt.b); got != tt.want {
-				t.Errorf("Levenshtein(%q, %q) = %d, want %d", tt.a, tt.b, got, tt.want)
-			}
-		})
-	}
+	transliterate("abc")
 }

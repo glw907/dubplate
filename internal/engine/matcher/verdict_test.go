@@ -64,7 +64,7 @@ func TestRecommendDowngradesAgainstTheNonzeroViewOnly(t *testing.T) {
 	// The m5 hazard's first site, and the corpus is blind to it: zero of
 	// 294 committed candidates carry missing_tracks or unmatched_tracks
 	// at exactly 0.0. This fixture builds one. The mutation that proves
-	// it fires: read AddedKeys() instead of NonzeroKeys().
+	// it fires: read AddedKeys() instead of nonzeroKeys().
 	tun := DefaultTunables() // max_rec: missing_tracks -> medium
 	cand := candidateWithZeroValuedKey(t, "missing_tracks", 0.02)
 	got, err := Recommend(tun, []Candidate{cand})
@@ -156,7 +156,7 @@ func candidatesAtDistances(t *testing.T, distances ...float64) []Candidate {
 
 // candidateWithZeroValuedKey returns one Candidate whose Dist carries
 // key added at exactly 0.0 (present in AddedKeys, absent from
-// NonzeroKeys) alongside an "album" penalty sized so the candidate's
+// nonzeroKeys) alongside an "album" penalty sized so the candidate's
 // overall Distance() equals targetDistance, regardless of key's
 // configured weight.
 func candidateWithZeroValuedKey(t *testing.T, key string, targetDistance float64) Candidate {
