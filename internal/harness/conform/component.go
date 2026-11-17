@@ -46,11 +46,11 @@ type ReplayOutcome struct {
 	Method string
 	// Err is non-nil when the row failed outright: an unknown method,
 	// an unresolvable argument shape, or an output that disagrees with
-	// the committed row beyond the 1e-12 fallback (contract 12).
+	// the committed row beyond the 1e-12 fallback.
 	Err error
 	// NearMiss is true when every field matched only within the
 	// 1e-12 relative fallback and none was bit-identical: a finding to
-	// report, not a failure (contract 12).
+	// report, not a failure.
 	NearMiss bool
 	// Detail names the field or fields that were near misses, for the
 	// pass report's finding list.
@@ -65,7 +65,7 @@ type ReplaySummary struct {
 	// cannot inflate this total.
 	CountByMethod map[string]int
 	// NearMisses lists every row that matched only within the 1e-12
-	// fallback (contract 12's own reporting duty).
+	// fallback, which the replay must report rather than absorb.
 	NearMisses []ReplayOutcome
 	// TotalRows is len(table.Rows), for the "nothing was skipped"
 	// check: total replayed must equal this.
@@ -147,7 +147,7 @@ func rowErr(row analysis.ComponentRow, err error) ReplayOutcome {
 // shapes: args.key names the adder shape (a replay of Distance.Add
 // itself), args.weights names the aggregate shape (the raw, max, and
 // normalized arithmetic over a set of added penalties). A row carrying
-// neither, or both, is a failure naming the row id (fold, B1).
+// neither, or both, is a failure naming the row id.
 func replayAddMethod(row analysis.ComponentRow) ReplayOutcome {
 	var probe struct {
 		Key     *string             `json:"key"`
@@ -349,7 +349,7 @@ func callAddPriority(dist *matcher.Distance, key string, elems []json.RawMessage
 // decodeOptions decodes an add_equality or add_priority option
 // argument: either a bare option (a string, or a compiled-regex object)
 // or a JSON array of options. A bare option is wrapped into a
-// one-element slice, mirroring beets' own scalar wrap (contract 6a);
+// one-element slice, mirroring beets' own scalar wrap;
 // AddEquality and AddPriority's variadic parameter is that wrap, so
 // passing the decoded slice through options... reproduces it exactly.
 func decodeOptions(raw json.RawMessage) ([]any, error) {
@@ -376,8 +376,8 @@ func decodeOptions(raw json.RawMessage) ([]any, error) {
 }
 
 // decodeOption decodes one option value: a compiled-regex object
-// ({"regex", "ignorecase"}, fold M-e) becomes a matcher.PatternOption,
-// anchored at position 0 per contract 7; anything else is a literal
+// ({"regex", "ignorecase"}) becomes a matcher.PatternOption,
+// anchored at position 0 as beets anchors it; anything else is a literal
 // value compared with Go equality. An object lacking "regex" is a
 // decode failure, never a silent compile of the empty pattern: an
 // empty PatternOption matches every value at position 0, so a missing
@@ -406,7 +406,7 @@ func decodeOption(raw any) (any, error) {
 // The aggregate shape: method "add" with args.weights, plus
 // generic_penalty_keys, which shares the same args. args.weights is an
 // OVERRIDE layered key by key onto matcher.DefaultTunables's
-// DistanceWeights, never a complete table (fold, B2):
+// DistanceWeights, never a complete table:
 // derive_component.py's weights() context manager patches
 // Distance._weights and restores it afterward, so every key the row
 // does not name keeps beets' shipped default. A key beets does not
@@ -562,12 +562,12 @@ type trackDistanceArgs struct {
 }
 
 // metadataSourceSet builds the get_penalty two-plugin stub's loaded-
-// source set (fold, B3): {"Original": 0.5, "Other": penalty}, or just
+// source set: {"Original": 0.5, "Other": penalty}, or just
 // {"Other": penalty} when multiple is false. The fallback dataSourcePenalty
 // resolves to when after names no loaded source is matcher's own
 // defaultDataSourceMismatchPenalty class constant, never the row's own
-// penalty field or Tunables.DataSourceMismatchPenalty (3a's carry,
-// closed by rung 3 pass 3c), so tunablesWithOverrides' shipped default
+// penalty field or Tunables.DataSourceMismatchPenalty, so
+// tunablesWithOverrides' shipped default
 // needs no compensation here.
 func metadataSourceSet(penalty float64, multiple bool) map[string]float64 {
 	sources := map[string]float64{"Other": penalty}
@@ -800,7 +800,7 @@ type fieldCheck struct {
 
 // checkFields runs compareFloats over every check, failing outright on
 // the first check beyond the 1e-12 fallback and otherwise reporting a
-// near miss when any check matched only within it (contract 12).
+// near miss when any check matched only within it.
 func checkFields(row analysis.ComponentRow, checks []fieldCheck) ReplayOutcome {
 	var nearMissFields []string
 	for _, c := range checks {
@@ -822,7 +822,7 @@ func checkFields(row analysis.ComponentRow, checks []fieldCheck) ReplayOutcome {
 
 // compareFloats reports whether want and got are bit-identical, and if
 // not, whether they still agree within 1e-12 relative tolerance
-// (contract 12). A row that passes only via the tolerance is not
+// (the fallback). A row that passes only via the tolerance is not
 // silently treated as bit-identical: near is true and the caller
 // records it as a finding.
 func compareFloats(field string, want, got float64) (near bool, err error) {

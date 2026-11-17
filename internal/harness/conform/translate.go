@@ -14,15 +14,10 @@ import (
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
 
-// releaseLookupPrefix is the WS/2 path a release lookup by id starts
-// with, mirroring analysis.releaseLookupPrefix's own definition
-// (unexported there, behind the territory wall).
-const releaseLookupPrefix = "/ws/2/release/"
-
 // browseMaxTracks is BROWSE_MAXTRACKS (beetsplug/musicbrainz.py:67),
 // the track count beyond which album_for_id switches from a direct
 // release fetch to the paged browse endpoint (:609-613). Issuing that
-// alternate request is 3c's client work; this guard exists so a corpus
+// alternate request is the client's work; this guard exists so a corpus
 // case crossing the line is noticed the moment it lands, since nothing
 // else in the pipeline would otherwise notice a lookup silently taking
 // the untested path.
@@ -54,46 +49,6 @@ const (
 	// "" and 0 indistinguishable.
 	nullEqualsZero
 )
-
-// fieldNullability is the twenty-one-field nullability policy (R1,
-// R11): every scalar matcher.AlbumInfo and matcher.TrackInfo carries,
-// one line of reason each, so a reader sees why a field tolerates null
-// without reading beets. Three fields are nullStrict, nine
-// nullNeverExpected, nine nullEqualsZero.
-//
-// The row count is asserted in translate_test.go against
-// reflect.TypeOf(matcher.AlbumInfo{}).NumField() - 1 +
-// reflect.TypeOf(matcher.TrackInfo{}).NumField(), the "- 1" being
-// AlbumInfo.Tracks, which is compared as a list rather than through
-// this policy. Adding a field to either struct without extending this
-// table fails that assertion.
-var fieldNullability = []struct {
-	Field  string
-	Policy nullPolicy
-	Reason string
-}{
-	{"album.album", nullStrict, "distance.py:451, unguarded add_string"},
-	{"album.artist", nullStrict, "distance.py:448, guarded only by \"not va\""},
-	{"track.title", nullStrict, "distance.py:402, unguarded add_string"},
-	{"album.va", nullNeverExpected, "a Python bool, never None"},
-	{"album.mediums", nullNeverExpected, "len(...), may be 0, never None"},
-	{"album.album_id", nullNeverExpected, "release[\"id\"], always present"},
-	{"album.data_source", nullNeverExpected, "the literal \"MusicBrainz\""},
-	{"track.index", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.medium_index", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.medium", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.track_id", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.data_source", nullNeverExpected, "written unconditionally by track_info"},
-	{"album.media", nullEqualsZero, "truthiness-guarded, distance.py:455; a single-medium null format really does yield None"},
-	{"album.year", nullEqualsZero, "truthiness-guarded, distance.py:472,480"},
-	{"album.original_year", nullEqualsZero, "truthiness-guarded, distance.py:475,484"},
-	{"album.country", nullEqualsZero, "truthiness-guarded, distance.py:498,501"},
-	{"album.label", nullEqualsZero, "truthiness-guarded, distance.py:505"},
-	{"album.catalognum", nullEqualsZero, "truthiness-guarded, distance.py:509"},
-	{"album.albumdisambig", nullEqualsZero, "truthiness-guarded, distance.py:515"},
-	{"track.length", nullEqualsZero, "truthiness-guarded, distance.py:397"},
-	{"track.artist", nullEqualsZero, "truthiness-guarded, distance.py:404-410"},
-}
 
 // checkNullable compares want, a ledger scalar that may be JSON null,
 // against got, the Go translation's own zero-or-real value, per
@@ -184,10 +139,9 @@ func checkTranslatedTrack(caseID, mbid string, i int, want analysis.LedgerTrackI
 }
 
 // mergeProfile applies profile's overlay atop base, in Tunables'
-// defaults-then-profile order (fold, B4, the same rule the spec's M1
-// fold states for tier 1). It is a profile-name-to-overlay table, never
-// a YAML parse: go.mod carries no YAML dependency and this plan's
-// Global Constraints forbid adding one. An unrecognized profile name is
+// defaults-then-profile order, the same rule tier 1 follows. It is a
+// profile-name-to-overlay table, never a YAML parse: go.mod carries no
+// YAML dependency and none may be added. An unrecognized profile name is
 // the failure.
 //
 // stock overlays nothing: corpus/profiles/stock.yaml sets only the
@@ -197,7 +151,7 @@ func checkTranslatedTrack(caseID, mbid string, i int, want analysis.LedgerTrackI
 // beets' shipped default (config_default.yaml:34 is "ask", both
 // profiles say "skip"), so a merge that stopped at the two locale keys
 // left a value the profile sets reading beets' own. It is unreachable
-// under the conformance sweep's quiet overlay (contract V16), which is
+// under the conformance sweep's quiet overlay, which is
 // why translate_test.go asserts each merged value against the profile
 // file directly rather than through a sweep.
 func mergeProfile(base matcher.Tunables, profile string) (matcher.Tunables, error) {
@@ -227,8 +181,7 @@ func withImportKeys(t matcher.Tunables) matcher.Tunables {
 
 // profileKeyAllowlist names every top-level and import: key the three
 // committed profiles (corpus/profiles/*.yaml) use today, each with
-// either its Tunables field or the reason it has none (fold, B4's
-// second adaptation): dropping the unknown-key rule with the YAML
+// either its Tunables field or the reason it has none. Dropping the unknown-key rule with the YAML
 // parse would let a future match: key land in a profile without ever
 // reaching the translation, which is the silent-stop the rule existed
 // to catch.
@@ -308,7 +261,7 @@ func checkProfileKeyDrift(root string, profiles []string) error {
 // path followed by "?", since the query string carries fmt and inc
 // parameters the lookup itself does not vary by.
 func findReleaseRequest(c *cassette.Case, mbid string) (*cassette.Request, error) {
-	prefix := releaseLookupPrefix + mbid
+	prefix := cassette.ReleaseLookupPrefix + mbid
 	for i := range c.Requests {
 		req := &c.Requests[i]
 		if req.PathQuery == prefix || strings.HasPrefix(req.PathQuery, prefix+"?") {
@@ -320,7 +273,7 @@ func findReleaseRequest(c *cassette.Case, mbid string) (*cassette.Request, error
 
 // loadRelease decodes the committed response body a release-lookup
 // request for mbid names within c, read from caseDir. No stub, no
-// client, no network: the stub is 3c's business, and reading a
+// client, no network: the stub belongs to request grading, and reading a
 // committed response file from the harness is exactly the permitted
 // direction.
 func loadRelease(caseDir string, c *cassette.Case, mbid string) (*musicbrainz.Release, error) {
@@ -434,7 +387,7 @@ func checkNoReleaseReachesBrowseThreshold(root string, threshold int) error {
 			continue
 		}
 		for _, req := range c.Requests {
-			if !strings.HasPrefix(req.PathQuery, releaseLookupPrefix) {
+			if !strings.HasPrefix(req.PathQuery, cassette.ReleaseLookupPrefix) {
 				continue
 			}
 			data, err := os.ReadFile(filepath.Join(dir, req.Response))

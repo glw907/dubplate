@@ -19,7 +19,7 @@ const ComponentRowFloor = 72
 // are reached through in real matching, and the one derived view
 // (generic_penalty_keys) whose zero-penalty exclusion beets tests on its
 // own. A table naming a method outside this list is rejected too: the
-// list is what a rung 3 reader can rely on being able to consume.
+// list is what a matcher conformance reader can rely on being able to consume.
 var componentMethods = []string{
 	"add",
 	"add_data_source",
@@ -38,9 +38,9 @@ var componentMethods = []string{
 // derivation table internal/harness/oracle's derive_component.py emits
 // by calling pinned beets' distance primitives on literal arguments.
 //
-// Its consumer is rung 3, the Go matcher, which will compare its own
-// primitives against these observed outputs. Nothing at rung 2 can do
-// that: there is no Go matcher yet, so the checks in this file are
+// Its consumer is the Go matcher's conformance replay, which compares
+// the matcher's own primitives against these observed outputs. The
+// checks in this file never run the matcher: they are
 // schema, coverage, and non-emptiness only. They are not a conformance
 // check and must not be read as one.
 type ComponentTable struct {
@@ -51,7 +51,7 @@ type ComponentTable struct {
 
 // ComponentRow is one derived call. Args and Output stay raw: their
 // shape is per method (a call sequence and a penalty list for an adder,
-// two strings and a float for string_dist), and rung 3 is what gives
+// two strings and a float for string_dist), and the Go matcher's replay is what gives
 // them their Go types.
 type ComponentRow struct {
 	ID     string          `json:"id"`

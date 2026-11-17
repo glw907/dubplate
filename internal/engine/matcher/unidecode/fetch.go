@@ -2,8 +2,6 @@ package unidecode
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -45,10 +43,8 @@ func ReadWheel(r io.Reader) ([]byte, error) {
 	if len(wheel) > maxWheelSize {
 		return nil, errWheelTooLarge
 	}
-	sum := sha256.Sum256(wheel)
-	got := hex.EncodeToString(sum[:])
-	if got != WheelSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", errWheelChecksum, got, WheelSHA256)
+	if err := checkWheel(wheel); err != nil {
+		return nil, err
 	}
 	return wheel, nil
 }

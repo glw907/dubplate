@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -33,9 +34,9 @@ func goldenTagSet() TagSet {
 		OriginalYear:        new(1999),
 		OriginalMonth:       new(3),
 		OriginalDay:         new(4),
-		Arrangers:           EmptyList(),
-		Catalognum:          EmptyString(),
-		Barcode:             EmptyString(),
+		Arrangers:           []string{},
+		Catalognum:          new(""),
+		Barcode:             new(""),
 		AcoustIDFingerprint: new("invented-fingerprint-value"),
 		AcoustIDID:          new("11111111-2222-3333-4444-555555555555"),
 		Comments:            new("Invented comment text."),
@@ -169,8 +170,7 @@ func TestWriteGoldenBytes(t *testing.T) {
 }
 
 // TestWriteCommentSet asserts the emitted comment set key by key
-// against golden.txt's recorded sequence (INV:409-427 is the shape
-// that record covers, not the expectation itself), including the
+// against golden.txt's recorded sequence, including the
 // absence of a key for an absent value and the absence of ALBUM
 // ARTISTS, a read-only style, anywhere in the output.
 func TestWriteCommentSet(t *testing.T) {
@@ -323,11 +323,11 @@ func TestWriteReplacesLowercaseTitleCaseInsensitively(t *testing.T) {
 	}
 }
 
-// TestWriteCollidingPairLeavesPluralComments is INV:306-308's own
-// measurement: writing both members of each colliding pair in one
-// call leaves the plural's comments. All three colliding pairs are
-// covered here at the surviving-comments level that Write owns;
-// tagset_test.go covers WriteOrder only.
+// TestWriteCollidingPairLeavesPluralComments grades that writing both
+// members of each colliding pair in one call leaves the plural's
+// comments. All three colliding pairs are covered here at the
+// surviving-comments level that Write owns; tagset_test.go covers
+// Serialize's order only.
 func TestWriteCollidingPairLeavesPluralComments(t *testing.T) {
 	tests := []struct {
 		name string
@@ -562,27 +562,31 @@ func TestWriteNoCommentBlockInsertsAfterStreamInfo(t *testing.T) {
 	}
 }
 
-// TestCheckBlockPayloadSize grades emitBlock's length guard against
-// its boundary directly, on the length alone, so the test never
-// allocates a maxBlockPayload-sized slice to exercise it.
-func TestCheckBlockPayloadSize(t *testing.T) {
+// TestEmitBlockPayloadBound grades emitBlock's length guard at its
+// boundary: a block header's three-byte length field holds at most
+// 16 MiB minus one, so a payload of exactly 16 MiB is refused. The
+// bound is the literal 1<<24, not maxBlockPayload, so the test fails if
+// the constant drifts.
+func TestEmitBlockPayloadBound(t *testing.T) {
+	const bound = 1 << 24
+	buf := make([]byte, bound+1)
 	tests := []struct {
 		name    string
 		length  int
 		wantErr bool
 	}{
-		{"one byte under the bound", maxBlockPayload - 1, false},
-		{"exactly at the bound", maxBlockPayload, true},
-		{"one byte over the bound", maxBlockPayload + 1, true},
+		{"one byte under the bound", bound - 1, false},
+		{"exactly at the bound", bound, true},
+		{"one byte over the bound", bound + 1, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := checkBlockPayloadSize(tt.length)
+			err := emitBlock(io.Discard, blockPadding, true, buf[:tt.length])
 			if tt.wantErr && !errors.Is(err, ErrMalformedContainer) {
-				t.Errorf("checkBlockPayloadSize(%d) = %v, want errors.Is(err, ErrMalformedContainer)", tt.length, err)
+				t.Errorf("emitBlock of %d bytes = %v, want errors.Is(err, ErrMalformedContainer)", tt.length, err)
 			}
 			if !tt.wantErr && err != nil {
-				t.Errorf("checkBlockPayloadSize(%d) = %v, want nil", tt.length, err)
+				t.Errorf("emitBlock of %d bytes = %v, want nil", tt.length, err)
 			}
 		})
 	}
@@ -919,6 +923,37 @@ func TestWriteRefusalLeavesFileUnchanged(t *testing.T) {
 			}
 			if !bytes.Equal(got, data) {
 				t.Errorf("target file changed on disk after a refused write")
+			}
+		})
+	}
+}
+
+// TestCopyFrameRegionRefusesAShortSource proves a region longer than the
+// file is an error rather than a silently truncated copy.
+func TestCopyFrameRegionRefusesAShortSource(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "short.bin")
+	if err := os.WriteFile(path, []byte("0123456789"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name           string
+		offset, length int64
+		wantErr        bool
+		want           string
+	}{
+		{"region inside the file", 2, 5, false, "23456"},
+		{"region ends at the file end", 4, 6, false, "456789"},
+		{"region runs past the file end", 4, 7, true, ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var out bytes.Buffer
+			err := copyFrameRegion(&out, path, tc.offset, tc.length)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("copyFrameRegion error = %v, want error %v", err, tc.wantErr)
+			}
+			if !tc.wantErr && out.String() != tc.want {
+				t.Errorf("copied %q, want %q", out.String(), tc.want)
 			}
 		})
 	}

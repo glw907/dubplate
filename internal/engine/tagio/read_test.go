@@ -280,9 +280,9 @@ func TestProjectLists(t *testing.T) {
 	})
 }
 
-// TestProjectAbsentKeys grades the read half of C2's four-state rule
-// in one equality: safe_cast of an absent value is absent for every
-// type (INV:253-260), so a container with no comments at all projects
+// TestProjectAbsentKeys grades the read half of the four-state rule in
+// one equality: safe_cast of an absent value is absent for every type,
+// so a container with no comments at all projects
 // to the zero TagSet rather than to 69 typed zeros. The empty list
 // has no separate case here because it cannot have one: a list field
 // with no values writes no comment, so an empty list and an absent
@@ -343,6 +343,98 @@ func TestReadReturnsParseSentinels(t *testing.T) {
 			}
 			if !reflect.DeepEqual(ts, TagSet{}) {
 				t.Errorf("refused read returned %s, want the zero TagSet", diffFields(ts, TagSet{}))
+			}
+		})
+	}
+}
+
+// TestSafeCastInt grades safe_cast's leading-numeric-prefix rule and
+// its zero fallback (mediafile/utils/type_conversion.py:4-60).
+func TestSafeCastInt(t *testing.T) {
+	cases := []struct {
+		in   string
+		want int
+	}{
+		{"7", 7},
+		{"-3", -3},
+		{"+12", 12},
+		{"5 dB", 5},
+		{"abc", 0},
+		{"", 0},
+	}
+	for _, c := range cases {
+		if got := safeCastInt(c.in); got != c.want {
+			t.Errorf("safeCastInt(%q) = %d, want %d", c.in, got, c.want)
+		}
+	}
+}
+
+// TestSafeCastFloat grades the float path of the same rule, including
+// the suffix strip: "-7.50 dB" casts to -7.5 because the prefix match
+// stops at the space either way (mediafile/utils/type_conversion.py:52).
+func TestSafeCastFloat(t *testing.T) {
+	cases := []struct {
+		in   string
+		want float64
+	}{
+		{"0.987654", 0.987654},
+		{"-7.50 dB", -7.5},
+		{"3", 3},
+		{"nope", 0},
+		{"", 0},
+	}
+	for _, c := range cases {
+		if got := safeCastFloat(c.in); got != c.want {
+			t.Errorf("safeCastFloat(%q) = %v, want %v", c.in, got, c.want)
+		}
+	}
+}
+
+// TestSafeCastBool grades bool(int(val)) with a parse failure falling
+// to false, the whole-string int() rather than a leading prefix.
+func TestSafeCastBool(t *testing.T) {
+	cases := []struct {
+		in   string
+		want bool
+	}{
+		{"1", true},
+		{"0", false},
+		{"2", true},
+		{"1x", false},
+		{"", false},
+	}
+	for _, c := range cases {
+		if got := safeCastBool(c.in); got != c.want {
+			t.Errorf("safeCastBool(%q) = %v, want %v", c.in, got, c.want)
+		}
+	}
+}
+
+// TestReplaceInvalidUTF8 grades the read-side repair: invalid UTF-8 is
+// replaced with U+FFFD on read, matching mutagen's errors='replace'
+// (mutagen/_vorbis.py:109), which follows Python's utf-8 "maximal
+// subpart" rule rather than a per-byte scan: an ill-formed sequence
+// collapses its longest well-formed prefix into a single U+FFFD, not
+// one U+FFFD per invalid byte. Every want string is a hard-coded
+// literal, never computed from replaceInvalidUTF8, strings.ToValidUTF8
+// or utf8.DecodeRuneInString (whose own invalid-encoding size is
+// always 1, not the maximal-subpart length).
+func TestReplaceInvalidUTF8(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"lone continuation byte between valid runs", "before\x80after", "before�after"},
+		{"truncated three-byte sequence", "\xe2\x82", "�"},
+		{"truncated four-byte sequence", "\xf0\x9f\x92", "�"},
+		{"two lone continuation bytes", "\x80\x80", "��"},
+		{"valid lead byte, invalid continuation", "\xc3(", "�("},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := replaceInvalidUTF8(c.in); got != c.want {
+				t.Errorf("replaceInvalidUTF8(%q) = %q, want %q", c.in, got, c.want)
 			}
 		})
 	}

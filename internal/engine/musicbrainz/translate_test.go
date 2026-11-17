@@ -2,7 +2,6 @@ package musicbrainz
 
 import (
 	"errors"
-	"strconv"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
@@ -10,9 +9,7 @@ import (
 
 func plainTrack(id string, position int, title string) Track {
 	return Track{
-		ID:       id,
 		Position: wireInt(position),
-		Number:   strconv.Itoa(position),
 		Title:    title,
 		Recording: Recording{
 			ID:           "rec-" + id,
@@ -76,7 +73,7 @@ func TestTranslateAlbum_PlainSingleMediumRelease(t *testing.T) {
 }
 
 // TestTranslateAlbum_MediumsCountsUnfilteredWhileTracksAreFiltered
-// proves T3's measured pair inside the full composition: a two-medium
+// proves the measured Mediums and Tracks pair inside the full composition: a two-medium
 // release reports Mediums=2 even when IgnoredMedia drops one medium's
 // tracks entirely.
 func TestTranslateAlbum_MediumsCountsUnfilteredWhileTracksAreFiltered(t *testing.T) {
@@ -138,8 +135,8 @@ func TestTranslateAlbum_VariousArtistsOverwritesArtistFields(t *testing.T) {
 // TestTranslateAlbum_NoEventsNoDateFallsBackToOriginalDate proves the
 // original-date fallback: a release with no release-events and no
 // top-level date takes its Year from the release-group's original
-// date instead. Named mutation 6, moving the release-event assignment
-// before the release-group parse, fails this test by leaving Year at
+// date instead. Moving the release-event assignment before the
+// release-group parse fails this test by leaving Year at
 // zero rather than the original year.
 func TestTranslateAlbum_NoEventsNoDateFallsBackToOriginalDate(t *testing.T) {
 	rel := &Release{
@@ -170,7 +167,7 @@ func TestTranslateAlbum_NoEventsNoDateFallsBackToOriginalDate(t *testing.T) {
 }
 
 // TestTranslateAlbum_LabelAndCatalogNumAreGuardedDifferently proves the
-// asymmetry fold m20 names: CatalogNum reads unconditionally even when
+// label asymmetry: CatalogNum reads unconditionally even when
 // the label object is the "[no label]" sentinel, while Label is empty
 // exactly then.
 func TestTranslateAlbum_LabelAndCatalogNumAreGuardedDifferently(t *testing.T) {
@@ -202,7 +199,7 @@ func TestTranslateAlbum_LabelAndCatalogNumAreGuardedDifferently(t *testing.T) {
 }
 
 // TestTranslateAlbum_MalformedReleaseWrapsSentinel proves TranslateAlbum
-// runs Validate first and returns ErrMalformedRelease rather than
+// runs validate first and returns ErrMalformedRelease rather than
 // panicking on a release whose artist-credit is empty.
 func TestTranslateAlbum_MalformedReleaseWrapsSentinel(t *testing.T) {
 	rel := &Release{ID: "rel-bad", Title: "Bad Album"}
@@ -262,6 +259,101 @@ func assertAlbumInfoEqual(t *testing.T, got, want *matcher.AlbumInfo) {
 	for i := range got.Tracks {
 		if got.Tracks[i] != want.Tracks[i] {
 			t.Errorf("Tracks[%d] = %+v, want %+v", i, got.Tracks[i], want.Tracks[i])
+		}
+	}
+}
+
+// TestPreferredReleaseEvent_MeasuredTable reproduces the measured
+// preferred-country table exactly: configured-country membership is
+// exact and case-sensitive, and configured order wins over response
+// order. Compiling Countries through matcher.CompilePatternOption fails
+// the "gb" row, because a case-insensitive regex would match "GB".
+// Transposing the two loops fails the ["US","GB"] row, because the
+// inner-outermost order would return the first event's country ("GB")
+// rather than the first configured one ("US").
+func TestPreferredReleaseEvent_MeasuredTable(t *testing.T) {
+	rel := loadTestdata[Release](t, "preferred_country_events.json")
+
+	tests := []struct {
+		name        string
+		countries   []string
+		wantCountry string
+		wantDate    string
+	}{
+		{"GB matches its own event", []string{"GB"}, "GB", "1999-01-02"},
+		{"lowercase gb falls back", []string{"gb"}, "XW", "1980-05-06"},
+		{"configured order wins", []string{"US", "GB"}, "US", "2001-03-04"},
+	}
+	for _, tt := range tests {
+		tun := matcher.DefaultTunables()
+		tun.Preferred.Countries = tt.countries
+		gotCountry, gotDate := preferredReleaseEvent(&rel, tun)
+		if gotCountry != tt.wantCountry || gotDate != tt.wantDate {
+			t.Errorf("%s: preferredReleaseEvent(%v) = (%q, %q), want (%q, %q)",
+				tt.name, tt.countries, gotCountry, gotDate, tt.wantCountry, tt.wantDate)
+		}
+	}
+}
+
+// TestPreferredReleaseEvent_NullAreaIsSkipped proves a release event
+// whose area is null is skipped rather than panicking or matching, and
+// that a later event in the same list is still reachable.
+func TestPreferredReleaseEvent_NullAreaIsSkipped(t *testing.T) {
+	rel := loadTestdata[Release](t, "preferred_country_null_area.json")
+	tun := matcher.DefaultTunables()
+	tun.Preferred.Countries = []string{"GB"}
+
+	gotCountry, gotDate := preferredReleaseEvent(&rel, tun)
+	if gotCountry != "GB" || gotDate != "1999-01-02" {
+		t.Errorf("preferredReleaseEvent = (%q, %q), want (\"GB\", \"1999-01-02\")", gotCountry, gotDate)
+	}
+}
+
+// TestPreferredReleaseEvent_ReturnsConfiguredStringNotAreaCode proves
+// the returned country is the CONFIGURED string, not the area's own
+// code, when the two differ in spelling. Returning
+// event.Area.ISO31661Codes[0] instead of the configured value fails
+// this test, because the fixture's matching area lists "GB" before the
+// configured "XW".
+func TestPreferredReleaseEvent_ReturnsConfiguredStringNotAreaCode(t *testing.T) {
+	rel := loadTestdata[Release](t, "preferred_country_multi_area.json")
+	tun := matcher.DefaultTunables()
+	tun.Preferred.Countries = []string{"XW"}
+
+	gotCountry, gotDate := preferredReleaseEvent(&rel, tun)
+	if gotCountry != "XW" || gotDate != "1999-01-02" {
+		t.Errorf("preferredReleaseEvent = (%q, %q), want (\"XW\", \"1999-01-02\")", gotCountry, gotDate)
+	}
+}
+
+// TestPreferredReleaseEvent_NoEventsNoCountryYieldsEmpty proves a
+// release with neither release-events nor a top-level country and date
+// yields ("", ""), the zero-value mapping of beets' (None, None).
+func TestPreferredReleaseEvent_NoEventsNoCountryYieldsEmpty(t *testing.T) {
+	rel := loadTestdata[Release](t, "no_release_events_no_country.json")
+	gotCountry, gotDate := preferredReleaseEvent(&rel, matcher.DefaultTunables())
+	if gotCountry != "" || gotDate != "" {
+		t.Errorf("preferredReleaseEvent = (%q, %q), want (\"\", \"\")", gotCountry, gotDate)
+	}
+}
+
+// TestParseYear_MeasuredTable reproduces the measured six-row date table
+// for the year alone: the month and day parts never change it.
+func TestParseYear_MeasuredTable(t *testing.T) {
+	tests := []struct {
+		in   string
+		want int
+	}{
+		{"", 0},
+		{"1999", 1999},
+		{"1999-05", 1999},
+		{"1999-XX-06", 1999},
+		{"199x", 0},
+		{"1999-05-06-07", 1999},
+	}
+	for _, tt := range tests {
+		if got := parseYear(tt.in); got != tt.want {
+			t.Errorf("parseYear(%q) = %d, want %d", tt.in, got, tt.want)
 		}
 	}
 }

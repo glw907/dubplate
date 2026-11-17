@@ -17,10 +17,10 @@ func titlesOf(tracks []builtTrack) []string {
 }
 
 func simpleCreditPart(id, name string) CreditPart {
-	return CreditPart{Name: name, Artist: Artist{ID: id, Name: name}}
+	return CreditPart{Artist: Artist{ID: id, Name: name}}
 }
 
-// TestTracksFromMedium_PregapSurvivesUnconditionally proves T5's
+// TestTracksFromMedium_PregapSurvivesUnconditionally proves the
 // assembly order: the pregap has no config gate at all, unlike the data
 // tracks it sits beside. Mutation: moving the pregap behind
 // IgnoreDataTracks makes the true row lose "Pregap".
@@ -37,7 +37,7 @@ func TestTracksFromMedium_PregapSurvivesUnconditionally(t *testing.T) {
 	}
 }
 
-// TestTracksFromMedium_DataTrackTruthTable reproduces T5's measured
+// TestTracksFromMedium_DataTrackTruthTable reproduces the measured
 // four-row table over a medium carrying a pregap, one audio track, one
 // video track, one data track, and one "[data track]"-titled entry: the
 // filtered title never survives any combination, and IgnoreDataTracks
@@ -81,8 +81,8 @@ func TestTracksFromMedium_BracketTitleFilteredInsideTracks(t *testing.T) {
 	}
 }
 
-// TestTracksFromMedium_LengthFallbackIsTruthiness proves T6's fallback
-// tests truthiness, not nil-ness: a track length of 0 falls back to the
+// TestTracksFromMedium_LengthFallbackIsTruthiness proves the length
+// fallback tests truthiness, not nil-ness: a track length of 0 falls back to the
 // recording length exactly as a null length does. Mutation: comparing
 // tr.Length != nil instead of *tr.Length != 0 makes the "zero" row keep
 // 0 instead of falling back to 90.0.
@@ -105,9 +105,7 @@ func TestTracksFromMedium_LengthFallbackIsTruthiness(t *testing.T) {
 			Position: 1,
 			Format:   new("CD"),
 			Tracks: []Track{{
-				ID:       "trk-1",
 				Position: 1,
-				Number:   "1",
 				Title:    "A",
 				Length:   tt.trackLength,
 				Recording: Recording{
@@ -137,7 +135,7 @@ func TestTracksFromMedium_LengthConvertsMillisecondsToSeconds(t *testing.T) {
 		Position: 1,
 		Format:   new("CD"),
 		Tracks: []Track{{
-			ID: "trk-1", Position: 1, Number: "1", Title: "A",
+			Position: 1, Title: "A",
 			Recording: Recording{
 				ID: "rec-1", Title: "A", Length: &lengthMS,
 				ArtistCredit: []CreditPart{simpleCreditPart("art-1", "Artist")},
@@ -171,7 +169,7 @@ func TestTracksFromMedium_ArtistCreditFallbackIsTruthiness(t *testing.T) {
 			Position: 1,
 			Format:   new("CD"),
 			Tracks: []Track{{
-				ID: "trk-1", Position: 1, Number: "1", Title: "A",
+				Position: 1, Title: "A",
 				ArtistCredit: tt.trackCredit,
 				Recording: Recording{
 					ID: "rec-1", Title: "A",
@@ -190,7 +188,7 @@ func TestTracksFromMedium_ArtistCreditFallbackIsTruthiness(t *testing.T) {
 }
 
 // TestTracksFromMedium_TitleOverrideGuardedByPreferredAlias reproduces
-// T6's measured precedence table: the track title only overrides the
+// the measured precedence table: the track title only overrides the
 // recording title when preferredAlias finds nothing on the recording's
 // aliases, and the final title always passes back through
 // keyWithPreferredAlias, which is why an alias wins even when
@@ -217,7 +215,7 @@ func TestTracksFromMedium_TitleOverrideGuardedByPreferredAlias(t *testing.T) {
 			Position: 1,
 			Format:   new("CD"),
 			Tracks: []Track{{
-				ID: "trk-1", Position: 1, Number: "1", Title: tt.trackTitle,
+				Position: 1, Title: tt.trackTitle,
 				Recording: Recording{
 					ID: "rec-1", Title: "RecordingTitle", Aliases: tt.aliases,
 					ArtistCredit: []CreditPart{simpleCreditPart("art-1", "Artist")},
@@ -239,7 +237,7 @@ func TestTracksFromMedium_TitleOverrideGuardedByPreferredAlias(t *testing.T) {
 // TestExtractTracks_MediumIndexDecodesBothWireSpellings proves the
 // two-shape position decode carries all the way through to
 // MediumIndex: a JSON string position and a JSON number position must
-// both decode to the same int (fold, B3).
+// both decode to the same int.
 func TestExtractTracks_MediumIndexDecodesBothWireSpellings(t *testing.T) {
 	raw := []byte(`{
 		"media": [{
@@ -281,15 +279,15 @@ func TestExtractTracks_IndexAssignedAcrossAllMedia(t *testing.T) {
 		{
 			Position: 1, Format: new("CD"),
 			Tracks: []Track{
-				{ID: "t1", Position: 1, Number: "1", Title: "A", Recording: Recording{ID: "r1", Title: "A", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
-				{ID: "t2", Position: 2, Number: "2", Title: "B", Recording: Recording{ID: "r2", Title: "B", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
+				{Position: 1, Title: "A", Recording: Recording{ID: "r1", Title: "A", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
+				{Position: 2, Title: "B", Recording: Recording{ID: "r2", Title: "B", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
 			},
 		},
 		{
 			Position: 2, Format: new("CD"),
 			Tracks: []Track{
-				{ID: "t3", Position: 1, Number: "1", Title: "C", Recording: Recording{ID: "r3", Title: "C", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
-				{ID: "t4", Position: 2, Number: "2", Title: "D", Recording: Recording{ID: "r4", Title: "D", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
+				{Position: 1, Title: "C", Recording: Recording{ID: "r3", Title: "C", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
+				{Position: 2, Title: "D", Recording: Recording{ID: "r4", Title: "D", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}},
 			},
 		},
 	}}
@@ -311,7 +309,7 @@ func TestExtractTracks_IndexAssignedAcrossAllMedia(t *testing.T) {
 func TestExtractTracks_IgnoredMediaIsCaseSensitive(t *testing.T) {
 	rel := Release{Media: []Medium{{
 		Position: 1, Format: new("CD"),
-		Tracks: []Track{{ID: "t1", Position: 1, Number: "1", Title: "A", Recording: Recording{ID: "r1", Title: "A", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}}},
+		Tracks: []Track{{Position: 1, Title: "A", Recording: Recording{ID: "r1", Title: "A", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}}},
 	}}}
 	tun := matcher.DefaultTunables()
 	tun.IgnoredMedia = []string{"cd"}
@@ -327,7 +325,7 @@ func TestExtractTracks_IgnoredMediaIsCaseSensitive(t *testing.T) {
 func TestExtractTracks_NullFormatMediumNeverIgnored(t *testing.T) {
 	rel := Release{Media: []Medium{{
 		Position: 1, Format: nil,
-		Tracks: []Track{{ID: "t1", Position: 1, Number: "1", Title: "A", Recording: Recording{ID: "r1", Title: "A", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}}},
+		Tracks: []Track{{Position: 1, Title: "A", Recording: Recording{ID: "r1", Title: "A", ArtistCredit: []CreditPart{simpleCreditPart("a1", "Artist")}}}},
 	}}}
 	tun := matcher.DefaultTunables()
 	tun.IgnoredMedia = []string{"CD", ""}
@@ -371,11 +369,10 @@ func TestDeriveMedia_MixedFormatsIsSentinel(t *testing.T) {
 	}
 }
 
-// TestDeriveMedia_SingleNullFormatIsNotSentinel proves the non-route
-// revision 1 had backwards (fold, B5): a single medium whose format is
-// null is the ONE distinct value in the set, so deriveMedia returns
-// "", the falsy R1 zero-value mapping of beets' None, and declines the
-// media penalty.
+// TestDeriveMedia_SingleNullFormatIsNotSentinel proves the non-route: a
+// single medium whose format is null is the ONE distinct value in the
+// set, so deriveMedia returns "", the falsy zero-value mapping of beets'
+// None, and declines the media penalty.
 func TestDeriveMedia_SingleNullFormatIsNotSentinel(t *testing.T) {
 	tracks := loadSentinelTracks(t, "sentinel_null_format.json", matcher.DefaultTunables())
 	if len(tracks) != 1 {

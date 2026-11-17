@@ -15,16 +15,15 @@ import (
 // newSeedItemsCmd builds the seed-items subcommand: it reads a staged
 // case's primary captured response and writes a correct baseline
 // Input.Items into case.json, the sanctioned way to author a
-// real-catalog case's items (corpus/README.md, "The seed-items tool";
-// B1 in the rung 2c plan review). --overrides applies the same
+// real-catalog case's items (corpus/README.md, "The seed-items tool").
+// --overrides applies the same
 // field/missing/extra vocabulary `harness synth` already carries, for
 // the mistagged and partial-rip axes. --facts switches to a read-only
 // mode: it prints the case's structural facts (release date,
 // release-group first-release-date, disc/track counts, status,
 // documented aliases) to stdout and writes nothing, the sanctioned
-// confirmation channel for Task 3's fact-verified axes
-// (corpus/README.md, "The seed-items tool"; the plan's Global
-// Constraints).
+// confirmation channel for the fact-verified axes
+// (corpus/README.md, "The seed-items tool").
 func newSeedItemsCmd() *cobra.Command {
 	var caseDir, overridesPath string
 	var facts bool

@@ -21,23 +21,17 @@ import (
 )
 
 // Floors for the whole-corpus sweep, measured off the tree at
-// 2026-09-25. They are floors rather than exact counts because lane E1
-// adds cases: a shrink means a case, a candidate or a comparison went
+// 2026-09-25. They are floors rather than exact counts because the corpus
+// keeps gaining cases: a shrink means a case, a candidate or a comparison went
 // missing, which is the failure worth catching, while growth is the
 // corpus doing its job.
 //
 // AssignmentFloor is the 215 candidate-bearing cases, and it is never
-// compared bare: ruling F's escalation moves the two pinned cases into
-// TiesAwaitingRuling and an owner ruling can move a case into ties
-// excluded, both of which legally shrink the population. The sweep is
-// compared against AssignmentFloor - len(TiesAwaitingRuling) -
-// TiesExcluded. Comparing bare would red the gate on the one path
-// ruling F pre-authorizes.
-//
-// CaseFloor is RequestCaseFloor (request.go:28), the same count of the
-// same directories, so it is defined from it rather than re-typed.
+// compared bare: an owner ruling can move a case into ties excluded,
+// which legally shrinks the population. The sweep is compared against
+// AssignmentFloor - TiesExcluded.
 const (
-	CaseFloor        = RequestCaseFloor
+	CaseFloor        = 216
 	CandidateFloor   = 295
 	DistanceFloor    = 295
 	AssignmentFloor  = 215
@@ -54,7 +48,7 @@ const DefectFreeFloor = 4
 // hypotheses in corpus/analysis/oracle_bugs.json not ruled
 // oracle-correct: bug-remix-parenthetical (4),
 // bug-nonlatin-alias-selection (4), and bug-assignment-rejection-gap
-// (6, no-correct-answer, owner ruling 2026-09-07). The other two
+// (6, ruled no-correct-answer). The other two
 // hypotheses carry probe cases too but are excluded here because they
 // are ruled oracle-correct: bug-threshold-boundary's
 // rec-strong-medium-boundary, and bug-locale-alias-ignored's
@@ -67,42 +61,24 @@ const ProbeCaseFloor = 14
 // population: real-nonlatin-alla-pugacheva-vol1 and
 // real-nonlatin-x-japan-art-of-life, both probes of
 // bug-nonlatin-alias-selection. Naming it keeps the accounting
-// assertion readable and makes it obvious what goes stale the day Geoff
-// rules another row; the assertion recomputes the figure from the
+// assertion readable and makes it obvious what goes stale the day the
+// owner rules another row; the assertion recomputes the figure from the
 // ledgers and compares against this constant, so a movement fails
-// loudly rather than being absorbed (fold m17).
+// loudly rather than being absorbed.
 const ProbeCaseOracleCorrectRows = 2
 
 // TiesExcludedCeiling is the number of ties.json rows dispositioned
 // excluded today. It is a ceiling rather than a floor: excluding a case
 // stops grading it, disposition is owner-only, and "the excluded count
 // is reported at every run and may not grow without an owner ruling"
-// (rung 3 spec, :292). Growth is a hard failure, never a pending row.
+// Growth is a hard failure, never a pending row.
 const TiesExcludedCeiling = 0
 
 // nearMissTolerance is the relative agreement a distance comparison
 // admits before it is a disagreement. A match inside it that is not
 // bit-identical is a reported NearMiss, so the port's remaining
-// arithmetic drift stays visible (rung 3 spec, :141).
+// arithmetic drift stays visible.
 const nearMissTolerance = 1e-12
-
-// tieMirroringFinding is the escalation document ruling F requires
-// before a tie row may go ungraded, relative to the repo root.
-const tieMirroringFinding = "docs/research/2026-09-05-rung-3d-tie-mirroring-finding.md"
-
-// tiesAwaitingRuling names the pinned ties.json cases whose assignment
-// this engine does not reproduce, and which therefore grade as pending
-// rather than as passing until Geoff rules their disposition (rung 3
-// spec, ruling F).
-//
-// It is EMPTY, and that is a measurement rather than a placeholder: the
-// tie-mirroring attempt reproduced lap 0.5.13's choice among equal
-// optima on both pinned cases, so no ruling is owed and no finding
-// document exists. The mechanism stays because the ruling can be
-// reopened by any future lap or corpus movement, and
-// checkTiesAwaitingRuling is what keeps a non-empty list from being a
-// silent escape.
-var tiesAwaitingRuling []string
 
 // A NearMiss is a comparison that matched within nearMissTolerance
 // relative without being bit-identical.
@@ -116,26 +92,25 @@ type NearMiss struct {
 // CaseGradeSummary reports what one sweep actually compared, never what
 // it visited.
 type CaseGradeSummary struct {
-	Mode               GradeMode
-	Cases              int
-	Candidates         int
-	Distances          int
-	TrackVectors       int
-	Assignments        int
-	Verdicts           int
-	TiesExcluded       int
-	TiesAwaitingRuling []string // ruling F is owed on these; graded as pending, never as passing
-	Pending            []string // case ids whose adjudication row leaves the verdict ungraded
-	Ungraded           []string // cases with no gradable corrected verdict: an oracle-wrong class with no expressible rung-3 fix, or a no-correct-answer disposition
-	NearMisses         []NearMiss
-	VerdictMoves       []string // ModeDefault only
+	Mode         GradeMode
+	Cases        int
+	Candidates   int
+	Distances    int
+	TrackVectors int
+	Assignments  int
+	Verdicts     int
+	TiesExcluded int
+	Pending      []string // case ids whose adjudication row leaves the verdict ungraded
+	Ungraded     []string // cases with no gradable corrected verdict: an oracle-wrong class with no expressible fix in the Go matcher, or a no-correct-answer disposition
+	NearMisses   []NearMiss
+	VerdictMoves []string // ModeDefault only
 }
 
-// GradeMode selects which of ruling A's two runs a sweep is.
+// GradeMode selects which of the two runs a sweep is.
 //
 // Two runs rather than one, and the reason is arithmetic. Both
-// string-heuristic hypotheses are ruled oracle-wrong, so ruling A
-// defaults both compat switches OFF, and a default-mode run scores every
+// string-heuristic hypotheses are ruled oracle-wrong, so both compat
+// switches default OFF, and a default-mode run scores every
 // case against a non-beets pattern table and diverges from every
 // committed distance. One run cannot be both bit-identical against the
 // committed records and correct against the adjudicated verdicts.
@@ -156,10 +131,7 @@ type CaseGradeSummary struct {
 // ModeCompat's alone. Re-scoring reproduces the four committed figures
 // exactly, because the ladder's medium rung is decided by the minimum
 // distance alone (match.py:288-290) and a candidate set a search would
-// have widened cannot move a medium verdict off medium. Revision 2,
-// fold B2; the ruling is recorded at the rung 4 spec's conductor fold
-// and at 3d's HISTORY entry, and rung 4's second scoring mode tracks
-// this design.
+// have widened cannot move a medium verdict off medium.
 type GradeMode int
 
 const (
@@ -177,11 +149,10 @@ const (
 //
 // It grades the request SET as well as the record: each case runs
 // against a stub built from its own log, and a run leaving a non-empty
-// Misses or a non-empty Unused fails naming both. 3c graded request
-// construction and handed the set here, and the set is a function of
-// the ID-match early return, _recommendation and _add_candidate, which
-// this pass owns. The rule does not reach ModeDefault, where a
-// corrected verdict legally changes the flow.
+// Misses or a non-empty Unused fails naming both. The set is a
+// function of the ID-match early return, _recommendation and
+// _add_candidate, which this file grades. The rule does not reach
+// ModeDefault, where a corrected verdict legally changes the flow.
 func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 	led, err := loadLedgers(root)
 	if err != nil {
@@ -245,9 +216,6 @@ func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 		if res.excluded {
 			summary.TiesExcluded++
 		}
-		if res.awaitingRuling {
-			summary.TiesAwaitingRuling = append(summary.TiesAwaitingRuling, res.caseID)
-		}
 	}
 
 	return summary, errors.Join(errs...)
@@ -289,22 +257,21 @@ func loadLedgers(root string) (ledgers, error) {
 // silently skipped case show up as a floor shortfall rather than as a
 // clean run over fewer cases.
 type caseGradeResult struct {
-	caseID         string
-	graded         bool
-	candidates     int
-	distances      int
-	trackVectors   int
-	assignments    int
-	excluded       bool
-	pending        bool
-	awaitingRuling bool
-	nearMisses     []NearMiss
+	caseID       string
+	graded       bool
+	candidates   int
+	distances    int
+	trackVectors int
+	assignments  int
+	excluded     bool
+	pending      bool
+	nearMisses   []NearMiss
 
 	// verdicts, ungraded, ungradedReason and verdictMoved are the tier-2
-	// contribution both modes report (Task 8): 1 when this case's
+	// contribution both modes report: 1 when this case's
 	// recommendation and action were graded and agreed, ungraded when
-	// it is a probe case with no expressible rung-3 corrected
-	// expectation (Resolution R1), and verdictMoved when ModeDefault's
+	// it is a probe case with no expressible corrected
+	// expectation in the Go matcher, and verdictMoved when ModeDefault's
 	// re-scored verdict differs from the case's own committed (that is,
 	// ModeCompat) verdict.
 	verdicts       int
@@ -333,14 +300,16 @@ func caseInputs(c *cassette.Case) (time.Time, matcher.Tunables, []matcher.ItemFi
 	return evalDate, tun, items, nil
 }
 
-// gradeClient builds the client a sweep replays one case through: the
-// case's own stub as the base URL, and an unmetered budget, because a
-// replay spends no real MusicBrainz quota.
+// gradeUserAgent identifies the offline conformance client. The stub
+// never reads a request header, so the value only satisfies NewClient.
+const gradeUserAgent = "dubplate-conform/0 ( offline-conformance-run )"
+
+// gradeClient builds the client a sweep replays one case through, with
+// the case's own stub as the base URL.
 func gradeClient(addr string) (*musicbrainz.Client, error) {
 	return musicbrainz.NewClient(musicbrainz.ClientConfig{
 		BaseURL:   "http://" + addr,
 		UserAgent: gradeUserAgent,
-		Budget:    musicbrainz.Unmetered(),
 	})
 }
 
@@ -370,7 +339,6 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 	policy := policyFor(c.ID, led.ties, led.prox, led.adj, led.bugs)
 	res.excluded = policy.Excluded
 	res.pending = policy.Pending
-	res.awaitingRuling = slices.Contains(tiesAwaitingRuling, c.ID)
 
 	evalDate, tun, items, inputErr := caseInputs(c)
 	if inputErr != nil {
@@ -398,7 +366,7 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 	}
 
 	compat := compatFor(ModeCompat, policy)
-	prop, tagErr := tag.Album(ctx, client, items, tun, compat, evalDate, tag.Options{})
+	prop, tagErr := tag.Album(ctx, client, items, tun, compat, evalDate)
 	if tagErr != nil && !errors.Is(tagErr, tag.ErrNoCandidates) {
 		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, tagErr))
 		return res, nil
@@ -455,11 +423,11 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 // case's computed recommendation and action against its own committed
 // record, honoring the pending escape (a policy marked pending is never
 // compared at all) and refusing to absorb an unadjudicated divergence
-// silently (Resolution R15, rung 3 spec :311). It consults
+// silently. It consults
 // policy.Pending rather than policy.GradeVerdict: a no-correct-answer
 // hypothesis still has a committed record to compare against, and
 // compat measures fidelity to that recorded output regardless of
-// whether a corrected verdict exists (owner ruling 2026-09-07).
+// whether a corrected verdict exists.
 // GradeVerdict itself is ModeDefault's own escape, consulted by
 // gradeCaseDefault, since a no-correct-answer hypothesis has no
 // corrected verdict for ModeDefault to grade.
@@ -527,8 +495,7 @@ func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 	}
 }
 
-// gradeCaseDefault is ModeDefault's own per-case grading (revision 2,
-// fold B2, Resolution R2/R9). It never drives tag.Album: instead it
+// gradeCaseDefault is ModeDefault's own per-case grading. It never drives tag.Album: instead it
 // replays only the release lookups the case's own committed candidates
 // name against the case's own stub, translates each, re-solves the
 // assignment, re-scores the album distance and re-sorts, all under
@@ -546,10 +513,9 @@ func compatFor(mode GradeMode, policy casePolicy) matcher.Compat {
 // hypothesis whose OWN row agrees (policy.VerdictFrom) is graded against
 // its defect_free block when the row carries one (the four defect_free
 // rows), or otherwise marked ungraded, since it has no expressible
-// rung-3 fix (Resolution R1) either; every other case is compared
+// fix in the Go matcher either; every other case is compared
 // against its own committed (that is, ModeCompat) verdict, and a
-// difference is a VerdictMoves entry rather than a failure (Resolution
-// R9).
+// difference is a VerdictMoves entry rather than a failure.
 func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGradeResult, err error) {
 	var errs []error
 	defer func() {
@@ -640,8 +606,8 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	case !policy.GradeVerdict:
 		// A hypothesis (or its case's own row) ruled no-correct-answer:
 		// the defect stays reproduced, since no compat switch exists to
-		// fix it, but there is no corrected verdict to grade against
-		// (Resolution R1). Honors the same GradeVerdict escape
+		// fix it, but there is no corrected verdict to grade against.
+		// This honors the same GradeVerdict escape
 		// gradeCaseVerdict does for ModeCompat, so the two modes agree
 		// on which cases carry a gradable verdict at all.
 		res.ungraded = true
@@ -649,6 +615,9 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	case policy.VerdictFrom == verdictFromAdjudication && hasRow && row.DefectFree != nil:
 		// One of the four defect_free rows: graded against the block
 		// rather than the case's own (defective) committed record.
+		if tableErr := checkPatternTable(c.ID, row.DefectFree.PatternTable, tunDefault.StringDistPatterns); tableErr != nil {
+			errs = append(errs, tableErr)
+		}
 		var dist float64
 		if len(sorted) > 0 {
 			dist = sorted[0].Dist.Distance()
@@ -665,21 +634,46 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		res.verdicts++
 	case policy.VerdictFrom == verdictFromAdjudication:
 		// One of bug-nonlatin-alias-selection's two oracle-wrong probe
-		// cases with no defect_free block (Resolution R1): no rung-3
-		// port can express its corrected verdict, so it is neither
+		// cases with no defect_free block: no Go matcher
+		// fix can express its corrected verdict, so it is neither
 		// graded nor compared for movement.
 		res.ungraded = true
 		res.ungradedReason = fmt.Sprintf("%s: probe of an oracle-wrong hypothesis with no rung-3 fix, so its corrected verdict is not machine-readable (Resolution R1)", c.ID)
 	default:
 		// Every other case: compared against its own committed (that
 		// is, ModeCompat) verdict. A difference is reported as a
-		// VerdictMoves entry and fails nothing (Resolution R9).
+		// VerdictMoves entry and fails nothing.
 		if rec.String() != exp.Recommendation || string(action) != exp.Action {
 			res.verdictMoved = true
 		}
 	}
 
 	return res, nil
+}
+
+// patternTables resolves a defect_free block's pattern_table name, one
+// of analysis.LegalPatternTables, to the matcher table it names. That
+// package cannot import the engine, so this is where a name meets its
+// table.
+var patternTables = map[string][]matcher.SDPattern{
+	"SDPatternsNoBracketDiscount": matcher.SDPatternsNoBracketDiscount,
+}
+
+// checkPatternTable fails when name resolves to no table, or to a table
+// other than the one default-mode grading scored under, since the block's
+// figures are then not the ones this run reproduced.
+func checkPatternTable(caseID, name string, scored []matcher.SDPattern) error {
+	table, ok := patternTables[name]
+	if !ok {
+		return fmt.Errorf("case %s: defect_free pattern_table %q names no matcher table", caseID, name)
+	}
+	same := slices.EqualFunc(table, scored, func(a, b matcher.SDPattern) bool {
+		return a.Pattern.String() == b.Pattern.String() && a.Weight == b.Weight && a.Replacement == b.Replacement
+	})
+	if !same {
+		return fmt.Errorf("case %s: defect_free pattern_table %q is not the table default-mode grading scored under", caseID, name)
+	}
+	return nil
 }
 
 // CheckDefaultCompatMatchesTheLedger proves matcher.DefaultCompat's
@@ -812,7 +806,7 @@ func gradeAssignment(caseID string, policy casePolicy, exp *cassette.Expected, g
 		}
 		return errs
 	}
-	if !policy.GradeAssignment || res.awaitingRuling {
+	if !policy.GradeAssignment {
 		return errs
 	}
 
@@ -845,7 +839,7 @@ const (
 	compareEpsilon distanceCompare = iota
 	// compareBitIdentical admits no tolerance at all, because a flagged
 	// case sits on a comparison boundary where an epsilon can change the
-	// verdict (rung 3 spec, :288).
+	// verdict.
 	compareBitIdentical
 )
 
@@ -872,14 +866,13 @@ const (
 	verdictFromRecord verdictSource = iota
 	// verdictFromAdjudication is the corrected verdict on the case's own
 	// adjudications.json row, resolved by subject.case_id, used once its
-	// hypothesis's compat switch is off (rung 3 spec, :295).
+	// hypothesis's compat switch is off.
 	verdictFromAdjudication
 )
 
 // A casePolicy is how one case is graded, joined from all four analysis
-// ledgers. It is the Go form of the rung 3 spec's disposition table
-// (:285-299), and every field exists because one row of that table asks
-// for it.
+// ledgers. It is the Go form of the grading disposition table, and
+// every field exists because one row of that table asks for it.
 //
 // Compat is the whole per-class selection rather than one bool, because
 // "a switch is per defect class and cannot be half on" (spec :302) is a
@@ -899,10 +892,10 @@ type casePolicy struct {
 }
 
 // policyFor joins the four ledgers by case id and returns how the case
-// is graded. It is the single place the spec's disposition table lives,
+// is graded. It is the single place the disposition table lives,
 // so a row of that table has exactly one implementation and one fixture.
 //
-// The precedence rule is the spec's own (:302): the hypothesis row
+// The precedence rule: the hypothesis row
 // decides behavior and the case row supplies the expectation. So a
 // hypothesis at pending-adjudication turns its class's compat switch on
 // whatever the case row says, and a corrected verdict is taken only
@@ -988,29 +981,12 @@ func policyFor(caseID string, ties *analysis.TieLedger, prox *analysis.Proximity
 // switch can express widens nothing: matcher.Compat carries the one
 // string-heuristic class and no more, because the other two
 // hypotheses (bug-nonlatin-alias-selection, oracle-wrong;
-// bug-assignment-rejection-gap, no-correct-answer) have no fix a rung-3
-// port can express.
+// bug-assignment-rejection-gap, no-correct-answer) have no fix the Go
+// matcher can express.
 func widenCompat(c matcher.Compat, hypothesisID string) matcher.Compat {
 	switch hypothesisID {
 	case "bug-remix-parenthetical":
 		c.RemixParenthetical = true
 	}
 	return c
-}
-
-// checkTiesAwaitingRuling enforces ruling F's escape: a tie row may go
-// ungraded only while the escalation finding it rests on exists. root
-// is the repo root the finding is resolved against.
-//
-// It is the whole reason an empty awaiting list is safe to ship. A list
-// that grows without the finding fails the gate rather than quietly
-// shrinking the graded population.
-func checkTiesAwaitingRuling(root string, awaiting []string) error {
-	if len(awaiting) == 0 {
-		return nil
-	}
-	if _, err := os.Stat(filepath.Join(root, tieMirroringFinding)); err != nil {
-		return fmt.Errorf("%d tie rows await a ruling (%v) but the ruling F finding is missing: %w", len(awaiting), awaiting, err)
-	}
-	return nil
 }

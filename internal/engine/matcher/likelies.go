@@ -6,8 +6,8 @@ package matcher
 // distance path reads already has a known Go type (info.go's
 // ItemFields), so a map[string]any here would throw that typing away
 // for no benefit the album components could use. Each field holds
-// the plurality value across items (contract 11: ties break by
-// first-seen insertion order, i.e. by item order).
+// the plurality value across items, with ties broken by first-seen
+// insertion order, which is item order.
 type Likelies struct {
 	Artist        string
 	Album         string
@@ -32,11 +32,9 @@ type Likelies struct {
 // the returned Likelies.Artist (util/__init__.py:843-844).
 //
 // distance() itself discards its own copy of consensus
-// (`likelies, _ = get_most_common_tags(items)`, distance.py:442), so
-// no album component reads the map this function returns; it exists
-// for parity with beets' two-value return and because the override
-// above is provable only by inspecting it, which this file's own test
-// does.
+// (`likelies, _ = get_most_common_tags(items)`, distance.py:442). The
+// tag and musicbrainz packages read it to decide which search
+// criteria and ID fields every item agrees on.
 //
 // Python's get_most_common_tags filters falsy items before counting
 // (util/__init__.py:838, `values = [item.get(field) for item in items
@@ -94,8 +92,9 @@ func projectField[T any](items []ItemFields, get func(ItemFields) T) []T {
 
 // plurality is Counter.most_common(1)[0] (util/__init__.py:799-807):
 // the most common value in values and its count. Ties break by the
-// value's first-seen index (contract 11) rather than by Go's randomized
-// map order: order records each distinct value's first appearance, and
+// value's first-seen index, as Counter's insertion order does, rather
+// than by Go's randomized map order: order records each distinct
+// value's first appearance, and
 // the strict ">" below leaves the earliest of a tied pair in place. An
 // empty values returns T's zero value and a count of zero, reachable
 // only when items itself is empty.

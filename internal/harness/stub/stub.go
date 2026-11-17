@@ -3,15 +3,6 @@
 // its musicbrainz.host at a fixed, offline fixture set instead of the
 // live API. A request the case's log does not cover gets a 404 and is
 // recorded, never silently made up.
-//
-// A [cassette.Case.Extra] entry is answered too, but never counted as a
-// miss: it is a recall-extension fixture (U8), a response the case
-// captured that no logged request consumes. Because an Extra entry is
-// by construction a response the current flow does not request,
-// answering from it never changes what a caller pointed at
-// [github.com/glw907/dubplate/internal/harness/oracle.Derive] receives,
-// so the second map is inert for every derivation this pass can run:
-// zero of the corpus's committed cases carry an extra key.
 package stub
 
 import (
@@ -21,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
@@ -49,40 +39,22 @@ type Miss struct {
 // Server replays one [cassette.Case] over HTTP on an ephemeral loopback
 // port. Close it when done; it does not stop itself.
 //
-// It answers from two maps. The request map is the case's committed
-// log, which is an expectation: a request it does not cover is a
-// [Miss], and a conformance run leaving a non-empty miss list fails.
-// The extra map is the case's recall-extension fixtures
-// ([cassette.Case.Extra], U8): answering from it is neither a miss nor
-// a failure, and every such answer is reported through [Server.Consumed]
-// so a future candidate-widening improvement is graded on the shared
-// subset rather than escaping the harness (rung 3 spec, the B2 fold).
-// The request map is consulted first; [cassette.LoadCase] rejects a
-// case whose two maps would share a key, so the order is a stated rule
-// rather than a tiebreak.
+// It answers from the case's committed request log, which is an
+// expectation: a request the log does not cover is a [Miss], and a
+// conformance run leaving a non-empty miss list fails.
 type Server struct {
 	listener  net.Listener
 	http      *http.Server
 	responses map[key][]byte
-	extra     map[key]extraEntry
 
 	// log is the case's request list verbatim, kept beside the
 	// response map because [Server.Unused] reports in that list's own
 	// order and a map cannot carry it.
 	log []cassette.Request
 
-	mu       sync.Mutex
-	misses   []Miss
-	consumed []cassette.Request
-	hit      map[key]bool
-}
-
-// extraEntry is one recall-extension response and the log entry that
-// names it, kept together so [Server.Consumed] reports the entry
-// rather than a reconstructed shape.
-type extraEntry struct {
-	request cassette.Request
-	body    []byte
+	mu     sync.Mutex
+	misses []Miss
+	hit    map[key]bool
 }
 
 // New reads c's referenced response files from dir (the case's own
@@ -98,15 +70,6 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 		responses[key{method: req.Method, pathQuery: req.PathQuery}] = body
 	}
 
-	extra := make(map[key]extraEntry, len(c.Extra))
-	for _, req := range c.Extra {
-		body, err := os.ReadFile(filepath.Join(dir, req.Response))
-		if err != nil {
-			return nil, fmt.Errorf("stub: read extra response %q: %w", req.Response, err)
-		}
-		extra[key{method: req.Method, pathQuery: req.PathQuery}] = extraEntry{request: req, body: body}
-	}
-
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, fmt.Errorf("stub: listen: %w", err)
@@ -115,7 +78,6 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 	s := &Server{
 		listener:  ln,
 		responses: responses,
-		extra:     extra,
 		log:       slices.Clone(c.Requests),
 		hit:       make(map[key]bool, len(c.Requests)),
 	}
@@ -129,20 +91,14 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 }
 
 // ServeHTTP replays the response filed under the request's canonical
-// path+query: from the request map first, then the extra map, or
-// records a [Miss] and answers 404 if neither carries it.
+// path+query, or records a [Miss] and answers 404 if the log lacks it.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	pathQuery := canonicalize(r.URL.EscapedPath(), r.URL.RawQuery)
+	pathQuery := cassette.CanonicalizePathQuery(r.URL.EscapedPath() + "?" + r.URL.RawQuery)
 	k := key{method: r.Method, pathQuery: pathQuery}
 
 	if body, ok := s.responses[k]; ok {
 		s.recordHit(k)
 		writeResponse(w, body)
-		return
-	}
-	if entry, ok := s.extra[k]; ok {
-		s.recordConsumed(entry.request)
-		writeResponse(w, entry.body)
 		return
 	}
 	s.recordMiss(r.Method, pathQuery)
@@ -166,28 +122,12 @@ func (s *Server) recordHit(k key) {
 	s.hit[k] = true
 }
 
-func (s *Server) recordConsumed(req cassette.Request) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.consumed = append(s.consumed, req)
-}
-
 // Misses returns every unmatched request the server has received so
 // far, in the order it received them.
 func (s *Server) Misses() []Miss {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return slices.Clone(s.misses)
-}
-
-// Consumed returns every [cassette.Case.Extra] entry the server has
-// answered so far, in the order it answered them. It is deliberately
-// distinct from [Server.Misses]: an Extra hit is a reportable event,
-// never a failure.
-func (s *Server) Consumed() []cassette.Request {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return slices.Clone(s.consumed)
 }
 
 // Unused returns the logged requests the run never issued, the
@@ -199,11 +139,6 @@ func (s *Server) Consumed() []cassette.Request {
 // conformance run therefore fails on a non-empty result here, because
 // a run that skipped a lookup took a different flow than pinned beets
 // took.
-//
-// A [cassette.Case.Extra] entry is never reported: a strong ID match
-// legally orphans search captures into Extra (rung 3 spec, :265), so
-// an unconsumed Extra entry is the recall channel working as designed.
-// [Server.Consumed] is where an Extra hit is reported.
 func (s *Server) Unused() []cassette.Request {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -225,23 +160,4 @@ func (s *Server) Addr() string {
 // Close shuts the server down and releases its port.
 func (s *Server) Close() error {
 	return s.http.Close()
-}
-
-// canonicalize mirrors cassette's canonicalization rule, documented in
-// corpus/README.md: sort the raw, percent-encoded query's "&"-joined
-// key=value pairs byte-wise; the path, including any trailing slash,
-// and each pair's own encoding are left untouched. path must be the
-// request's raw, percent-encoded form (r.URL.EscapedPath(), never the
-// already-decoded r.URL.Path): a case logs the wire bytes it captured,
-// and Go's request parsing decodes Path eagerly, so keying on it would
-// silently fail to match a request whose path segment needed encoding.
-// Duplicated here rather than called from cassette because Task 1's
-// cassette package ships frozen and keeps the rule unexported.
-func canonicalize(path, rawQuery string) string {
-	if rawQuery == "" {
-		return path
-	}
-	pairs := strings.Split(rawQuery, "&")
-	slices.Sort(pairs)
-	return path + "?" + strings.Join(pairs, "&")
 }

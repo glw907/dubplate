@@ -13,10 +13,11 @@ import (
 // An aggregateFixture is one hand-authored accumulator replay: a weight
 // override layered over beets' shipped defaults, a list of Add calls,
 // and every aggregate and view they produce. The expected numbers are
-// worked out by hand from contract 5 in testdata/aggregates.json, never
-// computed from this package, so a wrong accumulator cannot agree with
-// them. components.json's aggregate rows express the same arithmetic a
-// second time and are Task 6's to replay.
+// worked out by hand from beets' Distance arithmetic in
+// testdata/aggregates.json, never computed from this package, so a
+// wrong accumulator cannot agree with them. corpus/analysis/
+// components.json's aggregate rows express the same arithmetic a second
+// time, and internal/harness/conform replays them.
 type aggregateFixture struct {
 	Name    string             `json:"name"`
 	Why     string             `json:"why"`
@@ -44,7 +45,7 @@ type aggregateWant struct {
 // TestDistanceAggregatesAndViews replays every fixture and compares
 // with exact equality rather than a tolerance, because the target is
 // bit identity and every figure in the fixture is exactly
-// representable (contract 12).
+// representable.
 //
 // Four mutations this test catches, each named by the fixture that
 // catches it: a denominator summing configured weights instead of added
@@ -77,8 +78,8 @@ func TestDistanceAggregatesAndViews(t *testing.T) {
 			if got := d.NonzeroItems(); !slices.Equal(got, fixture.Want.NonzeroItems) {
 				t.Errorf("NonzeroItems() = %v, want %v", got, fixture.Want.NonzeroItems)
 			}
-			if got := d.NonzeroKeys(); !slices.Equal(got, fixture.Want.NonzeroKeys) {
-				t.Errorf("NonzeroKeys() = %v, want %v", got, fixture.Want.NonzeroKeys)
+			if got := d.nonzeroKeys(); !slices.Equal(got, fixture.Want.NonzeroKeys) {
+				t.Errorf("nonzeroKeys() = %v, want %v", got, fixture.Want.NonzeroKeys)
 			}
 			if got := d.GenericPenaltyKeys(); !slices.Equal(got, fixture.Want.GenericPenaltyKeys) {
 				t.Errorf("GenericPenaltyKeys() = %v, want %v", got, fixture.Want.GenericPenaltyKeys)
@@ -247,8 +248,8 @@ func TestAddNumber(t *testing.T) {
 }
 
 // TestAddNumberInflatesTheDenominatorPerUnit is the consequence that
-// makes AddNumber different from every other adder, and the reason
-// contract 5 says the denominator counts penalties rather than keys.
+// makes AddNumber different from every other adder, and the reason the
+// denominator counts penalties rather than keys.
 // Both accumulators below score a full mediums penalty; only the one
 // built from a difference of three pays for it three times over.
 func TestAddNumberInflatesTheDenominatorPerUnit(t *testing.T) {
@@ -372,8 +373,8 @@ func TestAddDataSource(t *testing.T) {
 	}
 }
 
-// TestDataSourcePenaltyFallsBackToClassConstant closes 3a's carry
-// (Resolution R15): the fallback dataSourcePenalty resolves to when
+// TestDataSourcePenaltyFallsBackToClassConstant proves that the
+// fallback dataSourcePenalty resolves to when
 // after names no loaded source is the class-level constant, not
 // Tunables.DataSourceMismatchPenalty. Setting both to 0.7 and asserting
 // 0.5 is exactly the case that distinguishes the two: a reverted
@@ -408,36 +409,6 @@ func TestGenericPenaltyKeys(t *testing.T) {
 	want := []string{"id", "title", "missing tracks", "album"}
 	if got := d.GenericPenaltyKeys(); !slices.Equal(got, want) {
 		t.Errorf("GenericPenaltyKeys() = %v, want %v", got, want)
-	}
-}
-
-// TestUpdate folds one accumulator into another, which is how the
-// album-level tracks component consumes a track distance. A shared key
-// keeps the position it already had and collects both penalties, so the
-// denominator counts three penalties rather than two keys.
-func TestUpdate(t *testing.T) {
-	album := NewDistance(DefaultTunables())
-	album.Add("album", 1)
-
-	track := NewDistance(DefaultTunables())
-	track.Add("track_title", 0.5)
-	track.Add("album", 0.25)
-
-	album.Update(track)
-
-	wantKeys := []string{"album", "track_title"}
-	if got := album.AddedKeys(); !slices.Equal(got, wantKeys) {
-		t.Errorf("AddedKeys() = %v, want %v", got, wantKeys)
-	}
-	if got := album.penalties["album"]; !slices.Equal(got, []float64{1, 0.25}) {
-		t.Errorf("penalties[album] = %v, want [1 0.25]", got)
-	}
-	if got := album.penalties["track_title"]; !slices.Equal(got, []float64{0.5}) {
-		t.Errorf("penalties[track_title] = %v, want [0.5]", got)
-	}
-	// album and track_title both weigh 3.0, over three penalties.
-	if got := album.MaxDistance(); got != 9 {
-		t.Errorf("MaxDistance() = %v, want 9", got)
 	}
 }
 

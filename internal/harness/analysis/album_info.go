@@ -19,11 +19,6 @@ import (
 // rather than an edit anyone would notice in review.
 const AlbumInfoLedgerRowFloor = 50
 
-// releaseLookupPrefix is the WS/2 path a release lookup by id starts
-// with. The search endpoint is /ws/2/release? and never matches it, so
-// the prefix alone separates the two kinds of request a case logs.
-const releaseLookupPrefix = "/ws/2/release/"
-
 // AlbumInfoSubject names one committed case the AlbumInfo ledger derives
 // rows for. Every distinct release lookup in the case's own log becomes
 // a row; a case is a subject because a named translation-layer branch runs
@@ -82,7 +77,7 @@ var AlbumInfoSubjects = []AlbumInfoSubject{
 // AlbumInfo every candidate the matcher scores is built from, dumped
 // through pinned beets so the Go translation layer is graded against
 // beets' own answer field by field rather than only through whole-case
-// agreement (ruling E).
+// agreement.
 type AlbumInfoLedger struct {
 	ShimVersion  string               `json:"shim_version"`
 	BeetsVersion string               `json:"beets_version"`
@@ -251,7 +246,7 @@ func CheckAlbumInfoLedger(cases map[string]*cassette.Case, l *AlbumInfoLedger) e
 func releaseLookups(c *cassette.Case) []string {
 	var mbids []string
 	for _, req := range c.Requests {
-		rest, ok := strings.CutPrefix(req.PathQuery, releaseLookupPrefix)
+		rest, ok := strings.CutPrefix(req.PathQuery, cassette.ReleaseLookupPrefix)
 		if !ok {
 			continue
 		}

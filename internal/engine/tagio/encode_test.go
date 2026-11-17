@@ -8,8 +8,8 @@ import (
 // TestSerializeFloatPlaces grades float_places (2 by default, 6 on
 // both ReplayGain peaks) and the " dB" suffix that appears on the two
 // gain fields and nowhere else (mediafile:836, :846, :856, :864).
-// Every want string is hard-coded, not computed from rgGainField or
-// rgPeakField.
+// Every want string is hard-coded, not computed from formatGain or
+// formatPeak.
 func TestSerializeFloatPlaces(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -47,7 +47,7 @@ func TestSerializeBool(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			kw := mustKeyWrite(t, Serialize(TagSet{Comp: new(c.v)}), FieldComp)
+			kw := mustKeyWrite(t, Serialize(TagSet{Comp: new(c.v)}), "comp")
 			if len(kw.Writes) != 1 || kw.Writes[0].Name != "COMPILATION" || kw.Writes[0].Value != c.want {
 				t.Errorf("got %+v, want one comment COMPILATION=%q", kw.Writes, c.want)
 			}
@@ -56,10 +56,9 @@ func TestSerializeBool(t *testing.T) {
 }
 
 // TestSerializeR128Shift grades the Q8 shift: r128_track_gain = -1.5
-// writes R128_TRACK_GAIN=-384, INV's own measurement
-// (mediafile:874, __init__.py:870-884).
+// writes R128_TRACK_GAIN=-384 (mediafile:874, __init__.py:870-884).
 func TestSerializeR128Shift(t *testing.T) {
-	kw := mustKeyWrite(t, Serialize(TagSet{R128TrackGain: new(-1.5)}), FieldR128TrackGain)
+	kw := mustKeyWrite(t, Serialize(TagSet{R128TrackGain: new(-1.5)}), "r128_track_gain")
 	if len(kw.Writes) != 1 || kw.Writes[0].Name != "R128_TRACK_GAIN" || kw.Writes[0].Value != "-384" {
 		t.Errorf("got %+v, want one comment R128_TRACK_GAIN=-384", kw.Writes)
 	}
@@ -90,7 +89,7 @@ func TestSerializeDateTable(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			kw := mustKeyWrite(t, Serialize(TagSet{Year: c.year, Month: c.month, Day: c.day}), FieldYear)
+			kw := mustKeyWrite(t, Serialize(TagSet{Year: c.year, Month: c.month, Day: c.day}), "year")
 			if c.wantDateAbsent {
 				if len(kw.Writes) != 0 {
 					t.Fatalf("got writes %+v, want none", kw.Writes)
@@ -116,7 +115,7 @@ func TestSerializeDateTable(t *testing.T) {
 // ORIGINALDATE=0000 on the same all-zero row as DATE and YEAR, and
 // that original_year carries no YEAR-style fallback (mediafile:706-708).
 func TestSerializeOriginalDateEveryComponentZero(t *testing.T) {
-	kw := mustKeyWrite(t, Serialize(TagSet{OriginalYear: new(0), OriginalMonth: new(0), OriginalDay: new(0)}), FieldOriginalYear)
+	kw := mustKeyWrite(t, Serialize(TagSet{OriginalYear: new(0), OriginalMonth: new(0), OriginalDay: new(0)}), "original_year")
 	if len(kw.Writes) != 1 || kw.Writes[0].Name != "ORIGINALDATE" || kw.Writes[0].Value != "0000" {
 		t.Errorf("got %+v, want one comment ORIGINALDATE=0000", kw.Writes)
 	}
@@ -128,7 +127,7 @@ func TestSerializeOriginalDateEveryComponentZero(t *testing.T) {
 // (ALBUMARTISTS, ALBUM_ARTISTS) and one read-only style (ALBUM
 // ARTISTS) that a write never emits.
 func TestSerializeListRepetition(t *testing.T) {
-	kw := mustKeyWrite(t, Serialize(TagSet{Albumartists: []string{"X", "Y"}}), FieldAlbumartists)
+	kw := mustKeyWrite(t, Serialize(TagSet{Albumartists: []string{"X", "Y"}}), "albumartists")
 	want := []Comment{
 		{Name: "ALBUMARTISTS", Value: "X"},
 		{Name: "ALBUMARTISTS", Value: "Y"},
@@ -145,34 +144,34 @@ func TestSerializeListRepetition(t *testing.T) {
 	}
 }
 
-// TestSerializeEmptyList grades C2's third state: an empty list
+// TestSerializeEmptyList grades the empty-list state: an empty list
 // writes no comment at all, asserted against an empty comment
 // sequence rather than against an empty string
 // (ListStorageStyle.set_list, mediafile/storage/base.py:189-199).
 func TestSerializeEmptyList(t *testing.T) {
-	kw := mustKeyWrite(t, Serialize(TagSet{Genres: EmptyList()}), FieldGenres)
+	kw := mustKeyWrite(t, Serialize(TagSet{Genres: []string{}}), "genres")
 	if len(kw.Writes) != 0 {
 		t.Errorf("got %d comments, want an empty comment sequence: %+v", len(kw.Writes), kw.Writes)
 	}
 }
 
-// TestSerializeEmptyStringWritesComment grades C2's second state: an
-// empty string writes a comment carrying an empty value, distinct
+// TestSerializeEmptyStringWritesComment grades the empty-string state:
+// an empty string writes a comment carrying an empty value, distinct
 // from the empty-list state above that writes nothing (proves the two
 // states are handled separately).
 func TestSerializeEmptyStringWritesComment(t *testing.T) {
-	kw := mustKeyWrite(t, Serialize(TagSet{Title: EmptyString()}), FieldTitle)
+	kw := mustKeyWrite(t, Serialize(TagSet{Title: new("")}), "title")
 	want := []Comment{{Name: "TITLE", Value: ""}}
 	if !slices.Equal(kw.Writes, want) {
 		t.Errorf("got %+v, want %+v", kw.Writes, want)
 	}
 }
 
-// TestSerializeDeleteBarcode grades INV:238-240: read_only blocks a
+// TestSerializeDeleteBarcode grades the delete rule: read_only blocks a
 // set, not a delete, so deleting barcode removes all five keys
 // (BARCODE, UPC, EAN/UPN, EAN, UPN), not just the writable one.
 func TestSerializeDeleteBarcode(t *testing.T) {
-	kw := mustKeyWrite(t, Serialize(TagSet{Barcode: nil}), FieldBarcode)
+	kw := mustKeyWrite(t, Serialize(TagSet{Barcode: nil}), "barcode")
 	if len(kw.Writes) != 0 {
 		t.Errorf("got writes %+v, want none", kw.Writes)
 	}
@@ -182,101 +181,9 @@ func TestSerializeDeleteBarcode(t *testing.T) {
 	}
 }
 
-// TestSafeCastInt grades safe_cast's leading-numeric-prefix rule and
-// its zero fallback (mediafile/utils/type_conversion.py:4-60).
-func TestSafeCastInt(t *testing.T) {
-	cases := []struct {
-		in   string
-		want int
-	}{
-		{"7", 7},
-		{"-3", -3},
-		{"+12", 12},
-		{"5 dB", 5},
-		{"abc", 0},
-		{"", 0},
-	}
-	for _, c := range cases {
-		if got := safeCastInt(c.in); got != c.want {
-			t.Errorf("safeCastInt(%q) = %d, want %d", c.in, got, c.want)
-		}
-	}
-}
-
-// TestSafeCastFloat grades the float path of the same rule, including
-// the suffix strip: "-7.50 dB" casts to -7.5 because the prefix match
-// stops at the space either way (mediafile/utils/type_conversion.py:52).
-func TestSafeCastFloat(t *testing.T) {
-	cases := []struct {
-		in   string
-		want float64
-	}{
-		{"0.987654", 0.987654},
-		{"-7.50 dB", -7.5},
-		{"3", 3},
-		{"nope", 0},
-		{"", 0},
-	}
-	for _, c := range cases {
-		if got := safeCastFloat(c.in); got != c.want {
-			t.Errorf("safeCastFloat(%q) = %v, want %v", c.in, got, c.want)
-		}
-	}
-}
-
-// TestSafeCastBool grades bool(int(val)) with a parse failure falling
-// to false, the whole-string int() rather than a leading prefix.
-func TestSafeCastBool(t *testing.T) {
-	cases := []struct {
-		in   string
-		want bool
-	}{
-		{"1", true},
-		{"0", false},
-		{"2", true},
-		{"1x", false},
-		{"", false},
-	}
-	for _, c := range cases {
-		if got := safeCastBool(c.in); got != c.want {
-			t.Errorf("safeCastBool(%q) = %v, want %v", c.in, got, c.want)
-		}
-	}
-}
-
-// TestReplaceInvalidUTF8 grades ruling 10: invalid UTF-8 is replaced
-// with U+FFFD on read, matching mutagen's errors='replace'
-// (mutagen/_vorbis.py:109), which follows Python's utf-8 "maximal
-// subpart" rule rather than a per-byte scan: an ill-formed sequence
-// collapses its longest well-formed prefix into a single U+FFFD, not
-// one U+FFFD per invalid byte. Every want string is a hard-coded
-// literal, never computed from replaceInvalidUTF8, strings.ToValidUTF8
-// or utf8.DecodeRuneInString (whose own invalid-encoding size is
-// always 1, not the maximal-subpart length).
-func TestReplaceInvalidUTF8(t *testing.T) {
-	cases := []struct {
-		name string
-		in   string
-		want string
-	}{
-		{"lone continuation byte between valid runs", "before\x80after", "before�after"},
-		{"truncated three-byte sequence", "\xe2\x82", "�"},
-		{"truncated four-byte sequence", "\xf0\x9f\x92", "�"},
-		{"two lone continuation bytes", "\x80\x80", "��"},
-		{"valid lead byte, invalid continuation", "\xc3(", "�("},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			if got := replaceInvalidUTF8(c.in); got != c.want {
-				t.Errorf("replaceInvalidUTF8(%q) = %q, want %q", c.in, got, c.want)
-			}
-		})
-	}
-}
-
 // mustKeyWrite returns Serialize's KeyWrite for field, failing the
 // test if none exists.
-func mustKeyWrite(t *testing.T, kws []KeyWrite, field Field) KeyWrite {
+func mustKeyWrite(t *testing.T, kws []KeyWrite, field string) KeyWrite {
 	t.Helper()
 	for _, kw := range kws {
 		if kw.Field == field {
@@ -287,19 +194,19 @@ func mustKeyWrite(t *testing.T, kws []KeyWrite, field Field) KeyWrite {
 	return KeyWrite{}
 }
 
-// fieldFor maps a Vorbis key back to the one field in Mapping that
+// fieldFor maps a Vorbis key back to the first field table row that
 // owns it, for tests that key their case table on the Vorbis key
 // rather than the field name.
-func fieldFor(t *testing.T, vorbisKey string) Field {
+func fieldFor(t *testing.T, vorbisKey string) string {
 	t.Helper()
-	for _, row := range mapping {
-		for _, s := range row.Styles {
-			if s.Key == vorbisKey {
-				return row.Field
+	for _, f := range fields {
+		for _, s := range f.styles {
+			if s.key == vorbisKey {
+				return f.name
 			}
 		}
 	}
-	t.Fatalf("no Mapping row carries Vorbis key %q", vorbisKey)
+	t.Fatalf("no field table row carries Vorbis key %q", vorbisKey)
 	return ""
 }
 

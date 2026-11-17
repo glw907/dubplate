@@ -3,6 +3,7 @@ package matcher
 import (
 	"encoding/json"
 	"os"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -14,7 +15,7 @@ import (
 // beets.autotag.distance.string_dist in the pinned venv
 // (tools/venv/.venv, beets 2.14.1) on exactly these inputs, and the
 // comparison is exact rather than tolerant because bit identity is the
-// port's target (contract 12). A row that needs a tolerance is a
+// port's target. A row that needs a tolerance is a
 // finding about operation order, not a test to loosen.
 func TestStringDist(t *testing.T) {
 	tun := DefaultTunables()
@@ -121,13 +122,22 @@ func TestStringDistPatternLoopAdoptsOnlyOnPositiveDelta(t *testing.T) {
 // check: the featuring pattern's word boundaries change none of the 72
 // committed rows, so tier 0 is blind to exactly the edit most likely to
 // be made.
-var beetsSDPatternLiterals = []SDPattern{
-	{Pattern: `^the `, Weight: 0.1},
-	{Pattern: `[\[\(]?(ep|single)[\]\)]?`, Weight: 0.0},
-	{Pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, Weight: 0.1},
-	{Pattern: `\(.*?\)`, Weight: 0.3},
-	{Pattern: `\[.*?\]`, Weight: 0.3},
-	{Pattern: `(, )?(pt\.|part) .+`, Weight: 0.2},
+var beetsSDPatternLiterals = []sdLiteral{
+	{pattern: `^the `, weight: 0.1},
+	{pattern: `[\[\(]?(ep|single)[\]\)]?`, weight: 0.0},
+	{pattern: `[\[\(]?\b(featuring|feat|ft)\b[\. :].+`, weight: 0.1},
+	{pattern: `\(.*?\)`, weight: 0.3},
+	{pattern: `\[.*?\]`, weight: 0.3},
+	{pattern: `(, )?(pt\.|part) .+`, weight: 0.2},
+}
+
+// sdLiteral is one SDPattern row written as source text, so a shipped
+// table compares against literals rather than against compiled values
+// built by the code under test.
+type sdLiteral struct {
+	pattern     string
+	weight      float64
+	replacement string
 }
 
 // sdGoForm is the Go pattern and Expand template a shipped row carries
@@ -139,7 +149,7 @@ type sdGoForm struct {
 
 // sdTranslations maps a beets literal to the Go form this package
 // departs from, each written out independently of tunables.go's
-// sdFeaturingPattern and sdFeaturingReplacement so this test does not
+// sdFeaturing's pattern and replacement so this test does not
 // merely compare production against itself. It has one entry today,
 // the featuring row; a row whose literal is absent from this
 // map must equal the literal exactly, with an empty Replacement, in
@@ -152,7 +162,7 @@ var sdTranslations = map[string]sdGoForm{
 }
 
 // beetsFeaturingRowIndex is the featuring row's position in
-// BeetsSDPatterns and beetsSDPatternLiterals: its weight (0.1) is not
+// beetsSDPatterns and beetsSDPatternLiterals: its weight (0.1) is not
 // unique in the table, so index is how this file locates it.
 const beetsFeaturingRowIndex = 2
 
@@ -160,18 +170,18 @@ const beetsFeaturingRowIndex = 2
 // translation used, so a shipped table is checked against what it
 // should actually carry: the literal untouched, or the Go form on the
 // one row this package departs from.
-func wantSDPattern(literal SDPattern, used map[string]bool) SDPattern {
-	translation, translated := sdTranslations[literal.Pattern]
+func wantSDPattern(literal sdLiteral, used map[string]bool) sdLiteral {
+	translation, translated := sdTranslations[literal.pattern]
 	if !translated {
 		return literal
 	}
-	used[literal.Pattern] = true
-	return SDPattern{Pattern: translation.pattern, Weight: literal.Weight, Replacement: translation.replacement}
+	used[literal.pattern] = true
+	return sdLiteral{pattern: translation.pattern, weight: literal.weight, replacement: translation.replacement}
 }
 
 // assertMatchesTranslatedLiterals checks got against literals through
 // sdTranslations and fails on any map entry no row in literals uses.
-func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []SDPattern) {
+func assertMatchesTranslatedLiterals(t *testing.T, name string, got []SDPattern, literals []sdLiteral) {
 	t.Helper()
 	if len(got) != len(literals) {
 		t.Fatalf("%s has %d entries, beets ships %d", name, len(got), len(literals))
@@ -179,8 +189,9 @@ func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []
 	used := make(map[string]bool, len(sdTranslations))
 	for i, literal := range literals {
 		want := wantSDPattern(literal, used)
-		if got[i] != want {
-			t.Errorf("%s[%d] = {%q, %v, %q}, want {%q, %v, %q}", name, i, got[i].Pattern, got[i].Weight, got[i].Replacement, want.Pattern, want.Weight, want.Replacement)
+		gotRow := sdLiteral{pattern: got[i].Pattern.String(), weight: got[i].Weight, replacement: got[i].Replacement}
+		if gotRow != want {
+			t.Errorf("%s[%d] = %+v, want %+v", name, i, gotRow, want)
 		}
 	}
 	for literal := range sdTranslations {
@@ -190,14 +201,14 @@ func assertMatchesTranslatedLiterals(t *testing.T, name string, got, literals []
 	}
 }
 
-// TestBeetsSDPatternsMatchBeetsLiterals holds BeetsSDPatterns to
+// TestBeetsSDPatternsMatchBeetsLiterals holds beetsSDPatterns to
 // beetsSDPatternLiterals through sdTranslations: byte-identical except
 // for the featuring row, which carries its Go translation.
 func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
-	assertMatchesTranslatedLiterals(t, "BeetsSDPatterns", BeetsSDPatterns, beetsSDPatternLiterals)
+	assertMatchesTranslatedLiterals(t, "beetsSDPatterns", beetsSDPatterns, beetsSDPatternLiterals)
 
 	wantFeaturing := wantSDPattern(beetsSDPatternLiterals[beetsFeaturingRowIndex], map[string]bool{})
-	if DefaultTunables().StringDistPatterns[beetsFeaturingRowIndex].Pattern != wantFeaturing.Pattern {
+	if DefaultTunables().StringDistPatterns[beetsFeaturingRowIndex].Pattern.String() != wantFeaturing.pattern {
 		t.Error("DefaultTunables does not select the shipped table")
 	}
 }
@@ -209,7 +220,7 @@ func TestBeetsSDPatternsMatchBeetsLiterals(t *testing.T) {
 // pre-2.14 defect never checked the boundary before the trigger, and
 // scored the "Draft:" and "Gift " rows at 0.061111 and 0.064706; beets
 // 2.14.0 added the check and this row's rewrite carries it in two
-// branches instead of \b (BeetsSDPatterns' doc comment). The trailing
+// branches instead of \b (beetsSDPatterns' doc comment). The trailing
 // boundary is always satisfied, since the separator class that must
 // follow the trigger holds no word character, so no row here can tell
 // it apart.
@@ -238,7 +249,7 @@ func TestStringDistFeaturingNeedsAWordBoundary(t *testing.T) {
 		name     string
 		patterns []SDPattern
 	}{
-		{"beets shipped table", BeetsSDPatterns},
+		{"beets shipped table", beetsSDPatterns},
 		{"no-bracket-discount table", SDPatternsNoBracketDiscount},
 	}
 	for _, table := range tables {
@@ -275,7 +286,7 @@ func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
 		name     string
 		patterns []SDPattern
 	}{
-		{"beets shipped table", BeetsSDPatterns},
+		{"beets shipped table", beetsSDPatterns},
 		{"no-bracket-discount table", SDPatternsNoBracketDiscount},
 	}
 	for _, table := range tables {
@@ -283,7 +294,7 @@ func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
 			tun := DefaultTunables()
 			tun.StringDistPatterns = table.patterns
 			if got := StringDist(tun, &str1, &str2); got != wantGo {
-				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875; a figure equal to 0.06875 means the divergence was fixed, so update this row and its HISTORY note)", str1, str2, got, wantGo)
+				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875; a figure equal to 0.06875 means the divergence was fixed, so update this row and its comment)", str1, str2, got, wantGo)
 			}
 		})
 	}
@@ -355,8 +366,8 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 	if golden.Header.UnicodedataVersion != "15.1.0" {
 		t.Fatalf("header.unicodedata_version = %q, want %q", golden.Header.UnicodedataVersion, "15.1.0")
 	}
-	if golden.Header.Literal != beetsSDPatternLiterals[beetsFeaturingRowIndex].Pattern {
-		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[beetsFeaturingRowIndex].Pattern)
+	if golden.Header.Literal != beetsSDPatternLiterals[beetsFeaturingRowIndex].pattern {
+		t.Fatalf("header.literal = %q, want %q", golden.Header.Literal, beetsSDPatternLiterals[beetsFeaturingRowIndex].pattern)
 	}
 
 	const wantCuratedRows = 33
@@ -392,9 +403,9 @@ func TestFeaturingRowMatchesBeetsGolden(t *testing.T) {
 		t.Errorf("golden's drawn rows fired %d times, want %d", fired, wantFired)
 	}
 
-	asciiLiteral := sdRegexp(golden.Header.Literal)
-	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
-	shipped := sdRegexp(featuring.Pattern)
+	asciiLiteral := regexp.MustCompile(golden.Header.Literal)
+	featuring := beetsSDPatterns[beetsFeaturingRowIndex]
+	shipped := featuring.Pattern
 
 	type divergence struct {
 		label, input, want, got string
@@ -522,8 +533,8 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 		return found
 	}
 
-	featuring := BeetsSDPatterns[beetsFeaturingRowIndex]
-	shipped := sdRegexp(featuring.Pattern)
+	featuring := beetsSDPatterns[beetsFeaturingRowIndex]
+	shipped := featuring.Pattern
 	var pythonOnly []rune
 	goOnly := 0
 	for r := rune(0); r <= 0x10FFFF; r++ {
@@ -559,7 +570,7 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 		t.Fatalf("%d code points are Python word characters and not Go ones", len(pythonOnly))
 	}
 	if goOnly != wantGoOnlyWordCodePoints {
-		t.Errorf("Go-only word-character count = %d, want %d (unicode.Version %s): confirm the Python-only count is still zero, check whether any newly assigned code point can sit before a trigger in a real title, then update the count and record it in HISTORY", goOnly, wantGoOnlyWordCodePoints, unicode.Version)
+		t.Errorf("Go-only word-character count = %d, want %d (unicode.Version %s): confirm the Python-only count is still zero, check whether any newly assigned code point can sit before a trigger in a real title, then update the count and the comment on wantGoOnlyWordCodePoints", goOnly, wantGoOnlyWordCodePoints, unicode.Version)
 	}
 }
 
@@ -737,8 +748,31 @@ func TestAddString(t *testing.T) {
 	if got := dist.AddedKeys(); len(got) != 2 || got[0] != "album" || got[1] != "artist" {
 		t.Errorf("AddedKeys() = %v, want [album artist]", got)
 	}
-	if got := dist.NonzeroKeys(); len(got) != 1 || got[0] != "album" {
-		t.Errorf("NonzeroKeys() = %v, want [album]: an identical pair adds 0.0 and stays out", got)
+	if got := dist.nonzeroKeys(); len(got) != 1 || got[0] != "album" {
+		t.Errorf("nonzeroKeys() = %v, want [album]: an identical pair adds 0.0 and stays out", got)
+	}
+}
+
+func TestLevenshtein(t *testing.T) {
+	tests := []struct {
+		name string
+		a, b string
+		want int
+	}{
+		{name: "both empty", a: "", b: "", want: 0},
+		{name: "empty vs non-empty", a: "", b: "abc", want: 3},
+		{name: "non-empty vs empty", a: "abc", b: "", want: 3},
+		{name: "equal-length identical", a: "kitten", b: "kitten", want: 0},
+		{name: "equal-length one substitution", a: "abc", b: "abd", want: 1},
+		{name: "equal-length every position differs", a: "abc", b: "xyz", want: 3},
+		{name: "classic kitten/sitting", a: "kitten", b: "sitting", want: 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := levenshtein(tt.a, tt.b); got != tt.want {
+				t.Errorf("levenshtein(%q, %q) = %d, want %d", tt.a, tt.b, got, tt.want)
+			}
+		})
 	}
 }
 

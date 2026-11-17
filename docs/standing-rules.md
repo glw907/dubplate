@@ -120,8 +120,11 @@ Never commit red. The PR check
 (`.github/workflows/check.yml`) runs `bash scripts/check.sh` on every pull
 request, so CI is the full-suite home, and the close's
 `bash scripts/gate.sh --merge` runs locally. The process-citation leg
-(no rung, task, resolution, or plan-line citation in shipped Go comments)
-warns today and gates in round `engine`. The exported-unused leg (an
+gates: a shipped Go comment under `cmd` or `internal` that cites a rung,
+task, resolution, or plan line fails the run. A wider pattern (contract,
+ruling, fold, pass, and conductor tags, and a name) applies everywhere
+except `cmd/dubplate-server`, `internal/serve`, `internal/auth`, and
+`internal/intake`, whose comments BACKLOG #156 clears. The exported-unused leg (an
 exported `internal/` symbol whose only references are its own file and
 `_test.go` files) stays a warning; pass `cleanup-gate` moves it to
 `go tool deadcode`.

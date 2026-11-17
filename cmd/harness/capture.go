@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
-	"github.com/glw907/dubplate/internal/harness/mbrequest"
 	"github.com/glw907/dubplate/internal/harness/stub"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +35,7 @@ const requestInterval = time.Second
 const mbAPIRoot = "https://musicbrainz.org"
 
 // liveFetchTimeout bounds one live request; beets' own client uses a
-// 10s default (mechanics study Q5), generous enough for the maximal
+// 10s default, generous enough for the maximal
 // inc= release lookups this tool issues.
 const liveFetchTimeout = 30 * time.Second
 
@@ -134,9 +133,8 @@ func userAgent(version, contact string) string {
 }
 
 // runCapture seeds a case at outDir from mbid: it fetches the release
-// at beets' own maximal inc= (U6), follows a Pseudo-Release's backward
-// transl-tracklisting relation with the same inc= (mechanics study
-// Q5), and writes every response verbatim before logging both
+// at beets' own maximal inc=, follows a Pseudo-Release's backward
+// transl-tracklisting relation with the same inc=, and writes every response verbatim before logging both
 // requests in a fresh cassette.Case. The case is otherwise empty:
 // Input, Profile, and EvalDate are a human's job once it is seeded.
 func runCapture(ctx context.Context, version, contact, mbid, outDir string) error {
@@ -297,16 +295,12 @@ func writeResponse(dir string, n int, body []byte) (string, error) {
 // release lookup: fmt=json forced, inc= carrying beets' own full
 // RELEASE_INCLUDES list.
 func releaseRequest(mbid string) string {
-	return mbrequest.CanonicalizeQuery("/ws/2/release/"+mbid, map[string]string{
-		"fmt": "json",
-		"inc": mbrequest.MaximalReleaseInclude,
-	})
+	return cassette.ReleaseLookup(mbid)
 }
 
 // pseudoReleaseFollowUp reports the actual release id a Pseudo-Release
-// body links to via a backward transl-tracklisting relation
-// (mechanics study Q5, item 7): beets fetches and merges that release
-// too, so a capture missing it would replay a 404 the moment pinned
+// body links to via a backward transl-tracklisting relation. Beets
+// fetches and merges that release too, so a capture missing it would replay a 404 the moment pinned
 // beets follows it.
 func pseudoReleaseFollowUp(body []byte) (mbid string, ok bool) {
 	var doc struct {

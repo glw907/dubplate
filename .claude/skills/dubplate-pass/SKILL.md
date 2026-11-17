@@ -204,10 +204,12 @@ pass touched `cmd/harness` or `internal/harness`, also run
 **Worktree setup**: `npm ci --prefix web` in the new worktree; the gate refuses a worktree without
 `web/node_modules` (`make web: web/node_modules absent`). The beets venv (`tools/venv/`) is
 gitignored and `make derive` sits outside the gate, so a worktree's gate goes green without the one
-leg that exercises beets. Work that needs the venv, `make derive`, or `corpus/` (the matcher corpus
-and the beets oracle) stays in the main tree. The OpenSubsonic harness (`internal/harness/subsonic`,
-`internal/opensubsonic`, `cmd/harness`) needs no venv, no beets, and no `corpus/`, so its pass runs
-in a worktree.
+leg that exercises beets. Work that needs the venv or `make derive` builds the venv in the worktree
+first, with the two commands in `tools/venv/README.md` (`uv venv --python 3.13 tools/venv/.venv`, then
+`uv pip install --python tools/venv/.venv/bin/python -r tools/venv/requirements.txt`), and runs
+`make derive` there; `corpus/` is tracked, so the worktree has it. The OpenSubsonic harness
+(`internal/harness/subsonic`, `internal/opensubsonic`, `cmd/harness`) needs no venv, no beets, and
+no `corpus/`.
 
 **CI watch**: After each push, run `gh pr checks <n> --watch --fail-fast` as a background Bash
 task, bare. The fallback is `gh run watch <run id> --exit-status`.

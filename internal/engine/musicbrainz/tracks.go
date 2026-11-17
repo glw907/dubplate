@@ -5,7 +5,7 @@ import (
 )
 
 // dataTrackTitle is the recording title beets filters out unconditionally,
-// regardless of tun.IgnoreDataTracks (musicbrainz.py:573, T5). It is a
+// regardless of tun.IgnoreDataTracks (musicbrainz.py:573). It is a
 // literal comparison, no strip, no case fold.
 const dataTrackTitle = "[data track]"
 
@@ -15,11 +15,11 @@ const dataTrackTitle = "[data track]"
 // (beetsplug/musicbrainz.py:654-658). TrackInfo declares itself "the
 // eight fields the track-level distance path reads ... and nothing
 // else" (matcher/info.go:69-72), and per-track media is never read by
-// that path, so it stays here rather than widening the vocabulary (R2).
+// that path, so it stays here rather than widening the vocabulary.
 //
 // Info.Index and Info.DataSource are left zero here: Index is assigned
 // by extractTracks across all valid media, and DataSource is the one
-// literal every AlbumInfo and TrackInfo share, which Task 6's
+// literal every AlbumInfo and TrackInfo share, which
 // TranslateAlbum assigns once rather than repeating it per track.
 type builtTrack struct {
 	Info   matcher.TrackInfo
@@ -48,7 +48,7 @@ func tracksFromMedium(m Medium, tun matcher.Tunables) []builtTrack {
 	return built
 }
 
-// buildTrack applies T6's three track-level overrides to tr's recording
+// buildTrack applies the three track-level overrides to tr's recording
 // and returns the resulting builtTrack. The length and artist-credit
 // overrides are truthiness, not nil-ness (a track length of 0 falls
 // back to the recording length exactly as a null does); the title
@@ -90,11 +90,8 @@ func buildTrack(m Medium, tr Track, tun matcher.Tunables) builtTrack {
 // extractTracks runs tracksFromMedium over every medium of rel whose
 // format is not in tun.IgnoredMedia, then assigns Index 1-based across
 // all surviving tracks in medium order (musicbrainz.py:645-646).
-//
-// It does not compute AlbumInfo.Mediums: that is len(rel.Media), the
-// UNFILTERED count (musicbrainz.py:659), and it is deliberately not
-// derived here, because a reader who saw both numbers produced by one
-// function would reasonably assume they agree.
+// AlbumInfo.Mediums is not derived from its result: that is
+// len(rel.Media), the UNFILTERED count (musicbrainz.py:659).
 func extractTracks(rel *Release, tun matcher.Tunables) []builtTrack {
 	ignored := make(map[string]struct{}, len(tun.IgnoredMedia))
 	for _, format := range tun.IgnoredMedia {
@@ -126,8 +123,8 @@ func extractTracks(rel *Release, tun matcher.Tunables) []builtTrack {
 //
 // A single medium whose format is null is NOT a sentinel route: it is
 // the one distinct value beets' set collects, so pop() returns None,
-// which this port maps to "" (R1's zero-value mapping), and which is
-// falsy and declines the media penalty (fold, B5). A null format
+// which this port maps to "" (the zero value), and which is
+// falsy and declines the media penalty. A null format
 // alongside any other distinct format IS a sentinel route, because None
 // still counts as one of the distinct values.
 func deriveMedia(tracks []builtTrack) string {
@@ -154,4 +151,34 @@ func deriveMedia(tracks []builtTrack) string {
 		}
 	}
 	return "Media"
+}
+
+// assembledTracks returns a medium's pregap, tracks, and data-tracks in
+// that fixed order, the same assembly get_tracks_from_medium reads
+// through before either filter runs. It is the one copy of that order:
+// tracksFromMedium passes withDataTracks as !tun.IgnoreDataTracks, and
+// validate passes true, because it has no Tunables to apply a filter
+// with and a track later dropped by a filter is still a track this
+// boundary check must be able to read without panicking.
+func assembledTracks(medium Medium, withDataTracks bool) []Track {
+	var tracks []Track
+	if medium.Pregap != nil {
+		tracks = append(tracks, *medium.Pregap)
+	}
+	tracks = append(tracks, medium.Tracks...)
+	if withDataTracks {
+		tracks = append(tracks, medium.DataTracks...)
+	}
+	return tracks
+}
+
+// resolvedTrackCredit is the track-level artist-credit override: the
+// track's own artist-credit when non-empty, the recording's otherwise
+// (recording["artist_credit"] = track["artist_credit"] or
+// recording["artist_credit"], beetsplug/musicbrainz.py:586-588).
+func resolvedTrackCredit(track Track) []CreditPart {
+	if len(track.ArtistCredit) > 0 {
+		return track.ArtistCredit
+	}
+	return track.Recording.ArtistCredit
 }

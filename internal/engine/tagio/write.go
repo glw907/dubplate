@@ -14,59 +14,43 @@ import (
 // blockPadding is PADDING's block type (RFC 9639 section 8.1).
 const blockPadding = 1
 
-// paddingSize is the fixed PADDING reservation every write emits
-// (rulings 5 and 6): 8 KiB, regardless of what the container it
-// rewrites carried, and regardless of how many PADDING blocks (if
-// any) that container had.
+// paddingSize is the one PADDING block every write emits, whatever the
+// rewritten container carried.
 const paddingSize = 8 * 1024
 
-// vendorPrefix marks every vendor string this package creates fresh,
-// so a byte inspecting a file this package has touched can tell tagio
-// wrote it (C9, R9).
+// vendorPrefix marks every vendor string this package creates.
 const vendorPrefix = "dubplate "
 
-// developmentVendorMarker is freshVendor's fallback when the build
-// toolchain embeds no version: a `go test` binary and an unmodulated
-// `go build` both leave [debug.BuildInfo.Main.Version] empty or
-// "(devel)".
 const developmentVendorMarker = "development"
 
-// Write sniffs path, then rewrites its tags and pictures through the
-// seam registry's row for the format Sniff reports. A format Sniff
-// does not recognize, including a FLAC file once the registry has
-// been emptied of its FLAC row, hands back [ErrUnsupportedContainer]
-// unchanged and never opens path for writing.
+// Write rewrites path's tags and pictures. Every key ts owns is
+// replaced, a comment's field name matching case insensitively as RFC
+// 9639 section 8.6 requires, and every other comment survives in place
+// and in order.
+//
+// pictures carries three states: nil leaves path's pictures untouched,
+// a non-nil empty slice strips every picture, and a non-empty slice
+// replaces the whole set in the order passed. Each picture's media
+// type is sniffed from its data and overrides the declared one, and
+// its geometry is written as zero.
+//
+// A file Sniff does not recognize hands back Sniff's
+// [ErrUnsupportedContainer] unchanged. That refusal, a malformed
+// container, and a picture whose data matches no recognized image
+// format all come back before path is opened for writing, so a refusal
+// never half-writes a file. Every block this package does not own
+// survives, and one fresh PADDING block always ends the chain. The
+// rewrite is atomic, so a crash or a concurrent reader never sees a
+// partial file, and mode is the file's mode afterwards.
 func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
-	entry, err := resolveEntry(path)
-	if err != nil {
+	if _, err := Sniff(path); err != nil {
 		return err
 	}
-	if entry.write == nil {
-		return fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
-	}
-	return entry.write(path, ts, pictures, mode)
+	return writeFLAC(path, ts, pictures, mode)
 }
 
-// writeFLAC is FLAC's seam registry row for Write: every key ts owns
-// is replaced, matching a comment's field name case insensitively as
-// RFC 9639 section 8.6 requires, and every other comment survives in
-// place and in order (C8). pictures carries R1's three caller states:
-// nil leaves path's existing pictures untouched, a non-nil empty
-// slice strips every picture, and a non-empty slice replaces the
-// whole set in the order passed (P8). Every picture's media type is
-// sniffed from its own data and overrides whatever the caller
-// declared (P7), and every picture's geometry is written as zero
-// regardless of what the caller carried (P6). writeFLAC refuses a
-// malformed container, or a picture whose data matches no recognized
-// image format, before path is ever opened for writing (C7, C14), so
-// a refusal never half-writes a file, and every block this package
-// does not own survives under a re-emitted header, with the
-// last-block flag owned by the trailing PADDING block this write
-// always appends (C10, C11). mode is the file's mode after the write,
-// passed straight through to the rename rather than inherited from a
-// temp file's default. The rewrite goes through atomicfile.WriteStream
-// (C13), so a crash or a concurrent reader never observes a partial
-// file.
+// writeFLAC is Write for a FLAC file: it parses the container, plans the
+// block chain, and streams the rewrite through atomicfile.
 func writeFLAC(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
 	c, err := Parse(path)
 	if err != nil {
@@ -88,36 +72,19 @@ func writeFLAC(path string, ts TagSet, pictures []Picture, mode os.FileMode) err
 }
 
 // writeBlock is one block Write is about to emit: its type and its
-// final payload. Every writeBlock carries the last-block flag cleared;
-// only the trailing PADDING block writeBlocks appends carries it.
+// final payload.
 type writeBlock struct {
 	Type    byte
 	Payload []byte
 }
 
 // planBlocks decides the block chain Write emits, without the trailing
-// PADDING block. Every block in c.Blocks survives in place, except
-// every PADDING block, which is dropped outright (rulings 5 and 6);
-// the VORBIS_COMMENT block, which is replaced with ts merged onto
-// whatever comments c already carries (C8), keeping its loaded vendor;
-// and PICTURE, whose fate depends on replacePictures (P8, R1). A
-// container carrying no VORBIS_COMMENT block gets one created fresh,
-// with a fresh vendor, immediately after STREAMINFO (C9a): hasComment
-// is resolved once, ahead of the loop, so that placement happens
-// exactly once regardless of where the loop is when it learns
-// STREAMINFO has gone by.
-//
-// replacePictures is pictures != nil, resolved by the caller so this
-// function only ever sees a bool and the already-encoded newPictures
-// (R1's nil-vs-non-nil-empty distinction is Write's to make, not
-// planBlocks's). When it is false, every incoming PICTURE block
-// survives untouched: the leave-alone state. When it is true, every
-// incoming PICTURE block is dropped and newPictures takes its place:
-// the first incoming PICTURE block's own position if one existed,
-// replacing it in place, or after VORBIS_COMMENT and before the
-// trailing PADDING block if none did (P8), which planBlocks gets for
-// free by appending newPictures once the loop over c.Blocks ends
-// without ever having placed it.
+// PADDING block. Every block survives in place except PADDING, which
+// is dropped; VORBIS_COMMENT, which carries ts merged onto c's
+// comments under c's vendor, or is created fresh right after
+// STREAMINFO; and PICTURE, which survives when replacePictures is
+// false and otherwise gives way to newPictures, placed where the first
+// incoming PICTURE sat or at the end.
 func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writeBlock) []writeBlock {
 	hasComment, vendor := false, freshVendor()
 	for _, b := range c.Blocks {
@@ -163,18 +130,13 @@ func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writ
 	return out
 }
 
-// mergeComments applies Serialize(ts)'s per-field instructions to
-// existing, one field at a time in Serialize's own order: a field's
-// owned keys are deleted case insensitively wherever they currently
-// sit, then the field's fresh comments are appended at the running
-// end. A key no field in ts owns, such as a foreign tagger's comment,
-// is never touched by any delete and so survives untouched; a field
-// this write leaves absent deletes its keys and appends nothing.
-// Running every field's delete-then-append in Serialize's fixed order
-// is also what resolves the three colliding pairs (C3): the plural
-// field always serializes after the singular it shares a key with, so
-// its delete removes the singular's comments and its append leaves
-// the plural's values in their place.
+// mergeComments applies Serialize(ts) to existing one field at a time,
+// in Serialize's order: the field's keys are deleted case insensitively
+// wherever they sit, then its fresh comments are appended. A key no
+// field owns, such as a foreign tagger's, is never deleted. Because a
+// colliding pair's plural serializes after its singular, the plural's
+// delete removes the singular's comments and its values take their
+// place.
 func mergeComments(existing []Comment, ts TagSet) []Comment {
 	out := append([]Comment(nil), existing...)
 	for _, kw := range Serialize(ts) {
@@ -200,8 +162,6 @@ func deleteKeys(cs []Comment, keys []string) []Comment {
 	return out
 }
 
-// matchesAnyKey reports whether name matches one of keys, case
-// insensitively.
 func matchesAnyKey(name string, keys []string) bool {
 	for _, k := range keys {
 		if strings.EqualFold(name, k) {
@@ -211,31 +171,10 @@ func matchesAnyKey(name string, keys []string) bool {
 	return false
 }
 
-// encodeVorbisComment lays out a VORBIS_COMMENT payload: the vendor
-// string, the comment count, then each comment's own length-prefixed
-// "NAME=VALUE" bytes, little-endian throughout (RFC 9639 section 8.6).
-func encodeVorbisComment(vendor string, comments []Comment) []byte {
-	buf := appendVorbisField(nil, vendor)
-	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(comments)))
-	for _, c := range comments {
-		buf = appendVorbisField(buf, c.Name+"="+c.Value)
-	}
-	return buf
-}
-
-// appendVorbisField appends s to buf as a little-endian uint32 length
-// prefix followed by s's bytes.
-func appendVorbisField(buf []byte, s string) []byte {
-	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(s)))
-	return append(buf, s...)
-}
-
-// freshVendor names a vendor string for a container that carries no
-// VORBIS_COMMENT block yet: vendorPrefix followed by the main module's
-// build version, resolved once from the build information the
-// toolchain already embeds. A test binary and an unmodulated `go
-// build` both report no usable version, so both fall back to
-// developmentVendorMarker (R9).
+// freshVendor names the vendor of a VORBIS_COMMENT block this package
+// creates: vendorPrefix and the main module's version, or
+// developmentVendorMarker when the build embeds none, as a test binary
+// and an unmodulated go build do.
 func freshVendor() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok || info.Main.Version == "" || info.Main.Version == "(devel)" {
@@ -245,9 +184,8 @@ func freshVendor() string {
 }
 
 // writeBlocks emits the FLAC signature, every block in blocks with the
-// last-block flag cleared, then the trailing PADDING block that
-// carries it (C11): PADDING is always the last block a write emits,
-// and it is the only block that owns the flag.
+// last-block flag cleared, then the trailing PADDING block, the only
+// block that carries the flag.
 func writeBlocks(w io.Writer, blocks []writeBlock) error {
 	if _, err := w.Write([]byte(flacSignature)); err != nil {
 		return fmt.Errorf("tagio: write signature: %w", err)
@@ -260,31 +198,18 @@ func writeBlocks(w io.Writer, blocks []writeBlock) error {
 	return emitBlock(w, blockPadding, true, make([]byte, paddingSize))
 }
 
-// maxBlockPayload is the largest payload a three-byte length field can
-// declare (RFC 9639 section 8.1): 1<<24 bytes and above overflow it.
+// maxBlockPayload is the smallest payload a block header's three-byte
+// length field cannot declare (RFC 9639 section 8.1).
 const maxBlockPayload = 1 << 24
 
-// checkBlockPayloadSize reports [ErrMalformedContainer] when length
-// cannot fit emitBlock's three-byte length field, taking the length
-// alone so a test can grade the boundary without allocating a
-// maxBlockPayload-sized slice.
-func checkBlockPayloadSize(length int) error {
-	if length >= maxBlockPayload {
-		return fmt.Errorf("tagio: block payload %d bytes: %w", length, ErrMalformedContainer)
-	}
-	return nil
-}
-
-// emitBlock writes one block header, RFC 9639 section 8.1's
-// last-block flag in the header's top bit and the type in its low
-// seven bits, then the payload's length as a three-byte big-endian
-// integer, followed by payload itself. A payload at or beyond
-// maxBlockPayload cannot fit the three-byte length field, so emitBlock
-// refuses it before writing anything.
+// emitBlock writes one block header, the last-block flag in its top bit
+// and the type in its low seven, then the payload's three-byte
+// big-endian length and the payload itself. A payload too long for the
+// length field is refused before anything is written.
 func emitBlock(w io.Writer, blockType byte, last bool, payload []byte) error {
 	length := len(payload)
-	if err := checkBlockPayloadSize(length); err != nil {
-		return err
+	if length >= maxBlockPayload {
+		return fmt.Errorf("tagio: block payload %d bytes: %w", length, ErrMalformedContainer)
 	}
 	header := blockType
 	if last {
@@ -299,18 +224,26 @@ func emitBlock(w io.Writer, blockType byte, last bool, payload []byte) error {
 	return nil
 }
 
-// copyFrameRegion copies path's frame region, at the offset and length
-// Parse recorded, straight into w: a section reader over the source
-// file feeding io.Copy, never a []byte holding the whole region, so
-// the audio is untouched (C12) and the region's cost stays fixed
-// regardless of the file's size (C13).
+// appendLengthPrefixed appends s to buf behind its length as a uint32
+// in order, the framing VORBIS_COMMENT and PICTURE share apart from
+// byte order.
+func appendLengthPrefixed(order binary.AppendByteOrder, buf []byte, s string) []byte {
+	buf = order.AppendUint32(buf, uint32(len(s)))
+	return append(buf, s...)
+}
+
+// copyFrameRegion copies path's frame region into w through a section
+// reader, so the audio is never held in memory whatever its size. It
+// uses CopyN because a section reader over a file that has shrunk
+// since the parse ends early without an error, and a short copy would
+// otherwise be renamed into place as a truncated FLAC.
 func copyFrameRegion(w io.Writer, path string, offset, length int64) error {
 	src, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("tagio: open %s: %w", path, err)
 	}
 	defer func() { _ = src.Close() }()
-	if _, err := io.Copy(w, io.NewSectionReader(src, offset, length)); err != nil {
+	if _, err := io.CopyN(w, io.NewSectionReader(src, offset, length), length); err != nil {
 		return fmt.Errorf("tagio: copy frame region of %s: %w", path, err)
 	}
 	return nil

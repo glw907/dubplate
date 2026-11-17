@@ -45,8 +45,8 @@ func NewCandidates() *Candidates {
 }
 
 // requiredFields resolves match.required's accepted names to a check
-// of the corresponding [AlbumInfo] field's Go zero value, resolving
-// Resolution R6. It carries exactly the thirteen scalar AlbumInfo
+// of the corresponding [AlbumInfo] field's Go zero value. It carries
+// exactly the thirteen scalar AlbumInfo
 // field names; Tracks is excluded on purpose, because gate 1 already
 // drops a zero-track candidate before this gate runs, so naming it
 // here could never change an outcome.
@@ -61,10 +61,10 @@ func NewCandidates() *Candidates {
 // so required: [va] filters nothing in beets and would drop every
 // non-VA release here. The three int fields (year, original_year,
 // mediums) carry a weaker form of the same, since beets can hold None
-// there; 3b's guard 2 settled that no rung 3 source produces
-// an empty-but-present field, because internal/engine/musicbrainz is
-// the only translation source and every field it writes comes from a
-// Go decode that yields "" rather than a null. That condition reopens
+// there. No present source produces an empty-but-present field,
+// because internal/engine/musicbrainz is the only translation source
+// and every field it writes comes from a Go decode that yields ""
+// rather than a null. That condition reopens
 // the moment a second metadata source arrives, and the translation
 // tier's three nullStrict fields would catch it.
 var requiredFields = map[string]func(*AlbumInfo) bool{
@@ -88,7 +88,7 @@ var requiredFields = map[string]func(*AlbumInfo) bool{
 // (match.py:345-375). It returns an error only for a malformed Tunables
 // value Validate would also have caught.
 //
-// The five gates run in beets' fixed order (contract V7). Gate 1 (zero
+// The five gates run in beets' fixed order. Gate 1 (zero
 // tracks) runs before gate 2 (duplicate) because match.py:345-352 runs
 // them in that order; the swap is NOT observable through Add on a
 // zero-track duplicate, since both gates return (false, nil) with no
@@ -112,7 +112,7 @@ func (c *Candidates) Add(tun Tunables, items []ItemFields, info *AlbumInfo, eval
 	}
 
 	id := identity{Source: info.DataSource, AlbumID: info.AlbumID}
-	if info.AlbumID != "" { // gate 2: duplicate drop (match.py:350-352, contract V10)
+	if info.AlbumID != "" { // gate 2: duplicate drop (match.py:350-352)
 		if _, seen := c.byID[id]; seen {
 			return false, nil
 		}
@@ -128,16 +128,19 @@ func (c *Candidates) Add(tun Tunables, items []ItemFields, info *AlbumInfo, eval
 		}
 	}
 
-	assignment := AssignItems(tun, items, info.Tracks)
-	pairs := AlbumPairsFor(assignment, items, info)
-	dist := DistanceForAlbum(items, info, pairs, tun, evalDate) // gate 4: score
+	assignment := assignItems(tun, items, info.Tracks)
+	pairs := albumPairsFor(assignment, items, info)
+	dist, err := distanceForAlbum(items, info, pairs, tun, evalDate) // gate 4: score
+	if err != nil {
+		return false, err
+	}
 
-	// gate 5: match.ignored reads the NONZERO view (contract V8). beets
+	// gate 5: match.ignored reads the NONZERO view. beets
 	// iterates Distance.items(), which omits zero-weighted penalties
 	// (distance.py:190-205, 240-241); AddedKeys and PerKey are the
 	// other view, and tier 1 cannot catch a wrong choice here because
 	// match.ignored is corpus-unreachable.
-	nonzero := dist.NonzeroKeys()
+	nonzero := dist.nonzeroKeys()
 	for _, name := range tun.Ignored {
 		if slices.Contains(nonzero, name) {
 			return false, nil
@@ -170,7 +173,7 @@ func (c *Candidates) All() []Candidate {
 // Python's stable Timsort). Corpus reach: exactly two cases carry an
 // exact candidate-distance tie, should-ask and should-reject, and in
 // both the tie group's recorded order equals the order the case logged
-// its release lookups (contract V11).
+// its release lookups.
 func (c *Candidates) Sorted() []Candidate {
 	out := c.All()
 	slices.SortStableFunc(out, func(a, b Candidate) int {

@@ -21,12 +21,5 @@
       "path_query": "/ws/2/release/00000000-0000-0000-0000-000000000002?fmt=json",
       "response": "responses/002.json"
     }
-  ],
-  "extra": [
-    {
-      "method": "GET",
-      "path_query": "/ws/2/release?fmt=json&query=fixture",
-      "response": "responses/003.json"
-    }
   ]
 }

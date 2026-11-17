@@ -1,6 +1,6 @@
 //go:build oracle
 
-// defect_free.go is the Go half of ruling A / M6's defect_free block:
+// defect_free.go is the Go half of the defect_free block:
 // it hands derive_defect_free.py the string-heuristic subjects' own
 // committed release response and item set in one process, since
 // (unlike a rendered-profile derivation) nothing here touches beets'

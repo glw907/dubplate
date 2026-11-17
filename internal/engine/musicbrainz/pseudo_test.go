@@ -42,6 +42,24 @@ func TestPseudoReleaseTarget_ExactStatusAndRelationPredicate(t *testing.T) {
 	}
 }
 
+// TestPseudoReleaseTarget_TakesTheFirstBackwardTranslation proves the
+// filter keeps response order: relations of other target types and
+// directions interleave with two backward translations, and the first in
+// response order wins.
+func TestPseudoReleaseTarget_TakesTheFirstBackwardTranslation(t *testing.T) {
+	rel := &Release{Status: "Pseudo-Release", Relations: []Relation{
+		{TargetType: "url", Type: "transl-tracklisting", Direction: "backward"},
+		{TargetType: "release", Type: "transl-tracklisting", Direction: "forward"},
+		{TargetType: "release", Type: "transl-tracklisting", Direction: "backward", Release: &RelationTarget{ID: "first"}},
+		{TargetType: "release", Type: "transl-tracklisting", Direction: "backward", Release: &RelationTarget{ID: "second"}},
+	}}
+
+	gotID, gotOK := PseudoReleaseTarget(rel)
+	if gotID != "first" || !gotOK {
+		t.Errorf("PseudoReleaseTarget() = (%q, %v), want (\"first\", true)", gotID, gotOK)
+	}
+}
+
 // allSevenDifferPseudo and allSevenDifferActual are hand-authored
 // AlbumInfo values, not corpus-derived: T12 records that Year,
 // OriginalYear, and Mediums were already equal on all four committed

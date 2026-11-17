@@ -103,7 +103,7 @@ func (p *flexPosition) UnmarshalJSON(data []byte) error {
 
 // capturedRelease is the WS/2 release document decode shape
 // [ProjectItems] and [ExtractFacts] both read: the fields a baseline
-// item set needs plus the structural facts Task 3's fact-verified axes
+// item set needs plus the structural facts the fact-verified axes
 // confirm (Status, ReleaseGroup, Aliases). Every other field a maximal
 // `inc=` lookup returns (genres, cover-art-archive, tags, ...) is
 // simply ignored by encoding/json rather than modeled here.
@@ -214,11 +214,10 @@ func trackArtist(tr capturedTrack, fallback string) string {
 }
 
 // Facts is the structural fact set a captured release document
-// carries that Task 3's fact-verified axes (reissue/remaster,
+// carries that the fact-verified axes (reissue/remaster,
 // multi-disc/box-set, non-Latin, two-release) confirm through
 // `harness seed-items --facts` rather than by reading responses/
-// directly (corpus/README.md, "The seed-items tool"; the plan's
-// Global Constraints).
+// directly (corpus/README.md, "The seed-items tool").
 type Facts struct {
 	Date                  string
 	ReleaseGroupFirstDate string

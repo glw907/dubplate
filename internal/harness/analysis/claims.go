@@ -82,7 +82,7 @@ func (c *Claims) declaresZeroCandidates() bool {
 // claimed zero must be present in the record at 0.0 rather than absent:
 // beets adds a key at 0.0 and still counts it in the normalizer's
 // denominator, so "added at zero" and "never added" are different facts
-// about a case (the mechanics study, Q2).
+// about a case.
 func CheckClaims(exp *cassette.Expected, c *Claims) error {
 	var errs []error
 	errs = append(errs, checkRecommendation(exp, c)...)

@@ -4,16 +4,12 @@ package matcher
 // reproduces pinned beets' defect or the adjudicated corrected
 // behavior. A true field means "reproduce beets".
 //
-// One class and no more. Of corpus/analysis/oracle_bugs.json's
-// oracle-wrong and no-correct-answer hypotheses, only
-// bug-remix-parenthetical has a fix a port can express:
-// bug-nonlatin-alias-selection's corrected verdict is an applied artist
-// string the matcher computes none of, and bug-assignment-rejection-gap
-// needs a per-pair rejection mechanism beets does not have at all,
-// which is why it carries no correct answer for the oracle to have
-// produced rather than a corrected verdict the matcher merely fails to
-// express. Both are recorded as improvements-register items rather than
-// shipped as switches nobody can flip.
+// Of corpus/analysis/oracle_bugs.json's oracle-wrong and
+// no-correct-answer hypotheses, only bug-remix-parenthetical has a fix
+// the matcher can express. bug-nonlatin-alias-selection needs an applied
+// artist string and bug-assignment-rejection-gap a per-pair rejection,
+// neither of which the matcher computes, so both are
+// improvements-register items rather than switches nobody can flip.
 type Compat struct {
 	// RemixParenthetical reproduces bug-remix-parenthetical: the two
 	// 0.3-weight bracket discounts.
@@ -46,7 +42,7 @@ func DefaultCompat() Compat {
 // StringDistPatterns.
 func (c Compat) Apply(tun Tunables) Tunables {
 	if c.RemixParenthetical {
-		tun.StringDistPatterns = BeetsSDPatterns
+		tun.StringDistPatterns = beetsSDPatterns
 		return tun
 	}
 	tun.StringDistPatterns = SDPatternsNoBracketDiscount

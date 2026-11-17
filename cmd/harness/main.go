@@ -1,12 +1,12 @@
 // Command harness is dubplate's workstation-only dev tool for the
-// conformance corpus's capture-derive loop (rung 2's cassette
+// conformance corpus's capture-derive loop (the cassette
 // substrate). It is never shipped, and the repository gate never runs
 // it against the live network: `go test` exercises only its request
 // planning and file I/O against fakes.
 //
 //   - capture --mbid <release> --out <dir>: seeds a case by fetching
 //     one release lookup, and, for a Pseudo-Release, its linked
-//     actual release too, at beets' own maximal inc= (U6).
+//     actual release too, at beets' own maximal inc=.
 //   - capture --case <dir>: fetches exactly the requests a
 //     derivation's stub could not answer, appending each to the case.
 //   - freeze --case <dir>: derives a case and writes its expected
@@ -37,8 +37,8 @@
 //     and writes the report, failing on any unledgered finding.
 //
 // Every live request carries the identified User-Agent
-// corpus/README.md documents; the tool refuses to run at all when
-// DUBPLATE_HARNESS_CONTACT is unset.
+// corpus/README.md documents; capture, the one command that sends live
+// requests, refuses to run when DUBPLATE_HARNESS_CONTACT is unset.
 package main
 
 import (

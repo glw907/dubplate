@@ -1,8 +1,7 @@
 // Package synth turns a compact release spec into a synthetic
 // conformance-corpus case: a single ID-lookup request against an
 // invented MusicBrainz release, and the pinned item set beets matches
-// against it. It is the tool the case-authoring tasks (rung 2, pass
-// 2b, Tasks 4 through 13) call to generate every structural-stratum
+// against it. It is the tool the case-authoring work calls to generate every structural-stratum
 // case, per corpus/README.md's "The synth tool" section.
 //
 // A ReleaseSpec names one release: album, artist, date, country, and a

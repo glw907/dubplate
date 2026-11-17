@@ -35,10 +35,10 @@ func (r Recommendation) String() string {
 	}
 }
 
-// ParseRecommendation resolves one of the four names beets' as_choice
+// parseRecommendation resolves one of the four names beets' as_choice
 // accepts (match.py:313-320), returning an error wrapping
 // ErrInvalidTunable for anything else.
-func ParseRecommendation(s string) (Recommendation, error) {
+func parseRecommendation(s string) (Recommendation, error) {
 	switch s {
 	case "none":
 		return RecNone, nil
@@ -66,39 +66,32 @@ const (
 	ActionAsk   Action = "ask"
 )
 
-// ParseAction resolves an action name to an Action, returning an error
-// wrapping ErrInvalidTunable for anything else. It is the shared lexer
-// and never the membership check: beets accepts only skip and asis for
-// import.quiet_fallback (session.py:341) and skip, asis and ask for
-// import.none_rec_action (session.py:348-350), so Validate and
-// ActionFor test membership per key against those two sets. A shared
-// four-name set would bless quiet_fallback: apply, which confuse
-// raises on (fold M-d).
-func ParseAction(s string) (Action, error) {
-	switch Action(s) {
-	case ActionApply, ActionSkip, ActionAsIs, ActionAsk:
-		return Action(s), nil
-	default:
-		return "", fmt.Errorf("action %q: %w", s, ErrInvalidTunable)
-	}
-}
-
-// LegalQuietFallbacks and LegalNoneRecActions are those two sets, each
-// citing the as_choice call it mirrors. They are exported so
-// Tunables.Validate and ActionFor test the same membership and a
-// reader can see that they differ on purpose.
+// quietFallbacks and noneRecActions are the as_choice sets beets
+// resolves import.quiet_fallback and import.none_rec_action against.
+// They differ on purpose: a shared set would bless quiet_fallback:
+// apply, which confuse raises on.
 var (
-	// LegalQuietFallbacks mirrors as_choice({"skip": SKIP, "asis": ASIS})
-	// (session.py:340-342).
-	LegalQuietFallbacks = []Action{ActionSkip, ActionAsIs}
-	// LegalNoneRecActions mirrors
+	// as_choice({"skip": SKIP, "asis": ASIS})
+	// (ui/commands/import_/session.py:377-379).
+	quietFallbacks = []Action{ActionSkip, ActionAsIs}
 	// as_choice({"skip": SKIP, "asis": ASIS, "ask": None})
-	// (session.py:346-352).
-	LegalNoneRecActions = []Action{ActionSkip, ActionAsIs, ActionAsk}
+	// (ui/commands/import_/session.py:383-389).
+	noneRecActions = []Action{ActionSkip, ActionAsIs, ActionAsk}
 )
 
-// Recommend is _recommendation (autotag/match.py:269-323). cands must be
-// Candidates.Sorted's output; an empty slice returns RecNone.
+// resolveAction resolves name, the value of config key key, against
+// legal, the as_choice set beets accepts for that key, returning an
+// error wrapping ErrInvalidTunable for any other name.
+func resolveAction(key, name string, legal []Action) (Action, error) {
+	if !slices.Contains(legal, Action(name)) {
+		return "", fmt.Errorf("%s: %q: %w", key, name, ErrInvalidTunable)
+	}
+	return Action(name), nil
+}
+
+// Recommend is _recommendation (autotag/match.py:269-323). It grades
+// cands[0] and measures the gap to cands[1], in whatever order the
+// caller chose; an empty slice returns RecNone.
 //
 // The three thresholds are asymmetric on purpose: strong compares with a
 // strict < and medium with an inclusive <= (match.py:285, 288). That
@@ -122,7 +115,7 @@ func Recommend(tun Tunables, cands []Candidate) (Recommendation, error) {
 		rec = RecLow
 	default:
 		// Return immediately. Can't be downgraded any further
-		// (match.py:300-302, contract V13).
+		// (match.py:300-302).
 		return RecNone, nil
 	}
 
@@ -131,25 +124,26 @@ func Recommend(tun Tunables, cands []Candidate) (Recommendation, error) {
 
 // downgrade applies match.py:304-322's min(rec, max_rec) ladder. The
 // key set against which max_rec is APPLIED is the NONZERO view, unioned
-// with every track sub-distance's own nonzero keys (contract V14): a
-// key added at 0.0 never downgrades.
+// with every track sub-distance's nonzero keys: a key added at 0.0
+// never downgrades.
 //
 // The candidate's own key union drives the walk, and only the max_rec
 // entries whose key is present in it are resolved (match.py:309-316):
 // keys is set(min_dist.keys()), and the loop tests key in max_rec_view
 // before calling as_choice, so an unparseable level on a key no
 // candidate touches is never reached and never reported. tun.MaxRec is
-// NOT walked in full: 3d does not own eager validation of every
-// configured max_rec entry, only beets' own lazy resolution of the
-// ones a candidate's keys select. keys is walked in sorted order so a
+// NOT walked in full here: eager validation of every configured
+// max_rec entry is [Tunables.Validate]'s job, and this reproduces only
+// beets' lazy resolution of the ones a candidate's keys select. keys
+// is walked in sorted order so a
 // failure is reproducible even though map iteration order is not.
 func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation, error) {
 	keys := make(map[string]struct{})
-	for _, key := range dist.NonzeroKeys() {
+	for _, key := range dist.nonzeroKeys() {
 		keys[key] = struct{}{}
 	}
 	for _, track := range dist.Tracks {
-		for _, key := range track.Dist.NonzeroKeys() {
+		for _, key := range track.Dist.nonzeroKeys() {
 			keys[key] = struct{}{}
 		}
 	}
@@ -159,7 +153,7 @@ func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation
 		if !present {
 			continue
 		}
-		capped, err := ParseRecommendation(level)
+		capped, err := parseRecommendation(level)
 		if err != nil {
 			return 0, fmt.Errorf("max_rec[%q]: %w", key, err)
 		}
@@ -169,26 +163,19 @@ func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation
 }
 
 // ActionFor is _summary_judgment
-// (beets/ui/commands/import_/session.py:328-360).
+// (beets/ui/commands/import_/session.py:365-396).
 //
 // The quiet branch is tested FIRST, so Timid and NoneRecAction are
 // unreachable whenever Quiet is set. Every committed corpus record was
 // derived with quiet forced true (derive_oracle.py:204), so the corpus
-// grades two of this function's five outcomes and the rest are graded
-// by the table below.
+// grades two of this function's five outcomes; the unit tests grade
+// the rest.
 func ActionFor(tun Tunables, rec Recommendation) (Action, error) {
 	if tun.Quiet {
 		if rec == RecStrong {
 			return ActionApply, nil
 		}
-		fallback, err := ParseAction(tun.QuietFallback)
-		if err != nil {
-			return "", err
-		}
-		if !slices.Contains(LegalQuietFallbacks, fallback) {
-			return "", fmt.Errorf("import.quiet_fallback: %q: %w (session.py:340-342)", tun.QuietFallback, ErrInvalidTunable)
-		}
-		return fallback, nil
+		return resolveAction("import.quiet_fallback", tun.QuietFallback, quietFallbacks)
 	}
 
 	if tun.Timid {
@@ -196,14 +183,7 @@ func ActionFor(tun Tunables, rec Recommendation) (Action, error) {
 	}
 
 	if rec == RecNone {
-		action, err := ParseAction(tun.NoneRecAction)
-		if err != nil {
-			return "", err
-		}
-		if !slices.Contains(LegalNoneRecActions, action) {
-			return "", fmt.Errorf("import.none_rec_action: %q: %w (session.py:346-350)", tun.NoneRecAction, ErrInvalidTunable)
-		}
-		return action, nil
+		return resolveAction("import.none_rec_action", tun.NoneRecAction, noneRecActions)
 	}
 
 	return ActionAsk, nil

@@ -14,16 +14,8 @@ const variousArtistsID = "89ad4ac3-39f7-470e-963a-56509c546377"
 // that this port needs, and no others. Artist reaches
 // matcher.AlbumInfo and matcher.TrackInfo; ArtistID is here because the
 // various-artists override is keyed on the first artist's id
-// (musicbrainz.py:673-681). artist_sort is deliberately NOT produced:
-// beets computes it at musicbrainz.py:337, but R6 puts it in rung 8's
-// applied-field territory and out of the ruling-E ledger's graded set,
-// so carrying it here would be tested dead data of exactly the shape
-// 3a's close had to remove (fold, M-i).
-//
-// artist_credit is absent for the same reason and one more: it is the
-// only field whose value depends on musicbrainz.aliases_as_credits,
-// which R8 keeps out of Tunables, so producing the string would need a
-// knob nothing else reads.
+// (musicbrainz.py:673-681). The matcher reads neither artist_sort
+// (musicbrainz.py:337) nor artist_credit, so neither is produced.
 type credits struct {
 	Artist   string
 	ArtistID string
@@ -41,12 +33,9 @@ type credits struct {
 // rather than from the credit element. The credit element's own display
 // name feeds artist_credit alone, which credits does not carry.
 //
-// Callers pass a credit list Validate has accepted, at the release level
+// Callers pass a credit list validate has accepted, at the release level
 // and at every surviving track's resolved level both, so the empty-list
 // case that raises IndexError at musicbrainz.py:350 cannot reach here.
-// Revision 1 claimed that guarantee against a Validate that checked the
-// release level only, which left this function indexing element zero of
-// an empty slice on track and recording credits (fold, M-d).
 func parseArtistCredits(parts []CreditPart, tun matcher.Tunables) credits {
 	var artist strings.Builder
 	for _, part := range parts {
@@ -64,8 +53,8 @@ func parseArtistCredits(parts []CreditPart, tun matcher.Tunables) credits {
 // applyVariousArtists overwrites c's artist strings with tun.VAName
 // when c names the various-artists entity, mirroring
 // musicbrainz.py:673-681, and reports whether it fired. The report is
-// AlbumInfo.VA, which the album artist component reads to skip itself
-// entirely (matcher/album_artist.go:13-15).
+// AlbumInfo.VA, which the matcher's addAlbumArtist reads to skip the
+// album artist component entirely.
 func applyVariousArtists(c credits, tun matcher.Tunables) (credits, bool) {
 	if c.ArtistID != variousArtistsID {
 		return c, false

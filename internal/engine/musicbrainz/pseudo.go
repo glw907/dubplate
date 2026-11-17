@@ -10,24 +10,32 @@ const pseudoReleaseStatus = "Pseudo-Release"
 // merged into rel's, and whether rel is a pseudo-release at all,
 // mirroring album_for_id's own check (beetsplug/musicbrainz.py:785-798):
 // rel.Status is exactly "Pseudo-Release" and some release relation
-// carries type "transl-tracklisting" with direction "backward". The
-// relation key exists only because GroupRelations regrouped it, so this
-// predicate depends on that pass having run.
+// carries type "transl-tracklisting" with direction "backward".
 //
-// The FETCH of that release is 3c's client work; 3b exports the
-// predicate so 3c calls it, and merges over two already-built AlbumInfo
-// values.
+// The fetch of that release is the client's work; this predicate names
+// the target and MergePseudoRelease merges over two already-built
+// AlbumInfo values.
 func PseudoReleaseTarget(rel *Release) (releaseID string, ok bool) {
 	if rel.Status != pseudoReleaseStatus {
 		return "", false
 	}
 
-	for _, r := range GroupRelations(rel.Relations)["release"] {
-		if r.Type == "transl-tracklisting" && r.Direction == "backward" {
+	for _, r := range rel.Relations {
+		if isTranslSource(r) {
 			return r.Release.ID, true
 		}
 	}
 	return "", false
+}
+
+// isTranslSource reports whether r is a release relation of type
+// "transl-tracklisting" pointing backward, the link from a pseudo-release
+// to the release it translates. beets reads these through the
+// release_relations group it regroups out of the generic relations array
+// (beetsplug/_utils/musicbrainz.py:759-772); filtering by target type
+// here gives the same relations in the same response order.
+func isTranslSource(r Relation) bool {
+	return r.TargetType == "release" && r.Type == "transl-tracklisting" && r.Direction == "backward"
 }
 
 // MergePseudoRelease folds an actual release's own fields into a
