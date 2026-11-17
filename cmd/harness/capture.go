@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
-	"github.com/glw907/dubplate/internal/harness/mbrequest"
 	"github.com/glw907/dubplate/internal/harness/stub"
 	"github.com/spf13/cobra"
 )
@@ -297,10 +296,7 @@ func writeResponse(dir string, n int, body []byte) (string, error) {
 // release lookup: fmt=json forced, inc= carrying beets' own full
 // RELEASE_INCLUDES list.
 func releaseRequest(mbid string) string {
-	return mbrequest.CanonicalizeQuery("/ws/2/release/"+mbid, map[string]string{
-		"fmt": "json",
-		"inc": mbrequest.MaximalReleaseInclude,
-	})
+	return cassette.ReleaseLookup(mbid)
 }
 
 // pseudoReleaseFollowUp reports the actual release id a Pseudo-Release

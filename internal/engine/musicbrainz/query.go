@@ -14,14 +14,14 @@ import (
 // a literal "+" at request time (:634-635).
 //
 // This is deliberately a SECOND definition of a string
-// internal/harness/mbrequest already carries (mbrequest.go:22-24), and it
-// must stay one. mbrequest is what the capture tool and the synth tool
-// use to PRODUCE a committed request; the committed request log is the
-// expectation and this list is the system under test. One shared
-// definition would make internal/harness/conform's request grading a
-// self-derived expectation, which is the anti-pattern the conformance run
-// exists to catch. The two copies are independent on purpose and the
-// conformance run is what proves they agree.
+// internal/harness/cassette also carries (maximalReleaseInclude), and it
+// must stay one. cassette.ReleaseLookup is what the capture tool and the
+// synth tool use to PRODUCE a committed request; the committed request
+// log is the expectation and this list is the system under test. One
+// shared definition would make the conformance run's request check a
+// self-derived expectation, which is the anti-pattern that run exists to
+// catch. The two copies are independent on purpose and the conformance
+// run is what proves they agree.
 var releaseIncludes = []string{
 	"artists", "media", "recordings", "release-groups", "labels",
 	"artist-credits", "aliases", "recording-level-rels", "work-rels",

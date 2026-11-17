@@ -20,13 +20,6 @@ import (
 	"github.com/glw907/dubplate/internal/harness/stub"
 )
 
-// releaseLookupPrefix is the WS/2 path a release lookup by id starts
-// with. The search endpoint is /ws/2/release? and never matches it, so
-// a search request contributes no ledger row: T1's translation contract
-// establishes that a search hit reaches album_info through album_for_id
-// anyway, once per id.
-const releaseLookupPrefix = "/ws/2/release/"
-
 // albumInfoInput is the envelope derive_album_info.py reads: the case's
 // pinned date plus the release ids to translate, in log order.
 type albumInfoInput struct {
@@ -99,7 +92,7 @@ func releaseLookups(c *cassette.Case) []string {
 	var mbids []string
 	seen := make(map[string]bool, len(c.Requests))
 	for _, req := range c.Requests {
-		rest, ok := strings.CutPrefix(req.PathQuery, releaseLookupPrefix)
+		rest, ok := strings.CutPrefix(req.PathQuery, cassette.ReleaseLookupPrefix)
 		if !ok {
 			continue
 		}

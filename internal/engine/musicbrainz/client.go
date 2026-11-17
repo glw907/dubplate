@@ -23,10 +23,10 @@ const defaultBaseURL = "https://musicbrainz.org"
 // wsPathPrefix is the WS/2 root beets always appends to api_host
 // (beetsplug/_utils/musicbrainz.py:609-610). This is deliberately a
 // second, independent copy of the "/ws/2" literal
-// internal/harness/mbrequest also carries: internal/harness may import
+// internal/harness/cassette also carries: internal/harness may import
 // internal/engine but never the reverse, and sharing one definition
 // between the system under test and the committed-request producer
-// would make the request grading a self-derived expectation (query.go's
+// would make the request check a self-derived expectation (query.go's
 // releaseIncludes doc comment gives the same reason for that constant).
 const wsPathPrefix = "/ws/2"
 

@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
@@ -94,7 +93,7 @@ func New(c *cassette.Case, dir string) (*Server, error) {
 // ServeHTTP replays the response filed under the request's canonical
 // path+query, or records a [Miss] and answers 404 if the log lacks it.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	pathQuery := canonicalize(r.URL.EscapedPath(), r.URL.RawQuery)
+	pathQuery := cassette.CanonicalizePathQuery(r.URL.EscapedPath() + "?" + r.URL.RawQuery)
 	k := key{method: r.Method, pathQuery: pathQuery}
 
 	if body, ok := s.responses[k]; ok {
@@ -161,23 +160,4 @@ func (s *Server) Addr() string {
 // Close shuts the server down and releases its port.
 func (s *Server) Close() error {
 	return s.http.Close()
-}
-
-// canonicalize mirrors cassette's canonicalization rule, documented in
-// corpus/README.md: sort the raw, percent-encoded query's "&"-joined
-// key=value pairs byte-wise; the path, including any trailing slash,
-// and each pair's own encoding are left untouched. path must be the
-// request's raw, percent-encoded form (r.URL.EscapedPath(), never the
-// already-decoded r.URL.Path): a case logs the wire bytes it captured,
-// and Go's request parsing decodes Path eagerly, so keying on it would
-// silently fail to match a request whose path segment needed encoding.
-// Duplicated here rather than called from cassette because Task 1's
-// cassette package ships frozen and keeps the rule unexported.
-func canonicalize(path, rawQuery string) string {
-	if rawQuery == "" {
-		return path
-	}
-	pairs := strings.Split(rawQuery, "&")
-	slices.Sort(pairs)
-	return path + "?" + strings.Join(pairs, "&")
 }

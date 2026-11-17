@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/glw907/dubplate/internal/harness/cassette"
-	"github.com/glw907/dubplate/internal/harness/mbrequest"
 )
 
 // Build derives a complete case from spec: the pinned item set (from
@@ -38,10 +37,7 @@ func Build(id string, spec *ReleaseSpec) (*cassette.Case, []byte, error) {
 		return nil, nil, err
 	}
 
-	pathQuery := mbrequest.CanonicalizeQuery("/ws/2/release/"+spec.MBAlbumID, map[string]string{
-		"fmt": "json",
-		"inc": mbrequest.MaximalReleaseInclude,
-	})
+	pathQuery := cassette.ReleaseLookup(spec.MBAlbumID)
 
 	c := &cassette.Case{
 		ID:       id,

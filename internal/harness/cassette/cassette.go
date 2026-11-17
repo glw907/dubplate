@@ -28,6 +28,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -151,7 +152,7 @@ func (c *Case) validate(dir string) error {
 		if req.Method == "" {
 			return fmt.Errorf("case.json: requests[%d]: method: missing", i)
 		}
-		if canon := canonicalizePathQuery(req.PathQuery); canon != req.PathQuery {
+		if canon := CanonicalizePathQuery(req.PathQuery); canon != req.PathQuery {
 			return fmt.Errorf("case.json: requests[%d]: path_query %q is not canonical, want %q", i, req.PathQuery, canon)
 		}
 		if req.Response == "" {
@@ -198,13 +199,37 @@ func (c *Case) Write(dir string) error {
 	return nil
 }
 
-// canonicalizePathQuery sorts pathQuery's raw, percent-encoded query
+// ReleaseLookupPrefix is the WS/2 path a release lookup by id starts
+// with. The search endpoint is /ws/2/release? and never matches it, so
+// the prefix alone separates the two kinds of request a case logs.
+const ReleaseLookupPrefix = "/ws/2/release/"
+
+// maximalReleaseInclude is the release lookup's inc= parameter,
+// mirroring beets' own RELEASE_INCLUDES so a captured or synthetic case
+// never forces a re-capture the first time a future matcher improvement
+// wants a field this run already fetched. The client's releaseIncludes
+// is a second, independent definition: the conformance run is what
+// proves the two agree.
+const maximalReleaseInclude = "artists+media+recordings+release-groups+labels+" +
+	"artist-credits+aliases+recording-level-rels+work-rels+work-level-rels+" +
+	"artist-rels+isrcs+url-rels+release-rels+genres+tags"
+
+// ReleaseLookup returns the canonical path and query of the maximal
+// release lookup for mbid, the request a live capture or a synthetic
+// case logs. The inc= value is percent-encoded as Python's requests
+// library encodes it for beets, so each joining "+" is "%2B" on the wire.
+func ReleaseLookup(mbid string) string {
+	return CanonicalizePathQuery(ReleaseLookupPrefix + mbid +
+		"?fmt=json&inc=" + url.QueryEscape(maximalReleaseInclude))
+}
+
+// CanonicalizePathQuery sorts pathQuery's raw, percent-encoded query
 // pairs byte-wise, leaving the path (including any trailing slash) and
 // every pair's own encoding untouched. Two path/query strings that
 // differ only in pair order canonicalize to the same string; any other
 // difference, including a trailing slash, canonicalizes to a different
 // one, so a near-miss variant never silently matches a stored request.
-func canonicalizePathQuery(pathQuery string) string {
+func CanonicalizePathQuery(pathQuery string) string {
 	path, query, hasQuery := strings.Cut(pathQuery, "?")
 	if !hasQuery || query == "" {
 		return path

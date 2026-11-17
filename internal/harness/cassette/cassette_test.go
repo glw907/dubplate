@@ -24,10 +24,20 @@ func TestCanonicalizePathQuery(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := canonicalizePathQuery(tt.in); got != tt.want {
-				t.Errorf("canonicalizePathQuery(%q) = %q, want %q", tt.in, got, tt.want)
+			if got := CanonicalizePathQuery(tt.in); got != tt.want {
+				t.Errorf("CanonicalizePathQuery(%q) = %q, want %q", tt.in, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestReleaseLookupSortsPairsAndEscapesPlus(t *testing.T) {
+	got := ReleaseLookup("x")
+	want := "/ws/2/release/x?fmt=json&inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2B" +
+		"artist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2B" +
+		"artist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags"
+	if got != want {
+		t.Errorf("ReleaseLookup(\"x\") = %q, want %q", got, want)
 	}
 }
 
@@ -37,10 +47,10 @@ func TestCanonicalizePathQuery(t *testing.T) {
 // pairs, once sorted, look the same. A lookup keyed on one string never
 // matches a case that stored the other.
 func TestCanonicalizePathQueryNearMissesDoNotCollapse(t *testing.T) {
-	withSlash := canonicalizePathQuery("release/?b=2&a=1")
-	withoutSlash := canonicalizePathQuery("release?a=1&b=2")
+	withSlash := CanonicalizePathQuery("release/?b=2&a=1")
+	withoutSlash := CanonicalizePathQuery("release?a=1&b=2")
 	if withSlash == withoutSlash {
-		t.Errorf("canonicalizePathQuery collapsed a trailing-slash near miss: both produced %q", withSlash)
+		t.Errorf("CanonicalizePathQuery collapsed a trailing-slash near miss: both produced %q", withSlash)
 	}
 }
 

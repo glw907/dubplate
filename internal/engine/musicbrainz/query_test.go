@@ -45,7 +45,7 @@ type extraTagRow struct {
 // TestReleaseIncludesJoinsToTheCommittedIncludeSet pins the sixteen-element
 // RELEASE_INCLUDES set in the order and joining the client issues it.
 // The want string is a literal rather than a read of
-// internal/harness/mbrequest's own copy, which the engine could not
+// internal/harness/cassette's own copy, which the engine could not
 // import in any case: the two definitions are independent on purpose and
 // the conformance run is what proves they agree.
 //

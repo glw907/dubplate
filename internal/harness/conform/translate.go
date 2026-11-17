@@ -14,11 +14,6 @@ import (
 	"github.com/glw907/dubplate/internal/harness/cassette"
 )
 
-// releaseLookupPrefix is the WS/2 path a release lookup by id starts
-// with, mirroring analysis.releaseLookupPrefix's own definition
-// (unexported there, behind the territory wall).
-const releaseLookupPrefix = "/ws/2/release/"
-
 // browseMaxTracks is BROWSE_MAXTRACKS (beetsplug/musicbrainz.py:67),
 // the track count beyond which album_for_id switches from a direct
 // release fetch to the paged browse endpoint (:609-613). Issuing that
@@ -268,7 +263,7 @@ func checkProfileKeyDrift(root string, profiles []string) error {
 // path followed by "?", since the query string carries fmt and inc
 // parameters the lookup itself does not vary by.
 func findReleaseRequest(c *cassette.Case, mbid string) (*cassette.Request, error) {
-	prefix := releaseLookupPrefix + mbid
+	prefix := cassette.ReleaseLookupPrefix + mbid
 	for i := range c.Requests {
 		req := &c.Requests[i]
 		if req.PathQuery == prefix || strings.HasPrefix(req.PathQuery, prefix+"?") {
@@ -394,7 +389,7 @@ func checkNoReleaseReachesBrowseThreshold(root string, threshold int) error {
 			continue
 		}
 		for _, req := range c.Requests {
-			if !strings.HasPrefix(req.PathQuery, releaseLookupPrefix) {
+			if !strings.HasPrefix(req.PathQuery, cassette.ReleaseLookupPrefix) {
 				continue
 			}
 			data, err := os.ReadFile(filepath.Join(dir, req.Response))
