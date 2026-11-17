@@ -47,7 +47,7 @@ func writeAndRead(t *testing.T, ts TagSet) ([]Comment, TagSet) {
 // keeps a row because it is the integer 0 on all twelve corpus rows
 // and a zero that must survive a write is worth pinning. Every
 // wantComments value is hard-coded and cites the mediafile line it
-// reproduces, never derived from Serialize, rgGainField, r128Field or
+// reproduces, never derived from Serialize, formatGain, formatQ8 or
 // any other code under test. Each case writes onto an otherwise empty
 // TagSet, so the comment set it reads back on disk carries only the
 // comments its own field produced.
@@ -288,7 +288,7 @@ func TestRulesLedgerSilentKeys(t *testing.T) {
 // four-digit zero-padded year with no month or day component, since
 // both are absent), and a read-back finds year 0 with month and day
 // absent, because a nil month or day parses to nil rather than 0
-// (mediafile/fields.py:156-172, serializeDate's compose-as-a-unit
+// (mediafile/fields.py:156-172, and the date codec's compose-as-a-unit
 // rule).
 func TestRulesZeroYearRoundTrip(t *testing.T) {
 	ts := TagSet{Year: new(0), OriginalYear: new(0)}
@@ -330,7 +330,7 @@ func TestRulesZeroYearRoundTrip(t *testing.T) {
 // disk, so a read-back finds a nil slice, the same value an absent
 // field projects to (deviation 3).
 func TestRulesEmptyListRoundTrip(t *testing.T) {
-	gotComments, gotRead := writeAndRead(t, TagSet{Genres: EmptyList()})
+	gotComments, gotRead := writeAndRead(t, TagSet{Genres: []string{}})
 
 	if len(gotComments) != 0 {
 		t.Errorf("comments = %+v, want none: an empty list writes no comment", gotComments)
@@ -348,7 +348,7 @@ func TestRulesEmptyListRoundTrip(t *testing.T) {
 // fixture never carried, leaving catalognum absent on read-back
 // (mediafile/fields.py:48-54).
 func TestRulesCatalognumEmptyRoundTrip(t *testing.T) {
-	gotComments, gotRead := writeAndRead(t, TagSet{Catalognum: EmptyString()})
+	gotComments, gotRead := writeAndRead(t, TagSet{Catalognum: new("")})
 
 	want := []Comment{{Name: "CATALOGNUMBER", Value: ""}}
 	if !reflect.DeepEqual(gotComments, want) {
@@ -365,7 +365,7 @@ func TestRulesCatalognumEmptyRoundTrip(t *testing.T) {
 // to UPN, a read-only style this write never touches, leaving barcode
 // absent on read-back (mediafile/fields.py:48-54).
 func TestRulesBarcodeEmptyRoundTrip(t *testing.T) {
-	gotComments, gotRead := writeAndRead(t, TagSet{Barcode: EmptyString()})
+	gotComments, gotRead := writeAndRead(t, TagSet{Barcode: new("")})
 
 	want := []Comment{{Name: "BARCODE", Value: ""}}
 	if !reflect.DeepEqual(gotComments, want) {

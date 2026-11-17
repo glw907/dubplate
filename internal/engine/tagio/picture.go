@@ -8,13 +8,13 @@ import (
 
 // pictureTypeMax is the ID3v2 APIC enumeration's highest defined
 // value, publisher_logo. An out-of-range index degrades to 0, other,
-// on read (P4), which is what mediafile's Image.type_index does when
+// on read, which is what mediafile's Image.type_index does when
 // handed an integer index outside its enumeration
 // (mediafile/utils/image.py:40-47, pinned).
 const pictureTypeMax = 20
 
 // pictureTypeFront is the front-cover index inside the APIC
-// enumeration (P4, P5).
+// enumeration.
 const pictureTypeFront = 3
 
 // picturePayloadMin is a PICTURE block's shortest legal payload: the
@@ -28,18 +28,18 @@ const picturePayloadMin = 32
 
 // Picture is one decoded PICTURE block (RFC 9639 section 8.8, Table
 // 12), carrying the eight values the table defines in the order it
-// defines them (P1). The block's three declared lengths, for the
+// defines them. The block's three declared lengths, for the
 // media type, the description and the data, are framing rather than
 // values and this type carries none of them.
 //
 // Geometry (Width, Height, Depth, Colors) is decoded on read, but a
-// write always emits zero for all four (P6): mediafile's FLAC image
+// write always emits zero for all four: mediafile's FLAC image
 // write builds a fresh picture and sets only data, type, mime and
 // desc, so a Go writer that filled geometry from a decoded image
 // would write more than the reference did.
 type Picture struct {
 	// Type is the ID3v2 APIC enumeration index, 0 through 20, front
-	// cover at 3. An out-of-range value on read degrades to 0 (P4).
+	// cover at 3. An out-of-range value on read degrades to 0.
 	Type int
 	// MediaType is the block's declared media type string, for
 	// example "image/png".
@@ -65,15 +65,14 @@ type Picture struct {
 	Data []byte
 }
 
-// FrontCover selects c's front-cover picture, reproducing mediafile's
-// CoverArtField.guess_cover_image (mediafile/fields.py:253-260,
-// INV:466-470): the single candidate when exactly one picture exists,
-// otherwise the first picture typed front, otherwise the first
-// picture of any type. The single-candidate rule runs before the
-// front-cover rule, so a lone back cover is the cover (P5). The
-// second return value is false only when c carries no picture at
-// all.
-func (c Container) FrontCover() (Picture, bool) {
+// frontCover selects c's front-cover picture, reproducing mediafile's
+// CoverArtField.guess_cover_image (mediafile/fields.py:253-260): the
+// single candidate when exactly one picture exists, otherwise the
+// first picture typed front, otherwise the first picture of any type.
+// The single-candidate rule runs before the front-cover rule, so a
+// lone back cover is the cover. The second return value is false only
+// when c carries no picture at all.
+func (c Container) frontCover() (Picture, bool) {
 	if len(c.Pictures) == 0 {
 		return Picture{}, false
 	}
@@ -89,13 +88,13 @@ func (c Container) FrontCover() (Picture, bool) {
 }
 
 // decodePicture decodes one PICTURE block's payload (RFC 9639 section
-// 8.8, Table 12, INV:770-776), bounds-checking each of its three
-// declared lengths, the media type's, the description's and the
-// data's, against the payload's own remaining extent before a slice
-// is taken (P3). No length is used to size an allocation: every field
-// this function returns is a re-slice of payload, so a crafted length
-// is refused without the process ever allocating on its behalf. index
-// names the block's position in the chain for the returned error.
+// 8.8, Table 12), bounds-checking each of its three declared lengths,
+// the media type's, the description's and the data's, against the
+// payload's own remaining extent before a slice is taken. No length
+// is used to size an allocation: every field this function returns is
+// a re-slice of payload, so a crafted length is refused without the
+// process ever allocating on its behalf. index names the block's
+// position in the chain for the returned error.
 func decodePicture(payload []byte, index int) (Picture, error) {
 	if len(payload) < picturePayloadMin {
 		return Picture{}, fmt.Errorf("PICTURE block %d carries %d bytes, want at least %d", index, len(payload), picturePayloadMin)
@@ -142,7 +141,7 @@ func decodePicture(payload []byte, index int) (Picture, error) {
 	}, nil
 }
 
-// Recognized media types this package sniffs on write (P7, R2),
+// Recognized media types this package sniffs on write,
 // matching pinned filetype 1.2.0's own MIME constants for the raster
 // formats a cover realistically carries.
 const (
@@ -164,11 +163,11 @@ const (
 // (:144-155). TIFF additionally excludes "CR" at offset 8, the byte
 // pair that routes a Canon raw file to CR2 rather than TIFF in the
 // reference (:193-199); a CR2-prefixed blob therefore matches no row
-// here, which is R2's stated deviation, recorded in deviations.go: the
-// reference reports image/x-canon-cr2 where this package refuses. A
-// blob matching no row is refused with a wrapped error rather than
-// written with a guessed or empty media type (R2); no caller branches
-// on this case yet, so it carries no new sentinel (C14).
+// here, a deviation the package doc records: the reference reports
+// image/x-canon-cr2 where this package refuses. A blob matching no row
+// is refused with a wrapped error rather than written with a guessed
+// or empty media type; no caller branches on this case yet, so it
+// carries no new sentinel.
 func sniffMediaType(data []byte) (string, error) {
 	switch {
 	case len(data) >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF:
@@ -199,8 +198,8 @@ func isTIFFMagic(data []byte) bool {
 // section 8.8, Table 12), big-endian throughout, the same asymmetry
 // with VORBIS_COMMENT's little-endian framing decodePicture already
 // carries. The media type is sniffed from p.Data and overrides
-// whatever p.MediaType declares (P7); geometry is always written zero
-// regardless of what p carries (P6), since mediafile's FLAC image
+// whatever p.MediaType declares; geometry is always written zero
+// regardless of what p carries, since mediafile's FLAC image
 // write builds a fresh picture and sets only data, type, mime and desc
 // (mediafile/storage/flac.py:30-37).
 func encodePicture(p Picture) (writeBlock, error) {
@@ -212,10 +211,10 @@ func encodePicture(p Picture) (writeBlock, error) {
 	buf = binary.BigEndian.AppendUint32(buf, uint32(p.Type))
 	buf = appendPictureField(buf, mediaType)
 	buf = appendPictureField(buf, p.Description)
-	buf = binary.BigEndian.AppendUint32(buf, 0) // width, always zero (P6)
-	buf = binary.BigEndian.AppendUint32(buf, 0) // height, always zero (P6)
-	buf = binary.BigEndian.AppendUint32(buf, 0) // depth, always zero (P6)
-	buf = binary.BigEndian.AppendUint32(buf, 0) // colours, always zero (P6)
+	buf = binary.BigEndian.AppendUint32(buf, 0) // width
+	buf = binary.BigEndian.AppendUint32(buf, 0) // height
+	buf = binary.BigEndian.AppendUint32(buf, 0) // depth
+	buf = binary.BigEndian.AppendUint32(buf, 0) // colours
 	buf = binary.BigEndian.AppendUint32(buf, uint32(len(p.Data)))
 	buf = append(buf, p.Data...)
 	return writeBlock{Type: blockPicture, Payload: buf}, nil
@@ -231,7 +230,7 @@ func appendPictureField(buf []byte, s string) []byte {
 
 // encodePictures encodes every picture in pictures, in order, index by
 // index, wrapping any sniff refusal with the picture's position. A nil
-// pictures returns nil, nil: Write never calls this for R1's
+// pictures returns nil, nil: Write never calls this for its nil
 // leave-alone state, since there is nothing to encode.
 func encodePictures(pictures []Picture) ([]writeBlock, error) {
 	if pictures == nil {
@@ -250,10 +249,10 @@ func encodePictures(pictures []Picture) ([]writeBlock, error) {
 
 // pictureField splits one length-prefixed field off the front of b,
 // bounds-checking the declared length against what remains before any
-// slice is taken (P3). Unlike VORBIS_COMMENT's vorbisField, the
-// length is big-endian: RFC 9639 section 8.8 is the single asymmetry
-// with VORBIS_COMMENT's little-endian framing (INV:770-776). label
-// names the field in the returned error.
+// slice is taken. Unlike VORBIS_COMMENT's vorbisField, the length is
+// big-endian: RFC 9639 section 8.8 is the single asymmetry with
+// VORBIS_COMMENT's little-endian framing. label names the field in the
+// returned error.
 func pictureField(b []byte, label string) (field, rest []byte, err error) {
 	if len(b) < 4 {
 		return nil, nil, fmt.Errorf("%s length wants 4 bytes, %d remain", label, len(b))

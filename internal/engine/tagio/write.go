@@ -14,15 +14,14 @@ import (
 // blockPadding is PADDING's block type (RFC 9639 section 8.1).
 const blockPadding = 1
 
-// paddingSize is the fixed PADDING reservation every write emits
-// (rulings 5 and 6): 8 KiB, regardless of what the container it
-// rewrites carried, and regardless of how many PADDING blocks (if
-// any) that container had.
+// paddingSize is the fixed PADDING reservation every write emits: 8 KiB,
+// regardless of what the container it rewrites carried, and regardless
+// of how many PADDING blocks (if any) that container had.
 const paddingSize = 8 * 1024
 
 // vendorPrefix marks every vendor string this package creates fresh,
 // so a byte inspecting a file this package has touched can tell tagio
-// wrote it (C9, R9).
+// wrote it.
 const vendorPrefix = "dubplate "
 
 // developmentVendorMarker is freshVendor's fallback when the build
@@ -31,42 +30,36 @@ const vendorPrefix = "dubplate "
 // "(devel)".
 const developmentVendorMarker = "development"
 
-// Write sniffs path, then rewrites its tags and pictures through the
-// seam registry's row for the format Sniff reports. A format Sniff
-// does not recognize, including a FLAC file once the registry has
-// been emptied of its FLAC row, hands back [ErrUnsupportedContainer]
-// unchanged and never opens path for writing.
+// Write sniffs path, then rewrites its tags and pictures. A file Sniff
+// does not recognize hands back Sniff's [ErrUnsupportedContainer]
+// unchanged and is never opened for writing.
 func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
-	entry, err := resolveEntry(path)
-	if err != nil {
+	// Sniff first so a file that is not FLAC reports Sniff's error, not
+	// the signature refusal Parse would give it.
+	if _, err := Sniff(path); err != nil {
 		return err
 	}
-	if entry.write == nil {
-		return fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
-	}
-	return entry.write(path, ts, pictures, mode)
+	return writeFLAC(path, ts, pictures, mode)
 }
 
-// writeFLAC is FLAC's seam registry row for Write: every key ts owns
+// writeFLAC rewrites a FLAC file's tags and pictures: every key ts owns
 // is replaced, matching a comment's field name case insensitively as
 // RFC 9639 section 8.6 requires, and every other comment survives in
-// place and in order (C8). pictures carries R1's three caller states:
-// nil leaves path's existing pictures untouched, a non-nil empty
-// slice strips every picture, and a non-empty slice replaces the
-// whole set in the order passed (P8). Every picture's media type is
-// sniffed from its own data and overrides whatever the caller
-// declared (P7), and every picture's geometry is written as zero
-// regardless of what the caller carried (P6). writeFLAC refuses a
-// malformed container, or a picture whose data matches no recognized
-// image format, before path is ever opened for writing (C7, C14), so
-// a refusal never half-writes a file, and every block this package
-// does not own survives under a re-emitted header, with the
-// last-block flag owned by the trailing PADDING block this write
-// always appends (C10, C11). mode is the file's mode after the write,
-// passed straight through to the rename rather than inherited from a
-// temp file's default. The rewrite goes through atomicfile.WriteStream
-// (C13), so a crash or a concurrent reader never observes a partial
-// file.
+// place and in order. pictures carries three caller states: nil
+// leaves path's existing pictures untouched, a non-nil empty slice
+// strips every picture, and a non-empty slice replaces the whole set
+// in the order passed. Every picture's media type is sniffed from its
+// own data and overrides whatever the caller declared, and every
+// picture's geometry is written as zero regardless of what the caller
+// carried. writeFLAC refuses a malformed container, or a picture whose
+// data matches no recognized image format, before path is ever opened
+// for writing, so a refusal never half-writes a file, and every block
+// this package does not own survives under a re-emitted header, with
+// the last-block flag owned by the trailing PADDING block this write
+// always appends. mode is the file's mode after the write, passed
+// straight through to the rename rather than inherited from a temp
+// file's default. The rewrite goes through atomicfile.WriteStream, so
+// a crash or a concurrent reader never observes a partial file.
 func writeFLAC(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
 	c, err := Parse(path)
 	if err != nil {
@@ -96,28 +89,12 @@ type writeBlock struct {
 }
 
 // planBlocks decides the block chain Write emits, without the trailing
-// PADDING block. Every block in c.Blocks survives in place, except
-// every PADDING block, which is dropped outright (rulings 5 and 6);
-// the VORBIS_COMMENT block, which is replaced with ts merged onto
-// whatever comments c already carries (C8), keeping its loaded vendor;
-// and PICTURE, whose fate depends on replacePictures (P8, R1). A
-// container carrying no VORBIS_COMMENT block gets one created fresh,
-// with a fresh vendor, immediately after STREAMINFO (C9a): hasComment
-// is resolved once, ahead of the loop, so that placement happens
-// exactly once regardless of where the loop is when it learns
-// STREAMINFO has gone by.
-//
-// replacePictures is pictures != nil, resolved by the caller so this
-// function only ever sees a bool and the already-encoded newPictures
-// (R1's nil-vs-non-nil-empty distinction is Write's to make, not
-// planBlocks's). When it is false, every incoming PICTURE block
-// survives untouched: the leave-alone state. When it is true, every
-// incoming PICTURE block is dropped and newPictures takes its place:
-// the first incoming PICTURE block's own position if one existed,
-// replacing it in place, or after VORBIS_COMMENT and before the
-// trailing PADDING block if none did (P8), which planBlocks gets for
-// free by appending newPictures once the loop over c.Blocks ends
-// without ever having placed it.
+// PADDING block. Every block survives in place except PADDING, which
+// is dropped; VORBIS_COMMENT, which carries ts merged onto c's
+// comments under c's vendor, or is created fresh right after
+// STREAMINFO; and PICTURE, which survives when replacePictures is
+// false and otherwise gives way to newPictures, placed where the first
+// incoming PICTURE sat or at the end.
 func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writeBlock) []writeBlock {
 	hasComment, vendor := false, freshVendor()
 	for _, b := range c.Blocks {
@@ -171,7 +148,7 @@ func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writ
 // is never touched by any delete and so survives untouched; a field
 // this write leaves absent deletes its keys and appends nothing.
 // Running every field's delete-then-append in Serialize's fixed order
-// is also what resolves the three colliding pairs (C3): the plural
+// is also what resolves the three colliding pairs: the plural
 // field always serializes after the singular it shares a key with, so
 // its delete removes the singular's comments and its append leaves
 // the plural's values in their place.
@@ -235,7 +212,7 @@ func appendVorbisField(buf []byte, s string) []byte {
 // build version, resolved once from the build information the
 // toolchain already embeds. A test binary and an unmodulated `go
 // build` both report no usable version, so both fall back to
-// developmentVendorMarker (R9).
+// developmentVendorMarker.
 func freshVendor() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok || info.Main.Version == "" || info.Main.Version == "(devel)" {
@@ -246,7 +223,7 @@ func freshVendor() string {
 
 // writeBlocks emits the FLAC signature, every block in blocks with the
 // last-block flag cleared, then the trailing PADDING block that
-// carries it (C11): PADDING is always the last block a write emits,
+// carries it: PADDING is always the last block a write emits,
 // and it is the only block that owns the flag.
 func writeBlocks(w io.Writer, blocks []writeBlock) error {
 	if _, err := w.Write([]byte(flacSignature)); err != nil {
@@ -302,8 +279,8 @@ func emitBlock(w io.Writer, blockType byte, last bool, payload []byte) error {
 // copyFrameRegion copies path's frame region, at the offset and length
 // Parse recorded, straight into w: a section reader over the source
 // file feeding io.Copy, never a []byte holding the whole region, so
-// the audio is untouched (C12) and the region's cost stays fixed
-// regardless of the file's size (C13).
+// the audio is untouched and the region's cost stays fixed regardless
+// of the file's size.
 func copyFrameRegion(w io.Writer, path string, offset, length int64) error {
 	src, err := os.Open(path)
 	if err != nil {
