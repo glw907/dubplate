@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"log/slog"
 	"reflect"
 	"strings"
 	"testing"
@@ -90,6 +91,85 @@ func TestAddMember_NeverGrantsAdmin(t *testing.T) {
 	}
 	if admin, tombstoned := userState(t, f.h, dave); admin || tombstoned {
 		t.Errorf("dave admin=%v tombstoned=%v, want a live member", admin, tombstoned)
+	}
+}
+
+// cancelOnRecord is a slog.Handler that calls cancel when it receives a
+// record whose message is msg, and drops every record.
+type cancelOnRecord struct {
+	msg    string
+	cancel context.CancelFunc
+}
+
+func (h cancelOnRecord) Enabled(context.Context, slog.Level) bool { return true }
+func (h cancelOnRecord) Handle(_ context.Context, r slog.Record) error {
+	if r.Message == h.msg {
+		h.cancel()
+	}
+	return nil
+}
+func (h cancelOnRecord) WithAttrs([]slog.Attr) slog.Handler { return h }
+func (h cancelOnRecord) WithGroup(string) slog.Handler      { return h }
+
+// TestAddMember_AnswersTheStoredMemberOnceCommitted proves an add whose
+// write committed answers success with the stored member, though the
+// caller's context ends the moment the roster logs the commit, before
+// any second read could run.
+func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
+	tests := []struct {
+		name string
+		req  ops.AddMemberRequest
+		want ops.Member
+	}{
+		{
+			name: "a new address",
+			req:  ops.AddMemberRequest{Address: "Erin@Example.com", DisplayName: "Erin", Username: "erin"},
+			want: ops.Member{Address: "erin@example.com", DisplayName: "Erin", Username: "erin"},
+		},
+		{
+			name: "a removed member's address",
+			req:  ops.AddMemberRequest{Address: dave.address, DisplayName: "Dave", Username: "dave"},
+			want: ops.Member{UserID: dave.hex, Address: "dave@example.com", DisplayName: "Dave", Username: "dave"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			t.Cleanup(cancel)
+			f.seam.cfg.Logger = slog.New(cancelOnRecord{msg: "roster member added", cancel: cancel})
+
+			resp, err := f.seam.AddMember(ctx, actor(alice, fresh), tt.req)
+			if err != nil {
+				t.Fatalf("AddMember() error = %v, want nil: the write committed", err)
+			}
+
+			list, err := f.seam.ListMembers(writeCtx(t), actor(alice, fresh), ops.ListMembersRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var stored ops.Member
+			for _, m := range list.Members {
+				if m.Address == tt.want.Address {
+					stored = m
+				}
+			}
+			if stored.UserID == "" {
+				t.Fatalf("the roster holds no member at %s after the add", tt.want.Address)
+			}
+			if resp.Member != stored {
+				t.Errorf("answered member = %+v, want the stored row %+v", resp.Member, stored)
+			}
+			if tt.want.UserID != "" && resp.Member.UserID != tt.want.UserID {
+				t.Errorf("answered user_id = %s, want the existing id %s", resp.Member.UserID, tt.want.UserID)
+			}
+			if got := resp.Member; got.Address != tt.want.Address || got.DisplayName != tt.want.DisplayName || got.Username != tt.want.Username || got.Admin {
+				t.Errorf("answered member = %+v, want %s as a member named %s", got, tt.want.Address, tt.want.DisplayName)
+			}
+			if len(resp.Member.UserID) != 32 || resp.Member.UserID == strings.Repeat("0", 32) {
+				t.Errorf("answered user_id = %q, want a stored 32-hex id, never the candidate's zero id", resp.Member.UserID)
+			}
+		})
 	}
 }
 

@@ -41,7 +41,7 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 		{Address: "admin@example.com", DisplayName: "Admin", Username: "admin", Admin: true},
 		{Address: "member@example.com", DisplayName: "Member", Username: "member"},
 	} {
-		if err := roster.AddMember(ctx, m, operator, logger); err != nil {
+		if _, err := roster.AddMember(ctx, m, operator, logger); err != nil {
 			t.Fatalf("seed %s: %v", m.Username, err)
 		}
 	}
@@ -56,7 +56,8 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 
 	add := func(address, displayName, username string) func() error {
 		return func() error {
-			return roster.AddMember(ctx, auth.Member{Address: address, DisplayName: displayName, Username: username}, operator, logger)
+			_, err := roster.AddMember(ctx, auth.Member{Address: address, DisplayName: displayName, Username: username}, operator, logger)
+			return err
 		}
 	}
 	tests := []struct {

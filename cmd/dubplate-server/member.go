@@ -115,7 +115,8 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 				Admin:       admin,
 			}
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			return roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor()), logger)
+			_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor()), logger)
+			return err
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "the member's display name (required)")

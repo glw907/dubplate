@@ -375,17 +375,19 @@ func (r *Roster) List(ctx context.Context) ([]Member, error) {
 // at least one live admin.
 //
 // Every check runs before the write commits, so a refused candidate or
-// actor changes nothing.
-func (r *Roster) AddMember(ctx context.Context, candidate Member, by Actor, logger *slog.Logger) error {
+// actor changes nothing. A nil error returns the member as stored, its
+// ID the one the write inserted or reactivated.
+func (r *Roster) AddMember(ctx context.Context, candidate Member, by Actor, logger *slog.Logger) (Member, error) {
 	member, err := checkAddition(candidate, by)
 	if err != nil {
-		return err
+		return Member{}, err
 	}
-	if err := r.addUser(ctx, member, by, logger); err != nil {
-		return err
+	member, err = r.addUser(ctx, member, by, logger)
+	if err != nil {
+		return Member{}, err
 	}
 	logChange(ctx, logger, "roster member added", by, member.Address, "admin", member.Admin)
-	return nil
+	return member, nil
 }
 
 // checkAddition runs every check on an addition that needs no roster:
@@ -437,9 +439,10 @@ func scanMember(scan func(dest ...any) error) (Member, error) {
 // live or tombstoned, holding member's username compared
 // case-insensitively refuses the add; the table must hold a live admin
 // once the write lands; and a reactivation then bumps the address's
-// epoch, last, under the removal's failure policy.
-func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *slog.Logger) error {
-	return r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+// epoch, last, under the removal's failure policy. It returns member
+// with the ID the row holds.
+func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *slog.Logger) (Member, error) {
+	err := r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if err := by.authorize(ctx, tx); err != nil {
 			return err
 		}
@@ -469,16 +472,19 @@ func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *s
 
 		now := r.now()
 		at := now.UnixMicro()
-		if id != nil {
+		reactivate := id != nil
+		if reactivate {
 			_, err = tx.Exec(ctx, `UPDATE users SET display_name = ?, username = ?, admin = ?, tombstoned_at = NULL, updated_at = ? WHERE id = ?`,
 				member.DisplayName, member.Username, member.Admin, at, id)
 		} else {
+			id = store.NewID()
 			_, err = tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-				store.NewID(), member.Address, member.DisplayName, member.Username, member.Admin, at, at)
+				id, member.Address, member.DisplayName, member.Username, member.Admin, at, at)
 		}
 		if err != nil {
 			return fmt.Errorf("auth: write the member's row: %w", err)
 		}
+		member.ID = identity.UserID(id)
 
 		if err := requireLiveAdmin(ctx, tx); err != nil {
 			if errors.Is(err, ErrNoAdmin) {
@@ -486,11 +492,15 @@ func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *s
 			}
 			return err
 		}
-		if id == nil {
+		if !reactivate {
 			return nil
 		}
 		return r.revoke(ctx, member.Address, now, logger)
 	})
+	if err != nil {
+		return Member{}, err
+	}
+	return member, nil
 }
 
 // RemoveMember removes the live member id names: it tombstones their

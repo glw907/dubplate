@@ -300,7 +300,7 @@ func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 			roster, h := newRosterOver(t, liveAdmin)
 			before := dumpUsers(t, h)
 
-			err := roster.AddMember(writeCtx(t), candidate, tt.by, slog.New(slog.DiscardHandler))
+			_, err := roster.AddMember(writeCtx(t), candidate, tt.by, slog.New(slog.DiscardHandler))
 			if !errors.Is(err, errInvalidActor) {
 				t.Errorf("AddMember() error = %v, want it to wrap errInvalidActor", err)
 			}
@@ -324,7 +324,7 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 	before := dumpUsers(t, h)
 
 	candidate := Member{Address: "\"a\u200dlice\"@example.com", DisplayName: "Alice", Username: "alice-2"}
-	err := roster.AddMember(writeCtx(t), candidate, adminActor, slog.New(slog.DiscardHandler))
+	_, err := roster.AddMember(writeCtx(t), candidate, adminActor, slog.New(slog.DiscardHandler))
 	if !errors.Is(err, errRosterRecordInvalid) {
 		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap errRosterRecordInvalid", err)
 	}
@@ -348,7 +348,7 @@ func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 	for i, by := range actors {
 		roster, _ := newRosterOver(t, liveAdmin)
 		plain := Member{Address: fmt.Sprintf("plain%d@example.com", i), DisplayName: "A", Username: fmt.Sprintf("plain%d", i)}
-		if err := roster.AddMember(writeCtx(t), plain, by, logger); err != nil {
+		if _, err := roster.AddMember(writeCtx(t), plain, by, logger); err != nil {
 			t.Fatalf("AddMember(plain fixture, %s) = %v, want nil", by.channel, err)
 		}
 	}
@@ -360,7 +360,7 @@ func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 				before := dumpUsers(t, h)
 
 				candidate := Member{Address: defaultIgnorableAddress(tt.r), DisplayName: "A", Username: "a"}
-				err := roster.AddMember(writeCtx(t), candidate, by, logger)
+				_, err := roster.AddMember(writeCtx(t), candidate, by, logger)
 				if err == nil {
 					t.Fatalf("AddMember() error = nil, want a refusal")
 				}
@@ -422,7 +422,7 @@ func TestAddMember_AuditRecord(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			roster, _ := newRosterOver(t, liveAdmin)
 			var logBuf bytes.Buffer
-			if err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
+			if _, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
 				t.Fatalf("AddMember: %v", err)
 			}
 			assertAuditRecord(t, logBuf.Bytes(), "roster member added", tt.want)
@@ -464,7 +464,7 @@ func addConcurrently(t *testing.T, roster *Roster, candidates []Member) []error 
 		wg.Add(1)
 		go func(i int, candidate Member) {
 			defer wg.Done()
-			errs[i] = roster.AddMember(writeCtx(t), candidate, operator, slog.New(slog.DiscardHandler))
+			_, errs[i] = roster.AddMember(writeCtx(t), candidate, operator, slog.New(slog.DiscardHandler))
 		}(i, candidate)
 	}
 	wg.Wait()
@@ -1085,7 +1085,7 @@ func TestUsersRoster_AddMember(t *testing.T) {
 
 			var logBuf bytes.Buffer
 			roster := NewRoster(h, newEpochStore(t, t.TempDir()), fixedNow(rosterNow))
-			err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil)))
+			_, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil)))
 			if tt.wantErr != nil {
 				if logBuf.Len() != 0 {
 					t.Errorf("a refused add logged an audit record: %q", logBuf.String())
@@ -1337,7 +1337,7 @@ func TestRemoveMember_Checklist(t *testing.T) {
 	readdedAt := rosterNow.Add(time.Hour)
 	fx.clock.set(readdedAt)
 	readd := Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
-	if err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler)); err != nil {
+	if _, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler)); err != nil {
 		t.Fatalf("re-add: %v", err)
 	}
 	if u := readUser(t, fx.h, "alice@example.com"); !bytes.Equal(u.id, aliceID[:]) || u.tombstoned {
@@ -1397,7 +1397,7 @@ func TestAddMember_ReactivationBumpFailureRollsBack(t *testing.T) {
 	fx.freezeEpochs(t)
 
 	readd := Member{Address: "gone@example.com", DisplayName: "Gone", Username: "gone"}
-	err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler))
+	_, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler))
 	if err == nil || errors.Is(err, ErrEpochBackward) {
 		t.Fatalf("re-add with a failing bump = %v, want the bump's error", err)
 	}
@@ -1439,7 +1439,8 @@ func TestRosterWrites_EpochBackwardCommits(t *testing.T) {
 					t.Fatalf("tombstone the fixture row: %v", err)
 				}
 				readd := Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
-				return fx.roster.AddMember(writeCtx(t), readd, adminActor, logger)
+				_, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, logger)
+				return err
 			},
 			check: func(t *testing.T, fx rosterFixture) {
 				if u := readUser(t, fx.h, "alice@example.com"); u.tombstoned {
@@ -1697,7 +1698,8 @@ func TestRosterWrites_ActorDemotedBefore(t *testing.T) {
 			return r.DemoteMember(writeCtx(t), formerID, adminActor, slog.New(slog.DiscardHandler))
 		}},
 		{"add", func(r *Roster) error {
-			return r.AddMember(writeCtx(t), Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"}, adminActor, slog.New(slog.DiscardHandler))
+			_, err := r.AddMember(writeCtx(t), Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"}, adminActor, slog.New(slog.DiscardHandler))
+			return err
 		}},
 	}
 	changes := []struct {
