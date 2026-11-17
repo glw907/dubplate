@@ -3,8 +3,8 @@ package matcher
 // AlbumInfo is the matcher's vocabulary for a candidate release: the
 // fourteen fields the album-level distance path reads off beets'
 // AlbumInfo (autotag/hooks.py:263-384), and nothing else. It carries no
-// applied field, no path, and does no tag I/O: rung 3 computes no
-// applied field and writes no file. 3b's translation layer populates an
+// applied field, no path, and does no tag I/O: the matcher computes no
+// applied field and writes no file. The translation layer populates an
 // AlbumInfo from a real metadata-source response; this type only
 // defines the shape and its zero value.
 type AlbumInfo struct {
@@ -18,7 +18,7 @@ type AlbumInfo struct {
 
 	// VA reports whether this is a various-artists release
 	// (album_info.va, hooks.py:381). When true, the album-level artist
-	// component is skipped entirely (contract 8).
+	// component is skipped entirely (distance.py:457-459).
 	VA bool
 
 	// Media is the release's media type string, for example "CD"
@@ -115,7 +115,7 @@ type TrackInfo struct {
 // data_source is the one field whose true beets default is None rather
 // than the empty string beets projects every other unset string field
 // to (it lives in Item._types rather than Item._fields,
-// library/models.py:66-70; contract 10's m6 note). The outcomes are
+// library/models.py:66-70). The outcomes are
 // identical through both consumers of it (add_data_source treats None
 // as unset; plurality counts None as its own value), so this field is
 // modeled with the same "" default as every other unset string field
@@ -178,14 +178,11 @@ const (
 // ProjectItemFields builds an [ItemFields] from raw, an untyped field
 // bag shaped exactly like a corpus case's decoded Input.Items entry
 // (json.Unmarshal into map[string]any, so an integer value may arrive
-// as float64). It reproduces beets' typed-default projection (contract
-// 10): a beets Item.get returns the field's own type's zero value for
-// a field the underlying record never set, not an absent marker, and a
-// field this function cannot read as its declared type is treated the
-// same as an absent one. This function reads no corpus case itself
-// (the cross-check against a real committed case is Task 6's); its own
-// test fixture is hand-authored inline in info_test.go and reads no
-// corpus case.
+// as float64). It reproduces beets' typed-default projection: a beets
+// Item.get returns the field's own type's zero value for a field the
+// underlying record never set, not an absent marker, and a field this
+// function cannot read as its declared type is treated the same as an
+// absent one.
 func ProjectItemFields(raw map[string]any) ItemFields {
 	return ItemFields{
 		Artist:        stringField(raw, fieldArtist),
@@ -219,7 +216,7 @@ func stringField(raw map[string]any, key string) string {
 
 // boolField returns raw[key] as a bool, or false when key is absent or
 // holds a non-bool value, reproducing beets' typed-default projection
-// for a field whose declared type is bool (contract 10).
+// for a field whose declared type is bool.
 //
 // It accepts a JSON bool only. beets stores comp as a types.Boolean
 // integer flag, so a case carrying "comp": 1 would project false here

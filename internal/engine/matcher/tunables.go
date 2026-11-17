@@ -1,7 +1,8 @@
 // Package matcher is the Go port of beets' scoring core: the tunable
 // surface, the vocabulary a candidate release and a user's item are
-// expressed in, and (in later files) the [Distance] accumulator and the
-// penalty components that compose it. It never imports
+// expressed in, the [Distance] accumulator and the penalty components
+// that compose it, and the candidate set and recommendation built on
+// them. It never imports
 // internal/harness and never reads a clock; every citation below is
 // checked against pinned beets 2.14.1 (tools/venv/.venv).
 package matcher
@@ -30,17 +31,14 @@ var ErrInvalidTunable = errors.New("invalid tunable")
 // match-time configuration: every field the distance and
 // recommendation path reads, each carrying pinned beets' shipped
 // default and the config_default.yaml or plugin-source line that
-// proves it (Ruling D: every default equals pinned beets' shipped
-// value at launch).
+// proves it. Every default equals pinned beets' shipped value.
 //
 // Two config keys beets ships under match: are deliberately absent:
 // original_date and per_disc_numbering are read only in
 // [beets/autotag/hooks.py]'s AlbumInfo.item_data and TrackInfo.raw_data
 // respectively, never on the distance path (autotag/distance.py,
 // autotag/match.py), so they move applied_fields after a verdict and
-// never the verdict itself (corpus/README.md's config-profile transform
-// table; the two "verdict-moving" cells there are corrected by this
-// task's draft, not by an edit to Tunables).
+// never the verdict itself.
 //
 // Two more are deliberately absent for a different reason:
 // album_disambig_fields and singleton_disambig_fields
@@ -48,33 +46,30 @@ var ErrInvalidTunable = errors.New("invalid tunable")
 // Match.disambig_fields (match.py:113-139) and never on the distance
 // path either.
 //
-// Four fields are the operator-facing subset a later rung 3 pass
-// registers on internal/config's wall once rung 1b's registry lands:
-// StrongRecThresh, MediumRecThresh, RecGapThresh, and SearchLimit. This
-// pass names them and defers registration; it imports nothing from
-// internal/config.
+// Four fields are operator-facing: StrongRecThresh, MediumRecThresh,
+// RecGapThresh, and SearchLimit. None is registered as a config key
+// yet, and this package imports nothing from internal/config.
 //
 // Three surfaces below have no corpus fixture: Required, Ignored, and
-// Preferred.OriginalYear. Their doc comments say so; coverage is a
-// declared gap here, closed only by the table-driven unit tests of the
-// component that reads each (Preferred.OriginalYear in the year
-// component; Required and Ignored in 3d).
+// Preferred.OriginalYear. Their coverage is the unit tests of the code
+// that reads each: the year component for Preferred.OriginalYear, and
+// [Candidates.Add] for Required and Ignored.
 type Tunables struct {
 	// StrongRecThresh is the distance below which a match earns a
-	// "strong" recommendation. The comparison is strict "<", the
-	// asymmetry that makes the proximity flag possible (contract 3).
-	// Default 0.04 (config_default.yaml:168). Operator-facing.
+	// "strong" recommendation. The comparison is strict "<"
+	// (match.py:285), the asymmetry that makes the proximity flag
+	// possible. Default 0.04 (config_default.yaml:168). Operator-facing.
 	StrongRecThresh float64
 
 	// MediumRecThresh is the distance at or below which a match earns
-	// at least a "medium" recommendation. The comparison is "<=",
-	// unlike StrongRecThresh's strict form (contract 3). Default 0.25
+	// at least a "medium" recommendation. The comparison is "<="
+	// (match.py:288), unlike StrongRecThresh's strict form. Default 0.25
 	// (config_default.yaml:169). Operator-facing.
 	MediumRecThresh float64
 
 	// RecGapThresh is the minimum distance gap between the best and
 	// second-best candidate below which the recommendation degrades,
-	// the other half of the proximity flag (contract 3). Default 0.25
+	// the other half of the proximity flag (match.py:294-299). Default 0.25
 	// (config_default.yaml:170). Operator-facing.
 	RecGapThresh float64
 
@@ -88,9 +83,8 @@ type Tunables struct {
 
 	// DistanceWeights is match.distance_weights: twenty keys
 	// (config_default.yaml:175-194; :174 is the distance_weights:
-	// header). The mechanics study's Q4 says nineteen; the venv and
-	// every committed corpus case's echoed weight set agree on twenty
-	// (m2), so twenty is what this field ships.
+	// header), the count every committed corpus case's echoed weight
+	// set agrees on.
 	DistanceWeights map[string]float64
 
 	// Preferred holds match.preferred's three sub-keys
@@ -100,15 +94,13 @@ type Tunables struct {
 	// Ignored is match.ignored: source identifiers a candidate is
 	// dropped for regardless of distance. Default [] (empty)
 	// (config_default.yaml:199). No committed corpus case exercises a
-	// nonempty value; coverage is 3d's table-driven unit tests, not a
-	// corpus fixture.
+	// nonempty value.
 	Ignored []string
 
 	// Required is match.required: metadata fields a candidate must
 	// carry to be considered. Default [] (empty)
 	// (config_default.yaml:200). No committed corpus case exercises a
-	// nonempty value; coverage is 3d's table-driven unit tests, not a
-	// corpus fixture.
+	// nonempty value.
 	Required []string
 
 	// IgnoredMedia is match.ignored_media: media type strings excluded
@@ -164,8 +156,8 @@ type Tunables struct {
 	// is the unexported defaultDataSourceMismatchPenalty constant
 	// (penalty.go), MetadataSourcePlugin.DEFAULT_DATA_SOURCE_MISMATCH_
 	// PENALTY (metadata_plugins.py:182). The two are the same value at
-	// launch (0.5) and diverge the moment source_weight is configured
-	// (3a's carry to 3c, closed here). Default 0.5.
+	// launch (0.5) and diverge the moment source_weight is configured.
+	// Default 0.5.
 	DataSourceMismatchPenalty float64
 
 	// DataSourcePenalties is the loaded metadata source set
@@ -195,9 +187,9 @@ type Tunables struct {
 	// Languages is import.languages: locale preference order for a
 	// candidate's preferred-alias selection. Default [] (empty)
 	// (config_default.yaml:33), which makes _preferred_alias
-	// structurally unreachable at launch. Shipping a nonempty default
-	// would be an improvement riding the port, forbidden by Ruling D;
-	// closing this reachability gap is a post-launch candidate.
+	// structurally unreachable at launch. A nonempty default would be an
+	// improvement riding the port, and every default here is beets'
+	// shipped value.
 	Languages []string
 
 	// IgnoredAliasTypes is import.ignored_alias_types: alias type
@@ -225,12 +217,11 @@ type Tunables struct {
 	// (beetsplug/musicbrainz.py:673-681). Default "Various Artists"
 	// (config_default.yaml:107). It moves no distance, because the
 	// album artist component is skipped entirely when AlbumInfo.VA
-	// (addAlbumArtist). It does move AlbumInfo.Artist, which
-	// the ruling-E ledger grades field by field, so it is a tunable
+	// (addAlbumArtist). It does move AlbumInfo.Artist, which the
+	// adjudication ledger grades field by field, so it is a tunable
 	// here rather than a literal in the translation layer. No
-	// committed case echoes it, so the M1 defaults cross-check cannot
-	// cover it; its coverage is this package's own unit test and the
-	// translation layer's VA test.
+	// committed case echoes it, so the conform defaults cross-check
+	// cannot cover it; the translation layer's VA test does.
 	//
 	// musicbrainz.aliases_as_credits is deliberately NOT here: it
 	// selects only which object supplies artist_credit
@@ -262,8 +253,7 @@ type Preferred struct {
 	// OriginalYear is preferred.original_year: whether the year
 	// component prefers a candidate's original release year over its
 	// reissue year. Default false. No committed corpus case exercises
-	// this key; coverage is the year component's own table-driven unit
-	// test (Task 7), not a corpus fixture.
+	// this key.
 	OriginalYear bool
 }
 
@@ -324,11 +314,31 @@ func DefaultTunables() Tunables {
 		VAName:                    "Various Artists",
 		StringDistPatterns:        beetsSDPatterns,
 	}
-	// The per-source entry for MusicBrainz IS the plugin's own resolved
-	// penalty (metadata_plugins.py:184-197, Resolution R15): read back
-	// from the field just set above, not a second literal, so the field
-	// has a real production reader.
+	// The MusicBrainz entry is the plugin's resolved penalty
+	// (metadata_plugins.py:184-197), read from the field above rather
+	// than written as a second literal, so the two cannot disagree.
 	tun.DataSourcePenalties = map[string]float64{"MusicBrainz": tun.DataSourceMismatchPenalty}
+	return tun
+}
+
+// QuietImportTunables returns DefaultTunables with the four assignments
+// an unattended quiet import makes, the settings
+// corpus/profiles/estate.yaml records. No import pipeline calls it yet.
+//
+// It lives here rather than in the harness because internal/engine may
+// import no harness package (TestEngineNeverImportsHarness in
+// internal/harness/conform) and conform's gradeTunables is on the wrong
+// side of that wall.
+//
+// Timid and QuietFallback already ship at these values and are assigned
+// anyway, so the set reads as one configuration rather than as a diff a
+// reader has to compute.
+func QuietImportTunables() Tunables {
+	tun := DefaultTunables()
+	tun.Quiet = true           // beet import's -q flag
+	tun.QuietFallback = "skip" // corpus/profiles/estate.yaml import.quiet_fallback
+	tun.NoneRecAction = "skip" // corpus/profiles/estate.yaml import.none_rec_action
+	tun.Timid = false          // corpus/profiles/estate.yaml import.timid
 	return tun
 }
 

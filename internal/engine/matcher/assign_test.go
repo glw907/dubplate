@@ -99,7 +99,8 @@ func TestSolveLAPMatchesBruteForceOnSmallMatrices(t *testing.T) {
 	// Deterministic pseudo-random matrices with small integer costs, so
 	// ties are common and an optimum is cheap to enumerate. The
 	// assertion is on COST, never on which optimum is chosen: the tie
-	// choice is Task 2's, and asserting it here would make this test
+	// choice is held by the two TestSolveLAPMirrors tests, and
+	// asserting it here would make this test
 	// fail for the right solver and the wrong reason.
 	rng := rand.New(rand.NewPCG(1, 2))
 	for n := 2; n <= 6; n++ {
@@ -189,8 +190,8 @@ func TestAssignItemsUsesInclArtistFalseOnAVariousArtistsRelease(t *testing.T) {
 	// index and the track artist. Under inclArtist FALSE the index
 	// component (distance.py:411-413, weight 1.0) makes the IDENTITY
 	// the unique optimum, cost 0.0 against the swap's 0.3333. Under
-	// inclArtist TRUE the artist component (weight 2.0,
-	// tunables.go:272-273) makes the SWAP the unique optimum, 0.25
+	// inclArtist TRUE the artist component (track_artist weight 2.0 in
+	// DefaultTunables) makes the SWAP the unique optimum, 0.25
 	// against the identity's 0.4444. So the fixture discriminates the
 	// two objectives outright and depends on lapjv's tie rule nowhere.
 	// Measured against pinned beets on these four objects. The mutation
@@ -213,8 +214,8 @@ func TestAssignItemsUsesInclArtistFalseOnAVariousArtistsRelease(t *testing.T) {
 	}
 	// The assignment objective ignores the artist entirely, so the
 	// index component alone decides and the identity is the unique
-	// optimum at cost 0.0 (revision 2, fold B3: revision 1 asserted the
-	// swap here, which is the answer an inclArtist-true matrix gives).
+	// optimum at cost 0.0. The swap is the answer an inclArtist-true
+	// matrix gives.
 	want := []Pair{{Item: 0, Track: 0}, {Item: 1, Track: 1}}
 	if !slices.Equal(withArtist.Pairs, want) {
 		t.Errorf("Pairs = %v, want %v: the cost matrix must be built with inclArtist false (distance.py:383-385)", withArtist.Pairs, want)
@@ -222,8 +223,8 @@ func TestAssignItemsUsesInclArtistFalseOnAVariousArtistsRelease(t *testing.T) {
 }
 
 func TestAssignItemsMatchesEveryShapeOneSidedly(t *testing.T) {
-	// Contract V4 and V3 over every rectangular shape, the empty sides
-	// included: min(items, tracks) pairs, strictly ascending Track, and
+	// The pairing invariants over every rectangular shape, the empty
+	// sides included: min(items, tracks) pairs, strictly ascending Track, and
 	// never two non-empty extra lists.
 	all := []ItemFields{
 		{Title: "alpha", Track: 1, Length: 100},
@@ -265,7 +266,7 @@ func TestAssignItemsMatchesEveryShapeOneSidedly(t *testing.T) {
 func TestAlbumPairsForKeepsTrackOrder(t *testing.T) {
 	// albumPairsFor hands distanceForAlbum its pairing in the
 	// assignment's own track order, and points each pair at the
-	// candidate's track rather than a copy of it (contract V3).
+	// candidate's track rather than a copy of it.
 	items := []ItemFields{
 		{Title: "delta", Track: 1, Length: 100},
 		{Title: "alpha", Track: 2, Length: 100},

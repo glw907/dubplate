@@ -6,8 +6,8 @@ package matcher
 // distance path reads already has a known Go type (info.go's
 // ItemFields), so a map[string]any here would throw that typing away
 // for no benefit the album components could use. Each field holds
-// the plurality value across items (contract 11: ties break by
-// first-seen insertion order, i.e. by item order).
+// the plurality value across items, with ties broken by first-seen
+// insertion order, which is item order.
 type Likelies struct {
 	Artist        string
 	Album         string
@@ -94,8 +94,9 @@ func projectField[T any](items []ItemFields, get func(ItemFields) T) []T {
 
 // plurality is Counter.most_common(1)[0] (util/__init__.py:799-807):
 // the most common value in values and its count. Ties break by the
-// value's first-seen index (contract 11) rather than by Go's randomized
-// map order: order records each distinct value's first appearance, and
+// value's first-seen index, as Counter's insertion order does, rather
+// than by Go's randomized map order: order records each distinct
+// value's first appearance, and
 // the strict ">" below leaves the earliest of a tied pair in place. An
 // empty values returns T's zero value and a count of zero, reachable
 // only when items itself is empty.

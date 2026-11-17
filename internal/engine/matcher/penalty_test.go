@@ -13,10 +13,11 @@ import (
 // An aggregateFixture is one hand-authored accumulator replay: a weight
 // override layered over beets' shipped defaults, a list of Add calls,
 // and every aggregate and view they produce. The expected numbers are
-// worked out by hand from contract 5 in testdata/aggregates.json, never
-// computed from this package, so a wrong accumulator cannot agree with
-// them. components.json's aggregate rows express the same arithmetic a
-// second time and are Task 6's to replay.
+// worked out by hand from beets' Distance arithmetic in
+// testdata/aggregates.json, never computed from this package, so a
+// wrong accumulator cannot agree with them. corpus/analysis/
+// components.json's aggregate rows express the same arithmetic a second
+// time, and internal/harness/conform replays them.
 type aggregateFixture struct {
 	Name    string             `json:"name"`
 	Why     string             `json:"why"`
@@ -44,7 +45,7 @@ type aggregateWant struct {
 // TestDistanceAggregatesAndViews replays every fixture and compares
 // with exact equality rather than a tolerance, because the target is
 // bit identity and every figure in the fixture is exactly
-// representable (contract 12).
+// representable.
 //
 // Four mutations this test catches, each named by the fixture that
 // catches it: a denominator summing configured weights instead of added
@@ -247,8 +248,8 @@ func TestAddNumber(t *testing.T) {
 }
 
 // TestAddNumberInflatesTheDenominatorPerUnit is the consequence that
-// makes AddNumber different from every other adder, and the reason
-// contract 5 says the denominator counts penalties rather than keys.
+// makes AddNumber different from every other adder, and the reason the
+// denominator counts penalties rather than keys.
 // Both accumulators below score a full mediums penalty; only the one
 // built from a difference of three pays for it three times over.
 func TestAddNumberInflatesTheDenominatorPerUnit(t *testing.T) {
@@ -372,8 +373,8 @@ func TestAddDataSource(t *testing.T) {
 	}
 }
 
-// TestDataSourcePenaltyFallsBackToClassConstant closes 3a's carry
-// (Resolution R15): the fallback dataSourcePenalty resolves to when
+// TestDataSourcePenaltyFallsBackToClassConstant proves that the
+// fallback dataSourcePenalty resolves to when
 // after names no loaded source is the class-level constant, not
 // Tunables.DataSourceMismatchPenalty. Setting both to 0.7 and asserting
 // 0.5 is exactly the case that distinguishes the two: a reverted

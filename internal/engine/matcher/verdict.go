@@ -114,7 +114,7 @@ func Recommend(tun Tunables, cands []Candidate) (Recommendation, error) {
 		rec = RecLow
 	default:
 		// Return immediately. Can't be downgraded any further
-		// (match.py:300-302, contract V13).
+		// (match.py:300-302).
 		return RecNone, nil
 	}
 
@@ -123,17 +123,18 @@ func Recommend(tun Tunables, cands []Candidate) (Recommendation, error) {
 
 // downgrade applies match.py:304-322's min(rec, max_rec) ladder. The
 // key set against which max_rec is APPLIED is the NONZERO view, unioned
-// with every track sub-distance's own nonzero keys (contract V14): a
-// key added at 0.0 never downgrades.
+// with every track sub-distance's nonzero keys: a key added at 0.0
+// never downgrades.
 //
 // The candidate's own key union drives the walk, and only the max_rec
 // entries whose key is present in it are resolved (match.py:309-316):
 // keys is set(min_dist.keys()), and the loop tests key in max_rec_view
 // before calling as_choice, so an unparseable level on a key no
 // candidate touches is never reached and never reported. tun.MaxRec is
-// NOT walked in full: 3d does not own eager validation of every
-// configured max_rec entry, only beets' own lazy resolution of the
-// ones a candidate's keys select. keys is walked in sorted order so a
+// NOT walked in full here: eager validation of every configured
+// max_rec entry is [Tunables.Validate]'s job, and this reproduces only
+// beets' lazy resolution of the ones a candidate's keys select. keys
+// is walked in sorted order so a
 // failure is reproducible even though map iteration order is not.
 func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation, error) {
 	keys := make(map[string]struct{})

@@ -42,34 +42,3 @@ func transliterate(s string) string {
 	}
 	return b.String()
 }
-
-// levenshtein is jellyfish.levenshtein_distance's plain-unit-cost edit
-// distance over Unicode code points: the minimum number of single-rune
-// insertions, deletions, and substitutions turning a into b.
-func levenshtein(a, b string) int {
-	ra, rb := []rune(a), []rune(b)
-	if len(ra) == 0 {
-		return len(rb)
-	}
-	if len(rb) == 0 {
-		return len(ra)
-	}
-
-	prev := make([]int, len(rb)+1)
-	for j := range prev {
-		prev[j] = j
-	}
-	curr := make([]int, len(rb)+1)
-	for i := 1; i <= len(ra); i++ {
-		curr[0] = i
-		for j := 1; j <= len(rb); j++ {
-			cost := 1
-			if ra[i-1] == rb[j-1] {
-				cost = 0
-			}
-			curr[j] = min(prev[j]+1, curr[j-1]+1, prev[j-1]+cost)
-		}
-		prev, curr = curr, prev
-	}
-	return prev[len(rb)]
-}

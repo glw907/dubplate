@@ -122,7 +122,7 @@ func assignItems(tun Tunables, items []ItemFields, tracks []TrackInfo) Assignmen
 }
 
 // albumPairsFor projects an assignment onto the pairing distanceForAlbum
-// consumes, preserving track order (contract V3).
+// consumes, preserving track order.
 func albumPairsFor(a Assignment, items []ItemFields, info *AlbumInfo) []albumPair {
 	pairs := make([]albumPair, len(a.Pairs))
 	for k, p := range a.Pairs {
@@ -135,7 +135,7 @@ func albumPairsFor(a Assignment, items []ItemFields, info *AlbumInfo) []albumPai
 // It reproduces lap.lapjv(costs, extend_cost=True) (match.py:66):
 // a dense Jonker-Volgenant solve over the matrix padded to
 // n = max(rows, cols) with ZERO, which is the extension model measured
-// against the pinned solver (contract V5) rather than the
+// against the pinned solver rather than the
 // (rows+cols, max+1) recipe derive_ties.py's docstring assumes, which
 // disagrees with this lap build on 30% of rectangular ties.
 //

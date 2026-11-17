@@ -15,7 +15,7 @@ import (
 // beets.autotag.distance.string_dist in the pinned venv
 // (tools/venv/.venv, beets 2.14.1) on exactly these inputs, and the
 // comparison is exact rather than tolerant because bit identity is the
-// port's target (contract 12). A row that needs a tolerance is a
+// port's target. A row that needs a tolerance is a
 // finding about operation order, not a test to loosen.
 func TestStringDist(t *testing.T) {
 	tun := DefaultTunables()
@@ -294,7 +294,7 @@ func TestStringDistFeaturingUppercaseDottedICaseMapping(t *testing.T) {
 			tun := DefaultTunables()
 			tun.StringDistPatterns = table.patterns
 			if got := StringDist(tun, &str1, &str2); got != wantGo {
-				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875; a figure equal to 0.06875 means the divergence was fixed, so update this row and its HISTORY note)", str1, str2, got, wantGo)
+				t.Errorf("StringDist(%q, %q) = %v, want %v (declared divergence from beets' 0.06875; a figure equal to 0.06875 means the divergence was fixed, so update this row and its comment)", str1, str2, got, wantGo)
 			}
 		})
 	}
@@ -570,7 +570,7 @@ func TestFeaturingRowWordClassMatchesPythonRanges(t *testing.T) {
 		t.Fatalf("%d code points are Python word characters and not Go ones", len(pythonOnly))
 	}
 	if goOnly != wantGoOnlyWordCodePoints {
-		t.Errorf("Go-only word-character count = %d, want %d (unicode.Version %s): confirm the Python-only count is still zero, check whether any newly assigned code point can sit before a trigger in a real title, then update the count and record it in HISTORY", goOnly, wantGoOnlyWordCodePoints, unicode.Version)
+		t.Errorf("Go-only word-character count = %d, want %d (unicode.Version %s): confirm the Python-only count is still zero, check whether any newly assigned code point can sit before a trigger in a real title, then update the count and the comment on wantGoOnlyWordCodePoints", goOnly, wantGoOnlyWordCodePoints, unicode.Version)
 	}
 }
 
@@ -750,6 +750,29 @@ func TestAddString(t *testing.T) {
 	}
 	if got := dist.nonzeroKeys(); len(got) != 1 || got[0] != "album" {
 		t.Errorf("nonzeroKeys() = %v, want [album]: an identical pair adds 0.0 and stays out", got)
+	}
+}
+
+func TestLevenshtein(t *testing.T) {
+	tests := []struct {
+		name string
+		a, b string
+		want int
+	}{
+		{name: "both empty", a: "", b: "", want: 0},
+		{name: "empty vs non-empty", a: "", b: "abc", want: 3},
+		{name: "non-empty vs empty", a: "abc", b: "", want: 3},
+		{name: "equal-length identical", a: "kitten", b: "kitten", want: 0},
+		{name: "equal-length one substitution", a: "abc", b: "abd", want: 1},
+		{name: "equal-length every position differs", a: "abc", b: "xyz", want: 3},
+		{name: "classic kitten/sitting", a: "kitten", b: "sitting", want: 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := levenshtein(tt.a, tt.b); got != tt.want {
+				t.Errorf("levenshtein(%q, %q) = %d, want %d", tt.a, tt.b, got, tt.want)
+			}
+		})
 	}
 }
 
