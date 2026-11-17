@@ -454,10 +454,10 @@ func (t Tunables) Validate() error {
 		}
 	}
 
-	if err := compilePanicAsError(func() { compileMediaPatterns(t.Preferred.Media) }); err != nil {
+	if _, err := compileMediaPatterns(t.Preferred.Media); err != nil {
 		errs = append(errs, fmt.Errorf("preferred.media: %w: %w", ErrInvalidTunable, err))
 	}
-	if err := compilePanicAsError(func() { compileCountryPatterns(t.Preferred.Countries) }); err != nil {
+	if _, err := compileCountryPatterns(t.Preferred.Countries); err != nil {
 		errs = append(errs, fmt.Errorf("preferred.countries: %w: %w", ErrInvalidTunable, err))
 	}
 
@@ -471,42 +471,12 @@ func (t Tunables) Validate() error {
 		}
 	}
 
-	// import.quiet_fallback and import.none_rec_action share a lexer
-	// but carry different legal sets (fold M-d): as_choice({"skip":
-	// SKIP, "asis": ASIS}) for the former
-	// (ui/commands/import_/session.py:377-379) and as_choice({"skip":
-	// SKIP, "asis": ASIS, "ask": None}) for the latter
-	// (ui/commands/import_/session.py:383-388). ActionFor tests the same
-	// two sets.
-	if fallback, err := ParseAction(t.QuietFallback); err != nil {
-		errs = append(errs, fmt.Errorf("import.quiet_fallback: %w", err))
-	} else if !slices.Contains(LegalQuietFallbacks, fallback) {
-		errs = append(errs, fmt.Errorf("import.quiet_fallback: %q: %w (ui/commands/import_/session.py:377-379)", t.QuietFallback, ErrInvalidTunable))
+	if _, err := resolveAction("import.quiet_fallback", t.QuietFallback, quietFallbacks); err != nil {
+		errs = append(errs, err)
 	}
-	if noneRecAction, err := ParseAction(t.NoneRecAction); err != nil {
-		errs = append(errs, fmt.Errorf("import.none_rec_action: %w", err))
-	} else if !slices.Contains(LegalNoneRecActions, noneRecAction) {
-		errs = append(errs, fmt.Errorf("import.none_rec_action: %q: %w (ui/commands/import_/session.py:383-388)", t.NoneRecAction, ErrInvalidTunable))
+	if _, err := resolveAction("import.none_rec_action", t.NoneRecAction, noneRecActions); err != nil {
+		errs = append(errs, err)
 	}
 
 	return errors.Join(errs...)
-}
-
-// compilePanicAsError runs compile and turns its panic, if any, into an
-// error. compileMediaPatterns and compileCountryPatterns panic because
-// their only caller, the corresponding album component, has no error
-// path to return one on (album_media.go:39-46, album_country.go:34-41);
-// Validate reuses those same two functions rather than reimplementing
-// CompilePatternOption's two different wrapping rules, so recovering
-// here is the narrow price of checking the exact compilation the
-// runtime call site panics on, instead of a parallel check that could
-// drift from it.
-func compilePanicAsError(compile func()) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("%v", r)
-		}
-	}()
-	compile()
-	return nil
 }

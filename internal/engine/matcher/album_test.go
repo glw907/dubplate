@@ -51,7 +51,7 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 		items := []ItemFields{itemA, itemB}
 		pairs := []AlbumPair{{Item: itemA, Info: &trackA}, {Item: itemB, Info: &trackB}}
 
-		dist := DistanceForAlbum(items, info, pairs, DefaultTunables(), evalDate)
+		dist := mustDistanceForAlbum(t, items, info, pairs, evalDate)
 
 		wantDistance(t, dist, 0)
 		wantAddedKeys(t, dist, "artist", "album", "media", "mediums", "year",
@@ -96,7 +96,7 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 		items := []ItemFields{itemA, itemC}
 		pairs := []AlbumPair{{Item: itemA, Info: &trackA}}
 
-		dist := DistanceForAlbum(items, info, pairs, DefaultTunables(), evalDate)
+		dist := mustDistanceForAlbum(t, items, info, pairs, evalDate)
 
 		wantDistance(t, dist, 0.07894736842105263)
 		wantAddedKeys(t, dist, "artist", "album", "media", "mediums", "year",
@@ -152,7 +152,7 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 		items := []ItemFields{itemA, itemB}
 		pairs := []AlbumPair{{Item: itemA, Info: &trackA}, {Item: itemB, Info: &trackB}}
 
-		dist := DistanceForAlbum(items, info, pairs, DefaultTunables(), evalDate)
+		dist := mustDistanceForAlbum(t, items, info, pairs, evalDate)
 
 		wantDistance(t, dist, 0.013320013320013322)
 		// "artist" is absent: the VA skip, not a zero-scoring add.
@@ -171,6 +171,15 @@ func TestDistanceForAlbumComposition(t *testing.T) {
 			t.Errorf("dist.Tracks[1].Dist.AddedKeys() = %v, want it to contain track_artist", dist.Tracks[1].Dist.AddedKeys())
 		}
 	})
+}
+
+func mustDistanceForAlbum(t *testing.T, items []ItemFields, info *AlbumInfo, pairs []AlbumPair, evalDate time.Time) *Distance {
+	t.Helper()
+	dist, err := DistanceForAlbum(items, info, pairs, DefaultTunables(), evalDate)
+	if err != nil {
+		t.Fatalf("DistanceForAlbum: %v", err)
+	}
+	return dist
 }
 
 func TestAddAlbumArtist(t *testing.T) {
@@ -264,7 +273,11 @@ func TestAddAlbumMedia(t *testing.T) {
 			dist := NewDistance(DefaultTunables())
 			likelies := Likelies{Media: tt.likely}
 			info := &AlbumInfo{Media: tt.info}
-			addAlbumMedia(dist, tt.preferred, likelies, info)
+			preferred, err := compileMediaPatterns(tt.preferred)
+			if err != nil {
+				t.Fatal(err)
+			}
+			addAlbumMedia(dist, preferred, likelies, info)
 
 			got := dist.penalties["media"]
 			if !slices.Equal(got, tt.want) {
@@ -425,7 +438,11 @@ func TestAddAlbumCountry(t *testing.T) {
 			dist := NewDistance(DefaultTunables())
 			likelies := Likelies{Country: tt.likely}
 			info := &AlbumInfo{Country: tt.info}
-			addAlbumCountry(dist, tt.preferred, likelies, info)
+			preferred, err := compileCountryPatterns(tt.preferred)
+			if err != nil {
+				t.Fatal(err)
+			}
+			addAlbumCountry(dist, preferred, likelies, info)
 
 			got := dist.penalties["country"]
 			if !slices.Equal(got, tt.want) {

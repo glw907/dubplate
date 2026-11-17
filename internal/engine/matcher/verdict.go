@@ -66,36 +66,28 @@ const (
 	ActionAsk   Action = "ask"
 )
 
-// ParseAction resolves an action name to an Action, returning an error
-// wrapping ErrInvalidTunable for anything else. It is the shared lexer
-// and never the membership check: beets accepts only skip and asis for
-// import.quiet_fallback (session.py:341) and skip, asis and ask for
-// import.none_rec_action (session.py:348-350), so Validate and
-// ActionFor test membership per key against those two sets. A shared
-// four-name set would bless quiet_fallback: apply, which confuse
-// raises on (fold M-d).
-func ParseAction(s string) (Action, error) {
-	switch Action(s) {
-	case ActionApply, ActionSkip, ActionAsIs, ActionAsk:
-		return Action(s), nil
-	default:
-		return "", fmt.Errorf("action %q: %w", s, ErrInvalidTunable)
-	}
-}
-
-// LegalQuietFallbacks and LegalNoneRecActions are those two sets, each
-// citing the as_choice call it mirrors. They are exported so
-// Tunables.Validate and ActionFor test the same membership and a
-// reader can see that they differ on purpose.
+// quietFallbacks and noneRecActions are the as_choice sets beets
+// resolves import.quiet_fallback and import.none_rec_action against.
+// They differ on purpose: a shared set would bless quiet_fallback:
+// apply, which confuse raises on.
 var (
-	// LegalQuietFallbacks mirrors as_choice({"skip": SKIP, "asis": ASIS})
-	// (session.py:340-342).
-	LegalQuietFallbacks = []Action{ActionSkip, ActionAsIs}
-	// LegalNoneRecActions mirrors
+	// as_choice({"skip": SKIP, "asis": ASIS})
+	// (ui/commands/import_/session.py:377-379).
+	quietFallbacks = []Action{ActionSkip, ActionAsIs}
 	// as_choice({"skip": SKIP, "asis": ASIS, "ask": None})
-	// (session.py:346-352).
-	LegalNoneRecActions = []Action{ActionSkip, ActionAsIs, ActionAsk}
+	// (ui/commands/import_/session.py:383-389).
+	noneRecActions = []Action{ActionSkip, ActionAsIs, ActionAsk}
 )
+
+// resolveAction resolves name, the value of config key key, against
+// legal, the as_choice set beets accepts for that key, returning an
+// error wrapping ErrInvalidTunable for any other name.
+func resolveAction(key, name string, legal []Action) (Action, error) {
+	if !slices.Contains(legal, Action(name)) {
+		return "", fmt.Errorf("%s: %q: %w", key, name, ErrInvalidTunable)
+	}
+	return Action(name), nil
+}
 
 // Recommend is _recommendation (autotag/match.py:269-323). cands must be
 // Candidates.Sorted's output; an empty slice returns RecNone.
@@ -169,7 +161,7 @@ func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation
 }
 
 // ActionFor is _summary_judgment
-// (beets/ui/commands/import_/session.py:328-360).
+// (beets/ui/commands/import_/session.py:365-396).
 //
 // The quiet branch is tested FIRST, so Timid and NoneRecAction are
 // unreachable whenever Quiet is set. Every committed corpus record was
@@ -181,14 +173,7 @@ func ActionFor(tun Tunables, rec Recommendation) (Action, error) {
 		if rec == RecStrong {
 			return ActionApply, nil
 		}
-		fallback, err := ParseAction(tun.QuietFallback)
-		if err != nil {
-			return "", err
-		}
-		if !slices.Contains(LegalQuietFallbacks, fallback) {
-			return "", fmt.Errorf("import.quiet_fallback: %q: %w (session.py:340-342)", tun.QuietFallback, ErrInvalidTunable)
-		}
-		return fallback, nil
+		return resolveAction("import.quiet_fallback", tun.QuietFallback, quietFallbacks)
 	}
 
 	if tun.Timid {
@@ -196,14 +181,7 @@ func ActionFor(tun Tunables, rec Recommendation) (Action, error) {
 	}
 
 	if rec == RecNone {
-		action, err := ParseAction(tun.NoneRecAction)
-		if err != nil {
-			return "", err
-		}
-		if !slices.Contains(LegalNoneRecActions, action) {
-			return "", fmt.Errorf("import.none_rec_action: %q: %w (session.py:346-350)", tun.NoneRecAction, ErrInvalidTunable)
-		}
-		return action, nil
+		return resolveAction("import.none_rec_action", tun.NoneRecAction, noneRecActions)
 	}
 
 	return ActionAsk, nil

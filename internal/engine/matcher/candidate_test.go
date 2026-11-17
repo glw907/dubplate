@@ -102,6 +102,35 @@ func TestAddRejectsAnUnknownRequiredFieldName(t *testing.T) {
 	}
 }
 
+// TestAddReportsABadPatternAsValidateDoes proves a Tunables value that
+// skipped Validate fails Add with the error Validate would have given,
+// rather than scoring with the pattern dropped.
+func TestAddReportsABadPatternAsValidateDoes(t *testing.T) {
+	tests := []struct {
+		name string
+		mut  func(*Tunables)
+	}{
+		{"preferred media", func(t *Tunables) { t.Preferred.Media = []string{"("} }},
+		{"preferred countries", func(t *Tunables) { t.Preferred.Countries = []string{"("} }},
+	}
+	items := []ItemFields{{Title: "one", Track: 1, Length: 100}}
+	info := &AlbumInfo{Album: "a", AlbumID: "id-1", DataSource: "MusicBrainz", Media: "CD", Country: "US",
+		Tracks: []TrackInfo{{Title: "one", Index: 1, Length: 100}}}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tun := DefaultTunables()
+			tt.mut(&tun)
+			ok, err := NewCandidates().Add(tun, items, info, evalDate)
+			if ok || !errors.Is(err, ErrInvalidTunable) {
+				t.Fatalf("Add = %t, %v; want false and an error wrapping ErrInvalidTunable", ok, err)
+			}
+			if want := tun.Validate().Error(); err.Error() != want {
+				t.Errorf("Add error = %q, want Validate's %q", err, want)
+			}
+		})
+	}
+}
+
 func TestAddAppliesIgnoredAgainstTheNonzeroView(t *testing.T) {
 	// The m5 hazard's second site. The fixture is built so the candidate
 	// carries "media" in the ADDED-key view at exactly 0.0 and carries

@@ -130,7 +130,10 @@ func (c *Candidates) Add(tun Tunables, items []ItemFields, info *AlbumInfo, eval
 
 	assignment := AssignItems(tun, items, info.Tracks)
 	pairs := AlbumPairsFor(assignment, items, info)
-	dist := DistanceForAlbum(items, info, pairs, tun, evalDate) // gate 4: score
+	dist, err := DistanceForAlbum(items, info, pairs, tun, evalDate) // gate 4: score
+	if err != nil {
+		return false, err
+	}
 
 	// gate 5: match.ignored reads the NONZERO view (contract V8). beets
 	// iterates Distance.items(), which omits zero-weighted penalties

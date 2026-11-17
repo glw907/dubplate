@@ -245,13 +245,20 @@ func TestValidateRejectsAnUnknownRequiredFieldAndABadPattern(t *testing.T) {
 		mut  func(*Tunables)
 		want string
 	}{
-		{"unknown required field", func(t *Tunables) { t.Required = []string{"nosuchfield"} }, "nosuchfield"},
-		{"unparseable preferred media pattern", func(t *Tunables) { t.Preferred.Media = []string{"("} }, "preferred.media"},
-		{"unparseable preferred country pattern", func(t *Tunables) { t.Preferred.Countries = []string{"[a-"} }, "preferred.countries"},
-		{"unresolvable max_rec level", func(t *Tunables) { t.MaxRec = map[string]string{"album": "not-a-level"} }, "max_rec"},
-		{"quiet_fallback outside its legal set: apply", func(t *Tunables) { t.QuietFallback = "apply" }, "quiet_fallback"},
-		{"quiet_fallback outside its legal set: ask", func(t *Tunables) { t.QuietFallback = "ask" }, "quiet_fallback"},
-		{"none_rec_action outside its legal set: apply", func(t *Tunables) { t.NoneRecAction = "apply" }, "none_rec_action"},
+		{"unknown required field", func(t *Tunables) { t.Required = []string{"nosuchfield"} },
+			`required: "nosuchfield": invalid tunable`},
+		{"unparseable preferred media pattern", func(t *Tunables) { t.Preferred.Media = []string{"("} },
+			"preferred.media: invalid tunable: matcher: preferred.media pattern ( does not compile: compile option pattern \"(\\\\d+x)?(()\": error parsing regexp: missing closing ): `(?i)^(?:(\\d+x)?(())`"},
+		{"unparseable preferred country pattern", func(t *Tunables) { t.Preferred.Countries = []string{"("} },
+			"preferred.countries: invalid tunable: matcher: preferred.countries pattern ( does not compile: compile option pattern \"(\": error parsing regexp: missing closing ): `(?i)^(?:()`"},
+		{"unresolvable max_rec level", func(t *Tunables) { t.MaxRec = map[string]string{"album": "not-a-level"} },
+			`max_rec["album"]: recommendation "not-a-level": invalid tunable`},
+		{"quiet_fallback outside its legal set: apply", func(t *Tunables) { t.QuietFallback = "apply" },
+			`import.quiet_fallback: "apply": invalid tunable`},
+		{"quiet_fallback outside its legal set: ask", func(t *Tunables) { t.QuietFallback = "ask" },
+			`import.quiet_fallback: "ask": invalid tunable`},
+		{"none_rec_action outside its legal set: apply", func(t *Tunables) { t.NoneRecAction = "apply" },
+			`import.none_rec_action: "apply": invalid tunable`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -261,8 +268,8 @@ func TestValidateRejectsAnUnknownRequiredFieldAndABadPattern(t *testing.T) {
 			if !errors.Is(err, ErrInvalidTunable) {
 				t.Fatalf("Validate = %v, want an error wrapping ErrInvalidTunable", err)
 			}
-			if !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("Validate = %v, want the message to name %q", err, tt.want)
+			if got := err.Error(); got != tt.want {
+				t.Errorf("Validate = %q, want %q", got, tt.want)
 			}
 		})
 	}

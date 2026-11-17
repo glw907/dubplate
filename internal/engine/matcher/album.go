@@ -1,6 +1,9 @@
 package matcher
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // AlbumPair is one item matched to one candidate track: the input the
 // album-level tracks, missing_tracks, and unmatched_tracks components
@@ -30,15 +33,27 @@ type AlbumPair struct {
 // ratio branches divide by a span ending at evalDate's year, and a
 // package that read time.Now would make every distance depend on when
 // it happened to run.
-func DistanceForAlbum(items []ItemFields, info *AlbumInfo, pairs []AlbumPair, tun Tunables, evalDate time.Time) *Distance {
+//
+// The only error is an uncompilable preferred pattern, wrapped exactly
+// as [Tunables.Validate] wraps it at config load.
+func DistanceForAlbum(items []ItemFields, info *AlbumInfo, pairs []AlbumPair, tun Tunables, evalDate time.Time) (*Distance, error) {
+	media, err := compileMediaPatterns(tun.Preferred.Media)
+	if err != nil {
+		return nil, fmt.Errorf("preferred.media: %w: %w", ErrInvalidTunable, err)
+	}
+	countries, err := compileCountryPatterns(tun.Preferred.Countries)
+	if err != nil {
+		return nil, fmt.Errorf("preferred.countries: %w: %w", ErrInvalidTunable, err)
+	}
+
 	likelies, _ := MostCommonTags(items)
 	dist := NewDistance(tun)
 	addAlbumArtist(dist, likelies, info)
 	addAlbumAlbum(dist, likelies, info)
-	addAlbumMedia(dist, tun.Preferred.Media, likelies, info)
+	addAlbumMedia(dist, media, likelies, info)
 	addAlbumMediums(dist, likelies, info)
 	addAlbumYear(dist, tun.Preferred.OriginalYear, likelies, info, evalDate.Year())
-	addAlbumCountry(dist, tun.Preferred.Countries, likelies, info)
+	addAlbumCountry(dist, countries, likelies, info)
 	addAlbumLabel(dist, likelies, info)
 	addAlbumCatalogNum(dist, likelies, info)
 	addAlbumDisambig(dist, likelies, info)
@@ -47,7 +62,7 @@ func DistanceForAlbum(items []ItemFields, info *AlbumInfo, pairs []AlbumPair, tu
 	addAlbumMissingTracks(dist, info, pairs)
 	addAlbumUnmatchedTracks(dist, items, pairs)
 	addAlbumDataSource(dist, likelies, info)
-	return dist
+	return dist, nil
 }
 
 // addAlbumArtist is distance()'s artist component
@@ -70,17 +85,17 @@ func addAlbumAlbum(dist *Distance, likelies Likelies, info *AlbumInfo) {
 
 // addAlbumMedia is distance()'s media component
 // (autotag/distance.py:454-465): fires only when the candidate names a
-// media type. With preferred patterns it ranks the candidate's media by
-// pattern position (AddPriority); otherwise, when the item set itself
-// agrees on a media type, it grades a plain equality against that.
-func addAlbumMedia(dist *Distance, preferred []string, likelies Likelies, info *AlbumInfo) {
+// media type. With preferred patterns, compiled by compileMediaPatterns,
+// it ranks the candidate's media by pattern position (AddPriority);
+// otherwise, when the item set itself agrees on a media type, it grades
+// a plain equality against that.
+func addAlbumMedia(dist *Distance, preferred []any, likelies Likelies, info *AlbumInfo) {
 	if info.Media == "" {
 		return
 	}
 
-	options := compileMediaPatterns(preferred)
-	if len(options) > 0 {
-		dist.AddPriority("media", info.Media, options...)
+	if len(preferred) > 0 {
+		dist.AddPriority("media", info.Media, preferred...)
 		return
 	}
 	if likelies.Media != "" {
@@ -92,20 +107,16 @@ func addAlbumMedia(dist *Distance, preferred []string, likelies Likelies, info *
 // `(\d+x)?(<pat>)`, case-insensitive, matching beets' own
 // `re.compile(rf"(\d+x)?({pat})", re.I)` (distance.py:459); the
 // `(\d+x)?` prefix tolerates a leading disc-count marker like "2xCD".
-//
-// It panics on an uncompilable pattern because its caller has no error
-// path of its own; Tunables.Validate makes that panic unreachable in a
-// configured system by calling this same function at config-load time.
-func compileMediaPatterns(patterns []string) []any {
+func compileMediaPatterns(patterns []string) ([]any, error) {
 	options := make([]any, len(patterns))
 	for i, pattern := range patterns {
 		option, err := CompilePatternOption(`(\d+x)?(`+pattern+`)`, true)
 		if err != nil {
-			panic("matcher: preferred.media pattern " + pattern + " does not compile: " + err.Error())
+			return nil, fmt.Errorf("matcher: preferred.media pattern %s does not compile: %w", pattern, err)
 		}
 		options[i] = option
 	}
-	return options
+	return options, nil
 }
 
 // addAlbumMediums is distance()'s mediums component
@@ -172,15 +183,14 @@ func absInt(n int) int {
 }
 
 // addAlbumCountry is distance()'s country component
-// (autotag/distance.py:495-502): with preferred patterns and a
-// candidate country, ranks the candidate by pattern position
-// (AddPriority); otherwise, when both the item set's likely country and
-// the candidate's own are set, grades a plain string distance between
-// the two codes.
-func addAlbumCountry(dist *Distance, preferred []string, likelies Likelies, info *AlbumInfo) {
-	options := compileCountryPatterns(preferred)
-	if info.Country != "" && len(options) > 0 {
-		dist.AddPriority("country", info.Country, options...)
+// (autotag/distance.py:495-502): with preferred patterns, compiled by
+// compileCountryPatterns, and a candidate country, ranks the candidate
+// by pattern position (AddPriority); otherwise, when both the item
+// set's likely country and the candidate's own are set, grades a plain
+// string distance between the two codes.
+func addAlbumCountry(dist *Distance, preferred []any, likelies Likelies, info *AlbumInfo) {
+	if info.Country != "" && len(preferred) > 0 {
+		dist.AddPriority("country", info.Country, preferred...)
 		return
 	}
 	if likelies.Country != "" && info.Country != "" {
@@ -190,19 +200,17 @@ func addAlbumCountry(dist *Distance, preferred []string, likelies Likelies, info
 
 // compileCountryPatterns compiles each preferred pattern
 // case-insensitive with no `(\d+x)?` wrapper: beets compiles country
-// patterns as a bare `re.compile(pat, re.I)` (distance.py:497). It
-// panics on an uncompilable pattern for the reason
-// compileMediaPatterns does.
-func compileCountryPatterns(patterns []string) []any {
+// patterns as a bare `re.compile(pat, re.I)` (distance.py:497).
+func compileCountryPatterns(patterns []string) ([]any, error) {
 	options := make([]any, len(patterns))
 	for i, pattern := range patterns {
 		option, err := CompilePatternOption(pattern, true)
 		if err != nil {
-			panic("matcher: preferred.countries pattern " + pattern + " does not compile: " + err.Error())
+			return nil, fmt.Errorf("matcher: preferred.countries pattern %s does not compile: %w", pattern, err)
 		}
 		options[i] = option
 	}
-	return options
+	return options, nil
 }
 
 // addAlbumLabel is distance()'s label component
