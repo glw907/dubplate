@@ -1,10 +1,10 @@
 # dubplate status
 
 <!-- round-report cleanup -->
-**Round cleanup: pass 1 has landed, pass 2 is planning.** `cleanup-ci` merged as `73bae3b`: every pull request now runs
-`scripts/check.sh` as a check on GitHub, dependencies moved to their newest minors, and BACKLOG, `CLAUDE.md`, the
-standing rules, and the adapter describe rounds. Pass 2 (`cleanup-gate`) plans from `origin/master`. Nothing waits for
-Geoff yet, nothing has deployed, and the box is unchanged. Conductor session: `conductor-dubplate`.
+**Round cleanup: pass 1 landed; passes 2, 3 and 4 wait for the close packet; pass 5 is planning.** PR #13
+(`cleanup-gate`), #14 (`cleanup-store`) and #15 (`cleanup-web`), stacked, are ready, checks green, class `auth-data`. Rulings:
+`20261116-080113-a56d02` (gate stop), `20261116-163931-082d9d` (a parked pass doesn't hold the next). Nothing has
+deployed; the box is unchanged. Conductor: `conductor-dubplate`.
 Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
 <!-- /round-report -->
 
