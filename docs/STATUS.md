@@ -1,8 +1,8 @@
 # dubplate status
 
 <!-- round-report cleanup -->
-**Round cleanup: pass 1 landed; passes 2 and 3 wait for the close packet; pass 4 is planning.** PR #13
-(`cleanup-gate`) and PR #14 (`cleanup-store`, stacked) are ready, checks green, class `auth-data`. Rulings:
+**Round cleanup: pass 1 landed; passes 2, 3 and 4 wait for the close packet; pass 5 is planning.** PR #13
+(`cleanup-gate`), #14 (`cleanup-store`) and #15 (`cleanup-web`), stacked, are ready, checks green, class `auth-data`. Rulings:
 `20261116-080113-a56d02` (gate stop), `20261116-163931-082d9d` (a parked pass doesn't hold the next). Nothing has
 deployed; the box is unchanged. Conductor: `conductor-dubplate`.
 Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
