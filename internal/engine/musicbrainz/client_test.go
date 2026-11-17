@@ -305,3 +305,49 @@ func TestReleaseRetriesOnTransientStatus(t *testing.T) {
 		}
 	}
 }
+
+func TestReleaseStopsWhenTheContextEndsDuringABackoffWait(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var requests int
+	rt := roundTripperFunc(func(*http.Request) (*http.Response, error) {
+		requests++
+		return &http.Response{StatusCode: 503, Body: io.NopCloser(strings.NewReader(""))}, nil
+	})
+	c := newTestClient(t, rt)
+	c.sleep = func(ctx context.Context, _ time.Duration) error {
+		cancel()
+		return ctx.Err()
+	}
+
+	_, err := c.Release(ctx, releaseFixtureID)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("Release() = %v, want an error wrapping context.Canceled", err)
+	}
+	if requests != 1 {
+		t.Errorf("requests = %d, want 1: a cancelled wait must not be followed by another request", requests)
+	}
+}
+
+func TestReleaseStopsWhenTheContextEndsDuringARequest(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var requests int
+	rt := roundTripperFunc(func(*http.Request) (*http.Response, error) {
+		requests++
+		cancel()
+		return nil, ctx.Err()
+	})
+	c := newTestClient(t, rt)
+
+	_, err := c.Release(ctx, releaseFixtureID)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("Release() = %v, want an error wrapping context.Canceled", err)
+	}
+	if errors.Is(err, ErrUnavailable) {
+		t.Errorf("Release() = %v, want the context's error and never ErrUnavailable", err)
+	}
+	if requests != 1 {
+		t.Errorf("requests = %d, want 1: a cancelled context must not be retried", requests)
+	}
+}
