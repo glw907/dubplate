@@ -1,11 +1,9 @@
 # dubplate status
 
 <!-- round-report cleanup -->
-**Round cleanup: pass 1 landed; passes 2 to 5 are built and wait on the close packet `20261117-064744-b8dd9b`.** PRs
-#13 to #16 (`cleanup-gate`, `-store`, `-web`, `-ops`) are ready, checks green, class `auth-data`, base `master`. Rulings:
-`20261116-080113-a56d02` (gate stop), `20261116-163931-082d9d` (a parked pass doesn't hold the next). Nothing has
-deployed; the box is unchanged. Conductor: `conductor-dubplate`.
-Resume from: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-15-cleanup-conductor-prompt.txt
+**Round cleanup is done.** PRs #13 to #16 merged on 2026-11-17 on Geoff's approve of `20261117-064744-b8dd9b`, and the
+approved allow rules landed in `.claude/settings.json` (`7151edb`). Nothing has deployed; the box is unchanged. Report:
+`~/Projects/initiatives/dubplate-server/reports/cleanup-report.md`.
 <!-- /round-report -->
 
 ## Current state
@@ -22,8 +20,8 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Round `cleanup` is running under `conductor-dubplate`, per the round block at the top. Resume a dead conductor from
-the prompt named there.
+Design round `engine`: no design exists yet, and nothing is launched for it. Before any deploy that carries `cleanup-store`,
+check read-only that the box store holds no restore-intent record (#148).
 
 ## Coordination
 The workstation's Claude infrastructure is under its own plan: the `workstation-refinement` initiative
