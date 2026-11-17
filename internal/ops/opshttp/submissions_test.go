@@ -40,7 +40,7 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.op, func(t *testing.T) {
-			f := newFixture(t, grant(ann, ops.PrivilegeMember), successes())
+			f := newFixture(t, grant(ann, ops.PrivilegeMember))
 			rec := f.post(tt.op, tt.body)
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status = %d, want 200; body %q", rec.Code, rec.Body)
@@ -52,8 +52,8 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 			if got := rec.Body.String(); got != string(want) {
 				t.Errorf("body = %s, want %s", got, want)
 			}
-			if n := len(f.seam.calls) + len(f.admin.calls); n != 0 {
-				t.Errorf("job and admin seam calls = %d, want 0", n)
+			if n := len(f.admin.calls); n != 0 {
+				t.Errorf("admin seam calls = %d, want 0", n)
 			}
 			if len(f.subs.calls) != 1 {
 				t.Fatalf("submission seam calls = %d, want 1", len(f.subs.calls))
@@ -73,7 +73,7 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 // body naming an uploader, a collection, a state, a reservation, a role,
 // and an actor reaches the seam as the request without any of them.
 func TestServeHTTPCreateSubmissionIgnoresForeignFields(t *testing.T) {
-	f := newFixture(t, grant(ann, ops.PrivilegeMember), successes())
+	f := newFixture(t, grant(ann, ops.PrivilegeMember))
 	body := `{"verdict_unit":"album","container":"files","files":[{"path":"a.flac","size":1,"role":"audio"}],"source":"cd",
 		"uploader":"` + testHandle + `","collection":"` + testHandle + `","collection_id":"` + testHandle + `",
 		"state":"accepted","reserved_bytes":0,"role":"admin","actor":"local:root"}`
@@ -125,7 +125,7 @@ func TestServeHTTPSubmissionBodyCaps(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := newFixture(t, grant(ann, ops.PrivilegeMember), successes())
+			f := newFixture(t, grant(ann, ops.PrivilegeMember))
 			rec := f.post(tt.op, tt.body)
 			if rec.Code != tt.want {
 				t.Fatalf("status = %d, want %d; body %.200q", rec.Code, tt.want, rec.Body)
@@ -147,7 +147,7 @@ func TestServeHTTPRejectsEnvelope(t *testing.T) {
 		Submission: []reject.Reason{reject.Of(reject.NoAudio)},
 		Files:      []ops.FileReject{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 	})
-	f := newFixture(t, grant(ann, ops.PrivilegeMember), successes())
+	f := newFixture(t, grant(ann, ops.PrivilegeMember))
 	f.subs.answers[ops.OpCreateSubmission] = fakeAnswer{err: refusal}
 	rec := f.post(ops.OpCreateSubmission, `{}`)
 	if rec.Code != http.StatusBadRequest {

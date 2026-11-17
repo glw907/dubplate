@@ -91,11 +91,11 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 }
 
 // newProductionRegistry builds the registry the binary runs against:
-// rung 1's own seed, plus every rung's own registration call, in
-// landing order. newRootCmd and the test suite's own productionRegistry
-// helper (serve_test.go) both call it, so the production registration
-// order is written once rather than restated by hand in two places
-// (merge carry 2).
+// the config package's own seed, plus every area's own registration
+// call, in a fixed order. newRootCmd and the test suite's own
+// productionRegistry helper (serve_test.go) both call it, so the
+// production registration order is written once rather than restated
+// by hand in two places.
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
 	registerServeConfig(reg)
@@ -130,8 +130,6 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 // stays readable here rather than hidden behind an init function, the
 // explicit-registration rule stated in the Registry doc comment
 // (internal/config/registry.go).
-//
-// ruled, conductor 2026-09-07, R1
 func newRootCmd() *cobra.Command {
 	reg := newProductionRegistry()
 

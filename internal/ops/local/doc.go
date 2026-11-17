@@ -1,4 +1,4 @@
-// Package local runs the jobs [ops.Seam] names inside this process,
+// Package local runs the jobs [ops] declares inside this process,
 // against a store opened in write mode, and recovers the jobs of a
 // process that died.
 //

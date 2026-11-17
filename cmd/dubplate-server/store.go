@@ -269,7 +269,7 @@ func olderStoreRefusal(ev settings.Evaluation) error {
 //
 // It also returns the [store.Report] it read and whether it ran
 // [store.Inspect] at all (checked), so a caller building the backup
-// facts rows (R-6bi13) from the same report never inspects the store
+// facts rows from the same report never inspects the store
 // twice: report is the zero value whenever checked is false.
 func storeRow(ctx context.Context, environ []string) (status string, failed bool, report store.Report, checked bool) {
 	stateDir, ok := lookupEnviron(environ, "DUBPLATE_STATE_DIR")
@@ -501,7 +501,7 @@ func settingTraits(s config.Setting, source string) string {
 	return fmt.Sprintf("(source %s, %s)", source, s.Apply)
 }
 
-// backupFactsRows renders R-6bi13's read-only facts as doctor's four
+// backupFactsRows renders the backup's read-only facts as doctor's four
 // backup rows: the newest succeeded backup's age (or "never"), the
 // store's -wal file size, the leaf's free space, and the local
 // snapshot copy count and size. Every row prints unconditionally, the

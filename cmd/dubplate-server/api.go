@@ -23,16 +23,10 @@ import (
 // every other path under api with a JSON 404.
 const apiRouteName = "api"
 
-// noJobRunner is the reason the three job operations answer unavailable
-// on this mount: serve builds no job runner, and no 0.8 page starts a
-// job over HTTP.
-const noJobRunner = "this server runs no job runner"
-
 // newAPIMount builds the /api/v1 handler over the admin and submission
-// seams for the sessions cfg verifies. Its job operations answer
-// unavailable.
+// seams for the sessions cfg verifies.
 func newAPIMount(prefix serve.Prefix, adminSeam ops.AdminSeam, submissionSeam ops.SubmissionSeam, cfg auth.AdminConfig) (http.Handler, error) {
-	return opshttp.NewMount(ops.NewUnavailableJobs(noJobRunner), adminSeam, submissionSeam, prefix.String(), apiVerifier(cfg), cfg.Logger)
+	return opshttp.NewMount(adminSeam, submissionSeam, prefix.String(), apiVerifier(cfg), cfg.Logger)
 }
 
 // intakeLimits reads the intake settings in force through acc at each
@@ -84,14 +78,15 @@ func apiVerifier(cfg auth.AdminConfig) opshttp.Verifier {
 		case err != nil:
 			return ops.Actor{}, 0, err
 		}
-		actor := ops.NetworkActor(v.Identity, v.Session.AnchoredAt)
+		clientIP := cfg.ClientIP(r)
+		actor := ops.NetworkActor(v.Identity, v.Session.AnchoredAt, clientIP)
 		privilege := ops.PrivilegeMember
 		if v.Admin {
 			privilege = ops.PrivilegeAdmin
 		}
 		cfg.Logger.Info("api request admitted",
 			"op", path.Base(r.URL.Path), "actor", actor.String(), "principal", v.Identity.Principal,
-			"channel", v.Identity.Channel.String(), "client_ip", cfg.ClientIP(r))
+			"channel", v.Identity.Channel.String(), "client_ip", clientIP)
 		return actor, privilege, nil
 	}
 }

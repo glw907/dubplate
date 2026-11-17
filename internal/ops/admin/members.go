@@ -3,7 +3,6 @@ package admin
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/ops"
@@ -31,14 +30,12 @@ func (s *Seam) AddMember(ctx context.Context, actor ops.Actor, req ops.AddMember
 		return ops.AddMemberResponse{}, err
 	}
 	candidate := auth.Member{Address: req.Address, DisplayName: req.DisplayName, Username: req.Username}
-	if err := writeMember(ctx, func(ctx context.Context) error {
-		return s.cfg.Roster.AddMember(ctx, candidate, rosterActor(actor), s.cfg.Logger)
+	var added auth.Member
+	if err := writeMember(ctx, func(ctx context.Context) (err error) {
+		added, err = s.cfg.Roster.AddMember(ctx, candidate, rosterActor(actor), s.cfg.Logger)
+		return err
 	}); err != nil {
 		return ops.AddMemberResponse{}, err
-	}
-	added, err := s.cfg.Roster.Lookup(ctx, req.Address)
-	if err != nil {
-		return ops.AddMemberResponse{}, fmt.Errorf("read the added member: %w", err)
 	}
 	return ops.AddMemberResponse{Member: wireMember(added)}, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
@@ -21,38 +20,23 @@ type authorizer interface {
 	authorize(ctx context.Context, op string) (ops.Actor, ops.Privilege, error)
 }
 
-// An authorizingSeam is an [ops.Seam], an [ops.AdminSeam], and an
-// [ops.SubmissionSeam] that admits a call to the seam beneath only when its authorizer answers a
-// caller whose privilege reaches the operation's, and then only as the
-// actor the authorizer answered. It discards the actor its own caller
-// passes, so no caller can choose the actor a job or an audit row
-// records. An admitted actor whose channel differs from the mount's is
-// refused, so an authorizer wired to the wrong mount fails closed.
+// An authorizingSeam decides who may call an operation. [authorizingSeam.admit]
+// answers the actor a call proceeds as only when the authorizer answers
+// a caller whose privilege reaches the operation's, so no caller can
+// choose the actor a submission or an audit row records. An admitted actor
+// whose channel differs from the mount's is refused, so an authorizer
+// wired to the wrong mount fails closed.
 type authorizingSeam struct {
-	jobs    ops.Seam
-	admin   ops.AdminSeam
-	subs    ops.SubmissionSeam
 	auth    authorizer
 	channel identity.Channel
 }
 
-var (
-	_ ops.Seam           = (*authorizingSeam)(nil)
-	_ ops.AdminSeam      = (*authorizingSeam)(nil)
-	_ ops.SubmissionSeam = (*authorizingSeam)(nil)
-)
-
-// newAuthorizingSeam wraps the job, admin, and submission seams. It
-// fails on a nil seam or auth, and on a channel that is not valid or that
-// names the command line, which no network mount can carry.
-func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
+// newAuthorizingSeam builds the admission gate for a mount whose
+// verified identities arrive on channel. It fails on a nil auth, and on
+// a channel that is not valid or that names the command line, which no
+// network mount can carry.
+func newAuthorizingSeam(auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
 	switch {
-	case jobs == nil:
-		return nil, errors.New("opshttp: job seam is nil")
-	case admin == nil:
-		return nil, errors.New("opshttp: admin seam is nil")
-	case subs == nil:
-		return nil, errors.New("opshttp: submission seam is nil")
 	case auth == nil:
 		return nil, errors.New("opshttp: authorizer is nil")
 	case !channel.Valid():
@@ -60,7 +44,7 @@ func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionS
 	case channel == identity.ChannelCommandLine:
 		return nil, errors.New("opshttp: mount channel is the command line, which no network mount carries")
 	}
-	return &authorizingSeam{jobs: jobs, admin: admin, subs: subs, auth: auth, channel: channel}, nil
+	return &authorizingSeam{auth: auth, channel: channel}, nil
 }
 
 // The causes of a denial. Each is fixed text naming no caller, so a
@@ -122,109 +106,4 @@ func (s *authorizingSeam) admit(ctx context.Context, op string) (ops.Actor, erro
 		return ops.Actor{}, fmt.Errorf("%w: %w", denied, errPrivilegeShort)
 	}
 	return actor, nil
-}
-
-// authorized calls beneath, one of the seams' methods, as the actor s
-// admits for op, or answers the denial with a zero response.
-func authorized[Req, Resp any](ctx context.Context, s *authorizingSeam, op string, req Req, beneath func(context.Context, ops.Actor, Req) (Resp, error)) (Resp, error) {
-	actor, err := s.admit(ctx, op)
-	if err != nil {
-		var none Resp
-		return none, err
-	}
-	return beneath(ctx, actor, req)
-}
-
-// StartBackup implements [ops.Seam].
-func (s *authorizingSeam) StartBackup(ctx context.Context, _ ops.Actor, req ops.StartBackupRequest) (ops.StartBackupResponse, error) {
-	return authorized(ctx, s, ops.OpStartBackup, req, s.jobs.StartBackup)
-}
-
-// JobStatus implements [ops.Seam].
-func (s *authorizingSeam) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRequest) (ops.JobStatusResponse, error) {
-	return authorized(ctx, s, ops.OpJobStatus, req, s.jobs.JobStatus)
-}
-
-// CancelJob implements [ops.Seam].
-func (s *authorizingSeam) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRequest) (ops.CancelJobResponse, error) {
-	return authorized(ctx, s, ops.OpCancelJob, req, s.jobs.CancelJob)
-}
-
-// Catalog implements [ops.Seam]. Its answer is the job seam's entries
-// followed by one entry for each admin operation and each submission
-// operation.
-func (s *authorizingSeam) Catalog(ctx context.Context, _ ops.Actor, req ops.CatalogRequest) (ops.CatalogResponse, error) {
-	resp, err := authorized(ctx, s, ops.OpCatalog, req, s.jobs.Catalog)
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	adminEntries, err := ops.AdminCatalogEntries()
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	submissionEntries, err := ops.SubmissionCatalogEntries()
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	return ops.CatalogResponse{Operations: slices.Concat(resp.Operations, adminEntries, submissionEntries)}, nil
-}
-
-// ListMembers implements [ops.AdminSeam].
-func (s *authorizingSeam) ListMembers(ctx context.Context, _ ops.Actor, req ops.ListMembersRequest) (ops.ListMembersResponse, error) {
-	return authorized(ctx, s, ops.OpListMembers, req, s.admin.ListMembers)
-}
-
-// AddMember implements [ops.AdminSeam].
-func (s *authorizingSeam) AddMember(ctx context.Context, _ ops.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
-	return authorized(ctx, s, ops.OpAddMember, req, s.admin.AddMember)
-}
-
-// RemoveMember implements [ops.AdminSeam].
-func (s *authorizingSeam) RemoveMember(ctx context.Context, _ ops.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
-	return authorized(ctx, s, ops.OpRemoveMember, req, s.admin.RemoveMember)
-}
-
-// DemoteMember implements [ops.AdminSeam].
-func (s *authorizingSeam) DemoteMember(ctx context.Context, _ ops.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
-	return authorized(ctx, s, ops.OpDemoteMember, req, s.admin.DemoteMember)
-}
-
-// ListSettings implements [ops.AdminSeam].
-func (s *authorizingSeam) ListSettings(ctx context.Context, _ ops.Actor, req ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
-	return authorized(ctx, s, ops.OpListSettings, req, s.admin.ListSettings)
-}
-
-// SetSetting implements [ops.AdminSeam].
-func (s *authorizingSeam) SetSetting(ctx context.Context, _ ops.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
-	return authorized(ctx, s, ops.OpSetSetting, req, s.admin.SetSetting)
-}
-
-// ResetSetting implements [ops.AdminSeam].
-func (s *authorizingSeam) ResetSetting(ctx context.Context, _ ops.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
-	return authorized(ctx, s, ops.OpResetSetting, req, s.admin.ResetSetting)
-}
-
-// CreateSubmission implements [ops.SubmissionSeam].
-func (s *authorizingSeam) CreateSubmission(ctx context.Context, _ ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
-	return authorized(ctx, s, ops.OpCreateSubmission, req, s.subs.CreateSubmission)
-}
-
-// ListSubmissions implements [ops.SubmissionSeam].
-func (s *authorizingSeam) ListSubmissions(ctx context.Context, _ ops.Actor, req ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
-	return authorized(ctx, s, ops.OpListSubmissions, req, s.subs.ListSubmissions)
-}
-
-// GetSubmission implements [ops.SubmissionSeam].
-func (s *authorizingSeam) GetSubmission(ctx context.Context, _ ops.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
-	return authorized(ctx, s, ops.OpGetSubmission, req, s.subs.GetSubmission)
-}
-
-// RetrySubmission implements [ops.SubmissionSeam].
-func (s *authorizingSeam) RetrySubmission(ctx context.Context, _ ops.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
-	return authorized(ctx, s, ops.OpRetrySubmission, req, s.subs.RetrySubmission)
-}
-
-// CancelSubmission implements [ops.SubmissionSeam].
-func (s *authorizingSeam) CancelSubmission(ctx context.Context, _ ops.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
-	return authorized(ctx, s, ops.OpCancelSubmission, req, s.subs.CancelSubmission)
 }

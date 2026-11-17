@@ -1,7 +1,6 @@
 package ops
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -17,7 +16,7 @@ const localActorPrefix = "local"
 const networkActorPrefix = "member"
 
 // An Actor identifies who invoked an operation, verified before the
-// call reaches [Seam] or [AdminSeam]: never a field a request type
+// call reaches an operation: never a field a request type
 // carries, so no request body can widen its own privilege. This
 // package builds the local kind, from an operating-system username,
 // and the network kind, from a verified [identity.Identity] and the
@@ -27,6 +26,7 @@ type Actor struct {
 	channel identity.Channel
 	userID  identity.UserID
 	anchor  time.Time
+	client  string
 }
 
 // LocalActor builds the local kind of [Actor] from username, the
@@ -48,8 +48,10 @@ func LocalActor(username string) Actor {
 // signed session (a command-line identity above all) can never become
 // a network actor. It renders as "member:<hex UserID>" on the wire and
 // in every audit row: the durable key, never the principal, so a
-// renamed member keeps one actor. Its channel is id's own.
-func NetworkActor(id identity.Identity, anchor time.Time) Actor {
+// renamed member keeps one actor. Its channel is id's own, and
+// clientAddr is the address the request came from, which a write's own
+// audit record names.
+func NetworkActor(id identity.Identity, anchor time.Time, clientAddr string) Actor {
 	if !id.Valid() {
 		panic("ops: NetworkActor called with an invalid identity")
 	}
@@ -58,6 +60,7 @@ func NetworkActor(id identity.Identity, anchor time.Time) Actor {
 		channel: id.Channel,
 		userID:  id.UserID,
 		anchor:  anchor,
+		client:  clientAddr,
 	}
 }
 
@@ -78,6 +81,11 @@ func (a Actor) UserID() identity.UserID { return a.userID }
 // issued, the instant the re-authentication window counts from. A
 // local actor has no session and returns the zero time.
 func (a Actor) Anchor() time.Time { return a.anchor }
+
+// ClientAddress returns the address the request behind a network actor
+// came from, as the verifier that built it resolved it. A local actor
+// has none and returns the empty string.
+func (a Actor) ClientAddress() string { return a.client }
 
 // handleLen is a job [Handle]'s wire length: 32 lowercase hex
 // characters, the hex encoding of 16 random bytes. internal/ops
@@ -142,68 +150,31 @@ type JobStatus struct {
 
 // A StartBackupRequest starts a backup job. It carries no fields:
 // backup is the only kind this package declares, and the acting
-// identity is [Seam.StartBackup]'s actor parameter, never a request
-// field.
+// identity is the actor parameter of the call, never a request field.
 type StartBackupRequest struct{}
 
-// A StartBackupResponse names the job [Seam.StartBackup] started.
+// A StartBackupResponse names the job a start_backup call started.
 type StartBackupResponse struct {
 	JobID Handle `json:"job_id"`
 }
 
-// A JobStatusRequest names the job [Seam.JobStatus] reads.
+// A JobStatusRequest names the job a job_status call reads.
 type JobStatusRequest struct {
 	JobID Handle `json:"job_id"`
 }
 
-// A JobStatusResponse carries the job [Seam.JobStatus] read.
+// A JobStatusResponse carries the job a job_status call read.
 type JobStatusResponse struct {
 	Job JobStatus `json:"job"`
 }
 
-// A CancelJobRequest names the job [Seam.CancelJob] cancels.
+// A CancelJobRequest names the job a cancel_job call cancels.
 type CancelJobRequest struct {
 	JobID Handle `json:"job_id"`
 }
 
-// A CancelJobResponse carries the job's state after [Seam.CancelJob]
+// A CancelJobResponse carries the job's state after a cancel_job call
 // asked for cancellation.
 type CancelJobResponse struct {
 	Job JobStatus `json:"job"`
-}
-
-// A CatalogRequest lists every operation [Seam.Catalog] exposes. It
-// carries no fields.
-type CatalogRequest struct{}
-
-// A CatalogResponse carries the catalog [Seam.Catalog] answered with.
-type CatalogResponse struct {
-	Operations []CatalogEntry `json:"operations"`
-}
-
-// A Seam is what a caller reaches the four operations through: the
-// vocabulary an HTTP projection and a CLI verb alike bind to a
-// runner. Every method takes the acting identity as its own
-// parameter, never as a request field, and returns an error wrapping
-// one of this package's sentinels when it cannot answer.
-type Seam interface {
-	// StartBackup starts a backup job and returns its handle. It
-	// returns an error wrapping [ErrUnavailable] when backup
-	// integration is off, or [ErrConflict] naming the job already
-	// running.
-	StartBackup(ctx context.Context, actor Actor, req StartBackupRequest) (StartBackupResponse, error)
-
-	// JobStatus reads a job's current record. It returns an error
-	// wrapping [ErrNotFound] when no record with that handle exists.
-	JobStatus(ctx context.Context, actor Actor, req JobStatusRequest) (JobStatusResponse, error)
-
-	// CancelJob requests a job's cancellation. Canceling a queued job
-	// ends it canceled at once; canceling a running job asks its
-	// owning runner to stop; canceling a finished job reports its
-	// state unchanged.
-	CancelJob(ctx context.Context, actor Actor, req CancelJobRequest) (CancelJobResponse, error)
-
-	// Catalog lists every operation this seam exposes, with its
-	// availability and privilege.
-	Catalog(ctx context.Context, actor Actor, req CatalogRequest) (CatalogResponse, error)
 }

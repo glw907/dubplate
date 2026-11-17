@@ -1,12 +1,9 @@
 package serve
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"net/netip"
 	"strings"
@@ -257,80 +254,21 @@ func (s *Shell) terminated() http.Handler {
 	})
 }
 
-// statusCapture is a http.ResponseWriter wrapper that records the
-// status written, so logRefusal can decide whether the wrapped chain
-// refused a request by observing the response it actually sent, never
-// by reading the chain's construction. logRefusal wraps the whole
-// chain, so statusCapture reaches every handler the shell dispatches
-// to. strip.go keeps the websocket Upgrade handshake intact, so
-// statusCapture stays transparent to streaming and upgraded
-// connections: Unwrap, Flush, and Hijack exist so a streaming handler
-// reaches the real writer, whether through [http.ResponseController]
-// or by asserting [http.Flusher] or [http.Hijacker] itself.
-type statusCapture struct {
-	http.ResponseWriter
-	status int
-}
-
-func (c *statusCapture) WriteHeader(status int) {
-	c.status = status
-	c.ResponseWriter.WriteHeader(status)
-}
-
-// Unwrap exposes the wrapped writer to [http.ResponseController], so a
-// handler that reaches it via the controller sees the real writer's
-// capabilities rather than statusCapture's own limited surface.
-func (c *statusCapture) Unwrap() http.ResponseWriter {
-	return c.ResponseWriter
-}
-
-// Flush passes through to the wrapped writer's [http.Flusher] when it
-// has one, for a handler that type-asserts http.Flusher directly
-// instead of going through http.ResponseController.
-func (c *statusCapture) Flush() {
-	if f, ok := c.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-// Hijack passes through to the wrapped writer's [http.Hijacker] when
-// it has one, returning [http.ErrNotSupported] otherwise, for a
-// handler that type-asserts http.Hijacker directly.
-func (c *statusCapture) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	if h, ok := c.ResponseWriter.(http.Hijacker); ok {
-		return h.Hijack()
-	}
-	return nil, nil, http.ErrNotSupported
-}
-
-// ReadFrom forwards to the wrapped writer's [io.ReaderFrom] when it has
-// one, and copies otherwise. net/http's own response writer implements
-// io.ReaderFrom to reach sendfile(2), and [io.Copy] consults the
-// destination for that interface; a wrapper that did not forward it
-// would silently downgrade every file [http.ServeContent] serves to a
-// userspace copy, since ServeContent copies through [io.CopyN], which
-// reaches [io.Copy] with a source that has no WriteTo.
-func (c *statusCapture) ReadFrom(src io.Reader) (int64, error) {
-	if rf, ok := c.ResponseWriter.(io.ReaderFrom); ok {
-		return rf.ReadFrom(src)
-	}
-	return io.Copy(c.ResponseWriter, src)
-}
-
 // refusalContextKey is the context key logRefusal files its per-request
 // [refusalRecord] under.
 type refusalContextKey struct{}
 
 // refusalRecord is the per-request slot the shell's own refusing
-// wrappers write to. A zero Status means the shell refused nothing,
+// wrappers write to: the status each wrote, which is the status the
+// refusal record logs. A zero Status means the shell refused nothing,
 // whatever status a handler beyond it went on to write.
 type refusalRecord struct {
 	Status int
 }
 
-// markRefusal records that the shell itself refused r with status. It
-// is a no-op outside the composed chain, so [Normalize] stays usable
-// on its own.
+// markRefusal records that the shell itself refused r with status, the
+// status the caller then writes. It is a no-op outside the composed
+// chain, so [Normalize] stays usable on its own.
 func markRefusal(r *http.Request, status int) {
 	if rec, ok := r.Context().Value(refusalContextKey{}).(*refusalRecord); ok {
 		rec.Status = status
@@ -359,16 +297,14 @@ func (s *Shell) logRefusal(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &refusalRecord{}
 		r = r.WithContext(context.WithValue(r.Context(), refusalContextKey{}, rec))
-
-		capture := &statusCapture{ResponseWriter: w, status: http.StatusOK}
-		next.ServeHTTP(capture, r)
+		next.ServeHTTP(w, r)
 
 		if rec.Status == 0 {
 			return
 		}
 		s.logger.Info("serve: refused request",
 			"path", boundedPath(r.URL.Path),
-			"status", capture.status,
+			"status", rec.Status,
 			"identity_spelling_present", identitySpellingPresent(r),
 		)
 	})

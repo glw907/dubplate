@@ -12,11 +12,11 @@ import (
 // leafDirName is the one directory under the state directory the auth
 // package writes. The nonce store and the epoch store share it, so the
 // serve unit's ReadWritePaths grant is one static path rather than one
-// per record kind (R-5b11).
+// per record kind.
 const leafDirName = "auth"
 
 // nonceSubdir and epochSubdir are the two record subdirectories Open
-// creates beneath the leaf (R-5b11). They double as [RecordID]'s
+// creates beneath the leaf. They double as [RecordID]'s
 // domain-separation labels, so the one pair of names serves both
 // purposes rather than a second constant apiece.
 const (
@@ -99,7 +99,7 @@ func (s *Store) recordPath(sub, id string) (string, error) {
 }
 
 // RecordID derives a record's filename from kind and value: the hex of
-// the SHA-256 digest of the two together, untruncated (R-5b12). kind
+// the SHA-256 digest of the two together, untruncated. kind
 // domain-separates the digest the same way macInput already
 // length-prefixes a MAC's own purpose label, so the nonce store and
 // the epoch store keying two different values can never collide even

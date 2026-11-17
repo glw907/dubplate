@@ -388,21 +388,29 @@ now round `engine`.
   files, and W5's unused component-layer rules in `components.css` (`web/scripts/gates/g1.ts` documents them as the
   one route to a status colour). The admin shell, the single `fetch` site, the button sizes, and the state and token
   nits landed. Findings W4 and W5, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #web #round:launch
-- [ ] #121 The ops seam: one admit handler in `opshttp`, the uncalled job operations and catalog removed (with #52's
-  first consumer in view), `Code` as the `errors.Is` target, and one `Actor`. Findings O1, O2, O4, and O5,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #ops #arch #pass:cleanup-ops
-- [ ] #122 `AddMember` re-reads the member after the commit, so a failed read answers 500 for a committed add. Finding
-  O6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #auth #pass:cleanup-ops
-- [ ] #123 `auth` and `serve` trims: surface ahead of a caller, `statusCapture`, the doubled request check,
-  hand-rolled stdlib, and the smaller items. Findings O3, O7 to O9, and O14,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-ops
-- [ ] #124 Move library code out of `cmd/dubplate-server`: the web surface, the probes, and the table install; one
-  cobra wiring shape; and the config consumers of #118. Takes #66's doctor items. Findings O10 to O13,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:cleanup-ops
-- [ ] #125 `cmd` and ops test bloat and process comments: the test cuts stay with `cleanup-ops`. Making the
-  process-citation leg gate (with #67) moves to round `engine`, since about 125 of the 189 lines it would fail on are
-  in engine packages. Findings O15 and O16, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #gate
-  #pass:cleanup-ops #round:engine
+- [ ] #121 The ops seam, residue after `cleanup-ops`: the admit order, the four removed operations, and the audit
+  actor landed. Still open: the merge of the mount and the handler beyond the order, `Code` as the `errors.Is`
+  target, and O5's merge of the actor types. Findings O1, O4, and O5,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #ops #arch
+- [ ] #123 `auth` and `serve` trims, residue after `cleanup-ops`: `statusCapture` is gone. Still open: surface ahead
+  of a caller, the doubled request check, hand-rolled stdlib, and the smaller items. Findings O3, O8, O9, and O14,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch
+- [ ] #124 Move library code out of `cmd/dubplate-server`, residue after `cleanup-ops`: the web surface moved to
+  `internal/webapp`. Still open: the probes and the table install, one cobra wiring shape, and the config consumers
+  of #118. Takes #66's doctor items. Findings O11 to O13,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch
+- [ ] #125 `cmd` and ops test bloat, residue after `cleanup-ops`: the process comments under `cmd/dubplate-server`,
+  `internal/auth` and `internal/serve` are cleared. Still open: the remaining test cuts, and making the
+  process-citation leg gate (with #67), which moves to round `engine`, since about 125 of the 189 lines it would
+  fail on are in engine packages. Findings O15 and O16, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10
+  #test #gate #round:engine
+- [ ] #156 Citation-like comment tags the probe regex misses, and `webapp` exports only tests use. Left in place:
+  "(review m5)" in `auth.go`, "after 6d" near `backup.go:414`, "(spec:938-944)" in `cmd` `serve.go`, short tags such as
+  "R20" and "R-M" elsewhere, and "R-5cii12" in `web_test.go`; `webapp.DocumentCSP`, `StylesheetHrefs` and
+  `ThemeCookieName` have only `cmd` test callers. Found by `cleanup-ops` T5 and T6, 2026-11-16 #arch #test
+- [ ] #157 The `dubplate-pass` `auth-data` path map omits `internal/ops/**`, which holds the `/api/v1` authorization
+  layer (`opshttp`) and the admin seam that writes roster audits, so a pass touching only that tree is not classed
+  `auth-data`. Found by the `cleanup-ops` whole-branch review, 2026-11-16 #arch #process
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake
 ## Later
@@ -561,6 +569,8 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
 
 ## Done
 
+- [x] #122 `AddMember` re-reads the member after the commit, so a failed read answered 500 for a committed add. Finding
+  O6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #auth #pass:cleanup-ops *(2026-11-16, PR #16)*
 - [x] #119 Store and config tests that cannot fail, and `config`'s process comments. Findings S13 and S14,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #pass:cleanup-store *(2026-11-16, PR #14)*
 - [x] #118 config: one per-kind parser and one exported lookup, `Floor` and `Ceiling` on `Threshold`, and a typed

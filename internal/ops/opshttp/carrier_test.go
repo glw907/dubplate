@@ -13,7 +13,7 @@ import (
 func TestContextAuthorizerReadsTheCarriedCaller(t *testing.T) {
 	for _, p := range []ops.Privilege{ops.PrivilegeMember, ops.PrivilegeAdmin} {
 		t.Run(p.String(), func(t *testing.T) {
-			want := ops.NetworkActor(ann, annAnchor)
+			want := ops.NetworkActor(ann, annAnchor, "192.0.2.1")
 			ctx := withAdmitted(context.Background(), want, p)
 			got, granted, err := contextAuthorizer{}.authorize(ctx, ops.OpListMembers)
 			if err != nil {
@@ -33,7 +33,7 @@ func TestContextAuthorizerReadsTheCarriedCaller(t *testing.T) {
 // never admitted, which carries no caller, is denied rather than
 // admitted as a zero actor.
 func TestContextAuthorizerDeniesWithoutACaller(t *testing.T) {
-	actor, granted, err := contextAuthorizer{}.authorize(context.Background(), ops.OpCatalog)
+	actor, granted, err := contextAuthorizer{}.authorize(context.Background(), ops.OpListSubmissions)
 	if err == nil {
 		t.Fatalf("authorize = %q, %v, nil; want an error", actor, granted)
 	}

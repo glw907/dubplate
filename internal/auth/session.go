@@ -10,8 +10,7 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 )
 
-// sessionCookieName is the name of the session cookie (ruled,
-// conductor 2026-09-08, R-5b9). The __Host- prefix is enforced by the
+// sessionCookieName is the name of the session cookie. The __Host- prefix is enforced by the
 // browser rather than by this server: a cookie so named is stored only
 // when it is Secure, carries no Domain, and has Path=/, which is why
 // [SessionCookie] sets exactly those attributes and why same-origin is
@@ -82,7 +81,7 @@ type Session struct {
 	// time: every check that must reason about when the session was
 	// born reads the anchor rather than IssuedAt, which a refresh
 	// advances. The absolute cap is measured from here, and so is
-	// rung 9's revocation-epoch comparison.
+	// the revocation-epoch comparison.
 	AnchoredAt time.Time
 
 	// ExpiresAt is when the session stops verifying absent a refresh.

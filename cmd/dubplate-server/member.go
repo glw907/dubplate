@@ -115,7 +115,8 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 				Admin:       admin,
 			}
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			return roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor()), logger)
+			_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor()), logger)
+			return err
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "the member's display name (required)")
@@ -237,7 +238,7 @@ func printMemberList(w io.Writer, members []auth.Member) error {
 }
 
 // resolveActor returns the operating-system user of the effective uid
-// as the verb's audit actor (R-5c14): user.LookupId(effective uid),
+// as the verb's audit actor: user.LookupId(effective uid),
 // falling back to uid:<n> when the lookup fails, never $USER, which
 // anyone who controls the environment a verb runs under can forge.
 func resolveActor() string {
