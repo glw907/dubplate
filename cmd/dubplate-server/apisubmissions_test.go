@@ -92,7 +92,7 @@ func mustHex(t *testing.T, s string) []byte {
 
 // TestAPI_MemberReachesTheSubmissionOperationsAndNoAdminOne proves a
 // plain member's session meets all five submission operations and is
-// refused every admin and job operation (AC13, AC29).
+// refused every admin operation (AC13, AC29).
 func TestAPI_MemberReachesTheSubmissionOperationsAndNoAdminOne(t *testing.T) {
 	a := newSubmissionHarness(t)
 	member := a.session("member@example.com", time.Now())
@@ -114,27 +114,15 @@ func TestAPI_MemberReachesTheSubmissionOperationsAndNoAdminOne(t *testing.T) {
 		"list_members": `{}`, "add_member": `{"address":"x@example.com","display_name":"X","username":"x"}`,
 		"remove_member": `{"user_id":"` + apiBoID + `"}`, "demote_member": `{"user_id":"` + apiAdminID + `"}`,
 		"list_settings": `{}`, "set_setting": `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
-		"reset_setting": `{"key":"DUBPLATE_REAUTH_WINDOW"}`, "start_backup": `{}`,
-		"job_status": `{"job_id":"` + apiBoID + `"}`, "cancel_job": `{"job_id":"` + apiBoID + `"}`,
+		"reset_setting": `{"key":"DUBPLATE_REAUTH_WINDOW"}`,
 	} {
 		if rec := a.call(op, member, body); rec.Code != http.StatusForbidden {
 			t.Errorf("a member's %s = %d %s, want 403", op, rec.Code, rec.Body)
 		}
 	}
 
-	catalog := a.call("catalog", member, `{}`)
-	var list ops.CatalogResponse
-	if err := json.Unmarshal(catalog.Body.Bytes(), &list); err != nil {
-		t.Fatalf("decode the catalog %s: %v", catalog.Body, err)
-	}
-	privileges := map[string]ops.Privilege{}
-	for _, e := range list.Operations {
-		privileges[e.Name] = e.Privilege
-	}
-	for _, op := range []string{"create_submission", "list_submissions", "get_submission", "retry_submission", "cancel_submission"} {
-		if privileges[op] != ops.PrivilegeMember {
-			t.Errorf("the catalog lists %s as %v, want member", op, privileges[op])
-		}
+	if got, _ := ops.PrivilegeOf(ops.OpListSubmissions); got != ops.PrivilegeMember {
+		t.Errorf("the privilege of %s = %v, want %v", ops.OpListSubmissions, got, ops.PrivilegeMember)
 	}
 }
 

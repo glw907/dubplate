@@ -196,7 +196,7 @@ func TestAPI_NoValidSessionIs401(t *testing.T) {
 		"a removed member":        a.session("gone@example.com", now),
 		"an address on no roster": a.session("stranger@example.com", now),
 	} {
-		rec := a.call("catalog", cookie, `{}`)
+		rec := a.call("list_submissions", cookie, `{}`)
 		if rec.Code != http.StatusUnauthorized {
 			t.Errorf("%s: status = %d, want 401", name, rec.Code)
 			continue
@@ -207,7 +207,7 @@ func TestAPI_NoValidSessionIs401(t *testing.T) {
 	}
 
 	bearer := "Bearer 0123456789abcdef0123456789abcdef"
-	r := httptest.NewRequest(http.MethodPost, a.path("catalog"), strings.NewReader(`{}`))
+	r := httptest.NewRequest(http.MethodPost, a.path("list_submissions"), strings.NewReader(`{}`))
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Sec-Fetch-Site", "same-origin")
 	r.Header.Set("Authorization", bearer)
@@ -217,7 +217,7 @@ func TestAPI_NoValidSessionIs401(t *testing.T) {
 		t.Errorf("a bearer header with no cookie = %d, want 401", rec.Code)
 	}
 
-	r = httptest.NewRequest(http.MethodPost, a.path("catalog"), strings.NewReader(`{}`))
+	r = httptest.NewRequest(http.MethodPost, a.path("list_submissions"), strings.NewReader(`{}`))
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Sec-Fetch-Site", "same-origin")
 	r.Header.Set("Authorization", bearer)
@@ -229,16 +229,16 @@ func TestAPI_NoValidSessionIs401(t *testing.T) {
 	}
 }
 
-// TestAPI_MemberReachesOnlyTheCatalog proves a member's session meets
-// the catalog and is refused every admin operation, and an admin's
-// session meets them all (AC5).
-func TestAPI_MemberReachesOnlyTheCatalog(t *testing.T) {
+// TestAPI_MemberIsRefusedEveryAdminOperation proves a member's session
+// meets a member operation and is refused every admin operation, and an
+// admin's session meets them all (AC5).
+func TestAPI_MemberIsRefusedEveryAdminOperation(t *testing.T) {
 	a := newAPIHarness(t, apiMembers, nil)
 	member := a.session("member@example.com", time.Now())
 	admin := a.session("admin@example.com", time.Now())
 
-	if rec := a.call("catalog", member, `{}`); rec.Code != http.StatusOK {
-		t.Fatalf("a member's catalog = %d %s, want 200", rec.Code, rec.Body)
+	if rec := a.call("list_submissions", member, `{}`); rec.Code != http.StatusOK {
+		t.Fatalf("a member's list_submissions = %d %s, want 200", rec.Code, rec.Body)
 	}
 	for _, op := range []string{"list_members", "list_settings"} {
 		rec := a.call(op, member, `{}`)
@@ -317,11 +317,11 @@ func TestAPI_RefreshKeepsTheAnchor(t *testing.T) {
 	a := newAPIHarness(t, apiMembers, nil)
 	stale := a.session("admin@example.com", time.Now().Add(-3*time.Hour))
 
-	cross := a.callAt(a.path("catalog"), stale, "none", `{}`)
+	cross := a.callAt(a.path("list_members"), stale, "none", `{}`)
 	if cross.Code != http.StatusOK || len(cross.Header().Values("Set-Cookie")) != 0 {
 		t.Fatalf("a call with Sec-Fetch-Site none = %d with cookies %q, want 200 and none", cross.Code, cross.Header().Values("Set-Cookie"))
 	}
-	same := a.call("catalog", stale, `{}`)
+	same := a.call("list_members", stale, `{}`)
 	if same.Code != http.StatusOK {
 		t.Fatalf("a same-origin call = %d, want 200", same.Code)
 	}
@@ -354,7 +354,7 @@ func TestAPI_ServerFailuresAreNot401(t *testing.T) {
 		a := newAPIHarness(t, apiMembers, nil)
 		session := a.session("admin@example.com", time.Now())
 		writeAdminRows(t, a.h, map[string]string{"DUBPLATE_SESSION_ABSOLUTE_CAP": "not a duration"})
-		rec := a.call("catalog", session, `{}`)
+		rec := a.call("list_members", session, `{}`)
 		if rec.Code != http.StatusInternalServerError {
 			t.Fatalf("status = %d %s, want 500", rec.Code, rec.Body)
 		}
@@ -376,7 +376,7 @@ func TestAPI_ServerFailuresAreNot401(t *testing.T) {
 		}); err != nil {
 			t.Fatalf("break the roster: %v", err)
 		}
-		rec := a.call("catalog", session, `{}`)
+		rec := a.call("list_members", session, `{}`)
 		if rec.Code != http.StatusInternalServerError {
 			t.Fatalf("status = %d %s, want 500", rec.Code, rec.Body)
 		}
@@ -396,7 +396,7 @@ func TestAPI_RemovingYourselfSignsYouOut(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("remove_member = %d %s, want 200", rec.Code, rec.Body)
 	}
-	if rec := a.call("catalog", admin, `{}`); rec.Code != http.StatusUnauthorized {
+	if rec := a.call("list_members", admin, `{}`); rec.Code != http.StatusUnauthorized {
 		t.Errorf("the removed admin's next request = %d, want 401", rec.Code)
 	}
 }
@@ -548,7 +548,7 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 	bodies := []string{listing.Body.String()}
 	collect := func(rec *httptest.ResponseRecorder) { bodies = append(bodies, rec.Body.String()) }
 	for _, cookie := range []string{"", member, admin} {
-		for _, op := range []string{"catalog", "list_members", "list_settings", "no_such_operation"} {
+		for _, op := range []string{"list_submissions", "list_members", "list_settings", "no_such_operation"} {
 			collect(a.call(op, cookie, `{}`))
 		}
 		collect(a.callAt(a.prefix.String()+"/api/v2/x", cookie, "same-origin", `{}`))

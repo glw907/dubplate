@@ -56,7 +56,7 @@ var routeInventory = map[string]routeRow{
 	brandingRouteName:    {class: routePublic},
 	operatorCSSRouteName: {class: routePublic, optional: true},
 
-	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/catalog"},
+	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/list_submissions"},
 	tusRouteName:     {class: routeSession, method: http.MethodPost, path: "/" + tusRouteName + "/"},
 	membersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + membersRouteName},
 
