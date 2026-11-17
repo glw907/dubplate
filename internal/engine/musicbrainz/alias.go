@@ -20,12 +20,6 @@ import (
 // to nil; the ignored set is lowercased while the locale comparison is
 // not.
 //
-// beets' explicit languages parameter is not ported, because no call
-// site in the plugin ever passes it: both callers reach the function
-// through _key_with_preferred_alias or _parse_artist_credits, and both
-// let it read config. A parameter nothing supplies would be an untested
-// branch, so it is named here rather than added later.
-//
 // A nil alias list is legal and selects nothing, which is a deliberate
 // divergence from beets' own recording["aliases"] at
 // musicbrainz.py:589: an absent aliases key raises KeyError there and

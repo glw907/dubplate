@@ -6,7 +6,7 @@ import (
 	"github.com/glw907/dubplate/internal/engine/matcher"
 )
 
-// TestPreferredAlias is T7's measured table, row for row, against one
+// TestPreferredAlias is the measured alias table, row for row, against one
 // fixture alias list carrying two ja primaries of different types, an en
 // primary, an uppercase-JA primary, and a ja alias whose primary flag is
 // null. The expectations are pinned beets' own answers, not this port's.
@@ -98,7 +98,7 @@ func TestPreferredAliasSkipsNullPrimary(t *testing.T) {
 }
 
 // TestPreferredAliasOnEmptyList covers the branch beets short-circuits at
-// musicbrainz.py:130 and the deliberate divergence R10 records: a
+// musicbrainz.py:130 and one deliberate divergence: a
 // recording carrying no aliases key at all decodes to a nil slice here,
 // where beets raises KeyError at musicbrainz.py:589.
 func TestPreferredAliasOnEmptyList(t *testing.T) {

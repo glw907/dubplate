@@ -21,29 +21,42 @@ import (
 const defaultBaseURL = "https://musicbrainz.org"
 
 // wsPathPrefix is the WS/2 root beets always appends to api_host
-// (beetsplug/_utils/musicbrainz.py:609-610). This is deliberately a
-// second, independent copy of the "/ws/2" literal
-// internal/harness/cassette also carries: internal/harness may import
-// internal/engine but never the reverse, and sharing one definition
-// between the system under test and the committed-request producer
-// would make the request check a self-derived expectation (query.go's
-// releaseIncludes doc comment gives the same reason for that constant).
+// (beetsplug/_utils/musicbrainz.py:609-610).
 const wsPathPrefix = "/ws/2"
 
-// defaultTimeout is 30s rather than beets' own 10s, matching the capture
-// tool's own reason: maximal-inc release lookups
-// are large, and the largest committed response body is 8,894 KB
-// (cmd/harness/capture.go:38-41).
+// releaseIncludes is beets' RELEASE_INCLUDES
+// (beetsplug/_utils/musicbrainz.py:50-67), in its own order, joined with
+// a literal "+" at request time (:634-635).
+//
+// This is deliberately a SECOND definition of a string
+// internal/harness/cassette also carries (maximalReleaseInclude), and it
+// must stay one. cassette.ReleaseLookup is what the capture tool and the
+// synth tool use to PRODUCE a committed request; the committed request
+// log is the expectation and this list is the system under test. One
+// shared definition would make the conformance run's request check a
+// self-derived expectation, which is the anti-pattern that run exists to
+// catch. The two copies are independent on purpose and the conformance
+// run is what proves they agree. The same holds for wsPathPrefix.
+var releaseIncludes = []string{
+	"artists", "media", "recordings", "release-groups", "labels",
+	"artist-credits", "aliases", "recording-level-rels", "work-rels",
+	"work-level-rels", "artist-rels", "isrcs", "url-rels",
+	"release-rels", "genres", "tags",
+}
+
+// defaultTimeout is 30s rather than beets' own 10s, for the reason the
+// capture tool's liveFetchTimeout gives: maximal-inc release lookups are
+// large.
 const defaultTimeout = 30 * time.Second
 
-// maxBodyBytes caps a response body. The largest committed response is
-// 9,107,383 bytes, so the cap leaves room and still bounds what a
-// misbehaving server can make the client hold.
+// maxBodyBytes caps a response body well above the largest maximal-inc
+// lookup, still bounding what a misbehaving server can make the client
+// hold.
 const maxBodyBytes = 32 << 20
 
 // errBodyTooLarge reports a response body over [maxBodyBytes]. It is
 // never retried.
-var errBodyTooLarge = errors.New("musicbrainz: response body exceeds the 32 MiB cap")
+var errBodyTooLarge = fmt.Errorf("musicbrainz: response body exceeds the %d MiB cap", maxBodyBytes>>20)
 
 // maxAttempts is one plus six retries, beets' own Retry(total=6)
 // (beetsplug/_utils/requests.py:78-88).
@@ -77,15 +90,16 @@ var releaseIDPattern = regexp.MustCompile(`\w{8}(?:-\w{4}){3}-\w{12}`)
 // deleted release from a real failure.
 var ErrNotFound = errors.New("release not found")
 
-// ErrUnavailable reports that every retry was spent on a retryable
-// status or a transport error. It is the shape of beets' own
-// RetryError, which is deliberately NOT an HTTPError and so is never
-// mapped to a beets exception (beetsplug/_utils/requests.py:78-89).
-// A caller branches on it to tell an outage from a missing release.
-//
-// No rate-limit-specific sentinel ships beside it: 429 and 503 both
-// surface as ErrUnavailable.
-var ErrUnavailable = errors.New("musicbrainz unavailable")
+// errUnavailable reports that every retry was spent on a retryable
+// status or a transport error, 429 and 503 alike. It is the shape of
+// beets' RetryError, which is not an HTTPError and so is never mapped
+// to a beets exception (beetsplug/_utils/requests.py:78-89).
+var errUnavailable = errors.New("musicbrainz unavailable")
+
+// sleep is the backoff wait, a variable so a test observes the schedule
+// without spending wall time. It is a timer rather than a bare
+// time.Sleep so a caller's context can cancel the wait.
+var sleep = sleepReal
 
 // ClientConfig configures a [Client]. UserAgent is required and the
 // engine never builds one: MusicBrainz requires an identified client
@@ -94,9 +108,8 @@ var ErrUnavailable = errors.New("musicbrainz unavailable")
 // (dubplate-server/<version> ( <contact> ), on cmd/harness/capture.go's
 // own precedent, with the contact from Config.AdminEmail).
 type ClientConfig struct {
-	BaseURL   string       // empty means defaultBaseURL
-	UserAgent string       // required
-	HTTP      *http.Client // nil means one with defaultTimeout
+	BaseURL   string // empty means defaultBaseURL
+	UserAgent string // required
 }
 
 // Client is a WS/2 client: fmt=json forced on every request, beets'
@@ -107,14 +120,6 @@ type Client struct {
 	baseURL   string
 	userAgent string
 	http      *http.Client
-
-	// sleep is the backoff wait, injected so a test observes the
-	// schedule through the values it records rather than by spending
-	// real wall time. Production uses a real timer, not a bare
-	// time.Sleep, because a caller's context must be able to cancel the
-	// wait. The engine never reads the clock, and the schedule needs no
-	// clock read.
-	sleep func(context.Context, time.Duration) error
 }
 
 // NewClient validates cfg and returns a client. It fails rather than
@@ -130,21 +135,13 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 		baseURL = defaultBaseURL
 	}
 
-	httpClient := cfg.HTTP
-	if httpClient == nil {
-		httpClient = &http.Client{Timeout: defaultTimeout}
-	}
-
 	return &Client{
 		baseURL:   baseURL,
 		userAgent: cfg.UserAgent,
-		http:      httpClient,
-		sleep:     sleepReal,
+		http:      &http.Client{Timeout: defaultTimeout},
 	}, nil
 }
 
-// sleepReal is the production sleep: a real timer a caller's context
-// can still cancel.
 func sleepReal(ctx context.Context, d time.Duration) error {
 	timer := time.NewTimer(d)
 	defer timer.Stop()
@@ -190,20 +187,16 @@ func (c *Client) searchRequestURL(s AlbumSearch) string {
 	return c.baseURL + wsPathPrefix + "/release?" + v.Encode()
 }
 
-// Release fetches one release at beets' own maximal inc= set, mirroring
+// release fetches one release at beets' own maximal inc= set, mirroring
 // get_release (beetsplug/_utils/musicbrainz.py:687-690). It returns
-// ErrNotFound on a 404, ErrUnavailable when the retries are spent, and
-// an error wrapping ErrMalformedRelease when the body does not decode.
-// mbid is run through the same id extraction beets applies first
-// (beets/util/id_extractors.py:20), so a malformed id costs no request
-// at all, exactly as album_for_id costs none (beetsplug/musicbrainz.py:
-// 771-773).
-//
-// It decodes and does not validate. TranslateAlbum owns validation and
-// calls validate as its first act (translate.go:46-48), so a
-// second call here would validate every body twice and split ownership
-// of one rule across two files.
-func (c *Client) Release(ctx context.Context, mbid string) (*Release, error) {
+// ErrNotFound on a 404, an error wrapping errUnavailable when the
+// retries are spent, and an error wrapping errMalformedRelease when the
+// body does not decode. mbid is run through the same id extraction beets
+// applies first (beets/util/id_extractors.py:20), so a malformed id
+// costs no request at all, exactly as album_for_id costs none
+// (beetsplug/musicbrainz.py:771-773). It decodes only: TranslateAlbum
+// validates.
+func (c *Client) release(ctx context.Context, mbid string) (*Release, error) {
 	id, ok := extractReleaseID(mbid)
 	if !ok {
 		return nil, fmt.Errorf("musicbrainz: %q does not contain a release id beets' own extraction would recognize", mbid)
@@ -216,7 +209,7 @@ func (c *Client) Release(ctx context.Context, mbid string) (*Release, error) {
 
 	var rel Release
 	if err := json.Unmarshal(body, &rel); err != nil {
-		return nil, fmt.Errorf("musicbrainz: decoding release %s: %w: %w", id, err, ErrMalformedRelease)
+		return nil, fmt.Errorf("musicbrainz: decoding release %s: %v: %w", id, err, errMalformedRelease)
 	}
 	return &rel, nil
 }
@@ -226,23 +219,17 @@ func (c *Client) Release(ctx context.Context, mbid string) (*Release, error) {
 // 665-685) and candidates' own use of the result
 // (beets/metadata_plugins.py:442-446). It returns ids rather than
 // releases: the per-id fan-out and the candidate ordering belong to the
-// caller.
-//
-// A search body is an OBJECT, and the hits live under "releases":
-// search ends by indexing the decoded body at f"{entity}s" (:684-685),
-// and all 48 committed search responses carry exactly count, created,
-// offset and releases. Decoding into a bare array fails every
-// committed search.
+// caller. A search body is an object whose hits live under "releases":
+// search ends by indexing the decoded body at f"{entity}s" (:684-685).
 //
 // Its errors are its own, and they do not mirror beets. beets swallows
 // a search failure into an empty result inside _search_api's bare
 // except (beets/metadata_plugins.py:419-427, which re-raises first when
 // raise_on_error is set at :422-423); this client returns the failure
 // instead, because swallowing it here would hide a search that never
-// happened from the request grading. A 404 returns ErrNotFound,
-// exhausted retries return ErrUnavailable, and a body that does not
-// decode returns an error wrapping ErrMalformedRelease. A caller that
-// wants beets' shape maps them to an empty candidate list.
+// happened from the request grading. A 404 returns ErrNotFound, and
+// every other failure returns a non-nil error. A caller that wants
+// beets' shape maps them to an empty candidate list.
 func (c *Client) SearchReleases(ctx context.Context, s AlbumSearch) ([]string, error) {
 	body, err := c.doWithRetry(ctx, c.searchRequestURL(s))
 	if err != nil {
@@ -255,7 +242,7 @@ func (c *Client) SearchReleases(ctx context.Context, s AlbumSearch) ([]string, e
 		} `json:"releases"`
 	}
 	if err := json.Unmarshal(body, &decoded); err != nil {
-		return nil, fmt.Errorf("musicbrainz: decoding search response: %w: %w", err, ErrMalformedRelease)
+		return nil, fmt.Errorf("musicbrainz: decoding search response: %v", err)
 	}
 
 	ids := make([]string, len(decoded.Releases))
@@ -284,7 +271,7 @@ func (c *Client) SearchReleases(ctx context.Context, s AlbumSearch) ([]string, e
 // one escapes, so MergePseudoRelease's aliasing of the pseudo value's
 // slices has no second retaining reader.
 func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunables) (*matcher.AlbumInfo, error) {
-	rel, err := c.Release(ctx, mbid)
+	rel, err := c.release(ctx, mbid)
 	if err != nil {
 		return nil, err
 	}
@@ -293,26 +280,15 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 		return nil, err
 	}
 
-	// An absent status key is a plain non-pseudo release, deliberately.
-	// beets indexes original_release["status"] directly
-	// (beetsplug/musicbrainz.py:785), so a body with no status raises
-	// KeyError inside album_for_id and the exception escapes to
-	// maybe_handle_plugin_error, which logs and drops the plugin's whole
-	// candidate list. Release.Status is a plain string (release.go),
-	// so an absent key decodes to "" here and PseudoReleaseTarget
-	// reports false instead of raising: the candidate survives where
-	// beets would have dropped it. Measured: all 303 committed
-	// release-lookup bodies carry a top-level status (the 48 that do
-	// not are search responses), so the divergence is unreachable in
-	// the corpus today. It is recorded as a deliberate choice rather
-	// than absorbed: reproducing an accident of direct indexing is not
-	// conformance.
+	// An absent status decodes to "" and reads as a non-pseudo release,
+	// where beets' direct index (beetsplug/musicbrainz.py:785) raises
+	// KeyError and drops the plugin's whole candidate list.
 	targetID, ok := PseudoReleaseTarget(rel)
 	if !ok {
 		return info, nil
 	}
 
-	actualRel, err := c.Release(ctx, targetID)
+	actualRel, err := c.release(ctx, targetID)
 	if err != nil {
 		return nil, fmt.Errorf("musicbrainz: fetching pseudo-release %s's actual release %s: %w", rel.ID, targetID, err)
 	}
@@ -325,9 +301,10 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 
 // doWithRetry issues one GET at requestURL, retrying as beets' own
 // policy does. It returns the response body on a 200, ErrNotFound on a
-// 404, ErrUnavailable when the retries are spent, and a generic error
-// for any other status. A context that ends before or between attempts
-// returns the context's own error, never ErrUnavailable.
+// 404, an error wrapping errUnavailable when the retries are spent, and
+// a generic error for any other status. A context that ends before or
+// between attempts returns the context's own error, never
+// errUnavailable.
 func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
@@ -341,46 +318,51 @@ func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, er
 		}
 		req.Header.Set("User-Agent", c.userAgent)
 
+		var wait time.Duration
 		resp, err := c.http.Do(req)
 		if err != nil {
 			lastErr = err
-			if attempt == maxAttempts {
-				break
+			wait = backoff(attempt)
+		} else {
+			body, err := readBody(resp)
+			if err != nil {
+				return nil, err
 			}
-			if serr := c.sleep(ctx, backoff(attempt)); serr != nil {
-				return nil, serr
+			switch {
+			case resp.StatusCode == http.StatusOK:
+				return body, nil
+			case resp.StatusCode == http.StatusNotFound:
+				return nil, ErrNotFound
+			case retryableStatuses[resp.StatusCode]:
+				lastErr = fmt.Errorf("musicbrainz: status %d", resp.StatusCode)
+			default:
+				return nil, fmt.Errorf("musicbrainz: unexpected status %d", resp.StatusCode)
 			}
-			continue
-		}
-
-		body, readErr := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes+1))
-		_ = resp.Body.Close()
-		if readErr != nil {
-			return nil, fmt.Errorf("musicbrainz: reading response body: %w", readErr)
-		}
-		if len(body) > maxBodyBytes {
-			return nil, errBodyTooLarge
-		}
-
-		switch {
-		case resp.StatusCode == http.StatusOK:
-			return body, nil
-		case resp.StatusCode == http.StatusNotFound:
-			return nil, ErrNotFound
-		case retryableStatuses[resp.StatusCode]:
-			lastErr = fmt.Errorf("musicbrainz: status %d", resp.StatusCode)
-		default:
-			return nil, fmt.Errorf("musicbrainz: unexpected status %d", resp.StatusCode)
+			wait = retryWait(resp.Header.Get("Retry-After"), attempt)
 		}
 
 		if attempt == maxAttempts {
 			break
 		}
-		if serr := c.sleep(ctx, retryWait(resp.Header.Get("Retry-After"), attempt)); serr != nil {
-			return nil, serr
+		if err := sleep(ctx, wait); err != nil {
+			return nil, err
 		}
 	}
-	return nil, fmt.Errorf("%w: %w", ErrUnavailable, lastErr)
+	return nil, fmt.Errorf("%w: %w", errUnavailable, lastErr)
+}
+
+// readBody reads and closes resp's body, failing on one over
+// maxBodyBytes rather than truncating it.
+func readBody(resp *http.Response) ([]byte, error) {
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes+1))
+	_ = resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("musicbrainz: reading response body: %w", err)
+	}
+	if len(body) > maxBodyBytes {
+		return nil, errBodyTooLarge
+	}
+	return body, nil
 }
 
 // retryWait picks the wait before the next attempt: a delta-seconds

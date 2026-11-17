@@ -6,15 +6,14 @@ import (
 	"github.com/glw907/dubplate/internal/engine/matcher"
 )
 
-func creditPart(name, joinPhrase, artistID, artistName string) CreditPart {
+func creditPart(joinPhrase, artistID, artistName string) CreditPart {
 	return CreditPart{
-		Name:       name,
 		JoinPhrase: joinPhrase,
-		Artist:     Artist{ID: artistID, Name: artistName, SortName: artistName},
+		Artist:     Artist{ID: artistID, Name: artistName},
 	}
 }
 
-// TestParseArtistCreditsJoinPhrases is T8's measured trailing-joinphrase
+// TestParseArtistCreditsJoinPhrases is the measured trailing-joinphrase
 // behavior. beets extends the parts list with [name, joinphrase] per
 // element and joins the whole thing (musicbrainz.py:344-349), so the last
 // element's joinphrase survives into the weight-3.0 album artist penalty.
@@ -30,23 +29,23 @@ func TestParseArtistCreditsJoinPhrases(t *testing.T) {
 		{
 			name: "an empty final joinphrase joins cleanly",
 			parts: []CreditPart{
-				creditPart("A", " & ", "artist-a", "A"),
-				creditPart("B", "", "artist-b", "B"),
+				creditPart(" & ", "artist-a", "A"),
+				creditPart("", "artist-b", "B"),
 			},
 			wantArtist:   "A & B",
 			wantArtistID: "artist-a",
 		},
 		{
 			name:         "a single credit keeps its trailing joinphrase",
-			parts:        []CreditPart{creditPart("A", " feat. ", "artist-a", "A")},
+			parts:        []CreditPart{creditPart(" feat. ", "artist-a", "A")},
 			wantArtist:   "A feat. ",
 			wantArtistID: "artist-a",
 		},
 		{
 			name: "a repeated final joinphrase trails the last name",
 			parts: []CreditPart{
-				creditPart("A", " & ", "artist-a", "A"),
-				creditPart("B", " & ", "artist-b", "B"),
+				creditPart(" & ", "artist-a", "A"),
+				creditPart(" & ", "artist-b", "B"),
 			},
 			wantArtist:   "A & B & ",
 			wantArtistID: "artist-a",
@@ -66,20 +65,15 @@ func TestParseArtistCreditsJoinPhrases(t *testing.T) {
 	}
 }
 
-// TestParseArtistCreditsPrefersTheAliasName is T8's A/B table. The
+// TestParseArtistCreditsPrefersTheAliasName is the alias A/B table. The
 // fixture's one credit element carries three distinct names: the credit
 // element's own display name, the artist entity's name, and a ja primary
 // alias name. Only the entity-or-alias name reaches Artist, because
 // artist_object is `alias or el["artist"]` (musicbrainz.py:328-330) while
 // the credit string, which this port does not produce, reads el itself.
-//
-// The credit string is the one column of the inventory's table with no Go
-// expression here: matcher.AlbumInfo carries no artist_credit and the
-// ruling-E ledger does not grade one, so credits has no field for it and
-// aliases_as_credits is not a tunable at all (R8). The two rows of that
-// table with aliases_as_credits true are therefore unportable, and this
-// test covers what remains: a mutation reading el.Name into Artist breaks
-// the first row, and one dropping the alias lookup breaks the second.
+// The credit element's display name is not decoded at all, so only the
+// alias lookup can move Artist: a mutation dropping it breaks the second
+// row.
 func TestParseArtistCreditsPrefersTheAliasName(t *testing.T) {
 	parts := loadTestdata[[]CreditPart](t, "artist_credit_alias.json")
 

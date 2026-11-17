@@ -16,7 +16,7 @@ import (
 )
 
 // evalDate is the fixed evaluation date every test in this package
-// shares, never a clock read (contract 9).
+// shares, never a clock read.
 var evalDate = time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 // taggingServer serves the release and search bodies committed under
@@ -51,7 +51,7 @@ func taggingServer(t *testing.T, name string) (*httptest.Server, *[]string) {
 
 // statusServer answers every release lookup with status, alongside
 // Retry-After: 0 so a retryable status collapses its backoff schedule
-// to no real wall time (fold M-h): without it maxAttempts (7) with
+// to no real wall time: without it maxAttempts (7) with
 // backoff waits 0+1+2+4+8+16 spends 31 real seconds per gate run. A
 // search finds no releases, so a dropped lookup ends in ErrNoCandidates
 // rather than in a failed search.
@@ -102,7 +102,7 @@ func earlyReturnItems() []matcher.ItemFields {
 // tracks (2) all matching exactly, the resulting distance is
 // 1/14 = 0.0714286: above StrongRecThresh (0.04) and at or below
 // MediumRecThresh (0.25), so this ID candidate scores medium rather
-// than strong (revision 2, fold M-e).
+// than strong.
 func mediumIDItems() []matcher.ItemFields {
 	items := earlyReturnItems()
 	items[0].DiscTotal = 2
@@ -164,8 +164,8 @@ func TestAlbumTakesTheIDMatchEarlyReturnAndIssuesNoSearch(t *testing.T) {
 func TestAlbumSearchesWhenTheIDMatchIsExactlyMedium(t *testing.T) {
 	// The detector for "relax rec == strong to rec >= medium", which
 	// the early-return test above cannot see: its fixture scores strong
-	// and a strong match stays on the same branch under either guard
-	// (revision 2, fold M-e). This fixture's single ID candidate scores
+	// and a strong match stays on the same branch under either guard.
+	// This fixture's single ID candidate scores
 	// medium, so the flow must fall through: one lookup, then one
 	// search. Relaxing the guard turns that into one lookup and no
 	// search.
@@ -249,26 +249,28 @@ func TestAlbumMatchByIDEarlyBranches(t *testing.T) {
 }
 
 func TestAlbumDropsA404LookupAndPropagatesEverythingElse(t *testing.T) {
+	// A dropped lookup leaves no candidate, so Album answers
+	// ErrNoCandidates; a propagated one answers the client's own error,
+	// which must not be mistaken for an empty candidate set.
 	tests := []struct {
 		name    string
 		status  int
-		wantErr error
+		dropped bool
 	}{
-		{"404 drops the candidate", http.StatusNotFound, ErrNoCandidates},
-		{"503 propagates", http.StatusServiceUnavailable, musicbrainz.ErrUnavailable},
+		{"404 drops the candidate", http.StatusNotFound, true},
+		{"503 propagates", http.StatusServiceUnavailable, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// statusServer sends Retry-After: 0 alongside the status.
 			// Without it the 503 row spends 31 seconds of real wall
-			// time on every gate run: maxAttempts is 7
-			// (client.go:42), 503 is retryable (:50-56), and the six
-			// backoff waits are 0+1+2+4+8+16 (:418-423). The sleep
-			// hook is unexported and ClientConfig exposes no way to
-			// inject one (:93-99, :118), so the header is the only
-			// lever a caller outside musicbrainz has, and retryWait
-			// parses delta-seconds ahead of the backoff (:403-411).
-			// Revision 2, fold M-h.
+			// time on every gate run: the client's maxAttempts is 7,
+			// 503 is retryable, and the six backoff waits are
+			// 0+1+2+4+8+16 seconds. The client's sleep hook is
+			// unexported and ClientConfig exposes no way to inject
+			// one, so the header is the only lever a caller outside
+			// musicbrainz has, and retryWait parses delta-seconds
+			// ahead of the backoff.
 			//
 			// The one-second budget is proved with a time.After race
 			// rather than time.Now/time.Since: internal/engine must
@@ -282,11 +284,14 @@ func TestAlbumDropsA404LookupAndPropagatesEverythingElse(t *testing.T) {
 			}()
 			select {
 			case err := <-done:
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("Album = %v, want an error wrapping %v", err, tt.wantErr)
+				switch {
+				case tt.dropped && !errors.Is(err, ErrNoCandidates):
+					t.Errorf("Album = %v, want an error wrapping ErrNoCandidates", err)
+				case !tt.dropped && (err == nil || errors.Is(err, ErrNoCandidates)):
+					t.Errorf("Album = %v, want the client's error propagated, not ErrNoCandidates", err)
 				}
 			case <-time.After(time.Second):
-				t.Fatal("took over a second; statusServer must send Retry-After: 0 so the retry schedule collapses (fold M-h)")
+				t.Fatal("took over a second; statusServer must send Retry-After: 0 so the retry schedule collapses")
 			}
 		})
 	}

@@ -90,11 +90,8 @@ func buildTrack(m Medium, tr Track, tun matcher.Tunables) builtTrack {
 // extractTracks runs tracksFromMedium over every medium of rel whose
 // format is not in tun.IgnoredMedia, then assigns Index 1-based across
 // all surviving tracks in medium order (musicbrainz.py:645-646).
-//
-// It does not compute AlbumInfo.Mediums: that is len(rel.Media), the
-// UNFILTERED count (musicbrainz.py:659), and it is deliberately not
-// derived here, because a reader who saw both numbers produced by one
-// function would reasonably assume they agree.
+// AlbumInfo.Mediums is not derived from its result: that is
+// len(rel.Media), the UNFILTERED count (musicbrainz.py:659).
 func extractTracks(rel *Release, tun matcher.Tunables) []builtTrack {
 	ignored := make(map[string]struct{}, len(tun.IgnoredMedia))
 	for _, format := range tun.IgnoredMedia {
@@ -175,7 +172,7 @@ func assembledTracks(medium Medium, withDataTracks bool) []Track {
 	return tracks
 }
 
-// resolvedTrackCredit is the track-level override T6 describes: the
+// resolvedTrackCredit is the track-level artist-credit override: the
 // track's own artist-credit when non-empty, the recording's otherwise
 // (recording["artist_credit"] = track["artist_credit"] or
 // recording["artist_credit"], beetsplug/musicbrainz.py:586-588).

@@ -32,8 +32,8 @@ type renderingFixtures struct {
 	Lower  []renderRow `json:"lower"`
 }
 
-// extraTagRow is one row of the extra-tag fixture: rung 3's tenth
-// declared corpus-coverage gap, since no committed profile writes a
+// extraTagRow is one row of the extra-tag fixture, a declared
+// corpus-coverage gap: no committed profile writes a
 // musicbrainz.extra_tags block at all.
 type extraTagRow struct {
 	Name      string               `json:"name"`
@@ -229,14 +229,14 @@ func TestAlbumCriteriaOrdersTheCorpusReachableShapes(t *testing.T) {
 }
 
 // TestAlbumSearchForBuildsTheExtraTagCriteria grades the extra-tag branch,
-// rung 3's tenth declared corpus-coverage gap: no committed profile
+// a declared corpus-coverage gap: no committed profile
 // writes a musicbrainz block, so FIELDS_TO_MB_KEYS, the tracks and alias
 // special cases, the catalognum space strip and the date:(0) trap are all
 // unreachable by any corpus case and are graded by this hand-authored
 // table alone.
 //
-// Two mutations: iterating FIELDS_TO_MB_KEYS in sorted key order instead
-// of tun.ExtraTags fails the two-tag order row deterministically, because
+// Two mutations: iterating extraTags in sorted key order instead of
+// tun.ExtraTags fails the two-tag order row deterministically, because
 // the sorted keys put label ahead of media; emitting one criterion per
 // ExtraTags element without the de-duplication skip fails the repeated-tag
 // row with two tracks terms.
@@ -299,8 +299,8 @@ func TestAlbumSearchForRendersTheCommittedShapes(t *testing.T) {
 	}
 }
 
-// TestAlbumSearchForDropsEmptyTerms proves both filter points: an empty
-// album name drops its own criterion rather than rendering release:()
+// TestAlbumSearchForDropsEmptyTerms proves an empty album name drops its
+// own criterion rather than rendering release:()
 // and rather than emptying the query.
 func TestAlbumSearchForDropsEmptyTerms(t *testing.T) {
 	got := AlbumSearchFor([]matcher.ItemFields{{Artist: "Northline"}}, matcher.DefaultTunables()).Query
