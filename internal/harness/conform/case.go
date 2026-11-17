@@ -621,6 +621,9 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	case policy.VerdictFrom == verdictFromAdjudication && hasRow && row.DefectFree != nil:
 		// One of the four defect_free rows: graded against the block
 		// rather than the case's own (defective) committed record.
+		if tableErr := checkPatternTable(c.ID, row.DefectFree.PatternTable, tunDefault.StringDistPatterns); tableErr != nil {
+			errs = append(errs, tableErr)
+		}
 		var dist float64
 		if len(sorted) > 0 {
 			dist = sorted[0].Dist.Distance()
@@ -652,6 +655,31 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	}
 
 	return res, nil
+}
+
+// patternTables resolves a defect_free block's pattern_table name, one
+// of analysis.LegalPatternTables, to the matcher table it names. That
+// package cannot import the engine, so this is where a name meets its
+// table.
+var patternTables = map[string][]matcher.SDPattern{
+	"SDPatternsNoBracketDiscount": matcher.SDPatternsNoBracketDiscount,
+}
+
+// checkPatternTable fails when name resolves to no table, or to a table
+// other than the one default-mode grading scored under, since the block's
+// figures are then not the ones this run reproduced.
+func checkPatternTable(caseID, name string, scored []matcher.SDPattern) error {
+	table, ok := patternTables[name]
+	if !ok {
+		return fmt.Errorf("case %s: defect_free pattern_table %q names no matcher table", caseID, name)
+	}
+	same := slices.EqualFunc(table, scored, func(a, b matcher.SDPattern) bool {
+		return a.Pattern.String() == b.Pattern.String() && a.Weight == b.Weight && a.Replacement == b.Replacement
+	})
+	if !same {
+		return fmt.Errorf("case %s: defect_free pattern_table %q is not the table default-mode grading scored under", caseID, name)
+	}
+	return nil
 }
 
 // CheckDefaultCompatMatchesTheLedger proves matcher.DefaultCompat's

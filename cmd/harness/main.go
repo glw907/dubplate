@@ -37,8 +37,8 @@
 //     and writes the report, failing on any unledgered finding.
 //
 // Every live request carries the identified User-Agent
-// corpus/README.md documents; the tool refuses to run at all when
-// DUBPLATE_HARNESS_CONTACT is unset.
+// corpus/README.md documents; capture, the one command that sends live
+// requests, refuses to run when DUBPLATE_HARNESS_CONTACT is unset.
 package main
 
 import (

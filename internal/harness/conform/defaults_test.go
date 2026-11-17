@@ -174,27 +174,48 @@ func TestItemFieldsProjectionAgreesWithCorpus(t *testing.T) {
 	}
 }
 
-// TestPatternTableNamesResolve is the m11 fold: analysis.DefectFree's
-// PatternTable field carries one of the string literals
-// analysis.LegalPatternTables names (that package must not import
-// internal/engine), and nothing checks that they still resolve to real
-// tables in package matcher. This test does, in CheckUnidecodeVersion's
-// shape: the harness reads both sides, so neither a rename in matcher
-// nor an edit to the ledger's own legal set can orphan the other
-// silently.
-func TestPatternTableNamesResolve(t *testing.T) {
-	tables := map[string][]matcher.SDPattern{
-		"SDPatternsNoBracketDiscount": matcher.SDPatternsNoBracketDiscount,
-	}
+// TestEveryLegalPatternTableResolves holds analysis.LegalPatternTables,
+// which cannot import the engine, to the tables patternTables resolves.
+func TestEveryLegalPatternTableResolves(t *testing.T) {
 	for _, name := range analysis.LegalPatternTables {
-		table, ok := tables[name]
-		if !ok {
-			t.Errorf("legal pattern table %q names no table in package matcher", name)
-			continue
+		if len(patternTables[name]) == 0 {
+			t.Errorf("legal pattern table %q resolves to no matcher table", name)
 		}
-		if len(table) == 0 {
-			t.Errorf("pattern table %q resolves to an empty []matcher.SDPattern", name)
+	}
+}
+
+// TestDefaultGradingRefusesAWrongPatternTable hands gradeCaseDefault a
+// ledger whose adv-remix-bracket row names a table default-mode grading
+// did not score under, and expects the case to fail naming the table.
+func TestDefaultGradingRefusesAWrongPatternTable(t *testing.T) {
+	const id = "adv-remix-bracket"
+	root := repoRoot(t)
+	led, err := loadLedgers(root)
+	if err != nil {
+		t.Fatalf("loadLedgers: %v", err)
+	}
+	if policy := policyFor(id, led.ties, led.prox, led.adj, led.bugs); policy.VerdictFrom != verdictFromAdjudication {
+		t.Fatalf("policy for %s reads its verdict from %v, want the adjudication row", id, policy.VerdictFrom)
+	}
+	var row *analysis.DefectFree
+	for i := range led.adj.Entries {
+		if led.adj.Entries[i].Subject.CaseID == id {
+			row = led.adj.Entries[i].DefectFree
 		}
+	}
+	if row == nil {
+		t.Fatalf("the ledger row for %s carries no defect_free block", id)
+	}
+	dir := filepath.Join(root, "corpus", "cases", id)
+
+	if _, err := gradeCaseDefault(t.Context(), dir, led); err != nil {
+		t.Fatalf("gradeCaseDefault with the committed table = %v, want nil", err)
+	}
+
+	row.PatternTable = "BeetsSDPatterns"
+	_, err = gradeCaseDefault(t.Context(), dir, led)
+	if err == nil || !strings.Contains(err.Error(), id) || !strings.Contains(err.Error(), "BeetsSDPatterns") {
+		t.Errorf("gradeCaseDefault with a wrong table = %v, want an error naming %s and BeetsSDPatterns", err, id)
 	}
 }
 
