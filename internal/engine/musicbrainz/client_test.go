@@ -48,15 +48,13 @@ const releaseFixtureID = "11111111-1111-1111-1111-111111111111"
 // anything.
 func noSleep(context.Context, time.Duration) error { return nil }
 
-// newTestClient builds a Client against an unmetered budget and a
-// scripted transport, for tests that are not exercising the limiter's
-// own per-attempt token.
+// newTestClient builds a Client over a scripted transport whose
+// backoff never waits.
 func newTestClient(t *testing.T, rt http.RoundTripper) *Client {
 	t.Helper()
 	c, err := NewClient(ClientConfig{
 		BaseURL:   "http://stub.invalid",
 		UserAgent: "dubplate-test/0 ( test )",
-		Budget:    Unmetered(),
 		HTTP:      &http.Client{Transport: rt},
 	})
 	if err != nil {
@@ -68,15 +66,8 @@ func newTestClient(t *testing.T, rt http.RoundTripper) *Client {
 
 // Mutation 1: NewClient accepts an empty UserAgent.
 func TestNewClientRequiresUserAgent(t *testing.T) {
-	if _, err := NewClient(ClientConfig{Budget: Unmetered()}); err == nil {
+	if _, err := NewClient(ClientConfig{}); err == nil {
 		t.Fatal("NewClient with empty UserAgent = nil error, want one")
-	}
-}
-
-// Mutation 2: NewClient accepts a nil Budget.
-func TestNewClientRequiresBudget(t *testing.T) {
-	if _, err := NewClient(ClientConfig{UserAgent: "dubplate-test/0 ( test )"}); err == nil {
-		t.Fatal("NewClient with nil Budget = nil error, want one")
 	}
 }
 
@@ -282,10 +273,9 @@ func TestAlbumForIDMergesThePseudoAndActualRelease(t *testing.T) {
 	}
 }
 
-// TestReleaseRetriesOnTransientStatusAndMetersEveryAttempt is the
-// retry seam, covering the schedule, the per-attempt token, and the
-// header on every attempt, without spending a second of wall time.
-func TestReleaseRetriesOnTransientStatusAndMetersEveryAttempt(t *testing.T) {
+// TestReleaseRetriesOnTransientStatus covers the retry schedule and the
+// User-Agent header on every attempt, without spending wall time.
+func TestReleaseRetriesOnTransientStatus(t *testing.T) {
 	var attempts int
 	var agents []string
 	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
@@ -296,42 +286,7 @@ func TestReleaseRetriesOnTransientStatusAndMetersEveryAttempt(t *testing.T) {
 		}
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(releaseFixture))}, nil
 	})
-
-	// One tick per observed attempt, gated on the dispatcher's own
-	// cumulative registration count rather than fed ahead of demand:
-	// the spare is capped at one, so a tick sent before the next
-	// attempt has registered becomes an unclaimed spare instead of that
-	// attempt's own token, and the client's single in-flight request
-	// means exactly one new registration happens between any two ticks
-	// (fold B3). awaitQueued(i) waits for the i-th cumulative
-	// registration, escalating the same way
-	// TestDispatcherPrefersUserPresentAndStillFeedsBackground's 1-then-9
-	// call does, rather than repeating one count that only the first
-	// tick would actually need to wait for.
-	ticks := make(chan time.Time)
-	l := newLimiter(ticks)
-	defer func() {
-		if err := l.Close(); err != nil {
-			t.Errorf("Close: %v", err)
-		}
-	}()
-	budget := l.Budget(ClassBatch, 0)
-	go func() {
-		for i := 1; i <= 3; i++ {
-			l.awaitQueued(i)
-			ticks <- time.Time{}
-		}
-	}()
-
-	c, err := NewClient(ClientConfig{
-		BaseURL:   "http://stub.invalid",
-		UserAgent: "dubplate-test/0 ( test )",
-		Budget:    budget,
-		HTTP:      &http.Client{Transport: rt},
-	})
-	if err != nil {
-		t.Fatalf("NewClient: %v", err)
-	}
+	c := newTestClient(t, rt)
 	var slept []time.Duration
 	c.sleep = func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil }
 
@@ -340,9 +295,6 @@ func TestReleaseRetriesOnTransientStatusAndMetersEveryAttempt(t *testing.T) {
 	}
 	if attempts != 3 {
 		t.Errorf("attempts = %d, want 3", attempts)
-	}
-	if got := budget.Spent(); got != 3 {
-		t.Errorf("budget.Spent() = %d, want 3: every retry is a real request against the wire budget", got)
 	}
 	if want := []time.Duration{0, time.Second}; !slices.Equal(slept, want) {
 		t.Errorf("backoff schedule = %v, want %v", slept, want)

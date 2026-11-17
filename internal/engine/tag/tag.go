@@ -52,11 +52,6 @@ type Options struct {
 // internal/harness/conform's tier 1 grades, so a "fetch everything, then
 // score" rearrangement would issue requests beets never issued.
 //
-// Every request Album issues spends one token from src's own budget, so
-// a caller caps its MusicBrainz spend by the budget it built the client
-// with (musicbrainz.NewClient requires one). A conformance run passes
-// musicbrainz.Unmetered().
-//
 // evalDate is a parameter and never a clock read.
 //
 // It returns ErrNoCandidates when nothing was admitted. A lookup that

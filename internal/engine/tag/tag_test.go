@@ -63,15 +63,12 @@ func statusServer(t *testing.T, status int) *httptest.Server {
 	return srv
 }
 
-// clientFor builds a *musicbrainz.Client against srv with an unmetered
-// budget, the shape every conformance run and this package's own tests
-// share.
+// clientFor builds a *musicbrainz.Client against srv.
 func clientFor(t *testing.T, srv *httptest.Server) *musicbrainz.Client {
 	t.Helper()
 	c, err := musicbrainz.NewClient(musicbrainz.ClientConfig{
 		BaseURL:   srv.URL,
 		UserAgent: "dubplate-test/0 ( test )",
-		Budget:    musicbrainz.Unmetered(),
 	})
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)

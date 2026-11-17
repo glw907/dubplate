@@ -333,14 +333,12 @@ func caseInputs(c *cassette.Case) (time.Time, matcher.Tunables, []matcher.ItemFi
 	return evalDate, tun, items, nil
 }
 
-// gradeClient builds the client a sweep replays one case through: the
-// case's own stub as the base URL, and an unmetered budget, because a
-// replay spends no real MusicBrainz quota.
+// gradeClient builds the client a sweep replays one case through, with
+// the case's own stub as the base URL.
 func gradeClient(addr string) (*musicbrainz.Client, error) {
 	return musicbrainz.NewClient(musicbrainz.ClientConfig{
 		BaseURL:   "http://" + addr,
 		UserAgent: gradeUserAgent,
-		Budget:    musicbrainz.Unmetered(),
 	})
 }
 

@@ -1,10 +1,9 @@
 // Package musicbrainz translates an already-decoded MusicBrainz WS/2
 // release into the matcher's vocabulary (internal/engine/matcher),
 // builds the Lucene album search query that asks for one (query.go),
-// issues the WS/2 requests themselves (client.go), and paces every
-// request this process sends against the shared wire budget
-// (limiter.go). Nothing here reads the clock, and the client is the
-// only file that reaches the network at all.
+// issues the WS/2 requests themselves (client.go). Nothing here reads
+// the clock, and the client is the only file that reaches the network
+// at all.
 //
 // Two things this package deliberately does not do. First, the browse
 // fallback beets calls _ensure_complete_recordings

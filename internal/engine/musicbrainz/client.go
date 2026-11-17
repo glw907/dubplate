@@ -86,12 +86,10 @@ var ErrUnavailable = errors.New("musicbrainz unavailable")
 // and the identity is site-specific, so it belongs to internal/config
 // and reaches here through cmd/dubplate-server's composition
 // (dubplate-server/<version> ( <contact> ), on cmd/harness/capture.go's
-// own precedent, with the contact from Config.AdminEmail). Budget is
-// required too; offline callers pass [Unmetered].
+// own precedent, with the contact from Config.AdminEmail).
 type ClientConfig struct {
 	BaseURL   string        // empty means defaultBaseURL
 	UserAgent string        // required
-	Budget    *Budget       // required
 	Timeout   time.Duration // zero means 30s
 	HTTP      *http.Client  // zero value means one built from Timeout
 }
@@ -103,7 +101,6 @@ type ClientConfig struct {
 type Client struct {
 	baseURL   string
 	userAgent string
-	budget    *Budget
 	http      *http.Client
 
 	// sleep is the backoff wait, injected so a test observes the
@@ -117,14 +114,11 @@ type Client struct {
 }
 
 // NewClient validates cfg and returns a client. It fails rather than
-// defaulting on a missing UserAgent or Budget, because both are
-// correctness requirements rather than conveniences.
+// defaulting on a missing UserAgent, because MusicBrainz requires an
+// identified client.
 func NewClient(cfg ClientConfig) (*Client, error) {
 	if cfg.UserAgent == "" {
 		return nil, errors.New("musicbrainz: ClientConfig.UserAgent is required")
-	}
-	if cfg.Budget == nil {
-		return nil, errors.New("musicbrainz: ClientConfig.Budget is required")
 	}
 
 	baseURL := cfg.BaseURL
@@ -144,7 +138,6 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 	return &Client{
 		baseURL:   baseURL,
 		userAgent: cfg.UserAgent,
-		budget:    cfg.Budget,
 		http:      httpClient,
 		sleep:     sleepReal,
 	}, nil
@@ -331,16 +324,15 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 	return MergePseudoRelease(info, actualInfo), nil
 }
 
-// doWithRetry issues one GET at requestURL, acquiring a limiter token
-// before every attempt including retries, so a retry spends the
-// budget the way a first attempt does. beets meters per request only,
-// because Retry sits inside its adapter beneath both limiters. It returns the response
-// body on a 200, ErrNotFound on a 404, ErrUnavailable when the retries
-// are spent, and a generic error for any other status.
+// doWithRetry issues one GET at requestURL, retrying as beets' own
+// policy does. It returns the response body on a 200, ErrNotFound on a
+// 404, ErrUnavailable when the retries are spent, and a generic error
+// for any other status. A context that ends before or between attempts
+// returns the context's own error, never ErrUnavailable.
 func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		if err := c.budget.Wait(ctx); err != nil {
+		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
 

@@ -137,7 +137,6 @@ func gradeCaseRequests(ctx context.Context, dir string) (result caseRequestResul
 	client, clientErr := musicbrainz.NewClient(musicbrainz.ClientConfig{
 		BaseURL:   "http://" + srv.Addr(),
 		UserAgent: gradeUserAgent,
-		Budget:    musicbrainz.Unmetered(),
 	})
 	if clientErr != nil {
 		errs = append(errs, fmt.Errorf("case %s: build client: %w", c.ID, clientErr))
