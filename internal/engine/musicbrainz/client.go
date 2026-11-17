@@ -209,7 +209,7 @@ func (c *Client) searchRequestURL(s AlbumSearch) string {
 // 771-773).
 //
 // It decodes and does not validate. TranslateAlbum owns validation and
-// calls Release.Validate as its first act (translate.go:46-48), so a
+// calls validate as its first act (translate.go:46-48), so a
 // second call here would validate every body twice and split ownership
 // of one rule across two files.
 func (c *Client) Release(ctx context.Context, mbid string) (*Release, error) {

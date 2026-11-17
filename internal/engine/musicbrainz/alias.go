@@ -1,6 +1,7 @@
 package musicbrainz
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/glw907/dubplate/internal/engine/matcher"
@@ -33,11 +34,6 @@ import (
 // and _key_with_preferred_alias itself reads the same key through
 // .get(..., []) at :161.
 func preferredAlias(aliases []Alias, tun matcher.Tunables) *Alias {
-	ignored := make(map[string]struct{}, len(tun.IgnoredAliasTypes))
-	for _, aliasType := range tun.IgnoredAliasTypes {
-		ignored[strings.ToLower(aliasType)] = struct{}{}
-	}
-
 	for _, locale := range tun.Languages {
 		for i, alias := range aliases {
 			if alias.Locale == nil || *alias.Locale != locale {
@@ -48,9 +44,11 @@ func preferredAlias(aliases []Alias, tun matcher.Tunables) *Alias {
 			}
 			var aliasType string
 			if alias.Type != nil {
-				aliasType = *alias.Type
+				aliasType = strings.ToLower(*alias.Type)
 			}
-			if _, skip := ignored[strings.ToLower(aliasType)]; skip {
+			if slices.ContainsFunc(tun.IgnoredAliasTypes, func(ignored string) bool {
+				return strings.ToLower(ignored) == aliasType
+			}) {
 				continue
 			}
 			return &aliases[i]

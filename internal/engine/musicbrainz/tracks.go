@@ -155,3 +155,33 @@ func deriveMedia(tracks []builtTrack) string {
 	}
 	return "Media"
 }
+
+// assembledTracks returns a medium's pregap, tracks, and data-tracks in
+// that fixed order (T5), the same assembly get_tracks_from_medium reads
+// through before either filter runs. It is the one copy of that order:
+// tracksFromMedium passes withDataTracks as !tun.IgnoreDataTracks, and
+// Validate passes true, because it has no Tunables to apply a filter
+// with and a track later dropped by a filter is still a track this
+// boundary check must be able to read without panicking.
+func assembledTracks(medium Medium, withDataTracks bool) []Track {
+	var tracks []Track
+	if medium.Pregap != nil {
+		tracks = append(tracks, *medium.Pregap)
+	}
+	tracks = append(tracks, medium.Tracks...)
+	if withDataTracks {
+		tracks = append(tracks, medium.DataTracks...)
+	}
+	return tracks
+}
+
+// resolvedTrackCredit is the track-level override T6 describes: the
+// track's own artist-credit when non-empty, the recording's otherwise
+// (recording["artist_credit"] = track["artist_credit"] or
+// recording["artist_credit"], beetsplug/musicbrainz.py:586-588).
+func resolvedTrackCredit(track Track) []CreditPart {
+	if len(track.ArtistCredit) > 0 {
+		return track.ArtistCredit
+	}
+	return track.Recording.ArtistCredit
+}

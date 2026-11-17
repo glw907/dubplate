@@ -80,27 +80,23 @@ func TestPreferredReleaseEvent_NoEventsNoCountryYieldsEmpty(t *testing.T) {
 	}
 }
 
-// TestParseDate_MeasuredTable reproduces T11's measured six-row table.
-// Mutation 4 (returning early on the first unparsable part) fails the
-// "1999-XX-06" row, because an early return would leave day at zero
-// instead of carrying the real parsed day past the unparsable month.
-func TestParseDate_MeasuredTable(t *testing.T) {
+// TestParseYear_MeasuredTable reproduces T11's measured six-row table
+// for the year alone: the month and day parts never change it.
+func TestParseYear_MeasuredTable(t *testing.T) {
 	tests := []struct {
-		in                           string
-		wantYear, wantMonth, wantDay int
+		in   string
+		want int
 	}{
-		{"", 0, 0, 0},
-		{"1999", 1999, 0, 0},
-		{"1999-05", 1999, 5, 0},
-		{"1999-XX-06", 1999, 0, 6},
-		{"199x", 0, 0, 0},
-		{"1999-05-06-07", 1999, 5, 6},
+		{"", 0},
+		{"1999", 1999},
+		{"1999-05", 1999},
+		{"1999-XX-06", 1999},
+		{"199x", 0},
+		{"1999-05-06-07", 1999},
 	}
 	for _, tt := range tests {
-		gotYear, gotMonth, gotDay := parseDate(tt.in)
-		if gotYear != tt.wantYear || gotMonth != tt.wantMonth || gotDay != tt.wantDay {
-			t.Errorf("parseDate(%q) = (%d, %d, %d), want (%d, %d, %d)",
-				tt.in, gotYear, gotMonth, gotDay, tt.wantYear, tt.wantMonth, tt.wantDay)
+		if got := parseYear(tt.in); got != tt.want {
+			t.Errorf("parseYear(%q) = %d, want %d", tt.in, got, tt.want)
 		}
 	}
 }

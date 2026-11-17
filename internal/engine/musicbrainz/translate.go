@@ -43,7 +43,7 @@ const noLabelSentinel = "[no label]"
 // zero value and the reasons are recorded on Release and on the
 // functions concerned.
 func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, error) {
-	if err := rel.Validate(); err != nil {
+	if err := rel.validate(); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, err
 
 	credit, va := applyVariousArtists(parseArtistCredits(rel.ArtistCredit, tun), tun)
 
-	originalYear, _, _ := parseDate(rel.ReleaseGroup.FirstReleaseDate)
+	originalYear := parseYear(rel.ReleaseGroup.FirstReleaseDate)
 
 	var catalogNum string
 	if len(rel.LabelInfo) > 0 && rel.LabelInfo[0].CatalogNumber != nil {
@@ -69,7 +69,7 @@ func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, err
 	country, date := preferredReleaseEvent(rel, tun)
 	year := originalYear
 	if date != "" {
-		year, _, _ = parseDate(date)
+		year = parseYear(date)
 	}
 
 	tracks := make([]matcher.TrackInfo, len(built))

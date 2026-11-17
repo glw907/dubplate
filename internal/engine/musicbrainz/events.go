@@ -50,29 +50,13 @@ func preferredReleaseEvent(rel *Release, tun matcher.Tunables) (country string, 
 	return country, rel.Date
 }
 
-// parseDate splits a MusicBrainz date on "-" and returns the parts it
-// can parse, mirroring _get_date (beetsplug/musicbrainz.py:180-200): an
-// unparsable part becomes zero without failing the whole parse, and
-// extra parts beyond the third are discarded silently. A "stop at the
-// first failure" implementation gets the "1999-XX-06" row wrong: the
-// unparsable month must not swallow the real day that follows it.
-func parseDate(s string) (year, month, day int) {
-	parts := strings.Split(s, "-")
-	year = parseDatePart(parts[0])
-	if len(parts) > 1 {
-		month = parseDatePart(parts[1])
-	}
-	if len(parts) > 2 {
-		day = parseDatePart(parts[2])
-	}
-	return year, month, day
-}
-
-// parseDatePart returns s parsed as an int, or zero when s is not a
-// valid integer, mirroring _get_date's own per-part int() call that
-// catches ValueError and substitutes None.
-func parseDatePart(s string) int {
-	n, err := strconv.Atoi(s)
+// parseYear returns the year of a MusicBrainz date, mirroring _get_date
+// (beetsplug/musicbrainz.py:180-200) for the one part the matcher reads.
+// It is zero when the year is absent or unparsable, however the month and
+// day that follow read.
+func parseYear(s string) int {
+	year, _, _ := strings.Cut(s, "-")
+	n, err := strconv.Atoi(year)
 	if err != nil {
 		return 0
 	}

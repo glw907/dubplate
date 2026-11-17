@@ -41,7 +41,7 @@ type credits struct {
 // rather than from the credit element. The credit element's own display
 // name feeds artist_credit alone, which credits does not carry.
 //
-// Callers pass a credit list Validate has accepted, at the release level
+// Callers pass a credit list validate has accepted, at the release level
 // and at every surviving track's resolved level both, so the empty-list
 // case that raises IndexError at musicbrainz.py:350 cannot reach here.
 // Revision 1 claimed that guarantee against a Validate that checked the

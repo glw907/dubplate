@@ -24,8 +24,8 @@ var ErrMalformedRelease = errors.New("malformed musicbrainz release")
 // hyphen-to-underscore half of the client's own _normalize_data
 // (beetsplug/_utils/musicbrainz.py:774) with no runtime pass: that
 // rewrite exists so a Python dict can be read with underscore keys, and
-// a Go struct does not need it. The relations regrouping half is
-// structural and lives in GroupRelations.
+// a Go struct does not need it. The relations regrouping half is not
+// needed either: PseudoReleaseTarget filters Relations by target type.
 //
 // Rejected alternative: decoding to map[string]any, running a faithful
 // recursive normalizer over every key, and re-decoding into typed
@@ -205,7 +205,7 @@ type RelationTarget struct {
 	ID string `json:"id"`
 }
 
-// Validate reports whether rel can be translated at all, wrapping
+// validate reports whether rel can be translated at all, wrapping
 // ErrMalformedRelease and naming the offending element. It is the
 // boundary check TranslateAlbum runs first, so the rest of this package
 // may assume well-formed input: a WS response is external input, and
@@ -227,7 +227,7 @@ type RelationTarget struct {
 // legal, not an error: beets reads all three through .get, and a medium
 // missing all three simply contributes nothing to track extraction
 // (T5). This is a named non-check, not an oversight.
-func (rel *Release) Validate() error {
+func (rel *Release) validate() error {
 	for i, r := range rel.Relations {
 		if r.TargetType == "" {
 			return fmt.Errorf("relation %d has empty target-type: %w", i, ErrMalformedRelease)
@@ -250,40 +250,10 @@ func (rel *Release) Validate() error {
 	}
 
 	for i, r := range rel.Relations {
-		if r.TargetType == "release" && r.Type == "transl-tracklisting" && r.Direction == "backward" && r.Release == nil {
+		if isTranslSource(r) && r.Release == nil {
 			return fmt.Errorf("relation %d is a backward transl-tracklisting relation with no release target: %w", i, ErrMalformedRelease)
 		}
 	}
 
 	return nil
-}
-
-// assembledTracks returns a medium's pregap, tracks, and data-tracks in
-// that fixed order (T5), the same assembly get_tracks_from_medium reads
-// through before either filter runs. It is the one copy of that order:
-// tracksFromMedium passes withDataTracks as !tun.IgnoreDataTracks, and
-// Validate passes true, because it has no Tunables to apply a filter
-// with and a track later dropped by a filter is still a track this
-// boundary check must be able to read without panicking.
-func assembledTracks(medium Medium, withDataTracks bool) []Track {
-	var tracks []Track
-	if medium.Pregap != nil {
-		tracks = append(tracks, *medium.Pregap)
-	}
-	tracks = append(tracks, medium.Tracks...)
-	if withDataTracks {
-		tracks = append(tracks, medium.DataTracks...)
-	}
-	return tracks
-}
-
-// resolvedTrackCredit is the track-level override T6 describes: the
-// track's own artist-credit when non-empty, the recording's otherwise
-// (recording["artist_credit"] = track["artist_credit"] or
-// recording["artist_credit"], beetsplug/musicbrainz.py:586-588).
-func resolvedTrackCredit(track Track) []CreditPart {
-	if len(track.ArtistCredit) > 0 {
-		return track.ArtistCredit
-	}
-	return track.Recording.ArtistCredit
 }
