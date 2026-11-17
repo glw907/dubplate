@@ -14,26 +14,18 @@ own state with a link to sign in. A write the server refuses for want of
 a recent sign-in keeps the edit in its field and offers a sign-in link
 that opens in a new tab, so the edit survives in this one, and a control
 to retry it.
-
-The signed-in header renders in every state, loading included, and
-`main` is the root layout's skip-link target.
 -->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { browser } from '$app/env';
-  import { resolve } from '$app/paths';
-  import { call, failureAlertClass, failureText, isSignedOut, needsReauthentication } from '#lib/api/v1.js';
+  import { call, failureAlertClass, failureText, isSignedOut, loadList, needsReauthentication } from '#lib/api/v1.js';
   import type { ApiResult } from '#lib/api/v1.js';
   import { announce } from '#lib/announcer.svelte.js';
-  import SiteHeader from '#lib/components/SiteHeader.svelte';
+  import AdminPage from '#lib/components/AdminPage.svelte';
+  import type { Status } from '#lib/components/AdminPage.svelte';
+  import WriteNotice from '#lib/components/WriteNotice.svelte';
   import {
-    API_REFUSALS,
-    AUTH_OUTCOMES,
     ENVIRONMENT_ONLY_LINE,
-    ERROR_PAGE,
     LIST_REFRESH_FAILED,
-    REAUTH_SIGN_IN,
-    ROSTER_RETRY,
     SETTINGS_EDITABLE_HEADING,
     SETTINGS_ENVIRONMENT_HEADING,
     SETTINGS_INTRO,
@@ -43,7 +35,6 @@ The signed-in header renders in every state, loading included, and
     SETTING_RESET,
     SETTING_SAVE,
     SETTING_SOURCES,
-    SIGNED_OUT_SIGN_IN,
     TITLES,
     environmentValueLine,
     nextStartLine,
@@ -52,7 +43,6 @@ The signed-in header renders in every state, loading included, and
     settingResetLine,
     settingSavedLine
   } from '#lib/copy/deck.js';
-  import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   /** One registered key as `list_settings` answers it. */
   interface Entry {
@@ -84,10 +74,6 @@ The signed-in header renders in every state, loading included, and
     reauthenticate: boolean;
   }
 
-  const siteName = browser ? siteNameFromDocument(document) : '';
-
-  type Status = 'loading' | 'ok' | 'refused' | 'signedOut' | 'unreachable';
-
   let status = $state<Status>('loading');
   // Replaced whole on every fetch and never mutated, so it skips the deep proxy.
   let entries = $state.raw<Entry[]>([]);
@@ -110,19 +96,6 @@ The signed-in header renders in every state, loading included, and
     return `setting-${name}`;
   }
 
-  async function fetchEntries(): Promise<
-    { ok: true; entries: Entry[] } | { ok: false; state: 'refused' | 'signedOut' | 'unreachable'; message: string }
-  > {
-    const result = await call<{ settings: unknown }>('list_settings');
-    if (result.kind === 'ok') {
-      if (!Array.isArray(result.value.settings)) return { ok: false, state: 'unreachable', message: AUTH_OUTCOMES.failed };
-      return { ok: true, entries: result.value.settings as Entry[] };
-    }
-    if (result.kind === 'refused' && result.code === 'forbidden') return { ok: false, state: 'refused', message: '' };
-    if (isSignedOut(result)) return { ok: false, state: 'signedOut', message: '' };
-    return { ok: false, state: 'unreachable', message: failureText(result) };
-  }
-
   /**
    * Takes the list into the page. Each stored value seeds its field,
    * except where `keepDrafts` is set and the admin has typed something
@@ -141,7 +114,7 @@ The signed-in header renders in every state, loading included, and
   }
 
   async function load(): Promise<void> {
-    const result = await fetchEntries();
+    const result = await loadList<Entry>('list_settings', 'settings');
     if (result.ok) {
       take(result.entries, false);
       status = 'ok';
@@ -156,7 +129,7 @@ The signed-in header renders in every state, loading included, and
   // `'ok'`, so a refresh failure after a write still shows the list. The
   // key just written then shows what the server now holds.
   async function refreshAfterWrite(key: string): Promise<void> {
-    const result = await fetchEntries();
+    const result = await loadList<Entry>('list_settings', 'settings');
     if (!result.ok) {
       refreshFailed = true;
       announce(LIST_REFRESH_FAILED, 'polite');
@@ -265,107 +238,76 @@ The signed-in header renders in every state, loading included, and
   }
 </script>
 
-<svelte:head>
-  <title>{pageTitle(status === 'refused' ? TITLES.notFound : status === 'signedOut' ? TITLES.signedOut : TITLES.serverSettings, siteName)}</title>
-</svelte:head>
+<AdminPage title={TITLES.serverSettings} {status} {unreachableMessage} retry={load}>
+  <h1 class="display page-title text-4xl">{TITLES.serverSettings}</h1>
+  <p>{SETTINGS_INTRO}</p>
 
-<SiteHeader />
-
-<main id="main" tabindex="-1" class="content-measure flow py-8">
-  {#if status === 'refused'}
-    <h1 class="display page-title text-4xl">{TITLES.notFound}</h1>
-    <p>{ERROR_PAGE.notFoundHeading}</p>
-  {:else if status === 'signedOut'}
-    <h1 class="display page-title text-4xl">{TITLES.signedOut}</h1>
-    <p>{API_REFUSALS.unauthenticated}</p>
-    <a href={resolve('login')} class="btn btn-primary">{SIGNED_OUT_SIGN_IN}</a>
-  {:else if status === 'unreachable'}
-    <h1 class="display page-title text-4xl">{TITLES.serverSettings}</h1>
-    <div class="alert alert-warning">{unreachableMessage}</div>
-    <button type="button" class="btn btn-primary" onclick={load}>{ROSTER_RETRY}</button>
-  {:else if status === 'ok'}
-    <h1 class="display page-title text-4xl">{TITLES.serverSettings}</h1>
-    <p>{SETTINGS_INTRO}</p>
-
-    {#if refreshFailed}
-      <div class="alert alert-warning">{LIST_REFRESH_FAILED}</div>
-    {/if}
-    {#if notice}
-      <div id="settings-outcome" class="alert {notice.alertClass}">
-        <div class="flex flex-col gap-2">
-          <span>{notice.text}</span>
-          {#if notice.reauthenticate}
-            <div class="flex flex-wrap gap-2">
-              <a href={resolve('login')} target="_blank" rel="noopener" class="btn">{REAUTH_SIGN_IN}</a>
-              <button type="button" class="btn btn-primary" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
-            </div>
-          {/if}
-        </div>
-      </div>
-    {/if}
-
-    <h2 class="display text-2xl">{SETTINGS_EDITABLE_HEADING}</h2>
-    <ul id="settings-editable" class="list" role="list">
-      {#each editable as e (e.name)}
-        <li class="list-row">
-          <div class="list-col-grow flow">
-            <div class="flex flex-wrap items-center gap-2">
-              <label class="font-mono text-xs font-medium" for={fieldId(e.name)}>{e.name}</label>
-              <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
-            </div>
-            <p class="first-letter:uppercase">{e.description}</p>
-            <p class="text-sm">
-              {sourceLine(e)} {applyLine(e)}
-            </p>
-          </div>
-          <form
-            class="list-col-wrap flex flex-wrap items-center gap-2"
-            onsubmit={(event) => {
-              event.preventDefault();
-              void save(e.name);
-            }}
-          >
-            <input
-              id={fieldId(e.name)}
-              name={e.name}
-              type="text"
-              autocomplete="off"
-              data-1p-ignore
-              data-lpignore="true"
-              class="input {notice?.key === e.name ? 'input-error' : ''}"
-              aria-invalid={notice?.key === e.name ? 'true' : undefined}
-              aria-describedby={notice?.key === e.name ? 'settings-outcome' : undefined}
-              bind:value={drafts[e.name]}
-            />
-            <button type="submit" class="btn btn-primary" aria-label={saveSettingLabel(e.name)} aria-disabled={busy || undefined}>{SETTING_SAVE}</button>
-            {#if e.source === 'admin'}
-              <button
-                type="button"
-                class="btn"
-                aria-label={resetSettingLabel(e.name)}
-                aria-disabled={busy || undefined}
-                onclick={() => void reset(e.name)}
-              >{SETTING_RESET}</button>
-            {/if}
-          </form>
-        </li>
-      {/each}
-    </ul>
-
-    <h2 class="display text-2xl">{SETTINGS_ENVIRONMENT_HEADING}</h2>
-    <ul id="settings-environment" class="list" role="list">
-      {#each environmental as e (e.name)}
-        <li class="list-row">
-          <div class="list-col-grow flow">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono text-xs font-medium">{e.name}</span>
-              <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
-            </div>
-            <p class="first-letter:uppercase">{e.description}</p>
-            <p class="text-sm">{e.value !== undefined ? environmentValueLine(e.value) : ENVIRONMENT_ONLY_LINE}</p>
-          </div>
-        </li>
-      {/each}
-    </ul>
+  {#if refreshFailed}
+    <div class="alert alert-warning">{LIST_REFRESH_FAILED}</div>
   {/if}
-</main>
+  <WriteNotice {notice} {retry} id="settings-outcome" />
+
+  <h2 class="display text-2xl">{SETTINGS_EDITABLE_HEADING}</h2>
+  <ul id="settings-editable" class="list" role="list">
+    {#each editable as e (e.name)}
+      <li class="list-row">
+        <div class="list-col-grow flow">
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="font-mono text-xs font-medium" for={fieldId(e.name)}>{e.name}</label>
+            <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
+          </div>
+          <p class="first-letter:uppercase">{e.description}</p>
+          <p class="text-sm">
+            {sourceLine(e)} {applyLine(e)}
+          </p>
+        </div>
+        <form
+          class="list-col-wrap flex flex-wrap items-center gap-2"
+          onsubmit={(event) => {
+            event.preventDefault();
+            void save(e.name);
+          }}
+        >
+          <input
+            id={fieldId(e.name)}
+            name={e.name}
+            type="text"
+            autocomplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            class="input {notice?.key === e.name ? 'input-error' : ''}"
+            aria-invalid={notice?.key === e.name ? 'true' : undefined}
+            aria-describedby={notice?.key === e.name ? 'settings-outcome' : undefined}
+            bind:value={drafts[e.name]}
+          />
+          <button type="submit" class="btn btn-primary" aria-label={saveSettingLabel(e.name)} aria-disabled={busy || undefined}>{SETTING_SAVE}</button>
+          {#if e.source === 'admin'}
+            <button
+              type="button"
+              class="btn"
+              aria-label={resetSettingLabel(e.name)}
+              aria-disabled={busy || undefined}
+              onclick={() => void reset(e.name)}
+            >{SETTING_RESET}</button>
+          {/if}
+        </form>
+      </li>
+    {/each}
+  </ul>
+
+  <h2 class="display text-2xl">{SETTINGS_ENVIRONMENT_HEADING}</h2>
+  <ul id="settings-environment" class="list" role="list">
+    {#each environmental as e (e.name)}
+      <li class="list-row">
+        <div class="list-col-grow flow">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-mono text-xs font-medium">{e.name}</span>
+            <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
+          </div>
+          <p class="first-letter:uppercase">{e.description}</p>
+          <p class="text-sm">{e.value !== undefined ? environmentValueLine(e.value) : ENVIRONMENT_ONLY_LINE}</p>
+        </div>
+      </li>
+    {/each}
+  </ul>
+</AdminPage>
