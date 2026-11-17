@@ -31,37 +31,37 @@ func SupportedFormats() []Format {
 // a stream that agrees with FLAC's signature on its first three bytes
 // but not its fourth still sniffs as unsupported.
 func Sniff(path string) (Format, error) {
-	f, _, err := openFLAC(path)
-	if f == nil {
+	f, err := openFile(path)
+	if err != nil {
 		return 0, err
 	}
-	_ = f.Close()
-	if err != nil {
+	defer func() { _ = f.Close() }()
+	if _, err := readSignature(f, path); err != nil {
 		return 0, err
 	}
 	return FormatFLAC, nil
 }
 
-// openFLAC opens path and checks that it starts with FLAC's signature.
-// A failed open returns a nil file and the open error. Otherwise the
-// file comes back open, for the caller to close, with the four bytes
-// the check read (zero past a short read) and a non-nil error when they
-// are not the signature: the read's own error when it failed short of
-// end of file, and [ErrUnsupportedContainer] otherwise. Sniff reports
-// that error as it stands; parse reports every mismatch as an
-// unsupported signature instead.
-func openFLAC(path string) (*os.File, [4]byte, error) {
-	var sig [4]byte
+func openFile(path string) (*os.File, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, sig, fmt.Errorf("tagio: open %s: %w", path, err)
+		return nil, fmt.Errorf("tagio: open %s: %w", path, err)
 	}
+	return f, nil
+}
+
+// readSignature returns f's leading four bytes, zero past a short read.
+// When they are not FLAC's signature it also returns
+// [ErrUnsupportedContainer], or the read's own error when the read
+// failed short of end of file.
+func readSignature(f *os.File, path string) ([4]byte, error) {
+	var sig [4]byte
 	n, err := f.ReadAt(sig[:], 0)
 	if n < len(sig) && err != nil && !errors.Is(err, io.EOF) {
-		return f, sig, fmt.Errorf("tagio: read %s: %w", path, err)
+		return sig, fmt.Errorf("tagio: read %s: %w", path, err)
 	}
 	if string(sig[:]) != flacSignature {
-		return f, sig, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
+		return sig, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
 	}
-	return f, sig, nil
+	return sig, nil
 }

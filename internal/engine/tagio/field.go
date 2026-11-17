@@ -13,21 +13,17 @@ type style struct {
 
 // field is one row of the field table: a TagSet member's ledger name,
 // which is also its JSON tag; its Vorbis keys in mediafile declaration
-// order; the mediafile line those keys were read from; and the codec
-// that reads the member from a file's comments and writes it back.
+// order; and the codec that reads the member from a file's comments
+// and writes it back.
 type field struct {
 	name   string
 	styles []style
-	cite   string
 	codec  codec
 }
 
 // codec reads one TagSet member from a file's comments and writes it
 // back. write reports present false for an absent member, which a
-// write turns into a delete of every key the field owns. The month
-// and day rows carry a zero codec, because the year row's date codec
-// reads and writes all three components of the one comment that
-// holds them.
+// write turns into a delete of every key the field owns.
 type codec struct {
 	read  func(ts *TagSet, cs []Comment, styles []style)
 	write func(ts *TagSet, styles []style) (writes []Comment, present bool)
@@ -49,7 +45,7 @@ func scalar[T any](member func(*TagSet) **T, cast func(string) T, format func(T)
 			if v == nil {
 				return nil, false
 			}
-			return repeatComment(styles, format(*v)), true
+			return listComments(styles, []string{format(*v)}), true
 		},
 	}
 }
@@ -143,81 +139,84 @@ func date(year, month, day func(*TagSet) **int) codec {
 // plural and sorts first, so the plural writes last and wins the key
 // the two share.
 var fields = []field{
-	{"acoustid_fingerprint", []style{{"ACOUSTID_FINGERPRINT", true}}, "mediafile:817", text(func(t *TagSet) **string { return &t.AcoustIDFingerprint })},
-	{"acoustid_id", []style{{"ACOUSTID_ID", true}}, "mediafile:823", text(func(t *TagSet) **string { return &t.AcoustIDID })},
-	{"album", []style{{"ALBUM", true}}, "mediafile:410", text(func(t *TagSet) **string { return &t.Album })},
-	{"albumartist", []style{{"ALBUM ARTIST", true}, {"ALBUM_ARTIST", true}, {"ALBUMARTIST", true}}, "mediafile:542,543,544", text(func(t *TagSet) **string { return &t.Albumartist })},
-	{"albumartist_credit", []style{{"ALBUMARTIST_CREDIT", true}}, "mediafile:732", text(func(t *TagSet) **string { return &t.AlbumartistCredit })},
-	{"albumartist_sort", []style{{"ALBUMARTISTSORT", true}}, "mediafile:588", text(func(t *TagSet) **string { return &t.AlbumartistSort })},
-	{"albumartists", []style{{"ALBUMARTISTS", true}, {"ALBUM_ARTISTS", true}, {"ALBUM ARTISTS", false}}, "mediafile:554,555,556", list(func(t *TagSet) *[]string { return &t.Albumartists })},
-	{"albumartists_credit", []style{{"ALBUMARTISTS_CREDIT", true}}, "mediafile:738", list(func(t *TagSet) *[]string { return &t.AlbumartistsCredit })},
-	{"albumartists_sort", []style{{"ALBUMARTISTS_SORT", true}}, "mediafile:744", list(func(t *TagSet) *[]string { return &t.AlbumartistsSort })},
-	{"albumdisambig", []style{{"MUSICBRAINZ_ALBUMCOMMENT", true}}, "mediafile:680", text(func(t *TagSet) **string { return &t.Albumdisambig })},
-	{"albumstatus", []style{{"RELEASESTATUS", true}, {"MUSICBRAINZ_ALBUMSTATUS", true}}, "mediafile:665,666", text(func(t *TagSet) **string { return &t.Albumstatus })},
-	{"albumtype", []style{{"RELEASETYPE", true}, {"MUSICBRAINZ_ALBUMTYPE", true}}, "mediafile:562,563", text(func(t *TagSet) **string { return &t.Albumtype })},
-	{"albumtypes", []style{{"RELEASETYPE", true}, {"MUSICBRAINZ_ALBUMTYPE", true}}, "mediafile:562,563", list(func(t *TagSet) *[]string { return &t.Albumtypes })},
-	{"arrangers", []style{{"ARRANGER", true}}, "mediafile:444", list(func(t *TagSet) *[]string { return &t.Arrangers })},
-	{"artist", []style{{"ARTIST", true}}, "mediafile:398", text(func(t *TagSet) **string { return &t.Artist })},
-	{"artist_credit", []style{{"ARTIST_CREDIT", true}}, "mediafile:714", text(func(t *TagSet) **string { return &t.ArtistCredit })},
-	{"artist_sort", []style{{"ARTISTSORT", true}}, "mediafile:581", text(func(t *TagSet) **string { return &t.ArtistSort })},
-	{"artists", []style{{"ARTISTS", true}}, "mediafile:404", list(func(t *TagSet) *[]string { return &t.Artists })},
-	{"artists_credit", []style{{"ARTISTS_CREDIT", true}}, "mediafile:720", list(func(t *TagSet) *[]string { return &t.ArtistsCredit })},
-	{"artists_sort", []style{{"ARTISTS_SORT", true}}, "mediafile:726", list(func(t *TagSet) *[]string { return &t.ArtistsSort })},
-	{"asin", []style{{"ASIN", true}}, "mediafile:594", text(func(t *TagSet) **string { return &t.Asin })},
-	{"barcode", []style{{"BARCODE", true}, {"UPC", false}, {"EAN/UPN", false}, {"EAN", false}, {"UPN", false}}, "mediafile:616,617,618,619,620", text(func(t *TagSet) **string { return &t.Barcode })},
-	{"bpm", []style{{"BPM", true}}, "mediafile:528", integer(func(t *TagSet) **int { return &t.Bpm })},
-	{"catalognum", []style{{"CATALOGNUMBER", true}, {"CATALOGID", false}, {"DISCOGS_CATALOG", false}}, "mediafile:604,605,606", text(func(t *TagSet) **string { return &t.Catalognum })},
-	{"comments", []style{{"DESCRIPTION", true}, {"COMMENT", true}}, "mediafile:514,515", text(func(t *TagSet) **string { return &t.Comments })},
-	{"comp", []style{{"COMPILATION", true}}, "mediafile:535", boolean(func(t *TagSet) **bool { return &t.Comp })},
-	{"composer_sort", []style{{"COMPOSERSORT", true}}, "mediafile:438", text(func(t *TagSet) **string { return &t.ComposerSort })},
-	{"composers", []style{{"COMPOSER", true}}, "mediafile:431", list(func(t *TagSet) *[]string { return &t.Composers })},
-	{"country", []style{{"RELEASECOUNTRY", true}}, "mediafile:659", text(func(t *TagSet) **string { return &t.Country })},
-	{"year", []style{{"DATE", true}, {"YEAR", true}}, "mediafile:693,688,690", date(
+	{"acoustid_fingerprint", []style{{"ACOUSTID_FINGERPRINT", true}}, text(func(t *TagSet) **string { return &t.AcoustIDFingerprint })},                               // mediafile:817
+	{"acoustid_id", []style{{"ACOUSTID_ID", true}}, text(func(t *TagSet) **string { return &t.AcoustIDID })},                                                          // mediafile:823
+	{"album", []style{{"ALBUM", true}}, text(func(t *TagSet) **string { return &t.Album })},                                                                           // mediafile:410
+	{"albumartist", []style{{"ALBUM ARTIST", true}, {"ALBUM_ARTIST", true}, {"ALBUMARTIST", true}}, text(func(t *TagSet) **string { return &t.Albumartist })},         // mediafile:542, :543, :544
+	{"albumartist_credit", []style{{"ALBUMARTIST_CREDIT", true}}, text(func(t *TagSet) **string { return &t.AlbumartistCredit })},                                     // mediafile:732
+	{"albumartist_sort", []style{{"ALBUMARTISTSORT", true}}, text(func(t *TagSet) **string { return &t.AlbumartistSort })},                                            // mediafile:588
+	{"albumartists", []style{{"ALBUMARTISTS", true}, {"ALBUM_ARTISTS", true}, {"ALBUM ARTISTS", false}}, list(func(t *TagSet) *[]string { return &t.Albumartists })},  // mediafile:554, :555, :556
+	{"albumartists_credit", []style{{"ALBUMARTISTS_CREDIT", true}}, list(func(t *TagSet) *[]string { return &t.AlbumartistsCredit })},                                 // mediafile:738
+	{"albumartists_sort", []style{{"ALBUMARTISTS_SORT", true}}, list(func(t *TagSet) *[]string { return &t.AlbumartistsSort })},                                       // mediafile:744
+	{"albumdisambig", []style{{"MUSICBRAINZ_ALBUMCOMMENT", true}}, text(func(t *TagSet) **string { return &t.Albumdisambig })},                                        // mediafile:680
+	{"albumstatus", []style{{"RELEASESTATUS", true}, {"MUSICBRAINZ_ALBUMSTATUS", true}}, text(func(t *TagSet) **string { return &t.Albumstatus })},                    // mediafile:665, :666
+	{"albumtype", []style{{"RELEASETYPE", true}, {"MUSICBRAINZ_ALBUMTYPE", true}}, text(func(t *TagSet) **string { return &t.Albumtype })},                            // mediafile:562, :563
+	{"albumtypes", []style{{"RELEASETYPE", true}, {"MUSICBRAINZ_ALBUMTYPE", true}}, list(func(t *TagSet) *[]string { return &t.Albumtypes })},                         // mediafile:562, :563
+	{"arrangers", []style{{"ARRANGER", true}}, list(func(t *TagSet) *[]string { return &t.Arrangers })},                                                               // mediafile:444
+	{"artist", []style{{"ARTIST", true}}, text(func(t *TagSet) **string { return &t.Artist })},                                                                        // mediafile:398
+	{"artist_credit", []style{{"ARTIST_CREDIT", true}}, text(func(t *TagSet) **string { return &t.ArtistCredit })},                                                    // mediafile:714
+	{"artist_sort", []style{{"ARTISTSORT", true}}, text(func(t *TagSet) **string { return &t.ArtistSort })},                                                           // mediafile:581
+	{"artists", []style{{"ARTISTS", true}}, list(func(t *TagSet) *[]string { return &t.Artists })},                                                                    // mediafile:404
+	{"artists_credit", []style{{"ARTISTS_CREDIT", true}}, list(func(t *TagSet) *[]string { return &t.ArtistsCredit })},                                                // mediafile:720
+	{"artists_sort", []style{{"ARTISTS_SORT", true}}, list(func(t *TagSet) *[]string { return &t.ArtistsSort })},                                                      // mediafile:726
+	{"asin", []style{{"ASIN", true}}, text(func(t *TagSet) **string { return &t.Asin })},                                                                              // mediafile:594
+	{"barcode", []style{{"BARCODE", true}, {"UPC", false}, {"EAN/UPN", false}, {"EAN", false}, {"UPN", false}}, text(func(t *TagSet) **string { return &t.Barcode })}, // mediafile:616, :617, :618, :619, :620
+	{"bpm", []style{{"BPM", true}}, integer(func(t *TagSet) **int { return &t.Bpm })},                                                                                 // mediafile:528
+	{"catalognum", []style{{"CATALOGNUMBER", true}, {"CATALOGID", false}, {"DISCOGS_CATALOG", false}}, text(func(t *TagSet) **string { return &t.Catalognum })},       // mediafile:604, :605, :606
+	{"comments", []style{{"DESCRIPTION", true}, {"COMMENT", true}}, text(func(t *TagSet) **string { return &t.Comments })},                                            // mediafile:514, :515
+	{"comp", []style{{"COMPILATION", true}}, boolean(func(t *TagSet) **bool { return &t.Comp })},                                                                      // mediafile:535
+	{"composer_sort", []style{{"COMPOSERSORT", true}}, text(func(t *TagSet) **string { return &t.ComposerSort })},                                                     // mediafile:438
+	{"composers", []style{{"COMPOSER", true}}, list(func(t *TagSet) *[]string { return &t.Composers })},                                                               // mediafile:431
+	{"country", []style{{"RELEASECOUNTRY", true}}, text(func(t *TagSet) **string { return &t.Country })},                                                              // mediafile:659
+	{"year", []style{{"DATE", true}, {"YEAR", true}}, date( // mediafile:693, :688, :690
 		func(t *TagSet) **int { return &t.Year },
 		func(t *TagSet) **int { return &t.Month },
 		func(t *TagSet) **int { return &t.Day },
 	)},
-	{"month", []style{{"DATE", true}, {"YEAR", true}}, "mediafile:694,688,690", codec{}},
-	{"day", []style{{"DATE", true}, {"YEAR", true}}, "mediafile:695,688,690", codec{}},
-	{"disc", []style{{"DISC", true}, {"DISCNUMBER", true}}, "mediafile:480,481", integer(func(t *TagSet) **int { return &t.Disc })},
-	{"disctitle", []style{{"DISCSUBTITLE", true}}, "mediafile:632", text(func(t *TagSet) **string { return &t.Disctitle })},
-	{"disctotal", []style{{"DISCTOTAL", true}, {"DISCC", true}, {"TOTALDISCS", true}}, "mediafile:488,489,490", integer(func(t *TagSet) **int { return &t.Disctotal })},
-	{"encoder", []style{{"ENCODEDBY", true}, {"ENCODER", true}}, "mediafile:638,639", text(func(t *TagSet) **string { return &t.Encoder })},
-	{"genres", []style{{"GENRE", true}}, "mediafile:416", list(func(t *TagSet) *[]string { return &t.Genres })},
-	{"grouping", []style{{"GROUPING", true}}, "mediafile:452", text(func(t *TagSet) **string { return &t.Grouping })},
-	{"initial_key", []style{{"INITIALKEY", true}}, "mediafile:888", text(func(t *TagSet) **string { return &t.InitialKey })},
-	{"isrc", []style{{"ISRC", true}}, "mediafile:626", text(func(t *TagSet) **string { return &t.Isrc })},
-	{"label", []style{{"LABEL", true}, {"PUBLISHER", true}}, "mediafile:574,575", text(func(t *TagSet) **string { return &t.Label })},
-	{"language", []style{{"LANGUAGE", true}}, "mediafile:651", text(func(t *TagSet) **string { return &t.Language })},
-	{"lyricists", []style{{"LYRICIST", true}}, "mediafile:424", list(func(t *TagSet) *[]string { return &t.Lyricists })},
-	{"lyrics", []style{{"LYRICS", true}}, "mediafile:504", text(func(t *TagSet) **string { return &t.Lyrics })},
-	{"mb_albumartistid", []style{{"MUSICBRAINZ_ALBUMARTISTID", true}}, "mediafile:801", text(func(t *TagSet) **string { return &t.MBAlbumartistid })},
-	{"mb_albumartistids", []style{{"MUSICBRAINZ_ALBUMARTISTID", true}}, "mediafile:801", list(func(t *TagSet) *[]string { return &t.MBAlbumartistids })},
-	{"mb_albumid", []style{{"MUSICBRAINZ_ALBUMID", true}}, "mediafile:782", text(func(t *TagSet) **string { return &t.MBAlbumid })},
-	{"mb_artistid", []style{{"MUSICBRAINZ_ARTISTID", true}}, "mediafile:788", text(func(t *TagSet) **string { return &t.MBArtistid })},
-	{"mb_artistids", []style{{"MUSICBRAINZ_ARTISTID", true}}, "mediafile:788", list(func(t *TagSet) *[]string { return &t.MBArtistids })},
-	{"mb_releasegroupid", []style{{"MUSICBRAINZ_RELEASEGROUPID", true}}, "mediafile:809", text(func(t *TagSet) **string { return &t.MBReleasegroupid })},
-	{"mb_releasetrackid", []style{{"MUSICBRAINZ_RELEASETRACKID", true}}, "mediafile:770", text(func(t *TagSet) **string { return &t.MBReleasetrackid })},
-	{"mb_trackid", []style{{"MUSICBRAINZ_TRACKID", true}}, "mediafile:764", text(func(t *TagSet) **string { return &t.MBTrackid })},
-	{"mb_workid", []style{{"MUSICBRAINZ_WORKID", true}}, "mediafile:776", text(func(t *TagSet) **string { return &t.MBWorkid })},
-	{"media", []style{{"MEDIA", true}}, "mediafile:673", text(func(t *TagSet) **string { return &t.Media })},
-	{"original_year", []style{{"ORIGINALDATE", true}}, "mediafile:706,702", date(
+	// The month and day rows carry neither styles nor a codec: the year
+	// row reads and writes the one DATE comment all three share.
+	{"month", nil, codec{}}, // mediafile:694
+	{"day", nil, codec{}},   // mediafile:695
+	{"disc", []style{{"DISC", true}, {"DISCNUMBER", true}}, integer(func(t *TagSet) **int { return &t.Disc })},                                 // mediafile:480, :481
+	{"disctitle", []style{{"DISCSUBTITLE", true}}, text(func(t *TagSet) **string { return &t.Disctitle })},                                     // mediafile:632
+	{"disctotal", []style{{"DISCTOTAL", true}, {"DISCC", true}, {"TOTALDISCS", true}}, integer(func(t *TagSet) **int { return &t.Disctotal })}, // mediafile:488, :489, :490
+	{"encoder", []style{{"ENCODEDBY", true}, {"ENCODER", true}}, text(func(t *TagSet) **string { return &t.Encoder })},                         // mediafile:638, :639
+	{"genres", []style{{"GENRE", true}}, list(func(t *TagSet) *[]string { return &t.Genres })},                                                 // mediafile:416
+	{"grouping", []style{{"GROUPING", true}}, text(func(t *TagSet) **string { return &t.Grouping })},                                           // mediafile:452
+	{"initial_key", []style{{"INITIALKEY", true}}, text(func(t *TagSet) **string { return &t.InitialKey })},                                    // mediafile:888
+	{"isrc", []style{{"ISRC", true}}, text(func(t *TagSet) **string { return &t.Isrc })},                                                       // mediafile:626
+	{"label", []style{{"LABEL", true}, {"PUBLISHER", true}}, text(func(t *TagSet) **string { return &t.Label })},                               // mediafile:574, :575
+	{"language", []style{{"LANGUAGE", true}}, text(func(t *TagSet) **string { return &t.Language })},                                           // mediafile:651
+	{"lyricists", []style{{"LYRICIST", true}}, list(func(t *TagSet) *[]string { return &t.Lyricists })},                                        // mediafile:424
+	{"lyrics", []style{{"LYRICS", true}}, text(func(t *TagSet) **string { return &t.Lyrics })},                                                 // mediafile:504
+	{"mb_albumartistid", []style{{"MUSICBRAINZ_ALBUMARTISTID", true}}, text(func(t *TagSet) **string { return &t.MBAlbumartistid })},           // mediafile:801
+	{"mb_albumartistids", []style{{"MUSICBRAINZ_ALBUMARTISTID", true}}, list(func(t *TagSet) *[]string { return &t.MBAlbumartistids })},        // mediafile:801
+	{"mb_albumid", []style{{"MUSICBRAINZ_ALBUMID", true}}, text(func(t *TagSet) **string { return &t.MBAlbumid })},                             // mediafile:782
+	{"mb_artistid", []style{{"MUSICBRAINZ_ARTISTID", true}}, text(func(t *TagSet) **string { return &t.MBArtistid })},                          // mediafile:788
+	{"mb_artistids", []style{{"MUSICBRAINZ_ARTISTID", true}}, list(func(t *TagSet) *[]string { return &t.MBArtistids })},                       // mediafile:788
+	{"mb_releasegroupid", []style{{"MUSICBRAINZ_RELEASEGROUPID", true}}, text(func(t *TagSet) **string { return &t.MBReleasegroupid })},        // mediafile:809
+	{"mb_releasetrackid", []style{{"MUSICBRAINZ_RELEASETRACKID", true}}, text(func(t *TagSet) **string { return &t.MBReleasetrackid })},        // mediafile:770
+	{"mb_trackid", []style{{"MUSICBRAINZ_TRACKID", true}}, text(func(t *TagSet) **string { return &t.MBTrackid })},                             // mediafile:764
+	{"mb_workid", []style{{"MUSICBRAINZ_WORKID", true}}, text(func(t *TagSet) **string { return &t.MBWorkid })},                                // mediafile:776
+	{"media", []style{{"MEDIA", true}}, text(func(t *TagSet) **string { return &t.Media })},                                                    // mediafile:673
+	{"original_year", []style{{"ORIGINALDATE", true}}, date( // mediafile:706, :702
 		func(t *TagSet) **int { return &t.OriginalYear },
 		func(t *TagSet) **int { return &t.OriginalMonth },
 		func(t *TagSet) **int { return &t.OriginalDay },
 	)},
-	{"original_month", []style{{"ORIGINALDATE", true}}, "mediafile:707,702", codec{}},
-	{"original_day", []style{{"ORIGINALDATE", true}}, "mediafile:708,702", codec{}},
-	{"r128_album_gain", []style{{"R128_ALBUM_GAIN", true}}, "mediafile:881", q8(func(t *TagSet) **float64 { return &t.R128AlbumGain })},
-	{"r128_track_gain", []style{{"R128_TRACK_GAIN", true}}, "mediafile:874", q8(func(t *TagSet) **float64 { return &t.R128TrackGain })},
-	{"remixers", []style{{"REMIXER", true}}, "mediafile:750", list(func(t *TagSet) *[]string { return &t.Remixers })},
-	{"rg_album_gain", []style{{"REPLAYGAIN_ALBUM_GAIN", true}}, "mediafile:846", gain(func(t *TagSet) **float64 { return &t.RgAlbumGain })},
-	{"rg_album_peak", []style{{"REPLAYGAIN_ALBUM_PEAK", true}}, "mediafile:864", peak(func(t *TagSet) **float64 { return &t.RgAlbumPeak })},
-	{"rg_track_gain", []style{{"REPLAYGAIN_TRACK_GAIN", true}}, "mediafile:836", gain(func(t *TagSet) **float64 { return &t.RgTrackGain })},
-	{"rg_track_peak", []style{{"REPLAYGAIN_TRACK_PEAK", true}}, "mediafile:856", peak(func(t *TagSet) **float64 { return &t.RgTrackPeak })},
-	{"script", []style{{"SCRIPT", true}}, "mediafile:645", text(func(t *TagSet) **string { return &t.Script })},
-	{"subtitle", []style{{"SUBTITLE", true}}, "mediafile:457", text(func(t *TagSet) **string { return &t.Subtitle })},
-	{"title", []style{{"TITLE", true}}, "mediafile:392", text(func(t *TagSet) **string { return &t.Title })},
-	{"track", []style{{"TRACK", true}, {"TRACKNUMBER", true}}, "mediafile:463,464", integer(func(t *TagSet) **int { return &t.Track })},
-	{"tracktotal", []style{{"TRACKTOTAL", true}, {"TRACKC", true}, {"TOTALTRACKS", true}}, "mediafile:471,472,473", integer(func(t *TagSet) **int { return &t.Tracktotal })},
+	// As with month and day, the original_year row carries these two.
+	{"original_month", nil, codec{}}, // mediafile:707
+	{"original_day", nil, codec{}},   // mediafile:708
+	{"r128_album_gain", []style{{"R128_ALBUM_GAIN", true}}, q8(func(t *TagSet) **float64 { return &t.R128AlbumGain })},                              // mediafile:881
+	{"r128_track_gain", []style{{"R128_TRACK_GAIN", true}}, q8(func(t *TagSet) **float64 { return &t.R128TrackGain })},                              // mediafile:874
+	{"remixers", []style{{"REMIXER", true}}, list(func(t *TagSet) *[]string { return &t.Remixers })},                                                // mediafile:750
+	{"rg_album_gain", []style{{"REPLAYGAIN_ALBUM_GAIN", true}}, gain(func(t *TagSet) **float64 { return &t.RgAlbumGain })},                          // mediafile:846
+	{"rg_album_peak", []style{{"REPLAYGAIN_ALBUM_PEAK", true}}, peak(func(t *TagSet) **float64 { return &t.RgAlbumPeak })},                          // mediafile:864
+	{"rg_track_gain", []style{{"REPLAYGAIN_TRACK_GAIN", true}}, gain(func(t *TagSet) **float64 { return &t.RgTrackGain })},                          // mediafile:836
+	{"rg_track_peak", []style{{"REPLAYGAIN_TRACK_PEAK", true}}, peak(func(t *TagSet) **float64 { return &t.RgTrackPeak })},                          // mediafile:856
+	{"script", []style{{"SCRIPT", true}}, text(func(t *TagSet) **string { return &t.Script })},                                                      // mediafile:645
+	{"subtitle", []style{{"SUBTITLE", true}}, text(func(t *TagSet) **string { return &t.Subtitle })},                                                // mediafile:457
+	{"title", []style{{"TITLE", true}}, text(func(t *TagSet) **string { return &t.Title })},                                                         // mediafile:392
+	{"track", []style{{"TRACK", true}, {"TRACKNUMBER", true}}, integer(func(t *TagSet) **int { return &t.Track })},                                  // mediafile:463, :464
+	{"tracktotal", []style{{"TRACKTOTAL", true}, {"TRACKC", true}, {"TOTALTRACKS", true}}, integer(func(t *TagSet) **int { return &t.Tracktotal })}, // mediafile:471, :472, :473
 }

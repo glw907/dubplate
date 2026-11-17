@@ -8,9 +8,8 @@ import (
 
 // handoffNames is corpus/README.md's handoff section (:2354 onward),
 // the 69 writable_fields names reproduced verbatim from :2381 in the
-// order the ledger's own header lists them. C1 names this section the
-// single source of record for the 69 names; this list is copied by
-// hand from the doc rather than derived from the field table, so a
+// order the ledger's own header lists them. That section is the single
+// source of record for the 69 names; this list is copied by hand from the doc rather than derived from the field table, so a
 // dropped or renamed row has something independent to fail against.
 var handoffNames = []string{
 	"acoustid_fingerprint", "acoustid_id", "album", "albumartist",
@@ -31,7 +30,7 @@ var handoffNames = []string{
 	"subtitle", "title", "track", "tracktotal", "year",
 }
 
-// TestFieldCountAndNames grades C1's field count and its single source
+// TestFieldCountAndNames grades the field count and its single source
 // of record. It compares the field table's names, as a set, against
 // handoffNames, and reports the count and any name only one side
 // carries, so a dropped field names itself in the failure rather than
@@ -65,10 +64,22 @@ func TestFieldCountAndNames(t *testing.T) {
 	}
 }
 
-// TestFieldTableCitations grades every row of the field table: each
-// carries at least one Vorbis key and a non-empty mediafile citation.
-func TestFieldTableCitations(t *testing.T) {
+// TestFieldTableStyles grades every row of the field table: a row with
+// a codec carries at least one Vorbis key and no empty one, and the
+// four date-component rows, whose year row's codec carries them, carry
+// neither styles nor a codec.
+func TestFieldTableStyles(t *testing.T) {
+	dateComponents := map[string]bool{"month": true, "day": true, "original_month": true, "original_day": true}
 	for _, f := range fields {
+		if dateComponents[f.name] {
+			if f.styles != nil || f.codec.read != nil || f.codec.write != nil {
+				t.Errorf("field %q carries styles %v or a codec, want neither", f.name, f.styles)
+			}
+			continue
+		}
+		if f.codec.read == nil || f.codec.write == nil {
+			t.Errorf("field %q has no codec", f.name)
+		}
 		if len(f.styles) == 0 {
 			t.Errorf("field %q has no Vorbis keys", f.name)
 		}
@@ -77,9 +88,6 @@ func TestFieldTableCitations(t *testing.T) {
 				t.Errorf("field %q has a style with an empty key", f.name)
 			}
 		}
-		if f.cite == "" {
-			t.Errorf("field %q has no mediafile citation", f.name)
-		}
 	}
 }
 
@@ -87,7 +95,7 @@ func TestFieldTableCitations(t *testing.T) {
 // literal cannot show by eye: each row's codec reads and writes the
 // TagSet member whose JSON tag is the row's name. For every member in
 // turn it sets that member alone, by reflection, and requires that
-// Serialize writes comments for exactly the row of the same name, then
+// serialize writes comments for exactly the row of the same name, then
 // that projecting those comments sets that member alone again. A
 // month or day member writes nothing by itself, because the date
 // comment is keyed on the year, so those four rows expect no write.
@@ -121,10 +129,10 @@ func TestFieldAccessorsTieToMembers(t *testing.T) {
 
 			var written []Comment
 			var writers []string
-			for _, kw := range Serialize(ts) {
-				if len(kw.Writes) > 0 {
-					writers = append(writers, kw.Field)
-					written = append(written, kw.Writes...)
+			for _, kw := range serialize(ts) {
+				if len(kw.writes) > 0 {
+					writers = append(writers, kw.field)
+					written = append(written, kw.writes...)
 				}
 			}
 			dateOnly := map[string]bool{"month": true, "day": true, "original_month": true, "original_day": true}
@@ -284,8 +292,8 @@ func TestTagSetMembersTieToFieldTable(t *testing.T) {
 	}
 }
 
-// TestTagSetJSONTagsTieToFieldNames grades R11's mandatory safety
-// net in two halves, because a wrong tag is otherwise invisible: the
+// TestTagSetJSONTagsTieToFieldNames grades the JSON tags' safety net
+// in two halves, because a wrong tag is otherwise invisible: the
 // conformance instrument's fill and its projection both go through
 // the same tag, so a tag that maps album to the artist member writes
 // ARTIST and reads it back under album, and the comparison agrees
@@ -344,8 +352,9 @@ func TestTagSetJSONTagsTieToFieldNames(t *testing.T) {
 	})
 }
 
-// TestTagSetJSONTagsCarryNoOmitempty grades R11: every ledger row
-// carries all 69 keys, absent values included as explicit nulls, so
+// TestTagSetJSONTagsCarryNoOmitempty grades the tags' null rule: every
+// ledger row carries all 69 keys, absent values included as explicit
+// nulls, so
 // an omitempty tag would drop an absent member from the projection
 // and fail the conformance instrument's 69-key count on every
 // subject carrying that field as null.
@@ -395,9 +404,9 @@ func TestReadOnlyMarks(t *testing.T) {
 	}
 }
 
-// TestCollidingPairsWriteOrder grades C3's pair-resolution rule: each
+// TestCollidingPairsWriteOrder grades the pair-resolution rule: each
 // of the three colliding pairs writes its plural member last, so the
-// plural's KeyWrite follows the singular's in Serialize's output.
+// plural's keyWrite follows the singular's in serialize's output.
 func TestCollidingPairsWriteOrder(t *testing.T) {
 	pairs := []struct {
 		singular, plural string
@@ -407,20 +416,20 @@ func TestCollidingPairsWriteOrder(t *testing.T) {
 		{"mb_albumartistid", "mb_albumartistids"},
 	}
 
-	kws := Serialize(TagSet{})
+	kws := serialize(TagSet{})
 	index := make(map[string]int, len(kws))
 	for i, kw := range kws {
-		index[kw.Field] = i
+		index[kw.field] = i
 	}
 
 	for _, p := range pairs {
 		si, ok := index[p.singular]
 		if !ok {
-			t.Fatalf("Serialize returns no KeyWrite for %q", p.singular)
+			t.Fatalf("serialize returns no keyWrite for %q", p.singular)
 		}
 		pi, ok := index[p.plural]
 		if !ok {
-			t.Fatalf("Serialize returns no KeyWrite for %q", p.plural)
+			t.Fatalf("serialize returns no keyWrite for %q", p.plural)
 		}
 		if si >= pi {
 			t.Errorf("pair (%q, %q): singular is at %d, plural at %d, want singular before plural", p.singular, p.plural, si, pi)

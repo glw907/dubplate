@@ -80,7 +80,7 @@ func show(v reflect.Value) string {
 // comment sequence for the 32 members a value reaches, and its
 // recorded read-back for the four corpus-unreachable cases (year 0
 // with month and day absent, arrangers absent, catalognum absent,
-// barcode absent). No value here is computed by Serialize, by project
+// barcode absent). No value here is computed by serialize, by project
 // or by the generator that wrote the golden.
 func goldenProjection() TagSet {
 	return TagSet{
@@ -280,9 +280,9 @@ func TestProjectLists(t *testing.T) {
 	})
 }
 
-// TestProjectAbsentKeys grades the read half of C2's four-state rule
-// in one equality: safe_cast of an absent value is absent for every
-// type (INV:253-260), so a container with no comments at all projects
+// TestProjectAbsentKeys grades the read half of the four-state rule in
+// one equality: safe_cast of an absent value is absent for every type,
+// so a container with no comments at all projects
 // to the zero TagSet rather than to 69 typed zeros. The empty list
 // has no separate case here because it cannot have one: a list field
 // with no values writes no comment, so an empty list and an absent

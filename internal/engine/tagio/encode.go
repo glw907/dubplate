@@ -6,40 +6,35 @@ import (
 	"strconv"
 )
 
-// KeyWrite is one field's contribution to a write: the field's ledger
-// name, which is also its TagSet member's JSON tag; every Vorbis key
-// the field can ever touch; and, when the field carries a value, the
-// ordered comments a write appends. Deletes lists a read-only style
-// only when the field itself is absent, because read_only blocks a
-// set but not a delete; Writes covers writable styles only. Write
-// applies a KeyWrite's Deletes before its Writes, in the order
-// Serialize returns them, which is what resolves the three colliding
-// pairs the plural's own way.
-type KeyWrite struct {
-	Field   string
-	Deletes []string
-	Writes  []Comment
+// keyWrite is one field's contribution to a write, named by the field's
+// ledger name. deletes lists a read-only style only when the field is
+// absent, because read_only blocks a set but not a delete; writes
+// covers writable styles only.
+type keyWrite struct {
+	field   string
+	deletes []string
+	writes  []Comment
 }
 
-// Serialize turns ts into one KeyWrite per field, in the field table's
+// serialize turns ts into one keyWrite per field, in the field table's
 // write order. An absent member deletes every key its field owns; a
 // present one, empty included, deletes the writable keys and writes
 // its comments in their place. The year, month and day members compose
-// into one KeyWrite named for the year, as do the three original_
+// into one keyWrite named for the year, as do the three original_
 // members, because one DATE or ORIGINALDATE comment carries all three
 // components.
-func Serialize(ts TagSet) []KeyWrite {
-	out := make([]KeyWrite, 0, len(fields))
+func serialize(ts TagSet) []keyWrite {
+	out := make([]keyWrite, 0, len(fields))
 	for _, f := range fields {
 		if f.codec.write == nil {
 			continue
 		}
 		writes, present := f.codec.write(&ts, f.styles)
 		if !present {
-			out = append(out, KeyWrite{Field: f.name, Deletes: allKeys(f.styles)})
+			out = append(out, keyWrite{field: f.name, deletes: allKeys(f.styles)})
 			continue
 		}
-		out = append(out, KeyWrite{Field: f.name, Deletes: writableKeys(f.styles), Writes: writes})
+		out = append(out, keyWrite{field: f.name, deletes: writableKeys(f.styles), writes: writes})
 	}
 	return out
 }
@@ -65,17 +60,6 @@ func writableKeys(styles []style) []string {
 		}
 	}
 	return keys
-}
-
-// repeatComment writes value once under every writable style.
-func repeatComment(styles []style, value string) []Comment {
-	var out []Comment
-	for _, s := range styles {
-		if s.writable {
-			out = append(out, Comment{Name: s.key, Value: value})
-		}
-	}
-	return out
 }
 
 // listComments writes every element of values under each writable
@@ -128,9 +112,7 @@ func formatQ8(v float64) string {
 // month and day (mediafile/fields.py:182-201). The year is zero-padded
 // to four digits, the month is appended zero-padded to two digits only
 // when it is nonzero, and the day only when both the month and the day
-// are. The caller passes an absent month or day as zero: Write takes a
-// whole tag set rather than mediafile's read-modify-write update, so
-// there is no stored month or day for an absent one to keep.
+// are. The caller passes an absent month or day as zero.
 func dateComments(styles []style, y, m, d int) []Comment {
 	date := fmt.Sprintf("%04d", y)
 	if m != 0 {
@@ -155,7 +137,6 @@ func dateComments(styles []style, y, m, d int) []Comment {
 	return out
 }
 
-// valueOr returns 0 for a nil *int and the pointed-to value otherwise.
 func valueOr(v *int) int {
 	if v == nil {
 		return 0
