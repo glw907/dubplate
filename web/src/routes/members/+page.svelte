@@ -14,40 +14,32 @@ focused, and calls nothing until the member confirms. A write the
 server refuses for want of a recent sign-in keeps what the member
 entered or chose and offers a sign-in link that opens in a new tab, so
 the pending change survives in this one, and a control to retry it.
-
-The signed-in header renders in every state, loading included, and
-`main` is the root layout's skip-link target.
 -->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { browser } from '$app/env';
   import { resolve } from '$app/paths';
-  import { call, failureAlertClass, failureText, isSignedOut, needsReauthentication } from '#lib/api/v1.js';
+  import { call, failureAlertClass, failureText, isSignedOut, loadList, needsReauthentication } from '#lib/api/v1.js';
   import type { ApiResult, Member } from '#lib/api/v1.js';
   import { announce } from '#lib/announcer.svelte.js';
-  import SiteHeader from '#lib/components/SiteHeader.svelte';
+  import AdminPage from '#lib/components/AdminPage.svelte';
+  import type { Status } from '#lib/components/AdminPage.svelte';
+  import WriteNotice from '#lib/components/WriteNotice.svelte';
   import {
     ADD_MEMBER_HINTS,
     ADD_MEMBER_LABELS,
     ADD_MEMBER_LEGEND,
     ADD_MEMBER_SUBMIT,
     ADMIN_BADGE_LABEL,
-    AUTH_OUTCOMES,
     CONFIRM_CANCEL,
     CONFIRM_DEMOTE,
     CONFIRM_REMOVE,
     DEMOTE_CONTROL,
-    ERROR_PAGE,
     LIST_REFRESH_FAILED,
-    REAUTH_SIGN_IN,
     REMOVE_CONTROL,
     ROSTER_EMPTY_STATE,
-    ROSTER_RETRY,
     SERVER_SETTINGS_LINK,
-    SIGNED_OUT_SIGN_IN,
     TITLES,
     addedMemberLine,
-    API_REFUSALS,
     confirmDemoteLine,
     confirmRemoveLine,
     demoteControlLabel,
@@ -56,7 +48,6 @@ The signed-in header renders in every state, loading included, and
     removeControlLabel,
     removedMemberLine
   } from '#lib/copy/deck.js';
-  import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   type Field = 'address' | 'display_name' | 'username';
 
@@ -73,9 +64,14 @@ The signed-in header renders in every state, loading included, and
     duplicate_username: 'username'
   };
 
-  const siteName = browser ? siteNameFromDocument(document) : '';
+  const FIELD_ID: Record<Field, string> = {
+    address: 'add-address',
+    display_name: 'add-display-name',
+    username: 'add-username'
+  };
 
-  type Status = 'loading' | 'ok' | 'refused' | 'signedOut' | 'unreachable';
+  const OUTCOME_ID = 'roster-outcome';
+  const OUTCOME_TEXT_ID = 'roster-outcome-text';
 
   /** What the alert beneath the form says about the last write. */
   interface Notice {
@@ -106,9 +102,6 @@ The signed-in header renders in every state, loading included, and
   let retry = $state<(() => Promise<void>) | null>(null);
   let erroredField = $state<Field | null>(null);
   let addMemberForm = $state<HTMLFormElement | null>(null);
-  let addressInput = $state<HTMLInputElement | null>(null);
-  let displayNameInput = $state<HTMLInputElement | null>(null);
-  let usernameInput = $state<HTMLInputElement | null>(null);
 
   // The confirm step: the change the member has asked for and not yet
   // confirmed, the modal that holds it, and the control that opened it,
@@ -117,39 +110,14 @@ The signed-in header renders in every state, loading included, and
   let confirmDialog = $state<HTMLDialogElement | null>(null);
   let opener: HTMLElement | null = null;
 
-  $effect(() => {
-    if (pending && confirmDialog && !confirmDialog.open) confirmDialog.showModal();
-  });
-
-  function inputForField(field: Field): HTMLInputElement | null {
-    if (field === 'address') return addressInput;
-    if (field === 'display_name') return displayNameInput;
-    return usernameInput;
-  }
-
   function clearFieldError(field: Field): void {
     if (erroredField === field) erroredField = null;
   }
 
-  /** A read of `list_members`: the list, or the refusal state the page changes to. */
-  async function fetchRoster(): Promise<
-    { ok: true; members: Member[] } | { ok: false; state: 'refused' | 'signedOut' | 'unreachable'; message: string }
-  > {
-    const result = await call<{ members: unknown }>('list_members');
-    if (result.kind === 'ok') {
-      if (!Array.isArray(result.value.members)) return { ok: false, state: 'unreachable', message: AUTH_OUTCOMES.failed };
-      return { ok: true, members: result.value.members as Member[] };
-    }
-    // A non-admin meets `forbidden` and sees the not-found state.
-    if (result.kind === 'refused' && result.code === 'forbidden') return { ok: false, state: 'refused', message: '' };
-    if (isSignedOut(result)) return { ok: false, state: 'signedOut', message: '' };
-    return { ok: false, state: 'unreachable', message: failureText(result) };
-  }
-
   async function loadRoster(): Promise<void> {
-    const result = await fetchRoster();
+    const result = await loadList<Member>('list_members', 'members');
     if (result.ok) {
-      members = result.members;
+      members = result.entries;
       status = 'ok';
       return;
     }
@@ -163,9 +131,9 @@ The signed-in header renders in every state, loading included, and
   // shows the list and the form. The list the page already has stays on
   // screen.
   async function refreshAfterWrite(): Promise<void> {
-    const result = await fetchRoster();
+    const result = await loadList<Member>('list_members', 'members');
     if (result.ok) {
-      members = result.members;
+      members = result.entries;
       refreshFailed = false;
     } else {
       refreshFailed = true;
@@ -206,8 +174,7 @@ The signed-in header renders in every state, loading included, and
   /** Moves focus to what a refused write shows: its field, else the alert's text. */
   async function focusRefusal(): Promise<void> {
     await tick();
-    if (erroredField) inputForField(erroredField)?.focus();
-    else document.getElementById('roster-outcome-text')?.focus();
+    document.getElementById(erroredField ? FIELD_ID[erroredField] : OUTCOME_TEXT_ID)?.focus();
   }
 
   async function addMember(): Promise<void> {
@@ -238,7 +205,7 @@ The signed-in header renders in every state, loading included, and
       // A successful add returns focus to the address field rather than
       // leaving it on the button the reset just cleared.
       await tick();
-      addressInput?.focus();
+      document.getElementById(FIELD_ID.address)?.focus();
     } finally {
       submitting = false;
     }
@@ -249,9 +216,12 @@ The signed-in header renders in every state, loading included, and
     void addMember();
   }
 
-  function ask(kind: 'remove' | 'demote', member: Member, event: MouseEvent): void {
+  // The modal opens once `#confirm-question`, its accessible name, has rendered.
+  async function ask(kind: 'remove' | 'demote', member: Member, event: MouseEvent): Promise<void> {
     opener = event.currentTarget as HTMLElement;
     pending = { kind, member };
+    await tick();
+    confirmDialog?.showModal();
   }
 
   /** The modal closed, by Cancel, Escape, or a confirm: nothing is pending and focus goes back. */
@@ -293,158 +263,124 @@ The signed-in header renders in every state, loading included, and
   }
 </script>
 
-<svelte:head>
-  <title>{pageTitle(status === 'refused' ? TITLES.notFound : status === 'signedOut' ? TITLES.signedOut : TITLES.members, siteName)}</title>
-</svelte:head>
+<AdminPage title={TITLES.members} {status} {unreachableMessage} retry={loadRoster}>
+  <h1 class="display page-title text-4xl">{TITLES.members}</h1>
+  <p><a href={resolve('server-settings')} class="link link-primary inline-flex min-h-11 items-center">{SERVER_SETTINGS_LINK}</a></p>
 
-<SiteHeader />
-
-<main id="main" tabindex="-1" class="content-measure flow py-8">
-  {#if status === 'refused'}
-    <h1 class="display page-title text-4xl">{TITLES.notFound}</h1>
-    <p>{ERROR_PAGE.notFoundHeading}</p>
-  {:else if status === 'signedOut'}
-    <h1 class="display page-title text-4xl">{TITLES.signedOut}</h1>
-    <p>{API_REFUSALS.unauthenticated}</p>
-    <a href={resolve('login')} class="btn btn-primary">{SIGNED_OUT_SIGN_IN}</a>
-  {:else if status === 'unreachable'}
-    <h1 class="display page-title text-4xl">{TITLES.members}</h1>
-    <div class="alert alert-warning">{unreachableMessage}</div>
-    <button type="button" class="btn btn-primary" onclick={loadRoster}>{ROSTER_RETRY}</button>
-  {:else if status === 'ok'}
-    <h1 class="display page-title text-4xl">{TITLES.members}</h1>
-    <p><a href={resolve('server-settings')} class="link link-primary inline-flex min-h-11 items-center">{SERVER_SETTINGS_LINK}</a></p>
-
-    <p id="member-count" tabindex="-1">{members.length === 0 ? ROSTER_EMPTY_STATE : memberCountLine(members.length)}</p>
-    {#if members.length > 0}
-      <ul id="roster-list" class="list" role="list">
-        {#each members as member (member.user_id)}
-          <li class="list-row">
-            <div class="list-col-grow">
-              <div class="flex items-center gap-2">
-                <span class="font-medium">{member.display_name}</span>
-                {#if member.admin}<span class="badge">{ADMIN_BADGE_LABEL}</span>{/if}
-              </div>
-              <div class="font-mono flex flex-wrap gap-x-1 text-xs opacity-70">
-                <!-- The separator trails the address, glued on with a non-breaking
-                     space, and each part is its own nowrap span: a wrap can only
-                     land between the parts, so a wrapped line never starts with a
-                     dangling "·". The gap on one line is the flex gap, not a text space. -->
-                <span class="whitespace-nowrap">{member.address}<span aria-hidden="true">&nbsp;·</span></span><span class="whitespace-nowrap"><span class="sr-only">{ADD_MEMBER_LABELS.username}{' '}</span>{member.username}</span>
-              </div>
+  <p id="member-count" tabindex="-1">{members.length === 0 ? ROSTER_EMPTY_STATE : memberCountLine(members.length)}</p>
+  {#if members.length > 0}
+    <ul id="roster-list" class="list" role="list">
+      {#each members as member (member.user_id)}
+        <li class="list-row">
+          <div class="list-col-grow">
+            <div class="flex items-center gap-2">
+              <span class="font-medium">{member.display_name}</span>
+              {#if member.admin}<span class="badge">{ADMIN_BADGE_LABEL}</span>{/if}
             </div>
-            <div class="list-col-wrap flex flex-wrap gap-2">
-              {#if member.admin}
-                <button
-                  type="button"
-                  class="btn btn-sm min-h-11"
-                  aria-label={demoteControlLabel(member.display_name)}
-                  onclick={(event) => ask('demote', member, event)}
-                >{DEMOTE_CONTROL}</button>
-              {/if}
+            <div class="font-mono flex flex-wrap gap-x-1 text-xs">
+              <!-- The separator trails the address, glued on with a non-breaking
+                   space, and each part is its own nowrap span: a wrap can only
+                   land between the parts, so a wrapped line never starts with a
+                   dangling "·". The gap on one line is the flex gap, not a text space. -->
+              <span class="whitespace-nowrap">{member.address}<span aria-hidden="true">&nbsp;·</span></span><span class="whitespace-nowrap"><span class="sr-only">{ADD_MEMBER_LABELS.username}{' '}</span>{member.username}</span>
+            </div>
+          </div>
+          <div class="list-col-wrap flex flex-wrap gap-2">
+            {#if member.admin}
               <button
                 type="button"
-                class="btn btn-sm min-h-11"
-                aria-label={removeControlLabel(member.display_name)}
-                onclick={(event) => ask('remove', member, event)}
-              >{REMOVE_CONTROL}</button>
-            </div>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-    {#if refreshFailed}
-      <div class="alert alert-warning">{LIST_REFRESH_FAILED}</div>
-    {/if}
-
-    <form onsubmit={submit} bind:this={addMemberForm} class="flow">
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend">{ADD_MEMBER_LEGEND}</legend>
-
-        <label class="label" for="add-address">{ADD_MEMBER_LABELS.address}</label>
-        <input
-          id="add-address"
-          name="address"
-          type="email"
-          autocomplete="off"
-          data-1p-ignore
-          data-lpignore="true"
-          required
-          class="input validator {erroredField === 'address' ? 'input-error' : ''}"
-          aria-invalid={erroredField === 'address' ? 'true' : undefined}
-          aria-describedby={erroredField === 'address' ? 'roster-outcome' : undefined}
-          oninput={() => clearFieldError('address')}
-          bind:value={address}
-          bind:this={addressInput}
-        />
-
-        <label class="label" for="add-display-name">{ADD_MEMBER_LABELS.displayName}</label>
-        <input
-          id="add-display-name"
-          name="display_name"
-          type="text"
-          maxlength="200"
-          required
-          class="input validator {erroredField === 'display_name' ? 'input-error' : ''}"
-          aria-invalid={erroredField === 'display_name' ? 'true' : undefined}
-          aria-describedby={erroredField === 'display_name' ? 'roster-outcome' : undefined}
-          oninput={() => clearFieldError('display_name')}
-          bind:value={displayName}
-          bind:this={displayNameInput}
-        />
-
-        <label class="label" for="add-username">{ADD_MEMBER_LABELS.username}</label>
-        <input
-          id="add-username"
-          name="username"
-          type="text"
-          autocomplete="off"
-          data-1p-ignore
-          data-lpignore="true"
-          pattern="[A-Za-z0-9][A-Za-z0-9._@+\-]*"
-          maxlength="64"
-          required
-          class="input validator {erroredField === 'username' ? 'input-error' : ''}"
-          aria-invalid={erroredField === 'username' ? 'true' : undefined}
-          aria-describedby={erroredField === 'username' ? 'username-hint roster-outcome' : 'username-hint'}
-          oninput={() => clearFieldError('username')}
-          bind:value={username}
-          bind:this={usernameInput}
-        />
-        <p id="username-hint" class="text-sm opacity-70">{ADD_MEMBER_HINTS.username}</p>
-      </fieldset>
-      <button type="submit" class="btn btn-primary" aria-disabled={submitting || undefined}>{ADD_MEMBER_SUBMIT}</button>
-    </form>
-    {#if notice}
-      <div id="roster-outcome" class="alert {notice.alertClass}">
-        <div class="flex flex-col gap-2">
-          <span id="roster-outcome-text" tabindex="-1">{notice.text}</span>
-          {#if notice.reauthenticate}
-            <div class="flex flex-wrap gap-2">
-              <a href={resolve('login')} target="_blank" rel="noopener" class="btn btn-sm min-h-11">{REAUTH_SIGN_IN}</a>
-              <button type="button" class="btn btn-sm btn-primary min-h-11" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
-            </div>
-          {/if}
-        </div>
-      </div>
-    {/if}
-
-    <dialog class="modal" bind:this={confirmDialog} onclose={closed} aria-labelledby="confirm-question">
-      <div class="modal-box">
-        {#if pending}
-          <p id="confirm-question">
-            {pending.kind === 'remove' ? confirmRemoveLine(pending.member.display_name) : confirmDemoteLine(pending.member.display_name)}
-          </p>
-        {/if}
-        <div class="modal-action">
-          <!-- Cancel opens focused, the safe default for a destructive confirm. -->
-          <!-- svelte-ignore a11y_autofocus -->
-          <button type="button" class="btn min-h-11" autofocus onclick={() => confirmDialog?.close()}>{CONFIRM_CANCEL}</button>
-          <button type="button" class="btn btn-error min-h-11" onclick={confirm}>
-            {pending?.kind === 'demote' ? CONFIRM_DEMOTE : CONFIRM_REMOVE}
-          </button>
-        </div>
-      </div>
-    </dialog>
+                class="btn"
+                aria-label={demoteControlLabel(member.display_name)}
+                onclick={(event) => void ask('demote', member, event)}
+              >{DEMOTE_CONTROL}</button>
+            {/if}
+            <button
+              type="button"
+              class="btn"
+              aria-label={removeControlLabel(member.display_name)}
+              onclick={(event) => void ask('remove', member, event)}
+            >{REMOVE_CONTROL}</button>
+          </div>
+        </li>
+      {/each}
+    </ul>
   {/if}
-</main>
+  {#if refreshFailed}
+    <div class="alert alert-warning">{LIST_REFRESH_FAILED}</div>
+  {/if}
+
+  <form onsubmit={submit} bind:this={addMemberForm} class="flow">
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">{ADD_MEMBER_LEGEND}</legend>
+
+      <label class="label" for={FIELD_ID.address}>{ADD_MEMBER_LABELS.address}</label>
+      <input
+        id={FIELD_ID.address}
+        name="address"
+        type="email"
+        autocomplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        required
+        class="input validator {erroredField === 'address' ? 'input-error' : ''}"
+        aria-invalid={erroredField === 'address' ? 'true' : undefined}
+        aria-describedby={erroredField === 'address' ? OUTCOME_ID : undefined}
+        oninput={() => clearFieldError('address')}
+        bind:value={address}
+      />
+
+      <label class="label" for={FIELD_ID.display_name}>{ADD_MEMBER_LABELS.displayName}</label>
+      <input
+        id={FIELD_ID.display_name}
+        name="display_name"
+        type="text"
+        maxlength="200"
+        required
+        class="input validator {erroredField === 'display_name' ? 'input-error' : ''}"
+        aria-invalid={erroredField === 'display_name' ? 'true' : undefined}
+        aria-describedby={erroredField === 'display_name' ? OUTCOME_ID : undefined}
+        oninput={() => clearFieldError('display_name')}
+        bind:value={displayName}
+      />
+
+      <label class="label" for={FIELD_ID.username}>{ADD_MEMBER_LABELS.username}</label>
+      <input
+        id={FIELD_ID.username}
+        name="username"
+        type="text"
+        autocomplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        pattern="[A-Za-z0-9][A-Za-z0-9._@+\-]*"
+        maxlength="64"
+        required
+        class="input validator {erroredField === 'username' ? 'input-error' : ''}"
+        aria-invalid={erroredField === 'username' ? 'true' : undefined}
+        aria-describedby={erroredField === 'username' ? `username-hint ${OUTCOME_ID}` : 'username-hint'}
+        oninput={() => clearFieldError('username')}
+        bind:value={username}
+      />
+      <p id="username-hint" class="text-sm">{ADD_MEMBER_HINTS.username}</p>
+    </fieldset>
+    <button type="submit" class="btn btn-primary" aria-disabled={submitting || undefined}>{ADD_MEMBER_SUBMIT}</button>
+  </form>
+  <WriteNotice {notice} {retry} id={OUTCOME_ID} textId={OUTCOME_TEXT_ID} />
+
+  <dialog class="modal" bind:this={confirmDialog} onclose={closed} aria-labelledby="confirm-question">
+    <div class="modal-box">
+      {#if pending}
+        <p id="confirm-question">
+          {pending.kind === 'remove' ? confirmRemoveLine(pending.member.display_name) : confirmDemoteLine(pending.member.display_name)}
+        </p>
+      {/if}
+      <div class="modal-action">
+        <!-- Cancel opens focused, the safe default for a destructive confirm. -->
+        <!-- svelte-ignore a11y_autofocus -->
+        <button type="button" class="btn" autofocus onclick={() => confirmDialog?.close()}>{CONFIRM_CANCEL}</button>
+        <button type="button" class="btn btn-error" onclick={confirm}>
+          {pending?.kind === 'demote' ? CONFIRM_DEMOTE : CONFIRM_REMOVE}
+        </button>
+      </div>
+    </div>
+  </dialog>
+</AdminPage>

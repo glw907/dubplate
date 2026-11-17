@@ -6,6 +6,7 @@
  */
 import { API_DETAILS, API_REFUSALS, AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE } from '#lib/copy/deck.js';
 import { endpointPath } from './post.js';
+import { send } from './request.js';
 
 /** One roster entry as `list_members` and `add_member` carry it. */
 export interface Member {
@@ -41,16 +42,12 @@ function readError(body: unknown): { code: string; detail: string } | null {
 
 /** Posts `request` as JSON to the operation `operation` and reads the answer. */
 export async function call<T>(operation: string, request: object = {}): Promise<ApiResult<T>> {
-  let response: Response;
-  try {
-    response = await fetch(endpointPath(`api/v1/${operation}`), {
-      method: 'POST',
-      body: JSON.stringify(request),
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch {
-    return { kind: 'network_failure' };
-  }
+  const response = await send(endpointPath(`api/v1/${operation}`), {
+    method: 'POST',
+    body: JSON.stringify(request),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (response === null) return { kind: 'network_failure' };
   let body: unknown;
   try {
     body = await response.json();
@@ -65,8 +62,28 @@ export async function call<T>(operation: string, request: object = {}): Promise<
   return error ? { kind: 'refused', status: response.status, ...error } : { kind: 'failed' };
 }
 
+/**
+ * Reads a list operation's `field` array. A failure names the state the page changes to: a
+ * non-admin's `forbidden` is `refused`, a gone session `signedOut`, and anything else, a body
+ * whose `field` is not an array included, `unreachable` with the deck line to show.
+ */
+export async function loadList<T>(
+  operation: string,
+  field: string
+): Promise<{ ok: true; entries: T[] } | { ok: false; state: 'refused' | 'signedOut' | 'unreachable'; message: string }> {
+  const result = await call<Record<string, unknown>>(operation);
+  if (result.kind === 'ok') {
+    const list = result.value[field];
+    if (!Array.isArray(list)) return { ok: false, state: 'unreachable', message: AUTH_OUTCOMES.failed };
+    return { ok: true, entries: list as T[] };
+  }
+  if (result.kind === 'refused' && result.code === 'forbidden') return { ok: false, state: 'refused', message: '' };
+  if (isSignedOut(result)) return { ok: false, state: 'signedOut', message: '' };
+  return { ok: false, state: 'unreachable', message: failureText(result) };
+}
+
 /** The deck line for a refusal: its detail's line when it has one, else its code's, else the generic failure. */
-export function refusalText(code: string, detail: string): string {
+function refusalText(code: string, detail: string): string {
   if (detail !== '' && Object.hasOwn(API_DETAILS, detail)) return API_DETAILS[detail];
   if (Object.hasOwn(API_REFUSALS, code)) return API_REFUSALS[code];
   return AUTH_OUTCOMES.failed;

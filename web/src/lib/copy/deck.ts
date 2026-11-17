@@ -80,9 +80,6 @@ export const CROSS_ORIGIN_REFUSED =
 /** A request that never reached the server at all (a network failure). */
 export const NETWORK_FAILURE = 'We couldn’t reach the server. Check your connection and try again.';
 
-/** The sent moment's own text, shown once the link is on its way: the `sent` outcome's own line. */
-export const SENT_MOMENT_TEXT = AUTH_OUTCOMES.sent;
-
 /** The sent moment's escape hatch back to the request-link form. */
 export const SENT_ESCAPE_HATCH = 'Use a different address';
 

@@ -1405,12 +1405,17 @@ func TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader(t *testing.T) {
 // <svelte:head> block, markup expressions included.
 var svelteHeadTitleRE = regexp.MustCompile(`(?s)<svelte:head>.*?<title>(.+?)</title>.*?</svelte:head>`)
 
+// adminPageTitleRE captures the title expression a page hands to the
+// AdminPage shell, which renders the <title> in <svelte:head> for it.
+var adminPageTitleRE = regexp.MustCompile(`<AdminPage\s+title=\{([^}]+)\}`)
+
 // TestRoutes_EveryPageHasAUniqueTitle proves every page and the error
-// page in web/src/routes set a document title through <svelte:head>,
-// and that no two pages share one, so a screen reader announces which
-// page loaded. The build prerenders with ssr off, so the title is set
-// only once the client runs and no built document carries it; the
-// route source is what this reads.
+// page in web/src/routes set a document title, through <svelte:head>
+// or through the AdminPage shell's title prop, and that no two pages
+// share one, so a screen reader announces which page loaded. The
+// build prerenders with ssr off, so the title is set only once the
+// client runs and no built document carries it; the route source is
+// what this reads.
 func TestRoutes_EveryPageHasAUniqueTitle(t *testing.T) {
 	root := filepath.Join("..", "..", "web", "src", "routes")
 	titles := make(map[string]string)
@@ -1427,7 +1432,10 @@ func TestRoutes_EveryPageHasAUniqueTitle(t *testing.T) {
 		}
 		m := svelteHeadTitleRE.FindSubmatch(src)
 		if m == nil {
-			t.Errorf("%s: no <title> inside <svelte:head>", p)
+			m = adminPageTitleRE.FindSubmatch(src)
+		}
+		if m == nil {
+			t.Errorf("%s: no <title> inside <svelte:head> and no <AdminPage title>", p)
 			return nil
 		}
 		title := strings.TrimSpace(string(m[1]))

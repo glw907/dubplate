@@ -43,7 +43,7 @@ live region.
     return false;
   }
 
-  let dark = $state(currentlyDark());
+  const dark = currentlyDark();
 
   // Leaves exactly one theme-color meta, without `media`, at the
   // computed --color-neutral: the shape the server stamps for a cookie
@@ -65,7 +65,6 @@ live region.
 
   function onToggleChange(event: Event): void {
     const checked = (event.currentTarget as HTMLInputElement).checked;
-    dark = checked;
     const palette = checked ? 'label-night' : 'label';
     document.cookie = `${THEME_COOKIE}=${palette}; Path=/; Secure; SameSite=Lax; Max-Age=31536000`;
     document.documentElement.dataset.theme = `dubplate-${palette}`;
@@ -107,7 +106,7 @@ live region.
       </a>
     </nav>
     <div class="navbar-end gap-2">
-      <button type="button" class="btn btn-ghost min-h-11 text-neutral-content" onclick={signOut}>{SIGN_OUT_CONTROL}</button
+      <button type="button" class="btn btn-ghost text-neutral-content" onclick={signOut}>{SIGN_OUT_CONTROL}</button
       >
       <label class="swap h-11 w-11">
         <input type="checkbox" aria-label={THEME_TOGGLE_LABEL} checked={dark} onchange={onToggleChange} />

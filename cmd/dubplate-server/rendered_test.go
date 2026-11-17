@@ -36,8 +36,8 @@ const renderedPrefix = "/rendered"
 
 // renderedScriptTimeout bounds one run of the browser script, at more
 // than twice its measured wall time (TestRendered takes about 137s on an
-// idle machine, the capture matrix dominating it, with 38 browser
-// contexts for its 190 manifest rows) and under renderedMagicLinkExpiry, so a late capture
+// idle machine, the capture matrix dominating it, with 42 browser
+// contexts for its 210 manifest rows) and under renderedMagicLinkExpiry, so a late capture
 // never meets an expired link. The Makefile's RENDERED_TIMEOUT sits
 // above it plus the missing-browser run, and below the expiry too.
 const renderedScriptTimeout = 13 * time.Minute
@@ -267,7 +267,7 @@ var renderedCaptureWidths = []int{320, 390, 768, 1440, 2560}
 // the capture matrix renders every state under.
 var renderedCaptureSchemes = []string{"light", "dark"}
 
-// renderedCaptureStates is the capture matrix's nineteen page states, as
+// renderedCaptureStates is the capture matrix's twenty-one page states, as
 // Go literals. linkRequests and consumptions are per scheme, not per
 // state: the harness opens one browser context, and so one session, for
 // each state and scheme, and takes all five widths inside it, so a state
@@ -283,11 +283,13 @@ var renderedCaptureStates = []struct {
 	{id: "login/failed", linkRequests: 1},
 	{id: "login/rate-limited"},
 	{id: "login/malformed"},
+	{id: "login/network-failure"},
 	{id: "interstitial/ready"},
 	{id: "interstitial/refused"},
 	{id: "interstitial/signed-in", consumptions: 1},
 	{id: "members/populated", consumptions: 1},
 	{id: "members/empty", consumptions: 1},
+	{id: "members/network-failure", consumptions: 1},
 	{id: "members/added", consumptions: 1},
 	{id: "members/duplicate-address", consumptions: 1},
 	{id: "members/non-admin", consumptions: 1},
@@ -299,7 +301,7 @@ var renderedCaptureStates = []struct {
 }
 
 // renderedCaptureRows expands renderedCaptureStates over every width and
-// scheme into the capture matrix's own 190 manifest rows (19 states by
+// scheme into the capture matrix's own 210 manifest rows (21 states by
 // 5 widths by 2 schemes), each ID "capture/<state>/<width>/<scheme>".
 // A state's spend lands on its first-width rows, where the script
 // stands the state up for each scheme.
@@ -652,9 +654,9 @@ type mintResponse struct {
 
 // mintServer answers a freshly minted magic link for the fixture admin
 // or member address, one per POST, through [mintLinkFor]: the capture
-// matrix's on-demand source for the twenty links its ten signed-in
+// matrix's on-demand source for the twenty-two links its eleven signed-in
 // states spend (one per state and scheme, since each scheme's context
-// signs in once for its five widths), rather than twenty environment
+// signs in once for its five widths), rather than twenty-two environment
 // variables. It is its own
 // loopback listener, mounting no path on the fixture server's own
 // handler, so it adds no bypass to any production path.
@@ -969,11 +971,11 @@ func TestRendered(t *testing.T) {
 	if err != nil {
 		t.Errorf("the browser script exited: %v\n%s", err, stderr)
 	}
-	// One context per state and scheme: 19 states by 2 schemes.
+	// One context per state and scheme: 21 states by 2 schemes.
 	if n, err := parseCaptureContexts(stderr); err != nil {
 		t.Errorf("capture contexts: %v", err)
-	} else if n != 38 {
-		t.Errorf("the capture matrix opened %d browser contexts, want 38", n)
+	} else if n != 42 {
+		t.Errorf("the capture matrix opened %d browser contexts, want 42", n)
 	}
 	checkSpendReconciliation(t, log)
 
