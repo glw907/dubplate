@@ -21,29 +21,28 @@ const noLabelSentinel = "[no label]"
 // decoded WS/2 release, mirroring MusicBrainzPlugin.album_info
 // (beetsplug/musicbrainz.py:631-695). It issues no request and reads no
 // clock: the evaluation date is the distance path's input, not this
-// layer's (3a contract 9), and internal/harness/conform's widened
-// no-time.Now walk is what enforces that.
+// layer's, and internal/harness/conform's no-time.Now walk enforces
+// that.
 //
 // The composition runs in album_info's own order, and the order is
 // load-bearing in exactly one place: the release-event assignment
 // overwrites Country and Year AFTER the release-group parse has already
 // supplied the original-date fallback, and that fallback is a
-// truthiness test on the resolved date, not a nil check (T11). Moving
+// truthiness test on the resolved date, not a nil check. Moving
 // the release-event step earlier would let an empty date wipe out a
 // fallback that has not been computed yet.
 //
-// The browse-fallback guard T16 names is not this function's
-// obligation: internal/harness/conform's
-// TestNoCommittedReleaseReachesTheBrowseThreshold reads the corpus
-// directly, because this package has no channel to a request the
-// client (3c) has not issued.
+// The browse-fallback guard is not this function's obligation:
+// internal/harness/conform's TestNoCommittedReleaseReachesTheBrowseThreshold
+// reads the corpus directly, because this package has no channel to a
+// request the client has not issued.
 //
 // It returns an error wrapping ErrMalformedRelease when rel cannot be
 // translated at all; every other beets-raising site is handled as a
 // zero value and the reasons are recorded on Release and on the
 // functions concerned.
 func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, error) {
-	if err := rel.Validate(); err != nil {
+	if err := rel.validate(); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +54,7 @@ func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, err
 
 	credit, va := applyVariousArtists(parseArtistCredits(rel.ArtistCredit, tun), tun)
 
-	originalYear, _, _ := parseDate(rel.ReleaseGroup.FirstReleaseDate)
+	originalYear := parseYear(rel.ReleaseGroup.FirstReleaseDate)
 
 	var catalogNum string
 	if len(rel.LabelInfo) > 0 && rel.LabelInfo[0].CatalogNumber != nil {
@@ -69,7 +68,7 @@ func TranslateAlbum(rel *Release, tun matcher.Tunables) (*matcher.AlbumInfo, err
 	country, date := preferredReleaseEvent(rel, tun)
 	year := originalYear
 	if date != "" {
-		year, _, _ = parseDate(date)
+		year = parseYear(date)
 	}
 
 	tracks := make([]matcher.TrackInfo, len(built))

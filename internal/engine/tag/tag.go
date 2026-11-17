@@ -13,8 +13,8 @@ import (
 // ErrNoCandidates reports that the flow admitted nothing: every lookup
 // 404'd, the search returned no ids, or every returned release was
 // dropped by an admission gate. It is a sentinel because a caller
-// branches on it: rung 9's pipeline reports "no match" differently from
-// a transport failure.
+// branches on it: a pipeline reports "no match" differently from a
+// transport failure.
 var ErrNoCandidates = errors.New("no candidates")
 
 // A Proposal is the matcher's answer for one album: beets' Proposal
@@ -33,9 +33,8 @@ type Proposal struct {
 // SearchIDs is import.search_ids (beets/config_default.yaml:50), which
 // selects the explicit-ID branch and takes no early return
 // (match.py:417-420). beets' search_artist and search_name overrides are
-// a recorded non-port (3c's close): no committed profile sets them and
-// the automatic album-match path is rung 3's whole scope, so they never
-// join this struct.
+// a recorded non-port: no committed profile sets them and the automatic
+// album-match path never takes them, so they never join this struct.
 type Options struct {
 	SearchIDs []string
 }
@@ -51,11 +50,6 @@ type Options struct {
 // load-bearing rather than incidental: the request set is exactly what
 // internal/harness/conform's tier 1 grades, so a "fetch everything, then
 // score" rearrangement would issue requests beets never issued.
-//
-// Every request Album issues spends one token from src's own budget, so
-// a caller caps its MusicBrainz spend by the budget it built the client
-// with (musicbrainz.NewClient requires one). A conformance run passes
-// musicbrainz.Unmetered().
 //
 // evalDate is a parameter and never a clock read.
 //
@@ -96,7 +90,7 @@ func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFie
 			// early return at :432-441 ships that unsorted list.
 			// Harmless in practice only because match_by_id yields at
 			// most one candidate here, so sorting first could never
-			// change the outcome (contract V18).
+			// change the outcome.
 			rec, err := matcher.Recommend(tun, cands.All())
 			if err != nil {
 				return nil, fmt.Errorf("tag: %w", err)
@@ -119,7 +113,7 @@ func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFie
 		// The search (match.py:451-463): vaLikely is computed inside
 		// AlbumSearchFor and stays unexported there, because no
 		// caller outside internal/engine/musicbrainz needs the
-		// no-consensus branch it feeds (3c carry 13c).
+		// no-consensus branch it feeds.
 		search := musicbrainz.AlbumSearchFor(items, tun)
 		ids, err := src.SearchReleases(ctx, search)
 		if err != nil {
