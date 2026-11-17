@@ -408,6 +408,9 @@ now round `engine`.
   "(review m5)" in `auth.go`, "after 6d" near `backup.go:414`, "(spec:938-944)" in `cmd` `serve.go`, short tags such as
   "R20" and "R-M" elsewhere, and "R-5cii12" in `web_test.go`; `webapp.DocumentCSP`, `StylesheetHrefs` and
   `ThemeCookieName` have only `cmd` test callers. Found by `cleanup-ops` T5 and T6, 2026-11-16 #arch #test
+- [ ] #157 The `dubplate-pass` `auth-data` path map omits `internal/ops/**`, which holds the `/api/v1` authorization
+  layer (`opshttp`) and the admin seam that writes roster audits, so a pass touching only that tree is not classed
+  `auth-data`. Found by the `cleanup-ops` whole-branch review, 2026-11-16 #arch #process
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake
 ## Later
