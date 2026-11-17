@@ -90,11 +90,10 @@ func TestRegistration_PanicsNamingTheKeyForAMissingDescriptionOrMark(t *testing.
 }
 
 func TestOwnedWall_RowsAreDescribedAndMarked(t *testing.T) {
-	rows := OwnedWall()
-	if len(rows) == 0 {
-		t.Fatal("OwnedWall() is empty")
+	if len(ownedWall) == 0 {
+		t.Fatal("ownedWall is empty")
 	}
-	for _, row := range rows {
+	for _, row := range ownedWall {
 		if strings.TrimSpace(row.Description) == "" {
 			t.Errorf("%s: no description", row.Name)
 		}

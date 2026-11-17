@@ -687,3 +687,37 @@ func TestWriteBackupRef_RemoteRefusals(t *testing.T) {
 		t.Fatalf("write reference with a plain remote: %v", err)
 	}
 }
+
+// TestPrunePreMigrateCopies: a pre-migration copy older than the cutoff
+// is removed, one after it stays, and a pre-restore copy, a name the
+// store would never write, and a directory stay whatever their age.
+func TestPrunePreMigrateCopies(t *testing.T) {
+	h := writeHandle(t, currentStore(t))
+	cutoff := time.Date(2026, 11, 1, 12, 0, 0, 0, time.UTC)
+	before, after := cutoff.Add(-time.Hour), cutoff.Add(time.Hour)
+	plant := func(name string, mtime time.Time) {
+		t.Helper()
+		p := filepath.Join(h.leaf.snapshotsDir, name)
+		if err := os.WriteFile(p, []byte("x"), 0o600); err != nil {
+			t.Fatalf("plant %s: %v", name, err)
+		}
+		if err := os.Chtimes(p, mtime, mtime); err != nil {
+			t.Fatalf("age %s: %v", name, err)
+		}
+	}
+	plant("pre-migrate-v1.db", before)
+	plant("pre-migrate-v2.db", after)
+	plant("pre-migrate-v03.db", before)
+	plant("pre-restore-20260101T000000Z.db", before)
+	if err := os.Mkdir(filepath.Join(h.leaf.snapshotsDir, "pre-migrate-v4.db"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := h.PrunePreMigrateCopies(cutoff); err != nil {
+		t.Fatalf("PrunePreMigrateCopies: %v", err)
+	}
+	want := []string{"pre-migrate-v03.db", "pre-migrate-v2.db", "pre-migrate-v4.db", "pre-restore-20260101T000000Z.db"}
+	if got := listDir(t, h.leaf.snapshotsDir); !slices.Equal(got, want) {
+		t.Errorf("snapshots = %q, want %q", got, want)
+	}
+}

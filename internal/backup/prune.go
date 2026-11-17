@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -18,11 +16,11 @@ import (
 // and of the local snapshots directory, run once the send has
 // succeeded.
 type prune struct {
-	t        transport
-	remote   Remote
-	stamp    string
-	localDir string
-	start    time.Time
+	t      transport
+	remote Remote
+	stamp  string
+	store  *store.Handle
+	start  time.Time
 
 	// snapshotKeep is how many remote snapshots this prune keeps in
 	// total, the run's own included; the caller's own [Job.SnapshotKeep],
@@ -60,7 +58,7 @@ func (p prune) run(ctx context.Context, logger *slog.Logger) string {
 		logger.Warn("prune: archive", "err", err)
 		failed = append(failed, err.Error())
 	}
-	if err := p.pruneLocal(); err != nil {
+	if err := p.store.PrunePreMigrateCopies(p.start); err != nil {
 		logger.Warn("prune: local copies", "err", err)
 		failed = append(failed, err.Error())
 	}
@@ -155,39 +153,6 @@ func (p prune) pruneArchive(ctx context.Context) error {
 		dest := p.remote.join("archive/" + e.Name)
 		if err := p.t.run(ctx, nil, "purge", dest); err != nil {
 			errs = append(errs, fmt.Errorf("purge %s: %w", dest, err))
-		}
-	}
-	return errors.Join(errs...)
-}
-
-// pruneLocal removes every local pre-migration copy in p.localDir
-// modified before p.start. A copy written after the run began was not
-// captured by it and stays. A pre-restore copy always stays: it holds
-// the rows its restore did not bring back, so no backup captured them,
-// and like a discarded store it is removed only by hand. The reference
-// and every other name are untouched.
-func (p prune) pruneLocal() error {
-	entries, err := os.ReadDir(p.localDir)
-	if err != nil {
-		return fmt.Errorf("read %s: %w", p.localDir, err)
-	}
-
-	var errs []error
-	for _, e := range entries {
-		if e.IsDir() || !store.IsPreMigrateCopy(e.Name()) {
-			continue
-		}
-		info, err := e.Info()
-		if err != nil {
-			errs = append(errs, fmt.Errorf("stat %s: %w", e.Name(), err))
-			continue
-		}
-		if !info.ModTime().Before(p.start) {
-			continue
-		}
-		path := filepath.Join(p.localDir, e.Name())
-		if err := os.Remove(path); err != nil {
-			errs = append(errs, fmt.Errorf("remove %s: %w", path, err))
 		}
 	}
 	return errors.Join(errs...)

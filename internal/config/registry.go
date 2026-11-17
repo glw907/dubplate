@@ -1,12 +1,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
-	"time"
 )
 
 // Registry holds every declaration a rung contributes to the config
@@ -31,8 +30,6 @@ import (
 // gate-resident test constructs the production registry exactly as the
 // binary does, so a collision fails the gate on the lane that
 // introduced it rather than surfacing only when the binary runs.
-//
-// ruled, conductor 2026-09-07, R1
 type Registry struct {
 	ownedWall          []WallRow
 	reservedClasses    []ReservedClass
@@ -64,8 +61,6 @@ type Registry struct {
 // registering into one never changes another, and the same
 // declaration registered into two separately-constructed registries
 // panics in neither.
-//
-// ruled, conductor 2026-09-07, R4
 func NewRegistry() *Registry {
 	r := &Registry{
 		claims:     make(map[string]string),
@@ -193,8 +188,6 @@ func (r *Registry) AddReservedClass(class ReservedClass) {
 // ReservedClasses returns the reserved classes in declaration order,
 // never sorted: doctor prints them in table order, which is not rung
 // order, and that order is the contract (Resolution R15).
-//
-// ruled, conductor 2026-09-07, R15
 func (r *Registry) ReservedClasses() []ReservedClass {
 	return slices.Clone(r.reservedClasses)
 }
@@ -211,8 +204,6 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // with an owned-wall, reserved, or superseded name is refused rather
 // than registering silently. Each carries a description and a
 // sensitive mark, and one without either panics naming the key.
-//
-// ruled, conductor 2026-09-07, R2
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	if class.Flag.Name == "" {
 		panic(fmt.Sprintf("%s: integration class declared with an empty Flag", class.Name))
@@ -258,8 +249,6 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // without a description or a sensitive mark panics naming it. This task builds
 // the check's seat only: rung 1 registers no thresholds, and the kind
 // that motivates the check's own test lands with Task 5.
-//
-// ruled, conductor 2026-09-07, R11
 func (r *Registry) AddThreshold(t Threshold) {
 	requirePrefix(familyThresholds, t.Key)
 	requireDescribed(familyThresholds, t.Key, t.Description, t.Mark)
@@ -279,31 +268,31 @@ func (r *Registry) AddThreshold(t Threshold) {
 // explicit Kind carries a named kind and would pass an enum-membership
 // test alone; only parsing Default under the declared Kind catches it.
 //
-// KindString's own invalid Default is the empty string, checked here
-// rather than by a parse attempt, since every string parses; the
-// reason is [ParseString]'s own doc.
+// A numeric Default outside t's Floor and Ceiling panics the same way.
 //
-// ruled, conductor 2026-09-07, R11
+// KindString's own invalid Default is the empty string, checked here
+// beside the parse, since every string parses; the reason is
+// [ParseString]'s own doc.
 func validateThresholdDefault(t Threshold) {
+	_, err := t.Kind.Parse(t.Default)
+	switch {
+	case errors.Is(err, errUnnamedKind):
+		panic(fmt.Sprintf("%s: unnamed threshold kind %v", t.Key, t.Kind))
+	case err != nil, t.Kind == KindString && t.Default == "":
+		panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
+	}
+
+	var outside error
 	switch t.Kind {
 	case KindInt:
-		if _, err := strconv.Atoi(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
+		_, outside = ParseInt(nil, t)
 	case KindDuration:
-		if _, err := time.ParseDuration(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
+		_, outside = ParseDuration(nil, t)
 	case KindFloat:
-		if _, err := parseFiniteFloat(t.Default); err != nil {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
-	case KindString:
-		if t.Default == "" {
-			panic(fmt.Sprintf("%s: invalid default %q", t.Key, t.Default))
-		}
-	default:
-		panic(fmt.Sprintf("%s: unnamed threshold kind %v", t.Key, t.Kind))
+		_, outside = ParseFloat(nil, t)
+	}
+	if outside != nil {
+		panic(outside.Error())
 	}
 }
 
@@ -350,8 +339,6 @@ type IdentitySource struct {
 	// therefore checks a value only when values carries it. Its error
 	// joins Load's others. A nil Validate is a source with no value
 	// rules of its own.
-	//
-	// ruled, conductor 2026-09-12, B2
 	Validate func(values map[string]string, environ []string) error
 }
 
@@ -511,8 +498,6 @@ func (r *Registry) CorrelatedRules() []CorrelatedRule {
 // for it. The superseded family stays a map rather than a slice
 // because no caller enumerates it: supersessionOf is a single lookup,
 // and order is meaningless for one (Resolution R8).
-//
-// ruled, conductor 2026-09-07, R8
 func (r *Registry) AddSuperseded(name, reason string) {
 	requirePrefix(familySuperseded, name)
 	if _, ok := r.superseded[name]; ok {

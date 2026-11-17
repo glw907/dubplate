@@ -35,14 +35,19 @@ const preRestorePrefix = "pre-restore-"
 // stateError is a refusal carrying the inspect state it reports as.
 type stateError struct {
 	state State
-	msg   string
+	err   error
 }
 
-func (e *stateError) Error() string { return e.msg }
+func (e *stateError) Error() string { return e.err.Error() }
 
-// refusal returns a stateError reporting as s.
+// Unwrap returns the formatted error itself, so a cause named with %w
+// stays in the chain even when the format wraps more than one.
+func (e *stateError) Unwrap() error { return e.err }
+
+// refusal returns a stateError reporting as s. It calls [fmt.Errorf]
+// directly because go vet admits %w only there.
 func refusal(s State, format string, args ...any) error {
-	return &stateError{state: s, msg: fmt.Sprintf(format, args...)}
+	return &stateError{state: s, err: fmt.Errorf(format, args...)}
 }
 
 // dbKind is what classify found at the database path.
@@ -154,7 +159,7 @@ func OpenWrite(ctx context.Context, stateDir string, busyTimeout time.Duration) 
 		return nil, writeRefusal(l, c, len(files))
 	}
 
-	lock, err := acquireShared(ctx, l.lockPath)
+	lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, 0, nil)
 	if err != nil {
 		return nil, fmt.Errorf("open store for writing: %w", err)
 	}
@@ -247,7 +252,7 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 
 	settled := 0
 	for {
-		lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, opts)
+		lock, err := waitLock(ctx, l.lockPath, syscall.LOCK_SH, opts.MigrationWait, opts.Logger)
 		if err != nil {
 			return nil, err
 		}
@@ -260,7 +265,7 @@ func OpenServe(ctx context.Context, stateDir string, opts ServeOptions) (*Handle
 			return nil, err
 		}
 
-		lock, err = waitLock(ctx, l.lockPath, syscall.LOCK_EX, opts)
+		lock, err = waitLock(ctx, l.lockPath, syscall.LOCK_EX, opts.MigrationWait, opts.Logger)
 		if err != nil {
 			return nil, err
 		}
@@ -368,7 +373,7 @@ func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (
 // leaf, and only then removes the record, so a failure at any step
 // leaves the record for the next start to retry.
 func finishRestore(ctx context.Context, l leaf, h *Handle, rec intentRecord, reconcile func(context.Context, *Handle, string, RestoreIntent) ([]byte, error)) error {
-	report, err := reconcile(ctx, h, rec.Stamp, rec.restoreIntent())
+	report, err := reconcile(ctx, h, rec.Stamp, rec.RestoreIntent)
 	if err != nil {
 		return fmt.Errorf("reconcile the restored store %s: %w", l.dbPath, err)
 	}
@@ -376,45 +381,6 @@ func finishRestore(ctx context.Context, l leaf, h *Handle, rec intentRecord, rec
 		return fmt.Errorf("write the reconciliation report: %w", err)
 	}
 	return l.removeIntent()
-}
-
-// waitLock polls for path's lock in mode how (syscall.LOCK_SH or
-// syscall.LOCK_EX) until it wins or opts.MigrationWait passes. While
-// another process holds the lock, it logs the holders on the first
-// failed poll and every holdersLogInterval after. On expiry its error
-// names the holders.
-func waitLock(ctx context.Context, path string, how int, opts ServeOptions) (*storeLock, error) {
-	ctx, cancel := context.WithTimeout(ctx, opts.MigrationWait)
-	defer cancel()
-	want := "shared"
-	if how == syscall.LOCK_EX {
-		want = "exclusive"
-	}
-	logTick := time.NewTicker(holdersLogInterval)
-	defer logTick.Stop()
-
-	logged := false
-	for {
-		lock, err := tryLock(path, how)
-		if err == nil {
-			return lock, nil
-		}
-		if !errors.Is(err, ErrLockBusy) {
-			return nil, err
-		}
-		if !logged {
-			opts.Logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
-			logTick.Reset(holdersLogInterval)
-			logged = true
-		}
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("wait %s for the store lock %s: %w", opts.MigrationWait, want, err)
-		case <-logTick.C:
-			opts.Logger.Warn(holdersLogMsg, "lock", path, "want", want, "holders", lockHolders(path))
-		case <-time.After(lockPollInterval):
-		}
-	}
 }
 
 // stat runs the steps every mode takes before the filesystem
@@ -440,13 +406,13 @@ func (l leaf) statLeaf() (leafState, error) {
 		return leafState{}, nil
 	}
 	if err != nil {
-		return leafState{}, refusal(StateRefused, "stat %s: %v", l.root, err)
+		return leafState{}, refusal(StateRefused, "stat %s: %w", l.root, err)
 	}
 	if err := checkLeafShape(info, l.root); err != nil {
-		return leafState{}, refusal(StateRefused, "%v", err)
+		return leafState{}, refusal(StateRefused, "%w", err)
 	}
 	if err := checkOwner(info); err != nil {
-		return leafState{}, refusal(StateRefused, "leaf %s: %v", l.root, err)
+		return leafState{}, refusal(StateRefused, "leaf %s: %w", l.root, err)
 	}
 
 	ls := leafState{exists: true, complete: true}
@@ -472,7 +438,7 @@ func (l leaf) probe() (warning string, err error) {
 	target := l.probeTarget()
 	verdict, magic, err := probeFilesystem(target)
 	if err != nil {
-		return "", refusal(StateRefused, "probe filesystem: %v", err)
+		return "", refusal(StateRefused, "probe filesystem: %w", err)
 	}
 	switch verdict {
 	case fsRefuseMultiHost:
@@ -496,7 +462,7 @@ func classify(ctx context.Context, l leaf, busyTimeout time.Duration, files []mi
 		return l.besideCopy(dbAbsent)
 	}
 	if err != nil {
-		return dbClass{}, refusal(StateRefused, "stat %s: %v", l.dbPath, err)
+		return dbClass{}, refusal(StateRefused, "stat %s: %w", l.dbPath, err)
 	}
 	if info.Size() > 0 {
 		return classifyOpen(ctx, l, busyTimeout, files)
@@ -531,11 +497,11 @@ func (l leaf) classifyLockless() (dbClass, error) {
 func classifyOpen(ctx context.Context, l leaf, busyTimeout time.Duration, files []migration) (c dbClass, err error) {
 	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, busyTimeout))
 	if err != nil {
-		return dbClass{}, refusal(StateRefused, "open %s: %v", l.dbPath, err)
+		return dbClass{}, refusal(StateRefused, "open %s: %w", l.dbPath, err)
 	}
 	defer func() {
 		if cerr := db.Close(); cerr != nil && err == nil {
-			err = refusal(StateRefused, "close %s: %v", l.dbPath, cerr)
+			err = refusal(StateRefused, "close %s: %w", l.dbPath, cerr)
 		}
 	}()
 
@@ -548,7 +514,7 @@ func classifyOpen(ctx context.Context, l leaf, busyTimeout time.Duration, files 
 		if errors.As(err, &se) && se.Code()&0xff == sqliteNotADBCode {
 			return dbClass{}, refusal(StateNotAStore, "%s is not a database", l.dbPath)
 		}
-		return dbClass{}, refusal(StateRefused, "read %s: %v", l.dbPath, err)
+		return dbClass{}, refusal(StateRefused, "read %s: %w", l.dbPath, err)
 	}
 
 	switch {
@@ -568,7 +534,7 @@ func classifyOpen(ctx context.Context, l leaf, busyTimeout time.Duration, files 
 		return dbClass{kind: dbStore, version: int(version)}, nil
 	}
 	if err := checkLedger(ctx, db, files, int(version)); err != nil {
-		return dbClass{}, refusal(StateRefused, "%s: %v", l.dbPath, err)
+		return dbClass{}, refusal(StateRefused, "%s: %w", l.dbPath, err)
 	}
 	return dbClass{kind: dbStore, version: int(version)}, nil
 }
@@ -607,7 +573,7 @@ func newestCopy(dir string) (string, error) {
 		return "", nil
 	}
 	if err != nil {
-		return "", refusal(StateRefused, "read %s: %v", dir, err)
+		return "", refusal(StateRefused, "read %s: %w", dir, err)
 	}
 	var (
 		newest string
@@ -621,7 +587,7 @@ func newestCopy(dir string) (string, error) {
 		}
 		info, err := e.Info()
 		if err != nil {
-			return "", refusal(StateRefused, "stat %s: %v", filepath.Join(dir, name), err)
+			return "", refusal(StateRefused, "stat %s: %w", filepath.Join(dir, name), err)
 		}
 		if newest == "" || info.ModTime().After(at) {
 			newest, at = name, info.ModTime()
@@ -656,7 +622,7 @@ func pathExists(p string) (bool, error) {
 	if errors.Is(err, fs.ErrNotExist) {
 		return false, nil
 	}
-	return false, refusal(StateRefused, "stat %s: %v", p, err)
+	return false, refusal(StateRefused, "stat %s: %w", p, err)
 }
 
 // noStore is the refusal of a mode that never creates a store.

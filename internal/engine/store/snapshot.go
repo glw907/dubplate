@@ -246,11 +246,38 @@ func pruneSnapshots(dir string, keep int) error {
 	return nil
 }
 
-// IsPreMigrateCopy reports whether name is exactly the name the store
-// gives the copy it takes before migrating.
-func IsPreMigrateCopy(name string) bool {
-	_, ok := parsePreMigrateName(name)
-	return ok
+// PrunePreMigrateCopies removes every pre-migration copy in the store's
+// snapshots directory modified before the given time, and returns every
+// removal's error joined. A copy written after before was not captured
+// by the backup run that began then, so it stays. A pre-restore copy
+// always stays: it holds the rows its restore did not bring back, so no
+// backup captured them, and like a discarded store it is removed only
+// by hand. The backup reference and every other name are untouched.
+func (h *Handle) PrunePreMigrateCopies(before time.Time) error {
+	dir := h.leaf.snapshotsDir
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", dir, err)
+	}
+	var errs []error
+	for _, e := range entries {
+		if _, ok := parsePreMigrateName(e.Name()); !ok || e.IsDir() {
+			continue
+		}
+		info, err := e.Info()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("stat %s: %w", e.Name(), err))
+			continue
+		}
+		if !info.ModTime().Before(before) {
+			continue
+		}
+		path := filepath.Join(dir, e.Name())
+		if err := os.Remove(path); err != nil {
+			errs = append(errs, fmt.Errorf("remove %s: %w", path, err))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // parsePreMigrateName reports the version name carries when name is

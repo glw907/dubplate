@@ -6,7 +6,6 @@ import (
 	"math"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -171,8 +170,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	if err := progress("pruning old snapshots"); err != nil {
 		return "", err
 	}
-	localDir := filepath.Join(filepath.Dir(filepath.Dir(stage)), "snapshots")
-	p := prune{t: t, remote: remote, stamp: stamp, localDir: localDir, start: start,
+	p := prune{t: t, remote: remote, stamp: stamp, store: j.Store, start: start,
 		snapshotKeep: j.SnapshotKeep, archiveRetention: j.ArchiveRetention}
 	result := p.run(ctx, j.Logger)
 	if result == "" {

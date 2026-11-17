@@ -109,18 +109,19 @@ const (
 // [servePortFloor] and [servePortCeiling], naming the capability a
 // privileged port would need. [validateMagicLinkSource] calls it, so
 // [config.Load] refuses an out-of-range port for doctor and every verb
-// before serve ever binds.
+// before serve ever binds. A value that does not parse returns
+// [config.ParseInt]'s own [config.KeyError].
 func validateServePort(environ []string) error {
 	port, err := config.ParseInt(environ, servePortThreshold)
 	if err != nil {
-		return &sourceKeyError{key: servePortThreshold.Key, reason: splitKeyReason(err)}
+		return err
 	}
 	if port < servePortFloor {
-		return &sourceKeyError{key: servePortThreshold.Key, reason: fmt.Sprintf(
+		return &config.KeyError{Key: servePortThreshold.Key, Reason: fmt.Sprintf(
 			"%d is below %d: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port", port, servePortFloor)}
 	}
 	if port > servePortCeiling {
-		return &sourceKeyError{key: servePortThreshold.Key, reason: fmt.Sprintf("%d is above %d", port, servePortCeiling)}
+		return &config.KeyError{Key: servePortThreshold.Key, Reason: fmt.Sprintf("%d is above %d", port, servePortCeiling)}
 	}
 	return nil
 }

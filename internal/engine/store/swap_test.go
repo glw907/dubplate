@@ -274,7 +274,7 @@ func TestRestore_CrashLeftWAL(t *testing.T) {
 		t.Errorf("restored store jobs = %q, want %q", got, incomingJob)
 	}
 	r := readRecord(t, l)
-	if r.State != intentSwap || r.PreRestore != testPreRestore || r.DiscardCurrent || r.Incoming != testIncoming || r.Version != binaryHead || r.Source.File != "source.db" {
+	if r.State != intentSwap || r.PreRestore != testPreRestore || r.DiscardCurrent || r.Incoming != testIncoming || r.Version != binaryHead || r.File != "source.db" {
 		t.Errorf("record = %+v, want state swap owing %s for %s at version %d", r, testPreRestore, testIncoming, binaryHead)
 	}
 }
@@ -390,8 +390,8 @@ func TestRestoreSession_NoCurrentStore(t *testing.T) {
 	if r.PreRestore != "" || r.DiscardCurrent {
 		t.Errorf("record owes pre_restore %q, discard %v; want neither", r.PreRestore, r.DiscardCurrent)
 	}
-	if r.Library == nil || r.Library.Root != "/srv/music" || r.Source.Snapshot != "20260924T030000.000000Z" {
-		t.Errorf("record library %+v, source %+v; want root /srv/music and the snapshot", r.Library, r.Source)
+	if r.LibraryRoot != "/srv/music" || r.Snapshot != "20260924T030000.000000Z" {
+		t.Errorf("record library_root %q, snapshot %q; want /srv/music and the snapshot", r.LibraryRoot, r.Snapshot)
 	}
 	if got := listDir(t, l.snapshotsDir); len(got) != 0 {
 		t.Errorf("snapshots/ = %q, want empty", got)

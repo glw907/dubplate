@@ -2,9 +2,6 @@ package config
 
 import (
 	"fmt"
-	"maps"
-	"reflect"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -26,29 +23,6 @@ func panicMessage(t *testing.T, fn func()) string {
 		t.Fatal("want panic, got none")
 	}
 	return msg
-}
-
-func TestNewRegistry_CarriesRung1Declarations(t *testing.T) {
-	r := NewRegistry()
-
-	if got := r.OwnedWall(); !slices.Equal(got, ownedWall) {
-		t.Errorf("OwnedWall() = %+v, want %+v", got, ownedWall)
-	}
-	if got := r.ReservedClasses(); !reflect.DeepEqual(got, reservedClasses) {
-		t.Errorf("ReservedClasses() = %+v, want %+v", got, reservedClasses)
-	}
-	if got := r.Superseded(); !maps.Equal(got, supersededKeys) {
-		t.Errorf("Superseded() = %+v, want %+v", got, supersededKeys)
-	}
-	if got := r.IntegrationClasses(); len(got) != 0 {
-		t.Errorf("IntegrationClasses() = %+v, want empty: rung 1 declares none", got)
-	}
-	if got := r.Thresholds(); len(got) != 0 {
-		t.Errorf("Thresholds() = %+v, want empty: rung 1 registers none", got)
-	}
-	if got := r.IdentitySources(); len(got) != 0 {
-		t.Errorf("IdentitySources() = %+v, want empty: rung 1 declares none", got)
-	}
 }
 
 func TestRegistry_AccessorsReturnCopy(t *testing.T) {

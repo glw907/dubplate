@@ -63,7 +63,10 @@ type intentRecord struct {
 	// names the report and every discarded file.
 	Stamp string `json:"stamp"`
 
-	Source intentSource `json:"source"`
+	// RestoreIntent is the caller's half, flat in the record: the source
+	// of the restored store and, when LibraryRoot is set, the library
+	// half.
+	RestoreIntent
 
 	// Incoming is the staged store's basename in staging/.
 	Incoming string `json:"incoming"`
@@ -75,37 +78,9 @@ type intentRecord struct {
 
 	DiscardCurrent bool `json:"discard_current"`
 
-	// Library is set when the library half is owed.
-	Library *libraryOwed `json:"library"`
-
 	// Version is the incoming store's user_version when it was
 	// verified, kept for the report and refusal text.
 	Version int `json:"version"`
-}
-
-// intentSource is where a restore read its snapshot: a stamp on a
-// remote, or a local file.
-type intentSource struct {
-	Remote   string `json:"remote,omitempty"`
-	Snapshot string `json:"snapshot,omitempty"`
-	File     string `json:"file,omitempty"`
-}
-
-// libraryOwed is the library half of a restore.
-type libraryOwed struct {
-	// Root is the library root, resolved once, as an absolute path.
-	Root         string `json:"root"`
-	IntoNonempty bool   `json:"into_nonempty"`
-}
-
-// restoreIntent returns the caller-facing half of r: the source of the
-// restored store and the library half when one is owed.
-func (r intentRecord) restoreIntent() RestoreIntent {
-	in := RestoreIntent{Remote: r.Source.Remote, Snapshot: r.Source.Snapshot, File: r.Source.File}
-	if r.Library != nil {
-		in.LibraryRoot, in.IntoNonempty = r.Library.Root, r.Library.IntoNonempty
-	}
-	return in
 }
 
 // decodeIntent parses b as a restore-intent record, refusing an empty
@@ -156,11 +131,11 @@ func (r intentRecord) validate() error {
 	if r.DiscardCurrent && r.PreRestore != "" {
 		return fmt.Errorf("field pre_restore names %s beside discard_current", r.PreRestore)
 	}
-	if r.State == intentLibrary && r.Library == nil {
-		return errors.New("field library is empty in state library")
+	if r.State == intentLibrary && r.LibraryRoot == "" {
+		return errors.New("field library_root is empty in state library")
 	}
-	if r.Library != nil && !filepath.IsAbs(r.Library.Root) {
-		return fmt.Errorf("field library.root %q is not an absolute path", r.Library.Root)
+	if r.LibraryRoot != "" && !filepath.IsAbs(r.LibraryRoot) {
+		return fmt.Errorf("field library_root %q is not an absolute path", r.LibraryRoot)
 	}
 	return nil
 }

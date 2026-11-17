@@ -442,12 +442,12 @@ func resolveStaging(cfg *config.Config) error {
 	staging := filepath.Clean(cfg.WallValue(stagingKey))
 	library := filepath.Clean(cfg.LibraryRoot)
 	if !filepath.IsAbs(staging) || !filepath.IsAbs(library) {
-		return fmt.Errorf("%s: %s and DUBPLATE_LIBRARY_ROOT %s must both be absolute paths, so the overlap check can compare them",
-			stagingKey, staging, library)
+		return &config.KeyError{Key: stagingKey, Reason: fmt.Sprintf(
+			"%s and DUBPLATE_LIBRARY_ROOT %s must both be absolute paths, so the overlap check can compare them", staging, library)}
 	}
 	if contains(staging, library) || contains(library, staging) {
-		return fmt.Errorf("%s: %s and DUBPLATE_LIBRARY_ROOT %s overlap; staging and the library root must be separate directories",
-			stagingKey, staging, library)
+		return &config.KeyError{Key: stagingKey, Reason: fmt.Sprintf(
+			"%s and DUBPLATE_LIBRARY_ROOT %s overlap; staging and the library root must be separate directories", staging, library)}
 	}
 	return nil
 }

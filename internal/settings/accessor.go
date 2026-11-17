@@ -3,7 +3,6 @@ package settings
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"sync"
 	"time"
 
@@ -41,29 +40,28 @@ func NewAccessor(h *store.Handle, reg *config.Registry) *Accessor {
 
 // Int returns the value in force for s, a KindInt setting.
 func (a *Accessor) Int(ctx context.Context, s config.Setting) (int, error) {
-	return read(ctx, a, s, config.KindInt, strconv.Atoi)
+	return read[int](ctx, a, s, config.KindInt)
 }
 
 // Duration returns the value in force for s, a KindDuration setting.
 func (a *Accessor) Duration(ctx context.Context, s config.Setting) (time.Duration, error) {
-	return read(ctx, a, s, config.KindDuration, time.ParseDuration)
+	return read[time.Duration](ctx, a, s, config.KindDuration)
 }
 
 // Float returns the value in force for s, a KindFloat setting.
 func (a *Accessor) Float(ctx context.Context, s config.Setting) (float64, error) {
-	return read(ctx, a, s, config.KindFloat, func(v string) (float64, error) {
-		return strconv.ParseFloat(v, 64)
-	})
+	return read[float64](ctx, a, s, config.KindFloat)
 }
 
 // String returns the value in force for s, a KindString setting.
 func (a *Accessor) String(ctx context.Context, s config.Setting) (string, error) {
-	return read(ctx, a, s, config.KindString, func(v string) (string, error) { return v, nil })
+	return read[string](ctx, a, s, config.KindString)
 }
 
-// read returns s's value in force parsed through p, refusing a setting
-// a's registry does not declare or declares under another kind.
-func read[T any](ctx context.Context, a *Accessor, s config.Setting, kind config.ThresholdKind, p func(string) (T, error)) (T, error) {
+// read returns s's value in force parsed under kind, which parses to
+// T, refusing a setting a's registry does not declare or declares
+// under another kind.
+func read[T any](ctx context.Context, a *Accessor, s config.Setting, kind config.ThresholdKind) (T, error) {
 	var zero T
 	reg, ok := a.settings[s.Key]
 	if !ok {
@@ -76,7 +74,15 @@ func read[T any](ctx context.Context, a *Accessor, s config.Setting, kind config
 	if err != nil {
 		return zero, err
 	}
-	return p(v)
+	parsed, err := kind.Parse(v)
+	if err != nil {
+		return zero, err
+	}
+	typed, ok := parsed.(T)
+	if !ok {
+		return zero, fmt.Errorf("%s: %v parses to %T, not %T", s.Key, kind, parsed, zero)
+	}
+	return typed, nil
 }
 
 // value returns s's value in force: its stored row's value, or the
@@ -85,32 +91,38 @@ func read[T any](ctx context.Context, a *Accessor, s config.Setting, kind config
 // silent default. Only s's own row is validated, so another key's bad
 // row does not fail this read.
 func (a *Accessor) value(ctx context.Context, s config.Setting) (string, error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
 	// The generation is read before the rows, and the rows are cached
 	// under it. Each read-pool call is its own snapshot, so a write
 	// landing between the two reads leaves newer rows under an older
 	// generation, which the next read reloads; the other order could
 	// cache older rows under a newer generation and serve them until
-	// some later write.
+	// some later write. The same order lets the reads run outside mu:
+	// a racing swap can leave older rows cached, but generations only
+	// rise, so the next read sees the mismatch and reloads.
 	var generation int64
 	if err := a.h.QueryRow(ctx, `SELECT generation FROM settings_generation WHERE singleton = 1`).Scan(&generation); err != nil {
 		return "", fmt.Errorf("%s: read settings_generation: %w", s.Key, err)
 	}
-	if !a.loaded || generation != a.generation {
-		rows, err := readRows(ctx, a.h)
+
+	a.mu.Lock()
+	rows, fresh := a.rows, a.loaded && generation == a.generation
+	a.mu.Unlock()
+
+	if !fresh {
+		loaded, err := readRows(ctx, a.h)
 		if err != nil {
 			return "", fmt.Errorf("%s: %w", s.Key, err)
 		}
-		a.rows = make(map[string]Row, len(rows))
-		for _, r := range rows {
-			a.rows[r.Key] = r
+		rows = make(map[string]Row, len(loaded))
+		for _, r := range loaded {
+			rows[r.Key] = r
 		}
-		a.generation, a.loaded = generation, true
+		a.mu.Lock()
+		a.rows, a.generation, a.loaded = rows, generation, true
+		a.mu.Unlock()
 	}
 
-	r, ok := a.rows[s.Key]
+	r, ok := rows[s.Key]
 	if !ok {
 		return s.Default, nil
 	}

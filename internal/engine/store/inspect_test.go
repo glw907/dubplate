@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"os"
 	"os/exec"
@@ -437,9 +438,6 @@ func TestInspect_SettingsFacts(t *testing.T) {
 			if !slices.Equal(f.Settings, want) {
 				t.Errorf("settings = %+v, want %+v", f.Settings, want)
 			}
-			if f.SettingsGeneration != 3 {
-				t.Errorf("settings generation = %d, want 3", f.SettingsGeneration)
-			}
 		})
 	}
 }
@@ -459,8 +457,8 @@ func TestInspect_SettingsAbsent(t *testing.T) {
 	if !f.SettingsAbsent {
 		t.Errorf("SettingsAbsent = false, want true for a store below the settings table's version")
 	}
-	if len(f.Settings) != 0 || f.SettingsGeneration != 0 {
-		t.Errorf("settings = %+v at generation %d, want none for a store predating the table", f.Settings, f.SettingsGeneration)
+	if len(f.Settings) != 0 {
+		t.Errorf("settings = %+v, want none for a store predating the table", f.Settings)
 	}
 }
 
@@ -547,5 +545,18 @@ func TestInspect_Standing(t *testing.T) {
 				t.Errorf("standing of %q = %d, want %d", tt.address, r.Standing, tt.want)
 			}
 		})
+	}
+}
+
+func TestRefusal_KeepsCause(t *testing.T) {
+	cause := errors.New("disk read failed")
+	inner := refusal(StateNotAStore, "inner")
+	err := refusal(StateRefused, "read store: %w: %w", cause, inner)
+
+	if !errors.Is(err, cause) {
+		t.Errorf("errors.Is(refusal, cause) = false; the cause left the chain")
+	}
+	if got := (Report{}).withError(err).State; got != StateRefused {
+		t.Errorf("withError state = %v, want %v: the outer refusal must win", got, StateRefused)
 	}
 }

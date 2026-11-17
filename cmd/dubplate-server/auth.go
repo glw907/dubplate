@@ -346,21 +346,6 @@ func registerAuthConfig(reg *config.Registry) {
 	reg.AddCorrelatedRule(sessionLifetimeWithinCap)
 }
 
-// sourceKeyError names one identity source key and the reason it
-// refuses, letting doctor recover the key by reading this type's own
-// field through errors.As rather than by parsing the rendered message:
-// a reason that happens to carry a colon of its own cannot be mistaken
-// for a key. Error renders "KEY: reason", so every refusal built from
-// this type reads exactly as the plain-string refusals it replaces.
-type sourceKeyError struct {
-	key    string
-	reason string
-}
-
-func (e *sourceKeyError) Error() string {
-	return e.key + ": " + e.reason
-}
-
 // validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
 // URL's shape, DUBPLATE_SMTP_FROM (spec:1289), the SMTP port bound,
@@ -375,7 +360,7 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 
 	for _, key := range secretKeys {
 		if v, ok := values[key]; ok && len(v) < secretLengthFloor {
-			errs = append(errs, &sourceKeyError{key: key, reason: fmt.Sprintf("too short, want at least %d bytes", secretLengthFloor)})
+			errs = append(errs, &config.KeyError{Key: key, Reason: fmt.Sprintf("too short, want at least %d bytes", secretLengthFloor)})
 		}
 	}
 
@@ -415,10 +400,10 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 func validateSMTPPort(value string) error {
 	port, err := strconv.Atoi(value)
 	if err != nil {
-		return fmt.Errorf("%s: not an integer", smtpPortKey)
+		return &config.KeyError{Key: smtpPortKey, Reason: "not an integer"}
 	}
 	if port < 1 || port > 65535 {
-		return fmt.Errorf("%s: %d is not in 1 through 65535", smtpPortKey, port)
+		return &config.KeyError{Key: smtpPortKey, Reason: fmt.Sprintf("%d is not in 1 through 65535", port)}
 	}
 	return nil
 }
@@ -433,10 +418,10 @@ func validateSMTPPort(value string) error {
 // clean. The returned error never repeats value.
 func validateSMTPFrom(value string) error {
 	if strings.ContainsAny(value, "\r\n") {
-		return errors.New(smtpFromKey + ": invalid email address")
+		return &config.KeyError{Key: smtpFromKey, Reason: "invalid email address"}
 	}
 	if _, err := mail.ParseAddress(value); err != nil {
-		return errors.New(smtpFromKey + ": invalid email address")
+		return &config.KeyError{Key: smtpFromKey, Reason: "invalid email address"}
 	}
 	return nil
 }
@@ -472,30 +457,30 @@ func validateSMTPFrom(value string) error {
 // rather than reaching url.Parse's error path.
 func validatePublicURL(value string) error {
 	if strings.Contains(value, "@") {
-		return &sourceKeyError{key: publicURLKey, reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
+		return &config.KeyError{Key: publicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
 	}
 	u, err := url.Parse(value)
 	if err != nil {
-		return &sourceKeyError{key: publicURLKey, reason: "invalid URL"}
+		return &config.KeyError{Key: publicURLKey, Reason: "invalid URL"}
 	}
 	if u.User != nil {
-		return &sourceKeyError{key: publicURLKey, reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
+		return &config.KeyError{Key: publicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
 	}
 	if u.RawQuery != "" {
-		return &sourceKeyError{key: publicURLKey, reason: "carries a query string"}
+		return &config.KeyError{Key: publicURLKey, Reason: "carries a query string"}
 	}
 	if u.Fragment != "" {
-		return &sourceKeyError{key: publicURLKey, reason: "carries a fragment"}
+		return &config.KeyError{Key: publicURLKey, Reason: "carries a fragment"}
 	}
 	if u.Path != "" && u.Path != "/" {
-		return &sourceKeyError{key: publicURLKey, reason: "must carry no path; the serve prefix sets where dubplate lives"}
+		return &config.KeyError{Key: publicURLKey, Reason: "must carry no path; the serve prefix sets where dubplate lives"}
 	}
 	host := u.Hostname()
 	if host == "" {
-		return &sourceKeyError{key: publicURLKey, reason: "has no host"}
+		return &config.KeyError{Key: publicURLKey, Reason: "has no host"}
 	}
 	if u.Scheme != "https" && !isLoopbackHost(host) {
-		return &sourceKeyError{key: publicURLKey, reason: "must use https unless its host is loopback"}
+		return &config.KeyError{Key: publicURLKey, Reason: "must use https unless its host is loopback"}
 	}
 	return nil
 }

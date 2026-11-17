@@ -39,17 +39,6 @@ func TestAddSetting_ListedInDeclarationOrder(t *testing.T) {
 	}
 }
 
-func TestSettings_ReturnsCopy(t *testing.T) {
-	r := NewRegistry()
-	r.AddSetting(testSetting("DUBPLATE_TEST_SETTING_COPY"))
-
-	got := r.Settings()
-	got[0].Key = "DUBPLATE_MUTATED"
-	if r.Settings()[0].Key != "DUBPLATE_TEST_SETTING_COPY" {
-		t.Error("mutating Settings()'s result changed the registry")
-	}
-}
-
 // TestAddSetting_Panics fires every malformed declaration the family
 // refuses at registration. Each want names the key and the field or
 // the other family, so a panic for the wrong reason fails the row.

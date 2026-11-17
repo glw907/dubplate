@@ -304,9 +304,6 @@ func TestPrune_LocalCopyNames(t *testing.T) {
 
 	names := localSnapshotNames(t, dir)
 	for _, tt := range tests {
-		if got := store.IsPreMigrateCopy(tt.name); got != tt.want {
-			t.Errorf("store.IsPreMigrateCopy(%q) = %v, want %v", tt.name, got, tt.want)
-		}
 		if removed := !slices.Contains(names, tt.name); removed != tt.want {
 			t.Errorf("prune removed %s: %v, want %v", tt.name, removed, tt.want)
 		}

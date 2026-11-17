@@ -206,25 +206,25 @@ func (l leaf) checkOutsideStaging(src string) error {
 	}
 	abs, err := filepath.Abs(src)
 	if err != nil {
-		return refusal(StateRefused, "restore from %s: %v", src, err)
+		return refusal(StateRefused, "restore from %s: %w", src, err)
 	}
 	dir, err := filepath.EvalSymlinks(filepath.Dir(abs))
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
-		return refusal(StateRefused, "restore from %s: %v", src, err)
+		return refusal(StateRefused, "restore from %s: %w", src, err)
 	}
 	staging, err := filepath.EvalSymlinks(l.stagingDir)
 	if err != nil {
-		return refusal(StateRefused, "resolve %s: %v", l.stagingDir, err)
+		return refusal(StateRefused, "resolve %s: %w", l.stagingDir, err)
 	}
 	paths := []string{filepath.Join(dir, filepath.Base(abs))}
 	switch resolved, err := filepath.EvalSymlinks(abs); {
 	case err == nil:
 		paths = append(paths, resolved)
 	case !errors.Is(err, fs.ErrNotExist):
-		return refusal(StateRefused, "restore from %s: %v", src, err)
+		return refusal(StateRefused, "restore from %s: %w", src, err)
 	}
 	for _, p := range paths {
 		if rel, err := filepath.Rel(staging, p); err == nil && filepath.IsLocal(rel) {
@@ -249,11 +249,11 @@ func (l leaf) checkDevices() error {
 	for _, dir := range []string{l.dbDir, l.stagingDir, l.snapshotsDir} {
 		resolved, err := filepath.EvalSymlinks(dir)
 		if err != nil {
-			return refusal(StateRefused, "resolve %s: %v", dir, err)
+			return refusal(StateRefused, "resolve %s: %w", dir, err)
 		}
 		info, err := os.Stat(resolved)
 		if err != nil {
-			return refusal(StateRefused, "stat %s: %v", resolved, err)
+			return refusal(StateRefused, "stat %s: %w", resolved, err)
 		}
 		st, ok := info.Sys().(*syscall.Stat_t)
 		if !ok {
@@ -318,7 +318,7 @@ func (s *RestoreSession) CheckSpace(size int64) error {
 }
 
 // StageFile copies the local file [RestoreOptions.FromFile] names,
-// src here, into the session's stage at mode 0600 and syncs it,
+// src here, into the session's stage at mode 0600 and seals it ([RestoreSession.SealStage]),
 // leaving src untouched. [OpenRestore] has already refused a src
 // inside staging/. StageFile refuses, staging nothing, when the session
 // has no src; when src is absent, not a regular file, or unreadable;
@@ -352,7 +352,32 @@ func (s *RestoreSession) StageFile() error {
 	if err := copyFile(s.stage, in); err != nil {
 		return errors.Join(fmt.Errorf("stage %s: %w", src, err), os.Remove(s.stage))
 	}
+	if err := s.SealStage(); err != nil {
+		return errors.Join(fmt.Errorf("stage %s: %w", src, err), os.Remove(s.stage))
+	}
 	return nil
+}
+
+// SealStage sets the stage to mode 0600 and flushes it, and then
+// staging/, to disk, so that a power cut after the swap cannot leave db/
+// naming a file whose blocks were never written. [RestoreSession.StageFile]
+// calls it after its copy, and a fetch calls it after the download; both
+// run it before [RestoreSession.Record] names the stage. The caller
+// removes the stage when SealStage fails.
+func (s *RestoreSession) SealStage() error {
+	if err := os.Chmod(s.stage, 0o600); err != nil {
+		return fmt.Errorf("seal the stage: %w", err)
+	}
+	// O_RDWR, since a read-only open of a FIFO planted at the stage
+	// path would block until a writer came.
+	f, err := os.OpenFile(s.stage, os.O_RDWR, 0)
+	if err != nil {
+		return fmt.Errorf("seal the stage: %w", err)
+	}
+	if err := errors.Join(f.Sync(), f.Close()); err != nil {
+		return fmt.Errorf("seal the stage: %w", err)
+	}
+	return syncDir(s.leaf.stagingDir)
 }
 
 // checkSource refuses src as StageFile does and returns it resolved
@@ -390,17 +415,13 @@ func (s *RestoreSession) checkSource(src string) (string, error) {
 	return resolved, nil
 }
 
-// copyFile copies src into the existing empty file at path and syncs
-// it.
+// copyFile copies src into the existing empty file at path.
 func copyFile(path string, src io.Reader) error {
 	out, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
 		return err
 	}
 	if _, err := io.Copy(out, src); err != nil {
-		return errors.Join(err, out.Close())
-	}
-	if err := out.Sync(); err != nil {
 		return errors.Join(err, out.Close())
 	}
 	return out.Close()
@@ -579,17 +600,17 @@ func (s *RestoreSession) Quiesce(ctx context.Context, discard bool) error {
 // source of the incoming store, and the library half when one is owed.
 type RestoreIntent struct {
 	// Remote and Snapshot name a snapshot fetched from a remote.
-	Remote   string
-	Snapshot string
+	Remote   string `json:"remote,omitempty"`
+	Snapshot string `json:"snapshot,omitempty"`
 
 	// File names the local file a restore from a file staged.
-	File string
+	File string `json:"file,omitempty"`
 
 	// LibraryRoot is the library root, resolved to an absolute path,
 	// when the restore owes the library half, and empty when it does
 	// not.
-	LibraryRoot  string
-	IntoNonempty bool
+	LibraryRoot  string `json:"library_root,omitempty"`
+	IntoNonempty bool   `json:"into_nonempty,omitempty"`
 }
 
 // Record writes the restore-intent record that opens the swap. It
@@ -612,16 +633,13 @@ func (s *RestoreSession) Record(in RestoreIntent) error {
 		Format:         intentFormat,
 		State:          intentSwap,
 		Stamp:          s.stamp,
-		Source:         intentSource{Remote: in.Remote, Snapshot: in.Snapshot, File: in.File},
+		RestoreIntent:  in,
 		Incoming:       filepath.Base(s.stage),
 		DiscardCurrent: s.current == currentDiscard,
 		Version:        s.version,
 	}
 	if s.current == currentQuiesced {
 		r.PreRestore = preRestorePrefix + s.stamp + dbSuffix
-	}
-	if in.LibraryRoot != "" {
-		r.Library = &libraryOwed{Root: in.LibraryRoot, IntoNonempty: in.IntoNonempty}
 	}
 	if err := s.leaf.writeIntent(r); err != nil {
 		return err
@@ -762,15 +780,10 @@ func (s *RestoreSession) Owed() RestoreStep {
 // restore-intent record names, and the zero RestoreIntent before there
 // is one.
 func (s *RestoreSession) Intent() RestoreIntent {
-	r := s.intent
-	if r == nil {
+	if s.intent == nil {
 		return RestoreIntent{}
 	}
-	in := RestoreIntent{Remote: r.Source.Remote, Snapshot: r.Source.Snapshot, File: r.Source.File}
-	if r.Library != nil {
-		in.LibraryRoot, in.IntoNonempty = r.Library.Root, r.Library.IntoNonempty
-	}
-	return in
+	return s.intent.RestoreIntent
 }
 
 // PreRestorePath returns the path of the pre-restore copy the session's
@@ -817,7 +830,7 @@ func (s *RestoreSession) Advance(ctx context.Context) (RestoreStep, error) {
 		if len(moves) > 0 || in {
 			return 0, errors.New("advance the restore: the swap has not finished")
 		}
-		if r.Library != nil {
+		if r.LibraryRoot != "" {
 			next = intentLibrary
 		}
 	}

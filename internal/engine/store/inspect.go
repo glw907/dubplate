@@ -190,15 +190,13 @@ type Facts struct {
 	Copies     int
 	CopiesSize int64
 
-	// Settings holds every settings row as stored, in key order, and
-	// SettingsGeneration the store's settings generation, for a store
-	// whose version holds the settings table. SettingsAbsent marks a
-	// store whose version predates it (through 0003), so a table
-	// absent is never confused with a table holding no rows; Settings
-	// and SettingsGeneration are unset in that case.
-	Settings           []SettingsRow
-	SettingsGeneration int64
-	SettingsAbsent     bool
+	// Settings holds every settings row as stored, in key order, for a
+	// store whose version holds the settings table. SettingsAbsent
+	// marks a store whose version predates it (through 0003), so a
+	// table absent is never confused with a table holding no rows;
+	// Settings is unset in that case.
+	Settings       []SettingsRow
+	SettingsAbsent bool
 
 	// Members counts the live users rows and Admins those holding the
 	// admin flag, for a store whose version holds the users table. A
@@ -223,12 +221,17 @@ type JobSuccess struct {
 	Progress string
 }
 
-// A SettingsRow is one settings row as [Facts] reads it, before
-// internal/settings interprets it.
+// A SettingsRow is one settings row as the store holds it.
 type SettingsRow struct {
-	Key       string
-	Value     string
-	Source    string
+	Key   string
+	Value string
+	// Source is "env-seed" for a value the environment seeded and
+	// "admin" for one an administrator set.
+	Source string
+	// SeedValue is the environment seed the row's value came from or,
+	// on an admin row, replaced. It is empty when the row records
+	// none; an environment seed is never empty, since an empty
+	// environment value counts as unset.
 	SeedValue string
 	Actor     string
 	UpdatedAt time.Time
@@ -274,7 +277,7 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 		}
 		return r.withClass(l, c, files)
 	}
-	lock, err := acquireSharedNonblocking(l.lockPath)
+	lock, err := tryLock(l.lockPath, syscall.LOCK_SH)
 	if errors.Is(err, ErrLockBusy) {
 		r.State = StateBusy
 		r.Holders = lockHolders(l.lockPath)
@@ -312,16 +315,16 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 	case err == nil:
 		f.WALSize = info.Size()
 	case !errors.Is(err, fs.ErrNotExist):
-		return nil, StandingNotRead, refusal(StateRefused, "stat %s-wal: %v", l.dbPath, err)
+		return nil, StandingNotRead, refusal(StateRefused, "stat %s-wal: %w", l.dbPath, err)
 	}
 
 	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, opts.BusyTimeout))
 	if err != nil {
-		return nil, StandingNotRead, refusal(StateRefused, "open %s: %v", l.dbPath, err)
+		return nil, StandingNotRead, refusal(StateRefused, "open %s: %w", l.dbPath, err)
 	}
 	defer func() {
 		if cerr := db.Close(); cerr != nil && err == nil {
-			err = refusal(StateRefused, "close %s: %v", l.dbPath, cerr)
+			err = refusal(StateRefused, "close %s: %w", l.dbPath, cerr)
 		}
 	}()
 
@@ -330,7 +333,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 	}
 
 	if version >= settingsVersion {
-		if f.Settings, f.SettingsGeneration, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
+		if f.Settings, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
 			return nil, StandingNotRead, err
 		}
 	} else {
@@ -358,7 +361,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 
 	entries, err := os.ReadDir(l.snapshotsDir)
 	if err != nil {
-		return nil, StandingNotRead, refusal(StateRefused, "read %s: %v", l.snapshotsDir, err)
+		return nil, StandingNotRead, refusal(StateRefused, "read %s: %w", l.snapshotsDir, err)
 	}
 	for _, e := range entries {
 		if !e.Type().IsRegular() || !isCopy(e.Name()) {
@@ -366,7 +369,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 		}
 		info, err := e.Info()
 		if err != nil {
-			return nil, StandingNotRead, refusal(StateRefused, "stat %s: %v", filepath.Join(l.snapshotsDir, e.Name()), err)
+			return nil, StandingNotRead, refusal(StateRefused, "stat %s: %w", filepath.Join(l.snapshotsDir, e.Name()), err)
 		}
 		f.Copies++
 		f.CopiesSize += info.Size()
@@ -383,7 +386,7 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 	FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
 ) WHERE rank = 1`)
 	if err != nil {
-		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -395,12 +398,12 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 			progress sql.NullString
 		)
 		if err := rows.Scan(&kind, &finished, &progress); err != nil {
-			return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 		}
 		last[kind] = JobSuccess{Finished: time.UnixMicro(finished).UTC(), Progress: progress.String}
 	}
 	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read jobs in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 	}
 	return last, nil
 }
@@ -410,7 +413,7 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admins int, err error) {
 	err = db.QueryRowContext(ctx, `SELECT count(*), coalesce(sum(admin), 0) FROM users WHERE tombstoned_at IS NULL`).Scan(&members, &admins)
 	if err != nil {
-		return 0, 0, refusal(StateRefused, "read users in %s: %v", dbPath, err)
+		return 0, 0, refusal(StateRefused, "read users in %s: %w", dbPath, err)
 	}
 	return members, admins, nil
 }
@@ -420,19 +423,19 @@ func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admi
 func readCollectionRoots(ctx context.Context, db *sql.DB, dbPath string) ([][]byte, error) {
 	rows, err := db.QueryContext(ctx, `SELECT root_path FROM collections ORDER BY root_path`)
 	if err != nil {
-		return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 	var roots [][]byte
 	for rows.Next() {
 		var root []byte
 		if err := rows.Scan(&root); err != nil {
-			return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
 		}
 		roots = append(roots, root)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read collections in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
 	}
 	return roots, nil
 }
@@ -447,7 +450,7 @@ func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Stan
 	case errors.Is(err, sql.ErrNoRows):
 		return StandingNone, nil
 	case err != nil:
-		return StandingNotRead, refusal(StateRefused, "read users in %s: %v", dbPath, err)
+		return StandingNotRead, refusal(StateRefused, "read users in %s: %w", dbPath, err)
 	case tombstoned:
 		return StandingRemoved, nil
 	case admin:
@@ -456,12 +459,11 @@ func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Stan
 	return StandingMember, nil
 }
 
-// readSettingsFacts returns every settings row db reads, in key order,
-// and the settings generation.
-func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, int64, error) {
+// readSettingsFacts returns every settings row db reads, in key order.
+func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, error) {
 	rows, err := db.QueryContext(ctx, `SELECT key, value, source, seed_value, actor, updated_at FROM settings ORDER BY key`)
 	if err != nil {
-		return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -473,21 +475,17 @@ func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]Settin
 			at   int64
 		)
 		if err := rows.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
-			return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+			return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 		}
 		r.SeedValue = seed.String
 		r.UpdatedAt = time.UnixMicro(at).UTC()
 		settings = append(settings, r)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, refusal(StateRefused, "read settings in %s: %v", dbPath, err)
+		return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 	}
 
-	var generation int64
-	if err := db.QueryRowContext(ctx, `SELECT generation FROM settings_generation WHERE singleton = 1`).Scan(&generation); err != nil {
-		return nil, 0, refusal(StateRefused, "read settings_generation in %s: %v", dbPath, err)
-	}
-	return settings, generation, nil
+	return settings, nil
 }
 
 // withError returns r carrying err's state and text: a refusal

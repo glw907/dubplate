@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -28,20 +27,7 @@ const selectRows = `SELECT key, value, source, seed_value, actor, updated_at
 	FROM settings ORDER BY key`
 
 // A Row is one settings row as the store holds it.
-type Row struct {
-	Key   string
-	Value string
-	// Source is "env-seed" for a value the environment seeded and
-	// "admin" for one an administrator set.
-	Source string
-	// SeedValue is the environment seed the row's value came from or,
-	// on an admin row, replaced. It is empty when the row records
-	// none; an environment seed is never empty, since an empty
-	// environment value counts as unset.
-	SeedValue string
-	Actor     string
-	UpdatedAt time.Time
-}
+type Row = store.SettingsRow
 
 // A Change is what the seed rule does to one setting's row.
 type Change int
@@ -133,11 +119,7 @@ func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Ev
 	if facts.SettingsAbsent {
 		return evaluate(reg, environ, nil)
 	}
-	rows := make([]Row, len(facts.Settings))
-	for i, r := range facts.Settings {
-		rows[i] = Row{Key: r.Key, Value: r.Value, Source: r.Source, SeedValue: r.SeedValue, Actor: r.Actor, UpdatedAt: r.UpdatedAt}
-	}
-	return evaluate(reg, environ, rows)
+	return evaluate(reg, environ, facts.Settings)
 }
 
 // readRows reads every settings row through h's read pool.
@@ -253,7 +235,7 @@ func evaluate(reg *config.Registry, environ []string, rows []Row) Evaluation {
 // healed rather than refused.
 func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 	o := Outcome{Key: s.Key, Stored: stored}
-	o.Env, o.EnvSet = lookupEnv(environ, s.Key)
+	o.Env, o.EnvSet = config.Lookup(environ, s.Key)
 
 	var errs []error
 	if o.EnvSet {
@@ -341,35 +323,15 @@ func (o Outcome) refuse(err error) Outcome {
 	return o
 }
 
-// lookupEnv returns key's value in environ, a later entry winning over
-// an earlier one, and reports whether it is set. An empty value is
-// unset, the configuration wall's own rule.
-func lookupEnv(environ []string, key string) (string, bool) {
-	var value string
-	for _, kv := range environ {
-		if k, v, ok := strings.Cut(kv, "="); ok && k == key {
-			value = v
-		}
-	}
-	return value, value != ""
-}
-
-// parse reads s under kind, returning an int, a time.Duration, a
-// float64, or the string itself, so two values parsed under one kind
-// compare with ==.
+// parse reads s under kind as [config.ThresholdKind.Parse] does, except
+// that a float may be NaN or infinite: outcome parses stored rows that
+// never passed a validator, and a stored non-finite row must parse so
+// that a re-seed can heal it rather than refuse it.
 func parse(kind config.ThresholdKind, s string) (any, error) {
-	switch kind {
-	case config.KindString:
-		return s, nil
-	case config.KindInt:
-		return strconv.Atoi(s)
-	case config.KindDuration:
-		return time.ParseDuration(s)
-	case config.KindFloat:
+	if kind == config.KindFloat {
 		return strconv.ParseFloat(s, 64)
-	default:
-		return nil, fmt.Errorf("setting kind %v has no parser", kind)
 	}
+	return kind.Parse(s)
 }
 
 // equal reports whether a and b parse to the same value under kind,

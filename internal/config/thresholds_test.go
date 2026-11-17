@@ -31,21 +31,6 @@ func TestRegister_AppearsInThresholds(t *testing.T) {
 	}
 }
 
-// TestThresholds_ReturnsCopy proves the copy property [Registry.OwnedWall]
-// already carries survives the accessor's move onto the registry:
-// mutating a returned slice must not corrupt what a second call returns.
-func TestThresholds_ReturnsCopy(t *testing.T) {
-	reg := NewRegistry()
-	reg.AddThreshold(Threshold{Key: "DUBPLATE_TEST_ONE", Description: testDescription, Mark: NotSensitive, Default: "1", Doc: "a positive integer"})
-
-	got := reg.Thresholds()
-	got[0].Key = "mutated"
-
-	if reg.thresholds[0].Key == "mutated" {
-		t.Fatal("Thresholds() leaked the backing array; a caller can corrupt the registry")
-	}
-}
-
 func TestParseInt(t *testing.T) {
 	th := Threshold{Key: "DUBPLATE_TEST_QUIESCENT_MIN", Description: testDescription, Mark: NotSensitive, Default: "10", Doc: "a positive integer number of minutes"}
 
@@ -305,6 +290,96 @@ func TestThresholdKinds(t *testing.T) {
 			}
 			if tt.invalidValue != "" && strings.Contains(err.Error(), tt.doc) {
 				t.Errorf("unset+invalid-default: parse() error = %q, must not contain Doc %q, or it is indistinguishable from a set+invalid-value error", err.Error(), tt.doc)
+			}
+		})
+	}
+}
+
+// TestParseThreshold_Bounds reads a value below, at, and above each
+// bound under each numeric kind. A bound is inclusive, and an empty
+// Floor or Ceiling leaves that side open.
+func TestParseThreshold_Bounds(t *testing.T) {
+	const key = "DUBPLATE_TEST_BOUNDED"
+	defaults := map[ThresholdKind]string{KindInt: "5", KindDuration: "30s", KindFloat: "0.5"}
+	tests := []struct {
+		name  string
+		kind  ThresholdKind
+		floor string
+		ceil  string
+		value string
+		want  string
+	}{
+		{"int below floor", KindInt, "3", "9", "2", `DUBPLATE_TEST_BOUNDED: value "2" is below the floor 3`},
+		{"int at floor", KindInt, "3", "9", "3", ""},
+		{"int at ceiling", KindInt, "3", "9", "9", ""},
+		{"int above ceiling", KindInt, "3", "9", "10", `DUBPLATE_TEST_BOUNDED: value "10" is above the ceiling 9`},
+		{"int no floor", KindInt, "", "9", "-100", ""},
+		{"int no ceiling", KindInt, "3", "", "1000", ""},
+		{"duration below floor", KindDuration, "1s", "1m", "999ms", `DUBPLATE_TEST_BOUNDED: value "999ms" is below the floor 1s`},
+		{"duration at floor", KindDuration, "1s", "1m", "1s", ""},
+		{"duration at ceiling", KindDuration, "1s", "1m", "60s", ""},
+		{"duration above ceiling", KindDuration, "1s", "1m", "61s", `DUBPLATE_TEST_BOUNDED: value "61s" is above the ceiling 1m`},
+		{"float below floor", KindFloat, "0.25", "1", "0.2", `DUBPLATE_TEST_BOUNDED: value "0.2" is below the floor 0.25`},
+		{"float at floor", KindFloat, "0.25", "1", "0.25", ""},
+		{"float at ceiling", KindFloat, "0.25", "1", "1", ""},
+		{"float above ceiling", KindFloat, "0.25", "1", "1.5", `DUBPLATE_TEST_BOUNDED: value "1.5" is above the ceiling 1`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := Threshold{Key: key, Kind: tt.kind, Default: defaults[tt.kind], Doc: "a number", Floor: tt.floor, Ceiling: tt.ceil}
+			environ := []string{key + "=" + tt.value}
+			var err error
+			switch tt.kind {
+			case KindInt:
+				_, err = ParseInt(environ, th)
+			case KindDuration:
+				_, err = ParseDuration(environ, th)
+			case KindFloat:
+				_, err = ParseFloat(environ, th)
+			}
+			got := ""
+			if err != nil {
+				got = err.Error()
+				if _, ok := err.(*KeyError); !ok {
+					t.Errorf("error %T, want *KeyError", err)
+				}
+			}
+			if got != tt.want {
+				t.Errorf("error = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestAddThreshold_RefusesADefaultOutsideItsBounds registers a default
+// below the floor and above the ceiling, and one at a bound, which
+// registers.
+func TestAddThreshold_RefusesADefaultOutsideItsBounds(t *testing.T) {
+	const key = "DUBPLATE_TEST_BOUNDED"
+	th := func(kind ThresholdKind, def, floor, ceil string) Threshold {
+		return Threshold{Key: key, Kind: kind, Default: def, Doc: "a number", Floor: floor, Ceiling: ceil,
+			Description: testDescription, Mark: NotSensitive}
+	}
+	tests := []struct {
+		name string
+		t    Threshold
+		want string
+	}{
+		{"int below", th(KindInt, "2", "3", "9"), `DUBPLATE_TEST_BOUNDED: default "2" is below the floor 3`},
+		{"int above", th(KindInt, "10", "3", "9"), `DUBPLATE_TEST_BOUNDED: default "10" is above the ceiling 9`},
+		{"duration below", th(KindDuration, "1ms", "1s", "1m"), `DUBPLATE_TEST_BOUNDED: default "1ms" is below the floor 1s`},
+		{"float above", th(KindFloat, "2", "0.25", "1"), `DUBPLATE_TEST_BOUNDED: default "2" is above the ceiling 1`},
+		{"int at floor", th(KindInt, "3", "3", "9"), ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reg := NewRegistry()
+			if tt.want == "" {
+				reg.AddThreshold(tt.t)
+				return
+			}
+			if msg := panicMessage(t, func() { reg.AddThreshold(tt.t) }); msg != tt.want {
+				t.Errorf("panic = %q, want %q", msg, tt.want)
 			}
 		})
 	}

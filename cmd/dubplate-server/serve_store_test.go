@@ -34,7 +34,7 @@ func preMigrateCopies(t *testing.T, stateDir string) []string {
 	}
 	var names []string
 	for _, e := range entries {
-		if store.IsPreMigrateCopy(e.Name()) {
+		if strings.HasPrefix(e.Name(), "pre-migrate-v") && strings.HasSuffix(e.Name(), ".db") {
 			names = append(names, e.Name())
 		}
 	}
@@ -421,7 +421,7 @@ func addLibraryHalf(t *testing.T, path, root string) {
 	if err := json.Unmarshal(raw, &rec); err != nil {
 		t.Fatalf("parse the record: %v", err)
 	}
-	rec["library"] = map[string]any{"root": root, "into_nonempty": false}
+	rec["library_root"], rec["into_nonempty"] = root, false
 	out, err := json.Marshal(rec)
 	if err != nil {
 		t.Fatal(err)
