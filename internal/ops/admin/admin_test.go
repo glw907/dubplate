@@ -225,7 +225,7 @@ func actor(m member, anchor time.Time) ops.Actor {
 	return ops.NetworkActor(identity.Identity{
 		Address: m.address, UserID: m.id, Principal: m.username, DisplayName: m.display,
 		Source: "magic-link", Channel: identity.ChannelCookie,
-	}, anchor)
+	}, anchor, "192.0.2.1")
 }
 
 // writeCtx returns a context carrying the deadline every store write

@@ -94,11 +94,11 @@ func (s *Seam) requireFresh(ctx context.Context, actor ops.Actor) error {
 	return nil
 }
 
-// rosterActor returns the roster's actor for a network actor. The seam
-// is handed no request, so the client address its audit record would
-// carry is left empty; the mount's own record of the operation names it.
+// rosterActor returns the roster's actor for a network actor, carrying
+// the client address the verifier resolved so the roster's own audit
+// record names where the write came from.
 func rosterActor(actor ops.Actor) auth.Actor {
-	return auth.MemberActor(actor.UserID(), "")
+	return auth.MemberActor(actor.UserID(), actor.ClientAddress())
 }
 
 // parseUserID parses s as a member's wire id: exactly 32 lowercase hex

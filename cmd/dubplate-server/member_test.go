@@ -334,7 +334,7 @@ func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr)
 	}
-	wantActor := fmt.Sprintf("actor=uid:%d", os.Geteuid())
+	wantActor := fmt.Sprintf("actor=local:uid:%d", os.Geteuid())
 	if !strings.Contains(stderr, wantActor) {
 		t.Errorf("audit record = %q, want it to contain %q", stderr, wantActor)
 	}

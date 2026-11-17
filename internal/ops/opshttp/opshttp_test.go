@@ -297,14 +297,14 @@ func TestServeHTTPDenials(t *testing.T) {
 		{
 			name: "member grant on an admin operation",
 			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.NetworkActor(planted, annAnchor), ops.PrivilegeMember, nil
+				return ops.NetworkActor(planted, annAnchor, "192.0.2.1"), ops.PrivilegeMember, nil
 			},
 			wantReason: "granted privilege does not reach the operation's",
 		},
 		{
 			name: "zero grant",
 			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.NetworkActor(planted, annAnchor), 0, nil
+				return ops.NetworkActor(planted, annAnchor, "192.0.2.1"), 0, nil
 			},
 			wantReason: "granted privilege does not reach the operation's",
 		},

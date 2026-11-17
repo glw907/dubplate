@@ -157,7 +157,7 @@ func TestSettingsResetCmd_ResolvesEachRefusal(t *testing.T) {
 			if _, has := rows[retentionKey]; has {
 				t.Errorf("row after reset = %v, want it deleted", rows[retentionKey])
 			}
-			if got, want := strings.Join(audit[len(baseAudit):], "|"), "reset operator command-line "+retentionKey; got != want {
+			if got, want := strings.Join(audit[len(baseAudit):], "|"), "reset local:operator command-line "+retentionKey; got != want {
 				t.Errorf("new audit rows = %q, want %q", got, want)
 			}
 			if gen != baseGen+1 {
@@ -433,8 +433,8 @@ func TestSettingsResetCmd_AuditRow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read the audit row: %v", err)
 	}
-	if kind != "reset" || actor != "operator" || channel != "command-line" || oldValue != "50" || !newIsNull {
-		t.Errorf("audit row = %q %q %q old %q new NULL %v, want reset operator command-line old 50 new NULL",
+	if kind != "reset" || actor != "local:operator" || channel != "command-line" || oldValue != "50" || !newIsNull {
+		t.Errorf("audit row = %q %q %q old %q new NULL %v, want reset local:operator command-line old 50 new NULL",
 			kind, actor, channel, oldValue, newIsNull)
 	}
 }

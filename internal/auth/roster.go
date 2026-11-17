@@ -104,11 +104,10 @@ var (
 	ErrActorNotAdmin = errors.New("auth: the actor is not an admin")
 )
 
-// Member is one roster entry (R1): a durable id, a login address, a
+// Member is one roster entry: a durable id, a login address, a
 // display name, a stable principal, and the admin flag. The admin flag
-// is the whole of rung 5's authorization vocabulary
-// (spec:1111-1115): a later rung reaching for a role model is adding
-// one, not extending one.
+// is the whole of rung 5's authorization vocabulary: a later rung
+// reaching for a role model is adding one, not extending one.
 type Member struct {
 	// ID is the member's durable id, minted once by the store when the
 	// member is first added. It is zero on a candidate not yet written.
@@ -203,13 +202,14 @@ func (a Actor) authorize(ctx context.Context, tx *store.Tx) error {
 	return CheckAdmin(ctx, tx, a.id)
 }
 
-// String returns how an audit record names a: an operator by name, and a
+// String returns how an audit record names a: an operator as "local:"
+// and their name, the form internal/ops gives a local actor, and a
 // member as "member:" and the lowercase hex of their id, the form
 // internal/ops gives a network actor in the settings audit, so the two
-// records name one member alike.
+// records name one actor alike.
 func (a Actor) String() string {
 	if a.channel == identity.ChannelCommandLine {
-		return a.name
+		return "local:" + a.name
 	}
 	return "member:" + hex.EncodeToString(a.id[:])
 }

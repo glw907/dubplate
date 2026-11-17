@@ -423,6 +423,31 @@ func TestAPI_AddMemberNeverGrantsAdmin(t *testing.T) {
 	}
 }
 
+// TestAPI_AddMemberRecordsTheClientAddress proves the roster's own audit
+// record for a web add names the address the request came from: the
+// harness's requests carry httptest's peer 192.0.2.1 and no trusted
+// proxy is configured, so the client address is the peer.
+func TestAPI_AddMemberRecordsTheClientAddress(t *testing.T) {
+	a := newAPIHarness(t, apiMembers, nil)
+	admin := a.session("admin@example.com", time.Now())
+	rec := a.call("add_member", admin, `{"address":"new@example.com","display_name":"New Member","username":"newmember"}`)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("add_member = %d %s, want 200", rec.Code, rec.Body)
+	}
+	var added []map[string]any
+	for _, r := range a.logs.records(t) {
+		if r["msg"] == "roster member added" {
+			added = append(added, r)
+		}
+	}
+	if len(added) != 1 {
+		t.Fatalf("roster member added records = %d, want 1: %s", len(added), a.logs)
+	}
+	if got := added[0]["client_ip"]; got != "192.0.2.1" {
+		t.Errorf("client_ip = %v, want 192.0.2.1: %v", got, added[0])
+	}
+}
+
 // envSentinels gives every key only the environment holds a distinct
 // value no /api/v1 answer may carry. A path, an address, a secret, a
 // host, and every port each gets its own literal, and each is valid for

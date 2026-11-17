@@ -54,9 +54,12 @@ var testAnchor = time.Date(2026, 10, 11, 9, 30, 0, 0, time.UTC)
 // read-only accessors for a valid login. The wire form is the
 // lowercase hex of the UserID, written out here rather than computed.
 func TestNetworkActor(t *testing.T) {
-	got := NetworkActor(validIdentity(), testAnchor)
+	got := NetworkActor(validIdentity(), testAnchor, "192.0.2.1")
 	if want := "member:01000000000000000000000000000000"; got.String() != want {
 		t.Errorf("NetworkActor(...).String() = %q, want %q", got.String(), want)
+	}
+	if got.ClientAddress() != "192.0.2.1" {
+		t.Errorf("NetworkActor(...).ClientAddress() = %q, want %q", got.ClientAddress(), "192.0.2.1")
 	}
 	if got.Channel() != identity.ChannelCookie {
 		t.Errorf("NetworkActor(...).Channel() = %v, want %v", got.Channel(), identity.ChannelCookie)
@@ -92,7 +95,7 @@ func TestNetworkActor_WireFormFollowsUserID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NetworkActor(tt.id, testAnchor).String(); got != tt.want {
+			if got := NetworkActor(tt.id, testAnchor, "192.0.2.1").String(); got != tt.want {
 				t.Errorf("NetworkActor(%+v).String() = %q, want %q", tt.id, got, tt.want)
 			}
 		})
@@ -133,7 +136,7 @@ func TestNetworkActor_RefusesInvalidIdentity(t *testing.T) {
 					t.Fatalf("NetworkActor(%+v) did not panic", tt.id)
 				}
 			}()
-			NetworkActor(tt.id, testAnchor)
+			NetworkActor(tt.id, testAnchor, "192.0.2.1")
 		})
 	}
 }
