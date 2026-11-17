@@ -49,13 +49,20 @@ func taggingServer(t *testing.T, name string) (*httptest.Server, *[]string) {
 	return srv, &paths
 }
 
-// statusServer answers every request with status, alongside
+// statusServer answers every release lookup with status, alongside
 // Retry-After: 0 so a retryable status collapses its backoff schedule
 // to no real wall time (fold M-h): without it maxAttempts (7) with
-// backoff waits 0+1+2+4+8+16 spends 31 real seconds per gate run.
+// backoff waits 0+1+2+4+8+16 spends 31 real seconds per gate run. A
+// search finds no releases, so a dropped lookup ends in ErrNoCandidates
+// rather than in a failed search.
 func statusServer(t *testing.T, status int) *httptest.Server {
 	t.Helper()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/ws/2/release" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"count": 0, "offset": 0, "releases": []}`)) //nolint:errcheck // best-effort write to a test stub
+			return
+		}
 		w.Header().Set("Retry-After", "0")
 		w.WriteHeader(status)
 	}))
@@ -142,7 +149,7 @@ func TestAlbumTakesTheIDMatchEarlyReturnAndIssuesNoSearch(t *testing.T) {
 	// search. The mutation that proves it fires: relax the rec ==
 	// strong guard, which turns this into two requests.
 	srv, paths := taggingServer(t, "early-return")
-	p, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate, Options{})
+	p, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate)
 	if err != nil {
 		t.Fatalf("Album: %v", err)
 	}
@@ -163,7 +170,7 @@ func TestAlbumSearchesWhenTheIDMatchIsExactlyMedium(t *testing.T) {
 	// search. Relaxing the guard turns that into one lookup and no
 	// search.
 	srv, paths := taggingServer(t, "medium-id")
-	p, err := Album(context.Background(), clientFor(t, srv), mediumIDItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate, Options{})
+	p, err := Album(context.Background(), clientFor(t, srv), mediumIDItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate)
 	if err != nil {
 		t.Fatalf("Album: %v", err)
 	}
@@ -183,7 +190,7 @@ func TestAlbumSearchesWhenTheIDMatchIsExactlyMedium(t *testing.T) {
 
 func TestAlbumFallsThroughToSearchWhenTheIDMatchIsNotStrong(t *testing.T) {
 	srv, paths := taggingServer(t, "search-fallback")
-	p, err := Album(context.Background(), clientFor(t, srv), searchFallbackItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate, Options{})
+	p, err := Album(context.Background(), clientFor(t, srv), searchFallbackItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate)
 	if err != nil {
 		t.Fatalf("Album: %v", err)
 	}
@@ -209,31 +216,11 @@ func TestAlbumTimidNeverTakesTheEarlyReturn(t *testing.T) {
 	tun := matcher.DefaultTunables()
 	tun.Timid = true
 	srv, paths := taggingServer(t, "early-return")
-	if _, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), tun, matcher.DefaultCompat(), evalDate, Options{}); err != nil {
+	if _, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), tun, matcher.DefaultCompat(), evalDate); err != nil {
 		t.Fatalf("Album: %v", err)
 	}
 	if len(*paths) < 2 {
 		t.Errorf("issued %v, want a search as well: timid forbids the early return (match.py:432)", *paths)
-	}
-}
-
-func TestAlbumExplicitSearchIDsSkipTheSearchAndTakeNoEarlyReturn(t *testing.T) {
-	// import.search_ids is set by no committed case (declared gap 1).
-	// Two ids in, two lookups out, no search, and no early return even
-	// when the first scores strong.
-	srv, paths := taggingServer(t, "explicit-ids")
-	p, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate,
-		Options{SearchIDs: []string{"11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"}})
-	if err != nil {
-		t.Fatalf("Album: %v", err)
-	}
-	if len(p.Candidates) != 2 {
-		t.Errorf("Candidates = %d, want 2", len(p.Candidates))
-	}
-	for _, path := range *paths {
-		if strings.HasPrefix(path, "/ws/2/release?") {
-			t.Errorf("issued a search under search_ids: match.py:417-420 skips it entirely")
-		}
 	}
 }
 
@@ -251,7 +238,7 @@ func TestAlbumMatchByIDEarlyBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			srv, paths := taggingServer(t, "search-fallback")
-			if _, err := Album(context.Background(), clientFor(t, srv), tt.items, matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate, Options{}); err != nil {
+			if _, err := Album(context.Background(), clientFor(t, srv), tt.items, matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate); err != nil {
 				t.Fatalf("Album: %v", err)
 			}
 			if strings.HasPrefix((*paths)[0], "/ws/2/release/") {
@@ -290,7 +277,7 @@ func TestAlbumDropsA404LookupAndPropagatesEverythingElse(t *testing.T) {
 			srv := statusServer(t, tt.status)
 			done := make(chan error, 1)
 			go func() {
-				_, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate, Options{SearchIDs: []string{"11111111-1111-1111-1111-111111111111"}})
+				_, err := Album(context.Background(), clientFor(t, srv), earlyReturnItems(), matcher.DefaultTunables(), matcher.DefaultCompat(), evalDate)
 				done <- err
 			}()
 			select {

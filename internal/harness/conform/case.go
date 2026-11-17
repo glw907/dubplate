@@ -396,7 +396,7 @@ func gradeCase(ctx context.Context, dir string, led ledgers) (res caseGradeResul
 	}
 
 	compat := compatFor(ModeCompat, policy)
-	prop, tagErr := tag.Album(ctx, client, items, tun, compat, evalDate, tag.Options{})
+	prop, tagErr := tag.Album(ctx, client, items, tun, compat, evalDate)
 	if tagErr != nil && !errors.Is(tagErr, tag.ErrNoCandidates) {
 		errs = append(errs, fmt.Errorf("case %s: %w", c.ID, tagErr))
 		return res, nil

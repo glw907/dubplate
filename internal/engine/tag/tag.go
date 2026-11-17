@@ -28,17 +28,6 @@ type Proposal struct {
 	Action         matcher.Action
 }
 
-// Options carries tag_album's optional inputs.
-//
-// SearchIDs is import.search_ids (beets/config_default.yaml:50), which
-// selects the explicit-ID branch and takes no early return
-// (match.py:417-420). beets' search_artist and search_name overrides are
-// a recorded non-port: no committed profile sets them and the automatic
-// album-match path never takes them, so they never join this struct.
-type Options struct {
-	SearchIDs []string
-}
-
 // Album is tag_album (autotag/match.py:383-468): the matcher's whole
 // public entry point.
 //
@@ -58,7 +47,7 @@ type Options struct {
 // None (beetsplug/musicbrainz.py:777-781). Every other client error is
 // returned wrapped, so errors.Is matches musicbrainz.ErrUnavailable.
 func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFields,
-	tun matcher.Tunables, compat matcher.Compat, evalDate time.Time, opts Options) (*Proposal, error) {
+	tun matcher.Tunables, compat matcher.Compat, evalDate time.Time) (*Proposal, error) {
 	tun = compat.Apply(tun)
 	if err := tun.Validate(); err != nil {
 		return nil, fmt.Errorf("tag: %w", err)
@@ -67,62 +56,51 @@ func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFie
 	likelies, consensus := matcher.MostCommonTags(items)
 	cands := matcher.NewCandidates()
 
-	if len(opts.SearchIDs) > 0 {
-		// import.search_ids: look each id up and add it, taking NO
-		// early return and skipping the search entirely
-		// (match.py:417-420).
-		for _, id := range opts.SearchIDs {
-			if err := lookupAndAdd(ctx, src, cands, tun, items, id, evalDate); err != nil {
-				return nil, err
-			}
+	// match_by_id (match.py:252-266): fires only on a unanimous
+	// mb_albumid consensus, and beets logs neither early branch
+	// because internal/engine has no logger.
+	if likelies.MBAlbumID != "" && consensus["mb_albumid"] {
+		if err := lookupAndAdd(ctx, src, cands, tun, items, likelies.MBAlbumID, evalDate); err != nil {
+			return nil, err
 		}
-	} else {
-		// match_by_id (match.py:252-266): fires only on a unanimous
-		// mb_albumid consensus, and beets logs neither early branch
-		// because internal/engine has no logger.
-		if likelies.MBAlbumID != "" && consensus["mb_albumid"] {
-			if err := lookupAndAdd(ctx, src, cands, tun, items, likelies.MBAlbumID, evalDate); err != nil {
-				return nil, err
-			}
 
-			// The early return: _recommendation is called on the
-			// UNSORTED insertion-order slice at match.py:430, and the
-			// early return at :432-441 ships that unsorted list.
-			// Harmless in practice only because match_by_id yields at
-			// most one candidate here, so sorting first could never
-			// change the outcome.
-			rec, err := matcher.Recommend(tun, cands.All())
+		// The early return: _recommendation is called on the
+		// UNSORTED insertion-order slice at match.py:430, and the
+		// early return at :432-441 ships that unsorted list.
+		// Harmless in practice only because match_by_id yields at
+		// most one candidate here, so sorting first could never
+		// change the outcome.
+		rec, err := matcher.Recommend(tun, cands.All())
+		if err != nil {
+			return nil, fmt.Errorf("tag: %w", err)
+		}
+		if cands.Len() > 0 && !tun.Timid && rec == matcher.RecStrong {
+			action, err := matcher.ActionFor(tun, rec)
 			if err != nil {
 				return nil, fmt.Errorf("tag: %w", err)
 			}
-			if cands.Len() > 0 && !tun.Timid && rec == matcher.RecStrong {
-				action, err := matcher.ActionFor(tun, rec)
-				if err != nil {
-					return nil, fmt.Errorf("tag: %w", err)
-				}
-				return &Proposal{
-					CurArtist:      likelies.Artist,
-					CurAlbum:       likelies.Album,
-					Candidates:     cands.All(),
-					Recommendation: rec,
-					Action:         action,
-				}, nil
-			}
+			return &Proposal{
+				CurArtist:      likelies.Artist,
+				CurAlbum:       likelies.Album,
+				Candidates:     cands.All(),
+				Recommendation: rec,
+				Action:         action,
+			}, nil
 		}
+	}
 
-		// The search (match.py:451-463): vaLikely is computed inside
-		// AlbumSearchFor and stays unexported there, because no
-		// caller outside internal/engine/musicbrainz needs the
-		// no-consensus branch it feeds.
-		search := musicbrainz.AlbumSearchFor(items, tun)
-		ids, err := src.SearchReleases(ctx, search)
-		if err != nil {
-			return nil, fmt.Errorf("tag: searching: %w", err)
-		}
-		for _, id := range ids {
-			if err := lookupAndAdd(ctx, src, cands, tun, items, id, evalDate); err != nil {
-				return nil, err
-			}
+	// The search (match.py:451-463): vaLikely is computed inside
+	// AlbumSearchFor and stays unexported there, because no
+	// caller outside internal/engine/musicbrainz needs the
+	// no-consensus branch it feeds.
+	search := musicbrainz.AlbumSearchFor(items, tun)
+	ids, err := src.SearchReleases(ctx, search)
+	if err != nil {
+		return nil, fmt.Errorf("tag: searching: %w", err)
+	}
+	for _, id := range ids {
+		if err := lookupAndAdd(ctx, src, cands, tun, items, id, evalDate); err != nil {
+			return nil, err
 		}
 	}
 
