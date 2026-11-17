@@ -13,7 +13,15 @@
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
-      "Bash(git show*)"
+      "Bash(git show*)",
+      "Bash(bash scripts/gate.sh*)",
+      "Bash(npm ci --prefix web)",
+      "Bash(make *)",
+      "Bash(gofmt *)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh pr diff*)"
     ]
   }
 }

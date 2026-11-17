@@ -411,6 +411,10 @@ now round `engine`.
 - [ ] #157 The `dubplate-pass` `auth-data` path map omits `internal/ops/**`, which holds the `/api/v1` authorization
   layer (`opshttp`) and the admin seam that writes roster audits, so a pass touching only that tree is not classed
   `auth-data`. Found by the `cleanup-ops` whole-branch review, 2026-11-16 #arch #process
+- [ ] #158 Should `doctor` refuse an over-broad trusted-proxy range? The roster audit's `client_ip` follows the
+  trusted-proxy policy, so a range that trusts too many hosts lets an admin write the wrong address into the audit
+  log. Raised by the `cleanup-ops` security read, filed on Geoff's pick in the round's close packet, 2026-11-17
+  #auth #ops
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake
 ## Later
