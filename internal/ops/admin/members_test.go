@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"reflect"
 	"strings"
@@ -142,6 +143,9 @@ func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
 			resp, err := f.seam.AddMember(ctx, actor(alice, fresh), tt.req)
 			if err != nil {
 				t.Fatalf("AddMember() error = %v, want nil: the write committed", err)
+			}
+			if !errors.Is(ctx.Err(), context.Canceled) {
+				t.Fatalf("ctx.Err() = %v, want context.Canceled: the commit log did not fire, so the test proves nothing", ctx.Err())
 			}
 
 			list, err := f.seam.ListMembers(writeCtx(t), actor(alice, fresh), ops.ListMembersRequest{})

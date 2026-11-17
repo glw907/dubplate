@@ -63,6 +63,7 @@ func TestPrivilegeOf(t *testing.T) {
 		{"start_backup", 0, false},
 		{"job_status", 0, false},
 		{"cancel_job", 0, false},
+		{"catalog", 0, false},
 		{"delete_everything", 0, false},
 		{"", 0, false},
 	}

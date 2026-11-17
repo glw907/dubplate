@@ -33,7 +33,7 @@ import (
 // bounded by the store's busy timeout alone.
 const writeWait = 5 * time.Second
 
-// Config is everything a [Seam] needs, resolved by the caller. Every
+// Config is everything the seam needs, resolved by the caller. Every
 // field is required.
 type Config struct {
 	// Store is the store the settings write path writes through. The

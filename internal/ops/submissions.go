@@ -135,7 +135,7 @@ type CancelSubmissionRequest GetSubmissionRequest
 type CancelSubmissionResponse GetSubmissionResponse
 
 // A SubmissionSeam is what a caller reaches the five submission
-// operations through, beside [Seam] and [AdminSeam]. Each is a member's
+// operations through, beside [AdminSeam]. Each is a member's
 // own: the caller is the actor's UserID, never a request field, and an
 // id that is another member's answers as an unknown one, [ErrNotFound].
 // An action the submission's state does not allow answers [ErrConflict].

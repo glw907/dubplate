@@ -25,24 +25,18 @@ type authorizer interface {
 // a caller whose privilege reaches the operation's, so no caller can
 // choose the actor a job or an audit row records. An admitted actor
 // whose channel differs from the mount's is refused, so an authorizer
-// wired to the wrong mount fails closed. It holds the admin and
-// submission seams the handler calls after admitting.
+// wired to the wrong mount fails closed.
 type authorizingSeam struct {
-	admin   ops.AdminSeam
-	subs    ops.SubmissionSeam
 	auth    authorizer
 	channel identity.Channel
 }
 
-// newAuthorizingSeam wraps the admin and submission seams. It fails on
-// a nil seam or auth, and on a channel that is not valid or that names
-// the command line, which no network mount can carry.
-func newAuthorizingSeam(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
+// newAuthorizingSeam builds the admission gate for a mount whose
+// verified identities arrive on channel. It fails on a nil auth, and on
+// a channel that is not valid or that names the command line, which no
+// network mount can carry.
+func newAuthorizingSeam(auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
 	switch {
-	case admin == nil:
-		return nil, errors.New("opshttp: admin seam is nil")
-	case subs == nil:
-		return nil, errors.New("opshttp: submission seam is nil")
 	case auth == nil:
 		return nil, errors.New("opshttp: authorizer is nil")
 	case !channel.Valid():
@@ -50,7 +44,7 @@ func newAuthorizingSeam(admin ops.AdminSeam, subs ops.SubmissionSeam, auth autho
 	case channel == identity.ChannelCommandLine:
 		return nil, errors.New("opshttp: mount channel is the command line, which no network mount carries")
 	}
-	return &authorizingSeam{admin: admin, subs: subs, auth: auth, channel: channel}, nil
+	return &authorizingSeam{auth: auth, channel: channel}, nil
 }
 
 // The causes of a denial. Each is fixed text naming no caller, so a

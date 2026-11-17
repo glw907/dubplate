@@ -80,7 +80,13 @@ func newHandler(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, c
 	if log == nil {
 		return nil, errors.New("opshttp: logger is nil")
 	}
-	seam, err := newAuthorizingSeam(admin, subs, auth, channel)
+	switch {
+	case admin == nil:
+		return nil, errors.New("opshttp: admin seam is nil")
+	case subs == nil:
+		return nil, errors.New("opshttp: submission seam is nil")
+	}
+	seam, err := newAuthorizingSeam(auth, channel)
 	if err != nil {
 		return nil, err
 	}

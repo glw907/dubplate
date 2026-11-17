@@ -125,7 +125,7 @@ type Member struct {
 	Admin bool
 }
 
-// Roster is the member store (R1): it answers a lookup, lists the
+// Roster is the member store: it answers a lookup, lists the
 // members, and adds, removes, and demotes one, over the store's users
 // table.
 type Roster struct {
@@ -483,6 +483,9 @@ func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *s
 		}
 		if err != nil {
 			return fmt.Errorf("auth: write the member's row: %w", err)
+		}
+		if len(id) != len(member.ID) {
+			return fmt.Errorf("auth: a users row's id is %d bytes, want %d", len(id), len(member.ID))
 		}
 		member.ID = identity.UserID(id)
 

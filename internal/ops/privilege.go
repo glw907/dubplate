@@ -65,8 +65,7 @@ const KindBackup = "backup"
 
 // privileges maps each of the twelve operation names to the privilege
 // it requires. [PrivilegeOf] is the only reader, so the authorizing
-// layer and the API document can never disagree about what an
-// operation needs.
+// layer has one answer about what an operation needs.
 var privileges = map[string]Privilege{
 	OpListMembers:  PrivilegeAdmin,
 	OpAddMember:    PrivilegeAdmin,

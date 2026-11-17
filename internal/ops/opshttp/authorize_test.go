@@ -182,7 +182,7 @@ func TestAuthorizingSeamChecksTheGrant(t *testing.T) {
 // the privilege table does not hold answers not found before the
 // authorizer is asked, so a removed operation cannot be reached by name.
 func TestAuthorizingSeamRefusesAnOperationOffTheTable(t *testing.T) {
-	for _, op := range []string{"start_backup", "job_status", "cancel_job", "delete_everything"} {
+	for _, op := range []string{"start_backup", "job_status", "cancel_job", "catalog", "delete_everything"} {
 		t.Run(op, func(t *testing.T) {
 			f := newFixture(t, admitAnn())
 			_, err := f.h.seam.admit(context.Background(), op)
