@@ -23,8 +23,7 @@ const NonceLength = 16
 
 const (
 	// linkVersion labels the token's field layout, on the wire and
-	// inside the MAC. A later field, rung 12's destination among
-	// them, lands under a new label rather than changing what an
+	// inside the MAC. A later field lands under a new label rather than changing what an
 	// existing field means, so a token minted before the change can
 	// never be read with the new layout's meanings.
 	linkVersion = "dubplate-link-1"
@@ -40,8 +39,6 @@ const (
 	// the separator: a raw join would split a dotted local part,
 	// which is the majority of real addresses, and the failure would
 	// be invisible to any test whose fixture address has no dot.
-	//
-	// ruled, conductor 2026-09-12, A4 fold 3
 	fieldSeparator = "."
 
 	// linkFieldCount is how many fields precede the MAC on the wire:
@@ -55,12 +52,9 @@ const (
 	linkPath = "/login/link"
 
 	// linkTokenParam carries the token in the link's query string
-	// rather than in a path segment: R32's mitigation is a
-	// consumption route that logs the path and never RawQuery, and a
-	// path-borne token would be written by every access log the
-	// request passes through.
-	//
-	// ruled, conductor 2026-09-08, R-5b13
+	// rather than in a path segment: the consumption route logs the
+	// path and never RawQuery, and a path-borne token would be
+	// written by every access log the request passes through.
 	linkTokenParam = "t"
 )
 

@@ -6,12 +6,11 @@ import "syscall"
 
 // freebindControl is a net.ListenConfig.Control hook that sets
 // IP_FREEBIND on the listening socket before bind(2) runs, so Listen can
-// bind an address the host has not configured on any interface yet
-// (R20). syscall.IP_FREEBIND is the stdlib's own constant (R-M): its
-// source is Linux's <linux/in.h>, and on this toolchain (go1.27.1,
-// linux/amd64) it measures 15 (0xf), which Task 0 confirmed against a
-// live bind before this task built on it. The option is set at
-// IPPROTO_IP for both address families rather than at IPV6_FREEBIND for
+// bind an address the host has not configured on any interface yet.
+// syscall.IP_FREEBIND is the stdlib's own constant: its source is
+// Linux's <linux/in.h>, and on this toolchain (go1.27.1, linux/amd64)
+// it measures 15 (0xf), confirmed against a live bind. The option is
+// set at IPPROTO_IP for both address families rather than at IPV6_FREEBIND for
 // AF_INET6, measured working on an AF_INET6 listener; no IPV6_FREEBIND
 // constant exists for this architecture, so none is referenced.
 //

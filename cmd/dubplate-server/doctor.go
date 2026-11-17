@@ -131,8 +131,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			authStoreStatus, authStoreFailed := authStoreRowStatus(cfg)
 			addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
 
-			// The backup rows (R-6bi13, R-6bi14, Ruling 2) print
-			// unconditionally, the store row's own precedent: the facts
+			// The backup rows print unconditionally, the store row's own precedent: the facts
 			// rows read "not checked" rather than disappear when the
 			// store cannot supply them, and the remote row reads
 			// "unavailable" rather than disappear while the flag is off.
@@ -275,7 +274,7 @@ const musicVolumeDoctorRow = "music volume"
 // store lists sits, and whether the row fails. A directory not created
 // yet is named without failing doctor, as on a fresh box before
 // deploy.sh runs, and a collection root not created yet reads "not
-// created", since rung 9 creates them. Any other refusal the startup
+// created", since the store can list a root before it is made. Any other refusal the startup
 // check makes fails the row, as does a collection root outside the
 // library root's mount. A nil cfg reads "not checked".
 func musicVolumeRowStatus(cfg *config.Config, r store.Report, checked bool) (status string, failed bool) {

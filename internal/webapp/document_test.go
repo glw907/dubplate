@@ -1,4 +1,4 @@
-package serve
+package webapp
 
 import (
 	"bytes"
@@ -15,10 +15,11 @@ import (
 
 // captureDefaultLogger swaps slog.Default() for a logger writing to
 // the returned buffer, restoring the prior default when t ends.
-// NewDocument takes no logger of its own, so slog.Default is the only
-// sink a mutant logging the theme cookie's value could reach; the
-// caller must not run this test in parallel with another that reads
-// or writes slog.Default.
+// newDocument writes its own records to the logger it is handed, so a
+// mutant logging the theme cookie's value could reach that logger or
+// slog.Default; a test watching for the value reads both. The caller
+// must not run this test in parallel with another that reads or writes
+// slog.Default.
 func captureDefaultLogger(t *testing.T) *bytes.Buffer {
 	t.Helper()
 	var buf bytes.Buffer
@@ -26,6 +27,12 @@ func captureDefaultLogger(t *testing.T) *bytes.Buffer {
 	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
 	t.Cleanup(func() { slog.SetDefault(prior) })
 	return &buf
+}
+
+// discardLogger returns a logger that writes nowhere, for a test that
+// reads no record.
+func discardLogger() *slog.Logger {
+	return slog.New(slog.DiscardHandler)
 }
 
 func TestRewriteDocument(t *testing.T) {
@@ -68,21 +75,21 @@ func TestRewriteDocument(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := RewriteDocument("doc.html", []byte(tt.raw), tt.placeholder, tt.composed)
+			got, err := rewriteDocument("doc.html", []byte(tt.raw), tt.placeholder, tt.composed)
 			if tt.wantErrHas != "" {
 				if err == nil {
-					t.Fatalf("RewriteDocument: got nil error, want one containing %q", tt.wantErrHas)
+					t.Fatalf("rewriteDocument: got nil error, want one containing %q", tt.wantErrHas)
 				}
 				if !strings.Contains(err.Error(), tt.wantErrHas) {
-					t.Fatalf("RewriteDocument error = %q, want it to contain %q", err.Error(), tt.wantErrHas)
+					t.Fatalf("rewriteDocument error = %q, want it to contain %q", err.Error(), tt.wantErrHas)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("RewriteDocument: %v", err)
+				t.Fatalf("rewriteDocument: %v", err)
 			}
 			if string(got) != tt.want {
-				t.Errorf("RewriteDocument = %q, want %q", got, tt.want)
+				t.Errorf("rewriteDocument = %q, want %q", got, tt.want)
 			}
 		})
 	}
@@ -90,14 +97,14 @@ func TestRewriteDocument(t *testing.T) {
 
 func TestBuildDocumentVariants(t *testing.T) {
 	raw := []byte(`<html data-theme="TOKEN"><link href="./a.css" rel="stylesheet"></head>`)
-	variants, err := BuildDocumentVariants("doc.html", raw, VariantConfig{
+	variants, err := buildDocumentVariants("doc.html", raw, variantConfig{
 		Placeholder: "TOKEN",
 		Match:       "dubplate",
 		Palettes:    []string{"label", "label-night", "system"},
 		SiteName:    "Group",
 	})
 	if err != nil {
-		t.Fatalf("BuildDocumentVariants: %v", err)
+		t.Fatalf("buildDocumentVariants: %v", err)
 	}
 	want := map[string]string{
 		"label":       `<html data-theme="dubplate-label"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group"></head>`,
@@ -105,7 +112,7 @@ func TestBuildDocumentVariants(t *testing.T) {
 		"system":      `<html data-theme="dubplate-system"><link href="./a.css" rel="stylesheet"><meta name="dubplate-site-name" content="Group"></head>`,
 	}
 	if len(variants) != len(want) {
-		t.Fatalf("BuildDocumentVariants: got %d variants, want %d", len(variants), len(want))
+		t.Fatalf("buildDocumentVariants: got %d variants, want %d", len(variants), len(want))
 	}
 	for palette, wantBody := range want {
 		if got := string(variants[palette]); got != wantBody {
@@ -116,8 +123,8 @@ func TestBuildDocumentVariants(t *testing.T) {
 
 func TestBuildDocumentVariants_PropagatesRewriteError(t *testing.T) {
 	raw := []byte(`<link href="./a.css" rel="stylesheet"></head>no token here`)
-	if _, err := BuildDocumentVariants("doc.html", raw, VariantConfig{Placeholder: "TOKEN", Match: "dubplate", Palettes: []string{"label"}}); err == nil {
-		t.Fatal("BuildDocumentVariants: got nil error, want the missing-placeholder refusal")
+	if _, err := buildDocumentVariants("doc.html", raw, variantConfig{Placeholder: "TOKEN", Match: "dubplate", Palettes: []string{"label"}}); err == nil {
+		t.Fatal("buildDocumentVariants: got nil error, want the missing-placeholder refusal")
 	}
 }
 
@@ -131,25 +138,25 @@ func TestBuildDocumentVariants_PlaceholderInValue(t *testing.T) {
 	tests := []struct {
 		name       string
 		raw        string
-		cfg        VariantConfig
+		cfg        variantConfig
 		wantErrHas string
 	}{
 		{
 			name:       "the build lost its placeholder, the site name carries one",
 			raw:        `<html data-theme="x"><head><link href="./0.css" rel="stylesheet"></head></html>`,
-			cfg:        VariantConfig{SiteName: "Group " + token},
+			cfg:        variantConfig{SiteName: "Group " + token},
 			wantErrHas: `placeholder "__DUBPLATE_THEME__" not found`,
 		},
 		{
 			name:       "the site name carries the placeholder",
 			raw:        `<html data-theme="` + token + `"><head><link href="./0.css" rel="stylesheet"></head></html>`,
-			cfg:        VariantConfig{SiteName: "Group " + token},
+			cfg:        variantConfig{SiteName: "Group " + token},
 			wantErrHas: `an inserted head value carries the theme placeholder`,
 		},
 		{
 			name:       "a tier href carries the placeholder",
 			raw:        `<html data-theme="` + token + `"><head><link href="./0.css" rel="stylesheet"></head></html>`,
-			cfg:        VariantConfig{SiteName: "Group", TierHrefs: []string{"/" + token + "/branding.css"}},
+			cfg:        variantConfig{SiteName: "Group", TierHrefs: []string{"/" + token + "/branding.css"}},
 			wantErrHas: `an inserted head value carries the theme placeholder`,
 		},
 	}
@@ -157,9 +164,9 @@ func TestBuildDocumentVariants_PlaceholderInValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := tt.cfg
 			cfg.Placeholder, cfg.Match, cfg.Palettes = token, "dubplate", []string{"label"}
-			_, err := BuildDocumentVariants("login.html", []byte(tt.raw), cfg)
+			_, err := buildDocumentVariants("login.html", []byte(tt.raw), cfg)
 			if err == nil || !strings.Contains(err.Error(), tt.wantErrHas) {
-				t.Fatalf("BuildDocumentVariants error = %v, want one containing %q", err, tt.wantErrHas)
+				t.Fatalf("buildDocumentVariants error = %v, want one containing %q", err, tt.wantErrHas)
 			}
 		})
 	}
@@ -224,7 +231,7 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			variants, err := BuildDocumentVariants("members.html", []byte(tt.raw), VariantConfig{
+			variants, err := buildDocumentVariants("members.html", []byte(tt.raw), variantConfig{
 				Placeholder: "T",
 				Match:       "dubplate",
 				Palettes:    []string{"label"},
@@ -233,15 +240,15 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 			})
 			if tt.wantErrHas != "" {
 				if err == nil {
-					t.Fatalf("BuildDocumentVariants: got nil error, want one containing %q", tt.wantErrHas)
+					t.Fatalf("buildDocumentVariants: got nil error, want one containing %q", tt.wantErrHas)
 				}
 				if !strings.Contains(err.Error(), tt.wantErrHas) {
-					t.Fatalf("BuildDocumentVariants error = %q, want it to contain %q", err.Error(), tt.wantErrHas)
+					t.Fatalf("buildDocumentVariants error = %q, want it to contain %q", err.Error(), tt.wantErrHas)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("BuildDocumentVariants: %v", err)
+				t.Fatalf("buildDocumentVariants: %v", err)
 			}
 			if got := string(variants["label"]); got != tt.want {
 				t.Errorf("variant = %q\nwant      %q", got, tt.want)
@@ -257,18 +264,18 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 // meta, and label-night none, the three shapes a caller can hand in.
 func TestBuildDocumentVariants_Head(t *testing.T) {
 	raw := `<html data-theme="T"><head><link href="./0.css" rel="stylesheet"></head><body><script>s</script></body></html>`
-	cfg := VariantConfig{
+	cfg := variantConfig{
 		Placeholder: "T",
 		Match:       "dubplate",
 		Palettes:    []string{"label", "label-night", "system"},
 		TierHrefs:   []string{"./branding.css"},
 		SiteName:    `A "B" <C> & D`,
 		Robots:      "noindex, nofollow",
-		ThemeColors: map[string][]ThemeColor{
+		ThemeColors: map[string][]themeColor{
 			"label":  {{Color: "#1f1b16"}},
 			"system": {{Scheme: "light", Color: "#1f1b16"}, {Scheme: "dark", Color: "#110f0d"}},
 		},
-		Icons: []Icon{
+		Icons: []icon{
 			{Href: "/p/favicon.svg", Type: "image/svg+xml"},
 			{Href: "/p/favicon.png", Type: "image/png", Sizes: "32x32"},
 		},
@@ -290,12 +297,12 @@ func TestBuildDocumentVariants_Head(t *testing.T) {
 				`<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#110f0d">`),
 	}
 
-	variants, err := BuildDocumentVariants("login.html", []byte(raw), cfg)
+	variants, err := buildDocumentVariants("login.html", []byte(raw), cfg)
 	if err != nil {
-		t.Fatalf("BuildDocumentVariants: %v", err)
+		t.Fatalf("buildDocumentVariants: %v", err)
 	}
 	if len(variants) != len(want) {
-		t.Fatalf("BuildDocumentVariants: got %d variants, want %d", len(variants), len(want))
+		t.Fatalf("buildDocumentVariants: got %d variants, want %d", len(variants), len(want))
 	}
 	for palette, wantBody := range want {
 		if got := string(variants[palette]); got != wantBody {
@@ -308,18 +315,18 @@ func TestThemeNeutrals(t *testing.T) {
 	tests := []struct {
 		name string
 		css  string
-		want map[string][]ThemeColor
+		want map[string][]themeColor
 	}{
 		{
 			name: "one rule with its scheme",
 			css:  `[data-theme=dubplate-label]{color-scheme:light;--color-neutral:#1f1b16;--color-neutral-content:#fff}`,
-			want: map[string][]ThemeColor{"dubplate-label": {{Scheme: "light", Color: "#1f1b16"}}},
+			want: map[string][]themeColor{"dubplate-label": {{Scheme: "light", Color: "#1f1b16"}}},
 		},
 		{
 			name: "a media branch is read on its own selector",
 			css: `[data-theme="dubplate-system"]{color-scheme: light; --color-neutral: #1f1b16}` +
 				`@media (prefers-color-scheme:dark){[data-theme="dubplate-system"]{color-scheme:dark;--color-neutral:#110f0d}}`,
-			want: map[string][]ThemeColor{"dubplate-system": {
+			want: map[string][]themeColor{"dubplate-system": {
 				{Scheme: "light", Color: "#1f1b16"},
 				{Scheme: "dark", Color: "#110f0d"},
 			}},
@@ -327,28 +334,28 @@ func TestThemeNeutrals(t *testing.T) {
 		{
 			name: "a rule with no color-scheme",
 			css:  `[data-theme=x]{--color-neutral:oklch(20% 0 0)}`,
-			want: map[string][]ThemeColor{"x": {{Color: "oklch(20% 0 0)"}}},
+			want: map[string][]themeColor{"x": {{Color: "oklch(20% 0 0)"}}},
 		},
 		{
 			name: "neutral-content alone is not the neutral",
 			css:  `[data-theme=x]{color-scheme:dark;--color-neutral-content:#fff}`,
-			want: map[string][]ThemeColor{},
+			want: map[string][]themeColor{},
 		},
 		{
 			name: "a rule naming no theme",
 			css:  `:root{--color-neutral:#000}`,
-			want: map[string][]ThemeColor{},
+			want: map[string][]themeColor{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ThemeNeutrals([]byte(tt.css))
+			got := themeNeutrals([]byte(tt.css))
 			if len(got) != len(tt.want) {
-				t.Fatalf("ThemeNeutrals = %v, want %v", got, tt.want)
+				t.Fatalf("themeNeutrals = %v, want %v", got, tt.want)
 			}
 			for name, want := range tt.want {
 				if !slices.Equal(got[name], want) {
-					t.Errorf("ThemeNeutrals[%q] = %v, want %v", name, got[name], want)
+					t.Errorf("themeNeutrals[%q] = %v, want %v", name, got[name], want)
 				}
 			}
 		})
@@ -357,7 +364,7 @@ func TestThemeNeutrals(t *testing.T) {
 
 func TestNewStylesheet(t *testing.T) {
 	body := []byte(":root {\n\t--depth: 1;\n}\n")
-	handler := NewStylesheet(body)
+	handler := newStylesheet(body)
 
 	for _, method := range []string{http.MethodGet, http.MethodHead} {
 		t.Run(method, func(t *testing.T) {
@@ -514,7 +521,12 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defaultLogs.Reset()
-			handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: tt.defaultPalette})
+			var handlerLogs bytes.Buffer
+			handler := newDocument(documentConfig{
+				Variants:       documentVariantFixture(),
+				DefaultPalette: tt.defaultPalette,
+				Logger:         slog.New(slog.NewTextHandler(&handlerLogs, nil)),
+			})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			if tt.cookieHeader != "" {
 				r.Header.Set("Cookie", tt.cookieHeader)
@@ -531,12 +543,16 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 			if set := rec.Header().Values("Set-Cookie"); len(set) != 0 {
 				t.Errorf("Set-Cookie = %v, want none", set)
 			}
-			// NewDocument's own doc comment promises it "logs
+			// newDocument's own doc comment promises it "logs
 			// nothing about the cookie's value"; a mutant that
 			// logs cookie.Value through slog.Default makes this
-			// buffer non-empty.
+			// buffer non-empty, and one that logs it through the
+			// handler's own logger puts the planted marker there.
 			if defaultLogs.Len() != 0 {
 				t.Errorf("slog.Default buffer is not empty: %s", defaultLogs.String())
+			}
+			if strings.Contains(handlerLogs.String(), "plantedmarker") {
+				t.Errorf("the handler's log carries the cookie's value: %s", handlerLogs.String())
 			}
 		})
 	}
@@ -553,7 +569,7 @@ func TestNewDocument_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "system"})
+			handler := newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "system", Logger: discardLogger()})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			r.Header.Set("Cookie", tt.value)
 			rec := httptest.NewRecorder()
@@ -569,7 +585,7 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 	tests := []string{http.MethodPost, http.MethodPut, http.MethodDelete}
 	for _, method := range tests {
 		t.Run(method, func(t *testing.T) {
-			handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "system"})
+			handler := newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "system", Logger: discardLogger()})
 			r := httptest.NewRequest(method, "/login", nil)
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, r)
@@ -589,7 +605,7 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 // net/http's own server, not this handler, that discards a written
 // body for a HEAD request while still reporting Content-Length.
 func TestNewDocument_HEADWritesNoBody(t *testing.T) {
-	handler := NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "system"})
+	handler := newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "system", Logger: discardLogger()})
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
@@ -619,11 +635,12 @@ func TestNewDocument_HEADWritesNoBody(t *testing.T) {
 // document, so it caches and varies like any other refusal.
 func TestNewDocument_ResponseHeaders(t *testing.T) {
 	const csp = "default-src 'self'; script-src 'self'"
-	handler := NewDocument(DocumentConfig{
+	handler := newDocument(documentConfig{
 		Variants:       documentVariantFixture(),
 		DefaultPalette: "system",
 		CacheControl:   "private, no-cache",
 		CSP:            csp,
+		Logger:         discardLogger(),
 	})
 	tests := []struct {
 		method    string
@@ -662,16 +679,186 @@ func nonEmpty(v string) []string {
 	return []string{v}
 }
 
+// requestLogBuildFS returns the smallest build tree [New] accepts:
+// the four documents, each with a CSP meta, the theme placeholder, and
+// a stylesheet link relative to its own path, the one stylesheet they
+// share, an asset, a face, the two favicons, and a mark.
+func requestLogBuildFS() fstest.MapFS {
+	doc := func(css string) *fstest.MapFile {
+		return &fstest.MapFile{Data: []byte(`<html data-theme="__DUBPLATE_THEME__"><head>` +
+			`<meta http-equiv="content-security-policy" content="script-src 'self'">` +
+			`<link href="` + css + `" rel="stylesheet"></head></html>`)}
+	}
+	return fstest.MapFS{
+		"login.html":           doc("./_app/0.css"),
+		"login/link.html":      doc("../_app/0.css"),
+		"members.html":         doc("./_app/0.css"),
+		"server-settings.html": doc("./_app/0.css"),
+		"_app/0.css":           &fstest.MapFile{Data: []byte(`[data-theme=dubplate-system]{color-scheme:light;--color-neutral:#111}`)},
+		"_app/version.json":    &fstest.MapFile{Data: []byte(`{"version":"1"}`)},
+		"fonts/face.woff2":     &fstest.MapFile{Data: []byte("woff2 bytes")},
+		"favicon.svg":          &fstest.MapFile{Data: []byte("<svg/>")},
+		"favicon.png":          &fstest.MapFile{Data: []byte("png bytes")},
+		"mark/mark-small.svg":  &fstest.MapFile{Data: []byte("<svg/>")},
+	}
+}
+
+// requestLogFixture is the composed handlers the document request log
+// covers and the ones it must not: the routes [New] builds, and a plain
+// exact-path router standing in for the probe's.
+type requestLogFixture struct {
+	routes Routes
+	probe  http.Handler
+}
+
+// newRequestLogFixture builds a requestLogFixture whose document
+// records go to logger.
+func newRequestLogFixture(t *testing.T, logger *slog.Logger) requestLogFixture {
+	t.Helper()
+	routes, err := New(requestLogBuildFS(), Config{
+		Prefix: "/dubplate",
+		Names: RouteNames{
+			Login:          "login",
+			Members:        "members",
+			ServerSettings: "server-settings",
+			Assets:         "_app",
+			Fonts:          "fonts",
+			FaviconSVG:     "favicon.svg",
+			FaviconPNG:     "favicon.png",
+			Mark:           "mark",
+			Branding:       "branding.css",
+			OperatorCSS:    "operator.css",
+		},
+		SiteName: "S",
+		Match:    "dubplate",
+		Palette:  "system",
+		Branding: []byte{},
+		Logger:   logger,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	ok := http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})
+	return requestLogFixture{
+		routes: routes,
+		probe:  ExactPaths(map[string]http.Handler{"/dubplate/healthz": ok}),
+	}
+}
+
+// decodeRecords returns every JSON record buf holds, one per line.
+func decodeRecords(t *testing.T, buf *bytes.Buffer) []map[string]any {
+	t.Helper()
+	var records []map[string]any
+	for line := range strings.Lines(buf.String()) {
+		var rec map[string]any
+		if err := json.Unmarshal([]byte(line), &rec); err != nil {
+			t.Fatalf("log line %q is not a JSON record: %v", line, err)
+		}
+		records = append(records, rec)
+	}
+	return records
+}
+
+// TestDocumentRequestLog proves every answer a document route writes
+// is logged once with its method, path, and status, and that a route
+// beside the documents, refusing or not found, writes no record.
+func TestDocumentRequestLog(t *testing.T) {
+	tests := []struct {
+		name    string
+		handler func(requestLogFixture) http.Handler
+		method  string
+		path    string
+		want    map[string]any // nil when no record is wanted
+	}{
+		{
+			name:    "a document GET",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Login },
+			method:  http.MethodGet,
+			path:    "/dubplate/login",
+			want:    map[string]any{"msg": "serve: document request", "method": "GET", "path": "/dubplate/login", "status": float64(200)},
+		},
+		{
+			name:    "a document POST",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Login },
+			method:  http.MethodPost,
+			path:    "/dubplate/login",
+			want:    map[string]any{"msg": "serve: document request", "method": "POST", "path": "/dubplate/login", "status": float64(405)},
+		},
+		{
+			name:    "an unknown path under the document router",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Login },
+			method:  http.MethodGet,
+			path:    "/dubplate/login/other",
+			want:    map[string]any{"msg": "serve: document request", "method": "GET", "path": "/dubplate/login/other", "status": float64(404)},
+		},
+		{
+			name:    "the members document GET",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Members },
+			method:  http.MethodGet,
+			path:    "/dubplate/members",
+			want:    map[string]any{"msg": "serve: document request", "method": "GET", "path": "/dubplate/members", "status": float64(200)},
+		},
+		{
+			name:    "a stylesheet POST",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Branding },
+			method:  http.MethodPost,
+			path:    "/dubplate/branding.css",
+		},
+		{
+			name:    "a path under the stylesheet",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Branding },
+			method:  http.MethodGet,
+			path:    "/dubplate/branding.css/deeper",
+		},
+		{
+			name:    "an asset POST",
+			handler: func(f requestLogFixture) http.Handler { return f.routes.Assets },
+			method:  http.MethodPost,
+			path:    "/dubplate/_app/version.json",
+		},
+		{
+			name:    "a probe 404",
+			handler: func(f requestLogFixture) http.Handler { return f.probe },
+			method:  http.MethodGet,
+			path:    "/dubplate/healthz/deeper",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			fixture := newRequestLogFixture(t, slog.New(slog.NewJSONHandler(&buf, nil)))
+			rec := httptest.NewRecorder()
+			tt.handler(fixture).ServeHTTP(rec, httptest.NewRequest(tt.method, tt.path, nil))
+
+			records := decodeRecords(t, &buf)
+			if tt.want == nil {
+				if len(records) != 0 {
+					t.Fatalf("status %d: records = %v, want none", rec.Code, records)
+				}
+				return
+			}
+			if len(records) != 1 {
+				t.Fatalf("records = %v, want exactly one", records)
+			}
+			for key, want := range tt.want {
+				if got := records[0][key]; got != want {
+					t.Errorf("record[%q] = %#v, want %#v", key, got, want)
+				}
+			}
+			if got := records[0]["status"]; got != float64(rec.Code) {
+				t.Errorf("record status = %#v, but the response's is %d", got, rec.Code)
+			}
+		})
+	}
+}
+
 // TestLogRequests proves the record names the method, the path, and
-// the status the wrapped handler wrote, and that a query string never
+// the status the document route wrote, and that a query string never
 // reaches it, whatever it carries.
 func TestLogRequests(t *testing.T) {
 	var buf bytes.Buffer
-	logger := slog.New(slog.NewJSONHandler(&buf, nil))
 	const token = "qz81-fixture-token"
-	handler := LogRequests(logger, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusTeapot)
-	}))
+	handler := newRequestLogFixture(t, slog.New(slog.NewJSONHandler(&buf, nil))).routes.Login
 
 	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/dubplate/login/link?t="+token, nil))
 
@@ -679,8 +866,8 @@ func TestLogRequests(t *testing.T) {
 	if err := json.Unmarshal(buf.Bytes(), &rec); err != nil {
 		t.Fatalf("log = %q, want one JSON record: %v", buf.String(), err)
 	}
-	if rec["method"] != http.MethodPost || rec["path"] != "/dubplate/login/link" || rec["status"] != float64(http.StatusTeapot) {
-		t.Errorf("record = %v, want method POST, path /dubplate/login/link, status 418", rec)
+	if rec["method"] != http.MethodPost || rec["path"] != "/dubplate/login/link" || rec["status"] != float64(http.StatusMethodNotAllowed) {
+		t.Errorf("record = %v, want method POST, path /dubplate/login/link, status 405", rec)
 	}
 	if strings.Contains(buf.String(), token) {
 		t.Errorf("log carries the query's token: %s", buf.String())
@@ -704,8 +891,7 @@ func TestLogRequests_MethodBounded(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			logger := slog.New(slog.NewJSONHandler(&buf, nil))
-			handler := LogRequests(logger, http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+			handler := newRequestLogFixture(t, slog.New(slog.NewJSONHandler(&buf, nil))).routes.Login
 			r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
 			r.Method = tt.method
 			handler.ServeHTTP(httptest.NewRecorder(), r)
@@ -724,10 +910,10 @@ func TestLogRequests_MethodBounded(t *testing.T) {
 func TestNewDocument_PanicsOnMissingDefaultVariant(t *testing.T) {
 	defer func() {
 		if recover() == nil {
-			t.Fatal("NewDocument: want a panic when defaultPalette has no variant")
+			t.Fatal("newDocument: want a panic when DefaultPalette has no variant")
 		}
 	}()
-	NewDocument(DocumentConfig{Variants: documentVariantFixture(), DefaultPalette: "gruvbox"})
+	newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "gruvbox", Logger: discardLogger()})
 }
 
 func newAssetsRoot() fstest.MapFS {
@@ -753,7 +939,7 @@ func TestNewAssets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := NewAssets(newAssetsRoot(), "/dubplate/_app")
+			handler := newAssets(newAssetsRoot(), "/dubplate/_app")
 			r := httptest.NewRequest(http.MethodGet, tt.path, nil)
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, r)
@@ -771,7 +957,7 @@ func TestNewAssets(t *testing.T) {
 }
 
 func TestNewAssets_NeverListsOrRedirectsADirectory(t *testing.T) {
-	handler := NewAssets(newAssetsRoot(), "/dubplate/_app")
+	handler := newAssets(newAssetsRoot(), "/dubplate/_app")
 	r := httptest.NewRequest(http.MethodGet, "/dubplate/_app/immutable", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, r)
@@ -784,7 +970,7 @@ func TestNewAssets_NeverListsOrRedirectsADirectory(t *testing.T) {
 }
 
 func TestNewAssets_MethodNotAllowed(t *testing.T) {
-	handler := NewAssets(newAssetsRoot(), "/dubplate/_app")
+	handler := newAssets(newAssetsRoot(), "/dubplate/_app")
 	r := httptest.NewRequest(http.MethodPost, "/dubplate/_app/immutable/app.js", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, r)
@@ -803,7 +989,7 @@ func TestStylesheetHrefs(t *testing.T) {
 		want []string
 	}{
 		{
-			name: "href before rel (the probe's own built shape, Task 0)",
+			name: "href before rel (the built document's own shape)",
 			doc:  `<link href="./_app/immutable/assets/0.css" rel="stylesheet">`,
 			want: []string{"./_app/immutable/assets/0.css"},
 		},
@@ -867,13 +1053,13 @@ func TestThemeSelectors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ThemeSelectors([]byte(tt.css))
+			got := themeSelectors([]byte(tt.css))
 			if len(got) != len(tt.want) {
-				t.Fatalf("ThemeSelectors = %v, want %v", got, tt.want)
+				t.Fatalf("themeSelectors = %v, want %v", got, tt.want)
 			}
 			for name := range tt.want {
 				if _, ok := got[name]; !ok {
-					t.Errorf("ThemeSelectors: missing %q", name)
+					t.Errorf("themeSelectors: missing %q", name)
 				}
 			}
 		})

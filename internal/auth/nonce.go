@@ -46,9 +46,7 @@ var errNonceRecordUnparseable = errors.New("nonce record: unparseable")
 // then report success. The insert opens the record with
 // O_CREATE|O_EXCL instead, which is the filesystem's own answer to
 // first-writer-wins, and syncs both the record and the directory that
-// now names it (R11).
-//
-// ruled, conductor 2026-09-08, R11
+// now names it.
 type NonceStore struct {
 	store *Store
 
@@ -204,8 +202,6 @@ func (s *NonceStore) Insert(ctx context.Context, nonce [NonceLength]byte, now, e
 // the directory listing itself: an unreadable store directory is a
 // deployment defect this store cannot route around, unlike a single
 // unreadable record.
-//
-// ruled, conductor 2026-09-12, A7 fold 5
 func (s *NonceStore) Sweep(ctx context.Context, now time.Time) (NonceSweep, error) {
 	retention, err := s.retention.read(ctx)
 	if err != nil {

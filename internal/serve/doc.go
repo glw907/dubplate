@@ -15,7 +15,8 @@
 //     step wraps everything, so a refusal by any later step, a 404
 //     included, carries them. A document's Content-Security-Policy is
 //     not among them: it is per document, set by the handler that
-//     serves it ([DocumentCSP]).
+//     serves it
+//     ([github.com/glw907/dubplate/internal/webapp.DocumentCSP]).
 //  1. The ingress strip ([Strip.Wrap]). It wraps everything, so no
 //     route is reachable with an identity header, a forwarded-address
 //     header, or a Connection-listed header still attached.

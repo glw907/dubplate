@@ -60,9 +60,7 @@ const epochRecordFieldCount = 2
 // [atomicfile.WriteStream] rather than the first-writer-wins shape
 // [NonceStore] uses: overwriting is what a revocation does, and
 // WriteStream is the one entry point that fsyncs the containing
-// directory after the rename (atomicfile.go:82-89, R11).
-//
-// ruled, conductor 2026-09-12, A8 fold 1
+// directory after the rename.
 type EpochStore struct {
 	store *Store
 
@@ -218,14 +216,12 @@ func (e *EpochStore) Subscribe(fn func(address string, epoch time.Time)) {
 // address's revocation epoch.
 //
 // The comparison reads [Session.AnchoredAt] rather than
-// [Session.IssuedAt]: a refresh advances the issue time (Task 6) but
+// [Session.IssuedAt]: a refresh advances the issue time but
 // never the anchor, so checking the issue time would let a session
 // refreshed once after a bump carry a post-bump issue time and be
 // permitted from then on, permanently. The anchor is what refresh never
 // moves, so no ordering rule between this check and a refresh is
 // load-bearing.
-//
-// ruled, conductor 2026-09-12, A8 fold 1
 func (e *EpochStore) CheckSession(s Session) error {
 	normalized, err := identity.NormalizeAddress(s.Address)
 	if err != nil {
@@ -252,8 +248,6 @@ func (e *EpochStore) CheckSession(s Session) error {
 // then honors, because the session's anchor is set at that later mint.
 // The attacker chooses when to click, so the refusal must be on the
 // link's own mint time, not on when it happens to be redeemed.
-//
-// ruled, conductor 2026-09-12, A8 fold 1
 func (e *EpochStore) CheckLink(tok LinkToken) error {
 	normalized, err := identity.NormalizeAddress(tok.Address)
 	if err != nil {

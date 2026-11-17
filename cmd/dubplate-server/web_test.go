@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -22,12 +23,23 @@ import (
 	"testing/fstest"
 
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
+)
+
+// themePlaceholder is the token the build writes on each document's
+// data-theme attribute, which the server stamps with a theme name.
+const themePlaceholder = "__DUBPLATE_THEME__"
+
+// The two login documents' paths in the build tree.
+const (
+	loginDocumentName     = "login.html"
+	loginLinkDocumentName = "login/link.html"
 )
 
 // fixtureThemeCSS declares the three composed selectors a fixture
 // build carries, in both quoted and unquoted form, mirroring the real
-// bundle's own shape (internal/serve/document_test.go's ThemeSelectors
+// bundle's own shape (internal/webapp/document_test.go's themeSelectors
 // cases already prove the extraction handles both).
 // Each also declares a --color-neutral under its color scheme, as
 // every real composed theme does, the system theme's dark value inside
@@ -228,7 +240,7 @@ func TestNewWebRoutesFromFS_EmptyKeysResolveToDefaults(t *testing.T) {
 
 	r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
 	rec := httptest.NewRecorder()
-	routes.login.ServeHTTP(rec, r)
+	routes.Login.ServeHTTP(rec, r)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("GET /dubplate/login: status %d", rec.Code)
 	}
@@ -252,7 +264,7 @@ func TestNewWebRoutesFromFS_AcceptedPaletteValues(t *testing.T) {
 			}
 			r := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
 			rec := httptest.NewRecorder()
-			routes.login.ServeHTTP(rec, r)
+			routes.Login.ServeHTTP(rec, r)
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status = %d, want 200", rec.Code)
 			}
@@ -288,31 +300,11 @@ func TestNewWebRoutesFromFS_LoginRouting(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := httptest.NewRequest(tt.method, tt.path, nil)
 			rec := httptest.NewRecorder()
-			routes.login.ServeHTTP(rec, r)
+			routes.Login.ServeHTTP(rec, r)
 			if rec.Code != tt.wantStatus {
 				t.Errorf("%s %s: status = %d, want %d", tt.method, tt.path, rec.Code, tt.wantStatus)
 			}
 		})
-	}
-}
-
-func TestStampablePalettes(t *testing.T) {
-	selectors := map[string]struct{}{
-		"dubplate-label":       {},
-		"dubplate-label-night": {},
-		"dubplate-system":      {},
-		"light":                {}, // no "dubplate-" prefix: DaisyUI's own bundled default, must be excluded
-		"dark":                 {},
-	}
-	got := stampablePalettes(selectors, "dubplate")
-	want := []string{"label", "label-night", "system"}
-	if len(got) != len(want) {
-		t.Fatalf("stampablePalettes = %v, want %v", got, want)
-	}
-	for i, w := range want {
-		if got[i] != w {
-			t.Errorf("stampablePalettes[%d] = %q, want %q", i, got[i], w)
-		}
 	}
 }
 
@@ -388,9 +380,9 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 		for _, palette := range []string{"label", "label-night", "system"} {
 			t.Run(doc.name+"/"+palette, func(t *testing.T) {
 				r := httptest.NewRequest(http.MethodGet, doc.path, nil)
-				r.Header.Set("Cookie", serve.ThemeCookieName+"="+palette)
+				r.Header.Set("Cookie", webapp.ThemeCookieName+"="+palette)
 				rec := httptest.NewRecorder()
-				routes.login.ServeHTTP(rec, r)
+				routes.Login.ServeHTTP(rec, r)
 				if rec.Code != http.StatusOK {
 					t.Fatalf("status = %d, want 200", rec.Code)
 				}
@@ -426,27 +418,29 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 
 // newCapturedWebHandler builds a real [serve.Shell] mounting
 // [newWebRoutes]'s login and _app routes over the real embedded
-// bundle, with logger writing to a fresh, returned buffer, so a test
-// can assert on what the shell logs about a request as well as on the
-// response it answers.
+// bundle, with the shell's logger, which the routes also log through
+// as in production, writing to a fresh, returned buffer, so a test can
+// assert on what is logged about a request as well as on the response
+// it answers.
 func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) (http.Handler, *bytes.Buffer) {
 	t.Helper()
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
-	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
+	strip := serve.NewStrip(serve.TrustedProxyConfig{})
+	shell := serve.NewShell(prefix, strip, logger)
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, shell.Logger())
 	if err != nil {
 		t.Fatalf("newWebRoutes(%v): %v", environ, err)
 	}
-	strip := serve.NewStrip(serve.TrustedProxyConfig{})
-	shell := serve.NewShell(prefix, strip, logger)
-	routes.register(shell, shell.Logger())
+	registerWebRoutes(shell, routes)
 	return shell.Handler(), &buf
 }
 
 // TestNewWebRoutes_RealBundleThemeStamp proves the stamp deliverable
-// end-to-end against the real built bundle: the extracted stampable
-// set is exactly {label, label-night, system} before any cookie row
-// runs, a no-cookie request (and the empty-match-key resolution path)
+// end-to-end against the real built bundle (webapp's
+// TestStampablePalettes_RealBundle proves the stampable set it draws
+// from is exactly {label, label-night, system}): a no-cookie request
+// (and the empty-match-key resolution path)
 // stamps the operator's default, and every cookie row from the plan's
 // States table stamps its stated composed name, with a body byte-equal
 // to a startup variant, no Set-Cookie, and no log record holding the
@@ -461,31 +455,6 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 	// for the run and restores it on cleanup, so this test must not run
 	// in parallel with another that reads or writes slog.Default.
 	defaultLogs := captureDefaultLogger(t)
-
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
-	loginRaw, err := fs.ReadFile(buildFS, loginDocumentName)
-	if err != nil {
-		t.Fatalf("fs.ReadFile(%q): %v", loginDocumentName, err)
-	}
-	linkRaw, err := fs.ReadFile(buildFS, loginLinkDocumentName)
-	if err != nil {
-		t.Fatalf("fs.ReadFile(%q): %v", loginLinkDocumentName, err)
-	}
-	themes, err := extractThemes(buildFS,
-		namedDocument{path: loginDocumentName, raw: loginRaw},
-		namedDocument{path: loginLinkDocumentName, raw: linkRaw},
-	)
-	if err != nil {
-		t.Fatalf("extractThemes: %v", err)
-	}
-	gotPalettes := stampablePalettes(themes.selectors, acceptedThemeMatch)
-	wantPalettes := []string{"label", "label-night", "system"}
-	if !slices.Equal(gotPalettes, wantPalettes) {
-		t.Fatalf("stampablePalettes(real bundle) = %v, want %v", gotPalettes, wantPalettes)
-	}
 
 	// The no-cookie row, proved under both the unset key and the
 	// empty-string key: R-5cii12's wall convention resolves both to the
@@ -550,11 +519,11 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 
 			// The startup variant for the row's own composed name: a
 			// request whose cookie is exactly that palette name always
-			// selects the same variant map entry NewDocument answers
+			// selects the same variant map entry the document route answers
 			// this row from.
 			wantPalette := strings.TrimPrefix(tt.wantComposed, "dubplate-")
 			variantReq := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
-			variantReq.Header.Set("Cookie", serve.ThemeCookieName+"="+wantPalette)
+			variantReq.Header.Set("Cookie", webapp.ThemeCookieName+"="+wantPalette)
 			variantRec := httptest.NewRecorder()
 			handler.ServeHTTP(variantRec, variantReq)
 			if rec.Body.String() != variantRec.Body.String() {
@@ -582,9 +551,10 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 					t.Errorf("shell log line = %q, want its record to be exactly %q", line, wantRecord)
 				}
 			}
-			// NewDocument reads no logger, so nothing on this path
-			// should reach slog.Default either; a mutant that logs
-			// cookie.Value through it makes this buffer non-empty.
+			// The document route logs only through the logger it was
+			// built with, so nothing on this path should reach
+			// slog.Default; a mutant that logs cookie.Value through
+			// it makes this buffer non-empty.
 			if defaultLogs.Len() != 0 {
 				t.Errorf("slog.Default buffer is not empty: %s", defaultLogs.String())
 			}
@@ -641,7 +611,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, discardTestLogger())
-	routes.register(shell, shell.Logger())
+	registerWebRoutes(shell, routes)
 	handler := shell.Handler()
 
 	documents := []string{prefixValue + "/login", prefixValue + "/login/link"}
@@ -761,7 +731,7 @@ func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Hand
 	}
 	strip := serve.NewStrip(serve.TrustedProxyConfig{})
 	shell := serve.NewShell(prefix, strip, discardTestLogger())
-	routes.register(shell, shell.Logger())
+	registerWebRoutes(shell, routes)
 	return shell.Handler()
 }
 
@@ -1048,7 +1018,7 @@ func TestNewWebRoutesFromFS_OperatorCSSServed(t *testing.T) {
 				}
 			}
 			doc := serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes()
-			if got := slices.Contains(serve.StylesheetHrefs(doc), "./operator.css"); got != tt.wantLink {
+			if got := slices.Contains(webapp.StylesheetHrefs(doc), "./operator.css"); got != tt.wantLink {
 				t.Errorf("login document links ./operator.css = %v, want %v", got, tt.wantLink)
 			}
 		})
@@ -1287,8 +1257,8 @@ func TestNewWebRoutes_TierLinkOrder(t *testing.T) {
 		}
 		for docPath, wantTier := range tt.wantTier {
 			t.Run(tt.name+docPath, func(t *testing.T) {
-				rec := serveRequest(routes.login, http.MethodGet, docPath)
-				hrefs := serve.StylesheetHrefs(rec.Body.Bytes())
+				rec := serveRequest(routes.Login, http.MethodGet, docPath)
+				hrefs := webapp.StylesheetHrefs(rec.Body.Bytes())
 				if len(hrefs) <= len(wantTier) {
 					t.Fatalf("stylesheet hrefs = %v, want at least one bundle stylesheet before %v", hrefs, wantTier)
 				}
@@ -1323,7 +1293,7 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 	twoLinks["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/assets/0.css" rel="stylesheet"><link href="./_app/assets/2.css" rel="stylesheet"></head></html>`)}
 	twoLinks["_app/assets/2.css"] = &fstest.MapFile{Data: []byte("p{}")}
 	handler := newWebShellHandler(t, nil, twoLinks)
-	hrefs := serve.StylesheetHrefs(serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes())
+	hrefs := webapp.StylesheetHrefs(serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes())
 	if want := []string{"./_app/assets/0.css", "./_app/assets/2.css", "./branding.css"}; !slices.Equal(hrefs, want) {
 		t.Errorf("stylesheet hrefs = %v, want %v", hrefs, want)
 	}
@@ -1334,7 +1304,7 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 // placeholder inside a script body, and the last stylesheet link (the
 // tier links' anchor) inside a script body. Each fixture's CSP meta
 // hashes the script as built, so the build's own document passes
-// [serve.DocumentCSP] and only the served variant can fail it.
+// [webapp.DocumentCSP] and only the served variant can fail it.
 func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 	prefix := webTestPrefix(t)
 	tests := []struct {
@@ -1355,7 +1325,7 @@ func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 			buildFS := newFixtureBuildFS(1, 1)
 			buildFS["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + theme + `"><head>` + meta +
 				`<link href="./_app/assets/0.css" rel="stylesheet"><script>` + tt.script + `</script></head></html>`)}
-			if _, err := serve.DocumentCSP("login.html", buildFS["login.html"].Data); err != nil {
+			if _, err := webapp.DocumentCSP("login.html", buildFS["login.html"].Data); err != nil {
 				t.Fatalf("fixture: the build's own document fails DocumentCSP: %v", err)
 			}
 
@@ -1367,37 +1337,6 @@ func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 				t.Errorf("error = %q, want it to contain %q", err.Error(), want)
 			}
 		})
-	}
-}
-
-// TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader proves a served
-// variant must yield exactly the policy the header carries, computed
-// from the build's own document: a variant whose meta lists one more
-// hash still covers its every script, so only the equality check can
-// refuse it.
-func TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader(t *testing.T) {
-	source := func(script string) string {
-		sum := sha256.Sum256([]byte(script))
-		return "'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'"
-	}
-	doc := func(sources string) []byte {
-		return []byte(`<meta http-equiv="content-security-policy" content="script-src 'self' ` + sources + `"><script>boot();</script>`)
-	}
-	boot := source("boot();")
-	served, err := serve.DocumentCSP("login.html", doc(boot))
-	if err != nil {
-		t.Fatalf("fixture: DocumentCSP: %v", err)
-	}
-	if err := checkVariantCSP("login.html", map[string][]byte{"label": doc(boot)}, served); err != nil {
-		t.Fatalf("checkVariantCSP on a matching variant: %v", err)
-	}
-	variants := map[string][]byte{"label": doc(boot), "label-night": doc(boot + " " + source("next();"))}
-	err = checkVariantCSP("login.html", variants, served)
-	if err == nil {
-		t.Fatal("checkVariantCSP: got nil error, want the policy mismatch refusal")
-	}
-	if want := `the "label-night" variant of document "login.html": its CSP differs from the served header`; !strings.Contains(err.Error(), want) {
-		t.Errorf("error = %q, want it to contain %q", err.Error(), want)
 	}
 }
 
@@ -1484,11 +1423,11 @@ func realBuildMapFS(t *testing.T) fstest.MapFS {
 // document links with edit, failing t unless the edit changed it.
 func editBundleCSS(t *testing.T, buildFS fstest.MapFS, edit func(string) string) {
 	t.Helper()
-	hrefs := serve.StylesheetHrefs(buildFS[loginDocumentName].Data)
+	hrefs := webapp.StylesheetHrefs(buildFS[loginDocumentName].Data)
 	if len(hrefs) != 1 {
 		t.Fatalf("the built login document links %d stylesheets, want 1: %v", len(hrefs), hrefs)
 	}
-	name := resolveStylesheetPath(loginDocumentName, hrefs[0])
+	name := path.Clean(path.Join(path.Dir(loginDocumentName), hrefs[0]))
 	file, ok := buildFS[name]
 	if !ok {
 		t.Fatalf("the built bundle holds no %q", name)
@@ -1508,7 +1447,7 @@ var themeColorMetaRE = regexp.MustCompile(`<meta name="theme-color"[^>]*>`)
 func servedVariant(t *testing.T, handler http.Handler, path, palette string) string {
 	t.Helper()
 	r := httptest.NewRequest(http.MethodGet, path, nil)
-	r.Header.Set("Cookie", serve.ThemeCookieName+"="+palette)
+	r.Header.Set("Cookie", webapp.ThemeCookieName+"="+palette)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, r)
 	if rec.Code != http.StatusOK {
@@ -1633,9 +1572,9 @@ func TestNewWebRoutes_ThemeColorStates(t *testing.T) {
 				path    string
 				handler http.Handler
 			}{
-				{"/dubplate/login", routes.login},
-				{"/dubplate/login/link", routes.login},
-				{"/dubplate/members", routes.members},
+				{"/dubplate/login", routes.Login},
+				{"/dubplate/login/link", routes.Login},
+				{"/dubplate/members", routes.Members},
 			} {
 				for palette, want := range tt.want {
 					body := servedVariant(t, doc.handler, doc.path, palette)
@@ -1686,9 +1625,9 @@ func TestNewWebRoutes_SiteNameMeta(t *testing.T) {
 				path    string
 				handler http.Handler
 			}{
-				{"/dubplate/login", routes.login},
-				{"/dubplate/login/link", routes.login},
-				{"/dubplate/members", routes.members},
+				{"/dubplate/login", routes.Login},
+				{"/dubplate/login/link", routes.Login},
+				{"/dubplate/members", routes.Members},
 			} {
 				for _, palette := range []string{"label", "label-night", "system"} {
 					body := servedVariant(t, doc.handler, doc.path, palette)
@@ -1725,9 +1664,9 @@ func TestNewWebRoutes_RobotsMeta(t *testing.T) {
 		handler http.Handler
 		want    int
 	}{
-		{"/dubplate/login", routes.login, 1},
-		{"/dubplate/login/link", routes.login, 1},
-		{"/dubplate/members", routes.members, 0},
+		{"/dubplate/login", routes.Login, 1},
+		{"/dubplate/login/link", routes.Login, 1},
+		{"/dubplate/members", routes.Members, 0},
 	}
 	for _, tt := range tests {
 		for _, palette := range []string{"label", "label-night", "system"} {
@@ -1745,7 +1684,7 @@ func TestNewWebRoutes_RobotsMeta(t *testing.T) {
 // TestIconsRoute proves the mark's five files answer at their exact
 // paths over the real bundle, each with the bytes of the checked-in
 // file under web/static/, its own Content-Type, Cache-Control:
-// no-cache, svgCSP on an SVG and no policy on the PNG, and a strong ETag that answers a matching If-None-Match
+// no-cache, the sandboxing SVG policy on an SVG and no policy on the PNG, and a strong ETag that answers a matching If-None-Match
 // with 304, and that every other shape under the three subtrees
 // answers 404.
 func TestIconsRoute(t *testing.T) {
@@ -1783,7 +1722,7 @@ func TestIconsRoute(t *testing.T) {
 			}
 			wantCSP := ""
 			if f.contentType == "image/svg+xml" {
-				wantCSP = svgCSP
+				wantCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 			}
 			if got := rec.Header().Get("Content-Security-Policy"); got != wantCSP {
 				t.Errorf("Content-Security-Policy = %q, want %q", got, wantCSP)

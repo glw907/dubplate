@@ -8,9 +8,8 @@ import (
 
 // maxPathBytes bounds the request path rule 5 admits, measured on the
 // bytes the client sent. It is a constant rather than a threshold with
-// a default (ruled, conductor 2026-09-08, R-H, as applied): the rung 5
-// tunable list does not name it, and a threshold nobody tunes is a
-// configuration surface for nothing. The value leaves room for a deep
+// a default because a threshold nobody tunes is a configuration
+// surface for nothing. The value leaves room for a deep
 // catalog path under the owned prefix while keeping an oversized path
 // away from the prefix match.
 //
@@ -35,8 +34,7 @@ const maxPathBytes = 2048
 // The six rules:
 //
 //  1. No percent-encoding in the path. The predicate is
-//     r.URL.EscapedPath() != r.URL.Path (ruled, conductor 2026-09-08,
-//     R-D, as applied), and RawPath is never the comparison basis:
+//     r.URL.EscapedPath() != r.URL.Path, and RawPath is never the comparison basis:
 //     net/url populates RawPath only when the escaped form differs
 //     from the default encoding of Path, so a path needing no escaping
 //     carries an empty RawPath and a RawPath-based test would admit
@@ -65,8 +63,8 @@ const maxPathBytes = 2048
 //     first. Rule 4 is what still refuses one should a future net/url
 //     stop escaping it, or should rule 1's strictness ever be relaxed.
 //  5. No path past maxPathBytes.
-//  6. No request target whose path fails to begin with a separator
-//     (ruled, conductor 2026-09-08, R-U, as applied). A CONNECT
+//  6. No request target whose path fails to begin with a separator.
+//     A CONNECT
 //     request arrives with an empty URL.Path and a populated URL.Host,
 //     so every other rule passes over it vacuously. An absolute-form
 //     target is a different shape and is admitted: it arrives with its
@@ -74,8 +72,7 @@ const maxPathBytes = 2048
 //     reaches no rule here, since net/http answers it from
 //     globalOptionsHandler unless DisableGeneralOptionsHandler is set.
 //
-// Every rule but the length bound refuses with 400 (ruled, conductor
-// 2026-09-08, R-T, as applied), so a client cannot tell which
+// Every rule but the length bound refuses with 400, so a client cannot tell which
 // smuggling rule refused it. The length bound answers 414, a shape
 // already distinguishable from outside by its own size.
 func Normalize(next http.Handler) http.Handler {

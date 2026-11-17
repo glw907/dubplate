@@ -25,10 +25,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// backupIntegrationClass is rung 6's backup integration: its own
-// enable flag and the one key required while it is on, the rclone
-// destination a backup syncs to. Declared in this rung's own file per
-// the rung 1b registry contract.
+// backupIntegrationClass is the backup integration: its own enable
+// flag and the one key required while it is on, the rclone destination
+// a backup syncs to.
 var backupIntegrationClass = config.IntegrationClass{
 	Name: "backup",
 	Rung: 6,
@@ -100,14 +99,11 @@ var backupArchiveRetentionSetting = config.Setting{
 // backup-homed settings to reg. newProductionRegistry calls it after
 // registerStoreConfig. The six names backup replaced (five
 // DUBPLATE_R2_* names and DUBPLATE_BACKUP_STAGING) are superseded
-// entries declared in internal/config/keys.go, on rung 5's own
-// precedent (ee79b5b26d9d8614357c26e7410d9db7d01673a7): a supersession
-// message is base-wall record-keeping, not a rung's own owned surface,
-// so it stays with the package that seeds every registry rather than
-// moving to this rung's file. The "backup targets" reserved class
-// those six names occupied left keys.go in the same commit that added
-// their supersession messages, since a name claimed by both families
-// panics at registration (internal/config/registry.go, claim).
+// entries declared in internal/config/keys.go: a supersession message
+// is base-wall record-keeping, not backup's own surface, so it stays
+// with the package that seeds every registry. No reserved class claims
+// those six names, since a name claimed by both families panics at
+// registration (internal/config/registry.go, claim).
 func registerBackupConfig(reg *config.Registry) {
 	reg.AddIntegrationClass(backupIntegrationClass)
 	reg.AddSetting(backupGuardFractionSetting)
@@ -132,8 +128,7 @@ func backupSettingsReaders(acc *settings.Accessor) (
 
 // backupConfigFrom builds ops/local's backup configuration from cfg
 // and acc: the flag and the remote through the integration class, the
-// library root through the owned wall row rung 1 declared (R-6bi18),
-// and the three backup value readers through acc.
+// library root through its owned wall row, and the three backup value readers through acc.
 func backupConfigFrom(cfg *config.Config, acc *settings.Accessor) local.BackupConfig {
 	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
 	return local.BackupConfig{
@@ -165,11 +160,11 @@ const backupVerbWait = 30 * time.Second
 // status while it waits for a terminal state.
 const backupPollInterval = 200 * time.Millisecond
 
-// newBackupCmd builds the backup verb (R-6bi10, R-6bi11): it loads the
-// wall, opens the store in write mode, starts a backup as a local
-// operator, polls its status, and exits by Ruling 3. Its Long text
+// newBackupCmd builds the backup verb: it loads the wall, opens the
+// store in write mode, starts a backup as a local operator, polls its
+// status, and exits with the status its outcome maps to. Its Long text
 // lists every exit status this file assigns, so an operator reading
-// --help sees the same table criterion 20's own test asserts against.
+// --help sees the same table the verb's tests assert against.
 func newBackupCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "backup",
@@ -195,8 +190,8 @@ Exit statuses:
 
 // runBackup loads the wall, opens the store in write mode, and runs
 // the backup job to a terminal state. Every runner call after
-// construction runs on opsCtx, a context.WithoutCancel copy of ctx
-// (R-6bi11): ctx is the verb's own signal-canceled context
+// construction runs on opsCtx, a context.WithoutCancel copy of ctx:
+// ctx is the verb's own signal-canceled context
 // (executeWithSignalContext, main.go), and a job or a status read that
 // ran under it would fail the instant a signal arrived rather than
 // letting the verb answer the signal itself.
@@ -287,7 +282,7 @@ func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 // cancel operation on the first signal that arrives: SIGINT and
 // SIGTERM through signalCtx's own Done channel (executeWithSignalContext
 // already watches for them), and SIGHUP through this function's own
-// handler, since main's signal context does not (R-6bi11: a closed
+// handler, since main's signal context does not (a closed
 // terminal sends SIGHUP, whose default action would kill this process
 // while rclone, in its own process group, survives). Every runner call
 // here runs on opsCtx, never signalCtx, so a poll or a cancel write
@@ -414,8 +409,8 @@ const featuresProbeWaitDelay = 5 * time.Second
 // addresses included after 6d, unencrypted at the provider.
 const backupCryptWarning = "the backup remote is not wrapped in an rclone crypt remote; a snapshot carries member data unencrypted at the provider"
 
-// backupRemoteRowStatus renders doctor's "backup remote" row (R-6bi14,
-// R-6bi9, Ruling 2): unavailable while the flag is off, without
+// backupRemoteRowStatus renders doctor's "backup remote" row:
+// unavailable while the flag is off, without
 // running any subprocess; the parse, _TYPE, and crypt checks doctor
 // alone runs, since [backup.Job.Run] reads no environment; and the
 // features probe last, under featuresProbeTimeout. It calls
@@ -496,8 +491,7 @@ func firstInvalidRemoteNameRune(name string) (rune, bool) {
 // connection string, that the named remote's own _TYPE is set. blocked
 // is true only when a check refuses; status and failed are meaningful
 // only then. A plain path (no colon) or a connection string (a leading
-// colon) skips the wrapped check, leaving the features probe to decide
-// (R-6bi14).
+// colon) skips the wrapped check, leaving the features probe to decide.
 func backupCryptCheck(environ []string, upper string) (status string, failed, blocked bool) {
 	remoteKey := "RCLONE_CONFIG_" + upper + "_REMOTE"
 	wrapped, ok := lookupEnviron(environ, remoteKey)
@@ -526,9 +520,9 @@ type backupFeaturesJSON struct {
 }
 
 // backupFeaturesStatus runs `rclone backend features <name>:
-// --low-level-retries 1` (R-6bi9) under featuresProbeTimeout and
+// --low-level-retries 1` under featuresProbeTimeout and
 // renders its outcome: "not checked: ..." on a deadline hit, whatever
-// the child's own exit (R-6bi12's precedence, the same rule
+// the child's own exit (the deadline takes precedence, the same rule
 // [classify] in internal/backup/rclone.go takes for the backup job's
 // own child); the child's last stderr line on any other nonzero exit;
 // and, on success, a refusal naming name when neither Copy nor Move is

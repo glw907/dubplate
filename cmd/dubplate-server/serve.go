@@ -22,6 +22,7 @@ import (
 	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 )
@@ -57,20 +58,12 @@ const (
 // are the serve shell's own three keys, declared in this file rather
 // than internal/config: the alternative, declaring inside
 // internal/serve, would make the shell import internal/config, which
-// it has no reason to do.
-//
-// The three keys replace internal/config/keys.go's own "serve" reserved
-// class, deleted in the same commit as this declaration (the removal
-// half of the rung 1b registry contract). That class's own comment
-// carried one argument forward: a bind address is not an identity
-// concern, which is why the wall named it its own class apart from
-// "auth and identity" rather than folding it in.
-//
-// ruled, conductor 2026-09-08, R-A, R-B, R-C
+// it has no reason to do. A bind address is not an identity concern,
+// so these keys are not folded into the magic-link source's own.
 
 // serveBindAddrsThreshold is the comma-separated list of addresses the
 // serve verb binds. Its default, loopback only, is the salvage
-// configuration's own default. The registry has no list kind (R-B), so
+// configuration's own default. The registry has no list kind, so
 // this registers as KindString and [serve.SplitBindAddrs] splits and
 // validates it in the package that binds, keeping the address grammar
 // with the code that uses it.
@@ -85,7 +78,7 @@ var serveBindAddrsThreshold = config.Threshold{
 
 // servePortThreshold is the TCP port the serve verb binds on every
 // configured address. Its default, 8080, is the salvage configuration's
-// own default (_salvage/internal/config/config_test.go:44-45).
+// own default.
 var servePortThreshold = config.Threshold{
 	Key:         "DUBPLATE_SERVE_PORT",
 	Kind:        config.KindInt,
@@ -452,9 +445,9 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	webRoutes.register(routes, shell.Logger())
-	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
-	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.serverSettings)))
+	registerWebRoutes(routes, webRoutes)
+	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, webRoutes.Members))
+	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, webRoutes.ServerSettings))
 
 	if err := in.Start(ctx); err != nil {
 		return nil, err
@@ -543,10 +536,10 @@ func sendsHSTS(publicURL string) bool {
 // a request to <prefix>/roster/roster must answer the shell's 404,
 // never the member list, and the shell's 404 this wrap answers is
 // byte-equal to the admin gate's own refusal, so a non-admin sees the
-// same answer on either side of it. It is [newExactPathRoutes] (web.go)
-// narrowed to the one-route case.
+// same answer on either side of it. It is [webapp.ExactPaths] narrowed
+// to the one-route case.
 func exactPath(want string, next http.Handler) http.Handler {
-	return newExactPathRoutes(map[string]http.Handler{want: next})
+	return webapp.ExactPaths(map[string]http.Handler{want: next})
 }
 
 // openNonceStore opens the consumed-nonce store under authStore, its
