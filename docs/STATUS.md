@@ -10,7 +10,8 @@ approved allow rules landed in `.claude/settings.json` (`7151edb`). Nothing has 
 Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
 once, the limiter is gone, the client caps what it reads at 32 MiB, the harness grades the pattern table it
 names, and the citation leg of `scripts/check.sh` gates. No distance, recommendation, action, parsed tag, or
-written byte changed, and `make derive` passes. Nothing deploys.
+written byte changed, and `make derive` passes. One failure path is stricter: a write refuses a source that
+shrank between the parse and the copy, where it once renamed the short file into place. Nothing deploys.
 
 `intake-1` is the last product pass on master. A passing album waits in `matching` with no exit until
 `intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work a later

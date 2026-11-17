@@ -43,7 +43,16 @@ const developmentVendorMarker = "development"
 // rewrite is atomic, so a crash or a concurrent reader never sees a
 // partial file, and mode is the file's mode afterwards.
 func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
-	c, err := readContainer(path)
+	if _, err := Sniff(path); err != nil {
+		return err
+	}
+	return writeFLAC(path, ts, pictures, mode)
+}
+
+// writeFLAC is Write for a FLAC file: it parses the container, plans the
+// block chain, and streams the rewrite through atomicfile.
+func writeFLAC(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
+	c, err := Parse(path)
 	if err != nil {
 		return err
 	}

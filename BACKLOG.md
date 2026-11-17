@@ -429,10 +429,9 @@ now round `engine`.
   process, not behavior, and the comment density reads 0.68 against `net/http/cookiejar`'s 0.35. Found by `engine`
   (PR #17), 2026-11-17 #arch
 - [ ] #168 Process tags remain in test comments, which the citation leg does not scan: `conform/case_test.go:144`,
-  `:307`, `:318-322`, `:379`; the "rung 8" strings at `tagio/conform_test.go:355` and `:358`; the comments at
-  `matcher/tag_test.go:84` and `:88` that name `DistanceForAlbum`; `adjudication_test.go:356` and `:360`, which
-  spell "BeetsSDPatterns"; `musicbrainz/events.go:24` and `credit.go:63` citations of deleted matcher files; and
-  `config/registry_test.go:217`. Decide whether the leg should scan tests. Found by `engine` (PR #17), 2026-11-17
+  `:307`, `:318-322`, `:379`; the "rung 8" strings at `tagio/conform_test.go:355` and `:358`; the comment at
+  `internal/engine/tag/tag_test.go:88`, which names `DistanceForAlbum`; `adjudication_test.go:356` and `:360`, which
+  spell "BeetsSDPatterns"; and `config/registry_test.go:217`. Decide whether the leg should scan tests. Found by `engine` (PR #17), 2026-11-17
   #test #gate
 - [ ] #169 The score dump diverged once (`5bf0d963...` against the committed hash) during `engine`'s T3 lane, then
   matched on ten reruns of the same tree. No cause was found. If it recurs, look for map-iteration order or a

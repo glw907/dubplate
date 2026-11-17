@@ -212,7 +212,7 @@ func (c *Client) release(ctx context.Context, mbid string) (*Release, error) {
 
 	var rel Release
 	if err := json.Unmarshal(body, &rel); err != nil {
-		return nil, fmt.Errorf("musicbrainz: decoding release %s: %v: %w", id, err, ErrMalformedRelease)
+		return nil, fmt.Errorf("musicbrainz: decoding release %s: %w: %w", id, err, ErrMalformedRelease)
 	}
 	return &rel, nil
 }
@@ -245,7 +245,7 @@ func (c *Client) SearchReleases(ctx context.Context, s AlbumSearch) ([]string, e
 		} `json:"releases"`
 	}
 	if err := json.Unmarshal(body, &decoded); err != nil {
-		return nil, fmt.Errorf("musicbrainz: decoding search response: %v", err)
+		return nil, fmt.Errorf("musicbrainz: decoding search response: %w: %w", err, ErrMalformedRelease)
 	}
 
 	ids := make([]string, len(decoded.Releases))

@@ -7,11 +7,10 @@ import (
 	"strconv"
 )
 
-// ErrMalformedRelease reports a release body that does not decode or
-// that fails validation, the checks that keep the rest of this package
-// from panicking on it. A search body that does not decode is not
-// wrapped in it. A caller branches on it with
-// errors.Is to tell a bad response from an unreachable server
+// ErrMalformedRelease reports a release or search body that does not
+// decode, or a release that fails validation, the checks that keep the
+// rest of this package from panicking on it. A caller branches on it
+// with errors.Is to tell a bad response from an unreachable server
 // (ErrUnavailable).
 var ErrMalformedRelease = errors.New("malformed musicbrainz release")
 

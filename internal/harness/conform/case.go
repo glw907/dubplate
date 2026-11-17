@@ -606,8 +606,8 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	case !policy.GradeVerdict:
 		// A hypothesis (or its case's own row) ruled no-correct-answer:
 		// the defect stays reproduced, since no compat switch exists to
-		// fix it, but there is no corrected verdict to grade against
-		// Honors the same GradeVerdict escape
+		// fix it, but there is no corrected verdict to grade against.
+		// This honors the same GradeVerdict escape
 		// gradeCaseVerdict does for ModeCompat, so the two modes agree
 		// on which cases carry a gradable verdict at all.
 		res.ungraded = true

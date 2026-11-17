@@ -120,8 +120,8 @@ func TestReleaseDecodeErrorWrapsMalformedRelease(t *testing.T) {
 }
 
 // TestSearchReleasesReportsAnUndecodableBody proves a search body that
-// does not decode is an error, and one that does not claim to be a
-// malformed release.
+// does not decode wraps ErrMalformedRelease, the sentinel Release and
+// SearchReleases share.
 func TestSearchReleasesReportsAnUndecodableBody(t *testing.T) {
 	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{not valid json`))}, nil
@@ -132,8 +132,8 @@ func TestSearchReleasesReportsAnUndecodableBody(t *testing.T) {
 	if err == nil {
 		t.Fatalf("SearchReleases() = %v, nil, want an error", ids)
 	}
-	if errors.Is(err, ErrMalformedRelease) {
-		t.Errorf("SearchReleases() = %v, want an error that does not wrap ErrMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Errorf("SearchReleases() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
 }
 
