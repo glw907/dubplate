@@ -70,6 +70,9 @@ the pending change survives in this one, and a control to retry it.
     username: 'add-username'
   };
 
+  const OUTCOME_ID = 'roster-outcome';
+  const OUTCOME_TEXT_ID = 'roster-outcome-text';
+
   /** What the alert beneath the form says about the last write. */
   interface Notice {
     text: string;
@@ -171,7 +174,7 @@ the pending change survives in this one, and a control to retry it.
   /** Moves focus to what a refused write shows: its field, else the alert's text. */
   async function focusRefusal(): Promise<void> {
     await tick();
-    document.getElementById(erroredField ? FIELD_ID[erroredField] : 'roster-outcome-text')?.focus();
+    document.getElementById(erroredField ? FIELD_ID[erroredField] : OUTCOME_TEXT_ID)?.focus();
   }
 
   async function addMember(): Promise<void> {
@@ -310,9 +313,9 @@ the pending change survives in this one, and a control to retry it.
     <fieldset class="fieldset">
       <legend class="fieldset-legend">{ADD_MEMBER_LEGEND}</legend>
 
-      <label class="label" for="add-address">{ADD_MEMBER_LABELS.address}</label>
+      <label class="label" for={FIELD_ID.address}>{ADD_MEMBER_LABELS.address}</label>
       <input
-        id="add-address"
+        id={FIELD_ID.address}
         name="address"
         type="email"
         autocomplete="off"
@@ -321,28 +324,28 @@ the pending change survives in this one, and a control to retry it.
         required
         class="input validator {erroredField === 'address' ? 'input-error' : ''}"
         aria-invalid={erroredField === 'address' ? 'true' : undefined}
-        aria-describedby={erroredField === 'address' ? 'roster-outcome' : undefined}
+        aria-describedby={erroredField === 'address' ? OUTCOME_ID : undefined}
         oninput={() => clearFieldError('address')}
         bind:value={address}
       />
 
-      <label class="label" for="add-display-name">{ADD_MEMBER_LABELS.displayName}</label>
+      <label class="label" for={FIELD_ID.display_name}>{ADD_MEMBER_LABELS.displayName}</label>
       <input
-        id="add-display-name"
+        id={FIELD_ID.display_name}
         name="display_name"
         type="text"
         maxlength="200"
         required
         class="input validator {erroredField === 'display_name' ? 'input-error' : ''}"
         aria-invalid={erroredField === 'display_name' ? 'true' : undefined}
-        aria-describedby={erroredField === 'display_name' ? 'roster-outcome' : undefined}
+        aria-describedby={erroredField === 'display_name' ? OUTCOME_ID : undefined}
         oninput={() => clearFieldError('display_name')}
         bind:value={displayName}
       />
 
-      <label class="label" for="add-username">{ADD_MEMBER_LABELS.username}</label>
+      <label class="label" for={FIELD_ID.username}>{ADD_MEMBER_LABELS.username}</label>
       <input
-        id="add-username"
+        id={FIELD_ID.username}
         name="username"
         type="text"
         autocomplete="off"
@@ -353,7 +356,7 @@ the pending change survives in this one, and a control to retry it.
         required
         class="input validator {erroredField === 'username' ? 'input-error' : ''}"
         aria-invalid={erroredField === 'username' ? 'true' : undefined}
-        aria-describedby={erroredField === 'username' ? 'username-hint roster-outcome' : 'username-hint'}
+        aria-describedby={erroredField === 'username' ? `username-hint ${OUTCOME_ID}` : 'username-hint'}
         oninput={() => clearFieldError('username')}
         bind:value={username}
       />
@@ -361,7 +364,7 @@ the pending change survives in this one, and a control to retry it.
     </fieldset>
     <button type="submit" class="btn btn-primary" aria-disabled={submitting || undefined}>{ADD_MEMBER_SUBMIT}</button>
   </form>
-  <WriteNotice {notice} {retry} id="roster-outcome" textId="roster-outcome-text" />
+  <WriteNotice {notice} {retry} id={OUTCOME_ID} textId={OUTCOME_TEXT_ID} />
 
   <dialog class="modal" bind:this={confirmDialog} onclose={closed} aria-labelledby="confirm-question">
     <div class="modal-box">
