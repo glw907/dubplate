@@ -22,14 +22,11 @@ const (
 	// is even fully parsed).
 	readHeaderTimeout = 10 * time.Second
 
-	// readTimeout (R-V) bounds a request body trickled a byte at a
+	// readTimeout bounds a request body trickled a byte at a
 	// time, the case none of the other three timeouts reach: a slow
 	// client can hold a connection open indefinitely by draining its
 	// own send buffer one byte per round trip, and this is what closes
-	// it. It is the constant the salvage server carried at
-	// _salvage/internal/serve/serve.go:600 that revision 1 of this plan
-	// dropped by describing that server as setting a write timeout
-	// alone. It must stay generous enough for 5b's two bodies that
+	// it. It must stay generous enough for the two bodies that
 	// trickle in over this connection: the login-request POST and the
 	// magic-link-consumption POST, neither of which streams, but both
 	// of which are ordinary request bodies this timeout must not cut
@@ -59,8 +56,7 @@ const (
 	// that never call the extension mechanism below. An SSE stream or
 	// an audio response can legitimately run past 30 seconds, and a
 	// single fixed write timeout would kill both, which is the mistake
-	// the salvage server made (_salvage/internal/serve/serve.go:601,
-	// applied at :632). The mechanism that saves the streaming case is
+	// the salvage server made. The mechanism that saves the streaming case is
 	// http.ResponseController.SetWriteDeadline: a streaming handler can
 	// extend or clear its own deadline before this default expires,
 	// while every handler that never calls it stays bound by this
@@ -102,13 +98,12 @@ func newHTTPServer(handler http.Handler, logger *slog.Logger, writeTimeout time.
 
 // Listen opens one TCP listener per address in addrs, all on port, each
 // carrying the freebindControl hook. Binding exactly this list, never
-// the all-interfaces wildcard address (C8), is what refuses a
+// the all-interfaces wildcard address, is what refuses a
 // connection to any address not named in it, since nothing listens
 // there. A failure partway through the set closes every listener
 // already opened before Listen returns, so a partial bind leaks no
 // file descriptor. The listeners Listen returns carry their
-// actually-bound addresses, readable through Addr() (R-G), for 5d's
-// doctor row to report later.
+// actually-bound addresses, readable through Addr().
 func Listen(ctx context.Context, addrs []string, port int) ([]net.Listener, error) {
 	lc := net.ListenConfig{Control: freebindControl}
 	listeners := make([]net.Listener, 0, len(addrs))
@@ -126,10 +121,9 @@ func Listen(ctx context.Context, addrs []string, port int) ([]net.Listener, erro
 }
 
 // Run opens the freebind listener set named by addrs and port, then
-// serves handler across all of them (C6) until ctx is done, then drains
-// within shutdownGrace before returning. ctx is Run's first parameter:
-// Task 7 calls Run from the serve verb, passing the resolved
-// configuration values and Task 5's composed root handler.
+// serves handler across all of them until ctx is done, then drains
+// within shutdownGrace before returning. The serve verb calls Run with
+// the resolved configuration values and its composed root handler.
 //
 // logger receives net/http's own protocol errors. A caller passes
 // [Shell.Logger] so those errors and the shell's refusal record share

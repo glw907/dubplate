@@ -50,23 +50,18 @@ var secretKeys = []string{magicLinkSecretKey, sessionSecretKey, magicLinkSecretP
 
 // magicLinkSource is the shipped default identity source: a login link
 // mailed to a roster address, backed by an HMAC-signed session cookie.
-// Its eight required names and two optional names retire
-// internal/config/keys.go's "auth and identity" reserved class in the
-// same commit that declares them (R-5b3): the five DUBPLATE_SMTP_*
-// names land here, declared and required-when-selected, though their
-// consumers (the mail seam) arrive at 5b-ii. The two optional names carry a
-// rotation-overlap secret each, so a deployment can roll a secret
-// without a window where every existing token or session fails at
-// once (R-5b6): they are the source's Optional keys rather than
-// registered thresholds, because a threshold's KindString default
+// It declares eight required names, the five DUBPLATE_SMTP_* names
+// among them, each required when the source is selected. The two
+// optional names carry a rotation-overlap secret each, so a deployment
+// can roll a secret without a window where every existing token or
+// session fails at once: they are the source's Optional keys rather
+// than registered thresholds, because a threshold's KindString default
 // must be non-empty and doctor prints a threshold's effective value,
 // which would print a secret on an operator's terminal.
 //
 // Validate is [validateMagicLinkSource], the source's value rules: the
 // secret length floor, the public URL's shape, and the mail and serve
 // ports.
-//
-// ruled, conductor 2026-09-12, R-5b2, R-5b3
 var magicLinkSource = config.IdentitySource{
 	Name:     "magic-link",
 	Selector: identitySourceSelectorRow.Name,
@@ -91,7 +86,7 @@ var magicLinkSource = config.IdentitySource{
 // or session secret, HMAC-SHA256's own recommended key length: RFC 2104
 // section 3 (https://www.rfc-editor.org/rfc/rfc2104#section-3, read
 // 2026-09-12) recommends a key at least as long as the hash's output,
-// 32 bytes for SHA-256 (R-5b8). The count is of raw bytes with no
+// 32 bytes for SHA-256. The count is of raw bytes with no
 // transformation, so an adopter pasting a base64 rendering of 32 random
 // bytes passes with room to spare.
 const secretLengthFloor = 32
@@ -109,8 +104,7 @@ const magicLinkExpiryCeiling = time.Hour
 
 // magicLinkExpirySetting, sessionLifetimeSetting,
 // sessionAbsoluteCapSetting, and nonceRetentionSetting are the four
-// auth durations. The first three carry product fork 3's ruled
-// defaults (R-5b10).
+// auth durations.
 //
 // Every duration takes a positive floor, since zero or a negative
 // duration cannot mean "never" or "immediately" here (review m5). The
@@ -252,8 +246,8 @@ var authRequestBodyCapSetting = config.Setting{
 	Mark:        config.NotSensitive,
 }
 
-// unknownAddressAnswerSetting is fork 4's answer to a login request
-// for an address no member holds (R25, R-5b22): "kind" says so, and
+// unknownAddressAnswerSetting is the answer to a login request for an
+// address no member holds: "kind" says so, and
 // "generic" answers exactly as for a member.
 var unknownAddressAnswerSetting = config.Setting{
 	Key:         "DUBPLATE_UNKNOWN_ADDRESS_ANSWER",
