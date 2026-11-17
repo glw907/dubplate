@@ -7,15 +7,15 @@
 // [Load] enforces the classification rather than merely reading values:
 //
 //  1. Owned, required now: DUBPLATE_LIBRARY_ROOT, DUBPLATE_STATE_DIR,
-//     DUBPLATE_SITE_NAME, DUBPLATE_ADMIN_EMAIL, and, from rung 5,
-//     DUBPLATE_IDENTITY_SOURCE, the selector naming which declared
+//     DUBPLATE_SITE_NAME, DUBPLATE_ADMIN_EMAIL, and, once an identity
+//     source is declared, DUBPLATE_IDENTITY_SOURCE, the selector naming which declared
 //     identity source is active (cmd/dubplate-server/auth.go
 //     registers it as an owned wall row alongside the source itself).
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class, never "unknown". The
-//     classes are pipeline (rung 9), monitoring (rung 9), and
-//     decision and review queues (rung 13). See
+//     classes are pipeline, monitoring, and decision and review
+//     queues. See
 //     [Registry.ReservedClasses] for the exact membership.
 //  3. Adopter-optional integration: a name accepted only when its
 //     class's own Flag resolves true. The class's Required rows are
@@ -39,9 +39,9 @@
 //     [Registry.IdentitySources] for the exact membership; the owning
 //     package registers its own source.
 //  6. Unknown: any other DUBPLATE_* name. This is the compat
-//     discipline evolution lesson U5 draws from beets 2.4.0's silent
-//     plugin-list regression: an unrecognized key refuses the start
-//     rather than degrading it.
+//     discipline that beets 2.4.0's silent plugin-list regression
+//     taught: an unrecognized key refuses the start rather than
+//     degrading it.
 //
 // Two kinds of declared name sit outside those six, and rejectNamespace
 // accepts both without parsing their values. A behavior tunable a rung
@@ -54,8 +54,9 @@
 // adopter-optional integrations, the identity sources, the superseded
 // names, the thresholds, and the settings with the correlated rules
 // over them) lives in one [Registry] a caller assembles and passes to
-// [Load]. [NewRegistry] returns a registry already seeded with rung 1's
-// own rows; rung 1 registers no threshold, identity source, or setting.
+// [Load]. [NewRegistry] returns a registry already seeded with this
+// package's own rows; it registers no threshold, identity source, or
+// setting.
 package config
 
 import (
@@ -112,7 +113,7 @@ func Lookup(environ []string, key string) (string, bool) {
 }
 
 // Config is the resolved configuration of one dubplate-server process.
-// Rung 1 carries the owned wall only; the active identity source joins
+// It carries the owned wall only; the active identity source joins
 // its fields as IdentitySource once a rung declares one, and that
 // source's own resolved values are reachable by key through
 // [Config.IdentitySourceValue] rather than a named field per source.
@@ -120,7 +121,7 @@ func Lookup(environ []string, key string) (string, bool) {
 // resolved Required values are reachable by class name through
 // [Config.IntegrationEnabled] and [Config.IntegrationValue] rather than
 // a named field per class, so a second integration class needs no
-// second field (Resolution R5).
+// second field.
 type Config struct {
 	LibraryRoot string
 	StateDir    string
@@ -148,7 +149,7 @@ type Config struct {
 	sourceValues map[string]string
 
 	// wallValues holds every owned wall row's resolved value by name,
-	// the four rung 1 rows included.
+	// the four named rows included.
 	wallValues map[string]string
 }
 
@@ -437,8 +438,7 @@ func (w *wall) resolveIdentitySource(sources []IdentitySource, environ []string)
 //
 // What Load requires comes from reg, never from a name written here: a
 // rung that registers an owned-now wall row or an identity source from
-// its own file gets the requirement from the registration
-// (Resolution R-5b4).
+// its own file gets the requirement from the registration.
 func Load(environ []string, reg *Registry) (*Config, error) {
 	w := newWall(environ)
 
@@ -450,7 +450,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 		integrations: make(map[string]integrationResolution, len(reg.integrationClasses)),
 	}
 
-	// The four rows above are rung 1's own and resolve into named
+	// The four rows above are this package's own and resolve into named
 	// fields; every owned-now row any rung registered is required
 	// here, whatever package declared it. require reports a name once
 	// however many times it is called for, so the four do not report
@@ -462,7 +462,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 
 	// Every enabled class's Required keys resolve here, generically, by
 	// class name: no class name appears in this loop, so a second
-	// integration class needs no second branch (Resolution R5). Enabled
+	// integration class needs no second branch. Enabled
 	// is recorded independently of whether Required resolved any key,
 	// which is what lets a class with an empty Required set still report
 	// enabled.

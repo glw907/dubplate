@@ -67,9 +67,8 @@ type AlbumSearch struct {
 //
 // It derives the search terms the way tag_album does rather than taking
 // them: beets lets a caller pass explicit search_artist and search_name
-// (autotag/match.py:443-446), and no rung 3 caller has any, so modelling
-// the override now would be a dead parameter. 3d's flow or a later
-// operator surface is where an explicit term would arrive.
+// (autotag/match.py:443-446), and no caller has any, so modelling the
+// override now would be a dead parameter.
 //
 // Each value is lowered and stripped twice, once in
 // get_search_query_with_filters' own comprehension (:750-752) and once in
@@ -101,10 +100,6 @@ func AlbumSearchFor(items []matcher.ItemFields, tun matcher.Tunables) AlbumSearc
 // already have overwritten with the album artist while leaving
 // consensus["artist"] computed from the raw per-item values
 // (util/__init__.py:842-844).
-//
-// It is unexported because AlbumSearchFor is this package's only caller
-// and no consumer outside it exists at rung 3; 3d's flow exports it the
-// day match_by_id's no-consensus branch needs it.
 func vaLikely(likelies matcher.Likelies, consensus map[string]bool, items []matcher.ItemFields) bool {
 	if !consensus["artist"] || matcher.IsVariousArtistsName(likelies.Artist) {
 		return true

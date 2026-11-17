@@ -8,30 +8,24 @@ import (
 )
 
 // ErrMalformedRelease is the one sentinel every boundary failure in
-// this package wraps, so a caller (3c's client) branches once on "this
+// this package wraps, so a caller branches once on "this
 // response is unusable" rather than on a hierarchy of error types.
 var ErrMalformedRelease = errors.New("malformed musicbrainz release")
 
 // Release is the subset of a WS/2 release beets' own album_info reads.
 // Several of its fields feed applied metadata rather than a distance
 // (medium title and track count, track id and number, alias sort names,
-// barcode, the release-group type fields), so nothing in 3b reads them;
-// they are decoded here because the wire shape is decoded once and
-// rung 8 should not re-derive it. That is the deliberate counterpart to
-// dropping credits.SortName (fold, M-i): the wire vocabulary names the
-// payload, and the computed vocabulary produces only what the matcher
-// reads. The struct tags name the wire keys directly, which discharges the
+// barcode, the release-group type fields), so nothing in the matcher
+// path reads them; they are decoded here because the wire shape is
+// decoded once and a later applied-field step should not re-derive it.
+// That is the deliberate counterpart to dropping credits.SortName: the
+// wire vocabulary names the payload, and the computed vocabulary
+// produces only what the matcher reads. The struct tags name the wire keys directly, which discharges the
 // hyphen-to-underscore half of the client's own _normalize_data
 // (beetsplug/_utils/musicbrainz.py:774) with no runtime pass: that
 // rewrite exists so a Python dict can be read with underscore keys, and
 // a Go struct does not need it. The relations regrouping half is not
 // needed either: PseudoReleaseTarget filters Relations by target type.
-//
-// Rejected alternative: decoding to map[string]any, running a faithful
-// recursive normalizer over every key, and re-decoding into typed
-// fields. That reproduces a normalizer for hundreds of keys nothing
-// reads, loses every type along the way, and makes the decoder testable
-// only through goldens, which go-conventions calls last-resort.
 type Release struct {
 	ID    string `json:"id"`
 	Title string `json:"title"`
@@ -164,8 +158,7 @@ type wireInt int
 // wrapping ErrMalformedRelease on both failure paths: this is the
 // decode boundary the sentinel's own comment names as "the one
 // sentinel every boundary failure in this package wraps"
-// (ErrMalformedRelease's doc comment above), and 3c's client is the
-// pass whose Release call makes that boundary real. encoding/json
+// (ErrMalformedRelease's doc comment above). encoding/json
 // returns a custom unmarshaler's error unchanged for a
 // non-UnmarshalTypeError, so errors.Is survives json.Unmarshal.
 func (n *wireInt) UnmarshalJSON(data []byte) error {
@@ -200,7 +193,7 @@ type Relation struct {
 
 // RelationTarget is a relation's target entity, named rather than
 // anonymous so `go doc` shows it and so the caller that must test it can
-// name the type (fold, m13).
+// name the type.
 type RelationTarget struct {
 	ID string `json:"id"`
 }
@@ -226,7 +219,7 @@ type RelationTarget struct {
 // A medium whose Tracks, Pregap, and DataTracks are all absent is
 // legal, not an error: beets reads all three through .get, and a medium
 // missing all three simply contributes nothing to track extraction
-// (T5). This is a named non-check, not an oversight.
+// This is a named non-check, not an oversight.
 func (rel *Release) validate() error {
 	for i, r := range rel.Relations {
 		if r.TargetType == "" {

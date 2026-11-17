@@ -12,15 +12,14 @@ import (
 // wall: owned wall rows, reserved classes, integration classes,
 // thresholds, identity sources, and store-homed settings with the
 // correlated rules over them, plus the superseded-name map.
-// [NewRegistry] returns a fresh value already carrying rung 1's own
+// [NewRegistry] returns a fresh value already carrying this package's own
 // declarations; a rung whose package exists registers its own from
 // there.
 //
 // Registration is an explicit call rather than an init function, so
 // declaration order stays visible in the caller's own code and a test
-// that imports this package alone still sees rung 1's own rows, the
-// reason rung 1 gave for Threshold registration, carried forward to
-// every family here.
+// that imports this package alone still sees its own rows, which holds
+// for every family here.
 //
 // A duplicate or malformed declaration panics rather than returning an
 // error, on the precedent of the three stdlib registries that face the
@@ -49,13 +48,12 @@ type Registry struct {
 	claims map[string]string
 }
 
-// NewRegistry returns a Registry seeded with rung 1's own
+// NewRegistry returns a Registry seeded with this package's own
 // declarations: the owned wall rows, the reserved classes, and the
-// superseded-name map, all declared inside internal/config because
-// that is rung 1's own package. Seeding here, rather than leaving the
-// registry to start empty, closes the empty-wall hazard: a registry a
-// test or a wiring mistake constructs without registering rung 1's
-// rows would let Load require nothing and accept everything.
+// superseded-name map, all declared inside internal/config. Seeding
+// here, rather than leaving the registry to start empty, closes the
+// empty-wall hazard: a registry a test or a wiring mistake constructs
+// without registering these rows would let Load require nothing and accept everything.
 //
 // A registry built from NewRegistry is independent of every other:
 // registering into one never changes another, and the same
@@ -98,10 +96,10 @@ func panicDuplicate(key, existing, family string) {
 	panic(fmt.Sprintf("%s: already declared in %s, cannot also declare in %s", key, existing, family))
 }
 
-// requirePrefix panics if key does not carry the DUBPLATE_ prefix (O5
-// class 3, Resolution R16: every family's keys share one flat
-// environment namespace, so a declared key without the prefix would
-// collide with an adopter's own variables). Every Add* entry point
+// requirePrefix panics if key does not carry the DUBPLATE_ prefix:
+// every family's keys share one flat environment namespace, so a
+// declared key without the prefix would collide with an adopter's own
+// variables. Every Add* entry point
 // calls this for each of its keys before any claim, so a key that
 // never reaches claim still gets checked.
 func requirePrefix(family, key string) {
@@ -111,9 +109,9 @@ func requirePrefix(family, key string) {
 }
 
 // claim panics if key was already claimed by a family other than
-// family (O5 class 2), then records that family claims key. It
+// family, then records that family claims key. It
 // deliberately does not flag a repeat claim from the same family: that
-// is a within-family duplicate (O5 class 1), and each family's own
+// is a within-family duplicate, and each family's own
 // entry point checks for it separately, so the two checks stay
 // independent of each other. Callers run [requirePrefix] on key before
 // calling claim.
@@ -145,7 +143,7 @@ func requireDescribedKeys(family string, keys ...[]KeyDecl) {
 }
 
 // AddWallRow registers row as an owned wall row, a key [Load]
-// requires. Its Name must carry the DUBPLATE_ prefix (O5 class 6) and
+// requires. Its Name must carry the DUBPLATE_ prefix and
 // is checked against every other declared key. A row without a
 // description or a sensitive mark panics naming it.
 func (r *Registry) AddWallRow(row WallRow) {
@@ -187,14 +185,14 @@ func (r *Registry) AddReservedClass(class ReservedClass) {
 
 // ReservedClasses returns the reserved classes in declaration order,
 // never sorted: doctor prints them in table order, which is not rung
-// order, and that order is the contract (Resolution R15).
+// order, and that order is the contract.
 func (r *Registry) ReservedClasses() []ReservedClass {
 	return slices.Clone(r.reservedClasses)
 }
 
 // AddIntegrationClass registers class as an adopter-optional
 // integration, distinct from a reserved class because it is enabled by
-// a flag rather than blocked until a rung lands (Resolution R2). class
+// a flag rather than blocked until a rung lands. class
 // must carry a non-empty Flag that is not one of its own Required
 // keys; an integration whose enable flag is itself one of the keys it
 // gates could never be told apart from a required row in an error
@@ -245,10 +243,8 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // AddThreshold registers t as a behavior tunable. t.Default must parse
 // under t.Kind, and t.Kind must name a parser; both are refused here,
 // at registration, rather than left for Load to discover as an
-// environment-shaped parse failure (Resolution R11). A threshold
-// without a description or a sensitive mark panics naming it. This task builds
-// the check's seat only: rung 1 registers no thresholds, and the kind
-// that motivates the check's own test lands with Task 5.
+// environment-shaped parse failure. A threshold without a description
+// or a sensitive mark panics naming it.
 func (r *Registry) AddThreshold(t Threshold) {
 	requirePrefix(familyThresholds, t.Key)
 	requireDescribed(familyThresholds, t.Key, t.Description, t.Mark)
@@ -264,7 +260,7 @@ func (r *Registry) AddThreshold(t Threshold) {
 // under its declared Kind, or if Kind names no parser: both are
 // registration bugs, never an adopter's environment problem. This is
 // the check that catches a threshold whose Kind was never set: KindInt
-// is iota's zero (Resolution R11), so a float threshold with no
+// is iota's zero, so a float threshold with no
 // explicit Kind carries a named kind and would pass an enum-membership
 // test alone; only parsing Default under the declared Kind catches it.
 //
@@ -304,9 +300,9 @@ func (r *Registry) Thresholds() []Threshold {
 // IdentitySource is one way a deployment establishes who a request
 // comes from. A deployment runs exactly one, named by the value of
 // Selector, which is why the family selects over declarations rather
-// than gating each on a boolean flag the way [IntegrationClass] does
-// (Resolution R-5b5). The rung that builds a source declares it from
-// its own file, so this package names no source and no key of one.
+// than gating each on a boolean flag the way [IntegrationClass] does.
+// The rung that builds a source declares it from its own file, so this
+// package names no source and no key of one.
 //
 // Required and Optional differ in what [Load] does with them, not in
 // what the wall accepts: Load requires every Required key once the
@@ -497,7 +493,7 @@ func (r *Registry) CorrelatedRules() []CorrelatedRule {
 // the greenfield wall, reason being the message rejectNamespace reports
 // for it. The superseded family stays a map rather than a slice
 // because no caller enumerates it: supersessionOf is a single lookup,
-// and order is meaningless for one (Resolution R8).
+// and order is meaningless for one.
 func (r *Registry) AddSuperseded(name, reason string) {
 	requirePrefix(familySuperseded, name)
 	if _, ok := r.superseded[name]; ok {

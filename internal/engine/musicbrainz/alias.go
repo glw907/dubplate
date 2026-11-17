@@ -14,7 +14,7 @@ import (
 // matches exactly (case-sensitively), whose primary flag is truthy, and
 // whose lowercased type is not in tun.IgnoredAliasTypes. It returns nil
 // when nothing matches, which is every case under beets' shipped empty
-// languages default (Ruling D).
+// languages default.
 //
 // An ignored type falls through to the NEXT matching alias rather than
 // to nil; the ignored set is lowercased while the locale comparison is
@@ -62,8 +62,7 @@ func preferredAlias(aliases []Alias, tun matcher.Tunables) *Alias {
 // _key_with_preferred_alias (musicbrainz.py:158-162). beets calls it at
 // three sites: the release title (:648), the release-group title
 // (:487-489), and the recording title (:443). This port has two
-// callers, because release_group_title is not in matcher.AlbumInfo and
-// is rung 8's applied-field territory.
+// callers, because release_group_title is not in matcher.AlbumInfo.
 func keyWithPreferredAlias(aliases []Alias, fallback string, tun matcher.Tunables) string {
 	if alias := preferredAlias(aliases, tun); alias != nil {
 		return alias.Name

@@ -12,9 +12,9 @@ const pseudoReleaseStatus = "Pseudo-Release"
 // rel.Status is exactly "Pseudo-Release" and some release relation
 // carries type "transl-tracklisting" with direction "backward".
 //
-// The FETCH of that release is 3c's client work; 3b exports the
-// predicate so 3c calls it, and merges over two already-built AlbumInfo
-// values.
+// The fetch of that release is the client's work; this predicate names
+// the target and MergePseudoRelease merges over two already-built
+// AlbumInfo values.
 func PseudoReleaseTarget(rel *Release) (releaseID string, ok bool) {
 	if rel.Status != pseudoReleaseStatus {
 		return "", false

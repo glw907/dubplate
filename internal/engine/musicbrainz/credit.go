@@ -15,14 +15,12 @@ const variousArtistsID = "89ad4ac3-39f7-470e-963a-56509c546377"
 // matcher.AlbumInfo and matcher.TrackInfo; ArtistID is here because the
 // various-artists override is keyed on the first artist's id
 // (musicbrainz.py:673-681). artist_sort is deliberately NOT produced:
-// beets computes it at musicbrainz.py:337, but R6 puts it in rung 8's
-// applied-field territory and out of the ruling-E ledger's graded set,
-// so carrying it here would be tested dead data of exactly the shape
-// 3a's close had to remove (fold, M-i).
+// beets computes it at musicbrainz.py:337, but nothing the matcher
+// reads depends on it, so carrying it here would be dead data.
 //
 // artist_credit is absent for the same reason and one more: it is the
 // only field whose value depends on musicbrainz.aliases_as_credits,
-// which R8 keeps out of Tunables, so producing the string would need a
+// which Tunables does not carry, so producing the string would need a
 // knob nothing else reads.
 type credits struct {
 	Artist   string
@@ -44,9 +42,6 @@ type credits struct {
 // Callers pass a credit list validate has accepted, at the release level
 // and at every surviving track's resolved level both, so the empty-list
 // case that raises IndexError at musicbrainz.py:350 cannot reach here.
-// Revision 1 claimed that guarantee against a Validate that checked the
-// release level only, which left this function indexing element zero of
-// an empty slice on track and recording credits (fold, M-d).
 func parseArtistCredits(parts []CreditPart, tun matcher.Tunables) credits {
 	var artist strings.Builder
 	for _, part := range parts {

@@ -63,9 +63,10 @@ type WallRow struct {
 }
 
 // ownedWall is the wall's required-now rows (spec, "The config wall,
-// derived"). Rung 5's own owned-now row, DUBPLATE_IDENTITY_SOURCE, is
-// registered from cmd/dubplate-server/auth.go rather than here, on the
-// rung 1b registry contract: this package names no rung-specific key.
+// derived"). The identity selector's owned-now row,
+// DUBPLATE_IDENTITY_SOURCE, is registered from
+// cmd/dubplate-server/auth.go rather than here: this package names no
+// key that belongs to another package.
 var ownedWall = []WallRow{
 	{
 		Name:        "DUBPLATE_LIBRARY_ROOT",
@@ -112,9 +113,9 @@ type ReservedClass struct {
 // unknown.
 var reservedClasses = []ReservedClass{
 	{
-		// Admission, tagging, layout, and collection routing (ladder
-		// rung 9) own the directories a session moves through once
-		// intake has accepted it.
+		// Admission, tagging, layout, and collection routing own the
+		// directories a session moves through once intake has accepted
+		// it.
 		Name: "pipeline",
 		Rung: 9,
 		Keys: []string{
@@ -193,7 +194,7 @@ func (r *Registry) supersessionOf(name string) (string, bool) {
 
 // IntegrationClass is one named integration the wall accepts only when
 // its Flag is set: an adopter-optional capability rather than an owned
-// one (build spec U4). Setting any of its keys with the flag unset is a
+// one. Setting any of its keys with the flag unset is a
 // load error naming the flag, so a half-configured integration is
 // refused rather than silently ignored.
 //
