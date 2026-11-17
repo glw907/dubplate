@@ -4,7 +4,7 @@
   "unidecode": "1.4.0",
   "jellyfish": "1.2.1",
   "lap": "0.5.13",
-  "numpy": "2.5.3",
+  "numpy": "2.5.4",
   "mediafile": "0.17.0",
   "shim_version": "1",
   "profile_hashes": {
