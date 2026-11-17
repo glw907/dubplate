@@ -21,18 +21,7 @@ func Read(path string) (TagSet, error) {
 	if err != nil {
 		return TagSet{}, err
 	}
-	return Tags(c), nil
-}
-
-// Tags is [project] exported over an already-parsed Container, for a
-// caller that needs one file's tags and another Container field, such
-// as StreamInfo, off a single [Parse]. The import reader is the
-// intended consumer; no caller exists yet. Read stays the
-// sniffing, path-taking entry point for a caller that
-// wants only the tags; Tags never opens a file, never sniffs a
-// format, and is not a second entry point.
-func Tags(c Container) TagSet {
-	return project(c)
+	return project(c), nil
 }
 
 // project reads all 69 fields out of c's VORBIS_COMMENT block the way

@@ -33,9 +33,9 @@ func goldenTagSet() TagSet {
 		OriginalYear:        new(1999),
 		OriginalMonth:       new(3),
 		OriginalDay:         new(4),
-		Arrangers:           EmptyList(),
-		Catalognum:          EmptyString(),
-		Barcode:             EmptyString(),
+		Arrangers:           []string{},
+		Catalognum:          new(""),
+		Barcode:             new(""),
 		AcoustIDFingerprint: new("invented-fingerprint-value"),
 		AcoustIDID:          new("11111111-2222-3333-4444-555555555555"),
 		Comments:            new("Invented comment text."),
@@ -327,7 +327,7 @@ func TestWriteReplacesLowercaseTitleCaseInsensitively(t *testing.T) {
 // measurement: writing both members of each colliding pair in one
 // call leaves the plural's comments. All three colliding pairs are
 // covered here at the surviving-comments level that Write owns;
-// tagset_test.go covers WriteOrder only.
+// tagset_test.go covers Serialize's order only.
 func TestWriteCollidingPairLeavesPluralComments(t *testing.T) {
 	tests := []struct {
 		name string

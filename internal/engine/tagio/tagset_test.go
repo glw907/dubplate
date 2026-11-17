@@ -46,7 +46,7 @@ func TestFieldCountAndNames(t *testing.T) {
 
 	got := make(map[string]bool, len(fields))
 	for _, f := range fields {
-		got[string(f.name)] = true
+		got[f.name] = true
 	}
 	want := make(map[string]bool, len(handoffNames))
 	for _, n := range handoffNames {
@@ -120,7 +120,7 @@ func TestFieldAccessorsTieToMembers(t *testing.T) {
 			}
 
 			var written []Comment
-			var writers []Field
+			var writers []string
 			for _, kw := range Serialize(ts) {
 				if len(kw.Writes) > 0 {
 					writers = append(writers, kw.Field)
@@ -134,7 +134,7 @@ func TestFieldAccessorsTieToMembers(t *testing.T) {
 				}
 				return
 			}
-			if len(writers) != 1 || string(writers[0]) != name {
+			if len(writers) != 1 || writers[0] != name {
 				t.Fatalf("setting %s alone wrote fields %v, want [%s]", name, writers, name)
 			}
 
@@ -157,93 +157,89 @@ func TestFieldAccessorsTieToMembers(t *testing.T) {
 	}
 }
 
-// fieldStructName pairs each Field constant with the TagSet struct
-// field it names, hand-authored independent of both tagset.go's
-// struct literal and the field table: naming a removed Field constant
-// here fails to compile, which is the mechanical tie a dropped
-// constant needs. TestTagSetMembersTieToFieldTable compares this map's
-// keys against the table's names and its values against TagSet's own
-// field names by reflection, so a dropped struct member or a dropped
-// row each fail a named assertion below, not just a bare count.
-var fieldStructName = map[Field]string{
-	FieldAcoustIDFingerprint: "AcoustIDFingerprint",
-	FieldAcoustIDID:          "AcoustIDID",
-	FieldAlbum:               "Album",
-	FieldAlbumartist:         "Albumartist",
-	FieldAlbumartistCredit:   "AlbumartistCredit",
-	FieldAlbumartistSort:     "AlbumartistSort",
-	FieldAlbumartists:        "Albumartists",
-	FieldAlbumartistsCredit:  "AlbumartistsCredit",
-	FieldAlbumartistsSort:    "AlbumartistsSort",
-	FieldAlbumdisambig:       "Albumdisambig",
-	FieldAlbumstatus:         "Albumstatus",
-	FieldAlbumtype:           "Albumtype",
-	FieldAlbumtypes:          "Albumtypes",
-	FieldArrangers:           "Arrangers",
-	FieldArtist:              "Artist",
-	FieldArtistCredit:        "ArtistCredit",
-	FieldArtistSort:          "ArtistSort",
-	FieldArtists:             "Artists",
-	FieldArtistsCredit:       "ArtistsCredit",
-	FieldArtistsSort:         "ArtistsSort",
-	FieldAsin:                "Asin",
-	FieldBarcode:             "Barcode",
-	FieldBpm:                 "Bpm",
-	FieldCatalognum:          "Catalognum",
-	FieldComments:            "Comments",
-	FieldComp:                "Comp",
-	FieldComposerSort:        "ComposerSort",
-	FieldComposers:           "Composers",
-	FieldCountry:             "Country",
-	FieldYear:                "Year",
-	FieldMonth:               "Month",
-	FieldDay:                 "Day",
-	FieldDisc:                "Disc",
-	FieldDisctitle:           "Disctitle",
-	FieldDisctotal:           "Disctotal",
-	FieldEncoder:             "Encoder",
-	FieldGenres:              "Genres",
-	FieldGrouping:            "Grouping",
-	FieldInitialKey:          "InitialKey",
-	FieldIsrc:                "Isrc",
-	FieldLabel:               "Label",
-	FieldLanguage:            "Language",
-	FieldLyricists:           "Lyricists",
-	FieldLyrics:              "Lyrics",
-	FieldMBAlbumartistid:     "MBAlbumartistid",
-	FieldMBAlbumartistids:    "MBAlbumartistids",
-	FieldMBAlbumid:           "MBAlbumid",
-	FieldMBArtistid:          "MBArtistid",
-	FieldMBArtistids:         "MBArtistids",
-	FieldMBReleasegroupid:    "MBReleasegroupid",
-	FieldMBReleasetrackid:    "MBReleasetrackid",
-	FieldMBTrackid:           "MBTrackid",
-	FieldMBWorkid:            "MBWorkid",
-	FieldMedia:               "Media",
-	FieldOriginalYear:        "OriginalYear",
-	FieldOriginalMonth:       "OriginalMonth",
-	FieldOriginalDay:         "OriginalDay",
-	FieldR128AlbumGain:       "R128AlbumGain",
-	FieldR128TrackGain:       "R128TrackGain",
-	FieldRemixers:            "Remixers",
-	FieldRgAlbumGain:         "RgAlbumGain",
-	FieldRgAlbumPeak:         "RgAlbumPeak",
-	FieldRgTrackGain:         "RgTrackGain",
-	FieldRgTrackPeak:         "RgTrackPeak",
-	FieldScript:              "Script",
-	FieldSubtitle:            "Subtitle",
-	FieldTitle:               "Title",
-	FieldTrack:               "Track",
-	FieldTracktotal:          "Tracktotal",
+// fieldStructName pairs each field name with the TagSet struct field
+// it names, hand-authored independent of both tagset.go's struct
+// literal and the field table. TestTagSetMembersTieToFieldTable
+// compares this map's keys against the table's names and its values
+// against TagSet's own field names by reflection, so a dropped struct
+// member or a dropped row each fail a named assertion, not just a bare
+// count.
+var fieldStructName = map[string]string{
+	"acoustid_fingerprint": "AcoustIDFingerprint",
+	"acoustid_id":          "AcoustIDID",
+	"album":                "Album",
+	"albumartist":          "Albumartist",
+	"albumartist_credit":   "AlbumartistCredit",
+	"albumartist_sort":     "AlbumartistSort",
+	"albumartists":         "Albumartists",
+	"albumartists_credit":  "AlbumartistsCredit",
+	"albumartists_sort":    "AlbumartistsSort",
+	"albumdisambig":        "Albumdisambig",
+	"albumstatus":          "Albumstatus",
+	"albumtype":            "Albumtype",
+	"albumtypes":           "Albumtypes",
+	"arrangers":            "Arrangers",
+	"artist":               "Artist",
+	"artist_credit":        "ArtistCredit",
+	"artist_sort":          "ArtistSort",
+	"artists":              "Artists",
+	"artists_credit":       "ArtistsCredit",
+	"artists_sort":         "ArtistsSort",
+	"asin":                 "Asin",
+	"barcode":              "Barcode",
+	"bpm":                  "Bpm",
+	"catalognum":           "Catalognum",
+	"comments":             "Comments",
+	"comp":                 "Comp",
+	"composer_sort":        "ComposerSort",
+	"composers":            "Composers",
+	"country":              "Country",
+	"year":                 "Year",
+	"month":                "Month",
+	"day":                  "Day",
+	"disc":                 "Disc",
+	"disctitle":            "Disctitle",
+	"disctotal":            "Disctotal",
+	"encoder":              "Encoder",
+	"genres":               "Genres",
+	"grouping":             "Grouping",
+	"initial_key":          "InitialKey",
+	"isrc":                 "Isrc",
+	"label":                "Label",
+	"language":             "Language",
+	"lyricists":            "Lyricists",
+	"lyrics":               "Lyrics",
+	"mb_albumartistid":     "MBAlbumartistid",
+	"mb_albumartistids":    "MBAlbumartistids",
+	"mb_albumid":           "MBAlbumid",
+	"mb_artistid":          "MBArtistid",
+	"mb_artistids":         "MBArtistids",
+	"mb_releasegroupid":    "MBReleasegroupid",
+	"mb_releasetrackid":    "MBReleasetrackid",
+	"mb_trackid":           "MBTrackid",
+	"mb_workid":            "MBWorkid",
+	"media":                "Media",
+	"original_year":        "OriginalYear",
+	"original_month":       "OriginalMonth",
+	"original_day":         "OriginalDay",
+	"r128_album_gain":      "R128AlbumGain",
+	"r128_track_gain":      "R128TrackGain",
+	"remixers":             "Remixers",
+	"rg_album_gain":        "RgAlbumGain",
+	"rg_album_peak":        "RgAlbumPeak",
+	"rg_track_gain":        "RgTrackGain",
+	"rg_track_peak":        "RgTrackPeak",
+	"script":               "Script",
+	"subtitle":             "Subtitle",
+	"title":                "Title",
+	"track":                "Track",
+	"tracktotal":           "Tracktotal",
 }
 
 // TestTagSetMembersTieToFieldTable grades the three lists that must
-// agree: removing a TagSet member, a table row or a Field constant
-// each fail a named assertion here. A removed Field constant fails
-// fieldStructName's own compilation, before the test ever runs; the
-// two loops below catch a removed struct member (against
-// reflect.TypeOf(TagSet{})) and a removed row (against the table's
-// own names).
+// agree: removing a TagSet member, a table row or a fieldStructName
+// entry each fail a named assertion here, against
+// reflect.TypeFor[TagSet]() and against the table's own names.
 func TestTagSetMembersTieToFieldTable(t *testing.T) {
 	if len(fieldStructName) != 69 {
 		t.Fatalf("fieldStructName has %d entries, want 69", len(fieldStructName))
@@ -272,7 +268,7 @@ func TestTagSetMembersTieToFieldTable(t *testing.T) {
 		}
 	}
 
-	gotTable := make(map[Field]bool, len(fields))
+	gotTable := make(map[string]bool, len(fields))
 	for _, f := range fields {
 		gotTable[f.name] = true
 	}
@@ -288,7 +284,7 @@ func TestTagSetMembersTieToFieldTable(t *testing.T) {
 	}
 }
 
-// TestTagSetJSONTagsTieToFieldConstants grades R11's mandatory safety
+// TestTagSetJSONTagsTieToFieldNames grades R11's mandatory safety
 // net in two halves, because a wrong tag is otherwise invisible: the
 // conformance instrument's fill and its projection both go through
 // the same tag, so a tag that maps album to the artist member writes
@@ -296,17 +292,17 @@ func TestTagSetMembersTieToFieldTable(t *testing.T) {
 // while the file on disk is wrong.
 //
 // By name: for each entry in fieldStructName, the named TagSet
-// member's JSON tag, read through reflection, equals the Field
-// constant that names it. This ties the tag, the member and the
-// table row together by fieldStructName's one literal rather than by
-// struct declaration order.
+// member's JSON tag, read through reflection, equals the field name
+// that keys it. This ties the tag, the member and the table row
+// together by fieldStructName's one literal rather than by struct
+// declaration order.
 //
 // By position: for each index, the struct field at that index's JSON
 // tag equals the name of the table's row at the same index, and the
 // member count equals 69. This is the cheaper, position-based check
 // that fails loudly if TagSet's declaration order ever drifts from
 // the table's.
-func TestTagSetJSONTagsTieToFieldConstants(t *testing.T) {
+func TestTagSetJSONTagsTieToFieldNames(t *testing.T) {
 	typ := reflect.TypeFor[TagSet]()
 
 	t.Run("by name", func(t *testing.T) {
@@ -321,8 +317,8 @@ func TestTagSetJSONTagsTieToFieldConstants(t *testing.T) {
 				t.Errorf("TagSet.%s carries no json tag, want %q", structName, field)
 				continue
 			}
-			if tag != string(field) {
-				t.Errorf("TagSet.%s json tag = %q, want %q (the Field constant naming it)", structName, tag, field)
+			if tag != field {
+				t.Errorf("TagSet.%s json tag = %q, want %q (the field name keying it)", structName, tag, field)
 			}
 		}
 	})
@@ -341,7 +337,7 @@ func TestTagSetJSONTagsTieToFieldConstants(t *testing.T) {
 				t.Errorf("TagSet field %d (%s) carries no json tag, want %q", i, structField.Name, f.name)
 				continue
 			}
-			if tag != string(f.name) {
+			if tag != f.name {
 				t.Errorf("TagSet field %d (%s) json tag = %q, want %q (fields[%d].name)", i, structField.Name, tag, f.name, i)
 			}
 		}
@@ -376,12 +372,12 @@ func TestTagSetJSONTagsCarryNoOmitempty(t *testing.T) {
 // Writable: false.
 func TestReadOnlyMarks(t *testing.T) {
 	cases := []struct {
-		field        Field
+		field        string
 		readOnlyKeys []string
 	}{
-		{FieldAlbumartists, []string{"ALBUM ARTISTS"}},
-		{FieldCatalognum, []string{"CATALOGID", "DISCOGS_CATALOG"}},
-		{FieldBarcode, []string{"UPC", "EAN/UPN", "EAN", "UPN"}},
+		{"albumartists", []string{"ALBUM ARTISTS"}},
+		{"catalognum", []string{"CATALOGID", "DISCOGS_CATALOG"}},
+		{"barcode", []string{"UPC", "EAN/UPN", "EAN", "UPN"}},
 	}
 
 	for _, c := range cases {
@@ -401,30 +397,30 @@ func TestReadOnlyMarks(t *testing.T) {
 
 // TestCollidingPairsWriteOrder grades C3's pair-resolution rule: each
 // of the three colliding pairs writes its plural member last, so the
-// plural's position in WriteOrder follows the singular's.
+// plural's KeyWrite follows the singular's in Serialize's output.
 func TestCollidingPairsWriteOrder(t *testing.T) {
 	pairs := []struct {
-		singular, plural Field
+		singular, plural string
 	}{
-		{FieldAlbumtype, FieldAlbumtypes},
-		{FieldMBArtistid, FieldMBArtistids},
-		{FieldMBAlbumartistid, FieldMBAlbumartistids},
+		{"albumtype", "albumtypes"},
+		{"mb_artistid", "mb_artistids"},
+		{"mb_albumartistid", "mb_albumartistids"},
 	}
 
-	order := WriteOrder()
-	index := make(map[Field]int, len(order))
-	for i, f := range order {
-		index[f] = i
+	kws := Serialize(TagSet{})
+	index := make(map[string]int, len(kws))
+	for i, kw := range kws {
+		index[kw.Field] = i
 	}
 
 	for _, p := range pairs {
 		si, ok := index[p.singular]
 		if !ok {
-			t.Fatalf("%q is not in WriteOrder", p.singular)
+			t.Fatalf("Serialize returns no KeyWrite for %q", p.singular)
 		}
 		pi, ok := index[p.plural]
 		if !ok {
-			t.Fatalf("%q is not in WriteOrder", p.plural)
+			t.Fatalf("Serialize returns no KeyWrite for %q", p.plural)
 		}
 		if si >= pi {
 			t.Errorf("pair (%q, %q): singular is at %d, plural at %d, want singular before plural", p.singular, p.plural, si, pi)
@@ -432,68 +428,9 @@ func TestCollidingPairsWriteOrder(t *testing.T) {
 	}
 }
 
-// TestFourStates grades C2 for a representative string field, list
-// field and numeric field: value, present-but-empty and absent are
-// each distinguishable by reading the one TagSet member directly, no
-// second lookup. The numeric row has no empty state, per C2. Each
-// subtest's rows are a table indexed by position, and the absent row
-// is a bare TagSet{} rather than a field set to nil by name, so the
-// assertion reads a value the row's own construction produced instead
-// of re-reading a nil the same statement just wrote.
-func TestFourStates(t *testing.T) {
-	value := "Wowbagger"
-	t.Run("string", func(t *testing.T) {
-		rows := []TagSet{
-			{Title: &value},
-			{Title: EmptyString()},
-			{},
-		}
-		if rows[0].Title == nil || *rows[0].Title != value {
-			t.Error("value state: Title does not hold the value")
-		}
-		if rows[1].Title == nil || *rows[1].Title != "" {
-			t.Error("empty state: Title is not a non-nil pointer to \"\"")
-		}
-		if rows[2].Title != nil {
-			t.Error("absent state: Title is not nil")
-		}
-	})
-
-	t.Run("list", func(t *testing.T) {
-		rows := []TagSet{
-			{Genres: []string{"jazz", "trip-hop"}},
-			{Genres: EmptyList()},
-			{},
-		}
-		if rows[0].Genres == nil || len(rows[0].Genres) != 2 {
-			t.Error("value state: Genres does not hold the values")
-		}
-		if rows[1].Genres == nil || len(rows[1].Genres) != 0 {
-			t.Error("empty state: Genres is not a non-nil zero-length slice")
-		}
-		if rows[2].Genres != nil {
-			t.Error("absent state: Genres is not nil")
-		}
-	})
-
-	t.Run("numeric", func(t *testing.T) {
-		n := 7
-		rows := []TagSet{
-			{Track: &n},
-			{},
-		}
-		if rows[0].Track == nil || *rows[0].Track != 7 {
-			t.Error("value state: Track does not hold the value")
-		}
-		if rows[1].Track != nil {
-			t.Error("absent state: Track is not nil")
-		}
-	})
-}
-
 // mustRow returns the field table's row for name, failing the test if
 // none exists.
-func mustRow(t *testing.T, name Field) field {
+func mustRow(t *testing.T, name string) field {
 	t.Helper()
 	for _, f := range fields {
 		if f.name == name {

@@ -330,7 +330,7 @@ func TestRulesZeroYearRoundTrip(t *testing.T) {
 // disk, so a read-back finds a nil slice, the same value an absent
 // field projects to (deviation 3).
 func TestRulesEmptyListRoundTrip(t *testing.T) {
-	gotComments, gotRead := writeAndRead(t, TagSet{Genres: EmptyList()})
+	gotComments, gotRead := writeAndRead(t, TagSet{Genres: []string{}})
 
 	if len(gotComments) != 0 {
 		t.Errorf("comments = %+v, want none: an empty list writes no comment", gotComments)
@@ -348,7 +348,7 @@ func TestRulesEmptyListRoundTrip(t *testing.T) {
 // fixture never carried, leaving catalognum absent on read-back
 // (mediafile/fields.py:48-54).
 func TestRulesCatalognumEmptyRoundTrip(t *testing.T) {
-	gotComments, gotRead := writeAndRead(t, TagSet{Catalognum: EmptyString()})
+	gotComments, gotRead := writeAndRead(t, TagSet{Catalognum: new("")})
 
 	want := []Comment{{Name: "CATALOGNUMBER", Value: ""}}
 	if !reflect.DeepEqual(gotComments, want) {
@@ -365,7 +365,7 @@ func TestRulesCatalognumEmptyRoundTrip(t *testing.T) {
 // to UPN, a read-only style this write never touches, leaving barcode
 // absent on read-back (mediafile/fields.py:48-54).
 func TestRulesBarcodeEmptyRoundTrip(t *testing.T) {
-	gotComments, gotRead := writeAndRead(t, TagSet{Barcode: EmptyString()})
+	gotComments, gotRead := writeAndRead(t, TagSet{Barcode: new("")})
 
 	want := []Comment{{Name: "BARCODE", Value: ""}}
 	if !reflect.DeepEqual(gotComments, want) {

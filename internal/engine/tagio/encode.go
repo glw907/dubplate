@@ -9,8 +9,9 @@ import (
 	"unicode/utf8"
 )
 
-// KeyWrite is one field's contribution to a write: every Vorbis key
-// the field can ever touch and, when the field carries a value, the
+// KeyWrite is one field's contribution to a write: the field's ledger
+// name, which is also its TagSet member's JSON tag; every Vorbis key
+// the field can ever touch; and, when the field carries a value, the
 // ordered comments a write appends. Deletes lists a read-only style
 // only when the field itself is absent, because read_only blocks a
 // set but not a delete (INV:238-240); Writes covers writable styles
@@ -18,7 +19,7 @@ import (
 // order Serialize returns them, which is what resolves the three
 // colliding pairs the plural's own way (C3).
 type KeyWrite struct {
-	Field   Field
+	Field   string
 	Deletes []string
 	Writes  []Comment
 }

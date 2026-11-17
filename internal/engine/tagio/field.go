@@ -16,7 +16,7 @@ type style struct {
 // order; the mediafile line those keys were read from; and the codec
 // that reads the member from a file's comments and writes it back.
 type field struct {
-	name   Field
+	name   string
 	styles []style
 	cite   string
 	codec  codec

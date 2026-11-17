@@ -65,15 +65,14 @@ type Picture struct {
 	Data []byte
 }
 
-// FrontCover selects c's front-cover picture, reproducing mediafile's
-// CoverArtField.guess_cover_image (mediafile/fields.py:253-260,
-// INV:466-470): the single candidate when exactly one picture exists,
-// otherwise the first picture typed front, otherwise the first
-// picture of any type. The single-candidate rule runs before the
-// front-cover rule, so a lone back cover is the cover (P5). The
-// second return value is false only when c carries no picture at
-// all.
-func (c Container) FrontCover() (Picture, bool) {
+// frontCover selects c's front-cover picture, reproducing mediafile's
+// CoverArtField.guess_cover_image (mediafile/fields.py:253-260): the
+// single candidate when exactly one picture exists, otherwise the
+// first picture typed front, otherwise the first picture of any type.
+// The single-candidate rule runs before the front-cover rule, so a
+// lone back cover is the cover. The second return value is false only
+// when c carries no picture at all.
+func (c Container) frontCover() (Picture, bool) {
 	if len(c.Pictures) == 0 {
 		return Picture{}, false
 	}
@@ -164,11 +163,11 @@ const (
 // (:144-155). TIFF additionally excludes "CR" at offset 8, the byte
 // pair that routes a Canon raw file to CR2 rather than TIFF in the
 // reference (:193-199); a CR2-prefixed blob therefore matches no row
-// here, which is R2's stated deviation, recorded in deviations.go: the
-// reference reports image/x-canon-cr2 where this package refuses. A
-// blob matching no row is refused with a wrapped error rather than
-// written with a guessed or empty media type (R2); no caller branches
-// on this case yet, so it carries no new sentinel (C14).
+// here, a deviation the package doc records: the reference reports
+// image/x-canon-cr2 where this package refuses. A blob matching no row
+// is refused with a wrapped error rather than written with a guessed
+// or empty media type; no caller branches on this case yet, so it
+// carries no new sentinel.
 func sniffMediaType(data []byte) (string, error) {
 	switch {
 	case len(data) >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF:

@@ -165,7 +165,7 @@ func TestParseTwoPictureBlocks(t *testing.T) {
 	}
 }
 
-// TestFrontCover covers P5's selection table: the single-candidate
+// TestFrontCover covers the cover selection table: the single-candidate
 // rule runs before the front-cover rule, so a lone back cover is the
 // cover, and among several pictures the first typed front wins over a
 // preceding back cover.
@@ -192,12 +192,12 @@ func TestFrontCover(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Container{Pictures: tt.pictures}
-			got, ok := c.FrontCover()
+			got, ok := c.frontCover()
 			if ok != tt.wantOK {
 				t.Fatalf("ok = %v, want %v", ok, tt.wantOK)
 			}
 			if ok && got.Description != tt.want.Description {
-				t.Errorf("FrontCover = %+v, want %+v", got, tt.want)
+				t.Errorf("frontCover = %+v, want %+v", got, tt.want)
 			}
 		})
 	}
