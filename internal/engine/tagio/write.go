@@ -224,14 +224,17 @@ func appendLengthPrefixed(order binary.AppendByteOrder, buf []byte, s string) []
 }
 
 // copyFrameRegion copies path's frame region into w through a section
-// reader, so the audio is never held in memory whatever its size.
+// reader, so the audio is never held in memory whatever its size. It
+// uses CopyN because a section reader over a file that has shrunk
+// since the parse ends early without an error, and a short copy would
+// otherwise be renamed into place as a truncated FLAC.
 func copyFrameRegion(w io.Writer, path string, offset, length int64) error {
 	src, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("tagio: open %s: %w", path, err)
 	}
 	defer func() { _ = src.Close() }()
-	if _, err := io.Copy(w, io.NewSectionReader(src, offset, length)); err != nil {
+	if _, err := io.CopyN(w, io.NewSectionReader(src, offset, length), length); err != nil {
 		return fmt.Errorf("tagio: copy frame region of %s: %w", path, err)
 	}
 	return nil

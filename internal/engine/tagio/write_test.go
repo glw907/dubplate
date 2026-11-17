@@ -928,6 +928,37 @@ func TestWriteRefusalLeavesFileUnchanged(t *testing.T) {
 	}
 }
 
+// TestCopyFrameRegionRefusesAShortSource proves a region longer than the
+// file is an error rather than a silently truncated copy.
+func TestCopyFrameRegionRefusesAShortSource(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "short.bin")
+	if err := os.WriteFile(path, []byte("0123456789"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name           string
+		offset, length int64
+		wantErr        bool
+		want           string
+	}{
+		{"region inside the file", 2, 5, false, "23456"},
+		{"region ends at the file end", 4, 6, false, "456789"},
+		{"region runs past the file end", 4, 7, true, ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var out bytes.Buffer
+			err := copyFrameRegion(&out, path, tc.offset, tc.length)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("copyFrameRegion error = %v, want error %v", err, tc.wantErr)
+			}
+			if !tc.wantErr && out.String() != tc.want {
+				t.Errorf("copied %q, want %q", out.String(), tc.want)
+			}
+		})
+	}
+}
+
 // TestWriteBlockChainOrderPictureReplacedInPlace covers P8's ownership
 // transition on the golden, which already carries a picture: the
 // emitted chain reads STREAMINFO, VORBIS_COMMENT, PICTURE, PADDING,
