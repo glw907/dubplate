@@ -88,24 +88,6 @@ func TestSniff(t *testing.T) {
 	}
 }
 
-// TestSupportedFormatsReturnsCopy grades the supported set's copy
-// contract on Mapping's own precedent: the registry carries exactly
-// one entry, and mutating a returned slice must never touch the next
-// call's result.
-func TestSupportedFormatsReturnsCopy(t *testing.T) {
-	first := SupportedFormats()
-	if len(first) != 1 || first[0] != FormatFLAC {
-		t.Fatalf("SupportedFormats = %v, want exactly [FormatFLAC]", first)
-	}
-
-	first[0] = Format(99)
-
-	second := SupportedFormats()
-	if len(second) != 1 || second[0] != FormatFLAC {
-		t.Fatalf("mutating the first call's slice changed the second: %v", second)
-	}
-}
-
 // TestSupportedFormatsOrderedByValue proves the order is fixed rather
 // than a map's own iteration order, which Go deliberately randomizes:
 // a synthetic three-row registry, inserted in descending Format

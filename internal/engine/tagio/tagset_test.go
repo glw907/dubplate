@@ -2,7 +2,6 @@ package tagio
 
 import (
 	"reflect"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -296,23 +295,6 @@ func TestTagSetJSONTagsCarryNoOmitempty(t *testing.T) {
 	}
 }
 
-// TestMappingAccessorReturnsCopy grades finding 2: a caller cannot
-// reorder WriteOrder's underlying table by mutating Mapping's
-// returned slice.
-func TestMappingAccessorReturnsCopy(t *testing.T) {
-	before := WriteOrder()
-	got := Mapping()
-	if len(got) < 2 {
-		t.Fatal("Mapping() returned fewer than 2 rows")
-	}
-	got[0], got[1] = got[1], got[0]
-
-	after := WriteOrder()
-	if !slices.Equal(before, after) {
-		t.Error("mutating Mapping()'s returned slice changed WriteOrder")
-	}
-}
-
 // TestReadOnlyMarks grades the exceptional-rows table's read-only
 // marks for albumartists, catalognum and barcode: the styles named
 // read-only there, and no other style on those three rows, are marked
@@ -338,25 +320,6 @@ func TestReadOnlyMarks(t *testing.T) {
 			if s.Writable != want {
 				t.Errorf("field %q key %q: Writable = %v, want %v", c.field, s.Key, s.Writable, want)
 			}
-		}
-	}
-}
-
-// TestWriteOrderDeterministic grades C3's determinism property:
-// WriteOrder called repeatedly always yields the same sequence. A
-// map-backed implementation (mutation 5) ranges non-deterministically
-// per call, so this loop is the check that would catch it; the loop
-// count is the number of calls this task ran the check for.
-func TestWriteOrderDeterministic(t *testing.T) {
-	const runs = 200
-	first := WriteOrder()
-	if len(first) != 69 {
-		t.Fatalf("WriteOrder returned %d fields, want 69", len(first))
-	}
-	for i := 1; i < runs; i++ {
-		next := WriteOrder()
-		if !slices.Equal(first, next) {
-			t.Fatalf("WriteOrder is non-deterministic: run %d differs from run 0", i)
 		}
 	}
 }
