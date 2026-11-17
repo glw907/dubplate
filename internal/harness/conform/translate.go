@@ -55,46 +55,6 @@ const (
 	nullEqualsZero
 )
 
-// fieldNullability is the twenty-one-field nullability policy (R1,
-// R11): every scalar matcher.AlbumInfo and matcher.TrackInfo carries,
-// one line of reason each, so a reader sees why a field tolerates null
-// without reading beets. Three fields are nullStrict, nine
-// nullNeverExpected, nine nullEqualsZero.
-//
-// The row count is asserted in translate_test.go against
-// reflect.TypeOf(matcher.AlbumInfo{}).NumField() - 1 +
-// reflect.TypeOf(matcher.TrackInfo{}).NumField(), the "- 1" being
-// AlbumInfo.Tracks, which is compared as a list rather than through
-// this policy. Adding a field to either struct without extending this
-// table fails that assertion.
-var fieldNullability = []struct {
-	Field  string
-	Policy nullPolicy
-	Reason string
-}{
-	{"album.album", nullStrict, "distance.py:451, unguarded add_string"},
-	{"album.artist", nullStrict, "distance.py:448, guarded only by \"not va\""},
-	{"track.title", nullStrict, "distance.py:402, unguarded add_string"},
-	{"album.va", nullNeverExpected, "a Python bool, never None"},
-	{"album.mediums", nullNeverExpected, "len(...), may be 0, never None"},
-	{"album.album_id", nullNeverExpected, "release[\"id\"], always present"},
-	{"album.data_source", nullNeverExpected, "the literal \"MusicBrainz\""},
-	{"track.index", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.medium_index", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.medium", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.track_id", nullNeverExpected, "written unconditionally by track_info"},
-	{"track.data_source", nullNeverExpected, "written unconditionally by track_info"},
-	{"album.media", nullEqualsZero, "truthiness-guarded, distance.py:455; a single-medium null format really does yield None"},
-	{"album.year", nullEqualsZero, "truthiness-guarded, distance.py:472,480"},
-	{"album.original_year", nullEqualsZero, "truthiness-guarded, distance.py:475,484"},
-	{"album.country", nullEqualsZero, "truthiness-guarded, distance.py:498,501"},
-	{"album.label", nullEqualsZero, "truthiness-guarded, distance.py:505"},
-	{"album.catalognum", nullEqualsZero, "truthiness-guarded, distance.py:509"},
-	{"album.albumdisambig", nullEqualsZero, "truthiness-guarded, distance.py:515"},
-	{"track.length", nullEqualsZero, "truthiness-guarded, distance.py:397"},
-	{"track.artist", nullEqualsZero, "truthiness-guarded, distance.py:404-410"},
-}
-
 // checkNullable compares want, a ledger scalar that may be JSON null,
 // against got, the Go translation's own zero-or-real value, per
 // policy. field and the case/release pair name the disagreement so a
