@@ -3,10 +3,7 @@ package tagio
 import (
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 )
 
 // KeyWrite is one field's contribution to a write: the field's ledger
@@ -14,10 +11,10 @@ import (
 // the field can ever touch; and, when the field carries a value, the
 // ordered comments a write appends. Deletes lists a read-only style
 // only when the field itself is absent, because read_only blocks a
-// set but not a delete (INV:238-240); Writes covers writable styles
-// only. Task 7 applies a KeyWrite's Deletes before its Writes, in the
-// order Serialize returns them, which is what resolves the three
-// colliding pairs the plural's own way (C3).
+// set but not a delete; Writes covers writable styles only. Write
+// applies a KeyWrite's Deletes before its Writes, in the order
+// Serialize returns them, which is what resolves the three colliding
+// pairs the plural's own way.
 type KeyWrite struct {
 	Field   string
 	Deletes []string
@@ -164,134 +161,4 @@ func valueOr(v *int) int {
 		return 0
 	}
 	return *v
-}
-
-// intPrefixPattern and floatPrefixPattern reproduce safe_cast's
-// leading-numeric-prefix rule exactly (mediafile/utils/type_conversion.py:4-60).
-var (
-	intPrefixPattern   = regexp.MustCompile(`^[+-]?[0-9]+`)
-	floatPrefixPattern = regexp.MustCompile(`^[+-]?([0-9]+\.?[0-9]*|[0-9]*\.[0-9]+)`)
-)
-
-// safeCastInt takes s's leading [+-]?[0-9]+ prefix and parses it,
-// yielding 0 when s carries no such prefix (safe_cast to int,
-// INV:253-260). It never sees an absent value: a caller that has not
-// found a truthy style has nothing to cast.
-func safeCastInt(s string) int {
-	prefix := intPrefixPattern.FindString(strings.TrimSpace(s))
-	if prefix == "" {
-		return 0
-	}
-	n, err := strconv.Atoi(prefix)
-	if err != nil {
-		return 0
-	}
-	return n
-}
-
-// safeCastFloat takes s's leading numeric prefix and parses it,
-// yielding 0.0 when s carries no such prefix (safe_cast to float).
-// The suffix on rg_track_gain and rg_album_gain is stripped by the
-// caller before this runs, though safe_cast's own prefix match would
-// stop at " dB" either way.
-func safeCastFloat(s string) float64 {
-	prefix := floatPrefixPattern.FindString(strings.TrimSpace(s))
-	if prefix == "" {
-		return 0
-	}
-	f, err := strconv.ParseFloat(prefix, 64)
-	if err != nil {
-		return 0
-	}
-	return f
-}
-
-// safeCastBool is bool(int(val)) with a parse failure falling to
-// false (safe_cast to bool). Unlike safeCastInt, mediafile's int()
-// constructor here takes the whole trimmed string rather than a
-// leading prefix, so "1x" is a parse failure and yields false.
-func safeCastBool(s string) bool {
-	n, err := strconv.Atoi(strings.TrimSpace(s))
-	if err != nil {
-		return false
-	}
-	return n != 0
-}
-
-// replaceInvalidUTF8 returns s with each invalid UTF-8 code point
-// replaced by U+FFFD, matching mutagen's errors='replace' decode
-// (ruling 10). Python's utf-8 codec follows the Unicode "maximal
-// subpart" rule: an ill-formed sequence collapses its longest
-// well-formed prefix (the lead byte plus whatever continuation bytes
-// already matched) into a single U+FFFD, then resumes scanning at the
-// byte that broke the sequence. unicode/utf8's own DecodeRuneInString
-// does not have these semantics: it always reports size 1 on an
-// invalid encoding, where mutagen/_vorbis.py:109 collapses the whole
-// maximal subpart instead, so this scans the byte structure explicitly
-// via utf8SequenceSpan rather than leaning on the stdlib decoder.
-// Values are valid UTF-8 by
-// construction on write, so this only ever runs on read.
-func replaceInvalidUTF8(s string) string {
-	if utf8.ValidString(s) {
-		return s
-	}
-	var b strings.Builder
-	for i := 0; i < len(s); {
-		validLen, invalidLen := utf8SequenceSpan(s[i:])
-		if validLen > 0 {
-			b.WriteString(s[i : i+validLen])
-			i += validLen
-			continue
-		}
-		b.WriteRune(utf8.RuneError)
-		i += invalidLen
-	}
-	return b.String()
-}
-
-// utf8SequenceSpan looks at s's leading bytes and reports either the
-// byte length of a well-formed UTF-8 sequence starting there
-// (validLen, with invalidLen zero) or the byte length of the maximal
-// ill-formed subpart starting there (invalidLen, with validLen zero):
-// the lead byte plus however many of its required continuation bytes
-// are present and in range before one is missing or out of range.
-// utf8SequenceSpan never sees an empty s; replaceInvalidUTF8's loop
-// only calls it while i < len(s).
-func utf8SequenceSpan(s string) (validLen, invalidLen int) {
-	b0 := s[0]
-	if b0 < 0x80 {
-		return 1, 0
-	}
-
-	var contRanges [][2]byte
-	switch {
-	case b0 >= 0xC2 && b0 <= 0xDF:
-		contRanges = [][2]byte{{0x80, 0xBF}}
-	case b0 == 0xE0:
-		contRanges = [][2]byte{{0xA0, 0xBF}, {0x80, 0xBF}}
-	case b0 >= 0xE1 && b0 <= 0xEC:
-		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}}
-	case b0 == 0xED:
-		contRanges = [][2]byte{{0x80, 0x9F}, {0x80, 0xBF}}
-	case b0 >= 0xEE && b0 <= 0xEF:
-		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}}
-	case b0 == 0xF0:
-		contRanges = [][2]byte{{0x90, 0xBF}, {0x80, 0xBF}, {0x80, 0xBF}}
-	case b0 >= 0xF1 && b0 <= 0xF3:
-		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}, {0x80, 0xBF}}
-	case b0 == 0xF4:
-		contRanges = [][2]byte{{0x80, 0x8F}, {0x80, 0xBF}, {0x80, 0xBF}}
-	default:
-		// A stray continuation byte (0x80-0xBF) or a byte that can
-		// never lead a sequence (0xC0, 0xC1, 0xF5-0xFF): a maximal
-		// subpart of length 1, on its own.
-		return 0, 1
-	}
-
-	for i, r := range contRanges {
-		if i+1 >= len(s) || s[i+1] < r[0] || s[i+1] > r[1] {
-			return 0, i + 1
-		}
-	}
-	return len(contRanges) + 1, 0
 }

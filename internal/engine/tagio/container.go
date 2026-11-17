@@ -15,7 +15,7 @@ const flacSignature = "fLaC"
 
 // Block types this package recognizes by number (RFC 9639 section
 // 8.1). Every other value from 7 through 126 is a reserved type this
-// package preserves without decoding (C10); 127 is never a legal
+// package preserves without decoding; 127 is never a legal
 // block type, reserved by the format itself so a reader can tell a
 // metadata block header apart from the start of an audio frame,
 // whose sync code always begins with the byte 0xFF.
@@ -32,7 +32,7 @@ const (
 // read defensively.
 const streamInfoSize = 34
 
-// ErrMalformedContainer marks a container ruling 9 refuses outright:
+// ErrMalformedContainer marks a container this package refuses outright:
 // a second VORBIS_COMMENT or SEEKTABLE block, a STREAMINFO that is
 // not first or not 34 bytes, a block following a header whose
 // last-block flag is set, a declared length running past the end of
@@ -42,13 +42,12 @@ const streamInfoSize = 34
 var ErrMalformedContainer = errors.New("tagio: malformed FLAC container")
 
 // ErrUnsupportedContainer marks a stream whose first four bytes are
-// not the FLAC signature. Rung 7's allowlist gate branches on it
-// (C14).
+// not the FLAC signature. The intake gate's allowlist branches on it.
 var ErrUnsupportedContainer = errors.New("tagio: unsupported container")
 
 // Block is one metadata block, carried by type, declared length and
 // payload, so a block this package does not decode still survives a
-// write unchanged (C10).
+// write unchanged.
 type Block struct {
 	// Type is the block's seven-bit type. Values 0 through 6 are the
 	// types RFC 9639 defines; 7 through 126 are reserved types this
@@ -88,8 +87,7 @@ type Comment struct {
 
 // VorbisComment is the decoded VORBIS_COMMENT block: the vendor
 // string and every comment as a sequence, not a map, because a key
-// may repeat and a map would keep only one occurrence
-// (spec:688-690).
+// may repeat and a map would keep only one occurrence.
 type VorbisComment struct {
 	Vendor   string
 	Comments []Comment
@@ -97,8 +95,8 @@ type VorbisComment struct {
 
 // Container is one FLAC file's parsed metadata: its block chain in
 // order, STREAMINFO and VORBIS_COMMENT decoded, every PICTURE block
-// decoded in on-disk order (P2), and the frame region's extent as two
-// numbers rather than as bytes (C15).
+// decoded in on-disk order, and the frame region's extent as two
+// numbers rather than as bytes.
 type Container struct {
 	Blocks        []Block
 	StreamInfo    StreamInfo
@@ -119,11 +117,11 @@ type Container struct {
 // Container. It never reads the frame region: the region is measured
 // as an offset and a length, and every declared block length is
 // bounds-checked against the file's remaining extent before any
-// payload slice is read (C7a).
+// payload slice is read.
 //
 // A signature other than fLaC returns [ErrUnsupportedContainer]. Any
-// of C7's refusal shapes returns [ErrMalformedContainer], and the
-// returned Container is always the zero value in that case.
+// of the refusal shapes [ErrMalformedContainer] lists returns it, and
+// the returned Container is always the zero value in that case.
 func Parse(path string) (Container, error) {
 	return parse(path, nil)
 }
@@ -217,7 +215,8 @@ func parse(path string, bounds *Bounds) (Container, error) {
 // ends with exactly one block carrying the last-block flag; otherwise
 // the file is malformed, whether it ran out of valid blocks before
 // ever setting the flag or kept offering valid blocks after it
-// (refusal 3 and refusal 4 of C7 share this one mechanism).
+// (a missing last-block flag and a block after it share this one
+// mechanism).
 func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container, error) {
 	var (
 		blocks           []Block
@@ -324,7 +323,8 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 // checkLastFlag enforces the one invariant RFC 9639 section 8.1
 // states: exactly one block carries the last-metadata-block flag,
 // and it is the chain's final block. A block carrying the flag
-// anywhere else, or no block carrying it at all, is refusal 3 of C7.
+// anywhere else, or no block carrying it at all, makes the container
+// malformed.
 func checkLastFlag(blocks []Block) error {
 	count := 0
 	for i, b := range blocks {

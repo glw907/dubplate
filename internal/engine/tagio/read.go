@@ -1,8 +1,10 @@
 package tagio
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // Read sniffs path, then projects its VORBIS_COMMENT block into a
@@ -25,7 +27,7 @@ func Read(path string) (TagSet, error) {
 }
 
 // project reads all 69 fields out of c's VORBIS_COMMENT block the way
-// mediafile 0.17.0's field descriptors read them (C6).
+// mediafile 0.17.0's field descriptors read them.
 //
 // A field's styles are walked in declaration order and the first
 // truthy one wins, truthy being Python's test on the fetched string
@@ -35,14 +37,14 @@ func Read(path string) (TagSet, error) {
 // first, absent included (mediafile/fields.py:48-54), which is why
 // catalognum and barcode read back absent for the empty value a write
 // left on disk: their trailing styles are read-only and a file rarely
-// carries them (C5).
+// carries them.
 //
 // An empty list and an absent key are indistinguishable here, and the
 // ambiguity is on disk rather than in this code: a list field holding
 // no values writes no comment at all, so both states leave identical
-// bytes and both project to a nil slice (C2, measured). An absent key
-// projects to a nil member rather than to a typed zero, because
-// safe_cast of an absent value is absent for every type.
+// bytes and both project to a nil slice. An absent key projects to a
+// nil member rather than to a typed zero, because safe_cast of an
+// absent value is absent for every type.
 func project(c Container) TagSet {
 	cs := c.VorbisComment.Comments
 	var ts TagSet
@@ -75,7 +77,7 @@ func readStyles(cs []Comment, styles []style) (string, bool) {
 
 // styleValue returns the first value cs holds under key and whether
 // the key is there at all. Names match case insensitively, as RFC
-// 9639 section 8.6 requires of every field-name evaluation (C8), so a
+// 9639 section 8.6 requires of every field-name evaluation, so a
 // container another tagger wrote in lowercase reads the same as one
 // written in the conventional uppercase.
 func styleValue(cs []Comment, key string) (string, bool) {
@@ -176,4 +178,133 @@ func dateComponent(part string) *int {
 		return nil
 	}
 	return &n
+}
+
+// intPrefixPattern and floatPrefixPattern reproduce safe_cast's
+// leading-numeric-prefix rule exactly (mediafile/utils/type_conversion.py:4-60).
+var (
+	intPrefixPattern   = regexp.MustCompile(`^[+-]?[0-9]+`)
+	floatPrefixPattern = regexp.MustCompile(`^[+-]?([0-9]+\.?[0-9]*|[0-9]*\.[0-9]+)`)
+)
+
+// safeCastInt takes s's leading [+-]?[0-9]+ prefix and parses it,
+// yielding 0 when s carries no such prefix (safe_cast to int). It
+// never sees an absent value: a caller that has not found a truthy
+// style has nothing to cast.
+func safeCastInt(s string) int {
+	prefix := intPrefixPattern.FindString(strings.TrimSpace(s))
+	if prefix == "" {
+		return 0
+	}
+	n, err := strconv.Atoi(prefix)
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
+// safeCastFloat takes s's leading numeric prefix and parses it,
+// yielding 0.0 when s carries no such prefix (safe_cast to float).
+// The suffix on rg_track_gain and rg_album_gain is stripped by the
+// caller before this runs, though safe_cast's own prefix match would
+// stop at " dB" either way.
+func safeCastFloat(s string) float64 {
+	prefix := floatPrefixPattern.FindString(strings.TrimSpace(s))
+	if prefix == "" {
+		return 0
+	}
+	f, err := strconv.ParseFloat(prefix, 64)
+	if err != nil {
+		return 0
+	}
+	return f
+}
+
+// safeCastBool is bool(int(val)) with a parse failure falling to
+// false (safe_cast to bool). Unlike safeCastInt, mediafile's int()
+// constructor here takes the whole trimmed string rather than a
+// leading prefix, so "1x" is a parse failure and yields false.
+func safeCastBool(s string) bool {
+	n, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil {
+		return false
+	}
+	return n != 0
+}
+
+// replaceInvalidUTF8 returns s with each invalid UTF-8 code point
+// replaced by U+FFFD, matching mutagen's errors='replace' decode.
+// Python's utf-8 codec follows the Unicode "maximal subpart" rule: an
+// ill-formed sequence collapses its longest well-formed prefix (the
+// lead byte plus whatever continuation bytes already matched) into a
+// single U+FFFD, then resumes scanning at the byte that broke the
+// sequence. unicode/utf8's own DecodeRuneInString does not have these
+// semantics: it always reports size 1 on an invalid encoding, where
+// mutagen/_vorbis.py:109 collapses the whole maximal subpart instead,
+// so this scans the byte structure explicitly via utf8SequenceSpan
+// rather than leaning on the stdlib decoder. Values are valid UTF-8 by
+// construction on write, so this only ever runs on read.
+func replaceInvalidUTF8(s string) string {
+	if utf8.ValidString(s) {
+		return s
+	}
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		validLen, invalidLen := utf8SequenceSpan(s[i:])
+		if validLen > 0 {
+			b.WriteString(s[i : i+validLen])
+			i += validLen
+			continue
+		}
+		b.WriteRune(utf8.RuneError)
+		i += invalidLen
+	}
+	return b.String()
+}
+
+// utf8SequenceSpan looks at s's leading bytes and reports either the
+// byte length of a well-formed UTF-8 sequence starting there
+// (validLen, with invalidLen zero) or the byte length of the maximal
+// ill-formed subpart starting there (invalidLen, with validLen zero):
+// the lead byte plus however many of its required continuation bytes
+// are present and in range before one is missing or out of range.
+// utf8SequenceSpan never sees an empty s; replaceInvalidUTF8's loop
+// only calls it while i < len(s).
+func utf8SequenceSpan(s string) (validLen, invalidLen int) {
+	b0 := s[0]
+	if b0 < 0x80 {
+		return 1, 0
+	}
+
+	var contRanges [][2]byte
+	switch {
+	case b0 >= 0xC2 && b0 <= 0xDF:
+		contRanges = [][2]byte{{0x80, 0xBF}}
+	case b0 == 0xE0:
+		contRanges = [][2]byte{{0xA0, 0xBF}, {0x80, 0xBF}}
+	case b0 >= 0xE1 && b0 <= 0xEC:
+		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 == 0xED:
+		contRanges = [][2]byte{{0x80, 0x9F}, {0x80, 0xBF}}
+	case b0 >= 0xEE && b0 <= 0xEF:
+		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 == 0xF0:
+		contRanges = [][2]byte{{0x90, 0xBF}, {0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 >= 0xF1 && b0 <= 0xF3:
+		contRanges = [][2]byte{{0x80, 0xBF}, {0x80, 0xBF}, {0x80, 0xBF}}
+	case b0 == 0xF4:
+		contRanges = [][2]byte{{0x80, 0x8F}, {0x80, 0xBF}, {0x80, 0xBF}}
+	default:
+		// A stray continuation byte (0x80-0xBF) or a byte that can
+		// never lead a sequence (0xC0, 0xC1, 0xF5-0xFF): a maximal
+		// subpart of length 1, on its own.
+		return 0, 1
+	}
+
+	for i, r := range contRanges {
+		if i+1 >= len(s) || s[i+1] < r[0] || s[i+1] > r[1] {
+			return 0, i + 1
+		}
+	}
+	return len(contRanges) + 1, 0
 }

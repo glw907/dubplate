@@ -4,16 +4,16 @@ package tagio
 // (the version corpus/manifest.json pins) writes to a FLAC container:
 // the intersection of beets' Item._media_fields and
 // MediaFile.sorted_fields(), matching corpus/README.md's handoff
-// section key for key (C1). No consumer's type appears here (ruling
-// 3); a reader or writer that wants a beets Item or a matcher type
-// converts at its own boundary.
+// section key for key. No consumer's type appears here; a reader or
+// writer that wants a beets Item or a matcher type converts at its own
+// boundary.
 //
 // Every member carries a presence bit rather than a Go zero value,
 // because a Go string's zero value and a Go slice's zero value are
 // the same in Go and are not the same on disk: MediaFile.update
 // deletes a key on None and sets it on everything else, so a string
 // field's empty value writes a comment with an empty value while a
-// list field's empty value writes no comment at all (C2). A string
+// list field's empty value writes no comment at all. A string
 // member is *string: nil is absent, a non-nil pointer to "" is
 // present-but-empty, and a non-nil pointer to a non-empty string is a
 // value. A list member is a plain slice, not a pointer: a nil slice
@@ -30,8 +30,8 @@ package tagio
 // TagSet already exposes for it.
 //
 // Every member carries a JSON tag naming the ledger's own field name,
-// which is also its row's name in the field table, with no omitempty (R11): the
-// conformance instrument fills a TagSet by unmarshalling a ledger
+// which is also its row's name in the field table, with no omitempty:
+// the conformance instrument fills a TagSet by unmarshalling a ledger
 // row's filtered applied-fields object straight into it and projects
 // a read-back TagSet by marshalling it, and every ledger row carries
 // all 69 keys, absent values included as explicit nulls, so an

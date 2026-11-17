@@ -5,7 +5,7 @@ import "strconv"
 // style is one Vorbis comment key a field's value writes to or, for a
 // read-only style, only reads from. A read-only style is read by
 // mediafile and deleted when the field is deleted, but a writer never
-// emits it (INV:312-313).
+// emits it.
 type style struct {
 	key      string
 	writable bool
