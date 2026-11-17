@@ -1,12 +1,10 @@
 package musicbrainz
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -49,6 +47,16 @@ const releaseFixtureID = "11111111-1111-1111-1111-111111111111"
 // anything.
 func noSleep(context.Context, time.Duration) error { return nil }
 
+// stubSleep swaps the package's backoff wait for fn until t ends. No
+// test in this package runs in parallel, which is what makes a
+// package-level seam safe.
+func stubSleep(t *testing.T, fn func(context.Context, time.Duration) error) {
+	t.Helper()
+	orig := sleep
+	sleep = fn
+	t.Cleanup(func() { sleep = orig })
+}
+
 // newTestClient builds a Client over a scripted transport whose
 // backoff never waits.
 func newTestClient(t *testing.T, rt http.RoundTripper) *Client {
@@ -56,12 +64,12 @@ func newTestClient(t *testing.T, rt http.RoundTripper) *Client {
 	c, err := NewClient(ClientConfig{
 		BaseURL:   "http://stub.invalid",
 		UserAgent: "dubplate-test/0 ( test )",
-		HTTP:      &http.Client{Transport: rt},
 	})
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	c.sleep = noSleep
+	c.http.Transport = rt
+	stubSleep(t, noSleep)
 	return c
 }
 
@@ -80,44 +88,66 @@ func TestReleaseDecodesSuccessfulResponseAtTheCommittedURLShape(t *testing.T) {
 	})
 	c := newTestClient(t, rt)
 
-	rel, err := c.Release(context.Background(), releaseFixtureID)
+	rel, err := c.release(context.Background(), releaseFixtureID)
 	if err != nil {
-		t.Fatalf("Release: %v", err)
+		t.Fatalf("release: %v", err)
 	}
 	if rel.ID != releaseFixtureID {
 		t.Errorf("rel.ID = %q, want %q", rel.ID, releaseFixtureID)
 	}
 
-	wantURL := "http://stub.invalid/ws/2/release/" + releaseFixtureID +
-		"?fmt=json&inc=" + url.QueryEscape(strings.Join(releaseIncludes, "+"))
+	// The include set is spelled out rather than read from
+	// releaseIncludes, so dropping an include fails here.
+	const wantURL = "http://stub.invalid/ws/2/release/" + releaseFixtureID +
+		"?fmt=json&inc=artists%2Bmedia%2Brecordings%2Brelease-groups%2Blabels%2B" +
+		"artist-credits%2Baliases%2Brecording-level-rels%2Bwork-rels%2Bwork-level-rels%2B" +
+		"artist-rels%2Bisrcs%2Burl-rels%2Brelease-rels%2Bgenres%2Btags"
 	if gotURL != wantURL {
 		t.Errorf("request URL = %q, want %q", gotURL, wantURL)
 	}
 }
 
-func TestReleaseDecodeErrorWrapsErrMalformedRelease(t *testing.T) {
+func TestReleaseDecodeErrorWrapsMalformedRelease(t *testing.T) {
 	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{not valid json`))}, nil
 	})
 	c := newTestClient(t, rt)
 
-	_, err := c.Release(context.Background(), releaseFixtureID)
-	if !errors.Is(err, ErrMalformedRelease) {
-		t.Fatalf("Release() = %v, want an error wrapping ErrMalformedRelease", err)
+	_, err := c.release(context.Background(), releaseFixtureID)
+	if !errors.Is(err, errMalformedRelease) {
+		t.Fatalf("release() = %v, want an error wrapping errMalformedRelease", err)
+	}
+}
+
+// TestSearchReleasesReportsAnUndecodableBody proves a search body that
+// does not decode is an error, and one that does not claim to be a
+// malformed release.
+func TestSearchReleasesReportsAnUndecodableBody(t *testing.T) {
+	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{not valid json`))}, nil
+	})
+	c := newTestClient(t, rt)
+
+	ids, err := c.SearchReleases(context.Background(), AlbumSearch{Query: "release:(x)", Limit: 5})
+	if err == nil {
+		t.Fatalf("SearchReleases() = %v, nil, want an error", ids)
+	}
+	if errors.Is(err, errMalformedRelease) {
+		t.Errorf("SearchReleases() = %v, want an error that does not wrap errMalformedRelease", err)
 	}
 }
 
 // Mutation 4: exhausted retries return ErrNotFound instead of
-// ErrUnavailable.
-func TestReleaseRetryExhaustionReturnsErrUnavailable(t *testing.T) {
+// errUnavailable.
+func TestReleaseRetryExhaustionReturnsUnavailable(t *testing.T) {
 	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 503, Body: io.NopCloser(strings.NewReader(""))}, nil
 	})
 	c := newTestClient(t, rt)
 
-	_, err := c.Release(context.Background(), releaseFixtureID)
-	if !errors.Is(err, ErrUnavailable) {
-		t.Fatalf("Release() = %v, want an error wrapping ErrUnavailable", err)
+	_, err := c.release(context.Background(), releaseFixtureID)
+	if !errors.Is(err, errUnavailable) {
+		t.Fatalf("release() = %v, want an error wrapping errUnavailable", err)
 	}
 }
 
@@ -149,19 +179,19 @@ func TestRetryAfterDeltaSecondsHonored(t *testing.T) {
 	})
 	c := newTestClient(t, rt)
 	var slept []time.Duration
-	c.sleep = func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil }
+	stubSleep(t, func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil })
 
-	if _, err := c.Release(context.Background(), releaseFixtureID); err != nil {
-		t.Fatalf("Release: %v", err)
+	if _, err := c.release(context.Background(), releaseFixtureID); err != nil {
+		t.Fatalf("release: %v", err)
 	}
 	if want := []time.Duration{3 * time.Second}; !slices.Equal(slept, want) {
 		t.Errorf("slept = %v, want %v (the Retry-After header, not the computed backoff)", slept, want)
 	}
 }
 
-// Mutation 6b: an HTTP-date Retry-After is parsed as seconds, or
-// parsed at all, rather than falling through to the computed backoff
-// (fold M-c).
+// TestRetryAfterHTTPDateFallsThroughToComputedBackoff fails when an
+// HTTP-date Retry-After is parsed as seconds, or parsed at all, rather
+// than falling through to the computed backoff.
 func TestRetryAfterHTTPDateFallsThroughToComputedBackoff(t *testing.T) {
 	var attempts int
 	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
@@ -177,10 +207,10 @@ func TestRetryAfterHTTPDateFallsThroughToComputedBackoff(t *testing.T) {
 	})
 	c := newTestClient(t, rt)
 	var slept []time.Duration
-	c.sleep = func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil }
+	stubSleep(t, func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil })
 
-	if _, err := c.Release(context.Background(), releaseFixtureID); err != nil {
-		t.Fatalf("Release: %v", err)
+	if _, err := c.release(context.Background(), releaseFixtureID); err != nil {
+		t.Fatalf("release: %v", err)
 	}
 	if want := []time.Duration{0}; !slices.Equal(slept, want) {
 		t.Errorf("slept = %v, want %v (the computed backoff; an HTTP-date Retry-After must never be parsed)", slept, want)
@@ -197,8 +227,8 @@ func TestExtractReleaseIDRejectsJunkAndIssuesNoRequest(t *testing.T) {
 	})
 	c := newTestClient(t, rt)
 
-	if _, err := c.Release(context.Background(), "not-a-release-id"); err == nil {
-		t.Fatal("Release(junk id) = nil error, want one")
+	if _, err := c.release(context.Background(), "not-a-release-id"); err == nil {
+		t.Fatal("release(junk id) = nil error, want one")
 	}
 	if requests != 0 {
 		t.Errorf("requests = %d, want 0: a junk id must cost no request, exactly as album_for_id costs none", requests)
@@ -289,10 +319,10 @@ func TestReleaseRetriesOnTransientStatus(t *testing.T) {
 	})
 	c := newTestClient(t, rt)
 	var slept []time.Duration
-	c.sleep = func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil }
+	stubSleep(t, func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil })
 
-	if _, err := c.Release(context.Background(), releaseFixtureID); err != nil {
-		t.Fatalf("Release: %v", err)
+	if _, err := c.release(context.Background(), releaseFixtureID); err != nil {
+		t.Fatalf("release: %v", err)
 	}
 	if attempts != 3 {
 		t.Errorf("attempts = %d, want 3", attempts)
@@ -316,14 +346,14 @@ func TestReleaseStopsWhenTheContextEndsDuringABackoffWait(t *testing.T) {
 		return &http.Response{StatusCode: 503, Body: io.NopCloser(strings.NewReader(""))}, nil
 	})
 	c := newTestClient(t, rt)
-	c.sleep = func(ctx context.Context, _ time.Duration) error {
+	stubSleep(t, func(ctx context.Context, _ time.Duration) error {
 		cancel()
 		return ctx.Err()
-	}
+	})
 
-	_, err := c.Release(ctx, releaseFixtureID)
+	_, err := c.release(ctx, releaseFixtureID)
 	if !errors.Is(err, context.Canceled) {
-		t.Fatalf("Release() = %v, want an error wrapping context.Canceled", err)
+		t.Fatalf("release() = %v, want an error wrapping context.Canceled", err)
 	}
 	if requests != 1 {
 		t.Errorf("requests = %d, want 1: a cancelled wait must not be followed by another request", requests)
@@ -341,43 +371,65 @@ func TestReleaseStopsWhenTheContextEndsDuringARequest(t *testing.T) {
 	})
 	c := newTestClient(t, rt)
 
-	_, err := c.Release(ctx, releaseFixtureID)
+	_, err := c.release(ctx, releaseFixtureID)
 	if !errors.Is(err, context.Canceled) {
-		t.Fatalf("Release() = %v, want an error wrapping context.Canceled", err)
+		t.Fatalf("release() = %v, want an error wrapping context.Canceled", err)
 	}
-	if errors.Is(err, ErrUnavailable) {
-		t.Errorf("Release() = %v, want the context's error and never ErrUnavailable", err)
+	if errors.Is(err, errUnavailable) {
+		t.Errorf("release() = %v, want the context's error and never errUnavailable", err)
 	}
 	if requests != 1 {
 		t.Errorf("requests = %d, want 1: a cancelled context must not be retried", requests)
 	}
 }
 
+// zeroBody streams remaining zero bytes and counts how many the client
+// consumed, so a body far over the cap costs no allocation of its own.
+type zeroBody struct {
+	remaining int
+	consumed  int
+}
+
+func (z *zeroBody) Read(p []byte) (int, error) {
+	if z.remaining == 0 {
+		return 0, io.EOF
+	}
+	n := min(len(p), z.remaining)
+	clear(p[:n])
+	z.remaining -= n
+	z.consumed += n
+	return n, nil
+}
+
+// TestReleaseBoundsTheResponseBody pins the 32 MiB cap with literal sizes
+// and proves the client stops reading one byte past it.
 func TestReleaseBoundsTheResponseBody(t *testing.T) {
+	const capBytes = 32 << 20
 	tests := []struct {
-		name     string
-		size     int
-		wantBig  bool
-		wantWrap error
+		name    string
+		size    int
+		wantErr error
 	}{
-		{"one byte over the cap", maxBodyBytes + 1, true, errBodyTooLarge},
-		{"exactly the cap", maxBodyBytes, false, ErrMalformedRelease},
+		{"exactly the cap", capBytes, errMalformedRelease},
+		{"one byte over the cap", capBytes + 1, errBodyTooLarge},
+		{"far over the cap", 2 * capBytes, errBodyTooLarge},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var requests int
+			body := &zeroBody{remaining: tt.size}
 			rt := roundTripperFunc(func(*http.Request) (*http.Response, error) {
 				requests++
-				return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(make([]byte, tt.size)))}, nil
+				return &http.Response{StatusCode: 200, Body: io.NopCloser(body)}, nil
 			})
 			c := newTestClient(t, rt)
 
-			_, err := c.Release(context.Background(), releaseFixtureID)
-			if got := errors.Is(err, errBodyTooLarge); got != tt.wantBig {
-				t.Errorf("Release() = %v, errors.Is(errBodyTooLarge) = %v, want %v", err, got, tt.wantBig)
+			_, err := c.release(context.Background(), releaseFixtureID)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("release() = %v, want an error wrapping %v", err, tt.wantErr)
 			}
-			if !errors.Is(err, tt.wantWrap) {
-				t.Errorf("Release() = %v, want an error wrapping %v", err, tt.wantWrap)
+			if body.consumed > capBytes+1 {
+				t.Errorf("consumed %d bytes, want at most %d", body.consumed, capBytes+1)
 			}
 			if requests != 1 {
 				t.Errorf("requests = %d, want 1", requests)

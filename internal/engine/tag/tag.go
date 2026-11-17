@@ -45,7 +45,7 @@ type Proposal struct {
 // It returns ErrNoCandidates when nothing was admitted. A lookup that
 // 404s drops that candidate silently, reproducing album_for_id's return
 // None (beetsplug/musicbrainz.py:777-781). Every other client error is
-// returned wrapped, so errors.Is matches musicbrainz.ErrUnavailable.
+// returned wrapped.
 func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFields,
 	tun matcher.Tunables, compat matcher.Compat, evalDate time.Time) (*Proposal, error) {
 	tun = compat.Apply(tun)
@@ -128,7 +128,7 @@ func Album(ctx context.Context, src *musicbrainz.Client, items []matcher.ItemFie
 // lookupAndAdd fetches one release by MusicBrainz id and admits it into
 // cands. A 404 drops the candidate silently, reproducing
 // album_for_id's return None (beetsplug/musicbrainz.py:777-781); every
-// other client error, including musicbrainz.ErrUnavailable, is returned
+// other client error, an exhausted retry schedule included, is returned
 // wrapped.
 func lookupAndAdd(ctx context.Context, src *musicbrainz.Client, cands *matcher.Candidates,
 	tun matcher.Tunables, items []matcher.ItemFields, mbid string, evalDate time.Time) error {

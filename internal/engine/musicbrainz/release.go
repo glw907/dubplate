@@ -7,39 +7,23 @@ import (
 	"strconv"
 )
 
-// ErrMalformedRelease is the one sentinel every boundary failure in
-// this package wraps, so a caller branches once on "this
-// response is unusable" rather than on a hierarchy of error types.
-var ErrMalformedRelease = errors.New("malformed musicbrainz release")
+// errMalformedRelease reports a release body that does not decode or
+// that the rest of this package cannot read without panicking.
+var errMalformedRelease = errors.New("malformed musicbrainz release")
 
-// Release is the subset of a WS/2 release beets' own album_info reads.
-// Several of its fields feed applied metadata rather than a distance
-// (medium title and track count, track id and number, alias sort names,
-// barcode, the release-group type fields), so nothing in the matcher
-// path reads them; they are decoded here because the wire shape is
-// decoded once and a later applied-field step should not re-derive it.
-// That is the deliberate counterpart to dropping credits.SortName: the
-// wire vocabulary names the payload, and the computed vocabulary
-// produces only what the matcher reads. The struct tags name the wire keys directly, which discharges the
-// hyphen-to-underscore half of the client's own _normalize_data
-// (beetsplug/_utils/musicbrainz.py:774) with no runtime pass: that
-// rewrite exists so a Python dict can be read with underscore keys, and
-// a Go struct does not need it. The relations regrouping half is not
-// needed either: PseudoReleaseTarget filters Relations by target type.
+// Release is the subset of a WS/2 release the matcher's vocabulary is
+// translated from. The struct tags name the wire keys directly, which
+// does the key-renaming half of beets' _normalize_data
+// (beetsplug/_utils/musicbrainz.py:774) with no runtime pass. The
+// relations regrouping half is not needed either: PseudoReleaseTarget
+// filters Relations by target type.
 type Release struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-	// Status is a plain string rather than a pointer, so a wire body
-	// with no status key decodes to "" and PseudoReleaseTarget reports
-	// false rather than panicking or erroring: the divergence from
-	// beets' own KeyError-on-absent-status is recorded at client.go's
-	// AlbumForID, the one call site that reads Status through
-	// PseudoReleaseTarget.
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
 	Status         string         `json:"status"`
 	Disambiguation string         `json:"disambiguation"`
 	Country        *string        `json:"country"`
 	Date           string         `json:"date"`
-	Barcode        *string        `json:"barcode"`
 	Aliases        []Alias        `json:"aliases"`
 	ArtistCredit   []CreditPart   `json:"artist-credit"`
 	ReleaseEvents  []ReleaseEvent `json:"release-events"`
@@ -53,26 +37,23 @@ type Release struct {
 // value is bool | null and null is falsy in beets' own read
 // (_utils/musicbrainz.py:138-155).
 type Alias struct {
-	Name     string  `json:"name"`
-	SortName string  `json:"sort-name"`
-	Locale   *string `json:"locale"`
-	Primary  *bool   `json:"primary"`
-	Type     *string `json:"type"`
+	Name    string  `json:"name"`
+	Locale  *string `json:"locale"`
+	Primary *bool   `json:"primary"`
+	Type    *string `json:"type"`
 }
 
 // CreditPart is one element of an artist-credit array.
 type CreditPart struct {
-	Name       string `json:"name"`
 	JoinPhrase string `json:"joinphrase"`
 	Artist     Artist `json:"artist"`
 }
 
 // Artist is a credit element's artist entity.
 type Artist struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	SortName string  `json:"sort-name"`
-	Aliases  []Alias `json:"aliases"`
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Aliases []Alias `json:"aliases"`
 }
 
 // ReleaseEvent is one dated release event. Area is a pointer because
@@ -100,23 +81,15 @@ type Label struct {
 	Name string `json:"name"`
 }
 
-// ReleaseGroup carries the original-release date and the type fields.
+// ReleaseGroup carries the original-release date.
 type ReleaseGroup struct {
-	ID               string   `json:"id"`
-	Title            string   `json:"title"`
-	Disambiguation   string   `json:"disambiguation"`
-	FirstReleaseDate string   `json:"first-release-date"`
-	PrimaryType      *string  `json:"primary-type"`
-	SecondaryTypes   []string `json:"secondary-types"`
-	Aliases          []Alias  `json:"aliases"`
+	FirstReleaseDate string `json:"first-release-date"`
 }
 
 // Medium is one disc.
 type Medium struct {
 	Position   int     `json:"position"`
-	Title      string  `json:"title"`
 	Format     *string `json:"format"`
-	TrackCount int     `json:"track-count"`
 	Pregap     *Track  `json:"pregap"`
 	Tracks     []Track `json:"tracks"`
 	DataTracks []Track `json:"data-tracks"`
@@ -125,12 +98,9 @@ type Medium struct {
 // Track is one track entry on a medium. Position is a wireInt because
 // the wire value is an integer in real captures and a string in every
 // synthetic case, and beets casts it for the same reason
-// (int(track["position"]), beetsplug/musicbrainz.py:592;
-// internal/harness/synth/release.go:128 writes the string form).
+// (int(track["position"]), beetsplug/musicbrainz.py:592).
 type Track struct {
-	ID           string       `json:"id"`
 	Position     wireInt      `json:"position"`
-	Number       string       `json:"number"`
 	Title        string       `json:"title"`
 	Length       *float64     `json:"length"`
 	ArtistCredit []CreditPart `json:"artist-credit"`
@@ -148,17 +118,12 @@ type Recording struct {
 }
 
 // wireInt is an integer the MusicBrainz WS/2 payload spells either as a
-// JSON number or as a JSON string. Only track positions need it: a
-// census over all 399 committed release documents found 6,763 integer
-// and 297 string track positions and no other mismatched field, so this
-// type is deliberately narrow rather than applied to every number.
+// JSON number or as a JSON string. Only track positions are spelled
+// both ways, so the type is applied to them alone.
 type wireInt int
 
 // UnmarshalJSON accepts both spellings and rejects anything else,
-// wrapping ErrMalformedRelease on both failure paths: this is the
-// decode boundary the sentinel's own comment names as "the one
-// sentinel every boundary failure in this package wraps"
-// (ErrMalformedRelease's doc comment above). encoding/json
+// wrapping errMalformedRelease on both failure paths. encoding/json
 // returns a custom unmarshaler's error unchanged for a
 // non-UnmarshalTypeError, so errors.Is survives json.Unmarshal.
 func (n *wireInt) UnmarshalJSON(data []byte) error {
@@ -170,20 +135,18 @@ func (n *wireInt) UnmarshalJSON(data []byte) error {
 
 	var asString string
 	if err := json.Unmarshal(data, &asString); err != nil {
-		return fmt.Errorf("musicbrainz: position %s is neither a JSON number nor a JSON string: %w", data, ErrMalformedRelease)
+		return fmt.Errorf("musicbrainz: position %s is neither a JSON number nor a JSON string: %w", data, errMalformedRelease)
 	}
 	parsed, err := strconv.Atoi(asString)
 	if err != nil {
-		return fmt.Errorf("musicbrainz: position %q is not an integer: %w: %w", asString, err, ErrMalformedRelease)
+		return fmt.Errorf("musicbrainz: position %q is not an integer: %w: %w", asString, err, errMalformedRelease)
 	}
 	*n = wireInt(parsed)
 	return nil
 }
 
 // Relation is one entry of a release's generic relations array. Release
-// is nil on any relation whose target is not a release, which is most of
-// them: the corpus carries 351 url, 285 artist, and 36 release
-// relations.
+// is nil on any relation whose target is not a release.
 type Relation struct {
 	TargetType string          `json:"target-type"`
 	Type       string          `json:"type"`
@@ -199,36 +162,30 @@ type RelationTarget struct {
 }
 
 // validate reports whether rel can be translated at all, wrapping
-// ErrMalformedRelease and naming the offending element. It is the
+// errMalformedRelease and naming the offending element. It is the
 // boundary check TranslateAlbum runs first, so the rest of this package
-// may assume well-formed input: a WS response is external input, and
-// go-conventions puts validation at the boundary rather than a nil check
-// at every read.
+// may assume well-formed input.
 //
 // It checks exactly four things: a relation with an empty target-type;
 // an empty release-level artist-credit array; an empty resolved track
-// credit on any track of any medium (the track's own when non-empty,
-// the recording's otherwise); and a backward transl-tracklisting
+// credit on any track of any medium; and a backward transl-tracklisting
 // relation whose release target is absent. The last two exist because
 // the rest of this package panics rather than errors on them:
 // parseArtistCredits indexes element zero of the resolved credit list,
-// and PseudoReleaseTarget dereferences Relation.Release. Neither has a
-// corpus instance, so both fixtures proving them are hand-authored on
-// the proximity precedent.
+// and PseudoReleaseTarget dereferences Relation.Release.
 //
 // A medium whose Tracks, Pregap, and DataTracks are all absent is
-// legal, not an error: beets reads all three through .get, and a medium
-// missing all three simply contributes nothing to track extraction
-// This is a named non-check, not an oversight.
+// legal: beets reads all three through .get, and such a medium
+// contributes nothing to track extraction.
 func (rel *Release) validate() error {
 	for i, r := range rel.Relations {
 		if r.TargetType == "" {
-			return fmt.Errorf("relation %d has empty target-type: %w", i, ErrMalformedRelease)
+			return fmt.Errorf("relation %d has empty target-type: %w", i, errMalformedRelease)
 		}
 	}
 
 	if len(rel.ArtistCredit) == 0 {
-		return fmt.Errorf("release %s has empty artist-credit: %w", rel.ID, ErrMalformedRelease)
+		return fmt.Errorf("release %s has empty artist-credit: %w", rel.ID, errMalformedRelease)
 	}
 
 	for _, medium := range rel.Media {
@@ -236,7 +193,7 @@ func (rel *Release) validate() error {
 			if len(resolvedTrackCredit(track)) == 0 {
 				return fmt.Errorf(
 					"medium %d track %d has empty artist-credit on both the track and the recording: %w",
-					medium.Position, track.Position, ErrMalformedRelease,
+					medium.Position, track.Position, errMalformedRelease,
 				)
 			}
 		}
@@ -244,7 +201,7 @@ func (rel *Release) validate() error {
 
 	for i, r := range rel.Relations {
 		if isTranslSource(r) && r.Release == nil {
-			return fmt.Errorf("relation %d is a backward transl-tracklisting relation with no release target: %w", i, ErrMalformedRelease)
+			return fmt.Errorf("relation %d is a backward transl-tracklisting relation with no release target: %w", i, errMalformedRelease)
 		}
 	}
 

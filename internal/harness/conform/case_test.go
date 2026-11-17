@@ -37,8 +37,8 @@ func TestCheckRequestSetFiresOnAWrongLookupPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("gradeClient: %v", err)
 	}
-	if _, err := client.Release(context.Background(), "11111111-1111-1111-1111-111111111111"); err == nil {
-		t.Fatal("Release answered a request the fixture never logged")
+	if _, err := client.AlbumForID(context.Background(), "11111111-1111-1111-1111-111111111111", matcher.DefaultTunables()); err == nil {
+		t.Fatal("AlbumForID answered a request the fixture never logged")
 	}
 
 	var got []string
