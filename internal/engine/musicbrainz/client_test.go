@@ -1,6 +1,7 @@
 package musicbrainz
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -349,5 +350,38 @@ func TestReleaseStopsWhenTheContextEndsDuringARequest(t *testing.T) {
 	}
 	if requests != 1 {
 		t.Errorf("requests = %d, want 1: a cancelled context must not be retried", requests)
+	}
+}
+
+func TestReleaseBoundsTheResponseBody(t *testing.T) {
+	tests := []struct {
+		name     string
+		size     int
+		wantBig  bool
+		wantWrap error
+	}{
+		{"one byte over the cap", maxBodyBytes + 1, true, errBodyTooLarge},
+		{"exactly the cap", maxBodyBytes, false, ErrMalformedRelease},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var requests int
+			rt := roundTripperFunc(func(*http.Request) (*http.Response, error) {
+				requests++
+				return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(make([]byte, tt.size)))}, nil
+			})
+			c := newTestClient(t, rt)
+
+			_, err := c.Release(context.Background(), releaseFixtureID)
+			if got := errors.Is(err, errBodyTooLarge); got != tt.wantBig {
+				t.Errorf("Release() = %v, errors.Is(errBodyTooLarge) = %v, want %v", err, got, tt.wantBig)
+			}
+			if !errors.Is(err, tt.wantWrap) {
+				t.Errorf("Release() = %v, want an error wrapping %v", err, tt.wantWrap)
+			}
+			if requests != 1 {
+				t.Errorf("requests = %d, want 1", requests)
+			}
+		})
 	}
 }

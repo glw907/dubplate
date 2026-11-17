@@ -37,6 +37,15 @@ const wsPathPrefix = "/ws/2"
 // (cmd/harness/capture.go:38-41).
 const defaultTimeout = 30 * time.Second
 
+// maxBodyBytes caps a response body. The largest committed response is
+// 9,107,383 bytes, so the cap leaves room and still bounds what a
+// misbehaving server can make the client hold.
+const maxBodyBytes = 32 << 20
+
+// errBodyTooLarge reports a response body over [maxBodyBytes]. It is
+// never retried.
+var errBodyTooLarge = errors.New("musicbrainz: response body exceeds the 32 MiB cap")
+
 // maxAttempts is one plus six retries, beets' own Retry(total=6)
 // (beetsplug/_utils/requests.py:78-88).
 const maxAttempts = 7
@@ -354,10 +363,13 @@ func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, er
 			continue
 		}
 
-		body, readErr := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes+1))
 		_ = resp.Body.Close()
 		if readErr != nil {
 			return nil, fmt.Errorf("musicbrainz: reading response body: %w", readErr)
+		}
+		if len(body) > maxBodyBytes {
+			return nil, errBodyTooLarge
 		}
 
 		switch {
