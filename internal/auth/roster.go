@@ -106,7 +106,7 @@ var (
 
 // Member is one roster entry: a durable id, a login address, a
 // display name, a stable principal, and the admin flag. The admin flag
-// is the whole of rung 5's authorization vocabulary: a later rung
+// is the whole of the authorization vocabulary: a later change
 // reaching for a role model is adding one, not extending one.
 type Member struct {
 	// ID is the member's durable id, minted once by the store when the
