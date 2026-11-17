@@ -20,8 +20,9 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Design round `engine`: no design exists yet, and nothing is launched for it. Before any deploy that carries `cleanup-store`,
-check read-only that the box store holds no restore-intent record (#148).
+Round `engine` is one pass, launched 2026-11-17 as session `dubplate-engine` on branch `engine`. Approved design:
+`~/Projects/initiatives/dubplate-server/specs/2026-11-16-engine-round-design.md`. Plan: `docs/plans/2026-11-16-engine.md`.
+Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Coordination
 The workstation's Claude infrastructure is under its own plan: the `workstation-refinement` initiative
