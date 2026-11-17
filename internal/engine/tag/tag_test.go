@@ -255,10 +255,10 @@ func TestAlbumDropsA404LookupAndPropagatesEverythingElse(t *testing.T) {
 	tests := []struct {
 		name    string
 		status  int
-		dropped bool
+		wantErr error
 	}{
-		{"404 drops the candidate", http.StatusNotFound, true},
-		{"503 propagates", http.StatusServiceUnavailable, false},
+		{"404 drops the candidate", http.StatusNotFound, ErrNoCandidates},
+		{"503 propagates", http.StatusServiceUnavailable, musicbrainz.ErrUnavailable},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -284,11 +284,8 @@ func TestAlbumDropsA404LookupAndPropagatesEverythingElse(t *testing.T) {
 			}()
 			select {
 			case err := <-done:
-				switch {
-				case tt.dropped && !errors.Is(err, ErrNoCandidates):
-					t.Errorf("Album = %v, want an error wrapping ErrNoCandidates", err)
-				case !tt.dropped && (err == nil || errors.Is(err, ErrNoCandidates)):
-					t.Errorf("Album = %v, want the client's error propagated, not ErrNoCandidates", err)
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("Album = %v, want an error wrapping %v", err, tt.wantErr)
 				}
 			case <-time.After(time.Second):
 				t.Fatal("took over a second; statusServer must send Retry-After: 0 so the retry schedule collapses")

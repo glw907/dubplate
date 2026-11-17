@@ -6,35 +6,36 @@ import (
 	"strconv"
 )
 
-// keyWrite is one field's contribution to a write, named by the field's
-// ledger name. deletes lists a read-only style only when the field is
-// absent, because read_only blocks a set but not a delete; writes
-// covers writable styles only.
-type keyWrite struct {
-	field   string
-	deletes []string
-	writes  []Comment
+// KeyWrite is one field's contribution to a write, named by the field's
+// ledger name in Field. Deletes lists a read-only style only when the
+// field is absent, because read_only blocks a set but not a delete;
+// Writes covers writable styles only.
+type KeyWrite struct {
+	Field   string
+	Deletes []string
+	Writes  []Comment
 }
 
-// serialize turns ts into one keyWrite per field, in the field table's
+// Serialize turns ts into one KeyWrite per field, in the field table's
 // write order. An absent member deletes every key its field owns; a
 // present one, empty included, deletes the writable keys and writes
 // its comments in their place. The year, month and day members compose
-// into one keyWrite named for the year, as do the three original_
+// into one KeyWrite named for the year, as do the three original_
 // members, because one DATE or ORIGINALDATE comment carries all three
-// components.
-func serialize(ts TagSet) []keyWrite {
-	out := make([]keyWrite, 0, len(fields))
+// components. Two TagSets that Serialize identically write identical
+// comments, so a caller can compare TagSets through its result.
+func Serialize(ts TagSet) []KeyWrite {
+	out := make([]KeyWrite, 0, len(fields))
 	for _, f := range fields {
 		if f.codec.write == nil {
 			continue
 		}
 		writes, present := f.codec.write(&ts, f.styles)
 		if !present {
-			out = append(out, keyWrite{field: f.name, deletes: allKeys(f.styles)})
+			out = append(out, KeyWrite{Field: f.name, Deletes: allKeys(f.styles)})
 			continue
 		}
-		out = append(out, keyWrite{field: f.name, deletes: writableKeys(f.styles), writes: writes})
+		out = append(out, KeyWrite{Field: f.name, Deletes: writableKeys(f.styles), Writes: writes})
 	}
 	return out
 }

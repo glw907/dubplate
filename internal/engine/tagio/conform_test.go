@@ -515,7 +515,7 @@ func decodeSide(t *testing.T, text string) map[string]any {
 // that the instrument can fail (spec:1134), discharged as a standing
 // test over synthetic rows rather than as a one-off demonstration
 // that leaves no trace. Every value below is hard-coded here; none
-// is computed by Read, serialize or the projection, so a comparator
+// is computed by Read, Serialize or the projection, so a comparator
 // that stopped comparing would fail these rows rather than agree
 // with itself.
 //

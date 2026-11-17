@@ -90,11 +90,14 @@ var releaseIDPattern = regexp.MustCompile(`\w{8}(?:-\w{4}){3}-\w{12}`)
 // deleted release from a real failure.
 var ErrNotFound = errors.New("release not found")
 
-// errUnavailable reports that every retry was spent on a retryable
-// status or a transport error, 429 and 503 alike. It is the shape of
-// beets' RetryError, which is not an HTTPError and so is never mapped
-// to a beets exception (beetsplug/_utils/requests.py:78-89).
-var errUnavailable = errors.New("musicbrainz unavailable")
+// ErrUnavailable reports that every retry was spent on a retryable
+// status or a transport error, 429 and 503 alike. A caller branches on
+// it with errors.Is to tell an unreachable or overloaded MusicBrainz
+// from a release that does not exist (ErrNotFound) or one that cannot
+// be read (ErrMalformedRelease). It is the shape of beets' RetryError,
+// which is not an HTTPError and so is never mapped to a beets exception
+// (beetsplug/_utils/requests.py:78-89).
+var ErrUnavailable = errors.New("musicbrainz unavailable")
 
 // sleep is the backoff wait, a variable so a test observes the schedule
 // without spending wall time. It is a timer rather than a bare
@@ -189,8 +192,8 @@ func (c *Client) searchRequestURL(s AlbumSearch) string {
 
 // release fetches one release at beets' own maximal inc= set, mirroring
 // get_release (beetsplug/_utils/musicbrainz.py:687-690). It returns
-// ErrNotFound on a 404, an error wrapping errUnavailable when the
-// retries are spent, and an error wrapping errMalformedRelease when the
+// ErrNotFound on a 404, an error wrapping ErrUnavailable when the
+// retries are spent, and an error wrapping ErrMalformedRelease when the
 // body does not decode. mbid is run through the same id extraction beets
 // applies first (beets/util/id_extractors.py:20), so a malformed id
 // costs no request at all, exactly as album_for_id costs none
@@ -209,7 +212,7 @@ func (c *Client) release(ctx context.Context, mbid string) (*Release, error) {
 
 	var rel Release
 	if err := json.Unmarshal(body, &rel); err != nil {
-		return nil, fmt.Errorf("musicbrainz: decoding release %s: %v: %w", id, err, errMalformedRelease)
+		return nil, fmt.Errorf("musicbrainz: decoding release %s: %v: %w", id, err, ErrMalformedRelease)
 	}
 	return &rel, nil
 }
@@ -301,10 +304,10 @@ func (c *Client) AlbumForID(ctx context.Context, mbid string, tun matcher.Tunabl
 
 // doWithRetry issues one GET at requestURL, retrying as beets' own
 // policy does. It returns the response body on a 200, ErrNotFound on a
-// 404, an error wrapping errUnavailable when the retries are spent, and
+// 404, an error wrapping ErrUnavailable when the retries are spent, and
 // a generic error for any other status. A context that ends before or
 // between attempts returns the context's own error, never
-// errUnavailable.
+// ErrUnavailable.
 func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
@@ -348,7 +351,7 @@ func (c *Client) doWithRetry(ctx context.Context, requestURL string) ([]byte, er
 			return nil, err
 		}
 	}
-	return nil, fmt.Errorf("%w: %w", errUnavailable, lastErr)
+	return nil, fmt.Errorf("%w: %w", ErrUnavailable, lastErr)
 }
 
 // readBody reads and closes resp's body, failing on one over

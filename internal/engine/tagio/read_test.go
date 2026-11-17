@@ -80,7 +80,7 @@ func show(v reflect.Value) string {
 // comment sequence for the 32 members a value reaches, and its
 // recorded read-back for the four corpus-unreachable cases (year 0
 // with month and day absent, arrangers absent, catalognum absent,
-// barcode absent). No value here is computed by serialize, by project
+// barcode absent). No value here is computed by Serialize, by project
 // or by the generator that wrote the golden.
 func goldenProjection() TagSet {
 	return TagSet{

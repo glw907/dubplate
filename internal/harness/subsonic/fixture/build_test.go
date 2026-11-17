@@ -106,7 +106,9 @@ func TestBuildRoundTripsEveryTrack(t *testing.T) {
 				t.Errorf("%s: read: %v", tr.Path, err)
 				continue
 			}
-			if !reflect.DeepEqual(got, tr.Tags) {
+			// Read reports an absent list member as empty, so the
+			// comparison is over what each side would write back.
+			if !reflect.DeepEqual(tagio.Serialize(got), tagio.Serialize(tr.Tags)) {
 				t.Errorf("%s: tags read back differ from the manifest\n got %+v\nwant %+v", tr.Path, got, tr.Tags)
 			}
 

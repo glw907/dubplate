@@ -10,7 +10,7 @@ import (
 )
 
 // TestWireIntUnmarshalJSONWrapsMalformedRelease proves both of wireInt's
-// decode failures wrap errMalformedRelease through a full json.Unmarshal
+// decode failures wrap ErrMalformedRelease through a full json.Unmarshal
 // of the enclosing Track, not just a direct call to UnmarshalJSON:
 // encoding/json must pass a custom unmarshaler's error through unchanged
 // for errors.Is to survive it.
@@ -26,8 +26,8 @@ func TestWireIntUnmarshalJSONWrapsMalformedRelease(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var track Track
 			err := json.Unmarshal([]byte(tt.data), &track)
-			if !errors.Is(err, errMalformedRelease) {
-				t.Fatalf("Unmarshal(%s) = %v, want an error wrapping errMalformedRelease", tt.data, err)
+			if !errors.Is(err, ErrMalformedRelease) {
+				t.Fatalf("Unmarshal(%s) = %v, want an error wrapping ErrMalformedRelease", tt.data, err)
 			}
 		})
 	}
@@ -81,8 +81,8 @@ func TestRelease_ValidateAcceptsWellFormedRelease(t *testing.T) {
 func TestRelease_ValidateRejectsEmptyTargetType(t *testing.T) {
 	rel := loadTestdata[Release](t, "empty_target_type.json")
 	err := rel.validate()
-	if !errors.Is(err, errMalformedRelease) {
-		t.Fatalf("validate() = %v, want an error wrapping errMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Fatalf("validate() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
 	if !strings.Contains(err.Error(), "relation 0") {
 		t.Errorf("validate() = %q, want it to name the offending element (%q)", err.Error(), "relation 0")
@@ -92,8 +92,8 @@ func TestRelease_ValidateRejectsEmptyTargetType(t *testing.T) {
 func TestRelease_ValidateRejectsEmptyReleaseCredit(t *testing.T) {
 	rel := loadTestdata[Release](t, "empty_release_credit.json")
 	err := rel.validate()
-	if !errors.Is(err, errMalformedRelease) {
-		t.Fatalf("validate() = %v, want an error wrapping errMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Fatalf("validate() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
 	if !strings.Contains(err.Error(), "rel-empty-release-credit") {
 		t.Errorf("validate() = %q, want it to name the offending element (%q)", err.Error(), "rel-empty-release-credit")
@@ -107,8 +107,8 @@ func TestRelease_ValidateRejectsEmptyReleaseCredit(t *testing.T) {
 func TestRelease_ValidateRejectsEmptyTrackCredit(t *testing.T) {
 	rel := loadTestdata[Release](t, "empty_track_credit.json")
 	err := rel.validate()
-	if !errors.Is(err, errMalformedRelease) {
-		t.Fatalf("validate() = %v, want an error wrapping errMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Fatalf("validate() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
 	if !strings.Contains(err.Error(), "medium 1 track 1") {
 		t.Errorf("validate() = %q, want it to name the offending element (%q)", err.Error(), "medium 1 track 1")
@@ -122,8 +122,8 @@ func TestRelease_ValidateRejectsEmptyTrackCredit(t *testing.T) {
 func TestRelease_ValidateRejectsPseudoTargetMissing(t *testing.T) {
 	rel := loadTestdata[Release](t, "pseudo_target_missing.json")
 	err := rel.validate()
-	if !errors.Is(err, errMalformedRelease) {
-		t.Fatalf("validate() = %v, want an error wrapping errMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Fatalf("validate() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
 	if !strings.Contains(err.Error(), "relation 0") {
 		t.Errorf("validate() = %q, want it to name the offending element (%q)", err.Error(), "relation 0")

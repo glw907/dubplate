@@ -199,7 +199,7 @@ func TestTranslateAlbum_LabelAndCatalogNumAreGuardedDifferently(t *testing.T) {
 }
 
 // TestTranslateAlbum_MalformedReleaseWrapsSentinel proves TranslateAlbum
-// runs validate first and returns errMalformedRelease rather than
+// runs validate first and returns ErrMalformedRelease rather than
 // panicking on a release whose artist-credit is empty.
 func TestTranslateAlbum_MalformedReleaseWrapsSentinel(t *testing.T) {
 	rel := &Release{ID: "rel-bad", Title: "Bad Album"}
@@ -207,8 +207,8 @@ func TestTranslateAlbum_MalformedReleaseWrapsSentinel(t *testing.T) {
 	if err == nil {
 		t.Fatal("TranslateAlbum returned no error for a release with empty artist-credit")
 	}
-	if !errors.Is(err, errMalformedRelease) {
-		t.Errorf("error %v does not wrap errMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Errorf("error %v does not wrap ErrMalformedRelease", err)
 	}
 }
 

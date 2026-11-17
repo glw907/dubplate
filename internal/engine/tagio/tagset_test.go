@@ -95,7 +95,7 @@ func TestFieldTableStyles(t *testing.T) {
 // literal cannot show by eye: each row's codec reads and writes the
 // TagSet member whose JSON tag is the row's name. For every member in
 // turn it sets that member alone, by reflection, and requires that
-// serialize writes comments for exactly the row of the same name, then
+// Serialize writes comments for exactly the row of the same name, then
 // that projecting those comments sets that member alone again. A
 // month or day member writes nothing by itself, because the date
 // comment is keyed on the year, so those four rows expect no write.
@@ -129,10 +129,10 @@ func TestFieldAccessorsTieToMembers(t *testing.T) {
 
 			var written []Comment
 			var writers []string
-			for _, kw := range serialize(ts) {
-				if len(kw.writes) > 0 {
-					writers = append(writers, kw.field)
-					written = append(written, kw.writes...)
+			for _, kw := range Serialize(ts) {
+				if len(kw.Writes) > 0 {
+					writers = append(writers, kw.Field)
+					written = append(written, kw.Writes...)
 				}
 			}
 			dateOnly := map[string]bool{"month": true, "day": true, "original_month": true, "original_day": true}
@@ -406,7 +406,7 @@ func TestReadOnlyMarks(t *testing.T) {
 
 // TestCollidingPairsWriteOrder grades the pair-resolution rule: each
 // of the three colliding pairs writes its plural member last, so the
-// plural's keyWrite follows the singular's in serialize's output.
+// plural's KeyWrite follows the singular's in Serialize's output.
 func TestCollidingPairsWriteOrder(t *testing.T) {
 	pairs := []struct {
 		singular, plural string
@@ -416,20 +416,20 @@ func TestCollidingPairsWriteOrder(t *testing.T) {
 		{"mb_albumartistid", "mb_albumartistids"},
 	}
 
-	kws := serialize(TagSet{})
+	kws := Serialize(TagSet{})
 	index := make(map[string]int, len(kws))
 	for i, kw := range kws {
-		index[kw.field] = i
+		index[kw.Field] = i
 	}
 
 	for _, p := range pairs {
 		si, ok := index[p.singular]
 		if !ok {
-			t.Fatalf("serialize returns no keyWrite for %q", p.singular)
+			t.Fatalf("Serialize returns no KeyWrite for %q", p.singular)
 		}
 		pi, ok := index[p.plural]
 		if !ok {
-			t.Fatalf("serialize returns no keyWrite for %q", p.plural)
+			t.Fatalf("Serialize returns no KeyWrite for %q", p.plural)
 		}
 		if si >= pi {
 			t.Errorf("pair (%q, %q): singular is at %d, plural at %d, want singular before plural", p.singular, p.plural, si, pi)

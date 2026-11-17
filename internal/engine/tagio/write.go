@@ -121,8 +121,8 @@ func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writ
 	return out
 }
 
-// mergeComments applies serialize(ts) to existing one field at a time,
-// in serialize's order: the field's keys are deleted case insensitively
+// mergeComments applies Serialize(ts) to existing one field at a time,
+// in Serialize's order: the field's keys are deleted case insensitively
 // wherever they sit, then its fresh comments are appended. A key no
 // field owns, such as a foreign tagger's, is never deleted. Because a
 // colliding pair's plural serializes after its singular, the plural's
@@ -130,9 +130,9 @@ func planBlocks(c Container, ts TagSet, replacePictures bool, newPictures []writ
 // place.
 func mergeComments(existing []Comment, ts TagSet) []Comment {
 	out := append([]Comment(nil), existing...)
-	for _, kw := range serialize(ts) {
-		out = deleteKeys(out, kw.deletes)
-		out = append(out, kw.writes...)
+	for _, kw := range Serialize(ts) {
+		out = deleteKeys(out, kw.Deletes)
+		out = append(out, kw.Writes...)
 	}
 	return out
 }

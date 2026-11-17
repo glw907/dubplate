@@ -114,8 +114,8 @@ func TestReleaseDecodeErrorWrapsMalformedRelease(t *testing.T) {
 	c := newTestClient(t, rt)
 
 	_, err := c.release(context.Background(), releaseFixtureID)
-	if !errors.Is(err, errMalformedRelease) {
-		t.Fatalf("release() = %v, want an error wrapping errMalformedRelease", err)
+	if !errors.Is(err, ErrMalformedRelease) {
+		t.Fatalf("release() = %v, want an error wrapping ErrMalformedRelease", err)
 	}
 }
 
@@ -132,13 +132,13 @@ func TestSearchReleasesReportsAnUndecodableBody(t *testing.T) {
 	if err == nil {
 		t.Fatalf("SearchReleases() = %v, nil, want an error", ids)
 	}
-	if errors.Is(err, errMalformedRelease) {
-		t.Errorf("SearchReleases() = %v, want an error that does not wrap errMalformedRelease", err)
+	if errors.Is(err, ErrMalformedRelease) {
+		t.Errorf("SearchReleases() = %v, want an error that does not wrap ErrMalformedRelease", err)
 	}
 }
 
 // Mutation 4: exhausted retries return ErrNotFound instead of
-// errUnavailable.
+// ErrUnavailable.
 func TestReleaseRetryExhaustionReturnsUnavailable(t *testing.T) {
 	rt := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 503, Body: io.NopCloser(strings.NewReader(""))}, nil
@@ -146,8 +146,8 @@ func TestReleaseRetryExhaustionReturnsUnavailable(t *testing.T) {
 	c := newTestClient(t, rt)
 
 	_, err := c.release(context.Background(), releaseFixtureID)
-	if !errors.Is(err, errUnavailable) {
-		t.Fatalf("release() = %v, want an error wrapping errUnavailable", err)
+	if !errors.Is(err, ErrUnavailable) {
+		t.Fatalf("release() = %v, want an error wrapping ErrUnavailable", err)
 	}
 }
 
@@ -375,8 +375,8 @@ func TestReleaseStopsWhenTheContextEndsDuringARequest(t *testing.T) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("release() = %v, want an error wrapping context.Canceled", err)
 	}
-	if errors.Is(err, errUnavailable) {
-		t.Errorf("release() = %v, want the context's error and never errUnavailable", err)
+	if errors.Is(err, ErrUnavailable) {
+		t.Errorf("release() = %v, want the context's error and never ErrUnavailable", err)
 	}
 	if requests != 1 {
 		t.Errorf("requests = %d, want 1: a cancelled context must not be retried", requests)
@@ -410,7 +410,7 @@ func TestReleaseBoundsTheResponseBody(t *testing.T) {
 		size    int
 		wantErr error
 	}{
-		{"exactly the cap", capBytes, errMalformedRelease},
+		{"exactly the cap", capBytes, ErrMalformedRelease},
 		{"one byte over the cap", capBytes + 1, errBodyTooLarge},
 		{"far over the cap", 2 * capBytes, errBodyTooLarge},
 	}

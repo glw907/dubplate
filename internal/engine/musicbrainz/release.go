@@ -7,9 +7,13 @@ import (
 	"strconv"
 )
 
-// errMalformedRelease reports a release body that does not decode or
-// that the rest of this package cannot read without panicking.
-var errMalformedRelease = errors.New("malformed musicbrainz release")
+// ErrMalformedRelease reports a release body that does not decode or
+// that fails validation, the checks that keep the rest of this package
+// from panicking on it. A search body that does not decode is not
+// wrapped in it. A caller branches on it with
+// errors.Is to tell a bad response from an unreachable server
+// (ErrUnavailable).
+var ErrMalformedRelease = errors.New("malformed musicbrainz release")
 
 // Release is the subset of a WS/2 release the matcher's vocabulary is
 // translated from. The struct tags name the wire keys directly, which
@@ -123,7 +127,7 @@ type Recording struct {
 type wireInt int
 
 // UnmarshalJSON accepts both spellings and rejects anything else,
-// wrapping errMalformedRelease on both failure paths. encoding/json
+// wrapping ErrMalformedRelease on both failure paths. encoding/json
 // returns a custom unmarshaler's error unchanged for a
 // non-UnmarshalTypeError, so errors.Is survives json.Unmarshal.
 func (n *wireInt) UnmarshalJSON(data []byte) error {
@@ -135,11 +139,11 @@ func (n *wireInt) UnmarshalJSON(data []byte) error {
 
 	var asString string
 	if err := json.Unmarshal(data, &asString); err != nil {
-		return fmt.Errorf("musicbrainz: position %s is neither a JSON number nor a JSON string: %w", data, errMalformedRelease)
+		return fmt.Errorf("musicbrainz: position %s is neither a JSON number nor a JSON string: %w", data, ErrMalformedRelease)
 	}
 	parsed, err := strconv.Atoi(asString)
 	if err != nil {
-		return fmt.Errorf("musicbrainz: position %q is not an integer: %w: %w", asString, err, errMalformedRelease)
+		return fmt.Errorf("musicbrainz: position %q is not an integer: %w: %w", asString, err, ErrMalformedRelease)
 	}
 	*n = wireInt(parsed)
 	return nil
@@ -162,7 +166,7 @@ type RelationTarget struct {
 }
 
 // validate reports whether rel can be translated at all, wrapping
-// errMalformedRelease and naming the offending element. It is the
+// ErrMalformedRelease and naming the offending element. It is the
 // boundary check TranslateAlbum runs first, so the rest of this package
 // may assume well-formed input.
 //
@@ -180,12 +184,12 @@ type RelationTarget struct {
 func (rel *Release) validate() error {
 	for i, r := range rel.Relations {
 		if r.TargetType == "" {
-			return fmt.Errorf("relation %d has empty target-type: %w", i, errMalformedRelease)
+			return fmt.Errorf("relation %d has empty target-type: %w", i, ErrMalformedRelease)
 		}
 	}
 
 	if len(rel.ArtistCredit) == 0 {
-		return fmt.Errorf("release %s has empty artist-credit: %w", rel.ID, errMalformedRelease)
+		return fmt.Errorf("release %s has empty artist-credit: %w", rel.ID, ErrMalformedRelease)
 	}
 
 	for _, medium := range rel.Media {
@@ -193,7 +197,7 @@ func (rel *Release) validate() error {
 			if len(resolvedTrackCredit(track)) == 0 {
 				return fmt.Errorf(
 					"medium %d track %d has empty artist-credit on both the track and the recording: %w",
-					medium.Position, track.Position, errMalformedRelease,
+					medium.Position, track.Position, ErrMalformedRelease,
 				)
 			}
 		}
@@ -201,7 +205,7 @@ func (rel *Release) validate() error {
 
 	for i, r := range rel.Relations {
 		if isTranslSource(r) && r.Release == nil {
-			return fmt.Errorf("relation %d is a backward transl-tracklisting relation with no release target: %w", i, errMalformedRelease)
+			return fmt.Errorf("relation %d is a backward transl-tracklisting relation with no release target: %w", i, ErrMalformedRelease)
 		}
 	}
 

@@ -327,7 +327,7 @@ func TestWriteReplacesLowercaseTitleCaseInsensitively(t *testing.T) {
 // members of each colliding pair in one call leaves the plural's
 // comments. All three colliding pairs are covered here at the
 // surviving-comments level that Write owns; tagset_test.go covers
-// serialize's order only.
+// Serialize's order only.
 func TestWriteCollidingPairLeavesPluralComments(t *testing.T) {
 	tests := []struct {
 		name string

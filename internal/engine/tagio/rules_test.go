@@ -47,7 +47,7 @@ func writeAndRead(t *testing.T, ts TagSet) ([]Comment, TagSet) {
 // keeps a row because it is the integer 0 on all twelve corpus rows
 // and a zero that must survive a write is worth pinning. Every
 // wantComments value is hard-coded and cites the mediafile line it
-// reproduces, never derived from serialize, formatGain, formatQ8 or
+// reproduces, never derived from Serialize, formatGain, formatQ8 or
 // any other code under test. Each case writes onto an otherwise empty
 // TagSet, so the comment set it reads back on disk carries only the
 // comments its own field produced.
@@ -324,7 +324,7 @@ func TestRulesZeroYearRoundTrip(t *testing.T) {
 }
 
 // TestRulesEmptyListRoundTrip covers the empty-list state on a round
-// trip rather than at serialize alone: an empty list writes no comment at
+// trip rather than at Serialize alone: an empty list writes no comment at
 // all (ListStorageStyle.set_list, mediafile/storage/base.py:189-199),
 // and the empty state is indistinguishable from absent once it is on
 // disk, so a read-back finds a nil slice, the same value an absent

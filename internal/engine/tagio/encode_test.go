@@ -26,9 +26,9 @@ func TestSerializeFloatPlaces(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			kw := mustKeyWrite(t, serialize(c.ts), fieldFor(t, c.wantKey))
-			if len(kw.writes) != 1 || kw.writes[0].Name != c.wantKey || kw.writes[0].Value != c.wantVal {
-				t.Errorf("%s: got %+v, want one comment %s=%q (%s)", c.name, kw.writes, c.wantKey, c.wantVal, c.citation)
+			kw := mustKeyWrite(t, Serialize(c.ts), fieldFor(t, c.wantKey))
+			if len(kw.Writes) != 1 || kw.Writes[0].Name != c.wantKey || kw.Writes[0].Value != c.wantVal {
+				t.Errorf("%s: got %+v, want one comment %s=%q (%s)", c.name, kw.Writes, c.wantKey, c.wantVal, c.citation)
 			}
 		})
 	}
@@ -47,9 +47,9 @@ func TestSerializeBool(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			kw := mustKeyWrite(t, serialize(TagSet{Comp: new(c.v)}), "comp")
-			if len(kw.writes) != 1 || kw.writes[0].Name != "COMPILATION" || kw.writes[0].Value != c.want {
-				t.Errorf("got %+v, want one comment COMPILATION=%q", kw.writes, c.want)
+			kw := mustKeyWrite(t, Serialize(TagSet{Comp: new(c.v)}), "comp")
+			if len(kw.Writes) != 1 || kw.Writes[0].Name != "COMPILATION" || kw.Writes[0].Value != c.want {
+				t.Errorf("got %+v, want one comment COMPILATION=%q", kw.Writes, c.want)
 			}
 		})
 	}
@@ -58,9 +58,9 @@ func TestSerializeBool(t *testing.T) {
 // TestSerializeR128Shift grades the Q8 shift: r128_track_gain = -1.5
 // writes R128_TRACK_GAIN=-384 (mediafile:874, __init__.py:870-884).
 func TestSerializeR128Shift(t *testing.T) {
-	kw := mustKeyWrite(t, serialize(TagSet{R128TrackGain: new(-1.5)}), "r128_track_gain")
-	if len(kw.writes) != 1 || kw.writes[0].Name != "R128_TRACK_GAIN" || kw.writes[0].Value != "-384" {
-		t.Errorf("got %+v, want one comment R128_TRACK_GAIN=-384", kw.writes)
+	kw := mustKeyWrite(t, Serialize(TagSet{R128TrackGain: new(-1.5)}), "r128_track_gain")
+	if len(kw.Writes) != 1 || kw.Writes[0].Name != "R128_TRACK_GAIN" || kw.Writes[0].Value != "-384" {
+		t.Errorf("got %+v, want one comment R128_TRACK_GAIN=-384", kw.Writes)
 	}
 }
 
@@ -89,21 +89,21 @@ func TestSerializeDateTable(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			kw := mustKeyWrite(t, serialize(TagSet{Year: c.year, Month: c.month, Day: c.day}), "year")
+			kw := mustKeyWrite(t, Serialize(TagSet{Year: c.year, Month: c.month, Day: c.day}), "year")
 			if c.wantDateAbsent {
-				if len(kw.writes) != 0 {
-					t.Fatalf("got writes %+v, want none", kw.writes)
+				if len(kw.Writes) != 0 {
+					t.Fatalf("got writes %+v, want none", kw.Writes)
 				}
-				if !slices.Contains(kw.deletes, "DATE") || !slices.Contains(kw.deletes, "YEAR") {
-					t.Errorf("deletes %v, want DATE and YEAR both removed", kw.deletes)
+				if !slices.Contains(kw.Deletes, "DATE") || !slices.Contains(kw.Deletes, "YEAR") {
+					t.Errorf("deletes %v, want DATE and YEAR both removed", kw.Deletes)
 				}
 				return
 			}
-			gotDate, ok := commentValue(kw.writes, "DATE")
+			gotDate, ok := commentValue(kw.Writes, "DATE")
 			if !ok || gotDate != c.wantDate {
 				t.Errorf("DATE = %q, ok=%v, want %q", gotDate, ok, c.wantDate)
 			}
-			gotYear, ok := commentValue(kw.writes, "YEAR")
+			gotYear, ok := commentValue(kw.Writes, "YEAR")
 			if !ok || gotYear != c.wantYear {
 				t.Errorf("YEAR = %q, ok=%v, want %q", gotYear, ok, c.wantYear)
 			}
@@ -115,9 +115,9 @@ func TestSerializeDateTable(t *testing.T) {
 // ORIGINALDATE=0000 on the same all-zero row as DATE and YEAR, and
 // that original_year carries no YEAR-style fallback (mediafile:706-708).
 func TestSerializeOriginalDateEveryComponentZero(t *testing.T) {
-	kw := mustKeyWrite(t, serialize(TagSet{OriginalYear: new(0), OriginalMonth: new(0), OriginalDay: new(0)}), "original_year")
-	if len(kw.writes) != 1 || kw.writes[0].Name != "ORIGINALDATE" || kw.writes[0].Value != "0000" {
-		t.Errorf("got %+v, want one comment ORIGINALDATE=0000", kw.writes)
+	kw := mustKeyWrite(t, Serialize(TagSet{OriginalYear: new(0), OriginalMonth: new(0), OriginalDay: new(0)}), "original_year")
+	if len(kw.Writes) != 1 || kw.Writes[0].Name != "ORIGINALDATE" || kw.Writes[0].Value != "0000" {
+		t.Errorf("got %+v, want one comment ORIGINALDATE=0000", kw.Writes)
 	}
 }
 
@@ -127,17 +127,17 @@ func TestSerializeOriginalDateEveryComponentZero(t *testing.T) {
 // (ALBUMARTISTS, ALBUM_ARTISTS) and one read-only style (ALBUM
 // ARTISTS) that a write never emits.
 func TestSerializeListRepetition(t *testing.T) {
-	kw := mustKeyWrite(t, serialize(TagSet{Albumartists: []string{"X", "Y"}}), "albumartists")
+	kw := mustKeyWrite(t, Serialize(TagSet{Albumartists: []string{"X", "Y"}}), "albumartists")
 	want := []Comment{
 		{Name: "ALBUMARTISTS", Value: "X"},
 		{Name: "ALBUMARTISTS", Value: "Y"},
 		{Name: "ALBUM_ARTISTS", Value: "X"},
 		{Name: "ALBUM_ARTISTS", Value: "Y"},
 	}
-	if !slices.Equal(kw.writes, want) {
-		t.Errorf("got %+v, want %+v", kw.writes, want)
+	if !slices.Equal(kw.Writes, want) {
+		t.Errorf("got %+v, want %+v", kw.Writes, want)
 	}
-	for _, c := range kw.writes {
+	for _, c := range kw.Writes {
 		if c.Name == "ALBUM ARTISTS" {
 			t.Errorf("wrote read-only style ALBUM ARTISTS: %+v", c)
 		}
@@ -149,9 +149,9 @@ func TestSerializeListRepetition(t *testing.T) {
 // sequence rather than against an empty string
 // (ListStorageStyle.set_list, mediafile/storage/base.py:189-199).
 func TestSerializeEmptyList(t *testing.T) {
-	kw := mustKeyWrite(t, serialize(TagSet{Genres: []string{}}), "genres")
-	if len(kw.writes) != 0 {
-		t.Errorf("got %d comments, want an empty comment sequence: %+v", len(kw.writes), kw.writes)
+	kw := mustKeyWrite(t, Serialize(TagSet{Genres: []string{}}), "genres")
+	if len(kw.Writes) != 0 {
+		t.Errorf("got %d comments, want an empty comment sequence: %+v", len(kw.Writes), kw.Writes)
 	}
 }
 
@@ -160,10 +160,10 @@ func TestSerializeEmptyList(t *testing.T) {
 // from the empty-list state above that writes nothing (proves the two
 // states are handled separately).
 func TestSerializeEmptyStringWritesComment(t *testing.T) {
-	kw := mustKeyWrite(t, serialize(TagSet{Title: new("")}), "title")
+	kw := mustKeyWrite(t, Serialize(TagSet{Title: new("")}), "title")
 	want := []Comment{{Name: "TITLE", Value: ""}}
-	if !slices.Equal(kw.writes, want) {
-		t.Errorf("got %+v, want %+v", kw.writes, want)
+	if !slices.Equal(kw.Writes, want) {
+		t.Errorf("got %+v, want %+v", kw.Writes, want)
 	}
 }
 
@@ -171,27 +171,27 @@ func TestSerializeEmptyStringWritesComment(t *testing.T) {
 // set, not a delete, so deleting barcode removes all five keys
 // (BARCODE, UPC, EAN/UPN, EAN, UPN), not just the writable one.
 func TestSerializeDeleteBarcode(t *testing.T) {
-	kw := mustKeyWrite(t, serialize(TagSet{Barcode: nil}), "barcode")
-	if len(kw.writes) != 0 {
-		t.Errorf("got writes %+v, want none", kw.writes)
+	kw := mustKeyWrite(t, Serialize(TagSet{Barcode: nil}), "barcode")
+	if len(kw.Writes) != 0 {
+		t.Errorf("got writes %+v, want none", kw.Writes)
 	}
 	want := []string{"BARCODE", "UPC", "EAN/UPN", "EAN", "UPN"}
-	if !slices.Equal(kw.deletes, want) {
-		t.Errorf("deletes = %v, want %v", kw.deletes, want)
+	if !slices.Equal(kw.Deletes, want) {
+		t.Errorf("deletes = %v, want %v", kw.Deletes, want)
 	}
 }
 
-// mustKeyWrite returns serialize's keyWrite for field, failing the
+// mustKeyWrite returns Serialize's KeyWrite for field, failing the
 // test if none exists.
-func mustKeyWrite(t *testing.T, kws []keyWrite, field string) keyWrite {
+func mustKeyWrite(t *testing.T, kws []KeyWrite, field string) KeyWrite {
 	t.Helper()
 	for _, kw := range kws {
-		if kw.field == field {
+		if kw.Field == field {
 			return kw
 		}
 	}
-	t.Fatalf("no keyWrite for field %q", field)
-	return keyWrite{}
+	t.Fatalf("no KeyWrite for field %q", field)
+	return KeyWrite{}
 }
 
 // fieldFor maps a Vorbis key back to the first field table row that
