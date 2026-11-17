@@ -31,23 +31,19 @@ const vendorPrefix = "dubplate "
 // "(devel)".
 const developmentVendorMarker = "development"
 
-// Write sniffs path, then rewrites its tags and pictures through the
-// seam registry's row for the format Sniff reports. A format Sniff
-// does not recognize, including a FLAC file once the registry has
-// been emptied of its FLAC row, hands back [ErrUnsupportedContainer]
-// unchanged and never opens path for writing.
+// Write sniffs path, then rewrites its tags and pictures. A file Sniff
+// does not recognize hands back Sniff's [ErrUnsupportedContainer]
+// unchanged and is never opened for writing.
 func Write(path string, ts TagSet, pictures []Picture, mode os.FileMode) error {
-	entry, err := resolveEntry(path)
-	if err != nil {
+	// Sniff first so a file that is not FLAC reports Sniff's error, not
+	// the signature refusal Parse would give it.
+	if _, err := Sniff(path); err != nil {
 		return err
 	}
-	if entry.write == nil {
-		return fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
-	}
-	return entry.write(path, ts, pictures, mode)
+	return writeFLAC(path, ts, pictures, mode)
 }
 
-// writeFLAC is FLAC's seam registry row for Write: every key ts owns
+// writeFLAC rewrites a FLAC file's tags and pictures: every key ts owns
 // is replaced, matching a comment's field name case insensitively as
 // RFC 9639 section 8.6 requires, and every other comment survives in
 // place and in order (C8). pictures carries R1's three caller states:

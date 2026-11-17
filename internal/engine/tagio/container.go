@@ -124,12 +124,6 @@ type Container struct {
 // A signature other than fLaC returns [ErrUnsupportedContainer]. Any
 // of C7's refusal shapes returns [ErrMalformedContainer], and the
 // returned Container is always the zero value in that case.
-//
-// Parse deliberately never consults the seam registry (seam.go): it
-// is FLAC's own entry point and always returns a FLAC Container, and
-// a registry whose later rows return other formats' containers has
-// nothing to hand it for those inputs (ruled, conductor 2026-09-08,
-// m6).
 func Parse(path string) (Container, error) {
 	return parse(path, nil)
 }
@@ -194,9 +188,9 @@ func ParseBounded(path string, bounds Bounds) (Container, error) {
 // parse opens path and walks its container; a nil bounds admits any
 // block size.
 func parse(path string, bounds *Bounds) (Container, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return Container{}, fmt.Errorf("tagio: open %s: %w", path, err)
+	f, sig, sigErr := openFLAC(path)
+	if f == nil {
+		return Container{}, sigErr
 	}
 	defer func() { _ = f.Close() }()
 
@@ -204,10 +198,8 @@ func parse(path string, bounds *Bounds) (Container, error) {
 	if err != nil {
 		return Container{}, fmt.Errorf("tagio: stat %s: %w", path, err)
 	}
-
-	sig := make([]byte, len(flacSignature))
-	if _, err := f.ReadAt(sig, 0); err != nil || string(sig) != flacSignature {
-		return Container{}, fmt.Errorf("tagio: %s: %w: signature %q", path, ErrUnsupportedContainer, sig)
+	if sigErr != nil {
+		return Container{}, fmt.Errorf("tagio: %s: %w: signature %q", path, ErrUnsupportedContainer, sig[:])
 	}
 
 	return parseBlocks(f, path, stat.Size(), bounds)

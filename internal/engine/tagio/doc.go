@@ -6,16 +6,10 @@
 // It sits beside internal/engine/tag, which computes the applied field
 // and touches no file (internal/engine/tag/doc.go:8-11).
 //
-// Read and Write dispatch through the seam registry (seam.go), an
-// unexported map keyed by Format that pairs each container's magic
-// bytes with its read and write funcs; Sniff and SupportedFormats
-// are the registry's exported surface. The registry carries exactly
-// one row today, FLAC. The MP3 pass adds the registry's second row
-// and, at that same moment, the interface this package deliberately
-// does not declare yet: a struct of func values dispatches Read and
-// Write with only one implementation, and a second registration
-// costs exactly one more registry entry plus that interface, nothing
-// more (ruling 14).
+// Read and Write sniff the file first and refuse one that is not FLAC;
+// Sniff and SupportedFormats name the formats tagio handles, and FLAC
+// is the only one. Parse is FLAC's own entry point and returns a FLAC
+// Container.
 //
 // Read stays tag-only: it returns a TagSet and nothing else. Pictures
 // live on Container, populated by Parse, because a picture is not one
@@ -31,7 +25,5 @@
 // Container field Read does not return, such as StreamInfo. The import
 // reader is the intended consumer, parsing a file once for its length
 // and its tags rather than twice through Read and Parse both; no
-// caller exists yet. Tags performs no I/O and adds no bypass of the seam
-// registry: Parse's own bypass (ruling, seam_test.go) is what a
-// caller of Tags still goes through.
+// caller exists yet. Tags performs no I/O.
 package tagio

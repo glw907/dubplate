@@ -7,28 +7,17 @@ import (
 )
 
 // Read sniffs path, then projects its VORBIS_COMMENT block into a
-// TagSet through the seam registry's row for the format Sniff
-// reports. A format Sniff does not recognize, including a FLAC file
-// once the registry has been emptied of its FLAC row, hands back
-// [ErrUnsupportedContainer] unchanged; a recognized format still
-// hands back [ErrMalformedContainer] unchanged from [Parse], so a
-// caller branching on either (C14) branches on the same error
-// whether it parsed the container itself or read its tags.
+// TagSet. A file Sniff does not recognize hands back Sniff's
+// [ErrUnsupportedContainer] unchanged; a FLAC file hands back
+// [ErrMalformedContainer] unchanged from [Parse], so a caller
+// branching on either branches on the same error whether it parsed
+// the container itself or read its tags.
 func Read(path string) (TagSet, error) {
-	entry, err := resolveEntry(path)
-	if err != nil {
+	// Sniff first so a file that is not FLAC reports Sniff's error, not
+	// the signature refusal Parse would give it.
+	if _, err := Sniff(path); err != nil {
 		return TagSet{}, err
 	}
-	if entry.read == nil {
-		return TagSet{}, fmt.Errorf("tagio: %s: %w", path, ErrUnsupportedContainer)
-	}
-	return entry.read(path)
-}
-
-// readFLAC is FLAC's seam registry row for Read: it parses path
-// through [Parse] and projects the result the way project always
-// has.
-func readFLAC(path string) (TagSet, error) {
 	c, err := Parse(path)
 	if err != nil {
 		return TagSet{}, err
@@ -40,7 +29,7 @@ func readFLAC(path string) (TagSet, error) {
 // caller that needs one file's tags and another Container field, such
 // as StreamInfo, off a single [Parse]. The import reader is the
 // intended consumer; no caller exists yet. Read stays the
-// registry-dispatching, path-taking entry point for a caller that
+// sniffing, path-taking entry point for a caller that
 // wants only the tags; Tags never opens a file, never sniffs a
 // format, and is not a second entry point.
 func Tags(c Container) TagSet {
