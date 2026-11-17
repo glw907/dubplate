@@ -120,17 +120,15 @@ set -euo pipefail
 # from, any fallback reason, and the files or packages it covers, so a
 # transcript shows what was skipped.
 #
-# Two legs are staged gates, not optional ones. Each runs on every full
-# invocation, prints its finding count and its first twenty sites, and
-# is flipped from warning to gating by its own environment variable.
-# Neither is a `command -v || skip`: the leg always runs and always
-# reports; what the variable controls is whether today's known backlog
-# blocks a commit while it is being worked off.
+# The process-citation leg gates: any process tag in a shipped Go
+# comment under cmd/ and internal/ fails the run and names every line.
+# One leg is a staged gate. It runs on every full invocation, prints its
+# finding count and its first twenty sites, and is flipped from warning
+# to gating by its own environment variable. It is not a
+# `command -v || skip`: the leg always runs and always reports; what the
+# variable controls is whether today's known backlog blocks a commit
+# while it is being worked off.
 #
-#   CHECK_CITATIONS=warn|fail       (default warn) process citations in
-#       Go comments under cmd/ and internal/. The backlog is the tree's
-#       existing citation lines; the leg gates in round `engine`, which
-#       clears them.
 #   CHECK_EXPORTED_UNUSED=warn|fail (default warn) functions that
 #       `go tool deadcode` finds unreachable from any main. The leg
 #       stays a warning; a tool failure fails it in every mode.
@@ -797,35 +795,43 @@ if [ "$mode" != "reduced" ]; then
   # to the pass that wrote it and is noise to every later reader. The em
   # dash ban is the proof that a mechanical rule holds here where an
   # instruction does not.
-  citation_patterns='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, |\bR-[0-9]+[a-z]+[0-9]*'
+  #
+  # Two patterns apply. The narrow one runs over every shipped Go file.
+  # The wide one adds the tags a ruling, fold, or contract leaves behind,
+  # and runs everywhere except the four packages whose comments still
+  # carry them (BACKLOG holds the clearing of each).
+  citation_narrow='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, |\bR-[0-9]+[a-z]+[0-9]*'
+  citation_wide='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, |\bR-[0-9]+[a-z]+[0-9]*|\b[Cc]ontract [A-Z]{0,2}-?[0-9]|\b[Rr]ungs?[ -][0-9]|\b[0-9]{1,2}[a-d]\b|\b[Pp]ass [0-9]|\b[Tt]his (pass|task)\b|\b[Ll]ater pass\b|\b[Rr]ulings?[ -]([0-9]+|[A-Z])\b|\bfold [A-Z]|\bR-?[0-9]{1,2}[a-z]?\b|\bR-[A-Z]\b|\b[A-Z][0-9]{1,2}[a-z]?.s\b|\bof C[0-9]{1,2}\b|\([Mm][0-9]+\)|\(review [a-z0-9]+\)|spec:[0-9]|spec, :[0-9]|\bconductor\b|\bHISTORY\b|\bResolution\b|mechanics study|\b[Rr]uling,? (of )?20[0-9]{2}-|\([A-Z][0-9]{1,2}\b|\b(fold|spec|lane),? [A-Z][0-9]{1,2}\b|\b(the|this) plan.s\b|\bGeoff\b'
   {
     git ls-files -- cmd internal
     git ls-files --others --exclude-standard -- cmd internal
   } | grep -E '\.go$' | grep -v '_test\.go$' | sort -u >"$work_dir/citation-src.txt"
+  grep -vE '^(cmd/dubplate-server|internal/(serve|auth|intake))/' "$work_dir/citation-src.txt" >"$work_dir/citation-wide-src.txt" || true
   # Only the text from each line's first // marker onward is searched, so
   # a pattern sitting in a string literal or an identifier is not a hit.
-  : >"$work_dir/citations.txt"
-  if [ -s "$work_dir/citation-src.txt" ]; then
-    xargs -r -a "$work_dir/citation-src.txt" grep -Hn '//' |
+  citation_scan() {
+    local pattern="$1" list="$2"
+    [ -s "$list" ] || return 0
+    xargs -r -a "$list" grep -Hn '//' |
       awk 'match($0, /^[^:]+:[0-9]+:/) {
              head = substr($0, RSTART, RLENGTH)
              rest = substr($0, RLENGTH + 1)
              i = index(rest, "//")
              if (i) print head substr(rest, i)
            }' |
-      grep -E "$citation_patterns" >"$work_dir/citations.txt" || true
-  fi
+      grep -E "$pattern" || true
+  }
+  {
+    citation_scan "$citation_narrow" "$work_dir/citation-src.txt"
+    citation_scan "$citation_wide" "$work_dir/citation-wide-src.txt"
+  } | sort -u >"$work_dir/citations.txt"
   citation_count="$(wc -l <"$work_dir/citations.txt")"
   if [ "$citation_count" -eq 0 ]; then
     echo "check.sh: no process citations in Go comments."
   else
-    echo "check.sh: $citation_count process citation(s) in Go comments; first twenty:" >&2
-    head -n 20 "$work_dir/citations.txt" >&2
-    if [ "${CHECK_CITATIONS:-warn}" = "fail" ]; then
-      status=1
-    else
-      echo "check.sh: CHECK_CITATIONS=warn, so this is a warning; set CHECK_CITATIONS=fail to gate on it." >&2
-    fi
+    echo "check.sh: $citation_count process citation(s) in Go comments:" >&2
+    cat "$work_dir/citations.txt" >&2
+    status=1
   fi
 
   leg "exported identifiers with no consumer (internal/)"
