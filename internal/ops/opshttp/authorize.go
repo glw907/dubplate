@@ -23,7 +23,7 @@ type authorizer interface {
 // An authorizingSeam decides who may call an operation. [authorizingSeam.admit]
 // answers the actor a call proceeds as only when the authorizer answers
 // a caller whose privilege reaches the operation's, so no caller can
-// choose the actor a job or an audit row records. An admitted actor
+// choose the actor a submission or an audit row records. An admitted actor
 // whose channel differs from the mount's is refused, so an authorizer
 // wired to the wrong mount fails closed.
 type authorizingSeam struct {
