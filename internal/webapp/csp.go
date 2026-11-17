@@ -1,4 +1,4 @@
-package serve
+package webapp
 
 import (
 	"crypto/sha256"
@@ -27,8 +27,8 @@ var (
 // cannot carry it, so only the header can refuse framing. img-src
 // admits data: because DaisyUI draws its --noise texture as a data:
 // SVG background image. The kit options in web/vite.config.ts write
-// the same set into each document's meta, and a test in the serve verb
-// fails when the two differ.
+// the same set into each document's meta, and a test in
+// cmd/dubplate-server fails when the two differ.
 const (
 	cspDefaultSrc = "default-src 'self'"
 	cspStyleSrc   = "style-src 'self' 'unsafe-inline'"
@@ -63,10 +63,10 @@ var (
 func DocumentCSP(name string, doc []byte) (string, error) {
 	hashes, err := metaScriptHashes(doc)
 	if err != nil {
-		return "", fmt.Errorf("serve: document %q: %w", name, err)
+		return "", fmt.Errorf("web: document %q: %w", name, err)
 	}
 	if err := checkInlineScripts(doc, hashes); err != nil {
-		return "", fmt.Errorf("serve: document %q: %w", name, err)
+		return "", fmt.Errorf("web: document %q: %w", name, err)
 	}
 
 	var scriptSrc strings.Builder

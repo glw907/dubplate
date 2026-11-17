@@ -22,6 +22,7 @@ import (
 	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 )
@@ -452,9 +453,9 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	webRoutes.register(routes, shell.Logger())
-	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.members)))
-	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, serve.LogRequests(shell.Logger(), webRoutes.serverSettings)))
+	registerWebRoutes(routes, webRoutes)
+	routes.Register(membersRouteName, auth.RequireAdmin(adminConfig, webRoutes.Members))
+	routes.Register(serverSettingsRouteName, auth.RequireAdmin(adminConfig, webRoutes.ServerSettings))
 
 	if err := in.Start(ctx); err != nil {
 		return nil, err
@@ -543,10 +544,10 @@ func sendsHSTS(publicURL string) bool {
 // a request to <prefix>/roster/roster must answer the shell's 404,
 // never the member list, and the shell's 404 this wrap answers is
 // byte-equal to the admin gate's own refusal, so a non-admin sees the
-// same answer on either side of it. It is [newExactPathRoutes] (web.go)
-// narrowed to the one-route case.
+// same answer on either side of it. It is [webapp.ExactPaths] narrowed
+// to the one-route case.
 func exactPath(want string, next http.Handler) http.Handler {
-	return newExactPathRoutes(map[string]http.Handler{want: next})
+	return webapp.ExactPaths(map[string]http.Handler{want: next})
 }
 
 // openNonceStore opens the consumed-nonce store under authStore, its

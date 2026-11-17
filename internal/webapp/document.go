@@ -1,4 +1,4 @@
-package serve
+package webapp
 
 import (
 	"bytes"
@@ -17,34 +17,34 @@ import (
 // __Host-dubplate_session (internal/auth/session.go): its __Host-
 // prefix is enforced by the browser rather than by this server, so the
 // cookie is stored only when it carries Path=/, no Domain, and Secure.
-// Only 5c-iii's toggle writes it; this package only reads it.
+// The web app's theme toggle writes it; this package only reads it.
 const ThemeCookieName = "__Host-dubplate_theme"
 
-// RewriteDocument returns raw with the exactly-one occurrence of
-// placeholder replaced by composed, the R4.5 rewrite's whole edit: no
+// rewriteDocument returns raw with the exactly-one occurrence of
+// placeholder replaced by composed, the theme stamp's whole edit: no
 // other byte, an inline <script> body included, changes. name
 // identifies the document in the two states the rewrite refuses:
 // placeholder absent, and placeholder present more than once. Either
 // shape is a build defect a caller must refuse startup on, never guess
 // past, since a second occurrence could sit inside a script body a
 // blind replace would then corrupt.
-func RewriteDocument(name string, raw []byte, placeholder, composed string) ([]byte, error) {
+func rewriteDocument(name string, raw []byte, placeholder, composed string) ([]byte, error) {
 	needle := []byte(placeholder)
 	switch n := bytes.Count(raw, needle); n {
 	case 0:
-		return nil, fmt.Errorf("serve: document %q: placeholder %q not found", name, placeholder)
+		return nil, fmt.Errorf("web: document %q: placeholder %q not found", name, placeholder)
 	case 1:
 		return bytes.Replace(raw, needle, []byte(composed), 1), nil
 	default:
-		return nil, fmt.Errorf("serve: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
+		return nil, fmt.Errorf("web: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
 	}
 }
 
-// VariantConfig is what [BuildDocumentVariants] rewrites a document
+// variantConfig is what [buildDocumentVariants] rewrites a document
 // with. Every attribute value it carries is escaped with
 // html.EscapeString as it is written, so a quote, an angle bracket, or
 // an ampersand in an operator's value cannot leave its attribute.
-type VariantConfig struct {
+type variantConfig struct {
 	// Placeholder is the token the build left on <html data-theme>.
 	Placeholder string
 
@@ -69,30 +69,30 @@ type VariantConfig struct {
 
 	// ThemeColors holds each palette's theme-color metas. A palette
 	// with no entry carries none.
-	ThemeColors map[string][]ThemeColor
+	ThemeColors map[string][]themeColor
 
 	// Icons are the icon links every variant carries, in order.
-	Icons []Icon
+	Icons []icon
 }
 
-// ThemeColor is one theme color: the color, and the color scheme it
+// themeColor is one theme color: the color, and the color scheme it
 // applies under, "light" or "dark", or "" when it applies whatever the
 // device prefers. As a theme-color meta, a color with a scheme carries
 // a prefers-color-scheme media query.
-type ThemeColor struct {
+type themeColor struct {
 	Scheme string
 	Color  string
 }
 
-// Icon is one <link rel="icon">: its href, its MIME type, and its
+// icon is one <link rel="icon">: its href, its MIME type, and its
 // sizes attribute, "" to omit it.
-type Icon struct {
+type icon struct {
 	Href  string
 	Type  string
 	Sizes string
 }
 
-// BuildDocumentVariants rewrites raw once per entry in cfg.Palettes and
+// buildDocumentVariants rewrites raw once per entry in cfg.Palettes and
 // returns one body per palette. The rewrite makes two edits and no
 // other. It substitutes cfg.Placeholder with the composed theme name,
 // and it inserts the head block directly after the last stylesheet
@@ -112,10 +112,10 @@ type Icon struct {
 // an href) can supply a missing placeholder or add a second one; an
 // inserted value carrying the placeholder is refused outright.
 //
-// The variants are computed once, at startup; [NewDocument] never
+// The variants are computed once, at startup; [newDocument] never
 // touches raw again, so no request byte can reach a served document.
 // name identifies the document in a returned error.
-func BuildDocumentVariants(name string, raw []byte, cfg VariantConfig) (map[string][]byte, error) {
+func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[string][]byte, error) {
 	var shared bytes.Buffer
 	for _, href := range cfg.TierHrefs {
 		fmt.Fprintf(&shared, `<link href="%s" rel="stylesheet">`, html.EscapeString(href))
@@ -146,12 +146,12 @@ func BuildDocumentVariants(name string, raw []byte, cfg VariantConfig) (map[stri
 		}
 		head.Write(icons.Bytes())
 
-		stamped, err := RewriteDocument(name, raw, cfg.Placeholder, cfg.Match+"-"+palette)
+		stamped, err := rewriteDocument(name, raw, cfg.Placeholder, cfg.Match+"-"+palette)
 		if err != nil {
 			return nil, err
 		}
 		if bytes.Contains(head.Bytes(), []byte(cfg.Placeholder)) {
-			return nil, fmt.Errorf("serve: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
+			return nil, fmt.Errorf("web: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
 		}
 		anchor, err := headAnchor(name, stamped)
 		if err != nil {
@@ -176,31 +176,34 @@ func headAnchor(name string, raw []byte) (int, error) {
 		}
 	}
 	if anchor < 0 {
-		return 0, fmt.Errorf("serve: document %q: no stylesheet link to place the tier links after", name)
+		return 0, fmt.Errorf("web: document %q: no stylesheet link to place the tier links after", name)
 	}
 	if end := bytes.Index(raw, []byte("</head>")); end < anchor {
-		return 0, fmt.Errorf("serve: document %q: the last stylesheet link sits outside <head>", name)
+		return 0, fmt.Errorf("web: document %q: the last stylesheet link sits outside <head>", name)
 	}
 	return anchor, nil
 }
 
-// NewStylesheet returns an http.Handler serving GET and HEAD only,
+// newStylesheet returns an http.Handler serving GET and HEAD only,
 // answering body as text/css. body is fixed when the handler is built,
 // so the response reads nothing from the request. The response is
 // no-cache, since the stylesheet's content changes at a restart while
 // its name does not.
-func NewStylesheet(body []byte) http.Handler {
-	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+func newStylesheet(body []byte) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !allowGetHead(w, r) {
+			return
+		}
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(body)
-	}))
+	})
 }
 
-// DocumentConfig is what [NewDocument] serves a document from.
-type DocumentConfig struct {
+// documentConfig is what [newDocument] serves a document from.
+type documentConfig struct {
 	// Variants holds one rewritten body per stampable palette, as
-	// [BuildDocumentVariants] returns them.
+	// [buildDocumentVariants] returns them.
 	Variants map[string][]byte
 
 	// DefaultPalette names the variant a request without a usable theme
@@ -213,9 +216,13 @@ type DocumentConfig struct {
 	// CSP is the document's Content-Security-Policy value, as
 	// [DocumentCSP] builds it.
 	CSP string
+
+	// Logger takes the record [logDocumentRequest] writes for each
+	// answer.
+	Logger *slog.Logger
 }
 
-// NewDocument returns an http.Handler serving GET and HEAD only,
+// newDocument returns an http.Handler serving GET and HEAD only,
 // answering the variant named by the [ThemeCookieName] cookie when its
 // value is an exact key of cfg.Variants, and the default variant
 // otherwise. cfg.DefaultPalette must be a key of cfg.Variants: that
@@ -225,17 +232,22 @@ type DocumentConfig struct {
 // A served document carries cfg.CacheControl, cfg.CSP, and Vary:
 // Cookie, since the variant depends on the theme cookie and a shared
 // cache must not answer one visitor with another's. A 405 carries
-// none of them.
+// none of them. Each answer, the 405 included, writes one record to
+// cfg.Logger.
 //
 // The handler writes no Set-Cookie, on any of these paths, and logs
 // nothing about the cookie's value: every response is byte-identical
-// to one of the bodies [BuildDocumentVariants] computed at startup, so
+// to one of the bodies [buildDocumentVariants] computed at startup, so
 // no request byte reaches a served document.
-func NewDocument(cfg DocumentConfig) http.Handler {
+func newDocument(cfg documentConfig) http.Handler {
 	if _, ok := cfg.Variants[cfg.DefaultPalette]; !ok {
-		panic(fmt.Sprintf("serve: NewDocument: default palette %q has no variant", cfg.DefaultPalette))
+		panic(fmt.Sprintf("web: newDocument: default palette %q has no variant", cfg.DefaultPalette))
 	}
-	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !allowGetHead(w, r) {
+			logDocumentRequest(cfg.Logger, r, http.StatusMethodNotAllowed)
+			return
+		}
 		palette := cfg.DefaultPalette
 		if cookie, err := r.Cookie(ThemeCookieName); err == nil {
 			if _, ok := cfg.Variants[cookie.Value]; ok {
@@ -248,26 +260,32 @@ func NewDocument(cfg DocumentConfig) http.Handler {
 		h.Set("Content-Security-Policy", cfg.CSP)
 		h.Set("Vary", "Cookie")
 		_, _ = w.Write(cfg.Variants[palette])
-	}))
+		logDocumentRequest(cfg.Logger, r, http.StatusOK)
+	})
 }
 
-// LogRequests wraps next, writing one record to logger for each
-// request once next has answered it: the method, the status, and the
-// path. The path is bounded as the shell's refusal record bounds it,
-// and the query string is never logged, since a document's URL may
-// carry a sign-in token there. The method is logged only when it is
-// one net/http names and as "other" otherwise, since a client may send
-// any token as a method, up to the header size limit.
-func LogRequests(logger *slog.Logger, next http.Handler) http.Handler {
+// documentNotFound returns the 404 a documents' router answers a path
+// it holds no document for with, logged as [newDocument] logs its own
+// answers.
+func documentNotFound(logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capture := &statusCapture{ResponseWriter: w, status: http.StatusOK}
-		next.ServeHTTP(capture, r)
-		logger.Info("serve: document request",
-			"method", loggedMethod(r.Method),
-			"path", boundedPath(r.URL.Path),
-			"status", capture.status,
-		)
+		http.NotFound(w, r)
+		logDocumentRequest(logger, r, http.StatusNotFound)
 	})
+}
+
+// logDocumentRequest writes the one record a document route writes for
+// each answer: the method, the status, and the path. The path is
+// bounded, and the query string is never logged, since a document's
+// URL may carry a sign-in token there. The method is logged only when
+// it is one net/http names and as "other" otherwise, since a client may
+// send any token as a method, up to the header size limit.
+func logDocumentRequest(logger *slog.Logger, r *http.Request, status int) {
+	logger.Info("serve: document request",
+		"method", loggedMethod(r.Method),
+		"path", boundedPath(r.URL.Path),
+		"status", status,
+	)
 }
 
 // knownMethods is every method net/http names a constant for.
@@ -285,24 +303,42 @@ func loggedMethod(method string) string {
 	return "other"
 }
 
-// NewAssets returns an http.Handler serving GET and HEAD only, looking
+// maxLoggedPathBytes bounds the request path a document record
+// carries, matching the bound internal/serve puts on its refusal
+// record: a path is bounded by nothing but http.Server.MaxHeaderBytes,
+// and 256 bytes is enough to identify which page was asked for.
+const maxLoggedPathBytes = 256
+
+// boundedPath returns path unchanged when it fits maxLoggedPathBytes,
+// and otherwise its first maxLoggedPathBytes bytes with a marker naming
+// the truncation and the full length.
+func boundedPath(path string) string {
+	if len(path) <= maxLoggedPathBytes {
+		return path
+	}
+	return fmt.Sprintf("%s...[truncated, %d bytes]", path[:maxLoggedPathBytes], len(path))
+}
+
+// newAssets returns an http.Handler serving GET and HEAD only, looking
 // up each request path as an exact file under root: routePrefix is the
 // exact path a caller mounted root at (for example "<prefix>/_app"),
 // and a request path is served only when it is routePrefix followed by
 // a separator and a name root holds as a regular file. Every other
-// shape -- routePrefix itself, a path under it naming a directory, and
-// a path naming no file -- answers [http.NotFoundHandler]'s 404, with no
-// directory listing and no redirect, unlike [http.FileServerFS]
-// (R-5cii21).
+// shape (routePrefix itself, a path under it naming a directory, and
+// a path naming no file) answers [http.NotFoundHandler]'s 404, with no
+// directory listing and no redirect, unlike [http.FileServerFS].
 //
 // A file under root's immutable directory is served public and
 // immutable for a year: the build names each one by its content's
 // hash, so a name never changes content. Every other file keeps a
 // stable name across builds and is served no-cache.
-func NewAssets(root fs.FS, routePrefix string) http.Handler {
+func newAssets(root fs.FS, routePrefix string) http.Handler {
 	notFound := http.NotFoundHandler()
 	prefixSlash := routePrefix + "/"
-	return methodGetHead(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !allowGetHead(w, r) {
+			return
+		}
 		if !strings.HasPrefix(r.URL.Path, prefixSlash) {
 			notFound.ServeHTTP(w, r)
 			return
@@ -319,31 +355,29 @@ func NewAssets(root fs.FS, routePrefix string) http.Handler {
 		}
 		w.Header().Set("Cache-Control", cacheControl)
 		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
-	}))
+	})
 }
 
-// methodGetHead answers 405 with Allow: GET, HEAD to any method but
-// GET and HEAD, and hands everything else to next unchanged. HEAD
-// needs no separate branch: net/http's own server discards a
-// handler's written body on a HEAD request while still computing
-// Content-Length, so next can always write the full body.
-func methodGetHead(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet && r.Method != http.MethodHead {
-			w.Header().Set("Allow", "GET, HEAD")
-			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+// allowGetHead reports whether r's method is GET or HEAD, and answers
+// 405 with Allow: GET, HEAD when it is not, so the caller has only to
+// return. HEAD needs no separate branch: net/http's own server discards
+// a handler's written body on a HEAD request while still computing
+// Content-Length, so a caller can always write the full body.
+func allowGetHead(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
+		return true
+	}
+	w.Header().Set("Allow", "GET, HEAD")
+	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	return false
 }
 
 // linkTagRE finds every <link ...> opening tag in a built document.
 // hrefAttrRE and relAttrRE then search inside one matched tag's own
 // bytes for its href and rel attributes independently, rather than
-// assuming either attribute's order: the probe's built links carry
-// href before rel (Task 0), and a regex anchored to one order would
-// silently find nothing on the other.
+// assuming either attribute's order: the build writes href before rel,
+// and a regex anchored to one order would silently find nothing on the
+// other.
 var (
 	linkTagRE  = regexp.MustCompile(`(?i)<link\b[^>]*>`)
 	hrefAttrRE = regexp.MustCompile(`(?i)\bhref\s*=\s*"([^"]*)"`)
@@ -381,14 +415,14 @@ func isStylesheetLink(tag []byte) bool {
 // anchors the match, so a prefix of a real name (matched as a
 // substring rather than the whole bracket expression) can never pass.
 // It is applied to raw CSS text rather than a parsed selector tree, so
-// a name inside an :is(...) list, which a minifier may produce
-// (R-5cii12), is found the same as a standalone selector.
+// a name inside an :is(...) list, which a minifier may produce, is
+// found the same as a standalone selector.
 var dataThemeSelectorRE = regexp.MustCompile(`\[data-theme=(?:"([a-zA-Z0-9-]+)"|([a-zA-Z0-9-]+))\]`)
 
-// ThemeSelectors returns the set of every name css declares a
+// themeSelectors returns the set of every name css declares a
 // [data-theme=<name>] compound selector for, quoted and unquoted forms
 // both.
-func ThemeSelectors(css []byte) map[string]struct{} {
+func themeSelectors(css []byte) map[string]struct{} {
 	names := make(map[string]struct{})
 	for _, m := range dataThemeSelectorRE.FindAllSubmatch(css, -1) {
 		name := m[1]
@@ -415,24 +449,24 @@ var (
 	colorSchemeDeclRE = regexp.MustCompile(`(?:^|;)\s*color-scheme\s*:\s*([^;]*)`)
 )
 
-// ThemeNeutrals returns, for every theme name css declares a
+// themeNeutrals returns, for every theme name css declares a
 // [data-theme=<name>] rule for, the --color-neutral value of each such
 // rule that declares one, paired with the color-scheme the same rule
 // declares ("" when it declares none). A rule whose selector names
 // several themes counts for each. The values are returned as css
 // writes them, trimmed of surrounding space, and are not validated.
-func ThemeNeutrals(css []byte) map[string][]ThemeColor {
-	neutrals := make(map[string][]ThemeColor)
+func themeNeutrals(css []byte) map[string][]themeColor {
+	neutrals := make(map[string][]themeColor)
 	for _, rule := range cssRuleRE.FindAllSubmatch(css, -1) {
 		neutral := neutralDeclRE.FindSubmatch(rule[2])
 		if neutral == nil {
 			continue
 		}
-		tc := ThemeColor{Color: string(bytes.TrimSpace(neutral[1]))}
+		tc := themeColor{Color: string(bytes.TrimSpace(neutral[1]))}
 		if scheme := colorSchemeDeclRE.FindSubmatch(rule[2]); scheme != nil {
 			tc.Scheme = string(bytes.TrimSpace(scheme[1]))
 		}
-		for name := range ThemeSelectors(rule[1]) {
+		for name := range themeSelectors(rule[1]) {
 			neutrals[name] = append(neutrals[name], tc)
 		}
 	}

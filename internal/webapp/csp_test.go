@@ -1,4 +1,4 @@
-package serve
+package webapp
 
 import (
 	"errors"
