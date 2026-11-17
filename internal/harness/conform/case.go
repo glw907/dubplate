@@ -149,11 +149,10 @@ const (
 //
 // It grades the request SET as well as the record: each case runs
 // against a stub built from its own log, and a run leaving a non-empty
-// Misses or a non-empty Unused fails naming both. Request
-// construction is graded elsewhere (request.go); the set is a function
-// of the ID-match early return, _recommendation and _add_candidate,
-// which this file grades. The rule does not reach ModeDefault, where a
-// corrected verdict legally changes the flow.
+// Misses or a non-empty Unused fails naming both. The set is a
+// function of the ID-match early return, _recommendation and
+// _add_candidate, which this file grades. The rule does not reach
+// ModeDefault, where a corrected verdict legally changes the flow.
 func GradeCases(root string, mode GradeMode) (CaseGradeSummary, error) {
 	led, err := loadLedgers(root)
 	if err != nil {

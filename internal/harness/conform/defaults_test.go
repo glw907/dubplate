@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -216,6 +217,37 @@ func TestDefaultGradingRefusesAWrongPatternTable(t *testing.T) {
 	_, err = gradeCaseDefault(t.Context(), dir, led)
 	if err == nil || !strings.Contains(err.Error(), id) || !strings.Contains(err.Error(), "BeetsSDPatterns") {
 		t.Errorf("gradeCaseDefault with a wrong table = %v, want an error naming %s and BeetsSDPatterns", err, id)
+	}
+}
+
+// TestCheckPatternTableGradesBothRefusals covers the two ways a name can
+// fail: it resolves to no table, or it resolves to a table whose rows
+// differ from the one the run scored under.
+func TestCheckPatternTableGradesBothRefusals(t *testing.T) {
+	named := matcher.SDPatternsNoBracketDiscount
+	other := slices.Clone(named)
+	other[0].Weight += 0.25
+
+	tests := []struct {
+		name    string
+		table   string
+		scored  []matcher.SDPattern
+		wantErr string
+	}{
+		{"the scored table", "SDPatternsNoBracketDiscount", named, ""},
+		{"an unknown name", "NoSuchTable", named, `names no matcher table`},
+		{"a table with a different weight", "SDPatternsNoBracketDiscount", other, `is not the table default-mode grading scored under`},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := checkPatternTable("c1", tc.table, tc.scored)
+			switch {
+			case tc.wantErr == "" && err != nil:
+				t.Errorf("checkPatternTable = %v, want nil", err)
+			case tc.wantErr != "" && (err == nil || !strings.Contains(err.Error(), tc.wantErr)):
+				t.Errorf("checkPatternTable = %v, want an error containing %q", err, tc.wantErr)
+			}
+		})
 	}
 }
 

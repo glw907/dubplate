@@ -62,8 +62,9 @@ func NewCandidates() *Candidates {
 // non-VA release here. The three int fields (year, original_year,
 // mediums) carry a weaker form of the same, since beets can hold None
 // there. No present source produces an empty-but-present field,
-// because internal/engine/musicbrainz is the only translation source and every field it writes comes from a
-// Go decode that yields "" rather than a null. That condition reopens
+// because internal/engine/musicbrainz is the only translation source
+// and every field it writes comes from a Go decode that yields ""
+// rather than a null. That condition reopens
 // the moment a second metadata source arrives, and the translation
 // tier's three nullStrict fields would catch it.
 var requiredFields = map[string]func(*AlbumInfo) bool{

@@ -120,11 +120,15 @@ set -euo pipefail
 # from, any fallback reason, and the files or packages it covers, so a
 # transcript shows what was skipped.
 #
-# The process-citation leg gates: any process tag in a shipped Go
-# comment under cmd/ and internal/ fails the run and names every line.
-# One leg is a staged gate. It runs on every full invocation, prints its
-# finding count and its first twenty sites, and is flipped from warning
-# to gating by its own environment variable. It is not a
+# The process-citation leg gates: a narrow pattern (rung, task,
+# resolution, and plan-line citations) fails the run for any shipped Go
+# comment under cmd/ and internal/, and a wider pattern (contract,
+# ruling, fold, pass, and conductor tags, and a name) fails it outside
+# cmd/dubplate-server, internal/serve, internal/auth, and
+# internal/intake. Test files are not scanned. Every hit is named.
+# One leg is a staged warning. It runs on every full invocation, prints
+# its finding count and its first twenty sites, and is flipped to
+# gating by its own environment variable. It is not a
 # `command -v || skip`: the leg always runs and always reports; what the
 # variable controls is whether today's known backlog blocks a commit
 # while it is being worked off.

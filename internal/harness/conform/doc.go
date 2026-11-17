@@ -18,18 +18,7 @@
 // reads corpus/analysis/components.json, corpus/manifest.json, and
 // corpus/cases, all read-only.
 //
-// A second tier: request.go grades request
-// CONSTRUCTION, replaying every committed case's own request log
-// through the real internal/engine/musicbrainz client against an
-// internal/harness/stub server built from that same log. This is the
-// first place conform drives a stub rather than only decoding one
-// case's committed bytes by hand, because a request is bytes on a
-// wire and a wire has two ends: the only way to grade what the client
-// actually builds is to serve it a response and let it try. The
-// charter above still holds, read-only and no harness package written;
-// starting and closing a stub per case is driving, not writing.
-//
-// Tier 1: case.go replays every committed case
+// Case replay: case.go replays every committed case
 // through the matcher's own public entry point
 // (internal/engine/tag.Album) against a stub built from that case's
 // log, and grades the run against the case's derived record, field by

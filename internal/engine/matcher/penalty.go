@@ -15,8 +15,8 @@ import (
 // Penalty keys are held in insertion order beside the map, because
 // RawDistance and MaxDistance sum over that order and Go's map iteration
 // is randomized: beets' dict preserves insertion order for free and the
-// port must not lose it. Float addition is not associative, so a different summation order is a
-// different number.
+// port must not lose it. Float addition is not associative, so a
+// different summation order is a different number.
 //
 // A Distance is not safe for concurrent use, and every scoring path in
 // this package is sequential.

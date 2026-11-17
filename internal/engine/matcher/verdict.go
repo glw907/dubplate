@@ -89,8 +89,9 @@ func resolveAction(key, name string, legal []Action) (Action, error) {
 	return Action(name), nil
 }
 
-// Recommend is _recommendation (autotag/match.py:269-323). cands must be
-// Candidates.Sorted's output; an empty slice returns RecNone.
+// Recommend is _recommendation (autotag/match.py:269-323). It grades
+// cands[0] and measures the gap to cands[1], in whatever order the
+// caller chose; an empty slice returns RecNone.
 //
 // The three thresholds are asymmetric on purpose: strong compares with a
 // strict < and medium with an inclusive <= (match.py:285, 288). That
@@ -167,8 +168,8 @@ func downgrade(tun Tunables, dist *Distance, rec Recommendation) (Recommendation
 // The quiet branch is tested FIRST, so Timid and NoneRecAction are
 // unreachable whenever Quiet is set. Every committed corpus record was
 // derived with quiet forced true (derive_oracle.py:204), so the corpus
-// grades two of this function's five outcomes and the rest are graded
-// by the table below.
+// grades two of this function's five outcomes; the unit tests grade
+// the rest.
 func ActionFor(tun Tunables, rec Recommendation) (Action, error) {
 	if tun.Quiet {
 		if rec == RecStrong {

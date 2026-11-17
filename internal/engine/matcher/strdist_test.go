@@ -149,7 +149,7 @@ type sdGoForm struct {
 
 // sdTranslations maps a beets literal to the Go form this package
 // departs from, each written out independently of tunables.go's
-// sdFeaturingPattern and sdFeaturingReplacement so this test does not
+// sdFeaturing's pattern and replacement so this test does not
 // merely compare production against itself. It has one entry today,
 // the featuring row; a row whose literal is absent from this
 // map must equal the literal exactly, with an empty Replacement, in

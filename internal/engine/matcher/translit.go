@@ -14,8 +14,9 @@ var transliterator atomic.Pointer[func(rune) (string, bool)]
 
 // SetTransliterator installs fn as the transliterator every
 // transliterate call consults from this point on. Any program that
-// scores must call it once, before scoring; no present command does. It panics on a nil fn: there is no channel to
-// uninstall a transliterator once one is installed.
+// scores must call it once, before scoring. It panics on a nil fn:
+// there is no channel to uninstall a transliterator once one is
+// installed.
 func SetTransliterator(fn func(rune) (string, bool)) {
 	if fn == nil {
 		panic("matcher: SetTransliterator called with a nil function")

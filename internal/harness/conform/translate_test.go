@@ -51,7 +51,7 @@ var fieldNullability = []struct {
 // reflect.TypeFor[matcher.TrackInfo]().NumField(), the "- 1" being
 // AlbumInfo.Tracks (compared as a list, never through the policy). A
 // fifteenth vocabulary field added to either struct without extending
-// fieldNullability fails this test (fold, M-c).
+// fieldNullability fails this test.
 func TestNullabilityPolicyCoversEveryField(t *testing.T) {
 	want := reflect.TypeFor[matcher.AlbumInfo]().NumField() - 1 + reflect.TypeFor[matcher.TrackInfo]().NumField()
 	if got := len(fieldNullability); got != want {

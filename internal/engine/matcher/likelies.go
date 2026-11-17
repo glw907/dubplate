@@ -32,11 +32,9 @@ type Likelies struct {
 // the returned Likelies.Artist (util/__init__.py:843-844).
 //
 // distance() itself discards its own copy of consensus
-// (`likelies, _ = get_most_common_tags(items)`, distance.py:442), so
-// no album component reads the map this function returns; it exists
-// for parity with beets' two-value return and because the override
-// above is provable only by inspecting it, which this file's own test
-// does.
+// (`likelies, _ = get_most_common_tags(items)`, distance.py:442). The
+// tag and musicbrainz packages read it to decide which search
+// criteria and ID fields every item agrees on.
 //
 // Python's get_most_common_tags filters falsy items before counting
 // (util/__init__.py:838, `values = [item.get(field) for item in items
