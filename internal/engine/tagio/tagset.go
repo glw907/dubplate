@@ -25,21 +25,10 @@ package tagio
 // absent and a value, because mediafile's ledger records no "empty
 // int" or "empty bool": zero is a value like any other.
 //
-// Both nil-vs-empty distinctions are read and written directly, with
-// no second lookup: a caller checking presence reads the one field
-// TagSet already exposes for it.
-//
 // Every member carries a JSON tag naming the ledger's own field name,
-// which is also its row's name in the field table, with no omitempty:
-// the conformance instrument fills a TagSet by unmarshalling a ledger
-// row's filtered applied-fields object straight into it and projects
-// a read-back TagSet by marshalling it, and every ledger row carries
-// all 69 keys, absent values included as explicit nulls, so an
-// omitted member would drop an absent field from the round trip.
-// TestTagSetJSONTagsTieToFieldNames ties every tag to the field it
-// names (TestTagSetJSONTagsCarryNoOmitempty grades the no-omitempty
-// half), so a wrong tag fails loudly rather than silently swapping two
-// fields' values while both sides of a comparison agree.
+// which is also its row's name in the field table. No tag carries
+// omitempty: a ledger row records all 69 keys, an absent value as an
+// explicit null, and an omitted member would drop it.
 type TagSet struct {
 	AcoustIDFingerprint *string  `json:"acoustid_fingerprint"`
 	AcoustIDID          *string  `json:"acoustid_id"`

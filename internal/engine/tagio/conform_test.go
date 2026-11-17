@@ -16,19 +16,19 @@ import (
 
 // The three tracked inputs the conformance instrument reads, each
 // path relative to this package's directory, which is `go test`'s own
-// working directory. Each is owned by rung 2's corpus derivation and
-// is read-only here: the instrument copies templatePath out before
-// any write, and the copy under t.TempDir() is what Write ever
-// touches (R5). A missing file fails loudly, naming the expected
+// working directory. Each is owned by the corpus derivation and is
+// read-only here: the instrument copies templatePath out before any
+// write, and the copy under t.TempDir() is what Write ever touches. A
+// missing file fails loudly, naming the expected
 // path, rather than skipping: a check either gates or does not exist.
 const (
-	// ledgerPath is rung 2's file-level applied-tag ledger, the
+	// ledgerPath is the corpus's file-level applied-tag ledger, the
 	// conformance target corpus/README.md's handoff section names.
 	ledgerPath = "../../../corpus/analysis/file_tags.json"
-	// caseFileFormat is rung 2's per-case corpus directory, %s the
+	// caseFileFormat is the per-case corpus directory, %s the
 	// case id, joined to the case's own case.json.
 	caseFileFormat = "../../../corpus/cases/%s/case.json"
-	// templatePath is rung 2's vendored template FLAC, the fixture
+	// templatePath is the vendored template FLAC, the fixture
 	// derive_file_tags.py's own per-subject scratch copies came from.
 	templatePath = "../../harness/oracle/testdata/template.flac"
 )
@@ -154,7 +154,7 @@ func filterToWritable(t *testing.T, applied map[string]json.RawMessage, writable
 	return filtered
 }
 
-// assertCleanMatchFourStates grades C2's four states against values
+// assertCleanMatchFourStates grades the four states against values
 // hand-transcribed from corpus/cases/clean-match/case.json's own
 // expected.applied_fields["0"], never computed: a string value
 // (album), an empty string (acoustid_fingerprint), a list value
@@ -515,12 +515,12 @@ func decodeSide(t *testing.T, text string) map[string]any {
 // that the instrument can fail (spec:1134), discharged as a standing
 // test over synthetic rows rather than as a one-off demonstration
 // that leaves no trace. Every value below is hard-coded here; none
-// is computed by Read, Serialize or the projection, so a comparator
+// is computed by Read, serialize or the projection, so a comparator
 // that stopped comparing would fail these rows rather than agree
 // with itself.
 //
 // Its name deliberately does not match the -run Conformance pattern
-// rung 15's launch gate selects with.
+// the launch gate selects with.
 func TestCompareSubjectNamesEveryDisagreement(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -609,8 +609,8 @@ func TestCompareSubjectNamesEveryDisagreement(t *testing.T) {
 	}
 }
 
-// TestConformanceLedgerSubjects lands P10 steps 1 through 3 and proves
-// them on their own: rung 15's launch-gate re-run selects this
+// TestConformanceLedgerSubjects runs steps 1 through 3 and proves
+// them on their own: the launch gate's re-run selects this
 // function by name with `go test ./internal/engine/tagio/... -run
 // Conformance -count=1`, so no other test in this file carries a name
 // that pattern matches.
@@ -623,7 +623,7 @@ func TestCompareSubjectNamesEveryDisagreement(t *testing.T) {
 // rule (unmarshalled straight through R11's tags) and the filled set
 // is written through Write into a per-subject scratch copy of the
 // committed template, with a nil picture argument (the corpus grades
-// no picture behavior, INV:432-441).
+// no picture behavior).
 //
 // Step 4: the scratch copy is read back through tagio.Read, the one
 // read entry point, and the resulting TagSet is projected to the

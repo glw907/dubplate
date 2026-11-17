@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 // flacSignature opens every FLAC stream, ahead of the metadata
@@ -77,22 +76,6 @@ type StreamInfo struct {
 	MD5           [16]byte
 }
 
-// Comment is one VORBIS_COMMENT entry, its field name and value cut
-// apart at the first '=' the way RFC 9639 section 8.6 defines a
-// comment.
-type Comment struct {
-	Name  string
-	Value string
-}
-
-// VorbisComment is the decoded VORBIS_COMMENT block: the vendor
-// string and every comment as a sequence, not a map, because a key
-// may repeat and a map would keep only one occurrence.
-type VorbisComment struct {
-	Vendor   string
-	Comments []Comment
-}
-
 // Container is one FLAC file's parsed metadata: its block chain in
 // order, STREAMINFO and VORBIS_COMMENT decoded, every PICTURE block
 // decoded in on-disk order, and the frame region's extent as two
@@ -137,7 +120,7 @@ type Bounds struct {
 }
 
 // ErrTagsTooLarge marks a VORBIS_COMMENT block whose declared length
-// exceeds [Bounds].TagBytes.
+// exceeds [Bounds].TagBytes, or a chain of more than 1024 blocks.
 var ErrTagsTooLarge = errors.New("tagio: tag block too large")
 
 // ErrPictureTooLarge marks a PICTURE block whose declared length
@@ -174,24 +157,27 @@ func (b Bounds) admit(path string, blockType byte, length, total int64, blocks i
 
 // ParseBounded is [Parse] with each block's declared length checked
 // against bounds before its payload is allocated: a Vorbis comment
-// block over TagBytes answers [ErrTagsTooLarge], and a picture block
-// over PictureBytes, or a chain totalling more than four times
-// PictureBytes, answers [ErrPictureTooLarge]. A block that is both too
-// large and runs past the end of the file answers the bound's error,
-// not [ErrMalformedContainer].
+// block over TagBytes, or a chain of more than 1024 blocks, answers
+// [ErrTagsTooLarge], and a picture block over PictureBytes, or a chain
+// totalling more than four times PictureBytes, answers
+// [ErrPictureTooLarge]. A block that is both too large and runs past
+// the end of the file answers the bound's error, not
+// [ErrMalformedContainer].
 func ParseBounded(path string, bounds Bounds) (Container, error) {
 	return parse(path, &bounds)
 }
 
 // parse opens path and walks its container; a nil bounds admits any
-// block size.
+// block size. A file that is not FLAC is refused with the four bytes
+// it carries, whatever kept them from being the signature.
 func parse(path string, bounds *Bounds) (Container, error) {
-	f, sig, sigErr := openFLAC(path)
-	if f == nil {
-		return Container{}, sigErr
+	f, err := openFile(path)
+	if err != nil {
+		return Container{}, err
 	}
 	defer func() { _ = f.Close() }()
 
+	sig, sigErr := readSignature(f, path)
 	stat, err := f.Stat()
 	if err != nil {
 		return Container{}, fmt.Errorf("tagio: stat %s: %w", path, err)
@@ -199,24 +185,35 @@ func parse(path string, bounds *Bounds) (Container, error) {
 	if sigErr != nil {
 		return Container{}, fmt.Errorf("tagio: %s: %w: signature %q", path, ErrUnsupportedContainer, sig[:])
 	}
-
 	return parseBlocks(f, path, stat.Size(), bounds)
 }
 
-// parseBlocks reads the block chain starting right after the
-// signature. It stops the first time the next four bytes cannot be
-// read as a structurally valid block header: a clean end of file, a
-// declared type of 127 (never legal, per the format's own reserved
-// value), or a declared length running past the end of the file. A
-// short header read that carries an error other than io.EOF is a
-// genuine I/O failure, not a clean end of chain, and is returned
-// wrapped rather than treated as the frame region's start. That
-// stopping point is the frame region's start, provided the chain
-// ends with exactly one block carrying the last-block flag; otherwise
-// the file is malformed, whether it ran out of valid blocks before
-// ever setting the flag or kept offering valid blocks after it
-// (a missing last-block flag and a block after it share this one
-// mechanism).
+// readContainer is [Parse] for Read and Write, opening path once. A
+// file that is not FLAC is refused with [Sniff]'s error, not parse's.
+func readContainer(path string) (Container, error) {
+	f, err := openFile(path)
+	if err != nil {
+		return Container{}, err
+	}
+	defer func() { _ = f.Close() }()
+
+	if _, err := readSignature(f, path); err != nil {
+		return Container{}, err
+	}
+	stat, err := f.Stat()
+	if err != nil {
+		return Container{}, fmt.Errorf("tagio: stat %s: %w", path, err)
+	}
+	return parseBlocks(f, path, stat.Size(), nil)
+}
+
+// parseBlocks reads the block chain that follows the signature. The
+// chain ends where the next four bytes are not a valid block header: a
+// clean end of file, the illegal type 127, or a declared length running
+// past the end of the file. A short header read failing with anything
+// but io.EOF is an I/O error, not the end of the chain. The chain must
+// end on exactly one block carrying the last-block flag, so a missing
+// flag and a block after the flag are refused alike.
 func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container, error) {
 	var (
 		blocks           []Block
@@ -320,11 +317,9 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 	}, nil
 }
 
-// checkLastFlag enforces the one invariant RFC 9639 section 8.1
-// states: exactly one block carries the last-metadata-block flag,
-// and it is the chain's final block. A block carrying the flag
-// anywhere else, or no block carrying it at all, makes the container
-// malformed.
+// checkLastFlag enforces RFC 9639 section 8.1's one chain invariant:
+// exactly one block carries the last-metadata-block flag, and it is
+// the final block.
 func checkLastFlag(blocks []Block) error {
 	count := 0
 	for i, b := range blocks {
@@ -366,68 +361,6 @@ func decodeStreamInfo(payload []byte) (StreamInfo, error) {
 		TotalSamples:  pack & 0xFFFFFFFFF,
 		MD5:           md5,
 	}, nil
-}
-
-// decodeVorbisComment decodes a VORBIS_COMMENT payload into its
-// vendor string and its comment sequence. The block is little-endian
-// throughout: a vendor length and string, a comment count, then each
-// comment's length and its NAME=VALUE bytes.
-func decodeVorbisComment(payload []byte) (VorbisComment, error) {
-	vendor, rest, err := vorbisField(payload)
-	if err != nil {
-		return VorbisComment{}, fmt.Errorf("vendor string: %w", err)
-	}
-	if len(rest) < 4 {
-		return VorbisComment{}, fmt.Errorf("VORBIS_COMMENT carries no comment count, %d bytes remain", len(rest))
-	}
-	count := binary.LittleEndian.Uint32(rest[:4])
-	rest = rest[4:]
-
-	var comments []Comment
-	for i := range count {
-		field, remainder, err := vorbisField(rest)
-		if err != nil {
-			return VorbisComment{}, fmt.Errorf("comment %d: %w", i, err)
-		}
-		rest = remainder
-		name, value, found := strings.Cut(string(field), "=")
-		if !found {
-			return VorbisComment{}, fmt.Errorf("comment %d: %q carries no '='", i, field)
-		}
-		if err := validateFieldName(name); err != nil {
-			return VorbisComment{}, fmt.Errorf("comment %d: %w", i, err)
-		}
-		comments = append(comments, Comment{Name: name, Value: value})
-	}
-	return VorbisComment{Vendor: string(vendor), Comments: comments}, nil
-}
-
-// validateFieldName refuses a comment field name carrying a code
-// point outside U+0020 through U+007E (RFC 9639 section 8.6). U+007E
-// itself is inside the set: mutagen's is_valid_key stops one code
-// point short, at 0x7D (mutagen/_vorbis.py:25-41), but tagio's bound
-// is the RFC's rather than mutagen's.
-func validateFieldName(name string) error {
-	for _, r := range name {
-		if r < 0x20 || r > 0x7e {
-			return fmt.Errorf("comment field name %q carries a code point outside U+0020-U+007E", name)
-		}
-	}
-	return nil
-}
-
-// vorbisField splits one length-prefixed field off the front of b,
-// bounds-checking the declared length against what remains before
-// any slice is taken.
-func vorbisField(b []byte) (field, rest []byte, err error) {
-	if len(b) < 4 {
-		return nil, nil, fmt.Errorf("length field wants 4 bytes, %d remain", len(b))
-	}
-	size := binary.LittleEndian.Uint32(b[:4])
-	if uint64(4)+uint64(size) > uint64(len(b)) {
-		return nil, nil, fmt.Errorf("field declares %d bytes, %d remain", size, len(b)-4)
-	}
-	return b[4 : 4+size], b[4+size:], nil
 }
 
 // malformed wraps ErrMalformedContainer with path and a reason.

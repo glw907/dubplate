@@ -7,19 +7,13 @@ import (
 	"unicode/utf8"
 )
 
-// Read sniffs path, then projects its VORBIS_COMMENT block into a
-// TagSet. A file Sniff does not recognize hands back Sniff's
-// [ErrUnsupportedContainer] unchanged; a FLAC file hands back
-// [ErrMalformedContainer] unchanged from [Parse], so a caller
-// branching on either branches on the same error whether it parsed
-// the container itself or read its tags.
+// Read projects path's VORBIS_COMMENT block into a TagSet. A file
+// Sniff does not recognize hands back Sniff's [ErrUnsupportedContainer]
+// unchanged; a FLAC file hands back [ErrMalformedContainer] as [Parse]
+// words it, so a caller branching on either branches on the same error
+// whether it parsed the container itself or read its tags.
 func Read(path string) (TagSet, error) {
-	// Sniff first so a file that is not FLAC reports Sniff's error, not
-	// the signature refusal Parse would give it.
-	if _, err := Sniff(path); err != nil {
-		return TagSet{}, err
-	}
-	c, err := Parse(path)
+	c, err := readContainer(path)
 	if err != nil {
 		return TagSet{}, err
 	}
@@ -39,12 +33,9 @@ func Read(path string) (TagSet, error) {
 // left on disk: their trailing styles are read-only and a file rarely
 // carries them.
 //
-// An empty list and an absent key are indistinguishable here, and the
-// ambiguity is on disk rather than in this code: a list field holding
-// no values writes no comment at all, so both states leave identical
-// bytes and both project to a nil slice. An absent key projects to a
-// nil member rather than to a typed zero, because safe_cast of an
-// absent value is absent for every type.
+// An absent key projects to a nil member rather than to a typed zero,
+// because safe_cast of an absent value is absent for every type; an
+// empty list reads back absent too, since it leaves nothing on disk.
 func project(c Container) TagSet {
 	cs := c.VorbisComment.Comments
 	var ts TagSet
@@ -188,9 +179,7 @@ var (
 )
 
 // safeCastInt takes s's leading [+-]?[0-9]+ prefix and parses it,
-// yielding 0 when s carries no such prefix (safe_cast to int). It
-// never sees an absent value: a caller that has not found a truthy
-// style has nothing to cast.
+// yielding 0 when s carries no such prefix (safe_cast to int).
 func safeCastInt(s string) int {
 	prefix := intPrefixPattern.FindString(strings.TrimSpace(s))
 	if prefix == "" {
@@ -205,9 +194,6 @@ func safeCastInt(s string) int {
 
 // safeCastFloat takes s's leading numeric prefix and parses it,
 // yielding 0.0 when s carries no such prefix (safe_cast to float).
-// The suffix on rg_track_gain and rg_album_gain is stripped by the
-// caller before this runs, though safe_cast's own prefix match would
-// stop at " dB" either way.
 func safeCastFloat(s string) float64 {
 	prefix := floatPrefixPattern.FindString(strings.TrimSpace(s))
 	if prefix == "" {
@@ -232,18 +218,12 @@ func safeCastBool(s string) bool {
 	return n != 0
 }
 
-// replaceInvalidUTF8 returns s with each invalid UTF-8 code point
-// replaced by U+FFFD, matching mutagen's errors='replace' decode.
-// Python's utf-8 codec follows the Unicode "maximal subpart" rule: an
-// ill-formed sequence collapses its longest well-formed prefix (the
-// lead byte plus whatever continuation bytes already matched) into a
-// single U+FFFD, then resumes scanning at the byte that broke the
-// sequence. unicode/utf8's own DecodeRuneInString does not have these
-// semantics: it always reports size 1 on an invalid encoding, where
-// mutagen/_vorbis.py:109 collapses the whole maximal subpart instead,
-// so this scans the byte structure explicitly via utf8SequenceSpan
-// rather than leaning on the stdlib decoder. Values are valid UTF-8 by
-// construction on write, so this only ever runs on read.
+// replaceInvalidUTF8 returns s with each ill-formed sequence replaced
+// by U+FFFD, matching mutagen's errors='replace' decode
+// (mutagen/_vorbis.py:109). Python collapses each maximal ill-formed
+// subpart, the lead byte plus the continuation bytes that matched,
+// into one U+FFFD, where utf8.DecodeRuneInString reports size 1, so
+// the scan walks the byte structure itself.
 func replaceInvalidUTF8(s string) string {
 	if utf8.ValidString(s) {
 		return s
@@ -268,8 +248,7 @@ func replaceInvalidUTF8(s string) string {
 // ill-formed subpart starting there (invalidLen, with validLen zero):
 // the lead byte plus however many of its required continuation bytes
 // are present and in range before one is missing or out of range.
-// utf8SequenceSpan never sees an empty s; replaceInvalidUTF8's loop
-// only calls it while i < len(s).
+// s is never empty.
 func utf8SequenceSpan(s string) (validLen, invalidLen int) {
 	b0 := s[0]
 	if b0 < 0x80 {

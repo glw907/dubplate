@@ -12,9 +12,8 @@ import (
 // throughout, with every declared length taken from the caller rather
 // than derived from the byte slice it prefixes, so a refusal fixture
 // can declare a length its own bytes do not back. Geometry (width,
-// height, depth, colours) is fixed at zero: no test in this package
-// needs a nonzero value, since P6 emits zero on every write and this
-// task decodes geometry only to prove it round-trips (P1).
+// height, depth, colours) is fixed at zero: every write emits zero,
+// and no test here needs a nonzero value.
 func picturePayload(typeIndex, mediaTypeLen uint32, mediaType string, descLen uint32, description string, dataLen uint32, data []byte) []byte {
 	var buf []byte
 	buf = binary.BigEndian.AppendUint32(buf, typeIndex)
@@ -163,6 +162,30 @@ func TestParseTwoPictureBlocks(t *testing.T) {
 	if c.Pictures[0].Type != 3 || c.Pictures[1].Type != 4 {
 		t.Errorf("Pictures = %+v, want types [3 4] in order", c.Pictures)
 	}
+}
+
+// pictureTypeFront is the front-cover index inside the APIC
+// enumeration.
+const pictureTypeFront = 3
+
+// frontCover selects c's front-cover picture, reproducing mediafile's
+// CoverArtField.guess_cover_image (mediafile/fields.py:253-260): the
+// single candidate when exactly one picture exists, otherwise the
+// first picture typed front, otherwise the first picture of any type.
+// The second return value is false only when c carries no picture.
+func (c Container) frontCover() (Picture, bool) {
+	if len(c.Pictures) == 0 {
+		return Picture{}, false
+	}
+	if len(c.Pictures) == 1 {
+		return c.Pictures[0], true
+	}
+	for _, p := range c.Pictures {
+		if p.Type == pictureTypeFront {
+			return p, true
+		}
+	}
+	return c.Pictures[0], true
 }
 
 // TestFrontCover covers the cover selection table: the single-candidate
