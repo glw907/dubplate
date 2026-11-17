@@ -13,7 +13,7 @@ set -euo pipefail
 # Playwright's own Chromium, so every full gate launches a browser.
 # Shellcheck still covers the scripts that remain (deploy.sh, check.sh
 # itself, vale-comments.sh, provision.sh), ruff covers the oracle shim's
-# Python, and gitleaks scans the whole tree in the full form (the corpus
+# Python, the photo pool leg checks the committed photo records, and gitleaks scans the whole tree in the full form (the corpus
 # under corpus/cases/ is the repo's first large data directory, and a
 # check either gates or does not exist). Exits nonzero on any failure so
 # it can be wired into CI or a pre-push hook unmodified.
@@ -28,8 +28,8 @@ set -euo pipefail
 # internals in a hand-composed command line:
 #
 #   check.sh                  the full gate over the whole tree. The form
-#                             every boundary, every merge gate, and every
-#                             pass end runs. Nothing is scoped away.
+#                             every merge gate and every pass end runs.
+#                             Nothing is scoped away.
 #   check.sh --scope-changed  the full leg list, with two legs narrowed to
 #                             what the tree actually changed: gitleaks
 #                             scans the derived change set, and the
@@ -47,18 +47,21 @@ set -euo pipefail
 #                             tests that read source through a go list
 #                             subprocess, which the cache cannot see,
 #                             run uncached inside `make test`. The
-#                             bundle is built once, and `make check` is
-#                             not called. Every other leg runs exactly
-#                             as in the full form.
+#                             bundle is built once, with no svelte-check
+#                             or static web gate, unless the rendered
+#                             leg is selected; then `make web` runs as
+#                             in the full form. `make check` is not
+#                             called. Every other leg runs exactly as in
+#                             the full form.
 #   check.sh --reduced        the comment-only and docs-only form: vale
 #                             over Go comments, shellcheck, gitleaks over
 #                             the change set, and gofmt, go vet and go
 #                             test over the changed packages only, plus
 #                             svelte-check when a web/ path changed; the
-#                             rendered leg does not run. Never
-#                             the final gate on master and never a
-#                             boundary gate; a change that reaches master
-#                             has had the full form run over it.
+#                             rendered leg does not run. Never the
+#                             final gate on master: a change that
+#                             reaches master has had the full form run
+#                             over it.
 #   check.sh --merge          the close run's in-tree gate: the full
 #                             gate plus one gitleaks pass over the
 #                             branch's own commit range, master..HEAD,
@@ -83,7 +86,7 @@ set -euo pipefail
 # with master on a branch and HEAD~1 on master. Git still derives every
 # file: the tracked diff against the base plus the untracked files.
 # The validation catches a malformed or unrelated base; a later commit
-# passed by mistake would narrow the scope, but every boundary, merge,
+# passed by mistake would narrow the scope, but every merge,
 # and close runs the full form.
 #
 # Each changed path takes one class, rows matched in this order:
@@ -126,12 +129,11 @@ set -euo pipefail
 #
 #   CHECK_CITATIONS=warn|fail       (default warn) process citations in
 #       Go comments under cmd/ and internal/. The backlog is the tree's
-#       existing citation lines; the default flips to fail at the
-#       comment-cleanup task that clears them.
-#   CHECK_EXPORTED_UNUSED=warn|fail (default warn) exported identifiers
-#       under internal/ whose only references are their own file and
-#       _test.go files. The default flips to fail once the dead surfaces
-#       it names are either consumed or deleted.
+#       existing citation lines; the leg gates in round `engine`, which
+#       clears them.
+#   CHECK_EXPORTED_UNUSED=warn|fail (default warn) functions that
+#       `go tool deadcode` finds unreachable from any main. The leg
+#       stays a warning; a tool failure fails it in every mode.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -215,28 +217,33 @@ trap 'rm -rf "$work_dir"' EXIT
 
 status=0
 
-if ! command -v go >/dev/null 2>&1; then
-  echo "check.sh: go not found; install it." >&2
-  exit 1
-fi
-if ! command -v golangci-lint >/dev/null 2>&1; then
-  echo "check.sh: golangci-lint not found; install it." >&2
-  exit 1
-fi
-if ! command -v shellcheck >/dev/null 2>&1; then
-  echo "check.sh: shellcheck not found; install it (brew install shellcheck)." >&2
-  exit 1
-fi
-if ! command -v ruff >/dev/null 2>&1; then
-  echo "check.sh: ruff not found; install it (uv tool install ruff)." >&2
-  exit 1
-fi
-if ! command -v gitleaks >/dev/null 2>&1; then
-  echo "check.sh: gitleaks not found; install it (brew install gitleaks)." >&2
-  exit 1
-fi
-if ! command -v systemd-analyze >/dev/null 2>&1; then
-  echo "check.sh: systemd-analyze not found; install systemd (it verifies every unit under systemd/)." >&2
+# Per-leg timing. The clock starts here, after the tree lock, so the total
+# counts no lock wait. `leg` prints a leg's header and closes the previous
+# leg with its elapsed line; `leg_end` closes the last one.
+SECONDS=0
+leg_name=""
+leg_start=0
+leg_end() {
+  if [ -n "$leg_name" ]; then
+    echo "== $leg_name elapsed $((SECONDS - leg_start))s =="
+    leg_name=""
+  fi
+}
+leg() {
+  leg_end
+  leg_name="$1"
+  leg_start="$SECONDS"
+  echo "== $1 =="
+}
+
+missing_tools=0
+for tool in go golangci-lint shellcheck ruff gitleaks systemd-analyze; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "check.sh: $tool not found; install it." >&2
+    missing_tools=1
+  fi
+done
+if [ "$missing_tools" -eq 1 ]; then
   exit 1
 fi
 
@@ -250,7 +257,7 @@ fi
 # string, and it is an ancestor of HEAD. Anything else (an abbreviation,
 # a ref name, a missing object, a non-ancestor, shell metacharacters)
 # promotes the run to the full form. A later commit passed by mistake
-# would narrow the scope, but every boundary, merge, and close runs the
+# would narrow the scope, but every merge and close runs the
 # full form. Without --base the base is the merge base with master on a
 # branch, and HEAD~1 on master itself, so a run on master still has a
 # change set rather than an empty one. `git diff --name-only <base>`
@@ -363,7 +370,7 @@ classify_path() {
   local p="$1" dir
   case "$p" in
   scripts/check.sh | scripts/check-state-dir.sh | scripts/vale-comments.sh | \
-    scripts/checks/* | Makefile | .golangci.yml | .gitleaks.toml | \
+    Makefile | .golangci.yml | .gitleaks.toml | \
     .gitleaksignore | .gitignore | .vale.ini | .vale/* | ruff.toml | \
     go.mod | go.sum | web/package.json | web/package-lock.json | \
     web/scripts/gates/* | web/scripts/rendered/* | tools/photos/*)
@@ -375,15 +382,11 @@ classify_path() {
     return
     ;;
   esac
-  dir="$(dirname "$p")"
-  while :; do
-    if [ -n "${go_pkg_dirs[$dir]+x}" ]; then
-      echo gopkg
-      return
-    fi
-    [ "$dir" = "." ] && break
-    dir="$(dirname "$dir")"
-  done
+  dir="$(nearest_go_pkg_dir "$p")"
+  if [ -n "$dir" ]; then
+    echo gopkg
+    return
+  fi
   case "$p" in
   corpus/*) echo corpus ;;
   photos/*) echo photos ;;
@@ -579,21 +582,23 @@ run_gitleaks_scoped() {
 }
 
 if [ "$mode" = "scope-changed" ]; then
-  # `web` builds the bundle the Go tests read, so it runs ahead of
-  # every narrowed Go target here too, not only inside `make check`'s
-  # own prerequisite.
-  echo "== make web =="
-  if ! make web; then
+  # The Go tests read the embedded bundle, so one build runs ahead of
+  # every narrowed Go target. The whole `web` target, with its second
+  # build, svelte-check and the static gates, runs only when the change
+  # set selected the rendered leg: a web path changed, or a package the
+  # gates read (internal/auth, internal/ops) is in the rendered set.
+  web_target=web-build
+  if [ "$scope_rendered" = "run" ]; then
+    web_target=web
+  fi
+  leg "make $web_target"
+  if ! make "$web_target"; then
     status=1
   fi
 fi
 
 if [ "$mode" = "scope-changed" ]; then
-  echo "== make vet lint test tidy-check (Go) =="
-elif [ "$mode" != "reduced" ]; then
-  echo "== make check (Go) =="
-fi
-if [ "$mode" = "scope-changed" ]; then
+  leg "make vet lint test tidy-check (Go)"
   # The scoped form is `make check` minus the rendered leg's
   # unconditional run: vet, lint, the whole test leg (Go's test cache
   # sizes it) and tidy-check, then the rendered leg only when selected.
@@ -612,29 +617,36 @@ if [ "$mode" = "scope-changed" ]; then
     fi
   fi
 elif [ "$mode" != "reduced" ]; then
-  if ! make check; then
-    status=1
-  fi
+  # The six targets of `make check`, in its order, each timed as its own
+  # leg. The first red stops the run of targets, as make would, so no
+  # later target reads a stale bundle.
+  for target in web vet lint test web-rendered tidy-check; do
+    leg "make $target"
+    if ! make "$target"; then
+      status=1
+      break
+    fi
+  done
 fi
 
 if [ "$mode" = "reduced" ]; then
   # The comment-only form skips the static web gates and the rendered
-  # leg (never a boundary gate), and runs svelte-check only when a web/
+  # leg (never a full gate), and runs svelte-check only when a web/
   # path changed. It still rebuilds the bundle, since a stale build is
   # the one state every form refuses to read from.
   echo "check.sh: the reduced form skips the rendered leg."
-  echo "== npm run build --prefix web =="
+  leg "npm run build --prefix web"
   if ! npm run build --prefix web; then
     status=1
   fi
   if [ "$web_changed" -eq 1 ]; then
-    echo "== npm run check --prefix web (svelte-check) =="
+    leg "npm run check --prefix web (svelte-check)"
     if ! npm run check --prefix web; then
       status=1
     fi
   fi
 
-  echo "== gofmt, go vet, go test (changed packages) =="
+  leg "gofmt, go vet, go test (changed packages)"
   if [ "${#changed_packages[@]}" -eq 0 ]; then
     echo "check.sh: the change set holds no Go package; the Go legs have nothing to run."
   else
@@ -655,7 +667,7 @@ if [ "$mode" = "reduced" ]; then
   fi
 fi
 
-echo "== shellcheck =="
+leg "shellcheck"
 # -P scripts resolves any script's relative `source=` directive against the
 # scripts/ directory regardless of the caller's own working directory (no
 # remaining script sources another one, now that lib.sh is gone, but the
@@ -690,7 +702,7 @@ else
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== ruff (Python) =="
+  leg "ruff (Python)"
   # The repo's only Python is the beets oracle shim
   # (internal/harness/oracle/derive_oracle.py), which the gate lints but
   # never runs: running it would need the venv, and the gate never
@@ -710,7 +722,7 @@ if [ "$mode" != "reduced" ]; then
   fi
 fi
 
-echo "== gitleaks (secret scan) =="
+leg "gitleaks (secret scan)"
 # --no-git scans the tracked worktree as it sits, not the full git
 # history (the --merge form's own leg covers the branch's history): the
 # corpus under corpus/cases/ is the repo's first large data directory,
@@ -738,11 +750,11 @@ else
 fi
 
 if [ "$mode" = "merge" ]; then
-  echo "== gitleaks (branch history, master..HEAD) =="
+  leg "gitleaks (branch history, master..HEAD)"
   # Without --no-git gitleaks reads commits rather than the worktree, so
   # this is the leg that sees a secret a later commit on the same branch
   # removed. The worktree is clean of it by then and every --no-git scan,
-  # boundary scans included, reports no leaks while the blob stays in the
+  # full-form scans included, reports no leaks while the blob stays in the
   # branch forever.
   if ! git rev-parse --verify --quiet master >/dev/null; then
     echo "check.sh: no master ref in this tree, so the branch-history scan cannot run." >&2
@@ -754,7 +766,7 @@ if [ "$mode" = "merge" ]; then
   fi
 fi
 
-echo "== photo pool integrity =="
+leg "photo pool integrity"
 # tools/photos/check.mjs integrity verifies the committed pool under
 # photos/ (records, files, vocabulary, dedupe keys). Node is already
 # required by the web leg, so a missing node fails here rather than
@@ -766,19 +778,26 @@ elif ! node tools/photos/check.mjs integrity; then
   status=1
 fi
 
-echo "== vale (Go comment prose) =="
-if ! scripts/vale-comments.sh; then
+leg "vale (Go comment prose)"
+vale_args=()
+if [ "$mode" = "scope-changed" ]; then
+  vale_args=(--only)
+  for f in "${changed_files[@]}"; do
+    case "$f" in *.go) vale_args+=("$f") ;; esac
+  done
+fi
+if ! scripts/vale-comments.sh "${vale_args[@]}"; then
   status=1
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== process citations in Go comments =="
+  leg "process citations in Go comments"
   # A comment that cites the process which produced the code (a rung, a
   # task, a ruling id, a plan path, a salvage line number) is addressed
   # to the pass that wrote it and is noise to every later reader. The em
   # dash ban is the proof that a mechanical rule holds here where an
   # instruction does not.
-  citation_patterns='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, '
+  citation_patterns='ruled, conductor|Resolution R|rung [0-9]|Task [0-9]|\(C[0-9]|plans/.*\.md:[0-9]|_salvage/.*:[0-9]|Ruled, |\bR-[0-9]+[a-z]+[0-9]*'
   {
     git ls-files -- cmd internal
     git ls-files --others --exclude-standard -- cmd internal
@@ -809,78 +828,34 @@ if [ "$mode" != "reduced" ]; then
     fi
   fi
 
-  echo "== exported identifiers with no consumer (internal/) =="
-  # A forward hook exported ahead of its consumer reads as justified in
-  # the diff that introduced it and as dead weight in the package. The
-  # rule: an exported identifier under internal/ whose only references
-  # are its own file and _test.go files has no consumer.
-  # golangci-lint cannot express it, because
-  # unused's exported-is-used setting is gone in the pinned 2.13.2 and
-  # the linter treats every exported identifier as used, so the leg lives
-  # here. It reads names rather than types, so a name declared in two
-  # packages reads as consumed in both; the error runs toward reporting
-  # too little, never toward a false accusation.
-  {
-    git ls-files -- cmd internal
-    git ls-files --others --exclude-standard -- cmd internal
-  } | grep -E '\.go$' | grep -v '_test\.go$' | sort -u >"$work_dir/go-src.txt"
-  grep '^internal/' "$work_dir/go-src.txt" >"$work_dir/internal-src.txt" || true
-  : >"$work_dir/exported.txt"
-  if [ -s "$work_dir/internal-src.txt" ] && [ -s "$work_dir/go-src.txt" ]; then
-    # The awk program is single-quoted on purpose: $1 and $2 are awk's
-    # own fields, not shell variables.
-    # shellcheck disable=SC2016
-    xargs -r -a "$work_dir/internal-src.txt" awk '
-      /^func \(/ {
-        if (match($0, /^func \([^)]*\) [A-Z][A-Za-z0-9_]*/)) {
-          n = substr($0, RSTART, RLENGTH)
-          sub(/^func \([^)]*\) /, "", n)
-          print FILENAME "\t" n
-        }
-        next
-      }
-      /^func [A-Z]/ { n = $2; sub(/\(.*/, "", n); print FILENAME "\t" n; next }
-      /^type [A-Z]/ { print FILENAME "\t" $2; next }
-      /^(var|const) [A-Z]/ { n = $2; sub(/[,=].*/, "", n); print FILENAME "\t" n; next }
-      inblock && /^\t[A-Z][A-Za-z0-9_]*[ ,=\t]/ { n = $1; sub(/[,=].*/, "", n); print FILENAME "\t" n; next }
-      /^(var|const|type) \(/ { inblock = 1; next }
-      /^\)/ { inblock = 0 }
-    ' | sort -u >"$work_dir/decls.txt"
-    cut -f2 "$work_dir/decls.txt" | sort -u >"$work_dir/names.txt"
-    : >"$work_dir/refs.txt"
-    if [ -s "$work_dir/names.txt" ]; then
-      xargs -r -a "$work_dir/go-src.txt" grep -o -w -H -F -f "$work_dir/names.txt" |
-        awk -F: '{ print $1 "\t" $NF }' | sort -u >"$work_dir/refs.txt" || true
-    fi
-    # shellcheck disable=SC2016
-    awk -F'\t' '
-      NR == FNR { seen[$2 SUBSEP $1] = 1; files[$2] = files[$2] "\n" $1; next }
-      {
-        alive = 0
-        n = split(files[$2], a, "\n")
-        for (i = 1; i <= n; i++) {
-          if (a[i] != "" && a[i] != $1) alive = 1
-        }
-        if (!alive) print $1 "\t" $2
-      }
-    ' "$work_dir/refs.txt" "$work_dir/decls.txt" | sort >"$work_dir/exported.txt"
-  fi
-  exported_count="$(wc -l <"$work_dir/exported.txt")"
-  if [ "$exported_count" -eq 0 ]; then
-    echo "check.sh: every exported identifier under internal/ has a non-test consumer."
-  else
-    echo "check.sh: $exported_count exported identifier(s) under internal/ with no non-test consumer; first twenty:" >&2
-    head -n 20 "$work_dir/exported.txt" >&2
+  leg "exported identifiers with no consumer (internal/)"
+  # deadcode, pinned by the tool line in go.mod, reports each function
+  # the program can never reach from a main. A forward hook exported
+  # ahead of its consumer reads as justified in the diff that added it
+  # and as dead weight in the package. It exits 1 on a load error and 0
+  # with findings, so a tool failure fails the leg in every mode, while
+  # findings warn unless CHECK_EXPORTED_UNUSED=fail. Its output prints
+  # whole, with no filter after it.
+  deadcode_rc=0
+  go tool deadcode ./... >"$work_dir/deadcode.txt" 2>"$work_dir/deadcode.err" || deadcode_rc=$?
+  if [ "$deadcode_rc" -ne 0 ]; then
+    cat "$work_dir/deadcode.err" >&2
+    echo "check.sh: go tool deadcode failed with exit $deadcode_rc." >&2
+    status=1
+  elif [ -s "$work_dir/deadcode.txt" ]; then
+    cat "$work_dir/deadcode.txt" >&2
     if [ "${CHECK_EXPORTED_UNUSED:-warn}" = "fail" ]; then
       status=1
     else
       echo "check.sh: CHECK_EXPORTED_UNUSED=warn, so this is a warning; set CHECK_EXPORTED_UNUSED=fail to gate on it." >&2
     fi
+  else
+    echo "check.sh: deadcode found no unreachable function."
   fi
 fi
 
 if [ "$mode" != "reduced" ]; then
-  echo "== systemd unit verification =="
+  leg "systemd unit verification"
   # systemd-analyze verify insists every ExecStart= binary already exists on
   # THIS machine, which is never true here: the paths are box-only
   # (/usr/local/bin/dubplate-server, installed by deploy.sh, never present
@@ -910,12 +885,14 @@ if [ "$mode" != "reduced" ]; then
     echo "check.sh: systemd-analyze verify clean, modulo the expected box-only ExecStart paths."
   fi
 
-  echo "== state-dir agreement (env template, every dubplate-server unit, deploy.sh) =="
+  leg "state-dir agreement (env template, every dubplate-server unit, deploy.sh)"
   if ! bash scripts/check-state-dir.sh; then
     status=1
   fi
 fi
 
+leg_end
+echo "== total elapsed ${SECONDS}s =="
 if [ "$status" -eq 0 ]; then
   echo "check.sh: all checks passed."
 else

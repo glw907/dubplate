@@ -35,12 +35,11 @@ import (
 const renderedPrefix = "/rendered"
 
 // renderedScriptTimeout bounds one run of the browser script, at more
-// than twice its measured wall time on a contended machine (378s;
-// about 257s uncontended, the capture matrix's 150 fresh browser
-// contexts dominating it) and under
-// renderedMagicLinkExpiry, so a late capture never meets an expired
-// link. The Makefile's RENDERED_TIMEOUT sits above it plus the
-// missing-browser run, and below the expiry too.
+// than twice its measured wall time (TestRendered takes about 137s on an
+// idle machine, the capture matrix dominating it, with 38 browser
+// contexts for its 190 manifest rows) and under renderedMagicLinkExpiry, so a late capture
+// never meets an expired link. The Makefile's RENDERED_TIMEOUT sits
+// above it plus the missing-browser run, and below the expiry too.
 const renderedScriptTimeout = 13 * time.Minute
 
 // renderedInstallHint is the command the script names when
@@ -55,7 +54,7 @@ const renderedInstallHint = "npx --prefix web playwright install chromium"
 const renderedMagicLinkExpiry = 25 * time.Minute
 
 // The fixture's four rate limits, set through their configuration keys.
-// A full run's spend (renderedSpend) must stay below each, so no row
+// A full run's spend (checkRateBudget) must stay below each, so no row
 // meets a rate_limited answer it did not ask for.
 const (
 	renderedLinkRequestsPerAddress       = 50
@@ -269,10 +268,10 @@ var renderedCaptureWidths = []int{320, 390, 768, 1440, 2560}
 var renderedCaptureSchemes = []string{"light", "dark"}
 
 // renderedCaptureStates is the capture matrix's nineteen page states, as
-// Go literals. linkRequests and consumptions are per cell (one of the state's ten width-by-scheme
-// captures), not per state: a state that signs in mints and consumes
-// one link per cell, since the harness opens a fresh browser context,
-// and so a fresh session, for every cell.
+// Go literals. linkRequests and consumptions are per scheme, not per
+// state: the harness opens one browser context, and so one session, for
+// each state and scheme, and takes all five widths inside it, so a state
+// that signs in mints and consumes one link per scheme.
 var renderedCaptureStates = []struct {
 	id           string
 	linkRequests int
@@ -302,16 +301,19 @@ var renderedCaptureStates = []struct {
 // renderedCaptureRows expands renderedCaptureStates over every width and
 // scheme into the capture matrix's own 190 manifest rows (19 states by
 // 5 widths by 2 schemes), each ID "capture/<state>/<width>/<scheme>".
+// A state's spend lands on its first-width rows, where the script
+// stands the state up for each scheme.
 func renderedCaptureRows() []renderedRow {
 	rows := make([]renderedRow, 0, len(renderedCaptureStates)*len(renderedCaptureWidths)*len(renderedCaptureSchemes))
 	for _, s := range renderedCaptureStates {
-		for _, w := range renderedCaptureWidths {
+		for i, w := range renderedCaptureWidths {
 			for _, scheme := range renderedCaptureSchemes {
-				rows = append(rows, renderedRow{
-					id:           fmt.Sprintf("capture/%s/%d/%s", s.id, w, scheme),
-					linkRequests: s.linkRequests,
-					consumptions: s.consumptions,
-				})
+				row := renderedRow{id: fmt.Sprintf("capture/%s/%d/%s", s.id, w, scheme)}
+				if i == 0 {
+					row.linkRequests = s.linkRequests
+					row.consumptions = s.consumptions
+				}
+				rows = append(rows, row)
 			}
 		}
 	}
@@ -650,9 +652,10 @@ type mintResponse struct {
 
 // mintServer answers a freshly minted magic link for the fixture admin
 // or member address, one per POST, through [mintLinkFor]: the capture
-// matrix's on-demand source for the sixty links its six signed-in
-// states spend (one per cell, R-5ciii4's "one minted link per
-// capture"), rather than sixty environment variables. It is its own
+// matrix's on-demand source for the twenty links its ten signed-in
+// states spend (one per state and scheme, since each scheme's context
+// signs in once for its five widths), rather than twenty environment
+// variables. It is its own
 // loopback listener, mounting no path on the fixture server's own
 // handler, so it adds no bypass to any production path.
 type mintServer struct {
@@ -794,6 +797,64 @@ func runRenderedScript(ctx context.Context, webDir string, env []string) ([]byte
 	return stdout.Bytes(), stderr.Bytes(), err
 }
 
+// captureContextsPrefix opens the one stderr line on which the script
+// reports how many browser contexts its capture matrix opened.
+const captureContextsPrefix = "capture contexts:"
+
+// parseCaptureContexts finds the script's capture-contexts line in
+// stderr, which carries other output too, and returns its count. A
+// missing line, a second one, and a count that is not a decimal
+// integer are each an error.
+func parseCaptureContexts(stderr []byte) (int, error) {
+	var values []string
+	for line := range strings.Lines(string(stderr)) {
+		if value, ok := strings.CutPrefix(strings.TrimSuffix(line, "\n"), captureContextsPrefix); ok {
+			values = append(values, value)
+		}
+	}
+	if len(values) == 0 {
+		return 0, fmt.Errorf("the script printed no %q line", captureContextsPrefix)
+	}
+	if len(values) > 1 {
+		return 0, fmt.Errorf("the script printed its %q line %d times", captureContextsPrefix, len(values))
+	}
+	digits, ok := strings.CutPrefix(values[0], " ")
+	n, err := strconv.Atoi(digits)
+	if !ok || err != nil {
+		return 0, fmt.Errorf("malformed line %q", captureContextsPrefix+values[0])
+	}
+	return n, nil
+}
+
+func TestParseCaptureContexts(t *testing.T) {
+	tests := []struct {
+		name    string
+		stderr  string
+		want    int
+		wantErr string
+	}{
+		{"one line among others", "launch\ncapture contexts: 38\nrows: 95\n", 38, ""},
+		{"absent", "launch\nrows: 95\n", 0, "no \"capture contexts:\" line"},
+		{"twice", "capture contexts: 38\ncapture contexts: 38\n", 0, "2 times"},
+		{"not a number", "capture contexts: many\n", 0, "malformed line"},
+		{"no space after the colon", "capture contexts:38\n", 0, "malformed line"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseCaptureContexts([]byte(tt.stderr))
+			if tt.wantErr == "" {
+				if err != nil || got != tt.want {
+					t.Errorf("parseCaptureContexts = %d, %v; want %d, nil", got, err, tt.want)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("parseCaptureContexts error = %v, want one containing %q", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 // parseRows decodes the script's stdout, one row per line. A line that
 // is not a row object, a row with no ID, and a second report of one ID
 // are each a problem.
@@ -875,8 +936,8 @@ func TestRendered(t *testing.T) {
 	membersHeaderLink := mintRenderedLink(t, environ, renderedAdminAddress)
 
 	// The capture matrix's own "ready" state is never consumed (its
-	// screenshot shows the interstitial before the click), so its ten
-	// cells share one minted link.
+	// screenshot shows the interstitial before the click), so its two
+	// contexts (light and dark) share one minted link.
 	captureInterstitialReadyLink := mintRenderedLink(t, environ, renderedAdminAddress)
 
 	mintSrv := httptest.NewServer(&mintServer{environ: environ})
@@ -907,6 +968,12 @@ func TestRendered(t *testing.T) {
 	stdout, stderr, err := runRenderedScript(t.Context(), webDir, env)
 	if err != nil {
 		t.Errorf("the browser script exited: %v\n%s", err, stderr)
+	}
+	// One context per state and scheme: 19 states by 2 schemes.
+	if n, err := parseCaptureContexts(stderr); err != nil {
+		t.Errorf("capture contexts: %v", err)
+	} else if n != 38 {
+		t.Errorf("the capture matrix opened %d browser contexts, want 38", n)
 	}
 	checkSpendReconciliation(t, log)
 

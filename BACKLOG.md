@@ -66,7 +66,9 @@ now round `engine`.
 
 ## Open
 
-- [ ] #134 `scripts/check.sh` lines 113-122 still say `CHECK_CITATIONS` flips to fail "at the comment-cleanup task" and `CHECK_EXPORTED_UNUSED` flips once dead surfaces clear. `docs/standing-rules.md` now says the citation leg gates in round `engine` and the exported-unused leg stays a warning. Reword the header to match. Found by `cleanup-ci`'s review (PR #12) #improvement #gate #pass:cleanup-gate (2026-11-16)
+- [ ] #137 The rendered fixture leaks credentials to local processes and test output (all pre-existing, loopback and run-length only). `cmd/dubplate-server/rendered_test.go:352-375` logs every request's query and headers, so `?t=<link token>` and the admin `Cookie` sit in a log that `logSrv` (`:881`) serves unauthenticated on 127.0.0.1; the mint and roster-reset servers (`:661-691`, `:915-918`) are unauthenticated too; a Playwright navigation error quotes the `?t=` URL into `t.Errorf` and the `go test` JSON events file (`:942`, `Makefile:150`); and `internal/auth/token.go:143-183` verifies a link by MAC and expiry only, so a server configured with the fixture secret literal (`check_test.go:174`) accepts fixture links. Redact `Cookie` and `t` from logged records, and have `check` or `serve` refuse the fixture secret. Found by `cleanup-gate`'s security read (PR #13) #improvement #infra #pass:cleanup-gate (2026-11-16)
+- [ ] #136 Three gate texts outside `cleanup-gate`'s files still describe the old gate: `docs/standing-rules.md:55` and `:105` name `make check` (the gate now splits `make web-build` and `make web`), the adapter's fast-lane paragraph (`.claude/skills/dubplate-pass/SKILL.md:194`) sends a path under `scripts/checks/` to the full form though `check.sh` no longer has that row, and `web/scripts/gates/ai-tells.ts:3` cites cairn's `scripts/checks/` path without saying it is another repo's. Reword each. Found by `cleanup-gate` (PR #13) #improvement #gate #pass:cleanup-gate (2026-11-16)
+- [ ] #135 The Vale leg reads no Go comment. `.vale.ini` has no `Grammars = go` and nothing runs `vale sync`, so `scripts/vale-comments.sh` prints `W101 grammar "go" is not installed` and then `vale-comments: clean` over an em dash in a Go comment (Vale 3.27.0, the CI pin too). With `Grammars = go` and a sync, a scratch config flags `Survey.EmDash` on `//` and `/* */` comments. Add the grammar to `.vale.ini`, sync it in `check.yml` and the gate, ignore `.vale/styles/config/`, and fail `vale-comments.sh` on W101; weigh pinning the downloaded wasm. Found by `cleanup-gate`'s T6 plant (PR #13) #bug #infra #pass:cleanup-gate (2026-11-16)
 - [ ] #133 `TestBusyTimeout` (`internal/engine/store/conn_test.go:364,385`) failed once on a GitHub runner (run 43815685425, head `dd52636`, whose tree equals the green run on `2b9672a`): both subtests got `database is locked (5) (SQLITE_BUSY)` at `BeginTx`. It is timing-dependent and now gates every PR, so it can turn the check red with no code change. Make it wait on a signal, not a clock. Found by `cleanup-ci` (PR #12) #bug #store #pass:cleanup-store (2026-11-16)
 - [ ] #131 Take `@types/node` 26.6.6 (held at 24.19.2: a major, so it waits for Geoff). Unblock: Geoff rules it, or `engines` in `web/package.json` moves past Node 24 #improvement #infra #round:engine (2026-11-16)
 - [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3: a major, so it waits for Geoff). Unblock: Geoff rules it, and `svelte-check` 4.7.8 and `typescript-eslint` support it #improvement #infra #round:engine (2026-11-16)
@@ -150,9 +152,6 @@ now round `engine`.
 - [ ] #32 `fixture`'s `checkPath` misses a file path that is a directory prefix of another (`a/x.flac` and
   `a/x.flac/y.flac`): `Load` accepts the manifest and `Build` then fails at `MkdirAll`. Refuse it at load. Found by
   slice 2b's architecture read of `fixture`, 2026-10-10 #harness
-- [ ] #34 A scoped run that skips the rendered leg launches no browser and could take the light lane, but the lane
-  is chosen before `check.sh` classifies the change, so it queues on the heavy lane. Found by the gate scope pass,
-  2026-10-10 #gate #pass:cleanup-gate
 - [ ] #36 `web/scripts/gates/root-absolute.ts` second `srcset` pattern flags a base64 data URI (every JPEG payload
   starts with `/9j/`) as a root-absolute URL; skip `data:` candidates (from the HISTORY harvest, 2026-10-10) #web
 - [ ] #37 The first deploy of the store-backed binary takes the runbook's 6d upgrade ("Upgrade a box that holds a
@@ -229,8 +228,7 @@ now round `engine`.
   declarations. Carried from the alignment pass, 2026-10-11 #docs (see #100) #initiative:dubplate-server
 - [ ] #63 UNI-L2's failure-alert hook for the unidecode table install. Carried from the alignment pass,
   2026-10-11 #infra (see #98) #initiative:dubplate-server
-- [ ] #64 The photo checks: the `check.sh` header's missing photo leg goes to `cleanup-gate` (`#pass:cleanup-gate`).
-  The `tools/photos/check.test.mjs` failures (2 of 121, both assume an empty `photos/`, so no gate runs it) and the
+- [ ] #64 The photo checks: the `tools/photos/check.test.mjs` failures (2 of 121, both assume an empty `photos/`, so no gate runs it) and the
   photo integrity leg's read of `photos/` from disk, not `git ls-files`, stay open. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server
 - [ ] #65 Photo licensing follow-ups: a source-URL recheck of the pool, and a blob-retention call for withdrawn
   images. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server
@@ -241,12 +239,9 @@ now round `engine`.
   which no independent oracle cross-checks; and the login title argument and W6's h1 fallback, which have no
   rendered proof. The coverage read's 103 coverage gaps ride along, none blocking. Carried from the alignment pass,
   2026-10-11 #arch
-- [ ] #67 The gate's process-citation leg misses `R-6c` patterns (staged legs 317/127). Carried from the alignment
-  pass, 2026-10-11 #gate #pass:cleanup-gate
 - [ ] #68 provision.sh: compute the allowed CIDRs once at top level so errexit applies. Today an all-blank
   `FIREWALL_SSH_CIDRS` falls through to jq's failure, and `hcloud firewall create` may get an empty rules file. A
   behavior change; pairs with #5. Found by the alignment pass, PR #2 #onboarding
-- [ ] #69 `scripts/check.sh` still says "boundary gate", a retired term. Found by the alignment pass, PR #2 #gate #pass:cleanup-gate
 - [ ] #83 `intake-2`'s copy read owes the redrafts `intake-1` recorded and did not write. PCF (`passb-copy-final.md`):
   the retry line (`:124-126`) for owner ruling 7; the three Navidrome strings (`:105`, `:143-145`, `:160-161`);
   every "Private Recordings" string in sections 5 and 6, renamed "Unlisted music" with "music" or "recording" where
@@ -345,13 +340,10 @@ now round `engine`.
   open. A command that writes a consistent copy of the state directory while the server runs, exiting
   non-zero on failure, lets the host drop the stop and restart. Source: glw907/servers#5 (pass 2, task M6)
   and the self-hosting design's "Media, at 03:00". 2026-10-20 #infra #initiative:self-hosting *(swept 2026-11-15)*
-- [ ] #104 Cut the gate's run time: per-leg timing first, then the rendered matrix, gitleaks over ignored trees, the
-  web build on a scoped run, the lane choice (with #34), and Vale under scope. Findings G1 to G6,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate #pass:cleanup-gate
-- [ ] #105 `cleanup-gate` takes the `--reduced` refusal, the duplicate work, the exported-unused leg, and `--fresh`
-  through `gate.sh`. The `.golangci.yml` `run: allow-serial-runners: true` clause stays open after it, so a second
-  lint waits for the lock where today it fails (from the workstation plan's audit). Findings G8, G11, and G12,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate #pass:cleanup-gate
+- [ ] #105 The `.golangci.yml` `run: allow-serial-runners: true` clause: a second lint should wait for the lock
+  where today it fails (from the workstation plan's audit). The `--reduced` refusal, the duplicate work, the
+  exported-unused leg, and `--fresh` landed in PR #13. Findings G8, G11, and G12,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate
 - [ ] #106 `deploy.sh` leaves the unit and the binary owned by the sender's uid, and its check-mode rsync compares
   size and mtime; `provision.sh` falls back to an image the cloud-init cannot boot. Findings G9 and G10,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #infra #round:launch *(swept 2026-11-15)*
@@ -567,6 +559,16 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
 
 ## Done
 
+- [x] #134 `scripts/check.sh` lines 113-122 still say `CHECK_CITATIONS` flips to fail "at the comment-cleanup task" and `CHECK_EXPORTED_UNUSED` flips once dead surfaces clear. `docs/standing-rules.md` now says the citation leg gates in round `engine` and the exported-unused leg stays a warning. Reword the header to match. Found by `cleanup-ci`'s review (PR #12) #improvement #gate #pass:cleanup-gate (2026-11-16) *(2026-11-16, PR #13)*
+- [x] #34 A scoped run that skips the rendered leg launches no browser and could take the light lane, but the lane
+  is chosen before `check.sh` classifies the change, so it queues on the heavy lane. Found by the gate scope pass,
+  2026-10-10 #gate #pass:cleanup-gate *(2026-11-16, PR #13)*
+- [x] #67 The gate's process-citation leg misses `R-6c` patterns (staged legs 317/127). Carried from the alignment
+  pass, 2026-10-11 #gate #pass:cleanup-gate *(2026-11-16, PR #13)*
+- [x] #69 `scripts/check.sh` still says "boundary gate", a retired term. Found by the alignment pass, PR #2 #gate #pass:cleanup-gate *(2026-11-16, PR #13)*
+- [x] #104 Cut the gate's run time: per-leg timing first, then the rendered matrix, gitleaks over ignored trees, the
+  web build on a scoped run, the lane choice (with #34), and Vale under scope. Findings G1 to G6,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate #pass:cleanup-gate *(2026-11-16, PR #13)*
 - [x] #97 PR test CI. A workflow runs `bash scripts/check.sh` on every `pull_request`
   (`.github/workflows/check.yml`) #gate #initiative:dubplate-server *(2026-11-15, PR #12)*
 - [x] #70 `docs/standing-rules.md` "Gate legs" named old rung ids and said two legs gate at a comment-cleanup task;

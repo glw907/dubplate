@@ -25,7 +25,15 @@ useDefault = true
 # photos/.candidates/ is the photo curation pass's gitignored candidate
 # home: downloaded images and their draft records, never committed. The
 # picked images and records under photos/ stay scanned.
+#
+# The next three paths are untracked installs and run output: the npm
+# packages, the rendered screenshots, and the oracle's Python
+# environment. None is repo content, and a whole-tree scan over them
+# costs wall time for no coverage.
 paths = [
+  '''web/node_modules/.*''',
+  '''web/rendered-captures/.*''',
+  '''tools/venv/\.venv/.*''',
   '''.claude/worktrees/.*''',
   '''.superpowers/.*''',
   '''web/\.svelte-kit/.*''',
