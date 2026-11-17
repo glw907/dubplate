@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"strconv"
@@ -19,10 +18,8 @@ import (
 // Nothing after a refused stage runs, so a caller never scores against
 // a table this extraction only partly trusts.
 func Build(wheel []byte) ([]byte, error) {
-	sum := sha256.Sum256(wheel)
-	got := hex.EncodeToString(sum[:])
-	if got != WheelSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", errWheelChecksum, got, WheelSHA256)
+	if err := checkWheel(wheel); err != nil {
+		return nil, err
 	}
 
 	blocks, err := extract(wheel)
@@ -34,10 +31,8 @@ func Build(wheel []byte) ([]byte, error) {
 	t.digest = t.sweepDigest()
 
 	encoded := t.encode()
-	sum = sha256.Sum256(encoded)
-	got = hex.EncodeToString(sum[:])
-	if got != tableSHA256 {
-		return nil, fmt.Errorf("%w: got %s, want %s", errTableChecksum, got, tableSHA256)
+	if err := checkTable(encoded); err != nil {
+		return nil, err
 	}
 	return encoded, nil
 }
