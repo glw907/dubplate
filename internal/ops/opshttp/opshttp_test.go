@@ -55,8 +55,6 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 		{"GET on list_members", http.MethodGet, "/list_members", "application/json", `{}`, http.StatusMethodNotAllowed, ops.CodeInvalidRequest},
 		{"query string on set_setting", http.MethodPost, "/set_setting?key=K", "application/json", `{"key":"K","value":"v"}`, http.StatusBadRequest, ops.CodeInvalidRequest},
 		{"no content type on add_member", http.MethodPost, "/add_member", "", `{}`, http.StatusBadRequest, ops.CodeInvalidRequest},
-		{"array body on remove_member", http.MethodPost, "/remove_member", "application/json", `[]`, http.StatusBadRequest, ops.CodeInvalidRequest},
-		{"wrongly typed field on reset_setting", http.MethodPost, "/reset_setting", "application/json", `{"key":5}`, http.StatusBadRequest, ops.CodeInvalidRequest},
 		{"unknown operation beside the admin ones", http.MethodPost, "/list_member", "application/json", `{}`, http.StatusNotFound, ops.CodeNotFound},
 	}
 	for _, tt := range tests {
@@ -76,6 +74,78 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 			}
 			if n := len(f.auth.calls); n != 0 {
 				t.Errorf("authorizer calls = %d, want 0", n)
+			}
+			if n := len(f.seam.calls) + len(f.admin.calls) + len(f.subs.calls); n != 0 {
+				t.Errorf("seam calls = %d, want 0", n)
+			}
+		})
+	}
+}
+
+// TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody proves an admin
+// operation checks the caller's privilege before it reads the body.
+// Fixture state: a caller granted member, posting four bodies that
+// decode to nothing valid, to an admin operation that carries fields
+// and one that carries none. Each answers 403 with the authorizer
+// asked once, so a malformed body never tells a member whether the
+// operation exists for them.
+func TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody(t *testing.T) {
+	bodies := []struct{ name, body string }{
+		{"an array opening", `[`},
+		{"null", `null`},
+		{"an empty array", `[]`},
+		{"an empty body", ``},
+	}
+	for _, op := range []string{ops.OpAddMember, ops.OpSetSetting} {
+		for _, b := range bodies {
+			t.Run(op+" "+b.name, func(t *testing.T) {
+				f := newFixture(t, grant(ann, ops.PrivilegeMember), successes())
+				rec := f.post(op, b.body)
+				if rec.Code != http.StatusForbidden {
+					t.Errorf("status = %d, want 403; body %q", rec.Code, rec.Body.String())
+				}
+				if code, _, _ := errorAnswer(t, rec); code != ops.CodeForbidden {
+					t.Errorf("code = %q, want %q", code, ops.CodeForbidden)
+				}
+				if want := "granted privilege does not reach the operation's"; !strings.Contains(f.log.String(), want) {
+					t.Errorf("log = %q, want it to name %q", f.log.String(), want)
+				}
+				if got := f.auth.calls; !slices.Equal(got, []string{op}) {
+					t.Errorf("authorizer calls = %v, want one for %s", got, op)
+				}
+				if n := len(f.seam.calls) + len(f.admin.calls) + len(f.subs.calls); n != 0 {
+					t.Errorf("seam calls = %d, want 0", n)
+				}
+			})
+		}
+	}
+}
+
+// TestServeHTTPAdmitsBeforeDecodingAnAdminBody proves a caller who holds
+// the privilege is asked once and is then refused for its body, which
+// the seam never sees. Fixture state: an admin posting a body of the
+// wrong shape to each operation the refusal table moved here.
+func TestServeHTTPAdmitsBeforeDecodingAnAdminBody(t *testing.T) {
+	tests := []struct {
+		name string
+		op   string
+		body string
+	}{
+		{"array body on remove_member", ops.OpRemoveMember, `[]`},
+		{"wrongly typed field on reset_setting", ops.OpResetSetting, `{"key":5}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t, admitAnn(), successes())
+			rec := f.post(tt.op, tt.body)
+			if rec.Code != http.StatusBadRequest {
+				t.Errorf("status = %d, want 400; body %q", rec.Code, rec.Body.String())
+			}
+			if code, _, _ := errorAnswer(t, rec); code != ops.CodeInvalidRequest {
+				t.Errorf("code = %q, want %q", code, ops.CodeInvalidRequest)
+			}
+			if got := f.auth.calls; !slices.Equal(got, []string{tt.op}) {
+				t.Errorf("authorizer calls = %v, want one for %s", got, tt.op)
 			}
 			if n := len(f.seam.calls) + len(f.admin.calls) + len(f.subs.calls); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)

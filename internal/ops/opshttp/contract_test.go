@@ -562,7 +562,11 @@ func contractCases() []contractCase {
 	listMembers := func(c *contract) legs {
 		return legs{
 			inProcess: func(ctx context.Context, _ ops.Seam) error {
-				_, err := c.seam.ListMembers(ctx, ops.Actor{}, ops.ListMembersRequest{})
+				actor, err := c.seam.admit(ctx, ops.OpListMembers)
+				if err != nil {
+					return err
+				}
+				_, err = c.seam.admin.ListMembers(ctx, actor, ops.ListMembersRequest{})
 				return err
 			},
 			op: ops.OpListMembers, body: `{}`,

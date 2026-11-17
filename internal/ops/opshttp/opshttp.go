@@ -94,34 +94,40 @@ func newHandler(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, aut
 		ops.OpCancelJob:   h.cancelJob,
 		ops.OpCatalog:     h.catalog,
 
-		ops.OpListMembers:  route(h, ops.OpListMembers, seam.ListMembers),
-		ops.OpAddMember:    route(h, ops.OpAddMember, seam.AddMember),
-		ops.OpRemoveMember: route(h, ops.OpRemoveMember, seam.RemoveMember),
-		ops.OpDemoteMember: route(h, ops.OpDemoteMember, seam.DemoteMember),
-		ops.OpListSettings: route(h, ops.OpListSettings, seam.ListSettings),
-		ops.OpSetSetting:   route(h, ops.OpSetSetting, seam.SetSetting),
-		ops.OpResetSetting: route(h, ops.OpResetSetting, seam.ResetSetting),
+		ops.OpListMembers:  route(h, ops.OpListMembers, admin.ListMembers),
+		ops.OpAddMember:    route(h, ops.OpAddMember, admin.AddMember),
+		ops.OpRemoveMember: route(h, ops.OpRemoveMember, admin.RemoveMember),
+		ops.OpDemoteMember: route(h, ops.OpDemoteMember, admin.DemoteMember),
+		ops.OpListSettings: route(h, ops.OpListSettings, admin.ListSettings),
+		ops.OpSetSetting:   route(h, ops.OpSetSetting, admin.SetSetting),
+		ops.OpResetSetting: route(h, ops.OpResetSetting, admin.ResetSetting),
 
-		ops.OpCreateSubmission: route(h, ops.OpCreateSubmission, seam.CreateSubmission),
-		ops.OpListSubmissions:  route(h, ops.OpListSubmissions, seam.ListSubmissions),
-		ops.OpGetSubmission:    route(h, ops.OpGetSubmission, seam.GetSubmission),
-		ops.OpRetrySubmission:  route(h, ops.OpRetrySubmission, seam.RetrySubmission),
-		ops.OpCancelSubmission: route(h, ops.OpCancelSubmission, seam.CancelSubmission),
+		ops.OpCreateSubmission: route(h, ops.OpCreateSubmission, subs.CreateSubmission),
+		ops.OpListSubmissions:  route(h, ops.OpListSubmissions, subs.ListSubmissions),
+		ops.OpGetSubmission:    route(h, ops.OpGetSubmission, subs.GetSubmission),
+		ops.OpRetrySubmission:  route(h, ops.OpRetrySubmission, subs.RetrySubmission),
+		ops.OpCancelSubmission: route(h, ops.OpCancelSubmission, subs.CancelSubmission),
 	}
 	return h, nil
 }
 
 // route builds the handler of an operation whose request needs no check
-// beyond its decoding: it decodes a Req, calls the operation through
-// the authorizing seam with the zero actor the seam discards, and
-// answers the result.
+// beyond its decoding. It admits the caller before it reads the body, so
+// a caller without the operation's privilege learns nothing from the
+// body's shape, then decodes a Req, calls the operation as the admitted
+// actor, and answers the result.
 func route[Req, Resp any](h *handler, op string, call func(context.Context, ops.Actor, Req) (Resp, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		actor, err := h.seam.admit(r.Context(), op)
+		if err != nil {
+			h.respond(w, op, nil, err)
+			return
+		}
 		var req Req
 		if !decode(w, r, &req, bodyCap(op)) {
 			return
 		}
-		resp, err := call(r.Context(), ops.Actor{}, req)
+		resp, err := call(r.Context(), actor, req)
 		h.respond(w, op, resp, err)
 	}
 }
