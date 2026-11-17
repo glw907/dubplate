@@ -207,8 +207,6 @@ now round `engine`.
   with the interstitials' identity lockup. Carried from the alignment pass, 2026-10-11 #web #round:intake *(swept 2026-11-16)*
 - [ ] #58 The uploader takes the theme and component-layer pass's S13 and a11y S7: picked images live at stable paths. Carried from
   the alignment pass, 2026-10-11 #web #round:intake *(swept 2026-11-16)*
-- [ ] #59 Run `make derive` once before the first pass that depends on the matcher or the beets oracle (expected:
-  `pipeline`), and expect no diff. Carried from the alignment pass, 2026-10-11 #harness #round:catalog
 - [ ] #60 The catalog's library queries: filter, facets, and trigram search. Carried from the alignment pass,
   2026-10-11 #pipeline #round:catalog *(swept 2026-11-16)*
 - [ ] #62 For the project site: settle the `init` and `upgrade` naming against `dubplate-server` (the site spec's
@@ -348,19 +346,6 @@ now round `engine`.
   tokens in the score. Findings X1 to X6, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10. Proposed in
   the workstation infra plan (initiatives session, 2026-11-10), pending Geoff's approval; that plan also takes a
   worktree cleanup step at Close and the runner-path bar in "Direct changes" #process
-- [ ] #110 Delete the MusicBrainz limiter, which has no caller and a spacing bug, until a rung meters. Finding E2,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #round:engine
-- [ ] #111 tagio: state the 69 fields once, and drop the registry that dispatches over one format. Findings E1 and E5,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #round:engine
-- [ ] #112 matcher: straight-line distance functions in place of one component per file, typed tunables, the
-  unexported surface, and strdist's regex cache. Findings E3, E4, E6, and E7,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #round:engine
-- [ ] #113 musicbrainz and unidecode leftovers, with the retried cancelled context and the uncapped response body.
-  Findings E8 and E9, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #round:engine
-- [ ] #114 Harness trims and the latent pattern-table grading bug; takes #30, #33, and #35 with it. Findings E10 and
-  E11, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #harness #arch #round:engine
-- [ ] #115 Engine and harness tests that restate or cannot fail, and comments that cite passes and rulings. Findings
-  E12 and E13, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test #round:engine
 - [ ] #120 The residue of `cleanup-web` (PR #15): W4's page scaffolding in the login, interstitial, and error route
   files, and W5's unused component-layer rules in `components.css` (`web/scripts/gates/g1.ts` documents them as the
   one route to a status colour). The admin shell, the single `fetch` site, the button sizes, and the state and token
@@ -382,11 +367,11 @@ now round `engine`.
   `TestIntakeGroupQuotaDocSaysZeroMeansNoCap` and `TestIntakeFormatAllowlistThreshold` (`intake_test.go:360`, `:372`),
   the finished-migration tests at `auth_test.go:87` and `intake_test.go:53`, `TestRenderTemplate`
   (`templatekeys_test.go:194`), and `TestCodes` (`internal/ops/errors_test.go:142`), a literal pin that
-  `opshttp/document_test.go:395-400` already covers through `ops.Codes()`. Round `engine` takes the other half of
-  this item under #115: it makes the process-citation leg gate and clears the `internal/config` comments. Findings
+  `opshttp/document_test.go:395-400` already covers through `ops.Codes()`. Round `engine` took the other half of
+  this item (PR #17): the process-citation leg gates and the `internal/config` comments are cleared. Findings
   O15 and O16, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test *(swept 2026-11-16)*
-- [ ] #156 Process tags in the guarded packages, and `webapp` exports only tests use. Round `engine` clears the
-  engine and harness tags under #115 and adds a wide citation pattern that skips `cmd/dubplate-server`,
+- [ ] #156 Process tags in the guarded packages, and `webapp` exports only tests use. Round `engine` (PR #17) cleared
+  the engine and harness tags and added a wide citation pattern that skips `cmd/dubplate-server`,
   `internal/serve`, `internal/auth`, and `internal/intake`, which held 53 matching lines on 2026-11-16. Clearing
   them lets the skip go. Known sites: "(review m5)" at `cmd/dubplate-server/auth.go:99` and `:110`, "after 6d" at
   `backup.go:409`, "(spec:938-944)" at `internal/serve/serve.go:295` and `serve_test.go:74`, "R20" and "R-M" at
@@ -401,6 +386,57 @@ now round `engine`.
   trusted-proxy policy, so a range that trusts too many hosts lets an admin write the wrong address into the audit
   log. Raised by the `cleanup-ops` security read, filed on Geoff's pick in the round's close packet, 2026-11-17
   #auth #ops
+- [ ] #159 Metering and transliteration were cut from the engine until a caller needs them. The MusicBrainz client
+  has no request pacing since `engine` deleted the limiter (the public service wants about one request a second), and
+  `matcher.SetTransliterator` has no production caller. `intake`'s match probe is the first pass to call both: decide
+  the pacing there, and wire the Unidecode table through `SetTransliterator`. Found by `engine` (PR #17), 2026-11-17
+  #arch #round:intake
+- [ ] #160 `internal/harness/conform/arch_test.go` holds the layering tests for the engine, the server, and the
+  harness in one file. Split it by what each test guards. Left alone by `engine` (PR #17), 2026-11-17 #arch #test
+- [ ] #161 The `internal/harness/oracle` scaffold (`album_info.go`, `component.go`, `defect_free.go` beside their
+  `_derive_test.go` files and three `derive_*.py` shims) was left alone by `engine`. Read the review's finding on it
+  before cutting. Found by `engine` (PR #17), 2026-11-17 #harness #arch
+- [ ] #162 `corpus/README.md:42-46` and `:2013` still describe `Case.Extra`, which `engine` removed. Rewrite both
+  paragraphs. Found by `engine` (PR #17), 2026-11-17 #harness #docs
+- [ ] #163 Two weak tests no acceptance item named: `internal/harness/conform/defaults_test.go:156` and
+  `internal/engine/tagio/conform_test.go:347-490`. Tighten or delete. Found by `engine` (PR #17), 2026-11-17 #test
+- [ ] #164 Two `fmt.Sprintf` strings in `internal/harness/conform/case.go` (near lines 615 and 642) end in
+  "(Resolution R1)", and one also says "no rung-3 fix". The gate skips them because they are string text, not
+  comment text. Reword. `conform/component.go` also says a pattern is "anchored at position 0 as beets anchors it",
+  an inference nobody checked against beets: verify it or drop the claim. Found by `engine` (PR #17), 2026-11-17
+  #harness
+- [ ] #165 The `matcher` read's larger findings, left for a pass that touches the matcher's API: a typed `Consensus`
+  struct in place of the likelies map, a typed option for the tunables that still take strings, deleting
+  `QuietImportTunables` (test callers only), and unexporting `SDPatternsNoBracketDiscount`. Found by `engine`
+  (PR #17), 2026-11-17 #arch
+- [ ] #166 The `tagio` second read (`sound with nits`): `Container` has no method that projects it to a `TagSet`, so
+  the gate opens one upload three times and parses it twice, the second time with no bounds (`gate/file.go:100,
+  109, 167`); add `Container.Tags()` and read from the bounded parse. `Write` reopens the file by name to copy the
+  audio, so one handle should span the parse and the copy. `parse` and `readContainer` repeat one open, signature,
+  stat, and walk sequence. `parse` wraps a plain I/O error from `readSignature` as `ErrUnsupportedContainer`, which
+  the gate then classes as a bad extension. `vorbisField` and `pictureField` differ only in byte order and error
+  label. `encodePicture` writes a negative `Type` unchecked, and `write.go:203` reports an oversized caller picture
+  as `ErrMalformedContainer` inside the write callback after `Write`'s doc promised refusals come first.
+  `Block.Length` and `Block.Last` restate other fields, but the dump tests read them. `write_test.go` takes its
+  padding and vendor expectations from the package's own constants. `Container.frontCover` exists only in a test
+  file. Found by `engine` (PR #17), 2026-11-17 #arch
+- [ ] #167 The `musicbrainz` second read (`sound with nits`): thirteen wire types (`Alias`, `CreditPart`, `Artist`,
+  `ReleaseEvent`, `Area`, `LabelInfo`, `Label`, `ReleaseGroup`, `Medium`, `Track`, `Recording`, `Relation`,
+  `RelationTarget`) are exported though nothing outside the package names them, and `AlbumSearch.Query` and `.Limit`
+  have no outside reader. `buildTrack` searches the aliases twice, `credit.go` inlines `keyWithPreferredAlias`, and
+  the `credits` struct only carries an artist id. `AlbumForID` repeats its fetch-then-translate pair, and the
+  `retryAfter == ""` branch is redundant. `doc.go`'s third paragraph and several rebuttal paragraphs describe test
+  process, not behavior, and the comment density reads 0.68 against `net/http/cookiejar`'s 0.35. Found by `engine`
+  (PR #17), 2026-11-17 #arch
+- [ ] #168 Process tags remain in test comments, which the citation leg does not scan: `conform/case_test.go:144`,
+  `:307`, `:318-322`, `:379`; the "rung 8" strings at `tagio/conform_test.go:355` and `:358`; the comments at
+  `matcher/tag_test.go:84` and `:88` that name `DistanceForAlbum`; `adjudication_test.go:356` and `:360`, which
+  spell "BeetsSDPatterns"; `musicbrainz/events.go:24` and `credit.go:63` citations of deleted matcher files; and
+  `config/registry_test.go:217`. Decide whether the leg should scan tests. Found by `engine` (PR #17), 2026-11-17
+  #test #gate
+- [ ] #169 The score dump diverged once (`5bf0d963...` against the committed hash) during `engine`'s T3 lane, then
+  matched on ten reruns of the same tree. No cause was found. If it recurs, look for map-iteration order or a
+  scratch file the dump reads. Found by `engine` (PR #17), 2026-11-17 #bug #harness
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake *(swept 2026-11-16)*
 ## Later
@@ -567,6 +603,26 @@ Standing rulings. A sweep skips this section, and only Geoff reopens an entry, b
 
 ## Done
 
+- [x] #110 Delete the MusicBrainz limiter, which has no caller and a spacing bug, until a rung meters. Finding E2,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(closed by pass engine, 2026-11-17, PR #17)*
+- [x] #111 tagio: state the 69 fields once, and drop the registry that dispatches over one format. Findings E1 and E5,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(closed by pass engine, 2026-11-17, PR #17)*
+- [x] #112 matcher: straight-line distance functions in place of one component per file, typed tunables, the
+  unexported surface, and strdist's regex cache. Findings E3, E4, E6, and E7,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(closed by pass engine, 2026-11-17, PR #17; the
+  typed `Consensus` and option types are filed as new items)*
+- [x] #113 musicbrainz and unidecode leftovers, with the retried cancelled context and the uncapped response body.
+  Findings E8 and E9, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(closed by pass engine,
+  2026-11-17, PR #17)*
+- [x] #114 Harness trims and the latent pattern-table grading bug; takes #30, #33, and #35 with it. Findings E10 and
+  E11, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #harness #arch *(closed by pass engine,
+  2026-11-17, PR #17)*
+- [x] #115 Engine and harness tests that restate or cannot fail, and comments that cite passes and rulings. Findings
+  E12 and E13, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test *(closed by pass engine,
+  2026-11-17, PR #17: the citation leg gates)*
+- [x] #59 Run `make derive` once before the first pass that depends on the matcher or the beets oracle (expected:
+  `pipeline`), and expect no diff. Carried from the alignment pass, 2026-10-11 #harness *(closed by pass engine,
+  2026-11-17, PR #17: `make derive` passes with no diff)*
 - [x] #19 The add-member hint text uses `opacity-70` on `base-content`
   (`web/src/routes/members/+page.svelte:323`, and the roster line at `:252`), a contrast the theme gate does not
   measure. Measure it or use a token with a gated pair. Found by the navidrome-removal close, 2026-10-06
