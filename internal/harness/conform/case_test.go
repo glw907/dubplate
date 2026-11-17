@@ -15,7 +15,43 @@ import (
 	"github.com/glw907/dubplate/internal/engine/matcher"
 	"github.com/glw907/dubplate/internal/harness/analysis"
 	"github.com/glw907/dubplate/internal/harness/cassette"
+	"github.com/glw907/dubplate/internal/harness/stub"
 )
+
+// TestCheckRequestSetFiresOnAWrongLookupPath proves both halves of the
+// request-set rule on a fixture whose one logged lookup carries a bogus
+// inc= value the client never builds: the client's real request is a
+// miss, and the logged one goes unused.
+func TestCheckRequestSetFiresOnAWrongLookupPath(t *testing.T) {
+	dir := filepath.Join("testdata", "request", "miss-fixture")
+	c, err := cassette.LoadCase(dir)
+	if err != nil {
+		t.Fatalf("LoadCase: %v", err)
+	}
+	srv, err := stub.New(c, dir)
+	if err != nil {
+		t.Fatalf("stub.New: %v", err)
+	}
+	t.Cleanup(func() { srv.Close() }) //nolint:errcheck // test stub teardown
+	client, err := gradeClient(srv.Addr())
+	if err != nil {
+		t.Fatalf("gradeClient: %v", err)
+	}
+	if _, err := client.Release(context.Background(), "11111111-1111-1111-1111-111111111111"); err == nil {
+		t.Fatal("Release answered a request the fixture never logged")
+	}
+
+	var got []string
+	for _, e := range checkRequestSet(c.ID, srv) {
+		got = append(got, e.Error())
+	}
+	joined := strings.Join(got, "\n")
+	for _, want := range []string{"unresolved request", "logged request never issued"} {
+		if !strings.Contains(joined, want) {
+			t.Errorf("checkRequestSet errors lack %q:\n%s", want, joined)
+		}
+	}
+}
 
 // repoRootPath is repoRoot's *testing.T-free sibling: it walks up from
 // the working directory to the nearest ancestor holding go.mod. The

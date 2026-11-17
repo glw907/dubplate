@@ -33,11 +33,8 @@ import (
 // compared against AssignmentFloor - len(TiesAwaitingRuling) -
 // TiesExcluded. Comparing bare would red the gate on the one path
 // ruling F pre-authorizes.
-//
-// CaseFloor is RequestCaseFloor (request.go:28), the same count of the
-// same directories, so it is defined from it rather than re-typed.
 const (
-	CaseFloor        = RequestCaseFloor
+	CaseFloor        = 216
 	CandidateFloor   = 295
 	DistanceFloor    = 295
 	AssignmentFloor  = 215
@@ -332,6 +329,10 @@ func caseInputs(c *cassette.Case) (time.Time, matcher.Tunables, []matcher.ItemFi
 	}
 	return evalDate, tun, items, nil
 }
+
+// gradeUserAgent identifies the offline conformance client. The stub
+// never reads a request header, so the value only satisfies NewClient.
+const gradeUserAgent = "dubplate-conform/0 ( offline-conformance-run )"
 
 // gradeClient builds the client a sweep replays one case through, with
 // the case's own stub as the base URL.
