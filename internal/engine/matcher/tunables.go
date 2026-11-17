@@ -224,7 +224,7 @@ type Tunables struct {
 	// (beetsplug/musicbrainz.py:673-681). Default "Various Artists"
 	// (config_default.yaml:107). It moves no distance, because the
 	// album artist component is skipped entirely when AlbumInfo.VA
-	// (album_artist.go:13-15). It does move AlbumInfo.Artist, which
+	// (addAlbumArtist). It does move AlbumInfo.Artist, which
 	// the ruling-E ledger grades field by field, so it is a tunable
 	// here rather than a literal in the translation layer. No
 	// committed case echoes it, so the M1 defaults cross-check cannot
