@@ -4,11 +4,12 @@ package matcher
 // reproduces pinned beets' defect or the adjudicated corrected
 // behavior. A true field means "reproduce beets".
 //
-// Only bug-remix-parenthetical, of corpus/analysis/oracle_bugs.json's
-// hypotheses, has a fix the matcher can express. The other two need an
-// applied artist string or a per-pair rejection the matcher does not
-// compute, so they are improvements-register items rather than switches
-// nobody can flip.
+// Of corpus/analysis/oracle_bugs.json's oracle-wrong and
+// no-correct-answer hypotheses, only bug-remix-parenthetical has a fix
+// the matcher can express. bug-nonlatin-alias-selection needs an applied
+// artist string and bug-assignment-rejection-gap a per-pair rejection,
+// neither of which the matcher computes, so both are
+// improvements-register items rather than switches nobody can flip.
 type Compat struct {
 	// RemixParenthetical reproduces bug-remix-parenthetical: the two
 	// 0.3-weight bracket discounts.
