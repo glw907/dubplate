@@ -62,7 +62,7 @@ func checkStatuses(table map[ops.Code]int) error {
 	return nil
 }
 
-// A handler serves the sixteen operations, each as POST /<name>. It
+// A handler serves the twelve operations, each as POST /<name>. It
 // dispatches by exact path itself rather than through [http.ServeMux],
 // whose method-mismatch and not-found answers are plain text, so that
 // every answer here carries the JSON error shape.
@@ -72,15 +72,15 @@ type handler struct {
 	routes map[string]http.HandlerFunc
 }
 
-// newHandler builds the projection of the job seam and the admin seam,
+// newHandler builds the projection of the admin and submission seams,
 // admitting each call through auth on a mount whose verified identities
 // arrive on channel. It fails on a nil seam, auth, or log, on a channel
 // no network mount carries, and on a wire code with no HTTP status.
-func newHandler(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
+func newHandler(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
 	if log == nil {
 		return nil, errors.New("opshttp: logger is nil")
 	}
-	seam, err := newAuthorizingSeam(jobs, admin, subs, auth, channel)
+	seam, err := newAuthorizingSeam(admin, subs, auth, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -89,11 +89,6 @@ func newHandler(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, aut
 	}
 	h := &handler{seam: seam, log: log}
 	h.routes = map[string]http.HandlerFunc{
-		ops.OpStartBackup: h.startBackup,
-		ops.OpJobStatus:   h.jobStatus,
-		ops.OpCancelJob:   h.cancelJob,
-		ops.OpCatalog:     h.catalog,
-
 		ops.OpListMembers:  route(h, ops.OpListMembers, admin.ListMembers),
 		ops.OpAddMember:    route(h, ops.OpAddMember, admin.AddMember),
 		ops.OpRemoveMember: route(h, ops.OpRemoveMember, admin.RemoveMember),
@@ -156,42 +151,6 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	route(w, r)
 }
 
-func (h *handler) startBackup(w http.ResponseWriter, r *http.Request) {
-	var req ops.StartBackupRequest
-	if !decode(w, r, &req, maxBody) {
-		return
-	}
-	resp, err := h.seam.StartBackup(r.Context(), ops.Actor{}, req)
-	h.respond(w, ops.OpStartBackup, resp, err)
-}
-
-func (h *handler) jobStatus(w http.ResponseWriter, r *http.Request) {
-	var req ops.JobStatusRequest
-	if !decode(w, r, &req, maxBody) || !validHandle(w, req.JobID) {
-		return
-	}
-	resp, err := h.seam.JobStatus(r.Context(), ops.Actor{}, req)
-	h.respond(w, ops.OpJobStatus, resp, err)
-}
-
-func (h *handler) cancelJob(w http.ResponseWriter, r *http.Request) {
-	var req ops.CancelJobRequest
-	if !decode(w, r, &req, maxBody) || !validHandle(w, req.JobID) {
-		return
-	}
-	resp, err := h.seam.CancelJob(r.Context(), ops.Actor{}, req)
-	h.respond(w, ops.OpCancelJob, resp, err)
-}
-
-func (h *handler) catalog(w http.ResponseWriter, r *http.Request) {
-	var req ops.CatalogRequest
-	if !decode(w, r, &req, maxBody) {
-		return
-	}
-	resp, err := h.seam.Catalog(r.Context(), ops.Actor{}, req)
-	h.respond(w, ops.OpCatalog, resp, err)
-}
-
 // decode reads r's body, at most limit bytes, into v, which must hold
 // exactly one JSON object, and reports whether it did; on a refusal it has already
 // answered w. Unknown keys are ignored, so a body naming an actor or a
@@ -207,7 +166,7 @@ func decode(w http.ResponseWriter, r *http.Request, v any, limit int64) bool {
 		return false
 	}
 	// Decoding null into a struct succeeds and leaves the zero request,
-	// which for start_backup is a valid one, so the object is required
+	// which for a list operation is a valid one, so the object is required
 	// before any decode.
 	if tok, err := json.NewDecoder(bytes.NewReader(body)).Token(); err != nil || tok != json.Delim('{') {
 		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, "request body is not a JSON object")
@@ -220,20 +179,6 @@ func decode(w http.ResponseWriter, r *http.Request, v any, limit int64) bool {
 	}
 	if _, err := dec.Token(); err != io.EOF {
 		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, "request body carries data after its object")
-		return false
-	}
-	return true
-}
-
-// validHandle reports whether id parses as an [ops.Handle]; on a
-// refusal it has already answered w.
-func validHandle(w http.ResponseWriter, id ops.Handle) bool {
-	if _, err := ops.ParseHandle(string(id)); err != nil {
-		reason := "job handle is malformed"
-		if opsErr, ok := errors.AsType[*ops.Error](err); ok {
-			reason = opsErr.Reason
-		}
-		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, reason)
 		return false
 	}
 	return true

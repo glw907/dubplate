@@ -10,6 +10,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -18,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -168,30 +168,19 @@ func (d *document) checkRequest(ctx context.Context, name, body string) error {
 	})
 }
 
-// operationNames is every operation the mount routes.
+// operationNames is every operation the mount routes: the keys of the
+// handler's route table, so an operation added there without a path in
+// the document fails the paths test.
 func operationNames(t *testing.T) []string {
 	t.Helper()
-	entries, err := ops.AdminCatalogEntries()
-	if err != nil {
-		t.Fatalf("AdminCatalogEntries: %v", err)
-	}
-	submissions, err := ops.SubmissionCatalogEntries()
-	if err != nil {
-		t.Fatalf("SubmissionCatalogEntries: %v", err)
-	}
-	names := []string{ops.OpStartBackup, ops.OpJobStatus, ops.OpCancelJob, ops.OpCatalog}
-	for _, e := range slices.Concat(entries, submissions) {
-		names = append(names, e.Name)
-	}
+	f := newFixture(t, admitAnn())
+	names := slices.Collect(maps.Keys(f.h.routes))
+	slices.Sort(names)
 	return names
 }
 
 // requestSamples is a well-formed request body for each operation.
 var requestSamples = map[string]string{
-	ops.OpCatalog:      `{}`,
-	ops.OpStartBackup:  `{}`,
-	ops.OpJobStatus:    `{"job_id":"` + testHandle + `"}`,
-	ops.OpCancelJob:    `{"job_id":"` + testHandle + `"}`,
 	ops.OpListMembers:  `{}`,
 	ops.OpAddMember:    `{"address":"bo@example.com","display_name":"Bo","username":"bo"}`,
 	ops.OpRemoveMember: `{"user_id":"` + testHandle + `"}`,
@@ -398,7 +387,7 @@ func sameSet(a, b []string) bool {
 
 // TestDocument_EnumerationsMatchTheCode proves the wire code enum equals
 // ops.Codes() and the detail enum equals the Detail constants, both
-// ways, that start_backup declares its 409, and that the version policy
+// ways, that remove_member declares its 409, and that the version policy
 // names the enumerations it extends (AC1, AC3, AC7).
 func TestDocument_EnumerationsMatchTheCode(t *testing.T) {
 	d := loadDocument(t, false)
@@ -419,17 +408,12 @@ func TestDocument_EnumerationsMatchTheCode(t *testing.T) {
 		t.Errorf("detail enum = %v, want the Detail constants %v", got, details)
 	}
 
-	states := []string{"queued", "running", "succeeded", "failed", "canceled", "interrupted"}
-	if got := enumOf(t, d, "JobStatus", "state"); !sameSet(got, states) {
-		t.Errorf("job state enum = %v, want %v", got, states)
-	}
-
-	if d.operation(t, ops.OpStartBackup).Responses.Status(http.StatusConflict) == nil {
-		t.Error("start_backup declares no 409 response")
+	if d.operation(t, ops.OpRemoveMember).Responses.Status(http.StatusConflict) == nil {
+		t.Error("remove_member declares no 409 response")
 	}
 	policy := d.doc.Info.Description
 	for _, phrase := range []string{
-		"additive within v1", "job states", "job kinds", "wire codes", "error details", "journey vocabulary",
+		"additive within v1", "wire codes", "error details", "journey vocabulary",
 		"treat an enumeration value it does not know as opaque",
 	} {
 		if !strings.Contains(policy, phrase) {
@@ -509,13 +493,7 @@ func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 	d := loadDocument(t, false)
 	parity := map[string][]any{
 		"Empty":                {ops.RemoveMemberResponse{}, ops.DemoteMemberResponse{}},
-		"EmptyRequest":         {ops.StartBackupRequest{}, ops.CatalogRequest{}, ops.ListMembersRequest{}, ops.ListSettingsRequest{}, ops.ListSubmissionsRequest{}},
-		"JobStatus":            {ops.JobStatus{}},
-		"JobRequest":           {ops.JobStatusRequest{}, ops.CancelJobRequest{}},
-		"JobResponse":          {ops.JobStatusResponse{}, ops.CancelJobResponse{}},
-		"StartBackupResponse":  {ops.StartBackupResponse{}},
-		"CatalogResponse":      {ops.CatalogResponse{}},
-		"CatalogEntry":         {ops.CatalogEntry{}},
+		"EmptyRequest":         {ops.ListMembersRequest{}, ops.ListSettingsRequest{}, ops.ListSubmissionsRequest{}},
 		"Member":               {ops.Member{}},
 		"ListMembersResponse":  {ops.ListMembersResponse{}},
 		"AddMemberRequest":     {ops.AddMemberRequest{}},
@@ -580,50 +558,6 @@ func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 	if !sameSet(errProps, errAll) || !sameSet(errSchema.Required, errRequired) {
 		t.Errorf("ErrorBody.error = %v required %v, want %v required %v", errProps, errSchema.Required, errAll, errRequired)
 	}
-
-	for name := range d.doc.Components.Schemas["JobStatus"].Value.Properties {
-		for _, banned := range []string{"position", "order", "rank", "queue_"} {
-			if strings.Contains(name, banned) {
-				t.Errorf("JobStatus property %q reads as a queue position", name)
-			}
-		}
-	}
-}
-
-// TestDocument_JobValuesValidateAgainstTheSchema proves a marshaled job
-// of every state, a failed one, and one with every timestamp validate
-// against the job schema directly (V4, AC7).
-func TestDocument_JobValuesValidateAgainstTheSchema(t *testing.T) {
-	d := loadDocument(t, true)
-	schema := d.doc.Components.Schemas["JobStatus"].Value
-	at := time.Date(2026, 10, 11, 9, 30, 0, 0, time.UTC)
-	later := at.Add(time.Minute)
-	for _, job := range []ops.JobStatus{
-		{ID: testHandle, Kind: "backup", State: ops.JobQueued, QueuedAt: at, UpdatedAt: at},
-		{ID: testHandle, Kind: "backup", State: ops.JobRunning, Phase: "uploading", QueuedAt: at, StartedAt: &at, UpdatedAt: later},
-		{ID: testHandle, Kind: "backup", State: ops.JobSucceeded, QueuedAt: at, StartedAt: &at, UpdatedAt: later, FinishedAt: &later},
-		{ID: testHandle, Kind: "backup", State: ops.JobFailed, FailureCode: "remote", FailureMessage: "the remote refused", QueuedAt: at, StartedAt: &at, UpdatedAt: later, FinishedAt: &later},
-		{ID: testHandle, Kind: "backup", State: ops.JobCanceled, QueuedAt: at, UpdatedAt: later, FinishedAt: &later},
-		{ID: testHandle, Kind: "backup", State: ops.JobInterrupted, QueuedAt: at, StartedAt: &at, UpdatedAt: later, FinishedAt: &later},
-	} {
-		raw, err := json.Marshal(job)
-		if err != nil {
-			t.Fatalf("marshal %s: %v", job.State, err)
-		}
-		var decoded any
-		if err := json.Unmarshal(raw, &decoded); err != nil {
-			t.Fatalf("decode %s: %v", raw, err)
-		}
-		if err := schema.VisitJSON(decoded, openapi3.EnableJSONSchema2020()); err != nil {
-			t.Errorf("a %s job %s: %v", job.State, raw, err)
-		}
-	}
-	bad, _ := json.Marshal(map[string]any{"id": testHandle, "kind": "backup", "state": "waiting", "queued_at": at, "updated_at": at})
-	var decoded any
-	_ = json.Unmarshal(bad, &decoded)
-	if err := schema.VisitJSON(decoded, openapi3.EnableJSONSchema2020()); err == nil {
-		t.Error("a job in the state waiting validated, so the schema's state enum does not bind")
-	}
 }
 
 // A statusCase is how a fake seam produces one declared status.
@@ -636,8 +570,8 @@ type statusCase struct {
 var errorsByStatus = []statusCase{
 	{http.StatusBadRequest, ops.NewInvalidRequestError("the value is refused").WithDetail(ops.DetailInvalidAddress)},
 	{http.StatusForbidden, ops.NewReauthenticationRequiredError("sign in again")},
-	{http.StatusNotFound, ops.NewNotFoundError("no such job or member")},
-	{http.StatusConflict, ops.NewConflictError("a backup is running").WithDetail(ops.DetailLastAdmin)},
+	{http.StatusNotFound, ops.NewNotFoundError("no such member or submission")},
+	{http.StatusConflict, ops.NewConflictError("the last admin cannot be removed").WithDetail(ops.DetailLastAdmin)},
 	{http.StatusInternalServerError, ops.NewInternalError("the store failed")},
 	{http.StatusServiceUnavailable, ops.NewUnavailableError("the write lock is held").WithDetail(ops.DetailBusy)},
 	{http.StatusBadRequest, ops.NewInvalidRequestError("the manifest was refused").WithRejects(sampleRejects)},
@@ -660,9 +594,7 @@ func exchange(t *testing.T, op, body string, err error) *httptest.ResponseRecord
 	t.Helper()
 	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
 	if err != nil {
-		switch _, isJob := f.seam.answers[op]; {
-		case isJob:
-			f.seam.answers[op] = fakeAnswer{err: err}
+		switch {
 		case f.subs.answers[op] != fakeAnswer{}:
 			f.subs.answers[op] = fakeAnswer{err: err}
 		default:
@@ -738,11 +670,11 @@ func TestDocument_RefusalsTheMountMakesItselfValidate(t *testing.T) {
 	errSchema := d.doc.Components.Schemas["ErrorBody"].Value
 	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
 	for name, rec := range map[string]*httptest.ResponseRecorder{
-		"a GET":                  f.do(http.MethodGet, mountPrefix+"/api/v1/catalog", ``),
-		"a query string":         f.do(http.MethodPost, mountPrefix+"/api/v1/catalog?x=1", `{}`),
-		"a body that is no JSON": f.do(http.MethodPost, mountPrefix+"/api/v1/catalog", `not json`),
+		"a GET":                  f.do(http.MethodGet, mountPrefix+"/api/v1/list_members", ``),
+		"a query string":         f.do(http.MethodPost, mountPrefix+"/api/v1/list_members?x=1", `{}`),
+		"a body that is no JSON": f.do(http.MethodPost, mountPrefix+"/api/v1/list_members", `not json`),
 		"an unknown operation":   f.do(http.MethodPost, mountPrefix+"/api/v1/no_such_operation", `{}`),
-		"a path under api/v2":    f.do(http.MethodPost, mountPrefix+"/api/v2/catalog", `{}`),
+		"a path under api/v2":    f.do(http.MethodPost, mountPrefix+"/api/v2/list_members", `{}`),
 		"api alone":              f.do(http.MethodPost, mountPrefix+"/api", `{}`),
 	} {
 		if rec.Code < 400 {
@@ -765,8 +697,8 @@ func TestDocument_RefusalsTheMountMakesItselfValidate(t *testing.T) {
 func TestDocument_MalformedRequestsFailTheDocument(t *testing.T) {
 	d := loadDocument(t, false)
 	for _, tt := range []struct{ op, body string }{
-		{ops.OpJobStatus, `{"job_id":"XYZ"}`},
-		{ops.OpJobStatus, `{}`},
+		{ops.OpGetSubmission, `{"submission_id":"XYZ"}`},
+		{ops.OpGetSubmission, `{}`},
 		{ops.OpAddMember, `{"address":"bo@example.com","display_name":"Bo"}`},
 		{ops.OpRemoveMember, `{"user_id":"0123456789ABCDEF0123456789ABCDEF"}`},
 		{ops.OpSetSetting, `{"key":"K"}`},
@@ -784,32 +716,32 @@ func TestDocument_MalformedRequestsFailTheDocument(t *testing.T) {
 func TestDocument_TheChecksCanFail(t *testing.T) {
 	t.Run("a renamed required response field", func(t *testing.T) {
 		d := loadDocument(t, true)
-		resp := d.doc.Components.Schemas["StartBackupResponse"].Value
-		resp.Required = []string{"jobid"}
-		resp.Properties["jobid"] = resp.Properties["job_id"]
-		delete(resp.Properties, "job_id")
-		rec := exchange(t, ops.OpStartBackup, `{}`, nil)
-		if err := d.checkResponse(t.Context(), ops.OpStartBackup, rec); err == nil {
-			t.Error("start_backup's answer validated against a document that renames job_id")
+		resp := d.doc.Components.Schemas["AddMemberResponse"].Value
+		resp.Required = []string{"person"}
+		resp.Properties["person"] = resp.Properties["member"]
+		delete(resp.Properties, "member")
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], nil)
+		if err := d.checkResponse(t.Context(), ops.OpAddMember, rec); err == nil {
+			t.Error("add_member's answer validated against a document that renames member")
 		}
 	})
 	t.Run("a Go response field the document omits", func(t *testing.T) {
 		d := loadDocument(t, true)
 		errBody := d.doc.Components.Schemas["ErrorBody"].Value.Properties["error"].Value
 		delete(errBody.Properties, "reason")
-		rec := exchange(t, ops.OpStartBackup, `{}`, ops.NewConflictError("a backup is running"))
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewConflictError("the address is already a member"))
 		if rec.Code != http.StatusConflict {
 			t.Fatalf("answer = %d, want 409", rec.Code)
 		}
-		if err := d.checkResponse(t.Context(), ops.OpStartBackup, rec); err == nil {
+		if err := d.checkResponse(t.Context(), ops.OpAddMember, rec); err == nil {
 			t.Error("an error body with a reason validated against a closed document that omits it")
 		}
 	})
 	t.Run("an undocumented status", func(t *testing.T) {
 		d := loadDocument(t, true)
-		d.operation(t, ops.OpStartBackup).Responses.Delete("409")
-		rec := exchange(t, ops.OpStartBackup, `{}`, ops.NewConflictError("a backup is running"))
-		if err := d.checkResponse(t.Context(), ops.OpStartBackup, rec); err == nil {
+		d.operation(t, ops.OpAddMember).Responses.Delete("409")
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewConflictError("the address is already a member"))
+		if err := d.checkResponse(t.Context(), ops.OpAddMember, rec); err == nil {
 			t.Error("a 409 validated against an operation that declares no 409")
 		}
 	})
@@ -819,8 +751,8 @@ func TestDocument_TheChecksCanFail(t *testing.T) {
 		d := loadDocument(t, false)
 		errBody := d.doc.Components.Schemas["ErrorBody"].Value.Properties["error"].Value
 		delete(errBody.Properties, "reason")
-		rec := exchange(t, ops.OpStartBackup, `{}`, ops.NewConflictError("a backup is running"))
-		if err := d.checkResponse(t.Context(), ops.OpStartBackup, rec); err != nil {
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewConflictError("the address is already a member"))
+		if err := d.checkResponse(t.Context(), ops.OpAddMember, rec); err != nil {
 			t.Errorf("the open document refused an unknown field: %v", err)
 		}
 	})
@@ -828,13 +760,13 @@ func TestDocument_TheChecksCanFail(t *testing.T) {
 		d := loadDocument(t, true)
 		empty := httptest.NewRecorder()
 		empty.WriteHeader(http.StatusOK)
-		if err := d.checkResponse(t.Context(), ops.OpCatalog, empty); err == nil {
+		if err := d.checkResponse(t.Context(), ops.OpListMembers, empty); err == nil {
 			t.Error("an empty answer passed the response check")
 		}
 		redirect := httptest.NewRecorder()
 		redirect.WriteHeader(http.StatusTemporaryRedirect)
 		_, _ = io.Copy(redirect, bytes.NewReader([]byte(`{}`)))
-		if err := d.checkResponse(t.Context(), ops.OpCatalog, redirect); err == nil {
+		if err := d.checkResponse(t.Context(), ops.OpListMembers, redirect); err == nil {
 			t.Error("a redirect passed the response check")
 		}
 	})

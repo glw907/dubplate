@@ -298,13 +298,6 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		{"ResetSettingResponse", func(t *testing.T) {
 			roundTrip(t, ResetSettingResponse{Key: "K", Apply: "restart", Source: "env-seed"})
 		}},
-		{"CatalogRequest", func(t *testing.T) { roundTrip(t, CatalogRequest{}) }},
-		{"CatalogResponse", func(t *testing.T) {
-			roundTrip(t, CatalogResponse{Operations: []CatalogEntry{
-				{Name: OpStartBackup, Privilege: PrivilegeAdmin, Available: true},
-				{Name: OpCatalog, Privilege: PrivilegeMember, Available: false, Reason: "backup integration disabled"},
-			}})
-		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.run)

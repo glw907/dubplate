@@ -66,44 +66,6 @@ func TestClose_ReleasesInstanceLease(t *testing.T) {
 	}
 }
 
-// TestCatalog_BackupAvailability pins spec criterion 8's runner half:
-// the start operation's availability follows the flag, with the exact
-// reason while it is off, and the other three always answer.
-func TestCatalog_BackupAvailability(t *testing.T) {
-	tests := []struct {
-		name       string
-		enabled    bool
-		wantAvail  bool
-		wantReason string
-	}{
-		{"flag on", true, true, ""},
-		{"flag off", false, false, "backup integration disabled"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, h := newStore(t)
-			r, err := New(context.Background(), Config{Store: h, Backup: BackupConfig{Enabled: tt.enabled}, Logger: slog.New(slog.DiscardHandler)})
-			if err != nil {
-				t.Fatalf("New: %v", err)
-			}
-			t.Cleanup(func() { _ = r.Close() })
-			resp, err := r.Catalog(context.Background(), testActor, ops.CatalogRequest{})
-			if err != nil {
-				t.Fatalf("Catalog: %v", err)
-			}
-			want := []ops.CatalogEntry{
-				{Name: "start_backup", Privilege: ops.PrivilegeAdmin, Available: tt.wantAvail, Reason: tt.wantReason},
-				{Name: "job_status", Privilege: ops.PrivilegeAdmin, Available: true},
-				{Name: "cancel_job", Privilege: ops.PrivilegeAdmin, Available: true},
-				{Name: "catalog", Privilege: ops.PrivilegeMember, Available: true},
-			}
-			if !slices.Equal(resp.Operations, want) {
-				t.Errorf("Catalog() = %+v, want %+v", resp.Operations, want)
-			}
-		})
-	}
-}
-
 // TestStartBackup_FlagOff pins spec criterion 8's start half: the
 // start answers unavailable with the exact reason, writes no record,
 // and takes no kind lease.

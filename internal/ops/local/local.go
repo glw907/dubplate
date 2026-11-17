@@ -18,8 +18,8 @@ import (
 // on another process's write lock is the store's busy timeout.
 const writeWait = 30 * time.Second
 
-// backupDisabled is the reason a start and the catalog give while
-// backup integration is off.
+// backupDisabled is the reason a start gives while backup integration
+// is off.
 const backupDisabled = "backup integration disabled"
 
 // Config is what [New] needs from its caller. The runner opens nothing
@@ -66,8 +66,9 @@ type BackupConfig struct {
 	ArchiveRetention func(ctx context.Context) (time.Duration, error)
 }
 
-// A Runner runs jobs in this process and answers the four operations
-// of [ops.Seam]. It is safe for concurrent use by multiple goroutines.
+// A Runner runs jobs in this process and answers the start, status,
+// and cancel operations. It is safe for concurrent use by multiple
+// goroutines.
 type Runner struct {
 	store     *store.Handle
 	lease     *store.InstanceLease
@@ -88,8 +89,6 @@ type Runner struct {
 	closed bool
 	wg     sync.WaitGroup
 }
-
-var _ ops.Seam = (*Runner)(nil)
 
 // New takes an instance lease through cfg.Store, then recovers every
 // queued or running record whose owner is dead, marking it
@@ -130,37 +129,6 @@ func (r *Runner) Close() error {
 		return fmt.Errorf("close job runner: %w", err)
 	}
 	return nil
-}
-
-// Catalog lists the four operations. A backup start is unavailable
-// while backup integration is off; the other three always answer.
-// Each entry's privilege comes from [ops.PrivilegeOf], never a literal
-// repeated here, so the catalog cannot drift from what an authorizing
-// layer enforces.
-func (r *Runner) Catalog(ctx context.Context, _ ops.Actor, _ ops.CatalogRequest) (resp ops.CatalogResponse, err error) {
-	defer func() { err = wrapCanceled(ctx, err) }()
-
-	entries := []ops.CatalogEntry{
-		{Name: ops.OpStartBackup, Available: r.backup.Enabled},
-		{Name: ops.OpJobStatus, Available: true},
-		{Name: ops.OpCancelJob, Available: true},
-		{Name: ops.OpCatalog, Available: true},
-	}
-	if !r.backup.Enabled {
-		entries[0].Reason = backupDisabled
-	}
-	for i, e := range entries {
-		priv, ok := ops.PrivilegeOf(e.Name)
-		if !ok {
-			return ops.CatalogResponse{}, fmt.Errorf("catalog: operation %q has no privilege", e.Name)
-		}
-		entries[i].Privilege = priv
-	}
-	cat, err := ops.BuildCatalog(entries...)
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	return ops.CatalogResponse{Operations: cat.Entries()}, nil
 }
 
 // StartBackup starts a backup job owned by this runner, recording

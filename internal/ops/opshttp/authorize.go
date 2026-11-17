@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
@@ -26,26 +25,20 @@ type authorizer interface {
 // a caller whose privilege reaches the operation's, so no caller can
 // choose the actor a job or an audit row records. An admitted actor
 // whose channel differs from the mount's is refused, so an authorizer
-// wired to the wrong mount fails closed. It is an [ops.Seam] for the job
-// operations, which still pass through it, and holds the admin and
+// wired to the wrong mount fails closed. It holds the admin and
 // submission seams the handler calls after admitting.
 type authorizingSeam struct {
-	jobs    ops.Seam
 	admin   ops.AdminSeam
 	subs    ops.SubmissionSeam
 	auth    authorizer
 	channel identity.Channel
 }
 
-var _ ops.Seam = (*authorizingSeam)(nil)
-
-// newAuthorizingSeam wraps the job, admin, and submission seams. It
-// fails on a nil seam or auth, and on a channel that is not valid or that
-// names the command line, which no network mount can carry.
-func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
+// newAuthorizingSeam wraps the admin and submission seams. It fails on
+// a nil seam or auth, and on a channel that is not valid or that names
+// the command line, which no network mount can carry.
+func newAuthorizingSeam(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
 	switch {
-	case jobs == nil:
-		return nil, errors.New("opshttp: job seam is nil")
 	case admin == nil:
 		return nil, errors.New("opshttp: admin seam is nil")
 	case subs == nil:
@@ -57,7 +50,7 @@ func newAuthorizingSeam(jobs ops.Seam, admin ops.AdminSeam, subs ops.SubmissionS
 	case channel == identity.ChannelCommandLine:
 		return nil, errors.New("opshttp: mount channel is the command line, which no network mount carries")
 	}
-	return &authorizingSeam{jobs: jobs, admin: admin, subs: subs, auth: auth, channel: channel}, nil
+	return &authorizingSeam{admin: admin, subs: subs, auth: auth, channel: channel}, nil
 }
 
 // The causes of a denial. Each is fixed text naming no caller, so a
@@ -119,49 +112,4 @@ func (s *authorizingSeam) admit(ctx context.Context, op string) (ops.Actor, erro
 		return ops.Actor{}, fmt.Errorf("%w: %w", denied, errPrivilegeShort)
 	}
 	return actor, nil
-}
-
-// authorized calls beneath, one of the seams' methods, as the actor s
-// admits for op, or answers the denial with a zero response.
-func authorized[Req, Resp any](ctx context.Context, s *authorizingSeam, op string, req Req, beneath func(context.Context, ops.Actor, Req) (Resp, error)) (Resp, error) {
-	actor, err := s.admit(ctx, op)
-	if err != nil {
-		var none Resp
-		return none, err
-	}
-	return beneath(ctx, actor, req)
-}
-
-// StartBackup implements [ops.Seam].
-func (s *authorizingSeam) StartBackup(ctx context.Context, _ ops.Actor, req ops.StartBackupRequest) (ops.StartBackupResponse, error) {
-	return authorized(ctx, s, ops.OpStartBackup, req, s.jobs.StartBackup)
-}
-
-// JobStatus implements [ops.Seam].
-func (s *authorizingSeam) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRequest) (ops.JobStatusResponse, error) {
-	return authorized(ctx, s, ops.OpJobStatus, req, s.jobs.JobStatus)
-}
-
-// CancelJob implements [ops.Seam].
-func (s *authorizingSeam) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRequest) (ops.CancelJobResponse, error) {
-	return authorized(ctx, s, ops.OpCancelJob, req, s.jobs.CancelJob)
-}
-
-// Catalog implements [ops.Seam]. Its answer is the job seam's entries
-// followed by one entry for each admin operation and each submission
-// operation.
-func (s *authorizingSeam) Catalog(ctx context.Context, _ ops.Actor, req ops.CatalogRequest) (ops.CatalogResponse, error) {
-	resp, err := authorized(ctx, s, ops.OpCatalog, req, s.jobs.Catalog)
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	adminEntries, err := ops.AdminCatalogEntries()
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	submissionEntries, err := ops.SubmissionCatalogEntries()
-	if err != nil {
-		return ops.CatalogResponse{}, err
-	}
-	return ops.CatalogResponse{Operations: slices.Concat(resp.Operations, adminEntries, submissionEntries)}, nil
 }

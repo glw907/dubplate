@@ -33,7 +33,7 @@ func TestContextAuthorizerReadsTheCarriedCaller(t *testing.T) {
 // never admitted, which carries no caller, is denied rather than
 // admitted as a zero actor.
 func TestContextAuthorizerDeniesWithoutACaller(t *testing.T) {
-	actor, granted, err := contextAuthorizer{}.authorize(context.Background(), ops.OpCatalog)
+	actor, granted, err := contextAuthorizer{}.authorize(context.Background(), ops.OpListSubmissions)
 	if err == nil {
 		t.Fatalf("authorize = %q, %v, nil; want an error", actor, granted)
 	}

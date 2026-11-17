@@ -7,7 +7,7 @@ import (
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// The five submission operation names, each a [CatalogEntry.Name].
+// The five submission operation names, each the wire name a client posts to.
 const (
 	OpCreateSubmission = "create_submission"
 	OpListSubmissions  = "list_submissions"
@@ -15,19 +15,6 @@ const (
 	OpRetrySubmission  = "retry_submission"
 	OpCancelSubmission = "cancel_submission"
 )
-
-// submissionOperations lists the submission seam's operations in the
-// order its methods declare them.
-var submissionOperations = []string{
-	OpCreateSubmission, OpListSubmissions, OpGetSubmission, OpRetrySubmission, OpCancelSubmission,
-}
-
-// SubmissionCatalogEntries returns one available entry for each
-// submission operation, its privilege read from the table
-// [PrivilegeOf] reads.
-func SubmissionCatalogEntries() ([]CatalogEntry, error) {
-	return catalogEntries(submissionOperations)
-}
 
 // A ManifestFile is one file a member declares when creating a
 // submission.

@@ -17,7 +17,7 @@ import (
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// testHandle is a well-formed job handle: 32 lowercase hex characters.
+// testHandle is a well-formed record id: 32 lowercase hex characters.
 const testHandle = "0123456789abcdef0123456789abcdef"
 
 // ann is the verified member the admitting authorizers answer with.
@@ -50,22 +50,15 @@ type fakeAnswer struct {
 	err  error
 }
 
-// A fakeSeam records every call and the actor it received. It answers
+// A fakeAdmin records every call and the actor it received. It answers
 // only an operation it was configured for; any other call fails, so an
 // unexpected dispatch can never read as a success.
-type fakeSeam struct {
-	answers map[string]fakeAnswer
-	calls   []fakeCall
-}
-
-// A fakeAdmin is the admin seam's counterpart to fakeSeam, with the
-// same recording and the same refusal of an unconfigured operation.
 type fakeAdmin struct {
 	answers map[string]fakeAnswer
 	calls   []fakeCall
 }
 
-// A fakeSubmissions is the submission seam's counterpart to fakeSeam.
+// A fakeSubmissions is the submission seam's counterpart to fakeAdmin.
 type fakeSubmissions struct {
 	answers map[string]fakeAnswer
 	calls   []fakeCall
@@ -86,22 +79,6 @@ func answer[T any](answers map[string]fakeAnswer, calls *[]fakeCall, op string, 
 		return zero, fmt.Errorf("fake seam: %s configured with %T", op, a.resp)
 	}
 	return resp, nil
-}
-
-func (f *fakeSeam) StartBackup(_ context.Context, actor ops.Actor, req ops.StartBackupRequest) (ops.StartBackupResponse, error) {
-	return answer[ops.StartBackupResponse](f.answers, &f.calls, ops.OpStartBackup, actor, req)
-}
-
-func (f *fakeSeam) JobStatus(_ context.Context, actor ops.Actor, req ops.JobStatusRequest) (ops.JobStatusResponse, error) {
-	return answer[ops.JobStatusResponse](f.answers, &f.calls, ops.OpJobStatus, actor, req)
-}
-
-func (f *fakeSeam) CancelJob(_ context.Context, actor ops.Actor, req ops.CancelJobRequest) (ops.CancelJobResponse, error) {
-	return answer[ops.CancelJobResponse](f.answers, &f.calls, ops.OpCancelJob, actor, req)
-}
-
-func (f *fakeSeam) Catalog(_ context.Context, actor ops.Actor, req ops.CatalogRequest) (ops.CatalogResponse, error) {
-	return answer[ops.CatalogResponse](f.answers, &f.calls, ops.OpCatalog, actor, req)
 }
 
 func (f *fakeAdmin) ListMembers(_ context.Context, actor ops.Actor, req ops.ListMembersRequest) (ops.ListMembersResponse, error) {
@@ -201,16 +178,6 @@ func adminSuccesses() map[string]fakeAnswer {
 	}
 }
 
-// successes configures every operation to succeed.
-func successes() map[string]fakeAnswer {
-	return map[string]fakeAnswer{
-		ops.OpStartBackup: {resp: ops.StartBackupResponse{JobID: testHandle}},
-		ops.OpJobStatus:   {resp: ops.JobStatusResponse{Job: ops.JobStatus{ID: testHandle, Kind: "backup", State: ops.JobRunning}}},
-		ops.OpCancelJob:   {resp: ops.CancelJobResponse{Job: ops.JobStatus{ID: testHandle, Kind: "backup", State: ops.JobCanceled}}},
-		ops.OpCatalog:     {resp: ops.CatalogResponse{}},
-	}
-}
-
 // A fakeAuthorizer answers with decide and records the operation of
 // each call.
 type fakeAuthorizer struct {
@@ -236,28 +203,26 @@ func admitAnn() *fakeAuthorizer {
 }
 
 // A fixture is a handler over fake seams and a fake authorizer, with
-// its log captured. The admin seam answers every operation with a
-// success until a test sets admin.answers.
+// its log captured. Each seam answers every operation with a success
+// until a test sets its answers.
 type fixture struct {
 	h     *handler
-	seam  *fakeSeam
 	admin *fakeAdmin
 	subs  *fakeSubmissions
 	auth  *fakeAuthorizer
 	log   *bytes.Buffer
 }
 
-func newFixture(t *testing.T, auth *fakeAuthorizer, answers map[string]fakeAnswer) *fixture {
+func newFixture(t *testing.T, auth *fakeAuthorizer) *fixture {
 	t.Helper()
-	seam := &fakeSeam{answers: answers}
 	admin := &fakeAdmin{answers: adminSuccesses()}
 	subs := &fakeSubmissions{answers: submissionSuccesses()}
 	var buf bytes.Buffer
-	h, err := newHandler(seam, admin, subs, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
+	h, err := newHandler(admin, subs, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
 	if err != nil {
 		t.Fatalf("newHandler: %v", err)
 	}
-	return &fixture{h: h, seam: seam, admin: admin, subs: subs, auth: auth, log: &buf}
+	return &fixture{h: h, admin: admin, subs: subs, auth: auth, log: &buf}
 }
 
 // do sends one request; an empty contentType sends no Content-Type

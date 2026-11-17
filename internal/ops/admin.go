@@ -107,7 +107,7 @@ type ResetSettingResponse struct {
 	Source string `json:"source"`
 }
 
-// The seven admin operation names, each a [CatalogEntry.Name].
+// The seven admin operation names, each the wire name a client posts to.
 const (
 	OpListMembers  = "list_members"
 	OpAddMember    = "add_member"
@@ -118,28 +118,10 @@ const (
 	OpResetSetting = "reset_setting"
 )
 
-// adminOperations lists the admin seam's operations in the order its
-// methods declare them.
-var adminOperations = []string{
-	OpListMembers, OpAddMember, OpRemoveMember, OpDemoteMember,
-	OpListSettings, OpSetSetting, OpResetSetting,
-}
-
-// AdminCatalogEntries returns one available entry for each admin
-// operation, its privilege read from the one table [PrivilegeOf]
-// reads. An operation missing from the table fails the call, so the
-// catalog cannot list an operation no authorizer enforces.
-func AdminCatalogEntries() ([]CatalogEntry, error) {
-	return catalogEntries(adminOperations)
-}
-
 // An AdminSeam is what a caller reaches the seven member and settings
-// operations through, beside [Seam]'s job operations. It is a second
-// interface because [Seam]'s one implementation takes an instance
-// lease and recovers jobs, which a server that runs no jobs must not
-// do. Every method takes the acting [Actor] as its own parameter and
-// returns an error wrapping one of this package's sentinels when it
-// cannot answer. Each call is admin only; the authorizing layer
+// operations through. Every method takes the acting [Actor] as its
+// own parameter and returns an error wrapping one of this package's
+// sentinels when it cannot answer. Each call is admin only; the authorizing layer
 // enforces it before any method runs.
 type AdminSeam interface {
 	// ListMembers lists the live roster.
