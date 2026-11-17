@@ -97,10 +97,9 @@ var ErrUnavailable = errors.New("musicbrainz unavailable")
 // (dubplate-server/<version> ( <contact> ), on cmd/harness/capture.go's
 // own precedent, with the contact from Config.AdminEmail).
 type ClientConfig struct {
-	BaseURL   string        // empty means defaultBaseURL
-	UserAgent string        // required
-	Timeout   time.Duration // zero means 30s
-	HTTP      *http.Client  // zero value means one built from Timeout
+	BaseURL   string       // empty means defaultBaseURL
+	UserAgent string       // required
+	HTTP      *http.Client // nil means one with defaultTimeout
 }
 
 // Client is a WS/2 client: fmt=json forced on every request, beets'
@@ -137,11 +136,7 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 
 	httpClient := cfg.HTTP
 	if httpClient == nil {
-		timeout := cfg.Timeout
-		if timeout == 0 {
-			timeout = defaultTimeout
-		}
-		httpClient = &http.Client{Timeout: timeout}
+		httpClient = &http.Client{Timeout: defaultTimeout}
 	}
 
 	return &Client{
