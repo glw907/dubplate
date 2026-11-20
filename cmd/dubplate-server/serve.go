@@ -360,7 +360,7 @@ func openServeStore(ctx context.Context, environ []string, reg *config.Registry,
 		BusyTimeout:   busyTimeout,
 		MigrationWait: migrationWait,
 		Keep:          keep,
-		Backup:        cfg.IntegrationEnabled(backupIntegrationClass.Name),
+		Backup:        cfg.IntegrationEnabled(backup.Class.Name),
 		Logger:        logger,
 		Reconcile:     backup.Reconciler(cfg.LibraryRoot),
 	})

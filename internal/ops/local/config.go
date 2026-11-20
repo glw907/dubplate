@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/settings"
 )
@@ -35,5 +36,21 @@ func Register(reg *config.Registry) {
 func JobRetention(acc *settings.Accessor) func(context.Context) (time.Duration, error) {
 	return func(ctx context.Context) (time.Duration, error) {
 		return acc.Duration(ctx, jobRetentionSetting)
+	}
+}
+
+// BackupConfigFrom builds the backup job's configuration from cfg and
+// acc: the flag and the remote through the integration class, the
+// library root through its owned wall row, and the three value readers
+// through acc.
+func BackupConfigFrom(cfg *config.Config, acc *settings.Accessor) BackupConfig {
+	guardFraction, snapshotKeep, archiveRetention := backup.Readers(acc)
+	return BackupConfig{
+		Enabled:          cfg.IntegrationEnabled(backup.Class.Name),
+		Remote:           cfg.IntegrationValue(backup.Class.Name, backup.RemoteKey),
+		LibraryRoot:      cfg.LibraryRoot,
+		GuardFraction:    guardFraction,
+		SnapshotKeep:     snapshotKeep,
+		ArchiveRetention: archiveRetention,
 	}
 }

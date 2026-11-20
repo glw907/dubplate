@@ -160,10 +160,10 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	}
 	var remote string
 	if f.snapshot != "" {
-		if !cfg.IntegrationEnabled(backupIntegrationClass.Name) {
-			return fmt.Errorf("restore --snapshot: backup integration is disabled (%s): a snapshot restore reads the backup remote", backupIntegrationClass.Flag.Name)
+		if !cfg.IntegrationEnabled(backup.Class.Name) {
+			return fmt.Errorf("restore --snapshot: backup integration is disabled (%s): a snapshot restore reads the backup remote", backup.Class.Flag.Name)
 		}
-		remote = cfg.IntegrationValue(backupIntegrationClass.Name, "DUBPLATE_BACKUP_REMOTE")
+		remote = cfg.IntegrationValue(backup.Class.Name, backup.RemoteKey)
 	}
 
 	// main's signal context cancels on SIGINT and SIGTERM. A closed

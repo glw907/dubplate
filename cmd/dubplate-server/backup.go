@@ -25,122 +25,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// backupIntegrationClass is the backup integration: its own enable
-// flag and the one key required while it is on, the rclone destination
-// a backup syncs to.
-var backupIntegrationClass = config.IntegrationClass{
-	Name: "backup",
-	Rung: 6,
-	Flag: config.KeyDecl{
-		Name:        "DUBPLATE_BACKUP_ENABLED",
-		Description: "turns on backups to the remote",
-		Mark:        config.Sensitive,
-	},
-	Required: []config.KeyDecl{
-		{Name: "DUBPLATE_BACKUP_REMOTE", Description: "the rclone destination a backup syncs to", Mark: config.Sensitive},
-	},
-}
-
-// backupGuardFractionSetting is DUBPLATE_BACKUP_GUARD_FRACTION: the
-// share of the catalog's tracks a library tree must hold as regular
-// files before a sync may run. Its default, 0.5, carries unchanged the
-// value internal/backup's retired guardFraction constant held. The
-// floor is the protective minimum against a value that would turn the
-// short-tree guard off by accident.
-var backupGuardFractionSetting = config.Setting{
-	Key:         "DUBPLATE_BACKUP_GUARD_FRACTION",
-	Kind:        config.KindFloat,
-	Default:     "0.5",
-	Doc:         "a decimal fraction from 0.25 to 1, for example 0.5",
-	Apply:       config.ApplyNextOperation,
-	Floor:       "0.25",
-	Ceiling:     "1",
-	Description: "the share of the catalog's tracks the library tree must hold as files before a backup sync runs",
-	Mark:        config.Sensitive,
-}
-
-// backupSnapshotKeepSetting is DUBPLATE_BACKUP_SNAPSHOT_KEEP: how many
-// remote snapshots a prune keeps in total, the run's own included. Its
-// default, 14, carries unchanged the value internal/backup's retired
-// snapshotKeep constant held. The floor is the protective minimum
-// against a keep that would let one run delete every other
-// pre-upgrade remote snapshot.
-var backupSnapshotKeepSetting = config.Setting{
-	Key:         "DUBPLATE_BACKUP_SNAPSHOT_KEEP",
-	Kind:        config.KindInt,
-	Default:     "14",
-	Doc:         "an integer count of remote snapshots to keep, for example 14",
-	Apply:       config.ApplyNextOperation,
-	Floor:       "3",
-	Ceiling:     "1000",
-	Description: "how many remote snapshots a backup keeps in total",
-	Mark:        config.Sensitive,
-}
-
-// backupArchiveRetentionSetting is DUBPLATE_BACKUP_ARCHIVE_RETENTION:
-// how long an archive directory survives past its stamp. Its default,
-// 2160h (90 days), carries unchanged the value internal/backup's
-// retired archiveRetention constant held. The floor is the protective
-// minimum against a retention that would purge within a day the files
-// a bad sync moved into archive/.
-var backupArchiveRetentionSetting = config.Setting{
-	Key:         "DUBPLATE_BACKUP_ARCHIVE_RETENTION",
-	Kind:        config.KindDuration,
-	Default:     "2160h",
-	Doc:         "a Go duration string, for example 2160h",
-	Apply:       config.ApplyNextOperation,
-	Floor:       "168h",
-	Ceiling:     "87600h",
-	Description: "how long a backup keeps an archived directory after moving it aside",
-	Mark:        config.Sensitive,
-}
-
-// registerBackupConfig adds backupIntegrationClass and the three
-// backup-homed settings to reg. newProductionRegistry calls it after
-// registerStoreConfig. The six names backup replaced (five
-// DUBPLATE_R2_* names and DUBPLATE_BACKUP_STAGING) are superseded
-// entries declared in internal/config/keys.go: a supersession message
-// is base-wall record-keeping, not backup's own surface, so it stays
-// with the package that seeds every registry. No reserved class claims
-// those six names, since a name claimed by both families panics at
-// registration (internal/config/registry.go, claim).
-func registerBackupConfig(reg *config.Registry) {
-	reg.AddIntegrationClass(backupIntegrationClass)
-	reg.AddSetting(backupGuardFractionSetting)
-	reg.AddSetting(backupSnapshotKeepSetting)
-	reg.AddSetting(backupArchiveRetentionSetting)
-}
-
-// backupSettingsReaders returns the reader functions [runBackup]
-// injects into [local.BackupConfig]: the accessor's typed read of each
-// of the three backup-homed settings, one per value ops/local needs.
-func backupSettingsReaders(acc *settings.Accessor) (
-	guardFraction func(context.Context) (float64, error),
-	snapshotKeep func(context.Context) (int, error),
-	archiveRetention func(context.Context) (time.Duration, error),
-) {
-	return func(ctx context.Context) (float64, error) { return acc.Float(ctx, backupGuardFractionSetting) },
-		func(ctx context.Context) (int, error) { return acc.Int(ctx, backupSnapshotKeepSetting) },
-		func(ctx context.Context) (time.Duration, error) {
-			return acc.Duration(ctx, backupArchiveRetentionSetting)
-		}
-}
-
-// backupConfigFrom builds ops/local's backup configuration from cfg
-// and acc: the flag and the remote through the integration class, the
-// library root through its owned wall row, and the three backup value readers through acc.
-func backupConfigFrom(cfg *config.Config, acc *settings.Accessor) local.BackupConfig {
-	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
-	return local.BackupConfig{
-		Enabled:          cfg.IntegrationEnabled(backupIntegrationClass.Name),
-		Remote:           cfg.IntegrationValue(backupIntegrationClass.Name, "DUBPLATE_BACKUP_REMOTE"),
-		LibraryRoot:      cfg.LibraryRoot,
-		GuardFraction:    guardFraction,
-		SnapshotKeep:     snapshotKeep,
-		ArchiveRetention: archiveRetention,
-	}
-}
-
 // The exit statuses this verb's outcomes carry beyond run's own
 // default of 1 (Ruling 3). 0 (succeeded) and 1 (failed, or any load or
 // store refusal) need no wrapping: run already returns them for a nil
@@ -235,7 +119,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	runner, err := local.New(runnerCtx, local.Config{
 		Store:     h,
 		Retention: local.JobRetention(acc),
-		Backup:    backupConfigFrom(cfg, acc),
+		Backup:    local.BackupConfigFrom(cfg, acc),
 		Logger:    logger,
 		Now:       time.Now,
 	})
@@ -418,7 +302,7 @@ const backupCryptWarning = "the backup remote is not wrapped in an rclone crypt 
 // [backup.ParseRemote], the same validator the job's first phase
 // calls, so the two never disagree about a well-formed remote.
 func backupRemoteRowStatus(ctx context.Context, environ []string) (status string, failed bool) {
-	enabled, _ := backupIntegrationClass.Enabled(environ)
+	enabled, _ := backup.Class.Enabled(environ)
 	if !enabled {
 		return "unavailable: backup integration disabled", false
 	}

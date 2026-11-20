@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/store"
@@ -1087,7 +1088,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 	t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
 
 	reg := freshRegistry()
-	registerBackupConfig(reg)
+	backup.Register(reg)
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
 	tests := []struct {

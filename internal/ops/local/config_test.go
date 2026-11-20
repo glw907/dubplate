@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -50,5 +51,52 @@ VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`, key, value, value)
 	})
 	if err != nil {
 		t.Fatalf("seed setting %s: %v", key, err)
+	}
+}
+
+// TestBackupConfigFrom proves the assembler fills each field of the
+// backup configuration from its own source: the flag and the remote
+// from the loaded wall, the library root from its wall row, and the
+// three readers from the store, each returning a stored non-default
+// value so a reader wired to the wrong key shows.
+func TestBackupConfigFrom(t *testing.T) {
+	_, h := newStore(t)
+	reg := config.NewRegistry()
+	store.Register(reg)
+	backup.Register(reg)
+	cfg, err := config.Load([]string{
+		"DUBPLATE_LIBRARY_ROOT=/srv/music/library",
+		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
+		"DUBPLATE_SITE_NAME=Test Group",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
+		"DUBPLATE_BACKUP_ENABLED=true",
+		"DUBPLATE_BACKUP_REMOTE=offsite:dubplate",
+	}, reg)
+	if err != nil {
+		t.Fatalf("config.Load: %v", err)
+	}
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_GUARD_FRACTION", "0.9")
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "3")
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_ARCHIVE_RETENTION", "168h")
+
+	got := BackupConfigFrom(cfg, settings.NewAccessor(h, reg))
+
+	if !got.Enabled {
+		t.Error("Enabled = false, want true")
+	}
+	if got.Remote != "offsite:dubplate" {
+		t.Errorf("Remote = %q, want %q", got.Remote, "offsite:dubplate")
+	}
+	if got.LibraryRoot != "/srv/music/library" {
+		t.Errorf("LibraryRoot = %q, want %q", got.LibraryRoot, "/srv/music/library")
+	}
+	if v, err := got.GuardFraction(t.Context()); err != nil || v != 0.9 {
+		t.Errorf("GuardFraction = %v, %v, want 0.9", v, err)
+	}
+	if v, err := got.SnapshotKeep(t.Context()); err != nil || v != 3 {
+		t.Errorf("SnapshotKeep = %v, %v, want 3", v, err)
+	}
+	if v, err := got.ArchiveRetention(t.Context()); err != nil || v != 168*time.Hour {
+		t.Errorf("ArchiveRetention = %v, %v, want 168h0m0s", v, err)
 	}
 }

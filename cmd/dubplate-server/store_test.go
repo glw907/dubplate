@@ -13,7 +13,6 @@ import (
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/ops"
-	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -445,63 +444,6 @@ VALUES (?, ?, '%s', ?, 'fixture', 1)`, source)
 	})
 	if err != nil {
 		t.Fatalf("seed setting %s: %v", key, err)
-	}
-}
-
-// TestSettingsReaders is spec criterion 13's reader half: each of the
-// four keys' reader, built the same way runBackup builds it, returns
-// the registry default while the store holds no row, and a stored
-// env-seed row's non-default value once one exists. Each stored value
-// sits at or above the floor under either answer to Ruling 3.
-func TestSettingsReaders(t *testing.T) {
-	dir := t.TempDir()
-	seedBackupStore(t, dir)
-	h, err := store.OpenWrite(context.Background(), dir, testBackupBusy)
-	if err != nil {
-		t.Fatalf("OpenWrite: %v", err)
-	}
-	defer func() { _ = h.Close() }()
-
-	reg := config.NewRegistry()
-	store.Register(reg)
-	registerBackupConfig(reg)
-	acc := settings.NewAccessor(h, reg)
-	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
-
-	tests := []struct {
-		name        string
-		key         string
-		seed        string
-		read        func() (string, error)
-		wantDefault string
-		wantSeeded  string
-	}{
-		{
-			name: "backup guard fraction", key: "DUBPLATE_BACKUP_GUARD_FRACTION", seed: "0.9",
-			read:        func() (string, error) { v, err := guardFraction(context.Background()); return fmt.Sprint(v), err },
-			wantDefault: "0.5", wantSeeded: "0.9",
-		},
-		{
-			name: "backup snapshot keep", key: "DUBPLATE_BACKUP_SNAPSHOT_KEEP", seed: "3",
-			read:        func() (string, error) { v, err := snapshotKeep(context.Background()); return fmt.Sprint(v), err },
-			wantDefault: "14", wantSeeded: "3",
-		},
-		{
-			name: "backup archive retention", key: "DUBPLATE_BACKUP_ARCHIVE_RETENTION", seed: "168h",
-			read:        func() (string, error) { v, err := archiveRetention(context.Background()); return v.String(), err },
-			wantDefault: "2160h0m0s", wantSeeded: "168h0m0s",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got, err := tt.read(); err != nil || got != tt.wantDefault {
-				t.Fatalf("%s with no row = %q, %v, want the default %q", tt.key, got, err, tt.wantDefault)
-			}
-			seedSettingRow(t, h, tt.key, tt.seed, "env-seed")
-			if got, err := tt.read(); err != nil || got != tt.wantSeeded {
-				t.Errorf("%s after an env-seed row = %q, %v, want %q", tt.key, got, err, tt.wantSeeded)
-			}
-		})
 	}
 }
 

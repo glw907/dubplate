@@ -22,6 +22,7 @@ import (
 	"syscall"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/serve"
@@ -110,7 +111,7 @@ func newProductionRegistry() *config.Registry {
 	serve.Register(reg)
 	store.Register(reg)
 	webapp.Register(reg)
-	registerBackupConfig(reg)
+	backup.Register(reg)
 	serve.RegisterTrustedProxy(reg)
 	registerAPIConfig(reg)
 	registerIntakeConfig(reg)
