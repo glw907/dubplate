@@ -23,14 +23,6 @@ __pycache__/
 /dubplate-server
 /dubplate-server-linux-amd64
 
-# Web (_salvage/web/README.md documents the build). node_modules is
-# workstation build-time only, never shipped; dist is Vite's build
-# output, empty on a fresh checkout except placeholder.txt (kept below
-# so `go build` stays green before anyone runs `npm run build`).
-/_salvage/web/node_modules
-/_salvage/web/dist/*
-!/_salvage/web/dist/placeholder.txt
-
 # web/: node_modules is workstation build-time only, .svelte-kit is
 # kit's generated scratch directory, and build/ is adapter-static's
 # output, cleared on every build. build's placeholder.txt is kept so a

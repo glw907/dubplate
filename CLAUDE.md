@@ -13,10 +13,10 @@ build**: a fresh, universal, foundation-first build, run as rounds
 per `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), governed by the rulings in
 `docs/research/2026-09-02-greenfield-server-rulings.md`. The
-pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees are frozen under
-`_salvage/` (git tag `pre-greenfield`) as SALVAGE TIER: read-only
-adoption material (admitted on merit, exemplary-Go/idiomatic-Svelte
-bars), never imported, and retired at launch. The group's system is not
+pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees were deleted from the
+tree: commit `6b8f300bce37` (git tag `pre-greenfield`) last holds them under
+`_salvage/`. Read them there only as adoption material (admitted on merit,
+exemplary-Go/idiomatic-Svelte bars), never import them. The group's system is not
 live; the box runs only dubplate-server (Navidrome, the Cloudflare
 tunnel, the box's beets, and the incumbent musicbox stack are retired,
 Geoff 2026-10-05) until the new server launches complete (Go matcher
@@ -75,7 +75,7 @@ first-launch sitting. The design approval and the packet read are `pass-core`'s.
 ## Gate
 
 `bash scripts/gate.sh` (the wrapper that runs `check.sh` through `cairn-run-gate`) before every commit: `make check` (vet, golangci-lint, test, tidy-check) over the
-whole module (`_salvage/` is invisible to the go tool), shellcheck, ruff, the photo pool check, gitleaks,
+whole module, shellcheck, ruff, the photo pool check, gitleaks,
 vale over Go comments, a hard-required `systemd-analyze verify`, the state-dir agreement leg
 (`scripts/check-state-dir.sh`, which also admits the serve unit's one music-volume grant, the common parent of the staging and library paths), and the `web/` leg (static bundle, `svelte-check`, the static web gates,
 and the rendered Playwright gates on the heavy lane). Each leg, the two OpenSubsonic import-graph tests,
