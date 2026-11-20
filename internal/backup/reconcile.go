@@ -16,6 +16,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -55,8 +56,8 @@ type report struct {
 // named in the report, and the rest of the tree is still reconciled.
 func reconcile(ctx context.Context, h *store.Handle, root string) (*report, error) {
 	r := &report{root: root}
-	var users int // live rows: a tombstoned member cannot sign in
-	if err := h.QueryRow(ctx, "SELECT count(*) FROM users WHERE tombstoned_at IS NULL").Scan(&users); err != nil {
+	users, err := auth.LiveMembers(ctx, h)
+	if err != nil {
 		return nil, fmt.Errorf("reconcile: count users: %w", err)
 	}
 	r.noUsers = users == 0

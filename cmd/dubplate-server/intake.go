@@ -348,6 +348,7 @@ func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *se
 	}
 	return intake.New(intake.Config{
 		Store: h, Log: logger, Staging: cfg.WallValue(stagingKey), Now: time.Now,
+		EarliestAdmin: auth.EarliestAdmin,
 		Limits:        intakeLimits(acc, allowlist),
 		Windows:       intakeWindows(acc),
 		SweepInterval: interval,

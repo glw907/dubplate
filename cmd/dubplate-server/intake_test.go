@@ -504,7 +504,7 @@ func TestTusMaxSizeIsTheAlbumCapCeiling(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = h.Close() })
-	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now})
+	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now, EarliestAdmin: auth.EarliestAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

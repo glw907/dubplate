@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
@@ -82,7 +83,7 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 
 	staging := t.TempDir()
 	logger := slog.New(slog.DiscardHandler)
-	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now})
+	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now, EarliestAdmin: auth.EarliestAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

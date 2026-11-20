@@ -282,7 +282,7 @@ now round `engine`.
   `DUBPLATE_STATE_DIR`. Found by the `intake-1` pass, 2026-10-12 #ops #round:launch *(swept 2026-11-20)*
 - [ ] #90 The route collections' owner is the earliest live admin at creation and is never reassigned, so a demoted
   former admin keeps ownership of "Library" and "Unlisted music"; `admin-api-2` decides what ownership grants and
-  whether it follows the roster. Found by the `intake-1` pass, 2026-10-12 #round:catalog *(swept 2026-11-20)*
+  whether it follows the roster. The choice lives in `auth.EarliestAdmin` (`internal/auth/reads.go`). Found by the `intake-1` pass, 2026-10-12 #round:catalog *(swept 2026-11-20)*
 - [ ] #91 `pipeline` carries two from PR #6's triage: `already-in-library` can tell an uploader that an album exists in
   a private collection (dedup scope, or a neutral wording); and an album's extras are unchecked bytes of any extension,
   so the rung that first serves extras must set `Content-Type` and `nosniff` or allowlist them by extension. Found by

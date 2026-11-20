@@ -106,7 +106,7 @@ func TestAcceptRefusesADuplicateAlbum(t *testing.T) {
 	// write because the album's unlisted route lands with intake-2.
 	unlisted, v := checkedAlbum(t, s, m, stateAccepted, k)
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
-		coll, err := RouteCollection(ctx, tx, s.log, RouteUnlisted)
+		coll, err := RouteCollection(ctx, tx, s.log, RouteUnlisted, testEarliestAdmin)
 		if err != nil {
 			return err
 		}

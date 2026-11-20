@@ -69,6 +69,8 @@ type submissions struct {
 	staging   string
 	now       func() time.Time
 	freeBytes func(dir string) (uint64, error)
+	// earliestAdmin names the owner of a collection the server creates.
+	earliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)
 	// sync flushes one file or directory to disk.
 	sync func(path string) error
 	// wake holds at most one poke. The store is the worker's queue, so a
@@ -77,10 +79,11 @@ type submissions struct {
 }
 
 func newSubmissions(h *store.Handle, log *slog.Logger, staging string, now func() time.Time,
-	freeBytes func(dir string) (uint64, error)) *submissions {
+	freeBytes func(dir string) (uint64, error),
+	earliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)) *submissions {
 	return &submissions{
 		store: h, log: log, staging: staging, now: now, freeBytes: freeBytes,
-		sync: syncPath, wake: make(chan struct{}, 1),
+		earliestAdmin: earliestAdmin, sync: syncPath, wake: make(chan struct{}, 1),
 	}
 }
 
@@ -160,7 +163,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 	free := s.readFree()
 	var c created
 	err := s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
-		coll, err := RouteCollection(ctx, tx, s.log, route)
+		coll, err := RouteCollection(ctx, tx, s.log, route, s.earliestAdmin)
 		if err != nil {
 			return err
 		}

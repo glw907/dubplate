@@ -32,7 +32,7 @@ func newTestSubmissions(t *testing.T) (*store.Handle, *submissions) {
 	insertUser(t, h, userSpec{admin: true, createdAt: 1})
 	s := newSubmissions(h, slog.New(slog.DiscardHandler), t.TempDir(),
 		func() time.Time { return time.UnixMicro(testNow) },
-		func(string) (uint64, error) { return plentyFree, nil })
+		func(string) (uint64, error) { return plentyFree, nil }, testEarliestAdmin)
 	s.sync = func(string) error { return nil }
 	return h, s
 }

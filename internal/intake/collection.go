@@ -12,6 +12,7 @@ import (
 	"log/slog"
 
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
@@ -38,11 +39,12 @@ var errNestedRoot = errors.New("collection root nests with an existing root")
 
 // RouteCollection returns the id of the collection holding route, creating
 // it in tx when none does. A new collection is group-visible, written by
-// the server, and owned by the earliest-created live admin; its root is
-// the lowercase hex of its id, so no two collections' roots nest. With no
-// live admin it logs and returns an [ops.ErrInternal] error, which cannot
+// the server, and owned by the admin earliestAdmin names; its root is the
+// lowercase hex of its id, so no two collections' roots nest. With no live
+// admin it logs and returns an [ops.ErrInternal] error, which cannot
 // happen after bootstrap.
-func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route Route) ([]byte, error) {
+func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route Route,
+	earliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)) ([]byte, error) {
 	var coll []byte
 	err := tx.QueryRow(ctx, `SELECT id FROM collections WHERE intake_route = ?`, string(route)).Scan(&coll)
 	if err == nil {
@@ -52,15 +54,13 @@ func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route 
 		return nil, fmt.Errorf("find %s collection: %w", route, err)
 	}
 
-	var owner []byte
-	err = tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
-		ORDER BY created_at, id LIMIT 1`).Scan(&owner)
-	if errors.Is(err, sql.ErrNoRows) {
-		log.ErrorContext(ctx, "intake: no live admin to own the collection", "route", route)
-		return nil, ops.NewInternalError("no live admin to own the " + routeNames[route] + " collection")
-	}
+	owner, found, err := earliestAdmin(ctx, tx)
 	if err != nil {
 		return nil, fmt.Errorf("find collection owner: %w", err)
+	}
+	if !found {
+		log.ErrorContext(ctx, "intake: no live admin to own the collection", "route", route)
+		return nil, ops.NewInternalError("no live admin to own the " + routeNames[route] + " collection")
 	}
 
 	minted := id.New()
@@ -73,7 +73,7 @@ func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route 
 		return nil, err
 	}
 	_, err = tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
-		VALUES (?, ?, ?, ?, 'group', 'server', ?)`, coll, routeNames[route], root, owner, string(route))
+		VALUES (?, ?, ?, ?, 'group', 'server', ?)`, coll, routeNames[route], root, owner[:], string(route))
 	if err != nil {
 		return nil, fmt.Errorf("create %s collection: %w", route, err)
 	}

@@ -3,6 +3,7 @@ package intake
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"log/slog"
@@ -11,10 +12,26 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
+
+// testEarliestAdmin stands in for the roster's EarliestAdmin, which intake
+// cannot import: it reads the same rows by the same order.
+func testEarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
+	var raw []byte
+	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
+		ORDER BY created_at, id LIMIT 1`).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return identity.UserID{}, false, nil
+	}
+	if err != nil {
+		return identity.UserID{}, false, err
+	}
+	return identity.UserID(raw), true, nil
+}
 
 // openTestStore returns a migrated store under a fresh state directory.
 func openTestStore(t *testing.T) *store.Handle {
@@ -64,7 +81,7 @@ func routeCollectionOnce(t *testing.T, h *store.Handle, log *slog.Logger, route 
 	t.Helper()
 	err = h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		var err error
-		id, err = RouteCollection(ctx, tx, log, route)
+		id, err = RouteCollection(ctx, tx, log, route, testEarliestAdmin)
 		return err
 	})
 	return id, err
