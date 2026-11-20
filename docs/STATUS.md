@@ -9,10 +9,11 @@
 
 ## Current state
 Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
-once, the limiter is gone, the client caps what it reads at 32 MiB, the harness grades the pattern table it
-names, and the citation leg of `scripts/check.sh` gates. No distance, recommendation, action, parsed tag, or
-written byte changed, and `make derive` passes. One failure path is stricter: a write refuses a source that
-shrank between the parse and the copy, where it once renamed the short file into place. Nothing deploys.
+once, and the citation leg of `scripts/check.sh` gates. Nothing a member or an operator sees changed.
+
+Pass `structure-base` (PR #18, draft) moved code only: `_salvage` left the tree, `internal/engine/store` became
+`internal/store`, `internal/id` parses ids, the store holds the time and query helpers once, nothing under
+`internal` reads the clock outside tests and the harness, and a store test names the owner of each of 19 tables.
 
 `intake-1` is the last product pass on master. A passing album waits in `matching` with no exit until
 `intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work a later
@@ -25,8 +26,7 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-The next round is the one BACKLOG's "Rounds to 0.8" names after `engine`; `intake-2` takes the pacing and
-transliteration decisions filed as #159.
+Pass 2 of round `structure` is next, per BACKLOG's "Rounds to 0.8"; `intake-2` takes #159.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Coordination
@@ -45,8 +45,6 @@ seam, as agreed with its planning session on 2026-11-10:
 - BACKLOG #109 (findings X1 to X6) is proposed in that plan.
 - `cairn-run-gate` keeps its lanes and flags. That plan proposes additions only: a nesting marker, a preflight that
   names `npm ci --prefix web`, and shorter default output. A pass that depends on one checks that it has landed.
-
-Each pass reads that status line at its design.
 
 ## Open decisions
 - The repo is public on GitHub and stays so (Geoff, 2026-11-10). Open under it: BACKLOG #96's question of whether
