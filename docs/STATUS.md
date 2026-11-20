@@ -1,9 +1,10 @@
 # dubplate status
 
-<!-- round-report cleanup -->
-**Round cleanup is done.** PRs #13 to #16 merged on 2026-11-17 on Geoff's approve of `20261117-064744-b8dd9b`, and the
-approved allow rules landed in `.claude/settings.json` (`7151edb`). Nothing has deployed; the box is unchanged. Report:
-`~/Projects/initiatives/dubplate-server/reports/cleanup-report.md`.
+<!-- round-report structure -->
+**Round structure is at its first launch: pass 1, `structure-base`, is being planned.** Every start-line state holds on
+2026-11-20, and nothing has landed or deployed. `conductor-dubplate` runs the round. Resume from:
+`~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/conductor-prompt.txt`. Report:
+`~/Projects/initiatives/dubplate-server/reports/structure-report.md`. Open documents: none.
 <!-- /round-report -->
 
 ## Current state
