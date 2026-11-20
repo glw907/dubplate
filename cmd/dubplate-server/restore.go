@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/store"
@@ -29,8 +30,8 @@ const (
 // restored store carries the sessions and sign-in links of the moment
 // it was backed up, and rotating both secrets with no previous value
 // fails every one of them.
-const restoreRotation = "Before starting serve, mint new values for " + sessionSecretKey + " and " + magicLinkSecretKey +
-	", and leave " + sessionSecretPreviousKey + " and " + magicLinkSecretPreviousKey +
+const restoreRotation = "Before starting serve, mint new values for " + auth.SessionSecretKey + " and " + auth.MagicLinkSecretKey +
+	", and leave " + auth.SessionSecretPreviousKey + " and " + auth.MagicLinkSecretPreviousKey +
 	" unset, so every session and sign-in link issued before the restore fails."
 
 // restoreFlags holds the restore verb's flags.

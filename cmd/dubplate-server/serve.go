@@ -125,7 +125,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // a restore. It then applies the settings seed to
 // that store through [applySettingsSeed], so a refusal ends the start
 // before anything else is built, and reads the four rate limits the
-// seed left in force through [readAuthLimits]: they apply at the next
+// seed left in force through [auth.ReadLimits]: they apply at the next
 // start, so they are read once, here. Every other auth setting is a
 // reader over the store that its handler, the seam, or the nonce store
 // calls at each use. It then opens the auth store and its nonce and
@@ -238,14 +238,14 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 	acc := settings.NewAccessor(h, reg)
-	limits, err := readAuthLimits(ctx, acc)
+	limits, err := auth.ReadLimits(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
 	routes := mount(shell)
-	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
+	if sendsHSTS(cfg.IdentitySourceValue(auth.PublicURLKey)) {
 		shell.EnableHSTS()
 	}
 
@@ -269,9 +269,9 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	}
 
 	seam := auth.NewMagicLinkSeam(roster, epoch,
-		[]byte(cfg.IdentitySourceValue(sessionSecretKey)),
-		[]byte(cfg.IdentitySourceValue(sessionSecretPreviousKey)),
-		durationSetting(acc, sessionLifetimeSetting), durationSetting(acc, sessionAbsoluteCapSetting))
+		[]byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
+		[]byte(cfg.IdentitySourceValue(auth.SessionSecretPreviousKey)),
+		auth.DurationSetting(acc, auth.SessionLifetimeSetting), auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting))
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
 	handlersConfig := authHandlersConfig(prefix, cfg, acc, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
@@ -294,7 +294,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	adminSeam := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
-		Window: durationSetting(acc, reauthWindowSetting),
+		Window: auth.DurationSetting(acc, reauthWindowSetting),
 		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
 	})
 	in, err = newIntake(ctx, h, cfg, acc, allowlist, roster, mailer.Send, shell.Logger())
@@ -311,7 +311,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	// shell's log/slog logger cannot fill.
 	tusMount, err := in.TusMount(intake.TusConfig{
 		Prefix:    prefix.String(),
-		PublicURL: cfg.IdentitySourceValue(publicURLKey),
+		PublicURL: cfg.IdentitySourceValue(auth.PublicURLKey),
 		Verify:    tusVerifier(adminConfig),
 		Floor:     freeSpaceFloor(acc),
 		TusLog:    os.Stderr,
@@ -391,7 +391,7 @@ func applySettingsSeed(ctx context.Context, h *store.Handle, reg *config.Registr
 
 // sendsHSTS reports whether the shell sends Strict-Transport-Security
 // for publicURL, the URL browsers reach the server at: only when it is
-// https on a host [isLoopbackHost] does not match. The request's own
+// https on a host [auth.IsLoopbackHost] does not match. The request's own
 // scheme is no input, since the server speaks plain HTTP to whatever
 // fronts it. A loopback host is excluded because RFC 6797 section 8.3
 // matches a known HSTS host by name alone, so one response from
@@ -402,7 +402,7 @@ func sendsHSTS(publicURL string) bool {
 	if err != nil {
 		return false
 	}
-	return u.Scheme == "https" && !isLoopbackHost(u.Hostname())
+	return u.Scheme == "https" && !auth.IsLoopbackHost(u.Hostname())
 }
 
 // exactPath wraps next, answering [http.NotFoundHandler]'s own 404 to any
@@ -422,11 +422,11 @@ func exactPath(want string, next http.Handler) http.Handler {
 }
 
 // openNonceStore opens the consumed-nonce store under authStore, its
-// retention reading [nonceRetentionSetting] through acc, and sweeps it
+// retention reading [auth.NonceRetentionSetting] through acc, and sweeps it
 // once at now. It exists as its own function so a test can open the
 // store newServeShell opens and read the retention it was wired with.
 func openNonceStore(ctx context.Context, authStore *auth.Store, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
-	nonces, _, err := auth.OpenNonceStore(ctx, authStore, durationSetting(acc, nonceRetentionSetting), magicLinkExpiryCeiling, now)
+	nonces, _, err := auth.OpenNonceStore(ctx, authStore, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 
@@ -447,17 +447,17 @@ func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.A
 		ClientIP:           clientIP,
 		Now:                time.Now,
 		Logger:             logger,
-		LinkSecret:         []byte(cfg.IdentitySourceValue(magicLinkSecretKey)),
-		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(magicLinkSecretPreviousKey)),
-		SessionSecret:      []byte(cfg.IdentitySourceValue(sessionSecretKey)),
-		LinkExpiry:         durationSetting(acc, magicLinkExpirySetting),
-		SessionLifetime:    durationSetting(acc, sessionLifetimeSetting),
-		SessionAbsoluteCap: durationSetting(acc, sessionAbsoluteCapSetting),
-		PublicOrigin:       cfg.IdentitySourceValue(publicURLKey),
+		LinkSecret:         []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretKey)),
+		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretPreviousKey)),
+		SessionSecret:      []byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
+		LinkExpiry:         auth.DurationSetting(acc, auth.MagicLinkExpirySetting),
+		SessionLifetime:    auth.DurationSetting(acc, auth.SessionLifetimeSetting),
+		SessionAbsoluteCap: auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting),
+		PublicOrigin:       cfg.IdentitySourceValue(auth.PublicURLKey),
 		Prefix:             prefix.String(),
-		BodyCap:            authBodyCap(acc),
-		BodyCapCeiling:     authRequestBodyCapCeiling,
-		GenericAnswer:      genericAnswer(acc),
+		BodyCap:            auth.BodyCap(acc),
+		BodyCapCeiling:     auth.RequestBodyCapCeiling,
+		GenericAnswer:      auth.GenericAnswer(acc),
 	}
 }
 
@@ -476,22 +476,22 @@ func methodOnly(method string, h http.Handler) http.Handler {
 
 // newMailer resolves the magic-link source's five SMTP keys into a
 // [notify.Mailer]. The port is the one value among them this file
-// converts rather than passes through. [validateMagicLinkSource]'s
+// converts rather than passes through. the magic-link source's
 // Validate hook already bounds the port to 1 through 65535 at load
 // time, so doctor and every verb see a bad port before the serve verb
 // ever listens; this parse is the defensive second read that turns the
 // bounded string back into the int [notify.Config] takes.
 func newMailer(cfg *config.Config) (*notify.Mailer, error) {
-	port, err := strconv.Atoi(cfg.IdentitySourceValue(smtpPortKey))
+	port, err := strconv.Atoi(cfg.IdentitySourceValue(auth.SMTPPortKey))
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", smtpPortKey, err)
+		return nil, fmt.Errorf("%s: %w", auth.SMTPPortKey, err)
 	}
 	return notify.New(notify.Config{
-		Host:     cfg.IdentitySourceValue(smtpHostKey),
+		Host:     cfg.IdentitySourceValue(auth.SMTPHostKey),
 		Port:     port,
-		User:     cfg.IdentitySourceValue(smtpUserKey),
-		Password: cfg.IdentitySourceValue(smtpPasswordKey),
-		From:     cfg.IdentitySourceValue(smtpFromKey),
+		User:     cfg.IdentitySourceValue(auth.SMTPUserKey),
+		Password: cfg.IdentitySourceValue(auth.SMTPPasswordKey),
+		From:     cfg.IdentitySourceValue(auth.SMTPFromKey),
 	}), nil
 }
 

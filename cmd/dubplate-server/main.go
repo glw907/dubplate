@@ -21,6 +21,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
@@ -101,8 +102,8 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 // in the order, and the registry dump holds that order.
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
+	auth.Register(reg)
 	serve.Register(reg)
-	registerAuthConfig(reg)
 	registerStoreConfig(reg)
 	registerWebConfig(reg)
 	registerBackupConfig(reg)

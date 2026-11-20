@@ -117,7 +117,7 @@ func classifyKey(reg *config.Registry, name string) string {
 // rung 5 makes: DUBPLATE_SMTP_HOST classified as the "auth and
 // identity" reserved class before this pass, and now classifies as the
 // magic-link identity source's own required key
-// (cmd/dubplate-server/auth.go), since that class retired in the same
+// (internal/auth/config.go), since that class retired in the same
 // commit that declared the source (internal/config/keys.go).
 func TestClassifyKey_SMTPHostMovedToIdentitySource(t *testing.T) {
 	if got := classifyKey(productionRegistry(), "DUBPLATE_SMTP_HOST"); got != "identity source" {

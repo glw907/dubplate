@@ -2,8 +2,10 @@ package serve
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,12 +16,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/store"
 )
+
+// onlyAdmin stands in for auth.EarliestAdmin, which this package's tests
+// cannot import: auth imports serve for the port check. seedUpload
+// creates the one admin, so the first live admin row is the answer.
+func onlyAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
+	var raw []byte
+	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
+		ORDER BY created_at, id LIMIT 1`).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return identity.UserID{}, false, nil
+	}
+	if err != nil {
+		return identity.UserID{}, false, err
+	}
+	return identity.UserID(raw), true, nil
+}
 
 // seedUpload writes one member with an uploading submission of one
 // file of size bytes, and returns the member, the submission id, and
@@ -83,7 +100,7 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 
 	staging := t.TempDir()
 	logger := slog.New(slog.DiscardHandler)
-	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now, EarliestAdmin: auth.EarliestAdmin})
+	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now, EarliestAdmin: onlyAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

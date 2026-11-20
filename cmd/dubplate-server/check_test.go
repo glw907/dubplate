@@ -166,7 +166,7 @@ var reservedPort = sync.OnceValue(func() int {
 // high-entropy neighbor) never fires against a test file. A test
 // against productionRegistry (serve_test.go) that expects config.Load
 // to succeed needs this, rather than baseEnviron alone, because rung 5
-// registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (auth.go).
+// registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (internal/auth/config.go).
 func authEnviron(t *testing.T) []string {
 	t.Helper()
 	return append(baseEnviron(),

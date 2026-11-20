@@ -682,7 +682,7 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 // key rather than one line per source (review finding,
 // doctor_test.go:433). Both DUBPLATE_MAGIC_LINK_SECRET and
 // DUBPLATE_SESSION_SECRET are magic-link's own Required keys
-// (auth.go), so this reuses the exact simultaneous-failure fixture
+// (internal/auth/config.go), so this reuses the exact simultaneous-failure fixture
 // TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
 // rowStatuses keeps as two separate entries.
 func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {

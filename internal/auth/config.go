@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
@@ -19,37 +18,37 @@ import (
 
 // identitySourceSelectorRow declares DUBPLATE_IDENTITY_SOURCE as an
 // owned wall row: the selector is required, alongside
-// [magicLinkSource] itself.
+// [magicLinkIdentitySource] itself.
 var identitySourceSelectorRow = config.WallRow{
 	Name:        "DUBPLATE_IDENTITY_SOURCE",
 	Description: "the name of the identity source that signs members in",
 	Mark:        config.Sensitive,
 }
 
-// The magic-link identity source's key names: [magicLinkSource]
+// The magic-link identity source's key names: [magicLinkIdentitySource]
 // declares them, its Validate hook checks them, and serve reads them
 // through [config.Config.IdentitySourceValue]. None of these constants
 // carries a secret value; each names the environment variable a real
 // deployment carries one under.
 const (
-	magicLinkSecretKey         = "DUBPLATE_MAGIC_LINK_SECRET"          // secret-guard-allow
-	magicLinkSecretPreviousKey = "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS" // secret-guard-allow
-	sessionSecretKey           = "DUBPLATE_SESSION_SECRET"             // secret-guard-allow
-	sessionSecretPreviousKey   = "DUBPLATE_SESSION_SECRET_PREVIOUS"    // secret-guard-allow
-	publicURLKey               = "DUBPLATE_PUBLIC_URL"
-	smtpHostKey                = "DUBPLATE_SMTP_HOST"
-	smtpPortKey                = "DUBPLATE_SMTP_PORT"
-	smtpUserKey                = "DUBPLATE_SMTP_USER"
-	smtpPasswordKey            = "DUBPLATE_SMTP_PASSWORD" // secret-guard-allow
-	smtpFromKey                = "DUBPLATE_SMTP_FROM"
+	MagicLinkSecretKey         = "DUBPLATE_MAGIC_LINK_SECRET"          // secret-guard-allow
+	MagicLinkSecretPreviousKey = "DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS" // secret-guard-allow
+	SessionSecretKey           = "DUBPLATE_SESSION_SECRET"             // secret-guard-allow
+	SessionSecretPreviousKey   = "DUBPLATE_SESSION_SECRET_PREVIOUS"    // secret-guard-allow
+	PublicURLKey               = "DUBPLATE_PUBLIC_URL"
+	SMTPHostKey                = "DUBPLATE_SMTP_HOST"
+	SMTPPortKey                = "DUBPLATE_SMTP_PORT"
+	SMTPUserKey                = "DUBPLATE_SMTP_USER"
+	SMTPPasswordKey            = "DUBPLATE_SMTP_PASSWORD" // secret-guard-allow
+	SMTPFromKey                = "DUBPLATE_SMTP_FROM"
 )
 
 // secretKeys names every key [validateMagicLinkSource] holds to
 // [secretLengthFloor]: both HMAC secrets and their rotation-overlap
 // predecessors.
-var secretKeys = []string{magicLinkSecretKey, sessionSecretKey, magicLinkSecretPreviousKey, sessionSecretPreviousKey}
+var secretKeys = []string{MagicLinkSecretKey, SessionSecretKey, MagicLinkSecretPreviousKey, SessionSecretPreviousKey}
 
-// magicLinkSource is the shipped default identity source: a login link
+// magicLinkIdentitySource is the shipped default identity source: a login link
 // mailed to a roster address, backed by an HMAC-signed session cookie.
 // It declares eight required names, the five DUBPLATE_SMTP_* names
 // among them, each required when the source is selected. The two
@@ -63,22 +62,22 @@ var secretKeys = []string{magicLinkSecretKey, sessionSecretKey, magicLinkSecretP
 // Validate is [validateMagicLinkSource], the source's value rules: the
 // secret length floor, the public URL's shape, and the mail and serve
 // ports.
-var magicLinkSource = config.IdentitySource{
+var magicLinkIdentitySource = config.IdentitySource{
 	Name:     "magic-link",
 	Selector: identitySourceSelectorRow.Name,
 	Required: []config.KeyDecl{
-		{Name: magicLinkSecretKey, Description: "the secret that signs sign-in links, at least 32 bytes", Mark: config.Sensitive},
-		{Name: sessionSecretKey, Description: "the secret that signs session cookies, at least 32 bytes", Mark: config.Sensitive},
-		{Name: publicURLKey, Description: "the address members reach the server at, used in sign-in links", Mark: config.Sensitive},
-		{Name: smtpHostKey, Description: "the mail server the server sends sign-in links through", Mark: config.Sensitive},
-		{Name: smtpPortKey, Description: "the port of that mail server", Mark: config.Sensitive},
-		{Name: smtpUserKey, Description: "the user name the server signs in to the mail server with", Mark: config.Sensitive},
-		{Name: smtpPasswordKey, Description: "the password the server signs in to the mail server with", Mark: config.Sensitive},
-		{Name: smtpFromKey, Description: "the sender address on the mail the server sends", Mark: config.Sensitive},
+		{Name: MagicLinkSecretKey, Description: "the secret that signs sign-in links, at least 32 bytes", Mark: config.Sensitive},
+		{Name: SessionSecretKey, Description: "the secret that signs session cookies, at least 32 bytes", Mark: config.Sensitive},
+		{Name: PublicURLKey, Description: "the address members reach the server at, used in sign-in links", Mark: config.Sensitive},
+		{Name: SMTPHostKey, Description: "the mail server the server sends sign-in links through", Mark: config.Sensitive},
+		{Name: SMTPPortKey, Description: "the port of that mail server", Mark: config.Sensitive},
+		{Name: SMTPUserKey, Description: "the user name the server signs in to the mail server with", Mark: config.Sensitive},
+		{Name: SMTPPasswordKey, Description: "the password the server signs in to the mail server with", Mark: config.Sensitive},
+		{Name: SMTPFromKey, Description: "the sender address on the mail the server sends", Mark: config.Sensitive},
 	},
 	Optional: []config.KeyDecl{
-		{Name: magicLinkSecretPreviousKey, Description: "the previous link-signing secret, kept so links minted before a rotation still verify", Mark: config.Sensitive},
-		{Name: sessionSecretPreviousKey, Description: "the previous session-signing secret, kept so sessions minted before a rotation still verify", Mark: config.Sensitive},
+		{Name: MagicLinkSecretPreviousKey, Description: "the previous link-signing secret, kept so links minted before a rotation still verify", Mark: config.Sensitive},
+		{Name: SessionSecretPreviousKey, Description: "the previous session-signing secret, kept so sessions minted before a rotation still verify", Mark: config.Sensitive},
 	},
 	Validate: validateMagicLinkSource,
 }
@@ -92,19 +91,19 @@ var magicLinkSource = config.IdentitySource{
 // bytes passes with room to spare.
 const secretLengthFloor = 32
 
-// magicLinkExpiryCeiling bounds how long a mailed link can stay
+// MagicLinkExpiryCeiling bounds how long a mailed link can stay
 // redeemable. The threat model's mail-scanner residual is bounded by
 // "single use, a 15-minute default expiry"; an hour is generous
 // headroom above the default without admitting a link that survives a
 // whole day in a mail provider's link-scanner cache or a browser's
-// history (review m5). It is [magicLinkExpirySetting]'s registered
+// history (review m5). It is [MagicLinkExpirySetting]'s registered
 // ceiling, and the nonce store's mtime fallback keeps a record past it
 // rather than past the value in force, since only the ceiling outlives
 // every token a changed expiry could have minted.
-const magicLinkExpiryCeiling = time.Hour
+const MagicLinkExpiryCeiling = time.Hour
 
-// magicLinkExpirySetting, sessionLifetimeSetting,
-// sessionAbsoluteCapSetting, and nonceRetentionSetting are the four
+// MagicLinkExpirySetting, SessionLifetimeSetting,
+// SessionAbsoluteCapSetting, and NonceRetentionSetting are the four
 // auth durations.
 //
 // Every duration takes a positive floor, since zero or a negative
@@ -122,18 +121,18 @@ const magicLinkExpiryCeiling = time.Hour
 // change to any of them changes how long every member stays signed in
 // or how long a mailed link stays redeemable.
 var (
-	magicLinkExpirySetting = config.Setting{
+	MagicLinkExpirySetting = config.Setting{
 		Key:         "DUBPLATE_MAGIC_LINK_EXPIRY",
 		Kind:        config.KindDuration,
 		Default:     "15m",
 		Doc:         "a Go duration string, for example 15m",
 		Apply:       config.ApplyNextOperation,
 		Floor:       "1m",
-		Ceiling:     magicLinkExpiryCeiling.String(),
+		Ceiling:     MagicLinkExpiryCeiling.String(),
 		Description: "how long a mailed sign-in link stays redeemable",
 		Mark:        config.Sensitive,
 	}
-	sessionLifetimeSetting = config.Setting{
+	SessionLifetimeSetting = config.Setting{
 		Key:         "DUBPLATE_SESSION_LIFETIME",
 		Kind:        config.KindDuration,
 		Default:     "2160h",
@@ -144,7 +143,7 @@ var (
 		Description: "how long a session stays valid before the member signs in again, unless it is refreshed",
 		Mark:        config.Sensitive,
 	}
-	sessionAbsoluteCapSetting = config.Setting{
+	SessionAbsoluteCapSetting = config.Setting{
 		Key:         "DUBPLATE_SESSION_ABSOLUTE_CAP",
 		Kind:        config.KindDuration,
 		Default:     "4320h",
@@ -155,7 +154,7 @@ var (
 		Description: "the longest a session can last from its first sign-in, however often it is refreshed",
 		Mark:        config.Sensitive,
 	}
-	nonceRetentionSetting = config.Setting{
+	NonceRetentionSetting = config.Setting{
 		Key:         "DUBPLATE_NONCE_RETENTION",
 		Kind:        config.KindDuration,
 		Default:     "24h",
@@ -222,10 +221,10 @@ var (
 	}
 )
 
-// authRequestBodyCapCeiling is the auth request body cap's ceiling.
+// RequestBodyCapCeiling is the auth request body cap's ceiling.
 // Sign-out bounds its body with it directly, so the one auth endpoint
 // no limiter charges reads no setting.
-const authRequestBodyCapCeiling = 65536
+const RequestBodyCapCeiling = 65536
 
 // authRequestBodyCapSetting is the auth request body cap security
 // constraint 3 requires. Its floor, 512 bytes, comfortably fits an RFC
@@ -242,7 +241,7 @@ var authRequestBodyCapSetting = config.Setting{
 	Doc:         "a positive integer of bytes, for example 4096",
 	Apply:       config.ApplyNextOperation,
 	Floor:       "512",
-	Ceiling:     strconv.Itoa(authRequestBodyCapCeiling),
+	Ceiling:     strconv.Itoa(RequestBodyCapCeiling),
 	Description: "the largest sign-in request body the server reads, in bytes",
 	Mark:        config.NotSensitive,
 }
@@ -270,13 +269,13 @@ var unknownAddressAnswerSetting = config.Setting{
 var (
 	nonceRetentionCoversExpiry = config.CorrelatedRule{
 		Name:  "nonce retention covers the link expiry",
-		Keys:  []string{magicLinkExpirySetting.Key, nonceRetentionSetting.Key},
-		Check: durationAtLeast(nonceRetentionSetting.Key, magicLinkExpirySetting.Key),
+		Keys:  []string{MagicLinkExpirySetting.Key, NonceRetentionSetting.Key},
+		Check: durationAtLeast(NonceRetentionSetting.Key, MagicLinkExpirySetting.Key),
 	}
 	sessionLifetimeWithinCap = config.CorrelatedRule{
 		Name:  "session lifetime within the absolute cap",
-		Keys:  []string{sessionLifetimeSetting.Key, sessionAbsoluteCapSetting.Key},
-		Check: durationAtLeast(sessionAbsoluteCapSetting.Key, sessionLifetimeSetting.Key),
+		Keys:  []string{SessionLifetimeSetting.Key, SessionAbsoluteCapSetting.Key},
+		Check: durationAtLeast(SessionAbsoluteCapSetting.Key, SessionLifetimeSetting.Key),
 	}
 )
 
@@ -312,22 +311,21 @@ const rosterFileKey = "DUBPLATE_ROSTER_FILE"
 const rosterFileSupersession = "superseded: members live in the store; " +
 	"add the first admin with dubplate-server member add ADDRESS --admin"
 
-// registerAuthConfig adds the auth configuration to reg: the
+// Register adds the auth configuration to reg: the
 // selector as an owned wall row, magic-link as a declared identity
 // source, the retired roster file key as a superseded name, the ten
 // auth settings, and their two correlated rules, registered after the
-// settings they name. It is a plain function on serve.Register's
-// own precedent (serve.go), called once from the binary's shared
-// registry constructor (newProductionRegistry, main.go).
-func registerAuthConfig(reg *config.Registry) {
+// settings they name. It is a plain function on [serve.Register]'s
+// precedent, called once from the binary's shared registry constructor.
+func Register(reg *config.Registry) {
 	reg.AddWallRow(identitySourceSelectorRow)
-	reg.AddIdentitySource(magicLinkSource)
+	reg.AddIdentitySource(magicLinkIdentitySource)
 	reg.AddSuperseded(rosterFileKey, rosterFileSupersession)
 	for _, s := range []config.Setting{
-		magicLinkExpirySetting,
-		sessionLifetimeSetting,
-		sessionAbsoluteCapSetting,
-		nonceRetentionSetting,
+		MagicLinkExpirySetting,
+		SessionLifetimeSetting,
+		SessionAbsoluteCapSetting,
+		NonceRetentionSetting,
 		linkRequestsPerAddressSetting,
 		linkRequestsPerClientSetting,
 		consumptionAttemptsPerClientSetting,
@@ -341,7 +339,7 @@ func registerAuthConfig(reg *config.Registry) {
 	reg.AddCorrelatedRule(sessionLifetimeWithinCap)
 }
 
-// validateMagicLinkSource is [magicLinkSource]'s Validate hook: it
+// validateMagicLinkSource is [magicLinkIdentitySource]'s Validate hook: it
 // checks the secret length floor on both rotation pairs, the public
 // URL's shape, DUBPLATE_SMTP_FROM (spec:1289), the SMTP port bound,
 // and the serve port bound, joining every failure it finds so
@@ -359,19 +357,19 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		}
 	}
 
-	if v, ok := values[publicURLKey]; ok {
+	if v, ok := values[PublicURLKey]; ok {
 		if err := validatePublicURL(v); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
-	if v, ok := values[smtpFromKey]; ok {
+	if v, ok := values[SMTPFromKey]; ok {
 		if err := validateSMTPFrom(v); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
-	if v, ok := values[smtpPortKey]; ok {
+	if v, ok := values[SMTPPortKey]; ok {
 		if err := validateSMTPPort(v); err != nil {
 			errs = append(errs, err)
 		}
@@ -395,10 +393,10 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 func validateSMTPPort(value string) error {
 	port, err := strconv.Atoi(value)
 	if err != nil {
-		return &config.KeyError{Key: smtpPortKey, Reason: "not an integer"}
+		return &config.KeyError{Key: SMTPPortKey, Reason: "not an integer"}
 	}
 	if port < 1 || port > 65535 {
-		return &config.KeyError{Key: smtpPortKey, Reason: fmt.Sprintf("%d is not in 1 through 65535", port)}
+		return &config.KeyError{Key: SMTPPortKey, Reason: fmt.Sprintf("%d is not in 1 through 65535", port)}
 	}
 	return nil
 }
@@ -413,10 +411,10 @@ func validateSMTPPort(value string) error {
 // clean. The returned error never repeats value.
 func validateSMTPFrom(value string) error {
 	if strings.ContainsAny(value, "\r\n") {
-		return &config.KeyError{Key: smtpFromKey, Reason: "invalid email address"}
+		return &config.KeyError{Key: SMTPFromKey, Reason: "invalid email address"}
 	}
 	if _, err := mail.ParseAddress(value); err != nil {
-		return &config.KeyError{Key: smtpFromKey, Reason: "invalid email address"}
+		return &config.KeyError{Key: SMTPFromKey, Reason: "invalid email address"}
 	}
 	return nil
 }
@@ -452,41 +450,41 @@ func validateSMTPFrom(value string) error {
 // rather than reaching url.Parse's error path.
 func validatePublicURL(value string) error {
 	if strings.Contains(value, "@") {
-		return &config.KeyError{Key: publicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
 	}
 	u, err := url.Parse(value)
 	if err != nil {
-		return &config.KeyError{Key: publicURLKey, Reason: "invalid URL"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "invalid URL"}
 	}
 	if u.User != nil {
-		return &config.KeyError{Key: publicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
 	}
 	if u.RawQuery != "" {
-		return &config.KeyError{Key: publicURLKey, Reason: "carries a query string"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "carries a query string"}
 	}
 	if u.Fragment != "" {
-		return &config.KeyError{Key: publicURLKey, Reason: "carries a fragment"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "carries a fragment"}
 	}
 	if u.Path != "" && u.Path != "/" {
-		return &config.KeyError{Key: publicURLKey, Reason: "must carry no path; the serve prefix sets where dubplate lives"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "must carry no path; the serve prefix sets where dubplate lives"}
 	}
 	host := u.Hostname()
 	if host == "" {
-		return &config.KeyError{Key: publicURLKey, Reason: "has no host"}
+		return &config.KeyError{Key: PublicURLKey, Reason: "has no host"}
 	}
-	if u.Scheme != "https" && !isLoopbackHost(host) {
-		return &config.KeyError{Key: publicURLKey, Reason: "must use https unless its host is loopback"}
+	if u.Scheme != "https" && !IsLoopbackHost(host) {
+		return &config.KeyError{Key: PublicURLKey, Reason: "must use https unless its host is loopback"}
 	}
 	return nil
 }
 
-// isLoopbackHost reports whether host is a loopback name or an IP
+// IsLoopbackHost reports whether host is a loopback name or an IP
 // address in the loopback range, the whole loopback set the HTTPS
 // carve-out covers. A loopback name is localhost or any name under
 // .localhost, matched case-insensitively and with one trailing dot
 // removed, since RFC 6761 section 6.3 reserves that whole domain for
 // loopback and a browser resolves every name in it there.
-func isLoopbackHost(host string) bool {
+func IsLoopbackHost(host string) bool {
 	name := strings.TrimSuffix(strings.ToLower(host), ".")
 	if name == "localhost" || strings.HasSuffix(name, ".localhost") {
 		return true
@@ -497,49 +495,49 @@ func isLoopbackHost(host string) bool {
 	return false
 }
 
-// durationSetting returns an [auth.Setting] reading s's value in force
+// DurationSetting returns an [Setting] reading s's value in force
 // through acc at each call.
-func durationSetting(acc *settings.Accessor, s config.Setting) auth.Setting[time.Duration] {
+func DurationSetting(acc *settings.Accessor, s config.Setting) Setting[time.Duration] {
 	return func(ctx context.Context) (time.Duration, error) {
 		d, err := acc.Duration(ctx, s)
-		return d, settingReadError(s, err)
+		return d, SettingReadError(s, err)
 	}
 }
 
-// authBodyCap returns an [auth.Setting] reading the auth request body
+// BodyCap returns an [Setting] reading the auth request body
 // cap in force through acc at each call.
-func authBodyCap(acc *settings.Accessor) auth.Setting[int64] {
+func BodyCap(acc *settings.Accessor) Setting[int64] {
 	return func(ctx context.Context) (int64, error) {
 		n, err := acc.Int(ctx, authRequestBodyCapSetting)
-		return int64(n), settingReadError(authRequestBodyCapSetting, err)
+		return int64(n), SettingReadError(authRequestBodyCapSetting, err)
 	}
 }
 
-// genericAnswer returns an [auth.Setting] reporting at each call
+// GenericAnswer returns an [Setting] reporting at each call
 // whether the unknown-address answer in force through acc is generic.
-func genericAnswer(acc *settings.Accessor) auth.Setting[bool] {
+func GenericAnswer(acc *settings.Accessor) Setting[bool] {
 	return func(ctx context.Context) (bool, error) {
 		v, err := acc.String(ctx, unknownAddressAnswerSetting)
-		return v == "generic", settingReadError(unknownAddressAnswerSetting, err)
+		return v == "generic", SettingReadError(unknownAddressAnswerSetting, err)
 	}
 }
 
-// settingReadError returns err, a failed read of s, as the
-// [auth.SettingError] the auth handlers log by key, or nil when err is
+// SettingReadError returns err, a failed read of s, as the
+// [SettingError] the auth handlers log by key, or nil when err is
 // nil.
-func settingReadError(s config.Setting, err error) error {
+func SettingReadError(s config.Setting, err error) error {
 	if err == nil {
 		return nil
 	}
-	return &auth.SettingError{Key: s.Key, Err: err}
+	return &SettingError{Key: s.Key, Err: err}
 }
 
-// readAuthLimits reads the four rate limits in force through acc. They
+// ReadLimits reads the four rate limits in force through acc. They
 // apply at the next start, so serve reads them once, after its seed
 // apply, and builds its limiter from them; a failed read fails the
 // start naming the key, never falling back to a default.
-func readAuthLimits(ctx context.Context, acc *settings.Accessor) (auth.Limits, error) {
-	var limits auth.Limits
+func ReadLimits(ctx context.Context, acc *settings.Accessor) (Limits, error) {
+	var limits Limits
 	for _, n := range []struct {
 		dst *int
 		s   config.Setting
@@ -551,7 +549,7 @@ func readAuthLimits(ctx context.Context, acc *settings.Accessor) (auth.Limits, e
 	} {
 		v, err := acc.Int(ctx, n.s)
 		if err != nil {
-			return auth.Limits{}, err
+			return Limits{}, err
 		}
 		*n.dst = v
 	}

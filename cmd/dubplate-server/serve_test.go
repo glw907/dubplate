@@ -481,7 +481,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, magicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, auth.MagicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		t.Fatalf("auth.OpenNonceStore: %v", err)
 	}
@@ -671,10 +671,10 @@ func mintServeSession(t *testing.T, environ []string, address string, issued tim
 	var lifetime, absoluteCap time.Duration
 	err := withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		if lifetime, err = acc.Duration(t.Context(), sessionLifetimeSetting); err != nil {
+		if lifetime, err = acc.Duration(t.Context(), auth.SessionLifetimeSetting); err != nil {
 			return err
 		}
-		absoluteCap, err = acc.Duration(t.Context(), sessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
 		return err
 	})
 	if err != nil {
@@ -2129,7 +2129,7 @@ func TestNewServeShell_AdminRowRaisesTheCapThroughARefresh(t *testing.T) {
 	var absoluteCap time.Duration
 	err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		absoluteCap, err = acc.Duration(t.Context(), sessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
 		return err
 	})
 	if err != nil {
@@ -2204,7 +2204,7 @@ func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
 		t.Fatalf("buildServeShell: %v", err)
 	}
 	if _, err := os.Stat(record); err != nil {
-		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", magicLinkExpiryCeiling, err)
+		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", auth.MagicLinkExpiryCeiling, err)
 	}
 }
 

@@ -112,7 +112,7 @@ var storeLocalSnapshotKeepSetting = config.Setting{
 
 // registerStoreConfig registers the store's own thresholds and
 // store-homed settings against reg. newProductionRegistry calls it
-// after registerAuthConfig.
+// after auth.Register.
 func registerStoreConfig(reg *config.Registry) {
 	reg.AddThreshold(storeBusyTimeoutThreshold)
 	reg.AddThreshold(storeMigrationWaitThreshold)

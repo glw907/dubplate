@@ -40,7 +40,7 @@ func intakeLimits(acc *settings.Accessor, allowlist []string) func(context.Conte
 		count := func(s config.Setting) int {
 			n, err := acc.Int(ctx, s)
 			if err != nil && failed == nil {
-				failed = settingReadError(s, err)
+				failed = auth.SettingReadError(s, err)
 			}
 			return n
 		}
@@ -124,31 +124,31 @@ var reauthWindowSetting = config.Setting{
 // window's floor, where raising the cap is the only one.
 var reauthWindowBelowCap = config.CorrelatedRule{
 	Name: "re-authentication window below the absolute cap",
-	Keys: []string{reauthWindowSetting.Key, sessionAbsoluteCapSetting.Key},
+	Keys: []string{reauthWindowSetting.Key, auth.SessionAbsoluteCapSetting.Key},
 	Check: func(values map[string]string) error {
 		window, err := time.ParseDuration(values[reauthWindowSetting.Key])
 		if err != nil {
 			return fmt.Errorf("%s: %w", reauthWindowSetting.Key, err)
 		}
-		limit, err := time.ParseDuration(values[sessionAbsoluteCapSetting.Key])
+		limit, err := time.ParseDuration(values[auth.SessionAbsoluteCapSetting.Key])
 		if err != nil {
-			return fmt.Errorf("%s: %w", sessionAbsoluteCapSetting.Key, err)
+			return fmt.Errorf("%s: %w", auth.SessionAbsoluteCapSetting.Key, err)
 		}
 		if window < limit {
 			return nil
 		}
 		refusal := fmt.Sprintf("%s %q is not below %s %q", reauthWindowSetting.Key, values[reauthWindowSetting.Key],
-			sessionAbsoluteCapSetting.Key, values[sessionAbsoluteCapSetting.Key])
+			auth.SessionAbsoluteCapSetting.Key, values[auth.SessionAbsoluteCapSetting.Key])
 		if limit <= reauthWindowFloor {
-			return fmt.Errorf("%s: raise %s above %s, the window's floor", refusal, sessionAbsoluteCapSetting.Key, reauthWindowFloor)
+			return fmt.Errorf("%s: raise %s above %s, the window's floor", refusal, auth.SessionAbsoluteCapSetting.Key, reauthWindowFloor)
 		}
-		return fmt.Errorf("%s: lower %s below the cap, or raise %s", refusal, reauthWindowSetting.Key, sessionAbsoluteCapSetting.Key)
+		return fmt.Errorf("%s: lower %s below the cap, or raise %s", refusal, reauthWindowSetting.Key, auth.SessionAbsoluteCapSetting.Key)
 	},
 }
 
 // registerAPIConfig adds the admin API's configuration to reg: the
 // re-authentication window and its rule against the absolute cap, which
-// registerAuthConfig declares and so must run first.
+// auth.Register declares and so must run first.
 func registerAPIConfig(reg *config.Registry) {
 	reg.AddSetting(reauthWindowSetting)
 	reg.AddCorrelatedRule(reauthWindowBelowCap)

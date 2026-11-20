@@ -340,11 +340,11 @@ func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *se
 	roster *auth.Roster, send func(ctx context.Context, to, subject, body string) error, logger *slog.Logger) (*intake.Intake, error) {
 	interval, err := acc.Duration(ctx, intakeSweepIntervalSetting)
 	if err != nil {
-		return nil, settingReadError(intakeSweepIntervalSetting, err)
+		return nil, auth.SettingReadError(intakeSweepIntervalSetting, err)
 	}
 	workers, err := acc.Int(ctx, intakeCheckWorkersSetting)
 	if err != nil {
-		return nil, settingReadError(intakeCheckWorkersSetting, err)
+		return nil, auth.SettingReadError(intakeCheckWorkersSetting, err)
 	}
 	return intake.New(intake.Config{
 		Store: h, Log: logger, Staging: cfg.WallValue(stagingKey), Now: time.Now,
@@ -366,7 +366,7 @@ func intakeWindows(acc *settings.Accessor) func(context.Context) (intake.Windows
 		read := func(s config.Setting) time.Duration {
 			d, err := acc.Duration(ctx, s)
 			if err != nil && failed == nil {
-				failed = settingReadError(s, err)
+				failed = auth.SettingReadError(s, err)
 			}
 			return d
 		}
@@ -422,7 +422,7 @@ func tusVerifier(cfg auth.AdminConfig) intake.Verifier {
 func freeSpaceFloor(acc *settings.Accessor) func(context.Context) (int64, error) {
 	return func(ctx context.Context) (int64, error) {
 		n, err := acc.Int(ctx, intakeFreeSpaceFloorSetting)
-		return int64(n), settingReadError(intakeFreeSpaceFloorSetting, err)
+		return int64(n), auth.SettingReadError(intakeFreeSpaceFloorSetting, err)
 	}
 }
 
