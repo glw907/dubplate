@@ -24,6 +24,7 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
@@ -113,7 +114,7 @@ func newProductionRegistry() *config.Registry {
 	webapp.Register(reg)
 	backup.Register(reg)
 	serve.RegisterTrustedProxy(reg)
-	registerAPIConfig(reg)
+	admin.Register(reg)
 	registerIntakeConfig(reg)
 	return reg
 }
