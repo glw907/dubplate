@@ -22,8 +22,8 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // sessionFixture signs the sessions a consumed link mints, and

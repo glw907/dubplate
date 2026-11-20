@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // override writes a member_overrides row; a nil argument stores NULL.

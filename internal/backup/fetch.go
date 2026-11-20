@@ -10,7 +10,7 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // latestSnapshot names, in place of a stamp, the newest snapshot on the

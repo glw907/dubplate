@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // dbFileState returns the store's database file's SHA-256 sum and mode

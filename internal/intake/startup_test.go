@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestStartRefusedAtTheLease is AC 27's first clause: while another

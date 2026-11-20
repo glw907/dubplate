@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // stallMailWait bounds the stall mail: the address read and every send.

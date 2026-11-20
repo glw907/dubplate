@@ -21,7 +21,7 @@ func TestLayering(t *testing.T) {
 		t.Fatal("go list -deps . listed nothing")
 	}
 	for _, dep := range deps {
-		for _, forbidden := range []string{module + "auth", module + "ops", module + "settings", module + "config"} {
+		for _, forbidden := range []string{module + "auth", module + "ops", module + "settings", module + "config", module + "store"} {
 			if dep == forbidden {
 				t.Errorf("webapp depends on %s", dep)
 			}

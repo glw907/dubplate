@@ -17,7 +17,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The points in a restore at which stepHook runs, each after the step

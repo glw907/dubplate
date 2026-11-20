@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // FinishedMessage is the [Job.Run] result for a run whose prune

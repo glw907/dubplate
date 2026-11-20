@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // testClock is the one clock a fixture's writes and sweeps read, moved

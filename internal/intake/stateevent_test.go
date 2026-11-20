@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // journeyStates is the closed set of states this pass emits, written out

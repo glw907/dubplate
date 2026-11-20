@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/backup"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // cancelPoll is how often a running job's owner re-reads

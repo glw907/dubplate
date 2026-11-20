@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // testNow is the fixed instant every fixture write is stamped with, in

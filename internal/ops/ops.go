@@ -31,7 +31,7 @@ type Actor struct {
 
 // LocalActor builds the local kind of [Actor] from username, the
 // operating-system user a CLI verb runs as (the shape
-// internal/engine/store's ownerName already produces, which never
+// internal/store's ownerName already produces, which never
 // returns an empty string). It renders as "local:<username>" on the
 // wire and in every log line, and its channel reads as
 // [identity.ChannelCommandLine].

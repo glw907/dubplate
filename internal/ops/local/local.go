@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // writeWait bounds each store write the runner issues: how long it

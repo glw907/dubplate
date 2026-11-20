@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // restoreVerbChildEnv carries, as a JSON array, the arguments a

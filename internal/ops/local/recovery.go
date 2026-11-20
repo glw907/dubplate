@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // recoverJobs marks interrupted every queued or running record whose owner

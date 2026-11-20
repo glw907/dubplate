@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // restoreChildEnv carries a re-executed test binary's restore, as

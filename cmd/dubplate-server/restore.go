@@ -13,7 +13,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
 

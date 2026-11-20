@@ -17,8 +17,8 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/intake/staging"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 )

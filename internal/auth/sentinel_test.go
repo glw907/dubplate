@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestRosterSentinels_MatchFromOutside proves each refusal the roster

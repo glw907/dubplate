@@ -277,7 +277,7 @@ run_remote "install -d -o music -g music -m 0755 $DUBPLATE_LIB_DIR"
 #   store   dubplate-server-serve.service (the member and settings store)
 # The unidecode leaf is not listed: no unit is granted it, and it is
 # pre-created on its own just below. 0700 matches what auth.Open requires
-# of its leaf (and leafDirPerm in internal/engine/store of the store leaf)
+# of its leaf (and leafDirPerm in internal/store of the store leaf)
 # and keeps the members private to music.
 DUBPLATE_SERVER_LEAVES=(auth store)
 for leaf in "${DUBPLATE_SERVER_LEAVES[@]}"; do

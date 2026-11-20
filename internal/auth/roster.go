@@ -12,9 +12,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // maxDisplayNameLength bounds a display name in bytes: 200 bytes

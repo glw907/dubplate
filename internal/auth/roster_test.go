@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestNormalizeMemberAddress_SingleResolutionPoint proves R1's single

@@ -15,20 +15,21 @@ import (
 	"testing"
 )
 
-// forbiddenImportPrefix is the harness import path internal/engine may
-// never carry: the first architectural invariant (internal/harness
-// reads the corpus, drives beets, and grades; the engine is the
-// product, and tier 0's decoder lives here rather than there exactly
-// because of this rule).
+// forbiddenImportPrefix is the harness import path no package outside
+// internal/harness may carry: the first architectural invariant
+// (internal/harness reads the corpus, drives beets, and grades; the
+// engine and every other package are the product, and tier 0's decoder
+// lives there rather than here exactly because of this rule).
 const forbiddenImportPrefix = "github.com/glw907/dubplate/internal/harness"
 
-// checkNoHarnessImports walks every .go file under root and fails
-// (naming the file and the import) if any file imports a path under
-// forbiddenImportPrefix. Parsing runs in go/parser's ImportsOnly mode:
-// cheap, and it needs nothing beyond the import block to be
-// syntactically valid. A testdata subtree is skipped entirely: a
-// fixture's own .go file (an arch-check counter-example, say) is not
-// production code and must never make this walk false-positive.
+// checkNoHarnessImports walks every .go file under root, except the
+// harness directory directly beneath it, and fails (naming the file and
+// the import) if any file imports a path under forbiddenImportPrefix.
+// Parsing runs in go/parser's ImportsOnly mode: cheap, and it needs
+// nothing beyond the import block to be syntactically valid. A testdata
+// subtree is skipped entirely: a fixture's own .go file (an arch-check
+// counter-example, say) is not production code and must never make this
+// walk false-positive.
 func checkNoHarnessImports(root string) error {
 	var errs []error
 	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
@@ -36,7 +37,7 @@ func checkNoHarnessImports(root string) error {
 			return err
 		}
 		if d.IsDir() {
-			if d.Name() == "testdata" {
+			if d.Name() == "testdata" || path == filepath.Join(root, "harness") {
 				return fs.SkipDir
 			}
 			return nil
@@ -55,7 +56,7 @@ func checkNoHarnessImports(root string) error {
 				continue
 			}
 			if importPath == forbiddenImportPrefix || strings.HasPrefix(importPath, forbiddenImportPrefix+"/") {
-				errs = append(errs, fmt.Errorf("%s: imports %s, which internal/engine must never import", path, importPath))
+				errs = append(errs, fmt.Errorf("%s: imports %s, which nothing outside internal/harness may import", path, importPath))
 			}
 		}
 		return nil
@@ -138,10 +139,10 @@ func importedName(f *ast.File, path string) string {
 }
 
 // TestEngineNeverImportsHarness is the first architectural invariant,
-// checked against the real tree: internal/engine imports nothing under
-// internal/harness.
+// checked against the real tree: no package under internal, other than
+// internal/harness itself, imports anything under internal/harness.
 func TestEngineNeverImportsHarness(t *testing.T) {
-	root := filepath.Join(repoRoot(t), "internal", "engine")
+	root := filepath.Join(repoRoot(t), "internal")
 	if err := checkNoHarnessImports(root); err != nil {
 		t.Error(err)
 	}
@@ -160,8 +161,10 @@ func TestEngineNeverReadsTheClock(t *testing.T) {
 
 // TestHarnessImportCheckFiresOnItsOwnFixture proves
 // checkNoHarnessImports fires, against a hand-authored fixture tree
-// (testdata/arch/harness-import-violation) carrying one file that
-// imports internal/harness/cassette.
+// (testdata/arch/harness-import-violation) carrying a file that imports
+// internal/harness/cassette, a nested backup package that imports the
+// harness from outside it, and a nested harness package that must be
+// skipped because it stands for internal/harness itself.
 func TestHarnessImportCheckFiresOnItsOwnFixture(t *testing.T) {
 	root := filepath.Join("testdata", "arch", "harness-import-violation")
 	err := checkNoHarnessImports(root)
@@ -170,6 +173,12 @@ func TestHarnessImportCheckFiresOnItsOwnFixture(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "internal/harness/cassette") {
 		t.Errorf("error does not name the violating import: %v", err)
+	}
+	if !strings.Contains(err.Error(), filepath.Join("backup", "bad.go")) {
+		t.Errorf("error does not name the nested package outside the harness: %v", err)
+	}
+	if strings.Contains(err.Error(), filepath.Join("harness", "skipped.go")) {
+		t.Errorf("error names the harness package, which the walk must skip: %v", err)
 	}
 }
 

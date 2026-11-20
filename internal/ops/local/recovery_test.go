@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestNew_RecoversDeadOwners pins spec criterion 4. Owner A's lease

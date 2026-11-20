@@ -18,9 +18,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The environment the stand-in reads. The test binary runs as the

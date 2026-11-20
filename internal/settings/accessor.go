@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // An Accessor serves typed reads of the settings a registry declares,

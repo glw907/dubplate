@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // Three stamps in the store's layout, oldest first, and one no
