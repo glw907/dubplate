@@ -1,8 +1,8 @@
 # dubplate status
 
 <!-- round-report structure -->
-**Round structure is at its first launch: pass 1, `structure-base`, is being planned.** Every start-line state holds on
-2026-11-20, and nothing has landed or deployed. `conductor-dubplate` runs the round. Resume from:
+**Round structure has landed pass 1 of 3.** `structure-base` (PR #18, `5d1e6e9`) merged on 2026-11-20 on checks and review,
+and its proof lines match the base. Pass 2, `structure-keys`, is next. Nothing deployed. Resume from:
 `~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/conductor-prompt.txt`. Report:
 `~/Projects/initiatives/dubplate-server/reports/structure-report.md`. Open documents: none.
 <!-- /round-report -->
@@ -11,7 +11,7 @@
 Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
 once, and the citation leg of `scripts/check.sh` gates. Nothing a member or an operator sees changed.
 
-Pass `structure-base` (PR #18, draft) moved code only: `_salvage` left the tree, `internal/engine/store` became
+Pass `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree, `internal/engine/store` became
 `internal/store`, `internal/id` parses ids, the store holds the time and query helpers once, nothing under
 `internal` reads the clock outside tests and the harness, and a store test names the owner of each of 19 tables.
 

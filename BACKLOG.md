@@ -436,6 +436,14 @@ now round `engine`.
 - [ ] #169 The score dump diverged once (`5bf0d963...` against the committed hash) during `engine`'s T3 lane, then
   matched on ten reruns of the same tree. No cause was found. If it recurs, look for map-iteration order or a
   scratch file the dump reads. Found by `engine` (PR #17), 2026-11-17 #bug #harness
+- [ ] #170 The "must not be nil" function fields are unenforced: `intake.New` (`EarliestAdmin`), `local.New` and
+  `backup.Job.validate` (`Now`) panic on first use when a caller leaves one nil. Every caller sets them and the
+  convention matches the existing `Now` fields. Decide whether a constructor refuses a nil. Ruled kept as is for
+  `structure-base` by `conductor-dubplate`, 2026-11-20. Found by `structure-base` (PR #18), 2026-11-20 #improvement
+- [ ] #171 `auth.EarliestAdmin` refuses an admin id that is not 16 bytes, where the base inserted whatever bytes it
+  read. `users.id` has no length CHECK, so only a bad writer reaches it, and no test covers it. Kept, since the
+  `id.ID` scan needs 16 bytes. Add a test, or a CHECK in a later migration. Found by `structure-base` (PR #18),
+  2026-11-20 #improvement #auth
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake *(swept 2026-11-20)*
 ## Later
