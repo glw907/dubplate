@@ -196,7 +196,7 @@ func TestStoreRow_RestoreIntent(t *testing.T) {
 // branch: an unparseable DUBPLATE_STORE_BUSY_TIMEOUT reports "not
 // checked" and fails the row without ever opening the state directory,
 // distinct from TestStoreBusyTimeout_ParseFailure's proof that
-// the parse failure does not wrap errOutOfRange.
+// the parse failure does not wrap store.ErrOutOfRange.
 func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
 	environ := []string{
 		"DUBPLATE_STATE_DIR=" + t.TempDir(),
@@ -841,7 +841,7 @@ func TestStoreRowsAgreeOnVouch(t *testing.T) {
 // TestSettingsDoctorRows_LocalKeep is criterion 13's local-keep half
 // (D10): a stored env-seed value of "2" for
 // DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP renders "2" under
-// registerStoreConfig's own registry, matching the environment so the
+// store.Register's own registry, matching the environment so the
 // row carries no change note.
 func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
 	reg := config.NewRegistry()

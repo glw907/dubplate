@@ -52,7 +52,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			}
 
 			// The settings evaluation runs against the facts
-			// seedFacts picks: an absent store, or one older than
+			// settings.SeedFacts picks: an absent store, or one older than
 			// the settings table, evaluates the empty table serve's
 			// first seed meets, so a value that start would refuse
 			// fails check first. A store this check cannot vouch for

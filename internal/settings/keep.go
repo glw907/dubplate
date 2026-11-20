@@ -110,7 +110,7 @@ func SeedFacts(report store.Report) (store.Facts, bool) {
 
 // byKey returns the setting named key out of list, or its zero value
 // when list carries none, the shape a defensive caller falls back on
-// rather than panics on a key [settings.Evaluate] could not have
+// rather than panics on a key [Evaluate] could not have
 // invented.
 func byKey(list []config.Setting, key string) config.Setting {
 	for _, s := range list {
