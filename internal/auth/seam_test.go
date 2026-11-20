@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // seamBirth, seamLifetime, and seamCap pin every timestamp below. The

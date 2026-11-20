@@ -171,7 +171,7 @@ func TestUnidecodeInstall_OwnershipChecksPrecedeAlreadyInstalled(t *testing.T) {
 // ownership refusal, independent of the state directory's: geteuid
 // answers the state directory's own check with the real owner, since
 // the test process created it, and only the leaf's check sees a
-// foreign uid, the same split internal/engine/store's read path
+// foreign uid, the same split internal/store's read path
 // (Inspect) and write path (leaf.create) draw between the two checks.
 func TestUnidecodeInstall_RefusesForeignLeafOwner(t *testing.T) {
 	stateDir := t.TempDir()

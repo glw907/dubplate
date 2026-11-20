@@ -109,7 +109,7 @@ set -euo pipefail
 #                   under --reduced
 #   Python tooling  tools/unidecode-table: ruff already runs whole; the
 #                   full form under --reduced
-#   no effect       docs, .claude, _salvage, tools/venv, the top-level
+#   no effect       docs, .claude, tools/venv, the top-level
 #                   markdown files and LICENSE: gitleaks only
 #   unmatched       anything else: full form
 #
@@ -397,7 +397,7 @@ classify_path() {
     echo ops
     ;;
   tools/unidecode-table/*) echo pytool ;;
-  docs/* | .claude/* | _salvage/* | tools/venv/* | README.md | \
+  docs/* | .claude/* | tools/venv/* | README.md | \
     IDEAS.md | BACKLOG.md | CLAUDE.md | LICENSE)
     echo noeffect
     ;;
@@ -487,7 +487,7 @@ classify_change_set() {
 # The Go packages the change set touches: the directory of every changed
 # *.go path that still exists and still holds Go source. A deleted file's
 # directory drops out, and so does a directory the go tool cannot see
-# (_salvage/ and anything else under a leading underscore or dot).
+# (anything under a leading underscore or dot).
 changed_packages=()
 derive_changed_packages() {
   local f dir

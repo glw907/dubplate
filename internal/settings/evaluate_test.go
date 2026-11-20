@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestEvaluateFacts_ConvertsStoreRows: EvaluateFacts against a facts

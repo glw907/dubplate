@@ -20,9 +20,8 @@
 # a gate run before `git add` silently skips it and reports a false clean.
 #
 # Pass --only followed by Go file paths to read just those, as the scoped
-# gate does. The paths pass the same _salvage/ filter, and a path that no
-# longer exists is dropped. An empty list after --only reads nothing and
-# exits 0; with no --only every Go file is read.
+# gate does. A path that no longer exists is dropped. An empty list after
+# --only reads nothing and exits 0; with no --only every Go file is read.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -61,20 +60,15 @@ if [ "$check_vendor" -eq 1 ]; then
   "$vendor" "$PWD" || exit 1
 fi
 
-# _salvage/ is read-only reference material: it is frozen at the
-# pre-greenfield tag and excluded from every gate leg that walks files,
-# this one included, or all 76 salvage Go files re-enter the scan (git's
-# '*.go' pathspec matches at any depth).
 if [ "$only" -eq 1 ]; then
   files=()
   for f in "${paths[@]}"; do
-    case "$f" in _salvage/*) continue ;; esac
     [ -f "$f" ] && files+=("$f")
   done
 else
   mapfile -t files < <(
     { git ls-files '*.go'; git ls-files --others --exclude-standard '*.go'; } |
-      grep -v '^_salvage/' | sort -u
+      sort -u
   )
 fi
 echo "vale-comments: ${#files[@]} files"

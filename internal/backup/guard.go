@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // resolveRoot resolves every symlink in root and returns the directory

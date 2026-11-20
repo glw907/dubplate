@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // testClock is the one clock a fixture's writes and sweeps read, moved
@@ -108,6 +108,7 @@ func reopenIntake(t *testing.T, h *store.Handle, staging string, clock *testCloc
 	mail := &mailFake{h: h, admins: []string{"ann@example.invalid", "bo@example.invalid"}}
 	in, err := New(Config{
 		Store: h, Log: slog.New(slog.DiscardHandler), Staging: staging, Now: clock.Now,
+		EarliestAdmin: testEarliestAdmin,
 		Limits:        func(context.Context) (Limits, error) { return testSeamLimits(), nil },
 		Windows:       func(context.Context) (Windows, error) { return testWindows, nil },
 		SweepInterval: time.Hour, CheckWorkers: 1,

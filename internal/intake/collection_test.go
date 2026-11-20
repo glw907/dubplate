@@ -3,6 +3,7 @@ package intake
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"log/slog"
@@ -10,10 +11,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
+
+// testEarliestAdmin stands in for the roster's EarliestAdmin, which intake
+// cannot import: it reads the same rows by the same order.
+func testEarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
+	var raw []byte
+	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
+		ORDER BY created_at, id LIMIT 1`).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return identity.UserID{}, false, nil
+	}
+	if err != nil {
+		return identity.UserID{}, false, err
+	}
+	return identity.UserID(raw), true, nil
+}
 
 // openTestStore returns a migrated store under a fresh state directory.
 func openTestStore(t *testing.T) *store.Handle {
@@ -41,7 +59,7 @@ type userSpec struct {
 
 func insertUser(t *testing.T, h *store.Handle, u userSpec) []byte {
 	t.Helper()
-	id := store.NewID()
+	uid := id.New()
 	var tombstonedAt any
 	if u.tombstoned {
 		tombstonedAt = u.createdAt + 1
@@ -49,13 +67,13 @@ func insertUser(t *testing.T, h *store.Handle, u userSpec) []byte {
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			VALUES (?, ?, 'Member', ?, ?, ?, ?, ?)`,
-			id, hex.EncodeToString(id)+"@example.invalid", hex.EncodeToString(id), u.admin, tombstonedAt, u.createdAt, u.createdAt)
+			uid, uid.String()+"@example.invalid", uid.String(), u.admin, tombstonedAt, u.createdAt, u.createdAt)
 		return err
 	})
 	if err != nil {
 		t.Fatalf("insert user: %v", err)
 	}
-	return id
+	return uid[:]
 }
 
 // routeCollectionOnce runs RouteCollection in its own Update.
@@ -63,7 +81,7 @@ func routeCollectionOnce(t *testing.T, h *store.Handle, log *slog.Logger, route 
 	t.Helper()
 	err = h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		var err error
-		id, err = RouteCollection(ctx, tx, log, route)
+		id, err = RouteCollection(ctx, tx, log, route, testEarliestAdmin)
 		return err
 	})
 	return id, err
@@ -185,7 +203,7 @@ func TestCheckNoNesting(t *testing.T) {
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		for _, root := range existing {
 			if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
-				VALUES (?, ?, ?, ?, 'group', 'server')`, store.NewID(), root, []byte(root), admin); err != nil {
+				VALUES (?, ?, ?, ?, 'group', 'server')`, id.New(), root, []byte(root), admin); err != nil {
 				return err
 			}
 		}
@@ -254,7 +272,7 @@ func TestRelPathRefusals(t *testing.T) {
 			}
 			err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 				_, err := tx.Exec(ctx, `INSERT INTO submission_files (id, submission_id, rel_path, size, role)
-					VALUES (?, ?, ?, 1, 'extra')`, store.NewID(), sub, []byte(tt.path))
+					VALUES (?, ?, ?, 1, 'extra')`, id.New(), sub, []byte(tt.path))
 				return err
 			})
 			if got := err == nil; got != tt.wantInsert {

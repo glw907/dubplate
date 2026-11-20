@@ -18,10 +18,10 @@ import (
 
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
 
@@ -237,6 +237,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		Retention: jobRetentionReader(acc),
 		Backup:    backupConfigFrom(cfg, acc),
 		Logger:    logger,
+		Now:       time.Now,
 	})
 	if err != nil {
 		return err

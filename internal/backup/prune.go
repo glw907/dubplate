@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // A prune is one run's pruning of the remote's snapshots and archive,

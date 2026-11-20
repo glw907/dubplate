@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // adminRosterMembers holds two admins and a non-admin, so a hand edit

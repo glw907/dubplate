@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
 

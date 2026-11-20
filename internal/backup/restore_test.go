@@ -21,7 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // restoreChildEnv carries a re-executed test binary's restore, as
@@ -183,7 +184,7 @@ func storeWithUser(t *testing.T, address string) string {
 	}
 	err = h.Update(ctxFor(t), func(ctx context.Context, tx *store.Tx) error {
 		_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
-VALUES (?, ?, 'User', ?, 1, 1)`, store.NewID(), address, strings.Split(address, "@")[0])
+VALUES (?, ?, 'User', ?, 1, 1)`, id.New(), address, strings.Split(address, "@")[0])
 		return err
 	})
 	if err != nil {

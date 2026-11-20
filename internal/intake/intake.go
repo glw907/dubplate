@@ -10,8 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/staging"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/tus/tusd/v2/pkg/memorylocker"
 )
 
@@ -26,6 +27,10 @@ type Config struct {
 	// each archive's extracted members under submissions/<id>/x/.
 	Staging string
 	Now     func() time.Time
+	// EarliestAdmin names the member who owns a collection the server
+	// creates, and reports false when no live admin exists. It must not be
+	// nil. The binary passes the roster's; intake does not import auth.
+	EarliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)
 	// Limits reads the intake limits in force. It runs before each
 	// create and each check, so a changed setting reaches the next one.
 	Limits func(ctx context.Context) (Limits, error)
@@ -78,7 +83,7 @@ func New(cfg Config) (*Intake, error) {
 	}
 	return &Intake{
 		cfg:    cfg,
-		subs:   newSubmissions(cfg.Store, cfg.Log, cfg.Staging, cfg.Now, staging.FreeBytes),
+		subs:   newSubmissions(cfg.Store, cfg.Log, cfg.Staging, cfg.Now, staging.FreeBytes, cfg.EarliestAdmin),
 		root:   root,
 		locker: memorylocker.New(),
 	}, nil

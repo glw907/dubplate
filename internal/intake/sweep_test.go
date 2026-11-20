@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 )
 
@@ -196,7 +196,8 @@ func TestCleanupLeavesAFileWhoseLockIsHeld(t *testing.T) {
 // once it is older than the resume window, and not before.
 func TestSweepRemovesAnOrphanPastTheWindow(t *testing.T) {
 	f := newIntakeFixture(t)
-	old, young := store.NewID(), store.NewID()
+	oldID, youngID := id.New(), id.New()
+	old, young := oldID[:], youngID[:]
 	f.stageUpload(t, old, []byte("old"))
 	f.stageUpload(t, young, []byte("young"))
 	f.clock.advance(testWindows.ResumeWindow + time.Hour)

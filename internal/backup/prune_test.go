@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/backup"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // seedSnapshots writes an empty file for each of stamps, plus each

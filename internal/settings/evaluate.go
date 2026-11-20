@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The two values a settings row's source column holds. A key whose

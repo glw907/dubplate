@@ -18,8 +18,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The prefix and public URL every tus fixture mounts under.

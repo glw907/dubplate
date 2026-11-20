@@ -13,9 +13,9 @@ import (
 
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestStoreRowStatus is the golden test for the store row's render: one
@@ -289,7 +289,7 @@ func TestStoreBusyTimeout_ParseFailure(t *testing.T) {
 }
 
 // buildZeroByteStoreLeaf creates a leaf under stateDir shaped as
-// internal/engine/store's own leaf (store.lock, db/dubplate.db at
+// internal/store's own leaf (store.lock, db/dubplate.db at
 // zero bytes, snapshots/, staging/), so the inspect mode classifies it
 // as an interrupted create rather than a real store.
 // cmd/dubplate-server has no caller into store's own unexported leaf

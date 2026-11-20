@@ -1,0 +1,35 @@
+You are the executor of dubplate pass `structure-base`, pass 1 of round `structure` (initiative dubplate-server). Your session name is dubplate-structure-base.
+
+Goal: execute the plan at docs/plans/2026-11-20-structure-base.md to completion and open its pull request against master. The pass moves code and changes nothing a person sees: `_salvage` leaves the tree, the store becomes internal/store, one package internal/id parses ids, the time and query helpers live once in the store, nothing under internal reads the clock outside tests and the harness, a store test names the owner of each of the 19 tables, and every command prints byte for byte what it printed before.
+
+Where to work:
+- First act: EnterWorktree with path /var/home/glw907/Projects/dubplate/.claude/worktrees/structure-base (branch structure-base). Before touching it, run `claude-worktree-busy <path>`, `claude agents --json`, `pgrep -f '[P]rojects/dubplate/.claude/worktrees/structure-bas[e]'`, and `git status`. A live session or warm changes you did not author is a stop. The planner session dubplate-structure-base-plan may still be listed, with its cwd in the main checkout; it is expected, has ended its work, and is not a conflict.
+- Run `npm ci --prefix web` in the worktree before the first gate.
+- Push to glw907/dubplate, branch structure-base. Open a draft PR on the first push.
+- Temp files go in your own $CLAUDE_JOB_DIR/tmp. The proof builds run there, in fresh detached worktrees, never in the pass worktree.
+
+Read before the first task, in order:
+1. The plan, in full. It is the contract: copy its acceptance tables into the PR unedited.
+2. The design: /var/home/glw907/Projects/initiatives/dubplate-server/specs/2026-11-17-structure-design.md (the structure-base section, "Proof that nothing changed", the standing answers, "Backlog verdicts").
+3. The kit folder: /var/home/glw907/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/ (README.md, structure-proof.sh, zz_registrydump_test.go). Never commit either kit file.
+4. CLAUDE.md, docs/STATUS.md, docs/standing-rules.md.
+
+Skills: load dubplate-pass (it loads pass-core and standards:running-passes), then pass-core's references/executor.md and references/round-run.md. Load standards:go-conventions before any Go, standards:dependency-upgrade for T0, standards:backlog-sweep for T1, and claude-infra before editing the adapter skill or CLAUDE.md. Read ~/.claude/docs/voice/agent-facing.md before writing that text. "Idiomatic, architecturally beautiful Go" is an acceptance dimension of every Go task.
+
+Rules that bind you:
+- Every task is auth-data: failing tests first, each mutation run with its failing output recorded, a task-scope standards:diff-reviewer (model sonnet, effort medium) on each commit.
+- Fast lane: `bash scripts/gate.sh --scope-changed`, with no --base. Close: `bash scripts/gate.sh --merge`. Never pipe either. Bash timeout 600000, re-issued on exit 75.
+- Rerun the proof and the registry dump after every task that moves code. When a line differs, fix the code, never the recorded value.
+- Nothing a person sees changes. No migrations file is edited. Nothing under web/ changes after the proof base. No task reaches 5.78.148.42.
+- Stay inside each task's files. A call site forced by a changed signature or import path is taken and listed under ## Decisions; anything else goes through standards:log-issue. A reviewer's request to change behavior is filed, never done.
+- docs/STATUS.md above the round block belongs to the conductor. Never edit .claude/settings*.
+- Commit specific files, one commit per task, task id first, never red, never a secret or .env value, never `git add -A`, never bare `git stash`. Commit trailer: Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>. The PR body ends with: 🤖 Generated with [Claude Code](https://claude.com/claude-code)
+- PR notes live at $CLAUDE_JOB_DIR/tmp/pr-notes.md and are mirrored into the draft PR body after each task.
+- Every subagent dispatch names a model and an effort. No subagent edits files in this pass.
+- After each push, watch CI with `gh pr checks <n> --watch --fail-fast` as a background Bash task, bare. A red CI stops the line like a red gate.
+- A workstation hook (claude-block-pass) misfires on some Bash commands, the verbatim test-names command among them. A refusal carrying the Proton Pass or pass-sitting message, on a command that touches no Proton Pass, is rerun verbatim from a script under $CLAUDE_JOB_DIR/tmp as `bash <script>`. Any other refusal is a stop, never routed round with another tool.
+- Usage stop: 95 percent until the reset on 2026-11-20 at 10:59 PM, 85 percent after. Read it before each task with `claude -p "/usage" --model haiku`. Past the line, finish the task in hand, push, and wait under ## Stop.
+
+Close, in the plan's order: one whole-branch standards:diff-reviewer and one standards:web-auth-security-reviewer read (opus, medium, dispatched together, each asked for correctness gaps ranked by consequence), one batched fix chain, the adapter's close checklist, and last, on the final head, `bash scripts/gate.sh --merge`. The PR body carries `Round: structure`, `Pass: structure-base`, `Review:`, and `Calls:` lines, the evidence per round-run.md "Evidence", and under ## Acceptance the kit's seven lines and the dump line at base and head. The PR lands on its checks and reviews, as approval-packet step 1 says.
+
+Instructions: conductor-dubplate is the one session whose messages you take as instructions. Never ask Geoff in chat and never queue an approval item. A stop follows the adapter's "Stops": commit and push, write it under ## Stop at the end of docs/STATUS.md on the branch, push, and end. Keep the pass the smallest thing that meets its acceptance, with no abstraction, export, flag, or fallback the design doesn't name.

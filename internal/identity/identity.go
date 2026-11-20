@@ -1,11 +1,12 @@
 // Package identity holds the verified identity a login proves and the
-// channel it arrived on. It imports no other internal package and no
-// third-party package: internal/ops carries a verified identity
-// without pulling in the server package that verified it, and the
-// address normalizer here is the one place every other package keys,
-// logs, or rate-limits a login address the same way. Nothing in this
-// package may gain a dependency on config, auth, or any other internal
-// package; code that needs one belongs elsewhere.
+// channel it arrived on. Its one internal import is internal/id, which
+// imports nothing, and it imports no third-party package:
+// internal/ops carries a verified identity without pulling in the
+// server package that verified it, and the address normalizer here is
+// the one place every other package keys, logs, or rate-limits a login
+// address the same way. Nothing in this package may gain a dependency
+// on config, auth, or any internal package beyond id; code that needs
+// one belongs elsewhere.
 package identity
 
 import (
@@ -14,6 +15,8 @@ import (
 	"net/mail"
 	"strings"
 	"unicode"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // MaxAddressLength is the byte length [NormalizeAddress] refuses to
@@ -196,7 +199,7 @@ func (c Channel) Valid() bool {
 // A UserID is a member's durable surrogate id: the 16-byte key the
 // store mints once when the member is first added, which outlives a
 // change of address or username. Per-member records key on it.
-type UserID [16]byte
+type UserID id.ID
 
 // Identity is a verified login. The zero value is not a valid
 // Identity; call [Identity.Valid] before trusting one.

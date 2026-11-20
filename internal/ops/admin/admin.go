@@ -14,7 +14,6 @@ package admin
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -22,10 +21,11 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // writeWait bounds how long a write waits for the store's write
@@ -103,15 +103,12 @@ func rosterActor(actor ops.Actor) auth.Actor {
 
 // parseUserID parses s as a member's wire id: exactly 32 lowercase hex
 // characters, never the zero id, which names no resolved member.
-// [hex.DecodeString] accepts uppercase, so s must also equal its own
-// re-encoding.
 func parseUserID(s string) (identity.UserID, error) {
-	var id identity.UserID
-	b, err := hex.DecodeString(s)
-	if err != nil || len(b) != len(id) || hex.EncodeToString(b) != s || identity.UserID(b) == id {
-		return id, ops.NewInvalidRequestError("user_id must be 32 lowercase hex characters naming a member")
+	v, err := id.Parse(s)
+	if err != nil || v.IsZero() {
+		return identity.UserID{}, ops.NewInvalidRequestError("user_id must be 32 lowercase hex characters naming a member")
 	}
-	return identity.UserID(b), nil
+	return identity.UserID(v), nil
 }
 
 // refusal maps a write's error to the seam's answer: an [*ops.Error]

@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The environment a re-executed test binary reads to run as a second
@@ -77,7 +77,7 @@ func runChild(mode, dir string) int {
 			return "", nil
 		}
 	}
-	r, err := newRunner(context.Background(), Config{Store: h, Backup: BackupConfig{Enabled: true}, Logger: logger}, b)
+	r, err := newRunner(context.Background(), Config{Store: h, Now: time.Now, Backup: BackupConfig{Enabled: true}, Logger: logger}, b)
 	if err != nil {
 		return fail(err)
 	}

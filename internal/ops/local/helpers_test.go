@@ -13,8 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // testBusy is every test store's busy timeout.
@@ -141,7 +142,7 @@ func newRunnerFor(t *testing.T, h *store.Handle, logs *syncBuffer, b body) *Runn
 	} else {
 		logger = slog.New(slog.DiscardHandler)
 	}
-	r, err := newRunner(context.Background(), Config{Store: h, Backup: BackupConfig{Enabled: true}, Logger: logger}, b)
+	r, err := newRunner(context.Background(), Config{Store: h, Now: time.Now, Backup: BackupConfig{Enabled: true}, Logger: logger}, b)
 	if err != nil {
 		t.Fatalf("newRunner: %v", err)
 	}
@@ -176,7 +177,7 @@ type record struct {
 }
 
 // newInstance returns a fresh owner instance no lease file names.
-func newInstance() string { return hex.EncodeToString(store.NewID()) }
+func newInstance() string { return id.New().String() }
 
 func nullable(v int64) any {
 	if v == 0 {
@@ -190,7 +191,8 @@ func nullable(v int64) any {
 func plant(t *testing.T, h *store.Handle, rec record) []byte {
 	t.Helper()
 	if rec.id == nil {
-		rec.id = store.NewID()
+		minted := id.New()
+		rec.id = minted[:]
 	}
 	if rec.kind == "" {
 		rec.kind = ops.KindBackup

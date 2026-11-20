@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestAccessor_SeesAnotherHandlesWrite opens two write handles on one

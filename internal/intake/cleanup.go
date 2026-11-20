@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/intake/gate"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/tus/tusd/v2/pkg/handler"
 )
 
@@ -181,7 +182,7 @@ func (in *Intake) cleanExtraction(ctx context.Context, id []byte) (int, error) {
 		return 0, nil
 	}
 
-	failing, err := queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
+	failing, err := store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
 		var member []byte
 		return member, rows.Scan(&member)
 	}, `SELECT id FROM submission_files WHERE submission_id = ? AND role != 'archive' AND verdict IS NOT NULL`, id)
@@ -204,7 +205,7 @@ func (in *Intake) cleanExtraction(ctx context.Context, id []byte) (int, error) {
 // cleanSubmission removes what the closed list takes of submission id's
 // bytes, at once after its verdict rather than at the next sweep.
 func (in *Intake) cleanSubmission(ctx context.Context, id []byte) error {
-	uploads, err := queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
+	uploads, err := store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
 		var file []byte
 		return file, rows.Scan(&file)
 	}, `SELECT f.id FROM submission_files f JOIN submissions s ON s.id = f.submission_id

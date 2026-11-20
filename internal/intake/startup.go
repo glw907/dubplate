@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/tus/tusd/v2/pkg/handler"
 )
 
@@ -79,7 +80,7 @@ func (in *Intake) reconcile(ctx context.Context) (int, error) {
 		size                 int64
 		member               bool
 	}
-	files, err := queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (stagedFile, error) {
+	files, err := store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (stagedFile, error) {
 		var f stagedFile
 		return f, rows.Scan(&f.submission, &f.id, &f.path, &f.size, &f.member)
 	}, stagedSet)
@@ -138,7 +139,7 @@ type upload struct {
 }
 
 func (in *Intake) unreceived(ctx context.Context) ([]upload, error) {
-	list, err := queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (upload, error) {
+	list, err := store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (upload, error) {
 		var u upload
 		return u, rows.Scan(&u.id, &u.size)
 	}, unreceivedUploads)

@@ -3,16 +3,16 @@ package intake
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // A state is a submission's place in its journey, as submissions.state
@@ -69,6 +69,8 @@ type submissions struct {
 	staging   string
 	now       func() time.Time
 	freeBytes func(dir string) (uint64, error)
+	// earliestAdmin names the owner of a collection the server creates.
+	earliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)
 	// sync flushes one file or directory to disk.
 	sync func(path string) error
 	// wake holds at most one poke. The store is the worker's queue, so a
@@ -77,10 +79,11 @@ type submissions struct {
 }
 
 func newSubmissions(h *store.Handle, log *slog.Logger, staging string, now func() time.Time,
-	freeBytes func(dir string) (uint64, error)) *submissions {
+	freeBytes func(dir string) (uint64, error),
+	earliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)) *submissions {
 	return &submissions{
 		store: h, log: log, staging: staging, now: now, freeBytes: freeBytes,
-		sync: syncPath, wake: make(chan struct{}, 1),
+		earliestAdmin: earliestAdmin, sync: syncPath, wake: make(chan struct{}, 1),
 	}
 }
 
@@ -104,14 +107,13 @@ func (s *submissions) poke() {
 }
 
 // parseID parses a submission or file id as the wire carries it: exactly
-// 32 lowercase hex characters, never the zero id. [hex.DecodeString]
-// accepts uppercase, so s must also equal its own re-encoding.
+// 32 lowercase hex characters, never the zero id.
 func parseID(s string) ([]byte, bool) {
-	b, err := hex.DecodeString(s)
-	if err != nil || len(b) != 16 || hex.EncodeToString(b) != s || [16]byte(b) == [16]byte{} {
+	v, err := id.Parse(s)
+	if err != nil || v.IsZero() {
 		return nil, false
 	}
-	return b, true
+	return v[:], true
 }
 
 // newSubmission is a member's request to create a submission.
@@ -161,7 +163,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 	free := s.readFree()
 	var c created
 	err := s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
-		coll, err := RouteCollection(ctx, tx, s.log, route)
+		coll, err := RouteCollection(ctx, tx, s.log, route, s.earliestAdmin)
 		if err != nil {
 			return err
 		}
@@ -187,7 +189,8 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 			return err
 		}
 
-		c = created{id: store.NewID()}
+		minted := id.New()
+		c = created{id: minted[:]}
 		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, uploader, collection_id, verdict_unit, container, state,
 			source, source_note, store_url, declared_bytes, reserved_bytes, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -197,7 +200,8 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 			return fmt.Errorf("write submission: %w", err)
 		}
 		for _, f := range n.manifest.Files {
-			file := createdFile{id: store.NewID(), path: f.Path}
+			fileID := id.New()
+			file := createdFile{id: fileID[:], path: f.Path}
 			_, err := tx.Exec(ctx, `INSERT INTO submission_files (id, submission_id, rel_path, size, role)
 				VALUES (?, ?, ?, ?, ?)`, file.id, c.id, []byte(f.Path), f.Size, roleOf(n.manifest.Container, f.Path))
 			if err != nil {
@@ -297,17 +301,17 @@ func move(ctx context.Context, tx *store.Tx, id []byte, at int64, to state, reas
 	return appendEvent(ctx, tx, id, at, string(to), reason)
 }
 
-// appendEvent writes an event for submission id at the seq after its
+// appendEvent writes an event for submission sub at the seq after its
 // latest. kind must be a state or the stalled event: the column carries
 // no CHECK, so a later rung adds a state without a table rebuild, and
 // this is where the vocabulary is closed.
-func appendEvent(ctx context.Context, tx *store.Tx, id []byte, at int64, kind, reason string) error {
+func appendEvent(ctx context.Context, tx *store.Tx, sub []byte, at int64, kind, reason string) error {
 	if !slices.Contains(states, state(kind)) && kind != eventStalled {
 		return fmt.Errorf("event kind %q is outside the journey's vocabulary", kind)
 	}
 	_, err := tx.Exec(ctx, `INSERT INTO submission_events (id, submission_id, seq, at, kind, reason)
 		SELECT ?, ?, coalesce(max(seq), 0) + 1, ?, ?, ? FROM submission_events WHERE submission_id = ?`,
-		store.NewID(), id, at, kind, nullable(reason), id)
+		id.New(), sub, at, kind, nullable(reason), sub)
 	if err != nil {
 		return fmt.Errorf("append %s event: %w", kind, err)
 	}

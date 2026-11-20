@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // testSeamLimits are the limits testLimits holds, as the seam's

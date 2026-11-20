@@ -335,8 +335,10 @@ func TestAddMemberRequest_HasNoAdminField(t *testing.T) {
 // allowedInternalImports are the internal imports internal/ops may
 // carry: the network actor's channel type (Global constraints) and the
 // reject set, a leaf that imports nothing, whose reasons the submission
-// operations carry on the wire.
+// operations carry on the wire, and the id package, another leaf, whose
+// parser checks a job handle's shape.
 var allowedInternalImports = []string{
+	"github.com/glw907/dubplate/internal/id",
 	"github.com/glw907/dubplate/internal/identity",
 	"github.com/glw907/dubplate/internal/reject",
 }

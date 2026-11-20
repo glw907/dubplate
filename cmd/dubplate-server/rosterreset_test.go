@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The rendered fixture's member addresses and the admin's display name.

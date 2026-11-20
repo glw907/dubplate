@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/backup"
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // cancelPoll is how often a running job's owner re-reads
@@ -50,6 +51,7 @@ func (r *Runner) backupJob(fraction float64, keep int, archiveRetention time.Dur
 			SnapshotKeep:     keep,
 			ArchiveRetention: archiveRetention,
 			Logger:           r.logger,
+			Now:              r.now,
 		}.Run
 	}
 }
@@ -70,10 +72,6 @@ type job struct {
 	cancel context.CancelFunc
 }
 
-// now returns the current time as the store records one: integer UTC
-// microseconds.
-func now() int64 { return time.Now().UnixMicro() }
-
 // storeContext returns a context for one of a job's own store calls,
 // which must work after the job's context is done: its terminal write
 // above all.
@@ -85,9 +83,9 @@ func storeContext(ctx context.Context) (context.Context, context.CancelFunc) {
 // recorded. Its context carries ctx's values but never its
 // cancellation, since the job outlives the call that starts it.
 func newJob(ctx context.Context, b body) *job {
-	id := store.NewID()
+	minted := id.New()
 	jctx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-	return &job{id: id, handle: handleOf(id), body: b, ctx: jctx, cancel: cancel}
+	return &job{id: minted[:], handle: handleOf(minted[:]), body: b, ctx: jctx, cancel: cancel}
 }
 
 // insert records j as a queued job of kind owned by this runner's
@@ -99,7 +97,7 @@ func (r *Runner) insert(ctx context.Context, actor ops.Actor, kind string, reten
 	ctx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
 	id := j.id
-	at := now()
+	at := r.now().UnixMicro()
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at)
 VALUES (?, ?, ?, 'queued', ?, ?, ?)`, id, kind, at, r.lease.Instance(), actor.String(), at); err != nil {
@@ -157,13 +155,13 @@ func (r *Runner) markRunning(j *job) (bool, error) {
 		state string
 	)
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		t := now()
+		t := r.now().UnixMicro()
 		res, err := tx.Exec(ctx, `UPDATE jobs SET state = 'running', started_at = ?, updated_at = ?
 WHERE id = ? AND state = 'queued'`, t, t, j.id)
 		if err != nil {
 			return fmt.Errorf("mark job running: %w", err)
 		}
-		if ran, err = affected(res); err != nil || ran {
+		if ran, err = store.Affected(res); err != nil || ran {
 			return err
 		}
 		return tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", j.id).Scan(&state)
@@ -214,14 +212,14 @@ func (r *Runner) finish(j *job, o outcome) error {
 		state string
 	)
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		t := now()
+		t := r.now().UnixMicro()
 		res, err := tx.Exec(ctx, `UPDATE jobs SET state = ?, finished_at = ?, updated_at = ?,
 	progress = coalesce(nullif(?, ''), progress), failure_code = nullif(?, ''), failure_message = nullif(?, '')
 WHERE id = ? AND state = 'running'`, string(o.state), t, t, o.progress, o.code, o.message, j.id)
 		if err != nil {
 			return fmt.Errorf("record job %s: %w", o.state, err)
 		}
-		if done, err = affected(res); err != nil || done {
+		if done, err = store.Affected(res); err != nil || done {
 			return err
 		}
 		return tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", j.id).Scan(&state)
@@ -244,7 +242,7 @@ func (r *Runner) progress(j *job, phase string) error {
 	var requested bool
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `UPDATE jobs SET progress = ?, updated_at = ? WHERE id = ? AND state = 'running'`,
-			phase, now(), j.id); err != nil {
+			phase, r.now().UnixMicro(), j.id); err != nil {
 			return fmt.Errorf("record job progress: %w", err)
 		}
 		return tx.QueryRow(ctx, "SELECT cancel_requested FROM jobs WHERE id = ?", j.id).Scan(&requested)
@@ -302,7 +300,7 @@ func (r *Runner) requestCancel(ctx context.Context, id []byte) error {
 		if err != nil {
 			return fmt.Errorf("read job %s: %w", h, err)
 		}
-		t := now()
+		t := r.now().UnixMicro()
 		switch ops.JobState(state) {
 		case ops.JobQueued:
 			_, err = tx.Exec(ctx, `UPDATE jobs SET state = 'canceled', cancel_requested = 1, finished_at = ?, updated_at = ?
@@ -357,28 +355,17 @@ FROM jobs WHERE id = ?`, id).Scan(&st.Kind, &state, &owner, &phase, &code, &mess
 	st.ID = h
 	st.State = ops.JobState(state)
 	st.Phase, st.FailureCode, st.FailureMessage = phase.String, code.String, message.String
-	st.QueuedAt, st.UpdatedAt = micros(queued), micros(updated)
+	st.QueuedAt, st.UpdatedAt = store.Micros(queued), store.Micros(updated)
 	st.StartedAt, st.FinishedAt = optionalMicros(started), optionalMicros(finished)
 	return st, owner, nil
 }
-
-func micros(us int64) time.Time { return time.UnixMicro(us).UTC() }
 
 func optionalMicros(us sql.NullInt64) *time.Time {
 	if !us.Valid {
 		return nil
 	}
-	t := micros(us.Int64)
+	t := store.Micros(us.Int64)
 	return &t
-}
-
-// affected reports whether res changed a row.
-func affected(res sql.Result) (bool, error) {
-	n, err := res.RowsAffected()
-	if err != nil {
-		return false, fmt.Errorf("count changed rows: %w", err)
-	}
-	return n > 0, nil
 }
 
 // parseID parses h as a job handle and returns the record id it names.
@@ -386,7 +373,11 @@ func parseID(h ops.Handle) ([]byte, error) {
 	if _, err := ops.ParseHandle(string(h)); err != nil {
 		return nil, err
 	}
-	return hex.DecodeString(string(h))
+	v, err := id.Parse(string(h))
+	if err != nil {
+		return nil, err
+	}
+	return v[:], nil
 }
 
 func handleOf(id []byte) ops.Handle { return ops.Handle(hex.EncodeToString(id)) }

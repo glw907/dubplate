@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // A verdict is the gate's judgment on a checking submission, as the
@@ -46,15 +47,15 @@ type memberVerdict struct {
 	result gate.FileResult
 }
 
-// commitVerdict writes v for checking submission id in one Update: each
+// commitVerdict writes v for checking submission sub in one Update: each
 // file's result, the members' rows, the warnings, the album key, the
 // move, and, when the submission goes on, the reservation trued down to
 // the files it keeps. A submission that left checking meanwhile fails
 // the move, and none of it lands.
-func (s *submissions) commitVerdict(ctx context.Context, id []byte, v verdict) error {
+func (s *submissions) commitVerdict(ctx context.Context, sub []byte, v verdict) error {
 	return s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
 		for _, f := range v.files {
-			if err := writeResult(ctx, tx, id, f.id, f.result); err != nil {
+			if err := writeResult(ctx, tx, sub, f.id, f.result); err != nil {
 				return err
 			}
 		}
@@ -64,21 +65,21 @@ func (s *submissions) commitVerdict(ctx context.Context, id []byte, v verdict) e
 				role = "audio"
 			}
 			if _, err := tx.Exec(ctx, `INSERT INTO submission_files (id, submission_id, rel_path, size, role)
-				VALUES (?, ?, ?, ?, ?)`, m.id, id, m.path, m.size, role); err != nil {
+				VALUES (?, ?, ?, ?, ?)`, m.id, sub, m.path, m.size, role); err != nil {
 				return fmt.Errorf("write extracted member: %w", err)
 			}
-			if err := writeResult(ctx, tx, id, m.id, m.result); err != nil {
+			if err := writeResult(ctx, tx, sub, m.id, m.result); err != nil {
 				return err
 			}
 		}
 		for _, w := range v.warnings {
 			if _, err := tx.Exec(ctx, `INSERT INTO submission_warnings (id, submission_id, code, subject, at)
-				VALUES (?, ?, ?, ?, ?)`, store.NewID(), id, string(w.Reason.Code), blob(w.Path), at); err != nil {
+				VALUES (?, ?, ?, ?, ?)`, id.New(), sub, string(w.Reason.Code), blob(w.Path), at); err != nil {
 				return fmt.Errorf("write warning: %w", err)
 			}
 		}
 		if v.albumKey != nil {
-			if _, err := tx.Exec(ctx, `UPDATE submissions SET album_key = ? WHERE id = ?`, v.albumKey, id); err != nil {
+			if _, err := tx.Exec(ctx, `UPDATE submissions SET album_key = ? WHERE id = ?`, v.albumKey, sub); err != nil {
 				return fmt.Errorf("write album key: %w", err)
 			}
 		}
@@ -86,19 +87,19 @@ func (s *submissions) commitVerdict(ctx context.Context, id []byte, v verdict) e
 		to, reason := v.to, v.reason
 		if to == stateAccepted {
 			var err error
-			if to, reason, err = accept(ctx, tx, id); err != nil {
+			if to, reason, err = accept(ctx, tx, sub); err != nil {
 				return err
 			}
 		}
 		if to == stateMatching || to == stateAccepted {
 			_, err := tx.Exec(ctx, `UPDATE submissions SET reserved_bytes = min(reserved_bytes,
 				(SELECT coalesce(sum(size), 0) FROM submission_files
-					WHERE submission_id = ?1 AND role != 'archive' AND verdict IS NULL)) WHERE id = ?1`, id)
+					WHERE submission_id = ?1 AND role != 'archive' AND verdict IS NULL)) WHERE id = ?1`, sub)
 			if err != nil {
 				return fmt.Errorf("true up reservation: %w", err)
 			}
 		}
-		return move(ctx, tx, id, at, to, reason, stateChecking)
+		return move(ctx, tx, sub, at, to, reason, stateChecking)
 	})
 }
 

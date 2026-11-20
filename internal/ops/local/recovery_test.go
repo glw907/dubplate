@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestNew_RecoversDeadOwners pins spec criterion 4. Owner A's lease
@@ -89,7 +89,7 @@ func TestNew_UnreadableLease(t *testing.T) {
 	touch(t, path, 0)
 	id := plant(t, h, record{state: "running", owner: owner, started: time.Now().UnixMicro()})
 
-	_, err := New(context.Background(), Config{Store: h, Logger: slog.New(slog.DiscardHandler)})
+	_, err := New(context.Background(), Config{Store: h, Now: time.Now, Logger: slog.New(slog.DiscardHandler)})
 	if err == nil || !strings.Contains(err.Error(), path) {
 		t.Fatalf("New() = %v, want a refusal naming %s", err, path)
 	}

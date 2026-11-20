@@ -3,9 +3,9 @@ package ops
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -31,7 +31,7 @@ type Actor struct {
 
 // LocalActor builds the local kind of [Actor] from username, the
 // operating-system user a CLI verb runs as (the shape
-// internal/engine/store's ownerName already produces, which never
+// internal/store's ownerName already produces, which never
 // returns an empty string). It renders as "local:<username>" on the
 // wire and in every log line, and its channel reads as
 // [identity.ChannelCommandLine].
@@ -102,10 +102,7 @@ type Handle string
 // uppercase, or non-hex s is refused with an [*Error] wrapping
 // [ErrInvalidRequest] and naming s.
 func ParseHandle(s string) (Handle, error) {
-	if len(s) != handleLen || s != strings.ToLower(s) {
-		return "", NewInvalidRequestError(fmt.Sprintf("job handle %q: want %d lowercase hex characters", s, handleLen))
-	}
-	if _, err := hex.DecodeString(s); err != nil {
+	if _, err := id.Parse(s); err != nil {
 		return "", NewInvalidRequestError(fmt.Sprintf("job handle %q: want %d lowercase hex characters", s, handleLen))
 	}
 	return Handle(s), nil

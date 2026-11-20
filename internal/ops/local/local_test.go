@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // succeed is a body that returns at once with no final text.
@@ -37,7 +37,7 @@ func blockUntil(release <-chan struct{}) (body, <-chan struct{}) {
 
 func TestNew_RefusesNilLogger(t *testing.T) {
 	dir, h := newStore(t)
-	_, err := New(context.Background(), Config{Store: h})
+	_, err := New(context.Background(), Config{Store: h, Now: time.Now})
 	if err == nil || !strings.Contains(err.Error(), "nil logger") {
 		t.Fatalf("New() = %v, want a nil-logger refusal", err)
 	}
@@ -50,7 +50,7 @@ func TestNew_RefusesNilLogger(t *testing.T) {
 // file exists while it is open and is gone after its close.
 func TestClose_ReleasesInstanceLease(t *testing.T) {
 	dir, h := newStore(t)
-	r, err := New(context.Background(), Config{Store: h, Logger: slog.New(slog.DiscardHandler)})
+	r, err := New(context.Background(), Config{Store: h, Now: time.Now, Logger: slog.New(slog.DiscardHandler)})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestClose_ReleasesInstanceLease(t *testing.T) {
 // and takes no kind lease.
 func TestStartBackup_FlagOff(t *testing.T) {
 	dir, h := newStore(t)
-	r, err := New(context.Background(), Config{Store: h, Logger: slog.New(slog.DiscardHandler)})
+	r, err := New(context.Background(), Config{Store: h, Now: time.Now, Logger: slog.New(slog.DiscardHandler)})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -231,7 +231,7 @@ func TestClose_WaitsForRunningJob(t *testing.T) {
 	_, h := newStore(t)
 	release := make(chan struct{})
 	b, started := blockUntil(release)
-	r, err := newRunner(context.Background(), Config{Store: h, Backup: BackupConfig{Enabled: true}, Logger: slog.New(slog.DiscardHandler)}, b)
+	r, err := newRunner(context.Background(), Config{Store: h, Now: time.Now, Backup: BackupConfig{Enabled: true}, Logger: slog.New(slog.DiscardHandler)}, b)
 	if err != nil {
 		t.Fatalf("newRunner: %v", err)
 	}
@@ -375,7 +375,7 @@ func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
 // and another process's recovery would interrupt a running job.
 func TestStartBackup_AfterCloseRefused(t *testing.T) {
 	_, h := newStore(t)
-	r, err := newRunner(context.Background(), Config{Store: h, Backup: BackupConfig{Enabled: true}, Logger: slog.New(slog.DiscardHandler)}, succeed)
+	r, err := newRunner(context.Background(), Config{Store: h, Now: time.Now, Backup: BackupConfig{Enabled: true}, Logger: slog.New(slog.DiscardHandler)}, succeed)
 	if err != nil {
 		t.Fatalf("newRunner: %v", err)
 	}

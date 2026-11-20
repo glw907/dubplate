@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // stallMailWait bounds the stall mail: the address read and every send.
@@ -72,7 +72,7 @@ func (in *Intake) expireIdle(ctx context.Context, window time.Duration) error {
 	type idleFile struct {
 		submission, file []byte
 	}
-	files, err := queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (idleFile, error) {
+	files, err := store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (idleFile, error) {
 		var f idleFile
 		return f, rows.Scan(&f.submission, &f.file)
 	}, `SELECT s.id, f.id FROM submissions s JOIN submission_files f ON f.submission_id = s.id
@@ -109,7 +109,7 @@ func (in *Intake) expireIdle(ctx context.Context, window time.Duration) error {
 // expireHeld expires each check that could not run and has waited past
 // hold for a retry.
 func (in *Intake) expireHeld(ctx context.Context, hold time.Duration) error {
-	ids, err := queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
+	ids, err := store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
 		var id []byte
 		return id, rows.Scan(&id)
 	}, `SELECT id FROM submissions WHERE state = ? AND updated_at < ?`, stateCheckUnfinished, in.cfg.Now().Add(-hold).UnixMicro())

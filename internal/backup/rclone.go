@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // waitDelay bounds how long a canceled rclone has to exit after its

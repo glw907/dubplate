@@ -18,9 +18,9 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 func TestRegisterIntakeConfig_StagingWallRow(t *testing.T) {
@@ -504,7 +504,7 @@ func TestTusMaxSizeIsTheAlbumCapCeiling(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = h.Close() })
-	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now})
+	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now, EarliestAdmin: auth.EarliestAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

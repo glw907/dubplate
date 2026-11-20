@@ -215,7 +215,7 @@ no `corpus/`.
 task, bare. The fallback is `gh run watch <run id> --exit-status`.
 
 **Risk-class path map**: `auth-data` for `internal/auth/**`, `internal/serve/**`, `internal/webapp/**`,
-`internal/engine/store/migrations/**`, `cmd/dubplate-server/**`, `internal/intake/**`,
+`internal/store/migrations/**`, `cmd/dubplate-server/**`, `internal/intake/**`,
 `web/src/routes/{login,members}/**`, and `systemd/**`. `runner` for `scripts/`, `.claude/`, and `.github/`. `ordinary`
 otherwise. `internal/intake/**` joined on 2026-10-12: the tus wrapper, the gate over member-supplied bytes, and the
 worker are the upload path's member gate, and the `intake-1` security reads found what four task reviews had not.

@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // The production settings these tests plant rows for.

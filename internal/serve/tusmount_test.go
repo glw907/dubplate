@@ -14,9 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // seedUpload writes one member with an uploading submission of one
@@ -24,7 +26,7 @@ import (
 // the file id.
 func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byte, []byte) {
 	t.Helper()
-	member, coll, submission, file := store.NewID(), store.NewID(), store.NewID(), store.NewID()
+	member, coll, submission, file := id.New(), id.New(), id.New(), id.New()
 	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 	defer cancel()
 	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
@@ -35,7 +37,7 @@ func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byt
 			{`INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at)
 				VALUES (?, 'member@example.invalid', 'Member', 'member', 1, 1, 1)`, []any{member}},
 			{`INSERT INTO collections (id, name, root_path, owner, visibility, writer)
-				VALUES (?, 'Library', ?, ?, 'group', 'server')`, []any{coll, []byte(hex.EncodeToString(coll)), member}},
+				VALUES (?, 'Library', ?, ?, 'group', 'server')`, []any{coll, []byte(coll.String()), member}},
 			{`INSERT INTO submissions (id, uploader, collection_id, verdict_unit, container, state, source,
 				declared_bytes, reserved_bytes, created_at, updated_at)
 				VALUES (?, ?, ?, 'album', 'files', 'uploading', 'cd', ?, ?, 1, 1)`, []any{submission, member, coll, size, size}},
@@ -51,7 +53,7 @@ func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byt
 	if err != nil {
 		t.Fatalf("seed upload: %v", err)
 	}
-	return identity.UserID(member), submission, file
+	return identity.UserID(member), submission[:], file[:]
 }
 
 // TestTusPatchOutlivesTheServerTimeouts is AC 9: a PATCH whose body
@@ -81,7 +83,7 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 
 	staging := t.TempDir()
 	logger := slog.New(slog.DiscardHandler)
-	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now})
+	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now, EarliestAdmin: auth.EarliestAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}

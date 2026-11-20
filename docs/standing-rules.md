@@ -53,8 +53,7 @@ The last sweep: `docs/research/2026-10-04-dependency-sweep.md`.
 ## Gate legs
 
 `bash scripts/check.sh` before every commit — `make check` (vet,
-golangci-lint, test, tidy-check) over the whole module (`./...`;
-`_salvage/` is invisible to the go tool), shellcheck over `scripts/*`,
+golangci-lint, test, tidy-check) over the whole module (`./...`), shellcheck over `scripts/*`,
 ruff (`check` and `format
 --check`) over every tracked `*.py` (the oracle shim and its derivation
 siblings under `internal/harness/oracle/`, that package's FLAC template
@@ -67,8 +66,7 @@ committed table),
 the photo pool integrity check (`node tools/photos/check.mjs integrity`),
 gitleaks over
 the tracked worktree (`--no-git`; the corpus under `corpus/cases/` is the repo's
-first large data directory), vale (Go comment prose, `_salvage/`
-excluded), a pattern-filtered `systemd-analyze verify` (hard-required:
+first large data directory), vale (Go comment prose), a pattern-filtered `systemd-analyze verify` (hard-required:
 a missing `systemd-analyze` fails the gate), and the state-dir agreement
 leg, which lives in `scripts/check-state-dir.sh` (the full gate runs it, it
 runs alone in seconds, and shellcheck covers it with the rest of
