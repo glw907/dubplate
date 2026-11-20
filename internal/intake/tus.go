@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/tus/tusd/v2/pkg/filestore"
 	"github.com/tus/tusd/v2/pkg/handler"
@@ -149,8 +150,11 @@ func (m *tusMount) checkCreate(hook handler.HookEvent) (handler.HTTPResponse, ha
 // receive runs receipt for an upload that has just finished. Its id is
 // a file id checkCreate minted.
 func (m *tusMount) receive(hook handler.HookEvent) (handler.HTTPResponse, error) {
-	file, _ := hex.DecodeString(hook.Upload.ID)
-	switch err := m.subs.receive(hook.Context, file); {
+	file, err := id.Parse(hook.Upload.ID)
+	if err == nil {
+		err = m.subs.receive(hook.Context, file[:])
+	}
+	switch {
 	case errors.Is(err, errWrongState):
 		return handler.HTTPResponse{}, errTusClosed
 	case err != nil:

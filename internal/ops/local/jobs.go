@@ -11,6 +11,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -85,9 +86,9 @@ func storeContext(ctx context.Context) (context.Context, context.CancelFunc) {
 // recorded. Its context carries ctx's values but never its
 // cancellation, since the job outlives the call that starts it.
 func newJob(ctx context.Context, b body) *job {
-	id := store.NewID()
+	minted := id.New()
 	jctx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-	return &job{id: id, handle: handleOf(id), body: b, ctx: jctx, cancel: cancel}
+	return &job{id: minted[:], handle: handleOf(minted[:]), body: b, ctx: jctx, cancel: cancel}
 }
 
 // insert records j as a queued job of kind owned by this runner's
@@ -386,7 +387,11 @@ func parseID(h ops.Handle) ([]byte, error) {
 	if _, err := ops.ParseHandle(string(h)); err != nil {
 		return nil, err
 	}
-	return hex.DecodeString(string(h))
+	v, err := id.Parse(string(h))
+	if err != nil {
+		return nil, err
+	}
+	return v[:], nil
 }
 
 func handleOf(id []byte) ops.Handle { return ops.Handle(hex.EncodeToString(id)) }

@@ -7,12 +7,12 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
 )
@@ -43,10 +43,10 @@ var errNestedRoot = errors.New("collection root nests with an existing root")
 // live admin it logs and returns an [ops.ErrInternal] error, which cannot
 // happen after bootstrap.
 func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route Route) ([]byte, error) {
-	var id []byte
-	err := tx.QueryRow(ctx, `SELECT id FROM collections WHERE intake_route = ?`, string(route)).Scan(&id)
+	var coll []byte
+	err := tx.QueryRow(ctx, `SELECT id FROM collections WHERE intake_route = ?`, string(route)).Scan(&coll)
 	if err == nil {
-		return id, nil
+		return coll, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("find %s collection: %w", route, err)
@@ -63,8 +63,9 @@ func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route 
 		return nil, fmt.Errorf("find collection owner: %w", err)
 	}
 
-	id = store.NewID()
-	root := []byte(hex.EncodeToString(id))
+	minted := id.New()
+	coll = minted[:]
+	root := []byte(minted.String())
 	if !gate.ValidPath(root) {
 		return nil, fmt.Errorf("collection root %q is not a valid path", root)
 	}
@@ -72,11 +73,11 @@ func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route 
 		return nil, err
 	}
 	_, err = tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
-		VALUES (?, ?, ?, ?, 'group', 'server', ?)`, id, routeNames[route], root, owner, string(route))
+		VALUES (?, ?, ?, ?, 'group', 'server', ?)`, coll, routeNames[route], root, owner, string(route))
 	if err != nil {
 		return nil, fmt.Errorf("create %s collection: %w", route, err)
 	}
-	return id, nil
+	return coll, nil
 }
 
 // checkNoNesting returns [errNestedRoot] when root equals, sits inside, or

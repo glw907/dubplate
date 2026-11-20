@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // childActionEnv and childStateDirEnv tell a re-executed test binary
@@ -271,7 +273,7 @@ func insertFinished(t *testing.T, h *Handle, kind, state string, finished int64,
 	err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
 		_, err := tx.Exec(ctx,
 			"INSERT INTO jobs (id, kind, at, state, owner_instance, actor, progress, updated_at, finished_at) VALUES (?, ?, 1, ?, ?, 'local:test', ?, ?, ?)",
-			NewID(), kind, state, testInstance, progress, finished, finished)
+			id.New(), kind, state, testInstance, progress, finished, finished)
 		return err
 	})
 	if err != nil {

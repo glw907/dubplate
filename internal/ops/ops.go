@@ -3,9 +3,9 @@ package ops
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -102,10 +102,7 @@ type Handle string
 // uppercase, or non-hex s is refused with an [*Error] wrapping
 // [ErrInvalidRequest] and naming s.
 func ParseHandle(s string) (Handle, error) {
-	if len(s) != handleLen || s != strings.ToLower(s) {
-		return "", NewInvalidRequestError(fmt.Sprintf("job handle %q: want %d lowercase hex characters", s, handleLen))
-	}
-	if _, err := hex.DecodeString(s); err != nil {
+	if _, err := id.Parse(s); err != nil {
 		return "", NewInvalidRequestError(fmt.Sprintf("job handle %q: want %d lowercase hex characters", s, handleLen))
 	}
 	return Handle(s), nil

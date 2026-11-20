@@ -3,7 +3,6 @@ package intake
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 )
@@ -104,14 +104,13 @@ func (s *submissions) poke() {
 }
 
 // parseID parses a submission or file id as the wire carries it: exactly
-// 32 lowercase hex characters, never the zero id. [hex.DecodeString]
-// accepts uppercase, so s must also equal its own re-encoding.
+// 32 lowercase hex characters, never the zero id.
 func parseID(s string) ([]byte, bool) {
-	b, err := hex.DecodeString(s)
-	if err != nil || len(b) != 16 || hex.EncodeToString(b) != s || [16]byte(b) == [16]byte{} {
+	v, err := id.Parse(s)
+	if err != nil || v.IsZero() {
 		return nil, false
 	}
-	return b, true
+	return v[:], true
 }
 
 // newSubmission is a member's request to create a submission.
@@ -187,7 +186,8 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 			return err
 		}
 
-		c = created{id: store.NewID()}
+		minted := id.New()
+		c = created{id: minted[:]}
 		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, uploader, collection_id, verdict_unit, container, state,
 			source, source_note, store_url, declared_bytes, reserved_bytes, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -197,7 +197,8 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 			return fmt.Errorf("write submission: %w", err)
 		}
 		for _, f := range n.manifest.Files {
-			file := createdFile{id: store.NewID(), path: f.Path}
+			fileID := id.New()
+			file := createdFile{id: fileID[:], path: f.Path}
 			_, err := tx.Exec(ctx, `INSERT INTO submission_files (id, submission_id, rel_path, size, role)
 				VALUES (?, ?, ?, ?, ?)`, file.id, c.id, []byte(f.Path), f.Size, roleOf(n.manifest.Container, f.Path))
 			if err != nil {
@@ -297,17 +298,17 @@ func move(ctx context.Context, tx *store.Tx, id []byte, at int64, to state, reas
 	return appendEvent(ctx, tx, id, at, string(to), reason)
 }
 
-// appendEvent writes an event for submission id at the seq after its
+// appendEvent writes an event for submission sub at the seq after its
 // latest. kind must be a state or the stalled event: the column carries
 // no CHECK, so a later rung adds a state without a table rebuild, and
 // this is where the vocabulary is closed.
-func appendEvent(ctx context.Context, tx *store.Tx, id []byte, at int64, kind, reason string) error {
+func appendEvent(ctx context.Context, tx *store.Tx, sub []byte, at int64, kind, reason string) error {
 	if !slices.Contains(states, state(kind)) && kind != eventStalled {
 		return fmt.Errorf("event kind %q is outside the journey's vocabulary", kind)
 	}
 	_, err := tx.Exec(ctx, `INSERT INTO submission_events (id, submission_id, seq, at, kind, reason)
 		SELECT ?, ?, coalesce(max(seq), 0) + 1, ?, ?, ? FROM submission_events WHERE submission_id = ?`,
-		store.NewID(), id, at, kind, nullable(reason), id)
+		id.New(), sub, at, kind, nullable(reason), sub)
 	if err != nil {
 		return fmt.Errorf("append %s event: %w", kind, err)
 	}

@@ -11,6 +11,8 @@ import (
 	"time"
 
 	sqlite "modernc.org/sqlite"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // precreateFile makes an empty file at path, the shape serve's
@@ -526,7 +528,7 @@ func TestBusyErrorClassifiesExtendedCode(t *testing.T) {
 func TestHandle_QueryRow(t *testing.T) {
 	h := writeHandle(t, currentStore(t))
 	ctx := deadline(t, 5*time.Second)
-	jobID := NewID()
+	jobID := id.New()
 	err := h.Update(ctx, func(ctx context.Context, tx *Tx) error {
 		_, err := tx.Exec(ctx,
 			`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
@@ -545,10 +547,10 @@ func TestHandle_QueryRow(t *testing.T) {
 		t.Errorf("state = %q, want queued", state)
 	}
 
-	var id []byte
+	var got []byte
 	err = h.QueryRow(ctx,
 		`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
-		 VALUES (?, 'backup', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, NewID()).Scan(&id)
+		 VALUES (?, 'backup', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, id.New()).Scan(&got)
 	if !errors.Is(classifyErr(err), errReadOnly) {
 		t.Errorf("write through the read path: err = %v, want read-only", err)
 	}
@@ -564,7 +566,7 @@ func TestHandle_Query(t *testing.T) {
 		for _, kind := range []string{"c", "a", "b"} {
 			if _, err := tx.Exec(ctx,
 				`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
-				 VALUES (?, ?, 1, 'queued', 'inst', 'local:test', 0, 1)`, NewID(), kind); err != nil {
+				 VALUES (?, ?, 1, 'queued', 'inst', 'local:test', 0, 1)`, id.New(), kind); err != nil {
 				return err
 			}
 		}
@@ -595,7 +597,7 @@ func TestHandle_Query(t *testing.T) {
 
 	rows, err = h.Query(ctx,
 		`INSERT INTO jobs (id, kind, at, state, owner_instance, actor, cancel_requested, updated_at)
-		 VALUES (?, 'd', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, NewID())
+		 VALUES (?, 'd', 1, 'queued', 'inst', 'local:test', 0, 1) RETURNING id`, id.New())
 	if err == nil {
 		for rows.Next() {
 		}

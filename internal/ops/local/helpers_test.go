@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -176,7 +177,7 @@ type record struct {
 }
 
 // newInstance returns a fresh owner instance no lease file names.
-func newInstance() string { return hex.EncodeToString(store.NewID()) }
+func newInstance() string { return id.New().String() }
 
 func nullable(v int64) any {
 	if v == 0 {
@@ -190,7 +191,8 @@ func nullable(v int64) any {
 func plant(t *testing.T, h *store.Handle, rec record) []byte {
 	t.Helper()
 	if rec.id == nil {
-		rec.id = store.NewID()
+		minted := id.New()
+		rec.id = minted[:]
 	}
 	if rec.kind == "" {
 		rec.kind = ops.KindBackup

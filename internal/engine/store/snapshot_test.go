@@ -15,6 +15,8 @@ import (
 	"testing"
 	"testing/fstest"
 	"time"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // populatedStore returns a store migrated to version 1 of the
@@ -309,7 +311,7 @@ func insertJob(ctx context.Context, h *Handle, kind string) error {
 	return h.Update(ctx, func(ctx context.Context, tx *Tx) error {
 		_, err := tx.Exec(ctx,
 			"INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at) VALUES (?, ?, 1, 'queued', ?, 'local:test', 1)",
-			NewID(), kind, testInstance)
+			id.New(), kind, testInstance)
 		return err
 	})
 }
@@ -462,7 +464,7 @@ func TestBackupCopy_UncommittedWrite(t *testing.T) {
 		t.Fatalf("begin on the second connection: %v", err)
 	}
 	t.Cleanup(func() { _ = tx.Rollback() })
-	if _, err := tx.Exec("INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at) VALUES (?, 'marked', 1, 'queued', ?, 'local:test', 1)", NewID(), testInstance); err != nil {
+	if _, err := tx.Exec("INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at) VALUES (?, 'marked', 1, 'queued', ?, 'local:test', 1)", id.New(), testInstance); err != nil {
 		t.Fatalf("uncommitted insert: %v", err)
 	}
 

@@ -13,7 +13,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -258,8 +258,9 @@ func (in *Intake) judgeZIP(ctx context.Context, sub checked, lim Limits) (verdic
 	ids := make([][]byte, len(walk.Members))
 	names := make([]string, len(walk.Members))
 	for i := range walk.Members {
-		ids[i] = store.NewID()
-		names[i] = hex.EncodeToString(ids[i])
+		minted := id.New()
+		ids[i] = minted[:]
+		names[i] = minted.String()
 	}
 	if err := walk.Extract(ctx, in.root, dir, names); err != nil {
 		return zipFault(archive, err)

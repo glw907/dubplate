@@ -10,6 +10,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // errNoGeneration reports a store whose settings_generation table has
@@ -116,7 +117,7 @@ func readTxRows(ctx context.Context, tx *store.Tx) ([]Row, error) {
 // or newValue is stored as NULL.
 func insertAudit(ctx context.Context, tx *store.Tx, at int64, kind, actor, channel, key string, oldValue, newValue any) error {
 	_, err := tx.Exec(ctx, `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, store.NewID(), at, kind, actor, channel, key, oldValue, newValue)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id.New(), at, kind, actor, channel, key, oldValue, newValue)
 	return err
 }
 

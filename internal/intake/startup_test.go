@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 )
 
@@ -23,7 +24,7 @@ func TestStartRefusedAtTheLease(t *testing.T) {
 	if err := os.Remove(f.path(tusOf(c.files[0].id))); err != nil {
 		t.Fatal(err)
 	}
-	orphan := "submissions/" + wireID(store.NewID()) + "/x/leftover"
+	orphan := "submissions/" + id.New().String() + "/x/leftover"
 	f.write(t, orphan, []byte("bytes"))
 
 	held, err := f.h.TakeKindLease("intake")
@@ -162,7 +163,7 @@ func TestStartupCleansUpAndReceives(t *testing.T) {
 	f := newIntakeFixture(t)
 	m := member(t, f.h)
 
-	orphan := "submissions/" + wireID(store.NewID())
+	orphan := "submissions/" + id.New().String()
 	f.write(t, orphan+"/x/leftover", []byte("bytes"))
 
 	tracks := twoTrackAlbum(t)

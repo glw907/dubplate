@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -469,7 +470,7 @@ func TestBackupCmd_Conflict(t *testing.T) {
 func plantCatalogTracks(t *testing.T, stateDir string, n int) {
 	t.Helper()
 	updateStore(t, stateDir, func(ctx context.Context, tx *store.Tx) error {
-		user, coll, album := store.NewID(), store.NewID(), store.NewID()
+		user, coll, album := id.New(), id.New(), id.New()
 		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
@@ -483,7 +484,7 @@ VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); er
 		}
 		for i := range n {
 			if _, err := tx.Exec(ctx, `INSERT INTO tracks (id, album_id, collection_id, rel_path, created_at, updated_at)
-VALUES (?, ?, ?, CAST(? AS BLOB), 1, 1)`, store.NewID(), album, coll, fmt.Sprintf("t%d.flac", i)); err != nil {
+VALUES (?, ?, ?, CAST(? AS BLOB), 1, 1)`, id.New(), album, coll, fmt.Sprintf("t%d.flac", i)); err != nil {
 				return err
 			}
 		}
@@ -496,14 +497,14 @@ VALUES (?, ?, ?, CAST(? AS BLOB), 1, 1)`, store.NewID(), album, coll, fmt.Sprint
 // needs.
 func plantFinishedJob(t *testing.T, stateDir string, age time.Duration) []byte {
 	t.Helper()
-	id := store.NewID()
+	jobID := id.New()
 	at := time.Now().Add(-age).UnixMicro()
 	updateStore(t, stateDir, func(ctx context.Context, tx *store.Tx) error {
 		_, err := tx.Exec(ctx, `INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at, finished_at)
-VALUES (?, 'backup', ?, 'failed', 'planted', 'local:planted', ?, ?)`, id, at, at, at)
+VALUES (?, 'backup', ?, 'failed', 'planted', 'local:planted', ?, ?)`, jobID, at, at, at)
 		return err
 	})
-	return id
+	return jobID[:]
 }
 
 // jobRecordExists reports whether id's job record still exists in

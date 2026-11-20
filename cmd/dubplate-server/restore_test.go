@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // restoreVerbChildEnv carries, as a JSON array, the arguments a
@@ -584,7 +585,7 @@ func backedUpLeaf(t *testing.T) restoreFixture {
 
 	seedBackupStore(t, fix.stateDir)
 	updateStore(t, fix.stateDir, func(ctx context.Context, tx *store.Tx) error {
-		user, coll, album := store.NewID(), store.NewID(), store.NewID()
+		user, coll, album := id.New(), id.New(), id.New()
 		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, ?, ?, 'owner', 1, 1)`, user, restoreOwner, restoreOwnerName); err != nil {
 			return err
@@ -598,7 +599,7 @@ VALUES (?, 'main', ?, ?, 'group', 'server')`, coll, []byte("main"), user); err !
 		}
 		for _, rel := range []string{"a.flac", "b.flac"} {
 			if _, err := tx.Exec(ctx, `INSERT INTO tracks (id, album_id, collection_id, rel_path, created_at, updated_at)
-VALUES (?, ?, ?, ?, 1, 1)`, store.NewID(), album, coll, []byte(rel)); err != nil {
+VALUES (?, ?, ?, ?, 1, 1)`, id.New(), album, coll, []byte(rel)); err != nil {
 				return err
 			}
 		}
@@ -620,7 +621,7 @@ VALUES (?, ?, ?, ?, 1, 1)`, store.NewID(), album, coll, []byte(rel)); err != nil
 
 	updateStore(t, fix.stateDir, func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
-VALUES (?, ?, 'Added', 'added', 2, 2)`, store.NewID(), restoreAddedAddress); err != nil {
+VALUES (?, ?, 'Added', 'added', 2, 2)`, id.New(), restoreAddedAddress); err != nil {
 			return err
 		}
 		_, err := tx.Exec(ctx, `UPDATE users SET display_name = ? WHERE address = ?`, restoreChangedName, restoreOwner)

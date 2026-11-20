@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/local"
 )
@@ -72,7 +73,7 @@ func deadline(t *testing.T) context.Context {
 func plantTracks(t *testing.T, h *store.Handle, n int) {
 	t.Helper()
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
-		user, coll, album := store.NewID(), store.NewID(), store.NewID()
+		user, coll, album := id.New(), id.New(), id.New()
 		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
@@ -86,7 +87,7 @@ VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); er
 		}
 		for i := range n {
 			if _, err := tx.Exec(ctx, `INSERT INTO tracks (id, album_id, collection_id, rel_path, created_at, updated_at)
-VALUES (?, ?, ?, CAST(? AS BLOB), 1, 1)`, store.NewID(), album, coll, fmt.Sprintf("t%d.flac", i)); err != nil {
+VALUES (?, ?, ?, CAST(? AS BLOB), 1, 1)`, id.New(), album, coll, fmt.Sprintf("t%d.flac", i)); err != nil {
 				return err
 			}
 		}
@@ -482,7 +483,7 @@ func TestBackup_SendsCommittedRows(t *testing.T) {
 		n := committed.Load()
 		return h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 			_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
-VALUES (?, ?, 'Member', ?, 1, 1)`, store.NewID(), fmt.Sprintf("m%d@example.org", n), fmt.Sprintf("m%d", n))
+VALUES (?, ?, 'Member', ?, 1, 1)`, id.New(), fmt.Sprintf("m%d@example.org", n), fmt.Sprintf("m%d", n))
 			return err
 		})
 	}

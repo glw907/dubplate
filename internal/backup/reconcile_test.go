@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // catalogRoot is the root path of the one collection plantCatalog
@@ -47,7 +48,7 @@ func catalogStore(t *testing.T, withUser bool, rels ...string) *store.Handle {
 func plantCatalog(t *testing.T, h *store.Handle, rels ...string) {
 	t.Helper()
 	err := h.Update(ctxFor(t), func(ctx context.Context, tx *store.Tx) error {
-		user, coll, album := store.NewID(), store.NewID(), store.NewID()
+		user, coll, album := id.New(), id.New(), id.New()
 		if _, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, created_at, updated_at)
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
@@ -61,7 +62,7 @@ VALUES (?, 'main', ?, ?, 'group', 'server')`, coll, []byte(catalogRoot), user); 
 		}
 		for _, rel := range rels {
 			if _, err := tx.Exec(ctx, `INSERT INTO tracks (id, album_id, collection_id, rel_path, created_at, updated_at)
-VALUES (?, ?, ?, ?, 1, 1)`, store.NewID(), album, coll, []byte(rel)); err != nil {
+VALUES (?, ?, ?, ?, 1, 1)`, id.New(), album, coll, []byte(rel)); err != nil {
 				return fmt.Errorf("track %q: %w", rel, err)
 			}
 		}
@@ -269,7 +270,7 @@ func TestReconcile_NoUsers(t *testing.T) {
 			if tt.tombstoneOnly {
 				err := h.Update(ctxFor(t), func(ctx context.Context, tx *store.Tx) error {
 					_, err := tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, tombstoned_at, created_at, updated_at)
-VALUES (?, 'gone@example.org', 'Gone', 'gone', 2, 1, 1)`, store.NewID())
+VALUES (?, 'gone@example.org', 'Gone', 'gone', 2, 1, 1)`, id.New())
 					return err
 				})
 				if err != nil {

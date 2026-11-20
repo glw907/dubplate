@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // journeyStates is the closed set of states this pass emits, written out
@@ -86,16 +87,16 @@ func assertStatesMatchEvents(t *testing.T, h *store.Handle) {
 func seedSubmission(t *testing.T, h *store.Handle, state string, kinds []string, insertOrder []int) []byte {
 	t.Helper()
 	owner, coll := seedOwnerAndCollection(t, h)
-	id := store.NewID()
+	sub := id.New()
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO submissions
 			(id, uploader, collection_id, verdict_unit, container, state, source, declared_bytes, reserved_bytes, created_at, updated_at)
-			VALUES (?, ?, ?, 'album', 'files', ?, 'bandcamp', 0, 0, 1, 1)`, id, owner, coll, state); err != nil {
+			VALUES (?, ?, ?, 'album', 'files', ?, 'bandcamp', 0, 0, 1, 1)`, sub, owner, coll, state); err != nil {
 			return err
 		}
 		for _, i := range insertOrder {
 			if _, err := tx.Exec(ctx, `INSERT INTO submission_events (id, submission_id, seq, at, kind)
-				VALUES (?, ?, ?, 1700000000000000, ?)`, store.NewID(), id, i+1, kinds[i]); err != nil {
+				VALUES (?, ?, ?, 1700000000000000, ?)`, id.New(), sub, i+1, kinds[i]); err != nil {
 				return err
 			}
 		}
@@ -104,7 +105,7 @@ func seedSubmission(t *testing.T, h *store.Handle, state string, kinds []string,
 	if err != nil {
 		t.Fatalf("seed submission in %q: %v", state, err)
 	}
-	return id
+	return sub[:]
 }
 
 // seedOwnerAndCollection inserts one user and one collection for a
@@ -112,7 +113,8 @@ func seedSubmission(t *testing.T, h *store.Handle, state string, kinds []string,
 func seedOwnerAndCollection(t *testing.T, h *store.Handle) (owner, collection []byte) {
 	t.Helper()
 	owner = insertUser(t, h, userSpec{admin: true, createdAt: 1})
-	collection = store.NewID()
+	minted := id.New()
+	collection = minted[:]
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		_, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
 			VALUES (?, 'Seed', ?, ?, 'group', 'server')`, collection, []byte(fmt.Sprintf("seed-%x", collection)), owner)

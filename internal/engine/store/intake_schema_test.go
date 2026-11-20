@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"testing"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // The ids below are migration 0006's fixture (testdata/fixtures/0006_intake.sql).
@@ -18,7 +20,7 @@ func insertCollection(h *Handle, root string, route any) error {
 	_, err := h.write.ExecContext(context.Background(),
 		`INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
 		 VALUES (?, 'Probe', ?, `+intakeFixtureAdmin+`, 'group', 'server', ?)`,
-		NewID(), []byte(root), route)
+		id.New(), []byte(root), route)
 	return err
 }
 
@@ -63,7 +65,7 @@ func TestIntakeSchemaSubmissionFiles(t *testing.T) {
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO submission_files (id, submission_id, rel_path, size, role)
 			 VALUES (?, `+intakeFixtureSubmission+`, ?, 10, 'audio')`,
-			NewID(), []byte(relPath))
+			id.New(), []byte(relPath))
 		return err
 	}
 
@@ -116,7 +118,7 @@ func TestIntakeSchemaEventSeq(t *testing.T) {
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO submission_events (id, submission_id, seq, at, kind)
 			 VALUES (?, `+intakeFixtureSubmission+`, ?, 1700000000000000, ?)`,
-			NewID(), seq, kind)
+			id.New(), seq, kind)
 		return err
 	}
 
@@ -145,7 +147,7 @@ func TestIntakeSchemaEventSeq(t *testing.T) {
 				 SELECT ?, id, COALESCE((SELECT MAX(seq) FROM submission_events WHERE submission_id = submissions.id), 0) + 1,
 				        1700000000000000, 'stalled'
 				 FROM submissions WHERE id = `+intakeFixtureSubmission,
-				NewID()); err != nil {
+				id.New()); err != nil {
 				t.Fatalf("insert at max+1: %v", err)
 			}
 		}
@@ -182,7 +184,7 @@ func TestIntakeSchemaRelPathChecks(t *testing.T) {
 			_, err := h.write.ExecContext(context.Background(),
 				`INSERT INTO submission_files (id, submission_id, rel_path, size, role)
 				 VALUES (?, `+intakeFixtureSubmission+`, ?, 1, 'extra')`,
-				NewID(), tc.path)
+				id.New(), tc.path)
 			assertErrNames(t, err, "CHECK constraint failed")
 		})
 	}

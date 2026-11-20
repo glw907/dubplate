@@ -1,12 +1,13 @@
 package store
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // sqliteUniqueCode through sqlitePrimaryKeyCode are SQLite's extended
@@ -143,7 +144,7 @@ func TestSchemaPathChecks(t *testing.T) {
 			_, err := h.write.ExecContext(ctx,
 				`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 				 VALUES (?, 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'group', 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
-				NewID(), tt.path,
+				id.New(), tt.path,
 			)
 			if tt.wantErr && err == nil {
 				t.Errorf("root_path %q: got nil error, want a CHECK refusal", tt.path)
@@ -159,7 +160,7 @@ func TestSchemaPathChecks(t *testing.T) {
 			_, err := h.write.ExecContext(ctx,
 				`INSERT INTO tracks (id, album_id, collection_id, rel_path, mb_recording_id, created_at, updated_at)
 				 VALUES (?, x'c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1', x'b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1', ?, NULL, 1, 1)`,
-				NewID(), tt.path,
+				id.New(), tt.path,
 			)
 			if tt.wantErr && err == nil {
 				t.Errorf("rel_path %q: got nil error, want a CHECK refusal", tt.path)
@@ -200,7 +201,7 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'member1@example.invalid', 'Someone Else', 'someoneelse', 0, NULL, 2, 2)`,
-			NewID(),
+			id.New(),
 		)
 		assertErrNames(t, err, "UNIQUE constraint failed: users.address")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
@@ -213,14 +214,14 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		if _, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'gone@example.invalid', 'Gone', 'gone', 0, 999, 2, 2)`,
-			NewID(),
+			id.New(),
 		); err != nil {
 			t.Fatalf("insert the tombstoned baseline: %v", err)
 		}
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'gone@example.invalid', 'Someone Else', 'someoneelse2', 0, NULL, 3, 3)`,
-			NewID(),
+			id.New(),
 		)
 		assertErrNames(t, err, "UNIQUE constraint failed: users.address")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
@@ -233,7 +234,7 @@ func TestSchemaDuplicateAddressRefused(t *testing.T) {
 		_, err := h.write.ExecContext(ctx,
 			`INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at)
 			 VALUES (?, 'other@example.invalid', 'Other', 'Member1', 0, NULL, 2, 2)`,
-			NewID(),
+			id.New(),
 		)
 		assertErrNames(t, err, "UNIQUE constraint failed: users.username")
 		if code := sqliteCode(err); code != sqliteUniqueCode {
@@ -324,18 +325,6 @@ func TestSchemaMigrationHashPins(t *testing.T) {
 	}
 }
 
-// TestID asserts two successive NewID() calls return 16-byte values that
-// differ, the randomness evidence.
-func TestID(t *testing.T) {
-	a, b := NewID(), NewID()
-	if len(a) != idLen {
-		t.Fatalf("len(NewID()) = %d, want %d", len(a), idLen)
-	}
-	if bytes.Equal(a, b) {
-		t.Fatalf("two successive NewID() calls returned the same value: %x", a)
-	}
-}
-
 // TestSchemaMoveIntentPathRefusesGoString is spec criterion 11's
 // checklist line repeated for the routed schema: move_intents.old_path
 // and .new_path are BLOB columns on a STRICT table, so a Go string
@@ -355,7 +344,7 @@ func TestSchemaMoveIntentPathRefusesGoString(t *testing.T) {
 			_, err := h.write.ExecContext(context.Background(),
 				`INSERT INTO move_intents (id, at, kind, old_path, new_path, granularity, state)
 				 VALUES (?, 1, 'rename', ?, ?, 'file', 'pending')`,
-				NewID(), tt.oldPath, tt.newPath,
+				id.New(), tt.oldPath, tt.newPath,
 			)
 			assertErrNames(t, err, "cannot store TEXT value in BLOB column")
 			if code := sqliteCode(err); code != sqliteDatatypeCode {
@@ -433,7 +422,7 @@ func TestSchemaCollectionVisibilityCheck(t *testing.T) {
 		_, err := h.write.ExecContext(context.Background(),
 			`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 			 VALUES (?, 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', ?, 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
-			NewID(), rootPath, visibility,
+			id.New(), rootPath, visibility,
 		)
 		return err
 	}
@@ -483,7 +472,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 			table:  "settings_audit",
 			column: "at",
 			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, NULL, 'seed', 'system', 'env-seed', 'K', NULL, 'v')`,
-			args:   []any{NewID()},
+			args:   []any{id.New()},
 			want:   "NOT NULL constraint failed: settings_audit.at",
 		},
 		{
@@ -491,7 +480,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 			table:  "settings_audit",
 			column: "kind",
 			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, 1, NULL, 'system', 'env-seed', 'K', NULL, 'v')`,
-			args:   []any{NewID()},
+			args:   []any{id.New()},
 			want:   "NOT NULL constraint failed: settings_audit.kind",
 		},
 		{
@@ -499,7 +488,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 			table:  "move_intents",
 			column: "at",
 			query:  `INSERT INTO move_intents (id, at, kind, old_path, new_path, granularity, state) VALUES (?, NULL, 'rename', ?, ?, 'file', 'pending')`,
-			args:   []any{NewID(), []byte("a/b"), []byte("a/c")},
+			args:   []any{id.New(), []byte("a/b"), []byte("a/c")},
 			want:   "NOT NULL constraint failed: move_intents.at",
 		},
 		{
@@ -507,7 +496,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 			table:  "move_intents",
 			column: "kind",
 			query:  `INSERT INTO move_intents (id, at, kind, old_path, new_path, granularity, state) VALUES (?, 1, NULL, ?, ?, 'file', 'pending')`,
-			args:   []any{NewID(), []byte("a/b"), []byte("a/c")},
+			args:   []any{id.New(), []byte("a/b"), []byte("a/c")},
 			want:   "NOT NULL constraint failed: move_intents.kind",
 		},
 	}

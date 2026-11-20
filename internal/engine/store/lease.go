@@ -1,7 +1,6 @@
 package store
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/glw907/dubplate/internal/id"
 )
 
 // ErrLeaseBusy is wrapped by the error [Handle.TakeKindLease] returns
@@ -45,7 +46,7 @@ type InstanceLease struct {
 // locks it exclusively. It never reuses an existing file: a name that
 // already exists is refused.
 func (h *Handle) TakeInstanceLease() (*InstanceLease, error) {
-	return takeInstanceLease(h.leaf.leasesDir, hex.EncodeToString(NewID()))
+	return takeInstanceLease(h.leaf.leasesDir, id.New().String())
 }
 
 func takeInstanceLease(dir, instance string) (*InstanceLease, error) {
@@ -126,8 +127,8 @@ func tryOpenLease(f *os.File) (bool, error) {
 // names a lease with, so no instance read from a record can name a
 // path outside leases/.
 func validInstance(s string) bool {
-	_, err := hex.DecodeString(s)
-	return err == nil && len(s) == 2*idLen && s == strings.ToLower(s)
+	_, err := id.Parse(s)
+	return err == nil
 }
 
 // validKind reports whether s is a shape TakeKindLease names a lease

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
@@ -199,16 +200,16 @@ func TestVerdictWritesMembersAndOnlyLowersTheReservation(t *testing.T) {
 	m := member(t, h)
 	c := zipChecking(t, s, m, gate.UnitAlbum, 10)
 
-	audioID, extraID := store.NewID(), store.NewID()
+	audioID, extraID := id.New(), id.New()
 	v := verdict{
 		to:       stateMatching,
 		albumKey: key(32, 7),
 		members: []memberVerdict{
-			{id: audioID, path: []byte("CD1/01 \xff.flac"), size: 25, result: gate.FileResult{
+			{id: audioID[:], path: []byte("CD1/01 \xff.flac"), size: 25, result: gate.FileResult{
 				SampleRate: 44100, BitsPerSample: 16, Channels: 2, Samples: 441000,
 				AudioKey: key(16, 9), FileHash: key(32, 8), Disc: 1, Track: 1,
 			}},
-			{id: extraID, path: []byte("scan.jpg"), size: 5},
+			{id: extraID[:], path: []byte("scan.jpg"), size: 5},
 		},
 		warnings: []gate.FileReason{
 			{Reason: reject.Of(reject.NoCoverArt)},

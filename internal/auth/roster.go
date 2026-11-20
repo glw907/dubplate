@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/glw907/dubplate/internal/engine/store"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
@@ -448,13 +449,13 @@ func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *s
 		}
 
 		var (
-			id         []byte
+			rowID      []byte
 			tombstoned bool
 		)
-		err := tx.QueryRow(ctx, `SELECT id, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, member.Address).Scan(&id, &tombstoned)
+		err := tx.QueryRow(ctx, `SELECT id, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, member.Address).Scan(&rowID, &tombstoned)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			// A new address: id stays nil, and the write inserts.
+			// A new address: rowID stays nil, and the write inserts.
 		case err != nil:
 			return fmt.Errorf("auth: read the address's row: %w", err)
 		case !tombstoned:
@@ -472,22 +473,23 @@ func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *s
 
 		now := r.now()
 		at := now.UnixMicro()
-		reactivate := id != nil
+		reactivate := rowID != nil
 		if reactivate {
 			_, err = tx.Exec(ctx, `UPDATE users SET display_name = ?, username = ?, admin = ?, tombstoned_at = NULL, updated_at = ? WHERE id = ?`,
-				member.DisplayName, member.Username, member.Admin, at, id)
+				member.DisplayName, member.Username, member.Admin, at, rowID)
 		} else {
-			id = store.NewID()
+			minted := id.New()
+			rowID = minted[:]
 			_, err = tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-				id, member.Address, member.DisplayName, member.Username, member.Admin, at, at)
+				rowID, member.Address, member.DisplayName, member.Username, member.Admin, at, at)
 		}
 		if err != nil {
 			return fmt.Errorf("auth: write the member's row: %w", err)
 		}
-		if len(id) != len(member.ID) {
-			return fmt.Errorf("auth: a users row's id is %d bytes, want %d", len(id), len(member.ID))
+		if len(rowID) != len(member.ID) {
+			return fmt.Errorf("auth: a users row's id is %d bytes, want %d", len(rowID), len(member.ID))
 		}
-		member.ID = identity.UserID(id)
+		member.ID = identity.UserID(rowID)
 
 		if err := requireLiveAdmin(ctx, tx); err != nil {
 			if errors.Is(err, ErrNoAdmin) {
