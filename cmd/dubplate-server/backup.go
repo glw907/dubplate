@@ -237,6 +237,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		Retention: jobRetentionReader(acc),
 		Backup:    backupConfigFrom(cfg, acc),
 		Logger:    logger,
+		Now:       time.Now,
 	})
 	if err != nil {
 		return err

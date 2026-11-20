@@ -51,6 +51,7 @@ func (r *Runner) backupJob(fraction float64, keep int, archiveRetention time.Dur
 			SnapshotKeep:     keep,
 			ArchiveRetention: archiveRetention,
 			Logger:           r.logger,
+			Now:              r.now,
 		}.Run
 	}
 }
@@ -70,10 +71,6 @@ type job struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 }
-
-// now returns the current time as the store records one: integer UTC
-// microseconds.
-func now() int64 { return time.Now().UnixMicro() }
 
 // storeContext returns a context for one of a job's own store calls,
 // which must work after the job's context is done: its terminal write
@@ -100,7 +97,7 @@ func (r *Runner) insert(ctx context.Context, actor ops.Actor, kind string, reten
 	ctx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
 	id := j.id
-	at := now()
+	at := r.now().UnixMicro()
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO jobs (id, kind, at, state, owner_instance, actor, updated_at)
 VALUES (?, ?, ?, 'queued', ?, ?, ?)`, id, kind, at, r.lease.Instance(), actor.String(), at); err != nil {
@@ -158,7 +155,7 @@ func (r *Runner) markRunning(j *job) (bool, error) {
 		state string
 	)
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		t := now()
+		t := r.now().UnixMicro()
 		res, err := tx.Exec(ctx, `UPDATE jobs SET state = 'running', started_at = ?, updated_at = ?
 WHERE id = ? AND state = 'queued'`, t, t, j.id)
 		if err != nil {
@@ -215,7 +212,7 @@ func (r *Runner) finish(j *job, o outcome) error {
 		state string
 	)
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		t := now()
+		t := r.now().UnixMicro()
 		res, err := tx.Exec(ctx, `UPDATE jobs SET state = ?, finished_at = ?, updated_at = ?,
 	progress = coalesce(nullif(?, ''), progress), failure_code = nullif(?, ''), failure_message = nullif(?, '')
 WHERE id = ? AND state = 'running'`, string(o.state), t, t, o.progress, o.code, o.message, j.id)
@@ -245,7 +242,7 @@ func (r *Runner) progress(j *job, phase string) error {
 	var requested bool
 	err := r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `UPDATE jobs SET progress = ?, updated_at = ? WHERE id = ? AND state = 'running'`,
-			phase, now(), j.id); err != nil {
+			phase, r.now().UnixMicro(), j.id); err != nil {
 			return fmt.Errorf("record job progress: %w", err)
 		}
 		return tx.QueryRow(ctx, "SELECT cancel_requested FROM jobs WHERE id = ?", j.id).Scan(&requested)
@@ -303,7 +300,7 @@ func (r *Runner) requestCancel(ctx context.Context, id []byte) error {
 		if err != nil {
 			return fmt.Errorf("read job %s: %w", h, err)
 		}
-		t := now()
+		t := r.now().UnixMicro()
 		switch ops.JobState(state) {
 		case ops.JobQueued:
 			_, err = tx.Exec(ctx, `UPDATE jobs SET state = 'canceled', cancel_requested = 1, finished_at = ?, updated_at = ?

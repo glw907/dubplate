@@ -58,6 +58,10 @@ type Job struct {
 
 	// Logger receives what the run cannot report through its result.
 	Logger *slog.Logger
+
+	// Now returns the current time. It stamps the run's remote
+	// archive directory and its sync record, and it must not be nil.
+	Now func() time.Time
 }
 
 // validate refuses a structurally invalid GuardFraction, SnapshotKeep,
@@ -99,7 +103,7 @@ func (j Job) validate() error {
 // names the run finished instead of repeating the last phase it
 // reported.
 func (j Job) Run(ctx context.Context, progress func(phase string) error) (string, error) {
-	start := time.Now()
+	start := j.Now()
 	stamp := store.FormatStamp(start)
 	if err := progress("checking the library"); err != nil {
 		return "", err
@@ -134,7 +138,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	if err != nil {
 		return "", err
 	}
-	synced := time.Now().UTC().Format(time.RFC3339)
+	synced := j.Now().UTC().Format(time.RFC3339)
 
 	if err := progress("copying the store"); err != nil {
 		return "", err

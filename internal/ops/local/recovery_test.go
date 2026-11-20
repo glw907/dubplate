@@ -89,7 +89,7 @@ func TestNew_UnreadableLease(t *testing.T) {
 	touch(t, path, 0)
 	id := plant(t, h, record{state: "running", owner: owner, started: time.Now().UnixMicro()})
 
-	_, err := New(context.Background(), Config{Store: h, Logger: slog.New(slog.DiscardHandler)})
+	_, err := New(context.Background(), Config{Store: h, Now: time.Now, Logger: slog.New(slog.DiscardHandler)})
 	if err == nil || !strings.Contains(err.Error(), path) {
 		t.Fatalf("New() = %v, want a refusal naming %s", err, path)
 	}

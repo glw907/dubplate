@@ -180,7 +180,7 @@ func TestRetention(t *testing.T) {
 		}},
 		{"an interrupted record written by recovery", func(t *testing.T, h *store.Handle) ([][]byte, [][]byte) {
 			id := plant(t, h, record{state: "running", owner: newInstance()})
-			r, err := newRunner(context.Background(), Config{Store: h, Logger: slog.New(slog.DiscardHandler)}, nil)
+			r, err := newRunner(context.Background(), Config{Store: h, Now: time.Now, Logger: slog.New(slog.DiscardHandler)}, nil)
 			if err != nil {
 				t.Fatalf("recovering runner: %v", err)
 			}
@@ -242,6 +242,7 @@ func TestRetention_ReaderValue(t *testing.T) {
 
 	value := defaultJobRetention
 	r, err := newRunner(context.Background(), Config{
+		Now:       time.Now,
 		Store:     h,
 		Backup:    BackupConfig{Enabled: true},
 		Logger:    slog.New(slog.DiscardHandler),
@@ -341,6 +342,7 @@ func backupConfig(t *testing.T) Config {
 	t.Helper()
 	_, h := newStore(t)
 	return Config{
+		Now:       time.Now,
 		Store:     h,
 		Retention: defaultRetention,
 		Backup: BackupConfig{
@@ -377,6 +379,7 @@ func TestNew_BindsBackupBody(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, h := newStore(t)
 			r, err := New(context.Background(), Config{
+				Now:       time.Now,
 				Store:     h,
 				Retention: defaultRetention,
 				Backup: BackupConfig{

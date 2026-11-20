@@ -67,27 +67,38 @@ func checkNoHarnessImports(root string) error {
 	return errors.Join(errs...)
 }
 
-// checkNoTimeNow walks every .go file under root and fails (naming the
-// file and position) if any file calls time.Now: the evaluation date
-// is an explicit parameter on the album-distance call (contract 9),
-// never a clock read. A testdata subtree is skipped entirely, for the
-// same reason checkNoHarnessImports skips one. The walk descends into
-// every subdirectory under root, not only root itself, which is what
-// lets root widen from internal/engine/matcher to internal/engine
-// without missing a package the widening added (R21).
-func checkNoTimeNow(root string) error {
+// clockReads names the functions on package time that read the clock.
+var clockReads = []string{"Now", "Since", "Until"}
+
+// checkNoClockReads walks every .go file under root and fails (naming
+// the file and position) if any file refers to time.Now, time.Since,
+// or time.Until, whether it calls the function or takes it as a value
+// (f := time.Now): the evaluation date is an explicit parameter on the
+// album-distance call (contract 9), and every other clock arrives as a
+// func() time.Time, never a read. A testdata subtree is skipped
+// entirely, for the same reason checkNoHarnessImports skips one. The
+// walk descends into every subdirectory under root, not only root
+// itself, which is what lets root widen from internal/engine/matcher
+// to internal/engine without missing a package the widening added
+// (R21).
+//
+// The strict form (wide false) reads every file, tests included. The
+// wide form is for a tree of ordinary packages: it skips the harness
+// directory directly under root and every _test.go file, which may
+// read the clock.
+func checkNoClockReads(root string, wide bool) error {
 	var errs []error
 	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if d.IsDir() {
-			if d.Name() == "testdata" {
+			if d.Name() == "testdata" || (wide && path == filepath.Join(root, "harness")) {
 				return fs.SkipDir
 			}
 			return nil
 		}
-		if !strings.HasSuffix(path, ".go") {
+		if !strings.HasSuffix(path, ".go") || (wide && strings.HasSuffix(path, "_test.go")) {
 			return nil
 		}
 		fset := token.NewFileSet()
@@ -100,17 +111,14 @@ func checkNoTimeNow(root string) error {
 			return nil
 		}
 		ast.Inspect(f, func(n ast.Node) bool {
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-			sel, ok := call.Fun.(*ast.SelectorExpr)
+			sel, ok := n.(*ast.SelectorExpr)
 			if !ok {
 				return true
 			}
 			ident, ok := sel.X.(*ast.Ident)
-			if ok && ident.Name == timeName && sel.Sel.Name == "Now" {
-				errs = append(errs, fmt.Errorf("%s:%s: calls time.Now, which internal/engine must never do", path, fset.Position(call.Pos())))
+			if ok && ident.Name == timeName && slices.Contains(clockReads, sel.Sel.Name) {
+				errs = append(errs, fmt.Errorf("%s: refers to time.%s, a clock read this tree must take as a func() time.Time",
+					fset.Position(sel.Pos()), sel.Sel.Name))
 			}
 			return true
 		})
@@ -148,13 +156,26 @@ func TestEngineNeverImportsHarness(t *testing.T) {
 	}
 }
 
-// TestEngineNeverReadsTheClock checks the real tree: nothing under
-// internal/engine, matcher or musicbrainz alike, calls time.Now (R21:
+// TestEngineNeverReadsTheClock checks the real tree in the strict
+// form: no file under internal/engine, matcher or musicbrainz alike,
+// or under internal/store, tests included, reads the clock (R21:
 // widened from internal/engine/matcher now that musicbrainz sits
 // beside it under the same no-clock-read invariant).
 func TestEngineNeverReadsTheClock(t *testing.T) {
-	root := filepath.Join(repoRoot(t), "internal", "engine")
-	if err := checkNoTimeNow(root); err != nil {
+	for _, dir := range []string{"engine", "store"} {
+		if err := checkNoClockReads(filepath.Join(repoRoot(t), "internal", dir), false); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+// TestNothingReadsTheClock checks the real tree in the wide form: no
+// non-test file under internal, the harness aside, reads the clock. A
+// package that needs the time takes a func() time.Time, and cmd wires
+// time.Now.
+func TestNothingReadsTheClock(t *testing.T) {
+	root := filepath.Join(repoRoot(t), "internal")
+	if err := checkNoClockReads(root, true); err != nil {
 		t.Error(err)
 	}
 }
@@ -182,18 +203,64 @@ func TestHarnessImportCheckFiresOnItsOwnFixture(t *testing.T) {
 	}
 }
 
-// TestTimeNowCheckFiresOnItsOwnFixture proves checkNoTimeNow fires,
+// TestTimeNowCheckFiresOnItsOwnFixture proves checkNoClockReads fires,
 // against a hand-authored fixture tree
 // (testdata/arch/time-now-violation) carrying one file that calls
 // time.Now.
 func TestTimeNowCheckFiresOnItsOwnFixture(t *testing.T) {
 	root := filepath.Join("testdata", "arch", "time-now-violation")
-	err := checkNoTimeNow(root)
+	err := checkNoClockReads(root, false)
 	if err == nil {
-		t.Fatal("expected checkNoTimeNow to fire against its own violating fixture")
+		t.Fatal("expected checkNoClockReads to fire against its own violating fixture")
 	}
 	if !strings.Contains(err.Error(), "time.Now") {
 		t.Errorf("error does not name the violation: %v", err)
+	}
+}
+
+// TestClockCheckRefusesSinceUntilAndValues proves the check refuses
+// every clock read, not only a call to time.Now: the fixture
+// (testdata/arch/time-reads) holds a time.Since call, a time.Until
+// call, and time.Now taken as a value.
+func TestClockCheckRefusesSinceUntilAndValues(t *testing.T) {
+	err := checkNoClockReads(filepath.Join("testdata", "arch", "time-reads"), false)
+	if err == nil {
+		t.Fatal("expected checkNoClockReads to fire against the time-reads fixture")
+	}
+	for _, want := range []string{"time.Since", "time.Until", filepath.Join("time-reads", "value.go")} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error does not name %q: %v", want, err)
+		}
+	}
+}
+
+// TestClockCheckScopes proves the two forms differ where they should,
+// against testdata/arch/clock-scope: a package outside the engine
+// (ops/bad.go), a test file (ops/clock_test.go), and a harness package
+// (harness/ok.go), each reading the clock. The wide form names only
+// the first; the strict form names all three.
+func TestClockCheckScopes(t *testing.T) {
+	root := filepath.Join("testdata", "arch", "clock-scope")
+	bad, test, harness := filepath.Join("ops", "bad.go"), filepath.Join("ops", "clock_test.go"), filepath.Join("harness", "ok.go")
+
+	wide := checkNoClockReads(root, true)
+	if wide == nil || !strings.Contains(wide.Error(), bad) {
+		t.Fatalf("wide form does not name %s: %v", bad, wide)
+	}
+	for _, skipped := range []string{test, harness} {
+		if strings.Contains(wide.Error(), skipped) {
+			t.Errorf("wide form names %s, which it must skip: %v", skipped, wide)
+		}
+	}
+
+	strict := checkNoClockReads(root, false)
+	if strict == nil {
+		t.Fatal("strict form did not fire")
+	}
+	for _, want := range []string{bad, test, harness} {
+		if !strings.Contains(strict.Error(), want) {
+			t.Errorf("strict form does not name %s: %v", want, strict)
+		}
 	}
 }
 
@@ -204,9 +271,9 @@ func TestTimeNowCheckFiresOnItsOwnFixture(t *testing.T) {
 // to the root alone must miss it.
 func TestTimeNowCheckDescendsIntoNestedPackages(t *testing.T) {
 	root := filepath.Join("testdata", "arch", "time-now-nested")
-	err := checkNoTimeNow(root)
+	err := checkNoClockReads(root, false)
 	if err == nil {
-		t.Fatal("expected checkNoTimeNow to descend into the nested fixture package and fire")
+		t.Fatal("expected checkNoClockReads to descend into the nested fixture package and fire")
 	}
 	if !strings.Contains(err.Error(), "time.Now") {
 		t.Errorf("error does not name the violation: %v", err)

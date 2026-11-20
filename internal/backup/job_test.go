@@ -177,6 +177,7 @@ func newRunnerWithBackup(t *testing.T, h *store.Handle, remote, root string, log
 		logger = slog.New(slog.NewTextHandler(logs, nil))
 	}
 	r, err := local.New(context.Background(), local.Config{
+		Now:       time.Now,
 		Store:     h,
 		Retention: defaultRetention,
 		Backup: local.BackupConfig{

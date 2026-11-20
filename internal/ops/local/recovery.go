@@ -37,7 +37,7 @@ func (r *Runner) recoverJobs(ctx context.Context) error {
 			if held {
 				continue
 			}
-			t := now()
+			t := r.now().UnixMicro()
 			if _, err := tx.Exec(ctx, `UPDATE jobs SET state = 'interrupted', finished_at = ?, updated_at = ?
 WHERE owner_instance = ? AND state IN ('queued', 'running')`, t, t, owner); err != nil {
 				return fmt.Errorf("mark jobs of %s interrupted: %w", owner, err)
@@ -92,7 +92,7 @@ func (r *Runner) recoverOwn(ctx context.Context, tx *store.Tx) error {
 		if r.tracked(handleOf(id)) {
 			continue
 		}
-		t := now()
+		t := r.now().UnixMicro()
 		if _, err := tx.Exec(ctx, `UPDATE jobs SET state = 'interrupted', finished_at = ?, updated_at = ?
 WHERE id = ? AND state IN ('queued', 'running')`, t, t, id); err != nil {
 			return fmt.Errorf("mark job %s interrupted: %w", handleOf(id), err)

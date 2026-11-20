@@ -170,6 +170,7 @@ func runChild(dir string) int {
 		return 2
 	}
 	r, err := local.New(context.Background(), local.Config{
+		Now:       time.Now,
 		Store:     h,
 		Retention: defaultRetention,
 		Backup: local.BackupConfig{

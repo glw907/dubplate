@@ -41,6 +41,10 @@ type Config struct {
 	// value applies at the next operation that reads it; it must not
 	// be nil.
 	Retention func(ctx context.Context) (time.Duration, error)
+
+	// Now returns the current time. It stamps every job record and
+	// the backup run, and it must not be nil.
+	Now func() time.Time
 }
 
 // BackupConfig configures the backup job.
@@ -75,6 +79,7 @@ type Runner struct {
 	logger    *slog.Logger
 	backup    BackupConfig
 	retention func(ctx context.Context) (time.Duration, error)
+	now       func() time.Time
 
 	// bindBackup overrides the backup kind's job body: nil in
 	// production, where StartBackup reads the three backup values
@@ -108,6 +113,7 @@ func New(ctx context.Context, cfg Config) (*Runner, error) {
 		logger:    cfg.Logger,
 		backup:    cfg.Backup,
 		retention: cfg.Retention,
+		now:       cfg.Now,
 		jobs:      make(map[ops.Handle]*job),
 	}
 	if err := r.recoverJobs(ctx); err != nil {
