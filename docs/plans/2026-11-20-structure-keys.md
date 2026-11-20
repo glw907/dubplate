@@ -16,7 +16,8 @@ Class: `auth-data` (`cmd/dubplate-server`, `internal/auth`, `internal/serve`, `i
 takes `auth-data`.
 
 Worktree: `/var/home/glw907/Projects/dubplate/.claude/worktrees/structure-keys`, branch `structure-keys`, cut
-from `origin/master` at `5d1e6e9` (PR #18, `structure-base`, merged). PR base: `master`. Push target:
+from `origin/master` at `5d1e6e9` (PR #18, `structure-base`, merged), with `c5aa8a5` merged in at planning
+(BACKLOG and STATUS only, no Go, so every base value below holds). PR base: `master`. Push target:
 `glw907/dubplate`.
 
 ## Pre-flight
@@ -140,7 +141,7 @@ Run at the launch base, then on each task's commit for T1 to T9, comparing each 
    `cmd/dubplate-server/`, run `go test ./cmd/dubplate-server -run TestRegistryDump -count=1 -v`, record the
    `registry dump:` line, then remove the worktree with `git worktree remove --force <tmp>/b-<sha>`. If
    `newProductionRegistry` is renamed, change only that call in the uncommitted copy and say so in the PR.
-   The copy never enters the pass worktree, and `git status --short cmd/dubplate-server` prints nothing
+   The copy never enters the pass worktree, and `git status --short cmd/dubplate-server | grep zz_registrydump` prints nothing
    before every commit.
 
 ## Export rule
@@ -302,8 +303,10 @@ Every task carries the same steps, so each lists only what is its own:
 - Test-first: write the branding and operator-CSS reader tests at the new home, or move cmd's, and record the
   failure. Trial edit for the PR: a `webapp` file imports `internal/settings`; `TestLayering` still fails
   and names it. Revert.
+- Test-first also adds one order test for the reader: a bad theme match and a bad palette in one
+  environment, asserting the literal refusal (the match's sentence, since the match is checked first).
 - Mutations: make `resolveBranding` return neutral for every value (the moved test fails); check the palette
-  before the theme match in the reader (a refused-values proof row changes). Revert each.
+  before the theme match in the reader (the order test fails). Revert each.
 - Acceptance: declares to 24, registers to 11; `main.go` 6 / 3; the proof and the dump match.
 
 ### T6: `backup` (45 min)
@@ -391,17 +394,15 @@ Every task carries the same steps, so each lists only what is its own:
   configuration package. Each is rewritten to say that only `config.go` (and `doctor.go`) read configuration,
   that the rest takes plain values, and that the import test holds it.
 - The rule texts. Load `claude-infra` and read `~/.claude/docs/voice/agent-facing.md` first.
-  - `CLAUDE.md:188` (under "Facts agents get wrong") is replaced by the design's five rules ("Settings live
-    in the package itself", design lines 216-230), reworded for agents with no rule's meaning changed. Rule 1
-    keeps one clause from today's line: `internal/config/keys.go` takes no new declaration. This pass's file
-    row is the round's only one that carries `CLAUDE.md`, and the design puts the five rules "in place of the
-    rule that sends settings to the command folder". Rule 4 describes where health checks go;
-    `structure-doctor` moves today's checks there next.
-  - `.claude/skills/dubplate-pass/SKILL.md` "### Config keys" (lines 118-121) says rule 1, naming the
+  - `CLAUDE.md:188` (under "Facts agents get wrong") becomes the design's rule 1: a setting is declared in
+    the `config.go` of the package that reads it and registered by that package's `Register`; the command
+    folder gains a line only when a new package registers for the first time. It keeps one clause from
+    today's line: `internal/config/keys.go` takes no new declaration. Rules 2 to 5 are not this plan's; the
+    PR's `Calls:` line names them for the conductor.
+  - `.claude/skills/dubplate-pass/SKILL.md` "### Config keys" (lines 118-121) says the same, naming the
     `main.go` function, not a line number. This edit is class `runner`, listed under `## Decisions`.
-- Acceptance: the import test passes on the tree and fails on both trial edits; `grep -n
-  'newProductionRegistry\|own file' CLAUDE.md .claude/skills/dubplate-pass/SKILL.md` prints nothing, and
-  `CLAUDE.md` carries the five rules.
+- Acceptance: the import test passes on the tree and fails on both trial edits; `grep -n 'main.go:99\|own
+  file' CLAUDE.md .claude/skills/dubplate-pass/SKILL.md` prints nothing.
 
 ### Close (50 min)
 
@@ -429,9 +430,9 @@ the two trial outputs; and the score (`pass-core` `executor.md`, "Score").
 
 ## Path
 
-Launch-base proof 15, T1 40, T2 60, T3 30, T4 45, T5 35, T6 45, T7 25, T8 55, T9 30, T10 50, close 60:
-490 minutes, serial. The design's 360 covers the eight packages (280), the order and leftovers (40), and the
-import test and notes (40). The launch-base proof, the backlog, the head proof, and the close add 75; M6's
+Launch-base proof 15, T1 40, T2 60, T3 30, T4 45, T5 35, T6 45, T7 25, T8 55, T9 30, T10 50, close 50:
+480 minutes, serial. The design's 360 covers the eight packages (280), the order and leftovers (40), and the
+import test and notes (40). The launch-base proof, the backlog, the head proof, and the close add 65; M6's
 stand-in and the new tests the plan review found missing (join order, assembler, the three intake readers,
 the webapp reader) add 55. The parking line is 720.
 
@@ -459,8 +460,8 @@ the webapp reader) add 55. The parking line is 720.
 | Configuration stays in two files of each package | The new import test, with two trial edits shown in the pull request | The test fails when a third file of `auth` imports the configuration package, and when a third file of `intake` imports the settings package. | T10 | The two failing outputs. |
 | The three leftovers are gone | `grep -rnE 'lookupEnviron\|identitySourceValues\|\) Superseded\(\)' --include=*.go cmd internal`, leaving out tests, and `go doc ./internal/config Registry \| grep -c '^func (r \*Registry)'` | 19 lines and 16 methods today. 0 lines and 15 methods to pass. | T9 | Both commands at head. |
 
-Added checks (no item above is edited): `go vet ./...` after every task (M6); the join-order test (T2); `git status --short
-cmd/dubplate-server` empty before each commit; `intake`'s `TestLayering` unchanged (T8); the `webapp` trial
+Added checks (no item above is edited): `go vet ./...` after every task (M6); the join-order test (T2); no `zz_registrydump` file in `git status --short
+cmd/dubplate-server` before each commit; `intake`'s `TestLayering` unchanged (T8); the `webapp` trial
 edit (T5); the import test's wrong-path failure (T10); the rule-text grep (T10); the proof and dump on the final head
 (close); the CI verdict per task head.
 
@@ -491,8 +492,9 @@ edit (T5); the import test's wrong-path failure (T10); the rule-text grep (T10);
 - Test names number 1,906 at `5d1e6e9`, not the design's 1,921 at `e03e574` (standing answer 19). This pass
   compares its own base and head.
 
-- The design's five rules replace `CLAUDE.md:188` in T10, all five, since this pass's file row is the only
-  one in the round that carries `CLAUDE.md`. The alternative, rule 1 alone, leaves rules 2 to 5 with no pass.
+- T10 writes the design's rule 1 only, as this pass's brief gives it. The design sends five rules to
+  `CLAUDE.md` and this pass's row is the round's only one that carries the file, but rule 4 is not true of
+  the tree until `structure-doctor` lands. Rules 2 to 5 go to the conductor in the PR's `Calls:` line.
 - `errOutOfRange` is exported from the store, because `storeRow` stays in cmd and branches on it.
 - `webapp` gets one reader that returns the five settings values `webapp.Config` takes, so
   `newWebRoutesFromFS` stays in cmd as wiring with no threshold of its own.
@@ -503,7 +505,8 @@ edit (T5); the import test's wrong-path failure (T10); the rule-text grep (T10);
 One `standards:plan-reviewer` read (opus, medium) at `5d1e6e9`. It confirmed the registration order at every
 intermediate state, the countdowns, the import edges (a scratch tree with every edge and the stand-in ran
 `go vet ./...` clean, and only `webapp`'s `TestLayering` failed, on `config`), and the verbatim tables.
-Folded, all fifteen:
+Folded, all fifteen. An advisor read afterwards fixed three checks that could not pass or fire (the T10 grep,
+the `git status` check, T5's order mutation) and the path sum:
 
 1. Names the cmd wiring still reads were missing from the export table (`errOutOfRange`, the webapp
    thresholds, `isLoopbackHost`, `trustedProxyHeaderKey`, two intake settings). Added, with one webapp reader
@@ -526,5 +529,6 @@ Folded, all fifteen:
 11. T10's missing-file failure could not happen. It runs on a deliberate wrong path.
 12. Each task records its CI verdict.
 13. T11 folded into the close.
-14. The five rules: all land in T10 (see `## Decisions`); the `keys.go` clause is kept in rule 1.
+14. The five rules: T10 writes rule 1, keeping the `keys.go` clause, and rules 2 to 5 go to the conductor
+    (see `## Decisions`).
 15. The PR body carries the score.
