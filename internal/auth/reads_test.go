@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/identity"
@@ -121,5 +122,37 @@ func TestLiveMembers(t *testing.T) {
 				t.Errorf("LiveMembers = %d, want %d", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestReadErrorsAreBare holds the contract the two callers rely on: a read
+// that fails returns the driver's error unprefixed, so reconcile and
+// RouteCollection print the one prefix their operators already read.
+func TestReadErrorsAreBare(t *testing.T) {
+	ctx := writeCtx(t)
+
+	closed := newUsersStore(t)
+	if err := closed.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	if _, err := LiveMembers(ctx, closed); err == nil || strings.HasPrefix(err.Error(), "auth:") {
+		t.Errorf("LiveMembers on a closed store = %v, want a bare driver error", err)
+	}
+
+	// The drop fails the read inside a live transaction; the failed Update
+	// rolls it back.
+	h := newUsersStore(t)
+	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		if _, err := tx.Exec(ctx, `DROP TABLE users`); err != nil {
+			t.Fatalf("drop users: %v", err)
+		}
+		_, _, err := EarliestAdmin(ctx, tx)
+		if err == nil || strings.HasPrefix(err.Error(), "auth:") {
+			t.Errorf("EarliestAdmin with no users table = %v, want a bare driver error", err)
+		}
+		return err
+	})
+	if err == nil {
+		t.Error("Update returned nil, want the read's error")
 	}
 }

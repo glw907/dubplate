@@ -13,7 +13,8 @@ import (
 // EarliestAdmin returns the id of the live admin created first, breaking
 // a tie in creation time by the lower id. It reports false when no live
 // admin exists. A new collection is owned by this member until the owner
-// is changed.
+// is changed. A read error comes back bare: both callers add the prefix
+// their operators already read.
 func EarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
 	var raw []byte
 	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
@@ -22,7 +23,7 @@ func EarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, er
 	case errors.Is(err, sql.ErrNoRows):
 		return identity.UserID{}, false, nil
 	case err != nil:
-		return identity.UserID{}, false, fmt.Errorf("auth: read the earliest admin: %w", err)
+		return identity.UserID{}, false, err
 	}
 	var id identity.UserID
 	if len(raw) != len(id) {
@@ -37,7 +38,7 @@ func EarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, er
 func LiveMembers(ctx context.Context, h *store.Handle) (int, error) {
 	var n int
 	if err := h.QueryRow(ctx, `SELECT count(*) FROM users WHERE tombstoned_at IS NULL`).Scan(&n); err != nil {
-		return 0, fmt.Errorf("auth: count the members: %w", err)
+		return 0, err
 	}
 	return n, nil
 }

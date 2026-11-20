@@ -14,7 +14,7 @@ per `docs/specs/2026-09-02-greenfield-server-build.md`
 (revision 2.1, ratified), governed by the rulings in
 `docs/research/2026-09-02-greenfield-server-rulings.md`. The
 pre-pivot `cmd/` + `internal/` + `web/` + `e2e/` trees were deleted from the
-tree: commit `6b8f300bce37` (git tag `pre-greenfield`) last holds them under
+tree: commit `6b8f300bce37` last holds them under
 `_salvage/`. Read them there only as adoption material (admitted on merit,
 exemplary-Go/idiomatic-Svelte bars), never import them. The group's system is not
 live; the box runs only dubplate-server (Navidrome, the Cloudflare

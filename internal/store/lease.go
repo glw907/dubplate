@@ -42,7 +42,7 @@ type InstanceLease struct {
 }
 
 // TakeInstanceLease creates a lease file in leases/ at mode 0600, named
-// by a fresh instance of 32 lowercase hex characters from [NewID], and
+// by a fresh instance of 32 lowercase hex characters from [id.New], and
 // locks it exclusively. It never reuses an existing file: a name that
 // already exists is refused.
 func (h *Handle) TakeInstanceLease() (*InstanceLease, error) {
