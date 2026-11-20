@@ -17,23 +17,25 @@ and the `/api/v1` submission operations).
    design.
 2. **`engine`**. The review's matcher, MusicBrainz, tag I/O, and harness findings, after which the process-citation
    leg gates. One pass, in a worktree. Takes #110 to #115 and the citation part of #125.
-3. **`intake`**. A member uploads an album and sees its verdict: the match probe, the uploader page, and resume. Ends
+3. **`structure`**. Moves the Go code into the shape the later rounds build on, changing nothing a person sees, and
+   takes TypeScript 7 and the Node 26 types in its sweep (Geoff, 2026-11-20). Takes the structure round's design.
+4. **`intake`**. A member uploads an album and sees its verdict: the match probe, the uploader page, and resume. Ends
    in Geoff's uploader sitting. Takes `intake-2` and `intake-3`; #92's three rulings open the design; #126.
-4. **`catalog`**. An accepted album enters the library: collection writes, the admission pipeline, the catalog, and
+5. **`catalog`**. An accepted album enters the library: collection writes, the admission pipeline, the catalog, and
    the folder-admit command that brings in music already on disk. Takes the old `admin-api-2`, `pipeline`, and
    `migration`.
-5. **`playback`**. A client signs in and plays a track: streamer slices 3 to 6. Takes the first part of the old
+6. **`playback`**. A client signs in and plays a track: streamer slices 3 to 6. Takes the first part of the old
    `streamer`.
-6. **`queue`**. An admin settles a held album: the decision queue under `strict`, streamer slices 7 and 8 without
+7. **`queue`**. An admin settles a held album: the decision queue under `strict`, streamer slices 7 and 8 without
    smart playlists, and the built-ins without lifecycle hooks. Takes the old `queues`, `builtins`, and the rest of
    `streamer`.
-7. **`library`**. A member browses the library on the web: the album page, the grid and list, filtering, and buy
+8. **`library`**. A member browses the library on the web: the album page, the grid and list, filtering, and buy
    links. Takes the old `library-web-1`.
-8. **`launch`**. 0.8.0 on the box: deploy and hardening fixes, the whole-system pass, the first launch with Geoff's
+9. **`launch`**. 0.8.0 on the box: deploy and hardening fixes, the whole-system pass, the first launch with Geoff's
    sitting, and the clean-up after it. Takes the old `integration`, `cutover`, and `closeout`; #106 and #107.
 
 `catalog` needs `intake`'s accepted state. `playback`, `queue`, and `library` each need the catalog, and `queue` comes
-before streamer slice 7, which reads it. `engine` depends on nothing after `cleanup`. Each round's carried work is the
+before streamer slice 7, which reads it. `engine` depends on nothing after `cleanup`, and `structure` follows `engine`. Each round's carried work is the
 items tagged `#round:<name>`, and each pass's is the items tagged `#pass:<name>`.
 
 ### Old names
@@ -88,8 +90,8 @@ now round `engine`.
 - [ ] #136 Three gate texts outside `cleanup-gate`'s files still describe the old gate: `docs/standing-rules.md:55` and `:105` name `make check` (the gate now splits `make web-build` and `make web`), the adapter's fast-lane paragraph (`.claude/skills/dubplate-pass/SKILL.md:194`) sends a path under `scripts/checks/` to the full form though `check.sh` no longer has that row, and `web/scripts/gates/ai-tells.ts:3` cites cairn's `scripts/checks/` path without saying it is another repo's. Reword each. Found by `cleanup-gate` (PR #13) #improvement #gate #pass:cleanup-gate (2026-11-16) *(swept 2026-11-16)*
 - [ ] #135 The Vale leg reads no Go comment. `.vale.ini` has no `Grammars = go` and nothing runs `vale sync`, so `scripts/vale-comments.sh` prints `W101 grammar "go" is not installed` and then `vale-comments: clean` over an em dash in a Go comment (Vale 3.27.0, the CI pin too). With `Grammars = go` and a sync, a scratch config flags `Survey.EmDash` on `//` and `/* */` comments. Add the grammar to `.vale.ini`, sync it in `check.yml` and the gate, ignore `.vale/styles/config/`, and fail `vale-comments.sh` on W101; weigh pinning the downloaded wasm. Found by `cleanup-gate`'s T6 plant (PR #13) #bug #infra #pass:cleanup-gate (2026-11-16) *(swept 2026-11-16)*
 - [ ] #133 `TestBusyTimeout` (`internal/engine/store/conn_test.go:364,385`) failed once on a GitHub runner (run 43815685425, head `dd52636`, whose tree equals the green run on `2b9672a`): both subtests got `database is locked (5) (SQLITE_BUSY)` at `BeginTx`. It is timing-dependent and now gates every PR, so it can turn the check red with no code change. Make it wait on a signal, not a clock. Found by `cleanup-ci` (PR #12) #bug #store #pass:cleanup-store (2026-11-16)
-- [ ] #131 Take `@types/node` 26.6.6 (held at 24.19.2: a major, so it waits for Geoff). Unblock: Geoff rules it, or `engines` in `web/package.json` moves past Node 24 #improvement #infra #round:intake (2026-11-16) *(swept 2026-11-16)*
-- [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3: a major, so it waits for Geoff). Unblock: Geoff rules it, and `svelte-check` 4.7.8 and `typescript-eslint` support it #improvement #infra #round:intake (2026-11-16) *(swept 2026-11-16)*
+- [ ] #131 Take `@types/node` 26.6.6 (held at 24.19.2: a major, so it waits for Geoff). Unblock: Geoff rules it, or `engines` in `web/package.json` moves past Node 24. Geoff ruled it for the structure round's sweep, 2026-11-20 #improvement #infra #round:structure (2026-11-16) *(swept 2026-11-16)*
+- [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3: a major, so it waits for Geoff). Unblock: Geoff rules it, and `svelte-check` 4.7.8 and `typescript-eslint` support it. Geoff ruled it for the structure round's sweep, 2026-11-20 #improvement #infra #round:structure (2026-11-16) *(swept 2026-11-16)*
 - [ ] #129 Take `modernc.org/sqlite` v1.62.0 (held at v1.60.1 with `modernc.org/libc` v1.77.1). `TestUpdateDeadline/shorter_than_the_busy_timeout_waits_the_busy_timeout` fails on every run at `internal/engine/store/write_test.go:601,605` ("operation returned before the 400ms deadline"; "update: begin write: context deadline exceeded, want ErrBusy"): v1.61.0 stops a statement waiting under `busy_timeout` once its context is done and returns the context's error, which reverses the premise of the test's "Measured: SQLite's busy handler does not stop for the driver's interrupt" comment (v1.61.1 does the same for `Tx.Commit`). The bump rewrites that subtest for the new contract, checks what `Update` maps a deadline hit while waiting on a lock to, and takes v1.62.1 (2026-11-13) with the `modernc.org/libc` pin its `go.mod` names. Found by the `cleanup-ci` dependency sweep #bug #infra #pass:cleanup-store (2026-11-16) *(swept 2026-11-16)*
 - [ ] #132 Recompile `tools/venv/requirements.txt` for its newer pins (certifi 2026.10.23, confuse 2.3.1, jellyfish 1.3.0, lap 0.5.14, numpy 2.5.5, platformdirs 4.14.5, pyrate-limiter 4.5.1). jellyfish is a minor that beets uses for matching, so the bump re-runs `make derive` and checks the oracle goldens. Outside `cleanup-ci`'s files; found by its sweep #improvement #infra #round:engine (2026-11-16) *(swept 2026-11-16)*
 
@@ -207,8 +209,9 @@ now round `engine`.
   with the interstitials' identity lockup. Carried from the alignment pass, 2026-10-11 #web #round:intake *(swept 2026-11-16)*
 - [ ] #58 The uploader takes the theme and component-layer pass's S13 and a11y S7: picked images live at stable paths. Carried from
   the alignment pass, 2026-10-11 #web #round:intake *(swept 2026-11-16)*
-- [ ] #60 The catalog's library queries: filter, facets, and trigram search. Carried from the alignment pass,
-  2026-10-11 #pipeline #round:catalog *(swept 2026-11-16)*
+- [ ] #60 The library's queries: filter, facets, and trigram search. Each is built by the round that first shows it:
+  search in `playback`, the filter and facets in `library` (Geoff, 2026-11-20). Carried from the alignment pass,
+  2026-10-11 #pipeline #round:playback #round:library *(swept 2026-11-16)*
 - [ ] #62 For the project site: settle the `init` and `upgrade` naming against `dubplate-server` (the site spec's
   upgrade naming question), and build the configuration-reference generator as a consumer of forward hook 18's key
   declarations. Carried from the alignment pass, 2026-10-11 #docs (see #100) #initiative:dubplate-server *(swept 2026-11-16)*
@@ -543,7 +546,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
   bootstrap; pre-setup-VPS option map). **Runs after `dubplate-organizer`**
   (resequenced 2026-09-01, was after `uploader`) so it packages the final
   two-binary shape rather than an intermediate. Five setup pieces moved into 0.8
-  (2026-09-24; re-keyed from "2.0", Geoff, 2026-09-25): the TLS listener, the Navidrome import, arm64 builds, `dubplate
+  (2026-09-24; re-keyed from "2.0", Geoff, 2026-09-25): the TLS listener, the Navidrome import (moved after 0.8, Geoff 2026-11-20), arm64 builds, `dubplate
   init`, and `dubplate upgrade`; packaging builds on them rather than owning them. The `oss-pair` write-up below
   doubles as its demand test.
   Carried option (Geoff, 2026-09-03): evaluate a Wails desktop app as a
