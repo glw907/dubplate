@@ -48,7 +48,10 @@ one per refused form:
   patterns), and it refused the verbatim test-names command three times at planning. So every
   acceptance and proof command that carries a bracket class is written into a script under
   `$CLAUDE_JOB_DIR/tmp` and run as `bash <script>`: the command text stays verbatim, and the hook
-  never sees it. The `pgrep` form in the prompt runs under the hook as written.
+  never sees it. The trigger is not fully known (a `[[:alnum:]_]*` form and the bracketed `pgrep`
+  both ran), so the rule goes by symptom: a refusal carrying the Proton Pass or `pass-sitting`
+  message, on a command that touches no Proton Pass, is rerun verbatim from a script file. Any other
+  refusal is a stop.
 
 Reviewed: one `standards:plan-reviewer` read (opus, medium) with `planner.md` "Stops" and
 "Pre-flight", two blockers and ten majors, all folded under "Plan review fold" below.
@@ -112,15 +115,15 @@ and 21 (a reviewer's request to change behavior is filed, never done).
   the notes into the draft PR body after each task, so a relaunch can recover them. First line
   `launch-base=<sha>`.
 - Fast lane after each task: `bash scripts/gate.sh --scope-changed`, with no `--base` (the
-  planner prompt says so; the adapter says a sweep pass names one).
+  planner prompt says so; the adapter says a sweep pass names one). After T0 every run promotes to
+  full (M19), and the estimates below carry that cost. The close run is `bash scripts/gate.sh --merge`.
+  Neither is piped; the Bash tool's `timeout: 600000`, re-issued on exit 75.
 - CI watch after each push: `gh pr checks <n> --watch --fail-fast` as a background Bash task, bare.
   Each task's record names the CI verdict on its head; a red CI stops the line like a red gate.
 - Usage stop (standing answer 17, the design's question 4 ruling): 95 percent until the reset on
   2026-11-20 at 10:59 PM, 85 percent after. Read it before each task with
   `claude -p "/usage" --model haiku`. Past the line, the pass finishes the task in hand, pushes, and
-  waits under `## Stop` in STATUS. After T0 every run promotes to
-  full (M19), and the estimates below carry that cost. The close run is `bash scripts/gate.sh --merge`.
-  Neither is piped; the Bash tool's `timeout: 600000`, re-issued on exit 75.
+  waits under `## Stop` in STATUS.
 - Every task is `auth-data`: failing tests first, each recorded failing; each mutation run and its
   failing output recorded; a task-scope `standards:diff-reviewer` on each commit (adapter "Per-task review").
 - One commit per task, task id first, specific files only, the trailer
@@ -130,14 +133,15 @@ and 21 (a reviewer's request to change behavior is filed, never done).
 
 ## The proof
 
-Run at the commit before the sweep (`9e9a122`), at the proof base (the commit after T1), and after
+Run at the commit before the sweep (`c280214`, this plan's commit; its code equals `9e9a122`'s), at
+the proof base (T1's commit), and after
 each task that moves code (T3 to T9), comparing each to the proof base:
 
 1. Build in a fresh detached worktree under the executor's own `$CLAUDE_JOB_DIR/tmp`, never in the
    pass worktree, and never one that has run the gate or the web build:
    `git worktree add --detach <tmp>/b-<sha> <sha> && (cd <tmp>/b-<sha> && go build -o <tmp>/bin-<sha> ./cmd/dubplate-server)`.
-   At `9e9a122` and at the proof base, take the registry dump (step 3) inside this detached worktree
-   before removing it; the pass worktree never holds `9e9a122` after T0. Remove it with
+   At the pre-sweep commit and at the proof base, take the registry dump (step 3) inside this detached worktree
+   before removing it; the pass worktree never holds the pre-sweep commit after T0. Remove it with
    `git worktree remove <tmp>/b-<sha>` after the build and the dump.
 2. One run at a time, with port 18431 free: `bash <kit>/structure-proof.sh <tmp>/bin-<sha> <tmp>/tx-<sha>.txt`.
    The seven lines must match the proof base's. When one differs, `diff` the transcripts and fix the
@@ -191,7 +195,7 @@ stamp; a fold stays open, takes the stamp, and carries its pass tag.
 
 ### Proof base (15 min)
 
-Run the proof (steps 1 to 4) at `9e9a122` and at the proof base. Run every acceptance check below
+Run the proof (steps 1 to 4) at the pre-sweep commit and at the proof base (T1's commit). Run every acceptance check below
 at the proof base and record its output as "today".
 
 ### T2: the pinning tests (50 min)
@@ -234,15 +238,17 @@ the five parsers are `validInstance` (through `BackupCopy`), intake's `parseID`,
 - Acceptance: the five files pass. `pin-commit=` in the PR notes is T2's head after its task review
   is accepted (a review `fix` commit included), and the acceptance diff runs from that commit.
 
-### T3: `internal/id` and the six parse sites (80 min)
+### T3: `internal/id` and the six parse sites (95 min)
 
 Creates `internal/id/id.go` (with `id_test.go`) holding `type ID [16]byte` and `New() ID`,
 `Parse(s string) (ID, error)` (exactly 32 lowercase hex characters; says nothing about zeros),
-`(ID) IsZero() bool`, `(ID) Value() (driver.Value, error)`, and
+`(ID) String() string`, `(ID) IsZero() bool`, `(ID) Value() (driver.Value, error)`, and
 `(*ID) Scan(src any) error` (M1, M2). `id` imports no internal package. Each export names its
 production caller in the commit body; an export that ends with none is left out and listed under
-`## Decisions`. `ID` has no `String` method: `%x` on a `[16]byte` already prints the 32
-characters, and a `String` method would change it (M20).
+`## Decisions`. `String` is the design's and has a production caller: the lease name at
+`store/lease.go:48`, `hex.EncodeToString(NewID())`, becomes `id.New().String()`. Because a `String`
+method changes what `%x` and `%v` print (M20), no `id.ID` value reaches a formatting verb or a slog
+attribute.
 
 - Every `%x`, `%v`, and slog site whose operand would change type keeps printing the same bytes:
   the operand stays a `[]byte` (`v[:]`) at the formatting site. The commit body lists each such site
@@ -271,7 +277,8 @@ characters, and a `String` method would change it (M20).
   keeps its sentence; ops/local's `parseID` keeps `ParseHandle`'s refusal and returns the parsed bytes.
 - Test-first: `id_test.go` is written first and fails to build; record it. Cases are literals: the
   32-character forms accepted, 31, 33, uppercase, non-hex, and empty refused, zeros accepted by
-  `Parse` and reported by `IsZero`, `Scan` refusing nil and a 15-byte slice.
+  `Parse` and reported by `IsZero`, `String` printing a literal's 32 characters, `Scan` refusing nil
+  and a 15-byte slice.
 - Mutations: make `Parse` accept uppercase (the pins and `id_test.go` fail); make `Parse` refuse
   zeros (the `ParseHandle` and `BackupCopy` pins fail); drop intake's `IsZero` check (the intake pin
   fails).
@@ -483,6 +490,9 @@ cmd/dubplate-server` empty before each commit (the dump copy); `intake`'s `TestL
 
 ## Decisions
 
+- `id.ID` keeps the design's `String`, whose caller is the lease name; the review's alternative,
+  dropping it, would leave the hex encoding there by hand. The formatting-site rule in T3 keeps
+  every log line's bytes.
 - [advisor] `id.New` replaces `store.NewID`, so one function mints an id. The alternative, keeping
   both, leaves `id.New` with no production caller. Three files outside the row become forced sites.
 - [advisor] `intake` takes the earliest-admin function as a `Config` value, wired in cmd as
@@ -519,10 +529,10 @@ cmd/dubplate-server` empty before each commit (the dump copy); `intake`'s `TestL
 One `standards:plan-reviewer` read (opus, medium) returned two blockers, ten majors, and ten minors.
 All are folded except where noted.
 
-- B1 (`String` and `%x`): folded. `ID` has no `String` method, and every formatting site keeps its
-  operand's printed form (M20, T3).
-- B2 (the hook refuses bracket classes): folded. Bracketed commands run from a script file
-  ("Permissions checked").
+- B1 (`String` and `%x`): folded. `String` stays, since the design names it and the lease name
+  calls it, and every formatting site keeps a `[]byte` operand so its printed form holds (M20, T3).
+- B2 (the hook refuses the test-names command): folded. A Proton-message refusal on a command that
+  touches no Proton Pass is rerun from a script file ("Permissions checked").
 - M-a (`gofmt` after the sed): folded into T5.
 - M-b (pins broken by retyped fields): folded. Pins send literals only, `created` stays `[]byte`,
   and `pin-commit` is T2's accepted head.
