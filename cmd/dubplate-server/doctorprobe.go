@@ -46,7 +46,7 @@ const directAssumption = "the peer must be the browser; a proxy in front must be
 // clientIPRowStatus reports how the server learns a client's address:
 // "direct" and [directAssumption] when the trusted proxy class is off,
 // "trusted proxy: <header> from <n> address(es)" when it is on and
-// [resolveTrustedProxy] accepts it, and "invalid: " plus every
+// [serve.ResolveTrustedProxy] accepts it, and "invalid: " plus every
 // refusal otherwise, which fails the row. cfg is nil when
 // [config.Load] refused the environment, and the row then reads "not
 // checked" and adds no failure of its own, since Load's own report
@@ -64,7 +64,7 @@ func clientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 	if proxy.Mode() == serve.ModeDirect {
 		return proxy.Mode().String() + ": " + directAssumption, false
 	}
-	header := strings.TrimSpace(cfg.IntegrationValue(trustedProxyIntegrationClass.Name, trustedProxyHeaderKey))
+	header := strings.TrimSpace(cfg.IntegrationValue(serve.TrustedProxyClass.Name, serve.TrustedProxyHeaderKey))
 	noun := "addresses"
 	if len(distinct) == 1 {
 		noun = "address"
@@ -86,7 +86,7 @@ func webRowStatus(environ []string, cfg *config.Config) (status string, failed b
 	if cfg == nil {
 		return "not checked", false
 	}
-	prefixValue, err := config.ParseString(environ, servePrefixThreshold)
+	prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
@@ -120,7 +120,7 @@ func webRowStatus(environ []string, cfg *config.Config) (status string, failed b
 // unset key is the registered loopback default; a value
 // [serve.SplitBindAddrs] refuses reads "invalid: " plus its refusal.
 func bindAddrsRowStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
-	raw, err := config.ParseString(environ, serveBindAddrsThreshold)
+	raw, err := config.ParseString(environ, serve.BindAddrsThreshold)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
@@ -239,15 +239,15 @@ const allTrustedUnproven = "forwarded and Connection-listed removal unproven: ev
 // that owns it.
 func boundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) (status string, failed bool) {
 	declared := slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool {
-		return th.Key == servePortThreshold.Key
+		return th.Key == serve.PortThreshold.Key
 	})
 	if !declared {
-		return "not probed: " + servePortThreshold.Key + " is not registered", false
+		return "not probed: " + serve.PortThreshold.Key + " is not registered", false
 	}
 	if cfg == nil {
 		return "not probed", false
 	}
-	prefix, addrs, port, err := resolveServeConfig(environ)
+	prefix, addrs, port, err := serve.ResolveConfig(environ)
 	if err != nil {
 		return "not probed", false
 	}
@@ -290,9 +290,9 @@ func boundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.R
 
 // trustedProxy returns the trusted proxy configuration cfg resolves to
 // and its set of proxy addresses, empty when the class is off, or
-// [resolveTrustedProxy]'s refusal when its values do not resolve.
+// [serve.ResolveTrustedProxy]'s refusal when its values do not resolve.
 func trustedProxy(cfg *config.Config) (serve.TrustedProxyConfig, map[netip.Addr]struct{}, error) {
-	proxy, err := resolveTrustedProxy(cfg)
+	proxy, err := serve.ResolveTrustedProxy(cfg)
 	if err != nil {
 		return serve.TrustedProxyConfig{}, nil, err
 	}
@@ -300,7 +300,7 @@ func trustedProxy(cfg *config.Config) (serve.TrustedProxyConfig, map[netip.Addr]
 	if proxy.Mode() == serve.ModeDirect {
 		return proxy, set, nil
 	}
-	addrs, _ := parseProxyAddrs(cfg.IntegrationValue(trustedProxyIntegrationClass.Name, trustedProxyAddrsKey))
+	addrs, _ := serve.ParseProxyAddrs(cfg.IntegrationValue(serve.TrustedProxyClass.Name, serve.TrustedProxyAddrsKey))
 	for _, a := range addrs {
 		set[a] = struct{}{}
 	}

@@ -13,6 +13,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -315,7 +316,7 @@ const rosterFileSupersession = "superseded: members live in the store; " +
 // selector as an owned wall row, magic-link as a declared identity
 // source, the retired roster file key as a superseded name, the ten
 // auth settings, and their two correlated rules, registered after the
-// settings they name. It is a plain function on registerServeConfig's
+// settings they name. It is a plain function on serve.Register's
 // own precedent (serve.go), called once from the binary's shared
 // registry constructor (newProductionRegistry, main.go).
 func registerAuthConfig(reg *config.Registry) {
@@ -376,7 +377,7 @@ func validateMagicLinkSource(values map[string]string, environ []string) error {
 		}
 	}
 
-	if err := validateServePort(environ); err != nil {
+	if err := serve.ValidatePort(environ); err != nil {
 		errs = append(errs, err)
 	}
 

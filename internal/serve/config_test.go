@@ -1,15 +1,45 @@
-package main
+package serve
 
 import (
 	"errors"
 	"net/netip"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/serve"
 )
+
+// wallEnviron returns the owned wall settings this registry declares, the environment
+// every [config.Load] in this file starts from.
+func wallEnviron() []string {
+	return []string{
+		"DUBPLATE_LIBRARY_ROOT=/srv/music/library",
+		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
+		"DUBPLATE_SITE_NAME=Test Family",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
+	}
+}
+
+// configRegistry builds the registry this package's two Register
+// functions fill, over the config package's own seed.
+func configRegistry() *config.Registry {
+	reg := config.NewRegistry()
+	Register(reg)
+	RegisterTrustedProxy(reg)
+	return reg
+}
+
+// withKey returns a copy of environ with name set to value, replacing
+// any earlier entry.
+func withKey(environ []string, name, value string) []string {
+	out := slices.DeleteFunc(slices.Clone(environ), func(kv string) bool {
+		n, _, _ := strings.Cut(kv, "=")
+		return n == name
+	})
+	return append(out, name+"="+value)
+}
 
 // TestResolveTrustedProxy walks every state the trusted proxy class's
 // three keys can meet, through config.Load and then the resolver, the
@@ -30,19 +60,19 @@ func TestResolveTrustedProxy(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		set        map[string]string // keys layered over authEnviron; "" sets the key empty
+		set        map[string]string // keys layered over wallEnviron; "" sets the key empty
 		wantLoad   []string          // substrings of the Load refusal
 		wantErr    []string          // substrings of the resolver refusal
-		wantConfig serve.TrustedProxyConfig
+		wantConfig TrustedProxyConfig
 	}{
 		{
 			name:       "flag absent is mode direct",
-			wantConfig: serve.TrustedProxyConfig{},
+			wantConfig: TrustedProxyConfig{},
 		},
 		{
 			name:       "flag false is mode direct",
 			set:        map[string]string{flag: "false"},
-			wantConfig: serve.TrustedProxyConfig{},
+			wantConfig: TrustedProxyConfig{},
 		},
 		{
 			name:     "flag true, addresses absent",
@@ -145,7 +175,7 @@ func TestResolveTrustedProxy(t *testing.T) {
 		{
 			name: "a valid set, a mapped entry unmapped, a duplicate collapsed",
 			set:  map[string]string{flag: "true", addrs: "192.0.2.10, ::ffff:198.51.100.7,192.0.2.10", header: "Cf-Connecting-Ip"},
-			wantConfig: serve.NewTrustedProxyConfig(
+			wantConfig: NewTrustedProxyConfig(
 				[]netip.Addr{netip.MustParseAddr("192.0.2.10"), netip.MustParseAddr("198.51.100.7")},
 				"Cf-Connecting-Ip",
 			),
@@ -154,12 +184,12 @@ func TestResolveTrustedProxy(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			environ := authEnviron(t)
+			environ := wallEnviron()
 			for name, value := range tt.set {
-				environ = replaceKey(environ, name, value)
+				environ = withKey(environ, name, value)
 			}
 
-			cfg, err := config.Load(environ, productionRegistry())
+			cfg, err := config.Load(environ, configRegistry())
 			if len(tt.wantLoad) > 0 {
 				if err == nil {
 					t.Fatalf("config.Load() error = nil, want a refusal containing %q", tt.wantLoad)
@@ -175,26 +205,26 @@ func TestResolveTrustedProxy(t *testing.T) {
 				t.Fatalf("config.Load() error = %v, want nil: the row's fixture must pass the wall", err)
 			}
 
-			got, err := resolveTrustedProxy(cfg)
+			got, err := ResolveTrustedProxy(cfg)
 			if len(tt.wantErr) > 0 {
 				if err == nil {
-					t.Fatalf("resolveTrustedProxy() error = nil, want a refusal containing %q", tt.wantErr)
+					t.Fatalf("ResolveTrustedProxy() error = nil, want a refusal containing %q", tt.wantErr)
 				}
 				for _, want := range tt.wantErr {
 					if !strings.Contains(err.Error(), want) {
-						t.Errorf("resolveTrustedProxy() error = %v, want it to contain %q", err, want)
+						t.Errorf("ResolveTrustedProxy() error = %v, want it to contain %q", err, want)
 					}
 				}
-				if !reflect.DeepEqual(got, serve.TrustedProxyConfig{}) {
-					t.Errorf("resolveTrustedProxy() returned a configuration alongside its refusal, want the zero value")
+				if !reflect.DeepEqual(got, TrustedProxyConfig{}) {
+					t.Errorf("ResolveTrustedProxy() returned a configuration alongside its refusal, want the zero value")
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("resolveTrustedProxy() error = %v, want nil", err)
+				t.Fatalf("ResolveTrustedProxy() error = %v, want nil", err)
 			}
 			if !reflect.DeepEqual(got, tt.wantConfig) {
-				t.Errorf("resolveTrustedProxy() = %+v, want %+v", got, tt.wantConfig)
+				t.Errorf("ResolveTrustedProxy() = %+v, want %+v", got, tt.wantConfig)
 			}
 		})
 	}
@@ -204,21 +234,118 @@ func TestResolveTrustedProxy(t *testing.T) {
 // refusals with errors.Join rather than stopping at the first, so an
 // operator reads every bad entry in one run.
 func TestResolveTrustedProxy_RefusalsJoin(t *testing.T) {
-	environ := authEnviron(t)
-	environ = replaceKey(environ, "DUBPLATE_TRUSTED_PROXY_ENABLED", "true")
-	environ = replaceKey(environ, "DUBPLATE_TRUSTED_PROXY_ADDRS", "0.0.0.0, proxy.example.test")
-	environ = replaceKey(environ, "DUBPLATE_TRUSTED_PROXY_HEADER", "Cookie")
-	cfg, err := config.Load(environ, productionRegistry())
+	environ := wallEnviron()
+	environ = withKey(environ, "DUBPLATE_TRUSTED_PROXY_ENABLED", "true")
+	environ = withKey(environ, "DUBPLATE_TRUSTED_PROXY_ADDRS", "0.0.0.0, proxy.example.test")
+	environ = withKey(environ, "DUBPLATE_TRUSTED_PROXY_HEADER", "Cookie")
+	cfg, err := config.Load(environ, configRegistry())
 	if err != nil {
 		t.Fatalf("config.Load() error = %v, want nil", err)
 	}
 
-	_, err = resolveTrustedProxy(cfg)
+	_, err = ResolveTrustedProxy(cfg)
 	var joined interface{ Unwrap() []error }
 	if !errors.As(err, &joined) {
-		t.Fatalf("resolveTrustedProxy() error = %v (%T), want an errors.Join result", err, err)
+		t.Fatalf("ResolveTrustedProxy() error = %v (%T), want an errors.Join result", err, err)
 	}
 	if got := len(joined.Unwrap()); got != 3 {
 		t.Errorf("joined refusals = %d, want 3 (two entries and the header): %v", got, err)
+	}
+}
+
+func TestResolveConfig(t *testing.T) {
+	tests := []struct {
+		name       string
+		environ    []string
+		wantErr    error
+		wantAddrs  []string
+		wantPort   int
+		wantPrefix string
+	}{
+		{
+			name:       "defaults",
+			environ:    nil,
+			wantAddrs:  []string{"127.0.0.1"},
+			wantPort:   8080,
+			wantPrefix: "/dubplate",
+		},
+		{
+			name: "configured",
+			environ: []string{
+				"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1,::1",
+				"DUBPLATE_SERVE_PORT=9090",
+				"DUBPLATE_SERVE_PREFIX=/library",
+			},
+			wantAddrs:  []string{"127.0.0.1", "::1"},
+			wantPort:   9090,
+			wantPrefix: "/library",
+		},
+		{
+			name:    "invalid prefix",
+			environ: []string{"DUBPLATE_SERVE_PREFIX=no-leading-separator"},
+			wantErr: ErrInvalidPrefix,
+		},
+		{
+			name:    "unparseable bind list",
+			environ: []string{"DUBPLATE_SERVE_BIND_ADDRS=not-an-address"},
+			wantErr: ErrInvalidBindAddr,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prefix, addrs, port, err := ResolveConfig(tt.environ)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("ResolveConfig() error = %v, want it to wrap %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ResolveConfig() error = %v, want nil", err)
+			}
+			if !slices.Equal(addrs, tt.wantAddrs) {
+				t.Errorf("addrs = %v, want %v", addrs, tt.wantAddrs)
+			}
+			if port != tt.wantPort {
+				t.Errorf("port = %d, want %d", port, tt.wantPort)
+			}
+			if prefix.String() != tt.wantPrefix {
+				t.Errorf("prefix = %q, want %q", prefix.String(), tt.wantPrefix)
+			}
+		})
+	}
+}
+
+// TestValidatePort proves the port's bound at the function the magic-link
+// source's validator calls: 0 would listen on an ephemeral port, and a
+// port below 1024 cannot bind under the serve unit's empty capability
+// set, so both refuse naming the capability, while 1024 and 65535, the
+// bound's own ends, pass.
+func TestValidatePort(t *testing.T) {
+	tests := []struct {
+		port    string
+		wantErr string // the whole refusal; empty means the port passes
+	}{
+		{port: "0", wantErr: "DUBPLATE_SERVE_PORT: 0 is below 1024: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port"},
+		{port: "80", wantErr: "DUBPLATE_SERVE_PORT: 80 is below 1024: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port"},
+		{port: "1023", wantErr: "DUBPLATE_SERVE_PORT: 1023 is below 1024: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port"},
+		{port: "1024"},
+		{port: "65535"},
+		{port: "65536", wantErr: "DUBPLATE_SERVE_PORT: 65536 is above 65535"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.port, func(t *testing.T) {
+			err := ValidatePort([]string{"DUBPLATE_SERVE_PORT=" + tt.port})
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Fatalf("ValidatePort() error = %v, want nil", err)
+				}
+				return
+			}
+			if err == nil || err.Error() != tt.wantErr {
+				t.Errorf("ValidatePort() error = %v, want %q", err, tt.wantErr)
+			}
+		})
 	}
 }

@@ -22,6 +22,7 @@ import (
 	"syscall"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
 )
 
@@ -95,15 +96,17 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 // call, in a fixed order. newRootCmd and the test suite's own
 // productionRegistry helper (serve_test.go) both call it, so the
 // production registration order is written once rather than restated
-// by hand in two places.
+// by hand in two places. The serve package registers twice because its
+// thresholds and its trusted proxy class are registered at two places
+// in the order, and the registry dump holds that order.
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	registerServeConfig(reg)
+	serve.Register(reg)
 	registerAuthConfig(reg)
 	registerStoreConfig(reg)
 	registerWebConfig(reg)
 	registerBackupConfig(reg)
-	registerProxyConfig(reg)
+	serve.RegisterTrustedProxy(reg)
 	registerAPIConfig(reg)
 	registerIntakeConfig(reg)
 	return reg

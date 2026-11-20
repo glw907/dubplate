@@ -54,71 +54,6 @@ const (
 	operatorCSSRouteName = "operator.css"
 )
 
-// serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
-// are the serve shell's own three keys, declared in this file rather
-// than internal/config: the alternative, declaring inside
-// internal/serve, would make the shell import internal/config, which
-// it has no reason to do. A bind address is not an identity concern,
-// so these keys are not folded into the magic-link source's own.
-
-// serveBindAddrsThreshold is the comma-separated list of addresses the
-// serve verb binds. Its default, loopback only, is the salvage
-// configuration's own default. The registry has no list kind, so
-// this registers as KindString and [serve.SplitBindAddrs] splits and
-// validates it in the package that binds, keeping the address grammar
-// with the code that uses it.
-var serveBindAddrsThreshold = config.Threshold{
-	Key:         "DUBPLATE_SERVE_BIND_ADDRS",
-	Kind:        config.KindString,
-	Default:     "127.0.0.1",
-	Doc:         "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
-	Description: "the addresses the server listens on, comma-separated",
-	Mark:        config.Sensitive,
-}
-
-// servePortThreshold is the TCP port the serve verb binds on every
-// configured address. Its default, 8080, is the salvage configuration's
-// own default.
-var servePortThreshold = config.Threshold{
-	Key:         "DUBPLATE_SERVE_PORT",
-	Kind:        config.KindInt,
-	Default:     "8080",
-	Doc:         "an integer TCP port from 1024 through 65535",
-	Description: "the TCP port the server listens on",
-	Mark:        config.Sensitive,
-}
-
-// servePortFloor and servePortCeiling bound DUBPLATE_SERVE_PORT. The
-// floor is Linux's default net.ipv4.ip_unprivileged_port_start: the
-// serve unit's empty CapabilityBoundingSet= withholds
-// CAP_NET_BIND_SERVICE, so a lower port fails at bind, and port 0 would
-// listen on whatever ephemeral port the kernel picks.
-const (
-	servePortFloor   = 1024
-	servePortCeiling = 65535
-)
-
-// validateServePort checks DUBPLATE_SERVE_PORT against
-// [servePortFloor] and [servePortCeiling], naming the capability a
-// privileged port would need. [validateMagicLinkSource] calls it, so
-// [config.Load] refuses an out-of-range port for doctor and every verb
-// before serve ever binds. A value that does not parse returns
-// [config.ParseInt]'s own [config.KeyError].
-func validateServePort(environ []string) error {
-	port, err := config.ParseInt(environ, servePortThreshold)
-	if err != nil {
-		return err
-	}
-	if port < servePortFloor {
-		return &config.KeyError{Key: servePortThreshold.Key, Reason: fmt.Sprintf(
-			"%d is below %d: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port", port, servePortFloor)}
-	}
-	if port > servePortCeiling {
-		return &config.KeyError{Key: servePortThreshold.Key, Reason: fmt.Sprintf("%d is above %d", port, servePortCeiling)}
-	}
-	return nil
-}
-
 // errDirNotWritable reports that this process may not list, create,
 // and remove entries in a directory a later write needs.
 var errDirNotWritable = errors.New("not writable")
@@ -138,62 +73,6 @@ func checkDirWritable(dir string) error {
 		return fmt.Errorf("%s is %w: %w", dir, errDirNotWritable, err)
 	}
 	return nil
-}
-
-// servePrefixThreshold is the one owned path prefix: every route the
-// shell registers lives under it, and every path outside it answers
-// 404. Its default, /dubplate, is one segment so the segment-aware
-// match has a boundary to find, and carries no estate value.
-var servePrefixThreshold = config.Threshold{
-	Key:         "DUBPLATE_SERVE_PREFIX",
-	Kind:        config.KindString,
-	Default:     "/dubplate",
-	Doc:         "a single path segment beginning with a separator, for example /dubplate",
-	Description: "the single path segment every page lives under",
-	Mark:        config.Sensitive,
-}
-
-// registerServeConfig adds the serve shell's three thresholds to reg,
-// a plain function: newRootCmd builds a fresh, independent registry on
-// every construction, so registering onto it can never collide with a
-// prior process's own registration.
-func registerServeConfig(reg *config.Registry) {
-	reg.AddThreshold(serveBindAddrsThreshold)
-	reg.AddThreshold(servePortThreshold)
-	reg.AddThreshold(servePrefixThreshold)
-}
-
-// resolveServeConfig reads the three thresholds against environ and
-// returns the values [serve.Run] and its construction values take: the
-// validated owned prefix, the split and validated bind addresses, and
-// the port. It returns before any listener opens, so a caller can
-// refuse an invalid prefix or bind list without ever touching the
-// network.
-func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
-	prefixValue, err := config.ParseString(environ, servePrefixThreshold)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-	prefix, err := serve.NewPrefix(prefixValue)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-
-	bindRaw, err := config.ParseString(environ, serveBindAddrsThreshold)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-	addrs, err := serve.SplitBindAddrs(bindRaw)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-
-	port, err := config.ParseInt(environ, servePortThreshold)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-
-	return prefix, addrs, port, nil
 }
 
 // newServeCmd builds the serve verb: it validates the owned
@@ -219,7 +98,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			prefix, addrs, port, err := resolveServeConfig(environ)
+			prefix, addrs, port, err := serve.ResolveConfig(environ)
 			if err != nil {
 				return err
 			}
@@ -255,7 +134,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
-// proxy value [resolveTrustedProxy] refuses, a store this binary cannot
+// proxy value [serve.ResolveTrustedProxy] refuses, a store this binary cannot
 // open or must not migrate, an unparseable mail port, a bad theme or
 // branding value, or a refused operator CSS file without ever accepting
 // a connection.
@@ -284,7 +163,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // context derived from ctx. A lease another process holds refuses the
 // start naming the holder.
 //
-// The trusted proxy class, resolved through [resolveTrustedProxy],
+// The trusted proxy class, resolved through [serve.ResolveTrustedProxy],
 // governs both the strip's forwarded-address carve-out and every
 // handler's ClientIP, so the peer whose forwarded headers survive the
 // strip is exactly the peer whose header names the client. With the
@@ -330,7 +209,7 @@ type registrar interface {
 // registrar and never through the shell directly: a route registered
 // around it escapes the route inventory test unseen.
 func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *server, err error) {
-	proxyConfig, err := resolveTrustedProxy(cfg)
+	proxyConfig, err := serve.ResolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
 	}
