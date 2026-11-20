@@ -234,7 +234,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	defer cancelRunner()
 	runner, err := local.New(runnerCtx, local.Config{
 		Store:     h,
-		Retention: jobRetentionReader(acc),
+		Retention: local.JobRetention(acc),
 		Backup:    backupConfigFrom(cfg, acc),
 		Logger:    logger,
 		Now:       time.Now,

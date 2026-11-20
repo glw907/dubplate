@@ -23,6 +23,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/spf13/cobra"
 )
@@ -103,6 +104,7 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
 	auth.Register(reg)
+	local.Register(reg)
 	serve.Register(reg)
 	registerStoreConfig(reg)
 	registerWebConfig(reg)

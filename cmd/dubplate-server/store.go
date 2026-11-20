@@ -76,22 +76,6 @@ const (
 	storeMigrationWaitCeiling = 24 * time.Hour
 )
 
-// jobRetentionSetting is DUBPLATE_JOB_RETENTION: how long a finished
-// job record survives past its own kind's newest succeeded record.
-// Its default, 2160h (90 days), carries unchanged the value
-// ops/local's retired retention constant held.
-var jobRetentionSetting = config.Setting{
-	Key:         "DUBPLATE_JOB_RETENTION",
-	Kind:        config.KindDuration,
-	Default:     "2160h",
-	Doc:         "a Go duration string, for example 2160h",
-	Apply:       config.ApplyNextOperation,
-	Floor:       "24h",
-	Ceiling:     "87600h",
-	Description: "how long a finished job record is kept",
-	Mark:        config.NotSensitive,
-}
-
 // storeLocalSnapshotKeepSetting is DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP:
 // how many local pre-migration snapshot copies OpenServe's own keep
 // bound retains. Its default of 3 is a working value the retired
@@ -116,18 +100,7 @@ var storeLocalSnapshotKeepSetting = config.Setting{
 func registerStoreConfig(reg *config.Registry) {
 	reg.AddThreshold(storeBusyTimeoutThreshold)
 	reg.AddThreshold(storeMigrationWaitThreshold)
-	reg.AddSetting(jobRetentionSetting)
 	reg.AddSetting(storeLocalSnapshotKeepSetting)
-}
-
-// jobRetentionReader returns the closure over acc that
-// [local.Config.Retention] reads before every job start: the
-// accessor's typed read of jobRetentionSetting, one per value
-// ops/local needs.
-func jobRetentionReader(acc *settings.Accessor) func(context.Context) (time.Duration, error) {
-	return func(ctx context.Context) (time.Duration, error) {
-		return acc.Duration(ctx, jobRetentionSetting)
-	}
 }
 
 // errOutOfRange marks a threshold that parsed but fell outside its

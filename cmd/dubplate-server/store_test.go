@@ -14,6 +14,7 @@ import (
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -503,14 +504,13 @@ func TestRegisterStoreConfig(t *testing.T) {
 	}
 }
 
-// TestRegisterStoreConfig_Settings proves the two store-homed settings
-// register with R-6c11's defaults.
+// TestRegisterStoreConfig_Settings proves the store-homed setting
+// registers with R-6c11's default.
 func TestRegisterStoreConfig_Settings(t *testing.T) {
 	reg := config.NewRegistry()
 	registerStoreConfig(reg)
 
 	want := map[string]string{
-		"DUBPLATE_JOB_RETENTION":             "2160h",
 		"DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP": "3",
 	}
 	got := make(map[string]string)
@@ -569,7 +569,6 @@ func TestSettingsReaders(t *testing.T) {
 	registerBackupConfig(reg)
 	acc := settings.NewAccessor(h, reg)
 	guardFraction, snapshotKeep, archiveRetention := backupSettingsReaders(acc)
-	retention := jobRetentionReader(acc)
 
 	tests := []struct {
 		name        string
@@ -579,11 +578,6 @@ func TestSettingsReaders(t *testing.T) {
 		wantDefault string
 		wantSeeded  string
 	}{
-		{
-			name: "job retention", key: "DUBPLATE_JOB_RETENTION", seed: "48h",
-			read:        func() (string, error) { v, err := retention(context.Background()); return v.String(), err },
-			wantDefault: "2160h0m0s", wantSeeded: "48h0m0s",
-		},
 		{
 			name: "backup guard fraction", key: "DUBPLATE_BACKUP_GUARD_FRACTION", seed: "0.9",
 			read:        func() (string, error) { v, err := guardFraction(context.Background()); return fmt.Sprint(v), err },
@@ -1011,9 +1005,10 @@ func TestSettingsDoctorRows_CorrelatedRule(t *testing.T) {
 // by reading either.
 func TestLocalSnapshotKeep(t *testing.T) {
 	reg := config.NewRegistry()
+	local.Register(reg)
 	registerStoreConfig(reg)
 	key := storeLocalSnapshotKeepSetting.Key
-	retention := jobRetentionSetting.Key
+	retention := "DUBPLATE_JOB_RETENTION"
 
 	facts := func(rows ...store.SettingsRow) *store.Facts { return &store.Facts{Settings: rows} }
 	row := func(key, value, source string) store.SettingsRow {
