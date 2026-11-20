@@ -258,12 +258,12 @@ func TestValidateMagicLinkSource_NoSecretInErrors(t *testing.T) {
 	}
 }
 
-// TestSettingReaders_FailureNamesTheKey proves each reader serve hands
+// TestAuthSettingReaders_FailureNamesTheKey proves each reader serve hands
 // the handlers reports a failed read as an [*SettingError] carrying
 // the setting's key, the shape the handlers log by key alone. The
 // accessor is built over an empty registry, so every read fails before
 // it reaches a store.
-func TestSettingReaders_FailureNamesTheKey(t *testing.T) {
+func TestAuthSettingReaders_FailureNamesTheKey(t *testing.T) {
 	acc := settings.NewAccessor(nil, config.NewRegistry())
 	tests := []struct {
 		name string
