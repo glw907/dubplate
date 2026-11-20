@@ -26,6 +26,7 @@ import (
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 )
 
@@ -108,7 +109,7 @@ func newProductionRegistry() *config.Registry {
 	local.Register(reg)
 	serve.Register(reg)
 	store.Register(reg)
-	registerWebConfig(reg)
+	webapp.Register(reg)
 	registerBackupConfig(reg)
 	serve.RegisterTrustedProxy(reg)
 	registerAPIConfig(reg)
