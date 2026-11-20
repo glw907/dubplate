@@ -396,7 +396,7 @@ func TestSettingsResetCmd_ServingHandleReadsTheDefault(t *testing.T) {
 		t.Fatalf("Set: %v", err)
 	}
 	acc := settings.NewAccessor(serving, reg)
-	if got, err := acc.Int(ctx, storeLocalSnapshotKeepSetting); err != nil || got != 50 {
+	if got, err := acc.Int(ctx, store.LocalSnapshotKeepSetting); err != nil || got != 50 {
 		t.Fatalf("accessor before the reset = %d, %v, want 50", got, err)
 	}
 
@@ -404,7 +404,7 @@ func TestSettingsResetCmd_ServingHandleReadsTheDefault(t *testing.T) {
 		t.Fatalf("reset: %v", err)
 	}
 
-	if got, err := acc.Int(ctx, storeLocalSnapshotKeepSetting); err != nil || got != 3 {
+	if got, err := acc.Int(ctx, store.LocalSnapshotKeepSetting); err != nil || got != 3 {
 		t.Errorf("accessor after the reset = %d, %v, want the default 3", got, err)
 	}
 }

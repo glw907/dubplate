@@ -154,7 +154,7 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	if err != nil {
 		return err
 	}
-	busyTimeout, err := storeBusyTimeout(environ)
+	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
 		return err
 	}

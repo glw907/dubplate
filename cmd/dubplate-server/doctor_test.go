@@ -1207,7 +1207,7 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 	reg := freshRegistry()
 	local.Register(reg)
-	registerStoreConfig(reg)
+	store.Register(reg)
 
 	tests := []struct {
 		name  string
@@ -1243,7 +1243,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 	reg := freshRegistry()
 	local.Register(reg)
-	registerStoreConfig(reg)
+	store.Register(reg)
 
 	tests := []struct {
 		name       string
@@ -1302,7 +1302,7 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 	reg := freshRegistry()
 	local.Register(reg)
-	registerStoreConfig(reg)
+	store.Register(reg)
 
 	before, err := os.ReadDir(stateDir)
 	if err != nil {

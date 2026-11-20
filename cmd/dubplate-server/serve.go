@@ -343,16 +343,16 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 // reconciler a restore awaiting serve needs. A refusal at any step
 // returns no handle.
 func openServeStore(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config, logger *slog.Logger) (*store.Handle, error) {
-	busyTimeout, err := storeBusyTimeout(environ)
+	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
 		return nil, err
 	}
-	migrationWait, err := storeMigrationWait(environ)
+	migrationWait, err := store.MigrationWait(environ)
 	if err != nil {
 		return nil, err
 	}
 	report := store.Inspect(ctx, store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: busyTimeout})
-	keep, err := localSnapshotKeep(report, environ, reg)
+	keep, err := settings.LocalSnapshotKeep(report, environ, reg)
 	if err != nil {
 		return nil, err
 	}

@@ -200,7 +200,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	if err != nil {
 		return err
 	}
-	busyTimeout, err := storeBusyTimeout(environ)
+	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
 		return err
 	}

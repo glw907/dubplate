@@ -16,220 +16,6 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 )
 
-// storeBusyTimeoutThreshold is DUBPLATE_STORE_BUSY_TIMEOUT: the
-// inspect mode's only production reader at this rung, doctor and
-// check, bounding how long a read waits on another process's write
-// lock inside SQLite. The 15s default is long enough to ride out a
-// snapshot or a migration holding the lock, short enough that a stuck
-// writer surfaces as a doctor failure rather than a hang.
-var storeBusyTimeoutThreshold = config.Threshold{
-	Key:         "DUBPLATE_STORE_BUSY_TIMEOUT",
-	Kind:        config.KindDuration,
-	Default:     "15s",
-	Doc:         "a Go duration string, for example 15s",
-	Description: "how long a read waits on another process's write lock",
-	Mark:        config.NotSensitive,
-}
-
-// storeBusyTimeoutFloorMS and storeBusyTimeoutCeilingMS bound
-// DUBPLATE_STORE_BUSY_TIMEOUT in milliseconds, the unit SQLite's
-// _busy_timeout takes. The floor is 1ms: a positive duration under it
-// would truncate to zero, no busy wait at all. The ceiling is the
-// largest value a probe measured the driver's DSN parser
-// (strconv.ParseInt(..., 10, 64) in sqlite.go) reading back unchanged;
-// values above it read back as 0.
-const (
-	storeBusyTimeoutFloorMS   = 1
-	storeBusyTimeoutCeilingMS = 2147483647
-)
-
-// storeBusyTimeoutFloor and storeBusyTimeoutCeiling are the same bound
-// as [time.Duration], compared against the threshold's parsed value at
-// nanosecond precision so a value like 500us fails the floor even
-// though it would round to a whole millisecond.
-var (
-	storeBusyTimeoutFloor   = storeBusyTimeoutFloorMS * time.Millisecond
-	storeBusyTimeoutCeiling = storeBusyTimeoutCeilingMS * time.Millisecond
-)
-
-// storeMigrationWaitThreshold is DUBPLATE_STORE_MIGRATION_WAIT: how
-// long serve waits for the store lock before it exits naming the
-// holders. A current store waits only on an exclusive holder, a
-// restore, since shared locks coexist; a migrating start waits on
-// every shared holder, a backup's sync above all, which on a first run
-// lasts hours. The 5m default outlasts every member verb and every
-// snapshot copy a group-scale store takes and is far shorter than a
-// first sync; the unit's restart policy retries a start that gave up.
-var storeMigrationWaitThreshold = config.Threshold{
-	Key:         "DUBPLATE_STORE_MIGRATION_WAIT",
-	Kind:        config.KindDuration,
-	Default:     "5m",
-	Doc:         "a Go duration string, for example 5m",
-	Description: "how long a start waits for the store lock before it gives up",
-	Mark:        config.NotSensitive,
-}
-
-// storeMigrationWaitFloor and storeMigrationWaitCeiling bound
-// DUBPLATE_STORE_MIGRATION_WAIT.
-const (
-	storeMigrationWaitFloor   = time.Second
-	storeMigrationWaitCeiling = 24 * time.Hour
-)
-
-// storeLocalSnapshotKeepSetting is DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP:
-// how many local pre-migration snapshot copies OpenServe's own keep
-// bound retains. Its default of 3 is a working value the retired
-// package never set: a rollback needs the newest copy, and two older
-// copies cover a bad upgrade found a release late, each a full store
-// whose size doctor already shows. doctor is its first reader.
-var storeLocalSnapshotKeepSetting = config.Setting{
-	Key:         "DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP",
-	Kind:        config.KindInt,
-	Default:     "3",
-	Doc:         "an integer count of local snapshot copies to keep, for example 3",
-	Apply:       config.ApplyNextOperation,
-	Floor:       "1",
-	Ceiling:     "100",
-	Description: "how many local pre-migration snapshot copies the server keeps",
-	Mark:        config.NotSensitive,
-}
-
-// registerStoreConfig registers the store's own thresholds and
-// store-homed settings against reg. newProductionRegistry calls it
-// after auth.Register.
-func registerStoreConfig(reg *config.Registry) {
-	reg.AddThreshold(storeBusyTimeoutThreshold)
-	reg.AddThreshold(storeMigrationWaitThreshold)
-	reg.AddSetting(storeLocalSnapshotKeepSetting)
-}
-
-// errOutOfRange marks a threshold that parsed but fell outside its
-// range, as opposed to one that did not parse at all.
-var errOutOfRange = errors.New("out of range")
-
-// rangeError is an out-of-range refusal whose message is its own
-// sentence and whose Unwrap is [errOutOfRange].
-type rangeError string
-
-func (e rangeError) Error() string { return string(e) }
-
-func (e rangeError) Unwrap() error { return errOutOfRange }
-
-// storeBusyTimeout resolves DUBPLATE_STORE_BUSY_TIMEOUT from environ
-// and checks it against its range. A value that parses outside the
-// range is refused wrapping errOutOfRange and naming the key and the
-// bound it crossed; a value that fails to parse is returned as
-// config.ParseDuration reports it, a failure doctor's own threshold
-// row already names.
-func storeBusyTimeout(environ []string) (time.Duration, error) {
-	d, err := config.ParseDuration(environ, storeBusyTimeoutThreshold)
-	if err != nil {
-		return 0, err
-	}
-	switch {
-	case d < storeBusyTimeoutFloor:
-		return 0, rangeError(fmt.Sprintf("%s must be at least %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutFloorMS))
-	case d > storeBusyTimeoutCeiling:
-		return 0, rangeError(fmt.Sprintf("%s must be at most %dms", storeBusyTimeoutThreshold.Key, storeBusyTimeoutCeilingMS))
-	}
-	return d, nil
-}
-
-// storeMigrationWait resolves DUBPLATE_STORE_MIGRATION_WAIT from
-// environ and checks it against its range, naming the key on every
-// refusal.
-func storeMigrationWait(environ []string) (time.Duration, error) {
-	d, err := config.ParseDuration(environ, storeMigrationWaitThreshold)
-	if err != nil {
-		return 0, err
-	}
-	switch {
-	case d < storeMigrationWaitFloor:
-		return 0, fmt.Errorf("%s must be at least %s", storeMigrationWaitThreshold.Key, storeMigrationWaitFloor)
-	case d > storeMigrationWaitCeiling:
-		return 0, fmt.Errorf("%s must be at most %s", storeMigrationWaitThreshold.Key, storeMigrationWaitCeiling)
-	}
-	return d, nil
-}
-
-// localSnapshotKeep decides [store.ServeOptions.Keep] before serve
-// opens the store, from the facts report holds and the registry's own
-// setting, and refuses a start that a migration would otherwise make
-// unrecoverable.
-//
-// A stored keep row in its bounds is the keep, even when the
-// environment names another value: that value reaches the keep at the
-// seed this start applies after its migration. The outcome's own
-// value is the value in force after the seed, so it decides only when
-// the row is out of bounds, where it is the healed value or a refusal
-// naming the key and the bound. With no keep row, or no facts, the
-// registry default is the keep and the open decides whether the state
-// itself refuses.
-//
-// An older store whose evaluation refuses anything, whether an
-// administrator's row out of bounds or an environment value that does
-// not parse, is refused here, before the migration moves it past the
-// binary a rollback would run. An older store is evaluated against
-// the facts [seedFacts] picks, as check and doctor evaluate it, so one
-// whose version predates the settings table, or the jobs table and
-// with it any facts at all, is evaluated against the empty table its
-// first seed meets. A store that does not migrate gets no such check,
-// nor does one that carries no facts, and the seed apply after the
-// open decides.
-func localSnapshotKeep(report store.Report, environ []string, reg *config.Registry) (int, error) {
-	setting := byKey(reg.Settings(), storeLocalSnapshotKeepSetting.Key)
-	keep, err := strconv.Atoi(setting.Default)
-	if err != nil {
-		return 0, fmt.Errorf("%s: default %q: %w", setting.Key, setting.Default, err)
-	}
-	var facts store.Facts
-	switch {
-	case report.State == store.StateOlder:
-		facts, _ = seedFacts(report)
-	case report.Facts != nil:
-		facts = *report.Facts
-	default:
-		return keep, nil
-	}
-
-	ev := settings.EvaluateFacts(reg, environ, facts)
-	if report.State == store.StateOlder && ev.Err != nil {
-		return 0, olderStoreRefusal(ev)
-	}
-	for _, o := range ev.Outcomes {
-		if o.Key != setting.Key || o.Stored == nil {
-			continue
-		}
-		if setting.Validate(o.Stored.Value) == nil {
-			return strconv.Atoi(o.Stored.Value)
-		}
-		if o.Err != nil {
-			return 0, o.Err
-		}
-		return strconv.Atoi(o.Value)
-	}
-	return keep, nil
-}
-
-// olderStoreRefusal is ev's refusal of an older store. This binary
-// cannot write an older store, so settings reset cannot clear an
-// administrator's row it refuses over; when any refusing key holds
-// one, the error names the recovery that can: the previous release's
-// own settings reset, then the upgrade.
-func olderStoreRefusal(ev settings.Evaluation) error {
-	var keys []string
-	for _, o := range ev.Outcomes {
-		if o.Err != nil && o.Stored != nil && o.Stored.Source == settings.SourceAdmin {
-			keys = append(keys, o.Key)
-		}
-	}
-	if len(keys) == 0 {
-		return ev.Err
-	}
-	return fmt.Errorf("%w; this store is older than this binary, which cannot write it: redeploy the previous release, run its settings reset for %s, then upgrade",
-		ev.Err, strings.Join(keys, ", "))
-}
-
 // storeRow resolves the store's state from environ and renders it as
 // doctor's and check's shared "store" row: the status text and
 // whether that state exits nonzero. It reads
@@ -250,9 +36,9 @@ func storeRow(ctx context.Context, environ []string) (status string, failed bool
 		return "not checked", false, store.Report{}, false
 	}
 
-	d, err := storeBusyTimeout(environ)
+	d, err := store.BusyTimeout(environ)
 	switch {
-	case errors.Is(err, errOutOfRange):
+	case errors.Is(err, store.ErrOutOfRange):
 		return "not checked: " + err.Error(), true, store.Report{}, false
 	case err != nil:
 		return "not checked", true, store.Report{}, false
@@ -337,13 +123,13 @@ func storeHolders(holders []string) string {
 // follows the store's own state: a state [storeVouches] refuses
 // reports every setting "not checked", never calling into
 // internal/settings; every other state evaluates the seed rule against
-// the facts [seedFacts] picks. A store with no settings table yet
+// the facts [settings.SeedFacts] picks. A store with no settings table yet
 // shows each setting at its default and what serve's next start seeds,
 // unless the seed would refuse, which reports here as it would there.
 // It reports whether any row refuses.
 func settingsDoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool) (rows []doctorRow, failed bool) {
 	list := reg.Settings()
-	facts, ok := seedFacts(report)
+	facts, ok := settings.SeedFacts(report)
 	if !checked || !storeVouches(report.State) || !ok {
 		for _, s := range list {
 			rows = append(rows, doctorRow{s.Key, settingsNotCheckedStatus(environ, s, report.State, checked)})
@@ -352,8 +138,12 @@ func settingsDoctorRows(environ []string, reg *config.Registry, report store.Rep
 	}
 
 	ev := settings.EvaluateFacts(reg, environ, facts)
+	registered := make(map[string]config.Setting, len(list))
+	for _, s := range list {
+		registered[s.Key] = s
+	}
 	for _, o := range ev.Outcomes {
-		s := byKey(list, o.Key)
+		s := registered[o.Key]
 		switch {
 		case o.Err != nil:
 			failed = true
@@ -368,40 +158,6 @@ func settingsDoctorRows(environ []string, reg *config.Registry, report store.Rep
 		rows = append(rows, doctorRow{orphan.Key, "no longer registered; ignored"})
 	}
 	return rows, failed
-}
-
-// seedFacts returns the facts the seed rule is evaluated against for
-// a store in report, and false when there are none to evaluate. An
-// absent store, and an older one whose version predates the settings
-// table, holds no settings row: its facts are an absent table, the
-// empty row set serve's first seed meets, so an environment value that
-// start would refuse is refused before it. An older store below the
-// version that adds the jobs table carries no facts at all, and its
-// state alone marks it. Any other state evaluates the facts
-// [store.Inspect] read, and a state that read none has nothing to
-// evaluate.
-func seedFacts(report store.Report) (store.Facts, bool) {
-	switch {
-	case report.State == store.StateAbsent,
-		report.State == store.StateOlder && (report.Facts == nil || report.Facts.SettingsAbsent):
-		return store.Facts{SettingsAbsent: true}, true
-	case report.Facts != nil:
-		return *report.Facts, true
-	}
-	return store.Facts{}, false
-}
-
-// byKey returns the setting named key out of list, or its zero value
-// when list carries none, the shape a defensive caller falls back on
-// rather than panics on a key [settings.Evaluate] could not have
-// invented.
-func byKey(list []config.Setting, key string) config.Setting {
-	for _, s := range list {
-		if s.Key == key {
-			return s
-		}
-	}
-	return config.Setting{}
 }
 
 // settingsOutcomeStatus renders one from-facts outcome as doctor's

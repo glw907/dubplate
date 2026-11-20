@@ -365,7 +365,7 @@ func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
 			reg := freshRegistry()
 			local.Register(reg)
-			registerStoreConfig(reg)
+			store.Register(reg)
 
 			var stdout, stderr bytes.Buffer
 			cmd := newCheckCmd(environ, reg, &stdout, &stderr)
