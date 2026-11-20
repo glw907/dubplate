@@ -26,6 +26,21 @@ func TestFormatStamp(t *testing.T) {
 	}
 }
 
+// TestMicros: a literal microsecond count is the UTC instant it names,
+// in the UTC location, whatever zone the runner holds.
+func TestMicros(t *testing.T) {
+	// 2026-09-24T13:06:07.123456Z.
+	const us = 1790255167123456
+	got := Micros(us)
+	want := time.Date(2026, 9, 24, 13, 6, 7, 123456000, time.UTC)
+	if !got.Equal(want) {
+		t.Errorf("Micros(%d) = %v, want %v", us, got, want)
+	}
+	if got.Location() != time.UTC {
+		t.Errorf("Micros(%d) is not in the time.UTC location (got %v)", us, got.Location())
+	}
+}
+
 // TestParseStamp_Refuses: every form but the fixed-width layout with
 // six fractional digits and a literal Z is refused.
 func TestParseStamp_Refuses(t *testing.T) {

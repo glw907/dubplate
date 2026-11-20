@@ -16,6 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // work runs CheckWorkers checks at a time until ctx ends. The store is
@@ -69,7 +70,7 @@ func (in *Intake) work(ctx context.Context) {
 
 // queue lists the checking submissions, longest waiting first.
 func (in *Intake) queue(ctx context.Context) ([][]byte, error) {
-	return queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
+	return store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) ([]byte, error) {
 		var id []byte
 		return id, rows.Scan(&id)
 	}, `SELECT id FROM submissions WHERE state = ? ORDER BY updated_at, id`, stateChecking)
@@ -195,7 +196,7 @@ func (in *Intake) readChecking(ctx context.Context, id []byte) (checked, error) 
 	if err != nil {
 		return checked{}, fmt.Errorf("read submission: %w", err)
 	}
-	sub.files, err = queryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (checkedFile, error) {
+	sub.files, err = store.QueryAll(ctx, in.cfg.Store, func(rows *sql.Rows) (checkedFile, error) {
 		var f checkedFile
 		return f, rows.Scan(&f.id, &f.path, &f.role)
 	}, `SELECT id, rel_path, role FROM submission_files WHERE submission_id = ? ORDER BY rel_path`, id)

@@ -17,6 +17,12 @@ func FormatStamp(t time.Time) string {
 	return t.UTC().Format(stampLayout)
 }
 
+// Micros returns the UTC instant a timestamp column stores as us
+// microseconds since the Unix epoch.
+func Micros(us int64) time.Time {
+	return time.UnixMicro(us).UTC()
+}
+
 // ParseStamp returns the time s names when s is exactly what
 // [FormatStamp] writes: fixed width, six fractional digits, and the
 // zone "Z". Every other form is refused.

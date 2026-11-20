@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
@@ -137,14 +136,14 @@ func writeFault(err error) error {
 // ListSubmissions implements [ops.SubmissionSeam].
 func (s *Seam) ListSubmissions(ctx context.Context, actor ops.Actor, _ ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
 	uploader := actor.UserID()
-	list, err := queryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionSummary, error) {
+	list, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionSummary, error) {
 		var id []byte
 		var createdAt, updatedAt int64
 		var sum ops.SubmissionSummary
 		if err := rows.Scan(&id, &sum.State, &sum.VerdictUnit, &createdAt, &updatedAt); err != nil {
 			return sum, err
 		}
-		sum.SubmissionID, sum.CreatedAt, sum.UpdatedAt = wireID(id), micros(createdAt), micros(updatedAt)
+		sum.SubmissionID, sum.CreatedAt, sum.UpdatedAt = wireID(id), store.Micros(createdAt), store.Micros(updatedAt)
 		return sum, nil
 	}, `SELECT id, state, verdict_unit, created_at, updated_at FROM submissions
 		WHERE uploader = ? ORDER BY created_at DESC, id DESC`, uploader[:])
@@ -229,17 +228,17 @@ func (s *Seam) status(ctx context.Context, uploader identity.UserID, id []byte) 
 	if err != nil {
 		return out, fmt.Errorf("read submission: %w", err)
 	}
-	out.SubmissionID, out.CreatedAt, out.UpdatedAt = wireID(id), micros(createdAt), micros(updatedAt)
+	out.SubmissionID, out.CreatedAt, out.UpdatedAt = wireID(id), store.Micros(createdAt), store.Micros(updatedAt)
 
 	reasons := &reasonReader{seam: s, collection: coll}
-	out.Events, err = queryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionEvent, error) {
+	out.Events, err = store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionEvent, error) {
 		var at int64
 		var reason sql.NullString
 		var ev ops.SubmissionEvent
 		if err := rows.Scan(&at, &ev.Kind, &reason); err != nil {
 			return ev, err
 		}
-		ev.At, ev.Reason = micros(at), reason.String
+		ev.At, ev.Reason = store.Micros(at), reason.String
 		// An event's reason is a reject code or free text, so text that
 		// names no code is no error here.
 		if r, ok := reject.Lookup(reject.Code(reason.String)); ok {
@@ -251,7 +250,7 @@ func (s *Seam) status(ctx context.Context, uploader identity.UserID, id []byte) 
 		return out, fmt.Errorf("read submission events: %w", err)
 	}
 
-	files, err := queryAll(ctx, s.subs.store, func(rows *sql.Rows) (storedFile, error) {
+	files, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (storedFile, error) {
 		var f storedFile
 		var fid, path []byte
 		if err := rows.Scan(&fid, &path, &f.Size, &f.Received, &f.verdict); err != nil {
@@ -276,7 +275,7 @@ func (s *Seam) status(ctx context.Context, uploader identity.UserID, id []byte) 
 		out.Files = append(out.Files, f.SubmissionFile)
 	}
 
-	warnings, err := queryAll(ctx, s.subs.store, func(rows *sql.Rows) (storedWarning, error) {
+	warnings, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (storedWarning, error) {
 		var w storedWarning
 		var subject []byte
 		if err := rows.Scan(&w.code, &subject); err != nil {
@@ -347,28 +346,8 @@ func (r *reasonReader) read(ctx context.Context, code string) (reject.Reason, er
 	return reject.WithFormats(r.allowlist), nil
 }
 
-// queryAll scans every row query returns through scan.
-func queryAll[T any](ctx context.Context, h *store.Handle, scan func(*sql.Rows) (T, error), query string, args ...any) ([]T, error) {
-	rows, err := h.Query(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = rows.Close() }()
-	out := []T{}
-	for rows.Next() {
-		v, err := scan(rows)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, v)
-	}
-	return out, rows.Err()
-}
-
 // wireID renders an id as the wire carries it.
 func wireID(id []byte) string { return hex.EncodeToString(id) }
-
-func micros(at int64) time.Time { return time.UnixMicro(at).UTC() }
 
 // validUTF8 renders a stored path or name that need not be UTF-8.
 func validUTF8(s string) string { return strings.ToValidUTF8(s, "�") }

@@ -164,7 +164,7 @@ WHERE id = ? AND state = 'queued'`, t, t, j.id)
 		if err != nil {
 			return fmt.Errorf("mark job running: %w", err)
 		}
-		if ran, err = affected(res); err != nil || ran {
+		if ran, err = store.Affected(res); err != nil || ran {
 			return err
 		}
 		return tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", j.id).Scan(&state)
@@ -222,7 +222,7 @@ WHERE id = ? AND state = 'running'`, string(o.state), t, t, o.progress, o.code, 
 		if err != nil {
 			return fmt.Errorf("record job %s: %w", o.state, err)
 		}
-		if done, err = affected(res); err != nil || done {
+		if done, err = store.Affected(res); err != nil || done {
 			return err
 		}
 		return tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", j.id).Scan(&state)
@@ -358,28 +358,17 @@ FROM jobs WHERE id = ?`, id).Scan(&st.Kind, &state, &owner, &phase, &code, &mess
 	st.ID = h
 	st.State = ops.JobState(state)
 	st.Phase, st.FailureCode, st.FailureMessage = phase.String, code.String, message.String
-	st.QueuedAt, st.UpdatedAt = micros(queued), micros(updated)
+	st.QueuedAt, st.UpdatedAt = store.Micros(queued), store.Micros(updated)
 	st.StartedAt, st.FinishedAt = optionalMicros(started), optionalMicros(finished)
 	return st, owner, nil
 }
-
-func micros(us int64) time.Time { return time.UnixMicro(us).UTC() }
 
 func optionalMicros(us sql.NullInt64) *time.Time {
 	if !us.Valid {
 		return nil
 	}
-	t := micros(us.Int64)
+	t := store.Micros(us.Int64)
 	return &t
-}
-
-// affected reports whether res changed a row.
-func affected(res sql.Result) (bool, error) {
-	n, err := res.RowsAffected()
-	if err != nil {
-		return false, fmt.Errorf("count changed rows: %w", err)
-	}
-	return n > 0, nil
 }
 
 // parseID parses h as a job handle and returns the record id it names.

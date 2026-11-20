@@ -400,7 +400,7 @@ func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]J
 		if err := rows.Scan(&kind, &finished, &progress); err != nil {
 			return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
 		}
-		last[kind] = JobSuccess{Finished: time.UnixMicro(finished).UTC(), Progress: progress.String}
+		last[kind] = JobSuccess{Finished: Micros(finished), Progress: progress.String}
 	}
 	if err := rows.Err(); err != nil {
 		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
@@ -478,7 +478,7 @@ func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]Settin
 			return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
 		}
 		r.SeedValue = seed.String
-		r.UpdatedAt = time.UnixMicro(at).UTC()
+		r.UpdatedAt = Micros(at)
 		settings = append(settings, r)
 	}
 	if err := rows.Err(); err != nil {
