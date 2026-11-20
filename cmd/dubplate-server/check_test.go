@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -120,10 +121,12 @@ func TestCheckCmd_SettingsRow_AdminConflict(t *testing.T) {
 // freshRegistry returns the registry a test builds over baseEnviron
 // alone: rung 1's own rows plus the staging row baseEnviron sets, and
 // no other rung's. config.NewRegistry on its own would meet the staging
-// entry as an unknown key.
+// entry as an unknown key. intake.Register would add intake's fifteen
+// settings too, which the row counts below do not expect, so the row is
+// spelled here under the package's key.
 func freshRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	reg.AddWallRow(stagingRow)
+	reg.AddWallRow(config.WallRow{Name: intake.StagingKey, Description: "staging directory", Mark: config.Sensitive})
 	return reg
 }
 

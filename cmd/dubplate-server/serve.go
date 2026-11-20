@@ -213,11 +213,11 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	allowlist, err := intakeAllowlist(environ)
+	allowlist, err := intake.Allowlist(environ)
 	if err != nil {
 		return nil, err
 	}
-	if err := staging.Check(staging.Read(cfg.WallValue(stagingKey)), staging.Read(cfg.LibraryRoot)); err != nil {
+	if err := staging.Check(staging.Read(cfg.WallValue(intake.StagingKey)), staging.Read(cfg.LibraryRoot)); err != nil {
 		return nil, fmt.Errorf("startup check: %w", err)
 	}
 	h, err := openServeStore(ctx, environ, reg, cfg, logger)
@@ -313,7 +313,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Prefix:    prefix.String(),
 		PublicURL: cfg.IdentitySourceValue(auth.PublicURLKey),
 		Verify:    tusVerifier(adminConfig),
-		Floor:     freeSpaceFloor(acc),
+		Floor:     intake.FreeSpaceFloor(acc),
 		TusLog:    os.Stderr,
 	})
 	if err != nil {

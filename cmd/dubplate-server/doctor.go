@@ -17,6 +17,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
@@ -53,7 +54,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// config Load resolved.
 			cfg, loadErr := config.Load(environ, reg)
 			if loadErr == nil {
-				loadErr = resolveStaging(cfg)
+				loadErr = intake.ResolveStaging(cfg)
 			}
 			statuses := rowStatuses(loadErr)
 
@@ -281,7 +282,7 @@ func musicVolumeRowStatus(cfg *config.Config, r store.Report, checked bool) (sta
 	if cfg == nil {
 		return "not checked", false
 	}
-	stagingDir, library := staging.Read(cfg.WallValue(stagingKey)), staging.Read(cfg.LibraryRoot)
+	stagingDir, library := staging.Read(cfg.WallValue(intake.StagingKey)), staging.Read(cfg.LibraryRoot)
 	var absent []string
 	for _, d := range []struct {
 		role string

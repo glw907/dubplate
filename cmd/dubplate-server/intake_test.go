@@ -167,22 +167,6 @@ func TestLoadConfig_StagingFixtures(t *testing.T) {
 	}
 }
 
-func TestResolveStaging_ReadsTheWallValue(t *testing.T) {
-	base := authEnviron(t)
-	environ := replaceKey(base, "DUBPLATE_STAGING_DIR", "/srv/music/library/staging")
-	cfg, err := config.Load(environ, productionRegistry())
-	if err != nil {
-		t.Fatalf("fixture state: config.Load: %v", err)
-	}
-	err = resolveStaging(cfg)
-	if err == nil {
-		t.Fatal("resolveStaging() error = nil, want the nesting refused: Load alone accepts it")
-	}
-	if !strings.HasPrefix(err.Error(), "DUBPLATE_STAGING_DIR: ") {
-		t.Errorf("resolveStaging() error = %q, want it keyed by DUBPLATE_STAGING_DIR for doctor's row", err)
-	}
-}
-
 // TestNestedStagingRefusedByEveryVerb proves each verb that loads the
 // wall loads it through loadConfig: the library tree is what backup
 // syncs and restore refuses to fill, so the nesting rule must hold at
@@ -398,39 +382,6 @@ func TestIntakeSettings_SetInTheEnvironmentLoads(t *testing.T) {
 	}
 }
 
-// TestIntakeAllowlist: the allowlist splits into format names, and a
-// name the gate's format table does not hold, an empty entry among
-// them, is refused naming it.
-func TestIntakeAllowlist(t *testing.T) {
-	const key = "DUBPLATE_INTAKE_FORMAT_ALLOWLIST"
-	tests := []struct {
-		value string
-		want  []string
-		// refusal names the entry a refusal must quote.
-		refusal string
-	}{
-		{value: "flac", want: []string{"flac"}},
-		{value: " flac ", want: []string{"flac"}},
-		{value: "flac,mp3", refusal: `"mp3"`},
-		{value: "flac,", refusal: `""`},
-		{value: ",", refusal: `""`},
-	}
-	for _, tt := range tests {
-		t.Run(tt.value, func(t *testing.T) {
-			got, err := intakeAllowlist([]string{key + "=" + tt.value})
-			if tt.refusal == "" {
-				if err != nil || !slices.Equal(got, tt.want) {
-					t.Errorf("intakeAllowlist = %q, %v; want %q", got, err, tt.want)
-				}
-				return
-			}
-			if err == nil || !strings.Contains(err.Error(), key) || !strings.Contains(err.Error(), tt.refusal) {
-				t.Errorf("intakeAllowlist error = %v, want a refusal naming %s and %s", err, key, tt.refusal)
-			}
-		})
-	}
-}
-
 // TestServeRefusesAnAllowlistItCannotCheck: serve refuses to start over
 // an allowlist naming a format it cannot check, naming the entry.
 func TestServeRefusesAnAllowlistItCannotCheck(t *testing.T) {
@@ -493,9 +444,15 @@ func TestServeRefusedAtTheIntakeLease(t *testing.T) {
 // 413, and one at the ceiling passes MaxSize to the create callback,
 // which refuses it for naming no file.
 func TestTusMaxSizeIsTheAlbumCapCeiling(t *testing.T) {
-	ceiling, err := strconv.ParseInt(intakeMaxAlbumBytesSetting.Ceiling, 10, 64)
+	var albumCap config.Setting
+	for _, s := range newProductionRegistry().Settings() {
+		if s.Key == "DUBPLATE_INTAKE_MAX_ALBUM_BYTES" {
+			albumCap = s
+		}
+	}
+	ceiling, err := strconv.ParseInt(albumCap.Ceiling, 10, 64)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("album cap ceiling %q: %v", albumCap.Ceiling, err)
 	}
 	h, err := store.OpenServe(t.Context(), t.TempDir(), store.ServeOptions{
 		BusyTimeout: 5 * time.Second, MigrationWait: 30 * time.Second, Keep: 1, Logger: slog.New(slog.DiscardHandler),

@@ -24,6 +24,7 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/serve"
@@ -115,7 +116,7 @@ func newProductionRegistry() *config.Registry {
 	backup.Register(reg)
 	serve.RegisterTrustedProxy(reg)
 	admin.Register(reg)
-	registerIntakeConfig(reg)
+	intake.Register(reg)
 	return reg
 }
 
@@ -129,7 +130,7 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 	if err != nil {
 		return nil, err
 	}
-	if err := resolveStaging(cfg); err != nil {
+	if err := intake.ResolveStaging(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
