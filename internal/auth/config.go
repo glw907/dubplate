@@ -500,7 +500,7 @@ func IsLoopbackHost(host string) bool {
 func DurationSetting(acc *settings.Accessor, s config.Setting) Setting[time.Duration] {
 	return func(ctx context.Context) (time.Duration, error) {
 		d, err := acc.Duration(ctx, s)
-		return d, SettingReadError(s, err)
+		return d, settingReadError(s, err)
 	}
 }
 
@@ -509,7 +509,7 @@ func DurationSetting(acc *settings.Accessor, s config.Setting) Setting[time.Dura
 func BodyCap(acc *settings.Accessor) Setting[int64] {
 	return func(ctx context.Context) (int64, error) {
 		n, err := acc.Int(ctx, authRequestBodyCapSetting)
-		return int64(n), SettingReadError(authRequestBodyCapSetting, err)
+		return int64(n), settingReadError(authRequestBodyCapSetting, err)
 	}
 }
 
@@ -518,14 +518,14 @@ func BodyCap(acc *settings.Accessor) Setting[int64] {
 func GenericAnswer(acc *settings.Accessor) Setting[bool] {
 	return func(ctx context.Context) (bool, error) {
 		v, err := acc.String(ctx, unknownAddressAnswerSetting)
-		return v == "generic", SettingReadError(unknownAddressAnswerSetting, err)
+		return v == "generic", settingReadError(unknownAddressAnswerSetting, err)
 	}
 }
 
-// SettingReadError returns err, a failed read of s, as the
+// settingReadError returns err, a failed read of s, as the
 // [SettingError] the auth handlers log by key, or nil when err is
 // nil.
-func SettingReadError(s config.Setting, err error) error {
+func settingReadError(s config.Setting, err error) error {
 	if err == nil {
 		return nil
 	}

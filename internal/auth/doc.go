@@ -9,7 +9,8 @@
 // environment or imports internal/config: it declares the package's
 // settings and turns them into plain values, so secrets, lifetimes, and
 // the public origin reach the rest of the package as arguments, which
-// keeps the construction testable with fixtures.
+// keeps the construction testable with fixtures. The import test in
+// internal/settings holds that line.
 //
 // No error string and no log record this package produces carries a
 // token, a nonce, or a secret. A refusal names the check that failed.

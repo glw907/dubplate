@@ -443,6 +443,7 @@ now round `engine`.
   read. `users.id` has no length CHECK, so only a bad writer reaches it, and no test covers it. Kept, since the
   `id.ID` scan needs 16 bytes. Add a test, or a CHECK in a later migration. Found by `structure-base` (PR #18),
   2026-11-20 #improvement #auth
+- [ ] #172 Four comments (one in a test) still name `cmd/dubplate-server/auth.go` as the home of the auth settings, which moved to `internal/auth/config.go` in `structure-keys` (PR #19): `internal/config/config.go:12`, `internal/config/keys.go:68` (a comment only; keys.go takes no declaration), `internal/config/keys_test.go:41`, and `internal/notify/notify.go:119`. Found by `structure-keys` #docs (2026-11-20)
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake *(swept 2026-11-20)*
 ## Later

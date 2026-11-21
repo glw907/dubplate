@@ -189,7 +189,8 @@ Never build, and never accept a contribution that adds:
   added to that package's `Register` function; `internal/config/keys.go`
   takes no new declaration. `cmd/dubplate-server` gains a call in
   `newProductionRegistry` only when a new package registers for the first
-  time. Only `config.go` and `doctor.go` import `internal/config` or
+  time. In `auth`, `backup`, `serve`, `store`, `webapp`, `intake`, and
+  `ops/local`, only `config.go` and `doctor.go` import `internal/config` or
   `internal/settings`; the import test in `internal/settings` fails
   otherwise.
 - A table gets a migration file in the store and a line in the ownership
