@@ -1,10 +1,10 @@
 # dubplate status
 
 <!-- round-report structure -->
-**Round structure has landed pass 1 of 3.** `structure-base` (PR #18, `5d1e6e9`) merged on 2026-11-20 on checks and review,
-and its proof lines match the base. Pass 2, `structure-keys`, is next. Nothing deployed. Resume from:
-`~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/conductor-prompt.txt`. Report:
-`~/Projects/initiatives/dubplate-server/reports/structure-report.md`. Open documents: none.
+**Round structure has landed passes 1 and 2 of 3.** `structure-base` (PR #18, `5d1e6e9`) and `structure-keys` (PR #19, `c286e3d`)
+merged on 2026-11-20 on checks and review, and the proof lines match at each base. Pass 3, `structure-doctor`, is next.
+Nothing deployed. Resume from: `~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/conductor-prompt.txt`.
+Report: `~/Projects/initiatives/dubplate-server/reports/structure-report.md`. Open documents: none.
 <!-- /round-report -->
 
 ## Current state
