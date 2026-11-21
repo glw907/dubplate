@@ -532,3 +532,11 @@ the `git status` check, T5's order mutation) and the path sum:
 14. The five rules: T10 writes rule 1, keeping the `keys.go` clause, and rules 2 to 5 go to the conductor
     (see `## Decisions`).
 15. The PR body carries the score.
+- Conductor ruling on T10, replacing the bullet above that sends rules 2 to 5 to the `Calls:` line: T10
+  writes design rules 1, 2, 3, and 5 into `CLAUDE.md` in place of the old config-keys line, reworded for agents,
+  and leaves rule 4 out until `structure-doctor` makes it true. Rule 1 keeps the clause that
+  `internal/config/keys.go` takes no new declaration. No `Calls:` line is needed.
+- `auth.SettingReadError` ended the pass with no caller outside `auth`, since `newIntake` calls
+  `intake.SweepInterval` and `intake.CheckWorkers`. The whole-branch review found it, and the fix chain
+  unexports it.
+- `TestResolveServeConfig` became `TestResolveConfig` in `internal/serve/config_test.go`, with the same four cases.
