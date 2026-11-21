@@ -42,8 +42,9 @@ type Shell struct {
 // through strip. logger receives the shell's one structured log record
 // (the refusal record doc.go describes); a nil logger falls back to
 // [slog.Default]. NewShell reads no environment and no [internal/config]
-// value: every input is a construction-time argument, per the plan's
-// shell-reads-values-not-environment rule.
+// value: every input is a construction-time argument. Only config.go and
+// doctor.go in this package import configuration, and the import test in
+// internal/settings holds it.
 func NewShell(prefix Prefix, strip Strip, logger *slog.Logger) *Shell {
 	if logger == nil {
 		logger = slog.Default()

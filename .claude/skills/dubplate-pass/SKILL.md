@@ -117,8 +117,11 @@ Every new export names its production caller in the task that adds it.
 
 ### Config keys
 
-Declare each key through the registry from the pass's own file, with one `newProductionRegistry`
-line (`cmd/dubplate-server/main.go:99`). Never edit `internal/config/keys.go`.
+Declare each setting in `config.go` of the package that reads it and add it to that package's
+`Register` function. `newProductionRegistry` in `cmd/dubplate-server/main.go` gains a call only when
+a new package registers for the first time. Never edit `internal/config/keys.go`.
+`internal/settings/layering_test.go` fails when any other file in those packages imports
+configuration.
 
 ### Skills
 
