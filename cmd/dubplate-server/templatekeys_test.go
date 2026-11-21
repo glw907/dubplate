@@ -22,7 +22,7 @@ var templateEnvPaths = []string{
 
 // TestTemplateKeysClassifiedAgainstProductionRegistry proves R10's
 // classification direction: every DUBPLATE_* name any template under
-// env/ lists classifies as owned, reserved, superseded, an integration
+// env/ lists classifies as owned, reserved, an integration
 // class's flag or Required or Optional key, or a registered threshold,
 // never unknown. A name that classified as unknown would make a real
 // adopter's template-derived env file trip a load error the wall never
@@ -50,7 +50,7 @@ func TestTemplateKeysClassifiedAgainstProductionRegistry(t *testing.T) {
 
 		for _, name := range names {
 			if classifyKey(reg, name) == "" {
-				t.Errorf("%s: %s classifies as unknown; declare it in the rung's own file, or add it to a reserved class or the superseded table", path, name)
+				t.Errorf("%s: %s classifies as unknown; declare it in the rung's own file, or add it to a reserved class", path, name)
 			}
 		}
 	}
@@ -92,9 +92,6 @@ func classifyKey(reg *config.Registry, name string) string {
 			return "reserved class"
 		}
 	}
-	if _, ok := reg.Superseded()[name]; ok {
-		return "superseded"
-	}
 	for _, class := range reg.IntegrationClasses() {
 		if name == class.Flag.Name || slices.Contains(config.KeyNames(class.Required), name) {
 			return "integration class"
@@ -117,7 +114,7 @@ func classifyKey(reg *config.Registry, name string) string {
 // rung 5 makes: DUBPLATE_SMTP_HOST classified as the "auth and
 // identity" reserved class before this pass, and now classifies as the
 // magic-link identity source's own required key
-// (cmd/dubplate-server/auth.go), since that class retired in the same
+// (internal/auth/config.go), since that class retired in the same
 // commit that declared the source (internal/config/keys.go).
 func TestClassifyKey_SMTPHostMovedToIdentitySource(t *testing.T) {
 	if got := classifyKey(productionRegistry(), "DUBPLATE_SMTP_HOST"); got != "identity source" {

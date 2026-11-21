@@ -395,7 +395,7 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 				if n := bytes.Count(served, []byte(head)); n != 1 {
 					t.Fatalf("%s served for %q carries the head block %d times, want 1:\n%s", doc.name, palette, n, served)
 				}
-				composed := acceptedThemeMatch + "-" + palette
+				composed := "dubplate-" + palette
 				restored := bytes.Replace(served, []byte(head), nil, 1)
 				restored = bytes.Replace(restored, []byte(composed), []byte(themePlaceholder), 1)
 				if !bytes.Equal(restored, original) {

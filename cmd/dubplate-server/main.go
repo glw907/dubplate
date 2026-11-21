@@ -21,7 +21,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/ops/admin"
+	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 )
 
@@ -95,17 +103,20 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 // call, in a fixed order. newRootCmd and the test suite's own
 // productionRegistry helper (serve_test.go) both call it, so the
 // production registration order is written once rather than restated
-// by hand in two places.
+// by hand in two places. The serve package registers twice because its
+// thresholds and its trusted proxy class are registered at two places
+// in the order, and the registry dump holds that order.
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	registerServeConfig(reg)
-	registerAuthConfig(reg)
-	registerStoreConfig(reg)
-	registerWebConfig(reg)
-	registerBackupConfig(reg)
-	registerProxyConfig(reg)
-	registerAPIConfig(reg)
-	registerIntakeConfig(reg)
+	auth.Register(reg)
+	local.Register(reg)
+	serve.Register(reg)
+	store.Register(reg)
+	webapp.Register(reg)
+	backup.Register(reg)
+	serve.RegisterTrustedProxy(reg)
+	admin.Register(reg)
+	intake.Register(reg)
 	return reg
 }
 
@@ -119,7 +130,7 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 	if err != nil {
 		return nil, err
 	}
-	if err := resolveStaging(cfg); err != nil {
+	if err := intake.ResolveStaging(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil

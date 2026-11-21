@@ -59,7 +59,7 @@ func openOperatorStore(ctx context.Context, environ []string, reg *config.Regist
 	if err != nil {
 		return nil, "", err
 	}
-	busyTimeout, err := storeBusyTimeout(environ)
+	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
 		return nil, "", err
 	}

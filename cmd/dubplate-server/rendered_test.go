@@ -47,10 +47,10 @@ const renderedScriptTimeout = 13 * time.Minute
 const renderedInstallHint = "npx --prefix web playwright install chromium"
 
 // renderedMagicLinkExpiry is the fixture's own DUBPLATE_MAGIC_LINK_EXPIRY,
-// raised from the 15m default (`magicLinkExpirySetting`, `auth.go`)
+// raised from the 15m default (`auth.MagicLinkExpirySetting`)
 // so the capture matrix's own minted links, spent well after the run
 // starts, stay valid for renderedScriptTimeout's own length: it stays
-// under magicLinkExpiryCeiling (one hour, `auth.go`).
+// under auth.MagicLinkExpiryCeiling (one hour).
 const renderedMagicLinkExpiry = 25 * time.Minute
 
 // The fixture's four rate limits, set through their configuration keys.
@@ -572,7 +572,7 @@ func checkRateBudget(t *testing.T, environ []string) {
 	var limits auth.Limits
 	err := withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		limits, err = readAuthLimits(t.Context(), acc)
+		limits, err = auth.ReadLimits(t.Context(), acc)
 		return err
 	})
 	if err != nil {
@@ -623,7 +623,7 @@ func mintLinkFor(ctx context.Context, environ []string, address string) (string,
 	var expiry time.Duration
 	err := withStoreAccessor(ctx, environ, func(acc *settings.Accessor) error {
 		var err error
-		expiry, err = acc.Duration(ctx, magicLinkExpirySetting)
+		expiry, err = acc.Duration(ctx, auth.MagicLinkExpirySetting)
 		return err
 	})
 	if err != nil {

@@ -67,10 +67,12 @@ func TestRegistry_AccessorsReturnCopy(t *testing.T) {
 		}
 	})
 	t.Run("Superseded", func(t *testing.T) {
-		got := r.Superseded()
-		got["DUBPLATE_LIBRARY_DIR"] = "mutated"
-		if r.superseded["DUBPLATE_LIBRARY_DIR"] == "mutated" {
-			t.Fatal("Superseded() leaked the backing map")
+		// The superseded names have no accessor: Load is the only way
+		// a caller meets one, and it refuses with the seeded reason.
+		_, err := Load(append(baseEnviron(), "DUBPLATE_LIBRARY_DIR=/srv/music/old"), r)
+		const want = "DUBPLATE_LIBRARY_DIR: renamed to DUBPLATE_LIBRARY_ROOT"
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Fatalf("Load with a superseded name = %v, want a refusal containing %q", err, want)
 		}
 	})
 }

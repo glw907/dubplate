@@ -86,9 +86,9 @@ func TestRouteInventory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := resolveServeConfig(environ)
+	prefix, addrs, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig: %v", err)
+		t.Fatalf("serve.ResolveConfig: %v", err)
 	}
 	var registered []string
 	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),

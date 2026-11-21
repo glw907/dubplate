@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/store"
@@ -29,8 +30,8 @@ const (
 // restored store carries the sessions and sign-in links of the moment
 // it was backed up, and rotating both secrets with no previous value
 // fails every one of them.
-const restoreRotation = "Before starting serve, mint new values for " + sessionSecretKey + " and " + magicLinkSecretKey +
-	", and leave " + sessionSecretPreviousKey + " and " + magicLinkSecretPreviousKey +
+const restoreRotation = "Before starting serve, mint new values for " + auth.SessionSecretKey + " and " + auth.MagicLinkSecretKey +
+	", and leave " + auth.SessionSecretPreviousKey + " and " + auth.MagicLinkSecretPreviousKey +
 	" unset, so every session and sign-in link issued before the restore fails."
 
 // restoreFlags holds the restore verb's flags.
@@ -153,16 +154,16 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	if err != nil {
 		return err
 	}
-	busyTimeout, err := storeBusyTimeout(environ)
+	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
 		return err
 	}
 	var remote string
 	if f.snapshot != "" {
-		if !cfg.IntegrationEnabled(backupIntegrationClass.Name) {
-			return fmt.Errorf("restore --snapshot: backup integration is disabled (%s): a snapshot restore reads the backup remote", backupIntegrationClass.Flag.Name)
+		if !cfg.IntegrationEnabled(backup.Class.Name) {
+			return fmt.Errorf("restore --snapshot: backup integration is disabled (%s): a snapshot restore reads the backup remote", backup.Class.Flag.Name)
 		}
-		remote = cfg.IntegrationValue(backupIntegrationClass.Name, "DUBPLATE_BACKUP_REMOTE")
+		remote = cfg.IntegrationValue(backup.Class.Name, backup.RemoteKey)
 	}
 
 	// main's signal context cancels on SIGINT and SIGTERM. A closed

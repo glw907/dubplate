@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"strings"
 )
@@ -501,10 +500,4 @@ func (r *Registry) AddSuperseded(name, reason string) {
 	}
 	r.claim(familySuperseded, name)
 	r.superseded[name] = reason
-}
-
-// Superseded returns the superseded-name map, keyed by the pre-pivot
-// name and valued by its disposition message.
-func (r *Registry) Superseded() map[string]string {
-	return maps.Clone(r.superseded)
 }

@@ -242,9 +242,9 @@ func TestDoctorBoundaryRows_NeutralBrandingLogsNothingToStdout(t *testing.T) {
 	environ := withEnv(doctorEnviron(t), branding)
 
 	var logs bytes.Buffer
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig: %v", err)
+		t.Fatalf("serve.ResolveConfig: %v", err)
 	}
 	if _, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, slog.New(slog.NewTextHandler(&logs, nil))); err != nil {
 		t.Fatalf("newWebRoutes: %v", err)

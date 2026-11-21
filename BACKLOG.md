@@ -77,8 +77,6 @@ now round `engine`.
 - [ ] #153 `TestRoutes_EveryPageHasAUniqueTitle` matches `<AdminPage title={...}>` only when `title` is the first prop and nothing asserts `AdminPage.svelte` itself renders a `<title>`; add that assertion. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16)
 - [ ] #154 `npm run check --prefix web` fails in a fresh worktree with `File '$app/tsconfig' not found` until `make web-build` generates `.svelte-kit`: have the worktree setup run `svelte-kit sync` or say so in the adapter. Found by `cleanup-web`'s T4 subagent (PR #15) #improvement #gate (2026-11-16) *(swept 2026-11-20)*
 - [ ] #155 Admin page state after a write or a failed retry, from `cleanup-web`'s close reads (PR #15), none new in the pass: a refusal (`forbidden` or `unauthenticated`) on the post-write refresh leaves the roster or settings on screen in `ok` (the comment says so on purpose, so it needs a ruling); a write answering `signedOut` unmounts the focused control and announces nothing; the unreachable retry loses focus on success, can overlap with itself, and repeats an identical assertive text; the row Demote and Remove buttons carry no `aria-disabled` while a write is in flight; the loading state has no `h1`; field `aria-describedby` points at the whole alert rather than its text; and the sign-in link opens a new tab without saying so. All now have one place to fix: `AdminPage.svelte` and `WriteNotice.svelte`. #improvement #web #a11y #auth
-- [ ] #138 `doctor.lookupEnviron` is a one-line delegate to `config.Lookup`: inline it at its callers. Found by `cleanup-store` (PR #14) #arch #pass:structure-keys *(swept 2026-11-20)*
-- [ ] #139 `Registry.Superseded` has no production caller, only three tests (`cmd/dubplate-server/intake_test.go:67`, `templatekeys_test.go:95`, `internal/config/registry_test.go:70`): remove it or name the caller that needs it. Found by `cleanup-store` (PR #14) #arch #config #pass:structure-keys *(swept 2026-11-20)*
 - [ ] #140 Doctor still prints "disabled (arrives at rung %d)" for a reserved class (`cmd/dubplate-server/doctor.go:88`, asserted at `doctor_test.go:163`), the phrase `cleanup-store` took out of the config refusal text. Reword both. Found by `cleanup-store` (PR #14) #improvement #pass:cleanup-ops *(swept 2026-11-20)*
 - [ ] #141 Three restore-intent notes from `cleanup-store`'s T3 review: `into_nonempty` now validates without `library_root` (harmless today), no fixture refuses an old nested `source` record, and `swappedLeaf` copies only the library half. Add the fixture and decide the other two. Found by `cleanup-store` (PR #14) #test #store *(swept 2026-11-20)*
 - [ ] #142 `internal/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store *(swept 2026-11-20)*
@@ -358,9 +356,10 @@ now round `engine`.
   of a caller, the doubled request check, hand-rolled stdlib, and the smaller items. Findings O3, O8, O9, and O14,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:structure-doctor *(swept 2026-11-20)*
 - [ ] #124 Move library code out of `cmd/dubplate-server`, residue after `cleanup-ops`: the web surface moved to
-  `internal/webapp`. The probes, the table install logic, and the repeated read of the store's wait setting ride the
-  structure round. Still open after it: one cobra wiring shape for the commands. Takes #66's doctor items. Findings O11 to O13,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:structure-doctor #pass:structure-keys *(swept 2026-11-20)*
+  `internal/webapp`, and `structure-keys` (PR #19) moved every setting declaration and reader out of the command
+  folder. The probes and the table install logic ride `structure-doctor`. Still open after it: one cobra wiring shape
+  for the commands. Takes #66's doctor items. Findings O11 to O13,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch #pass:structure-doctor *(swept 2026-11-20)*
 - [ ] #125 `cmd` and ops test bloat, the test cuts left after `cleanup-ops`: `TestRegisterAuthConfig_Settings`
   (`cmd/dubplate-server/auth_test.go:502`), `TestRegisterStoreConfig` (`store_test.go:488`),
   `TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass` (`serve_test.go:127`),
@@ -373,10 +372,10 @@ now round `engine`.
 - [ ] #156 Process tags in the guarded packages, and `webapp` exports only tests use. Round `engine` (PR #17) cleared
   the engine and harness tags and added a wide citation pattern that skips `cmd/dubplate-server`,
   `internal/serve`, `internal/auth`, and `internal/intake`, which held 53 matching lines on 2026-11-16. Clearing
-  them lets the skip go. Known sites: "(review m5)" at `cmd/dubplate-server/auth.go:99` and `:110`, "after 6d" at
-  `backup.go:409`, "(spec:938-944)" at `internal/serve/serve.go:295` and `serve_test.go:74`, "R20" and "R-M" at
-  `internal/serve/server_test.go:132`, `:227`, and `freebind_other.go:11`, and "R-5cii12" at
-  `cmd/dubplate-server/web_test.go:253` and `:460`. `webapp.StylesheetHrefs` and `ThemeCookieName` have only `cmd`
+  them lets the skip go. Known sites: "(review m5)" at `internal/auth/config.go:99` and `:110` (moved there by
+  `structure-keys`, PR #19, and left as written), "after 6d" at `cmd/dubplate-server/backup.go:294`, "(spec:938-944)"
+  at `internal/serve/serve.go:296` and `serve_test.go:74`, "R20" and "R-M" at `internal/serve/server_test.go:132`,
+  `:227`, and `freebind_other.go:11`, and "R-5cii12" at `cmd/dubplate-server/web_test.go:253` and `:460`. `webapp.StylesheetHrefs` and `ThemeCookieName` have only `cmd`
   test callers outside `internal/webapp`, and `DocumentCSP` one doc link more. Found by `cleanup-ops` T5 and T6,
   2026-11-16 #arch #test #pass:structure-keys #pass:structure-doctor *(swept 2026-11-20)*
 - [ ] #157 The `dubplate-pass` `auth-data` path map omits `internal/ops/**`, which holds the `/api/v1` authorization
@@ -444,6 +443,7 @@ now round `engine`.
   read. `users.id` has no length CHECK, so only a bad writer reaches it, and no test covers it. Kept, since the
   `id.ID` scan needs 16 bytes. Add a test, or a CHECK in a later migration. Found by `structure-base` (PR #18),
   2026-11-20 #improvement #auth
+- [ ] #172 Four comments (one in a test) still name `cmd/dubplate-server/auth.go` as the home of the auth settings, which moved to `internal/auth/config.go` in `structure-keys` (PR #19): `internal/config/config.go:12`, `internal/config/keys.go:68` (a comment only; keys.go takes no declaration), `internal/config/keys_test.go:41`, and `internal/notify/notify.go:119`. Found by `structure-keys` #docs (2026-11-20)
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #round:intake *(swept 2026-11-20)*
 ## Later
@@ -610,6 +610,8 @@ Standing rulings. A sweep skips this section, and only Geoff reopens an entry, b
 
 ## Done
 
+- [x] #138 `doctor.lookupEnviron` is a one-line delegate to `config.Lookup`: inline it at its callers. Found by `cleanup-store` (PR #14) #arch *(closed by pass structure-keys, PR #19, 2026-11-20)*
+- [x] #139 `Registry.Superseded` has no production caller, only three tests (`cmd/dubplate-server/intake_test.go:67`, `templatekeys_test.go:95`, `internal/config/registry_test.go:70`): remove it or name the caller that needs it. Found by `cleanup-store` (PR #14) #arch #config *(closed by pass structure-keys, PR #19, 2026-11-20)*
 - [x] #110 Delete the MusicBrainz limiter, which has no caller and a spacing bug, until a rung meters. Finding E2,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(closed by pass engine, 2026-11-17, PR #17)*
 - [x] #111 tagio: state the 69 fields once, and drop the registry that dispatches over one format. Findings E1 and E5,

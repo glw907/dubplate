@@ -99,9 +99,9 @@ func buildServeShellContext(t *testing.T, ctx context.Context, environ []string,
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := resolveServeConfig(environ)
+	prefix, addrs, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig: %v", err)
+		t.Fatalf("serve.ResolveConfig: %v", err)
 	}
 	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
 	if err != nil {
@@ -158,70 +158,6 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 		if class.Name == "serve" {
 			t.Error(`ReservedClasses() still carries the "serve" class, want it retired`)
 		}
-	}
-}
-
-func TestResolveServeConfig(t *testing.T) {
-	tests := []struct {
-		name       string
-		environ    []string
-		wantErr    error
-		wantAddrs  []string
-		wantPort   int
-		wantPrefix string
-	}{
-		{
-			name:       "defaults",
-			environ:    nil,
-			wantAddrs:  []string{"127.0.0.1"},
-			wantPort:   8080,
-			wantPrefix: "/dubplate",
-		},
-		{
-			name: "configured",
-			environ: []string{
-				"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1,::1",
-				"DUBPLATE_SERVE_PORT=9090",
-				"DUBPLATE_SERVE_PREFIX=/library",
-			},
-			wantAddrs:  []string{"127.0.0.1", "::1"},
-			wantPort:   9090,
-			wantPrefix: "/library",
-		},
-		{
-			name:    "invalid prefix",
-			environ: []string{"DUBPLATE_SERVE_PREFIX=no-leading-separator"},
-			wantErr: serve.ErrInvalidPrefix,
-		},
-		{
-			name:    "unparseable bind list",
-			environ: []string{"DUBPLATE_SERVE_BIND_ADDRS=not-an-address"},
-			wantErr: serve.ErrInvalidBindAddr,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			prefix, addrs, port, err := resolveServeConfig(tt.environ)
-			if tt.wantErr != nil {
-				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("resolveServeConfig() error = %v, want it to wrap %v", err, tt.wantErr)
-				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("resolveServeConfig() error = %v, want nil", err)
-			}
-			if !slices.Equal(addrs, tt.wantAddrs) {
-				t.Errorf("addrs = %v, want %v", addrs, tt.wantAddrs)
-			}
-			if port != tt.wantPort {
-				t.Errorf("port = %d, want %d", port, tt.wantPort)
-			}
-			if prefix.String() != tt.wantPrefix {
-				t.Errorf("prefix = %q, want %q", prefix.String(), tt.wantPrefix)
-			}
-		})
 	}
 }
 
@@ -332,7 +268,7 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 }
 
 // TestDoctorCmd_CarriesServeThresholdsAndNoServeReservedRow proves the
-// net row change registerServeConfig plus the keys.go deletion makes:
+// net row change serve.Register plus the keys.go deletion makes:
 // minus one reserved class, plus three thresholds.
 func TestDoctorCmd_CarriesServeThresholdsAndNoServeReservedRow(t *testing.T) {
 	reg := productionRegistry()
@@ -379,9 +315,9 @@ func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 	handler := shell.Handler()
 
@@ -545,7 +481,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, magicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, auth.MagicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		t.Fatalf("auth.OpenNonceStore: %v", err)
 	}
@@ -595,9 +531,9 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := resolveServeConfig(environ)
+			prefix, addrs, _, err := serve.ResolveConfig(environ)
 			if err != nil {
-				t.Fatalf("resolveServeConfig: %v", err)
+				t.Fatalf("serve.ResolveConfig: %v", err)
 			}
 			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
 			if err != nil {
@@ -735,10 +671,10 @@ func mintServeSession(t *testing.T, environ []string, address string, issued tim
 	var lifetime, absoluteCap time.Duration
 	err := withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		if lifetime, err = acc.Duration(t.Context(), sessionLifetimeSetting); err != nil {
+		if lifetime, err = acc.Duration(t.Context(), auth.SessionLifetimeSetting); err != nil {
 			return err
 		}
-		absoluteCap, err = acc.Duration(t.Context(), sessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
 		return err
 	})
 	if err != nil {
@@ -829,9 +765,9 @@ func TestNewServeShell_APIPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
@@ -887,9 +823,9 @@ func TestNewServeShell_APISameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
@@ -938,9 +874,9 @@ func TestNewServeShell_RosterRouteIsGone(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 	admin := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 	handler := shell.Handler()
@@ -982,9 +918,9 @@ func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
@@ -1054,9 +990,9 @@ func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 	handler := shell.Handler()
 
@@ -1804,9 +1740,9 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell() error = %v, want nil", err)
 			}
-			prefix, _, _, err := resolveServeConfig(environ)
+			prefix, _, _, err := serve.ResolveConfig(environ)
 			if err != nil {
-				t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+				t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 			}
 			publicURL := environValue(environ, "DUBPLATE_PUBLIC_URL")
 			handler := shell.Handler()
@@ -1840,9 +1776,9 @@ func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := resolveServeConfig(environ)
+	prefix, _, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig() error = %v, want nil", err)
+		t.Fatalf("serve.ResolveConfig() error = %v, want nil", err)
 	}
 
 	var reached bool
@@ -1936,9 +1872,9 @@ func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serv
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := resolveServeConfig(environ)
+	prefix, addrs, _, err := serve.ResolveConfig(environ)
 	if err != nil {
-		t.Fatalf("resolveServeConfig: %v", err)
+		t.Fatalf("serve.ResolveConfig: %v", err)
 	}
 	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
 	return srv, prefix, cfg, err
@@ -2193,7 +2129,7 @@ func TestNewServeShell_AdminRowRaisesTheCapThroughARefresh(t *testing.T) {
 	var absoluteCap time.Duration
 	err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		absoluteCap, err = acc.Duration(t.Context(), sessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
 		return err
 	})
 	if err != nil {
@@ -2225,9 +2161,9 @@ func TestNewServeShell_RequestReadsTheSeededAnswer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell: %v", err)
 			}
-			prefix, _, _, err := resolveServeConfig(environ)
+			prefix, _, _, err := serve.ResolveConfig(environ)
 			if err != nil {
-				t.Fatalf("resolveServeConfig: %v", err)
+				t.Fatalf("serve.ResolveConfig: %v", err)
 			}
 			rec := authRoutePOST(shell.Handler(), prefix.String()+"/"+requestLinkRouteName, "address=stranger%40example.com")
 			var got struct {
@@ -2268,7 +2204,7 @@ func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
 		t.Fatalf("buildServeShell: %v", err)
 	}
 	if _, err := os.Stat(record); err != nil {
-		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", magicLinkExpiryCeiling, err)
+		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", auth.MagicLinkExpiryCeiling, err)
 	}
 }
 
@@ -2317,9 +2253,9 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := resolveServeConfig(environ)
+			prefix, addrs, _, err := serve.ResolveConfig(environ)
 			if err != nil {
-				t.Fatalf("resolveServeConfig: %v", err)
+				t.Fatalf("serve.ResolveConfig: %v", err)
 			}
 			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
 			if err != nil {

@@ -16,7 +16,9 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -682,7 +684,7 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 // key rather than one line per source (review finding,
 // doctor_test.go:433). Both DUBPLATE_MAGIC_LINK_SECRET and
 // DUBPLATE_SESSION_SECRET are magic-link's own Required keys
-// (auth.go), so this reuses the exact simultaneous-failure fixture
+// (internal/auth/config.go), so this reuses the exact simultaneous-failure fixture
 // TestDoctorCmd_RowStatusesSurviveSimultaneousFailures already proves
 // rowStatuses keeps as two separate entries.
 func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
@@ -1086,7 +1088,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 	t.Setenv(backupStandinStdoutEnv, `{"Features":{"Copy":false,"Move":true}}`)
 
 	reg := freshRegistry()
-	registerBackupConfig(reg)
+	backup.Register(reg)
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
 	tests := []struct {
@@ -1205,7 +1207,8 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 // form every duration threshold uses.
 func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 	reg := freshRegistry()
-	registerStoreConfig(reg)
+	local.Register(reg)
+	store.Register(reg)
 
 	tests := []struct {
 		name  string
@@ -1240,7 +1243,8 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 // exits 1. 2147483647ms passes both rows.
 func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 	reg := freshRegistry()
-	registerStoreConfig(reg)
+	local.Register(reg)
+	store.Register(reg)
 
 	tests := []struct {
 		name       string
@@ -1298,7 +1302,8 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 	reg := freshRegistry()
-	registerStoreConfig(reg)
+	local.Register(reg)
+	store.Register(reg)
 
 	before, err := os.ReadDir(stateDir)
 	if err != nil {

@@ -8,8 +8,8 @@ import (
 
 // TestLayering proves the package's transitive imports reach none of
 // the packages that sit above the web app: the admin gate in
-// internal/auth wraps its handlers from cmd/dubplate-server, and the
-// config keys it serves are resolved there into plain values.
+// internal/auth wraps its handlers from cmd/dubplate-server. The web
+// app declares its own settings, so internal/config is allowed.
 func TestLayering(t *testing.T) {
 	const module = "github.com/glw907/dubplate/internal/"
 	out, err := exec.CommandContext(t.Context(), "go", "list", "-deps", ".").Output()
@@ -21,7 +21,7 @@ func TestLayering(t *testing.T) {
 		t.Fatal("go list -deps . listed nothing")
 	}
 	for _, dep := range deps {
-		for _, forbidden := range []string{module + "auth", module + "ops", module + "settings", module + "config", module + "store"} {
+		for _, forbidden := range []string{module + "auth", module + "ops", module + "settings", module + "store"} {
 			if dep == forbidden {
 				t.Errorf("webapp depends on %s", dep)
 			}

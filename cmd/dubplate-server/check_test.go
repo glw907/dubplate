@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/ops/local"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -119,10 +121,12 @@ func TestCheckCmd_SettingsRow_AdminConflict(t *testing.T) {
 // freshRegistry returns the registry a test builds over baseEnviron
 // alone: rung 1's own rows plus the staging row baseEnviron sets, and
 // no other rung's. config.NewRegistry on its own would meet the staging
-// entry as an unknown key.
+// entry as an unknown key. intake.Register would add intake's fifteen
+// settings too, which the row counts below do not expect, so the row is
+// spelled here under the package's key.
 func freshRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	reg.AddWallRow(stagingRow)
+	reg.AddWallRow(config.WallRow{Name: intake.StagingKey, Description: "staging directory", Mark: config.Sensitive})
 	return reg
 }
 
@@ -166,7 +170,7 @@ var reservedPort = sync.OnceValue(func() int {
 // high-entropy neighbor) never fires against a test file. A test
 // against productionRegistry (serve_test.go) that expects config.Load
 // to succeed needs this, rather than baseEnviron alone, because rung 5
-// registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (auth.go).
+// registers DUBPLATE_IDENTITY_SOURCE as an owned wall row (internal/auth/config.go).
 func authEnviron(t *testing.T) []string {
 	t.Helper()
 	return append(baseEnviron(),
@@ -363,7 +367,8 @@ func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
 			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()),
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
 			reg := freshRegistry()
-			registerStoreConfig(reg)
+			local.Register(reg)
+			store.Register(reg)
 
 			var stdout, stderr bytes.Buffer
 			cmd := newCheckCmd(environ, reg, &stdout, &stderr)

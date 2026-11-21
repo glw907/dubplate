@@ -54,71 +54,6 @@ const (
 	operatorCSSRouteName = "operator.css"
 )
 
-// serveBindAddrsThreshold, servePortThreshold, and servePrefixThreshold
-// are the serve shell's own three keys, declared in this file rather
-// than internal/config: the alternative, declaring inside
-// internal/serve, would make the shell import internal/config, which
-// it has no reason to do. A bind address is not an identity concern,
-// so these keys are not folded into the magic-link source's own.
-
-// serveBindAddrsThreshold is the comma-separated list of addresses the
-// serve verb binds. Its default, loopback only, is the salvage
-// configuration's own default. The registry has no list kind, so
-// this registers as KindString and [serve.SplitBindAddrs] splits and
-// validates it in the package that binds, keeping the address grammar
-// with the code that uses it.
-var serveBindAddrsThreshold = config.Threshold{
-	Key:         "DUBPLATE_SERVE_BIND_ADDRS",
-	Kind:        config.KindString,
-	Default:     "127.0.0.1",
-	Doc:         "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
-	Description: "the addresses the server listens on, comma-separated",
-	Mark:        config.Sensitive,
-}
-
-// servePortThreshold is the TCP port the serve verb binds on every
-// configured address. Its default, 8080, is the salvage configuration's
-// own default.
-var servePortThreshold = config.Threshold{
-	Key:         "DUBPLATE_SERVE_PORT",
-	Kind:        config.KindInt,
-	Default:     "8080",
-	Doc:         "an integer TCP port from 1024 through 65535",
-	Description: "the TCP port the server listens on",
-	Mark:        config.Sensitive,
-}
-
-// servePortFloor and servePortCeiling bound DUBPLATE_SERVE_PORT. The
-// floor is Linux's default net.ipv4.ip_unprivileged_port_start: the
-// serve unit's empty CapabilityBoundingSet= withholds
-// CAP_NET_BIND_SERVICE, so a lower port fails at bind, and port 0 would
-// listen on whatever ephemeral port the kernel picks.
-const (
-	servePortFloor   = 1024
-	servePortCeiling = 65535
-)
-
-// validateServePort checks DUBPLATE_SERVE_PORT against
-// [servePortFloor] and [servePortCeiling], naming the capability a
-// privileged port would need. [validateMagicLinkSource] calls it, so
-// [config.Load] refuses an out-of-range port for doctor and every verb
-// before serve ever binds. A value that does not parse returns
-// [config.ParseInt]'s own [config.KeyError].
-func validateServePort(environ []string) error {
-	port, err := config.ParseInt(environ, servePortThreshold)
-	if err != nil {
-		return err
-	}
-	if port < servePortFloor {
-		return &config.KeyError{Key: servePortThreshold.Key, Reason: fmt.Sprintf(
-			"%d is below %d: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port", port, servePortFloor)}
-	}
-	if port > servePortCeiling {
-		return &config.KeyError{Key: servePortThreshold.Key, Reason: fmt.Sprintf("%d is above %d", port, servePortCeiling)}
-	}
-	return nil
-}
-
 // errDirNotWritable reports that this process may not list, create,
 // and remove entries in a directory a later write needs.
 var errDirNotWritable = errors.New("not writable")
@@ -138,62 +73,6 @@ func checkDirWritable(dir string) error {
 		return fmt.Errorf("%s is %w: %w", dir, errDirNotWritable, err)
 	}
 	return nil
-}
-
-// servePrefixThreshold is the one owned path prefix: every route the
-// shell registers lives under it, and every path outside it answers
-// 404. Its default, /dubplate, is one segment so the segment-aware
-// match has a boundary to find, and carries no estate value.
-var servePrefixThreshold = config.Threshold{
-	Key:         "DUBPLATE_SERVE_PREFIX",
-	Kind:        config.KindString,
-	Default:     "/dubplate",
-	Doc:         "a single path segment beginning with a separator, for example /dubplate",
-	Description: "the single path segment every page lives under",
-	Mark:        config.Sensitive,
-}
-
-// registerServeConfig adds the serve shell's three thresholds to reg,
-// a plain function: newRootCmd builds a fresh, independent registry on
-// every construction, so registering onto it can never collide with a
-// prior process's own registration.
-func registerServeConfig(reg *config.Registry) {
-	reg.AddThreshold(serveBindAddrsThreshold)
-	reg.AddThreshold(servePortThreshold)
-	reg.AddThreshold(servePrefixThreshold)
-}
-
-// resolveServeConfig reads the three thresholds against environ and
-// returns the values [serve.Run] and its construction values take: the
-// validated owned prefix, the split and validated bind addresses, and
-// the port. It returns before any listener opens, so a caller can
-// refuse an invalid prefix or bind list without ever touching the
-// network.
-func resolveServeConfig(environ []string) (serve.Prefix, []string, int, error) {
-	prefixValue, err := config.ParseString(environ, servePrefixThreshold)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-	prefix, err := serve.NewPrefix(prefixValue)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-
-	bindRaw, err := config.ParseString(environ, serveBindAddrsThreshold)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-	addrs, err := serve.SplitBindAddrs(bindRaw)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-
-	port, err := config.ParseInt(environ, servePortThreshold)
-	if err != nil {
-		return serve.Prefix{}, nil, 0, err
-	}
-
-	return prefix, addrs, port, nil
 }
 
 // newServeCmd builds the serve verb: it validates the owned
@@ -219,7 +98,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			prefix, addrs, port, err := resolveServeConfig(environ)
+			prefix, addrs, port, err := serve.ResolveConfig(environ)
 			if err != nil {
 				return err
 			}
@@ -246,7 +125,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // a restore. It then applies the settings seed to
 // that store through [applySettingsSeed], so a refusal ends the start
 // before anything else is built, and reads the four rate limits the
-// seed left in force through [readAuthLimits]: they apply at the next
+// seed left in force through [auth.ReadLimits]: they apply at the next
 // start, so they are read once, here. Every other auth setting is a
 // reader over the store that its handler, the seam, or the nonce store
 // calls at each use. It then opens the auth store and its nonce and
@@ -255,7 +134,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // auth handlers, and mounts them under the owned
 // prefix, alongside the web routes [newWebRoutes] builds from environ.
 // It returns before any listener opens, so a caller refuses a trusted
-// proxy value [resolveTrustedProxy] refuses, a store this binary cannot
+// proxy value [serve.ResolveTrustedProxy] refuses, a store this binary cannot
 // open or must not migrate, an unparseable mail port, a bad theme or
 // branding value, or a refused operator CSS file without ever accepting
 // a connection.
@@ -284,7 +163,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // context derived from ctx. A lease another process holds refuses the
 // start naming the holder.
 //
-// The trusted proxy class, resolved through [resolveTrustedProxy],
+// The trusted proxy class, resolved through [serve.ResolveTrustedProxy],
 // governs both the strip's forwarded-address carve-out and every
 // handler's ClientIP, so the peer whose forwarded headers survive the
 // strip is exactly the peer whose header names the client. With the
@@ -330,15 +209,15 @@ type registrar interface {
 // registrar and never through the shell directly: a route registered
 // around it escapes the route inventory test unseen.
 func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *server, err error) {
-	proxyConfig, err := resolveTrustedProxy(cfg)
+	proxyConfig, err := serve.ResolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
 	}
-	allowlist, err := intakeAllowlist(environ)
+	allowlist, err := intake.Allowlist(environ)
 	if err != nil {
 		return nil, err
 	}
-	if err := staging.Check(staging.Read(cfg.WallValue(stagingKey)), staging.Read(cfg.LibraryRoot)); err != nil {
+	if err := staging.Check(staging.Read(cfg.WallValue(intake.StagingKey)), staging.Read(cfg.LibraryRoot)); err != nil {
 		return nil, fmt.Errorf("startup check: %w", err)
 	}
 	h, err := openServeStore(ctx, environ, reg, cfg, logger)
@@ -359,14 +238,14 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 	acc := settings.NewAccessor(h, reg)
-	limits, err := readAuthLimits(ctx, acc)
+	limits, err := auth.ReadLimits(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
 	routes := mount(shell)
-	if sendsHSTS(cfg.IdentitySourceValue(publicURLKey)) {
+	if sendsHSTS(cfg.IdentitySourceValue(auth.PublicURLKey)) {
 		shell.EnableHSTS()
 	}
 
@@ -390,9 +269,9 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	}
 
 	seam := auth.NewMagicLinkSeam(roster, epoch,
-		[]byte(cfg.IdentitySourceValue(sessionSecretKey)),
-		[]byte(cfg.IdentitySourceValue(sessionSecretPreviousKey)),
-		durationSetting(acc, sessionLifetimeSetting), durationSetting(acc, sessionAbsoluteCapSetting))
+		[]byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
+		[]byte(cfg.IdentitySourceValue(auth.SessionSecretPreviousKey)),
+		auth.DurationSetting(acc, auth.SessionLifetimeSetting), auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting))
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
 	handlersConfig := authHandlersConfig(prefix, cfg, acc, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
@@ -415,7 +294,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	adminSeam := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
-		Window: durationSetting(acc, reauthWindowSetting),
+		Window: admin.ReauthWindow(acc),
 		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
 	})
 	in, err = newIntake(ctx, h, cfg, acc, allowlist, roster, mailer.Send, shell.Logger())
@@ -432,9 +311,9 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	// shell's log/slog logger cannot fill.
 	tusMount, err := in.TusMount(intake.TusConfig{
 		Prefix:    prefix.String(),
-		PublicURL: cfg.IdentitySourceValue(publicURLKey),
+		PublicURL: cfg.IdentitySourceValue(auth.PublicURLKey),
 		Verify:    tusVerifier(adminConfig),
-		Floor:     freeSpaceFloor(acc),
+		Floor:     intake.FreeSpaceFloor(acc),
 		TusLog:    os.Stderr,
 	})
 	if err != nil {
@@ -464,16 +343,16 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 // reconciler a restore awaiting serve needs. A refusal at any step
 // returns no handle.
 func openServeStore(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config, logger *slog.Logger) (*store.Handle, error) {
-	busyTimeout, err := storeBusyTimeout(environ)
+	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
 		return nil, err
 	}
-	migrationWait, err := storeMigrationWait(environ)
+	migrationWait, err := store.MigrationWait(environ)
 	if err != nil {
 		return nil, err
 	}
 	report := store.Inspect(ctx, store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: busyTimeout})
-	keep, err := localSnapshotKeep(report, environ, reg)
+	keep, err := settings.LocalSnapshotKeep(report, environ, reg)
 	if err != nil {
 		return nil, err
 	}
@@ -481,7 +360,7 @@ func openServeStore(ctx context.Context, environ []string, reg *config.Registry,
 		BusyTimeout:   busyTimeout,
 		MigrationWait: migrationWait,
 		Keep:          keep,
-		Backup:        cfg.IntegrationEnabled(backupIntegrationClass.Name),
+		Backup:        cfg.IntegrationEnabled(backup.Class.Name),
 		Logger:        logger,
 		Reconcile:     backup.Reconciler(cfg.LibraryRoot),
 	})
@@ -512,7 +391,7 @@ func applySettingsSeed(ctx context.Context, h *store.Handle, reg *config.Registr
 
 // sendsHSTS reports whether the shell sends Strict-Transport-Security
 // for publicURL, the URL browsers reach the server at: only when it is
-// https on a host [isLoopbackHost] does not match. The request's own
+// https on a host [auth.IsLoopbackHost] does not match. The request's own
 // scheme is no input, since the server speaks plain HTTP to whatever
 // fronts it. A loopback host is excluded because RFC 6797 section 8.3
 // matches a known HSTS host by name alone, so one response from
@@ -523,7 +402,7 @@ func sendsHSTS(publicURL string) bool {
 	if err != nil {
 		return false
 	}
-	return u.Scheme == "https" && !isLoopbackHost(u.Hostname())
+	return u.Scheme == "https" && !auth.IsLoopbackHost(u.Hostname())
 }
 
 // exactPath wraps next, answering [http.NotFoundHandler]'s own 404 to any
@@ -543,11 +422,11 @@ func exactPath(want string, next http.Handler) http.Handler {
 }
 
 // openNonceStore opens the consumed-nonce store under authStore, its
-// retention reading [nonceRetentionSetting] through acc, and sweeps it
+// retention reading [auth.NonceRetentionSetting] through acc, and sweeps it
 // once at now. It exists as its own function so a test can open the
 // store newServeShell opens and read the retention it was wired with.
 func openNonceStore(ctx context.Context, authStore *auth.Store, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
-	nonces, _, err := auth.OpenNonceStore(ctx, authStore, durationSetting(acc, nonceRetentionSetting), magicLinkExpiryCeiling, now)
+	nonces, _, err := auth.OpenNonceStore(ctx, authStore, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 
@@ -568,17 +447,17 @@ func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.A
 		ClientIP:           clientIP,
 		Now:                time.Now,
 		Logger:             logger,
-		LinkSecret:         []byte(cfg.IdentitySourceValue(magicLinkSecretKey)),
-		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(magicLinkSecretPreviousKey)),
-		SessionSecret:      []byte(cfg.IdentitySourceValue(sessionSecretKey)),
-		LinkExpiry:         durationSetting(acc, magicLinkExpirySetting),
-		SessionLifetime:    durationSetting(acc, sessionLifetimeSetting),
-		SessionAbsoluteCap: durationSetting(acc, sessionAbsoluteCapSetting),
-		PublicOrigin:       cfg.IdentitySourceValue(publicURLKey),
+		LinkSecret:         []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretKey)),
+		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretPreviousKey)),
+		SessionSecret:      []byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
+		LinkExpiry:         auth.DurationSetting(acc, auth.MagicLinkExpirySetting),
+		SessionLifetime:    auth.DurationSetting(acc, auth.SessionLifetimeSetting),
+		SessionAbsoluteCap: auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting),
+		PublicOrigin:       cfg.IdentitySourceValue(auth.PublicURLKey),
 		Prefix:             prefix.String(),
-		BodyCap:            authBodyCap(acc),
-		BodyCapCeiling:     authRequestBodyCapCeiling,
-		GenericAnswer:      genericAnswer(acc),
+		BodyCap:            auth.BodyCap(acc),
+		BodyCapCeiling:     auth.RequestBodyCapCeiling,
+		GenericAnswer:      auth.GenericAnswer(acc),
 	}
 }
 
@@ -597,22 +476,22 @@ func methodOnly(method string, h http.Handler) http.Handler {
 
 // newMailer resolves the magic-link source's five SMTP keys into a
 // [notify.Mailer]. The port is the one value among them this file
-// converts rather than passes through. [validateMagicLinkSource]'s
+// converts rather than passes through. the magic-link source's
 // Validate hook already bounds the port to 1 through 65535 at load
 // time, so doctor and every verb see a bad port before the serve verb
 // ever listens; this parse is the defensive second read that turns the
 // bounded string back into the int [notify.Config] takes.
 func newMailer(cfg *config.Config) (*notify.Mailer, error) {
-	port, err := strconv.Atoi(cfg.IdentitySourceValue(smtpPortKey))
+	port, err := strconv.Atoi(cfg.IdentitySourceValue(auth.SMTPPortKey))
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", smtpPortKey, err)
+		return nil, fmt.Errorf("%s: %w", auth.SMTPPortKey, err)
 	}
 	return notify.New(notify.Config{
-		Host:     cfg.IdentitySourceValue(smtpHostKey),
+		Host:     cfg.IdentitySourceValue(auth.SMTPHostKey),
 		Port:     port,
-		User:     cfg.IdentitySourceValue(smtpUserKey),
-		Password: cfg.IdentitySourceValue(smtpPasswordKey),
-		From:     cfg.IdentitySourceValue(smtpFromKey),
+		User:     cfg.IdentitySourceValue(auth.SMTPUserKey),
+		Password: cfg.IdentitySourceValue(auth.SMTPPasswordKey),
+		From:     cfg.IdentitySourceValue(auth.SMTPFromKey),
 	}), nil
 }
 

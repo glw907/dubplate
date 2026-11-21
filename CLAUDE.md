@@ -185,8 +185,23 @@ Never build, and never accept a contribution that adds:
 - A collection is a store row whose root the server allocates from its
   id, with no two roots nested, per
   `docs/specs/2026-09-11-configuration-homes-design.md`.
-- Config keys are declared through the registry in each pass's own file,
-  never by editing `internal/config/keys.go` (the config registry pass).
+- A setting is declared in `config.go` of the package that reads it and
+  added to that package's `Register` function; `internal/config/keys.go`
+  takes no new declaration. `cmd/dubplate-server` gains a call in
+  `newProductionRegistry` only when a new package registers for the first
+  time. In `auth`, `backup`, `serve`, `store`, `webapp`, `intake`, and
+  `ops/local`, only `config.go` and `doctor.go` import `internal/config` or
+  `internal/settings`; the import test in `internal/settings` fails
+  otherwise.
+- A table gets a migration file in the store and a line in the ownership
+  list. Only the owning package writes it. Another package calls the
+  owner's function, and passes its transaction when both changes must
+  commit together.
+- An id is the type in `internal/id`, or a named type built on it. Only
+  `id.Parse` reads one from text.
+- The time reaches a package as a `Now` function in its configuration. No
+  package under `internal` reads the clock, apart from the test harness. A
+  timeout is a deadline on the request's context.
 
 ## Safety rails
 

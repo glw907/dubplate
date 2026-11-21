@@ -12,21 +12,20 @@ Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, an
 once, and the citation leg of `scripts/check.sh` gates. Nothing a member or an operator sees changed.
 
 Pass `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree, `internal/engine/store` became
-`internal/store`, `internal/id` parses ids, the store holds the time and query helpers once, nothing under
-`internal` reads the clock outside tests and the harness, and a store test names the owner of each of 19 tables.
+`internal/store`, `internal/id` parses ids, and a store test names the owner of each of 19 tables.
+Pass `structure-keys` (PR #19) moved every setting into the package that reads it, each with a `config.go`, a
+`Register` function, and readers. `cmd/dubplate-server` declares and registers nothing, and an import test holds
+configuration to `config.go` and `doctor.go` in seven packages. Output is unchanged.
 
 `intake-1` is the last product pass on master. A passing album waits in `matching` with no exit until
 `intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work a later
 pass carries sits in BACKLOG under its `#round:<name>` or `#pass:<name>` tag.
 
-The cleanup rounds come from the 2026-11-10 whole-repo review (`docs/research/2026-11-10-whole-repo-review.md`),
-regrouped by `~/Projects/initiatives/dubplate-server/specs/2026-11-15-cleanup-round-design.md`.
-
 The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit installed and disabled, the `auth`,
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Pass 2 of round `structure` is next, per BACKLOG's "Rounds to 0.8"; `intake-2` takes #159.
+Pass 3 of round `structure`, `structure-doctor`, is next, per BACKLOG's "Rounds to 0.8"; `intake-2` takes #159.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Coordination

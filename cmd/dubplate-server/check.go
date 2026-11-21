@@ -40,7 +40,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			// own value resolves at its point of use rather than at
 			// Load, so config.Load succeeding above says nothing
 			// about it yet.
-			d, err := storeBusyTimeout(environ)
+			d, err := store.BusyTimeout(environ)
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			}
 
 			// The settings evaluation runs against the facts
-			// seedFacts picks: an absent store, or one older than
+			// settings.SeedFacts picks: an absent store, or one older than
 			// the settings table, evaluates the empty table serve's
 			// first seed meets, so a value that start would refuse
 			// fails check first. A store this check cannot vouch for
@@ -60,7 +60,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			// settings verdict for one it never read would report on
 			// rows it never saw.
 			settingsFailed := false
-			if facts, ok := seedFacts(r); ok {
+			if facts, ok := settings.SeedFacts(r); ok {
 				settingsFailed, err = printSettingsRows(stdout, environ, reg, facts)
 				if err != nil {
 					return err
