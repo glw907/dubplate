@@ -601,8 +601,13 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 		failing = append(failing, key+" "+word)
 	}
 
-	values := identitySourceValues(environ, src)
+	// An unset or empty value stays out of values, as the wall's own
+	// identity-source resolution leaves it.
+	values := make(map[string]string, len(src.Required)+len(src.Optional))
 	for _, key := range config.KeyNames(slices.Concat(src.Required, src.Optional)) {
+		if v, ok := config.Lookup(environ, key); ok {
+			values[key] = v
+		}
 		if status := statuses[key]; status != "" {
 			fail(key, sourceKeyWord(status, values[key]))
 		}
@@ -650,28 +655,4 @@ func sourceKeyWord(status, value string) string {
 		return "invalid"
 	}
 	return "invalid (" + reason + ")"
-}
-
-// identitySourceValues resolves src's Required and Optional keys from
-// environ, the same construction [config]'s own resolveIdentitySource
-// uses against its wall: an unset or empty value is omitted from the
-// map rather than recorded as an empty string.
-func identitySourceValues(environ []string, src config.IdentitySource) map[string]string {
-	values := make(map[string]string, len(src.Required)+len(src.Optional))
-	for _, key := range config.KeyNames(src.Required) {
-		if v, ok := lookupEnviron(environ, key); ok {
-			values[key] = v
-		}
-	}
-	for _, key := range config.KeyNames(src.Optional) {
-		if v, ok := lookupEnviron(environ, key); ok {
-			values[key] = v
-		}
-	}
-	return values
-}
-
-// lookupEnviron is [config.Lookup].
-func lookupEnviron(environ []string, name string) (string, bool) {
-	return config.Lookup(environ, name)
 }

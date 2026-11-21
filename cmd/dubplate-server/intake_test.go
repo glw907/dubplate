@@ -64,8 +64,15 @@ func TestRegisterIntakeConfig_RetiresTheIntakeClass(t *testing.T) {
 		}
 	}
 	for _, name := range []string{"DUBPLATE_UPLOADS_DIR", "DUBPLATE_TRIGGER_DIR"} {
-		if reason := reg.Superseded()[name]; !strings.Contains(reason, "DUBPLATE_STAGING_DIR") {
-			t.Errorf("Superseded()[%s] = %q, want a reason naming DUBPLATE_STAGING_DIR", name, reason)
+		_, err := config.Load(append(authEnviron(t), name+"=/srv/music/old"), reg)
+		var refused bool
+		for _, leaf := range flattenErrors(err) {
+			if keyed, ok := errors.AsType[*config.KeyError](leaf); ok && keyed.Key == name {
+				refused = strings.Contains(keyed.Reason, "DUBPLATE_STAGING_DIR")
+			}
+		}
+		if !refused {
+			t.Errorf("Load with %s set = %v, want a refusal keyed by %s with a reason naming DUBPLATE_STAGING_DIR", name, err, name)
 		}
 	}
 }

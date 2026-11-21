@@ -31,7 +31,7 @@ import (
 // facts rows from the same report never inspects the store
 // twice: report is the zero value whenever checked is false.
 func storeRow(ctx context.Context, environ []string) (status string, failed bool, report store.Report, checked bool) {
-	stateDir, ok := lookupEnviron(environ, "DUBPLATE_STATE_DIR")
+	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 	if !ok {
 		return "not checked", false, store.Report{}, false
 	}
@@ -54,7 +54,7 @@ func storeRow(ctx context.Context, environ []string) (status string, failed bool
 // "" when the variable is unset or does not parse, which names no
 // address for the inspection to look up.
 func adminAddress(environ []string) string {
-	v, _ := lookupEnviron(environ, adminEmailKey)
+	v, _ := config.Lookup(environ, adminEmailKey)
 	addr, err := mail.ParseAddress(v)
 	if err != nil {
 		return ""
@@ -196,7 +196,7 @@ func settingsChangeNote(o settings.Outcome) string {
 // force, and an env value the seed accepts seeds at serve's next start.
 func settingsNoTableStatus(environ []string, s config.Setting) string {
 	status := strconv.Quote(s.Default) + " " + settingTraits(s, "default") + "; store holds no settings yet"
-	if v, ok := lookupEnviron(environ, s.Key); ok {
+	if v, ok := config.Lookup(environ, s.Key); ok {
 		status += fmt.Sprintf("; env %q seeds at serve's next start", v)
 	}
 	return status
@@ -214,7 +214,7 @@ func settingsNotCheckedStatus(environ []string, s config.Setting, state store.St
 		label = fmt.Sprintf("not checked (%s)", state)
 	}
 	status := strconv.Quote(s.Default) + " " + settingTraits(s, "default") + "; store " + label
-	if v, ok := lookupEnviron(environ, s.Key); ok {
+	if v, ok := config.Lookup(environ, s.Key); ok {
 		status += fmt.Sprintf("; env %q not checked against the store", v)
 	}
 	return status

@@ -307,7 +307,7 @@ func backupRemoteRowStatus(ctx context.Context, environ []string) (status string
 		return "unavailable: backup integration disabled", false
 	}
 
-	remoteValue, _ := lookupEnviron(environ, "DUBPLATE_BACKUP_REMOTE")
+	remoteValue, _ := config.Lookup(environ, "DUBPLATE_BACKUP_REMOTE")
 	if _, err := backup.ParseRemote(remoteValue); err != nil {
 		return backupRemoteParseError(remoteValue), true
 	}
@@ -315,7 +315,7 @@ func backupRemoteRowStatus(ctx context.Context, environ []string) (status string
 	upper := strings.ToUpper(name)
 
 	typeKey := "RCLONE_CONFIG_" + upper + "_TYPE"
-	remoteType, ok := lookupEnviron(environ, typeKey)
+	remoteType, ok := config.Lookup(environ, typeKey)
 	if !ok {
 		return "invalid remote: " + typeKey + " is not set", true
 	}
@@ -379,7 +379,7 @@ func firstInvalidRemoteNameRune(name string) (rune, bool) {
 // colon) skips the wrapped check, leaving the features probe to decide.
 func backupCryptCheck(environ []string, upper string) (status string, failed, blocked bool) {
 	remoteKey := "RCLONE_CONFIG_" + upper + "_REMOTE"
-	wrapped, ok := lookupEnviron(environ, remoteKey)
+	wrapped, ok := config.Lookup(environ, remoteKey)
 	if !ok {
 		return "invalid remote: " + remoteKey + " is not set", true, true
 	}
@@ -388,7 +388,7 @@ func backupCryptCheck(environ []string, upper string) (status string, failed, bl
 		return "", false, false
 	}
 	wrappedTypeKey := "RCLONE_CONFIG_" + strings.ToUpper(wrappedName) + "_TYPE"
-	if _, ok := lookupEnviron(environ, wrappedTypeKey); !ok {
+	if _, ok := config.Lookup(environ, wrappedTypeKey); !ok {
 		return fmt.Sprintf("invalid remote: wrapped remote %s: %s is not set", wrappedName, wrappedTypeKey), true, true
 	}
 	return "", false, false

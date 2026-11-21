@@ -59,7 +59,7 @@ func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr 
 			if err != nil {
 				return err
 			}
-			_, envSets := lookupEnviron(environ, key)
+			_, envSets := config.Lookup(environ, key)
 			return printResetResult(stdout, key, res, envSets)
 		},
 	}

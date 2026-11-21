@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/atomicfile"
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/engine/matcher/unidecode"
 	"github.com/spf13/cobra"
 )
@@ -79,7 +80,7 @@ func checkUnidecodeTable(stateDir string) error {
 // "invalid: ..." for every other failure (a directory in the file's
 // place, permission denied, a checksum or format refusal).
 func unidecodeRowStatus(environ []string) (status string, failed bool) {
-	stateDir, ok := lookupEnviron(environ, "DUBPLATE_STATE_DIR")
+	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 	if !ok {
 		return "not checked", false
 	}
@@ -144,7 +145,7 @@ func newUnidecodeInstallCmd(environ []string, stdout, stderr io.Writer) *cobra.C
 // table, creates the leaf, and writes the table atomically, reading it
 // back through Parse before reporting success.
 func runUnidecodeInstall(ctx context.Context, environ []string, from string, stdout io.Writer) error {
-	stateDir, ok := lookupEnviron(environ, "DUBPLATE_STATE_DIR")
+	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 	if !ok {
 		return errors.New("DUBPLATE_STATE_DIR is not set")
 	}
