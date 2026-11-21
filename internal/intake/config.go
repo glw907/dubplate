@@ -158,7 +158,7 @@ var (
 	// tag-write copies. Sensitive on the reasoning the backup floors
 	// carry: a stale session should not lower a protective floor
 	// without re-authentication and a notice.
-	FreeSpaceFloorSetting = config.Setting{
+	freeSpaceFloorSetting = config.Setting{
 		Key:         "DUBPLATE_INTAKE_FREE_SPACE_FLOOR",
 		Kind:        config.KindInt,
 		Default:     "5368709120",
@@ -287,7 +287,7 @@ func Register(reg *config.Registry) {
 		minSampleRateSetting,
 		minBitsPerSampleSetting,
 		sessionsPerMemberSetting,
-		FreeSpaceFloorSetting,
+		freeSpaceFloorSetting,
 		groupQuotaBytesSetting,
 		resumeWindowSetting,
 		holdSetting,
@@ -370,7 +370,7 @@ func LimitsFrom(acc *settings.Accessor, allowlist []string) func(context.Context
 			},
 			SessionsPerMember: count(sessionsPerMemberSetting),
 			GroupQuotaBytes:   int64(count(groupQuotaBytesSetting)),
-			FreeSpaceFloor:    int64(count(FreeSpaceFloorSetting)),
+			FreeSpaceFloor:    int64(count(freeSpaceFloorSetting)),
 		}
 		return lim, failed
 	}
@@ -380,8 +380,8 @@ func LimitsFrom(acc *settings.Accessor, allowlist []string) func(context.Context
 // acc at each call.
 func FreeSpaceFloor(acc *settings.Accessor) func(context.Context) (int64, error) {
 	return func(ctx context.Context) (int64, error) {
-		n, err := acc.Int(ctx, FreeSpaceFloorSetting)
-		return int64(n), readError(FreeSpaceFloorSetting, err)
+		n, err := acc.Int(ctx, freeSpaceFloorSetting)
+		return int64(n), readError(freeSpaceFloorSetting, err)
 	}
 }
 
