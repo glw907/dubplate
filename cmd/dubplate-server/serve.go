@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -177,7 +178,11 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // the caller listens on, and the same trusted proxy configuration the
 // strip carries.
 func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
-	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s })
+	buildFS, err := embeddedBuild()
+	if err != nil {
+		return nil, err
+	}
+	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, buildFS)
 }
 
 // A server is what newServeShell builds: the shell, the store it holds
@@ -207,8 +212,10 @@ type registrar interface {
 // the registrar mount makes of the new shell, so a test sees each name
 // the build registers. Every registration must go through that
 // registrar and never through the shell directly: a route registered
-// around it escapes the route inventory test unseen.
-func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *server, err error) {
+// around it escapes the route inventory test unseen. The web routes
+// come from buildFS, so a test can serve a fixture tree where the
+// embedded one holds only the placeholder.
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
 	proxyConfig, err := serve.ResolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
@@ -320,7 +327,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 
-	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger())
+	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger(), buildFS)
 	if err != nil {
 		return nil, err
 	}

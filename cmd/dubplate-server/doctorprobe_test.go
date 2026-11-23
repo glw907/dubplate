@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"log/slog"
@@ -352,23 +351,6 @@ func TestBindAddrsRowStatus(t *testing.T) {
 	}
 }
 
-// freePort returns a loopback port this test listened on at
-// 127.0.0.1:0 and released, for a server the test starts itself.
-// reservedPort is the shared port nothing may ever listen on, so a test
-// that needs a listener takes its own.
-func freePort(t *testing.T) int {
-	t.Helper()
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("reserve a loopback port: %v", err)
-	}
-	port := listenerPort(t, l)
-	if err := l.Close(); err != nil {
-		t.Fatalf("release the reserved port: %v", err)
-	}
-	return port
-}
-
 // listenerPort returns the port of a listener bound on 127.0.0.1.
 func listenerPort(t *testing.T, l net.Listener) int {
 	t.Helper()
@@ -379,59 +361,100 @@ func listenerPort(t *testing.T, l net.Listener) int {
 	return addr.Port
 }
 
-// TestDoctorBoundaryProbe_EndToEnd runs the serve verb itself, the
-// shell newServeShell builds served by serve.Run on 127.0.0.1, and
-// then doctor against the same port: the probe crosses a real socket
-// into the running server's strip, and every count comes back zero.
-func TestDoctorBoundaryProbe_EndToEnd(t *testing.T) {
-	port := freePort(t)
+// placeholderWebRefusal opens the web row's status when the embedded
+// build holds only the placeholder, the state of a tree where
+// `npm run build` has not run.
+const placeholderWebRefusal = "invalid: web: the embedded build tree holds only the placeholder"
+
+// startServeOnHeldPort serves the shell the serve verb builds, over a
+// fixture web tree, on a loopback port this test holds from the moment
+// it picks the number, and returns the environ doctor runs against:
+// environ with extra applied and DUBPLATE_SERVE_PORT set to that port.
+// Holding the listener leaves no gap in which another test's server
+// could take the port and answer the route first. The fixture tree
+// lets a checkout whose web/build holds only the placeholder, which
+// serve itself refuses, still run the probe across a real socket.
+// The plain GET it makes before returning proves the route answers, so
+// a "refused" row is the strip's answer and never a server that had
+// not started. Cleanup stops the server and closes the build.
+func startServeOnHeldPort(t *testing.T, extra ...string) []string {
+	t.Helper()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("hold a loopback port: %v", err)
+	}
+	port := listenerPort(t, l)
 	// serve refuses a staging directory or library root that does not
 	// exist, so both are sibling directories here.
-	environ := withMusicVolume(t, withEnv(doctorEnviron(t), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port)))
+	environ := withMusicVolume(t, withEnv(doctorEnviron(t), append(slices.Clone(extra), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))...))
 
-	ctx, cancel := context.WithCancel(t.Context())
-	served := make(chan error, 1)
-	go func() {
-		cmd := newServeCmd(environ, productionRegistry(), io.Discard, io.Discard)
-		served <- cmd.ExecuteContext(ctx)
-	}()
+	cfg, err := loadConfig(environ, productionRegistry())
+	if err != nil {
+		_ = l.Close()
+		t.Fatalf("loadConfig: %v", err)
+	}
+	prefix, addrs, _, err := serve.ResolveConfig(environ)
+	if err != nil {
+		_ = l.Close()
+		t.Fatalf("serve.ResolveConfig: %v", err)
+	}
+	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
+		func(s *serve.Shell) registrar { return s }, newFixtureBuildFS(1, 1))
+	if err != nil {
+		_ = l.Close()
+		t.Fatalf("newServeShellVia: %v", err)
+	}
 	t.Cleanup(func() {
-		cancel()
-		if err := <-served; err != nil {
-			t.Errorf("serve returned %v, want nil after cancel", err)
+		if err := srv.Close(); err != nil {
+			t.Errorf("close the serve build: %v", err)
+		}
+	})
+	httpSrv := &http.Server{Handler: srv.shell.Handler()}
+	done := make(chan error, 1)
+	go func() { done <- httpSrv.Serve(l) }()
+	t.Cleanup(func() {
+		if err := httpSrv.Close(); err != nil {
+			t.Errorf("close the server: %v", err)
+		}
+		if err := <-done; !errors.Is(err, http.ErrServerClosed) {
+			t.Errorf("Serve returned %v, want http.ErrServerClosed", err)
 		}
 	})
 
-	// Fixture state: the route answers a plain GET on the port before
-	// doctor runs, so a "refused" row is the strip's answer and never
-	// a server that had not started.
-	url := "http://127.0.0.1:" + strconv.Itoa(port) + "/dubplate/" + serve.ProbeRouteName
-	client := &http.Client{Transport: &http.Transport{}, Timeout: 2 * time.Second}
+	client := &http.Client{Transport: &http.Transport{}, Timeout: 5 * time.Second}
 	defer client.CloseIdleConnections()
-	deadline := time.Now().Add(10 * time.Second)
-	for {
-		resp, err := client.Get(url)
-		if err == nil {
-			_ = resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("fixture state: plain GET answered %d, want 200", resp.StatusCode)
-			}
-			break
-		}
-		select {
-		case err := <-served:
-			t.Fatalf("serve returned before answering: %v", err)
-		default:
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("fixture state: the route never answered: %v", err)
-		}
-		time.Sleep(20 * time.Millisecond)
+	resp, err := client.Get("http://127.0.0.1:" + strconv.Itoa(port) + "/dubplate/" + serve.ProbeRouteName)
+	if err != nil {
+		t.Fatalf("fixture state: the route never answered: %v", err)
 	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("fixture state: plain GET answered %d, want 200", resp.StatusCode)
+	}
+	return environ
+}
 
+// doctorErrBesidesWeb is err unless the web row alone explains it: in a
+// tree whose build holds only the placeholder, doctor's web row fails
+// and the command exits 1 whatever the row under test says. The row
+// under test carries its own failure in its status, which each caller
+// compares exactly.
+func doctorErrBesidesWeb(rows map[string]string, err error) error {
+	if err != nil && strings.HasPrefix(rows["web"], placeholderWebRefusal) {
+		return nil
+	}
+	return err
+}
+
+// TestDoctorBoundaryProbe_EndToEnd serves the shell newServeShell
+// builds on a held 127.0.0.1 port and runs doctor against that port:
+// the probe crosses a real socket into the running server's strip, and
+// every count comes back zero.
+func TestDoctorBoundaryProbe_EndToEnd(t *testing.T) {
+	environ := startServeOnHeldPort(t)
 	seedDoctorAdmin(t, environ)
 	rows, _, err := doctorRows(t, environ)
-	if err != nil {
+	if err := doctorErrBesidesWeb(rows, err); err != nil {
 		t.Errorf("Execute() error = %v, want nil when the strip refuses every header", err)
 	}
 	want := "127.0.0.1 refused; " + probeTrailer
@@ -734,57 +757,16 @@ var trustedLoopback = []string{
 	"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1",
 }
 
-// TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd runs the serve verb
-// behind the same-host front's configuration and doctor against it.
-// The route answers a trusted peer with the identity count alone, so
-// the row proves group 1 at 127.0.0.1, says so, and reads the rest as
+// TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd serves the shell in
+// the same-host front's configuration and runs doctor against it. The
+// route answers a trusted peer with the identity count alone, so the
+// row proves group 1 at 127.0.0.1, says so, and reads the rest as
 // unproven rather than passing it, and doctor exits 0.
 func TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd(t *testing.T) {
-	port := freePort(t)
-	environ := withMusicVolume(t, withEnv(doctorEnviron(t), append(slices.Clone(trustedLoopback), "DUBPLATE_SERVE_PORT="+strconv.Itoa(port))...))
-
-	ctx, cancel := context.WithCancel(t.Context())
-	served := make(chan error, 1)
-	go func() {
-		cmd := newServeCmd(environ, productionRegistry(), io.Discard, io.Discard)
-		served <- cmd.ExecuteContext(ctx)
-	}()
-	t.Cleanup(func() {
-		cancel()
-		if err := <-served; err != nil {
-			t.Errorf("serve returned %v, want nil after cancel", err)
-		}
-	})
-
-	// Fixture state: the route answers before doctor runs, so the row
-	// reads the strip's answer and never a server that had not started.
-	url := "http://127.0.0.1:" + strconv.Itoa(port) + "/dubplate/" + serve.ProbeRouteName
-	client := &http.Client{Transport: &http.Transport{}, Timeout: 2 * time.Second}
-	defer client.CloseIdleConnections()
-	deadline := time.Now().Add(10 * time.Second)
-	for {
-		resp, err := client.Get(url)
-		if err == nil {
-			_ = resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("fixture state: plain GET answered %d, want 200", resp.StatusCode)
-			}
-			break
-		}
-		select {
-		case err := <-served:
-			t.Fatalf("serve returned before answering: %v", err)
-		default:
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("fixture state: the route never answered: %v", err)
-		}
-		time.Sleep(20 * time.Millisecond)
-	}
-
+	environ := startServeOnHeldPort(t, trustedLoopback...)
 	seedDoctorAdmin(t, environ)
 	rows, _, err := doctorRows(t, environ)
-	if err != nil {
+	if err := doctorErrBesidesWeb(rows, err); err != nil {
 		t.Errorf("Execute() error = %v, want nil when the strip refuses every identity header", err)
 	}
 	want := "127.0.0.1 refused (a trusted proxy, identity only); " + wantAllTrustedUnproven + "; " + probeTrailer
