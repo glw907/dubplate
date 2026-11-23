@@ -129,6 +129,19 @@ unset "${!DUBPLATE_@}"
 # ruling, fold, pass, and conductor tags, and a name) fails it outside
 # cmd/dubplate-server, internal/serve, internal/auth, and
 # internal/intake. Test files are not scanned. Every hit is named.
+#
+# Three legs hold the lean-project rules and run in every form,
+# --reduced included:
+#
+#   deadcode -test   `go tool deadcode -test ./...` prints nothing: no
+#                    function is unreachable from a main or a test
+#                    (docs/decisions/0003-build-for-0-8.md).
+#   CLAUDE.md length CLAUDE.md is 200 lines or fewer.
+#   record status    every docs/decisions/*.md carries a "## Status"
+#                    heading whose next non-blank line is Proposed,
+#                    Accepted, Deprecated, or "Superseded by NNNN",
+#                    and NNNN names a record in the folder.
+#
 # One leg is a staged warning. It runs on every full invocation, prints
 # its finding count and its first twenty sites, and is flipped to
 # gating by its own environment variable. It is not a
@@ -913,6 +926,72 @@ if [ "$mode" != "reduced" ]; then
   if ! bash scripts/check-state-dir.sh; then
     status=1
   fi
+fi
+
+leg "unreachable code, tests counted (deadcode -test)"
+# With -test, a function a test reaches counts as live, so any line
+# printed here is code that nothing at all calls.
+deadcode_test_rc=0
+go tool deadcode -test ./... >"$work_dir/deadcode-test.txt" 2>"$work_dir/deadcode-test.err" || deadcode_test_rc=$?
+if [ "$deadcode_test_rc" -ne 0 ]; then
+  cat "$work_dir/deadcode-test.err" >&2
+  echo "check.sh: go tool deadcode -test failed with exit $deadcode_test_rc." >&2
+  status=1
+elif [ -s "$work_dir/deadcode-test.txt" ]; then
+  cat "$work_dir/deadcode-test.txt" >&2
+  echo "check.sh: deadcode -test found code that no code or test reaches." >&2
+  status=1
+else
+  echo "check.sh: deadcode -test found no unreachable function."
+fi
+
+leg "CLAUDE.md length"
+claude_md_max=200
+claude_md_lines="$(wc -l <CLAUDE.md)"
+if [ "$claude_md_lines" -gt "$claude_md_max" ]; then
+  echo "check.sh: CLAUDE.md is $claude_md_lines lines, over the $claude_md_max-line limit." >&2
+  status=1
+else
+  echo "check.sh: CLAUDE.md is $claude_md_lines lines (limit $claude_md_max)."
+fi
+
+leg "decision record status"
+# Each record's status is the first non-blank line after its "## Status"
+# heading. A record that is missing it, names another word, or supersedes
+# a record not in the folder fails.
+shopt -s nullglob
+records=(docs/decisions/*.md)
+shopt -u nullglob
+record_problems=0
+for record in "${records[@]}"; do
+  record_status="$(awk '
+    found && NF { print; exit }
+    /^## Status[[:space:]]*$/ { found = 1 }
+  ' "$record")"
+  case "$record_status" in
+  Proposed | Accepted | Deprecated) ;;
+  "Superseded by "[0-9][0-9][0-9][0-9])
+    successor="${record_status#Superseded by }"
+    successor_files=(docs/decisions/"$successor"-*.md)
+    if [ ! -f "${successor_files[0]}" ]; then
+      echo "check.sh: $record: superseded by $successor, which is not in docs/decisions." >&2
+      record_problems=$((record_problems + 1))
+    fi
+    ;;
+  "")
+    echo "check.sh: $record: no status under a \"## Status\" heading." >&2
+    record_problems=$((record_problems + 1))
+    ;;
+  *)
+    echo "check.sh: $record: status \"$record_status\" is not Proposed, Accepted, Deprecated, or Superseded by NNNN." >&2
+    record_problems=$((record_problems + 1))
+    ;;
+  esac
+done
+if [ "$record_problems" -gt 0 ]; then
+  status=1
+else
+  echo "check.sh: ${#records[@]} decision record(s), each with a valid status."
 fi
 
 leg_end
