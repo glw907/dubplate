@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# A workstation exports its own DUBPLATE_* settings, real credentials among
+# them, and tests hand os.Environ() to the processes they start.
+unset "${!DUBPLATE_@}"
 # check.sh: the repo gate. `make check` covers the Go module (vet,
 # golangci-lint, test, tidy-check; it does not build the binary, that
 # is `make build`'s own job) and, first, the `web` target: Node and npm

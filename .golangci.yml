@@ -1,5 +1,10 @@
 version: "2"
 
+# Two worktrees linting at once wait for each other instead of the second
+# exiting with "parallel golangci-lint is running".
+run:
+  allow-serial-runners: true
+
 linters:
   default: none
   enable:
