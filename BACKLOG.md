@@ -73,28 +73,27 @@ now milestone `engine`.
 - [ ] #149 Lock and bounds tidy-ups from `cleanup-store`'s reads (PR #14), none blocking: document on `ServeOptions.MigrationWait` that zero waits on the context alone (`waitLock` with a zero bound is unbounded; `OpenWrite` now reports a context deadline over the busy error); make `checkBounds` parse the bounds under the kind the caller passes and have a `KindString` threshold with a `Floor` panic as a `Setting` does; and make `doctor.rowStatuses` report a leaf that is not a `KeyError` instead of skipping it. #improvement #config *(swept 2026-11-20)*
 - [ ] #150 No rendered row covers the server-settings page's refused, signed-out, or unreachable states: the members rows cover the shared `loadList` and `AdminPage` branches, and a non-admin settings row would pin the page's own `status` line. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16)
 - [ ] #151 No rendered row asserts focus on `#roster-outcome-text` after a refusal that names no field (members page), and no row aborts the interstitial's consume request, so its network-failure alert (now `alert-warning`) is unexercised. Found by `cleanup-web`'s planning and T1 review (PR #15) #test #web (2026-11-16)
-- [ ] #152 A throw in one rendered row (a locator timeout) kills the whole script, because the rows use `try/finally` with no catch: a mutation then shows as an aborted run with no per-row failures, so "these capture rows must fail" proofs cannot name rows. Catch per row and report it. Found by `cleanup-web`'s T2 and T4 mutation runs (PR #15) #test #web #gate (2026-11-16)
-- [ ] #153 `TestRoutes_EveryPageHasAUniqueTitle` matches `<AdminPage title={...}>` only when `title` is the first prop and nothing asserts `AdminPage.svelte` itself renders a `<title>`; add that assertion. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16)
+- [ ] #152 A throw in one rendered row (a locator timeout) kills the whole script, because the rows use `try/finally` with no catch: a mutation then shows as an aborted run with no per-row failures, so "these capture rows must fail" proofs cannot name rows. Catch per row and report it. Found by `cleanup-web`'s T2 and T4 mutation runs (PR #15) #test #web #gate (2026-11-16) *(swept 2026-11-22)*
+- [ ] #153 `TestRoutes_EveryPageHasAUniqueTitle` matches `<AdminPage title={...}>` only when `title` is the first prop and nothing asserts `AdminPage.svelte` itself renders a `<title>`; add that assertion. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16) *(swept 2026-11-22)*
 - [ ] #155 Admin page state after a write or a failed retry, from `cleanup-web`'s close reads (PR #15), none new in the pass: a refusal (`forbidden` or `unauthenticated`) on the post-write refresh leaves the roster or settings on screen in `ok` (the comment says so on purpose, so it needs a ruling); a write answering `signedOut` unmounts the focused control and announces nothing; the unreachable retry loses focus on success, can overlap with itself, and repeats an identical assertive text; the row Demote and Remove buttons carry no `aria-disabled` while a write is in flight; the loading state has no `h1`; field `aria-describedby` points at the whole alert rather than its text; and the sign-in link opens a new tab without saying so. All now have one place to fix: `AdminPage.svelte` and `WriteNotice.svelte`. #improvement #web #a11y #auth
 - [ ] #140 Doctor still prints "disabled (arrives at rung %d)" for a reserved class (`cmd/dubplate-server/doctor.go:88`, asserted at `doctor_test.go:163`), the phrase `cleanup-store` took out of the config refusal text. Reword both. Found by `cleanup-store` (PR #14) #improvement *(swept 2026-11-20)*
 - [ ] #141 Three restore-intent notes from `cleanup-store`'s T3 review: `into_nonempty` now validates without `library_root` (harmless today), no fixture refuses an old nested `source` record, and `swappedLeaf` copies only the library half. Add the fixture and decide the other two. Found by `cleanup-store` (PR #14) #test #store *(swept 2026-11-20)*
-- [ ] #142 `internal/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store *(swept 2026-11-20)*
-- [ ] #143 `TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd` failed once in CI and passed on rerun: `freePort` (`cmd/dubplate-server/doctorprobe_test.go:359`) reserves a port then releases it, so the route answered 200 before the store existed and `denyUnidecodeNetwork` fired. Hold the listener or retry on bind. Found by `cleanup-store` (PR #14) #bug #test *(swept 2026-11-20)*
-- [ ] #144 `TestDoctorBoundaryProbe_EndToEnd` hangs in cleanup after `Fatalf` when the web build is missing (`cmd/dubplate-server/doctorprobe_test.go:423`). Make it fail fast. Found by `cleanup-store`'s T7 (PR #14) #bug #test *(swept 2026-11-20)*
+- [ ] #142 `internal/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store *(swept 2026-11-22)*
+- [ ] #143 `TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd` failed once in CI and passed on rerun: `freePort` (`cmd/dubplate-server/doctorprobe_test.go:359`) reserves a port then releases it, so the route answered 200 before the store existed and `denyUnidecodeNetwork` fired. Hold the listener or retry on bind. Found by `cleanup-store` (PR #14) #bug #test *(swept 2026-11-22)*
+- [ ] #144 Both serve-backed doctor probe tests (`cmd/dubplate-server/doctorprobe_test.go:398` and `:754`) drain `served` in the poll loop's early-exit case, so the cleanup's `<-served` blocks forever after that `Fatalf` (seen when the web build is missing). Record the received error and skip the cleanup read. Found by `cleanup-store`'s T7 (PR #14) #bug #test *(swept 2026-11-22)*
 - [ ] #145 No test pins that `settings.parse` heals a stored non-finite float row (`internal/settings/evaluate.go:330` keeps `strconv.ParseFloat` on purpose): swapping it for `ThresholdKind.Parse` would refuse the row and nothing fails. Add a test that re-seeds a stored "Inf" row. Found by `cleanup-store`'s T7 review (PR #14) #test #settings *(swept 2026-11-20)*
 - [ ] #146 Two `StateRestoreInProgress` "unreadable" refusals still format their cause with `%v` (`internal/store/intent.go:174`, `restore.go:189`); `cleanup-store` covered `StateRefused` only. Move them to `%w` after reading the same three handlers. Found by `cleanup-store`'s T10 (PR #14) #improvement #store *(swept 2026-11-20)*
 - [ ] #137 The rendered fixture leaks credentials to local processes and test output (all pre-existing, loopback and run-length only). `cmd/dubplate-server/rendered_test.go:352-375` logs every request's query and headers, so `?t=<link token>` and the admin `Cookie` sit in a log that `logSrv` (`:881`) serves unauthenticated on 127.0.0.1; the mint and roster-reset servers (`:661-691`, `:915-918`) are unauthenticated too; a Playwright navigation error quotes the `?t=` URL into `t.Errorf` and the `go test` JSON events file (`:942`, `Makefile:150`); and `internal/auth/token.go:143-183` verifies a link by MAC and expiry only, so a server configured with the fixture secret literal (`check_test.go:174`) accepts fixture links. Redact `Cookie` and `t` from logged records, and have `check` or `serve` refuse the fixture secret. Found by `cleanup-gate`'s security read (PR #13) #improvement #infra (2026-11-16) *(swept 2026-11-20)*
-- [ ] #135 The Vale leg reads no Go comment. `.vale.ini` has no `Grammars = go` and nothing runs `vale sync`, so `scripts/vale-comments.sh` prints `W101 grammar "go" is not installed` and then `vale-comments: clean` over an em dash in a Go comment (Vale 3.27.0, the CI pin too). With `Grammars = go` and a sync, a scratch config flags `Survey.EmDash` on `//` and `/* */` comments. Add the grammar to `.vale.ini`, sync it in `check.yml` and the gate, ignore `.vale/styles/config/`, and fail `vale-comments.sh` on W101; weigh pinning the downloaded wasm. Found by `cleanup-gate`'s T6 plant (PR #13) #bug #infra (2026-11-16) *(swept 2026-11-20)*
-- [ ] #133 `TestBusyTimeout` (`internal/store/conn_test.go:364,385`) failed once on a GitHub runner (run 43815685425, head `dd52636`, whose tree equals the green run on `2b9672a`): both subtests got `database is locked (5) (SQLITE_BUSY)` at `BeginTx`. It is timing-dependent and now gates every PR, so it can turn the check red with no code change. Make it wait on a signal, not a clock. Found by `cleanup-ci` (PR #12) #bug #store (2026-11-16) *(swept 2026-11-20)*
-- [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3). Geoff ruled it into the structure round's sweep, 2026-11-20, but both peer ranges exclude 7 that day: `svelte-check` 4.7.8 declares `typescript: ^5.0.0 || ^6.0.0`, and `@sveltejs/kit` 3.4.0 declares the optional peer `typescript: ^6.0.0`. Unblock: a `svelte-check` and a `@sveltejs/kit` release whose peer ranges admit 7 #improvement #infra #milestone:structure (2026-11-16) *(swept 2026-11-20)*
-- [ ] #129 Take `modernc.org/sqlite` v1.62.0 (held at v1.60.1 with `modernc.org/libc` v1.77.1). `TestUpdateDeadline/shorter_than_the_busy_timeout_waits_the_busy_timeout` fails on every run at `internal/store/write_test.go:601,605` ("operation returned before the 400ms deadline"; "update: begin write: context deadline exceeded, want ErrBusy"): v1.61.0 stops a statement waiting under `busy_timeout` once its context is done and returns the context's error, which reverses the premise of the test's "Measured: SQLite's busy handler does not stop for the driver's interrupt" comment (v1.61.1 does the same for `Tx.Commit`). The bump rewrites that subtest for the new contract, checks what `Update` maps a deadline hit while waiting on a lock to, and takes v1.62.1 (2026-11-13) with the `modernc.org/libc` pin its `go.mod` names. Found by the `cleanup-ci` dependency sweep #bug #infra (2026-11-16) *(swept 2026-11-20)*
-- [ ] #132 Recompile `tools/venv/requirements.txt` for its newer pins (certifi 2026.10.23, confuse 2.3.1, jellyfish 1.3.0, lap 0.5.14, numpy 2.5.5, platformdirs 4.14.5, pyrate-limiter 4.5.1). jellyfish is a minor that beets uses for matching, so the bump re-runs `make derive` and checks the oracle goldens. Outside `cleanup-ci`'s files; found by its sweep #improvement #infra (2026-11-16) *(swept 2026-11-16)*
-  Dependabot alert #1 (critical, 2026-11-23) names the pinned certifi 2026.7.22: it bundles emSign root CAs whose intermediate keys are compromised, first patched in 2026.10.18. Found by PR #22.
+- [ ] #135 The Vale leg reads no Go comment. `.vale.ini` has no `Grammars = go` and nothing runs `vale sync`, so `scripts/vale-comments.sh` prints `W101 grammar "go" is not installed` and then `vale-comments: clean` over an em dash in a Go comment (Vale 3.27.0, the CI pin too). With `Grammars = go` and a sync, a scratch config flags `Survey.EmDash` on `//` and `/* */` comments. Add the grammar to `.vale.ini`, sync it in `check.yml` and the gate, ignore `.vale/styles/config/`, and fail `vale-comments.sh` on W101; weigh pinning the downloaded wasm. Found by `cleanup-gate`'s T6 plant (PR #13) #bug #infra (2026-11-16) *(swept 2026-11-22)*
+- [ ] #133 `TestBusyTimeout` (`internal/store/conn_test.go:364,385`) failed once on a GitHub runner (run 43815685425, head `dd52636`, whose tree equals the green run on `2b9672a`): both subtests got `database is locked (5) (SQLITE_BUSY)` at `BeginTx`. It is timing-dependent and now gates every PR, so it can turn the check red with no code change. Make it wait on a signal, not a clock. Found by `cleanup-ci` (PR #12) #bug #store (2026-11-16) *(swept 2026-11-22)*
+- [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3). Geoff ruled it into the structure round's sweep, 2026-11-20, but both peer ranges exclude 7 that day: `svelte-check` 4.7.8 declares `typescript: ^5.0.0 || ^6.0.0`, and `@sveltejs/kit` 3.4.0 declares the optional peer `typescript: ^6.0.0`. Unblock: a `svelte-check` and a `@sveltejs/kit` release whose peer ranges admit 7 #improvement #infra #milestone:structure (2026-11-16) *(swept 2026-11-22)*
+- [ ] #129 Take `modernc.org/sqlite` v1.62.0 (held at v1.60.1 with `modernc.org/libc` v1.77.1). `TestUpdateDeadline/shorter_than_the_busy_timeout_waits_the_busy_timeout` fails on every run at `internal/store/write_test.go:601,605` ("operation returned before the 400ms deadline"; "update: begin write: context deadline exceeded, want ErrBusy"): v1.61.0 stops a statement waiting under `busy_timeout` once its context is done and returns the context's error, which reverses the premise of the test's "Measured: SQLite's busy handler does not stop for the driver's interrupt" comment (v1.61.1 does the same for `Tx.Commit`). The bump rewrites that subtest for the new contract, checks what `Update` maps a deadline hit while waiting on a lock to, and takes v1.62.1 (2026-11-13) with the `modernc.org/libc` pin its `go.mod` names. Found by the `cleanup-ci` dependency sweep #bug #infra (2026-11-16) *(swept 2026-11-22)*
+- [ ] #132 Recompile `tools/venv/requirements.txt` for its other newer pins (confuse 2.3.1, jellyfish 1.3.0, lap 0.5.14, numpy 2.5.5, platformdirs 4.14.5, pyrate-limiter 4.5.1). jellyfish is a minor that beets uses for matching, so the bump re-runs `make derive` and checks the oracle goldens. The certifi pin is #175. #improvement #infra (2026-11-16) *(swept 2026-11-22)*
 
 
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
   (`systemctl reset-failed`; cosmetic, pre-fix 404 era; box write needs
-  sanction) #infra *(swept 2026-11-16)*
+  sanction) #infra *(swept 2026-11-22)*
 - [ ] #8 tus-js-client 5.0 watch item: `web/package.json` pins 4.3.1. Record the 5.0 upgrade verdict at the intake
   round's uploader pass, under the dependency-upgrade sweep. #upload #milestone:intake *(swept 2026-11-16)*
 - [ ] #10 provision.sh refuses to run (even `--check`) when
@@ -102,7 +101,7 @@ now milestone `engine`.
   2026-08-31 (no stable workstation IP), so a fresh provision is impossible
   without setting a variable whose policy answer is "unrestricted".
   Reconcile with a stated decision; do not drive-by edit the guard
-  #onboarding *(swept 2026-11-16)*
+  #onboarding *(swept 2026-11-22)*
 - [ ] #9 Geoff: review the two seed albums parked in
   `/srv/music/review/2026-08-31/geoff/` (Aim "Hinterland (Remastered)",
   illuminati hotties "POWER", plus a TV Girl zine PDF) #pipeline *(swept 2026-11-16)*
@@ -114,7 +113,7 @@ now milestone `engine`.
   From UNI-5d L1, 2026-10-05 #security *(swept 2026-11-20)*
 - [ ] #14 Align `web/package.json`'s `engines` (`>=22.17`) with the Makefile's web
   target, which refuses a Node major below 24; the runbook follows the Makefile.
-  From 5d-ii Task 9A, 2026-10-05 #infra *(swept 2026-11-15)*
+  From 5d-ii Task 9A, 2026-10-05 #infra *(swept 2026-11-22)*
 - [ ] #15 `serve`'s direct-mode warning (`warnForwardedFromLocalPeer`, `internal/serve/serve.go:174`, comment at
   `:156`) fires on `doctor`'s own boundary probe, whose request (`internal/serve/probe.go:32-52`) carries every group 2
   header, so a healthy doctor makes serve log a false alarm. Have the warning skip requests carrying `probeSentinel`,
@@ -213,7 +212,7 @@ now milestone `engine`.
 - [ ] #63 UNI-L2's failure-alert hook for the unidecode table install. Carried from the alignment pass,
   2026-10-11 #infra (see #98) #initiative:dubplate-server *(swept 2026-11-20)*
 - [ ] #64 The photo checks: the `tools/photos/check.test.mjs` failures (2 of 121, both assume an empty `photos/`, so no gate runs it) and the
-  photo integrity leg's read of `photos/` from disk, not `git ls-files`, stay open. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server *(swept 2026-11-20)*
+  photo integrity leg's read of `photos/` from disk, not `git ls-files`, stay open. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server *(swept 2026-11-22)*
 - [ ] #65 Photo licensing follow-ups: a source-URL recheck of the pool, and a blob-retention call for withdrawn
   images. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server *(swept 2026-11-20)*
 - [ ] #66 The architecture cleanup: the routed findings in `docs/research/*-architecture-reads.md`
@@ -224,9 +223,7 @@ now milestone `engine`.
   which no independent oracle cross-checks; and the login title argument and W6's h1 fallback, which have no
   rendered proof. The coverage read's 103 coverage gaps ride along, none blocking. Carried from the alignment pass,
   2026-10-11 #arch *(swept 2026-11-20)*
-- [ ] #68 provision.sh: compute the allowed CIDRs once at top level so errexit applies. Today an all-blank
-  `FIREWALL_SSH_CIDRS` falls through to jq's failure, and `hcloud firewall create` may get an empty rules file. A
-  behavior change; pairs with #5. Found by the alignment pass, PR #2 #onboarding *(swept 2026-11-16)*
+- [ ] #68 provision.sh: compute the allowed CIDRs once at top level so errexit applies. Today an all-blank `FIREWALL_SSH_CIDRS` falls through to jq's failure (`ssh_cidrs_json`, `scripts/provision.sh:130`), and `hcloud firewall create` may get an empty rules file. A behavior change. Found by the alignment pass, PR #2 #onboarding *(swept 2026-11-22)*
 - [ ] #83 `intake-2`'s copy read owes the redrafts `intake-1` recorded and did not write. PCF (`passb-copy-final.md`):
   the retry line (`:124-126`) for owner ruling 7; the three Navidrome strings (`:105`, `:143-145`, `:160-161`);
   every "Private Recordings" string in sections 5 and 6, renamed "Unlisted music" with "music" or "recording" where
@@ -268,7 +265,7 @@ now milestone `engine`.
   event reasons bypass `reasonReader`; `Limits` (`seam.go:24`) and `limits` (`limits.go:21`) are twin structs; the dead exports (`reject.All`, `Reason.Blocking`, `Param`, `Canonical`, `staging.ErrLinuxOnly`, the `Route`
   exports) find callers or go; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` flaked once (its rename is
   #142); and `sweepNonces` (`cmd/dubplate-server/serve.go:457`) is never joined at teardown. The boundary-probe hang is
-  #144. #milestone:intake #test *(swept 2026-11-20)*
+  #144. #milestone:intake #test *(swept 2026-11-22)*
 - [ ] #89 The deploy pass owes, from PR #6's triage (items 9 and 14): confirm the legacy `/srv/music/staging` (the
   musicbox estate's, 2000:2000) is empty or absent before the first deploy, since the first sweep cleans anything in
   it as rowless; narrow `/srv/music` in the serve unit's `ReadWritePaths` with `ReadOnlyPaths` or `InaccessiblePaths`
@@ -323,10 +320,7 @@ now milestone `engine`.
   open. A command that writes a consistent copy of the state directory while the server runs, exiting
   non-zero on failure, lets the host drop the stop and restart. Source: glw907/servers#5 (pass 2, task M6)
   and the self-hosting design's "Media, at 03:00". 2026-10-20 #infra #initiative:self-hosting *(swept 2026-11-20)*
-- [ ] #105 The `.golangci.yml` `run: allow-serial-runners: true` clause: a second lint should wait for the lock
-  where today it fails (from the workstation plan's audit). The `--reduced` refusal, the duplicate work, the
-  exported-unused leg, and `--fresh` landed in PR #13. Findings G8, G11, and G12,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #gate *(swept 2026-11-16)*
+- [ ] #105 Add `run: allow-serial-runners: true` to `.golangci.yml`: golangci-lint 2.15.0 exits with an error when another run holds its lock, so two worktrees' gates linting at once fail instead of waiting. The rest of the old item landed in PR #13. Finding G8, `docs/research/2026-11-10-whole-repo-review.md` #gate *(swept 2026-11-22)*
 - [ ] #106 `deploy.sh` leaves the unit and the binary owned by the sender's uid, and its check-mode rsync compares
   size and mtime; `provision.sh` falls back to an image the cloud-init cannot boot. Findings G9 and G10,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #bug #infra #milestone:launch *(swept 2026-11-20)*
@@ -418,9 +412,6 @@ now milestone `engine`.
   `internal/engine/tag/tag_test.go:88`, which names `DistanceForAlbum`; `adjudication_test.go:356` and `:360`, which
   spell "BeetsSDPatterns"; and `config/registry_test.go:217`. Decide whether the leg should scan tests. Found by `engine` (PR #17), 2026-11-17
   #test #gate
-- [ ] #169 The score dump diverged once (`5bf0d963...` against the committed hash) during `engine`'s T3 lane, then
-  matched on ten reruns of the same tree. No cause was found. If it recurs, look for map-iteration order or a
-  scratch file the dump reads. Found by `engine` (PR #17), 2026-11-17 #bug #harness
 - [ ] #170 The "must not be nil" function fields are unenforced: `intake.New` (`EarliestAdmin`), `local.New` and
   `backup.Job.validate` (`Now`) panic on first use when a caller leaves one nil. Every caller sets them and the
   convention matches the existing `Now` fields. Decide whether a constructor refuses a nil. `structure-base` (PR #18) kept them as is. Found by `structure-base` (PR #18), 2026-11-20 #improvement
@@ -428,17 +419,19 @@ now milestone `engine`.
   read. `users.id` has no length CHECK, so only a bad writer reaches it, and no test covers it. Kept, since the
   `id.ID` scan needs 16 bytes. Add a test, or a CHECK in a later migration. Found by `structure-base` (PR #18),
   2026-11-20 #improvement #auth
-- [ ] #172 Four comments (one in a test) still name `cmd/dubplate-server/auth.go` as the home of the auth settings, which moved to `internal/auth/config.go` in `structure-keys` (PR #19): `internal/config/config.go:12`, `internal/config/keys.go:68` (a comment only; keys.go takes no declaration), `internal/config/keys_test.go:41`, and `internal/notify/notify.go:119`. Found by `structure-keys` #docs (2026-11-20)
+- [ ] #172 Three comments (one in a test) still name `cmd/dubplate-server/auth.go` as the home of the auth settings, which moved to `internal/auth/config.go` in `structure-keys` (PR #19): `internal/config/config.go:12`, `internal/config/keys.go:68`, and `internal/config/keys_test.go:41`. `internal/notify/notify.go:119`'s "(auth.go)" is go-mail's file and stays. #docs (2026-11-20) *(swept 2026-11-22)*
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #milestone:intake *(swept 2026-11-20)*
 - [ ] #173 Restart the `structure` milestone's third piece, `structure-doctor`: write a spec under
   `building-from-specs`, scoped from `structure-doctor-planner-prompt.txt` in
   `~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/`. The spec carries #123, #124, #143,
   #144, #147, and #156, less any the reshape's task 3 closes first. Paused 2026-11-20 and resumed only under
-  `building-from-specs`. #improvement #arch #milestone:structure (2026-11-22)
-- [ ] #174 A full backlog sweep is due: 23 open items carry no recent stamp. Run `standards:backlog-sweep`
-  over the open items and apply its verdicts. Found by the reshape's scoped sweep
-  #improvement #process (2026-11-22)
+  `building-from-specs`. #improvement #arch #milestone:structure (2026-11-22) *(swept 2026-11-22)*
+- [ ] #174 A full backlog sweep is still due: 96 open items carry no sweep stamp. The 2026-11-22 sweep covered
+  the 20 items that bear on development friction. Run `standards:backlog-sweep` over the rest, oldest first, 40 per
+  run, and apply its verdicts. Found by the reshape's scoped sweep #improvement #process (2026-11-22) *(swept 2026-11-22)*
+- [ ] #175 Take certifi 2026.10.23 in `tools/venv/requirements.txt` (pinned 2026.7.22). Dependabot alert #1 (critical, 2026-11-23): the pinned certifi bundles emSign root CAs whose intermediate keys are compromised, first patched in 2026.10.18. TLS roots only, so it needs no `make derive`. Split from #132 by the 2026-11-22 sweep #security #infra (2026-11-22)
+- [ ] #176 The gate passes the workstation's `DUBPLATE_*` exports (16 names on 2026-11-22, among them `DUBPLATE_MAGIC_LINK_SECRET`, `DUBPLATE_SMTP_PASSWORD`, and `DUBPLATE_STATE_DIR=/var/lib/musicbox`) to tests that hand `os.Environ()` to child verbs (`cmd/dubplate-server/backup_test.go:81`, `restore_test.go:38`, `internal/backup/job_test.go:907`, `internal/ops/local/process_test.go:135`). The gate passed with them set on 2026-11-22, so STATUS's claim that they fail `check` is stale. Unset every `DUBPLATE_*` name at the top of `scripts/check.sh`. Found by the 2026-11-22 sweep #test #security (2026-11-22)
 
 ## Later
 
@@ -602,6 +595,7 @@ Standing rulings. A sweep skips this section, and only Geoff reopens an entry, b
   entirely in the pings repo and nothing in this repo references pings, so it belongs in that repo's backlog (Geoff,
   2026-11-16)
 - #109 Workstation process changes (the nested-gate guard, the estimate rule, fewer re-plan review rounds, a split `pass-core`, one copy of each rule, and tokens in the score; findings X1 to X6 of `docs/research/2026-11-10-whole-repo-review.md`): dropped, because `building-from-specs` replaced the process they changed (the reshape sweep, approved with its spec, 2026-11-22)
+- #169 The score dump diverged once during `engine`'s T3 lane and matched on ten reruns: the dump was a session-only harness nothing in the repo can rerun, and the conform corpus tests in every gate would show unstable scores (Geoff, 2026-11-22)
 
 ## Done
 

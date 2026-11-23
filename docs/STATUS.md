@@ -26,8 +26,8 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 
 ## Next action
 `structure-doctor`, the third piece of the `structure` milestone, restarts from a spec written under
-`building-from-specs` (BACKLOG #173). `intake-2` takes #159. A full backlog sweep is due (#174), and the critical
-`certifi` advisory waits on #132.
+`building-from-specs` (BACKLOG #173). `intake-2` takes #159. The 2026-11-22 sweep covered the friction items, the
+rest of the full sweep is #174, and the critical `certifi` advisory is #175.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
@@ -37,8 +37,8 @@ Before any deploy that carries `cleanup-store`, check read-only that the box sto
 - R-6d21 overrides the settings-home rule that the server never reads its environment. Geoff may reopen it;
   nothing waits on it.
 - The 0.8 and 0.9 launches are FLAC-only. Whether the group needs a non-FLAC format sooner is still open.
-- About 41 stale `DUBPLATE_*` exports in `~/.local/secrets` make `check` fail outside `env -i`. They need pruning on
-  the workstation.
+- The workstation's 16 `DUBPLATE_*` exports reach the gate's tests, secrets among them (BACKLOG #176). The gate
+  passed with them set on 2026-11-22; pruning `~/.local/secrets` stays a workstation chore.
 - One Run-D.M.C. frame (`commons:139197098`) and five maybes wait in `photos/.candidates/` for Geoff's call.
-- TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #131). The `modernc.org/sqlite`
+- TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #130). The `modernc.org/sqlite`
   1.62.0 minor stays out because it changes the busy timeout and fails two `store` tests (#129).
