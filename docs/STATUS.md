@@ -1,11 +1,12 @@
 # dubplate status
 
 ## Current state
-The reshape is under way. Three tasks move the repo onto the workstation's `building-from-specs` process. Task 1
-(PR #20, merged) fixed the shutdown race in `internal/serve`, and task 2 (PR #21, merged) rewrote the Claude files and
-the backlog. Task 3 adds `govulncheck`, three fuzz targets, the race detector in CI, and a `dependabot.yml`, and is
-building now. The spec is `~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`. The
-`structure` work waits for task 3. Nothing a member or an operator sees changes.
+The reshape is done. `dubplate` builds by the workstation's `building-from-specs` process. Task 1 (PR #20) fixed the
+shutdown race in `internal/serve`, task 2 (PR #21) rewrote the Claude files and the backlog, and task 3 (PR #22) added
+`govulncheck` to the gate, three fuzz targets, the race detector in CI, and a `dependabot.yml` that watches the GitHub
+Actions pins. GitHub's secret scanning, push protection, and Dependabot alerts are on. The spec is
+`~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`. Nothing a member or an operator
+sees changed.
 
 Milestone `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
 once, and the citation leg of `scripts/check.sh` gates.
@@ -24,8 +25,9 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Task 3, the Go team's checks, builds first. Then `structure-doctor`, the third piece of `structure`, restarts from a
-spec (BACKLOG #173); `intake-2` takes #159.
+`structure-doctor`, the third piece of the `structure` milestone, restarts from a spec written under
+`building-from-specs` (BACKLOG #173). `intake-2` takes #159. A full backlog sweep is due (#174), and the critical
+`certifi` advisory waits on #132.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
