@@ -25,9 +25,13 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`structure-doctor`, the third piece of the `structure` milestone, restarts from a spec written under
-`building-from-specs` (BACKLOG #173). `intake-2` takes #159. The 2026-11-22 sweep covered the friction items, the
-rest of the full sweep is #174, and the critical `certifi` advisory is #175.
+Two tasks run overnight from `fff37fe`, by the spec
+`~/Projects/initiatives/dubplate-server/specs/2026-11-22-overnight-design.md` (approved 2026-11-22).
+`dev-friction` takes the driver to `modernc.org/sqlite` v1.63.0 and fixes #105, #129, #133, #175, and #176.
+`structure-doctor` moves the eleven health checks out of `cmd/dubplate-server` (#123, #124, #143, #144, #147, #156,
+#172, #173). Each ends in a pull request for Geoff. `dev-friction` merges first, then `structure-doctor` takes
+`gh pr update-branch` and one green CI run before it merges. The session Geoff talks to applies the spec's backlog
+text after each merge. `intake-2` takes #159 next.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
@@ -40,5 +44,5 @@ Before any deploy that carries `cleanup-store`, check read-only that the box sto
 - The workstation's 16 `DUBPLATE_*` exports reach the gate's tests, secrets among them (BACKLOG #176). The gate
   passed with them set on 2026-11-22; pruning `~/.local/secrets` stays a workstation chore.
 - One Run-D.M.C. frame (`commons:139197098`) and five maybes wait in `photos/.candidates/` for Geoff's call.
-- TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #130). The `modernc.org/sqlite`
-  1.62.0 minor stays out because it changes the busy timeout and fails two `store` tests (#129).
+- TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #130).
+- Geoff accepted on 2026-11-22 that a write under lock contention ends at its deadline on the new driver (#129).
