@@ -25,9 +25,12 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`structure-doctor`, the third piece of the `structure` milestone, restarts from a spec written under
-`building-from-specs` (BACKLOG #173). `intake-2` takes #159. The 2026-11-22 sweep covered the friction items, the
-rest of the full sweep is #174, and the critical `certifi` advisory is #175.
+The overnight spec is `~/Projects/initiatives/dubplate-server/specs/2026-11-22-overnight-design.md` (approved
+2026-11-22). `dev-friction` merged as PR #24 (`0632ecf`): the driver is `modernc.org/sqlite` v1.63.0, certifi is
+2026.11.20, `TestBusyTimeout` waits on signals, lint runs queue, and `scripts/check.sh` unsets every `DUBPLATE_*`
+name. `structure-doctor` still runs, moving the eleven health checks out of `cmd/dubplate-server` (#123, #124, #143,
+#144, #147, #156, #172, #173). Its pull request takes `gh pr update-branch` and one green CI run before it merges. The session Geoff talks to applies the spec's backlog
+text after each merge. `intake-2` takes #159 next.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
@@ -37,8 +40,8 @@ Before any deploy that carries `cleanup-store`, check read-only that the box sto
 - R-6d21 overrides the settings-home rule that the server never reads its environment. Geoff may reopen it;
   nothing waits on it.
 - The 0.8 and 0.9 launches are FLAC-only. Whether the group needs a non-FLAC format sooner is still open.
-- The workstation's 16 `DUBPLATE_*` exports reach the gate's tests, secrets among them (BACKLOG #176). The gate
-  passed with them set on 2026-11-22; pruning `~/.local/secrets` stays a workstation chore.
+- The gate unsets the workstation's 16 `DUBPLATE_*` exports, but a bare `go test` still passes them to child
+  verbs (BACKLOG #176). Pruning `~/.local/secrets` stays a workstation chore.
 - One Run-D.M.C. frame (`commons:139197098`) and five maybes wait in `photos/.candidates/` for Geoff's call.
-- TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #130). The `modernc.org/sqlite`
-  1.62.0 minor stays out because it changes the busy timeout and fails two `store` tests (#129).
+- TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #130).
+- Geoff accepted on 2026-11-22 that a write under lock contention ends at its deadline on the new driver (#129).

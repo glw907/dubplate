@@ -2,7 +2,7 @@
 #    uv pip compile --python tools/venv/.venv/bin/python tools/venv/requirements.in -o tools/venv/requirements.txt
 beets==2.14.1
     # via -r tools/venv/requirements.in
-certifi==2026.7.22
+certifi==2026.11.20
     # via requests
 charset-normalizer==3.5.2
     # via requests
