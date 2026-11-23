@@ -10,8 +10,8 @@
   `scripts/provision.sh` (server create, volume, firewall). Firewall changes
   are API-reversible from the workstation — that is the SSH-lockout
   recovery path.
-- **The box**: `root@5.78.148.42` over SSH (key auth). Production — check
-  for live executors and prefer `deploy.sh` over ad-hoc edits. Read-only
+- **The box**: `root@5.78.148.42` over SSH (key auth). Production: prefer
+  `deploy.sh` over ad-hoc edits. Read-only
   ssh is fine for reviews.
 - **pings Worker** (`~/Projects/pings`): admin API at pings.907.life with
   `$PINGS_ADMIN_TOKEN`; per-check ping URLs are capability tokens minted
