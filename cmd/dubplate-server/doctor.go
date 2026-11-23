@@ -21,6 +21,7 @@ import (
 	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 )
@@ -161,7 +162,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// serve port, each dial and answer bounded.
 			clientIPStatus, clientIPFailed := serve.ClientIPRowStatus(cfg)
 			addChecked(clientIPDoctorRow, clientIPStatus, clientIPFailed)
-			webStatus, webFailed := webRowStatus(environ, cfg)
+			webStatus, webFailed := webapp.RowStatus(cfg, webRowResolve(environ))
 			addChecked(webDoctorRow, webStatus, webFailed)
 			ifaceAddrs, ifaceErr := net.InterfaceAddrs()
 			bindStatus, bindFailed := serve.BindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
@@ -231,6 +232,16 @@ func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []str
 // who is one, so the row warns when the address no longer names a live
 // admin.
 const adminEmailKey = "DUBPLATE_ADMIN_EMAIL"
+
+// The four boundary rows doctor prints after the unidecode row and
+// before the settings rows. They are fixed rows rather than registry
+// declarations, so reg alone never accounts for them.
+const (
+	clientIPDoctorRow      = "client ip"
+	webDoctorRow           = "web"
+	bindAddrsDoctorRow     = "bind addresses"
+	boundaryProbeDoctorRow = "boundary probe"
+)
 
 // musicVolumeDoctorRow is the row reporting the music volume: staging,
 // the library root, and the collection roots under it.

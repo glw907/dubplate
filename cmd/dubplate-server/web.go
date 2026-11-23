@@ -3,9 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"log/slog"
 
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
@@ -72,6 +74,28 @@ func newWebRoutes(environ []string, prefix serve.Prefix, siteName string, privat
 		return webapp.Routes{}, err
 	}
 	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, buildFS)
+}
+
+// webRowResolve is the resolution doctor's web row runs: [newWebRoutes]
+// with the inputs serve startup passes, over the embedded bundle and
+// the operator file, writing nothing. The logger discards: the record
+// newWebRoutes writes for a branding neutral that drops the
+// theme-color meta belongs to serve, and doctor's stdout is the table
+// alone.
+func webRowResolve(environ []string) func(*config.Config) error {
+	return func(cfg *config.Config) error {
+		prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
+		if err != nil {
+			return err
+		}
+		prefix, err := serve.NewPrefix(prefixValue)
+		if err != nil {
+			return err
+		}
+		discard := slog.New(slog.NewTextHandler(io.Discard, nil))
+		_, err = newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, discard)
+		return err
+	}
 }
 
 // embeddedBuild is [web.Assets] rooted at its build directory.
