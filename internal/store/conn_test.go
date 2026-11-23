@@ -280,10 +280,12 @@ func TestReadPoolRefusesWrite(t *testing.T) {
 // A timer a goroutine has blocked on is delivered by the scheduler, and
 // under load a due one arrives late, so neither a non-blocking receive
 // nor [time.Timer.Stop] can say whether d had passed when fn returned.
-// Timers run in due order, though. When fn returns, a second timer is
-// set for d/10 later: if the first was due by then, it has already
-// fired when the second does. An operation that ends within d/10 of its
-// deadline passes.
+// When fn returns, a second timer is set for d/10 later, and the check
+// reads the deadline timer once that one fires: a deadline due by then
+// is normally delivered already, because a processor runs its timers in
+// due order. The check is one-sided. An operation that ends within d/10
+// of its deadline passes, and so can an early return when the machine
+// is slow enough to deliver the grace timer late.
 func assertNotBefore(t *testing.T, d time.Duration, fn func() error) error {
 	t.Helper()
 	deadline := time.NewTimer(d)
@@ -372,7 +374,12 @@ func TestBusyTimeout(t *testing.T) {
 		}
 
 		bDone := make(chan error, 1)
-		go func() { bDone <- beginAndWrite(ctx, b) }()
+		bStarted := make(chan struct{})
+		go func() {
+			close(bStarted)
+			bDone <- beginAndWrite(ctx, b)
+		}()
+		<-bStarted
 
 		// b cannot finish while a holds the lock. A pause of busy/2 gives
 		// it time to block, and a late timer only lengthens the wait.
