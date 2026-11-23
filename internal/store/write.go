@@ -49,9 +49,10 @@ type writeMark struct{}
 // callback that swallows a statement's error still never commits.
 //
 // ctx must carry a deadline, which bounds the wait for the write
-// pool's one connection inside this process. The wait on another
-// process's write lock is bounded by the busy timeout alone: a
-// deadline shorter than the busy timeout does not shorten it.
+// pool's one connection inside this process and the wait on another
+// process's write lock. The wait on that lock also ends at the busy
+// timeout, and a deadline that passes first returns the context's
+// error, not ErrBusy.
 //
 // fn receives a context derived from ctx and marked, so an Update
 // called on that context from inside fn fails at once. An Update

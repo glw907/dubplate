@@ -585,10 +585,10 @@ func TestUpdateDeadline(t *testing.T) {
 		}
 	})
 
-	// Measured: SQLite's busy handler does not stop for the driver's
-	// interrupt, so a deadline shorter than the busy timeout still waits
-	// the full busy timeout on another process's write lock.
-	t.Run("shorter than the busy timeout waits the busy timeout", func(t *testing.T) {
+	// The driver stops a statement waiting under the busy timeout once its
+	// context is done and returns the context's error, so a deadline shorter
+	// than the busy timeout ends the wait on another process's write lock.
+	t.Run("shorter than the busy timeout ends at its deadline", func(t *testing.T) {
 		path := newWriteStore(t)
 		h := openWriteHandle(t, path, busy)
 		other := openWriteHandle(t, path, busy)
@@ -598,11 +598,20 @@ func TestUpdateDeadline(t *testing.T) {
 		}
 		defer func() { _ = otx.Rollback() }()
 
-		err = assertNotBefore(t, busy, func() error {
-			return h.Update(deadline(t, 100*time.Millisecond), func(context.Context, *Tx) error { return nil })
-		})
-		if !errors.Is(err, ErrBusy) {
-			t.Errorf("update: %v, want ErrBusy", err)
+		done := make(chan error, 1)
+		go func() {
+			done <- h.Update(deadline(t, 100*time.Millisecond), func(context.Context, *Tx) error { return nil })
+		}()
+		timer := time.NewTimer(busy)
+		defer timer.Stop()
+		select {
+		case err = <-done:
+		case <-timer.C:
+			t.Errorf("update still waiting at the %s busy timeout, want it ended by its 100ms deadline", busy)
+			err = <-done
+		}
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Errorf("update: %v, want context.DeadlineExceeded", err)
 		}
 	})
 }
