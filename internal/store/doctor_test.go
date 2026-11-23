@@ -205,6 +205,26 @@ func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
 	}
 }
 
+// TestStoreRow_BusyTimeoutOutOfRange proves the range refusal reads
+// differently from a parse failure: the row names the key and the
+// bound, fails, and never opens the state directory.
+func TestStoreRow_BusyTimeoutOutOfRange(t *testing.T) {
+	environ := []string{
+		"DUBPLATE_STATE_DIR=" + t.TempDir(),
+		"DUBPLATE_STORE_BUSY_TIMEOUT=0s",
+	}
+	status, failed, _, checked := DoctorRow(context.Background(), environ)
+	if want := "not checked: DUBPLATE_STORE_BUSY_TIMEOUT must be at least 1ms"; status != want {
+		t.Errorf("DoctorRow() status = %q, want %q", status, want)
+	}
+	if !failed {
+		t.Error("DoctorRow() failed = false, want true")
+	}
+	if checked {
+		t.Error("DoctorRow() checked = true, want false: an out-of-range busy timeout never runs Inspect")
+	}
+}
+
 // TestStoreRow_StateDirUnset proves the "not checked" row a missing
 // DUBPLATE_STATE_DIR reports, with no failure of its own (the owned
 // wall row already reports the missing key).
