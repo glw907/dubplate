@@ -1,57 +1,38 @@
 # dubplate status
 
-<!-- round-report structure -->
-**Round structure is paused after passes 1 and 2 of 3, at Geoff's request on 2026-11-20.** `structure-base` (PR #18, `5d1e6e9`)
-and `structure-keys` (PR #19, `c286e3d`) are merged. Pass 3, `structure-doctor`, has no worktree, branch, or session: its planner
-was stopped mid-read with nothing committed. Resume by cutting `.claude/worktrees/structure-doctor` from `origin/master` and
-launching the planner as the conductor prompt says. Nothing deployed. Resume from:
-`~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/conductor-prompt.txt`.
-Report: `~/Projects/initiatives/dubplate-server/reports/structure-report.md`. Open documents: none.
-<!-- /round-report -->
-
 ## Current state
-Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
-once, and the citation leg of `scripts/check.sh` gates. Nothing a member or an operator sees changed.
+The reshape runs now. Three tasks move the repo onto the workstation's `building-from-specs` process: task 1 fixes the
+shutdown race in `internal/serve`, task 2 rewrites the Claude files and the backlog, and task 3 adds `govulncheck`, three
+fuzz targets, the race detector in CI, and a `dependabot.yml`. The spec is
+`~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`. The `structure` work waits for
+the three tasks. Nothing a member or an operator sees changes.
 
-Pass `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree, `internal/engine/store` became
+Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
+once, and the citation leg of `scripts/check.sh` gates.
+
+Work `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree, `internal/engine/store` became
 `internal/store`, `internal/id` parses ids, and a store test names the owner of each of 19 tables.
-Pass `structure-keys` (PR #19) moved every setting into the package that reads it, each with a `config.go`, a
+Work `structure-keys` (PR #19, merged) moved every setting into the package that reads it, each with a `config.go`, a
 `Register` function, and readers. `cmd/dubplate-server` declares and registers nothing, and an import test holds
 configuration to `config.go` and `doctor.go` in seven packages. Output is unchanged.
 
-`intake-1` is the last product pass on master. A passing album waits in `matching` with no exit until
-`intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work a later
-pass carries sits in BACKLOG under its `#round:<name>` or `#pass:<name>` tag.
+`intake-1` is the last product work on master. A passing album waits in `matching` with no exit until
+`intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work still to do sits in BACKLOG
+under its `#round:<name>` or `#pass:<name>` tag.
 
 The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit installed and disabled, the `auth`,
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Pass 3 of round `structure`, `structure-doctor`, is next, per BACKLOG's "Rounds to 0.8"; `intake-2` takes #159.
+Task 1, the shutdown fix, and task 2, the Claude files and the backlog, build first. Task 3 follows once both have
+merged. Then `structure-doctor`, the third piece of `structure`, restarts from a spec; `intake-2` takes #159.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
-
-## Coordination
-The workstation's Claude infrastructure is under the `workstation-refinement` initiative
-(`~/Projects/initiatives/workstation-refinement/`, plan under `plans/`). Until Geoff approves it, the record sits
-only on the local branch `workstation-refinement`; read the copy on main when it exists there. Its status line
-governs: `proposed` settles nothing, and `active` means Geoff approved it. G16 and G17 sit in its "Pass 3: process",
-and the `cairn-run-gate` changes in "Pass 1: fixes and settings". dubplate edits nothing in `~/.dotfiles`, the
-standards plugin, the global `CLAUDE.md`, or `pass-core`; a finding that needs one goes to that initiative. The
-seam, as agreed with its planning session on 2026-11-10:
-
-- `gate-1` goes ahead on G1 to G15 and G18. G14 and G15 change the `dubplate-pass` adapter only.
-- G16 (STATUS carries no fact git knows) holds until that plan is `active`, because it proposes one home for the
-  one-executor check that reads STATUS's session ids. A pass that reaches G16 first leaves it in BACKLOG #108.
-- G17 (Close removes the worktree and branch) belongs to that plan as a `pass-core` step. dubplate adds nothing.
-- BACKLOG #109 (findings X1 to X6) is proposed in that plan.
-- `cairn-run-gate` keeps its lanes and flags. That plan proposes additions only: a nesting marker, a preflight that
-  names `npm ci --prefix web`, and shorter default output. A pass that depends on one checks that it has landed.
 
 ## Open decisions
 - The repo is public on GitHub and stays so (Geoff, 2026-11-10). Open under it: BACKLOG #96's question of whether
   the Unidecode-derived table in git history needs a lawyer's reading or a history rewrite.
 - `intake-2`'s first task is the three rulings of #92.
-- R-6d21 overrides the settings-home pass's rule that the server never reads its environment. Geoff may reopen it;
+- R-6d21 overrides the settings-home rule that the server never reads its environment. Geoff may reopen it;
   nothing waits on it.
 - The 0.8 and 0.9 launches are FLAC-only. Whether the group needs a non-FLAC format sooner is still open.
 - About 41 stale `DUBPLATE_*` exports in `~/.local/secrets` make `check` fail outside `env -i`. They need pruning on
