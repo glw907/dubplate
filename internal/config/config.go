@@ -9,7 +9,7 @@
 //  1. Owned, required now: DUBPLATE_LIBRARY_ROOT, DUBPLATE_STATE_DIR,
 //     DUBPLATE_SITE_NAME, DUBPLATE_ADMIN_EMAIL, and, once an identity
 //     source is declared, DUBPLATE_IDENTITY_SOURCE, the selector naming
-//     which declared identity source is active (the command registers
+//     which declared identity source is active (internal/auth registers
 //     it as an owned wall row alongside the source itself).
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
