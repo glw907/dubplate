@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -150,15 +151,16 @@ func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs [
 // without going through Run's own address resolution.
 func serveUntilDone(ctx context.Context, srv *http.Server, listeners []net.Listener) error {
 	errCh := make(chan error, len(listeners))
+	var serving sync.WaitGroup
 	for _, l := range listeners {
-		go func(l net.Listener) {
+		serving.Go(func() {
 			err := srv.Serve(l)
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				errCh <- err
 				return
 			}
 			errCh <- nil
-		}(l)
+		})
 	}
 
 	var serveErr error
@@ -177,6 +179,11 @@ func serveUntilDone(ctx context.Context, srv *http.Server, listeners []net.Liste
 	shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownGrace)
 	defer cancel()
 	shutdownErr := srv.Shutdown(shutdownCtx)
+
+	// Shutdown does not wait for a Serve that had not yet registered its
+	// listener: that Serve closes the listener only as it returns. Waiting
+	// for every Serve here is what makes the addresses free on return.
+	serving.Wait()
 
 	if serveErr != nil {
 		return fmt.Errorf("serve: %w", serveErr)
