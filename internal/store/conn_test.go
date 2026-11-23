@@ -273,19 +273,23 @@ func TestReadPoolRefusesWrite(t *testing.T) {
 }
 
 // assertNotBefore runs fn in a goroutine and fails the test if it
-// returns before d elapses, ordering the check against a [time.Timer]
-// rather than a start/elapsed time.Now measurement: internal/engine
-// (this package's parent tree) never reads the clock.
+// returns before d elapses, measured against a [time.Timer] rather than
+// a time.Now difference: no file under internal/store reads the clock.
+// When fn returns first, [time.Timer.Stop] tells whether d had already
+// passed. Selecting on the timer's channel instead would call an
+// operation that ended a moment after d early whenever the runtime was
+// slow to deliver the timer's tick.
 func assertNotBefore(t *testing.T, d time.Duration, fn func() error) error {
 	t.Helper()
 	timer := time.NewTimer(d)
-	defer timer.Stop()
 	done := make(chan error, 1)
 	go func() { done <- fn() }()
 
 	select {
 	case err := <-done:
-		t.Errorf("operation returned before the %s deadline", d)
+		if timer.Stop() {
+			t.Errorf("operation returned before the %s deadline", d)
+		}
 		return err
 	case <-timer.C:
 		return <-done
@@ -333,12 +337,15 @@ func TestBusyTimeout(t *testing.T) {
 	}
 
 	t.Run("waits then commits", func(t *testing.T) {
-		a, err := sql.Open(sqliteDriverName, writeDSN(path, busy))
+		// A busy timeout far past any scheduling delay, so the wait ends
+		// only when a releases, never at the timeout.
+		const patient = 30 * time.Second
+		a, err := sql.Open(sqliteDriverName, writeDSN(path, patient))
 		if err != nil {
 			t.Fatalf("open a: %v", err)
 		}
 		t.Cleanup(func() { _ = a.Close() })
-		b, err := sql.Open(sqliteDriverName, writeDSN(path, busy))
+		b, err := sql.Open(sqliteDriverName, writeDSN(path, patient))
 		if err != nil {
 			t.Fatalf("open b: %v", err)
 		}
@@ -348,31 +355,28 @@ func TestBusyTimeout(t *testing.T) {
 		if err != nil {
 			t.Fatalf("begin a: %v", err)
 		}
+		t.Cleanup(func() { _ = txA.Rollback() })
 		if _, err := txA.Exec(`INSERT INTO t DEFAULT VALUES`); err != nil {
 			t.Fatalf("a insert: %v", err)
 		}
 
-		// Release a's hold at half the busy timeout, ordered by a
-		// channel rather than a race between the release and b's
-		// blocked write.
-		commitErr := make(chan error, 1)
-		go func() {
-			time.Sleep(busy / 2)
-			commitErr <- txA.Commit()
-		}()
+		bDone := make(chan error, 1)
+		go func() { bDone <- beginAndWrite(ctx, b) }()
 
-		txB, err := b.BeginTx(ctx, nil)
-		if err != nil {
-			t.Fatalf("begin b: %v", err)
+		// b cannot finish while a holds the lock. A pause of busy/2 gives
+		// it time to block, and a late timer only lengthens the wait.
+		hold := time.NewTimer(busy / 2)
+		defer hold.Stop()
+		select {
+		case err := <-bDone:
+			t.Fatalf("b finished while a held the write lock: %v", err)
+		case <-hold.C:
 		}
-		if _, err := txB.Exec(`INSERT INTO t DEFAULT VALUES`); err != nil {
-			t.Fatalf("b waited for a and got: %v", err)
-		}
-		if err := <-commitErr; err != nil {
+		if err := txA.Commit(); err != nil {
 			t.Fatalf("a commit: %v", err)
 		}
-		if err := txB.Commit(); err != nil {
-			t.Fatalf("b commit: %v", err)
+		if err := <-bDone; err != nil {
+			t.Fatalf("b waited for a and got: %v", err)
 		}
 	})
 
