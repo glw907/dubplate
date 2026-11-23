@@ -273,25 +273,36 @@ func TestReadPoolRefusesWrite(t *testing.T) {
 }
 
 // assertNotBefore runs fn in a goroutine and fails the test if it
-// returns before d elapses, measured against a [time.Timer] rather than
-// a time.Now difference: no file under internal/store reads the clock.
-// When fn returns first, [time.Timer.Stop] tells whether d had already
-// passed. Selecting on the timer's channel instead would call an
-// operation that ended a moment after d early whenever the runtime was
-// slow to deliver the timer's tick.
+// returns more than d/10 before d elapses, measured with timers rather
+// than a time.Now difference: no file under internal/store reads the
+// clock.
+//
+// A timer a goroutine has blocked on is delivered by the scheduler, and
+// under load a due one arrives late, so neither a non-blocking receive
+// nor [time.Timer.Stop] can say whether d had passed when fn returned.
+// Timers run in due order, though. When fn returns, a second timer is
+// set for d/10 later: if the first was due by then, it has already
+// fired when the second does. An operation that ends within d/10 of its
+// deadline passes.
 func assertNotBefore(t *testing.T, d time.Duration, fn func() error) error {
 	t.Helper()
-	timer := time.NewTimer(d)
+	deadline := time.NewTimer(d)
+	defer deadline.Stop()
 	done := make(chan error, 1)
 	go func() { done <- fn() }()
 
 	select {
 	case err := <-done:
-		if timer.Stop() {
+		grace := time.NewTimer(d / 10)
+		defer grace.Stop()
+		<-grace.C
+		select {
+		case <-deadline.C:
+		default:
 			t.Errorf("operation returned before the %s deadline", d)
 		}
 		return err
-	case <-timer.C:
+	case <-deadline.C:
 		return <-done
 	}
 }
