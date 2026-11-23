@@ -9,8 +9,9 @@ description: >
 # Dubplate build
 
 `building-from-specs` owns the lifecycle: launch, goal, review, pull request, merge. This skill holds
-the facts that process leaves to the repo. Paths are relative to the repo root. The standing rules
-are in `docs/standing-rules.md`, the backlog in `BACKLOG.md`, and specs under `docs/specs/`.
+the facts that process leaves to the repo. Paths are relative to the repo root. The binding
+decisions are records in `docs/decisions/`, the backlog is in `BACKLOG.md`, and specs are under
+`docs/specs/`.
 
 ## Gate
 
@@ -19,7 +20,31 @@ re-issue it on exit 75 until it prints `gate exit:`. The wrapper builds the gate
 flag set and hands it to `cairn-run-gate`, which keeps the lane lock and the run records. The full
 gate launches Playwright's Chromium for the rendered leg, so it takes the heavy lane. Never commit
 red. Never accept a task on a bare `bash scripts/check.sh`: CI runs that form by design, and the
-gate is the form a task's evidence quotes.
+gate is the form a task's evidence quotes. `scripts/check.sh`'s header lists every leg.
+
+Two import-graph tests hold the OpenSubsonic layer's boundaries, and a green `go test ./...` runs
+both. The import-boundary test (`internal/opensubsonic/boundary_test.go`) fails if anything under
+`internal/opensubsonic` pulls in a module-internal package outside it, tests included. The no-link
+test (`internal/harness/conform/arch_test.go`) fails if `go list -deps ./cmd/dubplate-server` names
+a package under `internal/harness` or `internal/opensubsonic/conformance`, or any
+`github.com/getkin` path, so the server never links the harness, the contract checker, or
+kin-openapi. The protocol client stays linkable.
+
+The process-citation leg fails on a shipped Go comment under `cmd` or `internal` that cites a rung,
+task, resolution, or plan line. A wider pattern (contract, ruling, fold, pass, and conductor tags,
+and a name) applies everywhere except `cmd/dubplate-server`, `internal/serve`, `internal/auth`, and
+`internal/intake`, whose comments BACKLOG #156 clears.
+
+Three workstation prerequisites sit outside the gate, because no test opens a network connection:
+`npm ci --prefix web`, `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user cache,
+which the unidecode tests and the install verb's tests read), and `make subsonic-xsd` (the pinned
+Subsonic 1.16.1 XSD in the user cache, read by the harness's XML tier and never committed). The XML
+tier also needs `xmllint` at libxml 2.15.4 on `PATH`, held by `brew pin libxml2` because its
+messages land in goldens. Eight installed formulae depend on it and are held with it: chafa, ffmpeg,
+gdk-pixbuf, imagemagick, librsvg, libxkbcommon, shared-mime-info, and xdotool.
+
+A libxml2 bump (record 0004) is `brew unpin libxml2 && brew upgrade libxml2`, then regenerate the XML
+goldens, `brew pin libxml2`, and upgrade the eight held dependents.
 
 ## Fast lane
 
@@ -99,8 +124,18 @@ during reviews.
   `docs/specs/2026-09-24-visual-identity-design.md` and ask for conformance to it (tokens, inks, the
   component layer, the copy register), graded beside correctness.
 - Every `auth-data` path above: `standards:web-auth-security-reviewer`.
-- `*.go`: the `go-conventions` skill, with "idiomatic, architecturally beautiful Go" an acceptance
-  dimension.
+- `*.go`: the `go-conventions` skill, with record 0002's bar an acceptance dimension.
+
+Web UI work matches no streamer: dubplate replaces Navidrome at 0.8 and carries its own visual
+identity (Geoff, 2026-09-24), so there are no reference screenshots and no visual-fidelity chain. A
+task's review fans out by surface and passes the visual identity spec's path to the `web/`
+reviewers. The `intake` uploader is Geoff's design review.
+
+Every user-path page is rendered and read before any attended ask (Geoff, 2026-09-02). Never ask
+Geoff to test a surface you have not seen, the auth pages in front of the app included, starting
+from the URL the person will type. A status code is not evidence;
+a screenshot read in the main loop is. A deploy once went to Geoff after only a 302 was checked, and
+the login page behind it carried another organization's branding.
 
 Ask every reviewer for correctness gaps ranked by consequence, never polish. A reviewer asked for gaps
 reports some even when the work is sound, and chasing every one over-engineers. A fix may refuse a
@@ -120,17 +155,12 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   host `cmd/dubplate-server/rendered_test.go`) that says what it intercepts and what it reaches for
   real. `web/` has no component test runner.
 - Layering. A spec names each import edge its packages must not gain, and a test or the two
-  import-graph tests (`docs/standing-rules.md`, "Gate legs") holds each.
-- No export ahead of a caller. Every new export names its production caller in the task that adds
-  it.
-- Config keys. Declare each setting in `config.go` of the package that reads it and add it to that
-  package's `Register` function. `newProductionRegistry` in `cmd/dubplate-server/main.go` gains a call
-  only when a new package registers for the first time. Never edit `internal/config/keys.go`.
-  `internal/settings/layering_test.go` fails when any other file in those packages imports
-  configuration.
+  import-graph tests ("Gate") holds each.
+- Exports follow record 0003.
+- Config keys follow record 0010; `newProductionRegistry` is in `cmd/dubplate-server/main.go`.
 - Skills. Go work runs under `go-conventions`. `web/` work runs under `svelte-conventions`,
-  `ts-conventions`, `daisyui`, and the visual identity spec, which every `web/` task reads. Copy says
-  "the group" and "a member".
+  `ts-conventions`, `daisyui`, and the visual identity spec, which every `web/` task reads.
+- Copy words follow record 0006.
 - Errata. A frozen, ratified spec gets no errata, and a superseded one gets at most a one-line
   header pointer. A living reference is edited in place by the task that changes what it says. The
   living references are the streamer spec's forward hooks, the visual identity spec, the uploader
@@ -144,13 +174,12 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   malformed, many-bad) names its report. Each privileged field names every channel that may set it.
   Each proof names the fixture state it needs. A stale spec is the dominant defect class, so a spec is
   read against the code as shipped before a task launches from it.
-- Dependency sweep. The first task of each milestone's first spec is a `dependency-upgrade` sweep
-  over `go.mod`, `web/package.json`, `tools/venv/requirements.txt`, and the pinned binaries. The
-  binaries' pins live in the `env:` block of `.github/workflows/check.yml` (rclone, golangci-lint,
-  shellcheck, ruff, gitleaks, vale, libxml2) and in `web/package.json` (Playwright). A sweep with
-  nothing to move is one line in the pull request body. Minors and patches land without asking, and a
-  major waits for Geoff. Full text and the libxml2 bump steps: `docs/standing-rules.md`.
-  The same task runs `make fuzz FUZZTIME=10m`.
+- Dependency sweep. Record 0004 holds the policy and when the sweep runs. The sweep is a
+  `dependency-upgrade` run over `go.mod`, `web/package.json`, `tools/venv/requirements.txt`, and the
+  pinned binaries. The binaries' pins live in the `env:` block of `.github/workflows/check.yml`
+  (rclone, golangci-lint, shellcheck, ruff, gitleaks, vale, libxml2) and in `web/package.json`
+  (Playwright). The libxml2 bump steps are under "Gate". The same task runs
+  `make fuzz FUZZTIME=10m`.
   It also takes any open Dependabot pull request (`.github/dependabot.yml` watches the GitHub Actions
   pins alone) through `standards:dependency-upgrade`.
 - Product sittings. Geoff takes three, and no others: corpus adjudication batches, the `intake`
