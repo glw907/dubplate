@@ -25,5 +25,4 @@ dubplate never builds, and never accepts a contribution that adds, any of these:
 
 ## Consequences
 
-Review blocks a change that adds a refused feature. The principles spec is a living reference, and
-the task that changes what it says edits it in place.
+Review blocks a change that adds a refused feature.

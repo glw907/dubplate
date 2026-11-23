@@ -17,9 +17,8 @@ that added it and as dead weight in the package.
 
 Every spec weighs its surface against the streamer spec's forward-hooks list and states, per task,
 whether the task lands a hook or is neutral. A newly found hook joins that list. The list's numbers
-are stable: a retired hook stays in place, marked retired. Hook 6 is retired, and hook 5 is renamed
-to `username`. A hook is named in the spec of the task that first consumes it and built there. No
-0.8 feature is built early.
+are stable: a retired hook stays in place, marked retired. A hook is named in the spec of the task
+that first consumes it and built there. No 0.8 feature is built early.
 
 The same spec carries a prior-art list: the OpenSubsonic specification, Navidrome and gonic (for
 behavior only, under the GPL), taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag

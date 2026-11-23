@@ -18,13 +18,12 @@ No site-specific value, path, or identity default exists outside `internal/confi
 A setting is declared in `config.go` of the package that reads it and added to that package's
 `Register` function. `internal/config/keys.go` takes no new declaration. `cmd/dubplate-server`
 gains a call in `newProductionRegistry` only when a new package registers for the first time. In
-`auth`, `backup`, `serve`, `store`, `webapp`, `intake`, and `ops/local`, only `config.go` and
-`doctor.go` import `internal/config` or `internal/settings`.
+the packages that hold configuration, only `config.go` and `doctor.go` import `internal/config`
+or `internal/settings`.
 
 A collection is a store row whose root the server allocates from its id, and no two roots nest.
 
 ## Consequences
 
 `TestConfigurationStaysInConfigFiles` in `internal/settings/layering_test.go` fails when any other
-file in those seven packages imports configuration. The configuration homes spec is a living
-reference, edited in place by the task that changes what it says.
+file in a package its `configHolders` list names imports configuration.

@@ -174,13 +174,10 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   malformed, many-bad) names its report. Each privileged field names every channel that may set it.
   Each proof names the fixture state it needs. A stale spec is the dominant defect class, so a spec is
   read against the code as shipped before a task launches from it.
-- Dependency sweep. Record 0004 holds the policy and when the sweep runs. The sweep is a
-  `dependency-upgrade` run over `go.mod`, `web/package.json`, `tools/venv/requirements.txt`, and the
-  pinned binaries. The binaries' pins live in the `env:` block of `.github/workflows/check.yml`
-  (rclone, golangci-lint, shellcheck, ruff, gitleaks, vale, libxml2) and in `web/package.json`
-  (Playwright). The libxml2 bump steps are under "Gate". The same task runs
-  `make fuzz FUZZTIME=10m`.
-  It also takes any open Dependabot pull request (`.github/dependabot.yml` watches the GitHub Actions
-  pins alone) through `standards:dependency-upgrade`.
+- Dependency sweep. Record 0004 holds the policy, the sweep's scope, and when it runs. The sweep
+  is a `dependency-upgrade` run. The binaries' pins live in the `env:` block of
+  `.github/workflows/check.yml` and in `web/package.json` (Playwright). The libxml2 bump steps are
+  under "Gate". The same task runs `make fuzz FUZZTIME=10m` and takes any open Dependabot pull
+  request through `standards:dependency-upgrade`.
 - Product sittings. Geoff takes three, and no others: corpus adjudication batches, the `intake`
   uploader sitting, and the first-launch sitting.

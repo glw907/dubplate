@@ -32,5 +32,6 @@ is deliberate.
 
 ## Consequences
 
-The `dubplate-build` skill's "Dependency sweep" bullet holds the sweep's steps and the libxml2 bump
-steps. A sweep with nothing to move is one line in the pull request body.
+The `dubplate-build` skill's "Dependency sweep" bullet holds the sweep's steps, and its "Gate"
+section holds the libxml2 bump steps. A sweep with nothing to move is one line in the pull request
+body.
