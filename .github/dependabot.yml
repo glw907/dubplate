@@ -1,0 +1,16 @@
+version: 2
+
+# Dependabot watches only the GitHub Actions the workflows pin by SHA.
+# The milestone dependency sweep covers go.mod, web/package.json,
+# tools/venv/requirements.txt, and the pinned binaries, and it never
+# covers these `uses:` lines. Each pull request this opens goes through
+# standards:dependency-upgrade.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - "*"

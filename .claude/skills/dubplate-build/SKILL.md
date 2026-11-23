@@ -42,7 +42,10 @@ base with master. `--dry-run` prints the scope and runs nothing.
 
 ## Full-suite home
 
-CI. `.github/workflows/check.yml` runs `bash scripts/check.sh` on every push to a pull request. Before
+CI. `.github/workflows/check.yml` runs `bash scripts/check.sh` on every push to a pull request, then
+the race detector as its "Run the race detector" step (`make test-race`), which no local gate runs.
+`.github/workflows/fuzz.yml` runs `make fuzz FUZZTIME=1m` on a pull request that touches
+`internal/engine/tagio`, `internal/intake/gate`, the workflow, or the `Makefile`. Before
 a pull request is marked ready, run `bash scripts/gate.sh --merge` locally: it is the full gate plus
 one gitleaks scan over `master..HEAD` with git history, the only leg CI cannot run. The scoped form
 narrows gitleaks to the change set, so a secret one commit added and a later one removed is visible
@@ -147,5 +150,8 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   shellcheck, ruff, gitleaks, vale, libxml2) and in `web/package.json` (Playwright). A sweep with
   nothing to move is one line in the pull request body. Minors and patches land without asking, and a
   major waits for Geoff. Full text and the libxml2 bump steps: `docs/standing-rules.md`.
+  The same task runs `make fuzz FUZZTIME=10m`.
+  It also takes any open Dependabot pull request (`.github/dependabot.yml` watches the GitHub Actions
+  pins alone) through `standards:dependency-upgrade`.
 - Product sittings. Geoff takes three, and no others: corpus adjudication batches, the `intake`
   uploader sitting, and the first-launch sitting.
