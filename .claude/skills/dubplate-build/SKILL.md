@@ -35,8 +35,10 @@ base with master. `--dry-run` prints the scope and runs nothing.
   from before the sweep keeps `go.mod` in the change set and every fast lane runs full.
 - `gate.sh` refuses a `--base` that is not exactly 40 lowercase hex characters, prints its usage, and
   exits 2. `check.sh` uses a 40-hex base only when it resolves to itself and is an ancestor of
-  `HEAD`. Otherwise the run promotes to full and its `scope=` line names the reason, so a wrong
-  value costs time and never coverage.
+  `HEAD`. Otherwise the run promotes to full and its `scope=` line names the reason. A later commit
+  that is still an ancestor of `HEAD` passes validation and narrows the scope, so a wrong base can
+  hide a change from a fast lane. `gate.sh --merge` before the pull request is ready runs the full
+  form and restores the coverage.
 
 ## Full-suite home
 
@@ -127,9 +129,13 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   `ts-conventions`, `daisyui`, and the visual identity spec, which every `web/` task reads. Copy says
   "the group" and "a member".
 - Errata. A frozen, ratified spec gets no errata, and a superseded one gets at most a one-line
-  header pointer. A living reference (the streamer spec's forward hooks, the visual identity spec, the
-  configuration-homes and group-scale rulings, the web surface standard, `docs/roster-walk.md`) is edited in place by the task that changes what it says. No list of owed
-  edits exists.
+  header pointer. A living reference is edited in place by the task that changes what it says. The
+  living references are the streamer spec's forward hooks, the visual identity spec, the uploader
+  copy contract (`docs/research/passb-copy-final.md`),
+  `docs/specs/2026-09-11-configuration-homes-design.md`,
+  `docs/specs/2026-09-25-group-scale-principles-design.md`,
+  `docs/specs/2026-09-12-web-surface-standard.md`, and `docs/roster-walk.md`. No list of owed edits
+  exists.
 - A spec closes four gaps before approval. Each stdlib or library behavior a task relies on is
   quoted from `go doc` or the source, never recalled. Each state a check can meet (absent, empty,
   malformed, many-bad) names its report. Each privileged field names every channel that may set it.
