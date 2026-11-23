@@ -186,6 +186,7 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		t.Fatalf("write roster fixture: %v", err)
 	}
 
+	operator := testOperatorVerbs()
 	verbs := []struct {
 		name string
 		args []string
@@ -194,11 +195,11 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		{"check", []string{"check"}, newCheckCmd},
 		{"doctor", []string{"doctor"}, newDoctorCmd},
 		{"serve", []string{"serve"}, newServeCmd},
-		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, newMemberCmd},
-		{"member remove", []string{"member", "remove", "a@example.test"}, newMemberCmd},
-		{"member demote", []string{"member", "demote", "a@example.test"}, newMemberCmd},
-		{"member list", []string{"member", "list"}, newMemberCmd},
-		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}, newSettingsCmd},
+		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, operator.newMemberCmd},
+		{"member remove", []string{"member", "remove", "a@example.test"}, operator.newMemberCmd},
+		{"member demote", []string{"member", "demote", "a@example.test"}, operator.newMemberCmd},
+		{"member list", []string{"member", "list"}, operator.newMemberCmd},
+		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}, operator.newSettingsCmd},
 		{"backup", []string{"backup"}, newBackupCmd},
 		{"restore", []string{"restore", "--snapshot", "latest"}, newRestoreCmd},
 	}

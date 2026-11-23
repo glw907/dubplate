@@ -90,9 +90,13 @@ func TestRouteInventory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("serve.ResolveConfig: %v", err)
 	}
+	buildFS, err := embeddedBuild()
+	if err != nil {
+		t.Fatalf("embeddedBuild: %v", err)
+	}
 	var registered []string
 	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
-		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} })
+		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }, buildFS)
 	if err != nil {
 		t.Fatalf("newServeShellVia: %v", err)
 	}

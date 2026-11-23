@@ -114,12 +114,25 @@ func (b *syncBuffer) String() string {
 	return b.buf.String()
 }
 
-// newRunner is [New] with b as every backup job's body, overriding the
-// three backup value reads [Runner.backupBind] would otherwise make.
-// cfg's own Retention reader is kept when set; otherwise it defaults
-// to R-6c11's value, since every start reads it regardless of the
-// bindBackup override.
-func newRunner(ctx context.Context, cfg Config, b body) (*Runner, error) {
+// A bodyRunner is a [Runner] made by [New] whose StartBackup runs body
+// as the backup job, in place of the three backup value reads and the
+// real [backup.Job]. Everything else is the runner's own.
+type bodyRunner struct {
+	*Runner
+	body body
+}
+
+// StartBackup starts a backup job that runs the runner's body.
+func (r *bodyRunner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+	return r.startBackup(ctx, actor, func(context.Context) (binder, error) {
+		return func(*store.KindLease, ops.Handle) body { return r.body }, nil
+	})
+}
+
+// newRunner is [New] with b as every backup job's body. cfg's Retention
+// reader is kept when set; otherwise it defaults to the default
+// retention, since every start reads it.
+func newRunner(ctx context.Context, cfg Config, b body) (*bodyRunner, error) {
 	if cfg.Retention == nil {
 		cfg.Retention = defaultRetention
 	}
@@ -127,14 +140,13 @@ func newRunner(ctx context.Context, cfg Config, b body) (*Runner, error) {
 	if err != nil {
 		return nil, err
 	}
-	r.bindBackup = func(*store.KindLease, ops.Handle) body { return b }
-	return r, nil
+	return &bodyRunner{Runner: r, body: b}, nil
 }
 
 // newRunnerFor opens a runner over h with backup on and body as the
 // backup body, logging to logs when it is non-nil, and closes it at
 // cleanup.
-func newRunnerFor(t *testing.T, h *store.Handle, logs *syncBuffer, b body) *Runner {
+func newRunnerFor(t *testing.T, h *store.Handle, logs *syncBuffer, b body) *bodyRunner {
 	t.Helper()
 	var logger *slog.Logger
 	if logs != nil {

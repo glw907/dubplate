@@ -1,4 +1,4 @@
-package main
+package serve
 
 import (
 	"bufio"
@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"net/http"
 	"net/netip"
@@ -18,17 +17,6 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/serve"
-)
-
-// The four boundary rows doctor prints after the unidecode row and
-// before the settings rows. They are fixed rows rather than registry
-// declarations, so reg alone never accounts for them.
-const (
-	clientIPDoctorRow      = "client ip"
-	webDoctorRow           = "web"
-	bindAddrsDoctorRow     = "bind addresses"
-	boundaryProbeDoctorRow = "boundary probe"
 )
 
 // foldRefusal renders err as one status line: its message with every
@@ -39,21 +27,21 @@ func foldRefusal(err error) string {
 
 // directAssumption is what direct mode takes for granted: with the
 // trusted proxy class off, every request keys on its peer address, so
-// a proxy left untrusted in front collapses every client onto its own
-// address and one client can exhaust the whole group's sign-in limits.
+// a proxy left untrusted in front collapses every client onto the
+// proxy's address and one client can exhaust the whole group's sign-in limits.
 const directAssumption = "the peer must be the browser; a proxy in front must be configured as trusted"
 
-// clientIPRowStatus reports how the server learns a client's address:
-// "direct" and [directAssumption] when the trusted proxy class is off,
-// "trusted proxy: <header> from <n> address(es)" when it is on and
-// [serve.ResolveTrustedProxy] accepts it, and "invalid: " plus every
+// ClientIPRowStatus reports how the server learns a client's address:
+// "direct" and the assumption direct mode makes when the trusted proxy
+// class is off, "trusted proxy: <header> from <n> address(es)" when it
+// is on and [ResolveTrustedProxy] accepts it, and "invalid: " plus every
 // refusal otherwise, which fails the row. cfg is nil when
 // [config.Load] refused the environment, and the row then reads "not
-// checked" and adds no failure of its own, since Load's own report
-// already fails doctor. It names no proxy address: an address is
-// deployment topology a terminal need not show, and the count is
-// enough to see the mode.
-func clientIPRowStatus(cfg *config.Config) (status string, failed bool) {
+// checked" and adds no failure, since Load's report already fails
+// doctor. It names no proxy address: an address is deployment
+// topology a terminal need not show, and the count is enough to see the
+// mode.
+func ClientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
@@ -61,10 +49,10 @@ func clientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
-	if proxy.Mode() == serve.ModeDirect {
+	if proxy.Mode() == ModeDirect {
 		return proxy.Mode().String() + ": " + directAssumption, false
 	}
-	header := strings.TrimSpace(cfg.IntegrationValue(serve.TrustedProxyClass.Name, serve.TrustedProxyHeaderKey))
+	header := strings.TrimSpace(cfg.IntegrationValue(TrustedProxyClass.Name, TrustedProxyHeaderKey))
 	noun := "addresses"
 	if len(distinct) == 1 {
 		noun = "address"
@@ -72,37 +60,7 @@ func clientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 	return fmt.Sprintf("%s: %s from %d %s", proxy.Mode(), header, len(distinct), noun), false
 }
 
-// webRowStatus runs the web resolution serve startup runs,
-// [newWebRoutes] with the same inputs, so doctor and serve cannot
-// disagree about the theme match, the palette, the branding value, or
-// the operator CSS file. It reads the embedded bundle and the operator
-// file and writes nothing. The logger discards: the one record
-// newWebRoutes writes for a branding neutral that drops the
-// theme-color meta is serve's to show, and doctor's stdout is the
-// table alone. A refusal reads "invalid: " plus the error and fails
-// the row; a nil cfg ([config.Load] refused the environment) reads
-// "not checked" and adds no failure of its own.
-func webRowStatus(environ []string, cfg *config.Config) (status string, failed bool) {
-	if cfg == nil {
-		return "not checked", false
-	}
-	prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
-	if err != nil {
-		return "invalid: " + foldRefusal(err), true
-	}
-	prefix, err := serve.NewPrefix(prefixValue)
-	if err != nil {
-		return "invalid: " + foldRefusal(err), true
-	}
-	private := privateFiles{stateDir: cfg.StateDir}
-	discard := slog.New(slog.NewTextHandler(io.Discard, nil))
-	if _, err := newWebRoutes(environ, prefix, cfg.SiteName, private, discard); err != nil {
-		return "invalid: " + foldRefusal(err), true
-	}
-	return "ok", false
-}
-
-// bindAddrsRowStatus reports, for each address
+// BindAddrsRowStatus reports, for each address
 // DUBPLATE_SERVE_BIND_ADDRS configures, whether the host holds it:
 // "<address> present" when it is a loopback address or equals the IP
 // of one of ifaceAddrs, and "<address> not on any interface"
@@ -112,19 +70,19 @@ func webRowStatus(environ []string, cfg *config.Config) (status string, failed b
 // because Linux routes all of 127.0.0.0/8 to the loopback device while
 // [net.InterfaceAddrs] lists only 127.0.0.1/8.
 //
-// ifaceAddrs and ifaceErr are [net.InterfaceAddrs]'s own results, so
-// every state is testable without a seam. That call reads the address
-// table over netlink, which a unit's RestrictAddressFamilies without
+// ifaceAddrs and ifaceErr are [net.InterfaceAddrs]'s results, so every
+// state is testable without a seam. That call reads the address table
+// over netlink, which a unit's RestrictAddressFamilies without
 // AF_NETLINK denies, so an error reads "not checked: " plus the error
-// and fails the row, naming that setting as the likely cause. An
-// unset key is the registered loopback default; a value
-// [serve.SplitBindAddrs] refuses reads "invalid: " plus its refusal.
-func bindAddrsRowStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
-	raw, err := config.ParseString(environ, serve.BindAddrsThreshold)
+// and fails the row, naming that setting as the likely cause. An unset
+// key is the registered loopback default; a value [SplitBindAddrs]
+// refuses reads "invalid: " plus its refusal.
+func BindAddrsRowStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
+	raw, err := config.ParseString(environ, BindAddrsThreshold)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
-	addrs, err := serve.SplitBindAddrs(raw)
+	addrs, err := SplitBindAddrs(raw)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
@@ -178,8 +136,8 @@ func interfaceIP(a net.Addr) (netip.Addr, bool) {
 	return addr.Unmap(), true
 }
 
-// The boundary probe's bounds: the dial and the response each get
-// their own, so a host that drops the handshake and a listener that
+// The boundary probe's bounds: the dial and the response each get a
+// bound, so a host that drops the handshake and a listener that
 // accepts and never answers both end the row in bounded time.
 const (
 	probeDialBound     = 2 * time.Second
@@ -206,18 +164,18 @@ const trustedProbeNote = " (a trusted proxy, identity only)"
 // them.
 const allTrustedUnproven = "forwarded and Connection-listed removal unproven: every local address is a trusted proxy"
 
-// boundaryProbeRowStatus dials each configured bind address on the
+// BoundaryProbeRowStatus dials each configured bind address on the
 // configured port, from that same address, sends the one probe request
-// [serve.NewProbeRequest] builds, and reports what the running
-// server's probe route counted. Per address: "refused" when every
-// count is zero; "passed ..." naming each group that reached the
-// route, which fails the row; "no listener" when the dial is refused
-// or times out, which does not fail, since doctor runs before the
-// server starts as well as beside it; "not probed (not on any
-// interface)" when the host does not hold the address, which the bind
-// addresses row already fails; and "unexpected answer: ..." for a
-// status other than 200, a body that is not the counts, or a
-// connection that accepts and never answers, which fails.
+// [NewProbeRequest] builds, and reports what the running server's probe
+// route counted. Per address: "refused" when every count is zero;
+// "passed ..." naming each group that reached the route, which fails
+// the row; "no listener" when the dial is refused or times out, which
+// does not fail, since doctor runs before the server starts as well as
+// beside it; "not probed (not on any interface)" when the host does not
+// hold the address, which the bind addresses row already fails; and
+// "unexpected answer: ..." for a status other than 200, a body that is
+// not the counts, or a connection that accepts and never answers, which
+// fails.
 //
 // An address in the trusted proxy set is probed for group 1 alone,
 // since the strip keeps the forwarded-address headers for a trusted
@@ -227,27 +185,27 @@ const allTrustedUnproven = "forwarded and Connection-listed removal unproven: ev
 // Connection-listed removal unproven, which is no failure: a same-host
 // front configured as trusted is the recommended topology, and the
 // identity count is all a probe from that address can prove. The probe
-// request carries the trusted proxy configuration's own header beside
-// the fixed forwarded-address family, so an untrusted address proves
-// the strip removes the one header the client address is read from.
+// request carries the trusted proxy configuration's header beside the
+// fixed forwarded-address family, so an untrusted address proves the
+// strip removes the one header the client address is read from.
 //
-// The row probes nothing, and adds no failure of its own, when reg
+// The row probes nothing, and adds no failure, when reg
 // does not declare the serve port (a registry built for a test of
 // another family), when cfg is nil because [config.Load] refused
 // environ, or when the serve keys or the trusted proxy values do not
 // resolve: each of those causes is reported, and failed, by the row
 // that owns it.
-func boundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) (status string, failed bool) {
+func BoundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) (status string, failed bool) {
 	declared := slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool {
-		return th.Key == serve.PortThreshold.Key
+		return th.Key == PortThreshold.Key
 	})
 	if !declared {
-		return "not probed: " + serve.PortThreshold.Key + " is not registered", false
+		return "not probed: " + PortThreshold.Key + " is not registered", false
 	}
 	if cfg == nil {
 		return "not probed", false
 	}
-	prefix, addrs, port, err := serve.ResolveConfig(environ)
+	prefix, addrs, port, err := ResolveConfig(environ)
 	if err != nil {
 		return "not probed", false
 	}
@@ -290,17 +248,17 @@ func boundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.R
 
 // trustedProxy returns the trusted proxy configuration cfg resolves to
 // and its set of proxy addresses, empty when the class is off, or
-// [serve.ResolveTrustedProxy]'s refusal when its values do not resolve.
-func trustedProxy(cfg *config.Config) (serve.TrustedProxyConfig, map[netip.Addr]struct{}, error) {
-	proxy, err := serve.ResolveTrustedProxy(cfg)
+// [ResolveTrustedProxy]'s refusal when its values do not resolve.
+func trustedProxy(cfg *config.Config) (TrustedProxyConfig, map[netip.Addr]struct{}, error) {
+	proxy, err := ResolveTrustedProxy(cfg)
 	if err != nil {
-		return serve.TrustedProxyConfig{}, nil, err
+		return TrustedProxyConfig{}, nil, err
 	}
 	set := make(map[netip.Addr]struct{})
-	if proxy.Mode() == serve.ModeDirect {
+	if proxy.Mode() == ModeDirect {
 		return proxy, set, nil
 	}
-	addrs, _ := serve.ParseProxyAddrs(cfg.IntegrationValue(serve.TrustedProxyClass.Name, serve.TrustedProxyAddrsKey))
+	addrs, _ := ParseProxyAddrs(cfg.IntegrationValue(TrustedProxyClass.Name, TrustedProxyAddrsKey))
 	for _, a := range addrs {
 		set[a] = struct{}{}
 	}
@@ -322,7 +280,7 @@ type probeResult struct {
 // configured to listen on, which the route permits. trusted reports
 // whether ip is one of proxy's addresses, whose answer carries the
 // identity count alone.
-func probeAddress(ctx context.Context, prefix serve.Prefix, ip netip.Addr, port int, proxy serve.TrustedProxyConfig, trusted bool) probeResult {
+func probeAddress(ctx context.Context, prefix Prefix, ip netip.Addr, port int, proxy TrustedProxyConfig, trusted bool) probeResult {
 	dialer := net.Dialer{
 		Timeout:   probeDialBound,
 		LocalAddr: &net.TCPAddr{IP: ip.AsSlice()},
@@ -340,7 +298,9 @@ func probeAddress(ctx context.Context, prefix serve.Prefix, ip netip.Addr, port 
 	}
 	defer func() { _ = conn.Close() }()
 
-	counts, err := probeExchange(ctx, conn, prefix, host, proxy, trusted)
+	exchange, cancel := context.WithTimeout(ctx, probeResponseBound)
+	defer cancel()
+	counts, err := probeExchange(exchange, conn, prefix, host, proxy, trusted)
 	if err != nil {
 		return probeResult{status: "unexpected answer: " + err.Error(), failed: true}
 	}
@@ -348,57 +308,60 @@ func probeAddress(ctx context.Context, prefix serve.Prefix, ip netip.Addr, port 
 }
 
 // probeExchange writes the probe request built for proxy on conn and
-// reads the route's counts, all within [probeResponseBound]. For a
-// trusted peer only the identity count is required, and the other two
-// read as zero whatever the body holds. The error it returns is the
-// text the row prints after "unexpected answer: ".
-func probeExchange(ctx context.Context, conn net.Conn, prefix serve.Prefix, host string, proxy serve.TrustedProxyConfig, trusted bool) (serve.ProbeCounts, error) {
-	if err := conn.SetDeadline(time.Now().Add(probeResponseBound)); err != nil {
-		return serve.ProbeCounts{}, err
+// reads the route's counts, all before ctx's deadline: the caller
+// bounds the exchange by bounding ctx. For a trusted peer only the
+// identity count is required, and the other two read as zero whatever
+// the body holds. The error it returns is the text the row prints after
+// "unexpected answer: ".
+func probeExchange(ctx context.Context, conn net.Conn, prefix Prefix, host string, proxy TrustedProxyConfig, trusted bool) (ProbeCounts, error) {
+	if deadline, ok := ctx.Deadline(); ok {
+		if err := conn.SetDeadline(deadline); err != nil {
+			return ProbeCounts{}, err
+		}
 	}
-	req, err := serve.NewProbeRequest(ctx, prefix, host, proxy)
+	req, err := NewProbeRequest(ctx, prefix, host, proxy)
 	if err != nil {
-		return serve.ProbeCounts{}, err
+		return ProbeCounts{}, err
 	}
 	if err := req.Write(conn); err != nil {
-		return serve.ProbeCounts{}, answerError(err)
+		return ProbeCounts{}, answerError(err)
 	}
 	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
 	if err != nil {
-		return serve.ProbeCounts{}, answerError(err)
+		return ProbeCounts{}, answerError(err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
-		return serve.ProbeCounts{}, errors.New(resp.Status)
+		return ProbeCounts{}, errors.New(resp.Status)
 	}
 	unparseable := fmt.Errorf("%s with an unparseable body", resp.Status)
 	var answer probeAnswer
 	if err := json.NewDecoder(io.LimitReader(resp.Body, probeAnswerCap)).Decode(&answer); err != nil {
 		if isTimeout(err) {
-			return serve.ProbeCounts{}, errProbeTimeout
+			return ProbeCounts{}, errProbeTimeout
 		}
-		return serve.ProbeCounts{}, unparseable
+		return ProbeCounts{}, unparseable
 	}
 	if answer.Identity == nil {
-		return serve.ProbeCounts{}, unparseable
+		return ProbeCounts{}, unparseable
 	}
 	if trusted {
-		return serve.ProbeCounts{Identity: *answer.Identity}, nil
+		return ProbeCounts{Identity: *answer.Identity}, nil
 	}
 	if answer.Forwarded == nil || answer.Sentinel == nil {
-		return serve.ProbeCounts{}, unparseable
+		return ProbeCounts{}, unparseable
 	}
-	return serve.ProbeCounts{
+	return ProbeCounts{
 		Identity:  *answer.Identity,
 		Forwarded: *answer.Forwarded,
 		Sentinel:  *answer.Sentinel,
 	}, nil
 }
 
-// probeAnswer is [serve.ProbeCounts] as the probe reads it, with each
-// count a pointer so a key the body leaves out stays nil. A 200 whose
-// body lacks any count, or is JSON null, did not come from the route,
-// and reading it as all zeros would report a strip that never ran.
+// probeAnswer is [ProbeCounts] as the probe reads it, with each count a
+// pointer so a key the body leaves out stays nil. A 200 whose body
+// lacks any count, or is JSON null, did not come from the route, and
+// reading it as all zeros would report a strip that never ran.
 type probeAnswer struct {
 	Identity  *int `json:"identity"`
 	Forwarded *int `json:"forwarded"`
@@ -427,7 +390,7 @@ func isTimeout(err error) bool {
 // countsResult renders the route's counts: "refused" when every
 // count is zero, and otherwise each group that reached the route,
 // which fails the row.
-func countsResult(c serve.ProbeCounts) probeResult {
+func countsResult(c ProbeCounts) probeResult {
 	var passed []string
 	if c.Identity > 0 {
 		passed = append(passed, fmt.Sprintf("%d identity header(s)", c.Identity))

@@ -1122,3 +1122,45 @@ func TestParseInt_ErrorIsKeyError(t *testing.T) {
 			keyed.Key, keyed.Reason, "DUBPLATE_TEST_N", `invalid value "x", want an integer`)
 	}
 }
+
+// TestParseAdminAddress pins the one parse DUBPLATE_ADMIN_EMAIL goes
+// through, and that Load stores exactly what it returns: the store
+// row names the admin's address from the environment alone, so the two
+// must never read an address differently.
+func TestParseAdminAddress(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  string
+		ok    bool
+	}{
+		{name: "plain", value: "admin@example.org", want: "admin@example.org", ok: true},
+		{name: "case folded", value: "Admin@Example.ORG", want: "admin@example.org", ok: true},
+		{name: "display name dropped", value: "Geoff <Geoff@X.org>", want: "geoff@x.org", ok: true},
+		{name: "quoted display name", value: `"Q, R" <Q@x.org>`, want: "q@x.org", ok: true},
+		{name: "surrounding space", value: " spaced@x.org ", want: "spaced@x.org", ok: true},
+		{name: "no at sign", value: "not an address"},
+		{name: "two addresses", value: "a@b.org, c@d.org"},
+		{name: "empty", value: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseAdminAddress(tt.value)
+			if (err == nil) != tt.ok || got != tt.want {
+				t.Errorf("ParseAdminAddress(%q) = %q, %v, want %q, ok %v", tt.value, got, err, tt.want, tt.ok)
+			}
+
+			environ := append(slices.DeleteFunc(baseEnviron(), func(e string) bool {
+				return strings.HasPrefix(e, "DUBPLATE_ADMIN_EMAIL=")
+			}), "DUBPLATE_ADMIN_EMAIL="+tt.value)
+			cfg, loadErr := Load(environ, NewRegistry())
+			if tt.ok {
+				if loadErr != nil || cfg.AdminEmail != tt.want {
+					t.Errorf("Load AdminEmail = %q, %v, want %q", cfg.AdminEmail, loadErr, tt.want)
+				}
+			} else if loadErr == nil {
+				t.Errorf("Load accepted %q, want a refusal", tt.value)
+			}
+		})
+	}
+}

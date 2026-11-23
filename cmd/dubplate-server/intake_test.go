@@ -202,7 +202,7 @@ func TestNestedStagingRefusedByEveryVerb(t *testing.T) {
 			return runRestore(context.Background(), nested, reg, restoreFlags{fromFile: "x.db"}, io.Discard, io.Discard)
 		},
 		"member": func() error {
-			cmd := newMemberCmd(nested, reg, io.Discard, io.Discard)
+			cmd := testOperatorVerbs().newMemberCmd(nested, reg, io.Discard, io.Discard)
 			cmd.SetArgs([]string{"list"})
 			return cmd.Execute()
 		},

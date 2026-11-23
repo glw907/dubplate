@@ -165,6 +165,8 @@ Never build, and never accept a contribution that adds:
   commit together.
 - An id is the type in `internal/id`, or a named type built on it. Only
   `id.Parse` reads one from text.
+- A health check lives in the package that knows the fact, in its `doctor.go`. The `doctor` command gains one
+  line that places the row.
 - The time reaches a package as a `Now` function in its configuration. No
   package under `internal` reads the clock, apart from the test harness. A
   timeout is a deadline on the request's context.

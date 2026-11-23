@@ -1,22 +1,17 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
-	"os/exec"
 	"os/signal"
-	"slices"
-	"strings"
+	"os/user"
 	"syscall"
 	"time"
 
-	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/local"
@@ -24,21 +19,6 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
-
-// The exit statuses this verb's outcomes carry beyond run's own
-// default of 1 (Ruling 3). 0 (succeeded) and 1 (failed, or any load or
-// store refusal) need no wrapping: run already returns them for a nil
-// or a plain error.
-const (
-	exitBackupUnavailable = 69
-	exitBackupConflict    = 75
-	exitBackupCanceled    = 130
-)
-
-// backupVerbWait bounds each of the verb's own store and runner calls:
-// how long it waits for the store's lock, another process's write, or
-// one status read.
-const backupVerbWait = 30 * time.Second
 
 // backupPollInterval is how often the verb re-reads a running job's
 // status while it waits for a terminal state.
@@ -92,7 +72,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	logger := slog.New(slog.NewTextHandler(stderr, nil))
 	opsCtx := context.WithoutCancel(ctx)
 
-	openCtx, cancelOpen := context.WithTimeout(opsCtx, backupVerbWait)
+	openCtx, cancelOpen := context.WithTimeout(opsCtx, storeWait)
 	defer cancelOpen()
 	h, err := store.OpenWrite(openCtx, cfg.StateDir, busyTimeout)
 	if err != nil {
@@ -104,7 +84,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
-	evalCtx, cancelEval := context.WithTimeout(opsCtx, backupVerbWait)
+	evalCtx, cancelEval := context.WithTimeout(opsCtx, storeWait)
 	ev, evalErr := settings.Evaluate(evalCtx, h, reg, environ)
 	cancelEval()
 	if evalErr != nil {
@@ -114,7 +94,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	}
 
 	acc := settings.NewAccessor(h, reg)
-	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, backupVerbWait)
+	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, storeWait)
 	defer cancelRunner()
 	runner, err := local.New(runnerCtx, local.Config{
 		Store:     h,
@@ -132,12 +112,12 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
-	actor := ops.LocalActor(resolveActor())
-	startCtx, cancelStart := context.WithTimeout(opsCtx, backupVerbWait)
+	actor := ops.LocalActor(resolveActor(user.LookupId))
+	startCtx, cancelStart := context.WithTimeout(opsCtx, storeWait)
 	resp, err := runner.StartBackup(startCtx, actor, ops.StartBackupRequest{})
 	cancelStart()
 	if err != nil {
-		return wrapExitCode(err)
+		return backupExitCode(err)
 	}
 	if _, err := fmt.Fprintf(stdout, "backup %s: started\n", resp.JobID); err != nil {
 		return err
@@ -198,7 +178,7 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor 
 		case <-ticker.C:
 		}
 
-		statusCtx, cancel := context.WithTimeout(opsCtx, backupVerbWait)
+		statusCtx, cancel := context.WithTimeout(opsCtx, storeWait)
 		resp, err := runner.JobStatus(statusCtx, actor, ops.JobStatusRequest{JobID: h})
 		cancel()
 		if err != nil {
@@ -218,7 +198,7 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor 
 // returning it: the job still ends canceled, through its own terminal
 // write, and awaitBackup's next poll reports that.
 func requestCancel(opsCtx context.Context, runner *local.Runner, actor ops.Actor, h ops.Handle, logger *slog.Logger) {
-	ctx, cancel := context.WithTimeout(opsCtx, backupVerbWait)
+	ctx, cancel := context.WithTimeout(opsCtx, storeWait)
 	defer cancel()
 	if _, err := runner.CancelJob(ctx, actor, ops.CancelJobRequest{JobID: h}); err != nil {
 		logger.Error("cancel job", "job", h, "err", err)
@@ -227,10 +207,10 @@ func requestCancel(opsCtx context.Context, runner *local.Runner, actor ops.Actor
 }
 
 // reportOutcome prints h's terminal state and reports run's exit
-// status for it (Ruling 3). A succeeded job prints to stdout and
-// returns nil, run's own 0; every other terminal state returns an
-// error, whose message run prints to stderr, wrapped with its exit
-// status where that status is not run's own default of 1.
+// status for it. A succeeded job prints to stdout and returns nil;
+// every other terminal state returns an error, whose message run
+// prints to stderr, wrapped with its exit status where that status is
+// not the default of 1.
 func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	switch job.State {
 	case ops.JobSucceeded:
@@ -241,7 +221,7 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 		_, err := fmt.Fprintln(stdout, msg)
 		return err
 	case ops.JobCanceled:
-		return &exitCodeErr{code: exitBackupCanceled, err: fmt.Errorf("backup %s: canceled", job.ID)}
+		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.ID)}
 	case ops.JobFailed:
 		return fmt.Errorf("backup %s: failed, code %s: %s", job.ID, job.FailureCode, job.FailureMessage)
 	default:
@@ -252,207 +232,21 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	}
 }
 
-// wrapExitCode maps a StartBackup error to its exit status: unavailable
+// backupExitCode maps a StartBackup error to its exit status: unavailable
 // while backup integration is off, conflict while another backup holds
 // the kind lease, and every other error unwrapped, run's own default
 // of 1.
-func wrapExitCode(err error) error {
+func backupExitCode(err error) error {
 	switch {
 	case errors.Is(err, ops.ErrUnavailable):
-		return &exitCodeErr{code: exitBackupUnavailable, err: err}
+		return &exitCodeErr{code: exitUnavailable, err: err}
 	case errors.Is(err, ops.ErrConflict):
-		return &exitCodeErr{code: exitBackupConflict, err: err}
+		return &exitCodeErr{code: exitTempFail, err: err}
 	default:
 		return err
 	}
 }
 
-// doctor's own backup rows. backupRemoteRow prints unconditionally,
-// the "backup remote" row's own key, distinct from the generic
-// integration-class loop's "backup" row (enabled/disabled), which
-// runs regardless.
-const (
-	backupRemoteRow      = "backup remote"
-	backupLastSuccessRow = "backup last success"
-	backupWALSizeRow     = "backup wal size"
-	backupFreeSpaceRow   = "backup free space"
-	backupLocalCopiesRow = "backup local copies"
-)
-
-// featuresProbeTimeout bounds the `rclone backend features` probe
-// (Ruling 2's 10 seconds). A var, not a const, so a test can shorten
-// it rather than wait out the real bound.
-var featuresProbeTimeout = 10 * time.Second
-
-// featuresProbeWaitDelay bounds how long the probe's child has to exit
-// after its SIGINT before it is killed, [os/exec.Cmd.WaitDelay]'s own
-// precedent in internal/backup/rclone.go.
-const featuresProbeWaitDelay = 5 * time.Second
-
-// backupCryptWarning is ruling 14's warning: a backup remote that is
-// not wrapped in an rclone crypt remote carries every snapshot,
-// addresses included after 6d, unencrypted at the provider.
-const backupCryptWarning = "the backup remote is not wrapped in an rclone crypt remote; a snapshot carries member data unencrypted at the provider"
-
-// backupRemoteRowStatus renders doctor's "backup remote" row:
-// unavailable while the flag is off, without
-// running any subprocess; the parse, _TYPE, and crypt checks doctor
-// alone runs, since [backup.Job.Run] reads no environment; and the
-// features probe last, under featuresProbeTimeout. It calls
-// [backup.ParseRemote], the same validator the job's first phase
-// calls, so the two never disagree about a well-formed remote.
-func backupRemoteRowStatus(ctx context.Context, environ []string) (status string, failed bool) {
-	enabled, _ := backup.Class.Enabled(environ)
-	if !enabled {
-		return "unavailable: backup integration disabled", false
-	}
-
-	remoteValue, _ := config.Lookup(environ, "DUBPLATE_BACKUP_REMOTE")
-	if _, err := backup.ParseRemote(remoteValue); err != nil {
-		return backupRemoteParseError(remoteValue), true
-	}
-	name, _, _ := strings.Cut(remoteValue, ":")
-	upper := strings.ToUpper(name)
-
-	typeKey := "RCLONE_CONFIG_" + upper + "_TYPE"
-	remoteType, ok := config.Lookup(environ, typeKey)
-	if !ok {
-		return "invalid remote: " + typeKey + " is not set", true
-	}
-
-	if remoteType == "crypt" {
-		if status, failed, blocked := backupCryptCheck(environ, upper); blocked {
-			return status, failed
-		}
-	}
-
-	bin, err := exec.LookPath("rclone")
-	if err != nil {
-		return "rclone not found", true
-	}
-
-	status, failed = backupFeaturesStatus(ctx, bin, name)
-	if remoteType != "crypt" {
-		status += "; " + backupCryptWarning
-	}
-	return status, failed
-}
-
-// backupRemoteParseError renders [backup.ParseRemote]'s refusal of
-// value as one of the two states table shapes: the generic "want
-// name:path" for no colon or an empty name, or the offending character
-// quoted against rclone's own rule for a name holding one.
-func backupRemoteParseError(value string) string {
-	name, _, hasColon := strings.Cut(value, ":")
-	if !hasColon || name == "" {
-		return "invalid remote: want <name>:<path>"
-	}
-	if r, ok := firstInvalidRemoteNameRune(name); ok {
-		return fmt.Sprintf("invalid remote: name %q holds %q, and rclone remote names \"can only contain letters, digits, or the _ (underscore) character\"", name, string(r))
-	}
-	// Unreachable given ParseRemote's own rule (name and hasColon
-	// already passed), kept so this function never returns an empty
-	// status for a value ParseRemote refuses for a reason this switch
-	// does not yet know.
-	return "invalid remote: " + value
-}
-
-// firstInvalidRemoteNameRune returns the first rune in name outside
-// rclone's remote-name alphabet (ASCII letters, digits, underscore).
-func firstInvalidRemoteNameRune(name string) (rune, bool) {
-	for _, r := range name {
-		switch {
-		case r >= 'A' && r <= 'Z', r >= 'a' && r <= 'z', r >= '0' && r <= '9', r == '_':
-			continue
-		}
-		return r, true
-	}
-	return 0, false
-}
-
-// backupCryptCheck runs the crypt remote's own two checks against the
-// remote named by upper: that RCLONE_CONFIG_<upper>_REMOTE is set, and,
-// when its value names another remote rather than a plain path or a
-// connection string, that the named remote's own _TYPE is set. blocked
-// is true only when a check refuses; status and failed are meaningful
-// only then. A plain path (no colon) or a connection string (a leading
-// colon) skips the wrapped check, leaving the features probe to decide.
-func backupCryptCheck(environ []string, upper string) (status string, failed, blocked bool) {
-	remoteKey := "RCLONE_CONFIG_" + upper + "_REMOTE"
-	wrapped, ok := config.Lookup(environ, remoteKey)
-	if !ok {
-		return "invalid remote: " + remoteKey + " is not set", true, true
-	}
-	wrappedName, _, hasColon := strings.Cut(wrapped, ":")
-	if !hasColon || wrappedName == "" {
-		return "", false, false
-	}
-	wrappedTypeKey := "RCLONE_CONFIG_" + strings.ToUpper(wrappedName) + "_TYPE"
-	if _, ok := config.Lookup(environ, wrappedTypeKey); !ok {
-		return fmt.Sprintf("invalid remote: wrapped remote %s: %s is not set", wrappedName, wrappedTypeKey), true, true
-	}
-	return "", false, false
-}
-
-// backupFeaturesJSON is the shape of `rclone backend features`'s
-// stdout this probe reads: everything else in the object is
-// backend-specific and unread.
-type backupFeaturesJSON struct {
-	Features struct {
-		Copy bool
-		Move bool
-	}
-}
-
-// backupFeaturesStatus runs `rclone backend features <name>:
-// --low-level-retries 1` under featuresProbeTimeout and
-// renders its outcome: "not checked: ..." on a deadline hit, whatever
-// the child's own exit (the deadline takes precedence, the same rule
-// [classify] in internal/backup/rclone.go takes for the backup job's
-// own child); the child's last stderr line on any other nonzero exit;
-// and, on success, a refusal naming name when neither Copy nor Move is
-// true, since rclone's sync then has no backend to satisfy
-// --backup-dir.
-func backupFeaturesStatus(ctx context.Context, bin, name string) (status string, failed bool) {
-	probeCtx, cancel := context.WithTimeout(ctx, featuresProbeTimeout)
-	defer cancel()
-
-	var stdout, stderr bytes.Buffer
-	cmd := exec.CommandContext(probeCtx, bin, "backend", "features", name+":", "--low-level-retries", "1")
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	cmd.Cancel = func() error { return cmd.Process.Signal(os.Interrupt) }
-	cmd.WaitDelay = featuresProbeWaitDelay
-	err := cmd.Run()
-
-	if probeCtx.Err() != nil {
-		return "not checked: rclone backend features timed out", false
-	}
-	if err != nil {
-		if line := lastNonBlankLine(stderr.String()); line != "" {
-			return line, true
-		}
-		return fmt.Sprintf("rclone backend features %s: %v", name, err), true
-	}
-
-	var parsed backupFeaturesJSON
-	if err := json.Unmarshal(stdout.Bytes(), &parsed); err != nil {
-		return fmt.Sprintf("rclone backend features %s: could not parse its output: %v", name, err), true
-	}
-	if !parsed.Features.Copy && !parsed.Features.Move {
-		return fmt.Sprintf(`backend %s lacks server-side move and copy: rclone's manual requires one for --backup-dir ("the remote in use must support server-side move or copy")`, name), true
-	}
-	return "ok", false
-}
-
-// lastNonBlankLine returns the last non-blank line of s, trimmed, or
-// "" when s holds none.
-func lastNonBlankLine(s string) string {
-	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
-	for _, i := range slices.Backward(lines) {
-		if line := strings.TrimSpace(i); line != "" {
-			return line
-		}
-	}
-	return ""
-}
+// backupFeaturesTimeout bounds the `rclone backend features` probe
+// behind doctor's "backup remote" row.
+const backupFeaturesTimeout = 10 * time.Second

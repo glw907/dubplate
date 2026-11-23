@@ -10,6 +10,8 @@ import (
 	"errors"
 )
 
+var errSyntax = errors.New("id: want 32 lowercase hex characters")
+
 // An ID is a random 16-byte key. It prints, and is parsed from, 32
 // lowercase hex characters.
 type ID [16]byte
@@ -26,9 +28,12 @@ func New() ID {
 // It says nothing about the all-zero id, which a caller that refuses it
 // checks with [ID.IsZero].
 func Parse(s string) (ID, error) {
+	if len(s) != hex.EncodedLen(len(ID{})) {
+		return ID{}, errSyntax
+	}
 	b, err := hex.DecodeString(s)
-	if err != nil || len(b) != len(ID{}) || hex.EncodeToString(b) != s {
-		return ID{}, errors.New("id: want 32 lowercase hex characters")
+	if err != nil || hex.EncodeToString(b) != s {
+		return ID{}, errSyntax
 	}
 	return ID(b), nil
 }

@@ -91,7 +91,7 @@ func TestCancelJob_States(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, h := newStore(t)
 			r := newRunnerFor(t, h, nil, succeed)
-			jh := tt.handle(t, h, r)
+			jh := tt.handle(t, h, r.Runner)
 			var before record
 			if tt.wantErr == nil {
 				before = mustRecord(t, h, idOf(t, jh))
@@ -332,6 +332,42 @@ func TestStartBackup_ReaderErrorNoRecord(t *testing.T) {
 				t.Errorf("%d records after a refused start, want 0", n)
 			}
 		})
+	}
+}
+
+// TestStartBackup_ReadersSeeTheCallersContext pins that the three backup
+// reads run on the context StartBackup was given, so a canceled request
+// stops them.
+func TestStartBackup_ReadersSeeTheCallersContext(t *testing.T) {
+	type ctxKey struct{}
+	ctx := context.WithValue(deadline(t), ctxKey{}, "caller")
+	saw := map[string]bool{}
+	cfg := backupConfig(t)
+	cfg.Backup.GuardFraction = func(ctx context.Context) (float64, error) {
+		saw["GuardFraction"] = ctx.Value(ctxKey{}) == "caller"
+		return defaultGuardFraction(ctx)
+	}
+	cfg.Backup.SnapshotKeep = func(ctx context.Context) (int, error) {
+		saw["SnapshotKeep"] = ctx.Value(ctxKey{}) == "caller"
+		return defaultSnapshotKeep(ctx)
+	}
+	cfg.Backup.ArchiveRetention = func(ctx context.Context) (time.Duration, error) {
+		saw["ArchiveRetention"] = ctx.Value(ctxKey{}) == "caller"
+		return defaultArchiveRetention(ctx)
+	}
+	r, err := New(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	t.Cleanup(func() { _ = r.Close() })
+
+	if _, err := r.StartBackup(ctx, testActor, ops.StartBackupRequest{}); err != nil {
+		t.Fatalf("StartBackup: %v", err)
+	}
+	for _, name := range []string{"GuardFraction", "SnapshotKeep", "ArchiveRetention"} {
+		if !saw[name] {
+			t.Errorf("%s reader did not run on the caller's context", name)
+		}
 	}
 }
 

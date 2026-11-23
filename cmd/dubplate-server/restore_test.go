@@ -208,8 +208,8 @@ func TestRestoreVerb_LockHeld(t *testing.T) {
 
 	src := filepath.Join(t.TempDir(), "absent.db")
 	code, _, stderr := runRestoreVerb(t, environ, "--from-file", src)
-	if code != exitRestoreLocked {
-		t.Errorf("exit = %d, want %d; stderr:\n%s", code, exitRestoreLocked, stderr)
+	if code != exitTempFail {
+		t.Errorf("exit = %d, want %d; stderr:\n%s", code, exitTempFail, stderr)
 	}
 	if !strings.Contains(stderr, "store.lock: held by ") {
 		t.Errorf("stderr = %q, want it to name the lock's holder", stderr)
@@ -252,8 +252,8 @@ func TestRestoreVerb_SignalDuringListing(t *testing.T) {
 			v := startRestoreVerb(t, environ, "--snapshot", "latest")
 			standinPID := awaitBackupStandinPID(t, pidFile)
 			v.signal(t, tt.signal, tt.toGroup)
-			if code := v.wait(t); code != exitRestoreInterrupted {
-				t.Errorf("exit = %d, want %d; stderr:\n%s", code, exitRestoreInterrupted, v.stderr.String())
+			if code := v.wait(t); code != exitInterrupted {
+				t.Errorf("exit = %d, want %d; stderr:\n%s", code, exitInterrupted, v.stderr.String())
 			}
 			waitBackupStandinGone(t, standinPID, 5*time.Second)
 
@@ -298,8 +298,8 @@ func TestRestoreVerb_SignalDuringLibraryCopyThenResume(t *testing.T) {
 	v := startRestoreVerb(t, environ, "--snapshot", "latest", "--library")
 	standinPID := awaitBackupStandinPID(t, pidFile)
 	v.signal(t, syscall.SIGINT, false)
-	if code := v.wait(t); code != exitRestoreInterrupted {
-		t.Fatalf("exit = %d, want %d; stderr:\n%s", code, exitRestoreInterrupted, v.stderr.String())
+	if code := v.wait(t); code != exitInterrupted {
+		t.Fatalf("exit = %d, want %d; stderr:\n%s", code, exitInterrupted, v.stderr.String())
 	}
 	waitBackupStandinGone(t, standinPID, 5*time.Second)
 	if n := countLines(backupStandinLines(t, record), "SIGINT"); n != 1 {

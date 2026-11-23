@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -24,7 +25,6 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
-	"golang.org/x/sys/unix"
 )
 
 // The three subtree names the auth handlers mount under the owned
@@ -54,39 +54,12 @@ const (
 	operatorCSSRouteName = "operator.css"
 )
 
-// errDirNotWritable reports that this process may not list, create,
-// and remove entries in a directory a later write needs.
-var errDirNotWritable = errors.New("not writable")
-
-// checkDirWritable asks the kernel whether this process's effective
-// uid may read, write, and search dir: faccessat(2) with AT_EACCESS,
-// whose man page says it "Perform[s] access checks using the effective
-// user and group IDs" and fails with EROFS when "Write permission was
-// requested for a file on a read-only filesystem", the shape a
-// directory outside the unit's ReadWritePaths takes under
-// ProtectSystem=strict. It writes nothing, so it can neither race the
-// roster's directory flock nor leave a probe file behind. Read and
-// search are asked for beside write because every writer here opens or
-// lists the directory too.
-func checkDirWritable(dir string) error {
-	if err := unix.Faccessat(unix.AT_FDCWD, dir, unix.R_OK|unix.W_OK|unix.X_OK, unix.AT_EACCESS); err != nil {
-		return fmt.Errorf("%s is %w: %w", dir, errDirNotWritable, err)
-	}
-	return nil
-}
-
-// newServeCmd builds the serve verb: it validates the owned
-// configuration wall through [loadConfig] against reg, resolves the
-// three serve thresholds, builds the shell through newServeShell,
-// which reads the auth settings once its seed commits and mounts the
-// auth handlers, and runs it
-// until cmd's context is done, holding the store open until then. Every
-// resolution and every store or roster open in newServeShell happens
-// before serve.Run opens a
-// listener, so a server whose wall or whose auth dependencies are
-// unsatisfied refuses at startup, in the same words doctor reports,
-// rather than accepting connections and failing at the first request
-// that needs a missing value.
+// newServeCmd builds the serve verb: it loads the wall through
+// [loadConfig], builds the shell with newServeShell, and runs it until
+// cmd's context is done, holding the store open until then. Every
+// resolution and store open happens before [serve.Run] opens a
+// listener, so an unsatisfied wall refuses at startup in the words
+// doctor reports.
 func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "serve",
@@ -115,69 +88,41 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 	return cmd
 }
 
-// newServeShell builds the shell the serve verb runs, owning prefix,
-// and returns it as a [server] the caller closes when the shell stops
-// serving; every refusal returns no server. It first refuses an intake
-// format allowlist naming a format it cannot check and runs the startup
-// check on staging and the library root, so a missing music volume
-// refuses before the store is touched. It then opens the dubplate store
-// through [store.OpenServe], which creates it, migrates it, or finishes
-// a restore. It then applies the settings seed to
-// that store through [applySettingsSeed], so a refusal ends the start
-// before anything else is built, and reads the four rate limits the
-// seed left in force through [auth.ReadLimits]: they apply at the next
-// start, so they are read once, here. Every other auth setting is a
-// reader over the store that its handler, the seam, or the nonce store
-// calls at each use. It then opens the auth store and its nonce and
-// epoch stores, builds the roster over the store handle, the rate
-// limiter, the mailer, and the magic-link identity seam, constructs the
-// auth handlers, and mounts them under the owned
-// prefix, alongside the web routes [newWebRoutes] builds from environ.
-// It returns before any listener opens, so a caller refuses a trusted
-// proxy value [serve.ResolveTrustedProxy] refuses, a store this binary cannot
-// open or must not migrate, an unparseable mail port, a bad theme or
-// branding value, or a refused operator CSS file without ever accepting
-// a connection.
+// newServeShell builds the shell the serve verb runs, owning prefix, and
+// returns it as a [server] the caller closes when the shell stops
+// serving. Every refusal returns no server, and none opens a listener.
 //
-// It registers no bearer bypass: no mount authenticates by bearer
-// credential, so every mount stays behind the origin check's
-// cookie-carrying protection. The first bypassed route will be the
-// 0.8 OpenSubsonic API or the bearer admin mount, and it must add a
-// shell-level test that it never reads the session cookie.
+// The order matters in three places. The intake startup check runs
+// before the store opens, and the settings seed applies before anything
+// else is built. Intake starts last, once nothing else can refuse: its
+// lease is held until Close, and a lease another process holds refuses
+// the start naming the holder.
 //
-// Every record the shell and its handlers write goes to logger.
+// The four rate limits the seed left in force are read once, here, and
+// apply at the next start. Every other auth setting is a reader over
+// the store, called at each use.
 //
-// The shell sends Strict-Transport-Security only when the public URL
-// is https on a host that is not loopback; see [sendsHSTS].
+// No mount authenticates by bearer credential, so none registers a
+// bearer bypass and every one stays behind the origin check. A route
+// that bypasses it needs a shell-level test that it never reads the
+// session cookie.
 //
-// The members document is mounted behind [auth.RequireAdmin], outside
-// its own method and path checks, so a non-admin meets the gate's 404
-// whatever the method or the path, and only a verified admin ever
-// meets a 405.
+// The members document mounts behind [auth.RequireAdmin], outside the
+// method and path checks, so a non-admin meets the gate's 404 whatever
+// the method or path and only a verified admin meets a 405.
 //
-// It starts the nonce sweep bound to ctx; see [sweepNonces].
-//
-// Last, once nothing else can refuse, it starts intake: the intake
-// lease, held until Close, then the startup pass under it, then the tus
-// mount, then the checking workers and the sweep, which run on a
-// context derived from ctx. A lease another process holds refuses the
-// start naming the holder.
-//
-// The trusted proxy class, resolved through [serve.ResolveTrustedProxy],
-// governs both the strip's forwarded-address carve-out and every
-// handler's ClientIP, so the peer whose forwarded headers survive the
-// strip is exactly the peer whose header names the client. With the
-// class off, PeerAddress is the client address. Every identity header
-// is stripped from every peer, the trusted proxy included, since a
-// proxy is trusted for the client address alone.
-//
-// The boundary probe route mounts under the owned prefix like every
-// other route, so the request it counts is the one the strip has
-// already cleared. Its peer rule reads bindAddrs, the resolved list
-// the caller listens on, and the same trusted proxy configuration the
-// strip carries.
+// The trusted proxy class governs both the strip's forwarded-address
+// carve-out and every handler's ClientIP, so the peer whose forwarded
+// headers survive the strip is the peer whose header names the client.
+// Every identity header is stripped from every peer, a trusted proxy
+// included. The boundary probe mounts like every other route, so the
+// request it counts is one the strip has already cleared.
 func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
-	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s })
+	buildFS, err := embeddedBuild()
+	if err != nil {
+		return nil, err
+	}
+	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, buildFS)
 }
 
 // A server is what newServeShell builds: the shell, the store it holds
@@ -207,8 +152,10 @@ type registrar interface {
 // the registrar mount makes of the new shell, so a test sees each name
 // the build registers. Every registration must go through that
 // registrar and never through the shell directly: a route registered
-// around it escapes the route inventory test unseen.
-func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar) (_ *server, err error) {
+// around it escapes the route inventory test unseen. The web routes
+// come from buildFS, so a test can serve a fixture tree where the
+// embedded one holds only the placeholder.
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
 	proxyConfig, err := serve.ResolveTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
@@ -289,8 +236,10 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Now:      time.Now,
 		Logger:   shell.Logger(),
 	}
+	// The shell mounts a name and everything under it to one handler, so
+	// the probe answers the shell's 404 to any deeper path itself.
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
-	routes.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
+	routes.Register(serve.ProbeRouteName, webapp.ExactPaths(map[string]http.Handler{probePath: serve.NewProbeRoute(bindAddrs, proxyConfig)}))
 
 	adminSeam := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
@@ -320,7 +269,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 
-	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger())
+	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger(), buildFS)
 	if err != nil {
 		return nil, err
 	}
@@ -370,18 +319,12 @@ func openServeStore(ctx context.Context, environ []string, reg *config.Registry,
 	return h, nil
 }
 
-// serveSeedWriteWait bounds how long the seed's write waits for the
-// store's write connection. [store.Handle.Update] refuses a context
-// with no deadline; the busy timeout, not this wait, bounds another
-// process's lock.
-const serveSeedWriteWait = 30 * time.Second
-
 // applySettingsSeed applies the environment seed rule to the store h
 // holds, so every setting row serve reads from here on already agrees
 // with the environment. A refusal returns the joined refusal and
 // changes nothing; the caller then starts no listener.
 func applySettingsSeed(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, logger *slog.Logger) error {
-	ctx, cancel := context.WithTimeout(ctx, serveSeedWriteWait)
+	ctx, cancel := context.WithTimeout(ctx, storeWait)
 	defer cancel()
 	if err := settings.Apply(ctx, h, reg, environ, time.Now(), logger); err != nil {
 		return fmt.Errorf("apply settings seed: %w", err)
@@ -405,38 +348,18 @@ func sendsHSTS(publicURL string) bool {
 	return u.Scheme == "https" && !auth.IsLoopbackHost(u.Hostname())
 }
 
-// exactPath wraps next, answering [http.NotFoundHandler]'s own 404 to any
-// request whose r.URL.Path is not exactly want. [serve.Shell.Register]
-// mounts both the subtree name and everything under name+"/" to the
-// same handler (internal/serve/serve.go:94-96), and the shell
-// dispatches through its mux's own Handler method, which leaves
-// r.Pattern unset, so a mounted handler cannot otherwise tell its own
-// exact path from a deeper one. The roster API needs the distinction:
-// a request to <prefix>/roster/roster must answer the shell's 404,
-// never the member list, and the shell's 404 this wrap answers is
-// byte-equal to the admin gate's own refusal, so a non-admin sees the
-// same answer on either side of it. It is [webapp.ExactPaths] narrowed
-// to the one-route case.
-func exactPath(want string, next http.Handler) http.Handler {
-	return webapp.ExactPaths(map[string]http.Handler{want: next})
-}
-
-// openNonceStore opens the consumed-nonce store under authStore, its
-// retention reading [auth.NonceRetentionSetting] through acc, and sweeps it
-// once at now. It exists as its own function so a test can open the
-// store newServeShell opens and read the retention it was wired with.
+// openNonceStore opens the consumed-nonce store under authStore, with
+// its retention read through acc, and sweeps it once at now. A test
+// opens the store the way newServeShell does and reads the retention it
+// was wired with.
 func openNonceStore(ctx context.Context, authStore *auth.Store, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
 	nonces, _, err := auth.OpenNonceStore(ctx, authStore, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 
-// authHandlersConfig builds the [auth.HandlersConfig] newServeShell
-// mounts the auth handlers from, each setting a reader over acc. It
-// exists as its own function so a test can read the config it built
-// rather than recomputing the same values by hand: PublicOrigin,
-// Prefix, and each reader are wiring rather than logic, so the only
-// proof a caller loses none of them is a test that reads this
-// function's own return value.
+// authHandlersConfig builds the [auth.HandlersConfig] the auth handlers
+// mount from, each setting a reader over acc. A test reads the config
+// it returns, the only proof that no caller loses a wired value.
 func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.Accessor, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
 	return auth.HandlersConfig{
 		Roster:             roster,
@@ -475,12 +398,9 @@ func methodOnly(method string, h http.Handler) http.Handler {
 }
 
 // newMailer resolves the magic-link source's five SMTP keys into a
-// [notify.Mailer]. The port is the one value among them this file
-// converts rather than passes through. the magic-link source's
-// Validate hook already bounds the port to 1 through 65535 at load
-// time, so doctor and every verb see a bad port before the serve verb
-// ever listens; this parse is the defensive second read that turns the
-// bounded string back into the int [notify.Config] takes.
+// [notify.Mailer]. The source's Validate hook already bounds the port
+// at load, so the parse here only turns the string into the int
+// [notify.Config] takes.
 func newMailer(cfg *config.Config) (*notify.Mailer, error) {
 	port, err := strconv.Atoi(cfg.IdentitySourceValue(auth.SMTPPortKey))
 	if err != nil {

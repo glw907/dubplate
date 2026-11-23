@@ -18,14 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// The exit statuses restore's outcomes carry beyond run's own default
-// of 1. A held store lock carries backup's "try again later" status for
-// restore's own lock, and an interrupt carries backup's canceled one.
-const (
-	exitRestoreLocked      = 75
-	exitRestoreInterrupted = 130
-)
-
 // restoreRotation is the instruction a finished restore prints last: a
 // restored store carries the sessions and sign-in links of the moment
 // it was backed up, and rotating both secrets with no previous value
@@ -192,9 +184,9 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	switch {
 	case err == nil:
 	case ctx.Err() != nil:
-		return &exitCodeErr{code: exitRestoreInterrupted, err: fmt.Errorf("restore interrupted: %w", err)}
+		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("restore interrupted: %w", err)}
 	case errors.Is(err, store.ErrLockBusy):
-		return &exitCodeErr{code: exitRestoreLocked, err: err}
+		return &exitCodeErr{code: exitTempFail, err: err}
 	default:
 		return err
 	}

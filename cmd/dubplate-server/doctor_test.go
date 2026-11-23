@@ -44,7 +44,7 @@ const membersRowLines = 1
 // storeRowLines's own precedent: the backup remote row reads
 // "unavailable" rather than disappear while the flag is off, so both
 // constants carry the same total. Named separately, one per flag
-// state, because [backupRemoteRowStatus]'s content, not its presence,
+// state, because [backup.RemoteRowStatus]'s content, not its presence,
 // is what the flag controls, and a caller asserting a flag-off total
 // should never have to know that fact to pick the right constant.
 const (
@@ -1402,17 +1402,6 @@ func TestDoctorCmd_AuthStoreRow(t *testing.T) {
 				leaf := makeAuthLeaf(t, stateDir)
 				chmodRestoring(t, leaf, 0o750)
 				return fmt.Sprintf("leaf %s has mode 750, want at most 700", leaf)
-			},
-			wantFailed: true,
-		},
-		{
-			name: "a leaf another uid owns",
-			setup: func(t *testing.T, stateDir string) string {
-				leaf := makeAuthLeaf(t, stateDir)
-				orig := geteuid
-				geteuid = func() int { return os.Geteuid() + 1 }
-				t.Cleanup(func() { geteuid = orig })
-				return fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, os.Geteuid(), os.Geteuid()+1)
 			},
 			wantFailed: true,
 		},
