@@ -28,7 +28,7 @@ set -euo pipefail
 # internals in a hand-composed command line:
 #
 #   check.sh                  the full gate over the whole tree. The form
-#                             every merge gate and every pass end runs.
+#                             every merge gate and every task end runs.
 #                             Nothing is scoped away.
 #   check.sh --scope-changed  the full leg list, with two legs narrowed to
 #                             what the tree actually changed: gitleaks
@@ -796,7 +796,7 @@ if [ "$mode" != "reduced" ]; then
   leg "process citations in Go comments"
   # A comment that cites the process which produced the code (a rung, a
   # task, a ruling id, a plan path, a salvage line number) is addressed
-  # to the pass that wrote it and is noise to every later reader. The em
+  # to the session that wrote it and is noise to every later reader. The em
   # dash ban is the proof that a mechanical rule holds here where an
   # instruction does not.
   #
@@ -861,6 +861,17 @@ if [ "$mode" != "reduced" ]; then
     fi
   else
     echo "check.sh: deadcode found no unreachable function."
+  fi
+
+  leg "govulncheck (known vulnerabilities)"
+  # govulncheck, pinned by the tool line in go.mod, reports each known
+  # vulnerability whose symbol the module's code can reach. It reads the
+  # Go vulnerability database over the network, so the leg fails when
+  # the network is down: a check either gates or does not exist. It exits
+  # nonzero on a finding or a load error, and both fail the leg.
+  if ! go tool govulncheck ./...; then
+    echo "check.sh: go tool govulncheck failed." >&2
+    status=1
   fi
 fi
 

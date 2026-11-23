@@ -8,7 +8,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     env:
       # The gate's tool pins. Each matches the version the local gate runs;
       # a bump edits the version and its SHA-256 together.
@@ -126,3 +126,9 @@ jobs:
 
       - name: Run the gate
         run: bash scripts/check.sh
+
+      # The race detector runs after the gate rather than inside it: the
+      # whole module takes over ten minutes under -race, and this step
+      # reuses the setup above. make test-race runs go test -race.
+      - name: Run the race detector
+        run: make test-race

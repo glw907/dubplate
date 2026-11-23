@@ -24,12 +24,12 @@ const stagedArchive = "tus/00000000000000000000000000000001"
 // zipFixture builds an archive entry by entry. Every entry is stored, so a
 // test can place bytes by offset.
 type zipFixture struct {
-	t   *testing.T
+	t   testing.TB
 	buf bytes.Buffer
 	w   *zip.Writer
 }
 
-func newZIPFixture(t *testing.T) *zipFixture {
+func newZIPFixture(t testing.TB) *zipFixture {
 	t.Helper()
 	f := &zipFixture{t: t}
 	f.w = zip.NewWriter(&f.buf)

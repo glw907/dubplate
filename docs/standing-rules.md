@@ -38,7 +38,11 @@ offer. Pins stay exact, at the newest version, and live in `go.mod`,
 values). The sweep runs once a milestone, as the first task of the milestone's first
 spec, over those files and the pinned binaries (rclone, golangci-lint,
 shellcheck, ruff, gitleaks, vale, Playwright, libxml2); a sweep with nothing to move
-is one line in the PR body. The skill's survey is the point: a new
+is one line in the PR body. The sweep never covers the GitHub Actions the
+workflows pin by SHA. `.github/dependabot.yml` watches those alone and opens
+one grouped pull request a month, which the sweep takes through
+`standards:dependency-upgrade`. The milestone's first task also runs
+`make fuzz FUZZTIME=10m`. The skill's survey is the point: a new
 capability that replaces hand-rolled code is ruled take-now or filed to
 the milestone that first leans on it, and a workaround for an old version
 never outlives the bump that fixes it. Minors and patches land without
@@ -90,8 +94,8 @@ included. The no-link test (`internal/harness/conform/arch_test.go`) fails if
 or `internal/opensubsonic/conformance`, or any `github.com/getkin` path, so the
 server never links the harness, the contract checker, or kin-openapi; the
 protocol client stays linkable.
-Three workstation prerequisites sit outside the gate, because the gate
-never opens a network connection: `npm ci --prefix web`,
+Three workstation prerequisites sit outside the gate, because no test
+opens a network connection: `npm ci --prefix web`,
 `make unidecode-wheel` (the verified Unidecode 1.4.0 wheel in the user
 cache, which the unidecode tests and the install verb's tests read), and
 `make subsonic-xsd` (the pinned Subsonic 1.16.1 XSD in the user cache,
@@ -125,3 +129,21 @@ except `cmd/dubplate-server`, `internal/serve`, `internal/auth`, and
 `internal/intake`, whose comments BACKLOG #156 clears. The exported-unused leg
 stays a warning, and it runs `go tool deadcode`, which reports a function
 unreachable from any `main`.
+The govulncheck leg runs `go tool govulncheck ./...` in every form but
+`--reduced` and fails on any known vulnerability the module's code can
+reach. It reads the Go vulnerability database, so it is the gate's one
+network read, and it fails when the network is down. Two tools are
+pinned by `tool` lines in `go.mod` and run through `go tool`: `deadcode`
+and `govulncheck`. Every host and CI run the same version, and CI needs
+no install step for either.
+Two checks run in CI and stay out of the local gate. The race detector
+(`make test-race`, `go test -race -count=1 -timeout 30m ./...`) runs in
+`check.yml` as the "Run the race detector" step after the gate, because
+the module takes over ten minutes under `-race`. A timed fuzz run
+(`.github/workflows/fuzz.yml`, `make fuzz FUZZTIME=1m`) starts on each
+pull request that touches `internal/engine/tagio`, `internal/intake/gate`,
+the workflow, or the `Makefile`, and uploads any crashing input as an
+artifact. The fuzz targets' seeds run in every `go test`. A crashing
+input joins the seed corpus under the package's `testdata/fuzz` once its
+traced cause is fixed. `make fuzz` runs each target for `FUZZTIME`
+(default `30s`).
