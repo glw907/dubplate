@@ -1,13 +1,13 @@
 # dubplate status
 
 ## Current state
-The reshape runs now. Three tasks move the repo onto the workstation's `building-from-specs` process: task 1 fixes the
-shutdown race in `internal/serve`, task 2 rewrites the Claude files and the backlog, and task 3 adds `govulncheck`, three
-fuzz targets, the race detector in CI, and a `dependabot.yml`. The spec is
-`~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`. The `structure` work waits for
-the three tasks. Nothing a member or an operator sees changes.
+The reshape is under way. Three tasks move the repo onto the workstation's `building-from-specs` process. Task 1
+(PR #20, merged) fixed the shutdown race in `internal/serve`, and task 2 (PR #21, merged) rewrote the Claude files and
+the backlog. Task 3 adds `govulncheck`, three fuzz targets, the race detector in CI, and a `dependabot.yml`, and is
+building now. The spec is `~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`. The
+`structure` work waits for task 3. Nothing a member or an operator sees changes.
 
-Round `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
+Milestone `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
 once, and the citation leg of `scripts/check.sh` gates.
 
 Work `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree, `internal/engine/store` became
@@ -17,15 +17,15 @@ Work `structure-keys` (PR #19, merged) moved every setting into the package that
 configuration to `config.go` and `doctor.go` in seven packages. Output is unchanged.
 
 `intake-1` is the last product work on master. A passing album waits in `matching` with no exit until
-`intake-2`'s match probe lands. The run order is in BACKLOG, "Rounds to 0.8". Work still to do sits in BACKLOG
-under its `#round:<name>` or `#pass:<name>` tag.
+`intake-2`'s match probe lands. The run order is in BACKLOG, "Milestones to 0.8". Work still to do sits in BACKLOG
+under its `#milestone:<name>` tag.
 
 The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit installed and disabled, the `auth`,
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-Task 1, the shutdown fix, and task 2, the Claude files and the backlog, build first. Task 3 follows once both have
-merged. Then `structure-doctor`, the third piece of `structure`, restarts from a spec; `intake-2` takes #159.
+Task 3, the Go team's checks, builds first. Then `structure-doctor`, the third piece of `structure`, restarts from a
+spec (BACKLOG #173); `intake-2` takes #159.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
