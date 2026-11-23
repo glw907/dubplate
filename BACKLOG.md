@@ -265,10 +265,9 @@ now milestone `engine`.
   swept). Found by the `intake-1` pass, 2026-10-12 #milestone:intake #security *(swept 2026-11-20)*
 - [ ] #88 `intake-2` cleanups from PR #6's triage: neither `TestLayering` (`internal/intake/seam_test.go:719`,
   `internal/webapp/layering_test.go:13`) is in `UNCACHED_TESTS` (`Makefile:22`), though both shell out to `go list`;
-  event reasons bypass `reasonReader`; `Limits` (`seam.go:24`) and `limits` (`limits.go:21`) are twin structs; the dead exports (`reject.All`, `Reason.Blocking`, `Param`, `Canonical`, `staging.ErrLinuxOnly`, the `Route`
-  exports) find callers or go; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` flaked once (its rename is
+  event reasons bypass `reasonReader`; `Limits` (`seam.go:24`) and `limits` (`limits.go:21`) are twin structs; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` flaked once (its rename is
   #142); and `sweepNonces` (`cmd/dubplate-server/serve.go:457`) is never joined at teardown. The boundary-probe hang is
-  #144. #milestone:intake #test *(swept 2026-11-22)*
+  #144. #milestone:intake #test *(swept 2026-11-23)*
 - [ ] #89 The deploy pass owes, from PR #6's triage (items 9 and 14): confirm the legacy `/srv/music/staging` (the
   musicbox estate's, 2000:2000) is empty or absent before the first deploy, since the first sweep cleans anything in
   it as rowless; narrow `/srv/music` in the serve unit's `ReadWritePaths` with `ReadOnlyPaths` or `InaccessiblePaths`
