@@ -1,0 +1,65 @@
+package intake
+
+import (
+	"errors"
+	"io/fs"
+	"path/filepath"
+	"strings"
+
+	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/intake/staging"
+	"golang.org/x/sys/unix"
+)
+
+// VolumeRowStatus renders doctor's "music volume" row: what the check
+// serve runs at startup finds of staging and the library root, then
+// where each of roots sits. roots are the collection roots the store
+// lists, relative to the library root, and are nil when the store was
+// not read.
+//
+// A directory not created yet is named without failing the row, as on
+// a fresh box before deploy.sh runs, and a collection root not created
+// yet reads "not created", since the store can list a root before it
+// is made. Any other refusal from the startup check fails the row, as
+// does a collection root outside the library root's mount. A nil cfg
+// ([config.Load] refused the environment) reads "not checked".
+func VolumeRowStatus(cfg *config.Config, roots [][]byte) (status string, failed bool) {
+	if cfg == nil {
+		return "not checked", false
+	}
+	stagingDir, library := staging.Read(cfg.WallValue(StagingKey)), staging.Read(cfg.LibraryRoot)
+	var absent []string
+	for _, d := range []struct {
+		role string
+		dir  staging.Dir
+	}{{"staging directory", stagingDir}, {"library root", library}} {
+		if errors.Is(d.dir.Err, fs.ErrNotExist) {
+			absent = append(absent, d.role+" "+d.dir.Path+" does not exist")
+		}
+	}
+	if len(absent) > 0 {
+		return strings.Join(absent, "; "), false
+	}
+	if err := staging.Check(stagingDir, library); err != nil {
+		return err.Error(), true
+	}
+
+	parts := []string{"ok: staging and the library root share one mount"}
+	for _, root := range roots {
+		path := filepath.Join(cfg.LibraryRoot, string(root))
+		d := staging.Read(path)
+		switch {
+		case errors.Is(d.Err, fs.ErrNotExist):
+			parts = append(parts, "collection root "+path+" not created")
+		case d.Err != nil:
+			parts, failed = append(parts, "collection root: "+d.Err.Error()), true
+		case d.StatxErr != nil:
+			parts, failed = append(parts, "collection root: "+d.StatxErr.Error()), true
+		case d.Dev != library.Dev || d.Mask&unix.STATX_MNT_ID == 0 || d.MountID != library.MountID:
+			parts, failed = append(parts, "collection root "+path+" sits outside the library root's mount"), true
+		default:
+			parts = append(parts, "collection root "+path+" on the library root's mount")
+		}
+	}
+	return strings.Join(parts, "; "), failed
+}
