@@ -306,8 +306,8 @@ run_remote "install -d -o music -g music -m 0755 $DUBPLATE_LIBRARY_ROOT"
 # and the member store sit beside it. A granted path must exist before the
 # transient unit starts (the same namespace failure as the leaves above),
 # so it is created here. 0755 and music's ownership are what the verb's
-# own leaf check requires of an existing leaf (unidecodeLeafPerm and
-# checkUnidecodeOwner in cmd/dubplate-server/unidecode.go), and on a box
+# own leaf check requires of an existing leaf (leafPerm and checkOwner
+# in internal/engine/matcher/unidecode/install.go), and on a box
 # whose leaf already has that shape this line changes nothing.
 DUBPLATE_UNIDECODE_DIR="$DUBPLATE_LIB_DIR/unidecode"
 echo "== $DUBPLATE_UNIDECODE_DIR =="

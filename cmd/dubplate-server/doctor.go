@@ -15,6 +15,7 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/engine/matcher/unidecode"
 	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
@@ -144,7 +145,8 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// row's own precedent: it always prints exactly one line,
 			// since the matcher can never score without a verified
 			// table.
-			unidecodeStatus, unidecodeFailed := unidecodeRowStatus(environ)
+			unidecodeStateDir, _ := config.Lookup(environ, "DUBPLATE_STATE_DIR")
+			unidecodeStatus, unidecodeFailed := unidecode.RowStatus(unidecodeStateDir)
 			addChecked(unidecodeDoctorRow, unidecodeStatus, unidecodeFailed)
 
 			// The four boundary rows follow the unidecode row and
