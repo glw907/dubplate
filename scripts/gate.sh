@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # scripts/gate.sh: run scripts/check.sh through cairn-run-gate.
-# A worktree-isolated session's Bash guard refuses `cairn-run-gate '<string>'`,
-# since it cannot show the quoted string is not git; a plain call to a script
-# that execs cairn-run-gate passes, and keeps the lane lock and the run records
-# `--records` scores. The wrapper accepts a fixed set of flags and builds the
-# gate string from them alone, because cairn-run-gate hands its string to
-# `bash -c`, and a forwarded free-form argument would reach that shell.
+# The script execs cairn-run-gate, which keeps the lane lock and the run
+# records `--records` scores. The wrapper accepts a fixed set of flags and
+# builds the gate string from them alone, because cairn-run-gate hands its
+# string to `bash -c`, and a forwarded free-form argument would reach that
+# shell.
 # Exit codes are cairn-run-gate's, so exit 75 still means re-issue.
 #
 # usage: scripts/gate.sh [--scope-changed | --reduced | --merge] [--dry-run] [--base <40-hex sha>] [--fresh]

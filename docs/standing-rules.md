@@ -7,21 +7,21 @@ Detail that CLAUDE.md summarizes.
 **Build for 0.8 (Geoff, 2026-09-07, re-keyed 2026-09-25, re-planned
 2026-10-05).** The streamer is the built-in OpenSubsonic streamer, slices 1 to 8
 of `docs/specs/2026-09-07-streamer-2-0-design.md` (the spec
-still says 2.0). Every other pass plan weighs its surface against that
+still says 2.0). Every other spec weighs its surface against that
 spec's forward-hooks list and states per task whether it lands a hook or is
 neutral; a store schema built without 0.8 in view is rework. Hook 6
 retires and hook 5 is renamed to `username`. Route newly discovered hooks
 into that list; never build 0.8 features early. The same spec carries a prior-art list (the
 OpenSubsonic specification, Navidrome and gonic for behavior only under
 GPL, taglib via wazero, modernc sqlite, goose, mewkiz/flac, Picard's tag
-tables, chromaprint); a pass plan names which entries it consulted and
-adopts or declines each with a reason, so no pass rebuilds what a
+tables, chromaprint); a spec names which entries it consulted and
+adopts or declines each with a reason, so no task rebuilds what a
 license-compatible library already does well. An adoption is judged on
 license, code quality against the house bar, maintenance (release
 cadence, open-issue age, bus factor), and adoption (importers, who
-depends on it), with the evidence recorded in the plan, never on
+depends on it), with the evidence recorded in the spec, never on
 familiarity alone. **Refined (Geoff, 2026-09-12):** a 0.8 forward hook is
-named in the plan of the pass that first consumes it and built there,
+named in the spec of the task that first consumes it and built there,
 and nothing is exported ahead of a caller.
 
 The streamer spec's hook numbers are stable: a retired hook stays in place,
@@ -35,15 +35,15 @@ dubplate releases with no dependency debt and uses what its libraries
 offer. Pins stay exact, at the newest version, and live in `go.mod`,
 `web/package.json`, `tools/venv/requirements.txt`, and
 `.github/workflows/check.yml` (the gate's binaries and their SHA-256
-values). The sweep runs once a round, as the first task of the round's first
-pass, over those files and the pinned binaries (rclone, golangci-lint,
+values). The sweep runs once a milestone, as the first task of the milestone's first
+spec, over those files and the pinned binaries (rclone, golangci-lint,
 shellcheck, ruff, gitleaks, vale, Playwright, libxml2); a sweep with nothing to move
 is one line in the PR body. The skill's survey is the point: a new
 capability that replaces hand-rolled code is ruled take-now or filed to
-the round that first leans on it, and a workaround for an old version
+the milestone that first leans on it, and a workaround for an old version
 never outlives the bump that fixes it. Minors and patches land without
 asking; a major waits for Geoff and is recorded with its unblock
-condition. A plan that adopts a library names its newest version.
+condition. A spec that adopts a library names its newest version.
 libxml2 (`/home/linuxbrew/.linuxbrew/bin/xmllint`, 2.15.4) is held
 by `brew pin libxml2`, so a bump is deliberate: `brew unpin libxml2 &&
 brew upgrade libxml2`, regenerate the XML goldens, `brew pin libxml2`,
@@ -52,8 +52,8 @@ The last sweep: `docs/research/2026-10-04-dependency-sweep.md`.
 
 ## Gate legs
 
-`bash scripts/check.sh` before every commit — `make check` (vet,
-golangci-lint, test, tidy-check) over the whole module (`./...`), shellcheck over `scripts/*`,
+`bash scripts/check.sh` before every commit: `make check` (`web`, `vet`,
+`lint`, `test`, `web-rendered`, `tidy-check`) over the whole module (`./...`), shellcheck over `scripts/*`,
 ruff (`check` and `format
 --check`) over every tracked `*.py` (the oracle shim and its derivation
 siblings under `internal/harness/oracle/`, that package's FLAC template
@@ -116,13 +116,12 @@ tests exercise the real `rclone` binary (`internal/backup`'s share of
 gates or does not exist; never guard one with `command -v || skip`.
 Never commit red. The PR check
 (`.github/workflows/check.yml`) runs `bash scripts/check.sh` on every pull
-request, so CI is the full-suite home, and the close's
-`bash scripts/gate.sh --merge` runs locally. The process-citation leg
+request, so CI is the full-suite home, and `bash scripts/gate.sh --merge`
+runs locally before a pull request is marked ready. The process-citation leg
 gates: a shipped Go comment under `cmd` or `internal` that cites a rung,
 task, resolution, or plan line fails the run. A wider pattern (contract,
 ruling, fold, pass, and conductor tags, and a name) applies everywhere
 except `cmd/dubplate-server`, `internal/serve`, `internal/auth`, and
-`internal/intake`, whose comments BACKLOG #156 clears. The exported-unused leg (an
-exported `internal/` symbol whose only references are its own file and
-`_test.go` files) stays a warning; pass `cleanup-gate` moves it to
-`go tool deadcode`.
+`internal/intake`, whose comments BACKLOG #156 clears. The exported-unused leg
+stays a warning, and it runs `go tool deadcode`, which reports a function
+unreachable from any `main`.
