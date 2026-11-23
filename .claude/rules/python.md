@@ -1,7 +1,9 @@
 ---
 paths:
   - "internal/harness/oracle/*.py"
+  - "internal/harness/oracle/testdata/gen_template_flac.py"
   - "internal/engine/matcher/testdata/gen_featuring_golden.py"
+  - "internal/engine/tagio/testdata/gen_golden_flac.py"
   - "tools/unidecode-table/generate.py"
 ---
 

@@ -3,8 +3,7 @@ name: dubplate-build
 description: >
   The dubplate facts for building work from a spec: gate, fast lane, full-suite home, worktree setup,
   CI watch, risk map, reviewers by path, and the coding conventions. Use when building, resuming, or
-  reviewing a task in dubplate, or when a fresh dubplate session follows a STATUS launch prompt. Use
-  it with `building-from-specs`, which owns the lifecycle.
+  reviewing a task in dubplate. Use it with `building-from-specs`, which owns the lifecycle.
 ---
 
 # Dubplate build
@@ -30,10 +29,14 @@ base with master. `--dry-run` prints the scope and runs nothing.
 - An empty change set falls back to the full form.
 - `check.sh` classes `go.mod`, `go.sum`, `web/package*.json`, `scripts/check-state-dir.sh`, and
   `Makefile` as gate machinery, and a scoped run that touches one becomes full. A task whose first
-  step moves one of them passes `--base <sha>` on every later fast lane, where `<sha>` is the full
-  40-hex id of the commit the task started from. `check.sh` uses a base only when it resolves to
-  itself and is an ancestor of `HEAD`, so a wrong value costs time and never coverage. A shorter id
-  silently runs the full form.
+  step moves one of them (a dependency sweep) commits that step, then passes `--base <sha>` on every
+  later fast lane, where `<sha>` is the full 40-hex id of the commit that ends the sweep step. Later
+  scoped runs then exclude the sweep. `check.sh` diffs the working tree against the base, so a base
+  from before the sweep keeps `go.mod` in the change set and every fast lane runs full.
+- `gate.sh` refuses a `--base` that is not exactly 40 lowercase hex characters, prints its usage, and
+  exits 2. `check.sh` uses a 40-hex base only when it resolves to itself and is an ancestor of
+  `HEAD`. Otherwise the run promotes to full and its `scope=` line names the reason, so a wrong
+  value costs time and never coverage.
 
 ## Full-suite home
 
@@ -51,7 +54,7 @@ When the task touches `cmd/harness` or `internal/harness`, also run
 
 ## Worktree setup
 
-Run `npm ci --prefix web`, then `cd web && npx svelte-kit sync`, in the new worktree before the
+Run `npm ci --prefix web`, then `(cd web && npx svelte-kit sync)`, in the new worktree before the
 first gate. The gate refuses a worktree without `web/node_modules` (`make web: web/node_modules
 absent`), and `npm run check --prefix web` fails with `File '$app/tsconfig' not found` until
 `svelte-kit sync` has generated `.svelte-kit`.
@@ -124,8 +127,8 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   `ts-conventions`, `daisyui`, and the visual identity spec, which every `web/` task reads. Copy says
   "the group" and "a member".
 - Errata. A frozen, ratified spec gets no errata, and a superseded one gets at most a one-line
-  header pointer. A living reference (the streamer spec's forward hooks, the visual identity spec,
-  `docs/roster-walk.md`) is edited in place by the task that changes what it says. No list of owed
+  header pointer. A living reference (the streamer spec's forward hooks, the visual identity spec, the
+  configuration-homes and group-scale rulings, the web surface standard, `docs/roster-walk.md`) is edited in place by the task that changes what it says. No list of owed
   edits exists.
 - A spec closes four gaps before approval. Each stdlib or library behavior a task relies on is
   quoted from `go doc` or the source, never recalled. Each state a check can meet (absent, empty,

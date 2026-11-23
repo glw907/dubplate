@@ -122,6 +122,6 @@ gates: a shipped Go comment under `cmd` or `internal` that cites a rung,
 task, resolution, or plan line fails the run. A wider pattern (contract,
 ruling, fold, pass, and conductor tags, and a name) applies everywhere
 except `cmd/dubplate-server`, `internal/serve`, `internal/auth`, and
-`internal/intake`, whose comments BACKLOG #156 clears. The exported-unused leg (an
-exported `internal/` symbol whose only references are its own file and
-`_test.go` files) stays a warning, and the leg runs `go tool deadcode`.
+`internal/intake`, whose comments BACKLOG #156 clears. The exported-unused leg
+stays a warning, and it runs `go tool deadcode`, which reports a function
+unreachable from any `main`.

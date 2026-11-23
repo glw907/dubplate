@@ -64,7 +64,8 @@ then upgrade the eight held dependents. Full text and the last sweep: `docs/stan
 - `IDEAS.md`: future consideration: uncommitted features and member requests,
   read on demand. An idea moves to Promoted when an owner ruling targets it.
 - Initiatives live in `~/Projects/initiatives`; this repo's is `dubplate-server`, the greenfield build,
-  in milestones, followed by packaging. Specs live in `docs/specs/`.
+  in milestones, followed by packaging. Specs live in `docs/specs/`; frozen plans in `docs/plans/` and
+  `docs/archive/plans/`.
 
 ## Building
 

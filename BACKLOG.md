@@ -20,7 +20,7 @@ and the `/api/v1` submission operations).
 3. **`structure`**. Moves the Go code into the shape the later milestones build on, changing nothing a person sees, and
    takes TypeScript 7 and the Node 26 types in its sweep (Geoff, 2026-11-20). Takes the structure milestone's spec.
 4. **`intake`**. A member uploads an album and sees its verdict: the match probe, the uploader page, and resume. Ends
-   in Geoff's uploader sitting. Takes `intake-2` and `intake-3`; #92's three rulings open the design; #126.
+   in Geoff's uploader sitting. Takes `intake-2` and `intake-3`; #92's three rulings open the spec; #126.
 5. **`catalog`**. An accepted album enters the library: collection writes, the admission pipeline, the catalog, and
    the folder-admit command that brings in music already on disk. Takes the old `admin-api-2`, `pipeline`, and
    `migration`.
