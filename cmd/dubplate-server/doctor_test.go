@@ -1406,17 +1406,6 @@ func TestDoctorCmd_AuthStoreRow(t *testing.T) {
 			wantFailed: true,
 		},
 		{
-			name: "a leaf another uid owns",
-			setup: func(t *testing.T, stateDir string) string {
-				leaf := makeAuthLeaf(t, stateDir)
-				orig := geteuid
-				geteuid = func() int { return os.Geteuid() + 1 }
-				t.Cleanup(func() { geteuid = orig })
-				return fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, os.Geteuid(), os.Geteuid()+1)
-			},
-			wantFailed: true,
-		},
-		{
 			name: "a nonce subdirectory the process may not write",
 			setup: func(t *testing.T, stateDir string) string {
 				leaf := makeAuthLeaf(t, stateDir)

@@ -12,7 +12,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
@@ -80,7 +79,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			for _, row := range reg.OwnedWall() {
 				status := cmp.Or(statuses[row.Name], "ok")
 				if row.Name == adminEmailKey {
-					status = adminEmailRowStatus(status, storeReport, storeChecked)
+					status = auth.AdminEmailRowStatus(status, storeReport, storeChecked)
 				}
 				add(row.Name, status)
 			}
@@ -122,14 +121,14 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// The members row prints from the report the store row
 			// read, so doctor inspects once, and always prints exactly
 			// one line.
-			membersStatus, membersFailed := membersRowStatus(storeReport, storeChecked)
+			membersStatus, membersFailed := auth.MembersRowStatus(storeReport, storeChecked)
 			addChecked(membersDoctorRow, membersStatus, membersFailed)
 
 			// The auth store row follows the store row and always
 			// prints exactly one line: it reads "not checked" when
 			// Load refused environ, since the state directory is then
 			// unknown.
-			authStoreStatus, authStoreFailed := authStoreRowStatus(cfg)
+			authStoreStatus, authStoreFailed := auth.StoreRowStatus(cfg, auth.StoreRowOptions{Geteuid: os.Geteuid})
 			addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
 
 			// The backup rows print unconditionally, the store row's own precedent: the facts
@@ -231,41 +230,6 @@ func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []str
 // admin.
 const adminEmailKey = "DUBPLATE_ADMIN_EMAIL"
 
-// The two warnings the admin email row can carry. A removed member and
-// an address no member holds share the first, since one action fixes
-// both: member add with --admin reactivates a removed row, and the
-// variable may instead name a live admin. A live non-admin has no verb
-// to promote it, since member add refuses a live address, so the only
-// action is to name a live admin.
-const (
-	adminEmailNotMember = "warning: this address is not a live member; run dubplate-server member add <address> --admin, or set " + adminEmailKey + " to a live admin"
-	adminEmailNotAdmin  = "warning: this address is a live member without the admin flag; set " + adminEmailKey + " to a live admin"
-)
-
-// adminEmailRowStatus renders the admin email row from the wall's own
-// status and the report the store row read. The wall's status stands
-// unless it is "ok". An "ok" stays when the store cannot speak for the
-// roster (not checked, not vouched for, absent, older than the users
-// table) and when the roster holds no live member, which the members
-// row already fails. Otherwise the roster standing decides: a live
-// admin is "ok", and any other standing is a warning in the row's
-// status text, which never fails doctor.
-func adminEmailRowStatus(wall string, r store.Report, checked bool) string {
-	switch {
-	case wall != "ok", !checked, !r.State.Vouches():
-		return wall
-	case r.Facts == nil, r.StoreVersion < store.UsersVersion, r.Facts.Members == 0:
-		return wall
-	}
-	switch r.Standing {
-	case store.StandingNone, store.StandingRemoved:
-		return adminEmailNotMember
-	case store.StandingMember:
-		return adminEmailNotAdmin
-	}
-	return wall
-}
-
 // musicVolumeDoctorRow is the row reporting the music volume: staging,
 // the library root, and the collection roots under it.
 const musicVolumeDoctorRow = "music volume"
@@ -327,125 +291,6 @@ const authStoreDoctorRow = "auth store"
 
 // membersDoctorRow is the row reporting the members the store holds.
 const membersDoctorRow = "members"
-
-// membersRowStatus renders the members row from the report the store
-// row read, and reports whether the row fails. It decides on the
-// report's StoreVersion, never on whether Facts is present, since a
-// version 1 store carries no facts while a version 2 store carries
-// facts without the users table. A store the store row cannot vouch
-// for reads "not read"; the row fails only for a store that holds the
-// users table and no live admin, since nobody could then add a member
-// through the page.
-func membersRowStatus(r store.Report, checked bool) (status string, failed bool) {
-	switch {
-	case !checked:
-		return "not read", false
-	case r.State == store.StateAbsent:
-		return "no store yet; start serve, then member add --admin", false
-	case !r.State.Vouches():
-		return "not read", false
-	case r.StoreVersion < store.UsersVersion:
-		return fmt.Sprintf("members not recorded before store version %d", store.UsersVersion), false
-	case r.Facts == nil:
-		return "not read", false
-	case r.Facts.Members == 0:
-		return "no members; run dubplate-server member add --admin", true
-	case r.Facts.Admins == 0:
-		return fmt.Sprintf("members: %d, admins: 0; run dubplate-server member add --admin", r.Facts.Members), true
-	}
-	return fmt.Sprintf("members: %d, admins: %d", r.Facts.Members, r.Facts.Admins), false
-}
-
-// authStoreLeafPerm is the widest mode [auth.Open] accepts on the auth
-// leaf; a wider leaf refuses serve's start.
-const authStoreLeafPerm = 0o700
-
-// authStoreSubdirs are the two record directories [auth.Open] creates
-// under the leaf, the nonce store's and the epoch store's.
-var authStoreSubdirs = []string{"nonce", "epoch"}
-
-// authStoreRowStatus reports, without writing, whether serve could
-// open the auth leaf under cfg's state directory: "ok" when the leaf
-// is at most 0700, owned by the effective uid, and each record
-// directory is writable; "absent; serve creates it" when the leaf is
-// missing and its nearest existing ancestor is writable. Otherwise it
-// names every problem and fails: the leaf's mode in the words
-// [auth.Open] refuses it with, a foreign owner, or a directory the
-// process cannot write, the shape a path outside the unit's
-// ReadWritePaths takes. A nil cfg reads "not checked" and adds no
-// failure of its own, since Load's own report already fails doctor.
-func authStoreRowStatus(cfg *config.Config) (status string, failed bool) {
-	if cfg == nil {
-		return "not checked", false
-	}
-	leaf := auth.StoreDir(cfg.StateDir)
-	info, err := os.Stat(leaf)
-	if errors.Is(err, fs.ErrNotExist) {
-		if err := checkCreatable(leaf); err != nil {
-			return "absent, and serve cannot create it: " + err.Error(), true
-		}
-		return "absent; serve creates it", false
-	}
-	if err != nil {
-		return err.Error(), true
-	}
-	if !info.IsDir() {
-		return fmt.Sprintf("leaf %s is not a directory", leaf), true
-	}
-
-	var problems []string
-	if mode := info.Mode().Perm(); mode&^authStoreLeafPerm != 0 {
-		problems = append(problems, fmt.Sprintf("leaf %s has mode %o, want at most %o", leaf, mode, authStoreLeafPerm))
-	}
-	// io/fs.FileInfo documents "Sys() any // underlying data source
-	// (can return nil)"; on Linux, os.Stat's carries a *syscall.Stat_t.
-	if st, ok := info.Sys().(*syscall.Stat_t); !ok {
-		problems = append(problems, fmt.Sprintf("leaf %s: cannot determine its owner", leaf))
-	} else if euid := geteuid(); int(st.Uid) != euid {
-		problems = append(problems, fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, st.Uid, euid))
-	}
-	for _, name := range authStoreSubdirs {
-		sub := filepath.Join(leaf, name)
-		_, err := os.Stat(sub)
-		switch {
-		case errors.Is(err, fs.ErrNotExist):
-			if err := checkDirWritable(leaf); err != nil {
-				problems = append(problems, fmt.Sprintf("%s is absent, and %v", sub, err))
-			}
-		case err != nil:
-			problems = append(problems, err.Error())
-		default:
-			if err := checkDirWritable(sub); err != nil {
-				problems = append(problems, err.Error())
-			}
-		}
-	}
-	if len(problems) > 0 {
-		return strings.Join(problems, "; "), true
-	}
-	return "ok", false
-}
-
-// checkCreatable reports whether [os.MkdirAll] could create path: it
-// walks up to path's nearest existing ancestor and checks that
-// ancestor with [checkDirWritable].
-func checkCreatable(path string) error {
-	dir := filepath.Dir(path)
-	for {
-		_, err := os.Stat(dir)
-		if err == nil {
-			return checkDirWritable(dir)
-		}
-		if !errors.Is(err, fs.ErrNotExist) {
-			return err
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return err
-		}
-		dir = parent
-	}
-}
 
 // doctorRow is one doctor line: a printRow key and its status text.
 type doctorRow struct {

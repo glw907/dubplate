@@ -25,7 +25,6 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
-	"golang.org/x/sys/unix"
 )
 
 // The three subtree names the auth handlers mount under the owned
@@ -54,27 +53,6 @@ const (
 	brandingRouteName    = "branding.css"
 	operatorCSSRouteName = "operator.css"
 )
-
-// errDirNotWritable reports that this process may not list, create,
-// and remove entries in a directory a later write needs.
-var errDirNotWritable = errors.New("not writable")
-
-// checkDirWritable asks the kernel whether this process's effective
-// uid may read, write, and search dir: faccessat(2) with AT_EACCESS,
-// whose man page says it "Perform[s] access checks using the effective
-// user and group IDs" and fails with EROFS when "Write permission was
-// requested for a file on a read-only filesystem", the shape a
-// directory outside the unit's ReadWritePaths takes under
-// ProtectSystem=strict. It writes nothing, so it can neither race the
-// roster's directory flock nor leave a probe file behind. Read and
-// search are asked for beside write because every writer here opens or
-// lists the directory too.
-func checkDirWritable(dir string) error {
-	if err := unix.Faccessat(unix.AT_FDCWD, dir, unix.R_OK|unix.W_OK|unix.X_OK, unix.AT_EACCESS); err != nil {
-		return fmt.Errorf("%s is %w: %w", dir, errDirNotWritable, err)
-	}
-	return nil
-}
 
 // newServeCmd builds the serve verb: it validates the owned
 // configuration wall through [loadConfig] against reg, resolves the
