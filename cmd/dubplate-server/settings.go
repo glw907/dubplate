@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/settings"
+	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
 
@@ -41,26 +41,20 @@ func (ov operatorVerbs) newSettingsResetCmd(environ []string, reg *config.Regist
 		Args:          cobra.ExactArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
-			defer cancel()
-			h, _, err := openOperatorStore(ctx, environ, reg)
-			if err != nil {
-				return err
-			}
-			defer func() { err = errors.Join(err, h.Close()) }()
-
-			by := settings.Author{
-				Actor:   auth.OperatorActor(resolveActor(ov.LookupID)).String(),
-				Channel: identity.ChannelCommandLine.String(),
-			}
-			key := args[0]
-			res, err := settings.Reset(ctx, h, reg, environ, by, nil, key, time.Now())
-			if err != nil {
-				return err
-			}
-			_, envSets := config.Lookup(environ, key)
-			return printResetResult(stdout, key, res, envSets)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, _ string) error {
+				by := settings.Author{
+					Actor:   auth.OperatorActor(resolveActor(ov.LookupID)).String(),
+					Channel: identity.ChannelCommandLine.String(),
+				}
+				key := args[0]
+				res, err := settings.Reset(ctx, h, reg, environ, by, nil, key, time.Now())
+				if err != nil {
+					return err
+				}
+				_, envSets := config.Lookup(environ, key)
+				return printResetResult(stdout, key, res, envSets)
+			})
 		},
 	}
 	cmd.SetErr(stderr)

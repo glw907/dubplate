@@ -1,9 +1,6 @@
 // Package id holds the 16-byte identifier every store row and every
 // wire id is built on. It imports no other internal package, so any
 // package may name an id without a layering cost.
-//
-// A named type declared as type T id.ID has the same bytes and none of
-// the methods; convert it with id.ID(t) to call them.
 package id
 
 import (

@@ -68,6 +68,20 @@ func openOperatorStore(ctx context.Context, environ []string, reg *config.Regist
 	return h, cfg.StateDir, err
 }
 
+// withStore runs fn over the store opened in write mode under the verb's
+// write wait, and closes the handle after. fn's context carries that
+// wait.
+func (ov operatorVerbs) withStore(ctx context.Context, environ []string, reg *config.Registry, fn func(ctx context.Context, h *store.Handle, stateDir string) error) (err error) {
+	ctx, cancel := context.WithTimeout(ctx, ov.WriteWait)
+	defer cancel()
+	h, stateDir, err := openOperatorStore(ctx, environ, reg)
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, h.Close()) }()
+	return fn(ctx, h, stateDir)
+}
+
 // writingRoster returns a roster over h that may write: it opens the
 // auth leaf under stateDir for the revocation epochs a removal and a
 // re-add bump. A leaf auth.Open refuses is reported naming verb, and
@@ -96,28 +110,22 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 		Args:          cobra.ExactArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
-			defer cancel()
-			h, stateDir, err := openOperatorStore(ctx, environ, reg)
-			if err != nil {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, stateDir string) error {
+				roster, err := writingRoster(h, stateDir, "add")
+				if err != nil {
+					return err
+				}
+				candidate := auth.Member{
+					Address:     args[0],
+					DisplayName: name,
+					Username:    username,
+					Admin:       admin,
+				}
+				logger := slog.New(slog.NewTextHandler(stderr, nil))
+				_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
 				return err
-			}
-			defer func() { err = errors.Join(err, h.Close()) }()
-			roster, err := writingRoster(h, stateDir, "add")
-			if err != nil {
-				return err
-			}
-
-			candidate := auth.Member{
-				Address:     args[0],
-				DisplayName: name,
-				Username:    username,
-				Admin:       admin,
-			}
-			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
-			return err
+			})
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "the member's display name (required)")
@@ -133,55 +141,46 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 	return cmd
 }
 
-// rosterChange is a roster write on one member, named by id: the shape
-// of [auth.Roster.RemoveMember] and [auth.Roster.DemoteMember].
-type rosterChange func(ctx context.Context, id identity.UserID, by auth.Actor, logger *slog.Logger) error
+// A rosterChange is a roster write on one member, named by id.
+type rosterChange func(r *auth.Roster, ctx context.Context, id identity.UserID, by auth.Actor, logger *slog.Logger) error
 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
 func (ov operatorVerbs) newMemberRemoveCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("remove", "Remove a member from the roster", environ, reg, stderr,
-		func(r *auth.Roster) rosterChange { return r.RemoveMember })
+	return ov.newMemberChangeCmd("remove", "Remove a member from the roster", environ, reg, stderr, (*auth.Roster).RemoveMember)
 }
 
 // newMemberDemoteCmd builds "member demote <address>": it clears the
 // member's admin flag.
 func (ov operatorVerbs) newMemberDemoteCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr,
-		func(r *auth.Roster) rosterChange { return r.DemoteMember })
+	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr, (*auth.Roster).DemoteMember)
 }
 
 // newMemberChangeCmd builds the verb that resolves an address to the
-// live member's id and applies one roster write to it. The roster
-// names the write by id, so a member removed between the lookup and
-// the write answers [auth.ErrMemberNotFound], as an unknown address
-// does. The audit record goes to stderr, the operator's terminal.
-func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, stderr io.Writer, pick func(*auth.Roster) rosterChange) *cobra.Command {
+// live member's id and applies one roster write to it. The write names
+// the member by id, so one removed between the lookup and the write
+// answers [auth.ErrMemberNotFound], as an unknown address does. The
+// audit record goes to stderr.
+func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, stderr io.Writer, change rosterChange) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           verb + " <address>",
 		Short:         short,
 		Args:          cobra.ExactArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
-			defer cancel()
-			h, stateDir, err := openOperatorStore(ctx, environ, reg)
-			if err != nil {
-				return err
-			}
-			defer func() { err = errors.Join(err, h.Close()) }()
-			roster, err := writingRoster(h, stateDir, verb)
-			if err != nil {
-				return err
-			}
-
-			target, err := roster.Lookup(ctx, args[0])
-			if err != nil {
-				return err
-			}
-			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			return pick(roster)(ctx, target.ID, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, stateDir string) error {
+				roster, err := writingRoster(h, stateDir, verb)
+				if err != nil {
+					return err
+				}
+				target, err := roster.Lookup(ctx, args[0])
+				if err != nil {
+					return err
+				}
+				logger := slog.New(slog.NewTextHandler(stderr, nil))
+				return change(roster, ctx, target.ID, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
+			})
 		},
 	}
 	cmd.SetErr(stderr)

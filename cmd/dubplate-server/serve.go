@@ -54,18 +54,12 @@ const (
 	operatorCSSRouteName = "operator.css"
 )
 
-// newServeCmd builds the serve verb: it validates the owned
-// configuration wall through [loadConfig] against reg, resolves the
-// three serve thresholds, builds the shell through newServeShell,
-// which reads the auth settings once its seed commits and mounts the
-// auth handlers, and runs it
-// until cmd's context is done, holding the store open until then. Every
-// resolution and every store or roster open in newServeShell happens
-// before serve.Run opens a
-// listener, so a server whose wall or whose auth dependencies are
-// unsatisfied refuses at startup, in the same words doctor reports,
-// rather than accepting connections and failing at the first request
-// that needs a missing value.
+// newServeCmd builds the serve verb: it loads the wall through
+// [loadConfig], builds the shell with newServeShell, and runs it until
+// cmd's context is done, holding the store open until then. Every
+// resolution and store open happens before [serve.Run] opens a
+// listener, so an unsatisfied wall refuses at startup in the words
+// doctor reports.
 func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "serve",
@@ -94,14 +88,9 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 	return cmd
 }
 
-// newServeShell builds the shell the serve verb runs, owning prefix,
-// and returns it as a [server] the caller closes when the shell stops
-// serving; every refusal returns no server. It returns before any
-// listener opens, so a caller refuses a trusted proxy value
-// [serve.ResolveTrustedProxy] refuses, a store this binary cannot open
-// or must not migrate, a refused settings seed, an unparseable mail
-// port, a bad theme or branding value, a refused operator CSS file, or
-// a missing music volume without accepting a connection.
+// newServeShell builds the shell the serve verb runs, owning prefix, and
+// returns it as a [server] the caller closes when the shell stops
+// serving. Every refusal returns no server, and none opens a listener.
 //
 // The order matters in three places. The intake startup check runs
 // before the store opens, and the settings seed applies before anything
@@ -115,27 +104,19 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 //
 // No mount authenticates by bearer credential, so none registers a
 // bearer bypass and every one stays behind the origin check. A route
-// that bypasses it must come with a shell-level test that it never
-// reads the session cookie.
+// that bypasses it needs a shell-level test that it never reads the
+// session cookie.
 //
-// The members document is mounted behind [auth.RequireAdmin], outside
-// the method and path checks, so a non-admin meets the gate's 404
-// whatever the method or the path, and only a verified admin ever
-// meets a 405.
+// The members document mounts behind [auth.RequireAdmin], outside the
+// method and path checks, so a non-admin meets the gate's 404 whatever
+// the method or path and only a verified admin meets a 405.
 //
 // The trusted proxy class governs both the strip's forwarded-address
 // carve-out and every handler's ClientIP, so the peer whose forwarded
-// headers survive the strip is exactly the peer whose header names the
-// client. Every identity header is stripped from every peer, the
-// trusted proxy included, since a proxy is trusted for the client
-// address alone. The boundary probe route mounts like every other
-// route, so the request it counts is the one the strip has already
-// cleared, and its peer rule reads bindAddrs and the same proxy class.
-//
-// Every record the shell and its handlers write goes to logger. The
-// shell sends Strict-Transport-Security only when the public URL is
-// https on a host that is not loopback; see [sendsHSTS]. The nonce
-// sweep runs bound to ctx; see [sweepNonces].
+// headers survive the strip is the peer whose header names the client.
+// Every identity header is stripped from every peer, a trusted proxy
+// included. The boundary probe mounts like every other route, so the
+// request it counts is one the strip has already cleared.
 func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
 	buildFS, err := embeddedBuild()
 	if err != nil {
@@ -255,8 +236,10 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Now:      time.Now,
 		Logger:   shell.Logger(),
 	}
+	// The shell mounts a name and everything under it to one handler, so
+	// the probe answers the shell's 404 to any deeper path itself.
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
-	routes.Register(serve.ProbeRouteName, exactPath(probePath, serve.NewProbeRoute(bindAddrs, proxyConfig)))
+	routes.Register(serve.ProbeRouteName, webapp.ExactPaths(map[string]http.Handler{probePath: serve.NewProbeRoute(bindAddrs, proxyConfig)}))
 
 	adminSeam := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
@@ -365,38 +348,18 @@ func sendsHSTS(publicURL string) bool {
 	return u.Scheme == "https" && !auth.IsLoopbackHost(u.Hostname())
 }
 
-// exactPath wraps next, answering [http.NotFoundHandler]'s own 404 to any
-// request whose r.URL.Path is not exactly want. [serve.Shell.Register]
-// mounts both the subtree name and everything under name+"/" to the
-// same handler ([serve.Shell.Register]), and the shell
-// dispatches through its mux's own Handler method, which leaves
-// r.Pattern unset, so a mounted handler cannot otherwise tell its own
-// exact path from a deeper one. The roster API needs the distinction:
-// a request to <prefix>/roster/roster must answer the shell's 404,
-// never the member list, and the shell's 404 this wrap answers is
-// byte-equal to the admin gate's own refusal, so a non-admin sees the
-// same answer on either side of it. It is [webapp.ExactPaths] narrowed
-// to the one-route case.
-func exactPath(want string, next http.Handler) http.Handler {
-	return webapp.ExactPaths(map[string]http.Handler{want: next})
-}
-
-// openNonceStore opens the consumed-nonce store under authStore, its
-// retention reading [auth.NonceRetentionSetting] through acc, and sweeps it
-// once at now. It exists as its own function so a test can open the
-// store newServeShell opens and read the retention it was wired with.
+// openNonceStore opens the consumed-nonce store under authStore, with
+// its retention read through acc, and sweeps it once at now. A test
+// opens the store the way newServeShell does and reads the retention it
+// was wired with.
 func openNonceStore(ctx context.Context, authStore *auth.Store, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
 	nonces, _, err := auth.OpenNonceStore(ctx, authStore, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 
-// authHandlersConfig builds the [auth.HandlersConfig] newServeShell
-// mounts the auth handlers from, each setting a reader over acc. It
-// exists as its own function so a test can read the config it built
-// rather than recomputing the same values by hand: PublicOrigin,
-// Prefix, and each reader are wiring rather than logic, so the only
-// proof a caller loses none of them is a test that reads this
-// function's own return value.
+// authHandlersConfig builds the [auth.HandlersConfig] the auth handlers
+// mount from, each setting a reader over acc. A test reads the config
+// it returns, the only proof that no caller loses a wired value.
 func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.Accessor, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
 	return auth.HandlersConfig{
 		Roster:             roster,
@@ -435,12 +398,9 @@ func methodOnly(method string, h http.Handler) http.Handler {
 }
 
 // newMailer resolves the magic-link source's five SMTP keys into a
-// [notify.Mailer]. The port is the one value among them this file
-// converts rather than passes through. the magic-link source's
-// Validate hook already bounds the port to 1 through 65535 at load
-// time, so doctor and every verb see a bad port before the serve verb
-// ever listens; this parse is the defensive second read that turns the
-// bounded string back into the int [notify.Config] takes.
+// [notify.Mailer]. The source's Validate hook already bounds the port
+// at load, so the parse here only turns the string into the int
+// [notify.Config] takes.
 func newMailer(cfg *config.Config) (*notify.Mailer, error) {
 	port, err := strconv.Atoi(cfg.IdentitySourceValue(auth.SMTPPortKey))
 	if err != nil {

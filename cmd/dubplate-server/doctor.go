@@ -23,23 +23,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newDoctorCmd builds the doctor subcommand: it reports the config
-// wall's owned rows, reserved classes, integration classes,
-// registered thresholds, and declared identity sources, one line each
-// in "%-32s %s" form and one block per family in that order, deriving
-// every row from reg so no rung hard-codes a count. That table is the
-// command's human output; on an unsatisfied wall RunE returns a single
-// short error, leaving main as the sole stderr writer. Exit status is 1
-// when [config.Load] refuses environ, the members row finds a store
-// with no live admin, the store row reports a failing state, the auth
-// store row finds a leaf serve would refuse or could not write, the backup remote row fails,
-// the unidecode row finds the transliteration table missing or
-// invalid, the client ip row refuses the trusted proxy values, the web
-// row refuses what serve startup would refuse, the
-// bind addresses row finds a configured address absent or cannot
-// check it, the boundary probe row finds a header the strip should
-// have removed or an answer it cannot read, or a registered setting's
-// row refuses; 0 otherwise.
+// newDoctorCmd builds the doctor subcommand: it prints one line per row
+// of the config wall, one block per family, deriving every row it can
+// from reg. The exit status is 1 when [config.Load] refuses environ or
+// any row it prints reports a failure, and 0 otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "doctor",
@@ -47,19 +34,16 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			// Load and the staging nesting rule run apart rather than
-			// through loadConfig, so the nesting lands on the staging
-			// row as "invalid" and the report carries on with the
-			// config Load resolved.
+			// Load and the staging rule run apart from loadConfig so a
+			// nesting lands on the staging row as "invalid" and the report
+			// carries on with the config Load resolved.
 			cfg, loadErr := config.Load(environ, reg)
 			if loadErr == nil {
 				loadErr = intake.ResolveStaging(cfg)
 			}
 			statuses := rowStatuses(loadErr)
 
-			// Every family appends its rows, in print order, and ORs its
-			// own failure into failed. One loop prints them once every
-			// probe has run, so a row is added in one place.
+			// Rows print once every probe has run.
 			var rows []doctorRow
 			failed := loadErr != nil
 			add := func(key, status string) {
@@ -70,10 +54,9 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				failed = failed || rowFailed
 			}
 
-			// The store is inspected before any row is added, though its
-			// row prints later: the admin email row's status reads the
-			// roster standing the same inspection reports, so doctor
-			// still inspects once and the print order is unchanged.
+			// The store is inspected first and its row prints later: the
+			// admin email row reads the roster standing the same
+			// inspection reports.
 			storeStatus, storeFailed, storeReport, storeChecked := store.DoctorRow(cmd.Context(), environ)
 
 			for _, row := range reg.OwnedWall() {
@@ -104,60 +87,34 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 				add(src.Name, identitySourceStatus(environ, src, statuses))
 			}
 
-			// A load error keyed by a name no printed row claims (a
-			// superseded, reserved-class, or unknown key) would leave
-			// the exit status unexplained, so each prints on a line of
-			// its own, and only when one exists.
+			// A load error keyed by a name no printed row claims would
+			// leave the exit status unexplained, so each prints on a line
+			// of its own.
 			for _, key := range unclaimedLoadErrors(reg, statuses) {
 				add(key, statuses[key])
 			}
 
-			// The store row follows every other row, always printing
-			// exactly one line, absent state included: a store the
-			// doctor run cannot vouch for is as reportable as a missing
-			// config key.
+			// Each fixed row below prints exactly one line whatever its
+			// state, so a store or a config doctor cannot vouch for is as
+			// reportable as a missing key.
 			addChecked("store", storeStatus, storeFailed)
 
-			// The members row prints from the report the store row
-			// read, so doctor inspects once, and always prints exactly
-			// one line.
 			membersStatus, membersFailed := auth.MembersRowStatus(storeReport, storeChecked)
 			addChecked(membersDoctorRow, membersStatus, membersFailed)
 
-			// The auth store row follows the store row and always
-			// prints exactly one line: it reads "not checked" when
-			// Load refused environ, since the state directory is then
-			// unknown.
 			authStoreStatus, authStoreFailed := auth.StoreRowStatus(cfg, auth.StoreRowOptions{Geteuid: os.Geteuid})
 			addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
 
-			// The backup rows print unconditionally, the store row's own precedent: the facts
-			// rows read "not checked" rather than disappear when the
-			// store cannot supply them, and the remote row reads
-			// "unavailable" rather than disappear while the flag is off.
 			for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
 				add(row.key, row.status)
 			}
 			backupRemoteStatus, backupRemoteFailed := backup.RemoteRowStatus(cmd.Context(), environ, backup.RemoteRowOptions{FeaturesTimeout: backupFeaturesTimeout})
 			addChecked(backupRemoteRow, backupRemoteStatus, backupRemoteFailed)
 
-			// The unidecode row follows the backup rows, the store
-			// row's own precedent: it always prints exactly one line,
-			// since the matcher can never score without a verified
-			// table.
 			unidecodeStateDir, _ := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 			unidecodeStatus, unidecodeFailed := unidecode.RowStatus(unidecodeStateDir)
 			addChecked(unidecodeDoctorRow, unidecodeStatus, unidecodeFailed)
 
-			// The four boundary rows follow the unidecode row and
-			// precede the settings rows, so every fixed-count row
-			// comes before the one variable-count family. Each
-			// prints exactly one line whatever its state: client ip
-			// and web read "not checked" when Load refused environ.
-			// The bind addresses row calls [net.InterfaceAddrs]
-			// once and hands the status function both results. The
-			// boundary probe row dials each bind address on the
-			// serve port, each dial and answer bounded.
 			clientIPStatus, clientIPFailed := serve.ClientIPRowStatus(cfg)
 			addChecked(clientIPDoctorRow, clientIPStatus, clientIPFailed)
 			webStatus, webFailed := webapp.RowStatus(cfg, webRowResolve(environ))
@@ -168,9 +125,6 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			probeStatus, probeFailed := serve.BoundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
 			addChecked(boundaryProbeDoctorRow, probeStatus, probeFailed)
 
-			// The music volume row closes the fixed-count rows: serve's
-			// startup check on staging and the library root, and where
-			// each collection root the store lists sits.
 			var collectionRoots [][]byte
 			if storeChecked && storeReport.Facts != nil {
 				collectionRoots = storeReport.Facts.CollectionRoots
@@ -178,10 +132,8 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			volumeStatus, volumeFailed := intake.VolumeRowStatus(cfg, collectionRoots)
 			addChecked(musicVolumeDoctorRow, volumeStatus, volumeFailed)
 
-			// The settings rows print one per registered setting, in
-			// declaration order, after the boundary rows, and one row
-			// per orphan the store holds under a key no rung still
-			// declares.
+			// One row per registered setting, then one per orphan the
+			// store holds under a key nothing declares.
 			settingsRows, settingsFailed := settingsDoctorRows(environ, reg, storeReport, storeChecked)
 			rows = append(rows, settingsRows...)
 			failed = failed || settingsFailed
@@ -201,11 +153,9 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 	return cmd
 }
 
-// unclaimedLoadErrors returns, in sorted order, the DUBPLATE_ keys
-// statuses reports for which no row doctor prints is responsible: the
-// owned wall rows, the thresholds, and the identity sources' selector
-// and keys each read their status from statuses, so every other key reaches
-// the operator only through the list this returns.
+// unclaimedLoadErrors returns, sorted, the DUBPLATE_ keys statuses
+// reports that no owned row, threshold, or identity source reads its
+// status from.
 func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []string {
 	claimed := make(map[string]bool)
 	for _, row := range reg.OwnedWall() {
@@ -230,14 +180,9 @@ func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []str
 }
 
 // adminEmailKey is the owned wall row naming the operator's address.
-// The environment only seeds the first admin: the roster alone decides
-// who is one, so the row warns when the address no longer names a live
-// admin.
 const adminEmailKey = "DUBPLATE_ADMIN_EMAIL"
 
-// The four boundary rows doctor prints after the unidecode row and
-// before the settings rows. They are fixed rows rather than registry
-// declarations, so reg alone never accounts for them.
+// The boundary rows, fixed rather than declared in the registry.
 const (
 	clientIPDoctorRow      = "client ip"
 	webDoctorRow           = "web"
@@ -248,10 +193,8 @@ const (
 // unidecodeDoctorRow is the row reporting the unidecode table.
 const unidecodeDoctorRow = "unidecode"
 
-// The backup rows doctor prints from the store's facts. The "backup
-// remote" row prints unconditionally and is distinct from the generic
-// integration-class loop's "backup" row (enabled or disabled), which
-// runs regardless.
+// The backup rows, apart from the integration-class loop's "backup"
+// row, which reads enabled or disabled.
 const (
 	backupRemoteRow      = "backup remote"
 	backupLastSuccessRow = "backup last success"
@@ -283,17 +226,13 @@ func printRow(w io.Writer, key, status string) error {
 
 // rowStatuses maps the joined error [config.Load] returns, and the
 // staging check's, to per-key status text: "missing" for a row
-// [config.ErrMissing] flags, or "invalid: " plus the row's own reason
-// for anything else. Each leaf's key and reason are read from its
-// [config.KeyError], never parsed out of the text. A leaf that carries
-// no KeyError names no row and gets no entry; doctor still fails on
-// it, since the failure follows the load error itself. A key with no
-// entry is unmentioned in err and therefore satisfied.
+// [config.ErrMissing] flags, or "invalid: " plus the row's reason for
+// anything else. A leaf with no [config.KeyError] names no row and gets
+// no entry, and a key with no entry is satisfied.
 //
 // It flattens nested joins to any depth: an identity source's Validate
-// hook joins its failures into one error before [config.Load] joins
-// that alongside every other row's, so a hook that names two bad keys
-// at once must not collapse into one entry naming the first key.
+// hook joins its failures before [config.Load] joins them with every
+// other row's.
 func rowStatuses(err error) map[string]string {
 	statuses := make(map[string]string)
 	if err == nil {
@@ -314,10 +253,8 @@ func rowStatuses(err error) map[string]string {
 	return statuses
 }
 
-// flattenErrors returns every leaf of err's error tree: err itself when
-// it does not implement Unwrap() []error, or the flattened leaves of
-// every error it wraps when it does. [errors.Join] returns exactly that
-// interface, so this recursion unwraps nested calls to any depth.
+// flattenErrors returns every leaf of err's tree of [errors.Join]
+// errors.
 func flattenErrors(err error) []error {
 	joined, ok := err.(interface{ Unwrap() []error })
 	if !ok {
@@ -330,19 +267,11 @@ func flattenErrors(err error) []error {
 	return leaves
 }
 
-// thresholdStatus resolves t's effective value against environ,
-// reporting a parse failure the same way an owned row reports one:
-// "invalid: " plus the reason. It consults statuses first: a
-// threshold's Parse* call sees only that threshold's value, so a
-// relational refusal a hook raises against it, such as the retention
-// against expiry comparison, is invisible there and must be read from
-// the flattened [rowStatuses] map, as an owned wall row's is.
-//
-// Absent such an entry, the switch names every registered kind. Its
-// default arm never fires against a threshold the registry accepted,
-// because [config.Registry.AddThreshold] refuses an unnamed kind, but
-// it reports a registration bug as one rather than falling through to
-// ParseInt, which would misreport it as an environment problem.
+// thresholdStatus resolves t's effective value against environ, and
+// reports a parse failure as "invalid: " plus the reason. It consults
+// statuses first, because a relational refusal a hook raises against a
+// threshold, such as the retention against expiry comparison, is
+// invisible to that threshold's own Parse call.
 func thresholdStatus(environ []string, statuses map[string]string, t config.Threshold) string {
 	if status, ok := statuses[t.Key]; ok {
 		return status
@@ -363,9 +292,6 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 	case config.KindFloat:
 		var f float64
 		f, err = config.ParseFloat(environ, t)
-		// 'g' with precision -1 prints the shortest decimal that
-		// round-trips back to f through strconv.ParseFloat, which is
-		// the same parser config.ParseFloat reads a set value through.
 		value = strconv.FormatFloat(f, 'g', -1, 64)
 	case config.KindString:
 		value, err = config.ParseString(environ, t)
@@ -381,23 +307,15 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 	return value
 }
 
-// identitySourceStatus reports how src stands against environ:
-// inactive when the selector names another source, "unsatisfied: "
-// plus every failing key when it is the selected one and either
-// [config.Load] flagged one of its Required or Optional rows or src's
-// own Validate hook refuses the values those rows resolve to, and
-// active otherwise. Optional is consulted alongside Required because a
-// short rotation-overlap secret is one of the source's Optional keys.
-// Validate is rerun directly because a relational refusal, such as the
-// retention against expiry comparison, is keyed against a threshold's
-// name rather than one of src's Required or Optional keys, so the
-// per-key sweep above cannot see it; its failing keys are read through [config.KeyError] via
-// errors.AsType, never by parsing the rendered message, so a reason that
-// itself carries a colon cannot be mistaken for a key. It names no
-// value, because a source's required set carries secrets and doctor's
-// table is read on a terminal: a Required or Optional key's reason is
-// printed only when it does not quote the value, through
-// [sourceKeyWord].
+// identitySourceStatus reports how src stands against environ: inactive
+// when the selector names another source, "unsatisfied: " plus every
+// failing key when it is selected and [config.Load] flagged one of its
+// Required or Optional rows or its Validate hook refuses their values,
+// and active otherwise. Validate is rerun because a relational refusal
+// is keyed against a threshold's name, which the per-key sweep cannot
+// see. It names no value, since a source's keys carry secrets and the
+// table is read on a terminal; [sourceKeyWord] withholds a reason that
+// quotes one.
 func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
@@ -453,14 +371,10 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 	return "unsatisfied: " + strings.Join(failing, ", ")
 }
 
-// sourceKeyWord renders one per-key status as the text doctor's source
-// line carries beside the key: "missing" for [rowStatuses]'s "missing"
-// entry, and "invalid" for its "invalid: " prefixed entries, followed
-// by the reason in parentheses whenever the reason does not quote
-// value, the key's configured value. A source's own keys have no row
-// of their own, so this is the one place doctor can show the reason
-// check prints; a reason that does quote the value is withheld, since
-// the key may carry a secret and doctor's table is read on a terminal.
+// sourceKeyWord renders one per-key status as the word the source line
+// carries beside the key: "missing", or "invalid" followed by the
+// reason in parentheses. A reason that quotes value is withheld, because
+// the value may be a secret.
 func sourceKeyWord(status, value string) string {
 	if status == "missing" {
 		return "missing"

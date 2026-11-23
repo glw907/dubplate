@@ -40,14 +40,8 @@ import (
 var version = "dev"
 
 // matcherCommit is the Go matcher revision this build carries, set via
-// -ldflags "-X main.matcherCommit=..." at build time. It stays "dev"
-// for workstation builds. The version verb prints it, so an operator
-// can read which matcher revision a deployed binary carries.
-//
-// scripts/deploy.sh is the only build path that sets it, passing
-// -X main.matcherCommit= through make build-linux's LDFLAGS variable;
-// every other build (bare `go build`, `make build`, a bare `make
-// build-linux`) leaves it "dev".
+// -ldflags "-X main.matcherCommit=..." by scripts/deploy.sh alone. Every
+// other build leaves it "dev".
 var matcherCommit = "dev"
 
 func main() {
@@ -55,10 +49,8 @@ func main() {
 }
 
 // run executes cmd under the signal-derived context and returns the
-// process's exit status. A nil error is 0; an error wrapping an
-// *exitCodeErr exits with the code it names; every other error prints
-// and exits 1. It is split out of main so a test can
-// assert the status without calling os.Exit itself.
+// process's exit status: 0 for a nil error, the code an *exitCodeErr
+// names, and 1 for any other error, which it prints.
 func run(cmd *cobra.Command) int {
 	err := executeWithSignalContext(cmd)
 	if err == nil {
@@ -96,16 +88,10 @@ func (e *exitCodeErr) Error() string { return e.err.Error() }
 func (e *exitCodeErr) Unwrap() error { return e.err }
 
 // executeWithSignalContext runs cmd under a context canceled by SIGINT
-// or SIGTERM. It is what makes the serve verb's graceful drain reachable
-// at all: cobra's own Execute passes context.Background, whose Done
-// channel is nil, so serve.Run would block on a select that can never
-// fire and the process would die on the signal's default disposition
-// with every in-flight request cut. Every other verb returns before a
-// signal can arrive, so this costs them nothing.
-//
-// It is split out of main so a test can assert the wiring. main itself
-// holds only the error print and the exit status, which a test cannot
-// call.
+// or SIGTERM. Without it serve's graceful drain is unreachable: cobra's
+// Execute passes context.Background, whose Done channel is nil, so the
+// process would die on the signal's default action with every in-flight
+// request cut.
 func executeWithSignalContext(cmd *cobra.Command) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -113,13 +99,9 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 }
 
 // newProductionRegistry builds the registry the binary runs against:
-// the config package's own seed, plus every area's own registration
-// call, in a fixed order. newRootCmd and the test suite's own
-// productionRegistry helper (serve_test.go) both call it, so the
-// production registration order is written once rather than restated
-// by hand in two places. The serve package registers twice because its
-// thresholds and its trusted proxy class are registered at two places
-// in the order, and the registry dump holds that order.
+// every package's registration, in the order the registry dump holds.
+// The serve package registers twice because its thresholds and its
+// trusted proxy class sit at two places in that order.
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
 	auth.Register(reg)
@@ -134,11 +116,10 @@ func newProductionRegistry() *config.Registry {
 	return reg
 }
 
-// loadConfig is config.Load plus the checks no single row can express:
-// staging and the library root must not overlap (resolveStaging). Every
-// verb that loads the wall loads it here, so backup and restore, which
-// act on the library tree the rule protects, refuse an overlap as serve
-// does.
+// loadConfig is config.Load plus the check no single row can express:
+// staging and the library root must not overlap. Every verb that loads
+// the wall loads it here, so backup and restore refuse an overlap as
+// serve does.
 func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) {
 	cfg, err := config.Load(environ, reg)
 	if err != nil {
@@ -150,13 +131,11 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 	return cfg, nil
 }
 
-// newRootCmd builds the production registry once, visibly, and passes
-// it to every subcommand that enforces against it: registration order
-// stays readable here rather than hidden behind an init function, the
-// explicit-registration rule stated in the Registry doc comment
-// (internal/config/registry.go).
+// newRootCmd builds the production registry once and passes it to every
+// subcommand that enforces against it.
 func newRootCmd() *cobra.Command {
 	reg := newProductionRegistry()
+	environ := os.Environ()
 	operator := operatorVerbs{WriteWait: storeWait, LookupID: user.LookupId}
 
 	cmd := &cobra.Command{
@@ -167,21 +146,20 @@ func newRootCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		newVersionCmd(),
-		newCheckCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		operator.newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		operator.newSettingsCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newRestoreCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newUnidecodeCmd(os.Environ(), os.Stdout, os.Stderr),
+		newCheckCmd(environ, reg, os.Stdout, os.Stderr),
+		newDoctorCmd(environ, reg, os.Stdout, os.Stderr),
+		newServeCmd(environ, reg, os.Stdout, os.Stderr),
+		operator.newMemberCmd(environ, reg, os.Stdout, os.Stderr),
+		operator.newSettingsCmd(environ, reg, os.Stdout, os.Stderr),
+		newBackupCmd(environ, reg, os.Stdout, os.Stderr),
+		newRestoreCmd(environ, reg, os.Stdout, os.Stderr),
+		newUnidecodeCmd(environ, os.Stdout, os.Stderr),
 	)
 	return cmd
 }
 
-// newVersionCmd prints two labeled rows, "version" then
-// "matcher-commit", in doctor.go's own printRow shape. The
-// matcher-commit row is what a real deploy's smoke step asserts on.
+// newVersionCmd prints the "version" row, then the "matcher-commit" row
+// a deploy's smoke step asserts on.
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
