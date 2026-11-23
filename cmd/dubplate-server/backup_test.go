@@ -158,7 +158,7 @@ func appendBackupStandinLine(path, line string) {
 }
 
 // TestBackupCmd_LongNamesExitCodes proves newBackupCmd's help text names
-// every exit status Ruling 3 assigns this verb, so a drift between the
+// every exit status this verb assigns, so a drift between the
 // codes and the documented table would fail here rather than only
 // showing up as a wrong number an operator reads past. Each real-trigger
 // test below (Unavailable, Conflict, Succeeded, Failed,
@@ -174,9 +174,9 @@ func TestBackupCmd_LongNamesExitCodes(t *testing.T) {
 	}{
 		{"succeeded", "\n  0    the backup succeeded"},
 		{"failed", "\n  1    the backup failed"},
-		{"unavailable", "\n  " + strconv.Itoa(exitBackupUnavailable) + "   backup integration is disabled"},
-		{"conflict", "\n  " + strconv.Itoa(exitBackupConflict) + "   a backup is already running"},
-		{"canceled", "\n  " + strconv.Itoa(exitBackupCanceled) + "  canceled by any means"},
+		{"unavailable", "\n  " + strconv.Itoa(exitUnavailable) + "   backup integration is disabled"},
+		{"conflict", "\n  " + strconv.Itoa(exitTempFail) + "   a backup is already running"},
+		{"canceled", "\n  " + strconv.Itoa(exitInterrupted) + "  canceled by any means"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -217,7 +217,7 @@ func TestReportOutcome_Table(t *testing.T) {
 			name:     "canceled",
 			job:      ops.JobStatus{ID: "abc123", State: ops.JobCanceled},
 			wantErr:  true,
-			wantCode: exitBackupCanceled,
+			wantCode: exitInterrupted,
 		},
 		{
 			name:    "failed",
@@ -278,25 +278,25 @@ func TestWrapExitCode_Table(t *testing.T) {
 		err      error
 		wantCode int // 0 means "left unwrapped"
 	}{
-		{name: "unavailable", err: ops.NewUnavailableError("backup integration disabled"), wantCode: exitBackupUnavailable},
-		{name: "conflict", err: ops.NewConflictError("backup job abc123 is running"), wantCode: exitBackupConflict},
+		{name: "unavailable", err: ops.NewUnavailableError("backup integration disabled"), wantCode: exitUnavailable},
+		{name: "conflict", err: ops.NewConflictError("backup job abc123 is running"), wantCode: exitTempFail},
 		{name: "any other error", err: errors.New("boom"), wantCode: 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := wrapExitCode(tt.err)
+			got := backupExitCode(tt.err)
 			ece, wrapped := errors.AsType[*exitCodeErr](got)
 			if tt.wantCode == 0 {
 				if wrapped {
-					t.Errorf("wrapExitCode(%v) wrapped exit code %d, want it left unwrapped", tt.err, ece.code)
+					t.Errorf("backupExitCode(%v) wrapped exit code %d, want it left unwrapped", tt.err, ece.code)
 				}
 				if !errors.Is(got, tt.err) {
-					t.Errorf("wrapExitCode(%v) = %v, want it to still wrap the original error", tt.err, got)
+					t.Errorf("backupExitCode(%v) = %v, want it to still wrap the original error", tt.err, got)
 				}
 				return
 			}
 			if !wrapped {
-				t.Fatalf("wrapExitCode(%v) = %v, want it to wrap an exit code", tt.err, got)
+				t.Fatalf("backupExitCode(%v) = %v, want it to wrap an exit code", tt.err, got)
 			}
 			if ece.code != tt.wantCode {
 				t.Errorf("exit code = %d, want %d", ece.code, tt.wantCode)
@@ -383,8 +383,8 @@ func TestBackupCmd_Unavailable(t *testing.T) {
 
 	var stdout bytes.Buffer
 	code, err := backupRunFor(context.Background(), environ, &stdout)
-	if code != exitBackupUnavailable {
-		t.Errorf("exit = %d, want %d; error: %v", code, exitBackupUnavailable, err)
+	if code != exitUnavailable {
+		t.Errorf("exit = %d, want %d; error: %v", code, exitUnavailable, err)
 	}
 	if err == nil || !strings.Contains(err.Error(), "backup integration disabled") {
 		t.Errorf("error = %v, want it to name \"backup integration disabled\"", err)
@@ -455,8 +455,8 @@ func TestBackupCmd_Conflict(t *testing.T) {
 
 	var stdout bytes.Buffer
 	code, err := backupRunFor(context.Background(), environ, &stdout)
-	if code != exitBackupConflict {
-		t.Errorf("exit = %d, want %d; error: %v", code, exitBackupConflict, err)
+	if code != exitTempFail {
+		t.Errorf("exit = %d, want %d; error: %v", code, exitTempFail, err)
 	}
 	if err == nil || !strings.Contains(err.Error(), "running") {
 		t.Errorf("error = %v, want it to name the running job", err)
@@ -926,8 +926,8 @@ func TestBackupVerb_SignalHandling(t *testing.T) {
 				if !ok {
 					t.Fatalf("verb child exited %v, want an *exec.ExitError; stderr:\n%s", err, stderr.String())
 				}
-				if code := exitErr.ExitCode(); code != exitBackupCanceled {
-					t.Errorf("verb child exit code = %d, want %d; stderr:\n%s", code, exitBackupCanceled, stderr.String())
+				if code := exitErr.ExitCode(); code != exitInterrupted {
+					t.Errorf("verb child exit code = %d, want %d; stderr:\n%s", code, exitInterrupted, stderr.String())
 				}
 			case <-time.After(25 * time.Second):
 				t.Fatalf("verb child did not exit; stderr:\n%s", stderr.String())

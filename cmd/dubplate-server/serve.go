@@ -96,65 +96,46 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 
 // newServeShell builds the shell the serve verb runs, owning prefix,
 // and returns it as a [server] the caller closes when the shell stops
-// serving; every refusal returns no server. It first refuses an intake
-// format allowlist naming a format it cannot check and runs the startup
-// check on staging and the library root, so a missing music volume
-// refuses before the store is touched. It then opens the dubplate store
-// through [store.OpenServe], which creates it, migrates it, or finishes
-// a restore. It then applies the settings seed to
-// that store through [applySettingsSeed], so a refusal ends the start
-// before anything else is built, and reads the four rate limits the
-// seed left in force through [auth.ReadLimits]: they apply at the next
-// start, so they are read once, here. Every other auth setting is a
-// reader over the store that its handler, the seam, or the nonce store
-// calls at each use. It then opens the auth store and its nonce and
-// epoch stores, builds the roster over the store handle, the rate
-// limiter, the mailer, and the magic-link identity seam, constructs the
-// auth handlers, and mounts them under the owned
-// prefix, alongside the web routes [newWebRoutes] builds from environ.
-// It returns before any listener opens, so a caller refuses a trusted
-// proxy value [serve.ResolveTrustedProxy] refuses, a store this binary cannot
-// open or must not migrate, an unparseable mail port, a bad theme or
-// branding value, or a refused operator CSS file without ever accepting
-// a connection.
+// serving; every refusal returns no server. It returns before any
+// listener opens, so a caller refuses a trusted proxy value
+// [serve.ResolveTrustedProxy] refuses, a store this binary cannot open
+// or must not migrate, a refused settings seed, an unparseable mail
+// port, a bad theme or branding value, a refused operator CSS file, or
+// a missing music volume without accepting a connection.
 //
-// It registers no bearer bypass: no mount authenticates by bearer
-// credential, so every mount stays behind the origin check's
-// cookie-carrying protection. The first bypassed route will be the
-// 0.8 OpenSubsonic API or the bearer admin mount, and it must add a
-// shell-level test that it never reads the session cookie.
+// The order matters in three places. The intake startup check runs
+// before the store opens, and the settings seed applies before anything
+// else is built. Intake starts last, once nothing else can refuse: its
+// lease is held until Close, and a lease another process holds refuses
+// the start naming the holder.
 //
-// Every record the shell and its handlers write goes to logger.
+// The four rate limits the seed left in force are read once, here, and
+// apply at the next start. Every other auth setting is a reader over
+// the store, called at each use.
 //
-// The shell sends Strict-Transport-Security only when the public URL
-// is https on a host that is not loopback; see [sendsHSTS].
+// No mount authenticates by bearer credential, so none registers a
+// bearer bypass and every one stays behind the origin check. A route
+// that bypasses it must come with a shell-level test that it never
+// reads the session cookie.
 //
 // The members document is mounted behind [auth.RequireAdmin], outside
-// its own method and path checks, so a non-admin meets the gate's 404
+// the method and path checks, so a non-admin meets the gate's 404
 // whatever the method or the path, and only a verified admin ever
 // meets a 405.
 //
-// It starts the nonce sweep bound to ctx; see [sweepNonces].
+// The trusted proxy class governs both the strip's forwarded-address
+// carve-out and every handler's ClientIP, so the peer whose forwarded
+// headers survive the strip is exactly the peer whose header names the
+// client. Every identity header is stripped from every peer, the
+// trusted proxy included, since a proxy is trusted for the client
+// address alone. The boundary probe route mounts like every other
+// route, so the request it counts is the one the strip has already
+// cleared, and its peer rule reads bindAddrs and the same proxy class.
 //
-// Last, once nothing else can refuse, it starts intake: the intake
-// lease, held until Close, then the startup pass under it, then the tus
-// mount, then the checking workers and the sweep, which run on a
-// context derived from ctx. A lease another process holds refuses the
-// start naming the holder.
-//
-// The trusted proxy class, resolved through [serve.ResolveTrustedProxy],
-// governs both the strip's forwarded-address carve-out and every
-// handler's ClientIP, so the peer whose forwarded headers survive the
-// strip is exactly the peer whose header names the client. With the
-// class off, PeerAddress is the client address. Every identity header
-// is stripped from every peer, the trusted proxy included, since a
-// proxy is trusted for the client address alone.
-//
-// The boundary probe route mounts under the owned prefix like every
-// other route, so the request it counts is the one the strip has
-// already cleared. Its peer rule reads bindAddrs, the resolved list
-// the caller listens on, and the same trusted proxy configuration the
-// strip carries.
+// Every record the shell and its handlers write goes to logger. The
+// shell sends Strict-Transport-Security only when the public URL is
+// https on a host that is not loopback; see [sendsHSTS]. The nonce
+// sweep runs bound to ctx; see [sweepNonces].
 func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
 	buildFS, err := embeddedBuild()
 	if err != nil {
@@ -355,18 +336,12 @@ func openServeStore(ctx context.Context, environ []string, reg *config.Registry,
 	return h, nil
 }
 
-// serveSeedWriteWait bounds how long the seed's write waits for the
-// store's write connection. [store.Handle.Update] refuses a context
-// with no deadline; the busy timeout, not this wait, bounds another
-// process's lock.
-const serveSeedWriteWait = 30 * time.Second
-
 // applySettingsSeed applies the environment seed rule to the store h
 // holds, so every setting row serve reads from here on already agrees
 // with the environment. A refusal returns the joined refusal and
 // changes nothing; the caller then starts no listener.
 func applySettingsSeed(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, logger *slog.Logger) error {
-	ctx, cancel := context.WithTimeout(ctx, serveSeedWriteWait)
+	ctx, cancel := context.WithTimeout(ctx, storeWait)
 	defer cancel()
 	if err := settings.Apply(ctx, h, reg, environ, time.Now(), logger); err != nil {
 		return fmt.Errorf("apply settings seed: %w", err)
@@ -393,7 +368,7 @@ func sendsHSTS(publicURL string) bool {
 // exactPath wraps next, answering [http.NotFoundHandler]'s own 404 to any
 // request whose r.URL.Path is not exactly want. [serve.Shell.Register]
 // mounts both the subtree name and everything under name+"/" to the
-// same handler (internal/serve/serve.go:94-96), and the shell
+// same handler ([serve.Shell.Register]), and the shell
 // dispatches through its mux's own Handler method, which leaves
 // r.Pattern unset, so a mounted handler cannot otherwise tell its own
 // exact path from a deeper one. The roster API needs the distinction:

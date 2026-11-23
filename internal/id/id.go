@@ -1,6 +1,9 @@
 // Package id holds the 16-byte identifier every store row and every
 // wire id is built on. It imports no other internal package, so any
 // package may name an id without a layering cost.
+//
+// A named type declared as type T id.ID has the same bytes and none of
+// the methods; convert it with id.ID(t) to call them.
 package id
 
 import (
@@ -9,6 +12,8 @@ import (
 	"encoding/hex"
 	"errors"
 )
+
+var errSyntax = errors.New("id: want 32 lowercase hex characters")
 
 // An ID is a random 16-byte key. It prints, and is parsed from, 32
 // lowercase hex characters.
@@ -26,9 +31,12 @@ func New() ID {
 // It says nothing about the all-zero id, which a caller that refuses it
 // checks with [ID.IsZero].
 func Parse(s string) (ID, error) {
+	if len(s) != hex.EncodedLen(len(ID{})) {
+		return ID{}, errSyntax
+	}
 	b, err := hex.DecodeString(s)
-	if err != nil || len(b) != len(ID{}) || hex.EncodeToString(b) != s {
-		return ID{}, errors.New("id: want 32 lowercase hex characters")
+	if err != nil || hex.EncodeToString(b) != s {
+		return ID{}, errSyntax
 	}
 	return ID(b), nil
 }

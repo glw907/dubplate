@@ -14,9 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// unidecodeDoctorRow is the doctor row's name.
-const unidecodeDoctorRow = "unidecode"
-
 // unidecodeInstallTimeout bounds the install verb's wheel download.
 const unidecodeInstallTimeout = 30 * time.Second
 

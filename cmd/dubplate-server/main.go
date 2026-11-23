@@ -56,8 +56,8 @@ func main() {
 
 // run executes cmd under the signal-derived context and returns the
 // process's exit status. A nil error is 0; an error wrapping an
-// *exitCodeErr exits with the code it names (Ruling 3); every other
-// error prints and exits 1. It is split out of main so a test can
+// *exitCodeErr exits with the code it names; every other error prints
+// and exits 1. It is split out of main so a test can
 // assert the status without calling os.Exit itself.
 func run(cmd *cobra.Command) int {
 	err := executeWithSignalContext(cmd)
@@ -71,10 +71,22 @@ func run(cmd *cobra.Command) int {
 	return 1
 }
 
-// An exitCodeErr wraps an error with the process exit status Ruling 3
-// assigns its outcome: a verb whose failure is not a plain refusal
-// (backup's unavailable, conflict, and canceled outcomes) names its
-// own status here rather than run matching on error text.
+// storeWait bounds each store open, write, and status read a verb or
+// the serve seed makes. [store.Handle.Update] refuses a context with no
+// deadline, and the busy timeout, not this wait, bounds another
+// process's lock.
+const storeWait = 30 * time.Second
+
+// The exit statuses a verb's outcome can carry beyond run's default of
+// 1, which any plain refusal gets.
+const (
+	exitUnavailable = 69  // EX_UNAVAILABLE: backup integration is disabled
+	exitTempFail    = 75  // EX_TEMPFAIL: another backup or a restore holds the lock
+	exitInterrupted = 130 // 128+SIGINT: canceled by a signal or another process
+)
+
+// An exitCodeErr wraps an error with the process exit status its
+// outcome carries, so run never matches on error text.
 type exitCodeErr struct {
 	code int
 	err  error
@@ -145,7 +157,7 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 // (internal/config/registry.go).
 func newRootCmd() *cobra.Command {
 	reg := newProductionRegistry()
-	operator := operatorVerbs{WriteWait: 30 * time.Second, LookupID: user.LookupId}
+	operator := operatorVerbs{WriteWait: storeWait, LookupID: user.LookupId}
 
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",

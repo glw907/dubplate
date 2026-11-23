@@ -20,7 +20,7 @@ import (
 
 // operatorVerbs carries what the member and settings verbs take from the
 // process, so a test builds them with values of its choosing. main fills
-// it with a 30 second wait and os/user.LookupId.
+// it with [storeWait] and os/user.LookupId.
 type operatorVerbs struct {
 	// WriteWait bounds how long a verb waits to open the store and, for
 	// member add, to write the member.
@@ -41,7 +41,7 @@ func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry, std
 		Use:   "member",
 		Short: "Manage the roster of group members",
 	}
-	cmd.AddCommand(ov.newMemberAddCmd(environ, reg, stdout, stderr))
+	cmd.AddCommand(ov.newMemberAddCmd(environ, reg, stderr))
 	cmd.AddCommand(ov.newMemberRemoveCmd(environ, reg, stderr))
 	cmd.AddCommand(ov.newMemberDemoteCmd(environ, reg, stderr))
 	cmd.AddCommand(ov.newMemberListCmd(environ, reg, stdout, stderr))
@@ -84,9 +84,9 @@ func writingRoster(h *store.Handle, stateDir, verb string) (*auth.Roster, error)
 // newMemberAddCmd builds "member add <address>": it opens the store in
 // write mode and adds the member through the roster's one write path.
 // --name and --username are required flags; an empty value still
-// reaches the roster's own write-path validation, since cobra's
-// required check proves only that the flag was set.
-func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer) *cobra.Command {
+// reaches the roster's write-path validation, since cobra's required
+// check proves only that the flag was set.
+func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
 	var name, username string
 	var admin bool
 

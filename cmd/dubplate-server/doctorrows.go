@@ -99,7 +99,7 @@ func settingsNoTableStatus(environ []string, s config.Setting) string {
 // settingsNotCheckedStatus renders s's row for a store state this
 // binary cannot vouch for: the default is shown for reference, since
 // no read reached the store's own row, and an env value is named as
-// not checked rather than compared. checked names whether storeRow ran
+// not checked rather than compared. checked names whether the store row ran
 // [store.Inspect] at all; when it did not, no state names why, so the
 // row says only "not checked".
 func settingsNotCheckedStatus(environ []string, s config.Setting, state store.State, checked bool) string {
@@ -128,11 +128,11 @@ func settingTraits(s config.Setting, source string) string {
 // backup rows: the newest succeeded backup's age (or "never"), the
 // store's -wal file size, the leaf's free space, and the local
 // snapshot copy count and size. Every row prints unconditionally, the
-// store row's own precedent (doctor.go's storeRow doc comment): a
-// store facts cannot vouch for is as reportable as one that can.
+// store row's precedent ([store.DoctorRow]): a store facts cannot
+// vouch for is as reportable as one that can.
 //
-// Every row reads "not checked" when checked is false (storeRow never
-// ran [store.Inspect]) or report carries no Facts, which
+// Every row reads "not checked" when checked is false (the store row
+// never ran [store.Inspect]) or report carries no Facts, which
 // [store.Inspect] leaves nil for a store this binary cannot read as
 // current: absent, busy, mid-restore, not a store, refused, newer, or
 // older below the version that added the jobs table.

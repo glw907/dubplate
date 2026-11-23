@@ -245,6 +245,21 @@ const (
 	boundaryProbeDoctorRow = "boundary probe"
 )
 
+// unidecodeDoctorRow is the row reporting the unidecode table.
+const unidecodeDoctorRow = "unidecode"
+
+// The backup rows doctor prints from the store's facts. The "backup
+// remote" row prints unconditionally and is distinct from the generic
+// integration-class loop's "backup" row (enabled or disabled), which
+// runs regardless.
+const (
+	backupRemoteRow      = "backup remote"
+	backupLastSuccessRow = "backup last success"
+	backupWALSizeRow     = "backup wal size"
+	backupFreeSpaceRow   = "backup free space"
+	backupLocalCopiesRow = "backup local copies"
+)
+
 // musicVolumeDoctorRow is the row reporting the music volume: staging,
 // the library root, and the collection roots under it.
 const musicVolumeDoctorRow = "music volume"
@@ -275,11 +290,10 @@ func printRow(w io.Writer, key, status string) error {
 // it, since the failure follows the load error itself. A key with no
 // entry is unmentioned in err and therefore satisfied.
 //
-// It flattens nested joins to any depth (review M4): an identity
-// source's own Validate hook joins its own failures into one error
-// before [config.Load] joins that alongside every other row's, so a
-// hook that names two bad keys at once must not collapse into one
-// entry naming the first key and swallowing the second.
+// It flattens nested joins to any depth: an identity source's Validate
+// hook joins its failures into one error before [config.Load] joins
+// that alongside every other row's, so a hook that names two bad keys
+// at once must not collapse into one entry naming the first key.
 func rowStatuses(err error) map[string]string {
 	statuses := make(map[string]string)
 	if err == nil {
@@ -303,8 +317,7 @@ func rowStatuses(err error) map[string]string {
 // flattenErrors returns every leaf of err's error tree: err itself when
 // it does not implement Unwrap() []error, or the flattened leaves of
 // every error it wraps when it does. [errors.Join] returns exactly that
-// interface, so this recursion is the whole of what unwraps its own
-// nested calls (review M4).
+// interface, so this recursion unwraps nested calls to any depth.
 func flattenErrors(err error) []error {
 	joined, ok := err.(interface{ Unwrap() []error })
 	if !ok {
@@ -319,20 +332,17 @@ func flattenErrors(err error) []error {
 
 // thresholdStatus resolves t's effective value against environ,
 // reporting a parse failure the same way an owned row reports one:
-// "invalid: " plus the reason. It consults statuses first (review
-// M4): a threshold's own Parse* call only ever sees that threshold's
-// own value, so a relational refusal a hook raises against it, such as
-// R31's retention-vs-expiry comparison, is invisible to Parse* and
-// must be read from the flattened [rowStatuses] map instead, the same
-// way an owned wall row already is.
+// "invalid: " plus the reason. It consults statuses first: a
+// threshold's Parse* call sees only that threshold's value, so a
+// relational refusal a hook raises against it, such as the retention
+// against expiry comparison, is invisible there and must be read from
+// the flattened [rowStatuses] map, as an owned wall row's is.
 //
-// Absent such an entry, the switch names every registered kind
-// explicitly; its default arm never fires against a threshold the
-// registry accepted, because [config.Registry.AddThreshold] refuses an
-// unnamed kind at registration, but it reports the registration bug in
-// its own words rather than falling through to ParseInt, which would
-// misreport a mis-declared threshold as an environment problem
-// (inventory surprise 11).
+// Absent such an entry, the switch names every registered kind. Its
+// default arm never fires against a threshold the registry accepted,
+// because [config.Registry.AddThreshold] refuses an unnamed kind, but
+// it reports a registration bug as one rather than falling through to
+// ParseInt, which would misreport it as an environment problem.
 func thresholdStatus(environ []string, statuses map[string]string, t config.Threshold) string {
 	if status, ok := statuses[t.Key]; ok {
 		return status
@@ -376,15 +386,12 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 // plus every failing key when it is the selected one and either
 // [config.Load] flagged one of its Required or Optional rows or src's
 // own Validate hook refuses the values those rows resolve to, and
-// active otherwise. Optional is consulted alongside Required (review
-// M4): a short rotation-overlap secret is one of the source's Optional
-// keys, and until this consultation it never reflected in this row,
-// however plainly the operator's own terminal showed the secret's key
-// rejected by name elsewhere. Validate is rerun directly (review M4)
-// because a relational refusal, such as R31's retention-vs-expiry
-// comparison, is keyed against a threshold's own name rather than one
-// of src's Required or Optional keys, so the per-key sweep above cannot
-// see it; its failing keys are read through [config.KeyError] via
+// active otherwise. Optional is consulted alongside Required because a
+// short rotation-overlap secret is one of the source's Optional keys.
+// Validate is rerun directly because a relational refusal, such as the
+// retention against expiry comparison, is keyed against a threshold's
+// name rather than one of src's Required or Optional keys, so the
+// per-key sweep above cannot see it; its failing keys are read through [config.KeyError] via
 // errors.AsType, never by parsing the rendered message, so a reason that
 // itself carries a colon cannot be mistaken for a key. It names no
 // value, because a source's required set carries secrets and doctor's

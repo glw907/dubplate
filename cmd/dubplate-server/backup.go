@@ -20,21 +20,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// The exit statuses this verb's outcomes carry beyond run's own
-// default of 1 (Ruling 3). 0 (succeeded) and 1 (failed, or any load or
-// store refusal) need no wrapping: run already returns them for a nil
-// or a plain error.
-const (
-	exitBackupUnavailable = 69
-	exitBackupConflict    = 75
-	exitBackupCanceled    = 130
-)
-
-// backupVerbWait bounds each of the verb's own store and runner calls:
-// how long it waits for the store's lock, another process's write, or
-// one status read.
-const backupVerbWait = 30 * time.Second
-
 // backupPollInterval is how often the verb re-reads a running job's
 // status while it waits for a terminal state.
 const backupPollInterval = 200 * time.Millisecond
@@ -87,7 +72,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	logger := slog.New(slog.NewTextHandler(stderr, nil))
 	opsCtx := context.WithoutCancel(ctx)
 
-	openCtx, cancelOpen := context.WithTimeout(opsCtx, backupVerbWait)
+	openCtx, cancelOpen := context.WithTimeout(opsCtx, storeWait)
 	defer cancelOpen()
 	h, err := store.OpenWrite(openCtx, cfg.StateDir, busyTimeout)
 	if err != nil {
@@ -99,7 +84,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
-	evalCtx, cancelEval := context.WithTimeout(opsCtx, backupVerbWait)
+	evalCtx, cancelEval := context.WithTimeout(opsCtx, storeWait)
 	ev, evalErr := settings.Evaluate(evalCtx, h, reg, environ)
 	cancelEval()
 	if evalErr != nil {
@@ -109,7 +94,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	}
 
 	acc := settings.NewAccessor(h, reg)
-	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, backupVerbWait)
+	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, storeWait)
 	defer cancelRunner()
 	runner, err := local.New(runnerCtx, local.Config{
 		Store:     h,
@@ -128,11 +113,11 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	}()
 
 	actor := ops.LocalActor(resolveActor(user.LookupId))
-	startCtx, cancelStart := context.WithTimeout(opsCtx, backupVerbWait)
+	startCtx, cancelStart := context.WithTimeout(opsCtx, storeWait)
 	resp, err := runner.StartBackup(startCtx, actor, ops.StartBackupRequest{})
 	cancelStart()
 	if err != nil {
-		return wrapExitCode(err)
+		return backupExitCode(err)
 	}
 	if _, err := fmt.Fprintf(stdout, "backup %s: started\n", resp.JobID); err != nil {
 		return err
@@ -193,7 +178,7 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor 
 		case <-ticker.C:
 		}
 
-		statusCtx, cancel := context.WithTimeout(opsCtx, backupVerbWait)
+		statusCtx, cancel := context.WithTimeout(opsCtx, storeWait)
 		resp, err := runner.JobStatus(statusCtx, actor, ops.JobStatusRequest{JobID: h})
 		cancel()
 		if err != nil {
@@ -213,7 +198,7 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor 
 // returning it: the job still ends canceled, through its own terminal
 // write, and awaitBackup's next poll reports that.
 func requestCancel(opsCtx context.Context, runner *local.Runner, actor ops.Actor, h ops.Handle, logger *slog.Logger) {
-	ctx, cancel := context.WithTimeout(opsCtx, backupVerbWait)
+	ctx, cancel := context.WithTimeout(opsCtx, storeWait)
 	defer cancel()
 	if _, err := runner.CancelJob(ctx, actor, ops.CancelJobRequest{JobID: h}); err != nil {
 		logger.Error("cancel job", "job", h, "err", err)
@@ -222,10 +207,10 @@ func requestCancel(opsCtx context.Context, runner *local.Runner, actor ops.Actor
 }
 
 // reportOutcome prints h's terminal state and reports run's exit
-// status for it (Ruling 3). A succeeded job prints to stdout and
-// returns nil, run's own 0; every other terminal state returns an
-// error, whose message run prints to stderr, wrapped with its exit
-// status where that status is not run's own default of 1.
+// status for it. A succeeded job prints to stdout and returns nil;
+// every other terminal state returns an error, whose message run
+// prints to stderr, wrapped with its exit status where that status is
+// not the default of 1.
 func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	switch job.State {
 	case ops.JobSucceeded:
@@ -236,7 +221,7 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 		_, err := fmt.Fprintln(stdout, msg)
 		return err
 	case ops.JobCanceled:
-		return &exitCodeErr{code: exitBackupCanceled, err: fmt.Errorf("backup %s: canceled", job.ID)}
+		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.ID)}
 	case ops.JobFailed:
 		return fmt.Errorf("backup %s: failed, code %s: %s", job.ID, job.FailureCode, job.FailureMessage)
 	default:
@@ -247,32 +232,20 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	}
 }
 
-// wrapExitCode maps a StartBackup error to its exit status: unavailable
+// backupExitCode maps a StartBackup error to its exit status: unavailable
 // while backup integration is off, conflict while another backup holds
 // the kind lease, and every other error unwrapped, run's own default
 // of 1.
-func wrapExitCode(err error) error {
+func backupExitCode(err error) error {
 	switch {
 	case errors.Is(err, ops.ErrUnavailable):
-		return &exitCodeErr{code: exitBackupUnavailable, err: err}
+		return &exitCodeErr{code: exitUnavailable, err: err}
 	case errors.Is(err, ops.ErrConflict):
-		return &exitCodeErr{code: exitBackupConflict, err: err}
+		return &exitCodeErr{code: exitTempFail, err: err}
 	default:
 		return err
 	}
 }
-
-// doctor's own backup rows. backupRemoteRow prints unconditionally,
-// the "backup remote" row's own key, distinct from the generic
-// integration-class loop's "backup" row (enabled/disabled), which
-// runs regardless.
-const (
-	backupRemoteRow      = "backup remote"
-	backupLastSuccessRow = "backup last success"
-	backupWALSizeRow     = "backup wal size"
-	backupFreeSpaceRow   = "backup free space"
-	backupLocalCopiesRow = "backup local copies"
-)
 
 // backupFeaturesTimeout bounds the `rclone backend features` probe
 // behind doctor's "backup remote" row.
