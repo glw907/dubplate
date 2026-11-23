@@ -38,7 +38,7 @@ func TestOwnedWall_RequiredNowRows(t *testing.T) {
 // DUBPLATE_SMTP_HOST no longer has a row here: rung 5 retired the "auth
 // and identity" reserved class it belonged to and declared it instead
 // as the magic-link identity source's own required key
-// (cmd/dubplate-server/auth.go). internal/config's own NewRegistry
+// (internal/auth). internal/config's own NewRegistry
 // never sees that declaration (the rung 1b registry contract), so its
 // classification as "identity source" is proved against the production
 // registry instead, in cmd/dubplate-server/templatekeys_test.go's

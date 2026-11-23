@@ -64,9 +64,8 @@ type WallRow struct {
 
 // ownedWall is the wall's required-now rows (spec, "The config wall,
 // derived"). The identity selector's owned-now row,
-// DUBPLATE_IDENTITY_SOURCE, is registered from
-// cmd/dubplate-server/auth.go rather than here: this package names no
-// key that belongs to another package.
+// DUBPLATE_IDENTITY_SOURCE, is registered by the command rather than
+// here: this package names no key that belongs to another package.
 var ownedWall = []WallRow{
 	{
 		Name:        "DUBPLATE_LIBRARY_ROOT",

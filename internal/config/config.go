@@ -8,9 +8,9 @@
 //
 //  1. Owned, required now: DUBPLATE_LIBRARY_ROOT, DUBPLATE_STATE_DIR,
 //     DUBPLATE_SITE_NAME, DUBPLATE_ADMIN_EMAIL, and, once an identity
-//     source is declared, DUBPLATE_IDENTITY_SOURCE, the selector naming which declared
-//     identity source is active (cmd/dubplate-server/auth.go
-//     registers it as an owned wall row alongside the source itself).
+//     source is declared, DUBPLATE_IDENTITY_SOURCE, the selector naming
+//     which declared identity source is active (the command registers
+//     it as an owned wall row alongside the source itself).
 //  2. Reserved for a rung: a name the wall recognizes as belonging to
 //     a capability that has not landed yet. Setting one early is a
 //     load error naming its class, never "unknown". The
@@ -251,21 +251,34 @@ func (w *wall) require(name string) string {
 	return v
 }
 
+// ParseAdminAddress parses v, the value of DUBPLATE_ADMIN_EMAIL, as a
+// single RFC 5322 address and returns the address portion lowercased,
+// the form the roster stores and [Config.AdminEmail] holds. A caller
+// that reads the key without [Load], as the doctor's store row does
+// when another key refuses, goes through it too, so no two readers can
+// differ on what the value names.
+func ParseAdminAddress(v string) (string, error) {
+	addr, err := mail.ParseAddress(v)
+	if err != nil {
+		return "", err
+	}
+	return strings.ToLower(addr.Address), nil
+}
+
 // requireEmail is [wall.require] for DUBPLATE_ADMIN_EMAIL: it parses
-// the value as a single RFC 5322 address and returns the address
-// portion lowercased, recording a parse error against name when the
-// value is set but not a valid address.
+// the value through [ParseAdminAddress], recording a parse error
+// against name when the value is set but not a valid address.
 func (w *wall) requireEmail(name string) string {
 	v := w.require(name)
 	if v == "" {
 		return ""
 	}
-	addr, err := mail.ParseAddress(v)
+	addr, err := ParseAdminAddress(v)
 	if err != nil {
 		w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("invalid email address %q", v)})
 		return ""
 	}
-	return strings.ToLower(addr.Address)
+	return addr
 }
 
 // siteNameMaxBytes bounds DUBPLATE_SITE_NAME: room for any group's

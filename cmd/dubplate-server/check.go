@@ -46,7 +46,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			}
 
 			r := store.Inspect(cmd.Context(), store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: d})
-			status, failed := storeRowStatus(r)
+			status, failed := r.RowStatus()
 			if _, err := fmt.Fprintf(stdout, "store: %s\n", status); err != nil {
 				return err
 			}

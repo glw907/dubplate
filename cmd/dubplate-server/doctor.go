@@ -75,7 +75,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// row prints later: the admin email row's status reads the
 			// roster standing the same inspection reports, so doctor
 			// still inspects once and the print order is unchanged.
-			storeStatus, storeFailed, storeReport, storeChecked := storeRow(cmd.Context(), environ)
+			storeStatus, storeFailed, storeReport, storeChecked := store.DoctorRow(cmd.Context(), environ)
 
 			for _, row := range reg.OwnedWall() {
 				status := cmp.Or(statuses[row.Name], "ok")
@@ -252,7 +252,7 @@ const (
 // status text, which never fails doctor.
 func adminEmailRowStatus(wall string, r store.Report, checked bool) string {
 	switch {
-	case wall != "ok", !checked, !storeVouches(r.State):
+	case wall != "ok", !checked, !r.State.Vouches():
 		return wall
 	case r.Facts == nil, r.StoreVersion < store.UsersVersion, r.Facts.Members == 0:
 		return wall
@@ -342,7 +342,7 @@ func membersRowStatus(r store.Report, checked bool) (status string, failed bool)
 		return "not read", false
 	case r.State == store.StateAbsent:
 		return "no store yet; start serve, then member add --admin", false
-	case !storeVouches(r.State):
+	case !r.State.Vouches():
 		return "not read", false
 	case r.StoreVersion < store.UsersVersion:
 		return fmt.Sprintf("members not recorded before store version %d", store.UsersVersion), false
