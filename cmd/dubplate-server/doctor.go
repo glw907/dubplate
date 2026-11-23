@@ -19,6 +19,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/intake/staging"
+	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
@@ -158,14 +159,14 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			// once and hands the status function both results. The
 			// boundary probe row dials each bind address on the
 			// serve port, each dial and answer bounded.
-			clientIPStatus, clientIPFailed := clientIPRowStatus(cfg)
+			clientIPStatus, clientIPFailed := serve.ClientIPRowStatus(cfg)
 			addChecked(clientIPDoctorRow, clientIPStatus, clientIPFailed)
 			webStatus, webFailed := webRowStatus(environ, cfg)
 			addChecked(webDoctorRow, webStatus, webFailed)
 			ifaceAddrs, ifaceErr := net.InterfaceAddrs()
-			bindStatus, bindFailed := bindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
+			bindStatus, bindFailed := serve.BindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
 			addChecked(bindAddrsDoctorRow, bindStatus, bindFailed)
-			probeStatus, probeFailed := boundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
+			probeStatus, probeFailed := serve.BoundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
 			addChecked(boundaryProbeDoctorRow, probeStatus, probeFailed)
 
 			// The music volume row closes the fixed-count rows: serve's
