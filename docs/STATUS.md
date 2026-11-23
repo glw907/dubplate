@@ -16,6 +16,11 @@ Work `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree
 Work `structure-keys` (PR #19, merged) moved every setting into the package that reads it, each with a `config.go`, a
 `Register` function, and readers. `cmd/dubplate-server` declares and registers nothing, and an import test holds
 configuration to `config.go` and `doctor.go` in seven packages. Output is unchanged.
+Work `dev-friction` (PR #24, merged 2026-11-23) took `modernc.org/sqlite` v1.63.0 and certifi 2026.11.20, made
+`TestBusyTimeout` wait on signals, queued lint runs, and made `scripts/check.sh` unset every `DUBPLATE_*` name.
+Work `structure-doctor` (PR #25, merged 2026-11-23) moved the eleven health checks into the packages that know each
+fact; `cmd/dubplate-server/doctor.go` only places the rows, and the output is byte-identical. Both followed
+`~/Projects/initiatives/dubplate-server/specs/2026-11-22-overnight-design.md`.
 
 `intake-1` is the last product work on master. A passing album waits in `matching` with no exit until
 `intake-2`'s match probe lands. The run order is in BACKLOG, "Milestones to 0.8". Work still to do sits in BACKLOG
@@ -25,12 +30,8 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-The overnight spec is `~/Projects/initiatives/dubplate-server/specs/2026-11-22-overnight-design.md` (approved
-2026-11-22). `dev-friction` merged as PR #24 (`0632ecf`): the driver is `modernc.org/sqlite` v1.63.0, certifi is
-2026.11.20, `TestBusyTimeout` waits on signals, lint runs queue, and `scripts/check.sh` unsets every `DUBPLATE_*`
-name. `structure-doctor` still runs, moving the eleven health checks out of `cmd/dubplate-server` (#123, #124, #143,
-#144, #147, #156, #172, #173). Its pull request takes `gh pr update-branch` and one green CI run before it merges. The session Geoff talks to applies the spec's backlog
-text after each merge. `intake-2` takes #159 next.
+`intake-2` takes #159 next, from a spec written under `building-from-specs`. PR #25 lists findings its readers
+left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions

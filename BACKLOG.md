@@ -68,7 +68,6 @@ now milestone `engine`.
 
 ## Open
 
-- [ ] #147 One copy of a value parser is left from #118's normalizer copies: `adminAddress` (`cmd/dubplate-server/store.go:299`), `doctor`'s parse of `DUBPLATE_ADMIN_EMAIL`, repeats the `mail.ParseAddress` and lowercase step the config load runs. It reads the one parse instead. Found by `cleanup-store`'s whole-branch review (PR #14) #arch #config *(swept 2026-11-20)*
 - [ ] #148 Restore-seal and intent hardening from `cleanup-store`'s reads (PR #14), none blocking. Before any deploy of this branch, check the box's store leaf for a restore-intent record, because the flat wire shape refuses an old nested one with `restore --resume` refusing it too (or bump `intentFormat` so the refusal names the cause). Pin `SealStage`'s call in `StageFile` with a test, since nothing fails if it is deleted. Make `Record` require a sealed stage, not only a verified one. `SealStage` chmods and opens the stage path before `verifyStage`'s `Lstat`, so lstat first or open with `O_NOFOLLOW`. Comment `RestoreIntent` as the on-disk wire. Refuse `into_nonempty` without `library_root`. #improvement #store *(swept 2026-11-20)*
 - [ ] #149 Lock and bounds tidy-ups from `cleanup-store`'s reads (PR #14), none blocking: document on `ServeOptions.MigrationWait` that zero waits on the context alone (`waitLock` with a zero bound is unbounded; `OpenWrite` now reports a context deadline over the busy error); make `checkBounds` parse the bounds under the kind the caller passes and have a `KindString` threshold with a `Floor` panic as a `Setting` does; and make `doctor.rowStatuses` report a leaf that is not a `KeyError` instead of skipping it. #improvement #config *(swept 2026-11-20)*
 - [ ] #150 No rendered row covers the server-settings page's refused, signed-out, or unreachable states: the members rows cover the shared `loadList` and `AdminPage` branches, and a non-admin settings row would pin the page's own `status` line. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16)
@@ -79,8 +78,6 @@ now milestone `engine`.
 - [ ] #140 Doctor still prints "disabled (arrives at rung %d)" for a reserved class (`cmd/dubplate-server/doctor.go:88`, asserted at `doctor_test.go:163`), the phrase `cleanup-store` took out of the config refusal text. Reword both. Found by `cleanup-store` (PR #14) #improvement *(swept 2026-11-20)*
 - [ ] #141 Three restore-intent notes from `cleanup-store`'s T3 review: `into_nonempty` now validates without `library_root` (harmless today), no fixture refuses an old nested `source` record, and `swappedLeaf` copies only the library half. Add the fixture and decide the other two. Found by `cleanup-store` (PR #14) #test #store *(swept 2026-11-20)*
 - [ ] #142 `internal/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store *(swept 2026-11-22)*
-- [ ] #143 `TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd` failed once in CI and passed on rerun: `freePort` (`cmd/dubplate-server/doctorprobe_test.go:359`) reserves a port then releases it, so the route answered 200 before the store existed and `denyUnidecodeNetwork` fired. Hold the listener or retry on bind. Found by `cleanup-store` (PR #14) #bug #test *(swept 2026-11-22)*
-- [ ] #144 Both serve-backed doctor probe tests (`cmd/dubplate-server/doctorprobe_test.go:398` and `:754`) drain `served` in the poll loop's early-exit case, so the cleanup's `<-served` blocks forever after that `Fatalf` (seen when the web build is missing). Record the received error and skip the cleanup read. Found by `cleanup-store`'s T7 (PR #14) #bug #test *(swept 2026-11-22)*
 - [ ] #145 No test pins that `settings.parse` heals a stored non-finite float row (`internal/settings/evaluate.go:330` keeps `strconv.ParseFloat` on purpose): swapping it for `ThresholdKind.Parse` would refuse the row and nothing fails. Add a test that re-seeds a stored "Inf" row. Found by `cleanup-store`'s T7 review (PR #14) #test #settings *(swept 2026-11-20)*
 - [ ] #146 Two `StateRestoreInProgress` "unreadable" refusals still format their cause with `%v` (`internal/store/intent.go:174`, `restore.go:189`); `cleanup-store` covered `StateRefused` only. Move them to `%w` after reading the same three handlers. Found by `cleanup-store`'s T10 (PR #14) #improvement #store *(swept 2026-11-20)*
 - [ ] #137 The rendered fixture leaks credentials to local processes and test output (all pre-existing, loopback and run-length only). `cmd/dubplate-server/rendered_test.go:352-375` logs every request's query and headers, so `?t=<link token>` and the admin `Cookie` sit in a log that `logSrv` (`:881`) serves unauthenticated on 127.0.0.1; the mint and roster-reset servers (`:661-691`, `:915-918`) are unauthenticated too; a Playwright navigation error quotes the `?t=` URL into `t.Errorf` and the `go test` JSON events file (`:942`, `Makefile:150`); and `internal/auth/token.go:143-183` verifies a link by MAC and expiry only, so a server configured with the fixture secret literal (`check_test.go:174`) accepts fixture links. Redact `Cookie` and `t` from logged records, and have `check` or `serve` refuse the fixture secret. Found by `cleanup-gate`'s security read (PR #13) #improvement #infra (2026-11-16) *(swept 2026-11-20)*
@@ -332,14 +329,16 @@ now milestone `engine`.
   actor landed. Still open: the merge of the mount and the handler beyond the order, `Code` as the `errors.Is`
   target, and O5's merge of the actor types. Findings O1, O4, and O5,
   `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #ops #arch *(swept 2026-11-20)*
-- [ ] #123 `auth` and `serve` trims, residue after `cleanup-ops`: `statusCapture` is gone. Still open: surface ahead
-  of a caller, the doubled request check, hand-rolled stdlib, and the smaller items. Findings O3, O8, O9, and O14,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-20)*
-- [ ] #124 Move library code out of `cmd/dubplate-server`, residue after `cleanup-ops`: the web surface moved to
-  `internal/webapp`, and `structure-keys` (PR #19) moved every setting declaration and reader out of the command
-  folder. The probes and the table install logic ride `structure-doctor`. Still open after it: one cobra wiring shape
-  for the commands. Takes #66's doctor items. Findings O11 to O13,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-20)*
+- [ ] #123 `auth` and `serve` trims, residue after `cleanup-ops` and the health-check move: `statusCapture` and the
+  job runner's backup hook are gone. Still open: surface ahead of a caller, the doubled request check, hand-rolled
+  stdlib, and the rest of the smaller items. Findings O3, O8, O9, and O14,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-22)*
+- [ ] #124 Move library code out of `cmd/dubplate-server`, residue after the health-check move: the web surface,
+  every setting, the probes, and the table install logic have left the command folder. Still open: one cobra
+  wiring shape for the commands, and the verbs that read the store's wait setting again with
+  `store.BusyTimeout(environ)` after `loadConfig` (`grep -rn 'store.BusyTimeout(environ)' --include=*.go cmd`,
+  leaving out tests). Takes #66's doctor items. Findings O11 and O13,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-22)*
 - [ ] #125 `cmd` and ops test bloat, the test cuts left after `cleanup-ops`: `TestRegisterAuthConfig_Settings`
   (`cmd/dubplate-server/auth_test.go:502`), `TestRegisterStoreConfig` (`store_test.go:488`),
   `TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass` (`serve_test.go:127`),
@@ -352,12 +351,13 @@ now milestone `engine`.
 - [ ] #156 Process tags in the guarded packages, and `webapp` exports only tests use. Round `engine` (PR #17) cleared
   the engine and harness tags and added a wide citation pattern that skips `cmd/dubplate-server`,
   `internal/serve`, `internal/auth`, and `internal/intake`, which held 53 matching lines on 2026-11-16. Clearing
-  them lets the skip go. Known sites: "(review m5)" at `internal/auth/config.go:99` and `:110` (moved there by
-  `structure-keys`, PR #19, and left as written), "after 6d" at `cmd/dubplate-server/backup.go:294`, "(spec:938-944)"
-  at `internal/serve/serve.go:296` and `serve_test.go:74`, "R20" and "R-M" at `internal/serve/server_test.go:132`,
-  `:227`, and `freebind_other.go:11`, and "R-5cii12" at `cmd/dubplate-server/web_test.go:253` and `:460`. `webapp.StylesheetHrefs` and `ThemeCookieName` have only `cmd`
+  them lets the skip go. The health-check move cleared the three in `cmd/dubplate-server/backup.go`. Known sites:
+  "(review m5)" at `internal/auth/config.go:99` and `:110` (moved there by `structure-keys`, PR #19, and left as
+  written), "(spec:938-944)" at `internal/serve/serve.go:296` and `serve_test.go:74`, "R20" and "R-M" at
+  `internal/serve/server_test.go:132`, `:227`, and `freebind_other.go:11`, and "R-5cii12" at
+  `cmd/dubplate-server/web_test.go:253` and `:460`. `webapp.StylesheetHrefs` and `ThemeCookieName` have only `cmd`
   test callers outside `internal/webapp`, and `DocumentCSP` one doc link more. Found by `cleanup-ops` T5 and T6,
-  2026-11-16 #arch #test *(swept 2026-11-20)*
+  2026-11-16 #arch #test *(swept 2026-11-22)*
 - [ ] #158 Should `doctor` refuse an over-broad trusted-proxy range? The roster audit's `client_ip` follows the
   trusted-proxy policy, so a range that trusts too many hosts lets an admin write the wrong address into the audit
   log. Raised by the `cleanup-ops` security read, filed on Geoff's pick in the round's close packet, 2026-11-17
@@ -416,14 +416,8 @@ now milestone `engine`.
   read. `users.id` has no length CHECK, so only a bad writer reaches it, and no test covers it. Kept, since the
   `id.ID` scan needs 16 bytes. Add a test, or a CHECK in a later migration. Found by `structure-base` (PR #18),
   2026-11-20 #improvement #auth
-- [ ] #172 Three comments (one in a test) still name `cmd/dubplate-server/auth.go` as the home of the auth settings, which moved to `internal/auth/config.go` in `structure-keys` (PR #19): `internal/config/config.go:12`, `internal/config/keys.go:68`, and `internal/config/keys_test.go:41`. `internal/notify/notify.go:119`'s "(auth.go)" is go-mail's file and stays. #docs (2026-11-20) *(swept 2026-11-22)*
 - [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
   I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #milestone:intake *(swept 2026-11-20)*
-- [ ] #173 Restart the `structure` milestone's third piece, `structure-doctor`: write a spec under
-  `building-from-specs`, scoped from `structure-doctor-planner-prompt.txt` in
-  `~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/`. The spec carries #123, #124, #143,
-  #144, #147, and #156, less any the reshape's task 3 closes first. Paused 2026-11-20 and resumed only under
-  `building-from-specs`. #improvement #arch #milestone:structure (2026-11-22) *(swept 2026-11-22)*
 - [ ] #174 A full backlog sweep is still due: 96 open items carry no sweep stamp. The 2026-11-22 sweep covered
   the 20 items that bear on development friction. Run `standards:backlog-sweep` over the rest, oldest first, 40 per
   run, and apply its verdicts. Found by the reshape's scoped sweep #improvement #process (2026-11-22) *(swept 2026-11-22)*
@@ -600,6 +594,15 @@ Standing rulings. A sweep skips this section, and only Geoff reopens an entry, b
 
 ## Done
 
+- [x] #173 Restart the `structure` milestone's third piece, `structure-doctor`: write a spec under
+  `building-from-specs`, scoped from `structure-doctor-planner-prompt.txt` in
+  `~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/`. The spec carries #123, #124, #143,
+  #144, #147, and #156, less any the reshape's task 3 closes first. Paused 2026-11-20 and resumed only under
+  `building-from-specs`. #improvement #arch #milestone:structure (2026-11-22) *(swept 2026-11-22)* *(2026-11-22 → 2026-11-23)*
+- [x] #172 Three comments (one in a test) still name `cmd/dubplate-server/auth.go` as the home of the auth settings, which moved to `internal/auth/config.go` in `structure-keys` (PR #19): `internal/config/config.go:12`, `internal/config/keys.go:68`, and `internal/config/keys_test.go:41`. `internal/notify/notify.go:119`'s "(auth.go)" is go-mail's file and stays. #docs (2026-11-20) *(swept 2026-11-22)* *(2026-11-20 → 2026-11-23)*
+- [x] #147 One copy of a value parser is left from #118's normalizer copies: `adminAddress` (`cmd/dubplate-server/store.go:299`), `doctor`'s parse of `DUBPLATE_ADMIN_EMAIL`, repeats the `mail.ParseAddress` and lowercase step the config load runs. It reads the one parse instead. Found by `cleanup-store`'s whole-branch review (PR #14) #arch #config *(swept 2026-11-20)* *(2026-11-16 → 2026-11-23)*
+- [x] #144 Both serve-backed doctor probe tests (`cmd/dubplate-server/doctorprobe_test.go:398` and `:754`) drain `served` in the poll loop's early-exit case, so the cleanup's `<-served` blocks forever after that `Fatalf` (seen when the web build is missing). Record the received error and skip the cleanup read. Found by `cleanup-store`'s T7 (PR #14) #bug #test *(swept 2026-11-22)* *(2026-11-16 → 2026-11-23)*
+- [x] #143 `TestDoctorBoundaryProbe_TrustedLoopbackEndToEnd` failed once in CI and passed on rerun: `freePort` (`cmd/dubplate-server/doctorprobe_test.go:359`) reserves a port then releases it, so the route answered 200 before the store existed and `denyUnidecodeNetwork` fired. Hold the listener or retry on bind. Found by `cleanup-store` (PR #14) #bug #test *(swept 2026-11-22)* *(2026-11-16 → 2026-11-23)*
 - [x] #175 Take certifi 2026.10.23 in `tools/venv/requirements.txt` (pinned 2026.7.22). Dependabot alert #1 (critical, 2026-11-23): the pinned certifi bundles emSign root CAs whose intermediate keys are compromised, first patched in 2026.10.18. TLS roots only, so it needs no `make derive`. Split from #132 by the 2026-11-22 sweep #security #infra (2026-11-22) *(2026-11-22 → 2026-11-23)*
 - [x] #133 `TestBusyTimeout` (`internal/store/conn_test.go:364,385`) failed once on a GitHub runner (run 43815685425, head `dd52636`, whose tree equals the green run on `2b9672a`): both subtests got `database is locked (5) (SQLITE_BUSY)` at `BeginTx`. It is timing-dependent and now gates every PR, so it can turn the check red with no code change. Make it wait on a signal, not a clock. Found by `cleanup-ci` (PR #12) #bug #store (2026-11-16) *(swept 2026-11-22)* *(2026-11-16 → 2026-11-23)*
 - [x] #129 Take `modernc.org/sqlite` v1.62.0 (held at v1.60.1 with `modernc.org/libc` v1.77.1). `TestUpdateDeadline/shorter_than_the_busy_timeout_waits_the_busy_timeout` fails on every run at `internal/store/write_test.go:601,605` ("operation returned before the 400ms deadline"; "update: begin write: context deadline exceeded, want ErrBusy"): v1.61.0 stops a statement waiting under `busy_timeout` once its context is done and returns the context's error, which reverses the premise of the test's "Measured: SQLite's busy handler does not stop for the driver's interrupt" comment (v1.61.1 does the same for `Tx.Commit`). The bump rewrites that subtest for the new contract, checks what `Update` maps a deadline hit while waiting on a lock to, and takes v1.62.1 (2026-11-13) with the `modernc.org/libc` pin its `go.mod` names. Found by the `cleanup-ci` dependency sweep #bug #infra (2026-11-16) *(swept 2026-11-22)* *(2026-11-16 → 2026-11-23)*
