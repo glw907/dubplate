@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/intake/staging"
@@ -138,7 +139,7 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 			for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
 				add(row.key, row.status)
 			}
-			backupRemoteStatus, backupRemoteFailed := backupRemoteRowStatus(cmd.Context(), environ)
+			backupRemoteStatus, backupRemoteFailed := backup.RemoteRowStatus(cmd.Context(), environ, backup.RemoteRowOptions{FeaturesTimeout: backupFeaturesTimeout})
 			addChecked(backupRemoteRow, backupRemoteStatus, backupRemoteFailed)
 
 			// The unidecode row follows the backup rows, the store

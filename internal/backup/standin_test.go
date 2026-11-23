@@ -60,6 +60,12 @@ const (
 	// its destination, holding the path itself, before it sleeps or
 	// exits: a transfer stopped part way.
 	standinCopyOneEnv = "DUBPLATE_STANDIN_COPY_ONE"
+
+	// standinBackendStdoutEnv and standinBackendStderrEnv hold the
+	// literal bytes the backend subcommand writes to stdout and stderr,
+	// the features probe's whole input.
+	standinBackendStdoutEnv = "DUBPLATE_STANDIN_BACKEND_STDOUT"
+	standinBackendStderrEnv = "DUBPLATE_STANDIN_BACKEND_STDERR"
 )
 
 // The environment a re-executed child reads to run one backup through
@@ -111,9 +117,15 @@ func standIn(args []string) int {
 			_ = os.WriteFile(p, []byte(rel), 0o644)
 		}
 	}
+	if sub == "backend" {
+		_, _ = os.Stdout.WriteString(os.Getenv(standinBackendStdoutEnv))
+		_, _ = os.Stderr.WriteString(os.Getenv(standinBackendStderrEnv))
+	}
 	code := standinExit(os.Getenv(standinExitEnv), sub)
 	exit := func(code int) int {
-		if code != 0 {
+		// The backend subcommand's stderr is the probe's input, so it
+		// carries only what the test set.
+		if code != 0 && sub != "backend" {
 			fmt.Fprintf(os.Stderr, "stand-in %s\nstand-in %s exits %d\n\n", sub, sub, code)
 		}
 		appendLine(record, "exit "+strconv.Itoa(code))
@@ -210,6 +222,11 @@ type standinConfig struct {
 	sleep     string
 	sigint    string
 	lockStage bool
+
+	// backendStdout and backendStderr are what the backend subcommand
+	// writes.
+	backendStdout string
+	backendStderr string
 }
 
 // useStandin puts the stand-in alone on PATH, configured by cfg, and
@@ -244,6 +261,8 @@ func configureStandin(t *testing.T, cfg standinConfig) standin {
 		lock = "1"
 	}
 	t.Setenv(standinLockStageEnv, lock)
+	t.Setenv(standinBackendStdoutEnv, cfg.backendStdout)
+	t.Setenv(standinBackendStderrEnv, cfg.backendStderr)
 	return s
 }
 
