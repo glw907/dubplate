@@ -2,7 +2,10 @@ package backup_test
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +20,20 @@ var probeOpts = backup.RemoteRowOptions{FeaturesTimeout: 10 * time.Second}
 // carries, written out so the tests do not read it from the code they
 // check.
 const cryptWarning = "the backup remote is not wrapped in an rclone crypt remote; a snapshot carries member data unencrypted at the provider"
+
+// useBackendScript puts alone on PATH an rclone that ignores its
+// arguments, writes stdout and stderr verbatim, and exits with code:
+// the features probe's whole input.
+func useBackendScript(t *testing.T, stdout, stderr string, code int) {
+	t.Helper()
+	quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
+	script := fmt.Sprintf("#!/bin/sh\nprintf %%s %s\nprintf %%s %s >&2\nexit %d\n", quote(stdout), quote(stderr), code)
+	bin := t.TempDir()
+	if err := os.WriteFile(filepath.Join(bin, "rclone"), []byte(script), 0o755); err != nil {
+		t.Fatalf("write the rclone script: %v", err)
+	}
+	t.Setenv("PATH", bin)
+}
 
 // TestBackupRemoteRowStatus is the golden test for the row's name,
 // colon, and credential checks: every case here is pure string and
@@ -141,7 +158,7 @@ func TestBackupRemoteRowStatus_NoSubprocessWhenFlagOff(t *testing.T) {
 // rather than a real backend.
 func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	t.Run("crypt _REMOTE a plain path skips the wrapped check; the probe decides", func(t *testing.T) {
-		useStandin(t, standinConfig{backendStdout: `{"Features":{"Copy":false,"Move":true}}`})
+		useBackendScript(t, `{"Features":{"Copy":false,"Move":true}}`, "", 0)
 		environ := []string{
 			"DUBPLATE_BACKUP_ENABLED=true",
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
@@ -158,7 +175,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	})
 
 	t.Run("crypt _REMOTE a connection string skips the wrapped check", func(t *testing.T) {
-		useStandin(t, standinConfig{backendStdout: `{"Features":{"Copy":false,"Move":true}}`})
+		useBackendScript(t, `{"Features":{"Copy":false,"Move":true}}`, "", 0)
 		environ := []string{
 			"DUBPLATE_BACKUP_ENABLED=true",
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
@@ -175,7 +192,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	})
 
 	t.Run("Copy and Move both false", func(t *testing.T) {
-		useStandin(t, standinConfig{backendStdout: `{"Features":{"Copy":false,"Move":false}}`})
+		useBackendScript(t, `{"Features":{"Copy":false,"Move":false}}`, "", 0)
 		environ := []string{
 			"DUBPLATE_BACKUP_ENABLED=true",
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
@@ -194,10 +211,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	})
 
 	t.Run("a nonzero exit before the deadline reports the last stderr line", func(t *testing.T) {
-		useStandin(t, standinConfig{
-			exit:          "backend=1",
-			backendStderr: "2026/09/24 12:00:00 NOTICE: some rclone context\n401 bad_auth_token\n",
-		})
+		useBackendScript(t, "", "2026/09/24 12:00:00 NOTICE: some rclone context\n401 bad_auth_token\n", 1)
 		environ := []string{
 			"DUBPLATE_BACKUP_ENABLED=true",
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
@@ -240,7 +254,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	})
 
 	t.Run("a non-crypt type carries the encryption warning, never a failure", func(t *testing.T) {
-		useStandin(t, standinConfig{backendStdout: `{"Features":{"Copy":true,"Move":false}}`})
+		useBackendScript(t, `{"Features":{"Copy":true,"Move":false}}`, "", 0)
 		environ := []string{
 			"DUBPLATE_BACKUP_ENABLED=true",
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
@@ -256,7 +270,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	})
 
 	t.Run("a crypt type carries no warning", func(t *testing.T) {
-		useStandin(t, standinConfig{backendStdout: `{"Features":{"Copy":false,"Move":true}}`})
+		useBackendScript(t, `{"Features":{"Copy":false,"Move":true}}`, "", 0)
 		environ := []string{
 			"DUBPLATE_BACKUP_ENABLED=true",
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
