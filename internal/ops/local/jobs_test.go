@@ -91,7 +91,7 @@ func TestCancelJob_States(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, h := newStore(t)
 			r := newRunnerFor(t, h, nil, succeed)
-			jh := tt.handle(t, h, r)
+			jh := tt.handle(t, h, r.Runner)
 			var before record
 			if tt.wantErr == nil {
 				before = mustRecord(t, h, idOf(t, jh))

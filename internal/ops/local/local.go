@@ -81,12 +81,6 @@ type Runner struct {
 	retention func(ctx context.Context) (time.Duration, error)
 	now       func() time.Time
 
-	// bindBackup overrides the backup kind's job body: nil in
-	// production, where StartBackup reads the three backup values
-	// itself and binds the real [backup.Job]. A test sets it to run a
-	// body of its own choosing without those reads.
-	bindBackup binder
-
 	// mu guards jobs and closed. Every wg.Add happens under mu while
 	// closed is false, so none can race Close's Wait at zero.
 	mu     sync.Mutex
@@ -143,13 +137,22 @@ func (r *Runner) Close() error {
 // another backup holds the kind's lease: naming that job's handle when
 // its record is live, or a transfer that outlived its process when
 // none is.
-func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (resp ops.StartBackupResponse, err error) {
+func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+	return r.startBackup(ctx, actor, r.backupBind)
+}
+
+// startBackup is [Runner.StartBackup] with the way the job's binder is
+// made left to bindFor, which runs once the integration is known to be
+// on and before any record is queued. A test passes a bindFor that
+// returns a body of its choosing, so a start runs without the three
+// backup reads.
+func (r *Runner) startBackup(ctx context.Context, actor ops.Actor, bindFor func(context.Context) (binder, error)) (resp ops.StartBackupResponse, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
 
 	if !r.backup.Enabled {
 		return ops.StartBackupResponse{}, ops.NewUnavailableError(backupDisabled)
 	}
-	bind, err := r.backupBind(ctx)
+	bind, err := bindFor(ctx)
 	if err != nil {
 		return ops.StartBackupResponse{}, fmt.Errorf("start backup job: %w", err)
 	}
@@ -160,15 +163,11 @@ func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBa
 	return ops.StartBackupResponse{JobID: h}, nil
 }
 
-// backupBind returns the binder StartBackup passes to start: a test's
-// own override when one is set, or, in production, the three backup
-// values read now, before start queues a record, so a reader error
-// fails the start and leaves no job record rather than surfacing only
-// once the bound body runs.
+// backupBind returns the binder StartBackup passes to start, from the
+// three backup values read now, before start queues a record, so a
+// reader error fails the start and leaves no job record rather than
+// surfacing only once the bound body runs.
 func (r *Runner) backupBind(ctx context.Context) (binder, error) {
-	if r.bindBackup != nil {
-		return r.bindBackup, nil
-	}
 	fraction, err := r.backup.GuardFraction(ctx)
 	if err != nil {
 		return nil, err
