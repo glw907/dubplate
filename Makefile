@@ -31,6 +31,30 @@ test:
 			|| { printf '%s\n' "$$out"; echo "make test: $$t did not run and pass"; exit 1; }; \
 	done
 
+# test-race runs the whole module under the race detector. It sits
+# outside check because it takes over ten minutes; CI runs it as its
+# own step after the gate. The timeout is explicit because
+# internal/harness/conform alone runs about nine minutes under -race,
+# close to go test's ten-minute per-binary default.
+test-race:
+	go test -race -count=1 -timeout 30m ./...
+
+# fuzz runs each fuzz target for FUZZTIME, one `go test -fuzz` call per
+# target, since go test fuzzes one target at a time. A crashing input
+# lands under the package's testdata/fuzz and fails the run; the seeds
+# alone run in every `go test`.
+FUZZTIME := 30s
+FUZZ_TARGETS := \
+	FuzzParseBounded:./internal/engine/tagio \
+	FuzzValidPath:./internal/intake/gate \
+	FuzzWalkZIP:./internal/intake/gate
+
+fuzz:
+	set -e; \
+	for target in $(FUZZ_TARGETS); do \
+		go test -run '^$$' -fuzz "^$${target%%:*}$$" -fuzztime $(FUZZTIME) "$${target#*:}"; \
+	done
+
 vet:
 	go vet ./...
 
@@ -169,8 +193,8 @@ derive:
 # 1.4.0's pinned wheel: package unidecode's tests and
 # dubplate-server's install verb both read it from the user cache
 # rather than downloading it themselves. It is a no-op once the cache
-# verifies. Deliberately outside check: the gate never opens a
-# network connection, so the wheel is fetched here, once, out of
+# verifies. Deliberately outside check: no test ever opens a network
+# connection, so the wheel is fetched here, once, out of
 # band, the same way `npm ci --prefix web` is.
 unidecode-wheel:
 	go run ./cmd/harness fetch-unidecode
@@ -179,7 +203,7 @@ unidecode-wheel:
 # Subsonic 1.16.1 XSD, which the harness's XML tier reads from the user
 # cache because the schema carries no license text and is never
 # committed. It is a no-op once the cache verifies. Deliberately
-# outside check, for the reason unidecode-wheel is: the gate never
+# outside check, for the reason unidecode-wheel is: no test ever
 # opens a network connection.
 subsonic-xsd:
 	go run ./cmd/harness fetch-subsonic-xsd
@@ -187,4 +211,4 @@ subsonic-xsd:
 clean:
 	rm -f $(BINARY) $(BINARY)-linux-amd64
 
-.PHONY: build build-linux test vet lint install tidy-check check web web-build web-rendered derive unidecode-wheel subsonic-xsd clean
+.PHONY: build build-linux test test-race fuzz vet lint install tidy-check check web web-build web-rendered derive unidecode-wheel subsonic-xsd clean
