@@ -17,12 +17,12 @@ import (
 // newSettingsCmd builds the settings verb, whose one subcommand is
 // reset. Like member, it resolves configuration through loadConfig
 // against reg and reads the environment only through environ.
-func newSettingsCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newSettingsCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Change the settings the store holds",
 	}
-	cmd.AddCommand(newSettingsResetCmd(environ, reg, stdout, stderr))
+	cmd.AddCommand(ov.newSettingsResetCmd(environ, reg, stdout, stderr))
 	return cmd
 }
 
@@ -34,7 +34,7 @@ func newSettingsCmd(environ []string, reg *config.Registry, stdout, stderr io.Wr
 // refuses an older store, a newer store, and a restore in progress as
 // member does; it runs under the validator the API's writes run
 // under, and it sends no notice, since the operator is at the box.
-func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "reset <key>",
 		Short:         "Delete an administrator's value so the setting returns to its default",
@@ -42,7 +42,7 @@ func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr 
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithTimeout(cmd.Context(), operatorVerbWriteWait)
+			ctx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
 			defer cancel()
 			h, _, err := openOperatorStore(ctx, environ, reg)
 			if err != nil {
@@ -51,7 +51,7 @@ func newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr 
 			defer func() { err = errors.Join(err, h.Close()) }()
 
 			by := settings.Author{
-				Actor:   auth.OperatorActor(resolveActor()).String(),
+				Actor:   auth.OperatorActor(resolveActor(ov.LookupID)).String(),
 				Channel: identity.ChannelCommandLine.String(),
 			}
 			key := args[0]

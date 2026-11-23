@@ -19,7 +19,9 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"os/user"
 	"syscall"
+	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
@@ -143,6 +145,7 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 // (internal/config/registry.go).
 func newRootCmd() *cobra.Command {
 	reg := newProductionRegistry()
+	operator := operatorVerbs{WriteWait: 30 * time.Second, LookupID: user.LookupId}
 
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",
@@ -155,8 +158,8 @@ func newRootCmd() *cobra.Command {
 		newCheckCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newDoctorCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newServeCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
-		newSettingsCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		operator.newMemberCmd(os.Environ(), reg, os.Stdout, os.Stderr),
+		operator.newSettingsCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newBackupCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newRestoreCmd(os.Environ(), reg, os.Stdout, os.Stderr),
 		newUnidecodeCmd(os.Environ(), os.Stdout, os.Stderr),

@@ -28,12 +28,25 @@ func memberEnviron(t *testing.T) (environ []string, stateDir string) {
 	return environ, stateDir
 }
 
+// testOperatorVerbs returns the values main gives the verbs: a 30
+// second wait and the system's user lookup. A test that varies one
+// overrides that field on the result.
+func testOperatorVerbs() operatorVerbs {
+	return operatorVerbs{WriteWait: 30 * time.Second, LookupID: user.LookupId}
+}
+
 // runMember runs the member verb with args against environ and returns
 // what it wrote to stdout and stderr beside its error.
 func runMember(t *testing.T, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
+	return runMemberWith(t, testOperatorVerbs(), environ, args...)
+}
+
+// runMemberWith is runMember over verbs built from ov.
+func runMemberWith(t *testing.T, ov operatorVerbs, environ []string, args ...string) (stdout, stderr string, err error) {
+	t.Helper()
 	var out, errOut bytes.Buffer
-	cmd := newMemberCmd(environ, productionRegistry(), &out, &errOut)
+	cmd := ov.newMemberCmd(environ, productionRegistry(), &out, &errOut)
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 	return out.String(), errOut.String(), err
@@ -322,15 +335,37 @@ func TestMemberAddCmd_MissingRequiredFlagsRefusedBeforeOpen(t *testing.T) {
 	}
 }
 
+func TestResolveActor(t *testing.T) {
+	euid := os.Geteuid()
+	t.Run("names the user the lookup returns for the effective uid", func(t *testing.T) {
+		var asked string
+		got := resolveActor(func(uid string) (*user.User, error) {
+			asked = uid
+			return &user.User{Username: "operator"}, nil
+		})
+		if got != "operator" {
+			t.Errorf("resolveActor = %q, want %q", got, "operator")
+		}
+		if want := fmt.Sprint(euid); asked != want {
+			t.Errorf("lookup asked for uid %q, want the effective uid %q", asked, want)
+		}
+	})
+	t.Run("falls back to uid:<n> when the lookup fails", func(t *testing.T) {
+		got := resolveActor(func(string) (*user.User, error) { return nil, errors.New("no such user") })
+		if want := fmt.Sprintf("uid:%d", euid); got != want {
+			t.Errorf("resolveActor = %q, want %q", got, want)
+		}
+	})
+}
+
 func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
-	orig := osUserLookupID
-	defer func() { osUserLookupID = orig }()
-	osUserLookupID = func(string) (*user.User, error) {
+	ov := testOperatorVerbs()
+	ov.LookupID = func(string) (*user.User, error) {
 		return nil, errors.New("no such user")
 	}
 	environ, _ := memberEnviron(t)
 
-	_, stderr, err := runMember(t, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
+	_, stderr, err := runMemberWith(t, ov, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
 	if err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr)
 	}
@@ -344,9 +379,8 @@ func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
 // exclusively, as a restore would, and proves the verb gives up once its
 // own wait ends rather than waiting on the holder.
 func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
-	orig := operatorVerbWriteWait
-	operatorVerbWriteWait = 200 * time.Millisecond
-	defer func() { operatorVerbWriteWait = orig }()
+	ov := testOperatorVerbs()
+	ov.WriteWait = 200 * time.Millisecond
 
 	environ, stateDir := memberEnviron(t)
 	lock, err := os.Open(filepath.Join(stateDir, "store", "store.lock"))
@@ -359,7 +393,7 @@ func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
 	}
 
 	start := time.Now()
-	_, _, err = runMember(t, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
+	_, _, err = runMemberWith(t, ov, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
 	elapsed := time.Since(start)
 	if !errors.Is(err, store.ErrLockBusy) {
 		t.Fatalf("Execute() error = %v, want it to wrap store.ErrLockBusy", err)

@@ -18,32 +18,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// operatorVerbWriteWait bounds how long a verb waits to open the store
-// and, for add, to write the member: 30 seconds. It is a package
-// variable rather than a constant so a test can shorten it, on the
-// wait's own test seam; production never assigns it a second value.
-var operatorVerbWriteWait = 30 * time.Second
+// operatorVerbs carries what the member and settings verbs take from the
+// process, so a test builds them with values of its choosing. main fills
+// it with a 30 second wait and os/user.LookupId.
+type operatorVerbs struct {
+	// WriteWait bounds how long a verb waits to open the store and, for
+	// member add, to write the member.
+	WriteWait time.Duration
 
-// osUserLookupID is os/user.LookupId, held as a package variable so a
-// test can substitute a lookup that always fails, proving the
-// uid:<n> fallback without depending on whether the test's passwd
-// database happens to resolve the effective uid.
-var osUserLookupID = user.LookupId
+	// LookupID resolves the effective uid to the user an audit record
+	// names; see [resolveActor].
+	LookupID func(uid string) (*user.User, error)
+}
 
 // newMemberCmd builds the member verb: add, remove, demote, and list,
 // the subcommands that give an operator the roster internal/auth keeps
 // in the store. None reads the environment itself; each resolves
 // configuration through loadConfig against reg, the same wall serve
 // enforces.
-func newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
 		Short: "Manage the roster of group members",
 	}
-	cmd.AddCommand(newMemberAddCmd(environ, reg, stdout, stderr))
-	cmd.AddCommand(newMemberRemoveCmd(environ, reg, stderr))
-	cmd.AddCommand(newMemberDemoteCmd(environ, reg, stderr))
-	cmd.AddCommand(newMemberListCmd(environ, reg, stdout, stderr))
+	cmd.AddCommand(ov.newMemberAddCmd(environ, reg, stdout, stderr))
+	cmd.AddCommand(ov.newMemberRemoveCmd(environ, reg, stderr))
+	cmd.AddCommand(ov.newMemberDemoteCmd(environ, reg, stderr))
+	cmd.AddCommand(ov.newMemberListCmd(environ, reg, stdout, stderr))
 	return cmd
 }
 
@@ -85,7 +86,7 @@ func writingRoster(h *store.Handle, stateDir, verb string) (*auth.Roster, error)
 // --name and --username are required flags; an empty value still
 // reaches the roster's own write-path validation, since cobra's
 // required check proves only that the flag was set.
-func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer) *cobra.Command {
 	var name, username string
 	var admin bool
 
@@ -96,7 +97,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithTimeout(cmd.Context(), operatorVerbWriteWait)
+			ctx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
 			defer cancel()
 			h, stateDir, err := openOperatorStore(ctx, environ, reg)
 			if err != nil {
@@ -115,7 +116,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry, _, stderr io.Writer
 				Admin:       admin,
 			}
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor()), logger)
+			_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
 			return err
 		},
 	}
@@ -138,15 +139,15 @@ type rosterChange func(ctx context.Context, id identity.UserID, by auth.Actor, l
 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
-func newMemberRemoveCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return newMemberChangeCmd("remove", "Remove a member from the roster", environ, reg, stderr,
+func (ov operatorVerbs) newMemberRemoveCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
+	return ov.newMemberChangeCmd("remove", "Remove a member from the roster", environ, reg, stderr,
 		func(r *auth.Roster) rosterChange { return r.RemoveMember })
 }
 
 // newMemberDemoteCmd builds "member demote <address>": it clears the
 // member's admin flag.
-func newMemberDemoteCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr,
+func (ov operatorVerbs) newMemberDemoteCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
+	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr,
 		func(r *auth.Roster) rosterChange { return r.DemoteMember })
 }
 
@@ -155,7 +156,7 @@ func newMemberDemoteCmd(environ []string, reg *config.Registry, stderr io.Writer
 // names the write by id, so a member removed between the lookup and
 // the write answers [auth.ErrMemberNotFound], as an unknown address
 // does. The audit record goes to stderr, the operator's terminal.
-func newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, stderr io.Writer, pick func(*auth.Roster) rosterChange) *cobra.Command {
+func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, stderr io.Writer, pick func(*auth.Roster) rosterChange) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           verb + " <address>",
 		Short:         short,
@@ -163,7 +164,7 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithTimeout(cmd.Context(), operatorVerbWriteWait)
+			ctx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
 			defer cancel()
 			h, stateDir, err := openOperatorStore(ctx, environ, reg)
 			if err != nil {
@@ -180,7 +181,7 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 				return err
 			}
 			logger := slog.New(slog.NewTextHandler(stderr, nil))
-			return pick(roster)(ctx, target.ID, auth.OperatorActor(resolveActor()), logger)
+			return pick(roster)(ctx, target.ID, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
 		},
 	}
 	cmd.SetErr(stderr)
@@ -191,7 +192,7 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 // one line per live member, in the order they were added, to stdout,
 // which is the subcommand's whole purpose. Nothing else this file
 // writes carries an address.
-func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "list",
 		Short:         "List the roster's members",
@@ -199,7 +200,7 @@ func newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) (err error) {
-			openCtx, cancel := context.WithTimeout(cmd.Context(), operatorVerbWriteWait)
+			openCtx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
 			defer cancel()
 			h, _, err := openOperatorStore(openCtx, environ, reg)
 			if err != nil {
@@ -238,12 +239,12 @@ func printMemberList(w io.Writer, members []auth.Member) error {
 }
 
 // resolveActor returns the operating-system user of the effective uid
-// as the verb's audit actor: user.LookupId(effective uid),
-// falling back to uid:<n> when the lookup fails, never $USER, which
-// anyone who controls the environment a verb runs under can forge.
-func resolveActor() string {
+// as the verb's audit actor: lookup(effective uid), falling back to
+// uid:<n> when the lookup fails, never $USER, which anyone who controls
+// the environment a verb runs under can forge.
+func resolveActor(lookup func(uid string) (*user.User, error)) string {
 	euid := os.Geteuid()
-	u, err := osUserLookupID(strconv.Itoa(euid))
+	u, err := lookup(strconv.Itoa(euid))
 	if err != nil {
 		return fmt.Sprintf("uid:%d", euid)
 	}

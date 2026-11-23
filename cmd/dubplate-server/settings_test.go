@@ -28,11 +28,15 @@ const (
 )
 
 // runSettings runs the settings verb with args against environ and
-// returns what it wrote to stdout beside its error.
+// returns what it wrote to stdout beside its error. The verb records
+// "operator" as the operating-system user, whatever the passwd database
+// holds.
 func runSettings(t *testing.T, environ []string, args ...string) (stdout string, err error) {
 	t.Helper()
+	ov := testOperatorVerbs()
+	ov.LookupID = func(string) (*user.User, error) { return &user.User{Username: "operator"}, nil }
 	var out bytes.Buffer
-	cmd := newSettingsCmd(environ, productionRegistry(), &out, io.Discard)
+	cmd := ov.newSettingsCmd(environ, productionRegistry(), &out, io.Discard)
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 	return out.String(), err
@@ -63,15 +67,6 @@ func currentStore(t *testing.T) (environ []string, stateDir, path string) {
 	stateDir = environValue(environ, "DUBPLATE_STATE_DIR")
 	path = olderStore(t, stateDir, storeReport(t, t.TempDir()).BinaryVersion)
 	return environ, stateDir, path
-}
-
-// asOperator makes the verbs record "operator" as the operating-system
-// user for the length of the test.
-func asOperator(t *testing.T) {
-	t.Helper()
-	orig := osUserLookupID
-	t.Cleanup(func() { osUserLookupID = orig })
-	osUserLookupID = func(string) (*user.User, error) { return &user.User{Username: "operator"}, nil }
 }
 
 // requireServeRefuses fails t unless starting serve over environ is
@@ -138,7 +133,6 @@ func TestSettingsResetCmd_ResolvesEachRefusal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			asOperator(t)
 			environ, stateDir, path := currentStore(t)
 			plantRow(t, path, retentionKey, tt.value, "admin")
 			serveEnviron := append(slices.Clip(environ), tt.serveEnv...)
@@ -413,7 +407,6 @@ func TestSettingsResetCmd_ServingHandleReadsTheDefault(t *testing.T) {
 // command-line actor, the command-line channel, the key, the replaced
 // value, and a NULL new value. Fixture: an admin row of 50.
 func TestSettingsResetCmd_AuditRow(t *testing.T) {
-	asOperator(t)
 	environ, stateDir, path := currentStore(t)
 	plantRow(t, path, keepKey, "50", "admin")
 
