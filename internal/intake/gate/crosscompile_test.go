@@ -16,7 +16,7 @@ import (
 func TestGateBuildsOnEveryPlatform(t *testing.T) {
 	for _, goos := range []string{"darwin", "windows"} {
 		t.Run(goos, func(t *testing.T) {
-			cmd := exec.CommandContext(t.Context(), "go", "build", "./internal/reject", "./internal/intake/gate", "./internal/intake/staging")
+			cmd := exec.CommandContext(t.Context(), "go", "build", "./internal/reject", "./internal/intake/gate", "./internal/intake/staging", "./internal/fsys")
 			cmd.Dir = "../../.."
 			cmd.Env = append(cmd.Environ(), "GOOS="+goos, "GOARCH=amd64", "CGO_ENABLED=0")
 			if out, err := cmd.CombinedOutput(); err != nil {

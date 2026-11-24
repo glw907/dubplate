@@ -69,16 +69,3 @@ func TestReadFailures(t *testing.T) {
 		t.Error("a file: Err = nil, want a refusal")
 	}
 }
-
-func TestFreeBytes(t *testing.T) {
-	got, err := FreeBytes(t.TempDir())
-	if err != nil {
-		t.Fatalf("FreeBytes: %v", err)
-	}
-	if got == 0 {
-		t.Error("FreeBytes = 0 on a temporary directory")
-	}
-	if _, err := FreeBytes(filepath.Join(t.TempDir(), "absent")); !errors.Is(err, fs.ErrNotExist) {
-		t.Errorf("FreeBytes of an absent path = %v, want it to wrap fs.ErrNotExist", err)
-	}
-}

@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/glw907/dubplate/internal/fsys"
 	"github.com/glw907/dubplate/internal/identity"
-	"github.com/glw907/dubplate/internal/intake/staging"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/tus/tusd/v2/pkg/memorylocker"
 )
@@ -83,7 +83,7 @@ func New(cfg Config) (*Intake, error) {
 	}
 	return &Intake{
 		cfg:    cfg,
-		subs:   newSubmissions(cfg.Store, cfg.Log, cfg.Staging, cfg.Now, staging.FreeBytes, cfg.EarliestAdmin),
+		subs:   newSubmissions(cfg.Store, cfg.Log, cfg.Staging, cfg.Now, fsys.FreeBytes, cfg.EarliestAdmin),
 		root:   root,
 		locker: memorylocker.New(),
 	}, nil
