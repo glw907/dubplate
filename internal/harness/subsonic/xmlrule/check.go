@@ -13,11 +13,11 @@ import (
 var (
 	// ErrUnknownEndpoint reports an endpoint the OpenAPI document
 	// declares no path for.
-	ErrUnknownEndpoint = errors.New("xmlrule: endpoint not in the openapi document")
+	ErrUnknownEndpoint = errors.New("endpoint not in the openapi document")
 
 	// ErrNotXML reports a binary success the operation declares: it is
 	// not an input to the XML tier.
-	ErrNotXML = errors.New("xmlrule: not an xml response")
+	ErrNotXML = errors.New("not an xml response")
 )
 
 // Outcome is the result class of one check. Only [Valid] is a pass.

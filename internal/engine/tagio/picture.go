@@ -151,7 +151,7 @@ func sniffMediaType(data []byte) (string, error) {
 	case len(data) >= 2 && data[0] == 0x42 && data[1] == 0x4D:
 		return mimeBMP, nil
 	default:
-		return "", errors.New("tagio: picture data matches no recognized image format")
+		return "", errors.New("picture data matches no recognized image format")
 	}
 }
 

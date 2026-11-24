@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -360,5 +361,127 @@ func TestServerLinkCheckFiresOnItsOwnListing(t *testing.T) {
 				t.Errorf("serverLinkViolations = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+// prefixedSentinel matches error text that opens with a lowercase
+// package-style prefix and a colon, the form record 0016 retires: a
+// sentinel's text is a bare phrase, and the wrapping site adds context.
+var prefixedSentinel = regexp.MustCompile(`^[a-z/]+: `)
+
+// prefixedLiteral returns call's first argument when call is pkg.fn
+// (pkg the file's local name for the package) and that argument is a
+// string literal matching prefixedSentinel.
+func prefixedLiteral(call *ast.CallExpr, pkg, fn string) (*ast.BasicLit, bool) {
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != fn || len(call.Args) == 0 {
+		return nil, false
+	}
+	if ident, ok := sel.X.(*ast.Ident); !ok || pkg == "" || ident.Name != pkg {
+		return nil, false
+	}
+	lit, ok := call.Args[0].(*ast.BasicLit)
+	if !ok || lit.Kind != token.STRING {
+		return nil, false
+	}
+	text, err := strconv.Unquote(lit.Value)
+	return lit, err == nil && prefixedSentinel.MatchString(text)
+}
+
+// checkBareSentinels walks every non-test .go file under root, skipping
+// testdata, and fails naming each prefixedSentinel match: the literal
+// text of any errors.New call, and of a fmt.Errorf call that
+// initializes a package-level var, the other way a sentinel is built.
+func checkBareSentinels(root string) error {
+	var errs []error
+	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if d.Name() == "testdata" {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		fset := token.NewFileSet()
+		f, err := parser.ParseFile(fset, path, nil, parser.AllErrors)
+		if err != nil {
+			return fmt.Errorf("parse %s: %w", path, err)
+		}
+		refuse := func(lit *ast.BasicLit, fn string) {
+			errs = append(errs, fmt.Errorf("%s: %s(%s) opens with a package prefix; record 0016 wants a bare phrase",
+				fset.Position(lit.Pos()), fn, lit.Value))
+		}
+		errorsName, fmtName := importedName(f, "errors"), importedName(f, "fmt")
+		ast.Inspect(f, func(n ast.Node) bool {
+			if call, ok := n.(*ast.CallExpr); ok {
+				if lit, bad := prefixedLiteral(call, errorsName, "New"); bad {
+					refuse(lit, "errors.New")
+				}
+			}
+			return true
+		})
+		for _, decl := range f.Decls {
+			gen, ok := decl.(*ast.GenDecl)
+			if !ok || gen.Tok != token.VAR {
+				continue
+			}
+			for _, spec := range gen.Specs {
+				vs, ok := spec.(*ast.ValueSpec)
+				if !ok {
+					continue
+				}
+				for _, value := range vs.Values {
+					if call, ok := value.(*ast.CallExpr); ok {
+						if lit, bad := prefixedLiteral(call, fmtName, "Errorf"); bad {
+							refuse(lit, "fmt.Errorf")
+						}
+					}
+				}
+			}
+		}
+		return nil
+	})
+	if walkErr != nil {
+		errs = append(errs, walkErr)
+	}
+	return errors.Join(errs...)
+}
+
+// TestSentinelTextIsBare checks the real tree: no errors.New call in a
+// non-test file under cmd or internal opens its text with a package
+// prefix (record 0016).
+func TestSentinelTextIsBare(t *testing.T) {
+	for _, dir := range []string{"cmd", "internal"} {
+		if err := checkBareSentinels(filepath.Join(repoRoot(t), dir)); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+// TestSentinelCheckFiresOnItsOwnFixture proves checkBareSentinels fires
+// against testdata/arch/sentinel-prefix: bad.go carries a prefixed
+// errors.New under a renamed import, formatted.go a package-level
+// fmt.Errorf sentinel with a prefix, good.go only bare text and a
+// prefixed fmt.Errorf wrap inside a function, and bad_test.go a prefixed
+// errors.New the walk must skip.
+func TestSentinelCheckFiresOnItsOwnFixture(t *testing.T) {
+	err := checkBareSentinels(filepath.Join("testdata", "arch", "sentinel-prefix"))
+	if err == nil {
+		t.Fatal("expected checkBareSentinels to fire against its own violating fixture")
+	}
+	for _, want := range []string{`errors.New("store: no record")`, `fmt.Errorf("client: body exceeds %d MiB")`} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error does not name %s: %v", want, err)
+		}
+	}
+	for _, skipped := range []string{"good.go", "bad_test.go"} {
+		if strings.Contains(err.Error(), skipped) {
+			t.Errorf("error names %s, which the check must pass: %v", skipped, err)
+		}
 	}
 }

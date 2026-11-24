@@ -34,7 +34,7 @@ const directAssumption = "the peer must be the browser; a proxy in front must be
 // ClientIPRowStatus reports how the server learns a client's address:
 // "direct" and the assumption direct mode makes when the trusted proxy
 // class is off, "trusted proxy: <header> from <n> address(es)" when it
-// is on and [ResolveTrustedProxy] accepts it, and "invalid: " plus every
+// is on and [ParseTrustedProxy] accepts it, and "invalid: " plus every
 // refusal otherwise, which fails the row. cfg is nil when
 // [config.Load] refused the environment, and the row then reads "not
 // checked" and adds no failure, since Load's report already fails
@@ -205,7 +205,7 @@ func BoundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.R
 	if cfg == nil {
 		return "not probed", false
 	}
-	prefix, addrs, port, err := ResolveConfig(environ)
+	prefix, addrs, port, err := ParseConfig(environ)
 	if err != nil {
 		return "not probed", false
 	}
@@ -248,9 +248,9 @@ func BoundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.R
 
 // trustedProxy returns the trusted proxy configuration cfg resolves to
 // and its set of proxy addresses, empty when the class is off, or
-// [ResolveTrustedProxy]'s refusal when its values do not resolve.
+// [ParseTrustedProxy]'s refusal when its values do not resolve.
 func trustedProxy(cfg *config.Config) (TrustedProxyConfig, map[netip.Addr]struct{}, error) {
-	proxy, err := ResolveTrustedProxy(cfg)
+	proxy, err := ParseTrustedProxy(cfg)
 	if err != nil {
 		return TrustedProxyConfig{}, nil, err
 	}

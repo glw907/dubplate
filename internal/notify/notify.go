@@ -25,23 +25,23 @@ const implicitTLSPort = 465
 // ErrHeaderInjection reports that a recipient, subject, or From address
 // carried a CR or LF, either of which could inject an additional header
 // into the composed message.
-var ErrHeaderInjection = errors.New("notify: header value contains CR or LF")
+var ErrHeaderInjection = errors.New("header value contains CR or LF")
 
 // ErrInvalidFrom reports that the configured From address does not
 // parse as an RFC 5322 mailbox. The error text never repeats the
 // address: go-mail's own parse error quotes it verbatim.
-var ErrInvalidFrom = errors.New("notify: invalid from address")
+var ErrInvalidFrom = errors.New("invalid from address")
 
 // ErrInvalidRecipient reports that the recipient address does not parse
 // as an RFC 5322 mailbox. The error text never repeats the address, for
 // the same reason as ErrInvalidFrom.
-var ErrInvalidRecipient = errors.New("notify: invalid recipient address")
+var ErrInvalidRecipient = errors.New("invalid recipient address")
 
 // ErrSend reports that the SMTP transaction failed after a successful
 // dial. The error text carries the host, port, and go-mail's failure
 // reason and code, but never the recipient list: go-mail's own
 // *SendError.Error appends "affected recipient(s): <address>".
-var ErrSend = errors.New("notify: send failed")
+var ErrSend = errors.New("send failed")
 
 // Config names the five SMTP values a Mailer needs. The caller resolves
 // them; Send reads no environment variable of its own.

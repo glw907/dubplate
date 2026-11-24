@@ -38,11 +38,11 @@ const streamInfoSize = 34
 // the file, or a comment field name carrying a code point outside
 // U+0020 through U+007E. Parse returns the zero Container alongside
 // this error: a malformed file is never partly read.
-var ErrMalformedContainer = errors.New("tagio: malformed FLAC container")
+var ErrMalformedContainer = errors.New("malformed FLAC container")
 
 // ErrUnsupportedContainer marks a stream whose first four bytes are
 // not the FLAC signature. The intake gate's allowlist branches on it.
-var ErrUnsupportedContainer = errors.New("tagio: unsupported container")
+var ErrUnsupportedContainer = errors.New("unsupported container")
 
 // Block is one metadata block, carried by type, declared length and
 // payload, so a block this package does not decode still survives a
@@ -121,12 +121,12 @@ type Bounds struct {
 
 // ErrTagsTooLarge marks a VORBIS_COMMENT block whose declared length
 // exceeds [Bounds].TagBytes, or a chain of more than 1024 blocks.
-var ErrTagsTooLarge = errors.New("tagio: tag block too large")
+var ErrTagsTooLarge = errors.New("tag block too large")
 
 // ErrPictureTooLarge marks a PICTURE block whose declared length
 // exceeds [Bounds].PictureBytes, or a chain whose declared lengths
 // total more than four times that.
-var ErrPictureTooLarge = errors.New("tagio: picture block or metadata chain too large")
+var ErrPictureTooLarge = errors.New("picture block or metadata chain too large")
 
 // chainFactor is how many picture caps a whole metadata chain may
 // total, each block's four header bytes included.

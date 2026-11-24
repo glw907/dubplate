@@ -38,13 +38,13 @@ const (
 
 var (
 	// errNotCached reports that the cache holds no schema file.
-	errNotCached = errors.New("xmlrule: schema not cached")
+	errNotCached = errors.New("schema not cached")
 
 	// errChecksum reports bytes whose sha256 disagrees with the pin.
-	errChecksum = errors.New("xmlrule: schema checksum mismatch")
+	errChecksum = errors.New("schema checksum mismatch")
 
 	// errSize reports a source longer than the pinned size.
-	errSize = errors.New("xmlrule: schema larger than its pinned size")
+	errSize = errors.New("schema larger than its pinned size")
 )
 
 // CachePath returns the file the pinned schema caches to, under the

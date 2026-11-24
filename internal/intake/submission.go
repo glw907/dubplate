@@ -120,7 +120,7 @@ func parseID(s string) ([]byte, bool) {
 type newSubmission struct {
 	manifest gate.Manifest
 	// sourceNote and storeURL are optional, and empty stores NULL. The
-	// seam has already refused a store URL that is not https.
+	// [Service] has already refused a store URL that is not https.
 	sourceNote, storeURL string
 }
 

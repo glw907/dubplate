@@ -311,8 +311,8 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		PreviousLinkSecret: []byte(previousFixture),
 		SessionSecret:      []byte(sessionFixture),
 		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
-		SessionLifetime:    orFixed(opts.lifetimeReader, seamLifetime),
-		SessionAbsoluteCap: orFixed(opts.capReader, seamCap),
+		SessionLifetime:    orFixed(opts.lifetimeReader, verifierLifetime),
+		SessionAbsoluteCap: orFixed(opts.capReader, verifierCap),
 		PublicOrigin:       handlerOrigin,
 		Prefix:             handlerPrefix,
 		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
@@ -395,7 +395,7 @@ func TestConsumeLink_SignsIn(t *testing.T) {
 	if len(cookies) != 1 || cookies[0].Name != "__Host-dubplate_session" {
 		t.Fatalf("cookies = %v, want one __Host-dubplate_session", cookies)
 	}
-	sess, err := VerifySession([]byte(sessionFixture), nil, cookies[0].Value, handlerNow, seamCap)
+	sess, err := VerifySession([]byte(sessionFixture), nil, cookies[0].Value, handlerNow, verifierCap)
 	if err != nil {
 		t.Fatalf("VerifySession: %v", err)
 	}
@@ -478,7 +478,7 @@ func TestConsumeLink_Refusals(t *testing.T) {
 				if os.Geteuid() == 0 {
 					t.Skip("running as root: permission bits do not block reads")
 				}
-				dir := filepath.Join(StoreDir(fx.stateDir), epochSubdir)
+				dir := filepath.Join(DirPath(fx.stateDir), epochSubdir)
 				if err := os.Chmod(dir, 0o000); err != nil {
 					t.Fatalf("Chmod: %v", err)
 				}
@@ -910,12 +910,12 @@ func TestRequestLink_ClientFloodSendsNoFurtherMail(t *testing.T) {
 	}
 }
 
-// TestRequestLink_ClientAddressIsTheShells proves the per-client limit
+// TestRequestLink_ClientIPIsTheShells proves the per-client limit
 // keys on the address the shell's trusted-proxy policy derives, and
 // that the auth event logs that same address. A peer outside the
 // allowlist forging a fresh client header on every request is still
 // one client; a trusted proxy reporting distinct clients is many.
-func TestRequestLink_ClientAddressIsTheShells(t *testing.T) {
+func TestRequestLink_ClientIPIsTheShells(t *testing.T) {
 	const perClient = 3
 	limits := generousLimits
 	limits.LinkRequestsPerClient = perClient
@@ -1439,10 +1439,10 @@ func TestConsumeLink_SettingReadFailureLeavesTheLinkUnconsumed(t *testing.T) {
 	}{
 		{"the lifetime reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
 			return fixtureOptions{lifetimeReader: f.setting()}
-		}, seamLifetime},
+		}, verifierLifetime},
 		{"the cap reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
 			return fixtureOptions{capReader: f.setting()}
-		}, seamCap},
+		}, verifierCap},
 		{"the retention reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
 			return fixtureOptions{retentionReader: f.setting()}
 		}, fixtureRetention},
@@ -1484,7 +1484,7 @@ func TestConsumeLink_ReadsTheLifetimeAtEachConsumption(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Fatalf("consume = %d %s, want 200", w.Code, w.Body.String())
 		}
-		sess, err := VerifySession([]byte(sessionFixture), nil, w.Result().Cookies()[0].Value, handlerNow, seamCap)
+		sess, err := VerifySession([]byte(sessionFixture), nil, w.Result().Cookies()[0].Value, handlerNow, verifierCap)
 		if err != nil {
 			t.Fatalf("VerifySession: %v", err)
 		}

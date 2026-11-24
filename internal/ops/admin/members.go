@@ -5,11 +5,12 @@ import (
 	"encoding/hex"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
 // ListMembers answers the live roster in the order members were added.
-func (s *Seam) ListMembers(ctx context.Context, _ ops.Actor, _ ops.ListMembersRequest) (ops.ListMembersResponse, error) {
+func (s *Service) ListMembers(ctx context.Context, _ identity.Actor, _ ops.ListMembersRequest) (ops.ListMembersResponse, error) {
 	members, err := s.cfg.Roster.List(ctx)
 	if err != nil {
 		return ops.ListMembersResponse{}, err
@@ -25,14 +26,14 @@ func (s *Seam) ListMembers(ctx context.Context, _ ops.Actor, _ ops.ListMembersRe
 // AddMember adds a member, or reactivates a removed one, without the
 // admin flag, which the request cannot carry. It is gated, since the
 // access it grants outlives the cookie that asked for it.
-func (s *Seam) AddMember(ctx context.Context, actor ops.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
+func (s *Service) AddMember(ctx context.Context, actor identity.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
 	if err := s.requireFresh(ctx, actor); err != nil {
 		return ops.AddMemberResponse{}, err
 	}
 	candidate := auth.Member{Address: req.Address, DisplayName: req.DisplayName, Username: req.Username}
 	var added auth.Member
 	if err := writeMember(ctx, func(ctx context.Context) (err error) {
-		added, err = s.cfg.Roster.AddMember(ctx, candidate, rosterActor(actor), s.cfg.Logger)
+		added, err = s.cfg.Roster.AddMember(ctx, candidate, actor, s.cfg.Logger)
 		return err
 	}); err != nil {
 		return ops.AddMemberResponse{}, err
@@ -42,7 +43,7 @@ func (s *Seam) AddMember(ctx context.Context, actor ops.Actor, req ops.AddMember
 
 // RemoveMember removes the member req names, which revokes their
 // sessions. It is gated.
-func (s *Seam) RemoveMember(ctx context.Context, actor ops.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
+func (s *Service) RemoveMember(ctx context.Context, actor identity.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
 	id, err := parseUserID(req.UserID)
 	if err != nil {
 		return ops.RemoveMemberResponse{}, err
@@ -51,13 +52,13 @@ func (s *Seam) RemoveMember(ctx context.Context, actor ops.Actor, req ops.Remove
 		return ops.RemoveMemberResponse{}, err
 	}
 	return ops.RemoveMemberResponse{}, writeMember(ctx, func(ctx context.Context) error {
-		return s.cfg.Roster.RemoveMember(ctx, id, rosterActor(actor), s.cfg.Logger)
+		return s.cfg.Roster.RemoveMember(ctx, id, actor, s.cfg.Logger)
 	})
 }
 
 // DemoteMember clears the admin flag of the member req names. It is
 // gated, since the web cannot grant the flag back.
-func (s *Seam) DemoteMember(ctx context.Context, actor ops.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
+func (s *Service) DemoteMember(ctx context.Context, actor identity.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
 	id, err := parseUserID(req.UserID)
 	if err != nil {
 		return ops.DemoteMemberResponse{}, err
@@ -66,7 +67,7 @@ func (s *Seam) DemoteMember(ctx context.Context, actor ops.Actor, req ops.Demote
 		return ops.DemoteMemberResponse{}, err
 	}
 	return ops.DemoteMemberResponse{}, writeMember(ctx, func(ctx context.Context) error {
-		return s.cfg.Roster.DemoteMember(ctx, id, rosterActor(actor), s.cfg.Logger)
+		return s.cfg.Roster.DemoteMember(ctx, id, actor, s.cfg.Logger)
 	})
 }
 

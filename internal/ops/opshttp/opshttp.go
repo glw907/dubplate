@@ -67,33 +67,33 @@ func checkStatuses(table map[ops.Code]int) error {
 // whose method-mismatch and not-found answers are plain text, so that
 // every answer here carries the JSON error shape.
 type handler struct {
-	seam   *authorizingSeam
-	log    *slog.Logger
-	routes map[string]http.HandlerFunc
+	admission *admission
+	log       *slog.Logger
+	routes    map[string]http.HandlerFunc
 }
 
-// newHandler builds the projection of the admin and submission seams,
-// admitting each call through auth on a mount whose verified identities
-// arrive on channel. It fails on a nil seam, auth, or log, on a channel
+// newHandler builds the projection of the admin and submission
+// operations, admitting each call through auth on a mount whose verified
+// identities arrive on channel. It fails on a nil admin, subs, auth, or log, on a channel
 // no network mount carries, and on a wire code with no HTTP status.
-func newHandler(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
+func newHandler(admin ops.Admin, subs ops.Submissions, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
 	if log == nil {
-		return nil, errors.New("opshttp: logger is nil")
+		return nil, errors.New("logger is nil")
 	}
 	switch {
 	case admin == nil:
-		return nil, errors.New("opshttp: admin seam is nil")
+		return nil, errors.New("admin operations are nil")
 	case subs == nil:
-		return nil, errors.New("opshttp: submission seam is nil")
+		return nil, errors.New("submission operations are nil")
 	}
-	seam, err := newAuthorizingSeam(auth, channel)
+	adm, err := newAdmission(auth, channel)
 	if err != nil {
 		return nil, err
 	}
 	if err := checkStatuses(statuses); err != nil {
 		return nil, err
 	}
-	h := &handler{seam: seam, log: log}
+	h := &handler{admission: adm, log: log}
 	h.routes = map[string]http.HandlerFunc{
 		ops.OpListMembers:  route(h, ops.OpListMembers, admin.ListMembers),
 		ops.OpAddMember:    route(h, ops.OpAddMember, admin.AddMember),
@@ -117,9 +117,9 @@ func newHandler(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, c
 // a caller without the operation's privilege learns nothing from the
 // body's shape, then decodes a Req, calls the operation as the admitted
 // actor, and answers the result.
-func route[Req, Resp any](h *handler, op string, call func(context.Context, ops.Actor, Req) (Resp, error)) http.HandlerFunc {
+func route[Req, Resp any](h *handler, op string, call func(context.Context, identity.Actor, Req) (Resp, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		actor, err := h.seam.admit(r.Context(), op)
+		actor, err := h.admission.admit(r.Context(), op)
 		if err != nil {
 			h.respond(w, op, nil, err)
 			return

@@ -33,7 +33,7 @@ type Refusal struct {
 	Files      []FileReason
 }
 
-// The two faults a client makes, which the seam answers as a malformed
+// The two faults a client makes, which intake answers as a malformed
 // request rather than as a reject reason.
 var (
 	// ErrMalformedManifest is a negative size or a duplicate path.

@@ -37,18 +37,18 @@ func (l Limits) limits() limits {
 	}
 }
 
-// A Seam is the member-facing submission operations over the store. It
-// implements [ops.SubmissionSeam], taking the caller only from the
-// actor. [Intake.Seam] builds it over the intake's one writer.
-type Seam struct {
+// A Service is the member-facing submission operations over the store. It
+// implements [ops.Submissions], taking the caller only from the
+// actor. [Intake.Service] builds it over the intake's one writer.
+type Service struct {
 	subs   *submissions
 	limits func(ctx context.Context) (Limits, error)
 }
 
-var _ ops.SubmissionSeam = (*Seam)(nil)
+var _ ops.Submissions = (*Service)(nil)
 
-// CreateSubmission implements [ops.SubmissionSeam].
-func (s *Seam) CreateSubmission(ctx context.Context, actor ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
+// CreateSubmission implements [ops.Submissions].
+func (s *Service) CreateSubmission(ctx context.Context, actor identity.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
 	unit, container := gate.Unit(req.VerdictUnit), gate.Container(req.Container)
 	switch {
 	case unit != gate.UnitAlbum && unit != gate.UnitTrack:
@@ -133,8 +133,8 @@ func writeFault(err error) error {
 	return err
 }
 
-// ListSubmissions implements [ops.SubmissionSeam].
-func (s *Seam) ListSubmissions(ctx context.Context, actor ops.Actor, _ ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
+// ListSubmissions implements [ops.Submissions].
+func (s *Service) ListSubmissions(ctx context.Context, actor identity.Actor, _ ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
 	uploader := actor.UserID()
 	list, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionSummary, error) {
 		var id []byte
@@ -153,8 +153,8 @@ func (s *Seam) ListSubmissions(ctx context.Context, actor ops.Actor, _ ops.ListS
 	return ops.ListSubmissionsResponse{Submissions: list}, nil
 }
 
-// GetSubmission implements [ops.SubmissionSeam].
-func (s *Seam) GetSubmission(ctx context.Context, actor ops.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
+// GetSubmission implements [ops.Submissions].
+func (s *Service) GetSubmission(ctx context.Context, actor identity.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
 	id, err := parseWireID(req.SubmissionID)
 	if err != nil {
 		return ops.GetSubmissionResponse{}, err
@@ -162,21 +162,21 @@ func (s *Seam) GetSubmission(ctx context.Context, actor ops.Actor, req ops.GetSu
 	return s.status(ctx, actor.UserID(), id)
 }
 
-// RetrySubmission implements [ops.SubmissionSeam].
-func (s *Seam) RetrySubmission(ctx context.Context, actor ops.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
+// RetrySubmission implements [ops.Submissions].
+func (s *Service) RetrySubmission(ctx context.Context, actor identity.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
 	status, err := s.act(ctx, actor.UserID(), req.SubmissionID, s.subs.retry)
 	return ops.RetrySubmissionResponse(status), err
 }
 
-// CancelSubmission implements [ops.SubmissionSeam].
-func (s *Seam) CancelSubmission(ctx context.Context, actor ops.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
+// CancelSubmission implements [ops.Submissions].
+func (s *Service) CancelSubmission(ctx context.Context, actor identity.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
 	status, err := s.act(ctx, actor.UserID(), req.SubmissionID, s.subs.cancel)
 	return ops.CancelSubmissionResponse(status), err
 }
 
 // act runs one of the uploader's actions on the submission wireID names
 // and answers the submission as it stands afterwards.
-func (s *Seam) act(ctx context.Context, uploader identity.UserID, wire string,
+func (s *Service) act(ctx context.Context, uploader identity.UserID, wire string,
 	action func(ctx context.Context, uploader identity.UserID, id []byte) error) (ops.GetSubmissionResponse, error) {
 	id, err := parseWireID(wire)
 	if err != nil {
@@ -215,7 +215,7 @@ func parseWireID(wire string) ([]byte, error) {
 
 // status reads submission id as uploader's. Another member's submission
 // reads as one that does not exist.
-func (s *Seam) status(ctx context.Context, uploader identity.UserID, id []byte) (ops.GetSubmissionResponse, error) {
+func (s *Service) status(ctx context.Context, uploader identity.UserID, id []byte) (ops.GetSubmissionResponse, error) {
 	var out ops.GetSubmissionResponse
 	var coll []byte
 	var createdAt, updatedAt int64
@@ -230,7 +230,7 @@ func (s *Seam) status(ctx context.Context, uploader identity.UserID, id []byte) 
 	}
 	out.SubmissionID, out.CreatedAt, out.UpdatedAt = wireID(id), store.Micros(createdAt), store.Micros(updatedAt)
 
-	reasons := &reasonReader{seam: s, collection: coll}
+	reasons := &reasonReader{svc: s, collection: coll}
 	out.Events, err = store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionEvent, error) {
 		var at int64
 		var reason sql.NullString
@@ -316,7 +316,7 @@ type storedWarning struct {
 // format a bad-extension verdict names is the submission's effective
 // allowlist, read the first time one is rendered.
 type reasonReader struct {
-	seam       *Seam
+	svc        *Service
 	collection []byte
 	allowlist  []string
 }
@@ -332,12 +332,12 @@ func (r *reasonReader) read(ctx context.Context, code string) (reject.Reason, er
 		return reason, nil
 	}
 	if r.allowlist == nil {
-		lim, err := r.seam.limits(ctx)
+		lim, err := r.svc.limits(ctx)
 		if err != nil {
 			return reject.Reason{}, fmt.Errorf("read intake limits: %w", err)
 		}
 		var own sql.NullString
-		if err := r.seam.subs.store.QueryRow(ctx, `SELECT admission_format_allowlist FROM collections WHERE id = ?`,
+		if err := r.svc.subs.store.QueryRow(ctx, `SELECT admission_format_allowlist FROM collections WHERE id = ?`,
 			r.collection).Scan(&own); err != nil {
 			return reject.Reason{}, fmt.Errorf("read collection allowlist: %w", err)
 		}

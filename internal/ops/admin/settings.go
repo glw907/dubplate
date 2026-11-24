@@ -7,6 +7,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -42,7 +43,7 @@ var (
 // store-homed key the serving environment sets answers the
 // environment's value and source, which the store holds in step, so the
 // page can show it as set in the environment file.
-func (s *Seam) ListSettings(ctx context.Context, _ ops.Actor, _ ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
+func (s *Service) ListSettings(ctx context.Context, _ identity.Actor, _ ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
 	reg := s.cfg.Registry
 	eval, err := settings.Evaluate(ctx, s.cfg.Store, reg, s.cfg.Environ)
 	if err != nil {
@@ -100,8 +101,8 @@ func (s *Seam) ListSettings(ctx context.Context, _ ops.Actor, _ ops.ListSettings
 
 // SetSetting writes the admin's value for a store-homed key. A
 // sensitive key is gated and, once written, noticed.
-func (s *Seam) SetSetting(ctx context.Context, actor ops.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
-	res, err := s.writeSetting(ctx, actor, req.Key, func(ctx context.Context, by settings.Author, guard settings.Guard, now time.Time) (settings.Result, error) {
+func (s *Service) SetSetting(ctx context.Context, actor identity.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
+	res, err := s.writeSetting(ctx, actor, req.Key, func(ctx context.Context, by identity.Actor, guard settings.Guard, now time.Time) (settings.Result, error) {
 		return settings.Set(ctx, s.cfg.Store, s.cfg.Registry, s.cfg.Environ, by, guard, req.Key, req.Value, now)
 	})
 	if err != nil {
@@ -112,8 +113,8 @@ func (s *Seam) SetSetting(ctx context.Context, actor ops.Actor, req ops.SetSetti
 
 // ResetSetting removes the admin's value for a store-homed key. A
 // sensitive key is gated and, once reset, noticed.
-func (s *Seam) ResetSetting(ctx context.Context, actor ops.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
-	res, err := s.writeSetting(ctx, actor, req.Key, func(ctx context.Context, by settings.Author, guard settings.Guard, now time.Time) (settings.Result, error) {
+func (s *Service) ResetSetting(ctx context.Context, actor identity.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
+	res, err := s.writeSetting(ctx, actor, req.Key, func(ctx context.Context, by identity.Actor, guard settings.Guard, now time.Time) (settings.Result, error) {
 		return settings.Reset(ctx, s.cfg.Store, s.cfg.Registry, s.cfg.Environ, by, guard, req.Key, now)
 	})
 	if err != nil {
@@ -127,21 +128,20 @@ func (s *Seam) ResetSetting(ctx context.Context, actor ops.Actor, req ops.ResetS
 // and actor's in-write admin check as the guard, then the notice once
 // a sensitive write has committed. A key the registry does not hold
 // carries no mark, so it reaches write ungated and is refused there.
-func (s *Seam) writeSetting(ctx context.Context, actor ops.Actor, key string,
-	write func(context.Context, settings.Author, settings.Guard, time.Time) (settings.Result, error),
+func (s *Service) writeSetting(ctx context.Context, actor identity.Actor, key string,
+	write func(context.Context, identity.Actor, settings.Guard, time.Time) (settings.Result, error),
 ) (settings.Result, error) {
 	if s.settings[key].Mark == config.Sensitive {
 		if err := s.requireFresh(ctx, actor); err != nil {
 			return settings.Result{}, err
 		}
 	}
-	by := settings.Author{Actor: actor.String(), Channel: actor.Channel().String()}
 	guard := func(ctx context.Context, tx *store.Tx) error {
 		return auth.CheckAdmin(ctx, tx, actor.UserID())
 	}
 	writeCtx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
-	res, err := write(writeCtx, by, guard, s.cfg.Now())
+	res, err := write(writeCtx, actor, guard, s.cfg.Now())
 	if err != nil {
 		return settings.Result{}, refusal(err)
 	}

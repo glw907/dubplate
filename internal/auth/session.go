@@ -46,21 +46,21 @@ var (
 	// ErrSessionMalformed reports a value that is not a session cookie
 	// at all: the wrong field count, a field that is not base64url, an
 	// unknown version label, or a field whose contents do not parse.
-	ErrSessionMalformed = errors.New("auth: malformed session")
+	ErrSessionMalformed = errors.New("malformed session")
 
 	// ErrSessionMAC reports a session value whose MAC verifies under
 	// neither the current nor the previous secret.
-	ErrSessionMAC = errors.New("auth: session signature")
+	ErrSessionMAC = errors.New("bad session signature")
 
 	// ErrSessionCapReached reports a session whose anchor plus the
 	// absolute cap has passed. It is reported even when the value's
 	// own expiry is still in the future, which is the case a rolling
 	// refresh produces.
-	ErrSessionCapReached = errors.New("auth: session absolute cap reached")
+	ErrSessionCapReached = errors.New("session absolute cap reached")
 
 	// ErrSessionExpired reports a session inside its absolute cap
 	// whose own expiry has passed.
-	ErrSessionExpired = errors.New("auth: session expired")
+	ErrSessionExpired = errors.New("session expired")
 )
 
 // Session is a session cookie's fields. [VerifySession] returns one

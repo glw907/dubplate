@@ -1,91 +1,11 @@
 package ops
 
 import (
-	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/glw907/dubplate/internal/id"
-	"github.com/glw907/dubplate/internal/identity"
 )
-
-// localActorPrefix frames a local [Actor]'s wire form.
-const localActorPrefix = "local"
-
-// networkActorPrefix frames a network [Actor]'s wire form.
-const networkActorPrefix = "member"
-
-// An Actor identifies who invoked an operation, verified before the
-// call reaches an operation: never a field a request type
-// carries, so no request body can widen its own privilege. This
-// package builds the local kind, from an operating-system username,
-// and the network kind, from a verified [identity.Identity] and the
-// anchor of the session that carried it.
-type Actor struct {
-	wire    string
-	channel identity.Channel
-	userID  identity.UserID
-	anchor  time.Time
-	client  string
-}
-
-// LocalActor builds the local kind of [Actor] from username, the
-// operating-system user a CLI verb runs as (the shape
-// internal/store's ownerName already produces, which never
-// returns an empty string). It renders as "local:<username>" on the
-// wire and in every log line, and its channel reads as
-// [identity.ChannelCommandLine].
-func LocalActor(username string) Actor {
-	if username == "" {
-		panic("ops: LocalActor called with an empty username")
-	}
-	return Actor{wire: localActorPrefix + ":" + username, channel: identity.ChannelCommandLine}
-}
-
-// NetworkActor builds the network kind of [Actor] from id, a verified
-// login, and anchor, the time the session that carried it was first
-// issued. It panics unless id.Valid() holds, so a channel other than a
-// signed session (a command-line identity above all) can never become
-// a network actor. It renders as "member:<hex UserID>" on the wire and
-// in every audit row: the durable key, never the principal, so a
-// renamed member keeps one actor. Its channel is id's own, and
-// clientAddr is the address the request came from, which a write's own
-// audit record names.
-func NetworkActor(id identity.Identity, anchor time.Time, clientAddr string) Actor {
-	if !id.Valid() {
-		panic("ops: NetworkActor called with an invalid identity")
-	}
-	return Actor{
-		wire:    networkActorPrefix + ":" + hex.EncodeToString(id.UserID[:]),
-		channel: id.Channel,
-		userID:  id.UserID,
-		anchor:  anchor,
-		client:  clientAddr,
-	}
-}
-
-// String returns a's wire form.
-func (a Actor) String() string { return a.wire }
-
-// Channel returns how a was asserted: [identity.ChannelCommandLine]
-// for a local actor, or the channel the verified identity carried for
-// a network actor.
-func (a Actor) Channel() identity.Channel { return a.channel }
-
-// UserID returns the durable id of the member a network actor
-// speaks for, so a write can re-read the member's roster record by id.
-// A local actor has none and returns the zero UserID.
-func (a Actor) UserID() identity.UserID { return a.userID }
-
-// Anchor returns when the session behind a network actor was first
-// issued, the instant the re-authentication window counts from. A
-// local actor has no session and returns the zero time.
-func (a Actor) Anchor() time.Time { return a.anchor }
-
-// ClientAddress returns the address the request behind a network actor
-// came from, as the verifier that built it resolved it. A local actor
-// has none and returns the empty string.
-func (a Actor) ClientAddress() string { return a.client }
 
 // handleLen is a job [Handle]'s wire length: 32 lowercase hex
 // characters, the hex encoding of 16 random bytes. internal/ops

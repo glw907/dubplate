@@ -9,16 +9,17 @@ import (
 )
 
 // magicLinkSource is the identity source name a session verified through
-// MagicLinkSeam reports. A member's session was always minted by
+// MagicLinkVerifier reports. A member's session was always minted by
 // consuming a magic link, so the source names that mechanism rather
 // than the cookie carrying the session now.
 const magicLinkSource = "magic-link"
 
-// A Seam verifies the credential a request carries and yields the
+// A Verifier verifies the credential a request carries and yields the
 // identity it asserts, so a caller never inspects a credential's own
 // encoding to decide who is logged in or whether they are an operator.
-// MagicLinkSeam is its implementation.
-type Seam interface {
+// MagicLinkVerifier is its production implementation; a test substitutes
+// its own to drive the gate through each refusal.
+type Verifier interface {
 	// VerifyIdentity verifies the credential r carries and returns the
 	// identity it asserts. now is the instant every time comparison
 	// runs against. sameOrigin is the same-origin condition as the
@@ -31,14 +32,9 @@ type Seam interface {
 	// failed for a caller's own log line; the refusal itself never
 	// depends on which one it is.
 	VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error)
-
-	// Read returns address's current revocation epoch, exposed as the
-	// authority a credential store can consult directly rather than
-	// relying only on a Bump notification it may have missed.
-	Read(address string) (epoch time.Time, ok bool, err error)
 }
 
-// VerifiedIdentity is what a Seam yields for a credential that
+// VerifiedIdentity is what a Verifier yields for a credential that
 // verified.
 type VerifiedIdentity struct {
 	// Identity is the verified login, carrying the login address, the
@@ -46,7 +42,7 @@ type VerifiedIdentity struct {
 	// source, and the channel it was asserted on.
 	Identity identity.Identity
 
-	// Admin is read from the roster record at the seam, never from
+	// Admin is read from the roster record at verification, never from
 	// anything the request carries.
 	Admin bool
 
@@ -60,11 +56,11 @@ type VerifiedIdentity struct {
 	RefreshedValue string
 }
 
-// MagicLinkSeam is the Seam's reference implementation: it verifies the
+// MagicLinkVerifier is the [Verifier] for a member's session: it verifies the
 // session cookie, re-checks the address against the roster and the
 // revocation epoch on every call, and refreshes the session only for a
 // same-origin request.
-type MagicLinkSeam struct {
+type MagicLinkVerifier struct {
 	roster *Roster
 	epoch  *EpochStore
 
@@ -72,16 +68,16 @@ type MagicLinkSeam struct {
 	lifetime, absoluteCap         Setting[time.Duration]
 }
 
-var _ Seam = (*MagicLinkSeam)(nil)
+var _ Verifier = (*MagicLinkVerifier)(nil)
 
-// NewMagicLinkSeam returns a MagicLinkSeam verifying against roster and
+// NewMagicLinkVerifier returns a MagicLinkVerifier verifying against roster and
 // epoch, signing and clamping refreshed sessions the same way
 // currentSecret, previousSecret, lifetime, and absoluteCap already
 // govern minting and verification. absoluteCap is read at every
 // verification, so a changed cap applies to the next request in both
 // directions; lifetime is read at every refresh.
-func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap Setting[time.Duration]) *MagicLinkSeam {
-	return &MagicLinkSeam{
+func NewMagicLinkVerifier(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap Setting[time.Duration]) *MagicLinkVerifier {
+	return &MagicLinkVerifier{
 		roster:         roster,
 		epoch:          epoch,
 		currentSecret:  currentSecret,
@@ -91,7 +87,7 @@ func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previous
 	}
 }
 
-// VerifyIdentity implements Seam.
+// VerifyIdentity implements [Verifier].
 //
 // The order is fixed: the session cookie's MAC, then the absolute cap
 // and the expiry, then the revocation epoch, then the roster. The cap
@@ -104,7 +100,7 @@ func NewMagicLinkSeam(roster *Roster, epoch *EpochStore, currentSecret, previous
 //
 // A failed read of the cap or the lifetime fails the verification with
 // an error wrapping errSettingUnreadable, never a default.
-func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error) {
+func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
@@ -150,9 +146,4 @@ func (m *MagicLinkSeam) VerifyIdentity(r *http.Request, now time.Time, sameOrigi
 		result.RefreshedValue = value
 	}
 	return result, nil
-}
-
-// Read implements Seam.
-func (m *MagicLinkSeam) Read(address string) (time.Time, bool, error) {
-	return m.epoch.Read(address)
 }

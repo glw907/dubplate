@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -14,7 +15,7 @@ import (
 type seamCall struct {
 	name      string
 	prep      func(t *testing.T, f *fixture)
-	call      func(ctx context.Context, f *fixture, a ops.Actor) error
+	call      func(ctx context.Context, f *fixture, a identity.Actor) error
 	committed func(t *testing.T, f *fixture)
 }
 
@@ -23,7 +24,7 @@ type seamCall struct {
 var gatedCalls = []seamCall{
 	{
 		name: "set_setting on a sensitive key",
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.SetSetting(ctx, a, ops.SetSettingRequest{Key: keyLifetime, Value: "3h"})
 			return err
 		},
@@ -36,7 +37,7 @@ var gatedCalls = []seamCall{
 	{
 		name: "reset_setting on a sensitive key",
 		prep: func(t *testing.T, f *fixture) { plantAdminRow(t, f, keyLifetime, "3h") },
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.ResetSetting(ctx, a, ops.ResetSettingRequest{Key: keyLifetime})
 			return err
 		},
@@ -48,7 +49,7 @@ var gatedCalls = []seamCall{
 	},
 	{
 		name: "add_member",
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.AddMember(ctx, a, ops.AddMemberRequest{Address: "erin@example.com", DisplayName: "Erin", Username: "erin"})
 			return err
 		},
@@ -61,7 +62,7 @@ var gatedCalls = []seamCall{
 	},
 	{
 		name: "remove_member",
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.RemoveMember(ctx, a, ops.RemoveMemberRequest{UserID: carol.hex})
 			return err
 		},
@@ -73,7 +74,7 @@ var gatedCalls = []seamCall{
 	},
 	{
 		name: "demote_member",
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.DemoteMember(ctx, a, ops.DemoteMemberRequest{UserID: bob.hex})
 			return err
 		},
@@ -90,7 +91,7 @@ var gatedCalls = []seamCall{
 var ungatedCalls = []seamCall{
 	{
 		name: "set_setting on a non-sensitive key",
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.SetSetting(ctx, a, ops.SetSettingRequest{Key: keyKeep, Value: "20"})
 			return err
 		},
@@ -103,7 +104,7 @@ var ungatedCalls = []seamCall{
 	{
 		name: "reset_setting on a non-sensitive key",
 		prep: func(t *testing.T, f *fixture) { plantAdminRow(t, f, keyKeep, "20") },
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.ResetSetting(ctx, a, ops.ResetSettingRequest{Key: keyKeep})
 			return err
 		},
@@ -160,6 +161,27 @@ func TestGate_AnchorInsideTheWindowCommits(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+// TestGate_RefusesACommandLineActor proves each gated call refuses an
+// actor from the command line as forbidden and writes nothing. The
+// roster treats such an actor as the box operator and skips its admin
+// check, so the service must never hand one through.
+func TestGate_RefusesACommandLineActor(t *testing.T) {
+	for _, c := range gatedCalls {
+		t.Run(c.name, func(t *testing.T) {
+			f := newFixture(t)
+			if c.prep != nil {
+				c.prep(t, f)
+			}
+			before := snapshot(t, f.h)
+			err := c.call(writeCtx(t), f, identity.LocalActor("glw907"))
+			wantCode(t, err, ops.CodeForbidden, "")
+			if after := snapshot(t, f.h); after != before {
+				t.Errorf("a refused call wrote:\nbefore:\n%s\nafter:\n%s", before, after)
+			}
+		})
 	}
 }
 

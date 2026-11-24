@@ -63,10 +63,10 @@ func LoadClaims(dir string) (*Claims, error) {
 		return nil, fmt.Errorf("claims: %w", err)
 	}
 	if c.BestAlbumID == "" && !c.declaresZeroCandidates() {
-		return nil, errors.New("claims: best_album_id: missing")
+		return nil, errors.New("claims file has no best_album_id")
 	}
 	if c.Recommendation == "" {
-		return nil, errors.New("claims: recommendation: missing")
+		return nil, errors.New("claims file has no recommendation")
 	}
 	return &c, nil
 }
@@ -109,7 +109,7 @@ func CheckClaims(exp *cassette.Expected, c *Claims) error {
 	if len(exp.Candidates) == 0 {
 		// Every remaining claim reads the best candidate; without one there
 		// is nothing further to check, and indexing would panic.
-		errs = append(errs, errors.New("claims: record carries no candidate, so best_album_id and the penalty claims are unverifiable"))
+		errs = append(errs, errors.New("the record carries no candidate, so the best_album_id and penalty claims are unverifiable"))
 		return errors.Join(errs...)
 	}
 

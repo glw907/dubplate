@@ -51,7 +51,7 @@ func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdo
 	// with the config Load resolved.
 	cfg, loadErr := config.Load(environ, reg)
 	if loadErr == nil {
-		loadErr = intake.ResolveStaging(cfg)
+		loadErr = intake.ValidateStaging(cfg)
 	}
 	statuses := rowStatuses(loadErr)
 	report := doctorReport{failed: loadErr != nil}
@@ -109,7 +109,7 @@ func (r *doctorReport) addRegistryRows(environ []string, reg *config.Registry, s
 	for _, row := range reg.OwnedWall() {
 		status := cmp.Or(statuses[row.Name], "ok")
 		if row.Name == adminEmailKey {
-			status = auth.AdminEmailRowStatus(status, storeReport, storeChecked)
+			status = auth.AdminAddressRowStatus(status, storeReport, storeChecked)
 		}
 		r.add(row.Name, status)
 	}
@@ -148,8 +148,8 @@ func (r *doctorReport) addProbeRows(ctx context.Context, environ []string, reg *
 	membersStatus, membersFailed := auth.MembersRowStatus(storeReport, storeChecked)
 	r.addChecked(membersDoctorRow, membersStatus, membersFailed)
 
-	authStoreStatus, authStoreFailed := auth.StoreRowStatus(cfg, auth.StoreRowOptions{Geteuid: os.Geteuid})
-	r.addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
+	authDirStatus, authDirFailed := auth.DirRowStatus(cfg, auth.DirRowOptions{Geteuid: os.Geteuid})
+	r.addChecked(authDirDoctorRow, authDirStatus, authDirFailed)
 
 	for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
 		r.add(row.key, row.status)
@@ -233,8 +233,8 @@ const (
 // the library root, and the collection roots under it.
 const musicVolumeDoctorRow = "music volume"
 
-// authStoreDoctorRow is the row reporting the auth leaf serve opens.
-const authStoreDoctorRow = "auth store"
+// authDirDoctorRow is the row reporting the auth leaf serve opens.
+const authDirDoctorRow = "auth dir"
 
 // membersDoctorRow is the row reporting the members the store holds.
 const membersDoctorRow = "members"

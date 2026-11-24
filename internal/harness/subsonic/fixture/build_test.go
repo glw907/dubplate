@@ -220,7 +220,7 @@ func TestLoadStates(t *testing.T) {
 		{
 			name:        "empty",
 			m:           &manifest{},
-			want:        []string{"manifest declares no albums"},
+			want:        []string{"declares no albums"},
 			wantInvalid: true,
 		},
 		{

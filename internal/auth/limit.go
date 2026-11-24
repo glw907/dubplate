@@ -14,7 +14,7 @@ import (
 // refused because one of [Limiter]'s limits is spent. The wrapped text
 // names which limit tripped, never the key it tripped on; the caller
 // logs the refusal with the client address it already holds.
-var ErrRateLimited = errors.New("auth: rate limit tripped")
+var ErrRateLimited = errors.New("rate limit tripped")
 
 // limitInterval is the window every [Limits] count is stated over: a
 // count of n admits n events per interval, refilling one event every

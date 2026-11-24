@@ -14,46 +14,46 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 )
 
-// seamBirth, seamLifetime, and seamCap pin every timestamp below. The
+// verifierBirth, verifierLifetime, and verifierCap pin every timestamp below. The
 // cap is far longer than the lifetime, the same shape session_test.go
 // and epoch_test.go already use, so a refresh has room to move the
 // expiry without ever touching the cap.
 var (
-	seamBirth    = time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
-	seamLifetime = 30 * 24 * time.Hour
-	seamCap      = 180 * 24 * time.Hour
+	verifierBirth    = time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
+	verifierLifetime = 30 * 24 * time.Hour
+	verifierCap      = 180 * 24 * time.Hour
 )
 
-// seamFixture bundles one test's roster, epoch store, and seam, built
+// verifierFixture bundles one test's roster, epoch store, and seam, built
 // fresh so a chmod or a bump in one test never leaks into another.
-type seamFixture struct {
+type verifierFixture struct {
 	roster *Roster
 	users  *store.Handle
 	epoch  *EpochStore
-	seam   *MagicLinkSeam
+	seam   *MagicLinkVerifier
 	dir    string // stateDir, for reaching the epoch subdirectory directly
 }
 
-// newSeamFixture opens a roster over a fresh store holding rows and a
+// newVerifierFixture opens a roster over a fresh store holding rows and a
 // fresh epoch store under t.TempDir(), and wires both into a
-// MagicLinkSeam signing under currentFixture and previousFixture
+// MagicLinkVerifier signing under currentFixture and previousFixture
 // (token_test.go).
-func newSeamFixture(t *testing.T, rows ...userRow) seamFixture {
+func newVerifierFixture(t *testing.T, rows ...userRow) verifierFixture {
 	t.Helper()
-	return newSeamFixtureReading(t, fixed(seamLifetime), fixed(seamCap), rows...)
+	return newVerifierFixtureReading(t, fixed(verifierLifetime), fixed(verifierCap), rows...)
 }
 
-// newSeamFixtureReading is [newSeamFixture] with the seam reading its
+// newVerifierFixtureReading is [newVerifierFixture] with the verifier reading its
 // lifetime and absolute cap through lifetime and absoluteCap.
-func newSeamFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) seamFixture {
+func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) verifierFixture {
 	t.Helper()
 	stateDir := t.TempDir()
 	_, users := newRosterOver(t, rows...)
 	epoch := newEpochStore(t, stateDir)
 	roster := NewRoster(users, epoch, fixedNow(rosterNow))
 
-	seam := NewMagicLinkSeam(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
-	return seamFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
+	seam := NewMagicLinkVerifier(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
+	return verifierFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
 }
 
 // requestWithSession builds a request carrying value as the session
@@ -68,14 +68,14 @@ func requestWithSession(t *testing.T, value string) *http.Request {
 	return req
 }
 
-// TestMagicLinkSeam_VerifyIdentity covers the identity a valid session
+// TestMagicLinkVerifier_VerifyIdentity covers the identity a valid session
 // yields: the channel, the admin flag sourced from the roster, and the
 // refusal for an address the roster no longer carries. Named mutation 1
 // (read the admin flag from the session value) fails the "address named
 // admin is not itself an admin claim" row, because that row's address
 // carries the string "admin" while its roster record does not carry the
 // flag.
-func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
+func TestMagicLinkVerifier_VerifyIdentity(t *testing.T) {
 	tests := []struct {
 		name      string
 		rows      []userRow
@@ -120,14 +120,14 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fx := newSeamFixture(t, tt.rows...)
-			value, _, err := MintSession([]byte(currentFixture), tt.address, seamBirth, seamLifetime, seamCap)
+			fx := newVerifierFixture(t, tt.rows...)
+			value, _, err := MintSession([]byte(currentFixture), tt.address, verifierBirth, verifierLifetime, verifierCap)
 			if err != nil {
 				t.Fatalf("MintSession: %v", err)
 			}
 			req := requestWithSession(t, value)
 
-			got, err := fx.seam.VerifyIdentity(req, seamBirth.Add(time.Hour), false)
+			got, err := fx.seam.VerifyIdentity(req, verifierBirth.Add(time.Hour), false)
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("VerifyIdentity error = %v, want %v", err, tt.wantErr)
@@ -156,13 +156,13 @@ func TestMagicLinkSeam_VerifyIdentity(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_VerifyIdentity_NeverCommandLine proves every
+// TestMagicLinkVerifier_VerifyIdentity_NeverCommandLine proves every
 // identity the seam verifies carries the cookie channel and passes
 // identity.Identity.Valid, for an admin and a non-admin, with and
 // without a refresh. The command-line channel names an operating-system
 // user and is the one channel that may grant the admin flag, so a seam
 // emitting it would hand a browser request the grant.
-func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
+func TestMagicLinkVerifier_VerifyIdentity_NeverCommandLine(t *testing.T) {
 	rows := []userRow{
 		{address: "lead@example.com", displayName: "Lead", username: "lead", admin: true},
 		{address: "member@example.com", displayName: "Member", username: "member"},
@@ -170,12 +170,12 @@ func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
 	for _, address := range []string{"lead@example.com", "member@example.com"} {
 		for _, sameOrigin := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s same-origin %v", address, sameOrigin), func(t *testing.T) {
-				fx := newSeamFixture(t, rows...)
-				value, _, err := MintSession([]byte(currentFixture), address, seamBirth, seamLifetime, seamCap)
+				fx := newVerifierFixture(t, rows...)
+				value, _, err := MintSession([]byte(currentFixture), address, verifierBirth, verifierLifetime, verifierCap)
 				if err != nil {
 					t.Fatalf("MintSession: %v", err)
 				}
-				got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), seamBirth.Add(time.Hour), sameOrigin)
+				got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), verifierBirth.Add(time.Hour), sameOrigin)
 				if err != nil {
 					t.Fatalf("VerifyIdentity: %v", err)
 				}
@@ -190,20 +190,20 @@ func TestMagicLinkSeam_VerifyIdentity_NeverCommandLine(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh proves that
+// TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh proves that
 // refreshing a session cannot outrun a revocation aimed at its anchor:
 // the anchor a refresh never moves is what a later epoch bump compares
 // against, the property 5b-i's CheckSession doc records. The test
 // performs a refresh before the bump, so a check reading IssuedAt
 // instead of AnchoredAt would miss it.
-func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
-	fx := newSeamFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
-	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
+func TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
+	fx := newVerifierFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
+	value, _, err := MintSession([]byte(currentFixture), "member@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
 
-	refreshTime := seamBirth.Add(time.Hour)
+	refreshTime := verifierBirth.Add(time.Hour)
 	req := requestWithSession(t, value)
 	refreshed, err := fx.seam.VerifyIdentity(req, refreshTime, true)
 	if err != nil {
@@ -216,7 +216,7 @@ func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
 	// The bump lands after the original anchor and before the refresh,
 	// which a check keyed on IssuedAt would miss and a check keyed on
 	// AnchoredAt (unmoved by the refresh) still catches.
-	bumpTime := seamBirth.Add(30 * time.Minute)
+	bumpTime := verifierBirth.Add(30 * time.Minute)
 	if err := fx.epoch.Bump("member@example.com", bumpTime); err != nil {
 		t.Fatalf("Bump: %v", err)
 	}
@@ -228,21 +228,21 @@ func TestMagicLinkSeam_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_VerifyIdentity_CrossOriginDoesNotRefresh proves the
+// TestMagicLinkVerifier_VerifyIdentity_CrossOriginDoesNotRefresh proves the
 // refresh runs only for a same-origin request: the session VerifyIdentity
 // returns for a cross-origin request carries the same expiry the minted
 // cookie did, and RefreshedValue is empty. Named mutation 4 (refresh
 // unconditionally) fails this row, because it would move ExpiresAt
 // forward regardless of sameOrigin.
-func TestMagicLinkSeam_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T) {
-	fx := newSeamFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
-	value, minted, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
+func TestMagicLinkVerifier_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T) {
+	fx := newVerifierFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
+	value, minted, err := MintSession([]byte(currentFixture), "member@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
 
 	req := requestWithSession(t, value)
-	got, err := fx.seam.VerifyIdentity(req, seamBirth.Add(time.Hour), false)
+	got, err := fx.seam.VerifyIdentity(req, verifierBirth.Add(time.Hour), false)
 	if err != nil {
 		t.Fatalf("VerifyIdentity: %v", err)
 	}
@@ -254,18 +254,18 @@ func TestMagicLinkSeam_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies proves that a
+// TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies proves that a
 // non-sentinel error from EpochStore.Read (via CheckSession) denies
 // exactly as a sentinel refusal would, the fail-closed discipline
 // security constraint 2 states. Named mutation 3 (treat a non-sentinel
 // error as "not refused") fails this row, because it would let a valid
 // session and a valid roster member through despite the read failure.
-func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
+func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if os.Geteuid() == 0 {
 		t.Skip("running as root: permission bits do not block reads")
 	}
-	fx := newSeamFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
-	value, _, err := MintSession([]byte(currentFixture), "member@example.com", seamBirth, seamLifetime, seamCap)
+	fx := newVerifierFixture(t, userRow{address: "member@example.com", displayName: "Member", username: "member"})
+	value, _, err := MintSession([]byte(currentFixture), "member@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
@@ -277,7 +277,7 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(epochDir, 0o700) })
 
 	req := requestWithSession(t, value)
-	_, err = fx.seam.VerifyIdentity(req, seamBirth.Add(time.Hour), false)
+	_, err = fx.seam.VerifyIdentity(req, verifierBirth.Add(time.Hour), false)
 	if err == nil {
 		t.Fatalf("VerifyIdentity: got nil error, want a denial from the unreadable epoch directory")
 	}
@@ -286,42 +286,20 @@ func TestMagicLinkSeam_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_Read proves Read is the authority a caller can
-// consult directly: a bump with no subscriber registered still shows up
-// on Read, proving Read does not depend on the notification path.
-func TestMagicLinkSeam_Read(t *testing.T) {
-	fx := newSeamFixture(t)
-	bumpTime := seamBirth.Add(time.Minute)
-	if err := fx.epoch.Bump("member@example.com", bumpTime); err != nil {
-		t.Fatalf("Bump: %v", err)
-	}
-
-	got, ok, err := fx.seam.Read("member@example.com")
-	if err != nil {
-		t.Fatalf("Read: %v", err)
-	}
-	if !ok {
-		t.Fatalf("Read: ok = false, want true")
-	}
-	if !got.Equal(bumpTime.Truncate(time.Second)) {
-		t.Errorf("Read = %v, want %v", got, bumpTime.Truncate(time.Second))
-	}
-}
-
-// TestMagicLinkSeam_VerifyIdentity_UsersTable proves the seam resolves a
+// TestMagicLinkVerifier_VerifyIdentity_UsersTable proves the seam resolves a
 // session through the users table: the identity carries the row's id as
 // UserID and the row's username as Principal. The member's address and
 // username differ, so a Principal built from the address fails.
-func TestMagicLinkSeam_VerifyIdentity_UsersTable(t *testing.T) {
+func TestMagicLinkVerifier_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkSeam(NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap))
-	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", seamBirth, seamLifetime, seamCap)
+	seam := NewMagicLinkVerifier(NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
+	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
 
-	got, err := seam.VerifyIdentity(requestWithSession(t, value), seamBirth.Add(time.Hour), false)
+	got, err := seam.VerifyIdentity(requestWithSession(t, value), verifierBirth.Add(time.Hour), false)
 	if err != nil {
 		t.Fatalf("VerifyIdentity: %v", err)
 	}
@@ -341,30 +319,30 @@ func TestMagicLinkSeam_VerifyIdentity_UsersTable(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_ReadsTheCapAtEveryVerification proves the absolute
+// TestMagicLinkVerifier_ReadsTheCapAtEveryVerification proves the absolute
 // cap applies to the next verification in both directions: one session,
 // minted under a long cap and verified at the same instant, is refused
 // once the cap in force drops below its age and admitted again once the
 // cap rises. A cap cached when the seam was built would answer every
 // row alike.
-func TestMagicLinkSeam_ReadsTheCapAtEveryVerification(t *testing.T) {
+func TestMagicLinkVerifier_ReadsTheCapAtEveryVerification(t *testing.T) {
 	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
-	absoluteCap := newSettingFake(seamCap)
-	fx := newSeamFixtureReading(t, fixed(seamLifetime), absoluteCap.setting(), member)
-	value, _, err := MintSession([]byte(currentFixture), member.address, seamBirth, seamLifetime, seamCap)
+	absoluteCap := newSettingFake(verifierCap)
+	fx := newVerifierFixtureReading(t, fixed(verifierLifetime), absoluteCap.setting(), member)
+	value, _, err := MintSession([]byte(currentFixture), member.address, verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
-	at := seamBirth.Add(10 * 24 * time.Hour)
+	at := verifierBirth.Add(10 * 24 * time.Hour)
 
 	for _, tt := range []struct {
 		name    string
 		cap     time.Duration
 		wantErr error
 	}{
-		{"the cap in force admits the session's age", seamCap, nil},
+		{"the cap in force admits the session's age", verifierCap, nil},
 		{"a cap lowered below the session's age refuses it", 5 * 24 * time.Hour, ErrSessionCapReached},
-		{"the cap raised again admits it", seamCap, nil},
+		{"the cap raised again admits it", verifierCap, nil},
 	} {
 		absoluteCap.set(tt.cap, nil)
 		_, err := fx.seam.VerifyIdentity(requestWithSession(t, value), at, false)
@@ -374,18 +352,18 @@ func TestMagicLinkSeam_ReadsTheCapAtEveryVerification(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_ReadsTheLifetimeAtEachRefresh proves a refresh takes
+// TestMagicLinkVerifier_ReadsTheLifetimeAtEachRefresh proves a refresh takes
 // the lifetime in force at that refresh, never the one in force when
 // the seam was built.
-func TestMagicLinkSeam_ReadsTheLifetimeAtEachRefresh(t *testing.T) {
+func TestMagicLinkVerifier_ReadsTheLifetimeAtEachRefresh(t *testing.T) {
 	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
-	lifetime := newSettingFake(seamLifetime)
-	fx := newSeamFixtureReading(t, lifetime.setting(), fixed(seamCap), member)
-	value, _, err := MintSession([]byte(currentFixture), member.address, seamBirth, seamLifetime, seamCap)
+	lifetime := newSettingFake(verifierLifetime)
+	fx := newVerifierFixtureReading(t, lifetime.setting(), fixed(verifierCap), member)
+	value, _, err := MintSession([]byte(currentFixture), member.address, verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
-	at := seamBirth.Add(time.Hour)
+	at := verifierBirth.Add(time.Hour)
 	const changed = 2 * 24 * time.Hour
 	lifetime.set(changed, nil)
 
@@ -398,12 +376,12 @@ func TestMagicLinkSeam_ReadsTheLifetimeAtEachRefresh(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_SettingReadFailure proves a failed read of the cap,
+// TestMagicLinkVerifier_SettingReadFailure proves a failed read of the cap,
 // on every verification, or of the lifetime, on a refresh, refuses with
 // an error wrapping errSettingUnreadable and the reader's own text,
 // never a default; a lifetime that fails on a request that does not
 // refresh is never read.
-func TestMagicLinkSeam_SettingReadFailure(t *testing.T) {
+func TestMagicLinkVerifier_SettingReadFailure(t *testing.T) {
 	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
 	tests := []struct {
 		name       string
@@ -418,9 +396,9 @@ func TestMagicLinkSeam_SettingReadFailure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lifetime, absoluteCap := newSettingFake(seamLifetime), newSettingFake(seamCap)
-			fx := newSeamFixtureReading(t, lifetime.setting(), absoluteCap.setting(), member)
-			value, _, err := MintSession([]byte(currentFixture), member.address, seamBirth, seamLifetime, seamCap)
+			lifetime, absoluteCap := newSettingFake(verifierLifetime), newSettingFake(verifierCap)
+			fx := newVerifierFixtureReading(t, lifetime.setting(), absoluteCap.setting(), member)
+			value, _, err := MintSession([]byte(currentFixture), member.address, verifierBirth, verifierLifetime, verifierCap)
 			if err != nil {
 				t.Fatalf("MintSession: %v", err)
 			}
@@ -430,7 +408,7 @@ func TestMagicLinkSeam_SettingReadFailure(t *testing.T) {
 				lifetime.set(0, errFixtureRead)
 			}
 
-			got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), seamBirth.Add(time.Hour), tt.sameOrigin)
+			got, err := fx.seam.VerifyIdentity(requestWithSession(t, value), verifierBirth.Add(time.Hour), tt.sameOrigin)
 			if !tt.wantErr {
 				if err != nil {
 					t.Fatalf("VerifyIdentity: %v, want nil", err)
@@ -447,16 +425,16 @@ func TestMagicLinkSeam_SettingReadFailure(t *testing.T) {
 	}
 }
 
-// TestMagicLinkSeam_CapReadFollowsTheMAC proves the absolute cap is read
+// TestMagicLinkVerifier_CapReadFollowsTheMAC proves the absolute cap is read
 // only for a cookie whose MAC verifies: a cookie that does not parse,
 // or that parses under a secret the seam does not hold, reaches no
 // setting read and so costs no database work, while a valid cookie
 // still reads the cap at its verification.
-func TestMagicLinkSeam_CapReadFollowsTheMAC(t *testing.T) {
+func TestMagicLinkVerifier_CapReadFollowsTheMAC(t *testing.T) {
 	member := userRow{address: "member@example.com", displayName: "Member", username: "member"}
 	mint := func(t *testing.T, secret string) string {
 		t.Helper()
-		value, _, err := MintSession([]byte(secret), member.address, seamBirth, seamLifetime, seamCap)
+		value, _, err := MintSession([]byte(secret), member.address, verifierBirth, verifierLifetime, verifierCap)
 		if err != nil {
 			t.Fatalf("MintSession: %v", err)
 		}
@@ -477,11 +455,11 @@ func TestMagicLinkSeam_CapReadFollowsTheMAC(t *testing.T) {
 			var reads int
 			absoluteCap := Setting[time.Duration](func(context.Context) (time.Duration, error) {
 				reads++
-				return seamCap, nil
+				return verifierCap, nil
 			})
-			fx := newSeamFixtureReading(t, fixed(seamLifetime), absoluteCap, member)
+			fx := newVerifierFixtureReading(t, fixed(verifierLifetime), absoluteCap, member)
 
-			_, err := fx.seam.VerifyIdentity(requestWithSession(t, tt.value(t)), seamBirth.Add(time.Hour), false)
+			_, err := fx.seam.VerifyIdentity(requestWithSession(t, tt.value(t)), verifierBirth.Add(time.Hour), false)
 			if tt.wantErr == nil && err != nil {
 				t.Fatalf("VerifyIdentity: %v, want nil", err)
 			}

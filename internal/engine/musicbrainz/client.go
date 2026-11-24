@@ -56,7 +56,7 @@ const maxBodyBytes = 32 << 20
 
 // errBodyTooLarge reports a response body over [maxBodyBytes]. It is
 // never retried.
-var errBodyTooLarge = fmt.Errorf("musicbrainz: response body exceeds the %d MiB cap", maxBodyBytes>>20)
+var errBodyTooLarge = fmt.Errorf("response body exceeds the %d MiB cap", maxBodyBytes>>20)
 
 // maxAttempts is one plus six retries, beets' own Retry(total=6)
 // (beetsplug/_utils/requests.py:78-88).
@@ -109,7 +109,7 @@ var sleep = sleepReal
 // and the identity is site-specific, so it belongs to internal/config
 // and reaches here through cmd/dubplate-server's composition
 // (dubplate-server/<version> ( <contact> ), on cmd/harness/capture.go's
-// own precedent, with the contact from Config.AdminEmail).
+// own precedent, with the contact from Config.AdminAddress).
 type ClientConfig struct {
 	BaseURL   string // empty means defaultBaseURL
 	UserAgent string // required
@@ -130,7 +130,7 @@ type Client struct {
 // identified client.
 func NewClient(cfg ClientConfig) (*Client, error) {
 	if cfg.UserAgent == "" {
-		return nil, errors.New("musicbrainz: ClientConfig.UserAgent is required")
+		return nil, errors.New("ClientConfig.UserAgent is required")
 	}
 
 	baseURL := cfg.BaseURL

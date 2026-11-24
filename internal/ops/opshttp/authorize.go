@@ -11,40 +11,40 @@ import (
 
 // An authorizer names the caller ctx carries for a call to op: the
 // actor the call proceeds as and the privilege that caller holds. The
-// seam, never the authorizer, decides whether that privilege reaches
-// the one op requires. Any error denies; it must carry no identity
-// text, no address or principal, because it stays in the chain of the
-// denial the seam returns. It receives no request, so a verified
+// [admission], never the authorizer, decides whether that privilege
+// reaches the one op requires. Any error denies; it must carry no
+// identity text, no address or principal, because it stays in the
+// chain of the denial the admission returns. It receives no request, so a verified
 // identity reaches it only through ctx.
 type authorizer interface {
-	authorize(ctx context.Context, op string) (ops.Actor, ops.Privilege, error)
+	authorize(ctx context.Context, op string) (identity.Actor, ops.Privilege, error)
 }
 
-// An authorizingSeam decides who may call an operation. [authorizingSeam.admit]
+// An admission decides who may call an operation. [admission.admit]
 // answers the actor a call proceeds as only when the authorizer answers
 // a caller whose privilege reaches the operation's, so no caller can
 // choose the actor a submission or an audit row records. An admitted actor
 // whose channel differs from the mount's is refused, so an authorizer
 // wired to the wrong mount fails closed.
-type authorizingSeam struct {
+type admission struct {
 	auth    authorizer
 	channel identity.Channel
 }
 
-// newAuthorizingSeam builds the admission gate for a mount whose
+// newAdmission builds the admission gate for a mount whose
 // verified identities arrive on channel. It fails on a nil auth, and on
 // a channel that is not valid or that names the command line, which no
 // network mount can carry.
-func newAuthorizingSeam(auth authorizer, channel identity.Channel) (*authorizingSeam, error) {
+func newAdmission(auth authorizer, channel identity.Channel) (*admission, error) {
 	switch {
 	case auth == nil:
-		return nil, errors.New("opshttp: authorizer is nil")
+		return nil, errors.New("authorizer is nil")
 	case !channel.Valid():
-		return nil, fmt.Errorf("opshttp: mount channel %d is not a recognized channel", int(channel))
+		return nil, fmt.Errorf("mount channel %d is not a recognized channel", int(channel))
 	case channel == identity.ChannelCommandLine:
-		return nil, errors.New("opshttp: mount channel is the command line, which no network mount carries")
+		return nil, errors.New("mount channel is the command line, which no network mount carries")
 	}
-	return &authorizingSeam{auth: auth, channel: channel}, nil
+	return &admission{auth: auth, channel: channel}, nil
 }
 
 // The causes of a denial. Each is fixed text naming no caller, so a
@@ -61,7 +61,7 @@ var denials = []error{errAuthorizerDenied, errChannelMismatch, errPrivilegeShort
 
 // denialReason names a forbidden err by the first cause it wraps from
 // denials, or "denied" when it wraps none, as a forbidden answer from
-// beneath the seam does. It never returns err's own text, which may
+// an operation itself does. It never returns err's own text, which may
 // quote an authorizer's error.
 func denialReason(err error) string {
 	for _, cause := range denials {
@@ -89,21 +89,21 @@ func reaches(granted, required ops.Privilege) bool {
 // forbidden answer first, so [ops.CodeOf] and a reason read through
 // [errors.AsType] see it ahead of anything the authorizer returned,
 // then its cause from denials.
-func (s *authorizingSeam) admit(ctx context.Context, op string) (ops.Actor, error) {
+func (s *admission) admit(ctx context.Context, op string) (identity.Actor, error) {
 	p, ok := ops.PrivilegeOf(op)
 	if !ok {
-		return ops.Actor{}, ops.NewNotFoundError(fmt.Sprintf("no operation %q", op))
+		return identity.Actor{}, ops.NewNotFoundError(fmt.Sprintf("no operation %q", op))
 	}
 	denied := ops.NewForbiddenError(fmt.Sprintf("%s requires the %s privilege", op, p))
 	actor, granted, err := s.auth.authorize(ctx, op)
 	if err != nil {
-		return ops.Actor{}, fmt.Errorf("%w: %w: %w", denied, errAuthorizerDenied, err)
+		return identity.Actor{}, fmt.Errorf("%w: %w: %w", denied, errAuthorizerDenied, err)
 	}
 	if actor.Channel() != s.channel {
-		return ops.Actor{}, fmt.Errorf("%w: %w", denied, errChannelMismatch)
+		return identity.Actor{}, fmt.Errorf("%w: %w", denied, errChannelMismatch)
 	}
 	if !reaches(granted, p) {
-		return ops.Actor{}, fmt.Errorf("%w: %w", denied, errPrivilegeShort)
+		return identity.Actor{}, fmt.Errorf("%w: %w", denied, errPrivilegeShort)
 	}
 	return actor, nil
 }

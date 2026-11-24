@@ -28,7 +28,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/ops/admin"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/glw907/dubplate/internal/webapp"
@@ -105,7 +105,7 @@ func executeWithSignalContext(cmd *cobra.Command) error {
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
 	auth.Register(reg)
-	local.Register(reg)
+	jobs.Register(reg)
 	serve.Register(reg)
 	store.Register(reg)
 	webapp.Register(reg)
@@ -125,7 +125,7 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 	if err != nil {
 		return nil, err
 	}
-	if err := intake.ResolveStaging(cfg); err != nil {
+	if err := intake.ValidateStaging(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil

@@ -31,7 +31,7 @@ const (
 	adminEmailNotAdmin  = "warning: this address is a live member without the admin flag; set " + adminEmailKey + " to a live admin"
 )
 
-// AdminEmailRowStatus renders the admin email row from the wall's own
+// AdminAddressRowStatus renders the admin email row from the wall's own
 // status and the report the store row read. The wall's status stands
 // unless it is "ok". An "ok" stays when the store cannot speak for the
 // roster (not checked, not vouched for, absent, older than the users
@@ -39,7 +39,7 @@ const (
 // row already fails. Otherwise the roster standing decides: a live
 // admin is "ok", and any other standing is a warning in the row's
 // status text, which never fails doctor.
-func AdminEmailRowStatus(wall string, r store.Report, checked bool) string {
+func AdminAddressRowStatus(wall string, r store.Report, checked bool) string {
 	switch {
 	case wall != "ok", !checked, !r.State.Vouches():
 		return wall
@@ -83,13 +83,13 @@ func MembersRowStatus(r store.Report, checked bool) (status string, failed bool)
 	return fmt.Sprintf("members: %d, admins: %d", r.Facts.Members, r.Facts.Admins), false
 }
 
-// StoreRowOptions are the process facts [StoreRowStatus] reads.
-type StoreRowOptions struct {
+// DirRowOptions are the process facts [DirRowStatus] reads.
+type DirRowOptions struct {
 	// Geteuid returns the effective uid the leaf must belong to.
 	Geteuid func() int
 }
 
-// StoreRowStatus reports, without writing, whether serve could open
+// DirRowStatus reports, without writing, whether serve could open
 // the auth leaf under cfg's state directory: "ok" when the leaf is at
 // most 0700, owned by the effective uid, and each record directory is
 // writable; "absent; serve creates it" when the leaf is missing and
@@ -99,11 +99,11 @@ type StoreRowOptions struct {
 // shape a path outside the unit's ReadWritePaths takes. A nil cfg reads
 // "not checked" and adds no failure of its own, since Load's own
 // report already fails doctor.
-func StoreRowStatus(cfg *config.Config, opts StoreRowOptions) (status string, failed bool) {
+func DirRowStatus(cfg *config.Config, opts DirRowOptions) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	leaf := StoreDir(cfg.StateDir)
+	leaf := DirPath(cfg.StateDir)
 	info, err := os.Stat(leaf)
 	if errors.Is(err, fs.ErrNotExist) {
 		if err := checkCreatable(leaf); err != nil {

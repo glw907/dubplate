@@ -1,12 +1,11 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"path"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/opshttp"
 	"github.com/glw907/dubplate/internal/serve"
@@ -18,9 +17,9 @@ import (
 const apiRouteName = "api"
 
 // newAPIMount builds the /api/v1 handler over the admin and submission
-// seams for the sessions cfg verifies.
-func newAPIMount(prefix serve.Prefix, adminSeam ops.AdminSeam, submissionSeam ops.SubmissionSeam, cfg auth.AdminConfig) (http.Handler, error) {
-	return opshttp.NewMount(adminSeam, submissionSeam, prefix.String(), apiVerifier(cfg), cfg.Logger)
+// operations for the sessions cfg verifies.
+func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Submissions, cfg auth.VerifyConfig) (http.Handler, error) {
+	return opshttp.NewMount(adminOps, submissionOps, prefix.String(), apiVerifier(cfg), cfg.Logger)
 }
 
 // apiVerifier admits a request whose session verifies as any member,
@@ -29,17 +28,14 @@ func newAPIMount(prefix serve.Prefix, adminSeam ops.AdminSeam, submissionSeam op
 // the freshness the re-authentication gate reads. It logs one record
 // per admitted request, naming the principal under its own key because
 // the actor carries the durable id.
-func apiVerifier(cfg auth.AdminConfig) opshttp.Verifier {
-	return func(w http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error) {
-		v, err := auth.CheckRequest(cfg, w, r)
-		switch {
-		case errors.Is(err, auth.ErrNotSignedIn):
-			return ops.Actor{}, 0, fmt.Errorf("%w: %w", opshttp.ErrUnauthenticated, err)
-		case err != nil:
-			return ops.Actor{}, 0, err
+func apiVerifier(cfg auth.VerifyConfig) opshttp.Verifier {
+	return func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
+		v, err := auth.VerifyRequest(cfg, w, r)
+		if err != nil {
+			return identity.Actor{}, 0, err
 		}
 		clientIP := cfg.ClientIP(r)
-		actor := ops.NetworkActor(v.Identity, v.Session.AnchoredAt, clientIP)
+		actor := identity.NetworkActor(v.Identity, v.Session.AnchoredAt, clientIP)
 		privilege := ops.PrivilegeMember
 		if v.Admin {
 			privilege = ops.PrivilegeAdmin

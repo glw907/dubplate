@@ -1,4 +1,4 @@
-// Package local runs the jobs [ops] declares inside this process,
+// Package jobs runs the jobs [ops] declares inside this process,
 // against a store opened in write mode, and recovers the jobs of a
 // process that died.
 //
@@ -15,4 +15,4 @@
 // a running job through the record's cancel_requested column, which
 // the owning runner reads at each progress report and on a fixed
 // interval while the job runs.
-package local
+package jobs

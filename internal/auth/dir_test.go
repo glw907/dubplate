@@ -18,7 +18,7 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 	}
 
 	for _, sub := range []string{"", "nonce", "epoch"} {
-		dir := filepath.Join(StoreDir(stateDir), sub)
+		dir := filepath.Join(DirPath(stateDir), sub)
 		info, err := os.Stat(dir)
 		if err != nil {
 			t.Fatalf("stat %s: %v", dir, err)
@@ -59,7 +59,7 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 // whatever its mode.
 func TestOpen_RefusesWideLeaf(t *testing.T) {
 	stateDir := t.TempDir()
-	if err := os.MkdirAll(StoreDir(stateDir), 0o755); err != nil {
+	if err := os.MkdirAll(DirPath(stateDir), 0o755); err != nil {
 		t.Fatalf("pre-create wide leaf: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func TestOpen_RefusesWideLeaf(t *testing.T) {
 	if err == nil {
 		t.Fatal("Open() error = nil, want a refusal on a leaf wider than 0700")
 	}
-	if !strings.Contains(err.Error(), StoreDir(stateDir)) {
+	if !strings.Contains(err.Error(), DirPath(stateDir)) {
 		t.Errorf("error = %q, want it to name the leaf path", err.Error())
 	}
 }
@@ -77,7 +77,7 @@ func TestOpen_RefusesWideLeaf(t *testing.T) {
 // it at, starts cleanly.
 func TestOpen_AdmitsNarrowerLeaf(t *testing.T) {
 	stateDir := t.TempDir()
-	if err := os.MkdirAll(StoreDir(stateDir), 0o700); err != nil {
+	if err := os.MkdirAll(DirPath(stateDir), 0o700); err != nil {
 		t.Fatalf("pre-create leaf: %v", err)
 	}
 	if _, err := Open(stateDir); err != nil {
@@ -174,7 +174,7 @@ func TestConfinement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	root := StoreDir(stateDir)
+	root := DirPath(stateDir)
 
 	// An address whose local part carries "..": hashed first, so the
 	// derived id is always a safe 64-character digest and the write

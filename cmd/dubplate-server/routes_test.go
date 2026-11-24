@@ -86,9 +86,9 @@ func TestRouteInventory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ResolveConfig(environ)
+	prefix, addrs, _, err := serve.ParseConfig(environ)
 	if err != nil {
-		t.Fatalf("serve.ResolveConfig: %v", err)
+		t.Fatalf("serve.ParseConfig: %v", err)
 	}
 	buildFS, err := embeddedBuild()
 	if err != nil {

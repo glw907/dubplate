@@ -86,7 +86,7 @@ func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
 		return nil, fmt.Errorf("web: fonts: %w", err)
 	}
 	if len(faces) == 0 {
-		return nil, errors.New("web: fonts: no .woff2 file embedded under web/build/fonts/")
+		return nil, errors.New("no .woff2 file embedded under web/build/fonts/")
 	}
 	return newStaticFiles(faces), nil
 }
@@ -103,7 +103,7 @@ func newIconsRoute(build fs.FS, prefix string, names RouteNames) (http.Handler, 
 		return nil, fmt.Errorf("web: mark: %w", err)
 	}
 	if len(files) == 0 {
-		return nil, errors.New("web: mark: no .svg file embedded under web/build/mark/")
+		return nil, errors.New("no .svg file embedded under web/build/mark/")
 	}
 	for _, favicon := range []struct{ name, contentType string }{
 		{names.FaviconSVG, "image/svg+xml"},

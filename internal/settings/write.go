@@ -46,13 +46,6 @@ const (
 // Guard checks nothing.
 type Guard func(ctx context.Context, tx *store.Tx) error
 
-// An Author is who a write is recorded as: the audit row's actor, in
-// its wire form, and the channel it arrived over.
-type Author struct {
-	Actor   string
-	Channel string
-}
-
 // A Result is what [Set] or [Reset] did, or why it did nothing.
 type Result struct {
 	// Written reports whether the store changed. A write that finds its
@@ -98,7 +91,7 @@ type change struct {
 // decision rests on runs through that transaction, so two writes that
 // are each valid alone cannot both commit. ctx must carry a deadline,
 // as [store.Handle.Update] requires, and now stamps the rows written.
-func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by Author, guard Guard, key, value string, now time.Time) (Result, error) {
+func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by identity.Actor, guard Guard, key, value string, now time.Time) (Result, error) {
 	s, err := lookup(reg, key)
 	if err != nil {
 		return Result{}, err
@@ -140,7 +133,7 @@ func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []s
 // clear a row the environment contradicts.
 //
 // guard, ctx, and now are as for [Set].
-func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by Author, guard Guard, key string, now time.Time) (Result, error) {
+func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by identity.Actor, guard Guard, key string, now time.Time) (Result, error) {
 	s, err := lookup(reg, key)
 	if err != nil {
 		return Result{}, err
@@ -156,7 +149,7 @@ func Reset(ctx context.Context, h *store.Handle, reg *config.Registry, environ [
 		case stored.Source != sourceAdmin:
 			return nil, fmt.Errorf("%s: stored row has unknown source %q", key, stored.Source)
 		}
-		if _, set := config.Lookup(environ, key); set && by.Channel != identity.ChannelCommandLine.String() {
+		if _, set := config.Lookup(environ, key); set && by.Channel() != identity.ChannelCommandLine {
 			return nil, fmt.Errorf("%w: %s", ErrEnvironmentSets, key)
 		}
 		res.Written, res.Previous = true, stored.Value
@@ -189,7 +182,7 @@ func describe(res Result, s config.Setting) Result {
 // before-and-after evaluation, then the row edit, its audit row, and
 // the generation bump. decide returns nil for a write that changes
 // nothing.
-func write(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by Author, guard Guard, key string, now time.Time, decide func(stored *Row) (*change, error)) error {
+func write(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, by identity.Actor, guard Guard, key string, now time.Time, decide func(stored *Row) (*change, error)) error {
 	return h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if guard != nil {
 			if err := guard(ctx, tx); err != nil {
@@ -244,7 +237,7 @@ func refuseNewRefusals(reg *config.Registry, environ []string, rows []Row, key s
 
 // commit writes c's row edit, its audit row, and the generation bump
 // through tx.
-func commit(ctx context.Context, tx *store.Tx, by Author, key string, now time.Time, c *change) error {
+func commit(ctx context.Context, tx *store.Tx, by identity.Actor, key string, now time.Time, c *change) error {
 	at := now.UnixMicro()
 	// oldValue and newValue stay nil, stored as NULL, for a set over no
 	// row and a reset to none.
@@ -265,12 +258,12 @@ func commit(ctx context.Context, tx *store.Tx, by Author, key string, now time.T
 			VALUES (?, ?, 'admin', ?, ?, ?)
 			ON CONFLICT (key) DO UPDATE SET value = excluded.value, source = excluded.source,
 				seed_value = excluded.seed_value, actor = excluded.actor, updated_at = excluded.updated_at`,
-			key, c.next.Value, seed, by.Actor, at)
+			key, c.next.Value, seed, by.String(), at)
 	}
 	if err != nil {
 		return fmt.Errorf("%s: write %s: %w", key, c.kind, err)
 	}
-	if err := insertAudit(ctx, tx, at, c.kind, by.Actor, by.Channel, key, oldValue, newValue); err != nil {
+	if err := insertAudit(ctx, tx, at, c.kind, by.String(), by.Channel().String(), key, oldValue, newValue); err != nil {
 		return fmt.Errorf("%s: audit %s: %w", key, c.kind, err)
 	}
 	return bumpGeneration(ctx, tx)

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -74,7 +75,7 @@ func TestNotice_SensitiveChangeMailsEveryLiveAdmin(t *testing.T) {
 func TestNotice_NonSensitiveOrUnwrittenChangeMailsNoOne(t *testing.T) {
 	calls := append(slices.Clone(ungatedCalls), seamCall{
 		name: "reset_setting on a sensitive key with no row",
-		call: func(ctx context.Context, f *fixture, a ops.Actor) error {
+		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
 			_, err := f.seam.ResetSetting(ctx, a, ops.ResetSettingRequest{Key: keyLifetime})
 			return err
 		},

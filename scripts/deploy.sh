@@ -302,7 +302,7 @@ run_remote "install -d -o music -g music -m 0755 $DUBPLATE_LIBRARY_ROOT"
 
 # --- /var/lib/dubplate/unidecode (the table install below) ---------------
 # The table install's systemd-run grants this leaf alone, so the verb can
-# write its table and nothing else under $DUBPLATE_LIB_DIR: the auth store
+# write its table and nothing else under $DUBPLATE_LIB_DIR: the auth dir
 # and the member store sit beside it. A granted path must exist before the
 # transient unit starts (the same namespace failure as the leaves above),
 # so it is created here. 0755 and music's ownership are what the verb's

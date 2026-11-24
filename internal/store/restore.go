@@ -328,7 +328,7 @@ func (s *RestoreSession) CheckSpace(size int64) error {
 func (s *RestoreSession) StageFile() error {
 	src := s.fromFile
 	if src == "" {
-		return errors.New("stage: the restore session names no file to restore from")
+		return errors.New("the restore session names no file to restore from")
 	}
 	resolved, err := s.checkSource(src)
 	if err != nil {
@@ -665,7 +665,7 @@ func (s *RestoreSession) SwapOut(ctx context.Context) ([]string, error) {
 	r := s.intent
 	switch {
 	case r == nil:
-		return nil, errors.New("swap: no restore-intent record: record the restore before the swap")
+		return nil, errors.New("no restore-intent record to swap from: record the restore before the swap")
 	case r.State != intentSwap:
 		return nil, fmt.Errorf("swap: restore-intent record %s is in state %s, past the swap", s.leaf.restoreIntentPath, r.State)
 	}

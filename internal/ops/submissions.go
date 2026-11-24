@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/reject"
 )
 
@@ -73,7 +74,7 @@ type ListSubmissionsResponse struct {
 }
 
 // A GetSubmissionRequest names the submission
-// [SubmissionSeam.GetSubmission] reads.
+// [Submissions.GetSubmission] reads.
 type GetSubmissionRequest struct {
 	SubmissionID string `json:"submission_id"`
 }
@@ -121,40 +122,40 @@ type GetSubmissionResponse struct {
 }
 
 // A RetrySubmissionRequest names the submission
-// [SubmissionSeam.RetrySubmission] sends back to its check.
+// [Submissions.RetrySubmission] sends back to its check.
 type RetrySubmissionRequest GetSubmissionRequest
 
 // A RetrySubmissionResponse carries the submission after the retry.
 type RetrySubmissionResponse GetSubmissionResponse
 
 // A CancelSubmissionRequest names the submission
-// [SubmissionSeam.CancelSubmission] ends.
+// [Submissions.CancelSubmission] ends.
 type CancelSubmissionRequest GetSubmissionRequest
 
 // A CancelSubmissionResponse carries the submission after the cancel.
 type CancelSubmissionResponse GetSubmissionResponse
 
-// A SubmissionSeam is what a caller reaches the five submission
-// operations through, beside [AdminSeam]. Each is a member's
+// A Submissions is what a caller reaches the five submission
+// operations through, beside [Admin]. Each is a member's
 // own: the caller is the actor's UserID, never a request field, and an
 // id that is another member's answers as an unknown one, [ErrNotFound].
 // An action the submission's state does not allow answers [ErrConflict].
-type SubmissionSeam interface {
+type Submissions interface {
 	// CreateSubmission checks the manifest and the member's limits and
 	// reserves the space. A refusal carries [Error.Rejects].
-	CreateSubmission(ctx context.Context, actor Actor, req CreateSubmissionRequest) (CreateSubmissionResponse, error)
+	CreateSubmission(ctx context.Context, actor identity.Actor, req CreateSubmissionRequest) (CreateSubmissionResponse, error)
 
 	// ListSubmissions lists the actor's submissions, newest first.
-	ListSubmissions(ctx context.Context, actor Actor, req ListSubmissionsRequest) (ListSubmissionsResponse, error)
+	ListSubmissions(ctx context.Context, actor identity.Actor, req ListSubmissionsRequest) (ListSubmissionsResponse, error)
 
 	// GetSubmission reads one of the actor's submissions.
-	GetSubmission(ctx context.Context, actor Actor, req GetSubmissionRequest) (GetSubmissionResponse, error)
+	GetSubmission(ctx context.Context, actor identity.Actor, req GetSubmissionRequest) (GetSubmissionResponse, error)
 
 	// RetrySubmission moves a submission whose check could not run back
 	// to checking.
-	RetrySubmission(ctx context.Context, actor Actor, req RetrySubmissionRequest) (RetrySubmissionResponse, error)
+	RetrySubmission(ctx context.Context, actor identity.Actor, req RetrySubmissionRequest) (RetrySubmissionResponse, error)
 
 	// CancelSubmission ends a submission that is uploading or whose
 	// check could not run.
-	CancelSubmission(ctx context.Context, actor Actor, req CancelSubmissionRequest) (CancelSubmissionResponse, error)
+	CancelSubmission(ctx context.Context, actor identity.Actor, req CancelSubmissionRequest) (CancelSubmissionResponse, error)
 }

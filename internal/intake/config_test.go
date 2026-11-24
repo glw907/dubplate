@@ -45,11 +45,11 @@ func TestIntakeAllowlist(t *testing.T) {
 	}
 }
 
-// TestResolveStaging_ReadsTheWallValue proves the overlap rule reads the
+// TestValidateStaging_ReadsTheWallValue proves the overlap rule reads the
 // staging row's value: Load accepts a staging directory inside the
-// library root, and ResolveStaging refuses it keyed by the row for
+// library root, and ValidateStaging refuses it keyed by the row for
 // doctor.
-func TestResolveStaging_ReadsTheWallValue(t *testing.T) {
+func TestValidateStaging_ReadsTheWallValue(t *testing.T) {
 	reg := config.NewRegistry()
 	Register(reg)
 	cfg, err := config.Load([]string{
@@ -62,12 +62,12 @@ func TestResolveStaging_ReadsTheWallValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fixture state: config.Load: %v", err)
 	}
-	err = ResolveStaging(cfg)
+	err = ValidateStaging(cfg)
 	if err == nil {
-		t.Fatal("ResolveStaging() error = nil, want the nesting refused: Load alone accepts it")
+		t.Fatal("ValidateStaging() error = nil, want the nesting refused: Load alone accepts it")
 	}
 	if !strings.HasPrefix(err.Error(), "DUBPLATE_STAGING_DIR: ") {
-		t.Errorf("ResolveStaging() error = %q, want it keyed by DUBPLATE_STAGING_DIR for doctor's row", err)
+		t.Errorf("ValidateStaging() error = %q, want it keyed by DUBPLATE_STAGING_DIR for doctor's row", err)
 	}
 }
 
@@ -153,8 +153,8 @@ func TestReadersReadStoredValues(t *testing.T) {
 	if interval, err := SweepInterval(t.Context(), acc); err != nil || interval != 2*time.Minute {
 		t.Errorf("SweepInterval = %v, %v, want 2m0s", interval, err)
 	}
-	if workers, err := CheckWorkers(t.Context(), acc); err != nil || workers != 3 {
-		t.Errorf("CheckWorkers = %d, %v, want 3", workers, err)
+	if workers, err := CheckWorkerCount(t.Context(), acc); err != nil || workers != 3 {
+		t.Errorf("CheckWorkerCount = %d, %v, want 3", workers, err)
 	}
 }
 
@@ -187,7 +187,7 @@ func TestReadersNameTheRefusedKey(t *testing.T) {
 			return err
 		}, `DUBPLATE_INTAKE_SWEEP_INTERVAL: stored env-seed value refused: DUBPLATE_INTAKE_SWEEP_INTERVAL: invalid value "often", want a Go duration string from 1m to 1h, for example 10m`},
 		{"check workers", "DUBPLATE_INTAKE_CHECK_WORKERS", "several", func(acc *settings.Accessor) error {
-			_, err := CheckWorkers(t.Context(), acc)
+			_, err := CheckWorkerCount(t.Context(), acc)
 			return err
 		}, `DUBPLATE_INTAKE_CHECK_WORKERS: stored env-seed value refused: DUBPLATE_INTAKE_CHECK_WORKERS: invalid value "several", want an integer count from 1 to 8, for example 1`},
 	}

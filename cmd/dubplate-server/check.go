@@ -71,7 +71,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 				return fmt.Errorf("store: %s", status)
 			}
 			if settingsFailed {
-				return errors.New("settings: the seed rule refuses to start serve")
+				return errors.New("the settings seed rule refuses to start serve")
 			}
 			return nil
 		},

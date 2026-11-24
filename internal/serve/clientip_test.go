@@ -391,9 +391,9 @@ func TestClientIPReadsEveryHeaderLineAsOneChain(t *testing.T) {
 	}
 }
 
-// TestCheckProxyHeader covers each refusal family by one or more
+// TestValidateProxyHeader covers each refusal family by one or more
 // members, and the accepted names an adopter's front actually sets.
-func TestCheckProxyHeader(t *testing.T) {
+func TestValidateProxyHeader(t *testing.T) {
 	tests := []struct {
 		name    string
 		header  string
@@ -430,15 +430,15 @@ func TestCheckProxyHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := CheckProxyHeader(tt.header)
+			err := ValidateProxyHeader(tt.header)
 			if tt.wantErr == "" {
 				if err != nil {
-					t.Fatalf("CheckProxyHeader(%q) = %v, want nil", tt.header, err)
+					t.Fatalf("ValidateProxyHeader(%q) = %v, want nil", tt.header, err)
 				}
 				return
 			}
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
-				t.Fatalf("CheckProxyHeader(%q) = %v, want an error containing %q", tt.header, err, tt.wantErr)
+				t.Fatalf("ValidateProxyHeader(%q) = %v, want an error containing %q", tt.header, err, tt.wantErr)
 			}
 		})
 	}

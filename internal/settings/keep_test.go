@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -19,7 +19,7 @@ import (
 // by reading either.
 func TestLocalSnapshotKeep(t *testing.T) {
 	reg := config.NewRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 	key := store.LocalSnapshotKeepSetting.Key
 	retention := "DUBPLATE_JOB_RETENTION"

@@ -31,7 +31,7 @@ var ann = identity.Identity{
 }
 
 // annWire is ann's network actor's wire form, written out rather than
-// read back from ops.NetworkActor: member: and the hex of ann's UserID.
+// read back from identity.NetworkActor: member: and the hex of ann's UserID.
 const annWire = "member:01000000000000000000000000000000"
 
 // annAnchor is the instant every test session was anchored.
@@ -40,7 +40,7 @@ var annAnchor = time.Date(2026, 10, 11, 9, 30, 0, 0, time.UTC)
 // A fakeCall is one call a fake seam received.
 type fakeCall struct {
 	op    string
-	actor ops.Actor
+	actor identity.Actor
 	req   any
 }
 
@@ -64,7 +64,7 @@ type fakeSubmissions struct {
 	calls   []fakeCall
 }
 
-func answer[T any](answers map[string]fakeAnswer, calls *[]fakeCall, op string, actor ops.Actor, req any) (T, error) {
+func answer[T any](answers map[string]fakeAnswer, calls *[]fakeCall, op string, actor identity.Actor, req any) (T, error) {
 	*calls = append(*calls, fakeCall{op: op, actor: actor, req: req})
 	var zero T
 	a, ok := answers[op]
@@ -81,51 +81,51 @@ func answer[T any](answers map[string]fakeAnswer, calls *[]fakeCall, op string, 
 	return resp, nil
 }
 
-func (f *fakeAdmin) ListMembers(_ context.Context, actor ops.Actor, req ops.ListMembersRequest) (ops.ListMembersResponse, error) {
+func (f *fakeAdmin) ListMembers(_ context.Context, actor identity.Actor, req ops.ListMembersRequest) (ops.ListMembersResponse, error) {
 	return answer[ops.ListMembersResponse](f.answers, &f.calls, ops.OpListMembers, actor, req)
 }
 
-func (f *fakeAdmin) AddMember(_ context.Context, actor ops.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
+func (f *fakeAdmin) AddMember(_ context.Context, actor identity.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
 	return answer[ops.AddMemberResponse](f.answers, &f.calls, ops.OpAddMember, actor, req)
 }
 
-func (f *fakeAdmin) RemoveMember(_ context.Context, actor ops.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
+func (f *fakeAdmin) RemoveMember(_ context.Context, actor identity.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
 	return answer[ops.RemoveMemberResponse](f.answers, &f.calls, ops.OpRemoveMember, actor, req)
 }
 
-func (f *fakeAdmin) DemoteMember(_ context.Context, actor ops.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
+func (f *fakeAdmin) DemoteMember(_ context.Context, actor identity.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
 	return answer[ops.DemoteMemberResponse](f.answers, &f.calls, ops.OpDemoteMember, actor, req)
 }
 
-func (f *fakeAdmin) ListSettings(_ context.Context, actor ops.Actor, req ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
+func (f *fakeAdmin) ListSettings(_ context.Context, actor identity.Actor, req ops.ListSettingsRequest) (ops.ListSettingsResponse, error) {
 	return answer[ops.ListSettingsResponse](f.answers, &f.calls, ops.OpListSettings, actor, req)
 }
 
-func (f *fakeAdmin) SetSetting(_ context.Context, actor ops.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
+func (f *fakeAdmin) SetSetting(_ context.Context, actor identity.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
 	return answer[ops.SetSettingResponse](f.answers, &f.calls, ops.OpSetSetting, actor, req)
 }
 
-func (f *fakeAdmin) ResetSetting(_ context.Context, actor ops.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
+func (f *fakeAdmin) ResetSetting(_ context.Context, actor identity.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
 	return answer[ops.ResetSettingResponse](f.answers, &f.calls, ops.OpResetSetting, actor, req)
 }
 
-func (f *fakeSubmissions) CreateSubmission(_ context.Context, actor ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
+func (f *fakeSubmissions) CreateSubmission(_ context.Context, actor identity.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
 	return answer[ops.CreateSubmissionResponse](f.answers, &f.calls, ops.OpCreateSubmission, actor, req)
 }
 
-func (f *fakeSubmissions) ListSubmissions(_ context.Context, actor ops.Actor, req ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
+func (f *fakeSubmissions) ListSubmissions(_ context.Context, actor identity.Actor, req ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
 	return answer[ops.ListSubmissionsResponse](f.answers, &f.calls, ops.OpListSubmissions, actor, req)
 }
 
-func (f *fakeSubmissions) GetSubmission(_ context.Context, actor ops.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
+func (f *fakeSubmissions) GetSubmission(_ context.Context, actor identity.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
 	return answer[ops.GetSubmissionResponse](f.answers, &f.calls, ops.OpGetSubmission, actor, req)
 }
 
-func (f *fakeSubmissions) RetrySubmission(_ context.Context, actor ops.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
+func (f *fakeSubmissions) RetrySubmission(_ context.Context, actor identity.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
 	return answer[ops.RetrySubmissionResponse](f.answers, &f.calls, ops.OpRetrySubmission, actor, req)
 }
 
-func (f *fakeSubmissions) CancelSubmission(_ context.Context, actor ops.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
+func (f *fakeSubmissions) CancelSubmission(_ context.Context, actor identity.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
 	return answer[ops.CancelSubmissionResponse](f.answers, &f.calls, ops.OpCancelSubmission, actor, req)
 }
 
@@ -181,19 +181,19 @@ func adminSuccesses() map[string]fakeAnswer {
 // A fakeAuthorizer answers with decide and records the operation of
 // each call.
 type fakeAuthorizer struct {
-	decide func(op string) (ops.Actor, ops.Privilege, error)
+	decide func(op string) (identity.Actor, ops.Privilege, error)
 	calls  []string
 }
 
-func (a *fakeAuthorizer) authorize(_ context.Context, op string) (ops.Actor, ops.Privilege, error) {
+func (a *fakeAuthorizer) authorize(_ context.Context, op string) (identity.Actor, ops.Privilege, error) {
 	a.calls = append(a.calls, op)
 	return a.decide(op)
 }
 
 // grant admits every call as the actor id's network actor, granted p.
 func grant(id identity.Identity, p ops.Privilege) *fakeAuthorizer {
-	return &fakeAuthorizer{decide: func(string) (ops.Actor, ops.Privilege, error) {
-		return ops.NetworkActor(id, annAnchor, "192.0.2.1"), p, nil
+	return &fakeAuthorizer{decide: func(string) (identity.Actor, ops.Privilege, error) {
+		return identity.NetworkActor(id, annAnchor, "192.0.2.1"), p, nil
 	}}
 }
 

@@ -25,7 +25,7 @@ func (f *tusFixture) uploadWhole(t *testing.T, m identity.UserID, submission, fi
 
 // submitThroughTus creates a submission through the seam, sends each
 // file through the tus mount, and returns the created ids.
-func (f *tusFixture) submitThroughTus(t *testing.T, seam *Seam, m identity.UserID, req ops.CreateSubmissionRequest, data ...[]byte) ops.CreateSubmissionResponse {
+func (f *tusFixture) submitThroughTus(t *testing.T, seam *Service, m identity.UserID, req ops.CreateSubmissionRequest, data ...[]byte) ops.CreateSubmissionResponse {
 	t.Helper()
 	resp := mustCreateVia(t, seam, m, req)
 	for i, file := range resp.Files {
@@ -44,7 +44,7 @@ func tracksRequest(data ...[]byte) ops.CreateSubmissionRequest {
 }
 
 // awaitVerdict polls get_submission until the worker has judged id.
-func (f *tusFixture) awaitVerdict(t *testing.T, seam *Seam, m identity.UserID, id string) ops.GetSubmissionResponse {
+func (f *tusFixture) awaitVerdict(t *testing.T, seam *Service, m identity.UserID, id string) ops.GetSubmissionResponse {
 	t.Helper()
 	var got ops.GetSubmissionResponse
 	waitFor(t, func() bool {
@@ -76,7 +76,7 @@ func collectionName(t *testing.T, f *tusFixture, id string) string {
 // verdict and cleanup, and the result read through get_submission.
 func TestSeparateTracksEndToEnd(t *testing.T) {
 	f := newTusFixture(t)
-	seam := f.in.Seam()
+	seam := f.in.Service()
 	m := member(t, f.h)
 	if err := f.in.Start(t.Context()); err != nil {
 		t.Fatal(err)

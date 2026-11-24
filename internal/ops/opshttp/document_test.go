@@ -25,6 +25,7 @@ import (
 	"github.com/getkin/kin-openapi/routers"
 	"github.com/getkin/kin-openapi/routers/legacy"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -642,8 +643,8 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 				}
 			}
 
-			unauth := newMountFixture(t, func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-				return ops.Actor{}, 0, ErrUnauthenticated
+			unauth := newMountFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+				return identity.Actor{}, 0, ops.ErrUnauthenticated
 			}).do(http.MethodPost, mountPrefix+"/api/v1/"+op, requestSamples[op])
 			if err := d.checkResponse(ctx, op, unauth); err != nil {
 				t.Errorf("the 401 answer fails the document: %v", err)

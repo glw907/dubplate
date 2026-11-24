@@ -77,18 +77,18 @@ func (f restoreFlags) check() error {
 	}
 	switch len(sources) {
 	case 0:
-		return errors.New("restore: name one source: --snapshot, --from-file, or --resume")
+		return errors.New("name one source: --snapshot, --from-file, or --resume")
 	case 1:
 	default:
-		return fmt.Errorf("restore: %s never combine: name one source", strings.Join(sources, " and "))
+		return fmt.Errorf("%s never combine: name one source", strings.Join(sources, " and "))
 	}
 	for _, c := range restoreConflicts {
 		if given[c[0]] && given[c[1]] {
-			return fmt.Errorf("restore: %s never combines with %s", c[0], c[1])
+			return fmt.Errorf("%s never combines with %s", c[0], c[1])
 		}
 	}
 	if f.intoNonempty && !f.library {
-		return errors.New("restore: --into-nonempty applies only with --library")
+		return errors.New("--into-nonempty applies only with --library")
 	}
 	return nil
 }

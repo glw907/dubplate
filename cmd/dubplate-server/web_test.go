@@ -204,7 +204,7 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 				m["mark/README"] = &fstest.MapFile{Data: []byte("not a mark")}
 				return m
 			}(),
-			wantErrHas: "web: mark: no .svg file",
+			wantErrHas: "no .svg file embedded under web/build/mark/",
 		},
 		{
 			name:       "palette value a prefix of a real name",

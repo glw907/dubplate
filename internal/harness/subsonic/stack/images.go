@@ -9,10 +9,10 @@ import (
 )
 
 // errNotPinned marks an image reference that carries no sha256 digest.
-var errNotPinned = errors.New("stack: image reference is not digest-pinned")
+var errNotPinned = errors.New("image reference is not digest-pinned")
 
 // errImagesFile marks a digest file that is absent, empty, or malformed.
-var errImagesFile = errors.New("stack: bad image digest file")
+var errImagesFile = errors.New("bad image digest file")
 
 var pinned = regexp.MustCompile(`@sha256:[0-9a-f]{64}$`)
 

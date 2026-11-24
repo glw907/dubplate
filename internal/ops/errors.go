@@ -8,7 +8,7 @@ import (
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// A Code is one of the seam's stable wire error codes, shared by every
+// A Code is one of the operations' stable wire error codes, shared by every
 // operation rather than numbered per endpoint (OpenSubsonic declined,
 // prior art).
 type Code string
@@ -41,7 +41,10 @@ var (
 	ErrForbidden      = errors.New("forbidden")
 	ErrInternal       = errors.New("internal")
 
-	ErrUnauthenticated          = errors.New("unauthenticated")
+	// ErrUnauthenticated is the one sentinel for a request with no
+	// valid session. auth's session check wraps it, and both mounts
+	// answer it 401.
+	ErrUnauthenticated          = errors.New("no valid session")
 	ErrReauthenticationRequired = errors.New("reauthentication required")
 )
 

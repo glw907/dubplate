@@ -98,9 +98,9 @@ func newAPIHarness(t *testing.T, members []seedMember, tweak func([]string) []st
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ResolveConfig(environ)
+	prefix, addrs, _, err := serve.ParseConfig(environ)
 	if err != nil {
-		t.Fatalf("serve.ResolveConfig: %v", err)
+		t.Fatalf("serve.ParseConfig: %v", err)
 	}
 	logs := &syncBuffer{}
 	srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(logs, nil)))
@@ -423,11 +423,11 @@ func TestAPI_AddMemberNeverGrantsAdmin(t *testing.T) {
 	}
 }
 
-// TestAPI_AddMemberRecordsTheClientAddress proves the roster's own audit
+// TestAPI_AddMemberRecordsTheClientIP proves the roster's own audit
 // record for a web add names the address the request came from: the
 // harness's requests carry httptest's peer 192.0.2.1 and no trusted
 // proxy is configured, so the client address is the peer.
-func TestAPI_AddMemberRecordsTheClientAddress(t *testing.T) {
+func TestAPI_AddMemberRecordsTheClientIP(t *testing.T) {
 	a := newAPIHarness(t, apiMembers, nil)
 	admin := a.session("admin@example.com", time.Now())
 	rec := a.call("add_member", admin, `{"address":"new@example.com","display_name":"New Member","username":"newmember"}`)

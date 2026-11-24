@@ -10,18 +10,15 @@ import (
 	"github.com/glw907/dubplate/internal/ops"
 )
 
-// ErrUnauthenticated is what a [Verifier] wraps to say the request
-// carries no valid session. The mount answers it 401 unauthenticated;
-// any other verifier error is the server failing and answers 500.
-var ErrUnauthenticated = errors.New("opshttp: no valid session")
-
 // A Verifier admits one request to the mount. It reads whatever
 // credential the request carries, may set a refreshed credential on w,
 // and answers the actor the call proceeds as and the privilege that
-// actor holds. A refused credential wraps [ErrUnauthenticated]. A
-// verifier logs its own failures: the mount never writes an error's
-// text, which may name a member.
-type Verifier func(w http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error)
+// actor holds. A refused credential wraps [ops.ErrUnauthenticated],
+// which the mount answers 401 unauthenticated; any other verifier error
+// is the server failing and answers 500. A verifier logs its own
+// failures: the mount never writes an error's text, which may name a
+// member.
+type Verifier func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)
 
 // A mount serves the operations under <prefix>/api/v1/ for sessions a
 // Verifier admits.
@@ -42,14 +39,14 @@ type mount struct {
 //
 // Every operation runs as the actor verify admits and never as a field
 // of the request. prefix is the shell's owned prefix, with a leading
-// separator and no trailing one. NewMount fails on a nil seam (either),
-// verifier, or logger, and on a prefix of the wrong shape.
-func NewMount(admin ops.AdminSeam, subs ops.SubmissionSeam, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
+// separator and no trailing one. NewMount fails on a nil admin or
+// submissions implementation, verifier, or logger, and on a prefix of the wrong shape.
+func NewMount(admin ops.Admin, subs ops.Submissions, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
 	if verify == nil {
-		return nil, errors.New("opshttp: verifier is nil")
+		return nil, errors.New("verifier is nil")
 	}
 	if !strings.HasPrefix(prefix, "/") || strings.HasSuffix(prefix, "/") {
-		return nil, errors.New("opshttp: prefix must begin with a separator and carry no trailing one")
+		return nil, errors.New("prefix must begin with a separator and carry no trailing one")
 	}
 	h, err := newHandler(admin, subs, contextAuthorizer{}, identity.ChannelCookie, log)
 	if err != nil {
@@ -66,7 +63,7 @@ func (m *mount) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	actor, privilege, err := m.verify(w, r)
 	switch {
-	case errors.Is(err, ErrUnauthenticated):
+	case errors.Is(err, ops.ErrUnauthenticated):
 		writeError(w, statuses[ops.CodeUnauthenticated], ops.CodeUnauthenticated, "no valid session")
 		return
 	case err != nil:

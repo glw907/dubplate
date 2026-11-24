@@ -21,7 +21,7 @@ const (
 // invalid-request sentence, while a well-formed id that names nothing
 // answers not found.
 func TestIDPinSubmissionID(t *testing.T) {
-	h, seam := newTestSeam(t)
+	h, seam := newTestService(t)
 	m := member(t, h)
 	ctx := deadline(t)
 	tests := []struct {

@@ -17,7 +17,7 @@ import (
 
 // errInvalid marks a manifest Load refuses. The error carries every
 // problem found, one per line.
-var errInvalid = errors.New("fixture: invalid manifest")
+var errInvalid = errors.New("invalid fixture manifest")
 
 const (
 	// vorbisCommentBlock is the FLAC metadata block type of VORBIS_COMMENT
@@ -77,7 +77,7 @@ func Load(path string) (*Library, error) {
 		return nil, fmt.Errorf("parse manifest %s: %w", path, err)
 	}
 	if len(m.Albums) == 0 {
-		return nil, fmt.Errorf("%w: manifest declares no albums", errInvalid)
+		return nil, fmt.Errorf("%w: declares no albums", errInvalid)
 	}
 	lib := &Library{manifest: m, seeds: make(map[string][]byte)}
 	problems := lib.check(filepath.Join(filepath.Dir(path), "seeds"))

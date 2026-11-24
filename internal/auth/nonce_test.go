@@ -54,7 +54,7 @@ func newNonceStore(t *testing.T, stateDir string, retention time.Duration, now t
 
 func nonceDirEntries(t *testing.T, stateDir string) []os.DirEntry {
 	t.Helper()
-	entries, err := os.ReadDir(filepath.Join(StoreDir(stateDir), nonceSubdir))
+	entries, err := os.ReadDir(filepath.Join(DirPath(stateDir), nonceSubdir))
 	if err != nil {
 		t.Fatalf("read nonce directory: %v", err)
 	}
@@ -63,7 +63,7 @@ func nonceDirEntries(t *testing.T, stateDir string) []os.DirEntry {
 
 func recordPathFor(t *testing.T, stateDir string, nonce [NonceLength]byte) string {
 	t.Helper()
-	return filepath.Join(StoreDir(stateDir), nonceSubdir, RecordID(nonceSubdir, string(nonce[:])))
+	return filepath.Join(DirPath(stateDir), nonceSubdir, RecordID(nonceSubdir, string(nonce[:])))
 }
 
 // TestInsertRefusesReplay is the create-exclusive insert's behavioural

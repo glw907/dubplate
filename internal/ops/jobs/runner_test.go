@@ -1,4 +1,4 @@
-package local
+package jobs
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -99,7 +100,7 @@ func TestStartBackup_FlagOff(t *testing.T) {
 func TestStartBackup_RecordsActor(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
-	resp, err := r.StartBackup(deadline(t), ops.LocalActor("alice"), ops.StartBackupRequest{})
+	resp, err := r.StartBackup(deadline(t), identity.LocalActor("alice"), ops.StartBackupRequest{})
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
@@ -280,11 +281,11 @@ func TestStartBackup_ReleasesKindLease(t *testing.T) {
 	_ = kl.Release()
 }
 
-// TestSeamBoundary_ContextCanceled pins R-6bii5's seam boundary: a
+// TestOperationBoundary_ContextCanceled pins R-6bii5's seam boundary: a
 // caller whose context is already canceled at the method's return
 // sees an error matching [ops.ErrCanceled], never the store's own
 // classification of the aborted call.
-func TestSeamBoundary_ContextCanceled(t *testing.T) {
+func TestOperationBoundary_ContextCanceled(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
 	id := plant(t, h, record{state: "queued"})
@@ -305,11 +306,11 @@ func TestSeamBoundary_ContextCanceled(t *testing.T) {
 	}
 }
 
-// TestSeamBoundary_ContextAliveClassifiesItsOwnError pins the seam
+// TestOperationBoundary_ContextAliveClassifiesItsOwnError pins the seam
 // boundary's other row: a caller whose context is still alive gets
 // the store's own classification, never canceled, even for a job
 // handle that does not exist.
-func TestSeamBoundary_ContextAliveClassifiesItsOwnError(t *testing.T) {
+func TestOperationBoundary_ContextAliveClassifiesItsOwnError(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
 	missing := ops.Handle("0123456789abcdef0123456789abcdef")

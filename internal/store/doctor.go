@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/identity"
 )
 
 // DoctorRow resolves the store's state from environ and renders it as
@@ -40,7 +41,7 @@ func DoctorRow(ctx context.Context, environ []string) (status string, failed boo
 	// An unset or unparseable address names no one, so the inspection
 	// looks none up.
 	value, _ := config.Lookup(environ, "DUBPLATE_ADMIN_EMAIL")
-	address, _ := config.ParseAdminAddress(value)
+	address, _ := identity.NormalizeAddress(value)
 
 	r := Inspect(ctx, InspectOptions{StateDir: stateDir, BusyTimeout: d, Address: address})
 	status, failed = r.RowStatus()

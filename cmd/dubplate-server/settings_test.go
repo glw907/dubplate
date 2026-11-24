@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -385,7 +386,10 @@ func TestSettingsResetCmd_ServingHandleReadsTheDefault(t *testing.T) {
 	reg := productionRegistry()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
-	author := settings.Author{Actor: "member:00112233445566778899aabbccddeeff", Channel: "cookie"}
+	author := identity.NetworkActor(identity.Identity{
+		Address: "member@example.invalid", Principal: "member", Source: "magic-link", Channel: identity.ChannelCookie,
+		UserID: identity.UserID{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+	}, time.Now(), "192.0.2.1")
 	if _, err := settings.Set(ctx, serving, reg, nil, author, nil, keepKey, "50", time.Now()); err != nil {
 		t.Fatalf("Set: %v", err)
 	}

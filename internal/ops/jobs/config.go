@@ -1,4 +1,4 @@
-package local
+package jobs
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 // jobRetentionSetting is DUBPLATE_JOB_RETENTION: how long a finished
 // job record survives past its own kind's newest succeeded record.
 // Its default, 2160h (90 days), carries unchanged the value
-// ops/local's retired retention constant held.
+// this package's retired retention constant held.
 var jobRetentionSetting = config.Setting{
 	Key:         "DUBPLATE_JOB_RETENTION",
 	Kind:        config.KindDuration,

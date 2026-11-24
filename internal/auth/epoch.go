@@ -22,18 +22,18 @@ import (
 var (
 	// ErrSessionRevoked reports a session whose anchor predates its
 	// address's revocation epoch.
-	ErrSessionRevoked = errors.New("auth: session revoked")
+	ErrSessionRevoked = errors.New("session revoked")
 
 	// ErrLinkRevoked reports a magic link whose mint time predates its
 	// address's revocation epoch.
-	ErrLinkRevoked = errors.New("auth: magic link revoked")
+	ErrLinkRevoked = errors.New("magic link revoked")
 )
 
 // ErrEpochBackward reports a bump whose time is earlier than the epoch
 // already stored for its address. The stored epoch is left in place,
 // so the revocation it records still holds; the sentinel lets a caller
 // tell that outcome from a bump that failed to write.
-var ErrEpochBackward = errors.New("auth: revocation epoch would move backward")
+var ErrEpochBackward = errors.New("revocation epoch would move backward")
 
 // epochRecordVersion labels the record's field layout. A later field
 // lands under a new label rather than changing what an existing field
@@ -62,7 +62,7 @@ const epochRecordFieldCount = 2
 // WriteStream is the one entry point that fsyncs the containing
 // directory after the rename.
 type EpochStore struct {
-	store *Store
+	leaf *Dir
 
 	// mu serializes each bump's read of the stored epoch with its
 	// write, and guards subscribers.
@@ -70,9 +70,9 @@ type EpochStore struct {
 	subscribers []func(address string, epoch time.Time)
 }
 
-// OpenEpochStore returns the revocation-epoch store under store's leaf.
-func OpenEpochStore(store *Store) *EpochStore {
-	return &EpochStore{store: store}
+// OpenEpochStore returns the revocation-epoch store under leaf.
+func OpenEpochStore(leaf *Dir) *EpochStore {
+	return &EpochStore{leaf: leaf}
 }
 
 // Bump revokes every credential for address anchored or minted at or
@@ -153,7 +153,7 @@ func (e *EpochStore) advance(normalized string, epoch time.Time) ([]func(address
 	if ok && epoch.Equal(stored) {
 		return nil, nil
 	}
-	path, err := e.store.EpochPath(RecordID(epochSubdir, normalized))
+	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (e *EpochStore) Read(address string) (epoch time.Time, ok bool, err error) 
 }
 
 func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) {
-	path, err := e.store.EpochPath(RecordID(epochSubdir, normalized))
+	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
 		return time.Time{}, false, fmt.Errorf("read epoch: %w", err)
 	}
@@ -198,8 +198,8 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 }
 
 // Subscribe registers fn to be called, with the normalized address and
-// the new epoch, on every future [EpochStore.Bump]. It is the
-// convenience half of the seam: the authority is [EpochStore.Read],
+// the new epoch, on every future [EpochStore.Bump]. It is a
+// convenience: the authority is [EpochStore.Read],
 // which a subscriber that missed a notification, or never registered
 // at all, can still consult.
 //

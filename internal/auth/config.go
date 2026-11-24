@@ -401,9 +401,8 @@ func validateSMTPPort(value string) error {
 	return nil
 }
 
-// validateSMTPFrom checks value the way [config.Load] checks
-// DUBPLATE_ADMIN_EMAIL (config.go's requireEmail): it parses as a
-// single RFC 5322 address, and it carries no carriage return and no
+// validateSMTPFrom checks that value parses as a single RFC 5322
+// address, display name allowed, and carries no carriage return and no
 // line feed, so a value that would ride into a mail header cannot
 // inject one (spec:1289). The check runs at load rather than at send,
 // because R9 turns every failed send into a failed login, and a typo

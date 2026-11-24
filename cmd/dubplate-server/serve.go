@@ -71,7 +71,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			prefix, addrs, port, err := serve.ResolveConfig(environ)
+			prefix, addrs, port, err := serve.ParseConfig(environ)
 			if err != nil {
 				return err
 			}
@@ -156,7 +156,7 @@ type registrar interface {
 // come from buildFS, so a test can serve a fixture tree where the
 // embedded one holds only the placeholder.
 func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
-	proxyConfig, err := serve.ResolveTrustedProxy(cfg)
+	proxyConfig, err := serve.ParseTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -196,15 +196,15 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		shell.EnableHSTS()
 	}
 
-	authStore, err := auth.Open(cfg.StateDir)
+	authDir, err := auth.Open(cfg.StateDir)
 	if err != nil {
 		return nil, err
 	}
-	nonces, err := openNonceStore(ctx, authStore, acc, time.Now())
+	nonces, err := openNonceStore(ctx, authDir, acc, time.Now())
 	if err != nil {
 		return nil, err
 	}
-	epoch := auth.OpenEpochStore(authStore)
+	epoch := auth.OpenEpochStore(authDir)
 
 	roster := auth.NewRoster(h, epoch, time.Now)
 
@@ -215,7 +215,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 
-	seam := auth.NewMagicLinkSeam(roster, epoch,
+	verifier := auth.NewMagicLinkVerifier(roster, epoch,
 		[]byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
 		[]byte(cfg.IdentitySourceValue(auth.SessionSecretPreviousKey)),
 		auth.DurationSetting(acc, auth.SessionLifetimeSetting), auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting))
@@ -230,8 +230,8 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	routes.Register(consumeLinkRouteName, methodOnly(http.MethodPost, handlers.ConsumeLink))
 	routes.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
 
-	adminConfig := auth.AdminConfig{
-		Seam:     seam,
+	adminConfig := auth.VerifyConfig{
+		Verifier: verifier,
 		ClientIP: clientIP,
 		Now:      time.Now,
 		Logger:   shell.Logger(),
@@ -241,7 +241,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
 	routes.Register(serve.ProbeRouteName, webapp.ExactPaths(map[string]http.Handler{probePath: serve.NewProbeRoute(bindAddrs, proxyConfig)}))
 
-	adminSeam := admin.New(admin.Config{
+	adminService := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
 		Window: admin.ReauthWindow(acc),
 		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
@@ -250,7 +250,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	apiMount, err := newAPIMount(prefix, adminSeam, in.Seam(), adminConfig)
+	apiMount, err := newAPIMount(prefix, adminService, in.Service(), adminConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -348,12 +348,12 @@ func sendsHSTS(publicURL string) bool {
 	return u.Scheme == "https" && !auth.IsLoopbackHost(u.Hostname())
 }
 
-// openNonceStore opens the consumed-nonce store under authStore, with
+// openNonceStore opens the consumed-nonce store under authDir, with
 // its retention read through acc, and sweeps it once at now. A test
 // opens the store the way newServeShell does and reads the retention it
 // was wired with.
-func openNonceStore(ctx context.Context, authStore *auth.Store, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
-	nonces, _, err := auth.OpenNonceStore(ctx, authStore, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
+func openNonceStore(ctx context.Context, authDir *auth.Dir, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
+	nonces, _, err := auth.OpenNonceStore(ctx, authDir, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 

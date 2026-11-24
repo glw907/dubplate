@@ -18,7 +18,7 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -57,10 +57,10 @@ const (
 // prints exactly one line regardless of state.
 const unidecodeRowLines = 1
 
-// authStoreRowLines is the auth store row's fixed contribution to
+// authDirRowLines is the auth dir row's fixed contribution to
 // doctor's line-count assertions, storeRowLines's own precedent: it
 // prints exactly one line regardless of state.
-const authStoreRowLines = 1
+const authDirRowLines = 1
 
 // probeRowLines is the four boundary rows' fixed contribution to
 // doctor's line-count assertions (client ip, web, bind addresses,
@@ -219,17 +219,17 @@ func TestDoctorCmd(t *testing.T) {
 			}
 			li++
 
-			// The auth store row follows the members row, also
+			// The auth dir row follows the members row, also
 			// unconditionally.
 			if li >= len(lines) {
-				t.Fatalf("stdout ran out of lines before the auth store row")
+				t.Fatalf("stdout ran out of lines before the auth dir row")
 			}
-			if wantPrefix := fmt.Sprintf("%-32s", authStoreDoctorRow); !strings.HasPrefix(lines[li], wantPrefix) {
-				t.Errorf("auth store row %d = %q, want prefix %q", li, lines[li], wantPrefix)
+			if wantPrefix := fmt.Sprintf("%-32s", authDirDoctorRow); !strings.HasPrefix(lines[li], wantPrefix) {
+				t.Errorf("auth dir row %d = %q, want prefix %q", li, lines[li], wantPrefix)
 			}
 			li++
 
-			// The backup rows follow the auth store row: none of
+			// The backup rows follow the auth dir row: none of
 			// these cases sets DUBPLATE_BACKUP_ENABLED, and the fresh
 			// state directory holds no store, so every one reads
 			// "not checked" or "unavailable".
@@ -275,7 +275,7 @@ func TestDoctorCmd(t *testing.T) {
 			li++
 
 			if li != len(lines) {
-				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store+auth store+backup rows: %v", len(lines)-li, lines[li:])
+				t.Errorf("stdout has %d extra line(s) beyond owned+reserved+threshold+store+auth dir+backup rows: %v", len(lines)-li, lines[li:])
 			}
 		})
 	}
@@ -307,17 +307,17 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	integrationCount := len(reg.IntegrationClasses())
 	thresholdCount := len(reg.Thresholds())
 	sourceCount := len(reg.IdentitySources())
-	// storeRowLines, membersRowLines, authStoreRowLines, and
+	// storeRowLines, membersRowLines, authDirRowLines, and
 	// backupDoctorRowsOff are the store row, the members row, the auth
 	// store row, and the backup rows: each
 	// prints unconditionally, so none is one of reg's own declared
 	// families. doctorLines's own environ
 	// (baseEnviron) never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + musicVolumeRowLines
+	wantTotal := ownedCount + reservedCount + integrationCount + thresholdCount + sourceCount + storeRowLines + membersRowLines + authDirRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + musicVolumeRowLines
 	if len(lines) != wantTotal {
-		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + members %d + auth store %d + backup %d + unidecode %d + boundary %d + music volume %d)",
+		t.Fatalf("doctor printed %d lines against a fresh registry, want %d (owned %d + reserved %d + integration %d + threshold %d + source %d + store %d + members %d + auth dir %d + backup %d + unidecode %d + boundary %d + music volume %d)",
 			len(lines), wantTotal, ownedCount, reservedCount, integrationCount, thresholdCount, sourceCount,
-			storeRowLines, membersRowLines, authStoreRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines, musicVolumeRowLines)
+			storeRowLines, membersRowLines, authDirRowLines, backupDoctorRowsOff, unidecodeRowLines, probeRowLines, musicVolumeRowLines)
 	}
 
 	// Owned wall: one line per declared row.
@@ -424,7 +424,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authDirRowLines + backupDoctorRowsOn + unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d", len(lines), wantTotal)
 	}
@@ -715,7 +715,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	// storeRowLines and backupDoctorRowsOff are the store row and the
 	// backup rows: doctorEnviron loads cleanly, so no unclaimed-error
 	// line prints, and it never sets DUBPLATE_BACKUP_ENABLED.
-	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
+	wantTotal := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) + len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authDirRowLines + backupDoctorRowsOff + unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
 	if len(lines) != wantTotal {
 		t.Errorf("stdout has %d line(s), want %d: one line per source, not per key", len(lines), wantTotal)
 	}
@@ -1207,7 +1207,7 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 // form every duration threshold uses.
 func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 	reg := freshRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 
 	tests := []struct {
@@ -1243,7 +1243,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 // exits 1. 2147483647ms passes both rows.
 func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 	reg := freshRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 
 	tests := []struct {
@@ -1302,7 +1302,7 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 	reg := freshRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 
 	before, err := os.ReadDir(stateDir)
@@ -1367,14 +1367,14 @@ func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_AuthStoreRow proves the auth store row reports, before
+// TestDoctorCmd_AuthDirRow proves the auth dir row reports, before
 // serve starts, each state of the auth leaf serve would refuse or
 // could not write: a leaf wider than 0700, in the words auth.Open
 // refuses it with; a leaf another uid owns; a record subdirectory the
 // process may not write; and an absent leaf whose state directory is
 // not writable either. An absent leaf under a writable state directory
 // and a well-formed leaf both pass, so the row cannot fail every case.
-func TestDoctorCmd_AuthStoreRow(t *testing.T) {
+func TestDoctorCmd_AuthDirRow(t *testing.T) {
 	tests := []struct {
 		name string
 		// setup shapes the auth leaf under stateDir and returns the
@@ -1444,8 +1444,8 @@ func TestDoctorCmd_AuthStoreRow(t *testing.T) {
 			want := tt.setup(t, stateDir)
 
 			rows, _, err := doctorRows(t, environ)
-			if got := rows[authStoreDoctorRow]; got != want {
-				t.Errorf("auth store row = %q, want %q", got, want)
+			if got := rows[authDirDoctorRow]; got != want {
+				t.Errorf("auth dir row = %q, want %q", got, want)
 			}
 			if tt.wantFailed && err == nil {
 				t.Error("Execute() error = nil, want a refusal")
@@ -1457,11 +1457,11 @@ func TestDoctorCmd_AuthStoreRow(t *testing.T) {
 	}
 }
 
-// TestDoctorCmd_AuthStoreRowSpeaksServesRefusal proves the mode
+// TestDoctorCmd_AuthDirRowSpeaksServesRefusal proves the mode
 // failure reads in serve's own words: the row's text is the tail of
 // the error auth.Open returns for the same leaf, so an operator who
 // sees one recognizes the other.
-func TestDoctorCmd_AuthStoreRowSpeaksServesRefusal(t *testing.T) {
+func TestDoctorCmd_AuthDirRowSpeaksServesRefusal(t *testing.T) {
 	environ := doctorEnviron(t)
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 	leaf := makeAuthLeaf(t, stateDir)
@@ -1472,9 +1472,9 @@ func TestDoctorCmd_AuthStoreRowSpeaksServesRefusal(t *testing.T) {
 		t.Fatal("fixture state: auth.Open accepted a 0750 leaf")
 	}
 	rows, _, _ := doctorRows(t, environ)
-	row := rows[authStoreDoctorRow]
+	row := rows[authDirDoctorRow]
 	if row == "" || !strings.HasSuffix(openErr.Error(), row) {
-		t.Errorf("auth store row = %q, want the tail of serve's refusal %q", row, openErr)
+		t.Errorf("auth dir row = %q, want the tail of serve's refusal %q", row, openErr)
 	}
 }
 
@@ -1486,7 +1486,7 @@ func makeAuthLeaf(t *testing.T, stateDir string) string {
 	if _, err := auth.Open(stateDir); err != nil {
 		t.Fatalf("fixture state: auth.Open: %v", err)
 	}
-	return auth.StoreDir(stateDir)
+	return auth.DirPath(stateDir)
 }
 
 // chmodRestoring sets path's mode and restores 0700 at cleanup, so

@@ -1,4 +1,4 @@
-package local
+package jobs
 
 import (
 	"bytes"
@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -37,7 +38,7 @@ func defaultSnapshotKeep(context.Context) (int, error)               { return 14
 func defaultArchiveRetention(context.Context) (time.Duration, error) { return defaultJobRetention, nil }
 
 // testActor is the actor every test start names.
-var testActor = ops.LocalActor("tester")
+var testActor = identity.LocalActor("tester")
 
 // newStateDir creates a current store under a fresh state directory
 // and returns the directory, with no handle left open.
@@ -123,7 +124,7 @@ type bodyRunner struct {
 }
 
 // StartBackup starts a backup job that runs the runner's body.
-func (r *bodyRunner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+func (r *bodyRunner) StartBackup(ctx context.Context, actor identity.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
 	return r.startBackup(ctx, actor, func(context.Context) (binder, error) {
 		return func(*store.KindLease, ops.Handle) body { return r.body }, nil
 	})
