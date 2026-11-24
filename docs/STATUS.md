@@ -19,7 +19,7 @@ fact; `cmd/dubplate-server/doctor.go` only places the rows, and the output is by
 Work `lean-pattern` (PR #26, merged 2026-11-23) moved the binding rules into 15 decision records in
 `docs/decisions/` and cut `CLAUDE.md` to 85 lines. The gate now runs dupl, gocognit, forbidigo, `deadcode -test`,
 a 200-line limit on `CLAUDE.md`, and a status check on each record.
-Work `complexity-cleanup` (PR #27) splits ten functions under gocognit's bar of 30; only `commitVerdict` and `walkZIP`
+Work `complexity-cleanup` (PR #27, merged 2026-11-23) split ten functions under gocognit's bar of 30; only `commitVerdict` and `walkZIP`
 keep an exclusion.
 
 `intake-1` is the last product work on master. A passing album waits in `matching` with no exit until
@@ -32,11 +32,10 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 ## Next action
 The architecture cleanup spec, `docs/specs/2026-11-23-architecture-cleanup.md`, is approved (Geoff, 2026-11-23).
 It turns the 49-reader read at `docs/research/2026-11-23-architecture-read.md` into a chain of ten tasks, run
-before `intake-2`. To start the chain:
-1. Check that workstation PR #275 (merge tiers) has merged and `~/.dotfiles` is pulled; if not, tell Geoff.
-2. If PR #27 (`complexity-cleanup`) has merged, task 1 builds from `master`; if open, on its branch.
-3. Read `/usage`, then start the chain as the spec's "Launching the chain" says: a background session from this
-   checkout on Sonnet at medium, running that section's `/loop 15m` line. Geoff answers Merge or Send back there.
+before `intake-2`. Workstation PR #275 (merge tiers) and PR #27 have merged and `~/.dotfiles` is pulled, so
+task 1 builds from `master`. To start the chain, read `/usage`, then follow the spec's "Launching the chain": a
+background session from this checkout on Sonnet at medium, running that section's `/loop 15m` line. Geoff answers
+Merge or Send back there.
 
 `intake-2` takes #159 after the chain's last task, `web`, merges.
 PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
