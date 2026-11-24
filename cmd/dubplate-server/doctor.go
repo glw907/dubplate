@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -34,123 +35,148 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			// Load and the staging rule run apart from loadConfig so a
-			// nesting lands on the staging row as "invalid" and the report
-			// carries on with the config Load resolved.
-			cfg, loadErr := config.Load(environ, reg)
-			if loadErr == nil {
-				loadErr = intake.ResolveStaging(cfg)
-			}
-			statuses := rowStatuses(loadErr)
-
-			// Rows print once every probe has run.
-			var rows []doctorRow
-			failed := loadErr != nil
-			add := func(key, status string) {
-				rows = append(rows, doctorRow{key, status})
-			}
-			addChecked := func(key, status string, rowFailed bool) {
-				add(key, status)
-				failed = failed || rowFailed
-			}
-
-			// The store is inspected first and its row prints later: the
-			// admin email row reads the roster standing the same
-			// inspection reports.
-			storeStatus, storeFailed, storeReport, storeChecked := store.DoctorRow(cmd.Context(), environ)
-
-			for _, row := range reg.OwnedWall() {
-				status := cmp.Or(statuses[row.Name], "ok")
-				if row.Name == adminEmailKey {
-					status = auth.AdminEmailRowStatus(status, storeReport, storeChecked)
-				}
-				add(row.Name, status)
-			}
-
-			for _, class := range reg.ReservedClasses() {
-				add(class.Name, fmt.Sprintf("disabled (arrives at rung %d)", class.Rung))
-			}
-
-			for _, class := range reg.IntegrationClasses() {
-				status := "disabled"
-				if enabled, err := class.Enabled(environ); err == nil && enabled {
-					status = "enabled"
-				}
-				add(class.Name, status)
-			}
-
-			for _, th := range reg.Thresholds() {
-				add(th.Key, thresholdStatus(environ, statuses, th))
-			}
-
-			for _, src := range reg.IdentitySources() {
-				add(src.Name, identitySourceStatus(environ, src, statuses))
-			}
-
-			// A load error keyed by a name no printed row claims would
-			// leave the exit status unexplained, so each prints on a line
-			// of its own.
-			for _, key := range unclaimedLoadErrors(reg, statuses) {
-				add(key, statuses[key])
-			}
-
-			// Each fixed row below prints exactly one line whatever its
-			// state, so a store or a config doctor cannot vouch for is as
-			// reportable as a missing key.
-			addChecked("store", storeStatus, storeFailed)
-
-			membersStatus, membersFailed := auth.MembersRowStatus(storeReport, storeChecked)
-			addChecked(membersDoctorRow, membersStatus, membersFailed)
-
-			authStoreStatus, authStoreFailed := auth.StoreRowStatus(cfg, auth.StoreRowOptions{Geteuid: os.Geteuid})
-			addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
-
-			for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
-				add(row.key, row.status)
-			}
-			backupRemoteStatus, backupRemoteFailed := backup.RemoteRowStatus(cmd.Context(), environ, backup.RemoteRowOptions{FeaturesTimeout: backupFeaturesTimeout})
-			addChecked(backupRemoteRow, backupRemoteStatus, backupRemoteFailed)
-
-			unidecodeStateDir, _ := config.Lookup(environ, "DUBPLATE_STATE_DIR")
-			unidecodeStatus, unidecodeFailed := unidecode.RowStatus(unidecodeStateDir)
-			addChecked(unidecodeDoctorRow, unidecodeStatus, unidecodeFailed)
-
-			clientIPStatus, clientIPFailed := serve.ClientIPRowStatus(cfg)
-			addChecked(clientIPDoctorRow, clientIPStatus, clientIPFailed)
-			webStatus, webFailed := webapp.RowStatus(cfg, webRowResolve(environ))
-			addChecked(webDoctorRow, webStatus, webFailed)
-			ifaceAddrs, ifaceErr := net.InterfaceAddrs()
-			bindStatus, bindFailed := serve.BindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
-			addChecked(bindAddrsDoctorRow, bindStatus, bindFailed)
-			probeStatus, probeFailed := serve.BoundaryProbeRowStatus(cmd.Context(), environ, reg, cfg)
-			addChecked(boundaryProbeDoctorRow, probeStatus, probeFailed)
-
-			var collectionRoots [][]byte
-			if storeChecked && storeReport.Facts != nil {
-				collectionRoots = storeReport.Facts.CollectionRoots
-			}
-			volumeStatus, volumeFailed := intake.VolumeRowStatus(cfg, collectionRoots)
-			addChecked(musicVolumeDoctorRow, volumeStatus, volumeFailed)
-
-			// One row per registered setting, then one per orphan the
-			// store holds under a key nothing declares.
-			settingsRows, settingsFailed := settingsDoctorRows(environ, reg, storeReport, storeChecked)
-			rows = append(rows, settingsRows...)
-			failed = failed || settingsFailed
-
-			for _, row := range rows {
-				if err := printRow(stdout, row.key, row.status); err != nil {
-					return err
-				}
-			}
-			if failed {
-				return errors.New("configuration is incomplete")
-			}
-			return nil
+			return runDoctor(cmd.Context(), environ, reg, stdout)
 		},
 	}
 	cmd.SetErr(stderr)
 	return cmd
+}
+
+// runDoctor runs every doctor probe, then prints the rows in wall
+// order. It returns an error when [config.Load] refuses environ or any
+// printed row reports a failure.
+func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdout io.Writer) error {
+	// Load and the staging rule run apart from loadConfig so a nesting
+	// lands on the staging row as "invalid" and the report carries on
+	// with the config Load resolved.
+	cfg, loadErr := config.Load(environ, reg)
+	if loadErr == nil {
+		loadErr = intake.ResolveStaging(cfg)
+	}
+	statuses := rowStatuses(loadErr)
+	report := doctorReport{failed: loadErr != nil}
+
+	// The store is inspected first and its row prints later: the admin
+	// email row reads the roster standing the same inspection reports.
+	storeStatus, storeFailed, storeReport, storeChecked := store.DoctorRow(ctx, environ)
+
+	report.addRegistryRows(environ, reg, statuses, storeReport, storeChecked)
+
+	// Each fixed row prints exactly one line whatever its state, so a
+	// store or a config doctor cannot vouch for is as reportable as a
+	// missing key.
+	report.addChecked("store", storeStatus, storeFailed)
+	report.addProbeRows(ctx, environ, reg, cfg, storeReport, storeChecked)
+
+	// One row per registered setting, then one per orphan the store
+	// holds under a key nothing declares.
+	settingsRows, settingsFailed := settingsDoctorRows(environ, reg, storeReport, storeChecked)
+	report.rows = append(report.rows, settingsRows...)
+	report.failed = report.failed || settingsFailed
+
+	for _, row := range report.rows {
+		if err := printRow(stdout, row.key, row.status); err != nil {
+			return err
+		}
+	}
+	if report.failed {
+		return errors.New("configuration is incomplete")
+	}
+	return nil
+}
+
+// doctorReport collects the doctor rows in print order, and whether any
+// of them reports a failure. Rows print once every probe has run.
+type doctorReport struct {
+	rows   []doctorRow
+	failed bool
+}
+
+func (r *doctorReport) add(key, status string) {
+	r.rows = append(r.rows, doctorRow{key, status})
+}
+
+func (r *doctorReport) addChecked(key, status string, failed bool) {
+	r.add(key, status)
+	r.failed = r.failed || failed
+}
+
+// addRegistryRows adds the rows reg declares: the owned wall, the
+// reserved, integration, threshold, and identity-source classes, and a
+// row for each load error no declared row claims. None of them marks
+// the report failed, since the load error behind statuses already has.
+func (r *doctorReport) addRegistryRows(environ []string, reg *config.Registry, statuses map[string]string, storeReport store.Report, storeChecked bool) {
+	for _, row := range reg.OwnedWall() {
+		status := cmp.Or(statuses[row.Name], "ok")
+		if row.Name == adminEmailKey {
+			status = auth.AdminEmailRowStatus(status, storeReport, storeChecked)
+		}
+		r.add(row.Name, status)
+	}
+
+	for _, class := range reg.ReservedClasses() {
+		r.add(class.Name, fmt.Sprintf("disabled (arrives at rung %d)", class.Rung))
+	}
+
+	for _, class := range reg.IntegrationClasses() {
+		status := "disabled"
+		if enabled, err := class.Enabled(environ); err == nil && enabled {
+			status = "enabled"
+		}
+		r.add(class.Name, status)
+	}
+
+	for _, th := range reg.Thresholds() {
+		r.add(th.Key, thresholdStatus(environ, statuses, th))
+	}
+
+	for _, src := range reg.IdentitySources() {
+		r.add(src.Name, identitySourceStatus(environ, src, statuses))
+	}
+
+	// A load error keyed by a name no printed row claims would leave the
+	// exit status unexplained, so each prints on a line of its own.
+	for _, key := range unclaimedLoadErrors(reg, statuses) {
+		r.add(key, statuses[key])
+	}
+}
+
+// addProbeRows adds the fixed rows that probe the store's members, the
+// auth leaf, the backups, the unidecode table, the network boundary,
+// and the music volume, in that order.
+func (r *doctorReport) addProbeRows(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config, storeReport store.Report, storeChecked bool) {
+	membersStatus, membersFailed := auth.MembersRowStatus(storeReport, storeChecked)
+	r.addChecked(membersDoctorRow, membersStatus, membersFailed)
+
+	authStoreStatus, authStoreFailed := auth.StoreRowStatus(cfg, auth.StoreRowOptions{Geteuid: os.Geteuid})
+	r.addChecked(authStoreDoctorRow, authStoreStatus, authStoreFailed)
+
+	for _, row := range backupFactsRows(time.Now(), storeReport, storeChecked) {
+		r.add(row.key, row.status)
+	}
+	backupRemoteStatus, backupRemoteFailed := backup.RemoteRowStatus(ctx, environ, backup.RemoteRowOptions{FeaturesTimeout: backupFeaturesTimeout})
+	r.addChecked(backupRemoteRow, backupRemoteStatus, backupRemoteFailed)
+
+	unidecodeStateDir, _ := config.Lookup(environ, "DUBPLATE_STATE_DIR")
+	unidecodeStatus, unidecodeFailed := unidecode.RowStatus(unidecodeStateDir)
+	r.addChecked(unidecodeDoctorRow, unidecodeStatus, unidecodeFailed)
+
+	clientIPStatus, clientIPFailed := serve.ClientIPRowStatus(cfg)
+	r.addChecked(clientIPDoctorRow, clientIPStatus, clientIPFailed)
+	webStatus, webFailed := webapp.RowStatus(cfg, webRowResolve(environ))
+	r.addChecked(webDoctorRow, webStatus, webFailed)
+	ifaceAddrs, ifaceErr := net.InterfaceAddrs()
+	bindStatus, bindFailed := serve.BindAddrsRowStatus(environ, ifaceAddrs, ifaceErr)
+	r.addChecked(bindAddrsDoctorRow, bindStatus, bindFailed)
+	probeStatus, probeFailed := serve.BoundaryProbeRowStatus(ctx, environ, reg, cfg)
+	r.addChecked(boundaryProbeDoctorRow, probeStatus, probeFailed)
+
+	var collectionRoots [][]byte
+	if storeChecked && storeReport.Facts != nil {
+		collectionRoots = storeReport.Facts.CollectionRoots
+	}
+	volumeStatus, volumeFailed := intake.VolumeRowStatus(cfg, collectionRoots)
+	r.addChecked(musicVolumeDoctorRow, volumeStatus, volumeFailed)
 }
 
 // unclaimedLoadErrors returns, sorted, the DUBPLATE_ keys statuses

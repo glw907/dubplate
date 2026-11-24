@@ -61,10 +61,6 @@ linters:
       # Functions over the complexity bar when the check was adopted.
       # This list only shrinks: a function leaves it when it is
       # refactored, and no new function joins it.
-      - path: ^cmd/dubplate-server/doctor\.go$
-        linters:
-          - gocognit
-        text: func `newDoctorCmd`
       - path: ^internal/engine/matcher/assign\.go$
         linters:
           - gocognit
