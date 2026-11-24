@@ -41,7 +41,10 @@ var (
 	ErrForbidden      = errors.New("forbidden")
 	ErrInternal       = errors.New("internal")
 
-	ErrUnauthenticated          = errors.New("unauthenticated")
+	// ErrUnauthenticated is the one sentinel for a request with no
+	// valid session. auth's session check wraps it, and both mounts
+	// answer it 401.
+	ErrUnauthenticated          = errors.New("no valid session")
 	ErrReauthenticationRequired = errors.New("reauthentication required")
 )
 

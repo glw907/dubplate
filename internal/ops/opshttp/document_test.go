@@ -644,7 +644,7 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 			}
 
 			unauth := newMountFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-				return identity.Actor{}, 0, ErrUnauthenticated
+				return identity.Actor{}, 0, ops.ErrUnauthenticated
 			}).do(http.MethodPost, mountPrefix+"/api/v1/"+op, requestSamples[op])
 			if err := d.checkResponse(ctx, op, unauth); err != nil {
 				t.Errorf("the 401 answer fails the document: %v", err)

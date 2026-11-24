@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/serve"
 )
 
@@ -103,7 +104,7 @@ func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
 }
 
 // TestCheckRequest_RefusalsAreNotSignedIn proves every verification
-// refusal wraps ErrNotSignedIn, sets no cookie, and logs at Info a
+// refusal wraps ops.ErrUnauthenticated, sets no cookie, and logs at Info a
 // fixed reason carrying no address and no cookie value.
 func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
 	tests := []struct {
@@ -141,8 +142,8 @@ func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
 			r := tt.request(t, fx)
 			w := httptest.NewRecorder()
 			_, err := CheckRequest(cfg, w, r)
-			if !errors.Is(err, ErrNotSignedIn) {
-				t.Fatalf("CheckRequest = %v, want an error wrapping ErrNotSignedIn", err)
+			if !errors.Is(err, ops.ErrUnauthenticated) {
+				t.Fatalf("CheckRequest = %v, want an error wrapping ops.ErrUnauthenticated", err)
 			}
 			if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 				t.Errorf("a refusal set a cookie: %q", c)
@@ -173,8 +174,8 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 		}
 		w := httptest.NewRecorder()
 		_, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin"))
-		if err == nil || errors.Is(err, ErrNotSignedIn) {
-			t.Fatalf("CheckRequest = %v, want a server failure that is no ErrNotSignedIn", err)
+		if err == nil || errors.Is(err, ops.ErrUnauthenticated) {
+			t.Fatalf("CheckRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
 		}
 		if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 			t.Errorf("a failed lookup set a cookie: %q", c)
@@ -209,8 +210,8 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 			_, err := CheckRequest(cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
-			if err == nil || errors.Is(err, ErrNotSignedIn) {
-				t.Fatalf("CheckRequest = %v, want a server failure that is no ErrNotSignedIn", err)
+			if err == nil || errors.Is(err, ops.ErrUnauthenticated) {
+				t.Fatalf("CheckRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
 			}
 			if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 				t.Errorf("a failed read set a cookie: %q", c)

@@ -1,18 +1,12 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-)
 
-// ErrNotSignedIn is what [CheckRequest] wraps when the request carries
-// no valid session: a missing, forged, expired, revoked, or
-// unrostered one, or a verified identity that is no login. Any other
-// error from it is the server failing, which a caller must not report
-// as a signed-out visitor.
-var ErrNotSignedIn = errors.New("auth: no valid session")
+	"github.com/glw907/dubplate/internal/ops"
+)
 
 // CheckRequest verifies the session r carries through cfg.Verifier, for a
 // caller that admits every signed-in member rather than only an admin.
@@ -24,9 +18,13 @@ var ErrNotSignedIn = errors.New("auth: no valid session")
 // the same reason. A refresh moves the issue time and leaves the
 // anchor.
 //
-// A refusal wraps [ErrNotSignedIn] and logs at Info the fixed reason
-// [gateRefusalReason] names. Any other failure, a roster lookup or a
-// setting read, is returned without [ErrNotSignedIn] and logged at Error. Neither log
+// A request with no valid session (a missing, forged, expired, revoked,
+// or unrostered one, or a verified identity that is no login) is
+// refused with an error wrapping [ops.ErrUnauthenticated], and logged at
+// Info with the fixed reason [gateRefusalReason] names. Any other
+// failure, a roster lookup or a setting read, is the server failing: it
+// is returned without that sentinel, so no caller reports it as a
+// signed-out visitor, and logged at Error. Neither log
 // record carries an error's own text, which may quote an address.
 func CheckRequest(cfg AdminConfig, w http.ResponseWriter, r *http.Request) (VerifiedIdentity, error) {
 	now := cfg.Now()
@@ -49,7 +47,7 @@ func CheckRequest(cfg AdminConfig, w http.ResponseWriter, r *http.Request) (Veri
 		if level >= slog.LevelError {
 			return VerifiedIdentity{}, fmt.Errorf("check request: %w", err)
 		}
-		return VerifiedIdentity{}, fmt.Errorf("%w: %s", ErrNotSignedIn, reason)
+		return VerifiedIdentity{}, fmt.Errorf("%w: %s", ops.ErrUnauthenticated, reason)
 	}
 	if v.RefreshedValue != "" {
 		http.SetCookie(w, SessionCookie(v.RefreshedValue, now, v.Session.ExpiresAt))

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -33,10 +31,7 @@ func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Subm
 func apiVerifier(cfg auth.AdminConfig) opshttp.Verifier {
 	return func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
 		v, err := auth.CheckRequest(cfg, w, r)
-		switch {
-		case errors.Is(err, auth.ErrNotSignedIn):
-			return identity.Actor{}, 0, fmt.Errorf("%w: %w", opshttp.ErrUnauthenticated, err)
-		case err != nil:
+		if err != nil {
 			return identity.Actor{}, 0, err
 		}
 		clientIP := cfg.ClientIP(r)

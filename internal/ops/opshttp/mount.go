@@ -10,16 +10,12 @@ import (
 	"github.com/glw907/dubplate/internal/ops"
 )
 
-// ErrUnauthenticated is what a [Verifier] wraps to say the request
-// carries no valid session. The mount answers it 401 unauthenticated;
-// any other verifier error is the server failing and answers 500.
-var ErrUnauthenticated = errors.New("opshttp: no valid session")
-
 // A Verifier admits one request to the mount. It reads whatever
 // credential the request carries, may set a refreshed credential on w,
 // and answers the actor the call proceeds as and the privilege that
-// actor holds. A refused credential wraps [ErrUnauthenticated]. A
-// verifier logs its own failures: the mount never writes an error's
+// actor holds. A refused credential wraps [ops.ErrUnauthenticated],
+// which the mount answers 401 unauthenticated; any other verifier error
+// is the server failing and answers 500. A verifier logs its own failures: the mount never writes an error's
 // text, which may name a member.
 type Verifier func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)
 
@@ -66,7 +62,7 @@ func (m *mount) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	actor, privilege, err := m.verify(w, r)
 	switch {
-	case errors.Is(err, ErrUnauthenticated):
+	case errors.Is(err, ops.ErrUnauthenticated):
 		writeError(w, statuses[ops.CodeUnauthenticated], ops.CodeUnauthenticated, "no valid session")
 		return
 	case err != nil:

@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -96,13 +97,13 @@ func testVerifier(_ http.ResponseWriter, r *http.Request) (identity.UserID, erro
 	v := r.Header.Get(memberHeader)
 	switch v {
 	case "":
-		return identity.UserID{}, ErrUnauthenticated
+		return identity.UserID{}, ops.ErrUnauthenticated
 	case failVerify:
 		return identity.UserID{}, errVerifierBroken
 	}
 	b, err := hex.DecodeString(v)
 	if err != nil || len(b) != 16 {
-		return identity.UserID{}, ErrUnauthenticated
+		return identity.UserID{}, ops.ErrUnauthenticated
 	}
 	return identity.UserID(b), nil
 }
