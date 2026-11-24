@@ -1,15 +1,10 @@
 # dubplate status
 
 ## Current state
-The reshape is done. `dubplate` builds by the workstation's `building-from-specs` process. Task 1 (PR #20) fixed the
-shutdown race in `internal/serve`, task 2 (PR #21) rewrote the Claude files and the backlog, and task 3 (PR #22) added
-`govulncheck` to the gate, three fuzz targets, the race detector in CI, and a `dependabot.yml` that watches the GitHub
-Actions pins. GitHub's secret scanning, push protection, and Dependabot alerts are on. The spec is
-`~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`. Nothing a member or an operator
-sees changed.
-
-Milestone `engine` (PR #17) is done: the matcher, MusicBrainz client, tag reader, and `tag` package each state a fact
-once, and the citation leg of `scripts/check.sh` gates.
+The reshape is done (PRs #20 to #22, spec
+`~/Projects/initiatives/cairn-dubplate-reshape/specs/2026-11-22-dubplate-reshape.md`): `govulncheck`, fuzz targets,
+the race detector in CI, Dependabot, secret scanning, and push protection. Milestone `engine` (PR #17) is done, and
+the citation leg of `scripts/check.sh` gates. Nothing a member or an operator sees changed.
 
 Work `structure-base` (PR #18, merged) moved code only: `_salvage` left the tree, `internal/engine/store` became
 `internal/store`, `internal/id` parses ids, and a store test names the owner of each of 19 tables.
@@ -33,7 +28,15 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`intake-2` takes #159 next, from a spec written under `building-from-specs` that cites the records it builds on.
+The architecture cleanup spec, `docs/specs/2026-11-23-architecture-cleanup.md`, is approved (Geoff, 2026-11-23).
+It turns the 49-reader read at `docs/research/2026-11-23-architecture-read.md` into a chain of ten tasks, run
+before `intake-2`. To start the chain:
+1. Check that workstation PR #275 (merge tiers) has merged and `~/.dotfiles` is pulled; if not, tell Geoff.
+2. If PR #27 (`complexity-cleanup`) has merged, task 1 builds from `master`; if open, on its branch.
+3. Read `/usage`, then start the chain as the spec's "Launching the chain" says: a background session from this
+   checkout on Sonnet at medium, running that section's `/loop 15m` line. Geoff answers Merge or Send back there.
+
+`intake-2` takes #159 after the chain's last task, `web`, merges.
 PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
@@ -49,3 +52,6 @@ Before any deploy that carries `cleanup-store`, check read-only that the box sto
 - One Run-D.M.C. frame (`commons:139197098`) and five maybes wait in `photos/.candidates/` for Geoff's call.
 - TypeScript 7.0.2 and `@types/node` 26.6.x are majors held for Geoff (BACKLOG #130).
 - Geoff accepted on 2026-11-22 that a write under lock contention ends at its deadline on the new driver (#129).
+
+## Launch prompt
+Start the architecture cleanup chain from `docs/STATUS.md`, "Next action", by building-from-specs.

@@ -1,0 +1,174 @@
+# Checklist: task 9, `harness-corpus`
+
+Each line is one finding from `docs/research/2026-11-23-architecture-read.md`, quoted to its first
+sentence; the report holds the full finding and its fix. The task ticks each box as the spec's
+"Done items every task carries" section says.
+
+- [ ] Repo-wide, low: "Comments that cite process artifacts" (`internal/harness/corpus_test.go:1`).
+- [ ] P1, high: `cmd/harness/capture.go:51` The package injects dependencies three different ways.
+- [ ] P1, high: `internal/harness/oracle/oracle.go:31` Options.Shim is an exported field that only tests set: oracle_test.go and cmd/harness/freeze_test.go:78,106,137.
+- [ ] P1, medium: `internal/harness/corpus_test.go:24` repoRoot is one of seven go.mod walk-up copies in the module: analysis/adjudication_test.go:17, conform/case_test.go:61 and component_test.go:22, synth/synth_derive_test.go:43 and seeditems_test.go:26, oracle/oracle.go:81, and cmd ...
+- [ ] P1, medium: `internal/harness/conform/case_test.go:214` gradeFixtureCase copies GradeCases' per-case aggregation into the test (case_test.go:214-218 restates case.go:191-200).
+- [ ] P1, medium: `internal/harness/oracle/oracle.go:69` Two seams control one decision, the case directory: Options.Dir (line 32) and the package var caseDir.
+- [ ] P1, medium: `internal/harness/synth/seeditems.go:28` ProjectItems takes `allowAlbumIDOverride bool` as a positional parameter.
+- [ ] P1, low: `internal/harness/cassette/cassette_test.go:274` Two of TestLoadManifest's three checks cannot fail.
+- [ ] P1, low: `internal/harness/conform/case.go:488` compatFor takes a mode argument, but both call sites pass a constant (case.go:368 passes ModeCompat, :548 passes ModeDefault).
+- [ ] P1, low: `internal/harness/conform/translate.go:371` checkNoReleaseReachesBrowseThreshold takes a threshold parameter, and the only reason for it is the mutation test that passes 400 (translate_test.go:444).
+- [ ] P2, high: `internal/harness/corpus_test.go:225` Placing the ledger checks in a test-only parent package is the only reason nine analysis exports exist.
+- [ ] P2, high: `internal/harness/analysis/adjudication.go:152` Every ledger loader takes a full file path, even though its doc comment names the one file it reads ("reads corpus/analysis/adjudications.json from path").
+- [ ] P2, high: `internal/harness/analysis/claims.go:19` Several exported constants have no reference outside their declaring file and the package's own tests: ClaimsFileName (claims.go:19), AlbumInfoLedgerRowFloor (album_info.go:20), FileTagLedgerRowFloor (file_tags.go:17), ProximityEp ...
+- [ ] P2, high: `internal/harness/conform/case.go:156` No .go file outside internal/harness/conform imports this package (I grepped for 'harness/conform' and found only comments elsewhere).
+- [ ] P2, high: `internal/harness/oracle/ties.go:43` DeriveTies, DeriveAlbumInfo (album_info.go:35), DeriveComponentTable (component.go:15), DeriveDefectFree (defect_free.go:73), DefectFreeSubject (defect_free.go:32), DefectFreeRow (defect_free.go:45), DeriveFileTags (file_tags.go:3 ...
+- [ ] P2, high: `internal/harness/synth/seeditems.go:221` Facts (221), ArtistAliases (234), and FactAlias (241) are exported structs with exported fields, and nothing outside this file reads any field.
+- [ ] P2, medium: `internal/harness/conform/component.go:40` ReplayOutcome carries its failure in an Err field, and ReplayRow returns the struct with no error result.
+- [ ] P2, medium: `internal/harness/oracle/reconcile.go:36` Reconcile has no production caller.
+- [ ] P2, medium: `internal/harness/stub/stub.go:34` Miss carries the misses.json schema in its JSON tags, and its doc calls that schema "this package's on-disk miss-file contract", but stub never writes or reads a file.
+- [ ] P2, medium: `internal/harness/stub/stub.go:95` ServeHTTP has no caller outside this file.
+- [ ] P2, low: `internal/harness/analysis/ties.go:191` MergeTieDispositions both mutates `derived` in place and returns it, so the caller (oracle/ties_derive_test.go:137, `entries = analysis.MergeTieDispositions(entries, prior)`) cannot tell from the signature which contract it relies ...
+- [ ] P3, medium: `cmd/harness/oracleup.go:86` One file per verb is a fair split for a CLI, but each shared helper sits in the file of whichever verb shipped first.
+- [ ] P3, medium: `internal/harness/conform/case.go:1` The files are split by deliverable rather than by concern.
+- [ ] P3, medium: `internal/harness/oracle/component.go:3` The split is by deliverable: one file per ledger task, each with its own 'X.go is the Go half of ...' introduction.
+- [ ] P3, low: `internal/harness/analysis/oraclebug.go:1` The split reads as concerns, one file per ledger format, with readJSON in ledger.go.
+- [ ] P3, low: `internal/harness/synth/seeditems.go:1` seeditems.go is named for the CLI verb that shipped it, not for a concern.
+- [ ] P4, medium: `internal/harness/corpus_test.go:286` The comment says "the Go matcher the table's outputs will be compared against arrives at rung 3".
+- [ ] P4, medium: `internal/harness/analysis/adjudication.go:107` Density is 0.39 (419 // lines over 1074 code lines), against encoding/csv at 0.497 and net/mail at 0.206.
+- [ ] P4, medium: `internal/harness/analysis/doc.go:1` The package doc is stale.
+- [ ] P4, medium: `internal/harness/cassette/cassette.go:1` Density is 80 full-line comments over 160 code lines (0.50), plus 24 trailing field comments that the ratio does not count.
+- [ ] P4, medium: `internal/harness/conform/case.go:443` This comment contradicts the code.
+- [ ] P4, medium: `internal/harness/oracle/album_info.go:3` Five tagged files each put a file-introduction paragraph directly above `package oracle` (album_info.go:3, component.go:3, defect_free.go:3, file_tags.go:3, ties.go:3).
+- [ ] P4, medium: `internal/harness/synth/spec.go:65` Overall density, 0.40, is below encoding/csv at 0.50, but the content misses the bar.
+- [ ] P4, low: `cmd/harness/capture.go:21` The overall ratio of 0.211 is modestly above cmd/covdata's 0.176.
+- [ ] P4, low: `internal/engine/matcher/assign.go:15` Outside the package, three comments cite this file by line number, and two of those citations are already stale.
+- [ ] P4, low: `internal/harness/cassette/cassette.go:137` Several comments argue with alternatives the code never offered, which is the habit agents copy.
+- [ ] P4, low: `internal/harness/conform/case.go:72` TiesExcludedCeiling's doc comment contains a broken sentence: a quoted rule ends without punctuation and runs straight into 'Growth is a hard failure'.
+- [ ] P4, low: `internal/harness/conform/component.go:19` At 0.34 the package runs at more than twice testing/fstest's 0.15.
+- [ ] P4, low: `internal/harness/conform/doc.go:6` The package doc is 33 comment lines over one line of code.
+- [ ] P4, low: `internal/harness/oracle/oracle.go:310` Overall density, 0.342, is below os/exec's 0.670, so the cost is in the kind of comment, not the amount.
+- [ ] P4, low: `internal/harness/stub/stub.go:136` The overall density (0.44) is below httptest (0.556), so the problem is placement, not volume.
+- [ ] cmd/harness, high: `cmd/harness/freeze.go:104` (P6) repoRoot is a byte-for-byte copy of internal/harness/oracle/oracle.go:81.
+- [ ] cmd/harness, medium: `cmd/harness/capture.go:76` Flag validation follows two idioms.
+- [ ] cmd/harness, medium: `cmd/harness/capture.go:151` The block that paces, fetches, writes the response, and appends a cassette.Request appears twice in runCapture (151-162 and 165-175) and a third time in the runCaptureMisses loop (223-234).
+- [ ] cmd/harness, medium: `cmd/harness/fetchxsd.go:37` runFetchXSD and runFetchUnidecode (fetchunidecode.go:40) are one body written twice: resolve the cache path, return early if the cache verifies, fetch, MkdirAll, atomic write, print the same message with a different noun.
+- [ ] cmd/harness, medium: `cmd/harness/oracleup.go:47` runOracleUp takes a *cobra.Command only to reach OutOrStdout and ErrOrStderr, which ties the logic to cobra.
+- [ ] cmd/harness, medium: `cmd/harness/recordoracle.go:118` Default paths are resolved three ways.
+- [ ] cmd/harness, medium: `cmd/harness/seeditems.go:110` runSeedItemsFacts repeats the first three steps of runSeedItems (seeditems.go:74-85 against 111-122): LoadCase, refuse an empty request log, read the first response.
+- [ ] cmd/harness, low: `cmd/harness/main.go:7` (P5) The package doc lists each verb with its flags, which repeats every cobra Short and flag help string by hand, and it has already drifted: oracle-up and record-oracle are listed without their --manifest, --collection, --digest ...
+- [ ] cmd/harness, low: `cmd/harness/recordoracle.go:315` (P7) `at := fmt.Errorf(...)` builds a fresh error on every request just to serve as a prefix, and each use wraps it with `%w: %w`.
+- [ ] cmd/harness, low: `cmd/harness/recordoracle.go:533` Small naming drift. `one` is too terse for a package-level function.
+- [ ] internal/harness, high: `internal/harness/corpus_test.go:106` Three case-format invariants live only in this gate test, not in the loader that owns the format: no duplicate (method, path_query) key (106-120), no orphan response file (126-148), and the schema version pin (156, 167).
+- [ ] internal/harness, medium: `internal/harness/corpus_test.go:242` (P9) Three tests collect per-case results into a map from inside forEachCase's subtests and then check a ledger against that map (got at 242-251, cases at 310-313 and 336-339).
+- [ ] internal/harness, medium: `internal/harness/corpus_test.go:427` (P9) TestLoadCaseRejectsCorruptedFixture repeats cassette_test.go:258 TestLoadCaseCorruptedFixture: same fixture, same nil check, same "eval_date" substring.
+- [ ] internal/harness, low: `internal/harness/corpus_test.go:7` The package clause and doc comment sit in a _test.go file, where go doc never shows them.
+- [ ] internal/harness, low: `internal/harness/corpus_test.go:269` The same four-line loop that turns case directories into ids appears at 269-272, 359-362, and 379-382.
+- [ ] internal/harness/analysis, high: `internal/harness/analysis/adjudication.go:17` (P8) Four ledgers carry closed sets of string values (dispositions, tie dispositions, proximity statuses, reproduced values).
+- [ ] internal/harness/analysis, medium: `internal/harness/analysis/album_info.go:44` (P5) AlbumInfoPseudoSubjects is a second list of case ids that must be kept in agreement with AlbumInfoSubjects by hand.
+- [ ] internal/harness/analysis, medium: `internal/harness/analysis/oraclebug.go:42` The function names do not follow one rule.
+- [ ] internal/harness/analysis, medium: `internal/harness/analysis/oraclebug.go:141` checkOracleBugEntry's last block (oraclebug.go:141-148) repeats adjudication.go:211-219 statement for statement: the same four-way disposition switch with an early return, and the same 'only a human name may set anything but Pendi ...
+- [ ] internal/harness/analysis, low: `internal/harness/analysis/album_info.go:190` Error messages and comments hard-code the length of a table the package already has: "not one of the nineteen named AlbumInfo subjects" (album_info.go:190), "not one of the twelve named file-tags subjects" (file_tags.go:144), and ...
+- [ ] internal/harness/analysis, low: `internal/harness/analysis/proximity.go:64` `analysis.Flag(exp)` is a bare verb whose object is implied.
+- [ ] internal/harness/cassette, medium: `internal/harness/cassette/cassette.go:121` LoadCase's validation errors do not name the case they came from: "case.json: id: missing", "case.json: requests[0]: ..." (lines 142-162).
+- [ ] internal/harness/cassette, medium: `internal/harness/cassette/cassette.go:172` The doc for checkResponseReadable says it "proves name resolves to a readable file under dir", and LoadCase's doc (line 120) says the same.
+- [ ] internal/harness/cassette, medium: `internal/harness/cassette/cassette.go:185` func (c *Case) Write(dir string) error takes the name Effective Go reserves for io.Writer: "Read, Write, Close, Flush, String and so on have canonical signatures and meanings...
+- [ ] internal/harness/cassette, low: `internal/harness/cassette/cassette.go:69` Expected is an adjective used as a type name.
+- [ ] internal/harness/cassette, low: `internal/harness/cassette/cassette.go:221` ReleaseLookup(mbid) string reads as though it performs a lookup, but it returns a canonical path-and-query string.
+- [ ] internal/harness/conform, high: `internal/harness/conform/case.go:321` gradeCase and gradeCaseDefault use named results, a deferred `err = errors.Join(errs...)`, and early exits written as `return res, nil` (case.go:330, 335, 346, 352, 365, 372 and the matching lines in gradeCaseDefault).
+- [ ] internal/harness/conform, high: `internal/harness/conform/case.go:519` gradeCaseDefault (case.go:519-569) repeats gradeCase's prologue (case.go:321-366) almost line for line: the named-result defer join, LoadCase, the nil Expected check, policyFor, caseInputs, stub.New with a deferred Close, and grad ...
+- [ ] internal/harness/conform, medium: `internal/harness/conform/case.go:904` policyFor takes the four ledgers as four parameters even though the ledgers struct (case.go:226) exists to group them.
+- [ ] internal/harness/conform, medium: `internal/harness/conform/case.go:986` (P5) The pairing of the hypothesis id bug-remix-parenthetical with Compat.RemixParenthetical is written in three places.
+- [ ] internal/harness/conform, medium: `internal/harness/conform/component.go:24` (P5) Three hand-kept lists name the same method set: componentMethods (component.go:24-36), the switch in ReplayRow (:112-137), and the adderCalls keys (:199-207).
+- [ ] internal/harness/conform, medium: `internal/harness/conform/component.go:828` The package has two near-miss comparators that use different tolerance formulas.
+- [ ] internal/harness/conform, medium: `internal/harness/conform/translate.go:372` Listing the corpus case directories is written three times: GradeCases (case.go:162-176), checkNoReleaseReachesBrowseThreshold (translate.go:372-384), and the test helper corpusCaseDirs (defaults_test.go:22).
+- [ ] internal/harness/conform, low: `internal/harness/conform/case.go:686` The exported names follow no single pattern.
+- [ ] internal/harness/conform, low: `internal/harness/conform/component.go:102` ReplayRow recovers any panic and turns it into a row error, which drops the matcher's stack trace at the point a programming bug would most need it.
+- [ ] internal/harness/oracle, high: `internal/harness/oracle/ties.go:56` The derivation prologue is copied three times: resolve dir, stub.New plus deferred Close, MkdirTemp plus deferred RemoveAll, renderProfile, then write config.yaml.
+- [ ] internal/harness/oracle, medium: `internal/harness/oracle/oracle.go:40` (P6) The miss-file name is a contract between packages, and three hand-kept copies hold it.
+- [ ] internal/harness/oracle, medium: `internal/harness/oracle/reconcile.go:42` (P5) The component list is written twice and kept in agreement by hand: once in the Python tuple inside versionProbe (line 25) and once in the pinned slice (lines 42-52).
+- [ ] internal/harness/oracle, medium: `internal/harness/oracle/ties.go:120` runPython repeats the venv branch of shimCommand (oracle.go:318-324: repoRoot, venv/bin/python3, the package's own directory joined to a script name) and the body of runShim (oracle.go:299-307: PYTHONHASHSEED, buffers, Run, stderr ...
+- [ ] internal/harness/oracle, low: `internal/harness/oracle/component.go:15` The Derive* family is inconsistent.
+- [ ] internal/harness/oracle, low: `internal/harness/oracle/defect_free.go:81` DeriveDefectFree builds `filepath.Join(root, "corpus", "cases", s.CaseID)` twice (lines 81 and 87).
+- [ ] internal/harness/oracle, low: `internal/harness/oracle/oracle.go:139` validateFieldPresent is a verb plus adjective that reads awkwardly, and Derive calls it twice, so raw is decoded three times in total (lines 116, 125, 128).
+- [ ] internal/harness/oracle, low: `internal/harness/oracle/oracle.go:196` (P7) The error message stutters.
+- [ ] internal/harness/oracle, low: `internal/harness/oracle/oracle.go:211` os.IsNotExist is used on a new code path.
+- [ ] internal/harness/stub, low: `internal/harness/stub/stub.go:47` Three field names in Server read against their meaning.
+- [ ] internal/harness/stub, low: `internal/harness/stub/stub.go:147` `key{method: req.Method, pathQuery: req.PathQuery}` is built from a cassette.Request at line 70 and again at line 147.
+- [ ] internal/harness/stub, low: `internal/harness/stub/stub_test.go:154` (P9) Unused is a Server method, but its tests are named TestUnused* while every other test is TestServer*.
+- [ ] internal/harness/synth, high: `internal/harness/synth/spec.go:1` The package doc says synth 'turns a compact release spec into a synthetic conformance-corpus case' and never mentions ProjectItems or ExtractFacts.
+- [ ] internal/harness/synth, medium: `internal/harness/synth/release.go:206` `int(tr.Length * 1000)` appears twice (206 and 211), and it truncates rather than rounds.
+- [ ] internal/harness/synth, medium: `internal/harness/synth/seeditems.go:104` The package models one wire format, WS/2, under two prefixes.
+- [ ] internal/harness/synth, medium: `internal/harness/synth/synth.go:62` buildItems (synth.go:62-88) and ProjectItems (seeditems.go:42-72) are the same loop: the same eight-key ItemFields literal, the same `comp` rule, the same `multiDisc` and `disc = mi + 1` rule.
+- [ ] internal/harness/synth, low: `internal/harness/synth/release.go:229` The composite literals in buildRelease and singleArtistCredit spell out zero values: `ASIN: nil, Barcode: nil, Packaging: nil` (234-239), `Title: ""`, `ArtistCredit: nil`, `Disambiguation: ""`, and `Video: false` (205-213, 223, 25 ...
+- [ ] internal/harness/synth, low: `internal/harness/synth/seeditems.go:241` Three sibling types use three naming schemes: Facts, FactAlias (prefixed with the parent's name, so it stutters as synth.FactAlias next to synth.Facts), and ArtistAliases (no prefix, plural).
+- [ ] internal/harness/synth, low: `internal/harness/synth/spec.go:30` (P8) The override operations are untyped string constants, and Override.Op is a plain string (135).
+- [ ] internal/harness/synth, low: `internal/harness/synth/synth.go:130` The Index range check and its error text are copied verbatim for OpField (130-132) and OpMissing (135-137).
+- [ ] Unused export, move-to-test: `GradeCases` at `internal/harness/conform/case.go:156`.
+- [ ] Unused export, move-to-test: `loadLedgers` at `internal/harness/conform/case.go:233`.
+- [ ] Unused export, move-to-test: `caseInputs` at `internal/harness/conform/case.go:287`.
+- [ ] Unused export, move-to-test: `gradeClient` at `internal/harness/conform/case.go:309`.
+- [ ] Unused export, move-to-test: `gradeCase` at `internal/harness/conform/case.go:321`.
+- [ ] Unused export, move-to-test: `gradeCaseVerdict` at `internal/harness/conform/case.go:434`.
+- [ ] Unused export, move-to-test: `checkRequestSet` at `internal/harness/conform/case.go:473`.
+- [ ] Unused export, move-to-test: `compatFor` at `internal/harness/conform/case.go:488`.
+- [ ] Unused export, move-to-test: `gradeCaseDefault` at `internal/harness/conform/case.go:519`.
+- [ ] Unused export, move-to-test: `checkPatternTable` at `internal/harness/conform/case.go:665`.
+- [ ] Unused export, move-to-test: `CheckDefaultCompatMatchesTheLedger` at `internal/harness/conform/case.go:686`.
+- [ ] Unused export, move-to-test: `gradeCandidates` at `internal/harness/conform/case.go:723`.
+- [ ] Unused export, move-to-test: `gradePenalties` at `internal/harness/conform/case.go:774`.
+- [ ] Unused export, move-to-test: `gradeAssignment` at `internal/harness/conform/case.go:800`.
+- [ ] Unused export, move-to-test: `compareFloat` at `internal/harness/conform/case.go:849`.
+- [ ] Unused export, move-to-test: `policyFor` at `internal/harness/conform/case.go:904`.
+- [ ] Unused export, move-to-test: `widenCompat` at `internal/harness/conform/case.go:986`.
+- [ ] Unused export, move-to-test: `ReplayTable` at `internal/harness/conform/component.go:79`.
+- [ ] Unused export, move-to-test: `ReplayRow` at `internal/harness/conform/component.go:101`.
+- [ ] Unused export, move-to-test: `rowErr` at `internal/harness/conform/component.go:142`.
+- [ ] Unused export, move-to-test: `replayAddMethod` at `internal/harness/conform/component.go:151`.
+- [ ] Unused export, move-to-test: `replayAdderShape` at `internal/harness/conform/component.go:209`.
+- [ ] Unused export, move-to-test: `decodeCallElems` at `internal/harness/conform/component.go:233`.
+- [ ] Unused export, move-to-test: `wantArity` at `internal/harness/conform/component.go:241`.
+- [ ] Unused export, move-to-test: `callAdd` at `internal/harness/conform/component.go:248`.
+- [ ] Unused export, move-to-test: `callAddExpr` at `internal/harness/conform/component.go:260`.
+- [ ] Unused export, move-to-test: `callAddNumber` at `internal/harness/conform/component.go:272`.
+- [ ] Unused export, move-to-test: `callAddRatio` at `internal/harness/conform/component.go:287`.
+- [ ] Unused export, move-to-test: `callAddString` at `internal/harness/conform/component.go:302`.
+- [ ] Unused export, move-to-test: `callAddEquality` at `internal/harness/conform/component.go:317`.
+- [ ] Unused export, move-to-test: `callAddPriority` at `internal/harness/conform/component.go:333`.
+- [ ] Unused export, move-to-test: `decodeOptions` at `internal/harness/conform/component.go:355`.
+- [ ] Unused export, move-to-test: `decodeOption` at `internal/harness/conform/component.go:385`.
+- [ ] Unused export, move-to-test: `tunablesWithOverrides` at `internal/harness/conform/component.go:431`.
+- [ ] Unused export, move-to-test: `applyAggregateCalls` at `internal/harness/conform/component.go:439`.
+- [ ] Unused export, move-to-test: `replayAggregateShape` at `internal/harness/conform/component.go:461`.
+- [ ] Unused export, move-to-test: `replayGenericPenaltyKeys` at `internal/harness/conform/component.go:501`.
+- [ ] Unused export, move-to-test: `replayStringDist` at `internal/harness/conform/component.go:523`.
+- [ ] Unused export, move-to-test: `metadataSourceSet` at `internal/harness/conform/component.go:572`.
+- [ ] Unused export, move-to-test: `decodeTrackInfo` at `internal/harness/conform/component.go:586`.
+- [ ] Unused export, move-to-test: `stringAny` at `internal/harness/conform/component.go:619`.
+- [ ] Unused export, move-to-test: `intAny` at `internal/harness/conform/component.go:636`.
+- [ ] Unused export, move-to-test: `floatAny` at `internal/harness/conform/component.go:651`.
+- [ ] Unused export, move-to-test: `replayTrackDistance` at `internal/harness/conform/component.go:666`.
+- [ ] Unused export, move-to-test: `replayAddDataSource` at `internal/harness/conform/component.go:715`.
+- [ ] Unused export, move-to-test: `derefOr` at `internal/harness/conform/component.go:742`.
+- [ ] Unused export, move-to-test: `rawPenaltyMap` at `internal/harness/conform/component.go:752`.
+- [ ] Unused export, move-to-test: `decodeItems` at `internal/harness/conform/component.go:769`.
+- [ ] Unused export, move-to-test: `checkFields` at `internal/harness/conform/component.go:804`.
+- [ ] Unused export, move-to-test: `compareFloats` at `internal/harness/conform/component.go:828`.
+- [ ] Unused export, move-to-test: `checkFloatSlice` at `internal/harness/conform/component.go:842`.
+- [ ] Unused export, move-to-test: `checkFloatMap` at `internal/harness/conform/component.go:856`.
+- [ ] Unused export, move-to-test: `checkPenaltyMap` at `internal/harness/conform/component.go:876`.
+- [ ] Unused export, move-to-test: `checkItems` at `internal/harness/conform/component.go:899`.
+- [ ] Unused export, move-to-test: `CheckCaseWeights` at `internal/harness/conform/defaults.go:22`.
+- [ ] Unused export, move-to-test: `CheckCaseThresholds` at `internal/harness/conform/defaults.go:44`.
+- [ ] Unused export, move-to-test: `gradeTunables` at `internal/harness/conform/defaults.go:73`.
+- [ ] Unused export, move-to-test: `CheckUnidecodeVersion` at `internal/harness/conform/defaults.go:89`.
+- [ ] Unused export, move-to-test: `sortedKeys` at `internal/harness/conform/defaults.go:96`.
+- [ ] Unused export, move-to-test: `checkNullable` at `internal/harness/conform/translate.go:57`.
+- [ ] Unused export, move-to-test: `CheckTranslatedAlbum` at `internal/harness/conform/translate.go:83`.
+- [ ] Unused export, move-to-test: `checkTranslatedTrack` at `internal/harness/conform/translate.go:120`.
+- [ ] Unused export, move-to-test: `mergeProfile` at `internal/harness/conform/translate.go:157`.
+- [ ] Unused export, move-to-test: `withImportKeys` at `internal/harness/conform/translate.go:175`.
+- [ ] Unused export, move-to-test: `checkProfileKeys` at `internal/harness/conform/translate.go:207`.
+- [ ] Unused export, move-to-test: `checkProfileKeyDrift` at `internal/harness/conform/translate.go:243`.
+- [ ] Unused export, move-to-test: `findReleaseRequest` at `internal/harness/conform/translate.go:263`.
+- [ ] Unused export, move-to-test: `loadRelease` at `internal/harness/conform/translate.go:279`.
+- [ ] Unused export, move-to-test: `gradeLedger` at `internal/harness/conform/translate.go:304`.
+- [ ] Unused export, move-to-test: `checkNoReleaseReachesBrowseThreshold` at `internal/harness/conform/translate.go:371`.
+- [ ] Unused export, move-to-test: `Reconcile` at `internal/harness/oracle/reconcile.go:36`.
+- [ ] Unused export, move-to-test: `venvVersions` at `internal/harness/oracle/reconcile.go:72`.

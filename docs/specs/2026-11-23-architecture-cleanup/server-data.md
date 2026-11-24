@@ -1,0 +1,139 @@
+# Checklist: task 5, `server-data`
+
+Each line is one finding from `docs/research/2026-11-23-architecture-read.md`, quoted to its first
+sentence; the report holds the full finding and its fix. The task ticks each box as the spec's
+"Done items every task carries" section says.
+
+- [ ] P1, high: `internal/intake/config.go:326` WindowsFrom (326), LimitsFrom (350), FreeSpaceFloor (381), SweepInterval (424) and CheckWorkers (431) each have exactly one production caller, cmd/dubplate-server/intake.go:29-41 and serve.go:265.
+- [ ] P1, high: `internal/ops/local/local.go:43` Config.Retention and BackupConfig's GuardFraction, SnapshotKeep, and ArchiveRetention are func fields.
+- [ ] P1, medium: `internal/intake/submission.go:82` newSubmissions takes freeBytes as a parameter, but its one production caller always passes staging.FreeBytes (intake.go:86).
+- [ ] P1, medium: `internal/intake/gate/file.go:258` decodeLimits is a parameter struct whose only production caller (file.go:130-134) always passes the package constants pcmAllowance and pcmPerByte, plus maxSamples derived from si, which decode already receives.
+- [ ] P1, medium: `internal/ops/local/local.go:149` startBackup takes bindFor, and its only production caller (StartBackup, line 141) always passes r.backupBind.
+- [ ] P1, low: `internal/backup/rclone.go:61` Both production builders of a transport always set inherit (backup.go:125 passes j.Lease.DupFiles, restore.go:218 passes r.sess.DupFiles).
+- [ ] P1, low: `internal/ops/local/jobs.go:85` newJob(ctx, b body) has one production caller (local.go:210), which passes nil and assigns j.body on the next line, because the body needs the handle newJob mints.
+- [ ] P1, low: `internal/store/lease.go:52` takeInstanceLease(dir, instance) exists so lease_test.go:296 can force a name collision.
+- [ ] P2, high: `internal/backup/doctor.go:28` RemoteRowOptions is a one-field struct whose only field, FeaturesTimeout, is a timeout.
+- [ ] P2, high: `internal/backup/remote.go:21` ParseRemote and the Remote type (remote.go:11) have no caller outside the package.
+- [ ] P2, high: `internal/id/id.go:47` ID handles only one direction of its store encoding.
+- [ ] P2, high: `internal/intake/collection.go:46` RouteCollection, Route, RouteDefault and RouteUnlisted (22-30, 46) have no reference outside the package.
+- [ ] P2, high: `internal/intake/staging/staging.go:34` Dir exports raw kernel results: Dev, Mask (stx_mask), MountID, and StatxErr.
+- [ ] P2, high: `internal/reject/reject.go:61` Three exported fields of Reason have no production reader: Blocking, Param and Canonical.
+- [ ] P2, high: `internal/reject/reject.go:167` Lookup and Of return bad-extension's FLAC-only wording whatever formats are configured.
+- [ ] P2, high: `internal/store/inspect.go:173` Facts collects the doctor needs of other packages: Members/Admins and Standing read auth's users table (inspect.go:411-460), CollectionRoots reads intake's collections (421-441), and Settings reads the settings table (462-489).
+- [ ] P2, medium: `internal/backup/config.go:103` Readers returns three unnamed closures as named results.
+- [ ] P2, medium: `internal/backup/restore.go:55` RestoreConfig.Now is a time.Time value, but Job.Now (backup.go:61) in the same package is a func() time.Time, and record 0014 says the clock reaches a package as a Now function.
+- [ ] P2, medium: `internal/config/config.go:133` Config.AdminEmail (config.go:133) and Config.IdentitySource (config.go:139) are exported fields that only config_test.go reads.
+- [ ] P2, medium: `internal/config/registry.go:167` AddReservedClass is exported, but its only non-test caller is NewRegistry in the same file (registry.go:70).
+- [ ] P2, medium: `internal/identity/identity.go:202` This sits at the id boundary.
+- [ ] P2, medium: `internal/intake/gate/policy.go:32` FormatRow is exported only because LookupFormat (policy.go:45) returns it, and its one caller (intake/config.go:316-317) reads only row.Format.
+- [ ] P2, medium: `internal/intake/staging/staging.go:17` ErrLinuxOnly has no reference outside the package: grep finds it only in staging.go and staging_other.go.
+- [ ] P2, medium: `internal/settings/evaluate.go:30` `type Row = store.SettingsRow` is an exported alias that no code outside the package names.
+- [ ] P2, medium: `internal/settings/write.go:31` The source vocabulary is declared twice inside the package, as unexported sourceEnvSeed and sourceAdmin (evaluate.go:20-21) and as exported SourceAdmin = sourceAdmin and SourceEnvSeed = sourceEnvSeed (write.go:33-35).
+- [ ] P2, medium: `internal/settings/write.go:51` Author{Actor, Channel string} is a stringly typed boundary over values that are typed at both callers.
+- [ ] P2, medium: `internal/settings/write.go:101` Set takes nine positional parameters, with key and value as adjacent strings.
+- [ ] P2, medium: `internal/store/config.go:100` ErrOutOfRange has no caller outside the package.
+- [ ] P2, low: `internal/backup/backup.go:18` FinishedMessage exists so cmd/dubplate-server/doctorrows.go:168 can tell a clean run from a degraded one by comparing prose.
+- [ ] P2, low: `internal/intake/staging/staging.go:30` The field Resolved is read only inside the package: Check and nested use it, and same-package tests set it.
+- [ ] P2, low: `internal/ops/local/local.go:96` Config documents three required fields: Logger, Retention ('it must not be nil', 42-43), and Now (46-47).
+- [ ] P2, low: `internal/reject/reject.go:20` The Symlink constant has no production producer.
+- [ ] P2, low: `internal/settings/evaluate.go:64` Outcome carries no source for its value in force, so each consumer re-derives one from Stored and EnvSet in its own way: cmd/dubplate-server/doctorrows.go:62-64 and internal/ops/admin/settings.go:56-67 (which also redeclares "envi ...
+- [ ] P3, medium: `internal/backup/restore.go:505` restore.go (722 lines) holds three concerns besides the restore steps: about 200 lines of library-root safety (checkRoot, refuseSymlinks, rootSpace, device, makeDisplaced, checkDisplaced, removeIfEmpty, displacedPath), the report ...
+- [ ] P3, medium: `internal/config/keys.go:95` Registry methods are spread over four files.
+- [ ] P3, medium: `internal/intake/accept.go:21` The verdict type and commitVerdict live in accept.go, but the verdict's construction (verdict.conclude) is in worker.go:315.
+- [ ] P3, medium: `internal/settings/keep.go:36` keep.go reads as a deliverable, not a concern.
+- [ ] P3, medium: `internal/store/open.go:35` open.go (642 lines) is the package's catch-all rather than one concern.
+- [ ] P3, low: `internal/backup/rclone.go:29` failure, fail, and FailureCode are the package's error type, raised by guard.go, backup.go, and restore.go, but they live in rclone.go.
+- [ ] P3, low: `internal/intake/gate/path.go:1` The package doc lives in path.go, a file holding one 12-line function, while gate.go (named for the package) holds the shared Unit, Container and ErrCouldNotRun.
+- [ ] P3, low: `internal/ops/local/jobs.go:290` The split is mostly by concern, but the operation backings are scattered.
+- [ ] P3, low: `internal/settings/layering_test.go:38` TestConfigurationStaysInConfigFiles enforces a repo-wide layering rule over auth, backup, serve, store, webapp, intake, and ops/local.
+- [ ] P3, low: `internal/store/restore.go:555` The swap is split across two files.
+- [ ] P4, medium: `internal/backup/config.go:31` The package ratio is 0.332 (499 comment lines over 1503 code lines;
+- [ ] P4, medium: `internal/config/config.go:355` Comment density is 0.618 against flag's 0.382, and config.go alone is 0.888.
+- [ ] P4, medium: `internal/reject/reject.go:3` The package doc says the nine adopted reasons "carry passb-copy-final.md section 4's text byte for byte".
+- [ ] P4, medium: `internal/store/config.go:11` The comment is false: it calls doctor and check 'the inspect mode's only production reader at this rung', but store.BusyTimeout is also read by cmd/dubplate-server/backup.go:67, member.go:63 and restore.go:149, and it feeds OpenWr ...
+- [ ] P4, low: `internal/atomicfile/atomicfile.go:12` The docs point the wrong way.
+- [ ] P4, low: `internal/atomicfile/atomicfile.go:26` Overall density (0.35) is below os (0.63), so the comments are not too many.
+- [ ] P4, low: `internal/config/keys.go:101` ReservedClass's doc (keys.go:101) and rejectNamespace's doc (config.go:341) say a reserved key's error names its class and rung.
+- [ ] P4, low: `internal/config/thresholds.go:161` Exported docs link to unexported identifiers.
+- [ ] P4, low: `internal/config/thresholds_test.go:145` Test comments cite the process that produced them: 'Resolution R11' and 'Named mutation 4' (thresholds_test.go:145-148), 'Resolution R5' (keys_test.go:120, config_test.go:476), 'Resolution R16' (registry_test.go:179), and 'mutatio ...
+- [ ] P4, low: `internal/intake/config.go:273` Overall density (0.231) is well under database/sql's 0.424, so the problem is the kind of comment, not the amount.
+- [ ] P4, low: `internal/intake/gate/file.go:108` Density is 0.319 (295 comment lines over 926 code lines), or 0.286 without zipcount.go's required license header, against archive/zip at 0.258 (424/1644) in this toolchain's GOROOT.
+- [ ] P4, low: `internal/intake/staging/staging.go:47` The package's density of 0.325 is above os/user's 0.226.
+- [ ] P4, low: `internal/ops/local/local.go:186` Overall density (0.30) is under database/sql's 0.42, but the excess is concentrated.
+- [ ] P4, low: `internal/settings/keep.go:12` keep.go runs at 0.597 against database/sql's 0.424.
+- [ ] P4, low: `internal/store/lock.go:116` Some production comments cite process or tests rather than reasons.
+- [ ] internal/atomicfile, medium: `internal/atomicfile/atomicfile.go:54` The mode changes after the data is synced.
+- [ ] internal/atomicfile, low: `internal/atomicfile/atomicfile.go:67` (P7) The error verbs disagree for the same operation.
+- [ ] internal/atomicfile, low: `internal/atomicfile/atomicfile_test.go:299` (P9) The tests restate each other.
+- [ ] internal/backup, medium: `internal/backup/doctor.go:97` firstInvalidRemoteNameRune restates the alphabet validName (remote.go:41) already checks.
+- [ ] internal/backup, medium: `internal/backup/doctor.go:149` featuresStatus builds its own exec.CommandContext with its own Cancel, its own WaitDelay constant (featuresWaitDelay, doctor.go:20, next to waitDelay at rclone.go:22), and unbounded stderr capture read back by lastNonBlankLine (do ...
+- [ ] internal/backup, medium: `internal/backup/restore.go:505` One package has two different things called checkLibrary: the function at guard.go:50 (the local short-tree guard for a backup) and the method source.checkLibrary (the remote library and free-space check for a restore).
+- [ ] internal/backup, low: `internal/backup/guard.go:92` Failure codes, which are a contract stored in job records and matched by ops/local and cmd tests, appear as 17 raw string literals passed to fail().
+- [ ] internal/backup, low: `internal/backup/restore.go:25` Several step constant names do not match their values: stepSetAside = "swap-out", stepLibraryOwed = "library", stepReconcileOwed = "reconcile", stepOpened = "open".
+- [ ] internal/backup, low: `internal/backup/restore.go:411` The block that folds a failure code into the message text, `if f, ok := errors.AsType[*failure](err);
+- [ ] internal/config, high: `internal/config/keys.go:59` (P5) WallRow (keys.go:59-63) is field for field the same struct as KeyDecl (keys.go:42-46): Name, Description, Mark.
+- [ ] internal/config, high: `internal/config/registry.go:41` Registry.claims already maps every claimed key to its family, but membership is answered again by seven linear scans: ownedNow (keys.go:95), reservedClassOf (keys.go:144), integrationClassOf (keys.go:212), supersessionOf (keys.go: ...
+- [ ] internal/config, high: `internal/config/registry.go:158` The registry exposes seven per-family getters but does not offer the walk its callers actually want: every environment key with its description and mark.
+- [ ] internal/config, high: `internal/config/thresholds.go:102` There are two bounds implementations with different semantics.
+- [ ] internal/config, medium: `internal/config/config.go:235` Lookup (config.go:105) and newWall plus get (config.go:219-241) are two implementations of one rule: last entry wins, and empty means unset.
+- [ ] internal/config, medium: `internal/config/config.go:459` (P5) Load writes the four owned key names as literals (config.go:459-462), parallel to the ownedWall table that declares the same four (keys.go:69-91).
+- [ ] internal/config, medium: `internal/config/thresholds.go:14` (P8) ThresholdKind is also the type of Setting.Kind (settings.go:63), so the name is wrong for half its uses.
+- [ ] internal/config, medium: `internal/config/thresholds.go:133` parseThreshold takes a kind argument alongside t.Kind, so there are two sources of truth.
+- [ ] internal/config, low: `internal/config/registry.go:159` The vocabulary for one concept is inconsistent.
+- [ ] internal/config, low: `internal/config/thresholds.go:98` checkBounds returns an error that is really a sentence fragment ('the phrase, completing "is ..."'), which callers splice in with %v (thresholds.go:144, 155).
+- [ ] internal/id, low: `internal/id/id.go:34` Parse rejects uppercase by decoding into a fresh slice and then re-encoding it to compare against s.
+- [ ] internal/id, low: `internal/id/id_test.go:8` TestID only exercises New, while its siblings are named for the function they test (TestParse, TestIsZero, TestString, TestValue).
+- [ ] internal/intake, high: `internal/intake/seam.go:23` Limits (seam.go:23-29) and limits (limits.go:21-27) hold the same four fields, and Limits.limits() (seam.go:31-38) copies one into the other field by field.
+- [ ] internal/intake, high: `internal/intake/seam.go:350` Submission, file and collection ids travel as []byte throughout the package: parseID returns v[:] (submission.go:111-118), minted[:] appears at submission.go:194 and worker.go:263, and identity.UserID(uploader) converts a scanned ...
+- [ ] internal/intake, medium: `internal/intake/cleanup.go:116` The staged-set rule, meaning which bytes an open submission keeps, exists in three forms that must agree.
+- [ ] internal/intake, medium: `internal/intake/config.go:401` ResolveStaging resolves nothing.
+- [ ] internal/intake, medium: `internal/intake/seam.go:340` A collection's admission_format_allowlist is read and narrowed three ways.
+- [ ] internal/intake, medium: `internal/intake/submission.go:52` (P5) The journey's vocabulary is written out by hand in several places.
+- [ ] internal/intake, medium: `internal/intake/submission.go:120` The struct type newSubmission (120) sits next to the constructor newSubmissions (81), and the two names differ by one letter.
+- [ ] internal/intake, medium: `internal/intake/tus.go:29` maxUploadBytes = 17179869184 repeats maxAlbumBytesSetting.Ceiling "17179869184" (config.go:56), and its doc says it is that ceiling.
+- [ ] internal/intake, low: `internal/intake/limits.go:31` Go Code Review Comments names error types FooError, but limitRefusal (limits.go:31) and manifestRefusal (submission.go:141) break that convention.
+- [ ] internal/intake, low: `internal/intake/worker.go:73` The one-column scan closure `func(rows *sql.Rows) ([]byte, error) { var id []byte;
+- [ ] internal/intake/gate, high: `internal/intake/gate/path.go:16` ValidPath's doc says p is []byte "because a stored path need not be valid UTF-8".
+- [ ] internal/intake/gate, high: `internal/intake/gate/zip.go:269` The package has two opposite error contracts.
+- [ ] internal/intake/gate, medium: `internal/intake/gate/zip.go:22` *ZIPRefusal is an error type without the Error suffix the standard library uses throughout (fs.PathError, strconv.NumError, json.SyntaxError).
+- [ ] internal/intake/gate, medium: `internal/intake/gate/zip.go:71` WalkZIP takes `separateTracks bool`, but the package has a Unit type for exactly this and CheckFile takes `unit Unit`.
+- [ ] internal/intake/gate, medium: `internal/intake/gate/zip.go:142` `_, isAudio := p.admitted(extension(name))` and the `audio` flag at zip.go:147 use "audio" to mean "an allowlisted format".
+- [ ] internal/intake/gate, low: `internal/intake/gate/file.go:375` Three wrappers keep "the first error": recorder (file.go:375), recordedReaderAt (zip.go:283) and recordedWriter (zip.go:303).
+- [ ] internal/intake/gate, low: `internal/intake/gate/policy.go:58` audioExtensions lists ".flac" even though its comment says it adds the extensions the format table does not have, and isAudioExt (policy.go:68) also checks the table.
+- [ ] internal/intake/gate, low: `internal/intake/gate/policy.go:63` IsAudio's parameter `path` shadows the imported path package that the same file uses in extension (policy.go:87).
+- [ ] internal/intake/staging, medium: `internal/intake/staging/staging.go:6` The package is named for one of its inputs, not for what it provides.
+- [ ] internal/intake/staging, low: `internal/intake/staging/staging.go:67` The role labels "staging directory" and "library root" are written out at lines 53, 56, and 70, and again in doctor.go:35.
+- [ ] internal/intake/staging, low: `internal/intake/staging/staging.go:79` The refusal messages switch register.
+- [ ] internal/intake/staging, low: `internal/intake/staging/staging_linux.go:53` (P6) The free-space formula `st.Bavail * uint64(st.Frsize)` also appears at internal/store/inspect.go:359, behind store's own statfs seam.
+- [ ] internal/ops/local, medium: `internal/ops/local/jobs.go:41` The package uses five names for one concept.
+- [ ] internal/ops/local, medium: `internal/ops/local/jobs.go:150` markRunning (150-176) and finish (207-234) are the same body with a different UPDATE.
+- [ ] internal/ops/local, medium: `internal/ops/local/recovery.go:51` liveOwners (51-68) and recoverOwn's read loop (76-90) both scan one column of queued-or-running records into a slice, and they disagree on cleanup.
+- [ ] internal/ops/local, medium: `internal/ops/local/recovery.go:51` 'Live' means two things in this package.
+- [ ] internal/ops/local, low: `internal/ops/local/config.go:36` JobRetention returns a reader closure, but at the call site `local.JobRetention(acc)` reads as a value, the retention of acc.
+- [ ] internal/ops/local, low: `internal/ops/local/jobs.go:99` jobs.go imports the package `id` and then shadows it with `id := j.id` (99) and with `id []byte` parameters on requestCancel (290), status (325), and readStatus (338).
+- [ ] internal/reject, medium: `internal/reject/reject.go:190` (P5) bad-extension's wording is assembled in three places that must agree by hand: the table entry (:71-75), the badExtensionWording format (:68), and WithFormats' body, which carries the non-FLAC Label and NextStep as literals (: ...
+- [ ] internal/reject, low: `internal/reject/reject.go:70` `set` names an ordered slice whose order All's doc makes load-bearing ("adopted reasons first"), so the name says the opposite of the property that matters.
+- [ ] internal/reject, low: `internal/reject/reject.go:179` Of panics on an unknown code, but its name gives no sign of it.
+- [ ] internal/reject, low: `internal/reject/reject.go:190` In Go, a `With` prefix reads as a functional option or a derived value (context.WithCancel, slog.Logger.With).
+- [ ] internal/reject, low: `internal/reject/reject_test.go:99` (P9) TestSetHoldsTwentySixBlockingAndThreeWarnings is a change detector that every new reason must edit.
+- [ ] internal/settings, high: `internal/settings/evaluate.go:26` (P6) selectRows, rowScanner, scanRows, readRows (evaluate.go:26-167) and readTxRows (apply.go:101) repeat store's readSettingsFacts (internal/store/inspect.go:463): the same column list, the same sql.NullString seed scan, and the ...
+- [ ] internal/settings, medium: `internal/settings/evaluate.go:37` At package level the seed-change constants Seed, Reseed, Remove, and Unchanged sit next to the functions Set and Reset, so settings.Set and settings.Reset are funcs while settings.Seed and settings.Reseed are constants of a near-r ...
+- [ ] internal/settings, medium: `internal/settings/keep.go:115` The package finds a setting by key four ways: byKey (keep.go:115), lookup (write.go:173, which calls reg.Settings() twice and clones the slice both times), the ContainsFunc inside evaluate's row loop (evaluate.go:179, O(rows x set ...
+- [ ] internal/settings, low: `internal/settings/apply.go:118` insertAudit takes four adjacent strings (kind, actor, channel, key), which are easy to transpose.
+- [ ] internal/settings, low: `internal/settings/evaluate.go:248` Error text is repeated: "stored %s value refused" at accessor.go:130 and evaluate.go:248,289, "stored row has unknown source" at evaluate.go:251 and write.go:157, and the reset command spelled inline at evaluate.go:276 as well as ...
+- [ ] internal/settings, low: `internal/settings/write.go:247` commit does not commit: it writes the row edit, audit row, and generation bump inside a transaction that h.Update commits later.
+- [ ] internal/store, high: `internal/store/write.go:16` SQLite primary result codes are hand-numbered in four files (open.go:30 sqliteNotADBCode, conn.go:29-32 busy/readonly, migrate.go:37 sqliteErrorCode, write.go:16-21 nomem/interrupt/ioerr/full).
+- [ ] internal/store, medium: `internal/store/config.go:116` BusyTimeout (116-128) and MigrationWait (133-145) are the same parse-then-range body.
+- [ ] internal/store, medium: `internal/store/conn.go:36` Three 'busy' words mean three things.
+- [ ] internal/store, medium: `internal/store/conn.go:80` Four places call openHandle and then fill in its fields by hand: open.go:180-186 (version, lock, leaf), open.go:306-311, open.go:355 with 366-367, and restore.go:527-532.
+- [ ] internal/store, medium: `internal/store/lease.go:91` TryLease returns true when someone else holds the lease, which is the opposite of the Try convention (sync.Mutex.TryLock returns true when it acquired).
+- [ ] internal/store, medium: `internal/store/migrate.go:361` rollbackMigration (migrate.go:361-367) and Tx.rollback (write.go:135-141) are the same body.
+- [ ] internal/store, medium: `internal/store/restore.go:712` (P5) The newer-store refusal is written five times: newerStore (open.go:640-642), migrate.go:115-116, restore.go:712 and restore.go:871 (identical text, both with 'resume with a binary at version %d or above'), and snapshot.go:170.
+- [ ] internal/store, medium: `internal/store/snapshot.go:50` takeSnapshot (50-95) and backupCopy (339-367) run the same five steps: openMaintenanceConn, checkFreeSpace, preCreate, copyInto, and remove-the-stage-on-failure.
+- [ ] internal/store, low: `internal/store/doctor.go:53` Report.RowStatus's switch (54-76) repeats the state words that State.String (inspect.go:54-75) already holds: "absent", "busy", "not a store", "refused", "older", "newer", "current".
+- [ ] internal/store, low: `internal/store/inspect.go:382` lastSuccesses, readCollectionRoots and readSettingsFacts are each the QueryAll loop written out by hand, with the same refusal text in three places (query, scan, rows.Err).
+- [ ] internal/store, low: `internal/store/lock.go:120` busyError (lock.go:120-126) and leaseBusyError (lease.go:231-241) are the same holder-naming refusal.
+- [ ] internal/store, low: `internal/store/open.go:120` The reconciler's signature `func(ctx context.Context, h *Handle, stamp string, in RestoreIntent) ([]byte, error)` is written out at open.go:120 and open.go:375, and twice more in internal/backup/reconcile.go:109-110.
+- [ ] internal/store, low: `internal/store/open.go:419` statLeaf loops over a slice of five paths and then switches on which path it is (425-430) to set hasLock and hasLeases, so the switch repeats the list.
+- [ ] internal/store, low: `internal/store/restore.go:180` readRecord inlines leaf.readIntent (intent.go:157-170) to change the absent and unreadable refusals.
+- [ ] internal/store, low: `internal/store/stamp.go:22` `store.Micros(us)` reads as a quantity of microseconds but returns a time.Time.

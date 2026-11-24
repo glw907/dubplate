@@ -1,0 +1,78 @@
+# Checklist: task 10, `harness-subsonic`
+
+Each line is one finding from `docs/research/2026-11-23-architecture-read.md`, quoted to its first
+sentence; the report holds the full finding and its fix. The task ticks each box as the spec's
+"Done items every task carries" section says.
+
+- [ ] P1, medium: `internal/harness/subsonic/grade/contract.go:32` loadContract(dir, sum string) takes the expected checksum as a parameter.
+- [ ] P1, low: `internal/harness/subsonic/fixture/manifest.go:20` errInvalid is an unexported sentinel, and only the same-package test matches it with errors.Is (build_test.go:335).
+- [ ] P1, low: `internal/harness/subsonic/session/credentials_test.go:14` I found no test-only seams in production code.
+- [ ] P1, low: `internal/harness/subsonic/xmlrule/xmllint.go:52` Every caller of `newRunner(ctx, name)` passes `context.Background()` and "xmllint": xmllint.go:47, xmllint_test.go:68, and xmllint_test.go:73.
+- [ ] P2, high: `internal/harness/subsonic/grade/ledger.go:22` The only production importer is /var/home/glw907/Projects/dubplate/cmd/harness/grade.go, and it uses Config, New, Grader, Grader.Grade, Report.Format, Report.Unledgered, and Report.Len.
+- [ ] P2, medium: `internal/harness/subsonic/fixture/build.go:18` Library.Build is exported, but nothing outside the package calls it.
+- [ ] P2, medium: `internal/harness/subsonic/stack/stack.go:46` ErrNoPodman is the only exported sentinel.
+- [ ] P2, medium: `internal/harness/subsonic/xmlrule/check.go:75` The `Result.Element` field is read only by check_test.go:382.
+- [ ] P2, low: `internal/harness/subsonic/grade/grade.go:79` Config.Manifest has two jobs.
+- [ ] P2, low: `internal/harness/subsonic/stack/stack.go:334` ImageDigest is a method on Stack, but it takes an Oracle by value and depends on that Oracle's unexported image and container fields.
+- [ ] P2, low: `internal/harness/subsonic/xmlrule/xmllint.go:26` `ErrToolFailure` has no production reader.
+- [ ] P3, medium: `internal/harness/subsonic/grade/grade.go:392` grade.go (569 lines) holds four concerns: the Grader and its refusals, the oracle tier, the contract tier (contractTier, contractJSON, contractXML, pointerPath, pointerUnescape at 392-497), and Report rendering (118-154, 521-569).
+- [ ] P3, medium: `internal/harness/subsonic/stack/stack.go:1` stack.go (614 lines) holds five concerns in one file.
+- [ ] P3, low: `internal/harness/subsonic/fixture/build_test.go:192` The production files split by concern: manifest.go holds load and check, build.go holds the build, collections.go holds the collection list.
+- [ ] P3, low: `internal/harness/subsonic/xmlrule/xsd.go:1` The package doc comment sits in xsd.go, which is the cache-and-fetch file.
+- [ ] P4, medium: `internal/harness/subsonic/fixture/doc.go:11` The second paragraph of the package doc (lines 11-18) is a notebook about the oracles and the recording plan: gonic's error 10 for getMusicDirectory, Navidrome's per-track covers, gonic splitting disc subfolders, durations under o ...
+- [ ] P4, low: `internal/harness/subsonic/fixture/collections_test.go:10` Two test comments cite the process that produced the values: 'as the seed session records it' (line 10) and 'as the music-folders session records them' (lines 149-150).
+- [ ] P4, low: `internal/harness/subsonic/grade/grade.go:166` Overall density, 0.189, sits between text/template/parse (0.173) and encoding/xml (0.217), and most comments give a reason the code cannot, so density is not a problem.
+- [ ] P4, low: `internal/harness/subsonic/session/session.go:17` The package's comment ratio is 0.154 (69 // lines over 448 code lines), compared with archive/tar at 0.305 in this toolchain's GOROOT, so it has no excess.
+- [ ] P4, low: `internal/harness/subsonic/xmlrule/xsd.go:60` Density is on par with the stdlib: 188 `//` lines over 864 code lines (0.218), against encoding/xml at 727/3353 (0.217).
+- [ ] P4, low: `internal/opensubsonic/conformance/conformance.go:5` Density is 0.271, leaner than net/url at 0.364, so this is not an excess finding.
+- [ ] P4, low: `tools/close-evidence/main.go:15` The overall density is low (0.148, against 0.309 for cmd/nm), but the package doc ends by citing the process that produced the tool: "which is what the fix rounds on the two measured closes were spent discovering".
+- [ ] internal/harness/subsonic/fixture, low: `internal/harness/subsonic/fixture/collections.go:60` Two digests are built the same way: a sha256 over tab-separated lines written with `_, _ = fmt.Fprintf(h, ...)` under the same 'never returns an error' comment, then hex-encoded with `fmt.Sprintf("%x", h.Sum(nil))` (build.go:58-62 ...
+- [ ] internal/harness/subsonic/fixture, low: `internal/harness/subsonic/fixture/manifest.go:25` (P6) vorbisCommentBlock = 4 restates tagio's unexported blockVorbisComment (internal/engine/tagio/container.go:23).
+- [ ] internal/harness/subsonic/fixture, low: `internal/harness/subsonic/fixture/manifest.go:57` Two fields hold a seed name under different names: trackEntry.Seed is the audio seed and trackEntry.Picture is also a seed name.
+- [ ] internal/harness/subsonic/fixture, low: `internal/harness/subsonic/fixture/manifest.go:70` Load's doc promises that 'A manifest with any problem yields one error naming all of them', but line 79-81 returns early for a manifest with no albums, before check runs.
+- [ ] internal/harness/subsonic/fixture, low: `internal/harness/subsonic/fixture/manifest.go:92` A method named check also loads l.seeds, which is the side effect that makes the Library usable.
+- [ ] internal/harness/subsonic/fixture, low: `internal/harness/subsonic/fixture/manifest.go:150` `what` already contains the path (`"track " + t.Path`), and checkPath prints the path again, so a duplicate comes out as `track dup.flac: path "dup.flac" is declared twice`.
+- [ ] internal/harness/subsonic/grade, medium: `internal/harness/subsonic/grade/assignment.go:153` assignment.problems (153-242) and Row.problems with LoadLedger (ledger.go:139-209) repeat one validation idiom with small differences: a `bad := func(format, args...)` closure, a positional-or-id label, a duplicate-id map, and a ` ...
+- [ ] internal/harness/subsonic/grade, medium: `internal/harness/subsonic/grade/differ.go:376` compareID builds its once-only report keys by joining strings with NUL bytes: `scope + "\x00" + strconv.Itoa(int(space)) + "\x00"` plus "L\x00"+a.lit and similar.
+- [ ] internal/harness/subsonic/grade, medium: `internal/harness/subsonic/grade/identity.go:105` identCtx has three naming problems.
+- [ ] internal/harness/subsonic/grade, low: `internal/harness/subsonic/grade/assignment.go:169` (P5) Three hand-kept lists restate a const block.
+- [ ] internal/harness/subsonic/grade, low: `internal/harness/subsonic/grade/differ.go:137` The same value has two names in the package: differ.endpt, against endpoint in Finding, identCtx, and every other place.
+- [ ] internal/harness/subsonic/grade, low: `internal/harness/subsonic/grade/grade.go:523` Report.Format() []byte takes the method name fmt.Formatter reserves for Format(fmt.State, rune).
+- [ ] internal/harness/subsonic/grade, low: `internal/harness/subsonic/grade/grade.go:531` Report.Format writes the same block six times: a heading, the sorted keys of a count map, and a `  %s: %d` line per key (531-533, 534-537, 539-542, 543-546, 548-551, 552-555).
+- [ ] internal/harness/subsonic/session, medium: `internal/harness/subsonic/session/session.go:239` The word "source" means two things in this package.
+- [ ] internal/harness/subsonic/session, low: `internal/harness/subsonic/session/credentials.go:59` leakIn returns a credentialLeak with an empty path, and scanCredentials sets the path afterward (lines 42-44).
+- [ ] internal/harness/subsonic/session, low: `internal/harness/subsonic/session/credentials.go:117` The two walkers have different shapes.
+- [ ] internal/harness/subsonic/session, low: `internal/harness/subsonic/session/session.go:160` Each arm of Load's switch repeats the same two statements: append a problem and set `unread[[2]int{i, j}] = true` (lines 162-163, 165-166, 171-172).
+- [ ] internal/harness/subsonic/session, low: `internal/harness/subsonic/session/session.go:296` The package uses two verbs for one act.
+- [ ] internal/harness/subsonic/session, low: `internal/harness/subsonic/session/session.go:340` The closure `add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }` is declared twice, here and in checkRequests at line 302.
+- [ ] internal/harness/subsonic/stack, medium: `internal/harness/subsonic/stack/stack.go:73` logTail names both a const (line 73, the string "20") and a method (line 426).
+- [ ] internal/harness/subsonic/stack, medium: `internal/harness/subsonic/stack/stack.go:289` The restLibraries bool (line 208) is set by one table member only, and the loop at 289 to 299 ranges over both specs just to find that member.
+- [ ] internal/harness/subsonic/stack, medium: `internal/harness/subsonic/stack/stack.go:450` waitReady writes its own for/select loop on ctx.Done and time.After(pollInterval), the same loop that pollUntil (line 539) already implements and addLibraries uses twice.
+- [ ] internal/harness/subsonic/stack, low: `internal/harness/subsonic/stack/images.go:15` One artifact has three names: Config.DigestFile (stack.go:103), type images with loadImages (images.go:20, 29), and errImagesFile, whose message says "bad image digest file".
+- [ ] internal/harness/subsonic/stack, low: `internal/harness/subsonic/stack/stack.go:277` Start copies name, user, password and ref field by field from each spec into an Oracle, and passes s.Oracles[i].container to run (line 281) as a separate argument, even though run already gets sp and runID and could derive the nam ...
+- [ ] internal/harness/subsonic/stack, low: `internal/harness/subsonic/stack/stack.go:409` The method named exec calls exec.CommandContext on line 410, so inside its own body the package name and the method name appear side by side.
+- [ ] internal/harness/subsonic/stack, low: `internal/harness/subsonic/stack/stack.go:570` musicFolders and scanStatus have the same body: call c.Do with client.JSON, unmarshal resp.Body into a subsonic-response struct, and wrap the parse error.
+- [ ] internal/harness/subsonic/stack, low: `internal/harness/subsonic/stack/stack_test.go:743` The failure message reads ndOracle.events directly, without the mutex that every other access to the fake's state takes (snapshot, eventIndex).
+- [ ] internal/harness/subsonic/xmlrule, medium: `internal/harness/subsonic/xmlrule/binding.go:144` `requiredOf` (binding.go:144) and `properties` (schema.go:227) are the same recursive allOf walk, differing in one statement: one collects `sc.Required`, the other the keys of `sc.Properties`.
+- [ ] internal/harness/subsonic/xmlrule, medium: `internal/harness/subsonic/xmlrule/check.go:16` The sibling tier conformance has the same Outcome/Violation/Result shape but names its type `Checker`, while this package calls it `Validator` (check.go:80).
+- [ ] internal/harness/subsonic/xmlrule, medium: `internal/harness/subsonic/xmlrule/check.go:46` The Source constants `Binding` (check.go:46) and `Schema` (check.go:48) differ only by case from the unexported types `binding` (binding.go:24) and `schema` (schema.go:36).
+- [ ] internal/harness/subsonic/xmlrule, low: `internal/harness/subsonic/xmlrule/check.go:83` The same file goes by three names: `xsdPath` (check.go:109), `schemaPath` (check.go:83, xmllint.go:88), and `path`.
+- [ ] internal/harness/subsonic/xmlrule, low: `internal/harness/subsonic/xmlrule/check.go:94` New calls Cached(), which resolves CachePath() itself, and then calls CachePath() a second time (check.go:94-101).
+- [ ] internal/harness/subsonic/xmlrule, low: `internal/harness/subsonic/xmlrule/project.go:137` (P7) `fmt.Errorf("write projection: %w", err)` is written out at five sites in project (project.go:138, 141, 152, 162, and 170).
+- [ ] internal/harness/subsonic/xmlrule, low: `internal/harness/subsonic/xmlrule/schema.go:16` The package-level `renames` (schema.go:16) is shadowed by the `renames` parameter of newValidator (check.go:109) and of addAdditions (schema.go:194).
+- [ ] internal/harness/subsonic/xmlrule, low: `internal/harness/subsonic/xmlrule/schema.go:121` (P7) Error prefixes are inconsistent.
+- [ ] internal/opensubsonic/conformance, high: `internal/opensubsonic/conformance/conformance.go:93` Lines 93-118 repeat, step by step, the start of kin-openapi v0.153.0 ValidateResponse (openapi3filter/validate_response.go:23-118): the HEAD skip, the 301/304/307/308 skip list, the Status-then-Default lookup, the empty-content ch ...
+- [ ] internal/opensubsonic/conformance, medium: `internal/opensubsonic/conformance/conformance.go:51` NoSchema names one cause of the outcome, not the outcome itself.
+- [ ] internal/opensubsonic/conformance, medium: `internal/opensubsonic/conformance/conformance.go:181` In Check (92), `status` is the HTTP status int.
+- [ ] internal/opensubsonic/conformance, medium: `internal/opensubsonic/conformance/conformance.go:239` pointer and pointerEscaper (239-248) encode kin-openapi's []string path as an RFC 6901 string.
+- [ ] internal/opensubsonic/conformance, low: `internal/opensubsonic/conformance/conformance.go:75` New names its parameter `document` and the loaded value `doc`, two names for the same idea, and its doc sentence reads "loads the OpenAPI document in document".
+- [ ] internal/opensubsonic/conformance, low: `internal/opensubsonic/conformance/conformance.go:153` invalid is variadic (156), but all three of its callers pass exactly one Violation.
+- [ ] internal/opensubsonic/conformance, low: `internal/opensubsonic/conformance/conformance.go:181` collect fills its result through an `out *[]Violation` pointer to a slice, with `*out = append(*out, ...)` at 195 and 197.
+- [ ] tools/close-evidence, medium: `tools/close-evidence/main.go:56` run collects five facts (lines 65-84) and then renders the whole markdown report inline (lines 86-117), in one function.
+- [ ] tools/close-evidence, medium: `tools/close-evidence/main.go:129` Two durations use two types.
+- [ ] tools/close-evidence, low: `tools/close-evidence/main.go:73` (P5) The watched surfaces appear in three places that must agree by hand: the package doc (line 14), two changedPaths calls with their own variables (lines 73-80), and two render lines (lines 106-107).
+- [ ] tools/close-evidence, low: `tools/close-evidence/main.go:90` Seven calls pass constant strings with no verbs through fmt.Fprintf (lines 88, 90, 93, 95, 102, 105, 110), while lines 99 and 103 use b.WriteString for the same job.
+- [ ] tools/close-evidence, low: `tools/close-evidence/main.go:111` The rendered line "match refactor or simplif" restates the alternation in refactorSubject (line 54) in prose, so a change to the regexp silently makes the report wrong about what it counted.
+- [ ] tools/close-evidence, low: `tools/close-evidence/main.go:123` testRun.result is a string that holds either "pass" or "FAIL" (lines 143 and 150).
+- [ ] tools/close-evidence, low: `tools/close-evidence/main.go:141` The local `run := testRun{...}` inside timeTests shadows the package-level func run.
+- [ ] tools/close-evidence, low: `tools/close-evidence/main.go:176` filterSubjects does not say what it filters for, so the call site at line 109 needs the variable name `refactors` to explain it.

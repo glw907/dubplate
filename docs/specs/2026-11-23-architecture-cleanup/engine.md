@@ -1,0 +1,100 @@
+# Checklist: task 7, `engine`
+
+Each line is one finding from `docs/research/2026-11-23-architecture-read.md`, quoted to its first
+sentence; the report holds the full finding and its fix. The task ticks each box as the spec's
+"Done items every task carries" section says.
+
+- [ ] Repo-wide, high: "A process-wide transliterator global in the matcher" (`internal/engine/matcher/translit.go:13`, `internal/engine/matcher/unidecode/pins.go:30`).
+- [ ] P1, high: `internal/engine/matcher/penalty.go:231` AddEquality and AddPriority (penalty.go:283) take `value any, options ...any` and type-switch on PatternOption inside optionMatches (penalty.go:366).
+- [ ] P1, high: `internal/engine/matcher/unidecode/install.go:43` InstallOptions.Geteuid is an injected function field.
+- [ ] P1, high: `internal/engine/matcher/unidecode/unidecodetest/unidecodetest.go:15` LoadCachedTable(tb testing.TB) is shaped for a caller that does not exist.
+- [ ] P1, medium: `internal/engine/matcher/strdist.go:24` StringDist and AddString (strdist.go:64) take `*string` so a nil can model Python's None.
+- [ ] P1, medium: `internal/engine/matcher/translit.go:13` The transliterator is a process-wide `atomic.Pointer` installed by SetTransliterator, which today only TestMain calls (testmain_test.go:19;
+- [ ] P1, medium: `internal/engine/matcher/unidecode/unidecodetest/unidecodetest_test.go:11` recordingTB, with its stopped panic sentinel and the recover dance at :38-43, exists only because the function under test reports failure through a TB.
+- [ ] P1, low: `internal/engine/matcher/compat_test.go:27` TestDefaultCompatDefaultsTheSwitchOff and TestFullCompatSwitchOn restate the two constructors' literals and can fail only if someone edits the literal they copy.
+- [ ] P1, low: `internal/engine/tag/tag_test.go:164` Production code has no test seams.
+- [ ] P1, low: `internal/engine/tagio/field.go:178` The four placeholder rows (month and day at :178-179, original_month and original_day at :208-209) carry no styles and an empty codec.
+- [ ] P1, low: `internal/opensubsonic/client/client.go:79` statusError (line 79) and malformedError (lines 85-93) are typed errors that no caller can match, since both are unexported and the module has no reference to them outside this package.
+- [ ] P2, high: `internal/engine/matcher/info.go:186` ProjectItemFields decodes `map[string]any` shaped like a corpus case's JSON Input.Items, including float64-for-int tolerance.
+- [ ] P2, high: `internal/engine/matcher/likelies.go:45` MostCommonTags returns its consensus as map[string]bool keyed by the unexported fieldX constants (info.go:156).
+- [ ] P2, high: `internal/engine/matcher/tunables.go:82` MaxRec is map[string]string and QuietFallback and NoneRecAction (tunables.go:208, :213) are plain strings.
+- [ ] P2, high: `internal/engine/musicbrainz/release.go:42` Thirteen wire types are exported: Alias, CreditPart, Artist, ReleaseEvent, Area, LabelInfo, Label, ReleaseGroup, Medium, Track, Recording, Relation and RelationTarget (release.go:42-165).
+- [ ] P2, high: `internal/engine/tag/tag.go:107` ErrNoCandidates (declared at tag.go:18) reports an empty candidate set as an error, but an empty set is an ordinary result.
+- [ ] P2, high: `internal/engine/tagio/encode.go:27` Serialize and KeyWrite (encode.go:13) have no production caller outside this package.
+- [ ] P2, medium: `internal/engine/matcher/tunables.go:28` ErrInvalidTunable is exported, but no file outside the package references it (grepped: only matcher's own files and tests).
+- [ ] P2, medium: `internal/engine/matcher/tunables.go:57` Tunables mixes the matcher's knobs with the MusicBrainz translator's.
+- [ ] P2, medium: `internal/engine/matcher/tunables.go:240` Tunables.StringDistPatterns is an exported field whose only writer is Compat.Apply (compat.go:43), which overwrites whatever the caller put there.
+- [ ] P2, medium: `internal/engine/matcher/tunables.go:336` QuietImportTunables has no production caller.
+- [ ] P2, medium: `internal/engine/matcher/unidecode/install.go:64` Install(ctx, stateDir, from string, stdout io.Writer, opts) brings the CLI into an engine package.
+- [ ] P2, medium: `internal/engine/matcher/unidecode/pins.go:30` TableFileName is exported, but outside its declaring file it appears only in install.go:49 (the same package) and in doctor_test.go and install_test.go.
+- [ ] P2, medium: `internal/engine/musicbrainz/query.go:45` AlbumSearch exports Query and Limit, but only client.go:187-188 reads them.
+- [ ] P2, medium: `internal/engine/musicbrainz/release.go:15` Nothing outside the package references ErrMalformedRelease, in test or non-test code.
+- [ ] P2, medium: `internal/engine/tag/tag.go:24` Proposal.CurArtist and Proposal.CurAlbum have no reader anywhere in the module, tests included.
+- [ ] P2, medium: `internal/engine/tagio/container.go:86` Container.VorbisComment is a value, so an absent VORBIS_COMMENT block and an empty one look the same.
+- [ ] P2, medium: `internal/engine/tagio/read.go:15` Read's only production caller, internal/intake/gate/file.go:167, already holds a Container from ParseBounded (file.go:109) for the same path.
+- [ ] P2, medium: `internal/opensubsonic/client/client.go:56` Envelope.Status and Envelope.Error have no reader outside the package.
+- [ ] P2, low: `internal/engine/tagio/container.go:59` Block.Length is always len(Payload) ('exactly Length long'), and no non-test code in the module reads it.
+- [ ] P2, low: `internal/engine/tagio/picture.go:171` The error chain stutters.
+- [ ] P3, medium: `internal/engine/matcher/unidecode/fetch.go:55` The package sits under internal/engine/matcher, but install.go (state-directory ownership via os/user and syscall), doctor.go, and WheelCachePath are operations of the server and of the workstation harness.
+- [ ] P3, low: `internal/engine/matcher/tunables.go:1` The package doc sits on tunables.go.
+- [ ] P3, low: `internal/engine/matcher/tunables.go:358` SDPattern, sdEndWords, the shared rows, sdFeaturingPattern, beetsSDPatterns, and SDPatternsNoBracketDiscount (tunables.go:358-445) are string-distance data.
+- [ ] P3, low: `internal/engine/matcher/unidecode/pins.go:48` pins.go mixes real pins (Version, WheelURL, the checksums, dataModuleCount) with constants that belong to other concerns.
+- [ ] P3, low: `internal/engine/musicbrainz/client.go:1` The split reads as concerns, not deliverables: wire types plus validate, translate, tracks, query, pseudo, client.
+- [ ] P3, low: `internal/engine/tagio/write.go:15` The split reads mostly as concerns, but three things sit in the wrong file.
+- [ ] P3, low: `internal/opensubsonic/boundary_test.go:1` The layer root has no non-test file, so `go doc ./internal/opensubsonic` prints only `package opensubsonic // import ...` with nothing after it.
+- [ ] P4, medium: `internal/engine/matcher/tunables.go:36` The package measures 0.776 against regexp at 0.291 (go/token 0.414), and tunables.go reads 1.77 and compat.go 1.30.
+- [ ] P4, medium: `internal/engine/musicbrainz/client.go:107` ClientConfig's doc describes a composition that does not exist.
+- [ ] P4, medium: `internal/engine/musicbrainz/doc.go:21` Comment density is 0.69 against net/smtp's 0.36.
+- [ ] P4, medium: `internal/engine/tag/doc.go:3` The package doc says the package "is the only package that may see both internal/engine/matcher and internal/engine/musicbrainz".
+- [ ] P4, low: `internal/engine/matcher/compat.go:20` Several comments rebut alternatives nobody wrote or record history: FullCompat 'is a named engine surface rather than a bare struct literal in the harness' (compat.go:20-24), 'which is where every wrong copy of this fact came from ...
+- [ ] P4, low: `internal/engine/matcher/unidecode/extract.go:106` At 0.241 the package is just under archive/zip (0.258), but the excess is concentrated.
+- [ ] P4, low: `internal/engine/matcher/unidecode/unidecodetest/unidecodetest.go:13` The doc says "A missing cache names `make unidecode-wheel` rather than a raw read error".
+- [ ] P4, low: `internal/engine/tag/tag.go:92` Density is 0.62 against net/http/cookiejar's 0.35, and the excess is not exported docs.
+- [ ] P4, low: `internal/engine/tagio/doc.go:79` Density is 0.48 against archive/tar at 0.30, or 0.40 without doc.go.
+- [ ] P4, low: `internal/opensubsonic/client/client.go:69` "Do returns it, wrapped in nothing, so callers match it with errors.As" gives a reason that is false.
+- [ ] internal/engine/matcher, medium: `internal/engine/matcher/album.go:110` compileMediaPatterns and compileCountryPatterns (album.go:204) differ only in the wrapper string and the error text.
+- [ ] internal/engine/matcher, medium: `internal/engine/matcher/tunables.go:161` DataSourceMismatchPenalty is read at scoring time by nothing.
+- [ ] internal/engine/matcher, low: `internal/engine/matcher/album.go:219` addAlbumLabel, addAlbumCatalogNum, and addAlbumDisambig (album.go:219-244) are one body three times: skip if either side is empty, else AddString.
+- [ ] internal/engine/matcher, low: `internal/engine/matcher/likelies.go:49` The `str` and `num` closures in MostCommonTags (likelies.go:49-58) have identical bodies and differ only in T, because a Go closure cannot be generic.
+- [ ] internal/engine/matcher, low: `internal/engine/matcher/penalty.go:67` Methods repeat the receiver type: d.RawDistance(), d.MaxDistance() (penalty.go:82), and d.Distance() (penalty.go:95) on type Distance.
+- [ ] internal/engine/matcher, low: `internal/engine/matcher/track.go:23` DistanceForTrack's doc spends its first paragraph (track.go:11-13) explaining that the natural name TrackDistance is taken by the pair struct (penalty.go:45).
+- [ ] internal/engine/matcher, low: `internal/engine/matcher/verdict.go:23` Recommendation.String and parseRecommendation (verdict.go:41) are two switches restating the same four-name table in opposite directions.
+- [ ] internal/engine/matcher/unidecode, medium: `internal/engine/matcher/unidecode/install.go:89` Three places read the table file and run Parse on it.
+- [ ] internal/engine/matcher/unidecode, medium: `internal/engine/matcher/unidecode/install.go:133` obtainTable inverts Go's error flow.
+- [ ] internal/engine/matcher/unidecode, medium: `internal/engine/matcher/unidecode/pins.go:12` (P5) The release "1.4.0" is written by hand in four literals that have to stay in sync: Version (pins.go:12), WheelURL's tail (pins.go:16), TableFileName (pins.go:30), and the cache file name in WheelCachePath (fetch.go:60, "Unide ...
+- [ ] internal/engine/matcher/unidecode, low: `internal/engine/matcher/unidecode/extract.go:69` The non-module branch (lines 69-79) and the module branch (lines 81-88) repeat the same read-to-EOF, close, and two-error sequence and differ only in where the bytes go.
+- [ ] internal/engine/matcher/unidecode, low: `internal/engine/matcher/unidecode/lex.go:105` next() switches on '=', '(', ')', ',' at line 132 and then calls punctuationKind, which switches on the same four bytes again and quietly returns tokComma for any other byte.
+- [ ] internal/engine/matcher/unidecode, low: `internal/engine/matcher/unidecode/pins.go:43` unidecodeMaxCodepoint stutters against the package name.
+- [ ] internal/engine/matcher/unidecode/unidecodetest, low: `internal/engine/matcher/unidecode/unidecodetest/unidecodetest.go:15` In LoadCachedTable, "Cached" describes the table, but the cache holds the wheel.
+- [ ] internal/engine/matcher/unidecode/unidecodetest, low: `internal/engine/matcher/unidecode/unidecodetest/unidecodetest.go:22` (P7) Messages written by package unidecodetest carry the prefix "unidecode:" (:22, :26, :30), and the test pins that prefix (unidecodetest_test.go:44).
+- [ ] internal/engine/musicbrainz, medium: `internal/engine/musicbrainz/client.go:248` (P7) The sentinels do not match their own uses.
+- [ ] internal/engine/musicbrainz, medium: `internal/engine/musicbrainz/tracks.go:70` buildTrack searches recording.Aliases twice: once at :70 to decide whether tr.Title may override, and again through keyWithPreferredAlias at :73.
+- [ ] internal/engine/musicbrainz, low: `internal/engine/musicbrainz/client.go:277` AlbumForID writes the fetch-then-translate pair twice (:277-284 and :294-301), and the two copies differ only in how they wrap the error.
+- [ ] internal/engine/musicbrainz, low: `internal/engine/musicbrainz/credit.go:19` The credits struct and applyVariousArtists (credit.go:58-64) exist to carry the first artist's id to one string comparison.
+- [ ] internal/engine/musicbrainz, low: `internal/engine/musicbrainz/query.go:64` AlbumSearchFor uses a 'For' suffix, a Python-flavored constructor name that Go APIs avoid.
+- [ ] internal/engine/musicbrainz, low: `internal/engine/musicbrainz/release.go:205` validate walks rel.Relations twice, at :184-188 for an empty target-type and again at :205-209 for a missing transl target.
+- [ ] internal/engine/tag, medium: `internal/engine/tag/doc.go:8` The package name `tag` sits next to `tagio`, which does handle tags.
+- [ ] internal/engine/tag, medium: `internal/engine/tag/tag.go:73` Two blocks repeat the same steps: Recommend, wrap the error, ActionFor, wrap the error, then a five-field Proposal literal.
+- [ ] internal/engine/tag, low: `internal/engine/tag/tag.go:133` lookupAndAdd takes seven parameters, and both call sites (tag.go:63, :102) pass the same six with only the id changing.
+- [ ] internal/engine/tagio, high: `internal/engine/tagio/tagset.go:77` TagSet's Go names copy the ledger's spelling instead of Go's initialism rule (Go Code Review Comments, Initialisms), and they disagree with each other within one struct.
+- [ ] internal/engine/tagio, medium: `internal/engine/tagio/container.go:147` The block-count bound (more than 1024 blocks) returns ErrTagsTooLarge, a sentinel whose message is 'tag block too large'.
+- [ ] internal/engine/tagio, medium: `internal/engine/tagio/container.go:193` parse (:173) and readContainer (:193) repeat the same open, signature read, stat and parseBlocks sequence.
+- [ ] internal/engine/tagio, medium: `internal/engine/tagio/picture.go:111` pictureField is vorbisField (vorbis.go:74) with a different byte order and a label.
+- [ ] internal/engine/tagio, medium: `internal/engine/tagio/sniff.go:17` (P8) FormatFLAC is iota, so Format's zero value is FLAC.
+- [ ] internal/engine/tagio, low: `internal/engine/tagio/encode.go:141` valueOr takes no fallback argument, yet its name promises one, and it has no doc comment.
+- [ ] internal/engine/tagio, low: `internal/engine/tagio/write.go:76` writeBlock is a type named like a function, and it sits beside the function writeBlocks (:189) and emitBlock (:209).
+- [ ] internal/opensubsonic, low: `internal/opensubsonic/boundary_test.go:19` (P6) The body of `violations` (:19-32) repeats internal/harness/conform/arch_test.go:301-313 `serverLinkViolations` statement for statement: cut each line at the first space, then match the path exactly or by prefix plus a slash.
+- [ ] internal/opensubsonic, low: `internal/opensubsonic/boundary_test.go:34` `violations` and `TestViolations` are generic names.
+- [ ] internal/opensubsonic, low: `internal/opensubsonic/boundary_test.go:40` The case table packs each listing into one expression on one line, 134 to 162 characters wide (:40, :42-45).
+- [ ] internal/opensubsonic, low: `internal/opensubsonic/boundary_test.go:57` (P9) `TestLayerImportsNothingInternal` claims more than it checks.
+- [ ] internal/opensubsonic/client, high: `internal/opensubsonic/client/client.go:7` `package client` is named for a role, not for the protocol, but it also holds the protocol's vocabulary (Format, JSON, XML, Envelope, ParseEnvelope, Error).
+- [ ] internal/opensubsonic/client, medium: `internal/opensubsonic/client/client.go:190` jsonEnvelope and xmlEnvelope repeat the same three fields (Status, ServerVersion, Error).
+- [ ] internal/opensubsonic/client, low: `internal/opensubsonic/client/client.go:38` The set of formats is written twice: once in Valid (`f == JSON \|\| f == XML`) and again in ParseEnvelope's switch, whose default branch at line 232 rejects the same values.
+- [ ] internal/opensubsonic/client, low: `internal/opensubsonic/client/client.go:49` Client.Name is the client identifier sent as `c`, but at the only construction site (stack.go:181-184) it sits next to `o.Name`, which is the oracle server's name.
+- [ ] Unused export, move-to-test: `ProjectItemFields` at `internal/engine/matcher/info.go:186`.
+- [ ] Unused export, move-to-test: `stringField` at `internal/engine/matcher/info.go:212`.
+- [ ] Unused export, move-to-test: `boolField` at `internal/engine/matcher/info.go:226`.
+- [ ] Unused export, move-to-test: `intField` at `internal/engine/matcher/info.go:234`.
+- [ ] Unused export, move-to-test: `floatField` at `internal/engine/matcher/info.go:247`.
+- [ ] Unused export, delete: `QuietImportTunables` at `internal/engine/matcher/tunables.go:336`.
+- [ ] Unused export, delete: `applyVariousArtists` at `internal/engine/musicbrainz/credit.go:58`.

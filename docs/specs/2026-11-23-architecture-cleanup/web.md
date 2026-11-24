@@ -1,0 +1,84 @@
+# Checklist: task 6, `web`
+
+Each line is one finding from `docs/research/2026-11-23-architecture-read.md`, quoted to its first
+sentence; the report holds the full finding and its fix. The task ticks each box as the spec's
+"Done items every task carries" section says.
+
+- [ ] P3, low: `web/embed_test.go:23` embed_test.go holds two concerns.
+- [ ] P4, medium: `web/src/lib/copy/deck.ts:112` A single `/** */` block sits over several exports.
+- [ ] P4, low: `web/embed_test.go:18` Test docs cite the process that produced them, and a reader of the package cannot resolve those citations.
+- [ ] P4, low: `web/embed_test.go:63` The "independent scanner so neither can share a blind spot" rationale appears four times: lines 63-64, 105-106, 202-204, and 222-225.
+- [ ] P4, low: `web/src/lib/components/SiteHeader.svelte:50` Several comments cite anchor ids that resolve only into dated plans or review research, not a living standard: `R-5ciii9` (SiteHeader:50), `I2` (deck.ts:89), `S10` (+error.svelte:21), `S1` (login/+page.svelte:9).
+- [ ] web, medium: `web/embed_test.go:65` `linkTagsWithHref` returns every `<link ` tag and never looks at href.
+- [ ] web, medium: `web/embed_test.go:91` The two DaisyUI declarations are written out as literals twice, at lines 91/94 and again at 160/163, each with its own error message.
+- [ ] web, low: `web/embed_test.go:173` Test names mix two styles.
+- [ ] web, low: `web/embed_test.go:312` TestFontFaceSrcsResolveUnderFonts calls resolveStylesheetPath and does the `fonts/` CutPrefix twice per face, once in the set comparison (lines 295-298) and again in the subtest loop (lines 312-317).
+- [ ] web:svelte, high: `web/src/routes/server-settings/+page.svelte:77` Both admin pages hand-roll the same controller: `status`, `unreachableMessage`, `refreshFailed`, `notice`, `retry`, an in-flight flag, a `load`, a `refreshAfterWrite`, a `say`, and a refusal reader (`settle` in members, `refuse` h ...
+- [ ] web:svelte, medium: `web/src/lib/api/post.ts:28` URL composition (`endpointPath`, plus the module-load check on `resolve('login')`) lives in the form-POST module, and v1.ts imports it from there (v1.ts:8).
+- [ ] web:svelte, medium: `web/src/lib/api/v1.ts:70` `loadList` is the transport client, but it answers in page-state vocabulary (`'refused' \| 'signedOut' \| 'unreachable'`) and returns a ready-made deck line (`message`).
+- [ ] web:svelte, medium: `web/src/lib/components/AdminPage.svelte:36` `browser ? ... : ...` guards appear in six places: AdminPage.svelte:36, SiteHeader.svelte:39, +error.svelte:17, login/+page.svelte:27, and login/link/+page.svelte:30-31.
+- [ ] web:svelte, medium: `web/src/lib/components/SiteHeader.svelte:29` The header component owns the whole theme mechanism: the cookie name and its attributes, the `data-theme` stamp names, dark-mode detection, and restamping the `theme-color` meta (lines 29-72).
+- [ ] web:svelte, medium: `web/src/lib/components/SiteHeader.svelte:92` The component knows post.ts internals.
+- [ ] web:svelte, medium: `web/src/lib/components/WriteNotice.svelte:13` The notice shape is declared three times: inline here at line 13, as `Notice` in members/+page.svelte:77, and as `Notice` in server-settings/+page.svelte:67.
+- [ ] web:svelte, medium: `web/src/lib/copy/deck.ts:48` The wire vocabularies are typed as plain `string`: `AuthResult.outcome` (auth.ts:19), `PostResult.outcome`, `Entry.home`, `apply`, `mark` and `source` (server-settings:48-57), and `call(operation: string, request: object)` (v1.ts: ...
+- [ ] web:svelte, medium: `web/src/routes/members/+page.svelte:144` Both admin pages load their list in `onMount(() => { void loadRoster();
+- [ ] web:svelte, medium: `web/src/routes/server-settings/+page.svelte:48` The `list_settings` wire type (`Entry`) and the `set_setting` answer type (`Written`, line 60) are declared inside the page, while the `list_members` wire type (`Member`) lives in lib/api/v1.ts:12.
+- [ ] web:svelte, medium: `web/src/routes/server-settings/+page.svelte:197` outcome.ts:48-50 states the codebase's own rule: table lookups go through `Object.hasOwn`, so that `toString` or `constructor` falls through.
+- [ ] web:svelte, low: `web/src/lib/api/auth.ts:6` Imports between lib/api siblings use mixed styles.
+- [ ] web:svelte, low: `web/src/lib/api/outcome.ts:34` announcer.svelte.ts:10 exports `Politeness`, but `outcomePoliteness` returns the literal `'polite' \| 'assertive'`, and both pages redeclare it (members:80 and 148, server-settings:70).
+- [ ] web:svelte, low: `web/src/lib/components/AdminPage.svelte:40` The head title is a nested ternary inlined in `<svelte:head>`, while +error.svelte and the link page derive the title state into a named `$derived` first.
+- [ ] web:svelte, low: `web/src/lib/components/WriteNotice.svelte:28` The `{#if textId}` branch duplicates the `<span>` only to toggle `id` and `tabindex`.
+- [ ] web:svelte, low: `web/src/lib/copy/deck.ts:123` Copy names leak across features.
+- [ ] web:svelte, low: `web/src/routes/login/+page.svelte:69` The 'moment' predicate (`'sent' \|\| 'requested'`) is written at line 50 and again at line 69.
+- [ ] web:svelte, low: `web/src/routes/members/+page.svelte:80` `Notice.politeness` is stored on every notice (149), but nothing reads it back.
+- [ ] web:svelte, low: `web/src/routes/members/+page.svelte:157` The doc comment on `settle` says 'a refusal that names an add field returns its field', but the function returns `boolean` and writes `erroredField` as a side effect.
+- [ ] web:svelte, low: `web/src/routes/members/+page.svelte:251` Focus targets are reached three ways in one file.
+- [ ] web:svelte, low: `web/src/routes/members/+page.svelte:325` Conditional classes are concatenated by hand (`class="input validator {cond ? 'input-error' : ''}"`), here and at members 339 and 357, login:131, and settings:278.
+- [ ] web:svelte, low: `web/src/routes/members/+page.svelte:386` At 386 lines the page holds the list rows, the add-member form, and the confirm modal.
+- [ ] web:svelte, low: `web/src/routes/server-settings/+page.svelte:91` `editable` and `environmental` repeat the same predicate, once negated, so the two lists can drift.
+- [ ] web:a11y, high: `web/src/lib/api/outcome.ts:39` The transport layer chooses DaisyUI classes and UI states.
+- [ ] web:a11y, high: `web/src/routes/members/+page.svelte:77` The admin-page state machine is copied into both admin pages, and the copies have drifted apart.
+- [ ] web:a11y, high: `web/src/routes/members/+page.svelte:161` When a write comes back 'unauthenticated', settle() sets status = 'signedOut' and returns false.
+- [ ] web:a11y, medium: `web/src/lib/components/AdminPage.svelte:54` The page heading is split between AdminPage and its children.
+- [ ] web:a11y, medium: `web/src/lib/components/SiteHeader.svelte:29` The header component holds two domain modules.
+- [ ] web:a11y, medium: `web/src/lib/components/SiteHeader.svelte:114` The repo's W10.6 rule says icons are one module of SVG path data keyed by name.
+- [ ] web:a11y, medium: `web/src/lib/components/SiteHeader.svelte:148` A scoped <style> media block (max-width: 479px) silently overrides the utilities in the markup.
+- [ ] web:a11y, medium: `web/src/lib/components/WriteNotice.svelte:13` The props can represent an invalid state.
+- [ ] web:a11y, medium: `web/src/lib/components/WriteNotice.svelte:36` Several copy constants are named for one place and used in others.
+- [ ] web:a11y, medium: `web/src/lib/themes/dubplate.css:26` The `daisyui/theme` blocks leave `themecontroller` at its default, so every composed theme is emitted with the `:root:has(input.theme-controller[value=...]:checked)` branch at specificity (0,4,1).
+- [ ] web:a11y, medium: `web/src/routes/+error.svelte:17` `browser ? siteNameFromDocument(document) : ''` is repeated in +error.svelte:17, AdminPage.svelte:36, login/+page.svelte:27 and login/link/+page.svelte:176-177.
+- [ ] web:a11y, medium: `web/src/routes/members/+page.svelte:325` The add-member inputs (lines 325, 339 and 357) carry the DaisyUI `validator` class, so a field turns its border red on :user-invalid after blur.
+- [ ] web:a11y, medium: `web/src/routes/server-settings/+page.svelte:48` The wire types for settings are declared inside the page (Entry at 48, Written at 60), while Member lives in #lib/api/v1.ts.
+- [ ] web:a11y, medium: `web/src/routes/server-settings/+page.svelte:177` The line `void tick().then(() => ...focus())` breaks the repo's W10.2 rule, async/await only, whose `.then` half the standard marks as ESLint-gated.
+- [ ] web:a11y, medium: `web/src/routes/server-settings/+page.svelte:256` Each settings input is labelled only by the raw key name (font-mono text-xs, 12px).
+- [ ] web:a11y, low: `web/src/lib/announcer.svelte.ts:27` I am uncertain about this one.
+- [ ] web:a11y, low: `web/src/lib/api/outcome.ts:10` `export type OutcomeClass` has no importer.
+- [ ] web:a11y, low: `web/src/lib/api/post.ts:28` endpointPath, the base-path resolver, lives in the form-POST module, and v1.ts imports post.ts just to get it.
+- [ ] web:a11y, low: `web/src/lib/components/AdminPage.svelte:57` The `loading` state renders an empty <main> with no busy signal and no text.
+- [ ] web:a11y, low: `web/src/lib/components/SiteHeader.svelte:46` `dark` is computed once at mount.
+- [ ] web:a11y, low: `web/src/lib/components/WriteNotice.svelte:35` The 'Sign in again' link opens a new tab (target=_blank) without telling the user.
+- [ ] web:a11y, low: `web/src/lib/styles/components.css:437` Home-grown recipe classes (.display, .page-title, .content-measure, .flow) are plain selectors in `@layer utilities`, mixed in with the DaisyUI overrides.
+- [ ] web:a11y, low: `web/src/lib/themes/dubplate.css:10` Some comments are stale or opaque.
+- [ ] web:a11y, low: `web/src/lib/themes/dubplate.css:36` The three font stacks are identical across every theme, yet appear four times (dubplate.css:36-38 and 51-53, system.css:34-36 and 81-83).
+- [ ] web:a11y, low: `web/src/routes/+error.svelte:30` The client-side not-found page offers no way onward: no header, no link to sign in or to members.
+- [ ] web:a11y, low: `web/src/routes/login/+page.svelte:110` Two back-to-back blocks test the same condition, `{#if !moment}<p>` and then `{#if moment}...{:else}`.
+- [ ] web:a11y, low: `web/src/routes/login/+page.svelte:138` On an invalid_address answer, the same sentence appears twice on screen: as the field hint (line 138) and as the alert below the form (line 143).
+- [ ] web:a11y, low: `web/src/routes/members/+page.svelte:80` The politeness union is re-spelled as the literal `'polite' \| 'assertive'` in members:80 and 148, server-settings:70, and outcome.ts:34, even though announcer.svelte.ts:10 exports `Politeness` for exactly this.
+- [ ] web:a11y, low: `web/src/routes/members/+page.svelte:257` Several function names are vague or shadow globals.
+- [ ] web:a11y, low: `web/src/routes/members/+page.svelte:369` The destructive confirm is a plain role=dialog, named by the question paragraph.
+- [ ] web:a11y, low: `web/src/routes/server-settings/+page.svelte:91` The editable/environmental split writes the same predicate twice, once negated, so the two lists can drift.
+- [ ] web:structure, high: `web/src/lib/api/post.ts:42` lib/api is two clients, not one.
+- [ ] web:structure, high: `web/src/lib/api/v1.ts:7` The API layer imports the copy deck and emits presentation.
+- [ ] web:structure, high: `web/src/lib/api/v1.ts:44` (P8) The wire contract is typed as `string` throughout, even though `internal/ops/opshttp/openapi.yaml` declares enums for these fields (`home: [store, environment]` at :415, `apply` at :419, `mark` at :422, `source: [admin, env-s ...
+- [ ] web:structure, high: `web/src/routes/members/+page.svelte:117` The pages load their data in `onMount` (members:144-146, server-settings:145-147) and run a hand-built `Status` machine (`'loading' \| 'ok' \| 'refused' \| 'signedOut' \| 'unreachable'`, AdminPage.svelte:12).
+- [ ] web:structure, high: `web/src/routes/server-settings/+page.svelte:149` The members and settings pages each build the same admin-write cycle by hand, and the names have drifted.
+- [ ] web:structure, medium: `web/package.json:8` The web app has no ESLint configuration: no eslint.config.* exists, and the only script is `svelte-check` (:11).
+- [ ] web:structure, medium: `web/src/lib/announcer.svelte.ts:10` Shared types are re-spelled at each use instead of imported from their owner.
+- [ ] web:structure, medium: `web/src/lib/api/v1.ts:12` Wire casing is handled two ways.
+- [ ] web:structure, medium: `web/src/lib/components/SiteHeader.svelte:82` Sign-out bypasses auth.ts.
+- [ ] web:structure, medium: `web/src/lib/components/WriteNotice.svelte:36` Several copy names say they are scoped to one feature but are used everywhere.
+- [ ] web:structure, low: `web/src/lib/api/link-token.ts:24` link-token.ts sits in lib/api but makes no API call: it holds URL and history state for the client hook (hooks.client.ts:2).
+- [ ] web:structure, low: `web/src/lib/components/AdminPage.svelte:36` `browser ? siteNameFromDocument(document) : ''` appears four times (AdminPage:36, +error.svelte:17, login/+page.svelte:27, login/link/+page.svelte:30), and each page composes its own `<svelte:head><title>`.
+- [ ] web:structure, low: `web/src/routes/+layout.svelte:16` `let { children } = $props();` is untyped, while every other component types its props.
+- [ ] web:structure, low: `web/src/routes/members/+page.svelte:188` `announce('', 'polite')` is used as "clear" at six sites (members:188 and 239, server-settings:190, login:65 and 93, login/link:53).
+- [ ] web:structure, low: `web/src/routes/server-settings/+page.svelte:197` Dictionary lookups follow three idioms.
