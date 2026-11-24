@@ -400,8 +400,8 @@ func TestNew_BindsBackupBody(t *testing.T) {
 		wantCode string
 		wantMsg  string
 	}{
-		{name: "remote", remote: "no-colon", root: absent, wantCode: "remote-invalid", wantMsg: `"no-colon"`},
-		{name: "library root", remote: "name:dir", root: absent, wantCode: "library-missing", wantMsg: absent},
+		{name: "remote", remote: "no-colon", root: absent, wantCode: "remote_invalid", wantMsg: `"no-colon"`},
+		{name: "library root", remote: "name:dir", root: absent, wantCode: "library_missing", wantMsg: absent},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -76,7 +76,7 @@ type change struct {
 // Set writes value as the administrator's value for the store-homed
 // setting key, in one transaction: the row with source admin, the
 // replaced seed in seed_value, one audit row, and a generation bump. A
-// write over an env-seed row records the seed it replaced; over an
+// write over an env_seed row records the seed it replaced; over an
 // admin row it keeps the earlier seed.
 //
 // The value must parse and sit within the key's bounds, and the
@@ -124,7 +124,7 @@ func Set(ctx context.Context, h *store.Handle, reg *config.Registry, environ []s
 // Reset deletes the administrator's row for the store-homed setting
 // key, in one transaction with one audit row (its new value empty) and
 // a generation bump, under the validator [Set] describes. Over no row
-// or an env-seed row it writes nothing and answers with the source in
+// or an env_seed row it writes nothing and answers with the source in
 // force. Over an admin row for a key the serving environment sets, a
 // reset from any channel but the command line is refused with
 // [ErrEnvironmentSets], since the key would read its default until the

@@ -15,11 +15,11 @@ import (
 //
 // Only a final verdict, to matching, accepted, or rejected, carries
 // members: commitVerdict inserts their rows whatever the target, and a
-// check-unfinished submission's retry extracts again and mints new
+// check_unfinished submission's retry extracts again and mints new
 // rows, which a second insert under the same paths would refuse. A move
 // to accepted needs at least one file the gate passed.
 type verdict struct {
-	// to is matching, accepted, rejected, or check-unfinished. A move to
+	// to is matching, accepted, rejected, or check_unfinished. A move to
 	// accepted runs accept, which may turn it to rejected.
 	to state
 	// reason is the event's reason: an album-level code, or why a check
@@ -125,7 +125,7 @@ func writeResult(ctx context.Context, tx *store.Tx, submission, file []byte, r g
 //
 // An album whose key equals an accepted submission's is rejected. A
 // separate track whose audio key equals a passing track of an accepted
-// submission gets already-in-library, the others go on, and a
+// submission gets already_in_library, the others go on, and a
 // submission left with no passing track is rejected. Duplicates in
 // other collections are allowed.
 func accept(ctx context.Context, tx *store.Tx, id []byte) (state, string, error) {

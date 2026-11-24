@@ -77,11 +77,11 @@ type Job struct {
 func (j Job) validate() error {
 	switch {
 	case j.SnapshotKeep < 1:
-		return fail("job-invalid", "snapshot keep %d must be at least 1", j.SnapshotKeep)
+		return fail("job_invalid", "snapshot keep %d must be at least 1", j.SnapshotKeep)
 	case math.IsNaN(j.GuardFraction), j.GuardFraction <= 0, j.GuardFraction > 1:
-		return fail("job-invalid", "guard fraction %g must be greater than 0 and at most 1", j.GuardFraction)
+		return fail("job_invalid", "guard fraction %g must be greater than 0 and at most 1", j.GuardFraction)
 	case j.ArchiveRetention <= 0:
-		return fail("job-invalid", "archive retention %s must be greater than 0", j.ArchiveRetention)
+		return fail("job_invalid", "archive retention %s must be greater than 0", j.ArchiveRetention)
 	}
 	return nil
 }
@@ -113,11 +113,11 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	}
 	bin, err := exec.LookPath("rclone")
 	if err != nil {
-		return "", fail("rclone-missing", "rclone is not on PATH: %v", err)
+		return "", fail("rclone_missing", "rclone is not on PATH: %v", err)
 	}
 	remote, err := ParseRemote(j.Remote)
 	if err != nil {
-		return "", fail("remote-invalid", "%v", err)
+		return "", fail("remote_invalid", "%v", err)
 	}
 	root, err := resolveRoot(j.LibraryRoot)
 	if err != nil {
@@ -144,11 +144,11 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 		return "", err
 	}
 	if err := j.Store.RemoveBackupStages(); err != nil {
-		return "", fail("snapshot-failed", "%v", err)
+		return "", fail("snapshot_failed", "%v", err)
 	}
 	stage, err := j.Store.BackupCopy(ctx, j.Logger, j.Instance)
 	if err != nil {
-		return "", fail("snapshot-failed", "%v", err)
+		return "", fail("snapshot_failed", "%v", err)
 	}
 	defer func() {
 		if err := os.Remove(stage); err != nil {
@@ -168,7 +168,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 	}
 
 	if err := j.Store.WriteBackupRef(stamp, j.Remote); err != nil {
-		return "", fail("reference-failed", "%v", err)
+		return "", fail("reference_failed", "%v", err)
 	}
 
 	if err := progress("pruning old snapshots"); err != nil {

@@ -29,7 +29,7 @@ func TestCheckRefusesAMemberNamedLikeItsArchive(t *testing.T) {
 		t.Fatalf("state = %q (%s), want rejected, not wedged in checking", got, eventKinds(t, f.h, c.id))
 	}
 	if _, reason := lastEvent(t, f.h, c.id); reason != string(reject.UnsafePath) {
-		t.Errorf("reason = %q, want unsafe-path", reason)
+		t.Errorf("reason = %q, want unsafe_path", reason)
 	}
 	if f.exists(t, tusOf(c.files[0].id)) {
 		t.Error("a rejected archive is still staged")

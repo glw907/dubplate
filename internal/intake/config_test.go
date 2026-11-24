@@ -71,7 +71,7 @@ func TestValidateStaging_ReadsTheWallValue(t *testing.T) {
 	}
 }
 
-// seedSettingRow writes key as a literal env-seed settings row and
+// seedSettingRow writes key as a literal env_seed settings row and
 // bumps the generation, in one transaction: production writes a
 // settings row only through the seed apply, so a test seeds one
 // directly by literal SQL.
@@ -79,7 +79,7 @@ func seedSettingRow(t *testing.T, h *store.Handle, key, value string) {
 	t.Helper()
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		_, err := tx.Exec(ctx, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`, key, value, value)
+VALUES (?, ?, 'env_seed', ?, 'fixture', 1)`, key, value, value)
 		if err != nil {
 			return err
 		}
@@ -173,23 +173,23 @@ func TestReadersNameTheRefusedKey(t *testing.T) {
 		{"limits", "DUBPLATE_INTAKE_MAX_FILES", "many", func(acc *settings.Accessor) error {
 			_, err := LimitsFrom(acc, nil)(t.Context())
 			return err
-		}, `DUBPLATE_INTAKE_MAX_FILES: stored env-seed value refused: DUBPLATE_INTAKE_MAX_FILES: invalid value "many", want an integer count from 1 to 2000, for example 500`},
+		}, `DUBPLATE_INTAKE_MAX_FILES: stored env_seed value refused: DUBPLATE_INTAKE_MAX_FILES: invalid value "many", want an integer count from 1 to 2000, for example 500`},
 		{"windows", "DUBPLATE_INTAKE_HOLD", "soon", func(acc *settings.Accessor) error {
 			_, err := WindowsFrom(acc)(t.Context())
 			return err
-		}, `DUBPLATE_INTAKE_HOLD: stored env-seed value refused: DUBPLATE_INTAKE_HOLD: invalid value "soon", want a Go duration string from 24h to 720h, for example 168h`},
+		}, `DUBPLATE_INTAKE_HOLD: stored env_seed value refused: DUBPLATE_INTAKE_HOLD: invalid value "soon", want a Go duration string from 24h to 720h, for example 168h`},
 		{"free space floor", "DUBPLATE_INTAKE_FREE_SPACE_FLOOR", "lots", func(acc *settings.Accessor) error {
 			_, err := FreeSpaceFloor(acc)(t.Context())
 			return err
-		}, `DUBPLATE_INTAKE_FREE_SPACE_FLOOR: stored env-seed value refused: DUBPLATE_INTAKE_FREE_SPACE_FLOOR: invalid value "lots", want an integer byte count from 1073741824 to 1099511627776, for example 5368709120`},
+		}, `DUBPLATE_INTAKE_FREE_SPACE_FLOOR: stored env_seed value refused: DUBPLATE_INTAKE_FREE_SPACE_FLOOR: invalid value "lots", want an integer byte count from 1073741824 to 1099511627776, for example 5368709120`},
 		{"sweep interval", "DUBPLATE_INTAKE_SWEEP_INTERVAL", "often", func(acc *settings.Accessor) error {
 			_, err := SweepInterval(t.Context(), acc)
 			return err
-		}, `DUBPLATE_INTAKE_SWEEP_INTERVAL: stored env-seed value refused: DUBPLATE_INTAKE_SWEEP_INTERVAL: invalid value "often", want a Go duration string from 1m to 1h, for example 10m`},
+		}, `DUBPLATE_INTAKE_SWEEP_INTERVAL: stored env_seed value refused: DUBPLATE_INTAKE_SWEEP_INTERVAL: invalid value "often", want a Go duration string from 1m to 1h, for example 10m`},
 		{"check workers", "DUBPLATE_INTAKE_CHECK_WORKERS", "several", func(acc *settings.Accessor) error {
 			_, err := CheckWorkerCount(t.Context(), acc)
 			return err
-		}, `DUBPLATE_INTAKE_CHECK_WORKERS: stored env-seed value refused: DUBPLATE_INTAKE_CHECK_WORKERS: invalid value "several", want an integer count from 1 to 8, for example 1`},
+		}, `DUBPLATE_INTAKE_CHECK_WORKERS: stored env_seed value refused: DUBPLATE_INTAKE_CHECK_WORKERS: invalid value "several", want an integer count from 1 to 8, for example 1`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

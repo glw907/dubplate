@@ -429,7 +429,7 @@ type completion struct {
 	// hold.
 	refs []string
 
-	// pending is a restore left for serve: the record reconcile-pending
+	// pending is a restore left for serve: the record reconcile_pending
 	// and no report.
 	pending bool
 }
@@ -443,15 +443,15 @@ func assertComplete(t *testing.T, stateDir string, want completion) {
 		t.Errorf("staging/ holds %q, want it empty", got)
 	}
 	switch state := recordState(t, stateDir); {
-	case want.pending && state != "reconcile-pending":
-		t.Errorf("record state %q, want reconcile-pending", state)
+	case want.pending && state != "reconcile_pending":
+		t.Errorf("record state %q, want reconcile_pending", state)
 	case !want.pending && state != "":
 		t.Errorf("record state %q, want the record removed", state)
 	}
 	info, err := os.Stat(l.report)
 	switch {
 	case want.pending && !errors.Is(err, fs.ErrNotExist):
-		t.Errorf("report beside a reconcile-pending record: %v, want none", err)
+		t.Errorf("report beside a reconcile_pending record: %v, want none", err)
 	case !want.pending && err != nil:
 		t.Errorf("report: %v", err)
 	case !want.pending && info.Mode().Perm() != 0o600:
@@ -685,7 +685,7 @@ func TestRestore_Crashes(t *testing.T) {
 				return fromFile(t, true, src)
 			},
 			crashAt:    stepReconcileOwed,
-			wantRecord: "reconcile-pending",
+			wantRecord: "reconcile_pending",
 			wantOpen:   "start serve",
 			wantResume: []string{"start serve to finish the restore"},
 		},
@@ -891,7 +891,7 @@ func TestRestore_Snapshot(t *testing.T) {
 }
 
 // TestRestore_Older is a restore of a store one version below this
-// binary: it swaps, leaves the record reconcile-pending for serve, and
+// binary: it swaps, leaves the record reconcile_pending for serve, and
 // says so, naming the pre-restore copy it keeps; the backup reference
 // is left alone on the file path.
 func TestRestore_Older(t *testing.T) {
@@ -1070,7 +1070,7 @@ func TestRestore_FetchInterrupted(t *testing.T) {
 		if err := syscall.Kill(rclonePID(t, filepath.Join(l.staging, stage)), syscall.SIGKILL); err != nil {
 			t.Fatal(err)
 		}
-		if err := cmd.Wait(); cmd.ProcessState.ExitCode() != 1 || !strings.Contains(stderr.String(), "rclone-signal-KILL") {
+		if err := cmd.Wait(); cmd.ProcessState.ExitCode() != 1 || !strings.Contains(stderr.String(), "rclone_signal_kill") {
 			t.Fatalf("child after rclone's SIGKILL: %v, want exit 1 naming the signal\n%s", err, stderr)
 		}
 		if got := entries(t, l.staging); !slices.Equal(got, []string{partial}) {
@@ -1625,7 +1625,7 @@ func TestRestore_LibraryResume(t *testing.T) {
 		bin, _ := useFetchStandin(t, "copy=7", "")
 		t.Setenv("PATH", filepath.Dir(bin))
 		_, err := resume(t, stateDir)
-		if err == nil || !strings.Contains(err.Error(), "rclone-exit-7") {
+		if err == nil || !strings.Contains(err.Error(), "rclone_exit_7") {
 			t.Fatalf("resume: %v, want a failure naming rclone's exit 7", err)
 		}
 		if got := recordState(t, stateDir); got != "library" {
@@ -1656,7 +1656,7 @@ func TestRestore_LibraryResume(t *testing.T) {
 			}
 		}()
 		_, err := resume(t, stateDir)
-		if err == nil || !strings.Contains(err.Error(), "rclone-signal-KILL") {
+		if err == nil || !strings.Contains(err.Error(), "rclone_signal_kill") {
 			t.Fatalf("resume: %v, want the killed copy's failure", err)
 		}
 		if got := recordState(t, stateDir); got != "library" {

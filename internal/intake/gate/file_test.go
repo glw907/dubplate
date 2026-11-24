@@ -247,10 +247,10 @@ func TestCheckFile_Tags(t *testing.T) {
 func TestCheckFile_RecordsWhatItLearnedBeforeARefusal(t *testing.T) {
 	res := check(t, patchStreamInfo(cd(21, 2).encode(t), nil, nil, bytes.Repeat([]byte{0x22}, 16)), testPolicy(), UnitTrack)
 	if res.Verdict != reject.SourceDamaged {
-		t.Fatalf("verdict = %q, want source-damaged", res.Verdict)
+		t.Fatalf("verdict = %q, want source_damaged", res.Verdict)
 	}
 	if res.SampleRate != 44100 || res.AudioKey == nil || res.FileHash == nil {
-		t.Errorf("a source-damaged file keeps its stream, audio key, and hash; got rate %d key %x hash %x", res.SampleRate, res.AudioKey, res.FileHash)
+		t.Errorf("a source_damaged file keeps its stream, audio key, and hash; got rate %d key %x hash %x", res.SampleRate, res.AudioKey, res.FileHash)
 	}
 }
 

@@ -52,7 +52,7 @@ func TestSweepExpiresPastTheirWindows(t *testing.T) {
 		{"an idle upload", idle, "expired"},
 		{"an upload written inside the window", busy, "uploading"},
 		{"a check held past the hold", heldLong, "expired"},
-		{"a check held inside the hold", heldShort, "check-unfinished"},
+		{"a check held inside the hold", heldShort, "check_unfinished"},
 	} {
 		if got := stateOf(t, f.h, tc.c.id); got != tc.want {
 			t.Errorf("%s = %q, want %q", tc.name, got, tc.want)

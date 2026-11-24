@@ -48,7 +48,7 @@ func dbFileState(t *testing.T, stateDir string) (sum [sha256.Size]byte, mode os.
 // TestCheckCmd_SettingsRow_Reseed is spec criterion 14: an env value
 // that disagrees with a seeded row prints the disagreement and leaves
 // the database file untouched, since check never applies the rule.
-// Fixture state: an env-seed row of 14 exists so the run has something
+// Fixture state: an env_seed row of 14 exists so the run has something
 // to compare the env's 20 against; an apply would write here if check
 // called it.
 func TestCheckCmd_SettingsRow_Reseed(t *testing.T) {
@@ -58,7 +58,7 @@ func TestCheckCmd_SettingsRow_Reseed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env-seed")
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env_seed")
 	if err := h.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}

@@ -84,7 +84,7 @@ func TestServiceCreateTakesTheCallerFromTheActor(t *testing.T) {
 	}
 	var uploader, collection []byte
 	var state string
-	if err := h.QueryRow(deadline(t), `SELECT uploader, collection_id, state FROM submissions WHERE id = ?`, resp.SubmissionID[:]).Scan(&uploader, &collection, &state); err != nil {
+	if err := h.QueryRow(deadline(t), `SELECT user_id, collection_id, state FROM submissions WHERE id = ?`, resp.SubmissionID[:]).Scan(&uploader, &collection, &state); err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(uploader, ann[:]) || bytes.Equal(uploader, bo[:]) {
@@ -121,7 +121,7 @@ func TestServiceCreateStoresEachSource(t *testing.T) {
 	h, seam := newTestService(t)
 	uploader := member(t, h)
 	override(t, h, uploader, nil, nil, 100)
-	for _, source := range []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"} {
+	for _, source := range []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"} {
 		t.Run(source, func(t *testing.T) {
 			req := albumRequest(1)
 			req.Source = source
@@ -540,15 +540,15 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	corrupt := wording{"corrupt", "damaged in transit",
 		"This file didn't survive the upload intact. Uploading it again usually fixes this.",
 		"Upload it again from the original file."}
-	belowCD := wording{"below-cd-quality", "below CD quality",
+	belowCD := wording{"below_cd_quality", "below CD quality",
 		"This FLAC is below CD quality.", "Get a CD-quality or better FLAC and upload that instead."}
-	incomplete := wording{"incomplete-album", "album incomplete",
+	incomplete := wording{"incomplete_album", "album incomplete",
 		"This album's track numbers skip or don't match its track count, so it looks incomplete.",
 		"Find the missing tracks and upload the whole album together."}
-	noCover := wording{"no-cover-art", "no cover",
+	noCover := wording{"no_cover_art", "no cover",
 		"This album has no cover picture.",
 		"It can go in without one, or you can cancel, add a picture to the files, and upload again."}
-	extras := wording{"extras-dropped", "extras left out",
+	extras := wording{"extras_dropped", "extras left out",
 		"When you upload separate tracks, only the music files are kept, so the other files in the ZIP were left out.",
 		"If you wanted them kept, upload the whole album instead."}
 
@@ -560,7 +560,7 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	}
 	if !equalWording(got.Files[0].Verdict, corrupt) ||
 		!equalWording(got.Files[1].Verdict, belowCD) || got.Files[2].Verdict != nil {
-		t.Errorf("verdicts = %+v, %+v, %+v; want corrupt, below-cd-quality, and null for the pass", got.Files[0].Verdict, got.Files[1].Verdict, got.Files[2].Verdict)
+		t.Errorf("verdicts = %+v, %+v, %+v; want corrupt, below_cd_quality, and null for the pass", got.Files[0].Verdict, got.Files[1].Verdict, got.Files[2].Verdict)
 	}
 	for _, f := range got.Files {
 		if !f.Received {
@@ -570,8 +570,8 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	if n := len(got.Events); n != 3 || got.Events[0].Kind != "uploading" || got.Events[1].Kind != "checking" || got.Events[2].Kind != "rejected" {
 		t.Fatalf("events = %+v, want uploading, checking, rejected in order", got.Events)
 	}
-	if last := got.Events[2]; last.Reason != "incomplete-album" || !equalWording(last.Reject, incomplete) {
-		t.Errorf("rejected event = %+v, want the incomplete-album reason and its wording", last)
+	if last := got.Events[2]; last.Reason != "incomplete_album" || !equalWording(last.Reject, incomplete) {
+		t.Errorf("rejected event = %+v, want the incomplete_album reason and its wording", last)
 	}
 	if got.Events[0].Reject != nil || got.Events[0].Reason != "" {
 		t.Errorf("uploading event = %+v, want no reason", got.Events[0])
@@ -580,10 +580,10 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 		t.Fatalf("warnings = %+v, want 2", got.Warnings)
 	}
 	if w := got.Warnings[0]; !equalWording(&w.Reason, noCover) || w.Subject != nil {
-		t.Errorf("completeness warning = %+v, want no-cover-art with a null subject", w)
+		t.Errorf("completeness warning = %+v, want no_cover_art with a null subject", w)
 	}
 	if w := got.Warnings[1]; !equalWording(&w.Reason, extras) || w.Subject == nil || *w.Subject != "scan.jpg" {
-		t.Errorf("extras warning = %+v, want extras-dropped naming scan.jpg", w)
+		t.Errorf("extras warning = %+v, want extras_dropped naming scan.jpg", w)
 	}
 }
 
@@ -610,7 +610,7 @@ func TestServiceBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := wording{"bad-extension", "wrong format",
+	want := wording{"bad_extension", "wrong format",
 		"This isn't one of the formats the library keeps (FLAC or MP3).",
 		"Get a copy in one of these formats and upload that instead."}
 	if v := got.Files[0].Verdict; !equalWording(v, want) {

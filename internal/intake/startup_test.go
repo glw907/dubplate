@@ -92,7 +92,7 @@ func TestStartupExpiresWhatARestoreLeftWithoutBytes(t *testing.T) {
 // TestStartupReconcilesArchivesByTheirStagedSet is AC 27's two ZIPs and
 // the truncated member: a ZIP past its verdict is tested against its
 // members and never its archive, by size as well as presence, and a ZIP
-// in check-unfinished keeps its archive.
+// in check_unfinished keeps its archive.
 func TestStartupReconcilesArchivesByTheirStagedSet(t *testing.T) {
 	f := newIntakeFixture(t)
 	m := member(t, f.h)
@@ -120,8 +120,8 @@ func TestStartupReconcilesArchivesByTheirStagedSet(t *testing.T) {
 	f.s.freeBytes = func(string) (uint64, error) { return 0, errors.New("statfs: input/output error") }
 	f.in.check(deadline(t), cu.id)
 	f.s.freeBytes = func(string) (uint64, error) { return plentyFree, nil }
-	if got := stateOf(t, f.h, cu.id); got != "check-unfinished" {
-		t.Fatalf("fixture: ZIP in %q, want check-unfinished", got)
+	if got := stateOf(t, f.h, cu.id); got != "check_unfinished" {
+		t.Fatalf("fixture: ZIP in %q, want check_unfinished", got)
 	}
 
 	before := map[string][]byte{}
@@ -144,11 +144,11 @@ func TestStartupReconcilesArchivesByTheirStagedSet(t *testing.T) {
 			t.Errorf("accepted member %s changed or gone", path)
 		}
 	}
-	if got := stateOf(t, f.h, cu.id); got != "check-unfinished" {
-		t.Errorf("a check-unfinished ZIP = %q, want check-unfinished", got)
+	if got := stateOf(t, f.h, cu.id); got != "check_unfinished" {
+		t.Errorf("a check_unfinished ZIP = %q, want check_unfinished", got)
 	}
 	if !bytes.Equal(f.read(t, tusOf(cu.files[0].id)), held) {
-		t.Error("a check-unfinished ZIP's archive changed or gone")
+		t.Error("a check_unfinished ZIP's archive changed or gone")
 	}
 	assertStatesMatchEvents(t, f.h)
 }

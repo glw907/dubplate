@@ -18,7 +18,7 @@ import (
 // "stalled" is an event kind and never a state, so it is absent on
 // purpose.
 var journeyStates = []string{
-	"uploading", "checking", "check-unfinished", "matching",
+	"uploading", "checking", "check_unfinished", "matching",
 	"accepted", "rejected", "cancelled", "expired",
 }
 
@@ -90,7 +90,7 @@ func seedSubmission(t *testing.T, h *store.Handle, state string, kinds []string,
 	sub := id.New()
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO submissions
-			(id, uploader, collection_id, verdict_unit, container, state, source, declared_bytes, reserved_bytes, created_at, updated_at)
+			(id, user_id, collection_id, verdict_unit, container, state, source, declared_bytes, reserved_bytes, created_at, updated_at)
 			VALUES (?, ?, ?, 'album', 'files', ?, 'bandcamp', 0, 0, 1, 1)`, sub, owner, coll, state); err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func seedOwnerAndCollection(t *testing.T, h *store.Handle) (owner, collection []
 	minted := id.New()
 	collection = minted[:]
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
-		_, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		_, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 			VALUES (?, 'Seed', ?, ?, 'group', 'server')`, collection, []byte(fmt.Sprintf("seed-%x", collection)), owner)
 		return err
 	})

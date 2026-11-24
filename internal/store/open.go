@@ -208,7 +208,7 @@ func writeRefusal(l leaf, c dbClass, head int) error {
 // binary's version holding the lock shared until it closes. It refuses
 // opts without a Logger before it touches any file.
 //
-// Serve accepts one restore-intent record, reconcile-pending, and
+// Serve accepts one restore-intent record, reconcile_pending, and
 // refuses every other. Beside that record, under the exclusive lock,
 // it migrates the store, calls opts.Reconcile, writes the report into
 // the leaf as restore-report-<stamp>.txt, and removes the record
@@ -314,9 +314,9 @@ func openShared(ctx context.Context, l leaf, files []migration, opts ServeOption
 
 // settle is serve mode's work under the exclusive lock. It re-reads
 // the leaf, refusing every restore-intent record but a
-// reconcile-pending one, removes staging leftovers, and then creates,
+// reconcile_pending one, removes staging leftovers, and then creates,
 // completes an interrupted create of, or migrates the store. Beside a
-// reconcile-pending record it then finishes the restore. It closes
+// reconcile_pending record it then finishes the restore. It closes
 // every connection it opens.
 func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (err error) {
 	rec, err := l.readIntent()
@@ -369,7 +369,7 @@ func settle(ctx context.Context, l leaf, files []migration, opts ServeOptions) (
 }
 
 // finishRestore runs reconcile on h, the migrated store a
-// reconcile-pending record left, writes the report it returns into the
+// reconcile_pending record left, writes the report it returns into the
 // leaf, and only then removes the record, so a failure at any step
 // leaves the record for the next start to retry.
 func finishRestore(ctx context.Context, l leaf, h *Handle, rec intentRecord, reconcile func(context.Context, *Handle, string, RestoreIntent) ([]byte, error)) error {

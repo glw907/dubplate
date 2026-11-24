@@ -62,8 +62,8 @@ func TestCheckContainsAPanic(t *testing.T) {
 	f.in.cfg.Limits = func(context.Context) (Limits, error) { panic("decoder: index out of range") }
 	f.in.check(deadline(t), c.id)
 
-	if got := stateOf(t, f.h, c.id); got != "check-unfinished" {
-		t.Fatalf("state after a panic = %q (%s), want check-unfinished", got, eventKinds(t, f.h, c.id))
+	if got := stateOf(t, f.h, c.id); got != "check_unfinished" {
+		t.Fatalf("state after a panic = %q (%s), want check_unfinished", got, eventKinds(t, f.h, c.id))
 	}
 	if got := reservedBytes(t, f.h, c.id); got != reserved {
 		t.Errorf("reservation = %d, want %d", got, reserved)

@@ -178,7 +178,7 @@ func TestError_WithRejects(t *testing.T) {
 	rejects := Rejects{Submission: []reject.Reason{reject.Of(reject.NoAudio)}, Files: []FileReject{}}
 	got := base.WithRejects(rejects)
 	if got.Rejects == nil || len(got.Rejects.Submission) != 1 || got.Rejects.Submission[0].Code != reject.NoAudio {
-		t.Errorf("Rejects = %+v, want the no-audio submission reason", got.Rejects)
+		t.Errorf("Rejects = %+v, want the no_audio submission reason", got.Rejects)
 	}
 	if got.Code != CodeInvalidRequest || got.Reason != "the manifest was refused" || !errors.Is(got, ErrInvalidRequest) {
 		t.Errorf("WithRejects changed the error: %+v", got)

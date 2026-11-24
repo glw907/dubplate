@@ -139,9 +139,9 @@ func writeFixture(t *testing.T, h *store.Handle, rows ...fixtureRow) {
 			case "admin":
 				q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
 					VALUES (?, ?, 'admin', ?, 'fixture', 1)`
-			case "env-seed":
+			case "env_seed":
 				q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-					VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`
+					VALUES (?, ?, 'env_seed', ?, 'fixture', 1)`
 			default:
 				return fmt.Errorf("fixture source %q", r.source)
 			}

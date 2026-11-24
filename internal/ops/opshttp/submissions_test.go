@@ -169,12 +169,12 @@ func TestServeHTTPRejectsEnvelope(t *testing.T) {
 		t.Fatalf("decode %q: %v", rec.Body, err)
 	}
 	noAudio := reject.Of(reject.NoAudio)
-	wantSubmission := map[string]string{"code": "no-audio", "label": noAudio.Label, "friendly": noAudio.Friendly, "next_step": noAudio.NextStep}
+	wantSubmission := map[string]string{"code": "no_audio", "label": noAudio.Label, "friendly": noAudio.Friendly, "next_step": noAudio.NextStep}
 	if got.Error.Code != "invalid_request" || len(got.Error.Rejects.Submission) != 1 || !reflect.DeepEqual(got.Error.Rejects.Submission[0], wantSubmission) {
 		t.Errorf("rejects.submission = %+v, want [%+v]", got.Error.Rejects.Submission, wantSubmission)
 	}
-	if len(got.Error.Rejects.Files) != 1 || got.Error.Rejects.Files[0].Path != "a/../b.flac" || got.Error.Rejects.Files[0].Reason["code"] != "unsafe-path" {
-		t.Errorf("rejects.files = %+v, want one unsafe-path for a/../b.flac", got.Error.Rejects.Files)
+	if len(got.Error.Rejects.Files) != 1 || got.Error.Rejects.Files[0].Path != "a/../b.flac" || got.Error.Rejects.Files[0].Reason["code"] != "unsafe_path" {
+		t.Errorf("rejects.files = %+v, want one unsafe_path for a/../b.flac", got.Error.Rejects.Files)
 	}
 
 	f.subs.answers[ops.OpGetSubmission] = fakeAnswer{err: ops.NewNotFoundError("no such submission")}

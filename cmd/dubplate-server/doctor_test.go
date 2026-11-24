@@ -855,7 +855,7 @@ func TestIdentitySourceStatus_KeyFromKeyedTypeNotMessagePrefix(t *testing.T) {
 // reads it as "not read" and fails the version 1 row.
 func TestDoctorCmd_MembersRow(t *testing.T) {
 	head := store.Inspect(t.Context(), store.InspectOptions{StateDir: t.TempDir(), BusyTimeout: testBackupBusy}).BinaryVersion
-	reconcilePending := `{"format": 1, "state": "reconcile-pending", "stamp": "20260925T120000.000000Z",
+	reconcilePending := `{"format": 1, "state": "reconcile_pending", "stamp": "20260925T120000.000000Z",
 "remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z",
 "incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
 "discard_current": false, "version": 2}`
@@ -1335,7 +1335,7 @@ func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
 		wantFail bool
 	}{
 		{name: "admin conflict fails", source: "admin", stored: "0.9", env: "0.3", wantFail: true},
-		{name: "pending re-seed does not fail", source: "env-seed", stored: "0.6", env: "0.3", wantFail: false},
+		{name: "pending re-seed does not fail", source: "env_seed", stored: "0.6", env: "0.3", wantFail: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1602,22 +1602,22 @@ func TestDoctorCmd_SMTPRefusalNamedOnce(t *testing.T) {
 
 // TestDoctorCmd_AuthSettingsGolden is spec criterion 10's doctor half:
 // after a start seeds every auth key from the environment, each row
-// prints the value in force, its env-seed source, its apply mode, and
+// prints the value in force, its env_seed source, its apply mode, and
 // the sensitive mark on the link expiry, the session lifetime, and the
 // absolute cap, whose values print like any other. Each value differs
 // from its default, so a row that read the default fails.
 func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 	want := []struct{ key, value, status string }{
-		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `"20m" (source env-seed, next operation, sensitive)`},
-		{"DUBPLATE_SESSION_LIFETIME", "1h", `"1h" (source env-seed, next operation, sensitive)`},
-		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `"4000h" (source env-seed, immediately, sensitive)`},
-		{"DUBPLATE_NONCE_RETENTION", "2h", `"2h" (source env-seed, next operation)`},
-		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", `"7" (source env-seed, restart)`},
-		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", `"22" (source env-seed, restart)`},
-		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env-seed, restart)`},
-		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env-seed, restart)`},
-		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env-seed, next operation)`},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env-seed, next operation, sensitive)`},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `"20m" (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", `"1h" (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `"4000h" (source env_seed, immediately, sensitive)`},
+		{"DUBPLATE_NONCE_RETENTION", "2h", `"2h" (source env_seed, next operation)`},
+		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", `"7" (source env_seed, restart)`},
+		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", `"22" (source env_seed, restart)`},
+		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env_seed, restart)`},
+		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env_seed, restart)`},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env_seed, next operation)`},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env_seed, next operation, sensitive)`},
 	}
 	environ := withMusicVolume(t, doctorEnviron(t))
 	for _, w := range want {
@@ -1771,7 +1771,7 @@ func TestDoctor_MusicVolumeRow(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	err = h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		_, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
+		_, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer, intake_route)
 			SELECT ?, 'Library', ?, id, 'group', 'server', 'default' FROM users LIMIT 1`,
 			bytes.Repeat([]byte{0xab}, 16), []byte("abababababababababababababababab"))
 		return err

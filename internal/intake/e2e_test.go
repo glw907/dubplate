@@ -139,9 +139,9 @@ func TestSeparateTracksEndToEnd(t *testing.T) {
 		if !slices.Equal(paths, []string{"01.flac", "02.flac", "music.zip"}) {
 			t.Errorf("files = %q, want the two tracks and the archive", paths)
 		}
-		if len(got.Warnings) != 1 || got.Warnings[0].Reason.Code != "extras-dropped" ||
+		if len(got.Warnings) != 1 || got.Warnings[0].Reason.Code != "extras_dropped" ||
 			got.Warnings[0].Subject == nil || *got.Warnings[0].Subject != "scan.jpg" {
-			t.Errorf("warnings = %+v, want extras-dropped naming scan.jpg", got.Warnings)
+			t.Errorf("warnings = %+v, want extras_dropped naming scan.jpg", got.Warnings)
 		}
 	})
 	assertStatesMatchEvents(t, f.h)

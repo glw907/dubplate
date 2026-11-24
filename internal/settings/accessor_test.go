@@ -132,12 +132,12 @@ func TestAccessor_ReadsPastAnotherKeysBadRow(t *testing.T) {
 	}{
 		{"another key unparseable", fixtureRow{keyRetention, "soon", "admin", "48h"}},
 		{"another key out of bounds", fixtureRow{keyRetention, "1h", "admin", "48h"}},
-		{"an orphan row", fixtureRow{keyOrphan, "7", "env-seed", "7"}},
+		{"an orphan row", fixtureRow{keyOrphan, "7", "env_seed", "7"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := newStore(t)
-			writeFixture(t, h, tt.row, fixtureRow{keyKeep, "40", "env-seed", "40"})
+			writeFixture(t, h, tt.row, fixtureRow{keyKeep, "40", "env_seed", "40"})
 
 			got, err := NewAccessor(h, newRegistry()).Int(context.Background(), keepSetting("14"))
 			if err != nil {
@@ -155,7 +155,7 @@ func TestAccessor_ReadsPastAnotherKeysBadRow(t *testing.T) {
 // cache warm, rather than serving the cached value.
 func TestAccessor_MissingGeneration(t *testing.T) {
 	h := newStore(t)
-	writeFixture(t, h, fixtureRow{keyKeep, "40", "env-seed", "40"})
+	writeFixture(t, h, fixtureRow{keyKeep, "40", "env_seed", "40"})
 	acc := NewAccessor(h, newRegistry())
 	if got, err := acc.Int(context.Background(), keepSetting("14")); err != nil || got != 40 {
 		t.Fatalf("warm read = %d, %v, want 40", got, err)
@@ -191,9 +191,9 @@ var guard = config.Setting{
 func TestAccessor_TypedReads(t *testing.T) {
 	h := newStore(t)
 	writeFixture(t, h,
-		fixtureRow{keyRetention, "720h", "env-seed", "720h"},
-		fixtureRow{guard.Key, "0.75", "env-seed", "0.75"},
-		fixtureRow{answerSetting.Key, "generic", "env-seed", "generic"})
+		fixtureRow{keyRetention, "720h", "env_seed", "720h"},
+		fixtureRow{guard.Key, "0.75", "env_seed", "0.75"},
+		fixtureRow{answerSetting.Key, "generic", "env_seed", "generic"})
 	reg := newRegistry()
 	reg.AddSetting(guard)
 	reg.AddSetting(answerSetting)

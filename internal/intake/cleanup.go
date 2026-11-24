@@ -29,7 +29,7 @@ const cleanupLockWait = 2 * time.Second
 //   - all of a terminal submission's bytes;
 //   - a submissions/ directory no row names;
 //   - the archive of a ZIP past its verdict, in matching or accepted,
-//     never in check-unfinished, whose retry extracts from it;
+//     never in check_unfinished, whose retry extracts from it;
 //   - the failing files of an accepted separate-tracks submission;
 //   - a tus upload no row names, once older than window.
 //

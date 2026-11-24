@@ -53,7 +53,7 @@ func plantCatalog(t *testing.T, h *store.Handle, rels ...string) {
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 VALUES (?, 'main', ?, ?, 'group', 'server')`, coll, []byte(catalogRoot), user); err != nil {
 			return err
 		}

@@ -22,7 +22,7 @@ type state string
 const (
 	stateUploading       state = "uploading"
 	stateChecking        state = "checking"
-	stateCheckUnfinished state = "check-unfinished"
+	stateCheckUnfinished state = "check_unfinished"
 	stateMatching        state = "matching"
 	stateAccepted        state = "accepted"
 	stateRejected        state = "rejected"
@@ -181,7 +181,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 
 		minted := id.New()
 		c = created{id: minted[:]}
-		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, uploader, collection_id, verdict_unit, container, state,
+		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, user_id, collection_id, verdict_unit, container, state,
 			source, source_note, store_url, declared_bytes, reserved_bytes, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			c.id, uploader[:], coll, string(n.manifest.Unit), string(n.manifest.Container), stateUploading,
@@ -219,7 +219,7 @@ func roleOf(c gate.Container, path string) string {
 	return "extra"
 }
 
-// retry moves the uploader's check-unfinished submission back to
+// retry moves the uploader's check_unfinished submission back to
 // checking and pokes the worker.
 func (s *submissions) retry(ctx context.Context, uploader identity.UserID, id []byte) error {
 	err := s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
@@ -258,7 +258,7 @@ func (s *submissions) expire(ctx context.Context, id []byte, reason string, from
 // another member's id reads as an unknown one.
 func owned(ctx context.Context, tx *store.Tx, uploader identity.UserID, id []byte) error {
 	var n int
-	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE id = ? AND uploader = ?`, id, uploader[:]).Scan(&n); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE id = ? AND user_id = ?`, id, uploader[:]).Scan(&n); err != nil {
 		return fmt.Errorf("read submission owner: %w", err)
 	}
 	if n == 0 {

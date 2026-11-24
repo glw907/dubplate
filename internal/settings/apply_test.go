@@ -24,9 +24,9 @@ const fixtureGeneration = 5
 func TestApply_SeedTable(t *testing.T) {
 	micros := testNow.UnixMicro()
 	audit := func(kind, key, oldVal, newVal string) auditRow {
-		return auditRow{at: micros, kind: kind, actor: "system", channel: "env-seed", key: key, oldVal: oldVal, newVal: newVal}
+		return auditRow{at: micros, kind: kind, actor: "system", channel: "env_seed", key: key, oldVal: oldVal, newVal: newVal}
 	}
-	envSeed := func(key, value string) fixtureRow { return fixtureRow{key, value, "env-seed", value} }
+	envSeed := func(key, value string) fixtureRow { return fixtureRow{key, value, "env_seed", value} }
 	admin := func(key, value, seed string) fixtureRow { return fixtureRow{key, value, "admin", seed} }
 
 	tests := []struct {
@@ -51,31 +51,31 @@ func TestApply_SeedTable(t *testing.T) {
 			wantKeep: 14,
 		},
 		{
-			name:      "no row, env present: seeds an env-seed row",
+			name:      "no row, env present: seeds an env_seed row",
 			env:       []string{keyKeep + "=20"},
-			wantRows:  []storedRow{{keyKeep, "20", "env-seed", "20"}},
+			wantRows:  []storedRow{{keyKeep, "20", "env_seed", "20"}},
 			wantAudit: []auditRow{audit("seed", keyKeep, "<NULL>", "20")},
 			wantBump:  true,
 			wantKeep:  20,
 		},
 		{
-			name:     "env-seed row, env equal by typed value: nothing changes",
+			name:     "env_seed row, env equal by typed value: nothing changes",
 			fixture:  []fixtureRow{envSeed(keyExpiry, "1h")},
 			env:      []string{keyExpiry + "=60m"},
-			wantRows: []storedRow{{keyExpiry, "1h", "env-seed", "1h"}},
+			wantRows: []storedRow{{keyExpiry, "1h", "env_seed", "1h"}},
 		},
 		{
-			name:      "env-seed row, env different: re-seeded and logged",
+			name:      "env_seed row, env different: re-seeded and logged",
 			fixture:   []fixtureRow{envSeed(keyKeep, "20")},
 			env:       []string{keyKeep + "=30"},
-			wantRows:  []storedRow{{keyKeep, "30", "env-seed", "30"}},
+			wantRows:  []storedRow{{keyKeep, "30", "env_seed", "30"}},
 			wantAudit: []auditRow{audit("reseed", keyKeep, "20", "30")},
 			wantBump:  true,
 			wantLog:   []string{"setting reseed", keyKeep, `\"20\"`, `\"30\"`},
 			wantKeep:  30,
 		},
 		{
-			name:      "env-seed row, env absent: removed to the default and logged",
+			name:      "env_seed row, env absent: removed to the default and logged",
 			fixture:   []fixtureRow{envSeed(keyKeep, "20")},
 			wantAudit: []auditRow{audit("remove", keyKeep, "20", "<NULL>")},
 			wantBump:  true,
@@ -83,7 +83,7 @@ func TestApply_SeedTable(t *testing.T) {
 			wantKeep:  14,
 		},
 		{
-			name:      "env-seed row, env empty: removed as if absent",
+			name:      "env_seed row, env empty: removed as if absent",
 			fixture:   []fixtureRow{envSeed(keyKeep, "20")},
 			env:       []string{keyKeep + "="},
 			wantAudit: []auditRow{audit("remove", keyKeep, "20", "<NULL>")},
@@ -110,23 +110,23 @@ func TestApply_SeedTable(t *testing.T) {
 			wantKeep: 30,
 		},
 		{
-			name:      "env-seed row out of bounds, env in bounds: healed by re-seed",
+			name:      "env_seed row out of bounds, env in bounds: healed by re-seed",
 			fixture:   []fixtureRow{envSeed(keyKeep, "2")},
 			env:       []string{keyKeep + "=20"},
-			wantRows:  []storedRow{{keyKeep, "20", "env-seed", "20"}},
+			wantRows:  []storedRow{{keyKeep, "20", "env_seed", "20"}},
 			wantAudit: []auditRow{audit("reseed", keyKeep, "2", "20")},
 			wantBump:  true,
 			wantKeep:  20,
 		},
 		{
-			name:      "env-seed row out of bounds, env absent: healed by removal",
+			name:      "env_seed row out of bounds, env absent: healed by removal",
 			fixture:   []fixtureRow{envSeed(keyKeep, "2")},
 			wantAudit: []auditRow{audit("remove", keyKeep, "2", "<NULL>")},
 			wantBump:  true,
 			wantKeep:  14,
 		},
 		{
-			name:    "env-seed row out of bounds, env equal to it: refused naming the bound",
+			name:    "env_seed row out of bounds, env equal to it: refused naming the bound",
 			fixture: []fixtureRow{envSeed(keyKeep, "2")},
 			env:     []string{keyKeep + "=2"},
 			wantErr: []string{keyKeep, "below the floor 3"},
@@ -146,7 +146,7 @@ func TestApply_SeedTable(t *testing.T) {
 			name:     "a row for an unregistered key: left alone",
 			fixture:  []fixtureRow{envSeed(keyOrphan, "7")},
 			env:      []string{keyOrphan + "=8"},
-			wantRows: []storedRow{{keyOrphan, "7", "env-seed", "7"}},
+			wantRows: []storedRow{{keyOrphan, "7", "env_seed", "7"}},
 		},
 		{
 			name:    "env value outside the bounds, no row: refused naming the bound",
@@ -171,7 +171,7 @@ func TestApply_SeedTable(t *testing.T) {
 		{
 			name:      "a later env entry wins over an earlier one",
 			env:       []string{keyKeep + "=20", keyKeep + "=40"},
-			wantRows:  []storedRow{{keyKeep, "40", "env-seed", "40"}},
+			wantRows:  []storedRow{{keyKeep, "40", "env_seed", "40"}},
 			wantAudit: []auditRow{audit("seed", keyKeep, "<NULL>", "40")},
 			wantBump:  true,
 			wantKeep:  40,
@@ -236,7 +236,7 @@ func TestApply_SeedTable(t *testing.T) {
 // registered setting claims, while the apply above leaves it alone.
 func TestEvaluate_ReportsOrphans(t *testing.T) {
 	h := newStore(t)
-	writeFixture(t, h, fixtureRow{keyOrphan, "7", "env-seed", "7"}, fixtureRow{keyKeep, "20", "env-seed", "20"})
+	writeFixture(t, h, fixtureRow{keyOrphan, "7", "env_seed", "7"}, fixtureRow{keyKeep, "20", "env_seed", "20"})
 
 	ev, err := Evaluate(context.Background(), h, newRegistry(), []string{keyKeep + "=20"})
 	if err != nil {
@@ -262,7 +262,7 @@ func TestEvaluate_ReportsOrphans(t *testing.T) {
 // found it and reports each pending change.
 func TestEvaluate_WritesNothing(t *testing.T) {
 	h := newStore(t)
-	writeFixture(t, h, fixtureRow{keyKeep, "20", "env-seed", "20"})
+	writeFixture(t, h, fixtureRow{keyKeep, "20", "env_seed", "20"})
 	before := readSettings(t, h)
 
 	ev, err := Evaluate(context.Background(), h, newRegistry(), []string{keyRetention + "=48h"})
@@ -298,7 +298,7 @@ func TestEvaluate_ShowsSensitiveValues(t *testing.T) {
 	s.Sensitivity = config.Sensitive
 	reg.AddSetting(s)
 
-	ev := evaluate(reg, []string{keyKeep + "=731"}, []Row{{Key: keyKeep, Value: "529", Source: "env-seed", SeedValue: "529"}})
+	ev := evaluate(reg, []string{keyKeep + "=731"}, []Row{{Key: keyKeep, Value: "529", Source: "env_seed", SeedValue: "529"}})
 	if len(ev.Outcomes) != 1 || ev.Outcomes[0].Change != Reseed {
 		t.Fatalf("outcomes = %+v, want one reseed", ev.Outcomes)
 	}
@@ -331,19 +331,19 @@ func TestApply_StringSetting(t *testing.T) {
 		{
 			name:     "no row, env in the set: seeded",
 			env:      []string{key + "=generic"},
-			wantRows: []storedRow{{key, "generic", "env-seed", "generic"}},
+			wantRows: []storedRow{{key, "generic", "env_seed", "generic"}},
 		},
 		{
-			name:     "env-seed row, env equal: unchanged, no refusal",
-			fixture:  []fixtureRow{{key, "generic", "env-seed", "generic"}},
+			name:     "env_seed row, env equal: unchanged, no refusal",
+			fixture:  []fixtureRow{{key, "generic", "env_seed", "generic"}},
 			env:      []string{key + "=generic"},
-			wantRows: []storedRow{{key, "generic", "env-seed", "generic"}},
+			wantRows: []storedRow{{key, "generic", "env_seed", "generic"}},
 		},
 		{
-			name:     "env-seed row, env the other value: re-seeded",
-			fixture:  []fixtureRow{{key, "generic", "env-seed", "generic"}},
+			name:     "env_seed row, env the other value: re-seeded",
+			fixture:  []fixtureRow{{key, "generic", "env_seed", "generic"}},
 			env:      []string{key + "=kind"},
-			wantRows: []storedRow{{key, "kind", "env-seed", "kind"}},
+			wantRows: []storedRow{{key, "kind", "env_seed", "kind"}},
 		},
 		{
 			name:    "env outside the set: refused naming the set",
@@ -436,8 +436,8 @@ func TestApply_CorrelatedRule(t *testing.T) {
 			name: "both rise together: applies",
 			env:  []string{keyExpiry + "=72h", keyNonce + "=96h"},
 			wantRows: []storedRow{
-				{keyExpiry, "72h", "env-seed", "72h"},
-				{keyNonce, "96h", "env-seed", "96h"},
+				{keyExpiry, "72h", "env_seed", "72h"},
+				{keyNonce, "96h", "env_seed", "96h"},
 			},
 		},
 		{
@@ -445,8 +445,8 @@ func TestApply_CorrelatedRule(t *testing.T) {
 			env:     []string{keyExpiry + "=72h", keyNonce + "=48h"},
 			wantErr: []string{keyNonce, keyExpiry, "shorter than"},
 			wantRows: []storedRow{
-				{keyExpiry, "15m", "env-seed", "15m"},
-				{keyNonce, "48h", "env-seed", "48h"},
+				{keyExpiry, "15m", "env_seed", "15m"},
+				{keyNonce, "48h", "env_seed", "48h"},
 			},
 		},
 	}
@@ -454,8 +454,8 @@ func TestApply_CorrelatedRule(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := newStore(t)
 			writeFixture(t, h,
-				fixtureRow{keyNonce, "48h", "env-seed", "48h"},
-				fixtureRow{keyExpiry, "15m", "env-seed", "15m"})
+				fixtureRow{keyNonce, "48h", "env_seed", "48h"},
+				fixtureRow{keyExpiry, "15m", "env_seed", "15m"})
 
 			err := Apply(ctxFor(t), h, correlatedRegistry(), tt.env, testNow, discardLog)
 
@@ -498,7 +498,7 @@ func TestApply_RefusedWritesNoAudit(t *testing.T) {
 }
 
 // TestApply_OneAuditRowPerSeed proves a seed writes exactly one audit
-// row, by the system actor on the env-seed channel.
+// row, by the system actor on the env_seed channel.
 func TestApply_OneAuditRowPerSeed(t *testing.T) {
 	h := newStore(t)
 	if err := Apply(ctxFor(t), h, newRegistry(), []string{keyKeep + "=20"}, testNow, discardLog); err != nil {
@@ -508,8 +508,8 @@ func TestApply_OneAuditRowPerSeed(t *testing.T) {
 	if len(got) != 1 {
 		t.Fatalf("audit rows = %d, want 1", len(got))
 	}
-	if got[0].actor != "system" || got[0].channel != "env-seed" {
-		t.Errorf("audit actor, channel = %q, %q, want system, env-seed", got[0].actor, got[0].channel)
+	if got[0].actor != "system" || got[0].channel != "env_seed" {
+		t.Errorf("audit actor, channel = %q, %q, want system, env_seed", got[0].actor, got[0].channel)
 	}
 }
 

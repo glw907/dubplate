@@ -420,12 +420,12 @@ func TestAuthCorrelatedRules(t *testing.T) {
 	}{
 		{
 			name: "retention and expiry raised together in one seed set",
-			rows: []store.SettingsRow{row(expiry, "15m", "env-seed"), row(retention, "30m", "env-seed")},
+			rows: []store.SettingsRow{row(expiry, "15m", "env_seed"), row(retention, "30m", "env_seed")},
 			env:  []string{expiry + "=45m", retention + "=1h"},
 		},
 		{
 			name:     "only the expiry raised past the stored retention",
-			rows:     []store.SettingsRow{row(expiry, "15m", "env-seed"), row(retention, "30m", "admin")},
+			rows:     []store.SettingsRow{row(expiry, "15m", "env_seed"), row(retention, "30m", "admin")},
 			env:      []string{expiry + "=45m"},
 			wantKeys: []string{expiry, retention},
 		},
@@ -492,7 +492,7 @@ func TestPrepareServe_RefusesAuthCorrelatedRule(t *testing.T) {
 // TestAuthSettings_SeedFromEnv is spec criterion 10's seed half, the
 // seed table's second row once per auth key: with no stored row and the
 // environment naming a value other than the default, serve's start
-// seeds one env-seed row for the key alone, audits it, and the reader
+// seeds one env_seed row for the key alone, audits it, and the reader
 // serve wires for the key reads that value. The handler readers are
 // read from [authHandlersConfig]'s own return value, the limits through
 // [auth.ReadLimits], and the retention from the nonce store
@@ -538,10 +538,10 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 			}
 
 			rows, audit, _ := readSeedState(t, environValue(environ, "DUBPLATE_STATE_DIR"))
-			if want := map[string]settingRow{tt.key: {tt.value, "env-seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
+			if want := map[string]settingRow{tt.key: {tt.value, "env_seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
 				t.Errorf("settings = %v, want %v", rows, want)
 			}
-			if want := "seed system env-seed " + tt.key; !slices.Equal(audit, []string{want}) {
+			if want := "seed system env_seed " + tt.key; !slices.Equal(audit, []string{want}) {
 				t.Errorf("audit = %q, want [%q]", audit, want)
 			}
 			cfg, err := config.Load(environ, productionRegistry())
@@ -596,7 +596,7 @@ func sweptAround(ctx context.Context, acc *settings.Accessor, stateDir string, r
 }
 
 // TestAuthSettings_StringRowSecondStart proves a seeded string row
-// survives the next start: the stored env-seed row equals the
+// survives the next start: the stored env_seed row equals the
 // environment, so the second start leaves it, writes no audit row, and
 // does not refuse. The first start is what stores the row, so the
 // second meets exactly the state every restart after it meets.
@@ -615,7 +615,7 @@ func TestAuthSettings_StringRowSecondStart(t *testing.T) {
 		t.Fatalf("close the first start: %v", err)
 	}
 	rows, audit, generation := readSeedState(t, stateDir)
-	if want := map[string]settingRow{key: {"generic", "env-seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
+	if want := map[string]settingRow{key: {"generic", "env_seed"}}; fmt.Sprint(rows) != fmt.Sprint(want) {
 		t.Fatalf("settings after the first start = %v, want %v", rows, want)
 	}
 

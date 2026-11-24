@@ -225,7 +225,7 @@ type JobSuccess struct {
 type SettingsRow struct {
 	Key   string
 	Value string
-	// Source is "env-seed" for a value the environment seeded and
+	// Source is "env_seed" for a value the environment seeded and
 	// "admin" for one an administrator set.
 	Source string
 	// SeedValue is the environment seed the row's value came from or,

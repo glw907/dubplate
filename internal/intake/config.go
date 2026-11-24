@@ -304,7 +304,7 @@ func Register(reg *config.Registry) {
 // its comma-separated format names, refusing an entry, an empty one
 // among them, that names no row of the gate's format table or a format
 // tagio does not read: serve would otherwise accept uploads it cannot
-// check, or render bad-extension's wording with no format in it.
+// check, or render bad_extension's wording with no format in it.
 func Allowlist(environ []string) ([]string, error) {
 	value, err := config.ParseString(environ, formatAllowlistThreshold)
 	if err != nil {

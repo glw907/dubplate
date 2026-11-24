@@ -27,7 +27,7 @@ type limits struct {
 }
 
 // limitRefusal is a create or an extraction refused by its first failing
-// limit. For could-not-check, err is the failed free-space read.
+// limit. For could_not_check, err is the failed free-space read.
 type limitRefusal struct {
 	code reject.Code
 	err  error
@@ -75,7 +75,7 @@ func checkCreate(ctx context.Context, tx *store.Tx, uploader identity.UserID, to
 		sessions = sessionCap.Int64
 	}
 	var uploading int64
-	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE uploader = ? AND state = ?`,
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE user_id = ? AND state = ?`,
 		uploader[:], stateUploading).Scan(&uploading); err != nil {
 		return fmt.Errorf("count upload sessions: %w", err)
 	}
@@ -147,7 +147,7 @@ func memberUse(ctx context.Context, tx *store.Tx, uploader identity.UserID, exce
 	var use int64
 	err := tx.QueryRow(ctx, `SELECT coalesce((SELECT charged_bytes FROM member_quota WHERE user_id = ?1), 0)
 		+ coalesce((SELECT sum(reserved_bytes) FROM submissions
-			WHERE uploader = ?1 AND `+openSubmission+` AND id IS NOT ?2), 0)`, uploader[:], except).Scan(&use)
+			WHERE user_id = ?1 AND `+openSubmission+` AND id IS NOT ?2), 0)`, uploader[:], except).Scan(&use)
 	if err != nil {
 		return 0, fmt.Errorf("read member use: %w", err)
 	}
@@ -159,14 +159,14 @@ func memberUse(ctx context.Context, tx *store.Tx, uploader identity.UserID, exce
 // limits with every other submission's bytes counted. A failing limit
 // rejects the submission in the same Update and returns its code; a
 // failed free-space read is gate.ErrCouldNotRun, which leaves the
-// submission for check-unfinished with its archive kept.
+// submission for check_unfinished with its archive kept.
 func (s *submissions) reserveExtracted(ctx context.Context, id []byte, total int64, lim limits) (reject.Code, error) {
 	free := s.readFree()
 	var refused reject.Code
 	err := s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
 		var uploader []byte
 		var current state
-		err := tx.QueryRow(ctx, `SELECT uploader, state FROM submissions WHERE id = ?`, id).Scan(&uploader, &current)
+		err := tx.QueryRow(ctx, `SELECT user_id, state FROM submissions WHERE id = ?`, id).Scan(&uploader, &current)
 		if errors.Is(err, sql.ErrNoRows) {
 			return errNotFound
 		}

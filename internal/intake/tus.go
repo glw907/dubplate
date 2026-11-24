@@ -120,7 +120,7 @@ func (m *tusMount) checkCreate(hook handler.HookEvent) (handler.HTTPResponse, ha
 
 	var size int64
 	err := m.subs.store.QueryRow(ctx, `SELECT f.size FROM submission_files f JOIN submissions s ON s.id = f.submission_id
-		WHERE f.id = ? AND f.submission_id = ? AND s.uploader = ? AND s.state = ? AND f.received_at IS NULL`,
+		WHERE f.id = ? AND f.submission_id = ? AND s.user_id = ? AND s.state = ? AND f.received_at IS NULL`,
 		file, submission, member[:], stateUploading).Scan(&size)
 	if errors.Is(err, sql.ErrNoRows) {
 		return handler.HTTPResponse{}, handler.FileInfoChanges{}, errTusNoFile

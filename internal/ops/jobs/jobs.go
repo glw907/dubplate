@@ -20,7 +20,7 @@ import (
 const cancelPoll = 2 * time.Second
 
 // jobErrorCode is the failure code of a body error that carries none.
-const jobErrorCode = "job-error"
+const jobErrorCode = "job_error"
 
 // A body is a job's work. It reports each phase through progress,
 // which records the phase and returns the context's error once a

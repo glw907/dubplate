@@ -99,7 +99,7 @@ func albumOfSpecs(specs ...flacSpec) func(t *testing.T) (newSubmission, [][]byte
 // is exempt with its reason.
 func TestEveryBlockingCodeIsProduced(t *testing.T) {
 	exempt := map[reject.Code]string{
-		reject.Symlink: "a ZIP symlink member answers unsafe-path; symlink is kept for rung 9's timer path",
+		reject.Symlink: "a ZIP symlink member answers unsafe_path; symlink is kept for rung 9's timer path",
 	}
 	tagged := func(tags ...[2]string) flacSpec {
 		s := cdTrack(60, 1)

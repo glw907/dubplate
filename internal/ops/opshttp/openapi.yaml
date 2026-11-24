@@ -423,7 +423,7 @@ components:
         value: { type: string }
         source:
           type: string
-          enum: [admin, env-seed, environment, default]
+          enum: [admin, env_seed, environment, default]
         seed_value: { type: string }
     ListSettingsResponse:
       type: object
@@ -453,7 +453,7 @@ components:
           enum: [immediately, next_operation, restart]
         source:
           type: string
-          enum: [admin, env-seed, environment, default]
+          enum: [admin, env_seed, environment, default]
     Reason:
       type: object
       required: [code, label, friendly, next_step]

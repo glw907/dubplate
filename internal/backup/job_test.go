@@ -79,7 +79,7 @@ func plantTracks(t *testing.T, h *store.Handle, n int) {
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); err != nil {
 			return err
 		}
@@ -459,7 +459,7 @@ func TestBackup_ZeroTracksKeepsRemote(t *testing.T) {
 	}
 
 	_, st := runBackup(t, h, remote, lib)
-	wantState(t, st, ops.JobFailed, "rclone-exit-7")
+	wantState(t, st, ops.JobFailed, "rclone_exit_7")
 	if got, want := treeFiles(t, filepath.Join(remoteDir, "library")), []string{"a/one.flac", "a/two.flac"}; !slices.Equal(got, want) {
 		t.Errorf("remote library/ holds %q, want both files", got)
 	}
@@ -554,7 +554,7 @@ func TestBackup_Refusals(t *testing.T) {
 		{
 			name:     "missing root",
 			root:     func(_ *testing.T, base string) string { return filepath.Join(base, "absent") },
-			wantCode: "library-missing",
+			wantCode: "library_missing",
 		},
 		{
 			name: "dangling symlink",
@@ -565,7 +565,7 @@ func TestBackup_Refusals(t *testing.T) {
 				}
 				return link
 			},
-			wantCode: "library-missing",
+			wantCode: "library_missing",
 		},
 		{
 			name: "root is a regular file",
@@ -573,7 +573,7 @@ func TestBackup_Refusals(t *testing.T) {
 				writeTree(t, base, "file")
 				return filepath.Join(base, "file")
 			},
-			wantCode: "library-missing",
+			wantCode: "library_missing",
 		},
 		{
 			name: "empty root, zero tracks",
@@ -584,7 +584,7 @@ func TestBackup_Refusals(t *testing.T) {
 				}
 				return lib
 			},
-			wantCode: "library-empty",
+			wantCode: "library_empty",
 		},
 		{
 			name:   "one file under four tracks",
@@ -593,7 +593,7 @@ func TestBackup_Refusals(t *testing.T) {
 				writeTree(t, base, "lib/a/one.flac")
 				return filepath.Join(base, "lib")
 			},
-			wantCode: "library-short",
+			wantCode: "library_short",
 			wantMsg:  "holds 1 files, fewer than 0.5 of the catalog's 4 tracks",
 		},
 		{
@@ -607,7 +607,7 @@ func TestBackup_Refusals(t *testing.T) {
 				t.Cleanup(func() { _ = os.Chmod(lib, 0o755) })
 				return lib
 			},
-			wantCode: "library-unreadable",
+			wantCode: "library_unreadable",
 			wantMsg:  "permission denied",
 		},
 		{
@@ -617,31 +617,31 @@ func TestBackup_Refusals(t *testing.T) {
 				t.Chdir(base)
 				return "-x"
 			},
-			wantCode: "library-invalid",
+			wantCode: "library_invalid",
 			wantMsg:  "is not an absolute path",
 		},
 		{
 			name:     "remote with no colon",
 			root:     func(t *testing.T, base string) string { writeTree(t, base, "lib/a"); return filepath.Join(base, "lib") },
 			remote:   "relative/dir",
-			wantCode: "remote-invalid",
+			wantCode: "remote_invalid",
 		},
 		{
 			name:     "remote name outside the set",
 			root:     func(t *testing.T, base string) string { writeTree(t, base, "lib/a"); return filepath.Join(base, "lib") },
 			remote:   "my-remote:dir",
-			wantCode: "remote-invalid",
+			wantCode: "remote_invalid",
 		},
 		{
 			name:     "rclone not on PATH",
 			root:     func(_ *testing.T, base string) string { return filepath.Join(base, "absent") },
 			noRclone: true,
-			wantCode: "rclone-missing",
+			wantCode: "rclone_missing",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.wantCode == "library-unreadable" && os.Geteuid() == 0 {
+			if tt.wantCode == "library_unreadable" && os.Geteuid() == 0 {
 				t.Skip("root reads a mode-0 directory")
 			}
 			s := useStandin(t, standinConfig{})
@@ -696,7 +696,7 @@ func TestBackup_StructuralRefusals(t *testing.T) {
 			retention := func(context.Context) (time.Duration, error) { return tt.archiveRetention, nil }
 			_, st := runBackupWithBackup(t, h, "name:dir", lib, keep, fraction, retention)
 
-			wantState(t, st, ops.JobFailed, "job-invalid")
+			wantState(t, st, ops.JobFailed, "job_invalid")
 			if !strings.Contains(st.FailureMessage, tt.wantMsg) {
 				t.Errorf("failure message %q does not name %q", st.FailureMessage, tt.wantMsg)
 			}
@@ -768,9 +768,9 @@ func TestBackup_Destinations(t *testing.T) {
 }
 
 // TestBackup_TransferFailures pins the transfer's failure rows against
-// the stand-in: a nonzero sync exit is rclone-exit-<N> (spec criterion
+// the stand-in: a nonzero sync exit is rclone_exit_<N> (spec criterion
 // 14 for 7) with rclone's last stderr line as the message; a failed
-// send removes the stage; a refused copy is snapshot-failed and sends
+// send removes the stage; a refused copy is snapshot_failed and sends
 // nothing.
 func TestBackup_TransferFailures(t *testing.T) {
 	tests := []struct {
@@ -781,10 +781,10 @@ func TestBackup_TransferFailures(t *testing.T) {
 		wantMsg     string
 		wantSubs    []string
 	}{
-		{name: "sync exits 7", exit: "sync=7", wantCode: "rclone-exit-7", wantMsg: "stand-in sync exits 7", wantSubs: []string{"sync"}},
-		{name: "sync exits 3", exit: "sync=3", wantCode: "rclone-exit-3", wantMsg: "stand-in sync exits 3", wantSubs: []string{"sync"}},
-		{name: "send exits 1", exit: "copyto=1", wantCode: "rclone-exit-1", wantMsg: "stand-in copyto exits 1", wantSubs: []string{"sync", "copyto"}},
-		{name: "copy refused", lockStaging: true, wantCode: "snapshot-failed", wantMsg: "permission denied", wantSubs: []string{"sync"}},
+		{name: "sync exits 7", exit: "sync=7", wantCode: "rclone_exit_7", wantMsg: "stand-in sync exits 7", wantSubs: []string{"sync"}},
+		{name: "sync exits 3", exit: "sync=3", wantCode: "rclone_exit_3", wantMsg: "stand-in sync exits 3", wantSubs: []string{"sync"}},
+		{name: "send exits 1", exit: "copyto=1", wantCode: "rclone_exit_1", wantMsg: "stand-in copyto exits 1", wantSubs: []string{"sync", "copyto"}},
+		{name: "copy refused", lockStaging: true, wantCode: "snapshot_failed", wantMsg: "permission denied", wantSubs: []string{"sync"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -848,9 +848,9 @@ func TestBackup_StageNotRemoved(t *testing.T) {
 
 // TestBackup_CancelPrecedence is the cancel precedence rows. A
 // SIGINT-honoring stand-in canceled mid-sync receives one SIGINT,
-// exits 130, and the job ends canceled, never rclone-exit-130. A
+// exits 130, and the job ends canceled, never rclone_exit_130. A
 // stand-in the test kills with SIGKILL, with no cancel, ends the job
-// failed with rclone-signal-KILL.
+// failed with rclone_signal_kill.
 func TestBackup_CancelPrecedence(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -860,7 +860,7 @@ func TestBackup_CancelPrecedence(t *testing.T) {
 		wantExit  int
 	}{
 		{name: "canceled", cancel: true, wantState: ops.JobCanceled, wantExit: 1},
-		{name: "killed", wantState: ops.JobFailed, wantCode: "rclone-signal-KILL"},
+		{name: "killed", wantState: ops.JobFailed, wantCode: "rclone_signal_kill"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

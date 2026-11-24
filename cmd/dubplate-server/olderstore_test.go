@@ -41,6 +41,7 @@ var migrationTables = map[int][]string{
 // tables. An index goes before its column, because SQLite refuses to
 // drop an indexed column.
 var migrationUndo = map[int][]string{
+	7: {"ALTER TABLE collections RENAME COLUMN user_id TO owner", "ALTER TABLE submissions RENAME COLUMN user_id TO uploader"},
 	6: {"DROP INDEX collections_intake_route", "ALTER TABLE collections DROP COLUMN intake_route"},
 }
 

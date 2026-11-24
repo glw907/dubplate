@@ -197,8 +197,8 @@ func TestStatesMatchTheSharedVocabulary(t *testing.T) {
 }
 
 // TestRetryAndCancelFromEveryState is AC 26's table for the states this
-// pass emits: retry leaves check-unfinished alone, cancel leaves
-// uploading and check-unfinished, and every other cell is a conflict
+// pass emits: retry leaves check_unfinished alone, cancel leaves
+// uploading and check_unfinished, and every other cell is a conflict
 // that changes nothing.
 func TestRetryAndCancelFromEveryState(t *testing.T) {
 	type action struct {

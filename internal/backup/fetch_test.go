@@ -491,7 +491,7 @@ func TestFetch_FailureRemovesStage(t *testing.T) {
 		{
 			name:    "rclone exits 1",
 			exit:    "copyto=1",
-			wantErr: []string{"fetch name:dir/snapshots/" + stampNew + ".db", "rclone-exit-1", "stand-in copyto exits 1"},
+			wantErr: []string{"fetch name:dir/snapshots/" + stampNew + ".db", "rclone_exit_1", "stand-in copyto exits 1"},
 		},
 		{
 			name:       "canceled mid-transfer",

@@ -207,7 +207,7 @@ func TestAlbum_VinylSidesAreMissingTrackNumbers(t *testing.T) {
 	for _, no := range []string{"A1", "A2", "B1"} {
 		res := check(t, cd(400, 1, [2]string{"TRACKNUMBER", no}).encode(t), testPolicy(), UnitAlbum)
 		if res.Verdict != reject.MissingTrackNumber {
-			t.Errorf("TRACKNUMBER=%s verdict = %q, want missing-track-number", no, res.Verdict)
+			t.Errorf("TRACKNUMBER=%s verdict = %q, want missing_track_number", no, res.Verdict)
 		}
 	}
 }

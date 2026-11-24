@@ -46,14 +46,14 @@ var (
 
 // sources are the answers to where the music came from, as the
 // submissions.source column stores them.
-var sources = []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"}
+var sources = []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"}
 
 // CheckManifest runs the checks that need no bytes against m, collecting
 // every reason rather than stopping at the first. It returns an error, and
 // no reasons, for a manifest that is malformed rather than refused.
 //
-// A file's reason is the first of: unsafe-path, path-too-deep, then, for
-// loose files, bad-extension. Extras count toward the album's size.
+// A file's reason is the first of: unsafe_path, path_too_deep, then, for
+// loose files, bad_extension. Extras count toward the album's size.
 func CheckManifest(m Manifest, p Policy) (Refusal, error) {
 	seen := make(map[string]bool, len(m.Files))
 	for _, f := range m.Files {

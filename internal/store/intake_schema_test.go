@@ -18,7 +18,7 @@ const (
 // nil), and returns the insert's error.
 func insertCollection(h *Handle, root string, route any) error {
 	_, err := h.write.ExecContext(context.Background(),
-		`INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
+		`INSERT INTO collections (id, name, root_path, user_id, visibility, writer, intake_route)
 		 VALUES (?, 'Probe', ?, `+intakeFixtureAdmin+`, 'group', 'server', ?)`,
 		id.New(), []byte(root), route)
 	return err

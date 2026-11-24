@@ -182,7 +182,7 @@ func (e *codedErr) Error() string       { return e.msg }
 func (e *codedErr) FailureCode() string { return e.code }
 
 // TestRun_BodyOutcomes pins how a body's return reaches its record: a
-// coded error's code and message, any other error as job-error, and a
+// coded error's code and message, any other error as job_error, and a
 // success's final progress text.
 func TestRun_BodyOutcomes(t *testing.T) {
 	tests := []struct {
@@ -194,8 +194,8 @@ func TestRun_BodyOutcomes(t *testing.T) {
 		wantMessage  string
 		wantProgress string
 	}{
-		{"coded error", "", fmt.Errorf("send: %w", &codedErr{code: "rclone-exit-7", msg: "sync failed"}), "failed", "rclone-exit-7", "send: sync failed", "started"},
-		{"other error", "", errors.New("disk on fire"), "failed", "job-error", "disk on fire", "started"},
+		{"coded error", "", fmt.Errorf("send: %w", &codedErr{code: "rclone_exit_7", msg: "sync failed"}), "failed", "rclone_exit_7", "send: sync failed", "started"},
+		{"other error", "", errors.New("disk on fire"), "failed", "job_error", "disk on fire", "started"},
 		{"success with final text", "prune skipped: clock behind", nil, "succeeded", "", "", "prune skipped: clock behind"},
 		{"success without final text", "", nil, "succeeded", "", "", "started"},
 	}

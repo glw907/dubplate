@@ -261,7 +261,7 @@ export const SETTING_APPLY: Record<string, string> = {
 /** Where a stored value came from, keyed by the source the server answers with. */
 export const SETTING_SOURCES: Record<string, string> = {
   admin: 'Changed here.',
-  'env-seed': 'Taken from the environment file at first start.',
+  env_seed: 'Taken from the environment file at first start.',
   default: 'The default.'
 };
 

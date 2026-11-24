@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"maps"
 	"os"
 	"os/exec"
@@ -88,8 +89,8 @@ func TestInspect_HotWAL(t *testing.T) {
 		wantPending []string
 	}{
 		{name: "absent", wantState: StateAbsent},
-		{name: "older", through: 1, child: "older", wantState: StateOlder, wantVersion: 2, wantPending: []string{"0003_catalog.sql", "0004_settings.sql", "0005_routed.sql", "0006_intake.sql"}},
-		{name: "newer", through: binaryHead, child: "newer", wantState: StateNewer, wantVersion: 7},
+		{name: "older", through: 1, child: "older", wantState: StateOlder, wantVersion: 2, wantPending: []string{"0003_catalog.sql", "0004_settings.sql", "0005_routed.sql", "0006_intake.sql", "0007_snake_case.sql"}},
+		{name: "newer", through: binaryHead, child: "newer", wantState: StateNewer, wantVersion: 8},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -399,31 +400,34 @@ func TestInspect_NewerStoreHasNoFacts(t *testing.T) {
 	}
 }
 
-// insertSetting inserts one settings row and bumps the generation by
-// raw SQL, the shape a fixture below the settings runner's own writer
-// plants.
+// insertSettingSQL inserts one settings row under the given source
+// spelling and bumps the generation by raw SQL, the shape a fixture
+// below the settings runner's own writer plants.
 const insertSettingSQL = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-	VALUES ('DUBPLATE_TEST_KEY', 'seven', 'env-seed', 'seven', 'system', 1790251200000000);
+	VALUES ('DUBPLATE_TEST_KEY', 'seven', '%s', 'seven', 'system', 1790251200000000);
 UPDATE settings_generation SET generation = 3 WHERE singleton = 1;`
 
 // TestInspect_SettingsFacts is R-6c10's own table, in-package: a
 // current store and an older store whose version holds the settings
 // table (0004, with 0005 pending) both read the stored row and the
 // generation; an older store below that version reads the table
-// absent marker instead, never an empty result mistaken for one.
+// absent marker instead, never an empty result mistaken for one. Each
+// store holds the source spelling its own version admits, and Inspect
+// reports it as stored.
 func TestInspect_SettingsFacts(t *testing.T) {
 	tests := []struct {
 		name    string
 		through int
+		source  string
 	}{
-		{name: "current", through: binaryHead},
-		{name: "older, settings table present, 0005 pending", through: 4},
+		{name: "current", through: binaryHead, source: "env_seed"},
+		{name: "older, settings table present, 0005 pending", through: 4, source: "env-seed"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			l := buildStore(t, stateDir, tt.through)
-			rawExec(t, l.dbPath, insertSettingSQL)
+			rawExec(t, l.dbPath, fmt.Sprintf(insertSettingSQL, tt.source))
 
 			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
 			if r.Facts == nil {
@@ -436,7 +440,7 @@ func TestInspect_SettingsFacts(t *testing.T) {
 			// Fixture state: the store holds one settings row, so an
 			// empty result here would pass a bug that never reads the
 			// table at all.
-			want := []SettingsRow{{Key: "DUBPLATE_TEST_KEY", Value: "seven", Source: "env-seed", SeedValue: "seven", Actor: "system", UpdatedAt: time.UnixMicro(1790251200000000).UTC()}}
+			want := []SettingsRow{{Key: "DUBPLATE_TEST_KEY", Value: "seven", Source: tt.source, SeedValue: "seven", Actor: "system", UpdatedAt: time.UnixMicro(1790251200000000).UTC()}}
 			if !slices.Equal(f.Settings, want) {
 				t.Errorf("settings = %+v, want %+v", f.Settings, want)
 			}

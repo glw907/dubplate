@@ -13,7 +13,7 @@ import (
 
 // TestSettingsReaders is spec criterion 13's reader half: each of the
 // three backup keys' reader returns the registry default while the
-// store holds no row, and a stored env-seed row's non-default value
+// store holds no row, and a stored env_seed row's non-default value
 // once one exists. Each stored value sits at or above the floor under
 // either answer to Ruling 3.
 func TestSettingsReaders(t *testing.T) {
@@ -55,13 +55,13 @@ func TestSettingsReaders(t *testing.T) {
 			}
 			seedSettingRow(t, h, tt.key, tt.seed)
 			if got, err := tt.read(); err != nil || got != tt.wantSeeded {
-				t.Errorf("%s after an env-seed row = %q, %v, want %q", tt.key, got, err, tt.wantSeeded)
+				t.Errorf("%s after an env_seed row = %q, %v, want %q", tt.key, got, err, tt.wantSeeded)
 			}
 		})
 	}
 }
 
-// seedSettingRow writes key as a literal env-seed settings row and
+// seedSettingRow writes key as a literal env_seed settings row and
 // bumps the generation, in one transaction: production writes a
 // settings row only through the seed apply, so a test seeds one
 // directly by literal SQL.
@@ -69,7 +69,7 @@ func seedSettingRow(t *testing.T, h *store.Handle, key, value string) {
 	t.Helper()
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		_, err := tx.Exec(ctx, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`, key, value, value)
+VALUES (?, ?, 'env_seed', ?, 'fixture', 1)`, key, value, value)
 		if err != nil {
 			return err
 		}

@@ -86,10 +86,12 @@ type migrateOptions struct {
 // files' highest, and a store whose ledger disagrees with files: a row
 // whose name or hash differs from the file at its version, a row above
 // user_version or with no file, or a version from 1 through
-// user_version with no row. Before applying anything to a store at a
-// version above 0, it takes a verified copy of the store as
-// snapshots/pre-migrate-v<N>.db, replacing an existing copy of the same
-// version.
+// user_version with no row. A row whose hash an [amendment] names as
+// its former text passes only while a migration is pending. Before
+// applying anything to a store at a version above 0, it takes a
+// verified copy of the store as snapshots/pre-migrate-v<N>.db,
+// replacing an existing copy of the same version, and then applies the
+// amendments in their own transaction.
 //
 // Each file applies in its own IMMEDIATE transaction that also sets
 // user_version and inserts the file's ledger row, so a file that fails
@@ -126,6 +128,9 @@ func migrate(ctx context.Context, h *Handle, l leaf, files []migration, opts mig
 		if err := takeSnapshot(ctx, l, opts.busyTimeout, preMigrateName(current), current); err != nil {
 			return fmt.Errorf("migrate %s: %w", h.path, err)
 		}
+	}
+	if err := amend(ctx, h.write, files, current); err != nil {
+		return fmt.Errorf("migrate %s: %w", h.path, err)
 	}
 	for _, m := range files[current:] {
 		if err := applyMigration(ctx, h, m, opts.busyTimeout); err != nil {
@@ -234,7 +239,10 @@ func checkLedger(ctx context.Context, db *sql.DB, files []migration, current int
 			return fmt.Errorf("ledger row for version %d has no migration file in this binary", v)
 		}
 		m := files[v-1]
-		if name != m.name || sum != m.sum {
+		// An amended row passes only while a migration is pending,
+		// since migrate amends it before applying one.
+		amended := current < len(files) && amendable(v, sum)
+		if name != m.name || (sum != m.sum && !amended) {
 			return fmt.Errorf("ledger version %d records %s (sha256 %s), this binary has %s (sha256 %s)", v, name, sum, m.name, m.sum)
 		}
 		recorded[v] = true

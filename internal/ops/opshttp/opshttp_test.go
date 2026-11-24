@@ -245,7 +245,7 @@ func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"admin"}`},
 		{ops.OpResetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW"}`,
 			ops.ResetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW"},
-			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"env-seed"}`},
+			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"env_seed"}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.op, func(t *testing.T) {

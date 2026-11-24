@@ -90,7 +90,7 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		}},
 		{"ResetSettingRequest", func(t *testing.T) { roundTrip(t, ResetSettingRequest{Key: "K"}) }},
 		{"ResetSettingResponse", func(t *testing.T) {
-			roundTrip(t, ResetSettingResponse{Key: "K", Apply: "restart", Source: "env-seed"})
+			roundTrip(t, ResetSettingResponse{Key: "K", Apply: "restart", Source: "env_seed"})
 		}},
 	}
 	for _, tt := range tests {

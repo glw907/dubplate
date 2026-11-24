@@ -227,7 +227,7 @@ func TestReportOutcome_Table(t *testing.T) {
 		},
 		{
 			name:    "failed",
-			job:     ops.JobStatus{JobID: reportedJob, State: ops.JobFailed, FailureCode: "rclone-exit-7", FailureMessage: "max-delete exceeded"},
+			job:     ops.JobStatus{JobID: reportedJob, State: ops.JobFailed, FailureCode: "rclone_exit_7", FailureMessage: "max-delete exceeded"},
 			wantErr: true,
 		},
 		{
@@ -431,8 +431,8 @@ func TestBackupCmd_Failed(t *testing.T) {
 	if code != 1 {
 		t.Errorf("exit = %d, want 1", code)
 	}
-	if err == nil || !strings.Contains(err.Error(), "rclone-exit-7") {
-		t.Errorf("error = %v, want it to name the failure code rclone-exit-7", err)
+	if err == nil || !strings.Contains(err.Error(), "rclone_exit_7") {
+		t.Errorf("error = %v, want it to name the failure code rclone_exit_7", err)
 	}
 }
 
@@ -481,7 +481,7 @@ func plantCatalogTracks(t *testing.T, stateDir string, n int) {
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); err != nil {
 			return err
 		}
@@ -578,8 +578,8 @@ func TestBackupCmd_GuardAdminRow(t *testing.T) {
 				if code != 1 {
 					t.Errorf("exit = %d, want 1; error: %v", code, err)
 				}
-				if err == nil || !strings.Contains(err.Error(), "library-short") {
-					t.Errorf("error = %v, want it to name library-short", err)
+				if err == nil || !strings.Contains(err.Error(), "library_short") {
+					t.Errorf("error = %v, want it to name library_short", err)
 				}
 				if lines := backupStandinLines(t, os.Getenv(backupStandinRecordEnv)); len(lines) != 0 {
 					t.Errorf("stand-in recorded %d invocation(s), want 0: %v", len(lines), lines)
@@ -592,7 +592,7 @@ func TestBackupCmd_GuardAdminRow(t *testing.T) {
 }
 
 // TestBackupCmd_RetentionReaderPrune is criterion 13's retention half,
-// end to end: an env-seed row of 48h for DUBPLATE_JOB_RETENTION prunes
+// end to end: an env_seed row of 48h for DUBPLATE_JOB_RETENTION prunes
 // a finished job record aged 72h that the registry's own 2160h default
 // would have kept.
 func TestBackupCmd_RetentionReaderPrune(t *testing.T) {
@@ -606,7 +606,7 @@ func TestBackupCmd_RetentionReaderPrune(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	seedSettingRow(t, h, "DUBPLATE_JOB_RETENTION", "48h", "env-seed")
+	seedSettingRow(t, h, "DUBPLATE_JOB_RETENTION", "48h", "env_seed")
 	if err := h.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}
@@ -693,7 +693,7 @@ func dumpRows(t *testing.T, h *store.Handle, query string) string {
 }
 
 // TestBackupCmd_SettingsEvaluationNeverApplies is spec criterion 8: a
-// store holding an env-seed row of 14 for DUBPLATE_BACKUP_SNAPSHOT_KEEP,
+// store holding an env_seed row of 14 for DUBPLATE_BACKUP_SNAPSHOT_KEEP,
 // with the environment at 20, leaves every settings, settings_audit,
 // and generation row byte-identical, logs the disagreement naming the
 // key, and runs the job with 14. It runs against a real local rclone
@@ -733,7 +733,7 @@ func TestBackupCmd_SettingsEvaluationNeverApplies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env-seed")
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env_seed")
 	if err := h.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}

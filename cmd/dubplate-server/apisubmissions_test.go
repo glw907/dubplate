@@ -209,7 +209,7 @@ func TestAPI_CreateNeverTakesAFieldFromTheBody(t *testing.T) {
 	var uploader, collection []byte
 	var state string
 	var reserved int64
-	err := a.h.QueryRow(t.Context(), `SELECT uploader, collection_id, state, reserved_bytes FROM submissions WHERE id = ?`,
+	err := a.h.QueryRow(t.Context(), `SELECT user_id, collection_id, state, reserved_bytes FROM submissions WHERE id = ?`,
 		resp.SubmissionID[:]).Scan(&uploader, &collection, &state, &reserved)
 	if err != nil {
 		t.Fatal(err)
@@ -250,26 +250,26 @@ func TestAPI_RefusedCreateListsEveryFailingPathWithItsWording(t *testing.T) {
 		t.Fatalf("code %q detail %q rejects %v, want invalid_request, no detail, and rejects", code, detail, rejects)
 	}
 	if len(rejects.Submission) != 1 {
-		t.Fatalf("submission reasons = %+v, want only missing-source", rejects.Submission)
+		t.Fatalf("submission reasons = %+v, want only missing_source", rejects.Submission)
 	}
 	missing := rejects.Submission[0]
-	if missing.Code != "missing-source" || missing.Label != "source missing" ||
+	if missing.Code != "missing_source" || missing.Label != "source missing" ||
 		missing.Friendly != "This upload doesn't say where the music came from." ||
 		missing.NextStep != "Choose where it came from, then upload it again." {
-		t.Errorf("missing-source reason = %+v, want PCF's wording", missing)
+		t.Errorf("missing_source reason = %+v, want PCF's wording", missing)
 	}
 	got := map[string]string{}
 	for _, f := range rejects.Files {
 		got[f.Path] = string(f.Reason.Code)
 	}
-	want := map[string]string{"../a.flac": "unsafe-path", "/b.flac": "unsafe-path", "c.mp3": "bad-extension"}
+	want := map[string]string{"../a.flac": "unsafe_path", "/b.flac": "unsafe_path", "c.mp3": "bad_extension"}
 	if !maps.Equal(got, want) {
 		t.Errorf("failing files = %v, want %v", got, want)
 	}
 	for _, f := range rejects.Files {
 		if f.Path == "c.mp3" && (f.Reason.Label != "not FLAC" || f.Reason.Friendly != "This isn't a FLAC file, and the library keeps lossless FLAC." ||
 			f.Reason.NextStep != "Download this album as FLAC and upload that instead.") {
-			t.Errorf("bad-extension reason = %+v, want PCF's wording", f.Reason)
+			t.Errorf("bad_extension reason = %+v, want PCF's wording", f.Reason)
 		}
 	}
 	var n int
@@ -279,7 +279,7 @@ func TestAPI_RefusedCreateListsEveryFailingPathWithItsWording(t *testing.T) {
 }
 
 // TestAPI_SourceAnswers proves a submission without a source, with an
-// empty one, and with an unknown one each answer missing-source, and
+// empty one, and with an unknown one each answer missing_source, and
 // each of the seven values is stored and read back (AC14).
 func TestAPI_SourceAnswers(t *testing.T) {
 	a := newSubmissionHarness(t)
@@ -295,8 +295,8 @@ func TestAPI_SourceAnswers(t *testing.T) {
 			if rec.Code != http.StatusBadRequest {
 				t.Fatalf("status = %d %s, want 400", rec.Code, rec.Body)
 			}
-			if _, _, rejects := errorBody(t, rec); rejects == nil || len(rejects.Submission) != 1 || rejects.Submission[0].Code != "missing-source" {
-				t.Errorf("rejects = %+v, want missing-source", rejects)
+			if _, _, rejects := errorBody(t, rec); rejects == nil || len(rejects.Submission) != 1 || rejects.Submission[0].Code != "missing_source" {
+				t.Errorf("rejects = %+v, want missing_source", rejects)
 			}
 		})
 	}
@@ -309,7 +309,7 @@ func TestAPI_SourceAnswers(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	for _, source := range []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"} {
+	for _, source := range []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"} {
 		t.Run(source, func(t *testing.T) {
 			rec := a.call("create_submission", member, withSource(`,"source":"`+source+`"`))
 			if rec.Code != http.StatusOK {
@@ -427,7 +427,7 @@ func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 			`UPDATE submission_files SET verdict = 'corrupt' WHERE submission_id = ?1`,
 			`UPDATE submissions SET state = 'rejected' WHERE id = ?1`,
 			`INSERT INTO submission_events (id, submission_id, seq, at, kind, reason) VALUES (randomblob(16), ?1, 2, 5, 'rejected', 'corrupt')`,
-			`INSERT INTO submission_warnings (id, submission_id, code, subject, at) VALUES (randomblob(16), ?1, 'extras-dropped', CAST('scan.jpg' AS BLOB), 6)`,
+			`INSERT INTO submission_warnings (id, submission_id, code, subject, at) VALUES (randomblob(16), ?1, 'extras_dropped', CAST('scan.jpg' AS BLOB), 6)`,
 		} {
 			if _, err := tx.Exec(ctx, q, sid); err != nil {
 				return err
@@ -463,7 +463,7 @@ func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 		"next_step": "Upload it again from the original file.",
 	}
 	extras := map[string]string{
-		"code": "extras-dropped", "label": "extras left out",
+		"code": "extras_dropped", "label": "extras left out",
 		"friendly":  "When you upload separate tracks, only the music files are kept, so the other files in the ZIP were left out.",
 		"next_step": "If you wanted them kept, upload the whole album instead.",
 	}
@@ -474,6 +474,6 @@ func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 		t.Errorf("events = %+v, want uploading then rejected carrying the corrupt reason", got.Events)
 	}
 	if len(got.Warnings) != 1 || !maps.Equal(got.Warnings[0].Reason, extras) || got.Warnings[0].Subject != "scan.jpg" {
-		t.Errorf("warnings = %+v, want extras-dropped naming scan.jpg", got.Warnings)
+		t.Errorf("warnings = %+v, want extras_dropped naming scan.jpg", got.Warnings)
 	}
 }

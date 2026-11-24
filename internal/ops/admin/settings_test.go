@@ -64,8 +64,8 @@ func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
 		environ = append(environ, fmt.Sprintf("%s=SENTINEL-%d", name, i))
 	}
 	f := newFixtureWith(t, fixtureOptions{reg: reg, env: environ})
-	execSQL(t, f.h, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, '2h', 'env-seed', '2h', 'system', 1)`, keyLifetime)
-	execSQL(t, f.h, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, '30', 'env-seed', '30', 'system', 1)`, keyKeep)
+	execSQL(t, f.h, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, '2h', 'env_seed', '2h', 'system', 1)`, keyLifetime)
+	execSQL(t, f.h, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, '30', 'env_seed', '30', 'system', 1)`, keyKeep)
 	plantAdminRow(t, f, keyKeep, "20")
 
 	resp, err := f.seam.ListSettings(writeCtx(t), actor(alice, stale), ops.ListSettingsRequest{})
@@ -86,7 +86,7 @@ func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
 	}
 	want := []ops.SettingEntry{
 		{Key: keyLifetime, Home: "store", Description: "how long a test session lasts", Apply: "next_operation", Sensitivity: "sensitive",
-			Value: str("2h"), Source: str("env-seed"), SeedValue: str("2h")},
+			Value: str("2h"), Source: str("env_seed"), SeedValue: str("2h")},
 		{Key: keyKeep, Home: "store", Description: "how many test snapshots to keep", Apply: "restart", Sensitivity: "not_sensitive",
 			Value: str("20"), Source: str("admin"), SeedValue: str("30")},
 		{Key: keyLimit, Home: "store", Description: "how many test things at once", Apply: "immediately", Sensitivity: "not_sensitive",

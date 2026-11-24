@@ -78,7 +78,7 @@ func (in *Intake) queue(ctx context.Context) ([][]byte, error) {
 
 // check runs the gate over checking submission id and commits its
 // verdict, then removes the bytes the verdict leaves outside the staged
-// set. A check that could not run commits check-unfinished, keeping the
+// set. A check that could not run commits check_unfinished, keeping the
 // staged bytes and the reservation. A cancelled ctx commits nothing:
 // the submission stays checking with its bytes and reservation for the
 // next start, so a deploy never asks a member to retry. A store fault
@@ -127,7 +127,7 @@ func (in *Intake) judgeContained(ctx context.Context, id []byte, log *slog.Logge
 	return in.judge(ctx, id)
 }
 
-// unfinish moves checking submission id to check-unfinished, keeping
+// unfinish moves checking submission id to check_unfinished, keeping
 // its staged bytes and its reservation. An archive's extracted members
 // are scratch until a verdict, so they go first: the retry extracts
 // again.
