@@ -70,9 +70,11 @@ func dueRepairs(ctx context.Context, q *sql.DB, files []migration, current int) 
 
 // applyRepairs runs each repair inside tx, the transaction of the first
 // migration the store takes. A store never commits an amended ledger at
-// its old version, so a retry after a failed migration copies the store
-// as it was, and the pre-migrate copy stays one the earlier binary
-// opens.
+// the version it started from, so the pre-migrate copy named for that
+// version stays one the earlier binary opens, however often the run is
+// retried. A later file's failure leaves the store at a newer version
+// with the amendment applied, and the copy a retry takes there is named
+// for that newer version.
 func applyRepairs(ctx context.Context, tx *sql.Tx, dbPath string, due []repair) error {
 	for _, r := range due {
 		if _, err := tx.ExecContext(ctx,

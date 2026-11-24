@@ -92,7 +92,8 @@ type migrateOptions struct {
 // verified copy of the store as snapshots/pre-migrate-v<N>.db,
 // replacing an existing copy of the same version. The amendments apply
 // inside the first file's transaction, so a store whose first file
-// fails keeps its former ledger row and schema.
+// fails keeps its former ledger row and schema, and the copy named for
+// the version the store started from never holds an amendment.
 //
 // Each file applies in its own IMMEDIATE transaction that also sets
 // user_version and inserts the file's ledger row, so a file that fails

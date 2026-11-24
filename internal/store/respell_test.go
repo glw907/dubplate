@@ -227,27 +227,12 @@ func TestMigrateKeepsTheBoxCatalogWhenAMigrationFails(t *testing.T) {
 		t.Fatalf("migrate with a failing 0006: %v, want its no_such_table error", err)
 	}
 
-	boxShape := func(t *testing.T, db *sql.DB, what string) {
-		t.Helper()
-		if got := queryStrings(t, db, "SELECT sha256 FROM "+ledgerTable+" WHERE version = 3"); !slices.Equal(got, []string{boxCatalogSum}) {
-			t.Errorf("%s: ledger version 3 sum = %q, want [%s]", what, got, boxCatalogSum)
-		}
-		if got := queryStrings(t, db, "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"streamer_username"}) {
-			t.Errorf("%s: users columns = %q, want [streamer_username]", what, got)
-		}
-	}
 	boxShape(t, h.write, "store after the failure")
 
 	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil {
 		t.Fatal("retry with the failing 0006: nil, want its error")
 	}
-	snapPath := filepath.Join(l.snapshotsDir, preMigrateName(5))
-	snap, err := sql.Open(sqliteDriverName, inspectDSN(snapPath, migrateBusy))
-	if err != nil {
-		t.Fatalf("open snapshot %s: %v", snapPath, err)
-	}
-	defer func() { _ = snap.Close() }()
-	boxShape(t, snap, "pre-migrate-v5 copy after the retry")
+	boxShape(t, openCopy(t, l, 5), "pre-migrate-v5 copy after the retry")
 
 	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
 		t.Fatalf("migrate to head once 0006 applies: %v", err)
@@ -277,6 +262,68 @@ func TestMigrateRollsBackAFailedAmendment(t *testing.T) {
 	if got := queryStrings(t, h.write, "PRAGMA user_version"); !slices.Equal(got, []string{"5"}) {
 		t.Errorf("user_version = %q, want [5]", got)
 	}
+}
+
+// TestMigrateKeepsTheBoxCopyWhenALaterMigrationFails lets 0006 commit,
+// with the amendment, and fails 0007. The store stops at version 6
+// holding the amendment, so a retry's newest copy is pre-migrate-v6.
+// The pre-migrate-v5 copy the first run took is still the box's shape,
+// the one the earlier binary opens.
+func TestMigrateKeepsTheBoxCopyWhenALaterMigrationFails(t *testing.T) {
+	l, h := boxStore(t)
+	ctx := context.Background()
+	files := readMigrationsT(t, migrationSource())
+	failing := slices.Clone(files)
+	failing[6].body = "SELECT * FROM no_such_table"
+	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil || !strings.Contains(err.Error(), "no_such_table") {
+		t.Fatalf("migrate with a failing 0007: %v, want its no_such_table error", err)
+	}
+	if got := queryStrings(t, h.write, "PRAGMA user_version"); !slices.Equal(got, []string{"6"}) {
+		t.Errorf("user_version after the failure = %q, want [6]", got)
+	}
+	if got := queryStrings(t, h.write, "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"username"}) {
+		t.Errorf("users columns after the failure = %q, want [username]", got)
+	}
+
+	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil {
+		t.Fatal("retry with the failing 0007: nil, want its error")
+	}
+	if got := queryStrings(t, openCopy(t, l, 6), "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"username"}) {
+		t.Errorf("pre-migrate-v6 users columns = %q, want [username]", got)
+	}
+	boxShape(t, openCopy(t, l, 5), "pre-migrate-v5 copy after the retry")
+
+	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
+		t.Fatalf("migrate to head once 0007 applies: %v", err)
+	}
+	if got := queryStrings(t, h.write, "PRAGMA user_version"); !slices.Equal(got, []string{"7"}) {
+		t.Errorf("user_version at head = %q, want [7]", got)
+	}
+}
+
+// boxShape fails t unless db is a store the box's commit wrote: its
+// ledger records the box catalog's sum and its users table still has
+// streamer_username.
+func boxShape(t *testing.T, db *sql.DB, what string) {
+	t.Helper()
+	if got := queryStrings(t, db, "SELECT sha256 FROM "+ledgerTable+" WHERE version = 3"); !slices.Equal(got, []string{boxCatalogSum}) {
+		t.Errorf("%s: ledger version 3 sum = %q, want [%s]", what, got, boxCatalogSum)
+	}
+	if got := queryStrings(t, db, "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"streamer_username"}) {
+		t.Errorf("%s: users columns = %q, want [streamer_username]", what, got)
+	}
+}
+
+// openCopy opens l's pre-migrate copy of version read-only.
+func openCopy(t *testing.T, l leaf, version int) *sql.DB {
+	t.Helper()
+	path := filepath.Join(l.snapshotsDir, preMigrateName(version))
+	db, err := sql.Open(sqliteDriverName, inspectDSN(path, migrateBusy))
+	if err != nil {
+		t.Fatalf("open copy %s: %v", path, err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	return db
 }
 
 // TestCheckLedgerAcceptsTheBoxCatalogOnlyWithMigrationsPending holds
