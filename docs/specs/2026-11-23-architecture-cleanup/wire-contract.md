@@ -8,7 +8,7 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] b51632f: Repo-wide, high: "A setting is "name" in one message and "key" in the next" (`internal/ops/admin.go:67`).
 - [x] b51632f: Repo-wide, medium: ""Mark" for a field of type Sensitivity" (`internal/ops/admin.go:71`, `internal/ops/admin/settings.go:16`).
 - [x] 2edc6a2: Repo-wide, medium: "Wire enums in kebab-case and snake_case" (`internal/settings/evaluate.go:20`).
-- [x] 5dddd13: Repo-wide, medium: "Reason, verdict, and refusal for one value" (`internal/ops/submissions.go:87`).
+- [~] 5dddd13, held for the shared noun (`ops.FileReason`, `Reason` on every reject field, `Rejects`); not held for one file-reason type, because `gate.FileReason` keeps the archive's raw path bytes and the wire's path is UTF-8, so one type would put raw bytes on the wire or lose them in the gate: Repo-wide, medium: "Reason, verdict, and refusal for one value" (`internal/ops/submissions.go:87`).
 - [x] 5dddd13: Repo-wide, medium: "TS copy constants named for a narrower scope" (`web/src/lib/api/v1.ts:77`).
 - [x] 5dddd13, 2edc6a2: Repo-wide, low: "Members, roster, and users" (`cmd/dubplate-server/member.go:42`).
 - [x] e946adb: Repo-wide, low: "Job types shaped like wire operations (record 0003)" (`internal/ops/ops.go:135`).
