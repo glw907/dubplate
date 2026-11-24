@@ -568,24 +568,10 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 		return res, nil
 	}
 
-	cands := matcher.NewCandidates()
-	for _, w := range exp.Candidates {
-		info, lookupErr := client.AlbumForID(ctx, w.AlbumID, tunDefault)
-		if lookupErr != nil {
-			if errors.Is(lookupErr, musicbrainz.ErrNotFound) {
-				// A committed candidate implies the lookup it was
-				// derived from succeeded; a 404 here means the case's
-				// own log no longer covers its own record.
-				errs = append(errs, fmt.Errorf("case %s: re-score: committed candidate %s not found in the case's own log", c.ID, w.AlbumID))
-				continue
-			}
-			errs = append(errs, fmt.Errorf("case %s: re-score: look up %s: %w", c.ID, w.AlbumID, lookupErr))
-			return res, nil
-		}
-		if _, addErr := cands.Add(tunDefault, items, info, evalDate); addErr != nil {
-			errs = append(errs, fmt.Errorf("case %s: re-score: %w", c.ID, addErr))
-			return res, nil
-		}
+	cands, stopped, scoreErrs := rescoreCommitted(ctx, c, client, tunDefault, items, evalDate)
+	errs = append(errs, scoreErrs...)
+	if stopped {
+		return res, nil
 	}
 	res.graded = true
 
@@ -615,22 +601,7 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	case policy.VerdictFrom == verdictFromAdjudication && hasRow && row.DefectFree != nil:
 		// One of the four defect_free rows: graded against the block
 		// rather than the case's own (defective) committed record.
-		if tableErr := checkPatternTable(c.ID, row.DefectFree.PatternTable, tunDefault.StringDistPatterns); tableErr != nil {
-			errs = append(errs, tableErr)
-		}
-		var dist float64
-		if len(sorted) > 0 {
-			dist = sorted[0].Dist.Distance()
-		}
-		if distErr := compareFloat(c.ID, "defect_free.distance", compareEpsilon, row.DefectFree.Distance, dist, &res); distErr != nil {
-			errs = append(errs, distErr)
-		}
-		if rec.String() != row.DefectFree.Recommendation {
-			errs = append(errs, fmt.Errorf("case %s: default-mode recommendation %s, defect_free record carries %s", c.ID, rec, row.DefectFree.Recommendation))
-		}
-		if string(action) != row.DefectFree.Action {
-			errs = append(errs, fmt.Errorf("case %s: default-mode action %s, defect_free record carries %s", c.ID, action, row.DefectFree.Action))
-		}
+		errs = append(errs, checkDefectFree(c.ID, row.DefectFree, tunDefault.StringDistPatterns, sorted, rec, action, &res)...)
 		res.verdicts++
 	case policy.VerdictFrom == verdictFromAdjudication:
 		// One of bug-nonlatin-alias-selection's two oracle-wrong probe
@@ -649,6 +620,58 @@ func gradeCaseDefault(ctx context.Context, dir string, led ledgers) (res caseGra
 	}
 
 	return res, nil
+}
+
+// rescoreCommitted looks up each of c's committed candidates through
+// client and adds it to a fresh candidate set under tun. A candidate
+// the stub answers 404 for is reported and skipped. Any other failed
+// lookup or add is reported and ends the re-score, and stopped is then
+// true.
+func rescoreCommitted(ctx context.Context, c *cassette.Case, client *musicbrainz.Client, tun matcher.Tunables, items []matcher.ItemFields, evalDate time.Time) (cands *matcher.Candidates, stopped bool, errs []error) {
+	cands = matcher.NewCandidates()
+	for _, w := range c.Expected.Candidates {
+		info, lookupErr := client.AlbumForID(ctx, w.AlbumID, tun)
+		if lookupErr != nil {
+			if errors.Is(lookupErr, musicbrainz.ErrNotFound) {
+				// A committed candidate implies the lookup it was
+				// derived from succeeded; a 404 here means the case's
+				// own log no longer covers its own record.
+				errs = append(errs, fmt.Errorf("case %s: re-score: committed candidate %s not found in the case's own log", c.ID, w.AlbumID))
+				continue
+			}
+			return nil, true, append(errs, fmt.Errorf("case %s: re-score: look up %s: %w", c.ID, w.AlbumID, lookupErr))
+		}
+		if _, addErr := cands.Add(tun, items, info, evalDate); addErr != nil {
+			return nil, true, append(errs, fmt.Errorf("case %s: re-score: %w", c.ID, addErr))
+		}
+	}
+	return cands, false, errs
+}
+
+// checkDefectFree compares case id's default-mode verdict with the
+// defect_free block df of its adjudication row: the pattern table
+// scored, the top candidate's distance, the recommendation, and the
+// action. A distance that matches only within tolerance is recorded in
+// res as a near miss.
+func checkDefectFree(id string, df *analysis.DefectFree, scored []matcher.SDPattern, sorted []matcher.Candidate, rec matcher.Recommendation, action matcher.Action, res *caseGradeResult) []error {
+	var errs []error
+	if tableErr := checkPatternTable(id, df.PatternTable, scored); tableErr != nil {
+		errs = append(errs, tableErr)
+	}
+	var dist float64
+	if len(sorted) > 0 {
+		dist = sorted[0].Dist.Distance()
+	}
+	if distErr := compareFloat(id, "defect_free.distance", compareEpsilon, df.Distance, dist, res); distErr != nil {
+		errs = append(errs, distErr)
+	}
+	if rec.String() != df.Recommendation {
+		errs = append(errs, fmt.Errorf("case %s: default-mode recommendation %s, defect_free record carries %s", id, rec, df.Recommendation))
+	}
+	if string(action) != df.Action {
+		errs = append(errs, fmt.Errorf("case %s: default-mode action %s, defect_free record carries %s", id, action, df.Action))
+	}
+	return errs
 }
 
 // patternTables resolves a defect_free block's pattern_table name, one
