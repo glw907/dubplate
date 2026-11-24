@@ -79,25 +79,9 @@ func (s *schema) project(body []byte) (*projection, error) {
 			msg: fmt.Sprintf("element prefix %q is not supported by the projection", prefix)}
 	}
 
-	p := &projection{lines: make(map[int]int)}
-	var out bytes.Buffer
-	enc := xml.NewEncoder(&out)
-	enc.Indent("", "  ")
-	newlines, counted := 0, 0
-	flush := func() error {
-		if err := enc.Flush(); err != nil {
-			return err
-		}
-		newlines += bytes.Count(out.Bytes()[counted:], []byte("\n"))
-		counted = out.Len()
-		return nil
-	}
-
-	// stack holds the type of each open element the projection writes;
-	// nil copies an element and its content without scoping, for a root
-	// the schema does not declare.
-	var stack []*complexType
-	ordinal, skip, roots := 0, 0, 0
+	w := &projector{s: s, p: &projection{lines: make(map[int]int)}}
+	w.enc = xml.NewEncoder(&w.out)
+	w.enc.Indent("", "  ")
 	dec := xml.NewDecoder(bytes.NewReader(body))
 	for {
 		tok, err := dec.Token()
@@ -109,68 +93,119 @@ func (s *schema) project(body []byte) (*projection, error) {
 		}
 		switch t := tok.(type) {
 		case xml.StartElement:
-			ordinal++
-			if skip > 0 {
-				skip++
-				continue
-			}
-			var typ *complexType
-			switch len(stack) {
-			case 0:
-				roots++
-				if roots > 1 {
-					return nil, &documentError{ordinal: ordinal, msg: "malformed XML: a second root element"}
-				}
-				p.env.status = rootStatus(t.Attr)
-				typ = s.root(t.Name.Local)
-			case 1:
-				p.env.children = append(p.env.children, t.Name.Local)
-				fallthrough
-			default:
-				var keep bool
-				if typ, keep = p.place(s, stack[len(stack)-1], ordinal, t.Name.Local); !keep {
-					skip = 1
-					continue
-				}
-			}
-			start := xml.StartElement{Name: t.Name, Attr: p.scopeAttrs(ordinal, t.Attr, typ)}
-			if err := enc.EncodeToken(start); err != nil {
-				return nil, fmt.Errorf("write projection: %w", err)
-			}
-			if err := flush(); err != nil {
-				return nil, fmt.Errorf("write projection: %w", err)
-			}
-			p.lines[newlines+1] = ordinal
-			stack = append(stack, typ)
+			err = w.start(t)
 		case xml.EndElement:
-			if skip > 0 {
-				skip--
-				continue
-			}
-			stack = stack[:len(stack)-1]
-			if err := enc.EncodeToken(xml.EndElement{Name: t.Name}); err != nil {
-				return nil, fmt.Errorf("write projection: %w", err)
-			}
+			err = w.end(t)
 		case xml.CharData:
-			if skip > 0 || xmlSpace(t) {
-				continue
-			}
-			if len(stack) == 0 {
-				return nil, &documentError{msg: "malformed XML: character data outside the root element"}
-			}
-			if err := enc.EncodeToken(t); err != nil {
-				return nil, fmt.Errorf("write projection: %w", err)
-			}
+			err = w.charData(t)
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
-	if roots == 0 {
+	if w.roots == 0 {
 		return nil, &documentError{msg: "malformed XML: no root element"}
 	}
-	if err := flush(); err != nil {
+	if err := w.flush(); err != nil {
 		return nil, fmt.Errorf("write projection: %w", err)
 	}
-	p.doc = out.Bytes()
-	return p, nil
+	w.p.doc = w.out.Bytes()
+	return w.p, nil
+}
+
+// projector holds the state of one walk by project: the projection it
+// builds, the encoder writing the projected document, and the elements
+// open at the current token.
+type projector struct {
+	s   *schema
+	p   *projection
+	out bytes.Buffer
+	enc *xml.Encoder
+	// newlines is the count of newlines in the first counted bytes of
+	// out, which flush brings up to date.
+	newlines, counted int
+	// stack holds the type of each open element the projection writes;
+	// nil copies an element and its content without scoping, for a root
+	// the schema does not declare.
+	stack []*complexType
+	// ordinal counts the start elements read so far, roots counts the
+	// root elements, and skip is the depth inside a dropped subtree, or 0
+	// outside one.
+	ordinal, roots, skip int
+}
+
+func (w *projector) flush() error {
+	if err := w.enc.Flush(); err != nil {
+		return err
+	}
+	w.newlines += bytes.Count(w.out.Bytes()[w.counted:], []byte("\n"))
+	w.counted = w.out.Len()
+	return nil
+}
+
+// start writes the element t opens, with its attributes scoped to its
+// type, and records the line it starts. An element inside a dropped
+// subtree, or one its position does not keep, writes nothing.
+func (w *projector) start(t xml.StartElement) error {
+	w.ordinal++
+	if w.skip > 0 {
+		w.skip++
+		return nil
+	}
+	var typ *complexType
+	switch len(w.stack) {
+	case 0:
+		w.roots++
+		if w.roots > 1 {
+			return &documentError{ordinal: w.ordinal, msg: "malformed XML: a second root element"}
+		}
+		w.p.env.status = rootStatus(t.Attr)
+		typ = w.s.root(t.Name.Local)
+	case 1:
+		w.p.env.children = append(w.p.env.children, t.Name.Local)
+		fallthrough
+	default:
+		var keep bool
+		if typ, keep = w.p.place(w.s, w.stack[len(w.stack)-1], w.ordinal, t.Name.Local); !keep {
+			w.skip = 1
+			return nil
+		}
+	}
+	start := xml.StartElement{Name: t.Name, Attr: w.p.scopeAttrs(w.ordinal, t.Attr, typ)}
+	if err := w.enc.EncodeToken(start); err != nil {
+		return fmt.Errorf("write projection: %w", err)
+	}
+	if err := w.flush(); err != nil {
+		return fmt.Errorf("write projection: %w", err)
+	}
+	w.p.lines[w.newlines+1] = w.ordinal
+	w.stack = append(w.stack, typ)
+	return nil
+}
+
+func (w *projector) end(t xml.EndElement) error {
+	if w.skip > 0 {
+		w.skip--
+		return nil
+	}
+	w.stack = w.stack[:len(w.stack)-1]
+	if err := w.enc.EncodeToken(xml.EndElement{Name: t.Name}); err != nil {
+		return fmt.Errorf("write projection: %w", err)
+	}
+	return nil
+}
+
+func (w *projector) charData(t xml.CharData) error {
+	if w.skip > 0 || xmlSpace(t) {
+		return nil
+	}
+	if len(w.stack) == 0 {
+		return &documentError{msg: "malformed XML: character data outside the root element"}
+	}
+	if err := w.enc.EncodeToken(t); err != nil {
+		return fmt.Errorf("write projection: %w", err)
+	}
+	return nil
 }
 
 // place resolves the type of the element name at ordinal under parent.
