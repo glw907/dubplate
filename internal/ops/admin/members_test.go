@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -180,15 +181,15 @@ func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
 // TestRemoveAndDemote_Outcomes covers the roster refusals the seam maps
 // for a removal and a demotion.
 func TestRemoveAndDemote_Outcomes(t *testing.T) {
-	remove := func(ctx context.Context, f *fixture, a ops.Actor, id string) error {
+	remove := func(ctx context.Context, f *fixture, a identity.Actor, id string) error {
 		_, err := f.seam.RemoveMember(ctx, a, ops.RemoveMemberRequest{UserID: id})
 		return err
 	}
-	demote := func(ctx context.Context, f *fixture, a ops.Actor, id string) error {
+	demote := func(ctx context.Context, f *fixture, a identity.Actor, id string) error {
 		_, err := f.seam.DemoteMember(ctx, a, ops.DemoteMemberRequest{UserID: id})
 		return err
 	}
-	type write = func(ctx context.Context, f *fixture, a ops.Actor, id string) error
+	type write = func(ctx context.Context, f *fixture, a identity.Actor, id string) error
 	tests := []struct {
 		name   string
 		prep   func(t *testing.T, f *fixture)

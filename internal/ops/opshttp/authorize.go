@@ -17,7 +17,7 @@ import (
 // denial the seam returns. It receives no request, so a verified
 // identity reaches it only through ctx.
 type authorizer interface {
-	authorize(ctx context.Context, op string) (ops.Actor, ops.Privilege, error)
+	authorize(ctx context.Context, op string) (identity.Actor, ops.Privilege, error)
 }
 
 // An authorizingSeam decides who may call an operation. [authorizingSeam.admit]
@@ -89,21 +89,21 @@ func reaches(granted, required ops.Privilege) bool {
 // forbidden answer first, so [ops.CodeOf] and a reason read through
 // [errors.AsType] see it ahead of anything the authorizer returned,
 // then its cause from denials.
-func (s *authorizingSeam) admit(ctx context.Context, op string) (ops.Actor, error) {
+func (s *authorizingSeam) admit(ctx context.Context, op string) (identity.Actor, error) {
 	p, ok := ops.PrivilegeOf(op)
 	if !ok {
-		return ops.Actor{}, ops.NewNotFoundError(fmt.Sprintf("no operation %q", op))
+		return identity.Actor{}, ops.NewNotFoundError(fmt.Sprintf("no operation %q", op))
 	}
 	denied := ops.NewForbiddenError(fmt.Sprintf("%s requires the %s privilege", op, p))
 	actor, granted, err := s.auth.authorize(ctx, op)
 	if err != nil {
-		return ops.Actor{}, fmt.Errorf("%w: %w: %w", denied, errAuthorizerDenied, err)
+		return identity.Actor{}, fmt.Errorf("%w: %w: %w", denied, errAuthorizerDenied, err)
 	}
 	if actor.Channel() != s.channel {
-		return ops.Actor{}, fmt.Errorf("%w: %w", denied, errChannelMismatch)
+		return identity.Actor{}, fmt.Errorf("%w: %w", denied, errChannelMismatch)
 	}
 	if !reaches(granted, p) {
-		return ops.Actor{}, fmt.Errorf("%w: %w", denied, errPrivilegeShort)
+		return identity.Actor{}, fmt.Errorf("%w: %w", denied, errPrivilegeShort)
 	}
 	return actor, nil
 }

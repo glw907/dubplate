@@ -123,7 +123,7 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 					Admin:       admin,
 				}
 				logger := slog.New(slog.NewTextHandler(stderr, nil))
-				_, err = roster.AddMember(ctx, candidate, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
+				_, err = roster.AddMember(ctx, candidate, identity.LocalActor(resolveActor(ov.LookupID)), logger)
 				return err
 			})
 		},
@@ -142,7 +142,7 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 }
 
 // A rosterChange is a roster write on one member, named by id.
-type rosterChange func(r *auth.Roster, ctx context.Context, id identity.UserID, by auth.Actor, logger *slog.Logger) error
+type rosterChange func(r *auth.Roster, ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error
 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
@@ -179,7 +179,7 @@ func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string,
 					return err
 				}
 				logger := slog.New(slog.NewTextHandler(stderr, nil))
-				return change(roster, ctx, target.ID, auth.OperatorActor(resolveActor(ov.LookupID)), logger)
+				return change(roster, ctx, target.ID, identity.LocalActor(resolveActor(ov.LookupID)), logger)
 			})
 		},
 	}

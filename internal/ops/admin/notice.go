@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -23,7 +23,7 @@ const noticeWait = 10 * time.Second
 // own: a client that disconnects after the commit does not stop the
 // send. A failure is logged and changes nothing. The write stays
 // committed, and its settings audit row is the durable record.
-func (s *Seam) notice(ctx context.Context, actor ops.Actor, key string, res settings.Result) {
+func (s *Seam) notice(ctx context.Context, actor identity.Actor, key string, res settings.Result) {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), noticeWait)
 	defer cancel()
 	log := s.cfg.Logger.With("key", key, "actor", actor.String())

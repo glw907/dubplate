@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -137,7 +138,7 @@ func (r *Runner) Close() error {
 // another backup holds the kind's lease: naming that job's handle when
 // its record is live, or a transfer that outlived its process when
 // none is.
-func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+func (r *Runner) StartBackup(ctx context.Context, actor identity.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
 	return r.startBackup(ctx, actor, r.backupBind)
 }
 
@@ -146,7 +147,7 @@ func (r *Runner) StartBackup(ctx context.Context, actor ops.Actor, _ ops.StartBa
 // on and before any record is queued. A test passes a bindFor that
 // returns a body of its choosing, so a start runs without the three
 // backup reads.
-func (r *Runner) startBackup(ctx context.Context, actor ops.Actor, bindFor func(context.Context) (binder, error)) (resp ops.StartBackupResponse, err error) {
+func (r *Runner) startBackup(ctx context.Context, actor identity.Actor, bindFor func(context.Context) (binder, error)) (resp ops.StartBackupResponse, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
 
 	if !r.backup.Enabled {
@@ -192,7 +193,7 @@ func (r *Runner) backupBind(ctx context.Context) (binder, error) {
 // finds the record live here without a job running it, and a start
 // after [Runner.Close] has begun answers unavailable and writes
 // nothing.
-func (r *Runner) start(ctx context.Context, actor ops.Actor, kind string, bind binder) (ops.Handle, error) {
+func (r *Runner) start(ctx context.Context, actor identity.Actor, kind string, bind binder) (ops.Handle, error) {
 	retention, err := r.retention(ctx)
 	if err != nil {
 		return "", fmt.Errorf("start %s job: %w", kind, err)
@@ -287,7 +288,7 @@ ORDER BY at DESC, id DESC LIMIT 1`, kind).Scan(&id, &state)
 }
 
 // JobStatus reads the record req names.
-func (r *Runner) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRequest) (resp ops.JobStatusResponse, err error) {
+func (r *Runner) JobStatus(ctx context.Context, _ identity.Actor, req ops.JobStatusRequest) (resp ops.JobStatusResponse, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
 
 	id, err := parseID(req.JobID)
@@ -306,7 +307,7 @@ func (r *Runner) JobStatus(ctx context.Context, _ ops.Actor, req ops.JobStatusRe
 // has its cancel_requested set, and its owner ends it canceled unless
 // it finishes first; the response reports it running. A finished job
 // is left unchanged and its state reported.
-func (r *Runner) CancelJob(ctx context.Context, _ ops.Actor, req ops.CancelJobRequest) (resp ops.CancelJobResponse, err error) {
+func (r *Runner) CancelJob(ctx context.Context, _ identity.Actor, req ops.CancelJobRequest) (resp ops.CancelJobResponse, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
 
 	id, err := parseID(req.JobID)

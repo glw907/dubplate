@@ -11,6 +11,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -93,7 +94,7 @@ func newJob(ctx context.Context, b body) *job {
 // the newest succeeded record of each kind, in one write. retention is
 // DUBPLATE_JOB_RETENTION's value in force, read by the caller before
 // this call.
-func (r *Runner) insert(ctx context.Context, actor ops.Actor, kind string, retention time.Duration, j *job) error {
+func (r *Runner) insert(ctx context.Context, actor identity.Actor, kind string, retention time.Duration, j *job) error {
 	ctx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
 	id := j.id

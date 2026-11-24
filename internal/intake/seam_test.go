@@ -36,8 +36,8 @@ func newTestSeam(t *testing.T) (*store.Handle, *Seam) {
 }
 
 // actorOf is the network actor a verified session for uploader builds.
-func actorOf(uploader identity.UserID) ops.Actor {
-	return ops.NetworkActor(identity.Identity{
+func actorOf(uploader identity.UserID) identity.Actor {
+	return identity.NetworkActor(identity.Identity{
 		Address: "member@example.invalid", UserID: uploader, Principal: "member",
 		Source: "magic-link", Channel: identity.ChannelCookie,
 	}, time.UnixMicro(testNow), "192.0.2.1")

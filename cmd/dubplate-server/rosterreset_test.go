@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -159,7 +160,7 @@ func TestRosterResetServer(t *testing.T) {
 		{Address: renderedNewMemberAddress, DisplayName: "New", Username: "newmember"},
 		{Address: "capture-added@example.test", DisplayName: "Capture", Username: "capture-added"},
 	} {
-		if _, err := roster.AddMember(ctx, m, auth.OperatorActor("operator"), discardTestLogger()); err != nil {
+		if _, err := roster.AddMember(ctx, m, identity.LocalActor("operator"), discardTestLogger()); err != nil {
 			t.Fatalf("add %s: %v", m.Address, err)
 		}
 	}

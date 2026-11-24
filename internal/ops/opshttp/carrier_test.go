@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -13,7 +14,7 @@ import (
 func TestContextAuthorizerReadsTheCarriedCaller(t *testing.T) {
 	for _, p := range []ops.Privilege{ops.PrivilegeMember, ops.PrivilegeAdmin} {
 		t.Run(p.String(), func(t *testing.T) {
-			want := ops.NetworkActor(ann, annAnchor, "192.0.2.1")
+			want := identity.NetworkActor(ann, annAnchor, "192.0.2.1")
 			ctx := withAdmitted(context.Background(), want, p)
 			got, granted, err := contextAuthorizer{}.authorize(ctx, ops.OpListMembers)
 			if err != nil {

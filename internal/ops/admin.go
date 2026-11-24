@@ -1,6 +1,10 @@
 package ops
 
-import "context"
+import (
+	"context"
+
+	"github.com/glw907/dubplate/internal/identity"
+)
 
 // A Member is one roster entry as the admin operations carry it. UserID
 // is the member's durable id as 32 lowercase hex characters, the name a
@@ -119,30 +123,30 @@ const (
 )
 
 // An AdminSeam is what a caller reaches the seven member and settings
-// operations through. Every method takes the acting [Actor] as its
-// own parameter and returns an error wrapping one of this package's
+// operations through. Every method takes the acting [identity.Actor]
+// as a parameter and returns an error wrapping one of this package's
 // sentinels when it cannot answer. Each call is admin only; the authorizing layer
 // enforces it before any method runs.
 type AdminSeam interface {
 	// ListMembers lists the live roster.
-	ListMembers(ctx context.Context, actor Actor, req ListMembersRequest) (ListMembersResponse, error)
+	ListMembers(ctx context.Context, actor identity.Actor, req ListMembersRequest) (ListMembersResponse, error)
 
 	// AddMember adds a member without the admin flag, or reactivates a
 	// removed one.
-	AddMember(ctx context.Context, actor Actor, req AddMemberRequest) (AddMemberResponse, error)
+	AddMember(ctx context.Context, actor identity.Actor, req AddMemberRequest) (AddMemberResponse, error)
 
 	// RemoveMember tombstones a member and revokes their sessions.
-	RemoveMember(ctx context.Context, actor Actor, req RemoveMemberRequest) (RemoveMemberResponse, error)
+	RemoveMember(ctx context.Context, actor identity.Actor, req RemoveMemberRequest) (RemoveMemberResponse, error)
 
 	// DemoteMember clears a member's admin flag.
-	DemoteMember(ctx context.Context, actor Actor, req DemoteMemberRequest) (DemoteMemberResponse, error)
+	DemoteMember(ctx context.Context, actor identity.Actor, req DemoteMemberRequest) (DemoteMemberResponse, error)
 
 	// ListSettings reports every registered key.
-	ListSettings(ctx context.Context, actor Actor, req ListSettingsRequest) (ListSettingsResponse, error)
+	ListSettings(ctx context.Context, actor identity.Actor, req ListSettingsRequest) (ListSettingsResponse, error)
 
 	// SetSetting writes a store-homed key's admin value.
-	SetSetting(ctx context.Context, actor Actor, req SetSettingRequest) (SetSettingResponse, error)
+	SetSetting(ctx context.Context, actor identity.Actor, req SetSettingRequest) (SetSettingResponse, error)
 
 	// ResetSetting removes a store-homed key's admin value.
-	ResetSetting(ctx context.Context, actor Actor, req ResetSettingRequest) (ResetSettingResponse, error)
+	ResetSetting(ctx context.Context, actor identity.Actor, req ResetSettingRequest) (ResetSettingResponse, error)
 }

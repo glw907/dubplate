@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -99,7 +100,7 @@ func TestStartBackup_FlagOff(t *testing.T) {
 func TestStartBackup_RecordsActor(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
-	resp, err := r.StartBackup(deadline(t), ops.LocalActor("alice"), ops.StartBackupRequest{})
+	resp, err := r.StartBackup(deadline(t), identity.LocalActor("alice"), ops.StartBackupRequest{})
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}

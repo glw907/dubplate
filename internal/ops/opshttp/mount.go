@@ -21,7 +21,7 @@ var ErrUnauthenticated = errors.New("opshttp: no valid session")
 // actor holds. A refused credential wraps [ErrUnauthenticated]. A
 // verifier logs its own failures: the mount never writes an error's
 // text, which may name a member.
-type Verifier func(w http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error)
+type Verifier func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)
 
 // A mount serves the operations under <prefix>/api/v1/ for sessions a
 // Verifier admits.

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -22,8 +23,16 @@ const (
 	keyIntegExtra  = "DUBPLATE_TEST_INTEGRATION_EXTRA"
 )
 
-// testAuthor is the actor every write in these tests records.
-var testAuthor = Author{Actor: "member:00112233445566778899aabbccddeeff", Channel: "cookie"}
+// testAuthor is the actor every write in these tests records, and
+// testAuthorWire its wire form, spelled out so a regression in the
+// actor's rendering fails the audit assertions.
+var (
+	testAuthor = identity.NetworkActor(identity.Identity{
+		Address: "member@example.invalid", Principal: "member", Source: "magic-link", Channel: identity.ChannelCookie,
+		UserID: identity.UserID{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+	}, testNow, "192.0.2.1")
+	testAuthorWire = "member:00112233445566778899aabbccddeeff"
+)
 
 // errGuardRefused is what a refusing test guard returns.
 var errGuardRefused = errors.New("actor is not an admin")
@@ -87,11 +96,11 @@ func seededRow(key, value string) fixtureRow { return fixtureRow{key, value, "en
 
 // setAudit and resetAudit are the audit rows a committed write leaves.
 func setAudit(key, oldVal, newVal string) auditRow {
-	return auditRow{at: testNow.UnixMicro(), kind: "set", actor: testAuthor.Actor, channel: "cookie", key: key, oldVal: oldVal, newVal: newVal}
+	return auditRow{at: testNow.UnixMicro(), kind: "set", actor: testAuthorWire, channel: "cookie", key: key, oldVal: oldVal, newVal: newVal}
 }
 
 func resetAudit(key, oldVal string) auditRow {
-	return auditRow{at: testNow.UnixMicro(), kind: "reset", actor: testAuthor.Actor, channel: "cookie", key: key, oldVal: oldVal, newVal: "<NULL>"}
+	return auditRow{at: testNow.UnixMicro(), kind: "reset", actor: testAuthorWire, channel: "cookie", key: key, oldVal: oldVal, newVal: "<NULL>"}
 }
 
 func TestSet(t *testing.T) {
@@ -374,7 +383,7 @@ func TestReset_EnvironmentSetsByChannel(t *testing.T) {
 	t.Run("the command line deletes the row", func(t *testing.T) {
 		h := newStore(t)
 		writeFixture(t, h, adminRow(keyKeep, "20", "20"))
-		operator := Author{Actor: "operator:glw907", Channel: "command-line"}
+		operator := identity.LocalActor("glw907")
 
 		got, err := Reset(ctxFor(t), h, writeRegistry(), environ, operator, nil, keyKeep, testNow)
 

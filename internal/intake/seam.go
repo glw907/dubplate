@@ -48,7 +48,7 @@ type Seam struct {
 var _ ops.SubmissionSeam = (*Seam)(nil)
 
 // CreateSubmission implements [ops.SubmissionSeam].
-func (s *Seam) CreateSubmission(ctx context.Context, actor ops.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
+func (s *Seam) CreateSubmission(ctx context.Context, actor identity.Actor, req ops.CreateSubmissionRequest) (ops.CreateSubmissionResponse, error) {
 	unit, container := gate.Unit(req.VerdictUnit), gate.Container(req.Container)
 	switch {
 	case unit != gate.UnitAlbum && unit != gate.UnitTrack:
@@ -134,7 +134,7 @@ func writeFault(err error) error {
 }
 
 // ListSubmissions implements [ops.SubmissionSeam].
-func (s *Seam) ListSubmissions(ctx context.Context, actor ops.Actor, _ ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
+func (s *Seam) ListSubmissions(ctx context.Context, actor identity.Actor, _ ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
 	uploader := actor.UserID()
 	list, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionSummary, error) {
 		var id []byte
@@ -154,7 +154,7 @@ func (s *Seam) ListSubmissions(ctx context.Context, actor ops.Actor, _ ops.ListS
 }
 
 // GetSubmission implements [ops.SubmissionSeam].
-func (s *Seam) GetSubmission(ctx context.Context, actor ops.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
+func (s *Seam) GetSubmission(ctx context.Context, actor identity.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
 	id, err := parseWireID(req.SubmissionID)
 	if err != nil {
 		return ops.GetSubmissionResponse{}, err
@@ -163,13 +163,13 @@ func (s *Seam) GetSubmission(ctx context.Context, actor ops.Actor, req ops.GetSu
 }
 
 // RetrySubmission implements [ops.SubmissionSeam].
-func (s *Seam) RetrySubmission(ctx context.Context, actor ops.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
+func (s *Seam) RetrySubmission(ctx context.Context, actor identity.Actor, req ops.RetrySubmissionRequest) (ops.RetrySubmissionResponse, error) {
 	status, err := s.act(ctx, actor.UserID(), req.SubmissionID, s.subs.retry)
 	return ops.RetrySubmissionResponse(status), err
 }
 
 // CancelSubmission implements [ops.SubmissionSeam].
-func (s *Seam) CancelSubmission(ctx context.Context, actor ops.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
+func (s *Seam) CancelSubmission(ctx context.Context, actor identity.Actor, req ops.CancelSubmissionRequest) (ops.CancelSubmissionResponse, error) {
 	status, err := s.act(ctx, actor.UserID(), req.SubmissionID, s.subs.cancel)
 	return ops.CancelSubmissionResponse(status), err
 }

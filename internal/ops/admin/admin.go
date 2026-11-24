@@ -81,7 +81,7 @@ func New(cfg Config) *Seam {
 // signed in never renews it, and a local actor's zero anchor is never
 // fresh. A window that cannot be read refuses the call rather than
 // falling back to a default.
-func (s *Seam) requireFresh(ctx context.Context, actor ops.Actor) error {
+func (s *Seam) requireFresh(ctx context.Context, actor identity.Actor) error {
 	window, err := s.cfg.Window(ctx)
 	if err != nil {
 		return fmt.Errorf("read the re-authentication window: %w", err)
@@ -92,13 +92,6 @@ func (s *Seam) requireFresh(ctx context.Context, actor ops.Actor) error {
 		return ops.NewReauthenticationRequiredError("this change needs a sign-in from the last " + window.String())
 	}
 	return nil
-}
-
-// rosterActor returns the roster's actor for a network actor, carrying
-// the client address the verifier resolved so the roster's own audit
-// record names where the write came from.
-func rosterActor(actor ops.Actor) auth.Actor {
-	return auth.MemberActor(actor.UserID(), actor.ClientAddress())
 }
 
 // parseUserID parses s as a member's wire id: exactly 32 lowercase hex

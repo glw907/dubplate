@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/settings"
@@ -43,10 +42,7 @@ func (ov operatorVerbs) newSettingsResetCmd(environ []string, reg *config.Regist
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, _ string) error {
-				by := settings.Author{
-					Actor:   auth.OperatorActor(resolveActor(ov.LookupID)).String(),
-					Channel: identity.ChannelCommandLine.String(),
-				}
+				by := identity.LocalActor(resolveActor(ov.LookupID))
 				key := args[0]
 				res, err := settings.Reset(ctx, h, reg, environ, by, nil, key, time.Now())
 				if err != nil {

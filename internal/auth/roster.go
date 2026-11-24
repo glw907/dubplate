@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -55,9 +54,9 @@ var errRosterRecordInvalid = errors.New("auth: roster record invalid")
 // the one channel that may grant it.
 var errAdminGrantForbidden = errors.New("auth: admin flag may be granted only from the command line")
 
-// errInvalidActor reports that a write's [Actor] failed the rule its
-// channel imposes: the zero Actor, a member actor with the zero id, or
-// an operator name that is empty or carries an invisible rune.
+// errInvalidActor reports that a write's [identity.Actor] failed the
+// rule its channel imposes: the zero Actor, or an operator name that
+// carries an invisible rune.
 var errInvalidActor = errors.New("auth: invalid audit actor or channel")
 
 // The refusals below are the ones internal/ops/admin, and the roster
@@ -149,70 +148,33 @@ func NewRoster(h *store.Handle, epoch *EpochStore, now func() time.Time) *Roster
 	return &Roster{users: h, epoch: epoch, now: now}
 }
 
-// An Actor is who makes a roster write: a member over the network,
-// named by their durable id, or an operator at the command line, named
-// by their operating-system user. The zero value names nobody, and
-// every write refuses it.
-type Actor struct {
-	channel  identity.Channel
-	id       identity.UserID
-	name     string
-	clientIP string
-}
-
-// MemberActor returns the actor for a write a verified member makes over
-// the cookie channel from clientIP. Every write re-reads id's row inside
-// its own transaction and refuses unless it is a live admin.
-func MemberActor(id identity.UserID, clientIP string) Actor {
-	return Actor{channel: identity.ChannelCookie, id: id, clientIP: clientIP}
-}
-
-// OperatorActor returns the actor for a write from the command line by
-// the operating-system user username. Box access is the command line's
-// authority, so its writes read no actor row.
-func OperatorActor(username string) Actor {
-	return Actor{channel: identity.ChannelCommandLine, name: username, clientIP: "local"}
-}
-
-// check refuses an actor that meets no channel's rule: a member actor
-// must carry a non-zero id, and an operator's name must be non-empty
-// and free of every rune [identity.IsInvisibleRune] names, the ordinary
-// space included, since the audit record names it as given.
-func (a Actor) check() error {
-	switch a.channel {
+// checkActor refuses the zero Actor, which names nobody, and a local
+// actor whose username carries a rune [identity.IsInvisibleRune] names,
+// the ordinary space included, since the audit record names it as
+// given. A network actor needs no check here: its constructor already
+// refused every identity without a durable id.
+func checkActor(a identity.Actor) error {
+	switch a.Channel() {
 	case identity.ChannelCookie:
-		if a.id == (identity.UserID{}) {
-			return errInvalidActor
-		}
+		return nil
 	case identity.ChannelCommandLine:
-		if a.name == "" || strings.ContainsFunc(a.name, identity.IsInvisibleRune) {
+		if strings.ContainsFunc(a.String(), identity.IsInvisibleRune) {
 			return errInvalidActor
 		}
+		return nil
 	default:
 		return errInvalidActor
 	}
-	return nil
 }
 
-// authorize is a's in-write admin check: a member actor must be a live
-// admin as tx reads the roster, and an operator passes.
-func (a Actor) authorize(ctx context.Context, tx *store.Tx) error {
-	if a.channel == identity.ChannelCommandLine {
+// authorizeActor is a's in-write admin check: a network actor must be a
+// live admin as tx reads the roster, and a local actor passes, since box
+// access is the command line's authority.
+func authorizeActor(ctx context.Context, tx *store.Tx, a identity.Actor) error {
+	if a.Channel() == identity.ChannelCommandLine {
 		return nil
 	}
-	return CheckAdmin(ctx, tx, a.id)
-}
-
-// String returns how an audit record names a: an operator as "local:"
-// and their name, the form internal/ops gives a local actor, and a
-// member as "member:" and the lowercase hex of their id, the form
-// internal/ops gives a network actor in the settings audit, so the two
-// records name one actor alike.
-func (a Actor) String() string {
-	if a.channel == identity.ChannelCommandLine {
-		return "local:" + a.name
-	}
-	return "member:" + hex.EncodeToString(a.id[:])
+	return CheckAdmin(ctx, tx, a.UserID())
 }
 
 // CheckAdmin returns nil when id names a live member holding the admin
@@ -378,7 +340,7 @@ func (r *Roster) List(ctx context.Context) ([]Member, error) {
 // Every check runs before the write commits, so a refused candidate or
 // actor changes nothing. A nil error returns the member as stored, its
 // ID the one the write inserted or reactivated.
-func (r *Roster) AddMember(ctx context.Context, candidate Member, by Actor, logger *slog.Logger) (Member, error) {
+func (r *Roster) AddMember(ctx context.Context, candidate Member, by identity.Actor, logger *slog.Logger) (Member, error) {
 	member, err := checkAddition(candidate, by)
 	if err != nil {
 		return Member{}, err
@@ -394,11 +356,11 @@ func (r *Roster) AddMember(ctx context.Context, candidate Member, by Actor, logg
 // checkAddition runs every check on an addition that needs no roster:
 // the admin grant's channel, by's rule for its channel, and the
 // candidate's own fields. It returns the candidate as validated.
-func checkAddition(candidate Member, by Actor) (Member, error) {
-	if candidate.Admin && by.channel != identity.ChannelCommandLine {
-		return Member{}, fmt.Errorf("%w: channel %s", errAdminGrantForbidden, by.channel)
+func checkAddition(candidate Member, by identity.Actor) (Member, error) {
+	if candidate.Admin && by.Channel() != identity.ChannelCommandLine {
+		return Member{}, fmt.Errorf("%w: channel %s", errAdminGrantForbidden, by.Channel())
 	}
-	if err := by.check(); err != nil {
+	if err := checkActor(by); err != nil {
 		return Member{}, fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
 	member, err := validateWriteCandidate(candidate)
@@ -442,9 +404,9 @@ func scanMember(scan func(dest ...any) error) (Member, error) {
 // once the write lands; and a reactivation then bumps the address's
 // epoch, last, under the removal's failure policy. It returns member
 // with the ID the row holds.
-func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *slog.Logger) (Member, error) {
+func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, logger *slog.Logger) (Member, error) {
 	err := r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		if err := by.authorize(ctx, tx); err != nil {
+		if err := authorizeActor(ctx, tx, by); err != nil {
 			return err
 		}
 
@@ -529,13 +491,13 @@ func (r *Roster) addUser(ctx context.Context, member Member, by Actor, logger *s
 // removal back, and a commit that fails after a bump leaves a live
 // member signed out, the safe direction. A bump refused with
 // [ErrEpochBackward] is logged and the removal commits.
-func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by Actor, logger *slog.Logger) error {
-	if err := by.check(); err != nil {
+func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error {
+	if err := checkActor(by); err != nil {
 		return fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
 	var address string
 	err := r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		if err := by.authorize(ctx, tx); err != nil {
+		if err := authorizeActor(ctx, tx, by); err != nil {
 			return err
 		}
 		target, err := liveMember(ctx, tx, id)
@@ -574,13 +536,13 @@ func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by Actor,
 // demotion that would leave no live admin is [ErrNoAdmin], read inside
 // the write, so of two concurrent demotions of the last two admins the
 // second is refused. Every refusal changes nothing.
-func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by Actor, logger *slog.Logger) error {
-	if err := by.check(); err != nil {
+func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error {
+	if err := checkActor(by); err != nil {
 		return fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
 	var target Member
 	err := r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		if err := by.authorize(ctx, tx); err != nil {
+		if err := authorizeActor(ctx, tx, by); err != nil {
 			return err
 		}
 		var err error
@@ -645,7 +607,7 @@ func (r *Roster) revoke(ctx context.Context, address string, now time.Time, logg
 // logChange writes the audit record for a committed roster write: msg,
 // then by, its channel, the address, any further key and value pairs in
 // args, and by's client address.
-func logChange(ctx context.Context, logger *slog.Logger, msg string, by Actor, address string, args ...any) {
-	attrs := append([]any{"actor", by.String(), "channel", by.channel.String(), "address", address}, args...)
-	logger.Log(ctx, slog.LevelInfo, msg, append(attrs, "client_ip", by.clientIP)...)
+func logChange(ctx context.Context, logger *slog.Logger, msg string, by identity.Actor, address string, args ...any) {
+	attrs := append([]any{"actor", by.String(), "channel", by.Channel().String(), "address", address}, args...)
+	logger.Log(ctx, slog.LevelInfo, msg, append(attrs, "client_ip", by.ClientIP())...)
 }

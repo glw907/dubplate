@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -15,13 +16,13 @@ type admittedKey struct{}
 // An admitted is the caller a mount's verifier admitted: the actor
 // the call proceeds as and the privilege that actor holds.
 type admitted struct {
-	actor     ops.Actor
+	actor     identity.Actor
 	privilege ops.Privilege
 }
 
 // withAdmitted returns ctx carrying the caller the mount admitted. The
 // mount calls it after its verifier answers, and only then.
-func withAdmitted(ctx context.Context, actor ops.Actor, privilege ops.Privilege) context.Context {
+func withAdmitted(ctx context.Context, actor identity.Actor, privilege ops.Privilege) context.Context {
 	return context.WithValue(ctx, admittedKey{}, admitted{actor: actor, privilege: privilege})
 }
 
@@ -34,10 +35,10 @@ var errNoCaller = errors.New("request carries no admitted caller")
 // denies a context that carries none.
 type contextAuthorizer struct{}
 
-func (contextAuthorizer) authorize(ctx context.Context, _ string) (ops.Actor, ops.Privilege, error) {
+func (contextAuthorizer) authorize(ctx context.Context, _ string) (identity.Actor, ops.Privilege, error) {
 	c, ok := ctx.Value(admittedKey{}).(admitted)
 	if !ok {
-		return ops.Actor{}, 0, errNoCaller
+		return identity.Actor{}, 0, errNoCaller
 	}
 	return c.actor, c.privilege, nil
 }

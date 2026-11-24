@@ -221,8 +221,8 @@ func (l *lockedWriter) Write(p []byte) (int, error) {
 
 // actor returns the network actor m's session carries, anchored at
 // anchor.
-func actor(m member, anchor time.Time) ops.Actor {
-	return ops.NetworkActor(identity.Identity{
+func actor(m member, anchor time.Time) identity.Actor {
+	return identity.NetworkActor(identity.Identity{
 		Address: m.address, UserID: m.id, Principal: m.username, DisplayName: m.display,
 		Source: "magic-link", Channel: identity.ChannelCookie,
 	}, anchor, "192.0.2.1")
@@ -275,7 +275,7 @@ func execSQL(t *testing.T, h *store.Handle, stmt string, args ...any) {
 // the way an earlier admin write would leave it.
 func plantAdminRow(t *testing.T, f *fixture, key, value string) {
 	t.Helper()
-	by := settings.Author{Actor: "local:test", Channel: identity.ChannelCommandLine.String()}
+	by := identity.LocalActor("test")
 	if _, err := settings.Set(writeCtx(t), f.h, f.reg, nil, by, nil, key, value, testNow); err != nil {
 		t.Fatalf("plant %s=%s: %v", key, value, err)
 	}

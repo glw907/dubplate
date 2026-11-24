@@ -8,6 +8,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -118,8 +119,8 @@ func TestAuthorizingSeamDenialIsForbidden(t *testing.T) {
 	errSession := errors.New("session expired")
 	for _, tt := range []seamCall{submissionCalls()[4], adminCalls()[1]} {
 		t.Run(tt.op, func(t *testing.T) {
-			deny := &fakeAuthorizer{decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.Actor{}, 0, errSession
+			deny := &fakeAuthorizer{decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.Actor{}, 0, errSession
 			}}
 			f := newFixture(t, deny)
 			_, err := f.h.seam.admit(context.Background(), tt.op)

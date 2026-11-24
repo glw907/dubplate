@@ -22,13 +22,14 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/id"
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
 
 // testActor starts every test backup.
-var testActor = ops.LocalActor("tester")
+var testActor = identity.LocalActor("tester")
 
 // newStateDir creates a current store under a fresh state directory
 // and returns the directory, with no handle left open.

@@ -910,12 +910,12 @@ func TestRequestLink_ClientFloodSendsNoFurtherMail(t *testing.T) {
 	}
 }
 
-// TestRequestLink_ClientAddressIsTheShells proves the per-client limit
+// TestRequestLink_ClientIPIsTheShells proves the per-client limit
 // keys on the address the shell's trusted-proxy policy derives, and
 // that the auth event logs that same address. A peer outside the
 // allowlist forging a fresh client header on every request is still
 // one client; a trusted proxy reporting distinct clients is many.
-func TestRequestLink_ClientAddressIsTheShells(t *testing.T) {
+func TestRequestLink_ClientIPIsTheShells(t *testing.T) {
 	const perClient = 3
 	limits := generousLimits
 	limits.LinkRequestsPerClient = perClient

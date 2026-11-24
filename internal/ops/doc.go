@@ -7,10 +7,10 @@
 // [SubmissionSeam] the five submission operations. Both take the acting
 // identity as a parameter of every method, never as a field of a request
 // type, so a caller can never widen its own privilege by shaping a
-// request body. An [Actor]
-// is local, built from an operating-system username, or network, built
-// from a verified [identity.Identity] and its session's anchor; the
-// network kind renders its durable UserID, never its principal.
+// request body. An [identity.Actor] is local, built from an
+// operating-system username, or network, built from a verified
+// [identity.Identity] and its session's anchor; the network kind
+// renders its durable UserID, never its principal.
 //
 // Every request and response type is JSON-serializable with explicit
 // snake-case tags, the source of the API's wire shape once a driver

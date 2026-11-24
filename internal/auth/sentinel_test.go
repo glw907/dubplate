@@ -35,7 +35,7 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	logger := slog.New(slog.DiscardHandler)
-	operator := auth.OperatorActor("operator")
+	operator := identity.LocalActor("operator")
 
 	for _, m := range []auth.Member{
 		{Address: "admin@example.com", DisplayName: "Admin", Username: "admin", Admin: true},
@@ -68,7 +68,10 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 		{"an unknown id", func() error { return roster.RemoveMember(ctx, identity.UserID{0x0b, 0x5e}, operator, logger) }, auth.ErrMemberNotFound},
 		{"the last admin", func() error { return roster.DemoteMember(ctx, admin.ID, operator, logger) }, auth.ErrNoAdmin},
 		{"a non-admin actor", func() error {
-			return roster.RemoveMember(ctx, admin.ID, auth.MemberActor(member.ID, "192.0.2.1"), logger)
+			return roster.RemoveMember(ctx, admin.ID, identity.NetworkActor(identity.Identity{
+				Address: member.Address, UserID: member.ID, Principal: member.Username,
+				Source: "magic-link", Channel: identity.ChannelCookie,
+			}, time.Now(), "192.0.2.1"), logger)
 		}, auth.ErrActorNotAdmin},
 		{"a duplicate address", add("Member@example.com", "Again", "again"), auth.ErrDuplicateAddress},
 		{"a duplicate username", add("new@example.com", "New", "MEMBER"), auth.ErrDuplicateUsername},

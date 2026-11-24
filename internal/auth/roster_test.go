@@ -274,26 +274,24 @@ func TestValidateWriteCandidate_UsernameRequired(t *testing.T) {
 }
 
 // TestAddMember_ActorAndChannelRefusals proves AddMember refuses
-// before any write when the actor names no channel, or does not meet
-// its channel's own rule: a member actor must carry a non-zero id, and
-// a command-line actor must be non-empty and carry no rune an address
-// refuses. Fixture
-// state: a table holding a live admin, so the refusal is the actor's and
-// not the missing admin's.
+// before any write when the actor is the zero Actor, or is a
+// command-line actor whose name carries a rune an address refuses. An
+// empty name and a member actor without an id never reach the roster,
+// since identity's constructors refuse them. Fixture state: a table
+// holding a live admin, so the refusal is the actor's and not the
+// missing admin's.
 func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 	candidate := Member{Address: "new@example.com", DisplayName: "New", Username: "new"}
 	tests := []struct {
 		name string
-		by   Actor
+		by   identity.Actor
 	}{
-		{name: "the zero actor", by: Actor{}},
-		{name: "a member actor with the zero id", by: MemberActor(identity.UserID{}, "198.51.100.7")},
-		{name: "an empty actor on the command line", by: OperatorActor("")},
-		{name: "a command-line actor carrying a space", by: OperatorActor("some operator")},
-		{name: "a command-line actor carrying U+202E", by: OperatorActor("oper\u202eator")},
-		{name: "a command-line actor carrying a newline", by: OperatorActor("operator\nforged")},
-		{name: "a command-line actor carrying Hangul filler U+3164", by: OperatorActor("oper\u3164ator")},
-		{name: "a command-line actor carrying braille pattern blank U+2800", by: OperatorActor("operator\u2800")},
+		{name: "the zero actor", by: identity.Actor{}},
+		{name: "a command-line actor carrying a space", by: identity.LocalActor("some operator")},
+		{name: "a command-line actor carrying U+202E", by: identity.LocalActor("oper\u202eator")},
+		{name: "a command-line actor carrying a newline", by: identity.LocalActor("operator\nforged")},
+		{name: "a command-line actor carrying Hangul filler U+3164", by: identity.LocalActor("oper\u3164ator")},
+		{name: "a command-line actor carrying braille pattern blank U+2800", by: identity.LocalActor("operator\u2800")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -344,18 +342,18 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 // the code point's.
 func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 	logger := slog.New(slog.DiscardHandler)
-	actors := []Actor{adminActor, operator}
+	actors := []identity.Actor{adminActor, operator}
 	for i, by := range actors {
 		roster, _ := newRosterOver(t, liveAdmin)
 		plain := Member{Address: fmt.Sprintf("plain%d@example.com", i), DisplayName: "A", Username: fmt.Sprintf("plain%d", i)}
 		if _, err := roster.AddMember(writeCtx(t), plain, by, logger); err != nil {
-			t.Fatalf("AddMember(plain fixture, %s) = %v, want nil", by.channel, err)
+			t.Fatalf("AddMember(plain fixture, %s) = %v, want nil", by.Channel(), err)
 		}
 	}
 
 	for _, tt := range defaultIgnorableRoster {
 		for _, by := range actors {
-			t.Run(tt.name+"/"+by.channel.String(), func(t *testing.T) {
+			t.Run(tt.name+"/"+by.Channel().String(), func(t *testing.T) {
 				roster, h := newRosterOver(t, liveAdmin)
 				before := dumpUsers(t, h)
 
@@ -387,7 +385,7 @@ func TestAddMember_AuditRecord(t *testing.T) {
 	tests := []struct {
 		name      string
 		candidate Member
-		by        Actor
+		by        identity.Actor
 		want      map[string]any
 	}{
 		{
@@ -712,12 +710,21 @@ var liveAdmin = userRow{id: adminID, address: "admin@example.com", displayName: 
 // adminActor is liveAdmin acting over the cookie channel, and adminWire
 // the audit record's name for it, written out as a literal.
 var (
-	adminActor = MemberActor(adminID, "198.51.100.7")
+	adminActor = memberActor(adminID, "198.51.100.7")
 	adminWire  = "member:ad010000000000000000000000000000"
 )
 
 // operator is the command-line actor every operator fixture names.
-var operator = OperatorActor("operator")
+var operator = identity.LocalActor("operator")
+
+// memberActor is the network actor a verified cookie session for id
+// builds, writing from clientIP.
+func memberActor(id identity.UserID, clientIP string) identity.Actor {
+	return identity.NetworkActor(identity.Identity{
+		Address: "member@example.invalid", UserID: id, Principal: "member",
+		Source: "magic-link", Channel: identity.ChannelCookie,
+	}, rosterNow, clientIP)
+}
 
 // rosterNow is the instant a fixture roster's clock reads unless the
 // test moves it.
@@ -921,7 +928,7 @@ func TestUsersRoster_AddMember(t *testing.T) {
 		name      string
 		rows      []userRow
 		candidate Member
-		by        Actor
+		by        identity.Actor
 		wantErr   error
 		wantText  string
 		check     func(t *testing.T, h *store.Handle)
@@ -1020,21 +1027,21 @@ func TestUsersRoster_AddMember(t *testing.T) {
 			name:      "a cookie actor with no live row",
 			rows:      []userRow{liveAdmin},
 			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
-			by:        MemberActor(identity.UserID{0x57, 0x4a}, "192.0.2.1"),
+			by:        memberActor(identity.UserID{0x57, 0x4a}, "192.0.2.1"),
 			wantErr:   ErrActorNotAdmin,
 		},
 		{
 			name:      "a cookie actor with a non-admin live row",
 			rows:      []userRow{liveAdmin, plain},
 			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
-			by:        MemberActor(plainID, "192.0.2.1"),
+			by:        memberActor(plainID, "192.0.2.1"),
 			wantErr:   ErrActorNotAdmin,
 		},
 		{
 			name:      "a cookie actor with only a tombstoned admin row",
 			rows:      []userRow{liveAdmin, formerAdmin},
 			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"},
-			by:        MemberActor(formerID, "192.0.2.1"),
+			by:        memberActor(formerID, "192.0.2.1"),
 			wantErr:   ErrActorNotAdmin,
 		},
 		{
@@ -1054,12 +1061,6 @@ func TestUsersRoster_AddMember(t *testing.T) {
 			candidate: Member{Address: "new@example.com", DisplayName: "Ne\u202ew", Username: "new", Admin: true},
 			by:        operator,
 			wantErr:   ErrInvalidDisplayName,
-		},
-		{
-			name:      "an empty command-line actor",
-			candidate: Member{Address: "new@example.com", DisplayName: "New", Username: "new", Admin: true},
-			by:        OperatorActor(""),
-			wantErr:   errInvalidActor,
 		},
 		{
 			name:      "a command-line non-admin add into an empty table",
@@ -1567,7 +1568,7 @@ func TestDemoteMember(t *testing.T) {
 func TestRemoveMember_AuditRecord(t *testing.T) {
 	tests := []struct {
 		name string
-		by   Actor
+		by   identity.Actor
 		want map[string]any
 	}{
 		{"a cookie removal", adminActor, map[string]any{
@@ -1643,7 +1644,7 @@ func TestDemoteMember_ConcurrentLastAdmins(t *testing.T) {
 	other := fx.secondHandle(t)
 
 	err := whileHeld(t, other, `UPDATE users SET admin = 0 WHERE id = ?`, []any{adminID[:]}, func() error {
-		return fx.roster.DemoteMember(writeCtx(t), aliceID, MemberActor(aliceID, "198.51.100.7"), slog.New(slog.DiscardHandler))
+		return fx.roster.DemoteMember(writeCtx(t), aliceID, memberActor(aliceID, "198.51.100.7"), slog.New(slog.DiscardHandler))
 	})
 	if !errors.Is(err, ErrNoAdmin) {
 		t.Errorf("the second demotion = %v, want ErrNoAdmin", err)

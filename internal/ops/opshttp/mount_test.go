@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -26,14 +27,14 @@ type mountFixture struct {
 }
 
 // newMountFixture builds a mount whose verifier answers decide.
-func newMountFixture(t *testing.T, decide func(w http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error)) *mountFixture {
+func newMountFixture(t *testing.T, decide func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)) *mountFixture {
 	t.Helper()
 	f := &mountFixture{
 		admin: &fakeAdmin{answers: adminSuccesses()},
 		subs:  &fakeSubmissions{answers: submissionSuccesses()},
 		log:   &bytes.Buffer{},
 	}
-	verify := func(w http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error) {
+	verify := func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
 		f.verified++
 		return decide(w, r)
 	}
@@ -51,9 +52,9 @@ func seamCallsOf(f *mountFixture) int {
 }
 
 // admitAs is a verifier admitting every request as ann with p.
-func admitAs(p ops.Privilege) func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-	return func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-		return ops.NetworkActor(ann, annAnchor, "192.0.2.1"), p, nil
+func admitAs(p ops.Privilege) func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+	return func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+		return identity.NetworkActor(ann, annAnchor, "192.0.2.1"), p, nil
 	}
 }
 
@@ -99,8 +100,8 @@ func TestMount_OtherAPIPathsAnswerJSONNotFound(t *testing.T) {
 // ErrUnauthenticated answers 401 unauthenticated and reaches no seam,
 // on every operation and on an unknown name under v1.
 func TestMount_NoSessionAnswers401(t *testing.T) {
-	refuse := func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-		return ops.Actor{}, 0, fmt.Errorf("verify: %w", ErrUnauthenticated)
+	refuse := func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+		return identity.Actor{}, 0, fmt.Errorf("verify: %w", ErrUnauthenticated)
 	}
 	paths := []string{"list_submissions", "list_members", "add_member", "set_setting", "no_such_operation"}
 	for _, name := range paths {
@@ -124,8 +125,8 @@ func TestMount_NoSessionAnswers401(t *testing.T) {
 // is the server failing: 500 internal with no reason on the wire and
 // none of the error's text, which may quote an address, in the log.
 func TestMount_VerifierFailureAnswers500(t *testing.T) {
-	f := newMountFixture(t, func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-		return ops.Actor{}, 0, errors.New("roster lookup failed for ann@example.com")
+	f := newMountFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+		return identity.Actor{}, 0, errors.New("roster lookup failed for ann@example.com")
 	})
 	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`)
 	if rec.Code != http.StatusInternalServerError {
@@ -199,12 +200,12 @@ func TestMount_MemberReachesOnlyTheSubmissions(t *testing.T) {
 // session changes nothing.
 func TestMount_BearerHeaderAdmitsNobody(t *testing.T) {
 	sawBearer := false
-	f := newMountFixture(t, func(_ http.ResponseWriter, r *http.Request) (ops.Actor, ops.Privilege, error) {
+	f := newMountFixture(t, func(_ http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
 		if r.Header.Get("Authorization") == "" {
-			return ops.Actor{}, 0, fmt.Errorf("no cookie: %w", ErrUnauthenticated)
+			return identity.Actor{}, 0, fmt.Errorf("no cookie: %w", ErrUnauthenticated)
 		}
 		sawBearer = true
-		return ops.Actor{}, 0, fmt.Errorf("bearer is no session: %w", ErrUnauthenticated)
+		return identity.Actor{}, 0, fmt.Errorf("bearer is no session: %w", ErrUnauthenticated)
 	})
 	req := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(`{}`))
 	req.URL.Path = mountPrefix + "/api/v1/list_submissions"
@@ -243,9 +244,9 @@ func TestMount_UnknownOperationAnswers404AfterVerification(t *testing.T) {
 // TestMount_VerifierCanSetCookies proves the verifier is handed the
 // response writer, so a refreshed session cookie reaches the answer.
 func TestMount_VerifierCanSetCookies(t *testing.T) {
-	f := newMountFixture(t, func(w http.ResponseWriter, _ *http.Request) (ops.Actor, ops.Privilege, error) {
+	f := newMountFixture(t, func(w http.ResponseWriter, _ *http.Request) (identity.Actor, ops.Privilege, error) {
 		http.SetCookie(w, &http.Cookie{Name: "session", Value: "refreshed"})
-		return ops.NetworkActor(ann, annAnchor, "192.0.2.1"), ops.PrivilegeAdmin, nil
+		return identity.NetworkActor(ann, annAnchor, "192.0.2.1"), ops.PrivilegeAdmin, nil
 	})
 	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`)
 	if got := rec.Header().Get("Set-Cookie"); !strings.HasPrefix(got, "session=refreshed") {
@@ -255,8 +256,8 @@ func TestMount_VerifierCanSetCookies(t *testing.T) {
 
 // TestNewMount_Refusals proves a mount is not built without its parts.
 func TestNewMount_Refusals(t *testing.T) {
-	verify := func(http.ResponseWriter, *http.Request) (ops.Actor, ops.Privilege, error) {
-		return ops.Actor{}, 0, ErrUnauthenticated
+	verify := func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+		return identity.Actor{}, 0, ErrUnauthenticated
 	}
 	log := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
 	admin, subs := &fakeAdmin{}, &fakeSubmissions{}

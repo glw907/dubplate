@@ -117,7 +117,7 @@ func newHandler(admin ops.AdminSeam, subs ops.SubmissionSeam, auth authorizer, c
 // a caller without the operation's privilege learns nothing from the
 // body's shape, then decodes a Req, calls the operation as the admitted
 // actor, and answers the result.
-func route[Req, Resp any](h *handler, op string, call func(context.Context, ops.Actor, Req) (Resp, error)) http.HandlerFunc {
+func route[Req, Resp any](h *handler, op string, call func(context.Context, identity.Actor, Req) (Resp, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		actor, err := h.seam.admit(r.Context(), op)
 		if err != nil {

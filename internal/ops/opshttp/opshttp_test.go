@@ -380,48 +380,48 @@ func TestServeHTTPDenials(t *testing.T) {
 	planted.Principal = principal
 	tests := []struct {
 		name       string
-		decide     func(op string) (ops.Actor, ops.Privilege, error)
+		decide     func(op string) (identity.Actor, ops.Privilege, error)
 		wantReason string
 	}{
 		{
 			name: "authorizer answers forbidden",
-			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.Actor{}, 0, ops.NewForbiddenError(address + " (" + principal + ") is not an admin")
+			decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.Actor{}, 0, ops.NewForbiddenError(address + " (" + principal + ") is not an admin")
 			},
 			wantReason: "authorizer denied the caller",
 		},
 		{
 			name: "authorizer error",
-			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.Actor{}, 0, errors.New("read session /var/lib/dubplate/sessions/" + address + ": permission denied")
+			decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.Actor{}, 0, errors.New("read session /var/lib/dubplate/sessions/" + address + ": permission denied")
 			},
 			wantReason: "authorizer denied the caller",
 		},
 		{
 			name: "member grant on an admin operation",
-			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.NetworkActor(planted, annAnchor, "192.0.2.1"), ops.PrivilegeMember, nil
+			decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.NetworkActor(planted, annAnchor, "192.0.2.1"), ops.PrivilegeMember, nil
 			},
 			wantReason: "granted privilege does not reach the operation's",
 		},
 		{
 			name: "zero grant",
-			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.NetworkActor(planted, annAnchor, "192.0.2.1"), 0, nil
+			decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.NetworkActor(planted, annAnchor, "192.0.2.1"), 0, nil
 			},
 			wantReason: "granted privilege does not reach the operation's",
 		},
 		{
 			name: "command-line actor on a cookie mount",
-			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.LocalActor(principal), ops.PrivilegeAdmin, nil
+			decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.LocalActor(principal), ops.PrivilegeAdmin, nil
 			},
 			wantReason: "admitted actor's channel differs from the mount's",
 		},
 		{
 			name: "zero actor admitted",
-			decide: func(string) (ops.Actor, ops.Privilege, error) {
-				return ops.Actor{}, ops.PrivilegeAdmin, nil
+			decide: func(string) (identity.Actor, ops.Privilege, error) {
+				return identity.Actor{}, ops.PrivilegeAdmin, nil
 			},
 			wantReason: "admitted actor's channel differs from the mount's",
 		},

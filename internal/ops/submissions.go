@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/reject"
 )
 
@@ -142,19 +143,19 @@ type CancelSubmissionResponse GetSubmissionResponse
 type SubmissionSeam interface {
 	// CreateSubmission checks the manifest and the member's limits and
 	// reserves the space. A refusal carries [Error.Rejects].
-	CreateSubmission(ctx context.Context, actor Actor, req CreateSubmissionRequest) (CreateSubmissionResponse, error)
+	CreateSubmission(ctx context.Context, actor identity.Actor, req CreateSubmissionRequest) (CreateSubmissionResponse, error)
 
 	// ListSubmissions lists the actor's submissions, newest first.
-	ListSubmissions(ctx context.Context, actor Actor, req ListSubmissionsRequest) (ListSubmissionsResponse, error)
+	ListSubmissions(ctx context.Context, actor identity.Actor, req ListSubmissionsRequest) (ListSubmissionsResponse, error)
 
 	// GetSubmission reads one of the actor's submissions.
-	GetSubmission(ctx context.Context, actor Actor, req GetSubmissionRequest) (GetSubmissionResponse, error)
+	GetSubmission(ctx context.Context, actor identity.Actor, req GetSubmissionRequest) (GetSubmissionResponse, error)
 
 	// RetrySubmission moves a submission whose check could not run back
 	// to checking.
-	RetrySubmission(ctx context.Context, actor Actor, req RetrySubmissionRequest) (RetrySubmissionResponse, error)
+	RetrySubmission(ctx context.Context, actor identity.Actor, req RetrySubmissionRequest) (RetrySubmissionResponse, error)
 
 	// CancelSubmission ends a submission that is uploading or whose
 	// check could not run.
-	CancelSubmission(ctx context.Context, actor Actor, req CancelSubmissionRequest) (CancelSubmissionResponse, error)
+	CancelSubmission(ctx context.Context, actor identity.Actor, req CancelSubmissionRequest) (CancelSubmissionResponse, error)
 }
