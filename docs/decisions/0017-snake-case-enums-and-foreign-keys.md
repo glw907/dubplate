@@ -25,11 +25,14 @@ A foreign key column is named for the table it references, in the singular with 
 that references `users` is `user_id`.
 
 These are not enum values and keep their spelling: route names and URL paths, file names, token and
-record versions, setting keys, and command-line flags.
+record versions, setting keys, command-line flags, and the identity source selector `magic-link`,
+which is a setting's value an operator types.
 
-Migration 0007 rewrites every stored value and renames the two columns. A restore-intent record
-written before it may still read `reconcile-pending`, and the decoder accepts that one retired
-spelling.
+Migration 0007 rewrites every stored value and renames the two columns. Two retired spellings can
+still be read. A restore-intent record written before 0007 may read `reconcile-pending`, and the
+decoder accepts it. A store below 0007 holds the settings source `env-seed`, and the store reads it
+as `env_seed`, so serve, `check`, and `doctor` judge an older store's settings before its
+migration runs.
 
 ## Consequences
 

@@ -126,7 +126,7 @@ func TestPrepareServe_StoreAtStart(t *testing.T) {
 			setup: func(t *testing.T, stateDir string) {
 				path := olderStore(t, stateDir, 4)
 				plantJobRow(t, path)
-				plantKeepRow(t, path, "1", "env_seed")
+				plantKeepRow(t, path, "1", "env-seed")
 				plantCopies(t, stateDir, 2, 3)
 			},
 			wantJobs:   1,

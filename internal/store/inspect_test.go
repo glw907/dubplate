@@ -413,15 +413,18 @@ UPDATE settings_generation SET generation = 3 WHERE singleton = 1;`
 // generation; an older store below that version reads the table
 // absent marker instead, never an empty result mistaken for one. Each
 // store holds the source spelling its own version admits, and Inspect
-// reports it as stored.
+// reports the spelling the binary reads: an older store's env-seed
+// reads as the env_seed its migration will write.
 func TestInspect_SettingsFacts(t *testing.T) {
 	tests := []struct {
-		name    string
-		through int
-		source  string
+		name       string
+		through    int
+		source     string
+		wantSource string
 	}{
-		{name: "current", through: binaryHead, source: "env_seed"},
-		{name: "older, settings table present, 0005 pending", through: 4, source: "env-seed"},
+		{name: "current", through: binaryHead, source: "env_seed", wantSource: "env_seed"},
+		{name: "older, settings table present, 0005 pending", through: 4, source: "env-seed", wantSource: "env_seed"},
+		{name: "older, an admin row", through: 6, source: "admin", wantSource: "admin"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -440,7 +443,7 @@ func TestInspect_SettingsFacts(t *testing.T) {
 			// Fixture state: the store holds one settings row, so an
 			// empty result here would pass a bug that never reads the
 			// table at all.
-			want := []SettingsRow{{Key: "DUBPLATE_TEST_KEY", Value: "seven", Source: tt.source, SeedValue: "seven", Actor: "system", UpdatedAt: time.UnixMicro(1790251200000000).UTC()}}
+			want := []SettingsRow{{Key: "DUBPLATE_TEST_KEY", Value: "seven", Source: tt.wantSource, SeedValue: "seven", Actor: "system", UpdatedAt: time.UnixMicro(1790251200000000).UTC()}}
 			if !slices.Equal(f.Settings, want) {
 				t.Errorf("settings = %+v, want %+v", f.Settings, want)
 			}

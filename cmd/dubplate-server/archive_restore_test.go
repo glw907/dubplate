@@ -85,7 +85,7 @@ func TestRestoreCmd_ArchiveAtSix(t *testing.T) {
 // restoreArchive restores a copy of testdata/name with the restore
 // verb, starts serve's preparation on the result as a serve start does,
 // and returns a connection to the restored store, which it requires to
-// be current. The environment sets DUBPLATE_JOB_RETENTION to the value
+// be current with every foreign key holding. The environment sets DUBPLATE_JOB_RETENTION to the value
 // the archive's env-seed row holds, so the start leaves that row alone.
 func restoreArchive(t *testing.T, name string) *sql.DB {
 	t.Helper()
@@ -117,6 +117,21 @@ func restoreArchive(t *testing.T, name string) *sql.DB {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
+	rows, err := db.Query(`SELECT "table" || ' ' || parent FROM pragma_foreign_key_check`)
+	if err != nil {
+		t.Fatalf("foreign_key_check: %v", err)
+	}
+	defer func() { _ = rows.Close() }()
+	for rows.Next() {
+		var broken string
+		if err := rows.Scan(&broken); err != nil {
+			t.Fatal(err)
+		}
+		t.Errorf("foreign_key_check after restoring %s: %s", name, broken)
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
 	return db
 }
 

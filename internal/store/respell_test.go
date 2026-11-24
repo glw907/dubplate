@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/glw907/dubplate/internal/reject"
 )
 
 // respellSeed holds, at schema 6, one row for every kebab-case spelling
@@ -221,5 +223,81 @@ func TestCheckLedgerAcceptsTheBoxCatalogOnlyWithMigrationsPending(t *testing.T) 
 	err := checkLedger(ctx, h.write, files[:5], 5)
 	if err == nil || !strings.Contains(err.Error(), boxCatalogSum) {
 		t.Errorf("checkLedger at head 5: %v, want the box catalog's sum refused", err)
+	}
+}
+
+// backupCodes are the failure codes internal/backup and internal/ops/jobs
+// record, typed here because a store test cannot import either package,
+// which import the store. rclone's per-status and per-signal codes are
+// respellSeed's, since 0007 rewrites them by pattern.
+var backupCodes = []string{
+	"job_error", "job_invalid", "rclone_missing", "remote_invalid", "snapshot_failed", "reference_failed",
+	"library_missing", "library_invalid", "library_unreadable", "library_empty", "library_short",
+}
+
+// TestMigrationRespellsEveryCode seeds, at schema 6, every reject code
+// in each column that stores one (an event's reason, a file's verdict,
+// and a warning's code) and every backup failure code in a job, each
+// in its retired hyphenated spelling. After the migration each column
+// reads back the code the binary writes. The codes come from the
+// reject set and the backup list, never from 0007's map, so a code the
+// map leaves out fails here.
+func TestMigrationRespellsEveryCode(t *testing.T) {
+	l, h := newMigrateStore(t)
+	ctx := context.Background()
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, 6)), defaultOpts()); err != nil {
+		t.Fatalf("migrate to version 6: %v", err)
+	}
+	if _, err := h.write.ExecContext(ctx, respellSeed); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	var codes []string
+	for _, r := range reject.All() {
+		codes = append(codes, string(r.Code))
+	}
+	// Fixture state: the set is the 29 reasons, so a set that came back
+	// empty or short would seed too little to prove the map whole.
+	if len(codes) != 29 {
+		t.Fatalf("reject.All holds %d codes, want 29", len(codes))
+	}
+	const submission = "x'75757575757575757575757575757501'"
+	for i, code := range codes {
+		retired := strings.ReplaceAll(code, "_", "-")
+		for _, q := range []string{
+			"INSERT INTO submission_events (id, submission_id, seq, at, kind, reason) VALUES (randomblob(16), " + submission + ", ?1, 1, 'rejected', ?2)",
+			"INSERT INTO submission_files (id, submission_id, rel_path, size, role, verdict) VALUES (randomblob(16), " + submission + ", CAST('code' || ?1 || '.flac' AS BLOB), ?1, 'audio', ?2)",
+			"INSERT INTO submission_warnings (id, submission_id, code, at) VALUES (randomblob(16), " + submission + ", ?2, ?1)",
+		} {
+			if _, err := h.write.ExecContext(ctx, q, 5000+i, retired); err != nil {
+				t.Fatalf("seed %s into %s: %v", retired, strings.Fields(q)[2], err)
+			}
+		}
+	}
+	for i, code := range backupCodes {
+		if _, err := h.write.ExecContext(ctx,
+			"INSERT INTO jobs (id, kind, at, state, owner_instance, actor, failure_code, updated_at) VALUES (randomblob(16), 'backup', ?, 'failed', 'box', 'system', ?, 1)",
+			5000+i, strings.ReplaceAll(code, "_", "-")); err != nil {
+			t.Fatalf("seed job %s: %v", code, err)
+		}
+	}
+
+	if err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts()); err != nil {
+		t.Fatalf("migrate to head: %v", err)
+	}
+	for _, c := range []struct {
+		query string
+		want  []string
+	}{
+		// respellSeed's own rows sit below 5000 in seq and size and far
+		// above it in at.
+		{"SELECT reason FROM submission_events WHERE seq >= 5000 ORDER BY seq", codes},
+		{"SELECT verdict FROM submission_files WHERE size >= 5000 ORDER BY size", codes},
+		{"SELECT code FROM submission_warnings WHERE at < 1000000 ORDER BY at", codes},
+		{"SELECT failure_code FROM jobs WHERE at < 1000000 ORDER BY at", backupCodes},
+	} {
+		if got := queryStrings(t, h.write, c.query); !slices.Equal(got, c.want) {
+			t.Errorf("%s = %q, want %q", c.query, got, c.want)
+		}
 	}
 }

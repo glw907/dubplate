@@ -44,6 +44,9 @@ func Parse(s string) (ID, error) {
 // String returns the 32 lowercase hex characters [Parse] accepts.
 func (id ID) String() string { return hex.EncodeToString(id[:]) }
 
+// IsZero reports whether id is all zero bytes.
+func (id ID) IsZero() bool { return id == ID{} }
+
 // MarshalText implements [encoding.TextMarshaler]: a wire id is the
 // text [ID.String] returns.
 func (id ID) MarshalText() ([]byte, error) { return []byte(id.String()), nil }
@@ -69,9 +72,6 @@ func (id *ID) Scan(src any) error {
 	*id = ID(b)
 	return nil
 }
-
-// IsZero reports whether id is all zero bytes.
-func (id ID) IsZero() bool { return id == ID{} }
 
 // Value implements [driver.Valuer]: the store holds an id as a 16-byte
 // blob.
