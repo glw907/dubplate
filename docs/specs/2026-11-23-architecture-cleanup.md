@@ -11,6 +11,10 @@ proud of." He asked for the read to cover all 44 packages and the SvelteKit app,
 `docs/research/2026-11-23-architecture-read.md` (49 readers, commit `b5211ce`) holds 37 repo-wide
 entries, 354 package findings, the sites of nine patterns, and a ruling on each of the 241 functions
 `go tool deadcode` finds unreachable (81 exported, 160 unexported).
+Every file:line in the report and the checklists is at `b5211ce`. Pull request 27 (`46fcd28`) later
+restructured ten functions and moved lines in their files, so the 58 citations into those files are older
+than `master`: a task reads such a finding with `git show b5211ce:<file>` and finds the code on `master`
+by its text.
 
 He then chose the scope ("All of it"), the order ("Cleanup first": the whole chain merges before
 `intake-2`), and the latitude: "Now is the point where you can change visible portions and the contract
