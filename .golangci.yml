@@ -61,10 +61,6 @@ linters:
       # Functions over the complexity bar when the check was adopted.
       # This list only shrinks: a function leaves it when it is
       # refactored, and no new function joins it.
-      - path: ^internal/engine/matcher/assign\.go$
-        linters:
-          - gocognit
-        text: func `findPath`
       - path: ^internal/engine/tagio/container\.go$
         linters:
           - gocognit
