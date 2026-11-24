@@ -209,7 +209,11 @@ func nearMarker(line string) bool {
 
 // checkLedger compares the ledger db holds with files, for a store at
 // version current, no higher than len(files). A store at version 0
-// that has no ledger table yet agrees.
+// that has no ledger table yet agrees. So does a store whose ledger
+// still records a row a repair amends, while a migration is pending.
+// Its schema predates the repair, so a caller that reads such a store
+// without migrating it must not rely on anything the repair changes,
+// such as users.username.
 func checkLedger(ctx context.Context, db *sql.DB, files []migration, current int) error {
 	var tables int
 	if err := db.QueryRowContext(ctx,

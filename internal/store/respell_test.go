@@ -232,7 +232,7 @@ func TestMigrateKeepsTheBoxCatalogWhenAMigrationFails(t *testing.T) {
 	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil {
 		t.Fatal("retry with the failing 0006: nil, want its error")
 	}
-	boxShape(t, openCopy(t, l, 5), "pre-migrate-v5 copy after the retry")
+	boxShape(t, openCopy(t, l, "pre-migrate-v5.db"), "pre-migrate-v5 copy after the retry")
 
 	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
 		t.Fatalf("migrate to head once 0006 applies: %v", err)
@@ -268,7 +268,8 @@ func TestMigrateRollsBackAFailedAmendment(t *testing.T) {
 // with the amendment, and fails 0007. The store stops at version 6
 // holding the amendment, so a retry's newest copy is pre-migrate-v6.
 // The pre-migrate-v5 copy the first run took is still the box's shape,
-// the one the earlier binary opens.
+// the one the earlier binary opens, and a keep of 2 holds it through
+// the prune that follows the run reaching head.
 func TestMigrateKeepsTheBoxCopyWhenALaterMigrationFails(t *testing.T) {
 	l, h := boxStore(t)
 	ctx := context.Background()
@@ -288,10 +289,10 @@ func TestMigrateKeepsTheBoxCopyWhenALaterMigrationFails(t *testing.T) {
 	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil {
 		t.Fatal("retry with the failing 0007: nil, want its error")
 	}
-	if got := queryStrings(t, openCopy(t, l, 6), "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"username"}) {
+	if got := queryStrings(t, openCopy(t, l, "pre-migrate-v6.db"), "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"username"}) {
 		t.Errorf("pre-migrate-v6 users columns = %q, want [username]", got)
 	}
-	boxShape(t, openCopy(t, l, 5), "pre-migrate-v5 copy after the retry")
+	boxShape(t, openCopy(t, l, "pre-migrate-v5.db"), "pre-migrate-v5 copy after the retry")
 
 	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
 		t.Fatalf("migrate to head once 0007 applies: %v", err)
@@ -299,6 +300,7 @@ func TestMigrateKeepsTheBoxCopyWhenALaterMigrationFails(t *testing.T) {
 	if got := queryStrings(t, h.write, "PRAGMA user_version"); !slices.Equal(got, []string{"7"}) {
 		t.Errorf("user_version at head = %q, want [7]", got)
 	}
+	boxShape(t, openCopy(t, l, "pre-migrate-v5.db"), "pre-migrate-v5 copy after the prune at head")
 }
 
 // boxShape fails t unless db is a store the box's commit wrote: its
@@ -314,10 +316,12 @@ func boxShape(t *testing.T, db *sql.DB, what string) {
 	}
 }
 
-// openCopy opens l's pre-migrate copy of version read-only.
-func openCopy(t *testing.T, l leaf, version int) *sql.DB {
+// openCopy opens the copy named name in l's snapshots directory
+// read-only. A caller spells the name out, since it is the file an
+// operator rolls back to.
+func openCopy(t *testing.T, l leaf, name string) *sql.DB {
 	t.Helper()
-	path := filepath.Join(l.snapshotsDir, preMigrateName(version))
+	path := filepath.Join(l.snapshotsDir, name)
 	db, err := sql.Open(sqliteDriverName, inspectDSN(path, migrateBusy))
 	if err != nil {
 		t.Fatalf("open copy %s: %v", path, err)
