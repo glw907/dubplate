@@ -67,9 +67,8 @@ func RequireAdmin(cfg VerifyConfig, next http.Handler) http.Handler {
 }
 
 // gateRefusals are the causes the gate's log names. A verifier error's
-// text is never logged: the epoch check wraps the normalizer's error,
-// which quotes the address a signed session carries, and a failed
-// setting read's text may carry whatever the read met.
+// text is never logged, because a failed setting read's text may carry
+// whatever the read met.
 var gateRefusals = []error{
 	http.ErrNoCookie,
 	ErrSessionMalformed,
