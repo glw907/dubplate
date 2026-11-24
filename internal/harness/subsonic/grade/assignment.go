@@ -153,6 +153,17 @@ func loadAssignment(path string, tracks []fixture.Track) (*assignment, error) {
 func (a *assignment) problems(tracks []fixture.Track) []error {
 	var ps []error
 	bad := func(format string, args ...any) { ps = append(ps, fmt.Errorf(format, args...)) }
+	a.checkEndpoints(bad)
+	a.checkAreas(bad)
+	a.checkAgreements(bad)
+	a.checkShapes(tracks, bad)
+	return ps
+}
+
+// checkEndpoints passes bad each endpoint entry with an empty or
+// repeated name, an unknown oracle, an empty slice or reason, or an
+// oracle other than contract-only while the endpoint is not served.
+func (a *assignment) checkEndpoints(bad func(format string, args ...any)) {
 	seen := map[string]bool{}
 	for i, e := range a.Endpoints {
 		label := fmt.Sprintf("endpoint %d", i+1)
@@ -179,6 +190,11 @@ func (a *assignment) problems(tracks []fixture.Track) []error {
 			bad("%s: not served at launch, so oracle %q must be %q", label, e.Oracle, oracleContractOnly)
 		}
 	}
+}
+
+// checkAreas passes bad each area with an empty or repeated name, or an
+// empty slice or reason.
+func (a *assignment) checkAreas(bad func(format string, args ...any)) {
 	areas := map[string]bool{}
 	for _, ar := range a.Areas {
 		switch {
@@ -192,6 +208,11 @@ func (a *assignment) problems(tracks []fixture.Track) []error {
 			bad("area %q: empty slice or reason", ar.Name)
 		}
 	}
+}
+
+// checkAgreements passes bad each agreement with an empty or repeated
+// id, and each of its fields that is empty.
+func (a *assignment) checkAgreements(bad func(format string, args ...any)) {
 	agreements := map[string]bool{}
 	for i, ag := range a.Agreements {
 		label := fmt.Sprintf("agreement %d", i+1)
@@ -213,6 +234,12 @@ func (a *assignment) problems(tracks []fixture.Track) []error {
 			}
 		}
 	}
+}
+
+// checkShapes passes bad each album shape entry whose shape is unknown,
+// whose album tracks does not hold, or whose album lacks the shape, and
+// each shape entry, applicable or not, with an empty reason.
+func (a *assignment) checkShapes(tracks []fixture.Track, bad func(format string, args ...any)) {
 	albums := map[string][]fixture.Track{}
 	for _, t := range tracks {
 		key := t.AlbumArtist + "/" + t.Album
@@ -238,7 +265,6 @@ func (a *assignment) problems(tracks []fixture.Track) []error {
 			bad("not-applicable shape %q: empty shape or reason", s.Shape)
 		}
 	}
-	return ps
 }
 
 // lookup returns the entry for endpoint, and whether the assignment
