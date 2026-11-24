@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/glw907/dubplate/internal/member"
 )
 
 // VerifyConfig is everything a session check needs, for the admin gate
@@ -76,7 +78,7 @@ var gateRefusals = []error{
 	ErrSessionCapReached,
 	ErrSessionExpired,
 	ErrSessionRevoked,
-	ErrMemberNotFound,
+	member.ErrMemberNotFound,
 }
 
 // gateRefusalReason names err by the first of gateRefusals it wraps,

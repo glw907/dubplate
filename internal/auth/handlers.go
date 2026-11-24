@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -92,7 +93,7 @@ func readSetting[T any](ctx context.Context, s settings.Reader[T]) (T, error) {
 // HandlersConfig is everything [NewHandlers] needs, resolved by the
 // caller. Every field is required except PreviousLinkSecret.
 type HandlersConfig struct {
-	Roster  *Roster
+	Roster  *member.Roster
 	Nonces  *NonceStore
 	Epoch   *EpochStore
 	Limiter *Limiter
@@ -276,9 +277,9 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeInvalid})
 		return
 	}
-	member, err := h.cfg.Roster.Lookup(r.Context(), address)
+	found, err := h.cfg.Roster.Lookup(r.Context(), address)
 	known := err == nil
-	if err != nil && !errors.Is(err, ErrMemberNotFound) {
+	if err != nil && !errors.Is(err, member.ErrMemberNotFound) {
 		// A roster that fails to load is never reported as an unknown
 		// address: the kind answer would hand a member the admin
 		// contact meant for a stranger. The generic answer's bytes stay
@@ -313,7 +314,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 			// deadline, which is what bounds the goroutine.
 			ctx := context.WithoutCancel(r.Context())
 			go func() {
-				if err := h.sendLink(ctx, now, vals.expiry, member.Address); err != nil {
+				if err := h.sendLink(ctx, now, vals.expiry, found.Address); err != nil {
 					h.logSendFailure(log, err)
 				}
 			}()
@@ -332,7 +333,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusOK, answer{Outcome: outcomeUnknown, AdminContact: contact})
 		return
 	}
-	if err := h.sendLink(r.Context(), now, vals.expiry, member.Address); err != nil {
+	if err := h.sendLink(r.Context(), now, vals.expiry, found.Address); err != nil {
 		h.logSendFailure(log, err)
 		if errors.Is(err, ErrRateLimited) {
 			writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})

@@ -11,6 +11,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -153,10 +154,10 @@ func TestRosterResetServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open the auth leaf: %v", err)
 	}
-	roster := auth.NewRoster(h, auth.OpenEpochStore(leaf), time.Now)
+	roster := member.NewRoster(h, auth.OpenEpochStore(leaf), time.Now)
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
-	for _, m := range []auth.Member{
+	for _, m := range []member.Member{
 		{Address: renderedNewMemberAddress, DisplayName: "New", Username: "newmember"},
 		{Address: "capture-added@example.test", DisplayName: "Capture", Username: "capture-added"},
 	} {

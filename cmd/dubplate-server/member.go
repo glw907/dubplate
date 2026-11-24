@@ -14,6 +14,7 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
@@ -87,12 +88,12 @@ func (ov operatorVerbs) withStore(ctx context.Context, environ []string, reg *co
 // re-add bump. A leaf auth.Open refuses is reported naming verb, and
 // nothing is written. Only a writing verb calls it, so member list
 // opens no auth leaf.
-func writingRoster(h *store.Handle, stateDir, verb string) (*auth.Roster, error) {
+func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, error) {
 	leaf, err := auth.Open(stateDir)
 	if err != nil {
 		return nil, fmt.Errorf("member %s: %w", verb, err)
 	}
-	return auth.NewRoster(h, auth.OpenEpochStore(leaf), time.Now), nil
+	return member.NewRoster(h, auth.OpenEpochStore(leaf), time.Now), nil
 }
 
 // newMemberAddCmd builds "member add <address>": it opens the store in
@@ -116,7 +117,7 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 				if err != nil {
 					return err
 				}
-				candidate := auth.Member{
+				candidate := member.Member{
 					Address:     args[0],
 					DisplayName: name,
 					Username:    username,
@@ -142,24 +143,24 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 }
 
 // A rosterChange is a roster write on one member, named by id.
-type rosterChange func(r *auth.Roster, ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error
+type rosterChange func(r *member.Roster, ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error
 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
 func (ov operatorVerbs) newMemberRemoveCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("remove", "Remove a member from the group", environ, reg, stderr, (*auth.Roster).RemoveMember)
+	return ov.newMemberChangeCmd("remove", "Remove a member from the group", environ, reg, stderr, (*member.Roster).RemoveMember)
 }
 
 // newMemberDemoteCmd builds "member demote <address>": it clears the
 // member's admin flag.
 func (ov operatorVerbs) newMemberDemoteCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr, (*auth.Roster).DemoteMember)
+	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr, (*member.Roster).DemoteMember)
 }
 
 // newMemberChangeCmd builds the verb that resolves an address to the
 // live member's id and applies one roster write to it. The write names
 // the member by id, so one removed between the lookup and the write
-// answers [auth.ErrMemberNotFound], as an unknown address does. The
+// answers [member.ErrMemberNotFound], as an unknown address does. The
 // audit record goes to stderr.
 func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, stderr io.Writer, change rosterChange) *cobra.Command {
 	cmd := &cobra.Command{
@@ -207,7 +208,7 @@ func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry,
 			}
 			defer func() { err = errors.Join(err, h.Close()) }()
 
-			members, err := auth.NewRoster(h, nil, nil).List(cmd.Context())
+			members, err := member.NewRoster(h, nil, nil).List(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -221,7 +222,7 @@ func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry,
 // printMemberList writes members to w: a header line, then one line
 // per member in the order given, address, display name, username,
 // and an admin marker, tab-separated.
-func printMemberList(w io.Writer, members []auth.Member) error {
+func printMemberList(w io.Writer, members []member.Member) error {
 	if _, err := fmt.Fprint(w, "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n"); err != nil {
 		return err
 	}

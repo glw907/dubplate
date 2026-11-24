@@ -1,4 +1,4 @@
-package auth
+package member
 
 import (
 	"bytes"
@@ -176,7 +176,7 @@ func newRosterOver(t *testing.T, rows ...userRow) (*Roster, *store.Handle) {
 		}
 	}
 	insertUsers(t, h, rows...)
-	return NewRoster(h, newEpochStore(t, t.TempDir()), fixedNow(rosterNow)), h
+	return NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow)), h
 }
 
 // TestRoster_LookupErrorNamesNoAddress proves a Lookup refusal for an
@@ -1091,7 +1091,7 @@ func TestUsersRoster_AddMember(t *testing.T) {
 			before := dumpUsers(t, h)
 
 			var logBuf bytes.Buffer
-			roster := NewRoster(h, newEpochStore(t, t.TempDir()), fixedNow(rosterNow))
+			roster := NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow))
 			_, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil)))
 			if tt.wantErr != nil {
 				if logBuf.Len() != 0 {
@@ -1120,14 +1120,13 @@ func TestUsersRoster_AddMember(t *testing.T) {
 }
 
 // rosterFixture is a revoking roster over a fresh store, with the
-// pieces a removal test reads back: the store's handle and directory,
-// the auth leaf's store and epoch store, and the clock the roster reads.
+// pieces a write test reads back: the store's handle and directory, the
+// revoker the roster calls, and the clock the roster reads.
 type rosterFixture struct {
 	roster   *Roster
 	h        *store.Handle
 	storeDir string
-	auth     *Dir
-	epoch    *EpochStore
+	revoker  *recordingRevoker
 	clock    *testClock
 }
 
@@ -1135,43 +1134,52 @@ type rosterFixture struct {
 // whose clock reads rosterNow.
 func newRosterFixture(t *testing.T, rows ...userRow) rosterFixture {
 	t.Helper()
-	fx := rosterFixture{storeDir: t.TempDir(), clock: &testClock{at: rosterNow}}
+	fx := rosterFixture{storeDir: t.TempDir(), revoker: newRecordingRevoker(), clock: &testClock{at: rosterNow}}
 	fx.h = newUsersStoreAt(t, fx.storeDir)
 	insertUsers(t, fx.h, rows...)
-	authDir, err := Open(t.TempDir())
-	if err != nil {
-		t.Fatalf("Open: %v", err)
-	}
-	fx.auth = authDir
-	fx.epoch = OpenEpochStore(authDir)
-	fx.roster = NewRoster(fx.h, fx.epoch, fx.clock.now)
+	fx.roster = NewRoster(fx.h, fx.revoker, fx.clock.now)
 	return fx
 }
 
-// epochOf returns address's stored epoch, and whether there is one.
-func (fx rosterFixture) epochOf(t *testing.T, address string) (time.Time, bool) {
-	t.Helper()
-	epoch, ok, err := fx.epoch.Read(address)
-	if err != nil {
-		t.Fatalf("Read epoch: %v", err)
-	}
-	return epoch, ok
+// revokedAt returns the time the roster last revoked address at, and
+// whether it revoked it at all.
+func (fx rosterFixture) revokedAt(address string) (time.Time, bool) {
+	fx.revoker.mu.Lock()
+	defer fx.revoker.mu.Unlock()
+	at, ok := fx.revoker.at[address]
+	return at, ok
 }
 
-// freezeEpochs makes the epoch subdirectory unwritable, so every bump
-// fails with an error that is not ErrEpochBackward, and proves it did.
-func (fx rosterFixture) freezeEpochs(t *testing.T) {
-	t.Helper()
-	dir := fx.auth.subdir(epochSubdir)
-	if err := os.Chmod(dir, 0o500); err != nil {
-		t.Fatalf("chmod the epoch subdirectory: %v", err)
+// errFixtureRevoke is the failure a failing recordingRevoker returns.
+var errFixtureRevoke = errors.New("fixture revocation failed")
+
+// recordingRevoker records the time each address was last revoked at.
+// Once failing is set, every call returns errFixtureRevoke and records
+// nothing.
+type recordingRevoker struct {
+	mu      sync.Mutex
+	at      map[string]time.Time
+	failing bool
+}
+
+func newRecordingRevoker() *recordingRevoker {
+	return &recordingRevoker{at: map[string]time.Time{}}
+}
+
+func (r *recordingRevoker) Revoke(_ context.Context, address string, at time.Time, _ *slog.Logger) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.failing {
+		return errFixtureRevoke
 	}
-	t.Cleanup(func() { _ = os.Chmod(dir, dirPerm) })
-	probe, err := os.CreateTemp(dir, "probe")
-	if err == nil {
-		_ = probe.Close()
-		t.Fatal("the epoch subdirectory still takes a file; the fixture cannot make a bump fail")
-	}
+	r.at[address] = at
+	return nil
+}
+
+func (r *recordingRevoker) fail() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.failing = true
 }
 
 // secondHandle opens another write handle on the fixture's store: the
@@ -1279,37 +1287,21 @@ func liveAdmins(t *testing.T, h *store.Handle) []string {
 	return ids
 }
 
-// verifyAt verifies a session minted for address at minted, checked at
-// minted plus a minute, through a seam over fx's roster and epoch store.
-func (fx rosterFixture) verifyAt(t *testing.T, address string, minted time.Time) (VerifiedIdentity, error) {
-	t.Helper()
-	value, _, err := MintSession([]byte(currentFixture), address, minted, verifierLifetime, verifierCap)
-	if err != nil {
-		t.Fatalf("MintSession: %v", err)
-	}
-	seam := NewMagicLinkVerifier(fx.roster, fx.epoch, []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
-	return seam.VerifyIdentity(requestWithSession(t, value), minted.Add(time.Minute), false)
-}
-
 // aliceRow is a live non-admin member every removal fixture removes.
 var aliceRow = userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "alice", createdAt: 110}
 
 // TestRemoveMember_Checklist is the checklist test for the 14a rows of
 // the removal checklist (AC15): the removal tombstones the row with the
 // removal time, deletes the member's preferences, keeps their overrides
-// and quota, and bumps the address's epoch to the removal time. A
-// session minted before the removal stays refused after the address is
-// re-added under its old id, even with the removal's epoch record
-// deleted first, because the re-add bumps too; a sign-in one second
-// past the re-add's bump verifies. Fixture state: a preference, an
-// override, and a quota row, written before the removal.
+// and quota, and revokes the address at the removal time. A re-add
+// reactivates the old id and revokes again at the re-add time, so a
+// credential the removal's revocation missed is refused too. auth's
+// TestRosterRemoval_RevokesSessions holds the sessions this ends.
+// Fixture state: a preference, an override, and a quota row, written
+// before the removal.
 func TestRemoveMember_Checklist(t *testing.T) {
 	fx := newRosterFixture(t, liveAdmin, aliceRow)
 	insertMemberRecords(t, fx.h, aliceID)
-	minted := rosterNow.Add(-time.Hour)
-	if _, err := fx.verifyAt(t, "alice@example.com", minted); err != nil {
-		t.Fatalf("the pre-removal session does not verify before the removal: %v", err)
-	}
 
 	removedAt := rosterNow
 	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor, slog.New(slog.DiscardHandler)); err != nil {
@@ -1326,19 +1318,8 @@ func TestRemoveMember_Checklist(t *testing.T) {
 	if got, want := memberRecords(t, fx.h, aliceID), [3]int{0, 1, 1}; got != want {
 		t.Errorf("preferences, overrides, quota after removal = %v, want %v", got, want)
 	}
-	if epoch, ok := fx.epochOf(t, "alice@example.com"); !ok || !epoch.Equal(removedAt) {
-		t.Errorf("epoch after removal = %v (present %v), want the removal time %v", epoch, ok, removedAt)
-	}
-	if _, err := fx.verifyAt(t, "alice@example.com", minted); !errors.Is(err, ErrSessionRevoked) {
-		t.Errorf("pre-removal session after removal: %v, want ErrSessionRevoked", err)
-	}
-
-	path, err := fx.auth.EpochPath(RecordID(epochSubdir, "alice@example.com"))
-	if err != nil {
-		t.Fatalf("EpochPath: %v", err)
-	}
-	if err := os.Remove(path); err != nil {
-		t.Fatalf("delete the removal's epoch record: %v", err)
+	if at, ok := fx.revokedAt("alice@example.com"); !ok || !at.Equal(removedAt) {
+		t.Errorf("revocation after removal = %v (made %v), want the removal time %v", at, ok, removedAt)
 	}
 
 	readdedAt := rosterNow.Add(time.Hour)
@@ -1350,39 +1331,24 @@ func TestRemoveMember_Checklist(t *testing.T) {
 	if u := readUser(t, fx.h, "alice@example.com"); !bytes.Equal(u.id, aliceID[:]) || u.tombstoned {
 		t.Fatalf("re-added row = %+v, want the old id %x, live", u, aliceID[:])
 	}
-	if epoch, ok := fx.epochOf(t, "alice@example.com"); !ok || !epoch.Equal(readdedAt) {
-		t.Errorf("epoch after re-add = %v (present %v), want the re-add time %v", epoch, ok, readdedAt)
-	}
-	if _, err := fx.verifyAt(t, "alice@example.com", minted); !errors.Is(err, ErrSessionRevoked) {
-		t.Errorf("pre-removal session after re-add: %v, want ErrSessionRevoked", err)
-	}
-	if _, err := fx.verifyAt(t, "alice@example.com", readdedAt.Add(-time.Minute)); !errors.Is(err, ErrSessionRevoked) {
-		t.Errorf("session minted between the removal and the re-add: %v, want ErrSessionRevoked", err)
-	}
-
-	got, err := fx.verifyAt(t, "alice@example.com", readdedAt.Add(time.Second))
-	if err != nil {
-		t.Fatalf("sign-in one second past the re-add's bump: %v, want it to verify", err)
-	}
-	if got.Identity.UserID != aliceID {
-		t.Errorf("signed-in id = %x, want %x", got.Identity.UserID, aliceID)
+	if at, ok := fx.revokedAt("alice@example.com"); !ok || !at.Equal(readdedAt) {
+		t.Errorf("revocation after re-add = %v (made %v), want the re-add time %v", at, ok, readdedAt)
 	}
 }
 
-// TestRemoveMember_BumpFailureRollsBack proves a bump that fails with
-// anything but ErrEpochBackward rolls the removal back: the member stays
-// live with their preferences. Fixture state: an epoch subdirectory no
-// bump can write.
+// TestRemoveMember_BumpFailureRollsBack proves a revocation that fails
+// rolls the removal back: the member stays live with their preferences.
+// Fixture state: a revoker that fails every call.
 func TestRemoveMember_BumpFailureRollsBack(t *testing.T) {
 	fx := newRosterFixture(t, liveAdmin, aliceRow)
 	insertMemberRecords(t, fx.h, aliceID)
 	before := dumpUsers(t, fx.h)
-	fx.freezeEpochs(t)
+	fx.revoker.fail()
 
 	var logBuf bytes.Buffer
 	err := fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor, slog.New(slog.NewJSONHandler(&logBuf, nil)))
-	if err == nil || errors.Is(err, ErrEpochBackward) {
-		t.Fatalf("RemoveMember with a failing bump = %v, want the bump's error", err)
+	if !errors.Is(err, errFixtureRevoke) {
+		t.Fatalf("RemoveMember with a failing revocation = %v, want the revoker's error", err)
 	}
 	if after := dumpUsers(t, fx.h); after != before {
 		t.Errorf("a failed bump left the users table changed:\nbefore %s\nafter  %s", before, after)
@@ -1395,91 +1361,27 @@ func TestRemoveMember_BumpFailureRollsBack(t *testing.T) {
 	}
 }
 
-// TestAddMember_ReactivationBumpFailureRollsBack proves the re-add's bump
-// runs under the removal's failure policy: a bump that fails with
-// anything but ErrEpochBackward leaves the row tombstoned.
+// TestAddMember_ReactivationBumpFailureRollsBack proves the re-add's
+// revocation runs under the removal's failure policy: a revocation that
+// fails leaves the row tombstoned.
 func TestAddMember_ReactivationBumpFailureRollsBack(t *testing.T) {
 	fx := newRosterFixture(t, liveAdmin, userRow{id: goneID, address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true, createdAt: 50})
 	before := dumpUsers(t, fx.h)
-	fx.freezeEpochs(t)
+	fx.revoker.fail()
 
 	readd := Member{Address: "gone@example.com", DisplayName: "Gone", Username: "gone"}
 	_, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler))
-	if err == nil || errors.Is(err, ErrEpochBackward) {
-		t.Fatalf("re-add with a failing bump = %v, want the bump's error", err)
+	if !errors.Is(err, errFixtureRevoke) {
+		t.Fatalf("re-add with a failing revocation = %v, want the revoker's error", err)
 	}
 	if after := dumpUsers(t, fx.h); after != before {
 		t.Errorf("a failed re-add bump left the users table changed:\nbefore %s\nafter  %s", before, after)
 	}
 }
 
-// TestRosterWrites_EpochBackwardCommits proves a bump refused with
-// ErrEpochBackward, because the stored epoch is later than the clock,
-// logs and commits, for a removal and for a re-add, and leaves the later
-// epoch in place. Fixture state: the address's epoch bumped five hours
-// past the roster's clock.
-func TestRosterWrites_EpochBackwardCommits(t *testing.T) {
-	later := rosterNow.Add(5 * time.Hour)
-	tests := []struct {
-		name  string
-		write func(t *testing.T, fx rosterFixture, logger *slog.Logger) error
-		check func(t *testing.T, fx rosterFixture)
-	}{
-		{
-			name: "a removal",
-			write: func(t *testing.T, fx rosterFixture, logger *slog.Logger) error {
-				return fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor, logger)
-			},
-			check: func(t *testing.T, fx rosterFixture) {
-				if u := readUser(t, fx.h, "alice@example.com"); !u.tombstoned {
-					t.Errorf("removed row = %+v, want tombstoned", u)
-				}
-			},
-		},
-		{
-			name: "a re-add",
-			write: func(t *testing.T, fx rosterFixture, logger *slog.Logger) error {
-				if err := fx.h.Update(writeCtx(t), func(ctx context.Context, tx *store.Tx) error {
-					_, err := tx.Exec(ctx, `UPDATE users SET tombstoned_at = 1 WHERE id = ?`, aliceID[:])
-					return err
-				}); err != nil {
-					t.Fatalf("tombstone the fixture row: %v", err)
-				}
-				readd := Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
-				_, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, logger)
-				return err
-			},
-			check: func(t *testing.T, fx rosterFixture) {
-				if u := readUser(t, fx.h, "alice@example.com"); u.tombstoned {
-					t.Errorf("re-added row = %+v, want live", u)
-				}
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fx := newRosterFixture(t, liveAdmin, aliceRow)
-			if err := fx.epoch.Bump("alice@example.com", later); err != nil {
-				t.Fatalf("Bump the later epoch: %v", err)
-			}
-			var logBuf bytes.Buffer
-			if err := tt.write(t, fx, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
-				t.Fatalf("write against a later epoch = %v, want nil", err)
-			}
-			tt.check(t, fx)
-			if epoch, ok := fx.epochOf(t, "alice@example.com"); !ok || !epoch.Equal(later) {
-				t.Errorf("epoch = %v (present %v), want the later one %v left in place", epoch, ok, later)
-			}
-			if !strings.Contains(logBuf.String(), `"level":"WARN"`) || !strings.Contains(logBuf.String(), "later than the clock") {
-				t.Errorf("log = %q, want a warning naming the epoch later than the clock", logBuf.String())
-			}
-		})
-	}
-}
-
 // TestRemoveDemote_NotFound proves a removal or a demotion of an unknown
 // id, or of a removed member, answers ErrMemberNotFound and changes
-// nothing, epoch included.
+// nothing and revokes nothing.
 func TestRemoveDemote_NotFound(t *testing.T) {
 	gone := userRow{id: goneID, address: "gone@example.com", displayName: "Gone", username: "gone", admin: true, tombstoned: true, createdAt: 50}
 	writes := []struct {
@@ -1511,8 +1413,8 @@ func TestRemoveDemote_NotFound(t *testing.T) {
 				if after := dumpUsers(t, fx.h); after != before {
 					t.Errorf("a refused %s changed the users table:\nbefore %s\nafter  %s", w.name, before, after)
 				}
-				if _, ok := fx.epochOf(t, "gone@example.com"); ok {
-					t.Errorf("a refused %s bumped an epoch", w.name)
+				if _, ok := fx.revokedAt("gone@example.com"); ok {
+					t.Errorf("a refused %s revoked an address", w.name)
 				}
 			})
 		}
@@ -1537,8 +1439,8 @@ func TestDemoteMember(t *testing.T) {
 		assertAuditRecord(t, logBuf.Bytes(), "roster member demoted", map[string]any{
 			"actor": adminWire, "channel": "cookie", "address": "second@example.com", "client_ip": "198.51.100.7",
 		})
-		if _, ok := fx.epochOf(t, "second@example.com"); ok {
-			t.Error("a demotion bumped the member's epoch")
+		if _, ok := fx.revokedAt("second@example.com"); ok {
+			t.Error("a demotion revoked the member")
 		}
 	})
 
@@ -1597,40 +1499,34 @@ func TestRemoveMember_AuditRecord(t *testing.T) {
 }
 
 // TestRemoveMember_SoleAdminSelfRemovalRefused proves the last-admin
-// guard refuses a sole admin's self-removal before the bump, so the
-// admin's session still verifies and no epoch is written.
+// guard refuses a sole admin's self-removal before the revocation, so
+// the admin is never revoked.
 func TestRemoveMember_SoleAdminSelfRemovalRefused(t *testing.T) {
 	fx := newRosterFixture(t, liveAdmin, aliceRow)
 	before := dumpUsers(t, fx.h)
-	minted := rosterNow.Add(-time.Hour)
-
 	if err := fx.roster.RemoveMember(writeCtx(t), adminID, adminActor, slog.New(slog.DiscardHandler)); !errors.Is(err, ErrNoAdmin) {
 		t.Fatalf("sole admin's self-removal = %v, want ErrNoAdmin", err)
 	}
 	if after := dumpUsers(t, fx.h); after != before {
 		t.Errorf("a refused self-removal changed the users table:\nbefore %s\nafter  %s", before, after)
 	}
-	if _, ok := fx.epochOf(t, "admin@example.com"); ok {
-		t.Error("a refused self-removal bumped the admin's epoch")
-	}
-	if _, err := fx.verifyAt(t, "admin@example.com", minted); err != nil {
-		t.Errorf("the sole admin's session after the refused self-removal: %v, want it to verify", err)
+	if _, ok := fx.revokedAt("admin@example.com"); ok {
+		t.Error("a refused self-removal revoked the admin")
 	}
 }
 
 // TestRemoveMember_SelfWithAnotherAdmin proves an admin may remove
-// themself while another admin remains, and that the bump ends their own
-// session.
+// themself while another admin remains, and that the removal revokes
+// their own address.
 func TestRemoveMember_SelfWithAnotherAdmin(t *testing.T) {
 	second := userRow{id: formerID, address: "second@example.com", displayName: "Second", username: "second", admin: true, createdAt: 120}
 	fx := newRosterFixture(t, liveAdmin, second)
-	minted := rosterNow.Add(-time.Hour)
 
 	if err := fx.roster.RemoveMember(writeCtx(t), adminID, adminActor, slog.New(slog.DiscardHandler)); err != nil {
 		t.Fatalf("self-removal beside another admin: %v", err)
 	}
-	if _, err := fx.verifyAt(t, "admin@example.com", minted); !errors.Is(err, ErrSessionRevoked) {
-		t.Errorf("the removed admin's session: %v, want ErrSessionRevoked", err)
+	if at, ok := fx.revokedAt("admin@example.com"); !ok || !at.Equal(rosterNow) {
+		t.Errorf("the removed admin's revocation = %v (made %v), want %v", at, ok, rosterNow)
 	}
 	if got, want := liveAdmins(t, fx.h), []string{"f0120000000000000000000000000000"}; !slices.Equal(got, want) {
 		t.Errorf("live admins = %v, want %v", got, want)
@@ -1684,8 +1580,8 @@ func TestRemoveMember_ActorDemotedInFlight(t *testing.T) {
 	if got, want := memberRecords(t, fx.h, aliceID), [3]int{1, 1, 1}; got != want {
 		t.Errorf("preferences, overrides, quota = %v, want %v", got, want)
 	}
-	if _, ok := fx.epochOf(t, "alice@example.com"); ok {
-		t.Error("a refused removal bumped the target's epoch")
+	if _, ok := fx.revokedAt("alice@example.com"); ok {
+		t.Error("a refused removal revoked the target")
 	}
 }
 

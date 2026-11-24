@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -62,7 +63,7 @@ type VerifiedIdentity struct {
 // revocation epoch on every call, and refreshes the session only for a
 // same-origin request.
 type MagicLinkVerifier struct {
-	roster *Roster
+	roster *member.Roster
 	epoch  *EpochStore
 
 	currentSecret, previousSecret []byte
@@ -77,7 +78,7 @@ var _ Verifier = (*MagicLinkVerifier)(nil)
 // govern minting and verification. absoluteCap is read at every
 // verification, so a changed cap applies to the next request in both
 // directions; lifetime is read at every refresh.
-func NewMagicLinkVerifier(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap settings.Reader[time.Duration]) *MagicLinkVerifier {
+func NewMagicLinkVerifier(roster *member.Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap settings.Reader[time.Duration]) *MagicLinkVerifier {
 	return &MagicLinkVerifier{
 		roster:         roster,
 		epoch:          epoch,

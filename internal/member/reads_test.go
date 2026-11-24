@@ -1,4 +1,4 @@
-package auth
+package member
 
 import (
 	"context"
@@ -114,12 +114,12 @@ func TestLiveMembers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := newUsersStore(t)
 			insertUsers(t, h, tt.rows...)
-			got, err := LiveMembers(t.Context(), h)
+			got, err := Live(t.Context(), h)
 			if err != nil {
-				t.Fatalf("LiveMembers: %v", err)
+				t.Fatalf("Live: %v", err)
 			}
 			if got != tt.want {
-				t.Errorf("LiveMembers = %d, want %d", got, tt.want)
+				t.Errorf("Live = %d, want %d", got, tt.want)
 			}
 		})
 	}
@@ -135,8 +135,8 @@ func TestReadErrorsAreBare(t *testing.T) {
 	if err := closed.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
-	if _, err := LiveMembers(ctx, closed); err == nil || strings.HasPrefix(err.Error(), "auth:") {
-		t.Errorf("LiveMembers on a closed store = %v, want a bare driver error", err)
+	if _, err := Live(ctx, closed); err == nil || strings.HasPrefix(err.Error(), "member:") {
+		t.Errorf("Live on a closed store = %v, want a bare driver error", err)
 	}
 
 	// The drop fails the read inside a live transaction; the failed Update
@@ -147,7 +147,7 @@ func TestReadErrorsAreBare(t *testing.T) {
 			t.Fatalf("drop users: %v", err)
 		}
 		_, _, err := EarliestAdmin(ctx, tx)
-		if err == nil || strings.HasPrefix(err.Error(), "auth:") {
+		if err == nil || strings.HasPrefix(err.Error(), "member:") {
 			t.Errorf("EarliestAdmin with no users table = %v, want a bare driver error", err)
 		}
 		return err

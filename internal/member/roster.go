@@ -1,4 +1,9 @@
-package auth
+// Package member holds the group's roster: the users table and each
+// member's preferences row. It adds, removes, and demotes members under
+// the last-admin guard, and answers the roster reads the server makes.
+// Ending a removed member's credentials is the [Revoker]'s job, which
+// auth's epoch store does.
+package member
 
 import (
 	"context"
@@ -25,7 +30,7 @@ const maxDisplayNameLength = 200
 // maxUsernameLength bounds username in bytes: 64
 // bytes clears every common platform's own username cap (GitHub 39,
 // Discord 32) with headroom, while still refusing an attempt to stuff
-// arbitrary text into what R3 requires as a stable principal.
+// arbitrary text into what must stay a stable principal.
 const maxUsernameLength = 64
 
 // usernamePattern is the shape the write path enforces for
@@ -127,13 +132,20 @@ type Member struct {
 	Admin bool
 }
 
+// A Revoker ends every credential issued for an address up to a time.
+// A roster write calls Revoke last inside its transaction, so an error
+// rolls the write back. auth's epoch store is the production Revoker.
+type Revoker interface {
+	Revoke(ctx context.Context, address string, at time.Time, logger *slog.Logger) error
+}
+
 // Roster is the member store: it answers a lookup, lists the
 // members, and adds, removes, and demotes one, over the store's users
 // table.
 type Roster struct {
-	users *store.Handle
-	epoch *EpochStore
-	now   func() time.Time
+	users   *store.Handle
+	revoker Revoker
+	now     func() time.Time
 }
 
 // NewRoster returns a roster over the users table of the store h
@@ -142,12 +154,12 @@ type Roster struct {
 // through its own handle are seen at the next call. h must stay open
 // for the roster's life.
 //
-// epoch and now serve the writes alone: a removal and a re-add bump
-// the address's revocation epoch in epoch to the time now returns, and
-// every write stamps its row with it. A roster that only reads, such
-// as member list's, passes nil for both and so opens no auth leaf.
-func NewRoster(h *store.Handle, epoch *EpochStore, now func() time.Time) *Roster {
-	return &Roster{users: h, epoch: epoch, now: now}
+// revoker and now serve the writes alone: a removal and a re-add
+// revoke the address through revoker at the time now returns, and every
+// write stamps its row with it. A roster that only reads, such as
+// member list's, passes nil for both and so opens no auth leaf.
+func NewRoster(h *store.Handle, revoker Revoker, now func() time.Time) *Roster {
+	return &Roster{users: h, revoker: revoker, now: now}
 }
 
 // checkActor refuses the zero Actor, which names nobody, and a local
@@ -192,7 +204,7 @@ func CheckAdmin(ctx context.Context, tx *store.Tx, id identity.UserID) error {
 	case errors.Is(err, sql.ErrNoRows) || (err == nil && !admin):
 		return ErrActorNotAdmin
 	case err != nil:
-		return fmt.Errorf("auth: read the actor's row: %w", err)
+		return fmt.Errorf("member: read the actor's row: %w", err)
 	}
 	return nil
 }
@@ -271,8 +283,8 @@ func displayNameCarriesRefusedRune(s string) bool {
 
 // Lookup resolves address to its live roster member, matching
 // case-insensitively on the normalized address, with normalization
-// happening before any keying, logging, or rate-limit lookup
-// (spec:1161-1163). A tombstoned row is ErrMemberNotFound. A store
+// happening before any keying, logging, or rate-limit lookup.
+// A tombstoned row is [ErrMemberNotFound]. A store
 // error is returned as itself, never as ErrMemberNotFound, so a caller
 // can tell a broken store from an unknown address.
 func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
@@ -289,7 +301,7 @@ func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 	case errors.Is(err, sql.ErrNoRows):
 		return Member{}, ErrMemberNotFound
 	case err != nil:
-		return Member{}, fmt.Errorf("auth: look up member: %w", err)
+		return Member{}, fmt.Errorf("member: look up member: %w", err)
 	}
 	return m, nil
 }
@@ -300,19 +312,19 @@ func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 func (r *Roster) List(ctx context.Context) ([]Member, error) {
 	rows, err := r.users.Query(ctx, `SELECT `+memberColumns+` FROM users WHERE tombstoned_at IS NULL ORDER BY created_at, id`)
 	if err != nil {
-		return nil, fmt.Errorf("auth: list members: %w", err)
+		return nil, fmt.Errorf("member: list members: %w", err)
 	}
 	defer func() { _ = rows.Close() }()
 	var members []Member
 	for rows.Next() {
 		m, err := scanMember(rows.Scan)
 		if err != nil {
-			return nil, fmt.Errorf("auth: list members: %w", err)
+			return nil, fmt.Errorf("member: list members: %w", err)
 		}
 		members = append(members, m)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("auth: list members: %w", err)
+		return nil, fmt.Errorf("member: list members: %w", err)
 	}
 	return members, nil
 }
@@ -325,9 +337,9 @@ func (r *Roster) List(ctx context.Context) ([]Member, error) {
 // The write is one store transaction, so ctx must carry a deadline. A
 // new address gets a fresh id; an address whose row is tombstoned is
 // reactivated under its old id, every field taken from candidate, and
-// its revocation epoch is bumped as a removal bumps it (see
-// [Roster.RemoveMember]), so no credential issued before the re-add
-// verifies after it, even when the removal's own epoch record was lost.
+// the address is revoked as a removal revokes it (see
+// [Roster.RemoveMember]). No credential issued before the re-add
+// verifies after it, even when the removal's revocation was lost.
 // A username matching any other row, live or tombstoned, compared
 // case-insensitively, is refused.
 //
@@ -387,7 +399,7 @@ func scanMember(scan func(dest ...any) error) (Member, error) {
 		return Member{}, err
 	}
 	if len(id) != len(m.ID) {
-		return Member{}, fmt.Errorf("auth: a users row's id is %d bytes, want %d", len(id), len(m.ID))
+		return Member{}, fmt.Errorf("member: a users row's id is %d bytes, want %d", len(id), len(m.ID))
 	}
 	m.ID = identity.UserID(id)
 	return m, nil
@@ -403,9 +415,8 @@ func scanMember(scan func(dest ...any) error) (Member, error) {
 // field, the admin flag included, taken from member; any other row,
 // live or tombstoned, holding member's username compared
 // case-insensitively refuses the add; the table must hold a live admin
-// once the write lands; and a reactivation then bumps the address's
-// epoch, last, under the removal's failure policy. It returns member
-// with the ID the row holds.
+// once the write lands; and a reactivation then revokes the address,
+// last, as a removal does. It returns member with the ID the row holds.
 func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, logger *slog.Logger) (Member, error) {
 	err := r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if err := authorizeActor(ctx, tx, by); err != nil {
@@ -421,7 +432,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 		case errors.Is(err, sql.ErrNoRows):
 			// A new address: rowID stays nil, and the write inserts.
 		case err != nil:
-			return fmt.Errorf("auth: read the address's row: %w", err)
+			return fmt.Errorf("member: read the address's row: %w", err)
 		case !tombstoned:
 			return fmt.Errorf("%w: %w", errRosterRecordInvalid, ErrDuplicateAddress)
 		}
@@ -429,7 +440,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 		var taken bool
 		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE username = ? COLLATE NOCASE AND address != ?)`,
 			member.Username, member.Address).Scan(&taken); err != nil {
-			return fmt.Errorf("auth: read the username's rows: %w", err)
+			return fmt.Errorf("member: read the username's rows: %w", err)
 		}
 		if taken {
 			return fmt.Errorf("%w: %w", errRosterRecordInvalid, ErrDuplicateUsername)
@@ -448,10 +459,10 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 				rowID, member.Address, member.DisplayName, member.Username, member.Admin, at, at)
 		}
 		if err != nil {
-			return fmt.Errorf("auth: write the member's row: %w", err)
+			return fmt.Errorf("member: write the member's row: %w", err)
 		}
 		if len(rowID) != len(member.ID) {
-			return fmt.Errorf("auth: a users row's id is %d bytes, want %d", len(rowID), len(member.ID))
+			return fmt.Errorf("member: a users row's id is %d bytes, want %d", len(rowID), len(member.ID))
 		}
 		member.ID = identity.UserID(rowID)
 
@@ -464,7 +475,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 		if !reactivate {
 			return nil
 		}
-		return r.revoke(ctx, member.Address, now, logger)
+		return r.revoker.Revoke(ctx, member.Address, now, logger)
 	})
 	if err != nil {
 		return Member{}, err
@@ -474,8 +485,8 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 
 // RemoveMember removes the live member id names: it tombstones their
 // row with the removal time, deletes their member_preferences row, and
-// bumps their address's revocation epoch, which refuses every session
-// and magic link issued for the address up to now; then it logs one
+// revokes every credential issued for their address up to now through
+// the roster's [Revoker]; then it logs one
 // audit record naming by, its channel, the address, and by's client
 // address. Their member_overrides and member_quota rows stay: the
 // overrides are the admin's policy and return with a re-add, and the
@@ -487,12 +498,11 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 // removal that would leave no live admin, a sole admin's self-removal
 // included, is [ErrNoAdmin]. Every refusal changes nothing.
 //
-// The epoch is a file, not a store row, so "one transaction" holds by
-// ordering: the bump runs inside the write, after the tombstone and the
-// last-admin guard and before the commit. A failed bump rolls the
-// removal back, and a commit that fails after a bump leaves a live
-// member signed out, the safe direction. A bump refused with
-// [ErrEpochBackward] is logged and the removal commits.
+// The revocation is outside the store, so "one transaction" holds by
+// ordering: Revoke runs inside the write, after the tombstone and the
+// last-admin guard and before the commit. A failed revocation rolls
+// the removal back. A commit that fails after one leaves a live member
+// signed out, the safe direction.
 func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error {
 	if err := checkActor(by); err != nil {
 		return fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
@@ -509,15 +519,15 @@ func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identi
 		address = target.Address
 		now := r.now()
 		if _, err := tx.Exec(ctx, `UPDATE users SET tombstoned_at = ?, updated_at = ? WHERE id = ?`, now.UnixMicro(), now.UnixMicro(), id[:]); err != nil {
-			return fmt.Errorf("auth: tombstone the member's row: %w", err)
+			return fmt.Errorf("member: tombstone the member's row: %w", err)
 		}
 		if _, err := tx.Exec(ctx, `DELETE FROM member_preferences WHERE user_id = ?`, id[:]); err != nil {
-			return fmt.Errorf("auth: delete the member's preferences: %w", err)
+			return fmt.Errorf("member: delete the member's preferences: %w", err)
 		}
 		if err := requireLiveAdmin(ctx, tx); err != nil {
 			return err
 		}
-		return r.revoke(ctx, address, now, logger)
+		return r.revoker.Revoke(ctx, address, now, logger)
 	})
 	if err != nil {
 		return err
@@ -552,7 +562,7 @@ func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identi
 			return err
 		}
 		if _, err := tx.Exec(ctx, `UPDATE users SET admin = 0, updated_at = ? WHERE id = ?`, r.now().UnixMicro(), id[:]); err != nil {
-			return fmt.Errorf("auth: clear the member's admin flag: %w", err)
+			return fmt.Errorf("member: clear the member's admin flag: %w", err)
 		}
 		return requireLiveAdmin(ctx, tx)
 	})
@@ -571,7 +581,7 @@ func liveMember(ctx context.Context, tx *store.Tx, id identity.UserID) (Member, 
 	case errors.Is(err, sql.ErrNoRows):
 		return Member{}, ErrMemberNotFound
 	case err != nil:
-		return Member{}, fmt.Errorf("auth: read the member's row: %w", err)
+		return Member{}, fmt.Errorf("member: read the member's row: %w", err)
 	}
 	return m, nil
 }
@@ -582,28 +592,12 @@ func liveMember(ctx context.Context, tx *store.Tx, id identity.UserID) (Member, 
 func requireLiveAdmin(ctx context.Context, tx *store.Tx) error {
 	var adminLive bool
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE admin = 1 AND tombstoned_at IS NULL)`).Scan(&adminLive); err != nil {
-		return fmt.Errorf("auth: read the admins: %w", err)
+		return fmt.Errorf("member: read the admins: %w", err)
 	}
 	if !adminLive {
 		return fmt.Errorf("%w: %w", errRosterRecordInvalid, ErrNoAdmin)
 	}
 	return nil
-}
-
-// revoke bumps address's revocation epoch to now from inside a write's
-// callback, so a failed bump rolls the write back. [ErrEpochBackward]
-// is logged and does not: the stored epoch is later than now, so it
-// already refuses every credential this bump would, and committing loses
-// no revocation a write could make. The residual it accepts is a
-// session anchored between that stored epoch and the clock step back,
-// which no bump at the stepped-back time can reach.
-func (r *Roster) revoke(ctx context.Context, address string, now time.Time, logger *slog.Logger) error {
-	err := r.epoch.Bump(address, now)
-	if errors.Is(err, ErrEpochBackward) {
-		logger.Log(ctx, slog.LevelWarn, "revocation epoch is later than the clock; the write commits on the stored epoch", "address", address)
-		return nil
-	}
-	return err
 }
 
 // logChange writes the audit record for a committed roster write: msg,

@@ -31,8 +31,8 @@ type tableOwner struct {
 // intake writes collections only until the catalog round, which takes
 // them.
 var tableOwners = map[string]tableOwner{
-	"users":              {dir: "internal/auth"},
-	"member_preferences": {dir: "internal/auth"},
+	"users":              {dir: "internal/member"},
+	"member_preferences": {dir: "internal/member"},
 
 	"collections":         {dir: "internal/intake"},
 	"submissions":         {dir: "internal/intake"},

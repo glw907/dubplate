@@ -19,10 +19,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -43,7 +43,7 @@ type Config struct {
 	// Environ is the serving process's environment, as [os.Environ]
 	// lists it, which a settings write is checked against.
 	Environ []string
-	Roster  *auth.Roster
+	Roster  *member.Roster
 
 	// Window reads the re-authentication window in force. It is read
 	// before each gated write, outside the write's transaction.
@@ -119,25 +119,25 @@ func refusal(err error) error {
 	switch {
 	case errors.Is(err, store.ErrBusy), errors.Is(err, context.DeadlineExceeded):
 		answer = ops.NewUnavailableError("the server is busy; try again").WithDetail(ops.DetailBusy)
-	case errors.Is(err, auth.ErrActorNotAdmin):
+	case errors.Is(err, member.ErrActorNotAdmin):
 		answer = ops.NewForbiddenError("")
-	case errors.Is(err, auth.ErrMemberNotFound):
+	case errors.Is(err, member.ErrMemberNotFound):
 		answer = ops.NewNotFoundError("no member has that user_id")
-	case errors.Is(err, auth.ErrNoAdmin):
+	case errors.Is(err, member.ErrNoAdmin):
 		answer = ops.NewConflictError("the group must keep at least one admin").WithDetail(ops.DetailLastAdmin)
-	case errors.Is(err, auth.ErrDuplicateAddress):
+	case errors.Is(err, member.ErrDuplicateAddress):
 		answer = ops.NewConflictError("a member already signs in with that address").WithDetail(ops.DetailDuplicateAddress)
-	case errors.Is(err, auth.ErrDuplicateUsername):
+	case errors.Is(err, member.ErrDuplicateUsername):
 		answer = ops.NewConflictError("that username is taken").WithDetail(ops.DetailDuplicateUsername)
-	case errors.Is(err, auth.ErrInvalidMemberAddress):
+	case errors.Is(err, member.ErrInvalidMemberAddress):
 		answer = ops.NewInvalidRequestError("the address is not one a member can sign in with").WithDetail(ops.DetailInvalidAddress)
-	case errors.Is(err, auth.ErrInvalidDisplayName):
+	case errors.Is(err, member.ErrInvalidDisplayName):
 		answer = ops.NewInvalidRequestError("the display name is too long or carries a hidden character").WithDetail(ops.DetailInvalidDisplayName)
-	case errors.Is(err, auth.ErrBlankDisplayName):
+	case errors.Is(err, member.ErrBlankDisplayName):
 		answer = ops.NewInvalidRequestError("the display name is blank").WithDetail(ops.DetailBlankDisplayName)
-	case errors.Is(err, auth.ErrInvalidUsername):
+	case errors.Is(err, member.ErrInvalidUsername):
 		answer = ops.NewInvalidRequestError("the username is too long or has the wrong shape").WithDetail(ops.DetailInvalidUsername)
-	case errors.Is(err, auth.ErrMissingUsername):
+	case errors.Is(err, member.ErrMissingUsername):
 		answer = ops.NewInvalidRequestError("a username is required").WithDetail(ops.DetailMissingUsername)
 	case errors.Is(err, settings.ErrEnvironmentSets):
 		answer = ops.NewConflictError("the server's environment file sets this key").WithDetail(ops.DetailEnvironmentSets)

@@ -28,6 +28,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -2004,7 +2005,7 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
 		var mailed []string
-		hc := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())), auth.NewRoster(h, nil, nil), nil, nil,
+		hc := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())), member.NewRoster(h, nil, nil), nil, nil,
 			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
 			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
 		hc.Send = func(_ context.Context, _, _, body string) error {

@@ -16,6 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -39,20 +40,20 @@ const testBusy = 5 * time.Second
 
 // The fixture's members. dave is a removed admin: his row keeps the
 // flag under its tombstone.
-type member struct {
+type fixtureMember struct {
 	id                         identity.UserID
 	address, username, display string
 	admin, tombstoned          bool
 }
 
 // wire is the member's id as the wire carries it.
-func (m member) wire() id.ID { return id.ID(m.id) }
+func (m fixtureMember) wire() id.ID { return id.ID(m.id) }
 
 var (
-	alice = member{id: identity.UserID{0xa1}, address: "alice@example.com", username: "alice", display: "Alice", admin: true}
-	bob   = member{id: identity.UserID{0xb0}, address: "bob@example.com", username: "bob", display: "Bob", admin: true}
-	carol = member{id: identity.UserID{0xc0}, address: "carol@example.com", username: "carol", display: "Carol"}
-	dave  = member{id: identity.UserID{0xd0}, address: "dave@example.com", username: "dave", display: "Dave", admin: true, tombstoned: true}
+	alice = fixtureMember{id: identity.UserID{0xa1}, address: "alice@example.com", username: "alice", display: "Alice", admin: true}
+	bob   = fixtureMember{id: identity.UserID{0xb0}, address: "bob@example.com", username: "bob", display: "Bob", admin: true}
+	carol = fixtureMember{id: identity.UserID{0xc0}, address: "carol@example.com", username: "carol", display: "Carol"}
+	dave  = fixtureMember{id: identity.UserID{0xd0}, address: "dave@example.com", username: "dave", display: "Dave", admin: true, tombstoned: true}
 )
 
 // The test settings' keys: one sensitive, one not.
@@ -196,7 +197,7 @@ func newFixtureWith(t *testing.T, opts fixtureOptions) *fixture {
 		Store:    h,
 		Registry: opts.reg,
 		Environ:  opts.env,
-		Roster:   auth.NewRoster(h, epoch, func() time.Time { return testNow }),
+		Roster:   member.NewRoster(h, epoch, func() time.Time { return testNow }),
 		Window:   opts.window,
 		Send:     mail.send,
 		Now:      func() time.Time { return testNow },
@@ -220,7 +221,7 @@ func (l *lockedWriter) Write(p []byte) (int, error) {
 
 // actor returns the network actor m's session carries, anchored at
 // anchor.
-func actor(m member, anchor time.Time) identity.Actor {
+func actor(m fixtureMember, anchor time.Time) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
 		Address: m.address, UserID: m.id, Principal: m.username, DisplayName: m.display,
 		Source: "magic-link", Channel: identity.ChannelCookie,
@@ -236,7 +237,7 @@ func writeCtx(t *testing.T) context.Context {
 	return ctx
 }
 
-func insertMembers(t *testing.T, h *store.Handle, members ...member) {
+func insertMembers(t *testing.T, h *store.Handle, members ...fixtureMember) {
 	t.Helper()
 	exec(t, h, func(ctx context.Context, tx *store.Tx) error {
 		for i, m := range members {
@@ -361,7 +362,7 @@ func storedValue(t *testing.T, h *store.Handle, key string) (value, source strin
 }
 
 // userState returns m's admin flag and whether m's row is tombstoned.
-func userState(t *testing.T, h *store.Handle, m member) (admin, tombstoned bool) {
+func userState(t *testing.T, h *store.Handle, m fixtureMember) (admin, tombstoned bool) {
 	t.Helper()
 	if err := h.QueryRow(context.Background(), `SELECT admin, tombstoned_at IS NOT NULL FROM users WHERE id = ?`, m.id[:]).Scan(&admin, &tombstoned); err != nil {
 		t.Fatalf("read %s: %v", m.username, err)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -40,7 +41,7 @@ const formType = "application/x-www-form-urlencoded"
 
 type adminFixture struct {
 	users  *store.Handle
-	roster *Roster
+	roster *member.Roster
 	epoch  *EpochStore
 	seam   *MagicLinkVerifier
 	logs   *logCapture
@@ -392,7 +393,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", verifierBirth), "")
 			},
 			wantLevel:  "INFO",
-			wantReason: ErrMemberNotFound.Error(),
+			wantReason: member.ErrMemberNotFound.Error(),
 		},
 		{
 			name: "store closed under the lookup",

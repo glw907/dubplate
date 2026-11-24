@@ -22,7 +22,7 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 )
 
-// onlyAdmin stands in for auth.EarliestAdmin, which this package's tests
+// onlyAdmin stands in for member.EarliestAdmin, which this package's tests
 // cannot import: auth imports serve for the port check. seedUpload
 // creates the one admin, so the first live admin row is the answer.
 func onlyAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {

@@ -11,6 +11,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -25,7 +26,7 @@ const tusRouteName = "tus"
 // sweep interval and worker count read once here, and its stall mail
 // sent through send to the live admins roster lists.
 func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *settings.Accessor, allowlist []string,
-	roster *auth.Roster, send func(ctx context.Context, to, subject, body string) error, logger *slog.Logger) (*intake.Intake, error) {
+	roster *member.Roster, send func(ctx context.Context, to, subject, body string) error, logger *slog.Logger) (*intake.Intake, error) {
 	interval, err := intake.SweepInterval(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -36,7 +37,7 @@ func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *se
 	}
 	return intake.New(intake.Config{
 		Store: h, Log: logger, Staging: cfg.WallValue(intake.StagingKey), Now: time.Now,
-		EarliestAdmin: auth.EarliestAdmin,
+		EarliestAdmin: member.EarliestAdmin,
 		Limits:        intake.LimitsFrom(acc, allowlist),
 		Windows:       intake.WindowsFrom(acc),
 		SweepInterval: interval,
@@ -50,7 +51,7 @@ func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *se
 // each call: every live member holding the admin flag, as the
 // sensitive-change notice reads them, so a demoted or removed admin
 // hears nothing.
-func liveAdminAddresses(roster *auth.Roster) func(context.Context) ([]string, error) {
+func liveAdminAddresses(roster *member.Roster) func(context.Context) ([]string, error) {
 	return func(ctx context.Context) ([]string, error) {
 		members, err := roster.List(ctx)
 		if err != nil {

@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"os"
 	"slices"
 	"strconv"
@@ -118,6 +120,22 @@ func (e *EpochStore) Bump(address string, now time.Time) error {
 // before moving on to the next. A subscriber that has not returned by
 // then keeps running in its own goroutine; Bump does not wait for it.
 const subscriberDeadline = 5 * time.Second
+
+// Revoke bumps address's epoch to at for a roster write. The write calls
+// it inside its transaction, and a failed bump rolls the write back. A
+// bump refused with [ErrEpochBackward] is logged to logger, and Revoke
+// returns nil. The stored epoch is later than at and already refuses
+// every credential this bump would. What committing accepts is a
+// session anchored between that stored epoch and the clock's step back:
+// no bump at the stepped-back time can reach it.
+func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, logger *slog.Logger) error {
+	err := e.Bump(address, at)
+	if errors.Is(err, ErrEpochBackward) {
+		logger.Log(ctx, slog.LevelWarn, "revocation epoch is later than the clock; the write commits on the stored epoch", "address", address)
+		return nil
+	}
+	return err
+}
 
 // notifySubscriber calls fn with address and epoch, recovering a panic
 // and giving up after subscriberDeadline rather than waiting on fn

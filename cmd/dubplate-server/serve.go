@@ -17,6 +17,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/intake"
 	"github.com/glw907/dubplate/internal/intake/staging"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/notify"
 	"github.com/glw907/dubplate/internal/ops/admin"
 	"github.com/glw907/dubplate/internal/serve"
@@ -209,7 +210,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	}
 	epoch := auth.OpenEpochStore(authDir)
 
-	roster := auth.NewRoster(h, epoch, time.Now)
+	roster := member.NewRoster(h, epoch, time.Now)
 
 	limiter := auth.NewLimiter(limits)
 
@@ -363,7 +364,7 @@ func openNonceStore(ctx context.Context, authDir *auth.Dir, retention settings.R
 // mount from, its secrets, origin, and readers taken from ac. A test
 // reads the config it returns, the only proof that no caller loses a
 // wired value.
-func authHandlersConfig(prefix serve.Prefix, ac auth.Config, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
+func authHandlersConfig(prefix serve.Prefix, ac auth.Config, roster *member.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
 	return auth.HandlersConfig{
 		Roster:             roster,
 		Nonces:             nonces,

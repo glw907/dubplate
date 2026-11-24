@@ -1,4 +1,4 @@
-package auth
+package member
 
 import (
 	"context"
@@ -27,15 +27,15 @@ func EarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, er
 	}
 	var id identity.UserID
 	if len(raw) != len(id) {
-		return identity.UserID{}, false, fmt.Errorf("auth: the earliest admin's id is %d bytes, want %d", len(raw), len(id))
+		return identity.UserID{}, false, fmt.Errorf("member: the earliest admin's id is %d bytes, want %d", len(raw), len(id))
 	}
 	copy(id[:], raw)
 	return id, true, nil
 }
 
-// LiveMembers counts the members who can sign in: every row of the users
-// table that is not tombstoned.
-func LiveMembers(ctx context.Context, h *store.Handle) (int, error) {
+// Live counts the members who can sign in: every row of the users table
+// that is not tombstoned.
+func Live(ctx context.Context, h *store.Handle) (int, error) {
 	var n int
 	if err := h.QueryRow(ctx, `SELECT count(*) FROM users WHERE tombstoned_at IS NULL`).Scan(&n); err != nil {
 		return 0, err
