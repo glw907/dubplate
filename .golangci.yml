@@ -69,10 +69,6 @@ linters:
         linters:
           - gocognit
         text: func `walkZIP`
-      - path: ^internal/store/swap\.go$
-        linters:
-          - gocognit
-        text: func `\(leaf\)\.swapPlan`
 
 formatters:
   enable:
