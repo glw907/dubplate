@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -29,23 +30,23 @@ func TestRun_CancelFirst(t *testing.T) {
 	if err := r.insert(deadline(t), testActor, ops.KindBackup, defaultJobRetention, j); err != nil {
 		t.Fatalf("insert: %v", err)
 	}
-	resp, err := r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: j.handle})
+	st, err := r.CancelJob(deadline(t), testActor, j.id)
 	if err != nil {
 		t.Fatalf("CancelJob: %v", err)
 	}
-	if resp.Job.State != ops.JobCanceled {
-		t.Fatalf("CancelJob() state = %s, want canceled", resp.Job.State)
+	if st.State != ops.JobCanceled {
+		t.Fatalf("CancelJob() state = %s, want canceled", st.State)
 	}
 
 	r.run(j)
 	if ran {
 		t.Error("the body ran after its record was canceled")
 	}
-	if rec := mustRecord(t, h, j.id); rec.state != "canceled" {
+	if rec := mustRecord(t, h, j.id[:]); rec.state != "canceled" {
 		t.Errorf("record reads %s, want canceled", rec.state)
 	}
-	if got := logs.String(); !strings.Contains(got, "job ended before it ran") || !strings.Contains(got, string(j.handle)) {
-		t.Errorf("logs %q do not record the refused start of %s", got, j.handle)
+	if got := logs.String(); !strings.Contains(got, "job ended before it ran") || !strings.Contains(got, j.id.String()) {
+		t.Errorf("logs %q do not record the refused start of %s", got, j.id)
 	}
 }
 
@@ -56,33 +57,28 @@ func TestCancelJob_States(t *testing.T) {
 	past := time.Now().Add(-time.Hour).UnixMicro()
 	tests := []struct {
 		name      string
-		handle    func(t *testing.T, h *store.Handle, r *Runner) ops.Handle
+		jobID     func(t *testing.T, h *store.Handle, r *Runner) id.ID
 		wantErr   error
 		wantState ops.JobState
 		wantWrite bool
 	}{
 		{
-			name:    "unknown handle",
-			handle:  func(*testing.T, *store.Handle, *Runner) ops.Handle { return ops.Handle(newInstance()) },
+			name:    "unknown id",
+			jobID:   func(*testing.T, *store.Handle, *Runner) id.ID { return id.New() },
 			wantErr: ops.ErrNotFound,
 		},
 		{
-			name:    "malformed handle",
-			handle:  func(*testing.T, *store.Handle, *Runner) ops.Handle { return "not-a-handle" },
-			wantErr: ops.ErrInvalidRequest,
-		},
-		{
 			name: "queued",
-			handle: func(t *testing.T, h *store.Handle, r *Runner) ops.Handle {
-				return handleOf(plant(t, h, record{state: "queued", owner: r.lease.Instance(), at: past}))
+			jobID: func(t *testing.T, h *store.Handle, r *Runner) id.ID {
+				return id.ID(plant(t, h, record{state: "queued", owner: r.lease.Instance(), at: past}))
 			},
 			wantState: ops.JobCanceled,
 			wantWrite: true,
 		},
 		{
 			name: "terminal",
-			handle: func(t *testing.T, h *store.Handle, r *Runner) ops.Handle {
-				return handleOf(plant(t, h, record{state: "succeeded", owner: r.lease.Instance(), at: past, started: past, finished: past}))
+			jobID: func(t *testing.T, h *store.Handle, r *Runner) id.ID {
+				return id.ID(plant(t, h, record{state: "succeeded", owner: r.lease.Instance(), at: past, started: past, finished: past}))
 			},
 			wantState: ops.JobSucceeded,
 		},
@@ -91,13 +87,13 @@ func TestCancelJob_States(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, h := newStore(t)
 			r := newRunnerFor(t, h, nil, succeed)
-			jh := tt.handle(t, h, r.Runner)
+			jobID := tt.jobID(t, h, r.Runner)
 			var before record
 			if tt.wantErr == nil {
-				before = mustRecord(t, h, idOf(t, jh))
+				before = mustRecord(t, h, jobID[:])
 			}
 
-			resp, err := r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: jh})
+			st, err := r.CancelJob(deadline(t), testActor, jobID)
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("CancelJob() = %v, want %v", err, tt.wantErr)
@@ -107,15 +103,15 @@ func TestCancelJob_States(t *testing.T) {
 			if err != nil {
 				t.Fatalf("CancelJob: %v", err)
 			}
-			if resp.Job.State != tt.wantState {
-				t.Errorf("CancelJob() state = %s, want %s", resp.Job.State, tt.wantState)
+			if st.State != tt.wantState {
+				t.Errorf("CancelJob() state = %s, want %s", st.State, tt.wantState)
 			}
-			after := mustRecord(t, h, idOf(t, jh))
+			after := mustRecord(t, h, jobID[:])
 			if wrote := after.updated != before.updated; wrote != tt.wantWrite {
 				t.Errorf("record written = %v, want %v", wrote, tt.wantWrite)
 			}
-			if tt.wantState == ops.JobCanceled && (after.finished == 0 || resp.Job.FinishedAt == nil) {
-				t.Errorf("finished_at %d, response %v: want both set", after.finished, resp.Job.FinishedAt)
+			if tt.wantState == ops.JobCanceled && (after.finished == 0 || st.FinishedAt == nil) {
+				t.Errorf("finished_at %d, response %v: want both set", after.finished, st.FinishedAt)
 			}
 			if tt.wantState == ops.JobCanceled && !after.cancelRequested {
 				t.Error("cancel_requested is unset on a canceled record")
@@ -124,27 +120,23 @@ func TestCancelJob_States(t *testing.T) {
 	}
 }
 
-// TestJobStatus pins the status rows: an unknown handle is not found,
-// a malformed one invalid, and a known one reads its record.
+// TestJobStatus pins the status rows: an unknown id is not found and a
+// known one reads its record.
 func TestJobStatus(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
 	at := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
-	id := plant(t, h, record{state: "succeeded", owner: newInstance(), at: at.UnixMicro(), started: at.UnixMicro(), finished: at.Add(time.Minute).UnixMicro()})
+	jobID := id.ID(plant(t, h, record{state: "succeeded", owner: newInstance(), at: at.UnixMicro(), started: at.UnixMicro(), finished: at.Add(time.Minute).UnixMicro()}))
 
-	if _, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: ops.Handle(newInstance())}); !errors.Is(err, ops.ErrNotFound) {
-		t.Errorf("unknown handle: JobStatus() = %v, want not found", err)
+	if _, err := r.JobStatus(deadline(t), testActor, id.New()); !errors.Is(err, ops.ErrNotFound) {
+		t.Errorf("unknown id: JobStatus() = %v, want not found", err)
 	}
-	if _, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: "ZZ"}); !errors.Is(err, ops.ErrInvalidRequest) {
-		t.Errorf("malformed handle: JobStatus() = %v, want invalid request", err)
-	}
-	resp, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: handleOf(id)})
+	got, err := r.JobStatus(deadline(t), testActor, jobID)
 	if err != nil {
 		t.Fatalf("JobStatus: %v", err)
 	}
-	got := resp.Job
-	if got.ID != handleOf(id) || got.Kind != "backup" || got.State != ops.JobSucceeded || !got.QueuedAt.Equal(at) {
-		t.Errorf("JobStatus() = %+v, want id %s, kind backup, succeeded, queued at %v", got, handleOf(id), at)
+	if got.JobID != jobID || got.Kind != "backup" || got.State != ops.JobSucceeded || !got.QueuedAt.Equal(at) {
+		t.Errorf("JobStatus() = %+v, want id %s, kind backup, succeeded, queued at %v", got, jobID, at)
 	}
 	if got.FinishedAt == nil || !got.FinishedAt.Equal(at.Add(time.Minute)) {
 		t.Errorf("FinishedAt = %v, want %v", got.FinishedAt, at.Add(time.Minute))
@@ -204,7 +196,7 @@ WHERE id = ? AND state = 'interrupted'`, shift, shift, shift, id)
 			_, h := newStore(t)
 			keep, drop := tt.plant(t, h)
 			r := newRunnerFor(t, h, nil, succeed)
-			resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			jobID, err := r.StartBackup(deadline(t), testActor)
 			if err != nil {
 				t.Fatalf("StartBackup: %v", err)
 			}
@@ -222,7 +214,7 @@ WHERE id = ? AND state = 'interrupted'`, shift, shift, shift, id)
 				}
 			}
 			if n, want := countRecords(t, h), len(keep)+1; n != want {
-				t.Errorf("%d records after the start, want %d (the kept ones and job %s)", n, want, resp.JobID)
+				t.Errorf("%d records after the start, want %d (the kept ones and job %s)", n, want, jobID)
 			}
 		})
 	}
@@ -252,7 +244,7 @@ func TestRetention_ReaderValue(t *testing.T) {
 		t.Fatalf("newRunner: %v", err)
 	}
 	value = 48 * time.Hour
-	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), testActor)
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
@@ -263,7 +255,7 @@ func TestRetention_ReaderValue(t *testing.T) {
 		t.Errorf("record %x kept, want it deleted under the 48h retention read at start", old)
 	}
 	if n, want := countRecords(t, h), 1; n != want {
-		t.Errorf("%d records after the start, want %d (job %s alone)", n, want, resp.JobID)
+		t.Errorf("%d records after the start, want %d (job %s alone)", n, want, jobID)
 	}
 }
 
@@ -324,7 +316,7 @@ func TestStartBackup_ReaderErrorNoRecord(t *testing.T) {
 			}
 			t.Cleanup(func() { _ = r.Close() })
 
-			_, err = r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			_, err = r.StartBackup(deadline(t), testActor)
 			if !errors.Is(err, wantErr) {
 				t.Fatalf("StartBackup() = %v, want it to wrap %v", err, wantErr)
 			}
@@ -361,7 +353,7 @@ func TestStartBackup_ReadersSeeTheCallersContext(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = r.Close() })
 
-	if _, err := r.StartBackup(ctx, testActor, ops.StartBackupRequest{}); err != nil {
+	if _, err := r.StartBackup(ctx, testActor); err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
 	for _, name := range []string{"GuardFraction", "SnapshotKeep", "ArchiveRetention"} {
@@ -427,14 +419,14 @@ func TestNew_BindsBackupBody(t *testing.T) {
 			if err != nil {
 				t.Fatalf("New: %v", err)
 			}
-			resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			jobID, err := r.StartBackup(deadline(t), testActor)
 			if err != nil {
 				t.Fatalf("StartBackup: %v", err)
 			}
 			if err := r.Close(); err != nil {
 				t.Fatalf("Close: %v", err)
 			}
-			rec := mustRecord(t, h, idOf(t, resp.JobID))
+			rec := mustRecord(t, h, jobID[:])
 			if rec.state != "failed" || rec.code != tt.wantCode || !strings.Contains(rec.message, tt.wantMsg) {
 				t.Errorf("record = %s, %q, %q; want failed, %q, naming %q", rec.state, rec.code, rec.message, tt.wantCode, tt.wantMsg)
 			}

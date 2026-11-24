@@ -8,9 +8,12 @@ import (
 	"database/sql/driver"
 	"encoding/hex"
 	"errors"
+	"fmt"
 )
 
-var errSyntax = errors.New("want 32 lowercase hex characters")
+// ErrSyntax is the error [Parse] and [ID.UnmarshalText] return for text
+// that does not spell an id.
+var ErrSyntax = errors.New("want 32 lowercase hex characters")
 
 // An ID is a random 16-byte key. It prints, and is parsed from, 32
 // lowercase hex characters.
@@ -29,17 +32,43 @@ func New() ID {
 // checks with [ID.IsZero].
 func Parse(s string) (ID, error) {
 	if len(s) != hex.EncodedLen(len(ID{})) {
-		return ID{}, errSyntax
+		return ID{}, ErrSyntax
 	}
 	b, err := hex.DecodeString(s)
 	if err != nil || hex.EncodeToString(b) != s {
-		return ID{}, errSyntax
+		return ID{}, ErrSyntax
 	}
 	return ID(b), nil
 }
 
 // String returns the 32 lowercase hex characters [Parse] accepts.
 func (id ID) String() string { return hex.EncodeToString(id[:]) }
+
+// MarshalText implements [encoding.TextMarshaler]: a wire id is the
+// text [ID.String] returns.
+func (id ID) MarshalText() ([]byte, error) { return []byte(id.String()), nil }
+
+// UnmarshalText implements [encoding.TextUnmarshaler] through [Parse],
+// leaving id unchanged when text spells no id.
+func (id *ID) UnmarshalText(text []byte) error {
+	v, err := Parse(string(text))
+	if err != nil {
+		return err
+	}
+	*id = v
+	return nil
+}
+
+// Scan implements [sql.Scanner] for the 16-byte blob [ID.Value]
+// writes. Any other value, NULL included, is refused.
+func (id *ID) Scan(src any) error {
+	b, ok := src.([]byte)
+	if !ok || len(b) != len(ID{}) {
+		return fmt.Errorf("scan id: want a %d-byte blob, got %T of length %d", len(ID{}), src, len(b))
+	}
+	*id = ID(b)
+	return nil
+}
 
 // IsZero reports whether id is all zero bytes.
 func (id ID) IsZero() bool { return id == ID{} }

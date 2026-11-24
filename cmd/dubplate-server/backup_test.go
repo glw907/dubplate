@@ -190,6 +190,12 @@ func TestBackupCmd_LongNamesExitCodes(t *testing.T) {
 	}
 }
 
+// reportedJob is the job id TestReportOutcome_Table reports, and
+// reportedJobWire is its 32-character wire spelling, written out.
+var reportedJob = id.ID{0xab, 0xc1, 0x23}
+
+const reportedJobWire = "abc12300000000000000000000000000"
+
 // TestReportOutcome_Table proves the states table's terminal-state half
 // directly: every [ops.JobState] reportOutcome switches on, including
 // [ops.JobInterrupted], the state unreachable through a live job
@@ -205,28 +211,28 @@ func TestReportOutcome_Table(t *testing.T) {
 	}{
 		{
 			name:       "succeeded, with a final phase",
-			job:        ops.JobStatus{ID: "abc123", State: ops.JobSucceeded, Phase: "pruned 3 old snapshots"},
-			wantStdout: "backup abc123: succeeded: pruned 3 old snapshots\n",
+			job:        ops.JobStatus{JobID: reportedJob, State: ops.JobSucceeded, Phase: "pruned 3 old snapshots"},
+			wantStdout: "backup abc12300000000000000000000000000: succeeded: pruned 3 old snapshots\n",
 		},
 		{
 			name:       "succeeded, no final phase",
-			job:        ops.JobStatus{ID: "abc123", State: ops.JobSucceeded},
-			wantStdout: "backup abc123: succeeded\n",
+			job:        ops.JobStatus{JobID: reportedJob, State: ops.JobSucceeded},
+			wantStdout: "backup abc12300000000000000000000000000: succeeded\n",
 		},
 		{
 			name:     "canceled",
-			job:      ops.JobStatus{ID: "abc123", State: ops.JobCanceled},
+			job:      ops.JobStatus{JobID: reportedJob, State: ops.JobCanceled},
 			wantErr:  true,
 			wantCode: exitInterrupted,
 		},
 		{
 			name:    "failed",
-			job:     ops.JobStatus{ID: "abc123", State: ops.JobFailed, FailureCode: "rclone-exit-7", FailureMessage: "max-delete exceeded"},
+			job:     ops.JobStatus{JobID: reportedJob, State: ops.JobFailed, FailureCode: "rclone-exit-7", FailureMessage: "max-delete exceeded"},
 			wantErr: true,
 		},
 		{
 			name:    "interrupted",
-			job:     ops.JobStatus{ID: "abc123", State: ops.JobInterrupted},
+			job:     ops.JobStatus{JobID: reportedJob, State: ops.JobInterrupted},
 			wantErr: true,
 		},
 	}
@@ -247,8 +253,8 @@ func TestReportOutcome_Table(t *testing.T) {
 			if err == nil {
 				t.Fatalf("reportOutcome() error = nil, want an error")
 			}
-			if !strings.Contains(err.Error(), string(tt.job.ID)) {
-				t.Errorf("error %q does not name the job's handle %s", err, tt.job.ID)
+			if !strings.Contains(err.Error(), reportedJobWire) {
+				t.Errorf("error %q does not name the job's handle %s", err, reportedJobWire)
 			}
 			ece, wrapped := errors.AsType[*exitCodeErr](err)
 			if tt.wantCode == 0 {

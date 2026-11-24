@@ -84,7 +84,7 @@ func (in *Intake) queue(ctx context.Context) ([][]byte, error) {
 // next start, so a deploy never asks a member to retry. A store fault
 // commits nothing either, and the next wake tries again.
 func (in *Intake) check(ctx context.Context, id []byte) {
-	log := in.cfg.Log.With("submission", wireID(id))
+	log := in.cfg.Log.With("submission", hex.EncodeToString(id))
 	v, err := in.judgeContained(ctx, id, log)
 	if ctx.Err() != nil {
 		return

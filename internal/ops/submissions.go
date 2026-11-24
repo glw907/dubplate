@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -44,13 +45,13 @@ type CreateSubmissionRequest struct {
 // A CreatedFile is the id a declared file uploads under.
 type CreatedFile struct {
 	Path   string `json:"path"`
-	FileID string `json:"file_id"`
+	FileID id.ID  `json:"file_id"`
 }
 
 // A CreateSubmissionResponse names the submission created and the id
 // each declared file uploads under.
 type CreateSubmissionResponse struct {
-	SubmissionID string        `json:"submission_id"`
+	SubmissionID id.ID         `json:"submission_id"`
 	Files        []CreatedFile `json:"files"`
 }
 
@@ -60,7 +61,7 @@ type ListSubmissionsRequest struct{}
 
 // A SubmissionSummary is one row of the caller's list.
 type SubmissionSummary struct {
-	SubmissionID string    `json:"submission_id"`
+	SubmissionID id.ID     `json:"submission_id"`
 	State        string    `json:"state"`
 	VerdictUnit  string    `json:"verdict_unit"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -76,7 +77,7 @@ type ListSubmissionsResponse struct {
 // A GetSubmissionRequest names the submission
 // [Submissions.GetSubmission] reads.
 type GetSubmissionRequest struct {
-	SubmissionID string `json:"submission_id"`
+	SubmissionID id.ID `json:"submission_id"`
 }
 
 // A SubmissionEvent is one entry of a submission's journey. Reason is
@@ -91,7 +92,7 @@ type SubmissionEvent struct {
 // A SubmissionFile is one file's progress and verdict. Verdict is nil
 // for a file that passed or has none yet.
 type SubmissionFile struct {
-	FileID   string         `json:"file_id"`
+	FileID   id.ID          `json:"file_id"`
 	Path     string         `json:"path"`
 	Size     int64          `json:"size"`
 	Received bool           `json:"received"`
@@ -109,7 +110,7 @@ type SubmissionWarning struct {
 // its journey, its files, and its warnings. A path or name that is not
 // valid UTF-8 is rendered with the replacement character.
 type GetSubmissionResponse struct {
-	SubmissionID string              `json:"submission_id"`
+	SubmissionID id.ID               `json:"submission_id"`
 	State        string              `json:"state"`
 	VerdictUnit  string              `json:"verdict_unit"`
 	Container    string              `json:"container"`

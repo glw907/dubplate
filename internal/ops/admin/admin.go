@@ -99,11 +99,11 @@ func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error 
 	return nil
 }
 
-// parseUserID parses s as a member's wire id: exactly 32 lowercase hex
-// characters, never the zero id, which names no resolved member.
-func parseUserID(s string) (identity.UserID, error) {
-	v, err := id.Parse(s)
-	if err != nil || v.IsZero() {
+// memberID returns v as a member's user id, refusing the zero id, which
+// names no resolved member. The decoder has already refused any text
+// that does not spell an id.
+func memberID(v id.ID) (identity.UserID, error) {
+	if v.IsZero() {
 		return identity.UserID{}, ops.NewInvalidRequestError("user_id must be 32 lowercase hex characters naming a member")
 	}
 	return identity.UserID(v), nil

@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -31,8 +30,8 @@ const jobErrorCode = "job-error"
 type body func(ctx context.Context, progress func(phase string) error) (final string, err error)
 
 // A binder makes a job's body once the runner holds its kind lease
-// and has named its handle.
-type binder func(kl *store.KindLease, h ops.Handle) body
+// and has minted its record id.
+type binder func(kl *store.KindLease, jobID id.ID) body
 
 // backupJob returns a binder that makes the backup kind's body, run
 // under the caller's kind lease, from the three backup values
@@ -40,12 +39,12 @@ type binder func(kl *store.KindLease, h ops.Handle) body
 // value, keep is DUBPLATE_BACKUP_SNAPSHOT_KEEP's, and archiveRetention
 // is DUBPLATE_BACKUP_ARCHIVE_RETENTION's.
 func (r *Runner) backupJob(fraction float64, keep int, archiveRetention time.Duration) binder {
-	return func(kl *store.KindLease, h ops.Handle) body {
+	return func(kl *store.KindLease, jobID id.ID) body {
 		return backup.Job{
 			Store:            r.store,
 			Lease:            kl,
 			Instance:         r.lease.Instance(),
-			RunID:            string(h),
+			RunID:            jobID.String(),
 			Remote:           r.backup.Remote,
 			LibraryRoot:      r.backup.LibraryRoot,
 			GuardFraction:    fraction,
@@ -66,8 +65,7 @@ type coded interface {
 
 // A job is one record this runner owns while its body runs.
 type job struct {
-	id     []byte
-	handle ops.Handle
+	id     id.ID
 	body   body
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -84,9 +82,8 @@ func storeContext(ctx context.Context) (context.Context, context.CancelFunc) {
 // recorded. Its context carries ctx's values but never its
 // cancellation, since the job outlives the call that starts it.
 func newJob(ctx context.Context, b body) *job {
-	minted := id.New()
 	jctx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-	return &job{id: minted[:], handle: handleOf(minted[:]), body: b, ctx: jctx, cancel: cancel}
+	return &job{id: id.New(), body: b, ctx: jctx, cancel: cancel}
 }
 
 // insert records j as a queued job of kind owned by this runner's
@@ -126,7 +123,7 @@ func (r *Runner) run(j *job) {
 	defer j.cancel()
 	ran, err := r.markRunning(j)
 	if err != nil {
-		r.logger.Error("job could not start", "job", j.handle, "err", err)
+		r.logger.Error("job could not start", "job", j.id, "err", err)
 		return
 	}
 	if !ran {
@@ -141,7 +138,7 @@ func (r *Runner) run(j *job) {
 	poller.Wait()
 
 	if err := r.finish(j, outcomeOf(j.ctx, final, bodyErr)); err != nil {
-		r.logger.Error("job end not recorded", "job", j.handle, "err", err)
+		r.logger.Error("job end not recorded", "job", j.id, "err", err)
 	}
 }
 
@@ -171,7 +168,7 @@ WHERE id = ? AND state = 'queued'`, t, t, j.id)
 		return false, err
 	}
 	if !ran {
-		r.logger.Info("job ended before it ran", "job", j.handle, "state", state)
+		r.logger.Info("job ended before it ran", "job", j.id, "state", state)
 	}
 	return ran, nil
 }
@@ -229,7 +226,7 @@ WHERE id = ? AND state = 'running'`, string(o.state), t, t, o.progress, o.code, 
 		return err
 	}
 	if !done {
-		r.logger.Warn("job end refused: record already finished", "job", j.handle, "want", string(o.state), "state", state)
+		r.logger.Warn("job end refused: record already finished", "job", j.id, "want", string(o.state), "state", state)
 	}
 	return nil
 }
@@ -276,7 +273,7 @@ func (r *Runner) pollCancel(j *job, stop <-chan struct{}) {
 		err := r.store.QueryRow(ctx, "SELECT cancel_requested FROM jobs WHERE id = ?", j.id).Scan(&requested)
 		cancel()
 		if err != nil {
-			r.logger.Warn("read job cancel request", "job", j.handle, "err", err)
+			r.logger.Warn("read job cancel request", "job", j.id, "err", err)
 			continue
 		}
 		if requested {
@@ -286,58 +283,56 @@ func (r *Runner) pollCancel(j *job, stop <-chan struct{}) {
 	}
 }
 
-// requestCancel records a cancel of id's job: canceled outright when
+// requestCancel records a cancel of jobID's job: canceled outright when
 // queued, cancel_requested when running, and nothing when finished.
-func (r *Runner) requestCancel(ctx context.Context, id []byte) error {
-	h := handleOf(id)
+func (r *Runner) requestCancel(ctx context.Context, jobID id.ID) error {
 	ctx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()
 	return r.store.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		var state string
-		err := tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", id).Scan(&state)
+		err := tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", jobID).Scan(&state)
 		if errors.Is(err, sql.ErrNoRows) {
-			return ops.NewNotFoundError(fmt.Sprintf("job %s", h))
+			return ops.NewNotFoundError(fmt.Sprintf("job %s", jobID))
 		}
 		if err != nil {
-			return fmt.Errorf("read job %s: %w", h, err)
+			return fmt.Errorf("read job %s: %w", jobID, err)
 		}
 		t := r.now().UnixMicro()
 		switch ops.JobState(state) {
 		case ops.JobQueued:
 			_, err = tx.Exec(ctx, `UPDATE jobs SET state = 'canceled', cancel_requested = 1, finished_at = ?, updated_at = ?
-WHERE id = ? AND state = 'queued'`, t, t, id)
+WHERE id = ? AND state = 'queued'`, t, t, jobID)
 		case ops.JobRunning:
 			_, err = tx.Exec(ctx, `UPDATE jobs SET cancel_requested = 1, updated_at = ?
-WHERE id = ? AND state = 'running'`, t, id)
+WHERE id = ? AND state = 'running'`, t, jobID)
 		}
 		if err != nil {
-			return fmt.Errorf("cancel job %s: %w", h, err)
+			return fmt.Errorf("cancel job %s: %w", jobID, err)
 		}
 		return nil
 	})
 }
 
-// status reads id's record. A record live under this runner's
+// status reads jobID's record. A record live under this runner's
 // instance that no job of its runs is stranded: its job ended without
 // the write that would have finished it, and the held instance lease
 // keeps every other process's recovery off it. status recovers such a
 // record before it answers, so a caller polling for a terminal state
 // gets one, and fails when that recovery's write fails.
-func (r *Runner) status(ctx context.Context, id []byte) (ops.JobStatus, error) {
-	st, owner, err := r.readStatus(ctx, id)
-	if err != nil || st.State.Terminal() || owner != r.lease.Instance() || r.tracked(st.ID) {
+func (r *Runner) status(ctx context.Context, jobID id.ID) (ops.JobStatus, error) {
+	st, owner, err := r.readStatus(ctx, jobID)
+	if err != nil || st.State.Terminal() || owner != r.lease.Instance() || r.tracked(jobID) {
 		return st, err
 	}
 	if err := r.recoverJobs(ctx); err != nil {
-		return ops.JobStatus{}, fmt.Errorf("read job %s: %w", st.ID, err)
+		return ops.JobStatus{}, fmt.Errorf("read job %s: %w", jobID, err)
 	}
-	st, _, err = r.readStatus(ctx, id)
+	st, _, err = r.readStatus(ctx, jobID)
 	return st, err
 }
 
-// readStatus reads id's record and the instance that owns it.
-func (r *Runner) readStatus(ctx context.Context, id []byte) (ops.JobStatus, string, error) {
-	h := handleOf(id)
+// readStatus reads jobID's record and the instance that owns it.
+func (r *Runner) readStatus(ctx context.Context, jobID id.ID) (ops.JobStatus, string, error) {
 	var (
 		st                   ops.JobStatus
 		state, owner         string
@@ -346,14 +341,14 @@ func (r *Runner) readStatus(ctx context.Context, id []byte) (ops.JobStatus, stri
 		started, finished    sql.NullInt64
 	)
 	err := r.store.QueryRow(ctx, `SELECT kind, state, owner_instance, progress, failure_code, failure_message, at, started_at, updated_at, finished_at
-FROM jobs WHERE id = ?`, id).Scan(&st.Kind, &state, &owner, &phase, &code, &message, &queued, &started, &updated, &finished)
+FROM jobs WHERE id = ?`, jobID).Scan(&st.Kind, &state, &owner, &phase, &code, &message, &queued, &started, &updated, &finished)
 	if errors.Is(err, sql.ErrNoRows) {
-		return ops.JobStatus{}, "", ops.NewNotFoundError(fmt.Sprintf("job %s", h))
+		return ops.JobStatus{}, "", ops.NewNotFoundError(fmt.Sprintf("job %s", jobID))
 	}
 	if err != nil {
-		return ops.JobStatus{}, "", fmt.Errorf("read job %s: %w", h, err)
+		return ops.JobStatus{}, "", fmt.Errorf("read job %s: %w", jobID, err)
 	}
-	st.ID = h
+	st.JobID = jobID
 	st.State = ops.JobState(state)
 	st.Phase, st.FailureCode, st.FailureMessage = phase.String, code.String, message.String
 	st.QueuedAt, st.UpdatedAt = store.Micros(queued), store.Micros(updated)
@@ -368,17 +363,3 @@ func optionalMicros(us sql.NullInt64) *time.Time {
 	t := store.Micros(us.Int64)
 	return &t
 }
-
-// parseID parses h as a job handle and returns the record id it names.
-func parseID(h ops.Handle) ([]byte, error) {
-	if _, err := ops.ParseHandle(string(h)); err != nil {
-		return nil, err
-	}
-	v, err := id.Parse(string(h))
-	if err != nil {
-		return nil, err
-	}
-	return v[:], nil
-}
-
-func handleOf(id []byte) ops.Handle { return ops.Handle(hex.EncodeToString(id)) }

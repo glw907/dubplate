@@ -34,8 +34,8 @@ func adminCalls() []seamCall {
 	return []seamCall{
 		{ops.OpListMembers, ops.ListMembersRequest{}},
 		{ops.OpAddMember, ops.AddMemberRequest{Address: "bo@example.com", DisplayName: "Bo", Username: "bo"}},
-		{ops.OpRemoveMember, ops.RemoveMemberRequest{UserID: testHandle}},
-		{ops.OpDemoteMember, ops.DemoteMemberRequest{UserID: testHandle}},
+		{ops.OpRemoveMember, ops.RemoveMemberRequest{UserID: testID}},
+		{ops.OpDemoteMember, ops.DemoteMemberRequest{UserID: testID}},
 		{ops.OpListSettings, ops.ListSettingsRequest{}},
 		{ops.OpSetSetting, ops.SetSettingRequest{Key: "K", Value: "v"}},
 		{ops.OpResetSetting, ops.ResetSettingRequest{Key: "K"}},
@@ -48,9 +48,9 @@ func submissionCalls() []seamCall {
 	return []seamCall{
 		{ops.OpCreateSubmission, ops.CreateSubmissionRequest{VerdictUnit: "album", Container: "files", Source: "vinyl"}},
 		{ops.OpListSubmissions, ops.ListSubmissionsRequest{}},
-		{ops.OpGetSubmission, ops.GetSubmissionRequest{SubmissionID: testHandle}},
-		{ops.OpRetrySubmission, ops.RetrySubmissionRequest{SubmissionID: testHandle}},
-		{ops.OpCancelSubmission, ops.CancelSubmissionRequest{SubmissionID: testHandle}},
+		{ops.OpGetSubmission, ops.GetSubmissionRequest{SubmissionID: testID}},
+		{ops.OpRetrySubmission, ops.RetrySubmissionRequest{SubmissionID: testID}},
+		{ops.OpCancelSubmission, ops.CancelSubmissionRequest{SubmissionID: testID}},
 	}
 }
 

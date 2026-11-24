@@ -2,11 +2,13 @@ package intake
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"os"
 	"slices"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -184,7 +186,7 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 			reserved := reservedBytes(t, f.h, c.id)
 
 			if tc.duringDecode {
-				xDir := "submissions/" + wireID(c.id) + "/x"
+				xDir := "submissions/" + hex.EncodeToString(c.id) + "/x"
 				ctx := newPauseWhen(func() bool { return f.entries(t, xDir) == 2 })
 				done := make(chan struct{})
 				go func() { defer close(done); f.in.check(ctx, c.id) }()
@@ -210,7 +212,7 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 				if !bytes.Equal(f.read(t, tusOf(c.files[0].id)), archive) {
 					t.Error("the archive is not kept whole")
 				}
-				if f.exists(t, "submissions/"+wireID(c.id)+"/x") {
+				if f.exists(t, "submissions/"+hex.EncodeToString(c.id)+"/x") {
 					t.Error("x/ outlived a check that could not run")
 				}
 				if got := membersOf(t, f.h, c.id); len(got) != 0 {
@@ -240,18 +242,18 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 // extracted to in c's x/.
 func extractedAs(t *testing.T, f *intakeFixture, c created, track []byte) []byte {
 	t.Helper()
-	dir := "submissions/" + wireID(c.id) + "/x"
+	dir := "submissions/" + hex.EncodeToString(c.id) + "/x"
 	list, err := os.ReadDir(f.path(dir))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, e := range list {
-		id, ok := parseID(e.Name())
-		if !ok {
+		minted, err := id.Parse(e.Name())
+		if err != nil || minted.IsZero() {
 			t.Fatalf("x/ holds %q, not a minted id", e.Name())
 		}
 		if bytes.Equal(f.read(t, dir+"/"+e.Name()), track) {
-			return id
+			return minted[:]
 		}
 	}
 	t.Fatal("no extracted member holds the track")

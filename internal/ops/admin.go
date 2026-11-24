@@ -3,14 +3,15 @@ package ops
 import (
 	"context"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
 // A Member is one roster entry as the admin operations carry it. UserID
-// is the member's durable id as 32 lowercase hex characters, the name a
-// remove or demote request addresses the member by.
+// is the member's durable id, the name a remove or demote request
+// addresses the member by.
 type Member struct {
-	UserID      string `json:"user_id"`
+	UserID      id.ID  `json:"user_id"`
 	Address     string `json:"address"`
 	DisplayName string `json:"display_name"`
 	Username    string `json:"username"`
@@ -43,7 +44,7 @@ type AddMemberResponse struct {
 // A RemoveMemberRequest names the member [Admin.RemoveMember]
 // removes by UserID.
 type RemoveMemberRequest struct {
-	UserID string `json:"user_id"`
+	UserID id.ID `json:"user_id"`
 }
 
 // A RemoveMemberResponse acknowledges a removal. It carries no fields.
@@ -52,7 +53,7 @@ type RemoveMemberResponse struct{}
 // A DemoteMemberRequest names the member [Admin.DemoteMember]
 // demotes by UserID.
 type DemoteMemberRequest struct {
-	UserID string `json:"user_id"`
+	UserID id.ID `json:"user_id"`
 }
 
 // A DemoteMemberResponse acknowledges a demotion. It carries no fields.

@@ -197,31 +197,31 @@ func newRunnerWithBackup(t *testing.T, h *store.Handle, remote, root string, log
 }
 
 // start starts a backup through r.
-func start(t *testing.T, r *jobs.Runner) ops.Handle {
+func start(t *testing.T, r *jobs.Runner) id.ID {
 	t.Helper()
-	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), testActor)
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
-	return resp.JobID
+	return jobID
 }
 
-// await waits for the job h names to end and returns its status.
-func await(t *testing.T, r *jobs.Runner, h ops.Handle) ops.JobStatus {
+// await waits for the job jobID names to end and returns its status.
+func await(t *testing.T, r *jobs.Runner, jobID id.ID) ops.JobStatus {
 	t.Helper()
 	end := time.Now().Add(60 * time.Second)
 	for {
-		resp, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: h})
+		st, err := r.JobStatus(deadline(t), testActor, jobID)
 		if err != nil {
 			t.Fatalf("JobStatus: %v", err)
 		}
-		switch resp.Job.State {
+		switch st.State {
 		case ops.JobQueued, ops.JobRunning:
 		default:
-			return resp.Job
+			return st
 		}
 		if time.Now().After(end) {
-			t.Fatalf("job %s still %s after 60s", h, resp.Job.State)
+			t.Fatalf("job %s still %s after 60s", jobID, st.State)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
@@ -229,7 +229,7 @@ func await(t *testing.T, r *jobs.Runner, h ops.Handle) ops.JobStatus {
 
 // runBackup runs one backup to its end through a runner over h, its
 // three backup value readers at R-6c11's default.
-func runBackup(t *testing.T, h *store.Handle, remote, root string) (ops.Handle, ops.JobStatus) {
+func runBackup(t *testing.T, h *store.Handle, remote, root string) (id.ID, ops.JobStatus) {
 	t.Helper()
 	return runBackupWithBackup(t, h, remote, root, defaultSnapshotKeep, defaultGuardFraction, defaultArchiveRetention)
 }
@@ -240,15 +240,15 @@ func runBackupWithBackup(t *testing.T, h *store.Handle, remote, root string,
 	snapshotKeep func(context.Context) (int, error),
 	guardFraction func(context.Context) (float64, error),
 	archiveRetention func(context.Context) (time.Duration, error),
-) (ops.Handle, ops.JobStatus) {
+) (id.ID, ops.JobStatus) {
 	t.Helper()
 	r := newRunnerWithBackup(t, h, remote, root, nil, snapshotKeep, guardFraction, archiveRetention)
-	id := start(t, r)
-	st := await(t, r, id)
+	jobID := start(t, r)
+	st := await(t, r, jobID)
 	if err := r.Close(); err != nil {
 		t.Fatalf("close runner: %v", err)
 	}
-	return id, st
+	return jobID, st
 }
 
 // wantState fails unless st ended in state with code.
@@ -334,7 +334,7 @@ func TestBackup_RealRemote(t *testing.T) {
 	lib := t.TempDir()
 	writeTree(t, lib, "artist/one.flac", "artist/two.flac")
 
-	id, st := runBackup(t, h, remote, lib)
+	jobID, st := runBackup(t, h, remote, lib)
 	wantState(t, st, ops.JobSucceeded, "")
 
 	if got, want := treeFiles(t, filepath.Join(remoteDir, "library")), []string{"artist/one.flac", "artist/two.flac"}; !slices.Equal(got, want) {
@@ -379,8 +379,8 @@ func TestBackup_RealRemote(t *testing.T) {
 		t.Fatalf("lsjson lists %d objects, want 1", len(listing))
 	}
 	md := listing[0].Metadata
-	if md["run_id"] != string(id) {
-		t.Errorf("run_id = %q, want the job's handle %q", md["run_id"], id)
+	if md["run_id"] != jobID.String() {
+		t.Errorf("run_id = %q, want the job's id %q", md["run_id"], jobID)
 	}
 	if _, err := time.Parse(time.RFC3339, md["sync_completed"]); err != nil {
 		t.Errorf("sync_completed %q: %v", md["sync_completed"], err)
@@ -730,7 +730,7 @@ func TestBackup_Destinations(t *testing.T) {
 			lib := t.TempDir()
 			writeTree(t, lib, "a/one.flac", "a/two.flac")
 
-			id, st := runBackup(t, h, tt.remote, lib)
+			jobID, st := runBackup(t, h, tt.remote, lib)
 			wantState(t, st, ops.JobSucceeded, "")
 			argvs := s.invocations(t)
 			if len(argvs) != 3 {
@@ -759,7 +759,7 @@ func TestBackup_Destinations(t *testing.T) {
 				t.Errorf("copyto's last argument %q is not sync_completed=<RFC 3339>", copyto[7])
 			}
 			wantCopy := []string{"copyto", copyto[1], tt.prefix + "snapshots/" + stamp + ".db", "-M",
-				"--metadata-set", "run_id=" + string(id), "--metadata-set", copyto[7]}
+				"--metadata-set", "run_id=" + jobID.String(), "--metadata-set", copyto[7]}
 			if !slices.Equal(copyto, wantCopy) {
 				t.Errorf("copyto argv = %q, want %q", copyto, wantCopy)
 			}
@@ -869,18 +869,18 @@ func TestBackup_CancelPrecedence(t *testing.T) {
 			lib := t.TempDir()
 			writeTree(t, lib, "a/one.flac")
 			r := newRunner(t, h, "name:dir", lib, nil)
-			id := start(t, r)
+			jobID := start(t, r)
 			pid := s.awaitPID(t)
 			killAtCleanup(t, pid)
 
 			if tt.cancel {
-				if _, err := r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: id}); err != nil {
+				if _, err := r.CancelJob(deadline(t), testActor, jobID); err != nil {
 					t.Fatalf("CancelJob: %v", err)
 				}
 			} else if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
 				t.Fatalf("kill the stand-in: %v", err)
 			}
-			wantState(t, await(t, r, id), tt.wantState, tt.wantCode)
+			wantState(t, await(t, r, jobID), tt.wantState, tt.wantCode)
 			if got := s.count(t, "exit 130"); got != tt.wantExit {
 				t.Errorf("the stand-in recorded %d exits of 130, want %d", got, tt.wantExit)
 			}
@@ -925,7 +925,7 @@ func TestBackup_OrphanTransfer(t *testing.T) {
 	h := openWrite(t, dir)
 	configureStandin(t, standinConfig{})
 	r := newRunner(t, h, "name:dir", lib, nil)
-	_, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	_, err := r.StartBackup(deadline(t), testActor)
 	if !errors.Is(err, ops.ErrConflict) || !strings.Contains(err.Error(), "a previous run's transfer is still running") {
 		t.Fatalf("StartBackup() with the orphan alive = %v, want a conflict naming a transfer still running", err)
 	}
@@ -935,9 +935,9 @@ func TestBackup_OrphanTransfer(t *testing.T) {
 	}
 	end := time.Now().Add(20 * time.Second)
 	for {
-		resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+		jobID, err := r.StartBackup(deadline(t), testActor)
 		if err == nil {
-			wantState(t, await(t, r, resp.JobID), ops.JobSucceeded, "")
+			wantState(t, await(t, r, jobID), ops.JobSucceeded, "")
 			return
 		}
 		if !errors.Is(err, ops.ErrConflict) || time.Now().After(end) {

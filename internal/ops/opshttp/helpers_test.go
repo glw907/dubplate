@@ -12,13 +12,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
 )
 
 // testHandle is a well-formed record id: 32 lowercase hex characters.
+// testID holds the same 16 bytes, written out by hand.
 const testHandle = "0123456789abcdef0123456789abcdef"
+
+var testID = id.ID{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef}
 
 // ann is the verified member the admitting authorizers answer with.
 var ann = identity.Identity{
@@ -132,7 +136,7 @@ func (f *fakeSubmissions) CancelSubmission(_ context.Context, actor identity.Act
 // testSubmission is a submission status every fixture's get, retry, and
 // cancel answers with, carrying one of each reason-bearing field.
 var testSubmission = ops.GetSubmissionResponse{
-	SubmissionID: testHandle,
+	SubmissionID: testID,
 	State:        "rejected",
 	VerdictUnit:  "album",
 	Container:    "files",
@@ -144,8 +148,8 @@ var testSubmission = ops.GetSubmissionResponse{
 		{At: annAnchor, Kind: "rejected", Reason: "corrupt", Reject: new(reject.Of(reject.Corrupt))},
 	},
 	Files: []ops.SubmissionFile{
-		{FileID: testHandle, Path: "a/1.flac", Size: 10, Received: true, Verdict: new(reject.Of(reject.Corrupt))},
-		{FileID: testHandle, Path: "a/2.flac", Size: 10, Received: false},
+		{FileID: testID, Path: "a/1.flac", Size: 10, Received: true, Verdict: new(reject.Of(reject.Corrupt))},
+		{FileID: testID, Path: "a/2.flac", Size: 10, Received: false},
 	},
 	Warnings: []ops.SubmissionWarning{
 		{Reason: reject.Of(reject.ExtrasDropped), Subject: new("scan.jpg")},
@@ -156,9 +160,9 @@ var testSubmission = ops.GetSubmissionResponse{
 // submissionSuccesses configures every submission operation to succeed.
 func submissionSuccesses() map[string]fakeAnswer {
 	return map[string]fakeAnswer{
-		ops.OpCreateSubmission: {resp: ops.CreateSubmissionResponse{SubmissionID: testHandle, Files: []ops.CreatedFile{{Path: "a/1.flac", FileID: testHandle}}}},
+		ops.OpCreateSubmission: {resp: ops.CreateSubmissionResponse{SubmissionID: testID, Files: []ops.CreatedFile{{Path: "a/1.flac", FileID: testID}}}},
 		ops.OpListSubmissions: {resp: ops.ListSubmissionsResponse{Submissions: []ops.SubmissionSummary{
-			{SubmissionID: testHandle, State: "uploading", VerdictUnit: "album", CreatedAt: annAnchor, UpdatedAt: annAnchor}}}},
+			{SubmissionID: testID, State: "uploading", VerdictUnit: "album", CreatedAt: annAnchor, UpdatedAt: annAnchor}}}},
 		ops.OpGetSubmission:    {resp: testSubmission},
 		ops.OpRetrySubmission:  {resp: ops.RetrySubmissionResponse(testSubmission)},
 		ops.OpCancelSubmission: {resp: ops.CancelSubmissionResponse(testSubmission)},
@@ -168,8 +172,8 @@ func submissionSuccesses() map[string]fakeAnswer {
 // adminSuccesses configures every admin operation to succeed.
 func adminSuccesses() map[string]fakeAnswer {
 	return map[string]fakeAnswer{
-		ops.OpListMembers:  {resp: ops.ListMembersResponse{Members: []ops.Member{{UserID: testHandle, Address: "ann@example.com", Username: "ann", Admin: true}}}},
-		ops.OpAddMember:    {resp: ops.AddMemberResponse{Member: ops.Member{UserID: testHandle, Address: "bo@example.com", Username: "bo"}}},
+		ops.OpListMembers:  {resp: ops.ListMembersResponse{Members: []ops.Member{{UserID: testID, Address: "ann@example.com", Username: "ann", Admin: true}}}},
+		ops.OpAddMember:    {resp: ops.AddMemberResponse{Member: ops.Member{UserID: testID, Address: "bo@example.com", Username: "bo"}}},
 		ops.OpRemoveMember: {resp: ops.RemoveMemberResponse{}},
 		ops.OpDemoteMember: {resp: ops.DemoteMemberResponse{}},
 		ops.OpListSettings: {resp: ops.ListSettingsResponse{Settings: []ops.SettingEntry{{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next_operation", Mark: "sensitive"}}}},

@@ -31,11 +31,11 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 			func(*testing.T) any { return submissionSuccesses()[ops.OpCreateSubmission].resp }},
 		{ops.OpListSubmissions, `{}`, ops.ListSubmissionsRequest{},
 			func(*testing.T) any { return submissionSuccesses()[ops.OpListSubmissions].resp }},
-		{ops.OpGetSubmission, idBody, ops.GetSubmissionRequest{SubmissionID: testHandle},
+		{ops.OpGetSubmission, idBody, ops.GetSubmissionRequest{SubmissionID: testID},
 			func(*testing.T) any { return testSubmission }},
-		{ops.OpRetrySubmission, idBody, ops.RetrySubmissionRequest{SubmissionID: testHandle},
+		{ops.OpRetrySubmission, idBody, ops.RetrySubmissionRequest{SubmissionID: testID},
 			func(*testing.T) any { return testSubmission }},
-		{ops.OpCancelSubmission, idBody, ops.CancelSubmissionRequest{SubmissionID: testHandle},
+		{ops.OpCancelSubmission, idBody, ops.CancelSubmissionRequest{SubmissionID: testID},
 			func(*testing.T) any { return testSubmission }},
 	}
 	for _, tt := range tests {

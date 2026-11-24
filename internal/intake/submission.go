@@ -106,16 +106,6 @@ func (s *submissions) poke() {
 	}
 }
 
-// parseID parses a submission or file id as the wire carries it: exactly
-// 32 lowercase hex characters, never the zero id.
-func parseID(s string) ([]byte, bool) {
-	v, err := id.Parse(s)
-	if err != nil || v.IsZero() {
-		return nil, false
-	}
-	return v[:], true
-}
-
 // newSubmission is a member's request to create a submission.
 type newSubmission struct {
 	manifest gate.Manifest

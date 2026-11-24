@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -52,7 +53,7 @@ func albumBody(paths ...string) string {
 }
 
 // createdID creates a one-file album as session and returns its id.
-func (a *apiHarness) createdID(session string) string {
+func (a *apiHarness) createdID(session string) id.ID {
 	a.t.Helper()
 	rec := a.call("create_submission", session, albumBody("01.flac"))
 	if rec.Code != http.StatusOK {
@@ -97,8 +98,8 @@ func TestAPI_MemberReachesTheSubmissionOperationsAndNoAdminOne(t *testing.T) {
 	a := newSubmissionHarness(t)
 	member := a.session("member@example.com", time.Now())
 
-	id := a.createdID(member)
-	idBody := `{"submission_id":"` + id + `"}`
+	sub := a.createdID(member)
+	idBody := `{"submission_id":"` + sub.String() + `"}`
 	for op, body := range map[string]string{
 		"list_submissions": `{}`, "get_submission": idBody, "cancel_submission": idBody,
 	} {
@@ -154,7 +155,7 @@ func TestAPI_AnotherMembersSubmissionIsAnUnknownOne(t *testing.T) {
 
 	for _, op := range []string{"get_submission", "retry_submission", "cancel_submission"} {
 		t.Run(op, func(t *testing.T) {
-			other := a.call(op, member, `{"submission_id":"`+boID+`"}`)
+			other := a.call(op, member, `{"submission_id":"`+boID.String()+`"}`)
 			missing := a.call(op, member, `{"submission_id":"`+unknown+`"}`)
 			if other.Code != http.StatusNotFound || missing.Code != http.StatusNotFound {
 				t.Fatalf("another member's id = %d, an unknown id = %d, want both 404", other.Code, missing.Code)
@@ -169,7 +170,7 @@ func TestAPI_AnotherMembersSubmissionIsAnUnknownOne(t *testing.T) {
 	}
 
 	var state string
-	if err := a.h.QueryRow(t.Context(), `SELECT state FROM submissions WHERE id = ?`, mustHex(t, boID)).Scan(&state); err != nil || state != "uploading" {
+	if err := a.h.QueryRow(t.Context(), `SELECT state FROM submissions WHERE id = ?`, boID[:]).Scan(&state); err != nil || state != "uploading" {
 		t.Errorf("another member's submission is %q (%v) after the refused cancel, want uploading", state, err)
 	}
 
@@ -181,7 +182,7 @@ func TestAPI_AnotherMembersSubmissionIsAnUnknownOne(t *testing.T) {
 	if len(list.Submissions) != 1 || list.Submissions[0].SubmissionID != memberID {
 		t.Errorf("list_submissions = %+v, want only the caller's %s", list.Submissions, memberID)
 	}
-	if own := a.call("get_submission", member, `{"submission_id":"`+memberID+`"}`); own.Code != http.StatusOK {
+	if own := a.call("get_submission", member, `{"submission_id":"`+memberID.String()+`"}`); own.Code != http.StatusOK {
 		t.Errorf("the caller's own get = %d %s, want 200", own.Code, own.Body)
 	}
 }
@@ -209,7 +210,7 @@ func TestAPI_CreateNeverTakesAFieldFromTheBody(t *testing.T) {
 	var state string
 	var reserved int64
 	err := a.h.QueryRow(t.Context(), `SELECT uploader, collection_id, state, reserved_bytes FROM submissions WHERE id = ?`,
-		mustHex(t, resp.SubmissionID)).Scan(&uploader, &collection, &state, &reserved)
+		resp.SubmissionID[:]).Scan(&uploader, &collection, &state, &reserved)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +225,7 @@ func TestAPI_CreateNeverTakesAFieldFromTheBody(t *testing.T) {
 		t.Errorf("state %q reserved %d, want uploading and 1000", state, reserved)
 	}
 	var role string
-	if err := a.h.QueryRow(t.Context(), `SELECT role FROM submission_files WHERE submission_id = ?`, mustHex(t, resp.SubmissionID)).Scan(&role); err != nil || role != "audio" {
+	if err := a.h.QueryRow(t.Context(), `SELECT role FROM submission_files WHERE submission_id = ?`, resp.SubmissionID[:]).Scan(&role); err != nil || role != "audio" {
 		t.Errorf("file role = %q (%v), want the server-derived audio", role, err)
 	}
 }
@@ -318,7 +319,7 @@ func TestAPI_SourceAnswers(t *testing.T) {
 			if err := json.Unmarshal(rec.Body.Bytes(), &created); err != nil {
 				t.Fatal(err)
 			}
-			got := a.call("get_submission", member, `{"submission_id":"`+created.SubmissionID+`"}`)
+			got := a.call("get_submission", member, `{"submission_id":"`+created.SubmissionID.String()+`"}`)
 			var status ops.GetSubmissionResponse
 			if err := json.Unmarshal(got.Body.Bytes(), &status); err != nil || status.Source != source {
 				t.Errorf("get_submission source = %q (%v), want %q", status.Source, err, source)
@@ -417,11 +418,11 @@ func TestAPI_CreateBodyCaps(t *testing.T) {
 func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 	a := newSubmissionHarness(t)
 	member := a.session("member@example.com", time.Now())
-	id := a.createdID(member)
+	sub := a.createdID(member)
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	if err := a.h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
-		sid := mustHex(t, id)
+		sid := sub[:]
 		for _, q := range []string{
 			`UPDATE submission_files SET verdict = 'corrupt' WHERE submission_id = ?1`,
 			`UPDATE submissions SET state = 'rejected' WHERE id = ?1`,
@@ -437,7 +438,7 @@ func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rec := a.call("get_submission", member, `{"submission_id":"`+id+`"}`)
+	rec := a.call("get_submission", member, `{"submission_id":"`+sub.String()+`"}`)
 
 	var got struct {
 		State  string `json:"state"`

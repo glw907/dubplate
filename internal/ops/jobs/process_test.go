@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
@@ -47,7 +48,7 @@ func TestMain(m *testing.M) {
 
 // runChild is a second process's whole life: it opens a runner over
 // dir's store, starts a backup, and once the body has reported its
-// first phase writes the job's handle and its runner's instance to
+// first phase writes the job's id and its runner's instance to
 // descriptor 3.
 func runChild(mode, dir string) int {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -84,13 +85,13 @@ func runChild(mode, dir string) int {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	resp, err := r.StartBackup(ctx, identity.LocalActor("child"), ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(ctx, identity.LocalActor("child"))
 	if err != nil {
 		return fail(err)
 	}
 	<-started
 	ready := os.NewFile(3, "ready")
-	if _, err := fmt.Fprintf(ready, "%s %s\n", resp.JobID, r.lease.Instance()); err != nil {
+	if _, err := fmt.Fprintf(ready, "%s %s\n", jobID, r.lease.Instance()); err != nil {
 		return fail(err)
 	}
 	if err := ready.Close(); err != nil {
@@ -99,7 +100,7 @@ func runChild(mode, dir string) int {
 
 	if mode == modeHold {
 		_, _ = io.Copy(io.Discard, os.Stdin)
-		r.CancelOwn(resp.JobID)
+		r.CancelOwn(jobID)
 	}
 	if err := r.Close(); err != nil {
 		return fail(err)
@@ -110,7 +111,7 @@ func runChild(mode, dir string) int {
 // A child is a re-executed test binary running one job.
 type child struct {
 	cmd      *exec.Cmd
-	handle   ops.Handle
+	jobID    id.ID
 	instance string
 	stderr   *syncBuffer
 	exited   chan error
@@ -160,11 +161,15 @@ func startChild(t *testing.T, dir, mode string) *child {
 	}()
 	select {
 	case s := <-line:
-		handle, instance, ok := strings.Cut(strings.TrimSpace(s), " ")
+		text, instance, ok := strings.Cut(strings.TrimSpace(s), " ")
 		if !ok {
-			t.Fatalf("child's ready line %q is not a handle and an instance; stderr:\n%s", s, c.stderr)
+			t.Fatalf("child's ready line %q is not a job id and an instance; stderr:\n%s", s, c.stderr)
 		}
-		c.handle, c.instance = ops.Handle(handle), instance
+		jobID, err := id.Parse(text)
+		if err != nil {
+			t.Fatalf("child's ready line %q names no job id: %v; stderr:\n%s", s, err, c.stderr)
+		}
+		c.jobID, c.instance = jobID, instance
 	case <-time.After(30 * time.Second):
 		t.Fatalf("child never became ready; stderr:\n%s", c.stderr)
 	}
@@ -213,7 +218,7 @@ func TestCrossProcess_OpenLeavesLiveOwner(t *testing.T) {
 
 	newRunnerFor(t, h, nil, succeed)
 
-	if rec := mustRecord(t, h, idOf(t, c.handle)); rec.state != "running" {
+	if rec := mustRecord(t, h, c.jobID[:]); rec.state != "running" {
 		t.Errorf("the child's record reads %s, want running", rec.state)
 	}
 	if rec := mustRecord(t, h, dead); rec.state != "interrupted" || rec.finished == 0 {
@@ -232,24 +237,23 @@ func TestCrossProcess_KilledOwner(t *testing.T) {
 	h := openWrite(t, dir)
 	logs := &syncBuffer{}
 	r := newRunnerFor(t, h, logs, succeed)
-	id := idOf(t, c.handle)
-	if rec := mustRecord(t, h, id); rec.state != "interrupted" {
+	if rec := mustRecord(t, h, c.jobID[:]); rec.state != "interrupted" {
 		t.Fatalf("the killed child's record reads %s after recovery, want interrupted", rec.state)
 	}
 	if _, err := os.Stat(filepath.Join(leasesDir(dir), c.instance)); !os.IsNotExist(err) {
 		t.Errorf("the killed child's lease file survived recovery: stat = %v", err)
 	}
 
-	late := &job{id: id, handle: c.handle, ctx: context.Background(), cancel: func() {}}
+	late := &job{id: c.jobID, ctx: context.Background(), cancel: func() {}}
 	if err := r.finish(late, outcome{state: ops.JobSucceeded}); err != nil {
 		t.Fatalf("finish: %v", err)
 	}
-	if rec := mustRecord(t, h, id); rec.state != "interrupted" {
+	if rec := mustRecord(t, h, c.jobID[:]); rec.state != "interrupted" {
 		t.Errorf("record reads %s after a late terminal update, want interrupted", rec.state)
 	}
 	got := logs.String()
-	if !strings.Contains(got, "level=WARN") || !strings.Contains(got, "job end refused") || !strings.Contains(got, string(c.handle)) {
-		t.Errorf("logs %q do not warn of the refused update to %s", got, c.handle)
+	if !strings.Contains(got, "level=WARN") || !strings.Contains(got, "job end refused") || !strings.Contains(got, c.jobID.String()) {
+		t.Errorf("logs %q do not warn of the refused update to %s", got, c.jobID)
 	}
 }
 
@@ -268,50 +272,49 @@ func TestCrossProcess_Cancel(t *testing.T) {
 	done := plant(t, h, record{state: "succeeded", owner: c.instance, at: past, started: past, finished: past})
 	r := newRunnerFor(t, h, nil, succeed)
 
-	resp, err := r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: handleOf(queued)})
-	if err != nil || resp.Job.State != ops.JobCanceled {
-		t.Errorf("cancel of a queued record = %v, %v; want canceled", resp.Job.State, err)
+	st, err := r.CancelJob(deadline(t), testActor, id.ID(queued))
+	if err != nil || st.State != ops.JobCanceled {
+		t.Errorf("cancel of a queued record = %v, %v; want canceled", st.State, err)
 	}
-	resp, err = r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: handleOf(done)})
-	if err != nil || resp.Job.State != ops.JobSucceeded {
-		t.Errorf("cancel of a succeeded record = %v, %v; want succeeded", resp.Job.State, err)
+	st, err = r.CancelJob(deadline(t), testActor, id.ID(done))
+	if err != nil || st.State != ops.JobSucceeded {
+		t.Errorf("cancel of a succeeded record = %v, %v; want succeeded", st.State, err)
 	}
 	if rec := mustRecord(t, h, done); rec.updated != past || rec.cancelRequested {
 		t.Errorf("succeeded record written: updated_at %d, cancel_requested %v", rec.updated, rec.cancelRequested)
 	}
 
-	id := idOf(t, c.handle)
-	resp, err = r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: c.handle})
+	st, err = r.CancelJob(deadline(t), testActor, c.jobID)
 	if err != nil {
 		t.Fatalf("cancel of the child's job: %v", err)
 	}
-	if resp.Job.State != ops.JobRunning {
-		t.Errorf("cancel of the child's job reports %s, want running", resp.Job.State)
+	if st.State != ops.JobRunning {
+		t.Errorf("cancel of the child's job reports %s, want running", st.State)
 	}
-	if rec := mustRecord(t, h, id); rec.state != "running" || !rec.cancelRequested {
+	if rec := mustRecord(t, h, c.jobID[:]); rec.state != "running" || !rec.cancelRequested {
 		t.Errorf("child's record right after the cancel = %s, cancel_requested %v; want running, requested", rec.state, rec.cancelRequested)
 	}
 
 	c.wait(t, 30*time.Second)
-	if rec := mustRecord(t, h, id); rec.state != "canceled" || rec.finished == 0 {
+	if rec := mustRecord(t, h, c.jobID[:]); rec.state != "canceled" || rec.finished == 0 {
 		t.Errorf("child's record = %s, finished_at %d; want canceled and finished", rec.state, rec.finished)
 	}
 }
 
 // TestCrossProcess_Conflict pins spec criterion 7: a second start
 // while the child's backup runs answers conflict naming the child's
-// handle.
+// job id.
 func TestCrossProcess_Conflict(t *testing.T) {
 	dir := newStateDir(t)
 	c := startChild(t, dir, modeHold)
 	h := openWrite(t, dir)
 	r := newRunnerFor(t, h, nil, succeed)
 
-	_, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	_, err := r.StartBackup(deadline(t), testActor)
 	if !errors.Is(err, ops.ErrConflict) {
 		t.Fatalf("StartBackup() = %v, want a conflict", err)
 	}
-	if !strings.Contains(err.Error(), string(c.handle)) {
-		t.Errorf("conflict %q does not name the child's job %s", err, c.handle)
+	if !strings.Contains(err.Error(), c.jobID.String()) {
+		t.Errorf("conflict %q does not name the child's job %s", err, c.jobID)
 	}
 }

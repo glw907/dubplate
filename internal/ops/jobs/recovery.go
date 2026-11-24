@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -77,25 +78,25 @@ func (r *Runner) recoverOwn(ctx context.Context, tx *store.Tx) error {
 	if err != nil {
 		return fmt.Errorf("read own jobs: %w", err)
 	}
-	var ids [][]byte
+	var ids []id.ID
 	for rows.Next() {
-		var id []byte
-		if err := rows.Scan(&id); err != nil {
+		var jobID id.ID
+		if err := rows.Scan(&jobID); err != nil {
 			return errors.Join(fmt.Errorf("read own job: %w", err), rows.Close())
 		}
-		ids = append(ids, id)
+		ids = append(ids, jobID)
 	}
 	if err := rows.Close(); err != nil {
 		return fmt.Errorf("read own jobs: %w", err)
 	}
-	for _, id := range ids {
-		if r.tracked(handleOf(id)) {
+	for _, jobID := range ids {
+		if r.tracked(jobID) {
 			continue
 		}
 		t := r.now().UnixMicro()
 		if _, err := tx.Exec(ctx, `UPDATE jobs SET state = 'interrupted', finished_at = ?, updated_at = ?
-WHERE id = ? AND state IN ('queued', 'running')`, t, t, id); err != nil {
-			return fmt.Errorf("mark job %s interrupted: %w", handleOf(id), err)
+WHERE id = ? AND state IN ('queued', 'running')`, t, t, jobID); err != nil {
+			return fmt.Errorf("mark job %s interrupted: %w", jobID, err)
 		}
 	}
 	return nil

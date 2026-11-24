@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
-	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -190,7 +189,7 @@ func runChild(dir string) int {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	if _, err := r.StartBackup(ctx, identity.LocalActor("child"), ops.StartBackupRequest{}); err != nil {
+	if _, err := r.StartBackup(ctx, identity.LocalActor("child")); err != nil {
 		logger.Error("child start", "err", err)
 		return 2
 	}

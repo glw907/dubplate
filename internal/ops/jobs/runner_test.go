@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
@@ -78,7 +79,7 @@ func TestStartBackup_FlagOff(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = r.Close() })
 
-	_, err = r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	_, err = r.StartBackup(deadline(t), testActor)
 	var opsErr *ops.Error
 	if !errors.As(err, &opsErr) || !errors.Is(err, ops.ErrUnavailable) {
 		t.Fatalf("StartBackup() = %v, want an unavailable *ops.Error", err)
@@ -100,11 +101,11 @@ func TestStartBackup_FlagOff(t *testing.T) {
 func TestStartBackup_RecordsActor(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
-	resp, err := r.StartBackup(deadline(t), identity.LocalActor("alice"), ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), identity.LocalActor("alice"))
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
-	rec := waitState(t, h, idOf(t, resp.JobID), "succeeded", 10*time.Second)
+	rec := waitState(t, h, jobID[:], "succeeded", 10*time.Second)
 	if rec.actor != "local:alice" {
 		t.Errorf("actor = %q, want %q", rec.actor, "local:alice")
 	}
@@ -117,11 +118,11 @@ func TestStartBackup_RecordsActor(t *testing.T) {
 }
 
 // TestStartBackup_KindLeaseBusy pins the two conflict rows: a live
-// record is named by its handle, and with none left after recovery the
+// record is named by its id, and with none left after recovery the
 // answer names a transfer that outlived its process. The second row's
 // store holds a dead owner's running record, which recovery must
 // interrupt before the answer, so an answer given before recovery
-// names that record's handle instead.
+// names that record's id instead.
 func TestStartBackup_KindLeaseBusy(t *testing.T) {
 	t.Run("a live record", func(t *testing.T) {
 		_, h := newStore(t)
@@ -129,19 +130,19 @@ func TestStartBackup_KindLeaseBusy(t *testing.T) {
 		defer close(release)
 		b, started := blockUntil(release)
 		first := newRunnerFor(t, h, nil, b)
-		resp, err := first.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+		jobID, err := first.StartBackup(deadline(t), testActor)
 		if err != nil {
 			t.Fatalf("first StartBackup: %v", err)
 		}
 		<-started
 
 		second := newRunnerFor(t, h, nil, succeed)
-		_, err = second.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+		_, err = second.StartBackup(deadline(t), testActor)
 		if !errors.Is(err, ops.ErrConflict) {
 			t.Fatalf("second StartBackup() = %v, want a conflict", err)
 		}
-		if !strings.Contains(err.Error(), string(resp.JobID)) {
-			t.Errorf("conflict %q does not name the running job %s", err, resp.JobID)
+		if !strings.Contains(err.Error(), jobID.String()) {
+			t.Errorf("conflict %q does not name the running job %s", err, jobID)
 		}
 	})
 
@@ -155,7 +156,7 @@ func TestStartBackup_KindLeaseBusy(t *testing.T) {
 		r := newRunnerFor(t, h, nil, succeed)
 		dead := plant(t, h, record{state: "running", owner: newInstance(), started: time.Now().UnixMicro()})
 
-		_, err = r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+		_, err = r.StartBackup(deadline(t), testActor)
 		if !errors.Is(err, ops.ErrConflict) {
 			t.Fatalf("StartBackup() = %v, want a conflict", err)
 		}
@@ -207,14 +208,14 @@ func TestRun_BodyOutcomes(t *testing.T) {
 				}
 				return tt.final, tt.err
 			})
-			resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			jobID, err := r.StartBackup(deadline(t), testActor)
 			if err != nil {
 				t.Fatalf("StartBackup: %v", err)
 			}
 			if err := r.Close(); err != nil {
 				t.Fatalf("Close: %v", err)
 			}
-			rec := mustRecord(t, h, idOf(t, resp.JobID))
+			rec := mustRecord(t, h, jobID[:])
 			if rec.state != tt.wantState || rec.code != tt.wantCode || rec.message != tt.wantMessage || rec.progress != tt.wantProgress {
 				t.Errorf("record = %s code %q message %q progress %q, want %s code %q message %q progress %q",
 					rec.state, rec.code, rec.message, rec.progress, tt.wantState, tt.wantCode, tt.wantMessage, tt.wantProgress)
@@ -236,7 +237,7 @@ func TestClose_WaitsForRunningJob(t *testing.T) {
 	if err != nil {
 		t.Fatalf("newRunner: %v", err)
 	}
-	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), testActor)
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
@@ -253,7 +254,7 @@ func TestClose_WaitsForRunningJob(t *testing.T) {
 	if err := <-closed; err != nil {
 		t.Fatalf("Close: %v", err)
 	}
-	if rec := mustRecord(t, h, idOf(t, resp.JobID)); rec.state != "succeeded" {
+	if rec := mustRecord(t, h, jobID[:]); rec.state != "succeeded" {
 		t.Errorf("record reads %s when Close returned, want succeeded", rec.state)
 	}
 }
@@ -264,11 +265,11 @@ func TestStartBackup_ReleasesKindLease(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
 	for i := range 2 {
-		resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+		jobID, err := r.StartBackup(deadline(t), testActor)
 		if err != nil {
 			t.Fatalf("start %d: %v", i, err)
 		}
-		waitState(t, h, idOf(t, resp.JobID), "succeeded", 10*time.Second)
+		waitState(t, h, jobID[:], "succeeded", 10*time.Second)
 		r.wg.Wait()
 	}
 	kl, err := h.TakeKindLease(ops.KindBackup)
@@ -288,12 +289,12 @@ func TestStartBackup_ReleasesKindLease(t *testing.T) {
 func TestOperationBoundary_ContextCanceled(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
-	id := plant(t, h, record{state: "queued"})
+	planted := plant(t, h, record{state: "queued"})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	_, err := r.JobStatus(ctx, testActor, ops.JobStatusRequest{JobID: handleOf(id)})
+	_, err := r.JobStatus(ctx, testActor, id.ID(planted))
 	if !errors.Is(err, ops.ErrCanceled) {
 		t.Fatalf("JobStatus() with an already-canceled context = %v, want it to match ops.ErrCanceled", err)
 	}
@@ -309,18 +310,21 @@ func TestOperationBoundary_ContextCanceled(t *testing.T) {
 // TestOperationBoundary_ContextAliveClassifiesItsOwnError pins the seam
 // boundary's other row: a caller whose context is still alive gets
 // the store's own classification, never canceled, even for a job
-// handle that does not exist.
+// id that does not exist.
 func TestOperationBoundary_ContextAliveClassifiesItsOwnError(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
-	missing := ops.Handle("0123456789abcdef0123456789abcdef")
+	missing, err := id.Parse("0123456789abcdef0123456789abcdef")
+	if err != nil {
+		t.Fatalf("id.Parse: %v", err)
+	}
 
-	_, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: missing})
+	_, err = r.JobStatus(deadline(t), testActor, missing)
 	if !errors.Is(err, ops.ErrNotFound) {
-		t.Fatalf("JobStatus() for a missing handle = %v, want it to match ops.ErrNotFound", err)
+		t.Fatalf("JobStatus() for a missing id = %v, want it to match ops.ErrNotFound", err)
 	}
 	if errors.Is(err, ops.ErrCanceled) {
-		t.Fatalf("JobStatus() for a missing handle also matches ops.ErrCanceled, want it not to")
+		t.Fatalf("JobStatus() for a missing id also matches ops.ErrCanceled, want it not to")
 	}
 }
 
@@ -333,7 +337,7 @@ func TestOperationBoundary_ContextAliveClassifiesItsOwnError(t *testing.T) {
 func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
 	_, h := newStore(t)
 	r := newRunnerFor(t, h, nil, succeed)
-	id := plant(t, h, record{state: "running", owner: r.lease.Instance()})
+	planted := plant(t, h, record{state: "running", owner: r.lease.Instance()})
 
 	holding := make(chan struct{})
 	release := make(chan struct{})
@@ -354,7 +358,7 @@ func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
 	}()
 
 	start := time.Now()
-	_, err := r.CancelJob(ctx, testActor, ops.CancelJobRequest{JobID: handleOf(id)})
+	_, err := r.CancelJob(ctx, testActor, id.ID(planted))
 	elapsed := time.Since(start)
 
 	close(release)
@@ -383,10 +387,10 @@ func TestStartBackup_AfterCloseRefused(t *testing.T) {
 	if err := r.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
-	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), testActor)
 	r.wg.Wait()
 	if !errors.Is(err, ops.ErrUnavailable) {
-		t.Errorf("StartBackup after Close = %+v, %v; want an error matching ops.ErrUnavailable", resp, err)
+		t.Errorf("StartBackup after Close = %v, %v; want an error matching ops.ErrUnavailable", jobID, err)
 	}
 	if n := countRecords(t, h); n != 0 {
 		t.Errorf("StartBackup after Close left %d records, want 0", n)

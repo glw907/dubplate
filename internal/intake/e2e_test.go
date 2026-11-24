@@ -6,18 +6,19 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
 // uploadWhole sends data as one file of a created submission in its
 // tus creation request, and fails the test unless it answers 201.
-func (f *tusFixture) uploadWhole(t *testing.T, m identity.UserID, submission, file string, data []byte) {
+func (f *tusFixture) uploadWhole(t *testing.T, m identity.UserID, submission, file id.ID, data []byte) {
 	t.Helper()
 	reply := f.do(t, tusRequest{method: http.MethodPost, path: tusPrefix + "/tus/", member: &m, body: data, header: map[string]string{
 		"Tus-Resumable":   "1.0.0",
 		"Upload-Length":   strconv.Itoa(len(data)),
-		"Upload-Metadata": metadata("submission", submission, "file", file),
+		"Upload-Metadata": metadata("submission", submission.String(), "file", file.String()),
 		"Content-Type":    "application/offset+octet-stream",
 	}})
 	mustStatus(t, "create with upload", reply, http.StatusCreated)
@@ -43,13 +44,13 @@ func tracksRequest(data ...[]byte) ops.CreateSubmissionRequest {
 	return req
 }
 
-// awaitVerdict polls get_submission until the worker has judged id.
-func (f *tusFixture) awaitVerdict(t *testing.T, seam *Service, m identity.UserID, id string) ops.GetSubmissionResponse {
+// awaitVerdict polls get_submission until the worker has judged sub.
+func (f *tusFixture) awaitVerdict(t *testing.T, seam *Service, m identity.UserID, sub id.ID) ops.GetSubmissionResponse {
 	t.Helper()
 	var got ops.GetSubmissionResponse
 	waitFor(t, func() bool {
 		var err error
-		got, err = seam.GetSubmission(deadline(t), actorOf(m), ops.GetSubmissionRequest{SubmissionID: id})
+		got, err = seam.GetSubmission(deadline(t), actorOf(m), ops.GetSubmissionRequest{SubmissionID: sub})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -59,11 +60,11 @@ func (f *tusFixture) awaitVerdict(t *testing.T, seam *Service, m identity.UserID
 }
 
 // collectionName is the name of the collection a submission landed in.
-func collectionName(t *testing.T, f *tusFixture, id string) string {
+func collectionName(t *testing.T, f *tusFixture, sub id.ID) string {
 	t.Helper()
 	var name string
 	err := f.h.QueryRow(deadline(t), `SELECT c.name FROM submissions s JOIN collections c ON c.id = s.collection_id WHERE s.id = ?`,
-		mustParse(t, id)).Scan(&name)
+		sub[:]).Scan(&name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,10 +104,10 @@ func TestSeparateTracksEndToEnd(t *testing.T) {
 			if corrupt != (file.Verdict != nil && file.Verdict.Code == "corrupt") {
 				t.Errorf("%s: verdict %+v", file.Path, file.Verdict)
 			}
-			id := mustParse(t, resp.Files[i].FileID)
+			fileID := resp.Files[i].FileID[:]
 			if corrupt {
-				waitFor(t, func() bool { return f.tusFile(t, id) == nil && !f.infoExists(t, id) })
-			} else if f.tusFile(t, id) == nil {
+				waitFor(t, func() bool { return f.tusFile(t, fileID) == nil && !f.infoExists(t, fileID) })
+			} else if f.tusFile(t, fileID) == nil {
 				t.Errorf("%s: a passing track's bytes are gone", file.Path)
 			}
 		}

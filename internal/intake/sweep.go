@@ -3,6 +3,7 @@ package intake
 import (
 	"context"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -188,7 +189,7 @@ func (in *Intake) mailStalled(ctx context.Context, stalled [][]byte, after time.
 	}
 	ids := make([]string, len(stalled))
 	for i, id := range stalled {
-		ids[i] = wireID(id)
+		ids[i] = hex.EncodeToString(id)
 	}
 	subject := "Uploads stalled while being checked"
 	body := fmt.Sprintf("%d uploads have been checking for longer than %s. The server is still checking them; "+

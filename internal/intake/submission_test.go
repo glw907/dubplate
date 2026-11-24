@@ -1,7 +1,6 @@
 package intake
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"log/slog"
@@ -194,32 +193,6 @@ func TestStatesMatchTheSharedVocabulary(t *testing.T) {
 	}
 	if !slices.Equal(got, journeyStates) {
 		t.Errorf("states = %q, want %q", got, journeyStates)
-	}
-}
-
-func TestParseID(t *testing.T) {
-	tests := []struct {
-		name string
-		in   string
-		want []byte
-	}{
-		{name: "32 lowercase hex", in: "000102030405060708090a0b0c0d0eff",
-			want: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 255}},
-		{name: "uppercase hex", in: "000102030405060708090A0B0C0D0EFF"},
-		{name: "31 characters", in: "000102030405060708090a0b0c0d0ef"},
-		{name: "33 characters", in: "000102030405060708090a0b0c0d0eff0"},
-		{name: "not hex", in: "000102030405060708090a0b0c0d0egg"},
-		{name: "the zero id", in: "00000000000000000000000000000000"},
-		{name: "a slash inside", in: "0001020304050607/8090a0b0c0d0eff"},
-		{name: "empty", in: ""},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, ok := parseID(tt.in)
-			if ok != (tt.want != nil) || !bytes.Equal(got, tt.want) {
-				t.Errorf("parseID(%q) = %x, %v; want %x, %v", tt.in, got, ok, tt.want, tt.want != nil)
-			}
-		})
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
@@ -116,13 +117,13 @@ func (m *tusMount) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // still uploading; any other method needs it open. Every refusal but a
 // failed read is the one 404, so no answer tells another member's
 // upload from one that does not exist.
-func (m *tusMount) authorize(ctx context.Context, member identity.UserID, id, method string) error {
-	file, ok := parseID(id)
-	if !ok {
+func (m *tusMount) authorize(ctx context.Context, member identity.UserID, upload, method string) error {
+	file, err := id.Parse(upload)
+	if err != nil || file.IsZero() {
 		return handler.ErrNotFound
 	}
 	var current state
-	err := m.subs.store.QueryRow(ctx, `SELECT s.state FROM submission_files f JOIN submissions s ON s.id = f.submission_id
+	err = m.subs.store.QueryRow(ctx, `SELECT s.state FROM submission_files f JOIN submissions s ON s.id = f.submission_id
 		WHERE f.id = ? AND s.uploader = ? AND s.`+openSubmission, file, member[:]).Scan(&current)
 	if errors.Is(err, sql.ErrNoRows) {
 		return handler.ErrNotFound
