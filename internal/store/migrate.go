@@ -129,7 +129,7 @@ func migrate(ctx context.Context, h *Handle, l leaf, files []migration, opts mig
 			return fmt.Errorf("migrate %s: %w", h.path, err)
 		}
 	}
-	if err := amend(ctx, h.write, files, current); err != nil {
+	if err := amend(ctx, h, files, current); err != nil {
 		return fmt.Errorf("migrate %s: %w", h.path, err)
 	}
 	for _, m := range files[current:] {

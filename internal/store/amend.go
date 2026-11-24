@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 )
 
@@ -38,38 +37,46 @@ func amendable(version int, sum string) bool {
 }
 
 // amend applies, in one transaction, every amendment whose former hash
-// the ledger of db, a store at version current, records, and records
+// the ledger of h, a store at version current, records, and records
 // each file's current hash from files in its place. checkLedger has
-// already accepted the ledger.
-func amend(ctx context.Context, db *sql.DB, files []migration, current int) error {
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("amend: begin: %w", classifyErr(err))
-	}
-	defer func() { _ = tx.Rollback() }()
+// already accepted the ledger. A store whose ledger records no former
+// hash takes no write.
+func amend(ctx context.Context, h *Handle, files []migration, current int) error {
+	var due []amendment
 	for _, a := range amendments {
 		if a.version > current {
 			continue
 		}
-		res, err := tx.ExecContext(ctx,
-			"UPDATE "+ledgerTable+" SET sha256 = ? WHERE version = ? AND sha256 = ?",
-			files[a.version-1].sum, a.version, a.formerSum)
-		if err != nil {
-			return fmt.Errorf("amend version %d: ledger: %w", a.version, classifyErr(err))
+		var n int
+		if err := h.write.QueryRowContext(ctx,
+			"SELECT count(*) FROM "+ledgerTable+" WHERE version = ? AND sha256 = ?", a.version, a.formerSum,
+		).Scan(&n); err != nil {
+			return fmt.Errorf("amend version %d: read ledger: %w", a.version, classifyErr(err))
 		}
-		n, err := res.RowsAffected()
-		if err != nil {
-			return fmt.Errorf("amend version %d: ledger: %w", a.version, err)
+		if n > 0 {
+			due = append(due, a)
 		}
-		if n == 0 {
-			continue
+	}
+	if len(due) == 0 {
+		return nil
+	}
+
+	tx, err := h.write.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("amend: begin: %w", classifyErr(err))
+	}
+	for _, a := range due {
+		if _, err := tx.ExecContext(ctx,
+			"UPDATE "+ledgerTable+" SET sha256 = ? WHERE version = ?", files[a.version-1].sum, a.version,
+		); err != nil {
+			return rollbackMigration(tx, fmt.Errorf("amend version %d: ledger: %w", a.version, classifyWriteErr(h.path, err)))
 		}
 		if _, err := tx.ExecContext(ctx, a.fix); err != nil {
-			return fmt.Errorf("amend version %d: %w", a.version, classifyErr(err))
+			return rollbackMigration(tx, fmt.Errorf("amend version %d: %w", a.version, classifyWriteErr(h.path, err)))
 		}
 	}
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("amend: commit: %w", classifyErr(err))
+		return rollbackMigration(tx, fmt.Errorf("amend: commit: %w", classifyWriteErr(h.path, err)))
 	}
 	return nil
 }
