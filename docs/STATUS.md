@@ -21,6 +21,9 @@ Work `dev-friction` (PR #24, merged 2026-11-23) took `modernc.org/sqlite` v1.63.
 Work `structure-doctor` (PR #25, merged 2026-11-23) moved the eleven health checks into the packages that know each
 fact; `cmd/dubplate-server/doctor.go` only places the rows, and the output is byte-identical. Both followed
 `~/Projects/initiatives/dubplate-server/specs/2026-11-22-overnight-design.md`.
+Work `lean-pattern` (PR #26, merged 2026-11-23) moved the binding rules into 15 decision records in
+`docs/decisions/` and cut `CLAUDE.md` to 85 lines. The gate now runs dupl, gocognit, forbidigo, `deadcode -test`,
+a 200-line limit on `CLAUDE.md`, and a status check on each record.
 
 `intake-1` is the last product work on master. A passing album waits in `matching` with no exit until
 `intake-2`'s match probe lands. The run order is in BACKLOG, "Milestones to 0.8". Work still to do sits in BACKLOG
@@ -30,8 +33,8 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 `roster`, and `unidecode` leaves, one admin member, and `/srv/music/library` (6.6 GB).
 
 ## Next action
-`intake-2` takes #159 next, from a spec written under `building-from-specs`. PR #25 lists findings its readers
-left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
+`intake-2` takes #159 next, from a spec written under `building-from-specs` that cites the records it builds on.
+PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
