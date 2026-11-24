@@ -31,7 +31,7 @@ func album(source string, files ...ManifestFile) Manifest {
 func mf(path string, size int64) ManifestFile { return ManifestFile{Path: path, Size: size} }
 
 // submissionCodes lists the codes of a refusal's submission-level reasons.
-func submissionCodes(r Refusal) []reject.Code {
+func submissionCodes(r Rejects) []reject.Code {
 	var codes []reject.Code
 	for _, reason := range r.Submission {
 		codes = append(codes, reason.Code)
@@ -40,7 +40,7 @@ func submissionCodes(r Refusal) []reject.Code {
 }
 
 // fileCodes lists "path=code" for each of a refusal's per-file reasons.
-func fileCodes(r Refusal) []string {
+func fileCodes(r Rejects) []string {
 	var out []string
 	for _, fr := range r.Files {
 		out = append(out, string(fr.Path)+"="+string(fr.Reason.Code))
@@ -76,7 +76,7 @@ func TestCheckManifest_Passes(t *testing.T) {
 func TestCheckManifest_Sources(t *testing.T) {
 	// The seven values the submissions.source column stores, written out
 	// here rather than read from the package.
-	valid := []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"}
+	valid := []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"}
 	for _, src := range valid {
 		t.Run("accepts "+src, func(t *testing.T) {
 			got, err := CheckManifest(album(src, mf("01.flac", 1)), testPolicy())
@@ -99,7 +99,7 @@ func TestCheckManifest_Sources(t *testing.T) {
 }
 
 // TestCheckManifest_PathsOfEachKind is AC 6's manifest half: a path of
-// each refused kind answers unsafe-path.
+// each refused kind answers unsafe_path.
 func TestCheckManifest_PathsOfEachKind(t *testing.T) {
 	for _, p := range []string{"/abs.flac", "a//b.flac", "../x.flac", "./x.flac", "a/./b.flac", `a\b.flac`, "a\x00b.flac", "", "a/b/", "a/../b.flac", ".."} {
 		t.Run(p, func(t *testing.T) {
@@ -107,7 +107,7 @@ func TestCheckManifest_PathsOfEachKind(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error = %v, want none", err)
 			}
-			if want := []string{p + "=unsafe-path"}; !slices.Equal(fileCodes(got), want) {
+			if want := []string{p + "=unsafe_path"}; !slices.Equal(fileCodes(got), want) {
 				t.Errorf("file reasons = %q, want %q", fileCodes(got), want)
 			}
 		})
@@ -121,13 +121,13 @@ func TestCheckManifest_Limits(t *testing.T) {
 		wantSub  []reject.Code
 		wantFile []string
 	}{
-		{"depth over the cap", album("cd", mf("a/b/c/d.flac", 1), mf("ok.flac", 1)), nil, []string{"a/b/c/d.flac=path-too-deep"}},
+		{"depth over the cap", album("cd", mf("a/b/c/d.flac", 1), mf("ok.flac", 1)), nil, []string{"a/b/c/d.flac=path_too_deep"}},
 		{"a count over the cap", album("cd", mf("1.flac", 1), mf("2.flac", 1), mf("3.flac", 1), mf("4.flac", 1), mf("5.flac", 1), mf("6.flac", 1)), []reject.Code{reject.TooManyFiles}, nil},
 		{"a declared total over the cap", album("cd", mf("1.flac", 600), mf("2.flac", 401)), []reject.Code{reject.TooLarge}, nil},
 		{"extras count toward the cap", album("cd", mf("1.flac", 600), mf("scan.jpg", 401)), []reject.Code{reject.TooLarge}, nil},
 		{"a sum that would overflow", album("cd", mf("1.flac", 1<<62), mf("2.flac", 1<<62), mf("3.flac", 1<<62)), []reject.Code{reject.TooLarge}, nil},
-		{"an audio extension outside the allowlist", album("cd", mf("1.mp3", 1), mf("2.flac", 1)), nil, []string{"1.mp3=bad-extension"}},
-		{"an upper-case outside extension", album("cd", mf("1.M4A", 1), mf("2.flac", 1)), nil, []string{"1.M4A=bad-extension"}},
+		{"an audio extension outside the allowlist", album("cd", mf("1.mp3", 1), mf("2.flac", 1)), nil, []string{"1.mp3=bad_extension"}},
+		{"an upper-case outside extension", album("cd", mf("1.M4A", 1), mf("2.flac", 1)), nil, []string{"1.M4A=bad_extension"}},
 		{"an empty manifest", album("cd"), []reject.Code{reject.NoAudio}, nil},
 		{"no files key", Manifest{Unit: UnitAlbum, Container: ContainerFiles, Source: "cd"}, []reject.Code{reject.NoAudio}, nil},
 		{"only extras", album("cd", mf("cover.jpg", 1), mf("a.cue", 1)), []reject.Code{reject.NoAudio}, nil},
@@ -174,7 +174,7 @@ func TestCheckManifest_CollectsEveryReason(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error = %v, want none", err)
 	}
-	wantFiles := []string{"/abs.flac=unsafe-path", "a/b/c/d.flac=path-too-deep", "x.mp3=bad-extension", "../up.flac=unsafe-path"}
+	wantFiles := []string{"/abs.flac=unsafe_path", "a/b/c/d.flac=path_too_deep", "x.mp3=bad_extension", "../up.flac=unsafe_path"}
 	if !slices.Equal(fileCodes(got), wantFiles) {
 		t.Errorf("file reasons = %q, want %q", fileCodes(got), wantFiles)
 	}

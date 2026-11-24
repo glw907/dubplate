@@ -10,41 +10,41 @@ import (
 	"strings"
 )
 
-// Code is a reason's stable wire identifier: lowercase and hyphenated.
+// Code is a reason's stable wire identifier: lowercase snake_case.
 type Code string
 
 // The codes callers name. A blocking reason refuses a submission or a file;
 // a non-blocking one is a warning shown beside a verdict.
 const (
-	BadExtension           Code = "bad-extension"
+	BadExtension           Code = "bad_extension"
 	Symlink                Code = "symlink"
 	Corrupt                Code = "corrupt"
-	BelowCDQuality         Code = "below-cd-quality"
-	TooLarge               Code = "too-large"
-	UnpackFailed           Code = "unpack-failed"
-	UnsafePath             Code = "unsafe-path"
-	NoSpace                Code = "no-space"
-	TooManySessions        Code = "too-many-sessions"
-	MissingSource          Code = "missing-source"
-	UploadsOff             Code = "uploads-off"
-	OverQuota              Code = "over-quota"
-	TooManyFiles           Code = "too-many-files"
-	PathTooDeep            Code = "path-too-deep"
-	NoAudio                Code = "no-audio"
-	TagsTooLarge           Code = "tags-too-large"
-	PictureTooLarge        Code = "picture-too-large"
-	UnsupportedFLAC        Code = "unsupported-flac"
-	SourceDamaged          Code = "source-damaged"
-	EmptyTrack             Code = "empty-track"
-	MissingTrackNumber     Code = "missing-track-number"
-	DuplicateTrackPosition Code = "duplicate-track-position"
-	IncompleteAlbum        Code = "incomplete-album"
-	AlreadyInLibrary       Code = "already-in-library"
-	CouldNotCheck          Code = "could-not-check"
-	ID3Tags                Code = "id3-tags"
-	NoCoverArt             Code = "no-cover-art"
-	TrackTotalDiffers      Code = "track-total-differs"
-	ExtrasDropped          Code = "extras-dropped"
+	BelowCDQuality         Code = "below_cd_quality"
+	TooLarge               Code = "too_large"
+	UnpackFailed           Code = "unpack_failed"
+	UnsafePath             Code = "unsafe_path"
+	NoSpace                Code = "no_space"
+	TooManySessions        Code = "too_many_sessions"
+	MissingSource          Code = "missing_source"
+	UploadsOff             Code = "uploads_off"
+	OverQuota              Code = "over_quota"
+	TooManyFiles           Code = "too_many_files"
+	PathTooDeep            Code = "path_too_deep"
+	NoAudio                Code = "no_audio"
+	TagsTooLarge           Code = "tags_too_large"
+	PictureTooLarge        Code = "picture_too_large"
+	UnsupportedFLAC        Code = "unsupported_flac"
+	SourceDamaged          Code = "source_damaged"
+	EmptyTrack             Code = "empty_track"
+	MissingTrackNumber     Code = "missing_track_number"
+	DuplicateTrackPosition Code = "duplicate_track_position"
+	IncompleteAlbum        Code = "incomplete_album"
+	AlreadyInLibrary       Code = "already_in_library"
+	CouldNotCheck          Code = "could_not_check"
+	ID3Tags                Code = "id3_tags"
+	NoCoverArt             Code = "no_cover_art"
+	TrackTotalDiffers      Code = "track_total_differs"
+	ExtrasDropped          Code = "extras_dropped"
 )
 
 // Reason is one entry of the set. Its JSON form is the wire's reason object:
@@ -63,7 +63,7 @@ type Reason struct {
 	Canonical string `json:"-"`
 }
 
-// badExtensionWording is bad-extension's friendly sentence once the
+// badExtensionWording is bad_extension's friendly sentence once the
 // configured formats are not FLAC alone.
 const badExtensionWording = "This isn't one of the formats the library keeps (%s)."
 
@@ -184,7 +184,7 @@ func Of(code Code) Reason {
 	return r
 }
 
-// WithFormats returns bad-extension rendered for the configured format names.
+// WithFormats returns bad_extension rendered for the configured format names.
 // FLAC alone renders the adopted strings; any other set names itself and
 // suggests converting to lossless FLAC.
 func WithFormats(formats []string) Reason {

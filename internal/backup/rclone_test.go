@@ -40,10 +40,10 @@ func TestClassify(t *testing.T) {
 		{name: "exit 130 after cancel", ctx: done, script: "exit 130", wantCanceled: true},
 		{name: "exit 7 after cancel", ctx: done, script: "exit 7", wantCanceled: true},
 		{name: "killed after cancel", ctx: done, script: "kill -KILL $$", wantCanceled: true},
-		{name: "exit 7", ctx: context.Background(), script: "exit 7", wantCode: "rclone-exit-7"},
-		{name: "exit 130", ctx: context.Background(), script: "exit 130", wantCode: "rclone-exit-130"},
-		{name: "killed", ctx: context.Background(), script: "kill -KILL $$", wantCode: "rclone-signal-KILL"},
-		{name: "terminated", ctx: context.Background(), script: "kill -TERM $$", wantCode: "rclone-signal-TERM"},
+		{name: "exit 7", ctx: context.Background(), script: "exit 7", wantCode: "rclone_exit_7"},
+		{name: "exit 130", ctx: context.Background(), script: "exit 130", wantCode: "rclone_exit_130"},
+		{name: "killed", ctx: context.Background(), script: "kill -KILL $$", wantCode: "rclone_signal_kill"},
+		{name: "terminated", ctx: context.Background(), script: "kill -TERM $$", wantCode: "rclone_signal_term"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

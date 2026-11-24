@@ -114,6 +114,41 @@ func TestServeHTTPRefusesABadBodyAfterAdmitting(t *testing.T) {
 	}
 }
 
+// TestServeHTTPRefusesAMalformedID posts each malformed id an id field
+// can meet, to a member operation and to an admin one, as an admin. The
+// decoder answers 400 with the id sentence and no seam sees the call.
+// Fixture state: an admin grant, so the refusal can come only from the
+// id's text.
+func TestServeHTTPRefusesAMalformedID(t *testing.T) {
+	const want = "request body names a malformed id: want 32 lowercase hex characters"
+	for _, field := range []struct{ op, key string }{
+		{ops.OpGetSubmission, "submission_id"},
+		{ops.OpRemoveMember, "user_id"},
+		{ops.OpDemoteMember, "user_id"},
+	} {
+		for _, bad := range []string{
+			"",
+			"0123456789abcdef0123456789abcde",
+			"0123456789ABCDEF0123456789ABCDEF",
+			"0123456789abcdef0123456789abcdeg",
+		} {
+			t.Run(field.op+" "+bad, func(t *testing.T) {
+				f := newFixture(t, admitAnn())
+				rec := f.post(field.op, `{"`+field.key+`":"`+bad+`"}`)
+				if rec.Code != http.StatusBadRequest {
+					t.Errorf("status = %d, want 400; body %q", rec.Code, rec.Body.String())
+				}
+				if code, reason, _ := errorAnswer(t, rec); code != ops.CodeInvalidRequest || reason != want {
+					t.Errorf("answer = code %q, reason %q; want code %q, reason %q", code, reason, ops.CodeInvalidRequest, want)
+				}
+				if n := operationCalls(f); n != 0 {
+					t.Errorf("seam calls = %d, want 0", n)
+				}
+			})
+		}
+	}
+}
+
 // TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody proves an admin
 // operation checks the caller's privilege before it reads the body.
 // Fixture state: a caller granted member, posting four bodies that
@@ -202,16 +237,16 @@ func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 		{ops.OpAddMember, `{"address":"bo@example.com","display_name":"Bo","username":"bo"}`,
 			ops.AddMemberRequest{Address: "bo@example.com", DisplayName: "Bo", Username: "bo"},
 			`{"member":{"user_id":"` + testHandle + `","address":"bo@example.com","display_name":"","username":"bo","admin":false}}`},
-		{ops.OpRemoveMember, `{"user_id":"` + testHandle + `"}`, ops.RemoveMemberRequest{UserID: testHandle}, `{}`},
-		{ops.OpDemoteMember, `{"user_id":"` + testHandle + `"}`, ops.DemoteMemberRequest{UserID: testHandle}, `{}`},
+		{ops.OpRemoveMember, `{"user_id":"` + testHandle + `"}`, ops.RemoveMemberRequest{UserID: testID}, `{}`},
+		{ops.OpDemoteMember, `{"user_id":"` + testHandle + `"}`, ops.DemoteMemberRequest{UserID: testID}, `{}`},
 		{ops.OpListSettings, `{}`, ops.ListSettingsRequest{},
-			`{"settings":[{"name":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next_operation","mark":"sensitive"}]}`},
+			`{"settings":[{"key":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next_operation","sensitivity":"sensitive"}]}`},
 		{ops.OpSetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
 			ops.SetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW", Value: "3h"},
 			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"admin"}`},
 		{ops.OpResetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW"}`,
 			ops.ResetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW"},
-			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"env-seed"}`},
+			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"env_seed"}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.op, func(t *testing.T) {
@@ -347,7 +382,7 @@ func TestServeHTTPPassesTheDecodedRequest(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body %q", rec.Code, rec.Body.String())
 	}
-	want := ops.GetSubmissionRequest{SubmissionID: testHandle}
+	want := ops.GetSubmissionRequest{SubmissionID: testID}
 	if len(f.subs.calls) != 1 || f.subs.calls[0].req != want {
 		t.Fatalf("seam calls = %+v, want one carrying %+v", f.subs.calls, want)
 	}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -124,9 +123,9 @@ type bodyRunner struct {
 }
 
 // StartBackup starts a backup job that runs the runner's body.
-func (r *bodyRunner) StartBackup(ctx context.Context, actor identity.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+func (r *bodyRunner) StartBackup(ctx context.Context, actor identity.Actor) (id.ID, error) {
 	return r.startBackup(ctx, actor, func(context.Context) (binder, error) {
-		return func(*store.KindLease, ops.Handle) body { return r.body }, nil
+		return func(*store.KindLease, id.ID) body { return r.body }, nil
 	})
 }
 
@@ -271,16 +270,6 @@ func countRecords(t *testing.T, h *store.Handle) int {
 		t.Fatalf("count records: %v", err)
 	}
 	return n
-}
-
-// idOf decodes a handle a test holds.
-func idOf(t *testing.T, h ops.Handle) []byte {
-	t.Helper()
-	id, err := hex.DecodeString(string(h))
-	if err != nil {
-		t.Fatalf("decode handle %q: %v", h, err)
-	}
-	return id
 }
 
 // waitState polls id's record until it reads want, failing after

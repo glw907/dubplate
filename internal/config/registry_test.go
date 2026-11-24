@@ -28,13 +28,13 @@ func panicMessage(t *testing.T, fn func()) string {
 func TestRegistry_AccessorsReturnCopy(t *testing.T) {
 	r := NewRegistry()
 	r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: testKey("DUBPLATE_TEST_FLAG", NotSensitive)})
-	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_THRESH", Description: testDescription, Mark: NotSensitive, Default: "1"})
+	r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_THRESH", Description: testDescription, Sensitivity: NotSensitive, Default: "1"})
 	r.AddIdentitySource(IdentitySource{Name: "test", Selector: "DUBPLATE_TEST_SELECTOR"})
 
 	t.Run("OwnedWall", func(t *testing.T) {
 		got := r.OwnedWall()
-		got[0].Name = "mutated"
-		if r.ownedWall[0].Name == "mutated" {
+		got[0].Key = "mutated"
+		if r.ownedWall[0].Key == "mutated" {
 			t.Fatal("OwnedWall() leaked the backing array")
 		}
 	})
@@ -89,8 +89,8 @@ func TestCollisionGate_WithinFamily(t *testing.T) {
 		{
 			name: "owned wall",
 			fn: func(r *Registry) {
-				r.AddWallRow(WallRow{Name: "DUBPLATE_TEST_DUP", Description: testDescription, Mark: NotSensitive})
-				r.AddWallRow(WallRow{Name: "DUBPLATE_TEST_DUP", Description: testDescription, Mark: NotSensitive})
+				r.AddWallRow(WallRow{Key: "DUBPLATE_TEST_DUP", Description: testDescription, Sensitivity: NotSensitive})
+				r.AddWallRow(WallRow{Key: "DUBPLATE_TEST_DUP", Description: testDescription, Sensitivity: NotSensitive})
 			},
 		},
 		{
@@ -122,8 +122,8 @@ func TestCollisionGate_WithinFamily(t *testing.T) {
 		{
 			name: "thresholds",
 			fn: func(r *Registry) {
-				r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_DUP", Description: testDescription, Mark: NotSensitive, Default: "1"})
-				r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_DUP", Description: testDescription, Mark: NotSensitive, Default: "2"})
+				r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_DUP", Description: testDescription, Sensitivity: NotSensitive, Default: "1"})
+				r.AddThreshold(Threshold{Key: "DUBPLATE_TEST_DUP", Description: testDescription, Sensitivity: NotSensitive, Default: "2"})
 			},
 		},
 	}
@@ -195,7 +195,7 @@ func TestCollisionGate_MissingPrefix(t *testing.T) {
 		{
 			name: "thresholds",
 			fn: func(r *Registry) {
-				r.AddThreshold(Threshold{Key: "BAD_NO_PREFIX", Description: testDescription, Mark: NotSensitive, Kind: KindInt, Default: "1"})
+				r.AddThreshold(Threshold{Key: "BAD_NO_PREFIX", Description: testDescription, Sensitivity: NotSensitive, Kind: KindInt, Default: "1"})
 			},
 		},
 	}
@@ -229,12 +229,12 @@ func TestCollisionGate_KindDefaultMismatch(t *testing.T) {
 	}{
 		{
 			name: "float default with no explicit Kind, the StrongRecThresh hazard",
-			th:   Threshold{Key: "DUBPLATE_STRONG_REC_THRESH", Description: testDescription, Mark: NotSensitive, Default: "0.04"},
+			th:   Threshold{Key: "DUBPLATE_STRONG_REC_THRESH", Description: testDescription, Sensitivity: NotSensitive, Default: "0.04"},
 			want: `DUBPLATE_STRONG_REC_THRESH: invalid default "0.04"`,
 		},
 		{
 			name: "Kind names no parser",
-			th:   Threshold{Key: "DUBPLATE_TEST_UNNAMED_KIND", Description: testDescription, Mark: NotSensitive, Kind: ThresholdKind(99), Default: "1"},
+			th:   Threshold{Key: "DUBPLATE_TEST_UNNAMED_KIND", Description: testDescription, Sensitivity: NotSensitive, Kind: ThresholdKind(99), Default: "1"},
 			want: "DUBPLATE_TEST_UNNAMED_KIND: unnamed threshold kind ThresholdKind(99)",
 		},
 	}
@@ -255,7 +255,7 @@ func TestCollisionGate_KindDefaultMismatch(t *testing.T) {
 // real declaration exists yet, so this is a scratch fixture.
 func TestCollisionGate_KindStringEmptyDefault(t *testing.T) {
 	msg := panicMessage(t, func() {
-		NewRegistry().AddThreshold(Threshold{Key: "DUBPLATE_TEST_STRING", Description: testDescription, Mark: NotSensitive, Kind: KindString, Default: ""})
+		NewRegistry().AddThreshold(Threshold{Key: "DUBPLATE_TEST_STRING", Description: testDescription, Sensitivity: NotSensitive, Kind: KindString, Default: ""})
 	})
 	if !strings.Contains(msg, "DUBPLATE_TEST_STRING") {
 		t.Errorf("panic message %q does not name the offending key", msg)
@@ -267,7 +267,7 @@ func TestCollisionGate_KindStringEmptyDefault(t *testing.T) {
 func TestCollisionGate_WallRowWithoutPrefix(t *testing.T) {
 	r := NewRegistry()
 	msg := panicMessage(t, func() {
-		r.AddWallRow(WallRow{Name: "not a prefixed key", Description: testDescription, Mark: NotSensitive})
+		r.AddWallRow(WallRow{Key: "not a prefixed key", Description: testDescription, Sensitivity: NotSensitive})
 	})
 	if !strings.Contains(msg, "not a prefixed key") || !strings.Contains(msg, "without the DUBPLATE_ prefix") {
 		t.Errorf("panic message %q, want it to name the offending row and the missing prefix", msg)
@@ -316,14 +316,14 @@ func TestNewRegistry_Independent(t *testing.T) {
 	r2 := NewRegistry()
 
 	before := len(r2.OwnedWall())
-	r1.AddWallRow(WallRow{Name: "DUBPLATE_TEST_ONLY_R1", Description: testDescription, Mark: NotSensitive})
+	r1.AddWallRow(WallRow{Key: "DUBPLATE_TEST_ONLY_R1", Description: testDescription, Sensitivity: NotSensitive})
 	if got := len(r2.OwnedWall()); got != before {
 		t.Fatalf("registering into r1 changed r2's OwnedWall() length: %d, want %d", got, before)
 	}
 
 	r3 := NewRegistry()
 	r4 := NewRegistry()
-	shared := WallRow{Name: "DUBPLATE_TEST_SHARED", Description: testDescription, Mark: NotSensitive}
+	shared := WallRow{Key: "DUBPLATE_TEST_SHARED", Description: testDescription, Sensitivity: NotSensitive}
 	func() {
 		defer func() {
 			if rec := recover(); rec != nil {

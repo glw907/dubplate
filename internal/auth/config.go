@@ -20,9 +20,9 @@ import (
 // owned wall row: the selector is required, alongside
 // [magicLinkIdentitySource] itself.
 var identitySourceSelectorRow = config.WallRow{
-	Name:        "DUBPLATE_IDENTITY_SOURCE",
+	Key:         "DUBPLATE_IDENTITY_SOURCE",
 	Description: "the name of the identity source that signs members in",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // The magic-link identity source's key names: [magicLinkIdentitySource]
@@ -64,20 +64,20 @@ var secretKeys = []string{MagicLinkSecretKey, SessionSecretKey, MagicLinkSecretP
 // ports.
 var magicLinkIdentitySource = config.IdentitySource{
 	Name:     "magic-link",
-	Selector: identitySourceSelectorRow.Name,
+	Selector: identitySourceSelectorRow.Key,
 	Required: []config.KeyDecl{
-		{Name: MagicLinkSecretKey, Description: "the secret that signs sign-in links, at least 32 bytes", Mark: config.Sensitive},
-		{Name: SessionSecretKey, Description: "the secret that signs session cookies, at least 32 bytes", Mark: config.Sensitive},
-		{Name: PublicURLKey, Description: "the address members reach the server at, used in sign-in links", Mark: config.Sensitive},
-		{Name: SMTPHostKey, Description: "the mail server the server sends sign-in links through", Mark: config.Sensitive},
-		{Name: SMTPPortKey, Description: "the port of that mail server", Mark: config.Sensitive},
-		{Name: SMTPUserKey, Description: "the user name the server signs in to the mail server with", Mark: config.Sensitive},
-		{Name: SMTPPasswordKey, Description: "the password the server signs in to the mail server with", Mark: config.Sensitive},
-		{Name: SMTPFromKey, Description: "the sender address on the mail the server sends", Mark: config.Sensitive},
+		{Key: MagicLinkSecretKey, Description: "the secret that signs sign-in links, at least 32 bytes", Sensitivity: config.Sensitive},
+		{Key: SessionSecretKey, Description: "the secret that signs session cookies, at least 32 bytes", Sensitivity: config.Sensitive},
+		{Key: PublicURLKey, Description: "the address members reach the server at, used in sign-in links", Sensitivity: config.Sensitive},
+		{Key: SMTPHostKey, Description: "the mail server the server sends sign-in links through", Sensitivity: config.Sensitive},
+		{Key: SMTPPortKey, Description: "the port of that mail server", Sensitivity: config.Sensitive},
+		{Key: SMTPUserKey, Description: "the user name the server signs in to the mail server with", Sensitivity: config.Sensitive},
+		{Key: SMTPPasswordKey, Description: "the password the server signs in to the mail server with", Sensitivity: config.Sensitive},
+		{Key: SMTPFromKey, Description: "the sender address on the mail the server sends", Sensitivity: config.Sensitive},
 	},
 	Optional: []config.KeyDecl{
-		{Name: MagicLinkSecretPreviousKey, Description: "the previous link-signing secret, kept so links minted before a rotation still verify", Mark: config.Sensitive},
-		{Name: SessionSecretPreviousKey, Description: "the previous session-signing secret, kept so sessions minted before a rotation still verify", Mark: config.Sensitive},
+		{Key: MagicLinkSecretPreviousKey, Description: "the previous link-signing secret, kept so links minted before a rotation still verify", Sensitivity: config.Sensitive},
+		{Key: SessionSecretPreviousKey, Description: "the previous session-signing secret, kept so sessions minted before a rotation still verify", Sensitivity: config.Sensitive},
 	},
 	Validate: validateMagicLinkSource,
 }
@@ -130,7 +130,7 @@ var (
 		Floor:       "1m",
 		Ceiling:     MagicLinkExpiryCeiling.String(),
 		Description: "how long a mailed sign-in link stays redeemable",
-		Mark:        config.Sensitive,
+		Sensitivity: config.Sensitive,
 	}
 	SessionLifetimeSetting = config.Setting{
 		Key:         "DUBPLATE_SESSION_LIFETIME",
@@ -141,7 +141,7 @@ var (
 		Floor:       "1s",
 		Ceiling:     "17520h",
 		Description: "how long a session stays valid before the member signs in again, unless it is refreshed",
-		Mark:        config.Sensitive,
+		Sensitivity: config.Sensitive,
 	}
 	SessionAbsoluteCapSetting = config.Setting{
 		Key:         "DUBPLATE_SESSION_ABSOLUTE_CAP",
@@ -152,7 +152,7 @@ var (
 		Floor:       "1s",
 		Ceiling:     "17520h",
 		Description: "the longest a session can last from its first sign-in, however often it is refreshed",
-		Mark:        config.Sensitive,
+		Sensitivity: config.Sensitive,
 	}
 	NonceRetentionSetting = config.Setting{
 		Key:         "DUBPLATE_NONCE_RETENTION",
@@ -163,7 +163,7 @@ var (
 		Floor:       "1s",
 		Ceiling:     "240h",
 		Description: "how long the server remembers a used sign-in link so it cannot be used twice",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 )
 
@@ -184,7 +184,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "50",
 		Description: "how many sign-in links one address can request in an hour",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 	linkRequestsPerClientSetting = config.Setting{
 		Key:         "DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR",
@@ -195,7 +195,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "200",
 		Description: "how many sign-in links one client can request in an hour",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 	consumptionAttemptsPerClientSetting = config.Setting{
 		Key:         "DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR",
@@ -206,7 +206,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "300",
 		Description: "how many sign-in link redemptions one client can attempt in an hour",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 	linkMailCeilingSetting = config.Setting{
 		Key:         "DUBPLATE_LINK_MAIL_CEILING_PER_HOUR",
@@ -217,7 +217,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "600",
 		Description: "how many sign-in mails the server sends in an hour, across every address",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 )
 
@@ -243,7 +243,7 @@ var authRequestBodyCapSetting = config.Setting{
 	Floor:       "512",
 	Ceiling:     strconv.Itoa(RequestBodyCapCeiling),
 	Description: "the largest sign-in request body the server reads, in bytes",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // unknownAddressAnswerSetting is the answer to a login request for an
@@ -257,7 +257,7 @@ var unknownAddressAnswerSetting = config.Setting{
 	Apply:       config.ApplyNextOperation,
 	Values:      []string{"kind", "generic"},
 	Description: "whether a sign-in request for an address no member holds is told so (kind) or answered as for a member (generic)",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // nonceRetentionCoversExpiry and sessionLifetimeWithinCap are the

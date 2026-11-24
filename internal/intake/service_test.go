@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
@@ -72,22 +73,18 @@ func opsError(t *testing.T, err error) *ops.Error {
 	return e
 }
 
-// wireOf is a submission id's wire form, written out from its bytes.
-func wireOf(id []byte) string { return fmt.Sprintf("%x", id) }
-
 func TestServiceCreateTakesTheCallerFromTheActor(t *testing.T) {
 	h, seam := newTestService(t)
 	ann, bo := member(t, h), member(t, h)
 
 	resp := mustCreateVia(t, seam, ann, albumRequest(2))
 
-	id, ok := parseID(resp.SubmissionID)
-	if !ok {
-		t.Fatalf("submission id %q is not 32 lowercase hex characters", resp.SubmissionID)
+	if resp.SubmissionID.IsZero() {
+		t.Fatal("submission id is the zero id")
 	}
 	var uploader, collection []byte
 	var state string
-	if err := h.QueryRow(deadline(t), `SELECT uploader, collection_id, state FROM submissions WHERE id = ?`, id).Scan(&uploader, &collection, &state); err != nil {
+	if err := h.QueryRow(deadline(t), `SELECT user_id, collection_id, state FROM submissions WHERE id = ?`, resp.SubmissionID[:]).Scan(&uploader, &collection, &state); err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(uploader, ann[:]) || bytes.Equal(uploader, bo[:]) {
@@ -107,12 +104,11 @@ func TestServiceCreateTakesTheCallerFromTheActor(t *testing.T) {
 		t.Fatalf("files = %+v, want 01.flac and 02.flac", resp.Files)
 	}
 	for _, f := range resp.Files {
-		fid, ok := parseID(f.FileID)
-		if !ok {
-			t.Fatalf("file id %q is not 32 lowercase hex characters", f.FileID)
+		if f.FileID.IsZero() {
+			t.Fatalf("file %s id is the zero id", f.Path)
 		}
 		var role string
-		if err := h.QueryRow(deadline(t), `SELECT role FROM submission_files WHERE id = ? AND submission_id = ?`, fid, id).Scan(&role); err != nil {
+		if err := h.QueryRow(deadline(t), `SELECT role FROM submission_files WHERE id = ? AND submission_id = ?`, f.FileID[:], resp.SubmissionID[:]).Scan(&role); err != nil {
 			t.Errorf("file %s: %v", f.Path, err)
 		}
 		if role != "audio" {
@@ -125,7 +121,7 @@ func TestServiceCreateStoresEachSource(t *testing.T) {
 	h, seam := newTestService(t)
 	uploader := member(t, h)
 	override(t, h, uploader, nil, nil, 100)
-	for _, source := range []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"} {
+	for _, source := range []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"} {
 		t.Run(source, func(t *testing.T) {
 			req := albumRequest(1)
 			req.Source = source
@@ -238,7 +234,7 @@ func TestServiceCreateStoreURL(t *testing.T) {
 				if err != nil {
 					t.Fatalf("CreateSubmission: %v", err)
 				}
-				if resp.SubmissionID == "" {
+				if resp.SubmissionID.IsZero() {
 					t.Error("no submission id")
 				}
 				return
@@ -390,7 +386,7 @@ func TestServiceBusyStoreIsRetryable(t *testing.T) {
 
 // twoMembers returns a seam over two members with one submission each,
 // the first member and both submissions' ids.
-func twoMembers(t *testing.T) (h *store.Handle, seam *Service, ann identity.UserID, annsID, bosID string) {
+func twoMembers(t *testing.T) (h *store.Handle, seam *Service, ann identity.UserID, annsID, bosID id.ID) {
 	t.Helper()
 	h, seam = newTestService(t)
 	ann, bo := member(t, h), member(t, h)
@@ -401,20 +397,20 @@ func twoMembers(t *testing.T) (h *store.Handle, seam *Service, ann identity.User
 
 func TestServiceAnotherMembersIdIsAnUnknownId(t *testing.T) {
 	h, seam, ann, annsID, bosID := twoMembers(t)
-	unknown := "ffffffffffffffffffffffffffffffff"
+	unknown := mustParseID(t, "ffffffffffffffffffffffffffffffff")
 	ctx := deadline(t)
 	actor := actorOf(ann)
-	calls := map[string]func(id string) error{
-		"get": func(id string) error {
-			_, err := seam.GetSubmission(ctx, actor, ops.GetSubmissionRequest{SubmissionID: id})
+	calls := map[string]func(sub id.ID) error{
+		"get": func(sub id.ID) error {
+			_, err := seam.GetSubmission(ctx, actor, ops.GetSubmissionRequest{SubmissionID: sub})
 			return err
 		},
-		"retry": func(id string) error {
-			_, err := seam.RetrySubmission(ctx, actor, ops.RetrySubmissionRequest{SubmissionID: id})
+		"retry": func(sub id.ID) error {
+			_, err := seam.RetrySubmission(ctx, actor, ops.RetrySubmissionRequest{SubmissionID: sub})
 			return err
 		},
-		"cancel": func(id string) error {
-			_, err := seam.CancelSubmission(ctx, actor, ops.CancelSubmissionRequest{SubmissionID: id})
+		"cancel": func(sub id.ID) error {
+			_, err := seam.CancelSubmission(ctx, actor, ops.CancelSubmissionRequest{SubmissionID: sub})
 			return err
 		},
 	}
@@ -430,7 +426,7 @@ func TestServiceAnotherMembersIdIsAnUnknownId(t *testing.T) {
 		})
 	}
 
-	if got := stateOf(t, h, mustParse(t, bosID)); got != "uploading" {
+	if got := stateOf(t, h, bosID[:]); got != "uploading" {
 		t.Errorf("another member's submission is %q after the refused cancel, want uploading", got)
 	}
 	if _, err := seam.GetSubmission(ctx, actor, ops.GetSubmissionRequest{SubmissionID: annsID}); err != nil {
@@ -438,24 +434,25 @@ func TestServiceAnotherMembersIdIsAnUnknownId(t *testing.T) {
 	}
 }
 
-func mustParse(t *testing.T, wire string) []byte {
+// mustParseID returns the id wire spells, failing the test when it
+// spells none.
+func mustParseID(t *testing.T, wire string) id.ID {
 	t.Helper()
-	id, ok := parseID(wire)
-	if !ok {
-		t.Fatalf("%q is not a wire id", wire)
+	v, err := id.Parse(wire)
+	if err != nil {
+		t.Fatalf("id.Parse(%q): %v", wire, err)
 	}
-	return id
+	return v
 }
 
-func TestServiceMalformedIdsAreInvalid(t *testing.T) {
+// TestServiceZeroIdIsInvalid holds the one id the seam refuses by
+// value: a malformed id never reaches it, since the JSON decoder
+// refuses that upstream.
+func TestServiceZeroIdIsInvalid(t *testing.T) {
 	_, seam, ann, _, _ := twoMembers(t)
-	for _, id := range []string{"", "abc", "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", "00000000000000000000000000000000", "gfffffffffffffffffffffffffffffff"} {
-		t.Run(fmt.Sprintf("%q", id), func(t *testing.T) {
-			_, err := seam.GetSubmission(deadline(t), actorOf(ann), ops.GetSubmissionRequest{SubmissionID: id})
-			if e := opsError(t, err); e.Code != ops.CodeInvalidRequest {
-				t.Errorf("code = %q, want invalid_request", e.Code)
-			}
-		})
+	_, err := seam.GetSubmission(deadline(t), actorOf(ann), ops.GetSubmissionRequest{SubmissionID: id.ID{}})
+	if e := opsError(t, err); e.Code != ops.CodeInvalidRequest {
+		t.Errorf("code = %q, want invalid_request", e.Code)
 	}
 }
 
@@ -474,14 +471,14 @@ func TestServiceListsOnlyTheCallersNewestFirst(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var ids []string
+	var ids []id.ID
 	for _, s := range got.Submissions {
 		ids = append(ids, s.SubmissionID)
 		if s.State != "uploading" || s.VerdictUnit != "album" || s.CreatedAt.IsZero() || s.UpdatedAt.IsZero() {
 			t.Errorf("row = %+v, want an uploading album with its times", s)
 		}
 	}
-	if !slices.Equal(ids, []string{second, first}) {
+	if !slices.Equal(ids, []id.ID{second, first}) {
 		t.Errorf("listed %v, want the caller's two, newest %s first", ids, second)
 	}
 
@@ -509,12 +506,11 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	uploader := member(t, h)
 	req := albumRequest(3)
 	resp := mustCreateVia(t, seam, uploader, req)
-	id := mustParse(t, resp.SubmissionID)
-	if err := seam.subs.receive(deadline(t), mustParse(t, resp.Files[0].FileID)); err != nil {
+	if err := seam.subs.receive(deadline(t), resp.Files[0].FileID[:]); err != nil {
 		t.Fatal(err)
 	}
 	for _, f := range resp.Files[1:] {
-		if err := seam.subs.receive(deadline(t), mustParse(t, f.FileID)); err != nil {
+		if err := seam.subs.receive(deadline(t), f.FileID[:]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -523,16 +519,16 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 		{Path: []byte("scan.jpg"), Reason: reject.Of(reject.ExtrasDropped)},
 	}}
 	for i, f := range resp.Files {
-		fv := fileVerdict{id: mustParse(t, f.FileID)}
+		fv := fileVerdict{id: f.FileID[:]}
 		switch i {
 		case 0:
-			fv.result.Verdict = reject.Corrupt
+			fv.result.Code = reject.Corrupt
 		case 1:
-			fv.result.Verdict = reject.BelowCDQuality
+			fv.result.Code = reject.BelowCDQuality
 		}
 		v.files = append(v.files, fv)
 	}
-	if err := seam.subs.commitVerdict(deadline(t), id, v); err != nil {
+	if err := seam.subs.commitVerdict(deadline(t), resp.SubmissionID[:], v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -544,15 +540,15 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	corrupt := wording{"corrupt", "damaged in transit",
 		"This file didn't survive the upload intact. Uploading it again usually fixes this.",
 		"Upload it again from the original file."}
-	belowCD := wording{"below-cd-quality", "below CD quality",
+	belowCD := wording{"below_cd_quality", "below CD quality",
 		"This FLAC is below CD quality.", "Get a CD-quality or better FLAC and upload that instead."}
-	incomplete := wording{"incomplete-album", "album incomplete",
+	incomplete := wording{"incomplete_album", "album incomplete",
 		"This album's track numbers skip or don't match its track count, so it looks incomplete.",
 		"Find the missing tracks and upload the whole album together."}
-	noCover := wording{"no-cover-art", "no cover",
+	noCover := wording{"no_cover_art", "no cover",
 		"This album has no cover picture.",
 		"It can go in without one, or you can cancel, add a picture to the files, and upload again."}
-	extras := wording{"extras-dropped", "extras left out",
+	extras := wording{"extras_dropped", "extras left out",
 		"When you upload separate tracks, only the music files are kept, so the other files in the ZIP were left out.",
 		"If you wanted them kept, upload the whole album instead."}
 
@@ -562,9 +558,9 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	if len(got.Files) != 3 {
 		t.Fatalf("files = %d, want 3", len(got.Files))
 	}
-	if !equalWording(got.Files[0].Verdict, corrupt) ||
-		!equalWording(got.Files[1].Verdict, belowCD) || got.Files[2].Verdict != nil {
-		t.Errorf("verdicts = %+v, %+v, %+v; want corrupt, below-cd-quality, and null for the pass", got.Files[0].Verdict, got.Files[1].Verdict, got.Files[2].Verdict)
+	if !equalWording(got.Files[0].Reason, corrupt) ||
+		!equalWording(got.Files[1].Reason, belowCD) || got.Files[2].Reason != nil {
+		t.Errorf("verdicts = %+v, %+v, %+v; want corrupt, below_cd_quality, and null for the pass", got.Files[0].Reason, got.Files[1].Reason, got.Files[2].Reason)
 	}
 	for _, f := range got.Files {
 		if !f.Received {
@@ -574,20 +570,20 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	if n := len(got.Events); n != 3 || got.Events[0].Kind != "uploading" || got.Events[1].Kind != "checking" || got.Events[2].Kind != "rejected" {
 		t.Fatalf("events = %+v, want uploading, checking, rejected in order", got.Events)
 	}
-	if last := got.Events[2]; last.Reason != "incomplete-album" || !equalWording(last.Reject, incomplete) {
-		t.Errorf("rejected event = %+v, want the incomplete-album reason and its wording", last)
+	if last := got.Events[2]; !equalWording(last.Reason, incomplete) {
+		t.Errorf("rejected event = %+v, want the incomplete_album reason and its wording", last)
 	}
-	if got.Events[0].Reject != nil || got.Events[0].Reason != "" {
+	if got.Events[0].Reason != nil {
 		t.Errorf("uploading event = %+v, want no reason", got.Events[0])
 	}
 	if len(got.Warnings) != 2 {
 		t.Fatalf("warnings = %+v, want 2", got.Warnings)
 	}
 	if w := got.Warnings[0]; !equalWording(&w.Reason, noCover) || w.Subject != nil {
-		t.Errorf("completeness warning = %+v, want no-cover-art with a null subject", w)
+		t.Errorf("completeness warning = %+v, want no_cover_art with a null subject", w)
 	}
 	if w := got.Warnings[1]; !equalWording(&w.Reason, extras) || w.Subject == nil || *w.Subject != "scan.jpg" {
-		t.Errorf("extras warning = %+v, want extras-dropped naming scan.jpg", w)
+		t.Errorf("extras warning = %+v, want extras_dropped naming scan.jpg", w)
 	}
 }
 
@@ -600,13 +596,12 @@ func TestServiceBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
 		return l, nil
 	}
 	resp := mustCreateVia(t, seam, uploader, albumRequest(1))
-	id := mustParse(t, resp.SubmissionID)
-	if err := seam.subs.receive(deadline(t), mustParse(t, resp.Files[0].FileID)); err != nil {
+	if err := seam.subs.receive(deadline(t), resp.Files[0].FileID[:]); err != nil {
 		t.Fatal(err)
 	}
-	v := verdict{to: stateRejected, files: []fileVerdict{{id: mustParse(t, resp.Files[0].FileID)}}}
-	v.files[0].result.Verdict = reject.BadExtension
-	if err := seam.subs.commitVerdict(deadline(t), id, v); err != nil {
+	v := verdict{to: stateRejected, files: []fileVerdict{{id: resp.Files[0].FileID[:]}}}
+	v.files[0].result.Code = reject.BadExtension
+	if err := seam.subs.commitVerdict(deadline(t), resp.SubmissionID[:], v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -615,10 +610,10 @@ func TestServiceBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := wording{"bad-extension", "wrong format",
+	want := wording{"bad_extension", "wrong format",
 		"This isn't one of the formats the library keeps (FLAC or MP3).",
 		"Get a copy in one of these formats and upload that instead."}
-	if v := got.Files[0].Verdict; !equalWording(v, want) {
+	if v := got.Files[0].Reason; !equalWording(v, want) {
 		t.Errorf("verdict = %+v, want %+v", v, want)
 	}
 }
@@ -677,7 +672,7 @@ func TestServiceActionsFromEveryState(t *testing.T) {
 				h, seam := newTestService(t)
 				uploader := member(t, h)
 				c := inState(t, seam.subs, uploader, from, 10, 20)
-				wire := wireOf(c.id)
+				wire := id.ID(c.id)
 
 				var gotState string
 				var err error

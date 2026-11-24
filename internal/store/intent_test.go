@@ -81,7 +81,10 @@ func TestDecodeIntent_Fixtures(t *testing.T) {
 	}{
 		{file: "valid-swap.json", want: valid("swap")},
 		{file: "valid-reconcile.json", want: valid("reconcile")},
-		{file: "valid-reconcile-pending.json", want: valid("reconcile-pending")},
+		{file: "valid-reconcile_pending.json", want: valid("reconcile_pending")},
+		// A binary before migration 0007 wrote the hyphenated spelling;
+		// the decoder reads it as the same state.
+		{file: "valid-reconcile-pending.json", want: valid("reconcile_pending")},
 		{file: "valid-library.json", want: intentRecord{
 			Format: 1, State: "library", Stamp: "20260925T120000.000000Z",
 			RestoreIntent: RestoreIntent{File: "/var/lib/dubplate/store/snapshots/pre-migrate-v2.db", LibraryRoot: "/srv/music", IntoNonempty: true},
@@ -327,7 +330,7 @@ func TestOpenModes_IntentTempFileIgnored(t *testing.T) {
 // TestOpenModes_IntentStates is R-6bii7's state table for inspect,
 // write, and serve's refusals: each well-formed state is reported and
 // refused naming what finishes it, serve refuses every state but
-// reconcile-pending without calling its reconciler, and neither open
+// reconcile_pending without calling its reconciler, and neither open
 // touches the staged incoming file a swap record names. Fixture: a
 // current store and, for every row, the staged incoming file.
 func TestOpenModes_IntentStates(t *testing.T) {
@@ -399,7 +402,7 @@ VALUES (X'0123456789ABCDEF0123456789ABCDEF', 'backup', 1, 'succeeded', 'inst', '
 }
 
 // TestOpenServe_ReconcilePendingOlder is spec criterion 11: a restored
-// store below the binary's version with a reconcile-pending record
+// store below the binary's version with a reconcile_pending record
 // refuses a write-mode open naming serve; serve takes a pre-migration
 // copy, migrates, calls the reconciler once on a handle at the
 // binary's version that reads the store's surviving job, writes the
@@ -419,7 +422,7 @@ func TestOpenServe_ReconcilePendingOlder(t *testing.T) {
 	}
 
 	_, werr := quietWrite(t, stateDir)
-	assertErrNames(t, werr, l.restoreIntentPath, "reconcile-pending", "start serve")
+	assertErrNames(t, werr, l.restoreIntentPath, "reconcile_pending", "start serve")
 
 	rec := &recordingReconciler{report: []byte("rows without files: 0\n")}
 	if err := reconcilingServe(t, stateDir, rec); err != nil {
@@ -454,7 +457,7 @@ func TestOpenServe_ReconcilePendingOlder(t *testing.T) {
 
 // TestOpenServe_ReconcilePendingCurrent: a crash after serve migrated
 // but before it removed the record leaves a current store beside a
-// reconcile-pending record; the next serve reconciles and removes the
+// reconcile_pending record; the next serve reconciles and removes the
 // record without migrating, so it takes no pre-migration copy.
 func TestOpenServe_ReconcilePendingCurrent(t *testing.T) {
 	stateDir := t.TempDir()
@@ -477,7 +480,7 @@ func TestOpenServe_ReconcilePendingCurrent(t *testing.T) {
 
 // TestOpenServe_ReconcilerReceivesRecord: the reconciler is handed the
 // record's stamp and its source, and the library half exactly when the
-// record owes one. Fixture: a current store beside a reconcile-pending
+// record owes one. Fixture: a current store beside a reconcile_pending
 // record, one row per record shape.
 func TestOpenServe_ReconcilerReceivesRecord(t *testing.T) {
 	library := testIntent(intentReconcilePending)
@@ -702,7 +705,7 @@ func TestOpenWrite_IntentWrittenWhileWaiting(t *testing.T) {
 // shared lock while a restore holds the lock exclusively re-reads the
 // record once it wins, and settles it under the exclusive lock: a swap
 // record is refused with the staged incoming file untouched and the
-// reconciler never called, and a reconcile-pending record beside a
+// reconciler never called, and a reconcile_pending record beside a
 // current store is reconciled, reported, and removed before the store
 // opens. The serve log's first holders record, wanting the shared
 // lock, marks that the open has passed its first read of the record.

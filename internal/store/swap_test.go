@@ -921,7 +921,7 @@ func TestRestoreSession_ResumeNewerIncoming(t *testing.T) {
 				}
 			},
 			want: func(l leaf) []string {
-				return []string{filepath.Join(l.stagingDir, testIncoming), "copy at version 7 is newer than this binary's version 6"}
+				return []string{filepath.Join(l.stagingDir, testIncoming), "copy at version 8 is newer than this binary's version 7"}
 			},
 		},
 		{
@@ -935,7 +935,7 @@ func TestRestoreSession_ResumeNewerIncoming(t *testing.T) {
 				}
 			},
 			want: func(l leaf) []string {
-				return []string{l.dbPath + " at version 7 is newer than this binary's version 6"}
+				return []string{l.dbPath + " at version 8 is newer than this binary's version 7"}
 			},
 		},
 	}

@@ -79,8 +79,8 @@ func plantSettingRow(t *testing.T, path, value, source string) {
 	switch source {
 	case "admin":
 		q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, ?, 'admin', ?, 'fixture', 1)`
-	case "env-seed":
-		q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`
+	case "env_seed":
+		q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, ?, 'env_seed', ?, 'fixture', 1)`
 	default:
 		t.Fatalf("source %q", source)
 	}
@@ -109,21 +109,21 @@ func TestPrepareServe_AppliesTheSeed(t *testing.T) {
 		{
 			name:      "env, no row: seeded and audited",
 			env:       []string{retention + "=720h"},
-			wantRows:  map[string]settingRow{retention: {"720h", "env-seed"}},
-			wantAudit: []string{"seed system env-seed " + retention},
+			wantRows:  map[string]settingRow{retention: {"720h", "env_seed"}},
+			wantAudit: []string{"seed system env_seed " + retention},
 			wantBump:  true,
 		},
 		{
-			name:     "env equal to the stored env-seed row: nothing written",
-			plant:    func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "env-seed") },
+			name:     "env equal to the stored env_seed row: nothing written",
+			plant:    func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "env_seed") },
 			env:      []string{retention + "=720h"},
-			wantRows: map[string]settingRow{retention: {"720h", "env-seed"}},
+			wantRows: map[string]settingRow{retention: {"720h", "env_seed"}},
 		},
 		{
-			name:      "env absent, an env-seed row present: removed and audited",
-			plant:     func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "env-seed") },
+			name:      "env absent, an env_seed row present: removed and audited",
+			plant:     func(t *testing.T, path string) { plantSettingRow(t, path, "720h", "env_seed") },
 			wantRows:  map[string]settingRow{},
-			wantAudit: []string{"remove system env-seed " + retention},
+			wantAudit: []string{"remove system env_seed " + retention},
 			wantBump:  true,
 		},
 		{
@@ -233,7 +233,7 @@ func TestPrepareServe_RefusalReleasesTheStore(t *testing.T) {
 
 // TestPrepareServe_SeedMakesTheStringsTrue renders doctor's settings
 // row and backup's evaluation log for an env value that differs from
-// the stored env-seed row, before and after the preparation function
+// the stored env_seed row, before and after the preparation function
 // runs. Before, the stored value is in force and each says serve
 // applies the env's at its next start; after, the row reads the env's
 // value in force and the log is silent, because the start applied it.
@@ -242,7 +242,7 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	environ := append(serveAuthEnviron(t), key+"=48h")
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
 	path := olderStore(t, stateDir, storeReport(t, t.TempDir()).BinaryVersion)
-	plantSettingRow(t, path, "720h", "env-seed")
+	plantSettingRow(t, path, "720h", "env_seed")
 	reg := productionRegistry()
 
 	doctorRow := func() string {
@@ -269,7 +269,7 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	}
 
 	before := doctorRow()
-	for _, want := range []string{`"720h" (source env-seed`, `env "48h" re-seeds at serve's next start`} {
+	for _, want := range []string{`"720h" (source env_seed`, `env "48h" re-seeds at serve's next start`} {
 		if !strings.Contains(before, want) {
 			t.Errorf("doctor row before = %q, want it to contain %q", before, want)
 		}
@@ -283,7 +283,7 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	}
 
 	after := doctorRow()
-	if !strings.Contains(after, `"48h" (source env-seed`) || strings.Contains(after, "serve's next start") {
+	if !strings.Contains(after, `"48h" (source env_seed`) || strings.Contains(after, "serve's next start") {
 		t.Errorf("doctor row after = %q, want the env's value in force and no pending note", after)
 	}
 	if got := backupLog(); got != "" {

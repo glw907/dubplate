@@ -56,18 +56,18 @@ func TestResolveRoot(t *testing.T) {
 	}{
 		{name: "directory", root: lib, want: lib},
 		{name: "symlink to a directory", root: link, want: lib},
-		{name: "absent", root: filepath.Join(base, "absent"), wantCode: "library-missing"},
-		{name: "dangling symlink", root: dangling, wantCode: "library-missing"},
-		{name: "regular file", root: file, wantCode: "library-missing"},
-		{name: "under a regular file", root: filepath.Join(file, "x"), wantCode: "library-missing"},
-		{name: "unset", root: "", wantCode: "library-missing"},
+		{name: "absent", root: filepath.Join(base, "absent"), wantCode: "library_missing"},
+		{name: "dangling symlink", root: dangling, wantCode: "library_missing"},
+		{name: "regular file", root: file, wantCode: "library_missing"},
+		{name: "under a regular file", root: filepath.Join(file, "x"), wantCode: "library_missing"},
+		{name: "unset", root: "", wantCode: "library_missing"},
 		// Relative to the working directory, which is base, these name
 		// lib and the link to it: a root that resolves against the
 		// server's own working directory is refused, however it
 		// resolves. "-x" would reach rclone as a flag.
-		{name: "relative to an existing directory", root: "lib", wantCode: "library-invalid"},
-		{name: "relative through a symlink", root: "link", wantCode: "library-invalid"},
-		{name: "relative, shaped like a flag", root: "-x", wantCode: "library-invalid"},
+		{name: "relative to an existing directory", root: "lib", wantCode: "library_invalid"},
+		{name: "relative through a symlink", root: "link", wantCode: "library_invalid"},
+		{name: "relative, shaped like a flag", root: "-x", wantCode: "library_invalid"},
 	}
 	t.Chdir(base)
 	if err := os.Mkdir("-x", 0o755); err != nil {
@@ -139,15 +139,15 @@ func TestGuard(t *testing.T) {
 		wantCode      string
 		wantMsg       []string
 	}{
-		{name: "zero tracks, empty root", files: 0, tracks: 0, fraction: 0.5, wantCode: "library-empty"},
+		{name: "zero tracks, empty root", files: 0, tracks: 0, fraction: 0.5, wantCode: "library_empty"},
 		{name: "zero tracks, populated root", files: 3, tracks: 0, fraction: 0.5, wantMax: 0},
-		{name: "below half", files: 1, tracks: 4, fraction: 0.5, wantCode: "library-short", wantMsg: []string{"1 files", "0.5", "4 tracks"}},
-		{name: "no files, tracks", files: 0, tracks: 1, fraction: 0.5, wantCode: "library-short"},
+		{name: "below half", files: 1, tracks: 4, fraction: 0.5, wantCode: "library_short", wantMsg: []string{"1 files", "0.5", "4 tracks"}},
+		{name: "no files, tracks", files: 0, tracks: 1, fraction: 0.5, wantCode: "library_short"},
 		{name: "exactly half", files: 2, tracks: 4, fraction: 0.5, wantMax: 4},
-		{name: "odd count, just under half", files: 2, tracks: 5, fraction: 0.5, wantCode: "library-short"},
+		{name: "odd count, just under half", files: 2, tracks: 5, fraction: 0.5, wantCode: "library_short"},
 		{name: "odd count, just over half", files: 3, tracks: 5, fraction: 0.5, wantMax: 5},
 		{name: "above", files: 10, tracks: 4, fraction: 0.5, wantMax: 4},
-		{name: "a configured fraction the default would pass", files: 6, tracks: 10, fraction: 0.9, wantCode: "library-short", wantMsg: []string{"6 files", "0.9", "10 tracks"}},
+		{name: "a configured fraction the default would pass", files: 6, tracks: 10, fraction: 0.9, wantCode: "library_short", wantMsg: []string{"6 files", "0.9", "10 tracks"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

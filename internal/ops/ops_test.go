@@ -2,7 +2,6 @@ package ops
 
 import (
 	"encoding/json"
-	"errors"
 	"go/parser"
 	"go/token"
 	"path/filepath"
@@ -11,53 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
-)
 
-func TestParseHandle(t *testing.T) {
-	tests := []struct {
-		name    string
-		handle  string
-		wantErr bool
-	}{
-		{"32 lowercase hex", "0123456789abcdef0123456789abcdef", false},
-		{"empty", "", true},
-		{"wrong length, too short", "0123456789abcdef", true},
-		{"wrong length, too long", "0123456789abcdef0123456789abcdef00", true},
-		{"uppercase", "0123456789ABCDEF0123456789ABCDEF", true},
-		{"non-hex", "gggggggggggggggggggggggggggggggg", true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseHandle(tt.handle)
-			if tt.wantErr {
-				if err == nil {
-					t.Fatalf("ParseHandle(%q) = %q, nil, want an error", tt.handle, got)
-				}
-				var opsErr *Error
-				if !errors.As(err, &opsErr) {
-					t.Fatalf("ParseHandle(%q) error %v does not carry *ops.Error", tt.handle, err)
-				}
-				if opsErr.Code != CodeInvalidRequest {
-					t.Errorf("ParseHandle(%q) code = %q, want %q", tt.handle, opsErr.Code, CodeInvalidRequest)
-				}
-				if !strings.Contains(opsErr.Reason, tt.handle) {
-					t.Errorf("ParseHandle(%q) reason %q does not name the handle", tt.handle, opsErr.Reason)
-				}
-				if !errors.Is(err, ErrInvalidRequest) {
-					t.Errorf("ParseHandle(%q) does not wrap ErrInvalidRequest", tt.handle)
-				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("ParseHandle(%q) = %v, want no error", tt.handle, err)
-			}
-			if string(got) != tt.handle {
-				t.Errorf("ParseHandle(%q) = %q, want %q", tt.handle, got, tt.handle)
-			}
-		})
-	}
-}
+	"github.com/glw907/dubplate/internal/id"
+)
 
 func TestJobState_Terminal(t *testing.T) {
 	tests := []struct {
@@ -97,23 +52,8 @@ func roundTrip[T any](t *testing.T, want T) {
 }
 
 func TestWireTypesRoundTrip(t *testing.T) {
-	started := time.Date(2026, 9, 24, 12, 0, 0, 0, time.UTC)
-	finished := started.Add(time.Minute)
-	fullStatus := JobStatus{
-		ID:             "0123456789abcdef0123456789abcdef",
-		Kind:           KindBackup,
-		State:          JobFailed,
-		Phase:          "sending to remote",
-		FailureCode:    "rclone-exit-7",
-		FailureMessage: "failed to sync",
-		QueuedAt:       started.Add(-time.Second),
-		StartedAt:      &started,
-		UpdatedAt:      finished,
-		FinishedAt:     &finished,
-	}
-
 	fullMember := Member{
-		UserID:      "0123456789abcdef0123456789abcdef",
+		UserID:      id.ID{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef},
 		Address:     "ann@example.com",
 		DisplayName: "Ann",
 		Username:    "ann",
@@ -124,25 +64,6 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		name string
 		run  func(t *testing.T)
 	}{
-		{"StartBackupRequest", func(t *testing.T) { roundTrip(t, StartBackupRequest{}) }},
-		{"StartBackupResponse", func(t *testing.T) {
-			roundTrip(t, StartBackupResponse{JobID: "0123456789abcdef0123456789abcdef"})
-		}},
-		{"JobStatusRequest", func(t *testing.T) {
-			roundTrip(t, JobStatusRequest{JobID: "0123456789abcdef0123456789abcdef"})
-		}},
-		{"JobStatusResponse, minimal", func(t *testing.T) {
-			roundTrip(t, JobStatusResponse{Job: JobStatus{ID: "0123456789abcdef0123456789abcdef", Kind: KindBackup, State: JobQueued, QueuedAt: started, UpdatedAt: started}})
-		}},
-		{"JobStatusResponse, every field set", func(t *testing.T) {
-			roundTrip(t, JobStatusResponse{Job: fullStatus})
-		}},
-		{"CancelJobRequest", func(t *testing.T) {
-			roundTrip(t, CancelJobRequest{JobID: "0123456789abcdef0123456789abcdef"})
-		}},
-		{"CancelJobResponse", func(t *testing.T) {
-			roundTrip(t, CancelJobResponse{Job: fullStatus})
-		}},
 		{"ListMembersRequest", func(t *testing.T) { roundTrip(t, ListMembersRequest{}) }},
 		{"ListMembersResponse", func(t *testing.T) {
 			roundTrip(t, ListMembersResponse{Members: []Member{fullMember}})
@@ -159,8 +80,8 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		{"ListSettingsResponse, store-homed and environment-only", func(t *testing.T) {
 			value, source, seed := "2h", "admin", "1h"
 			roundTrip(t, ListSettingsResponse{Settings: []SettingEntry{
-				{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Mark: "sensitive", Value: &value, Source: &source, SeedValue: &seed},
-				{Name: "DUBPLATE_STATE_DIR", Home: "environment", Description: "d", Apply: "restart", Mark: "ordinary"},
+				{Key: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Sensitivity: "sensitive", Value: &value, Source: &source, SeedValue: &seed},
+				{Key: "DUBPLATE_STATE_DIR", Home: "environment", Description: "d", Apply: "restart", Sensitivity: "ordinary"},
 			}})
 		}},
 		{"SetSettingRequest", func(t *testing.T) { roundTrip(t, SetSettingRequest{Key: "K", Value: "v"}) }},
@@ -169,24 +90,11 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		}},
 		{"ResetSettingRequest", func(t *testing.T) { roundTrip(t, ResetSettingRequest{Key: "K"}) }},
 		{"ResetSettingResponse", func(t *testing.T) {
-			roundTrip(t, ResetSettingResponse{Key: "K", Apply: "restart", Source: "env-seed"})
+			roundTrip(t, ResetSettingResponse{Key: "K", Apply: "restart", Source: "env_seed"})
 		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.run)
-	}
-}
-
-// TestStartBackupRequest_IgnoresActorField proves the type half of
-// spec criterion 2: an actor field on the wire never reaches the
-// decoded request, because the request type carries no such field.
-func TestStartBackupRequest_IgnoresActorField(t *testing.T) {
-	var got StartBackupRequest
-	if err := json.Unmarshal([]byte(`{"actor":"someone"}`), &got); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-	if got != (StartBackupRequest{}) {
-		t.Fatalf("got %#v, want the zero value", got)
 	}
 }
 
@@ -209,7 +117,7 @@ func TestAddMemberRequest_HasNoAdminField(t *testing.T) {
 // carry: the network actor's channel type (Global constraints) and the
 // reject set, a leaf that imports nothing, whose reasons the submission
 // operations carry on the wire, and the id package, another leaf, whose
-// parser checks a job handle's shape.
+// type every wire id carries.
 var allowedInternalImports = []string{
 	"github.com/glw907/dubplate/internal/id",
 	"github.com/glw907/dubplate/internal/identity",

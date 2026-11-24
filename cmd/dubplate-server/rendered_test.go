@@ -424,12 +424,12 @@ func renderedEnviron(t *testing.T, publicURL string) []string {
 }
 
 // A renderedSettingKey is one key the production registry holds, as the
-// settings page's rows read it back: its name, its description, and its
-// mark's wire name.
+// settings page's rows read it back: its key, its description, and its
+// sensitivity's wire name.
 type renderedSettingKey struct {
-	Name        string `json:"name"`
+	Key         string `json:"key"`
 	Description string `json:"description"`
-	Mark        string `json:"mark"`
+	Sensitivity string `json:"sensitivity"`
 }
 
 // renderedSettingKeys lists every key the production registry holds,
@@ -438,39 +438,39 @@ type renderedSettingKey struct {
 // key appears once, ordered by name.
 func renderedSettingKeys(t *testing.T) string {
 	t.Helper()
-	mark := func(m config.Sensitivity) string {
-		if m == config.Sensitive {
+	sensitivity := func(s config.Sensitivity) string {
+		if s == config.Sensitive {
 			return "sensitive"
 		}
 		return "not_sensitive"
 	}
-	byName := map[string]renderedSettingKey{}
-	add := func(name, description string, m config.Sensitivity) {
-		byName[name] = renderedSettingKey{Name: name, Description: description, Mark: mark(m)}
+	byKey := map[string]renderedSettingKey{}
+	add := func(key, description string, s config.Sensitivity) {
+		byKey[key] = renderedSettingKey{Key: key, Description: description, Sensitivity: sensitivity(s)}
 	}
 	reg := productionRegistry()
 	for _, s := range reg.Settings() {
-		add(s.Key, s.Description, s.Mark)
+		add(s.Key, s.Description, s.Sensitivity)
 	}
 	for _, w := range reg.OwnedWall() {
-		add(w.Name, w.Description, w.Mark)
+		add(w.Key, w.Description, w.Sensitivity)
 	}
 	for _, src := range reg.IdentitySources() {
 		for _, k := range slices.Concat(src.Required, src.Optional) {
-			add(k.Name, k.Description, k.Mark)
+			add(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, class := range reg.IntegrationClasses() {
 		for _, k := range slices.Concat([]config.KeyDecl{class.Flag}, class.Required) {
-			add(k.Name, k.Description, k.Mark)
+			add(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, th := range reg.Thresholds() {
-		add(th.Key, th.Description, th.Mark)
+		add(th.Key, th.Description, th.Sensitivity)
 	}
-	keys := make([]renderedSettingKey, 0, len(byName))
-	for _, name := range slices.Sorted(maps.Keys(byName)) {
-		keys = append(keys, byName[name])
+	keys := make([]renderedSettingKey, 0, len(byKey))
+	for _, key := range slices.Sorted(maps.Keys(byKey)) {
+		keys = append(keys, byKey[key])
 	}
 	out, err := json.Marshal(keys)
 	if err != nil {

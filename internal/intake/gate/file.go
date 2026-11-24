@@ -30,13 +30,13 @@ type StagedFile struct {
 	Path string
 }
 
-// FileResult is what the gate learned about one file. Verdict is empty for a
+// FileResult is what the gate learned about one file. Code is empty for a
 // pass and otherwise the first failing check's code; the fields filled
 // before that check stay set, so a refused file still records its stream and
 // hashes. A nil HeaderMD5 is the stream header's all-zero value, which means
 // absent.
 type FileResult struct {
-	Verdict reject.Code
+	Code reject.Code
 
 	SampleRate, BitsPerSample, Channels int
 	Samples                             uint64
@@ -68,7 +68,7 @@ var errOverrun = errors.New("stream longer than it declares or the gate allows")
 func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResult, error) {
 	var res FileResult
 	refuse := func(code reject.Code) (FileResult, error) {
-		res.Verdict = code
+		res.Code = code
 		return res, nil
 	}
 
@@ -99,7 +99,7 @@ func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResu
 	path := filepath.Join(f.Root.Name(), f.Name)
 	format, err := tagio.Sniff(path)
 	if err != nil {
-		return verdictOrError(res, err)
+		return codeOrError(res, err)
 	}
 	if format != row.Format {
 		return refuse(reject.BadExtension)
@@ -108,7 +108,7 @@ func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResu
 	// Step 2.
 	c, err := tagio.ParseBounded(path, tagio.Bounds{TagBytes: p.MaxTagBytes, PictureBytes: p.MaxPictureBytes})
 	if err != nil {
-		return verdictOrError(res, err)
+		return codeOrError(res, err)
 	}
 	si := c.StreamInfo
 	res.SampleRate, res.BitsPerSample, res.Channels = int(si.SampleRate), int(si.BitsPerSample), int(si.Channels)
@@ -166,7 +166,7 @@ func CheckFile(ctx context.Context, f StagedFile, p Policy, unit Unit) (FileResu
 	}
 	ts, err := tagio.Read(path)
 	if err != nil {
-		return verdictOrError(res, err)
+		return codeOrError(res, err)
 	}
 	res.Disc, res.Track = max(1, deref(ts.Disc)), deref(ts.Track)
 	res.TrackTotal, res.DiscTotal = max(0, deref(ts.Tracktotal)), max(0, deref(ts.Disctotal))
@@ -187,21 +187,21 @@ func isZero(b []byte) bool {
 	return !slices.ContainsFunc(b, func(c byte) bool { return c != 0 })
 }
 
-// verdictOrError turns a tagio error into the file's verdict when it is
-// one, and into a could-not-run error when it is not.
-func verdictOrError(res FileResult, err error) (FileResult, error) {
-	code, ok := verdictOf(err)
+// codeOrError turns a tagio error into the file's reject code when it
+// names one, and into a could-not-run error when it does not.
+func codeOrError(res FileResult, err error) (FileResult, error) {
+	code, ok := codeOf(err)
 	if !ok {
 		return res, couldNotRun("read tags", err)
 	}
-	res.Verdict = code
+	res.Code = code
 	return res, nil
 }
 
-// verdictOf classifies a tagio error: the four sentinels are verdicts about
-// the file, and anything else, a wrapped *fs.PathError among them, says the
+// codeOf classifies a tagio error: the four sentinels are reasons to
+// refuse the file, and anything else, a wrapped *fs.PathError among them, says the
 // server could not read it.
-func verdictOf(err error) (reject.Code, bool) {
+func codeOf(err error) (reject.Code, bool) {
 	switch {
 	case errors.Is(err, tagio.ErrMalformedContainer):
 		return reject.Corrupt, true

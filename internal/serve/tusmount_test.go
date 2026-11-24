@@ -53,9 +53,9 @@ func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byt
 		}{
 			{`INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at)
 				VALUES (?, 'member@example.invalid', 'Member', 'member', 1, 1, 1)`, []any{member}},
-			{`INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+			{`INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 				VALUES (?, 'Library', ?, ?, 'group', 'server')`, []any{coll, []byte(coll.String()), member}},
-			{`INSERT INTO submissions (id, uploader, collection_id, verdict_unit, container, state, source,
+			{`INSERT INTO submissions (id, user_id, collection_id, verdict_unit, container, state, source,
 				declared_bytes, reserved_bytes, created_at, updated_at)
 				VALUES (?, ?, ?, 'album', 'files', 'uploading', 'cd', ?, ?, 1, 1)`, []any{submission, member, coll, size, size}},
 			{`INSERT INTO submission_files (id, submission_id, rel_path, size, role)

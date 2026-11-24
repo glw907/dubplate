@@ -29,15 +29,15 @@ func TestRegisterIntakeConfig_StagingWallRow(t *testing.T) {
 	var row config.WallRow
 	var found bool
 	for _, r := range reg.OwnedWall() {
-		if r.Name == "DUBPLATE_STAGING_DIR" {
+		if r.Key == "DUBPLATE_STAGING_DIR" {
 			row, found = r, true
 		}
 	}
 	if !found {
 		t.Fatal("DUBPLATE_STAGING_DIR is not an owned wall row")
 	}
-	if row.Mark != config.Sensitive {
-		t.Errorf("mark = %v, want Sensitive", row.Mark)
+	if row.Sensitivity != config.Sensitive {
+		t.Errorf("sensitivity = %v, want Sensitive", row.Sensitivity)
 	}
 	if want := "the directory on the music volume where uploads stage before admission"; row.Description != want {
 		t.Errorf("description = %q, want %q", row.Description, want)
@@ -253,7 +253,7 @@ func TestDoctor_StagingNestingReadsInvalid(t *testing.T) {
 }
 
 // TestIntakeSettings pins each setting's kind, default, bounds, apply
-// mode, and mark as literals, so a changed default or bound fails here
+// mode, and sensitivity as literals, so a changed default or bound fails here
 // rather than passing because the test restates the code's own table.
 func TestIntakeSettings(t *testing.T) {
 	const (
@@ -262,13 +262,13 @@ func TestIntakeSettings(t *testing.T) {
 		fixed   = config.NotSensitive
 	)
 	tests := []struct {
-		key     string
-		kind    config.ThresholdKind
-		def     string
-		floor   string
-		ceiling string
-		apply   config.ApplyMode
-		mark    config.Sensitivity
+		key         string
+		kind        config.ThresholdKind
+		def         string
+		floor       string
+		ceiling     string
+		apply       config.ApplyMode
+		sensitivity config.Sensitivity
 	}{
 		{"DUBPLATE_INTAKE_MAX_ALBUM_BYTES", config.KindInt, "4294967296", "104857600", "17179869184", next, fixed},
 		{"DUBPLATE_INTAKE_MAX_FILES", config.KindInt, "500", "1", "2000", next, fixed},
@@ -302,10 +302,10 @@ func TestIntakeSettings(t *testing.T) {
 			if !ok {
 				t.Fatalf("%s is not a registered setting", tt.key)
 			}
-			if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling || s.Apply != tt.apply || s.Mark != tt.mark {
-				t.Errorf("setting = {kind %v, default %q, floor %q, ceiling %q, apply %v, mark %v}, want {%v, %q, %q, %q, %v, %v}",
-					s.Kind, s.Default, s.Floor, s.Ceiling, s.Apply, s.Mark,
-					tt.kind, tt.def, tt.floor, tt.ceiling, tt.apply, tt.mark)
+			if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling || s.Apply != tt.apply || s.Sensitivity != tt.sensitivity {
+				t.Errorf("setting = {kind %v, default %q, floor %q, ceiling %q, apply %v, sensitivity %v}, want {%v, %q, %q, %q, %v, %v}",
+					s.Kind, s.Default, s.Floor, s.Ceiling, s.Apply, s.Sensitivity,
+					tt.kind, tt.def, tt.floor, tt.ceiling, tt.apply, tt.sensitivity)
 			}
 			for _, v := range []string{tt.floor, tt.ceiling, tt.def} {
 				if err := s.Validate(v); err != nil {
@@ -365,8 +365,8 @@ func TestIntakeFormatAllowlistThreshold(t *testing.T) {
 		if th.Key != "DUBPLATE_INTAKE_FORMAT_ALLOWLIST" {
 			continue
 		}
-		if th.Kind != config.KindString || th.Default != "flac" || th.Mark != config.NotSensitive {
-			t.Errorf("threshold = {kind %v, default %q, mark %v}, want {KindString, \"flac\", NotSensitive}", th.Kind, th.Default, th.Mark)
+		if th.Kind != config.KindString || th.Default != "flac" || th.Sensitivity != config.NotSensitive {
+			t.Errorf("threshold = {kind %v, default %q, sensitivity %v}, want {KindString, \"flac\", NotSensitive}", th.Kind, th.Default, th.Sensitivity)
 		}
 		return
 	}

@@ -33,12 +33,12 @@
 // from then on [OpenWrite] refuses the leaf until the restore removes
 // the record. The record is in one of four states, each owing one
 // step: swap ([StepSwap]), library ([StepLibrary]), reconcile
-// ([StepReconcile]), and reconcile-pending ([StepServe]).
+// ([StepReconcile]), and reconcile_pending ([StepServe]).
 //
 // A resume takes up at the step its record owes. It judges the store
 // in db/ against this binary rather than the version the record
 // carries: a store below the binary's version is left
-// reconcile-pending, the one state [OpenServe] accepts, and serve
+// reconcile_pending, the one state [OpenServe] accepts, and serve
 // finishes it by migrating the store and writing the report
 // [ServeOptions.Reconcile] returns.
 //

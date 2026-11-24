@@ -64,7 +64,7 @@ const stagedSet = `SELECT s.id, f.id, f.rel_path, f.size, s.container = 'zip' AN
 	FROM submissions s JOIN submission_files f ON f.submission_id = s.id
 	WHERE ` + openSubmission + ` AND f.verdict IS NULL AND (
 		(s.container = 'files' AND f.received_at IS NOT NULL)
-		OR (s.container = 'zip' AND s.state IN ('uploading', 'checking', 'check-unfinished')
+		OR (s.container = 'zip' AND s.state IN ('uploading', 'checking', 'check_unfinished')
 			AND f.role = 'archive' AND f.received_at IS NOT NULL)
 		OR (s.container = 'zip' AND s.state IN ('matching', 'accepted') AND f.role != 'archive'))
 	ORDER BY s.id, f.rel_path`
@@ -105,7 +105,7 @@ func (in *Intake) reconcile(ctx context.Context) (int, error) {
 			}
 			missing[key] = append(missing[key], strings.ToValidUTF8(string(f.path), "�"))
 		case err != nil:
-			in.cfg.Log.Error("intake: reconcile could not read a staged file", "submission", wireID(f.submission), "error", err)
+			in.cfg.Log.Error("intake: reconcile could not read a staged file", "submission", hex.EncodeToString(f.submission), "error", err)
 			unread[key] = true
 		}
 	}
@@ -203,7 +203,7 @@ func (in *Intake) receiveComplete(ctx context.Context) (int, error) {
 		switch err := in.subs.receive(ctx, u.id); {
 		case errors.Is(err, errWrongState):
 		case err != nil:
-			in.cfg.Log.Error("intake: receive a whole upload", "file", wireID(u.id), "error", err)
+			in.cfg.Log.Error("intake: receive a whole upload", "file", hex.EncodeToString(u.id), "error", err)
 		default:
 			received++
 		}

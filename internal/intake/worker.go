@@ -78,13 +78,13 @@ func (in *Intake) queue(ctx context.Context) ([][]byte, error) {
 
 // check runs the gate over checking submission id and commits its
 // verdict, then removes the bytes the verdict leaves outside the staged
-// set. A check that could not run commits check-unfinished, keeping the
+// set. A check that could not run commits check_unfinished, keeping the
 // staged bytes and the reservation. A cancelled ctx commits nothing:
 // the submission stays checking with its bytes and reservation for the
 // next start, so a deploy never asks a member to retry. A store fault
 // commits nothing either, and the next wake tries again.
 func (in *Intake) check(ctx context.Context, id []byte) {
-	log := in.cfg.Log.With("submission", wireID(id))
+	log := in.cfg.Log.With("submission", hex.EncodeToString(id))
 	v, err := in.judgeContained(ctx, id, log)
 	if ctx.Err() != nil {
 		return
@@ -127,7 +127,7 @@ func (in *Intake) judgeContained(ctx context.Context, id []byte, log *slog.Logge
 	return in.judge(ctx, id)
 }
 
-// unfinish moves checking submission id to check-unfinished, keeping
+// unfinish moves checking submission id to check_unfinished, keeping
 // its staged bytes and its reservation. An archive's extracted members
 // are scratch until a verdict, so they go first: the retry extracts
 // again.
@@ -302,7 +302,7 @@ func zipFault(archive []byte, err error) (verdict, error) {
 	}
 	code := refusal.Reason.Code
 	return verdict{to: stateRejected, reason: string(code),
-		files: []fileVerdict{{id: archive, result: gate.FileResult{Verdict: code}}}}, nil
+		files: []fileVerdict{{id: archive, result: gate.FileResult{Code: code}}}}, nil
 }
 
 // conclude sets v's move from results, the gate's result for each audio
@@ -315,7 +315,7 @@ func zipFault(archive []byte, err error) (verdict, error) {
 func (v *verdict) conclude(unit gate.Unit, results []gate.FileResult, extras []string) {
 	if unit == gate.UnitTrack {
 		v.to = stateRejected
-		if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Verdict == "" }) {
+		if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Code == "" }) {
 			v.to = stateAccepted
 		}
 		for _, name := range extras {
@@ -323,7 +323,7 @@ func (v *verdict) conclude(unit gate.Unit, results []gate.FileResult, extras []s
 		}
 		return
 	}
-	if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Verdict != "" }) {
+	if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Code != "" }) {
 		v.to = stateRejected
 		return
 	}

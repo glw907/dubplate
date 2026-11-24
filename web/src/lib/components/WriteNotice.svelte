@@ -7,7 +7,7 @@ this one, and a control that runs the write again.
 -->
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import { REAUTH_SIGN_IN, ROSTER_RETRY } from '#lib/copy/deck.js';
+  import { REAUTH_SIGN_IN, ADMIN_RETRY } from '#lib/copy/deck.js';
 
   interface Props {
     notice: { text: string; alertClass: string; reauthenticate: boolean } | null;
@@ -33,7 +33,7 @@ this one, and a control that runs the write again.
       {#if notice.reauthenticate}
         <div class="flex flex-wrap gap-2">
           <a href={resolve('login')} target="_blank" rel="noopener" class="btn">{REAUTH_SIGN_IN}</a>
-          <button type="button" class="btn btn-primary" onclick={() => void retry?.()}>{ROSTER_RETRY}</button>
+          <button type="button" class="btn btn-primary" onclick={() => void retry?.()}>{ADMIN_RETRY}</button>
         </div>
       {/if}
     </div>

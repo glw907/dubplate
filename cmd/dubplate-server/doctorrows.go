@@ -116,9 +116,9 @@ func settingsNotCheckedStatus(environ []string, s config.Setting, state store.St
 
 // settingTraits renders the parenthesized traits doctor prints after a
 // setting's value: the value's source, s's apply mode, and the
-// sensitive mark when s carries it.
+// word sensitive when s is [config.Sensitive].
 func settingTraits(s config.Setting, source string) string {
-	if s.Mark == config.Sensitive {
+	if s.Sensitivity == config.Sensitive {
 		return fmt.Sprintf("(source %s, %s, sensitive)", source, s.Apply)
 	}
 	return fmt.Sprintf("(source %s, %s)", source, s.Apply)

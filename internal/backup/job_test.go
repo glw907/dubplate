@@ -79,7 +79,7 @@ func plantTracks(t *testing.T, h *store.Handle, n int) {
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); err != nil {
 			return err
 		}
@@ -197,31 +197,31 @@ func newRunnerWithBackup(t *testing.T, h *store.Handle, remote, root string, log
 }
 
 // start starts a backup through r.
-func start(t *testing.T, r *jobs.Runner) ops.Handle {
+func start(t *testing.T, r *jobs.Runner) id.ID {
 	t.Helper()
-	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), testActor)
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
-	return resp.JobID
+	return jobID
 }
 
-// await waits for the job h names to end and returns its status.
-func await(t *testing.T, r *jobs.Runner, h ops.Handle) ops.JobStatus {
+// await waits for the job jobID names to end and returns its status.
+func await(t *testing.T, r *jobs.Runner, jobID id.ID) ops.JobStatus {
 	t.Helper()
 	end := time.Now().Add(60 * time.Second)
 	for {
-		resp, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: h})
+		st, err := r.JobStatus(deadline(t), testActor, jobID)
 		if err != nil {
 			t.Fatalf("JobStatus: %v", err)
 		}
-		switch resp.Job.State {
+		switch st.State {
 		case ops.JobQueued, ops.JobRunning:
 		default:
-			return resp.Job
+			return st
 		}
 		if time.Now().After(end) {
-			t.Fatalf("job %s still %s after 60s", h, resp.Job.State)
+			t.Fatalf("job %s still %s after 60s", jobID, st.State)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
@@ -229,7 +229,7 @@ func await(t *testing.T, r *jobs.Runner, h ops.Handle) ops.JobStatus {
 
 // runBackup runs one backup to its end through a runner over h, its
 // three backup value readers at R-6c11's default.
-func runBackup(t *testing.T, h *store.Handle, remote, root string) (ops.Handle, ops.JobStatus) {
+func runBackup(t *testing.T, h *store.Handle, remote, root string) (id.ID, ops.JobStatus) {
 	t.Helper()
 	return runBackupWithBackup(t, h, remote, root, defaultSnapshotKeep, defaultGuardFraction, defaultArchiveRetention)
 }
@@ -240,15 +240,15 @@ func runBackupWithBackup(t *testing.T, h *store.Handle, remote, root string,
 	snapshotKeep func(context.Context) (int, error),
 	guardFraction func(context.Context) (float64, error),
 	archiveRetention func(context.Context) (time.Duration, error),
-) (ops.Handle, ops.JobStatus) {
+) (id.ID, ops.JobStatus) {
 	t.Helper()
 	r := newRunnerWithBackup(t, h, remote, root, nil, snapshotKeep, guardFraction, archiveRetention)
-	id := start(t, r)
-	st := await(t, r, id)
+	jobID := start(t, r)
+	st := await(t, r, jobID)
 	if err := r.Close(); err != nil {
 		t.Fatalf("close runner: %v", err)
 	}
-	return id, st
+	return jobID, st
 }
 
 // wantState fails unless st ended in state with code.
@@ -334,7 +334,7 @@ func TestBackup_RealRemote(t *testing.T) {
 	lib := t.TempDir()
 	writeTree(t, lib, "artist/one.flac", "artist/two.flac")
 
-	id, st := runBackup(t, h, remote, lib)
+	jobID, st := runBackup(t, h, remote, lib)
 	wantState(t, st, ops.JobSucceeded, "")
 
 	if got, want := treeFiles(t, filepath.Join(remoteDir, "library")), []string{"artist/one.flac", "artist/two.flac"}; !slices.Equal(got, want) {
@@ -379,8 +379,8 @@ func TestBackup_RealRemote(t *testing.T) {
 		t.Fatalf("lsjson lists %d objects, want 1", len(listing))
 	}
 	md := listing[0].Metadata
-	if md["run_id"] != string(id) {
-		t.Errorf("run_id = %q, want the job's handle %q", md["run_id"], id)
+	if md["run_id"] != jobID.String() {
+		t.Errorf("run_id = %q, want the job's id %q", md["run_id"], jobID)
 	}
 	if _, err := time.Parse(time.RFC3339, md["sync_completed"]); err != nil {
 		t.Errorf("sync_completed %q: %v", md["sync_completed"], err)
@@ -459,7 +459,7 @@ func TestBackup_ZeroTracksKeepsRemote(t *testing.T) {
 	}
 
 	_, st := runBackup(t, h, remote, lib)
-	wantState(t, st, ops.JobFailed, "rclone-exit-7")
+	wantState(t, st, ops.JobFailed, "rclone_exit_7")
 	if got, want := treeFiles(t, filepath.Join(remoteDir, "library")), []string{"a/one.flac", "a/two.flac"}; !slices.Equal(got, want) {
 		t.Errorf("remote library/ holds %q, want both files", got)
 	}
@@ -554,7 +554,7 @@ func TestBackup_Refusals(t *testing.T) {
 		{
 			name:     "missing root",
 			root:     func(_ *testing.T, base string) string { return filepath.Join(base, "absent") },
-			wantCode: "library-missing",
+			wantCode: "library_missing",
 		},
 		{
 			name: "dangling symlink",
@@ -565,7 +565,7 @@ func TestBackup_Refusals(t *testing.T) {
 				}
 				return link
 			},
-			wantCode: "library-missing",
+			wantCode: "library_missing",
 		},
 		{
 			name: "root is a regular file",
@@ -573,7 +573,7 @@ func TestBackup_Refusals(t *testing.T) {
 				writeTree(t, base, "file")
 				return filepath.Join(base, "file")
 			},
-			wantCode: "library-missing",
+			wantCode: "library_missing",
 		},
 		{
 			name: "empty root, zero tracks",
@@ -584,7 +584,7 @@ func TestBackup_Refusals(t *testing.T) {
 				}
 				return lib
 			},
-			wantCode: "library-empty",
+			wantCode: "library_empty",
 		},
 		{
 			name:   "one file under four tracks",
@@ -593,7 +593,7 @@ func TestBackup_Refusals(t *testing.T) {
 				writeTree(t, base, "lib/a/one.flac")
 				return filepath.Join(base, "lib")
 			},
-			wantCode: "library-short",
+			wantCode: "library_short",
 			wantMsg:  "holds 1 files, fewer than 0.5 of the catalog's 4 tracks",
 		},
 		{
@@ -607,7 +607,7 @@ func TestBackup_Refusals(t *testing.T) {
 				t.Cleanup(func() { _ = os.Chmod(lib, 0o755) })
 				return lib
 			},
-			wantCode: "library-unreadable",
+			wantCode: "library_unreadable",
 			wantMsg:  "permission denied",
 		},
 		{
@@ -617,31 +617,31 @@ func TestBackup_Refusals(t *testing.T) {
 				t.Chdir(base)
 				return "-x"
 			},
-			wantCode: "library-invalid",
+			wantCode: "library_invalid",
 			wantMsg:  "is not an absolute path",
 		},
 		{
 			name:     "remote with no colon",
 			root:     func(t *testing.T, base string) string { writeTree(t, base, "lib/a"); return filepath.Join(base, "lib") },
 			remote:   "relative/dir",
-			wantCode: "remote-invalid",
+			wantCode: "remote_invalid",
 		},
 		{
 			name:     "remote name outside the set",
 			root:     func(t *testing.T, base string) string { writeTree(t, base, "lib/a"); return filepath.Join(base, "lib") },
 			remote:   "my-remote:dir",
-			wantCode: "remote-invalid",
+			wantCode: "remote_invalid",
 		},
 		{
 			name:     "rclone not on PATH",
 			root:     func(_ *testing.T, base string) string { return filepath.Join(base, "absent") },
 			noRclone: true,
-			wantCode: "rclone-missing",
+			wantCode: "rclone_missing",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.wantCode == "library-unreadable" && os.Geteuid() == 0 {
+			if tt.wantCode == "library_unreadable" && os.Geteuid() == 0 {
 				t.Skip("root reads a mode-0 directory")
 			}
 			s := useStandin(t, standinConfig{})
@@ -696,7 +696,7 @@ func TestBackup_StructuralRefusals(t *testing.T) {
 			retention := func(context.Context) (time.Duration, error) { return tt.archiveRetention, nil }
 			_, st := runBackupWithBackup(t, h, "name:dir", lib, keep, fraction, retention)
 
-			wantState(t, st, ops.JobFailed, "job-invalid")
+			wantState(t, st, ops.JobFailed, "job_invalid")
 			if !strings.Contains(st.FailureMessage, tt.wantMsg) {
 				t.Errorf("failure message %q does not name %q", st.FailureMessage, tt.wantMsg)
 			}
@@ -730,7 +730,7 @@ func TestBackup_Destinations(t *testing.T) {
 			lib := t.TempDir()
 			writeTree(t, lib, "a/one.flac", "a/two.flac")
 
-			id, st := runBackup(t, h, tt.remote, lib)
+			jobID, st := runBackup(t, h, tt.remote, lib)
 			wantState(t, st, ops.JobSucceeded, "")
 			argvs := s.invocations(t)
 			if len(argvs) != 3 {
@@ -759,7 +759,7 @@ func TestBackup_Destinations(t *testing.T) {
 				t.Errorf("copyto's last argument %q is not sync_completed=<RFC 3339>", copyto[7])
 			}
 			wantCopy := []string{"copyto", copyto[1], tt.prefix + "snapshots/" + stamp + ".db", "-M",
-				"--metadata-set", "run_id=" + string(id), "--metadata-set", copyto[7]}
+				"--metadata-set", "run_id=" + jobID.String(), "--metadata-set", copyto[7]}
 			if !slices.Equal(copyto, wantCopy) {
 				t.Errorf("copyto argv = %q, want %q", copyto, wantCopy)
 			}
@@ -768,9 +768,9 @@ func TestBackup_Destinations(t *testing.T) {
 }
 
 // TestBackup_TransferFailures pins the transfer's failure rows against
-// the stand-in: a nonzero sync exit is rclone-exit-<N> (spec criterion
+// the stand-in: a nonzero sync exit is rclone_exit_<N> (spec criterion
 // 14 for 7) with rclone's last stderr line as the message; a failed
-// send removes the stage; a refused copy is snapshot-failed and sends
+// send removes the stage; a refused copy is snapshot_failed and sends
 // nothing.
 func TestBackup_TransferFailures(t *testing.T) {
 	tests := []struct {
@@ -781,10 +781,10 @@ func TestBackup_TransferFailures(t *testing.T) {
 		wantMsg     string
 		wantSubs    []string
 	}{
-		{name: "sync exits 7", exit: "sync=7", wantCode: "rclone-exit-7", wantMsg: "stand-in sync exits 7", wantSubs: []string{"sync"}},
-		{name: "sync exits 3", exit: "sync=3", wantCode: "rclone-exit-3", wantMsg: "stand-in sync exits 3", wantSubs: []string{"sync"}},
-		{name: "send exits 1", exit: "copyto=1", wantCode: "rclone-exit-1", wantMsg: "stand-in copyto exits 1", wantSubs: []string{"sync", "copyto"}},
-		{name: "copy refused", lockStaging: true, wantCode: "snapshot-failed", wantMsg: "permission denied", wantSubs: []string{"sync"}},
+		{name: "sync exits 7", exit: "sync=7", wantCode: "rclone_exit_7", wantMsg: "stand-in sync exits 7", wantSubs: []string{"sync"}},
+		{name: "sync exits 3", exit: "sync=3", wantCode: "rclone_exit_3", wantMsg: "stand-in sync exits 3", wantSubs: []string{"sync"}},
+		{name: "send exits 1", exit: "copyto=1", wantCode: "rclone_exit_1", wantMsg: "stand-in copyto exits 1", wantSubs: []string{"sync", "copyto"}},
+		{name: "copy refused", lockStaging: true, wantCode: "snapshot_failed", wantMsg: "permission denied", wantSubs: []string{"sync"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -848,9 +848,9 @@ func TestBackup_StageNotRemoved(t *testing.T) {
 
 // TestBackup_CancelPrecedence is the cancel precedence rows. A
 // SIGINT-honoring stand-in canceled mid-sync receives one SIGINT,
-// exits 130, and the job ends canceled, never rclone-exit-130. A
+// exits 130, and the job ends canceled, never rclone_exit_130. A
 // stand-in the test kills with SIGKILL, with no cancel, ends the job
-// failed with rclone-signal-KILL.
+// failed with rclone_signal_kill.
 func TestBackup_CancelPrecedence(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -860,7 +860,7 @@ func TestBackup_CancelPrecedence(t *testing.T) {
 		wantExit  int
 	}{
 		{name: "canceled", cancel: true, wantState: ops.JobCanceled, wantExit: 1},
-		{name: "killed", wantState: ops.JobFailed, wantCode: "rclone-signal-KILL"},
+		{name: "killed", wantState: ops.JobFailed, wantCode: "rclone_signal_kill"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -869,18 +869,18 @@ func TestBackup_CancelPrecedence(t *testing.T) {
 			lib := t.TempDir()
 			writeTree(t, lib, "a/one.flac")
 			r := newRunner(t, h, "name:dir", lib, nil)
-			id := start(t, r)
+			jobID := start(t, r)
 			pid := s.awaitPID(t)
 			killAtCleanup(t, pid)
 
 			if tt.cancel {
-				if _, err := r.CancelJob(deadline(t), testActor, ops.CancelJobRequest{JobID: id}); err != nil {
+				if _, err := r.CancelJob(deadline(t), testActor, jobID); err != nil {
 					t.Fatalf("CancelJob: %v", err)
 				}
 			} else if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
 				t.Fatalf("kill the stand-in: %v", err)
 			}
-			wantState(t, await(t, r, id), tt.wantState, tt.wantCode)
+			wantState(t, await(t, r, jobID), tt.wantState, tt.wantCode)
 			if got := s.count(t, "exit 130"); got != tt.wantExit {
 				t.Errorf("the stand-in recorded %d exits of 130, want %d", got, tt.wantExit)
 			}
@@ -925,7 +925,7 @@ func TestBackup_OrphanTransfer(t *testing.T) {
 	h := openWrite(t, dir)
 	configureStandin(t, standinConfig{})
 	r := newRunner(t, h, "name:dir", lib, nil)
-	_, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	_, err := r.StartBackup(deadline(t), testActor)
 	if !errors.Is(err, ops.ErrConflict) || !strings.Contains(err.Error(), "a previous run's transfer is still running") {
 		t.Fatalf("StartBackup() with the orphan alive = %v, want a conflict naming a transfer still running", err)
 	}
@@ -935,9 +935,9 @@ func TestBackup_OrphanTransfer(t *testing.T) {
 	}
 	end := time.Now().Add(20 * time.Second)
 	for {
-		resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+		jobID, err := r.StartBackup(deadline(t), testActor)
 		if err == nil {
-			wantState(t, await(t, r, resp.JobID), ops.JobSucceeded, "")
+			wantState(t, await(t, r, jobID), ops.JobSucceeded, "")
 			return
 		}
 		if !errors.Is(err, ops.ErrConflict) || time.Now().After(end) {

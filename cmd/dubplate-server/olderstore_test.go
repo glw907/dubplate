@@ -40,7 +40,28 @@ var migrationTables = map[int][]string{
 // olderStore runs a version's undo before it drops that version's
 // tables. An index goes before its column, because SQLite refuses to
 // drop an indexed column.
+//
+// Version 7 also rebuilt settings under a CHECK naming env_seed, so its
+// undo restores 0004's table, whose CHECK names env-seed: a store cut
+// below 7 then refuses the new spelling and holds only the old one, as
+// a real store from before 0007 does. The other columns 0007 respells
+// are empty in the fresh store olderStore cuts, so they need no undo.
 var migrationUndo = map[int][]string{
+	7: {
+		"ALTER TABLE settings RENAME TO settings_snake",
+		`CREATE TABLE settings (
+	key TEXT NOT NULL PRIMARY KEY,
+	value TEXT NOT NULL,
+	source TEXT NOT NULL CHECK (source IN ('env-seed', 'admin')),
+	seed_value TEXT,
+	actor TEXT NOT NULL,
+	updated_at INTEGER NOT NULL
+) STRICT`,
+		"INSERT INTO settings SELECT key, value, replace(source, '_', '-'), seed_value, actor, updated_at FROM settings_snake",
+		"DROP TABLE settings_snake",
+		"ALTER TABLE collections RENAME COLUMN user_id TO owner",
+		"ALTER TABLE submissions RENAME COLUMN user_id TO uploader",
+	},
 	6: {"DROP INDEX collections_intake_route", "ALTER TABLE collections DROP COLUMN intake_route"},
 }
 

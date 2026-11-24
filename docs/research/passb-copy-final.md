@@ -131,10 +131,10 @@ Collection picker (renders only when config lists more than one collection):
   post-build 2026-09-01, U13 fold F6.8): "didn't pass", `badge-error`.
 
 Chip labels (the new `label` field; authority is `internal/reject`):
-bad-extension "not FLAC" / symlink "shortcut file" / corrupt "damaged in transit" /
-below-cd-quality "below CD quality" / too-large "too big" / unpack-failed "wouldn't
-unpack" / unsafe-path "unsafe file path" / no-space "library is full" /
-too-many-sessions "too many uploads"
+bad_extension "not FLAC" / symlink "shortcut file" / corrupt "damaged in transit" /
+below_cd_quality "below CD quality" / too_large "too big" / unpack_failed "wouldn't
+unpack" / unsafe_path "unsafe file path" / no_space "library is full" /
+too_many_sessions "too many uploads"
 
 ## 5. No MusicBrainz match (item 1 folded)
 

@@ -1,7 +1,6 @@
 package intake
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"log/slog"
@@ -141,7 +140,7 @@ func inState(t *testing.T, s *submissions, uploader identity.UserID, st state, s
 			err = s.commitVerdict(ctx, c.id, passing(c, stateAccepted))
 		case stateRejected:
 			v := passing(c, stateRejected)
-			v.files[0].result.Verdict = reject.Corrupt
+			v.files[0].result.Code = reject.Corrupt
 			err = s.commitVerdict(ctx, c.id, v)
 		default:
 			t.Fatalf("no fixture path to %q", st)
@@ -197,35 +196,9 @@ func TestStatesMatchTheSharedVocabulary(t *testing.T) {
 	}
 }
 
-func TestParseID(t *testing.T) {
-	tests := []struct {
-		name string
-		in   string
-		want []byte
-	}{
-		{name: "32 lowercase hex", in: "000102030405060708090a0b0c0d0eff",
-			want: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 255}},
-		{name: "uppercase hex", in: "000102030405060708090A0B0C0D0EFF"},
-		{name: "31 characters", in: "000102030405060708090a0b0c0d0ef"},
-		{name: "33 characters", in: "000102030405060708090a0b0c0d0eff0"},
-		{name: "not hex", in: "000102030405060708090a0b0c0d0egg"},
-		{name: "the zero id", in: "00000000000000000000000000000000"},
-		{name: "a slash inside", in: "0001020304050607/8090a0b0c0d0eff"},
-		{name: "empty", in: ""},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, ok := parseID(tt.in)
-			if ok != (tt.want != nil) || !bytes.Equal(got, tt.want) {
-				t.Errorf("parseID(%q) = %x, %v; want %x, %v", tt.in, got, ok, tt.want, tt.want != nil)
-			}
-		})
-	}
-}
-
 // TestRetryAndCancelFromEveryState is AC 26's table for the states this
-// pass emits: retry leaves check-unfinished alone, cancel leaves
-// uploading and check-unfinished, and every other cell is a conflict
+// pass emits: retry leaves check_unfinished alone, cancel leaves
+// uploading and check_unfinished, and every other cell is a conflict
 // that changes nothing.
 func TestRetryAndCancelFromEveryState(t *testing.T) {
 	type action struct {
@@ -329,7 +302,7 @@ func TestFailedCompareAndSetDiscardsTheResult(t *testing.T) {
 	}
 
 	v := passing(c, stateRejected)
-	v.files[0].result.Verdict = reject.Corrupt
+	v.files[0].result.Code = reject.Corrupt
 	v.warnings = []gate.FileReason{{Reason: reject.Of(reject.NoCoverArt)}}
 	if err := s.commitVerdict(deadline(t), c.id, v); !errors.Is(err, errWrongState) {
 		t.Fatalf("error = %v, want errWrongState", err)

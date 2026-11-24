@@ -32,7 +32,7 @@ var reauthWindowSetting = config.Setting{
 	Floor:       "5m",
 	Ceiling:     "24h",
 	Description: "how recently an admin must have signed in to change who is in the group or a sensitive setting",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // reauthWindowBelowCap holds the window strictly below the session

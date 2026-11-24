@@ -90,7 +90,7 @@ func TestCreateWritesTheSubmission(t *testing.T) {
 	var gotUploader, coll []byte
 	var unit, container, st, source, note, url string
 	var declared, reserved, createdAt, updatedAt int64
-	err := h.QueryRow(deadline(t), `SELECT uploader, collection_id, verdict_unit, container, state, source,
+	err := h.QueryRow(deadline(t), `SELECT user_id, collection_id, verdict_unit, container, state, source,
 		source_note, store_url, declared_bytes, reserved_bytes, created_at, updated_at FROM submissions WHERE id = ?`, c.id).
 		Scan(&gotUploader, &coll, &unit, &container, &st, &source, &note, &url, &declared, &reserved, &createdAt, &updatedAt)
 	if err != nil {
@@ -180,11 +180,11 @@ func TestCreateWritesTheSubmission(t *testing.T) {
 
 // TestCreateStoresEverySource is AC 14's store half: each of the seven
 // answers is stored, and an absent, empty, or unknown one is refused
-// with missing-source.
+// with missing_source.
 func TestCreateStoresEverySource(t *testing.T) {
 	h, s := newTestSubmissions(t)
 	uploader := member(t, h)
-	for _, source := range []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"} {
+	for _, source := range []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"} {
 		n := album(10)
 		n.manifest.Source = source
 		c := mustCreate(t, s, uploader, n, testLimits())
@@ -202,10 +202,10 @@ func TestCreateStoresEverySource(t *testing.T) {
 		n.manifest.Source = source
 		_, err := s.create(deadline(t), uploader, n, testLimits())
 		var mr *manifestRefusal
-		if !errors.As(err, &mr) || !slices.ContainsFunc(mr.refusal.Submission, func(r reject.Reason) bool {
+		if !errors.As(err, &mr) || !slices.ContainsFunc(mr.rejects.Submission, func(r reject.Reason) bool {
 			return r.Code == reject.MissingSource
 		}) {
-			t.Errorf("source %q: error = %v, want a manifest refusal with missing-source", source, err)
+			t.Errorf("source %q: error = %v, want a manifest refusal with missing_source", source, err)
 		}
 	}
 	if n := countSubmissions(t, h); n != stored {
@@ -232,14 +232,14 @@ func TestCreateAnswersEveryManifestReason(t *testing.T) {
 		t.Fatalf("error = %v, want a manifest refusal", err)
 	}
 	var files []string
-	for _, f := range mr.refusal.Files {
+	for _, f := range mr.rejects.Files {
 		files = append(files, string(f.Path)+" "+string(f.Reason.Code))
 	}
-	if want := []string{"../01.flac unsafe-path", "02.mp3 bad-extension"}; !slices.Equal(files, want) {
+	if want := []string{"../01.flac unsafe_path", "02.mp3 bad_extension"}; !slices.Equal(files, want) {
 		t.Errorf("file reasons = %q, want %q", files, want)
 	}
-	if len(mr.refusal.Submission) != 1 || mr.refusal.Submission[0].Code != reject.MissingSource {
-		t.Errorf("submission reasons = %+v, want missing-source alone", mr.refusal.Submission)
+	if len(mr.rejects.Submission) != 1 || mr.rejects.Submission[0].Code != reject.MissingSource {
+		t.Errorf("submission reasons = %+v, want missing_source alone", mr.rejects.Submission)
 	}
 
 	dup := album(1, 1)
@@ -267,8 +267,8 @@ func TestCreateReadsTheCollectionsAllowlist(t *testing.T) {
 	}
 	_, err = s.create(deadline(t), uploader, album(1), testLimits())
 	var mr *manifestRefusal
-	if !errors.As(err, &mr) || len(mr.refusal.Files) != 1 || mr.refusal.Files[0].Reason.Code != reject.BadExtension {
-		t.Fatalf("error = %v, want bad-extension for a format the collection does not admit", err)
+	if !errors.As(err, &mr) || len(mr.rejects.Files) != 1 || mr.rejects.Files[0].Reason.Code != reject.BadExtension {
+		t.Fatalf("error = %v, want bad_extension for a format the collection does not admit", err)
 	}
 }
 
@@ -406,7 +406,7 @@ func TestCreateLimits(t *testing.T) {
 				t.Errorf("%d submissions, want %d", n, wantCount)
 			}
 			if tt.want == reject.CouldNotCheck && !errors.Is(err, failedRead) {
-				t.Errorf("could-not-check is %v, want it to carry the read's own error", err)
+				t.Errorf("could_not_check is %v, want it to carry the read's own error", err)
 			}
 			if wantCount > 0 {
 				assertStatesMatchEvents(t, h)
@@ -543,7 +543,7 @@ func TestUseCountsOpenSubmissions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// uploading 1, checking 2, check-unfinished 4, matching 8, accepted 16;
+	// uploading 1, checking 2, check_unfinished 4, matching 8, accepted 16;
 	// rejected 32, cancelled 64, and expired 128 stop counting.
 	if use != 1000+1+2+4+8+16 {
 		t.Errorf("use = %d, want 1031", use)
@@ -551,7 +551,7 @@ func TestUseCountsOpenSubmissions(t *testing.T) {
 
 	override(t, h, m, 1100, nil, nil)
 	if _, err := s.create(deadline(t), m, album(70), testLimits()); limitCode(t, err) != reject.OverQuota {
-		t.Errorf("a create one byte over the quota: error = %v, want over-quota", err)
+		t.Errorf("a create one byte over the quota: error = %v, want over_quota", err)
 	}
 	mustCreate(t, s, m, album(69), testLimits())
 	assertStatesMatchEvents(t, h)

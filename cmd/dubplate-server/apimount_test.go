@@ -537,8 +537,8 @@ func TestAPI_NoNonStoreValueReachesTheWire(t *testing.T) {
 			continue
 		}
 		environmentKeys++
-		if _, ok := envSentinels[entry.Name]; !ok && entry.Name != "DUBPLATE_STATE_DIR" {
-			t.Errorf("list_settings names the environment key %s, which the sentinel table does not set", entry.Name)
+		if _, ok := envSentinels[entry.Key]; !ok && entry.Key != "DUBPLATE_STATE_DIR" {
+			t.Errorf("list_settings names the environment key %s, which the sentinel table does not set", entry.Key)
 		}
 	}
 	if environmentKeys < 20 {

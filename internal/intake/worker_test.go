@@ -2,11 +2,13 @@ package intake
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"os"
 	"slices"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/reject"
 )
@@ -53,8 +55,8 @@ func TestCheckPassesAnAlbumToMatching(t *testing.T) {
 		warnings = append(warnings, code)
 	}
 	_ = rows.Close()
-	if !slices.Equal(warnings, []string{"no-cover-art"}) {
-		t.Errorf("warnings = %q, want no-cover-art", warnings)
+	if !slices.Equal(warnings, []string{"no_cover_art"}) {
+		t.Errorf("warnings = %q, want no_cover_art", warnings)
 	}
 	for i, file := range c.files {
 		if !bytes.Equal(f.read(t, tusOf(file.id)), tracks[i]) {
@@ -93,7 +95,7 @@ func TestCheckRejectsAnAlbumWithOneFailingTrack(t *testing.T) {
 }
 
 // TestCheckFaultsAreNotVerdicts is AC 24: each fault of the server's
-// moves a passing two-track album to check-unfinished with its staged
+// moves a passing two-track album to check_unfinished with its staged
 // bytes and its reservation kept, and a retry once the fault clears
 // reaches the album's verdict. The ZIP rows hold the archive and no x/
 // while unfinished.
@@ -184,7 +186,7 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 			reserved := reservedBytes(t, f.h, c.id)
 
 			if tc.duringDecode {
-				xDir := "submissions/" + wireID(c.id) + "/x"
+				xDir := "submissions/" + hex.EncodeToString(c.id) + "/x"
 				ctx := newPauseWhen(func() bool { return f.entries(t, xDir) == 2 })
 				done := make(chan struct{})
 				go func() { defer close(done); f.in.check(ctx, c.id) }()
@@ -197,11 +199,11 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 				f.in.check(deadline(t), c.id)
 			}
 
-			if got := stateOf(t, f.h, c.id); got != "check-unfinished" {
-				t.Fatalf("state = %q (%s), want check-unfinished", got, eventKinds(t, f.h, c.id))
+			if got := stateOf(t, f.h, c.id); got != "check_unfinished" {
+				t.Fatalf("state = %q (%s), want check_unfinished", got, eventKinds(t, f.h, c.id))
 			}
-			if kind, reason := lastEvent(t, f.h, c.id); reason != "could-not-check" {
-				t.Errorf("event %s carries reason %q, want could-not-check", kind, reason)
+			if kind, reason := lastEvent(t, f.h, c.id); reason != "could_not_check" {
+				t.Errorf("event %s carries reason %q, want could_not_check", kind, reason)
 			}
 			if got := reservedBytes(t, f.h, c.id); got != reserved && (!tc.zip || got != extractedTotal(t)) {
 				t.Errorf("reservation = %d, want it kept at %d or the extracted %d", got, reserved, extractedTotal(t))
@@ -210,7 +212,7 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 				if !bytes.Equal(f.read(t, tusOf(c.files[0].id)), archive) {
 					t.Error("the archive is not kept whole")
 				}
-				if f.exists(t, "submissions/"+wireID(c.id)+"/x") {
+				if f.exists(t, "submissions/"+hex.EncodeToString(c.id)+"/x") {
 					t.Error("x/ outlived a check that could not run")
 				}
 				if got := membersOf(t, f.h, c.id); len(got) != 0 {
@@ -240,18 +242,18 @@ func TestCheckFaultsAreNotVerdicts(t *testing.T) {
 // extracted to in c's x/.
 func extractedAs(t *testing.T, f *intakeFixture, c created, track []byte) []byte {
 	t.Helper()
-	dir := "submissions/" + wireID(c.id) + "/x"
+	dir := "submissions/" + hex.EncodeToString(c.id) + "/x"
 	list, err := os.ReadDir(f.path(dir))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, e := range list {
-		id, ok := parseID(e.Name())
-		if !ok {
+		minted, err := id.Parse(e.Name())
+		if err != nil || minted.IsZero() {
 			t.Fatalf("x/ holds %q, not a minted id", e.Name())
 		}
 		if bytes.Equal(f.read(t, dir+"/"+e.Name()), track) {
-			return id
+			return minted[:]
 		}
 	}
 	t.Fatal("no extracted member holds the track")
@@ -268,7 +270,7 @@ func extractedTotal(t *testing.T) int64 {
 
 // TestCancellationCommitsNothing stops a check at every point it looks
 // at its context, a deploy's SIGTERM landing anywhere: the submission
-// stays checking with its staged bytes, never check-unfinished, and a
+// stays checking with its staged bytes, never check_unfinished, and a
 // second start reaches the verdict an uninterrupted run reaches. For an
 // archive this covers a stop mid-extraction and one after extraction
 // before the verdict commits (AC 19).
@@ -352,7 +354,7 @@ func TestCancellationCommitsNothing(t *testing.T) {
 }
 
 // TestCheckRejectsAnArchiveItCannotOpen: an archive archive/zip cannot
-// read is the member's, unpack-failed on the submission and its archive.
+// read is the member's, unpack_failed on the submission and its archive.
 func TestCheckRejectsAnArchiveItCannotOpen(t *testing.T) {
 	f := newIntakeFixture(t)
 	m := member(t, f.h)
@@ -365,10 +367,10 @@ func TestCheckRejectsAnArchiveItCannotOpen(t *testing.T) {
 		t.Fatalf("state = %q, want rejected", got)
 	}
 	if _, reason := lastEvent(t, f.h, c.id); reason != string(reject.UnpackFailed) {
-		t.Errorf("reason = %q, want unpack-failed", reason)
+		t.Errorf("reason = %q, want unpack_failed", reason)
 	}
-	if got := failedFiles(t, f.h, c.id); got["music.zip"] != "unpack-failed" {
-		t.Errorf("file verdicts = %v, want the archive unpack-failed", got)
+	if got := failedFiles(t, f.h, c.id); got["music.zip"] != "unpack_failed" {
+		t.Errorf("file verdicts = %v, want the archive unpack_failed", got)
 	}
 	if f.exists(t, tusOf(c.files[0].id)) {
 		t.Error("a rejected archive is still staged")

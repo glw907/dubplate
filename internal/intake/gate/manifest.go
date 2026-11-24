@@ -26,9 +26,9 @@ type ManifestFile struct {
 	Size int64
 }
 
-// Refusal is every reason a manifest fails: the submission-level reasons,
+// Rejects is every reason a manifest fails: the submission-level reasons,
 // and one reason per failing file. A manifest with neither passes.
-type Refusal struct {
+type Rejects struct {
 	Submission []reject.Reason
 	Files      []FileReason
 }
@@ -46,29 +46,29 @@ var (
 
 // sources are the answers to where the music came from, as the
 // submissions.source column stores them.
-var sources = []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"}
+var sources = []string{"bought", "cd", "vinyl", "free_download", "own_recording", "gift", "other"}
 
 // CheckManifest runs the checks that need no bytes against m, collecting
 // every reason rather than stopping at the first. It returns an error, and
 // no reasons, for a manifest that is malformed rather than refused.
 //
-// A file's reason is the first of: unsafe-path, path-too-deep, then, for
-// loose files, bad-extension. Extras count toward the album's size.
-func CheckManifest(m Manifest, p Policy) (Refusal, error) {
+// A file's reason is the first of: unsafe_path, path_too_deep, then, for
+// loose files, bad_extension. Extras count toward the album's size.
+func CheckManifest(m Manifest, p Policy) (Rejects, error) {
 	seen := make(map[string]bool, len(m.Files))
 	for _, f := range m.Files {
 		switch {
 		case f.Size < 0:
-			return Refusal{}, fmt.Errorf("%w: %q has a negative size", ErrMalformedManifest, f.Path)
+			return Rejects{}, fmt.Errorf("%w: %q has a negative size", ErrMalformedManifest, f.Path)
 		case seen[f.Path]:
-			return Refusal{}, fmt.Errorf("%w: %q appears twice", ErrMalformedManifest, f.Path)
+			return Rejects{}, fmt.Errorf("%w: %q appears twice", ErrMalformedManifest, f.Path)
 		case m.Unit == UnitTrack && m.Container == ContainerFiles && !isAudioExt(extension(f.Path)):
-			return Refusal{}, fmt.Errorf("%w: %q", ErrExtraInTracks, f.Path)
+			return Rejects{}, fmt.Errorf("%w: %q", ErrExtraInTracks, f.Path)
 		}
 		seen[f.Path] = true
 	}
 
-	var r Refusal
+	var r Rejects
 	var total int64
 	tooLarge, audio := false, 0
 	for _, f := range m.Files {

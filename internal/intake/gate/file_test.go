@@ -52,8 +52,8 @@ func TestCheckFile_CleanFile(t *testing.T) {
 	c := cd(1, 4, [2]string{"TRACKNUMBER", "3"}, [2]string{"DISCNUMBER", "2"})
 	data := c.encode(t)
 	res := check(t, data, testPolicy(), UnitAlbum)
-	if res.Verdict != "" {
-		t.Fatalf("verdict = %q, want a pass", res.Verdict)
+	if res.Code != "" {
+		t.Fatalf("verdict = %q, want a pass", res.Code)
 	}
 	wantKey := audioMD5(16, c.pcm())
 	if !bytes.Equal(res.AudioKey, wantKey) {
@@ -93,8 +93,8 @@ func TestCheckFile_RetaggedCopyKeepsItsAudioKey(t *testing.T) {
 	a := cd(7, 2, [2]string{"TITLE", "one"})
 	b := cd(7, 2, [2]string{"TITLE", "a longer second title"})
 	ra, rb := check(t, a.encode(t), testPolicy(), UnitTrack), check(t, b.encode(t), testPolicy(), UnitTrack)
-	if ra.Verdict != "" || rb.Verdict != "" {
-		t.Fatalf("verdicts = %q, %q, want passes", ra.Verdict, rb.Verdict)
+	if ra.Code != "" || rb.Code != "" {
+		t.Fatalf("verdicts = %q, %q, want passes", ra.Code, rb.Code)
 	}
 	if !bytes.Equal(ra.AudioKey, rb.AudioKey) {
 		t.Errorf("audio keys differ across a retag: %x vs %x", ra.AudioKey, rb.AudioKey)
@@ -166,8 +166,8 @@ func TestCheckFile_Verdicts(t *testing.T) {
 			if err != nil {
 				t.Fatalf("CheckFile error = %v, want a verdict", err)
 			}
-			if res.Verdict != tt.want {
-				t.Errorf("verdict = %q, want %q", res.Verdict, tt.want)
+			if res.Code != tt.want {
+				t.Errorf("verdict = %q, want %q", res.Code, tt.want)
 			}
 		})
 	}
@@ -190,7 +190,7 @@ func TestCheckFile_FloorsComeFromPolicy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := testPolicy()
 			p.MinSampleRate, p.MinBitsPerSample = tt.rate, tt.depth
-			if got := check(t, data, p, UnitTrack).Verdict; got != tt.want {
+			if got := check(t, data, p, UnitTrack).Code; got != tt.want {
 				t.Errorf("verdict = %q, want %q", got, tt.want)
 			}
 		})
@@ -200,8 +200,8 @@ func TestCheckFile_FloorsComeFromPolicy(t *testing.T) {
 func TestCheckFile_AllZeroHeaderMD5IsStoredNull(t *testing.T) {
 	c := cd(15, 2)
 	res := check(t, patchStreamInfo(c.encode(t), nil, nil, make([]byte, 16)), testPolicy(), UnitTrack)
-	if res.Verdict != "" {
-		t.Fatalf("verdict = %q, want a pass", res.Verdict)
+	if res.Code != "" {
+		t.Fatalf("verdict = %q, want a pass", res.Code)
 	}
 	if res.HeaderMD5 != nil {
 		t.Errorf("header md5 = %x, want nil (an all-zero value is absent, never a value)", res.HeaderMD5)
@@ -234,8 +234,8 @@ func TestCheckFile_Tags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			res := check(t, cd(20, 2, tt.tags...).encode(t), testPolicy(), tt.unit)
-			if res.Verdict != tt.want {
-				t.Errorf("verdict = %q, want %q", res.Verdict, tt.want)
+			if res.Code != tt.want {
+				t.Errorf("verdict = %q, want %q", res.Code, tt.want)
 			}
 			if tt.want == "" && tt.unit == UnitAlbum && (res.Disc != tt.disc || res.Track != tt.trk) {
 				t.Errorf("position = disc %d track %d, want disc %d track %d", res.Disc, res.Track, tt.disc, tt.trk)
@@ -246,11 +246,11 @@ func TestCheckFile_Tags(t *testing.T) {
 
 func TestCheckFile_RecordsWhatItLearnedBeforeARefusal(t *testing.T) {
 	res := check(t, patchStreamInfo(cd(21, 2).encode(t), nil, nil, bytes.Repeat([]byte{0x22}, 16)), testPolicy(), UnitTrack)
-	if res.Verdict != reject.SourceDamaged {
-		t.Fatalf("verdict = %q, want source-damaged", res.Verdict)
+	if res.Code != reject.SourceDamaged {
+		t.Fatalf("verdict = %q, want source_damaged", res.Code)
 	}
 	if res.SampleRate != 44100 || res.AudioKey == nil || res.FileHash == nil {
-		t.Errorf("a source-damaged file keeps its stream, audio key, and hash; got rate %d key %x hash %x", res.SampleRate, res.AudioKey, res.FileHash)
+		t.Errorf("a source_damaged file keeps its stream, audio key, and hash; got rate %d key %x hash %x", res.SampleRate, res.AudioKey, res.FileHash)
 	}
 }
 
@@ -270,7 +270,7 @@ func TestCheckFile_AFlippedByteIsNotATruncation(t *testing.T) {
 	if len(flipped) != len(data) {
 		t.Fatal("fixture changed the file's length")
 	}
-	if got := check(t, flipped, testPolicy(), UnitTrack).Verdict; got != reject.Corrupt {
+	if got := check(t, flipped, testPolicy(), UnitTrack).Code; got != reject.Corrupt {
 		t.Errorf("verdict = %q, want corrupt", got)
 	}
 }
@@ -352,7 +352,7 @@ func TestVerdictOf(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, ok := verdictOf(tt.err)
+			got, ok := codeOf(tt.err)
 			if got != tt.want || ok != tt.wantOK {
 				t.Errorf("verdictOf(%v) = %q, %t; want %q, %t", tt.err, got, ok, tt.want, tt.wantOK)
 			}
@@ -395,8 +395,8 @@ func BenchmarkCheckFile(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		res, err := CheckFile(b.Context(), f, testPolicy(), UnitTrack)
-		if err != nil || res.Verdict != "" {
-			b.Fatalf("verdict %q, error %v", res.Verdict, err)
+		if err != nil || res.Code != "" {
+			b.Fatalf("verdict %q, error %v", res.Code, err)
 		}
 	}
 }

@@ -508,7 +508,7 @@ func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 
 		"Reason":                   {reject.Reason{}},
 		"Rejects":                  {ops.Rejects{}},
-		"FileReject":               {ops.FileReject{}},
+		"FileReason":               {ops.FileReason{}},
 		"ManifestFile":             {ops.ManifestFile{}},
 		"CreateSubmissionRequest":  {ops.CreateSubmissionRequest{}},
 		"CreatedFile":              {ops.CreatedFile{}},
@@ -577,15 +577,15 @@ var errorsByStatus = []statusCase{
 	{http.StatusServiceUnavailable, ops.NewUnavailableError("the write lock is held").WithDetail(ops.DetailBusy)},
 	{http.StatusBadRequest, ops.NewInvalidRequestError("the manifest was refused").WithRejects(sampleRejects)},
 	{http.StatusConflict, ops.NewConflictError("uploads are paused").WithRejects(ops.Rejects{
-		Submission: []reject.Reason{reject.Of(reject.UploadsOff)}, Files: []ops.FileReject{}})},
+		Submission: []reject.Reason{reject.Of(reject.UploadsOff)}, Files: []ops.FileReason{}})},
 	{http.StatusServiceUnavailable, ops.NewUnavailableError("the check could not run").WithRejects(ops.Rejects{
-		Submission: []reject.Reason{reject.Of(reject.CouldNotCheck)}, Files: []ops.FileReject{}})},
+		Submission: []reject.Reason{reject.Of(reject.CouldNotCheck)}, Files: []ops.FileReason{}})},
 }
 
 // sampleRejects is a refusal carrying a submission reason and a file's.
 var sampleRejects = ops.Rejects{
 	Submission: []reject.Reason{reject.Of(reject.NoAudio)},
-	Files:      []ops.FileReject{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
+	Files:      []ops.FileReason{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 }
 
 // exchange drives one request through a mount over fake seams that

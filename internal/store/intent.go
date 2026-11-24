@@ -49,7 +49,13 @@ const (
 	// intentReconcilePending is written when the restored store is
 	// below the binary's version, so only serve, which migrates it,
 	// may finish the restore.
-	intentReconcilePending intentState = "reconcile-pending"
+	intentReconcilePending intentState = "reconcile_pending"
+
+	// intentReconcilePendingRetired is the spelling a binary before
+	// migration 0007 wrote. A restore that binary began and this one
+	// finishes reads it, so the decoder takes it as
+	// intentReconcilePending.
+	intentReconcilePendingRetired intentState = "reconcile-pending"
 )
 
 // intentRecord is the restore-intent record in the leaf: what a
@@ -98,6 +104,9 @@ func decodeIntent(b []byte) (intentRecord, error) {
 	}
 	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
 		return intentRecord{}, errors.New("data after the record's object")
+	}
+	if r.State == intentReconcilePendingRetired {
+		r.State = intentReconcilePending
 	}
 	return r, r.validate()
 }
@@ -184,7 +193,7 @@ func (l leaf) checkIntent() error {
 	return r.refusal(l)
 }
 
-// refusal is how every mode but serve reports r: a reconcile-pending
+// refusal is how every mode but serve reports r: a reconcile_pending
 // record names serve, and every other state names restore --resume.
 func (r *intentRecord) refusal(l leaf) error {
 	if r.State == intentReconcilePending {

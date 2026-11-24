@@ -14,6 +14,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
@@ -42,18 +43,16 @@ type member struct {
 	id                         identity.UserID
 	address, username, display string
 	admin, tombstoned          bool
-	hex                        string
 }
 
+// wire is the member's id as the wire carries it.
+func (m member) wire() id.ID { return id.ID(m.id) }
+
 var (
-	alice = member{id: identity.UserID{0xa1}, address: "alice@example.com", username: "alice", display: "Alice", admin: true,
-		hex: "a1000000000000000000000000000000"}
-	bob = member{id: identity.UserID{0xb0}, address: "bob@example.com", username: "bob", display: "Bob", admin: true,
-		hex: "b0000000000000000000000000000000"}
-	carol = member{id: identity.UserID{0xc0}, address: "carol@example.com", username: "carol", display: "Carol",
-		hex: "c0000000000000000000000000000000"}
-	dave = member{id: identity.UserID{0xd0}, address: "dave@example.com", username: "dave", display: "Dave", admin: true, tombstoned: true,
-		hex: "d0000000000000000000000000000000"}
+	alice = member{id: identity.UserID{0xa1}, address: "alice@example.com", username: "alice", display: "Alice", admin: true}
+	bob   = member{id: identity.UserID{0xb0}, address: "bob@example.com", username: "bob", display: "Bob", admin: true}
+	carol = member{id: identity.UserID{0xc0}, address: "carol@example.com", username: "carol", display: "Carol"}
+	dave  = member{id: identity.UserID{0xd0}, address: "dave@example.com", username: "dave", display: "Dave", admin: true, tombstoned: true}
 )
 
 // The test settings' keys: one sensitive, one not.
@@ -66,12 +65,12 @@ var (
 	lifetimeSetting = config.Setting{
 		Key: keyLifetime, Kind: config.KindDuration, Default: "1h", Doc: "a Go duration",
 		Apply: config.ApplyNextOperation, Floor: "1m", Ceiling: "24h",
-		Description: "how long a test session lasts", Mark: config.Sensitive,
+		Description: "how long a test session lasts", Sensitivity: config.Sensitive,
 	}
 	keepSetting = config.Setting{
 		Key: keyKeep, Kind: config.KindInt, Default: "14", Doc: "an integer",
 		Apply: config.ApplyRestart, Floor: "3", Ceiling: "1000",
-		Description: "how many test snapshots to keep", Mark: config.NotSensitive,
+		Description: "how many test snapshots to keep", Sensitivity: config.NotSensitive,
 	}
 )
 

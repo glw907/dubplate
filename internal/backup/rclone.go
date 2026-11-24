@@ -120,7 +120,7 @@ func (t transport) list(ctx context.Context, dest string, dirsOnly bool) ([]remo
 
 	var stdout bytes.Buffer
 	if err := t.run(ctx, &stdout, args...); err != nil {
-		if f, ok := errors.AsType[*failure](err); ok && f.code == "rclone-exit-3" {
+		if f, ok := errors.AsType[*failure](err); ok && f.code == "rclone_exit_3" {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("list %s: %w", dest, err)
@@ -155,9 +155,9 @@ func classify(ctx context.Context, sub string, err error, line string) error {
 		line = "rclone " + sub + ": " + ee.Error()
 	}
 	if ws, ok := ee.Sys().(syscall.WaitStatus); ok && ws.Signaled() {
-		return &failure{code: "rclone-signal-" + signalName(ws.Signal()), message: line}
+		return &failure{code: "rclone_signal_" + strings.ToLower(signalName(ws.Signal())), message: line}
 	}
-	return &failure{code: "rclone-exit-" + strconv.Itoa(ee.ExitCode()), message: line}
+	return &failure{code: "rclone_exit_" + strconv.Itoa(ee.ExitCode()), message: line}
 }
 
 // signalNames spells the signals a process is likely to die by as

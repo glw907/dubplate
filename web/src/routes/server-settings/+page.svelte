@@ -1,7 +1,7 @@
 <!--
 @component
 The server settings page: every key the server registers, with its
-description, its mark, and when a change to it takes effect. A key the
+description, its sensitivity, and when a change to it takes effect. A key the
 store holds is a field the admin edits and resets. A key only the
 server's environment file sets, or one the environment file sets to a
 value, is listed beneath with no control, since only that file changes
@@ -18,7 +18,7 @@ to retry it.
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { call, failureAlertClass, failureText, isSignedOut, loadList, needsReauthentication } from '#lib/api/v1.js';
-  import type { ApiResult } from '#lib/api/v1.js';
+  import type { ApiResult, SettingEntry, SettingWriteResponse } from '#lib/api/v1.js';
   import { announce } from '#lib/announcer.svelte.js';
   import AdminPage from '#lib/components/AdminPage.svelte';
   import type { Status } from '#lib/components/AdminPage.svelte';
@@ -31,7 +31,7 @@ to retry it.
     SETTINGS_INTRO,
     SETTING_APPLY,
     SETTING_INVALID_VALUE,
-    SETTING_MARKS,
+    SETTING_SENSITIVITIES,
     SETTING_RESET,
     SETTING_SAVE,
     SETTING_SOURCES,
@@ -43,25 +43,6 @@ to retry it.
     settingResetLine,
     settingSavedLine
   } from '#lib/copy/deck.js';
-
-  /** One registered key as `list_settings` answers it. */
-  interface Entry {
-    name: string;
-    home: string;
-    description: string;
-    apply: string;
-    mark: string;
-    value?: string;
-    source?: string;
-    seed_value?: string;
-  }
-
-  /** What `set_setting` and `reset_setting` answer with. */
-  interface Written {
-    key: string;
-    apply: string;
-    source: string;
-  }
 
   /** What the alert beneath the list says about the last write. */
   interface Notice {
@@ -76,7 +57,7 @@ to retry it.
 
   let status = $state<Status>('loading');
   // Replaced whole on every fetch and never mutated, so it skips the deep proxy.
-  let entries = $state.raw<Entry[]>([]);
+  let entries = $state.raw<SettingEntry[]>([]);
   let unreachableMessage = $state('');
   let refreshFailed = $state(false);
   // What the admin has typed into each field, by key, kept across a
@@ -101,20 +82,20 @@ to retry it.
    * except where `keepDrafts` is set and the admin has typed something
    * other than the value the field last held: that edit stays.
    */
-  function take(list: Entry[], keepDrafts: boolean): void {
-    const prior = new Map(entries.map((e) => [e.name, e.value]));
+  function take(list: SettingEntry[], keepDrafts: boolean): void {
+    const prior = new Map(entries.map((e) => [e.key, e.value]));
     entries = list;
     const next: Record<string, string> = {};
     for (const e of list) {
       if (e.value === undefined) continue;
-      const edited = keepDrafts && e.name in drafts && drafts[e.name] !== prior.get(e.name);
-      next[e.name] = edited ? drafts[e.name] : e.value;
+      const edited = keepDrafts && e.key in drafts && drafts[e.key] !== prior.get(e.key);
+      next[e.key] = edited ? drafts[e.key] : e.value;
     }
     drafts = next;
   }
 
   async function load(): Promise<void> {
-    const result = await loadList<Entry>('list_settings', 'settings');
+    const result = await loadList<SettingEntry>('list_settings', 'settings');
     if (result.ok) {
       take(result.entries, false);
       status = 'ok';
@@ -129,7 +110,7 @@ to retry it.
   // `'ok'`, so a refresh failure after a write still shows the list. The
   // key just written then shows what the server now holds.
   async function refreshAfterWrite(key: string): Promise<void> {
-    const result = await loadList<Entry>('list_settings', 'settings');
+    const result = await loadList<SettingEntry>('list_settings', 'settings');
     if (!result.ok) {
       refreshFailed = true;
       announce(LIST_REFRESH_FAILED, 'polite');
@@ -137,7 +118,7 @@ to retry it.
     }
     refreshFailed = false;
     // The field just written shows what the server now holds, an edit or not.
-    const written = result.entries.find((e) => e.name === key);
+    const written = result.entries.find((e) => e.key === key);
     take(result.entries, true);
     if (written?.value !== undefined) drafts[key] = written.value;
   }
@@ -189,7 +170,7 @@ to retry it.
     retry = null;
     announce('', 'polite');
     try {
-      const result = await call<Written>(operation, request);
+      const result = await call<SettingWriteResponse>(operation, request);
       if (result.kind !== 'ok') {
         refuse(result, key, again);
         return;
@@ -228,12 +209,12 @@ to retry it.
    * value names it as the one the next start applies; with no stored
    * value, only the mode is true.
    */
-  function applyLine(e: Entry): string {
+  function applyLine(e: SettingEntry): string {
     if (e.apply === 'restart' && e.value !== undefined && e.source !== 'default') return nextStartLine(e.value);
     return SETTING_APPLY[e.apply] ?? '';
   }
 
-  function sourceLine(e: Entry): string {
+  function sourceLine(e: SettingEntry): string {
     return e.source !== undefined && Object.hasOwn(SETTING_SOURCES, e.source) ? SETTING_SOURCES[e.source] : '';
   }
 </script>
@@ -249,12 +230,12 @@ to retry it.
 
   <h2 class="display text-2xl">{SETTINGS_EDITABLE_HEADING}</h2>
   <ul id="settings-editable" class="list" role="list">
-    {#each editable as e (e.name)}
+    {#each editable as e (e.key)}
       <li class="list-row">
         <div class="list-col-grow flow">
           <div class="flex flex-wrap items-center gap-2">
-            <label class="font-mono text-xs font-medium" for={fieldId(e.name)}>{e.name}</label>
-            <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
+            <label class="font-mono text-xs font-medium" for={fieldId(e.key)}>{e.key}</label>
+            <span class="badge">{SETTING_SENSITIVITIES[e.sensitivity] ?? e.sensitivity}</span>
           </div>
           <p class="first-letter:uppercase">{e.description}</p>
           <p class="text-sm">
@@ -265,29 +246,29 @@ to retry it.
           class="list-col-wrap flex flex-wrap items-center gap-2"
           onsubmit={(event) => {
             event.preventDefault();
-            void save(e.name);
+            void save(e.key);
           }}
         >
           <input
-            id={fieldId(e.name)}
-            name={e.name}
+            id={fieldId(e.key)}
+            name={e.key}
             type="text"
             autocomplete="off"
             data-1p-ignore
             data-lpignore="true"
-            class="input {notice?.key === e.name ? 'input-error' : ''}"
-            aria-invalid={notice?.key === e.name ? 'true' : undefined}
-            aria-describedby={notice?.key === e.name ? 'settings-outcome' : undefined}
-            bind:value={drafts[e.name]}
+            class="input {notice?.key === e.key ? 'input-error' : ''}"
+            aria-invalid={notice?.key === e.key ? 'true' : undefined}
+            aria-describedby={notice?.key === e.key ? 'settings-outcome' : undefined}
+            bind:value={drafts[e.key]}
           />
-          <button type="submit" class="btn btn-primary" aria-label={saveSettingLabel(e.name)} aria-disabled={busy || undefined}>{SETTING_SAVE}</button>
+          <button type="submit" class="btn btn-primary" aria-label={saveSettingLabel(e.key)} aria-disabled={busy || undefined}>{SETTING_SAVE}</button>
           {#if e.source === 'admin'}
             <button
               type="button"
               class="btn"
-              aria-label={resetSettingLabel(e.name)}
+              aria-label={resetSettingLabel(e.key)}
               aria-disabled={busy || undefined}
-              onclick={() => void reset(e.name)}
+              onclick={() => void reset(e.key)}
             >{SETTING_RESET}</button>
           {/if}
         </form>
@@ -297,12 +278,12 @@ to retry it.
 
   <h2 class="display text-2xl">{SETTINGS_ENVIRONMENT_HEADING}</h2>
   <ul id="settings-environment" class="list" role="list">
-    {#each environmental as e (e.name)}
+    {#each environmental as e (e.key)}
       <li class="list-row">
         <div class="list-col-grow flow">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="font-mono text-xs font-medium">{e.name}</span>
-            <span class="badge">{SETTING_MARKS[e.mark] ?? e.mark}</span>
+            <span class="font-mono text-xs font-medium">{e.key}</span>
+            <span class="badge">{SETTING_SENSITIVITIES[e.sensitivity] ?? e.sensitivity}</span>
           </div>
           <p class="first-letter:uppercase">{e.description}</p>
           <p class="text-sm">{e.value !== undefined ? environmentValueLine(e.value) : ENVIRONMENT_ONLY_LINE}</p>

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/jobs"
@@ -115,16 +116,16 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 
 	actor := identity.LocalActor(resolveActor(user.LookupId))
 	startCtx, cancelStart := context.WithTimeout(opsCtx, storeWait)
-	resp, err := runner.StartBackup(startCtx, actor, ops.StartBackupRequest{})
+	jobID, err := runner.StartBackup(startCtx, actor)
 	cancelStart()
 	if err != nil {
 		return backupExitCode(err)
 	}
-	if _, err := fmt.Fprintf(stdout, "backup %s: started\n", resp.JobID); err != nil {
+	if _, err := fmt.Fprintf(stdout, "backup %s: started\n", jobID); err != nil {
 		return err
 	}
 
-	return awaitBackup(ctx, opsCtx, runner, actor, resp.JobID, stdout, logger)
+	return awaitBackup(ctx, opsCtx, runner, actor, jobID, stdout, logger)
 }
 
 // logSettingsEvaluation logs one warning line per disagreement or
@@ -144,7 +145,7 @@ func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 	}
 }
 
-// awaitBackup polls h's status until it turns terminal, calling the
+// awaitBackup polls jobID's status until it turns terminal, calling the
 // cancel operation on the first signal that arrives: SIGINT and
 // SIGTERM through signalCtx's own Done channel (executeWithSignalContext
 // already watches for them), and SIGHUP through this function's own
@@ -153,7 +154,7 @@ func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 // while rclone, in its own process group, survives). Every runner call
 // here runs on opsCtx, never signalCtx, so a poll or a cancel write
 // keeps working after signalCtx is done.
-func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor identity.Actor, h ops.Handle, stdout io.Writer, logger *slog.Logger) error {
+func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor identity.Actor, jobID id.ID, stdout io.Writer, logger *slog.Logger) error {
 	hup := make(chan os.Signal, 1)
 	signal.Notify(hup, syscall.SIGHUP)
 	defer signal.Stop(hup)
@@ -172,42 +173,42 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor i
 		select {
 		case <-done:
 			done = nil
-			requestCancel(opsCtx, runner, actor, h, logger)
+			requestCancel(opsCtx, runner, actor, jobID, logger)
 		case <-hupCh:
 			hupCh = nil
-			requestCancel(opsCtx, runner, actor, h, logger)
+			requestCancel(opsCtx, runner, actor, jobID, logger)
 		case <-ticker.C:
 		}
 
 		statusCtx, cancel := context.WithTimeout(opsCtx, storeWait)
-		resp, err := runner.JobStatus(statusCtx, actor, ops.JobStatusRequest{JobID: h})
+		job, err := runner.JobStatus(statusCtx, actor, jobID)
 		cancel()
 		if err != nil {
 			return err
 		}
-		if resp.Job.State.Terminal() {
-			return reportOutcome(stdout, resp.Job)
+		if job.State.Terminal() {
+			return reportOutcome(stdout, job)
 		}
 	}
 }
 
-// requestCancel asks the runner to cancel h through the cancel
+// requestCancel asks the runner to cancel jobID through the cancel
 // operation's own write. When the write fails (the store busy past its
 // busy timeout, or any other error), the job would otherwise run to
 // completion unanswered, so this cancels it in-process through the
 // runner this verb owns instead, and logs the write error rather than
 // returning it: the job still ends canceled, through its own terminal
 // write, and awaitBackup's next poll reports that.
-func requestCancel(opsCtx context.Context, runner *jobs.Runner, actor identity.Actor, h ops.Handle, logger *slog.Logger) {
+func requestCancel(opsCtx context.Context, runner *jobs.Runner, actor identity.Actor, jobID id.ID, logger *slog.Logger) {
 	ctx, cancel := context.WithTimeout(opsCtx, storeWait)
 	defer cancel()
-	if _, err := runner.CancelJob(ctx, actor, ops.CancelJobRequest{JobID: h}); err != nil {
-		logger.Error("cancel job", "job", h, "err", err)
-		runner.CancelOwn(h)
+	if _, err := runner.CancelJob(ctx, actor, jobID); err != nil {
+		logger.Error("cancel job", "job", jobID, "err", err)
+		runner.CancelOwn(jobID)
 	}
 }
 
-// reportOutcome prints h's terminal state and reports run's exit
+// reportOutcome prints job's terminal state and reports run's exit
 // status for it. A succeeded job prints to stdout and returns nil;
 // every other terminal state returns an error, whose message run
 // prints to stderr, wrapped with its exit status where that status is
@@ -215,21 +216,21 @@ func requestCancel(opsCtx context.Context, runner *jobs.Runner, actor identity.A
 func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	switch job.State {
 	case ops.JobSucceeded:
-		msg := fmt.Sprintf("backup %s: succeeded", job.ID)
+		msg := fmt.Sprintf("backup %s: succeeded", job.JobID)
 		if job.Phase != "" {
 			msg += ": " + job.Phase
 		}
 		_, err := fmt.Fprintln(stdout, msg)
 		return err
 	case ops.JobCanceled:
-		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.ID)}
+		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.JobID)}
 	case ops.JobFailed:
-		return fmt.Errorf("backup %s: failed, code %s: %s", job.ID, job.FailureCode, job.FailureMessage)
+		return fmt.Errorf("backup %s: failed, code %s: %s", job.JobID, job.FailureCode, job.FailureMessage)
 	default:
 		// Interrupted reaches this arm in-process when the job's running
 		// or terminal write failed and the next status read recovered
 		// the stranded record. It exits 1 like any other non-success.
-		return fmt.Errorf("backup %s: %s", job.ID, job.State)
+		return fmt.Errorf("backup %s: %s", job.JobID, job.State)
 	}
 }
 

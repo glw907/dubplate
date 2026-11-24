@@ -31,16 +31,17 @@ const (
 // (a1a1...a1), one collection (b1b1...b1) it owns, one album
 // (c1c1...c1), and one track (d1d1...d1) to build on, plus each later
 // migration's own fixture rows (0004's settings and audit rows, 0005's
-// per-member and routed rows).
+// per-member and routed rows). Each fixture applies at its own
+// migration's version, the schema it was written against, and the
+// later migrations carry its rows forward.
 func fullyMigratedStore(t *testing.T) (leaf, *Handle) {
 	t.Helper()
 	l, h := newMigrateStore(t)
 	ctx := context.Background()
-	files := readMigrationsT(t, migrationSource())
-	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
-		t.Fatalf("migrate to head: %v", err)
-	}
-	for _, m := range files {
+	for _, m := range readMigrationsT(t, migrationSource()) {
+		if err := migrate(ctx, h, l, readMigrationsT(t, migrationSourceThrough(t, m.version)), defaultOpts()); err != nil {
+			t.Fatalf("migrate to version %d: %v", m.version, err)
+		}
 		body, err := os.ReadFile(filepath.Join("testdata", "fixtures", m.name))
 		if err != nil {
 			t.Fatalf("read fixture %s: %v", m.name, err)
@@ -142,7 +143,7 @@ func TestSchemaPathChecks(t *testing.T) {
 			_, h := fullyMigratedStore(t)
 			ctx := context.Background()
 			_, err := h.write.ExecContext(ctx,
-				`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
+				`INSERT INTO collections (id, name, root_path, user_id, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 				 VALUES (?, 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'group', 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
 				id.New(), tt.path,
 			)
@@ -256,7 +257,7 @@ func TestSchemaForeignKeyRefusals(t *testing.T) {
 	t.Run("a track's collection differs from its album's", func(t *testing.T) {
 		_, h := fullyMigratedStore(t)
 		if _, err := h.write.ExecContext(ctx,
-			`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
+			`INSERT INTO collections (id, name, root_path, user_id, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 			 VALUES (x'b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2', 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'group', 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
 			[]byte("second"),
 		); err != nil {
@@ -276,7 +277,7 @@ func TestSchemaForeignKeyRefusals(t *testing.T) {
 	t.Run("a collection owned by a missing user", func(t *testing.T) {
 		_, h := fullyMigratedStore(t)
 		_, err := h.write.ExecContext(ctx,
-			`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
+			`INSERT INTO collections (id, name, root_path, user_id, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 			 VALUES (x'b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3', 'Second', ?, x'99999999999999999999999999999999', 'group', 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
 			[]byte("second"),
 		)
@@ -293,12 +294,13 @@ func TestSchemaForeignKeyRefusals(t *testing.T) {
 // file, a trailing newline included, then fails this table instead of
 // every existing store's ledger check at its next start.
 var migrationHashes = map[string]string{
-	"0001_ledger.sql":   "9c0accd382e16f0a546ade4e76231c2235977e27bfc30106f69fa4516566291a",
-	"0002_jobs.sql":     "d91729ec63c3fa4132f4af9fc19325d2077a135f4116d7bdd13178a6bfa2e1d5",
-	"0003_catalog.sql":  "42834b8f62df9727bea686bbc02030f1b9af0de2a6c61a59050be72399c7b7fd",
-	"0004_settings.sql": "9d312b17c391dc7e4a4059ac2c302d4affa381b5955fc1038dedb099e74bfc1f",
-	"0005_routed.sql":   "e3eeb662f78b5142f23729d69fc59db332fc04305f1618269347e06a5d2a8a4c",
-	"0006_intake.sql":   "e688d90185ae70c7ced94f775124d7e599961f50fa050a7f1b83c3378f728b38",
+	"0001_ledger.sql":     "9c0accd382e16f0a546ade4e76231c2235977e27bfc30106f69fa4516566291a",
+	"0002_jobs.sql":       "d91729ec63c3fa4132f4af9fc19325d2077a135f4116d7bdd13178a6bfa2e1d5",
+	"0003_catalog.sql":    "42834b8f62df9727bea686bbc02030f1b9af0de2a6c61a59050be72399c7b7fd",
+	"0004_settings.sql":   "9d312b17c391dc7e4a4059ac2c302d4affa381b5955fc1038dedb099e74bfc1f",
+	"0005_routed.sql":     "e3eeb662f78b5142f23729d69fc59db332fc04305f1618269347e06a5d2a8a4c",
+	"0006_intake.sql":     "e688d90185ae70c7ced94f775124d7e599961f50fa050a7f1b83c3378f728b38",
+	"0007_snake_case.sql": "e062bcc40080d381813dd635786a8185e61f21306fcc7116d1785d64604101c4",
 }
 
 // TestSchemaMigrationHashPins asserts readMigrations, which every
@@ -420,7 +422,7 @@ func TestSchemaCollectionVisibilityCheck(t *testing.T) {
 	insert := func(t *testing.T, h *Handle, rootPath []byte, visibility string) error {
 		t.Helper()
 		_, err := h.write.ExecContext(context.Background(),
-			`INSERT INTO collections (id, name, root_path, owner, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
+			`INSERT INTO collections (id, name, root_path, user_id, visibility, writer, writer_epoch, mirror_generation, last_mirror_at, duplicate_collapse, layout_template, tagging_policy, admission_format_allowlist, admission_match_threshold)
 			 VALUES (?, 'Second', ?, x'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', ?, 'server', 0, 0, NULL, 0, '', '', NULL, NULL)`,
 			id.New(), rootPath, visibility,
 		)
@@ -471,7 +473,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 			name:   "settings_audit.at NULL",
 			table:  "settings_audit",
 			column: "at",
-			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, NULL, 'seed', 'system', 'env-seed', 'K', NULL, 'v')`,
+			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, NULL, 'seed', 'system', 'env_seed', 'K', NULL, 'v')`,
 			args:   []any{id.New()},
 			want:   "NOT NULL constraint failed: settings_audit.at",
 		},
@@ -479,7 +481,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 			name:   "settings_audit.kind NULL",
 			table:  "settings_audit",
 			column: "kind",
-			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, 1, NULL, 'system', 'env-seed', 'K', NULL, 'v')`,
+			query:  `INSERT INTO settings_audit (id, at, kind, actor, channel, key, old_value, new_value) VALUES (?, 1, NULL, 'system', 'env_seed', 'K', NULL, 'v')`,
 			args:   []any{id.New()},
 			want:   "NOT NULL constraint failed: settings_audit.kind",
 		},
@@ -514,7 +516,7 @@ func TestSchemaAtKindNotNull(t *testing.T) {
 }
 
 // TestSchemaSettingsSourceCheck is R-6c6's proof that settings.source
-// admits only 'env-seed' and 'admin': a row stored with no source means
+// admits only 'env_seed' and 'admin': a row stored with no source means
 // the value is the registry's default (R-6c7), so 'default' as a
 // literal source value is outside the CHECK's closed set.
 func TestSchemaSettingsSourceCheck(t *testing.T) {

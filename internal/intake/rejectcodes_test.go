@@ -32,10 +32,10 @@ func createCodes(n newSubmission, setup func(t *testing.T, f *intakeFixture, m i
 		var codes []reject.Code
 		switch {
 		case errors.As(err, &manifest):
-			for _, r := range manifest.refusal.Submission {
+			for _, r := range manifest.rejects.Submission {
 				codes = append(codes, r.Code)
 			}
-			for _, r := range manifest.refusal.Files {
+			for _, r := range manifest.rejects.Files {
 				codes = append(codes, r.Reason.Code)
 			}
 		case errors.As(err, &limit):
@@ -99,7 +99,7 @@ func albumOfSpecs(specs ...flacSpec) func(t *testing.T) (newSubmission, [][]byte
 // is exempt with its reason.
 func TestEveryBlockingCodeIsProduced(t *testing.T) {
 	exempt := map[reject.Code]string{
-		reject.Symlink: "a ZIP symlink member answers unsafe-path; symlink is kept for rung 9's timer path",
+		reject.Symlink: "a ZIP symlink member answers unsafe_path; symlink is kept for rung 9's timer path",
 	}
 	tagged := func(tags ...[2]string) flacSpec {
 		s := cdTrack(60, 1)

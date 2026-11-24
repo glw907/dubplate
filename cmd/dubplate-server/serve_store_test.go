@@ -330,7 +330,7 @@ func TestPrepareServe_MigrationWaitReachesTheOpen(t *testing.T) {
 
 // TestPrepareServe_ReconcilePending finishes a restore the way serve
 // does: a real restore from a file one version below the binary leaves a
-// reconcile-pending record, which this test then gives a library half
+// reconcile_pending record, which this test then gives a library half
 // naming a root other than the configured one. The start migrates the
 // store, writes the report into the leaf with restore's head over the
 // record's root, and removes the record. Fixture: the restored store

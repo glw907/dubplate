@@ -131,7 +131,7 @@ func TestTusRefusals(t *testing.T) {
 				f.faults.set(func(d *tusFaults) { d.free = 1<<30 - 1 })
 				return f.do(t, createRequest(f.m, f.c, 0, 4, nil))
 			},
-			status: http.StatusForbidden, code: "no-space",
+			status: http.StatusForbidden, code: "no_space",
 		},
 		{
 			name: "PATCH: free space crosses the floor after the create",
@@ -140,7 +140,7 @@ func TestTusRefusals(t *testing.T) {
 				f.faults.set(func(d *tusFaults) { d.free = 1<<30 - 1 })
 				return f.do(t, patchRequest(f.m, f.c.files[0].id, 2, []byte("cd")))
 			},
-			status: http.StatusForbidden, code: "no-space",
+			status: http.StatusForbidden, code: "no_space",
 		},
 		{
 			name: "create: statfs fails",
@@ -148,7 +148,7 @@ func TestTusRefusals(t *testing.T) {
 				f.faults.set(func(d *tusFaults) { d.freeErr = errDiskOnFire })
 				return f.do(t, createRequest(f.m, f.c, 0, 4, nil))
 			},
-			status: http.StatusServiceUnavailable, code: "could-not-check",
+			status: http.StatusServiceUnavailable, code: "could_not_check",
 		},
 		{
 			name: "PATCH: statfs fails",
@@ -157,7 +157,7 @@ func TestTusRefusals(t *testing.T) {
 				f.faults.set(func(d *tusFaults) { d.freeErr = errDiskOnFire })
 				return f.do(t, patchRequest(f.m, f.c.files[0].id, 2, []byte("cd")))
 			},
-			status: http.StatusServiceUnavailable, code: "could-not-check",
+			status: http.StatusServiceUnavailable, code: "could_not_check",
 		},
 		{
 			name: "create: the floor setting cannot be read",
@@ -165,7 +165,7 @@ func TestTusRefusals(t *testing.T) {
 				f.faults.set(func(d *tusFaults) { d.floorErr = errDiskOnFire })
 				return f.do(t, createRequest(f.m, f.c, 0, 4, nil))
 			},
-			status: http.StatusServiceUnavailable, code: "could-not-check",
+			status: http.StatusServiceUnavailable, code: "could_not_check",
 		},
 		{
 			name: "receipt into a closed submission",
@@ -190,7 +190,7 @@ func TestTusRefusals(t *testing.T) {
 				f.faults.set(func(d *tusFaults) { d.sync = func(string) error { return errDiskOnFire } })
 				return f.do(t, patchRequest(f.m, f.c.files[0].id, 2, []byte("cd")))
 			},
-			status: http.StatusServiceUnavailable, code: "could-not-check",
+			status: http.StatusServiceUnavailable, code: "could_not_check",
 		},
 	}
 	for _, tt := range tests {
@@ -214,7 +214,7 @@ func TestTusReceiptRefusalsChangeNothing(t *testing.T) {
 	f.startUpload(t, m, c, 4, []byte("ab"))
 	f.faults.set(func(d *tusFaults) { d.sync = func(string) error { return errDiskOnFire } })
 	assertRefusal(t, "receipt fault", f.do(t, patchRequest(m, c.files[0].id, 2, []byte("cd"))),
-		http.StatusServiceUnavailable, "could-not-check")
+		http.StatusServiceUnavailable, "could_not_check")
 	if at := receivedAt(t, f.s, c.files[0].id); at != nil {
 		t.Errorf("received_at = %d after a failed receipt, want NULL", *at)
 	}

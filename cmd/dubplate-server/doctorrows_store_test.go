@@ -209,14 +209,14 @@ func TestFormatAge(t *testing.T) {
 }
 
 // seedSettingRow writes key as a literal settings row of source
-// ("env-seed" or "admin") with a matching seed value, and bumps the
+// ("env_seed" or "admin") with a matching seed value, and bumps the
 // generation, in one transaction: production writes a settings row
 // only through the seed apply or, for an admin row, rung 14's write
 // path, so a test seeds one directly by literal SQL.
 func seedSettingRow(t *testing.T, h *store.Handle, key, value, source string) {
 	t.Helper()
-	if source != "env-seed" && source != "admin" {
-		t.Fatalf("seed setting %s: source %q, want env-seed or admin", key, source)
+	if source != "env_seed" && source != "admin" {
+		t.Fatalf("seed setting %s: source %q, want env_seed or admin", key, source)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -242,12 +242,12 @@ var (
 	settingsDoctorRowsTestSetting = config.Setting{
 		Key: "DUBPLATE_TEST_SETTING", Kind: config.KindInt, Default: "10",
 		Doc: "an integer", Apply: config.ApplyNextOperation, Floor: "3", Ceiling: "100",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	}
 	settingsDoctorRowsSensitive = config.Setting{
 		Key: "DUBPLATE_TEST_SECRET", Kind: config.KindInt, Default: "0",
 		Doc: "an integer", Apply: config.ApplyImmediately, Floor: "0", Ceiling: "100",
-		Description: testDescription, Mark: config.Sensitive,
+		Description: testDescription, Sensitivity: config.Sensitive,
 	}
 )
 
@@ -298,31 +298,31 @@ func TestSettingsDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "env-seed row, env equal: the seeded value is in force",
+			name:    "env_seed row, env equal: the seeded value is in force",
 			checked: true,
 			environ: []string{key + "=20"},
-			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}}),
 			want: []doctorRow{
-				{key, `"20" (source env-seed, next operation)`},
+				{key, `"20" (source env_seed, next operation)`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
-			name:    "env-seed row, env different: re-seeds at serve's next start",
+			name:    "env_seed row, env different: re-seeds at serve's next start",
 			checked: true,
 			environ: []string{key + "=30"},
-			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}}),
 			want: []doctorRow{
-				{key, `"20" (source env-seed, next operation); env "30" re-seeds at serve's next start`},
+				{key, `"20" (source env_seed, next operation); env "30" re-seeds at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
-			name:    "env-seed row, env absent: returns to the default at serve's next start",
+			name:    "env_seed row, env absent: returns to the default at serve's next start",
 			checked: true,
-			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env-seed", SeedValue: "20"}}}),
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}}),
 			want: []doctorRow{
-				{key, `"20" (source env-seed, next operation); returns to the default at serve's next start`},
+				{key, `"20" (source env_seed, next operation); returns to the default at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
@@ -367,30 +367,30 @@ func TestSettingsDoctorRows(t *testing.T) {
 			wantFailed: true,
 		},
 		{
-			name:    "out-of-bounds env-seed row healed by re-seed",
+			name:    "out-of-bounds env_seed row healed by re-seed",
 			checked: true,
 			environ: []string{key + "=15"},
-			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env_seed", SeedValue: "1"}}}),
 			want: []doctorRow{
-				{key, `"1" (source env-seed, next operation); env "15" re-seeds at serve's next start`},
+				{key, `"1" (source env_seed, next operation); env "15" re-seeds at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
-			name:    "out-of-bounds env-seed row healed by removal",
+			name:    "out-of-bounds env_seed row healed by removal",
 			checked: true,
-			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env-seed", SeedValue: "1"}}}),
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "1", Source: "env_seed", SeedValue: "1"}}}),
 			want: []doctorRow{
-				{key, `"1" (source env-seed, next operation); returns to the default at serve's next start`},
+				{key, `"1" (source env_seed, next operation); returns to the default at serve's next start`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 		},
 		{
 			name:    "a stored value that does not parse: refusing naming the reason",
 			checked: true,
-			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "not-a-number", Source: "env-seed", SeedValue: "not-a-number"}}}),
+			report:  current(store.Facts{Settings: []store.SettingsRow{{Key: key, Value: "not-a-number", Source: "env_seed", SeedValue: "not-a-number"}}}),
 			want: []doctorRow{
-				{key, `refused: stored env-seed value refused: DUBPLATE_TEST_SETTING: invalid value "not-a-number", want an integer`},
+				{key, `refused: stored env_seed value refused: DUBPLATE_TEST_SETTING: invalid value "not-a-number", want an integer`},
 				{secretKey, "\"0\" (source default, immediately, sensitive)"},
 			},
 			wantFailed: true,
@@ -568,7 +568,7 @@ func TestStoreRowsAgreeOnVouch(t *testing.T) {
 }
 
 // TestSettingsDoctorRows_LocalKeep is criterion 13's local-keep half
-// (D10): a stored env-seed value of "2" for
+// (D10): a stored env_seed value of "2" for
 // DUBPLATE_STORE_LOCAL_SNAPSHOT_KEEP renders "2" under
 // store.Register's own registry, matching the environment so the
 // row carries no change note.
@@ -578,7 +578,7 @@ func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
 	key := store.LocalSnapshotKeepSetting.Key
 
 	report := store.Report{State: store.StateCurrent, Facts: &store.Facts{
-		Settings: []store.SettingsRow{{Key: key, Value: "2", Source: "env-seed", SeedValue: "2"}},
+		Settings: []store.SettingsRow{{Key: key, Value: "2", Source: "env_seed", SeedValue: "2"}},
 	}}
 	rows, failed := settingsDoctorRows([]string{key + "=2"}, reg, report, true)
 	if failed {
@@ -588,7 +588,7 @@ func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
 	if idx < 0 {
 		t.Fatalf("rows carry no entry for %s: %+v", key, rows)
 	}
-	if want := `"2" (source env-seed, next operation)`; rows[idx].status != want {
+	if want := `"2" (source env_seed, next operation)`; rows[idx].status != want {
 		t.Errorf("%s row = %q, want %q", key, rows[idx].status, want)
 	}
 }
@@ -601,7 +601,7 @@ func TestSettingsDoctorRows_LocalKeep(t *testing.T) {
 func TestSettingsDoctorRows_CorrelatedRule(t *testing.T) {
 	const keyExpiry, keyRetention = "DUBPLATE_MAGIC_LINK_EXPIRY", "DUBPLATE_NONCE_RETENTION"
 	report := store.Report{State: store.StateCurrent, Facts: &store.Facts{Settings: []store.SettingsRow{
-		{Key: keyExpiry, Value: "15m", Source: "env-seed", SeedValue: "15m"},
+		{Key: keyExpiry, Value: "15m", Source: "env_seed", SeedValue: "15m"},
 		{Key: keyRetention, Value: "30m", Source: "admin", SeedValue: "24h"},
 	}}}
 	environ := []string{keyExpiry + "=45m"}

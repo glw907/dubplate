@@ -408,7 +408,7 @@ func TestAddMember_AuditRecord(t *testing.T) {
 			candidate: alice,
 			by:        operator,
 			want: map[string]any{
-				"actor": "local:operator", "channel": "command-line", "address": "alice@example.com",
+				"actor": "local:operator", "channel": "command_line", "address": "alice@example.com",
 				"admin": false, "client_ip": "local",
 			},
 		},
@@ -417,7 +417,7 @@ func TestAddMember_AuditRecord(t *testing.T) {
 			candidate: Member{Address: "boss@example.com", DisplayName: "Boss", Username: "boss", Admin: true},
 			by:        operator,
 			want: map[string]any{
-				"actor": "local:operator", "channel": "command-line", "address": "boss@example.com",
+				"actor": "local:operator", "channel": "command_line", "address": "boss@example.com",
 				"admin": true, "client_ip": "local",
 			},
 		},
@@ -1581,7 +1581,7 @@ func TestRemoveMember_AuditRecord(t *testing.T) {
 			"actor": adminWire, "channel": "cookie", "address": "alice@example.com", "client_ip": "198.51.100.7",
 		}},
 		{"a command-line removal", operator, map[string]any{
-			"actor": "local:operator", "channel": "command-line", "address": "alice@example.com", "client_ip": "local",
+			"actor": "local:operator", "channel": "command_line", "address": "alice@example.com", "client_ip": "local",
 		}},
 	}
 	for _, tt := range tests {

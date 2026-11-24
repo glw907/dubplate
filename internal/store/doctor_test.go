@@ -141,7 +141,7 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 
 // TestStoreRow_RestoreIntent is the store row's render of each
 // restore-intent record state through the real inspect mode: every
-// state fails the row, a reconcile-pending record names serve, every
+// state fails the row, a reconcile_pending record names serve, every
 // other state names restore --resume, and a record inspect cannot read
 // names why. Each record is written by hand in the record's JSON form.
 func TestStoreRow_RestoreIntent(t *testing.T) {
@@ -159,7 +159,8 @@ func TestStoreRow_RestoreIntent(t *testing.T) {
 		{name: "swap", body: record("swap", ""), detail: "(state swap): finish the restore with restore --resume"},
 		{name: "library", body: record("library", `"library_root": "/srv/music", "into_nonempty": false, `), detail: "(state library): finish the restore with restore --resume"},
 		{name: "reconcile", body: record("reconcile", ""), detail: "(state reconcile): finish the restore with restore --resume"},
-		{name: "reconcile-pending", body: record("reconcile-pending", ""), detail: "(state reconcile-pending): start serve to finish the restore"},
+		{name: "reconcile_pending", body: record("reconcile_pending", ""), detail: "(state reconcile_pending): start serve to finish the restore"},
+		{name: "retired reconcile-pending", body: record("reconcile-pending", ""), detail: "(state reconcile_pending): start serve to finish the restore"},
 		{name: "unreadable", body: "", detail: "is unreadable: the record is empty: finish the restore with restore --resume"},
 	}
 	for _, tt := range tests {

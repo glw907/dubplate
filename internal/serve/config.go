@@ -21,7 +21,7 @@ var BindAddrsThreshold = config.Threshold{
 	Default:     "127.0.0.1",
 	Doc:         "a comma-separated list of bind addresses, for example 127.0.0.1,::1",
 	Description: "the addresses the server listens on, comma-separated",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // PortThreshold is the TCP port the serve verb binds on every
@@ -33,7 +33,7 @@ var PortThreshold = config.Threshold{
 	Default:     "8080",
 	Doc:         "an integer TCP port from 1024 through 65535",
 	Description: "the TCP port the server listens on",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // portFloor and portCeiling bound DUBPLATE_SERVE_PORT. The
@@ -77,7 +77,7 @@ var PrefixThreshold = config.Threshold{
 	Default:     "/dubplate",
 	Doc:         "a single path segment beginning with a separator, for example /dubplate",
 	Description: "the single path segment every page lives under",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // Register adds the serve shell's three thresholds to reg,
@@ -139,13 +139,13 @@ var TrustedProxyClass = config.IntegrationClass{
 	Name: "trusted proxy",
 	Rung: 5,
 	Flag: config.KeyDecl{
-		Name:        "DUBPLATE_TRUSTED_PROXY_ENABLED",
+		Key:         "DUBPLATE_TRUSTED_PROXY_ENABLED",
 		Description: "turns on trusted-proxy mode, where a header from a trusted front names the client address",
-		Mark:        config.Sensitive,
+		Sensitivity: config.Sensitive,
 	},
 	Required: []config.KeyDecl{
-		{Name: TrustedProxyAddrsKey, Description: "the addresses of the fronts permitted to report a client address, comma-separated", Mark: config.Sensitive},
-		{Name: TrustedProxyHeaderKey, Description: "the header the trusted fronts report the client address in", Mark: config.Sensitive},
+		{Key: TrustedProxyAddrsKey, Description: "the addresses of the fronts permitted to report a client address, comma-separated", Sensitivity: config.Sensitive},
+		{Key: TrustedProxyHeaderKey, Description: "the header the trusted fronts report the client address in", Sensitivity: config.Sensitive},
 	},
 }
 
