@@ -384,11 +384,10 @@ now milestone `engine`.
   paragraphs. Found by `engine` (PR #17), 2026-11-17 #harness #docs
 - [ ] #163 Two weak tests no acceptance item named: `internal/harness/conform/defaults_test.go:156` and
   `internal/engine/tagio/conform_test.go:347-490`. Tighten or delete. Found by `engine` (PR #17), 2026-11-17 #test
-- [ ] #164 Two `fmt.Sprintf` strings in `internal/harness/conform/case.go` (near lines 615 and 642) end in
-  "(Resolution R1)", and one also says "no rung-3 fix". The gate skips them because they are string text, not
-  comment text. Reword. `conform/component.go` also says a pattern is "anchored at position 0 as beets anchors it",
-  an inference nobody checked against beets: verify it or drop the claim. Found by `engine` (PR #17), 2026-11-17
-  #harness
+- [ ] #164 Reword the two `ungradedReason` strings in `gradeCaseDefault` (`internal/harness/conform/case.go`)
+  to drop "Resolution R1" and "rung-3", and cite `matcher/penalty.go:338` for `conform/component.go:380`'s
+  anchoring claim or drop "as beets anchors it". Found by `engine` (PR #17), 2026-11-17
+  #harness *(swept 2026-11-23)*
 - [ ] #165 The `matcher` read's larger findings, left for a pass that touches the matcher's API: a typed `Consensus`
   struct in place of the likelies map, a typed option for the tunables that still take strings, deleting
   `QuietImportTunables` (test callers only), and unexporting `SDPatternsNoBracketDiscount`. Found by `engine`
