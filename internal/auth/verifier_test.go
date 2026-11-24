@@ -36,14 +36,14 @@ type verifierFixture struct {
 
 // newVerifierFixture opens a roster over a fresh store holding rows and a
 // fresh epoch store under t.TempDir(), and wires both into a
-// MagicLinkSeam signing under currentFixture and previousFixture
+// MagicLinkVerifier signing under currentFixture and previousFixture
 // (token_test.go).
 func newVerifierFixture(t *testing.T, rows ...userRow) verifierFixture {
 	t.Helper()
 	return newVerifierFixtureReading(t, fixed(verifierLifetime), fixed(verifierCap), rows...)
 }
 
-// newVerifierFixtureReading is [newSeamFixture] with the seam reading its
+// newVerifierFixtureReading is [newVerifierFixture] with the verifier reading its
 // lifetime and absolute cap through lifetime and absoluteCap.
 func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) verifierFixture {
 	t.Helper()

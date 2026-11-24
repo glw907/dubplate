@@ -15,8 +15,9 @@ import (
 // and answers the actor the call proceeds as and the privilege that
 // actor holds. A refused credential wraps [ops.ErrUnauthenticated],
 // which the mount answers 401 unauthenticated; any other verifier error
-// is the server failing and answers 500. A verifier logs its own failures: the mount never writes an error's
-// text, which may name a member.
+// is the server failing and answers 500. A verifier logs its own
+// failures: the mount never writes an error's text, which may name a
+// member.
 type Verifier func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)
 
 // A mount serves the operations under <prefix>/api/v1/ for sessions a

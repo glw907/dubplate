@@ -56,7 +56,7 @@ const maxBodyBytes = 32 << 20
 
 // errBodyTooLarge reports a response body over [maxBodyBytes]. It is
 // never retried.
-var errBodyTooLarge = fmt.Errorf("musicbrainz: response body exceeds the %d MiB cap", maxBodyBytes>>20)
+var errBodyTooLarge = fmt.Errorf("response body exceeds the %d MiB cap", maxBodyBytes>>20)
 
 // maxAttempts is one plus six retries, beets' own Retry(total=6)
 // (beetsplug/_utils/requests.py:78-88).

@@ -77,7 +77,7 @@ func Load(path string) (*Library, error) {
 		return nil, fmt.Errorf("parse manifest %s: %w", path, err)
 	}
 	if len(m.Albums) == 0 {
-		return nil, fmt.Errorf("%w: manifest declares no albums", errInvalid)
+		return nil, fmt.Errorf("%w: declares no albums", errInvalid)
 	}
 	lib := &Library{manifest: m, seeds: make(map[string][]byte)}
 	problems := lib.check(filepath.Join(filepath.Dir(path), "seeds"))

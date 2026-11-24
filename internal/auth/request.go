@@ -45,7 +45,7 @@ func VerifyRequest(cfg VerifyConfig, w http.ResponseWriter, r *http.Request) (Ve
 		}
 		cfg.Logger.Log(r.Context(), level, message, "reason", reason, "client_ip", cfg.ClientIP(r))
 		if level >= slog.LevelError {
-			return VerifiedIdentity{}, fmt.Errorf("check request: %w", err)
+			return VerifiedIdentity{}, fmt.Errorf("verify request: %w", err)
 		}
 		return VerifiedIdentity{}, fmt.Errorf("%w: %s", ops.ErrUnauthenticated, reason)
 	}

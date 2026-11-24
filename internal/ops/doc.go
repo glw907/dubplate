@@ -1,6 +1,7 @@
 // Package ops declares the operation vocabulary a caller reaches the
 // server's work through, and nothing that runs one: the admin and
-// submission interfaces, the background-job vocabulary, their wire types, the error vocabulary, and the privilege each operation
+// submission interfaces, the background-job vocabulary, their wire
+// types, the error vocabulary, and the privilege each operation
 // requires.
 //
 // [Admin] holds the seven member and settings operations and
