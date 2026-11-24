@@ -34,7 +34,7 @@ func fullRegistry() *config.Registry {
 		Optional: []config.KeyDecl{{Key: "DUBPLATE_TEST_SECRET_PREVIOUS", Description: "the previous test secret", Sensitivity: config.Sensitive}},
 	})
 	reg.AddIntegrationClass(config.IntegrationClass{
-		Name: "testsync", Rung: 6,
+		Name:     "testsync",
 		Flag:     config.KeyDecl{Key: "DUBPLATE_TEST_SYNC_ENABLED", Description: "turns on the test sync", Sensitivity: config.Sensitive},
 		Required: []config.KeyDecl{{Key: "DUBPLATE_TEST_SYNC_REMOTE", Description: "where the test sync goes", Sensitivity: config.Sensitive}},
 	})

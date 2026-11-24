@@ -115,15 +115,11 @@ func (r *doctorReport) addRegistryRows(environ []string, reg *config.Registry, s
 	}
 
 	for _, class := range reg.ReservedClasses() {
-		r.add(class.Name, fmt.Sprintf("disabled (arrives at rung %d)", class.Rung))
+		r.add(class.Name, "not yet available")
 	}
 
 	for _, class := range reg.IntegrationClasses() {
-		status := "disabled"
-		if enabled, err := class.Enabled(environ); err == nil && enabled {
-			status = "enabled"
-		}
-		r.add(class.Name, status)
+		r.add(class.Name, integrationStatus(environ, class))
 	}
 
 	for _, th := range reg.Thresholds() {
@@ -331,6 +327,24 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 		return "invalid: " + err.Error()
 	}
 	return value
+}
+
+// integrationStatus reports class as "enabled" or "disabled", or as
+// "invalid: " plus the refusal when its flag will not parse, the value
+// [config.Load] refuses rather than reading as off.
+func integrationStatus(environ []string, class config.IntegrationClass) string {
+	enabled, err := class.Enabled(environ)
+	switch {
+	case err != nil:
+		if keyed, ok := errors.AsType[*config.KeyError](err); ok {
+			return "invalid: " + keyed.Reason
+		}
+		return "invalid: " + err.Error()
+	case enabled:
+		return "enabled"
+	default:
+		return "disabled"
+	}
 }
 
 // identitySourceStatus reports how src stands against environ: inactive

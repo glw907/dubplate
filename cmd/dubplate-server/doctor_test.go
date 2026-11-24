@@ -162,7 +162,7 @@ func TestDoctorCmd(t *testing.T) {
 			}
 
 			for _, class := range reg.ReservedClasses() {
-				wantLine := fmt.Sprintf("%-32s disabled (arrives at rung %d)", class.Name, class.Rung)
+				wantLine := fmt.Sprintf("%-32s not yet available", class.Name)
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before reserved class %s", class.Name)
 				}
@@ -172,12 +172,9 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			// No case sets an integration flag, so every class reads off.
 			for _, class := range reg.IntegrationClasses() {
-				status := "disabled"
-				if enabled, err := class.Enabled(environ); err == nil && enabled {
-					status = "enabled"
-				}
-				wantLine := fmt.Sprintf("%-32s %s", class.Name, status)
+				wantLine := fmt.Sprintf("%-32s disabled", class.Name)
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before integration class %s", class.Name)
 				}
@@ -336,7 +333,6 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// class carries.
 	reg.AddReservedClass(config.ReservedClass{
 		Name: "scratch reserved",
-		Rung: 99,
 		Keys: []string{
 			"DUBPLATE_TEST_SCRATCH_RESERVED_A",
 			"DUBPLATE_TEST_SCRATCH_RESERVED_B",
@@ -1076,6 +1072,46 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	}
 	if pipelineIdx >= monitoringIdx {
 		t.Errorf("pipeline printed at %d, monitoring at %d; want pipeline before monitoring", pipelineIdx, monitoringIdx)
+	}
+}
+
+// TestDoctorCmd_ClassRows pins the class rows' words against literals:
+// a reserved class reads "not yet available", and an integration class
+// whose flag will not parse prints the flag's refusal rather than
+// "disabled", since Load refuses the same value.
+func TestDoctorCmd_ClassRows(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(environ []string) []string
+		want  string
+	}{
+		{
+			name:  "reserved class",
+			setup: func(environ []string) []string { return environ },
+			want:  fmt.Sprintf("%-32s %s\n", "pipeline", "not yet available"),
+		},
+		{
+			name:  "integration flag off",
+			setup: func(environ []string) []string { return dropKey(environ, "DUBPLATE_BACKUP_ENABLED") },
+			want:  fmt.Sprintf("%-32s %s\n", "backup", "disabled"),
+		},
+		{
+			name: "integration flag unparseable",
+			setup: func(environ []string) []string {
+				return append(dropKey(environ, "DUBPLATE_BACKUP_ENABLED"), "DUBPLATE_BACKUP_ENABLED=maybe")
+			},
+			want: fmt.Sprintf("%-32s %s\n", "backup", `invalid: invalid value "maybe", want a boolean`),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(tt.setup(doctorEnviron(t)), productionRegistry(), &stdout, &stderr)
+			_ = cmd.Execute() // an unparseable flag fails Load; the table still prints
+			if !strings.Contains(stdout.String(), tt.want) {
+				t.Errorf("stdout = %q, want it to contain %q", stdout.String(), tt.want)
+			}
+		})
 	}
 }
 

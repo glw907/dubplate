@@ -16,7 +16,6 @@ const RemoteKey = "DUBPLATE_BACKUP_REMOTE"
 // required while it is on, the rclone destination a backup syncs to.
 var Class = config.IntegrationClass{
 	Name: "backup",
-	Rung: 6,
 	Flag: config.KeyDecl{
 		Key:         "DUBPLATE_BACKUP_ENABLED",
 		Description: "turns on backups to the remote",

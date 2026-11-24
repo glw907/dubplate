@@ -293,13 +293,11 @@ func classificationRegistry() *Registry {
 	reg.AddWallRow(WallRow{Key: "DUBPLATE_CLASSIFY_OWNED", Description: testDescription, Sensitivity: NotSensitive})
 	reg.AddReservedClass(ReservedClass{
 		Name: "classification fixture",
-		Rung: 99,
 		Keys: []string{"DUBPLATE_CLASSIFY_RESERVED"},
 	})
 	reg.AddSuperseded("DUBPLATE_CLASSIFY_SUPERSEDED", "renamed to DUBPLATE_CLASSIFY_OWNED")
 	reg.AddIntegrationClass(IntegrationClass{
 		Name:     "classification integration",
-		Rung:     99,
 		Flag:     testKey("DUBPLATE_CLASSIFY_ENABLED", NotSensitive),
 		Required: []KeyDecl{testKey("DUBPLATE_CLASSIFY_REQUIRED", NotSensitive)},
 	})

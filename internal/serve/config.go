@@ -137,7 +137,6 @@ const (
 // address and no forwarded header is ever read.
 var TrustedProxyClass = config.IntegrationClass{
 	Name: "trusted proxy",
-	Rung: 5,
 	Flag: config.KeyDecl{
 		Key:         "DUBPLATE_TRUSTED_PROXY_ENABLED",
 		Description: "turns on trusted-proxy mode, where a header from a trusted front names the client address",

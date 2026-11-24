@@ -98,25 +98,21 @@ func (r *Registry) ownedNow(name string) bool {
 
 // ReservedClass is one named class of configuration the wall
 // recognizes but does not yet accept: setting any of its Keys is a
-// load error naming the class and Rung, distinct from an unrecognized
-// key.
+// load error naming the class, distinct from an unrecognized key.
 type ReservedClass struct {
 	Name string
-	Rung int
 	Keys []string
 }
 
 // reservedClasses groups every DUBPLATE_* name that belongs to a
-// capability not yet built, keyed to the rung that claims it. A name
-// absent from every class here and from [supersededKeys] classifies as
-// unknown.
+// capability not yet built. A name absent from every class here and
+// from [supersededKeys] classifies as unknown.
 var reservedClasses = []ReservedClass{
 	{
 		// Admission, tagging, layout, and collection routing own the
 		// directories a session moves through once intake has accepted
 		// it.
 		Name: "pipeline",
-		Rung: 9,
 		Keys: []string{
 			"DUBPLATE_INBOX_DIR",
 			"DUBPLATE_QUARANTINE_DIR",
@@ -124,7 +120,6 @@ var reservedClasses = []ReservedClass{
 	},
 	{
 		Name: "monitoring",
-		Rung: 9,
 		Keys: []string{
 			"DUBPLATE_PING_IMPORT_URL",
 			"DUBPLATE_PING_BACKUP_URL",
@@ -133,7 +128,6 @@ var reservedClasses = []ReservedClass{
 	},
 	{
 		Name: "decision and review queues",
-		Rung: 13,
 		Keys: []string{
 			"DUBPLATE_REVIEW_DIR",
 		},
@@ -164,7 +158,7 @@ var supersededKeys = map[string]string{
 	"DUBPLATE_CONTRIBUTORS_FILE": "retired: members live in the store; add the first " +
 		"admin with dubplate-server member add ADDRESS --admin",
 	"DUBPLATE_REJECT_EMAIL_TEMPLATE": "retired: reject copy is a code contract in " +
-		"internal/reject (rung 7), not a config-supplied template",
+		"internal/reject, not a config-supplied template",
 	"DUBPLATE_BEETS_CONFIG": "retired: the greenfield server never embeds beets",
 	"DUBPLATE_BEETS_DB":     "retired: the greenfield server never embeds beets",
 	"DUBPLATE_NAVIDROME_DB": "retired: dubplate integrates with no external streamer",
@@ -200,7 +194,6 @@ func (r *Registry) supersessionOf(name string) (string, bool) {
 // Load requires every Required key when the flag is set.
 type IntegrationClass struct {
 	Name     string
-	Rung     int
 	Flag     KeyDecl
 	Required []KeyDecl
 }
