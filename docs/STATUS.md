@@ -19,8 +19,8 @@ fact; `cmd/dubplate-server/doctor.go` only places the rows, and the output is by
 Work `lean-pattern` (PR #26, merged 2026-11-23) moved the binding rules into 15 decision records in
 `docs/decisions/` and cut `CLAUDE.md` to 85 lines. The gate now runs dupl, gocognit, forbidigo, `deadcode -test`,
 a 200-line limit on `CLAUDE.md`, and a status check on each record.
-Work `complexity-cleanup` (PR #27, merged 2026-11-23) split ten functions under gocognit's bar of 30; only `commitVerdict` and `walkZIP`
-keep an exclusion.
+Work `complexity-cleanup` (PR #27, merged 2026-11-23) split ten functions under gocognit's bar of 30; only
+`commitVerdict` and `walkZIP` keep an exclusion.
 
 `intake-1` is the last product work on master. A passing album waits in `matching` with no exit until
 `intake-2`'s match probe lands. The run order is in BACKLOG, "Milestones to 0.8". Work still to do sits in BACKLOG
