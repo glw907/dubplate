@@ -12,7 +12,7 @@ func FreeBytes(dir string) (uint64, error) {
 	return 0, fmt.Errorf("statfs %s: %w", dir, errors.ErrUnsupported)
 }
 
-// Device refuses with [errors.ErrUnsupported].
-func Device(path string) (uint64, error) {
-	return 0, fmt.Errorf("stat %s: %w", path, errors.ErrUnsupported)
+// MountPoint refuses with [errors.ErrUnsupported].
+func MountPoint(dir string) (bool, error) {
+	return false, fmt.Errorf("stat %s: %w", dir, errors.ErrUnsupported)
 }

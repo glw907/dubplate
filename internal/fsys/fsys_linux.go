@@ -2,6 +2,7 @@ package fsys
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"golang.org/x/sys/unix"
 )
@@ -16,10 +17,22 @@ func FreeBytes(dir string) (uint64, error) {
 	return st.Bavail * uint64(st.Frsize), nil
 }
 
-// Device returns st_dev of path, following a symlink. Two paths on one
-// file system share a device, so a directory whose device differs from
-// its parent's is a mount point.
-func Device(path string) (uint64, error) {
+// MountPoint reports whether dir is a mount point: whether its st_dev,
+// following a symlink, differs from its parent directory's. Two paths on
+// one file system share a device.
+func MountPoint(dir string) (bool, error) {
+	dev, err := device(dir)
+	if err != nil {
+		return false, err
+	}
+	parent, err := device(filepath.Dir(dir))
+	if err != nil {
+		return false, err
+	}
+	return dev != parent, nil
+}
+
+func device(path string) (uint64, error) {
 	var st unix.Stat_t
 	if err := unix.Stat(path, &st); err != nil {
 		return 0, fmt.Errorf("stat %s: %w", path, err)

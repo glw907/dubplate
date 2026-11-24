@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"syscall"
 	"testing"
 )
 
@@ -22,40 +21,31 @@ func TestFreeBytes(t *testing.T) {
 	}
 }
 
-// TestDevice holds Device to the device os.Stat reports, and holds the
-// /proc mount, a separate file system, apart from the root's.
-func TestDevice(t *testing.T) {
-	dir := t.TempDir()
-	info, err := os.Stat(dir)
-	if err != nil {
+// TestMountPoint holds MountPoint to the two answers: /proc, a separate
+// file system, is a mount point, and a directory made inside a
+// temporary directory is not. An absent path refuses.
+func TestMountPoint(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "child")
+	if err := os.Mkdir(dir, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	st, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		t.Fatalf("os.Stat(%s).Sys() = %T, want *syscall.Stat_t", dir, info.Sys())
-	}
-	want := st.Dev
-	got, err := Device(dir)
-	if err != nil {
-		t.Fatalf("Device: %v", err)
-	}
-	if got != want {
-		t.Errorf("Device(%s) = %d, want %d", dir, got, want)
-	}
-
-	proc, err := Device("/proc")
-	if err != nil {
-		t.Fatalf("Device(/proc): %v", err)
-	}
-	root, err := Device("/")
-	if err != nil {
-		t.Fatalf("Device(/): %v", err)
-	}
-	if proc == root {
-		t.Errorf("Device(/proc) = Device(/) = %d, want the proc mount apart", proc)
+	for _, tt := range []struct {
+		path string
+		want bool
+	}{
+		{"/proc", true},
+		{dir, false},
+	} {
+		got, err := MountPoint(tt.path)
+		if err != nil {
+			t.Fatalf("MountPoint(%s): %v", tt.path, err)
+		}
+		if got != tt.want {
+			t.Errorf("MountPoint(%s) = %v, want %v", tt.path, got, tt.want)
+		}
 	}
 
-	if _, err := Device(filepath.Join(dir, "absent")); !errors.Is(err, fs.ErrNotExist) {
-		t.Errorf("Device of an absent path = %v, want it to wrap fs.ErrNotExist", err)
+	if _, err := MountPoint(filepath.Join(dir, "absent")); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("MountPoint of an absent path = %v, want it to wrap fs.ErrNotExist", err)
 	}
 }

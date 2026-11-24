@@ -515,9 +515,13 @@ func (s source) checkLibrary(ctx context.Context, root string, out io.Writer) er
 	if err != nil {
 		return err
 	}
-	free, mount, err := rootSpace(root)
+	free, err := fsys.FreeBytes(root)
 	if err != nil {
-		return err
+		return fmt.Errorf("restore the library: %w", err)
+	}
+	mount, err := fsys.MountPoint(root)
+	if err != nil {
+		return fmt.Errorf("restore the library: %w", err)
 	}
 	kind := "not a mount point"
 	if mount {
@@ -531,24 +535,6 @@ func (s source) checkLibrary(ctx context.Context, root string, out io.Writer) er
 		return fmt.Errorf("restore the library: free space on %s: %d bytes free, need %d", root, free, size.Bytes)
 	}
 	return nil
-}
-
-// rootSpace reports the free bytes on root's file system, and whether
-// root is a mount point: whether its device differs from its parent
-// directory's.
-func rootSpace(root string) (free uint64, mount bool, err error) {
-	if free, err = fsys.FreeBytes(root); err != nil {
-		return 0, false, fmt.Errorf("restore the library: %w", err)
-	}
-	dev, err := fsys.Device(root)
-	if err != nil {
-		return 0, false, fmt.Errorf("restore the library: %w", err)
-	}
-	parent, err := fsys.Device(filepath.Dir(root))
-	if err != nil {
-		return 0, false, fmt.Errorf("restore the library: %w", err)
-	}
-	return free, dev != parent, nil
 }
 
 // makeDisplaced creates the displaced directory at mode 0700, since
