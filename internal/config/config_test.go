@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/glw907/dubplate/internal/identity"
 )
 
 // baseEnviron returns a minimal environ with every owned-now key set
@@ -44,8 +46,8 @@ func TestLoad_ContractTable(t *testing.T) {
 				if cfg.SiteName != "Test Family" {
 					t.Errorf("SiteName = %q, want Test Family", cfg.SiteName)
 				}
-				if cfg.AdminEmail != "admin@example.org" {
-					t.Errorf("AdminEmail = %q, want admin@example.org", cfg.AdminEmail)
+				if cfg.AdminAddress != "admin@example.org" {
+					t.Errorf("AdminAddress = %q, want admin@example.org", cfg.AdminAddress)
 				}
 			},
 		},
@@ -84,8 +86,8 @@ func TestLoad_ContractTable(t *testing.T) {
 				"DUBPLATE_ADMIN_EMAIL=Geoff <GEOFF@X.ORG>"),
 			wantErr: false,
 			check: func(t *testing.T, cfg *Config) {
-				if cfg.AdminEmail != "geoff@x.org" {
-					t.Errorf("AdminEmail = %q, want geoff@x.org", cfg.AdminEmail)
+				if cfg.AdminAddress != "geoff@x.org" {
+					t.Errorf("AdminAddress = %q, want geoff@x.org", cfg.AdminAddress)
 				}
 			},
 		},
@@ -1123,11 +1125,12 @@ func TestParseInt_ErrorIsKeyError(t *testing.T) {
 	}
 }
 
-// TestParseAdminAddress pins the one parse DUBPLATE_ADMIN_EMAIL goes
-// through, and that Load stores exactly what it returns: the store
-// row names the admin's address from the environment alone, so the two
-// must never read an address differently.
-func TestParseAdminAddress(t *testing.T) {
+// TestLoad_AdminAddress pins what Load makes of DUBPLATE_ADMIN_EMAIL.
+// The roster keys members by the login-address normal form, so an
+// admin address the roster would refuse must be refused here as well:
+// a zero-width space or an over-long address once loaded cleanly and
+// named an admin no one could sign in as.
+func TestLoad_AdminAddress(t *testing.T) {
 	tests := []struct {
 		name  string
 		value string
@@ -1141,25 +1144,27 @@ func TestParseAdminAddress(t *testing.T) {
 		{name: "surrounding space", value: " spaced@x.org ", want: "spaced@x.org", ok: true},
 		{name: "no at sign", value: "not an address"},
 		{name: "two addresses", value: "a@b.org, c@d.org"},
-		{name: "empty", value: ""},
+		{name: "zero-width space", value: "ad\u200bmin@example.org"},
+		{name: "longer than 254 bytes", value: strings.Repeat("a", 64) + "@" + strings.Repeat("b", 63) + "." + strings.Repeat("c", 63) + "." + strings.Repeat("d", 63) + ".org"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseAdminAddress(tt.value)
-			if (err == nil) != tt.ok || got != tt.want {
-				t.Errorf("ParseAdminAddress(%q) = %q, %v, want %q, ok %v", tt.value, got, err, tt.want, tt.ok)
-			}
-
 			environ := append(slices.DeleteFunc(baseEnviron(), func(e string) bool {
 				return strings.HasPrefix(e, "DUBPLATE_ADMIN_EMAIL=")
 			}), "DUBPLATE_ADMIN_EMAIL="+tt.value)
-			cfg, loadErr := Load(environ, NewRegistry())
+			cfg, err := Load(environ, NewRegistry())
 			if tt.ok {
-				if loadErr != nil || cfg.AdminEmail != tt.want {
-					t.Errorf("Load AdminEmail = %q, %v, want %q", cfg.AdminEmail, loadErr, tt.want)
+				if err != nil || cfg.AdminAddress != tt.want {
+					t.Errorf("Load AdminAddress = %q, %v, want %q", cfg.AdminAddress, err, tt.want)
 				}
-			} else if loadErr == nil {
-				t.Errorf("Load accepted %q, want a refusal", tt.value)
+				return
+			}
+			var keyed *KeyError
+			if !errors.As(err, &keyed) || keyed.Key != "DUBPLATE_ADMIN_EMAIL" {
+				t.Fatalf("Load(%q) error = %v, want a KeyError on DUBPLATE_ADMIN_EMAIL", tt.value, err)
+			}
+			if !errors.Is(err, identity.ErrInvalidAddress) {
+				t.Errorf("Load(%q) error = %v, want it to wrap identity.ErrInvalidAddress", tt.value, err)
 			}
 		})
 	}

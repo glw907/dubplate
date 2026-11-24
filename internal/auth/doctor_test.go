@@ -79,7 +79,7 @@ func TestMembersRowStatus(t *testing.T) {
 	}
 }
 
-func TestAdminEmailRowStatus(t *testing.T) {
+func TestAdminAddressRowStatus(t *testing.T) {
 	const (
 		notMember = "warning: this address is not a live member; run dubplate-server member add <address> --admin, or set DUBPLATE_ADMIN_EMAIL to a live admin"
 		notAdmin  = "warning: this address is a live member without the admin flag; set DUBPLATE_ADMIN_EMAIL to a live admin"
@@ -108,8 +108,8 @@ func TestAdminEmailRowStatus(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := AdminEmailRowStatus(tt.wall, tt.report, tt.checked); got != tt.want {
-				t.Errorf("AdminEmailRowStatus() = %q, want %q", got, tt.want)
+			if got := AdminAddressRowStatus(tt.wall, tt.report, tt.checked); got != tt.want {
+				t.Errorf("AdminAddressRowStatus() = %q, want %q", got, tt.want)
 			}
 		})
 	}

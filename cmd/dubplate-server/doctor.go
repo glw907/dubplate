@@ -109,7 +109,7 @@ func (r *doctorReport) addRegistryRows(environ []string, reg *config.Registry, s
 	for _, row := range reg.OwnedWall() {
 		status := cmp.Or(statuses[row.Name], "ok")
 		if row.Name == adminEmailKey {
-			status = auth.AdminEmailRowStatus(status, storeReport, storeChecked)
+			status = auth.AdminAddressRowStatus(status, storeReport, storeChecked)
 		}
 		r.add(row.Name, status)
 	}

@@ -63,12 +63,13 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"net/mail"
 	"slices"
 	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/glw907/dubplate/internal/identity"
 )
 
 // ErrMissing marks a required wall row Load found unset. Load wraps it
@@ -126,11 +127,10 @@ type Config struct {
 	LibraryRoot string
 	StateDir    string
 	SiteName    string
-	// AdminEmail is DUBPLATE_ADMIN_EMAIL parsed as a single RFC 5322
-	// address and lowercased: adopters compare it, never display it,
-	// so the wall normalizes case at load time rather than leaving
-	// every caller to do it.
-	AdminEmail string
+	// AdminAddress is DUBPLATE_ADMIN_EMAIL in the login-address normal
+	// form [identity.NormalizeAddress] returns, the form the roster
+	// keys members by. Adopters compare it and never display it.
+	AdminAddress string
 
 	// IdentitySource is the Name of the identity source the selector
 	// selected. It is empty when the registry declares no source, and
@@ -251,31 +251,18 @@ func (w *wall) require(name string) string {
 	return v
 }
 
-// ParseAdminAddress parses v, the value of DUBPLATE_ADMIN_EMAIL, as a
-// single RFC 5322 address and returns the address portion lowercased,
-// the form the roster stores and [Config.AdminEmail] holds. A caller
-// that reads the key without [Load], as the doctor's store row does
-// when another key refuses, goes through it too, so no two readers can
-// differ on what the value names.
-func ParseAdminAddress(v string) (string, error) {
-	addr, err := mail.ParseAddress(v)
-	if err != nil {
-		return "", err
-	}
-	return strings.ToLower(addr.Address), nil
-}
-
-// requireEmail is [wall.require] for DUBPLATE_ADMIN_EMAIL: it parses
-// the value through [ParseAdminAddress], recording a parse error
-// against name when the value is set but not a valid address.
-func (w *wall) requireEmail(name string) string {
+// requireAddress is [wall.require] for DUBPLATE_ADMIN_EMAIL. It
+// normalizes the value through [identity.NormalizeAddress], the form
+// the roster keys members by, and records a refusal against name when
+// the value is set but is not a login address.
+func (w *wall) requireAddress(name string) string {
 	v := w.require(name)
 	if v == "" {
 		return ""
 	}
-	addr, err := ParseAdminAddress(v)
+	addr, err := identity.NormalizeAddress(v)
 	if err != nil {
-		w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("invalid email address %q", v)})
+		w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("invalid email address %q", v), Err: err})
 		return ""
 	}
 	return addr
@@ -459,7 +446,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 		LibraryRoot:  w.require("DUBPLATE_LIBRARY_ROOT"),
 		StateDir:     w.require("DUBPLATE_STATE_DIR"),
 		SiteName:     w.requireSiteName("DUBPLATE_SITE_NAME"),
-		AdminEmail:   w.requireEmail("DUBPLATE_ADMIN_EMAIL"),
+		AdminAddress: w.requireAddress("DUBPLATE_ADMIN_EMAIL"),
 		integrations: make(map[string]integrationResolution, len(reg.integrationClasses)),
 	}
 

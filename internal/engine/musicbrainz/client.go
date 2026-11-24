@@ -109,7 +109,7 @@ var sleep = sleepReal
 // and the identity is site-specific, so it belongs to internal/config
 // and reaches here through cmd/dubplate-server's composition
 // (dubplate-server/<version> ( <contact> ), on cmd/harness/capture.go's
-// own precedent, with the contact from Config.AdminEmail).
+// own precedent, with the contact from Config.AdminAddress).
 type ClientConfig struct {
 	BaseURL   string // empty means defaultBaseURL
 	UserAgent string // required

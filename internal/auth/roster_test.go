@@ -252,6 +252,12 @@ func TestValidateWriteCandidate_Fields(t *testing.T) {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("validateWriteCandidate() error = %v, want it to wrap %v", err, tt.wantErr)
 				}
+				// An address refusal carries the normalizer's
+				// sentinel too, so the roster and the config wall
+				// refuse one address for one reason.
+				if tt.wantErr == ErrInvalidMemberAddress && !errors.Is(err, identity.ErrInvalidAddress) {
+					t.Errorf("validateWriteCandidate() error = %v, want it to wrap identity.ErrInvalidAddress", err)
+				}
 				return
 			}
 			if err != nil {

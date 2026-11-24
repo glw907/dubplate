@@ -15,7 +15,7 @@ client-side pre-flight get first drafts.
 - Site name: enters through config (`Serve.SiteName`, new field per conductor ruling
   2026-09-01) and `/api/config`; "Wright Family Music Server" is this site's value,
   never a literal.
-- Admin contact: `Config.AdminEmail`; copy says "the admin", the page may show the
+- Admin contact: `Config.AdminAddress`; copy says "the admin", the page may show the
   address.
 - Cover art: optional; used when present, fetched by the pipeline otherwise
   (fetchart/embedart); non-audio files are never inspected by the gate.

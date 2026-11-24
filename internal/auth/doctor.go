@@ -31,7 +31,7 @@ const (
 	adminEmailNotAdmin  = "warning: this address is a live member without the admin flag; set " + adminEmailKey + " to a live admin"
 )
 
-// AdminEmailRowStatus renders the admin email row from the wall's own
+// AdminAddressRowStatus renders the admin email row from the wall's own
 // status and the report the store row read. The wall's status stands
 // unless it is "ok". An "ok" stays when the store cannot speak for the
 // roster (not checked, not vouched for, absent, older than the users
@@ -39,7 +39,7 @@ const (
 // row already fails. Otherwise the roster standing decides: a live
 // admin is "ok", and any other standing is a warning in the row's
 // status text, which never fails doctor.
-func AdminEmailRowStatus(wall string, r store.Report, checked bool) string {
+func AdminAddressRowStatus(wall string, r store.Report, checked bool) string {
 	switch {
 	case wall != "ok", !checked, !r.State.Vouches():
 		return wall

@@ -73,7 +73,9 @@ var (
 	ErrDuplicateUsername = errors.New("auth: duplicate username")
 
 	// ErrInvalidMemberAddress reports that a record's address does not
-	// normalize as a login address.
+	// normalize as a login address. A write's refusal wraps it beside
+	// [identity.ErrInvalidAddress], whose detail names the rule the
+	// address broke and never quotes the address.
 	ErrInvalidMemberAddress = errors.New("auth: address does not parse as a login address")
 
 	// ErrInvalidDisplayName reports that a record's display name
@@ -210,7 +212,7 @@ func normalizeMemberAddress(address string) (string, error) {
 func validateWriteCandidate(candidate Member) (Member, error) {
 	normalized, err := normalizeMemberAddress(candidate.Address)
 	if err != nil {
-		return Member{}, ErrInvalidMemberAddress
+		return Member{}, fmt.Errorf("%w: %w", ErrInvalidMemberAddress, err)
 	}
 	if displayNameCarriesRefusedRune(candidate.DisplayName) || len(candidate.DisplayName) > maxDisplayNameLength {
 		return Member{}, ErrInvalidDisplayName
