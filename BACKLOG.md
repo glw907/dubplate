@@ -68,38 +68,51 @@ now milestone `engine`.
 
 ## Open
 
-- [ ] #177 The option structs and probe the health-check move added take a zero value unguarded: a nil `Geteuid` panics in `StoreRowStatus` (`internal/auth/doctor.go:129`) and in `Install` (`internal/engine/matcher/unidecode/install.go:69`, `:83`), a nil `Client` reaches `Fetch` (`install.go:143`), a zero `FeaturesTimeout` is passed straight to `featuresStatus` (`internal/backup/doctor.go:69`), and `probeExchange` sets a connection deadline only when its context carries one (`internal/serve/doctor.go:317`), so a silent server hangs the probe otherwise. Each has one production caller that fills every field, so nothing fails today; decide with #170 whether a constructor or default refuses them. Found by `structure-doctor`'s readers (PR #25) #improvement #arch (2026-11-23)
-- [ ] #178 `member list` reads the roster on `cmd.Context()` with no deadline (`cmd/dubplate-server/member.go:210`) while it holds the store open in write mode, so a stalled read keeps the write handle and the operator's terminal until interrupted; only the open is bounded (`:202`). Bound the read as `add`, `remove` and `demote` are, or say why it is exempt. Found by `structure-doctor`'s readers (PR #25) #improvement #auth (2026-11-23)
+- [ ] #177 The option structs and probe the health-check move added take a zero value unguarded: a nil
+  `Client` reaches `Fetch` (`internal/engine/matcher/unidecode/install.go:143`), a zero `FeaturesTimeout` is
+  passed straight to `featuresStatus` (`internal/backup/doctor.go:69`), and `probeExchange` sets a connection
+  deadline only when its context carries one (`internal/serve/doctor.go:317`), so a silent server hangs the
+  probe otherwise. The nil `Geteuid` panics in `StoreRowStatus` and `Install` merge into the architecture read's
+  findings at `internal/auth/doctor.go` and `unidecode/install.go`. Each has one production caller that fills
+  every field; decide with #170 whether a constructor or default refuses them. Found by `structure-doctor`'s
+  readers (PR #25) #improvement #arch *(swept 2026-11-23)*
+- [ ] #178 `member list` reads the roster on `cmd.Context()` with no deadline (`cmd/dubplate-server/member.go:210`) while it holds the store open in write mode, so a stalled read keeps the write handle and the operator's terminal until interrupted; only the open is bounded (`:202`). Bound the read as `add`, `remove` and `demote` are, or say why it is exempt. Found by `structure-doctor`'s readers (PR #25) #improvement #auth (2026-11-23) *(swept 2026-11-23)*
 - [ ] #179 `doctor` prints "disabled" for an integration class whose flag fails to parse (`cmd/dubplate-server/doctor.go:75`): `class.Enabled`'s error is dropped, so a malformed value reads as an intentional off. Print the refusal, as the other rows do. Found by `structure-doctor`'s readers (PR #25) #improvement (2026-11-23)
 - [ ] #180 The setting rows echo the raw environment value of any setting (`cmd/dubplate-server/doctorrows.go:110-112`, `env %q not checked against the store`), including one marked `Sensitive`, which `settingTraits` only labels (`:119`). No registry setting is `Sensitive` today, so nothing leaks yet; the first one that is would print its secret to doctor's output and any log of it. Redact the value for a `Sensitive` setting. Found by `structure-doctor`'s readers (PR #25) #security (2026-11-23)
-- [ ] #181 A job handle's length and parse are restated: `handleLen` (`internal/ops/ops.go:94`) copies the length `internal/id` now owns, and `parseID` parses twice, through `ops.ParseHandle` and again with `id.Parse` (`internal/ops/local/jobs.go:373-376`). If `id`'s length changes, the refusal message names the old one. Have `ParseHandle` return the parsed id, or drop `handleLen`. Found by `structure-doctor`'s readers (PR #25) #improvement #arch (2026-11-23)
 - [ ] #182 The unidecode table checks follow symlinks and read without a size cap: `os.Stat` on the state directory and leaf (`internal/engine/matcher/unidecode/install.go:65`, `:74`) and `os.ReadFile` of the table (`doctor.go:17`, `install.go:90`, `:116`). A leaf that is a symlink passes the owner check against its target, and an oversized file is read whole into memory (the wheel download is capped at `fetch.go:39`, the file is not). Use `Lstat` and a limited read. Found by `structure-doctor`'s readers (PR #25) #security (2026-11-23)
 - [ ] #183 The backup remote row prints rclone's last stderr line as-is (`internal/backup/doctor.go:165`), and the unreachable-remote fallback prints the raw error (`:168`). An rclone error line can carry the remote's URL or an account name, and doctor's output is pasted into reports. Print a fixed phrase with the exit status, or scrub the line. Found by `structure-doctor`'s readers (PR #25) #security (2026-11-23)
 - [ ] #184 Two comments are stale after the health-check move: `openOperatorStore`'s doc says "both verbs" (`cmd/dubplate-server/member.go:51-57`) though `add`, `remove`, `demote`, `settings reset` and `list` now open the store through it or `withStore`, and `TestDoctorBoundaryProbe_EndToEnd` says "the shell newServeShell builds" (`cmd/dubplate-server/doctorrows_test.go:362`) though it calls `newServeShellVia` on a fixture tree. Found by `structure-doctor`'s readers (PR #25) #docs (2026-11-23)
-- [ ] #185 Hold excluded code to its adoption score, and fail on a new test-only export. Today a function on `.golangci.yml`'s 12 `gocognit` exclusions can grow more complex with no check noticing, and the `deadcode` warning leg (`scripts/check.sh`, "exported identifiers with no consumer", `CHECK_EXPORTED_UNUSED`) lets a new export that only tests reach land with a warning. Record each excluded function's score in a baseline file that a small script checks against `gocognit`, since golangci-lint has no per-function threshold. Make the warning leg fail, with today's findings (241 on 2026-11-23) listed as named exclusions that only shrink. That leg's warning status is a recorded rule, so it changes by a new record superseding the one that holds it. Changes no product behavior. Source: Geoff, 2026-11-23 ("Add both rules"), and the lean-project-pattern spec's task 2 ceiling rule #improvement #gate (2026-11-23)
-- [ ] #148 Restore-seal and intent hardening from `cleanup-store`'s reads (PR #14), none blocking. Before any deploy of this branch, check the box's store leaf for a restore-intent record, because the flat wire shape refuses an old nested one with `restore --resume` refusing it too (or bump `intentFormat` so the refusal names the cause). Pin `SealStage`'s call in `StageFile` with a test, since nothing fails if it is deleted. Make `Record` require a sealed stage, not only a verified one. `SealStage` chmods and opens the stage path before `verifyStage`'s `Lstat`, so lstat first or open with `O_NOFOLLOW`. Comment `RestoreIntent` as the on-disk wire. Refuse `into_nonempty` without `library_root`. #improvement #store *(swept 2026-11-20)*
-- [ ] #149 Lock and bounds tidy-ups from `cleanup-store`'s reads (PR #14), none blocking: document on `ServeOptions.MigrationWait` that zero waits on the context alone (`waitLock` with a zero bound is unbounded; `OpenWrite` now reports a context deadline over the busy error); make `checkBounds` parse the bounds under the kind the caller passes and have a `KindString` threshold with a `Floor` panic as a `Setting` does; and make `doctor.rowStatuses` report a leaf that is not a `KeyError` instead of skipping it. #improvement #config *(swept 2026-11-20)*
-- [ ] #150 No rendered row covers the server-settings page's refused, signed-out, or unreachable states: the members rows cover the shared `loadList` and `AdminPage` branches, and a non-admin settings row would pin the page's own `status` line. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16)
-- [ ] #151 No rendered row asserts focus on `#roster-outcome-text` after a refusal that names no field (members page), and no row aborts the interstitial's consume request, so its network-failure alert (now `alert-warning`) is unexercised. Found by `cleanup-web`'s planning and T1 review (PR #15) #test #web (2026-11-16)
-- [ ] #152 A throw in one rendered row (a locator timeout) kills the whole script, because the rows use `try/finally` with no catch: a mutation then shows as an aborted run with no per-row failures, so "these capture rows must fail" proofs cannot name rows. Catch per row and report it. Found by `cleanup-web`'s T2 and T4 mutation runs (PR #15) #test #web #gate (2026-11-16) *(swept 2026-11-22)*
-- [ ] #153 `TestRoutes_EveryPageHasAUniqueTitle` matches `<AdminPage title={...}>` only when `title` is the first prop and nothing asserts `AdminPage.svelte` itself renders a `<title>`; add that assertion. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16) *(swept 2026-11-22)*
+- [ ] #185 Fail on a new test-only export. The `deadcode` warning leg (`scripts/check.sh`, "exported
+  identifiers with no consumer", `CHECK_EXPORTED_UNUSED`) lets a new export that only tests reach land with a
+  warning. Make the leg fail, with today's findings listed as named exclusions that only shrink. That leg's
+  warning status is a recorded rule, so it changes by a new record superseding the one that holds it. Task 10 of
+  `docs/specs/2026-11-23-architecture-cleanup.md` folds it. Source: Geoff, 2026-11-23 and the
+  lean-project-pattern spec's task 2 ceiling rule #improvement #gate *(swept 2026-11-23)*
+- [ ] #148 Restore-seal and intent hardening from `cleanup-store`'s reads (PR #14), none blocking. Before any deploy of this branch, check the box's store leaf for a restore-intent record, because the flat wire shape refuses an old nested one with `restore --resume` refusing it too (or bump `intentFormat` so the refusal names the cause). Pin `SealStage`'s call in `StageFile` with a test, since nothing fails if it is deleted. Make `Record` require a sealed stage, not only a verified one. `SealStage` chmods and opens the stage path before `verifyStage`'s `Lstat`, so lstat first or open with `O_NOFOLLOW`. Comment `RestoreIntent` as the on-disk wire. Refuse `into_nonempty` without `library_root`. #improvement #store *(swept 2026-11-23)*
+- [ ] #149 Lock and bounds tidy-ups from `cleanup-store`'s reads (PR #14), none blocking: document on
+  `ServeOptions.MigrationWait` that zero waits on the context alone (`waitLock` with a zero bound is unbounded;
+  `OpenWrite` now reports a context deadline over the busy error); and make `doctor.rowStatuses` report a leaf
+  that is not a `KeyError` instead of skipping it. The `checkBounds` half merges into the architecture read's
+  finding at `internal/config/thresholds.go:102`. #improvement #config *(swept 2026-11-23)*
+- [ ] #150 No rendered row covers the server-settings page's refused, signed-out, or unreachable states: the members rows cover the shared `loadList` and `AdminPage` branches, and a non-admin settings row would pin the page's own `status` line. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16) *(swept 2026-11-23)*
+- [ ] #151 No rendered row asserts focus on `#roster-outcome-text` after a refusal that names no field (members page), and no row aborts the interstitial's consume request, so its network-failure alert (now `alert-warning`) is unexercised. Found by `cleanup-web`'s planning and T1 review (PR #15) #test #web (2026-11-16) *(swept 2026-11-23)*
+- [ ] #152 A throw in one rendered row (a locator timeout) kills the whole script, because the rows use `try/finally` with no catch: a mutation then shows as an aborted run with no per-row failures, so "these capture rows must fail" proofs cannot name rows. Catch per row and report it. Found by `cleanup-web`'s T2 and T4 mutation runs (PR #15) #test #web #gate (2026-11-16) *(swept 2026-11-23)*
+- [ ] #153 `TestRoutes_EveryPageHasAUniqueTitle` matches `<AdminPage title={...}>` only when `title` is the first prop and nothing asserts `AdminPage.svelte` itself renders a `<title>`; add that assertion. Found by `cleanup-web`'s T4 review (PR #15) #test #web (2026-11-16) *(swept 2026-11-23)*
 - [ ] #155 Admin page state after a write or a failed retry, from `cleanup-web`'s close reads (PR #15), none new in the pass: a refusal (`forbidden` or `unauthenticated`) on the post-write refresh leaves the roster or settings on screen in `ok` (the comment says so on purpose, so it needs a ruling); a write answering `signedOut` unmounts the focused control and announces nothing; the unreachable retry loses focus on success, can overlap with itself, and repeats an identical assertive text; the row Demote and Remove buttons carry no `aria-disabled` while a write is in flight; the loading state has no `h1`; field `aria-describedby` points at the whole alert rather than its text; and the sign-in link opens a new tab without saying so. All now have one place to fix: `AdminPage.svelte` and `WriteNotice.svelte`. #improvement #web #a11y #auth
-- [ ] #140 Doctor still prints "disabled (arrives at rung %d)" for a reserved class (`cmd/dubplate-server/doctor.go:88`, asserted at `doctor_test.go:163`), the phrase `cleanup-store` took out of the config refusal text. Reword both. Found by `cleanup-store` (PR #14) #improvement *(swept 2026-11-20)*
-- [ ] #141 Three restore-intent notes from `cleanup-store`'s T3 review: `into_nonempty` now validates without `library_root` (harmless today), no fixture refuses an old nested `source` record, and `swappedLeaf` copies only the library half. Add the fixture and decide the other two. Found by `cleanup-store` (PR #14) #test #store *(swept 2026-11-20)*
-- [ ] #142 `internal/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store *(swept 2026-11-22)*
-- [ ] #145 No test pins that `settings.parse` heals a stored non-finite float row (`internal/settings/evaluate.go:330` keeps `strconv.ParseFloat` on purpose): swapping it for `ThresholdKind.Parse` would refuse the row and nothing fails. Add a test that re-seeds a stored "Inf" row. Found by `cleanup-store`'s T7 review (PR #14) #test #settings *(swept 2026-11-20)*
+- [ ] #141 Three restore-intent notes from `cleanup-store`'s T3 review: `into_nonempty` now validates without `library_root` (harmless today), no fixture refuses an old nested `source` record, and `swappedLeaf` copies only the library half. Add the fixture and decide the other two. Found by `cleanup-store` (PR #14) #test #store *(swept 2026-11-23)*
+- [ ] #142 `internal/store` lock tests and constants still carry the old shape: the `TestAcquireShared_*`, `TestAcquireExclusive_*`, and `TestAcquireSharedNonblocking_*` names refer to removed functions, and `holdersLogInterval` and `holdersLogMsg` sit in `open.go` though only `lock.go` uses them. Rename and move. Found by `cleanup-store`'s T4 (PR #14) #improvement #store *(swept 2026-11-23)*
+- [ ] #145 No test pins that `settings.parse` heals a stored non-finite float row (`internal/settings/evaluate.go:330` keeps `strconv.ParseFloat` on purpose): swapping it for `ThresholdKind.Parse` would refuse the row and nothing fails. Add a test that re-seeds a stored "Inf" row. Found by `cleanup-store`'s T7 review (PR #14) #test #settings *(swept 2026-11-23)*
 - [ ] #146 Two `StateRestoreInProgress` "unreadable" refusals still format their cause with `%v` (`internal/store/intent.go:174`, `restore.go:189`); `cleanup-store` covered `StateRefused` only. Move them to `%w` after reading the same three handlers. Found by `cleanup-store`'s T10 (PR #14) #improvement #store *(swept 2026-11-20)*
-- [ ] #137 The rendered fixture leaks credentials to local processes and test output (all pre-existing, loopback and run-length only). `cmd/dubplate-server/rendered_test.go:352-375` logs every request's query and headers, so `?t=<link token>` and the admin `Cookie` sit in a log that `logSrv` (`:881`) serves unauthenticated on 127.0.0.1; the mint and roster-reset servers (`:661-691`, `:915-918`) are unauthenticated too; a Playwright navigation error quotes the `?t=` URL into `t.Errorf` and the `go test` JSON events file (`:942`, `Makefile:150`); and `internal/auth/token.go:143-183` verifies a link by MAC and expiry only, so a server configured with the fixture secret literal (`check_test.go:174`) accepts fixture links. Redact `Cookie` and `t` from logged records, and have `check` or `serve` refuse the fixture secret. Found by `cleanup-gate`'s security read (PR #13) #improvement #infra (2026-11-16) *(swept 2026-11-20)*
+- [ ] #137 The rendered fixture leaks credentials to local processes and test output (all pre-existing, loopback and run-length only). `cmd/dubplate-server/rendered_test.go:352-375` logs every request's query and headers, so `?t=<link token>` and the admin `Cookie` sit in a log that `logSrv` (`:881`) serves unauthenticated on 127.0.0.1; the mint and roster-reset servers (`:661-691`, `:915-918`) are unauthenticated too; a Playwright navigation error quotes the `?t=` URL into `t.Errorf` and the `go test` JSON events file (`:942`, `Makefile:150`); and `internal/auth/token.go:143-183` verifies a link by MAC and expiry only, so a server configured with the fixture secret literal (`check_test.go:174`) accepts fixture links. Redact `Cookie` and `t` from logged records, and have `check` or `serve` refuse the fixture secret. Found by `cleanup-gate`'s security read (PR #13) #improvement #infra (2026-11-16) *(swept 2026-11-23)*
 - [ ] #135 The Vale leg reads no Go comment. `.vale.ini` has no `Grammars = go` and nothing runs `vale sync`, so `scripts/vale-comments.sh` prints `W101 grammar "go" is not installed` and then `vale-comments: clean` over an em dash in a Go comment (Vale 3.27.0, the CI pin too). With `Grammars = go` and a sync, a scratch config flags `Survey.EmDash` on `//` and `/* */` comments. Add the grammar to `.vale.ini`, sync it in `check.yml` and the gate, ignore `.vale/styles/config/`, and fail `vale-comments.sh` on W101; weigh pinning the downloaded wasm. Found by `cleanup-gate`'s T6 plant (PR #13) #bug #infra (2026-11-16) *(swept 2026-11-22)*
 - [ ] #130 Take TypeScript 7.0.2 (held at 6.0.3). Geoff ruled it into the structure round's sweep, 2026-11-20, but both peer ranges exclude 7 that day: `svelte-check` 4.7.8 declares `typescript: ^5.0.0 || ^6.0.0`, and `@sveltejs/kit` 3.4.0 declares the optional peer `typescript: ^6.0.0`. Unblock: a `svelte-check` and a `@sveltejs/kit` release whose peer ranges admit 7 #improvement #infra #milestone:structure (2026-11-16) *(swept 2026-11-22)*
-- [ ] #132 Recompile `tools/venv/requirements.txt` for its other newer pins (confuse 2.3.1, jellyfish 1.3.0, lap 0.5.14, numpy 2.5.5, platformdirs 4.14.5, pyrate-limiter 4.5.1). jellyfish is a minor that beets uses for matching, so the bump re-runs `make derive` and checks the oracle goldens. The certifi pin is #175. #improvement #infra (2026-11-16) *(swept 2026-11-22)*
-
+- [ ] #132 Recompile `tools/venv/requirements.txt` for its other newer pins (confuse 2.3.1, jellyfish 1.3.0, lap 0.5.14, numpy 2.5.5, platformdirs 4.14.5, pyrate-limiter 4.5.1). jellyfish is a minor that beets uses for matching, so the bump re-runs `make derive` and checks the oracle goldens. The certifi pin is #175. #improvement #infra (2026-11-16) *(swept 2026-11-23)*
 
 - [ ] #2 Clear the two stale `musicbox-ping-failure@` failed units on the box
   (`systemctl reset-failed`; cosmetic, pre-fix 404 era; box write needs
   sanction) #infra *(swept 2026-11-22)*
 - [ ] #8 tus-js-client 5.0 watch item: `web/package.json` pins 4.3.1. Record the 5.0 upgrade verdict at the intake
-  round's uploader pass, under the dependency-upgrade sweep. #upload #milestone:intake *(swept 2026-11-16)*
+  round's uploader pass, under the dependency-upgrade sweep. #upload #milestone:intake *(swept 2026-11-23)*
 - [ ] #10 provision.sh refuses to run (even `--check`) when
   `FIREWALL_SSH_CIDRS` is unset, but the SSH allowlist was DECLINED
   2026-08-31 (no stable workstation IP), so a fresh provision is impossible
@@ -114,34 +127,34 @@ now milestone `engine`.
   (`internal/auth/token.go:181`; the link page's client hook already strips the
   fragment). Changes the link contract the mail, the page, and consumption share.
   The runbook mitigation (drop the query from the access log) landed in 5d-ii.
-  From UNI-5d L1, 2026-10-05 #security *(swept 2026-11-20)*
+  From UNI-5d L1, 2026-10-05 #security *(swept 2026-11-23)*
 - [ ] #14 Align `web/package.json`'s `engines` (`>=22.17`) with the Makefile's web
   target, which refuses a Node major below 24; the runbook follows the Makefile.
-  From 5d-ii Task 9A, 2026-10-05 #infra *(swept 2026-11-22)*
+  From 5d-ii Task 9A, 2026-10-05 #infra *(swept 2026-11-23)*
 - [ ] #15 `serve`'s direct-mode warning (`warnForwardedFromLocalPeer`, `internal/serve/serve.go:174`, comment at
   `:156`) fires on `doctor`'s own boundary probe, whose request (`internal/serve/probe.go:32-52`) carries every group 2
   header, so a healthy doctor makes serve log a false alarm. Have the warning skip requests carrying `probeSentinel`,
-  or skip the probe route. #bug *(swept 2026-11-20)*
+  or skip the probe route. #bug *(swept 2026-11-23)*
 - [ ] #16 A username may equal another member's address. The roster refuses a username another row holds
   (`internal/auth/roster.go:465-471`, `ErrDuplicateUsername`), and `usernamePattern` (`:38`) admits `@`, but nothing
   refuses a username equal to another member's address, so an audit row can read as that address. Refuse the collision
-  on write and at load, with the `duplicate_principal` code (#48). #security #milestone:playback *(swept 2026-11-20)*
+  on write and at load, with the `duplicate_principal` code (#48). #security #milestone:playback *(swept 2026-11-23)*
 - [ ] #18 The rendered gate reaches the add-member username field only through `duplicate_username`
   (`web/scripts/rendered/run.ts`); the client-side pattern refusal is never exercised. Add a row. Found by the
-  navidrome-removal close, 2026-10-06 #web *(swept 2026-11-15)*
+  navidrome-removal close, 2026-10-06 #web *(swept 2026-11-23)*
 - [ ] #20 No rendered row asserts the autofill-ignore attributes (`autocomplete=off`, `data-1p-ignore`,
   `data-lpignore`) on the add-member Address and Username fields. Add one assertion. Found by the
-  navidrome-removal close, 2026-10-06 #web *(swept 2026-11-15)*
+  navidrome-removal close, 2026-10-06 #web *(swept 2026-11-23)*
 - [ ] #24 `auth.RunSweep` (`internal/auth/nonce.go:132`) logs a failed sweep's `err.Error()`, which can wrap a
   setting read's text; give it the `SettingError` fixed-reason treatment 6d gave the gate and handlers. Found by the
   6d segment C fold, 2026-10-07 #auth *(swept 2026-11-20)*
 - [ ] #28 xmllint 21504 reports a validity error one line too high once the projected document passes line 65535
   (checked with 65536- and 65540-element stdin documents), so `internal/harness/subsonic/xmlrule/check.go`'s
   line-to-ordinal lookup can name the wrong element on a very large body. Guard the size or correct the offset before
-  a large recorded session enters the corpus. Found by slice 2b Task 3's review, 2026-10-07 #harness *(swept 2026-11-16)*
+  a large recorded session enters the corpus. Found by slice 2b Task 3's review, 2026-10-07 #harness *(swept 2026-11-23)*
 - [ ] #31 `stack.Start` should verify the oracle image pin and store the result on the `Oracle`: `harness oracle-up`
   never checks the pin today, and `record-oracle` repeats `Start`'s close-on-failure by hand. Found by slice 2b's
-  architecture read of `stack`, 2026-10-10 #harness #arch *(swept 2026-11-16)*
+  architecture read of `stack`, 2026-10-10 #harness #arch *(swept 2026-11-23)*
 - [ ] #32 `fixture`'s `checkPath` misses a file path that is a directory prefix of another (`a/x.flac` and
   `a/x.flac/y.flac`): `Load` accepts the manifest and `Build` then fails at `MkdirAll`. Refuse it at load. Found by
   slice 2b's architecture read of `fixture`, 2026-10-10 #harness *(swept 2026-11-16)*
@@ -174,37 +187,39 @@ now milestone `engine`.
   for them wait for a later recording. Carried from slice 2a, 2026-10-07 #harness #milestone:playback *(swept 2026-11-16)*
 - [ ] #46 Streamer slice 5 takes the owed ledger row L-17. Carried from the alignment pass, 2026-10-11 #streamer
   #milestone:playback *(swept 2026-11-16)*
-- [ ] #47 Streamer slice 6 (the revoke verb and app passwords): the store spec's criteria 7 and 8 (the dual-key
-  epoch, R-6d20), the `auth` review's minor finding 14, and the store spec's erratum row 10. `EpochStore.Bump` is
-  called today only by `Roster.revoke` (`internal/auth/roster.go:632`, on remove and demote). Slice 6 weighs whether
-  the revoke verb or app passwords need the address key at all. #auth #milestone:playback *(swept 2026-11-20)*
+- [ ] #47 Streamer slice 6 (the revoke verb and app passwords): the store spec's criteria 7 and 8 (the
+  dual-key epoch, R-6d20), the `auth` review's minor finding 14, and the store spec's erratum row 10.
+  `EpochStore.Bump` is called today only by `Roster.revoke` (`internal/auth/roster.go:637`, on remove and
+  demote). Slice 6 weighs whether the revoke verb or app passwords need the address key at all; if a revoke
+  notice is wanted it lands with its subscriber (architecture read, `serve` P-table). #auth #milestone:playback
+  *(swept 2026-11-23)*
 - [ ] #48 Streamer slice 6, the member side: the streamer-admin mapping; the `duplicate_principal` code for a username
   equal to another member's address (#16; username-to-username uniqueness already holds at
   `internal/auth/roster.go:465-471`); offboarding deprovision; and CSP scope and shared-origin M2. #streamer
-  #milestone:playback *(swept 2026-11-16)*
+  #milestone:playback *(swept 2026-11-23)*
 - [ ] #49 Streamer slice 7 covers the streamer database in a restore. Carried from the alignment pass, 2026-10-11
   #streamer #milestone:queue *(swept 2026-11-16)*
 - [ ] #50 Streamer slice 8 takes group 2 in trailers, `CAP_NET_BIND_SERVICE`, and command naming. Carried from the
   alignment pass, 2026-10-11 #streamer #milestone:queue *(swept 2026-11-16)*
 - [ ] #52 `serve`'s job runner, its instance lease, and job recovery go to the first pass whose page starts a job
   over HTTP (`admin-api` spec `:638`). `admin-api-1` is not that pass: its mount answers the three job operations
-  `unavailable`. Carried from the `admin-api` spec fold, 2026-10-10 #ops #milestone:catalog *(swept 2026-11-20)*
+  `unavailable`. Carried from the `admin-api` spec fold, 2026-10-10 #ops #milestone:catalog *(swept 2026-11-23)*
 - [ ] #54 The bearer bypass stays on purpose, and no route registers one yet. Its first consumer (the OpenSubsonic
   API or the bearer admin mount) owes a shell-level cookie test proving a bypassed route never reads the session
   cookie. Carried from the Navidrome removal pass, 2026-10-06 #auth #milestone:playback #milestone:catalog *(swept 2026-11-20)*
-- [ ] #57 Web carries for `intake-3`, from the `auth` string-deck pass (the intake spec's 7c section points here):
-  Ruling 5's four items; W12.4's remaining rules; W4.10's 44px promotion; both palettes' placeholder opacity; the
-  outline, dash, and status-ghost text fix (DaisyUI's `--btn-rest-fg` and `--btn-color`), with a text-contrast row
-  covering `.btn-dash`; the three latent items from the theme and component-layer pass (the ink border over the outline hover fill,
-  a wrapped `<label class="input">` in a status alert, and root-absolute's second `srcset` pattern
-  (`web/scripts/gates/root-absolute.ts:35`), which flags a base64 data URI (`,/9j/`) as root-absolute: skip `data:`
-  candidates, which absorbs #36);
-  the favicon paths, now in `internal/webapp/static.go:108-117` (the favicon loop) and `internal/webapp/document.go:74-75`
-  (the icons list); the styled 404 with the admin gate's refusal through
-  the same handler, under a `web-auth-security-reviewer` read, and the error page's onward link (a11y S9); the toggle
-  following a later OS scheme change under `system` (a11y S11); a Continue link on the signed-in interstitial and the
-  header wordmark's target (N1); the masked "Sign in as a***@" line (security L4); and the phone gutter `clamp()`
-  with the interstitials' identity lockup. Carried from the alignment pass, 2026-10-11 #web #milestone:intake *(swept 2026-11-20)*
+- [ ] #57 Web carries for `intake-3`, from the `auth` string-deck pass (the intake spec's 7c section points
+  here): Ruling 5's four items; W12.4's remaining rules; W4.10's 44px promotion; both palettes' placeholder
+  opacity; the outline, dash, and status-ghost text fix (DaisyUI's `--btn-rest-fg` and `--btn-color`), with a
+  text-contrast row covering `.btn-dash`; the three latent items from the theme and component-layer pass (the
+  ink border over the outline hover fill, a wrapped `<label class="input">` in a status alert, and
+  root-absolute's second `srcset` pattern (`web/scripts/gates/root-absolute.ts:35`), which flags a base64 data
+  URI (`,/9j/`) as root-absolute: skip `data:` candidates, which absorbs #36); the styled 404 with the admin
+  gate's refusal through the same handler, under a `web-auth-security-reviewer` read, and the error page's
+  onward link (a11y S9); a Continue link on the signed-in interstitial and the header wordmark's target (N1);
+  the masked "Sign in as a***@" line (security L4); and the phone gutter `clamp()` with the interstitials'
+  identity lockup. The favicon lists and the scheme-change toggle merge into the architecture read's findings at
+  the `webapp` icons table and `SiteHeader.svelte:46`. Carried from the alignment pass, 2026-10-11 #web
+  #milestone:intake *(swept 2026-11-23)*
 - [ ] #58 The uploader takes the theme and component-layer pass's S13 and a11y S7: picked images live at stable paths. Carried from
   the alignment pass, 2026-10-11 #web #milestone:intake *(swept 2026-11-16)*
 - [ ] #60 The library's queries: filter, facets, and trigram search. Each is built by the round that first shows it:
@@ -216,17 +231,15 @@ now milestone `engine`.
 - [ ] #63 UNI-L2's failure-alert hook for the unidecode table install. Carried from the alignment pass,
   2026-10-11 #infra (see #98) #initiative:dubplate-server *(swept 2026-11-20)*
 - [ ] #64 The photo checks: the `tools/photos/check.test.mjs` failures (2 of 121, both assume an empty `photos/`, so no gate runs it) and the
-  photo integrity leg's read of `photos/` from disk, not `git ls-files`, stay open. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server *(swept 2026-11-22)*
+  photo integrity leg's read of `photos/` from disk, not `git ls-files`, stay open. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server *(swept 2026-11-23)*
 - [ ] #65 Photo licensing follow-ups: a source-URL recheck of the pool, and a blob-retention call for withdrawn
   images. Carried from the alignment pass, 2026-10-11 #photos (see #99) #initiative:dubplate-server *(swept 2026-11-20)*
-- [ ] #66 The architecture cleanup: the routed findings in `docs/research/*-architecture-reads.md`
-  the ROUTE items in
-  `research/2026-09-27-translit-architecture-reads.md` (the three `TestMain` shim copies in `matcher`, `tag`, and
-  `conform`, and the four copies of the owner and leaf checks, which stay because merging them changes refusal
-  sentences; #124 takes its doctor items); #24; the string-deck pass's five stale-comment nits; the roster outcome classes,
-  which no independent oracle cross-checks; and the login title argument and W6's h1 fallback, which have no
-  rendered proof. The coverage read's 103 coverage gaps ride along, none blocking. Carried from the alignment pass,
-  2026-10-11 #arch *(swept 2026-11-20)*
+- [ ] #66 The architecture cleanup residue: the string-deck pass's five stale-comment nits; the roster outcome
+  classes, which no independent oracle cross-checks; and the login title argument and W6's h1 fallback, which
+  have no rendered proof. The coverage read's 103 coverage gaps ride along, none blocking. The shim copies
+  (`LoadCachedTable`) and the owner and leaf copies merge into the 2026-11-23 architecture read's findings at
+  `unidecodetest.go:15` and `unidecode/install.go:204`; #24 and #124 are their own items. Carried from the
+  alignment pass, 2026-10-11 #arch *(swept 2026-11-23)*
 - [ ] #68 provision.sh: compute the allowed CIDRs once at top level so errexit applies. Today an all-blank `FIREWALL_SSH_CIDRS` falls through to jq's failure (`ssh_cidrs_json`, `scripts/provision.sh:130`), and `hcloud firewall create` may get an empty rules file. A behavior change. Found by the alignment pass, PR #2 #onboarding *(swept 2026-11-22)*
 - [ ] #83 `intake-2`'s copy read owes the redrafts `intake-1` recorded and did not write. PCF (`passb-copy-final.md`):
   the retry line (`:124-126`) for owner ruling 7; the three Navidrome strings (`:105`, `:143-145`, `:160-161`);
@@ -239,7 +252,7 @@ now milestone `engine`.
   they already have gets no help,
   `could-not-check`'s "Try again" against the retry path, the "{n} tracks are {label}" alert template that reads
   badly with several labels, and the three `API_DETAILS` lines `intake-1` T10 drafted in `web/src/lib/copy/deck.ts`
-  (`store_url`, `extra`, `manifest`). Found by the `intake-1` pass, 2026-10-12 #milestone:intake #copy *(swept 2026-11-15)*
+  (`store_url`, `extra`, `manifest`). Found by the `intake-1` pass, 2026-10-12 #milestone:intake #copy *(swept 2026-11-23)*
 - [ ] #84 `intake-2`'s planner carries these `intake-1` left out by design: AC 11's two client halves (a dropped
   response ending in the client's success, a lost 201 ending in an upload through `uploadUrl`); AC 23's two race
   clauses through `matching` and `route_unlisted`; AC 26's `route_unlisted` column and its `pushed-back` and
@@ -247,7 +260,7 @@ now milestone `engine`.
   (a passing album waits in `matching` with no exit until the probe lands, so `intake-1` must not deploy before
   `intake-2`); `RequireMember`, the page gate, which is not yet written and lands with the uploader page; the album's
   route at create, and the separate tracks' entered artist and title (`entered_artist`, `entered_title` are NULL),
-  which land with the form. Found by the `intake-1` pass, 2026-10-12 #milestone:intake *(swept 2026-11-20)*
+  which land with the form. Found by the `intake-1` pass, 2026-10-12 #milestone:intake *(swept 2026-11-23)*
 - [ ] #85 `intake-3` carries the visual identity spec's records the intake spec moved: the catalog line's format
   (VI:243-244), and the list view, filtering, album page, and phone layouts in "Open for rung 7" (VI:370-391), which
   move to the web pass after rung 9; and the sitting rules' two items. #milestone:intake *(swept 2026-11-16)*
@@ -263,22 +276,23 @@ now milestone `engine`.
   unbounded `source_note`, manifest work under the store write lock before the `MaxFiles` check, create and cancel
   without a rate limit (the session cap counts only `uploading`), concurrent creates of one file truncating the
   member's own upload, and an authorize-versus-tusd-lock race that lets one PATCH write after a cancel (bounded,
-  swept). Found by the `intake-1` pass, 2026-10-12 #milestone:intake #security *(swept 2026-11-20)*
-- [ ] #88 `intake-2` cleanups from PR #6's triage: neither `TestLayering` (`internal/intake/seam_test.go:719`,
-  `internal/webapp/layering_test.go:13`) is in `UNCACHED_TESTS` (`Makefile:22`), though both shell out to `go list`;
-  event reasons bypass `reasonReader`; `Limits` (`seam.go:24`) and `limits` (`limits.go:21`) are twin structs; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` flaked once (its rename is
-  #142); and `sweepNonces` (`cmd/dubplate-server/serve.go:457`) is never joined at teardown. The boundary-probe hang is
-  #144. #milestone:intake #test *(swept 2026-11-23)*
+  swept). Found by the `intake-1` pass, 2026-10-12 #milestone:intake #security *(swept 2026-11-23)*
+- [ ] #88 `intake-2` cleanups from PR #6's triage: `Limits` (`seam.go:24`) and `limits` (`limits.go:21`) are
+  twin structs; `TestAcquireSharedNonblocking_HeldExclusiveNamesOwnPid` flaked once (its rename is #142); and
+  `sweepNonces` (`cmd/dubplate-server/serve.go:457`) is never joined at teardown. The `TestLayering` pair and
+  the event-reason bypass of `reasonReader` merge into the architecture read's findings at
+  `internal/harness/conform/arch_test.go:1` and `internal/intake/seam.go:244`. The boundary-probe hang is #144.
+  #milestone:intake #test *(swept 2026-11-23)*
 - [ ] #89 The deploy pass owes, from PR #6's triage (items 9 and 14): confirm the legacy `/srv/music/staging` (the
   musicbox estate's, 2000:2000) is empty or absent before the first deploy, since the first sweep cleans anything in
   it as rowless; narrow `/srv/music` in the serve unit's `ReadWritePaths` with `ReadOnlyPaths` or `InaccessiblePaths`
   for the `music` user's home and legacy directories; `install -d` re-applies owner and mode to an existing library
   root; the state-dir leg's `deploy.sh` check is a substring `grep` (a commented-out line passes); `backup`,
   `restore`, and `member` apply only the lexical staging-versus-library check, and staging is never checked against
-  `DUBPLATE_STATE_DIR`. Found by the `intake-1` pass, 2026-10-12 #ops #milestone:launch *(swept 2026-11-20)*
+  `DUBPLATE_STATE_DIR`. Found by the `intake-1` pass, 2026-10-12 #ops #milestone:launch *(swept 2026-11-23)*
 - [ ] #90 The route collections' owner is the earliest live admin at creation and is never reassigned, so a demoted
   former admin keeps ownership of "Library" and "Unlisted music"; `admin-api-2` decides what ownership grants and
-  whether it follows the roster. The choice lives in `auth.EarliestAdmin` (`internal/auth/reads.go`). Found by the `intake-1` pass, 2026-10-12 #milestone:catalog *(swept 2026-11-20)*
+  whether it follows the roster. The choice lives in `auth.EarliestAdmin` (`internal/auth/reads.go`). Found by the `intake-1` pass, 2026-10-12 #milestone:catalog *(swept 2026-11-23)*
 - [ ] #91 `pipeline` carries two from PR #6's triage: `already-in-library` can tell an uploader that an album exists in
   a private collection (dedup scope, or a neutral wording); and an album's extras are unchecked bytes of any extension,
   so the rung that first serves extras must set `Content-Type` and `nosniff` or allowlist them by extension. Found by
@@ -290,33 +304,33 @@ now milestone `engine`.
   `DUBPLATE_INTAKE_MAX_ALBUM_BYTES`, `..._MAX_PICTURE_BYTES`, `..._MAX_TAG_BYTES`, and `..._CHECK_WORKERS` become
   Sensitive (a mark joins only by a ruling); and whether the sign-in endpoint's `DUBPLATE_UNKNOWN_ADDRESS_ANSWER`
   default moves from `kind` to `generic`, since `kind` tells an outsider which addresses are members. Found by the
-  `intake-1` pass, 2026-10-12 #milestone:intake #security *(swept 2026-11-20)*
+  `intake-1` pass, 2026-10-12 #milestone:intake #security *(swept 2026-11-23)*
 - [ ] #72 `label.css` and `label-night.css` set no `--size-field`, though the visual identity spec's "Component
-  layer" says every theme block sets it. Found by the alignment pass, PR #2 #web *(swept 2026-11-15)*
-- [ ] #73 Doc corrections: the `internal/serve/serve.go:66-67` typo ("is answers 404"), and the visual identity
-  spec's "Copy" section, which still carries the old note about W's section 19. Found by the alignment pass, PR #2 *(swept 2026-11-20)*
+  layer" says every theme block sets it. Found by the alignment pass, PR #2 #web *(swept 2026-11-23)*
+- [ ] #73 Doc corrections: the `internal/serve/serve.go:64-68` typo ("is answers 404"), and the visual
+  identity spec's "Copy" section, which still carries the old note about W's section 19. Found by the alignment
+  pass, PR #2 *(swept 2026-11-23)*
 - [ ] #74 The member cap on every add channel (PS:128-151, acceptance row A1; ruling 4's default of 20): one check in
   the roster's add path, `member add` and `add_member` both, the bootstrap never refused, an over-cap roster loaded
   with a `doctor` row. The pass that builds it edits PS:145-147 in place: no command-line set verb exists, and
   `admin-api-1`'s notice rule sends no notice for the seed rule or the command line. The `admin-api-1` plan moved it
-  here (its P12), 2026-10-11 #auth #milestone:catalog *(swept 2026-11-20)*
+  here (its P12), 2026-10-11 #auth #milestone:catalog *(swept 2026-11-23)*
 - [ ] #75 Removing or demoting an admin sends no notice mail; the spec scopes the notice to sensitive settings, and
   the security read carried it over. From PR #4, 2026-10-12 #auth #milestone:catalog *(swept 2026-11-15)*
 - [ ] #76 After a restore, an epoch lost with the auth leaf revives a removed member. The runbook's "After a restore"
   step covers it by process until a code fix. From PR #4, 2026-10-12 #auth *(swept 2026-11-15)*
-- [ ] #77 `api request admitted` is logged before the method and path checks, so an unknown operation logs as
-  admitted. Take it in a log pass. From PR #4, 2026-10-12 #ops *(swept 2026-11-20)*
 - [ ] #79 On a long settings page a successful save shows its alert far from the field; a per-row outcome is a
-  redesign. From PR #4, 2026-10-12 #web *(swept 2026-11-15)*
+  redesign. From PR #4, 2026-10-12 #web *(swept 2026-11-23)*
 - [ ] #80 The settings page's per-row Save buttons are outline until the row's field is dirty, and solid red only on a
   row with an unsaved change (Geoff, 2026-10-11; the visual identity spec reserves solid red for the primary action).
-  From PR #4, 2026-10-12 #web *(swept 2026-11-15)*
+  From PR #4, 2026-10-12 #web *(swept 2026-11-23)*
 - [ ] #81 The members list marks the signed-in admin's row "(you)" and refuses self-removal; another admin removes
   you (Geoff, 2026-10-11). Today removing yourself signs you out mid-page. From PR #4, 2026-10-12 #auth
-  #milestone:catalog *(swept 2026-11-15)*
-- [ ] #82 Accessibility suggestions the `admin-api-1` close did not take: description ids on the setting inputs, a
-  short heading naming the confirm modal, a loading indicator, empty-list lines, a new-tab warning on "Sign in again",
-  and human labels beside the environment names. From PR #4, 2026-10-12 #web *(swept 2026-11-15)*
+  #milestone:catalog *(swept 2026-11-23)*
+- [ ] #82 Accessibility suggestions the `admin-api-1` close did not take: description ids on the setting
+  inputs, a short heading naming the confirm modal, a loading indicator, empty-list lines, and human labels
+  beside the environment names. The new-tab warning on "Sign in again" merges into the architecture read's
+  finding at `WriteNotice.svelte:35`. From PR #4, 2026-10-12 #web *(swept 2026-11-23)*
 - [ ] #103 Offer a local snapshot command for host backups (`dubplate-server snapshot --to DIR`)
   The media server backs up `/var/lib/dubplate` nightly with restic. Today it stops dubplate for a few
   seconds, copies `auth` and `store` with rsync, and restarts it, because the store cannot be copied while
@@ -332,99 +346,73 @@ now milestone `engine`.
 - [ ] #120 The residue of `cleanup-web` (PR #15): W4's page scaffolding in the login, interstitial, and error route
   files, and W5's unused component-layer rules in `components.css` (`web/scripts/gates/g1.ts` documents them as the
   one route to a status colour). The admin shell, the single `fetch` site, the button sizes, and the state and token
-  nits landed. Findings W4 and W5, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #web #milestone:launch
-- [ ] #121 The ops seam, residue after `cleanup-ops`: the admit order, the four removed operations, and the audit
-  actor landed. Still open: the merge of the mount and the handler beyond the order, `Code` as the `errors.Is`
-  target, and O5's merge of the actor types. Findings O1, O4, and O5,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #ops #arch *(swept 2026-11-20)*
-- [ ] #123 `auth` and `serve` trims, residue after `cleanup-ops` and the health-check move: `statusCapture` and the
-  job runner's backup hook are gone. Still open: surface ahead of a caller, the doubled request check, hand-rolled
-  stdlib, and the rest of the smaller items. Findings O3, O8, O9, and O14,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-22)*
-- [ ] #124 Move library code out of `cmd/dubplate-server`, residue after the health-check move: the web surface,
-  every setting, the probes, and the table install logic have left the command folder. Still open: one cobra
-  wiring shape for the commands, and the verbs that read the store's wait setting again with
-  `store.BusyTimeout(environ)` after `loadConfig` (`grep -rn 'store.BusyTimeout(environ)' --include=*.go cmd`,
-  leaving out tests). Takes #66's doctor items. Findings O11 and O13,
-  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-22)*
+  nits landed. Findings W4 and W5, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #web #milestone:launch *(swept 2026-11-23)*
+- [ ] #124 Move library code out of `cmd/dubplate-server`, residue after the health-check move: one cobra
+  wiring shape for the commands. The `store.BusyTimeout(environ)` rereads merge into the architecture read's
+  finding at `cmd/dubplate-server/backup.go:63`. Takes #66's doctor items. Findings O11 and O13,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch *(swept 2026-11-23)*
 - [ ] #125 `cmd` and ops test bloat, the test cuts left after `cleanup-ops`: `TestRegisterAuthConfig_Settings`
-  (`cmd/dubplate-server/auth_test.go:502`), `TestRegisterStoreConfig` (`store_test.go:488`),
+  (`cmd/dubplate-server/auth_test.go:279`), `TestRegisterStoreConfig` (`internal/store/config_test.go:74`),
   `TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass` (`serve_test.go:127`),
-  `TestIntakeGroupQuotaDocSaysZeroMeansNoCap` and `TestIntakeFormatAllowlistThreshold` (`intake_test.go:360`, `:372`),
-  the finished-migration tests at `auth_test.go:87` and `intake_test.go:53`, `TestRenderTemplate`
-  (`templatekeys_test.go:194`), and `TestCodes` (`internal/ops/errors_test.go:142`), a literal pin that
-  `opshttp/document_test.go:395-400` already covers through `ops.Codes()`. Round `engine` took the other half of
-  this item (PR #17): the process-citation leg gates and the `internal/config` comments are cleared. Findings
-  O15 and O16, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test *(swept 2026-11-20)*
-- [ ] #156 Process tags in the guarded packages, and `webapp` exports only tests use. Round `engine` (PR #17) cleared
-  the engine and harness tags and added a wide citation pattern that skips `cmd/dubplate-server`,
-  `internal/serve`, `internal/auth`, and `internal/intake`, which held 53 matching lines on 2026-11-16. Clearing
-  them lets the skip go. The health-check move cleared the three in `cmd/dubplate-server/backup.go`. Known sites:
-  "(review m5)" at `internal/auth/config.go:99` and `:110` (moved there by `structure-keys`, PR #19, and left as
-  written), "(spec:938-944)" at `internal/serve/serve.go:296` and `serve_test.go:74`, "R20" and "R-M" at
-  `internal/serve/server_test.go:132`, `:227`, and `freebind_other.go:11`, and "R-5cii12" at
-  `cmd/dubplate-server/web_test.go:253` and `:460`. `webapp.StylesheetHrefs` and `ThemeCookieName` have only `cmd`
-  test callers outside `internal/webapp`, and `DocumentCSP` one doc link more. Found by `cleanup-ops` T5 and T6,
-  2026-11-16 #arch #test *(swept 2026-11-22)*
+  `TestIntakeGroupQuotaDocSaysZeroMeansNoCap` and `TestIntakeFormatAllowlistThreshold` (`intake_test.go:351`,
+  `:363`), the finished-migration tests `TestRegisterAuthConfig_RetiresAuthAndIdentityReservedClass`
+  (`auth_test.go:85`) and `TestRegisterIntakeConfig_RetiresTheIntakeClass` (`intake_test.go:50`),
+  `TestRenderTemplate` (`templatekeys_test.go:191`), and `TestCodes` (`internal/ops/errors_test.go:142`), a
+  literal pin that `opshttp/document_test.go:389-396` already covers through `ops.Codes()`. Findings O15 and
+  O16, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #test *(swept 2026-11-23)*
+- [ ] #156 Process tags in the guarded packages. Round `engine` (PR #17) cleared the engine and harness tags
+  and added a wide citation pattern that skips `cmd/dubplate-server`, `internal/serve`, `internal/auth`, and
+  `internal/intake`, which held 53 matching lines on 2026-11-16. Clearing them lets the skip go. Known sites:
+  "(review m5)" at `internal/auth/config.go:99` and `:110`, "(spec:938-944)" at `internal/serve/serve.go:296`
+  and `serve_test.go:74`, "R20" and "R-M" at `internal/serve/server_test.go:132`, `:227`, and
+  `freebind_other.go:11`, and "R-5cii12" at `cmd/dubplate-server/web_test.go:253` and `:460`. The `webapp`
+  exports merge into the architecture read's findings at `internal/webapp/csp.go:63` and
+  `internal/webapp/document.go:391`. Found by `cleanup-ops` T5 and T6, 2026-11-16 #arch #test *(swept
+  2026-11-23)*
 - [ ] #158 Should `doctor` refuse an over-broad trusted-proxy range? The roster audit's `client_ip` follows the
   trusted-proxy policy, so a range that trusts too many hosts lets an admin write the wrong address into the audit
   log. Raised by the `cleanup-ops` security read, filed on Geoff's pick in the round's close packet, 2026-11-17
-  #auth #ops *(swept 2026-11-20)*
-- [ ] #159 Metering and transliteration were cut from the engine until a caller needs them. The MusicBrainz client
-  has no request pacing since `engine` deleted the limiter (the public service wants about one request a second), and
-  `matcher.SetTransliterator` has no production caller. `intake`'s match probe is the first pass to call both: decide
-  the pacing there, and wire the Unidecode table through `SetTransliterator`. Found by `engine` (PR #17), 2026-11-17
-  #arch #milestone:intake
-- [ ] #160 `internal/harness/conform/arch_test.go` holds the layering tests for the engine, the server, and the
-  harness in one file. Split it by what each test guards. Left alone by `engine` (PR #17), 2026-11-17 #arch #test
+  #auth #ops *(swept 2026-11-23)*
+- [ ] #159 Metering was cut from the engine until a caller needs it. The MusicBrainz client has no request
+  pacing since `engine` deleted the limiter (the public service wants about one request a second). `intake`'s
+  match probe is the first pass to call it: decide the pacing there. Wiring the Unidecode table merges into the
+  architecture read's finding at `internal/engine/matcher/translit.go:13`. Found by `engine` (PR #17),
+  2026-11-17 #arch #milestone:intake *(swept 2026-11-23)*
 - [ ] #161 The `internal/harness/oracle` scaffold (`album_info.go`, `component.go`, `defect_free.go` beside their
   `_derive_test.go` files and three `derive_*.py` shims) was left alone by `engine`. Read the review's finding on it
-  before cutting. Found by `engine` (PR #17), 2026-11-17 #harness #arch
+  before cutting. Found by `engine` (PR #17), 2026-11-17 #harness #arch *(swept 2026-11-23)*
 - [ ] #162 `corpus/README.md:42-46` and `:2013` still describe `Case.Extra`, which `engine` removed. Rewrite both
   paragraphs. Found by `engine` (PR #17), 2026-11-17 #harness #docs
 - [ ] #163 Two weak tests no acceptance item named: `internal/harness/conform/defaults_test.go:156` and
-  `internal/engine/tagio/conform_test.go:347-490`. Tighten or delete. Found by `engine` (PR #17), 2026-11-17 #test
+  `internal/engine/tagio/conform_test.go:347-490`. Tighten or delete. Found by `engine` (PR #17), 2026-11-17 #test *(swept 2026-11-23)*
 - [ ] #164 Reword the two `ungradedReason` strings in `gradeCaseDefault` (`internal/harness/conform/case.go`)
   to drop "Resolution R1" and "rung-3", and cite `matcher/penalty.go:338` for `conform/component.go:380`'s
   anchoring claim or drop "as beets anchors it". Found by `engine` (PR #17), 2026-11-17
   #harness *(swept 2026-11-23)*
-- [ ] #165 The `matcher` read's larger findings, left for a pass that touches the matcher's API: a typed `Consensus`
-  struct in place of the likelies map, a typed option for the tunables that still take strings, deleting
-  `QuietImportTunables` (test callers only), and unexporting `SDPatternsNoBracketDiscount`. Found by `engine`
-  (PR #17), 2026-11-17 #arch
-- [ ] #166 The `tagio` second read (`sound with nits`): `Container` has no method that projects it to a `TagSet`, so
-  the gate opens one upload three times and parses it twice, the second time with no bounds (`gate/file.go:100,
-  109, 167`); add `Container.Tags()` and read from the bounded parse. `Write` reopens the file by name to copy the
-  audio, so one handle should span the parse and the copy. `parse` and `readContainer` repeat one open, signature,
-  stat, and walk sequence. `parse` wraps a plain I/O error from `readSignature` as `ErrUnsupportedContainer`, which
-  the gate then classes as a bad extension. `vorbisField` and `pictureField` differ only in byte order and error
-  label. `encodePicture` writes a negative `Type` unchecked, and `write.go:203` reports an oversized caller picture
-  as `ErrMalformedContainer` inside the write callback after `Write`'s doc promised refusals come first.
-  `Block.Length` and `Block.Last` restate other fields, but the dump tests read them. `write_test.go` takes its
-  padding and vendor expectations from the package's own constants. `Container.frontCover` exists only in a test
-  file. Found by `engine` (PR #17), 2026-11-17 #arch
-- [ ] #167 The `musicbrainz` second read (`sound with nits`): thirteen wire types (`Alias`, `CreditPart`, `Artist`,
-  `ReleaseEvent`, `Area`, `LabelInfo`, `Label`, `ReleaseGroup`, `Medium`, `Track`, `Recording`, `Relation`,
-  `RelationTarget`) are exported though nothing outside the package names them, and `AlbumSearch.Query` and `.Limit`
-  have no outside reader. `buildTrack` searches the aliases twice, `credit.go` inlines `keyWithPreferredAlias`, and
-  the `credits` struct only carries an artist id. `AlbumForID` repeats its fetch-then-translate pair, and the
-  `retryAfter == ""` branch is redundant. `doc.go`'s third paragraph and several rebuttal paragraphs describe test
-  process, not behavior, and the comment density reads 0.68 against `net/http/cookiejar`'s 0.35. Found by `engine`
-  (PR #17), 2026-11-17 #arch
-- [ ] #168 Process tags remain in test comments, which the citation leg does not scan: `conform/case_test.go:144`,
-  `:307`, `:318-322`, `:379`; the "rung 8" strings at `tagio/conform_test.go:355` and `:358`; the comment at
-  `internal/engine/tag/tag_test.go:88`, which names `DistanceForAlbum`; `adjudication_test.go:356` and `:360`, which
-  spell "BeetsSDPatterns"; and `config/registry_test.go:217`. Decide whether the leg should scan tests. Found by `engine` (PR #17), 2026-11-17
-  #test #gate
+- [ ] #166 The `tagio` second read, residue: `Write` reopens the file by name to copy the audio, so one handle
+  should span the parse and the copy; `encodePicture` writes a negative `Type` unchecked, and `write.go:203`
+  reports an oversized caller picture as `ErrMalformedContainer` inside the write callback after `Write`'s doc
+  promised refusals come first; `write_test.go` takes its padding and vendor expectations from the package's own
+  constants. The rest merges into the architecture read's findings at `internal/engine/tagio/read.go:15`,
+  `container.go:147`, `container.go:193`, `container.go:59`, `picture.go:111`, and
+  `internal/harness/subsonic/fixture/manifest.go:25`. Found by `engine` (PR #17), 2026-11-17 #arch *(swept
+  2026-11-23)*
+- [ ] #168 Decide whether the process-citation leg should scan tests. Remaining unnamed sites:
+  `internal/engine/tagio/conform_test.go:355` and `:358`, `internal/engine/tag/tag_test.go:88`,
+  `internal/harness/analysis/adjudication_test.go:356` and `:360`. The `config` and `conform` test tags merge
+  into the architecture read's findings at `internal/config/thresholds_test.go:145` and
+  `internal/harness/conform/component.go:19`. Found by `engine` (PR #17), 2026-11-17 #test #gate *(swept
+  2026-11-23)*
 - [ ] #170 The "must not be nil" function fields are unenforced: `intake.New` (`EarliestAdmin`), `local.New` and
   `backup.Job.validate` (`Now`) panic on first use when a caller leaves one nil. Every caller sets them and the
-  convention matches the existing `Now` fields. Decide whether a constructor refuses a nil. `structure-base` (PR #18) kept them as is. Found by `structure-base` (PR #18), 2026-11-20 #improvement
+  convention matches the existing `Now` fields. Decide whether a constructor refuses a nil. `structure-base` (PR #18) kept them as is. Found by `structure-base` (PR #18), 2026-11-20 #improvement *(swept 2026-11-23)*
 - [ ] #171 `auth.EarliestAdmin` refuses an admin id that is not 16 bytes, where the base inserted whatever bytes it
   read. `users.id` has no length CHECK, so only a bad writer reaches it, and no test covers it. Kept, since the
   `id.ID` scan needs 16 bytes. Add a test, or a CHECK in a later migration. Found by `structure-base` (PR #18),
-  2026-11-20 #improvement #auth
-- [ ] #126 `intake-2` also takes the gate's double parse, prefix-duplicate names, and three intake collapses. Findings
-  I1 to I3, `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #milestone:intake *(swept 2026-11-20)*
+  2026-11-20 #improvement #auth *(swept 2026-11-23)*
+- [ ] #126 `intake-2` also takes prefix-duplicate names and three intake collapses. The gate's double parse
+  merges into the architecture read's finding at `internal/engine/tagio/read.go:15`. Findings I1 to I3,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #milestone:intake *(swept 2026-11-23)*
 - [ ] #174 A full backlog sweep is still due: 96 open items carry no sweep stamp. The 2026-11-22 sweep covered
   the 20 items that bear on development friction. Run `standards:backlog-sweep` over the rest, oldest first, 40 per
   run, and apply its verdicts. Found by the reshape's scoped sweep #improvement #process (2026-11-22) *(swept 2026-11-22)*
@@ -433,7 +421,7 @@ now milestone `engine`.
   `os.Environ()` to child verbs (`cmd/dubplate-server/backup_test.go:81`, `restore_test.go:38`,
   `internal/backup/job_test.go:907`, `internal/ops/local/process_test.go:135`). `scripts/check.sh` unsets every
   such name since 2026-11-23, so the gate no longer passes them. Have each of those tests build its child's
-  environment from the names it sets. Found by the 2026-11-22 sweep #test #security (2026-11-22) *(swept 2026-11-22)*
+  environment from the names it sets. Found by the 2026-11-22 sweep #test #security (2026-11-22) *(swept 2026-11-23)*
 
 ## Later
 
@@ -532,7 +520,7 @@ before it lands. The entry text below is carried over verbatim from ROADMAP.md a
       rewritten before the repo goes public is the same lawyer's question (the fresh scrubbed
       repo planned at 0.8 may answer it).
     - The transliterator holder is process-wide, installed once by the main package. A published
-      matcher library should weigh passing the seam explicitly instead. #initiative:dubplate-server *(swept 2026-11-20)*
+      matcher library should weigh passing the seam explicitly instead. #initiative:dubplate-server *(swept 2026-11-23)*
 - [ ] #98 Packaging (`packaging`). Make the estate easy for a stranger to set up from its ingredients (beets
   or its harvested successor, the binaries, their Cloudflare account, any
   VPS). Opens with a brainstorm; context staged in agent memory (distribution
@@ -601,6 +589,32 @@ Standing rulings. A sweep skips this section, and only Geoff reopens an entry, b
 
 ## Done
 
+- [x] #77 `api request admitted` is logged before the method and path checks, so an unknown operation logs as
+  admitted. Take it in a log pass. From PR #4, 2026-10-12 #ops: done: `internal/ops/opshttp/opshttp.go:215-217` (`cleanup-ops`) *(2026-11-23)*
+- [x] #121 The ops seam, residue after `cleanup-ops`: the admit order, the four removed operations, and the audit
+  actor landed. Still open: the merge of the mount and the handler beyond the order, `Code` as the `errors.Is`
+  target, and O5's merge of the actor types. Findings O1, O4, and O5,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #ops #arch: duplicate of the 2026-11-23 architecture read's findings in `docs/specs/2026-11-23-architecture-cleanup/server-access.md` (`internal/ops/ops.go:1`, `internal/ops/opshttp/authorize.go:19`) and task 1's `Actor` merge *(2026-11-23)*
+- [x] #123 `auth` and `serve` trims, residue after `cleanup-ops` and the health-check move: `statusCapture` and the
+  job runner's backup hook are gone. Still open: surface ahead of a caller, the doubled request check, hand-rolled
+  stdlib, and the rest of the smaller items. Findings O3, O8, O9, and O14,
+  `docs/research/2026-11-10-whole-repo-review.md`, 2026-11-10 #arch: duplicate of the 2026-11-23 architecture read's `auth` and `serve` findings in `docs/specs/2026-11-23-architecture-cleanup/server-access.md` *(2026-11-23)*
+- [x] #140 Doctor still prints "disabled (arrives at rung %d)" for a reserved class (`cmd/dubplate-server/doctor.go:88`, asserted at `doctor_test.go:163`), the phrase `cleanup-store` took out of the config refusal text. Reword both. Found by `cleanup-store` (PR #14) #improvement: duplicate of the 2026-11-23 architecture read's "Rung" in operator output finding (`cmd/dubplate-server/doctor.go:71`), in `docs/specs/2026-11-23-architecture-cleanup/server-boundaries.md` *(2026-11-23)*
+- [x] #160 `internal/harness/conform/arch_test.go` holds the layering tests for the engine, the server, and the
+  harness in one file. Split it by what each test guards. Left alone by `engine` (PR #17), 2026-11-17 #arch #test: duplicate of the 2026-11-23 architecture read's "Import rules enforced six ways" finding (`internal/harness/conform/arch_test.go:1`), in `docs/specs/2026-11-23-architecture-cleanup/harness-shape.md` *(2026-11-23)*
+- [x] #165 The `matcher` read's larger findings, left for a pass that touches the matcher's API: a typed `Consensus`
+  struct in place of the likelies map, a typed option for the tunables that still take strings, deleting
+  `QuietImportTunables` (test callers only), and unexporting `SDPatternsNoBracketDiscount`. Found by `engine`
+  (PR #17), 2026-11-17 #arch: duplicate of the 2026-11-23 architecture read's `matcher` findings (`likelies.go:45`, `tunables.go:336`, `tunables.go:358`), in `docs/specs/2026-11-23-architecture-cleanup/engine.md` *(2026-11-23)*
+- [x] #167 The `musicbrainz` second read (`sound with nits`): thirteen wire types (`Alias`, `CreditPart`, `Artist`,
+  `ReleaseEvent`, `Area`, `LabelInfo`, `Label`, `ReleaseGroup`, `Medium`, `Track`, `Recording`, `Relation`,
+  `RelationTarget`) are exported though nothing outside the package names them, and `AlbumSearch.Query` and `.Limit`
+  have no outside reader. `buildTrack` searches the aliases twice, `credit.go` inlines `keyWithPreferredAlias`, and
+  the `credits` struct only carries an artist id. `AlbumForID` repeats its fetch-then-translate pair, and the
+  `retryAfter == ""` branch is redundant. `doc.go`'s third paragraph and several rebuttal paragraphs describe test
+  process, not behavior, and the comment density reads 0.68 against `net/http/cookiejar`'s 0.35. Found by `engine`
+  (PR #17), 2026-11-17 #arch: duplicate of the 2026-11-23 architecture read's `musicbrainz` findings (`release.go:42`, `query.go:45`, `release.go:15`), in `docs/specs/2026-11-23-architecture-cleanup/engine.md` *(2026-11-23)*
+- [x] #181 A job handle's length and parse are restated: `handleLen` (`internal/ops/ops.go:94`) copies the length `internal/id` now owns, and `parseID` parses twice, through `ops.ParseHandle` and again with `id.Parse` (`internal/ops/local/jobs.go:373-376`). If `id`'s length changes, the refusal message names the old one. Have `ParseHandle` return the parsed id, or drop `handleLen`. Found by `structure-doctor`'s readers (PR #25) #improvement #arch (2026-11-23): duplicate of the wire-contract task's done item 5 (`parseID` and `handleOf` go), `docs/specs/2026-11-23-architecture-cleanup.md` *(2026-11-23)*
 - [x] #173 Restart the `structure` milestone's third piece, `structure-doctor`: write a spec under
   `building-from-specs`, scoped from `structure-doctor-planner-prompt.txt` in
   `~/Projects/initiatives/dubplate-server/plans/2026-11-17-structure/`. The spec carries #123, #124, #143,
