@@ -164,6 +164,27 @@ func TestGate_AnchorInsideTheWindowCommits(t *testing.T) {
 	}
 }
 
+// TestGate_RefusesACommandLineActor proves each gated call refuses an
+// actor from the command line as forbidden and writes nothing. The
+// roster treats such an actor as the box operator and skips its admin
+// check, so the service must never hand one through.
+func TestGate_RefusesACommandLineActor(t *testing.T) {
+	for _, c := range gatedCalls {
+		t.Run(c.name, func(t *testing.T) {
+			f := newFixture(t)
+			if c.prep != nil {
+				c.prep(t, f)
+			}
+			before := snapshot(t, f.h)
+			err := c.call(writeCtx(t), f, identity.LocalActor("glw907"))
+			wantCode(t, err, ops.CodeForbidden, "")
+			if after := snapshot(t, f.h); after != before {
+				t.Errorf("a refused call wrote:\nbefore:\n%s\nafter:\n%s", before, after)
+			}
+		})
+	}
+}
+
 // TestGate_StaleSessionMakesANonSensitiveWrite proves the gate holds
 // only what it names: a stale session's non-sensitive set and reset
 // commit.

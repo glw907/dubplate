@@ -80,8 +80,13 @@ func New(cfg Config) *Service {
 // in force before now. A refresh never moves the anchor, so staying
 // signed in never renews it, and a local actor's zero anchor is never
 // fresh. A window that cannot be read refuses the call rather than
-// falling back to a default.
+// falling back to a default. It first refuses any actor off the cookie
+// channel, since the roster treats a command-line actor as the box
+// operator and skips its admin check.
 func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error {
+	if actor.Channel() != identity.ChannelCookie {
+		return ops.NewForbiddenError("this change needs a member's session")
+	}
 	window, err := s.cfg.Window(ctx)
 	if err != nil {
 		return fmt.Errorf("read the re-authentication window: %w", err)
