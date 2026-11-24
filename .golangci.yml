@@ -61,10 +61,6 @@ linters:
       # Functions over the complexity bar when the check was adopted.
       # This list only shrinks: a function leaves it when it is
       # refactored, and no new function joins it.
-      - path: ^internal/harness/analysis/album_info\.go$
-        linters:
-          - gocognit
-        text: func `CheckAlbumInfoLedger`
       - path: ^internal/harness/conform/case\.go$
         linters:
           - gocognit

@@ -165,22 +165,45 @@ func CheckAlbumInfoLedger(cases map[string]*cassette.Case, l *AlbumInfoLedger) e
 		errs = append(errs, fmt.Errorf("album info ledger: %d rows, want at least %d", len(l.Rows), AlbumInfoLedgerRowFloor))
 	}
 
-	wantSubjects := make(map[string]bool, len(AlbumInfoSubjects))
+	wantSubjects, subjectErrs := albumInfoSubjectSet()
+	errs = append(errs, subjectErrs...)
+
+	// The tally counts each case's rows per release mbid, so check 4
+	// can report both a row naming a lookup the case never made and a
+	// lookup no row covers, and check 6 can insist a pseudo case's
+	// merged block sits on exactly one of its rows.
+	rowsByCase, mergedByCase, rowErrs := tallyLedgerRows(cases, l.Rows, wantSubjects)
+	errs = append(errs, rowErrs...)
+	errs = append(errs, checkSubjectLookups(cases, rowsByCase)...)
+	errs = append(errs, checkMergedBlocks(mergedByCase)...)
+
+	return errors.Join(errs...)
+}
+
+// albumInfoSubjectSet returns the case ids AlbumInfoSubjects names, and
+// an error for each subject that carries no rationale.
+func albumInfoSubjectSet() (map[string]bool, []error) {
+	var errs []error
+	want := make(map[string]bool, len(AlbumInfoSubjects))
 	for _, s := range AlbumInfoSubjects {
 		if s.Why == "" {
 			errs = append(errs, fmt.Errorf("album info ledger: subject %q carries no rationale", s.CaseID))
 		}
-		wantSubjects[s.CaseID] = true
+		want[s.CaseID] = true
 	}
+	return want, errs
+}
 
-	// rowsByCase counts each case's rows per release mbid, so check 4
-	// can report both a row naming a lookup the case never made and a
-	// lookup no row covers, and check 6 can insist a pseudo case's
-	// merged block sits on exactly one of its rows.
-	rowsByCase := make(map[string]map[string]int, len(l.Rows))
-	mergedByCase := make(map[string]int, len(l.Rows))
-
-	for i, row := range l.Rows {
+// tallyLedgerRows counts, for each subject case, its rows per release
+// mbid and its rows that carry a merged block. It reports a row whose
+// case is not committed or not a subject, which it leaves out of both
+// counts, and a row whose release is not a lookup in its case's request
+// log, which it counts.
+func tallyLedgerRows(cases map[string]*cassette.Case, rows []AlbumInfoLedgerRow, wantSubjects map[string]bool) (map[string]map[string]int, map[string]int, []error) {
+	var errs []error
+	rowsByCase := make(map[string]map[string]int, len(rows))
+	mergedByCase := make(map[string]int, len(rows))
+	for i, row := range rows {
 		c, ok := cases[row.CaseID]
 		if !ok {
 			errs = append(errs, fmt.Errorf("album info ledger: rows[%d]: case %q is not a committed corpus case", i, row.CaseID))
@@ -201,7 +224,14 @@ func CheckAlbumInfoLedger(cases map[string]*cassette.Case, l *AlbumInfoLedger) e
 			errs = append(errs, fmt.Errorf("album info ledger: %s: release %q is not a release lookup in the case's own request log", row.CaseID, row.ReleaseMBID))
 		}
 	}
+	return rowsByCase, mergedByCase, errs
+}
 
+// checkSubjectLookups reports each subject that is not a committed
+// case or has no rows, and each release lookup in a subject's request
+// log that rowsByCase does not count exactly once.
+func checkSubjectLookups(cases map[string]*cassette.Case, rowsByCase map[string]map[string]int) []error {
+	var errs []error
 	for _, s := range AlbumInfoSubjects {
 		c, ok := cases[s.CaseID]
 		if !ok {
@@ -223,7 +253,14 @@ func CheckAlbumInfoLedger(cases map[string]*cassette.Case, l *AlbumInfoLedger) e
 			}
 		}
 	}
+	return errs
+}
 
+// checkMergedBlocks reports each subject whose count of merged rows is
+// not one when AlbumInfoPseudoSubjects names it, or not zero when it
+// does not.
+func checkMergedBlocks(mergedByCase map[string]int) []error {
+	var errs []error
 	for _, s := range AlbumInfoSubjects {
 		merged := mergedByCase[s.CaseID]
 		if slices.Contains(AlbumInfoPseudoSubjects, s.CaseID) {
@@ -236,8 +273,7 @@ func CheckAlbumInfoLedger(cases map[string]*cassette.Case, l *AlbumInfoLedger) e
 			errs = append(errs, fmt.Errorf("album info ledger: %s: %d rows carry a merged block, want none: the case is not named in AlbumInfoPseudoSubjects", s.CaseID, merged))
 		}
 	}
-
-	return errors.Join(errs...)
+	return errs
 }
 
 // releaseLookups returns the release mbids c's own request log fetches
