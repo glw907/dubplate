@@ -285,7 +285,7 @@ func TestReset(t *testing.T) {
 			wantBump:  true,
 		},
 		{
-			name:      "a sensitive admin row names the mark",
+			name:      "a sensitive admin row names its sensitivity",
 			fixture:   []fixtureRow{adminRow(keySensitive, "7", "")},
 			key:       keySensitive,
 			wantRes:   Result{Written: true, Source: SourceDefault, Value: "5", Previous: "7", Apply: config.ApplyImmediately, Sensitive: true},

@@ -50,7 +50,7 @@ func fullRegistry() *config.Registry {
 
 // TestListSettings_EveryKeyNoEnvironmentValue proves list_settings
 // answers every registered key with its home, description, apply mode,
-// and mark; a store-homed key also with its stored value, source, and
+// and sensitivity; a store-homed key also with its stored value, source, and
 // seed; and that no value only the environment holds reaches the
 // answer (AC9's content half).
 func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
@@ -81,8 +81,8 @@ func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
 	}
 
 	str := func(s string) *string { return &s }
-	env := func(name, description, mark string) ops.SettingEntry {
-		return ops.SettingEntry{Key: name, Home: "environment", Description: description, Apply: "restart", Sensitivity: mark}
+	env := func(name, description, sensitivity string) ops.SettingEntry {
+		return ops.SettingEntry{Key: name, Home: "environment", Description: description, Apply: "restart", Sensitivity: sensitivity}
 	}
 	want := []ops.SettingEntry{
 		{Key: keyLifetime, Home: "store", Description: "how long a test session lasts", Apply: "next_operation", Sensitivity: "sensitive",
@@ -93,7 +93,7 @@ func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
 			Value: str("5"), Source: str("default")},
 	}
 	for _, row := range reg.OwnedWall() {
-		want = append(want, env(row.Key, row.Description, markName(row.Sensitivity)))
+		want = append(want, env(row.Key, row.Description, sensitivityName(row.Sensitivity)))
 	}
 	want = append(want,
 		env("DUBPLATE_TEST_SECRET", "the test secret", "sensitive"),
@@ -146,9 +146,9 @@ func TestListSettings_EnvironmentSetKeys(t *testing.T) {
 	}
 }
 
-// markName is the wire form of a mark, written out by hand.
-func markName(m config.Sensitivity) string {
-	if m == config.Sensitive {
+// sensitivityName is the wire form of a sensitivity, written out by hand.
+func sensitivityName(s config.Sensitivity) string {
+	if s == config.Sensitive {
 		return "sensitive"
 	}
 	return "not_sensitive"

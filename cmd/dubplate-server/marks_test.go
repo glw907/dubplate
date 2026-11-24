@@ -48,7 +48,7 @@ func TestProductionRegistry_StoreHomedSensitiveSet(t *testing.T) {
 			got = append(got, s.Key)
 		case config.NotSensitive:
 		default:
-			t.Errorf("%s: mark = %v, want a named mark", s.Key, s.Sensitivity)
+			t.Errorf("%s: sensitivity = %v, want a named sensitivity", s.Key, s.Sensitivity)
 		}
 		if strings.TrimSpace(s.Description) == "" {
 			t.Errorf("%s: no description", s.Key)
@@ -60,10 +60,10 @@ func TestProductionRegistry_StoreHomedSensitiveSet(t *testing.T) {
 	}
 }
 
-// envOnlyMarks pins the mark of every key only the environment sets,
-// which changes only at a restart: Sensitive marks a path, an address,
+// envOnlySensitivity pins the sensitivity of every key only the
+// environment sets, which changes only at a restart: Sensitive marks a path, an address,
 // a credential, or a trust boundary, a change that needs care.
-var envOnlyMarks = map[string]config.Sensitivity{
+var envOnlySensitivity = map[string]config.Sensitivity{
 	"DUBPLATE_LIBRARY_ROOT":               config.Sensitive,
 	"DUBPLATE_STAGING_DIR":                config.Sensitive,
 	"DUBPLATE_STATE_DIR":                  config.Sensitive,
@@ -101,8 +101,8 @@ func TestProductionRegistry_EnvironmentOnlyKeysCarryTheirMarks(t *testing.T) {
 	reg := newProductionRegistry()
 	got := make(map[string]config.Sensitivity)
 	described := make(map[string]string)
-	add := func(name, description string, mark config.Sensitivity) {
-		got[name] = mark
+	add := func(name, description string, sensitivity config.Sensitivity) {
+		got[name] = sensitivity
 		described[name] = description
 	}
 	for _, row := range reg.OwnedWall() {
@@ -121,13 +121,13 @@ func TestProductionRegistry_EnvironmentOnlyKeysCarryTheirMarks(t *testing.T) {
 			add(k.Key, k.Description, k.Sensitivity)
 		}
 	}
-	if !maps.Equal(got, envOnlyMarks) {
-		for name, mark := range got {
-			if want, ok := envOnlyMarks[name]; !ok || want != mark {
-				t.Errorf("%s: mark = %v, pinned %v (pinned: %v)", name, mark, want, ok)
+	if !maps.Equal(got, envOnlySensitivity) {
+		for name, sensitivity := range got {
+			if want, ok := envOnlySensitivity[name]; !ok || want != sensitivity {
+				t.Errorf("%s: sensitivity = %v, pinned %v (pinned: %v)", name, sensitivity, want, ok)
 			}
 		}
-		for name := range envOnlyMarks {
+		for name := range envOnlySensitivity {
 			if _, ok := got[name]; !ok {
 				t.Errorf("%s: pinned but not registered", name)
 			}
