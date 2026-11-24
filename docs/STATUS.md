@@ -33,9 +33,9 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 The architecture cleanup spec, `docs/specs/2026-11-23-architecture-cleanup.md`, is approved (Geoff, 2026-11-23).
 It turns the 49-reader read at `docs/research/2026-11-23-architecture-read.md` into a chain of ten tasks, run
 before `intake-2`. Workstation PR #275 (merge tiers) and PR #27 have merged and `~/.dotfiles` is pulled, so
-task 1 builds from `master`. To start the chain, read `/usage`, then follow the spec's "Launching the chain": a
-background session from this checkout on Sonnet at medium, running that section's `/loop 15m` line. Geoff answers
-Merge or Send back there.
+task 1 builds from `master`. The chain runs in the session Geoff talks to, from this checkout, by
+building-from-specs "Chains": that session arms the spec's `/loop 15m` line and asks him Merge or Send back. A second
+session in this checkout makes `claude-worktree-busy` refuse every launch.
 
 `intake-2` takes #159 after the chain's last task, `web`, merges.
 PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
