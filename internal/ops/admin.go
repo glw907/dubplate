@@ -7,9 +7,9 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 )
 
-// A Member is one roster entry as the admin operations carry it. UserID
-// is the member's durable id, the name a remove or demote request
-// addresses the member by.
+// A Member is one of the group's members as the admin operations carry
+// it. UserID is the member's durable id, the name a remove or demote
+// request addresses the member by.
 type Member struct {
 	UserID      id.ID  `json:"user_id"`
 	Address     string `json:"address"`
@@ -18,7 +18,7 @@ type Member struct {
 	Admin       bool   `json:"admin"`
 }
 
-// A ListMembersRequest lists the live roster. It carries no fields.
+// A ListMembersRequest lists the live members. It carries no fields.
 type ListMembersRequest struct{}
 
 // A ListMembersResponse carries the live members [Admin.ListMembers]
@@ -129,7 +129,7 @@ const (
 // sentinels when it cannot answer. Each call is admin only; the authorizing layer
 // enforces it before any method runs.
 type Admin interface {
-	// ListMembers lists the live roster.
+	// ListMembers lists the live members.
 	ListMembers(ctx context.Context, actor identity.Actor, req ListMembersRequest) (ListMembersResponse, error)
 
 	// AddMember adds a member without the admin flag, or reactivates a

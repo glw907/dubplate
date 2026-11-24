@@ -109,7 +109,7 @@ paths:
   /list_settings:
     post:
       operationId: list_settings
-      summary: List every registered setting with its description, apply mode, and mark.
+      summary: List every registered setting with its description, apply mode, and sensitivity.
       description: >-
         Every store-homed key also carries its value and source: the default
         when the store holds no row, and the environment's value when the

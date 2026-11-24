@@ -124,6 +124,7 @@ func TestServeHTTPRefusesAMalformedID(t *testing.T) {
 	for _, field := range []struct{ op, key string }{
 		{ops.OpGetSubmission, "submission_id"},
 		{ops.OpRemoveMember, "user_id"},
+		{ops.OpDemoteMember, "user_id"},
 	} {
 		for _, bad := range []string{
 			"",
