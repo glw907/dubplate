@@ -326,68 +326,94 @@ func findPath(c [][]float64, start int, y []int, v []float64, pred []int) int {
 		d[j] = c[start][j] - v[j]
 	}
 
+	// cols[:lo] holds the settled columns, cols[lo:hi] the unsettled
+	// ones at distance minD, and cols[hi:] the rest.
 	lo, hi, ready := 0, 0, 0
 	var minD float64
 	final := -1
 	for final < 0 {
 		if lo == hi {
 			ready = lo
-			hi = lo + 1
-			minD = d[cols[lo]]
-			for k := hi; k < n; k++ {
-				j := cols[k]
-				if d[j] > minD {
-					continue
-				}
-				if d[j] < minD {
-					hi = lo
-					minD = d[j]
-				}
-				cols[k] = cols[hi]
-				cols[hi] = j
-				hi++
+			hi, minD = gatherNearest(cols, d, lo)
+			if final = lastUnassigned(cols[lo:hi], y); final >= 0 {
+				break
 			}
-			for _, j := range cols[lo:hi] {
-				if y[j] < 0 {
-					final = j
-				}
-			}
-		}
-		if final >= 0 {
-			break
 		}
 		j := cols[lo]
 		lo++
-		i := y[j]
-		h := c[i][j] - v[j] - d[j]
-		for k := hi; k < n; k++ {
-			j := cols[k]
-			red := c[i][j] - v[j] - h
-			if red >= d[j] {
-				continue
-			}
-			d[j] = red
-			pred[j] = i
-			if red != minD {
-				continue
-			}
-			if y[j] < 0 {
-				final = j
-				break
-			}
-			cols[k] = cols[hi]
-			cols[hi] = j
-			hi++
-		}
+		hi, final = relaxThrough(c, y[j], j, cols, hi, minD, d, v, pred, y)
 	}
 
 	// The path's own length prices the columns the search settled, and
 	// minD is that length whichever way the loop ended: a column taken
 	// from the scan's own minimum window carries d[j] == minD, and so
-	// does one the augmentation's inner loop found unassigned, since it
-	// takes that branch only on red == minD.
+	// does one relaxThrough found unassigned, since it returns one only
+	// on red == minD.
 	for _, j := range cols[:ready] {
 		v[j] += d[j] - minD
 	}
 	return final
+}
+
+// gatherNearest finds the smallest distance d holds for any column in
+// cols[lo:], moves every column at that distance to the front of
+// cols[lo:], and returns the end of that window and the distance.
+func gatherNearest(cols []int, d []float64, lo int) (hi int, minD float64) {
+	hi = lo + 1
+	minD = d[cols[lo]]
+	for k := hi; k < len(cols); k++ {
+		j := cols[k]
+		if d[j] > minD {
+			continue
+		}
+		if d[j] < minD {
+			hi = lo
+			minD = d[j]
+		}
+		cols[k] = cols[hi]
+		cols[hi] = j
+		hi++
+	}
+	return hi, minD
+}
+
+// lastUnassigned returns the last column in cols that no row holds, or
+// -1 when every one is assigned. The last one wins, as in the solver
+// [solveLAP] reproduces, and the pick decides between tied paths.
+func lastUnassigned(cols, y []int) int {
+	final := -1
+	for _, j := range cols {
+		if y[j] < 0 {
+			final = j
+		}
+	}
+	return final
+}
+
+// relaxThrough takes column settled, held by row i, and shortens the
+// distance of every column in cols[hi:] that a path through i reaches
+// more cheaply. A column whose new distance is minD joins the window
+// ending at hi. It returns the window's new end, and the first such
+// column no row holds, or -1 when there is none.
+func relaxThrough(c [][]float64, i, settled int, cols []int, hi int, minD float64, d, v []float64, pred, y []int) (int, int) {
+	h := c[i][settled] - v[settled] - d[settled]
+	for k := hi; k < len(cols); k++ {
+		j := cols[k]
+		red := c[i][j] - v[j] - h
+		if red >= d[j] {
+			continue
+		}
+		d[j] = red
+		pred[j] = i
+		if red != minD {
+			continue
+		}
+		if y[j] < 0 {
+			return hi, j
+		}
+		cols[k] = cols[hi]
+		cols[hi] = j
+		hi++
+	}
+	return hi, -1
 }

@@ -90,6 +90,16 @@ func Load(path string) (*Library, error) {
 // check reads the declared seeds from dir into l and returns every
 // problem with the seeds and with the paths that use them.
 func (l *Library) check(dir string) []error {
+	problems := l.readSeeds(dir)
+	return append(problems, l.checkPaths()...)
+}
+
+// readSeeds reads each declared seed from dir into l.seeds and returns
+// every problem with a seed: a name that is not a plain relative path or
+// is declared twice, a file it cannot read, a digest that disagrees with
+// the manifest, and a track's seed with no VORBIS_COMMENT block. A seed
+// whose file reads stays in l.seeds whatever else is wrong with it.
+func (l *Library) readSeeds(dir string) []error {
 	var problems []error
 	trackSeeds := make(map[string]bool)
 	for _, a := range l.manifest.Albums {
@@ -124,7 +134,14 @@ func (l *Library) check(dir string) []error {
 			}
 		}
 	}
+	return problems
+}
 
+// checkPaths returns every problem with the paths the albums' covers
+// and tracks declare, and with the seeds they name: a path outside the
+// library root or declared twice, and a seed missing from l.seeds.
+func (l *Library) checkPaths() []error {
+	var problems []error
 	paths := make(map[string]bool)
 	checkPath := func(what, p string) {
 		switch {

@@ -132,16 +132,7 @@ const manualRecovery = "recover the leaf by hand as the runbook's restore-intent
 // beside a sidecar the plan does not move.
 func (l leaf) swapPlan(r *intentRecord) (moves []move, in bool, err error) {
 	incoming := filepath.Join(l.stagingDir, r.Incoming)
-	var aside []move
-	switch {
-	case r.DiscardCurrent:
-		discarded := l.discardedPath(r.Stamp)
-		for _, suffix := range []string{"", "-wal", "-shm"} {
-			aside = append(aside, move{from: l.dbPath + suffix, to: discarded + suffix})
-		}
-	case r.PreRestore != "":
-		aside = []move{{from: l.dbPath, to: filepath.Join(l.snapshotsDir, r.PreRestore)}}
-	}
+	aside := l.asideMoves(r)
 	names := []string{incoming}
 	if aside == nil {
 		names = append(names, l.dbPath)
@@ -162,23 +153,8 @@ func (l leaf) swapPlan(r *intentRecord) (moves []move, in bool, err error) {
 	case r.DiscardCurrent:
 		moves, in, ok = discardPlan(aside, exists, staged)
 	case r.PreRestore != "":
-		m := aside[0]
-		switch copied := exists[m.to]; {
-		case staged && current && !copied:
-			moves, in, ok = aside, true, true
-			// The quiesce left the current store without sidecars, so
-			// one here was written after the record.
-			written, err := presentSidecars(l.dbPath, sidecars)
-			if err != nil {
-				return nil, false, err
-			}
-			if len(written) > 0 {
-				return nil, false, fmt.Errorf("restore-intent record %s (state swap): found %s beside the current store: a process wrote to it after the record: %s", l.restoreIntentPath, strings.Join(written, ", "), manualRecovery)
-			}
-		case staged && !current && copied:
-			in, ok = true, true
-		case !staged && current && copied:
-			ok = true
+		if moves, in, ok, err = l.preRestorePlan(aside, exists, staged, current); err != nil {
+			return nil, false, err
 		}
 	default:
 		in, ok = staged && !current, staged != current
@@ -189,9 +165,58 @@ func (l leaf) swapPlan(r *intentRecord) (moves []move, in bool, err error) {
 	if !in {
 		return moves, false, nil
 	}
+	if err := l.refuseStaleSidecars(moves); err != nil {
+		return nil, false, err
+	}
+	return moves, true, nil
+}
 
-	// SQLite would apply a sidecar of the store the incoming one
-	// replaces to the incoming store.
+// asideMoves returns the moves that set r's current store aside: the
+// database and its sidecars to the discarded path for a record owing a
+// discard, or the database alone to its snapshot for one with a
+// pre-restore snapshot. Any other record returns nil.
+func (l leaf) asideMoves(r *intentRecord) []move {
+	switch {
+	case r.DiscardCurrent:
+		var aside []move
+		discarded := l.discardedPath(r.Stamp)
+		for _, suffix := range []string{"", "-wal", "-shm"} {
+			aside = append(aside, move{from: l.dbPath + suffix, to: discarded + suffix})
+		}
+		return aside
+	case r.PreRestore != "":
+		return []move{{from: l.dbPath, to: filepath.Join(l.snapshotsDir, r.PreRestore)}}
+	}
+	return nil
+}
+
+// preRestorePlan is swapPlan for a record with a pre-restore snapshot,
+// whose one aside move copies the database to it. It refuses a current
+// store with a sidecar while the move is still to be made.
+func (l leaf) preRestorePlan(aside []move, exists map[string]bool, staged, current bool) (moves []move, in, ok bool, err error) {
+	switch copied := exists[aside[0].to]; {
+	case staged && current && !copied:
+		// The quiesce left the current store without sidecars, so
+		// one here was written after the record.
+		written, err := presentSidecars(l.dbPath, sidecars)
+		if err != nil {
+			return nil, false, false, err
+		}
+		if len(written) > 0 {
+			return nil, false, false, fmt.Errorf("restore-intent record %s (state swap): found %s beside the current store: a process wrote to it after the record: %s", l.restoreIntentPath, strings.Join(written, ", "), manualRecovery)
+		}
+		return aside, true, true, nil
+	case staged && !current && copied:
+		return nil, true, true, nil
+	case !staged && current && copied:
+		return nil, false, true, nil
+	}
+	return nil, false, false, nil
+}
+
+// refuseStaleSidecars refuses a sidecar of the current store that
+// moves leaves in db/: SQLite would apply it to the incoming store.
+func (l leaf) refuseStaleSidecars(moves []move) error {
 	var stale []string
 	for _, suffix := range sidecars {
 		p := l.dbPath + suffix
@@ -200,16 +225,16 @@ func (l leaf) swapPlan(r *intentRecord) (moves []move, in bool, err error) {
 		}
 		ok, err := pathExists(p)
 		if err != nil {
-			return nil, false, err
+			return err
 		}
 		if ok {
 			stale = append(stale, p)
 		}
 	}
 	if len(stale) > 0 {
-		return nil, false, fmt.Errorf("restore-intent record %s (state swap): the incoming store would land beside %s: %s", l.restoreIntentPath, strings.Join(stale, ", "), manualRecovery)
+		return fmt.Errorf("restore-intent record %s (state swap): the incoming store would land beside %s: %s", l.restoreIntentPath, strings.Join(stale, ", "), manualRecovery)
 	}
-	return moves, true, nil
+	return nil
 }
 
 // discardPlan is swapPlan for a record owing a discard, whose aside

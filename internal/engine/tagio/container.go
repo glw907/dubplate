@@ -216,16 +216,9 @@ func readContainer(path string) (Container, error) {
 // flag and a block after the flag are refused alike.
 func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container, error) {
 	var (
-		blocks           []Block
-		streamInfo       StreamInfo
-		vorbisComment    VorbisComment
-		pictures         []Picture
-		sawStreamInfo    bool
-		sawVorbisComment bool
-		sawSeekTable     bool
-		total            int64
+		c     chain
+		total int64
 	)
-
 	offset := int64(len(flacSignature))
 	var header [4]byte
 	for {
@@ -245,7 +238,7 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 		}
 		total += 4 + length
 		if bounds != nil {
-			if err := bounds.admit(path, blockType, length, total, len(blocks)+1); err != nil {
+			if err := bounds.admit(path, blockType, length, total, len(c.blocks)+1); err != nil {
 				return Container{}, err
 			}
 		}
@@ -253,7 +246,7 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 			break
 		}
 
-		if len(blocks) == 0 && blockType != blockStreamInfo {
+		if len(c.blocks) == 0 && blockType != blockStreamInfo {
 			return Container{}, malformed(path, "STREAMINFO is not the first block")
 		}
 
@@ -261,60 +254,82 @@ func parseBlocks(f *os.File, path string, size int64, bounds *Bounds) (Container
 		if _, err := f.ReadAt(payload, bodyOffset); err != nil {
 			return Container{}, fmt.Errorf("tagio: %s: read block type %d at offset %d: %w", path, blockType, bodyOffset, err)
 		}
-
-		switch blockType {
-		case blockStreamInfo:
-			if len(blocks) != 0 {
-				return Container{}, malformed(path, "STREAMINFO is not the first block")
-			}
-			si, err := decodeStreamInfo(payload)
-			if err != nil {
-				return Container{}, malformed(path, err.Error())
-			}
-			streamInfo = si
-			sawStreamInfo = true
-		case blockVorbisComment:
-			if sawVorbisComment {
-				return Container{}, malformed(path, "more than one VORBIS_COMMENT block")
-			}
-			vc, err := decodeVorbisComment(payload)
-			if err != nil {
-				return Container{}, malformed(path, err.Error())
-			}
-			vorbisComment = vc
-			sawVorbisComment = true
-		case blockSeekTable:
-			if sawSeekTable {
-				return Container{}, malformed(path, "more than one SEEKTABLE block")
-			}
-			sawSeekTable = true
-		case blockPicture:
-			p, err := decodePicture(payload, len(blocks))
-			if err != nil {
-				return Container{}, malformed(path, err.Error())
-			}
-			pictures = append(pictures, p)
+		if err := c.decode(path, blockType, payload); err != nil {
+			return Container{}, err
 		}
 
-		blocks = append(blocks, Block{Type: blockType, Last: last, Length: int(length), Payload: payload})
+		c.blocks = append(c.blocks, Block{Type: blockType, Last: last, Length: int(length), Payload: payload})
 		offset = bodyOffset + length
 	}
 
-	if !sawStreamInfo {
+	if !c.sawStreamInfo {
 		return Container{}, malformed(path, "no STREAMINFO block")
 	}
-	if err := checkLastFlag(blocks); err != nil {
+	if err := checkLastFlag(c.blocks); err != nil {
 		return Container{}, malformed(path, err.Error())
 	}
 
 	return Container{
-		Blocks:        blocks,
-		StreamInfo:    streamInfo,
-		VorbisComment: vorbisComment,
-		Pictures:      pictures,
+		Blocks:        c.blocks,
+		StreamInfo:    c.streamInfo,
+		VorbisComment: c.vorbisComment,
+		Pictures:      c.pictures,
 		FrameOffset:   offset,
 		FrameLength:   size - offset,
 	}, nil
+}
+
+// chain holds the blocks parseBlocks has read so far and what it has
+// decoded from them.
+type chain struct {
+	blocks           []Block
+	streamInfo       StreamInfo
+	vorbisComment    VorbisComment
+	pictures         []Picture
+	sawStreamInfo    bool
+	sawVorbisComment bool
+	sawSeekTable     bool
+}
+
+// decode decodes payload as the next block of blockType and keeps what
+// it carries. It refuses a STREAMINFO after the first block, a second
+// VORBIS_COMMENT or SEEKTABLE, and a payload its type's decoder
+// rejects. A block of any other type carries nothing parse keeps.
+func (c *chain) decode(path string, blockType byte, payload []byte) error {
+	switch blockType {
+	case blockStreamInfo:
+		if len(c.blocks) != 0 {
+			return malformed(path, "STREAMINFO is not the first block")
+		}
+		si, err := decodeStreamInfo(payload)
+		if err != nil {
+			return malformed(path, err.Error())
+		}
+		c.streamInfo = si
+		c.sawStreamInfo = true
+	case blockVorbisComment:
+		if c.sawVorbisComment {
+			return malformed(path, "more than one VORBIS_COMMENT block")
+		}
+		vc, err := decodeVorbisComment(payload)
+		if err != nil {
+			return malformed(path, err.Error())
+		}
+		c.vorbisComment = vc
+		c.sawVorbisComment = true
+	case blockSeekTable:
+		if c.sawSeekTable {
+			return malformed(path, "more than one SEEKTABLE block")
+		}
+		c.sawSeekTable = true
+	case blockPicture:
+		p, err := decodePicture(payload, len(c.blocks))
+		if err != nil {
+			return malformed(path, err.Error())
+		}
+		c.pictures = append(c.pictures, p)
+	}
+	return nil
 }
 
 // checkLastFlag enforces RFC 9639 section 8.1's one chain invariant:

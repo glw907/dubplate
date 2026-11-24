@@ -337,10 +337,20 @@ func requestAt(i int, req Request) string {
 // its envelope goes unchecked so the read error stands alone.
 func (s *Session) validate(unread map[[2]int]bool) []error {
 	var problems []error
-	add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }
 	if len(s.Requests) == 0 {
-		add("no requests")
+		problems = append(problems, errors.New("no requests"))
 	}
+	problems = append(problems, s.checkSources()...)
+	problems = append(problems, checkRequests(s.Requests)...)
+	problems = append(problems, s.checkResponses(unread)...)
+	return append(problems, s.checkResolutions()...)
+}
+
+// checkSources reports each source, in name order, whose name is not a
+// plain name or whose library digest or server version is empty.
+func (s *Session) checkSources() []error {
+	var problems []error
+	add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }
 	for _, name := range slices.Sorted(maps.Keys(s.Sources)) {
 		src := s.Sources[name]
 		if name == "" || strings.ContainsAny(name, "/\\. ") {
@@ -353,13 +363,19 @@ func (s *Session) validate(unread map[[2]int]bool) []error {
 			add("source %q: empty serverVersion", name)
 		}
 	}
-	problems = append(problems, checkRequests(s.Requests)...)
-	used := map[string]bool{}
+	return problems
+}
+
+// checkResponses reports, for each request in order, a response from an
+// undeclared source or a second one from a source, and a response with
+// no status or content type. It then reads each body that unread does
+// not mark for a credential, and, when the source is declared with a
+// server version, for an envelope that carries that version.
+func (s *Session) checkResponses(unread map[[2]int]bool) []error {
+	var problems []error
+	add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }
 	for i, req := range s.Requests {
 		at := requestAt(i, req)
-		for _, p := range req.Params {
-			used[p.Value] = true
-		}
 		answered := map[string]bool{}
 		for j, resp := range req.Responses {
 			src, declared := s.Sources[resp.Source]
@@ -389,6 +405,21 @@ func (s *Session) validate(unread map[[2]int]bool) []error {
 			case env.ServerVersion != src.ServerVersion:
 				add("%s: source %q: body serverVersion %q, metadata %q", at, resp.Source, env.ServerVersion, src.ServerVersion)
 			}
+		}
+	}
+	return problems
+}
+
+// checkResolutions reports, in key order, a resolution key no request
+// passes as a parameter value, and, in source order within a key, a
+// source that is not declared or maps to an empty id.
+func (s *Session) checkResolutions() []error {
+	var problems []error
+	add := func(format string, args ...any) { problems = append(problems, fmt.Errorf(format, args...)) }
+	used := map[string]bool{}
+	for _, req := range s.Requests {
+		for _, p := range req.Params {
+			used[p.Value] = true
 		}
 	}
 	for _, key := range slices.Sorted(maps.Keys(s.Resolutions)) {
