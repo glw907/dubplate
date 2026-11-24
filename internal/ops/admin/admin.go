@@ -101,10 +101,11 @@ func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error 
 
 // memberID returns v as a member's user id, refusing the zero id, which
 // names no resolved member. The decoder has already refused any text
-// that does not spell an id.
+// that does not spell an id, and it leaves an absent or null user_id as
+// the zero id.
 func memberID(v id.ID) (identity.UserID, error) {
 	if v.IsZero() {
-		return identity.UserID{}, ops.NewInvalidRequestError("user_id must be 32 lowercase hex characters naming a member")
+		return identity.UserID{}, ops.NewInvalidRequestError("user_id is missing or names no member")
 	}
 	return identity.UserID(v), nil
 }

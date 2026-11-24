@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	pinZeros     = "00000000000000000000000000000000"
-	pinLowerHex  = "0123456789abcdef0123456789abcdef"
-	pinUpperHex  = "0123456789ABCDEF0123456789ABCDEF"
-	pinShortHex  = "0123456789abcdef0123456789abcde"
-	pinNotHex    = "0123456789abcdef0123456789abcdeg"
-	pinBadWireID = "submission_id must be 32 lowercase hex characters"
+	pinZeros        = "00000000000000000000000000000000"
+	pinLowerHex     = "0123456789abcdef0123456789abcdef"
+	pinUpperHex     = "0123456789ABCDEF0123456789ABCDEF"
+	pinShortHex     = "0123456789abcdef0123456789abcde"
+	pinNotHex       = "0123456789abcdef0123456789abcdeg"
+	pinNoSubmission = "submission_id is missing or names no submission"
 )
 
 // TestIDPinSubmissionID pins the wire id as the seam refuses it. The
@@ -35,7 +35,7 @@ func TestIDPinSubmissionID(t *testing.T) {
 		wantCode ops.Code
 		wantMsg  string
 	}{
-		{"all zeros", id.ID{}, ops.CodeInvalidRequest, pinBadWireID},
+		{"all zeros", id.ID{}, ops.CodeInvalidRequest, pinNoSubmission},
 		{"well formed, unknown", unknown, ops.CodeNotFound, "no such submission"},
 	}
 	for _, tt := range tests {

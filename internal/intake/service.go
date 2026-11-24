@@ -202,10 +202,11 @@ func actionError(err error) error {
 func notFound() error { return ops.NewNotFoundError("no such submission") }
 
 // namesSubmission refuses the zero id, which no submission holds. The
-// decoder has already refused any text that does not spell an id.
+// decoder has already refused any text that does not spell an id, and
+// it leaves an absent or null submission_id as the zero id.
 func namesSubmission(sub id.ID) error {
 	if sub.IsZero() {
-		return ops.NewInvalidRequestError("submission_id must be 32 lowercase hex characters")
+		return ops.NewInvalidRequestError("submission_id is missing or names no submission")
 	}
 	return nil
 }

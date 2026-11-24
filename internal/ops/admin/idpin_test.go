@@ -14,7 +14,7 @@ import (
 // sentence.
 func TestIDPinUserID(t *testing.T) {
 	f := newFixture(t)
-	const want = "user_id must be 32 lowercase hex characters naming a member"
+	const want = "user_id is missing or names no member"
 	calls := map[string]func(target id.ID) error{
 		"remove": func(target id.ID) error {
 			_, err := f.seam.RemoveMember(writeCtx(t), actor(alice, fresh), ops.RemoveMemberRequest{UserID: target})
