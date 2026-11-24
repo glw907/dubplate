@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // magicLinkSource is the identity source name a session verified through
@@ -65,7 +66,7 @@ type MagicLinkVerifier struct {
 	epoch  *EpochStore
 
 	currentSecret, previousSecret []byte
-	lifetime, absoluteCap         Setting[time.Duration]
+	lifetime, absoluteCap         settings.Reader[time.Duration]
 }
 
 var _ Verifier = (*MagicLinkVerifier)(nil)
@@ -76,7 +77,7 @@ var _ Verifier = (*MagicLinkVerifier)(nil)
 // govern minting and verification. absoluteCap is read at every
 // verification, so a changed cap applies to the next request in both
 // directions; lifetime is read at every refresh.
-func NewMagicLinkVerifier(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap Setting[time.Duration]) *MagicLinkVerifier {
+func NewMagicLinkVerifier(roster *Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap settings.Reader[time.Duration]) *MagicLinkVerifier {
 	return &MagicLinkVerifier{
 		roster:         roster,
 		epoch:          epoch,
@@ -109,7 +110,7 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
-	absoluteCap, err := m.absoluteCap.read(r.Context())
+	absoluteCap, err := readSetting(r.Context(), m.absoluteCap)
 	if err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
@@ -137,7 +138,7 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 		Session: sess,
 	}
 	if sameOrigin {
-		lifetime, err := m.lifetime.read(r.Context())
+		lifetime, err := readSetting(r.Context(), m.lifetime)
 		if err != nil {
 			return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 		}

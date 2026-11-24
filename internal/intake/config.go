@@ -323,13 +323,13 @@ func Allowlist(environ []string) ([]string, error) {
 
 // WindowsFrom reads the sweep's windows in force through acc at each
 // call. The first failed read fails the call naming its key.
-func WindowsFrom(acc *settings.Accessor) func(context.Context) (Windows, error) {
+func WindowsFrom(acc *settings.Accessor) settings.Reader[Windows] {
 	return func(ctx context.Context) (Windows, error) {
 		var failed error
 		read := func(s config.Setting) time.Duration {
 			d, err := acc.Duration(ctx, s)
-			if err != nil && failed == nil {
-				failed = readError(s, err)
+			if failed == nil {
+				failed = err
 			}
 			return d
 		}
@@ -347,13 +347,13 @@ func WindowsFrom(acc *settings.Accessor) func(context.Context) (Windows, error) 
 // environment's format bound, which no setting changes. The first
 // failed read fails the call naming its key, and no limit falls back to
 // a default.
-func LimitsFrom(acc *settings.Accessor, allowlist []string) func(context.Context) (Limits, error) {
+func LimitsFrom(acc *settings.Accessor, allowlist []string) settings.Reader[Limits] {
 	return func(ctx context.Context) (Limits, error) {
 		var failed error
 		count := func(s config.Setting) int {
 			n, err := acc.Int(ctx, s)
-			if err != nil && failed == nil {
-				failed = readError(s, err)
+			if failed == nil {
+				failed = err
 			}
 			return n
 		}
@@ -378,10 +378,10 @@ func LimitsFrom(acc *settings.Accessor, allowlist []string) func(context.Context
 
 // FreeSpaceFloor reads DUBPLATE_INTAKE_FREE_SPACE_FLOOR in force through
 // acc at each call.
-func FreeSpaceFloor(acc *settings.Accessor) func(context.Context) (int64, error) {
+func FreeSpaceFloor(acc *settings.Accessor) settings.Reader[int64] {
 	return func(ctx context.Context) (int64, error) {
 		n, err := acc.Int(ctx, freeSpaceFloorSetting)
-		return int64(n), readError(freeSpaceFloorSetting, err)
+		return int64(n), err
 	}
 }
 
@@ -422,24 +422,11 @@ func contains(dir, path string) bool {
 // acc. The sweep reads it once at start, so a change waits for a
 // restart.
 func SweepInterval(ctx context.Context, acc *settings.Accessor) (time.Duration, error) {
-	d, err := acc.Duration(ctx, sweepIntervalSetting)
-	return d, readError(sweepIntervalSetting, err)
+	return acc.Duration(ctx, sweepIntervalSetting)
 }
 
 // CheckWorkerCount reads DUBPLATE_INTAKE_CHECK_WORKERS in force through acc.
 // The worker pool is sized once at start.
 func CheckWorkerCount(ctx context.Context, acc *settings.Accessor) (int, error) {
-	n, err := acc.Int(ctx, checkWorkersSetting)
-	return n, readError(checkWorkersSetting, err)
-}
-
-// readError names the setting a failed read concerned, ahead of the
-// store's reason, and is nil when err is. The settings sit below auth,
-// which this package never imports, so the key-first form auth prints
-// for its own settings is spelled out here.
-func readError(s config.Setting, err error) error {
-	if err == nil {
-		return nil
-	}
-	return fmt.Errorf("%s: %w", s.Key, err)
+	return acc.Int(ctx, checkWorkersSetting)
 }

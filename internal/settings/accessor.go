@@ -2,6 +2,7 @@ package settings
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -60,27 +61,35 @@ func (a *Accessor) String(ctx context.Context, s config.Setting) (string, error)
 
 // read returns s's value in force parsed under kind, which parses to
 // T, refusing a setting a's registry does not declare or declares
-// under another kind.
+// under another kind. Every failure is a [*ReadError] naming s.
 func read[T any](ctx context.Context, a *Accessor, s config.Setting, kind config.ThresholdKind) (T, error) {
+	v, err := parsed[T](ctx, a, s, kind)
+	if err != nil {
+		return v, &ReadError{Key: s.Key, Err: err}
+	}
+	return v, nil
+}
+
+func parsed[T any](ctx context.Context, a *Accessor, s config.Setting, kind config.ThresholdKind) (T, error) {
 	var zero T
 	reg, ok := a.settings[s.Key]
 	if !ok {
-		return zero, fmt.Errorf("%s: not a registered setting", s.Key)
+		return zero, errors.New("not a registered setting")
 	}
 	if reg.Kind != kind {
-		return zero, fmt.Errorf("%s: a %v setting read as %v", s.Key, reg.Kind, kind)
+		return zero, fmt.Errorf("a %v setting read as %v", reg.Kind, kind)
 	}
 	v, err := a.value(ctx, reg)
 	if err != nil {
 		return zero, err
 	}
-	parsed, err := kind.Parse(v)
+	value, err := kind.Parse(v)
 	if err != nil {
 		return zero, err
 	}
-	typed, ok := parsed.(T)
+	typed, ok := value.(T)
 	if !ok {
-		return zero, fmt.Errorf("%s: %v parses to %T, not %T", s.Key, kind, parsed, zero)
+		return zero, fmt.Errorf("%v parses to %T, not %T", kind, value, zero)
 	}
 	return typed, nil
 }
@@ -101,7 +110,7 @@ func (a *Accessor) value(ctx context.Context, s config.Setting) (string, error) 
 	// rise, so the next read sees the mismatch and reloads.
 	var generation int64
 	if err := a.h.QueryRow(ctx, `SELECT generation FROM settings_generation WHERE singleton = 1`).Scan(&generation); err != nil {
-		return "", fmt.Errorf("%s: read settings_generation: %w", s.Key, err)
+		return "", fmt.Errorf("read settings_generation: %w", err)
 	}
 
 	a.mu.Lock()
@@ -111,7 +120,7 @@ func (a *Accessor) value(ctx context.Context, s config.Setting) (string, error) 
 	if !fresh {
 		loaded, err := readRows(ctx, a.h)
 		if err != nil {
-			return "", fmt.Errorf("%s: %w", s.Key, err)
+			return "", err
 		}
 		rows = make(map[string]Row, len(loaded))
 		for _, r := range loaded {

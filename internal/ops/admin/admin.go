@@ -47,7 +47,7 @@ type Config struct {
 
 	// Window reads the re-authentication window in force. It is read
 	// before each gated write, outside the write's transaction.
-	Window auth.Setting[time.Duration]
+	Window settings.Reader[time.Duration]
 
 	// Send delivers one mail. It is notify.Mailer's Send in
 	// production.

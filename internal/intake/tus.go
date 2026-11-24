@@ -1,7 +1,6 @@
 package intake
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/tus/tusd/v2/pkg/filestore"
 	"github.com/tus/tusd/v2/pkg/handler"
 	"github.com/tus/tusd/v2/pkg/memorylocker"
@@ -38,7 +38,7 @@ type TusConfig struct {
 	// Verify admits a request's member.
 	Verify Verifier
 	// Floor reads DUBPLATE_INTAKE_FREE_SPACE_FLOOR in force, in bytes.
-	Floor func(ctx context.Context) (int64, error)
+	Floor settings.Reader[int64]
 	// TusLog receives tusd's own warnings and errors as JSON: its
 	// logger is golang.org/x/exp/slog's, a type log/slog cannot fill.
 	TusLog io.Writer
@@ -51,7 +51,7 @@ type tusMount struct {
 	subs   *submissions
 	base   string
 	verify Verifier
-	floor  func(ctx context.Context) (int64, error)
+	floor  settings.Reader[int64]
 	files  filestore.FileStore
 	tusd   http.Handler
 }

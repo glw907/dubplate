@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -45,7 +46,7 @@ func newVerifierFixture(t *testing.T, rows ...userRow) verifierFixture {
 
 // newVerifierFixtureReading is [newVerifierFixture] with the verifier reading its
 // lifetime and absolute cap through lifetime and absoluteCap.
-func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) verifierFixture {
+func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap settings.Reader[time.Duration], rows ...userRow) verifierFixture {
 	t.Helper()
 	stateDir := t.TempDir()
 	_, users := newRosterOver(t, rows...)
@@ -453,7 +454,7 @@ func TestMagicLinkVerifier_CapReadFollowsTheMAC(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var reads int
-			absoluteCap := Setting[time.Duration](func(context.Context) (time.Duration, error) {
+			absoluteCap := settings.Reader[time.Duration](func(context.Context) (time.Duration, error) {
 				reads++
 				return verifierCap, nil
 			})

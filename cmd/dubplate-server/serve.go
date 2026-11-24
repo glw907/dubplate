@@ -218,7 +218,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	verifier := auth.NewMagicLinkVerifier(roster, epoch,
 		[]byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
 		[]byte(cfg.IdentitySourceValue(auth.SessionSecretPreviousKey)),
-		auth.DurationSetting(acc, auth.SessionLifetimeSetting), auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting))
+		acc.DurationReader(auth.SessionLifetimeSetting), acc.DurationReader(auth.SessionAbsoluteCapSetting))
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
 	handlersConfig := authHandlersConfig(prefix, cfg, acc, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
@@ -353,7 +353,7 @@ func sendsHSTS(publicURL string) bool {
 // opens the store the way newServeShell does and reads the retention it
 // was wired with.
 func openNonceStore(ctx context.Context, authDir *auth.Dir, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
-	nonces, _, err := auth.OpenNonceStore(ctx, authDir, auth.DurationSetting(acc, auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
+	nonces, _, err := auth.OpenNonceStore(ctx, authDir, acc.DurationReader(auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 
@@ -373,9 +373,9 @@ func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.A
 		LinkSecret:         []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretKey)),
 		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretPreviousKey)),
 		SessionSecret:      []byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
-		LinkExpiry:         auth.DurationSetting(acc, auth.MagicLinkExpirySetting),
-		SessionLifetime:    auth.DurationSetting(acc, auth.SessionLifetimeSetting),
-		SessionAbsoluteCap: auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting),
+		LinkExpiry:         acc.DurationReader(auth.MagicLinkExpirySetting),
+		SessionLifetime:    acc.DurationReader(auth.SessionLifetimeSetting),
+		SessionAbsoluteCap: acc.DurationReader(auth.SessionAbsoluteCapSetting),
 		PublicOrigin:       cfg.IdentitySourceValue(auth.PublicURLKey),
 		Prefix:             prefix.String(),
 		BodyCap:            auth.BodyCap(acc),

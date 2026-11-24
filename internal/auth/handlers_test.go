@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -56,20 +57,20 @@ var handlerRoster = []userRow{
 	{address: "member3@example.com", displayName: "Member Three", username: "member3"},
 }
 
-// fixed returns a Setting that always reads v.
-func fixed[T any](v T) Setting[T] {
+// fixed returns a reader that always reads v.
+func fixed[T any](v T) settings.Reader[T] {
 	return func(context.Context) (T, error) { return v, nil }
 }
 
-// orFixed returns s, or a Setting reading v when s is nil.
-func orFixed[T any](s Setting[T], v T) Setting[T] {
+// orFixed returns s, or a reader reading v when s is nil.
+func orFixed[T any](s settings.Reader[T], v T) settings.Reader[T] {
 	if s != nil {
 		return s
 	}
 	return fixed(v)
 }
 
-// settingFake is a Setting a test switches between a value and a
+// settingFake is a setting reader a test switches between a value and a
 // failure while the code under test holds it, so a read cached before
 // the switch is told apart from one taken after it.
 type settingFake[T any] struct {
@@ -88,7 +89,7 @@ func (f *settingFake[T]) set(v T, err error) {
 	f.v, f.err = v, err
 }
 
-func (f *settingFake[T]) setting() Setting[T] {
+func (f *settingFake[T]) setting() settings.Reader[T] {
 	return func(context.Context) (T, error) {
 		f.mu.Lock()
 		defer f.mu.Unlock()
@@ -249,10 +250,10 @@ type fixtureOptions struct {
 	maxCalls   int
 	linkExpiry time.Duration
 
-	genericReader                           Setting[bool]
-	bodyCapReader                           Setting[int64]
-	expiryReader, lifetimeReader, capReader Setting[time.Duration]
-	retentionReader                         Setting[time.Duration]
+	genericReader                           settings.Reader[bool]
+	bodyCapReader                           settings.Reader[int64]
+	expiryReader, lifetimeReader, capReader settings.Reader[time.Duration]
+	retentionReader                         settings.Reader[time.Duration]
 }
 
 type handlerFixture struct {
@@ -1265,10 +1266,10 @@ func TestReadForm(t *testing.T) {
 }
 
 // errFixtureRead stands for a setting reader's failure, a
-// [SettingError] naming its key as every production reader's does. Its
+// [settings.ReadError] naming its key as every production reader's does. Its
 // wrapped text carries an address, standing for whatever a failed read
 // can meet, so a log record that quoted it would show an '@'.
-var errFixtureRead error = &SettingError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("stored value refused near a@b.example")}
+var errFixtureRead error = &settings.ReadError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("stored value refused near a@b.example")}
 
 // wantSettingFailure fails t unless w is the server error a failed
 // setting read answers and the log carries a record naming the key.
@@ -1301,10 +1302,10 @@ func wantSettingRecord(t *testing.T, rec map[string]any) {
 }
 
 // TestSettingFailureReason proves a failed setting read's log reason
-// is a fixed phrase naming the key a [SettingError] carries, however
+// is a fixed phrase naming the key a [settings.ReadError] carries, however
 // deeply wrapped, and never any error's own text.
 func TestSettingFailureReason(t *testing.T) {
-	keyed := &SettingError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("near a@b.example")}
+	keyed := &settings.ReadError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("near a@b.example")}
 	tests := []struct {
 		name string
 		err  error
@@ -1516,7 +1517,7 @@ func TestBodyCapReadFailure(t *testing.T) {
 // into a server error.
 func TestSignOut_ReadsNoSetting(t *testing.T) {
 	var reads int
-	bodyCap := Setting[int64](func(context.Context) (int64, error) {
+	bodyCap := settings.Reader[int64](func(context.Context) (int64, error) {
 		reads++
 		return 0, errFixtureRead
 	})

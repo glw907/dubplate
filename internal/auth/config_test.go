@@ -259,7 +259,7 @@ func TestValidateMagicLinkSource_NoSecretInErrors(t *testing.T) {
 }
 
 // TestAuthSettingReaders_FailureNamesTheKey proves each reader serve hands
-// the handlers reports a failed read as an [*SettingError] carrying
+// the handlers reports a failed read as a [*settings.ReadError] carrying
 // the setting's key, the shape the handlers log by key alone. The
 // accessor is built over an empty registry, so every read fails before
 // it reaches a store.
@@ -271,7 +271,7 @@ func TestAuthSettingReaders_FailureNamesTheKey(t *testing.T) {
 		key  string
 	}{
 		{"duration", func(ctx context.Context) error {
-			_, err := DurationSetting(acc, SessionAbsoluteCapSetting)(ctx)
+			_, err := acc.DurationReader(SessionAbsoluteCapSetting)(ctx)
 			return err
 		}, "DUBPLATE_SESSION_ABSOLUTE_CAP"},
 		{"body cap", func(ctx context.Context) error {
@@ -286,12 +286,12 @@ func TestAuthSettingReaders_FailureNamesTheKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.read(t.Context())
-			se, ok := errors.AsType[*SettingError](err)
+			se, ok := errors.AsType[*settings.ReadError](err)
 			if !ok {
-				t.Fatalf("read error = %v, want an *SettingError", err)
+				t.Fatalf("read error = %v, want a *settings.ReadError", err)
 			}
 			if se.Key != tt.key {
-				t.Errorf("SettingError key = %q, want %q", se.Key, tt.key)
+				t.Errorf("ReadError key = %q, want %q", se.Key, tt.key)
 			}
 		})
 	}

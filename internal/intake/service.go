@@ -13,6 +13,7 @@ import (
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -42,7 +43,7 @@ func (l Limits) limits() limits {
 // actor. [Intake.Service] builds it over the intake's one writer.
 type Service struct {
 	subs   *submissions
-	limits func(ctx context.Context) (Limits, error)
+	limits settings.Reader[Limits]
 }
 
 var _ ops.Submissions = (*Service)(nil)

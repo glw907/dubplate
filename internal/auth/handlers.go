@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // Form fields the handlers read. Both pages post a urlencoded form,
@@ -67,38 +68,20 @@ const (
 // what the request carried, and never falls back to a default.
 var errSettingUnreadable = errors.New("auth setting unreadable")
 
-// A Setting returns one setting's value in force. Each call reads it
-// afresh, so a caller that reads at the point of use follows a change
-// without a restart. A non-nil error means the value is unknown, and
-// should be a [*SettingError] naming the setting, so a handler's log
-// can name it.
-type Setting[T any] func(ctx context.Context) (T, error)
-
-// A SettingError reports a failed read of the setting named Key. A
-// handler logs Key and never Err's text, which may carry whatever the
-// read met.
-type SettingError struct {
-	Key string
-	Err error
-}
-
-func (e *SettingError) Error() string { return e.Key + ": " + e.Err.Error() }
-
-func (e *SettingError) Unwrap() error { return e.Err }
-
 // settingFailureReason is the log reason for err, a failed setting
-// read: a fixed phrase naming the key err's [SettingError] carries, or
-// "unnamed" when it carries none.
+// read: a fixed phrase naming the key err's [settings.ReadError]
+// carries, or "unnamed" when it carries none. A handler logs this and
+// never err's text, which may carry whatever the read met.
 func settingFailureReason(err error) string {
 	key := "unnamed"
-	if se, ok := errors.AsType[*SettingError](err); ok {
-		key = se.Key
+	if re, ok := errors.AsType[*settings.ReadError](err); ok {
+		key = re.Key
 	}
 	return "setting unreadable: " + key
 }
 
-// read calls s, wrapping a failure in errSettingUnreadable.
-func (s Setting[T]) read(ctx context.Context) (T, error) {
+// readSetting calls s, wrapping a failure in errSettingUnreadable.
+func readSetting[T any](ctx context.Context, s settings.Reader[T]) (T, error) {
 	v, err := s(ctx)
 	if err != nil {
 		return v, fmt.Errorf("%w: %w", errSettingUnreadable, err)
@@ -137,13 +120,13 @@ type HandlersConfig struct {
 	// LinkExpiry is read when a link request starts, and the session
 	// a consumed link mints takes the SessionLifetime read when its
 	// consumption starts.
-	LinkExpiry, SessionLifetime Setting[time.Duration]
+	LinkExpiry, SessionLifetime settings.Reader[time.Duration]
 
 	// SessionAbsoluteCap bounds how long a session can survive however
 	// many times it is refreshed. MintSession clamps every minted
 	// session's expiry to the value read when the consumption starts,
 	// the same clamp RefreshSession applies.
-	SessionAbsoluteCap Setting[time.Duration]
+	SessionAbsoluteCap settings.Reader[time.Duration]
 
 	// PublicOrigin is the configured public URL every mailed link is
 	// built from.
@@ -157,7 +140,7 @@ type HandlersConfig struct {
 	// BodyCap is the byte limit on every request body but sign-out's,
 	// read when the request starts and applied before any parser reads
 	// the body.
-	BodyCap Setting[int64]
+	BodyCap settings.Reader[int64]
 
 	// BodyCapCeiling is the registered ceiling on BodyCap, never the
 	// value in force. Sign-out bounds its body with it: no limiter
@@ -171,7 +154,7 @@ type HandlersConfig struct {
 	// an unknown address is told so and handed the roster's admin
 	// contact, and a known address whose mail fails is told its request
 	// failed.
-	GenericAnswer Setting[bool]
+	GenericAnswer settings.Reader[bool]
 }
 
 // Handlers is the three auth endpoints, as values the shell mounts.
@@ -231,13 +214,13 @@ type linkRequestSettings struct {
 func (h *handlers) readLinkRequestSettings(ctx context.Context) (linkRequestSettings, error) {
 	var s linkRequestSettings
 	var err error
-	if s.generic, err = h.cfg.GenericAnswer.read(ctx); err != nil {
+	if s.generic, err = readSetting(ctx, h.cfg.GenericAnswer); err != nil {
 		return s, err
 	}
-	if s.bodyCap, err = h.cfg.BodyCap.read(ctx); err != nil {
+	if s.bodyCap, err = readSetting(ctx, h.cfg.BodyCap); err != nil {
 		return s, err
 	}
-	s.expiry, err = h.cfg.LinkExpiry.read(ctx)
+	s.expiry, err = readSetting(ctx, h.cfg.LinkExpiry)
 	return s, err
 }
 
@@ -438,7 +421,7 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
 	}
-	bodyCap, err := h.cfg.BodyCap.read(r.Context())
+	bodyCap, err := readSetting(r.Context(), h.cfg.BodyCap)
 	if err != nil {
 		failSetting(w, log, err)
 		return
@@ -476,11 +459,11 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 	if err := h.cfg.Epoch.CheckLink(tok); err != nil {
 		return "", Session{}, err
 	}
-	lifetime, err := h.cfg.SessionLifetime.read(ctx)
+	lifetime, err := readSetting(ctx, h.cfg.SessionLifetime)
 	if err != nil {
 		return "", Session{}, err
 	}
-	absoluteCap, err := h.cfg.SessionAbsoluteCap.read(ctx)
+	absoluteCap, err := readSetting(ctx, h.cfg.SessionAbsoluteCap)
 	if err != nil {
 		return "", Session{}, err
 	}

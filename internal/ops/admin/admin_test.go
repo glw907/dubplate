@@ -147,7 +147,7 @@ type fixture struct {
 // the window reader.
 type fixtureOptions struct {
 	busy   time.Duration
-	window auth.Setting[time.Duration]
+	window settings.Reader[time.Duration]
 	reg    *config.Registry
 	env    []string
 }

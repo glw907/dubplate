@@ -494,41 +494,22 @@ func IsLoopbackHost(host string) bool {
 	return false
 }
 
-// DurationSetting returns an [Setting] reading s's value in force
+// BodyCap returns a reader of the auth request body cap in force
 // through acc at each call.
-func DurationSetting(acc *settings.Accessor, s config.Setting) Setting[time.Duration] {
-	return func(ctx context.Context) (time.Duration, error) {
-		d, err := acc.Duration(ctx, s)
-		return d, settingReadError(s, err)
-	}
-}
-
-// BodyCap returns an [Setting] reading the auth request body
-// cap in force through acc at each call.
-func BodyCap(acc *settings.Accessor) Setting[int64] {
+func BodyCap(acc *settings.Accessor) settings.Reader[int64] {
 	return func(ctx context.Context) (int64, error) {
 		n, err := acc.Int(ctx, authRequestBodyCapSetting)
-		return int64(n), settingReadError(authRequestBodyCapSetting, err)
+		return int64(n), err
 	}
 }
 
-// GenericAnswer returns an [Setting] reporting at each call
-// whether the unknown-address answer in force through acc is generic.
-func GenericAnswer(acc *settings.Accessor) Setting[bool] {
+// GenericAnswer returns a reader reporting at each call whether the
+// unknown-address answer in force through acc is generic.
+func GenericAnswer(acc *settings.Accessor) settings.Reader[bool] {
 	return func(ctx context.Context) (bool, error) {
 		v, err := acc.String(ctx, unknownAddressAnswerSetting)
-		return v == "generic", settingReadError(unknownAddressAnswerSetting, err)
+		return v == "generic", err
 	}
-}
-
-// settingReadError returns err, a failed read of s, as the
-// [SettingError] the auth handlers log by key, or nil when err is
-// nil.
-func settingReadError(s config.Setting, err error) error {
-	if err == nil {
-		return nil
-	}
-	return &SettingError{Key: s.Key, Err: err}
 }
 
 // ReadLimits reads the four rate limits in force through acc. They

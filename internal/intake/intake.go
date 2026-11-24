@@ -12,6 +12,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/fsys"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/tus/tusd/v2/pkg/memorylocker"
 )
@@ -33,9 +34,9 @@ type Config struct {
 	EarliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)
 	// Limits reads the intake limits in force. It runs before each
 	// create and each check, so a changed setting reaches the next one.
-	Limits func(ctx context.Context) (Limits, error)
+	Limits settings.Reader[Limits]
 	// Windows reads the sweep's windows in force, once per sweep.
-	Windows func(ctx context.Context) (Windows, error)
+	Windows settings.Reader[Windows]
 	// SweepInterval is how often the sweep runs, and CheckWorkers how
 	// many submissions are checked at once. [Intake.Start] reads both
 	// once.
