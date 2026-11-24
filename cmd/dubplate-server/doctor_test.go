@@ -149,12 +149,12 @@ func TestDoctorCmd(t *testing.T) {
 			li := 0
 
 			for _, row := range reg.OwnedWall() {
-				want := cmp.Or(tt.rowOverrides[row.Name], "ok")
+				want := cmp.Or(tt.rowOverrides[row.Key], "ok")
 				if li >= len(lines) {
-					t.Fatalf("stdout ran out of lines before owned row %s", row.Name)
+					t.Fatalf("stdout ran out of lines before owned row %s", row.Key)
 				}
 				gotLine := lines[li]
-				wantPrefix := fmt.Sprintf("%-32s %s", row.Name, want)
+				wantPrefix := fmt.Sprintf("%-32s %s", row.Key, want)
 				if !strings.HasPrefix(gotLine, wantPrefix) {
 					t.Errorf("owned row %d = %q, want prefix %q", li, gotLine, wantPrefix)
 				}
@@ -321,7 +321,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 
 	// Owned wall: one line per declared row.
-	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SCRATCH_OWNED", Description: testDescription, Mark: config.NotSensitive})
+	reg.AddWallRow(config.WallRow{Key: "DUBPLATE_TEST_SCRATCH_OWNED", Description: testDescription, Sensitivity: config.NotSensitive})
 	lines = doctorLines(t, reg)
 	ownedCount++
 	wantTotal++
@@ -370,7 +370,7 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	}
 
 	// Thresholds: one line per threshold.
-	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Description: testDescription, Mark: config.NotSensitive, Default: "1"})
+	reg.AddThreshold(config.Threshold{Key: "DUBPLATE_TEST_SCRATCH_THRESH", Description: testDescription, Sensitivity: config.NotSensitive, Default: "1"})
 	lines = doctorLines(t, reg)
 	thresholdCount++
 	wantTotal++
@@ -462,7 +462,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 		reg := freshRegistry()
 		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-a", Selector: selector, Required: []config.KeyDecl{testKey(requiredA)}})
 		reg.AddIdentitySource(config.IdentitySource{Name: "scratch-b", Selector: selector, Required: []config.KeyDecl{testKey(requiredB)}})
-		reg.AddWallRow(config.WallRow{Name: selector, Description: testDescription, Mark: config.NotSensitive})
+		reg.AddWallRow(config.WallRow{Key: selector, Description: testDescription, Sensitivity: config.NotSensitive})
 		return reg
 	}
 
@@ -1130,7 +1130,7 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 		Doc:     "a float between 0 and 1",
 
 		Description: testDescription,
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	})
 
 	stateDir := t.TempDir()
@@ -1187,7 +1187,7 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 	if len(wall) == 0 {
 		t.Fatal("registry has no owned wall rows to test with")
 	}
-	owned := wall[0].Name
+	owned := wall[0].Key
 
 	statuses := map[string]string{
 		"OTHER_PREFIX_KEY":  "refused",

@@ -48,7 +48,7 @@ import {
   SERVER_SETTINGS_LINK,
   SETTING_APPLY,
   SETTING_INVALID_VALUE,
-  SETTING_MARKS,
+  SETTING_SENSITIVITIES,
   SIGN_OUT_CONTROL,
   SIGNED_OUT_SIGN_IN,
   THEME_TOGGLE_LABEL,
@@ -177,11 +177,11 @@ const VIOLATION_RECORDER = `
 /** The off-origin image the listener row injects for `img-src` to block. */
 const LISTENER_PROBE = 'https://example.test/rendered-probe.png';
 
-/** One key of the production registry: its name, its description, and its mark's wire name. */
+/** One key of the production registry: its key, its description, and its sensitivity's wire name. */
 interface SettingKey {
-  name: string;
+  key: string;
   description: string;
-  mark: string;
+  sensitivity: string;
 }
 
 /** The endpoints and fixture values the Go test hands the script. */
@@ -4651,7 +4651,7 @@ async function openSettings(context: BrowserContext, endpoints: Endpoints, sessi
 
 /** One entry of `list_settings`'s answer. */
 interface ListedSetting {
-  name: string;
+  key: string;
   home: string;
   apply: string;
   value?: string;
@@ -4674,7 +4674,7 @@ function squash(text: string): string {
 
 /**
  * `settings/keys`: every key the production registry holds appears on
- * the page exactly once, with its description and its mark. The key
+ * the page exactly once, with its description and its sensitivity. The key
  * list comes from the Go host, read off the registry itself, and
  * nothing is intercepted: the page reads the real `list_settings`.
  */
@@ -4691,16 +4691,16 @@ async function settingsKeysRow(browser: Browser, endpoints: Endpoints, session: 
     );
     const problems: string[] = [];
     for (const key of endpoints.settingKeys) {
-      const matching = rows.filter((r) => r.name === key.name);
+      const matching = rows.filter((r) => r.name === key.key);
       if (matching.length !== 1) {
-        problems.push(`${key.name} appears ${matching.length} times`);
+        problems.push(`${key.key} appears ${matching.length} times`);
         continue;
       }
       const text = squash(matching[0].text);
-      if (!text.includes(squash(key.description))) problems.push(`${key.name} lacks its description`);
-      if (!text.includes(SETTING_MARKS[key.mark])) problems.push(`${key.name} lacks its mark ${SETTING_MARKS[key.mark]}`);
+      if (!text.includes(squash(key.description))) problems.push(`${key.key} lacks its description`);
+      if (!text.includes(SETTING_SENSITIVITIES[key.sensitivity])) problems.push(`${key.key} lacks its sensitivity ${SETTING_SENSITIVITIES[key.sensitivity]}`);
     }
-    const extra = rows.filter((r) => !endpoints.settingKeys.some((k) => k.name === r.name)).map((r) => r.name);
+    const extra = rows.filter((r) => !endpoints.settingKeys.some((k) => k.key === r.name)).map((r) => r.name);
     await report({
       id,
       fixture: endpoints.settingKeys.length >= 20 && rows.length > 0,
@@ -4746,9 +4746,9 @@ async function settingsRestartValueRow(browser: Browser, endpoints: Endpoints, s
     }
     const rowOf = (name: string) =>
       visit.page.locator('#settings-editable > li').filter({ has: visit.page.getByText(name, { exact: true }) });
-    const text = squash((await rowOf(marked.name).textContent()) ?? '');
+    const text = squash((await rowOf(marked.key).textContent()) ?? '');
     // A key that does not apply at a restart names no next-start value.
-    const otherText = other === undefined ? '' : squash((await rowOf(other.name).textContent()) ?? '');
+    const otherText = other === undefined ? '' : squash((await rowOf(other.key).textContent()) ?? '');
     const otherValue = other?.value ?? '';
     await report({
       id,
@@ -4758,7 +4758,7 @@ async function settingsRestartValueRow(browser: Browser, endpoints: Endpoints, s
         !text.includes(SETTING_APPLY.restart) &&
         otherText.includes(SETTING_APPLY[other?.apply ?? '']) &&
         !otherText.includes(nextStartLine(otherValue)),
-      detail: `key ${marked.name} value ${JSON.stringify(marked.value)}; row text ${JSON.stringify(text)}; another key ${other?.name} row text ${JSON.stringify(otherText)}`
+      detail: `key ${marked.key} value ${JSON.stringify(marked.value)}; row text ${JSON.stringify(text)}; another key ${other?.key} row text ${JSON.stringify(otherText)}`
     });
   } finally {
     await context.close();
@@ -4803,7 +4803,7 @@ async function settingsEnvironmentSetRow(browser: Browser, endpoints: Endpoints,
   const context = await browser.newContext();
   try {
     const visit = await openSettings(context, endpoints, session);
-    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.name === key);
+    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.key === key);
     const value = listed?.value;
     const row = visit.page.locator('#settings-environment > li').filter({ has: visit.page.getByText(key, { exact: true }) });
     const inEnvironment = (await row.count()) === 1;
@@ -4848,7 +4848,7 @@ async function settingsInvalidValueRow(browser: Browser, endpoints: Endpoints, s
     const reloadAdvice = (await visit.page.getByText(API_REFUSALS.invalid_request).count()) > 0;
     const invalid = await field.getAttribute('aria-invalid');
     const describedBy = await field.getAttribute('aria-describedby');
-    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.name === key);
+    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.key === key);
     await report({
       id,
       fixture: shown,
@@ -4919,7 +4919,7 @@ async function settingsReauthenticateWriteRow(browser: Browser, endpoints: Endpo
       .then(() => true)
       .catch(() => false);
     const valueAfterReset = await field.inputValue();
-    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.name === key);
+    const listed = (await listSettings(visit.page, endpoints)).find((e) => e.key === key);
     await report({
       id,
       fixture: refused,

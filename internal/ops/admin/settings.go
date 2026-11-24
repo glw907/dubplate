@@ -21,15 +21,15 @@ const (
 	homeEnvironment = "environment"
 )
 
-// applyNames and markNames are the wire forms of the registry's apply
-// modes and marks.
+// applyNames and sensitivityNames are the wire forms of the registry's
+// apply modes and sensitivities.
 var (
 	applyNames = map[config.ApplyMode]string{
 		config.ApplyImmediately:   "immediately",
 		config.ApplyNextOperation: "next_operation",
 		config.ApplyRestart:       "restart",
 	}
-	markNames = map[config.Sensitivity]string{
+	sensitivityNames = map[config.Sensitivity]string{
 		config.NotSensitive: "not_sensitive",
 		config.Sensitive:    "sensitive",
 	}
@@ -52,8 +52,8 @@ func (s *Service) ListSettings(ctx context.Context, _ identity.Actor, _ ops.List
 	var entries []ops.SettingEntry
 	for i, setting := range reg.Settings() {
 		entry := ops.SettingEntry{
-			Name: setting.Key, Home: homeStore, Description: setting.Description,
-			Apply: applyNames[setting.Apply], Mark: markNames[setting.Mark],
+			Key: setting.Key, Home: homeStore, Description: setting.Description,
+			Apply: applyNames[setting.Apply], Sensitivity: sensitivityNames[setting.Sensitivity],
 			Value: &setting.Default, Source: new(settings.SourceDefault),
 		}
 		outcome := eval.Outcomes[i]
@@ -70,31 +70,31 @@ func (s *Service) ListSettings(ctx context.Context, _ identity.Actor, _ ops.List
 	}
 
 	seen := make(map[string]bool)
-	environment := func(name, description string, mark config.Sensitivity) {
-		if seen[name] {
+	environment := func(key, description string, sensitivity config.Sensitivity) {
+		if seen[key] {
 			return
 		}
-		seen[name] = true
+		seen[key] = true
 		entries = append(entries, ops.SettingEntry{
-			Name: name, Home: homeEnvironment, Description: description,
-			Apply: applyNames[config.ApplyRestart], Mark: markNames[mark],
+			Key: key, Home: homeEnvironment, Description: description,
+			Apply: applyNames[config.ApplyRestart], Sensitivity: sensitivityNames[sensitivity],
 		})
 	}
 	for _, row := range reg.OwnedWall() {
-		environment(row.Name, row.Description, row.Mark)
+		environment(row.Key, row.Description, row.Sensitivity)
 	}
 	for _, src := range reg.IdentitySources() {
 		for _, k := range slices.Concat(src.Required, src.Optional) {
-			environment(k.Name, k.Description, k.Mark)
+			environment(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, class := range reg.IntegrationClasses() {
 		for _, k := range slices.Concat([]config.KeyDecl{class.Flag}, class.Required) {
-			environment(k.Name, k.Description, k.Mark)
+			environment(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, th := range reg.Thresholds() {
-		environment(th.Key, th.Description, th.Mark)
+		environment(th.Key, th.Description, th.Sensitivity)
 	}
 	return ops.ListSettingsResponse{Settings: entries}, nil
 }
@@ -127,11 +127,11 @@ func (s *Service) ResetSetting(ctx context.Context, actor identity.Actor, req op
 // key is sensitive, then write under writeWait with actor as the author
 // and actor's in-write admin check as the guard, then the notice once
 // a sensitive write has committed. A key the registry does not hold
-// carries no mark, so it reaches write ungated and is refused there.
+// carries no sensitivity, so it reaches write ungated and is refused there.
 func (s *Service) writeSetting(ctx context.Context, actor identity.Actor, key string,
 	write func(context.Context, identity.Actor, settings.Guard, time.Time) (settings.Result, error),
 ) (settings.Result, error) {
-	if s.settings[key].Mark == config.Sensitive {
+	if s.settings[key].Sensitivity == config.Sensitive {
 		if err := s.requireFresh(ctx, actor); err != nil {
 			return settings.Result{}, err
 		}

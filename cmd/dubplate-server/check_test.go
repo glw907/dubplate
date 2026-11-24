@@ -126,7 +126,7 @@ func TestCheckCmd_SettingsRow_AdminConflict(t *testing.T) {
 // spelled here under the package's key.
 func freshRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	reg.AddWallRow(config.WallRow{Name: intake.StagingKey, Description: "staging directory", Mark: config.Sensitive})
+	reg.AddWallRow(config.WallRow{Key: intake.StagingKey, Description: "staging directory", Sensitivity: config.Sensitive})
 	return reg
 }
 

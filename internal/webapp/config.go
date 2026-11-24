@@ -41,7 +41,7 @@ var themeMatchThreshold = config.Threshold{
 	Default:     acceptedThemeMatch,
 	Doc:         `exactly "dubplate"`,
 	Description: "the theme group the server presents",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // themePaletteThreshold is DUBPLATE_THEME_PALETTE: the theme a visitor
@@ -53,7 +53,7 @@ var themePaletteThreshold = config.Threshold{
 	Default:     "system",
 	Doc:         `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
 	Description: "the theme a visitor with no saved choice sees",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // brandingThreshold is DUBPLATE_BRANDING: the operator's declaration
@@ -64,7 +64,7 @@ var brandingThreshold = config.Threshold{
 	Default:     notConfigured,
 	Doc:         `"none", or ";"-separated name: value declarations`,
 	Description: "the operator's style declarations, applied to every page",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // operatorCSSFileThreshold is DUBPLATE_OPERATOR_CSS_FILE: the
@@ -75,7 +75,7 @@ var operatorCSSFileThreshold = config.Threshold{
 	Default:     notConfigured,
 	Doc:         `"none", or a path to a .css file`,
 	Description: "the path to the operator's own stylesheet",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // Register adds the web surface's four presentation thresholds to

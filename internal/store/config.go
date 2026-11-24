@@ -20,7 +20,7 @@ var busyTimeoutThreshold = config.Threshold{
 	Default:     "15s",
 	Doc:         "a Go duration string, for example 15s",
 	Description: "how long a read waits on another process's write lock",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // busyTimeoutFloorMS and busyTimeoutCeilingMS bound
@@ -58,7 +58,7 @@ var migrationWaitThreshold = config.Threshold{
 	Default:     "5m",
 	Doc:         "a Go duration string, for example 5m",
 	Description: "how long a start waits for the store lock before it gives up",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // migrationWaitFloor and migrationWaitCeiling bound
@@ -83,7 +83,7 @@ var LocalSnapshotKeepSetting = config.Setting{
 	Floor:       "1",
 	Ceiling:     "100",
 	Description: "how many local pre-migration snapshot copies the server keeps",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // Register registers the store's own thresholds and

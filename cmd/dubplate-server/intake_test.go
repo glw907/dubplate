@@ -29,15 +29,15 @@ func TestRegisterIntakeConfig_StagingWallRow(t *testing.T) {
 	var row config.WallRow
 	var found bool
 	for _, r := range reg.OwnedWall() {
-		if r.Name == "DUBPLATE_STAGING_DIR" {
+		if r.Key == "DUBPLATE_STAGING_DIR" {
 			row, found = r, true
 		}
 	}
 	if !found {
 		t.Fatal("DUBPLATE_STAGING_DIR is not an owned wall row")
 	}
-	if row.Mark != config.Sensitive {
-		t.Errorf("mark = %v, want Sensitive", row.Mark)
+	if row.Sensitivity != config.Sensitive {
+		t.Errorf("mark = %v, want Sensitive", row.Sensitivity)
 	}
 	if want := "the directory on the music volume where uploads stage before admission"; row.Description != want {
 		t.Errorf("description = %q, want %q", row.Description, want)
@@ -302,9 +302,9 @@ func TestIntakeSettings(t *testing.T) {
 			if !ok {
 				t.Fatalf("%s is not a registered setting", tt.key)
 			}
-			if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling || s.Apply != tt.apply || s.Mark != tt.mark {
+			if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling || s.Apply != tt.apply || s.Sensitivity != tt.mark {
 				t.Errorf("setting = {kind %v, default %q, floor %q, ceiling %q, apply %v, mark %v}, want {%v, %q, %q, %q, %v, %v}",
-					s.Kind, s.Default, s.Floor, s.Ceiling, s.Apply, s.Mark,
+					s.Kind, s.Default, s.Floor, s.Ceiling, s.Apply, s.Sensitivity,
 					tt.kind, tt.def, tt.floor, tt.ceiling, tt.apply, tt.mark)
 			}
 			for _, v := range []string{tt.floor, tt.ceiling, tt.def} {
@@ -365,8 +365,8 @@ func TestIntakeFormatAllowlistThreshold(t *testing.T) {
 		if th.Key != "DUBPLATE_INTAKE_FORMAT_ALLOWLIST" {
 			continue
 		}
-		if th.Kind != config.KindString || th.Default != "flac" || th.Mark != config.NotSensitive {
-			t.Errorf("threshold = {kind %v, default %q, mark %v}, want {KindString, \"flac\", NotSensitive}", th.Kind, th.Default, th.Mark)
+		if th.Kind != config.KindString || th.Default != "flac" || th.Sensitivity != config.NotSensitive {
+			t.Errorf("threshold = {kind %v, default %q, mark %v}, want {KindString, \"flac\", NotSensitive}", th.Kind, th.Default, th.Sensitivity)
 		}
 		return
 	}

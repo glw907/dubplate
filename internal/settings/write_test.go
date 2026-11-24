@@ -46,23 +46,23 @@ func writeRegistry() *config.Registry {
 	reg.AddSetting(config.Setting{
 		Key: keySensitive, Kind: config.KindInt, Default: "5", Doc: "an integer",
 		Apply: config.ApplyImmediately, Floor: "1", Ceiling: "10",
-		Description: testDescription, Mark: config.Sensitive,
+		Description: testDescription, Sensitivity: config.Sensitive,
 	})
 	reg.AddSetting(config.Setting{
 		Key: keyRestart, Kind: config.KindInt, Default: "5", Doc: "an integer",
 		Apply: config.ApplyRestart, Floor: "1", Ceiling: "10",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	})
-	reg.AddWallRow(config.WallRow{Name: keyWall, Description: testDescription, Mark: config.Sensitive})
+	reg.AddWallRow(config.WallRow{Key: keyWall, Description: testDescription, Sensitivity: config.Sensitive})
 	reg.AddThreshold(config.Threshold{
 		Key: keyThreshold, Kind: config.KindInt, Default: "3", Doc: "an integer",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	})
 	reg.AddIntegrationClass(config.IntegrationClass{
 		Name: "test",
-		Flag: config.KeyDecl{Name: keyIntegration, Description: testDescription, Mark: config.NotSensitive},
+		Flag: config.KeyDecl{Key: keyIntegration, Description: testDescription, Sensitivity: config.NotSensitive},
 		Required: []config.KeyDecl{
-			{Name: keyIntegExtra, Description: testDescription, Mark: config.Sensitive},
+			{Key: keyIntegExtra, Description: testDescription, Sensitivity: config.Sensitive},
 		},
 	})
 	return reg

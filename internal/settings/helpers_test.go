@@ -46,7 +46,7 @@ func keepSetting(def string) config.Setting {
 		Ceiling: "1000",
 
 		Description: testDescription,
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 }
 
@@ -62,7 +62,7 @@ var retentionSetting = config.Setting{
 	Ceiling: "87600h",
 
 	Description: testDescription,
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // newRegistry returns a registry declaring the keep setting with

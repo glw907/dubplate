@@ -5,13 +5,13 @@ import (
 	"slices"
 )
 
-// Sensitivity is the mark every registered key carries: whether a
-// change to it needs care. The zero value is no mark, so a declaration
+// Sensitivity is the class every registered key carries: whether a
+// change to it needs care. The zero value is no class, so a declaration
 // that forgets the field panics at registration rather than reading as
 // not sensitive, on the precedent of ops.Privilege.
 //
-// On a store-homed [Setting] the mark gates the live write. On a key
-// only the environment sets, which changes only at a restart, it marks
+// On a store-homed [Setting] the sensitivity gates the live write. On a
+// key only the environment sets, which changes only at a restart, it marks
 // a path, an address, a credential, or a trust boundary. It never says
 // whether a value is a secret.
 type Sensitivity int
@@ -24,7 +24,7 @@ const (
 )
 
 // String returns m's name as a report prints it, or "Sensitivity(N)"
-// for a mark no one named, the zero value included.
+// for a sensitivity no one named, the zero value included.
 func (m Sensitivity) String() string {
 	switch m {
 	case NotSensitive:
@@ -37,19 +37,19 @@ func (m Sensitivity) String() string {
 }
 
 // KeyDecl declares one environment key an [IntegrationClass] or an
-// [IdentitySource] names, with the description and mark every
+// [IdentitySource] names, with the description and sensitivity every
 // registered key carries.
 type KeyDecl struct {
-	Name        string
+	Key         string
 	Description string
-	Mark        Sensitivity
+	Sensitivity Sensitivity
 }
 
 // KeyNames returns the names of keys in order.
 func KeyNames(keys []KeyDecl) []string {
 	names := make([]string, len(keys))
 	for i, k := range keys {
-		names[i] = k.Name
+		names[i] = k.Key
 	}
 	return names
 }
@@ -57,9 +57,9 @@ func KeyNames(keys []KeyDecl) []string {
 // WallRow is one row of the owned configuration wall: a key [Load]
 // requires.
 type WallRow struct {
-	Name        string
+	Key         string
 	Description string
-	Mark        Sensitivity
+	Sensitivity Sensitivity
 }
 
 // ownedWall is the wall's required-now rows (spec, "The config wall,
@@ -68,32 +68,32 @@ type WallRow struct {
 // here: this package names no key that belongs to another package.
 var ownedWall = []WallRow{
 	{
-		Name:        "DUBPLATE_LIBRARY_ROOT",
+		Key:         "DUBPLATE_LIBRARY_ROOT",
 		Description: "the directory tree that holds the music library",
-		Mark:        Sensitive,
+		Sensitivity: Sensitive,
 	},
 	{
-		Name:        "DUBPLATE_STATE_DIR",
+		Key:         "DUBPLATE_STATE_DIR",
 		Description: "the directory that holds the server's persistent state: the store, the auth records, and the snapshots",
-		Mark:        Sensitive,
+		Sensitivity: Sensitive,
 	},
 	{
-		Name:        "DUBPLATE_SITE_NAME",
+		Key:         "DUBPLATE_SITE_NAME",
 		Description: "the name the server shows members and puts in the mail it sends",
-		Mark:        NotSensitive,
+		Sensitivity: NotSensitive,
 	},
 	{
-		Name: "DUBPLATE_ADMIN_EMAIL",
+		Key: "DUBPLATE_ADMIN_EMAIL",
 		Description: "the operator's address: install seeds the first admin from it with member add, " +
 			"it grants no authority at runtime, and it is the contact the music metadata lookups send",
-		Mark: Sensitive,
+		Sensitivity: Sensitive,
 	},
 }
 
 // ownedNow reports whether name is an owned row in r, one [Load]
 // requires.
 func (r *Registry) ownedNow(name string) bool {
-	return slices.ContainsFunc(r.ownedWall, func(row WallRow) bool { return row.Name == name })
+	return slices.ContainsFunc(r.ownedWall, func(row WallRow) bool { return row.Key == name })
 }
 
 // ReservedClass is one named class of configuration the wall
@@ -211,7 +211,7 @@ type IntegrationClass struct {
 // integration class needs no second lookup site.
 func (r *Registry) integrationClassOf(name string) (IntegrationClass, bool) {
 	for _, class := range r.integrationClasses {
-		if name == class.Flag.Name || slices.ContainsFunc(class.Required, func(k KeyDecl) bool { return k.Name == name }) {
+		if name == class.Flag.Key || slices.ContainsFunc(class.Required, func(k KeyDecl) bool { return k.Key == name }) {
 			return class, true
 		}
 	}

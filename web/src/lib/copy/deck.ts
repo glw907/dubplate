@@ -245,8 +245,8 @@ export const SETTING_INVALID_VALUE = 'That value isn’t one this setting takes.
 export const SETTING_SAVE = 'Save';
 export const SETTING_RESET = 'Reset to default';
 
-/** A key's mark, as the badge on its row reads it. */
-export const SETTING_MARKS: Record<string, string> = {
+/** A key's sensitivity, as the badge on its row reads it. */
+export const SETTING_SENSITIVITIES: Record<string, string> = {
   sensitive: 'Sensitive',
   not_sensitive: 'Not sensitive'
 };

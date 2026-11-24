@@ -69,11 +69,11 @@ type ListSettingsRequest struct{}
 // string is a stored empty value. A wall or integration key's value
 // never appears.
 type SettingEntry struct {
-	Name        string  `json:"name"`
+	Key         string  `json:"key"`
 	Home        string  `json:"home"`
 	Description string  `json:"description"`
 	Apply       string  `json:"apply"`
-	Mark        string  `json:"mark"`
+	Sensitivity string  `json:"sensitivity"`
 	Value       *string `json:"value,omitempty"`
 	Source      *string `json:"source,omitempty"`
 	SeedValue   *string `json:"seed_value,omitempty"`

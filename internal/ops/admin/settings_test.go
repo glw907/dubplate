@@ -19,7 +19,7 @@ const keyLimit = "DUBPLATE_TEST_LIMIT"
 var limitSetting = config.Setting{
 	Key: keyLimit, Kind: config.KindInt, Default: "5", Doc: "an integer",
 	Apply: config.ApplyImmediately, Floor: "1", Ceiling: "50",
-	Description: "how many test things at once", Mark: config.NotSensitive,
+	Description: "how many test things at once", Sensitivity: config.NotSensitive,
 }
 
 // fullRegistry declares a key of every family: rung 1's wall rows, an
@@ -27,20 +27,20 @@ var limitSetting = config.Setting{
 // threshold, and three settings.
 func fullRegistry() *config.Registry {
 	reg := config.NewRegistry()
-	reg.AddWallRow(config.WallRow{Name: "DUBPLATE_TEST_SOURCE", Description: "the test source", Mark: config.Sensitive})
+	reg.AddWallRow(config.WallRow{Key: "DUBPLATE_TEST_SOURCE", Description: "the test source", Sensitivity: config.Sensitive})
 	reg.AddIdentitySource(config.IdentitySource{
 		Name: "test", Selector: "DUBPLATE_TEST_SOURCE",
-		Required: []config.KeyDecl{{Name: "DUBPLATE_TEST_SECRET", Description: "the test secret", Mark: config.Sensitive}},
-		Optional: []config.KeyDecl{{Name: "DUBPLATE_TEST_SECRET_PREVIOUS", Description: "the previous test secret", Mark: config.Sensitive}},
+		Required: []config.KeyDecl{{Key: "DUBPLATE_TEST_SECRET", Description: "the test secret", Sensitivity: config.Sensitive}},
+		Optional: []config.KeyDecl{{Key: "DUBPLATE_TEST_SECRET_PREVIOUS", Description: "the previous test secret", Sensitivity: config.Sensitive}},
 	})
 	reg.AddIntegrationClass(config.IntegrationClass{
 		Name: "testsync", Rung: 6,
-		Flag:     config.KeyDecl{Name: "DUBPLATE_TEST_SYNC_ENABLED", Description: "turns on the test sync", Mark: config.Sensitive},
-		Required: []config.KeyDecl{{Name: "DUBPLATE_TEST_SYNC_REMOTE", Description: "where the test sync goes", Mark: config.Sensitive}},
+		Flag:     config.KeyDecl{Key: "DUBPLATE_TEST_SYNC_ENABLED", Description: "turns on the test sync", Sensitivity: config.Sensitive},
+		Required: []config.KeyDecl{{Key: "DUBPLATE_TEST_SYNC_REMOTE", Description: "where the test sync goes", Sensitivity: config.Sensitive}},
 	})
 	reg.AddThreshold(config.Threshold{
 		Key: "DUBPLATE_TEST_WAIT", Kind: config.KindDuration, Default: "5s", Doc: "a Go duration",
-		Description: "how long a test waits", Mark: config.NotSensitive,
+		Description: "how long a test waits", Sensitivity: config.NotSensitive,
 	})
 	reg.AddSetting(lifetimeSetting)
 	reg.AddSetting(keepSetting)
@@ -82,18 +82,18 @@ func TestListSettings_EveryKeyNoEnvironmentValue(t *testing.T) {
 
 	str := func(s string) *string { return &s }
 	env := func(name, description, mark string) ops.SettingEntry {
-		return ops.SettingEntry{Name: name, Home: "environment", Description: description, Apply: "restart", Mark: mark}
+		return ops.SettingEntry{Key: name, Home: "environment", Description: description, Apply: "restart", Sensitivity: mark}
 	}
 	want := []ops.SettingEntry{
-		{Name: keyLifetime, Home: "store", Description: "how long a test session lasts", Apply: "next_operation", Mark: "sensitive",
+		{Key: keyLifetime, Home: "store", Description: "how long a test session lasts", Apply: "next_operation", Sensitivity: "sensitive",
 			Value: str("2h"), Source: str("env-seed"), SeedValue: str("2h")},
-		{Name: keyKeep, Home: "store", Description: "how many test snapshots to keep", Apply: "restart", Mark: "not_sensitive",
+		{Key: keyKeep, Home: "store", Description: "how many test snapshots to keep", Apply: "restart", Sensitivity: "not_sensitive",
 			Value: str("20"), Source: str("admin"), SeedValue: str("30")},
-		{Name: keyLimit, Home: "store", Description: "how many test things at once", Apply: "immediately", Mark: "not_sensitive",
+		{Key: keyLimit, Home: "store", Description: "how many test things at once", Apply: "immediately", Sensitivity: "not_sensitive",
 			Value: str("5"), Source: str("default")},
 	}
 	for _, row := range reg.OwnedWall() {
-		want = append(want, env(row.Name, row.Description, markName(row.Mark)))
+		want = append(want, env(row.Key, row.Description, markName(row.Sensitivity)))
 	}
 	want = append(want,
 		env("DUBPLATE_TEST_SECRET", "the test secret", "sensitive"),
@@ -128,7 +128,7 @@ func TestListSettings_EnvironmentSetKeys(t *testing.T) {
 	}
 	got := map[string]ops.SettingEntry{}
 	for _, e := range resp.Settings {
-		got[e.Name] = e
+		got[e.Key] = e
 	}
 	for _, c := range []struct{ key, value, source string }{
 		{keyLimit, "7", "environment"},

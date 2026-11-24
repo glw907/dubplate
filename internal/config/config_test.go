@@ -290,7 +290,7 @@ func dropKey(environ []string, name string) []string {
 // rung's real key appears.
 func classificationRegistry() *Registry {
 	reg := NewRegistry()
-	reg.AddWallRow(WallRow{Name: "DUBPLATE_CLASSIFY_OWNED", Description: testDescription, Mark: NotSensitive})
+	reg.AddWallRow(WallRow{Key: "DUBPLATE_CLASSIFY_OWNED", Description: testDescription, Sensitivity: NotSensitive})
 	reg.AddReservedClass(ReservedClass{
 		Name: "classification fixture",
 		Rung: 99,
@@ -309,7 +309,7 @@ func classificationRegistry() *Registry {
 		Default:     "1",
 		Doc:         "an integer",
 		Description: testDescription,
-		Mark:        NotSensitive,
+		Sensitivity: NotSensitive,
 	})
 	reg.AddIdentitySource(IdentitySource{
 		Name:     "classification source",
@@ -325,7 +325,7 @@ func classificationRegistry() *Registry {
 		Floor:       "3",
 		Ceiling:     "1000",
 		Description: testDescription,
-		Mark:        NotSensitive,
+		Sensitivity: NotSensitive,
 	})
 	return reg
 }
@@ -647,7 +647,7 @@ var scratchWindow = Threshold{
 	Default:     "1h",
 	Doc:         "a duration",
 	Description: testDescription,
-	Mark:        NotSensitive,
+	Sensitivity: NotSensitive,
 }
 
 // scratchValidate is the fixture source's validation hook: it refuses
@@ -699,7 +699,7 @@ func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
 
 	registry := func() *Registry {
 		reg := NewRegistry()
-		reg.AddWallRow(WallRow{Name: scratchOwned, Description: testDescription, Mark: NotSensitive})
+		reg.AddWallRow(WallRow{Key: scratchOwned, Description: testDescription, Sensitivity: NotSensitive})
 		return reg
 	}
 
@@ -752,7 +752,7 @@ func TestLoad_RequiresEveryRegisteredOwnedNowRow(t *testing.T) {
 func TestConfig_WallValue(t *testing.T) {
 	const scratchOwned = "DUBPLATE_TEST_SCRATCH_OWNED"
 	reg := NewRegistry()
-	reg.AddWallRow(WallRow{Name: scratchOwned, Description: testDescription, Mark: NotSensitive})
+	reg.AddWallRow(WallRow{Key: scratchOwned, Description: testDescription, Sensitivity: NotSensitive})
 
 	cfg, err := Load(append(baseEnviron(), scratchOwned+"=/srv/scratch"), reg)
 	if err != nil {

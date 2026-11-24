@@ -78,7 +78,7 @@ func parseAs[T any](k ThresholdKind, s string) (T, error) {
 // default value in string form, and, in Doc, the accepted form a
 // caller reports on a parse error. Rungs register thresholds as they
 // introduce them; doctor reports each with its effective value.
-// Description says what the key controls and Mark whether a change to
+// Description says what the key controls and Sensitivity whether a change to
 // it needs care; every registered key carries both.
 //
 // Floor and Ceiling are the inclusive bounds of a KindInt,
@@ -90,7 +90,7 @@ type Threshold struct {
 	Default     string
 	Doc         string
 	Description string
-	Mark        Sensitivity
+	Sensitivity Sensitivity
 	Floor       string
 	Ceiling     string
 }

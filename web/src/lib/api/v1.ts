@@ -17,6 +17,25 @@ export interface Member {
   admin: boolean;
 }
 
+/** One registered key as `list_settings` answers it. */
+export interface SettingEntry {
+  key: string;
+  home: string;
+  description: string;
+  apply: string;
+  sensitivity: string;
+  value?: string;
+  source?: string;
+  seed_value?: string;
+}
+
+/** What `set_setting` and `reset_setting` answer with. */
+export interface SettingWriteResponse {
+  key: string;
+  apply: string;
+  source: string;
+}
+
 /**
  * One call's result. `refused` is a JSON error body, so `code` and
  * `detail` are the server's own; `cross_origin` is the origin check's

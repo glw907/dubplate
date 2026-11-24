@@ -65,12 +65,12 @@ var (
 	lifetimeSetting = config.Setting{
 		Key: keyLifetime, Kind: config.KindDuration, Default: "1h", Doc: "a Go duration",
 		Apply: config.ApplyNextOperation, Floor: "1m", Ceiling: "24h",
-		Description: "how long a test session lasts", Mark: config.Sensitive,
+		Description: "how long a test session lasts", Sensitivity: config.Sensitive,
 	}
 	keepSetting = config.Setting{
 		Key: keyKeep, Kind: config.KindInt, Default: "14", Doc: "an integer",
 		Apply: config.ApplyRestart, Floor: "3", Ceiling: "1000",
-		Description: "how many test snapshots to keep", Mark: config.NotSensitive,
+		Description: "how many test snapshots to keep", Sensitivity: config.NotSensitive,
 	}
 )
 

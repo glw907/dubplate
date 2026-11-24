@@ -239,7 +239,7 @@ func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 		{ops.OpRemoveMember, `{"user_id":"` + testHandle + `"}`, ops.RemoveMemberRequest{UserID: testID}, `{}`},
 		{ops.OpDemoteMember, `{"user_id":"` + testHandle + `"}`, ops.DemoteMemberRequest{UserID: testID}, `{}`},
 		{ops.OpListSettings, `{}`, ops.ListSettingsRequest{},
-			`{"settings":[{"name":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next_operation","mark":"sensitive"}]}`},
+			`{"settings":[{"key":"DUBPLATE_REAUTH_WINDOW","home":"store","description":"d","apply":"next_operation","sensitivity":"sensitive"}]}`},
 		{ops.OpSetSetting, `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h"}`,
 			ops.SetSettingRequest{Key: "DUBPLATE_REAUTH_WINDOW", Value: "3h"},
 			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"admin"}`},

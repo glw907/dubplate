@@ -312,13 +312,13 @@ func isBidiControl(r rune) bool {
 // because a typo silently disabling an integration is the failure this
 // class exists to prevent.
 func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
-	v, ok := w.get(class.Flag.Name)
+	v, ok := w.get(class.Flag.Key)
 	if !ok {
 		return false, nil
 	}
 	enabled, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, &KeyError{Key: class.Flag.Name, Reason: fmt.Sprintf("invalid value %q, want a boolean", v)}
+		return false, &KeyError{Key: class.Flag.Key, Reason: fmt.Sprintf("invalid value %q, want a boolean", v)}
 	}
 	return enabled, nil
 }
@@ -344,14 +344,14 @@ func (w *wall) rejectNamespace(reg *Registry) {
 			// itself. Load already reports an unparseable flag value;
 			// reporting it again here would emit two errors for one
 			// typo, one of them self-contradictory.
-			if name == class.Flag.Name {
+			if name == class.Flag.Key {
 				continue
 			}
 			// An unparseable flag is set, and Load reports it on its
 			// own; only a flag that resolves false leaves the key set
 			// without it.
 			if enabled, err := w.integrationEnabled(class); err == nil && !enabled {
-				w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("set without %s, the %s integration's enable flag", class.Flag.Name, class.Name)})
+				w.errs = append(w.errs, &KeyError{Key: name, Reason: fmt.Sprintf("set without %s, the %s integration's enable flag", class.Flag.Key, class.Name)})
 			}
 			continue
 		}
@@ -412,13 +412,13 @@ func (w *wall) resolveIdentitySource(sources []IdentitySource, environ []string)
 	src := sources[i]
 	values := make(map[string]string, len(src.Required)+len(src.Optional))
 	for _, decl := range src.Required {
-		if v := w.require(decl.Name); v != "" {
-			values[decl.Name] = v
+		if v := w.require(decl.Key); v != "" {
+			values[decl.Key] = v
 		}
 	}
 	for _, decl := range src.Optional {
-		if v, ok := w.get(decl.Name); ok {
-			values[decl.Name] = v
+		if v, ok := w.get(decl.Key); ok {
+			values[decl.Key] = v
 		}
 	}
 	if src.Validate != nil {
@@ -457,7 +457,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 	// twice.
 	cfg.wallValues = make(map[string]string, len(reg.ownedWall))
 	for _, row := range reg.ownedWall {
-		cfg.wallValues[row.Name] = w.require(row.Name)
+		cfg.wallValues[row.Key] = w.require(row.Key)
 	}
 
 	// Every enabled class's Required keys resolve here, generically, by
@@ -476,7 +476,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 		if enabled {
 			resolution.Required = make(map[string]string, len(class.Required))
 			for _, decl := range class.Required {
-				resolution.Required[decl.Name] = w.require(decl.Name)
+				resolution.Required[decl.Key] = w.require(decl.Key)
 			}
 		}
 		cfg.integrations[class.Name] = resolution

@@ -12,7 +12,7 @@ func TestOwnedWall_RequiredNowRows(t *testing.T) {
 
 	got := make(map[string]bool)
 	for _, row := range ownedWall {
-		got[row.Name] = true
+		got[row.Key] = true
 	}
 
 	for name := range want {

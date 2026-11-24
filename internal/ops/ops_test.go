@@ -80,8 +80,8 @@ func TestWireTypesRoundTrip(t *testing.T) {
 		{"ListSettingsResponse, store-homed and environment-only", func(t *testing.T) {
 			value, source, seed := "2h", "admin", "1h"
 			roundTrip(t, ListSettingsResponse{Settings: []SettingEntry{
-				{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Mark: "sensitive", Value: &value, Source: &source, SeedValue: &seed},
-				{Name: "DUBPLATE_STATE_DIR", Home: "environment", Description: "d", Apply: "restart", Mark: "ordinary"},
+				{Key: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next-operation", Sensitivity: "sensitive", Value: &value, Source: &source, SeedValue: &seed},
+				{Key: "DUBPLATE_STATE_DIR", Home: "environment", Description: "d", Apply: "restart", Sensitivity: "ordinary"},
 			}})
 		}},
 		{"SetSettingRequest", func(t *testing.T) { roundTrip(t, SetSettingRequest{Key: "K", Value: "v"}) }},

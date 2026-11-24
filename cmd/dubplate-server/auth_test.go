@@ -29,7 +29,7 @@ func TestRegisterAuthConfig_SelectorIsOwnedNow(t *testing.T) {
 	reg := config.NewRegistry()
 	auth.Register(reg)
 
-	if !slices.ContainsFunc(reg.OwnedWall(), func(row config.WallRow) bool { return row.Name == "DUBPLATE_IDENTITY_SOURCE" }) {
+	if !slices.ContainsFunc(reg.OwnedWall(), func(row config.WallRow) bool { return row.Key == "DUBPLATE_IDENTITY_SOURCE" }) {
 		t.Fatal("OwnedWall() has no DUBPLATE_IDENTITY_SOURCE row")
 	}
 }
@@ -310,9 +310,9 @@ func TestRegisterAuthConfig_Settings(t *testing.T) {
 				}
 				s := settingsList[i]
 				if s.Kind != tt.kind || s.Default != tt.def || s.Floor != tt.floor || s.Ceiling != tt.ceiling ||
-					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || (s.Mark == config.Sensitive) != tt.sensitive {
+					!slices.Equal(s.Values, tt.values) || s.Apply != tt.apply || (s.Sensitivity == config.Sensitive) != tt.sensitive {
 					t.Errorf("setting = kind %v default %q floor %q ceiling %q values %q apply %v sensitive %v, want %v %q %q %q %q %v %v",
-						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Mark == config.Sensitive,
+						s.Kind, s.Default, s.Floor, s.Ceiling, s.Values, s.Apply, s.Sensitivity == config.Sensitive,
 						tt.kind, tt.def, tt.floor, tt.ceiling, tt.values, tt.apply, tt.sensitive)
 				}
 				if slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool { return th.Key == tt.key }) {

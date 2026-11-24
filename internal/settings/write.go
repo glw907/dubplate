@@ -171,9 +171,9 @@ func lookup(reg *config.Registry, key string) (config.Setting, error) {
 	return reg.Settings()[i], nil
 }
 
-// describe completes res with s's apply mode and mark.
+// describe completes res with s's apply mode and sensitivity.
 func describe(res Result, s config.Setting) Result {
-	res.Apply, res.Sensitive = s.Apply, s.Mark == config.Sensitive
+	res.Apply, res.Sensitive = s.Apply, s.Sensitivity == config.Sensitive
 	return res
 }
 

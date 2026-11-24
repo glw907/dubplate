@@ -22,9 +22,9 @@ const StagingKey = "DUBPLATE_STAGING_DIR"
 // required and has no default, since a path a stranger's volume
 // layout decides is no place for one.
 var stagingRow = config.WallRow{
-	Name:        StagingKey,
+	Key:         StagingKey,
 	Description: "the directory on the music volume where uploads stage before admission",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // The retired names the staging row replaces. Rung 7's intake class
@@ -55,7 +55,7 @@ var (
 		Floor:       "104857600",
 		Ceiling:     "17179869184",
 		Description: "the largest total size of one album upload",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// A multi-disc box set plus scans. The ceiling is the salvage
@@ -69,7 +69,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "2000",
 		Description: "the most files one upload may hold",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// Album, disc, and scan subfolders with margin.
@@ -82,7 +82,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "32",
 		Description: "the deepest folder nesting one upload may use",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// 1 MiB, below FLAC's 24-bit metadata block length (16777215
@@ -96,7 +96,7 @@ var (
 		Floor:       "4096",
 		Ceiling:     "16777215",
 		Description: "the largest tag block one file may carry",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// 8 MiB, below the same FLAC block length, so the cap bounds
@@ -110,7 +110,7 @@ var (
 		Floor:       "65536",
 		Ceiling:     "16777215",
 		Description: "the largest embedded picture one file may carry",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// CD quality or better (the product copy's first section). The
@@ -124,7 +124,7 @@ var (
 		Floor:       "44100",
 		Ceiling:     "192000",
 		Description: "the lowest sample rate an upload may have",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// CD quality or better. The ceiling is 24, the deepest sample the
@@ -138,7 +138,7 @@ var (
 		Floor:       "16",
 		Ceiling:     "24",
 		Description: "the lowest bit depth an upload may have",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// The salvage value.
@@ -151,7 +151,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "20",
 		Description: "how many uploads one member may have open at once",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// The salvage floor, 5 GiB, which holds one maximum-size album's
@@ -167,7 +167,7 @@ var (
 		Floor:       "1073741824",
 		Ceiling:     "1099511627776",
 		Description: "the free space on the music volume uploads must leave untouched",
-		Mark:        config.Sensitive,
+		Sensitivity: config.Sensitive,
 	}
 
 	// Zero means no group cap; the ceiling is 2^60.
@@ -180,7 +180,7 @@ var (
 		Floor:       "0",
 		Ceiling:     "1152921504606846976",
 		Description: "the most the group may have uploaded and not yet admitted",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// A weekend away from a slow residential upload, plus margin.
@@ -193,7 +193,7 @@ var (
 		Floor:       "1h",
 		Ceiling:     "720h",
 		Description: "how long an interrupted upload may wait to resume",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// Long enough to add a release to MusicBrainz and come back.
@@ -206,7 +206,7 @@ var (
 		Floor:       "24h",
 		Ceiling:     "720h",
 		Description: "how long a held upload waits before it expires",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// Thirty minutes, to be confirmed against the gate's measured
@@ -220,7 +220,7 @@ var (
 		Floor:       "5m",
 		Ceiling:     "24h",
 		Description: "how long a check may run before the admins are told it has stalled",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// The interval is read once when the sweep starts, so a change
@@ -235,7 +235,7 @@ var (
 		Floor:       "1m",
 		Ceiling:     "1h",
 		Description: "how often the server sweeps uploads for stalls and expiries",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 
 	// One worker, so a decode never starves the requests that share
@@ -249,7 +249,7 @@ var (
 		Floor:       "1",
 		Ceiling:     "8",
 		Description: "how many uploads the server checks at once",
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 )
 
@@ -265,7 +265,7 @@ var formatAllowlistThreshold = config.Threshold{
 	Default:     "flac",
 	Doc:         "a comma-separated list of formats, for example flac",
 	Description: "the audio formats an upload may carry, comma-separated",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // Register adds the intake configuration to reg: the

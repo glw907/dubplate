@@ -176,7 +176,7 @@ func adminSuccesses() map[string]fakeAnswer {
 		ops.OpAddMember:    {resp: ops.AddMemberResponse{Member: ops.Member{UserID: testID, Address: "bo@example.com", Username: "bo"}}},
 		ops.OpRemoveMember: {resp: ops.RemoveMemberResponse{}},
 		ops.OpDemoteMember: {resp: ops.DemoteMemberResponse{}},
-		ops.OpListSettings: {resp: ops.ListSettingsResponse{Settings: []ops.SettingEntry{{Name: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next_operation", Mark: "sensitive"}}}},
+		ops.OpListSettings: {resp: ops.ListSettingsResponse{Settings: []ops.SettingEntry{{Key: "DUBPLATE_REAUTH_WINDOW", Home: "store", Description: "d", Apply: "next_operation", Sensitivity: "sensitive"}}}},
 		ops.OpSetSetting:   {resp: ops.SetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next_operation", Source: "admin"}},
 		ops.OpResetSetting: {resp: ops.ResetSettingResponse{Key: "DUBPLATE_REAUTH_WINDOW", Apply: "next_operation", Source: "env-seed"}},
 	}

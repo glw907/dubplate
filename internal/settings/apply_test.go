@@ -295,7 +295,7 @@ func TestEvaluate_WritesNothing(t *testing.T) {
 func TestEvaluate_ShowsSensitiveValues(t *testing.T) {
 	reg := config.NewRegistry()
 	s := keepSetting("14")
-	s.Mark = config.Sensitive
+	s.Sensitivity = config.Sensitive
 	reg.AddSetting(s)
 
 	ev := evaluate(reg, []string{keyKeep + "=731"}, []Row{{Key: keyKeep, Value: "529", Source: "env-seed", SeedValue: "529"}})
@@ -312,7 +312,7 @@ func TestEvaluate_ShowsSensitiveValues(t *testing.T) {
 var answerSetting = config.Setting{
 	Key: "DUBPLATE_TEST_ANSWER", Kind: config.KindString, Default: "kind", Doc: "one of kind or generic",
 	Apply: config.ApplyNextOperation, Values: []string{"kind", "generic"},
-	Description: testDescription, Mark: config.NotSensitive,
+	Description: testDescription, Sensitivity: config.NotSensitive,
 }
 
 // TestApply_StringSetting runs the seed rule over a closed-set string
@@ -386,12 +386,12 @@ var (
 	expirySetting = config.Setting{
 		Key: keyExpiry, Kind: config.KindDuration, Default: "15m", Doc: "a Go duration",
 		Apply: config.ApplyNextOperation, Floor: "1m", Ceiling: "87600h",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	}
 	nonceSetting = config.Setting{
 		Key: keyNonce, Kind: config.KindDuration, Default: "48h", Doc: "a Go duration",
 		Apply: config.ApplyNextOperation, Floor: "1m", Ceiling: "87600h",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	}
 )
 

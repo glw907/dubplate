@@ -407,9 +407,9 @@ components:
         user_id: { $ref: "#/components/schemas/UserID" }
     SettingEntry:
       type: object
-      required: [name, home, description, apply, mark]
+      required: [key, home, description, apply, sensitivity]
       properties:
-        name: { type: string }
+        key: { type: string }
         home:
           type: string
           enum: [store, environment]
@@ -417,7 +417,7 @@ components:
         apply:
           type: string
           enum: [immediately, next_operation, restart]
-        mark:
+        sensitivity:
           type: string
           enum: [sensitive, not_sensitive]
         value: { type: string }
