@@ -32,14 +32,14 @@ type operatorVerbs struct {
 }
 
 // newMemberCmd builds the member verb: add, remove, demote, and list,
-// the subcommands that give an operator the roster internal/auth keeps
-// in the store. None reads the environment itself; each resolves
+// the subcommands that give an operator the group's members, which
+// internal/auth keeps in the store. None reads the environment itself; each resolves
 // configuration through loadConfig against reg, the same wall serve
 // enforces.
 func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
-		Short: "Manage the roster of group members",
+		Short: "Manage the group's members",
 	}
 	cmd.AddCommand(ov.newMemberAddCmd(environ, reg, stderr))
 	cmd.AddCommand(ov.newMemberRemoveCmd(environ, reg, stderr))
@@ -106,7 +106,7 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 
 	cmd := &cobra.Command{
 		Use:           "add <address>",
-		Short:         "Add a member to the roster",
+		Short:         "Add a member to the group",
 		Args:          cobra.ExactArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -147,7 +147,7 @@ type rosterChange func(r *auth.Roster, ctx context.Context, id identity.UserID, 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
 func (ov operatorVerbs) newMemberRemoveCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("remove", "Remove a member from the roster", environ, reg, stderr, (*auth.Roster).RemoveMember)
+	return ov.newMemberChangeCmd("remove", "Remove a member from the group", environ, reg, stderr, (*auth.Roster).RemoveMember)
 }
 
 // newMemberDemoteCmd builds "member demote <address>": it clears the
@@ -194,7 +194,7 @@ func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string,
 func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "list",
-		Short:         "List the roster's members",
+		Short:         "List the group's members",
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,

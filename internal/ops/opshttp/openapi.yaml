@@ -475,8 +475,8 @@ components:
           items: { $ref: "#/components/schemas/Reason" }
         files:
           type: array
-          items: { $ref: "#/components/schemas/FileReject" }
-    FileReject:
+          items: { $ref: "#/components/schemas/FileReason" }
+    FileReason:
       type: object
       required: [path, reason]
       properties:
@@ -550,17 +550,16 @@ components:
       properties:
         at: { type: string, format: date-time }
         kind: { type: string }
-        reason: { type: string }
-        reject: { $ref: "#/components/schemas/Reason" }
+        reason: { $ref: "#/components/schemas/Reason" }
     SubmissionFile:
       type: object
-      required: [file_id, path, size, received, verdict]
+      required: [file_id, path, size, received, reason]
       properties:
         file_id: { $ref: "#/components/schemas/SubmissionID" }
         path: { type: string }
         size: { type: integer, format: int64 }
         received: { type: boolean }
-        verdict: { $ref: "#/components/schemas/NullableReason" }
+        reason: { $ref: "#/components/schemas/NullableReason" }
     SubmissionWarning:
       type: object
       required: [reason, subject]

@@ -30,6 +30,7 @@ import { decodePNG, pixelHex, pixelRGBA } from './png.ts';
 import {
   ADD_MEMBER_LABELS,
   API_DETAILS,
+  API_OUTCOMES,
   API_REFUSALS,
   AUTH_OUTCOMES,
   CONFIRM_CANCEL,
@@ -42,8 +43,8 @@ import {
   LOGIN_SUBLINE,
   NETWORK_FAILURE,
   REAUTH_SIGN_IN,
-  ROSTER_EMPTY_STATE,
-  ROSTER_RETRY,
+  MEMBERS_EMPTY_STATE,
+  ADMIN_RETRY,
   SENT_ESCAPE_HATCH,
   SERVER_SETTINGS_LINK,
   SETTING_APPLY,
@@ -3138,9 +3139,9 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
       .then(() => true)
       .catch(() => false);
-    const retry = visit.page.getByRole('button', { name: ROSTER_RETRY, exact: true });
+    const retry = visit.page.getByRole('button', { name: ADMIN_RETRY, exact: true });
     const retryPresent = (await retry.count()) > 0;
-    const rosterListBeforeRetry = await visit.page.locator('#roster-list').count();
+    const rosterListBeforeRetry = await visit.page.locator('#member-list').count();
     if (retryPresent) await retry.click();
     const heading = await visit.page
       .getByRole('heading', { level: 1, name: TITLES.members, exact: true })
@@ -3148,7 +3149,7 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
       .then(() => true)
       .catch(() => false);
     const emptyState = await visit.page
-      .getByText(ROSTER_EMPTY_STATE, { exact: true })
+      .getByText(MEMBERS_EMPTY_STATE, { exact: true })
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
       .then(() => true)
       .catch(() => false);
@@ -3164,8 +3165,8 @@ async function membersUnreachableRow(browser: Browser, endpoints: Endpoints, ses
 }
 
 /**
- * A 200 roster answer whose body is not the roster's own shape:
- * `fetchRoster`'s shape check answers both `{}` (no `members` key) and
+ * A 200 `list_members` answer whose body is not its shape:
+ * `loadList`'s shape check answers both `{}` (no `members` key) and
  * `{ members: null }` with the unreachable state, never a thrown
  * `TypeError` on `members.length` (an uncaught exception would surface
  * as a `pageerror` and fail the whole run through {@link refuseUnclean},
@@ -3184,12 +3185,12 @@ async function membersMalformedRosterRows(browser: Browser, endpoints: Endpoints
         route.fulfill({ status: 200, contentType: 'application/json', body: c.body })
       );
       const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
-      const alert = visit.page.locator('.alert').filter({ hasText: AUTH_OUTCOMES.failed });
+      const alert = visit.page.locator('.alert').filter({ hasText: API_OUTCOMES.failed });
       const alertShown = await alert
         .waitFor({ timeout: BOOT_TIMEOUT_MS })
         .then(() => true)
         .catch(() => false);
-      const listCount = await visit.page.locator('#roster-list').count();
+      const listCount = await visit.page.locator('#member-list').count();
       await report({
         id: c.id,
         fixture: true,
@@ -3579,7 +3580,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
 
     const adminControlCount = await visit.page.locator('[name="admin"]').count();
-    const initialCount = await visit.page.locator('#roster-list > li').count();
+    const initialCount = await visit.page.locator('#member-list > li').count();
 
     const bodies: string[] = [];
     visit.page.on('request', (req) => {
@@ -3593,7 +3594,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('newmember1');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
-      .locator('#roster-outcome')
+      .locator('#member-outcome')
       .filter({ hasText: addedMemberLine('New Member') })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
@@ -3602,7 +3603,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     // move to the address field, checked below).
     const addedAnnounced = await announced(visit.page);
 
-    const afterAddCount = await visit.page.locator('#roster-list > li').count();
+    const afterAddCount = await visit.page.locator('#member-list > li').count();
 
     // Item 1's fold: the reset form leaves no field invalid after a
     // successful add (the `:user-invalid` pseudo-class the component
@@ -3620,7 +3621,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('newmember2');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
-      .locator('#roster-outcome')
+      .locator('#member-outcome')
       .filter({ hasText: API_DETAILS.duplicate_address })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
@@ -3642,7 +3643,7 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
     await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('newmember1');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     await visit.page
-      .locator('#roster-outcome')
+      .locator('#member-outcome')
       .filter({ hasText: API_DETAILS.duplicate_username })
       .waitFor({ timeout: BOOT_TIMEOUT_MS });
 
@@ -3673,9 +3674,9 @@ async function membersAddRow(browser: Browser, endpoints: Endpoints): Promise<vo
         addedAnnounced.text === addedMemberLine('New Member') &&
         addedAnnounced.politeness === 'polite' &&
         addressAriaInvalid === 'true' &&
-        addressDescribedBy === 'roster-outcome' &&
+        addressDescribedBy === 'member-outcome' &&
         usernameAriaInvalid === 'true' &&
-        usernameDescribedBy === 'username-hint roster-outcome' &&
+        usernameDescribedBy === 'username-hint member-outcome' &&
         usernameHasErrorClass &&
         focusedAfterDuplicateUsername === 'add-username' &&
         usernameAriaInvalidAfterInput === null &&
@@ -3733,7 +3734,7 @@ async function membersNonAdminRow(browser: Browser, endpoints: Endpoints): Promi
     const listCalls = records.filter((r) => r.method === 'POST' && r.path === listPath).length;
     const adminAddressLeaked = (await visit.page.getByText(ADMIN_ADDRESS).count()) > 0;
     const formCount = await visit.page.locator('form').count();
-    const rosterListCount = await visit.page.locator('#roster-list').count();
+    const rosterListCount = await visit.page.locator('#member-list').count();
     // Item 12's fold: the not-found body stays, but the signed-in
     // header still renders (no explicit "Members" nav link, sign-out
     // kept) so the member is never stranded.
@@ -4194,16 +4195,16 @@ async function membersInheritedOutcomeRow(browser: Browser, endpoints: Endpoints
     await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill('inherited');
     await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
     const appeared = await visit.page
-      .locator('#roster-outcome')
+      .locator('#member-outcome')
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
       .then(() => true)
       .catch(() => false);
-    const text = appeared ? ((await visit.page.locator('#roster-outcome').textContent()) ?? '').trim() : '';
+    const text = appeared ? ((await visit.page.locator('#member-outcome').textContent()) ?? '').trim() : '';
     await report({
       id,
       fixture: appeared,
-      property: text === AUTH_OUTCOMES.failed,
-      detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(AUTH_OUTCOMES.failed)})`
+      property: text === API_OUTCOMES.failed,
+      detail: `text ${JSON.stringify(text)} (want ${JSON.stringify(API_OUTCOMES.failed)})`
     });
   } finally {
     await context.close();
@@ -4229,7 +4230,7 @@ async function submitAddForm(page: Page, address: string, name: string, username
 
 /** The roster row naming `address`. */
 function memberRow(page: Page, address: string) {
-  return page.locator('#roster-list > li').filter({ hasText: address });
+  return page.locator('#member-list > li').filter({ hasText: address });
 }
 
 /** A refusal fulfilled in place of one write, and the copy the page must show for it. */
@@ -4293,7 +4294,7 @@ async function membersRefusalRows(browser: Browser, endpoints: Endpoints, sessio
         await memberRow(visit.page, ADMIN_ADDRESS).getByRole('button', { name: new RegExp(`^${control} `) }).click();
         await visit.page.getByRole('button', { name: c.operation === 'remove_member' ? CONFIRM_REMOVE : CONFIRM_DEMOTE, exact: true }).click();
       }
-      const alert = visit.page.locator('#roster-outcome');
+      const alert = visit.page.locator('#member-outcome');
       const shown = await alert
         .filter({ hasText: c.want })
         .waitFor({ timeout: BOOT_TIMEOUT_MS })
@@ -4307,7 +4308,7 @@ async function membersRefusalRows(browser: Browser, endpoints: Endpoints, sessio
         const target = await link.getAttribute('target');
         const rel = await link.getAttribute('rel');
         const href = (await link.getAttribute('href')) ?? '';
-        const retryShown = (await alert.getByRole('button', { name: ROSTER_RETRY, exact: true }).count()) === 1;
+        const retryShown = (await alert.getByRole('button', { name: ADMIN_RETRY, exact: true }).count()) === 1;
         const held = await visit.page.evaluate(() => ({
           address: (document.querySelector('#add-address') as HTMLInputElement).value,
           name: (document.querySelector('#add-display-name') as HTMLInputElement).value,
@@ -4401,7 +4402,7 @@ async function membersAddRefusalFocusRows(browser: Browser, endpoints: Endpoints
       visit.expectsAuthErrorStatus = true;
       await submitAddForm(visit.page, 'focus@example.test', 'Focus Member', 'focus1');
       const shown = await visit.page
-        .locator('#roster-outcome')
+        .locator('#member-outcome')
         .filter({ hasText: API_DETAILS[c.detail] })
         .waitFor({ timeout: BOOT_TIMEOUT_MS })
         .then(() => true)
@@ -4413,7 +4414,7 @@ async function membersAddRefusalFocusRows(browser: Browser, endpoints: Endpoints
       await report({
         id,
         fixture: shown,
-        property: focused === c.field && invalid === 'true' && describedBy.split(' ').includes('roster-outcome'),
+        property: focused === c.field && invalid === 'true' && describedBy.split(' ').includes('member-outcome'),
         detail: `refusal shown ${shown}; focused ${JSON.stringify(focused)} (want ${c.field}); aria-invalid ${JSON.stringify(invalid)}; aria-describedby ${JSON.stringify(describedBy)}`
       });
     } finally {
@@ -4482,15 +4483,15 @@ async function membersRemoveRow(browser: Browser, endpoints: Endpoints, session:
   try {
     const visit = await openMembers(context, endpoints, session);
     const address = 'removable@example.test';
-    const before = await visit.page.locator('#roster-list > li').count();
+    const before = await visit.page.locator('#member-list > li').count();
     await submitAddForm(visit.page, address, 'Removable Member', 'removable1');
-    await visit.page.locator('#roster-outcome').filter({ hasText: addedMemberLine('Removable Member') }).waitFor({ timeout: BOOT_TIMEOUT_MS });
+    await visit.page.locator('#member-outcome').filter({ hasText: addedMemberLine('Removable Member') }).waitFor({ timeout: BOOT_TIMEOUT_MS });
     const writes = apiWrites(visit.page, 'remove_member');
     await memberRow(visit.page, address).getByRole('button', { name: removeControlLabel('Removable Member'), exact: true }).click();
     const writesBeforeConfirm = writes.length;
     await visit.page.getByRole('button', { name: CONFIRM_REMOVE, exact: true }).click();
     const done = await visit.page
-      .locator('#roster-outcome')
+      .locator('#member-outcome')
       .filter({ hasText: removedMemberLine('Removable Member') })
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
       .then(() => true)
@@ -4535,12 +4536,12 @@ async function membersReauthenticateRetryRow(browser: Browser, endpoints: Endpoi
     });
     const visit = await openMembers(context, endpoints, session);
     visit.expectsAuthErrorStatus = true;
-    const before = await visit.page.locator('#roster-list > li').count();
+    const before = await visit.page.locator('#member-list > li').count();
     await submitAddForm(visit.page, 'retried@example.test', 'Retried Member', 'retried1');
-    const alert = visit.page.locator('#roster-outcome');
+    const alert = visit.page.locator('#member-outcome');
     await alert.filter({ hasText: API_REFUSALS.reauthentication_required }).waitFor({ timeout: BOOT_TIMEOUT_MS });
     const heldAddress = await visit.page.locator('#add-address').inputValue();
-    await alert.getByRole('button', { name: ROSTER_RETRY, exact: true }).click();
+    await alert.getByRole('button', { name: ADMIN_RETRY, exact: true }).click();
     const added = await alert
       .filter({ hasText: addedMemberLine('Retried Member') })
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
@@ -4571,18 +4572,18 @@ async function membersLastAdminRow(browser: Browser, endpoints: Endpoints, sessi
   try {
     const visit = await openMembers(context, endpoints, session);
     visit.expectsAuthErrorStatus = true;
-    const before = await visit.page.locator('#roster-list > li').count();
+    const before = await visit.page.locator('#member-list > li').count();
     const writes = apiWrites(visit.page, 'demote_member');
     await memberRow(visit.page, ADMIN_ADDRESS).getByRole('button', { name: demoteControlLabel(endpoints.adminDisplayName), exact: true }).click();
     await visit.page.getByRole('button', { name: CONFIRM_DEMOTE, exact: true }).click();
     const refused = await visit.page
-      .locator('#roster-outcome')
+      .locator('#member-outcome')
       .filter({ hasText: API_DETAILS.last_admin })
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
       .then(() => true)
       .catch(() => false);
     const badgeStill = (await memberRow(visit.page, ADMIN_ADDRESS).locator('.badge').count()) === 1;
-    const after = await visit.page.locator('#roster-list > li').count();
+    const after = await visit.page.locator('#member-list > li').count();
     await report({
       id,
       fixture: refused,
@@ -4619,7 +4620,7 @@ async function membersListRowsRow(browser: Browser, endpoints: Endpoints, sessio
     );
     const { visit } = await open(context, new URL('members', endpoints.base).href, 'load');
     await visit.page.getByRole('heading', { level: 1, name: TITLES.members, exact: true }).waitFor({ timeout: BOOT_TIMEOUT_MS });
-    const metaLines = (await visit.page.locator('#roster-list .text-xs').allTextContents()).map((t) => t.trim());
+    const metaLines = (await visit.page.locator('#member-list .text-xs').allTextContents()).map((t) => t.trim());
     const names = async (rowAddress: string) =>
       (await memberRow(visit.page, rowAddress).getByRole('button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label'))));
     const bossButtons = await names('boss@example.test');
@@ -4896,7 +4897,7 @@ async function settingsReauthenticateWriteRow(browser: Browser, endpoints: Endpo
     const link = alert.getByRole('link', { name: REAUTH_SIGN_IN, exact: true });
     const target = await link.getAttribute('target');
     const rel = (await link.getAttribute('rel')) ?? '';
-    await alert.getByRole('button', { name: ROSTER_RETRY, exact: true }).click();
+    await alert.getByRole('button', { name: ADMIN_RETRY, exact: true }).click();
     const saved = await alert
       .filter({ hasText: settingSavedLine(key, SETTING_APPLY.next_operation) })
       .waitFor({ timeout: BOOT_TIMEOUT_MS })
@@ -5535,9 +5536,9 @@ async function resetCaptureRoster(endpoints: Endpoints): Promise<number> {
  * reads as a count other than `want`.
  */
 async function rosterRowsSettle(page: Page, want: number): Promise<number> {
-  const rows = page.locator('#roster-list > li');
+  const rows = page.locator('#member-list > li');
   try {
-    await page.waitForFunction((n) => document.querySelectorAll('#roster-list > li').length === n, want, { timeout: BOOT_TIMEOUT_MS });
+    await page.waitForFunction((n) => document.querySelectorAll('#member-list > li').length === n, want, { timeout: BOOT_TIMEOUT_MS });
   } catch {
     // The count below reports what the list held instead.
   }
@@ -5777,8 +5778,8 @@ const CAPTURE_STATES: CaptureState[] = [
       } catch {
         ok = false;
       }
-      const text = ok ? ((await visit.page.getByText(ROSTER_EMPTY_STATE, { exact: true }).textContent()) ?? '').trim() : '';
-      return { page: visit.page, ok: ok && text === ROSTER_EMPTY_STATE, detail: `empty-roster text ${JSON.stringify(text)}` };
+      const text = ok ? ((await visit.page.getByText(MEMBERS_EMPTY_STATE, { exact: true }).textContent()) ?? '').trim() : '';
+      return { page: visit.page, ok: ok && text === MEMBERS_EMPTY_STATE, detail: `empty-roster text ${JSON.stringify(text)}` };
     }
   },
   {
@@ -5813,7 +5814,7 @@ const CAPTURE_STATES: CaptureState[] = [
       await visit.page.getByLabel(ADD_MEMBER_LABELS.displayName, { exact: true }).fill('Capture Member');
       await visit.page.getByLabel(ADD_MEMBER_LABELS.username, { exact: true }).fill(captureUsername('added'));
       await visit.page.getByRole('button', { name: 'Add member', exact: true }).click();
-      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: addedMemberLine('Capture Member') });
+      const outcomeEl = visit.page.locator('#member-outcome').filter({ hasText: addedMemberLine('Capture Member') });
       let ok = true;
       try {
         await outcomeEl.waitFor({ timeout: BOOT_TIMEOUT_MS });
@@ -5852,14 +5853,14 @@ const CAPTURE_STATES: CaptureState[] = [
       await submit();
       try {
         await visit.page
-          .locator('#roster-outcome')
+          .locator('#member-outcome')
           .filter({ hasText: addedMemberLine('Capture Member') })
           .waitFor({ timeout: BOOT_TIMEOUT_MS });
       } catch (err) {
         return { page: visit.page, ok: false, detail: `the first submit never showed "added": ${message(err)}` };
       }
       await submit();
-      const outcomeEl = visit.page.locator('#roster-outcome').filter({ hasText: API_DETAILS.duplicate_address });
+      const outcomeEl = visit.page.locator('#member-outcome').filter({ hasText: API_DETAILS.duplicate_address });
       let ok = true;
       try {
         await outcomeEl.waitFor({ timeout: BOOT_TIMEOUT_MS });

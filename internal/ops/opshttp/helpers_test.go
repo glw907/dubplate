@@ -145,10 +145,10 @@ var testSubmission = ops.GetSubmissionResponse{
 	UpdatedAt:    annAnchor,
 	Events: []ops.SubmissionEvent{
 		{At: annAnchor, Kind: "uploading"},
-		{At: annAnchor, Kind: "rejected", Reason: "corrupt", Reject: new(reject.Of(reject.Corrupt))},
+		{At: annAnchor, Kind: "rejected", Reason: new(reject.Of(reject.Corrupt))},
 	},
 	Files: []ops.SubmissionFile{
-		{FileID: testID, Path: "a/1.flac", Size: 10, Received: true, Verdict: new(reject.Of(reject.Corrupt))},
+		{FileID: testID, Path: "a/1.flac", Size: 10, Received: true, Reason: new(reject.Of(reject.Corrupt))},
 		{FileID: testID, Path: "a/2.flac", Size: 10, Received: false},
 	},
 	Warnings: []ops.SubmissionWarning{

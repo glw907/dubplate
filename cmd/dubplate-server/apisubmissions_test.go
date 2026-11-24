@@ -444,10 +444,10 @@ func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 		State  string `json:"state"`
 		Events []struct {
 			Kind   string            `json:"kind"`
-			Reject map[string]string `json:"reject"`
+			Reason map[string]string `json:"reason"`
 		} `json:"events"`
 		Files []struct {
-			Verdict map[string]string `json:"verdict"`
+			Reason map[string]string `json:"reason"`
 		} `json:"files"`
 		Warnings []struct {
 			Reason  map[string]string `json:"reason"`
@@ -467,10 +467,10 @@ func TestAPI_ARejectedSubmissionCarriesEveryReasonWithItsWording(t *testing.T) {
 		"friendly":  "When you upload separate tracks, only the music files are kept, so the other files in the ZIP were left out.",
 		"next_step": "If you wanted them kept, upload the whole album instead.",
 	}
-	if got.State != "rejected" || len(got.Files) != 1 || !maps.Equal(got.Files[0].Verdict, corrupt) {
-		t.Errorf("state %q files %+v, want rejected with the corrupt verdict %v", got.State, got.Files, corrupt)
+	if got.State != "rejected" || len(got.Files) != 1 || !maps.Equal(got.Files[0].Reason, corrupt) {
+		t.Errorf("state %q files %+v, want rejected with the corrupt reason %v", got.State, got.Files, corrupt)
 	}
-	if n := len(got.Events); n != 2 || got.Events[1].Kind != "rejected" || !maps.Equal(got.Events[1].Reject, corrupt) {
+	if n := len(got.Events); n != 2 || got.Events[1].Kind != "rejected" || !maps.Equal(got.Events[1].Reason, corrupt) {
 		t.Errorf("events = %+v, want uploading then rejected carrying the corrupt reason", got.Events)
 	}
 	if len(got.Warnings) != 1 || !maps.Equal(got.Warnings[0].Reason, extras) || got.Warnings[0].Subject != "scan.jpg" {

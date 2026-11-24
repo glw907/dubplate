@@ -135,7 +135,7 @@ func tracksVerdict(t *testing.T, s *submissions, m identity.UserID, keys [][]byt
 	v := passing(c, stateAccepted)
 	for i := range v.files {
 		v.files[i].result.AudioKey = keys[i]
-		v.files[i].result.Verdict = codes[i]
+		v.files[i].result.Code = codes[i]
 	}
 	return c, v
 }

@@ -522,9 +522,9 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 		fv := fileVerdict{id: f.FileID[:]}
 		switch i {
 		case 0:
-			fv.result.Verdict = reject.Corrupt
+			fv.result.Code = reject.Corrupt
 		case 1:
-			fv.result.Verdict = reject.BelowCDQuality
+			fv.result.Code = reject.BelowCDQuality
 		}
 		v.files = append(v.files, fv)
 	}
@@ -558,9 +558,9 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	if len(got.Files) != 3 {
 		t.Fatalf("files = %d, want 3", len(got.Files))
 	}
-	if !equalWording(got.Files[0].Verdict, corrupt) ||
-		!equalWording(got.Files[1].Verdict, belowCD) || got.Files[2].Verdict != nil {
-		t.Errorf("verdicts = %+v, %+v, %+v; want corrupt, below_cd_quality, and null for the pass", got.Files[0].Verdict, got.Files[1].Verdict, got.Files[2].Verdict)
+	if !equalWording(got.Files[0].Reason, corrupt) ||
+		!equalWording(got.Files[1].Reason, belowCD) || got.Files[2].Reason != nil {
+		t.Errorf("verdicts = %+v, %+v, %+v; want corrupt, below_cd_quality, and null for the pass", got.Files[0].Reason, got.Files[1].Reason, got.Files[2].Reason)
 	}
 	for _, f := range got.Files {
 		if !f.Received {
@@ -570,10 +570,10 @@ func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
 	if n := len(got.Events); n != 3 || got.Events[0].Kind != "uploading" || got.Events[1].Kind != "checking" || got.Events[2].Kind != "rejected" {
 		t.Fatalf("events = %+v, want uploading, checking, rejected in order", got.Events)
 	}
-	if last := got.Events[2]; last.Reason != "incomplete_album" || !equalWording(last.Reject, incomplete) {
+	if last := got.Events[2]; !equalWording(last.Reason, incomplete) {
 		t.Errorf("rejected event = %+v, want the incomplete_album reason and its wording", last)
 	}
-	if got.Events[0].Reject != nil || got.Events[0].Reason != "" {
+	if got.Events[0].Reason != nil {
 		t.Errorf("uploading event = %+v, want no reason", got.Events[0])
 	}
 	if len(got.Warnings) != 2 {
@@ -600,7 +600,7 @@ func TestServiceBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
 		t.Fatal(err)
 	}
 	v := verdict{to: stateRejected, files: []fileVerdict{{id: resp.Files[0].FileID[:]}}}
-	v.files[0].result.Verdict = reject.BadExtension
+	v.files[0].result.Code = reject.BadExtension
 	if err := seam.subs.commitVerdict(deadline(t), resp.SubmissionID[:], v); err != nil {
 		t.Fatal(err)
 	}
@@ -613,7 +613,7 @@ func TestServiceBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
 	want := wording{"bad_extension", "wrong format",
 		"This isn't one of the formats the library keeps (FLAC or MP3).",
 		"Get a copy in one of these formats and upload that instead."}
-	if v := got.Files[0].Verdict; !equalWording(v, want) {
+	if v := got.Files[0].Reason; !equalWording(v, want) {
 		t.Errorf("verdict = %+v, want %+v", v, want)
 	}
 }

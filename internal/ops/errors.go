@@ -64,8 +64,9 @@ var codes = map[error]Code{
 	ErrReauthenticationRequired: CodeReauthenticationRequired,
 }
 
-// A FileReject is one declared file's refusal.
-type FileReject struct {
+// A FileReason is one declared file's reject reason. Path is valid
+// UTF-8, with the replacement character for any byte that was not.
+type FileReason struct {
 	Path   string        `json:"path"`
 	Reason reject.Reason `json:"reason"`
 }
@@ -75,7 +76,7 @@ type FileReject struct {
 // present on the wire, empty when nothing fails at that level.
 type Rejects struct {
 	Submission []reject.Reason `json:"submission"`
-	Files      []FileReject    `json:"files"`
+	Files      []FileReason    `json:"files"`
 }
 
 // An Error wraps one of this package's sentinels with its stable

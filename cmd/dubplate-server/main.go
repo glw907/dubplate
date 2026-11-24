@@ -6,7 +6,7 @@
 //   - check: validate configuration, exit nonzero on failure
 //   - doctor: report the full config wall's effective values
 //   - serve: run the HTTP server
-//   - member: manage the roster of group members
+//   - member: manage the group's members
 //   - backup: snapshot the library database and sync it to remote storage
 //   - restore: restore a library snapshot
 //   - unidecode install: build the pinned Unidecode transliteration

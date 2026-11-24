@@ -202,7 +202,7 @@ func TestCreateStoresEverySource(t *testing.T) {
 		n.manifest.Source = source
 		_, err := s.create(deadline(t), uploader, n, testLimits())
 		var mr *manifestRefusal
-		if !errors.As(err, &mr) || !slices.ContainsFunc(mr.refusal.Submission, func(r reject.Reason) bool {
+		if !errors.As(err, &mr) || !slices.ContainsFunc(mr.rejects.Submission, func(r reject.Reason) bool {
 			return r.Code == reject.MissingSource
 		}) {
 			t.Errorf("source %q: error = %v, want a manifest refusal with missing_source", source, err)
@@ -232,14 +232,14 @@ func TestCreateAnswersEveryManifestReason(t *testing.T) {
 		t.Fatalf("error = %v, want a manifest refusal", err)
 	}
 	var files []string
-	for _, f := range mr.refusal.Files {
+	for _, f := range mr.rejects.Files {
 		files = append(files, string(f.Path)+" "+string(f.Reason.Code))
 	}
 	if want := []string{"../01.flac unsafe_path", "02.mp3 bad_extension"}; !slices.Equal(files, want) {
 		t.Errorf("file reasons = %q, want %q", files, want)
 	}
-	if len(mr.refusal.Submission) != 1 || mr.refusal.Submission[0].Code != reject.MissingSource {
-		t.Errorf("submission reasons = %+v, want missing_source alone", mr.refusal.Submission)
+	if len(mr.rejects.Submission) != 1 || mr.rejects.Submission[0].Code != reject.MissingSource {
+		t.Errorf("submission reasons = %+v, want missing_source alone", mr.rejects.Submission)
 	}
 
 	dup := album(1, 1)
@@ -267,7 +267,7 @@ func TestCreateReadsTheCollectionsAllowlist(t *testing.T) {
 	}
 	_, err = s.create(deadline(t), uploader, album(1), testLimits())
 	var mr *manifestRefusal
-	if !errors.As(err, &mr) || len(mr.refusal.Files) != 1 || mr.refusal.Files[0].Reason.Code != reject.BadExtension {
+	if !errors.As(err, &mr) || len(mr.rejects.Files) != 1 || mr.rejects.Files[0].Reason.Code != reject.BadExtension {
 		t.Fatalf("error = %v, want bad_extension for a format the collection does not admit", err)
 	}
 }

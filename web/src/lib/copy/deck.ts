@@ -38,6 +38,14 @@ export const REFUSED_LINK = {
 };
 
 /**
+ * The line any `/api/v1` call shows when the server faulted or its
+ * answer could not be read. The sign-in outcomes reuse it for `failed`.
+ */
+export const API_OUTCOMES = {
+  failed: 'Something went wrong on our end. Try again in a few minutes.'
+} as const;
+
+/**
  * Every outcome `internal/auth/handlers.go` answers with, one line
  * each, keyed by the outcome value. Covers both the request-link and
  * the consumption flow, since a status like `rate_limited` answers
@@ -53,7 +61,7 @@ export const AUTH_OUTCOMES: Record<string, string> = {
   invalid_address: 'That doesn’t look like an email address. Check it and try again.',
   too_large: 'That was too much to send. Check what you entered and try again.',
   malformed: 'Something went wrong sending that. Reload the page and try again.',
-  failed: 'Something went wrong on our end. Try again in a few minutes.',
+  failed: API_OUTCOMES.failed,
   signed_in: 'You’re signed in.',
   refused: `${REFUSED_LINK.before}${REFUSED_LINK.linkText}${REFUSED_LINK.after}`,
   // Never claims revocation: sign-out clears only this browser's
@@ -115,12 +123,12 @@ export const ADD_MEMBER_SUBMIT = 'Add member';
 export const ADMIN_BADGE_LABEL = 'Admin';
 
 /**
- * The roster list's own control when it could not be reached at all
- * (a fetch failure, or a status that is neither a refusal nor a
- * parseable answer): shown beside {@link NETWORK_FAILURE} or
- * {@link AUTH_OUTCOMES}'s `failed` line.
+ * An admin page's retry control when its read could not be reached at
+ * all (a fetch failure, or a status that is neither a refusal nor a
+ * parseable answer), and a write notice's retry: shown beside
+ * {@link NETWORK_FAILURE} or {@link API_OUTCOMES}'s `failed` line.
  */
-export const ROSTER_RETRY = 'Try again';
+export const ADMIN_RETRY = 'Try again';
 
 /**
  * Shown beside the list when the read that follows a write that went
@@ -161,7 +169,7 @@ export const API_REFUSALS: Record<string, string> = {
   invalid_request: 'The server didn’t accept that. Reload the page and try again.',
   unavailable: 'That didn’t go through. Try again.',
   canceled: 'That didn’t go through. Try again.',
-  internal: AUTH_OUTCOMES.failed
+  internal: API_OUTCOMES.failed
 };
 
 /**
@@ -296,10 +304,10 @@ export function resetSettingLabel(key: string): string {
   return `Reset to default: ${key}`;
 }
 
-/** The roster list's empty state (no members yet). */
-export const ROSTER_EMPTY_STATE = 'No members yet.';
+/** The member list's empty state (no members yet). */
+export const MEMBERS_EMPTY_STATE = 'No members yet.';
 
-/** The roster list's plural-aware member count. */
+/** The member list's plural-aware member count. */
 export function memberCountLine(count: number): string {
   return count === 1 ? '1 member' : `${count} members`;
 }

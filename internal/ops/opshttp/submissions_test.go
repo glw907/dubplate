@@ -145,7 +145,7 @@ func TestServeHTTPSubmissionBodyCaps(t *testing.T) {
 func TestServeHTTPRejectsEnvelope(t *testing.T) {
 	refusal := ops.NewInvalidRequestError("the manifest was refused").WithRejects(ops.Rejects{
 		Submission: []reject.Reason{reject.Of(reject.NoAudio)},
-		Files:      []ops.FileReject{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
+		Files:      []ops.FileReason{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 	})
 	f := newFixture(t, grant(ann, ops.PrivilegeMember))
 	f.subs.answers[ops.OpCreateSubmission] = fakeAnswer{err: refusal}

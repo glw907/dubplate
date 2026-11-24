@@ -175,7 +175,7 @@ func TestError_WithDetail(t *testing.T) {
 
 func TestError_WithRejects(t *testing.T) {
 	base := NewInvalidRequestError("the manifest was refused")
-	rejects := Rejects{Submission: []reject.Reason{reject.Of(reject.NoAudio)}, Files: []FileReject{}}
+	rejects := Rejects{Submission: []reject.Reason{reject.Of(reject.NoAudio)}, Files: []FileReason{}}
 	got := base.WithRejects(rejects)
 	if got.Rejects == nil || len(got.Rejects.Submission) != 1 || got.Rejects.Submission[0].Code != reject.NoAudio {
 		t.Errorf("Rejects = %+v, want the no_audio submission reason", got.Rejects)

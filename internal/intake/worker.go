@@ -302,7 +302,7 @@ func zipFault(archive []byte, err error) (verdict, error) {
 	}
 	code := refusal.Reason.Code
 	return verdict{to: stateRejected, reason: string(code),
-		files: []fileVerdict{{id: archive, result: gate.FileResult{Verdict: code}}}}, nil
+		files: []fileVerdict{{id: archive, result: gate.FileResult{Code: code}}}}, nil
 }
 
 // conclude sets v's move from results, the gate's result for each audio
@@ -315,7 +315,7 @@ func zipFault(archive []byte, err error) (verdict, error) {
 func (v *verdict) conclude(unit gate.Unit, results []gate.FileResult, extras []string) {
 	if unit == gate.UnitTrack {
 		v.to = stateRejected
-		if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Verdict == "" }) {
+		if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Code == "" }) {
 			v.to = stateAccepted
 		}
 		for _, name := range extras {
@@ -323,7 +323,7 @@ func (v *verdict) conclude(unit gate.Unit, results []gate.FileResult, extras []s
 		}
 		return
 	}
-	if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Verdict != "" }) {
+	if slices.ContainsFunc(results, func(r gate.FileResult) bool { return r.Code != "" }) {
 		v.to = stateRejected
 		return
 	}

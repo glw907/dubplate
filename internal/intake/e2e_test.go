@@ -101,8 +101,8 @@ func TestSeparateTracksEndToEnd(t *testing.T) {
 		}
 		for i, file := range got.Files {
 			corrupt := file.Path == "02.flac"
-			if corrupt != (file.Verdict != nil && file.Verdict.Code == "corrupt") {
-				t.Errorf("%s: verdict %+v", file.Path, file.Verdict)
+			if corrupt != (file.Reason != nil && file.Reason.Code == "corrupt") {
+				t.Errorf("%s: verdict %+v", file.Path, file.Reason)
 			}
 			fileID := resp.Files[i].FileID[:]
 			if corrupt {

@@ -31,7 +31,7 @@ func album(source string, files ...ManifestFile) Manifest {
 func mf(path string, size int64) ManifestFile { return ManifestFile{Path: path, Size: size} }
 
 // submissionCodes lists the codes of a refusal's submission-level reasons.
-func submissionCodes(r Refusal) []reject.Code {
+func submissionCodes(r Rejects) []reject.Code {
 	var codes []reject.Code
 	for _, reason := range r.Submission {
 		codes = append(codes, reason.Code)
@@ -40,7 +40,7 @@ func submissionCodes(r Refusal) []reject.Code {
 }
 
 // fileCodes lists "path=code" for each of a refusal's per-file reasons.
-func fileCodes(r Refusal) []string {
+func fileCodes(r Rejects) []string {
 	var out []string
 	for _, fr := range r.Files {
 		out = append(out, string(fr.Path)+"="+string(fr.Reason.Code))

@@ -129,11 +129,11 @@ type createdFile struct {
 // manifestRefusal is a create refused by its manifest, carrying every
 // reason found.
 type manifestRefusal struct {
-	refusal gate.Refusal
+	rejects gate.Rejects
 }
 
 func (e *manifestRefusal) Error() string {
-	return fmt.Sprintf("manifest refused: %d submission reasons, %d files", len(e.refusal.Submission), len(e.refusal.Files))
+	return fmt.Sprintf("manifest refused: %d submission reasons, %d files", len(e.rejects.Submission), len(e.rejects.Files))
 }
 
 // create checks a member's manifest, then the create limits, and writes
@@ -166,7 +166,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 			return err
 		}
 		if len(refusal.Submission) > 0 || len(refusal.Files) > 0 {
-			return &manifestRefusal{refusal: refusal}
+			return &manifestRefusal{rejects: refusal}
 		}
 
 		// A clean manifest's sizes are non-negative and sum within the

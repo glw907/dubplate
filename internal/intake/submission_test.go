@@ -140,7 +140,7 @@ func inState(t *testing.T, s *submissions, uploader identity.UserID, st state, s
 			err = s.commitVerdict(ctx, c.id, passing(c, stateAccepted))
 		case stateRejected:
 			v := passing(c, stateRejected)
-			v.files[0].result.Verdict = reject.Corrupt
+			v.files[0].result.Code = reject.Corrupt
 			err = s.commitVerdict(ctx, c.id, v)
 		default:
 			t.Fatalf("no fixture path to %q", st)
@@ -302,7 +302,7 @@ func TestFailedCompareAndSetDiscardsTheResult(t *testing.T) {
 	}
 
 	v := passing(c, stateRejected)
-	v.files[0].result.Verdict = reject.Corrupt
+	v.files[0].result.Code = reject.Corrupt
 	v.warnings = []gate.FileReason{{Reason: reject.Of(reject.NoCoverArt)}}
 	if err := s.commitVerdict(deadline(t), c.id, v); !errors.Is(err, errWrongState) {
 		t.Fatalf("error = %v, want errWrongState", err)

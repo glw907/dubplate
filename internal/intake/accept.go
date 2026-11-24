@@ -109,7 +109,7 @@ func writeResult(ctx context.Context, tx *store.Tx, submission, file []byte, r g
 	_, err := tx.Exec(ctx, `UPDATE submission_files SET verdict = ?, sample_rate = ?, bits_per_sample = ?, channels = ?,
 		samples = ?, audio_key = ?, header_md5 = ?, file_hash = ?, disc = ?, track = ?
 		WHERE id = ? AND submission_id = ?`,
-		nullable(string(r.Verdict)), nonzero(int64(r.SampleRate)), nonzero(int64(r.BitsPerSample)),
+		nullable(string(r.Code)), nonzero(int64(r.SampleRate)), nonzero(int64(r.BitsPerSample)),
 		nonzero(int64(r.Channels)), nonzero(int64(r.Samples)), blob(r.AudioKey), blob(r.HeaderMD5), blob(r.FileHash),
 		nonzero(int64(r.Disc)), nonzero(int64(r.Track)), file, submission)
 	if err != nil {

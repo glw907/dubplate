@@ -104,17 +104,17 @@ func createError(err error) error {
 	case errors.Is(err, gate.ErrExtraInTracks):
 		return ops.NewInvalidRequestError(err.Error()).WithDetail(ops.DetailExtra)
 	case errors.As(err, &manifest):
-		rejects := ops.Rejects{Submission: manifest.refusal.Submission, Files: make([]ops.FileReject, 0, len(manifest.refusal.Files))}
+		rejects := ops.Rejects{Submission: manifest.rejects.Submission, Files: make([]ops.FileReason, 0, len(manifest.rejects.Files))}
 		if rejects.Submission == nil {
 			rejects.Submission = []reject.Reason{}
 		}
-		for _, f := range manifest.refusal.Files {
-			rejects.Files = append(rejects.Files, ops.FileReject{Path: validUTF8(string(f.Path)), Reason: f.Reason})
+		for _, f := range manifest.rejects.Files {
+			rejects.Files = append(rejects.Files, ops.FileReason{Path: validUTF8(string(f.Path)), Reason: f.Reason})
 		}
 		return ops.NewInvalidRequestError("the manifest was refused").WithRejects(rejects)
 	case errors.As(err, &limit):
 		reason := reject.Of(limit.code)
-		rejects := ops.Rejects{Submission: []reject.Reason{reason}, Files: []ops.FileReject{}}
+		rejects := ops.Rejects{Submission: []reject.Reason{reason}, Files: []ops.FileReason{}}
 		if limit.code == reject.CouldNotCheck {
 			return fmt.Errorf("%w: %w", ops.NewUnavailableError(reason.Friendly).WithRejects(rejects), limit.err)
 		}
@@ -235,11 +235,11 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, sub id.I
 		if err := rows.Scan(&at, &ev.Kind, &reason); err != nil {
 			return ev, err
 		}
-		ev.At, ev.Reason = store.Micros(at), reason.String
-		// An event's reason is a reject code or free text, so text that
-		// names no code is no error here.
+		ev.At = store.Micros(at)
+		// The column carries no CHECK, so a text that names no code is
+		// an event with no reason rather than an error.
 		if r, ok := reject.Lookup(reject.Code(reason.String)); ok {
-			ev.Reject = &r
+			ev.Reason = &r
 		}
 		return ev, nil
 	}, `SELECT at, kind, reason FROM submission_events WHERE submission_id = ? ORDER BY seq`, sub)
@@ -267,7 +267,7 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, sub id.I
 			if err != nil {
 				return out, err
 			}
-			f.Verdict = &r
+			f.Reason = &r
 		}
 		out.Files = append(out.Files, f.SubmissionFile)
 	}

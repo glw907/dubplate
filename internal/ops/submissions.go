@@ -81,22 +81,21 @@ type GetSubmissionRequest struct {
 }
 
 // A SubmissionEvent is one entry of a submission's journey. Reason is
-// the stored text; Reject is set when that text is a reject code.
+// nil for an event that carries no reject code.
 type SubmissionEvent struct {
 	At     time.Time      `json:"at"`
 	Kind   string         `json:"kind"`
-	Reason string         `json:"reason,omitempty"`
-	Reject *reject.Reason `json:"reject,omitempty"`
+	Reason *reject.Reason `json:"reason,omitempty"`
 }
 
-// A SubmissionFile is one file's progress and verdict. Verdict is nil
-// for a file that passed or has none yet.
+// A SubmissionFile is one file's progress and the reason it was
+// refused. Reason is nil for a file that passed or has no answer yet.
 type SubmissionFile struct {
 	FileID   id.ID          `json:"file_id"`
 	Path     string         `json:"path"`
 	Size     int64          `json:"size"`
 	Received bool           `json:"received"`
-	Verdict  *reject.Reason `json:"verdict"`
+	Reason   *reject.Reason `json:"reason"`
 }
 
 // A SubmissionWarning is a reason that never blocks. Subject is the

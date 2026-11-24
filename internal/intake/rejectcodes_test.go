@@ -32,10 +32,10 @@ func createCodes(n newSubmission, setup func(t *testing.T, f *intakeFixture, m i
 		var codes []reject.Code
 		switch {
 		case errors.As(err, &manifest):
-			for _, r := range manifest.refusal.Submission {
+			for _, r := range manifest.rejects.Submission {
 				codes = append(codes, r.Code)
 			}
-			for _, r := range manifest.refusal.Files {
+			for _, r := range manifest.rejects.Files {
 				codes = append(codes, r.Reason.Code)
 			}
 		case errors.As(err, &limit):

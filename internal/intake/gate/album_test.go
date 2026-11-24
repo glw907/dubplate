@@ -43,8 +43,8 @@ func build(t *testing.T, tracks []track) ([]FileResult, []*clip) {
 		}
 		c := cd(uint64(100+i), 1, tags...)
 		res := check(t, c.encode(t), testPolicy(), UnitAlbum)
-		if res.Verdict != "" {
-			t.Fatalf("track %d verdict = %q, want a pass", i, res.Verdict)
+		if res.Code != "" {
+			t.Fatalf("track %d verdict = %q, want a pass", i, res.Code)
 		}
 		results = append(results, res)
 		clips = append(clips, c)
@@ -181,8 +181,8 @@ func TestAlbum_NoTagIsRewritten(t *testing.T) {
 	var results []FileResult
 	for _, f := range staged {
 		res, err := CheckFile(t.Context(), f, testPolicy(), UnitAlbum)
-		if err != nil || res.Verdict != "" {
-			t.Fatalf("verdict %q, error %v, want a pass", res.Verdict, err)
+		if err != nil || res.Code != "" {
+			t.Fatalf("verdict %q, error %v, want a pass", res.Code, err)
 		}
 		results = append(results, res)
 	}
@@ -206,8 +206,8 @@ func TestAlbum_NoTagIsRewritten(t *testing.T) {
 func TestAlbum_VinylSidesAreMissingTrackNumbers(t *testing.T) {
 	for _, no := range []string{"A1", "A2", "B1"} {
 		res := check(t, cd(400, 1, [2]string{"TRACKNUMBER", no}).encode(t), testPolicy(), UnitAlbum)
-		if res.Verdict != reject.MissingTrackNumber {
-			t.Errorf("TRACKNUMBER=%s verdict = %q, want missing_track_number", no, res.Verdict)
+		if res.Code != reject.MissingTrackNumber {
+			t.Errorf("TRACKNUMBER=%s verdict = %q, want missing_track_number", no, res.Code)
 		}
 	}
 }
@@ -220,7 +220,7 @@ func TestSeparateTracks_PerFileVerdicts(t *testing.T) {
 	bad := flipByte(cd(502, 4).encode(t), 600)
 	var got []reject.Code
 	for _, data := range [][]byte{good1, bad, good2} {
-		got = append(got, check(t, data, testPolicy(), UnitTrack).Verdict)
+		got = append(got, check(t, data, testPolicy(), UnitTrack).Code)
 	}
 	if want := []reject.Code{"", reject.Corrupt, ""}; !slices.Equal(got, want) {
 		t.Errorf("verdicts = %q, want %q", got, want)
